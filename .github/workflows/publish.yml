@@ -55,20 +55,21 @@ jobs:
               env:
                   NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
 
-    publish-github:
-        name: Publish on GitHub package registry
-        needs: release
-        runs-on: ubuntu-latest
-        steps:
-            - uses: actions/checkout@v2
-            - uses: actions/setup-node@v1
-              with:
-                  node-version: 17
-                  registry-url: https://npm.pkg.github.com/
-              # Note: This is an awful solution to publish this package as "foo" on NPM and "@hejny/foo" on GitHub
-            - run: "sed -i -e 's/\\\"name\\\"\\: \\\"/\\\"name\\\": \\\"\\@hejny\\//g' ./package.json"
-            - run: npm ci
-            - run: npm run build
-            - run: npm publish
-              env:
-                  NODE_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
+    # TODO:
+    #     > publish-github:
+    #     >     name: Publish on GitHub package registry
+    #     >     needs: release
+    #     >     runs-on: ubuntu-latest
+    #     >     steps:
+    #     >         - uses: actions/checkout@v2
+    #     >         - uses: actions/setup-node@v1
+    #     >           with:
+    #     >               node-version: 17
+    #     >               registry-url: https://npm.pkg.github.com/
+    #     >           # Note: This is an awful solution to publish this package as "foo" on NPM and "@hejny/foo" on GitHub
+    #     >         - run: "sed -i -e 's/\\\"name\\\"\\: \\\"/\\\"name\\\": \\\"\\@hejny\\//g' ./package.json"
+    #     >         - run: npm ci
+    #     >         - run: npm run build
+    #     >         - run: npm publish
+    #     >           env:
+    #     >               NODE_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
