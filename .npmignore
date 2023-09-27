@@ -1,0 +1,11 @@
+
+
+/.github
+/.vscode
+/.idea
+/node_modules
+/src
+/coverage
+/samples
+
+/secrets.md
