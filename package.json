@@ -1,6 +1,6 @@
 {
     "name": "@ptp/core",
-    "version": "0.9.0",
+    "version": "0.0.0",
     "description": "!!!",
     "sideEffects": false,
     "module": "./dist/esm/index.js",
