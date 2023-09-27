@@ -1,0 +1,20 @@
+{
+    "files.eol": "\n",
+    "jestrunner.jestCommand": "npx jest",
+    "editor.formatOnSave": true,
+    "prettier.configPath": ".prettierrc",
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "extensions.ignoreRecommendations": true,
+    "typescript.tsc.autoDetect": "off",
+    "npm.autoDetect": "on",
+    "debug.allowBreakpointsEverywhere": true,
+    "html.autoClosingTags": false,
+    "editor.codeActionsOnSave": {
+        "source.organizeImports": true
+    },
+    "search.exclude": {
+        "modules/sdk/types/**": true,
+        "*/**/node_modules/": true
+    },
+    "grammarly.domain": "technical"
+}

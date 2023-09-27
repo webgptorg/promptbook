@@ -1,0 +1,35 @@
+{
+    "autokill": true,
+    "terminals": [
+        {
+            "name": "🧪 Lint",
+            "command": "npm run lint",
+            "onlySingle": true,
+            "focus": true
+        },
+        {
+            "name": "🧪 Test",
+            "command": "npm run test",
+            "onlySingle": true,
+            "focus": true
+        },
+        {
+            "name": "🔼👑 Release major version",
+            "command": "npm version major",
+            "onlySingle": true,
+            "focus": true
+        },
+        {
+            "name": "🔼🚀 Release minor version",
+            "command": "npm version minor",
+            "onlySingle": true,
+            "focus": true
+        },
+        {
+            "name": "🔼🩹 Release patch version",
+            "command": "npm version patch",
+            "onlySingle": true,
+            "focus": true
+        }
+    ]
+}
