@@ -1,7 +1,4 @@
-import { spaceTrim } from './spaceTrim';
-import { spaceTrimSimple } from './spaceTrimSimple';
-import { topTrim } from './topTrim';
-import { verticalTrim } from './verticalTrim';
+import { foo } from './foo';
 
-export default spaceTrim;
-export { spaceTrim, spaceTrimSimple, verticalTrim, topTrim };
+export default foo;
+export { foo };

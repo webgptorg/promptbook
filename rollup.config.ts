@@ -5,7 +5,7 @@ export default {
     output: [
         {
             file: './dist/umd/index.js',
-            name: 'spaceTrim',
+            name: 'ptp',
             format: 'umd',
             sourcemap: true,
         },
