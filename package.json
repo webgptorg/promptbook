@@ -2,6 +2,7 @@
     "name": "@ptp/core",
     "version": "0.0.0",
     "description": "!!!",
+    "isPrivate": false,
     "sideEffects": false,
     "module": "./dist/esm/index.js",
     "main": "./dist/umd/index.js",
