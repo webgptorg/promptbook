@@ -26,8 +26,8 @@
 -   [ ] Importing subtemplates
 -   [ ] Use spaceTrim more effectively
 -   [ ][🧠] Figure out best word for "entry" and "result" params
--   [ ] xxx
--   [ ] xxx
+-   [ ] [🤹‍♂️] Allow chats to be continued with previous message
+-   [ ] [🧠][🤹‍♂️] How to mark continued chat in .ptp.md format?
 -   [ ] xxx
 -   [ ] xxx
 -   [ ] xxx
