@@ -29,12 +29,8 @@ this Library can help with severo severo Things:
 
 _(TODO: Write this section)_:
 
-```
-
+```markdown
 # Write a joke
-
-
-
 ```
 
 ## Dictionary
@@ -117,6 +113,14 @@ _(TODO: Write this section)_
 
 ## Usage and integration _(for developers)_
 
+First you need to install this library:
+
+```bash
+npm install --save @gptp/core
+```
+
+_(TODO: Write this section)_
+
 ## FAQ
 
 If you have a question [start a discussion](https://github.com/hejny/ptp/discussions/), [open an issue](https://github.com/hejny/ptp/issues) or [write me an email](https://www.pavolhejny.com/contact).
@@ -166,3 +170,7 @@ We are considering to create a bridge/convertor between these two libraries.
 -   [ ] xxx
 -   [ ] xxx
 -   [ ] xxx
+
+```
+
+```
