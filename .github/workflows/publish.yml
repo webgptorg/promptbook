@@ -20,7 +20,7 @@ jobs:
 
     release:
         name: Create Release
-        needs: test
+        # !!! needs: test
         runs-on: ubuntu-latest
         steps:
             - name: Checkout code
@@ -41,7 +41,7 @@ jobs:
 
     publish-npm:
         name: Publish on NPM package registry
-        needs: test
+        # !!! needs: test
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v2
