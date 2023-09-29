@@ -24,7 +24,7 @@ this Library can help with severo severo Things:
 - separation of responsibilities between fromt engineer and programmer and between code Files and fromp Files and between fromps and from templates
 - testing witch prompt is working best for you loging
 - setting up some Common Format for trumps to be des fronts Intel change Bill between Project AS R For Example React Components Intro changebob between Applications This is implementation for typescript JavaScript but it Can be implemented for Any coule Stick We want
-- Simply find your code to in your code is Just one Simple function Which do All The Magic
+- Simply find your code to in your code is Just one Simple function Which do All The Magic also **DRY**
 - boosting The Performance of the App and Allo 11
 - streaming 
 
