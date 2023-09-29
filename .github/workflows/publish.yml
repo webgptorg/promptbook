@@ -19,26 +19,25 @@ jobs:
     #         - run: npm test
 
     release:
-        name: Create Release
         # !!! needs: test
-        runs-on: ubuntu-latest
-        steps:
+        name: Create Release
+          runs-on: ubuntu-latest
+          steps:
             - name: Checkout code
-              uses: actions/checkout@v3
+              uses: actions/checkout@v2
             - name: Create Release
               id: create_release
               uses: actions/create-release@v1
-              # Note: GITHUB_TOKEN and github.ref is provided by Actions, you do not need to care about it
               env:
-                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                # This token is provided by Actions, you do not need to create your own token
+                GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               with:
-                  tag_name: ${{ github.ref }}
-                  release_name: Release ${{ github.ref }}
-                  # TODO: Figure out how to automate meaningfull body
-                  body: |
-                      Release ${{ github.ref }}
-                  draft: false
-                  prerelease: false
+                tag_name: ${{ github.ref }}
+                release_name: Release ${{ github.ref }}
+                body: |
+                    Release ${{ github.ref }}
+                draft: false
+                prerelease: false
 
     publish-npm:
         name: Publish on NPM package registry
