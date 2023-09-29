@@ -167,7 +167,7 @@ Include:
 -   [ ][🧠] Figure out best word for "entry" and "result" params
 -   [ ] [🤹‍♂️] Allow chats to be continued with previous message
 -   [ ] [🧠][🤹‍♂️] How to mark continued chat in .ptp.md format?
--   [ ] xxx
+-   [ ] Use newest version of socket.io for remote server
 -   [ ] xxx
 -   [ ] xxx
 -   [ ] xxx
