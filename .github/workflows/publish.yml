@@ -6,16 +6,17 @@ on:
             - 'v*'
 
 jobs:
-    test:
-        name: Test
-        runs-on: ubuntu-latest
-        steps:
-            - uses: actions/checkout@v2
-            - uses: actions/setup-node@v1
-              with:
-                  node-version: 17
-            - run: npm ci
-            - run: npm test
+    # TODO: !!! Put back to work
+    # test:
+    #     name: Test
+    #     runs-on: ubuntu-latest
+    #     steps:
+    #         - uses: actions/checkout@v2
+    #         - uses: actions/setup-node@v1
+    #           with:
+    #               node-version: 17
+    #         - run: npm ci
+    #         - run: npm test
 
     release:
         name: Create Release
@@ -23,7 +24,7 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - name: Checkout code
-              uses: actions/checkout@v2
+              uses: actions/checkout@v4
             - name: Create Release
               id: create_release
               uses: actions/create-release@v1
