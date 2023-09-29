@@ -135,6 +135,15 @@ Langchain is primarly focued on ML engeneers working in python. This library is 
 
 We are considering to create a bridge/convertor between these two libraries.
 
+<!--
+Include:
+- jde naprosto hlavně o python knihovnu a JavaScript je tam na druhém místě
+- je zaměřený primárně na dělání templates ne na spojování templates do větších struktur
+- na úrovni jazyka rozlišuje chat a completion, já potřebuji tyhle dvě věci mixovat do jedné template pipeline
+- pro neprogramátora je docela těžké s takovou věcí pracovat a template psát- já bych měl mnohem radši systém který umožňuje psát šablony i pro netechnické lidi ( kterých je na trhu mnohem více než volných pythonistů)
+- Focus mého projektu je primárně zaměřený na budování uživatelských aplikací, nepředgenerovávání, zpracování dat, tréning či autogpt.
+-->
+
 ## TODOs
 
 -   [ ] !! Make this working as external library
