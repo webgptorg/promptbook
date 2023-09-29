@@ -19,19 +19,19 @@ jobs:
     #         - run: npm test
 
     release:
-        # !!! needs: test
         name: Create Release
-            runs-on: ubuntu-latest
-            steps:
-              - name: Checkout code
-                uses: actions/checkout@v2
-              - name: Create Release
-                id: create_release
-                uses: actions/create-release@v1
-                env:
+        needs: test
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v2
+            - name: Create Release
+              id: create_release
+              uses: actions/create-release@v1
+              env:
                   # This token is provided by Actions, you do not need to create your own token
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-                with:
+              with:
                   tag_name: ${{ github.ref }}
                   release_name: Release ${{ github.ref }}
                   body: |
@@ -41,7 +41,7 @@ jobs:
 
     publish-npm:
         name: Publish on NPM package registry
-        needs: release
+        needs: test
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v2
