@@ -1,36 +1,33 @@
 # 🌠 Prompt template pipelines
 
-*(Needs to be fixed by deepl - inputed by voice)*
+_(Needs to be fixed - inputed by voice)_
 
 Library for super boosting your usage of large language Models
 
-
-
 ## Concept
-
 
 When you have simple sigle Prompt in your up It Just doesn't matter how it is integrated If It's Direct calling of Rest API or using Open Ai library and hardcoilding prompt in the codefile or importing text file
 
 When you need Something Special or Scale The capebilities of the llms, you have Generali Free Ways to come:
 
-1) find tuning some model to your perfection or even creating your own
-2) prompt tuning
-3) multishot promoting 
+1. find tuning some model to your perfection or even creating your own
+2. prompt tuning
+3. multishot promoting
 
 with each of this situations this Library can help to boost your performance
 
 this Library can help with severo severo Things:
 
-- separation of responsibilities between fromt engineer and programmer and between code Files and fromp Files and between fromps and from templates
-- testing witch prompt is working best for you loging
-- setting up some Common Format for trumps to be des fronts Intel change Bill between Project AS R For Example React Components Intro changebob between Applications This is implementation for typescript JavaScript but it Can be implemented for Any coule Stick We want
-- Simply find your code to in your code is Just one Simple function Which do All The Magic also **DRY**
-- boosting The Performance of the App and Allo 11
-- streaming 
+-   separation of responsibilities between fromt engineer and programmer and between code Files and fromp Files and between fromps and from templates
+-   testing witch prompt is working best for you loging
+-   setting up some Common Format for trumps to be des fronts Intel change Bill between Project AS R For Example React Components Intro changebob between Applications This is implementation for typescript JavaScript but it Can be implemented for Any coule Stick We want
+-   Simply find your code to in your code is Just one Simple function Which do All The Magic also **DRY**
+-   boosting The Performance of the App and Allo 11
+-   streaming
 
 ## Prompt template pipelines _(for prompt-engeneers)_
 
-Foo foo:
+_(TODO: Write this section)_:
 
 ```
 
@@ -42,28 +39,28 @@ Foo foo:
 
 ## Dictionary
 
-Foo foo
+_(TODO: Write this section)_
 
 ### Prompt
 
-Foo foo
+_(TODO: Write this section)_
 
 ### Prompt Template
 
-Foo foo
+_(TODO: Write this section)_
 
 ### Model Requirements
 
 Connected with each prompt template
-Foo foo
+_(TODO: Write this section)_
 
 ### Prompt Template Params
 
-Foo foo
+_(TODO: Write this section)_
 
 ### Prompt Template Pipeline
 
-Foo foo
+_(TODO: Write this section)_
 
 it can have 3 formats:
 
@@ -73,52 +70,66 @@ it can have 3 formats:
 
 ### Prompt Template Pipeline **Library**
 
-Foo foo
+_(TODO: Write this section)_
 
 ### Prompt Result
 
-Foo foo
+_(TODO: Write this section)_
 
 ### Execution Tools
 
-Foo foo
+_(TODO: Write this section)_
 
 OpenAiExecutionTools, AzureOpenAiExecutionTools, BardExecutionTools, LamaExecutionTools
 and special case are RemoteExecutionTools
 
 ### Executor
 
-Foo foo
+_(TODO: Write this section)_
 
 ### Xxxxx
 
-Foo foo
+_(TODO: Write this section)_
 
 ### Xxxxx
 
-Foo foo
+_(TODO: Write this section)_
 
 ### Xxxxx
 
-Foo foo
+_(TODO: Write this section)_
 
 ### Xxxxx
 
-Foo foo
+_(TODO: Write this section)_
 
 ### Xxxxx
 
-Foo foo
+_(TODO: Write this section)_
 
 ### Xxxxx
 
-Foo foo
+_(TODO: Write this section)_
 
 ### Xxxxx
 
-Foo foo
+_(TODO: Write this section)_
 
 ## Usage and integration _(for developers)_
+
+## FAQ
+
+If you have a question [start a discussion](https://github.com/hejny/ptp/discussions/), [open an issue](https://github.com/hejny/ptp/issues) or [write me an email](https://www.pavolhejny.com/contact).
+
+### Why not just use OpenAI library?
+
+Different levels of abstraction. OpenAI library is for direct usage of OpenAI API. This library is for higher level of abstraction. It is for creating prompt templates and prompt template pipelines which are indipedent on the underlying library, LLM model or even LLM provider.
+
+### How it different from Langchain library?
+
+Langchain is primarly focued on ML engeneers working in python. This library is for developers working in javascript/typescript creating applications for end users.
+
+We are considering to create a bridge/convertor between these two libraries.
 
 ## TODOs
 
