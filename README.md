@@ -1,10 +1,32 @@
 # 🌠 Prompt template pipelines
 
-Foo foo
+*(Needs to be fixed by deepl - inputed by voice)*
+
+Library for super boosting your usage of large language Models
+
+
 
 ## Concept
 
-Foo foo
+
+When you have simple sigle Prompt in your up It Just doesn't matter how it is integrated If It's Direct calling of Rest API or using Open Ai library and hardcoilding prompt in the codefile or importing text file
+
+When you need Something Special or Scale The capebilities of the llms, you have Generali Free Ways to come:
+
+1) find tuning some model to your perfection or even creating your own
+2) prompt tuning
+3) multishot promoting 
+
+with each of this situations this Library can help to boost your performance
+
+this Library can help with severo severo Things:
+
+- separation of responsibilities between fromt engineer and programmer and between code Files and fromp Files and between fromps and from templates
+- testing witch prompt is working best for you loging
+- setting up some Common Format for trumps to be des fronts Intel change Bill between Project AS R For Example React Components Intro changebob between Applications This is implementation for typescript JavaScript but it Can be implemented for Any coule Stick We want
+- Simply find your code to in your code is Just one Simple function Which do All The Magic
+- boosting The Performance of the App and Allo 11
+- streaming 
 
 ## Prompt template pipelines _(for prompt-engeneers)_
 
