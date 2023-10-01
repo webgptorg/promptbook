@@ -4,25 +4,25 @@ Library to supercharge your use of large language models
 
 ## Concept
 
-When you have simple sigle prompt into GPT / ChatGPT, It Just doesn't matter how it is integrated Wheather It's Direct calling of Rest API or using Open Ai library and hardcoding prompt in the source code or importing text file.
+When you have a simple single prompt in GPT / ChatGPT, it doesn't matter how it is integrated, whether it's direct calling of Rest API or using Open Ai library and hardcoding prompt in source code or importing text file.
 
-When you need Something more advanced or Scale up The capabilities of the LLMs, you have in general 3 Ways to come:
+If you need something more advanced or want to extend the capabilities of LLMs, you generally have 3 ways to come:
 
-1. **finetune** the model to your perfection or even train your own
-2. **prompt tuning** the prompt to your perfection
-3. **multishot** using multiple prompts to get the best result
+1. **Fine-tune** the model to your perfection or even train your own.
+2. **Tune** the prompt to your perfection
+3. Use **multishot** approach with multiple prompts to get the best result
 
-With each of this situations this library can make your life easier:
+In any of these situations, this library can make your life easier:
 
--   **Separation of concerns** between prompt engineer and programmer; between code files and prompt files and between prompts, templates, templating pipelines and its execution logic
--   **Versioning** of the prompt templates and prompt template pipelines
--   **Sharing** of the prompt templates and prompt template pipelines
--   **Reusability** of the prompt templates and prompt template pipelines
+-   **Separation of concerns** between prompt engineer and programmer; between code files and prompt files; and between prompts, templates, templating pipelines, and their execution logic.
+-   Set up a **common format** for prompts that is interchangeable between project and language/technology stacks.
+-   Simplify your code to be **DRY** and not repeat all the boilerplate code for each prompt.
+-   **Versioning** of prompt template pipelines
+-   **Reuse** parts of prompt template pipelines in/between projects
 -   **Logging** the results of the prompt template pipelines
--   **A/B testing** witch prompt works best for job
--   setting up some **common format** for prompts which is interchangable between Project and language/technology stacks
--   **Simply your code** to be **DRY** and not repeat all the boilerplate code for each prompt
--   Leverage the **streaming** to make supercool UI/UX
+-   **Caching** calls to LLMs to save money and time
+-   **A/B testing** to determine which prompt works best for the job
+-   Leverage the **streaming** to make super cool UI/UX
 
 ## Prompt template pipelines _(for prompt-engeneers)_
 
