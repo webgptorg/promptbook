@@ -1,7 +1,7 @@
 {
     "name": "@gptp/core",
     "version": "0.1.4",
-    "description": "!!!",
+    "description": "(Needs to be fixed - inputed by voice)",
     "private": false,
     "sideEffects": false,
     "module": "./dist/esm/index.js",
