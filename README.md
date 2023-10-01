@@ -1,29 +1,28 @@
 # 🌠 Prompt template pipelines
 
-_(Needs to be fixed - inputed by voice)_
-
-Library for super boosting your usage of large language Models
+Library to supercharge your use of large language models
 
 ## Concept
 
-When you have simple sigle Prompt in your up It Just doesn't matter how it is integrated If It's Direct calling of Rest API or using Open Ai library and hardcoilding prompt in the codefile or importing text file
+When you have simple sigle prompt into GPT / ChatGPT, It Just doesn't matter how it is integrated Wheather It's Direct calling of Rest API or using Open Ai library and hardcoding prompt in the source code or importing text file.
 
-When you need Something Special or Scale The capebilities of the llms, you have Generali Free Ways to come:
+When you need Something more advanced or Scale up The capabilities of the LLMs, you have in general 3 Ways to come:
 
-1. find tuning some model to your perfection or even creating your own
-2. prompt tuning
-3. multishot promoting
+1. **finetune** the model to your perfection or even train your own
+2. **prompt tuning** the prompt to your perfection
+3. **multishot** using multiple prompts to get the best result
 
-with each of this situations this Library can help to boost your performance
+With each of this situations this library can make your life easier:
 
-this Library can help with severo severo Things:
-
--   separation of responsibilities between fromt engineer and programmer and between code Files and fromp Files and between fromps and from templates
--   testing witch prompt is working best for you loging
--   setting up some Common Format for trumps to be des fronts Intel change Bill between Project AS R For Example React Components Intro changebob between Applications This is implementation for typescript JavaScript but it Can be implemented for Any coule Stick We want
--   Simply find your code to in your code is Just one Simple function Which do All The Magic also **DRY**
--   boosting The Performance of the App and Allo 11
--   streaming
+-   **Separation of concerns** between prompt engineer and programmer; between code files and prompt files and between prompts, templates, templating pipelines and its execution logic
+-   **Versioning** of the prompt templates and prompt template pipelines
+-   **Sharing** of the prompt templates and prompt template pipelines
+-   **Reusability** of the prompt templates and prompt template pipelines
+-   **Logging** the results of the prompt template pipelines
+-   **A/B testing** witch prompt works best for job
+-   setting up some **common format** for prompts which is interchangable between Project and language/technology stacks
+-   **Simply your code** to be **DRY** and not repeat all the boilerplate code for each prompt
+-   Leverage the **streaming** to make supercool UI/UX
 
 ## Prompt template pipelines _(for prompt-engeneers)_
 
