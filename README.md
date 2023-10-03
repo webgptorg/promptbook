@@ -94,81 +94,131 @@ Compare meaning of thee two sentences:
 
 ## Dictionary
 
-_(TODO: Write this section)_
+Following dictionary is used to make certain basic concepts more clear:
 
 ### Prompt
 
-_(TODO: Write this section)_
+Prompt in one text together with model requirements but without any execution or templating logic.
+It can be for example:
+
+```json
+{
+    "request": "Which sound does a cat make?",
+    "modelRequirements": {
+        "variant": "CHAT"
+    }
+}
+```
+
+```json
+{
+    "request": "I am a cat.\nI like to eat fish.\nI like to sleep.\nI like to play with a ball.\nI l",
+    "modelRequirements": {
+        "variant": "COMPLETION"
+    }
+}
+```
 
 ### Prompt Template
 
-_(TODO: Write this section)_
+Simmilar concept as prompt but with templating logic. It can be for example:
+
+```json
+{
+    "request": "Which sound does a {animalName} make?",
+    "modelRequirements": {
+        "variant": "CHAT"
+    }
+}
+```
 
 ### Model Requirements
 
-Connected with each prompt template
-_(TODO: Write this section)_
+Abstract way how to specify the LLM.
+It does not specify the LLM itself but only the requirements for the LLM.
+_Like NOT chatgpt-3.5-turbo but CHAT variant of GPT-3._
 
 ### Prompt Template Params
 
-_(TODO: Write this section)_
+Parameters which are placed in prompt template and are replaced to create the prompt.
+It is simple key-value object.
+
+```json
+{
+    "animalName": "cat",
+    "animalSound": "Meow!"
+}
+```
+
+There are three types of template params according to their usage in prompt template pipeline:
+
+-   **Entry params** a
+-   **Internal params**
+-   **Result params**
 
 ### Prompt Template Pipeline
 
-_(TODO: Write this section)_
+Prompt template pipeline is core concept of this library.
+It represents series of prompt templates chained together together forming a pipeline / one big prompt template with entry and result params.
 
-it can have 3 formats:
+Internally it can have 3 formats:
 
--   `.ptp.md` - markdown format
--   `.ptp.json` - json format
--   **object**
+-   **.ptp.md file** in customized markdown format
+-   **JSON** format which is parsed from .ptp.md file
+-   **Object** which is created from JSON format and binded with tools around (but not the execution logic)
 
 ### Prompt Template Pipeline **Library**
 
-_(TODO: Write this section)_
+Library of prompt template pipelines which groups together prompt template pipelines for one app.
+This is a very thin wrapper around the Array/Set of prompt template pipelines.
+
+Prompt Template Pipeline library is useful helper in execution, it can be shared between execution and consumer parts of the app and make common knowledge about prompt template pipelines.
 
 ### Prompt Result
 
-_(TODO: Write this section)_
+Prompt result is simplest concept of execution.
+It is result of one prompt (NOT template) execution.
+
+For example:
+
+```json
+{
+    "response": "Meow!",
+    "model": "chatgpt-3.5-turbo"
+}
+```
 
 ### Execution Tools
 
-_(TODO: Write this section)_
+Execution tools is container for all tools needed for execution of prompts (template pipelines).
+On its interface it exposes common methods for prompt execution.
+On inside (in constructor) it calls OpenAI, Azure, GPU, proxy, cache, logging,...
 
-OpenAiExecutionTools, AzureOpenAiExecutionTools, BardExecutionTools, LamaExecutionTools
-and special case are RemoteExecutionTools
+Execution tools is abstract interface which is implemented by concrete execution tools:
+
+-   `OpenAiExecutionTools`
+-   `AzureOpenAiExecutionTools`
+-   `BardExecutionTools`
+-   `LamaExecutionTools`
+-   `GpuExecutionTools`
+-   And special case are `RemoteExecutionTools` which are connected to remote server and on that server is executed one of the above execution tools.
 
 ### Executor
 
-_(TODO: Write this section)_
+Executor is simple async function which takes entry params and returns result params (together with all internal params and entry paramsm = it extends input object).
 
-### Xxxxx
+Executor is made by joining together execution tools and prompt template pipeline library.
+It can be done two ways:
 
-_(TODO: Write this section)_
+-   From `PromptTemplatePipelineLibrary.getExecutor` method
+-   `createPtpExecutor` utility function
 
-### Xxxxx
+### Remote server
 
-_(TODO: Write this section)_
+Remote server is proxy server which internally uses its execution tools and on outside it exposes executor interface.
 
-### Xxxxx
-
-_(TODO: Write this section)_
-
-### Xxxxx
-
-_(TODO: Write this section)_
-
-### Xxxxx
-
-_(TODO: Write this section)_
-
-### Xxxxx
-
-_(TODO: Write this section)_
-
-### Xxxxx
-
-_(TODO: Write this section)_
+You can use RemoteExecutionTools simply on client-side javascript and connect to remote server.
+This is useful to make all logic on browser-side but not expose your API keys or no need for utilizing customers GPU.
 
 ## Usage and integration _(for developers)_
 
