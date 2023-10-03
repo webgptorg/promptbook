@@ -94,12 +94,13 @@ Compare meaning of thee two sentences:
 
 ## Dictionary
 
-Following dictionary is used to make certain basic concepts more clear:
+The following glossary is used to clarify certain basic concepts:
 
 ### Prompt
 
-Prompt in one text together with model requirements but without any execution or templating logic.
-It can be for example:
+Prompt in a text along with model requirements, but without any execution or templating logic.
+
+For example:
 
 ```json
 {
@@ -121,7 +122,9 @@ It can be for example:
 
 ### Prompt Template
 
-Simmilar concept as prompt but with templating logic. It can be for example:
+Similar concept to Prompt, but with templating logic.
+
+For example:
 
 ```json
 {
@@ -134,14 +137,24 @@ Simmilar concept as prompt but with templating logic. It can be for example:
 
 ### Model Requirements
 
-Abstract way how to specify the LLM.
-It does not specify the LLM itself but only the requirements for the LLM.
-_Like NOT chatgpt-3.5-turbo but CHAT variant of GPT-3._
+Abstract way to specify the LLM.
+It does not specify the LLM with concrete version itself, only the requirements for the LLM.
+_NOT chatgpt-3.5-turbo BUT CHAT variant of GPT-3.5._
+
+For example:
+
+```json
+{
+    "variant": "CHAT",
+    "version": "GPT-3.5",
+    "temperature": 0.7
+}
+```
 
 ### Prompt Template Params
 
-Parameters which are placed in prompt template and are replaced to create the prompt.
-It is simple key-value object.
+Parameters that are placed in the prompt template and replaced to create the prompt.
+It is a simple key-value object.
 
 ```json
 {
@@ -150,34 +163,36 @@ It is simple key-value object.
 }
 ```
 
-There are three types of template params according to their usage in prompt template pipeline:
+There are three types of template params, depending on how they are used in the prompt template pipeline:
 
--   **Entry params** a
--   **Internal params**
--   **Result params**
+-   **Entry params** are required to execute the prompt template pipeline.
+-   **Intermediate params** are used internally in the prompt template pipeline.
+-   **Result params** are not used internally in the prompt template pipeline, but are returned as the result of the prompt template pipeline execution.
 
 ### Prompt Template Pipeline
 
-Prompt template pipeline is core concept of this library.
-It represents series of prompt templates chained together together forming a pipeline / one big prompt template with entry and result params.
+Prompt template pipeline is the **core concept of this library**.
+It represents a series of prompt templates chained together to form a pipeline / one big prompt template with input and result params.
 
 Internally it can have 3 formats:
 
--   **.ptp.md file** in customized markdown format
--   **JSON** format which is parsed from .ptp.md file
--   **Object** which is created from JSON format and binded with tools around (but not the execution logic)
+-   **.ptp.md file** in custom markdown format described above
+-   _(internal)_ **JSON** format, parsed from the .ptp.md file
+-   _(internal)_ **Object** which is created from JSON format and bound with tools around (but not the execution logic)
 
 ### Prompt Template Pipeline **Library**
 
-Library of prompt template pipelines which groups together prompt template pipelines for one app.
-This is a very thin wrapper around the Array/Set of prompt template pipelines.
+Library of prompt template pipelines that groups together prompt template pipelines for an application.
+This is a very thin wrapper around the Array / Set of prompt template pipelines.
 
-Prompt Template Pipeline library is useful helper in execution, it can be shared between execution and consumer parts of the app and make common knowledge about prompt template pipelines.
+Prompt Template Pipeline library is a useful helper in execution, it can be shared between execution and consumer parts of the app and make common knowledge about prompt template pipelines.
+
+It allows to create executor functions from prompt template pipelines in the library.
 
 ### Prompt Result
 
-Prompt result is simplest concept of execution.
-It is result of one prompt (NOT template) execution.
+Prompt result is the simplest concept of execution.
+It is the result of executing one prompt _(NOT a template)_.
 
 For example:
 
@@ -190,35 +205,35 @@ For example:
 
 ### Execution Tools
 
-Execution tools is container for all tools needed for execution of prompts (template pipelines).
+Execution Tools is a container for all the tools needed to execute prompts (template pipelines).
 On its interface it exposes common methods for prompt execution.
-On inside (in constructor) it calls OpenAI, Azure, GPU, proxy, cache, logging,...
+Inside (in constructor) it calls OpenAI, Azure, GPU, proxy, cache, logging,...
 
-Execution tools is abstract interface which is implemented by concrete execution tools:
+Execution Tools is an abstract interface that is implemented by concrete execution tools:
 
 -   `OpenAiExecutionTools`
 -   `AzureOpenAiExecutionTools`
 -   `BardExecutionTools`
 -   `LamaExecutionTools`
 -   `GpuExecutionTools`
--   And special case are `RemoteExecutionTools` which are connected to remote server and on that server is executed one of the above execution tools.
+-   And a special case are `RemoteExecutionTools` that connect to a remote server and run one of the above execution tools on that server.
 
 ### Executor
 
-Executor is simple async function which takes entry params and returns result params (together with all internal params and entry paramsm = it extends input object).
+Executor is a simple async function that takes input params and returns result params _(along with all intermediate params and input params = it extends input object)_.
 
-Executor is made by joining together execution tools and prompt template pipeline library.
-It can be done two ways:
+Executor is made by combining execution tools and prompt template pipeline library.
+It can be done in two ways:
 
 -   From `PromptTemplatePipelineLibrary.getExecutor` method
 -   `createPtpExecutor` utility function
 
 ### Remote server
 
-Remote server is proxy server which internally uses its execution tools and on outside it exposes executor interface.
+Remote server is a proxy server that uses its execution tools internally and exposes the executor interface externally.
 
-You can use RemoteExecutionTools simply on client-side javascript and connect to remote server.
-This is useful to make all logic on browser-side but not expose your API keys or no need for utilizing customers GPU.
+You can simply use `RemoteExecutionTools` on client-side javascript and connect to your remote server.
+This is useful to make all logic on browser side but not expose your API keys or no need to use customer's GPU.
 
 ## Usage and integration _(for developers)_
 
@@ -234,15 +249,15 @@ _(TODO: Write this section)_
 
 If you have a question [start a discussion](https://github.com/hejny/ptp/discussions/), [open an issue](https://github.com/hejny/ptp/issues) or [write me an email](https://www.pavolhejny.com/contact).
 
-### Why not just use OpenAI library?
+### Why not just use the OpenAI library?
 
-Different levels of abstraction. OpenAI library is for direct usage of OpenAI API. This library is for higher level of abstraction. It is for creating prompt templates and prompt template pipelines which are indipedent on the underlying library, LLM model or even LLM provider.
+Different levels of abstraction. OpenAI library is for direct use of OpenAI API. This library is for a higher level of abstraction. It is for creating prompt templates and prompt template pipelines that are independent of the underlying library, LLM model, or even LLM provider.
 
-### How it different from Langchain library?
+### How is it different from the Langchain library?
 
-Langchain is primarly focued on ML engeneers working in python. This library is for developers working in javascript/typescript creating applications for end users.
+Langchain is primarily aimed at ML developers working in Python. This library is for developers working in javascript/typescript and creating applications for end users.
 
-We are considering to create a bridge/convertor between these two libraries.
+We are considering creating a bridge/converter between these two libraries.
 
 <!--
 Include:
