@@ -38,7 +38,7 @@ In any of these situations, this library can make your life easier:
 
 ## Prompt template pipelines _(for prompt-engeneers)_
 
-_(TODO: Write this section)_:
+_(TODO: !!! Describe and update this section)_:
 
 ```markdown
 # 👁‍🗨 Language Capabilities
