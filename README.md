@@ -11,6 +11,8 @@ Library to supercharge your use of large language models
 [![Known Vulnerabilities](https://snyk.io/test/github/hejny/ptp/badge.svg)](https://snyk.io/test/github/hejny/ptp)
 [![Issues](https://img.shields.io/github/issues/hejny/ptp.svg?style=flat)](https://github.com/hejny/ptp/issues)
 
+<!--[![License of 🌠 Prompt template pipelines](https://img.shields.io/github/license/hejny/ptp.svg?style=flat)](https://github.com/hejny/ptp/blob/main/LICENSE)-->
+
 <!--/Badges-->
 
 ## Concept
