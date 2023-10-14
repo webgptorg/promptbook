@@ -165,9 +165,9 @@ It is a simple key-value object.
 
 There are three types of template params, depending on how they are used in the prompt template pipeline:
 
--   **Entry params** are required to execute the prompt template pipeline.
+-   **Input params** are required to execute the prompt template pipeline.
 -   **Intermediate params** are used internally in the prompt template pipeline.
--   **Result params** are not used internally in the prompt template pipeline, but are returned as the result of the prompt template pipeline execution.
+-   **Output params** are not used internally in the prompt template pipeline, but are returned as the result of the prompt template pipeline execution.
 
 ### Prompt Template Pipeline
 
@@ -220,7 +220,7 @@ Execution Tools is an abstract interface that is implemented by concrete executi
 
 ### Executor
 
-Executor is a simple async function that takes input params and returns result params _(along with all intermediate params and input params = it extends input object)_.
+Executor is a simple async function that takes input params and returns output params _(along with all intermediate params and input params = it extends input object)_.
 
 Executor is made by combining execution tools and prompt template pipeline library.
 It can be done in two ways:
@@ -288,7 +288,6 @@ Include:
 -   [ ] Refactor circular dependencies
 -   [ ] Importing subtemplates
 -   [ ] Use spaceTrim more effectively
--   [ ][🧠] Figure out best word for "entry" and "result" params
 -   [ ] [🤹‍♂️] Allow chats to be continued with previous message
 -   [ ] [🧠][🤹‍♂️] How to mark continued chat in .ptp.md format?
 -   [ ] Use newest version of socket.io for remote server
