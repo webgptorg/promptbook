@@ -1,7 +1,7 @@
 {
     "name": "@gptp/core",
     "version": "0.1.4",
-    "description": "(Needs to be fixed - inputed by voice)",
+    "description": "Library to supercharge your use of large language models",
     "private": false,
     "sideEffects": false,
     "module": "./dist/esm/index.js",
