@@ -218,11 +218,22 @@ For example:
 
 ### Execution Tools
 
-Execution Tools is a container for all the tools needed to execute prompts (template pipelines).
-On its interface it exposes common methods for prompt execution.
-Inside (in constructor) it calls OpenAI, Azure, GPU, proxy, cache, logging,...
+`ExecutionTools` is an interface which contains all the tools needed to execute prompts (template pipelines).
+It contais 3 subtools:
 
-Execution Tools is an abstract interface that is implemented by concrete execution tools:
+-   `NaturalExecutionTools`
+-   `ScriptExecutionTools`
+-   `UserInterfaceTools`
+
+Which are described below:
+
+#### Natural Execution Tools
+
+`NaturalExecutionTools` is a container for all the tools needed to execute prompts to large language models like GPT-4.
+On its interface it exposes common methods for prompt execution.
+Internally it calls OpenAI, Azure, GPU, proxy, cache, logging,...
+
+`NaturalExecutionTools` an abstract interface that is implemented by concrete execution tools:
 
 -   `OpenAiExecutionTools`
 -   `AzureOpenAiExecutionTools`
@@ -230,6 +241,24 @@ Execution Tools is an abstract interface that is implemented by concrete executi
 -   `LamaExecutionTools`
 -   `GpuExecutionTools`
 -   And a special case are `RemoteExecutionTools` that connect to a remote server and run one of the above execution tools on that server.
+-   The second special case is `MockedEchoExecutionTools` that is used for testing and mocking.
+-   The third special case is `LogExecutionToolsWrapper` that is technically also an execution tools but it is more proxy wrapper around other execution tools that logs all calls to execution tools.
+
+#### Script Execution Tools
+
+`ScriptExecutionTools` is an abstract container that represents all the tools needed to execute scripts. It is implemented by concrete execution tools:
+
+-   `JavascriptExecutionTools` is a wrapper around `vm2` module that executes javascript code in a sandbox.
+-   _(Not implemented yet)_ `TypescriptExecutionTools` executes typescript code in a sandbox.
+-   _(Not implemented yet)_ `PythonExecutionTools` executes python code in a sandbox.
+
+#### User Interface Tools
+
+`UserInterfaceTools` is an abstract container that represents all the tools needed to interact with the user. It is implemented by concrete execution tools:
+
+-   _(Not implemented yet)_ `ConsoleInterfaceTools` is a wrapper around `readline` module that interacts with the user via console.
+-   `SimplePromptInterfaceTools` is a wrapper around `window.prompt` synchronous function that interacts with the user via browser prompt. It is used for testing and mocking **NOT intended to use in the production** due to its synchronous nature.
+-   `CallbackInterfaceTools` delagates the user interaction to a async callback function. You need to provide your own implementation of this callback function and its bind to UI. <!-- <- TODO: Provide here a way how to do it with some our plugin -->
 
 ### Executor
 
