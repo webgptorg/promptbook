@@ -210,11 +210,11 @@ It is specified in list of requirements for the block.
 By default, it is `Prompt template`
 
 -   _(default)_ `Prompt template` The block is a prompt template and is executed by LLM (OpenAI, Azure,...)
--   `Simple template` The block is a simple text template which is just filled with params
+-   `Simple template` The block is a simple text template which is just filled with parameters
 -   `Script` The block is a script that is executed by some script runtime, the runtime is determined by block type, currently only `javascript` is supported but we plan to add `python` and `typescript` in the future.
 -   `Prompt dialog` Ask user for input
 
-### Prompt Template Params
+### Prompt Template Parameters
 
 Parameters that are placed in the prompt template and replaced to create the prompt.
 It is a simple key-value object.
@@ -226,16 +226,16 @@ It is a simple key-value object.
 }
 ```
 
-There are three types of template params, depending on how they are used in the prompt template pipeline:
+There are three types of template parameters, depending on how they are used in the prompt template pipeline:
 
--   **Input params** are required to execute the prompt template pipeline.
--   **Intermediate params** are used internally in the prompt template pipeline.
--   **Output params** are not used internally in the prompt template pipeline, but are returned as the result of the prompt template pipeline execution.
+-   **Input parameters** are required to execute the prompt template pipeline.
+-   **Intermediate parameters** are used internally in the prompt template pipeline.
+-   **Output parameters** are not used internally in the prompt template pipeline, but are returned as the result of the prompt template pipeline execution.
 
 ### Prompt Template Pipeline
 
 Prompt template pipeline is the **core concept of this library**.
-It represents a series of prompt templates chained together to form a pipeline / one big prompt template with input and result params.
+It represents a series of prompt templates chained together to form a pipeline / one big prompt template with input and result parameters.
 
 Internally it can have 3 formats:
 
@@ -313,7 +313,7 @@ Internally it calls OpenAI, Azure, GPU, proxy, cache, logging,...
 
 ### Executor
 
-Executor is a simple async function that takes input params and returns output params _(along with all intermediate params and input params = it extends input object)_.
+Executor is a simple async function that takes input parameters and returns output parameters _(along with all intermediate parameters and input parameters = it extends input object)_.
 
 Executor is made by combining execution tools and prompt template pipeline library.
 It can be done in two ways:
