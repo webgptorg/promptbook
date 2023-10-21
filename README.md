@@ -286,19 +286,20 @@ Internally it calls OpenAI, Azure, GPU, proxy, cache, logging,...
 `NaturalExecutionTools` an abstract interface that is implemented by concrete execution tools:
 
 -   `OpenAiExecutionTools`
--   `AzureOpenAiExecutionTools`
--   `BardExecutionTools`
--   `LamaExecutionTools`
--   `GpuExecutionTools`
--   And a special case are `RemoteExecutionTools` that connect to a remote server and run one of the above execution tools on that server.
--   The second special case is `MockedEchoExecutionTools` that is used for testing and mocking.
--   The third special case is `LogExecutionToolsWrapper` that is technically also an execution tools but it is more proxy wrapper around other execution tools that logs all calls to execution tools.
+-   _(Not implemented yet)_ `AzureOpenAiExecutionTools`
+-   _(Not implemented yet)_ `BardExecutionTools`
+-   _(Not implemented yet)_ `LamaExecutionTools`
+-   _(Not implemented yet)_ `GpuExecutionTools`
+-   And a special case are `RemoteNaturalExecutionTools` that connect to a remote server and run one of the above execution tools on that server.
+-   The second special case is `MockedEchoNaturalExecutionTools` that is used for testing and mocking.
+-   The third special case is `LogNaturalExecutionToolsWrapper` that is technically also an execution tools but it is more proxy wrapper around other execution tools that logs all calls to execution tools.
 
 #### Script Execution Tools
 
 `ScriptExecutionTools` is an abstract container that represents all the tools needed to execute scripts. It is implemented by concrete execution tools:
 
 -   `JavascriptExecutionTools` is a wrapper around `vm2` module that executes javascript code in a sandbox.
+-   `JavascriptEvalExecutionTools` is wrapper around `eval` function that executes javascript. It is used for testing and mocking **NOT intended to use in the production** due to its unsafe nature, use `JavascriptExecutionTools` instead.
 -   _(Not implemented yet)_ `TypescriptExecutionTools` executes typescript code in a sandbox.
 -   _(Not implemented yet)_ `PythonExecutionTools` executes python code in a sandbox.
 
