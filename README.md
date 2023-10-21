@@ -39,60 +39,110 @@ In any of these situations, this library can make your life easier:
 
 ## Prompt template pipelines _(for prompt-engeneers)_
 
-_(TODO: !!! Describe and update this section)_:
+<!-- TODO: !!! Write paragraph about -->
+<!-- TODO: [🧠] !!! Make some more clear escaping -->
+
+<!------------------------[ Sample: ]------------------------>
 
 ```markdown
-# 👁‍🗨 Language Capabilities
+# Sample: Language Capabilities
 
 Trying the language capabilities of GPT models.
 
+-   PTP version 1.0.0
+-   Use Chat
+-   Use GPT-3.5
+-   Input parameter `{word}` The word to use in the prompt.
+-   Output parameter `{comparisonOfTwoSentences}` Comparison between two sentences
+-   Output parameter `{summary}` The overall summary of the comparison
+
 ## Synonym
 
-Write synonym for "{word}"
+Synonym for word
 
--> removeQuotes -> {wordSynonym}
+\`\`\`
+Write synonym for "{word}"
+\`\`\`
+
+`-> {wordSynonymRaw}`
+
+## Unquote synonym
+
+-   Execute script
+
+\`\`\`javascript
+removeQuotes(wordSynonymRaw);
+\`\`\`
+
+`-> {wordSynonym}` Synonym for word
 
 ## Sentence with Synonym
 
-Write sentence with "{word}" and "{wordSynonym}" in it
+Sentence with word and wordSynonym
 
--> {sentenceWithTwoSynonyms}
+\`\`\`
+Write sentence with "{word}" and "{wordSynonym}" in it
+\`\`\`
+
+`-> {sentenceWithTwoSynonyms}` Sentence with word and wordSynonym
 
 ## Sentence without original word
 
+Sentence "{sentenceWithTwoSynonyms}" without "{word}".
+
+\`\`\`
 Remove word "{word}" from sentence and modify it so that it makes sense:
 
-### Rules:
+## Rules:
 
 -   Sentence must be grammatically correct
 -   Sentence must make sense after removing the word
 
-#### The Sentence:
+## The Sentence:
 
 > {sentenceWithTwoSynonyms}
 
--> {sentenceWithOriginalWordRemoved}
+\`\`\`
+
+`-> {sentenceWithOriginalWordRemoved}` Sentence with both synomyms but without a original word
 
 ## Comparison
 
-### Requirements:
+Comparison between "{sentenceWithTwoSynonyms}" and "{sentenceWithOriginalWordRemoved}".
 
+-   Use Chat
 -   Use GPT-4
 
----
-
+\`\`\`
 Compare meaning of thee two sentences:
 
-### Sentence 1:
+## Sentence 1:
 
 > {sentenceWithTwoSynonyms}
 
-### Sentence 2:
+## Sentence 2:
 
 > {sentenceWithOriginalWordRemoved}
 
--> {comparisonOfTwoSentences}
+\`\`\`
+
+`-> {comparisonOfTwoSentences}` Comparison between two sentences
+
+## Summary
+
+-   Execute simple template
+
+\`\`\`markdown
+You have entered a word **{word}**. For this word the best synonym is **{wordSynonym}**. The sentence with both words is **{sentenceWithTwoSynonyms}**. The sentence without the original word is **{sentenceWithOriginalWordRemoved}**. And the comparison between the two sentences is:
+
+> {comparisonOfTwoSentences}
+
+\`\`\`
+
+`-> {summary}`
 ```
+
+<!------------------------[ /Sample ]------------------------>
 
 ## Dictionary
 
