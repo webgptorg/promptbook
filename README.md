@@ -384,7 +384,7 @@ Include:
 -   [ ] [🤹‍♂️] Allow chats to be continued with previous message
 -   [ ] [🧠][🤹‍♂️] How to mark continued chat in .ptp.md format?
 -   [ ] Use newest version of socket.io for remote server
--   [ ] xxx
+-   [ ] [🧠] Allow to use and define [function calling](https://platform.openai.com/docs/guides/gpt/function-calling)
 -   [ ] xxx
 -   [ ] xxx
 -   [ ] xxx
