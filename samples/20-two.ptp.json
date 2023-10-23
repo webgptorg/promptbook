@@ -1,0 +1,45 @@
+{
+    "title": "✨ Sample prompt with two consecutive prompts",
+    "ptpUrl": "https://ptp.example.com/samples/two.ptp.md@v1",
+    "ptpVersion": "1.0.0",
+    "description": "Show how to use two consecutive prompts with one parameter each.",
+    "parameters": [
+        {
+            "name": "word",
+            "description": "Any single word",
+            "isInput": true
+        },
+        {
+            "name": "wordSynonym",
+            "isInput": false
+        },
+        {
+            "name": "sentenceWithTwoSynonyms",
+            "isInput": false
+        }
+    ],
+    "promptTemplates": [
+        {
+            "name": "Synonym",
+            "title": "💬 Synonym",
+            "description": "Synonym for word",
+            "executionType": "PROMPT_TEMPLATE",
+            "modelRequirements": {
+                "variant": "CHAT"
+            },
+            "content": "Write synonym for \"{word}\"",
+            "resultingParameterName": "wordSynonym"
+        },
+        {
+            "name": "Sentence",
+            "title": "💬 Sentence",
+            "description": "Sentence with word and wordSynonym",
+            "executionType": "PROMPT_TEMPLATE",
+            "modelRequirements": {
+                "variant": "CHAT"
+            },
+            "content": "Write sentence with \"{word}\" and \"{wordSynonym}\" in it",
+            "resultingParameterName": "sentenceWithTwoSynonyms"
+        }
+    ]
+}

@@ -1,0 +1,122 @@
+{
+    "title": "✨ Sample: Language Capabilities",
+    "ptpUrl": "https://ptp.example.com/samples/language-capabilities.ptp.md@v1",
+    "ptpVersion": "1.0.0",
+    "description": "Trying the language capabilities of GPT models.",
+    "parameters": [
+        {
+            "name": "word",
+            "description": "The word to use in the prompt.",
+            "isInput": true
+        },
+        {
+            "name": "comparisonOfTwoSentences",
+            "description": "Comparison between two sentences",
+            "isInput": false
+        },
+        {
+            "name": "summary",
+            "description": "The overall summary of the comparison",
+            "isInput": false
+        },
+        {
+            "name": "wordSynonym",
+            "isInput": false
+        },
+        {
+            "name": "wordSynonymBeforeUnwrapResult",
+            "description": "*(💬 Synonym postprocessing 1/1)* {wordSynonym} before `unwrapResult`",
+            "isInput": false
+        },
+        {
+            "name": "wordSynonymTested",
+            "isInput": false
+        },
+        {
+            "name": "sentenceWithTwoSynonyms",
+            "description": "Sentence with word and wordSynonym",
+            "isInput": false
+        },
+        {
+            "name": "sentenceWithOriginalWordRemoved",
+            "description": "Sentence with both synomyms but without a original word",
+            "isInput": false
+        }
+    ],
+    "promptTemplates": [
+        {
+            "name": "Synonym",
+            "title": "💬 Synonym",
+            "description": "Synonym for word",
+            "executionType": "PROMPT_TEMPLATE",
+            "modelRequirements": {
+                "variant": "CHAT"
+            },
+            "content": "Write synonym for \"{word}\"",
+            "resultingParameterName": "wordSynonymBeforeUnwrapResult"
+        },
+        {
+            "name": "SynonymPostprocessing0",
+            "title": "(1/1) 💬 Synonym postprocessing",
+            "description": "Postprocessing of section 💬 Synonym finally with resulting parameter {wordSynonym}",
+            "executionType": "SCRIPT",
+            "contentLanguage": "javascript",
+            "content": "unwrapResult(wordSynonymBeforeUnwrapResult)",
+            "resultingParameterName": "wordSynonym"
+        },
+        {
+            "name": "TestThatWordIsNotACat",
+            "title": "⚙ Test that word is not a cat",
+            "executionType": "SCRIPT",
+            "modelRequirements": {
+                "variant": "CHAT"
+            },
+            "contentLanguage": "javascript",
+            "content": "if (wordSynonym === 'cat') {\n    throw new Error('Word cannot be a cat');\n}",
+            "resultingParameterName": "wordSynonymTested"
+        },
+        {
+            "name": "SentenceWithSynonym",
+            "title": "💬 Sentence with Synonym",
+            "description": "Sentence with word and wordSynonym",
+            "executionType": "PROMPT_TEMPLATE",
+            "modelRequirements": {
+                "variant": "CHAT"
+            },
+            "content": "Write sentence with \"{word}\" and \"{wordSynonym}\" in it",
+            "resultingParameterName": "sentenceWithTwoSynonyms"
+        },
+        {
+            "name": "SentenceWithoutOriginalWord",
+            "title": "💬 Sentence without original word",
+            "description": "Sentence \"{sentenceWithTwoSynonyms}\" without \"{word}\".",
+            "executionType": "PROMPT_TEMPLATE",
+            "modelRequirements": {
+                "variant": "CHAT"
+            },
+            "content": "Remove word \"{word}\" from sentence and modify it so that it makes sense:\n\n## Rules:\n\n-   Sentence must be grammatically correct\n-   Sentence must make sense after removing the word\n\n## The Sentence:\n\n> {sentenceWithTwoSynonyms}",
+            "resultingParameterName": "sentenceWithOriginalWordRemoved"
+        },
+        {
+            "name": "Comparison",
+            "title": "💬 Comparison",
+            "description": "Comparison between \"{sentenceWithTwoSynonyms}\" and \"{sentenceWithOriginalWordRemoved}\".",
+            "executionType": "PROMPT_TEMPLATE",
+            "modelRequirements": {
+                "variant": "CHAT"
+            },
+            "content": "Compare meaning of thee two sentences:\n\n## Sentence 1:\n\n> {sentenceWithTwoSynonyms}\n\n## Sentence 2:\n\n> {sentenceWithOriginalWordRemoved}",
+            "resultingParameterName": "comparisonOfTwoSentences"
+        },
+        {
+            "name": "Summary",
+            "title": "🔗 Summary",
+            "executionType": "SIMPLE_TEMPLATE",
+            "modelRequirements": {
+                "variant": "CHAT"
+            },
+            "content": "You have entered a word **{word}**. For this word the best synonym is **{wordSynonym}**. The sentence with both words is **{sentenceWithTwoSynonyms}**. The sentence without the original word is **{sentenceWithOriginalWordRemoved}**. And the comparison between the two sentences is:\n\n> {comparisonOfTwoSentences}",
+            "resultingParameterName": "summary"
+        }
+    ]
+}

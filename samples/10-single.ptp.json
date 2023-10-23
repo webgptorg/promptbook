@@ -1,0 +1,30 @@
+{
+    "title": "✨ Sample prompt",
+    "ptpUrl": "https://ptp.example.com/samples/single.ptp.md@v1",
+    "ptpVersion": "1.0.0",
+    "description": "Show how to use a simple prompt with one parameter.",
+    "parameters": [
+        {
+            "name": "word",
+            "description": "Any single word",
+            "isInput": true
+        },
+        {
+            "name": "wordSynonym",
+            "isInput": false
+        }
+    ],
+    "promptTemplates": [
+        {
+            "name": "Synonym",
+            "title": "💬 Synonym",
+            "description": "Synonym for word",
+            "executionType": "PROMPT_TEMPLATE",
+            "modelRequirements": {
+                "variant": "CHAT"
+            },
+            "content": "Write synonym for \"{word}\"",
+            "resultingParameterName": "wordSynonym"
+        }
+    ]
+}

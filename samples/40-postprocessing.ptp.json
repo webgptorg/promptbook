@@ -1,0 +1,87 @@
+{
+    "title": "✨ Sample: Postprocessing 1",
+    "ptpUrl": "https://ptp.example.com/samples/postprocessing-1.ptp.md@v1",
+    "ptpVersion": "1.0.0",
+    "description": "Show how to use two consecutive prompts with one parameter each.",
+    "parameters": [
+        {
+            "name": "word",
+            "description": "Any single word",
+            "isInput": true
+        },
+        {
+            "name": "wordSynonym",
+            "isInput": false
+        },
+        {
+            "name": "wordSynonymBeforeUnwrapResult",
+            "description": "*(💬 Synonym postprocessing 1/1)* {wordSynonym} before `unwrapResult`",
+            "isInput": false
+        },
+        {
+            "name": "sentenceWithTwoSynonyms",
+            "isInput": false
+        },
+        {
+            "name": "sentenceWithTwoSynonymsBeforeUnwrapResult",
+            "description": "*(💬 Sentence postprocessing 1/2)* {sentenceWithTwoSynonyms} before `unwrapResult`",
+            "isInput": false
+        },
+        {
+            "name": "sentenceWithTwoSynonymsBeforeSpaceTrim",
+            "description": "*(💬 Sentence postprocessing 2/2)* {sentenceWithTwoSynonyms} before `spaceTrim`",
+            "isInput": false
+        }
+    ],
+    "promptTemplates": [
+        {
+            "name": "Synonym",
+            "title": "💬 Synonym",
+            "description": "Synonym for word",
+            "executionType": "PROMPT_TEMPLATE",
+            "modelRequirements": {
+                "variant": "CHAT"
+            },
+            "content": "Write synonym for \"{word}\"",
+            "resultingParameterName": "wordSynonymBeforeUnwrapResult"
+        },
+        {
+            "name": "SynonymPostprocessing0",
+            "title": "(1/1) 💬 Synonym postprocessing",
+            "description": "Postprocessing of section 💬 Synonym finally with resulting parameter {wordSynonym}",
+            "executionType": "SCRIPT",
+            "contentLanguage": "javascript",
+            "content": "unwrapResult(wordSynonymBeforeUnwrapResult)",
+            "resultingParameterName": "wordSynonym"
+        },
+        {
+            "name": "Sentence",
+            "title": "💬 Sentence",
+            "description": "Sentence with word and wordSynonym",
+            "executionType": "PROMPT_TEMPLATE",
+            "modelRequirements": {
+                "variant": "CHAT"
+            },
+            "content": "Write sentence with \"{word}\" and \"{wordSynonym}\" in it",
+            "resultingParameterName": "sentenceWithTwoSynonymsBeforeUnwrapResult"
+        },
+        {
+            "name": "SentencePostprocessing0",
+            "title": "(1/2) 💬 Sentence postprocessing",
+            "description": "Postprocessing of section 💬 Sentence finally with resulting parameter {sentenceWithTwoSynonyms}",
+            "executionType": "SCRIPT",
+            "contentLanguage": "javascript",
+            "content": "unwrapResult(sentenceWithTwoSynonymsBeforeUnwrapResult)",
+            "resultingParameterName": "sentenceWithTwoSynonymsBeforeSpaceTrim"
+        },
+        {
+            "name": "SentencePostprocessing1",
+            "title": "(2/2) 💬 Sentence postprocessing",
+            "description": "Postprocessing of section 💬 Sentence finally with resulting parameter {sentenceWithTwoSynonyms}",
+            "executionType": "SCRIPT",
+            "contentLanguage": "javascript",
+            "content": "spaceTrim(sentenceWithTwoSynonymsBeforeSpaceTrim)",
+            "resultingParameterName": "sentenceWithTwoSynonyms"
+        }
+    ]
+}
