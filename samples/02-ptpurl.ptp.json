@@ -1,0 +1,24 @@
+{
+    "title": "✨ Sample prompt with URL",
+    "ptpUrl": "https://ptp.example.com/samples/simple.ptp.md@v1",
+    "ptpVersion": "1.0.0",
+    "description": "Show how to use a simple prompt with no parameters.",
+    "parameters": [
+        {
+            "name": "greeting",
+            "isInput": false
+        }
+    ],
+    "promptTemplates": [
+        {
+            "name": "Prompt",
+            "title": "💬 Prompt",
+            "executionType": "PROMPT_TEMPLATE",
+            "modelRequirements": {
+                "variant": "CHAT"
+            },
+            "content": "Hello",
+            "resultingParameterName": "greeting"
+        }
+    ]
+}

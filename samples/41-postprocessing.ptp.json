@@ -1,0 +1,71 @@
+{
+    "title": "✨ Sample: Postprocessing 2",
+    "ptpUrl": "https://ptp.example.com/samples/postprocessing-2.ptp.md@v1",
+    "ptpVersion": "1.0.0",
+    "description": "Show how to use a simple prompt with no parameters.",
+    "parameters": [
+        {
+            "name": "yourName",
+            "description": "Name of the hero",
+            "isInput": true
+        },
+        {
+            "name": "greeting",
+            "isInput": false
+        },
+        {
+            "name": "greetingBeforeReverse",
+            "description": "*(💬 Question postprocessing 1/3)* {greeting} before `reverse`",
+            "isInput": false
+        },
+        {
+            "name": "greetingBeforeRemoveDiacritics",
+            "description": "*(💬 Question postprocessing 2/3)* {greeting} before `removeDiacritics`",
+            "isInput": false
+        },
+        {
+            "name": "greetingBeforeNormalizeToScreamingCase",
+            "description": "*(💬 Question postprocessing 3/3)* {greeting} before `normalizeTo_SCREAMING_CASE`",
+            "isInput": false
+        }
+    ],
+    "promptTemplates": [
+        {
+            "name": "Question",
+            "title": "💬 Question",
+            "executionType": "PROMPT_TEMPLATE",
+            "modelRequirements": {
+                "variant": "CHAT"
+            },
+            "content": "Hello {yourName}!",
+            "resultingParameterName": "greetingBeforeReverse"
+        },
+        {
+            "name": "QuestionPostprocessing0",
+            "title": "(1/3) 💬 Question postprocessing",
+            "description": "Postprocessing of section 💬 Question finally with resulting parameter {greeting}",
+            "executionType": "SCRIPT",
+            "contentLanguage": "javascript",
+            "content": "reverse(greetingBeforeReverse)",
+            "resultingParameterName": "greetingBeforeRemoveDiacritics"
+        },
+        {
+            "name": "QuestionPostprocessing1",
+            "title": "(2/3) 💬 Question postprocessing",
+            "description": "Postprocessing of section 💬 Question finally with resulting parameter {greeting}",
+            "executionType": "SCRIPT",
+            "contentLanguage": "javascript",
+            "content": "removeDiacritics(greetingBeforeRemoveDiacritics)",
+            "resultingParameterName": "greetingBeforeNormalizeToScreamingCase"
+        },
+        {
+            "name": "QuestionPostprocessing2",
+            "title": "(3/3) 💬 Question postprocessing",
+            "description": "Postprocessing of section 💬 Question finally with resulting parameter {greeting}",
+            "executionType": "SCRIPT",
+            "contentLanguage": "javascript",
+            "content": "normalizeTo_SCREAMING_CASE(greetingBeforeNormalizeToScreamingCase)",
+            "resultingParameterName": "greeting"
+        }
+    ]
+}
