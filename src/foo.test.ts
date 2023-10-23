@@ -5,3 +5,7 @@ describe('the errored modules', () => {
         expect(foo()).toBeTruthy();
     });
 });
+
+/**
+ * TODO: !!! Remove this
+ */
