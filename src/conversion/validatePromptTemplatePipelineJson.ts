@@ -44,5 +44,5 @@ export function validatePromptTemplatePipelineJson(ptp: PromptTemplatePipelineJs
  *     >  * It checks:
  *     >  * -   it has a valid structure
  *     >  * -   ...
- *     >  export function validatePromptTemplatePipelineJson(ptp: unknown): asserts ptp is PromptTemplatePipelineJson {
+ *     >  ex port function validatePromptTemplatePipelineJson(ptp: unknown): asserts ptp is PromptTemplatePipelineJson {
  */
