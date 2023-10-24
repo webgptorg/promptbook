@@ -25,10 +25,10 @@
         "url": "https://github.com/hejny/ptp/issues"
     },
     "homepage": "https://github.com/hejny/ptp#readme",
-    "dependencies": {},
     "devDependencies": {
         "@rollup/plugin-typescript": "8.3.0",
         "@types/jest": "27.0.2",
+        "glob-promise": "^6.0.5",
         "jest": "27.3.1",
         "rollup": "2.58.1",
         "ts-jest": "27.0.7",
