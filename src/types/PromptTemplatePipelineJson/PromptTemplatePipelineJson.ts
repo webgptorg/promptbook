@@ -1,4 +1,4 @@
-import { string_ptp_url, string_version } from '../../../../../../../utils/typeAliases';
+import { string_ptp_url, string_version } from '../.././types/typeAliases';
 import { PromptTemplateJson } from './PromptTemplateJson';
 import { PromptTemplateParameterJson } from './PromptTemplateParameterJson';
 

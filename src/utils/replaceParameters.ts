@@ -1,4 +1,4 @@
-import { string_name, string_template } from '../../../../../../utils/typeAliases';
+import { string_name, string_template } from '.././types/typeAliases';
 
 /**
  * Replaces parameters in template with values from parameters object

@@ -1,4 +1,4 @@
-import { string_model_name } from '../../../../../../utils/typeAliases';
+import { string_model_name } from '.././types/typeAliases';
 
 /**
  * Prompt result is the simplest concept of execution.

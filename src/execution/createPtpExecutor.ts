@@ -1,9 +1,9 @@
 import spaceTrim from 'spacetrim';
 import { Promisable } from 'type-fest';
 import { TaskProgress } from '../../../../../../components/TaskInProgress/task/TaskProgress';
-import { removeEmojis } from '../../../../../../utils/content/removeEmojis';
-import { removeMarkdownFormatting } from '../../../../../../utils/content/removeMarkdownFormatting';
-import { string_name } from '../../../../../../utils/typeAliases';
+import { removeEmojis } from '.././types/content/removeEmojis';
+import { removeMarkdownFormatting } from '.././types/content/removeMarkdownFormatting';
+import { string_name } from '.././types/typeAliases';
 import { PromptTemplatePipeline } from '../classes/PromptTemplatePipeline';
 
 import { PromptTemplateJson } from '../types/PromptTemplatePipelineJson/PromptTemplateJson';

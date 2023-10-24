@@ -1,4 +1,4 @@
-import { string_name } from '../../../../../../utils/typeAliases';
+import { string_name } from '.././types/typeAliases';
 import { promptTemplatePipelineStringToJson } from '../conversion/promptTemplatePipelineStringToJson';
 import { validatePromptTemplatePipelineJson } from '../conversion/validatePromptTemplatePipelineJson';
 import { PromptTemplateJson } from '../types/PromptTemplatePipelineJson/PromptTemplateJson';

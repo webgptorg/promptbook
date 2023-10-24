@@ -1,4 +1,4 @@
-import { uuid } from '../../../../../../../../../../utils/typeAliases';
+import { uuid } from '../../../../.././types/typeAliases';
 import { Prompt } from '../../../../../types/Prompt';
 
 export interface Ptps_Request {
