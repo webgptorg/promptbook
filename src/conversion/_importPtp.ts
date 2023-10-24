@@ -21,6 +21,6 @@ export function importPtp(path: string_file_path): PromptTemplatePipelineString 
     } else if (path.endsWith('.ptp.md')) {
         return content as PromptTemplatePipelineString;
     } else {
-        throw new Error(`This should be used only for .ptp.md or .ptp.json files`);
+        throw new Error('This should be used only for .ptp.md or .ptp.json files');
     }
 }

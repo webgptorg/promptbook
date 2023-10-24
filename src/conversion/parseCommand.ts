@@ -10,13 +10,13 @@ import { removeMarkdownFormatting } from '../utils/markdown/removeMarkdownFormat
  */
 export function parseCommand(listItem: string_markdown_text): Command {
     if (listItem.includes('\n') || listItem.includes('\r')) {
-        throw new Error(`Command can not contain new line characters:`);
+        throw new Error('Command can not contain new line characters:');
     }
 
     let type = listItem.trim();
     type = type.split('`').join('');
     type = type.split('"').join('');
-    type = type.split("'").join('');
+    type = type.split('\'').join('');
     type = type.split('~').join('');
     type = type.split('[').join('');
     type = type.split(']').join('');

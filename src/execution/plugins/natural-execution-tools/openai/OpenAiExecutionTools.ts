@@ -25,14 +25,14 @@ export class OpenAiExecutionTools implements NaturalExecutionTools {
      */
     public async gptChat(prompt: Prompt): Promise<PromptChatResult> {
         if (this.options.isVerbose) {
-            console.info(`💬 OpenAI gptChat call`);
+            console.info('💬 OpenAI gptChat call');
         }
 
         const { content, modelRequirements } = prompt;
 
         // TODO: [☂] Use here more modelRequirements
         if (modelRequirements.variant !== 'CHAT') {
-            throw new Error(`Use gptChat only for CHAT variant`);
+            throw new Error('Use gptChat only for CHAT variant');
         }
 
         const model = 'gpt-3.5-turbo'; /* <- TODO: [☂] Use here more modelRequirements */
@@ -56,18 +56,18 @@ export class OpenAiExecutionTools implements NaturalExecutionTools {
         }
 
         if (!rawResponse.choices[0]) {
-            throw new Error(`No choises from OpenAPI`);
+            throw new Error('No choises from OpenAPI');
         }
 
         if (rawResponse.choices.length > 1) {
             // TODO: This should be maybe only warning
-            throw new Error(`More than one choise from OpenAPI`);
+            throw new Error('More than one choise from OpenAPI');
         }
 
         const resultContent = rawResponse.choices[0].message.content;
 
         if (!resultContent) {
-            throw new Error(`No response message from OpenAPI`);
+            throw new Error('No response message from OpenAPI');
         }
 
         return {
@@ -83,14 +83,14 @@ export class OpenAiExecutionTools implements NaturalExecutionTools {
      */
     public async gptComplete(prompt: Prompt): Promise<PromptCompletionResult> {
         if (this.options.isVerbose) {
-            console.info(`🖋 OpenAI gptComplete call`);
+            console.info('🖋 OpenAI gptComplete call');
         }
 
         const { content, modelRequirements } = prompt;
 
         // TODO: [☂] Use here more modelRequirements
         if (modelRequirements.variant !== 'COMPLETION') {
-            throw new Error(`Use gptComplete only for COMPLETION variant`);
+            throw new Error('Use gptComplete only for COMPLETION variant');
         }
 
         const model = 'gpt-3.5-turbo-instruct'; /* <- TODO: [☂] Use here more modelRequirements */
@@ -113,18 +113,18 @@ export class OpenAiExecutionTools implements NaturalExecutionTools {
         }
 
         if (!rawResponse.choices[0]) {
-            throw new Error(`No choises from OpenAPI`);
+            throw new Error('No choises from OpenAPI');
         }
 
         if (rawResponse.choices.length > 1) {
             // TODO: This should be maybe only warning
-            throw new Error(`More than one choise from OpenAPI`);
+            throw new Error('More than one choise from OpenAPI');
         }
 
         const resultContent = rawResponse.choices[0].text;
 
         if (!resultContent) {
-            throw new Error(`No response message from OpenAPI`);
+            throw new Error('No response message from OpenAPI');
         }
 
         return {

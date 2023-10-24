@@ -14,7 +14,7 @@ describe('how extractOneBlockFromMarkdown works', () => {
             ),
         ).toEqual({
             language: 'python',
-            content: "print('Hello world')",
+            content: 'print(\'Hello world\')',
         });
 
         expect(
@@ -29,7 +29,7 @@ describe('how extractOneBlockFromMarkdown works', () => {
             ),
         ).toEqual({
             language: 'python',
-            content: "print('Hello world')",
+            content: 'print(\'Hello world\')',
         });
     });
 

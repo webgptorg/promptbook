@@ -92,10 +92,10 @@ export class JavascriptEvalExecutionTools implements ScriptExecutionTools {
         const statementToEvaluate = spaceTrim(
             (block) => `
                 ${block(
-                    Object.entries(parameters)
-                        .map(([key, value]) => `const ${key} = ${JSON.stringify(value)};`)
-                        .join('\n'),
-                )}
+        Object.entries(parameters)
+            .map(([key, value]) => `const ${key} = ${JSON.stringify(value)};`)
+            .join('\n'),
+    )}
                 (()=>{ ${script} })()
             `,
         );

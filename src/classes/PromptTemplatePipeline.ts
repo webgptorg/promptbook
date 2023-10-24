@@ -73,7 +73,7 @@ export class PromptTemplatePipeline {
         private readonly promptTemplates: Array<PromptTemplateJson>,
     ) {
         if (promptTemplates.length === 0) {
-            throw new Error(`Prompt template pipeline must have at least one prompt template`);
+            throw new Error('Prompt template pipeline must have at least one prompt template');
         }
     }
 
@@ -90,7 +90,7 @@ export class PromptTemplatePipeline {
     public getResultingParameter(promptTemplateName: string_name): PromptTemplateParameterJson {
         const index = this.promptTemplates.findIndex(({ name }) => name === promptTemplateName);
         if (index === -1) {
-            throw new Error(`Prompt template is not in this pipeline`);
+            throw new Error('Prompt template is not in this pipeline');
         }
 
         const resultingParameterName = this.promptTemplates[index]!.resultingParameterName;
@@ -112,7 +112,7 @@ export class PromptTemplatePipeline {
     public getFollowingPromptTemplate(promptTemplateName: string_name): PromptTemplateJson | null {
         const index = this.promptTemplates.findIndex(({ name }) => name === promptTemplateName);
         if (index === -1) {
-            throw new Error(`Prompt template is not in this pipeline`);
+            throw new Error('Prompt template is not in this pipeline');
         }
 
         if (index === this.promptTemplates.length - 1) {

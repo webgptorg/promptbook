@@ -47,7 +47,7 @@ describe('removeMarkdownFormatting', () => {
         const str3 = 'I`m here';
         expect(removeMarkdownFormatting(str3)).toEqual(str3);
 
-        const str4 = "I'm here You`re here";
+        const str4 = 'I\'m here You`re here';
         expect(removeMarkdownFormatting(str4)).toEqual(str4);
     });
 

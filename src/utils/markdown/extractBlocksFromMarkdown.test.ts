@@ -68,7 +68,7 @@ describe('how extractBlocksFromMarkdown works', () => {
         ).toEqual([
             {
                 language: 'python',
-                content: "print('Hello world')",
+                content: 'print(\'Hello world\')',
             },
         ]);
 
@@ -85,7 +85,7 @@ describe('how extractBlocksFromMarkdown works', () => {
         ).toEqual([
             {
                 language: 'python',
-                content: "print('Hello world')",
+                content: 'print(\'Hello world\')',
             },
         ]);
     });
@@ -102,7 +102,7 @@ describe('how extractBlocksFromMarkdown works', () => {
         ).toEqual([
             {
                 language: null,
-                content: "print('Hello world')",
+                content: 'print(\'Hello world\')',
             },
         ]);
 
@@ -119,7 +119,7 @@ describe('how extractBlocksFromMarkdown works', () => {
         ).toEqual([
             {
                 language: 'python',
-                content: "print('Hello world')",
+                content: 'print(\'Hello world\')',
             },
         ]);
     });
@@ -182,11 +182,11 @@ describe('how extractBlocksFromMarkdown works', () => {
         ).toEqual([
             {
                 language: 'python',
-                content: "print('Hello world')",
+                content: 'print(\'Hello world\')',
             },
             {
                 language: 'javascript',
-                content: "console.log('Hello world')",
+                content: 'console.log(\'Hello world\')',
             },
         ]);
     });
@@ -208,7 +208,7 @@ describe('how extractBlocksFromMarkdown works', () => {
         ).toEqual([
             {
                 language: 'javascript',
-                content: `console.log('Hello 3 backtics \`\`\`')`,
+                content: 'console.log(\'Hello 3 backtics ```\')',
             },
         ]);
     });
