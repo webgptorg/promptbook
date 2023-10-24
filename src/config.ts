@@ -12,3 +12,5 @@ export const PTP_VERSION: string_version = '0.1.0';
 export const DEFAULT_MODEL_REQUIREMENTS: ModelRequirements = {
     variant: 'CHAT',
 };
+
+

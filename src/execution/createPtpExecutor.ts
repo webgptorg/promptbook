@@ -1,12 +1,11 @@
 import spaceTrim from 'spacetrim';
 import { Promisable } from 'type-fest';
-import { TaskProgress } from '../../../../../../components/TaskInProgress/task/TaskProgress';
-import { removeEmojis } from '.././types/content/removeEmojis';
-import { removeMarkdownFormatting } from '.././types/content/removeMarkdownFormatting';
 import { string_name } from '.././types/typeAliases';
 import { PromptTemplatePipeline } from '../classes/PromptTemplatePipeline';
-
 import { PromptTemplateJson } from '../types/PromptTemplatePipelineJson/PromptTemplateJson';
+import { TaskProgress } from '../types/TaskProgress';
+import { removeMarkdownFormatting } from '../utils/markdown/removeMarkdownFormatting';
+import { removeEmojis } from '../utils/removeEmojis';
 import { replaceParameters } from '../utils/replaceParameters';
 import { ExecutionTools } from './ExecutionTools';
 import { PtpExecutor } from './PtpExecutor';

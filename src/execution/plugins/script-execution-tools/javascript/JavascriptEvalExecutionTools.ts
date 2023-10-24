@@ -13,9 +13,9 @@ import {
     parseKeywordsFromString,
 } from 'n12';
 import { spaceTrim as _spaceTrim } from 'spacetrim';
-import { removeEmojis as _removeEmojis } from '../../../.././types/content/removeEmojis';
-import { removeQuotes as _removeQuotes } from '../../../.././types/content/removeQuotes';
-import { unwrapResult as _unwrapResult } from '../../../.././types/content/unwrapResult';
+import { removeEmojis as _removeEmojis } from '../../../../utils/removeEmojis';
+import { removeQuotes as _removeQuotes } from '../../../../utils/removeQuotes';
+import { unwrapResult as _unwrapResult } from '../../../../utils/unwrapResult';
 import { CommonExecutionToolsOptions } from '../../../CommonExecutionToolsOptions';
 import { ScriptExecutionTools, ScriptExecutionToolsExecuteOptions } from '../../../ScriptExecutionTools';
 
