@@ -14,6 +14,13 @@
             "focus": true
         },
         {
+            "name": "🏭 Generate main exports",
+            "commands": [
+                "ts-node ./scripts/generate-main-exports/generate-main-exports.ts"
+            ],
+            "onlySingle": true
+        },
+        {
             "name": "🔼👑 Release major version",
             "command": "npm version major",
             "onlySingle": true,
