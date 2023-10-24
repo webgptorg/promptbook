@@ -1,9 +1,9 @@
 import { normalizeTo_SCREAMING_CASE } from 'n12';
 import spaceTrim from 'spacetrim';
-import { removeMarkdownFormatting } from '.././types/content/removeMarkdownFormatting';
 import { string_markdown_text } from '.././types/typeAliases';
 import { Command } from '../types/Command';
 import { ExecutionTypes } from '../types/ExecutionTypes';
+import { removeMarkdownFormatting } from '../utils/markdown/removeMarkdownFormatting';
 
 /**
  * Parses one line of ul/ol to command

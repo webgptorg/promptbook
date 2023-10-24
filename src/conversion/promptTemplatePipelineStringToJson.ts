@@ -1,7 +1,6 @@
 import { capitalize, normalizeTo_camelCase, normalizeTo_PascalCase } from 'n12';
 import spaceTrim from 'spacetrim';
 import { Writable, WritableDeep } from 'type-fest';
-import { removeContentComments } from '.././types/content/removeContentComments';
 import { DEFAULT_MODEL_REQUIREMENTS, PTP_VERSION } from '../config';
 import { ParameterCommand, PostprocessCommand } from '../types/Command';
 import { ExecutionType } from '../types/ExecutionTypes';
@@ -13,6 +12,7 @@ import { countMarkdownStructureDeepness } from '../utils/markdown-json/countMark
 import { markdownToMarkdownStructure } from '../utils/markdown-json/markdownToMarkdownStructure';
 import { extractAllListItemsFromMarkdown } from '../utils/markdown/extractAllListItemsFromMarkdown';
 import { extractOneBlockFromMarkdown } from '../utils/markdown/extractOneBlockFromMarkdown';
+import { removeContentComments } from '../utils/markdown/removeContentComments';
 import { parseCommand } from './parseCommand';
 
 /**
