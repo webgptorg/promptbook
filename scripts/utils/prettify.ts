@@ -11,19 +11,11 @@ import { promisify } from 'util';
  * @param parser language of parser to use
  * @returns Prettified file contents
  */
-export async function prettify(
-    fileContents: string,
-    parser = 'typescript',
-): Promise<string> {
+export async function prettify(fileContents: string, parser = 'typescript'): Promise<string> {
     try {
         return prettier.format(fileContents, {
             parser,
-            ...(JSON.parse(
-                await promisify(readFile)(
-                    join(process.cwd(), '.prettierrc'),
-                    'utf8',
-                ),
-            ) as any),
+            ...(JSON.parse(await promisify(readFile)(join(process.cwd(), '.prettierrc'), 'utf8')) as any),
         });
     } catch (error) {
         if (!(error instanceof Error)) {
@@ -37,9 +29,7 @@ export async function prettify(
             ${block(spaceTrim(fileContents))}
 
             /*
-                TODO: ${'!'}${'!'}${'!'} ${
-                (error as Error).name
-            } occurred during prettify:
+                TODO: ${'!'}${'!'}${'!'} ${(error as Error).name} occurred during prettify:
 
 
                 ${block((error as Error).message)}
