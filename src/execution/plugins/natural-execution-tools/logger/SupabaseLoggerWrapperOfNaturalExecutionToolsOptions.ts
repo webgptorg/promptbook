@@ -1,4 +1,4 @@
-import { uuid } from '../../../../../../../../../utils/typeAliases';
+import { uuid } from '../../../.././types/typeAliases';
 import { CommonExecutionToolsOptions } from '../../../CommonExecutionToolsOptions';
 import { NaturalExecutionTools } from '../../../NaturalExecutionTools';
 

@@ -1,6 +1,6 @@
 import { Promisable } from 'type-fest';
 import { TaskProgress } from '../../../../../../components/TaskInProgress/task/TaskProgress';
-import { string_name } from '../../../../../../utils/typeAliases';
+import { string_name } from '.././types/typeAliases';
 
 /**
  * Executor is a simple async function that takes input parameters and returns result parameters _(along with all intermediate parameters and input parameters = it extends input object)_.

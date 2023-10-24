@@ -1,4 +1,4 @@
-import { string_name, string_prompt, string_ptp_url_with_hashtemplate } from '../../../../../../utils/typeAliases';
+import { string_name, string_prompt, string_ptp_url_with_hashtemplate } from '.././types/typeAliases';
 import { ModelRequirements } from './ModelRequirements';
 
 /**

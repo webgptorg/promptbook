@@ -1,4 +1,4 @@
-import { string_markdown } from '../../../../../../../utils/typeAliases';
+import { string_markdown } from '../.././types/typeAliases';
 import { extractBlocksFromMarkdown } from './extractBlocksFromMarkdown';
 
 /**

@@ -1,4 +1,4 @@
-import { string_token } from '../../../../../../../../../utils/typeAliases';
+import { string_token } from '../../../.././types/typeAliases';
 import { CommonExecutionToolsOptions } from '../../../CommonExecutionToolsOptions';
 
 /**

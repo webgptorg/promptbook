@@ -4,7 +4,7 @@ import {
     string_name,
     string_prompt,
     string_template,
-} from '../../../../../../../utils/typeAliases';
+} from '../.././types/typeAliases';
 import { ExecutionType } from '../ExecutionTypes';
 import { ModelRequirements } from '../ModelRequirements';
 import { ScriptLanguage } from '../ScriptLanguage';

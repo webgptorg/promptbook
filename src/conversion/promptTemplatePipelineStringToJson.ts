@@ -1,7 +1,7 @@
 import { capitalize, normalizeTo_camelCase, normalizeTo_PascalCase } from 'n12';
 import spaceTrim from 'spacetrim';
 import { Writable, WritableDeep } from 'type-fest';
-import { removeContentComments } from '../../../../../../utils/content/removeContentComments';
+import { removeContentComments } from '.././types/content/removeContentComments';
 import { DEFAULT_MODEL_REQUIREMENTS, PTP_VERSION } from '../config';
 import { ParameterCommand, PostprocessCommand } from '../types/Command';
 import { ExecutionType } from '../types/ExecutionTypes';
@@ -194,10 +194,10 @@ export function promptTemplatePipelineStringToJson(
                     spaceTrim(
                         (block) => `
                             Script language ${language} is not supported.
-                            
+
                             Supported languages are:
                             ${block(SUPPORTED_SCRIPT_LANGUAGES.join(', '))}
-                            
+
                         `,
                     ),
                 );
@@ -211,7 +211,7 @@ export function promptTemplatePipelineStringToJson(
                 spaceTrim(
                     (block) => `
                         Invalid template - each section must end with "-> {...}"
-                        
+
                         Invalid section:
                         ${block(
                             // TODO: Show code of invalid sections each time + DRY

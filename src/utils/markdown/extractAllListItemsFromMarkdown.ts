@@ -1,4 +1,4 @@
-import { string_markdown, string_markdown_text } from '../../../../../../../utils/typeAliases';
+import { string_markdown, string_markdown_text } from '../.././types/typeAliases';
 
 /**
  * Utility function to extract all list items from markdown

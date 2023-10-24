@@ -1,4 +1,4 @@
-import { string_name } from '../../../../../../../utils/typeAliases';
+import { string_name } from '../.././types/typeAliases';
 
 /**
  * Describes one parameter of the prompt template pipeline
@@ -24,4 +24,3 @@ export interface PromptTemplateParameterJson {
      */
     readonly description?: string;
 }
-

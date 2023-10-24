@@ -4,18 +4,18 @@ import {
     nameToUriPart as _nameToUriPart,
     nameToUriParts as _nameToUriParts,
     normalizeToKebabCase as _normalizeToKebabCase,
-    normalizeTo_camelCase as _normalizeTo_camelCase,
     normalizeTo_PascalCase as _normalizeTo_PascalCase,
     normalizeTo_SCREAMING_CASE as _normalizeTo_SCREAMING_CASE,
+    normalizeTo_camelCase as _normalizeTo_camelCase,
     normalizeTo_snake_case as _normalizeTo_snake_case,
     normalizeWhitespaces as _normalizeWhitespaces,
-    parseKeywordsFromString,
     removeDiacritics as _removeDiacritics,
+    parseKeywordsFromString,
 } from 'n12';
 import { spaceTrim as _spaceTrim } from 'spacetrim';
-import { removeEmojis as _removeEmojis } from '../../../../../../../../../utils/content/removeEmojis';
-import { removeQuotes as _removeQuotes } from '../../../../../../../../../utils/content/removeQuotes';
-import { unwrapResult as _unwrapResult } from '../../../../../../../../../utils/content/unwrapResult';
+import { removeEmojis as _removeEmojis } from '../../../.././types/content/removeEmojis';
+import { removeQuotes as _removeQuotes } from '../../../.././types/content/removeQuotes';
+import { unwrapResult as _unwrapResult } from '../../../.././types/content/unwrapResult';
 import { CommonExecutionToolsOptions } from '../../../CommonExecutionToolsOptions';
 import { ScriptExecutionTools, ScriptExecutionToolsExecuteOptions } from '../../../ScriptExecutionTools';
 
@@ -105,7 +105,7 @@ export class JavascriptEvalExecutionTools implements ScriptExecutionTools {
                 spaceTrim(
                     (block) => `
                         🚀 Evaluating ${scriptLanguage} script:
-                        
+
                         ${block(statementToEvaluate)}`,
                 ),
             );

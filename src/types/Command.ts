@@ -1,4 +1,4 @@
-import { string_markdown_text, string_name, string_version } from '../../../../../../utils/typeAliases';
+import { string_markdown_text, string_name, string_version } from '.././types/typeAliases';
 import { ExecutionType } from './ExecutionTypes';
 import { ModelRequirements } from './ModelRequirements';
 

@@ -1,4 +1,4 @@
-import { string_name } from '../../../../../../utils/typeAliases';
+import { string_name } from '.././types/typeAliases';
 import { createPtpExecutor } from '../execution/createPtpExecutor';
 import { ExecutionTools } from '../execution/ExecutionTools';
 import { PtpExecutor } from '../execution/PtpExecutor';

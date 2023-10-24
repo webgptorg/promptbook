@@ -1,6 +1,6 @@
 import spaceTrim from 'spacetrim';
-import { isRunningInNode } from '../../../../../../../../../utils/isRunningInWhatever';
-import { getSupabaseForServer } from '../../../../../../../../../utils/supabase/getSupabaseForServer';
+import { isRunningInNode } from '../../../.././types/isRunningInWhatever';
+import { getSupabaseForServer } from '../../../.././types/supabase/getSupabaseForServer';
 import { Prompt } from '../../../../types/Prompt';
 import { NaturalExecutionTools } from '../../../NaturalExecutionTools';
 import { PromptChatResult, PromptCompletionResult, PromptResult } from '../../../PromptResult';
@@ -63,7 +63,7 @@ export class SupabaseLoggerWrapperOfNaturalExecutionTools implements NaturalExec
                         ---
                         Executed in ${block(
                             performance.measure(mark, `${mark}-start`, `${mark}-end`).duration.toString(),
-                        )}ms 
+                        )}ms
                         ${(promptResult.rawResponse as any).usage?.total_tokens} tokens used
                         ===========================[ /Chat ]===
                     `,
