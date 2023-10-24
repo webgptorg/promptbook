@@ -15,7 +15,7 @@ export function removeQuotes(text: string): string {
         return text.slice(1, -1);
     }
 
-    if (text.startsWith("'") && text.endsWith("'")) {
+    if (text.startsWith('\'') && text.endsWith('\'')) {
         return text.slice(1, -1);
     }
 

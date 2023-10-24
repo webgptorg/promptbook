@@ -12,7 +12,7 @@ import { SupabaseLoggerWrapperOfNaturalExecutionToolsOptions } from './SupabaseL
 export class SupabaseLoggerWrapperOfNaturalExecutionTools implements NaturalExecutionTools {
     public constructor(private readonly options: SupabaseLoggerWrapperOfNaturalExecutionToolsOptions) {
         if (!isRunningInNode()) {
-            throw new Error(`SupabaseLoggerWrapperOfExecutionTools can be used only on server`);
+            throw new Error('SupabaseLoggerWrapperOfExecutionTools can be used only on server');
         }
     }
 
@@ -34,20 +34,20 @@ export class SupabaseLoggerWrapperOfNaturalExecutionTools implements NaturalExec
      * Calls both completion or chat model and logs the request+result
      */
     public async gptCommon(prompt: Prompt): Promise<PromptResult> {
-        const mark = `gpt-call`;
+        const mark = 'gpt-call';
         const promptAt = new Date();
         performance.mark(`${mark}-start`);
 
         let promptResult: PromptResult;
         switch (prompt.modelRequirements.variant) {
-            case 'CHAT':
-                promptResult = await this.options.naturalExecutionTools.gptChat(prompt);
-                break;
-            case 'COMPLETION':
-                promptResult = await this.options.naturalExecutionTools.gptComplete(prompt);
-                break;
-            default:
-                throw new Error(`Unknown model variant "${prompt.modelRequirements.variant}"`);
+        case 'CHAT':
+            promptResult = await this.options.naturalExecutionTools.gptChat(prompt);
+            break;
+        case 'COMPLETION':
+            promptResult = await this.options.naturalExecutionTools.gptComplete(prompt);
+            break;
+        default:
+            throw new Error(`Unknown model variant "${prompt.modelRequirements.variant}"`);
         }
 
         performance.mark(`${mark}-end`);
@@ -62,8 +62,8 @@ export class SupabaseLoggerWrapperOfNaturalExecutionTools implements NaturalExec
                         [🤖] ${block(promptResult.content)}
                         ---
                         Executed in ${block(
-                            performance.measure(mark, `${mark}-start`, `${mark}-end`).duration.toString(),
-                        )}ms
+        performance.measure(mark, `${mark}-start`, `${mark}-end`).duration.toString(),
+    )}ms
                         ${(promptResult.rawResponse as any).usage?.total_tokens} tokens used
                         ===========================[ /Chat ]===
                     `,

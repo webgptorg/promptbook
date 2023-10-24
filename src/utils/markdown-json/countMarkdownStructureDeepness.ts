@@ -1,4 +1,4 @@
-import { MarkdownStructure } from "./MarkdownStructure";
+import { MarkdownStructure } from './MarkdownStructure';
 
 
 /**

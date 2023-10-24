@@ -5,43 +5,43 @@ describe('how parseCommand works', () => {
     it('should parse PTP_URL command', () => {
         expect(parseCommand('https://ptp.webgpt.com/cs/write-wallpaper-content.ptp.md@v1.0.0')).toEqual({
             type: 'PTP_URL',
-            ptpUrl: new URL(`https://ptp.webgpt.com/cs/write-wallpaper-content.ptp.md@v1.0.0`),
+            ptpUrl: new URL('https://ptp.webgpt.com/cs/write-wallpaper-content.ptp.md@v1.0.0'),
         });
         expect(parseCommand('   https://ptp.webgpt.com/cs/write-wallpaper-content.ptp.md@v1.0.1        ')).toEqual({
             type: 'PTP_URL',
-            ptpUrl: new URL(`https://ptp.webgpt.com/cs/write-wallpaper-content.ptp.md@v1.0.1`),
+            ptpUrl: new URL('https://ptp.webgpt.com/cs/write-wallpaper-content.ptp.md@v1.0.1'),
         });
         expect(parseCommand('url https://ptp.webgpt.com/cs/write-wallpaper-content.ptp.md@v1.0.2')).toEqual({
             type: 'PTP_URL',
-            ptpUrl: new URL(`https://ptp.webgpt.com/cs/write-wallpaper-content.ptp.md@v1.0.2`),
+            ptpUrl: new URL('https://ptp.webgpt.com/cs/write-wallpaper-content.ptp.md@v1.0.2'),
         });
         expect(parseCommand('URL https://ptp.webgpt.com/cs/write-wallpaper-content.ptp.md@v1.0.3')).toEqual({
             type: 'PTP_URL',
-            ptpUrl: new URL(`https://ptp.webgpt.com/cs/write-wallpaper-content.ptp.md@v1.0.3`),
+            ptpUrl: new URL('https://ptp.webgpt.com/cs/write-wallpaper-content.ptp.md@v1.0.3'),
         });
         expect(parseCommand('ptpurl https://ptp.webgpt.com/cs/write-wallpaper-content.ptp.md@v1.0.4')).toEqual({
             type: 'PTP_URL',
-            ptpUrl: new URL(`https://ptp.webgpt.com/cs/write-wallpaper-content.ptp.md@v1.0.4`),
+            ptpUrl: new URL('https://ptp.webgpt.com/cs/write-wallpaper-content.ptp.md@v1.0.4'),
         });
         expect(parseCommand('ptpUrl https://ptp.webgpt.com/cs/write-wallpaper-content.ptp.md@v1.0.5')).toEqual({
             type: 'PTP_URL',
-            ptpUrl: new URL(`https://ptp.webgpt.com/cs/write-wallpaper-content.ptp.md@v1.0.5`),
+            ptpUrl: new URL('https://ptp.webgpt.com/cs/write-wallpaper-content.ptp.md@v1.0.5'),
         });
         expect(parseCommand('PTP_URL https://ptp.webgpt.com/cs/write-wallpaper-content.ptp.md@v1.0.6')).toEqual({
             type: 'PTP_URL',
-            ptpUrl: new URL(`https://ptp.webgpt.com/cs/write-wallpaper-content.ptp.md@v1.0.6`),
+            ptpUrl: new URL('https://ptp.webgpt.com/cs/write-wallpaper-content.ptp.md@v1.0.6'),
         });
         expect(parseCommand('PTP URL https://ptp.webgpt.com/cs/write-wallpaper-content.ptp.md@v1.0.7')).toEqual({
             type: 'PTP_URL',
-            ptpUrl: new URL(`https://ptp.webgpt.com/cs/write-wallpaper-content.ptp.md@v1.0.7`),
+            ptpUrl: new URL('https://ptp.webgpt.com/cs/write-wallpaper-content.ptp.md@v1.0.7'),
         });
         expect(parseCommand('url *https://ptp.webgpt.com/cs/write-wallpaper-content.ptp.md@v1.0.8*')).toEqual({
             type: 'PTP_URL',
-            ptpUrl: new URL(`https://ptp.webgpt.com/cs/write-wallpaper-content.ptp.md@v1.0.8`),
+            ptpUrl: new URL('https://ptp.webgpt.com/cs/write-wallpaper-content.ptp.md@v1.0.8'),
         });
         expect(parseCommand('`https://ptp.webgpt.com/cs/write-wallpaper-content.ptp.md`')).toEqual({
             type: 'PTP_URL',
-            ptpUrl: new URL(`https://ptp.webgpt.com/cs/write-wallpaper-content.ptp.md`),
+            ptpUrl: new URL('https://ptp.webgpt.com/cs/write-wallpaper-content.ptp.md'),
         });
     });
 

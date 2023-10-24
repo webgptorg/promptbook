@@ -15,7 +15,7 @@ export class MockedEchoNaturalExecutionTools implements NaturalExecutionTools {
      */
     public async gptChat(prompt: Prompt): Promise<PromptChatResult> {
         if (this.options.isVerbose) {
-            console.info(`💬 Mocked gptChat call`);
+            console.info('💬 Mocked gptChat call');
         }
         return {
             content: spaceTrim(
@@ -24,9 +24,9 @@ export class MockedEchoNaturalExecutionTools implements NaturalExecutionTools {
                     ${block(prompt.content)}
                 `,
             ),
-            model: `mocked-echo`,
+            model: 'mocked-echo',
             rawResponse: {
-                note: `This is mocked echo`,
+                note: 'This is mocked echo',
             },
             // <- [🤹‍♂️]
         };
@@ -37,7 +37,7 @@ export class MockedEchoNaturalExecutionTools implements NaturalExecutionTools {
      */
     public async gptComplete(prompt: Prompt): Promise<PromptCompletionResult> {
         if (this.options.isVerbose) {
-            console.info(`🖋 Mocked gptComplete call`);
+            console.info('🖋 Mocked gptComplete call');
         }
         return {
             content: spaceTrim(
@@ -46,9 +46,9 @@ export class MockedEchoNaturalExecutionTools implements NaturalExecutionTools {
                     And so on...
                 `,
             ),
-            model: `mocked-echo`,
+            model: 'mocked-echo',
             rawResponse: {
-                note: `This is mocked echo`,
+                note: 'This is mocked echo',
             },
             // <- [🤹‍♂️]
         };

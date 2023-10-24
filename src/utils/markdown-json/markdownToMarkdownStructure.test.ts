@@ -4,7 +4,7 @@ import { markdownToMarkdownStructure } from './markdownToMarkdownStructure';
 
 describe('markdownToMarkdownStructure', () => {
     it('parses simple case', () => {
-        expect(markdownToMarkdownStructure(`# Title`)).toEqual({
+        expect(markdownToMarkdownStructure('# Title')).toEqual({
             level: 1,
             title: 'Title',
             content: '',
@@ -179,7 +179,7 @@ describe('markdownToMarkdownStructure', () => {
     });
 
     it('should fails when there is no structure', () => {
-        expect(() => markdownToMarkdownStructure(``)).toThrowError(
+        expect(() => markdownToMarkdownStructure('')).toThrowError(
             /The markdown file must have exactly one top\-level section/i,
         );
     });

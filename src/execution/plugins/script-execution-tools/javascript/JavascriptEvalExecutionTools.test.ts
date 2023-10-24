@@ -12,7 +12,7 @@ describe('JavascriptEvalExecutionTools', () => {
                 parameters: {
                     animal: 'cat',
                 },
-                script: `animal`,
+                script: 'animal',
             }),
         ).resolves.toEqual('cat');
         expect(
@@ -21,7 +21,7 @@ describe('JavascriptEvalExecutionTools', () => {
                 parameters: {
                     animal: 'cat',
                 },
-                script: `return animal`,
+                script: 'return animal',
             }),
         ).resolves.toEqual('cat');
     });
@@ -33,7 +33,7 @@ describe('JavascriptEvalExecutionTools', () => {
                 parameters: {
                     animal: 'cat',
                 },
-                script: `return animal.split('').reverse().join('-')`,
+                script: 'return animal.split(\'\').reverse().join(\'-\')',
             }),
         ).resolves.toEqual('t-a-c');
     });
@@ -45,7 +45,7 @@ describe('JavascriptEvalExecutionTools', () => {
                 parameters: {
                     animal: '"cat"',
                 },
-                script: `return removeQuotes(animal)`,
+                script: 'return removeQuotes(animal)',
             }),
         ).resolves.toEqual('cat');
 
@@ -55,7 +55,7 @@ describe('JavascriptEvalExecutionTools', () => {
                 parameters: {
                     animal: 'The animal is: "dog"',
                 },
-                script: `return unwrapResult(animal)`,
+                script: 'return unwrapResult(animal)',
             }),
         ).resolves.toEqual('dog');
     });
@@ -94,7 +94,7 @@ describe('JavascriptEvalExecutionTools', () => {
                 javascriptEvalExecutionTools.execute({
                     scriptLanguage: 'javascript',
                     parameters: {},
-                    script: `throw new Error('Some error')`,
+                    script: 'throw new Error(\'Some error\')',
                 }),
             ).rejects.toThrowError('Some error');
     });

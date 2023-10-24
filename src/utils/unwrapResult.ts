@@ -36,7 +36,7 @@ export function unwrapResult(text: string): string {
 
     // Check if the text starts and ends with quotes
     if (
-        (text.startsWith("'") && !unquotedText.includes("'") && text.endsWith("'")) ||
+        (text.startsWith('\'') && !unquotedText.includes('\'') && text.endsWith('\'')) ||
         (text.startsWith('"') && !unquotedText.includes('"') && text.endsWith('"'))
     ) {
         return unquotedText;
