@@ -42,12 +42,12 @@ describe('removeMarkdownFormatting', () => {
         expect(removeMarkdownFormatting(str1)).toEqual(str1);
 
         const str2 = 'I am * You are * He is * She is * It is * We are * They are *';
-        expect(removeMarkdownFormatting(str1)).toEqual(str1);
+        expect(removeMarkdownFormatting(str2)).toEqual(str2);
 
         const str3 = 'I`m here';
         expect(removeMarkdownFormatting(str3)).toEqual(str3);
 
-        const str4 = 'I\'m here You`re here';
+        const str4 = "I'm here You`re here";
         expect(removeMarkdownFormatting(str4)).toEqual(str4);
     });
 
@@ -60,7 +60,7 @@ describe('removeMarkdownFormatting', () => {
             ## Heading 2
 
             Text
-        
+
         `);
         const expected = 'Heading 1\n\nHeading 2\n\nText';
         expect(removeMarkdownFormatting(str)).toEqual(expected);
@@ -76,7 +76,7 @@ describe('removeMarkdownFormatting', () => {
             > Quote 1
 
             Text
-        
+
         `);
         const expected = 'Heading 1\n\nQuote 1\n\nText';
         expect(removeMarkdownFormatting(str)).toEqual(expected);
@@ -92,7 +92,7 @@ describe('removeMarkdownFormatting', () => {
             ---
 
             Text
-        
+
         `);
         const expected = 'Text\n\nText';
         expect(removeMarkdownFormatting(str)).toEqual(expected);

@@ -17,7 +17,7 @@ describe('markdownToMarkdownStructure', () => {
             markdownToMarkdownStructure(
                 spaceTrim(`
                     # Title
-                    
+
                     Text below title
                 `),
             ),
@@ -34,7 +34,7 @@ describe('markdownToMarkdownStructure', () => {
             markdownToMarkdownStructure(
                 spaceTrim(`
                     # Title
-                    
+
                     Text below title
                     Text below title
                     Text below title
@@ -59,7 +59,7 @@ describe('markdownToMarkdownStructure', () => {
             markdownToMarkdownStructure(
                 spaceTrim(`
                     # Title
-                    
+
                     Text below title **bold** *italic*
                 `),
             ),
@@ -76,7 +76,7 @@ describe('markdownToMarkdownStructure', () => {
             markdownToMarkdownStructure(
                 spaceTrim(`
                     # Title
-                    
+
                     Text below title
                     - ul 1
                     - ul 2
@@ -107,11 +107,11 @@ describe('markdownToMarkdownStructure', () => {
             markdownToMarkdownStructure(
                 spaceTrim(`
                     # Title
-                    
+
                     Text below title
-                    
+
                     ## Section 1
-                    
+
                     Text below section 1
                 `),
             ),
@@ -135,11 +135,11 @@ describe('markdownToMarkdownStructure', () => {
             markdownToMarkdownStructure(
                 spaceTrim(`
                     # Title
-                    
+
                     Text below title
-                    
+
                     ## Section 1
-                    
+
                     Text below section 1
 
                     \`\`\`markdown
@@ -170,7 +170,7 @@ describe('markdownToMarkdownStructure', () => {
                         Text below title in code block
 
                         \`\`\`
-                    
+
                     `),
                     sections: [],
                 },
@@ -180,7 +180,7 @@ describe('markdownToMarkdownStructure', () => {
 
     it('should fails when there is no structure', () => {
         expect(() => markdownToMarkdownStructure('')).toThrowError(
-            /The markdown file must have exactly one top\-level section/i,
+            /The markdown file must have exactly one top-level section/i,
         );
     });
 
@@ -196,11 +196,11 @@ describe('markdownToMarkdownStructure', () => {
             markdownToMarkdownStructure(
                 spaceTrim(`
                     # Title
-                    
+
                     Text below title
-                    
+
                     ### Subsection 1.1
-                    
+
                     Text below subsection 1.1
                 `),
             ),
@@ -213,23 +213,23 @@ describe('markdownToMarkdownStructure', () => {
             markdownToMarkdownStructure(
                 spaceTrim(`
                     # Title
-                    
+
                     Text below title
-                    
+
                     ## Section 1
-                    
+
                     Text below section 1
-                    
+
                     ## Section 2
-                    
+
                     Text below section 2
-                    
+
                     ### Subsection 2.1
-                    
+
                     Text below subsection 2.1
-                    
+
                     ### Subsection 2.2
-                    
+
                     Text below subsection 2.2
                 `),
             ),

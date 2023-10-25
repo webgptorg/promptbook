@@ -106,6 +106,7 @@ export const EMOJIS_IN_CATEGORIES: Record<string, Array<string_char_emoji>> = {
 
     'New Emojis (Discorered randomly)': '🖌️'.split(' ') as Array<string_char_emoji>,
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     'Emojis used in WebGPT': ['▶', '❤'] as any as Array<string_char_emoji>,
 };
 

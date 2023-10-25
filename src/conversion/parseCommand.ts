@@ -181,6 +181,7 @@ export function parseCommand(listItem: string_markdown_text): Command {
             );
         }
 
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const { parameterName, parameterDescription } = parametersMatch.groups as any;
 
         if (parameterDescription && parameterDescription.match(/\{(?<parameterName>[a-z0-9_]+)\}/im)) {

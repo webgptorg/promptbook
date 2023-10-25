@@ -13,7 +13,7 @@ export class JavascriptExecutionTools implements ScriptExecutionTools {
      * Executes a JavaScript
      */
     public async execute(options: ScriptExecutionToolsExecuteOptions): Promise<string> {
-        const { scriptLanguage, script, parameters } = options;
+        const { scriptLanguage /*, script, parameters */ } = options;
 
         if (scriptLanguage !== 'javascript') {
             throw new Error(
