@@ -24,6 +24,7 @@ export function promptTemplatePipelineStringToJson(
     promptTemplatePipelineString: PromptTemplatePipelineString,
 ): PromptTemplatePipelineJson {
     const ptpJson: WritableDeep<PromptTemplatePipelineJson> = {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         title: undefined as any /* <- Note: Putting here placeholder to keep `title` on top at final JSON */,
         ptpUrl: undefined /* <- Note: Putting here placeholder to keep `ptpUrl` on top at final JSON */,
         ptpVersion: PTP_VERSION,
@@ -120,26 +121,26 @@ export function promptTemplatePipelineStringToJson(
         const command = parseCommand(listItem);
 
         switch (command.type) {
-        case 'PTP_URL':
-            ptpJson.ptpUrl = command.ptpUrl.href;
-            break;
+            case 'PTP_URL':
+                ptpJson.ptpUrl = command.ptpUrl.href;
+                break;
 
-        case 'PTP_VERSION':
-            ptpJson.ptpVersion = command.ptpVersion;
-            break;
+            case 'PTP_VERSION':
+                ptpJson.ptpVersion = command.ptpVersion;
+                break;
 
-        case 'USE':
-            defaultModelRequirements[command.key] = command.value;
-            break;
+            case 'USE':
+                defaultModelRequirements[command.key] = command.value;
+                break;
 
-        case 'PARAMETER':
-            addParam(command);
-            break;
+            case 'PARAMETER':
+                addParam(command);
+                break;
 
-        default:
-            throw new Error(
-                `Command ${command.type} is not allowed in the head of the prompt template pipeline ONLY at the prompt template block`,
-            );
+            default:
+                throw new Error(
+                    `Command ${command.type} is not allowed in the head of the prompt template pipeline ONLY at the prompt template block`,
+                );
         }
     }
 
@@ -155,32 +156,32 @@ export function promptTemplatePipelineStringToJson(
         for (const listItem of listItems) {
             const command = parseCommand(listItem);
             switch (command.type) {
-            case 'EXECUTE':
-                if (isExecutionTypeChanged) {
+                case 'EXECUTE':
+                    if (isExecutionTypeChanged) {
+                        throw new Error(
+                            'Execution type is already defined in the prompt template. It can be defined only once.',
+                        );
+                    }
+                    executionType = command.executionType;
+                    isExecutionTypeChanged = true;
+                    break;
+
+                case 'USE':
+                    templateModelRequirements[command.key] = command.value;
+                    break;
+
+                case 'PARAMETER':
+                    addParam(command);
+                    break;
+
+                case 'POSTPROCESS':
+                    postprocessingCommands.push(command);
+                    break;
+
+                default:
                     throw new Error(
-                        'Execution type is already defined in the prompt template. It can be defined only once.',
+                        `Command ${command.type} is not allowed in the block of the prompt template ONLY at the head of the prompt template pipeline`,
                     );
-                }
-                executionType = command.executionType;
-                isExecutionTypeChanged = true;
-                break;
-
-            case 'USE':
-                templateModelRequirements[command.key] = command.value;
-                break;
-
-            case 'PARAMETER':
-                addParam(command);
-                break;
-
-            case 'POSTPROCESS':
-                postprocessingCommands.push(command);
-                break;
-
-            default:
-                throw new Error(
-                    `Command ${command.type} is not allowed in the block of the prompt template ONLY at the head of the prompt template pipeline`,
-                );
             }
         }
 
@@ -214,12 +215,12 @@ export function promptTemplatePipelineStringToJson(
 
                         Invalid section:
                         ${block(
-        // TODO: Show code of invalid sections each time + DRY
-        section.content
-            .split('\n')
-            .map((line) => `> ${line}`)
-            .join('\n'),
-    )}
+                            // TODO: Show code of invalid sections each time + DRY
+                            section.content
+                                .split('\n')
+                                .map((line) => `> ${line}`)
+                                .join('\n'),
+                        )}
                         `,
                 ),
             );
@@ -243,9 +244,9 @@ export function promptTemplatePipelineStringToJson(
                 postprocessingCommands.length <= i
                     ? resultingParameterName
                     : normalizeTo_camelCase(
-                        `${resultingParameterName} before ${postprocessingCommands[i]!.functionName}`,
-                        // <- TODO: Make this work even if using multiple same postprocessing functions
-                    );
+                          `${resultingParameterName} before ${postprocessingCommands[i]!.functionName}`,
+                          // <- TODO: Make this work even if using multiple same postprocessing functions
+                      );
 
             const isParameterDefined = ptpJson.parameters.some((parameter) => parameter.name === parameterName);
 

@@ -212,7 +212,7 @@ By default, it is `Prompt template`
 -   `Script` The block is a script that is executed by some script runtime, the runtime is determined by block type, currently only `javascript` is supported but we plan to add `python` and `typescript` in the future.
 -   `Prompt dialog` Ask user for input
 
-### Prompt Template Parameters
+### Parameters
 
 Parameters that are placed in the prompt template and replaced to create the prompt.
 It is a simple key-value object.
@@ -383,16 +383,6 @@ Include:
 -   [ ] [🧠][🤹‍♂️] How to mark continued chat in .ptp.md format?
 -   [ ] Use newest version of socket.io for remote server
 -   [ ] [🧠] Allow to use and define [function calling](https://platform.openai.com/docs/guides/gpt/function-calling)
--   [ ] Make ESLint work and happy
--   [ ] xxx
--   [ ] xxx
--   [ ] xxx
--   [ ] xxx
--   [ ] xxx
--   [ ] xxx
--   [ ] xxx
--   [ ] xxx
--   [ ] xxx
 
 ```
 

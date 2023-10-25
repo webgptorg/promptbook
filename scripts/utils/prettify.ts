@@ -15,6 +15,7 @@ export async function prettify(fileContents: string, parser = 'typescript'): Pro
     try {
         return prettier.format(fileContents, {
             parser,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             ...(JSON.parse(await promisify(readFile)(join(process.cwd(), '.prettierrc'), 'utf8')) as any),
         });
     } catch (error) {

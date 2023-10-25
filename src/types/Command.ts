@@ -51,6 +51,7 @@ export interface ExecuteCommand {
 export interface UseCommand {
     readonly type: 'USE';
     readonly key: keyof ModelRequirements;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     readonly value: any /* <- TODO: Infer from used key, can it be done in TypeScript */;
 }
 

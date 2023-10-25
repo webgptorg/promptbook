@@ -9,6 +9,7 @@
  */
 export function just<T>(value?: T): T {
     if (value === undefined) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
         return undefined as any as T;
     }
     return value;

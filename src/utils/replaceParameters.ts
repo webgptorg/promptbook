@@ -1,4 +1,5 @@
 import { string_name, string_template } from '.././types/typeAliases';
+import { Parameters } from '../types/Parameters';
 
 /**
  * Replaces parameters in template with values from parameters object
@@ -9,7 +10,7 @@ import { string_name, string_template } from '.././types/typeAliases';
  *
  * @private within the library
  */
-export function replaceParameters(template: string_template, parameters: {}): string {
+export function replaceParameters(template: string_template, parameters: Parameters): string {
     let result = '';
     let openedParamName: string | null = null;
 
@@ -22,12 +23,12 @@ export function replaceParameters(template: string_template, parameters: {}): st
     for (const char of template.split('')) {
         if (char === '{') {
             if (openedParamName !== null) {
-                throw new Error('Parameter is already opened');
+                throw new Error(`Parameter is already opened`);
             }
             openedParamName = '';
         } else if (char === '}') {
             if (openedParamName === null) {
-                throw new Error('Parameter is not opened');
+                throw new Error(`Parameter is not opened`);
             }
             if (parametersChecked[openedParamName] === undefined) {
                 throw new Error(`Parameter {${openedParamName}} is not defined`);
@@ -42,7 +43,7 @@ export function replaceParameters(template: string_template, parameters: {}): st
     }
 
     if (openedParamName !== null) {
-        throw new Error('Parameter is not closed');
+        throw new Error(`Parameter is not closed`);
     }
 
     return result;
