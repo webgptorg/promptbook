@@ -1,6 +1,7 @@
 const { comment } = Wizzard.takeCookbook({ url: 'https://ptp.example.com/samples/', isLazy: true })
     .useOpenAi({ apiKey: 'sss' })
-    .askUser()
+    .askUserInCallback()
+  inStdio
     .takeRecipe('comment.ptp.md@v1')
     .cook();
 
