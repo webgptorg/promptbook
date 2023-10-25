@@ -8,7 +8,11 @@ const { comment } = Wizzard.takeCookbook({ url: 'https://ptp.example.com/samples
 
 const wizzard = Wizzard.takeCookbook({ sources: {...} })
     .useOpenAi({ apiKey: 'sss' })
-    .askUser();
+    .askUser()
+    .allowScripts() 
+        denyPython() 
+      askUserWithUglyBrowserPrompt()
+
 
 const recipe = wizzard.takeRecipe('website.ptp.md@v1');
 const { websiteContent } = recipe.cook();
