@@ -9,9 +9,9 @@
     "typings": "./dist/esm/typings/index.d.ts",
     "scripts": {
         "test": "jest",
-        "lint": "eslint",
+        "lint": "eslint src",
         "build": "rm -rf ./dist && rollup --config rollup.config.ts",
-        "preversion": "npm run lint && npm test",
+        "preversion": "npm run lint && npm test && tsc",
         "postversion": "git push && git push --tags"
     },
     "repository": {
