@@ -1,18 +1,24 @@
-const { comment } = Wizzard.takeCookbook({ url: 'https://ptp.example.com/samples/' })
+const { comment } = Wizzard.takeCookbook({ url: 'https://ptp.example.com/samples/', isLazy: true })
     .useOpenAi({ apiKey: 'sss' })
-    .askUser()
+    .askUserInCallback()
+  inStdio
     .takeRecipe('comment.ptp.md@v1')
     .cook();
 
 //==============
 
-const wizzard = Wizzard.takeCookbook({ url: 'https://ptp.example.com/samples/' })
+const wizzard = Wizzard.takeCookbook({ sources: {...} })
     .useOpenAi({ apiKey: 'sss' })
-    .askUser();
+    .askUser()
+    .allowScripts() 
+        denyPython() 
+      askUserWithUglyBrowserPrompt()
+
 
 const recipe = wizzard.takeRecipe('website.ptp.md@v1');
 const { websiteContent } = recipe.cook();
 
 /**
+url, sources nebo folder 
  * TODO: [🧠] OpenAi apiKey vs token
  */
