@@ -11,8 +11,6 @@ import { CommonExecutionToolsOptions } from './execution/CommonExecutionToolsOpt
 import { createPtpExecutor } from './execution/createPtpExecutor';
 import { ExecutionTools } from './execution/ExecutionTools';
 import { NaturalExecutionTools } from './execution/NaturalExecutionTools';
-import { SupabaseLoggerWrapperOfNaturalExecutionTools } from './execution/plugins/natural-execution-tools/logger/SupabaseLoggerWrapperOfNaturalExecutionTools';
-import { SupabaseLoggerWrapperOfNaturalExecutionToolsOptions } from './execution/plugins/natural-execution-tools/logger/SupabaseLoggerWrapperOfNaturalExecutionToolsOptions';
 import { MockedEchoNaturalExecutionTools } from './execution/plugins/natural-execution-tools/mocked/MockedEchoNaturalExecutionTools';
 import { OpenAiExecutionTools } from './execution/plugins/natural-execution-tools/openai/OpenAiExecutionTools';
 import { OpenAiExecutionToolsOptions } from './execution/plugins/natural-execution-tools/openai/OpenAiExecutionToolsOptions';
@@ -97,8 +95,6 @@ export {
     ScriptExecutionToolsExecuteOptions,
     ScriptLanguage,
     SimplePromptInterfaceTools,
-    SupabaseLoggerWrapperOfNaturalExecutionTools,
-    SupabaseLoggerWrapperOfNaturalExecutionToolsOptions,
     SUPPORTED_SCRIPT_LANGUAGES,
     TypescriptExecutionTools,
     UseCommand,
