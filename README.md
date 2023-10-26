@@ -15,7 +15,7 @@ Library to supercharge your use of large language models
 
 ## Concept
 
-When you have a simple single prompt in GPT / ChatGPT, it doesn't matter how it is integrated, whether it's direct calling of Rest API or using Open Ai library and hardcoding prompt in source code or importing text file.
+When you have a simple single prompt to ChatGPT / GPT completion, it doesn't matter how it is integrated, whether it's direct calling of Rest API or using Open Ai library and hardcoding prompt in source code or importing text file.
 
 If you need something more advanced or want to extend the capabilities of LLMs, you generally have 3 ways to come:
 
