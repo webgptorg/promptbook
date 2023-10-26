@@ -607,6 +607,6 @@ export type number_gigabytes = number_positive;
 export type number_terabytes = number_positive;
 
 /**
- * TODO: !!! Cleanup
+ * TODO: !! Cleanup
  * TODO: !! Change to branded types
  */

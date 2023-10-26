@@ -17,5 +17,5 @@ export async function readAllProjectFiles(): Promise<
 
 
 /**
- * TODO: !!! Use fs/promises instead of fs
+ * TODO: !! Use fs/promises instead of fs
  */

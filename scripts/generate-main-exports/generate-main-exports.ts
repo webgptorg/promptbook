@@ -41,6 +41,6 @@ async function main() {
 
 /**
  * TODO: Pretty and organize imports
- * TODO: !!! Use fs/promises instead of fs
+ * TODO: !! Use fs/promises instead of fs
  * TODO: Activate TypeScript 3.8 and use top level await instead of wrapped code by main function
  */

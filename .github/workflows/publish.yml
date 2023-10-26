@@ -6,7 +6,7 @@ on:
             - 'v*'
 
 jobs:
-    # TODO: !!! Put back to work
+    # TODO: !! Put back to work
     # test:
     #     name: Test
     #     runs-on: ubuntu-latest
@@ -42,7 +42,7 @@ jobs:
 
     publish-npm:
         name: Publish on NPM package registry
-        # !!! needs: test
+        # !! needs: test
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v2
