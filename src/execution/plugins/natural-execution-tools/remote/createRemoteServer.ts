@@ -18,7 +18,7 @@ import { RemoteServerOptions } from './interfaces/RemoteServerOptions';
  * @see https://github.com/webgptorg/ptp#remote-server
  */
 export function createRemoteServer(options: RemoteServerOptions) {
-    const { port, ptpLibrary, naturalExecutionTools, isVerbose } = options;
+    const { port, /* [🎛] ptpLibrary, */ naturalExecutionTools, isVerbose } = options;
 
     const httpServer = http.createServer({}, (request, response) => {
         if (request.url?.includes('socket.io')) {
@@ -68,21 +68,20 @@ export function createRemoteServer(options: RemoteServerOptions) {
 
                 let promptResult: PromptResult;
                 switch (prompt.modelRequirements.variant) {
-                case 'CHAT':
-                    promptResult = await executionToolsForClient.gptChat(prompt);
-                    break;
-                case 'COMPLETION':
-                    promptResult = await executionToolsForClient.gptComplete(prompt);
-                    break;
-                default:
-                    throw new Error(`Unknown model variant "${prompt.modelRequirements.variant}"`);
+                    case 'CHAT':
+                        promptResult = await executionToolsForClient.gptChat(prompt);
+                        break;
+                    case 'COMPLETION':
+                        promptResult = await executionToolsForClient.gptComplete(prompt);
+                        break;
+                    default:
+                        throw new Error(`Unknown model variant "${prompt.modelRequirements.variant}"`);
                 }
 
                 if (isVerbose) {
                     console.info(chalk.bgGreen(`PromptResult:`), chalk.green(JSON.stringify(promptResult, null, 4)));
                 }
 
-                
                 socket.emit('response', { promptResult } satisfies Ptps_Response);
             } catch (error) {
                 if (!(error instanceof Error)) {

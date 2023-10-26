@@ -53,7 +53,8 @@ export class PromptTemplatePipelineLibrary {
      * Checks whether prompt is in the library
      */
     public isPromptInLibrary(prompt: Prompt): boolean {
-        // TODO: DO not hardcode this, really validate whether the prompt is in the library
+        // TODO: [🎛] DO not hardcode this, really validate whether the prompt is in the library
+        prompt;
         return true;
     }
 
