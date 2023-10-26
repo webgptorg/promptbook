@@ -44,5 +44,5 @@ export async function prettify(fileContents: string, parser = 'typescript'): Pro
 }
 
 /**
- * TODO: !!! Use fs/promises instead of fs
+ * TODO: !! Use fs/promises instead of fs
  */
