@@ -49,101 +49,167 @@ Prompt template pipeline (**PTP** for short) is document that describes a series
 <!------------------------[ Sample: ]------------------------>
 
 ```markdown
-# Sample: Language Capabilities
+# 🌍 Create website content
 
-Trying the language capabilities of GPT models.
+Instructions for creating web page content using [🌠 Prompt template pipelines](https://github.com/webgptorg/ptp).
 
--   PTP version 1.0.0
--   Use Chat
+-   PTP URL https://ptp.webgpt.com/en/write-wallpaper-content.ptp.md@v0.1.0
+-   PTP version 0.0.1
+-   Use chat
 -   Use GPT-3.5
--   Input parameter `{word}` The word to use in the prompt.
--   Output parameter `{comparisonOfTwoSentences}` Comparison between two sentences
--   Output parameter `{summary}` The overall summary of the comparison
+-   Input param `{rawTitle}` Automatically suggested a site name or empty text
+-   Input param `{rawAssigment}` Automatically generated site entry from image recognition
+-   Output param `{content}` Web content
 
-## Synonym
+## 👤 Specifying the assigment
 
-Synonym for word
+What is your web about?
 
-\`\`\`
-Write synonym for "{word}"
-\`\`\`
+-   Prompt dialog
 
-`-> {wordSynonymRaw}`
-
-## Unquote synonym
-
--   Execute script
-
-\`\`\`javascript
-removeQuotes(wordSynonymRaw);
+\`\`\`text
+{rawAssigment}
 \`\`\`
 
-`-> {wordSynonym}` Synonym for word
+`-> {assigment}` Website assignment and specification
 
-## Sentence with Synonym
+## 💬 Improvement of the web title
 
-Sentence with word and wordSynonym
-
-\`\`\`
-Write sentence with "{word}" and "{wordSynonym}" in it
-\`\`\`
-
-`-> {sentenceWithTwoSynonyms}` Sentence with word and wordSynonym
-
-## Sentence without original word
-
-Sentence "{sentenceWithTwoSynonyms}" without "{word}".
-
-\`\`\`
-Remove word "{word}" from sentence and modify it so that it makes sense:
-
-## Rules:
-
--   Sentence must be grammatically correct
--   Sentence must make sense after removing the word
-
-## The Sentence:
-
-> {sentenceWithTwoSynonyms}
-
-\`\`\`
-
-`-> {sentenceWithOriginalWordRemoved}` Sentence with both synomyms but without a original word
-
-## Comparison
-
-Comparison between "{sentenceWithTwoSynonyms}" and "{sentenceWithOriginalWordRemoved}".
-
--   Use Chat
--   Use GPT-4
-
-\`\`\`
-Compare meaning of thee two sentences:
-
-## Sentence 1:
-
-> {sentenceWithTwoSynonyms}
-
-## Sentence 2:
-
-> {sentenceWithOriginalWordRemoved}
-
-\`\`\`
-
-`-> {comparisonOfTwoSentences}` Comparison between two sentences
-
-## Summary
-
--   Execute simple template
+-   Postprocessing `unwrapResult`
 
 \`\`\`markdown
-You have entered a word **{word}**. For this word the best synonym is **{wordSynonym}**. The sentence with both words is **{sentenceWithTwoSynonyms}**. The sentence without the original word is **{sentenceWithOriginalWordRemoved}**. And the comparison between the two sentences is:
+As an experienced marketing specialist, you have been entrusted with improving the name of your client's business.
 
-> {comparisonOfTwoSentences}
+A suggested name from a client:
+"{rawTitle}"
+
+Assignment from customer:
+
+> {assigment}
+
+## Instructions:
+
+-   Write only one name suggestion
+-   The name will be used on the website, business cards, visuals, etc.
+    \`\`\`
+
+`-> {enhancedTitle}` Enhanced title
+
+## 👤 Schválení názvu uživatelem
+
+Is the title for your website okay?
+
+-   Prompt dialog
+
+\`\`\`text
+{enhancedTitle}
+\`\`\`
+
+`-> {title}` Title for the website
+
+## 💬 Cunning subtitle
+
+-   Postprocessing `unwrapResult`
+
+\`\`\`markdown
+As an experienced copywriter, you have been entrusted with creating a claim for the "{title}" web page.
+
+A website assignment from a customer:
+
+> {assigment}
+
+## Instructions:
+
+-   Write only one name suggestion
+-   Claim will be used on website, business cards, visuals, etc.
+-   Claim should be punchy, funny, original
+    \`\`\`
+
+`-> {claim}` Claim for the web
+
+## 💬 Keyword analysis
+
+\`\`\`markdown
+As an experienced SEO specialist, you have been entrusted with creating keywords for the website "{title}".
+
+Website assignment from the customer:
+
+> {assigment}
+
+## Instructions:
+
+-   Write a list of keywords
+-   Keywords are in basic form
+
+## Example:
+
+-   Ice cream
+-   Olomouc
+-   Quality
+-   Family
+-   Tradition
+-   Italy
+-   Craft
+    \`\`\`
+
+`-> {keywords}` Keywords
+
+## 🔗 Vytvoření začátku obsahu webu
+
+-   Simple template
+
+\`\`\`text
+
+# {title}
+
+> {claim}
 
 \`\`\`
 
-`-> {summary}`
+`-> {contentBeginning}` Beginning of web content
+
+## 🖋 Writing web content
+
+-   Use completion
+-   Use GPT-3
+
+\`\`\`markdown
+As an experienced copywriter and web designer, you have been entrusted with creating text for a new website {title}.
+
+A website assignment from a customer:
+
+> {assigment}
+
+## Instructions:
+
+-   Text formatting is in Markdown
+-   Be concise and to the point
+-   Use keywords, but they should be naturally in the text
+-   This is the complete content of the page, so don't forget all the important information and elements the page should contain
+-   Use headings, bullets, text formatting
+
+## Keywords:
+
+{keywords}
+
+## Web Content:
+
+{contentBeginning}
+\`\`\`
+
+`-> {contentBody}` Middle of the web content
+
+## 🔗 Combine content
+
+-   Simple template
+
+\`\`\`markdown
+{contentBeginning}
+
+{contentBody}
+\`\`\`
+
+`-> {content}`
 ```
 
 <!------------------------[ /Sample ]------------------------>
@@ -340,7 +406,7 @@ First you need to install this library:
 npm install --save @gptp/core
 ```
 
-_(TODO: Write this section)_
+_(TODO: !!! Write this section)_
 
 ## FAQ
 
@@ -367,7 +433,6 @@ Include:
 
 ## TODOs
 
--   [ ] !! Make this working as external library
 -   [ ] [🧠] Figure out the best name for this library - `Prompt Template Pipeline`, `Prompt Template Engine`, `Prompt Template Processor`, `Open Prompt Initiative`
 -   [ ] Export all promptTemplatePipeline as ptp alias from library
 -   [ ] Make from this folder a separate repository + npm package
@@ -389,14 +454,8 @@ Include:
 -   [ ] [🧠][🤹‍♂️] How to mark continued chat in .ptp.md format?
 -   [ ] Use newest version of socket.io for remote server
 -   [ ] [🧠] Allow to use and define [function calling](https://platform.openai.com/docs/guides/gpt/function-calling)
--   TODO: !!! Add wizzard sample here (with npm i @gptp/core)
 -   TODO: !!! Add generating video here
--   TODO: !!! Update samples here
 -   TODO: !!! Go through the README
-
-```
-
-```
 
 <!--Contributing-->
 <!--⚠️WARNING: This section was generated by https://github.com/hejny/batch-project-editor/blob/main/src/workflows/810-contributing/contributing.ts so every manual change will be overwritten.-->
