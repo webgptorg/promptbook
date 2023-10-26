@@ -37,8 +37,14 @@ In any of these situations, this library can make your life easier:
 
 ## Prompt template pipelines _(for prompt-engeneers)_
 
-<!-- TODO: !!! Write paragraph about -->
-<!-- TODO: [🧠] !!! Make some more clear escaping -->
+Prompt template pipeline (**PTP** for short) is document that describes a series of prompts that are chained together to form somewhat reciepe for transforming natural language input. Inside a PTP you can use chat prompts, completion prompts, scripting or trigger interaction with user to ask for additional information.
+
+-   Multiple PTPs forms a library which will become a **part of your application codebase**.
+-   Theese pipelines are designed such as they **can be written by non-programmers**.
+
+<!-- TODO: [🧠] Make some more clear escaping -->
+
+### Sample:
 
 <!------------------------[ Sample: ]------------------------>
 
