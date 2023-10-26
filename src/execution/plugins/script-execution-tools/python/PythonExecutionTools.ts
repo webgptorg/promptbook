@@ -14,7 +14,7 @@ export class PythonExecutionTools implements ScriptExecutionTools {
      * Executes a Python
      */
     public async execute(options: ScriptExecutionToolsExecuteOptions): Promise<string> {
-        const { scriptLanguage, script, parameters } = options;
+        const { scriptLanguage, script } = options;
 
         if (scriptLanguage !== 'python') {
             throw new Error(`Script language ${scriptLanguage} not supported to be executed by PythonExecutionTools`);
@@ -25,7 +25,7 @@ export class PythonExecutionTools implements ScriptExecutionTools {
                 spaceTrim(
                     (block) => `
                         🚀 NOT Evaluating ${scriptLanguage} script:
-                        
+
                         ${block(script)}`,
                 ),
             );

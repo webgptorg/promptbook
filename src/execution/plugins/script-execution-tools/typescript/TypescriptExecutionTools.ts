@@ -8,15 +8,13 @@ import { ScriptExecutionTools, ScriptExecutionToolsExecuteOptions } from '../../
  * Warning: This is not implemented yet
  */
 export class TypescriptExecutionTools implements ScriptExecutionTools {
-
-
     public constructor(private readonly options: CommonExecutionToolsOptions) {}
 
     /**
      * Executes a TypeScript
      */
     public async execute(options: ScriptExecutionToolsExecuteOptions): Promise<string> {
-        const { scriptLanguage, script, parameters } = options;
+        const { scriptLanguage, script } = options;
 
         if (scriptLanguage !== 'typescript') {
             throw new Error(
@@ -29,7 +27,7 @@ export class TypescriptExecutionTools implements ScriptExecutionTools {
                 spaceTrim(
                     (block) => `
                         🚀 NOT Evaluating ${scriptLanguage} script:
-                        
+
                         ${block(script)}`,
                 ),
             );
