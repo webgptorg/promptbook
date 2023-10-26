@@ -44,7 +44,7 @@
         "n12": "^1.6.0",
         "openai": "^4.13.0",
         "spacetrim": "^0.9.1",
-        "socket.io": "3.1.2",
+        "socket.io": "4.7.2",
         "socket.io-client": "3.1.3"
     }
 }
