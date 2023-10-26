@@ -12,6 +12,7 @@
         "noUncheckedIndexedAccess": true,
         "module": "esnext",
         "moduleResolution": "node",
+        "isolatedModules": false,
         "resolveJsonModule": true,
         "downlevelIteration": true,
         "noEmit": true,

@@ -5,6 +5,7 @@ import { DEFAULT_MODEL_REQUIREMENTS, PTP_VERSION } from '../config';
 import { ParameterCommand, PostprocessCommand } from '../types/Command';
 import { ExecutionType } from '../types/ExecutionTypes';
 import { ModelRequirements } from '../types/ModelRequirements';
+import { PromptTemplateParameterJson } from '../types/PromptTemplatePipelineJson/PromptTemplateParameterJson';
 import { PromptTemplatePipelineJson } from '../types/PromptTemplatePipelineJson/PromptTemplatePipelineJson';
 import { PromptTemplatePipelineString } from '../types/PromptTemplatePipelineString';
 import { ScriptLanguage, SUPPORTED_SCRIPT_LANGUAGES } from '../types/ScriptLanguage';
@@ -50,7 +51,9 @@ export function promptTemplatePipelineStringToJson(
     const addParam = (parameterCommand: Omit<ParameterCommand, 'type'>) => {
         const { parameterName, parameterDescription, isInputParameter } = parameterCommand;
 
-        const existingParameter = ptpJson.parameters.find((parameter) => parameter.name === parameterName);
+        const existingParameter = ptpJson.parameters.find(
+            (parameter: PromptTemplateParameterJson) => parameter.name === parameterName,
+        );
         if (
             existingParameter &&
             existingParameter.description &&
@@ -121,26 +124,26 @@ export function promptTemplatePipelineStringToJson(
         const command = parseCommand(listItem);
 
         switch (command.type) {
-        case 'PTP_URL':
-            ptpJson.ptpUrl = command.ptpUrl.href;
-            break;
+            case 'PTP_URL':
+                ptpJson.ptpUrl = command.ptpUrl.href;
+                break;
 
-        case 'PTP_VERSION':
-            ptpJson.ptpVersion = command.ptpVersion;
-            break;
+            case 'PTP_VERSION':
+                ptpJson.ptpVersion = command.ptpVersion;
+                break;
 
-        case 'USE':
-            defaultModelRequirements[command.key] = command.value;
-            break;
+            case 'USE':
+                defaultModelRequirements[command.key] = command.value;
+                break;
 
-        case 'PARAMETER':
-            addParam(command);
-            break;
+            case 'PARAMETER':
+                addParam(command);
+                break;
 
-        default:
-            throw new Error(
-                `Command ${command.type} is not allowed in the head of the prompt template pipeline ONLY at the prompt template block`,
-            );
+            default:
+                throw new Error(
+                    `Command ${command.type} is not allowed in the head of the prompt template pipeline ONLY at the prompt template block`,
+                );
         }
     }
 
@@ -156,32 +159,32 @@ export function promptTemplatePipelineStringToJson(
         for (const listItem of listItems) {
             const command = parseCommand(listItem);
             switch (command.type) {
-            case 'EXECUTE':
-                if (isExecutionTypeChanged) {
+                case 'EXECUTE':
+                    if (isExecutionTypeChanged) {
+                        throw new Error(
+                            'Execution type is already defined in the prompt template. It can be defined only once.',
+                        );
+                    }
+                    executionType = command.executionType;
+                    isExecutionTypeChanged = true;
+                    break;
+
+                case 'USE':
+                    templateModelRequirements[command.key] = command.value;
+                    break;
+
+                case 'PARAMETER':
+                    addParam(command);
+                    break;
+
+                case 'POSTPROCESS':
+                    postprocessingCommands.push(command);
+                    break;
+
+                default:
                     throw new Error(
-                        'Execution type is already defined in the prompt template. It can be defined only once.',
+                        `Command ${command.type} is not allowed in the block of the prompt template ONLY at the head of the prompt template pipeline`,
                     );
-                }
-                executionType = command.executionType;
-                isExecutionTypeChanged = true;
-                break;
-
-            case 'USE':
-                templateModelRequirements[command.key] = command.value;
-                break;
-
-            case 'PARAMETER':
-                addParam(command);
-                break;
-
-            case 'POSTPROCESS':
-                postprocessingCommands.push(command);
-                break;
-
-            default:
-                throw new Error(
-                    `Command ${command.type} is not allowed in the block of the prompt template ONLY at the head of the prompt template pipeline`,
-                );
             }
         }
 
@@ -206,7 +209,7 @@ export function promptTemplatePipelineStringToJson(
         }
 
         const lastLine = section.content.split('\n').pop()!;
-        const match = /^\-\>\s*\{(?<resultingParamName>[a-z0-9_]+)\}/im.exec(lastLine);
+        const match = /^->\s*\{(?<resultingParamName>[a-z0-9_]+)\}/im.exec(lastLine);
         if (!match || match.groups === undefined || match.groups.resultingParamName === undefined) {
             throw new Error(
                 spaceTrim(
@@ -215,12 +218,12 @@ export function promptTemplatePipelineStringToJson(
 
                         Invalid section:
                         ${block(
-        // TODO: Show code of invalid sections each time + DRY
-        section.content
-            .split('\n')
-            .map((line) => `> ${line}`)
-            .join('\n'),
-    )}
+                            // TODO: Show code of invalid sections each time + DRY
+                            section.content
+                                .split('\n')
+                                .map((line) => `> ${line}`)
+                                .join('\n'),
+                        )}
                         `,
                 ),
             );
@@ -244,9 +247,9 @@ export function promptTemplatePipelineStringToJson(
                 postprocessingCommands.length <= i
                     ? resultingParameterName
                     : normalizeTo_camelCase(
-                        `${resultingParameterName} before ${postprocessingCommands[i]!.functionName}`,
-                        // <- TODO: Make this work even if using multiple same postprocessing functions
-                    );
+                          `${resultingParameterName} before ${postprocessingCommands[i]!.functionName}`,
+                          // <- TODO: Make this work even if using multiple same postprocessing functions
+                      );
 
             const isParameterDefined = ptpJson.parameters.some((parameter) => parameter.name === parameterName);
 

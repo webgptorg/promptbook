@@ -16,7 +16,7 @@ export function parseCommand(listItem: string_markdown_text): Command {
     let type = listItem.trim();
     type = type.split('`').join('');
     type = type.split('"').join('');
-    type = type.split('\'').join('');
+    type = type.split("'").join('');
     type = type.split('~').join('');
     type = type.split('[').join('');
     type = type.split(']').join('');
@@ -146,12 +146,12 @@ export function parseCommand(listItem: string_markdown_text): Command {
             throw new Error(
                 spaceTrim(
                     (block) => `
-                        Unknown variant in command:
+                          Unknown variant in command:
 
-                        - ${listItem}
+                          - ${listItem}
 
-                        Supported variants are:
-                        ${block(['CHAT', 'COMPLETION'].join(', '))}
+                          Supported variants are:
+                          ${block(['CHAT', 'COMPLETION'].join(', '))}
                     `,
                 ),
             );
@@ -187,7 +187,7 @@ export function parseCommand(listItem: string_markdown_text): Command {
         if (parameterDescription && parameterDescription.match(/\{(?<parameterName>[a-z0-9_]+)\}/im)) {
             throw new Error(
                 spaceTrim(
-                    (block) => `
+                    `
                         Parameter {${parameterName}} can not contain another parameter in description:
 
                         - ${listItem}
