@@ -7,6 +7,35 @@
     "module": "./dist/esm/index.js",
     "main": "./dist/umd/index.js",
     "typings": "./dist/esm/typings/index.d.ts",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/webgptorg/ptp"
+    },
+    "contributors": [
+        "Pavol Hejný <me@pavolhejny.com> (https://www.pavolhejny.com/)"
+    ],
+    "keywords": [
+        "autogpt",
+        "openai",
+        "gpt-3",
+        "gpt-4",
+        "chatgpt",
+        "ai",
+        "machine-learning",
+        "natural-language-processing",
+        "nlp",
+        "prompt",
+        "template",
+        "pipeline",
+        "automation",
+        "text-generation",
+        "language-model"
+    ],
+    "license": "SEE LICENSE IN LICENSE",
+    "bugs": {
+        "url": "https://github.com/webgptorg/ptp/issues"
+    },
+    "homepage": "https://www.npmjs.com/package/@gptp/core",
     "scripts": {
         "test": "jest",
         "lint": "eslint src",
@@ -14,17 +43,6 @@
         "preversion": "npm run lint && npm test && tsc",
         "postversion": "git push && git push --tags"
     },
-    "repository": {
-        "type": "git",
-        "url": "https://github.com/hejny/ptp"
-    },
-    "keywords": [],
-    "author": "",
-    "license": "SEE LICENSE IN LICENSE",
-    "bugs": {
-        "url": "https://github.com/hejny/ptp/issues"
-    },
-    "homepage": "https://github.com/hejny/ptp#readme",
     "devDependencies": {
         "@rollup/plugin-typescript": "8.3.0",
         "@types/jest": "27.0.2",
