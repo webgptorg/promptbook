@@ -140,7 +140,7 @@ export function createPtpExecutor(options: CreatePtpExecutorOptions): PtpExecuto
                 break executionType;
 
             default:
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 throw new Error(`Unknown execution type "${(currentTemplate as any).executionType}"`);
             }
 
