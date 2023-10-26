@@ -383,6 +383,11 @@ Include:
 -   [ ] [🧠][🤹‍♂️] How to mark continued chat in .ptp.md format?
 -   [ ] Use newest version of socket.io for remote server
 -   [ ] [🧠] Allow to use and define [function calling](https://platform.openai.com/docs/guides/gpt/function-calling)
+-   TODO: !!! Add wizzard sample here (with npm i @gptp/core)
+-   TODO: !!! Add generating video here
+-   TODO: !!! Update samples here
+-   TODO: !!! Go through the README
+-   TODO: !!! WebGPT sponsorship + BPE
 
 ```
 
