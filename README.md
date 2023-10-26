@@ -35,6 +35,8 @@ In any of these situations, this library can make your life easier:
 -   **A/B testing** to determine which prompt works best for the job
 -   Leverage the **streaming** to make super cool UI/UX
 
+![WebGPT](./other/screencasts/screencast-fiabciakcmgepblmdkmemdbbkilneeeh-2023.10.26-21_46_17.gif)
+
 ## Prompt template pipelines _(for prompt-engeneers)_
 
 Prompt template pipeline (**PTP** for short) is document that describes a series of prompts that are chained together to form somewhat reciepe for transforming natural language input. Inside a PTP you can use chat prompts, completion prompts, scripting or trigger interaction with user to ask for additional information.
@@ -454,7 +456,6 @@ Include:
 -   [ ] [🧠][🤹‍♂️] How to mark continued chat in .ptp.md format?
 -   [ ] Use newest version of socket.io for remote server
 -   [ ] [🧠] Allow to use and define [function calling](https://platform.openai.com/docs/guides/gpt/function-calling)
--   TODO: !!! Add generating video here
 -   TODO: !!! Go through the README
 
 <!--Contributing-->
