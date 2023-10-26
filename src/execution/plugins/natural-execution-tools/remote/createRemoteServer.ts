@@ -3,7 +3,6 @@ import http from 'http';
 import { Server, Socket } from 'socket.io';
 import spaceTrim from 'spacetrim';
 import { PromptResult } from '../../../PromptResult';
-import { SupabaseLoggerWrapperOfNaturalExecutionTools } from '../logger/SupabaseLoggerWrapperOfNaturalExecutionTools';
 import { Ptps_Error } from './interfaces/Ptps_Error';
 import { Ptps_Request } from './interfaces/Ptps_Request';
 import { Ptps_Response } from './interfaces/Ptps_Response';
@@ -18,7 +17,7 @@ import { RemoteServerOptions } from './interfaces/RemoteServerOptions';
  * @see https://github.com/webgptorg/ptp#remote-server
  */
 export function createRemoteServer(options: RemoteServerOptions) {
-    const { port, /* [🎛] ptpLibrary, */ naturalExecutionTools, isVerbose } = options;
+    const { port, /* [🎛] ptpLibrary, */ createNaturalExecutionTools, isVerbose } = options;
 
     const httpServer = http.createServer({}, (request, response) => {
         if (request.url?.includes('socket.io')) {
@@ -58,11 +57,7 @@ export function createRemoteServer(options: RemoteServerOptions) {
             }
 
             try {
-                const executionToolsForClient = new SupabaseLoggerWrapperOfNaturalExecutionTools({
-                    isVerbose,
-                    naturalExecutionTools,
-                    clientId,
-                });
+                const executionToolsForClient = createNaturalExecutionTools(clientId);
 
                 // TODO: [🎛] Check validity of the prompt against ptpLibrary
 
