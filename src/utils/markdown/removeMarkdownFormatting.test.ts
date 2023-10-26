@@ -41,7 +41,7 @@ describe('removeMarkdownFormatting', () => {
         const str1 = 'I am * You are';
         expect(removeMarkdownFormatting(str1)).toEqual(str1);
 
-        const str2 = 'I am * You are * He is * She is * It is * We are * They are *';
+        const str2 = 'I am * You are ! He is ~ She is ? It is | We are / They are \\';
         expect(removeMarkdownFormatting(str2)).toEqual(str2);
 
         const str3 = 'I`m here';
