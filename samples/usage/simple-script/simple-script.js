@@ -11,7 +11,6 @@ main();
 
 async function main() {
     const library = PromptTemplatePipelineLibrary.fromSources({
-        // TODO: !!! Identify PTPs by URL
         advanced: await readFile(join(process.cwd(), '../../templates/50-advanced.ptp.md'), 'utf-8'),
     });
 
@@ -24,9 +23,8 @@ async function main() {
             new JavascriptEvalExecutionTools({
                 isVerbose: true,
             }),
-            /* TODO: !!! No need to set this */
         ],
-        userInterface: null /* TODO: !!! No need to set this */,
+        userInterface: null,
     };
 
     const executor = library.createExecutor('advanced', tools);
@@ -38,6 +36,8 @@ async function main() {
 }
 
 /**
+ * TODO: !!! Identify PTPs by URL
+ * TODO: !!! No need to set this script or userInterface in tools
  * TODO: !!! Use PromptTemplatePipelineLibrary.fromDirectory (directory vs folder)
  * TODO: !!! Also sample with Wizzard
  */
