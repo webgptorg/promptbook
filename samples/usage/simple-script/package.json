@@ -1,0 +1,10 @@
+{
+    "type": "module",
+    "scripts": {
+        "start": "node simple-script.js"
+    },
+    "dependencies": {
+        "@gptp/core": "^0.4.3",
+        "dotenv": "^16.3.1"
+    }
+}
