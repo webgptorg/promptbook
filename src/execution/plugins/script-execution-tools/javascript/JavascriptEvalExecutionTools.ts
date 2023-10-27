@@ -26,7 +26,9 @@ import { ScriptExecutionTools, ScriptExecutionToolsExecuteOptions } from '../../
  *          **NOT intended to use in the production** due to its unsafe nature, use `JavascriptExecutionTools` instead.
  */
 export class JavascriptEvalExecutionTools implements ScriptExecutionTools {
-    public constructor(private readonly options: CommonExecutionToolsOptions) {}
+    public constructor(private readonly options: CommonExecutionToolsOptions) {
+        // TODO: !!! This should NOT work in node + explain
+    }
 
     /**
      * Executes a JavaScript
@@ -92,10 +94,10 @@ export class JavascriptEvalExecutionTools implements ScriptExecutionTools {
         const statementToEvaluate = spaceTrim(
             (block) => `
                 ${block(
-        Object.entries(parameters)
-            .map(([key, value]) => `const ${key} = ${JSON.stringify(value)};`)
-            .join('\n'),
-    )}
+                    Object.entries(parameters)
+                        .map(([key, value]) => `const ${key} = ${JSON.stringify(value)};`)
+                        .join('\n'),
+                )}
                 (()=>{ ${script} })()
             `,
         );

@@ -11,7 +11,7 @@ main();
 
 async function main() {
     const library = PromptTemplatePipelineLibrary.fromSources({
-        advanced: await readFile(join(process.cwd(), '../../templates/50-advanced.ptp.md'), 'utf-8'),
+        advanced: await readFile(join(process.cwd(), '../../templates/10-single.ptp.md'), 'utf-8'),
     });
 
     const tools = {
