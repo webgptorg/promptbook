@@ -1,18 +1,18 @@
 import { describe, expect, it } from '@jest/globals';
 import spaceTrim from 'spacetrim';
+import { importPtp } from './_importPtp';
 import { promptTemplatePipelineStringToJson } from './promptTemplatePipelineStringToJson';
 import { validatePromptTemplatePipelineJson } from './validatePromptTemplatePipelineJson';
-import { importPtp } from './_importPtp';
 
 describe('validatePromptTemplatePipelineJson', () => {
     it('should work in valid samples', () => {
         for (const path of [
-            '../../samples/00-simple.ptp.md',
-            '../../samples/05-comment.ptp.md',
-            '../../samples/10-single.ptp.md',
-            '../../samples/20-two.ptp.md',
-            '../../samples/30-escaping.ptp.md',
-            '../../samples/50-advanced.ptp.md',
+            '../../samples/templates/00-simple.ptp.md',
+            '../../samples/templates/05-comment.ptp.md',
+            '../../samples/templates/10-single.ptp.md',
+            '../../samples/templates/20-two.ptp.md',
+            '../../samples/templates/30-escaping.ptp.md',
+            '../../samples/templates/50-advanced.ptp.md',
         ] as const) {
             expect(() => {
                 try {
@@ -27,11 +27,11 @@ describe('validatePromptTemplatePipelineJson', () => {
                     throw new Error(
                         spaceTrim(
                             (block) => `
-                    
+
                                 Error in ${path}:
-                                
+
                                 ${block((error as Error).message)}
-                            
+
                             `,
                         ),
                     );
@@ -42,7 +42,7 @@ describe('validatePromptTemplatePipelineJson', () => {
 
     it('should fail on using parameter before defining', () => {
         expect(() => {
-            const ptpString = importPtp('../../samples/errors/logic/parameter-used-before-defining.ptp.md');
+            const ptpString = importPtp('../../samples/templates/errors/logic/parameter-used-before-defining.ptp.md');
             const ptpJson = promptTemplatePipelineStringToJson(ptpString);
             validatePromptTemplatePipelineJson(ptpJson);
         }).toThrowError(/Parameter \{word\} used before defined/i);
