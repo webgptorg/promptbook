@@ -13,6 +13,8 @@ Library to supercharge your use of large language models
 
 <!--/Badges-->
 
+> ⚠ Warning: This library is still in early development. It is working only in node environment.
+
 ## Concept
 
 When you have a simple single prompt to ChatGPT / GPT completion, it doesn't matter how it is integrated, whether it's direct calling of Rest API or using Open Ai library and hardcoding prompt in source code or importing text file.
@@ -216,6 +218,8 @@ A website assignment from a customer:
 
 <!------------------------[ /Sample ]------------------------>
 
+[More template samples](./samples/templates/)
+
 ## Dictionary
 
 The following glossary is used to clarify certain basic concepts:
@@ -407,6 +411,8 @@ First you need to install this library:
 ```bash
 npm install --save @gptp/core
 ```
+
+[Usage samples](./samples/usage/)
 
 _(TODO: !!! Write this section)_
 
