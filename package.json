@@ -36,7 +36,10 @@
     "scripts": {
         "test": "jest",
         "lint": "eslint src",
-        "build": "rm -rf ./packages && rollup --config rollup.config.ts",
+        "build": "npm run build-cleanup && npm run build-bundle && npm run build-metadata",
+        "build-cleanup": "rm -rf ./packages",
+        "build-bundle": " rollup --config rollup.config.js",
+        "build-metadata": "",
         "preversion": "npm run lint && npm test && tsc",
         "postversion": "git push && git push --tags"
     },
