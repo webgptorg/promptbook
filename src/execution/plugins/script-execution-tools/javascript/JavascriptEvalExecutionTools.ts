@@ -113,6 +113,7 @@ export class JavascriptEvalExecutionTools implements ScriptExecutionTools {
             );
         }
 
+        // TODO: !!! Fix the eval
         const result = eval(statementToEvaluate);
 
         if (typeof result !== 'string') {
