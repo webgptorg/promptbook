@@ -8,6 +8,18 @@
             "focus": true
         },
         {
+            "name": "🧪 Lint (samples)",
+            "command": "eslint samples",
+            "onlySingle": true,
+            "focus": true
+        },
+        {
+            "name": "🧪 Lint (scripts)",
+            "command": "eslint scripts",
+            "onlySingle": true,
+            "focus": true
+        },
+        {
             "name": "🧪 Test",
             "command": "npm run test",
             "onlySingle": true,
