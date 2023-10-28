@@ -6,7 +6,6 @@ import { readFile, writeFile } from 'fs/promises';
 import { join } from 'path';
 import spaceTrim from 'spacetrim';
 import { PackageJson } from 'type-fest';
-import { forTime } from 'waitasecond';
 import YAML from 'yaml';
 import { packageNames } from '../../rollup.config';
 import { commit } from '../utils/autocommit/commit';
@@ -46,7 +45,6 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
         await execCommand(`rm -rf ./packages/${packageName}/umd`);
         await execCommand(`rm -rf ./packages/${packageName}/esm`);
     }
-    await forTime(10000000);
 
     await execCommand(`rollup --config rollup.config.js`);
 
