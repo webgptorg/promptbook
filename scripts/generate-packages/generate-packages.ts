@@ -6,6 +6,7 @@ import { readFile, writeFile } from 'fs/promises';
 import { join } from 'path';
 import spaceTrim from 'spacetrim';
 import { PackageJson } from 'type-fest';
+import YAML from 'yaml';
 import { packageNames } from '../../rollup.config';
 import { commit } from '../utils/autocommit/commit';
 import { isWorkingTreeClean } from '../utils/autocommit/isWorkingTreeClean';
@@ -67,6 +68,50 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
         await writeFile(`./packages/${packageName}/package.json`, JSON.stringify(packageJson, null, 4) + '\n');
     }
 
+    await writeFile(
+        `./github/publish.yml`,
+        YAML.stringify({
+            name: 'Publish new version',
+            on: {
+                push: {
+                    tags: ['v*'],
+                },
+            },
+            jobs: {
+                'publish-npm': {
+                    name: 'Publish on NPM package registry',
+                    'runs-on': 'ubuntu-latest',
+                    steps: [
+                        {
+                            uses: 'actions/checkout@v2',
+                        },
+                        {
+                            uses: 'actions/setup-node@v1',
+                            with: {
+                                'node-version': 18,
+                                'registry-url': 'https://registry.npmjs.org/',
+                            },
+                        },
+                        {
+                            run: 'npm ci',
+                        },
+                        {
+                            run: 'npm run build',
+                        },
+                        {
+                            run: 'npm publish --access public',
+                            env: {
+                                NODE_AUTH_TOKEN: '${{secrets.NPM_TOKEN}}',
+                            },
+                        },
+                    ],
+                },
+            },
+        })
+            .split('"')
+            .join("'") /* <- TODO: Can the replace be done directly in YAML.stringify options? */,
+    );
+
     if (isCommited) {
         await commit('packages', `📦 Generating packages`);
     }
@@ -76,9 +121,11 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
 
 /**
  *
- * TODO: !!! Sync Package.json + add copy warning
+ * TODO: !!! test before publish
  * TODO: !!! Automatic script after build to generate theese things
  * TODO: !!! Automatic script for publishing packages to npm after version
+ *
+ * TODO: !! Add warning to the copy/generated files
  * TODO: !! Use prettier to format the generated files
  * TODO: !! Normalize order of keys in package.json
  */

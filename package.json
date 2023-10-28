@@ -39,7 +39,7 @@
         "build": "npm run build-cleanup && npm run build-bundle && npm run build-metadata",
         "build-cleanup": "rm -rf ./packages",
         "build-bundle": " rollup --config rollup.config.js",
-        "build-metadata": "ts-node ./scripts/generate-packages/generate-packages.ts --commit",
+        "build-metadata": "ts-node ./scripts/generate-packages/generate-packages.ts",
         "preversion": "npm run lint && npm test && tsc",
         "postversion": "git push && git push --tags"
     },
@@ -55,7 +55,8 @@
         "rollup": "2.58.1",
         "ts-jest": "27.0.7",
         "tslib": "2.3.1",
-        "type-fest": "^4.5.0"
+        "type-fest": "^4.5.0",
+        "yaml": "^2.3.3"
     },
     "dependencies": {
         "n12": "1.6.0",
