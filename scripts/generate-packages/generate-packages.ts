@@ -46,7 +46,7 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
         await writeFile(
             `./packages/${packageName}/README.md`,
             spaceTrim(`
-        
+
                 # 🌠 Prompt template pipelines
 
                 Library to supercharge your use of large language models
@@ -57,6 +57,7 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
         );
 
         const packageJson = JSON.parse(JSON.stringify(mainPackageJson) /* <- Note: Make deep copy */) as PackageJson;
+        delete packageJson.scripts;
         packageJson.name = `@gptp/${packageName}`;
         packageJson.peerDependencies = {
             '@gptp/core': packageJson.version,
@@ -69,45 +70,54 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
     }
 
     await writeFile(
-        `./github/publish.yml`,
-        YAML.stringify({
-            name: 'Publish new version',
-            on: {
-                push: {
-                    tags: ['v*'],
+        `./.github/workflows/publish.yml`,
+        YAML.stringify(
+            {
+                name: 'Publish new version',
+                on: {
+                    push: {
+                        tags: ['v*'],
+                    },
+                },
+                jobs: {
+                    'publish-npm': {
+                        name: 'Publish on NPM package registry',
+                        'runs-on': 'ubuntu-latest',
+                        steps: [
+                            {
+                                name: 'Checkout',
+                                uses: 'actions/checkout@v2',
+                            },
+                            {
+                                name: 'Setup Node.js',
+                                uses: 'actions/setup-node@v1',
+                                with: {
+                                    'node-version': 18,
+                                    'registry-url': 'https://registry.npmjs.org/',
+                                },
+                            },
+                            {
+                                name: 'Install dependencies',
+                                run: 'npm ci',
+                            },
+                            {
+                                name: 'Build packages bundles',
+                                run: 'npm run build-bundles',
+                            },
+                            ...packageNames.map((packageName) => ({
+                                name: `Publish @gptp/${packageName}`,
+                                'working-directory': `./packages/${packageName}`,
+                                run: 'npm publish --access public',
+                                env: {
+                                    NODE_AUTH_TOKEN: '${{secrets.NPM_TOKEN}}',
+                                },
+                            })),
+                        ],
+                    },
                 },
             },
-            jobs: {
-                'publish-npm': {
-                    name: 'Publish on NPM package registry',
-                    'runs-on': 'ubuntu-latest',
-                    steps: [
-                        {
-                            uses: 'actions/checkout@v2',
-                        },
-                        {
-                            uses: 'actions/setup-node@v1',
-                            with: {
-                                'node-version': 18,
-                                'registry-url': 'https://registry.npmjs.org/',
-                            },
-                        },
-                        {
-                            run: 'npm ci',
-                        },
-                        {
-                            run: 'npm run build',
-                        },
-                        {
-                            run: 'npm publish --access public',
-                            env: {
-                                NODE_AUTH_TOKEN: '${{secrets.NPM_TOKEN}}',
-                            },
-                        },
-                    ],
-                },
-            },
-        })
+            { indent: 4 },
+        )
             .split('"')
             .join("'") /* <- TODO: Can the replace be done directly in YAML.stringify options? */,
     );
@@ -120,11 +130,7 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
 }
 
 /**
- *
- * TODO: !!! test before publish
- * TODO: !!! Automatic script after build to generate theese things
- * TODO: !!! Automatic script for publishing packages to npm after version
- *
+ * TODO: !! [👵] test before publish
  * TODO: !! Add warning to the copy/generated files
  * TODO: !! Use prettier to format the generated files
  * TODO: !! Normalize order of keys in package.json

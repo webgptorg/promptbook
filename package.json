@@ -36,11 +36,11 @@
     "scripts": {
         "test": "jest",
         "lint": "eslint src",
-        "build": "npm run build-cleanup && npm run build-bundle && npm run build-metadata",
+        "build": "npm run build-cleanup && npm run build-bundles && npm run build-metadata",
         "build-cleanup": "rm -rf ./packages",
-        "build-bundle": " rollup --config rollup.config.js",
-        "build-metadata": "ts-node ./scripts/generate-packages/generate-packages.ts",
-        "preversion": "npm run lint && npm test && tsc",
+        "build-bundles": " rollup --config rollup.config.js",
+        "build-metadata": "ts-node ./scripts/generate-packages/generate-packages.ts --commit",
+        "preversion": "npm run lint && npm test && npm run build",
         "postversion": "git push && git push --tags"
     },
     "devDependencies": {

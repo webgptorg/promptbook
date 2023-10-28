@@ -1,0 +1,31 @@
+name: Publish new version
+on:
+    push:
+        tags:
+            - v*
+jobs:
+    publish-npm:
+        name: Publish on NPM package registry
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v2
+            - name: Setup Node.js
+              uses: actions/setup-node@v1
+              with:
+                  node-version: 18
+                  registry-url: https://registry.npmjs.org/
+            - name: Install dependencies
+              run: npm ci
+            - name: Build packages bundles
+              run: npm run build-bundles
+            - name: Publish @gptp/browser
+              working-directory: ./packages/browser
+              run: npm publish --access public
+              env:
+                  NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
+            - name: Publish @gptp/node
+              working-directory: ./packages/node
+              run: npm publish --access public
+              env:
+                  NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
