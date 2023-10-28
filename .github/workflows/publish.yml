@@ -18,7 +18,7 @@ jobs:
             - name: Install dependencies
               run: npm ci
             - name: Build packages bundles
-              run: npm run build-bundles
+              run: npx rollup --config rollup.config.js
             - name: Publish @gptp/browser
               working-directory: ./packages/browser
               run: npm publish --access public
