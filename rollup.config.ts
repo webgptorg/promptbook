@@ -4,13 +4,13 @@ export default ['node', 'browser' /* <- !!! Automatic from _packages */].map((na
     input: `./src/_packages/${name}.index.ts`,
     output: [
         {
-            file: `./dist/${name}/umd/index.umd.js`,
+            file: `./packages/${name}/umd/index.umd.js`,
             name: `ptp-${name}`,
             format: 'umd',
             sourcemap: true,
         },
         {
-            file: `./dist/${name}/esm/index.es.js`,
+            file: `./packages/${name}/esm/index.es.js`,
             format: 'es',
             sourcemap: true,
         },

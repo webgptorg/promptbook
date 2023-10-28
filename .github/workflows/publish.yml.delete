@@ -74,3 +74,5 @@ jobs:
     #     >         - run: npm publish
     #     >           env:
     #     >               NODE_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
+# TODO: Can be here Automatic script for publishing packages to npm after version?
+#       Maybe regenerate this file and acieve this logic in this way?

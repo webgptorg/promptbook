@@ -4,3 +4,4 @@ TODO: !!! Sync typings in package.json
 TODO: !!! Sync version + other stuff
 TODO: !!! Sync Package.json + add copy warning
 TODO: !!! Automatic script after build to generate theese things
+TODO: !!! Automatic script for publishing packages to npm after version
