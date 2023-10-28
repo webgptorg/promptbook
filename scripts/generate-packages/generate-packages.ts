@@ -60,8 +60,10 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
         packageJson.peerDependencies = {
             '@gptp/core': packageJson.version,
         };
+        packageJson.main = `./umd/index.umd.js`;
+        packageJson.module = `./esm/index.es.js`;
+        packageJson.typings = `./esm/typings/_packages/${packageName}.index.d.ts`;
         // TODO: !!! Filter out dependencies only for the current package
-        // TODO: !!! Sync typings in package.json
         await writeFile(`./packages/${packageName}/package.json`, JSON.stringify(packageJson, null, 4) + '\n');
     }
 
@@ -78,4 +80,5 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
  * TODO: !!! Automatic script after build to generate theese things
  * TODO: !!! Automatic script for publishing packages to npm after version
  * TODO: !! Use prettier to format the generated files
+ * TODO: !! Normalize order of keys in package.json
  */
