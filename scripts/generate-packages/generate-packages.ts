@@ -135,6 +135,7 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
 
     if (isCommited) {
         await commit('packages', `📦 Generating packages`);
+        await commit('.github', `📦 Update publish workflow for generated packages`);
     }
 
     console.info(`[ 📦  Generating packages ]`);
