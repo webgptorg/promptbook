@@ -6,10 +6,12 @@ import { readFile, writeFile } from 'fs/promises';
 import { join } from 'path';
 import spaceTrim from 'spacetrim';
 import { PackageJson } from 'type-fest';
+import { forTime } from 'waitasecond';
 import YAML from 'yaml';
 import { packageNames } from '../../rollup.config';
 import { commit } from '../utils/autocommit/commit';
 import { isWorkingTreeClean } from '../utils/autocommit/isWorkingTreeClean';
+import { execCommand } from '../utils/execCommand/execCommand';
 
 if (process.cwd() !== join(__dirname, '../..')) {
     console.error(chalk.red(`CWD must be root of the project`));
@@ -39,6 +41,14 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
     if (isCommited && !(await isWorkingTreeClean(process.cwd()))) {
         throw new Error(`Working tree is not clean`);
     }
+
+    for (const packageName of packageNames) {
+        await execCommand(`rm -rf ./packages/${packageName}/umd`);
+        await execCommand(`rm -rf ./packages/${packageName}/esm`);
+    }
+    await forTime(10000000);
+
+    await execCommand(`rollup --config rollup.config.js`);
 
     const mainPackageJson = JSON.parse(await readFile('./package.json', 'utf-8')) as PackageJson;
 

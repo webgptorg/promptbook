@@ -26,20 +26,14 @@
             "focus": true
         },
         {
-            "name": "🧪 Build bundles",
-            "command": "npm run build-bundles",
+            "name": "🏭📦 Generate packages",
+            "commands": ["ts-node ./scripts/generate-packages/generate-packages.ts"],
             "onlySingle": true,
             "focus": true
         },
         {
             "name": "🏭 Generate main exports",
             "commands": ["ts-node ./scripts/generate-main-exports/generate-main-exports.ts"],
-            "onlySingle": true,
-            "focus": true
-        },
-        {
-            "name": "🏭📦 Generate packages",
-            "commands": ["ts-node ./scripts/generate-packages/generate-packages.ts"],
             "onlySingle": true,
             "focus": true
         },
