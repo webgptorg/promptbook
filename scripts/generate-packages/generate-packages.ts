@@ -67,6 +67,9 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
         packageJson.typings = `./esm/typings/_packages/${packageName}.index.d.ts`;
         // TODO: !!! Filter out dependencies only for the current package
         await writeFile(`./packages/${packageName}/package.json`, JSON.stringify(packageJson, null, 4) + '\n');
+
+        await writeFile(`./packages/${packageName}/.gitignore`, ['esm', 'umd'].join('\n'));
+        await writeFile(`./packages/${packageName}/.npmignore`, '');
     }
 
     await writeFile(
