@@ -46,7 +46,7 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
         await execCommand(`rm -rf ./packages/${packageName}/esm`);
     }
 
-    await execCommand(`rollup --config rollup.config.js`);
+    await execCommand(`npx rollup --config rollup.config.js`);
 
     const mainPackageJson = JSON.parse(await readFile('./package.json', 'utf-8')) as PackageJson;
 
