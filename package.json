@@ -37,8 +37,8 @@
         "test": "jest",
         "lint": "eslint src",
         "generate-packages": "ts-node ./scripts/generate-packages/generate-packages.ts --commit",
-        "preversion": "npm run lint && npm test && npm run generate-packages",
-        "postversion": "git push && git push --tags"
+        "preversion": "npm run lint && npm test && tsc",
+        "postversion": "npm run generate-packages && git push && git push --tags"
     },
     "devDependencies": {
         "@rollup/plugin-typescript": "8.3.0",
