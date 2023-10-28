@@ -4,7 +4,7 @@
         "start": "node simple-script.js"
     },
     "dependencies": {
-        "@gptp/core": "0.5.0",
+        "@gptp/core": "0.6.0",
         "dotenv": "16.3.1"
     }
 }
