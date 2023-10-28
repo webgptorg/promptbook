@@ -19,13 +19,68 @@ jobs:
               run: npm ci
             - name: Build packages bundles
               run: npx rollup --config rollup.config.js
-            - name: Publish @gptp/browser
-              working-directory: ./packages/browser
+            - name: Publish @gptp/callback-prompt
+              working-directory: ./packages/callback-prompt
               run: npm publish --access public
               env:
                   NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
-            - name: Publish @gptp/node
-              working-directory: ./packages/node
+            - name: Publish @gptp/core
+              working-directory: ./packages/core
+              run: npm publish --access public
+              env:
+                  NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
+            - name: Publish @gptp/execute-javascript
+              working-directory: ./packages/execute-javascript
+              run: npm publish --access public
+              env:
+                  NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
+            - name: Publish @gptp/executor
+              working-directory: ./packages/executor
+              run: npm publish --access public
+              env:
+                  NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
+            - name: Publish @gptp/mock
+              working-directory: ./packages/mock
+              run: npm publish --access public
+              env:
+                  NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
+            - name: Publish @gptp/openai
+              working-directory: ./packages/openai
+              run: npm publish --access public
+              env:
+                  NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
+            - name: Publish @gptp/parser
+              working-directory: ./packages/parser
+              run: npm publish --access public
+              env:
+                  NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
+            - name: Publish @gptp/remote-client
+              working-directory: ./packages/remote-client
+              run: npm publish --access public
+              env:
+                  NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
+            - name: Publish @gptp/remote-server
+              working-directory: ./packages/remote-server
+              run: npm publish --access public
+              env:
+                  NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
+            - name: Publish @gptp/simple-prompt
+              working-directory: ./packages/simple-prompt
+              run: npm publish --access public
+              env:
+                  NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
+            - name: Publish @gptp/types
+              working-directory: ./packages/types
+              run: npm publish --access public
+              env:
+                  NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
+            - name: Publish @gptp/utils
+              working-directory: ./packages/utils
+              run: npm publish --access public
+              env:
+                  NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
+            - name: Publish @gptp/wizzard
+              working-directory: ./packages/wizzard
               run: npm publish --access public
               env:
                   NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}

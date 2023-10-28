@@ -1,5 +1,5 @@
 {
-    "name": "@gptp/browser",
+    "name": "@gptp/callback-prompt",
     "version": "0.6.6",
     "description": "Library to supercharge your use of large language models",
     "private": false,
@@ -34,8 +34,6 @@
     },
     "homepage": "https://www.npmjs.com/package/@gptp/core",
     "dependencies": {
-        "n12": "1.6.0",
-        "socket.io-client": "4.7.2",
         "spacetrim": "0.9.2"
     },
     "peerDependencies": {
@@ -43,5 +41,5 @@
     },
     "main": "./umd/index.umd.js",
     "module": "./esm/index.es.js",
-    "typings": "./esm/typings/_packages/browser.index.d.ts"
+    "typings": "./esm/typings/_packages/callback-prompt.index.d.ts"
 }

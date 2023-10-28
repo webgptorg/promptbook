@@ -1,0 +1,45 @@
+{
+    "name": "@gptp/execute-javascript",
+    "version": "0.6.6",
+    "description": "Library to supercharge your use of large language models",
+    "private": false,
+    "sideEffects": false,
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/webgptorg/ptp"
+    },
+    "contributors": [
+        "Pavol Hejný <me@pavolhejny.com> (https://www.pavolhejny.com/)"
+    ],
+    "keywords": [
+        "autogpt",
+        "openai",
+        "gpt-3",
+        "gpt-4",
+        "chatgpt",
+        "ai",
+        "machine-learning",
+        "natural-language-processing",
+        "nlp",
+        "prompt",
+        "template",
+        "pipeline",
+        "automation",
+        "text-generation",
+        "language-model"
+    ],
+    "license": "SEE LICENSE IN LICENSE",
+    "bugs": {
+        "url": "https://github.com/webgptorg/ptp/issues"
+    },
+    "homepage": "https://www.npmjs.com/package/@gptp/core",
+    "dependencies": {
+        "spacetrim": "0.9.2"
+    },
+    "peerDependencies": {
+        "@gptp/core": "0.6.6"
+    },
+    "main": "./umd/index.umd.js",
+    "module": "./esm/index.es.js",
+    "typings": "./esm/typings/_packages/execute-javascript.index.d.ts"
+}
