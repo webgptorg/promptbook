@@ -66,10 +66,19 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
 
         const packageJson = JSON.parse(JSON.stringify(mainPackageJson) /* <- Note: Make deep copy */) as PackageJson;
         delete packageJson.scripts;
+        delete packageJson.devDependencies;
         packageJson.name = `@gptp/${packageName}`;
-        packageJson.peerDependencies = {
-            '@gptp/core': packageJson.version,
-        };
+        if (packageName !== 'core') {
+            packageJson.peerDependencies = {
+                '@gptp/core': packageJson.version,
+            };
+        }
+        const indexContent = await readFile(`./packages/${packageName}/esm/index.es.js`, 'utf-8');
+        for (const dependencyName in packageJson.dependencies) {
+            if (!indexContent.includes(`from '${dependencyName}'`)) {
+                delete packageJson.dependencies[dependencyName];
+            }
+        }
         packageJson.main = `./umd/index.umd.js`;
         packageJson.module = `./esm/index.es.js`;
         packageJson.typings = `./esm/typings/_packages/${packageName}.index.d.ts`;

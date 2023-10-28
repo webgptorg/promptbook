@@ -1,6 +1,6 @@
 {
     "name": "@gptp/browser",
-    "version": "0.6.3",
+    "version": "0.6.4",
     "description": "Library to supercharge your use of large language models",
     "private": false,
     "sideEffects": false,
@@ -33,31 +33,13 @@
         "url": "https://github.com/webgptorg/ptp/issues"
     },
     "homepage": "https://www.npmjs.com/package/@gptp/core",
-    "devDependencies": {
-        "@rollup/plugin-typescript": "8.3.0",
-        "@types/jest": "27.0.2",
-        "@typescript-eslint/eslint-plugin": "6.9.0",
-        "@typescript-eslint/parser": "6.9.0",
-        "eslint": "8.52.0",
-        "glob-promise": "6.0.5",
-        "jest": "27.3.1",
-        "organize-imports-cli": "0.10.0",
-        "rollup": "2.58.1",
-        "ts-jest": "27.0.7",
-        "tslib": "2.3.1",
-        "type-fest": "^4.5.0",
-        "yaml": "^2.3.3"
-    },
     "dependencies": {
         "n12": "1.6.0",
-        "openai": "4.13.0",
-        "socket.io": "4.7.2",
         "socket.io-client": "4.7.2",
-        "spacetrim": "0.9.2",
-        "waitasecond": "^1.11.1"
+        "spacetrim": "0.9.2"
     },
     "peerDependencies": {
-        "@gptp/core": "0.6.3"
+        "@gptp/core": "0.6.4"
     },
     "main": "./umd/index.umd.js",
     "module": "./esm/index.es.js",
