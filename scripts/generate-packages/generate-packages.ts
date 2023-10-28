@@ -5,6 +5,7 @@ import commander from 'commander';
 import { readFile, writeFile } from 'fs/promises';
 import { join } from 'path';
 import spaceTrim from 'spacetrim';
+import { PackageJson } from 'type-fest';
 import { packageNames } from '../../rollup.config';
 import { commit } from '../utils/autocommit/commit';
 import { isWorkingTreeClean } from '../utils/autocommit/isWorkingTreeClean';
@@ -38,7 +39,7 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
         throw new Error(`Working tree is not clean`);
     }
 
-    const mainPackageJson = JSON.parse(await readFile('./package.json', 'utf-8'));
+    const mainPackageJson = JSON.parse(await readFile('./package.json', 'utf-8')) as PackageJson;
 
     for (const packageName of packageNames) {
         await writeFile(
@@ -54,8 +55,11 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
         `), // <- TODO: [🧠] Maybe make custom README.md for each package
         );
 
-        const packageJson = JSON.parse(JSON.stringify(mainPackageJson) /* <- Note: Make deep copy */);
+        const packageJson = JSON.parse(JSON.stringify(mainPackageJson) /* <- Note: Make deep copy */) as PackageJson;
         packageJson.name = `@gptp/${packageName}`;
+        packageJson.peerDependencies = {
+            '@gptp/core': packageJson.version,
+        };
         // TODO: !!! Filter out dependencies only for the current package
         // TODO: !!! Sync typings in package.json
         await writeFile(`./packages/${packageName}/package.json`, JSON.stringify(packageJson, null, 4) + '\n');
