@@ -421,7 +421,7 @@ _(TODO: !!! Write the Wizzard sample)_
 Install all the components:
 
 ```bash
-npm install --save @gptp/core @gptp/wizzard @gptp/openai @gptp/execute-javascript @gptp/remote-client @gptp/remote-server @gptp/utils
+npm install --save @gptp/core @gptp/wizzard @gptp/openai @gptp/execute-javascript @gptp/remote-client @gptp/remote-server @gptp/utils @gptp/types
 ```
 
 _(TODO: !!! Write the remote sample)_
