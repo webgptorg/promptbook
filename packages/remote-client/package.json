@@ -1,6 +1,6 @@
 {
     "name": "@gptp/remote-client",
-    "version": "0.7.13",
+    "version": "0.7.14",
     "description": "Library to supercharge your use of large language models",
     "private": false,
     "sideEffects": false,
@@ -37,7 +37,7 @@
         "socket.io-client": "4.7.2"
     },
     "peerDependencies": {
-        "@gptp/core": "0.7.13"
+        "@gptp/core": "0.7.14"
     },
     "main": "./umd/index.umd.js",
     "module": "./esm/index.es.js",
