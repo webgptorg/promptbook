@@ -17,7 +17,7 @@ Library to supercharge your use of large language models
 
 ![Promptbook full of ideas](./other/design/promptbook.jpg)
 
-## Concept
+## 💁‍♂️ Concept
 
 When you have a simple single prompt to ChatGPT / GPT completion, it doesn't matter how it is integrated, whether it's direct calling of Rest API or using Open Ai library and hardcoding prompt in source code or importing text file.
 
@@ -41,7 +41,7 @@ In any of these situations, this library can make your life easier:
 
 ![WebGPT](./other/screencasts/screencast-fiabciakcmgepblmdkmemdbbkilneeeh-2023.10.26-21_46_17.gif)
 
-## Prompt template pipelines _(for prompt-engeneers)_
+## 🧔 Prompt template pipelines _(for prompt-engeneers)_
 
 Prompt template pipeline (**PTP** for short) is document that describes a series of prompts that are chained together to form somewhat reciepe for transforming natural language input. Inside a PTP you can use chat prompts, completion prompts, scripting or trigger interaction with user to ask for additional information.
 
@@ -222,7 +222,7 @@ A website assignment from a customer:
 
 [More template samples](./samples/templates/)
 
-## Dictionary
+## 📚 Dictionary
 
 The following glossary is used to clarify certain basic concepts:
 
@@ -406,7 +406,9 @@ Remote server is a proxy server that uses its execution tools internally and exp
 You can simply use `RemoteExecutionTools` on client-side javascript and connect to your remote server.
 This is useful to make all logic on browser side but not expose your API keys or no need to use customer's GPU.
 
-## Usage and integration _(for developers)_
+## 👨‍💻 Usage and integration _(for developers)_
+
+### 🧙‍♂️ Using wizzard
 
 First you need to install this library:
 
@@ -418,7 +420,7 @@ _(TODO: !!! Write the Wizzard sample)_
 
 [Usage samples](./samples/usage/)
 
-## Advanced usage
+### 🔌 Advanced usage
 
 Install all the components:
 
@@ -430,7 +432,7 @@ _(TODO: !!! Write the remote sample)_
 
 [Usage samples](./samples/usage/)
 
-## FAQ
+## ❔ FAQ
 
 If you have a question [start a discussion](https://github.com/webgptorg/promptbook/discussions/), [open an issue](https://github.com/webgptorg/promptbook/issues) or [write me an email](https://www.pavolhejny.com/contact).
 
@@ -453,7 +455,7 @@ Include:
 - Focus mého projektu je primárně zaměřený na budování uživatelských aplikací, nepředgenerovávání, zpracování dat, tréning či autogpt.
 -->
 
-## TODOs
+## 🎯 TODOs
 
 -   [ ] [🧠] Figure out the best name for this library - `Prompt Template Pipeline`, `Prompt Template Engine`, `Prompt Template Processor`, `Open Prompt Initiative`
 -   [ ] Export all promptTemplatePipeline as ptp alias from library
