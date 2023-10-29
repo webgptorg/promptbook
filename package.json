@@ -51,10 +51,10 @@
         "organize-imports-cli": "0.10.0",
         "rollup": "2.58.1",
         "ts-jest": "27.0.7",
-        "ts-node": "^10.9.1",
+        "ts-node": "10.9.1",
         "tslib": "2.3.1",
-        "type-fest": "^4.5.0",
-        "yaml": "^2.3.3"
+        "type-fest": "4.5.0",
+        "yaml": "2.3.3"
     },
     "dependencies": {
         "n12": "1.6.0",
@@ -62,6 +62,6 @@
         "socket.io": "4.7.2",
         "socket.io-client": "4.7.2",
         "spacetrim": "0.9.2",
-        "waitasecond": "^1.11.1"
+        "waitasecond": "1.11.1"
     }
 }
