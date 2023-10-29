@@ -6,7 +6,6 @@ import { readFile, writeFile } from 'fs/promises';
 import { join } from 'path';
 import spaceTrim from 'spacetrim';
 import { PackageJson } from 'type-fest';
-import { forTime } from 'waitasecond';
 import YAML from 'yaml';
 import { packageNames } from '../../rollup.config';
 import { commit } from '../utils/autocommit/commit';
@@ -52,7 +51,6 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
     const mainPackageJson = JSON.parse(await readFile('./package.json', 'utf-8')) as PackageJson;
 
     console.info(chalk.bgGray(mainPackageJson.version));
-    await forTime(60 * 1000 * 5);
 
     for (const packageName of packageNames) {
         await writeFile(
