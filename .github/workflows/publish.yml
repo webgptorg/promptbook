@@ -19,11 +19,6 @@ jobs:
               run: npm ci
             - name: Build packages bundles
               run: npx rollup --config rollup.config.js
-            - name: Publish @gptp/callback-prompt
-              working-directory: ./packages/callback-prompt
-              run: npm publish --access public
-              env:
-                  NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
             - name: Publish @gptp/core
               working-directory: ./packages/core
               run: npm publish --access public
@@ -34,23 +29,8 @@ jobs:
               run: npm publish --access public
               env:
                   NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
-            - name: Publish @gptp/executor
-              working-directory: ./packages/executor
-              run: npm publish --access public
-              env:
-                  NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
-            - name: Publish @gptp/mock
-              working-directory: ./packages/mock
-              run: npm publish --access public
-              env:
-                  NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
             - name: Publish @gptp/openai
               working-directory: ./packages/openai
-              run: npm publish --access public
-              env:
-                  NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
-            - name: Publish @gptp/parser
-              working-directory: ./packages/parser
               run: npm publish --access public
               env:
                   NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
@@ -61,16 +41,6 @@ jobs:
                   NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
             - name: Publish @gptp/remote-server
               working-directory: ./packages/remote-server
-              run: npm publish --access public
-              env:
-                  NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
-            - name: Publish @gptp/simple-prompt
-              working-directory: ./packages/simple-prompt
-              run: npm publish --access public
-              env:
-                  NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
-            - name: Publish @gptp/types
-              working-directory: ./packages/types
               run: npm publish --access public
               env:
                   NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
