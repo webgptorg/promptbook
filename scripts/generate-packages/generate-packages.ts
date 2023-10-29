@@ -46,7 +46,7 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
         await execCommand(`rm -rf ./packages/${packageName}/esm`);
     }
 
-    await execCommand(`npx rollup --config rollup.config.js` /* <- TODO: [🦹‍♀️] DRY */);
+    await execCommand(`npx rollup --config rollup.config.js`);
 
     const mainPackageJson = JSON.parse(await readFile('./package.json', 'utf-8')) as PackageJson;
 
@@ -124,7 +124,8 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
                             },
                             {
                                 name: 'Build packages bundles',
-                                run: `npx rollup --config rollup.config.js` /* <- TODO: [🦹‍♀️] DRY */,
+                                // Note: Generate packages before publishing to put the recent version in each package.json
+                                run: `ts-node ./scripts/generate-packages/generate-packages.ts`,
                             },
                             ...packageNames.map((packageName) => ({
                                 name: `Publish @gptp/${packageName}`,
