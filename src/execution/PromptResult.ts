@@ -4,7 +4,7 @@ import { string_model_name } from '.././types/typeAliases';
  * Prompt result is the simplest concept of execution.
  * It is the result of executing one prompt _(NOT a template)_.
  *
- * @see https://github.com/webgptorg/ptp#prompt-result
+ * @see https://github.com/webgptorg/promptbook#prompt-result
  */
 export type PromptResult = PromptCompletionResult | PromptChatResult;
 

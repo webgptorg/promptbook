@@ -1,7 +1,7 @@
 /**
  * Represents all the tools needed to interact with the user.
  *
- * @see https://github.com/webgptorg/ptp#user-interface-tools
+ * @see https://github.com/webgptorg/promptbook#user-interface-tools
  */
 export interface UserInterfaceTools {
     /**

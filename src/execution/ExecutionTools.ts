@@ -5,7 +5,7 @@ import { UserInterfaceTools } from './UserInterfaceTools';
 /**
  * All the tools needed to execute prompts (template pipelines).
  *
- * @see https://github.com/webgptorg/ptp#execution-tools
+ * @see https://github.com/webgptorg/promptbook#execution-tools
  */
 export interface ExecutionTools {
     /**

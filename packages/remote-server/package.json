@@ -6,7 +6,7 @@
     "sideEffects": false,
     "repository": {
         "type": "git",
-        "url": "https://github.com/webgptorg/ptp"
+        "url": "https://github.com/webgptorg/promptbook"
     },
     "contributors": [
         "Pavol Hejný <me@pavolhejny.com> (https://www.pavolhejny.com/)"
@@ -30,7 +30,7 @@
     ],
     "license": "SEE LICENSE IN LICENSE",
     "bugs": {
-        "url": "https://github.com/webgptorg/ptp/issues"
+        "url": "https://github.com/webgptorg/promptbook/issues"
     },
     "homepage": "https://www.npmjs.com/package/@promptbook/core",
     "dependencies": {

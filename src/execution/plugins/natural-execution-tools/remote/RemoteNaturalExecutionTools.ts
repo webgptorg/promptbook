@@ -3,10 +3,10 @@ import { io } from 'socket.io-client';
 import { Prompt } from '../../../../types/Prompt';
 import { NaturalExecutionTools } from '../../../NaturalExecutionTools';
 import { PromptChatResult, PromptCompletionResult, PromptResult } from '../../../PromptResult';
+import { RemoteNaturalExecutionToolsOptions } from './RemoteNaturalExecutionToolsOptions';
 import { Ptps_Error } from './interfaces/Ptps_Error';
 import { Ptps_Request } from './interfaces/Ptps_Request';
 import { Ptps_Response } from './interfaces/Ptps_Response';
-import { RemoteNaturalExecutionToolsOptions } from './RemoteNaturalExecutionToolsOptions';
 
 /**
  * Remote server is a proxy server that uses its execution tools internally and exposes the executor interface externally.
@@ -14,7 +14,7 @@ import { RemoteNaturalExecutionToolsOptions } from './RemoteNaturalExecutionTool
  * You can simply use `RemoteExecutionTools` on client-side javascript and connect to your remote server.
  * This is useful to make all logic on browser side but not expose your API keys or no need to use customer's GPU.
  *
- * @see https://github.com/webgptorg/ptp#remote-server
+ * @see https://github.com/webgptorg/promptbook#remote-server
  */
 export class RemoteNaturalExecutionTools implements NaturalExecutionTools {
     public constructor(private readonly options: RemoteNaturalExecutionToolsOptions) {}

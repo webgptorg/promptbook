@@ -14,7 +14,7 @@ import { RemoteServerOptions } from './interfaces/RemoteServerOptions';
  * You can simply use `RemoteExecutionTools` on client-side javascript and connect to your remote server.
  * This is useful to make all logic on browser side but not expose your API keys or no need to use customer's GPU.
  *
- * @see https://github.com/webgptorg/ptp#remote-server
+ * @see https://github.com/webgptorg/promptbook#remote-server
  */
 export function createRemoteServer(options: RemoteServerOptions) {
     const { port, /* [🎛] ptpLibrary, */ createNaturalExecutionTools, isVerbose } = options;
@@ -29,7 +29,7 @@ export function createRemoteServer(options: RemoteServerOptions) {
                 Server for processing PTP requests is running
 
                 For more information look at:
-                https://github.com/webgptorg/ptp
+                https://github.com/webgptorg/promptbook
 
             `),
         );

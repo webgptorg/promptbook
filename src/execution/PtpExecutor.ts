@@ -10,7 +10,7 @@ import { TaskProgress } from '../types/TaskProgress';
  * -   From `PromptTemplatePipelineLibrary.getExecutor` method
  * -   `createPtpExecutor` utility function
  *
- * @see https://github.com/webgptorg/ptp#executor
+ * @see https://github.com/webgptorg/promptbook#executor
  */
 export interface PtpExecutor {
     (

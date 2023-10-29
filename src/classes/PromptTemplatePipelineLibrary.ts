@@ -14,7 +14,7 @@ import { PromptTemplatePipeline } from './PromptTemplatePipeline';
  *
  * It allows to create executor functions from prompt template pipelines in the library.
  *
- * @see https://github.com/webgptorg/ptp#prompt-template-pipeline-library
+ * @see https://github.com/webgptorg/promptbook#prompt-template-pipeline-library
  */
 export class PromptTemplatePipelineLibrary {
     /**

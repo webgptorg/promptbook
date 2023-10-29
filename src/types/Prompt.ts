@@ -4,7 +4,7 @@ import { ModelRequirements } from './ModelRequirements';
 /**
  * Prompt in a text along with model requirements, but without any execution or templating logic.
  *
- * @see https://github.com/webgptorg/ptp#prompt
+ * @see https://github.com/webgptorg/promptbook#prompt
  */
 export interface Prompt {
     /**

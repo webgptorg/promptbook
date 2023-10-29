@@ -6,7 +6,7 @@
  * - **Intermediate parameters** are used internally in the prompt template pipeline.
  * - **Output parameters** are not used internally in the prompt template pipeline, but are returned as the result of the prompt template pipeline execution.
  *
- * @see https://github.com/webgptorg/ptp#parameters
+ * @see https://github.com/webgptorg/promptbook#parameters
  */
 export type Parameters = object;
 

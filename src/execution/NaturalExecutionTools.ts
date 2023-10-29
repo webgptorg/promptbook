@@ -6,9 +6,9 @@ import { PromptChatResult, PromptCompletionResult } from './PromptResult';
  * On its interface it exposes common methods for prompt execution.
  * Inside (in constructor) it calls OpenAI, Azure, GPU, proxy, cache, logging,...
  *
- * @see https://github.com/webgptorg/ptp#natural-execution-tools
+ * @see https://github.com/webgptorg/promptbook#natural-execution-tools
  */
-export interface NaturalExecutionTools  {
+export interface NaturalExecutionTools {
     /**
      * Use a chat model
      */

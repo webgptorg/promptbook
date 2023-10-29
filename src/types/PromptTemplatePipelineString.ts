@@ -7,7 +7,7 @@
  * -   **JSON** format, parsed from the .ptp.md file
  * -   **Object** which is created from JSON format and bound with tools around (but not the execution logic)
  *
- * @see https://github.com/webgptorg/ptp#prompt-template-pipeline
+ * @see https://github.com/webgptorg/promptbook#prompt-template-pipeline
  */
 export type PromptTemplatePipelineString = string & {
     readonly __type: 'PromptTemplatePipeline' /* <- TODO: [0] What is the best shape of the additional object in branded types */;

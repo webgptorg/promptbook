@@ -61,7 +61,7 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
 
                 Library to supercharge your use of large language models
 
-                [Read the manual](https://github.com/webgptorg/ptp)
+                [Read the manual](https://github.com/webgptorg/promptbook)
 
         `), // <- TODO: [🧠] Maybe make custom README.md for each package
         );
