@@ -18,7 +18,7 @@ jobs:
             - name: Install dependencies
               run: npm ci
             - name: Build packages bundles
-              run: ts-node ./scripts/generate-packages/generate-packages.ts
+              run: npx ts-node ./scripts/generate-packages/generate-packages.ts
             - name: Publish @gptp/core
               working-directory: ./packages/core
               run: npm publish --access public
