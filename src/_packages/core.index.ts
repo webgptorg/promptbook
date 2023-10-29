@@ -1,4 +1,5 @@
 import { PromptTemplatePipeline } from '../classes/PromptTemplatePipeline';
+import { PromptTemplatePipelineLibrary } from '../classes/PromptTemplatePipelineLibrary';
 import { PTP_VERSION } from '../config';
 import { promptTemplatePipelineStringToJson } from '../conversion/promptTemplatePipelineStringToJson';
 import { validatePromptTemplatePipelineJson } from '../conversion/validatePromptTemplatePipelineJson';
@@ -10,7 +11,7 @@ import { SimplePromptInterfaceTools } from '../execution/plugins/user-interface-
 import { ExecutionTypes } from '../types/ExecutionTypes';
 
 // @gptp/core
-export { ExecutionTypes, PTP_VERSION, PromptTemplatePipeline };
+export { ExecutionTypes, PTP_VERSION, PromptTemplatePipeline, PromptTemplatePipelineLibrary };
 
 // @gptp/simple-prompt
 export { SimplePromptInterfaceTools };
