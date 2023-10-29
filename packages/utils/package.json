@@ -1,6 +1,6 @@
 {
     "name": "@gptp/utils",
-    "version": "0.7.9",
+    "version": "0.7.10",
     "description": "Library to supercharge your use of large language models",
     "private": false,
     "sideEffects": false,
@@ -37,7 +37,7 @@
         "spacetrim": "0.9.2"
     },
     "peerDependencies": {
-        "@gptp/core": "0.7.9"
+        "@gptp/core": "0.7.10"
     },
     "main": "./umd/index.umd.js",
     "module": "./esm/index.es.js",
