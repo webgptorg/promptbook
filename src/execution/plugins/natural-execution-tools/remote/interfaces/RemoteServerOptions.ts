@@ -12,7 +12,7 @@ export interface RemoteServerOptions extends CommonExecutionToolsOptions {
     /**
      * Prompt template pipeline library to use
      *
-     * THis is used to checkl validity of the prompt to prevent DDoS
+     * This is used to checkl validity of the prompt to prevent DDoS
      */
     readonly ptpLibrary: PromptTemplatePipelineLibrary;
 
