@@ -32,7 +32,7 @@
     "bugs": {
         "url": "https://github.com/webgptorg/ptp/issues"
     },
-    "homepage": "https://www.npmjs.com/package/@gptp/core",
+    "homepage": "https://www.npmjs.com/package/@promptbook/core",
     "scripts": {
         "test": "jest",
         "lint": "eslint src",

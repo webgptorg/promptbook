@@ -2,9 +2,9 @@ import * as dotenv from 'dotenv';
 
 dotenv.config({ path: '.env' });
 
-import { PromptTemplatePipelineLibrary } from '@gptp/core';
-import { OpenAiExecutionTools } from '@gptp/openai';
-import { createRemoteServer } from '@gptp/remote-server';
+import { PromptTemplatePipelineLibrary } from '@promptbook/core';
+import { OpenAiExecutionTools } from '@promptbook/openai';
+import { createRemoteServer } from '@promptbook/remote-server';
 import { IS_DEVELOPMENT, OPENAI_API_KEY } from '../config';
 import { SupabaseLoggerWrapperOfNaturalExecutionTools } from '../src/ai/prompt-templates/logger/SupabaseLoggerWrapperOfNaturalExecutionTools';
 // [🎛] import { webgptPtpLibrary } from '../src/ai/prompt-templates/webgptPtpLibrary';

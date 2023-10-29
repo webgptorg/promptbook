@@ -1,4 +1,4 @@
-# 🌠 Prompt template pipelines
+# 📖 Prompt template pipelines
 
 Library to supercharge your use of large language models
 

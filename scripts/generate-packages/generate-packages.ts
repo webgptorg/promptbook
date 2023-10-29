@@ -57,7 +57,7 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
             `./packages/${packageName}/README.md`,
             spaceTrim(`
 
-                # 🌠 Prompt template pipelines
+                # 📖 Prompt template pipelines
 
                 Library to supercharge your use of large language models
 
@@ -69,10 +69,10 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
         const packageJson = JSON.parse(JSON.stringify(mainPackageJson) /* <- Note: Make deep copy */) as PackageJson;
         delete packageJson.scripts;
         delete packageJson.devDependencies;
-        packageJson.name = `@gptp/${packageName}`;
+        packageJson.name = `@promptbook/${packageName}`;
         if (packageName !== 'core') {
             packageJson.peerDependencies = {
-                '@gptp/core': packageJson.version,
+                '@promptbook/core': packageJson.version,
             };
         }
         const indexContent = await readFile(`./packages/${packageName}/esm/index.es.js`, 'utf-8');
@@ -130,7 +130,7 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
                                 run: `npx ts-node ./scripts/generate-packages/generate-packages.ts`,
                             },
                             ...packageNames.map((packageName) => ({
-                                name: `Publish @gptp/${packageName}`,
+                                name: `Publish @promptbook/${packageName}`,
                                 'working-directory': `./packages/${packageName}`,
                                 run: 'npm publish --access public',
                                 env: {
@@ -157,7 +157,7 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
 
 /**
  * TODO: !! [👵] test before publish
- * TODO: !!! Auto update version of @gptp/* in samples
+ * TODO: !!! Auto update version of @promptbook/* in samples
  * TODO: !! Add warning to the copy/generated files
  * TODO: !! Use prettier to format the generated files
  * TODO: !! Normalize order of keys in package.json

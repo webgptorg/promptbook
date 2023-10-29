@@ -21,8 +21,8 @@ export class SimplePromptInterfaceTools implements UserInterfaceTools {
             console.info(
                 spaceTrim(
                     (block) => `
-                        🌠 ${block(options.prompt)}
-                        👤 ${block(answer || '🚫 User cancelled prompt')}   
+                        📖 ${block(options.prompt)}
+                        👤 ${block(answer || '🚫 User cancelled prompt')}
                     `,
                 ),
             );

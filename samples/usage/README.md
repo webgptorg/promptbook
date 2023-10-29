@@ -1,4 +1,4 @@
-# 🌠 Sample usage of PTP in code
+# 📖 Sample usage of PTP in code
 
 -   [Simple node script _(With wizzard)_](./simple-script/simple-script-wizzard.js)
 -   [Simple node script](./simple-script/simple-script.js)

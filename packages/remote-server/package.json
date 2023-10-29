@@ -1,5 +1,5 @@
 {
-    "name": "@gptp/remote-server",
+    "name": "@promptbook/remote-server",
     "version": "0.7.15",
     "description": "Library to supercharge your use of large language models",
     "private": false,
@@ -32,13 +32,13 @@
     "bugs": {
         "url": "https://github.com/webgptorg/ptp/issues"
     },
-    "homepage": "https://www.npmjs.com/package/@gptp/core",
+    "homepage": "https://www.npmjs.com/package/@promptbook/core",
     "dependencies": {
         "socket.io": "4.7.2",
         "spacetrim": "0.9.2"
     },
     "peerDependencies": {
-        "@gptp/core": "0.7.15"
+        "@promptbook/core": "0.7.15"
     },
     "main": "./umd/index.umd.js",
     "module": "./esm/index.es.js",

@@ -1,4 +1,4 @@
-import type { CommonExecutionToolsOptions, NaturalExecutionTools } from '@gptp/types';
+import type { CommonExecutionToolsOptions, NaturalExecutionTools } from '@promptbook/types';
 import type { uuid } from '../../../utils/typeAliases';
 
 /**

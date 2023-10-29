@@ -10,20 +10,20 @@ import { CallbackInterfaceToolsOptions } from '../execution/plugins/user-interfa
 import { SimplePromptInterfaceTools } from '../execution/plugins/user-interface-execution-tools/simple-prompt/SimplePromptInterfaceTools';
 import { ExecutionTypes } from '../types/ExecutionTypes';
 
-// @gptp/core
+// @promptbook/core
 export { ExecutionTypes, PTP_VERSION, PromptTemplatePipeline, PromptTemplatePipelineLibrary };
 
-// @gptp/simple-prompt
+// @promptbook/simple-prompt
 export { SimplePromptInterfaceTools };
 
-// @gptp/parser
+// @promptbook/parser
 export { promptTemplatePipelineStringToJson, validatePromptTemplatePipelineJson };
 
-// @gptp/mock
+// @promptbook/mock
 export { MockedEchoNaturalExecutionTools };
 
-// @gptp/executor
+// @promptbook/executor
 export { createPtpExecutor };
 
-// @gptp/callback-prompt
+// @promptbook/callback-prompt
 export { CallbackInterfaceTools, CallbackInterfaceToolsOptions };

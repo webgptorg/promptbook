@@ -19,8 +19,8 @@ export class CallbackInterfaceTools implements UserInterfaceTools {
             console.info(
                 spaceTrim(
                     (block) => `
-                        🌠 ${block(options.prompt)}
-                        👤 ${block(answer)}   
+                        📖 ${block(options.prompt)}
+                        👤 ${block(answer)}
                     `,
                 ),
             );

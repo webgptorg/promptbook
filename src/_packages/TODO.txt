@@ -1,4 +1,4 @@
 TODO: Use packages not paterialized entities when possible
-      For example in @gptp/core use @gptp/utils NOT materialized entities
-TODO: !!! Disable partial imports from @gptp/*
+      For example in @promptbook/core use @promptbook/utils NOT materialized entities
+TODO: !!! Disable partial imports from @promptbook/*
 TODO: !!! Remove orphan packages under @ptps

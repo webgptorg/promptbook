@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
-import { PromptTemplatePipelineLibrary } from '@gptp/core';
-import { JavascriptEvalExecutionTools } from '@gptp/execute-javascript';
-import { OpenAiExecutionTools } from '@gptp/openai';
+import { PromptTemplatePipelineLibrary } from '@promptbook/core';
+import { JavascriptEvalExecutionTools } from '@promptbook/execute-javascript';
+import { OpenAiExecutionTools } from '@promptbook/openai';
 import * as dotenv from 'dotenv';
 import { readFile } from 'fs/promises';
 import { join } from 'path';

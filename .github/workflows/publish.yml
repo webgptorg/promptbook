@@ -19,42 +19,42 @@ jobs:
               run: npm ci
             - name: Build packages bundles
               run: npx ts-node ./scripts/generate-packages/generate-packages.ts
-            - name: Publish @gptp/core
+            - name: Publish @promptbook/core
               working-directory: ./packages/core
               run: npm publish --access public
               env:
                   NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
-            - name: Publish @gptp/execute-javascript
+            - name: Publish @promptbook/execute-javascript
               working-directory: ./packages/execute-javascript
               run: npm publish --access public
               env:
                   NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
-            - name: Publish @gptp/openai
+            - name: Publish @promptbook/openai
               working-directory: ./packages/openai
               run: npm publish --access public
               env:
                   NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
-            - name: Publish @gptp/remote-client
+            - name: Publish @promptbook/remote-client
               working-directory: ./packages/remote-client
               run: npm publish --access public
               env:
                   NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
-            - name: Publish @gptp/remote-server
+            - name: Publish @promptbook/remote-server
               working-directory: ./packages/remote-server
               run: npm publish --access public
               env:
                   NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
-            - name: Publish @gptp/types
+            - name: Publish @promptbook/types
               working-directory: ./packages/types
               run: npm publish --access public
               env:
                   NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
-            - name: Publish @gptp/utils
+            - name: Publish @promptbook/utils
               working-directory: ./packages/utils
               run: npm publish --access public
               env:
                   NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
-            - name: Publish @gptp/wizzard
+            - name: Publish @promptbook/wizzard
               working-directory: ./packages/wizzard
               run: npm publish --access public
               env:
