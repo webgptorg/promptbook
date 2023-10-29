@@ -409,12 +409,24 @@ This is useful to make all logic on browser side but not expose your API keys or
 First you need to install this library:
 
 ```bash
-npm install --save @gptp/core
+npm install --save @gptp/wizzard
 ```
+
+_(TODO: !!! Write the Wizzard sample)_
 
 [Usage samples](./samples/usage/)
 
-_(TODO: !!! Write this section)_
+## Advanced usage
+
+Install all the components:
+
+```bash
+npm install --save @gptp/core @gptp/wizzard @gptp/openai @gptp/execute-javascript @gptp/remote-client @gptp/remote-server @gptp/utils
+```
+
+_(TODO: !!! Write the remote sample)_
+
+[Usage samples](./samples/usage/)
 
 ## FAQ
 
