@@ -69,8 +69,8 @@ export class PromptTemplatePipeline {
 
     private constructor(
         public readonly ptpUrl: URL | null,
-        private readonly parameters: Record<string_name, PromptTemplateParameterJson>,
-        private readonly promptTemplates: Array<PromptTemplateJson>,
+        public readonly parameters: Record<string_name, PromptTemplateParameterJson>,
+        public readonly promptTemplates: Array<PromptTemplateJson>,
     ) {
         if (promptTemplates.length === 0) {
             throw new Error('Prompt template pipeline must have at least one prompt template');
@@ -124,6 +124,8 @@ export class PromptTemplatePipeline {
 }
 
 /**
+ * TODO: !! [👐][🧠] Split of PromptTemplatePipeline,PromptTemplatePipelineLibrary between interface and class
+ * TODO: !! [👐] Make parameters and promptTemplates private WHEN split between interface and class
  * TODO: !! Add generic type for entry and result parameters
  * TODO: Can be Array elegantly typed such as it must have at least one element?
  * TODO: [🧠] Each PromptTemplatePipeline should have its unique hash to be able to compare them and execute on server ONLY the desired ones

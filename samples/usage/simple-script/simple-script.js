@@ -1,8 +1,10 @@
 #!/usr/bin/env node
 
+// !!!! Fix
 import { JavascriptEvalExecutionTools, OpenAiExecutionTools, PromptTemplatePipelineLibrary } from '@gptp/core';
 import * as dotenv from 'dotenv';
 import { readFile } from 'fs/promises';
+import { join } from 'path';
 import { join } from 'path';
 
 dotenv.config({ path: '../../../.env' });

@@ -68,8 +68,8 @@ export class PromptTemplatePipelineLibrary {
 }
 
 /**
- * TODO: !! [🧠] Split of PromptTemplatePipelineLibrary between interface and class
- * TODO: !! Make promptTemplatePipelines private WHEN split between interface and class
+ * TODO: !! [👐][🧠] Split of PromptTemplatePipeline,PromptTemplatePipelineLibrary between interface and class
+ * TODO: !! [👐] Make promptTemplatePipelines private WHEN split between interface and class
  * TODO: [🧠] Maybe isPromptInLibrary should be separate utility function
  * TODO: [🧠] Maybe createExecutor should be separate utility function
  * TODO: Static method fromDirectory
