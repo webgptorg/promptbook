@@ -127,7 +127,7 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
                                 // Note: Generate packages before publishing to put the recent version in each package.json
                                 // TODO: It will be better to have here just "npx rollup --config rollup.config.js" BUT it will not work because:
                                 //       This is run after a version tag is pushed to the repository, so used publish.yml is one version behing
-                                run: `ts-node ./scripts/generate-packages/generate-packages.ts`,
+                                run: `npx ts-node ./scripts/generate-packages/generate-packages.ts`,
                             },
                             ...packageNames.map((packageName) => ({
                                 name: `Publish @gptp/${packageName}`,
