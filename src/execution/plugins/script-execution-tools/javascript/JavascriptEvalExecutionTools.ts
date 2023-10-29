@@ -18,6 +18,7 @@ import { removeQuotes as _removeQuotes } from '../../../../utils/removeQuotes';
 import { unwrapResult as _unwrapResult } from '../../../../utils/unwrapResult';
 import { CommonExecutionToolsOptions } from '../../../CommonExecutionToolsOptions';
 import { ScriptExecutionTools, ScriptExecutionToolsExecuteOptions } from '../../../ScriptExecutionTools';
+import { preserve } from './utils/preserve';
 
 /**
  * ScriptExecutionTools for JavaScript implemented via eval
@@ -45,17 +46,22 @@ export class JavascriptEvalExecutionTools implements ScriptExecutionTools {
 
         // Note: Using direct eval, following variables are in same scope as eval call so they are accessible from inside the evaluated script:
         const spaceTrim = _spaceTrim;
-        spaceTrim;
+        preserve(spaceTrim);
+
         const removeQuotes = _removeQuotes;
-        removeQuotes;
+        preserve(removeQuotes);
+
         const unwrapResult = _unwrapResult;
-        unwrapResult;
+        preserve(unwrapResult);
+
         const trim = (str: string) => str.trim();
-        trim;
+        preserve(trim);
+
         const reverse = (str: string) => str.split('').reverse().join('');
-        reverse;
+        preserve(reverse);
+
         const removeEmojis = _removeEmojis;
-        removeEmojis;
+        preserve(removeEmojis);
 
         //-------[n12:]---
         const capitalize = _capitalize;
@@ -73,18 +79,18 @@ export class JavascriptEvalExecutionTools implements ScriptExecutionTools {
                 ', ',
             ); /* <- TODO: [🧠] What is the best format comma list, bullet list,...? */
         const normalizeTo_SCREAMING_CASE = _normalizeTo_SCREAMING_CASE;
-        capitalize;
-        decapitalize;
-        nameToUriPart;
-        nameToUriParts;
-        removeDiacritics;
-        normalizeWhitespaces;
-        normalizeToKebabCase;
-        normalizeTo_camelCase;
-        normalizeTo_snake_case;
-        normalizeTo_PascalCase;
-        parseKeywords;
-        normalizeTo_SCREAMING_CASE;
+        preserve(capitalize);
+        preserve(decapitalize);
+        preserve(nameToUriPart);
+        preserve(nameToUriParts);
+        preserve(removeDiacritics);
+        preserve(normalizeWhitespaces);
+        preserve(normalizeToKebabCase);
+        preserve(normalizeTo_camelCase);
+        preserve(normalizeTo_snake_case);
+        preserve(normalizeTo_PascalCase);
+        preserve(parseKeywords);
+        preserve(normalizeTo_SCREAMING_CASE);
         //-------[/n12]---
 
         if (!script.includes('return')) {
