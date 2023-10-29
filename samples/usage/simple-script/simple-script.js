@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 
-// !!!! Fix
-import { JavascriptEvalExecutionTools, OpenAiExecutionTools, PromptTemplatePipelineLibrary } from '@gptp/core';
+import { PromptTemplatePipelineLibrary } from '@gptp/core';
+import { JavascriptEvalExecutionTools } from '@gptp/execute-javascript';
+import { OpenAiExecutionTools } from '@gptp/openai';
 import * as dotenv from 'dotenv';
 import { readFile } from 'fs/promises';
-import { join } from 'path';
 import { join } from 'path';
 
 dotenv.config({ path: '../../../.env' });
@@ -13,7 +13,7 @@ main();
 
 async function main() {
     const library = PromptTemplatePipelineLibrary.fromSources({
-        advanced: await readFile(join(process.cwd(), '../../templates/10-single.ptp.md'), 'utf-8'),
+        advanced: await readFile(join(process.cwd(), '../../templates/50-advanced.ptp.md'), 'utf-8'),
     });
 
     const tools = {

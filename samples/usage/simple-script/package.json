@@ -4,7 +4,14 @@
         "start": "node simple-script.js"
     },
     "dependencies": {
-        "@gptp/core": "0.6.1",
+        "@gptp/core": "0.7.14",
+        "@gptp/execute-javascript": "0.7.14",
+        "@gptp/openai": "0.7.14",
+        "@gptp/types": "0.7.14",
+        "@gptp/remote-client": "0.7.14",
+        "@gptp/remote-server": "0.7.14",
+        "@gptp/utils": "0.7.14",
+        "@gptp/wizzard": "0.7.14",
         "dotenv": "16.3.1"
     }
 }

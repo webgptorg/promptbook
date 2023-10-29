@@ -157,6 +157,7 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
 
 /**
  * TODO: !! [👵] test before publish
+ * TODO: !!! Auto update version of @gptp/* in samples
  * TODO: !! Add warning to the copy/generated files
  * TODO: !! Use prettier to format the generated files
  * TODO: !! Normalize order of keys in package.json
