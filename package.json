@@ -51,6 +51,7 @@
         "organize-imports-cli": "0.10.0",
         "rollup": "2.58.1",
         "ts-jest": "27.0.7",
+        "ts-node": "^10.9.1",
         "tslib": "2.3.1",
         "type-fest": "^4.5.0",
         "yaml": "^2.3.3"
