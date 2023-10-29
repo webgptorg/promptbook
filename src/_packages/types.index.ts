@@ -133,7 +133,6 @@ export {
     PromptTemplateJson,
     PromptTemplateParameterJson,
     PromptTemplatePipelineJson,
-    PromptTemplatePipelineLibrary,
     PromptTemplatePipelineString,
     PtpExecutor,
     ScriptExecutionTools,
