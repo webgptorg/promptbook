@@ -1,6 +1,6 @@
 {
     "name": "@gptp/types",
-    "version": "0.7.0",
+    "version": "0.7.10",
     "description": "Library to supercharge your use of large language models",
     "private": false,
     "sideEffects": false,
@@ -33,12 +33,9 @@
         "url": "https://github.com/webgptorg/ptp/issues"
     },
     "homepage": "https://www.npmjs.com/package/@gptp/core",
-    "dependencies": {
-        "n12": "1.6.0",
-        "spacetrim": "0.9.2"
-    },
+    "dependencies": {},
     "peerDependencies": {
-        "@gptp/core": "0.7.0"
+        "@gptp/core": "0.7.10"
     },
     "main": "./umd/index.umd.js",
     "module": "./esm/index.es.js",

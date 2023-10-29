@@ -44,6 +44,11 @@ jobs:
               run: npm publish --access public
               env:
                   NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
+            - name: Publish @gptp/types
+              working-directory: ./packages/types
+              run: npm publish --access public
+              env:
+                  NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
             - name: Publish @gptp/utils
               working-directory: ./packages/utils
               run: npm publish --access public
