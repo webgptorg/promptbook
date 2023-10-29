@@ -13,7 +13,7 @@ Library to supercharge your use of large language models
 
 <!--/Badges-->
 
-> ⚠ Warning: This library is still in early development. It is working only in node environment.
+> ⚠ Warning: This library is still in early development.
 
 ![Promptbook full of ideas](./other/design/promptbook.jpg)
 
