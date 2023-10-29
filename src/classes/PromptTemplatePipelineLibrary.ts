@@ -36,7 +36,7 @@ export class PromptTemplatePipelineLibrary {
         return new PromptTemplatePipelineLibrary(promptTemplatePipelines);
     }
 
-    private constructor(private readonly promptTemplatePipelines: Record<string_name, PromptTemplatePipeline>) {}
+    private constructor(public readonly promptTemplatePipelines: Record<string_name, PromptTemplatePipeline>) {}
 
     /**
      * Gets prompt template pipeline by name
@@ -68,6 +68,10 @@ export class PromptTemplatePipelineLibrary {
 }
 
 /**
+ * TODO: !! [🧠] Split of PromptTemplatePipelineLibrary between interface and class
+ * TODO: !! Make promptTemplatePipelines private WHEN split between interface and class
+ * TODO: [🧠] Maybe isPromptInLibrary should be separate utility function
+ * TODO: [🧠] Maybe createExecutor should be separate utility function
  * TODO: Static method fromDirectory
  * TODO: [🤜] Add generic type for entry and result parameters
  * TODO: [🧠] Is it better to ptpLibrary.executePtp('writeXyz',{...}) OR ptpLibrary.createExecutor('writeXyz')({...}) OR createExecutor(ptpLibrary.getPtp('writeXyz'))

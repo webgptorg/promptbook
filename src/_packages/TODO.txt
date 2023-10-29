@@ -1,1 +1,4 @@
+TODO: Use packages not paterialized entities when possible
+      For example in @gptp/core use @gptp/utils NOT materialized entities
+TODO: !!! Disable partial imports from @gptp/*
 TODO: !!! Remove orphan packages under @ptps
