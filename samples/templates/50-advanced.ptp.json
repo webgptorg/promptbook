@@ -72,7 +72,7 @@
                 "variant": "CHAT"
             },
             "contentLanguage": "javascript",
-            "content": "if (wordSynonym === 'cat') {\n    throw new Error('Word cannot be a cat');\n}",
+            "content": "!!! Conversion script",
             "resultingParameterName": "wordSynonymTested"
         },
         {

@@ -22,14 +22,16 @@ Write synonym for "{word}"
 
 `-> {wordSynonym}`
 
-## ⚙ Test that word is not a cat
+## ⚙ Test that word is not original word
 
 -   Execute script
 
 ```javascript
-if (wordSynonym === 'cat') {
-    throw new Error('Word cannot be a cat');
+if (wordSynonym === word) {
+    throw new Error(`Synonym returned from LLM is same as original word "${word}"`);
 }
+
+return wordSynonym;
 ```
 
 `-> {wordSynonymTested}`
