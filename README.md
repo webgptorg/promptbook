@@ -477,7 +477,8 @@ Include:
 -   [ ] [🧠][🤹‍♂️] How to mark continued chat in .ptbk.md format?
 -   [ ] Use newest version of socket.io for remote server
 -   [ ] [🧠] Allow to use and define [function calling](https://platform.openai.com/docs/guides/gpt/function-calling)
--   [ ] Register .ptbk file extension
+-   [x] Register .ptbk file extension
+-   [ ] Fix error `content.js:73 Uncaught (in promise) TypeError: object null is not iterable (cannot read property Symbol(Symbol.iterator))`
 -   TODO: !!! Go through the README
 
 <!--Contributing-->
