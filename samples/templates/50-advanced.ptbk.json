@@ -65,14 +65,14 @@
             "resultingParameterName": "wordSynonym"
         },
         {
-            "name": "TestThatWordIsNotACat",
-            "title": "⚙ Test that word is not a cat",
+            "name": "TestThatWordIsNotOriginalWord",
+            "title": "⚙ Test that word is not original word",
             "executionType": "SCRIPT",
             "modelRequirements": {
                 "variant": "CHAT"
             },
             "contentLanguage": "javascript",
-            "content": "!!! Conversion script",
+            "content": "if (wordSynonym === word) {\n    throw new Error(`Synonym returned from LLM is same as original word \"${word}\"`);\n}\n\nreturn wordSynonym;",
             "resultingParameterName": "wordSynonymTested"
         },
         {

@@ -32,6 +32,12 @@
             "focus": true
         },
         {
+            "name": "🏭📖 Generate samples .ptbk.md -> .ptbk.json",
+            "commands": ["ts-node ./scripts/generate-sample-jsons/generate-sample-jsons.ts"],
+            "onlySingle": true,
+            "focus": true
+        },
+        {
             "name": "🔼👑 Release major version",
             "command": "npm version major",
             "onlySingle": true,
