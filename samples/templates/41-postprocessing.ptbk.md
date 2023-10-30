@@ -2,8 +2,8 @@
 
 Show how to use a simple prompt with no parameters.
 
--   PTP URL https://ptp.example.com/samples/postprocessing-2.ptp.md@v1
--   PTP version 1.0.0
+-   PTBK URL https://ptbk.example.com/samples/postprocessing-2.ptbk.md@v1
+-   PTBK version 1.0.0
 -   Input parameter {yourName} Name of the hero
 
 ## 💬 Question

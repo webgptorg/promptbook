@@ -9,30 +9,30 @@ import { CallbackInterfaceTools } from '../user-interface-execution-tools/callba
 import { JavascriptEvalExecutionTools } from './javascript/JavascriptEvalExecutionTools';
 
 describe('createPtpExecutor + executing scripts in ptp', () => {
-    const ptpJson = promptTemplatePipelineStringToJson(
+    const ptbJson = promptTemplatePipelineStringToJson(
         spaceTrim(`
             # Sample prompt
 
             Show how to use a simple prompt with no parameters.
-            
-            -   PTP version 1.0.0
+
+            -   PTBK version 1.0.0
             -   Input parameter {yourName} Name of the hero
-            
+
             ## Question
 
             -   Postprocess reverse
             -   Postprocess removeDiacritics
             -   Postprocess normalizeTo_SCREAMING_CASE
-            
+
             \`\`\`markdown
             Hello {yourName}!
             \`\`\`
-            
+
             -> {greeting}
          `) as PromptTemplatePipelineString,
     );
 
-    const ptp = PromptTemplatePipeline.fromJson(ptpJson);
+    const ptp = PromptTemplatePipeline.fromJson(ptbJson);
     const ptpExecutor = createPtpExecutor({
         ptp,
         tools: {

@@ -29,15 +29,20 @@ export function parseCommand(listItem: string_markdown_text): Command {
         .split(' ')
         .map((part) => part.trim())
         .filter((item) => item !== '')
-        .filter((item) => !/^PTP$/i.test(item))
+        .filter((item) => !/^PTBK$/i.test(item))
         .map(removeMarkdownFormatting);
 
-    if (type.startsWith('URL') || type.startsWith('PTP_URL') || type.startsWith('PTPURL') || type.startsWith('HTTPS')) {
+    if (
+        type.startsWith('URL') ||
+        type.startsWith('PTBK_URL') ||
+        type.startsWith('PTBKURL') ||
+        type.startsWith('HTTPS')
+    ) {
         if (!(listItemParts.length === 2 || (listItemParts.length === 1 && type.startsWith('HTTPS')))) {
             throw new Error(
                 spaceTrim(
                     `
-                        Invalid PTP_URL command:
+                        Invalid PTBK_URL command:
 
                         - ${listItem}
                     `,
@@ -45,14 +50,14 @@ export function parseCommand(listItem: string_markdown_text): Command {
             );
         }
 
-        const ptpUrlString = listItemParts.pop()!;
-        const ptpUrl = new URL(ptpUrlString);
+        const ptbkUrlString = listItemParts.pop()!;
+        const ptbkUrl = new URL(ptbkUrlString);
 
-        if (ptpUrl.protocol !== 'https:') {
+        if (ptbkUrl.protocol !== 'https:') {
             throw new Error(
                 spaceTrim(
                     `
-                        Invalid PTP_URL command:
+                        Invalid PTBK_URL command:
 
                         - ${listItem}
 
@@ -62,11 +67,11 @@ export function parseCommand(listItem: string_markdown_text): Command {
             );
         }
 
-        if (ptpUrl.hash !== '') {
+        if (ptbkUrl.hash !== '') {
             throw new Error(
                 spaceTrim(
                     `
-                        Invalid PTP_URL command:
+                        Invalid PTBK_URL command:
 
                         - ${listItem}
 
@@ -78,15 +83,15 @@ export function parseCommand(listItem: string_markdown_text): Command {
         }
 
         return {
-            type: 'PTP_URL',
-            ptpUrl,
+            type: 'PTBK_URL',
+            ptbkUrl,
         };
-    } else if (type.startsWith('PTP_VERSION')) {
+    } else if (type.startsWith('PTBK_VERSION')) {
         if (listItemParts.length !== 2) {
             throw new Error(
                 spaceTrim(
                     `
-                        Invalid PTP_VERSION command:
+                        Invalid PTBK_VERSION command:
 
                         - ${listItem}
                     `,
@@ -94,12 +99,12 @@ export function parseCommand(listItem: string_markdown_text): Command {
             );
         }
 
-        const ptpVersion = listItemParts.pop()!;
+        const ptbkVersion = listItemParts.pop()!;
         // TODO: Validate version
 
         return {
-            type: 'PTP_VERSION',
-            ptpVersion,
+            type: 'PTBK_VERSION',
+            ptbkVersion,
         };
     } else if (
         type.startsWith('EXECUTE') ||
@@ -237,7 +242,7 @@ export function parseCommand(listItem: string_markdown_text): Command {
                     - Parameter
                     - Input parameter
                     - Output parameter
-                    - PTP Version
+                    - PTBK Version
                 `,
             ),
         );

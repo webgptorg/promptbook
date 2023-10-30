@@ -8,28 +8,28 @@ import { CallbackInterfaceTools } from '../../user-interface-execution-tools/cal
 import { MockedEchoNaturalExecutionTools } from './MockedEchoNaturalExecutionTools';
 
 describe('createPtpExecutor + MockedEchoExecutionTools with sample chat prompt', () => {
-    const ptpJson = promptTemplatePipelineStringToJson(
+    const ptbJson = promptTemplatePipelineStringToJson(
         spaceTrim(`
             # Sample prompt
 
             Show how to use a simple prompt with no parameters.
-            
-            -   PTP version 1.0.0
+
+            -   PTBK version 1.0.0
             -   Input parameter {thing} Any thing to buy
-            
+
             ## Prompt
 
             - Use completion
-            
+
             \`\`\`
             One day I went to the shop and bought {thing}.
             Now I have {thing}.
             \`\`\`
-            
+
             -> {response}
          `) as PromptTemplatePipelineString,
     );
-    const ptp = PromptTemplatePipeline.fromJson(ptpJson);
+    const ptp = PromptTemplatePipeline.fromJson(ptbJson);
     const ptpExecutor = createPtpExecutor({
         ptp,
         tools: {

@@ -21,16 +21,16 @@ export class PromptTemplatePipelineLibrary {
      * Constructs PromptTemplatePipeline from any sources
      *
      * Note: During the construction syntax and logic of all sources are validated
-     * Note: You can combine .ptp.md and .ptp.json files BUT it is not recommended
+     * Note: You can combine .ptbk.md and .ptbk.json files BUT it is not recommended
      *
-     * @param ptpSources contents of .ptp.md or .ptp.json files
+     * @param ptbkSources contents of .ptbk.md or .ptbk.json files
      * @returns PromptTemplatePipelineLibrary
      */
     public static fromSources(
-        ptpSources: Record<string_name, PromptTemplatePipelineJson | PromptTemplatePipelineString>,
+        ptbkSources: Record<string_name, PromptTemplatePipelineJson | PromptTemplatePipelineString>,
     ): PromptTemplatePipelineLibrary {
         const promptTemplatePipelines: Record<string_name, PromptTemplatePipeline> = {};
-        for (const [name, source] of Object.entries(ptpSources)) {
+        for (const [name, source] of Object.entries(ptbkSources)) {
             promptTemplatePipelines[name] = PromptTemplatePipeline.fromSource(source);
         }
         return new PromptTemplatePipelineLibrary(promptTemplatePipelines);
@@ -68,13 +68,14 @@ export class PromptTemplatePipelineLibrary {
 }
 
 /**
+ * TODO: !!! This should be renamed to Promptbook
  * TODO: !! [👐][🧠] Split of PromptTemplatePipeline,PromptTemplatePipelineLibrary between interface and class
  * TODO: !! [👐] Make promptTemplatePipelines private WHEN split between interface and class
  * TODO: [🧠] Maybe isPromptInLibrary should be separate utility function
  * TODO: [🧠] Maybe createExecutor should be separate utility function
  * TODO: Static method fromDirectory
  * TODO: [🤜] Add generic type for entry and result parameters
- * TODO: [🧠] Is it better to ptpLibrary.executePtp('writeXyz',{...}) OR ptpLibrary.createExecutor('writeXyz')({...}) OR createExecutor(ptpLibrary.getPtp('writeXyz'))
+ * TODO: [🧠] Is it better to ptbkLibrary.executePtp('writeXyz',{...}) OR ptbkLibrary.createExecutor('writeXyz')({...}) OR createExecutor(ptbkLibrary.getPtp('writeXyz'))
  * TODO: [🧠] Formarly (before commit 62229afce7668a5b85077cc18becf798b583bf8d) there were two classes PromptTemplatePipelineLibrary+PtpLibraryExecutor (maybe it was better?)
  * TODO: [🧠] Is it better to pass tools into getExecutor or into constructor
  *             Maybe it is not a good idea to cache executors when they are can be created with different tools

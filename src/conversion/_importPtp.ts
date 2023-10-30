@@ -12,15 +12,15 @@ import { PromptTemplatePipelineString } from '../types/PromptTemplatePipelineStr
  *
  * @private
  */
-export function importPtp(path: `${string}.ptp.md`): PromptTemplatePipelineString;
-export function importPtp(path: `${string}.ptp.json`): PromptTemplatePipelineJson;
+export function importPtp(path: `${string}.ptbk.md`): PromptTemplatePipelineString;
+export function importPtp(path: `${string}.ptbk.json`): PromptTemplatePipelineJson;
 export function importPtp(path: string_file_path): PromptTemplatePipelineString | PromptTemplatePipelineJson {
     const content = readFileSync(join(__dirname, path), 'utf-8');
-    if (path.endsWith('.ptp.json')) {
+    if (path.endsWith('.ptbk.json')) {
         return JSON.parse(content) as PromptTemplatePipelineJson;
-    } else if (path.endsWith('.ptp.md')) {
+    } else if (path.endsWith('.ptbk.md')) {
         return content as PromptTemplatePipelineString;
     } else {
-        throw new Error('This should be used only for .ptp.md or .ptp.json files');
+        throw new Error('This should be used only for .ptbk.md or .ptbk.json files');
     }
 }

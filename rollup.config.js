@@ -12,7 +12,7 @@ export default packageNames.map((name) => ({
     output: [
         {
             file: `./packages/${name}/umd/index.umd.js`,
-            name: `ptp-${name}`,
+            name: `promptbook-${name}`,
             format: 'umd',
             sourcemap: true,
         },

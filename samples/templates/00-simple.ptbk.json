@@ -1,8 +1,7 @@
 {
-    "title": "✨ Sample prompt with comments",
-    "ptpUrl": "https://ptp.example.com/samples/comment.ptp.md@v1",
-    "ptpVersion": "1.0.0",
-    "description": "Show how to use a simple prompt with no parameters and comments that should be ignored.",
+    "title": "✨ Sample prompt",
+    "ptbkVersion": "1.0.0",
+    "description": "Show how to use a simple prompt with no parameters.",
     "parameters": [
         {
             "name": "greeting",

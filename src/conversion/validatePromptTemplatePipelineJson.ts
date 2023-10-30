@@ -36,7 +36,7 @@ export function validatePromptTemplatePipelineJson(ptp: PromptTemplatePipelineJs
 }
 
 /**
- * TODO: [🧠] Work with ptpVersion
+ * TODO: [🧠] Work with ptbkVersion
  * TODO: Use here some json-schema, Zod or something similar and change it to:
  *     > /**
  *     >  * Validates PromptTemplatePipelineJson if it is logically valid.

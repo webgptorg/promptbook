@@ -1,10 +1,10 @@
 import { Wizzard } from './Wizzard';
 
-const { comment } = Wizzard.takeCookbook({ url: 'https://ptp.example.com/samples/', isLazy: true })
+const { comment } = Wizzard.takeCookbook({ url: 'https://ptbk.example.com/samples/', isLazy: true })
     .useOpenAi({ apiKey: 'sss' })
     .askUserInCallback()
     .askUserInStdio()
-    .takeRecipe('comment.ptp.md@v1')
+    .takeRecipe('comment.ptbk.md@v1')
     .cook();
 
 console.info({ comment });
@@ -21,7 +21,7 @@ const wizzard = Wizzard.takeCookbook({
     .denyPython()
     .askUserWithUglyBrowserPrompt();
 
-const recipe = wizzard.takeRecipe('website.ptp.md@v1');
+const recipe = wizzard.takeRecipe('website.ptbk.md@v1');
 const { websiteContent } = recipe.cook();
 
 console.info({ websiteContent });

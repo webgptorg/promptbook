@@ -3,8 +3,8 @@
  * It represents a series of prompt templates chained together to form a pipeline / one big prompt template with input and result parameters.
  *
  * It can have 3 formats:
- * -   _(this)_ **.ptp.md file** in custom markdown format described above
- * -   **JSON** format, parsed from the .ptp.md file
+ * -   _(this)_ **.ptbk.md file** in custom markdown format described above
+ * -   **JSON** format, parsed from the .ptbk.md file
  * -   **Object** which is created from JSON format and bound with tools around (but not the execution logic)
  *
  * @see https://github.com/webgptorg/promptbook#prompt-template-pipeline

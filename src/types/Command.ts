@@ -7,8 +7,8 @@ import { ModelRequirements } from './ModelRequirements';
  * It is parsed from the markdown from ul/ol items - one command per one item.
  */
 export type Command =
-    | PtpUrlCommand
-    | PtpVersionCommand
+    | PtbkUrlCommand
+    | PtbkVersionCommand
     | ExecuteCommand
     | UseCommand
     | ParameterCommand
@@ -20,9 +20,9 @@ export type Command =
  * - It is used for backward compatibility
  * - It is defined per whole .ptp file in the header
  */
-export interface PtpUrlCommand {
-    readonly type: 'PTP_URL';
-    readonly ptpUrl: URL;
+export interface PtbkUrlCommand {
+    readonly type: 'PTBK_URL';
+    readonly ptbkUrl: URL;
 }
 
 /**
@@ -31,9 +31,9 @@ export interface PtpUrlCommand {
  * - It is used for backward compatibility
  * - It is defined per whole .ptp file in the header
  */
-export interface PtpVersionCommand {
-    readonly type: 'PTP_VERSION';
-    readonly ptpVersion: string_version;
+export interface PtbkVersionCommand {
+    readonly type: 'PTBK_VERSION';
+    readonly ptbkVersion: string_version;
 }
 
 /**

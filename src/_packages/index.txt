@@ -2,7 +2,7 @@
 
 import { PromptTemplatePipeline } from '../classes/PromptTemplatePipeline';
 import { PromptTemplatePipelineLibrary } from '../classes/PromptTemplatePipelineLibrary';
-import { DEFAULT_MODEL_REQUIREMENTS, PTP_VERSION } from '../config';
+import { DEFAULT_MODEL_REQUIREMENTS, PTBK_VERSION } from '../config';
 import { parseCommand } from '../conversion/parseCommand';
 import { promptTemplatePipelineStringToJson } from '../conversion/promptTemplatePipelineStringToJson';
 import { validatePromptTemplatePipelineJson } from '../conversion/validatePromptTemplatePipelineJson';
@@ -33,8 +33,8 @@ import {
     ExecuteCommand,
     ParameterCommand,
     PostprocessCommand,
-    PtpUrlCommand,
-    PtpVersionCommand,
+    PtbkUrlCommand,
+    PtbkVersionCommand,
     UseCommand,
 } from '../types/Command';
 import { ExecutionType, ExecutionTypes } from '../types/ExecutionTypes';
@@ -117,8 +117,8 @@ import {
     string_pgp_key,
     string_prompt,
     string_protocol,
-    string_ptp_url,
-    string_ptp_url_with_hashtemplate,
+    string_ptbk_url,
+    string_ptbk_url_with_hashtemplate,
     string_script,
     string_sha256,
     string_ssh_key,
@@ -167,8 +167,8 @@ export {
     ParameterCommand,
     parseCommand,
     PostprocessCommand,
-    PtpUrlCommand,
-    PtpVersionCommand,
+    PtbkUrlCommand,
+    PtbkVersionCommand,
     SUPPORTED_SCRIPT_LANGUAGES,
     UseCommand,
 };

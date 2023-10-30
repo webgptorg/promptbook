@@ -11,8 +11,8 @@ import { PromptTemplatePipelineString } from '../types/PromptTemplatePipelineStr
  * It represents a series of prompt templates chained together to form a pipeline / one big prompt template with input and result parameters.
  *
  * It can have 3 formats:
- * -   **.ptp.md file** in custom markdown format described above
- * -   **JSON** format, parsed from the .ptp.md file
+ * -   **.ptbk.md file** in custom markdown format described above
+ * -   **JSON** format, parsed from the .ptbk.md file
  * -   _(this)_ **Object** which is created from JSON format and bound with tools around (but not the execution logic)
  *
  * @see https://github.com/webgptorg/promptbook#prompt-template-pipeline
@@ -23,16 +23,16 @@ export class PromptTemplatePipeline {
      *
      * Note: During the construction syntax and logic of source is validated
      *
-     * @param source content of .ptp.md or .ptp.json file
+     * @param source content of .ptbk.md or .ptbk.json file
      * @returns PromptTemplatePipeline
      */
     public static fromSource(
-        ptpSource: PromptTemplatePipelineString | PromptTemplatePipelineJson,
+        ptbkSource: PromptTemplatePipelineString | PromptTemplatePipelineJson,
     ): PromptTemplatePipeline {
-        if (typeof ptpSource === 'string') {
-            return PromptTemplatePipeline.fromString(ptpSource);
+        if (typeof ptbkSource === 'string') {
+            return PromptTemplatePipeline.fromString(ptbkSource);
         } else {
-            return PromptTemplatePipeline.fromJson(ptpSource);
+            return PromptTemplatePipeline.fromJson(ptbkSource);
         }
     }
 
@@ -41,12 +41,12 @@ export class PromptTemplatePipeline {
      *
      * Note: During the construction syntax and logic of source is validated
      *
-     * @param ptpString content of .ptp.md file
+     * @param ptbkString content of .ptbk.md file
      * @returns PromptTemplatePipeline
      */
-    public static fromString(ptpString: PromptTemplatePipelineString): PromptTemplatePipeline {
-        const ptpjson = promptTemplatePipelineStringToJson(ptpString);
-        return PromptTemplatePipeline.fromJson(ptpjson);
+    public static fromString(ptbkString: PromptTemplatePipelineString): PromptTemplatePipeline {
+        const ptbkjson = promptTemplatePipelineStringToJson(ptbkString);
+        return PromptTemplatePipeline.fromJson(ptbkjson);
     }
 
     /**
@@ -54,21 +54,21 @@ export class PromptTemplatePipeline {
      *
      * Note: During the construction the source is logic validated
      *
-     * @param ptpjson content of .ptp.json file parsed into JSON
+     * @param ptbkjson content of .ptbk.json file parsed into JSON
      * @returns PromptTemplatePipeline
      */
-    public static fromJson(ptpjson: PromptTemplatePipelineJson): PromptTemplatePipeline {
-        validatePromptTemplatePipelineJson(ptpjson);
+    public static fromJson(ptbkjson: PromptTemplatePipelineJson): PromptTemplatePipeline {
+        validatePromptTemplatePipelineJson(ptbkjson);
 
         return new PromptTemplatePipeline(
-            ptpjson.ptpUrl ? new URL(ptpjson.ptpUrl) : null,
-            Object.fromEntries(ptpjson.parameters.map((parameter) => [parameter.name, parameter])),
-            ptpjson.promptTemplates,
+            ptbkjson.ptbkUrl ? new URL(ptbkjson.ptbkUrl) : null,
+            Object.fromEntries(ptbkjson.parameters.map((parameter) => [parameter.name, parameter])),
+            ptbkjson.promptTemplates,
         );
     }
 
     private constructor(
-        public readonly ptpUrl: URL | null,
+        public readonly ptbkUrl: URL | null,
         public readonly parameters: Record<string_name, PromptTemplateParameterJson>,
         public readonly promptTemplates: Array<PromptTemplateJson>,
     ) {

@@ -59,9 +59,9 @@ export function createPtpExecutor(options: CreatePtpExecutorOptions): PtpExecuto
 
                 case 'PROMPT_TEMPLATE':
                     prompt = {
-                        ptpUrl: `${
-                            ptp.ptpUrl
-                                ? ptp.ptpUrl.href
+                        ptbkUrl: `${
+                            ptp.ptbkUrl
+                                ? ptp.ptbkUrl.href
                                 : 'anonymous' /* <- [🧠] How to deal with anonymous PTPs, do here some auto-url like SHA-256 based ad-hoc identifier? */
                         }#${currentTemplate.name}`,
                         parameters: parametersToPass,
@@ -143,7 +143,7 @@ export function createPtpExecutor(options: CreatePtpExecutorOptions): PtpExecuto
                         prompt: replaceParameters(currentTemplate.description || '', parametersToPass),
                         defaultValue: replaceParameters(currentTemplate.content, parametersToPass),
 
-                        // TODO: [🧠] !! Figure out how to define placeholder in .ptp.md file
+                        // TODO: [🧠] !! Figure out how to define placeholder in .ptbk.md file
                         placeholder: undefined,
                     });
                     break executionType;

@@ -1,7 +1,7 @@
 {
     "title": "✨ Sample: Postprocessing 2",
-    "ptpUrl": "https://ptp.example.com/samples/postprocessing-2.ptp.md@v1",
-    "ptpVersion": "1.0.0",
+    "ptbkUrl": "https://ptbk.example.com/samples/postprocessing-2.ptbk.md@v1",
+    "ptbkVersion": "1.0.0",
     "description": "Show how to use a simple prompt with no parameters.",
     "parameters": [
         {

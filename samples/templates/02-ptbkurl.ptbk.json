@@ -1,6 +1,7 @@
 {
-    "title": "✨ Sample prompt",
-    "ptpVersion": "1.0.0",
+    "title": "✨ Sample prompt with URL",
+    "ptbkUrl": "https://ptbk.example.com/samples/simple.ptbk.md@v1",
+    "ptbkVersion": "1.0.0",
     "description": "Show how to use a simple prompt with no parameters.",
     "parameters": [
         {

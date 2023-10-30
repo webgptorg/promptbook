@@ -17,7 +17,7 @@ import { RemoteServerOptions } from './interfaces/RemoteServerOptions';
  * @see https://github.com/webgptorg/promptbook#remote-server
  */
 export function createRemoteServer(options: RemoteServerOptions) {
-    const { port, /* [🎛] ptpLibrary, */ createNaturalExecutionTools, isVerbose } = options;
+    const { port, /* [🎛] ptbkLibrary, */ createNaturalExecutionTools, isVerbose } = options;
 
     const httpServer = http.createServer({}, (request, response) => {
         if (request.url?.includes('socket.io')) {
@@ -59,7 +59,7 @@ export function createRemoteServer(options: RemoteServerOptions) {
             try {
                 const executionToolsForClient = createNaturalExecutionTools(clientId);
 
-                // TODO: [🎛] Check validity of the prompt against ptpLibrary
+                // TODO: [🎛] Check validity of the prompt against ptbkLibrary
 
                 let promptResult: PromptResult;
                 switch (prompt.modelRequirements.variant) {

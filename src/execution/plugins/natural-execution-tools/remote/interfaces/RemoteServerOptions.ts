@@ -14,7 +14,7 @@ export interface RemoteServerOptions extends CommonExecutionToolsOptions {
      *
      * This is used to checkl validity of the prompt to prevent DDoS
      */
-    readonly ptpLibrary: PromptTemplatePipelineLibrary;
+    readonly ptbkLibrary: PromptTemplatePipelineLibrary;
 
     /**
      * Creates natural execution tools for each client

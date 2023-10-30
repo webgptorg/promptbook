@@ -1,7 +1,7 @@
 import { capitalize, normalizeTo_camelCase, normalizeTo_PascalCase } from 'n12';
 import spaceTrim from 'spacetrim';
 import { Writable, WritableDeep } from 'type-fest';
-import { DEFAULT_MODEL_REQUIREMENTS, PTP_VERSION } from '../config';
+import { DEFAULT_MODEL_REQUIREMENTS, PTBK_VERSION } from '../config';
 import { ParameterCommand, PostprocessCommand } from '../types/Command';
 import { ExecutionType } from '../types/ExecutionTypes';
 import { ModelRequirements } from '../types/ModelRequirements';
@@ -24,11 +24,11 @@ import { parseCommand } from './parseCommand';
 export function promptTemplatePipelineStringToJson(
     promptTemplatePipelineString: PromptTemplatePipelineString,
 ): PromptTemplatePipelineJson {
-    const ptpJson: WritableDeep<PromptTemplatePipelineJson> = {
+    const ptbJson: WritableDeep<PromptTemplatePipelineJson> = {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         title: undefined as any /* <- Note: Putting here placeholder to keep `title` on top at final JSON */,
-        ptpUrl: undefined /* <- Note: Putting here placeholder to keep `ptpUrl` on top at final JSON */,
-        ptpVersion: PTP_VERSION,
+        ptbkUrl: undefined /* <- Note: Putting here placeholder to keep `ptbkUrl` on top at final JSON */,
+        ptbkVersion: PTBK_VERSION,
         description: undefined /* <- Note: Putting here placeholder to keep `description` on top at final JSON */,
         parameters: [],
         promptTemplates: [],
@@ -51,7 +51,7 @@ export function promptTemplatePipelineStringToJson(
     const addParam = (parameterCommand: Omit<ParameterCommand, 'type'>) => {
         const { parameterName, parameterDescription, isInputParameter } = parameterCommand;
 
-        const existingParameter = ptpJson.parameters.find(
+        const existingParameter = ptbJson.parameters.find(
             (parameter: PromptTemplateParameterJson) => parameter.name === parameterName,
         );
         if (
@@ -80,7 +80,7 @@ export function promptTemplatePipelineStringToJson(
                 existingParameter.description = parameterDescription;
             }
         } else {
-            ptpJson.parameters.push({
+            ptbJson.parameters.push({
                 name: parameterName,
                 description: parameterDescription || undefined,
                 isInput: isInputParameter,
@@ -103,7 +103,7 @@ export function promptTemplatePipelineStringToJson(
         );
     }
 
-    ptpJson.title = markdownStructure.title;
+    ptbJson.title = markdownStructure.title;
 
     // TODO: [1] DRY description
     let description: string | undefined = markdownStructure.content;
@@ -116,7 +116,7 @@ export function promptTemplatePipelineStringToJson(
     if (description === '') {
         description = undefined;
     }
-    ptpJson.description = description;
+    ptbJson.description = description;
 
     const defaultModelRequirements: Writable<ModelRequirements> = { ...DEFAULT_MODEL_REQUIREMENTS };
     const listItems = extractAllListItemsFromMarkdown(markdownStructure.content);
@@ -124,12 +124,12 @@ export function promptTemplatePipelineStringToJson(
         const command = parseCommand(listItem);
 
         switch (command.type) {
-            case 'PTP_URL':
-                ptpJson.ptpUrl = command.ptpUrl.href;
+            case 'PTBK_URL':
+                ptbJson.ptbkUrl = command.ptbkUrl.href;
                 break;
 
-            case 'PTP_VERSION':
-                ptpJson.ptpVersion = command.ptpVersion;
+            case 'PTBK_VERSION':
+                ptbJson.ptbkVersion = command.ptbkVersion;
                 break;
 
             case 'USE':
@@ -251,7 +251,7 @@ export function promptTemplatePipelineStringToJson(
                           // <- TODO: Make this work even if using multiple same postprocessing functions
                       );
 
-            const isParameterDefined = ptpJson.parameters.some((parameter) => parameter.name === parameterName);
+            const isParameterDefined = ptbJson.parameters.some((parameter) => parameter.name === parameterName);
 
             if (!isParameterDefined) {
                 const parameterDescription = `*(${capitalize(section.title)} postprocessing ${i + 1}/${
@@ -269,7 +269,7 @@ export function promptTemplatePipelineStringToJson(
             return parameterName;
         };
 
-        ptpJson.promptTemplates.push({
+        ptbJson.promptTemplates.push({
             name: normalizeTo_PascalCase(section.title),
             title: section.title,
             description,
@@ -283,7 +283,7 @@ export function promptTemplatePipelineStringToJson(
         for (const [functionName, i] of postprocessingCommands.map(
             ({ functionName }, i) => [functionName, i] as const,
         )) {
-            ptpJson.promptTemplates.push({
+            ptbJson.promptTemplates.push({
                 name: normalizeTo_PascalCase(section.title + ' Postprocessing ' + i),
                 title: `(${i + 1}/${postprocessingCommands.length}) ${section.title} postprocessing`,
                 description: `Postprocessing of section ${section.title} finally with resulting parameter {${resultingParameterName}}`,
@@ -296,7 +296,7 @@ export function promptTemplatePipelineStringToJson(
     }
 
     // =============================================================
-    return ptpJson;
+    return ptbJson;
 }
 
 /**

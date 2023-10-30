@@ -1,4 +1,4 @@
-import { string_name, string_prompt, string_ptp_url_with_hashtemplate } from '.././types/typeAliases';
+import { string_name, string_prompt, string_ptbk_url_with_hashtemplate } from '.././types/typeAliases';
 import { ModelRequirements } from './ModelRequirements';
 
 /**
@@ -23,14 +23,14 @@ export interface Prompt {
     /**
      * Unique identifier of the prompt template pipeline with specific template name as hash
      *
-     * @example https://ptp.webgpt.com/cs/write-wallpaper-content.ptp.md@v2.4.15#keywords
+     * @example https://ptbk.webgpt.com/cs/write-website-content.ptbk.md@v2.4.15#keywords
      */
-    readonly ptpUrl: string_ptp_url_with_hashtemplate;
+    readonly ptbkUrl: string_ptbk_url_with_hashtemplate;
 
     /**
      * Parameters used in the prompt
      *
-     * Note: This is redundant (same information is in ptpUrl+content) but useful for logging and debugging
+     * Note: This is redundant (same information is in ptbkUrl+content) but useful for logging and debugging
      */
     readonly parameters: Record<string_name, string>;
 }

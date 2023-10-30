@@ -7,18 +7,18 @@ import { validatePromptTemplatePipelineJson } from './validatePromptTemplatePipe
 describe('validatePromptTemplatePipelineJson', () => {
     it('should work in valid samples', () => {
         for (const path of [
-            '../../samples/templates/00-simple.ptp.md',
-            '../../samples/templates/05-comment.ptp.md',
-            '../../samples/templates/10-single.ptp.md',
-            '../../samples/templates/20-two.ptp.md',
-            '../../samples/templates/30-escaping.ptp.md',
-            '../../samples/templates/50-advanced.ptp.md',
+            '../../samples/templates/00-simple.ptbk.md',
+            '../../samples/templates/05-comment.ptbk.md',
+            '../../samples/templates/10-single.ptbk.md',
+            '../../samples/templates/20-two.ptbk.md',
+            '../../samples/templates/30-escaping.ptbk.md',
+            '../../samples/templates/50-advanced.ptbk.md',
         ] as const) {
             expect(() => {
                 try {
-                    const ptpString = importPtp(path);
-                    const ptpJson = promptTemplatePipelineStringToJson(ptpString);
-                    validatePromptTemplatePipelineJson(ptpJson);
+                    const ptbkString = importPtp(path);
+                    const ptbJson = promptTemplatePipelineStringToJson(ptbkString);
+                    validatePromptTemplatePipelineJson(ptbJson);
                 } catch (error) {
                     if (!(error instanceof Error)) {
                         throw error;
@@ -42,9 +42,9 @@ describe('validatePromptTemplatePipelineJson', () => {
 
     it('should fail on using parameter before defining', () => {
         expect(() => {
-            const ptpString = importPtp('../../samples/templates/errors/logic/parameter-used-before-defining.ptp.md');
-            const ptpJson = promptTemplatePipelineStringToJson(ptpString);
-            validatePromptTemplatePipelineJson(ptpJson);
+            const ptbkString = importPtp('../../samples/templates/errors/logic/parameter-used-before-defining.ptbk.md');
+            const ptbJson = promptTemplatePipelineStringToJson(ptbkString);
+            validatePromptTemplatePipelineJson(ptbJson);
         }).toThrowError(/Parameter \{word\} used before defined/i);
     });
 });

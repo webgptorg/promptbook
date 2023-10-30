@@ -117,7 +117,6 @@ export type string_char = string;
  */
 export type string_name = string;
 
-
 /**
  * Semantic helper
  * Title of anything
@@ -240,16 +239,16 @@ export type string_url = string;
 /**
  * Semantic helper
  *
- * For example `"https://ptp.webgpt.com/cs/write-wallpaper-content.ptp.md@v2.4.15"`
+ * For example `"https://ptbk.webgpt.com/cs/write-website-content.ptbk.md@v2.4.15"`
  */
-export type string_ptp_url = string;
+export type string_ptbk_url = string;
 
 /**
  * Semantic helper
  *
- * For example `"https://ptp.webgpt.com/cs/write-wallpaper-content.ptp.md@v2.4.15#keywords"`
+ * For example `"https://ptbk.webgpt.com/cs/write-website-content.ptbk.md@v2.4.15#keywords"`
  */
-export type string_ptp_url_with_hashtemplate = string;
+export type string_ptbk_url_with_hashtemplate = string;
 
 /**
  * Semantic helper

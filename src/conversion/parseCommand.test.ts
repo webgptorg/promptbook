@@ -2,83 +2,83 @@ import { describe, expect, it } from '@jest/globals';
 import { parseCommand } from './parseCommand';
 
 describe('how parseCommand works', () => {
-    it('should parse PTP_URL command', () => {
-        expect(parseCommand('https://ptp.webgpt.com/cs/write-wallpaper-content.ptp.md@v1.0.0')).toEqual({
-            type: 'PTP_URL',
-            ptpUrl: new URL('https://ptp.webgpt.com/cs/write-wallpaper-content.ptp.md@v1.0.0'),
+    it('should parse PTBK_URL command', () => {
+        expect(parseCommand('https://ptbk.webgpt.com/cs/write-website-content.ptbk.md@v1.0.0')).toEqual({
+            type: 'PTBK_URL',
+            ptbkUrl: new URL('https://ptbk.webgpt.com/cs/write-website-content.ptbk.md@v1.0.0'),
         });
-        expect(parseCommand('   https://ptp.webgpt.com/cs/write-wallpaper-content.ptp.md@v1.0.1        ')).toEqual({
-            type: 'PTP_URL',
-            ptpUrl: new URL('https://ptp.webgpt.com/cs/write-wallpaper-content.ptp.md@v1.0.1'),
+        expect(parseCommand('   https://ptbk.webgpt.com/cs/write-website-content.ptbk.md@v1.0.1        ')).toEqual({
+            type: 'PTBK_URL',
+            ptbkUrl: new URL('https://ptbk.webgpt.com/cs/write-website-content.ptbk.md@v1.0.1'),
         });
-        expect(parseCommand('url https://ptp.webgpt.com/cs/write-wallpaper-content.ptp.md@v1.0.2')).toEqual({
-            type: 'PTP_URL',
-            ptpUrl: new URL('https://ptp.webgpt.com/cs/write-wallpaper-content.ptp.md@v1.0.2'),
+        expect(parseCommand('url https://ptbk.webgpt.com/cs/write-website-content.ptbk.md@v1.0.2')).toEqual({
+            type: 'PTBK_URL',
+            ptbkUrl: new URL('https://ptbk.webgpt.com/cs/write-website-content.ptbk.md@v1.0.2'),
         });
-        expect(parseCommand('URL https://ptp.webgpt.com/cs/write-wallpaper-content.ptp.md@v1.0.3')).toEqual({
-            type: 'PTP_URL',
-            ptpUrl: new URL('https://ptp.webgpt.com/cs/write-wallpaper-content.ptp.md@v1.0.3'),
+        expect(parseCommand('URL https://ptbk.webgpt.com/cs/write-website-content.ptbk.md@v1.0.3')).toEqual({
+            type: 'PTBK_URL',
+            ptbkUrl: new URL('https://ptbk.webgpt.com/cs/write-website-content.ptbk.md@v1.0.3'),
         });
-        expect(parseCommand('ptpurl https://ptp.webgpt.com/cs/write-wallpaper-content.ptp.md@v1.0.4')).toEqual({
-            type: 'PTP_URL',
-            ptpUrl: new URL('https://ptp.webgpt.com/cs/write-wallpaper-content.ptp.md@v1.0.4'),
+        expect(parseCommand('ptbkurl https://ptbk.webgpt.com/cs/write-website-content.ptbk.md@v1.0.4')).toEqual({
+            type: 'PTBK_URL',
+            ptbkUrl: new URL('https://ptbk.webgpt.com/cs/write-website-content.ptbk.md@v1.0.4'),
         });
-        expect(parseCommand('ptpUrl https://ptp.webgpt.com/cs/write-wallpaper-content.ptp.md@v1.0.5')).toEqual({
-            type: 'PTP_URL',
-            ptpUrl: new URL('https://ptp.webgpt.com/cs/write-wallpaper-content.ptp.md@v1.0.5'),
+        expect(parseCommand('ptbkUrl https://ptbk.webgpt.com/cs/write-website-content.ptbk.md@v1.0.5')).toEqual({
+            type: 'PTBK_URL',
+            ptbkUrl: new URL('https://ptbk.webgpt.com/cs/write-website-content.ptbk.md@v1.0.5'),
         });
-        expect(parseCommand('PTP_URL https://ptp.webgpt.com/cs/write-wallpaper-content.ptp.md@v1.0.6')).toEqual({
-            type: 'PTP_URL',
-            ptpUrl: new URL('https://ptp.webgpt.com/cs/write-wallpaper-content.ptp.md@v1.0.6'),
+        expect(parseCommand('PTBK_URL https://ptbk.webgpt.com/cs/write-website-content.ptbk.md@v1.0.6')).toEqual({
+            type: 'PTBK_URL',
+            ptbkUrl: new URL('https://ptbk.webgpt.com/cs/write-website-content.ptbk.md@v1.0.6'),
         });
-        expect(parseCommand('PTP URL https://ptp.webgpt.com/cs/write-wallpaper-content.ptp.md@v1.0.7')).toEqual({
-            type: 'PTP_URL',
-            ptpUrl: new URL('https://ptp.webgpt.com/cs/write-wallpaper-content.ptp.md@v1.0.7'),
+        expect(parseCommand('PTBK URL https://ptbk.webgpt.com/cs/write-website-content.ptbk.md@v1.0.7')).toEqual({
+            type: 'PTBK_URL',
+            ptbkUrl: new URL('https://ptbk.webgpt.com/cs/write-website-content.ptbk.md@v1.0.7'),
         });
-        expect(parseCommand('url *https://ptp.webgpt.com/cs/write-wallpaper-content.ptp.md@v1.0.8*')).toEqual({
-            type: 'PTP_URL',
-            ptpUrl: new URL('https://ptp.webgpt.com/cs/write-wallpaper-content.ptp.md@v1.0.8'),
+        expect(parseCommand('url *https://ptbk.webgpt.com/cs/write-website-content.ptbk.md@v1.0.8*')).toEqual({
+            type: 'PTBK_URL',
+            ptbkUrl: new URL('https://ptbk.webgpt.com/cs/write-website-content.ptbk.md@v1.0.8'),
         });
-        expect(parseCommand('`https://ptp.webgpt.com/cs/write-wallpaper-content.ptp.md`')).toEqual({
-            type: 'PTP_URL',
-            ptpUrl: new URL('https://ptp.webgpt.com/cs/write-wallpaper-content.ptp.md'),
+        expect(parseCommand('`https://ptbk.webgpt.com/cs/write-website-content.ptbk.md`')).toEqual({
+            type: 'PTBK_URL',
+            ptbkUrl: new URL('https://ptbk.webgpt.com/cs/write-website-content.ptbk.md'),
         });
     });
 
-    it('should fail parsing PTP_URL command', () => {
-        expect(() => parseCommand('PTP_URL')).toThrowError(/Invalid PTP_URL command/i);
+    it('should fail parsing PTBK_URL command', () => {
+        expect(() => parseCommand('PTBK_URL')).toThrowError(/Invalid PTBK_URL command/i);
         expect(() =>
             parseCommand(
-                'URL https://ptp.webgpt.com/cs/write-wallpaper-content.ptp.md@v1.0.0 https://ptp.webgpt.com/cs/write-wallpaper-content.ptp.md@v1.0.0',
+                'URL https://ptbk.webgpt.com/cs/write-website-content.ptbk.md@v1.0.0 https://ptbk.webgpt.com/cs/write-website-content.ptbk.md@v1.0.0',
             ),
-        ).toThrowError(/Invalid PTP_URL command/i);
+        ).toThrowError(/Invalid PTBK_URL command/i);
 
         expect(() => parseCommand('url http:^404')).toThrowError(/Invalid URL/i);
 
-        expect(() => parseCommand('url http://ptp.webgpt.com/cs/write-wallpaper-content@v1.0.0')).toThrowError(
+        expect(() => parseCommand('url http://ptbk.webgpt.com/cs/write-website-content@v1.0.0')).toThrowError(
             /Protocol must be HTTPS/i,
         );
 
         expect(() =>
-            parseCommand('url https://ptp.webgpt.com/cs/write-wallpaper-content.ptp.md@v1.0.0#keywords'),
+            parseCommand('url https://ptbk.webgpt.com/cs/write-website-content.ptbk.md@v1.0.0#keywords'),
         ).toThrowError(/URL must not contain hash/i);
     });
 
-    it('should parse PTP_VERSION command', () => {
-        expect(parseCommand('ptp version 1.0.0')).toEqual({
-            type: 'PTP_VERSION',
-            ptpVersion: '1.0.0',
+    it('should parse PTBK_VERSION command', () => {
+        expect(parseCommand('ptbk version 1.0.0')).toEqual({
+            type: 'PTBK_VERSION',
+            ptbkVersion: '1.0.0',
         });
-        expect(parseCommand('PTP version 1.0.0')).toEqual({
-            type: 'PTP_VERSION',
-            ptpVersion: '1.0.0',
+        expect(parseCommand('PTBK version 1.0.0')).toEqual({
+            type: 'PTBK_VERSION',
+            ptbkVersion: '1.0.0',
         });
     });
 
-    it('should fail parsing PTP_VERSION command', () => {
-        expect(() => parseCommand('PTP version')).toThrowError(/Invalid PTP_VERSION command/i);
-        expect(() => parseCommand('PTP version   ')).toThrowError(/Invalid PTP_VERSION command/i);
-        // TODO: Also test invalid version in PTP_VERSION command
+    it('should fail parsing PTBK_VERSION command', () => {
+        expect(() => parseCommand('PTBK version')).toThrowError(/Invalid PTBK_VERSION command/i);
+        expect(() => parseCommand('PTBK version   ')).toThrowError(/Invalid PTBK_VERSION command/i);
+        // TODO: Also test invalid version in PTBK_VERSION command
     });
 
     it('should parse EXECUTE command', () => {
