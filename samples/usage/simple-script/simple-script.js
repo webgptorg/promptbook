@@ -3,17 +3,24 @@
 import { PromptTemplatePipelineLibrary } from '@promptbook/core';
 import { JavascriptEvalExecutionTools } from '@promptbook/execute-javascript';
 import { OpenAiExecutionTools } from '@promptbook/openai';
+import chalk from 'chalk';
 import * as dotenv from 'dotenv';
 import { readFile } from 'fs/promises';
-import { join } from 'path';
 
-dotenv.config({ path: '../../../.env' });
+if (process.cwd().split(/[\\/]/).pop() !== 'promptbook') {
+    console.error(chalk.red(`CWD must be root of the project`));
+    process.exit(1);
+}
+
+dotenv.config({ path: '.env' });
 
 main();
 
 async function main() {
+    console.info(chalk.bgGray('🟣 Running simple-script to test basic capabilities of PromptBook'));
+
     const library = PromptTemplatePipelineLibrary.fromSources({
-        advanced: await readFile(join(process.cwd(), '../../templates/50-advanced.ptbk.md'), 'utf-8'),
+        advanced: await readFile('./samples/templates/50-advanced.ptbk.md', 'utf-8'),
     });
 
     const tools = {

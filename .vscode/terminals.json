@@ -2,40 +2,61 @@
     "autokill": true,
     "terminals": [
         {
+            "name": "👨‍💻🟣 Run simple-script sample",
+            "command": "node ./samples/usage/simple-script/simple-script.js",
+            "execute": false,
+            "onlySingle": false,
+            "focus": false
+        },
+        {
+            "name": "👨‍💻🔽 Install promptbook for usage samples",
+            "cwd": "./samples/usage/",
+            "command": "npm i",
+            "execute": false,
+            "onlySingle": false,
+            "focus": false
+        },
+        {
             "name": "🧪 Lint",
             "command": "npm run lint",
-            "onlySingle": true,
-            "focus": true
+            "execute": false,
+            "onlySingle": false,
+            "focus": false
         },
         {
             "name": "🧪 Lint (samples)",
             "command": "eslint samples",
-            "onlySingle": true,
-            "focus": true
+            "execute": false,
+            "onlySingle": false,
+            "focus": false
         },
         {
             "name": "🧪 Lint (scripts)",
             "command": "eslint scripts",
-            "onlySingle": true,
-            "focus": true
+            "execute": false,
+            "onlySingle": false,
+            "focus": false
         },
         {
             "name": "🧪 Test",
             "command": "npm run test",
-            "onlySingle": true,
-            "focus": true
+            "execute": false,
+            "onlySingle": false,
+            "focus": false
         },
         {
             "name": "🏭📦 Generate packages",
             "commands": ["ts-node ./scripts/generate-packages/generate-packages.ts"],
-            "onlySingle": true,
-            "focus": true
+            "execute": false,
+            "onlySingle": false,
+            "focus": false
         },
         {
             "name": "🏭📖 Generate samples .ptbk.md -> .ptbk.json",
             "commands": ["ts-node ./scripts/generate-sample-jsons/generate-sample-jsons.ts"],
-            "onlySingle": true,
-            "focus": true
+            "execute": false,
+            "onlySingle": false,
+            "focus": false
         },
         {
             "name": "🔼👑 Release major version",
