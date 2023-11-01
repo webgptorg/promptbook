@@ -16,3 +16,7 @@ export interface RemoteNaturalExecutionToolsOptions extends CommonExecutionTools
      */
     readonly clientId: uuid;
 }
+
+/**
+ * TODO: [👦] Allow to enable/disable streaming and reporting
+ */

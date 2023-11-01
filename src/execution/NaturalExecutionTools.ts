@@ -1,4 +1,6 @@
+import { Promisable } from 'type-fest';
 import { Prompt } from '../types/Prompt';
+import { TaskProgress } from '../types/TaskProgress';
 import { PromptChatResult, PromptCompletionResult } from './PromptResult';
 
 /**
@@ -12,12 +14,15 @@ export interface NaturalExecutionTools {
     /**
      * Use a chat model
      */
-    gptChat(prompt: Prompt): Promise<PromptChatResult>;
+    gptChat(prompt: Prompt, onProgress?: (taskProgress: TaskProgress) => Promisable<void>): Promise<PromptChatResult>;
 
     /**
      * Use a completion model
      */
-    gptComplete(prompt: Prompt): Promise<PromptCompletionResult>;
+    gptComplete(
+        prompt: Prompt,
+        onProgress?: (taskProgress: TaskProgress) => Promisable<void>,
+    ): Promise<PromptCompletionResult>;
 }
 
 /**

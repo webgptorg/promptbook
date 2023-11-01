@@ -1,10 +1,13 @@
 import type { Socket } from 'socket.io-client';
 import { io } from 'socket.io-client';
+import { Promisable } from 'type-fest';
 import { Prompt } from '../../../../types/Prompt';
+import { TaskProgress } from '../../../../types/TaskProgress';
 import { NaturalExecutionTools } from '../../../NaturalExecutionTools';
 import { PromptChatResult, PromptCompletionResult, PromptResult } from '../../../PromptResult';
 import { RemoteNaturalExecutionToolsOptions } from './RemoteNaturalExecutionToolsOptions';
 import { Ptps_Error } from './interfaces/Ptps_Error';
+import { Ptps_Progress } from './interfaces/Ptps_Progress';
 import { Ptps_Request } from './interfaces/Ptps_Request';
 import { Ptps_Response } from './interfaces/Ptps_Response';
 
@@ -45,27 +48,36 @@ export class RemoteNaturalExecutionTools implements NaturalExecutionTools {
     /**
      * Calls remote proxy server to use a chat model.
      */
-    public gptChat(prompt: Prompt): Promise<PromptChatResult> {
+    public gptChat(
+        prompt: Prompt,
+        onProgress?: (taskProgress: TaskProgress) => Promisable<void>,
+    ): Promise<PromptChatResult> {
         if (this.options.isVerbose) {
             console.info(`🖋 Remote gptChat call`);
         }
-        return /* not await */ this.gptCommon(prompt);
+        return /* not await */ this.gptCommon(prompt, onProgress);
     }
 
     /**
      * Calls remote proxy server to use a completion model.
      */
-    public gptComplete(prompt: Prompt): Promise<PromptCompletionResult> {
+    public gptComplete(
+        prompt: Prompt,
+        onProgress?: (taskProgress: TaskProgress) => Promisable<void>,
+    ): Promise<PromptCompletionResult> {
         if (this.options.isVerbose) {
             console.info(`💬 Remote gptComplete call`);
         }
-        return /* not await */ this.gptCommon(prompt);
+        return /* not await */ this.gptCommon(prompt, onProgress);
     }
 
     /**
      * Calls remote proxy server to use both completion or chat model.
      */
-    private async gptCommon(prompt: Prompt): Promise<PromptResult> {
+    private async gptCommon(
+        prompt: Prompt,
+        onProgress?: (taskProgress: TaskProgress) => Promisable<void>,
+    ): Promise<PromptResult> {
         const socket = await this.makeConnection();
         socket.emit('request', { clientId: this.options.clientId, prompt } satisfies Ptps_Request);
 
@@ -79,6 +91,12 @@ export class RemoteNaturalExecutionTools implements NaturalExecutionTools {
                 reject(new Error(error.errorMessage));
                 socket.disconnect();
             });
+
+            if (onProgress) {
+                socket.on('progress', (message: Ptps_Progress) => {
+                    onProgress(message.taskProgress);
+                });
+            }
         });
 
         socket.disconnect();

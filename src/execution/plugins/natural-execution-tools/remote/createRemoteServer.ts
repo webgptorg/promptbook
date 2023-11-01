@@ -2,8 +2,10 @@ import chalk from 'chalk';
 import http from 'http';
 import { Server, Socket } from 'socket.io';
 import spaceTrim from 'spacetrim';
+import { TaskProgress } from '../../../../types/TaskProgress';
 import { PromptResult } from '../../../PromptResult';
 import { Ptps_Error } from './interfaces/Ptps_Error';
+import { Ptps_Progress } from './interfaces/Ptps_Progress';
 import { Ptps_Request } from './interfaces/Ptps_Request';
 import { Ptps_Response } from './interfaces/Ptps_Response';
 import { RemoteServerOptions } from './interfaces/RemoteServerOptions';
@@ -61,13 +63,17 @@ export function createRemoteServer(options: RemoteServerOptions) {
 
                 // TODO: [🎛] Check validity of the prompt against ptbkLibrary
 
+                const onProgress = (taskProgress: TaskProgress) => {
+                    socket.emit('progress', { taskProgress } satisfies Ptps_Progress);
+                };
+
                 let promptResult: PromptResult;
                 switch (prompt.modelRequirements.variant) {
                     case 'CHAT':
-                        promptResult = await executionToolsForClient.gptChat(prompt);
+                        promptResult = await executionToolsForClient.gptChat(prompt, onProgress);
                         break;
                     case 'COMPLETION':
-                        promptResult = await executionToolsForClient.gptComplete(prompt);
+                        promptResult = await executionToolsForClient.gptComplete(prompt, onProgress);
                         break;
                     default:
                         throw new Error(`Unknown model variant "${prompt.modelRequirements.variant}"`);
@@ -108,7 +114,6 @@ export function createRemoteServer(options: RemoteServerOptions) {
 
 /**
  * TODO: !!! This should be name runRemoteServer OR startRemoteServer and return Destroyable OR Promise<Destroyable>
- * TODO: Handle progress - support streaming
  * TODO: [🤹‍♂️] Do not hang up immediately but wait until client closes OR timeout
  * TODO: [🤹‍♂️] Timeout on chat to free up resources
  * TODO: [🃏] Pass here some security token to prevent DDoS

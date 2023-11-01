@@ -21,3 +21,7 @@ export interface RemoteServerOptions extends CommonExecutionToolsOptions {
      */
     createNaturalExecutionTools(clientId: uuid): NaturalExecutionTools /* <- TODO: &({}|IDestroyable) */;
 }
+
+/**
+ * TODO: [👦] Allow to enable/disable streaming and reporting
+ */
