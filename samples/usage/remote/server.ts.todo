@@ -9,6 +9,8 @@ import { IS_DEVELOPMENT, OPENAI_API_KEY } from '../config';
 import { SupabaseLoggerWrapperOfNaturalExecutionTools } from '../src/ai/prompt-templates/logger/SupabaseLoggerWrapperOfNaturalExecutionTools';
 // [🎛] import { webgptPtpLibrary } from '../src/ai/prompt-templates/webgptPtpLibrary';
 
+// TODO: !!! Remove the file
+
 const naturalExecutionTools = new OpenAiExecutionTools({
     isVerbose: IS_DEVELOPMENT /* <- Note: [3] */,
     openAiApiKey: OPENAI_API_KEY!,

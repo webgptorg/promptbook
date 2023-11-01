@@ -1,5 +1,4 @@
 {
-    "type": "module",
     "dependencies": {
         "@promptbook/core": "0.9.0",
         "@promptbook/execute-javascript": "0.9.0",

@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>🔵 Testing remote server of PromptBook</title>
+    </head>
+    <body>
+        <h1>esting remote server of PromptBook</h1>
+
+        <form id="input">
+            <input type="text" name="clientId" value="my-client-id" />
+            <input type="text" name="word" value="Cat" />
+            <input type="submit" value="Pun pipeline" />
+        </form>
+        <pre id="output"><pre>
+
+        <script type="module">
+            // TODO: !!! Auto update version
+            import { RemoteNaturalExecutionTools } from 'https://cdn.jsdelivr.net/npm/@promptbook/remote-client@0.9.0/+esm';
+            import { JavascriptEvalExecutionTools } from 'https://cdn.jsdelivr.net/npm/@promptbook/execute-javascript@0/+esm';
+            import { PromptTemplatePipelineLibrary } from 'https://cdn.jsdelivr.net/npm/@promptbook/core@0/+esm';
+
+            const inputForm = document.getElementById('input');
+            const outputElement = document.getElementById('output');
+
+            inputForm.addEventListener('submit', async (event) => {
+                event.preventDefault();
+
+                console.info('🔵 Testing remote server of PromptBook');
+
+
+                const formData = new FormData(event.target);
+                const word = formData.get('word');
+                const clientId = formData.get('clientId');
+
+
+                // TODO: !!! PromptTemplatePipelineLibrary.fromUrl
+                const advanced = await (await fetch('/samples/templates/50-advanced.ptbk.md')).text();
+                const library = PromptTemplatePipelineLibrary.fromSources({
+                    advanced
+                });
+
+                const tools = {
+                    natural:  new RemoteNaturalExecutionTools({
+                                    remoteUrl: new URL(`http://localhost:4460/`),
+                                    clientId,
+                                }),
+                    script: [
+                        new JavascriptEvalExecutionTools({
+                            isVerbose: true,
+                        }),
+                    ],
+                    userInterface: null,
+                };
+
+                const executor = library.createExecutor('advanced', tools);
+
+                const input = { word };
+                const output = await executor(input,(progress)=>{
+                    console.info('☑',progress);
+                });
+
+                console.info(output);
+                outputElement.innerText = JSON.stringify(output, null, 4);
+            });
+        </script>
+    </body>
+</html>

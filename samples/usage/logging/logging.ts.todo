@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+#!/usr/bin/env ts-node
 
 import { PromptTemplatePipelineLibrary } from '@promptbook/core';
 import { JavascriptEvalExecutionTools } from '@promptbook/execute-javascript';
@@ -17,7 +17,7 @@ dotenv.config({ path: '.env' });
 main();
 
 async function main() {
-    console.info(chalk.bgGray('⚪ Testing basic capabilities of PromptBook'));
+    console.info(chalk.bgGray('🔴 Testing logging capabilities of PromptBook'));
 
     const library = PromptTemplatePipelineLibrary.fromSources({
         advanced: await readFile('./samples/templates/50-advanced.ptbk.md', 'utf-8'),

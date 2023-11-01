@@ -107,6 +107,7 @@ export function createRemoteServer(options: RemoteServerOptions) {
 }
 
 /**
+ * TODO: !!! This should be name runRemoteServer OR startRemoteServer and return Destroyable OR Promise<Destroyable>
  * TODO: Handle progress - support streaming
  * TODO: [🤹‍♂️] Do not hang up immediately but wait until client closes OR timeout
  * TODO: [🤹‍♂️] Timeout on chat to free up resources

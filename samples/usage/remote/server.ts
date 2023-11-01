@@ -1,8 +1,8 @@
-#!/usr/bin/env node
+#!/usr/bin/env ts-node
 
 import { PromptTemplatePipelineLibrary } from '@promptbook/core';
-import { JavascriptEvalExecutionTools } from '@promptbook/execute-javascript';
 import { OpenAiExecutionTools } from '@promptbook/openai';
+import { createRemoteServer } from '@promptbook/remote-server';
 import chalk from 'chalk';
 import * as dotenv from 'dotenv';
 import { readFile } from 'fs/promises';
@@ -17,31 +17,24 @@ dotenv.config({ path: '.env' });
 main();
 
 async function main() {
-    console.info(chalk.bgGray('⚪ Testing basic capabilities of PromptBook'));
+    console.info(chalk.bgGray('🔵 Testing remote server of PromptBook'));
 
     const library = PromptTemplatePipelineLibrary.fromSources({
-        advanced: await readFile('./samples/templates/50-advanced.ptbk.md', 'utf-8'),
+        advanced: (await readFile('./samples/templates/50-advanced.ptbk.md', 'utf-8')) as any,
     });
 
-    const tools = {
-        natural: new OpenAiExecutionTools({
-            isVerbose: true,
-            openAiApiKey: process.env.OPENAI_API_KEY,
-        }),
-        script: [
-            new JavascriptEvalExecutionTools({
+    createRemoteServer({
+        port: 4460,
+        ptbkLibrary: library,
+        createNaturalExecutionTools(clientId) {
+            console.log('clientId', clientId);
+            // TODO: !!! Use clientId with logging
+            return new OpenAiExecutionTools({
                 isVerbose: true,
-            }),
-        ],
-        userInterface: null,
-    };
-
-    const executor = library.createExecutor('advanced', tools);
-
-    const input = { word: 'cat' };
-    const output = await executor(input);
-
-    console.info(output);
+                openAiApiKey: process.env.OPENAI_API_KEY!,
+            });
+        },
+    });
 }
 
 /**

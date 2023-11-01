@@ -2,8 +2,22 @@
     "autokill": true,
     "terminals": [
         {
-            "name": "👨‍💻🟣 Run simple-script sample",
+            "name": "👨‍💻⚪ Run simple-script sample",
             "command": "node ./samples/usage/simple-script/simple-script.js",
+            "execute": false,
+            "onlySingle": false,
+            "focus": false
+        },
+        {
+            "name": "👨‍💻🔴 Run logging sample",
+            "command": "ts-node ./samples/usage/logging/logging.ts",
+            "execute": false,
+            "onlySingle": false,
+            "focus": false
+        },
+        {
+            "name": "👨‍💻🔵 Run remote sample",
+            "command": "ts-node ./samples/usage/remote/server.ts",
             "execute": false,
             "onlySingle": false,
             "focus": false
