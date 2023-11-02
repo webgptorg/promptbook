@@ -36,7 +36,11 @@ export class OpenAiExecutionTools implements NaturalExecutionTools {
         }
 
         const model = 'gpt-3.5-turbo'; /* <- TODO: [☂] Use here more modelRequirements */
-        const modelSettings = { model };
+        const modelSettings = {
+            model,
+            max_tokens: modelRequirements.maxTokens,
+            //                                      <- TODO: Make some global max cap for maxTokens
+        };
         const rawRequest: OpenAI.Chat.Completions.CompletionCreateParamsNonStreaming = {
             ...modelSettings,
             messages: [
@@ -96,7 +100,8 @@ export class OpenAiExecutionTools implements NaturalExecutionTools {
         const model = 'gpt-3.5-turbo-instruct'; /* <- TODO: [☂] Use here more modelRequirements */
         const modelSettings = {
             model,
-            max_tokens: 2000 /* <- TODO: [☂] Use here more modelRequirements */,
+            max_tokens: modelRequirements.maxTokens || 2000, // <- Note: 2000 is for lagacy reasons
+            //                                                  <- TODO: Make some global max cap for maxTokens
         };
 
         const rawRequest: OpenAI.Completions.CompletionCreateParamsNonStreaming = {
