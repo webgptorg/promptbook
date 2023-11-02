@@ -45,20 +45,6 @@ export type string_template = string;
 /**
  * Semantic helper
  *
- * For example `"A cat wearing a hat"`
- */
-export type string_image_prompt = string_prompt;
-
-/**
- * Semantic helper
- *
- * For example `"A cat wearing a hat --wallpaper --v 5.2"`
- */
-export type string_midjourney_prompt = string_image_prompt;
-
-/**
- * Semantic helper
- *
  * For example `"How many hats does the cat wear?"`
  */
 export type string_text_prompt = string_prompt;
@@ -472,45 +458,6 @@ export interface IRepository {
     readonly url?: string;
 }
 
-/**
- * CSS cursor type
- */
-export type string_css_cursor =
-    | 'alias'
-    | 'all-scroll'
-    | 'auto'
-    | 'cell'
-    | 'context-menu'
-    | 'col-resize'
-    | 'copy'
-    | 'crosshair'
-    | 'default'
-    | 'e-resize'
-    | 'ew-resize'
-    | 'grab'
-    | 'grabbing'
-    | 'help'
-    | 'move'
-    | 'n-resize'
-    | 'ne-resize'
-    | 'nesw-resize'
-    | 'ns-resize'
-    | 'nw-resize'
-    | 'nwse-resize'
-    | 'no-drop'
-    | 'none'
-    | 'not-allowed'
-    | 'pointer'
-    | 'progress'
-    | 'row-resize'
-    | 's-resize'
-    | 'se-resize'
-    | 'sw-resize'
-    | 'text'
-    | 'w-resize'
-    | 'wait'
-    | 'zoom-in'
-    | 'zoom-out';
 
 /**
  * Semantic helper for attributes
