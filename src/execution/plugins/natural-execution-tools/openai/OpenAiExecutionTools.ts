@@ -1,9 +1,9 @@
 import chalk from 'chalk';
 import OpenAI from 'openai';
-import { Prompt } from '../../../../types/Prompt';
-import { NaturalExecutionTools } from '../../../NaturalExecutionTools';
-import { PromptChatResult, PromptCompletionResult } from '../../../PromptResult';
-import { OpenAiExecutionToolsOptions } from './OpenAiExecutionToolsOptions';
+import type { Prompt } from '../../../../types/Prompt';
+import type { NaturalExecutionTools } from '../../../NaturalExecutionTools';
+import type { PromptChatResult, PromptCompletionResult } from '../../../PromptResult';
+import type { OpenAiExecutionToolsOptions } from './OpenAiExecutionToolsOptions';
 
 /**
  * Execution Tools for calling OpenAI API.
@@ -49,6 +49,7 @@ export class OpenAiExecutionTools implements NaturalExecutionTools {
                     content,
                 },
             ],
+            user: this.options.user,
         };
 
         if (this.options.isVerbose) {
@@ -107,6 +108,7 @@ export class OpenAiExecutionTools implements NaturalExecutionTools {
         const rawRequest: OpenAI.Completions.CompletionCreateParamsNonStreaming = {
             ...modelSettings,
             prompt: content,
+            user: this.options.user,
         };
 
         if (this.options.isVerbose) {
