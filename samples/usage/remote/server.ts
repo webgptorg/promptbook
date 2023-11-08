@@ -32,6 +32,7 @@ async function main() {
             return new OpenAiExecutionTools({
                 isVerbose: true,
                 openAiApiKey: process.env.OPENAI_API_KEY!,
+                user: 'here-put-user-id',
             });
         },
     });
