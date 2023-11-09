@@ -25,7 +25,7 @@ export class RemoteNaturalExecutionTools implements NaturalExecutionTools {
     private makeConnection(): Promise<Socket> {
         return new Promise((resolve, reject) => {
             const socket = io(this.options.remoteUrl.href, {
-                path: '/ptp/socket.io',
+                path: this.options.path,
                 // path: `${this.remoteUrl.pathname}/socket.io`,
                 transports: [/*'websocket', <- TODO: [🌬] Make websocket transport work */ 'polling'],
             });
