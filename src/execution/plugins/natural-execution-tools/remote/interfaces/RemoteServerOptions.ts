@@ -1,5 +1,5 @@
 import { PromptTemplatePipelineLibrary } from '../../../../../classes/PromptTemplatePipelineLibrary';
-import { uuid } from '../../../../../types/typeAliases';
+import { string_uri, uuid } from '../../../../../types/typeAliases';
 import { CommonExecutionToolsOptions } from '../../../../CommonExecutionToolsOptions';
 import { NaturalExecutionTools } from '../../../../NaturalExecutionTools';
 
@@ -8,6 +8,14 @@ export interface RemoteServerOptions extends CommonExecutionToolsOptions {
      * Port on which the server will listen
      */
     readonly port: number;
+
+    /**
+     * Path for the Socket.io server to listen
+     *
+     * @default '/socket.io'
+     * @example '/promptbook/socket.io'
+     */
+    readonly path: string_uri;
 
     /**
      * Prompt template pipeline library to use
