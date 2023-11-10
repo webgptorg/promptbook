@@ -14,7 +14,7 @@ import { PromptTemplateParameterJson } from '../types/PromptTemplatePipelineJson
 import { PromptTemplatePipelineJson } from '../types/PromptTemplatePipelineJson/PromptTemplatePipelineJson';
 import { PromptTemplatePipelineString } from '../types/PromptTemplatePipelineString';
 import { ScriptLanguage } from '../types/ScriptLanguage';
-import { DoneTaskProgress, PendingTaskProgress, TaskProgress } from '../types/TaskProgress';
+import { TaskProgress } from '../types/TaskProgress';
 import { string_char_emoji } from '../types/typeAliasEmoji';
 import {
     ILicense,
@@ -111,7 +111,6 @@ import {
 
 export {
     CommonExecutionToolsOptions,
-    DoneTaskProgress,
     ExecutionTools,
     ExecutionType,
     ILicense,
@@ -121,7 +120,6 @@ export {
     ModelVariant,
     NaturalExecutionTools,
     Parameters,
-    PendingTaskProgress,
     Prompt,
     PromptChatResult,
     PromptCommonResult,
