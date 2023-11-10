@@ -16,6 +16,7 @@ export function extractOneBlockFromMarkdown(markdown: string_markdown): { langua
     const codeBlocks = extractBlocksFromMarkdown(markdown);
 
     if (codeBlocks.length !== 1) {
+        // TODO: Report more specific place where the error happened
         throw new Error('There should be exactly one code block in the markdown');
     }
 
