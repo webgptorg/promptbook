@@ -1,3 +1,4 @@
+import { ExecutionType } from './ExecutionTypes';
 import { string_name, string_title } from './typeAliases';
 
 /**
@@ -29,6 +30,12 @@ export interface TaskProgress {
      * Is task done?
      */
     readonly isDone: boolean;
+
+    /**
+     * The type of the execution.
+     * Note: The Promptbook library reports everything, in the app level you can filter out the execution types that you don't want to show to the user.
+     */
+    readonly executionType: ExecutionType;
 
     /**
      * The parameter name that is being processed.
