@@ -35,6 +35,7 @@
     "homepage": "https://www.npmjs.com/package/@promptbook/core",
     "scripts": {
         "test": "jest",
+        "test-types": "tsc",
         "lint": "eslint src",
         "generate-packages": "ts-node ./scripts/generate-packages/generate-packages.ts --commit",
         "preversion": "git pull && npm run lint && npm test && tsc",
