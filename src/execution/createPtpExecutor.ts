@@ -37,11 +37,17 @@ export function createPtpExecutor(options: CreatePtpExecutorOptions): PtpExecuto
 
             const isPrograssLoggedForCurrentTemplate = currentTemplate.executionType === 'PROMPT_TEMPLATE';
 
+            const name = `ptp-executor-frame-${currentTemplate.name}`;
+            const title = `🖋 ${removeEmojis(removeMarkdownFormatting(currentTemplate.title))}`;
+
             if (onProgress && isPrograssLoggedForCurrentTemplate) {
                 await onProgress({
-                    name: `ptp-executor-frame-${currentTemplate.name}`,
-                    title: `🖋 ${removeEmojis(removeMarkdownFormatting(currentTemplate.title))}`,
+                    name,
+                    title,
+                    isStarted: false,
                     isDone: false,
+                    parameterName: resultingParameter.name,
+                    parameterValue: null,
                 });
             }
 
@@ -160,8 +166,12 @@ export function createPtpExecutor(options: CreatePtpExecutorOptions): PtpExecuto
 
             if (onProgress && isPrograssLoggedForCurrentTemplate) {
                 onProgress({
-                    name: `ptp-executor-frame-${currentTemplate.name}`,
+                    name,
+                    title,
+                    isStarted: true,
                     isDone: true,
+                    parameterName: resultingParameter.name,
+                    parameterValue: promptResult,
                 });
             }
 
