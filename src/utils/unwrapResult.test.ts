@@ -9,7 +9,7 @@ describe('unwrapResult', () => {
     });
 
     it('should remove single quotes', () => {
-        expect(unwrapResult('\'Hello\'')).toBe('Hello');
+        expect(unwrapResult("'Hello'")).toBe('Hello');
     });
 
     it('should remove double quotes', () => {
@@ -21,9 +21,39 @@ describe('unwrapResult', () => {
         expect(unwrapResult('   \n\n "Hello"\n    ')).toBe('Hello');
     });
 
+    it('should remove bold and italic', () => {
+        expect(unwrapResult('**Hello**')).toBe('Hello');
+        expect(unwrapResult('*Hello*')).toBe('Hello');
+        expect(unwrapResult('__Hello__')).toBe('Hello');
+        expect(unwrapResult('_Hello_')).toBe('Hello');
+    });
+
+    it('should remove combination of quotes and bold/italix', () => {
+        expect(unwrapResult('**"Hello"**')).toBe('Hello');
+        expect(unwrapResult('*"Hello"*')).toBe('Hello');
+        expect(unwrapResult('__"Hello"__')).toBe('Hello');
+        expect(unwrapResult('_"Hello"_')).toBe('Hello');
+        expect(unwrapResult('**"Hello"**')).toBe('Hello');
+        expect(unwrapResult('*"Hello"*')).toBe('Hello');
+        expect(unwrapResult('__"Hello"__')).toBe('Hello');
+        expect(unwrapResult('_"Hello"_')).toBe('Hello');
+    });
+
+    it('should remove combination of untrimmed string with quotes and bold/italix', () => {
+        expect(unwrapResult('  **"Hello"**  ')).toBe('Hello');
+        expect(unwrapResult('  *"Hello"*  ')).toBe('Hello');
+        expect(unwrapResult('  __"Hello"__  ')).toBe('Hello');
+        expect(unwrapResult('  _"Hello"_  ')).toBe('Hello');
+        expect(unwrapResult('  **"Hello"**  ')).toBe('Hello');
+        expect(unwrapResult('  *"Hello"*  ')).toBe('Hello');
+        expect(unwrapResult('  __"Hello"__  ')).toBe('Hello');
+        expect(unwrapResult('  _"Hello"_  ')).toBe('Hello');
+        expect(unwrapResult('\n\n  _"Hello"_  ')).toBe('Hello');
+    });
+
     it('should remove quotes with leading sentence', () => {
         expect(unwrapResult('Návrh názvu: "Kreativní Dětský Svět"')).toBe('Kreativní Dětský Svět');
-        expect(unwrapResult('Návrh názvu: \'Kreativní Dětský Svět\'')).toBe('Kreativní Dětský Svět');
+        expect(unwrapResult("Návrh názvu: 'Kreativní Dětský Svět'")).toBe('Kreativní Dětský Svět');
     });
 
     it('should remove quotes with leading newline sentence', () => {
@@ -61,17 +91,17 @@ describe('unwrapResult', () => {
     });
 
     it('should NOT remove single quote from the beginning', () => {
-        expect(unwrapResult('\'Hello')).toBe('\'Hello');
+        expect(unwrapResult("'Hello")).toBe("'Hello");
         expect(unwrapResult('"Hello')).toBe('"Hello');
     });
 
     it('should NOT remove single quote from the end', () => {
-        expect(unwrapResult('Hello\'')).toBe('Hello\'');
+        expect(unwrapResult("Hello'")).toBe("Hello'");
         expect(unwrapResult('Hello"')).toBe('Hello"');
     });
 
     it('should NOT remove quote from the middle', () => {
-        expect(unwrapResult('Hel\'lo')).toBe('Hel\'lo');
+        expect(unwrapResult("Hel'lo")).toBe("Hel'lo");
         expect(unwrapResult('Hel"lo')).toBe('Hel"lo');
     });
 });
