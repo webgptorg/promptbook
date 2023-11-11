@@ -16,16 +16,28 @@ describe('unwrapResult', () => {
         expect(unwrapResult('"Hello"')).toBe('Hello');
     });
 
+    it('should remove backtick quotes', () => {
+        expect(unwrapResult('`Hello`')).toBe('Hello');
+    });
+
+    it('should remove czech quotes', () => {
+        expect(unwrapResult('„Hello“')).toBe('Hello');
+    });
+
+    it('should remove spanish quotes', () => {
+        expect(unwrapResult('«Hello»')).toBe('Hello');
+    });
+
     it('should remove quotes on untrimmed string', () => {
         expect(unwrapResult('    "Hello"    ')).toBe('Hello');
         expect(unwrapResult('   \n\n "Hello"\n    ')).toBe('Hello');
     });
 
     it('should remove bold and italic', () => {
-        expect(unwrapResult('**Hello**')).toBe('Hello');
         expect(unwrapResult('*Hello*')).toBe('Hello');
-        expect(unwrapResult('__Hello__')).toBe('Hello');
+        expect(unwrapResult('**Hello**')).toBe('Hello');
         expect(unwrapResult('_Hello_')).toBe('Hello');
+        expect(unwrapResult('__Hello__')).toBe('Hello');
     });
 
     it('should remove combination of quotes and bold/italix', () => {
@@ -103,5 +115,10 @@ describe('unwrapResult', () => {
     it('should NOT remove quote from the middle', () => {
         expect(unwrapResult("Hel'lo")).toBe("Hel'lo");
         expect(unwrapResult('Hel"lo')).toBe('Hel"lo');
+    });
+
+    it('should NOT remove quotes in quotes', () => {
+        expect(unwrapResult(`"My name is 'Pavol'"`)).toBe(`My name is 'Pavol'`);
+        expect(unwrapResult(`\n\n"My name is 'Pavol'"`)).toBe(`My name is 'Pavol'`);
     });
 });
