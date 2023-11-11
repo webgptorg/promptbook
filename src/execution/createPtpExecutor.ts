@@ -35,11 +35,10 @@ export function createPtpExecutor(options: CreatePtpExecutorOptions): PtpExecuto
         while (currentTemplate !== null) {
             const resultingParameter = ptp.getResultingParameter(currentTemplate.name);
 
-
             const name = `ptp-executor-frame-${currentTemplate.name}`;
-            const title = `🖋 ${removeEmojis(removeMarkdownFormatting(currentTemplate.title))}`;
+            const title = removeEmojis(removeMarkdownFormatting(currentTemplate.title));
 
-            if (onProgress ) {
+            if (onProgress) {
                 await onProgress({
                     name,
                     title,
@@ -164,7 +163,7 @@ export function createPtpExecutor(options: CreatePtpExecutorOptions): PtpExecuto
                 throw new Error('Something went wrong and prompt result is null');
             }
 
-            if (onProgress ) {
+            if (onProgress) {
                 onProgress({
                     name,
                     title,

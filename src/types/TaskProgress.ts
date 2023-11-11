@@ -17,7 +17,7 @@ export interface TaskProgress {
      * Title of the task.
      *
      * Note: This is supposed to be displayed to the user.
-     * Note: This is trimmed and stripped of HTML tags and emojis with "🖋" prefix
+     * Note: This is trimmed and stripped of HTML tags and emojis
      */
     readonly title: string_title;
 
