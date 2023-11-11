@@ -1,5 +1,5 @@
 import { ExecutionType } from './ExecutionTypes';
-import { string_name, string_title } from './typeAliases';
+import { string_markdown_text, string_name } from './typeAliases';
 
 /**
  * TaskProgress represents the progress of a PromptTemplatePipeline execution.
@@ -19,7 +19,7 @@ export interface TaskProgress {
      * Note: This is supposed to be displayed to the user.
      * Note: This is trimmed and stripped of HTML tags and emojis
      */
-    readonly title: string_title;
+    readonly title: string_markdown_text;
 
     /**
      * Does the task started?
