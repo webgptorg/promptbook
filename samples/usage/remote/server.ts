@@ -2,7 +2,7 @@
 
 import { PromptTemplatePipelineLibrary } from '@promptbook/core';
 import { OpenAiExecutionTools } from '@promptbook/openai';
-import { createRemoteServer } from '@promptbook/remote-server';
+import { runRemoteServer } from '@promptbook/remote-server';
 import chalk from 'chalk';
 import * as dotenv from 'dotenv';
 import { readFile } from 'fs/promises';
@@ -23,7 +23,7 @@ async function main() {
         advanced: (await readFile('./samples/templates/50-advanced.ptbk.md', 'utf-8')) as any,
     });
 
-    createRemoteServer({
+    runRemoteServer({
         port: 4460,
         ptbkLibrary: library,
         createNaturalExecutionTools(clientId) {

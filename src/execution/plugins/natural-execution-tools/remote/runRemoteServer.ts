@@ -16,7 +16,7 @@ import { RemoteServerOptions } from './interfaces/RemoteServerOptions';
  *
  * @see https://github.com/webgptorg/promptbook#remote-server
  */
-export function createRemoteServer(options: RemoteServerOptions) {
+export function runRemoteServer(options: RemoteServerOptions) {
     const { port, path, /* [🎛] ptbkLibrary, */ createNaturalExecutionTools, isVerbose } = options;
 
     const httpServer = http.createServer({}, (request, response) => {
@@ -26,7 +26,7 @@ export function createRemoteServer(options: RemoteServerOptions) {
 
         response.write(
             spaceTrim(`
-                Server for processing PTP requests is running
+                📖 Server for processing PromptBook requests is running
 
                 For more information look at:
                 https://github.com/webgptorg/promptbook
