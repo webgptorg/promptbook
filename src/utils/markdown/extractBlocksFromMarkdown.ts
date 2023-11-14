@@ -5,8 +5,6 @@ import { string_markdown } from '../.././types/typeAliases';
  *
  * @param markdown any valid markdown
  * @returns code blocks with language and content
- *
- * @private within the library
  */
 export function extractBlocksFromMarkdown(
     markdown: string_markdown,

@@ -9,8 +9,6 @@ import { extractBlocksFromMarkdown } from './extractBlocksFromMarkdown';
  *
  * @param markdown any valid markdown
  * @returns code block with language and content
- *
- * @private within the library
  */
 export function extractOneBlockFromMarkdown(markdown: string_markdown): { language: string | null; content: string } {
     const codeBlocks = extractBlocksFromMarkdown(markdown);

@@ -10,8 +10,6 @@ import { string_markdown, string_markdown_text } from '../.././types/typeAliases
  *
  * @param markdown any valid markdown
  * @returns
- *
- * @private within the library
  */
 export function extractAllListItemsFromMarkdown(markdown: string_markdown): string_markdown_text[] {
     const lines = markdown.split('\n');
