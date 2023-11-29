@@ -447,6 +447,13 @@ Langchain is primarily aimed at ML developers working in Python. This library is
 
 We are considering creating a bridge/converter between these two libraries.
 
+### GPTs
+
+...
+
+
+
+
 <!--
 Include:
 - jde naprosto hlavně o python knihovnu a JavaScript je tam na druhém místě
