@@ -8,6 +8,34 @@ describe('unwrapResult', () => {
         expect(unwrapResult('Hello')).toBe('Hello');
     });
 
+    it('should preserve unquoted sentence', () => {
+        expect(unwrapResult('Hello WebGPT how are you?!')).toBe('Hello WebGPT how are you?!');
+    });
+
+    it('should preserve unquoted multiline text', () => {
+        expect(
+            unwrapResult(
+                spaceTrim(`
+                  Hello WebGPT how are you?
+                  I am fine, thank you!
+
+                  What are you generating today?
+                  I am generating a website for a PromptBooks.
+              `),
+            ),
+        ).toBe(
+            just(
+                spaceTrim(`
+                  Hello WebGPT how are you?
+                  I am fine, thank you!
+
+                  What are you generating today?
+                  I am generating a website for a PromptBooks.
+              `),
+            ),
+        );
+    });
+
     it('should remove single quotes', () => {
         expect(unwrapResult("'Hello'")).toBe('Hello');
     });
@@ -120,5 +148,9 @@ describe('unwrapResult', () => {
     it('should NOT remove quotes in quotes', () => {
         expect(unwrapResult(`"My name is 'Pavol'"`)).toBe(`My name is 'Pavol'`);
         expect(unwrapResult(`\n\n"My name is 'Pavol'"`)).toBe(`My name is 'Pavol'`);
+    });
+
+    it('should work in real-world scenarios', () => {
+        expect(unwrapResult('\n\n' + `UnicornTech Solutions`)).toBe(just('UnicornTech Solutions'));
     });
 });

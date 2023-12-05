@@ -36,32 +36,34 @@ interface UnwrapResultOptions {
 export function unwrapResult(text: string, options?: UnwrapResultOptions): string {
     const { isTrimmed = true, isIntroduceSentenceRemoved = true } = options || {};
 
-    const originalText = text;
+    let trimmedText = text;
 
     // Remove leading and trailing spaces and newlines
     if (isTrimmed) {
-        text = spaceTrim(text);
+        trimmedText = spaceTrim(trimmedText);
     }
+
+    let processedText = trimmedText;
 
     if (isIntroduceSentenceRemoved) {
-        const introduceSentenceRegex = /^[a-zěščřžýáíéúů:\s]*/i;
+        const introduceSentenceRegex = /^[a-zěščřžýáíéúů:\s]*:\s*/i;
         if (introduceSentenceRegex.test(text)) {
             // Remove the introduce sentence and quotes by replacing it with an empty string
-            text = text.replace(introduceSentenceRegex, '');
+            processedText = processedText.replace(introduceSentenceRegex, '');
         }
-        text = spaceTrim(text);
+        processedText = spaceTrim(processedText);
     }
 
-    if (text.length < 3) {
-        return originalText;
+    if (processedText.length < 3) {
+        return trimmedText;
     }
 
-    if (text.includes('\n')) {
-        return originalText;
+    if (processedText.includes('\n')) {
+        return trimmedText;
     }
 
     // Remove the quotes by extracting the substring without the first and last characters
-    const unquotedText = text.slice(1, -1);
+    const unquotedText = processedText.slice(1, -1);
 
     // Check if the text starts and ends with quotes
 
@@ -77,11 +79,11 @@ export function unwrapResult(text: string, options?: UnwrapResultOptions): strin
                 ['«', '»'] /* <- QUOTES to config */,
             ] as const
         ).some(([startQuote, endQuote]) => {
-            if (!text.startsWith(startQuote)) {
+            if (!processedText.startsWith(startQuote)) {
                 return false;
             }
 
-            if (!text.endsWith(endQuote)) {
+            if (!processedText.endsWith(endQuote)) {
                 return false;
             }
 
@@ -98,7 +100,7 @@ export function unwrapResult(text: string, options?: UnwrapResultOptions): strin
     ) {
         return unwrapResult(unquotedText, { isTrimmed: false, isIntroduceSentenceRemoved: false });
     } else {
-        return originalText;
+        return processedText;
     }
 }
 
