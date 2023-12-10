@@ -12,3 +12,8 @@
 export type PromptTemplatePipelineString = string & {
     readonly __type: 'PromptTemplatePipeline' /* <- TODO: [0] What is the best shape of the additional object in branded types */;
 };
+
+
+/**
+ * TODO: !! Better validation (validatePromptTemplatePipelineString) or remove branded type and make it just string
+ */
