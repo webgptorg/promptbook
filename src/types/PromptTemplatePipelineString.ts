@@ -10,7 +10,7 @@
  * @see https://github.com/webgptorg/promptbook#prompt-template-pipeline
  */
 export type PromptTemplatePipelineString = string & {
-    readonly __type: 'PromptTemplatePipeline' /* <- TODO: [0] What is the best shape of the additional object in branded types */;
+    readonly _type: 'PromptTemplatePipeline' /* <- TODO: [🏟] What is the best shape of the additional object in branded types */;
 };
 
 
