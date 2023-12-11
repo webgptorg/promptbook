@@ -20,6 +20,7 @@ import {
     ILicense,
     IPersonProfile,
     IRepository,
+    client_id,
     number_bytes,
     number_days,
     number_gigabytes,
@@ -103,10 +104,7 @@ import {
     string_url_image,
     string_version,
     string_version_dependency,
-    string_wallpaper_id,
     string_xml,
-    uuid,
-    uuid_first_segment,
 } from '../types/typeAliases';
 
 export {
@@ -136,6 +134,7 @@ export {
     TaskProgress,
     UserInterfaceTools,
     UserInterfaceToolsPromptDialogOptions,
+    client_id,
     number_bytes,
     number_days,
     number_gigabytes,
@@ -220,8 +219,9 @@ export {
     string_url_image,
     string_version,
     string_version_dependency,
-    string_wallpaper_id,
     string_xml,
-    uuid,
-    uuid_first_segment,
 };
+
+/**
+ * TODO: !!! Filter out all the types that are not used in the library
+ */

@@ -14,5 +14,5 @@ export interface SupabaseLoggerWrapperOfNaturalExecutionToolsOptions extends Com
     /**
      * Client responsible for the requests
      */
-    readonly clientId: uuid;
+    readonly clientId: client_id;
 }

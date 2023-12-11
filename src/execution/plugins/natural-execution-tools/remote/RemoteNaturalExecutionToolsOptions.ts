@@ -1,4 +1,4 @@
-import { string_uri, uuid } from '../../../.././types/typeAliases';
+import type { client_id, string_uri } from '../../../.././types/typeAliases';
 import { CommonExecutionToolsOptions } from '../../../CommonExecutionToolsOptions';
 
 /**
@@ -22,5 +22,5 @@ export interface RemoteNaturalExecutionToolsOptions extends CommonExecutionTools
     /**
      * Your client ID
      */
-    readonly clientId: uuid;
+    readonly clientId: client_id;
 }

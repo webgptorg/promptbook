@@ -1,7 +1,7 @@
-import { PromptTemplatePipelineLibrary } from '../../../../../classes/PromptTemplatePipelineLibrary';
-import { string_uri, uuid } from '../../../../../types/typeAliases';
-import { CommonExecutionToolsOptions } from '../../../../CommonExecutionToolsOptions';
-import { NaturalExecutionTools } from '../../../../NaturalExecutionTools';
+import type { PromptTemplatePipelineLibrary } from '../../../../../classes/PromptTemplatePipelineLibrary';
+import type { client_id, string_uri } from '../../../../../types/typeAliases';
+import type { CommonExecutionToolsOptions } from '../../../../CommonExecutionToolsOptions';
+import type { NaturalExecutionTools } from '../../../../NaturalExecutionTools';
 
 export interface RemoteServerOptions extends CommonExecutionToolsOptions {
     /**
@@ -27,5 +27,5 @@ export interface RemoteServerOptions extends CommonExecutionToolsOptions {
     /**
      * Creates natural execution tools for each client
      */
-    createNaturalExecutionTools(clientId: uuid): NaturalExecutionTools /* <- TODO: &({}|IDestroyable) */;
+    createNaturalExecutionTools(clientId: client_id): NaturalExecutionTools /* <- TODO: &({}|IDestroyable) */;
 }
