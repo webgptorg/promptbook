@@ -285,3 +285,10 @@ describe('how parseCommand works', () => {
         expect(() => parseCommand('prameter {name}')).toThrowError(/Unknown command/i);
     });
 });
+
+/**
+ * TODO: [🧠] Probbably change syntax USE -> MODEL
+ * TODO: !!!! Allow to use other models
+ * TODO: !!!! Allow to skip segments SKIP IF {foo} NOT DEFINED
+ * TODO: !!! Allow to EXPECT 3 words
+ */

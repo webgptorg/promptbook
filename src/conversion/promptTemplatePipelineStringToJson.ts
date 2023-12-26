@@ -304,4 +304,7 @@ export function promptTemplatePipelineStringToJson(
 /**
  * TODO: Report here line/column of error
  * TODO: Use spaceTrim more effectively
+ * TODO: !!!! Parameter flags - isInput, isOutput, isInternal, isBeforePostprocessing, isBeforeFinal, canonicalName
+ * TODO: !!!! Allow to have non-immutable parameters - suffix them with fooPrevious3 -> fooPrevious2 -> fooPrevious1 -> foo
+ *            This must work with other technial parameters
  */
