@@ -31,7 +31,7 @@ export class OpenAiExecutionTools implements NaturalExecutionTools {
         const { content, modelRequirements } = prompt;
 
         // TODO: [☂] Use here more modelRequirements
-        if (modelRequirements.variant !== 'CHAT') {
+        if (modelRequirements.modelVariant !== 'CHAT') {
             throw new Error('Use gptChat only for CHAT variant');
         }
 
@@ -94,7 +94,7 @@ export class OpenAiExecutionTools implements NaturalExecutionTools {
         const { content, modelRequirements } = prompt;
 
         // TODO: [☂] Use here more modelRequirements
-        if (modelRequirements.variant !== 'COMPLETION') {
+        if (modelRequirements.modelVariant !== 'COMPLETION') {
             throw new Error('Use gptComplete only for COMPLETION variant');
         }
 

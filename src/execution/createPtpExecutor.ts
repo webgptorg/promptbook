@@ -73,7 +73,7 @@ export function createPtpExecutor(options: CreatePtpExecutorOptions): PtpExecuto
                         content: replaceParameters(currentTemplate.content, parametersToPass),
                         modelRequirements: currentTemplate.modelRequirements!,
                     };
-                    variant: switch (currentTemplate.modelRequirements!.variant) {
+                    variant: switch (currentTemplate.modelRequirements!.modelVariant) {
                         case 'CHAT':
                             chatThread = await tools.natural.gptChat(prompt);
                             // TODO: Use all information from chatThread like "model"
@@ -86,7 +86,9 @@ export function createPtpExecutor(options: CreatePtpExecutorOptions): PtpExecuto
                             promptResult = completionResult.content;
                             break variant;
                         default:
-                            throw new Error(`Unknown model variant "${currentTemplate.modelRequirements!.variant}"`);
+                            throw new Error(
+                                `Unknown model variant "${currentTemplate.modelRequirements!.modelVariant}"`,
+                            );
                     }
                     break executionType;
 

@@ -10,5 +10,6 @@ export const PTBK_VERSION: string_version = '0.1.0';
  * Default model requirements for the pipeline
  */
 export const DEFAULT_MODEL_REQUIREMENTS: ModelRequirements = {
-    variant: 'CHAT',
+    modelVariant: 'CHAT',
+    modelName: 'gpt-4' /* <- TODO: [🧠] What should be the default model? */,
 };
