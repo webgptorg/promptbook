@@ -16,7 +16,7 @@ export async function mapEachTextInHtml({
     const document = new DOMParser().parseFromString(
         spaceTrim(
             (block) => `
-    
+
               <!DOCTYPE html>
               <html lang="cs" dir="ltr">
                 <head>
@@ -26,7 +26,7 @@ export async function mapEachTextInHtml({
                   ${block(html)}
                 </body>
               </html>
-    
+
             `,
         ),
         'text/html',
@@ -43,6 +43,7 @@ export async function mapEachTextInHtml({
         }
 
         if (node.nodeType === 3 /* Node.TEXT_NODE */) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             (node as any).data = await map({ name: 'text', text: (node as any).data });
         } else {
             if (node.childNodes) {

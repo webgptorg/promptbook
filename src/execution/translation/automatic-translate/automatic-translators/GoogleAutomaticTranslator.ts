@@ -31,7 +31,7 @@ export class GoogleAutomaticTranslator implements IAutomaticTranslator {
         await this.page.goto(url.href);
 
         // TODO: Make this in english
-        await (await this.page.$x(`//button[contains(., 'Souhlasím')]`))[0]!?.click();
+        await (await this.page.$x(`//button[contains(., 'Souhlasím')]`))[0]?.click();
         await this.page.waitForSelector(`textarea`, { timeout: 5000 });
     }
 

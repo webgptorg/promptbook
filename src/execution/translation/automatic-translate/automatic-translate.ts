@@ -23,7 +23,7 @@ async function main() {
     program.parse(process.argv);
     const { from, to, messages, articles } = program.opts();
 
-    let automaticTranslator = createBestTranslator({ from, to });
+    const automaticTranslator = createBestTranslator({ from, to });
 
     if (messages) {
         await translateMessages({ automaticTranslator, from, to });
