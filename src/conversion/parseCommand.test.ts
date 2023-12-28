@@ -120,22 +120,22 @@ describe('how parseCommand works', () => {
     it('should parse USE command', () => {
         expect(parseCommand('use chat')).toEqual({
             type: 'USE',
-            key: 'variant',
+            key: 'modelVariant',
             value: 'CHAT',
         });
         expect(parseCommand('use completion')).toEqual({
             type: 'USE',
-            key: 'variant',
+            key: 'modelVariant',
             value: 'COMPLETION',
         });
         expect(parseCommand('use CHAT')).toEqual({
             type: 'USE',
-            key: 'variant',
+            key: 'modelVariant',
             value: 'CHAT',
         });
         expect(parseCommand('use `CHAT`')).toEqual({
             type: 'USE',
-            key: 'variant',
+            key: 'modelVariant',
             value: 'CHAT',
         });
 
@@ -143,7 +143,7 @@ describe('how parseCommand works', () => {
         TODO: [🌚]
         expect(parseCommand('use GPT-3.5')).toEqual({
             type: 'USE',
-            key: 'variant',
+            key: 'modelVariant',
             value: 'CHAT',
         });
         */

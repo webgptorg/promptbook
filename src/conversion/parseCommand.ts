@@ -138,13 +138,13 @@ export function parseCommand(listItem: string_markdown_text): Command {
         if (type.includes('CHAT')) {
             return {
                 type: 'USE',
-                key: 'variant',
+                key: 'modelVariant',
                 value: 'CHAT',
             };
         } else if (type.includes('COMPLETION')) {
             return {
                 type: 'USE',
-                key: 'variant',
+                key: 'modelVariant',
                 value: 'COMPLETION',
             };
         } else {
