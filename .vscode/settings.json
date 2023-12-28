@@ -10,7 +10,7 @@
     "debug.allowBreakpointsEverywhere": true,
     "html.autoClosingTags": false,
     "editor.codeActionsOnSave": {
-        "source.organizeImports": true
+        "source.organizeImports": "explicit"
     },
     "search.exclude": {
         "modules/sdk/types/**": true,

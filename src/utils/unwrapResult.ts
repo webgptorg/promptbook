@@ -1,6 +1,27 @@
 import spaceTrim from 'spacetrim';
 
 /**
+ * Additional options for `unwrapResult`
+ */
+interface UnwrapResultOptions {
+    /**
+     * If true, the text is trimmed before processing
+     */
+    isTrimmed?: boolean;
+
+    /**
+     * If true, the introduce sentence is removed
+     *
+     * For example:
+     * - If `true`>  'Hello, "world"' -> 'world'
+     * - If `false`> 'Hello, "world"' -> 'Hello, "world"'
+     *
+     * @default true
+     */
+    isIntroduceSentenceRemoved?: boolean;
+}
+
+/**
  * Removes quotes and optional introduce text from a string
  *
  * Tip: This is very usefull for post-processing of the result of the LLM model
@@ -12,35 +33,77 @@ import spaceTrim from 'spacetrim';
  * @param text optionally quoted text
  * @returns text without quotes
  */
-export function unwrapResult(text: string): string {
-    const originalText = text;
+export function unwrapResult(text: string, options?: UnwrapResultOptions): string {
+    const { isTrimmed = true, isIntroduceSentenceRemoved = true } = options || {};
+
+    let trimmedText = text;
 
     // Remove leading and trailing spaces and newlines
-    text = spaceTrim(text);
-
-    // Check if the text starts with a sentence followed by quotes
-    const introduceSentenceRegex = /^[^"'\n]*/;
-    if (introduceSentenceRegex.test(text)) {
-        // Remove the introduce sentence and quotes by replacing it with an empty string
-        text = text.replace(introduceSentenceRegex, '');
+    if (isTrimmed) {
+        trimmedText = spaceTrim(trimmedText);
     }
 
-    text = spaceTrim(text);
+    let processedText = trimmedText;
 
-    if (text.length < 3) {
-        return originalText;
+    if (isIntroduceSentenceRemoved) {
+        const introduceSentenceRegex = /^[a-zěščřžýáíéúů:\s]*:\s*/i;
+        if (introduceSentenceRegex.test(text)) {
+            // Remove the introduce sentence and quotes by replacing it with an empty string
+            processedText = processedText.replace(introduceSentenceRegex, '');
+        }
+        processedText = spaceTrim(processedText);
+    }
+
+    if (processedText.length < 3) {
+        return trimmedText;
+    }
+
+    if (processedText.includes('\n')) {
+        return trimmedText;
     }
 
     // Remove the quotes by extracting the substring without the first and last characters
-    const unquotedText = text.slice(1, -1);
+    const unquotedText = processedText.slice(1, -1);
 
     // Check if the text starts and ends with quotes
+
     if (
-        (text.startsWith('\'') && !unquotedText.includes('\'') && text.endsWith('\'')) ||
-        (text.startsWith('"') && !unquotedText.includes('"') && text.endsWith('"'))
+        (
+            [
+                ['"', '"'],
+                ["'", "'"],
+                ['`', '`'],
+                ['*', '*'],
+                ['_', '_'],
+                ['„', '“'],
+                ['«', '»'] /* <- QUOTES to config */,
+            ] as const
+        ).some(([startQuote, endQuote]) => {
+            if (!processedText.startsWith(startQuote)) {
+                return false;
+            }
+
+            if (!processedText.endsWith(endQuote)) {
+                return false;
+            }
+
+            if (unquotedText.includes(startQuote) && !unquotedText.includes(endQuote)) {
+                return false;
+            }
+
+            if (!unquotedText.includes(startQuote) && unquotedText.includes(endQuote)) {
+                return false;
+            }
+
+            return true;
+        })
     ) {
-        return unquotedText;
+        return unwrapResult(unquotedText, { isTrimmed: false, isIntroduceSentenceRemoved: false });
     } else {
-        return originalText;
+        return processedText;
     }
 }
+
+/**
+ * TODO: [🧠] Should this also unwrap the (parenthesis)
+ */

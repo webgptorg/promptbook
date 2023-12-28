@@ -41,7 +41,11 @@ export class OpenAiExecutionTools implements NaturalExecutionTools {
         }
 
         const model = 'gpt-3.5-turbo'; /* <- TODO: [☂] Use here more modelRequirements */
-        const modelSettings = { model };
+        const modelSettings = {
+            model,
+            max_tokens: modelRequirements.maxTokens,
+            //                                      <- TODO: Make some global max cap for maxTokens
+        };
         const rawRequest: OpenAI.Chat.Completions.ChatCompletionCreateParamsStreaming = {
             ...modelSettings,
             messages: [
@@ -51,6 +55,7 @@ export class OpenAiExecutionTools implements NaturalExecutionTools {
                 },
             ],
             stream: true,
+            user: this.options.user,
         };
 
         if (this.options.isVerbose) {
@@ -113,12 +118,14 @@ export class OpenAiExecutionTools implements NaturalExecutionTools {
         const model = 'gpt-3.5-turbo-instruct'; /* <- TODO: [☂] Use here more modelRequirements */
         const modelSettings = {
             model,
-            max_tokens: 2000 /* <- TODO: [☂] Use here more modelRequirements */,
+            max_tokens: modelRequirements.maxTokens || 2000, // <- Note: 2000 is for lagacy reasons
+            //                                                  <- TODO: Make some global max cap for maxTokens
         };
 
         const rawRequest: OpenAI.Completions.CompletionCreateParamsNonStreaming = {
             ...modelSettings,
             prompt: content,
+            user: this.options.user,
         };
 
         if (this.options.isVerbose) {
@@ -154,6 +161,7 @@ export class OpenAiExecutionTools implements NaturalExecutionTools {
 }
 
 /**
+ * TODO: !!!! Allow to use other models - List all from openai
  * TODO: Maybe Create some common util for gptChat and gptComplete
  * TODO: Maybe make custom OpenaiError
  */

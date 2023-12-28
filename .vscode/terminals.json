@@ -59,6 +59,13 @@
             "focus": false
         },
         {
+            "name": "🧪 Test types",
+            "command": "npm run test-types",
+            "execute": false,
+            "onlySingle": false,
+            "focus": false
+        },
+        {
             "name": "🏭📦 Generate packages",
             "commands": ["ts-node ./scripts/generate-packages/generate-packages.ts"],
             "execute": false,

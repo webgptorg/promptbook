@@ -14,12 +14,13 @@ import { PromptTemplateParameterJson } from '../types/PromptTemplatePipelineJson
 import { PromptTemplatePipelineJson } from '../types/PromptTemplatePipelineJson/PromptTemplatePipelineJson';
 import { PromptTemplatePipelineString } from '../types/PromptTemplatePipelineString';
 import { ScriptLanguage } from '../types/ScriptLanguage';
-import { DoneTaskProgress, PendingTaskProgress, TaskProgress } from '../types/TaskProgress';
+import { TaskProgress } from '../types/TaskProgress';
 import { string_char_emoji } from '../types/typeAliasEmoji';
 import {
     ILicense,
     IPersonProfile,
     IRepository,
+    client_id,
     number_bytes,
     number_days,
     number_gigabytes,
@@ -47,7 +48,6 @@ import {
     string_completion_prompt,
     string_css,
     string_css_class,
-    string_css_cursor,
     string_css_property,
     string_css_selector,
     string_css_value,
@@ -66,14 +66,12 @@ import {
     string_hostname,
     string_href,
     string_html,
-    string_image_prompt,
     string_javascript,
     string_javascript_name,
     string_license,
     string_license_token,
     string_markdown,
     string_markdown_text,
-    string_midjourney_prompt,
     string_mime_type,
     string_mime_type_with_wildcard,
     string_model_name,
@@ -106,15 +104,11 @@ import {
     string_url_image,
     string_version,
     string_version_dependency,
-    string_wallpaper_id,
     string_xml,
-    uuid,
-    uuid_first_segment,
 } from '../types/typeAliases';
 
 export {
     CommonExecutionToolsOptions,
-    DoneTaskProgress,
     ExecutionTools,
     ExecutionType,
     ILicense,
@@ -124,7 +118,6 @@ export {
     ModelVariant,
     NaturalExecutionTools,
     Parameters,
-    PendingTaskProgress,
     Prompt,
     PromptChatResult,
     PromptCommonResult,
@@ -141,6 +134,7 @@ export {
     TaskProgress,
     UserInterfaceTools,
     UserInterfaceToolsPromptDialogOptions,
+    client_id,
     number_bytes,
     number_days,
     number_gigabytes,
@@ -169,7 +163,6 @@ export {
     string_completion_prompt,
     string_css,
     string_css_class,
-    string_css_cursor,
     string_css_property,
     string_css_selector,
     string_css_value,
@@ -188,14 +181,12 @@ export {
     string_hostname,
     string_href,
     string_html,
-    string_image_prompt,
     string_javascript,
     string_javascript_name,
     string_license,
     string_license_token,
     string_markdown,
     string_markdown_text,
-    string_midjourney_prompt,
     string_mime_type,
     string_mime_type_with_wildcard,
     string_model_name,
@@ -228,8 +219,9 @@ export {
     string_url_image,
     string_version,
     string_version_dependency,
-    string_wallpaper_id,
     string_xml,
-    uuid,
-    uuid_first_segment,
 };
+
+/**
+ * TODO: !!! Filter out all the types that are not used in the library
+ */

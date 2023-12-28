@@ -7,8 +7,6 @@ import { Parameters } from '../types/Parameters';
  * @param template the template with parameters in {curly} braces
  * @param parameters the object with parameters
  * @returns the template with replaced parameters
- *
- * @private within the library
  */
 export function replaceParameters(template: string_template, parameters: Parameters): string {
     let result = '';

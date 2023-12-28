@@ -13,7 +13,7 @@ import { NaturalExecutionTools } from '../execution/NaturalExecutionTools';
 import { MockedEchoNaturalExecutionTools } from '../execution/plugins/natural-execution-tools/mocked/MockedEchoNaturalExecutionTools';
 import { OpenAiExecutionTools } from '../execution/plugins/natural-execution-tools/openai/OpenAiExecutionTools';
 import { OpenAiExecutionToolsOptions } from '../execution/plugins/natural-execution-tools/openai/OpenAiExecutionToolsOptions';
-import { createRemoteServer } from '../execution/plugins/natural-execution-tools/remote/createRemoteServer';
+import { runRemoteServer } from '../execution/plugins/natural-execution-tools/remote/runRemoteServer';
 import { RemoteServerOptions } from '../execution/plugins/natural-execution-tools/remote/interfaces/RemoteServerOptions';
 import { RemoteNaturalExecutionTools } from '../execution/plugins/natural-execution-tools/remote/RemoteNaturalExecutionTools';
 import { RemoteNaturalExecutionToolsOptions } from '../execution/plugins/natural-execution-tools/remote/RemoteNaturalExecutionToolsOptions';
