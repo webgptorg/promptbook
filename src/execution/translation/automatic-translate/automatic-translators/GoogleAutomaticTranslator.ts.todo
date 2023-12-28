@@ -1,4 +1,5 @@
-import puppeteer from 'puppeteer';
+import type { Browser, ElementHandle, Page } from 'puppeteer';
+import { launch } from 'puppeteer';
 import spaceTrim from 'spacetrim';
 import { forTime } from 'waitasecond';
 import { IAutomaticTranslator } from './IAutomaticTranslator';
@@ -10,8 +11,8 @@ export interface IGoogleAutomaticTranslatorOptions extends ITranslatorOptions {
 }
 export class GoogleAutomaticTranslator implements IAutomaticTranslator {
     private readonly whenReady: Promise<void>;
-    private browser: puppeteer.Browser;
-    private page: puppeteer.Page;
+    private browser: Browser;
+    private page: Page;
 
     public constructor(private readonly options: IGoogleAutomaticTranslatorOptions) {
         this.whenReady = this.init();
@@ -23,7 +24,7 @@ export class GoogleAutomaticTranslator implements IAutomaticTranslator {
         url.searchParams.set('sl', this.options.from);
         url.searchParams.set('tl', this.options.to);
 
-        this.browser = await puppeteer.launch({ headless: this.options.isHeadless ?? true });
+        this.browser = await launch({ headless: this.options.isHeadless ?? true });
         this.page = await this.browser.newPage();
         await this.page.setExtraHTTPHeaders({
             'Accept-Language': 'en',
@@ -59,7 +60,7 @@ export class GoogleAutomaticTranslator implements IAutomaticTranslator {
             // await forEver();
 
             // TODO: Instead of while-loop use forValueDefined
-            let translatedElement: puppeteer.ElementHandle | undefined;
+            let translatedElement: ElementHandle | undefined;
 
             let i = 0;
             while (!translatedElement) {

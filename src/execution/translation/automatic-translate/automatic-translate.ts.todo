@@ -2,7 +2,7 @@
 
 import chalk from 'chalk';
 import commander from 'commander';
-import { createBestTranslator } from './automatic-translators/createBestTranslator';
+import { createBestTranslator } from './automatic-translators/createBestTranslator.ts.todo';
 import { translateMessages } from './translateMessages';
 
 // TODO: This should be some prototype of the generator

@@ -1,4 +1,4 @@
-import { GoogleAutomaticTranslator, IGoogleAutomaticTranslatorOptions } from './GoogleAutomaticTranslator';
+import { GoogleAutomaticTranslator, IGoogleAutomaticTranslatorOptions } from './GoogleAutomaticTranslator.ts.todo';
 import { IAutomaticTranslator } from './IAutomaticTranslator';
 import { ITranslatorOptions } from './ITranslatorOptions';
 import { LindatAutomaticTranslator } from './LindatAutomaticTranslator';

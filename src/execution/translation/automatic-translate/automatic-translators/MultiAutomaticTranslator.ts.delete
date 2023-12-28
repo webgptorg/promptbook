@@ -20,7 +20,7 @@ export class MultiAutomaticTranslator {
             this.translators[key] = this.options.createAutomaticTranslator({ from, to });
         }
 
-        return this.translators[key].translate(message);
+        return this.translators[key]!.translate(message);
     }
 }
 
