@@ -1,4 +1,4 @@
-export const MODEL_VARIANTS = ['COMPLETION', 'CHAT'] as const;
+export const MODEL_VARIANTS = ['COMPLETION', 'CHAT' /* [🏳]  */] as const;
 
 /**
  * Model variant describes the very general type of the model
