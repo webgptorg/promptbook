@@ -21,7 +21,8 @@
             "description": "Synonym for word",
             "executionType": "PROMPT_TEMPLATE",
             "modelRequirements": {
-                "variant": "CHAT"
+                "modelVariant": "CHAT",
+                "modelName": "gpt-4"
             },
             "content": "Write synonym for \"{word}\"",
             "resultingParameterName": "wordSynonym"

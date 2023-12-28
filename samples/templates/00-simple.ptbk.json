@@ -14,7 +14,8 @@
             "title": "💬 Prompt",
             "executionType": "PROMPT_TEMPLATE",
             "modelRequirements": {
-                "variant": "CHAT"
+                "modelVariant": "CHAT",
+                "modelName": "gpt-4"
             },
             "content": "Hello",
             "resultingParameterName": "greeting"
