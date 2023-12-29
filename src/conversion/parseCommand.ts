@@ -133,30 +133,57 @@ export function parseCommand(listItem: string_markdown_text): Command {
             type: 'EXECUTE',
             executionType: executionTypes[0]!,
         };
-    } else if (type.startsWith('USE')) {
+    } else if (type.startsWith('MODEL')) {
         // TODO: Make this more elegant and dynamically
-        if (type.includes('CHAT')) {
+        if (type.startsWith('MODEL_VARIANT')) {
+            if (type === 'MODEL_VARIANT_CHAT') {
+                return {
+                    type: 'MODEL',
+                    key: 'modelVariant',
+                    value: 'CHAT',
+                };
+            } else if (type === 'MODEL_VARIANT_COMPLETION') {
+                return {
+                    type: 'MODEL',
+                    key: 'modelVariant',
+                    value: 'COMPLETION',
+                };
+            } else {
+                throw new Error(
+                    spaceTrim(
+                        (block) => `
+                            Unknown model variant in command:
+
+                            - ${listItem}
+
+                            Supported variants are:
+                            ${block(['CHAT', 'COMPLETION'].join(', '))}
+                        `,
+                    ),
+                );
+            }
+        }
+        if (type.startsWith('MODEL_NAME')) {
             return {
-                type: 'USE',
-                key: 'modelVariant',
-                value: 'CHAT',
-            };
-        } else if (type.includes('COMPLETION')) {
-            return {
-                type: 'USE',
-                key: 'modelVariant',
-                value: 'COMPLETION',
+                type: 'MODEL',
+                key: 'modelName',
+                value: listItemParts.pop()!,
             };
         } else {
             throw new Error(
                 spaceTrim(
                     (block) => `
-                          Unknown variant in command:
+                          Unknown model key in command:
 
                           - ${listItem}
 
-                          Supported variants are:
-                          ${block(['CHAT', 'COMPLETION'].join(', '))}
+                          Supported model keys are:
+                          ${block(['variant', 'name'].join(', '))}
+
+                          Example:
+
+                          - MODEL VARIANT Chat
+                          - MODEL NAME gpt-4
                     `,
                 ),
             );
@@ -238,7 +265,7 @@ export function parseCommand(listItem: string_markdown_text): Command {
 
                     Supported commands are:
                     - Execute
-                    - Use
+                    - Model
                     - Parameter
                     - Input parameter
                     - Output parameter
