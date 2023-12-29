@@ -117,18 +117,18 @@ describe('how parseCommand works', () => {
         expect(() => parseCommand('execute script prompt template')).toThrowError(/Unknown execution type/i);
     });
 
-    it('should parse USE command', () => {
-        expect(parseCommand('use chat')).toEqual({
+    it('should parse MODEL VARIANT command', () => {
+        expect(parseCommand('MODEL VARIANT Chat')).toEqual({
             type: 'USE',
             key: 'modelVariant',
             value: 'CHAT',
         });
-        expect(parseCommand('use completion')).toEqual({
+        expect(parseCommand('MODEL VARIANT Completion')).toEqual({
             type: 'USE',
             key: 'modelVariant',
             value: 'COMPLETION',
         });
-        expect(parseCommand('use CHAT')).toEqual({
+        expect(parseCommand('MODEL VARIANT ChatRIANT Chat')).toEqual({
             type: 'USE',
             key: 'modelVariant',
             value: 'CHAT',
@@ -149,7 +149,7 @@ describe('how parseCommand works', () => {
         */
     });
 
-    it('should fail parsing USE command', () => {
+    it('should fail parsing MODEL VARIANT command', () => {
         expect(() => parseCommand('use wet')).toThrowError(/Unknown variant/i);
         expect(() => parseCommand('use {script}')).toThrowError(/Unknown variant/i);
     });
@@ -287,7 +287,7 @@ describe('how parseCommand works', () => {
 });
 
 /**
- * TODO: [🧠] Probbably change syntax USE -> MODEL
+ * TODO: [🧠] Probbably change syntax MODEL VARIANT -> MODEL
  * TODO: !!!! Allow to use other models
  * TODO: !!!! Allow to skip segments SKIP IF {foo} NOT DEFINED
  * TODO: !!! Allow to EXPECT 3 words

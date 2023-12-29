@@ -8,7 +8,7 @@ Show how to pick exact model
 
 ## 💬 Synonym
 
--   USE Completion
+-   MODEL VARIANT Completion
 -   MODEL `gpt-4-1106-preview`
 
 Synonym for word

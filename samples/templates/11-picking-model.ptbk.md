@@ -8,8 +8,8 @@ Show how to pick exact model
 
 ## 💬 Synonym
 
--   USE Chat
--   MODEL `gpt-4-1106-preview`
+-   MODEL VARIANT Chat
+-   MODEL NAME `gpt-4-1106-preview`
 
 Synonym for word
 

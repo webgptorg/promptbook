@@ -4,7 +4,7 @@ Trying the language capabilities of GPT models.
 
 -   PTBK URL https://ptbk.example.com/samples/language-capabilities.ptbk.md@v1
 -   PTBK version 1.0.0
--   Use Chat
+-   MODEL VARIANT Chat
 <!-- TODO: [🌚]> -   Use GPT-3 -->
 -   Input parameter `{word}` The word to use in the prompt.
 -   Output parameter `{comparisonOfTwoSentences}` Comparison between two sentences
@@ -73,7 +73,7 @@ Remove word "{word}" from sentence and modify it so that it makes sense:
 
 Comparison between "{sentenceWithTwoSynonyms}" and "{sentenceWithOriginalWordRemoved}".
 
--   Use Chat
+-   MODEL VARIANT Chat
 <!-- TODO: [🌚]> -   Use GPT-4 -->
 -   Execute prompt template <!-- This is the default -->
 

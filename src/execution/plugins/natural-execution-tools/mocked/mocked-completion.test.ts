@@ -19,7 +19,7 @@ describe('createPtpExecutor + MockedEchoExecutionTools with sample chat prompt',
 
             ## Prompt
 
-            - Use completion
+            - MODEL VARIANT Completion
 
             \`\`\`
             One day I went to the shop and bought {thing}.

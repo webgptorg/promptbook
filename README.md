@@ -61,7 +61,7 @@ Instructions for creating web page content using [📖 Prompt template pipelines
 
 -   PTBK URL https://ptbk.webgpt.com/en/write-website-content.ptbk.md@v0.1.0
 -   PTBK version 0.0.1
--   Use chat
+-   MODEL VARIANT Chat
 -   Use GPT-3.5
 -   Input param `{rawTitle}` Automatically suggested a site name or empty text
 -   Input param `{rawAssigment}` Automatically generated site entry from image recognition
@@ -176,8 +176,8 @@ Website assignment from the customer:
 
 ## 🖋 Writing web content
 
--   Use completion
--   Use GPT-3
+-   MODEL VARIANT Completion
+-   MODEL NAME `gpt-3.5-turbo-instruct`
 
 \`\`\`markdown
 As an experienced copywriter and web designer, you have been entrusted with creating text for a new website {title}.
