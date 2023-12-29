@@ -132,7 +132,7 @@ export function promptTemplatePipelineStringToJson(
                 ptbJson.ptbkVersion = command.ptbkVersion;
                 break;
 
-            case 'USE':
+            case 'MODEL':
                 // @ts-expect-error [🤸‍♂️] No idea why this occurs after adding maxTokens into modelRequirements
                 defaultModelRequirements[command.key] = command.value;
                 break;
