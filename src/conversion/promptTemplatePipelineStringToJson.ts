@@ -170,7 +170,7 @@ export function promptTemplatePipelineStringToJson(
                     isExecutionTypeChanged = true;
                     break;
 
-                case 'USE':
+                case 'MODEL':
                     // @ts-expect-error [🤸‍♂️] No idea why this occurs after adding maxTokens into modelRequirements
                     templateModelRequirements[command.key] = command.value;
                     break;
