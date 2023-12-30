@@ -23,7 +23,7 @@ describe('promptTemplatePipelineStringToJson', () => {
     it('should parse promptTemplatePipeline with picking the exact model', () => {
         expect(
             promptTemplatePipelineStringToJson(importPtp('../../samples/templates/11-picking-model.ptbk.md')),
-        ).toEqual(importPtp('../../samples/templates/10-single.ptbk.json'));
+        ).toEqual(importPtp('../../samples/templates/11-picking-model.ptbk.json'));
     });
 
     it('should parse promptTemplatePipeline with two templates', () => {
@@ -93,7 +93,6 @@ describe('promptTemplatePipelineStringToJson', () => {
         ).toThrowError(/Parameter \{word\} is defined multiple times/i);
     });
 });
-
 
 /**
  * TODO: [💥] Some system to automatically generate tests for all the templates in the folder

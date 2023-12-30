@@ -53,7 +53,7 @@ describe('validatePromptTemplatePipelineJson', () => {
             const ptbkString = importPtp('../../samples/templates/errors/logic/model-mismatch.ptbk.md');
             const ptbJson = promptTemplatePipelineStringToJson(ptbkString);
             validatePromptTemplatePipelineJson(ptbJson);
-        }).toThrowError(/Xxxx/i);
+        }).toThrowError(/Unknown model key/i);
     });
 });
 
