@@ -8,7 +8,7 @@ Show how to pick exact model
 
 ## 💬 Synonym
 
--   MODEL VARIANT Completion
+-   MODEL VARIANT Chat
 -   MODEL `gpt-4-1106-preview`
 
 Synonym for word

@@ -35,7 +35,7 @@ export class OpenAiExecutionTools implements NaturalExecutionTools {
             throw new Error('Use gptChat only for CHAT variant');
         }
 
-        const model = 'gpt-3.5-turbo'; /* <- TODO: [☂] Use here more modelRequirements */
+        const model = modelRequirements.modelName;
         const modelSettings = {
             model,
             max_tokens: modelRequirements.maxTokens,
@@ -98,7 +98,7 @@ export class OpenAiExecutionTools implements NaturalExecutionTools {
             throw new Error('Use gptComplete only for COMPLETION variant');
         }
 
-        const model = 'gpt-3.5-turbo-instruct'; /* <- TODO: [☂] Use here more modelRequirements */
+        const model = modelRequirements.modelName;
         const modelSettings = {
             model,
             max_tokens: modelRequirements.maxTokens || 2000, // <- Note: 2000 is for lagacy reasons
