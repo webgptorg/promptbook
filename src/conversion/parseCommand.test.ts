@@ -117,41 +117,44 @@ describe('how parseCommand works', () => {
         expect(() => parseCommand('execute script prompt template')).toThrowError(/Unknown execution type/i);
     });
 
-    it('should parse USE command', () => {
-        expect(parseCommand('use chat')).toEqual({
-            type: 'USE',
-            key: 'variant',
-            value: 'CHAT',
-        });
-        expect(parseCommand('use completion')).toEqual({
-            type: 'USE',
-            key: 'variant',
+    it('should parse MODEL command', () => {
+        expect(parseCommand('MODEL VARIANT Completion')).toEqual({
+            type: 'MODEL',
+            key: 'modelVariant',
             value: 'COMPLETION',
         });
-        expect(parseCommand('use CHAT')).toEqual({
-            type: 'USE',
-            key: 'variant',
+        expect(parseCommand('MODEL VARIANT COMPLETION   ')).toEqual({
+            type: 'MODEL',
+            key: 'modelVariant',
+            value: 'COMPLETION',
+        });
+        expect(parseCommand('MODEL VARIANT Chat')).toEqual({
+            type: 'MODEL',
+            key: 'modelVariant',
             value: 'CHAT',
         });
-        expect(parseCommand('use `CHAT`')).toEqual({
-            type: 'USE',
-            key: 'variant',
+        expect(parseCommand('MODEL VARIANT `CHAT`')).toEqual({
+            type: 'MODEL',
+            key: 'modelVariant',
             value: 'CHAT',
         });
 
-        /*
-        TODO: [🌚]
-        expect(parseCommand('use GPT-3.5')).toEqual({
-            type: 'USE',
-            key: 'variant',
-            value: 'CHAT',
+        expect(parseCommand('MODEL NAME gpt-4-1106-preview')).toEqual({
+            type: 'MODEL',
+            key: 'modelName',
+            value: 'gpt-4-1106-preview',
         });
-        */
+
+        expect(parseCommand('MODEL NAME gpt-3.5-turbo-instruct')).toEqual({
+            type: 'MODEL',
+            key: 'modelName',
+            value: 'gpt-3.5-turbo-instruct',
+        });
     });
 
-    it('should fail parsing USE command', () => {
-        expect(() => parseCommand('use wet')).toThrowError(/Unknown variant/i);
-        expect(() => parseCommand('use {script}')).toThrowError(/Unknown variant/i);
+    it('should fail parsing MODEL VARIANT command', () => {
+        expect(() => parseCommand('MODEL wet')).toThrowError(/Unknown model key/i);
+        expect(() => parseCommand('MODEL {script}')).toThrowError(/Unknown model key/i);
     });
 
     it('should parse PARAMETER command', () => {
@@ -287,8 +290,7 @@ describe('how parseCommand works', () => {
 });
 
 /**
- * TODO: [🧠] Probbably change syntax USE -> MODEL
- * TODO: !!!! Allow to use other models
+ * TODO: [🧠] Probbably change syntax MODEL VARIANT -> MODEL
  * TODO: !!!! Allow to skip segments SKIP IF {foo} NOT DEFINED
  * TODO: !!! Allow to EXPECT 3 words
  */

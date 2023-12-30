@@ -47,4 +47,16 @@ describe('validatePromptTemplatePipelineJson', () => {
             validatePromptTemplatePipelineJson(ptbJson);
         }).toThrowError(/Parameter \{word\} used before defined/i);
     });
+
+    it('should fail when picked the incompativble combination of model variant and name', () => {
+        expect(() => {
+            const ptbkString = importPtp('../../samples/templates/errors/logic/model-mismatch.ptbk.md');
+            const ptbJson = promptTemplatePipelineStringToJson(ptbkString);
+            validatePromptTemplatePipelineJson(ptbJson);
+        }).toThrowError(/Unknown model key/i);
+    });
 });
+
+/**
+ * TODO: [💥] Some system to automatically generate tests for all the templates in the folder
+ */

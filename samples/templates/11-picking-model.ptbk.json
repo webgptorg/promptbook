@@ -1,8 +1,8 @@
 {
-    "title": "✨ Sample prompt",
+    "title": "✨ Pick the model",
     "ptbkUrl": "https://ptbk.example.com/samples/single.ptbk.md@v1",
     "ptbkVersion": "1.0.0",
-    "description": "Show how to use a simple prompt with one parameter.",
+    "description": "Show how to pick exact model",
     "parameters": [
         {
             "name": "word",
@@ -10,7 +10,7 @@
             "isInput": true
         },
         {
-            "name": "wordSynonym",
+            "name": "poem",
             "isInput": false
         }
     ],
@@ -22,10 +22,10 @@
             "executionType": "PROMPT_TEMPLATE",
             "modelRequirements": {
                 "modelVariant": "CHAT",
-                "modelName": "gpt-3.5-turbo"
+                "modelName": "gpt-4-1106-preview"
             },
-            "content": "Write synonym for \"{word}\"",
-            "resultingParameterName": "wordSynonym"
+            "content": "Write poem with word \"{word}\"",
+            "resultingParameterName": "poem"
         }
     ]
 }

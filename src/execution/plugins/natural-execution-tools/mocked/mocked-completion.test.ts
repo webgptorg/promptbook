@@ -19,7 +19,8 @@ describe('createPtpExecutor + MockedEchoExecutionTools with sample chat prompt',
 
             ## Prompt
 
-            - Use completion
+            - MODEL VARIANT Completion
+            - MODEL NAME \`gpt-3.5-turbo-instruct\`
 
             \`\`\`
             One day I went to the shop and bought {thing}.

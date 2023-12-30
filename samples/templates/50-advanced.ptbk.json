@@ -50,7 +50,8 @@
             "description": "Synonym for word",
             "executionType": "PROMPT_TEMPLATE",
             "modelRequirements": {
-                "variant": "CHAT"
+                "modelVariant": "CHAT",
+                "modelName": "gpt-3.5-turbo"
             },
             "content": "Write synonym for \"{word}\"",
             "resultingParameterName": "wordSynonymBeforeUnwrapResult"
@@ -69,7 +70,8 @@
             "title": "⚙ Test that word is not original word",
             "executionType": "SCRIPT",
             "modelRequirements": {
-                "variant": "CHAT"
+                "modelVariant": "CHAT",
+                "modelName": "gpt-3.5-turbo"
             },
             "contentLanguage": "javascript",
             "content": "if (wordSynonym === word) {\n    throw new Error(`Synonym returned from LLM is same as original word \"${word}\"`);\n}\n\nreturn wordSynonym;",
@@ -81,7 +83,8 @@
             "description": "Sentence with word and wordSynonym",
             "executionType": "PROMPT_TEMPLATE",
             "modelRequirements": {
-                "variant": "CHAT"
+                "modelVariant": "CHAT",
+                "modelName": "gpt-3.5-turbo"
             },
             "content": "Write sentence with \"{word}\" and \"{wordSynonym}\" in it",
             "resultingParameterName": "sentenceWithTwoSynonyms"
@@ -92,7 +95,8 @@
             "description": "Sentence \"{sentenceWithTwoSynonyms}\" without \"{word}\".",
             "executionType": "PROMPT_TEMPLATE",
             "modelRequirements": {
-                "variant": "CHAT"
+                "modelVariant": "CHAT",
+                "modelName": "gpt-3.5-turbo"
             },
             "content": "Remove word \"{word}\" from sentence and modify it so that it makes sense:\n\n## Rules:\n\n-   Sentence must be grammatically correct\n-   Sentence must make sense after removing the word\n\n## The Sentence:\n\n> {sentenceWithTwoSynonyms}",
             "resultingParameterName": "sentenceWithOriginalWordRemoved"
@@ -103,7 +107,8 @@
             "description": "Comparison between \"{sentenceWithTwoSynonyms}\" and \"{sentenceWithOriginalWordRemoved}\".",
             "executionType": "PROMPT_TEMPLATE",
             "modelRequirements": {
-                "variant": "CHAT"
+                "modelVariant": "CHAT",
+                "modelName": "gpt-4"
             },
             "content": "Compare meaning of thee two sentences:\n\n## Sentence 1:\n\n> {sentenceWithTwoSynonyms}\n\n## Sentence 2:\n\n> {sentenceWithOriginalWordRemoved}",
             "resultingParameterName": "comparisonOfTwoSentences"
@@ -113,7 +118,8 @@
             "title": "🔗 Summary",
             "executionType": "SIMPLE_TEMPLATE",
             "modelRequirements": {
-                "variant": "CHAT"
+                "modelVariant": "CHAT",
+                "modelName": "gpt-3.5-turbo"
             },
             "content": "You have entered a word **{word}**. For this word the best synonym is **{wordSynonym}**. The sentence with both words is **{sentenceWithTwoSynonyms}**. The sentence without the original word is **{sentenceWithOriginalWordRemoved}**. And the comparison between the two sentences is:\n\n> {comparisonOfTwoSentences}",
             "resultingParameterName": "summary"

@@ -62,7 +62,7 @@ export function runRemoteServer(options: RemoteServerOptions) {
                 // TODO: [🎛] Check validity of the prompt against ptbkLibrary
 
                 let promptResult: PromptResult;
-                switch (prompt.modelRequirements.variant) {
+                switch (prompt.modelRequirements.modelVariant) {
                     case 'CHAT':
                         promptResult = await executionToolsForClient.gptChat(prompt);
                         break;
@@ -70,7 +70,7 @@ export function runRemoteServer(options: RemoteServerOptions) {
                         promptResult = await executionToolsForClient.gptComplete(prompt);
                         break;
                     default:
-                        throw new Error(`Unknown model variant "${prompt.modelRequirements.variant}"`);
+                        throw new Error(`Unknown model variant "${prompt.modelRequirements.modelVariant}"`);
                 }
 
                 if (isVerbose) {

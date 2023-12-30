@@ -10,7 +10,7 @@ export type Command =
     | PtbkUrlCommand
     | PtbkVersionCommand
     | ExecuteCommand
-    | UseCommand
+    | ModelCommand
     | ParameterCommand
     | PostprocessCommand;
 
@@ -46,10 +46,10 @@ export interface ExecuteCommand {
 }
 
 /**
- * Use command tells which model and modelRequirements to use for the prompt template. execution
+ * Model command tells which model and modelRequirements to use for the prompt template. execution
  */
-export interface UseCommand {
-    readonly type: 'USE';
+export interface ModelCommand {
+    readonly type: 'MODEL';
     readonly key: keyof ModelRequirements;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     readonly value: any /* <- TODO: Infer from used key, can it be done in TypeScript */;
