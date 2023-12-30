@@ -36,7 +36,7 @@
             "executionType": "PROMPT_TEMPLATE",
             "modelRequirements": {
                 "modelVariant": "CHAT",
-                "modelName": "gpt-4"
+                "modelName": "gpt-3.5-turbo"
             },
             "content": "Hello {yourName}!",
             "resultingParameterName": "greetingBeforeReverse"

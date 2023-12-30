@@ -16,7 +16,7 @@
             "executionType": "PROMPT_TEMPLATE",
             "modelRequirements": {
                 "modelVariant": "CHAT",
-                "modelName": "gpt-4"
+                "modelName": "gpt-3.5-turbo"
             },
             "content": "Rewrite the function\n\n\\`\\`\\`javascript\nfunction greet() {\n  return 'Hello';\n}\n\\`\\`\\`\n\nTo return \"Goodbye\" instead.\n",
             "resultingParameterName": "greeting"

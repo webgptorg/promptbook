@@ -26,7 +26,7 @@
             "executionType": "PROMPT_TEMPLATE",
             "modelRequirements": {
                 "modelVariant": "CHAT",
-                "modelName": "gpt-4"
+                "modelName": "gpt-3.5-turbo"
             },
             "content": "Write synonym for \"{word}\"",
             "resultingParameterName": "wordSynonym"
@@ -38,7 +38,7 @@
             "executionType": "PROMPT_TEMPLATE",
             "modelRequirements": {
                 "modelVariant": "CHAT",
-                "modelName": "gpt-4"
+                "modelName": "gpt-3.5-turbo"
             },
             "content": "Write sentence with \"{word}\" and \"{wordSynonym}\" in it",
             "resultingParameterName": "sentenceWithTwoSynonyms"
