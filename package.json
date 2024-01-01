@@ -51,7 +51,7 @@
         "glob-promise": "6.0.5",
         "jest": "27.3.1",
         "organize-imports-cli": "0.10.0",
-        "puppeteer": "^21.6.1",
+        "puppeteer": "21.6.1",
         "rollup": "2.58.1",
         "ts-jest": "27.0.7",
         "ts-node": "10.9.1",
@@ -60,11 +60,11 @@
         "yaml": "2.3.3"
     },
     "dependencies": {
-        "n12": "^1.8.7",
+        "n12": "1.8.7",
         "openai": "4.2.0",
         "socket.io": "4.7.2",
         "socket.io-client": "4.7.2",
-        "spacetrim": "^0.9.10",
-        "waitasecond": "^1.11.22"
+        "spacetrim": "0.9.10",
+        "waitasecond": "1.11.22"
     }
 }
