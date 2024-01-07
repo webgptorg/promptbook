@@ -65,6 +65,6 @@
         "socket.io": "4.7.2",
         "socket.io-client": "4.7.2",
         "spacetrim": "0.9.10",
-        "waitasecond": "1.11.22"
+        "waitasecond": "^1.11.24"
     }
 }
