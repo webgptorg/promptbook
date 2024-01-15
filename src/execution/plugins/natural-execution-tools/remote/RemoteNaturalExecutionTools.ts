@@ -30,7 +30,7 @@ export class RemoteNaturalExecutionTools implements NaturalExecutionTools {
                 transports: [/*'websocket', <- TODO: [🌬] Make websocket transport work */ 'polling'],
             });
 
-            console.log('Connecting to', this.options.remoteUrl.href, { socket });
+            // console.log('Connecting to', this.options.remoteUrl.href, { socket });
 
             socket.on('connect', () => {
                 resolve(socket);
