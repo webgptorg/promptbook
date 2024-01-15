@@ -9,6 +9,7 @@ import spaceTrim from 'spacetrim';
 export function trimEndOfCodeBlock(value: string): string {
     value = spaceTrim(value);
     value = value.replace(/```$/g, '');
+    value = value.replace(/\\`\\`\\`$/g, '');
     value = spaceTrim(value);
     return value;
 }
