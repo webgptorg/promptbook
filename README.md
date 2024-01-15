@@ -222,6 +222,8 @@ A website assignment from a customer:
 
 [More template samples](./samples/templates/)
 
+_Note: We are using [postprocessing functions](#postprocessing-functions) like `unwrapResult` that can be used to postprocess the result._
+
 ## 📚 Dictionary
 
 The following glossary is used to clarify certain basic concepts:
@@ -381,6 +383,8 @@ Internally it calls OpenAI, Azure, GPU, proxy, cache, logging,...
 -   _(Not implemented yet)_ `TypescriptExecutionTools` executes typescript code in a sandbox.
 -   _(Not implemented yet)_ `PythonExecutionTools` executes python code in a sandbox.
 
+There are [postprocessing functions](#postprocessing-functions) that can be used to postprocess the result.
+
 #### User Interface Tools
 
 `UserInterfaceTools` is an abstract container that represents all the tools needed to interact with the user. It is implemented by concrete execution tools:
@@ -399,6 +403,12 @@ It can be done in two ways:
 -   From `PromptTemplatePipelineLibrary.getExecutor` method
 -   `createPtpExecutor` utility function
 
+### Postprocessing functions
+
+All postprocessing functions are [listed here](src/execution/plugins/script-execution-tools/javascript/JavascriptEvalExecutionTools.ts).
+
+> TODO: Write more about postprocessing functions
+
 ### Remote server
 
 Remote server is a proxy server that uses its execution tools internally and exposes the executor interface externally.
@@ -416,7 +426,7 @@ First you need to install this library:
 npm install --save @promptbook/wizzard
 ```
 
-_(TODO: !!! Write the Wizzard sample)_
+> TODO: !!! Write the Wizzard sample
 
 [Usage samples](./samples/usage/)
 
@@ -428,7 +438,7 @@ Install all the components:
 npm install --save @promptbook/core @promptbook/wizzard @promptbook/openai @promptbook/execute-javascript @promptbook/remote-client @promptbook/remote-server @promptbook/utils @promptbook/types
 ```
 
-_(TODO: !!! Write the remote sample)_
+> TODO: !!! Write the remote sample
 
 [Usage samples](./samples/usage/)
 
