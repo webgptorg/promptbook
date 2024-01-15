@@ -18,5 +18,6 @@ export const DEFAULT_MODEL_REQUIREMENTS: ModelRequirements = {
 };
 
 /**
+ * TODO: !!! Different default model for different model variant
  * TODO: [🧠] What should be the default model?
  */
