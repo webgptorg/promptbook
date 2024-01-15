@@ -7,6 +7,7 @@ import { removeMarkdownFormatting } from '../utils/markdown/removeMarkdownFormat
 import { removeEmojis } from '../utils/removeEmojis';
 import { removeQuotes } from '../utils/removeQuotes';
 import { replaceParameters } from '../utils/replaceParameters';
+import { trimEndOfCodeBlock } from '../utils/trimEndOfCodeBlock';
 import { unwrapResult } from '../utils/unwrapResult';
 
 export {
@@ -20,5 +21,6 @@ export {
     removeMarkdownFormatting,
     removeQuotes,
     replaceParameters,
+    trimEndOfCodeBlock,
     unwrapResult,
 };
