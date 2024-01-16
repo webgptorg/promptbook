@@ -1,0 +1,93 @@
+# ✨ Sample: JSON mode
+
+Trying the language capabilities of GPT models.
+
+-   PTBK URL https://ptbk.example.com/samples/json-mode.ptbk.md@v1
+-   PTBK version 1.0.0
+-   MODEL VARIANT Chat
+-   Input param `{unstructuredContacts}` nestrukturovaný seznam kontaktních údajů
+-   Output param `{contactlist}` JSON seznam kontaktních údajů
+
+## 🖋 Extrakce kontaktních údajů
+
+-   MODEL VARIANT Completion
+-   MODEL NAME `gpt-3.5-turbo-instruct`
+-   Postprocessing `trimEndOfCodeBlock`
+
+<!-- TODO: !!! Use here JSON mode-->
+
+```
+Extrahuj kontaktní data z nestrukturovaného seznamu kontaktních údajů
+
+## 1. Nestrukturované údaje
+
+\`\`\`text
+info@webgpt.cz
+https://www.facebook.com/webgptorg
+https://www.instagram.com/webgpt.cz/
+https://www.linkedin.com/company/98725909/
+
+AI Web s.r.o.
+IČO: 21012288
+Datová schránka: hzuu4yn
+
+Pavol Hejný
+Vývojář
+pavol@webgpt.cz
++420774080996
+
+Jiří Jahn
+Marketing, Obchod
+jirka@webgpt.cz
+
+Ainautes
+Skupina lidí za projektem
+https://ainautes.com
+\`\`\`
+
+## 1. Strukturované údaje
+
+\`\`\`json
+[
+  {
+    "role": "OWNER",
+    "fullname": "AI Web s.r.o.",
+    "share": 1
+  },
+  {
+    "role": "TECHNICAL",
+    "fullname": "Pavol Hejný",
+    "email": "pavol@webgpt.cz",
+    "phone": "+420420774080996"
+  },
+  {
+    "role": "LEGAL",
+    "fullname": "Jiří Jahn",
+    "email": "jirka@webgpt.cz"
+  },
+  {
+    "role": "CONTENT_MANAGER",
+    "fullname": "Jiří Jahn",
+    "email": "jirka@webgpt.cz"
+  },
+  {
+    "role": "OTHER",
+    "roleDescription": "Skupina lidí za projektem",
+    "fullname": "Ainautes",
+    "web": "https://ainautes.com"
+  }
+]
+\`\`\`
+
+## 2. Nestrukturované údaje
+
+\`\`\`text
+{unstructuredContacts}
+\`\`\`
+
+## 2. Strukturované údaje
+
+\`\`\`json
+```
+
+`-> {contactlist}`

@@ -8,3 +8,7 @@
 ## 0.20.1 _(2024-01-15)_
 
 -   Add postprocessing function `trimEndOfCodeBlock`
+
+## 0.20.2 _(2024-01-16)_
+
+-   `replaceParameters` works with inlined JSONs

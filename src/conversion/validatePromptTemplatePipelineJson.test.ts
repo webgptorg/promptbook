@@ -13,6 +13,7 @@ describe('validatePromptTemplatePipelineJson', () => {
             '../../samples/templates/20-two.ptbk.md',
             '../../samples/templates/30-escaping.ptbk.md',
             '../../samples/templates/50-advanced.ptbk.md',
+            '../../samples/templates/60-json-mode.ptbk.md',
         ] as const) {
             expect(() => {
                 try {

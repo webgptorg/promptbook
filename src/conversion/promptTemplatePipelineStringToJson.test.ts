@@ -44,6 +44,12 @@ describe('promptTemplatePipelineStringToJson', () => {
         );
     });
 
+    it('should parse promptTemplatePipeline with json mode', () => {
+        expect(promptTemplatePipelineStringToJson(importPtp('../../samples/templates/60-json-mode.ptbk.md'))).toEqual(
+            importPtp('../../samples/templates/60-json-mode.ptbk.json'),
+        );
+    });
+
     it('should fail on invalid language block', () => {
         expect(() =>
             promptTemplatePipelineStringToJson(

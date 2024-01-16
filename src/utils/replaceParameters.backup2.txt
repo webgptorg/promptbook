@@ -1,0 +1,79 @@
+import { string_name, string_template } from '.././types/typeAliases';
+import { Parameters } from '../types/Parameters';
+import { isValidJsonString } from './isValidJsonString';
+
+/**
+ * Replaces parameters in template with values from parameters object
+ *
+ * @param template the template with parameters in {curly} braces
+ * @param parameters the object with parameters
+ * @returns the template with replaced parameters
+ */
+export function replaceParameters(template: string_template, parameters: Parameters): string {
+    let result = '';
+    let openedParamName: Array<string> = [];
+
+    // Note: We dont want parameters with index signature here because it wont be compatible with PromptTemplateParameters which has its own reasons to not have index signature
+    const parametersChecked = parameters as Record<
+        string_name,
+        string
+    >; /* <- TODO: Make here some util validateTemplateParameters */
+
+    for (const char of template.split('')) {
+
+const openedParamComposedName = openedParamName.map((_)=>`{${_}`).join('');
+
+        if (char === '{') {
+
+          openedParamName.push('');
+
+
+
+        } else if (char === '}') {
+
+
+
+
+            if (openedParamName.length === 0) {
+                throw new Error(`Parameter is not opened`);
+            }
+
+            const openedParamLastName = openedParamName.pop()!;
+
+
+            if(openedParamValue!==undefined){
+
+                result += openedParamValue;
+            }else
+
+
+
+            if (isValidJsonString(`{${openedParamName}}`)) {
+              result += `{${openedParamName}}`;
+
+            } else {
+
+                throw new Error(`Parameter {${openedParamName}} is not defined`);
+            }
+
+          }
+
+            openedParamName = null;
+        } else if (openedParamName === null) {
+            result += char;
+        } else if (openedParamName !== null) {
+            openedParamName += char;
+        }
+    }
+
+    if (openedParamName !== null) {
+        throw new Error(`Parameter is not closed`);
+    }
+
+    return result;
+}
+
+/**
+ * TODO: [🧠] More advanced templating
+ * TODO: [🧠] Maybe use some template engine / library not own simple implementation
+ */

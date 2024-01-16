@@ -1,4 +1,5 @@
 import { EMOJIS, EMOJIS_IN_CATEGORIES } from '../utils/emojis';
+import { isValidJsonString } from '../utils/isValidJsonString';
 import { extractAllListItemsFromMarkdown } from '../utils/markdown/extractAllListItemsFromMarkdown';
 import { extractBlocksFromMarkdown } from '../utils/markdown/extractBlocksFromMarkdown';
 import { extractOneBlockFromMarkdown } from '../utils/markdown/extractOneBlockFromMarkdown';
@@ -16,6 +17,7 @@ export {
     extractAllListItemsFromMarkdown,
     extractBlocksFromMarkdown,
     extractOneBlockFromMarkdown,
+    isValidJsonString,
     removeContentComments,
     removeEmojis,
     removeMarkdownFormatting,

@@ -1,7 +1,7 @@
 import { describe, expect, it } from '@jest/globals';
 import spaceTrim from 'spacetrim';
-import { replaceParameters } from './replaceParameters';
 import { just } from './just';
+import { replaceParameters } from './replaceParameters';
 
 describe('replaceParameters', () => {
     it('should work in supersimple case', () => {
@@ -29,6 +29,48 @@ describe('replaceParameters', () => {
         expect(replaceParameters('{greeting} {name}, how are you?', { greeting: 'Hello', name: 'world' })).toBe(
             'Hello world, how are you?',
         );
+    });
+
+    it('should not be confused by JSON', () => {
+        expect(
+            replaceParameters('{greeting} {name}, this is how JSON look like {"key": 1}.', {
+                greeting: 'Hi',
+                name: 'Pavol',
+            }),
+        ).toBe('Hi Pavol, this is how JSON look like {"key": 1}.');
+        expect(
+            replaceParameters('{greeting} {name}, this is how JSON look like {}.', {
+                greeting: 'Hi',
+                name: 'Pavol',
+            }),
+        ).toBe('Hi Pavol, this is how JSON look like {}.');
+        expect(
+            replaceParameters(
+                '{greeting} {name}, this is how JSON look like {"greeting": "{greeting}", "name": "{name}"}.',
+                {
+                    greeting: 'Hi',
+                    name: 'Pavol',
+                },
+            ),
+        ).toBe('Hi Pavol, this is how JSON look like {"greeting": "Hi", "name": "Pavol"}.');
+        expect(
+            replaceParameters(
+                '{greeting} {name}, this is how JSON look like {"params": {"greeting": "{greeting}", "name": "{name}"}}.',
+                {
+                    greeting: 'Hi',
+                    name: 'Pavol',
+                },
+            ),
+        ).toBe('Hi Pavol, this is how JSON look like {"params": {"greeting": "Hi", "name": "Pavol"}}.');
+        expect(
+            replaceParameters(
+                '{greeting} {name}, this is how invalid JSON look like {"params": {"greeting": "{greeting}", "name": "{name}"}.',
+                {
+                    greeting: 'Hi',
+                    name: 'Pavol',
+                },
+            ),
+        ).toBe('Hi Pavol, this is how invalid JSON look like {"params": {"greeting": "Hi", "name": "Pavol"}.');
     });
 
     it('should replace same parameter multiple times', () => {
@@ -59,6 +101,22 @@ describe('replaceParameters', () => {
         );
     });
 
+    it('should not be confused by some NON-JSON structure containing chars {}', () => {
+        expect(replaceParameters('{greeting {name}}, how are you?', { greeting: 'Hello', name: 'world' })).toBe(
+            '{greeting world}, how are you?',
+        );
+        expect(replaceParameters('<greeting {name}>', { greeting: 'Hello', name: 'world' })).toBe('<greeting world>');
+
+        expect(replaceParameters('<{greeting {name}}>', { greeting: 'Hello', name: 'world' })).toBe(
+            '<{greeting world}>',
+        );
+        expect(replaceParameters('<{{{greeting {name}}}}>', { greeting: 'Hello', name: 'world' })).toBe(
+            '<{{{greeting world}}}>',
+        );
+
+        expect(replaceParameters('{greeting} }{}{}{', { greeting: 'Hello', name: 'world' })).toBe('Hello }{}{}{');
+    });
+
     it('should throw error when parameter is not defined', () => {
         expect(() => replaceParameters('{greeting} {name}, how are you?', { greeting: 'Hello' })).toThrowError(
             /Parameter \{name\} is not defined/i,
@@ -73,11 +131,5 @@ describe('replaceParameters', () => {
         expect(() =>
             replaceParameters('greeting} {name}, how are you?', { greeting: 'Hello', name: 'world' }),
         ).toThrowError(/Parameter is not opened/i);
-    });
-
-    it('should throw error when parameter is embeded in another parameter', () => {
-        expect(() =>
-            replaceParameters('{greeting {name}}, how are you?', { greeting: 'Hello', name: 'world' }),
-        ).toThrowError(/Parameter is already opened/);
     });
 });
