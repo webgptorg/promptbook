@@ -60,7 +60,7 @@
         "yaml": "2.3.3"
     },
     "dependencies": {
-        "n12": "1.8.11",
+        "n12": "^1.8.12",
         "openai": "4.2.0",
         "socket.io": "4.7.2",
         "socket.io-client": "4.7.2",
