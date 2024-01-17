@@ -6,7 +6,7 @@ Trying the language capabilities of GPT models.
 -   PTBK version 1.0.0
 -   MODEL VARIANT Chat
 -   MODEL NAME `gpt-3.5-turbo`
--   Input parameter `{word}` The word to use in the prompt.
+-   Input  parameter `{word}` The word to use in the prompt.
 -   Output parameter `{comparisonOfTwoSentences}` Comparison between two sentences
 -   Output parameter `{summary}` The overall summary of the comparison
 
