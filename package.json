@@ -60,11 +60,11 @@
         "yaml": "2.3.3"
     },
     "dependencies": {
-        "n12": "^1.8.14",
+        "n12": "1.8.14",
         "openai": "4.2.0",
         "socket.io": "4.7.2",
         "socket.io-client": "4.7.2",
-        "spacetrim": "^0.9.17",
-        "waitasecond": "^1.11.29"
+        "spacetrim": "0.9.17",
+        "waitasecond": "1.11.29"
     }
 }
