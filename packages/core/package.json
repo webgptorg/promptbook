@@ -1,6 +1,6 @@
 {
     "name": "@promptbook/core",
-    "version": "0.22.4",
+    "version": "0.22.5",
     "description": "Library to supercharge your use of large language models",
     "private": false,
     "sideEffects": false,
@@ -34,8 +34,8 @@
     },
     "homepage": "https://www.npmjs.com/package/@promptbook/core",
     "dependencies": {
-        "n12": "1.8.15",
-        "spacetrim": "0.9.18"
+        "n12": "1.8.16",
+        "spacetrim": "0.9.19"
     },
     "main": "./umd/index.umd.js",
     "module": "./esm/index.es.js",
