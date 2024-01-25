@@ -5,22 +5,22 @@ describe('removeEmojis', () => {
     it('should preserve text without emojis', () => {
         expect(removeEmojis('')).toBe('');
         expect(removeEmojis('Hello')).toBe('Hello');
-        expect(removeEmojis('Hello world')).toBe('Hello world');
+        expect(removeEmojis('Hello World')).toBe('Hello World');
     });
 
     it('should remove one emoji', () => {
         expect(removeEmojis('💗')).toBe('');
         expect(removeEmojis('Hello 🖖')).toBe('Hello');
-        expect(removeEmojis('Hello 💅 world')).toBe('Hello world');
+        expect(removeEmojis('Hello 💅 World')).toBe('Hello World');
     });
 
     it('should remove multiple emojis', () => {
         expect(removeEmojis('💗💙')).toBe('');
         // TODO:> expect(removeEmojis(`♥ ♦ ♠ ♣`)).toBe(``);
         expect(removeEmojis('Hello 💗💚')).toBe('Hello');
-        expect(removeEmojis('Hello 💗🔰🟩 world')).toBe('Hello world');
-        expect(removeEmojis('Hello 💗 🟩 world 🏡')).toBe('Hello world');
-        // TODO:> expect(removeEmojis(`👸👨‍🦱👨👴👨‍🦰 Hello 💗🥗💗 world`)).toBe(`Hello world`);
+        expect(removeEmojis('Hello 💗🔰🟩 World')).toBe('Hello World');
+        expect(removeEmojis('Hello 💗 🟩 World 🏡')).toBe('Hello World');
+        // TODO:> expect(removeEmojis(`👸👨‍🦱👨👴👨‍🦰 Hello 💗🥗💗 world`)).toBe(`Hello World`);
     });
 
     /*

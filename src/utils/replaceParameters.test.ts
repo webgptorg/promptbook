@@ -10,24 +10,24 @@ describe('replaceParameters', () => {
 
     it('should keep template without parameters as it is', () => {
         expect(replaceParameters('Hello', {})).toBe('Hello');
-        expect(replaceParameters('Hello world', {})).toBe('Hello world');
+        expect(replaceParameters('Hello World', {})).toBe('Hello World');
     });
 
     it('should replace parameter at the end', () => {
-        expect(replaceParameters('Hello {name}', { name: 'world' })).toBe('Hello world');
+        expect(replaceParameters('Hello {name}', { name: 'World' })).toBe('Hello World');
     });
 
     it('should replace parameter in the middle', () => {
-        expect(replaceParameters('Hello {name}, how are you?', { name: 'world' })).toBe('Hello world, how are you?');
+        expect(replaceParameters('Hello {name}, how are you?', { name: 'World' })).toBe('Hello World, how are you?');
     });
 
     it('should replace parameter at the beginning', () => {
-        expect(replaceParameters('{name}, how are you?', { name: 'world' })).toBe('world, how are you?');
+        expect(replaceParameters('{name}, how are you?', { name: 'World' })).toBe('World, how are you?');
     });
 
     it('should replace multiple parameters', () => {
-        expect(replaceParameters('{greeting} {name}, how are you?', { greeting: 'Hello', name: 'world' })).toBe(
-            'Hello world, how are you?',
+        expect(replaceParameters('{greeting} {name}, how are you?', { greeting: 'Hello', name: 'World' })).toBe(
+            'Hello World, how are you?',
         );
     });
 
@@ -77,9 +77,9 @@ describe('replaceParameters', () => {
         expect(
             replaceParameters('{greeting} {name}, how are you? {greeting} {name}', {
                 greeting: 'Hello',
-                name: 'world',
+                name: 'World',
             }),
-        ).toBe('Hello world, how are you? Hello world');
+        ).toBe('Hello World, how are you? Hello World');
     });
 
     it('should replace multiline templates', () => {
@@ -89,12 +89,12 @@ describe('replaceParameters', () => {
                     Hello {name}, how are you?
                     I am {greeting}
                 `),
-                { greeting: 'fine', name: 'world' },
+                { greeting: 'fine', name: 'World' },
             ),
         ).toBe(
             just(
                 spaceTrim(`
-                    Hello world, how are you?
+                    Hello World, how are you?
                     I am fine
                 `),
             ),
@@ -129,7 +129,7 @@ describe('replaceParameters', () => {
 
     it('should throw error when parameter is not opened', () => {
         expect(() =>
-            replaceParameters('greeting} {name}, how are you?', { greeting: 'Hello', name: 'world' }),
+            replaceParameters('greeting} {name}, how are you?', { greeting: 'Hello', name: 'World' }),
         ).toThrowError(/Parameter is not opened/i);
     });
 });

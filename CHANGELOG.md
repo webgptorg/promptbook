@@ -17,3 +17,4 @@
 
 -   You are able to send markdown code block in prompts _(without traces of escaping)_
 -   Function `trimEndOfCodeBlock` is not working with escaped code blocks JUST with markdown code blocks
+-   Rename `extractBlocksFromMarkdown` to `extractAllBlocksFromMarkdown`

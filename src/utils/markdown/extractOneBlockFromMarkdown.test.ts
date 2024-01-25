@@ -3,33 +3,89 @@ import spaceTrim from 'spacetrim';
 import { extractOneBlockFromMarkdown } from './extractOneBlockFromMarkdown';
 
 describe('how extractOneBlockFromMarkdown works', () => {
-    it('should work with sample with one code block of one line', () => {
+    it('should work with sample with one unknown code block of one line', () => {
+        expect(
+            extractOneBlockFromMarkdown(
+                spaceTrim(`
+                    # Hello World
+
+                    \`\`\`
+                    print('Hello World')
+                    \`\`\`
+                `),
+            ),
+        ).toEqual({
+            language: null,
+            content: "print('Hello World')",
+        });
+    });
+
+    it('should work with sample with one python code block of one line', () => {
         expect(
             extractOneBlockFromMarkdown(
                 spaceTrim(`
                     \`\`\`python
-                    print('Hello world')
+                    print('Hello World')
                     \`\`\`
                 `),
             ),
         ).toEqual({
             language: 'python',
-            content: 'print(\'Hello world\')',
+            content: "print('Hello World')",
         });
 
         expect(
             extractOneBlockFromMarkdown(
                 spaceTrim(`
-                    # Hello world
+                    # Hello World
 
                     \`\`\`python
-                    print('Hello world')
+                    print('Hello World')
                     \`\`\`
                 `),
             ),
         ).toEqual({
             language: 'python',
-            content: 'print(\'Hello world\')',
+            content: "print('Hello World')",
+        });
+    });
+
+    it('should work with codeblock with escaped embeded codeblock as content', () => {
+        expect(
+            extractOneBlockFromMarkdown(
+                spaceTrim(`
+
+                  This is a simple markdown with code block with escaped embeded code block as content:
+
+                  \`\`\`markdown
+
+                  Markdown has simple formatting like **bold** and *italic* text.
+
+                  Also it has code blocks:
+                  \\\`\\\`\\\`python
+                  print('Hello World')
+                  \\\`\\\`\\\`
+
+                  And loooot of other features.
+
+                  \`\`\`
+              `),
+            ),
+        ).toEqual({
+            language: 'markdown',
+            content:
+                spaceTrim(`
+
+                  Markdown has simple formatting like **bold** and *italic* text.
+
+                  Also it has code blocks:
+                  \`\`\`python
+                  print('Hello World')
+                  \`\`\`
+
+                  And loooot of other features.
+
+                `) + '\n',
         });
     });
 
@@ -37,7 +93,7 @@ describe('how extractOneBlockFromMarkdown works', () => {
         expect(() =>
             extractOneBlockFromMarkdown(
                 spaceTrim(`
-                    Hello world
+                    Hello World
                 `),
             ),
         ).toThrowError(/There should be exactly one code block in the markdown/i);
@@ -45,8 +101,8 @@ describe('how extractOneBlockFromMarkdown works', () => {
         expect(() =>
             extractOneBlockFromMarkdown(
                 spaceTrim(`
-                    Hello world
-                    Hello world
+                    Hello World
+                    Hello World
                 `),
             ),
         ).toThrowError(/There should be exactly one code block in the markdown/i);
@@ -54,7 +110,7 @@ describe('how extractOneBlockFromMarkdown works', () => {
         expect(() =>
             extractOneBlockFromMarkdown(
                 spaceTrim(`
-                    # Hello world
+                    # Hello World
 
                     Content with **bold** and *italic* text
                 `),
@@ -90,24 +146,24 @@ describe('how extractOneBlockFromMarkdown works', () => {
         expect(() =>
             extractOneBlockFromMarkdown(
                 spaceTrim(`
-                    # Hello world
+                    # Hello World
 
-                    Hello world in multiple languages:
+                    Hello World in multiple languages:
 
                     ## Python
 
-                    Hello world in Python:
+                    Hello World in Python:
 
                     \`\`\`python
-                    print('Hello world')
+                    print('Hello World')
                     \`\`\`
 
                     ## Javascript
 
-                    Hello world in Javascript:
+                    Hello World in Javascript:
 
                     \`\`\`javascript
-                    console.log('Hello world')
+                    console.log('Hello World')
                     \`\`\`
                 `),
             ),
