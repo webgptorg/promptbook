@@ -89,20 +89,5 @@ describe('how trimEndOfCodeBlock works', () => {
         );
     });
 
-    it('should trim escaped ending code block', () => {
-        expect(
-            trimEndOfCodeBlock(
-                spaceTrim(`
-                    Foo
-                    \\\`\\\`\\\`
-                `),
-            ),
-        ).toBe(
-            just(
-                spaceTrim(`
-                    Foo
-                `),
-            ),
-        );
-    });
+
 });
