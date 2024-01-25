@@ -12,3 +12,7 @@
 ## 0.20.2 _(2024-01-16)_
 
 -   `replaceParameters` works with inlined JSONs
+
+## 0.23.0 _(2024-01-25)_
+
+-   You are able to send markdown code block in prompts _(without traces of escaping)_
