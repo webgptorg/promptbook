@@ -13,7 +13,6 @@ import { extractAllBlocksFromMarkdown } from './extractAllBlocksFromMarkdown';
 export function extractOneBlockFromMarkdown(markdown: string_markdown): { language: string | null; content: string } {
     const codeBlocks = extractAllBlocksFromMarkdown(markdown);
 
-    console.log(markdown);
 
     if (codeBlocks.length !== 1) {
         // TODO: Report more specific place where the error happened

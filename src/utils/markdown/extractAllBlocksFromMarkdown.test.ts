@@ -169,8 +169,8 @@ describe('how extractAllBlocksFromMarkdown works', () => {
                     # Javascript
 
                     \`\`\`javascript
-                    console.log('Hello World')
-                    console.log('Hello Mars')
+                    console.info('Hello World')
+                    console.info('Hello Mars')
                     \`\`\`
 
                     # Unknown
@@ -192,8 +192,8 @@ describe('how extractAllBlocksFromMarkdown works', () => {
             {
                 language: 'javascript',
                 content: spaceTrim(`
-                    console.log('Hello World')
-                    console.log('Hello Mars')
+                    console.info('Hello World')
+                    console.info('Hello Mars')
                 `),
             },
             {
@@ -227,7 +227,7 @@ describe('how extractAllBlocksFromMarkdown works', () => {
                     Hello World in Javascript:
 
                     \`\`\`javascript
-                    console.log('Hello World')
+                    console.info('Hello World')
                     \`\`\`
                 `),
             ),
@@ -238,7 +238,7 @@ describe('how extractAllBlocksFromMarkdown works', () => {
             },
             {
                 language: 'javascript',
-                content: "console.log('Hello World')",
+                content: "console.info('Hello World')",
             },
         ]);
     });
@@ -251,7 +251,7 @@ describe('how extractAllBlocksFromMarkdown works', () => {
                     ## Javascript
 
                     \`\`\`javascript
-                    console.log('Hello 3 backtics \`\`\`')
+                    console.info('Hello 3 backtics \`\`\`')
                     \`\`\`
 
 
@@ -260,7 +260,7 @@ describe('how extractAllBlocksFromMarkdown works', () => {
         ).toEqual([
             {
                 language: 'javascript',
-                content: "console.log('Hello 3 backtics ```')",
+                content: "console.info('Hello 3 backtics ```')",
             },
         ]);
     });
@@ -282,7 +282,7 @@ describe('how extractAllBlocksFromMarkdown works', () => {
                   \\\`\\\`\\\`
 
                   \\\`\\\`\\\`javascript
-                  console.log('Hello World')
+                  console.info('Hello World')
                   \\\`\\\`\\\`
 
                   And loooot of other features.
@@ -310,7 +310,7 @@ describe('how extractAllBlocksFromMarkdown works', () => {
                       \`\`\`
 
                       \`\`\`javascript
-                      console.log('Hello World')
+                      console.info('Hello World')
                       \`\`\`
 
                       And loooot of other features.

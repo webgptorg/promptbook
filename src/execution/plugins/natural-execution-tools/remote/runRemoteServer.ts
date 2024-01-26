@@ -46,7 +46,7 @@ export function runRemoteServer(options: RemoteServerOptions) {
     });
 
     server.on('connection', (socket: Socket) => {
-        console.log(chalk.gray(`Client connected`), socket.id);
+        console.info(chalk.gray(`Client connected`), socket.id);
 
         socket.on('request', async (request: Ptps_Request) => {
             const { prompt, clientId } = request;

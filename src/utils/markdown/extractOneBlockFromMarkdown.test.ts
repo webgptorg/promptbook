@@ -163,7 +163,7 @@ describe('how extractOneBlockFromMarkdown works', () => {
                     Hello World in Javascript:
 
                     \`\`\`javascript
-                    console.log('Hello World')
+                    console.info('Hello World')
                     \`\`\`
                 `),
             ),
