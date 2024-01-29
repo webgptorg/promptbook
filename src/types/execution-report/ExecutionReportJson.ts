@@ -1,5 +1,5 @@
 import type { PromptResult } from '../../execution/PromptResult';
-import type { NaturalTemplateJson } from '../PromptTemplatePipelineJson/PromptTemplateJson';
+import { Prompt } from '../Prompt';
 
 /**
  * ExecutionReport is result of executing one promptbook
@@ -12,6 +12,10 @@ import type { NaturalTemplateJson } from '../PromptTemplatePipelineJson/PromptTe
  * @see https://github.com/webgptorg/promptbook#execution-report
  */
 export type ExecutionReportJson = Array<{
-    prompt: NaturalTemplateJson /* <- TODO: [🧠] Shouldn’t it be here `PromptTemplateJson`; in other words, should we put other template types that LLM execution into the report */;
+    prompt: Omit<Prompt, 'ptbkUrl' | 'parameters'>;
     result: PromptResult;
 }>;
+
+/**
+ * TODO: [🧠] What is the best shape of ExecutionReportJson
+ */

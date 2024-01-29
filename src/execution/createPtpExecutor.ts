@@ -5,12 +5,13 @@ import { PromptTemplatePipeline } from '../classes/PromptTemplatePipeline';
 import { Prompt } from '../types/Prompt';
 import { ExpectationUnit, PromptTemplateJson } from '../types/PromptTemplatePipelineJson/PromptTemplateJson';
 import { TaskProgress } from '../types/TaskProgress';
+import { ExecutionReportJson } from '../types/execution-report/ExecutionReportJson';
 import { CountUtils } from '../utils/expectation-counters';
 import { removeMarkdownFormatting } from '../utils/markdown/removeMarkdownFormatting';
 import { removeEmojis } from '../utils/removeEmojis';
 import { replaceParameters } from '../utils/replaceParameters';
 import { ExecutionTools } from './ExecutionTools';
-import { PromptChatResult, PromptCompletionResult } from './PromptResult';
+import { PromptChatResult, PromptCompletionResult, PromptResult } from './PromptResult';
 import { PtpExecutor } from './PtpExecutor';
 
 interface CreatePtpExecutorOptions {
@@ -32,6 +33,7 @@ export function createPtpExecutor(options: CreatePtpExecutorOptions): PtpExecuto
     ) => {
         let parametersToPass: Record<string_name, string> = inputParameters;
         let currentTemplate: PromptTemplateJson | null = ptp.entryPromptTemplate;
+        const executionReport: ExecutionReportJson = [];
 
         while (currentTemplate !== null) {
             const resultingParameter = ptp.getResultingParameter(currentTemplate.name);
@@ -54,13 +56,14 @@ export function createPtpExecutor(options: CreatePtpExecutorOptions): PtpExecuto
             let prompt: Prompt;
             let chatThread: PromptChatResult;
             let completionResult: PromptCompletionResult;
-            let promptResult: string | null = null;
+            let result: PromptResult;
+            let resultString: string | null = null;
             let scriptExecutionErrors: Array<Error>;
             let isScriptExecutionSuccessful;
 
             executionType: switch (currentTemplate.executionType) {
                 case 'SIMPLE_TEMPLATE':
-                    promptResult = replaceParameters(currentTemplate.content, parametersToPass);
+                    resultString = replaceParameters(currentTemplate.content, parametersToPass);
                     break executionType;
 
                 case 'PROMPT_TEMPLATE':
@@ -77,14 +80,14 @@ export function createPtpExecutor(options: CreatePtpExecutorOptions): PtpExecuto
                     variant: switch (currentTemplate.modelRequirements!.modelVariant) {
                         case 'CHAT':
                             chatThread = await tools.natural.gptChat(prompt);
-                            // TODO: Use all information from chatThread like "model"
                             // TODO: [🍬] Destroy chatThread
-                            promptResult = chatThread.content;
+                            result = chatThread;
+                            resultString = chatThread.content;
                             break variant;
                         case 'COMPLETION':
                             completionResult = await tools.natural.gptComplete(prompt);
-                            // TODO: Use all information from chatThread like "model"
-                            promptResult = completionResult.content;
+                            result = completionResult;
+                            resultString = completionResult.content;
                             break variant;
                         default:
                             throw new Error(
@@ -93,7 +96,7 @@ export function createPtpExecutor(options: CreatePtpExecutorOptions): PtpExecuto
                     }
 
                     for (const [unit, { max, min }] of Object.entries(currentTemplate.expectations)) {
-                        const amount = CountUtils[unit as ExpectationUnit](promptResult);
+                        const amount = CountUtils[unit as ExpectationUnit](resultString);
 
                         // TODO: !!!!! Do not crash BUT retry some amount of times
 
@@ -105,6 +108,15 @@ export function createPtpExecutor(options: CreatePtpExecutorOptions): PtpExecuto
                             throw new Error(`Expected at most ${max} ${unit} but got ${amount}`);
                         }
                     }
+
+                    executionReport.push({
+                        prompt: {
+                            content: prompt.content,
+                            modelRequirements: prompt.modelRequirements,
+                            // <- Note: Do want to pass ONLY wanted information to the report
+                        },
+                        result,
+                    });
 
                     break executionType;
 
@@ -121,7 +133,7 @@ export function createPtpExecutor(options: CreatePtpExecutorOptions): PtpExecuto
 
                     scripts: for (const scriptTools of tools.script) {
                         try {
-                            promptResult = await scriptTools.execute({
+                            resultString = await scriptTools.execute({
                                 scriptLanguage: currentTemplate.contentLanguage,
                                 script: currentTemplate.content,
                                 parameters: parametersToPass,
@@ -162,7 +174,7 @@ export function createPtpExecutor(options: CreatePtpExecutorOptions): PtpExecuto
                     break executionType;
 
                 case 'PROMPT_DIALOG':
-                    promptResult = await tools.userInterface.promptDialog({
+                    resultString = await tools.userInterface.promptDialog({
                         prompt: replaceParameters(currentTemplate.description || '', parametersToPass),
                         defaultValue: replaceParameters(currentTemplate.content, parametersToPass),
 
@@ -176,7 +188,7 @@ export function createPtpExecutor(options: CreatePtpExecutorOptions): PtpExecuto
                     throw new Error(`Unknown execution type "${(currentTemplate as any).executionType}"`);
             }
 
-            if (promptResult === null) {
+            if (resultString === null) {
                 //              <- TODO: [🥨] Make some NeverShouldHappenError
                 throw new Error('Something went wrong and prompt result is null');
             }
@@ -189,14 +201,14 @@ export function createPtpExecutor(options: CreatePtpExecutorOptions): PtpExecuto
                     isDone: true,
                     executionType: currentTemplate.executionType,
                     parameterName: resultingParameter.name,
-                    parameterValue: promptResult,
+                    parameterValue: resultString,
                 });
             }
 
             parametersToPass = {
                 ...parametersToPass,
                 [resultingParameter.name]:
-                    promptResult /* <- Note: Not need to detect parameter collision here because PromptTemplatePipeline checks logic consistency during construction */,
+                    resultString /* <- Note: Not need to detect parameter collision here because PromptTemplatePipeline checks logic consistency during construction */,
             };
 
             currentTemplate = ptp.getFollowingPromptTemplate(currentTemplate!.name);
