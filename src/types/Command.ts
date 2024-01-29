@@ -88,7 +88,7 @@ export interface PostprocessCommand {
  */
 export interface ExpectCommand {
     readonly type: 'EXPECT';
-    readonly sign: 'EXACT' | 'MINIMUM' | 'MAXIMUM';
+    readonly sign: 'EXACTLY' | 'MINIMUM' | 'MAXIMUM';
     readonly unit: ExpectationUnit;
     readonly amount: ExpectationAmount;
 }

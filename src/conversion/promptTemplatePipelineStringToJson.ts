@@ -191,7 +191,7 @@ export function promptTemplatePipelineStringToJson(
 
                     expectations[unit] = expectations[unit] || {};
 
-                    if (command.sign === 'MINIMUM' || command.sign === 'EXACT') {
+                    if (command.sign === 'MINIMUM' || command.sign === 'EXACTLY') {
                         if (expectations[unit]!.min !== undefined) {
                             throw new Error(
                                 `Already defined minumum ${
@@ -201,7 +201,7 @@ export function promptTemplatePipelineStringToJson(
                         }
                         expectations[unit]!.min = command.amount;
                     } /* not else */
-                    if (command.sign === 'MAXIMUM' || command.sign === 'EXACT') {
+                    if (command.sign === 'MAXIMUM' || command.sign === 'EXACTLY') {
                         if (expectations[unit]!.max !== undefined) {
                             throw new Error(
                                 `Already defined maximum ${
