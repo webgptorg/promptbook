@@ -91,31 +91,31 @@ describe('how trimCodeBlock works', () => {
         expect(
             trimCodeBlock(
                 spaceTrim(`
-                  \`\`\`
-                  Foo
-                  \`\`\`
-              `),
+                    \`\`\`
+                    Foo
+                    \`\`\`
+                `),
             ),
         ).toBe(
             just(
                 spaceTrim(`
-                  Foo
-              `),
+                    Foo
+                `),
             ),
         );
         expect(
             trimCodeBlock(
                 spaceTrim(`
-                  \`\`\`text
-                  Foo
-                  \`\`\`
-              `),
+                    \`\`\`text
+                    Foo
+                    \`\`\`
+                `),
             ),
         ).toBe(
             just(
                 spaceTrim(`
-                  Foo
-              `),
+                    Foo
+                `),
             ),
         );
 

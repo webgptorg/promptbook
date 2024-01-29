@@ -6,7 +6,17 @@
  *
  */
 
+import spaceTrim from 'spacetrim';
+
 export function trimCodeBlock(value: string): string {
-    // TODO: !!! Implement
+    value = spaceTrim(value);
+    if (!/^```[a-z]*(.*)```$/is.test(value)) {
+        return value;
+    }
+
+    value = value.replace(/^```[a-z]*/i, '');
+    value = value.replace(/```$/i, '');
+    value = spaceTrim(value);
+
     return value;
 }
