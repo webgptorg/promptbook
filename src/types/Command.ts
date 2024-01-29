@@ -1,9 +1,9 @@
 import {
-    number_integer,
-    number_positive,
-    string_markdown_text,
-    string_name,
-    string_version,
+  number_integer,
+  number_positive,
+  string_markdown_text,
+  string_name,
+  string_version,
 } from '.././types/typeAliases';
 import { ExecutionType } from './ExecutionTypes';
 import { ModelRequirements } from './ModelRequirements';
@@ -94,6 +94,6 @@ export interface PostprocessCommand {
 export interface ExpectCommand {
     readonly type: 'EXPECT';
     readonly sign: 'EXACTLY' | 'MINIMUM' | 'MAXIMUM';
-    readonly unit: 'CHARACTER' | 'WORD' | 'SENTENCE' | 'PARAGRAPH' | 'LINE';
-    readonly amount: number_positive & number_integer;
+    readonly unit: 'CHARACTER' | 'WORD' | 'SENTENCE' | 'PARAGRAPH' | 'LINE' | 'PAGE';
+    readonly amount: number_integer & number_positive;
 }

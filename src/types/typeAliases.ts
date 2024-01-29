@@ -522,7 +522,7 @@ export type number_weeks = number;
 export type number_months = number;
 export type number_years = number;
 
-export type number_bytes = number_positive & number_integer;
+export type number_bytes = number_integer & number_positive;
 export type number_kilobytes = number_positive;
 export type number_megabytes = number_positive;
 export type number_gigabytes = number_positive;
