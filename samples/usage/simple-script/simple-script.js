@@ -3,6 +3,7 @@
 import { PromptTemplatePipelineLibrary } from '@promptbook/core';
 import { JavascriptEvalExecutionTools } from '@promptbook/execute-javascript';
 import { OpenAiExecutionTools } from '@promptbook/openai';
+import { executionReportJsonToString } from '@promptbook/utils';
 import chalk from 'chalk';
 import * as dotenv from 'dotenv';
 import { readFile, writeFile } from 'fs/promises';
@@ -19,8 +20,10 @@ main();
 async function main() {
     console.info(chalk.bgGray('⚪ Testing basic capabilities of PromptBook'));
 
+    const sampleName = '50-advanced';
+
     const library = PromptTemplatePipelineLibrary.fromSources({
-        advanced: await readFile('./samples/templates/50-advanced.ptbk.md', 'utf-8'),
+        advanced: await readFile(`./samples/templates/${sampleName}.ptbk.md`, 'utf-8'),
     });
 
     const tools = {
@@ -43,9 +46,17 @@ async function main() {
 
     console.info(output);
 
+    const executionReportJson = [
+        /* !!!!! */
+    ];
+    await writeFile(
+        `./samples/templates/${sampleName}.report.json`,
+        JSON.stringify(executionReportJson, null, 4) + '\n',
+        'utf-8',
+    );
 
-    const executionReportString = executionReportJsonToString(output.executionReport /* <- !!!!! */);
-     await writeFile('./samples/templates/50-advanced.report.md',executionReportString, 'utf-8'),
+    const executionReportString = executionReportJsonToString(executionReportJson);
+    await writeFile(`./samples/templates/${sampleName}.report.md`, executionReportString, 'utf-8');
 }
 
 /**
