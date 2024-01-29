@@ -1,3 +1,4 @@
+import { executionReportJsonToString } from '../types/execution-report/executionReportJsonToString';
 import { EMOJIS, EMOJIS_IN_CATEGORIES } from '../utils/emojis';
 import { isValidJsonString } from '../utils/isValidJsonString';
 import { extractAllBlocksFromMarkdown } from '../utils/markdown/extractAllBlocksFromMarkdown';
@@ -8,12 +9,14 @@ import { removeMarkdownFormatting } from '../utils/markdown/removeMarkdownFormat
 import { removeEmojis } from '../utils/removeEmojis';
 import { removeQuotes } from '../utils/removeQuotes';
 import { replaceParameters } from '../utils/replaceParameters';
+import { trimCodeBlock } from '../utils/trimCodeBlock';
 import { trimEndOfCodeBlock } from '../utils/trimEndOfCodeBlock';
 import { unwrapResult } from '../utils/unwrapResult';
 
 export {
     EMOJIS,
     EMOJIS_IN_CATEGORIES,
+    executionReportJsonToString,
     extractAllBlocksFromMarkdown,
     extractAllListItemsFromMarkdown,
     extractOneBlockFromMarkdown,
@@ -23,6 +26,7 @@ export {
     removeMarkdownFormatting,
     removeQuotes,
     replaceParameters,
+    trimCodeBlock,
     trimEndOfCodeBlock,
     unwrapResult,
 };

@@ -17,7 +17,7 @@ export type PromptTemplateJson = NaturalTemplateJson | SimpleTemplateJson | Scri
 /**
  * Template for prompt to LLM
  */
-interface NaturalTemplateJson extends PromptTemplateJsonCommon {
+export interface NaturalTemplateJson extends PromptTemplateJsonCommon {
     readonly executionType: 'PROMPT_TEMPLATE';
 
     /**

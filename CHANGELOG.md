@@ -19,7 +19,8 @@
 -   Postprocessing function `trimEndOfCodeBlock` is not working with escaped code blocks JUST with markdown code blocks
 -   Rename `extractBlocksFromMarkdown` to `extractAllBlocksFromMarkdown`
 
-
 ## 0.24.0 _(2024-01-25)_
 
 -   Add postprocessing function `trimCodeBlock`
+-   Add `EXPECT` command to promptbooks
+-   Add `ExecutionReport`

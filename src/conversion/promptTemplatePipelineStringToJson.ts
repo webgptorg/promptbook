@@ -183,6 +183,10 @@ export function promptTemplatePipelineStringToJson(
                     postprocessingCommands.push(command);
                     break;
 
+                case 'EXPECT':
+                  postprocessingCommands.push(command);
+                  break;
+
                 default:
                     throw new Error(
                         `Command ${command.type} is not allowed in the block of the prompt template ONLY at the head of the prompt template pipeline`,

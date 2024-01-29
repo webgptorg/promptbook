@@ -434,6 +434,12 @@ _Note: LLMs work with tokens, not characters, but in Promptbooks we want to use 
 ...
 ```
 
+### Execution report
+
+Execution report is a simple object or markdown that contains information about the execution of the prompt template pipeline.
+
+<!-- TODO: Write more -->
+
 ### Remote server
 
 Remote server is a proxy server that uses its execution tools internally and exposes the executor interface externally.
