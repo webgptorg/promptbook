@@ -184,8 +184,8 @@ export function promptTemplatePipelineStringToJson(
                     break;
 
                 case 'EXPECT':
-                  postprocessingCommands.push(command);
-                  break;
+                    // !!!!!!!
+                    break;
 
                 default:
                     throw new Error(

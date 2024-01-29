@@ -20,6 +20,8 @@ export type PromptTemplateJson = NaturalTemplateJson | SimpleTemplateJson | Scri
 export interface NaturalTemplateJson extends PromptTemplateJsonCommon {
     readonly executionType: 'PROMPT_TEMPLATE';
 
+    // !!!!!!! Expect
+
     /**
      * Requirements for the model
      * - This is required only for executionType PROMPT_TEMPLATE
