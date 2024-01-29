@@ -1,4 +1,10 @@
-import { string_markdown_text, string_name, string_version } from '.././types/typeAliases';
+import {
+    number_integer,
+    number_positive,
+    string_markdown_text,
+    string_name,
+    string_version,
+} from '.././types/typeAliases';
 import { ExecutionType } from './ExecutionTypes';
 import { ModelRequirements } from './ModelRequirements';
 
@@ -12,7 +18,8 @@ export type Command =
     | ExecuteCommand
     | ModelCommand
     | ParameterCommand
-    | PostprocessCommand;
+    | PostprocessCommand
+    | ExpectCommand;
 
 /**
  * PtpVersion command tells which version is .ptp file using
@@ -76,4 +83,17 @@ export interface ParameterCommand {
 export interface PostprocessCommand {
     readonly type: 'POSTPROCESS';
     readonly functionName: string_name;
+}
+
+/**
+ * Expect command describes the desired output of the prompt template (after post-processing)
+ * It can set limits for the maximum/minimum length of the output, measured in characters, words, sentences, paragraphs,...
+ *
+ * Note: LLMs work with tokens, not characters, but in Promptbooks we want to use some human-recognisable and cross-model interoperable units.
+ */
+export interface ExpectCommand {
+    readonly type: 'EXPECT';
+    readonly sign: 'EXACTLY' | 'MINIMUM' | 'MAXIMUM';
+    readonly unit: 'CHARACTER' | 'WORD' | 'SENTENCE' | 'PARAGRAPH' | 'LINE';
+    readonly amount: number_positive & number_integer;
 }

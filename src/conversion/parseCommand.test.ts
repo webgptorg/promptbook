@@ -250,6 +250,128 @@ describe('how parseCommand works', () => {
         });
     });
 
+    it('should parse EXPECT command', () => {
+        expect(parseCommand('Expect 1 character')).toEqual({
+            type: 'EXPECT',
+            sign: 'EXACTLY',
+            unit: 'character',
+            amount: 1,
+        });
+
+        expect(parseCommand('Expect 1 char')).toEqual({
+            type: 'EXPECT',
+            sign: 'EXACTLY',
+            unit: 'character',
+            amount: 1,
+        });
+
+        expect(parseCommand('Expect mininimum 1 character')).toEqual({
+            type: 'EXPECT',
+            sign: 'MINIMUM',
+            unit: 'character',
+            amount: 1,
+        });
+
+        expect(parseCommand('Expect minimally 1 character')).toEqual({
+            type: 'EXPECT',
+            sign: 'MINIMUM',
+            unit: 'character',
+            amount: 1,
+        });
+
+        expect(parseCommand('Expect min 1 char')).toEqual({
+            type: 'EXPECT',
+            sign: 'MINIMUM',
+            unit: 'character',
+            amount: 1,
+        });
+
+        expect(parseCommand('Expect maximum 5 character')).toEqual({
+            type: 'EXPECT',
+            sign: 'MAXIMUM',
+            unit: 'character',
+            amount: 5,
+        });
+
+        expect(parseCommand('Expect maximally 5 character')).toEqual({
+            type: 'EXPECT',
+            sign: 'MAXIMUM',
+            unit: 'character',
+            amount: 5,
+        });
+
+        expect(parseCommand('Expect max 5 char')).toEqual({
+            type: 'EXPECT',
+            sign: 'MAXIMUM',
+            unit: 'character',
+            amount: 5,
+        });
+
+        expect(parseCommand('Expect 1 word')).toEqual({
+            type: 'EXPECT',
+            sign: 'EXACTLY',
+            unit: 'word',
+            amount: 1,
+        });
+        expect(parseCommand('Expect 2 words')).toEqual({
+            type: 'EXPECT',
+            sign: 'EXACTLY',
+            unit: 'word',
+            amount: 2,
+        });
+
+        expect(parseCommand('Expect 1 sentence')).toEqual({
+            type: 'EXPECT',
+            sign: 'EXACTLY',
+            unit: 'sentence',
+            amount: 1,
+        });
+
+        expect(parseCommand('Expect 2 sentences')).toEqual({
+            type: 'EXPECT',
+            sign: 'EXACTLY',
+            unit: 'sentence',
+            amount: 2,
+        });
+
+        expect(parseCommand('Expect 0 sentences')).toEqual({
+            type: 'EXPECT',
+            sign: 'EXACTLY',
+            unit: 'sentence',
+            amount: 0,
+        });
+
+        expect(parseCommand('Expect 1 paragraph')).toEqual({
+            type: 'EXPECT',
+            sign: 'EXACTLY',
+            unit: 'paragraph',
+            amount: 1,
+        });
+
+        expect(parseCommand('Expect 2 paragraphs')).toEqual({
+            type: 'EXPECT',
+            sign: 'EXACTLY',
+            unit: 'paragraph',
+            amount: 2,
+        });
+
+        expect(parseCommand('Expect 1 line')).toEqual({
+            type: 'EXPECT',
+            sign: 'EXACTLY',
+            unit: 'line',
+            amount: 1,
+        });
+
+        expect(parseCommand('Expect 2 lines')).toEqual({
+            type: 'EXPECT',
+            sign: 'EXACTLY',
+            unit: 'line',
+            amount: 2,
+        });
+
+        // TODO: Add page
+    });
+
     it('should fail parsing POSTPROCESS command', () => {
         expect(() => parseCommand('Postprocess spaceTrim unwrapResult')).toThrowError(
             /Invalid POSTPROCESSING command/i,

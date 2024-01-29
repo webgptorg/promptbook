@@ -1,5 +1,4 @@
-# ✨ Sample: Postprocessing 2
-
+# ✨ Sample: Expectations
 
 -   PTBK URL https://ptbk.example.com/samples/postprocessing-2.ptbk.md@v1
 -   PTBK version 1.0.0
@@ -7,9 +6,11 @@
 
 ## 💬 Question
 
--   Postprocess reverse
--   Postprocess removeDiacritics
--   Postprocess normalizeTo_SCREAMING_CASE
+-   Expect max 30 characters
+-   Expect min 2 characters
+-   Expect max 3 words
+-   Expect 1 sentence
+-   Expect 1 line
 
 ```markdown
 Hello {yourName}!
