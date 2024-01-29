@@ -26,7 +26,7 @@ async function main() {
     runRemoteServer({
         port: 4460,
         ptbkLibrary: library,
-        createNaturalExecutionTools(clientId) {
+        createNaturalExecutionTools(/* clientId */) {
             // console.log('clientId', clientId);
             // TODO: !!! Use clientId with logging
             return new OpenAiExecutionTools({
