@@ -17,7 +17,7 @@ Synonym for word
 -   MODEL VARIANT Chat
 -   MODEL NAME `gpt-3.5-turbo`
 -   Postprocessing `unwrapResult`
--   Expect 1 word
+-   Expect exactly 1 word
 
 ```text
 Write synonym for "{word}"
@@ -46,7 +46,7 @@ Sentence with word and wordSynonym
 -   MODEL VARIANT Chat
 -   MODEL NAME `gpt-3.5-turbo`
 -   Expect max 20 words
--   Expect 1 sentence
+-   Expect exactly 1 sentence
 
 ```text
 Write sentence with "{word}" and "{wordSynonym}" in it
@@ -61,7 +61,7 @@ Sentence "{sentenceWithTwoSynonyms}" without "{word}".
 -   MODEL VARIANT Chat
 -   MODEL NAME `gpt-3.5-turbo`
 -   Expect max 20 words
--   Expect 1 sentence
+-   Expect exactly 1 sentence
 
 ```markdown
 Remove word "{word}" from sentence and modify it so that it makes sense:

@@ -1,4 +1,6 @@
 import {
+    number_integer,
+    number_positive,
     string_javascript,
     string_markdown,
     string_name,
@@ -20,7 +22,12 @@ export type PromptTemplateJson = NaturalTemplateJson | SimpleTemplateJson | Scri
 export interface NaturalTemplateJson extends PromptTemplateJsonCommon {
     readonly executionType: 'PROMPT_TEMPLATE';
 
-    // !!!!!!! Expect
+    /**
+     * Expectations for the answer
+     */
+    readonly expectations: Partial<Record<Lowercase<ExpectationUnit>, { min?: ExpectationAmount; max?: ExpectationAmount }>>;
+
+    // [🧠] !!!!! Postprocessing + expectations OR via branching
 
     /**
      * Requirements for the model
@@ -28,6 +35,21 @@ export interface NaturalTemplateJson extends PromptTemplateJsonCommon {
      */
     readonly modelRequirements?: ModelRequirements;
 }
+
+/**
+ * Units of text measurement
+ */
+export const EXPECTATION_UNITS = ['CHARACTERS', 'WORDS', 'SENTENCES', 'PARAGRAPHS', 'LINES', 'PAGES'] as const;
+
+/**
+ * Unit of text measurement
+ */
+export type ExpectationUnit = typeof EXPECTATION_UNITS[number];
+
+/**
+ * Amount of text measurement
+ */
+export type ExpectationAmount = number_integer & number_positive;
 
 /**
  * Template for simple concatenation of strings

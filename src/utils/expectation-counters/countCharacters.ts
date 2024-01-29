@@ -1,9 +1,9 @@
-import type { number_integer, number_positive } from '../../types/typeAliases';
+import type { ExpectationAmount } from '../../types/PromptTemplatePipelineJson/PromptTemplateJson';
 
 /**
  * Counts mumber of characters in the text
  */
 
-export function countCharacters(text: string): number_integer & number_positive {
+export function countCharacters(text: string): ExpectationAmount {
     return text.length; /* <- TODO: Maybe better according to UTF-8? */
 }

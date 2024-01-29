@@ -24,3 +24,4 @@
 -   Add postprocessing function `trimCodeBlock`
 -   Add `EXPECT` command to promptbooks
 -   Add `ExecutionReport`
+-   Add `parseNumber` utility function

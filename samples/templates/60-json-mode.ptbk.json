@@ -25,6 +25,7 @@
             "name": "ExtrakceKontaktnChDaj",
             "title": "🖋 Extrakce kontaktních údajů",
             "executionType": "PROMPT_TEMPLATE",
+            "expectations": {},
             "modelRequirements": {
                 "modelVariant": "COMPLETION",
                 "modelName": "gpt-3.5-turbo-instruct"

@@ -3,8 +3,9 @@ import { Promisable } from 'type-fest';
 import { string_name } from '.././types/typeAliases';
 import { PromptTemplatePipeline } from '../classes/PromptTemplatePipeline';
 import { Prompt } from '../types/Prompt';
-import { PromptTemplateJson } from '../types/PromptTemplatePipelineJson/PromptTemplateJson';
+import { ExpectationUnit, PromptTemplateJson } from '../types/PromptTemplatePipelineJson/PromptTemplateJson';
 import { TaskProgress } from '../types/TaskProgress';
+import { CountUtils } from '../utils/expectation-counters';
 import { removeMarkdownFormatting } from '../utils/markdown/removeMarkdownFormatting';
 import { removeEmojis } from '../utils/removeEmojis';
 import { replaceParameters } from '../utils/replaceParameters';
@@ -90,6 +91,21 @@ export function createPtpExecutor(options: CreatePtpExecutorOptions): PtpExecuto
                                 `Unknown model variant "${currentTemplate.modelRequirements!.modelVariant}"`,
                             );
                     }
+
+                    for (const [unit, { max, min }] of Object.entries(currentTemplate.expectations)) {
+                        const amount = CountUtils[unit as ExpectationUnit](promptResult);
+
+                        // TODO: !!!!! Do not crash BUT retry some amount of times
+
+                        if (min && amount < min) {
+                            throw new Error(`Expected at least ${min} ${unit} but got ${amount}`);
+                        } /* not else */
+
+                        if (max && amount > max) {
+                            throw new Error(`Expected at most ${max} ${unit} but got ${amount}`);
+                        }
+                    }
+
                     break executionType;
 
                 case 'SCRIPT':

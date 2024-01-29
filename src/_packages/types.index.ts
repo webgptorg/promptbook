@@ -9,7 +9,12 @@ import { ExecutionType } from '../types/ExecutionTypes';
 import { ModelRequirements, ModelVariant } from '../types/ModelRequirements';
 import { Parameters } from '../types/Parameters';
 import { Prompt } from '../types/Prompt';
-import { PromptTemplateJson } from '../types/PromptTemplatePipelineJson/PromptTemplateJson';
+import {
+    EXPECTATION_UNITS,
+    ExpectationAmount,
+    ExpectationUnit,
+    PromptTemplateJson,
+} from '../types/PromptTemplatePipelineJson/PromptTemplateJson';
 import { PromptTemplateParameterJson } from '../types/PromptTemplatePipelineJson/PromptTemplateParameterJson';
 import { PromptTemplatePipelineJson } from '../types/PromptTemplatePipelineJson/PromptTemplatePipelineJson';
 import { PromptTemplatePipelineString } from '../types/PromptTemplatePipelineString';
@@ -109,8 +114,11 @@ import {
 
 export {
     CommonExecutionToolsOptions,
+    EXPECTATION_UNITS,
     ExecutionTools,
     ExecutionType,
+    ExpectationAmount,
+    ExpectationUnit,
     ILicense,
     IPersonProfile,
     IRepository,

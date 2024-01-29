@@ -1,9 +1,20 @@
 import { normalizeTo_SCREAMING_CASE } from 'n12';
 import spaceTrim from 'spacetrim';
-import { string_markdown_text } from '.././types/typeAliases';
-import { Command } from '../types/Command';
+import type { string_markdown_text } from '.././types/typeAliases';
+import type {
+    Command,
+    ExecuteCommand,
+    ExpectCommand,
+    ModelCommand,
+    ParameterCommand,
+    PostprocessCommand,
+    PtbkUrlCommand,
+    PtbkVersionCommand,
+} from '../types/Command';
 import { ExecutionTypes } from '../types/ExecutionTypes';
+import { EXPECTATION_UNITS } from '../types/PromptTemplatePipelineJson/PromptTemplateJson';
 import { removeMarkdownFormatting } from '../utils/markdown/removeMarkdownFormatting';
+import { parseNumber } from '../utils/parseNumber';
 
 /**
  * Parses one line of ul/ol to command
@@ -85,7 +96,7 @@ export function parseCommand(listItem: string_markdown_text): Command {
         return {
             type: 'PTBK_URL',
             ptbkUrl,
-        };
+        } satisfies PtbkUrlCommand;
     } else if (type.startsWith('PTBK_VERSION')) {
         if (listItemParts.length !== 2) {
             throw new Error(
@@ -105,7 +116,7 @@ export function parseCommand(listItem: string_markdown_text): Command {
         return {
             type: 'PTBK_VERSION',
             ptbkVersion,
-        };
+        } satisfies PtbkVersionCommand;
     } else if (
         type.startsWith('EXECUTE') ||
         type.startsWith('EXEC') ||
@@ -132,7 +143,7 @@ export function parseCommand(listItem: string_markdown_text): Command {
         return {
             type: 'EXECUTE',
             executionType: executionTypes[0]!,
-        };
+        } satisfies ExecuteCommand;
     } else if (type.startsWith('MODEL')) {
         // TODO: Make this more elegant and dynamically
         if (type.startsWith('MODEL_VARIANT')) {
@@ -141,13 +152,13 @@ export function parseCommand(listItem: string_markdown_text): Command {
                     type: 'MODEL',
                     key: 'modelVariant',
                     value: 'CHAT',
-                };
+                } satisfies ModelCommand;
             } else if (type === 'MODEL_VARIANT_COMPLETION') {
                 return {
                     type: 'MODEL',
                     key: 'modelVariant',
                     value: 'COMPLETION',
-                };
+                } satisfies ModelCommand;
             } else {
                 throw new Error(
                     spaceTrim(
@@ -168,7 +179,7 @@ export function parseCommand(listItem: string_markdown_text): Command {
                 type: 'MODEL',
                 key: 'modelName',
                 value: listItemParts.pop()!,
-            };
+            } satisfies ModelCommand;
         } else {
             throw new Error(
                 spaceTrim(
@@ -235,7 +246,7 @@ export function parseCommand(listItem: string_markdown_text): Command {
             parameterName,
             parameterDescription: parameterDescription.trim() || null,
             isInputParameter,
-        };
+        } satisfies ParameterCommand;
     } else if (type.startsWith('POSTPROCESS') || type.startsWith('POST_PROCESS')) {
         if (listItemParts.length !== 2) {
             throw new Error(
@@ -254,7 +265,68 @@ export function parseCommand(listItem: string_markdown_text): Command {
         return {
             type: 'POSTPROCESS',
             functionName,
-        };
+        } satisfies PostprocessCommand;
+    } else if (type.startsWith('EXPECT')) {
+        try {
+            listItemParts.shift();
+
+            let sign: ExpectCommand['sign'];
+            const signRaw = listItemParts.shift()!;
+            if (/^exact/i.test(signRaw)) {
+                sign = 'EXACT';
+            } else if (/^min/i.test(signRaw)) {
+                sign = 'MINIMUM';
+            } else if (/^max/i.test(signRaw)) {
+                sign = 'MAXIMUM';
+            } else {
+                throw new Error(`Invalid sign "${signRaw}"`);
+            }
+
+            const amountRaw = listItemParts.shift()!;
+            const amount = parseNumber(amountRaw);
+            if (amount <= 0) {
+                throw new Error('Amount must be positive number');
+            }
+            if (amount !== Math.floor(amount)) {
+                throw new Error('Amount must be whole number');
+            }
+
+            const unitRaw = listItemParts.shift()!;
+            let unit: ExpectCommand['unit'] | undefined = undefined;
+            for (const existingUnit of EXPECTATION_UNITS) {
+                if (
+                    new RegExp(`^${existingUnit}`, 'i').test(unitRaw) ||
+                    new RegExp(`^${unitRaw}`, 'i').test(existingUnit)
+                ) {
+                    unit = existingUnit;
+                    break;
+                }
+            }
+            if (!unit) {
+                throw new Error(`Invalid unit "${unitRaw}"`);
+            }
+
+            return {
+                type: 'EXPECT',
+                sign,
+                unit,
+                amount,
+            } satisfies ExpectCommand;
+        } catch (error) {
+            if (!(error instanceof Error)) {
+                throw error;
+            }
+
+            throw new Error(
+                spaceTrim(
+                    `
+                  Invalid EXPECT command; ${error.message}:
+
+                  - ${listItem}
+              `,
+                ),
+            );
+        }
     } else {
         throw new Error(
             spaceTrim(

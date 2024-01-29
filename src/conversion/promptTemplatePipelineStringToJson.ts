@@ -5,6 +5,7 @@ import { DEFAULT_MODEL_REQUIREMENTS, PTBK_VERSION } from '../config';
 import { ParameterCommand, PostprocessCommand } from '../types/Command';
 import { ExecutionType } from '../types/ExecutionTypes';
 import { ModelRequirements } from '../types/ModelRequirements';
+import { ExpectationUnit, NaturalTemplateJson } from '../types/PromptTemplatePipelineJson/PromptTemplateJson';
 import { PromptTemplateParameterJson } from '../types/PromptTemplatePipelineJson/PromptTemplateParameterJson';
 import { PromptTemplatePipelineJson } from '../types/PromptTemplatePipelineJson/PromptTemplatePipelineJson';
 import { PromptTemplatePipelineString } from '../types/PromptTemplatePipelineString';
@@ -155,6 +156,7 @@ export function promptTemplatePipelineStringToJson(
         const postprocessingCommands: Array<PostprocessCommand> = [];
         const listItems = extractAllListItemsFromMarkdown(section.content);
         let executionType: ExecutionType = 'PROMPT_TEMPLATE';
+        const expectations: NaturalTemplateJson['expectations'] = {};
         let isExecutionTypeChanged = false;
 
         for (const listItem of listItems) {
@@ -184,7 +186,31 @@ export function promptTemplatePipelineStringToJson(
                     break;
 
                 case 'EXPECT':
-                    // !!!!!!!
+                    // eslint-disable-next-line no-case-declarations
+                    const unit = command.unit.toLowerCase() as Lowercase<ExpectationUnit>;
+
+                    expectations[unit] = expectations[unit] || {};
+
+                    if (command.sign === 'MINIMUM' || command.sign === 'EXACT') {
+                        if (expectations[unit]!.min !== undefined) {
+                            throw new Error(
+                                `Already defined minumum ${
+                                    expectations[unit]!.min
+                                } ${command.unit.toLowerCase()}, now trying to redefine it to ${command.amount}`,
+                            );
+                        }
+                        expectations[unit]!.min = command.amount;
+                    } /* not else */
+                    if (command.sign === 'MAXIMUM' || command.sign === 'EXACT') {
+                        if (expectations[unit]!.max !== undefined) {
+                            throw new Error(
+                                `Already defined maximum ${
+                                    expectations[unit]!.max
+                                } ${command.unit.toLowerCase()}, now trying to redefine it to ${command.amount}`,
+                            );
+                        }
+                        expectations[unit]!.max = command.amount;
+                    }
                     break;
 
                 default:
@@ -280,6 +306,7 @@ export function promptTemplatePipelineStringToJson(
             title: section.title,
             description,
             executionType,
+            expectations,
             modelRequirements: templateModelRequirements,
             contentLanguage: executionType === 'SCRIPT' ? (language as ScriptLanguage) : undefined,
             content,

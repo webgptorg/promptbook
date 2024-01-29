@@ -1,12 +1,7 @@
-import {
-  number_integer,
-  number_positive,
-  string_markdown_text,
-  string_name,
-  string_version,
-} from '.././types/typeAliases';
-import { ExecutionType } from './ExecutionTypes';
-import { ModelRequirements } from './ModelRequirements';
+import type { string_markdown_text, string_name, string_version } from '.././types/typeAliases';
+import type { ExecutionType } from './ExecutionTypes';
+import type { ModelRequirements } from './ModelRequirements';
+import type { ExpectationAmount, ExpectationUnit } from './PromptTemplatePipelineJson/PromptTemplateJson';
 
 /**
  * Command is one piece of the prompt template which adds some logic to the prompt template or the whole pipeline.
@@ -93,7 +88,7 @@ export interface PostprocessCommand {
  */
 export interface ExpectCommand {
     readonly type: 'EXPECT';
-    readonly sign: 'EXACTLY' | 'MINIMUM' | 'MAXIMUM';
-    readonly unit: 'CHARACTER' | 'WORD' | 'SENTENCE' | 'PARAGRAPH' | 'LINE' | 'PAGE';
-    readonly amount: number_integer & number_positive;
+    readonly sign: 'EXACT' | 'MINIMUM' | 'MAXIMUM';
+    readonly unit: ExpectationUnit;
+    readonly amount: ExpectationAmount;
 }

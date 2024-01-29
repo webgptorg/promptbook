@@ -2,7 +2,6 @@
     "title": "✨ Sample: Postprocessing 2",
     "ptbkUrl": "https://ptbk.example.com/samples/postprocessing-2.ptbk.md@v1",
     "ptbkVersion": "1.0.0",
-    "description": "Show how to use a simple prompt with no parameters.",
     "parameters": [
         {
             "name": "yourName",
@@ -34,6 +33,7 @@
             "name": "Question",
             "title": "💬 Question",
             "executionType": "PROMPT_TEMPLATE",
+            "expectations": {},
             "modelRequirements": {
                 "modelVariant": "CHAT",
                 "modelName": "gpt-3.5-turbo"

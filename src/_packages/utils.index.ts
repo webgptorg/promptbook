@@ -1,5 +1,6 @@
 import { executionReportJsonToString } from '../types/execution-report/executionReportJsonToString';
 import { EMOJIS, EMOJIS_IN_CATEGORIES } from '../utils/emojis';
+import { CountUtils } from '../utils/expectation-counters';
 import { countCharacters } from '../utils/expectation-counters/countCharacters';
 import { countLines } from '../utils/expectation-counters/countLines';
 import { countPages } from '../utils/expectation-counters/countPages';
@@ -12,6 +13,7 @@ import { extractAllListItemsFromMarkdown } from '../utils/markdown/extractAllLis
 import { extractOneBlockFromMarkdown } from '../utils/markdown/extractOneBlockFromMarkdown';
 import { removeContentComments } from '../utils/markdown/removeContentComments';
 import { removeMarkdownFormatting } from '../utils/markdown/removeMarkdownFormatting';
+import { parseNumber } from '../utils/parseNumber';
 import { removeEmojis } from '../utils/removeEmojis';
 import { removeQuotes } from '../utils/removeQuotes';
 import { replaceParameters } from '../utils/replaceParameters';
@@ -20,6 +22,7 @@ import { trimEndOfCodeBlock } from '../utils/trimEndOfCodeBlock';
 import { unwrapResult } from '../utils/unwrapResult';
 
 export {
+    CountUtils,
     EMOJIS,
     EMOJIS_IN_CATEGORIES,
     countCharacters,
@@ -33,6 +36,7 @@ export {
     extractAllListItemsFromMarkdown,
     extractOneBlockFromMarkdown,
     isValidJsonString,
+    parseNumber,
     removeContentComments,
     removeEmojis,
     removeMarkdownFormatting,

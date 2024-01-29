@@ -428,8 +428,8 @@ _Note: LLMs work with tokens, not characters, but in Promptbooks we want to use 
 -   Expect max 30 characters
 -   Expect min 2 characters
 -   Expect max 3 words
--   Expect 1 sentence
--   Expect 1 line
+-   Expect exactly 1 sentence
+-   Expect exactly 1 line
 
 ...
 ```
