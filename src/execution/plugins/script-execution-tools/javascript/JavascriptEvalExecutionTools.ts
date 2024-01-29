@@ -16,6 +16,7 @@ import { spaceTrim as _spaceTrim } from 'spacetrim';
 import { removeEmojis as _removeEmojis } from '../../../../utils/removeEmojis';
 import { removeQuotes as _removeQuotes } from '../../../../utils/removeQuotes';
 import { trimEndOfCodeBlock as _trimEndOfCodeBlock } from '../../../../utils/trimEndOfCodeBlock';
+import { trimCodeBlock as _trimCodeBlock } from '../../../../utils/trimCodeBlock';
 import { unwrapResult as _unwrapResult } from '../../../../utils/unwrapResult';
 import { CommonExecutionToolsOptions } from '../../../CommonExecutionToolsOptions';
 import { ScriptExecutionTools, ScriptExecutionToolsExecuteOptions } from '../../../ScriptExecutionTools';
@@ -57,6 +58,9 @@ export class JavascriptEvalExecutionTools implements ScriptExecutionTools {
 
         const trimEndOfCodeBlock = _trimEndOfCodeBlock;
         preserve(trimEndOfCodeBlock);
+
+        const trimCodeBlock = _trimCodeBlock;
+        preserve(trimCodeBlock);
 
         const trim = (str: string) => str.trim();
         preserve(trim);
