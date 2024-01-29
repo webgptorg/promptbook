@@ -1,11 +1,11 @@
 import { executionReportJsonToString } from '../types/execution-report/executionReportJsonToString';
 import { EMOJIS, EMOJIS_IN_CATEGORIES } from '../utils/emojis';
-import { countCharacters } from '../utils/expectaion-counters/countCharacters';
-import { countLines } from '../utils/expectaion-counters/countLines';
-import { countPages } from '../utils/expectaion-counters/countPages';
-import { countParagraphs } from '../utils/expectaion-counters/countParagraphs';
-import { countSentences } from '../utils/expectaion-counters/countSentences';
-import { countWords } from '../utils/expectaion-counters/countWords';
+import { countCharacters } from '../utils/expectation-counters/countCharacters';
+import { countLines } from '../utils/expectation-counters/countLines';
+import { countPages } from '../utils/expectation-counters/countPages';
+import { countParagraphs } from '../utils/expectation-counters/countParagraphs';
+import { countSentences } from '../utils/expectation-counters/countSentences';
+import { countWords } from '../utils/expectation-counters/countWords';
 import { isValidJsonString } from '../utils/isValidJsonString';
 import { extractAllBlocksFromMarkdown } from '../utils/markdown/extractAllBlocksFromMarkdown';
 import { extractAllListItemsFromMarkdown } from '../utils/markdown/extractAllListItemsFromMarkdown';
