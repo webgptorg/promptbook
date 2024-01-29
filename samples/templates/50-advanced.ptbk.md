@@ -14,7 +14,10 @@ Trying the language capabilities of GPT models.
 
 Synonym for word
 
+-   MODEL VARIANT Chat
+-   MODEL NAME `gpt-3.5-turbo`
 -   Postprocessing `unwrapResult`
+-   Expect 1 word
 
 ```text
 Write synonym for "{word}"
@@ -40,7 +43,10 @@ return wordSynonym;
 
 Sentence with word and wordSynonym
 
--   Execute prompt template <!-- This is the default -->
+-   MODEL VARIANT Chat
+-   MODEL NAME `gpt-3.5-turbo`
+-   Expect max 20 words
+-   Expect 1 sentence
 
 ```text
 Write sentence with "{word}" and "{wordSynonym}" in it
@@ -52,7 +58,10 @@ Write sentence with "{word}" and "{wordSynonym}" in it
 
 Sentence "{sentenceWithTwoSynonyms}" without "{word}".
 
--   Execute prompt template <!-- This is the default -->
+-   MODEL VARIANT Chat
+-   MODEL NAME `gpt-3.5-turbo`
+-   Expect max 20 words
+-   Expect 1 sentence
 
 ```markdown
 Remove word "{word}" from sentence and modify it so that it makes sense:
@@ -75,7 +84,8 @@ Comparison between "{sentenceWithTwoSynonyms}" and "{sentenceWithOriginalWordRem
 
 -   MODEL VARIANT Chat
 -   MODEL NAME `gpt-4`
--   Execute prompt template <!-- This is the default -->
+-   Expect min 1 sentence
+-   Expect max 5 sentences
 
 ```markdown
 Compare meaning of thee two sentences:
@@ -93,7 +103,7 @@ Compare meaning of thee two sentences:
 
 ## 🔗 Summary
 
--   Simple template
+-   SIMPLE TEMPLATE
 
 ```markdown
 You have entered a word **{word}**. For this word the best synonym is **{wordSynonym}**. The sentence with both words is **{sentenceWithTwoSynonyms}**. The sentence without the original word is **{sentenceWithOriginalWordRemoved}**. And the comparison between the two sentences is:

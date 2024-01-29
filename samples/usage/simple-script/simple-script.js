@@ -5,7 +5,7 @@ import { JavascriptEvalExecutionTools } from '@promptbook/execute-javascript';
 import { OpenAiExecutionTools } from '@promptbook/openai';
 import chalk from 'chalk';
 import * as dotenv from 'dotenv';
-import { readFile } from 'fs/promises';
+import { readFile, writeFile } from 'fs/promises';
 
 if (process.cwd().split(/[\\/]/).pop() !== 'promptbook') {
     console.error(chalk.red(`CWD must be root of the project`));
@@ -42,6 +42,10 @@ async function main() {
     const output = await executor(input);
 
     console.info(output);
+
+
+    const executionReportString = executionReportJsonToString(output.executionReport /* <- !!!!! */);
+     await writeFile('./samples/templates/50-advanced.report.md',executionReportString, 'utf-8'),
 }
 
 /**
