@@ -273,7 +273,7 @@ export function parseCommand(listItem: string_markdown_text): Command {
             let sign: ExpectCommand['sign'];
             const signRaw = listItemParts.shift()!;
             if (/^exact/i.test(signRaw)) {
-                sign = 'EXACT';
+                sign = 'EXACTLY';
             } else if (/^min/i.test(signRaw)) {
                 sign = 'MINIMUM';
             } else if (/^max/i.test(signRaw)) {

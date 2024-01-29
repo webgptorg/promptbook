@@ -254,144 +254,144 @@ describe('how parseCommand works', () => {
         expect(parseCommand('Expect exactly 1 character')).toEqual({
             type: 'EXPECT',
             sign: 'EXACTLY',
-            unit: 'character',
+            unit: 'CHARACTERS',
             amount: 1,
         });
 
         expect(parseCommand('Expect exactly 1 char')).toEqual({
             type: 'EXPECT',
             sign: 'EXACTLY',
-            unit: 'character',
+            unit: 'CHARACTERS',
             amount: 1,
         });
 
         expect(parseCommand('Expect mininimum 1 character')).toEqual({
             type: 'EXPECT',
             sign: 'MINIMUM',
-            unit: 'character',
+            unit: 'CHARACTERS',
             amount: 1,
         });
 
         expect(parseCommand('Expect minimally 1 character')).toEqual({
             type: 'EXPECT',
             sign: 'MINIMUM',
-            unit: 'character',
+            unit: 'CHARACTERS',
             amount: 1,
         });
 
         expect(parseCommand('Expect min 1 char')).toEqual({
             type: 'EXPECT',
             sign: 'MINIMUM',
-            unit: 'character',
+            unit: 'CHARACTERS',
             amount: 1,
         });
 
         expect(parseCommand('Expect maximum 5 character')).toEqual({
             type: 'EXPECT',
             sign: 'MAXIMUM',
-            unit: 'character',
+            unit: 'CHARACTERS',
             amount: 5,
         });
 
         expect(parseCommand('Expect maximally 5 characters')).toEqual({
             type: 'EXPECT',
             sign: 'MAXIMUM',
-            unit: 'character',
+            unit: 'CHARACTERS',
             amount: 5,
         });
 
         expect(parseCommand('Expect max 5 CHARs')).toEqual({
             type: 'EXPECT',
             sign: 'MAXIMUM',
-            unit: 'character',
+            unit: 'CHARACTERS',
             amount: 5,
         });
 
         expect(parseCommand('Expect exact 1 word')).toEqual({
             type: 'EXPECT',
             sign: 'EXACTLY',
-            unit: 'word',
+            unit: 'WORDS',
             amount: 1,
         });
 
         expect(parseCommand('Expect exactly 1 word')).toEqual({
             type: 'EXPECT',
             sign: 'EXACTLY',
-            unit: 'word',
+            unit: 'WORDS',
             amount: 1,
         });
 
         expect(parseCommand('Expect eXactly 1 word')).toEqual({
             type: 'EXPECT',
             sign: 'EXACTLY',
-            unit: 'word',
+            unit: 'WORDS',
             amount: 1,
         });
 
         expect(parseCommand('EXPECT EXACTLY 1 WORD')).toEqual({
             type: 'EXPECT',
             sign: 'EXACTLY',
-            unit: 'word',
+            unit: 'WORDS',
             amount: 1,
         });
 
         expect(parseCommand('Expect exactly 2 words')).toEqual({
             type: 'EXPECT',
             sign: 'EXACTLY',
-            unit: 'word',
+            unit: 'WORDS',
             amount: 2,
         });
 
         expect(parseCommand('Expect exactly 1 sentence')).toEqual({
             type: 'EXPECT',
             sign: 'EXACTLY',
-            unit: 'sentence',
+            unit: 'SENTENCES',
             amount: 1,
         });
 
         expect(parseCommand('Expect exactly 2 sentences')).toEqual({
             type: 'EXPECT',
             sign: 'EXACTLY',
-            unit: 'sentence',
+            unit: 'SENTENCES',
             amount: 2,
         });
 
         expect(parseCommand('Expect exactly 0 sentences')).toEqual({
             type: 'EXPECT',
             sign: 'EXACTLY',
-            unit: 'sentence',
+            unit: 'SENTENCES',
             amount: 0,
         });
 
         expect(parseCommand('Expect exactly 1 paragraph')).toEqual({
             type: 'EXPECT',
             sign: 'EXACTLY',
-            unit: 'paragraph',
+            unit: 'PARAGRAPHS',
             amount: 1,
         });
 
         expect(parseCommand('Expect exactly 2 paragraphs')).toEqual({
             type: 'EXPECT',
             sign: 'EXACTLY',
-            unit: 'paragraph',
+            unit: 'PARAGRAPHS',
             amount: 2,
         });
 
         expect(parseCommand('Expect exactly 1 line')).toEqual({
             type: 'EXPECT',
             sign: 'EXACTLY',
-            unit: 'line',
+            unit: 'LINES',
             amount: 1,
         });
 
         expect(parseCommand('Expect exactly 2 lines')).toEqual({
             type: 'EXPECT',
             sign: 'EXACTLY',
-            unit: 'line',
+            unit: 'LINES',
             amount: 2,
         });
 
-        // TODO: Add page
+        // TODO: Add page test
     });
 
     it('should fail parsing POSTPROCESS command', () => {
