@@ -48,7 +48,7 @@ export function parseNumber(value: string | number): number {
         return parseNumber(significand!) * 10 ** parseNumber(exponent!);
     }
 
-    let num = parseFloat(value);
+    const num = parseFloat(value);
 
     if (isNaN(num)) {
         return 0;
