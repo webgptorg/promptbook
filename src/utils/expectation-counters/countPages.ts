@@ -3,7 +3,6 @@ import type { ExpectationAmount } from '../../types/PromptTemplatePipelineJson/P
 /**
  * Counts mumber of pages in the text
  */
-
-export function countPages(text: string):ExpectationAmount{
-    return 0; /* <- !!!!! Implement */
+export function countPages(text: string): ExpectationAmount {
+    return 0; /* <- TODO: Implement */
 }

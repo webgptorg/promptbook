@@ -3,7 +3,6 @@ import type { ExpectationAmount } from '../../types/PromptTemplatePipelineJson/P
 /**
  * Counts mumber of sentences in the text
  */
-
 export function countSentences(text: string): ExpectationAmount {
-    return 0; /* <- !!!!! Implement */
+    return 0; /* <- TODO: Implement */
 }
