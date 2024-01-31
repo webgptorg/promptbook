@@ -9,6 +9,12 @@ describe('countCharacters', () => {
     it('should return the correct count for a string with one character', () => {
         expect(countCharacters('a')).toBe(1);
         expect(countCharacters('1')).toBe(1);
+        expect(countCharacters('♥')).toBe(1);
+        expect(countCharacters('💙')).toBe(1);
+        expect(countCharacters('💫')).toBe(1);
+        expect(countCharacters('👨')).toBe(1);
+        expect(countCharacters('👨🏻')).toBe(1);
+        expect(countCharacters('👨‍❤️‍👨')).toBe(1);
     });
 
     it('should return the correct count for a string with multiple characters', () => {
