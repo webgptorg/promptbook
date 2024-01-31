@@ -81,6 +81,17 @@ describe('how parseNumber works', () => {
         expect(parseNumber(null as any)).toBe(0);
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         expect(parseNumber(undefined as any)).toBe(0);
-        expect(parseNumber('wtf')).toBe(0);
+    });
+
+    it('should throw error on invalid entries', () => {
+        expect(() => parseNumber('wtf')).toThrowError(/Unable to parse number/i);
+        expect(() => parseNumber('abc')).toThrowError(/Unable to parse number/i);
+        expect(() => parseNumber('123abc')).toThrowError(/Unable to parse number/i);
+        expect(() => parseNumber('86abc123')).toThrowError(/Unable to parse number/i);
+        expect(() => parseNumber('abc123')).toThrowError(/Unable to parse number/i);
+        expect(() => parseNumber('abc123xyz')).toThrowError(/Unable to parse number/i);
+        expect(() => parseNumber('1/0')).toThrowError(/Unable to parse number/i);
+        expect(() => parseNumber('1.2.3')).toThrowError(/Unable to parse number/i);
+        expect(() => parseNumber('1.2.3.4')).toThrowError(/Unable to parse number/i);
     });
 });

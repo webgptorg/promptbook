@@ -5,6 +5,8 @@
  * Note: it also works only with decimal numbers
  */
 export function parseNumber(value: string | number): number {
+    const originalValue = value;
+
     if (typeof value === 'number') {
         value = value.toString(); // <- TODO: Maybe more efficient way to do this
     }
@@ -39,8 +41,19 @@ export function parseNumber(value: string | number): number {
     }
 
     if (value.includes('/')) {
-        const [numerator, denominator] = value.split('/');
-        return parseNumber(numerator!) / parseNumber(denominator!);
+        const [numerator_, denominator_] = value.split('/');
+        const numerator = parseNumber(numerator_!);
+        const denominator = parseNumber(denominator_!);
+
+        if (denominator === 0) {
+            throw new Error(`Unable to parse number from "${originalValue}" because denominator is zero`);
+        }
+
+        return numerator / denominator;
+    }
+
+    if (/^(NAN|NULL|NONE|UNDEFINED|ZERO|NO.*)$/.test(value)) {
+        return 0;
     }
 
     if (value.includes('E')) {
@@ -48,10 +61,14 @@ export function parseNumber(value: string | number): number {
         return parseNumber(significand!) * 10 ** parseNumber(exponent!);
     }
 
+    if (!/^[0-9.]+$/.test(value) || value.split('.').length > 2) {
+        throw new Error(`Unable to parse number from "${originalValue}"`);
+    }
+
     const num = parseFloat(value);
 
     if (isNaN(num)) {
-        return 0;
+        throw new Error(`Unexpected NaN when parsing number from "${originalValue}"`);
     }
 
     return num;

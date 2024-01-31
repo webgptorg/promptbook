@@ -284,8 +284,8 @@ export function parseCommand(listItem: string_markdown_text): Command {
 
             const amountRaw = listItemParts.shift()!;
             const amount = parseNumber(amountRaw);
-            if (amount <= 0) {
-                throw new Error('Amount must be positive number');
+            if (amount < 0) {
+                throw new Error('Amount must be positive number or zero');
             }
             if (amount !== Math.floor(amount)) {
                 throw new Error('Amount must be whole number');
@@ -294,15 +294,24 @@ export function parseCommand(listItem: string_markdown_text): Command {
             const unitRaw = listItemParts.shift()!;
             let unit: ExpectCommand['unit'] | undefined = undefined;
             for (const existingUnit of EXPECTATION_UNITS) {
+                let existingUnitText: string = existingUnit;
+
+                existingUnitText = existingUnitText.substring(0, existingUnitText.length - 1);
+                if (existingUnitText === 'CHARACTER') {
+                    existingUnitText = 'CHAR';
+                }
+
                 if (
-                    new RegExp(`^${existingUnit}`, 'i').test(unitRaw) ||
-                    new RegExp(`^${unitRaw}`, 'i').test(existingUnit)
+                    new RegExp(`^${existingUnitText.toLowerCase()}`).test(unitRaw.toLowerCase()) ||
+                    new RegExp(`^${unitRaw.toLowerCase()}`).test(existingUnitText.toLowerCase())
                 ) {
+                    if (unit !== undefined) {
+                        throw new Error(`Ambiguous unit "${unitRaw}"`);
+                    }
                     unit = existingUnit;
-                    break;
                 }
             }
-            if (!unit) {
+            if (unit === undefined) {
                 throw new Error(`Invalid unit "${unitRaw}"`);
             }
 

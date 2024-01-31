@@ -426,6 +426,7 @@ describe('how parseCommand works', () => {
         expect(() => parseCommand('Expect min 1 vars')).toThrowError(/Invalid EXPECT command/i);
         expect(() => parseCommand('Expect min chars')).toThrowError(/Invalid EXPECT command/i);
         expect(() => parseCommand('Expect min xx chars')).toThrowError(/Invalid EXPECT command/i);
+        expect(() => parseCommand('Expect exactly 2 p')).toThrowError(/Ambiguous unit "p"/i);
     });
 
     it('should fail parsing multiline command', () => {

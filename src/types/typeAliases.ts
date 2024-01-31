@@ -495,6 +495,8 @@ export type string_pgp_key = string;
 
 export type number_positive = number;
 export type number_negative = number;
+export type number_positive_or_zero = number;
+export type number_negative_or_zero = number;
 export type number_integer = number;
 
 /**

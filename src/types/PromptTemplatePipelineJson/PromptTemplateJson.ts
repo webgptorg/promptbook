@@ -1,6 +1,6 @@
 import {
     number_integer,
-    number_positive,
+    number_positive_or_zero,
     string_javascript,
     string_markdown,
     string_name,
@@ -25,7 +25,9 @@ export interface NaturalTemplateJson extends PromptTemplateJsonCommon {
     /**
      * Expectations for the answer
      */
-    readonly expectations: Partial<Record<Lowercase<ExpectationUnit>, { min?: ExpectationAmount; max?: ExpectationAmount }>>;
+    readonly expectations: Partial<
+        Record<Lowercase<ExpectationUnit>, { min?: ExpectationAmount; max?: ExpectationAmount }>
+    >;
 
     // [🧠] !!!!! Postprocessing + expectations OR via branching
 
@@ -44,12 +46,12 @@ export const EXPECTATION_UNITS = ['CHARACTERS', 'WORDS', 'SENTENCES', 'PARAGRAPH
 /**
  * Unit of text measurement
  */
-export type ExpectationUnit = typeof EXPECTATION_UNITS[number];
+export type ExpectationUnit = (typeof EXPECTATION_UNITS)[number];
 
 /**
  * Amount of text measurement
  */
-export type ExpectationAmount = number_integer & number_positive;
+export type ExpectationAmount = number_integer & number_positive_or_zero;
 
 /**
  * Template for simple concatenation of strings
