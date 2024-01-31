@@ -17,7 +17,7 @@ describe('countWords', () => {
         expect(countWords('World')).toBe(1);
         expect(countWords('Hello.')).toBe(1);
         expect(countWords('Hello!')).toBe(1);
-        expect(countWords('Hello!!!!!!')).toBe(1);
+        expect(countWords('Hello!' + '!' + '!' + '!' + '!' + '!')).toBe(1);
         expect(countWords('Hello!?')).toBe(1);
     });
 
