@@ -2,8 +2,6 @@ import type { ExpectationAmount } from '../../types/PromptTemplatePipelineJson/P
 
 /**
  * Counts number of characters in the text
- *
- * Note: Emojis count as 1 character
  */
 export function countCharacters(text: string): ExpectationAmount {
     return 0; /* <- TODO: Implement */
