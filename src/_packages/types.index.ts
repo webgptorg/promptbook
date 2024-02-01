@@ -1,27 +1,33 @@
-import { CommonExecutionToolsOptions } from '../execution/CommonExecutionToolsOptions';
-import { ExecutionTools } from '../execution/ExecutionTools';
-import { NaturalExecutionTools } from '../execution/NaturalExecutionTools';
-import { PromptChatResult, PromptCommonResult, PromptCompletionResult, PromptResult } from '../execution/PromptResult';
-import { PtpExecutor } from '../execution/PtpExecutor';
-import { ScriptExecutionTools, ScriptExecutionToolsExecuteOptions } from '../execution/ScriptExecutionTools';
-import { UserInterfaceTools, UserInterfaceToolsPromptDialogOptions } from '../execution/UserInterfaceTools';
-import { ExecutionType } from '../types/ExecutionTypes';
-import { ModelRequirements, ModelVariant } from '../types/ModelRequirements';
-import { Parameters } from '../types/Parameters';
-import { Prompt } from '../types/Prompt';
-import {
+import type { CommonExecutionToolsOptions } from '../execution/CommonExecutionToolsOptions';
+import type { ExecutionTools } from '../execution/ExecutionTools';
+import type { NaturalExecutionTools } from '../execution/NaturalExecutionTools';
+import type {
+    PromptChatResult,
+    PromptCommonResult,
+    PromptCompletionResult,
+    PromptResult,
+} from '../execution/PromptResult';
+import type { PtpExecutor } from '../execution/PtpExecutor';
+import type { ScriptExecutionTools, ScriptExecutionToolsExecuteOptions } from '../execution/ScriptExecutionTools';
+import type { UserInterfaceTools, UserInterfaceToolsPromptDialogOptions } from '../execution/UserInterfaceTools';
+import type { ExecutionType } from '../types/ExecutionTypes';
+import type { ModelRequirements, ModelVariant } from '../types/ModelRequirements';
+import type { Parameters } from '../types/Parameters';
+import type { Prompt } from '../types/Prompt';
+import type {
     EXPECTATION_UNITS,
     ExpectationAmount,
     ExpectationUnit,
     PromptTemplateJson,
 } from '../types/PromptTemplatePipelineJson/PromptTemplateJson';
-import { PromptTemplateParameterJson } from '../types/PromptTemplatePipelineJson/PromptTemplateParameterJson';
-import { PromptTemplatePipelineJson } from '../types/PromptTemplatePipelineJson/PromptTemplatePipelineJson';
-import { PromptTemplatePipelineString } from '../types/PromptTemplatePipelineString';
-import { ScriptLanguage } from '../types/ScriptLanguage';
-import { TaskProgress } from '../types/TaskProgress';
-import { string_char_emoji } from '../types/typeAliasEmoji';
-import {
+import type { PromptTemplateParameterJson } from '../types/PromptTemplatePipelineJson/PromptTemplateParameterJson';
+import type { PromptTemplatePipelineJson } from '../types/PromptTemplatePipelineJson/PromptTemplatePipelineJson';
+import type { PromptTemplatePipelineString } from '../types/PromptTemplatePipelineString';
+import type { ScriptLanguage } from '../types/ScriptLanguage';
+import type { TaskProgress } from '../types/TaskProgress';
+import type { ExecutionReportJson } from '../types/execution-report/ExecutionReportJson';
+import type { string_char_emoji } from '../types/typeAliasEmoji';
+import type {
     ILicense,
     IPersonProfile,
     IRepository,
@@ -115,6 +121,7 @@ import {
 export {
     CommonExecutionToolsOptions,
     EXPECTATION_UNITS,
+    ExecutionReportJson,
     ExecutionTools,
     ExecutionType,
     ExpectationAmount,
