@@ -28,14 +28,14 @@ describe(`prettifyMarkdown`, () => {
                 spaceTrim(`
                     # Title
 
-                    - *Item* 1
-                    - _Item_ 2
+                    -   _Item_ 1
+                    -   _Item_ 2
 
                     ## Subtitle
 
-                    - Item 1
+                    -   Item 1
 
-                `),
+                `) + '\n',
             ),
         );
     });
