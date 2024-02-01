@@ -1,6 +1,7 @@
 import { describe, expect, it } from '@jest/globals';
 import spaceTrim from 'spacetrim';
 import { PromptTemplatePipeline } from '../../../../classes/PromptTemplatePipeline';
+import { PTBK_VERSION } from '../../../../config';
 import { promptTemplatePipelineStringToJson } from '../../../../conversion/promptTemplatePipelineStringToJson';
 import { PromptTemplatePipelineString } from '../../../../types/PromptTemplatePipelineString';
 import { createPtpExecutor } from '../../../createPtpExecutor';
@@ -15,6 +16,7 @@ describe('createPtpExecutor + MockedEchoExecutionTools with sample chat prompt',
             Show how to use a simple prompt with no parameters.
 
             -   PTBK version 1.0.0
+            -   PTBK URL https://example.com/ptbk.json
             -   Input parameter {thing} Any thing to buy
 
             ## Prompt
@@ -47,16 +49,38 @@ describe('createPtpExecutor + MockedEchoExecutionTools with sample chat prompt',
 
     it('should work when every input parameter defined', () => {
         expect(ptpExecutor({ thing: 'a cup of coffee' }, () => {})).resolves.toMatchObject({
-            response: spaceTrim(`
-                You said:
-                One day I went to the shop and bought a cup of coffee.
-                Now I have a cup of coffee.
-            `),
+            isSuccessful: true,
+            executionReport: {
+                title: 'Sample prompt',
+                ptbkRequestedVersion: '1.0.0',
+                ptbkUrl: 'https://example.com/ptbk.json',
+                ptbkUsedVersion: PTBK_VERSION,
+            },
+            outputParameters: {
+                thing: 'a cup of coffee',
+                response: spaceTrim(`
+                    You said:
+                    One day I went to the shop and bought a cup of coffee.
+                    Now I have a cup of coffee.
+                `),
+            },
         });
     });
 
     it('should fail when some input parameter is missing', () => {
-        expect(ptpExecutor({}, () => {})).rejects.toThrowError(/Parameter \{thing\} is not defined/i);
+        expect(ptpExecutor({}, () => {})).resolves.toEqual({
+            errors: [new Error(`Parameter {thing} is not defined`)],
+            executionReport: {
+                title: 'Sample prompt',
+                description: '1.0.0' /* <- !!!!! */,
+                promptExecutions: [],
+                ptbkUrl: 'https://example.com/ptbk.json',
+                ptbkRequestedVersion: '1.0.0',
+                ptbkUsedVersion: PTBK_VERSION,
+            },
+            isSuccessful: false,
+            outputParameters: {},
+        });
     });
 
     /*

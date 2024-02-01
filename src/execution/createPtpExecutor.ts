@@ -134,7 +134,6 @@ export function createPtpExecutor(options: CreatePtpExecutorOptions): PtpExecuto
                                 for (const [unit, { max, min }] of Object.entries(currentTemplate.expectations)) {
                                     const amount = CountUtils[unit.toUpperCase() as ExpectationUnit](resultString);
 
-                          
                                     if (min && amount < min) {
                                         throw new Error(`Expected at least ${min} ${unit} but got ${amount}`);
                                     } /* not else */
@@ -164,7 +163,7 @@ export function createPtpExecutor(options: CreatePtpExecutorOptions): PtpExecuto
                             }
 
                             if (result !== null && naturalExecutionError === null) {
-                                break naturalExecutionAttempts;
+                                break executionType;
                             }
                         }
 
