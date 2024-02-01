@@ -99,11 +99,7 @@ export function createPtpExecutor(options: CreatePtpExecutorOptions): PtpExecuto
                             modelRequirements: currentTemplate.modelRequirements!,
                         };
 
-                        naturalExecutionAttempts: for (
-                            let attempt = 0;
-                            attempt < settings.maxNaturalExecutionAttempts;
-                            attempt++
-                        ) {
+                        for (let attempt = 0; attempt < settings.maxNaturalExecutionAttempts; attempt++) {
                             result = null;
                             resultString = null;
                             naturalExecutionError = null;
