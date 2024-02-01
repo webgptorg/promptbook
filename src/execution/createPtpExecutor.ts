@@ -14,9 +14,19 @@ import { ExecutionTools } from './ExecutionTools';
 import { PromptChatResult, PromptCompletionResult, PromptResult } from './PromptResult';
 import { PtpExecutor } from './PtpExecutor';
 
+interface CreatePtpExecutorSettings {
+    /**
+     * When executor does not satisfy expectations it will be retried this amount of times
+     *
+     * !!!!!!! Make default in version 24.1.0
+     */
+    readonly maxNaturalExecutionAttempts: number;
+}
+
 interface CreatePtpExecutorOptions {
     readonly ptp: PromptTemplatePipeline;
     readonly tools: ExecutionTools;
+    readonly settings: CreatePtpExecutorSettings;
 }
 
 /**
@@ -25,7 +35,7 @@ interface CreatePtpExecutorOptions {
  * Note: Consider using getExecutor method of the library instead of using this function
  */
 export function createPtpExecutor(options: CreatePtpExecutorOptions): PtpExecutor {
-    const { ptp, tools } = options;
+    const { ptp, tools, settings } = options;
 
     const ptpExecutor = async (
         inputParameters: Record<string_name, string>,
@@ -56,8 +66,9 @@ export function createPtpExecutor(options: CreatePtpExecutorOptions): PtpExecuto
             let prompt: Prompt;
             let chatThread: PromptChatResult;
             let completionResult: PromptCompletionResult;
-            let result: PromptResult;
+            let result: PromptResult | null = null;
             let resultString: string | null = null;
+            let naturalExecutionError: Error | null = null;
             let scriptExecutionErrors: Array<Error>;
             let isScriptExecutionSuccessful;
 
@@ -77,46 +88,81 @@ export function createPtpExecutor(options: CreatePtpExecutorOptions): PtpExecuto
                         content: replaceParameters(currentTemplate.content, parametersToPass),
                         modelRequirements: currentTemplate.modelRequirements!,
                     };
-                    variant: switch (currentTemplate.modelRequirements!.modelVariant) {
-                        case 'CHAT':
-                            chatThread = await tools.natural.gptChat(prompt);
-                            // TODO: [🍬] Destroy chatThread
-                            result = chatThread;
-                            resultString = chatThread.content;
-                            break variant;
-                        case 'COMPLETION':
-                            completionResult = await tools.natural.gptComplete(prompt);
-                            result = completionResult;
-                            resultString = completionResult.content;
-                            break variant;
-                        default:
-                            throw new Error(
-                                `Unknown model variant "${currentTemplate.modelRequirements!.modelVariant}"`,
-                            );
-                    }
 
-                    for (const [unit, { max, min }] of Object.entries(currentTemplate.expectations)) {
-                        const amount = CountUtils[unit as ExpectationUnit](resultString);
+                    naturalExecutionAttempts: for (
+                        let attempt = 0;
+                        attempt < settings.maxNaturalExecutionAttempts;
+                        attempt++
+                    ) {
+                        result = null;
+                        resultString = null;
+                        naturalExecutionError = null;
 
-                        // TODO: !!!!! Do not crash BUT retry some amount of times
+                        try {
+                            variant: switch (currentTemplate.modelRequirements!.modelVariant) {
+                                case 'CHAT':
+                                    chatThread = await tools.natural.gptChat(prompt);
+                                    // TODO: [🍬] Destroy chatThread
+                                    result = chatThread;
+                                    resultString = chatThread.content;
+                                    break variant;
+                                case 'COMPLETION':
+                                    completionResult = await tools.natural.gptComplete(prompt);
+                                    result = completionResult;
+                                    resultString = completionResult.content;
+                                    break variant;
+                                default:
+                                    throw new Error(
+                                        `Unknown model variant "${currentTemplate.modelRequirements!.modelVariant}"`,
+                                    );
+                            }
 
-                        if (min && amount < min) {
-                            throw new Error(`Expected at least ${min} ${unit} but got ${amount}`);
-                        } /* not else */
+                            for (const [unit, { max, min }] of Object.entries(currentTemplate.expectations)) {
+                                const amount = CountUtils[unit.toUpperCase() as ExpectationUnit](resultString);
 
-                        if (max && amount > max) {
-                            throw new Error(`Expected at most ${max} ${unit} but got ${amount}`);
+                                // TODO: !!!!! Do not crash BUT retry some amount of times
+
+                                if (min && amount < min) {
+                                    throw new Error(`Expected at least ${min} ${unit} but got ${amount}`);
+                                } /* not else */
+
+                                if (max && amount > max) {
+                                    throw new Error(`Expected at most ${max} ${unit} but got ${amount}`);
+                                }
+                            }
+                        } catch (error) {
+                            if (!(error instanceof Error)) {
+                                throw error;
+                            }
+                            naturalExecutionError = error;
+                        } finally {
+                            executionReport.push({
+                                prompt: {
+                                    content: prompt.content,
+                                    modelRequirements: prompt.modelRequirements,
+                                    // <- Note: Do want to pass ONLY wanted information to the report
+                                },
+                                result:
+                                    result /* <- !!!!! Look what is exposed here and probbably also filter out */ ||
+                                    undefined,
+                                error: naturalExecutionError || undefined,
+                            });
+                        }
+
+                        if (result !== null && naturalExecutionError === null) {
+                            break naturalExecutionAttempts;
                         }
                     }
 
-                    executionReport.push({
-                        prompt: {
-                            content: prompt.content,
-                            modelRequirements: prompt.modelRequirements,
-                            // <- Note: Do want to pass ONLY wanted information to the report
-                        },
-                        result,
-                    });
+                    throw new Error(
+                        spaceTrim(
+                            (block) => `
+                                Natural execution failed ${settings.maxNaturalExecutionAttempts}x
+
+                                ${block(naturalExecutionError?.message || '')}
+                            `,
+                        ),
+                    );
 
                     break executionType;
 
@@ -213,6 +259,8 @@ export function createPtpExecutor(options: CreatePtpExecutorOptions): PtpExecuto
 
             currentTemplate = ptp.getFollowingPromptTemplate(currentTemplate!.name);
         }
+
+        // !!! Report on success or fail
 
         return parametersToPass as Record<string_name, string>;
     };
