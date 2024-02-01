@@ -43,6 +43,9 @@ describe('createPtpExecutor + MockedEchoExecutionTools with sample chat prompt',
                 },
             }),
         },
+        settings: {
+            maxNaturalExecutionAttempts: 3,
+        },
     });
 
     it('should work when every input parameter defined', () => {

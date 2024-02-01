@@ -1,11 +1,16 @@
 import { string_name } from '.././types/typeAliases';
-import { createPtpExecutor } from '../execution/createPtpExecutor';
+import { createPtpExecutor, CreatePtpExecutorSettings } from '../execution/createPtpExecutor';
 import { ExecutionTools } from '../execution/ExecutionTools';
 import { PtpExecutor } from '../execution/PtpExecutor';
 import { Prompt } from '../types/Prompt';
 import { PromptTemplatePipelineJson } from '../types/PromptTemplatePipelineJson/PromptTemplatePipelineJson';
 import { PromptTemplatePipelineString } from '../types/PromptTemplatePipelineString';
 import { PromptTemplatePipeline } from './PromptTemplatePipeline';
+
+type PromptTemplatePipelineLibraryOptions = {
+    readonly library: Record<string_name, PromptTemplatePipeline>;
+    readonly settings: CreatePtpExecutorSettings;
+};
 
 /**
  * Library of prompt template pipelines that groups together prompt template pipelines for an application. This is a very thin wrapper around the Array / Set of prompt template pipelines.
@@ -28,21 +33,22 @@ export class PromptTemplatePipelineLibrary {
      */
     public static fromSources(
         ptbkSources: Record<string_name, PromptTemplatePipelineJson | PromptTemplatePipelineString>,
+        settings: CreatePtpExecutorSettings,
     ): PromptTemplatePipelineLibrary {
-        const promptTemplatePipelines: Record<string_name, PromptTemplatePipeline> = {};
+        const library: Record<string_name, PromptTemplatePipeline> = {};
         for (const [name, source] of Object.entries(ptbkSources)) {
-            promptTemplatePipelines[name] = PromptTemplatePipeline.fromSource(source);
+            library[name] = PromptTemplatePipeline.fromSource(source);
         }
-        return new PromptTemplatePipelineLibrary(promptTemplatePipelines);
+        return new PromptTemplatePipelineLibrary({ library, settings });
     }
 
-    private constructor(public readonly promptTemplatePipelines: Record<string_name, PromptTemplatePipeline>) {}
+    private constructor(public readonly options: PromptTemplatePipelineLibraryOptions) {}
 
     /**
      * Gets prompt template pipeline by name
      */
     public getPtp(name: string_name): PromptTemplatePipeline {
-        const promptTemplatePipeline = this.promptTemplatePipelines[name];
+        const promptTemplatePipeline = this.options.library[name];
         if (!promptTemplatePipeline) {
             throw new Error(`Prompt template pipeline with name "${name}" not found`);
         }
@@ -63,7 +69,7 @@ export class PromptTemplatePipelineLibrary {
      */
     public createExecutor(name: string_name, tools: ExecutionTools): PtpExecutor {
         const ptp = this.getPtp(name);
-        return createPtpExecutor({ ptp, tools });
+        return createPtpExecutor({ ptp, tools, settings: this.options.settings });
     }
 }
 

@@ -15,7 +15,7 @@ import { ExecutionTools } from './ExecutionTools';
 import { PromptChatResult, PromptCompletionResult, PromptResult } from './PromptResult';
 import { PtpExecutor } from './PtpExecutor';
 
-interface CreatePtpExecutorSettings {
+export interface CreatePtpExecutorSettings {
     /**
      * When executor does not satisfy expectations it will be retried this amount of times
      *
@@ -88,6 +88,7 @@ export function createPtpExecutor(options: CreatePtpExecutorOptions): PtpExecuto
 
                     case 'PROMPT_TEMPLATE':
                         prompt = {
+                            title: currentTemplate.title,
                             ptbkUrl: `${
                                 ptp.ptbkUrl
                                     ? ptp.ptbkUrl.href
@@ -151,6 +152,7 @@ export function createPtpExecutor(options: CreatePtpExecutorOptions): PtpExecuto
                             } finally {
                                 executionReport.promptExecutions.push({
                                     prompt: {
+                                        title: prompt.title,
                                         content: prompt.content,
                                         modelRequirements: prompt.modelRequirements,
                                         // <- Note: Do want to pass ONLY wanted information to the report

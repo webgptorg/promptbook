@@ -45,6 +45,9 @@ describe('createPtpExecutor + executing scripts in ptp', () => {
                 },
             }),
         },
+        settings: {
+            maxNaturalExecutionAttempts: 3,
+        },
     });
 
     it('should work when every input parameter is allowed', () => {
