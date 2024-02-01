@@ -19,9 +19,14 @@ main();
 async function main() {
     console.info(chalk.bgGray('🔵 Testing remote server of PromptBook'));
 
-    const library = PromptTemplatePipelineLibrary.fromSources({
-        advanced: (await readFile('./samples/templates/50-advanced.ptbk.md', 'utf-8')) as any,
-    });
+    const library = PromptTemplatePipelineLibrary.fromSources(
+        {
+            advanced: (await readFile('./samples/templates/50-advanced.ptbk.md', 'utf-8')) as any,
+        },
+        {
+            maxNaturalExecutionAttempts: 3,
+        },
+    );
 
     runRemoteServer({
         port: 4460,

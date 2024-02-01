@@ -22,9 +22,14 @@ async function main() {
 
     const sampleName = '50-advanced';
 
-    const library = PromptTemplatePipelineLibrary.fromSources({
-        advanced: await readFile(`./samples/templates/${sampleName}.ptbk.md`, 'utf-8'),
-    });
+    const library = PromptTemplatePipelineLibrary.fromSources(
+        {
+            advanced: await readFile(`./samples/templates/${sampleName}.ptbk.md`, 'utf-8'),
+        },
+        {
+            maxNaturalExecutionAttempts: 3,
+        },
+    );
 
     const tools = {
         natural: new OpenAiExecutionTools({
@@ -41,10 +46,10 @@ async function main() {
 
     const executor = library.createExecutor('advanced', tools);
 
-    const input = { word: 'cat' };
-    const output = await executor(input);
+    const inputParameters = { word: 'cat' };
+    const { outputParameters } = await executor(inputParameters);
 
-    console.info(output);
+    console.info(outputParameters);
 
     const executionReportJson = [
         /* !!!!! */

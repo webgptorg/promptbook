@@ -22,7 +22,10 @@ runRemoteServer({
 
     ptbkLibrary: PromptTemplatePipelineLibrary.fromSources({
         /* <- TODO: [🎛] Use here real webgptPtpLibrary */
-    }),
+    },
+        {
+            maxNaturalExecutionAttempts: 3,
+        }),
 
     createNaturalExecutionTools(clientId) {
         return new SupabaseLoggerWrapperOfNaturalExecutionTools({

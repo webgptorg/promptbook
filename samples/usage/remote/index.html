@@ -39,7 +39,11 @@
                 const advanced = await (await fetch('/samples/templates/50-advanced.ptbk.md')).text();
                 const library = PromptTemplatePipelineLibrary.fromSources({
                     advanced
-                });
+                },
+                {
+                    maxNaturalExecutionAttempts: 3,
+                }
+                );
 
                 const tools = {
                     natural:  new RemoteNaturalExecutionTools({
