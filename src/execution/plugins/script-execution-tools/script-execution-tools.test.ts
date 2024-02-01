@@ -49,14 +49,20 @@ describe('createPtpExecutor + executing scripts in ptp', () => {
 
     it('should work when every input parameter defined', () => {
         expect(ptpExecutor({ thing: 'apple' }, () => {})).resolves.toMatchObject({
-            bhing: 'bpple',
+            outputParameters: {
+                bhing: 'bpple',
+            },
         });
         expect(ptpExecutor({ thing: 'a cup of coffee' }, () => {})).resolves.toMatchObject({
-            bhing: 'b cup of coffee',
+            outputParameters: {
+                bhing: 'b cup of coffee',
+            },
         });
     });
 
     it('should fail when some input parameter is missing', () => {
-        expect(ptpExecutor({}, () => {})).rejects.toThrowError(/not defined/i);
+        expect(ptpExecutor({}, () => {})).resolves.toMatchObject({
+            errors: [new Error(`Parameter {thing} is not defined`)],
+        });
     });
 });

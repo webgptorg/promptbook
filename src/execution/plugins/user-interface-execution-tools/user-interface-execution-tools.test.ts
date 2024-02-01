@@ -50,15 +50,21 @@ describe('createPtpExecutor + executing user interface prompts in ptp', () => {
 
     it('should work when every input parameter defined', () => {
         expect(ptpExecutor({ thing: 'apple' }, () => {})).resolves.toMatchObject({
-            favoriteThing: 'Answer to question "What is your favorite apple to buy?" is not apple but Pear.',
+            outputParameters: {
+                favoriteThing: 'Answer to question "What is your favorite apple to buy?" is not apple but Pear.',
+            },
         });
         expect(ptpExecutor({ thing: 'a cup of coffee' }, () => {})).resolves.toMatchObject({
-            favoriteThing:
-                'Answer to question "What is your favorite a cup of coffee to buy?" is not a cup of coffee but Pear.',
+            outputParameters: {
+                favoriteThing:
+                    'Answer to question "What is your favorite a cup of coffee to buy?" is not a cup of coffee but Pear.',
+            },
         });
     });
 
     it('should fail when some input parameter is missing', () => {
-        expect(ptpExecutor({}, () => {})).rejects.toThrowError(/Parameter \{thing\} is not defined/i);
+        expect(ptpExecutor({}, () => {})).resolves.toMatchObject({
+            errors: [new Error(`Parameter {thing} is not defined`)],
+        });
     });
 });

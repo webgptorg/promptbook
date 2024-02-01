@@ -15,8 +15,8 @@ import {
 import { spaceTrim as _spaceTrim } from 'spacetrim';
 import { removeEmojis as _removeEmojis } from '../../../../utils/removeEmojis';
 import { removeQuotes as _removeQuotes } from '../../../../utils/removeQuotes';
-import { trimEndOfCodeBlock as _trimEndOfCodeBlock } from '../../../../utils/trimEndOfCodeBlock';
 import { trimCodeBlock as _trimCodeBlock } from '../../../../utils/trimCodeBlock';
+import { trimEndOfCodeBlock as _trimEndOfCodeBlock } from '../../../../utils/trimEndOfCodeBlock';
 import { unwrapResult as _unwrapResult } from '../../../../utils/unwrapResult';
 import { CommonExecutionToolsOptions } from '../../../CommonExecutionToolsOptions';
 import { ScriptExecutionTools, ScriptExecutionToolsExecuteOptions } from '../../../ScriptExecutionTools';
@@ -127,8 +127,27 @@ export class JavascriptEvalExecutionTools implements ScriptExecutionTools {
             );
         }
 
-        // TODO: !!! Fix the eval
-        const result = eval(statementToEvaluate);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        let result: any;
+        try {
+            result = eval(statementToEvaluate);
+        } catch (error) {
+            if (!(error instanceof Error)) {
+                throw error;
+            }
+
+            if (error instanceof ReferenceError) {
+                /*
+                Note: Remapping error
+                      From: [ReferenceError: thing is not defined],
+                      To:   [Error: Parameter {thing} is not defined],
+                */
+
+                throw new Error(`Parameter {${error.message.split(' ')[0]}} is not defined`);
+            }
+
+            throw error;
+        }
 
         if (typeof result !== 'string') {
             throw new Error(`Script must return a string, but returned ${typeof result}`);

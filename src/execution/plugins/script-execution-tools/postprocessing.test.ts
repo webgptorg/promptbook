@@ -52,19 +52,27 @@ describe('createPtpExecutor + executing scripts in ptp', () => {
 
     it('should work when every input parameter defined', () => {
         expect(ptpExecutor({ yourName: 'Paůl' }, () => {})).resolves.toMatchObject({
-            greeting: 'LUA_P_OLLE_H_DIAS_UO_Y',
+            outputParameters: {
+                greeting: 'LUA_P_OLLE_H_DIAS_UO_Y',
+            },
         });
 
         expect(ptpExecutor({ yourName: 'Adam' }, () => {})).resolves.toMatchObject({
-            greeting: 'MAD_A_OLLE_H_DIAS_UO_Y',
+            outputParameters: {
+                greeting: 'MAD_A_OLLE_H_DIAS_UO_Y',
+            },
         });
 
         expect(ptpExecutor({ yourName: 'John' }, () => {})).resolves.toMatchObject({
-            greeting: 'NHO_J_OLLE_H_DIAS_UO_Y',
+            outputParameters: {
+                greeting: 'NHO_J_OLLE_H_DIAS_UO_Y',
+            },
         });
 
         expect(ptpExecutor({ yourName: 'DAVID' }, () => {})).resolves.toMatchObject({
-            greeting: 'DIVAD_OLLE_H_DIAS_UO_Y',
+            outputParameters: {
+                greeting: 'DIVAD_OLLE_H_DIAS_UO_Y',
+            },
         });
     });
 });

@@ -52,23 +52,27 @@ describe('createPtpExecutor + executing scripts in ptp', () => {
 
     it('should work when every input parameter is allowed', () => {
         expect(ptpExecutor({ thing: 'a cup of coffee' }, () => {})).resolves.toMatchObject({
-            bhing: 'b cup of coffee',
+            outputParameters: {
+                bhing: 'b cup of coffee',
+            },
         });
         expect(ptpExecutor({ thing: 'arrow' }, () => {})).resolves.toMatchObject({
-            bhing: 'brrow',
+            outputParameters: {
+                bhing: 'brrow',
+            },
         });
         expect(ptpExecutor({ thing: 'aaa' }, () => {})).resolves.toMatchObject({
-            bhing: 'bbb',
+            outputParameters: {
+                bhing: 'bbb',
+            },
         });
     });
 
     it('should fail when input parameter is NOT allowed', () => {
-        expect(() => ptpExecutor({ thing: 'apple' }, () => {})).rejects.toThrowError(/I do not like Apples/i);
-        expect(() => ptpExecutor({ thing: 'apples' }, () => {})).rejects.toThrowError(/I do not like Apples/i);
-        expect(() => ptpExecutor({ thing: 'an apple' }, () => {})).rejects.toThrowError(/I do not like Apples/i);
-        expect(() => ptpExecutor({ thing: 'Apple' }, () => {})).rejects.toThrowError(/I do not like Apples/i);
-        expect(() => ptpExecutor({ thing: 'The Apple' }, () => {})).rejects.toThrowError(/I do not like Apples/i);
-        expect(() => ptpExecutor({ thing: '🍏 Apple' }, () => {})).rejects.toThrowError(/I do not like Apples/i);
-        expect(() => ptpExecutor({ thing: 'Apple 🍎' }, () => {})).rejects.toThrowError(/I do not like Apples/i);
+        for (const thing of ['apple', 'apples', 'an apple', 'Apple', 'The Apple', '🍏 Apple', 'Apple 🍎']) {
+            expect(ptpExecutor({ thing }, () => {})).resolves.toMatchObject({
+                errors: [new Error(`I do not like Apples!`)],
+            });
+        }
     });
 });
