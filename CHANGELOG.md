@@ -25,3 +25,4 @@
 -   Add `EXPECT` command to promptbooks
 -   Add `ExecutionReport`
 -   Add `parseNumber` utility function
+-   `PtpExecutor` returns richer result and does not throw, just returns `isSuccessful=false`
