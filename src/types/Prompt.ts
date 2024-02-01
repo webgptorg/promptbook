@@ -1,5 +1,10 @@
-import { string_name, string_prompt, string_ptbk_url_with_hashtemplate } from '.././types/typeAliases';
-import { ModelRequirements } from './ModelRequirements';
+import type {
+    string_name,
+    string_prompt,
+    string_ptbk_url_with_hashtemplate,
+    string_title,
+} from '.././types/typeAliases';
+import type { ModelRequirements } from './ModelRequirements';
 
 /**
  * Prompt in a text along with model requirements, but without any execution or templating logic.
@@ -7,6 +12,13 @@ import { ModelRequirements } from './ModelRequirements';
  * @see https://github.com/webgptorg/promptbook#prompt
  */
 export interface Prompt {
+    /**
+     * The title of the prompt
+     *
+     * Note: This has no effect on the model, it is just for the reporting
+     */
+    readonly title: string_title;
+
     /**
      * The text of the prompt
      *
