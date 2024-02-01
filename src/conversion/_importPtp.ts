@@ -16,6 +16,8 @@ export function importPtp(path: `${string}.ptbk.md`): PromptTemplatePipelineStri
 export function importPtp(path: `${string}.ptbk.json`): PromptTemplatePipelineJson;
 export function importPtp(path: string_file_path): PromptTemplatePipelineString | PromptTemplatePipelineJson {
     const content = readFileSync(join(__dirname, path), 'utf-8');
+    //                         <- Note: In production it is not good practice to use synchronous functions
+    //                                  But this is only a test before the build, so it is okay
     if (path.endsWith('.ptbk.json')) {
         return JSON.parse(content) as PromptTemplatePipelineJson;
     } else if (path.endsWith('.ptbk.md')) {

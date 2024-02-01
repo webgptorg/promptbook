@@ -59,6 +59,8 @@ async function main() {
 
     const executionReportString = executionReportJsonToString(executionReport);
     await writeFile(`./samples/templates/${sampleName}.report.md`, executionReportString, 'utf-8');
+
+    process.exit(0);
 }
 
 /**

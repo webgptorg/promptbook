@@ -80,6 +80,13 @@
             "focus": false
         },
         {
+            "name": "🏭📖 Generate reports .report.json -> .report.md",
+            "commands": ["ts-node ./scripts/generate-sample-reports/generate-sample-reports.ts"],
+            "execute": false,
+            "onlySingle": false,
+            "focus": false
+        },
+        {
             "name": "🔼👑 Release major version",
             "command": "npm version major",
             "onlySingle": true,
