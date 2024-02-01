@@ -7,7 +7,7 @@ import type { ExecutionReportString } from './ExecutionReportString';
 export function executionReportJsonToString(executionReportJson: ExecutionReportJson): ExecutionReportString {
     let executionReportString = '!!!!!!!!!!!!!';
 
-    executionReportString += executionReportJson.length;
+    executionReportString += executionReportJson.promptExecutions.length;
 
     return executionReportString as ExecutionReportString;
 }

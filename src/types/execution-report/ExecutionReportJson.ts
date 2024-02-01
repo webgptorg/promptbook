@@ -1,7 +1,6 @@
 import type { PromptResult } from '../../execution/PromptResult';
-import { Prompt } from '../Prompt';
-
-// TODO: !!!!!!!! Header metadata
+import type { Prompt } from '../Prompt';
+import type { string_ptbk_url, string_version } from '../typeAliases';
 
 /**
  * ExecutionReport is result of executing one promptbook
@@ -13,27 +12,53 @@ import { Prompt } from '../Prompt';
  *
  * @see https://github.com/webgptorg/promptbook#execution-report
  */
-export type ExecutionReportJson = Array<{
+export type ExecutionReportJson = {
     /**
-     * !!!!!!
+     * Unique identifier of the ptp from ptp which was executed
      */
-    prompt: Omit<Prompt, 'ptbkUrl' | 'parameters'>;
+    readonly ptbkUrl?: string_ptbk_url;
 
     /**
-     *!!!!!!
+     * Title of from ptp which was executed
      */
-    result?: PromptResult;
+    readonly title?: string;
 
     /**
-     * !!!!!!
-     *
-     * Note: It makes sense to have both error and result defined, for example when the result not pass expectations
+     * Version from ptp which was executed
      */
-    error?: {
-        message: string;
-    };
-}>;
+    readonly ptbkUsedVersion: string_version;
 
-/**
- * TODO: [🧠] What is the best shape of ExecutionReportJson
- */
+    /**
+     * Version from ptp which was requested by promptbook
+     */
+    readonly ptbkRequestedVersion?: string_version;
+
+    /**
+     * Description of the ptp which was executed
+     */
+    readonly description?: string;
+
+    /**
+     * Sequence of prompt templates in order which were executed
+     */
+    readonly promptExecutions: Array<{
+        /**
+         * The prompt wich was executed
+         */
+        prompt: Omit<Prompt, 'ptbkUrl' | 'parameters'>;
+
+        /**
+         * Result of the prompt execution (if not failed during LLM execution)
+         */
+        result?: PromptResult;
+
+        /**
+         * The error which occured during LLM execution or during postprocessing or expectation checking
+         *
+         * Note: It makes sense to have both error and result defined, for example when the result not pass expectations
+         */
+        error?: {
+            message: string;
+        };
+    }>;
+};

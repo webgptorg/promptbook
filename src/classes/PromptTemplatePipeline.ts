@@ -1,4 +1,4 @@
-import { string_name } from '.././types/typeAliases';
+import { string_name, string_version } from '.././types/typeAliases';
 import { promptTemplatePipelineStringToJson } from '../conversion/promptTemplatePipelineStringToJson';
 import { validatePromptTemplatePipelineJson } from '../conversion/validatePromptTemplatePipelineJson';
 import { PromptTemplateJson } from '../types/PromptTemplatePipelineJson/PromptTemplateJson';
@@ -62,6 +62,9 @@ export class PromptTemplatePipeline {
 
         return new PromptTemplatePipeline(
             ptbkjson.ptbkUrl ? new URL(ptbkjson.ptbkUrl) : null,
+            ptbkjson.title,
+            ptbkjson.ptbkVersion,
+            ptbkjson.ptbkVersion,
             Object.fromEntries(ptbkjson.parameters.map((parameter) => [parameter.name, parameter])),
             ptbkjson.promptTemplates,
         );
@@ -69,6 +72,9 @@ export class PromptTemplatePipeline {
 
     private constructor(
         public readonly ptbkUrl: URL | null,
+        public readonly title: string | null,
+        public readonly ptbkVersion: string_version | null,
+        public readonly description: string | null,
         public readonly parameters: Record<string_name, PromptTemplateParameterJson>,
         public readonly promptTemplates: Array<PromptTemplateJson>,
     ) {

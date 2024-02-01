@@ -2,6 +2,7 @@ import spaceTrim from 'spacetrim';
 import { Promisable } from 'type-fest';
 import { string_name } from '.././types/typeAliases';
 import { PromptTemplatePipeline } from '../classes/PromptTemplatePipeline';
+import { PTBK_VERSION } from '../config';
 import { Prompt } from '../types/Prompt';
 import { ExpectationUnit, PromptTemplateJson } from '../types/PromptTemplatePipelineJson/PromptTemplateJson';
 import { TaskProgress } from '../types/TaskProgress';
@@ -43,7 +44,14 @@ export function createPtpExecutor(options: CreatePtpExecutorOptions): PtpExecuto
     ) => {
         let parametersToPass: Record<string_name, string> = inputParameters;
         let currentTemplate: PromptTemplateJson | null = ptp.entryPromptTemplate;
-        const executionReport: ExecutionReportJson = [];
+        const executionReport: ExecutionReportJson = {
+            ptbkUrl: ptp.ptbkUrl?.href || undefined,
+            title: ptp.title || undefined,
+            ptbkUsedVersion: PTBK_VERSION,
+            ptbkRequestedVersion: ptp.ptbkVersion || undefined,
+            description: ptp.description || undefined,
+            promptExecutions: [],
+        };
 
         while (currentTemplate !== null) {
             const resultingParameter = ptp.getResultingParameter(currentTemplate.name);
