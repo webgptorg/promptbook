@@ -47,20 +47,17 @@ async function main() {
     const executor = library.createExecutor('advanced', tools);
 
     const inputParameters = { word: 'cat' };
-    const { outputParameters } = await executor(inputParameters);
+    const { outputParameters, executionReport } = await executor(inputParameters);
 
     console.info(outputParameters);
 
-    const executionReportJson = [
-        /* !!!!! */
-    ];
     await writeFile(
         `./samples/templates/${sampleName}.report.json`,
-        JSON.stringify(executionReportJson, null, 4) + '\n',
+        JSON.stringify(executionReport, null, 4) + '\n',
         'utf-8',
     );
 
-    const executionReportString = executionReportJsonToString(executionReportJson);
+    const executionReportString = executionReportJsonToString(executionReport);
     await writeFile(`./samples/templates/${sampleName}.report.md`, executionReportString, 'utf-8');
 }
 
