@@ -276,7 +276,7 @@ export function createPtpExecutor(options: CreatePtpExecutorOptions): PtpExecuto
                             // TODO: [🧠] Maybe put other executionTypes into report
                             executionReport.promptExecutions.push({
                                 prompt: {
-                                    title: prompt.title,
+                                    title: currentTemplate.title /* <- Note: If title in promptbook contains emojis, pass it innto report */,
                                     content: prompt.content,
                                     modelRequirements: prompt.modelRequirements,
                                     // <- Note: Do want to pass ONLY wanted information to the report
