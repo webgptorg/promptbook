@@ -3,7 +3,7 @@
 import { PromptTemplatePipelineLibrary } from '@promptbook/core';
 import { JavascriptEvalExecutionTools } from '@promptbook/execute-javascript';
 import { OpenAiExecutionTools } from '@promptbook/openai';
-import { executionReportJsonToString } from '@promptbook/utils';
+import { assertsExecutionSuccessful, executionReportJsonToString } from '@promptbook/utils';
 import chalk from 'chalk';
 import * as dotenv from 'dotenv';
 import { readFile, writeFile } from 'fs/promises';
@@ -47,7 +47,7 @@ async function main() {
     const executor = library.createExecutor('advanced', tools);
 
     const inputParameters = { word: 'cat' };
-    const { outputParameters, executionReport } = await executor(inputParameters);
+    const { isSuccessful, errors, outputParameters, executionReport } = await executor(inputParameters);
 
     console.info(outputParameters);
 
@@ -59,6 +59,8 @@ async function main() {
 
     const executionReportString = executionReportJsonToString(executionReport);
     await writeFile(`./samples/templates/${sampleName}.report.md`, executionReportString, 'utf-8');
+
+    assertsExecutionSuccessful({ isSuccessful, errors });
 
     process.exit(0);
 }

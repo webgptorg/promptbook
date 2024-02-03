@@ -3,6 +3,7 @@ import spaceTrim from 'spacetrim';
 import { PromptTemplatePipeline } from '../../../classes/PromptTemplatePipeline';
 import { promptTemplatePipelineStringToJson } from '../../../conversion/promptTemplatePipelineStringToJson';
 import { PromptTemplatePipelineString } from '../../../types/PromptTemplatePipelineString';
+import { assertsExecutionSuccessful } from '../../assertsExecutionSuccessful';
 import { createPtpExecutor } from '../../createPtpExecutor';
 import { MockedEchoNaturalExecutionTools } from '../natural-execution-tools/mocked/MockedEchoNaturalExecutionTools';
 import { CallbackInterfaceTools } from '../user-interface-execution-tools/callback/CallbackInterfaceTools';
@@ -73,6 +74,10 @@ describe('createPtpExecutor + executing scripts in ptp', () => {
             expect(ptpExecutor({ thing }, () => {})).resolves.toMatchObject({
                 errors: [new Error(`I do not like Apples!`)],
             });
+
+            expect(() => ptpExecutor({ thing }, () => {}).then(assertsExecutionSuccessful)).rejects.toThrowError(
+                /I do not like Apples!/,
+            );
         }
     });
 });

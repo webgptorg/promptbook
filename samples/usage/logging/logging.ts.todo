@@ -44,7 +44,9 @@ async function main() {
     const executor = library.createExecutor('advanced', tools);
 
     const inputParameters = { word: 'cat' };
-    const { outputParameters } = await executor(inputParameters);
+    const { isSuccessful, errors, outputParameters } = await executor(inputParameters);
+
+    assertsExecutionSuccessful({ isSuccessful, errors });
 
     console.info(outputParameters);
 }

@@ -25,4 +25,5 @@
 -   Add `EXPECT` command to promptbooks
 -   Add `ExecutionReport`
 -   Add `parseNumber` utility function
--   `PtpExecutor` returns richer result and does not throw, just returns `isSuccessful=false`
+-   `PtpExecutor` returns richer result and does not throw, just returns `isSuccessful=false`, You can use `assertsExecutionSuccessful` utility function to check if the execution was successful
+-   Add `assertsExecutionSuccessful` utility function

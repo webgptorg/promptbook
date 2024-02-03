@@ -1,3 +1,4 @@
+import { assertsExecutionSuccessful } from '../execution/assertsExecutionSuccessful';
 import { executionReportJsonToString } from '../types/execution-report/executionReportJsonToString';
 import { EMOJIS, EMOJIS_IN_CATEGORIES } from '../utils/emojis';
 import { CountUtils } from '../utils/expectation-counters';
@@ -25,6 +26,7 @@ export {
     CountUtils,
     EMOJIS,
     EMOJIS_IN_CATEGORIES,
+    assertsExecutionSuccessful,
     countCharacters,
     countLines,
     countPages,
