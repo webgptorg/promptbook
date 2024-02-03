@@ -356,7 +356,7 @@ export function parseCommand(listItem: string_markdown_text): Command {
                     - Model
                     - Parameter
                     - INPUT  PARAMETER
-                    - OUTPUT PARAMETER
+                    - OUTPUT PARAMETER
                     - PTBK VERSION
                 `,
             ),

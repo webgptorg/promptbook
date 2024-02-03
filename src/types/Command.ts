@@ -60,7 +60,7 @@ export interface ModelCommand {
 /**
  * Parameter command describes one parameter of the prompt template
  *
- * - It can tell if it is input or OUTPUT PARAMETER
+ * - It can tell if it is input or OUTPUT PARAMETER
  * - It can have description
  * - In description it can have simple formatting BUT not markdown structure or reference to other parameters
  */

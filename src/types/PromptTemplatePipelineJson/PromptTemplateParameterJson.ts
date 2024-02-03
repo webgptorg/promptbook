@@ -14,7 +14,7 @@ export interface PromptTemplateParameterJson {
     /**
      * The parameter is input of the pipeline
      *
-     * Note: OUTPUT PARAMETER is every parameter including input one
+     * Note: OUTPUT PARAMETER is every parameter including input one
      */
     readonly isInput: boolean;
 
