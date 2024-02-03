@@ -156,7 +156,8 @@ export function promptTemplatePipelineStringToJson(
         const postprocessingCommands: Array<PostprocessCommand> = [];
         const listItems = extractAllListItemsFromMarkdown(section.content);
         let executionType: ExecutionType = 'PROMPT_TEMPLATE';
-        const expectations: NaturalTemplateJson['expectations'] = {};
+        let expectAmount: NaturalTemplateJson['expectAmount'] = {};
+        let expectFormat: NaturalTemplateJson['expectFormat'] | undefined = undefined;
         let isExecutionTypeChanged = false;
 
         for (const listItem of listItems) {
@@ -185,32 +186,42 @@ export function promptTemplatePipelineStringToJson(
                     postprocessingCommands.push(command);
                     break;
 
-                case 'EXPECT':
+                case 'EXPECT_AMOUNT':
                     // eslint-disable-next-line no-case-declarations
                     const unit = command.unit.toLowerCase() as Lowercase<ExpectationUnit>;
 
-                    expectations[unit] = expectations[unit] || {};
+                    expectAmount[unit] = expectAmount[unit] || {};
 
                     if (command.sign === 'MINIMUM' || command.sign === 'EXACTLY') {
-                        if (expectations[unit]!.min !== undefined) {
+                        if (expectAmount[unit]!.min !== undefined) {
                             throw new Error(
                                 `Already defined minumum ${
-                                    expectations[unit]!.min
+                                    expectAmount[unit]!.min
                                 } ${command.unit.toLowerCase()}, now trying to redefine it to ${command.amount}`,
                             );
                         }
-                        expectations[unit]!.min = command.amount;
+                        expectAmount[unit]!.min = command.amount;
                     } /* not else */
                     if (command.sign === 'MAXIMUM' || command.sign === 'EXACTLY') {
-                        if (expectations[unit]!.max !== undefined) {
+                        if (expectAmount[unit]!.max !== undefined) {
                             throw new Error(
                                 `Already defined maximum ${
-                                    expectations[unit]!.max
+                                    expectAmount[unit]!.max
                                 } ${command.unit.toLowerCase()}, now trying to redefine it to ${command.amount}`,
                             );
                         }
-                        expectations[unit]!.max = command.amount;
+                        expectAmount[unit]!.max = command.amount;
                     }
+                    break;
+
+                case 'EXPECT_FORMAT':
+                    if (expectFormat !== undefined && command.format !== expectFormat) {
+                        throw new Error(
+                            `Expect format is already defined to "${expectFormat}". Now you try to redefine it by "${command.format}".`,
+                        );
+                    }
+                    expectFormat = command.format;
+
                     break;
 
                 default:
@@ -301,12 +312,17 @@ export function promptTemplatePipelineStringToJson(
             return parameterName;
         };
 
+        if (Object.keys(expectAmount).length === 0) {
+            expectAmount = undefined;
+        }
+
         ptbJson.promptTemplates.push({
             name: normalizeTo_PascalCase(section.title),
             title: section.title,
             description,
             executionType,
-            expectations,
+            expectAmount,
+            expectFormat,
             modelRequirements: templateModelRequirements,
             contentLanguage: executionType === 'SCRIPT' ? (language as ScriptLanguage) : undefined,
             content,

@@ -8,6 +8,7 @@ import { ExpectationUnit, PromptTemplateJson } from '../types/PromptTemplatePipe
 import { TaskProgress } from '../types/TaskProgress';
 import { ExecutionReportJson } from '../types/execution-report/ExecutionReportJson';
 import { CountUtils } from '../utils/expectation-counters';
+import { isValidJsonString } from '../utils/isValidJsonString';
 import { removeMarkdownFormatting } from '../utils/markdown/removeMarkdownFormatting';
 import { removeEmojis } from '../utils/removeEmojis';
 import { replaceParameters } from '../utils/replaceParameters';
@@ -142,15 +143,27 @@ export function createPtpExecutor(options: CreatePtpExecutorOptions): PtpExecuto
 
                                 // TODO: !!!!!! Here should postprocessing happen
 
-                                for (const [unit, { max, min }] of Object.entries(currentTemplate.expectations)) {
-                                    const amount = CountUtils[unit.toUpperCase() as ExpectationUnit](resultString);
+                                if (currentTemplate.expectFormat) {
+                                    if (currentTemplate.expectFormat === 'JSON') {
+                                        if (!isValidJsonString(resultString)) {
+                                            throw new Error('Expected valid JSON string');
+                                        }
+                                    } else {
+                                        // TODO: Here should be fatal errror which breaks through the retry loop
+                                    }
+                                }
 
-                                    if (min && amount < min) {
-                                        throw new Error(`Expected at least ${min} ${unit} but got ${amount}`);
-                                    } /* not else */
+                                if (currentTemplate.expectAmount) {
+                                    for (const [unit, { max, min }] of Object.entries(currentTemplate.expectAmount)) {
+                                        const amount = CountUtils[unit.toUpperCase() as ExpectationUnit](resultString);
 
-                                    if (max && amount > max) {
-                                        throw new Error(`Expected at most ${max} ${unit} but got ${amount}`);
+                                        if (min && amount < min) {
+                                            throw new Error(`Expected at least ${min} ${unit} but got ${amount}`);
+                                        } /* not else */
+
+                                        if (max && amount > max) {
+                                            throw new Error(`Expected at most ${max} ${unit} but got ${amount}`);
+                                        }
                                     }
                                 }
                             } catch (error) {

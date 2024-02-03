@@ -4,7 +4,9 @@ import type { string_markdown_text } from '.././types/typeAliases';
 import type {
     Command,
     ExecuteCommand,
+    ExpectAmountCommand,
     ExpectCommand,
+    ExpectFormatCommand,
     ModelCommand,
     ParameterCommand,
     PostprocessCommand,
@@ -266,11 +268,16 @@ export function parseCommand(listItem: string_markdown_text): Command {
             type: 'POSTPROCESS',
             functionName,
         } satisfies PostprocessCommand;
+    } else if (type.startsWith('EXPECT_JSON')) {
+        return {
+            type: 'EXPECT_FORMAT',
+            format: 'JSON',
+        } satisfies ExpectFormatCommand;
     } else if (type.startsWith('EXPECT')) {
         try {
             listItemParts.shift();
 
-            let sign: ExpectCommand['sign'];
+            let sign: ExpectAmountCommand['sign'];
             const signRaw = listItemParts.shift()!;
             if (/^exact/i.test(signRaw)) {
                 sign = 'EXACTLY';
@@ -292,7 +299,7 @@ export function parseCommand(listItem: string_markdown_text): Command {
             }
 
             const unitRaw = listItemParts.shift()!;
-            let unit: ExpectCommand['unit'] | undefined = undefined;
+            let unit: ExpectAmountCommand['unit'] | undefined = undefined;
             for (const existingUnit of EXPECTATION_UNITS) {
                 let existingUnitText: string = existingUnit;
 
@@ -316,7 +323,7 @@ export function parseCommand(listItem: string_markdown_text): Command {
             }
 
             return {
-                type: 'EXPECT',
+                type: 'EXPECT_AMOUNT',
                 sign,
                 unit,
                 amount,

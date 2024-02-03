@@ -6,6 +6,8 @@
 
 ## 💬 Question
 
+-   MODEL VARIANT CHAT
+-   MODEL NAME `gpt-3.5-turbo`
 -   Expect max 30 characters
 -   Expect min 2 characters
 -   Expect max 3 words

@@ -82,13 +82,27 @@ export interface PostprocessCommand {
 
 /**
  * Expect command describes the desired output of the prompt template (after post-processing)
+ * It can set limits for the maximum/minimum length of the output, measured in characters, words, sentences, paragraphs or some other shape of the output.
+ */
+export type ExpectCommand = ExpectAmountCommand | ExpectFormatCommand;
+
+/**
+ * Expect amount command describes the desired output of the prompt template (after post-processing)
  * It can set limits for the maximum/minimum length of the output, measured in characters, words, sentences, paragraphs,...
  *
  * Note: LLMs work with tokens, not characters, but in Promptbooks we want to use some human-recognisable and cross-model interoperable units.
  */
-export interface ExpectCommand {
-    readonly type: 'EXPECT';
+export interface ExpectAmountCommand {
+    readonly type: 'EXPECT_AMOUNT';
     readonly sign: 'EXACTLY' | 'MINIMUM' | 'MAXIMUM';
     readonly unit: ExpectationUnit;
     readonly amount: ExpectationAmount;
+}
+
+/**
+ * Represents a command that expects a specific format.
+ */
+export interface ExpectFormatCommand {
+    readonly type: 'EXPECT_FORMAT';
+    readonly format: 'JSON';
 }

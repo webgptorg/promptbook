@@ -7,6 +7,7 @@ import {
     string_prompt,
     string_template,
 } from '../.././types/typeAliases';
+import { ExpectFormatCommand } from '../Command';
 import { ExecutionType } from '../ExecutionTypes';
 import { ModelRequirements } from '../ModelRequirements';
 import { ScriptLanguage } from '../ScriptLanguage';
@@ -23,11 +24,18 @@ export interface NaturalTemplateJson extends PromptTemplateJsonCommon {
     readonly executionType: 'PROMPT_TEMPLATE';
 
     /**
-     * Expectations for the answer
+     * Expect this amount of each unit in the answer
+     *
+     * For example 5 words, 3 sentences, 2 paragraphs, ...
      */
-    readonly expectations: Partial<
+    readonly expectAmount?: Partial<
         Record<Lowercase<ExpectationUnit>, { min?: ExpectationAmount; max?: ExpectationAmount }>
     >;
+
+    /**
+     * Expect this format of the answer
+     */
+    readonly expectFormat?: ExpectFormatCommand['format'];
 
     // [🧠] !!!!! Postprocessing + expectations OR via branching
 
@@ -46,7 +54,7 @@ export const EXPECTATION_UNITS = ['CHARACTERS', 'WORDS', 'SENTENCES', 'PARAGRAPH
 /**
  * Unit of text measurement
  */
-export type ExpectationUnit = (typeof EXPECTATION_UNITS)[number];
+export type ExpectationUnit = typeof EXPECTATION_UNITS[number];
 
 /**
  * Amount of text measurement

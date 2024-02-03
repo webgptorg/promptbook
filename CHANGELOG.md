@@ -31,3 +31,8 @@
 ## 0.25.0 _(2024-02-03)_
 
 -   `CreatePtpExecutorSettings` are not mandatory anymore
+
+## 0.26.0 _(2024-02-03)_
+
+-   Add `EXPECT JSON` command to promptbooks
+-   Split internal representation `EXPECT` into `EXPECT_AMOUNT` and `EXPECT_FORMAT`

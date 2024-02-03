@@ -434,6 +434,8 @@ _Note: LLMs work with tokens, not characters, but in Promptbooks we want to use 
 ...
 ```
 
+Look at [expectations.ptbk.md](samples/templates/45-expectations.ptbk.md) and [expect-json.ptbk.md](samples/templates/45-expect-json.ptbk.md) samples for more.
+
 ### Execution report
 
 Execution report is a simple object or markdown that contains information about the execution of the prompt template pipeline.
