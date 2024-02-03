@@ -449,6 +449,5 @@ describe('how parseCommand works', () => {
 
 /**
  * TODO: [🧠] Probbably change syntax MODEL VARIANT -> MODEL
- * TODO: !!!! Allow to skip segments SKIP IF {foo} NOT DEFINED
- * TODO: !!! Allow to EXPECT 3 words
+ * TODO: !!! Allow to skip segments SKIP IF {foo} NOT DEFINED
  */

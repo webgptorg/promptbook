@@ -114,7 +114,7 @@ export function createPtpExecutor(options: CreatePtpExecutorOptions): PtpExecuto
                                     ptbkUrl: `${
                                         ptp.ptbkUrl
                                             ? ptp.ptbkUrl.href
-                                            : 'anonymous' /* <- [🧠] !!!! How to deal with anonymous PTPs, do here some auto-url like SHA-256 based ad-hoc identifier? */
+                                            : 'anonymous' /* <- [🧠] !!! How to deal with anonymous PTPs, do here some auto-url like SHA-256 based ad-hoc identifier? */
                                     }#${currentTemplate.name}`,
                                     parameters: parametersToPass,
                                     content: replaceParameters(currentTemplate.content, parametersToPass),
@@ -276,9 +276,7 @@ export function createPtpExecutor(options: CreatePtpExecutorOptions): PtpExecuto
                                     modelRequirements: prompt!.modelRequirements,
                                     // <- Note: Do want to pass ONLY wanted information to the report
                                 },
-                                result:
-                                    result /* <- !!!!! Look what is exposed here and probbably also filter out */ ||
-                                    undefined,
+                                result: result || undefined,
                                 error: expectError || undefined,
                             });
                         }

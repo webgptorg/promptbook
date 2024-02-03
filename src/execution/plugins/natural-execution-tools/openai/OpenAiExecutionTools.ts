@@ -144,7 +144,7 @@ export class OpenAiExecutionTools implements NaturalExecutionTools {
 }
 
 /**
- * TODO: !!!! Allow to use other models - List all from openai
+
  * TODO: Maybe Create some common util for gptChat and gptComplete
  * TODO: Maybe make custom OpenaiError
  */
