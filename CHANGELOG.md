@@ -36,3 +36,11 @@
 
 -   Add `EXPECT JSON` command to promptbooks
 -   Split internal representation `EXPECT` into `EXPECT_AMOUNT` and `EXPECT_FORMAT`
+
+## 0.27.0 _(2024-02-03)_
+
+-   Allow postprocessing and expectations in all execution types
+-   Postprocessing is happening before checking expectations
+-   In `PromptTemplatePipelineJson` postprocessing is represented internally in each `PromptTemplateJson` not as separate `PromptTemplateJson`
+-   Introduce `ExpectError`
+-   Rename `maxNaturalExecutionAttempts` to `maxExecutionAttempts` (because now it is not just for natural execution)

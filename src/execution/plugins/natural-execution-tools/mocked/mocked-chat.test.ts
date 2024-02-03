@@ -43,7 +43,7 @@ describe('createPtpExecutor + MockedEchoExecutionTools with sample chat prompt',
             }),
         },
         settings: {
-            maxNaturalExecutionAttempts: 3,
+            maxExecutionAttempts: 3,
         },
     });
 

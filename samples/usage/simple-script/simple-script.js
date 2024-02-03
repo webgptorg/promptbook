@@ -27,7 +27,7 @@ async function main() {
             advanced: await readFile(`./samples/templates/${sampleName}.ptbk.md`, 'utf-8'),
         },
         {
-            maxNaturalExecutionAttempts: 3,
+            maxExecutionAttempts: 3,
         },
     );
 

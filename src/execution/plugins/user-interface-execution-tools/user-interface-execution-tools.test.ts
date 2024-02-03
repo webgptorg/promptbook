@@ -45,7 +45,7 @@ describe('createPtpExecutor + executing user interface prompts in ptp', () => {
             }),
         },
         settings: {
-            maxNaturalExecutionAttempts: 3,
+            maxExecutionAttempts: 3,
         },
     });
 

@@ -24,7 +24,7 @@ runRemoteServer({
         /* <- TODO: [🎛] Use here real webgptPtpLibrary */
     },
         {
-            maxNaturalExecutionAttempts: 3,
+            maxExecutionAttempts: 3,
         }),
 
     createNaturalExecutionTools(clientId) {

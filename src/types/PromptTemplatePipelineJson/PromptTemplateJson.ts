@@ -2,6 +2,7 @@ import {
     number_integer,
     number_positive_or_zero,
     string_javascript,
+    string_javascript_name,
     string_markdown,
     string_name,
     string_prompt,
@@ -22,22 +23,6 @@ export type PromptTemplateJson = NaturalTemplateJson | SimpleTemplateJson | Scri
  */
 export interface NaturalTemplateJson extends PromptTemplateJsonCommon {
     readonly executionType: 'PROMPT_TEMPLATE';
-
-    /**
-     * Expect this amount of each unit in the answer
-     *
-     * For example 5 words, 3 sentences, 2 paragraphs, ...
-     */
-    readonly expectAmount?: Partial<
-        Record<Lowercase<ExpectationUnit>, { min?: ExpectationAmount; max?: ExpectationAmount }>
-    >;
-
-    /**
-     * Expect this format of the answer
-     */
-    readonly expectFormat?: ExpectFormatCommand['format'];
-
-    // [🧠] !!!!! Postprocessing + expectations OR via branching
 
     /**
      * Requirements for the model
@@ -123,6 +108,29 @@ interface PromptTemplateJsonCommon {
      * Content of the template with {placeholders} for parameters
      */
     readonly content: (string_prompt | string_javascript | string_markdown) & string_template;
+
+    /**
+     * List of postprocessing steps that are executed after the prompt template
+     */
+    readonly postprocessing?: Array<string_javascript_name>;
+
+    /**
+     * Expect this amount of each unit in the answer
+     *
+     * For example 5 words, 3 sentences, 2 paragraphs, ...
+     *
+     * Note: Expectations are performed after all postprocessing steps
+     */
+    readonly expectAmount?: Partial<
+        Record<Lowercase<ExpectationUnit>, { min?: ExpectationAmount; max?: ExpectationAmount }>
+    >;
+
+    /**
+     * Expect this format of the answer
+     *
+     * Note: Expectations are performed after all postprocessing steps
+     */
+    readonly expectFormat?: ExpectFormatCommand['format'];
 
     /**
      * Name of the parameter that is the result of the prompt template

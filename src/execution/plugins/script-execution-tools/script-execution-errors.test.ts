@@ -47,7 +47,7 @@ describe('createPtpExecutor + executing scripts in ptp', () => {
             }),
         },
         settings: {
-            maxNaturalExecutionAttempts: 3,
+            maxExecutionAttempts: 3,
         },
     });
 
