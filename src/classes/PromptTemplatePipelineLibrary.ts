@@ -7,9 +7,19 @@ import { PromptTemplatePipelineJson } from '../types/PromptTemplatePipelineJson/
 import { PromptTemplatePipelineString } from '../types/PromptTemplatePipelineString';
 import { PromptTemplatePipeline } from './PromptTemplatePipeline';
 
+/**
+ * Options for PromptTemplatePipelineLibrary
+ */
 type PromptTemplatePipelineLibraryOptions = {
+    /**
+     * The library of prompt template pipelines
+     */
     readonly library: Record<string_name, PromptTemplatePipeline>;
-    readonly settings: CreatePtpExecutorSettings;
+
+    /**
+     * Optional settings for creating a PromptTemplatePipelineExecutor
+     */
+    readonly settings?: Partial<CreatePtpExecutorSettings>;
 };
 
 /**
@@ -29,11 +39,12 @@ export class PromptTemplatePipelineLibrary {
      * Note: You can combine .ptbk.md and .ptbk.json files BUT it is not recommended
      *
      * @param ptbkSources contents of .ptbk.md or .ptbk.json files
+     * @param settings settings for creating executor functions
      * @returns PromptTemplatePipelineLibrary
      */
     public static fromSources(
         ptbkSources: Record<string_name, PromptTemplatePipelineJson | PromptTemplatePipelineString>,
-        settings: CreatePtpExecutorSettings,
+        settings?: Partial<CreatePtpExecutorSettings>,
     ): PromptTemplatePipelineLibrary {
         const library: Record<string_name, PromptTemplatePipeline> = {};
         for (const [name, source] of Object.entries(ptbkSources)) {

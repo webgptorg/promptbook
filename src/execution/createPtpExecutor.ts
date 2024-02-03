@@ -19,15 +19,29 @@ export interface CreatePtpExecutorSettings {
     /**
      * When executor does not satisfy expectations it will be retried this amount of times
      *
-     * !!!!!!! Make default in version 24.1.0
+     * @default 3
      */
     readonly maxNaturalExecutionAttempts: number;
 }
 
+/**
+ * Options for creating a PTP (Prompt Template Pipeline) executor
+ */
 interface CreatePtpExecutorOptions {
+    /**
+     * The Prompt Template Pipeline (PTP) to be executed
+     */
     readonly ptp: PromptTemplatePipeline;
+
+    /**
+     * The execution tools to be used during the execution of the PTP
+     */
     readonly tools: ExecutionTools;
-    readonly settings: CreatePtpExecutorSettings;
+
+    /**
+     * Optional settings for the PTP executor
+     */
+    readonly settings?: Partial<CreatePtpExecutorSettings>;
 }
 
 /**
@@ -36,7 +50,8 @@ interface CreatePtpExecutorOptions {
  * Note: Consider using getExecutor method of the library instead of using this function
  */
 export function createPtpExecutor(options: CreatePtpExecutorOptions): PtpExecutor {
-    const { ptp, tools, settings } = options;
+    const { ptp, tools, settings = {} } = options;
+    const { maxNaturalExecutionAttempts = 3 } = settings;
 
     const ptpExecutor: PtpExecutor = async (
         inputParameters: Record<string_name, string>,
@@ -99,7 +114,7 @@ export function createPtpExecutor(options: CreatePtpExecutorOptions): PtpExecuto
                             modelRequirements: currentTemplate.modelRequirements!,
                         };
 
-                        for (let attempt = 0; attempt < settings.maxNaturalExecutionAttempts; attempt++) {
+                        for (let attempt = 0; attempt < maxNaturalExecutionAttempts; attempt++) {
                             result = null;
                             resultString = null;
                             naturalExecutionError = null;

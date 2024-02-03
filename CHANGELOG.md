@@ -27,3 +27,7 @@
 -   Add `parseNumber` utility function
 -   `PtpExecutor` returns richer result and does not throw, just returns `isSuccessful=false`, You can use `assertsExecutionSuccessful` utility function to check if the execution was successful
 -   Add `assertsExecutionSuccessful` utility function
+
+## 0.24.1 _(2024-02-03)_
+
+-   `CreatePtpExecutorSettings` are not mandatory anymore
