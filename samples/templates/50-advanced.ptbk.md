@@ -3,21 +3,21 @@
 Trying the language capabilities of GPT models.
 
 -   PTBK URL https://ptbk.example.com/samples/language-capabilities.ptbk.md@v1
--   PTBK version 1.0.0
--   MODEL VARIANT Chat
+-   PTBK VERSION 1.0.0
+-   MODEL VARIANT CHAT
 -   MODEL NAME `gpt-3.5-turbo`
 -   Input  parameter `{word}` The word to use in the prompt.
--   Output parameter `{comparisonOfTwoSentences}` Comparison between two sentences
--   Output parameter `{summary}` The overall summary of the comparison
+-   OUTPUT PARAMETER `{comparisonOfTwoSentences}` Comparison between two sentences
+-   OUTPUT PARAMETER `{summary}` The overall summary of the comparison
 
 ## 💬 Synonym
 
 Synonym for word
 
--   MODEL VARIANT Chat
+-   MODEL VARIANT CHAT
 -   MODEL NAME `gpt-3.5-turbo`
--   Postprocessing `unwrapResult`
--   Expect exactly 1 word
+-   POSTPROCESSING `unwrapResult`
+-   EXPECT EXACTLY 1 WORD
 
 ```text
 Write synonym for "{word}"
@@ -27,7 +27,7 @@ Write synonym for "{word}"
 
 ## ⚙ Test that word is not original word
 
--   Execute script
+-   EXECUTE SCRIPT
 
 ```javascript
 if (wordSynonym === word) {
@@ -43,10 +43,10 @@ return wordSynonym;
 
 Sentence with word and wordSynonym
 
--   MODEL VARIANT Chat
+-   MODEL VARIANT CHAT
 -   MODEL NAME `gpt-3.5-turbo`
--   Expect max 20 words
--   Expect exactly 1 sentence
+-   EXPECT MAX 20 WORDS
+-   EXPECT EXACTLY 1 SENTENCE
 
 ```text
 Write sentence with "{word}" and "{wordSynonym}" in it
@@ -58,10 +58,10 @@ Write sentence with "{word}" and "{wordSynonym}" in it
 
 Sentence "{sentenceWithTwoSynonyms}" without "{word}".
 
--   MODEL VARIANT Chat
+-   MODEL VARIANT CHAT
 -   MODEL NAME `gpt-3.5-turbo`
--   Expect max 20 words
--   Expect exactly 1 sentence
+-   EXPECT MAX 20 WORDS
+-   EXPECT EXACTLY 1 SENTENCE
 
 ```markdown
 Remove word "{word}" from sentence and modify it so that it makes sense:
@@ -82,10 +82,10 @@ Remove word "{word}" from sentence and modify it so that it makes sense:
 
 Comparison between "{sentenceWithTwoSynonyms}" and "{sentenceWithOriginalWordRemoved}".
 
--   MODEL VARIANT Chat
+-   MODEL VARIANT CHAT
 -   MODEL NAME `gpt-4`
--   Expect min 1 sentence
--   Expect max 5 sentences
+-   EXPECT MIN 1 SENTENCE
+-   EXPECT MAX 5 SENTENCES
 
 ```markdown
 Compare meaning of thee two sentences:

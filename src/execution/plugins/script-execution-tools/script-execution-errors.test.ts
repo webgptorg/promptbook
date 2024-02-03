@@ -16,12 +16,12 @@ describe('createPtpExecutor + executing scripts in ptp', () => {
 
             Show how to use a simple prompt with no parameters.
 
-            -   PTBK version 1.0.0
-            -   Input parameter {thing} Any thing to buy
+            -   PTBK VERSION 1.0.0
+            -   INPUT  PARAMETER {thing} Any thing to buy
 
             ## Execution
 
-            -   Execute script
+            -   EXECUTE SCRIPT
 
             \`\`\`javascript
             if(/Apple/i.test(thing)){
@@ -51,7 +51,7 @@ describe('createPtpExecutor + executing scripts in ptp', () => {
         },
     });
 
-    it('should work when every input parameter is allowed', () => {
+    it('should work when every INPUT  PARAMETER is allowed', () => {
         expect(ptpExecutor({ thing: 'a cup of coffee' }, () => {})).resolves.toMatchObject({
             outputParameters: {
                 bhing: 'b cup of coffee',
@@ -69,7 +69,7 @@ describe('createPtpExecutor + executing scripts in ptp', () => {
         });
     });
 
-    it('should fail when input parameter is NOT allowed', () => {
+    it('should fail when INPUT  PARAMETER is NOT allowed', () => {
         for (const thing of ['apple', 'apples', 'an apple', 'Apple', 'The Apple', '🍏 Apple', 'Apple 🍎']) {
             expect(ptpExecutor({ thing }, () => {})).resolves.toMatchObject({
                 errors: [new Error(`I do not like Apples!`)],

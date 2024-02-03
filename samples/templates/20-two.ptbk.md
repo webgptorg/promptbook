@@ -3,8 +3,8 @@
 Show how to use two consecutive prompts with one parameter each.
 
 -   PTBK URL https://ptbk.example.com/samples/two.ptbk.md@v1
--   PTBK version 1.0.0
--   Input parameter `{word}` Any single word
+-   PTBK VERSION 1.0.0
+-   INPUT  PARAMETER `{word}` Any single word
 
 ## 💬 Synonym
 

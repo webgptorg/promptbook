@@ -195,7 +195,7 @@ export function parseCommand(listItem: string_markdown_text): Command {
 
                           Example:
 
-                          - MODEL VARIANT Chat
+                          - MODEL VARIANT CHAT
                           - MODEL NAME gpt-4
                     `,
                 ),
@@ -355,9 +355,9 @@ export function parseCommand(listItem: string_markdown_text): Command {
                     - Execute
                     - Model
                     - Parameter
-                    - Input parameter
-                    - Output parameter
-                    - PTBK Version
+                    - INPUT  PARAMETER
+                    - OUTPUT PARAMETER
+                    - PTBK VERSION
                 `,
             ),
         );

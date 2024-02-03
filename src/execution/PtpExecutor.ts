@@ -4,7 +4,7 @@ import type { TaskProgress } from '../types/TaskProgress';
 import type { ExecutionReportJson } from '../types/execution-report/ExecutionReportJson';
 
 /**
- * Executor is a simple async function that takes input parameters and returns result parameters _(along with all intermediate parameters and input parameters = it extends input object)_.
+ * Executor is a simple async function that takes INPUT  PARAMETERs and returns result parameters _(along with all intermediate parameters and INPUT  PARAMETERs = it extends input object)_.
  * Executor is made by combining execution tools and prompt template pipeline library.
  *
  * It can be done in two ways:
@@ -14,7 +14,10 @@ import type { ExecutionReportJson } from '../types/execution-report/ExecutionRep
  * @see https://github.com/webgptorg/promptbook#executor
  */
 export interface PtpExecutor {
-    (inputParameters: Record<string_name, string>, onProgress: (taskProgress: TaskProgress) => Promisable<void>):  Promise<{
+    (
+        inputParameters: Record<string_name, string>,
+        onProgress: (taskProgress: TaskProgress) => Promisable<void>,
+    ): Promise<{
         /**
          * Whether the execution was successful
          */

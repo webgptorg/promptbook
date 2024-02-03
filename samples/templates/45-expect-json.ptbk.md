@@ -1,14 +1,14 @@
 # ✨ Sample: Parsing data to JSON
 
 -   PTBK URL https://ptbk.example.com/samples/postprocessing-2.ptbk.md@v1
--   PTBK version 1.0.0
--   Input parameter {sentence} Sentence to be processed
+-   PTBK VERSION 1.0.0
+-   INPUT  PARAMETER {sentence} Sentence to be processed
 
 ## 💬 Question
 
--   MODEL VARIANT Completion
+-   MODEL VARIANT COMPLETION
 -   MODEL NAME `gpt-3.5-turbo-instruct`
--   Postprocessing `trimEndOfCodeBlock`
+-   POSTPROCESSING `trimEndOfCodeBlock`
 -   Expect JSON
 
 ```

@@ -60,12 +60,12 @@ File `write-website-content.ptbk.md`:
 Instructions for creating web page content using [📖 Prompt template pipelines](https://github.com/webgptorg/promptbook).
 
 -   PTBK URL https://ptbk.webgpt.com/en/write-website-content.ptbk.md@v0.1.0
--   PTBK version 0.0.1
--   MODEL VARIANT Chat
+-   PTBK VERSION 0.0.1
+-   MODEL VARIANT CHAT
 -   Use GPT-3.5
--   Input param `{rawTitle}` Automatically suggested a site name or empty text
--   Input param `{rawAssigment}` Automatically generated site entry from image recognition
--   Output param `{content}` Web content
+-   INPUT  PARAM `{rawTitle}` Automatically suggested a site name or empty text
+-   INPUT  PARAM `{rawAssigment}` Automatically generated site entry from image recognition
+-   OUTPUT PARAM `{content}` Web content
 
 ## 👤 Specifying the assigment
 
@@ -81,7 +81,7 @@ What is your web about?
 
 ## 💬 Improvement of the web title
 
--   Postprocessing `unwrapResult`
+-   POSTPROCESSING `unwrapResult`
 
 \`\`\`markdown
 As an experienced marketing specialist, you have been entrusted with improving the name of your client's business.
@@ -115,7 +115,7 @@ Is the title for your website okay?
 
 ## 💬 Cunning subtitle
 
--   Postprocessing `unwrapResult`
+-   POSTPROCESSING `unwrapResult`
 
 \`\`\`markdown
 As an experienced copywriter, you have been entrusted with creating a claim for the "{title}" web page.
@@ -176,7 +176,7 @@ Website assignment from the customer:
 
 ## 🖋 Writing web content
 
--   MODEL VARIANT Completion
+-   MODEL VARIANT COMPLETION
 -   MODEL NAME `gpt-3.5-turbo-instruct`
 
 \`\`\`markdown
@@ -308,9 +308,9 @@ It is a simple key-value object.
 
 There are three types of template parameters, depending on how they are used in the prompt template pipeline:
 
--   **Input parameters** are required to execute the prompt template pipeline.
+-   **INPUT  PARAMETERs** are required to execute the prompt template pipeline.
 -   **Intermediate parameters** are used internally in the prompt template pipeline.
--   **Output parameters** are not used internally in the prompt template pipeline, but are returned as the result of the prompt template pipeline execution.
+-   **OUTPUT PARAMETERs** are not used internally in the prompt template pipeline, but are returned as the result of the prompt template pipeline execution.
 
 ### Prompt Template Pipeline
 
@@ -376,7 +376,7 @@ Internally it calls OpenAI, Azure, GPU, proxy, cache, logging,...
 
 #### Script Execution Tools
 
-`ScriptExecutionTools` is an abstract container that represents all the tools needed to execute scripts. It is implemented by concrete execution tools:
+`ScriptExecutionTools` is an abstract container that represents all the tools needed to EXECUTE SCRIPTs. It is implemented by concrete execution tools:
 
 -   `JavascriptExecutionTools` is a wrapper around `vm2` module that executes javascript code in a sandbox.
 -   `JavascriptEvalExecutionTools` is wrapper around `eval` function that executes javascript. It is used for testing and mocking **NOT intended to use in the production** due to its unsafe nature, use `JavascriptExecutionTools` instead.
@@ -395,7 +395,7 @@ There are [postprocessing functions](#postprocessing-functions) that can be used
 
 ### Executor
 
-Executor is a simple async function that takes input parameters and returns output parameters _(along with all intermediate parameters and input parameters = it extends input object)_.
+Executor is a simple async function that takes INPUT  PARAMETERs and returns OUTPUT PARAMETERs _(along with all intermediate parameters and INPUT  PARAMETERs = it extends input object)_.
 
 Executor is made by combining execution tools and prompt template pipeline library.
 It can be done in two ways:
@@ -422,16 +422,16 @@ _Note: LLMs work with tokens, not characters, but in Promptbooks we want to use 
 # ✨ Sample: Expectations
 
 -   PTBK URL https://ptbk.example.com/samples/postprocessing-2.ptbk.md@v1
--   PTBK version 1.0.0
--   Input parameter {yourName} Name of the hero
+-   PTBK VERSION 1.0.0
+-   INPUT  PARAMETER {yourName} Name of the hero
 
 ## 💬 Question
 
--   Expect max 30 characters
--   Expect min 2 characters
--   Expect max 3 words
--   Expect exactly 1 sentence
--   Expect exactly 1 line
+-   EXPECT MAX 30 CHARACTERS
+-   EXPECT MIN 2 CHARACTERS
+-   EXPECT MAX 3 WORDS
+-   EXPECT EXACTLY 1 SENTENCE
+-   EXPECT EXACTLY 1 LINE
 
 ...
 ```

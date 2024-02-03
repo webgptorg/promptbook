@@ -15,8 +15,8 @@ describe('createPtpExecutor + executing user interface prompts in ptp', () => {
 
             Show how to use a simple prompt with no parameters.
 
-            -   PTBK version 1.0.0
-            -   Input parameter {thing} Any thing to buy
+            -   PTBK VERSION 1.0.0
+            -   INPUT  PARAMETER {thing} Any thing to buy
 
             ## Prompt
 
@@ -49,7 +49,7 @@ describe('createPtpExecutor + executing user interface prompts in ptp', () => {
         },
     });
 
-    it('should work when every input parameter defined', () => {
+    it('should work when every INPUT  PARAMETER defined', () => {
         expect(ptpExecutor({ thing: 'apple' }, () => {})).resolves.toMatchObject({
             outputParameters: {
                 favoriteThing: 'Answer to question "What is your favorite apple to buy?" is not apple but Pear.',
@@ -63,7 +63,7 @@ describe('createPtpExecutor + executing user interface prompts in ptp', () => {
         });
     });
 
-    it('should fail when some input parameter is missing', () => {
+    it('should fail when some INPUT  PARAMETER is missing', () => {
         expect(ptpExecutor({}, () => {})).resolves.toMatchObject({
             errors: [new Error(`Parameter {thing} is not defined`)],
         });

@@ -15,9 +15,9 @@ describe('createPtpExecutor + MockedEchoExecutionTools with sample chat prompt',
 
             Show how to use a simple prompt with no parameters.
 
-            -   PTBK version 1.0.0
+            -   PTBK VERSION 1.0.0
             -   PTBK URL https://example.com/ptbk.json
-            -   Input parameter {thing} Any thing to buy
+            -   INPUT  PARAMETER {thing} Any thing to buy
 
             ## Prompt
 
@@ -47,7 +47,7 @@ describe('createPtpExecutor + MockedEchoExecutionTools with sample chat prompt',
         },
     });
 
-    it('should work when every input parameter defined', () => {
+    it('should work when every INPUT  PARAMETER defined', () => {
         expect(ptpExecutor({ thing: 'a cup of coffee' }, () => {})).resolves.toMatchObject({
             isSuccessful: true,
             executionReport: {
@@ -67,7 +67,7 @@ describe('createPtpExecutor + MockedEchoExecutionTools with sample chat prompt',
         });
     });
 
-    it('should fail when some input parameter is missing', () => {
+    it('should fail when some INPUT  PARAMETER is missing', () => {
         expect(ptpExecutor({}, () => {})).resolves.toEqual({
             errors: [new Error(`Parameter {thing} is not defined`)],
             executionReport: {
@@ -85,7 +85,7 @@ describe('createPtpExecutor + MockedEchoExecutionTools with sample chat prompt',
 
     /*
     TODO: [🧠] Should be this failing or not?
-    it('should fail when there is input parameter extra', () => {
+    it('should fail when there is INPUT  PARAMETER extra', () => {
         expect(ptpExecutor({ thing: 'a cup of coffee', sound: 'Meow!' }, () => {})).rejects.toThrowError(/Parameter \{sound\} should not be defined/i);
     });
     */

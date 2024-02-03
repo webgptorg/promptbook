@@ -16,12 +16,12 @@ describe('createPtpExecutor + executing scripts in ptp', () => {
 
             Show how to use a simple prompt with no parameters.
 
-            -   PTBK version 1.0.0
-            -   Input parameter {thing} Any thing to buy
+            -   PTBK VERSION 1.0.0
+            -   INPUT  PARAMETER {thing} Any thing to buy
 
             ## Execution
 
-            -   Execute script
+            -   EXECUTE SCRIPT
 
             \`\`\`javascript
             thing.split('a').join('b')
@@ -48,7 +48,7 @@ describe('createPtpExecutor + executing scripts in ptp', () => {
         },
     });
 
-    it('should work when every input parameter defined', () => {
+    it('should work when every INPUT  PARAMETER defined', () => {
         expect(ptpExecutor({ thing: 'apple' }, () => {})).resolves.toMatchObject({
             outputParameters: {
                 bhing: 'bpple',
@@ -61,7 +61,7 @@ describe('createPtpExecutor + executing scripts in ptp', () => {
         });
     });
 
-    it('should fail when some input parameter is missing', () => {
+    it('should fail when some INPUT  PARAMETER is missing', () => {
         expect(ptpExecutor({}, () => {})).resolves.toMatchObject({
             errors: [new Error(`Parameter {thing} is not defined`)],
         });

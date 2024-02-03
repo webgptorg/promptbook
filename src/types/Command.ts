@@ -60,7 +60,7 @@ export interface ModelCommand {
 /**
  * Parameter command describes one parameter of the prompt template
  *
- * - It can tell if it is input or output parameter
+ * - It can tell if it is input or OUTPUT PARAMETER
  * - It can have description
  * - In description it can have simple formatting BUT not markdown structure or reference to other parameters
  */
@@ -73,7 +73,7 @@ export interface ParameterCommand {
 
 /**
  * Postprocess command describes which function to use for postprocessing
- * This will be created as separate execute script block bellow
+ * This will be created as separate EXECUTE SCRIPT block bellow
  */
 export interface PostprocessCommand {
     readonly type: 'POSTPROCESS';

@@ -3,16 +3,16 @@
 Trying the language capabilities of GPT models.
 
 -   PTBK URL https://ptbk.example.com/samples/json-mode.ptbk.md@v1
--   PTBK version 1.0.0
--   MODEL VARIANT Chat
--   Input param `{unstructuredContacts}` nestrukturovaný seznam kontaktních údajů
--   Output param `{contactlist}` JSON seznam kontaktních údajů
+-   PTBK VERSION 1.0.0
+-   MODEL VARIANT CHAT
+-   INPUT  PARAM `{unstructuredContacts}` nestrukturovaný seznam kontaktních údajů
+-   OUTPUT PARAM `{contactlist}` JSON seznam kontaktních údajů
 
 ## 🖋 Extrakce kontaktních údajů
 
--   MODEL VARIANT Completion
+-   MODEL VARIANT COMPLETION
 -   MODEL NAME `gpt-3.5-turbo-instruct`
--   Postprocessing `trimEndOfCodeBlock`
+-   POSTPROCESSING `trimEndOfCodeBlock`
 
 <!-- TODO: !!! Use here JSON mode-->
 
