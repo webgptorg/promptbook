@@ -39,6 +39,8 @@
 
 ## 0.27.0 _(2024-02-03)_
 
+Moving logic from `promptTemplatePipelineStringToJson` to `createPtpExecutor`
+
 -   Allow postprocessing and expectations in all execution types
 -   Postprocessing is happening before checking expectations
 -   In `PromptTemplatePipelineJson` postprocessing is represented internally in each `PromptTemplateJson` not as separate `PromptTemplateJson`

@@ -11,11 +11,6 @@
         {
             "name": "parsedSentence",
             "isInput": false
-        },
-        {
-            "name": "parsedSentenceBeforeTrimEndOfCodeBlock",
-            "description": "*(💬 Question postprocessing 1/1)* {parsedSentence} before `trimEndOfCodeBlock`",
-            "isInput": false
         }
     ],
     "promptTemplates": [
@@ -23,21 +18,15 @@
             "name": "Question",
             "title": "💬 Question",
             "executionType": "PROMPT_TEMPLATE",
+            "postprocessing": [
+                "trimEndOfCodeBlock"
+            ],
             "expectFormat": "JSON",
             "modelRequirements": {
                 "modelVariant": "COMPLETION",
                 "modelName": "gpt-3.5-turbo-instruct"
             },
             "content": "Dark horse hopping over the fence.\n\n```json\n{\n  \"subject\": \"horse\",\n  \"action\": \"hopping\",\n  \"object\": \"fence\"\n}\n```\n\n---\n\n{sentence}\n\n```json",
-            "resultingParameterName": "parsedSentenceBeforeTrimEndOfCodeBlock"
-        },
-        {
-            "name": "QuestionPostprocessing0",
-            "title": "(1/1) 💬 Question postprocessing",
-            "description": "Postprocessing of section 💬 Question finally with resulting parameter {parsedSentence}",
-            "executionType": "SCRIPT",
-            "contentLanguage": "javascript",
-            "content": "trimEndOfCodeBlock(parsedSentenceBeforeTrimEndOfCodeBlock)",
             "resultingParameterName": "parsedSentence"
         }
     ]

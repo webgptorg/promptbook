@@ -407,6 +407,8 @@ It can be done in two ways:
 
 All postprocessing functions are [listed here](src/execution/plugins/script-execution-tools/javascript/JavascriptEvalExecutionTools.ts).
 
+_Note: For now, all postprocessing is done by hardcoded preset of javascript functions._
+
 > TODO: Write more about postprocessing functions
 
 ### Expectations

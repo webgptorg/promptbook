@@ -24,11 +24,6 @@
             "isInput": false
         },
         {
-            "name": "wordSynonymBeforeUnwrapResult",
-            "description": "*(💬 Synonym postprocessing 1/1)* {wordSynonym} before `unwrapResult`",
-            "isInput": false
-        },
-        {
             "name": "wordSynonymTested",
             "isInput": false
         },
@@ -49,6 +44,9 @@
             "title": "💬 Synonym",
             "description": "Synonym for word",
             "executionType": "PROMPT_TEMPLATE",
+            "postprocessing": [
+                "unwrapResult"
+            ],
             "expectAmount": {
                 "words": {
                     "min": 1,
@@ -60,15 +58,6 @@
                 "modelName": "gpt-3.5-turbo"
             },
             "content": "Write synonym for \"{word}\"",
-            "resultingParameterName": "wordSynonymBeforeUnwrapResult"
-        },
-        {
-            "name": "SynonymPostprocessing0",
-            "title": "(1/1) 💬 Synonym postprocessing",
-            "description": "Postprocessing of section 💬 Synonym finally with resulting parameter {wordSynonym}",
-            "executionType": "SCRIPT",
-            "contentLanguage": "javascript",
-            "content": "unwrapResult(wordSynonymBeforeUnwrapResult)",
             "resultingParameterName": "wordSynonym"
         },
         {

@@ -153,6 +153,8 @@ export function createPtpExecutor(options: CreatePtpExecutorOptions): PtpExecuto
                                     );
                                 }
 
+                                // TODO: DRY [1]
+
                                 scriptExecutionErrors = [];
 
                                 scripts: for (const scriptTools of tools.script) {
@@ -211,7 +213,30 @@ export function createPtpExecutor(options: CreatePtpExecutorOptions): PtpExecuto
                                 throw new Error(`Unknown execution type "${(currentTemplate as any).executionType}"`);
                         }
 
-                        // TODO: !!!!!! Here should postprocessing happen
+                        if (currentTemplate.postprocessing) {
+                            for (const functionName of currentTemplate.postprocessing) {
+                                // TODO: DRY [1]
+                                scriptExecutionErrors = [];
+
+                                scripts: for (const scriptTools of tools.script) {
+                                    try {
+                                        resultString = await scriptTools.execute({
+                                            scriptLanguage: `javascript` /* <- TODO: Try it in each languages; In future allow postprocessing with arbitrary combination of languages to combine */,
+                                            script: `${functionName}(resultString)`,
+                                            parameters: { ...parametersToPass, resultString },
+                                        });
+
+                                        break scripts;
+                                    } catch (error) {
+                                        if (!(error instanceof Error)) {
+                                            throw error;
+                                        }
+
+                                        scriptExecutionErrors.push(error);
+                                    }
+                                }
+                            }
+                        }
 
                         if (currentTemplate.expectFormat) {
                             if (currentTemplate.expectFormat === 'JSON') {

@@ -1,8 +1,8 @@
-import { capitalize, normalizeTo_camelCase, normalizeTo_PascalCase } from 'n12';
+import { normalizeTo_PascalCase } from 'n12';
 import spaceTrim from 'spacetrim';
 import { Writable, WritableDeep } from 'type-fest';
 import { DEFAULT_MODEL_REQUIREMENTS, PTBK_VERSION } from '../config';
-import { ParameterCommand, PostprocessCommand } from '../types/Command';
+import { ParameterCommand } from '../types/Command';
 import { ExecutionType } from '../types/ExecutionTypes';
 import { ModelRequirements } from '../types/ModelRequirements';
 import { ExpectationUnit, NaturalTemplateJson } from '../types/PromptTemplatePipelineJson/PromptTemplateJson';
@@ -153,11 +153,12 @@ export function promptTemplatePipelineStringToJson(
         // TODO: Parse prompt template description (the content out of the codeblock and lists)
 
         const templateModelRequirements: Writable<ModelRequirements> = { ...defaultModelRequirements };
-        const postprocessingCommands: Array<PostprocessCommand> = [];
         const listItems = extractAllListItemsFromMarkdown(section.content);
         let executionType: ExecutionType = 'PROMPT_TEMPLATE';
+        let postprocessing: NaturalTemplateJson['postprocessing'] = [];
         let expectAmount: NaturalTemplateJson['expectAmount'] = {};
         let expectFormat: NaturalTemplateJson['expectFormat'] | undefined = undefined;
+
         let isExecutionTypeChanged = false;
 
         for (const listItem of listItems) {
@@ -183,7 +184,7 @@ export function promptTemplatePipelineStringToJson(
                     break;
 
                 case 'POSTPROCESS':
-                    postprocessingCommands.push(command);
+                    postprocessing.push(command.functionName);
                     break;
 
                 case 'EXPECT_AMOUNT':
@@ -285,35 +286,12 @@ export function promptTemplatePipelineStringToJson(
             description = undefined;
         }
 
-        const getParameterName = (i: number) => {
-            const parameterName =
-                postprocessingCommands.length <= i
-                    ? resultingParameterName
-                    : normalizeTo_camelCase(
-                          `${resultingParameterName} before ${postprocessingCommands[i]!.functionName}`,
-                          // <- TODO: Make this work even if using multiple same postprocessing functions
-                      );
-
-            const isParameterDefined = ptbJson.parameters.some((parameter) => parameter.name === parameterName);
-
-            if (!isParameterDefined) {
-                const parameterDescription = `*(${capitalize(section.title)} postprocessing ${i + 1}/${
-                    postprocessingCommands.length
-                })* {${resultingParameterName}} before \`${postprocessingCommands[i]!.functionName}\``;
-
-                addParam({
-                    parameterName,
-                    parameterDescription,
-                    isInputParameter: false,
-                    // TODO:> isPrivate: true,
-                });
-            }
-
-            return parameterName;
-        };
-
         if (Object.keys(expectAmount).length === 0) {
             expectAmount = undefined;
+        }
+
+        if (Object.keys(postprocessing).length === 0) {
+            postprocessing = undefined;
         }
 
         ptbJson.promptTemplates.push({
@@ -321,27 +299,14 @@ export function promptTemplatePipelineStringToJson(
             title: section.title,
             description,
             executionType,
+            postprocessing,
             expectAmount,
             expectFormat,
             modelRequirements: templateModelRequirements,
             contentLanguage: executionType === 'SCRIPT' ? (language as ScriptLanguage) : undefined,
             content,
-            resultingParameterName: getParameterName(0),
+            resultingParameterName,
         });
-
-        for (const [functionName, i] of postprocessingCommands.map(
-            ({ functionName }, i) => [functionName, i] as const,
-        )) {
-            ptbJson.promptTemplates.push({
-                name: normalizeTo_PascalCase(section.title + ' Postprocessing ' + i),
-                title: `(${i + 1}/${postprocessingCommands.length}) ${section.title} postprocessing`,
-                description: `Postprocessing of section ${section.title} finally with resulting parameter {${resultingParameterName}}`,
-                executionType: 'SCRIPT',
-                contentLanguage: 'javascript',
-                content: `${functionName}(${getParameterName(i)})`,
-                resultingParameterName: getParameterName(i + 1),
-            });
-        }
     }
 
     // =============================================================
