@@ -41,7 +41,8 @@ export function execCommandNormalizeOptions(options: IExecCommandOptions): Pick<
         .filter((arg) => arg !== '');
 
     if (_.length > 1) {
-        [command, ...args] = _ as string[];
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        [command, ...args] = _ as any;
     }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

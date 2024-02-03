@@ -117,7 +117,7 @@ export function createPtpExecutor(options: CreatePtpExecutorOptions): PtpExecuto
                                             : 'anonymous' /* <- [🧠] !!! How to deal with anonymous PTPs, do here some auto-url like SHA-256 based ad-hoc identifier? */
                                     }#${currentTemplate.name}`,
                                     parameters: parametersToPass,
-                                    content: replaceParameters(currentTemplate.content, parametersToPass),
+                                    content: replaceParameters(currentTemplate.content, parametersToPass) /* <- [2] */,
                                     modelRequirements: currentTemplate.modelRequirements!,
                                 };
 
@@ -267,13 +267,18 @@ export function createPtpExecutor(options: CreatePtpExecutorOptions): PtpExecuto
                         }
                         expectError = error;
                     } finally {
-                        if (currentTemplate.executionType === 'PROMPT_TEMPLATE') {
+                        if (
+                            currentTemplate.executionType === 'PROMPT_TEMPLATE' &&
+                            prompt!
+                            //    <- Note:  [2] When some expected parameter is not defined, error will occur in replaceParameters
+                            //              In that case we don’t want to make a report about it because it’s not a natural execution error
+                        ) {
                             // TODO: [🧠] Maybe put other executionTypes into report
                             executionReport.promptExecutions.push({
                                 prompt: {
-                                    title: prompt!.title,
-                                    content: prompt!.content,
-                                    modelRequirements: prompt!.modelRequirements,
+                                    title: prompt.title,
+                                    content: prompt.content,
+                                    modelRequirements: prompt.modelRequirements,
                                     // <- Note: Do want to pass ONLY wanted information to the report
                                 },
                                 result: result || undefined,
