@@ -18,7 +18,7 @@
             "name": "Question",
             "title": "💬 Question",
             "executionType": "PROMPT_TEMPLATE",
-            "expectations": {
+            "expectAmount": {
                 "characters": {
                     "max": 30,
                     "min": 2

@@ -49,7 +49,7 @@
             "title": "💬 Synonym",
             "description": "Synonym for word",
             "executionType": "PROMPT_TEMPLATE",
-            "expectations": {
+            "expectAmount": {
                 "words": {
                     "min": 1,
                     "max": 1
@@ -75,7 +75,6 @@
             "name": "TestThatWordIsNotOriginalWord",
             "title": "⚙ Test that word is not original word",
             "executionType": "SCRIPT",
-            "expectations": {},
             "modelRequirements": {
                 "modelVariant": "CHAT",
                 "modelName": "gpt-3.5-turbo"
@@ -89,7 +88,7 @@
             "title": "💬 Sentence with Synonym",
             "description": "Sentence with word and wordSynonym",
             "executionType": "PROMPT_TEMPLATE",
-            "expectations": {
+            "expectAmount": {
                 "words": {
                     "max": 20
                 },
@@ -110,7 +109,7 @@
             "title": "💬 Sentence without original word",
             "description": "Sentence \"{sentenceWithTwoSynonyms}\" without \"{word}\".",
             "executionType": "PROMPT_TEMPLATE",
-            "expectations": {
+            "expectAmount": {
                 "words": {
                     "max": 20
                 },
@@ -131,7 +130,7 @@
             "title": "💬 Comparison",
             "description": "Comparison between \"{sentenceWithTwoSynonyms}\" and \"{sentenceWithOriginalWordRemoved}\".",
             "executionType": "PROMPT_TEMPLATE",
-            "expectations": {
+            "expectAmount": {
                 "sentences": {
                     "min": 1,
                     "max": 5
@@ -148,7 +147,6 @@
             "name": "Summary",
             "title": "🔗 Summary",
             "executionType": "SIMPLE_TEMPLATE",
-            "expectations": {},
             "modelRequirements": {
                 "modelVariant": "CHAT",
                 "modelName": "gpt-3.5-turbo"

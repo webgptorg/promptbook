@@ -24,7 +24,6 @@
             "title": "💬 Synonym",
             "description": "Synonym for word",
             "executionType": "PROMPT_TEMPLATE",
-            "expectations": {},
             "modelRequirements": {
                 "modelVariant": "CHAT",
                 "modelName": "gpt-3.5-turbo"
@@ -37,7 +36,6 @@
             "title": "💬 Sentence",
             "description": "Sentence with word and wordSynonym",
             "executionType": "PROMPT_TEMPLATE",
-            "expectations": {},
             "modelRequirements": {
                 "modelVariant": "CHAT",
                 "modelName": "gpt-3.5-turbo"

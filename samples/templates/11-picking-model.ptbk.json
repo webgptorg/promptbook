@@ -20,7 +20,6 @@
             "title": "💬 Synonym",
             "description": "Synonym for word",
             "executionType": "PROMPT_TEMPLATE",
-            "expectations": {},
             "modelRequirements": {
                 "modelVariant": "CHAT",
                 "modelName": "gpt-4-1106-preview"

@@ -33,7 +33,6 @@
             "name": "Question",
             "title": "💬 Question",
             "executionType": "PROMPT_TEMPLATE",
-            "expectations": {},
             "modelRequirements": {
                 "modelVariant": "CHAT",
                 "modelName": "gpt-3.5-turbo"
