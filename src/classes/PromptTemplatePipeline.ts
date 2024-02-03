@@ -64,7 +64,7 @@ export class PromptTemplatePipeline {
             ptbkjson.ptbkUrl ? new URL(ptbkjson.ptbkUrl) : null,
             ptbkjson.title,
             ptbkjson.ptbkVersion,
-            ptbkjson.ptbkVersion,
+            ptbkjson.description || null,
             Object.fromEntries(ptbkjson.parameters.map((parameter) => [parameter.name, parameter])),
             ptbkjson.promptTemplates,
         );

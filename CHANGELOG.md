@@ -47,3 +47,4 @@ Moving logic from `promptTemplatePipelineStringToJson` to `createPtpExecutor`
 -   Introduce `ExpectError`
 -   Rename `maxNaturalExecutionAttempts` to `maxExecutionAttempts` (because now it is not just for natural execution)
 -   If title in promptbook contains emojis, pass it innto report
+-   Fix `description` in report

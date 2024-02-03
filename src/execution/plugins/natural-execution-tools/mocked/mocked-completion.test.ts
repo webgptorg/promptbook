@@ -68,7 +68,7 @@ describe('createPtpExecutor + MockedEchoExecutionTools with sample chat prompt',
             errors: [new Error(`Parameter {thing} is not defined`)],
             executionReport: {
                 title: 'Sample prompt',
-                description: '1.0.0' /* <- !!!!! */,
+                description: 'Show how to use a simple prompt with no parameters.',
                 promptExecutions: [],
                 ptbkUrl: 'https://example.com/ptbk.json',
                 ptbkRequestedVersion: '1.0.0',
