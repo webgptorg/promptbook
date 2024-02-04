@@ -99,6 +99,11 @@ interface PromptTemplateJsonCommon {
     readonly description?: string;
 
     /**
+     * If theese parameters meet the requirements, they are used instead of executing this prompt template
+     */
+    readonly joker?: Array<string>;
+
+    /**
      * Type of the execution
      * This determines if the prompt template is send to LLM, user or some scripting evaluation
      */

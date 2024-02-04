@@ -403,6 +403,19 @@ It can be done in two ways:
 -   From `PromptTemplatePipelineLibrary.getExecutor` method
 -   `createPtpExecutor` utility function
 
+### 🃏 Jokers
+
+<!--
+TODO: !!! Write:
+
+JOKER {foo}
+no postprocessing just expect
+allow multiple jokers
+require at least 1 min expectation to use jokers
+
+If theese parameters meet the requirements, they are used instead of executing this prompt template
+-->
+
 ### Postprocessing functions
 
 All postprocessing functions are [listed here](src/execution/plugins/script-execution-tools/javascript/JavascriptEvalExecutionTools.ts).
@@ -435,6 +448,25 @@ _Note: LLMs work with tokens, not characters, but in Promptbooks we want to use 
 
 ...
 ```
+
+<!--
+
+TODO: !!!! Put this here
+
+there are two typws they are and are not symmetric
+
+#### Minimal expectations
+
+json is both
+required at least 1 to use joker(s)
+min 0 is not valid
+
+#### Maximal expectations
+
+json is both
+max 0 is valid
+
+-->
 
 Look at [expectations.ptbk.md](samples/templates/45-expectations.ptbk.md) and [expect-json.ptbk.md](samples/templates/45-expect-json.ptbk.md) samples for more.
 

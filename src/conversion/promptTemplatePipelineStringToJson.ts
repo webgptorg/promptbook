@@ -9,7 +9,7 @@ import { ExpectationUnit, NaturalTemplateJson } from '../types/PromptTemplatePip
 import { PromptTemplateParameterJson } from '../types/PromptTemplatePipelineJson/PromptTemplateParameterJson';
 import { PromptTemplatePipelineJson } from '../types/PromptTemplatePipelineJson/PromptTemplatePipelineJson';
 import { PromptTemplatePipelineString } from '../types/PromptTemplatePipelineString';
-import { ScriptLanguage, SUPPORTED_SCRIPT_LANGUAGES } from '../types/ScriptLanguage';
+import { SUPPORTED_SCRIPT_LANGUAGES, ScriptLanguage } from '../types/ScriptLanguage';
 import { countMarkdownStructureDeepness } from '../utils/markdown-json/countMarkdownStructureDeepness';
 import { markdownToMarkdownStructure } from '../utils/markdown-json/markdownToMarkdownStructure';
 import { extractAllListItemsFromMarkdown } from '../utils/markdown/extractAllListItemsFromMarkdown';
@@ -164,6 +164,14 @@ export function promptTemplatePipelineStringToJson(
         for (const listItem of listItems) {
             const command = parseCommand(listItem);
             switch (command.type) {
+                case 'JOKER':
+                    /*
+                    TODO: !!!! no postprocessing just expect
+                    TODO: !!!! allow multiple jokers
+                    TODO: !!!! require at least 1 min expectation to use jokers
+                    */
+
+                    break;
                 case 'EXECUTE':
                     if (isExecutionTypeChanged) {
                         throw new Error(

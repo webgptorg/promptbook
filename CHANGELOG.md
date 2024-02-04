@@ -54,5 +54,12 @@ Moving logic from `promptTemplatePipelineStringToJson` to `createPtpExecutor`
 
 Better execution report in markdown format
 
--   filter out voids in `executionReportJsonToString`
--   Escape code blocks in markdown
+-   Add `JOKER {foo}` as a way how to skip part of the promptbook
+-   Filter out voids in `executionReportJsonToString` <-(TODO: !!!!)
+-   Escape code blocks in markdown <-(TODO: !!!!)
+-   Add command `EXPECT JSON ARRAY` and `EXPECT JSON OBJECT` _(In future this will be suggar code for `EXPECT JSON SCHEMA`)_ <-(TODO: !!!!)
+-   When making next attempt for `PROMPT DIALOG`, preserve the previous user input <-(TODO: !!!!)
+-   Split `UserInterfaceToolsPromptDialogOptions.prompt` into `promptTitle` and `promptMessage`
+-   Add `UserInterfaceToolsPromptDialogOptions.priority`
+-   Add timing information to report
+-   Minimal 0 ammount is not valid, should be at least 1 <-(TODO: !!!!)

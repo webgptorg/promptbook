@@ -20,9 +20,9 @@ describe('createPtpExecutor + executing scripts in ptp', () => {
 
             ## Question
 
-            -   Postprocess reverse
-            -   Postprocess removeDiacritics
-            -   Postprocess normalizeTo_SCREAMING_CASE
+            -   POSTPROCESSING reverse
+            -   POSTPROCESSING removeDiacritics
+            -   POSTPROCESSING normalizeTo_SCREAMING_CASE
 
             \`\`\`markdown
             Hello {yourName}!

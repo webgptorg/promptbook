@@ -201,6 +201,7 @@ export function createPtpExecutor(options: CreatePtpExecutorOptions): PtpExecuto
                                 break executionType;
 
                             case 'PROMPT_DIALOG':
+                                // TODO: !!!! When making next attempt for `PROMPT DIALOG`, preserve the previous user input
                                 resultString = await tools.userInterface.promptDialog({
                                     prompt: replaceParameters(currentTemplate.description || '', parametersToPass),
                                     defaultValue: replaceParameters(currentTemplate.content, parametersToPass),

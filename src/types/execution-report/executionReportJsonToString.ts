@@ -7,7 +7,9 @@ import type { ExecutionReportString } from './ExecutionReportString';
  * Converts execution report from JSON to string format
  */
 export function executionReportJsonToString(executionReportJson: ExecutionReportJson): ExecutionReportString {
-    // TODO: !!!!! Better (filter out voids)
+
+  // TODO: !!!! Add timing information to report
+    // TODO: !!!! Better (filter out voids)
     let executionReportString = spaceTrim(
         (block) => `
             # ${executionReportJson.title || 'Execution report'}
