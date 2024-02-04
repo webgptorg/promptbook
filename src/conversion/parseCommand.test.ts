@@ -227,6 +227,19 @@ describe('how parseCommand works', () => {
         });
     });
 
+    it('should parse JOKER command', () => {
+        expect(parseCommand('joker {name}')).toEqual({
+            type: 'JOKER',
+            parameterName: 'name',
+        });
+        expect(parseCommand('JOKER {name}')).toEqual({
+            type: 'PARAMETER',
+            isInputParameter: false,
+            parameterName: 'name',
+            parameterDescription: 'Name for the hero',
+        });
+    });
+
     it('should parse POSTPROCESS command', () => {
         expect(parseCommand('Postprocess spaceTrim')).toEqual({
             type: 'POSTPROCESS',

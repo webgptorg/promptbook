@@ -12,6 +12,7 @@ export type Command =
     | PtbkVersionCommand
     | ExecuteCommand
     | ModelCommand
+    | JokerCommand
     | ParameterCommand
     | PostprocessCommand
     | ExpectCommand;
@@ -56,6 +57,15 @@ export interface ModelCommand {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     readonly value: any /* <- TODO: Infer from used key, can it be done in TypeScript */;
 }
+
+/**
+ * Joker parameter is used instead of executing the prompt template if it meet the expectations requirements
+ */
+export interface JokerCommand {
+  readonly type: 'JOKER';
+  readonly parameterName: string_name;
+}
+
 
 /**
  * Parameter command describes one parameter of the prompt template

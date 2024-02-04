@@ -7,6 +7,7 @@ import type {
     ExpectAmountCommand,
     ExpectCommand,
     ExpectFormatCommand,
+    JokerCommand,
     ModelCommand,
     ParameterCommand,
     PostprocessCommand,
@@ -249,6 +250,25 @@ export function parseCommand(listItem: string_markdown_text): Command {
             parameterDescription: parameterDescription.trim() || null,
             isInputParameter,
         } satisfies ParameterCommand;
+    } else if (type.startsWith('JOKER')) {
+        if (listItemParts.length !== 2) {
+            throw new Error(
+                spaceTrim(
+                    `
+                Invalid JOKER command:
+
+                - ${listItem}
+            `,
+                ),
+            );
+        }
+
+        const parameterName = listItemParts.pop()!;
+
+        return {
+            type: 'JOKER',
+            parameterName,
+        } satisfies JokerCommand;
     } else if (type.startsWith('POSTPROCESS') || type.startsWith('POST_PROCESS')) {
         if (listItemParts.length !== 2) {
             throw new Error(

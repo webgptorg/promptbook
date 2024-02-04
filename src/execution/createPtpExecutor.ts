@@ -70,8 +70,11 @@ export function createPtpExecutor(options: CreatePtpExecutorOptions): PtpExecuto
             promptExecutions: [],
         };
 
+        let priority = ptp.promptTemplates.length;
+
         try {
             while (currentTemplate !== null) {
+                priority--;
                 const resultingParameter = ptp.getResultingParameter(currentTemplate.name);
 
                 const name = `ptp-executor-frame-${currentTemplate.name}`;
@@ -203,11 +206,16 @@ export function createPtpExecutor(options: CreatePtpExecutorOptions): PtpExecuto
                             case 'PROMPT_DIALOG':
                                 // TODO: !!!! When making next attempt for `PROMPT DIALOG`, preserve the previous user input
                                 resultString = await tools.userInterface.promptDialog({
-                                    prompt: replaceParameters(currentTemplate.description || '', parametersToPass),
+                                    promptTitle: currentTemplate.title,
+                                    promptMessage: replaceParameters(
+                                        currentTemplate.description || '',
+                                        parametersToPass,
+                                    ),
                                     defaultValue: replaceParameters(currentTemplate.content, parametersToPass),
 
                                     // TODO: [🧠] !! Figure out how to define placeholder in .ptbk.md file
                                     placeholder: undefined,
+                                    priority /* <- TODO: !!!! Is it ending with 0 */,
                                 });
                                 break executionType;
 

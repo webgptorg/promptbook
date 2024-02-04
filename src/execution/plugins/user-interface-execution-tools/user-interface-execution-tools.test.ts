@@ -18,7 +18,7 @@ describe('createPtpExecutor + executing user interface prompts in ptp', () => {
             -   PTBK VERSION 1.0.0
             -   INPUT  PARAMETER {thing} Any thing to buy
 
-            ## Prompt
+            ## Thing
 
             -   PROMPT DIALOG
 
@@ -39,8 +39,8 @@ describe('createPtpExecutor + executing user interface prompts in ptp', () => {
             script: [],
             userInterface: new CallbackInterfaceTools({
                 isVerbose: true,
-                async callback({ prompt, defaultValue }) {
-                    return `Answer to question "${prompt}" is not ${defaultValue} but Pear.`;
+                async callback({ promptTitle, promptMessage, defaultValue }) {
+                    return `Answer to question "${promptTitle}: ${promptMessage}" is not ${defaultValue} but Pear.`;
                 },
             }),
         },
@@ -52,13 +52,13 @@ describe('createPtpExecutor + executing user interface prompts in ptp', () => {
     it('should work when every INPUT  PARAMETER defined', () => {
         expect(ptpExecutor({ thing: 'apple' }, () => {})).resolves.toMatchObject({
             outputParameters: {
-                favoriteThing: 'Answer to question "What is your favorite apple to buy?" is not apple but Pear.',
+                favoriteThing: 'Answer to question "Thing: What is your favorite apple to buy?" is not apple but Pear.',
             },
         });
         expect(ptpExecutor({ thing: 'a cup of coffee' }, () => {})).resolves.toMatchObject({
             outputParameters: {
                 favoriteThing:
-                    'Answer to question "What is your favorite a cup of coffee to buy?" is not a cup of coffee but Pear.',
+                    'Answer to question "Thing: What is your favorite a cup of coffee to buy?" is not a cup of coffee but Pear.',
             },
         });
     });

@@ -1,3 +1,5 @@
+import { number_integer, number_positive } from '../types/typeAliases';
+
 /**
  * Represents all the tools needed to interact with the user.
  *
@@ -45,5 +47,5 @@ export interface UserInterfaceToolsPromptDialogOptions {
      *
      * Note: This would be reflected for example into the UI z-index of the prompt modal
      */
-    priority: string;
+    priority: number_integer & number_positive;
 }
