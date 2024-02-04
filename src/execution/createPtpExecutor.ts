@@ -77,14 +77,6 @@ export function createPtpExecutor(options: CreatePtpExecutorOptions): PtpExecuto
                 const name = `ptp-executor-frame-${currentTemplate.name}`;
                 const title = removeEmojis(removeMarkdownFormatting(currentTemplate.title));
 
-                console.info('🛬 currentTemplate', {
-                    currentTemplate,
-                    resultingParameter,
-                    name,
-                    title,
-                    parametersToPass: { ...parametersToPass },
-                });
-
                 if (onProgress) {
                     await onProgress({
                         name,
@@ -108,8 +100,6 @@ export function createPtpExecutor(options: CreatePtpExecutorOptions): PtpExecuto
                 const maxAttempts = currentTemplate.executionType === 'PROMPT_DIALOG' ? Infinity : maxExecutionAttempts;
 
                 attempts: for (let attempt = 0; attempt < maxAttempts; attempt++) {
-                    console.info(`🛬 currentTemplate attempt #${attempt}`, attempt);
-
                     result = null;
                     resultString = null;
                     expectError = null;
@@ -117,14 +107,10 @@ export function createPtpExecutor(options: CreatePtpExecutorOptions): PtpExecuto
                     try {
                         executionType: switch (currentTemplate.executionType) {
                             case 'SIMPLE_TEMPLATE':
-                                console.info(`🛬 currentTemplate attempt #${attempt} SIMPLE_TEMPLATE`);
-
                                 resultString = replaceParameters(currentTemplate.content, parametersToPass);
                                 break executionType;
 
                             case 'PROMPT_TEMPLATE':
-                                console.info(`🛬 currentTemplate attempt #${attempt} PROMPT_TEMPLATE`);
-
                                 prompt = {
                                     title: currentTemplate.title,
                                     ptbkUrl: `${
@@ -139,25 +125,17 @@ export function createPtpExecutor(options: CreatePtpExecutorOptions): PtpExecuto
 
                                 variant: switch (currentTemplate.modelRequirements!.modelVariant) {
                                     case 'CHAT':
-                                        console.info(`🛬 currentTemplate attempt #${attempt} PROMPT_TEMPLATE CHAT`);
-
                                         chatThread = await tools.natural.gptChat(prompt);
                                         // TODO: [🍬] Destroy chatThread
                                         result = chatThread;
                                         resultString = chatThread.content;
                                         break variant;
                                     case 'COMPLETION':
-                                        console.info(
-                                            `🛬 currentTemplate attempt #${attempt} PROMPT_TEMPLATE COMPLETION`,
-                                        );
-
                                         completionResult = await tools.natural.gptComplete(prompt);
                                         result = completionResult;
                                         resultString = completionResult.content;
                                         break variant;
                                     default:
-                                        console.info(`🛬 currentTemplate attempt #${attempt} PROMPT_TEMPLATE UNKNOWN`);
-
                                         throw new Error(
                                             `Unknown model variant "${
                                                 currentTemplate.modelRequirements!.modelVariant
@@ -168,8 +146,6 @@ export function createPtpExecutor(options: CreatePtpExecutorOptions): PtpExecuto
                                 break;
 
                             case 'SCRIPT':
-                                console.info(`🛬 currentTemplate attempt #${attempt} SCRIPT`);
-
                                 if (tools.script.length === 0) {
                                     throw new Error('No script execution tools are available');
                                 }
@@ -225,11 +201,6 @@ export function createPtpExecutor(options: CreatePtpExecutorOptions): PtpExecuto
                                 break executionType;
 
                             case 'PROMPT_DIALOG':
-                                console.info(`🛬 currentTemplate attempt #${attempt} PROMPT_DIALOG`, [
-                                    currentTemplate.description,
-                                    parametersToPass,
-                                ]);
-
                                 resultString = await tools.userInterface.promptDialog({
                                     prompt: replaceParameters(currentTemplate.description || '', parametersToPass),
                                     defaultValue: replaceParameters(currentTemplate.content, parametersToPass),
@@ -240,31 +211,17 @@ export function createPtpExecutor(options: CreatePtpExecutorOptions): PtpExecuto
                                 break executionType;
 
                             default:
-                                console.info(`🛬 currentTemplate attempt #${attempt} UNKNOWN`);
-
                                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                                 throw new Error(`Unknown execution type "${(currentTemplate as any).executionType}"`);
                         }
 
                         if (currentTemplate.postprocessing) {
-                            console.info(`🛬 currentTemplate attempt #${attempt} postprocessing`);
-
                             for (const functionName of currentTemplate.postprocessing) {
-                                console.info(`🛬 currentTemplate attempt #${attempt} postprocessing`, functionName);
-
                                 // TODO: DRY [1]
                                 scriptExecutionErrors = [];
 
                                 scripts: for (const scriptTools of tools.script) {
                                     try {
-                                        console.info(
-                                            `🛬 currentTemplate attempt #${attempt} postprocessing`,
-                                            functionName,
-                                            {
-                                                scriptTools,
-                                            },
-                                        );
-
                                         resultString = await scriptTools.execute({
                                             scriptLanguage: `javascript` /* <- TODO: Try it in each languages; In future allow postprocessing with arbitrary combination of languages to combine */,
                                             script: `${functionName}(resultString)`,
@@ -284,8 +241,6 @@ export function createPtpExecutor(options: CreatePtpExecutorOptions): PtpExecuto
                         }
 
                         if (currentTemplate.expectFormat) {
-                            console.info(`🛬 currentTemplate attempt #${attempt} expectFormat`);
-
                             if (currentTemplate.expectFormat === 'JSON') {
                                 if (!isValidJsonString(resultString)) {
                                     throw new ExpectError('Expected valid JSON string');
@@ -296,17 +251,8 @@ export function createPtpExecutor(options: CreatePtpExecutorOptions): PtpExecuto
                         }
 
                         if (currentTemplate.expectAmount) {
-                            console.info(`🛬 currentTemplate attempt #${attempt} expectAmount`);
-
                             for (const [unit, { max, min }] of Object.entries(currentTemplate.expectAmount)) {
                                 const amount = CountUtils[unit.toUpperCase() as ExpectationUnit](resultString);
-
-                                console.info(`🛬 currentTemplate attempt #${attempt} expectAmount`, {
-                                    unit,
-                                    max,
-                                    min,
-                                    amount,
-                                });
 
                                 if (min && amount < min) {
                                     throw new ExpectError(`Expected at least ${min} ${unit} but got ${amount}`);
@@ -318,32 +264,19 @@ export function createPtpExecutor(options: CreatePtpExecutorOptions): PtpExecuto
                             }
                         }
 
-                        console.info(`🛬 currentTemplate attempt #${attempt} success`);
-
                         break attempts;
                     } catch (error) {
-                        console.info(`🛬 currentTemplate attempt #${attempt} catch`, { error });
-
                         if (!(error instanceof ExpectError)) {
                             throw error;
                         }
                         expectError = error;
                     } finally {
-                        console.info(`🛬 currentTemplate attempt #${attempt} finally`, {
-                            currentTemplate,
-                            result,
-                            resultString,
-                            expectError,
-                        });
-
                         if (
                             currentTemplate.executionType === 'PROMPT_TEMPLATE' &&
                             prompt!
                             //    <- Note:  [2] When some expected parameter is not defined, error will occur in replaceParameters
                             //              In that case we don’t want to make a report about it because it’s not a natural execution error
                         ) {
-                            console.info(`🛬 currentTemplate attempt #${attempt} finally PROMPT_TEMPLATE`, { prompt });
-
                             // TODO: [🧠] Maybe put other executionTypes into report
                             executionReport.promptExecutions.push({
                                 prompt: {
@@ -359,10 +292,6 @@ export function createPtpExecutor(options: CreatePtpExecutorOptions): PtpExecuto
                     }
 
                     if (expectError !== null && attempt === maxAttempts - 1) {
-                        console.info(`🛬 currentTemplate attempt #${attempt} (last) fail`, {
-                            attempt,
-                            maxExecutionAttempts,
-                        });
                         throw new Error(
                             spaceTrim(
                                 (block) => `
@@ -391,11 +320,6 @@ export function createPtpExecutor(options: CreatePtpExecutorOptions): PtpExecuto
                         parameterValue: resultString,
                     });
                 }
-
-                console.info(
-                    '🛬 currentTemplate success',
-                    `${resultingParameter.name} = ${JSON.stringify(resultString)}`,
-                );
 
                 parametersToPass = {
                     ...parametersToPass,
