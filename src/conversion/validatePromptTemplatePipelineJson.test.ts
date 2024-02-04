@@ -1,23 +1,25 @@
 import { describe, expect, it } from '@jest/globals';
+import { readdirSync } from 'fs';
+import { join } from 'path';
 import spaceTrim from 'spacetrim';
 import { importPtp } from './_importPtp';
 import { promptTemplatePipelineStringToJson } from './promptTemplatePipelineStringToJson';
 import { validatePromptTemplatePipelineJson } from './validatePromptTemplatePipelineJson';
 
 describe('validatePromptTemplatePipelineJson', () => {
-    it('should work in valid samples', () => {
-        for (const path of [
-            '../../samples/templates/00-simple.ptbk.md',
-            '../../samples/templates/05-comment.ptbk.md',
-            '../../samples/templates/10-single.ptbk.md',
-            '../../samples/templates/20-two.ptbk.md',
-            '../../samples/templates/30-escaping.ptbk.md',
-            '../../samples/templates/50-advanced.ptbk.md',
-            '../../samples/templates/60-json-mode.ptbk.md',
-        ] as const) {
+    const samplesDir = '../../samples/templates';
+    const samples = readdirSync(join(__dirname, samplesDir), { withFileTypes: true, recursive: false })
+        //                         <- Note: In production it is not good practice to use synchronous functions
+        //                                  But this is only a test before the build, so it is okay
+        .filter((dirent) => dirent.isFile())
+        .filter(({ name }) => name.endsWith('.md'))
+        .filter(({ name }) => !name.endsWith('.report.md'));
+
+    for (const { name } of samples) {
+        it(`should validate ${name} logic`, () => {
             expect(() => {
                 try {
-                    const ptbkString = importPtp(path);
+                    const ptbkString = importPtp(join(samplesDir, name) as `${string}.ptbk.md`);
                     const ptbJson = promptTemplatePipelineStringToJson(ptbkString);
                     validatePromptTemplatePipelineJson(ptbJson);
                 } catch (error) {
@@ -29,7 +31,7 @@ describe('validatePromptTemplatePipelineJson', () => {
                         spaceTrim(
                             (block) => `
 
-                                Error in ${path}:
+                                Error in ${join(__dirname, samplesDir, name).split('\\').join('/')}:
 
                                 ${block((error as Error).message)}
 
@@ -38,10 +40,6 @@ describe('validatePromptTemplatePipelineJson', () => {
                     );
                 }
             }).not.toThrowError();
-        }
-    });
+        });
+    }
 });
-
-/**
- * TODO: [💥] Some system to automatically generate tests for all the templates in the folder
- */
