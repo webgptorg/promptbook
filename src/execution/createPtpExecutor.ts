@@ -105,7 +105,9 @@ export function createPtpExecutor(options: CreatePtpExecutorOptions): PtpExecuto
                 let expectError: ExpectError | null = null;
                 let scriptExecutionErrors: Array<Error>;
 
-                attempts: for (let attempt = 0; attempt < maxExecutionAttempts; attempt++) {
+                const maxAttempts = currentTemplate.executionType === 'PROMPT_DIALOG' ? Infinity : maxExecutionAttempts;
+
+                attempts: for (let attempt = 0; attempt < maxAttempts; attempt++) {
                     console.info(`🛬 currentTemplate attempt #${attempt}`, attempt);
 
                     result = null;
@@ -356,7 +358,7 @@ export function createPtpExecutor(options: CreatePtpExecutorOptions): PtpExecuto
                         }
                     }
 
-                    if (expectError !== null && attempt === maxExecutionAttempts - 1) {
+                    if (expectError !== null && attempt === maxAttempts - 1) {
                         console.info(`🛬 currentTemplate attempt #${attempt} (last) fail`, {
                             attempt,
                             maxExecutionAttempts,
