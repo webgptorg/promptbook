@@ -12,7 +12,7 @@ export class SimplePromptInterfaceTools implements UserInterfaceTools {
     public constructor(private readonly options: CommonExecutionToolsOptions) {}
 
     /**
-     * Trigger window.prompt dialog
+     * Trigger window.PROMPT DIALOG
      */
     public async promptDialog(options: UserInterfaceToolsPromptDialogOptions): Promise<string> {
         const answer = window.prompt(options.prompt);

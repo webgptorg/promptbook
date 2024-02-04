@@ -71,7 +71,7 @@ Instructions for creating web page content using [📖 Prompt template pipelines
 
 What is your web about?
 
--   Prompt dialog
+-   PROMPT DIALOG
 
 \`\`\`text
 {rawAssigment}
@@ -105,7 +105,7 @@ Assignment from customer:
 
 Is the title for your website okay?
 
--   Prompt dialog
+-   PROMPT DIALOG
 
 \`\`\`text
 {enhancedTitle}
@@ -162,7 +162,7 @@ Website assignment from the customer:
 
 ## 🔗 Vytvoření začátku obsahu webu
 
--   Simple template
+-   SIMPLE TEMPLATE
 
 \`\`\`text
 
@@ -207,7 +207,7 @@ A website assignment from a customer:
 
 ## 🔗 Combine content
 
--   Simple template
+-   SIMPLE TEMPLATE
 
 \`\`\`markdown
 {contentBeginning}
@@ -290,9 +290,9 @@ It is specified in list of requirements for the block.
 By default, it is `Prompt template`
 
 -   _(default)_ `Prompt template` The block is a prompt template and is executed by LLM (OpenAI, Azure,...)
--   `Simple template` The block is a simple text template which is just filled with parameters
+-   `SIMPLE TEMPLATE` The block is a simple text template which is just filled with parameters
 -   `Script` The block is a script that is executed by some script runtime, the runtime is determined by block type, currently only `javascript` is supported but we plan to add `python` and `typescript` in the future.
--   `Prompt dialog` Ask user for input
+-   `PROMPT DIALOG` Ask user for input
 
 ### Parameters
 
