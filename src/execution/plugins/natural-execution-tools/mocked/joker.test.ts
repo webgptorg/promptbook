@@ -20,7 +20,7 @@ describe('createPtpExecutor + MockedEchoExecutionTools with sample chat prompt',
             -   EXPECT MIN 2 WORDS
 
             \`\`\`markdown
-            Write some name for hero
+            Write some name for {yourName}
             \`\`\`
 
             -> {name}
@@ -61,7 +61,7 @@ describe('createPtpExecutor + MockedEchoExecutionTools with sample chat prompt',
                 yourName: 'Badname',
                 name: spaceTrim(`
                     You said:
-                    Badname
+                    Write some name for Badname
                 `),
             },
         });

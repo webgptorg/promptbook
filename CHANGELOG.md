@@ -62,4 +62,5 @@ Better execution report in markdown format
 -   Split `UserInterfaceToolsPromptDialogOptions.prompt` into `promptTitle` and `promptMessage`
 -   Add `UserInterfaceToolsPromptDialogOptions.priority`
 -   Add timing information to report
--   Minimal 0 ammount is not valid, should be at least 1 <-(TODO: !!!!)
+-   Maximum must be higher than minimum in `EXPECT` statement
+-   Maximum 0 is not valid, should be at least 1 in `EXPECT` statement

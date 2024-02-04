@@ -99,134 +99,157 @@ export function createPtpExecutor(options: CreatePtpExecutorOptions): PtpExecuto
                 let resultString: string | null = null;
                 let expectError: ExpectError | null = null;
                 let scriptExecutionErrors: Array<Error>;
-
                 const maxAttempts = currentTemplate.executionType === 'PROMPT_DIALOG' ? Infinity : maxExecutionAttempts;
+                const jokers = currentTemplate.jokers || [];
 
-                attempts: for (let attempt = 0; attempt < maxAttempts; attempt++) {
-                    // !!!! no postprocessing just expect
+                attempts: for (let attempt = -jokers.length; attempt < maxAttempts; attempt++) {
+                    const isJokerAttempt = attempt < 0;
+                    const joker = jokers[jokers.length + attempt];
+
+                    if (isJokerAttempt && !joker) {
+                        throw new Error(`Joker not found in attempt ${attempt}`);
+                        //              <- TODO: [🥨] Make some NeverShouldHappenError
+                    }
 
                     result = null;
                     resultString = null;
                     expectError = null;
 
-                    try {
-                        executionType: switch (currentTemplate.executionType) {
-                            case 'SIMPLE_TEMPLATE':
-                                resultString = replaceParameters(currentTemplate.content, parametersToPass);
-                                break executionType;
-
-                            case 'PROMPT_TEMPLATE':
-                                prompt = {
-                                    title: currentTemplate.title,
-                                    ptbkUrl: `${
-                                        ptp.ptbkUrl
-                                            ? ptp.ptbkUrl.href
-                                            : 'anonymous' /* <- [🧠] !!! How to deal with anonymous PTPs, do here some auto-url like SHA-256 based ad-hoc identifier? */
-                                    }#${currentTemplate.name}`,
-                                    parameters: parametersToPass,
-                                    content: replaceParameters(currentTemplate.content, parametersToPass) /* <- [2] */,
-                                    modelRequirements: currentTemplate.modelRequirements!,
-                                };
-
-                                variant: switch (currentTemplate.modelRequirements!.modelVariant) {
-                                    case 'CHAT':
-                                        chatThread = await tools.natural.gptChat(prompt);
-                                        // TODO: [🍬] Destroy chatThread
-                                        result = chatThread;
-                                        resultString = chatThread.content;
-                                        break variant;
-                                    case 'COMPLETION':
-                                        completionResult = await tools.natural.gptComplete(prompt);
-                                        result = completionResult;
-                                        resultString = completionResult.content;
-                                        break variant;
-                                    default:
-                                        throw new Error(
-                                            `Unknown model variant "${
-                                                currentTemplate.modelRequirements!.modelVariant
-                                            }"`,
-                                        );
-                                }
-
-                                break;
-
-                            case 'SCRIPT':
-                                if (tools.script.length === 0) {
-                                    throw new Error('No script execution tools are available');
-                                }
-                                if (!currentTemplate.contentLanguage) {
-                                    throw new Error(
-                                        `Script language is not defined for prompt template "${currentTemplate.name}"`,
-                                    );
-                                }
-
-                                // TODO: DRY [1]
-
-                                scriptExecutionErrors = [];
-
-                                scripts: for (const scriptTools of tools.script) {
-                                    try {
-                                        resultString = await scriptTools.execute({
-                                            scriptLanguage: currentTemplate.contentLanguage,
-                                            script: currentTemplate.content,
-                                            parameters: parametersToPass,
-                                        });
-
-                                        break scripts;
-                                    } catch (error) {
-                                        if (!(error instanceof Error)) {
-                                            throw error;
-                                        }
-
-                                        scriptExecutionErrors.push(error);
-                                    }
-                                }
-
-                                if (resultString) {
-                                    break executionType;
-                                }
-
-                                if (scriptExecutionErrors.length === 1) {
-                                    throw scriptExecutionErrors[0];
-                                } else {
-                                    throw new Error(
-                                        spaceTrim(
-                                            (block) => `
-                                        Script execution failed ${scriptExecutionErrors.length} times
-
-                                        ${block(
-                                            scriptExecutionErrors.map((error) => '- ' + error.message).join('\n\n'),
-                                        )}
-                                    `,
-                                        ),
-                                    );
-                                }
-
-                                // Note: This line is unreachable because of the break executionType above
-                                break executionType;
-
-                            case 'PROMPT_DIALOG':
-                                // TODO: !!!! When making next attempt for `PROMPT DIALOG`, preserve the previous user input
-                                resultString = await tools.userInterface.promptDialog({
-                                    promptTitle: currentTemplate.title,
-                                    promptMessage: replaceParameters(
-                                        currentTemplate.description || '',
-                                        parametersToPass,
-                                    ),
-                                    defaultValue: replaceParameters(currentTemplate.content, parametersToPass),
-
-                                    // TODO: [🧠] !! Figure out how to define placeholder in .ptbk.md file
-                                    placeholder: undefined,
-                                    priority /* <- TODO: !!!! Is it ending with 0 */,
-                                });
-                                break executionType;
-
-                            default:
-                                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                                throw new Error(`Unknown execution type "${(currentTemplate as any).executionType}"`);
+                    if (isJokerAttempt) {
+                        if (typeof parametersToPass[joker!] === 'undefined') {
+                            throw new Error(`Joker parameter {${joker}} not defined`);
                         }
 
-                        if (currentTemplate.postprocessing) {
+                        resultString = parametersToPass[joker!]!;
+                    }
+
+                    try {
+                        if (!isJokerAttempt) {
+                            executionType: switch (currentTemplate.executionType) {
+                                case 'SIMPLE_TEMPLATE':
+                                    resultString = replaceParameters(currentTemplate.content, parametersToPass);
+                                    break executionType;
+
+                                case 'PROMPT_TEMPLATE':
+                                    prompt = {
+                                        title: currentTemplate.title,
+                                        ptbkUrl: `${
+                                            ptp.ptbkUrl
+                                                ? ptp.ptbkUrl.href
+                                                : 'anonymous' /* <- [🧠] !!! How to deal with anonymous PTPs, do here some auto-url like SHA-256 based ad-hoc identifier? */
+                                        }#${currentTemplate.name}`,
+                                        parameters: parametersToPass,
+                                        content: replaceParameters(
+                                            currentTemplate.content,
+                                            parametersToPass,
+                                        ) /* <- [2] */,
+                                        modelRequirements: currentTemplate.modelRequirements!,
+                                    };
+
+                                    variant: switch (currentTemplate.modelRequirements!.modelVariant) {
+                                        case 'CHAT':
+                                            chatThread = await tools.natural.gptChat(prompt);
+                                            // TODO: [🍬] Destroy chatThread
+                                            result = chatThread;
+                                            resultString = chatThread.content;
+                                            break variant;
+                                        case 'COMPLETION':
+                                            completionResult = await tools.natural.gptComplete(prompt);
+                                            result = completionResult;
+                                            resultString = completionResult.content;
+                                            break variant;
+                                        default:
+                                            throw new Error(
+                                                `Unknown model variant "${
+                                                    currentTemplate.modelRequirements!.modelVariant
+                                                }"`,
+                                            );
+                                    }
+
+                                    break;
+
+                                case 'SCRIPT':
+                                    if (tools.script.length === 0) {
+                                        throw new Error('No script execution tools are available');
+                                    }
+                                    if (!currentTemplate.contentLanguage) {
+                                        throw new Error(
+                                            `Script language is not defined for prompt template "${currentTemplate.name}"`,
+                                        );
+                                    }
+
+                                    // TODO: DRY [1]
+
+                                    scriptExecutionErrors = [];
+
+                                    scripts: for (const scriptTools of tools.script) {
+                                        try {
+                                            resultString = await scriptTools.execute({
+                                                scriptLanguage: currentTemplate.contentLanguage,
+                                                script: currentTemplate.content,
+                                                parameters: parametersToPass,
+                                            });
+
+                                            break scripts;
+                                        } catch (error) {
+                                            if (!(error instanceof Error)) {
+                                                throw error;
+                                            }
+
+                                            scriptExecutionErrors.push(error);
+                                        }
+                                    }
+
+                                    if (resultString) {
+                                        break executionType;
+                                    }
+
+                                    if (scriptExecutionErrors.length === 1) {
+                                        throw scriptExecutionErrors[0];
+                                    } else {
+                                        throw new Error(
+                                            spaceTrim(
+                                                (block) => `
+                                                    Script execution failed ${scriptExecutionErrors.length} times
+
+                                                    ${block(
+                                                        scriptExecutionErrors
+                                                            .map((error) => '- ' + error.message)
+                                                            .join('\n\n'),
+                                                    )}
+                                                `,
+                                            ),
+                                        );
+                                    }
+
+                                    // Note: This line is unreachable because of the break executionType above
+                                    break executionType;
+
+                                case 'PROMPT_DIALOG':
+                                    // TODO: !!!! When making next attempt for `PROMPT DIALOG`, preserve the previous user input
+                                    resultString = await tools.userInterface.promptDialog({
+                                        promptTitle: currentTemplate.title,
+                                        promptMessage: replaceParameters(
+                                            currentTemplate.description || '',
+                                            parametersToPass,
+                                        ),
+                                        defaultValue: replaceParameters(currentTemplate.content, parametersToPass),
+
+                                        // TODO: [🧠] !! Figure out how to define placeholder in .ptbk.md file
+                                        placeholder: undefined,
+                                        priority /* <- TODO: !!!! Is it ending with 0 */,
+                                    });
+                                    break executionType;
+
+                                default:
+                                    throw new Error(
+                                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                                        `Unknown execution type "${(currentTemplate as any).executionType}"`,
+                                    );
+                            }
+                        }
+
+                        if (!isJokerAttempt && currentTemplate.postprocessing) {
                             for (const functionName of currentTemplate.postprocessing) {
                                 // TODO: DRY [1]
                                 scriptExecutionErrors = [];
@@ -236,7 +259,7 @@ export function createPtpExecutor(options: CreatePtpExecutorOptions): PtpExecuto
                                         resultString = await scriptTools.execute({
                                             scriptLanguage: `javascript` /* <- TODO: Try it in each languages; In future allow postprocessing with arbitrary combination of languages to combine */,
                                             script: `${functionName}(resultString)`,
-                                            parameters: { ...parametersToPass, resultString },
+                                            parameters: { ...parametersToPass, resultString: resultString || '' },
                                         });
 
                                         break scripts;
@@ -253,7 +276,7 @@ export function createPtpExecutor(options: CreatePtpExecutorOptions): PtpExecuto
 
                         if (currentTemplate.expectFormat) {
                             if (currentTemplate.expectFormat === 'JSON') {
-                                if (!isValidJsonString(resultString)) {
+                                if (!isValidJsonString(resultString || '')) {
                                     throw new ExpectError('Expected valid JSON string');
                                 }
                             } else {
@@ -263,7 +286,7 @@ export function createPtpExecutor(options: CreatePtpExecutorOptions): PtpExecuto
 
                         if (currentTemplate.expectAmount) {
                             for (const [unit, { max, min }] of Object.entries(currentTemplate.expectAmount)) {
-                                const amount = CountUtils[unit.toUpperCase() as ExpectationUnit](resultString);
+                                const amount = CountUtils[unit.toUpperCase() as ExpectationUnit](resultString || '');
 
                                 if (min && amount < min) {
                                     throw new ExpectError(`Expected at least ${min} ${unit} but got ${amount}`);
@@ -283,6 +306,7 @@ export function createPtpExecutor(options: CreatePtpExecutorOptions): PtpExecuto
                         expectError = error;
                     } finally {
                         if (
+                            !isJokerAttempt &&
                             currentTemplate.executionType === 'PROMPT_TEMPLATE' &&
                             prompt!
                             //    <- Note:  [2] When some expected parameter is not defined, error will occur in replaceParameters
