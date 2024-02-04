@@ -38,8 +38,9 @@
         "test-types": "tsc",
         "lint": "eslint src",
         "generate-packages": "ts-node ./scripts/generate-packages/generate-packages.ts --commit",
+        "use-packages": "ts-node ./scripts/use-packages/use-packages.ts",
         "preversion": "git pull && npm run lint && npm test && tsc",
-        "postversion": "npm run generate-packages && git push && git push --tags"
+        "postversion": "npm run generate-packages && git push && git push --tags && npm run use-packages"
     },
     "devDependencies": {
         "@rollup/plugin-typescript": "8.3.0",

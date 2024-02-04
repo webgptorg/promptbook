@@ -1,0 +1,66 @@
+#!/usr/bin/env ts-node
+
+import chalk from 'chalk';
+import commander from 'commander';
+import { readFile, writeFile } from 'fs/promises';
+import { join } from 'path';
+import { PackageJson } from 'type-fest';
+import { execCommand } from '../utils/execCommand/execCommand';
+
+if (process.cwd() !== join(__dirname, '../..')) {
+    console.error(chalk.red(`CWD must be root of the project`));
+    process.exit(1);
+}
+
+const program = new commander.Command();
+program.parse(process.argv);
+
+program.parse(process.argv);
+
+usePackages()
+    .catch((error: Error) => {
+        console.error(chalk.bgRed(error.name));
+        console.error(error);
+        process.exit(1);
+    })
+    .then(() => {
+        process.exit(0);
+    });
+
+async function usePackages() {
+    console.info(`🌍  Using packages`);
+
+    const mainPackageJson = JSON.parse(await readFile('./package.json', 'utf-8')) as PackageJson;
+    const currentVersion = mainPackageJson.version;
+
+    const remoteFolder = '../webgpt-app'; // <- TODO: Update also in the sample here
+    const remotePackageJson = JSON.parse(await readFile(join(remoteFolder, 'package.json'), 'utf-8')) as PackageJson;
+
+    for (const dependenciesType of ['dependencies', 'devDependencies']) {
+        for (const packageName of Object.keys(remotePackageJson[dependenciesType] as Record<string, string>)) {
+            if (!packageName.startsWith('@promptbook/')) {
+                continue;
+            }
+
+            remotePackageJson[dependenciesType]![packageName] = currentVersion;
+        }
+    }
+
+    await writeFile('../webgpt-app/package.json', JSON.stringify(remotePackageJson, null, 4) + '\n');
+
+    await execCommand({
+        cwd: remoteFolder,
+        crashOnError: false,
+        command: `npm i`,
+    });
+
+    console.info(`[ 🌍  Using packages ]`);
+}
+
+/**
+ * TODO: !! [👵] test before publish
+ * TODO: !!! Auto update version of @promptbook/* in samples
+ * TODO: !! Add warning to the copy/used files
+ * TODO: !! Use prettier to format the used files
+ * TODO: !! Normalize order of keys in package.json
+ */
