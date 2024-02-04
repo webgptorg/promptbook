@@ -2,11 +2,13 @@
 
 -   PTBK URL https://ptbk.example.com/samples/jokers.ptbk.md@v1
 -   PTBK VERSION 1.0.0
--   INPUT  PARAMETER {yourName} Name of the hero or nothing
+-   INPUT  PARAMETER {name1} First name or nothing
+-   INPUT  PARAMETER {name2} Second name or nothing
 
 ## 💬 Question
 
--   JOKER {yourName}
+-   JOKER {name1}.
+-   JOKER {name2}
 -   EXPECT MIN 2 WORDS
 
 ```markdown

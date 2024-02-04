@@ -101,7 +101,7 @@ interface PromptTemplateJsonCommon {
     /**
      * If theese parameters meet the expectations requirements, they are used instead of executing this prompt template
      */
-    readonly joker?: Array<string>;
+    readonly jokers?: Array<string>;
 
     /**
      * Type of the execution

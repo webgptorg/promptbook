@@ -33,6 +33,13 @@ export function validatePromptTemplatePipelineJson(ptp: PromptTemplatePipelineJs
 
         definedParameters.add(template.resultingParameterName);
     }
+
+    /*
+       TODO: !!!! non existing joker
+    TODO: !!!! no postprocessing just expect
+    TODO: !!!! allow multiple jokers
+    TODO: !!!! require at least 1 min expectation to use jokers
+    */
 }
 
 /**

@@ -83,7 +83,7 @@
             "name": "🏭📖 Generate reports .report.json -> .report.md",
             "commands": ["ts-node ./scripts/generate-sample-reports/generate-sample-reports.ts"],
             "execute": false,
-            "onlySingle": false,
+            "onlySingle": true,
             "focus": false
         },
         {

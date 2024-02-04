@@ -5,7 +5,7 @@ import { DEFAULT_MODEL_REQUIREMENTS, PTBK_VERSION } from '../config';
 import { ParameterCommand } from '../types/Command';
 import { ExecutionType } from '../types/ExecutionTypes';
 import { ModelRequirements } from '../types/ModelRequirements';
-import { ExpectationUnit, NaturalTemplateJson } from '../types/PromptTemplatePipelineJson/PromptTemplateJson';
+import { ExpectationUnit, PromptTemplateJson } from '../types/PromptTemplatePipelineJson/PromptTemplateJson';
 import { PromptTemplateParameterJson } from '../types/PromptTemplatePipelineJson/PromptTemplateParameterJson';
 import { PromptTemplatePipelineJson } from '../types/PromptTemplatePipelineJson/PromptTemplatePipelineJson';
 import { PromptTemplatePipelineString } from '../types/PromptTemplatePipelineString';
@@ -155,9 +155,10 @@ export function promptTemplatePipelineStringToJson(
         const templateModelRequirements: Writable<ModelRequirements> = { ...defaultModelRequirements };
         const listItems = extractAllListItemsFromMarkdown(section.content);
         let executionType: ExecutionType = 'PROMPT_TEMPLATE';
-        let postprocessing: NaturalTemplateJson['postprocessing'] = [];
-        let expectAmount: NaturalTemplateJson['expectAmount'] = {};
-        let expectFormat: NaturalTemplateJson['expectFormat'] | undefined = undefined;
+        let jokers: PromptTemplateJson['jokers'] = [];
+        let postprocessing: PromptTemplateJson['postprocessing'] = [];
+        let expectAmount: PromptTemplateJson['expectAmount'] = {};
+        let expectFormat: PromptTemplateJson['expectFormat'] | undefined = undefined;
 
         let isExecutionTypeChanged = false;
 
@@ -165,12 +166,7 @@ export function promptTemplatePipelineStringToJson(
             const command = parseCommand(listItem);
             switch (command.type) {
                 case 'JOKER':
-                    /*
-                    TODO: !!!! no postprocessing just expect
-                    TODO: !!!! allow multiple jokers
-                    TODO: !!!! require at least 1 min expectation to use jokers
-                    */
-
+                    jokers.push(command.parameterName);
                     break;
                 case 'EXECUTE':
                     if (isExecutionTypeChanged) {
@@ -294,6 +290,10 @@ export function promptTemplatePipelineStringToJson(
             description = undefined;
         }
 
+        if (Object.keys(jokers).length === 0) {
+            jokers = undefined;
+        }
+
         if (Object.keys(expectAmount).length === 0) {
             expectAmount = undefined;
         }
@@ -307,6 +307,7 @@ export function promptTemplatePipelineStringToJson(
             title: section.title,
             description,
             executionType,
+            jokers,
             postprocessing,
             expectAmount,
             expectFormat,

@@ -18,6 +18,9 @@
             "name": "Question",
             "title": "💬 Question",
             "executionType": "PROMPT_TEMPLATE",
+            "jokers": [
+                "yourName"
+            ],
             "expectAmount": {
                 "words": {
                     "min": 2
