@@ -1,6 +1,6 @@
 {
     "name": "@promptbook/remote-client",
-    "version": "0.27.0",
+    "version": "0.28.0-0",
     "description": "Library to supercharge your use of large language models",
     "private": false,
     "sideEffects": false,
@@ -37,7 +37,7 @@
         "socket.io-client": "4.7.2"
     },
     "peerDependencies": {
-        "@promptbook/core": "0.27.0"
+        "@promptbook/core": "0.28.0-0"
     },
     "main": "./umd/index.umd.js",
     "module": "./esm/index.es.js",
