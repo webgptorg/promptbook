@@ -46,6 +46,18 @@ export function validatePromptTemplatePipelineJson(ptp: PromptTemplatePipelineJs
             }
         }
 
+        if (template.expectAmount) {
+            for (const [unit, { min, max }] of Object.entries(template.expectAmount)) {
+                if (min !== undefined && max !== undefined && min > max) {
+                    throw new Error(`Min expectation (=${min}) of ${unit} is higher than max expectation (=${max})`);
+                }
+
+                if (min !== undefined && min <= 0) {
+                    throw new Error(`Min expectation of ${unit} must be positive`);
+                }
+            }
+        }
+
         definedParameters.add(template.resultingParameterName);
     }
 }

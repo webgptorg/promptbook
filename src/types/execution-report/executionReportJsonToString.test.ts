@@ -4,7 +4,7 @@ import { join } from 'path';
 import { executionReportJsonToString } from './executionReportJsonToString';
 
 describe('executionReportJsonToString.test', () => {
-    const samplesDir = '../../samples/templates';
+    const samplesDir = '../../../samples/templates';
     const samples = readdirSync(join(__dirname, samplesDir), { withFileTypes: true, recursive: false })
         //                         <- Note: In production it is not good practice to use synchronous functions
         //                                  But this is only a test before the build, so it is okay
