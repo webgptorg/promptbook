@@ -19,4 +19,20 @@ describe('validatePromptTemplatePipelineJson', () => {
             validatePromptTemplatePipelineJson(ptbJson);
         }).toThrowError(/Unknown model key/i);
     });
+
+    it('should fail when expecting maximally 0 words', () => {
+        expect(() => {
+            const ptbkString = importPtp('../../samples/templates/errors/logic/wrong-expectations.ptbk.md');
+            const ptbJson = promptTemplatePipelineStringToJson(ptbkString);
+            validatePromptTemplatePipelineJson(ptbJson);
+        }).toThrowError(/Xxxxxxxx/i);
+    });
+
+    it('should fail when there is joker but no expectations', () => {
+        expect(() => {
+            const ptbkString = importPtp('../../samples/templates/errors/logic/joker-without-expectations.ptbk.md');
+            const ptbJson = promptTemplatePipelineStringToJson(ptbkString);
+            validatePromptTemplatePipelineJson(ptbJson);
+        }).toThrowError(/Xxxxxxxxxxx/i);
+    });
 });
