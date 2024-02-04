@@ -49,7 +49,7 @@ async function usePackages() {
     }
 
     await writeFile(remotePackageJsonPath, JSON.stringify(remotePackageJson, null, 4) + '\n');
-    console.info(chalk.bgGreen(`Update version of @promptbook/* to ${currentVersion} in ${remotePackageJsonPath}`));
+    console.info(chalk.green(`Update version of @promptbook/* to ${currentVersion} in ${remotePackageJsonPath}`));
 
     await forTime(
         1000 *
