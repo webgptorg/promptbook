@@ -1,0 +1,34 @@
+{
+    "title": "✨ Sample: Jokers",
+    "ptbkUrl": "https://ptbk.example.com/samples/jokers.ptbk.md@v1",
+    "ptbkVersion": "1.0.0",
+    "parameters": [
+        {
+            "name": "yourName",
+            "description": "Name of the hero or nothing",
+            "isInput": true
+        },
+        {
+            "name": "name",
+            "isInput": false
+        }
+    ],
+    "promptTemplates": [
+        {
+            "name": "Question",
+            "title": "💬 Question",
+            "executionType": "PROMPT_TEMPLATE",
+            "expectAmount": {
+                "words": {
+                    "min": 2
+                }
+            },
+            "modelRequirements": {
+                "modelVariant": "CHAT",
+                "modelName": "gpt-3.5-turbo"
+            },
+            "content": "Write some name for hero",
+            "resultingParameterName": "name"
+        }
+    ]
+}
