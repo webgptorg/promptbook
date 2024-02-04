@@ -5,6 +5,7 @@ import commander from 'commander';
 import { readFile, writeFile } from 'fs/promises';
 import { join } from 'path';
 import { PackageJson } from 'type-fest';
+import { forTime } from 'waitasecond';
 import { execCommand } from '../utils/execCommand/execCommand';
 
 if (process.cwd() !== join(__dirname, '../..')) {
@@ -47,6 +48,11 @@ async function usePackages() {
     }
 
     await writeFile('../webgpt-app/package.json', JSON.stringify(remotePackageJson, null, 4) + '\n');
+
+    await forTime(
+        1000 *
+            20 /* seconds <- Note: This is empiric time how long it takes to perform GitHub Action and publish all NPM packages */,
+    );
 
     await execCommand({
         cwd: remoteFolder,
