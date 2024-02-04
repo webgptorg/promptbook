@@ -7,7 +7,7 @@
 
 ## 💬 Question
 
--   JOKER {name1}.
+-   JOKER {name1}
 -   JOKER {name2}
 -   EXPECT MIN 2 WORDS
 

@@ -4,8 +4,13 @@
     "ptbkVersion": "1.0.0",
     "parameters": [
         {
-            "name": "yourName",
-            "description": "Name of the hero or nothing",
+            "name": "name1",
+            "description": "First name or nothing",
+            "isInput": true
+        },
+        {
+            "name": "name2",
+            "description": "Second name or nothing",
             "isInput": true
         },
         {
@@ -19,7 +24,8 @@
             "title": "💬 Question",
             "executionType": "PROMPT_TEMPLATE",
             "jokers": [
-                "yourName"
+                "name1",
+                "name2"
             ],
             "expectAmount": {
                 "words": {

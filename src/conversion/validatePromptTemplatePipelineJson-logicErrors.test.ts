@@ -25,7 +25,7 @@ describe('validatePromptTemplatePipelineJson', () => {
             const ptbkString = importPtp('../../samples/templates/errors/logic/wrong-expectations.ptbk.md');
             const ptbJson = promptTemplatePipelineStringToJson(ptbkString);
             validatePromptTemplatePipelineJson(ptbJson);
-        }).toThrowError(/Xxxxxxxx/i);
+        }).toThrowError(/Max expectation of words must be positive/i);
     });
 
     it('should fail when there is joker but no expectations', () => {
@@ -33,6 +33,6 @@ describe('validatePromptTemplatePipelineJson', () => {
             const ptbkString = importPtp('../../samples/templates/errors/logic/joker-without-expectations.ptbk.md');
             const ptbJson = promptTemplatePipelineStringToJson(ptbkString);
             validatePromptTemplatePipelineJson(ptbJson);
-        }).toThrowError(/Xxxxxxxxxxx/i);
+        }).toThrowError(/Joker parameters are used but no expectations are defined/i);
     });
 });

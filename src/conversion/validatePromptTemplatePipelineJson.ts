@@ -52,8 +52,12 @@ export function validatePromptTemplatePipelineJson(ptp: PromptTemplatePipelineJs
                     throw new Error(`Min expectation (=${min}) of ${unit} is higher than max expectation (=${max})`);
                 }
 
-                if (min !== undefined && min <= 0) {
-                    throw new Error(`Min expectation of ${unit} must be positive`);
+                if (min !== undefined && min < 0) {
+                    throw new Error(`Min expectation of ${unit} must be zero or positive`);
+                }
+
+                if (max !== undefined && max <= 0) {
+                    throw new Error(`Max expectation of ${unit} must be positive`);
                 }
             }
         }
