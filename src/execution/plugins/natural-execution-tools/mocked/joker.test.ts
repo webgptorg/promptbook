@@ -13,11 +13,11 @@ describe('createPtpExecutor + MockedEchoExecutionTools with sample chat prompt',
             # ✨ Sample: Jokers
 
             -   INPUT  PARAMETER {yourName} Name of the hero or nothing
-            -   EXPECT MIN 2 WORDS
 
             ## 💬 Question
 
             -   JOKER {yourName}
+            -   EXPECT MIN 2 WORDS
 
             \`\`\`markdown
             Write some name for hero
@@ -45,23 +45,23 @@ describe('createPtpExecutor + MockedEchoExecutionTools with sample chat prompt',
     });
 
     it('should work when joker is used', () => {
-        expect(ptpExecutor({ yourName: 'Pavol Hejný' }, () => {})).resolves.toMatchObject({
+        expect(ptpExecutor({ yourName: 'Good name' }, () => {})).resolves.toMatchObject({
             isSuccessful: true,
             outputParameters: {
-                yourName: 'Pavol Hejný',
-                name: 'Pavol Hejný',
+                yourName: 'Good name',
+                name: 'Good name',
             },
         });
     });
 
     it('should work when joker is NOT used', () => {
-        expect(ptpExecutor({ yourName: 'Superman' }, () => {})).resolves.toMatchObject({
+        expect(ptpExecutor({ yourName: 'Badname' }, () => {})).resolves.toMatchObject({
             isSuccessful: true,
             outputParameters: {
-                yourName: 'Superman',
+                yourName: 'Badname',
                 name: spaceTrim(`
                     You said:
-                    Superman
+                    Badname
                 `),
             },
         });

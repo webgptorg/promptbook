@@ -232,11 +232,9 @@ describe('how parseCommand works', () => {
             type: 'JOKER',
             parameterName: 'name',
         });
-        expect(parseCommand('JOKER {name}')).toEqual({
-            type: 'PARAMETER',
-            isInputParameter: false,
-            parameterName: 'name',
-            parameterDescription: 'Name for the hero',
+        expect(parseCommand('JOKER {woooow}')).toEqual({
+            type: 'JOKER',
+            parameterName: 'woooow',
         });
     });
 

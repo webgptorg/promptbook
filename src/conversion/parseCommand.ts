@@ -263,7 +263,22 @@ export function parseCommand(listItem: string_markdown_text): Command {
             );
         }
 
-        const parameterName = listItemParts.pop()!;
+        const parametersMatch = (listItemParts.pop() || '').match(/^\{(?<parameterName>[a-z0-9_]+)\}$/im);
+
+        if (!parametersMatch || !parametersMatch.groups || !parametersMatch.groups.parameterName) {
+            throw new Error(
+                spaceTrim(
+                    `
+                      Invalid parameter in command:
+
+                      - ${listItem}
+                  `,
+                ),
+            );
+        }
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { parameterName } = parametersMatch.groups as any;
 
         return {
             type: 'JOKER',
