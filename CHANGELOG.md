@@ -49,3 +49,10 @@ Moving logic from `promptTemplatePipelineStringToJson` to `createPtpExecutor`
 -   If title in promptbook contains emojis, pass it innto report
 -   Fix `description` in report
 -   Asking user infinite times for input if the input not matches the expectations
+
+## 0.28.0 _(2024-02-04)_
+
+Better execution report in markdown format
+
+-   filter out voids in `executionReportJsonToString`
+-   Escape code blocks in markdown
