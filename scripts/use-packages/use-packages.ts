@@ -35,7 +35,8 @@ async function usePackages() {
     const currentVersion = mainPackageJson.version;
 
     const remoteFolder = '../webgpt-app'; // <- TODO: Update also in the sample here
-    const remotePackageJson = JSON.parse(await readFile(join(remoteFolder, 'package.json'), 'utf-8')) as PackageJson;
+    const remotePackageJsonPath = join(remoteFolder, 'package.json');
+    const remotePackageJson = JSON.parse(await readFile(remotePackageJsonPath, 'utf-8')) as PackageJson;
 
     for (const dependenciesType of ['dependencies', 'devDependencies']) {
         for (const packageName of Object.keys(remotePackageJson[dependenciesType] as Record<string, string>)) {
@@ -47,11 +48,12 @@ async function usePackages() {
         }
     }
 
-    await writeFile('../webgpt-app/package.json', JSON.stringify(remotePackageJson, null, 4) + '\n');
+    await writeFile(remotePackageJsonPath, JSON.stringify(remotePackageJson, null, 4) + '\n');
+    console.info(chalk.bgGreen(`Update version of @promptbook/* to ${currentVersion} in ${remotePackageJsonPath}`));
 
     await forTime(
         1000 *
-            80 /* seconds <- Note: This is empiric time how long it takes to perform GitHub Action and publish all NPM packages */,
+            60 /* seconds <- Note: This is empiric time how long it takes to perform GitHub Action and publish all NPM packages */,
     );
 
     await execCommand({
