@@ -356,8 +356,8 @@ export function createPtpExecutor(options: CreatePtpExecutorOptions): PtpExecuto
                         }
                     }
 
-                    if (result === null && attempt === maxExecutionAttempts) {
-                        console.info(`🛬 currentTemplate attempt #${attempt} (resultString) fail`, {
+                    if (expectError !== null && attempt === maxExecutionAttempts - 1) {
+                        console.info(`🛬 currentTemplate attempt #${attempt} (last) fail`, {
                             attempt,
                             maxExecutionAttempts,
                         });
@@ -428,6 +428,7 @@ export function createPtpExecutor(options: CreatePtpExecutorOptions): PtpExecuto
 }
 
 /**
+ * TODO: [🧠] When not meet expectations in PROMPT_DIALOG, make some way to tell the user
  * TODO: [👧] Strongly type the executors to avoid need of remove nullables whtn noUncheckedIndexedAccess in tsconfig.json
  * Note: CreatePtpExecutorOptions are just connected to PtpExecutor so do not extract to types folder
  */
