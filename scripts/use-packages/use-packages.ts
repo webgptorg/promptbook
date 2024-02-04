@@ -51,7 +51,7 @@ async function usePackages() {
 
     await forTime(
         1000 *
-            40 /* seconds <- Note: This is empiric time how long it takes to perform GitHub Action and publish all NPM packages */,
+            80 /* seconds <- Note: This is empiric time how long it takes to perform GitHub Action and publish all NPM packages */,
     );
 
     await execCommand({
