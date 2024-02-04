@@ -12,7 +12,7 @@ describe('createPtpExecutor + MockedEchoExecutionTools with sample chat prompt',
         spaceTrim(`
             # ✨ Sample: Jokers
 
-            -   INPUT  PARAMETER {yourName} Name of the hero or nothing
+            -   INPUT  PARAMETER {yourName} Name of the hero or nothing
             -   EXPECT MIN 2 WORDS
 
             ## 💬 Question
