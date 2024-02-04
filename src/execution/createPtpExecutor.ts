@@ -103,6 +103,8 @@ export function createPtpExecutor(options: CreatePtpExecutorOptions): PtpExecuto
                 const maxAttempts = currentTemplate.executionType === 'PROMPT_DIALOG' ? Infinity : maxExecutionAttempts;
 
                 attempts: for (let attempt = 0; attempt < maxAttempts; attempt++) {
+                    // !!!! no postprocessing just expect
+
                     result = null;
                     resultString = null;
                     expectError = null;

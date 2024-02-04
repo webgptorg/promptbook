@@ -31,15 +31,23 @@ export function validatePromptTemplatePipelineJson(ptp: PromptTemplatePipelineJs
             throw new Error(`Parameter {${template.resultingParameterName}} is defined multiple times`);
         }
 
+        if (template.jokers && template.jokers.length > 0) {
+            for (const joker of template.jokers) {
+                if (!definedParameters.has(joker)) {
+                    throw new Error(`Joker parameter {${joker}} used before defined`);
+                }
+            }
+
+            if (
+                !template.expectFormat &&
+                !template.expectAmount /* <- TODO: Require at least 1 -> min <- expectation to use jokers */
+            ) {
+                throw new Error(`Joker parameters are used but no expectations are defined`);
+            }
+        }
+
         definedParameters.add(template.resultingParameterName);
     }
-
-    /*
-       TODO: !!!! non existing joker
-    TODO: !!!! no postprocessing just expect
-    TODO: !!!! allow multiple jokers
-    TODO: !!!! require at least 1 min expectation to use jokers
-    */
 }
 
 /**
