@@ -50,6 +50,7 @@ describe('createPtpExecutor + MockedEchoExecutionTools with sample chat prompt',
     it('should work when every INPUT  PARAMETER defined', () => {
         expect(ptpExecutor({ thing: 'a cup of coffee' }, () => {})).resolves.toMatchObject({
             isSuccessful: true,
+            errors: [],
             executionReport: {
                 title: 'Sample prompt',
                 ptbkRequestedVersion: '1.0.0',
@@ -69,7 +70,7 @@ describe('createPtpExecutor + MockedEchoExecutionTools with sample chat prompt',
 
     it('should fail when some INPUT  PARAMETER is missing', () => {
         expect(ptpExecutor({}, () => {})).resolves.toEqual({
-           isSuccessful: false,
+            isSuccessful: false,
             errors: [new Error(`Parameter {thing} is not defined`)],
             executionReport: {
                 title: 'Sample prompt',

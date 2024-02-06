@@ -59,18 +59,21 @@ describe('createPtpExecutor + executing scripts in ptp', () => {
     it('should work when every INPUT  PARAMETER is allowed', () => {
         expect(ptpExecutor({ thing: 'a cup of coffee' }, () => {})).resolves.toMatchObject({
             isSuccessful: true,
+            errors: [],
             outputParameters: {
                 bhing: 'b cup of coffee',
             },
         });
         expect(ptpExecutor({ thing: 'arrow' }, () => {})).resolves.toMatchObject({
             isSuccessful: true,
+            errors: [],
             outputParameters: {
                 bhing: 'brrow',
             },
         });
         expect(ptpExecutor({ thing: 'aaa' }, () => {})).resolves.toMatchObject({
             isSuccessful: true,
+            errors: [],
             outputParameters: {
                 bhing: 'bbb',
             },

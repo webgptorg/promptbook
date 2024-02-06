@@ -47,6 +47,7 @@ describe('createPtpExecutor + MockedEchoExecutionTools with sample chat prompt',
     it('should work when joker is used', () => {
         expect(ptpExecutor({ yourName: 'Good name' }, () => {})).resolves.toMatchObject({
             isSuccessful: true,
+            errors: [],
             outputParameters: {
                 yourName: 'Good name',
                 name: 'Good name',
@@ -57,6 +58,7 @@ describe('createPtpExecutor + MockedEchoExecutionTools with sample chat prompt',
     it('should work when joker is NOT used', () => {
         expect(ptpExecutor({ yourName: 'Badname' }, () => {})).resolves.toMatchObject({
             isSuccessful: true,
+            errors: [],
             outputParameters: {
                 yourName: 'Badname',
                 name: spaceTrim(`

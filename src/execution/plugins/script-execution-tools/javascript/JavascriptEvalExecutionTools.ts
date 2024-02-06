@@ -140,8 +140,11 @@ export class JavascriptEvalExecutionTools implements ScriptExecutionTools {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         let result: any;
         try {
-            //  TODO: !!!! Allow async postprocessing functions
-            result = eval(statementToEvaluate);
+            result = await eval(statementToEvaluate);
+
+            if (typeof result !== 'string') {
+                throw new Error(`Script must return a string, but returned ${result.toString()} ${typeof result}`);
+            }
         } catch (error) {
             if (!(error instanceof Error)) {
                 throw error;

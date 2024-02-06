@@ -1,35 +1,37 @@
 import { describe, expect, it } from '@jest/globals';
 import spaceTrim from 'spacetrim';
+import { forTime } from 'waitasecond';
 import { PromptTemplatePipeline } from '../../../classes/PromptTemplatePipeline';
 import { promptTemplatePipelineStringToJson } from '../../../conversion/promptTemplatePipelineStringToJson';
 import { PromptTemplatePipelineString } from '../../../types/PromptTemplatePipelineString';
-import { assertsExecutionSuccessful } from '../../assertsExecutionSuccessful';
 import { createPtpExecutor } from '../../createPtpExecutor';
 import { MockedEchoNaturalExecutionTools } from '../natural-execution-tools/mocked/MockedEchoNaturalExecutionTools';
 import { CallbackInterfaceTools } from '../user-interface-execution-tools/callback/CallbackInterfaceTools';
 import { JavascriptEvalExecutionTools } from './javascript/JavascriptEvalExecutionTools';
 
-describe('createPtpExecutor + executing scripts in ptp', () => {
+describe('createPtpExecutor + custom async function ', () => {
     const ptbJson = promptTemplatePipelineStringToJson(
         spaceTrim(`
-            # Sample prompt
+            # Custom functions
 
-            Show how to execute a script
+            Show how to use custom postprocessing async function
 
             -   PTBK VERSION 1.0.0
-            -   INPUT  PARAMETER {thing} Any thing to buy
+            -   INPUT  PARAMETER {yourName} Name of the hero
 
-            ## Execution
+            ## Question
 
-            -   EXECUTE SCRIPT
+            -   SIMPLE TEMPLATE
+            -   POSTPROCESSING addHello
 
-            \`\`\`javascript
-            thing.split('a').join('b')
+            \`\`\`markdown
+            {yourName} the Evangelist
             \`\`\`
 
-            -> {bhing}
+            -> {greeting}
          `) as PromptTemplatePipelineString,
     );
+
     const ptp = PromptTemplatePipeline.fromJson(ptbJson);
     const ptpExecutor = createPtpExecutor({
         ptp,
@@ -38,7 +40,14 @@ describe('createPtpExecutor + executing scripts in ptp', () => {
             script: [
                 new JavascriptEvalExecutionTools({
                     isVerbose: true,
-                    // Note: [🕎] Custom functions are tested elsewhere
+
+                    // Note: [🕎]
+                    functions: {
+                        async addHello(value) {
+                            await forTime(1000);
+                            return `Hello ${value}`;
+                        },
+                    },
                 }),
             ],
             userInterface: new CallbackInterfaceTools({
@@ -53,31 +62,37 @@ describe('createPtpExecutor + executing scripts in ptp', () => {
         },
     });
 
-    it('should work when every INPUT  PARAMETER defined', () => {
-        expect(ptpExecutor({ thing: 'apple' }, () => {})).resolves.toMatchObject({
+    it('should use custom postprocessing function', () => {
+        expect(ptpExecutor({ yourName: 'Matthew' }, () => {})).resolves.toMatchObject({
             isSuccessful: true,
             errors: [],
             outputParameters: {
-                bhing: 'bpple',
+                greeting: 'Hello Matthew the Evangelist',
             },
         });
-        expect(ptpExecutor({ thing: 'a cup of coffee' }, () => {})).resolves.toMatchObject({
+
+        expect(ptpExecutor({ yourName: 'Mark' }, () => {})).resolves.toMatchObject({
             isSuccessful: true,
             errors: [],
             outputParameters: {
-                bhing: 'b cup of coffee',
+                greeting: 'Hello Mark the Evangelist',
             },
         });
-    });
 
-    it('should fail when some INPUT  PARAMETER is missing', () => {
-        expect(ptpExecutor({}, () => {})).resolves.toMatchObject({
-            isSuccessful: false,
-            errors: [new Error(`Parameter {thing} is not defined`)],
+        expect(ptpExecutor({ yourName: 'Luke' }, () => {})).resolves.toMatchObject({
+            isSuccessful: true,
+            errors: [],
+            outputParameters: {
+                greeting: 'Hello Luke the Evangelist',
+            },
         });
 
-        expect(() => ptpExecutor({}, () => {}).then(assertsExecutionSuccessful)).rejects.toThrowError(
-            /Parameter \{thing\} is not defined/,
-        );
+        expect(ptpExecutor({ yourName: 'John' }, () => {})).resolves.toMatchObject({
+            isSuccessful: true,
+            errors: [],
+            outputParameters: {
+                greeting: 'Hello John the Evangelist',
+            },
+        });
     });
 });

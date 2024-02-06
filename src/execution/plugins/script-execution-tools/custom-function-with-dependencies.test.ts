@@ -69,6 +69,7 @@ describe('createPtpExecutor + custom function with dependencies', () => {
     it('should use custom postprocessing function', () => {
         expect(ptpExecutor({ yourName: 'Matthew' }, () => {})).resolves.toMatchObject({
             isSuccessful: true,
+            errors: [],
             outputParameters: {
                 greeting: 'Hello Matthew the Evangelist (28 characters, 4 words)',
             },
@@ -76,6 +77,7 @@ describe('createPtpExecutor + custom function with dependencies', () => {
 
         expect(ptpExecutor({ yourName: 'Mark' }, () => {})).resolves.toMatchObject({
             isSuccessful: true,
+            errors: [],
             outputParameters: {
                 greeting: 'Hello Mark the Evangelist (25 characters, 4 words)',
             },
@@ -83,6 +85,7 @@ describe('createPtpExecutor + custom function with dependencies', () => {
 
         expect(ptpExecutor({ yourName: 'Luke' }, () => {})).resolves.toMatchObject({
             isSuccessful: true,
+            errors: [],
             outputParameters: {
                 greeting: 'Hello Luke the Evangelist (25 characters, 4 words)',
             },
@@ -90,13 +93,10 @@ describe('createPtpExecutor + custom function with dependencies', () => {
 
         expect(ptpExecutor({ yourName: 'John' }, () => {})).resolves.toMatchObject({
             isSuccessful: true,
+            errors: [],
             outputParameters: {
                 greeting: 'Hello John the Evangelist (25 characters, 4 words)',
             },
         });
     });
 });
-
-/**
- * TODO: !!!! custom-function-async.test.ts
- */

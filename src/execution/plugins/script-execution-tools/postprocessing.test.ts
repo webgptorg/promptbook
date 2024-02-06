@@ -58,6 +58,7 @@ describe('createPtpExecutor + postprocessing', () => {
     it('should work when every INPUT  PARAMETER defined', () => {
         expect(ptpExecutor({ yourName: 'Paůl' }, () => {})).resolves.toMatchObject({
             isSuccessful: true,
+            errors: [],
             outputParameters: {
                 greeting: 'LUA_P_OLLE_H_DIAS_UO_Y',
             },
@@ -65,6 +66,7 @@ describe('createPtpExecutor + postprocessing', () => {
 
         expect(ptpExecutor({ yourName: 'Adam' }, () => {})).resolves.toMatchObject({
             isSuccessful: true,
+            errors: [],
             outputParameters: {
                 greeting: 'MAD_A_OLLE_H_DIAS_UO_Y',
             },
@@ -72,6 +74,7 @@ describe('createPtpExecutor + postprocessing', () => {
 
         expect(ptpExecutor({ yourName: 'John' }, () => {})).resolves.toMatchObject({
             isSuccessful: true,
+            errors: [],
             outputParameters: {
                 greeting: 'NHO_J_OLLE_H_DIAS_UO_Y',
             },
@@ -79,6 +82,7 @@ describe('createPtpExecutor + postprocessing', () => {
 
         expect(ptpExecutor({ yourName: 'DAVID' }, () => {})).resolves.toMatchObject({
             isSuccessful: true,
+            errors: [],
             outputParameters: {
                 greeting: 'DIVAD_OLLE_H_DIAS_UO_Y',
             },
