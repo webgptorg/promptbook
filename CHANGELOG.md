@@ -68,6 +68,9 @@ Better execution report in markdown format
 
 ## Upcomming
 
+-   Promptbooks are executed in parallel <-(TODO: !!!!)
+    -   `PromptTemplateJson` contains `dependentParameterName` <-(TODO: !!!!)
+    -   `validatePromptTemplatePipelineJson` is checking for circular dependencies <-(TODO: !!!!)
 -   Filter out voids in `executionReportJsonToString` <-(TODO: !!!!)
 -   Escape code blocks in markdown <-(TODO: !!!!)
 -   Add command `EXPECT JSON ARRAY` and `EXPECT JSON OBJECT` _(In future this will be suggar code for `EXPECT JSON SCHEMA`)_ <-(TODO: !!!!)
