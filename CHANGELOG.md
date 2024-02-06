@@ -50,17 +50,24 @@ Moving logic from `promptTemplatePipelineStringToJson` to `createPtpExecutor`
 -   Fix `description` in report
 -   Asking user infinite times for input if the input not matches the expectations
 
-## 0.28.0 _(2024-02-04)_
+## 0.28.0 _(2024-02-06)_
 
 Better execution report in markdown format
 
 -   Add `JOKER {foo}` as a way how to skip part of the promptbook
--   Filter out voids in `executionReportJsonToString` <-(TODO: !!!!)
--   Escape code blocks in markdown <-(TODO: !!!!)
--   Add command `EXPECT JSON ARRAY` and `EXPECT JSON OBJECT` _(In future this will be suggar code for `EXPECT JSON SCHEMA`)_ <-(TODO: !!!!)
--   When making next attempt for `PROMPT DIALOG`, preserve the previous user input <-(TODO: !!!!)
 -   Split `UserInterfaceToolsPromptDialogOptions.prompt` into `promptTitle` and `promptMessage`
 -   Add `UserInterfaceToolsPromptDialogOptions.priority`
 -   Add timing information to report
 -   Maximum must be higher than minimum in `EXPECT` statement
 -   Maximum 0 is not valid, should be at least 1 in `EXPECT` statement
+
+## 0.29.0 _(2024-02-)_
+
+-   Allow to use custom postprocessing functions
+
+## Upcomming
+
+-   Filter out voids in `executionReportJsonToString` <-(TODO: !!!!)
+-   Escape code blocks in markdown <-(TODO: !!!!)
+-   Add command `EXPECT JSON ARRAY` and `EXPECT JSON OBJECT` _(In future this will be suggar code for `EXPECT JSON SCHEMA`)_ <-(TODO: !!!!)
+-   When making next attempt for `PROMPT DIALOG`, preserve the previous user input <-(TODO: !!!!)
