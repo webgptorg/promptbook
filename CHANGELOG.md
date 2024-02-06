@@ -66,11 +66,15 @@ Better execution report in markdown format
 -   Allow to use custom postprocessing functions
 -   Allow async postprocessing functions
 
-## Upcomming
+## 0.30.0 _(2024-02-07)_
 
 -   Promptbooks are executed in parallel <-(TODO: !!!!)
-    -   `PromptTemplateJson` contains `dependentParameterName` <-(TODO: !!!!)
+    -   `PromptTemplateJson` contains `dependentParameterNames` <-(TODO: !!!!)
     -   `validatePromptTemplatePipelineJson` is checking for circular dependencies <-(TODO: !!!!)
+    -   Test that joker is one of the dependent parameters <-(TODO: !!!!)
+
+## Upcomming
+
 -   Filter out voids in `executionReportJsonToString` <-(TODO: !!!!)
 -   Escape code blocks in markdown <-(TODO: !!!!)
 -   Add command `EXPECT JSON ARRAY` and `EXPECT JSON OBJECT` _(In future this will be suggar code for `EXPECT JSON SCHEMA`)_ <-(TODO: !!!!)

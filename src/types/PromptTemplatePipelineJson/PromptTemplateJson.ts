@@ -99,6 +99,13 @@ interface PromptTemplateJsonCommon {
     readonly description?: string;
 
     /**
+     * List of parameter names that are used in the prompt template and must be defined before the prompt template is executed
+     *
+     * Note: Joker is one of the dependent parameters
+     */
+    readonly dependentParameterNames: Array<string_name>;
+
+    /**
      * If theese parameters meet the expectations requirements, they are used instead of executing this prompt template
      */
     readonly jokers?: Array<string>;
@@ -140,7 +147,7 @@ interface PromptTemplateJsonCommon {
     /**
      * Name of the parameter that is the result of the prompt template
      */
-    readonly resultingParameterName: string;
+    readonly resultingParameterName: string_name;
 }
 
 /**

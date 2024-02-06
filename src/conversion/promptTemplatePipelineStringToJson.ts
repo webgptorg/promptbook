@@ -154,6 +154,7 @@ export function promptTemplatePipelineStringToJson(
 
         const templateModelRequirements: Writable<ModelRequirements> = { ...defaultModelRequirements };
         const listItems = extractAllListItemsFromMarkdown(section.content);
+        const dependentParameterNames: PromptTemplateJson['dependentParameterNames'] = [];
         let executionType: ExecutionType = 'PROMPT_TEMPLATE';
         let jokers: PromptTemplateJson['jokers'] = [];
         let postprocessing: PromptTemplateJson['postprocessing'] = [];
@@ -306,6 +307,7 @@ export function promptTemplatePipelineStringToJson(
             name: normalizeTo_PascalCase(section.title),
             title: section.title,
             description,
+            dependentParameterNames,
             executionType,
             jokers,
             postprocessing,
