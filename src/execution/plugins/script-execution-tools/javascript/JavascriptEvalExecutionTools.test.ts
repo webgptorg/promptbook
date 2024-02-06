@@ -3,7 +3,10 @@ import spaceTrim from 'spacetrim';
 import { JavascriptEvalExecutionTools } from './JavascriptEvalExecutionTools';
 
 describe('JavascriptEvalExecutionTools', () => {
-    const javascriptEvalExecutionTools = new JavascriptEvalExecutionTools({ isVerbose: true });
+    const javascriptEvalExecutionTools = new JavascriptEvalExecutionTools({
+        isVerbose: true,
+        // Note: [🕎] Custom functions are tested elsewhere
+    });
 
     it('should evaluate supersimple statement', () => {
         expect(
@@ -33,7 +36,7 @@ describe('JavascriptEvalExecutionTools', () => {
                 parameters: {
                     animal: 'cat',
                 },
-                script: 'return animal.split(\'\').reverse().join(\'-\')',
+                script: "return animal.split('').reverse().join('-')",
             }),
         ).resolves.toEqual('t-a-c');
     });
@@ -94,7 +97,7 @@ describe('JavascriptEvalExecutionTools', () => {
                 javascriptEvalExecutionTools.execute({
                     scriptLanguage: 'javascript',
                     parameters: {},
-                    script: 'throw new Error(\'Some error\')',
+                    script: "throw new Error('Some error')",
                 }),
             ).rejects.toThrowError('Some error');
     });

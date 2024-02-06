@@ -18,8 +18,8 @@ import { removeQuotes as _removeQuotes } from '../../../../utils/removeQuotes';
 import { trimCodeBlock as _trimCodeBlock } from '../../../../utils/trimCodeBlock';
 import { trimEndOfCodeBlock as _trimEndOfCodeBlock } from '../../../../utils/trimEndOfCodeBlock';
 import { unwrapResult as _unwrapResult } from '../../../../utils/unwrapResult';
-import { CommonExecutionToolsOptions } from '../../../CommonExecutionToolsOptions';
 import { ScriptExecutionTools, ScriptExecutionToolsExecuteOptions } from '../../../ScriptExecutionTools';
+import { JavascriptExecutionToolsOptions } from './JavascriptExecutionToolsOptions';
 import { preserve } from './utils/preserve';
 
 /**
@@ -29,7 +29,7 @@ import { preserve } from './utils/preserve';
  *          **NOT intended to use in the production** due to its unsafe nature, use `JavascriptExecutionTools` instead.
  */
 export class JavascriptEvalExecutionTools implements ScriptExecutionTools {
-    public constructor(private readonly options: CommonExecutionToolsOptions) {
+    public constructor(private readonly options: JavascriptExecutionToolsOptions) {
         // TODO: !!! This should NOT work in node + explain
     }
 
@@ -105,8 +105,18 @@ export class JavascriptEvalExecutionTools implements ScriptExecutionTools {
             script = `return ${script}`;
         }
 
+        const customFunctions = this.options.functions || {};
+        const customFunctionsStatement = Object.keys(customFunctions)
+            .map(
+                (functionName) =>
+                    // Note: Custom functions are exposed to the current scope as variables
+                    `const ${functionName} = customFunctions.${functionName};`,
+            )
+            .join('\n');
+
         const statementToEvaluate = spaceTrim(
             (block) => `
+                ${block(customFunctionsStatement)}
                 ${block(
                     Object.entries(parameters)
                         .map(([key, value]) => `const ${key} = ${JSON.stringify(value)};`)
@@ -130,6 +140,7 @@ export class JavascriptEvalExecutionTools implements ScriptExecutionTools {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         let result: any;
         try {
+            //  TODO: !!!! Allow async postprocessing functions
             result = eval(statementToEvaluate);
         } catch (error) {
             if (!(error instanceof Error)) {
@@ -137,13 +148,26 @@ export class JavascriptEvalExecutionTools implements ScriptExecutionTools {
             }
 
             if (error instanceof ReferenceError) {
+                const undefinedName = error.message.split(' ')[0];
                 /*
                 Note: Remapping error
                       From: [ReferenceError: thing is not defined],
                       To:   [Error: Parameter {thing} is not defined],
                 */
 
-                throw new Error(`Parameter {${error.message.split(' ')[0]}} is not defined`);
+                if (!statementToEvaluate.includes(undefinedName + '(')) {
+                    throw new Error(`Parameter {${undefinedName}} is not defined`);
+                } else {
+                    throw new Error(
+                        spaceTrim(`
+                            Function {${undefinedName}} is not defined
+
+                            -  Make sure that the function is one of built-in functions
+                            -  Or you have to defined the function during construction of JavascriptExecutionTools
+
+                        `),
+                    );
+                }
             }
 
             throw error;
@@ -159,4 +183,5 @@ export class JavascriptEvalExecutionTools implements ScriptExecutionTools {
 
 /**
  * TODO: Put predefined functions (like removeQuotes, spaceTrim, etc.) into annotation OR pass into constructor
+ * TODO: [🧠][💙] Distinct between options passed into ExecutionTools and to ExecutionTools.execute
  */

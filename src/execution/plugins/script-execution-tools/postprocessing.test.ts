@@ -8,12 +8,12 @@ import { MockedEchoNaturalExecutionTools } from '../natural-execution-tools/mock
 import { CallbackInterfaceTools } from '../user-interface-execution-tools/callback/CallbackInterfaceTools';
 import { JavascriptEvalExecutionTools } from './javascript/JavascriptEvalExecutionTools';
 
-describe('createPtpExecutor + executing scripts in ptp', () => {
+describe('createPtpExecutor + postprocessing', () => {
     const ptbJson = promptTemplatePipelineStringToJson(
         spaceTrim(`
             # Sample prompt
 
-            Show how to use a simple prompt with no parameters.
+            Show how to use postprocessing
 
             -   PTBK VERSION 1.0.0
             -   INPUT  PARAMETER {yourName} Name of the hero
@@ -37,7 +37,12 @@ describe('createPtpExecutor + executing scripts in ptp', () => {
         ptp,
         tools: {
             natural: new MockedEchoNaturalExecutionTools({ isVerbose: true }),
-            script: [new JavascriptEvalExecutionTools({ isVerbose: true })],
+            script: [
+                new JavascriptEvalExecutionTools({
+                    isVerbose: true,
+                    // Note: [🕎] Custom functions are tested elsewhere
+                }),
+            ],
             userInterface: new CallbackInterfaceTools({
                 isVerbose: true,
                 async callback() {
@@ -52,31 +57,31 @@ describe('createPtpExecutor + executing scripts in ptp', () => {
 
     it('should work when every INPUT  PARAMETER defined', () => {
         expect(ptpExecutor({ yourName: 'Paůl' }, () => {})).resolves.toMatchObject({
+            isSuccessful: true,
             outputParameters: {
                 greeting: 'LUA_P_OLLE_H_DIAS_UO_Y',
             },
         });
 
         expect(ptpExecutor({ yourName: 'Adam' }, () => {})).resolves.toMatchObject({
+            isSuccessful: true,
             outputParameters: {
                 greeting: 'MAD_A_OLLE_H_DIAS_UO_Y',
             },
         });
 
         expect(ptpExecutor({ yourName: 'John' }, () => {})).resolves.toMatchObject({
+            isSuccessful: true,
             outputParameters: {
                 greeting: 'NHO_J_OLLE_H_DIAS_UO_Y',
             },
         });
 
         expect(ptpExecutor({ yourName: 'DAVID' }, () => {})).resolves.toMatchObject({
+            isSuccessful: true,
             outputParameters: {
                 greeting: 'DIVAD_OLLE_H_DIAS_UO_Y',
             },
         });
     });
 });
-
-/**
- * TODO: What is the ideal folder for this test?
- */

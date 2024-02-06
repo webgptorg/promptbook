@@ -36,3 +36,8 @@ export interface ScriptExecutionToolsExecuteOptions {
      */
     script: string_script;
 }
+
+
+/**
+ * TODO: [🧠][💙] Distinct between options passed into ExecutionTools and to ExecutionTools.execute
+ */

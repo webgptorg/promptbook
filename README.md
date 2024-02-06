@@ -418,11 +418,14 @@ If theese parameters meet the requirements, they are used instead of executing t
 
 ### Postprocessing functions
 
-All postprocessing functions are [listed here](src/execution/plugins/script-execution-tools/javascript/JavascriptEvalExecutionTools.ts).
+You can define postprocessing functions when creating `JavascriptEvalExecutionTools`:
 
-_Note: For now, all postprocessing is done by hardcoded preset of javascript functions._
+```
 
-> TODO: Write more about postprocessing functions
+```
+
+Additionally there are some usefull string-manipulation build-in functions, which are [listed here](src/execution/plugins/script-execution-tools/javascript/JavascriptEvalExecutionTools.ts).
+
 
 ### Expectations
 

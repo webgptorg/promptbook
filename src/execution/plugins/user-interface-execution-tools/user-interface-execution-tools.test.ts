@@ -13,7 +13,7 @@ describe('createPtpExecutor + executing user interface prompts in ptp', () => {
         spaceTrim(`
             # Sample prompt
 
-            Show how to use a simple prompt with no parameters.
+            Show how to use prompt dialog
 
             -   PTBK VERSION 1.0.0
             -   INPUT  PARAMETER {thing} Any thing to buy

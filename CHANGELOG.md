@@ -63,7 +63,8 @@ Better execution report in markdown format
 
 ## 0.29.0 _(2024-02-)_
 
--   Allow to use custom postprocessing functions
+-   Allow to use custom postprocessing functions <-(TODO: !!!!)
+-   Allow async postprocessing functions <-(TODO: !!!!)
 
 ## Upcomming
 

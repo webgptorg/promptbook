@@ -8,30 +8,29 @@ import { MockedEchoNaturalExecutionTools } from '../natural-execution-tools/mock
 import { CallbackInterfaceTools } from '../user-interface-execution-tools/callback/CallbackInterfaceTools';
 import { JavascriptEvalExecutionTools } from './javascript/JavascriptEvalExecutionTools';
 
-describe('createPtpExecutor + executing scripts in ptp', () => {
+describe('createPtpExecutor + custom function without dependencies', () => {
     const ptbJson = promptTemplatePipelineStringToJson(
         spaceTrim(`
-            # Sample prompt
+            # Custom functions
 
-            Show how to execute a script
+            Show how to use custom postprocessing functions
 
             -   PTBK VERSION 1.0.0
-            -   INPUT  PARAMETER {thing} Any thing to buy
+            -   INPUT  PARAMETER {yourName} Name of the hero
 
-            ## Execution
+            ## Question
 
-            -   EXECUTE SCRIPT
+            -   SIMPLE TEMPLATE
+            -   POSTPROCESSING addHello
 
-            \`\`\`javascript
-            if(/Apple/i.test(thing)){
-                throw new Error('I do not like Apples!');
-            }
-            return thing.split('a').join('b')
+            \`\`\`markdown
+            {yourName} the Evangelist
             \`\`\`
 
-            -> {bhing}
+            -> {greeting}
          `) as PromptTemplatePipelineString,
     );
+
     const ptp = PromptTemplatePipeline.fromJson(ptbJson);
     const ptpExecutor = createPtpExecutor({
         ptp,
@@ -40,7 +39,13 @@ describe('createPtpExecutor + executing scripts in ptp', () => {
             script: [
                 new JavascriptEvalExecutionTools({
                     isVerbose: true,
-                    // Note: [🕎] Custom functions are tested elsewhere
+
+                    // Note: [🕎]
+                    functions: {
+                        addHello(value) {
+                            return `Hello ${value}`;
+                        },
+                    },
                 }),
             ],
             userInterface: new CallbackInterfaceTools({
@@ -55,34 +60,35 @@ describe('createPtpExecutor + executing scripts in ptp', () => {
         },
     });
 
-    it('should work when every INPUT  PARAMETER is allowed', () => {
-        expect(ptpExecutor({ thing: 'a cup of coffee' }, () => {})).resolves.toMatchObject({
+    it('should use custom postprocessing function', () => {
+        expect(ptpExecutor({ yourName: 'Matthew' }, () => {})).resolves.toMatchObject({
             isSuccessful: true,
             outputParameters: {
-                bhing: 'b cup of coffee',
+                greeting: 'Hello Matthew the Evangelist',
             },
         });
-        expect(ptpExecutor({ thing: 'arrow' }, () => {})).resolves.toMatchObject({
-            isSuccessful: true,
-            outputParameters: {
-                bhing: 'brrow',
-            },
-        });
-        expect(ptpExecutor({ thing: 'aaa' }, () => {})).resolves.toMatchObject({
-            isSuccessful: true,
-            outputParameters: {
-                bhing: 'bbb',
-            },
-        });
-    });
 
-    it('should fail when INPUT  PARAMETER is NOT allowed', () => {
-        for (const thing of ['apple', 'apples', 'an apple', 'Apple', 'The Apple', '🍏 Apple', 'Apple 🍎']) {
-            expect(ptpExecutor({ thing }, () => {})).resolves.toMatchObject({
-                errors: [new Error(`I do not like Apples!`)],
-            });
+        expect(ptpExecutor({ yourName: 'Mark' }, () => {})).resolves.toMatchObject({
+            isSuccessful: true,
+            outputParameters: {
+                greeting: 'Hello Mark the Evangelist',
+            },
+        });
 
-            expect(() => ptpExecutor({ thing }, () => {})).rejects.toThrowError(/I do not like Apples!/);
-        }
+        expect(ptpExecutor({ yourName: 'Luke' }, () => {})).resolves.toMatchObject({
+            isSuccessful: true,
+            outputParameters: {
+                greeting: 'Hello Luke the Evangelist',
+            },
+        });
+
+        expect(ptpExecutor({ yourName: 'John' }, () => {})).resolves.toMatchObject({
+            isSuccessful: true,
+            outputParameters: {
+                greeting: 'Hello John the Evangelist',
+            },
+        });
+
+
     });
 });

@@ -253,23 +253,38 @@ export function createPtpExecutor(options: CreatePtpExecutorOptions): PtpExecuto
                             for (const functionName of currentTemplate.postprocessing) {
                                 // TODO: DRY [1]
                                 scriptExecutionErrors = [];
+                                let postprocessingError = null;
 
                                 scripts: for (const scriptTools of tools.script) {
+                                    console.log('!!!! postprocessing by: ', scriptTools.constructor.name);
+
                                     try {
+                                        console.log('!!!! before postprocessing: ', resultString);
+
                                         resultString = await scriptTools.execute({
                                             scriptLanguage: `javascript` /* <- TODO: Try it in each languages; In future allow postprocessing with arbitrary combination of languages to combine */,
                                             script: `${functionName}(resultString)`,
                                             parameters: { ...parametersToPass, resultString: resultString || '' },
                                         });
 
+                                        console.log('!!!! after postprocessing: ', resultString);
+
+                                        postprocessingError = null;
                                         break scripts;
                                     } catch (error) {
                                         if (!(error instanceof Error)) {
                                             throw error;
                                         }
 
+                                        console.log('!!!! Execution error: ', error);
+
+                                        postprocessingError = error;
                                         scriptExecutionErrors.push(error);
                                     }
+                                }
+
+                                if (postprocessingError) {
+                                    throw postprocessingError;
                                 }
                             }
                         }

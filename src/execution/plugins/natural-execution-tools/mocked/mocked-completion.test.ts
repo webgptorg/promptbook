@@ -13,7 +13,7 @@ describe('createPtpExecutor + MockedEchoExecutionTools with sample chat prompt',
         spaceTrim(`
             # Sample prompt
 
-            Show how to use a simple prompt with no parameters.
+            Show how to use a simple completion prompt
 
             -   PTBK VERSION 1.0.0
             -   PTBK URL https://example.com/ptbk.json
@@ -68,7 +68,7 @@ describe('createPtpExecutor + MockedEchoExecutionTools with sample chat prompt',
             errors: [new Error(`Parameter {thing} is not defined`)],
             executionReport: {
                 title: 'Sample prompt',
-                description: 'Show how to use a simple prompt with no parameters.',
+                description: 'Show how to use a simple completion prompt',
                 promptExecutions: [],
                 ptbkUrl: 'https://example.com/ptbk.json',
                 ptbkRequestedVersion: '1.0.0',
