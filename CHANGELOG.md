@@ -61,7 +61,7 @@ Better execution report in markdown format
 -   Maximum must be higher than minimum in `EXPECT` statement
 -   Maximum 0 is not valid, should be at least 1 in `EXPECT` statement
 
-## 0.29.0 _(2024-02-6)_
+## 0.29.0 _(2024-02-06)_
 
 -   Allow to use custom postprocessing functions
 -   Allow async postprocessing functions
