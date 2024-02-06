@@ -17,6 +17,7 @@
         {
             "name": "Question",
             "title": "💬 Question",
+            "dependentParameterNames": [],
             "executionType": "PROMPT_TEMPLATE",
             "postprocessing": [
                 "trimEndOfCodeBlock"

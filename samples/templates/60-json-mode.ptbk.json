@@ -19,6 +19,7 @@
         {
             "name": "ExtrakceKontaktnChDaj",
             "title": "🖋 Extrakce kontaktních údajů",
+            "dependentParameterNames": [],
             "executionType": "PROMPT_TEMPLATE",
             "postprocessing": [
                 "trimEndOfCodeBlock"

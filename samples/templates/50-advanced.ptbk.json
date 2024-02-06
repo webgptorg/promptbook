@@ -43,6 +43,7 @@
             "name": "Synonym",
             "title": "💬 Synonym",
             "description": "Synonym for word",
+            "dependentParameterNames": [],
             "executionType": "PROMPT_TEMPLATE",
             "postprocessing": [
                 "unwrapResult"
@@ -63,6 +64,7 @@
         {
             "name": "TestThatWordIsNotOriginalWord",
             "title": "⚙ Test that word is not original word",
+            "dependentParameterNames": [],
             "executionType": "SCRIPT",
             "modelRequirements": {
                 "modelVariant": "CHAT",
@@ -76,6 +78,7 @@
             "name": "SentenceWithSynonym",
             "title": "💬 Sentence with Synonym",
             "description": "Sentence with word and wordSynonym",
+            "dependentParameterNames": [],
             "executionType": "PROMPT_TEMPLATE",
             "expectAmount": {
                 "words": {
@@ -97,6 +100,7 @@
             "name": "SentenceWithoutOriginalWord",
             "title": "💬 Sentence without original word",
             "description": "Sentence \"{sentenceWithTwoSynonyms}\" without \"{word}\".",
+            "dependentParameterNames": [],
             "executionType": "PROMPT_TEMPLATE",
             "expectAmount": {
                 "words": {
@@ -118,6 +122,7 @@
             "name": "Comparison",
             "title": "💬 Comparison",
             "description": "Comparison between \"{sentenceWithTwoSynonyms}\" and \"{sentenceWithOriginalWordRemoved}\".",
+            "dependentParameterNames": [],
             "executionType": "PROMPT_TEMPLATE",
             "expectAmount": {
                 "sentences": {
@@ -135,6 +140,7 @@
         {
             "name": "Summary",
             "title": "🔗 Summary",
+            "dependentParameterNames": [],
             "executionType": "SIMPLE_TEMPLATE",
             "modelRequirements": {
                 "modelVariant": "CHAT",

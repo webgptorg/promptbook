@@ -13,6 +13,7 @@
         {
             "name": "Prompt",
             "title": "💬 Prompt",
+            "dependentParameterNames": [],
             "executionType": "PROMPT_TEMPLATE",
             "modelRequirements": {
                 "modelVariant": "CHAT",

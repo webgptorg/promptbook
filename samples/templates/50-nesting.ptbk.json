@@ -37,6 +37,7 @@
             "name": "Synonym",
             "title": "💬 Synonym",
             "description": "Synonym for word",
+            "dependentParameterNames": [],
             "executionType": "PROMPT_TEMPLATE",
             "postprocessing": [
                 "unwrapResult"
@@ -58,6 +59,7 @@
             "name": "Sentence",
             "title": "💬 Sentence",
             "description": "Sentence with the both words",
+            "dependentParameterNames": [],
             "executionType": "PROMPT_TEMPLATE",
             "postprocessing": [
                 "unwrapResult"
@@ -77,6 +79,7 @@
         {
             "name": "MakeADocument",
             "title": "Make a document",
+            "dependentParameterNames": [],
             "executionType": "PROMPT_TEMPLATE",
             "postprocessing": [
                 "unwrapResult"
