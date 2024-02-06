@@ -18,11 +18,10 @@ export type JavascriptExecutionToolsOptions = CommonExecutionToolsOptions & {
      */
     functions?: Record<
         string_javascript_name,
-        (value: string) =>
-            | Promisable<string>
-            // Note: [0]
-            // eslint-disable-next-line @typescript-eslint/ban-types
-            | Function
+        | ((value: string) => Promisable<string>)
+        // Note: [0]
+        // eslint-disable-next-line @typescript-eslint/ban-types
+        | Function
     >;
 };
 
