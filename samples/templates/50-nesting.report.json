@@ -1,0 +1,120 @@
+{
+    "ptbkUrl": "https://ptbk.example.com/samples/language-capabilities.ptbk.md@v1",
+    "title": "✨ Sample: Nesting",
+    "ptbkUsedVersion": "0.1.0",
+    "ptbkRequestedVersion": "1.0.0",
+    "description": "How block are nested in the promptbook",
+    "promptExecutions": [
+        {
+            "prompt": {
+                "title": "💬 Synonym",
+                "content": "Write synonym for \"cat\"",
+                "modelRequirements": {
+                    "modelVariant": "CHAT",
+                    "modelName": "gpt-3.5-turbo"
+                }
+            },
+            "result": {
+                "content": "feline",
+                "model": "gpt-3.5-turbo",
+                "rawResponse": {
+                    "id": "chatcmpl-8pLbORYOtPoEzRweJkB5XaCc9IINd",
+                    "object": "chat.completion",
+                    "created": 1707248458,
+                    "model": "gpt-3.5-turbo-0613",
+                    "choices": [
+                        {
+                            "index": 0,
+                            "message": {
+                                "role": "assistant",
+                                "content": "feline"
+                            },
+                            "logprobs": null,
+                            "finish_reason": "stop"
+                        }
+                    ],
+                    "usage": {
+                        "prompt_tokens": 13,
+                        "completion_tokens": 2,
+                        "total_tokens": 15
+                    },
+                    "system_fingerprint": null
+                }
+            }
+        },
+        {
+            "prompt": {
+                "title": "💬 Sentence",
+                "content": "Write sentence with \"cat\" and \"feline\"",
+                "modelRequirements": {
+                    "modelVariant": "CHAT",
+                    "modelName": "gpt-3.5-turbo"
+                }
+            },
+            "result": {
+                "content": "The cat gracefully leaped off the fence, displaying its natural feline agility.",
+                "model": "gpt-3.5-turbo",
+                "rawResponse": {
+                    "id": "chatcmpl-8pLbPARg6R0Kl36nkTwJUHU766oBD",
+                    "object": "chat.completion",
+                    "created": 1707248459,
+                    "model": "gpt-3.5-turbo-0613",
+                    "choices": [
+                        {
+                            "index": 0,
+                            "message": {
+                                "role": "assistant",
+                                "content": "The cat gracefully leaped off the fence, displaying its natural feline agility."
+                            },
+                            "logprobs": null,
+                            "finish_reason": "stop"
+                        }
+                    ],
+                    "usage": {
+                        "prompt_tokens": 18,
+                        "completion_tokens": 16,
+                        "total_tokens": 34
+                    },
+                    "system_fingerprint": null
+                }
+            }
+        },
+        {
+            "prompt": {
+                "title": "Make a document",
+                "content": "Write poem with starting sentence:\n\n```text\nThe cat gracefully leaped off the fence, displaying its natural feline agility.\n```",
+                "modelRequirements": {
+                    "modelVariant": "CHAT",
+                    "modelName": "gpt-3.5-turbo"
+                }
+            },
+            "result": {
+                "content": "The cat gracefully leaped off the fence, \nDisplaying its natural feline agility.\nWith paws so light, it soared through the air,\nA vision of elegance, beyond compare.\n\nIts coat, a tapestry of ebony and gold,\nGlistened under the moon, so bold.\nSilently it glided, through the darkest night,\nA creature of mystery, out of sight.\n\nAs it landed, the leaves trembled in delight,\nFor the cat was a master of the nocturnal rite.\nIts eyes, like emeralds, gleamed with a secret spark,\nUnveiling the enigma within its feline arc.\n\nA predator, yet an artwork of grace,\nThe cat moved with poise, at its own pace.\nEvery muscle, every sinew, in perfect accord,\nA symphony of motion, that couldn't be ignored.\n\nIt prowled through the shadows, with velvet ease,\nAn artist painting, with each calculated squeeze.\nA nocturnal dancer, on the stage of moonlit night,\nInvisible threads guiding its movements, so light.\n\nFrom rooftop to rooftop, it traversed the town,\nAn enigmatic phantom, never making a sound.\nWhiskers twitching, sensing every sound,\nLike a poet capturing the rhythm, profound.\n\nWith every leap, it defied gravity's hold,\nA celestial creature, brave and bold.\nNo obstacle too high, no distance too far,\nThe cat was a dreamer, reaching for stars.\n\nAnd as morning dawned, painting the sky,\nThe cat returned to the fence with a sigh.\nIts escapades hidden, locked within its soul,\nForever a mystery, only the moonlight stole.\n\nFor the cat gracefully leaped off the fence,\nDisplaying its natural feline agility.\nA testament to strength and ethereal sight,\nA creature of wonder, roaming through the night.",
+                "model": "gpt-3.5-turbo",
+                "rawResponse": {
+                    "id": "chatcmpl-8pLbQjF7nHR2ZZhpIJb15gXLdtHlS",
+                    "object": "chat.completion",
+                    "created": 1707248460,
+                    "model": "gpt-3.5-turbo-0613",
+                    "choices": [
+                        {
+                            "index": 0,
+                            "message": {
+                                "role": "assistant",
+                                "content": "The cat gracefully leaped off the fence, \nDisplaying its natural feline agility.\nWith paws so light, it soared through the air,\nA vision of elegance, beyond compare.\n\nIts coat, a tapestry of ebony and gold,\nGlistened under the moon, so bold.\nSilently it glided, through the darkest night,\nA creature of mystery, out of sight.\n\nAs it landed, the leaves trembled in delight,\nFor the cat was a master of the nocturnal rite.\nIts eyes, like emeralds, gleamed with a secret spark,\nUnveiling the enigma within its feline arc.\n\nA predator, yet an artwork of grace,\nThe cat moved with poise, at its own pace.\nEvery muscle, every sinew, in perfect accord,\nA symphony of motion, that couldn't be ignored.\n\nIt prowled through the shadows, with velvet ease,\nAn artist painting, with each calculated squeeze.\nA nocturnal dancer, on the stage of moonlit night,\nInvisible threads guiding its movements, so light.\n\nFrom rooftop to rooftop, it traversed the town,\nAn enigmatic phantom, never making a sound.\nWhiskers twitching, sensing every sound,\nLike a poet capturing the rhythm, profound.\n\nWith every leap, it defied gravity's hold,\nA celestial creature, brave and bold.\nNo obstacle too high, no distance too far,\nThe cat was a dreamer, reaching for stars.\n\nAnd as morning dawned, painting the sky,\nThe cat returned to the fence with a sigh.\nIts escapades hidden, locked within its soul,\nForever a mystery, only the moonlight stole.\n\nFor the cat gracefully leaped off the fence,\nDisplaying its natural feline agility.\nA testament to strength and ethereal sight,\nA creature of wonder, roaming through the night."
+                            },
+                            "logprobs": null,
+                            "finish_reason": "stop"
+                        }
+                    ],
+                    "usage": {
+                        "prompt_tokens": 33,
+                        "completion_tokens": 374,
+                        "total_tokens": 407
+                    },
+                    "system_fingerprint": null
+                }
+            }
+        }
+    ]
+}

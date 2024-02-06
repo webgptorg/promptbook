@@ -20,7 +20,7 @@ main();
 async function main() {
     console.info(chalk.bgGray('⚪ Testing basic capabilities of PromptBook'));
 
-    const sampleName = '50-advanced';
+    const sampleName = '50-nesting';
 
     const library = PromptTemplatePipelineLibrary.fromSources(
         {

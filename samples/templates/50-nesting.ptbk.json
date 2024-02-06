@@ -1,0 +1,92 @@
+{
+    "title": "✨ Sample: Nesting",
+    "ptbkUrl": "https://ptbk.example.com/samples/language-capabilities.ptbk.md@v1",
+    "ptbkVersion": "1.0.0",
+    "description": "How block are nested in the promptbook",
+    "parameters": [
+        {
+            "name": "word",
+            "description": "The word to use in the prompt.",
+            "isInput": true
+        },
+        {
+            "name": "comparisonOfTwoSentences",
+            "description": "Comparison between two sentences",
+            "isInput": false
+        },
+        {
+            "name": "summary",
+            "description": "The overall summary of the comparison",
+            "isInput": false
+        },
+        {
+            "name": "wordSynonym",
+            "isInput": false
+        },
+        {
+            "name": "sentence",
+            "isInput": false
+        },
+        {
+            "name": "poem",
+            "isInput": false
+        }
+    ],
+    "promptTemplates": [
+        {
+            "name": "Synonym",
+            "title": "💬 Synonym",
+            "description": "Synonym for word",
+            "executionType": "PROMPT_TEMPLATE",
+            "postprocessing": [
+                "unwrapResult"
+            ],
+            "expectAmount": {
+                "words": {
+                    "min": 1,
+                    "max": 1
+                }
+            },
+            "modelRequirements": {
+                "modelVariant": "CHAT",
+                "modelName": "gpt-3.5-turbo"
+            },
+            "content": "Write synonym for \"{word}\"",
+            "resultingParameterName": "wordSynonym"
+        },
+        {
+            "name": "Sentence",
+            "title": "💬 Sentence",
+            "description": "Sentence with the both words",
+            "executionType": "PROMPT_TEMPLATE",
+            "postprocessing": [
+                "unwrapResult"
+            ],
+            "expectAmount": {
+                "sentences": {
+                    "min": 1
+                }
+            },
+            "modelRequirements": {
+                "modelVariant": "CHAT",
+                "modelName": "gpt-3.5-turbo"
+            },
+            "content": "Write sentence with \"{word}\" and \"{wordSynonym}\"",
+            "resultingParameterName": "sentence"
+        },
+        {
+            "name": "MakeADocument",
+            "title": "Make a document",
+            "executionType": "PROMPT_TEMPLATE",
+            "postprocessing": [
+                "unwrapResult"
+            ],
+            "modelRequirements": {
+                "modelVariant": "CHAT",
+                "modelName": "gpt-3.5-turbo"
+            },
+            "content": "Write poem with starting sentence:\n\n```text\n{sentence}\n```",
+            "resultingParameterName": "poem"
+        }
+    ]
+}
