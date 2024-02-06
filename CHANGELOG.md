@@ -50,7 +50,7 @@ Moving logic from `promptTemplatePipelineStringToJson` to `createPtpExecutor`
 -   Fix `description` in report
 -   Asking user infinite times for input if the input not matches the expectations
 
-## 0.28.0 _(2024-02-06)_
+## 0.28.0 _(2024-02-05)_
 
 Better execution report in markdown format
 
@@ -61,7 +61,7 @@ Better execution report in markdown format
 -   Maximum must be higher than minimum in `EXPECT` statement
 -   Maximum 0 is not valid, should be at least 1 in `EXPECT` statement
 
-## 0.29.0 _(2024-02-)_
+## 0.29.0 _(2024-02-6)_
 
 -   Allow to use custom postprocessing functions <-(TODO: !!!!)
 -   Allow async postprocessing functions <-(TODO: !!!!)
