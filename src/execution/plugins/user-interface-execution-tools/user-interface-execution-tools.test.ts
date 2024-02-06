@@ -65,6 +65,7 @@ describe('createPtpExecutor + executing user interface prompts in ptp', () => {
 
     it('should fail when some INPUT  PARAMETER is missing', () => {
         expect(ptpExecutor({}, () => {})).resolves.toMatchObject({
+            isSuccessful: false,
             errors: [new Error(`Parameter {thing} is not defined`)],
         });
 

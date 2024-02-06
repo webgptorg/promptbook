@@ -3,6 +3,7 @@ import spaceTrim from 'spacetrim';
 import { PromptTemplatePipeline } from '../../../classes/PromptTemplatePipeline';
 import { promptTemplatePipelineStringToJson } from '../../../conversion/promptTemplatePipelineStringToJson';
 import { PromptTemplatePipelineString } from '../../../types/PromptTemplatePipelineString';
+import { assertsExecutionSuccessful } from '../../assertsExecutionSuccessful';
 import { createPtpExecutor } from '../../createPtpExecutor';
 import { MockedEchoNaturalExecutionTools } from '../natural-execution-tools/mocked/MockedEchoNaturalExecutionTools';
 import { CallbackInterfaceTools } from '../user-interface-execution-tools/callback/CallbackInterfaceTools';
@@ -79,10 +80,13 @@ describe('createPtpExecutor + executing scripts in ptp', () => {
     it('should fail when INPUT  PARAMETER is NOT allowed', () => {
         for (const thing of ['apple', 'apples', 'an apple', 'Apple', 'The Apple', '🍏 Apple', 'Apple 🍎']) {
             expect(ptpExecutor({ thing }, () => {})).resolves.toMatchObject({
+                isSuccessful: false,
                 errors: [new Error(`I do not like Apples!`)],
             });
 
-            expect(() => ptpExecutor({ thing }, () => {})).rejects.toThrowError(/I do not like Apples!/);
+            expect(() => ptpExecutor({ thing }, () => {}).then(assertsExecutionSuccessful)).rejects.toThrowError(
+                /I do not like Apples!/,
+            );
         }
     });
 });
