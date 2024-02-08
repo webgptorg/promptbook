@@ -1,0 +1,43 @@
+{
+    "title": "✨ Sample of logic error",
+    "ptbkVersion": "0.1.0",
+    "description": "Sample of using parameter in reverse order\n\n*Note: This is not recommended but it should work*",
+    "parameters": [
+        {
+            "name": "sentenceWithTwoSynonyms",
+            "isInput": false
+        },
+        {
+            "name": "wordSynonym",
+            "isInput": false
+        }
+    ],
+    "promptTemplates": [
+        {
+            "name": "Sentence",
+            "title": "Sentence",
+            "description": "Sentence with word and wordSynonym",
+            "dependentParameterNames": [],
+            "executionType": "PROMPT_TEMPLATE",
+            "modelRequirements": {
+                "modelVariant": "CHAT",
+                "modelName": "gpt-3.5-turbo"
+            },
+            "content": "Write sentence with \"{word}\" and \"{wordSynonym}\" in it",
+            "resultingParameterName": "sentenceWithTwoSynonyms"
+        },
+        {
+            "name": "Synonym",
+            "title": "Synonym",
+            "description": "Synonym for word",
+            "dependentParameterNames": [],
+            "executionType": "PROMPT_TEMPLATE",
+            "modelRequirements": {
+                "modelVariant": "CHAT",
+                "modelName": "gpt-3.5-turbo"
+            },
+            "content": "Write synonym for \"{word}\"",
+            "resultingParameterName": "wordSynonym"
+        }
+    ]
+}
