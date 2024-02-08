@@ -36,7 +36,7 @@ Write sentence with "cat" and "feline"
 ### Result
 
 ```
-The cat gracefully leaped off the fence, displaying its natural feline agility.
+The cat is a domesticated feline that enjoys lounging in the sun.
 ```
 
 ## Make a document
@@ -50,7 +50,7 @@ The cat gracefully leaped off the fence, displaying its natural feline agility.
 Write poem with starting sentence:
 
 ```text
-The cat gracefully leaped off the fence, displaying its natural feline agility.
+The cat is a domesticated feline that enjoys lounging in the sun.
 ````
 
 ```
@@ -61,50 +61,35 @@ The cat gracefully leaped off the fence, displaying its natural feline agility.
 
 ```
 
-The cat gracefully leaped off the fence,
-Displaying its natural feline agility.
-With paws so light, it soared through the air,
-A vision of elegance, beyond compare.
+The cat is a creature with grace untold,
+A domesticated feline, so calmly it strolls.
+It finds solace in rays of golden light,
+Lounging in the sun, a majestic sight.
 
-Its coat, a tapestry of ebony and gold,
-Glistened under the moon, so bold.
-Silently it glided, through the darkest night,
-A creature of mystery, out of sight.
+With paws so nimble, it traverses the day,
+Through gardens and meadows where it likes to play.
+Its eyes, like emeralds, gleam in the glow,
+As it follows the sun's eternal show.
 
-As it landed, the leaves trembled in delight,
-For the cat was a master of the nocturnal rite.
-Its eyes, like emeralds, gleamed with a secret spark,
-Unveiling the enigma within its feline arc.
+Soft fur, a canvas of patterns and hues,
+Caresses the air as it gracefully moves.
+Purring contentment, a melodic refrain,
+The cat embodies tranquility's domain.
 
-A predator, yet an artwork of grace,
-The cat moved with poise, at its own pace.
-Every muscle, every sinew, in perfect accord,
-A symphony of motion, that couldn't be ignored.
+In the warmth of the sun, it finds pure delight,
+Its dreams filled with mischief throughout the night.
+From rooftops it leaps, with prowess and flair,
+Hunting shadows that dance, like whispers in air.
 
-It prowled through the shadows, with velvet ease,
-An artist painting, with each calculated squeeze.
-A nocturnal dancer, on the stage of moonlit night,
-Invisible threads guiding its movements, so light.
+Yet, in stillness, it reveals its gentle side,
+Whiskers twitching, curiosity's guide.
+A companion, a confidant, a loyal friend,
+With love in its heart that knows no end.
 
-From rooftop to rooftop, it traversed the town,
-An enigmatic phantom, never making a sound.
-Whiskers twitching, sensing every sound,
-Like a poet capturing the rhythm, profound.
-
-With every leap, it defied gravity's hold,
-A celestial creature, brave and bold.
-No obstacle too high, no distance too far,
-The cat was a dreamer, reaching for stars.
-
-And as morning dawned, painting the sky,
-The cat returned to the fence with a sigh.
-Its escapades hidden, locked within its soul,
-Forever a mystery, only the moonlight stole.
-
-For the cat gracefully leaped off the fence,
-Displaying its natural feline agility.
-A testament to strength and ethereal sight,
-A creature of wonder, roaming through the night.
+The cat, a marvel of nature's grand design,
+A creature of wonder, so perfectly aligned.
+While lounging in the sun, its spirit is bright,
+A reminder of joy in life's simplest light.
 
 ```
 

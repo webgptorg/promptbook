@@ -63,317 +63,347 @@ export function createPtpExecutor(options: CreatePtpExecutorOptions): PtpExecuto
         onProgress?: (taskProgress: TaskProgress) => Promisable<void>,
     ) => {
         let parametersToPass: Record<string_name, string> = inputParameters;
-        let currentTemplate: PromptTemplateJson | null = ptp.entryPromptTemplate;
         const executionReport: ExecutionReportJson = {
-            ptbkUrl: ptp.ptbkUrl?.href || undefined,
-            title: ptp.title || undefined,
+            ptbkUrl: ptp.ptbkUrl,
+            title: ptp.title,
             ptbkUsedVersion: PTBK_VERSION,
-            ptbkRequestedVersion: ptp.ptbkVersion || undefined,
-            description: ptp.description || undefined,
+            ptbkRequestedVersion: ptp.ptbkVersion,
+            description: ptp.description,
             promptExecutions: [],
         };
 
-        let priority = ptp.promptTemplates.length;
+        async function executeSingleTemplate(currentTemplate: PromptTemplateJson) {
+            console.log('!!!! executeSingleTemplate', currentTemplate.title);
+            const name = `ptp-executor-frame-${currentTemplate.name}`;
+            const title = removeEmojis(removeMarkdownFormatting(currentTemplate.title));
+            const priority = ptp.promptTemplates.indexOf(currentTemplate);
 
-        try {
-            while (currentTemplate !== null) {
-                priority--;
-                const resultingParameter = ptp.getResultingParameter(currentTemplate.name);
+            if (onProgress) {
+                await onProgress({
+                    name,
+                    title,
+                    isStarted: false,
+                    isDone: false,
+                    executionType: currentTemplate.executionType,
+                    parameterName: currentTemplate.resultingParameterName,
+                    parameterValue: null,
+                });
+            }
 
-                const name = `ptp-executor-frame-${currentTemplate.name}`;
-                const title = removeEmojis(removeMarkdownFormatting(currentTemplate.title));
+            let prompt: Prompt;
+            let chatThread: PromptChatResult;
+            let completionResult: PromptCompletionResult;
+            let result: PromptResult | null = null;
+            let resultString: string | null = null;
+            let expectError: ExpectError | null = null;
+            let scriptExecutionErrors: Array<Error>;
+            const maxAttempts = currentTemplate.executionType === 'PROMPT_DIALOG' ? Infinity : maxExecutionAttempts;
+            const jokers = currentTemplate.jokers || [];
 
-                if (onProgress) {
-                    await onProgress({
-                        name,
-                        title,
-                        isStarted: false,
-                        isDone: false,
-                        executionType: currentTemplate.executionType,
-                        parameterName: resultingParameter.name,
-                        parameterValue: null,
-                    });
+            attempts: for (let attempt = -jokers.length; attempt < maxAttempts; attempt++) {
+                const isJokerAttempt = attempt < 0;
+                const joker = jokers[jokers.length + attempt];
+
+                if (isJokerAttempt && !joker) {
+                    throw new Error(`Joker not found in attempt ${attempt}`);
+                    //              <- TODO: [🥨] Make some NeverShouldHappenError
                 }
 
-                let prompt: Prompt;
-                let chatThread: PromptChatResult;
-                let completionResult: PromptCompletionResult;
-                let result: PromptResult | null = null;
-                let resultString: string | null = null;
-                let expectError: ExpectError | null = null;
-                let scriptExecutionErrors: Array<Error>;
-                const maxAttempts = currentTemplate.executionType === 'PROMPT_DIALOG' ? Infinity : maxExecutionAttempts;
-                const jokers = currentTemplate.jokers || [];
+                result = null;
+                resultString = null;
+                expectError = null;
 
-                attempts: for (let attempt = -jokers.length; attempt < maxAttempts; attempt++) {
-                    const isJokerAttempt = attempt < 0;
-                    const joker = jokers[jokers.length + attempt];
-
-                    if (isJokerAttempt && !joker) {
-                        throw new Error(`Joker not found in attempt ${attempt}`);
-                        //              <- TODO: [🥨] Make some NeverShouldHappenError
+                if (isJokerAttempt) {
+                    if (typeof parametersToPass[joker!] === 'undefined') {
+                        throw new Error(`Joker parameter {${joker}} not defined`);
                     }
 
-                    result = null;
-                    resultString = null;
-                    expectError = null;
+                    resultString = parametersToPass[joker!]!;
+                }
 
-                    if (isJokerAttempt) {
-                        if (typeof parametersToPass[joker!] === 'undefined') {
-                            throw new Error(`Joker parameter {${joker}} not defined`);
-                        }
+                try {
+                    if (!isJokerAttempt) {
+                        executionType: switch (currentTemplate.executionType) {
+                            case 'SIMPLE_TEMPLATE':
+                                resultString = replaceParameters(currentTemplate.content, parametersToPass);
+                                break executionType;
 
-                        resultString = parametersToPass[joker!]!;
-                    }
+                            case 'PROMPT_TEMPLATE':
+                                prompt = {
+                                    title: currentTemplate.title,
+                                    ptbkUrl: `${
+                                        ptp.ptbkUrl
+                                            ? ptp.ptbkUrl
+                                            : 'anonymous' /* <- [🧠] !!! How to deal with anonymous PTPs, do here some auto-url like SHA-256 based ad-hoc identifier? */
+                                    }#${currentTemplate.name}`,
+                                    parameters: parametersToPass,
+                                    content: replaceParameters(currentTemplate.content, parametersToPass) /* <- [2] */,
+                                    modelRequirements: currentTemplate.modelRequirements!,
+                                };
 
-                    try {
-                        if (!isJokerAttempt) {
-                            executionType: switch (currentTemplate.executionType) {
-                                case 'SIMPLE_TEMPLATE':
-                                    resultString = replaceParameters(currentTemplate.content, parametersToPass);
-                                    break executionType;
-
-                                case 'PROMPT_TEMPLATE':
-                                    prompt = {
-                                        title: currentTemplate.title,
-                                        ptbkUrl: `${
-                                            ptp.ptbkUrl
-                                                ? ptp.ptbkUrl.href
-                                                : 'anonymous' /* <- [🧠] !!! How to deal with anonymous PTPs, do here some auto-url like SHA-256 based ad-hoc identifier? */
-                                        }#${currentTemplate.name}`,
-                                        parameters: parametersToPass,
-                                        content: replaceParameters(
-                                            currentTemplate.content,
-                                            parametersToPass,
-                                        ) /* <- [2] */,
-                                        modelRequirements: currentTemplate.modelRequirements!,
-                                    };
-
-                                    variant: switch (currentTemplate.modelRequirements!.modelVariant) {
-                                        case 'CHAT':
-                                            chatThread = await tools.natural.gptChat(prompt);
-                                            // TODO: [🍬] Destroy chatThread
-                                            result = chatThread;
-                                            resultString = chatThread.content;
-                                            break variant;
-                                        case 'COMPLETION':
-                                            completionResult = await tools.natural.gptComplete(prompt);
-                                            result = completionResult;
-                                            resultString = completionResult.content;
-                                            break variant;
-                                        default:
-                                            throw new Error(
-                                                `Unknown model variant "${
-                                                    currentTemplate.modelRequirements!.modelVariant
-                                                }"`,
-                                            );
-                                    }
-
-                                    break;
-
-                                case 'SCRIPT':
-                                    if (tools.script.length === 0) {
-                                        throw new Error('No script execution tools are available');
-                                    }
-                                    if (!currentTemplate.contentLanguage) {
+                                variant: switch (currentTemplate.modelRequirements!.modelVariant) {
+                                    case 'CHAT':
+                                        chatThread = await tools.natural.gptChat(prompt);
+                                        // TODO: [🍬] Destroy chatThread
+                                        result = chatThread;
+                                        resultString = chatThread.content;
+                                        break variant;
+                                    case 'COMPLETION':
+                                        completionResult = await tools.natural.gptComplete(prompt);
+                                        result = completionResult;
+                                        resultString = completionResult.content;
+                                        break variant;
+                                    default:
                                         throw new Error(
-                                            `Script language is not defined for prompt template "${currentTemplate.name}"`,
+                                            `Unknown model variant "${
+                                                currentTemplate.modelRequirements!.modelVariant
+                                            }"`,
                                         );
-                                    }
+                                }
 
-                                    // TODO: DRY [1]
+                                break;
 
-                                    scriptExecutionErrors = [];
-
-                                    scripts: for (const scriptTools of tools.script) {
-                                        try {
-                                            resultString = await scriptTools.execute({
-                                                scriptLanguage: currentTemplate.contentLanguage,
-                                                script: currentTemplate.content,
-                                                parameters: parametersToPass,
-                                            });
-
-                                            break scripts;
-                                        } catch (error) {
-                                            if (!(error instanceof Error)) {
-                                                throw error;
-                                            }
-
-                                            scriptExecutionErrors.push(error);
-                                        }
-                                    }
-
-                                    if (resultString) {
-                                        break executionType;
-                                    }
-
-                                    if (scriptExecutionErrors.length === 1) {
-                                        throw scriptExecutionErrors[0];
-                                    } else {
-                                        throw new Error(
-                                            spaceTrim(
-                                                (block) => `
-                                                    Script execution failed ${scriptExecutionErrors.length} times
-
-                                                    ${block(
-                                                        scriptExecutionErrors
-                                                            .map((error) => '- ' + error.message)
-                                                            .join('\n\n'),
-                                                    )}
-                                                `,
-                                            ),
-                                        );
-                                    }
-
-                                    // Note: This line is unreachable because of the break executionType above
-                                    break executionType;
-
-                                case 'PROMPT_DIALOG':
-                                    // TODO: !!!! When making next attempt for `PROMPT DIALOG`, preserve the previous user input
-                                    resultString = await tools.userInterface.promptDialog({
-                                        promptTitle: currentTemplate.title,
-                                        promptMessage: replaceParameters(
-                                            currentTemplate.description || '',
-                                            parametersToPass,
-                                        ),
-                                        defaultValue: replaceParameters(currentTemplate.content, parametersToPass),
-
-                                        // TODO: [🧠] !! Figure out how to define placeholder in .ptbk.md file
-                                        placeholder: undefined,
-                                        priority /* <- TODO: !!!! Is it ending with 0 */,
-                                    });
-                                    break executionType;
-
-                                default:
+                            case 'SCRIPT':
+                                if (tools.script.length === 0) {
+                                    throw new Error('No script execution tools are available');
+                                }
+                                if (!currentTemplate.contentLanguage) {
                                     throw new Error(
-                                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                                        `Unknown execution type "${(currentTemplate as any).executionType}"`,
+                                        `Script language is not defined for prompt template "${currentTemplate.name}"`,
                                     );
-                            }
-                        }
+                                }
 
-                        if (!isJokerAttempt && currentTemplate.postprocessing) {
-                            for (const functionName of currentTemplate.postprocessing) {
                                 // TODO: DRY [1]
+
                                 scriptExecutionErrors = [];
-                                let postprocessingError = null;
 
                                 scripts: for (const scriptTools of tools.script) {
                                     try {
                                         resultString = await scriptTools.execute({
-                                            scriptLanguage: `javascript` /* <- TODO: Try it in each languages; In future allow postprocessing with arbitrary combination of languages to combine */,
-                                            script: `${functionName}(resultString)`,
-                                            parameters: { ...parametersToPass, resultString: resultString || '' },
+                                            scriptLanguage: currentTemplate.contentLanguage,
+                                            script: currentTemplate.content,
+                                            parameters: parametersToPass,
                                         });
 
-                                        postprocessingError = null;
                                         break scripts;
                                     } catch (error) {
                                         if (!(error instanceof Error)) {
                                             throw error;
                                         }
 
-                                        postprocessingError = error;
                                         scriptExecutionErrors.push(error);
                                     }
                                 }
 
-                                if (postprocessingError) {
-                                    throw postprocessingError;
+                                if (resultString) {
+                                    break executionType;
                                 }
-                            }
-                        }
 
-                        if (currentTemplate.expectFormat) {
-                            if (currentTemplate.expectFormat === 'JSON') {
-                                if (!isValidJsonString(resultString || '')) {
-                                    throw new ExpectError('Expected valid JSON string');
+                                if (scriptExecutionErrors.length === 1) {
+                                    throw scriptExecutionErrors[0];
+                                } else {
+                                    throw new Error(
+                                        spaceTrim(
+                                            (block) => `
+                                              Script execution failed ${scriptExecutionErrors.length} times
+
+                                              ${block(
+                                                  scriptExecutionErrors
+                                                      .map((error) => '- ' + error.message)
+                                                      .join('\n\n'),
+                                              )}
+                                          `,
+                                        ),
+                                    );
                                 }
-                            } else {
-                                // TODO: Here should be fatal errror which breaks through the retry loop
-                            }
-                        }
 
-                        if (currentTemplate.expectAmount) {
-                            for (const [unit, { max, min }] of Object.entries(currentTemplate.expectAmount)) {
-                                const amount = CountUtils[unit.toUpperCase() as ExpectationUnit](resultString || '');
+                                // Note: This line is unreachable because of the break executionType above
+                                break executionType;
 
-                                if (min && amount < min) {
-                                    throw new ExpectError(`Expected at least ${min} ${unit} but got ${amount}`);
-                                } /* not else */
+                            case 'PROMPT_DIALOG':
+                                // TODO: !!!! When making next attempt for `PROMPT DIALOG`, preserve the previous user input
+                                resultString = await tools.userInterface.promptDialog({
+                                    promptTitle: currentTemplate.title,
+                                    promptMessage: replaceParameters(
+                                        currentTemplate.description || '',
+                                        parametersToPass,
+                                    ),
+                                    defaultValue: replaceParameters(currentTemplate.content, parametersToPass),
 
-                                if (max && amount > max) {
-                                    throw new ExpectError(`Expected at most ${max} ${unit} but got ${amount}`);
-                                }
-                            }
-                        }
+                                    // TODO: [🧠] !! Figure out how to define placeholder in .ptbk.md file
+                                    placeholder: undefined,
+                                    priority /* <- TODO: !!!! Is it ending with 0 */,
+                                });
+                                break executionType;
 
-                        break attempts;
-                    } catch (error) {
-                        if (!(error instanceof ExpectError)) {
-                            throw error;
-                        }
-                        expectError = error;
-                    } finally {
-                        if (
-                            !isJokerAttempt &&
-                            currentTemplate.executionType === 'PROMPT_TEMPLATE' &&
-                            prompt!
-                            //    <- Note:  [2] When some expected parameter is not defined, error will occur in replaceParameters
-                            //              In that case we don’t want to make a report about it because it’s not a natural execution error
-                        ) {
-                            // TODO: [🧠] Maybe put other executionTypes into report
-                            executionReport.promptExecutions.push({
-                                prompt: {
-                                    title: currentTemplate.title /* <- Note: If title in promptbook contains emojis, pass it innto report */,
-                                    content: prompt.content,
-                                    modelRequirements: prompt.modelRequirements,
-                                    // <- Note: Do want to pass ONLY wanted information to the report
-                                },
-                                result: result || undefined,
-                                error: expectError || undefined,
-                            });
+                            default:
+                                throw new Error(
+                                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                                    `Unknown execution type "${(currentTemplate as any).executionType}"`,
+                                );
                         }
                     }
 
-                    if (expectError !== null && attempt === maxAttempts - 1) {
-                        throw new Error(
-                            spaceTrim(
-                                (block) => `
-                                    Natural execution failed ${settings.maxExecutionAttempts}x
+                    if (!isJokerAttempt && currentTemplate.postprocessing) {
+                        for (const functionName of currentTemplate.postprocessing) {
+                            // TODO: DRY [1]
+                            scriptExecutionErrors = [];
+                            let postprocessingError = null;
 
-                                    ${block(expectError?.message || '')}
-                                `,
-                            ),
-                        );
+                            scripts: for (const scriptTools of tools.script) {
+                                try {
+                                    resultString = await scriptTools.execute({
+                                        scriptLanguage: `javascript` /* <- TODO: Try it in each languages; In future allow postprocessing with arbitrary combination of languages to combine */,
+                                        script: `${functionName}(resultString)`,
+                                        parameters: { ...parametersToPass, resultString: resultString || '' },
+                                    });
+
+                                    postprocessingError = null;
+                                    break scripts;
+                                } catch (error) {
+                                    if (!(error instanceof Error)) {
+                                        throw error;
+                                    }
+
+                                    postprocessingError = error;
+                                    scriptExecutionErrors.push(error);
+                                }
+                            }
+
+                            if (postprocessingError) {
+                                throw postprocessingError;
+                            }
+                        }
+                    }
+
+                    if (currentTemplate.expectFormat) {
+                        if (currentTemplate.expectFormat === 'JSON') {
+                            if (!isValidJsonString(resultString || '')) {
+                                throw new ExpectError('Expected valid JSON string');
+                            }
+                        } else {
+                            // TODO: Here should be fatal errror which breaks through the retry loop
+                        }
+                    }
+
+                    if (currentTemplate.expectAmount) {
+                        for (const [unit, { max, min }] of Object.entries(currentTemplate.expectAmount)) {
+                            const amount = CountUtils[unit.toUpperCase() as ExpectationUnit](resultString || '');
+
+                            if (min && amount < min) {
+                                throw new ExpectError(`Expected at least ${min} ${unit} but got ${amount}`);
+                            } /* not else */
+
+                            if (max && amount > max) {
+                                throw new ExpectError(`Expected at most ${max} ${unit} but got ${amount}`);
+                            }
+                        }
+                    }
+
+                    break attempts;
+                } catch (error) {
+                    if (!(error instanceof ExpectError)) {
+                        throw error;
+                    }
+                    expectError = error;
+                } finally {
+                    if (
+                        !isJokerAttempt &&
+                        currentTemplate.executionType === 'PROMPT_TEMPLATE' &&
+                        prompt!
+                        //    <- Note:  [2] When some expected parameter is not defined, error will occur in replaceParameters
+                        //              In that case we don’t want to make a report about it because it’s not a natural execution error
+                    ) {
+                        // TODO: [🧠] Maybe put other executionTypes into report
+                        executionReport.promptExecutions.push({
+                            prompt: {
+                                title: currentTemplate.title /* <- Note: If title in promptbook contains emojis, pass it innto report */,
+                                content: prompt.content,
+                                modelRequirements: prompt.modelRequirements,
+                                // <- Note: Do want to pass ONLY wanted information to the report
+                            },
+                            result: result || undefined,
+                            error: expectError || undefined,
+                        });
                     }
                 }
 
-                if (resultString === null) {
-                    //              <- TODO: [🥨] Make some NeverShouldHappenError
-                    throw new Error('Something went wrong and prompt result is null');
+                if (expectError !== null && attempt === maxAttempts - 1) {
+                    throw new Error(
+                        spaceTrim(
+                            (block) => `
+                              Natural execution failed ${settings.maxExecutionAttempts}x
+
+                              ${block(expectError?.message || '')}
+                          `,
+                        ),
+                    );
                 }
-
-                if (onProgress) {
-                    onProgress({
-                        name,
-                        title,
-                        isStarted: true,
-                        isDone: true,
-                        executionType: currentTemplate.executionType,
-                        parameterName: resultingParameter.name,
-                        parameterValue: resultString,
-                    });
-                }
-
-                parametersToPass = {
-                    ...parametersToPass,
-                    [resultingParameter.name]:
-                        resultString /* <- Note: Not need to detect parameter collision here because PromptTemplatePipeline checks logic consistency during construction */,
-                };
-
-                currentTemplate = ptp.getFollowingPromptTemplate(currentTemplate!.name);
             }
+
+            if (resultString === null) {
+                //              <- TODO: [🥨] Make some NeverShouldHappenError
+                throw new Error('Something went wrong and prompt result is null');
+            }
+
+            if (onProgress) {
+                onProgress({
+                    name,
+                    title,
+                    isStarted: true,
+                    isDone: true,
+                    executionType: currentTemplate.executionType,
+                    parameterName: currentTemplate.resultingParameterName,
+                    parameterValue: resultString,
+                });
+            }
+
+            parametersToPass = {
+                ...parametersToPass,
+                [currentTemplate.resultingParameterName]:
+                    resultString /* <- Note: Not need to detect parameter collision here because PromptTemplatePipeline checks logic consistency during construction */,
+            };
+        }
+
+        try {
+            let resovedParameters: Array<string_name> = ptp.parameters
+                .filter(({ isInput }) => isInput)
+                .map(({ name }) => name);
+            let unresovedTemplates: Array<PromptTemplateJson> = [...ptp.promptTemplates];
+            let works: Array<Promise<void>> = [];
+
+            while (unresovedTemplates.length > 0) {
+                const currentTemplate = unresovedTemplates.find((template) =>
+                    template.dependentParameterNames.every((name) => resovedParameters.includes(name)),
+                );
+
+                /*
+                if (!currentTemplate) {
+                    throw new Error(`Can not resolve some parameters`);
+                    //              <- TODO: [🥨] Make some NeverShouldHappenError, should be catched during validatePromptTemplatePipelineJson
+                }
+                */
+
+                if (!currentTemplate) {
+                    /* [5] */ await Promise.race(works);
+                } else {
+                    unresovedTemplates = unresovedTemplates.filter((template) => template !== currentTemplate);
+
+                    const work = /* [5] not await */ executeSingleTemplate(currentTemplate)
+                        .then(() => {
+                            resovedParameters = resovedParameters.filter(
+                                (name) => !currentTemplate.dependentParameterNames.includes(name),
+                            );
+                        })
+                        .then(() => {
+                            works = works.filter((w) => w !== work);
+                        });
+
+                    works.push(work);
+                }
+            }
+
+            await Promise.all(works);
         } catch (error) {
             if (!(error instanceof Error)) {
                 throw error;

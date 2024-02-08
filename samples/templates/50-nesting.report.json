@@ -18,9 +18,9 @@
                 "content": "feline",
                 "model": "gpt-3.5-turbo",
                 "rawResponse": {
-                    "id": "chatcmpl-8pLbORYOtPoEzRweJkB5XaCc9IINd",
+                    "id": "chatcmpl-8q0GP3oxV5yJs3kHZVewIEkdHGoAD",
                     "object": "chat.completion",
-                    "created": 1707248458,
+                    "created": 1707404761,
                     "model": "gpt-3.5-turbo-0613",
                     "choices": [
                         {
@@ -52,19 +52,19 @@
                 }
             },
             "result": {
-                "content": "The cat gracefully leaped off the fence, displaying its natural feline agility.",
+                "content": "The cat is a domesticated feline that enjoys lounging in the sun.",
                 "model": "gpt-3.5-turbo",
                 "rawResponse": {
-                    "id": "chatcmpl-8pLbPARg6R0Kl36nkTwJUHU766oBD",
+                    "id": "chatcmpl-8q0GQ61YiE20x4viNZjRUpzScehB9",
                     "object": "chat.completion",
-                    "created": 1707248459,
+                    "created": 1707404762,
                     "model": "gpt-3.5-turbo-0613",
                     "choices": [
                         {
                             "index": 0,
                             "message": {
                                 "role": "assistant",
-                                "content": "The cat gracefully leaped off the fence, displaying its natural feline agility."
+                                "content": "The cat is a domesticated feline that enjoys lounging in the sun."
                             },
                             "logprobs": null,
                             "finish_reason": "stop"
@@ -82,26 +82,26 @@
         {
             "prompt": {
                 "title": "Make a document",
-                "content": "Write poem with starting sentence:\n\n```text\nThe cat gracefully leaped off the fence, displaying its natural feline agility.\n```",
+                "content": "Write poem with starting sentence:\n\n```text\nThe cat is a domesticated feline that enjoys lounging in the sun.\n```",
                 "modelRequirements": {
                     "modelVariant": "CHAT",
                     "modelName": "gpt-3.5-turbo"
                 }
             },
             "result": {
-                "content": "The cat gracefully leaped off the fence, \nDisplaying its natural feline agility.\nWith paws so light, it soared through the air,\nA vision of elegance, beyond compare.\n\nIts coat, a tapestry of ebony and gold,\nGlistened under the moon, so bold.\nSilently it glided, through the darkest night,\nA creature of mystery, out of sight.\n\nAs it landed, the leaves trembled in delight,\nFor the cat was a master of the nocturnal rite.\nIts eyes, like emeralds, gleamed with a secret spark,\nUnveiling the enigma within its feline arc.\n\nA predator, yet an artwork of grace,\nThe cat moved with poise, at its own pace.\nEvery muscle, every sinew, in perfect accord,\nA symphony of motion, that couldn't be ignored.\n\nIt prowled through the shadows, with velvet ease,\nAn artist painting, with each calculated squeeze.\nA nocturnal dancer, on the stage of moonlit night,\nInvisible threads guiding its movements, so light.\n\nFrom rooftop to rooftop, it traversed the town,\nAn enigmatic phantom, never making a sound.\nWhiskers twitching, sensing every sound,\nLike a poet capturing the rhythm, profound.\n\nWith every leap, it defied gravity's hold,\nA celestial creature, brave and bold.\nNo obstacle too high, no distance too far,\nThe cat was a dreamer, reaching for stars.\n\nAnd as morning dawned, painting the sky,\nThe cat returned to the fence with a sigh.\nIts escapades hidden, locked within its soul,\nForever a mystery, only the moonlight stole.\n\nFor the cat gracefully leaped off the fence,\nDisplaying its natural feline agility.\nA testament to strength and ethereal sight,\nA creature of wonder, roaming through the night.",
+                "content": "The cat is a creature with grace untold,\nA domesticated feline, so calmly it strolls.\nIt finds solace in rays of golden light,\nLounging in the sun, a majestic sight.\n\nWith paws so nimble, it traverses the day,\nThrough gardens and meadows where it likes to play.\nIts eyes, like emeralds, gleam in the glow,\nAs it follows the sun's eternal show.\n\nSoft fur, a canvas of patterns and hues,\nCaresses the air as it gracefully moves.\nPurring contentment, a melodic refrain,\nThe cat embodies tranquility's domain.\n\nIn the warmth of the sun, it finds pure delight,\nIts dreams filled with mischief throughout the night.\nFrom rooftops it leaps, with prowess and flair,\nHunting shadows that dance, like whispers in air.\n\nYet, in stillness, it reveals its gentle side,\nWhiskers twitching, curiosity's guide.\nA companion, a confidant, a loyal friend,\nWith love in its heart that knows no end.\n\nThe cat, a marvel of nature's grand design,\nA creature of wonder, so perfectly aligned.\nWhile lounging in the sun, its spirit is bright,\nA reminder of joy in life's simplest light.",
                 "model": "gpt-3.5-turbo",
                 "rawResponse": {
-                    "id": "chatcmpl-8pLbQjF7nHR2ZZhpIJb15gXLdtHlS",
+                    "id": "chatcmpl-8q0GRexwOcg2D1vz1qpoeTFuwt8f2",
                     "object": "chat.completion",
-                    "created": 1707248460,
+                    "created": 1707404763,
                     "model": "gpt-3.5-turbo-0613",
                     "choices": [
                         {
                             "index": 0,
                             "message": {
                                 "role": "assistant",
-                                "content": "The cat gracefully leaped off the fence, \nDisplaying its natural feline agility.\nWith paws so light, it soared through the air,\nA vision of elegance, beyond compare.\n\nIts coat, a tapestry of ebony and gold,\nGlistened under the moon, so bold.\nSilently it glided, through the darkest night,\nA creature of mystery, out of sight.\n\nAs it landed, the leaves trembled in delight,\nFor the cat was a master of the nocturnal rite.\nIts eyes, like emeralds, gleamed with a secret spark,\nUnveiling the enigma within its feline arc.\n\nA predator, yet an artwork of grace,\nThe cat moved with poise, at its own pace.\nEvery muscle, every sinew, in perfect accord,\nA symphony of motion, that couldn't be ignored.\n\nIt prowled through the shadows, with velvet ease,\nAn artist painting, with each calculated squeeze.\nA nocturnal dancer, on the stage of moonlit night,\nInvisible threads guiding its movements, so light.\n\nFrom rooftop to rooftop, it traversed the town,\nAn enigmatic phantom, never making a sound.\nWhiskers twitching, sensing every sound,\nLike a poet capturing the rhythm, profound.\n\nWith every leap, it defied gravity's hold,\nA celestial creature, brave and bold.\nNo obstacle too high, no distance too far,\nThe cat was a dreamer, reaching for stars.\n\nAnd as morning dawned, painting the sky,\nThe cat returned to the fence with a sigh.\nIts escapades hidden, locked within its soul,\nForever a mystery, only the moonlight stole.\n\nFor the cat gracefully leaped off the fence,\nDisplaying its natural feline agility.\nA testament to strength and ethereal sight,\nA creature of wonder, roaming through the night."
+                                "content": "The cat is a creature with grace untold,\nA domesticated feline, so calmly it strolls.\nIt finds solace in rays of golden light,\nLounging in the sun, a majestic sight.\n\nWith paws so nimble, it traverses the day,\nThrough gardens and meadows where it likes to play.\nIts eyes, like emeralds, gleam in the glow,\nAs it follows the sun's eternal show.\n\nSoft fur, a canvas of patterns and hues,\nCaresses the air as it gracefully moves.\nPurring contentment, a melodic refrain,\nThe cat embodies tranquility's domain.\n\nIn the warmth of the sun, it finds pure delight,\nIts dreams filled with mischief throughout the night.\nFrom rooftops it leaps, with prowess and flair,\nHunting shadows that dance, like whispers in air.\n\nYet, in stillness, it reveals its gentle side,\nWhiskers twitching, curiosity's guide.\nA companion, a confidant, a loyal friend,\nWith love in its heart that knows no end.\n\nThe cat, a marvel of nature's grand design,\nA creature of wonder, so perfectly aligned.\nWhile lounging in the sun, its spirit is bright,\nA reminder of joy in life's simplest light."
                             },
                             "logprobs": null,
                             "finish_reason": "stop"
@@ -109,8 +109,8 @@
                     ],
                     "usage": {
                         "prompt_tokens": 33,
-                        "completion_tokens": 374,
-                        "total_tokens": 407
+                        "completion_tokens": 256,
+                        "total_tokens": 289
                     },
                     "system_fingerprint": null
                 }
