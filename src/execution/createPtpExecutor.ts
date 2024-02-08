@@ -366,43 +366,39 @@ export function createPtpExecutor(options: CreatePtpExecutorOptions): PtpExecuto
         }
 
         try {
-            let resovedParameters: Array<string_name> = ptp.parameters
-                .filter(({ isInput }) => isInput)
-                .map(({ name }) => name);
+            let resovedParameters: Array<string_name> = ptp.parameters.filter(({ isInput }) => isInput).map(({ name }) => name);
             let unresovedTemplates: Array<PromptTemplateJson> = [...ptp.promptTemplates];
-            let works: Array<Promise<void>> = [];
+            let resolving: Array<Promise<void>> = [];
 
             while (unresovedTemplates.length > 0) {
                 const currentTemplate = unresovedTemplates.find((template) =>
                     template.dependentParameterNames.every((name) => resovedParameters.includes(name)),
                 );
 
-                if (!currentTemplate && works.length === 0) {
+                if (!currentTemplate && resolving.length === 0) {
                     throw new Error(`Can not resolve some parameters`);
                     //              <- TODO: [🥨] Make some NeverShouldHappenError, should be catched during validatePromptTemplatePipelineJson
                 } else if (!currentTemplate) {
-                    console.log('!!!!  await Promise.race(works)', { works });
-                    /* [5] */ await Promise.race(works);
+                    console.log('!!!!  await Promise.race(works)', { works: resolving });
+                    /* [5] */ await Promise.race(resolving);
                 } else {
                     unresovedTemplates = unresovedTemplates.filter((template) => template !== currentTemplate);
 
                     const work = /* [5] not await */ executeSingleTemplate(currentTemplate)
                         .then(() => {
-                            resovedParameters = resovedParameters.filter(
-                                (name) => !currentTemplate.dependentParameterNames.includes(name),
-                            );
+                            resovedParameters = [...resovedParameters, currentTemplate.resultingParameterName];
                         })
                         .then(() => {
                             console.log('!!!!  Finished', { work });
-                            works = works.filter((w) => w !== work);
+                            resolving = resolving.filter((w) => w !== work);
                         });
 
-                    works.push(work);
+                    resolving.push(work);
                 }
             }
 
-            console.log('!!!!  await Promise.all(works)', { works });
-            await Promise.all(works);
+            console.log('!!!!  await Promise.all(works)', { works: resolving });
+            await Promise.all(resolving);
         } catch (error) {
             if (!(error instanceof Error)) {
                 throw error;
