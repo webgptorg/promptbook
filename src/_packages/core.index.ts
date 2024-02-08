@@ -1,4 +1,3 @@
-import { PromptTemplatePipeline } from '../classes/PromptTemplatePipeline';
 import { PromptTemplatePipelineLibrary } from '../classes/PromptTemplatePipelineLibrary';
 import { PTBK_VERSION } from '../config';
 import { promptTemplatePipelineStringToJson } from '../conversion/promptTemplatePipelineStringToJson';
@@ -11,7 +10,7 @@ import { SimplePromptInterfaceTools } from '../execution/plugins/user-interface-
 import { ExecutionTypes } from '../types/ExecutionTypes';
 
 // @promptbook/core
-export { ExecutionTypes, PTBK_VERSION, PromptTemplatePipeline, PromptTemplatePipelineLibrary };
+export { ExecutionTypes, PTBK_VERSION, PromptTemplatePipelineLibrary };
 
 // @promptbook/simple-prompt
 export { SimplePromptInterfaceTools };

@@ -1,8 +1,9 @@
 import spaceTrim from 'spacetrim';
 import type { Promisable } from 'type-fest';
 import type { string_name } from '.././types/typeAliases';
-import type { PromptTemplatePipeline } from '../classes/PromptTemplatePipeline';
+import { PromptTemplatePipelineJson } from '../_packages/types.index';
 import { PTBK_VERSION } from '../config';
+import { validatePromptTemplatePipelineJson } from '../conversion/validatePromptTemplatePipelineJson';
 import type { Prompt } from '../types/Prompt';
 import type { ExpectationUnit, PromptTemplateJson } from '../types/PromptTemplatePipelineJson/PromptTemplateJson';
 import type { TaskProgress } from '../types/TaskProgress';
@@ -33,7 +34,7 @@ interface CreatePtpExecutorOptions {
     /**
      * The Prompt Template Pipeline (PTP) to be executed
      */
-    readonly ptp: PromptTemplatePipeline;
+    readonly ptp: PromptTemplatePipelineJson; // <- TODO: Probbably rename to ptbk
 
     /**
      * The execution tools to be used during the execution of the PTP
@@ -54,6 +55,8 @@ interface CreatePtpExecutorOptions {
 export function createPtpExecutor(options: CreatePtpExecutorOptions): PtpExecutor {
     const { ptp, tools, settings = {} } = options;
     const { maxExecutionAttempts = 3 } = settings;
+
+    validatePromptTemplatePipelineJson(ptp);
 
     const ptpExecutor: PtpExecutor = async (
         inputParameters: Record<string_name, string>,

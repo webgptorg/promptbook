@@ -1,6 +1,5 @@
 import { describe, expect, it } from '@jest/globals';
 import spaceTrim from 'spacetrim';
-import { PromptTemplatePipeline } from '../../../../classes/PromptTemplatePipeline';
 import { PTBK_VERSION } from '../../../../config';
 import { promptTemplatePipelineStringToJson } from '../../../../conversion/promptTemplatePipelineStringToJson';
 import { PromptTemplatePipelineString } from '../../../../types/PromptTemplatePipelineString';
@@ -9,7 +8,7 @@ import { CallbackInterfaceTools } from '../../user-interface-execution-tools/cal
 import { MockedEchoNaturalExecutionTools } from './MockedEchoNaturalExecutionTools';
 
 describe('createPtpExecutor + MockedEchoExecutionTools with sample chat prompt', () => {
-    const ptbJson = promptTemplatePipelineStringToJson(
+    const ptp = promptTemplatePipelineStringToJson(
         spaceTrim(`
             # Sample prompt
 
@@ -32,7 +31,6 @@ describe('createPtpExecutor + MockedEchoExecutionTools with sample chat prompt',
             -> {response}
          `) as PromptTemplatePipelineString,
     );
-    const ptp = PromptTemplatePipeline.fromJson(ptbJson);
     const ptpExecutor = createPtpExecutor({
         ptp,
         tools: {

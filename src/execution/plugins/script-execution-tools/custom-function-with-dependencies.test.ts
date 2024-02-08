@@ -1,7 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
 import spaceTrim from 'spacetrim';
 import { countCharacters, countWords } from '../../../_packages/utils.index';
-import { PromptTemplatePipeline } from '../../../classes/PromptTemplatePipeline';
 import { promptTemplatePipelineStringToJson } from '../../../conversion/promptTemplatePipelineStringToJson';
 import { PromptTemplatePipelineString } from '../../../types/PromptTemplatePipelineString';
 import { createPtpExecutor } from '../../createPtpExecutor';
@@ -10,7 +9,7 @@ import { CallbackInterfaceTools } from '../user-interface-execution-tools/callba
 import { JavascriptEvalExecutionTools } from './javascript/JavascriptEvalExecutionTools';
 
 describe('createPtpExecutor + custom function with dependencies', () => {
-    const ptbJson = promptTemplatePipelineStringToJson(
+    const ptp = promptTemplatePipelineStringToJson(
         spaceTrim(`
             # Custom functions
 
@@ -33,7 +32,6 @@ describe('createPtpExecutor + custom function with dependencies', () => {
          `) as PromptTemplatePipelineString,
     );
 
-    const ptp = PromptTemplatePipeline.fromJson(ptbJson);
     const ptpExecutor = createPtpExecutor({
         ptp,
         tools: {

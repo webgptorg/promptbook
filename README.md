@@ -321,7 +321,6 @@ Internally it can have 3 formats:
 
 -   **.ptbk.md file** in custom markdown format described above
 -   _(internal)_ **JSON** format, parsed from the .ptbk.md file
--   _(internal)_ **Object** which is created from JSON format and bound with tools around (but not the execution logic)
 
 ### Prompt Template Pipeline **Library**
 

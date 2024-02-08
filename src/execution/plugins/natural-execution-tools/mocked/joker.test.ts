@@ -1,6 +1,5 @@
 import { describe, expect, it } from '@jest/globals';
 import spaceTrim from 'spacetrim';
-import { PromptTemplatePipeline } from '../../../../classes/PromptTemplatePipeline';
 import { promptTemplatePipelineStringToJson } from '../../../../conversion/promptTemplatePipelineStringToJson';
 import { PromptTemplatePipelineString } from '../../../../types/PromptTemplatePipelineString';
 import { createPtpExecutor } from '../../../createPtpExecutor';
@@ -26,7 +25,7 @@ describe('createPtpExecutor + MockedEchoExecutionTools with sample chat prompt',
             -> {name}
          `) as PromptTemplatePipelineString,
     );
-    const ptp = PromptTemplatePipeline.fromJson(ptbJson);
+    const ptp = ptbJson;
     const ptpExecutor = createPtpExecutor({
         ptp,
         tools: {

@@ -68,10 +68,12 @@ Better execution report in markdown format
 
 ## 0.30.0 _(2024-02-07)_
 
+-   Remove `PromptTemplatePipeline` _(just using JSON `PromptTemplatePipelineJson` format)_
+    -   `CreatePtpExecutorOptions` has `PromptTemplatePipelineJson`
 -   Promptbooks are executed in parallel <-(TODO: !!!!)
-    -   `PromptTemplateJson` contains `dependentParameterNames` <-(TODO: !!!!)
-    -   `validatePromptTemplatePipelineJson` is checking for circular dependencies <-(TODO: !!!!)
-    -   Test that joker is one of the dependent parameters <-(TODO: !!!!)
+    -   `PromptTemplateJson` contains `dependentParameterNames`
+    -   `validatePromptTemplatePipelineJson` is checking for circular dependencies
+    -   Test that joker is one of the dependent parameters
 
 ## Upcomming
 

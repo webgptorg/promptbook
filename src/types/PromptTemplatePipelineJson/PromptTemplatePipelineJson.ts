@@ -9,7 +9,6 @@ import { PromptTemplateParameterJson } from './PromptTemplateParameterJson';
  * It can have 3 formats:
  * -   **.ptbk.md file** in custom markdown format described above
  * -   _(this)_ **JSON** format, parsed from the .ptbk.md file
- * -   **Object** which is created from JSON format and bound with tools around (but not the execution logic)
  *
  * @see https://github.com/webgptorg/promptbook#prompt-template-pipeline
  */
