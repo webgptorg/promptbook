@@ -35,12 +35,12 @@ export function replaceParameters(template: string_template, parameters: Paramet
         }
     }
 
-    // Check if there are parameters that are not closed properly
+    // [💫] Check if there are parameters that are not closed properly
     if (/{\w+$/.test(replacedTemplate)) {
         throw new Error('Parameter is not closed');
     }
 
-    // Check if there are parameters that are not opened properly
+    // [💫] Check if there are parameters that are not opened properly
     if (/^\w+}/.test(replacedTemplate)) {
         throw new Error('Parameter is not opened');
     }

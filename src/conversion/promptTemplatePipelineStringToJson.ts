@@ -10,6 +10,7 @@ import { PromptTemplateParameterJson } from '../types/PromptTemplatePipelineJson
 import { PromptTemplatePipelineJson } from '../types/PromptTemplatePipelineJson/PromptTemplatePipelineJson';
 import { PromptTemplatePipelineString } from '../types/PromptTemplatePipelineString';
 import { SUPPORTED_SCRIPT_LANGUAGES, ScriptLanguage } from '../types/ScriptLanguage';
+import { extractParameters } from '../utils/extractParameters';
 import { countMarkdownStructureDeepness } from '../utils/markdown-json/countMarkdownStructureDeepness';
 import { markdownToMarkdownStructure } from '../utils/markdown-json/markdownToMarkdownStructure';
 import { extractAllListItemsFromMarkdown } from '../utils/markdown/extractAllListItemsFromMarkdown';
@@ -168,6 +169,7 @@ export function promptTemplatePipelineStringToJson(
             switch (command.type) {
                 case 'JOKER':
                     jokers.push(command.parameterName);
+                    dependentParameterNames.push(command.parameterName);
                     break;
                 case 'EXECUTE':
                     if (isExecutionTypeChanged) {
@@ -185,9 +187,9 @@ export function promptTemplatePipelineStringToJson(
                     break;
 
                 case 'PARAMETER':
+                    // Note: This is just for detecting resulitng parameter name
                     addParam(command);
                     break;
-
                 case 'POSTPROCESS':
                     postprocessing.push(command.functionName);
                     break;
@@ -301,6 +303,14 @@ export function promptTemplatePipelineStringToJson(
 
         if (Object.keys(postprocessing).length === 0) {
             postprocessing = undefined;
+        }
+
+        for (const parameterName of [
+            ...extractParameters(section.title),
+            ...extractParameters(description || ''),
+            ...extractParameters(content),
+        ]) {
+            dependentParameterNames.push(parameterName);
         }
 
         ptbJson.promptTemplates.push({

@@ -22,7 +22,10 @@
         {
             "name": "Question",
             "title": "💬 Question",
-            "dependentParameterNames": [],
+            "dependentParameterNames": [
+                "name1",
+                "name2"
+            ],
             "executionType": "PROMPT_TEMPLATE",
             "jokers": [
                 "name1",

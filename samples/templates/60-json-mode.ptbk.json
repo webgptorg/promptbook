@@ -19,7 +19,9 @@
         {
             "name": "ExtrakceKontaktnChDaj",
             "title": "🖋 Extrakce kontaktních údajů",
-            "dependentParameterNames": [],
+            "dependentParameterNames": [
+                "unstructuredContacts"
+            ],
             "executionType": "PROMPT_TEMPLATE",
             "postprocessing": [
                 "trimEndOfCodeBlock"

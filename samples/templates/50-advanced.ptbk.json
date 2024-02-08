@@ -43,7 +43,9 @@
             "name": "Synonym",
             "title": "💬 Synonym",
             "description": "Synonym for word",
-            "dependentParameterNames": [],
+            "dependentParameterNames": [
+                "word"
+            ],
             "executionType": "PROMPT_TEMPLATE",
             "postprocessing": [
                 "unwrapResult"
@@ -64,7 +66,9 @@
         {
             "name": "TestThatWordIsNotOriginalWord",
             "title": "⚙ Test that word is not original word",
-            "dependentParameterNames": [],
+            "dependentParameterNames": [
+                "word"
+            ],
             "executionType": "SCRIPT",
             "modelRequirements": {
                 "modelVariant": "CHAT",
@@ -78,7 +82,10 @@
             "name": "SentenceWithSynonym",
             "title": "💬 Sentence with Synonym",
             "description": "Sentence with word and wordSynonym",
-            "dependentParameterNames": [],
+            "dependentParameterNames": [
+                "word",
+                "wordSynonym"
+            ],
             "executionType": "PROMPT_TEMPLATE",
             "expectAmount": {
                 "words": {
@@ -100,7 +107,12 @@
             "name": "SentenceWithoutOriginalWord",
             "title": "💬 Sentence without original word",
             "description": "Sentence \"{sentenceWithTwoSynonyms}\" without \"{word}\".",
-            "dependentParameterNames": [],
+            "dependentParameterNames": [
+                "sentenceWithTwoSynonyms",
+                "word",
+                "word",
+                "sentenceWithTwoSynonyms"
+            ],
             "executionType": "PROMPT_TEMPLATE",
             "expectAmount": {
                 "words": {
@@ -122,7 +134,12 @@
             "name": "Comparison",
             "title": "💬 Comparison",
             "description": "Comparison between \"{sentenceWithTwoSynonyms}\" and \"{sentenceWithOriginalWordRemoved}\".",
-            "dependentParameterNames": [],
+            "dependentParameterNames": [
+                "sentenceWithTwoSynonyms",
+                "sentenceWithOriginalWordRemoved",
+                "sentenceWithTwoSynonyms",
+                "sentenceWithOriginalWordRemoved"
+            ],
             "executionType": "PROMPT_TEMPLATE",
             "expectAmount": {
                 "sentences": {
@@ -140,7 +157,13 @@
         {
             "name": "Summary",
             "title": "🔗 Summary",
-            "dependentParameterNames": [],
+            "dependentParameterNames": [
+                "word",
+                "wordSynonym",
+                "sentenceWithTwoSynonyms",
+                "sentenceWithOriginalWordRemoved",
+                "comparisonOfTwoSentences"
+            ],
             "executionType": "SIMPLE_TEMPLATE",
             "modelRequirements": {
                 "modelVariant": "CHAT",
