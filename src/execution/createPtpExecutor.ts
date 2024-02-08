@@ -385,6 +385,7 @@ export function createPtpExecutor(options: CreatePtpExecutorOptions): PtpExecuto
                 */
 
                 if (!currentTemplate) {
+                    console.log('!!!!  await Promise.race(works)', { works });
                     /* [5] */ await Promise.race(works);
                 } else {
                     unresovedTemplates = unresovedTemplates.filter((template) => template !== currentTemplate);
@@ -403,6 +404,7 @@ export function createPtpExecutor(options: CreatePtpExecutorOptions): PtpExecuto
                 }
             }
 
+            console.log('!!!!  await Promise.all(works)', { works });
             await Promise.all(works);
         } catch (error) {
             if (!(error instanceof Error)) {
