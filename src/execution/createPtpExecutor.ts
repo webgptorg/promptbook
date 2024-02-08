@@ -370,7 +370,7 @@ export function createPtpExecutor(options: CreatePtpExecutorOptions): PtpExecuto
                 .filter(({ isInput }) => isInput)
                 .map(({ name }) => name);
             let unresovedTemplates: Array<PromptTemplateJson> = [...ptp.promptTemplates];
-            const works: Array<Promise<void>> = [];
+            let works: Array<Promise<void>> = [];
 
             while (unresovedTemplates.length > 0) {
                 const currentTemplate = unresovedTemplates.find((template) =>
@@ -394,7 +394,7 @@ export function createPtpExecutor(options: CreatePtpExecutorOptions): PtpExecuto
                         })
                         .then(() => {
                             console.log('!!!!  Finished', { work });
-                            // works = works.filter((w) => w !== work);
+                            works = works.filter((w) => w !== work);
                         });
 
                     works.push(work);
