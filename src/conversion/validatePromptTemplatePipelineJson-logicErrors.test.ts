@@ -9,7 +9,7 @@ describe('validatePromptTemplatePipelineJson', () => {
             const ptbkString = importPtp('../../samples/templates/errors/logic/undefined-parameter.ptbk.md');
             const ptbJson = promptTemplatePipelineStringToJson(ptbkString);
             validatePromptTemplatePipelineJson(ptbJson);
-        }).toThrowError(/Parameter \{word\} used before defined/i);
+        }).toThrowError(/Can not resolve some parameters/i);
     });
 
     it('should fail when picked the incompativble combination of model variant and name', () => {
@@ -41,12 +41,12 @@ describe('validatePromptTemplatePipelineJson', () => {
             const ptbkString = importPtp('../../samples/templates/errors/logic/circular-parameters-simple.ptbk.md');
             const ptbJson = promptTemplatePipelineStringToJson(ptbkString);
             validatePromptTemplatePipelineJson(ptbJson);
-        }).toThrowError(/!!!/i);
+        }).toThrowError(/circular dependencies/i);
 
         expect(() => {
             const ptbkString = importPtp('../../samples/templates/errors/logic/circular-parameters-advanced.ptbk.md');
             const ptbJson = promptTemplatePipelineStringToJson(ptbkString);
             validatePromptTemplatePipelineJson(ptbJson);
-        }).toThrowError(/!!!/i);
+        }).toThrowError(/circular dependencies/i);
     });
 });

@@ -2,7 +2,9 @@
 
 Sample of using parameter in reverse order
 
-*Note: This is not recommended but it should work*
+_Note: This is not recommended but it should work_
+
+-   INPUT  PARAMETER `{word}` Any single word
 
 ## Sentence
 

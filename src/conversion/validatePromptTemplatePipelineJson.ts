@@ -1,4 +1,7 @@
-import { PromptTemplatePipelineJson } from '../types/PromptTemplatePipelineJson/PromptTemplatePipelineJson';
+import spaceTrim from 'spacetrim';
+import type { PromptTemplateJson } from '../types/PromptTemplatePipelineJson/PromptTemplateJson';
+import type { PromptTemplatePipelineJson } from '../types/PromptTemplatePipelineJson/PromptTemplatePipelineJson';
+import type { string_name } from '../types/typeAliases';
 
 /**
  * Validates PromptTemplatePipelineJson if it is logically valid.
@@ -18,31 +21,24 @@ export function validatePromptTemplatePipelineJson(ptp: PromptTemplatePipelineJs
         ptp.parameters.filter(({ isInput }) => isInput).map(({ name }) => name),
     );
 
+    // Note: Check each template individually
     for (const template of ptp.promptTemplates) {
-        for (const match of Array.from(template.content.matchAll(/\{(?<parameterName>[a-z0-9_]+)\}/gi))) {
-            const parameterName = match!.groups!.parameterName!;
-
-            if (!definedParameters.has(parameterName)) {
-                throw new Error(`Parameter {${parameterName}} used before defined`);
-            }
-        }
-
         if (definedParameters.has(template.resultingParameterName)) {
             throw new Error(`Parameter {${template.resultingParameterName}} is defined multiple times`);
         }
 
         if (template.jokers && template.jokers.length > 0) {
-            for (const joker of template.jokers) {
-                if (!definedParameters.has(joker)) {
-                    throw new Error(`Joker parameter {${joker}} used before defined`);
-                }
-            }
-
             if (
                 !template.expectFormat &&
                 !template.expectAmount /* <- TODO: Require at least 1 -> min <- expectation to use jokers */
             ) {
                 throw new Error(`Joker parameters are used but no expectations are defined`);
+            }
+
+            for (const joker of template.jokers) {
+                if (!template.dependentParameterNames.includes(joker)) {
+                    throw new Error(`Parameter {${joker}} is used as joker but not in dependentParameterNames`);
+                }
             }
         }
 
@@ -63,6 +59,49 @@ export function validatePromptTemplatePipelineJson(ptp: PromptTemplatePipelineJs
         }
 
         definedParameters.add(template.resultingParameterName);
+    }
+
+    // Note: Detect circular dependencies
+    let resovedParameters: Array<string_name> = ptp.parameters.filter(({ isInput }) => isInput).map(({ name }) => name);
+    let unresovedTemplates: Array<PromptTemplateJson> = [...ptp.promptTemplates];
+    while (unresovedTemplates.length > 0) {
+        const currentlyResovedTemplates = unresovedTemplates.filter((template) =>
+            template.dependentParameterNames.every((name) => resovedParameters.includes(name)),
+        );
+
+        if (currentlyResovedTemplates.length === 0) {
+            throw new Error(
+                spaceTrim(
+                    (block) => `
+
+                        Can not resolve some parameters
+                        It may be circular dependencies
+
+                        Can not resolve:
+                        ${block(
+                            unresovedTemplates
+                                .map(
+                                    ({ resultingParameterName, dependentParameterNames }) =>
+                                        `- {${resultingParameterName}} depends on ${dependentParameterNames
+                                            .map((dependentParameterName) => `{${dependentParameterName}}`)
+                                            .join(', ')}`,
+                                )
+                                .join('\n'),
+                        )}
+
+                        Resolved:
+                        ${block(resovedParameters.map((name) => `- {${name}}`).join('\n'))}
+                    `,
+                ),
+            );
+        }
+
+        resovedParameters = [
+            ...resovedParameters,
+            ...currentlyResovedTemplates.map(({ resultingParameterName }) => resultingParameterName),
+        ];
+
+        unresovedTemplates = unresovedTemplates.filter((template) => !currentlyResovedTemplates.includes(template));
     }
 }
 

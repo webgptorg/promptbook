@@ -1,8 +1,13 @@
 {
     "title": "✨ Sample of logic error",
     "ptbkVersion": "0.1.0",
-    "description": "Sample of using parameter in reverse order\n\n*Note: This is not recommended but it should work*",
+    "description": "Sample of using parameter in reverse order\n\n_Note: This is not recommended but it should work_",
     "parameters": [
+        {
+            "name": "word",
+            "description": "Any single word",
+            "isInput": true
+        },
         {
             "name": "sentenceWithTwoSynonyms",
             "isInput": false
