@@ -1,6 +1,6 @@
-# ✨ Sample logic error
+# ✨ Sample of logic error
 
-Sample of wrong prompt template pipeline with undefined parameter
+Sample of wrong prompt template pipeline with parameter that is not defined
 
 ## Sentence
 
@@ -12,12 +12,12 @@ Write sentence with "{word}" and "{wordSynonym}" in it
 
 `-> {sentenceWithTwoSynonyms}`
 
-## Synonym
+## Antonym
 
 Synonym for word
 
 ```text
-Write synonym for "{word}"
+Write antonym for "{word}"
 ```
 
-`-> {wordSynonym}`
+`-> {wordAntonym}`

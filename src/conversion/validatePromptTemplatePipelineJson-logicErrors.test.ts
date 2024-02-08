@@ -4,9 +4,9 @@ import { promptTemplatePipelineStringToJson } from './promptTemplatePipelineStri
 import { validatePromptTemplatePipelineJson } from './validatePromptTemplatePipelineJson';
 
 describe('validatePromptTemplatePipelineJson', () => {
-    it('should fail on using parameter before defining', () => {
+    it('should fail on using parameter that is not defined', () => {
         expect(() => {
-            const ptbkString = importPtp('../../samples/templates/errors/logic/parameter-used-before-defining.ptbk.md');
+            const ptbkString = importPtp('../../samples/templates/errors/logic/undefined-parameter.ptbk.md');
             const ptbJson = promptTemplatePipelineStringToJson(ptbkString);
             validatePromptTemplatePipelineJson(ptbJson);
         }).toThrowError(/Parameter \{word\} used before defined/i);
@@ -34,5 +34,19 @@ describe('validatePromptTemplatePipelineJson', () => {
             const ptbJson = promptTemplatePipelineStringToJson(ptbkString);
             validatePromptTemplatePipelineJson(ptbJson);
         }).toThrowError(/Joker parameters are used but no expectations are defined/i);
+    });
+
+    it('should fail on circular dependencies', () => {
+        expect(() => {
+            const ptbkString = importPtp('../../samples/templates/errors/logic/circular-parameters-simple.ptbk.md');
+            const ptbJson = promptTemplatePipelineStringToJson(ptbkString);
+            validatePromptTemplatePipelineJson(ptbJson);
+        }).toThrowError(/!!!/i);
+
+        expect(() => {
+            const ptbkString = importPtp('../../samples/templates/errors/logic/circular-parameters-advanced.ptbk.md');
+            const ptbJson = promptTemplatePipelineStringToJson(ptbkString);
+            validatePromptTemplatePipelineJson(ptbJson);
+        }).toThrowError(/!!!/i);
     });
 });

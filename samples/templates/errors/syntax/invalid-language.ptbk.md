@@ -1,4 +1,4 @@
-# ✨ Sample parsing error
+# ✨ Sample of parsing error
 
 Sample of wrong prompt template pipeline
 
