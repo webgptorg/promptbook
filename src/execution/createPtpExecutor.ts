@@ -370,21 +370,17 @@ export function createPtpExecutor(options: CreatePtpExecutorOptions): PtpExecuto
                 .filter(({ isInput }) => isInput)
                 .map(({ name }) => name);
             let unresovedTemplates: Array<PromptTemplateJson> = [...ptp.promptTemplates];
-            let works: Array<Promise<void>> = [];
+            const works: Array<Promise<void>> = [];
 
             while (unresovedTemplates.length > 0) {
                 const currentTemplate = unresovedTemplates.find((template) =>
                     template.dependentParameterNames.every((name) => resovedParameters.includes(name)),
                 );
 
-                /*
-                if (!currentTemplate) {
+                if (!currentTemplate && works.length === 0) {
                     throw new Error(`Can not resolve some parameters`);
                     //              <- TODO: [🥨] Make some NeverShouldHappenError, should be catched during validatePromptTemplatePipelineJson
-                }
-                */
-
-                if (!currentTemplate) {
+                } else if (!currentTemplate) {
                     console.log('!!!!  await Promise.race(works)', { works });
                     /* [5] */ await Promise.race(works);
                 } else {
@@ -397,7 +393,8 @@ export function createPtpExecutor(options: CreatePtpExecutorOptions): PtpExecuto
                             );
                         })
                         .then(() => {
-                            works = works.filter((w) => w !== work);
+                            console.log('!!!!  Finished', { work });
+                            // works = works.filter((w) => w !== work);
                         });
 
                     works.push(work);
