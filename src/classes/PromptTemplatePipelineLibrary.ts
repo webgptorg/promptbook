@@ -1,11 +1,12 @@
 import { string_name } from '.././types/typeAliases';
+import { promptTemplatePipelineStringToJson } from '../conversion/promptTemplatePipelineStringToJson';
+import { validatePromptTemplatePipelineJson } from '../conversion/validatePromptTemplatePipelineJson';
 import { createPtpExecutor, CreatePtpExecutorSettings } from '../execution/createPtpExecutor';
 import { ExecutionTools } from '../execution/ExecutionTools';
 import { PtpExecutor } from '../execution/PtpExecutor';
 import { Prompt } from '../types/Prompt';
 import { PromptTemplatePipelineJson } from '../types/PromptTemplatePipelineJson/PromptTemplatePipelineJson';
 import { PromptTemplatePipelineString } from '../types/PromptTemplatePipelineString';
-import { PromptTemplatePipeline } from './PromptTemplatePipeline';
 
 /**
  * Options for PromptTemplatePipelineLibrary
@@ -14,7 +15,7 @@ type PromptTemplatePipelineLibraryOptions = {
     /**
      * The library of prompt template pipelines
      */
-    readonly library: Record<string_name, PromptTemplatePipeline>;
+    readonly library: Record<string_name, PromptTemplatePipelineJson>;
 
     /**
      * Optional settings for creating a PromptTemplatePipelineExecutor
@@ -46,9 +47,16 @@ export class PromptTemplatePipelineLibrary {
         ptbkSources: Record<string_name, PromptTemplatePipelineJson | PromptTemplatePipelineString>,
         settings?: Partial<CreatePtpExecutorSettings>,
     ): PromptTemplatePipelineLibrary {
-        const library: Record<string_name, PromptTemplatePipeline> = {};
+        const library: Record<string_name, PromptTemplatePipelineJson> = {};
         for (const [name, source] of Object.entries(ptbkSources)) {
-            library[name] = PromptTemplatePipeline.fromSource(source);
+            if (typeof source === 'string') {
+                // Note: When directly creating from string, no need to validate the source
+                //       The validation is performed always before execution
+                library[name] = promptTemplatePipelineStringToJson(source);
+            } else {
+                validatePromptTemplatePipelineJson(source);
+                library[name] = source;
+            }
         }
         return new PromptTemplatePipelineLibrary({ library, settings });
     }
@@ -58,7 +66,7 @@ export class PromptTemplatePipelineLibrary {
     /**
      * Gets prompt template pipeline by name
      */
-    public getPtp(name: string_name): PromptTemplatePipeline {
+    public getPtp(name: string_name): PromptTemplatePipelineJson {
         const promptTemplatePipeline = this.options.library[name];
         if (!promptTemplatePipeline) {
             throw new Error(`Prompt template pipeline with name "${name}" not found`);
