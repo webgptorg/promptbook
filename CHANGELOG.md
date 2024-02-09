@@ -70,7 +70,7 @@ Better execution report in markdown format
 
 -   Remove `PromptTemplatePipeline` _(just using JSON `PromptTemplatePipelineJson` format)_
     -   `CreatePtpExecutorOptions` has `PromptTemplatePipelineJson`
--   Promptbooks are executed in parallel <-(TODO: !!!!)
+-   Promptbooks are executed in parallel
     -   `PromptTemplateJson` contains `dependentParameterNames`
     -   `validatePromptTemplatePipelineJson` is checking for circular dependencies
     -   Test that joker is one of the dependent parameters
