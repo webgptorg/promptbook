@@ -75,7 +75,7 @@ export function createPtpExecutor(options: CreatePtpExecutorOptions): PtpExecuto
         async function executeSingleTemplate(currentTemplate: PromptTemplateJson) {
             const name = `ptp-executor-frame-${currentTemplate.name}`;
             const title = removeEmojis(removeMarkdownFormatting(currentTemplate.title));
-            const priority = ptp.promptTemplates.indexOf(currentTemplate);
+            const priority = ptp.promptTemplates.length - ptp.promptTemplates.indexOf(currentTemplate);
 
             if (onProgress) {
                 await onProgress({
