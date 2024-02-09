@@ -73,7 +73,6 @@ export function createPtpExecutor(options: CreatePtpExecutorOptions): PtpExecuto
         };
 
         async function executeSingleTemplate(currentTemplate: PromptTemplateJson) {
-            console.log('!!!! executeSingleTemplate', currentTemplate.title);
             const name = `ptp-executor-frame-${currentTemplate.name}`;
             const title = removeEmojis(removeMarkdownFormatting(currentTemplate.title));
             const priority = ptp.promptTemplates.indexOf(currentTemplate);
@@ -366,7 +365,9 @@ export function createPtpExecutor(options: CreatePtpExecutorOptions): PtpExecuto
         }
 
         try {
-            let resovedParameters: Array<string_name> = ptp.parameters.filter(({ isInput }) => isInput).map(({ name }) => name);
+            let resovedParameters: Array<string_name> = ptp.parameters
+                .filter(({ isInput }) => isInput)
+                .map(({ name }) => name);
             let unresovedTemplates: Array<PromptTemplateJson> = [...ptp.promptTemplates];
             let resolving: Array<Promise<void>> = [];
 
@@ -379,7 +380,6 @@ export function createPtpExecutor(options: CreatePtpExecutorOptions): PtpExecuto
                     throw new Error(`Can not resolve some parameters`);
                     //              <- TODO: [🥨] Make some NeverShouldHappenError, should be catched during validatePromptTemplatePipelineJson
                 } else if (!currentTemplate) {
-                    console.log('!!!!  await Promise.race(works)', { works: resolving });
                     /* [5] */ await Promise.race(resolving);
                 } else {
                     unresovedTemplates = unresovedTemplates.filter((template) => template !== currentTemplate);
@@ -389,7 +389,6 @@ export function createPtpExecutor(options: CreatePtpExecutorOptions): PtpExecuto
                             resovedParameters = [...resovedParameters, currentTemplate.resultingParameterName];
                         })
                         .then(() => {
-                            console.log('!!!!  Finished', { work });
                             resolving = resolving.filter((w) => w !== work);
                         });
 
@@ -397,7 +396,6 @@ export function createPtpExecutor(options: CreatePtpExecutorOptions): PtpExecuto
                 }
             }
 
-            console.log('!!!!  await Promise.all(works)', { works: resolving });
             await Promise.all(resolving);
         } catch (error) {
             if (!(error instanceof Error)) {
