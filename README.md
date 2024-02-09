@@ -425,7 +425,6 @@ You can define postprocessing functions when creating `JavascriptEvalExecutionTo
 
 Additionally there are some usefull string-manipulation build-in functions, which are [listed here](src/execution/plugins/script-execution-tools/javascript/JavascriptEvalExecutionTools.ts).
 
-
 ### Expectations
 
 `Expect` command describes the desired output of the prompt template (after post-processing)
@@ -451,24 +450,18 @@ _Note: LLMs work with tokens, not characters, but in Promptbooks we want to use 
 ...
 ```
 
-<!--
-
-TODO: !!!! Put this here
-
-there are two typws they are and are not symmetric
+There are two types of expectations which are not strictly symmetrical:
 
 #### Minimal expectations
 
-json is both
-required at least 1 to use joker(s)
-min 0 is not valid
+-   `EXPECT MIN 0 ...` is not valid minimal expectation. It makes no sense.
+-   `EXPECT JSON` is both minimal and maximal expectation
+-   When you are using `JOKER` in same prompt template, you need to have at least one minimal expectation
 
 #### Maximal expectations
 
-json is both
-max 0 is valid
-
--->
+-   `EXPECT MAX 0 ...` is valid maximal expectation. For example, you can expect 0 pages and 2 sentences.
+-   `EXPECT JSON` is both minimal and maximal expectation
 
 Look at [expectations.ptbk.md](samples/templates/45-expectations.ptbk.md) and [expect-json.ptbk.md](samples/templates/45-expect-json.ptbk.md) samples for more.
 

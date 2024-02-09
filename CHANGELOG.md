@@ -66,7 +66,7 @@ Better execution report in markdown format
 -   Allow to use custom postprocessing functions
 -   Allow async postprocessing functions
 
-## 0.30.0 _(2024-02-07)_
+## 0.30.0 _(2024-02-09)_
 
 -   Remove `PromptTemplatePipeline` _(just using JSON `PromptTemplatePipelineJson` format)_
     -   `CreatePtpExecutorOptions` has `PromptTemplatePipelineJson`
@@ -75,9 +75,16 @@ Better execution report in markdown format
     -   `validatePromptTemplatePipelineJson` is checking for circular dependencies
     -   Test that joker is one of the dependent parameters
 
+## 0.31.0 _(2024-02-XX)_
+
+-   Parameters can be both `string` and `Array<string>` <-(TODO: !!!!)
+    -   `Array<string>` will itterate over all values <-(TODO: !!!!)
+    -   You can use postprocessing functions or `EXECUTE SCRIPT` to split string into array and vice versa <-(TODO: !!!!)
+
 ## Upcomming
 
--   Filter out voids in `executionReportJsonToString` <-(TODO: !!!!)
--   Escape code blocks in markdown <-(TODO: !!!!)
--   Add command `EXPECT JSON ARRAY` and `EXPECT JSON OBJECT` _(In future this will be suggar code for `EXPECT JSON SCHEMA`)_ <-(TODO: !!!!)
--   When making next attempt for `PROMPT DIALOG`, preserve the previous user input <-(TODO: !!!!)
+-   Filter out voids in `executionReportJsonToString` <-[🎡]
+-   Add timing information to `ExecutionReportJson` <-[🎡]
+-   Escape code blocks in markdown <-[🥘]
+-   Add command `EXPECT JSON ARRAY` and `EXPECT JSON OBJECT` _(In future this will be suggar code for `EXPECT JSON SCHEMA`)_ <-[🥤]
+-   When making next attempt for `PROMPT DIALOG`, preserve the previous user input <-[🌹]
