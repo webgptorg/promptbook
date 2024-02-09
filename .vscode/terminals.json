@@ -66,6 +66,12 @@
             "focus": false
         },
         {
+            "name": "🤪 Find fresh emoji tag",
+            "command": "ts-node ./scripts/find-fresh-emoji-tag/find-fresh-emoji-tag.ts",
+            "execute": true,
+            "focus": true
+        },
+        {
             "name": "🏭📦 Generate packages",
             "commands": ["ts-node ./scripts/generate-packages/generate-packages.ts"],
             "execute": false,
