@@ -40,6 +40,9 @@ async function usePackages() {
         const remotePackageJson = JSON.parse(await readFile(remotePackageJsonPath, 'utf-8')) as PackageJson;
 
         for (const dependenciesType of ['dependencies', 'devDependencies']) {
+            if (remotePackageJson[dependenciesType] === undefined) {
+                continue;
+            }
             for (const packageName of Object.keys(remotePackageJson[dependenciesType] as Record<string, string>)) {
                 if (!packageName.startsWith('@promptbook/')) {
                     continue;
