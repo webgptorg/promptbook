@@ -1,4 +1,5 @@
 import spaceTrim from 'spacetrim';
+import { escapeMarkdownBlock } from '../../utils/markdown/escapeMarkdownBlock';
 import { prettifyMarkdown } from '../../utils/markdown/prettifyMarkdown';
 import type { ExecutionReportJson } from './ExecutionReportJson';
 import type { ExecutionReportString } from './ExecutionReportString';
@@ -7,8 +8,8 @@ import type { ExecutionReportString } from './ExecutionReportString';
  * Converts execution report from JSON to string format
  */
 export function executionReportJsonToString(executionReportJson: ExecutionReportJson): ExecutionReportString {
-
-  // TODO: [🎡] Add timing information to report
+    // TODO: [🎡] Add timing information to report
+    // TODO: [🎡] Add cost information to report
     // TODO: [🎡] Better (filter out voids)
     let executionReportString = spaceTrim(
         (block) => `
@@ -39,7 +40,7 @@ export function executionReportJsonToString(executionReportJson: ExecutionReport
                 ### Prompt
 
                 \`\`\`
-                ${block(promptExecution.prompt.content)}
+                ${block(escapeMarkdownBlock(promptExecution.prompt.content))}
                 \`\`\`
 
                 `,
@@ -54,7 +55,7 @@ export function executionReportJsonToString(executionReportJson: ExecutionReport
                         ### Result
 
                         \`\`\`
-                        ${block(promptExecution.result!.content || '')}
+                        ${block(escapeMarkdownBlock(promptExecution.result!.content || ''))}
                         \`\`\`
                     `,
                 );
@@ -69,7 +70,7 @@ export function executionReportJsonToString(executionReportJson: ExecutionReport
                         ### Error
 
                         \`\`\`
-                        ${block(promptExecution.error!.message || '')}
+                        ${block(escapeMarkdownBlock(promptExecution.error!.message || ''))}
                         \`\`\`
 
                     `,
