@@ -46,21 +46,17 @@ The cat is a domesticated feline that enjoys lounging in the sun.
 
 ### Prompt
 
-````
+```
 Write poem with starting sentence:
 
-```text
+\`\`\`text
 The cat is a domesticated feline that enjoys lounging in the sun.
-````
-
+\`\`\`
 ```
-
-
 
 ### Result
 
 ```
-
 The cat is a creature with grace untold,
 A domesticated feline, so calmly it strolls.
 It finds solace in rays of golden light,
@@ -90,7 +86,4 @@ The cat, a marvel of nature's grand design,
 A creature of wonder, so perfectly aligned.
 While lounging in the sun, its spirit is bright,
 A reminder of joy in life's simplest light.
-
-```
-
 ```
