@@ -1,5 +1,6 @@
 import spaceTrim from 'spacetrim';
 import { Prompt } from '../../../../types/Prompt';
+import { getCurrentIsoDate } from '../../../../utils/getCurrentIsoDate';
 import { CommonExecutionToolsOptions } from '../../../CommonExecutionToolsOptions';
 import { NaturalExecutionTools } from '../../../NaturalExecutionTools';
 import { PromptChatResult, PromptCompletionResult } from '../../../PromptResult';
@@ -25,6 +26,15 @@ export class MockedEchoNaturalExecutionTools implements NaturalExecutionTools {
                 `,
             ),
             model: 'mocked-echo',
+            timing: {
+                start: getCurrentIsoDate(),
+                complete: getCurrentIsoDate(),
+            },
+            usage: {
+                price: 0,
+                inputTokens: 0,
+                outputTokens: 0,
+            },
             rawResponse: {
                 note: 'This is mocked echo',
             },
@@ -47,6 +57,15 @@ export class MockedEchoNaturalExecutionTools implements NaturalExecutionTools {
                 `,
             ),
             model: 'mocked-echo',
+            timing: {
+                start: getCurrentIsoDate(),
+                complete: getCurrentIsoDate(),
+            },
+            usage: {
+                price: 0,
+                inputTokens: 0,
+                outputTokens: 0,
+            },
             rawResponse: {
                 note: 'This is mocked echo',
             },

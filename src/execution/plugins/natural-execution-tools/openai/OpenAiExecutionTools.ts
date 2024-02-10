@@ -1,9 +1,12 @@
 import chalk from 'chalk';
 import OpenAI from 'openai';
 import type { Prompt } from '../../../../types/Prompt';
+import { string_date_iso8601 } from '../../../../types/typeAliases';
+import { getCurrentIsoDate } from '../../../../utils/getCurrentIsoDate';
 import type { NaturalExecutionTools } from '../../../NaturalExecutionTools';
 import type { PromptChatResult, PromptCompletionResult } from '../../../PromptResult';
 import type { OpenAiExecutionToolsOptions } from './OpenAiExecutionToolsOptions';
+import { computeOpenaiUsage } from './computeOpenaiUsage';
 
 /**
  * Execution Tools for calling OpenAI API.
@@ -51,6 +54,8 @@ export class OpenAiExecutionTools implements NaturalExecutionTools {
             ],
             user: this.options.user,
         };
+        const start: string_date_iso8601 = getCurrentIsoDate();
+        let complete: string_date_iso8601;
 
         if (this.options.isVerbose) {
             console.error(chalk.bgGray('rawRequest'), JSON.stringify(rawRequest, null, 4));
@@ -70,6 +75,9 @@ export class OpenAiExecutionTools implements NaturalExecutionTools {
         }
 
         const resultContent = rawResponse.choices[0].message.content;
+        // eslint-disable-next-line prefer-const
+        complete = getCurrentIsoDate();
+        const usage = computeOpenaiUsage(rawResponse);
 
         if (!resultContent) {
             throw new Error('No response message from OpenAPI');
@@ -78,6 +86,11 @@ export class OpenAiExecutionTools implements NaturalExecutionTools {
         return {
             content: resultContent,
             model,
+            timing: {
+                start,
+                complete,
+            },
+            usage,
             rawResponse,
             // <- [🤹‍♂️]
         };
@@ -110,6 +123,8 @@ export class OpenAiExecutionTools implements NaturalExecutionTools {
             prompt: content,
             user: this.options.user,
         };
+        const start: string_date_iso8601 = getCurrentIsoDate();
+        let complete: string_date_iso8601;
 
         if (this.options.isVerbose) {
             console.error(chalk.bgGray('rawRequest'), JSON.stringify(rawRequest, null, 4));
@@ -128,7 +143,11 @@ export class OpenAiExecutionTools implements NaturalExecutionTools {
             throw new Error('More than one choise from OpenAPI');
         }
 
+
         const resultContent = rawResponse.choices[0].text;
+        // eslint-disable-next-line prefer-const
+        complete = getCurrentIsoDate();
+        const usage = computeOpenaiUsage(rawResponse);
 
         if (!resultContent) {
             throw new Error('No response message from OpenAPI');
@@ -137,6 +156,11 @@ export class OpenAiExecutionTools implements NaturalExecutionTools {
         return {
             content: resultContent,
             model,
+            timing: {
+                start,
+                complete,
+            },
+            usage,
             rawResponse,
             // <- [🤹‍♂️]
         };

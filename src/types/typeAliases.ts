@@ -491,7 +491,26 @@ export type string_password = string;
 export type string_ssh_key = string;
 export type string_pgp_key = string;
 
+/**
+ * Semantic helper for `Date.toISOString()` result
+ *
+ * @example "2011-10-05T14:48:00.000Z".
+ * @see https://en.wikipedia.org/wiki/ISO_8601
+ * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toISOString
+ */
+export type string_date_iso8601 = `${number}-${number}-${number}${string}${number}:${number}:${number}${string}`;
+
 //=========================[ Numbers ]=========================
+
+/**
+ * Semantic helper for US Dollars
+ */
+export type number_usd = number;
+
+/**
+ * Semantic helper for number of tokens
+ */
+export type number_tokens = number_integer & number_positive_or_zero;
 
 export type number_positive = number;
 export type number_negative = number;
