@@ -77,14 +77,18 @@ Better execution report in markdown format
 
 ## 0.31.0 _(2024-02-XX)_
 
+-   Filter out voids in `executionReportJsonToString` <-[🎡]
+-   Add timing information to `ExecutionReportJson` <-[🎡]
+-   Add money cost information to `ExecutionReportJson` <-[🎡]
+-   Escape code blocks in markdown <-[🥘]
+
+## 0.32.0 _(2024-02-XX)_
+
 -   Parameters can be both `string` and `Array<string>` <-(TODO: !!!!)
     -   `Array<string>` will itterate over all values <-(TODO: !!!!)
     -   You can use postprocessing functions or `EXECUTE SCRIPT` to split string into array and vice versa <-(TODO: !!!!)
 
 ## Upcomming
 
--   Filter out voids in `executionReportJsonToString` <-[🎡]
--   Add timing information to `ExecutionReportJson` <-[🎡]
--   Escape code blocks in markdown <-[🥘]
 -   Add command `EXPECT JSON ARRAY` and `EXPECT JSON OBJECT` _(In future this will be suggar code for `EXPECT JSON SCHEMA`)_ <-[🥤]
 -   When making next attempt for `PROMPT DIALOG`, preserve the previous user input <-[🌹]
