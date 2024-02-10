@@ -31,36 +31,41 @@ usePackages()
 async function usePackages() {
     console.info(`🌍  Using packages`);
 
-    const mainPackageJson = JSON.parse(await readFile('./package.json', 'utf-8')) as PackageJson;
-    const currentVersion = mainPackageJson.version;
+    let isWaitedForNpm = false;
+    for (const remoteFolder of ['../webgpt-app', './samples/usage']) {
+        const mainPackageJson = JSON.parse(await readFile('./package.json', 'utf-8')) as PackageJson;
+        const currentVersion = mainPackageJson.version;
 
-    const remoteFolder = '../webgpt-app'; // <- TODO: Update also in the sample here
-    const remotePackageJsonPath = join(remoteFolder, 'package.json');
-    const remotePackageJson = JSON.parse(await readFile(remotePackageJsonPath, 'utf-8')) as PackageJson;
+        const remotePackageJsonPath = join(remoteFolder, 'package.json');
+        const remotePackageJson = JSON.parse(await readFile(remotePackageJsonPath, 'utf-8')) as PackageJson;
 
-    for (const dependenciesType of ['dependencies', 'devDependencies']) {
-        for (const packageName of Object.keys(remotePackageJson[dependenciesType] as Record<string, string>)) {
-            if (!packageName.startsWith('@promptbook/')) {
-                continue;
+        for (const dependenciesType of ['dependencies', 'devDependencies']) {
+            for (const packageName of Object.keys(remotePackageJson[dependenciesType] as Record<string, string>)) {
+                if (!packageName.startsWith('@promptbook/')) {
+                    continue;
+                }
+
+                remotePackageJson[dependenciesType]![packageName] = currentVersion;
             }
-
-            remotePackageJson[dependenciesType]![packageName] = currentVersion;
         }
+
+        await writeFile(remotePackageJsonPath, JSON.stringify(remotePackageJson, null, 4) + '\n');
+        console.info(chalk.green(`Update version of @promptbook/* to ${currentVersion} in ${remotePackageJsonPath}`));
+
+        if (!isWaitedForNpm) {
+            await forTime(
+                1000 *
+                    100 /* seconds <- Note: This is empiric time how long it takes to perform GitHub Action and publish all NPM packages */,
+            );
+            isWaitedForNpm = true;
+        }
+
+        await execCommand({
+            cwd: remoteFolder,
+            crashOnError: false,
+            command: `npm i`,
+        });
     }
-
-    await writeFile(remotePackageJsonPath, JSON.stringify(remotePackageJson, null, 4) + '\n');
-    console.info(chalk.green(`Update version of @promptbook/* to ${currentVersion} in ${remotePackageJsonPath}`));
-
-    await forTime(
-        1000 *
-            100 /* seconds <- Note: This is empiric time how long it takes to perform GitHub Action and publish all NPM packages */,
-    );
-
-    await execCommand({
-        cwd: remoteFolder,
-        crashOnError: false,
-        command: `npm i`,
-    });
 
     console.info(`[ 🌍  Using packages ]`);
 }
