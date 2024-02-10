@@ -18,9 +18,9 @@
                 "content": "feline",
                 "model": "gpt-3.5-turbo",
                 "rawResponse": {
-                    "id": "chatcmpl-8q0GP3oxV5yJs3kHZVewIEkdHGoAD",
+                    "id": "chatcmpl-8qikIsjA8eCWLJMSBu5dWpzZHbrrt",
                     "object": "chat.completion",
-                    "created": 1707404761,
+                    "created": 1707575750,
                     "model": "gpt-3.5-turbo-0613",
                     "choices": [
                         {
@@ -52,19 +52,19 @@
                 }
             },
             "result": {
-                "content": "The cat is a domesticated feline that enjoys lounging in the sun.",
+                "content": "My cat is a mischievous feline who loves to play with yarn.",
                 "model": "gpt-3.5-turbo",
                 "rawResponse": {
-                    "id": "chatcmpl-8q0GQ61YiE20x4viNZjRUpzScehB9",
+                    "id": "chatcmpl-8qikKCwBIa1ea3reX7K43ak7g5kLG",
                     "object": "chat.completion",
-                    "created": 1707404762,
+                    "created": 1707575752,
                     "model": "gpt-3.5-turbo-0613",
                     "choices": [
                         {
                             "index": 0,
                             "message": {
                                 "role": "assistant",
-                                "content": "The cat is a domesticated feline that enjoys lounging in the sun."
+                                "content": "My cat is a mischievous feline who loves to play with yarn."
                             },
                             "logprobs": null,
                             "finish_reason": "stop"
@@ -82,26 +82,26 @@
         {
             "prompt": {
                 "title": "Make a document",
-                "content": "Write poem with starting sentence:\n\n```text\nThe cat is a domesticated feline that enjoys lounging in the sun.\n```",
+                "content": "Write poem with starting sentence:\n\n```text\nMy cat is a mischievous feline who loves to play with yarn.\n```",
                 "modelRequirements": {
                     "modelVariant": "CHAT",
                     "modelName": "gpt-3.5-turbo"
                 }
             },
             "result": {
-                "content": "The cat is a creature with grace untold,\nA domesticated feline, so calmly it strolls.\nIt finds solace in rays of golden light,\nLounging in the sun, a majestic sight.\n\nWith paws so nimble, it traverses the day,\nThrough gardens and meadows where it likes to play.\nIts eyes, like emeralds, gleam in the glow,\nAs it follows the sun's eternal show.\n\nSoft fur, a canvas of patterns and hues,\nCaresses the air as it gracefully moves.\nPurring contentment, a melodic refrain,\nThe cat embodies tranquility's domain.\n\nIn the warmth of the sun, it finds pure delight,\nIts dreams filled with mischief throughout the night.\nFrom rooftops it leaps, with prowess and flair,\nHunting shadows that dance, like whispers in air.\n\nYet, in stillness, it reveals its gentle side,\nWhiskers twitching, curiosity's guide.\nA companion, a confidant, a loyal friend,\nWith love in its heart that knows no end.\n\nThe cat, a marvel of nature's grand design,\nA creature of wonder, so perfectly aligned.\nWhile lounging in the sun, its spirit is bright,\nA reminder of joy in life's simplest light.",
+                "content": "My cat is a mischievous feline who loves to play with yarn,\nShe spins around it like a dancer, completely charmed.\nHer paws dance across the thread, full of pure delight,\nAs she frolics and twirls, her curious eyes shining bright.\n\nWith each unraveled spool, she leaps and pounces with grace,\nTurning my humble living room into an enchanted space.\nHer little whiskers tremble, her tail stands tall and proud,\nShe's a fearless hunter, a predator ready to astound.\n\nShe jumps and she dashes, with agility unmatched,\nChasing imaginary mice, her tiny paws unmatched.\nThe yarn becomes her prey, a victim in her game,\nWhile she basks in the glory of her playful feline fame.\n\nBut midst the tangled chaos, her fur a colorful mess,\nI see the magic in her eyes, the joy she can't suppress.\nFor in these playful moments, she's free from any care,\nDelighting in the simple joys, a burdensome world can't share.\n\nSo, I let her indulge in this mischievous play,\nFor it brings us both laughter and brightens up my day.\nA little ball of energy, a reminder to find delight,\nIn the simplest of pleasures, even in the darkest night.\n\nMy mischievous feline, forever my playful friend,\nWith her love for yarn, our bond will never end.\nIn her every misadventure, I find a lesson so true,\nTo cherish life's little moments, and let mischief guide you.",
                 "model": "gpt-3.5-turbo",
                 "rawResponse": {
-                    "id": "chatcmpl-8q0GRexwOcg2D1vz1qpoeTFuwt8f2",
+                    "id": "chatcmpl-8qikL1kK7V3g3ZIKLOwKqC217gxWt",
                     "object": "chat.completion",
-                    "created": 1707404763,
+                    "created": 1707575753,
                     "model": "gpt-3.5-turbo-0613",
                     "choices": [
                         {
                             "index": 0,
                             "message": {
                                 "role": "assistant",
-                                "content": "The cat is a creature with grace untold,\nA domesticated feline, so calmly it strolls.\nIt finds solace in rays of golden light,\nLounging in the sun, a majestic sight.\n\nWith paws so nimble, it traverses the day,\nThrough gardens and meadows where it likes to play.\nIts eyes, like emeralds, gleam in the glow,\nAs it follows the sun's eternal show.\n\nSoft fur, a canvas of patterns and hues,\nCaresses the air as it gracefully moves.\nPurring contentment, a melodic refrain,\nThe cat embodies tranquility's domain.\n\nIn the warmth of the sun, it finds pure delight,\nIts dreams filled with mischief throughout the night.\nFrom rooftops it leaps, with prowess and flair,\nHunting shadows that dance, like whispers in air.\n\nYet, in stillness, it reveals its gentle side,\nWhiskers twitching, curiosity's guide.\nA companion, a confidant, a loyal friend,\nWith love in its heart that knows no end.\n\nThe cat, a marvel of nature's grand design,\nA creature of wonder, so perfectly aligned.\nWhile lounging in the sun, its spirit is bright,\nA reminder of joy in life's simplest light."
+                                "content": "My cat is a mischievous feline who loves to play with yarn,\nShe spins around it like a dancer, completely charmed.\nHer paws dance across the thread, full of pure delight,\nAs she frolics and twirls, her curious eyes shining bright.\n\nWith each unraveled spool, she leaps and pounces with grace,\nTurning my humble living room into an enchanted space.\nHer little whiskers tremble, her tail stands tall and proud,\nShe's a fearless hunter, a predator ready to astound.\n\nShe jumps and she dashes, with agility unmatched,\nChasing imaginary mice, her tiny paws unmatched.\nThe yarn becomes her prey, a victim in her game,\nWhile she basks in the glory of her playful feline fame.\n\nBut midst the tangled chaos, her fur a colorful mess,\nI see the magic in her eyes, the joy she can't suppress.\nFor in these playful moments, she's free from any care,\nDelighting in the simple joys, a burdensome world can't share.\n\nSo, I let her indulge in this mischievous play,\nFor it brings us both laughter and brightens up my day.\nA little ball of energy, a reminder to find delight,\nIn the simplest of pleasures, even in the darkest night.\n\nMy mischievous feline, forever my playful friend,\nWith her love for yarn, our bond will never end.\nIn her every misadventure, I find a lesson so true,\nTo cherish life's little moments, and let mischief guide you."
                             },
                             "logprobs": null,
                             "finish_reason": "stop"
@@ -109,8 +109,8 @@
                     ],
                     "usage": {
                         "prompt_tokens": 33,
-                        "completion_tokens": 256,
-                        "total_tokens": 289
+                        "completion_tokens": 312,
+                        "total_tokens": 345
                     },
                     "system_fingerprint": null
                 }

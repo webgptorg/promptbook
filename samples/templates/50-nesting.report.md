@@ -36,7 +36,7 @@ Write sentence with "cat" and "feline"
 ### Result
 
 ```
-The cat is a domesticated feline that enjoys lounging in the sun.
+My cat is a mischievous feline who loves to play with yarn.
 ```
 
 ## Make a document
@@ -50,40 +50,40 @@ The cat is a domesticated feline that enjoys lounging in the sun.
 Write poem with starting sentence:
 
 \`\`\`text
-The cat is a domesticated feline that enjoys lounging in the sun.
+My cat is a mischievous feline who loves to play with yarn.
 \`\`\`
 ```
 
 ### Result
 
 ```
-The cat is a creature with grace untold,
-A domesticated feline, so calmly it strolls.
-It finds solace in rays of golden light,
-Lounging in the sun, a majestic sight.
+My cat is a mischievous feline who loves to play with yarn,
+She spins around it like a dancer, completely charmed.
+Her paws dance across the thread, full of pure delight,
+As she frolics and twirls, her curious eyes shining bright.
 
-With paws so nimble, it traverses the day,
-Through gardens and meadows where it likes to play.
-Its eyes, like emeralds, gleam in the glow,
-As it follows the sun's eternal show.
+With each unraveled spool, she leaps and pounces with grace,
+Turning my humble living room into an enchanted space.
+Her little whiskers tremble, her tail stands tall and proud,
+She's a fearless hunter, a predator ready to astound.
 
-Soft fur, a canvas of patterns and hues,
-Caresses the air as it gracefully moves.
-Purring contentment, a melodic refrain,
-The cat embodies tranquility's domain.
+She jumps and she dashes, with agility unmatched,
+Chasing imaginary mice, her tiny paws unmatched.
+The yarn becomes her prey, a victim in her game,
+While she basks in the glory of her playful feline fame.
 
-In the warmth of the sun, it finds pure delight,
-Its dreams filled with mischief throughout the night.
-From rooftops it leaps, with prowess and flair,
-Hunting shadows that dance, like whispers in air.
+But midst the tangled chaos, her fur a colorful mess,
+I see the magic in her eyes, the joy she can't suppress.
+For in these playful moments, she's free from any care,
+Delighting in the simple joys, a burdensome world can't share.
 
-Yet, in stillness, it reveals its gentle side,
-Whiskers twitching, curiosity's guide.
-A companion, a confidant, a loyal friend,
-With love in its heart that knows no end.
+So, I let her indulge in this mischievous play,
+For it brings us both laughter and brightens up my day.
+A little ball of energy, a reminder to find delight,
+In the simplest of pleasures, even in the darkest night.
 
-The cat, a marvel of nature's grand design,
-A creature of wonder, so perfectly aligned.
-While lounging in the sun, its spirit is bright,
-A reminder of joy in life's simplest light.
+My mischievous feline, forever my playful friend,
+With her love for yarn, our bond will never end.
+In her every misadventure, I find a lesson so true,
+To cherish life's little moments, and let mischief guide you.
 ```
