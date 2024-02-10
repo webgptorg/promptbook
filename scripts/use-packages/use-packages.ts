@@ -55,7 +55,7 @@ async function usePackages() {
         if (!isWaitedForNpm) {
             await forTime(
                 1000 *
-                    100 /* seconds <- Note: This is empiric time how long it takes to perform GitHub Action and publish all NPM packages */,
+                    120 /* seconds <- Note: This is empiric time how long it takes to perform GitHub Action and publish all NPM packages */,
             );
             isWaitedForNpm = true;
         }
