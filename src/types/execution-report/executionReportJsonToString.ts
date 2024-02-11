@@ -2,7 +2,7 @@ import moment from 'moment';
 import spaceTrim from 'spacetrim';
 import { FromtoItems } from '../../utils/FromtoItems';
 import { just } from '../../utils/just';
-import { createMarkdownChart } from '../../utils/markdown/createMarkdownChart.test';
+import { createMarkdownChart } from '../../utils/markdown/createMarkdownChart';
 import { escapeMarkdownBlock } from '../../utils/markdown/escapeMarkdownBlock';
 import { prettifyMarkdown } from '../../utils/markdown/prettifyMarkdown';
 import { number_usd } from '../typeAliases';
