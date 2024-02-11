@@ -87,6 +87,10 @@ Better execution reports
 
 ## 0.32.0 _(2024-02-XX)_
 
+Export less functions from `@promptbook/utils`
+
+## 0.33.0 _(2024-02-XX)_
+
 Iterating over parameters
 (!!! And maybe nullable parameters)
 
@@ -96,5 +100,6 @@ Iterating over parameters
 
 ## Upcomming
 
+-   Rename "natural" -> "llm"
 -   Add command `EXPECT JSON ARRAY` and `EXPECT JSON OBJECT` _(In future this will be suggar code for `EXPECT JSON SCHEMA`)_ <-[🥤]
 -   When making next attempt for `PROMPT DIALOG`, preserve the previous user input <-[🌹]
