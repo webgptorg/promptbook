@@ -17,10 +17,19 @@
             "result": {
                 "content": "feline",
                 "model": "gpt-3.5-turbo",
+                "timing": {
+                    "start": "2024-02-10T15:55:58.397Z",
+                    "complete": "2024-02-10T15:55:59.102Z"
+                },
+                "usage": {
+                    "price": "UNKNOWN",
+                    "inputTokens": 13,
+                    "outputTokens": 2
+                },
                 "rawResponse": {
-                    "id": "chatcmpl-8qikIsjA8eCWLJMSBu5dWpzZHbrrt",
+                    "id": "chatcmpl-8qjzqG9PmdjXuVY8USuNbhAmi19x8",
                     "object": "chat.completion",
-                    "created": 1707575750,
+                    "created": 1707580558,
                     "model": "gpt-3.5-turbo-0613",
                     "choices": [
                         {
@@ -52,19 +61,28 @@
                 }
             },
             "result": {
-                "content": "My cat is a mischievous feline who loves to play with yarn.",
+                "content": "The cat, with its sleek and graceful movements, epitomizes the epitome of a feline creature.",
                 "model": "gpt-3.5-turbo",
+                "timing": {
+                    "start": "2024-02-10T15:55:59.111Z",
+                    "complete": "2024-02-10T15:56:00.369Z"
+                },
+                "usage": {
+                    "price": "UNKNOWN",
+                    "inputTokens": 18,
+                    "outputTokens": 22
+                },
                 "rawResponse": {
-                    "id": "chatcmpl-8qikKCwBIa1ea3reX7K43ak7g5kLG",
+                    "id": "chatcmpl-8qjzrHBvmbVhhl0aAF7gjn9VPOguP",
                     "object": "chat.completion",
-                    "created": 1707575752,
+                    "created": 1707580559,
                     "model": "gpt-3.5-turbo-0613",
                     "choices": [
                         {
                             "index": 0,
                             "message": {
                                 "role": "assistant",
-                                "content": "My cat is a mischievous feline who loves to play with yarn."
+                                "content": "The cat, with its sleek and graceful movements, epitomizes the epitome of a feline creature."
                             },
                             "logprobs": null,
                             "finish_reason": "stop"
@@ -72,8 +90,8 @@
                     ],
                     "usage": {
                         "prompt_tokens": 18,
-                        "completion_tokens": 16,
-                        "total_tokens": 34
+                        "completion_tokens": 22,
+                        "total_tokens": 40
                     },
                     "system_fingerprint": null
                 }
@@ -82,35 +100,44 @@
         {
             "prompt": {
                 "title": "Make a document",
-                "content": "Write poem with starting sentence:\n\n```text\nMy cat is a mischievous feline who loves to play with yarn.\n```",
+                "content": "Write poem with starting sentence:\n\n```text\nThe cat, with its sleek and graceful movements, epitomizes the epitome of a feline creature.\n```",
                 "modelRequirements": {
                     "modelVariant": "CHAT",
                     "modelName": "gpt-3.5-turbo"
                 }
             },
             "result": {
-                "content": "My cat is a mischievous feline who loves to play with yarn,\nShe spins around it like a dancer, completely charmed.\nHer paws dance across the thread, full of pure delight,\nAs she frolics and twirls, her curious eyes shining bright.\n\nWith each unraveled spool, she leaps and pounces with grace,\nTurning my humble living room into an enchanted space.\nHer little whiskers tremble, her tail stands tall and proud,\nShe's a fearless hunter, a predator ready to astound.\n\nShe jumps and she dashes, with agility unmatched,\nChasing imaginary mice, her tiny paws unmatched.\nThe yarn becomes her prey, a victim in her game,\nWhile she basks in the glory of her playful feline fame.\n\nBut midst the tangled chaos, her fur a colorful mess,\nI see the magic in her eyes, the joy she can't suppress.\nFor in these playful moments, she's free from any care,\nDelighting in the simple joys, a burdensome world can't share.\n\nSo, I let her indulge in this mischievous play,\nFor it brings us both laughter and brightens up my day.\nA little ball of energy, a reminder to find delight,\nIn the simplest of pleasures, even in the darkest night.\n\nMy mischievous feline, forever my playful friend,\nWith her love for yarn, our bond will never end.\nIn her every misadventure, I find a lesson so true,\nTo cherish life's little moments, and let mischief guide you.",
+                "content": "The cat, with its sleek and graceful movements,\nEpitomizes the epitome of a feline creature.\nWith eyes like emerald gems and fur so smooth,\nIt captures hearts with a single whiskered swoop.\n\nIn sunlight, it dances with stealth and charm,\nA mesmerizing sight, a delicate art form.\nBounding effortlessly, defying gravity's hold,\nThis agile creature, its grace untold.\n\nPouncing on shadows, a predator's game,\nIt stalks its prey with pride, no hint of shame.\nEach paw strikes with precision and grace,\nMarking territory, in every secret place.\n\nIts purrs, like soft whispers in the night,\nA symphony of comfort, pure delight.\nWith gentle nudges and affectionate rubs,\nIt claims its throne, the ruler of our hearts.\n\nYet behind those eyes, mysteries reside,\nA creature of instinct, wild and untied.\nA solitary hunter, fiercely independent,\nYet seeking warmth, a touch so intimate.\n\nThe feline spirit, mysterious and divine,\nA delicate balance of strength and design.\nIn its presence, we find solace and peace,\nThe epitome of grace that will never cease.\n\nSo let us cherish this creature so rare,\nWith its elegance and heavenly flair.\nThe cat, a guardian of secrets untold,\nA majestic marvel, forever enfolded.",
                 "model": "gpt-3.5-turbo",
+                "timing": {
+                    "start": "2024-02-10T15:56:00.377Z",
+                    "complete": "2024-02-10T15:56:04.095Z"
+                },
+                "usage": {
+                    "price": "UNKNOWN",
+                    "inputTokens": 39,
+                    "outputTokens": 271
+                },
                 "rawResponse": {
-                    "id": "chatcmpl-8qikL1kK7V3g3ZIKLOwKqC217gxWt",
+                    "id": "chatcmpl-8qjzsvAopkr9ysuK8fnUB5vRNTRoR",
                     "object": "chat.completion",
-                    "created": 1707575753,
+                    "created": 1707580560,
                     "model": "gpt-3.5-turbo-0613",
                     "choices": [
                         {
                             "index": 0,
                             "message": {
                                 "role": "assistant",
-                                "content": "My cat is a mischievous feline who loves to play with yarn,\nShe spins around it like a dancer, completely charmed.\nHer paws dance across the thread, full of pure delight,\nAs she frolics and twirls, her curious eyes shining bright.\n\nWith each unraveled spool, she leaps and pounces with grace,\nTurning my humble living room into an enchanted space.\nHer little whiskers tremble, her tail stands tall and proud,\nShe's a fearless hunter, a predator ready to astound.\n\nShe jumps and she dashes, with agility unmatched,\nChasing imaginary mice, her tiny paws unmatched.\nThe yarn becomes her prey, a victim in her game,\nWhile she basks in the glory of her playful feline fame.\n\nBut midst the tangled chaos, her fur a colorful mess,\nI see the magic in her eyes, the joy she can't suppress.\nFor in these playful moments, she's free from any care,\nDelighting in the simple joys, a burdensome world can't share.\n\nSo, I let her indulge in this mischievous play,\nFor it brings us both laughter and brightens up my day.\nA little ball of energy, a reminder to find delight,\nIn the simplest of pleasures, even in the darkest night.\n\nMy mischievous feline, forever my playful friend,\nWith her love for yarn, our bond will never end.\nIn her every misadventure, I find a lesson so true,\nTo cherish life's little moments, and let mischief guide you."
+                                "content": "The cat, with its sleek and graceful movements,\nEpitomizes the epitome of a feline creature.\nWith eyes like emerald gems and fur so smooth,\nIt captures hearts with a single whiskered swoop.\n\nIn sunlight, it dances with stealth and charm,\nA mesmerizing sight, a delicate art form.\nBounding effortlessly, defying gravity's hold,\nThis agile creature, its grace untold.\n\nPouncing on shadows, a predator's game,\nIt stalks its prey with pride, no hint of shame.\nEach paw strikes with precision and grace,\nMarking territory, in every secret place.\n\nIts purrs, like soft whispers in the night,\nA symphony of comfort, pure delight.\nWith gentle nudges and affectionate rubs,\nIt claims its throne, the ruler of our hearts.\n\nYet behind those eyes, mysteries reside,\nA creature of instinct, wild and untied.\nA solitary hunter, fiercely independent,\nYet seeking warmth, a touch so intimate.\n\nThe feline spirit, mysterious and divine,\nA delicate balance of strength and design.\nIn its presence, we find solace and peace,\nThe epitome of grace that will never cease.\n\nSo let us cherish this creature so rare,\nWith its elegance and heavenly flair.\nThe cat, a guardian of secrets untold,\nA majestic marvel, forever enfolded."
                             },
                             "logprobs": null,
                             "finish_reason": "stop"
                         }
                     ],
                     "usage": {
-                        "prompt_tokens": 33,
-                        "completion_tokens": 312,
-                        "total_tokens": 345
+                        "prompt_tokens": 39,
+                        "completion_tokens": 271,
+                        "total_tokens": 310
                     },
                     "system_fingerprint": null
                 }
