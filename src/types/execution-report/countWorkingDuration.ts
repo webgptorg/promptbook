@@ -5,7 +5,6 @@ import { FromtoItems } from '../../utils/FromtoItems';
  *
  * @private within the library
  */
-
 export function countWorkingDuration(items: FromtoItems): number {
     const steps = Array.from(new Set(items.flatMap((item) => [item.from, item.to])));
     steps.sort((a, b) => a - b);

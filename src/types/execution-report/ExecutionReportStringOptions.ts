@@ -13,8 +13,7 @@ export const ExecutionReportStringOptionsDefaults = {
 
     taxRate: 0,
 
-
-    chartsWidth: 13,
+    chartsWidth: 36,
 } satisfies ExecutionReportStringOptions;
 
 /**

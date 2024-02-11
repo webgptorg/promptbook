@@ -115,7 +115,16 @@ export function executionReportJsonToString(
                 )
                 .join('\n');
 
-        executionReportString += '\n\n' + '## ⌚ Time chart' + '\n\n' + createMarkdownChart(timingItems, chartsWidth);
+        executionReportString +=
+            '\n\n' +
+            '## ⌚ Time chart' +
+            '\n\n' +
+            createMarkdownChart({
+                nameHeader: 'Template',
+                valueHeader: 'Timeline',
+                items: timingItems,
+                width: chartsWidth,
+            });
 
         // !!! Remove
         // TODO: [🧠] Add the timing table or visialization:
@@ -125,7 +134,16 @@ export function executionReportJsonToString(
         // Template 4 | ⬛⬛⬛⬛⬛⬛🟦🟦🟦🟦🟦⬛
         // Template 5 | ⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛🟦
 
-        executionReportString += '\n\n' + '## 💸 Cost chart' + '\n\n' + createMarkdownChart(costItems, chartsWidth);
+        executionReportString +=
+            '\n\n' +
+            '## 💸 Cost chart' +
+            '\n\n' +
+            createMarkdownChart({
+                nameHeader: 'Template',
+                valueHeader: 'Cost',
+                items: costItems,
+                width: chartsWidth,
+            });
 
         // !!! Remove
         // TODO: [🧠] Add the cost table or visialization:
