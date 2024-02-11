@@ -159,14 +159,36 @@ export class JavascriptEvalExecutionTools implements ScriptExecutionTools {
                 */
 
                 if (!statementToEvaluate.includes(undefinedName + '(')) {
-                    throw new Error(`Parameter {${undefinedName}} is not defined`);
+                    throw new Error(
+                        spaceTrim(
+                            (block) => `
+                  
+                              Parameter {${undefinedName}} is not defined
+
+                              This happen during evaluation of the javascript, which has access to the following parameters as javascript variables:
+
+                              ${block(
+                                  Object.keys(parameters)
+                                      .map((key) => `  - ${key}`)
+                                      .join('\n'),
+                              )}
+
+
+                              The script is:
+
+                              ${block(script)}
+
+                          
+                            `,
+                        ),
+                    );
                 } else {
                     throw new Error(
                         spaceTrim(`
-                            Function {${undefinedName}} is not defined
+                              Function {${undefinedName}} is not defined
 
-                            -  Make sure that the function is one of built-in functions
-                            -  Or you have to defined the function during construction of JavascriptExecutionTools
+                              -  Make sure that the function is one of built-in functions
+                              -  Or you have to defined the function during construction of JavascriptExecutionTools
 
                         `),
                     );

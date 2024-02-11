@@ -1,7 +1,8 @@
+import moment from 'moment';
 import spaceTrim from 'spacetrim';
 import { escapeMarkdownBlock } from '../../utils/markdown/escapeMarkdownBlock';
 import { prettifyMarkdown } from '../../utils/markdown/prettifyMarkdown';
-import { removeVoids } from '../../utils/markdown/removeVoids';
+import { number_usd } from '../typeAliases';
 import type { ExecutionReportJson } from './ExecutionReportJson';
 import type { ExecutionReportString } from './ExecutionReportString';
 
@@ -17,14 +18,62 @@ export function executionReportJsonToString(executionReportJson: ExecutionReport
             # ${executionReportJson.title || 'Execution report'}
 
             ${block(executionReportJson.description || '')}
-
-            - PTBK URL \`${executionReportJson.ptbkUrl || ''}\`
-            - PTBK VERSION \`${executionReportJson.ptbkUsedVersion}\` (requested \`${
-            executionReportJson.ptbkRequestedVersion || ''
-        }\`)
-
-      `,
+          `,
     );
+
+    const headerList: Array<string> = [];
+
+    if (executionReportJson.ptbkUrl) {
+        headerList.push(`PTBK URL ${executionReportJson.ptbkUrl}`);
+    }
+
+    headerList.push(
+        `PTBK VERSION ${executionReportJson.ptbkUsedVersion}` +
+            (!executionReportJson.ptbkRequestedVersion
+                ? ''
+                : ` *(requested ${executionReportJson.ptbkRequestedVersion})*`),
+    );
+
+    if (executionReportJson.promptExecutions.length !== 0) {
+        const startedAt = moment(
+            Math.min(
+                ...executionReportJson.promptExecutions
+                    .filter((promptExecution) => promptExecution.result?.timing?.start)
+                    .map((promptExecution) => moment(promptExecution.result!.timing.start).valueOf()),
+            ),
+        );
+        const completedAt = moment(
+            Math.max(
+                ...executionReportJson.promptExecutions
+                    .filter((promptExecution) => promptExecution.result?.timing?.complete)
+                    .map((promptExecution) => moment(promptExecution.result!.timing.complete).valueOf()),
+            ),
+        );
+        const duration = moment.duration(completedAt.diff(startedAt));
+
+        const executionsWithKnownCost = executionReportJson.promptExecutions.filter(
+            (promptExecution) => (promptExecution.result?.usage?.price || 'UNKNOWN') !== 'UNKNOWN',
+        );
+        const cost: number_usd = executionsWithKnownCost.reduce(
+            (cost, promptExecution) => cost + ((promptExecution.result!.usage.price! as number) || 0),
+            0,
+        );
+
+        headerList.push(`STARTED AT ${moment(startedAt).calendar()}`);
+        headerList.push(`TOTAL DURATION ${duration.humanize()}`);
+        headerList.push(
+            `TOTAL COST ${cost}` +
+                (executionsWithKnownCost.length === executionReportJson.promptExecutions.length
+                    ? ''
+                    : ` *(Some cost is unknown)*`),
+        );
+    } else {
+        headerList.push(`TOTAL COST $0 *(Nothing executed)*`);
+    }
+
+    executionReportString += '\n\n' + headerList.map((header) => `- ${header}`).join('\n');
+
+    // TODO: !!!! The table here
 
     for (const promptExecution of executionReportJson.promptExecutions) {
         executionReportString +=
@@ -79,7 +128,7 @@ export function executionReportJsonToString(executionReportJson: ExecutionReport
         }
     }
 
-    executionReportString = removeVoids(executionReportString);
+    // executionReportString = removeVoids(executionReportString); // <- TODO: !!!!!!! Maybe no need
     executionReportString = prettifyMarkdown(executionReportString);
     return executionReportString as ExecutionReportString;
 }

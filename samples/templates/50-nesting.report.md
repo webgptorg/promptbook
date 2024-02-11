@@ -2,8 +2,11 @@
 
 How block are nested in the promptbook
 
--   PTBK URL `https://ptbk.example.com/samples/language-capabilities.ptbk.md@v1`
--   PTBK VERSION `0.1.0` (requested `1.0.0`)
+-   PTBK URL https://ptbk.example.com/samples/language-capabilities.ptbk.md@v1
+-   PTBK VERSION 0.1.0 _(requested 1.0.0)_
+-   STARTED AT Yesterday at 4:55 PM
+-   TOTAL DURATION a few seconds
+-   TOTAL COST 0 _(Some cost is unknown)_
 
 ## 💬 Synonym
 
