@@ -20,9 +20,6 @@ const MOMENT_ARG_THRESHOLDS = {
  * Converts execution report from JSON to string format
  */
 export function executionReportJsonToString(executionReportJson: ExecutionReportJson): ExecutionReportString {
-    // TODO: [🎡] Add timing information to report
-    // TODO: [🎡] Add cost information to report
-    // TODO: [🎡] Better (filter out voids)
     let executionReportString = spaceTrim(
         (block) => `
             # ${executionReportJson.title || 'Execution report'}
@@ -165,7 +162,6 @@ export function executionReportJsonToString(executionReportJson: ExecutionReport
         }
     }
 
-    // executionReportString = removeVoids(executionReportString); // <- TODO: !!!!!!! Maybe no need
     executionReportString = prettifyMarkdown(executionReportString);
     return executionReportString as ExecutionReportString;
 }
