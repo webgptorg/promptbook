@@ -62,10 +62,9 @@ export interface ModelCommand {
  * Joker parameter is used instead of executing the prompt template if it meet the expectations requirements
  */
 export interface JokerCommand {
-  readonly type: 'JOKER';
-  readonly parameterName: string_name;
+    readonly type: 'JOKER';
+    readonly parameterName: string_name;
 }
-
 
 /**
  * Parameter command describes one parameter of the prompt template

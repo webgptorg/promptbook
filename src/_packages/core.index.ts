@@ -1,5 +1,5 @@
 import { PromptTemplatePipelineLibrary } from '../classes/PromptTemplatePipelineLibrary';
-import { PTBK_VERSION } from '../config';
+import { PTBK_VERSION } from '../version';
 import { promptTemplatePipelineStringToJson } from '../conversion/promptTemplatePipelineStringToJson';
 import { validatePromptTemplatePipelineJson } from '../conversion/validatePromptTemplatePipelineJson';
 import { createPtpExecutor } from '../execution/createPtpExecutor';

@@ -1,6 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
 import spaceTrim from 'spacetrim';
-import { PTBK_VERSION } from '../../../../config';
+import { PTBK_VERSION } from '../../../../version';
 import { promptTemplatePipelineStringToJson } from '../../../../conversion/promptTemplatePipelineStringToJson';
 import { PromptTemplatePipelineString } from '../../../../types/PromptTemplatePipelineString';
 import { createPtpExecutor } from '../../../createPtpExecutor';

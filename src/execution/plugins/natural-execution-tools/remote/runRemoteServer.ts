@@ -2,7 +2,7 @@ import chalk from 'chalk';
 import http from 'http';
 import { Server, Socket } from 'socket.io';
 import spaceTrim from 'spacetrim';
-import { PTBK_VERSION } from '../../../../config';
+import { PTBK_VERSION } from '../../../../version';
 import { PromptResult } from '../../../PromptResult';
 import { Ptps_Error } from './interfaces/Ptps_Error';
 import { Ptps_Request } from './interfaces/Ptps_Request';

@@ -2,7 +2,7 @@
 
 import { PromptTemplatePipeline } from '../classes/PromptTemplatePipeline';
 import { PromptTemplatePipelineLibrary } from '../classes/PromptTemplatePipelineLibrary';
-import { DEFAULT_MODEL_REQUIREMENTS, PTBK_VERSION } from '../config';
+import { DEFAULT_MODEL_REQUIREMENTS } from '../config';
 import { parseCommand } from '../conversion/parseCommand';
 import { promptTemplatePipelineStringToJson } from '../conversion/promptTemplatePipelineStringToJson';
 import { validatePromptTemplatePipelineJson } from '../conversion/validatePromptTemplatePipelineJson';

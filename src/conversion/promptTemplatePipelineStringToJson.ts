@@ -1,7 +1,7 @@
 import { normalizeTo_PascalCase } from 'n12';
 import spaceTrim from 'spacetrim';
 import { Writable, WritableDeep } from 'type-fest';
-import { DEFAULT_MODEL_REQUIREMENTS, PTBK_VERSION } from '../config';
+import { DEFAULT_MODEL_REQUIREMENTS } from '../config';
 import { ParameterCommand } from '../types/Command';
 import { ExecutionType } from '../types/ExecutionTypes';
 import { ModelRequirements } from '../types/ModelRequirements';
@@ -18,6 +18,7 @@ import { extractAllListItemsFromMarkdown } from '../utils/markdown/extractAllLis
 import { extractOneBlockFromMarkdown } from '../utils/markdown/extractOneBlockFromMarkdown';
 import { removeContentComments } from '../utils/markdown/removeContentComments';
 import { parseCommand } from './parseCommand';
+import { PTBK_VERSION } from '../version';
 
 /**
  * Parse prompt template pipeline from string format to JSON format

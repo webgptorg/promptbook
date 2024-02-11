@@ -2,7 +2,7 @@ import spaceTrim from 'spacetrim';
 import type { Promisable } from 'type-fest';
 import type { string_name } from '.././types/typeAliases';
 import { PromptTemplatePipelineJson } from '../_packages/types.index';
-import { PTBK_VERSION } from '../config';
+import { PTBK_VERSION } from '../version';
 import { validatePromptTemplatePipelineJson } from '../conversion/validatePromptTemplatePipelineJson';
 import type { Prompt } from '../types/Prompt';
 import type { ExpectationUnit, PromptTemplateJson } from '../types/PromptTemplatePipelineJson/PromptTemplateJson';
