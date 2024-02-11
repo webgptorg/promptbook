@@ -2,6 +2,7 @@ import chalk from 'chalk';
 import http from 'http';
 import { Server, Socket } from 'socket.io';
 import spaceTrim from 'spacetrim';
+import { PTBK_VERSION } from '../../../../config';
 import { PromptResult } from '../../../PromptResult';
 import { Ptps_Error } from './interfaces/Ptps_Error';
 import { Ptps_Request } from './interfaces/Ptps_Request';
@@ -26,7 +27,9 @@ export function runRemoteServer(options: RemoteServerOptions) {
 
         response.write(
             spaceTrim(`
-                Server for processing PromptBook requests is running
+                Server for processing promptbook remote requests is running.
+                
+                Version: ${PTBK_VERSION}
 
                 For more information look at:
                 https://github.com/webgptorg/promptbook

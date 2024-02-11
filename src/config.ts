@@ -4,7 +4,7 @@ import { string_version } from './types/typeAliases';
 /**
  * The version of the PTP
  */
-export const PTBK_VERSION: string_version = '0.1.0';
+export const PTBK_VERSION: string_version = '0.31.0-10'; // <- TODO: !!!! Auto-update this value on release
 
 /**
  * Default model requirements for the pipeline
