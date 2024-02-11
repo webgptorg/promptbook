@@ -1,12 +1,12 @@
 {
     "dependencies": {
-        "@promptbook/core": "0.31.0-5",
-        "@promptbook/execute-javascript": "0.31.0-5",
-        "@promptbook/openai": "0.31.0-5",
-        "@promptbook/types": "0.31.0-5",
-        "@promptbook/remote-client": "0.31.0-5",
-        "@promptbook/remote-server": "0.31.0-5",
-        "@promptbook/utils": "0.31.0-5",
-        "@promptbook/wizzard": "0.31.0-5"
+        "@promptbook/core": "0.31.0-6",
+        "@promptbook/execute-javascript": "0.31.0-6",
+        "@promptbook/openai": "0.31.0-6",
+        "@promptbook/types": "0.31.0-6",
+        "@promptbook/remote-client": "0.31.0-6",
+        "@promptbook/remote-server": "0.31.0-6",
+        "@promptbook/utils": "0.31.0-6",
+        "@promptbook/wizzard": "0.31.0-6"
     }
 }
