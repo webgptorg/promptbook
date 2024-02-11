@@ -29,6 +29,14 @@ export function computeOpenaiUsage(
             prompt: 0.01,
             completion: 0.03,
         },
+        'gpt-3.5-turbo-instruct': {
+            prompt: 0.0015,
+            completion: 0.002,
+        },
+        'gpt-4-0125-preview': {
+            prompt: 0.01,
+            completion: 0.03,
+        },
     }[rawResponse.model];
 
     let price: PromptResult['usage']['price'];
