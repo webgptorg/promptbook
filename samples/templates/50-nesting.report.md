@@ -10,7 +10,7 @@ How block are nested in the promptbook
 -   TOTAL NATURAL DURATION 8 seconds
 -   TOTAL COST $0.0008265000000000001
 
-## 🗃 Prompt templates
+## 🗃 Index
 
 -   [💬 Synonym](#-synonym)
 -   [💬 Sentence](#-sentence)

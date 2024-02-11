@@ -105,7 +105,7 @@ export function executionReportJsonToString(
 
         executionReportString +=
             '\n\n' +
-            '## 🗃 Prompt templates' +
+            '## 🗃 Index' +
             '\n\n' +
             executionReportJson.promptExecutions
                 .map((promptExecution) => {

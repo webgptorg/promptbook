@@ -10,7 +10,7 @@ Trying the language capabilities of GPT models.
 -   TOTAL NATURAL DURATION 11 seconds
 -   TOTAL COST $0.0044865
 
-## 🗃 Prompt templates
+## 🗃 Index
 
 -   [💬 Synonym](#-synonym)
 -   [💬 Sentence with Synonym](#-sentence-with-synonym)
