@@ -79,7 +79,7 @@ Better execution report in markdown format
 
 Better execution reports
 
--   Filter out voids in `executionReportJsonToString` <-[🎡]
+-   Filter out voids in `executionReportJsonToString`
 -   Add timing information to `ExecutionReportJson` <-[🎡]
 -   Add money cost information to `ExecutionReportJson` <-[🎡]
 -   Escape code blocks in markdown

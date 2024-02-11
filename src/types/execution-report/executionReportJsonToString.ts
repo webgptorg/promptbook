@@ -1,6 +1,7 @@
 import spaceTrim from 'spacetrim';
 import { escapeMarkdownBlock } from '../../utils/markdown/escapeMarkdownBlock';
 import { prettifyMarkdown } from '../../utils/markdown/prettifyMarkdown';
+import { removeVoids } from '../../utils/markdown/removeVoids';
 import type { ExecutionReportJson } from './ExecutionReportJson';
 import type { ExecutionReportString } from './ExecutionReportString';
 
@@ -78,6 +79,7 @@ export function executionReportJsonToString(executionReportJson: ExecutionReport
         }
     }
 
+    executionReportString = removeVoids(executionReportString);
     executionReportString = prettifyMarkdown(executionReportString);
     return executionReportString as ExecutionReportString;
 }
