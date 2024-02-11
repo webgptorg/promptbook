@@ -4,14 +4,37 @@ import { formatNumber } from '../formatNumber';
 import { removeEmojis } from '../removeEmojis';
 import { createMarkdownTable } from './createMarkdownTable';
 
+/**
+ * Options for creating a markdown chart
+ */
+/**
+ * Options for creating a markdown chart.
+ */
 type CreateMarkdownChartOptions = {
+    /**
+     * The header for the first column - the name of the item
+     */
     nameHeader: string;
+
+    /**
+     * The header for the second column - the value of the item
+     */
     valueHeader: string;
+
+    /**
+     * The items to be charted
+     */
     items: FromtoItems;
+
+    /**
+     * The width of the chart in squares
+     */
     width: number;
 
+    /**
+     * The name of the unit shown in the chart
+     */
     unitName: string;
-    // TODO: !!!! Annotate all
 };
 
 /**
