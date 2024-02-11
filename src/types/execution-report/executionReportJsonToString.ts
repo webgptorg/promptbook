@@ -83,7 +83,12 @@ export function executionReportJsonToString(executionReportJson: ExecutionReport
 
     executionReportString += '\n\n' + headerList.map((header) => `- ${header}`).join('\n');
 
-    // TODO: !!!! The table here
+    // TODO: [🧠] Add the timing table or visialization:
+    // Template 1 | 🟦🟦🟦🟦🟦🟦🟦🟦🟦⬛⬛⬛
+    // Template 2 | ⬛⬛⬛⬛🟦🟦⬛⬛⬛⬛⬛⬛
+    // Template 3 | ⬛⬛⬛🟦🟦🟦🟦🟦⬛⬛⬛⬛
+    // Template 4 | ⬛⬛⬛⬛⬛⬛🟦🟦🟦🟦🟦⬛
+    // Template 5 | ⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛🟦
 
     for (const promptExecution of executionReportJson.promptExecutions) {
         executionReportString += '\n\n\n\n' + `## ${promptExecution.prompt.title}`;
