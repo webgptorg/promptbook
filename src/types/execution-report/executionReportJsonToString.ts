@@ -1,10 +1,20 @@
 import moment from 'moment';
 import spaceTrim from 'spacetrim';
+import { just } from '../../utils/just';
 import { escapeMarkdownBlock } from '../../utils/markdown/escapeMarkdownBlock';
 import { prettifyMarkdown } from '../../utils/markdown/prettifyMarkdown';
 import { number_usd } from '../typeAliases';
 import type { ExecutionReportJson } from './ExecutionReportJson';
 import type { ExecutionReportString } from './ExecutionReportString';
+
+/**
+ * The thresholds for the relative time in the `moment` library.
+ *
+ * @see https://momentjscom.readthedocs.io/en/latest/moment/07-customization/13-relative-time-threshold/
+ */
+const MOMENT_ARG_THRESHOLDS = {
+    ss: 3, // <- least number of seconds to be counted in seconds, minus 1. Must be set after setting the `s` unit or without setting the `s` unit.
+} as const;
 
 /**
  * Converts execution report from JSON to string format
@@ -35,6 +45,7 @@ export function executionReportJsonToString(executionReportJson: ExecutionReport
     );
 
     if (executionReportJson.promptExecutions.length !== 0) {
+        // TODO: What if startedAt OR/AND completedAt is not defined?
         const startedAt = moment(
             Math.min(
                 ...executionReportJson.promptExecutions
@@ -49,6 +60,7 @@ export function executionReportJsonToString(executionReportJson: ExecutionReport
                     .map((promptExecution) => moment(promptExecution.result!.timing.complete).valueOf()),
             ),
         );
+
         const duration = moment.duration(completedAt.diff(startedAt));
 
         const executionsWithKnownCost = executionReportJson.promptExecutions.filter(
@@ -59,8 +71,9 @@ export function executionReportJsonToString(executionReportJson: ExecutionReport
             0,
         );
 
-        headerList.push(`STARTED AT ${moment(startedAt).calendar()}`);
-        headerList.push(`TOTAL DURATION ${duration.humanize()}`);
+        headerList.push(`STARTED AT ${moment(startedAt).format(`YYYY-MM-DD HH:mm:ss`)}`);
+        headerList.push(`COMPLETED AT ${moment(completedAt).format(`YYYY-MM-DD HH:mm:ss`)}`);
+        headerList.push(`TOTAL DURATION ${duration.humanize(MOMENT_ARG_THRESHOLDS)}`);
         headerList.push(
             `TOTAL COST $${cost}` +
                 (executionsWithKnownCost.length === executionReportJson.promptExecutions.length
@@ -76,25 +89,49 @@ export function executionReportJsonToString(executionReportJson: ExecutionReport
     // TODO: !!!! The table here
 
     for (const promptExecution of executionReportJson.promptExecutions) {
-        executionReportString +=
-            '\n\n\n\n' +
-            spaceTrim(
-                (block) => `
-                ## ${promptExecution.prompt.title}
+        executionReportString += '\n\n\n\n' + `## ${promptExecution.prompt.title}`;
 
-                -   MODEL VARIANT ${promptExecution.prompt.modelRequirements.modelVariant}
+        const templateList: Array<string> = [];
+
+        // TODO: What if startedAt OR/AND completedAt is not defined?
+        const startedAt = moment(promptExecution.result?.timing?.start);
+        const completedAt = moment(promptExecution.result?.timing?.complete);
+        const duration = moment.duration(completedAt.diff(startedAt));
+
+        // Not need here:
+        // > templateList.push(`STARTED AT ${moment(startedAt).calendar()}`);
+        templateList.push(`DURATION ${duration.humanize(MOMENT_ARG_THRESHOLDS)}`);
+
+        if (promptExecution.result?.usage?.price) {
+            templateList.push(`COST $${promptExecution.result?.usage?.price}`);
+        } else {
+            templateList.push(`COST UNKNOWN`);
+        }
+
+        executionReportString += '\n\n' + templateList.map((header) => `- ${header}`).join('\n');
+
+        /*
+          -   MODEL VARIANT ${promptExecution.prompt.modelRequirements.modelVariant}
                 -   MODEL NAME \`${promptExecution.result?.model}\` (requested \`${
                     promptExecution.prompt.modelRequirements.modelName
-                }\`)
+        
+        */
 
-                ### Prompt
+        if (just(true)) {
+            executionReportString +=
+                '\n\n\n\n' +
+                spaceTrim(
+                    (block) => `
 
-                \`\`\`
-                ${block(escapeMarkdownBlock(promptExecution.prompt.content))}
-                \`\`\`
+                        ### Prompt
 
-                `,
-            );
+                        \`\`\`
+                        ${block(escapeMarkdownBlock(promptExecution.prompt.content))}
+                        \`\`\`
+
+                    `,
+                );
+        }
 
         if (promptExecution.result) {
             executionReportString +=

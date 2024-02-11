@@ -4,14 +4,15 @@ Trying the language capabilities of GPT models.
 
 -   PTBK URL https://ptbk.example.com/samples/language-capabilities.ptbk.md@v1
 -   PTBK VERSION 0.1.0 _(requested 1.0.0)_
--   STARTED AT Today at 3:54 PM
--   TOTAL DURATION a few seconds
+-   STARTED AT 2024-02-11 15:54:07
+-   COMPLETED AT 2024-02-11 15:54:18
+-   TOTAL DURATION 11 seconds
 -   TOTAL COST $0.0044865
 
 ## 💬 Synonym
 
--   MODEL VARIANT CHAT
--   MODEL NAME `gpt-3.5-turbo` (requested `gpt-3.5-turbo`)
+-   DURATION a few seconds
+-   COST $0.0000235
 
 ### Prompt
 
@@ -27,8 +28,8 @@ Feline
 
 ## 💬 Sentence with Synonym
 
--   MODEL VARIANT CHAT
--   MODEL NAME `gpt-3.5-turbo` (requested `gpt-3.5-turbo`)
+-   DURATION a few seconds
+-   COST $0.000084
 
 ### Prompt
 
@@ -44,8 +45,8 @@ The cat, a domestic feline, gracefully leaped onto the windowsill to bask in the
 
 ## 💬 Sentence without original word
 
--   MODEL VARIANT CHAT
--   MODEL NAME `gpt-3.5-turbo` (requested `gpt-3.5-turbo`)
+-   DURATION a few seconds
+-   COST $0.00016900000000000002
 
 ### Prompt
 
@@ -70,8 +71,8 @@ The, a domestic feline, gracefully leaped onto the windowsill to bask in the war
 
 ## 💬 Comparison
 
--   MODEL VARIANT CHAT
--   MODEL NAME `gpt-4` (requested `gpt-4`)
+-   DURATION 8 seconds
+-   COST $0.00421
 
 ### Prompt
 

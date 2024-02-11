@@ -4,14 +4,15 @@ How block are nested in the promptbook
 
 -   PTBK URL https://ptbk.example.com/samples/language-capabilities.ptbk.md@v1
 -   PTBK VERSION 0.1.0 _(requested 1.0.0)_
--   STARTED AT Today at 3:54 PM
--   TOTAL DURATION a few seconds
+-   STARTED AT 2024-02-11 15:54:55
+-   COMPLETED AT 2024-02-11 15:55:03
+-   TOTAL DURATION 8 seconds
 -   TOTAL COST $0.0008265000000000001
 
 ## 💬 Synonym
 
--   MODEL VARIANT CHAT
--   MODEL NAME `gpt-3.5-turbo` (requested `gpt-3.5-turbo`)
+-   DURATION a few seconds
+-   COST $0.0000235
 
 ### Prompt
 
@@ -27,8 +28,8 @@ kitty
 
 ## 💬 Sentence
 
--   MODEL VARIANT CHAT
--   MODEL NAME `gpt-3.5-turbo` (requested `gpt-3.5-turbo`)
+-   DURATION a few seconds
+-   COST $0.00006500000000000001
 
 ### Prompt
 
@@ -44,8 +45,8 @@ I brought home a new kitten today, and she quickly became best friends with our 
 
 ## Make a document
 
--   MODEL VARIANT CHAT
--   MODEL NAME `gpt-3.5-turbo` (requested `gpt-3.5-turbo`)
+-   DURATION 6 seconds
+-   COST $0.000738
 
 ### Prompt
 
