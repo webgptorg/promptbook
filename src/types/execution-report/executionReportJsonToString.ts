@@ -132,14 +132,6 @@ export function executionReportJsonToString(
                 width: chartsWidth,
             });
 
-        // !!! Remove
-        // TODO: [🧠] Add the timing table or visialization:
-        // Template 1 | 🟦🟦🟦🟦🟦🟦🟦🟦🟦⬛⬛⬛
-        // Template 2 | ⬛⬛⬛⬛🟦🟦⬛⬛⬛⬛⬛⬛
-        // Template 3 | ⬛⬛⬛🟦🟦🟦🟦🟦⬛⬛⬛⬛
-        // Template 4 | ⬛⬛⬛⬛⬛⬛🟦🟦🟦🟦🟦⬛
-        // Template 5 | ⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛🟦
-
         executionReportString +=
             '\n\n' +
             '## 💸 Cost chart' +
@@ -150,11 +142,6 @@ export function executionReportJsonToString(
                 items: costItems,
                 width: chartsWidth,
             });
-
-        // !!! Remove
-        // TODO: [🧠] Add the cost table or visialization:
-        // GPT-3      | 🟦🟦🟦⬛⬛⬛⬛⬛⬛⬛⬛⬛
-        // GPT-4      | 🟦🟦🟦🟦🟦🟦🟦🟦🟦⬛⬛⬛
     } else {
         headerList.push(`TOTAL COST $0 *(Nothing executed)*`);
     }
