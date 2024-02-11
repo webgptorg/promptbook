@@ -62,7 +62,7 @@ export function executionReportJsonToString(executionReportJson: ExecutionReport
         headerList.push(`STARTED AT ${moment(startedAt).calendar()}`);
         headerList.push(`TOTAL DURATION ${duration.humanize()}`);
         headerList.push(
-            `TOTAL COST ${cost}` +
+            `TOTAL COST $${cost}` +
                 (executionsWithKnownCost.length === executionReportJson.promptExecutions.length
                     ? ''
                     : ` *(Some cost is unknown)*`),

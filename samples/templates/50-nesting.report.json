@@ -15,28 +15,28 @@
                 }
             },
             "result": {
-                "content": "feline",
+                "content": "kitty",
                 "model": "gpt-3.5-turbo",
                 "timing": {
-                    "start": "2024-02-10T15:55:58.397Z",
-                    "complete": "2024-02-10T15:55:59.102Z"
+                    "start": "2024-02-11T14:54:55.966Z",
+                    "complete": "2024-02-11T14:54:56.620Z"
                 },
                 "usage": {
-                    "price": "UNKNOWN",
+                    "price": 0.0000235,
                     "inputTokens": 13,
                     "outputTokens": 2
                 },
                 "rawResponse": {
-                    "id": "chatcmpl-8qjzqG9PmdjXuVY8USuNbhAmi19x8",
+                    "id": "chatcmpl-8r5WKjeb8e5V2L9sLZEXMlUP7MM6O",
                     "object": "chat.completion",
-                    "created": 1707580558,
+                    "created": 1707663296,
                     "model": "gpt-3.5-turbo-0613",
                     "choices": [
                         {
                             "index": 0,
                             "message": {
                                 "role": "assistant",
-                                "content": "feline"
+                                "content": "kitty"
                             },
                             "logprobs": null,
                             "finish_reason": "stop"
@@ -54,35 +54,35 @@
         {
             "prompt": {
                 "title": "💬 Sentence",
-                "content": "Write sentence with \"cat\" and \"feline\"",
+                "content": "Write sentence with \"cat\" and \"kitty\"",
                 "modelRequirements": {
                     "modelVariant": "CHAT",
                     "modelName": "gpt-3.5-turbo"
                 }
             },
             "result": {
-                "content": "The cat, with its sleek and graceful movements, epitomizes the epitome of a feline creature.",
+                "content": "I brought home a new kitten today, and she quickly became best friends with our older cat.",
                 "model": "gpt-3.5-turbo",
                 "timing": {
-                    "start": "2024-02-10T15:55:59.111Z",
-                    "complete": "2024-02-10T15:56:00.369Z"
+                    "start": "2024-02-11T14:54:56.629Z",
+                    "complete": "2024-02-11T14:54:57.288Z"
                 },
                 "usage": {
-                    "price": "UNKNOWN",
+                    "price": 0.00006500000000000001,
                     "inputTokens": 18,
-                    "outputTokens": 22
+                    "outputTokens": 19
                 },
                 "rawResponse": {
-                    "id": "chatcmpl-8qjzrHBvmbVhhl0aAF7gjn9VPOguP",
+                    "id": "chatcmpl-8r5WLHQc6GrHVqp7Kb5tj3CT31PM4",
                     "object": "chat.completion",
-                    "created": 1707580559,
+                    "created": 1707663297,
                     "model": "gpt-3.5-turbo-0613",
                     "choices": [
                         {
                             "index": 0,
                             "message": {
                                 "role": "assistant",
-                                "content": "The cat, with its sleek and graceful movements, epitomizes the epitome of a feline creature."
+                                "content": "I brought home a new kitten today, and she quickly became best friends with our older cat."
                             },
                             "logprobs": null,
                             "finish_reason": "stop"
@@ -90,8 +90,8 @@
                     ],
                     "usage": {
                         "prompt_tokens": 18,
-                        "completion_tokens": 22,
-                        "total_tokens": 40
+                        "completion_tokens": 19,
+                        "total_tokens": 37
                     },
                     "system_fingerprint": null
                 }
@@ -100,44 +100,44 @@
         {
             "prompt": {
                 "title": "Make a document",
-                "content": "Write poem with starting sentence:\n\n```text\nThe cat, with its sleek and graceful movements, epitomizes the epitome of a feline creature.\n```",
+                "content": "Write poem with starting sentence:\n\n```text\nI brought home a new kitten today, and she quickly became best friends with our older cat.\n```",
                 "modelRequirements": {
                     "modelVariant": "CHAT",
                     "modelName": "gpt-3.5-turbo"
                 }
             },
             "result": {
-                "content": "The cat, with its sleek and graceful movements,\nEpitomizes the epitome of a feline creature.\nWith eyes like emerald gems and fur so smooth,\nIt captures hearts with a single whiskered swoop.\n\nIn sunlight, it dances with stealth and charm,\nA mesmerizing sight, a delicate art form.\nBounding effortlessly, defying gravity's hold,\nThis agile creature, its grace untold.\n\nPouncing on shadows, a predator's game,\nIt stalks its prey with pride, no hint of shame.\nEach paw strikes with precision and grace,\nMarking territory, in every secret place.\n\nIts purrs, like soft whispers in the night,\nA symphony of comfort, pure delight.\nWith gentle nudges and affectionate rubs,\nIt claims its throne, the ruler of our hearts.\n\nYet behind those eyes, mysteries reside,\nA creature of instinct, wild and untied.\nA solitary hunter, fiercely independent,\nYet seeking warmth, a touch so intimate.\n\nThe feline spirit, mysterious and divine,\nA delicate balance of strength and design.\nIn its presence, we find solace and peace,\nThe epitome of grace that will never cease.\n\nSo let us cherish this creature so rare,\nWith its elegance and heavenly flair.\nThe cat, a guardian of secrets untold,\nA majestic marvel, forever enfolded.",
+                "content": "I brought home a new kitten today,\nAnd she quickly became best friends with our older cat.\nThey curled up together, in a blissful display,\nTwo souls connected, where love was begat.\n\nTheir tender hearts danced with playful delight,\nAs paws gently flicked in a synchronized way.\nA bond formed swiftly, so pure and so bright,\nBringing warmth to our home, like a sun's gentle ray.\n\nThe older cat, wise and calm in her grace,\nEmbraced the new kitten, guiding her through.\nThey shared secrets in whispers, paw in embrace,\nCreating a friendship, both steadfast and true.\n\nThe new kitten, filled with innocent awe,\nAdmired her sister's wisdom, so profound.\nThey explored the world, with wonder and awe,\nTwo kindred spirits, forever bound.\n\nTogether they frolicked, chasing dreams in their eyes,\nAs they conquered each corner, each room, and each shelf.\nTheir laughter echoed, painting our home skies,\nIn vibrant hues of love, contentment, and self.\n\nIn each tender meow and gentle purr,\nTheir language evolved, a symphony of affection.\nThrough every rough patch, they'd find a way to concur,\nLeaving us in awe, with profound introspection.\n\nAnd so, our home became a haven of peace,\nWhere two furry souls united as one.\nTheir friendship, a serenade that will never cease,\nA love story cherished, forever to be spun.\n\nI brought home a new kitten today,\nAnd she quickly became best friends with our older cat.\nA tale of companionship, in a world so cliché,\nBut their love, oh, their love, can't be measured in that.",
                 "model": "gpt-3.5-turbo",
                 "timing": {
-                    "start": "2024-02-10T15:56:00.377Z",
-                    "complete": "2024-02-10T15:56:04.095Z"
+                    "start": "2024-02-11T14:54:57.296Z",
+                    "complete": "2024-02-11T14:55:03.742Z"
                 },
                 "usage": {
-                    "price": "UNKNOWN",
-                    "inputTokens": 39,
-                    "outputTokens": 271
+                    "price": 0.000738,
+                    "inputTokens": 36,
+                    "outputTokens": 342
                 },
                 "rawResponse": {
-                    "id": "chatcmpl-8qjzsvAopkr9ysuK8fnUB5vRNTRoR",
+                    "id": "chatcmpl-8r5WMJbEdrzvQMwuXJc2BfxoOpssn",
                     "object": "chat.completion",
-                    "created": 1707580560,
+                    "created": 1707663298,
                     "model": "gpt-3.5-turbo-0613",
                     "choices": [
                         {
                             "index": 0,
                             "message": {
                                 "role": "assistant",
-                                "content": "The cat, with its sleek and graceful movements,\nEpitomizes the epitome of a feline creature.\nWith eyes like emerald gems and fur so smooth,\nIt captures hearts with a single whiskered swoop.\n\nIn sunlight, it dances with stealth and charm,\nA mesmerizing sight, a delicate art form.\nBounding effortlessly, defying gravity's hold,\nThis agile creature, its grace untold.\n\nPouncing on shadows, a predator's game,\nIt stalks its prey with pride, no hint of shame.\nEach paw strikes with precision and grace,\nMarking territory, in every secret place.\n\nIts purrs, like soft whispers in the night,\nA symphony of comfort, pure delight.\nWith gentle nudges and affectionate rubs,\nIt claims its throne, the ruler of our hearts.\n\nYet behind those eyes, mysteries reside,\nA creature of instinct, wild and untied.\nA solitary hunter, fiercely independent,\nYet seeking warmth, a touch so intimate.\n\nThe feline spirit, mysterious and divine,\nA delicate balance of strength and design.\nIn its presence, we find solace and peace,\nThe epitome of grace that will never cease.\n\nSo let us cherish this creature so rare,\nWith its elegance and heavenly flair.\nThe cat, a guardian of secrets untold,\nA majestic marvel, forever enfolded."
+                                "content": "I brought home a new kitten today,\nAnd she quickly became best friends with our older cat.\nThey curled up together, in a blissful display,\nTwo souls connected, where love was begat.\n\nTheir tender hearts danced with playful delight,\nAs paws gently flicked in a synchronized way.\nA bond formed swiftly, so pure and so bright,\nBringing warmth to our home, like a sun's gentle ray.\n\nThe older cat, wise and calm in her grace,\nEmbraced the new kitten, guiding her through.\nThey shared secrets in whispers, paw in embrace,\nCreating a friendship, both steadfast and true.\n\nThe new kitten, filled with innocent awe,\nAdmired her sister's wisdom, so profound.\nThey explored the world, with wonder and awe,\nTwo kindred spirits, forever bound.\n\nTogether they frolicked, chasing dreams in their eyes,\nAs they conquered each corner, each room, and each shelf.\nTheir laughter echoed, painting our home skies,\nIn vibrant hues of love, contentment, and self.\n\nIn each tender meow and gentle purr,\nTheir language evolved, a symphony of affection.\nThrough every rough patch, they'd find a way to concur,\nLeaving us in awe, with profound introspection.\n\nAnd so, our home became a haven of peace,\nWhere two furry souls united as one.\nTheir friendship, a serenade that will never cease,\nA love story cherished, forever to be spun.\n\nI brought home a new kitten today,\nAnd she quickly became best friends with our older cat.\nA tale of companionship, in a world so cliché,\nBut their love, oh, their love, can't be measured in that."
                             },
                             "logprobs": null,
                             "finish_reason": "stop"
                         }
                     ],
                     "usage": {
-                        "prompt_tokens": 39,
-                        "completion_tokens": 271,
-                        "total_tokens": 310
+                        "prompt_tokens": 36,
+                        "completion_tokens": 342,
+                        "total_tokens": 378
                     },
                     "system_fingerprint": null
                 }

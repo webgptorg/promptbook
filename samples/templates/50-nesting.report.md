@@ -4,9 +4,9 @@ How block are nested in the promptbook
 
 -   PTBK URL https://ptbk.example.com/samples/language-capabilities.ptbk.md@v1
 -   PTBK VERSION 0.1.0 _(requested 1.0.0)_
--   STARTED AT Yesterday at 4:55 PM
+-   STARTED AT Today at 3:54 PM
 -   TOTAL DURATION a few seconds
--   TOTAL COST 0 _(Some cost is unknown)_
+-   TOTAL COST $0.0008265000000000001
 
 ## 💬 Synonym
 
@@ -22,7 +22,7 @@ Write synonym for "cat"
 ### Result
 
 ```
-feline
+kitty
 ```
 
 ## 💬 Sentence
@@ -33,13 +33,13 @@ feline
 ### Prompt
 
 ```
-Write sentence with "cat" and "feline"
+Write sentence with "cat" and "kitty"
 ```
 
 ### Result
 
 ```
-The cat, with its sleek and graceful movements, epitomizes the epitome of a feline creature.
+I brought home a new kitten today, and she quickly became best friends with our older cat.
 ```
 
 ## Make a document
@@ -53,45 +53,50 @@ The cat, with its sleek and graceful movements, epitomizes the epitome of a feli
 Write poem with starting sentence:
 
 \`\`\`text
-The cat, with its sleek and graceful movements, epitomizes the epitome of a feline creature.
+I brought home a new kitten today, and she quickly became best friends with our older cat.
 \`\`\`
 ```
 
 ### Result
 
 ```
-The cat, with its sleek and graceful movements,
-Epitomizes the epitome of a feline creature.
-With eyes like emerald gems and fur so smooth,
-It captures hearts with a single whiskered swoop.
+I brought home a new kitten today,
+And she quickly became best friends with our older cat.
+They curled up together, in a blissful display,
+Two souls connected, where love was begat.
 
-In sunlight, it dances with stealth and charm,
-A mesmerizing sight, a delicate art form.
-Bounding effortlessly, defying gravity's hold,
-This agile creature, its grace untold.
+Their tender hearts danced with playful delight,
+As paws gently flicked in a synchronized way.
+A bond formed swiftly, so pure and so bright,
+Bringing warmth to our home, like a sun's gentle ray.
 
-Pouncing on shadows, a predator's game,
-It stalks its prey with pride, no hint of shame.
-Each paw strikes with precision and grace,
-Marking territory, in every secret place.
+The older cat, wise and calm in her grace,
+Embraced the new kitten, guiding her through.
+They shared secrets in whispers, paw in embrace,
+Creating a friendship, both steadfast and true.
 
-Its purrs, like soft whispers in the night,
-A symphony of comfort, pure delight.
-With gentle nudges and affectionate rubs,
-It claims its throne, the ruler of our hearts.
+The new kitten, filled with innocent awe,
+Admired her sister's wisdom, so profound.
+They explored the world, with wonder and awe,
+Two kindred spirits, forever bound.
 
-Yet behind those eyes, mysteries reside,
-A creature of instinct, wild and untied.
-A solitary hunter, fiercely independent,
-Yet seeking warmth, a touch so intimate.
+Together they frolicked, chasing dreams in their eyes,
+As they conquered each corner, each room, and each shelf.
+Their laughter echoed, painting our home skies,
+In vibrant hues of love, contentment, and self.
 
-The feline spirit, mysterious and divine,
-A delicate balance of strength and design.
-In its presence, we find solace and peace,
-The epitome of grace that will never cease.
+In each tender meow and gentle purr,
+Their language evolved, a symphony of affection.
+Through every rough patch, they'd find a way to concur,
+Leaving us in awe, with profound introspection.
 
-So let us cherish this creature so rare,
-With its elegance and heavenly flair.
-The cat, a guardian of secrets untold,
-A majestic marvel, forever enfolded.
+And so, our home became a haven of peace,
+Where two furry souls united as one.
+Their friendship, a serenade that will never cease,
+A love story cherished, forever to be spun.
+
+I brought home a new kitten today,
+And she quickly became best friends with our older cat.
+A tale of companionship, in a world so cliché,
+But their love, oh, their love, can't be measured in that.
 ```

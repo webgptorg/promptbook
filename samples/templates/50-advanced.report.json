@@ -15,28 +15,28 @@
                 }
             },
             "result": {
-                "content": "feline",
+                "content": "Feline",
                 "model": "gpt-3.5-turbo",
                 "timing": {
-                    "start": "2024-02-11T14:32:35.830Z",
-                    "complete": "2024-02-11T14:32:36.504Z"
+                    "start": "2024-02-11T14:54:07.848Z",
+                    "complete": "2024-02-11T14:54:08.907Z"
                 },
                 "usage": {
-                    "price": "UNKNOWN",
+                    "price": 0.0000235,
                     "inputTokens": 13,
                     "outputTokens": 2
                 },
                 "rawResponse": {
-                    "id": "chatcmpl-8r5AiDXcl0G5q7A0mBm3OJlFQLAMn",
+                    "id": "chatcmpl-8r5VYBjbeE5Pp2aDfGdSwxp4ktcsa",
                     "object": "chat.completion",
-                    "created": 1707661956,
+                    "created": 1707663248,
                     "model": "gpt-3.5-turbo-0613",
                     "choices": [
                         {
                             "index": 0,
                             "message": {
                                 "role": "assistant",
-                                "content": "feline"
+                                "content": "Feline"
                             },
                             "logprobs": null,
                             "finish_reason": "stop"
@@ -54,35 +54,35 @@
         {
             "prompt": {
                 "title": "💬 Sentence with Synonym",
-                "content": "Write sentence with \"cat\" and \"feline\" in it",
+                "content": "Write sentence with \"cat\" and \"Feline\" in it",
                 "modelRequirements": {
                     "modelVariant": "CHAT",
                     "modelName": "gpt-3.5-turbo"
                 }
             },
             "result": {
-                "content": "The cat gracefully prowled through the room, showcasing its innate feline elegance.",
+                "content": "The cat, a domestic feline, gracefully leaped onto the windowsill to bask in the warm sunlight streaming through the glass.",
                 "model": "gpt-3.5-turbo",
                 "timing": {
-                    "start": "2024-02-11T14:32:36.522Z",
-                    "complete": "2024-02-11T14:32:37.120Z"
+                    "start": "2024-02-11T14:54:08.923Z",
+                    "complete": "2024-02-11T14:54:09.677Z"
                 },
                 "usage": {
-                    "price": "UNKNOWN",
+                    "price": 0.000084,
                     "inputTokens": 20,
-                    "outputTokens": 16
+                    "outputTokens": 27
                 },
                 "rawResponse": {
-                    "id": "chatcmpl-8r5AjaVnNhM8OU0tcWyymDQgpp7yJ",
+                    "id": "chatcmpl-8r5VZSCJg0IoXFBIDnDUBBVKTDQqg",
                     "object": "chat.completion",
-                    "created": 1707661957,
+                    "created": 1707663249,
                     "model": "gpt-3.5-turbo-0613",
                     "choices": [
                         {
                             "index": 0,
                             "message": {
                                 "role": "assistant",
-                                "content": "The cat gracefully prowled through the room, showcasing its innate feline elegance."
+                                "content": "The cat, a domestic feline, gracefully leaped onto the windowsill to bask in the warm sunlight streaming through the glass."
                             },
                             "logprobs": null,
                             "finish_reason": "stop"
@@ -90,8 +90,8 @@
                     ],
                     "usage": {
                         "prompt_tokens": 20,
-                        "completion_tokens": 16,
-                        "total_tokens": 36
+                        "completion_tokens": 27,
+                        "total_tokens": 47
                     },
                     "system_fingerprint": null
                 }
@@ -100,44 +100,44 @@
         {
             "prompt": {
                 "title": "💬 Sentence without original word",
-                "content": "Remove word \"cat\" from sentence and modify it so that it makes sense:\n\n## Rules:\n\n-   Sentence must be grammatically correct\n-   Sentence must make sense after removing the word\n\n## The Sentence:\n\n> The cat gracefully prowled through the room, showcasing its innate feline elegance.",
+                "content": "Remove word \"cat\" from sentence and modify it so that it makes sense:\n\n## Rules:\n\n-   Sentence must be grammatically correct\n-   Sentence must make sense after removing the word\n\n## The Sentence:\n\n> The cat, a domestic feline, gracefully leaped onto the windowsill to bask in the warm sunlight streaming through the glass.",
                 "modelRequirements": {
                     "modelVariant": "CHAT",
                     "modelName": "gpt-3.5-turbo"
                 }
             },
             "result": {
-                "content": "The gracefully prowled through the room, showcasing its innate feline elegance.",
+                "content": "The, a domestic feline, gracefully leaped onto the windowsill to bask in the warm sunlight streaming through the glass.",
                 "model": "gpt-3.5-turbo",
                 "timing": {
-                    "start": "2024-02-11T14:32:37.128Z",
-                    "complete": "2024-02-11T14:32:38.178Z"
+                    "start": "2024-02-11T14:54:09.683Z",
+                    "complete": "2024-02-11T14:54:10.577Z"
                 },
                 "usage": {
-                    "price": "UNKNOWN",
-                    "inputTokens": 67,
-                    "outputTokens": 15
+                    "price": 0.00016900000000000002,
+                    "inputTokens": 78,
+                    "outputTokens": 26
                 },
                 "rawResponse": {
-                    "id": "chatcmpl-8r5Ak4d96EgOO8H0BZoYY0ff9XiyQ",
+                    "id": "chatcmpl-8r5VasFQSxSHOeTEiWDpsgdJ3Puof",
                     "object": "chat.completion",
-                    "created": 1707661958,
+                    "created": 1707663250,
                     "model": "gpt-3.5-turbo-0613",
                     "choices": [
                         {
                             "index": 0,
                             "message": {
                                 "role": "assistant",
-                                "content": "The gracefully prowled through the room, showcasing its innate feline elegance."
+                                "content": "The, a domestic feline, gracefully leaped onto the windowsill to bask in the warm sunlight streaming through the glass."
                             },
                             "logprobs": null,
                             "finish_reason": "stop"
                         }
                     ],
                     "usage": {
-                        "prompt_tokens": 67,
-                        "completion_tokens": 15,
-                        "total_tokens": 82
+                        "prompt_tokens": 78,
+                        "completion_tokens": 26,
+                        "total_tokens": 104
                     },
                     "system_fingerprint": null
                 }
@@ -146,44 +146,44 @@
         {
             "prompt": {
                 "title": "💬 Comparison",
-                "content": "Compare meaning of thee two sentences:\n\n## Sentence 1:\n\n> The cat gracefully prowled through the room, showcasing its innate feline elegance.\n\n## Sentence 2:\n\n> The gracefully prowled through the room, showcasing its innate feline elegance.",
+                "content": "Compare meaning of thee two sentences:\n\n## Sentence 1:\n\n> The cat, a domestic feline, gracefully leaped onto the windowsill to bask in the warm sunlight streaming through the glass.\n\n## Sentence 2:\n\n> The, a domestic feline, gracefully leaped onto the windowsill to bask in the warm sunlight streaming through the glass.",
                 "modelRequirements": {
                     "modelVariant": "CHAT",
                     "modelName": "gpt-4"
                 }
             },
             "result": {
-                "content": "Sentence 1 depicts a scenario where a cat is walking through a room in a graceful and elegant manner, reflecting its inherent qualities typically associated with felines.\n\nSentence 2 appears to have a missing subject as \"The\" requires specification. It seems the sentence is trying to depict a similar scenario as Sentence 1 but the omission of \"cat\" yields it incomprehensible as is.",
+                "content": "Both sentences describe a similar event, which is a domestic feline jumping onto a windowsill to enjoy the sunlight that's shining through the glass. They paint a picture of a peaceful and calming scene. \n\nHowever, Sentence 1 is grammatically correct and makes sense since it specifies that it's a cat doing the action. Sentence 2 seems to have a typographical error. It should likely also refer to a 'cat', but it says 'The' in place of 'The cat', leaving the subject of the sentence unclear, which makes it difficult to understand.",
                 "model": "gpt-4",
                 "timing": {
-                    "start": "2024-02-11T14:32:38.184Z",
-                    "complete": "2024-02-11T14:32:43.877Z"
+                    "start": "2024-02-11T14:54:10.583Z",
+                    "complete": "2024-02-11T14:54:18.461Z"
                 },
                 "usage": {
-                    "price": "UNKNOWN",
-                    "inputTokens": 57,
-                    "outputTokens": 77
+                    "price": 0.00421,
+                    "inputTokens": 79,
+                    "outputTokens": 114
                 },
                 "rawResponse": {
-                    "id": "chatcmpl-8r5Ak0lor96RXC7mcOVMq0L3pGE5H",
+                    "id": "chatcmpl-8r5VbALj6P6CQq09YS6aYrXtuAeYE",
                     "object": "chat.completion",
-                    "created": 1707661958,
+                    "created": 1707663251,
                     "model": "gpt-4-0613",
                     "choices": [
                         {
                             "index": 0,
                             "message": {
                                 "role": "assistant",
-                                "content": "Sentence 1 depicts a scenario where a cat is walking through a room in a graceful and elegant manner, reflecting its inherent qualities typically associated with felines.\n\nSentence 2 appears to have a missing subject as \"The\" requires specification. It seems the sentence is trying to depict a similar scenario as Sentence 1 but the omission of \"cat\" yields it incomprehensible as is."
+                                "content": "Both sentences describe a similar event, which is a domestic feline jumping onto a windowsill to enjoy the sunlight that's shining through the glass. They paint a picture of a peaceful and calming scene. \n\nHowever, Sentence 1 is grammatically correct and makes sense since it specifies that it's a cat doing the action. Sentence 2 seems to have a typographical error. It should likely also refer to a 'cat', but it says 'The' in place of 'The cat', leaving the subject of the sentence unclear, which makes it difficult to understand."
                             },
                             "logprobs": null,
                             "finish_reason": "stop"
                         }
                     ],
                     "usage": {
-                        "prompt_tokens": 57,
-                        "completion_tokens": 77,
-                        "total_tokens": 134
+                        "prompt_tokens": 79,
+                        "completion_tokens": 114,
+                        "total_tokens": 193
                     },
                     "system_fingerprint": null
                 }
