@@ -117,6 +117,7 @@ import type {
     string_version_dependency,
     string_xml,
 } from '../types/typeAliases';
+import { FromtoItems } from '../utils/FromtoItems';
 
 export {
     CommonExecutionToolsOptions,
@@ -126,7 +127,7 @@ export {
     ExecutionType,
     ExpectationAmount,
     ExpectationUnit,
-    FromToItems,
+    FromtoItems,
     ILicense,
     IPersonProfile,
     IRepository,

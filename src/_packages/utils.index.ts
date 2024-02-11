@@ -1,4 +1,8 @@
 import { assertsExecutionSuccessful } from '../execution/assertsExecutionSuccessful';
+import {
+    ExecutionReportStringOptions,
+    ExecutionReportStringOptionsDefaults,
+} from '../types/execution-report/ExecutionReportStringOptions';
 import { executionReportJsonToString } from '../types/execution-report/executionReportJsonToString';
 import { EMOJIS, EMOJIS_IN_CATEGORIES } from '../utils/emojis';
 import { CountUtils } from '../utils/expectation-counters';
