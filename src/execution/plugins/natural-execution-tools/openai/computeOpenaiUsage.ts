@@ -19,27 +19,24 @@ export function computeOpenaiUsage(
     const inputTokens = rawResponse.usage.prompt_tokens;
     const outputTokens = rawResponse.usage.completion_tokens;
 
-    const pricePerToken = {
-        'gpt-3.5-turbo-1106': {
-            prompt: 0.001 / 1000,
-            completion: 0.002 / 1000,
+    const pricePerThousandTokens = {
+        'gpt-3.5-turbo-0613': {
+            prompt: 0.0015,
+            completion: 0.002,
         },
-        'gpt-4-1106-preview': {
-            prompt: 0.01 / 1000,
-            completion: 0.03 / 1000,
-        },
-        'gpt-4': {
-            prompt: 0.03 / 1000,
-            completion: 0.06 / 1000,
+        'gpt-4-0613': {
+            // TODO: !!! Not sure if this is correct
+            prompt: 0.01,
+            completion: 0.03,
         },
     }[rawResponse.model];
 
     let price: PromptResult['usage']['price'];
 
-    if (pricePerToken === undefined) {
+    if (pricePerThousandTokens === undefined) {
         price = 'UNKNOWN';
     } else {
-        price = inputTokens * pricePerToken.prompt + outputTokens * pricePerToken.completion;
+        price = (inputTokens * pricePerThousandTokens.prompt + outputTokens * pricePerThousandTokens.completion) / 1000;
     }
 
     return {
