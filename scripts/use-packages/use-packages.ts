@@ -6,6 +6,7 @@ import { readFile, writeFile } from 'fs/promises';
 import { join } from 'path';
 import { PackageJson } from 'type-fest';
 import { forTime } from 'waitasecond';
+import { commit } from '../utils/autocommit/commit';
 import { execCommand } from '../utils/execCommand/execCommand';
 
 if (process.cwd() !== join(__dirname, '../..')) {
@@ -68,6 +69,11 @@ async function usePackages() {
             crashOnError: false,
             command: `npm i`,
         });
+
+        if (remoteFolder === './samples/usage') {
+            // Note: No need to check that folder is clean, because this script is executed only after new version which can be triggered only from clean state
+            await commit(remoteFolder, `Update promptbook to version ${currentVersion} in samples`);
+        }
     }
 
     console.info(`[ 🌍  Using packages ]`);
