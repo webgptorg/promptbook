@@ -61,6 +61,4 @@ export type ExecutionReportJson = {
             message: string;
         };
     }>;
-
-    // TODO: [🎡] Add timing information to report
 };

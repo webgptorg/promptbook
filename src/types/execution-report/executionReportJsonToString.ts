@@ -130,7 +130,7 @@ export function executionReportJsonToString(executionReportJson: ExecutionReport
                 );
         }
 
-        if (promptExecution.result) {
+        if (promptExecution.result && promptExecution.result.content) {
             executionReportString +=
                 '\n\n\n\n' +
                 spaceTrim(
@@ -139,13 +139,13 @@ export function executionReportJsonToString(executionReportJson: ExecutionReport
                         ### Result
 
                         \`\`\`
-                        ${block(escapeMarkdownBlock(promptExecution.result!.content || ''))}
+                        ${block(escapeMarkdownBlock(promptExecution.result!.content))}
                         \`\`\`
                     `,
                 );
         }
 
-        if (promptExecution.error) {
+        if (promptExecution.error && promptExecution.error.message) {
             executionReportString +=
                 '\n\n\n\n' +
                 spaceTrim(
@@ -154,7 +154,7 @@ export function executionReportJsonToString(executionReportJson: ExecutionReport
                         ### Error
 
                         \`\`\`
-                        ${block(escapeMarkdownBlock(promptExecution.error!.message || ''))}
+                        ${block(escapeMarkdownBlock(promptExecution.error!.message))}
                         \`\`\`
 
                     `,
