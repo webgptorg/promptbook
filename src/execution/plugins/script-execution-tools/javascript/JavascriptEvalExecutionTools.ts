@@ -169,11 +169,9 @@ export class JavascriptEvalExecutionTools implements ScriptExecutionTools {
 
                               ${block(
                                   Object.keys(parameters)
-                                      .map((key) => `  - ${key}`)
-                                      .join('\n'),
+                                      .map((key) => `  - ${key}\n`)
+                                      .join(''),
                               )}
-
-
                               The script is:
 
                               ${block(script)}

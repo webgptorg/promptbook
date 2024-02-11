@@ -71,7 +71,20 @@ describe('createPtpExecutor + executing scripts in ptp', () => {
     it('should fail when some INPUT  PARAMETER is missing', () => {
         expect(ptpExecutor({}, () => {})).resolves.toMatchObject({
             isSuccessful: false,
-            errors: [new Error(`Parameter {thing} is not defined`)],
+            errors: [
+                new Error(
+                    spaceTrim(`
+                        Parameter {thing} is not defined
+                                                        
+                        This happen during evaluation of the javascript, which has access to the following parameters as javascript variables:
+                        
+                              
+                        The script is:
+                          
+                        return thing.split('a').join('b')
+                  `),
+                ),
+            ],
         });
 
         expect(() => ptpExecutor({}, () => {}).then(assertsExecutionSuccessful)).rejects.toThrowError(
