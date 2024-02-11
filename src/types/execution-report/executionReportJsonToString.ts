@@ -90,6 +90,10 @@ export function executionReportJsonToString(executionReportJson: ExecutionReport
     // Template 4 | ⬛⬛⬛⬛⬛⬛🟦🟦🟦🟦🟦⬛
     // Template 5 | ⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛🟦
 
+    // TODO: [🧠] Add the cost table or visialization:
+    // GPT-3      | 🟦🟦🟦⬛⬛⬛⬛⬛⬛⬛⬛⬛
+    // GPT-4      | 🟦🟦🟦🟦🟦🟦🟦🟦🟦⬛⬛⬛
+
     for (const promptExecution of executionReportJson.promptExecutions) {
         executionReportString += '\n\n\n\n' + `## ${promptExecution.prompt.title}`;
 
