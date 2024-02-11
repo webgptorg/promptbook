@@ -20,7 +20,7 @@ export function executionReportJsonToString(
     executionReportJson: ExecutionReportJson,
     options?: Partial<ExecutionReportStringOptions>,
 ): ExecutionReportString {
-    const { taxRate } = { ...ExecutionReportStringOptionsDefaults, ...(options || {}) };
+    const { taxRate, chartsWidth } = { ...ExecutionReportStringOptionsDefaults, ...(options || {}) };
 
     let executionReportString = spaceTrim(
         (block) => `
@@ -115,7 +115,7 @@ export function executionReportJsonToString(
                 )
                 .join('\n');
 
-        executionReportString += '\n\n' + '## ⌚ Time chart' + '\n\n' + createMarkdownChart(timingItems);
+        executionReportString += '\n\n' + '## ⌚ Time chart' + '\n\n' + createMarkdownChart(timingItems, chartsWidth);
 
         // !!! Remove
         // TODO: [🧠] Add the timing table or visialization:
@@ -125,7 +125,7 @@ export function executionReportJsonToString(
         // Template 4 | ⬛⬛⬛⬛⬛⬛🟦🟦🟦🟦🟦⬛
         // Template 5 | ⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛🟦
 
-        executionReportString += '\n\n' + '## 💸 Cost chart' + '\n\n' + createMarkdownChart(costItems);
+        executionReportString += '\n\n' + '## 💸 Cost chart' + '\n\n' + createMarkdownChart(costItems, chartsWidth);
 
         // !!! Remove
         // TODO: [🧠] Add the cost table or visialization:

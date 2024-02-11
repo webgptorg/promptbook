@@ -4,12 +4,17 @@ export type ExecutionReportStringOptions = {
     // Add properties
 
     taxRate: number_percent;
+
+    chartsWidth: number;
 };
 
 export const ExecutionReportStringOptionsDefaults = {
     // Add properties
 
     taxRate: 0,
+
+
+    chartsWidth: 13,
 } satisfies ExecutionReportStringOptions;
 
 /**

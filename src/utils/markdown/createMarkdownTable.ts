@@ -1,4 +1,5 @@
 import { string_markdown, string_markdown_text } from '../../types/typeAliases';
+import { countCharacters } from '../expectation-counters/countCharacters';
 
 /**
  * Create a markdown table from a 2D array of strings
@@ -9,7 +10,7 @@ import { string_markdown, string_markdown_text } from '../../types/typeAliases';
 export function createMarkdownTable(table: Array<Array<string_markdown_text>>): string_markdown {
     const columnWidths: number[] = table.reduce((widths: number[], row: string_markdown_text[]) => {
         row.forEach((cell: string_markdown_text, columnIndex: number) => {
-            const cellLength: number = cell.length;
+            const cellLength: number = countCharacters(cell);
             if (!widths[columnIndex] || cellLength > widths[columnIndex]!) {
                 widths[columnIndex] = cellLength;
             }

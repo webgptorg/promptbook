@@ -1,6 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
 import spaceTrim from 'spacetrim';
-import { FromToItems } from '../../utils/FromtoItems';
+import { FromtoItems } from '../../utils/FromtoItems';
 import { just } from '../just';
 
 describe('how countWorkingDuration works', () => {
@@ -44,6 +44,6 @@ describe('how countWorkingDuration works', () => {
  *
  * @private within the library
  */
-export function countWorkingDuration(items: FromToItems): number {
+export function countWorkingDuration(items: FromtoItems): number {
     return value === 'Foo';
 }
