@@ -8,7 +8,7 @@ Trying the language capabilities of GPT models.
 -   COMPLETED AT 2024-02-11 15:54:18
 -   TOTAL DURATION 11 seconds
 -   TOTAL NATURAL DURATION 11 seconds
--   TOTAL COST $0.0044865
+-   TOTAL COST $0.00449
 
 ## 🗃 Index
 
@@ -26,6 +26,8 @@ Trying the language capabilities of GPT models.
 | Sentence without original word | ░░░░░░███░░░░░░░░░░░░░░░░░░░░░░░░░░░ |
 | Comparison                     | ░░░░░░░░░███████████████████████████ |
 
+_Note: Each █ represents 0.295 seconds, full timeline is 10.61 seconds_
+
 ## 💸 Cost chart
 
 | Template                       | Cost                                 |
@@ -34,6 +36,8 @@ Trying the language capabilities of GPT models.
 | Sentence with Synonym          | █░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ |
 | Sentence without original word | █░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ |
 | Comparison                     | ████████████████████████████████████ |
+
+_Note: Each █ represents 0.000117 USD, full cost is 0.00421 USD_
 
 ## 💬 Synonym
 
@@ -72,7 +76,7 @@ The cat, a domestic feline, gracefully leaped onto the windowsill to bask in the
 ## 💬 Sentence without original word
 
 -   DURATION a few seconds
--   COST $0.00016900000000000002
+-   COST $0.000169
 
 ### Prompt
 

@@ -1,5 +1,6 @@
 import { string_markdown, string_markdown_text } from '../../types/typeAliases';
 import { FromtoItems } from '../FromtoItems';
+import { formatNumber } from '../formatNumber';
 import { removeEmojis } from '../removeEmojis';
 import { createMarkdownTable } from './createMarkdownTable';
 
@@ -8,6 +9,8 @@ type CreateMarkdownChartOptions = {
     valueHeader: string;
     items: FromtoItems;
     width: number;
+
+    unitName: string;
     // TODO: !!!! Annotate all
 };
 
@@ -17,7 +20,7 @@ type CreateMarkdownChartOptions = {
  * @private within the library
  */
 export function createMarkdownChart(options: CreateMarkdownChartOptions): string_markdown {
-    const { nameHeader, valueHeader, items, width } = options;
+    const { nameHeader, valueHeader, items, width, unitName } = options;
     const from = Math.min(...items.map((item) => item.from));
     const to = Math.max(...items.map((item) => item.to));
 
@@ -27,11 +30,15 @@ export function createMarkdownChart(options: CreateMarkdownChartOptions): string
 
     for (const item of items) {
         const before = Math.round((item.from - from) * scale);
-        const the = Math.round((item.to - item.from) * scale);
-        const after = width - before - the;
+        const during = Math.round((item.to - item.from) * scale);
+        const after = width - before - during;
 
-        table.push([removeEmojis(item.title).trim(), '░'.repeat(before) + '█'.repeat(the) + '░'.repeat(after)]);
+        table.push([removeEmojis(item.title).trim(), '░'.repeat(before) + '█'.repeat(during) + '░'.repeat(after)]);
     }
 
-    return createMarkdownTable(table);
+    const legend = `_Note: Each █ represents ${formatNumber(
+        1 / scale,
+    )} ${unitName}, full ${valueHeader.toLowerCase()} is ${formatNumber(to - from)} ${unitName}_`;
+
+    return createMarkdownTable(table) + '\n\n' + legend;
 }

@@ -2,6 +2,7 @@ import moment from 'moment';
 import { normalizeToKebabCase } from 'n12';
 import spaceTrim from 'spacetrim';
 import { FromtoItems } from '../../utils/FromtoItems';
+import { formatNumber } from '../../utils/formatNumber';
 import { just } from '../../utils/just';
 import { createMarkdownChart } from '../../utils/markdown/createMarkdownChart';
 import { escapeMarkdownBlock } from '../../utils/markdown/escapeMarkdownBlock';
@@ -63,8 +64,8 @@ export function executionReportJsonToString(
 
         const timingItems: FromtoItems = executionReportJson.promptExecutions.map((promptExecution) => ({
             title: promptExecution.prompt.title,
-            from: moment(promptExecution.result?.timing?.start).valueOf(),
-            to: moment(promptExecution.result?.timing?.complete).valueOf(),
+            from: moment(promptExecution.result?.timing?.start).valueOf() / 1000,
+            to: moment(promptExecution.result?.timing?.complete).valueOf() / 1000,
         }));
 
         const costItems: FromtoItems = executionReportJson.promptExecutions
@@ -76,17 +77,15 @@ export function executionReportJsonToString(
             }));
 
         const duration = moment.duration(completedAt.diff(startedAt));
-        const naturalDuration = moment.duration(countWorkingDuration(timingItems));
+        const naturalDuration = moment.duration(countWorkingDuration(timingItems) * 1000);
 
         const executionsWithKnownCost = executionReportJson.promptExecutions.filter(
             (promptExecution) => (promptExecution.result?.usage?.price || 'UNKNOWN') !== 'UNKNOWN',
         );
-        const cost: number_usd =
-            executionsWithKnownCost.reduce(
-                (cost, promptExecution) => cost + ((promptExecution.result!.usage.price! as number) || 0),
-                0,
-            ) *
-            (1 + taxRate);
+        const cost: number_usd = executionsWithKnownCost.reduce(
+            (cost, promptExecution) => cost + ((promptExecution.result!.usage.price! as number) || 0),
+            0,
+        );
 
         headerList.push(`STARTED AT ${moment(startedAt).format(`YYYY-MM-DD HH:mm:ss`)}`);
         headerList.push(`COMPLETED AT ${moment(completedAt).format(`YYYY-MM-DD HH:mm:ss`)}`);
@@ -94,7 +93,7 @@ export function executionReportJsonToString(
         headerList.push(`TOTAL NATURAL DURATION ${naturalDuration.humanize(MOMENT_ARG_THRESHOLDS)}`);
 
         headerList.push(
-            `TOTAL COST $${cost}` +
+            `TOTAL COST $${formatNumber(cost * (1 + taxRate))}` +
                 (executionsWithKnownCost.length === executionReportJson.promptExecutions.length
                     ? ''
                     : ` *(Some cost is unknown)*`) +
@@ -130,6 +129,7 @@ export function executionReportJsonToString(
                 valueHeader: 'Timeline',
                 items: timingItems,
                 width: chartsWidth,
+                unitName: 'seconds',
             });
 
         executionReportString +=
@@ -141,6 +141,7 @@ export function executionReportJsonToString(
                 valueHeader: 'Cost',
                 items: costItems,
                 width: chartsWidth,
+                unitName: 'USD',
             });
     } else {
         headerList.push(`TOTAL COST $0 *(Nothing executed)*`);
@@ -162,7 +163,7 @@ export function executionReportJsonToString(
 
         if (typeof promptExecution.result?.usage?.price === 'number') {
             templateList.push(
-                `COST $${promptExecution.result.usage.price * (1 + taxRate)}` +
+                `COST $${formatNumber(promptExecution.result.usage.price * (1 + taxRate))}` +
                     (taxRate !== 0 ? ` *(with tax ${taxRate * 100} %)*` : ''),
             );
         } else {

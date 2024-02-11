@@ -16,6 +16,7 @@ describe('how createMarkdownChart works', () => {
                     { title: 'Template 5', from: 11, to: 12 },
                 ],
                 width: 12,
+                unitName: 'seconds',
             }),
         ).toBe(
             spaceTrim(`
@@ -26,6 +27,8 @@ describe('how createMarkdownChart works', () => {
                 | Template 3 | ░░░██████░░░ |
                 | Template 4 | ░░░░░░█████░ |
                 | Template 5 | ░░░░░░░░░░░█ |
+
+                _Note: Each █ represents 1 seconds, full timeline is 12 seconds_
             `),
         );
     });
@@ -41,6 +44,7 @@ describe('how createMarkdownChart works', () => {
                     { title: 'Template 3', from: 3.3, to: 8.7 },
                 ],
                 width: 4,
+                unitName: 'seconds',
             }),
         ).toBe(
             spaceTrim(`
@@ -49,6 +53,8 @@ describe('how createMarkdownChart works', () => {
               | Template 1 | ████     |
               | Template 2 | ░░░░     |
               | Template 3 | ░░██     |
+
+              _Note: Each █ represents 2.55 seconds, full timeline is 10.2 seconds_
 
           `),
         );

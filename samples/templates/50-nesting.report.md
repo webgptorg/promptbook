@@ -8,7 +8,7 @@ How block are nested in the promptbook
 -   COMPLETED AT 2024-02-11 15:55:03
 -   TOTAL DURATION 8 seconds
 -   TOTAL NATURAL DURATION 8 seconds
--   TOTAL COST $0.0008265000000000001
+-   TOTAL COST $0.000827
 
 ## 🗃 Index
 
@@ -24,6 +24,8 @@ How block are nested in the promptbook
 | Sentence        | ░░░███░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ |
 | Make a document | ░░░░░░██████████████████████████████ |
 
+_Note: Each █ represents 0.216 seconds, full timeline is 7.78 seconds_
+
 ## 💸 Cost chart
 
 | Template        | Cost                                 |
@@ -31,6 +33,8 @@ How block are nested in the promptbook
 | Synonym         | █░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ |
 | Sentence        | ███░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ |
 | Make a document | ████████████████████████████████████ |
+
+_Note: Each █ represents 0.0000205 USD, full cost is 0.000738 USD_
 
 ## 💬 Synonym
 
@@ -52,7 +56,7 @@ kitty
 ## 💬 Sentence
 
 -   DURATION a few seconds
--   COST $0.00006500000000000001
+-   COST $0.000065
 
 ### Prompt
 
