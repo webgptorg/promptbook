@@ -75,12 +75,12 @@ describe('createPtpExecutor + executing scripts in ptp', () => {
                 new Error(
                     spaceTrim(`
                         Parameter {thing} is not defined
-                                                        
+                        
                         This happen during evaluation of the javascript, which has access to the following parameters as javascript variables:
                         
-                              
+                        
                         The script is:
-                          
+                        
                         return thing.split('a').join('b')
                   `),
                 ),
