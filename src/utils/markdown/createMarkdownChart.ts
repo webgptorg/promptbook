@@ -8,7 +8,7 @@ type CreateMarkdownChartOptions = {
     valueHeader: string;
     items: FromtoItems;
     width: number;
-    // TODO: !!!! Annotate
+    // TODO: !!!! Annotate all
 };
 
 /**

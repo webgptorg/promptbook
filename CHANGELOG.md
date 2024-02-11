@@ -80,8 +80,8 @@ Better execution report in markdown format
 Better execution reports
 
 -   Filter out voids in `executionReportJsonToString`
--   Add timing information to `ExecutionReportJson`
--   Add money cost information to `ExecutionReportJson`
+-   Add timing information to `ExecutionReportJson` _(In both text and chart format)_
+-   Add money cost information to `ExecutionReportJson` _(In both text and chart format)_
 -   Escape code blocks in markdown
 -   Do not export `replaceParameters` utility function
 

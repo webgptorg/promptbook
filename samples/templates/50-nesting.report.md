@@ -12,9 +12,9 @@ How block are nested in the promptbook
 
 ## 🗃 Prompt templates
 
--   [💬 Synonym](#💬 Synonym)
--   [💬 Sentence](#💬 Sentence)
--   [Make a document](#Make a document)
+-   [💬 Synonym](#synonym)
+-   [💬 Sentence](#sentence)
+-   [Make a document](#make-a-document)
 
 ## ⌚ Time chart
 
