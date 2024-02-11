@@ -11,6 +11,7 @@ import { PromptTemplatePipelineJson } from '../types/PromptTemplatePipelineJson/
 import { PromptTemplatePipelineString } from '../types/PromptTemplatePipelineString';
 import { SUPPORTED_SCRIPT_LANGUAGES, ScriptLanguage } from '../types/ScriptLanguage';
 import { extractParameters } from '../utils/extractParameters';
+import { extractVariables } from '../utils/extractVariables';
 import { countMarkdownStructureDeepness } from '../utils/markdown-json/countMarkdownStructureDeepness';
 import { markdownToMarkdownStructure } from '../utils/markdown-json/markdownToMarkdownStructure';
 import { extractAllListItemsFromMarkdown } from '../utils/markdown/extractAllListItemsFromMarkdown';
@@ -155,7 +156,7 @@ export function promptTemplatePipelineStringToJson(
 
         const templateModelRequirements: Writable<ModelRequirements> = { ...defaultModelRequirements };
         const listItems = extractAllListItemsFromMarkdown(section.content);
-        const dependentParameterNames: PromptTemplateJson['dependentParameterNames'] = [];
+        let dependentParameterNames: PromptTemplateJson['dependentParameterNames'] = [];
         let executionType: ExecutionType = 'PROMPT_TEMPLATE';
         let jokers: PromptTemplateJson['jokers'] = [];
         let postprocessing: PromptTemplateJson['postprocessing'] = [];
@@ -312,6 +313,14 @@ export function promptTemplatePipelineStringToJson(
         ]) {
             dependentParameterNames.push(parameterName);
         }
+
+        if (executionType === 'SCRIPT') {
+            for (const parameterName of extractVariables(content)) {
+                dependentParameterNames.push(parameterName);
+            }
+        }
+
+        dependentParameterNames = [...new Set(dependentParameterNames)];
 
         ptbJson.promptTemplates.push({
             name: normalizeTo_PascalCase(section.title),

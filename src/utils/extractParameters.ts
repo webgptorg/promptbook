@@ -5,6 +5,8 @@ import { string_name, string_template } from '../types/typeAliases';
  *
  * @param template the template with parameters in {curly} braces
  * @returns the list of parameter names
+ * 
+ * @private within the library
  */
 
 export function extractParameters(template: string_template): Array<string_name> {

@@ -83,6 +83,8 @@ Better execution reports
 -   Add timing information to `ExecutionReportJson` <-[🎡]
 -   Add money cost information to `ExecutionReportJson` <-[🎡]
 -   Escape code blocks in markdown
+-   Do not export `replaceParameters` utility function
+
 
 ## 0.32.0 _(2024-02-XX)_
 

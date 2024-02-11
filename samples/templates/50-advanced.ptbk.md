@@ -30,7 +30,7 @@ Write synonym for "{word}"
 -   EXECUTE SCRIPT
 
 ```javascript
-if (wordSynonym === word) {
+if (word !== '' && wordSynonym === word) {
     throw new Error(`Synonym returned from LLM is same as original word "${word}"`);
 }
 

@@ -67,7 +67,8 @@
             "name": "TestThatWordIsNotOriginalWord",
             "title": "⚙ Test that word is not original word",
             "dependentParameterNames": [
-                "word"
+                "word",
+                "wordSynonym"
             ],
             "executionType": "SCRIPT",
             "modelRequirements": {
@@ -75,7 +76,7 @@
                 "modelName": "gpt-3.5-turbo"
             },
             "contentLanguage": "javascript",
-            "content": "if (wordSynonym === word) {\n    throw new Error(`Synonym returned from LLM is same as original word \"${word}\"`);\n}\n\nreturn wordSynonym;",
+            "content": "if (word !== '' && wordSynonym === word) {\n    throw new Error(`Synonym returned from LLM is same as original word \"${word}\"`);\n}\n\nreturn wordSynonym;",
             "resultingParameterName": "wordSynonymTested"
         },
         {
@@ -109,9 +110,7 @@
             "description": "Sentence \"{sentenceWithTwoSynonyms}\" without \"{word}\".",
             "dependentParameterNames": [
                 "sentenceWithTwoSynonyms",
-                "word",
-                "word",
-                "sentenceWithTwoSynonyms"
+                "word"
             ],
             "executionType": "PROMPT_TEMPLATE",
             "expectAmount": {
@@ -135,8 +134,6 @@
             "title": "💬 Comparison",
             "description": "Comparison between \"{sentenceWithTwoSynonyms}\" and \"{sentenceWithOriginalWordRemoved}\".",
             "dependentParameterNames": [
-                "sentenceWithTwoSynonyms",
-                "sentenceWithOriginalWordRemoved",
                 "sentenceWithTwoSynonyms",
                 "sentenceWithOriginalWordRemoved"
             ],
