@@ -26,12 +26,12 @@ export function runRemoteServer(options: RemoteServerOptions) {
 
         response.write(
             spaceTrim(`
-                📖 Server for processing PromptBook requests is running
+                Server for processing PromptBook requests is running
 
                 For more information look at:
                 https://github.com/webgptorg/promptbook
 
-            `),
+            `), // <- !!!! Put here version from package.json
         );
         response.end();
     });
