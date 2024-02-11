@@ -4,5 +4,190 @@
     "ptbkUsedVersion": "0.1.0",
     "ptbkRequestedVersion": "1.0.0",
     "description": "Trying the language capabilities of GPT models.",
-    "promptExecutions": []
+    "promptExecutions": [
+        {
+            "prompt": {
+                "title": "💬 Synonym",
+                "content": "Write synonym for \"cat\"",
+                "modelRequirements": {
+                    "modelVariant": "CHAT",
+                    "modelName": "gpt-3.5-turbo"
+                }
+            },
+            "result": {
+                "content": "feline",
+                "model": "gpt-3.5-turbo",
+                "timing": {
+                    "start": "2024-02-11T14:32:35.830Z",
+                    "complete": "2024-02-11T14:32:36.504Z"
+                },
+                "usage": {
+                    "price": "UNKNOWN",
+                    "inputTokens": 13,
+                    "outputTokens": 2
+                },
+                "rawResponse": {
+                    "id": "chatcmpl-8r5AiDXcl0G5q7A0mBm3OJlFQLAMn",
+                    "object": "chat.completion",
+                    "created": 1707661956,
+                    "model": "gpt-3.5-turbo-0613",
+                    "choices": [
+                        {
+                            "index": 0,
+                            "message": {
+                                "role": "assistant",
+                                "content": "feline"
+                            },
+                            "logprobs": null,
+                            "finish_reason": "stop"
+                        }
+                    ],
+                    "usage": {
+                        "prompt_tokens": 13,
+                        "completion_tokens": 2,
+                        "total_tokens": 15
+                    },
+                    "system_fingerprint": null
+                }
+            }
+        },
+        {
+            "prompt": {
+                "title": "💬 Sentence with Synonym",
+                "content": "Write sentence with \"cat\" and \"feline\" in it",
+                "modelRequirements": {
+                    "modelVariant": "CHAT",
+                    "modelName": "gpt-3.5-turbo"
+                }
+            },
+            "result": {
+                "content": "The cat gracefully prowled through the room, showcasing its innate feline elegance.",
+                "model": "gpt-3.5-turbo",
+                "timing": {
+                    "start": "2024-02-11T14:32:36.522Z",
+                    "complete": "2024-02-11T14:32:37.120Z"
+                },
+                "usage": {
+                    "price": "UNKNOWN",
+                    "inputTokens": 20,
+                    "outputTokens": 16
+                },
+                "rawResponse": {
+                    "id": "chatcmpl-8r5AjaVnNhM8OU0tcWyymDQgpp7yJ",
+                    "object": "chat.completion",
+                    "created": 1707661957,
+                    "model": "gpt-3.5-turbo-0613",
+                    "choices": [
+                        {
+                            "index": 0,
+                            "message": {
+                                "role": "assistant",
+                                "content": "The cat gracefully prowled through the room, showcasing its innate feline elegance."
+                            },
+                            "logprobs": null,
+                            "finish_reason": "stop"
+                        }
+                    ],
+                    "usage": {
+                        "prompt_tokens": 20,
+                        "completion_tokens": 16,
+                        "total_tokens": 36
+                    },
+                    "system_fingerprint": null
+                }
+            }
+        },
+        {
+            "prompt": {
+                "title": "💬 Sentence without original word",
+                "content": "Remove word \"cat\" from sentence and modify it so that it makes sense:\n\n## Rules:\n\n-   Sentence must be grammatically correct\n-   Sentence must make sense after removing the word\n\n## The Sentence:\n\n> The cat gracefully prowled through the room, showcasing its innate feline elegance.",
+                "modelRequirements": {
+                    "modelVariant": "CHAT",
+                    "modelName": "gpt-3.5-turbo"
+                }
+            },
+            "result": {
+                "content": "The gracefully prowled through the room, showcasing its innate feline elegance.",
+                "model": "gpt-3.5-turbo",
+                "timing": {
+                    "start": "2024-02-11T14:32:37.128Z",
+                    "complete": "2024-02-11T14:32:38.178Z"
+                },
+                "usage": {
+                    "price": "UNKNOWN",
+                    "inputTokens": 67,
+                    "outputTokens": 15
+                },
+                "rawResponse": {
+                    "id": "chatcmpl-8r5Ak4d96EgOO8H0BZoYY0ff9XiyQ",
+                    "object": "chat.completion",
+                    "created": 1707661958,
+                    "model": "gpt-3.5-turbo-0613",
+                    "choices": [
+                        {
+                            "index": 0,
+                            "message": {
+                                "role": "assistant",
+                                "content": "The gracefully prowled through the room, showcasing its innate feline elegance."
+                            },
+                            "logprobs": null,
+                            "finish_reason": "stop"
+                        }
+                    ],
+                    "usage": {
+                        "prompt_tokens": 67,
+                        "completion_tokens": 15,
+                        "total_tokens": 82
+                    },
+                    "system_fingerprint": null
+                }
+            }
+        },
+        {
+            "prompt": {
+                "title": "💬 Comparison",
+                "content": "Compare meaning of thee two sentences:\n\n## Sentence 1:\n\n> The cat gracefully prowled through the room, showcasing its innate feline elegance.\n\n## Sentence 2:\n\n> The gracefully prowled through the room, showcasing its innate feline elegance.",
+                "modelRequirements": {
+                    "modelVariant": "CHAT",
+                    "modelName": "gpt-4"
+                }
+            },
+            "result": {
+                "content": "Sentence 1 depicts a scenario where a cat is walking through a room in a graceful and elegant manner, reflecting its inherent qualities typically associated with felines.\n\nSentence 2 appears to have a missing subject as \"The\" requires specification. It seems the sentence is trying to depict a similar scenario as Sentence 1 but the omission of \"cat\" yields it incomprehensible as is.",
+                "model": "gpt-4",
+                "timing": {
+                    "start": "2024-02-11T14:32:38.184Z",
+                    "complete": "2024-02-11T14:32:43.877Z"
+                },
+                "usage": {
+                    "price": "UNKNOWN",
+                    "inputTokens": 57,
+                    "outputTokens": 77
+                },
+                "rawResponse": {
+                    "id": "chatcmpl-8r5Ak0lor96RXC7mcOVMq0L3pGE5H",
+                    "object": "chat.completion",
+                    "created": 1707661958,
+                    "model": "gpt-4-0613",
+                    "choices": [
+                        {
+                            "index": 0,
+                            "message": {
+                                "role": "assistant",
+                                "content": "Sentence 1 depicts a scenario where a cat is walking through a room in a graceful and elegant manner, reflecting its inherent qualities typically associated with felines.\n\nSentence 2 appears to have a missing subject as \"The\" requires specification. It seems the sentence is trying to depict a similar scenario as Sentence 1 but the omission of \"cat\" yields it incomprehensible as is."
+                            },
+                            "logprobs": null,
+                            "finish_reason": "stop"
+                        }
+                    ],
+                    "usage": {
+                        "prompt_tokens": 57,
+                        "completion_tokens": 77,
+                        "total_tokens": 134
+                    },
+                    "system_fingerprint": null
+                }
+            }
+        }
+    ]
 }
