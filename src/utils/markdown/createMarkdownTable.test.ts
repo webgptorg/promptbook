@@ -1,49 +1,68 @@
 import { describe, expect, it } from '@jest/globals';
 import spaceTrim from 'spacetrim';
-import { just } from '../just';
-import { string_markdown, string_markdown_text } from '../../types/typeAliases';
+import { createMarkdownTable } from './createMarkdownTable';
 
 describe('how createMarkdownTable works', () => {
-    it('should work with foo', () => {
-        expect(
-            createMarkdownTable(
-                spaceTrim(`
-                    Foo
-        
-                    Bar
-        
-                    Baz
-                `),
-            ),
-        ).toBe(
-            just(
-                spaceTrim(`
-                    Foo
-        
-                    Bar
-        
-                    Baz
-                `),
-            ),
+    it('should work with 0x0 table', () => {
+        expect(createMarkdownTable([])).toBe(
+            spaceTrim(`
+
+            `),
         );
     });
 
-    it('should NOT work with bar', () => {
+    it('should work with 1x1 table', () => {
+        expect(createMarkdownTable([[`Foo`]])).toBe(
+            spaceTrim(`
+                | Foo |
+            `),
+        );
+    });
+
+    it('should work with 1x2 table', () => {
+        expect(createMarkdownTable([[`Foo`, `Bar`]])).toBe(
+            spaceTrim(`
+                | Foo | Bar |
+            `),
+        );
+    });
+
+    it('should work with 2x1 table', () => {
+        expect(createMarkdownTable([[`Foo`], [`Bar`]])).toBe(
+            spaceTrim(`
+                | Foo |
+                | Bar |
+            `),
+        );
+    });
+
+    it('should work with 2x2 table', () => {
         expect(
-            createMarkdownTable(
-                spaceTrim(`
-                    bar
-                `),
-            ),
-        ).toBe(false);
+            createMarkdownTable([
+                [`Foo`, `Bar`],
+                [`Baz`, `Qux`],
+            ]),
+        ).toBe(
+            spaceTrim(`
+                | Foo | Bar |
+                | Baz | Qux |
+            `),
+        );
+    });
+
+    it('should work with 3x3 table', () => {
+        expect(
+            createMarkdownTable([
+                [`Foo`, `Bar`, `Baz`],
+                [`Qux`, `Quux`, `Corge`],
+                [`Grault`, `Garply`, `Waldo`],
+            ]),
+        ).toBe(
+            spaceTrim(`
+                | Foo    | Bar    | Baz   |
+                | Qux    | Quux   | Corge |
+                | Grault | Garply | Waldo |
+            `),
+        );
     });
 });
-
-/**
- * Function createMarkdownTable will @@@
- *
- * @private within the library
- */
-export function createMarkdownTable(table: Array<Array<string_markdown_text>>): string_markdown {
-    return value === 'Foo';
-}
