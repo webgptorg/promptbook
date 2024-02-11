@@ -12,10 +12,10 @@ Trying the language capabilities of GPT models.
 
 ## 🗃 Prompt templates
 
--   [💬 Synonym](#synonym)
--   [💬 Sentence with Synonym](#sentence-with-synonym)
--   [💬 Sentence without original word](#sentence-without-original-word)
--   [💬 Comparison](#comparison)
+-   [💬 Synonym](#-synonym)
+-   [💬 Sentence with Synonym](#-sentence-with-synonym)
+-   [💬 Sentence without original word](#-sentence-without-original-word)
+-   [💬 Comparison](#-comparison)
 
 ## ⌚ Time chart
 

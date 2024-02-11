@@ -6,7 +6,6 @@ import { just } from '../../utils/just';
 import { createMarkdownChart } from '../../utils/markdown/createMarkdownChart';
 import { escapeMarkdownBlock } from '../../utils/markdown/escapeMarkdownBlock';
 import { prettifyMarkdown } from '../../utils/markdown/prettifyMarkdown';
-import { removeEmojis } from '../../utils/removeEmojis';
 import { number_usd } from '../typeAliases';
 import type { ExecutionReportJson } from './ExecutionReportJson';
 import type { ExecutionReportString } from './ExecutionReportString';
@@ -109,14 +108,17 @@ export function executionReportJsonToString(
             '## 🗃 Prompt templates' +
             '\n\n' +
             executionReportJson.promptExecutions
-                .map(
-                    (promptExecution) =>
-                        `- [${promptExecution.prompt.title}](#${
-                            normalizeToKebabCase(
-                                removeEmojis(promptExecution.prompt.title),
-                            ) /* <- TODO: !!! Make link work in md + pdf */
-                        })`,
-                )
+                .map((promptExecution) => {
+                    // TODO: Make some better system to convert hedings to links
+                    let hash = normalizeToKebabCase(promptExecution.prompt.title);
+                    if (/^\s*\p{Emoji}/u.test(promptExecution.prompt.title)) {
+                        hash = '-' + hash;
+                    }
+
+                    // TODO: !!! Make hash link work in md + pdf
+
+                    return `- [${promptExecution.prompt.title}](#${hash})`;
+                })
                 .join('\n');
 
         executionReportString +=
