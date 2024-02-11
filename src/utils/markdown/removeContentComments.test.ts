@@ -1,11 +1,11 @@
 import { describe, expect, it } from '@jest/globals';
 import spaceTrim from 'spacetrim';
-import { removeVoids } from './removeVoids.ts.todo';
+import { removeComtentComments } from './removeComtentComments';
 
-describe('removeVoids', () => {
+describe('removeComtentComments', () => {
     it('should remove comments from simple text', () => {
         expect(
-            removeVoids(
+            removeComtentComments(
                 spaceTrim(`
                     <!-- This is an comment -->
                     Hello World
@@ -20,7 +20,7 @@ describe('removeVoids', () => {
 
     it('should remove comments from html', () => {
         expect(
-            removeVoids(
+            removeComtentComments(
                 spaceTrim(`
                     <!-- This is an HTML comment -->
                     <h1>Hello World</h1>
@@ -34,7 +34,7 @@ describe('removeVoids', () => {
             `),
         );
         expect(
-            removeVoids(
+            removeComtentComments(
                 spaceTrim(`
                     <h1>Hello World</h1>
                     <!-- This is an HTML comment -->
@@ -52,7 +52,7 @@ describe('removeVoids', () => {
 
     it('should remove comments from markdown', () => {
         expect(
-            removeVoids(
+            removeComtentComments(
                 spaceTrim(`
                     <!-- This is an markdown comment -->
                     # Hello World
@@ -68,7 +68,7 @@ describe('removeVoids', () => {
             `),
         );
         expect(
-            removeVoids(
+            removeComtentComments(
                 spaceTrim(`
 
                     # Hello World
@@ -87,7 +87,7 @@ describe('removeVoids', () => {
 
     it('should not be confisused with comment content', () => {
         expect(
-            removeVoids(
+            removeComtentComments(
                 spaceTrim(`
                     <!-- This <!--is an HTML -> comment -->
                     Hello World
@@ -102,7 +102,7 @@ describe('removeVoids', () => {
 
     it('should remove multiple comments from simple text', () => {
         expect(
-            removeVoids(
+            removeComtentComments(
                 spaceTrim(`
                     <!-- This is an comment -->
                     Hello <!-- Flat -->World
@@ -119,7 +119,7 @@ describe('removeVoids', () => {
 
     it('should remove multiline comments from simple text', () => {
         expect(
-            removeVoids(
+            removeComtentComments(
                 spaceTrim(`
                     <!--
                     This is an comment
