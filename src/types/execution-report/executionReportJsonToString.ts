@@ -6,20 +6,19 @@ import { prettifyMarkdown } from '../../utils/markdown/prettifyMarkdown';
 import { number_usd } from '../typeAliases';
 import type { ExecutionReportJson } from './ExecutionReportJson';
 import type { ExecutionReportString } from './ExecutionReportString';
-
-/**
- * The thresholds for the relative time in the `moment` library.
- *
- * @see https://momentjscom.readthedocs.io/en/latest/moment/07-customization/13-relative-time-threshold/
- */
-const MOMENT_ARG_THRESHOLDS = {
-    ss: 3, // <- least number of seconds to be counted in seconds, minus 1. Must be set after setting the `s` unit or without setting the `s` unit.
-} as const;
+import type { ExecutionReportStringOptions } from './ExecutionReportStringOptions';
+import { ExecutionReportStringOptionsDefaults } from './ExecutionReportStringOptions';
+import { MOMENT_ARG_THRESHOLDS } from './config';
 
 /**
  * Converts execution report from JSON to string format
  */
-export function executionReportJsonToString(executionReportJson: ExecutionReportJson): ExecutionReportString {
+export function executionReportJsonToString(
+    executionReportJson: ExecutionReportJson,
+    options?: Partial<ExecutionReportStringOptions>,
+): ExecutionReportString {
+    const { taxRate } = { ...ExecutionReportStringOptionsDefaults, ...(options || {}) };
+
     let executionReportString = spaceTrim(
         (block) => `
             # ${executionReportJson.title || 'Execution report'}
@@ -63,25 +62,31 @@ export function executionReportJsonToString(executionReportJson: ExecutionReport
         const executionsWithKnownCost = executionReportJson.promptExecutions.filter(
             (promptExecution) => (promptExecution.result?.usage?.price || 'UNKNOWN') !== 'UNKNOWN',
         );
-        const cost: number_usd = executionsWithKnownCost.reduce(
-            (cost, promptExecution) => cost + ((promptExecution.result!.usage.price! as number) || 0),
-            0,
-        );
+        const cost: number_usd =
+            executionsWithKnownCost.reduce(
+                (cost, promptExecution) => cost + ((promptExecution.result!.usage.price! as number) || 0),
+                0,
+            ) *
+            (1 + taxRate);
 
         headerList.push(`STARTED AT ${moment(startedAt).format(`YYYY-MM-DD HH:mm:ss`)}`);
         headerList.push(`COMPLETED AT ${moment(completedAt).format(`YYYY-MM-DD HH:mm:ss`)}`);
         headerList.push(`TOTAL DURATION ${duration.humanize(MOMENT_ARG_THRESHOLDS)}`);
+        // !!!! total natural execution time | Use countWorkingDuration
         headerList.push(
             `TOTAL COST $${cost}` +
                 (executionsWithKnownCost.length === executionReportJson.promptExecutions.length
                     ? ''
-                    : ` *(Some cost is unknown)*`),
+                    : ` *(Some cost is unknown)*`) +
+                (taxRate !== 0 ? ` *(with tax ${taxRate * 100} %)*` : ''),
         );
     } else {
         headerList.push(`TOTAL COST $0 *(Nothing executed)*`);
     }
 
     executionReportString += '\n\n' + headerList.map((header) => `- ${header}`).join('\n');
+
+    // TODO: !!!! report table of content
 
     // TODO: [🧠] Add the timing table or visialization:
     // Template 1 | 🟦🟦🟦🟦🟦🟦🟦🟦🟦⬛⬛⬛
@@ -108,8 +113,11 @@ export function executionReportJsonToString(executionReportJson: ExecutionReport
         // > templateList.push(`STARTED AT ${moment(startedAt).calendar()}`);
         templateList.push(`DURATION ${duration.humanize(MOMENT_ARG_THRESHOLDS)}`);
 
-        if (promptExecution.result?.usage?.price) {
-            templateList.push(`COST $${promptExecution.result?.usage?.price}`);
+        if (typeof promptExecution.result?.usage?.price === 'number') {
+            templateList.push(
+                `COST $${promptExecution.result.usage.price * (1 + taxRate)}` +
+                    (taxRate !== 0 ? ` *(with tax ${taxRate * 100} %)*` : ''),
+            );
         } else {
             templateList.push(`COST UNKNOWN`);
         }
