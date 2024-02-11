@@ -30,11 +30,12 @@
       "body": [
           "import { describe, expect, it } from '@jest/globals';",
           "import spaceTrim from 'spacetrim';",
+          "import { just } from '../just';",
           "",
           "describe('how $1 works', () => {",
           "    it('should work with foo', () => {",
           "        expect(",
-          "            escapeMarkdownBlock(",
+          "            $1(",
           "                spaceTrim(`",
           "                    Foo",
           "        ",
@@ -68,8 +69,10 @@
           "});",
           "",
           "/**",
-          "* Function $1 will @@@",
-          "*/"
+          " * Function $1 will @@@",
+          " *",
+          " * @private within the library",
+          " */"
           "export function $1(value: string): boolean {",
           "    return value === 'Foo';",
           "}",
