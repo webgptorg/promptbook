@@ -11,7 +11,7 @@ import type { ExecutionReportString } from './ExecutionReportString';
 import type { ExecutionReportStringOptions } from './ExecutionReportStringOptions';
 import { ExecutionReportStringOptionsDefaults } from './ExecutionReportStringOptions';
 import { MOMENT_ARG_THRESHOLDS } from './config';
-import { countWorkingDuration } from './countWorkingDuration.test';
+import { countWorkingDuration } from './countWorkingDuration';
 
 /**
  * Converts execution report from JSON to string format
