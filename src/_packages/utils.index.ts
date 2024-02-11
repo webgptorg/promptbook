@@ -25,6 +25,8 @@ export {
     CountUtils,
     EMOJIS,
     EMOJIS_IN_CATEGORIES,
+    ExecutionReportStringOptions,
+    ExecutionReportStringOptionsDefaults,
     assertsExecutionSuccessful,
     countCharacters,
     countLines,

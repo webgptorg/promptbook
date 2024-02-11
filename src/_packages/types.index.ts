@@ -126,6 +126,7 @@ export {
     ExecutionType,
     ExpectationAmount,
     ExpectationUnit,
+    FromToItems,
     ILicense,
     IPersonProfile,
     IRepository,

@@ -1,20 +1,18 @@
-import { number_percent } from "../typeAliases";
+import { number_percent } from '../typeAliases';
 
 export type ExecutionReportStringOptions = {
-  // Add properties
+    // Add properties
 
-  taxRate: number_percent;
-}
+    taxRate: number_percent;
+};
 
 export const ExecutionReportStringOptionsDefaults = {
-  // Add properties
+    // Add properties
 
-  taxRate: 0.2,
-
+    taxRate: 0,
 } satisfies ExecutionReportStringOptions;
 
-
 /**
- * 
+ *
  * !!! Annotate
  */
