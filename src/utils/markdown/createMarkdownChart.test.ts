@@ -28,7 +28,7 @@ describe('how createMarkdownChart works', () => {
                 | Template 4 | ░░░░░░█████░ |
                 | Template 5 | ░░░░░░░░░░░█ |
 
-                _Note: Each █ represents 1 seconds, full timeline is 12 seconds_
+                _Note: Each █ represents 1 seconds, width of timeline is 12 seconds = 12 squares_
             `),
         );
     });
@@ -54,7 +54,7 @@ describe('how createMarkdownChart works', () => {
               | Template 2 | ░░░░     |
               | Template 3 | ░░██     |
 
-              _Note: Each █ represents 2.55 seconds, full timeline is 10.2 seconds_
+              _Note: Each █ represents 2.55 seconds, width of timeline is 10.2 seconds = 4 squares_
 
           `),
         );

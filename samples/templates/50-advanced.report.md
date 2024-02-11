@@ -26,7 +26,7 @@ Trying the language capabilities of GPT models.
 | Sentence without original word | ░░░░░░███░░░░░░░░░░░░░░░░░░░░░░░░░░░ |
 | Comparison                     | ░░░░░░░░░███████████████████████████ |
 
-_Note: Each █ represents 0.295 seconds, full timeline is 10.61 seconds_
+_Note: Each █ represents 0.295 seconds, width of timeline is 10.61 seconds = 36 squares_
 
 ## 💸 Cost chart
 
@@ -37,7 +37,7 @@ _Note: Each █ represents 0.295 seconds, full timeline is 10.61 seconds_
 | Sentence without original word | █░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ |
 | Comparison                     | ████████████████████████████████████ |
 
-_Note: Each █ represents 0.000117 USD, full cost is 0.00421 USD_
+_Note: Each █ represents 0.000117 USD, width of cost is 0.00421 USD = 36 squares_
 
 ## 💬 Synonym
 

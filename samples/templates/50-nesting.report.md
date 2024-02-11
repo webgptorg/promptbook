@@ -24,7 +24,7 @@ How block are nested in the promptbook
 | Sentence        | ░░░███░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ |
 | Make a document | ░░░░░░██████████████████████████████ |
 
-_Note: Each █ represents 0.216 seconds, full timeline is 7.78 seconds_
+_Note: Each █ represents 0.216 seconds, width of timeline is 7.78 seconds = 36 squares_
 
 ## 💸 Cost chart
 
@@ -34,7 +34,7 @@ _Note: Each █ represents 0.216 seconds, full timeline is 7.78 seconds_
 | Sentence        | ███░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ |
 | Make a document | ████████████████████████████████████ |
 
-_Note: Each █ represents 0.0000205 USD, full cost is 0.000738 USD_
+_Note: Each █ represents 0.0000205 USD, width of cost is 0.000738 USD = 36 squares_
 
 ## 💬 Synonym
 

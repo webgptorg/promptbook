@@ -38,7 +38,9 @@ export function createMarkdownChart(options: CreateMarkdownChartOptions): string
 
     const legend = `_Note: Each █ represents ${formatNumber(
         1 / scale,
-    )} ${unitName}, full ${valueHeader.toLowerCase()} is ${formatNumber(to - from)} ${unitName}_`;
+    )} ${unitName}, width of ${valueHeader.toLowerCase()} is ${formatNumber(
+        to - from,
+    )} ${unitName} = ${width} squares_`;
 
     return createMarkdownTable(table) + '\n\n' + legend;
 }
