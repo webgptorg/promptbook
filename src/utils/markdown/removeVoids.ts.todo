@@ -12,3 +12,5 @@ import { string_markdown } from '../../types/typeAliases';
 export function removeVoids(content: string_markdown): string_markdown {
     return spaceTrim(content.replace(/<!--(.*?)-->/gs, '')) as TContent;
 }
+
+// TODO: !!!! Remove or use

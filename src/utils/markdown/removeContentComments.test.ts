@@ -1,6 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
 import spaceTrim from 'spacetrim';
-import { removeVoids } from './removeVoids';
+import { removeVoids } from './removeVoids.ts.todo';
 
 describe('removeVoids', () => {
     it('should remove comments from simple text', () => {
