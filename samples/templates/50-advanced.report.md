@@ -7,7 +7,29 @@ Trying the language capabilities of GPT models.
 -   STARTED AT 2024-02-11 15:54:07
 -   COMPLETED AT 2024-02-11 15:54:18
 -   TOTAL DURATION 11 seconds
+-   TOTAL NATURAL DURATION 11 seconds
 -   TOTAL COST $0.0044865
+
+## 🗃 Prompt templates
+
+-   [💬 Synonym](#💬 Synonym)
+-   [💬 Sentence with Synonym](#💬 Sentence with Synonym)
+-   [💬 Sentence without original word](#💬 Sentence without original word)
+-   [💬 Comparison](#💬 Comparison)
+
+## ⌚ Time chart
+
+| 💬 Synonym | 🟦⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛ |
+| 💬 Sentence with Synonym | ⬛🟦⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛ |
+| 💬 Sentence without original word | ⬛⬛🟦⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛ |
+| 💬 Comparison | ⬛⬛⬛🟦🟦🟦🟦🟦🟦🟦🟦🟦🟦 |
+
+## 💸 Cost chart
+
+| 💬 Synonym | ⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛ |
+| 💬 Sentence with Synonym | ⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛ |
+| 💬 Sentence without original word | 🟦⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛ |
+| 💬 Comparison | 🟦🟦🟦🟦🟦🟦🟦🟦🟦🟦🟦🟦🟦 |
 
 ## 💬 Synonym
 

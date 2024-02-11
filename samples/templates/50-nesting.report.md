@@ -7,7 +7,26 @@ How block are nested in the promptbook
 -   STARTED AT 2024-02-11 15:54:55
 -   COMPLETED AT 2024-02-11 15:55:03
 -   TOTAL DURATION 8 seconds
+-   TOTAL NATURAL DURATION 8 seconds
 -   TOTAL COST $0.0008265000000000001
+
+## 🗃 Prompt templates
+
+-   [💬 Synonym](#💬 Synonym)
+-   [💬 Sentence](#💬 Sentence)
+-   [Make a document](#Make a document)
+
+## ⌚ Time chart
+
+| 💬 Synonym | 🟦⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛ |
+| 💬 Sentence | ⬛🟦⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛ |
+| Make a document | ⬛⬛🟦🟦🟦🟦🟦🟦🟦🟦🟦🟦🟦 |
+
+## 💸 Cost chart
+
+| 💬 Synonym | ⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛ |
+| 💬 Sentence | 🟦⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛ |
+| Make a document | 🟦🟦🟦🟦🟦🟦🟦🟦🟦🟦🟦🟦🟦 |
 
 ## 💬 Synonym
 
