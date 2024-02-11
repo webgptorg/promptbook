@@ -308,6 +308,8 @@ export function parseCommand(listItem: string_markdown_text): Command {
             type: 'EXPECT_FORMAT',
             format: 'JSON',
         } satisfies ExpectFormatCommand;
+
+        // [🥤]
     } else if (type.startsWith('EXPECT')) {
         try {
             listItemParts.shift();

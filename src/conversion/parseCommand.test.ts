@@ -402,12 +402,14 @@ describe('how parseCommand works', () => {
             amount: 2,
         });
 
+        // TODO: Add page test
+
         expect(parseCommand('Expect JSON')).toEqual({
             type: 'EXPECT_FORMAT',
             format: 'JSON',
         });
 
-        // TODO: Add page test
+        // [🥤] - Test here relative and absolute schema reference
     });
 
     it('should fail parsing POSTPROCESS command', () => {
