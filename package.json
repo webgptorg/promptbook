@@ -40,8 +40,8 @@
         "generate-packages": "ts-node ./scripts/generate-packages/generate-packages.ts --commit",
         "update-version-in-config": "ts-node ./scripts/update-version-in-config/update-version-in-config.ts --commit",
         "use-packages": "ts-node ./scripts/use-packages/use-packages.ts",
-        "preversion": "npm run update-version-in-config && git pull && npm run lint && npm test && tsc",
-        "postversion": "npm run generate-packages && git push && git push --tags && npm run use-packages"
+        "preversion": "git pull && npm run lint && npm test && tsc",
+        "postversion": "npm run update-version-in-config && npm run generate-packages && git push && git push --tags && npm run use-packages"
     },
     "devDependencies": {
         "@rollup/plugin-typescript": "8.3.0",
