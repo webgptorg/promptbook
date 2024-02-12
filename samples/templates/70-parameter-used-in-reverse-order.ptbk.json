@@ -1,6 +1,7 @@
 {
     "title": "✨ Sample of logic error",
-    "ptbkVersion": "0.31.0-10",
+    "ptbkUrl": "https://ptbk.example.com/samples/parameter-used-in-reverse-order.ptbk.md@v1",
+    "ptbkVersion": "1.0.0",
     "description": "Sample of using parameter in reverse order\n\n_Note: This is not recommended but it should work_",
     "parameters": [
         {
