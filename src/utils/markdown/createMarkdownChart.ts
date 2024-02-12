@@ -53,10 +53,20 @@ export function createMarkdownChart(options: CreateMarkdownChartOptions): string
 
     for (const item of items) {
         const before = Math.round((item.from - from) * scale);
-        const during = Math.round((item.to - item.from) * scale);
-        const after = width - before - during;
+        let duringChar = '█';
+        let during = Math.round((item.to - item.from) * scale);
+        let after = width - before - during;
 
-        table.push([removeEmojis(item.title).trim(), '░'.repeat(before) + '█'.repeat(during) + '░'.repeat(after)]);
+        if (during === 0) {
+            duringChar = '▓';
+            during = 1;
+            after = after - 1;
+        }
+
+        table.push([
+            removeEmojis(item.title).trim(),
+            '░'.repeat(before) + duringChar.repeat(during) + '░'.repeat(after),
+        ]);
     }
 
     const legend = `_Note: Each █ represents ${formatNumber(

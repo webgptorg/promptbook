@@ -32,7 +32,7 @@ _Note: Each █ represents 0.295 seconds, width of timeline is 10.61 seconds = 3
 
 | Template                       | Cost                                 |
 | ------------------------------ | ------------------------------------ |
-| Synonym                        | ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ |
+| Synonym                        | ▓░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ |
 | Sentence with Synonym          | █░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ |
 | Sentence without original word | █░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ |
 | Comparison                     | ████████████████████████████████████ |
