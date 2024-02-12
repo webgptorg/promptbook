@@ -34,7 +34,7 @@ export function runRemoteServer(options: RemoteServerOptions) {
                 For more information look at:
                 https://github.com/webgptorg/promptbook
 
-            `), // <- !!!! Put here version from package.json
+            `),
         );
         response.end();
     });
