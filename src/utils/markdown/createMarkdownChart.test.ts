@@ -51,7 +51,7 @@ describe('how createMarkdownChart works', () => {
               | Template   | Timeline |
               |------------|----------|
               | Template 1 | ████     |
-              | Template 2 | ░░░░     |
+              | Template 2 | ░▓░░     |
               | Template 3 | ░░██     |
 
               _Note: Each █ represents 2.55 seconds, width of timeline is 10.2 seconds = 4 squares_
