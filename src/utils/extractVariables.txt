@@ -13,7 +13,6 @@ import { string_javascript, string_name } from '../types/typeAliases';
  *
  * @private within the library
  */
-
 export function extractVariables(script: string_javascript): Array<string_name> {
     const syntaxTree = parse(script, {
         ecmaVersion: 'latest',

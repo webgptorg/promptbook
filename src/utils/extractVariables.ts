@@ -8,7 +8,6 @@ import { string_javascript, string_javascript_name } from '../types/typeAliases'
  *
  * @private within the library
  */
-
 export function extractVariables(script: string_javascript): Array<string_javascript_name> {
     const variables: Array<string_javascript_name> = [];
 
