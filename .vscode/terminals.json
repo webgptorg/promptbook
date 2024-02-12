@@ -75,7 +75,7 @@
             "name": "🏭📦 Generate packages",
             "commands": ["ts-node ./scripts/generate-packages/generate-packages.ts"],
             "execute": false,
-            "onlySingle": false,
+            "onlySingle": true,
             "focus": false
         },
         {
