@@ -1,0 +1,75 @@
+{
+    "title": "✨ Sample of multidimensional itteration",
+    "ptbkVersion": "1.0.0",
+    "description": "Show how to use parameters with multiple values that combines in two nested itterations",
+    "parameters": [
+        {
+            "name": "animals",
+            "type": "string",
+            "isInput": false
+        },
+        {
+            "name": "activities",
+            "type": "string",
+            "isInput": false
+        },
+        {
+            "name": "story",
+            "type": "string",
+            "isInput": false
+        }
+    ],
+    "promptTemplates": [
+        {
+            "name": "ListOfAnimals",
+            "title": "🐄 List of animals",
+            "dependentParameterNames": [],
+            "executionType": "PROMPT_TEMPLATE",
+            "expectAmount": {
+                "words": {
+                    "max": 3
+                }
+            },
+            "modelRequirements": {
+                "modelVariant": "CHAT",
+                "modelName": "gpt-3.5-turbo"
+            },
+            "content": "Write list of 5 animals:",
+            "resultingParameterName": "animals"
+        },
+        {
+            "name": "ListOfActivities",
+            "title": "🏂 List of activities",
+            "dependentParameterNames": [],
+            "executionType": "PROMPT_TEMPLATE",
+            "expectAmount": {
+                "words": {
+                    "max": 5
+                }
+            },
+            "modelRequirements": {
+                "modelVariant": "CHAT",
+                "modelName": "gpt-3.5-turbo"
+            },
+            "content": "Write list of 10 activities which animals can do:",
+            "resultingParameterName": "activities"
+        },
+        {
+            "name": "WriteText",
+            "title": "📄 Write text",
+            "dependentParameterNames": [],
+            "executionType": "SIMPLE_TEMPLATE",
+            "expectAmount": {
+                "paragraphs": {
+                    "min": 5
+                }
+            },
+            "modelRequirements": {
+                "modelVariant": "CHAT",
+                "modelName": "gpt-3.5-turbo"
+            },
+            "content": "{animals[i]} does {activities[j]}",
+            "resultingParameterName": "story"
+        }
+    ]
+}

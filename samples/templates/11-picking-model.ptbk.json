@@ -6,11 +6,13 @@
     "parameters": [
         {
             "name": "word",
+            "type": "string",
             "description": "Any single word",
             "isInput": true
         },
         {
             "name": "poem",
+            "type": "string",
             "isInput": false
         }
     ],

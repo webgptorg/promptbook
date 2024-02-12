@@ -6,29 +6,35 @@
     "parameters": [
         {
             "name": "word",
+            "type": "string",
             "description": "The word to use in the prompt.",
             "isInput": true
         },
         {
             "name": "comparisonOfTwoSentences",
+            "type": "string",
             "description": "Comparison between two sentences",
             "isInput": false
         },
         {
             "name": "summary",
+            "type": "string",
             "description": "The overall summary of the comparison",
             "isInput": false
         },
         {
             "name": "wordSynonym",
+            "type": "string",
             "isInput": false
         },
         {
             "name": "sentence",
+            "type": "string",
             "isInput": false
         },
         {
             "name": "poem",
+            "type": "string",
             "isInput": false
         }
     ],

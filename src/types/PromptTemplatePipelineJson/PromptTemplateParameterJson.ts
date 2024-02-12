@@ -12,6 +12,13 @@ export interface PromptTemplateParameterJson {
     readonly name: string_name;
 
     /**
+     * The type of the parameter
+     *
+     * - 'LIST' means `Array<string>`
+     */
+    readonly type: 'string' | 'list';
+
+    /**
      * The parameter is input of the pipeline
      *
      * Note: OUTPUT PARAMETER is every parameter including input one

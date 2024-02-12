@@ -5,6 +5,7 @@
     "parameters": [
         {
             "name": "greeting",
+            "type": "string",
             "isInput": false
         }
     ],

@@ -425,6 +425,18 @@ You can define postprocessing functions when creating `JavascriptEvalExecutionTo
 
 Additionally there are some usefull string-manipulation build-in functions, which are [listed here](src/execution/plugins/script-execution-tools/javascript/JavascriptEvalExecutionTools.ts).
 
+### Split
+
+Splitting is a special type of postprocessing <!--!!!!-->
+
+### Join
+
+Joining is a special type of postprocessing <!--!!!!-->
+
+### Split-Join pairs
+
+<!--!!!!-->
+
 ### Expectations
 
 `Expect` command describes the desired output of the prompt template (after post-processing)

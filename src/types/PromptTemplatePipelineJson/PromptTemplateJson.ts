@@ -127,6 +127,16 @@ interface PromptTemplateJsonCommon {
     readonly postprocessing?: Array<string_javascript_name>;
 
     /**
+     * Split postprocessing function
+     */
+    readonly split?: string_javascript_name;
+
+    /**
+     * Join postprocessing function
+     */
+    readonly join?: string_javascript_name;
+
+    /**
      * Expect this amount of each unit in the answer
      *
      * For example 5 words, 3 sentences, 2 paragraphs, ...

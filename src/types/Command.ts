@@ -15,6 +15,8 @@ export type Command =
     | JokerCommand
     | ParameterCommand
     | PostprocessCommand
+    | SplitCommand
+    | JoinCommand
     | ExpectCommand;
 
 /**
@@ -82,10 +84,25 @@ export interface ParameterCommand {
 
 /**
  * Postprocess command describes which function to use for postprocessing
- * This will be created as separate EXECUTE SCRIPT block bellow
  */
 export interface PostprocessCommand {
     readonly type: 'POSTPROCESS';
+    readonly functionName: string_name;
+}
+
+/**
+ * Split command describes which function to use for split postprocessing
+ */
+export interface SplitCommand {
+    readonly type: 'SPLIT';
+    readonly functionName: string_name;
+}
+
+/**
+ * Join command describes which function to use for join postprocessing
+ */
+export interface JoinCommand {
+    readonly type: 'JOIN';
     readonly functionName: string_name;
 }
 

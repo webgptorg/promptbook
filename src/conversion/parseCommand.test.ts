@@ -261,6 +261,20 @@ describe('how parseCommand works', () => {
         });
     });
 
+    it('should parse SPLIT command', () => {
+        expect(parseCommand('SPLIT markdownList')).toEqual({
+            type: 'SPLIT',
+            functionName: 'markdownList',
+        });
+    });
+
+    it('should parse JOIN command', () => {
+        expect(parseCommand('JOIN markdownList')).toEqual({
+            type: 'JOIN',
+            functionName: 'markdownList',
+        });
+    });
+
     it('should parse EXPECT command', () => {
         expect(parseCommand('Expect exactly 1 character')).toEqual({
             type: 'EXPECT_AMOUNT',

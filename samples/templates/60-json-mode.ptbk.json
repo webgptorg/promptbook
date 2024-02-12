@@ -6,11 +6,13 @@
     "parameters": [
         {
             "name": "unstructuredContacts",
+            "type": "string",
             "description": "nestrukturovaný seznam kontaktních údajů",
             "isInput": true
         },
         {
             "name": "contactlist",
+            "type": "string",
             "description": "JSON seznam kontaktních údajů",
             "isInput": false
         }

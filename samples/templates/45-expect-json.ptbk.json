@@ -5,11 +5,13 @@
     "parameters": [
         {
             "name": "sentence",
+            "type": "string",
             "description": "Sentence to be processed",
             "isInput": true
         },
         {
             "name": "parsedSentence",
+            "type": "string",
             "isInput": false
         }
     ],

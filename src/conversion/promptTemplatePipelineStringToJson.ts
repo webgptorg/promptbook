@@ -10,6 +10,7 @@ import { PromptTemplateParameterJson } from '../types/PromptTemplatePipelineJson
 import { PromptTemplatePipelineJson } from '../types/PromptTemplatePipelineJson/PromptTemplatePipelineJson';
 import { PromptTemplatePipelineString } from '../types/PromptTemplatePipelineString';
 import { SUPPORTED_SCRIPT_LANGUAGES, ScriptLanguage } from '../types/ScriptLanguage';
+import { string_javascript_name } from '../types/typeAliases';
 import { extractParameters } from '../utils/extractParameters';
 import { extractVariables } from '../utils/extractVariables';
 import { countMarkdownStructureDeepness } from '../utils/markdown-json/countMarkdownStructureDeepness';
@@ -17,8 +18,8 @@ import { markdownToMarkdownStructure } from '../utils/markdown-json/markdownToMa
 import { extractAllListItemsFromMarkdown } from '../utils/markdown/extractAllListItemsFromMarkdown';
 import { extractOneBlockFromMarkdown } from '../utils/markdown/extractOneBlockFromMarkdown';
 import { removeContentComments } from '../utils/markdown/removeContentComments';
-import { parseCommand } from './parseCommand';
 import { PTBK_VERSION } from '../version';
+import { parseCommand } from './parseCommand';
 
 /**
  * Parse prompt template pipeline from string format to JSON format
@@ -86,6 +87,7 @@ export function promptTemplatePipelineStringToJson(
         } else {
             ptbJson.parameters.push({
                 name: parameterName,
+                type: 'string', // <- !!!!
                 description: parameterDescription || undefined,
                 isInput: isInputParameter,
             });
@@ -160,6 +162,8 @@ export function promptTemplatePipelineStringToJson(
         let dependentParameterNames: PromptTemplateJson['dependentParameterNames'] = [];
         let executionType: ExecutionType = 'PROMPT_TEMPLATE';
         let jokers: PromptTemplateJson['jokers'] = [];
+        let split: string_javascript_name | undefined = undefined;
+        let join: string_javascript_name | undefined = undefined;
         let postprocessing: PromptTemplateJson['postprocessing'] = [];
         let expectAmount: PromptTemplateJson['expectAmount'] = {};
         let expectFormat: PromptTemplateJson['expectFormat'] | undefined = undefined;
@@ -194,6 +198,24 @@ export function promptTemplatePipelineStringToJson(
                     break;
                 case 'POSTPROCESS':
                     postprocessing.push(command.functionName);
+                    break;
+
+                case 'SPLIT':
+                    if (split) {
+                        throw new Error(
+                            `Already defined split function ${split}, now trying to redefine it to ${command.functionName}`,
+                        );
+                    }
+                    split = command.functionName;
+                    break;
+
+                case 'JOIN':
+                    if (join) {
+                        throw new Error(
+                            `Already defined join function ${join}, now trying to redefine it to ${command.functionName}`,
+                        );
+                    }
+                    join = command.functionName;
                     break;
 
                 case 'EXPECT_AMOUNT':
@@ -305,6 +327,10 @@ export function promptTemplatePipelineStringToJson(
 
         if (Object.keys(postprocessing).length === 0) {
             postprocessing = undefined;
+        }
+
+        if ([postprocessing, split, join].filter((_) => _ !== undefined).length > 1) {
+            throw new Error(`Only one of postprocessing, split, join can be defined in one template`);
         }
 
         for (const parameterName of [

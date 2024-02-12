@@ -1,0 +1,70 @@
+{
+    "title": "✨ Sample of array parameters",
+    "ptbkVersion": "1.0.0",
+    "description": "Show how to use parameters with multiple values that are processed in parallel",
+    "parameters": [
+        {
+            "name": "animals",
+            "type": "string",
+            "isInput": false
+        },
+        {
+            "name": "sounds",
+            "type": "string",
+            "isInput": false
+        },
+        {
+            "name": "story",
+            "type": "string",
+            "isInput": false
+        }
+    ],
+    "promptTemplates": [
+        {
+            "name": "ListOfAnimals",
+            "title": "🐄 List of animals",
+            "dependentParameterNames": [],
+            "executionType": "PROMPT_TEMPLATE",
+            "expectAmount": {
+                "words": {
+                    "max": 3
+                }
+            },
+            "modelRequirements": {
+                "modelVariant": "CHAT",
+                "modelName": "gpt-3.5-turbo"
+            },
+            "content": "Write list of 10 animals:",
+            "resultingParameterName": "animals"
+        },
+        {
+            "name": "SoundOfAnimals",
+            "title": "🔊 Sound of animals",
+            "dependentParameterNames": [],
+            "executionType": "PROMPT_TEMPLATE",
+            "expectAmount": {
+                "words": {
+                    "max": 5
+                }
+            },
+            "modelRequirements": {
+                "modelVariant": "CHAT",
+                "modelName": "gpt-3.5-turbo"
+            },
+            "content": "What sound does {animals[i]} make?",
+            "resultingParameterName": "sounds"
+        },
+        {
+            "name": "WriteText",
+            "title": "📄 Write text",
+            "dependentParameterNames": [],
+            "executionType": "SIMPLE_TEMPLATE",
+            "modelRequirements": {
+                "modelVariant": "CHAT",
+                "modelName": "gpt-3.5-turbo"
+            },
+            "content": "{animals[i]} does {sounds[i]}",
+            "resultingParameterName": "story"
+        }
+    ]
+}

@@ -7,12 +7,14 @@ import type {
     ExpectAmountCommand,
     ExpectCommand,
     ExpectFormatCommand,
+    JoinCommand,
     JokerCommand,
     ModelCommand,
     ParameterCommand,
     PostprocessCommand,
     PtbkUrlCommand,
     PtbkVersionCommand,
+    SplitCommand,
 } from '../types/Command';
 import { ExecutionTypes } from '../types/ExecutionTypes';
 import { EXPECTATION_UNITS } from '../types/PromptTemplatePipelineJson/PromptTemplateJson';
@@ -303,6 +305,44 @@ export function parseCommand(listItem: string_markdown_text): Command {
             type: 'POSTPROCESS',
             functionName,
         } satisfies PostprocessCommand;
+    } else if (type.startsWith('SPLIT')) {
+        if (listItemParts.length !== 2) {
+            throw new Error(
+                spaceTrim(
+                    `
+                Invalid SPLIT command:
+
+                - ${listItem}
+            `,
+                ),
+            );
+        }
+
+        const functionName = listItemParts.pop()!;
+
+        return {
+            type: 'SPLIT',
+            functionName,
+        } satisfies SplitCommand;
+    } else if (type.startsWith('JOIN')) {
+        if (listItemParts.length !== 2) {
+            throw new Error(
+                spaceTrim(
+                    `
+                Invalid JOIN command:
+
+                - ${listItem}
+            `,
+                ),
+            );
+        }
+
+        const functionName = listItemParts.pop()!;
+
+        return {
+            type: 'JOIN',
+            functionName,
+        } satisfies JoinCommand;
     } else if (type.startsWith('EXPECT_JSON')) {
         return {
             type: 'EXPECT_FORMAT',

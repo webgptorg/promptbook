@@ -5,11 +5,13 @@
     "parameters": [
         {
             "name": "yourName",
+            "type": "string",
             "description": "Name of the hero",
             "isInput": true
         },
         {
             "name": "greeting",
+            "type": "string",
             "isInput": false
         }
     ],

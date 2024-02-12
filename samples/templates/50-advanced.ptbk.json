@@ -6,34 +6,41 @@
     "parameters": [
         {
             "name": "word",
+            "type": "string",
             "description": "The word to use in the prompt.",
             "isInput": true
         },
         {
             "name": "comparisonOfTwoSentences",
+            "type": "string",
             "description": "Comparison between two sentences",
             "isInput": false
         },
         {
             "name": "summary",
+            "type": "string",
             "description": "The overall summary of the comparison",
             "isInput": false
         },
         {
             "name": "wordSynonym",
+            "type": "string",
             "isInput": false
         },
         {
             "name": "wordSynonymTested",
+            "type": "string",
             "isInput": false
         },
         {
             "name": "sentenceWithTwoSynonyms",
+            "type": "string",
             "description": "Sentence with word and wordSynonym",
             "isInput": false
         },
         {
             "name": "sentenceWithOriginalWordRemoved",
+            "type": "string",
             "description": "Sentence with both synomyms but without a original word",
             "isInput": false
         }

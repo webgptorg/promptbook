@@ -6,15 +6,18 @@
     "parameters": [
         {
             "name": "word",
+            "type": "string",
             "description": "Any single word",
             "isInput": true
         },
         {
             "name": "wordSynonym",
+            "type": "string",
             "isInput": false
         },
         {
             "name": "sentenceWithTwoSynonyms",
+            "type": "string",
             "isInput": false
         }
     ],

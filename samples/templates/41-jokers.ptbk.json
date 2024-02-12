@@ -5,16 +5,19 @@
     "parameters": [
         {
             "name": "name1",
+            "type": "string",
             "description": "First name or nothing",
             "isInput": true
         },
         {
             "name": "name2",
+            "type": "string",
             "description": "Second name or nothing",
             "isInput": true
         },
         {
             "name": "name",
+            "type": "string",
             "isInput": false
         }
     ],
