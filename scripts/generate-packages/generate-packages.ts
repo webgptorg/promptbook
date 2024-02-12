@@ -123,6 +123,10 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
                                 run: 'npm ci',
                             },
                             {
+                                name: 'Update version in config',
+                                run: 'npx ts-node ./scripts/update-version-in-config/update-version-in-config.ts',
+                            },
+                            {
                                 name: 'Build packages bundles',
                                 // Note: Generate packages before publishing to put the recent version in each package.json
                                 // TODO: It will be better to have here just "npx rollup --config rollup.config.js" BUT it will not work because:
