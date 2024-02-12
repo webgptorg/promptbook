@@ -57,7 +57,10 @@
         {
             "name": "WriteText",
             "title": "📄 Write text",
-            "dependentParameterNames": [],
+            "dependentParameterNames": [
+                "animals",
+                "activities"
+            ],
             "executionType": "SIMPLE_TEMPLATE",
             "expectAmount": {
                 "paragraphs": {

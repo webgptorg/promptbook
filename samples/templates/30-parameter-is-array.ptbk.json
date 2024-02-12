@@ -40,7 +40,9 @@
         {
             "name": "SoundOfAnimals",
             "title": "🔊 Sound of animals",
-            "dependentParameterNames": [],
+            "dependentParameterNames": [
+                "animals"
+            ],
             "executionType": "PROMPT_TEMPLATE",
             "expectAmount": {
                 "words": {
@@ -57,7 +59,10 @@
         {
             "name": "WriteText",
             "title": "📄 Write text",
-            "dependentParameterNames": [],
+            "dependentParameterNames": [
+                "animals",
+                "sounds"
+            ],
             "executionType": "SIMPLE_TEMPLATE",
             "modelRequirements": {
                 "modelVariant": "CHAT",
