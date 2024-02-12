@@ -4,7 +4,6 @@ import {
     ExecutionReportStringOptionsDefaults,
 } from '../types/execution-report/ExecutionReportStringOptions';
 import { executionReportJsonToString } from '../types/execution-report/executionReportJsonToString';
-import { EMOJIS, EMOJIS_IN_CATEGORIES } from '../utils/emojis';
 import { CountUtils } from '../utils/expectation-counters';
 import { countCharacters } from '../utils/expectation-counters/countCharacters';
 import { countLines } from '../utils/expectation-counters/countLines';
@@ -27,8 +26,6 @@ import { unwrapResult } from '../utils/unwrapResult';
 
 export {
     CountUtils,
-    EMOJIS,
-    EMOJIS_IN_CATEGORIES,
     ExecutionReportStringOptions,
     ExecutionReportStringOptionsDefaults,
     assertsExecutionSuccessful,
@@ -54,6 +51,5 @@ export {
 };
 
 /**
- * TODO: !!!! prune utils in 32
  * TODO: [🧠] Maybe create some indipendent package like `markdown-tools` from both here exported and @private utilities
  */
