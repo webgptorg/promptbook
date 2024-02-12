@@ -75,7 +75,7 @@ Better execution report in markdown format
     -   `validatePromptTemplatePipelineJson` is checking for circular dependencies
     -   Test that joker is one of the dependent parameters
 
-## 0.31.0 _(2024-02-XX)_
+## 0.31.0 _(2024-02-12)_
 
 Better execution reports
 
