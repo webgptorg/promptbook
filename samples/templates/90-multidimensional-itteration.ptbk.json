@@ -62,6 +62,16 @@
                 "activities"
             ],
             "executionType": "SIMPLE_TEMPLATE",
+            "iterators": [
+                {
+                    "parameterName": "animals",
+                    "indexName": "i"
+                },
+                {
+                    "parameterName": "activities",
+                    "indexName": "j"
+                }
+            ],
             "expectAmount": {
                 "paragraphs": {
                     "min": 5

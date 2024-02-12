@@ -111,6 +111,11 @@ interface PromptTemplateJsonCommon {
     readonly jokers?: Array<string>;
 
     /**
+     * Iterate through following array parameters
+     */
+    readonly iterators?: Array<{ parameterName: string_name; indexName: string_name }>;
+
+    /**
      * Type of the execution
      * This determines if the prompt template is send to LLM, user or some scripting evaluation
      */

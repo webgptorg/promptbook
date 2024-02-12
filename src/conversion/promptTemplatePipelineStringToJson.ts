@@ -81,6 +81,7 @@ export function promptTemplatePipelineStringToJson(
             );
         }
 
+        // TODO: !!!! Move all to validatePromptTemplatePipelineJson
         if (parameterName.length < 3) {
             throw new Error(`Parameter {${parameterName}} must have at least 3 characters`);
         } else if (parameterName !== removeDiacritics(parameterName)) {
@@ -173,6 +174,7 @@ export function promptTemplatePipelineStringToJson(
         let dependentParameterNames: PromptTemplateJson['dependentParameterNames'] = [];
         let executionType: ExecutionType = 'PROMPT_TEMPLATE';
         let jokers: PromptTemplateJson['jokers'] = [];
+        let iterators: PromptTemplateJson['iterators'] = [];
         let split: string_javascript_name | undefined = undefined;
         let join: string_javascript_name | undefined = undefined;
         let postprocessing: PromptTemplateJson['postprocessing'] = [];
@@ -328,7 +330,19 @@ export function promptTemplatePipelineStringToJson(
             description = undefined;
         }
 
-        if (Object.keys(jokers).length === 0) {
+        for (const { parameterName, indexName } of [
+            ...extractParameters(section.title),
+            ...extractParameters(description || ''),
+            ...extractParameters(content),
+        ]) {
+            dependentParameterNames.push(parameterName);
+
+            if (indexName) {
+                iterators.push({ parameterName, indexName });
+            }
+        }
+
+        if (jokers.length === 0) {
             jokers = undefined;
         }
 
@@ -336,20 +350,17 @@ export function promptTemplatePipelineStringToJson(
             expectAmount = undefined;
         }
 
-        if (Object.keys(postprocessing).length === 0) {
+        if (postprocessing.length === 0) {
             postprocessing = undefined;
         }
 
         if ([postprocessing, split, join].filter((_) => _ !== undefined).length > 1) {
+            // TODO: !!!! Move to validatePromptTemplatePipelineJson
             throw new Error(`Only one of postprocessing, split, join can be defined in one template`);
         }
 
-        for (const parameterName of [
-            ...extractParameters(section.title),
-            ...extractParameters(description || ''),
-            ...extractParameters(content),
-        ]) {
-            dependentParameterNames.push(parameterName);
+        if (iterators.length === 0) {
+            iterators = undefined;
         }
 
         if (executionType === 'SCRIPT') {
@@ -367,6 +378,7 @@ export function promptTemplatePipelineStringToJson(
             dependentParameterNames,
             executionType,
             jokers,
+            iterators,
             postprocessing,
             expectAmount,
             expectFormat,

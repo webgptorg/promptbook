@@ -44,6 +44,12 @@
                 "animals"
             ],
             "executionType": "PROMPT_TEMPLATE",
+            "iterators": [
+                {
+                    "parameterName": "animals",
+                    "indexName": "i"
+                }
+            ],
             "expectAmount": {
                 "words": {
                     "max": 5
@@ -64,6 +70,16 @@
                 "sounds"
             ],
             "executionType": "SIMPLE_TEMPLATE",
+            "iterators": [
+                {
+                    "parameterName": "animals",
+                    "indexName": "i"
+                },
+                {
+                    "parameterName": "sounds",
+                    "indexName": "i"
+                }
+            ],
             "modelRequirements": {
                 "modelVariant": "CHAT",
                 "modelName": "gpt-3.5-turbo"

@@ -11,12 +11,12 @@ import { Parameters } from '../types/Parameters';
  * @private within the library
  */
 export function replaceParameters(template: string_template, parameters: Parameters): string {
-    const placeholders = template.matchAll(/{(?<parameterName>\w+)(\[(?<index>[ijklmno])\])?}/g);
+    const placeholders = template.matchAll(/{(?<parameterName>\w+)(\[(?<indexName>[i-z]{1})\])?}/gi);
     let replacedTemplate = template;
 
     for (const placeholder of placeholders) {
         const parameterName = placeholder.groups!.parameterName!;
-        const indexName = placeholder.groups!.index;
+        const indexName = placeholder.groups!.indexName;
 
         if (parameterName === '') {
             continue; // Skip empty placeholders. It's used to avoid confusion with JSON-like strings
