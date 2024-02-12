@@ -97,7 +97,7 @@ export function executionReportJsonToString(
                 (executionsWithKnownCost.length === executionReportJson.promptExecutions.length
                     ? ''
                     : ` *(Some cost is unknown)*`) +
-                (taxRate !== 0 ? ` *(with tax ${taxRate * 100} %)*` : ''),
+                (taxRate !== 0 ? ` *(with tax ${taxRate * 100}%)*` : ''),
         );
 
         executionReportString += '\n\n' + headerList.map((header) => `- ${header}`).join('\n');
@@ -164,7 +164,7 @@ export function executionReportJsonToString(
         if (typeof promptExecution.result?.usage?.price === 'number') {
             templateList.push(
                 `COST $${formatNumber(promptExecution.result.usage.price * (1 + taxRate))}` +
-                    (taxRate !== 0 ? ` *(with tax ${taxRate * 100} %)*` : ''),
+                    (taxRate !== 0 ? ` *(with tax ${taxRate * 100}%)*` : ''),
             );
         } else {
             templateList.push(`COST UNKNOWN`);
