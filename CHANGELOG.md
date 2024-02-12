@@ -85,7 +85,7 @@ Better execution reports
 -   Escape code blocks in markdown
 -   Do not export `replaceParameters` utility function
 
-## 0.32.0 _(2024-02-XX)_
+## 0.32.0 _(2024-02-12)_
 
 Export less functions from `@promptbook/utils`
 
