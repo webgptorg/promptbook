@@ -19,6 +19,10 @@ describe('extractParameters', () => {
         expect(extractParameters('{greeting} {name}, how are you?')).toEqual(['greeting', 'name']);
     });
 
+    it('should parse parameters with index', () => {
+        expect(extractParameters('{greeting[i]} {name[j]}, how are you?')).toEqual(['greeting', 'name']);
+    });
+
     it('should not be confused by JSON', () => {
         expect(extractParameters('{greeting} {name}, this is how JSON look like {"key": 1}.')).toEqual([
             'greeting',
