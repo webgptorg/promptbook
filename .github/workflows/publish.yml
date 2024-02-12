@@ -17,6 +17,8 @@ jobs:
                   registry-url: https://registry.npmjs.org/
             - name: Install dependencies
               run: npm ci
+            - name: Update version in config
+              run: npx ts-node ./scripts/update-version-in-config/update-version-in-config.ts
             - name: Build packages bundles
               run: npx ts-node ./scripts/generate-packages/generate-packages.ts
             - name: Publish @promptbook/core
