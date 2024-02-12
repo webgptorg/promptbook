@@ -1,4 +1,4 @@
-import { normalizeTo_PascalCase } from 'n12';
+import { normalizeTo_PascalCase, removeDiacritics } from 'n12';
 import spaceTrim from 'spacetrim';
 import { Writable, WritableDeep } from 'type-fest';
 import { DEFAULT_MODEL_REQUIREMENTS } from '../config';
@@ -18,6 +18,7 @@ import { markdownToMarkdownStructure } from '../utils/markdown-json/markdownToMa
 import { extractAllListItemsFromMarkdown } from '../utils/markdown/extractAllListItemsFromMarkdown';
 import { extractOneBlockFromMarkdown } from '../utils/markdown/extractOneBlockFromMarkdown';
 import { removeContentComments } from '../utils/markdown/removeContentComments';
+import { removeEmojis } from '../utils/removeEmojis';
 import { PTBK_VERSION } from '../version';
 import { parseCommand } from './parseCommand';
 
@@ -78,6 +79,16 @@ export function promptTemplatePipelineStringToJson(
                     `,
                 ),
             );
+        }
+
+        if (parameterName.length < 3) {
+            throw new Error(`Parameter {${parameterName}} must have at least 3 characters`);
+        } else if (parameterName !== removeDiacritics(parameterName)) {
+            throw new Error(`Parameter {${parameterName}} must NOT contain any diacritics`);
+        } else if (parameterName !== parameterName.split(/\s+/).join('')) {
+            throw new Error(`Parameter {${parameterName}} must NOT contain any whitespace`);
+        } else if (parameterName !== removeEmojis(parameterName)) {
+            throw new Error(`Parameter {${parameterName}} must NOT contain emojis`);
         }
 
         if (existingParameter) {

@@ -31,6 +31,16 @@ describe('replaceParameters', () => {
         );
     });
 
+    it('should replace parameters with index', () => {
+        expect(
+            replaceParameters('{greeting[i]} {name}, how are you?', {
+                greeting: ['Hello', 'Hi', 'Wohoo'],
+                i: 2,
+                name: 'World',
+            }),
+        ).toBe('Wohoo World, how are you?');
+    });
+
     it('should not be confused by JSON', () => {
         expect(
             replaceParameters('{greeting} {name}, this is how JSON look like {"key": 1}.', {
@@ -132,4 +142,69 @@ describe('replaceParameters', () => {
             replaceParameters('greeting} {name}, how are you?', { greeting: 'Hello', name: 'World' }),
         ).toThrowError(/Parameter is not opened/i);
     });
+
+    it('should throw error when index parameter is not defined', () => {
+        expect(() =>
+            replaceParameters('{greeting[i]} {name}, how are you?', {
+                greeting: ['Hello', 'Hi', 'Wohoo'],
+                name: 'World',
+            }),
+        ).toThrowError(/Index parameter value \[i\] is not number but undefined/i);
+    });
+
+    it('should throw error when index parameter is not number', () => {
+        expect(() =>
+            replaceParameters('{greeting[i]} {name}, how are you?', {
+                greeting: ['Hello', 'Hi', 'Wohoo'],
+                i: 'Trololo',
+                name: 'World',
+            }),
+        ).toThrowError(/Index parameter value \[i\] is not number but/i);
+    });
+
+    it('should throw error when index parameter is on non-array parameter', () => {
+        expect(() =>
+            replaceParameters('{greeting[i]} {name}, how are you?', {
+                greeting: 'Hello',
+                i: 2,
+                name: 'World',
+            }),
+        ).toThrowError(/Using index on non-array value/i);
+    });
+
+    it('should throw error when not using index parameter on array parameter', () => {
+        expect(() =>
+            replaceParameters('{greeting} {name}, how are you?', {
+                greeting: ['Hello', 'Hi', 'Wohoo'],
+                i: 2,
+                name: 'World',
+            }),
+        ).toThrowError(/Value of parameter \{greeting\} is not string/i);
+    });
+
+    /*
+    TODO:
+    it('should throw error when index parameter is not single-character', () => {
+        expect(() =>
+            replaceParameters('{greeting[index]} {name}, how are you?', {
+                greeting: ['Hello', 'Hi', 'Wohoo'],
+                index: 2,
+                name: 'World',
+            }),
+        ).toThrowError(/XXX4/i);
+    });
+    */
+
+    /*
+    TODO:
+    it('should throw error when index parameter is not closed', () => {
+        expect(() =>
+            replaceParameters('{greeting[i} {name}, how are you?', {
+                greeting: ['Hello', 'Hi', 'Wohoo'],
+                i: 2,
+                name: 'World',
+            }),
+        ).toThrowError(/.../i);
+    });
+    */
 });
