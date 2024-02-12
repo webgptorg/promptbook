@@ -16,8 +16,13 @@ export function extractParameters(
     for (const match of matches) {
         const parameterName = match.groups!.parameterName!;
         const indexName = match.groups!.indexName;
+        const parameter: { parameterName: string_name; indexName?: string_name } = { parameterName };
 
-        parameters.push({ parameterName, indexName });
+        if (indexName) {
+            parameter.indexName = indexName;
+        }
+
+        parameters.push(parameter);
     }
 
     return parameters;

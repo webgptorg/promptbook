@@ -29,6 +29,13 @@ describe('extractParameters', () => {
         ]);
     });
 
+    it('should two same parameters with different indexes', () => {
+        expect(extractParameters('{name[i]} {name[j]}, how are you?')).toEqual([
+            { parameterName: 'name', indexName: 'i' },
+            { parameterName: 'name', indexName: 'j' },
+        ]);
+    });
+
     it('should not be confused by JSON', () => {
         expect(extractParameters('{greeting} {name}, this is how JSON look like {"key": 1}.')).toEqual([
             { parameterName: 'greeting' },
@@ -42,21 +49,38 @@ describe('extractParameters', () => {
             extractParameters(
                 '{greeting} {name}, this is how JSON look like {"greeting": "{greeting}", "name": "{name}"}.',
             ),
-        ).toEqual([{ parameterName: 'greeting' }, { parameterName: 'name' }]);
+        ).toEqual([
+            { parameterName: 'greeting' },
+            { parameterName: 'name' },
+            { parameterName: 'greeting' },
+            { parameterName: 'name' },
+        ]);
         expect(
             extractParameters(
                 '{greeting} {name}, this is how JSON look like {"params": {"greeting": "{greeting}", "name": "{name}"}}.',
             ),
-        ).toEqual([{ parameterName: 'greeting' }, { parameterName: 'name' }]);
+        ).toEqual([
+            { parameterName: 'greeting' },
+            { parameterName: 'name' },
+            { parameterName: 'greeting' },
+            { parameterName: 'name' },
+        ]);
         expect(
             extractParameters(
                 '{greeting} {name}, this is how invalid JSON look like {"params": {"greeting": "{greeting}", "name": "{name}"}.',
             ),
-        ).toEqual([{ parameterName: 'greeting' }, { parameterName: 'name' }]);
+        ).toEqual([
+            { parameterName: 'greeting' },
+            { parameterName: 'name' },
+            { parameterName: 'greeting' },
+            { parameterName: 'name' },
+        ]);
     });
 
     it('should parse parameter included multiple times', () => {
         expect(extractParameters('{greeting} {name}, how are you? {greeting} {name}')).toEqual([
+            { parameterName: 'greeting' },
+            { parameterName: 'name' },
             { parameterName: 'greeting' },
             { parameterName: 'name' },
         ]);
