@@ -76,6 +76,8 @@ export function createPtpExecutor(options: CreatePtpExecutorOptions): PtpExecuto
         /**
          * Executes a single template with all the iterators (or without one if there are no iterators)
          *
+         * This function knows nothing about details of execution, it just runs executeSingleTemplateIteration one or multiple times and do post-splitting and post-joining if needed
+         *
          * @sideeffect directly writes to parametersToPass after the result
          */
         async function executeSingleTemplate(currentTemplate: PromptTemplateJson): Promise<void> {
@@ -104,11 +106,60 @@ export function createPtpExecutor(options: CreatePtpExecutorOptions): PtpExecuto
                     templateInputParameters[parameterName] = parameterValue;
                 }
                 const resultString = await executeSingleTemplateIteration(currentTemplate, templateInputParameters);
-                parametersToPass = {
-                    ...parametersToPass,
-                    [currentTemplate.resultingParameterName]:
-                        resultString /* <- Note: Not need to detect parameter collision here because PromptTemplatePipeline checks logic consistency during construction */,
-                };
+
+                if (currentTemplate.split) {
+                    //---------
+                    // TODO: DRY [1]
+                    let resultList: Array<string>;
+                    const functionName = currentTemplate.split;
+                    let postprocessingError = null;
+
+                    scripts: for (const scriptTools of tools.script) {
+                        try {
+                            resultList = await scriptTools.execute({
+                                scriptLanguage: `javascript` /* <- TODO: Try it in each languages; In future allow postprocessing with arbitrary combination of languages to combine */,
+                                script: `${functionName}(resultString)`,
+                                parameters: { ...parametersToPass, resultString: resultString || '' },
+                            });
+
+                            postprocessingError = null;
+                            break scripts;
+                        } catch (error) {
+                            if (!(error instanceof Error)) {
+                                throw error;
+                            }
+
+                            postprocessingError = error;
+                        }
+                    }
+
+                    if (postprocessingError) {
+                        throw postprocessingError;
+                    }
+                    //---------
+
+                    parametersToPass = {
+                        ...parametersToPass,
+                        [currentTemplate.resultingParameterName]:
+                            resultList /* <- Note: Not need to detect parameter collision here because PromptTemplatePipeline checks logic consistency during construction */,
+                    };
+                } else if (currentTemplate.join) {
+                    throw new Error(
+                        //         <- TODO: [🥨] Make some NeverShouldHappenError
+                        spaceTrim(`
+                            Can not join non-list parameter
+
+                            - Case without iterators
+                            - This bug should be handled in \`validatePromptTemplatePipelineJson\`
+                        `),
+                    );
+                } else {
+                    parametersToPass = {
+                        ...parametersToPass,
+                        [currentTemplate.resultingParameterName]:
+                            resultString /* <- Note: Not need to detect parameter collision here because PromptTemplatePipeline checks logic consistency during construction */,
+                    };
+                }
             } else {
                 const indexRangeValues = Object.fromEntries(
                     // !!! Make check for same index on multiple parameters (invalid with length mismatch)
@@ -181,16 +232,66 @@ export function createPtpExecutor(options: CreatePtpExecutorOptions): PtpExecuto
 
                 const resultList = await Promise.all(resultListPromise);
 
-                parametersToPass = {
-                    ...parametersToPass,
-                    [currentTemplate.resultingParameterName]:
-                        resultList /* <- Note: Not need to detect parameter collision here because PromptTemplatePipeline checks logic consistency during construction */,
-                };
+                if (currentTemplate.join) {
+                    //---------
+                    // TODO: DRY [1]
+                    let resultString: string;
+                    const functionName = currentTemplate.split;
+                    let postprocessingError = null;
+
+                    scripts: for (const scriptTools of tools.script) {
+                        try {
+                            resultString = await scriptTools.execute({
+                                scriptLanguage: `javascript` /* <- TODO: Try it in each languages; In future allow postprocessing with arbitrary combination of languages to combine */,
+                                script: `${functionName}(resultList)`,
+                                parameters: { ...parametersToPass, resultList },
+                            });
+
+                            postprocessingError = null;
+                            break scripts;
+                        } catch (error) {
+                            if (!(error instanceof Error)) {
+                                throw error;
+                            }
+
+                            postprocessingError = error;
+                        }
+                    }
+
+                    if (postprocessingError) {
+                        throw postprocessingError;
+                    }
+                    //---------
+
+                    parametersToPass = {
+                        ...parametersToPass,
+                        [currentTemplate.resultingParameterName]:
+                            resultString /* <- Note: Not need to detect parameter collision here because PromptTemplatePipeline checks logic consistency during construction */,
+                    };
+                } else if (currentTemplate.split) {
+                    throw new Error(
+                        //         <- TODO: [🥨] Make some NeverShouldHappenError
+                        spaceTrim(`
+                            Can not split parameter which is already list
+
+                            - Case without iterators
+                            - This bug should be handled in \`validatePromptTemplatePipelineJson\`
+                      `),
+                    );
+                } else {
+                    parametersToPass = {
+                        ...parametersToPass,
+                        [currentTemplate.resultingParameterName]:
+                            resultList /* <- Note: Not need to detect parameter collision here because PromptTemplatePipeline checks logic consistency during construction */,
+                    };
+                }
             }
         }
 
         /**
          * Executes a single iteration of a template
+         *
+         * This function knows nothing about iterators, it just executes a single template in a single iteration
          *
          * @returns the result of the template execution
          */
@@ -548,6 +649,7 @@ export function createPtpExecutor(options: CreatePtpExecutorOptions): PtpExecuto
 }
 
 /**
+ * TODO: [🧠] Refactor: Split up into smaller indipendent pieces | Can be this done with AI | Make a video
  * TODO: [🧠] When not meet expectations in PROMPT_DIALOG, make some way to tell the user
  * TODO: [👧] Strongly type the executors to avoid need of remove nullables whtn noUncheckedIndexedAccess in tsconfig.json
  * Note: CreatePtpExecutorOptions are just connected to PtpExecutor so do not extract to types folder
