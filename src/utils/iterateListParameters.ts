@@ -20,7 +20,7 @@ export function* iterateListParameters<TIndexes extends Record<string_javascript
         for (let j = 0; j < keys.length; j++) {
             const key = keys[j];
             const value = values[j];
-            (result as any)[key!] = rest % value!;
+            (result as Record<string_javascript_name, number>)[key!] = rest % value!;
             rest = Math.floor(rest / value!);
         }
         yield result;

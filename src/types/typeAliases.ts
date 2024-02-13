@@ -485,6 +485,8 @@ export type string_translate_language = 'en' | 'cs';
  */
 export type string_javascript_name = string;
 
+// TODO: !!!! Split string_index_name = string_javascript_name & ('i'|'j') ; string_parameter_name = string_javascript_name
+
 export type string_token = string;
 export type string_license_token = string_token;
 export type string_password = string;
