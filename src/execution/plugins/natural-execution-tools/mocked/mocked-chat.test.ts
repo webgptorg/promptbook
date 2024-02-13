@@ -50,7 +50,7 @@ describe('createPtpExecutor + MockedEchoExecutionTools with sample chat prompt',
             isSuccessful: true,
             errors: [],
             executionReport: {
-                title: 'Sample prompt',
+                title: 'Sample prompt of mocked chat',
                 ptbkRequestedVersion: '1.0.0',
                 ptbkUrl: 'https://example.com/ptbk.json',
                 ptbkUsedVersion: PTBK_VERSION,
