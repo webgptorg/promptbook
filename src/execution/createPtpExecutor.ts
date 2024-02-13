@@ -9,6 +9,7 @@ import type { TaskProgress } from '../types/TaskProgress';
 import type { ExecutionReportJson } from '../types/execution-report/ExecutionReportJson';
 import { CountUtils } from '../utils/expectation-counters';
 import { isValidJsonString } from '../utils/isValidJsonString';
+import { iterateListParameters } from '../utils/iterateListParameters';
 import { removeMarkdownFormatting } from '../utils/markdown/removeMarkdownFormatting';
 import { removeEmojis } from '../utils/removeEmojis';
 import { replaceParameters } from '../utils/replaceParameters';
@@ -59,10 +60,10 @@ export function createPtpExecutor(options: CreatePtpExecutorOptions): PtpExecuto
     validatePromptTemplatePipelineJson(ptp);
 
     const ptpExecutor: PtpExecutor = async (
-        inputParameters: Record<string_name, string>,
+        inputParameters: Record<string_name, string | Array<string>>,
         onProgress?: (taskProgress: TaskProgress) => Promisable<void>,
     ) => {
-        let parametersToPass: Record<string_name, string> = inputParameters;
+        let parametersToPass: Record<string_name, string | Array<string>> = inputParameters;
         const executionReport: ExecutionReportJson = {
             ptbkUrl: ptp.ptbkUrl,
             title: ptp.title,
@@ -72,10 +73,124 @@ export function createPtpExecutor(options: CreatePtpExecutorOptions): PtpExecuto
             promptExecutions: [],
         };
 
-        async function executeSingleTemplate(currentTemplate: PromptTemplateJson) {
+        /**
+         * Executes a single template with all the iterators (or without one if there are no iterators)
+         *
+         * @sideeffect directly writes to parametersToPass after the result
+         */
+        async function executeSingleTemplate(currentTemplate: PromptTemplateJson): Promise<void> {
+            if (!currentTemplate.iterators) {
+                // TODO: [3] DRY
+                const templateInputParameters: Record<string_name, string> = {};
+                for (const parameterName of currentTemplate.dependentParameterNames) {
+                    const parameterValue = parametersToPass[parameterName];
+                    if (typeof parameterValue !== 'string') {
+                        throw new Error(
+                            //         <- TODO: [🥨] Make some NeverShouldHappenError
+                            spaceTrim(`
+                            Parameter {${parameterName}} is not string but ${typeof parameterValue}
+
+                            - Parameter value is \`${JSON.stringify(parameterValue)}\`
+                            - This bug should be handled in \`validatePromptTemplatePipelineJson\`
+                            - \`executeSingleTemplate\` should be called only when all dependent parameters are defined
+                            - Also it should be propperly iterated
+
+                        `),
+                        );
+                    }
+                    templateInputParameters[parameterName] = parameterValue;
+                }
+                const resultString = await executeSingleTemplateIteration(currentTemplate, templateInputParameters);
+                parametersToPass = {
+                    ...parametersToPass,
+                    [currentTemplate.resultingParameterName]:
+                        resultString /* <- Note: Not need to detect parameter collision here because PromptTemplatePipeline checks logic consistency during construction */,
+                };
+            } else {
+                const indexRangeValues = Object.fromEntries(
+                    currentTemplate.iterators.map(({ indexName, parameterName }) => [
+                        indexName,
+                        parametersToPass[parameterName]!.length,
+                    ]),
+                );
+
+                const resultListPromise = Array.from(iterateListParameters(indexRangeValues)).map((indexValues) => {
+                    // TODO: [3] DRY
+                    const templateInputParameters: Record<string_name, string> = {};
+                    for (const parameterName of currentTemplate.dependentParameterNames) {
+                        let parameterValue = parametersToPass[parameterName];
+
+                        if (Array.isArray(parameterValue)) {
+                            const iterator = (currentTemplate.iterators || []).find(
+                                (iterator) => iterator.parameterName === parameterName,
+                            );
+
+                            if (!iterator) {
+                                throw new Error(
+                                    //         <- TODO: [🥨] Make some NeverShouldHappenError
+                                    spaceTrim(`
+                                        Iterator for parameter {${parameterName}} not found
+
+                                        - Parameter value is \`${JSON.stringify(parameterValue)}\`
+                                        - Iterators for current template are \`${JSON.stringify(
+                                            currentTemplate.iterators,
+                                        )}\`
+                                        - This bug should be handled in \`validatePromptTemplatePipelineJson\`
+                                    `),
+                                );
+                            }
+
+                            const indexValue = indexValues[iterator.indexName];
+
+                            if (typeof indexValue !== 'number') {
+                                throw new Error(`indexValue is not number but ${typeof indexValue}`);
+                                //         <- TODO: [🥨] Make some NeverShouldHappenError
+                            }
+
+                            parameterValue = parameterValue[indexValue];
+                        } /* not else - want to check a second condition */
+
+                        if (typeof parameterValue !== 'string') {
+                            throw new Error(
+                                //         <- TODO: [🥨] Make some NeverShouldHappenError
+                                spaceTrim(`
+                                    Parameter {${parameterName}} is not string but ${typeof parameterValue}
+
+                                    - Parameter value is \`${JSON.stringify(parameterValue)}\`
+                                    - This bug should be handled in \`validatePromptTemplatePipelineJson\`
+                                    - \`executeSingleTemplate\` should be called only when all dependent parameters are defined
+                                    - Also it should be propperly iterated
+
+                                `),
+                            );
+                        }
+                        templateInputParameters[parameterName] = parameterValue;
+                    }
+                    return executeSingleTemplateIteration(currentTemplate, templateInputParameters);
+                });
+
+                const resultList = await Promise.all(resultListPromise);
+
+                parametersToPass = {
+                    ...parametersToPass,
+                    [currentTemplate.resultingParameterName]:
+                        resultList /* <- Note: Not need to detect parameter collision here because PromptTemplatePipeline checks logic consistency during construction */,
+                };
+            }
+        }
+
+        /**
+         * Executes a single iteration of a template
+         *
+         * @returns the result of the template execution
+         */
+        async function executeSingleTemplateIteration(
+            currentTemplate: PromptTemplateJson,
+            templateInputParameters: Record<string_name, string>,
+        ): Promise<string> {
             const name = `ptp-executor-frame-${currentTemplate.name}`;
             const title = removeEmojis(removeMarkdownFormatting(currentTemplate.title));
-            const priority = ptp.promptTemplates.length - ptp.promptTemplates.indexOf(currentTemplate);
+            const priority = ptp.promptTemplates.length - ptp.promptTemplates.indexOf(currentTemplate); // <- TODO: !!!! Put iteration logic here
 
             if (onProgress) {
                 await onProgress({
@@ -117,7 +232,7 @@ export function createPtpExecutor(options: CreatePtpExecutorOptions): PtpExecuto
                         throw new Error(`Joker parameter {${joker}} not defined`);
                     }
 
-                    resultString = parametersToPass[joker!]!;
+                    resultString = templateInputParameters[joker!]!;
                 }
 
                 try {
@@ -135,7 +250,7 @@ export function createPtpExecutor(options: CreatePtpExecutorOptions): PtpExecuto
                                             ? ptp.ptbkUrl
                                             : 'anonymous' /* <- [🧠] !!! How to deal with anonymous PTPs, do here some auto-url like SHA-256 based ad-hoc identifier? */
                                     }#${currentTemplate.name}`,
-                                    parameters: parametersToPass,
+                                    parameters: templateInputParameters,
                                     content: replaceParameters(currentTemplate.content, parametersToPass) /* <- [2] */,
                                     modelRequirements: currentTemplate.modelRequirements!,
                                 };
@@ -181,7 +296,7 @@ export function createPtpExecutor(options: CreatePtpExecutorOptions): PtpExecuto
                                         resultString = await scriptTools.execute({
                                             scriptLanguage: currentTemplate.contentLanguage,
                                             script: currentTemplate.content,
-                                            parameters: parametersToPass,
+                                            parameters: templateInputParameters,
                                         });
 
                                         break scripts;
@@ -357,11 +472,7 @@ export function createPtpExecutor(options: CreatePtpExecutorOptions): PtpExecuto
                 });
             }
 
-            parametersToPass = {
-                ...parametersToPass,
-                [currentTemplate.resultingParameterName]:
-                    resultString /* <- Note: Not need to detect parameter collision here because PromptTemplatePipeline checks logic consistency during construction */,
-            };
+            return resultString;
         }
 
         try {

@@ -7,10 +7,10 @@ import { string_javascript_name } from '../types/typeAliases';
  * @private within the library
  */
 export function* iterateListParameters<TIndexes extends Record<string_javascript_name, number>>(
-    indexes: TIndexes,
+    indexRangeValues: TIndexes,
 ): Generator<TIndexes> {
-    const keys = Object.keys(indexes);
-    const values = keys.map((key) => indexes[key]);
+    const keys = Object.keys(indexRangeValues);
+    const values = keys.map((key) => indexRangeValues[key]);
 
     const max = values.reduce((a, b) => a! * b!, 1)!;
 

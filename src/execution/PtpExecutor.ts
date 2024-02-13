@@ -15,7 +15,7 @@ import type { ExecutionReportJson } from '../types/execution-report/ExecutionRep
  */
 export interface PtpExecutor {
     (
-        inputParameters: Record<string_name, string>,
+        inputParameters: Record<string_name, string | Array<string>>,
         onProgress: (taskProgress: TaskProgress) => Promisable<void>,
     ): Promise<{
         /**
@@ -38,7 +38,7 @@ export interface PtpExecutor {
          *
          * Note: If the execution was not successful, there are only some of the result parameters
          */
-        outputParameters: Record<string_name, string>;
+        outputParameters: Record<string_name, string | Array<string>>;
     }>;
 }
 
