@@ -63,6 +63,19 @@ export function createMarkdownChart(options: CreateMarkdownChartOptions): string
 
         const after = width - before - during;
 
+        if (before < 0 || during < 0 || after < 0) {
+            console.error(
+                'Problem in createMarkdownChart',
+                { before, during, after },
+                { item, items, table, scale, options },
+                // <- TODO: Error with extra info
+            );
+            throw new Error(
+                //         <- TODO: [🥨] Make some NeverShouldHappenError
+                'Problem in createMarkdownChart, see more in console',
+            );
+        }
+
         table.push([
             removeEmojis(item.title).trim(),
             '░'.repeat(before) + duringChar.repeat(during) + '░'.repeat(after),
