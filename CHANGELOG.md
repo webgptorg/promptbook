@@ -89,14 +89,16 @@ Better execution reports
 
 Export less functions from `@promptbook/utils`
 
-## 0.33.0 _(2024-02-XX)_
 
-Iterating over parameters
-(!!! And maybe nullable parameters)
+## ~~0.33.0~~ *(Skipped)*
 
--   Parameters can be both `string` and `Array<string>` <-(TODO: !!!!)
-    -   `Array<string>` will itterate over all values <-(TODO: !!!!)
-    -   You can use postprocessing functions or `EXECUTE SCRIPT` to split string into array and vice versa <-(TODO: !!!!)
+~~Iterating over parameters~~
+
+-   ~~Parameters can be both `string` and `Array<string>`~~
+    -   ~~`Array<string>` will itterate over all values~~
+    -   ~~You can use postprocessing functions or `EXECUTE SCRIPT` to split string into array and vice versa~~
+
+
 
 ## Upcomming
 
