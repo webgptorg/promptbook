@@ -55,13 +55,13 @@ export function createMarkdownChart(options: CreateMarkdownChartOptions): string
         const before = Math.round((item.from - from) * scale);
         let duringChar = '█';
         let during = Math.round((item.to - item.from) * scale);
-        let after = width - before - during;
 
         if (during === 0) {
             duringChar = '▓';
             during = 1;
-            after = after - 1;
         }
+
+        const after = width - before - during;
 
         table.push([
             removeEmojis(item.title).trim(),
