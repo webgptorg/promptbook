@@ -111,6 +111,7 @@ export function createPtpExecutor(options: CreatePtpExecutorOptions): PtpExecuto
                 };
             } else {
                 const indexRangeValues = Object.fromEntries(
+                    // !!! Make check for same index on multiple parameters (invalid with length mismatch)
                     currentTemplate.iterators.map(({ indexName, parameterName }) => [
                         indexName,
                         parametersToPass[parameterName]!.length,
@@ -124,6 +125,9 @@ export function createPtpExecutor(options: CreatePtpExecutorOptions): PtpExecuto
                         let parameterValue = parametersToPass[parameterName];
 
                         if (Array.isArray(parameterValue)) {
+                            // TODO: !!!! Multiple iterators for same parameter name
+                            //       !!!! Make samples for multiple indexes on same parameter "Write a story on {animals[i]} meets with {animals[j]}"
+                            //       !!!! Make samples for same index on multiple parameters (valid with same length + invalid with length mismatch) "Write a story on {animals[i]} make sound {sounds[i]}"
                             const iterator = (currentTemplate.iterators || []).find(
                                 (iterator) => iterator.parameterName === parameterName,
                             );

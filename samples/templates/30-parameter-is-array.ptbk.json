@@ -38,8 +38,8 @@
             "resultingParameterName": "animals"
         },
         {
-            "name": "SoundOfAnimals",
-            "title": "🔊 Sound of animals",
+            "name": "SoundOfAnimalsI",
+            "title": "🔊 Sound of {animals[i]}",
             "dependentParameterNames": [
                 "animals"
             ],

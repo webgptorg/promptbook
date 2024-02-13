@@ -337,7 +337,12 @@ export function promptTemplatePipelineStringToJson(
         ]) {
             dependentParameterNames.push(parameterName);
 
-            if (indexName) {
+            if (
+                indexName &&
+                !iterators.some(
+                    (iterator) => iterator.parameterName === parameterName && iterator.indexName === indexName,
+                )
+            ) {
                 iterators.push({ parameterName, indexName });
             }
         }

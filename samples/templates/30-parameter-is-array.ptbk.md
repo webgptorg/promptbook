@@ -17,7 +17,7 @@ Write list of 10 animals:
 
 `-> {animals}`
 
-## 🔊 Sound of animals
+## 🔊 Sound of {animals[i]}
 
 -   MODEL VARIANT CHAT
 -   MODEL NAME `gpt-3.5-turbo`
