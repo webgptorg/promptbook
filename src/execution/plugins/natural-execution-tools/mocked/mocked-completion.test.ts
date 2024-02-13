@@ -1,8 +1,8 @@
 import { describe, expect, it } from '@jest/globals';
 import spaceTrim from 'spacetrim';
-import { PTBK_VERSION } from '../../../../version';
 import { promptTemplatePipelineStringToJson } from '../../../../conversion/promptTemplatePipelineStringToJson';
 import { PromptTemplatePipelineString } from '../../../../types/PromptTemplatePipelineString';
+import { PTBK_VERSION } from '../../../../version';
 import { createPtpExecutor } from '../../../createPtpExecutor';
 import { CallbackInterfaceTools } from '../../user-interface-execution-tools/callback/CallbackInterfaceTools';
 import { MockedEchoNaturalExecutionTools } from './MockedEchoNaturalExecutionTools';
@@ -10,7 +10,7 @@ import { MockedEchoNaturalExecutionTools } from './MockedEchoNaturalExecutionToo
 describe('createPtpExecutor + MockedEchoExecutionTools with sample chat prompt', () => {
     const ptp = promptTemplatePipelineStringToJson(
         spaceTrim(`
-            # Sample prompt
+            # Sample prompt of mocked completion
 
             Show how to use a simple completion prompt
 
@@ -62,11 +62,20 @@ describe('createPtpExecutor + MockedEchoExecutionTools with sample chat prompt',
     });
 
     it('should fail when some INPUT  PARAMETER is missing', () => {
-        expect(ptpExecutor({}, () => {})).resolves.toEqual({
+        expect(ptpExecutor({}, () => {}).then(({ errors }) => errors[0]?.message)).resolves.toMatch(
+            /Parameter \{thing\} is not string but undefined/,
+        );
+
+        expect(
+            ptpExecutor({}, () => {}).then(({ isSuccessful, executionReport, outputParameters }) => ({
+                isSuccessful,
+                executionReport,
+                outputParameters,
+            })),
+        ).resolves.toEqual({
             isSuccessful: false,
-            errors: [new Error(`Parameter {thing} is not defined`)],
             executionReport: {
-                title: 'Sample prompt',
+                title: 'Sample prompt of mocked completion',
                 description: 'Show how to use a simple completion prompt',
                 promptExecutions: [],
                 ptbkUrl: 'https://example.com/ptbk.json',

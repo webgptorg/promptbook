@@ -64,11 +64,14 @@ describe('createPtpExecutor + executing user interface prompts in ptp', () => {
     it('should fail when some INPUT  PARAMETER is missing', () => {
         expect(ptpExecutor({}, () => {})).resolves.toMatchObject({
             isSuccessful: false,
-            errors: [new Error(`Parameter {thing} is not defined`)],
         });
 
+        expect(ptpExecutor({}, () => {}).then(({ errors }) => errors[0]?.message)).resolves.toMatch(
+            /Parameter \{thing\} is not string but undefined/,
+        );
+
         expect(() => ptpExecutor({}, () => {}).then(assertsExecutionSuccessful)).rejects.toThrowError(
-            /Parameter \{thing\} is not defined/,
+            /Parameter \{thing\} is not string but undefined/,
         );
     });
 });

@@ -79,6 +79,7 @@ export function createPtpExecutor(options: CreatePtpExecutorOptions): PtpExecuto
          * @sideeffect directly writes to parametersToPass after the result
          */
         async function executeSingleTemplate(currentTemplate: PromptTemplateJson): Promise<void> {
+            console.log('!!!! executeSingleTemplate', { parametersToPass, currentTemplate });
             if (!currentTemplate.iterators) {
                 // TODO: [3] DRY
                 const templateInputParameters: Record<string_name, string> = {};
@@ -90,10 +91,12 @@ export function createPtpExecutor(options: CreatePtpExecutorOptions): PtpExecuto
                             spaceTrim(`
                             Parameter {${parameterName}} is not string but ${typeof parameterValue}
 
+                            - Case without iterators
                             - Parameter value is \`${JSON.stringify(parameterValue)}\`
                             - This bug should be handled in \`validatePromptTemplatePipelineJson\`
                             - \`executeSingleTemplate\` should be called only when all dependent parameters are defined
                             - Also it should be propperly iterated
+                            - All currently defined parameters are \`${JSON.stringify(parametersToPass)}\`
 
                         `),
                         );
@@ -131,11 +134,13 @@ export function createPtpExecutor(options: CreatePtpExecutorOptions): PtpExecuto
                                     spaceTrim(`
                                         Iterator for parameter {${parameterName}} not found
 
+                                        - Case with iterators, before iterating
                                         - Parameter value is \`${JSON.stringify(parameterValue)}\`
                                         - Iterators for current template are \`${JSON.stringify(
                                             currentTemplate.iterators,
                                         )}\`
                                         - This bug should be handled in \`validatePromptTemplatePipelineJson\`
+                                        - All currently defined parameters are \`${JSON.stringify(parametersToPass)}\`
                                     `),
                                 );
                             }
@@ -156,6 +161,7 @@ export function createPtpExecutor(options: CreatePtpExecutorOptions): PtpExecuto
                                 spaceTrim(`
                                     Parameter {${parameterName}} is not string but ${typeof parameterValue}
 
+                                    - Case with iterators, after iterating
                                     - Parameter value is \`${JSON.stringify(parameterValue)}\`
                                     - This bug should be handled in \`validatePromptTemplatePipelineJson\`
                                     - \`executeSingleTemplate\` should be called only when all dependent parameters are defined
@@ -188,7 +194,12 @@ export function createPtpExecutor(options: CreatePtpExecutorOptions): PtpExecuto
             currentTemplate: PromptTemplateJson,
             templateInputParameters: Record<string_name, string>,
         ): Promise<string> {
-            const name = `ptp-executor-frame-${currentTemplate.name}`;
+            console.log('!!!! executeSingleTemplateIteration', {
+                parametersToPass,
+                currentTemplate,
+                templateInputParameters,
+            });
+            const name = `promptbook-executor-frame-${currentTemplate.name}`;
             const title = removeEmojis(removeMarkdownFormatting(currentTemplate.title));
             const priority = ptp.promptTemplates.length - ptp.promptTemplates.indexOf(currentTemplate); // <- TODO: !!!! Put iteration logic here
 
