@@ -95,7 +95,7 @@ Iterating over parameters
 (!!! And maybe nullable parameters)
 
 -   Parameters can be both `string` and `Array<string>` <-(TODO: !!!!)
-    -   `Array<string>` will itterate over all values <-(TODO: !!!!)
+    -   `Array<string>` will iterate over all values <-(TODO: !!!!)
     -   You can use postprocessing functions or `EXECUTE SCRIPT` to split string into array and vice versa <-(TODO: !!!!)
 
 ## Upcomming
