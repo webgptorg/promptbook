@@ -74,10 +74,17 @@
           " * @private within the library",
           " */"
           "export function $1(value: string): boolean {",
-          "    // TODO: Extract to separate file + look thar there is no extra line between */ export",
+          "    // ",
           "    return value === 'Foo';",
           "}",
-          ""
+          "",
+          "",
+          "/**",
+          " * TODO: Write tests for $1",
+          " * TODO: Implement $1",
+          " * TODO: Annotate $1",
+          " * TODO: Extract $1 to separate file + look thar there is no extra line between */ export",
+          " */",
       ]
   }
 }
