@@ -22,7 +22,7 @@ Trying the language capabilities of GPT models.
 | Template                       | Timeline                             |
 | ------------------------------ | ------------------------------------ |
 | Synonym                        | ████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ |
-| Sentence with Synonym          | ░░░░███░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ |
+| Sentence with Synonym          | ░░░███░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ |
 | Sentence without original word | ░░░░░░███░░░░░░░░░░░░░░░░░░░░░░░░░░░ |
 | Comparison                     | ░░░░░░░░░███████████████████████████ |
 
