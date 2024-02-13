@@ -52,15 +52,11 @@ export function createMarkdownChart(options: CreateMarkdownChartOptions): string
     const table: Array<Array<string_markdown_text>> = [[nameHeader, valueHeader]];
 
     for (const item of items) {
-        let before = Math.round((item.from - from) * scale);
+        let before = Math.floor((item.from - from) * scale);
         let duringChar = '█';
         let during = Math.round((item.to - item.from) * scale);
 
         if (during === 0) {
-            if (before > 0) {
-                before = before - 1;
-            }
-
             duringChar = '▓';
             during = 1;
         }

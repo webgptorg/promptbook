@@ -33,6 +33,53 @@ describe('how createMarkdownChart works', () => {
         );
     });
 
+    it('should render half-tone boxes', () => {
+        expect(
+            createMarkdownChart({
+                nameHeader: 'Template',
+                valueHeader: 'Timeline',
+                items: [
+                    { title: 'Full', from: 0, to: 10 },
+                    { title: 'Tiny', from: 4.7, to: 5 },
+                ],
+                width: 10,
+                unitName: 'seconds',
+            }),
+        ).toBe(
+            spaceTrim(`
+                  | Template | Timeline   |
+                  |----------|------------|
+                  | Full     | ██████████ |
+                  | Tiny     | ░░░░▓░░░░░ |
+
+                  _Note: Each █ represents 1 seconds, width of timeline is 10 seconds = 10 squares_
+
+            `),
+        );
+        expect(
+            createMarkdownChart({
+                nameHeader: 'Template',
+                valueHeader: 'Timeline',
+                items: [
+                    { title: 'Full', from: 0, to: 10 },
+                    { title: 'Tiny', from: 5, to: 5.2 },
+                ],
+                width: 10,
+                unitName: 'seconds',
+            }),
+        ).toBe(
+            spaceTrim(`
+                | Template | Timeline   |
+                |----------|------------|
+                | Full     | ██████████ |
+                | Tiny     | ░░░░░▓░░░░ |
+
+                _Note: Each █ represents 1 seconds, width of timeline is 10 seconds = 10 squares_
+
+        `),
+        );
+    });
+
     it('should round boxes to nearest whole number', () => {
         expect(
             createMarkdownChart({
@@ -52,7 +99,7 @@ describe('how createMarkdownChart works', () => {
               |------------|----------|
               | Template 1 | ████     |
               | Template 2 | ░░▓░     |
-              | Template 3 | ░░██     |
+              | Template 3 | ░██░     |
 
               _Note: Each █ represents 2.55 seconds, width of timeline is 10.2 seconds = 4 squares_
 
