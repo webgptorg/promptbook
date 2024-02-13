@@ -28,13 +28,13 @@ export function runRemoteServer(options: RemoteServerOptions) {
         response.write(
             spaceTrim(`
                 Server for processing promptbook remote requests is running.
-                
+
                 Version: ${PTBK_VERSION}
 
                 For more information look at:
                 https://github.com/webgptorg/promptbook
 
-            `), // <- !!!! Put here version from package.json
+            `),
         );
         response.end();
     });

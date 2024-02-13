@@ -231,7 +231,7 @@ export function createPtpExecutor(options: CreatePtpExecutorOptions): PtpExecuto
 
                                     // TODO: [🧠] !! Figure out how to define placeholder in .ptbk.md file
                                     placeholder: undefined,
-                                    priority /* <- TODO: !!!! Is it ending with 0 */,
+                                    priority,
                                 });
                                 break executionType;
 
