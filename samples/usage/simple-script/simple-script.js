@@ -22,7 +22,10 @@ async function main() {
 
     // const sampleName = '50-nesting';
     // const sampleName = '50-advanced';
-    const sampleName = '30-parameter-is-array.ptbk.md';
+    const sampleName = '30-parameter-is-array';
+    // !!!! const sampleName = '90-multidimensional-iteration'
+    // !!!! const sampleName = '90-iteration-of-same-parameter-twice'
+    // !!!! const sampleName = '90-iteration-of-two-parameters-with-same-index'
 
     const library = PromptTemplatePipelineLibrary.fromSources(
         {

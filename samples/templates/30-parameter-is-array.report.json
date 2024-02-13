@@ -1,0 +1,155 @@
+{
+    "title": "✨ Sample of array parameters",
+    "ptbkUsedVersion": "0.33.0-2",
+    "ptbkRequestedVersion": "1.0.0",
+    "description": "Show how to use parameters with multiple values that are processed in parallel",
+    "promptExecutions": [
+        {
+            "prompt": {
+                "title": "🐄 List of animals",
+                "content": "Write list of 10 animals:",
+                "modelRequirements": {
+                    "modelVariant": "CHAT",
+                    "modelName": "gpt-3.5-turbo"
+                }
+            },
+            "result": {
+                "content": "1. Lion\n2. Dolphin\n3. Elephant\n4. Tiger\n5. Giraffe\n6. Penguin\n7. Koala\n8. Cheetah\n9. Octopus\n10. Panda",
+                "model": "gpt-3.5-turbo",
+                "timing": {
+                    "start": "2024-02-13T15:37:53.284Z",
+                    "complete": "2024-02-13T15:37:54.539Z"
+                },
+                "usage": {
+                    "price": 0.00010899999999999999,
+                    "inputTokens": 14,
+                    "outputTokens": 44
+                },
+                "rawResponse": {
+                    "id": "chatcmpl-8rp90dc1P0LAF6k2dfreMXqhc64AW",
+                    "object": "chat.completion",
+                    "created": 1707838674,
+                    "model": "gpt-3.5-turbo-0613",
+                    "choices": [
+                        {
+                            "index": 0,
+                            "message": {
+                                "role": "assistant",
+                                "content": "1. Lion\n2. Dolphin\n3. Elephant\n4. Tiger\n5. Giraffe\n6. Penguin\n7. Koala\n8. Cheetah\n9. Octopus\n10. Panda"
+                            },
+                            "logprobs": null,
+                            "finish_reason": "stop"
+                        }
+                    ],
+                    "usage": {
+                        "prompt_tokens": 14,
+                        "completion_tokens": 44,
+                        "total_tokens": 58
+                    },
+                    "system_fingerprint": null
+                }
+            },
+            "error": {
+                "name": "ExpectError"
+            }
+        },
+        {
+            "prompt": {
+                "title": "🐄 List of animals",
+                "content": "Write list of 10 animals:",
+                "modelRequirements": {
+                    "modelVariant": "CHAT",
+                    "modelName": "gpt-3.5-turbo"
+                }
+            },
+            "result": {
+                "content": "1. Tiger\n2. Gorilla\n3. Lion\n4. Elephant\n5. Giraffe\n6. Dolphin\n7. Penguin\n8. Koala\n9. Cheetah\n10. Kangaroo",
+                "model": "gpt-3.5-turbo",
+                "timing": {
+                    "start": "2024-02-13T15:37:54.540Z",
+                    "complete": "2024-02-13T15:37:56.046Z"
+                },
+                "usage": {
+                    "price": 0.000111,
+                    "inputTokens": 14,
+                    "outputTokens": 45
+                },
+                "rawResponse": {
+                    "id": "chatcmpl-8rp922wZ8z0k8yPliKGqm6Znyzk9I",
+                    "object": "chat.completion",
+                    "created": 1707838676,
+                    "model": "gpt-3.5-turbo-0613",
+                    "choices": [
+                        {
+                            "index": 0,
+                            "message": {
+                                "role": "assistant",
+                                "content": "1. Tiger\n2. Gorilla\n3. Lion\n4. Elephant\n5. Giraffe\n6. Dolphin\n7. Penguin\n8. Koala\n9. Cheetah\n10. Kangaroo"
+                            },
+                            "logprobs": null,
+                            "finish_reason": "stop"
+                        }
+                    ],
+                    "usage": {
+                        "prompt_tokens": 14,
+                        "completion_tokens": 45,
+                        "total_tokens": 59
+                    },
+                    "system_fingerprint": null
+                }
+            },
+            "error": {
+                "name": "ExpectError"
+            }
+        },
+        {
+            "prompt": {
+                "title": "🐄 List of animals",
+                "content": "Write list of 10 animals:",
+                "modelRequirements": {
+                    "modelVariant": "CHAT",
+                    "modelName": "gpt-3.5-turbo"
+                }
+            },
+            "result": {
+                "content": "1. Lion\n2. Elephant\n3. Giraffe\n4. Tiger\n5. Dolphin\n6. Penguin\n7. Koala\n8. Cheetah\n9. Gorilla\n10. Kangaroo",
+                "model": "gpt-3.5-turbo",
+                "timing": {
+                    "start": "2024-02-13T15:37:56.047Z",
+                    "complete": "2024-02-13T15:37:57.106Z"
+                },
+                "usage": {
+                    "price": 0.000111,
+                    "inputTokens": 14,
+                    "outputTokens": 45
+                },
+                "rawResponse": {
+                    "id": "chatcmpl-8rp93XzrGGbaFqxvt3QI7iXZ4aXnS",
+                    "object": "chat.completion",
+                    "created": 1707838677,
+                    "model": "gpt-3.5-turbo-0613",
+                    "choices": [
+                        {
+                            "index": 0,
+                            "message": {
+                                "role": "assistant",
+                                "content": "1. Lion\n2. Elephant\n3. Giraffe\n4. Tiger\n5. Dolphin\n6. Penguin\n7. Koala\n8. Cheetah\n9. Gorilla\n10. Kangaroo"
+                            },
+                            "logprobs": null,
+                            "finish_reason": "stop"
+                        }
+                    ],
+                    "usage": {
+                        "prompt_tokens": 14,
+                        "completion_tokens": 45,
+                        "total_tokens": 59
+                    },
+                    "system_fingerprint": null
+                }
+            },
+            "error": {
+                "name": "ExpectError"
+            }
+        }
+    ]
+}

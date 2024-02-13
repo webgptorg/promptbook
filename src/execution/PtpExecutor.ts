@@ -20,6 +20,8 @@ export interface PtpExecutor {
     ): Promise<{
         /**
          * Whether the execution was successful
+         *
+         * TODO: !!!! [💕] Move to report
          */
         isSuccessful: boolean;
 
