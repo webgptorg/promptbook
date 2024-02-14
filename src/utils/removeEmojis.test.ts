@@ -1,4 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
+import spaceTrim from 'spacetrim';
+import { just } from './just';
 import { removeEmojis } from './removeEmojis';
 
 describe('removeEmojis', () => {
@@ -6,30 +8,39 @@ describe('removeEmojis', () => {
         expect(removeEmojis('')).toBe('');
         expect(removeEmojis('Hello')).toBe('Hello');
         expect(removeEmojis('Hello World')).toBe('Hello World');
+        expect(removeEmojis('Hello 1')).toBe('Hello 1');
     });
 
     it('should remove one emoji', () => {
         expect(removeEmojis('💗')).toBe('');
         expect(removeEmojis('🈚')).toBe('');
-        expect(removeEmojis('Hello 🖖')).toBe('Hello');
-        expect(removeEmojis('Hello 💅 World')).toBe('Hello World');
+        expect(removeEmojis('Hello 🖖')).toBe('Hello ');
+        expect(removeEmojis('Hello 💅 World')).toBe('Hello  World');
     });
 
     it('should remove multiple emojis', () => {
         expect(removeEmojis('💗💙')).toBe('');
-        // TODO:> expect(removeEmojis(`♥ ♦ ♠ ♣`)).toBe(``);
-        expect(removeEmojis('Hello 💗💚')).toBe('Hello');
-        expect(removeEmojis('Hello 💗🔰🟩 World')).toBe('Hello World');
-        // TODO:> expect(removeEmojis('Hello 💗 🟩 World 🏡')).toBe('Hello World');
-        // TODO:> expect(removeEmojis(`👸👨‍🦱👨👴👨‍🦰 Hello 💗🥗💗 world`)).toBe(`Hello World`);
+        expect(removeEmojis(`♥♦♠♣`)).toBe(``);
+        expect(removeEmojis('Hello 💗💚')).toBe('Hello ');
+        expect(removeEmojis('Hello 💗🔰🟩 World')).toBe('Hello  World');
+        expect(removeEmojis('Hello 💗 🟩 World 🏡')).toBe('Hello   World ');
+        expect(removeEmojis(`👸👨‍🦱👨👴👨‍🦰 Hello 💗🥗💗 World`)).toBe(` Hello  World`);
+        expect(removeEmojis('💚💙💫🌟🌠')).toBe('');
+        expect(removeEmojis('👩🏾👨')).toBe('');
+        expect(removeEmojis('👨')).toBe('');
+        expect(removeEmojis('👨‍❤️‍👨👨‍❤️‍👨👨‍❤️‍👨')).toBe('');
+        expect(removeEmojis('I ♥ Programming')).toBe('I  Programming');
+        expect(removeEmojis('I ❤ Programming')).toBe('I  Programming');
+        expect(removeEmojis('I 💙 Programming')).toBe('I  Programming');
+        expect(removeEmojis('I 💫 Programming')).toBe('I  Programming');
+        expect(removeEmojis('I 👩🏾 Programming')).toBe('I  Programming');
+        expect(removeEmojis('I 👨‍❤️‍👨 Programming')).toBe('I  Programming');
     });
 
-    /*
-    TODO:
     it('should remove multiple emojis from multiline text', () => {
         expect(
-            removeEmojis(
-                spaceTrim(`
+            spaceTrim(
+                removeEmojis(`
                     🌲 Pine tree
                     🌳 Deciduous tree
                     🌴 Palm tree
@@ -57,5 +68,4 @@ describe('removeEmojis', () => {
             ),
         );
     });
-    */
 });

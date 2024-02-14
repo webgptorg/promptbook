@@ -110,7 +110,7 @@ export function executionReportJsonToString(
                 .map((promptExecution) => {
                     // TODO: Make some better system to convert hedings to links
                     let hash = normalizeToKebabCase(promptExecution.prompt.title);
-                    if (/^\s*\p{Emoji}/u.test(promptExecution.prompt.title)) {
+                    if (/^\s*\p{Extended_Pictographic}/u.test(promptExecution.prompt.title)) {
                         hash = '-' + hash;
                     }
 
@@ -176,7 +176,7 @@ export function executionReportJsonToString(
           -   MODEL VARIANT ${promptExecution.prompt.modelRequirements.modelVariant}
                 -   MODEL NAME \`${promptExecution.result?.model}\` (requested \`${
                     promptExecution.prompt.modelRequirements.modelName
-        
+
         */
 
         if (just(true)) {
