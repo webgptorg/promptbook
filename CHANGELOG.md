@@ -89,8 +89,7 @@ Better execution reports
 
 Export less functions from `@promptbook/utils`
 
-
-## ~~0.33.0~~ *(Skipped)*
+## ~~0.33.0~~ _(Skipped)_
 
 ~~Iterating over parameters~~
 
@@ -98,7 +97,9 @@ Export less functions from `@promptbook/utils`
     -   ~~`Array<string>` will itterate over all values~~
     -   ~~You can use postprocessing functions or `EXECUTE SCRIPT` to split string into array and vice versa~~
 
+## 0.34.0 _(2024-02-XX)_
 
+-   Do not remove emojis or formatting from task title in progress
 
 ## Upcomming
 

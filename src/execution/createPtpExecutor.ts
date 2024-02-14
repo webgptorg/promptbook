@@ -2,7 +2,6 @@ import spaceTrim from 'spacetrim';
 import type { Promisable } from 'type-fest';
 import type { string_name } from '.././types/typeAliases';
 import { PromptTemplatePipelineJson } from '../_packages/types.index';
-import { PTBK_VERSION } from '../version';
 import { validatePromptTemplatePipelineJson } from '../conversion/validatePromptTemplatePipelineJson';
 import type { Prompt } from '../types/Prompt';
 import type { ExpectationUnit, PromptTemplateJson } from '../types/PromptTemplatePipelineJson/PromptTemplateJson';
@@ -10,9 +9,8 @@ import type { TaskProgress } from '../types/TaskProgress';
 import type { ExecutionReportJson } from '../types/execution-report/ExecutionReportJson';
 import { CountUtils } from '../utils/expectation-counters';
 import { isValidJsonString } from '../utils/isValidJsonString';
-import { removeMarkdownFormatting } from '../utils/markdown/removeMarkdownFormatting';
-import { removeEmojis } from '../utils/removeEmojis';
 import { replaceParameters } from '../utils/replaceParameters';
+import { PTBK_VERSION } from '../version';
 import { ExecutionTools } from './ExecutionTools';
 import { ExpectError } from './ExpectError';
 import type { PromptChatResult, PromptCompletionResult, PromptResult } from './PromptResult';
@@ -74,7 +72,7 @@ export function createPtpExecutor(options: CreatePtpExecutorOptions): PtpExecuto
 
         async function executeSingleTemplate(currentTemplate: PromptTemplateJson) {
             const name = `ptp-executor-frame-${currentTemplate.name}`;
-            const title = removeEmojis(removeMarkdownFormatting(currentTemplate.title));
+            const title = currentTemplate.title;
             const priority = ptp.promptTemplates.length - ptp.promptTemplates.indexOf(currentTemplate);
 
             if (onProgress) {
