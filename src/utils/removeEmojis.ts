@@ -1,6 +1,3 @@
-import spaceTrim from 'spacetrim';
-import { EMOJIS } from './emojis';
-
 /**
  * Removes emojis from a string and fix whitespaces
  *
@@ -9,12 +6,16 @@ import { EMOJIS } from './emojis';
  */
 export function removeEmojis(text: string): string {
     text = ' ' + text + ' ';
-    for (const emoji of Array.from(EMOJIS)) {
-        text = text.split(` ${emoji} `).join(' ');
-        text = text.split(` ${emoji}`).join(' ');
-        text = text.split(`${emoji} `).join(' ');
-        text = text.split(emoji).join('');
-    }
-    text = spaceTrim(text);
-    return text;
+
+    // Replace emojis (and also ZWJ sequence) with hyphens
+    text = text.replace(/(\p{Emoji})\p{Modifier_Symbol}/gu, '$1');
+    text = text.replace(/(\p{Emoji})[\u{FE00}-\u{FE0F}]/gu, '$1');
+    text = text.replace(/(\p{Emoji})(\u{200D}\p{Emoji})*/gu, '$1');
+
+    text = text.replace(/ (\p{Emoji})+ /gu, ' ');
+    text = text.replace(/ (\p{Emoji})+/gu, ' ');
+    text = text.replace(/(\p{Emoji})+ /gu, ' ');
+    text = text.replace(/\p{Emoji}/gu, '');
+
+    return text.trim();
 }
