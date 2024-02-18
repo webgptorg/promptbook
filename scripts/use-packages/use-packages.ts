@@ -56,6 +56,8 @@ async function usePackages() {
         await writeFile(remotePackageJsonPath, JSON.stringify(remotePackageJson, null, 4) + '\n');
         console.info(chalk.green(`Update version of @promptbook/* to ${currentVersion} in ${remotePackageJsonPath}`));
 
+        // TODO: [🤣] Update in all places
+
         if (!isWaitedForNpm) {
             await forTime(
                 1000 *
@@ -81,7 +83,6 @@ async function usePackages() {
 
 /**
  * TODO: !! [👵] test before publish
- * TODO: !!! Auto update version of @promptbook/* in samples
  * TODO: !! Add warning to the copy/used files
  * TODO: !! Use prettier to format the used files
  * TODO: !! Normalize order of keys in package.json

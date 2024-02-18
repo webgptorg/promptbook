@@ -108,8 +108,8 @@ export class SupabaseLoggerWrapperOfNaturalExecutionTools implements NaturalExec
 }
 
 /**
- * TODO: [🧠] Best name for this class "SupabaseLoggerWrapperOfNaturalExecutionTools" vs "NaturalExecutionToolsWithSupabaseLogger" or just helper "withSupabaseLogger"
- * TODO: Log also failed results
- * TODO: [🧠] Maybe do equivalent for UserInterfaceTools OR make this for whole ExecutionTools
- * TODO: Create abstract LoggerWrapperOfNaturalExecutionTools which can be extended to implement more loggers
+ * TODO: [⚾️][🧠] Best name for this class "SupabaseLoggerWrapperOfNaturalExecutionTools" vs "NaturalExecutionToolsWithSupabaseLogger" or just helper "withSupabaseLogger"
+ * TODO: [⚾️] Log also failed results
+ * TODO: [⚾️][🧠] Maybe do equivalent for UserInterfaceTools OR make this for whole ExecutionTools
+ * TODO: [⚾️] Create abstract LoggerWrapperOfNaturalExecutionTools which can be extended to implement more loggers
  */

@@ -16,3 +16,7 @@ export interface SupabaseLoggerWrapperOfNaturalExecutionToolsOptions extends Com
      */
     readonly clientId: client_id;
 }
+
+/**
+ * TODO: [⚾️]
+ */

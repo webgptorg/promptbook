@@ -559,7 +559,6 @@ See [CHANGELOG.md](./CHANGELOG.md)
 -   [ ] [🧠] Allow to use and define [function calling](https://platform.openai.com/docs/guides/gpt/function-calling)
 -   [x] Register .ptbk file extension
 -   [ ] Fix error `content.js:73 Uncaught (in promise) TypeError: object null is not iterable (cannot read property Symbol(Symbol.iterator))`
--   [ ] !!! Go through the README
 -   [ ] Aborting execution, maybe use native AbortController
 -   [ ] Change `import {...} from '...';` to `import type {...} from '...';` when importing only types
 -   [ ] Wrap OpenAI billing errors:

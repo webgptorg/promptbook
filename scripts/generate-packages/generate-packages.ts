@@ -84,7 +84,7 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
         packageJson.main = `./umd/index.umd.js`;
         packageJson.module = `./esm/index.es.js`;
         packageJson.typings = `./esm/typings/_packages/${packageName}.index.d.ts`;
-        // TODO: !!! Filter out dependencies only for the current package
+        // TODO: !! Filter out dependencies only for the current package
         await writeFile(`./packages/${packageName}/package.json`, JSON.stringify(packageJson, null, 4) + '\n');
 
         await writeFile(`./packages/${packageName}/.gitignore`, ['esm', 'umd'].join('\n'));
@@ -157,7 +157,6 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
 
 /**
  * TODO: !! [👵] test before publish
- * TODO: !!! Auto update version of @promptbook/* in samples
  * TODO: !! Add warning to the copy/generated files
  * TODO: !! Use prettier to format the generated files
  * TODO: !! Normalize order of keys in package.json

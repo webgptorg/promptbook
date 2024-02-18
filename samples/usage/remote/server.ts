@@ -30,23 +30,25 @@ async function main() {
     );
 
     runRemoteServer({
+        path: '/promptbook',
         port: 4460,
         ptbkLibrary: library,
-        createNaturalExecutionTools(/* clientId */) {
-            // console.log('clientId', clientId);
-            // TODO: !!! Use clientId with logging
+        createNaturalExecutionTools(clientId) {
+            console.log('clientId', clientId);
             return new OpenAiExecutionTools({
                 isVerbose: true,
                 openAiApiKey: process.env.OPENAI_API_KEY!,
-                user: 'here-put-user-id',
+                user: clientId,
             });
         },
     });
 }
 
 /**
+ * TODO: !!!! Test that this works
  * TODO: !!! Identify PTPs by URL
  * TODO: !!! No need to set this script or userInterface in tools
  * TODO: !!! Use PromptTemplatePipelineLibrary.fromDirectory (directory vs folder)
  * TODO: !!! Also sample with Wizzard
+ * TODO: [🃏] Pass here some security token to prevent malitious usage and/or DDoS
  */
