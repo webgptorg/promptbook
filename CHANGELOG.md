@@ -101,6 +101,12 @@ Export less functions from `@promptbook/utils`
 
 -   Do not remove emojis or formatting from task title in progress
 
+## 0.35.0 _(2024-02-XX)_
+
+Extending promptbooks
+
+<!-- TODO: !!!! Describe in detail -->
+
 ## Upcomming
 
 -   Rename "natural" -> "llm"
