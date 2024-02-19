@@ -36,6 +36,13 @@ export interface PromptTemplatePipelineJson {
     readonly ptbkVersion: string_version;
 
     /**
+     * Extends another prompt template pipeline
+     *
+     * Note: The parent prompt template pipeline must be in same library
+     */
+    readonly parent?: string_ptbk_url;
+
+    /**
      * Description of the prompt template pipeline
      * It can use multiple paragraphs of simple markdown formatting like **bold**, *italic*, [link](https://example.com), ... BUT not code blocks and structure
      */

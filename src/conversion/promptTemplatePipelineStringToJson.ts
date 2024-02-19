@@ -17,8 +17,8 @@ import { markdownToMarkdownStructure } from '../utils/markdown-json/markdownToMa
 import { extractAllListItemsFromMarkdown } from '../utils/markdown/extractAllListItemsFromMarkdown';
 import { extractOneBlockFromMarkdown } from '../utils/markdown/extractOneBlockFromMarkdown';
 import { removeContentComments } from '../utils/markdown/removeContentComments';
-import { parseCommand } from './parseCommand';
 import { PTBK_VERSION } from '../version';
+import { parseCommand } from './parseCommand';
 
 /**
  * Parse prompt template pipeline from string format to JSON format
@@ -134,6 +134,10 @@ export function promptTemplatePipelineStringToJson(
 
             case 'PTBK_VERSION':
                 ptbJson.ptbkVersion = command.ptbkVersion;
+                break;
+
+            case 'EXTENDS':
+                ptbJson.parent = command.parent.href;
                 break;
 
             case 'MODEL':
