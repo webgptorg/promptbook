@@ -384,7 +384,7 @@ export function parseCommand(listItem: string_markdown_text): Command {
         throw new Error(
             spaceTrim(
                 `
-                    Unknown command:
+                    Unknown command ${type.split('_')[0]}:
 
                     - ${listItem}
 
