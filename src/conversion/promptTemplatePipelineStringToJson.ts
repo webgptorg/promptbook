@@ -32,6 +32,7 @@ export function promptTemplatePipelineStringToJson(
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         title: undefined as any /* <- Note: Putting here placeholder to keep `title` on top at final JSON */,
         ptbkUrl: undefined /* <- Note: Putting here placeholder to keep `ptbkUrl` on top at final JSON */,
+        parent: undefined /* <- Note: Putting here placeholder to keep `ptbkUrl` on top at final JSON */,
         ptbkVersion: PTBK_VERSION,
         description: undefined /* <- Note: Putting here placeholder to keep `description` on top at final JSON */,
         parameters: [],
