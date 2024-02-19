@@ -97,7 +97,7 @@ Export less functions from `@promptbook/utils`
     -   ~~`Array<string>` will itterate over all values~~
     -   ~~You can use postprocessing functions or `EXECUTE SCRIPT` to split string into array and vice versa~~
 
-## 0.34.0 _(2024-02-XX)_
+## 0.34.0 _(2024-02-19)_
 
 -   Do not remove emojis or formatting from task title in progress
 
