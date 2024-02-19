@@ -81,6 +81,40 @@ describe('how parseCommand works', () => {
         // TODO: Also test invalid version in PTBK_VERSION command
     });
 
+    it('should parse PTBK_URL command', () => {
+        expect(parseCommand('EXTENDS https://ptbk.webgpt.com/cs/write-website-content.ptbk.md@v1.0.6')).toEqual({
+            type: 'EXTENDS',
+            parent: new URL('https://ptbk.webgpt.com/cs/write-website-content.ptbk.md@v1.0.6'),
+        });
+        expect(parseCommand('EXTEND https://ptbk.webgpt.com/cs/write-website-content.ptbk.md@v1.0.7')).toEqual({
+            type: 'EXTENDS',
+            parent: new URL('https://ptbk.webgpt.com/cs/write-website-content.ptbk.md@v1.0.7'),
+        });
+        expect(parseCommand('extend *https://ptbk.webgpt.com/cs/write-website-content.ptbk.md@v1.0.8*')).toEqual({
+            type: 'EXTENDS',
+            parent: new URL('https://ptbk.webgpt.com/cs/write-website-content.ptbk.md@v1.0.8'),
+        });
+    });
+
+    it('should fail parsing PTBK_URL command', () => {
+        expect(() => parseCommand('EXTENDS')).toThrowError(/Invalid EXTENDS command/i);
+        expect(() =>
+            parseCommand(
+                'EXTENDS https://ptbk.webgpt.com/cs/write-website-content.ptbk.md@v1.0.0 https://ptbk.webgpt.com/cs/write-website-content.ptbk.md@v1.0.0',
+            ),
+        ).toThrowError(/Invalid EXTENDS command/i);
+
+        expect(() => parseCommand('EXTENDS http:^404')).toThrowError(/Invalid URL/i);
+
+        expect(() => parseCommand('EXTENDS http://ptbk.webgpt.com/cs/write-website-content@v1.0.0')).toThrowError(
+            /Protocol must be HTTPS/i,
+        );
+
+        expect(() =>
+            parseCommand('EXTENDS https://ptbk.webgpt.com/cs/write-website-content.ptbk.md@v1.0.0#keywords'),
+        ).toThrowError(/URL must not contain hash/i);
+    });
+
     it('should parse EXECUTE command', () => {
         expect(parseCommand('execute prompt template')).toEqual({
             type: 'EXECUTE',
