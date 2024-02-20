@@ -1,6 +1,6 @@
 # ✨ Sample: Language Capabilities
 
-Trying the language capabilities of GPT models.
+Extending another promptbook in library and overriding some of the templates.
 
 -   EXTENDS https://ptbk.example.com/samples/language-capabilities.ptbk.md@v1
 -   PTBK URL https://ptbk.example.com/samples/language-capabilities-extended.ptbk.md@v1
@@ -18,7 +18,7 @@ Sentence with word and wordSynonym
 Write sentence which contains word "{word}" and word "{wordSynonym}" in it
 ```
 
-`-> {sentenceWithTwoSynonyms}` Sentence with word and wordSynonym
+`-> {sentenceWithTwoSynonyms}` Override the parameter name !!!!
 
 ## 🔗 Summary _(enhanced)_
 
