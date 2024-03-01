@@ -236,7 +236,7 @@ _Note: We are using [postprocessing functions](#postprocessing-functions) like `
 
 ## 💠 Scheme
 
-> This chart should be done BETTER
+> ⚠ Warning: This chart should be done BETTER
 
 <!-- TODO: !!! Make it better -->
 
