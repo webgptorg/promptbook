@@ -13,6 +13,7 @@ import {
     parseKeywordsFromString,
 } from 'n12';
 import { spaceTrim as _spaceTrim } from 'spacetrim';
+import { prettifyMarkdown as _prettifyMarkdown } from '../../../../utils/markdown/prettifyMarkdown';
 import { removeEmojis as _removeEmojis } from '../../../../utils/removeEmojis';
 import { removeQuotes as _removeQuotes } from '../../../../utils/removeQuotes';
 import { trimCodeBlock as _trimCodeBlock } from '../../../../utils/trimCodeBlock';
@@ -70,6 +71,9 @@ export class JavascriptEvalExecutionTools implements ScriptExecutionTools {
 
         const removeEmojis = _removeEmojis;
         preserve(removeEmojis);
+
+        const prettifyMarkdown = _prettifyMarkdown;
+        preserve(prettifyMarkdown);
 
         //-------[n12:]---
         const capitalize = _capitalize;
@@ -162,7 +166,7 @@ export class JavascriptEvalExecutionTools implements ScriptExecutionTools {
                     throw new Error(
                         spaceTrim(
                             (block) => `
-                  
+
                               Parameter {${undefinedName}} is not defined
 
                               This happen during evaluation of the javascript, which has access to the following parameters as javascript variables:
@@ -176,7 +180,7 @@ export class JavascriptEvalExecutionTools implements ScriptExecutionTools {
 
                               ${block(script)}
 
-                          
+
                             `,
                         ),
                     );

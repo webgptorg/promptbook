@@ -101,6 +101,10 @@ Export less functions from `@promptbook/utils`
 
 -   Do not remove emojis or formatting from task title in progress
 
+## 0.35.0 _(2024-03-01)_
+
+-   You can use `prettifyMarkdown` for postprocessing
+
 ## Upcomming
 
 -   Rename "natural" -> "llm"
