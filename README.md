@@ -562,6 +562,8 @@ See [CHANGELOG.md](./CHANGELOG.md)
 -   [ ] Aborting execution, maybe use native AbortController
 -   [ ] Change `import {...} from '...';` to `import type {...} from '...';` when importing only types
 -   [ ] Wrap OpenAI billing errors:
+-   [ ] Integrate word stemmer https://github.com/maxpatiiuk/porter-stemming/blob/main/src/index.ts
+-   [ ] Integrate faker to generate simple mocked data
 
     -   "Billing hard limit has been reached"
     -   "You exceeded your current quota, please check your plan and billing details."
