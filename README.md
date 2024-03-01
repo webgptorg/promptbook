@@ -15,37 +15,37 @@ Library to supercharge your use of large language models
 
 ![Promptbook full of ideas](./other/design/promptbook.jpg)
 
-## 💁‍♂️ Concept
+## 🤍 Whitepaper
 
-When you have a simple single prompt to ChatGPT / GPT completion, it doesn't matter how it is integrated, whether it's direct calling of Rest API or using Open Ai library and hardcoding prompt in source code or importing text file.
+When you have a simple, single prompt for ChatGPT, GPT-4, Anthropic Claude, Google Gemini, Llama 2, or whatever, it doesn't matter how it is integrated. Whether it's the direct calling of a REST API, using the SDK, hardcoding the prompt in the source code, or importing a text file, the process remains the same.
 
-If you need something more advanced or want to extend the capabilities of LLMs, you generally have 3 ways to come:
+If you need something more advanced or want to extend the capabilities of LLMs, you generally have three ways to proceed:
 
-1. **Fine-tune** the model to your perfection or even train your own.
-2. Tune the **prompt** to your perfection
-3. Use **multiple prompts** to get the best result
+1. **Fine-tune** the model to your specifications or even train your own.
+2. **Prompt-engineer** the prompt to the best shape you can achieve.
+3. Use **multiple prompts** in a pipeline to get the best result.
 
-In any of these situations, this library can make your life easier:
+In any of these situations, but especially in (3), the Promptbook library can make your life easier.
 
 -   **Separation of concerns** between prompt engineer and programmer; between code files and prompt files; and between prompts, templates, templating pipelines, and their execution logic.
--   Set up a **common format** for prompts that is interchangeable between project and language/technology stacks.
--   **Preprocessing** and cleaning the input data from user
--   Use default values - **Jokers** to bypass some parts of the pipeline
--   **Expect** some specific output from the model
--   **Retry** the mismatched outputs
--   **Combine** multiple models together
--   Interactive **User interaction** with the model and the user
--   Leverage **external** sources (like ChatGPT plugins or OpenAI`s GPTs)
+-   Set up a **common format** for prompts that is interchangeable between projects and language/technology stacks.
+-   **Preprocessing** and cleaning the input data from the user.
+-   Use default values - **Jokers** to bypass some parts of the pipeline.
+-   **Expect** some specific output from the model.
+-   **Retry** mismatched outputs.
+-   **Combine** multiple models together.
+-   Interactive **User interaction** with the model and the user.
+-   Leverage **external** sources (like ChatGPT plugins or OpenAI's GPTs).
 -   Simplify your code to be **DRY** and not repeat all the boilerplate code for each prompt.
--   **Versioning** of prompt template pipelines
--   **Reuse** parts of prompt template pipelines in/between projects
--   Run the LLM **Optimally** in parallel, with best _cost/quality_ ratio or _speed/quality_ ratio
--   **Execution report** to see what happened during the execution
--   **Logging** the results of the prompt template pipelines
--   _(Not ready yet)_**Caching** calls to LLMs to save money and time
--   _(Not ready yet)_ Extend one promptbook from another one
--   _(Not ready yet)_ Leverage the **streaming** to make super cool UI/UX
--   _(Not ready yet)_ **A/B testing** to determine which prompt works best for the job
+-   **Versioning** of prompt template pipelines.
+-   **Reuse** parts of prompt template pipelines in/between projects.
+-   Run the LLM **optimally** in parallel, with the best _cost/quality_ ratio or _speed/quality_ ratio.
+-   **Execution report** to see what happened during the execution.
+-   **Logging** the results of the prompt template pipelines.
+-   _(Not ready yet)_ **Caching** calls to LLMs to save money and time.
+-   _(Not ready yet)_ Extend one prompt book from another one.
+-   _(Not ready yet)_ Leverage the **streaming** to make super cool UI/UX.
+-   _(Not ready yet)_ **A/B testing** to determine which prompt works best for the job.
 
 ![WebGPT](./other/screencasts/screencast-fiabciakcmgepblmdkmemdbbkilneeeh-2023.10.26-21_46_17.gif)
 
