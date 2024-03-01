@@ -22,20 +22,29 @@ When you have a simple single prompt to ChatGPT / GPT completion, it doesn't mat
 If you need something more advanced or want to extend the capabilities of LLMs, you generally have 3 ways to come:
 
 1. **Fine-tune** the model to your perfection or even train your own.
-2. **Tune** the prompt to your perfection
-3. Use **multishot** approach with multiple prompts to get the best result
+2. Tune the **prompt** to your perfection
+3. Use **multiple prompts** to get the best result
 
 In any of these situations, this library can make your life easier:
 
 -   **Separation of concerns** between prompt engineer and programmer; between code files and prompt files; and between prompts, templates, templating pipelines, and their execution logic.
 -   Set up a **common format** for prompts that is interchangeable between project and language/technology stacks.
+-   **Preprocessing** and cleaning the input data from user
+-   **Expect** some specific output from the model
+-   **Retry** the mismatched outputs
+-   **Combine** multiple models together
+-   Interactive **User interaction** with the model and the user
+-   Leverage **external** sources (like ChatGPT plugins or OpenAI`s GPTs)
 -   Simplify your code to be **DRY** and not repeat all the boilerplate code for each prompt.
 -   **Versioning** of prompt template pipelines
 -   **Reuse** parts of prompt template pipelines in/between projects
+-   Run the LLM **Optimally** in parallel, with best _cost/quality_ ratio or _speed/quality_ ratio
+-   **Execution report** to see what happened during the execution
 -   **Logging** the results of the prompt template pipelines
--   **Caching** calls to LLMs to save money and time
--   **A/B testing** to determine which prompt works best for the job
--   Leverage the **streaming** to make super cool UI/UX
+-   _(Not ready yet)_**Caching** calls to LLMs to save money and time
+-   _(Not ready yet)_ Extend one promptbook from another one
+-   _(Not ready yet)_ Leverage the **streaming** to make super cool UI/UX
+-   _(Not ready yet)_ **A/B testing** to determine which prompt works best for the job
 
 ![WebGPT](./other/screencasts/screencast-fiabciakcmgepblmdkmemdbbkilneeeh-2023.10.26-21_46_17.gif)
 
