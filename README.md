@@ -233,6 +233,18 @@ A website assignment from a customer:
 
 _Note: We are using [postprocessing functions](#postprocessing-functions) like `unwrapResult` that can be used to postprocess the result._
 
+## 💠 Scheme
+
+<!-- TODO: !!! -->
+
+```mermaid
+graph TD;
+    A-->B;
+    A-->C;
+    B-->D;
+    C-->D;
+```
+
 ## 📚 Dictionary
 
 The following glossary is used to clarify certain basic concepts:
@@ -527,9 +539,9 @@ Langchain is primarily aimed at ML developers working in Python. This library is
 
 We are considering creating a bridge/converter between these two libraries.
 
-### GPTs
+### Promptbooks vsGPTs
 
-...
+> ...
 
 <!--
 Include:
