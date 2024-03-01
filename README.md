@@ -30,6 +30,7 @@ In any of these situations, this library can make your life easier:
 -   **Separation of concerns** between prompt engineer and programmer; between code files and prompt files; and between prompts, templates, templating pipelines, and their execution logic.
 -   Set up a **common format** for prompts that is interchangeable between project and language/technology stacks.
 -   **Preprocessing** and cleaning the input data from user
+-   Use default values - **Jokers** to bypass some parts of the pipeline
 -   **Expect** some specific output from the model
 -   **Retry** the mismatched outputs
 -   **Combine** multiple models together
@@ -235,14 +236,39 @@ _Note: We are using [postprocessing functions](#postprocessing-functions) like `
 
 ## 💠 Scheme
 
-<!-- TODO: !!! -->
+> This chart should be done BETTER
+
+<!-- TODO: !!! Make it better -->
 
 ```mermaid
-graph TD;
-    A-->B;
-    A-->C;
-    B-->D;
-    C-->D;
+flowchart LR
+    subgraph Promptbook execution
+        direction TB
+        start[Start]
+        input_params[Input Parameters] --> prompt_pipeline[Prompt Template Pipeline]
+        prompt_pipeline --> output_params[Output Parameters]
+
+        prompt_pipeline --> execution_tools[Execution Tools]
+        execution_tools -.-> LLMs[Natural Execution Tools]
+        execution_tools -.-> scripts[Script Execution Tools]
+        execution_tools -.-> user_interface[User Interface Tools]
+        execution_tools --> jokers[Jokers]
+        execution_tools --> expectations[Expectations]
+
+        LLMs --> external_models[External LLM Sources]
+        scripts --> scripting_lang[Supported Scripting Languages]
+        user_interface --> UI_methods[User Interface Methods]
+
+        jokers --> joker_handling[Joker Handling]
+        expectations --> expectation_validation[Expectation Validation]
+        output_params --> postprocessing[Postprocessing Functions]
+        postprocessing -->result[Execution Report]
+
+        result --> completion[Execution Complete]
+    end
+
+    start --> input_params
+    completion -->|Feedback & Iteration| start
 ```
 
 ## 📚 Dictionary
