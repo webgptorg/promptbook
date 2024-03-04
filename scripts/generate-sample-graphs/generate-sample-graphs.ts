@@ -147,5 +147,6 @@ async function generateSampleGraphs({ isCommited }: { isCommited: boolean }) {
 }
 
 /**
+ * TODO: !!!! Explicit output parameters
  * TODO: Maybe use some Mermaid library instead of string templating
  */
