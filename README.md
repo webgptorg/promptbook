@@ -120,7 +120,7 @@ File `write-website-content.ptbk.md`:
 >
 > `-> {title}` Title for the website
 >
-> ## � Cunning subtitle
+> ## 🐰 Cunning subtitle
 >
 > -   POSTPROCESSING `unwrapResult`
 >
@@ -140,7 +140,7 @@ File `write-website-content.ptbk.md`:
 >
 > `-> {claim}` Claim for the web
 >
-> ## � Keyword analysis
+> ## 🚦 Keyword analysis
 >
 > ```
 > As an experienced SEO specialist, you have been entrusted with creating keywords for the website "{title}".
@@ -245,10 +245,10 @@ flowchart LR
       templateSpecifyingTheAssigment--"{assigment}"-->templateImprovementOfTheWebTitle
       templateWebsiteTitleApproval(👤 Website title approval)
       templateImprovementOfTheWebTitle--"{enhancedTitle}"-->templateWebsiteTitleApproval
-      templateCunningSubtitle(� Cunning subtitle)
+      templateCunningSubtitle(🐰 Cunning subtitle)
       templateWebsiteTitleApproval--"{title}"-->templateCunningSubtitle
       templateSpecifyingTheAssigment--"{assigment}"-->templateCunningSubtitle
-      templateKeywordAnalysis(� Keyword analysis)
+      templateKeywordAnalysis(🚦 Keyword analysis)
       templateWebsiteTitleApproval--"{title}"-->templateKeywordAnalysis
       templateSpecifyingTheAssigment--"{assigment}"-->templateKeywordAnalysis
       templateCreatingTheBeginningOfTheWebsiteContent(🔗 Combine the beginning)
