@@ -86,6 +86,13 @@
             "focus": false
         },
         {
+            "name": "🏭📖 Generate samples mermaid graphs -> .ptbk.md",
+            "commands": ["ts-node ./scripts/generate-sample-graphs/generate-sample-graphs.ts"],
+            "execute": false,
+            "onlySingle": false,
+            "focus": false
+        },
+        {
             "name": "🏭📖 Generate reports .report.json -> .report.md",
             "commands": ["ts-node ./scripts/generate-sample-reports/generate-sample-reports.ts"],
             "execute": false,
