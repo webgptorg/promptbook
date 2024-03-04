@@ -14,24 +14,20 @@ _Note: This is not recommended but it should work_
 %% 🔮 Tip: Open this on GitHub or in the VSCode website to see the Mermaid graph visually
 
 flowchart LR
-    subgraph "✨ Sample of logic error"
+  subgraph "✨ Sample of logic error"
 
-        direction TB
+      direction TB
 
-        input[Input]
+      input[Input]:::hidden
+      templateSentence[Sentence]
+      input--"{word}"-->templateSentence
+      templateSynonym--"{wordSynonym}"-->templateSentence
+      templateSynonym[Synonym]
+      input--"{word}"-->templateSynonym
 
+      classDef hidden display: none;
 
-        templateSentence[Sentence]
-        input--"{word}"-->templateSentence
-        templateSynonym--"{wordSynonym}"-->templateSentence
-        templateSynonym[Synonym]
-        input--"{word}"-->templateSynonym
-
-
-
-
-
-    end
+  end;
 ```
 <!--/Graph-->
 

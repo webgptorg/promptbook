@@ -11,20 +11,16 @@ Show how to use a simple prompt with no parameters and comments that should be i
 %% 🔮 Tip: Open this on GitHub or in the VSCode website to see the Mermaid graph visually
 
 flowchart LR
-    subgraph "✨ Sample prompt with comments"
+  subgraph "✨ Sample prompt with comments"
 
-        direction TB
+      direction TB
 
-        input[Input]
+      input[Input]:::hidden
+      templatePrompt[💬 Prompt]
 
+      classDef hidden display: none;
 
-        templatePrompt[💬 Prompt]
-
-
-
-
-
-    end
+  end;
 ```
 <!--/Graph-->
 

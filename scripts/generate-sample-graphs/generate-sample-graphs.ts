@@ -82,34 +82,32 @@ async function generateSampleGraphs({ isCommited }: { isCommited: boolean }) {
                     %% 🔮 Tip: Open this on GitHub or in the VSCode website to see the Mermaid graph visually
 
                     flowchart LR
-                        subgraph "${ptbkJson.title}"
+                      subgraph "${ptbkJson.title}"
 
-                            direction TB
+                          direction TB
 
-                            input[Input]
+                          input[Input]:::hidden
+                          ${block(
+                              ptbkJson.promptTemplates
+                                  .flatMap(({ title, dependentParameterNames, resultingParameterName }) => [
+                                      `${parameterNameToTemplateName(resultingParameterName)}[${title}]`,
+                                      ...dependentParameterNames.map(
+                                          (dependentParameterName) =>
+                                              `${parameterNameToTemplateName(
+                                                  dependentParameterName,
+                                              )}--"{${dependentParameterName}}"-->${parameterNameToTemplateName(
+                                                  resultingParameterName,
+                                              )}`,
+                                      ),
+                                  ])
+                                  .join('\n'),
+                          )}
+
+                          classDef hidden display: none;
+
+                      end;
 
 
-                            ${block(
-                                ptbkJson.promptTemplates
-                                    .flatMap(({ title, dependentParameterNames, resultingParameterName }) => [
-                                        `${parameterNameToTemplateName(resultingParameterName)}[${title}]`,
-                                        ...dependentParameterNames.map(
-                                            (dependentParameterName) =>
-                                                `${parameterNameToTemplateName(
-                                                    dependentParameterName,
-                                                )}--"{${dependentParameterName}}"-->${parameterNameToTemplateName(
-                                                    resultingParameterName,
-                                                )}`,
-                                        ),
-                                    ])
-                                    .join('\n'),
-                            )}
-
-
-
-
-
-                        end
 
             `,
             );

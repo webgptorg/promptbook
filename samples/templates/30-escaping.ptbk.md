@@ -11,20 +11,16 @@ Show how to put codeblocks in the prompt _(which is already in the codeblock)_
 %% 🔮 Tip: Open this on GitHub or in the VSCode website to see the Mermaid graph visually
 
 flowchart LR
-    subgraph "✨ Sample of escaping"
+  subgraph "✨ Sample of escaping"
 
-        direction TB
+      direction TB
 
-        input[Input]
+      input[Input]:::hidden
+      templatePrompt[💬 Prompt]
 
+      classDef hidden display: none;
 
-        templatePrompt[💬 Prompt]
-
-
-
-
-
-    end
+  end;
 ```
 <!--/Graph-->
 

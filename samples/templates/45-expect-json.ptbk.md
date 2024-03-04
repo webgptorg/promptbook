@@ -10,21 +10,17 @@
 %% 🔮 Tip: Open this on GitHub or in the VSCode website to see the Mermaid graph visually
 
 flowchart LR
-    subgraph "✨ Sample: Parsing data to JSON"
+  subgraph "✨ Sample: Parsing data to JSON"
 
-        direction TB
+      direction TB
 
-        input[Input]
+      input[Input]:::hidden
+      templateQuestion[💬 Question]
+      input--"{sentence}"-->templateQuestion
 
+      classDef hidden display: none;
 
-        templateQuestion[💬 Question]
-        input--"{sentence}"-->templateQuestion
-
-
-
-
-
-    end
+  end;
 ```
 <!--/Graph-->
 

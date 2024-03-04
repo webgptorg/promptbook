@@ -10,21 +10,17 @@
 %% 🔮 Tip: Open this on GitHub or in the VSCode website to see the Mermaid graph visually
 
 flowchart LR
-    subgraph "✨ Sample: Postprocessing 2"
+  subgraph "✨ Sample: Postprocessing 2"
 
-        direction TB
+      direction TB
 
-        input[Input]
+      input[Input]:::hidden
+      templateQuestion[💬 Question]
+      input--"{yourName}"-->templateQuestion
 
+      classDef hidden display: none;
 
-        templateQuestion[💬 Question]
-        input--"{yourName}"-->templateQuestion
-
-
-
-
-
-    end
+  end;
 ```
 <!--/Graph-->
 

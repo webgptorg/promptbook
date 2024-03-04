@@ -12,24 +12,20 @@ Show how to use two consecutive prompts with one parameter each.
 %% 🔮 Tip: Open this on GitHub or in the VSCode website to see the Mermaid graph visually
 
 flowchart LR
-    subgraph "✨ Sample: Postprocessing 1"
+  subgraph "✨ Sample: Postprocessing 1"
 
-        direction TB
+      direction TB
 
-        input[Input]
+      input[Input]:::hidden
+      templateSynonym[💬 Synonym]
+      input--"{word}"-->templateSynonym
+      templateSentence[💬 Sentence]
+      input--"{word}"-->templateSentence
+      templateSynonym--"{wordSynonym}"-->templateSentence
 
+      classDef hidden display: none;
 
-        templateSynonym[💬 Synonym]
-        input--"{word}"-->templateSynonym
-        templateSentence[💬 Sentence]
-        input--"{word}"-->templateSentence
-        templateSynonym--"{wordSynonym}"-->templateSentence
-
-
-
-
-
-    end
+  end;
 ```
 <!--/Graph-->
 

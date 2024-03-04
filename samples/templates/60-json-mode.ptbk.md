@@ -14,21 +14,17 @@ Trying the language capabilities of GPT models.
 %% 🔮 Tip: Open this on GitHub or in the VSCode website to see the Mermaid graph visually
 
 flowchart LR
-    subgraph "✨ Sample: JSON mode"
+  subgraph "✨ Sample: JSON mode"
 
-        direction TB
+      direction TB
 
-        input[Input]
+      input[Input]:::hidden
+      templateExtrakceKontaktnChDaj[🖋 Extrakce kontaktních údajů]
+      input--"{unstructuredContacts}"-->templateExtrakceKontaktnChDaj
 
+      classDef hidden display: none;
 
-        templateExtrakceKontaktnChDaj[🖋 Extrakce kontaktních údajů]
-        input--"{unstructuredContacts}"-->templateExtrakceKontaktnChDaj
-
-
-
-
-
-    end
+  end;
 ```
 <!--/Graph-->
 

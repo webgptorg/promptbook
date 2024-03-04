@@ -16,39 +16,35 @@ Trying the language capabilities of GPT models.
 %% 🔮 Tip: Open this on GitHub or in the VSCode website to see the Mermaid graph visually
 
 flowchart LR
-    subgraph "✨ Sample: Language Capabilities"
+  subgraph "✨ Sample: Language Capabilities"
 
-        direction TB
+      direction TB
 
-        input[Input]
+      input[Input]:::hidden
+      templateSynonym[💬 Synonym]
+      input--"{word}"-->templateSynonym
+      templateTestThatWordIsNotOriginalWord[⚙ Test that word is not original word]
+      input--"{word}"-->templateTestThatWordIsNotOriginalWord
+      templateSynonym--"{wordSynonym}"-->templateTestThatWordIsNotOriginalWord
+      templateSentenceWithSynonym[💬 Sentence with Synonym]
+      input--"{word}"-->templateSentenceWithSynonym
+      templateSynonym--"{wordSynonym}"-->templateSentenceWithSynonym
+      templateSentenceWithoutOriginalWord[💬 Sentence without original word]
+      templateSentenceWithSynonym--"{sentenceWithTwoSynonyms}"-->templateSentenceWithoutOriginalWord
+      input--"{word}"-->templateSentenceWithoutOriginalWord
+      templateComparison[💬 Comparison]
+      templateSentenceWithSynonym--"{sentenceWithTwoSynonyms}"-->templateComparison
+      templateSentenceWithoutOriginalWord--"{sentenceWithOriginalWordRemoved}"-->templateComparison
+      templateSummary[🔗 Summary]
+      input--"{word}"-->templateSummary
+      templateSynonym--"{wordSynonym}"-->templateSummary
+      templateSentenceWithSynonym--"{sentenceWithTwoSynonyms}"-->templateSummary
+      templateSentenceWithoutOriginalWord--"{sentenceWithOriginalWordRemoved}"-->templateSummary
+      templateComparison--"{comparisonOfTwoSentences}"-->templateSummary
 
+      classDef hidden display: none;
 
-        templateSynonym[💬 Synonym]
-        input--"{word}"-->templateSynonym
-        templateTestThatWordIsNotOriginalWord[⚙ Test that word is not original word]
-        input--"{word}"-->templateTestThatWordIsNotOriginalWord
-        templateSynonym--"{wordSynonym}"-->templateTestThatWordIsNotOriginalWord
-        templateSentenceWithSynonym[💬 Sentence with Synonym]
-        input--"{word}"-->templateSentenceWithSynonym
-        templateSynonym--"{wordSynonym}"-->templateSentenceWithSynonym
-        templateSentenceWithoutOriginalWord[💬 Sentence without original word]
-        templateSentenceWithSynonym--"{sentenceWithTwoSynonyms}"-->templateSentenceWithoutOriginalWord
-        input--"{word}"-->templateSentenceWithoutOriginalWord
-        templateComparison[💬 Comparison]
-        templateSentenceWithSynonym--"{sentenceWithTwoSynonyms}"-->templateComparison
-        templateSentenceWithoutOriginalWord--"{sentenceWithOriginalWordRemoved}"-->templateComparison
-        templateSummary[🔗 Summary]
-        input--"{word}"-->templateSummary
-        templateSynonym--"{wordSynonym}"-->templateSummary
-        templateSentenceWithSynonym--"{sentenceWithTwoSynonyms}"-->templateSummary
-        templateSentenceWithoutOriginalWord--"{sentenceWithOriginalWordRemoved}"-->templateSummary
-        templateComparison--"{comparisonOfTwoSentences}"-->templateSummary
-
-
-
-
-
-    end
+  end;
 ```
 <!--/Graph-->
 

@@ -12,21 +12,17 @@ Show how to use a simple prompt with one parameter.
 %% 🔮 Tip: Open this on GitHub or in the VSCode website to see the Mermaid graph visually
 
 flowchart LR
-    subgraph "✨ Sample prompt"
+  subgraph "✨ Sample prompt"
 
-        direction TB
+      direction TB
 
-        input[Input]
+      input[Input]:::hidden
+      templateSynonym[💬 Synonym]
+      input--"{word}"-->templateSynonym
 
+      classDef hidden display: none;
 
-        templateSynonym[💬 Synonym]
-        input--"{word}"-->templateSynonym
-
-
-
-
-
-    end
+  end;
 ```
 <!--/Graph-->
 

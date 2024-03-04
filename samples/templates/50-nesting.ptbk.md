@@ -16,26 +16,22 @@ How block are nested in the promptbook
 %% 🔮 Tip: Open this on GitHub or in the VSCode website to see the Mermaid graph visually
 
 flowchart LR
-    subgraph "✨ Sample: Nesting"
+  subgraph "✨ Sample: Nesting"
 
-        direction TB
+      direction TB
 
-        input[Input]
+      input[Input]:::hidden
+      templateSynonym[💬 Synonym]
+      input--"{word}"-->templateSynonym
+      templateSentence[💬 Sentence]
+      input--"{word}"-->templateSentence
+      templateSynonym--"{wordSynonym}"-->templateSentence
+      templateMakeADocument[Make a document]
+      templateSentence--"{sentence}"-->templateMakeADocument
 
+      classDef hidden display: none;
 
-        templateSynonym[💬 Synonym]
-        input--"{word}"-->templateSynonym
-        templateSentence[💬 Sentence]
-        input--"{word}"-->templateSentence
-        templateSynonym--"{wordSynonym}"-->templateSentence
-        templateMakeADocument[Make a document]
-        templateSentence--"{sentence}"-->templateMakeADocument
-
-
-
-
-
-    end
+  end;
 ```
 <!--/Graph-->
 
