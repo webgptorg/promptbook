@@ -20,7 +20,7 @@ What is your web about?
 
 `-> {assigment}` Website assignment and specification
 
-## 💬 Improvement of the web title
+## ✨ Improving the title
 
 -   POSTPROCESSING `unwrapResult`
 
@@ -54,7 +54,7 @@ Is the title for your website okay?
 
 `-> {title}` Title for the website
 
-## 💬 Cunning subtitle
+## 🐰 Cunning subtitle
 
 -   POSTPROCESSING `unwrapResult`
 
@@ -74,7 +74,7 @@ A website assignment from a customer:
 
 `-> {claim}` Claim for the web
 
-## 💬 Keyword analysis
+## 🚦 Keyword analysis
 
 ```
 As an experienced SEO specialist, you have been entrusted with creating keywords for the website "{title}".
@@ -102,7 +102,7 @@ Website assignment from the customer:
 
 `-> {keywords}` Keywords
 
-## 🔗 Creating the beginning of the website content
+## 🔗 Combine the beginning
 
 -   SIMPLE TEMPLATE
 
@@ -116,7 +116,7 @@ Website assignment from the customer:
 
 `-> {contentBeginning}` Beginning of web content
 
-## 🖋 Writing web content
+## 🖋 Write the content
 
 -   MODEL VARIANT COMPLETION
 -   MODEL NAME `gpt-3.5-turbo-instruct`
@@ -147,7 +147,7 @@ A website assignment from a customer:
 
 `-> {contentBody}` Middle of the web content
 
-## 🔗 Combine content
+## 🔗 Combine the content
 
 -   SIMPLE TEMPLATE
 

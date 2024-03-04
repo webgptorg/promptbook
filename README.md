@@ -86,7 +86,7 @@ File `write-website-content.ptbk.md`:
 >
 > `-> {assigment}` Website assignment and specification
 >
-> ## 💬 Improvement of the web title
+> ## ✨ Improving the title
 >
 > -   POSTPROCESSING `unwrapResult`
 >
@@ -120,7 +120,7 @@ File `write-website-content.ptbk.md`:
 >
 > `-> {title}` Title for the website
 >
-> ## 💬 Cunning subtitle
+> ## � Cunning subtitle
 >
 > -   POSTPROCESSING `unwrapResult`
 >
@@ -140,7 +140,7 @@ File `write-website-content.ptbk.md`:
 >
 > `-> {claim}` Claim for the web
 >
-> ## 💬 Keyword analysis
+> ## � Keyword analysis
 >
 > ```
 > As an experienced SEO specialist, you have been entrusted with creating keywords for the website "{title}".
@@ -168,7 +168,7 @@ File `write-website-content.ptbk.md`:
 >
 > `-> {keywords}` Keywords
 >
-> ## 🔗 Creating the beginning of the website content
+> ## 🔗 Combine the beginning
 >
 > -   SIMPLE TEMPLATE
 >
@@ -182,7 +182,7 @@ File `write-website-content.ptbk.md`:
 >
 > `-> {contentBeginning}` Beginning of web content
 >
-> ## 🖋 Writing web content
+> ## 🖋 Write the content
 >
 > -   MODEL VARIANT COMPLETION
 > -   MODEL NAME `gpt-3.5-turbo-instruct`
@@ -213,7 +213,7 @@ File `write-website-content.ptbk.md`:
 >
 > `-> {contentBody}` Middle of the web content
 >
-> ## 🔗 Combine content
+> ## 🔗 Combine the content
 >
 > -   SIMPLE TEMPLATE
 >
@@ -240,26 +240,26 @@ flowchart LR
       input((Input)):::input
       templateSpecifyingTheAssigment(👤 Specifying the assigment)
       input--"{rawAssigment}"-->templateSpecifyingTheAssigment
-      templateImprovementOfTheWebTitle(💬 Improvement of the web title)
+      templateImprovementOfTheWebTitle(✨ Improving the title)
       input--"{rawTitle}"-->templateImprovementOfTheWebTitle
       templateSpecifyingTheAssigment--"{assigment}"-->templateImprovementOfTheWebTitle
       templateWebsiteTitleApproval(👤 Website title approval)
       templateImprovementOfTheWebTitle--"{enhancedTitle}"-->templateWebsiteTitleApproval
-      templateCunningSubtitle(💬 Cunning subtitle)
+      templateCunningSubtitle(� Cunning subtitle)
       templateWebsiteTitleApproval--"{title}"-->templateCunningSubtitle
       templateSpecifyingTheAssigment--"{assigment}"-->templateCunningSubtitle
-      templateKeywordAnalysis(💬 Keyword analysis)
+      templateKeywordAnalysis(� Keyword analysis)
       templateWebsiteTitleApproval--"{title}"-->templateKeywordAnalysis
       templateSpecifyingTheAssigment--"{assigment}"-->templateKeywordAnalysis
-      templateCreatingTheBeginningOfTheWebsiteContent(🔗 Creating the beginning of the website content)
+      templateCreatingTheBeginningOfTheWebsiteContent(🔗 Combine the beginning)
       templateWebsiteTitleApproval--"{title}"-->templateCreatingTheBeginningOfTheWebsiteContent
       templateCunningSubtitle--"{claim}"-->templateCreatingTheBeginningOfTheWebsiteContent
-      templateWritingWebContent(🖋 Writing web content)
+      templateWritingWebContent(🖋 Write the content)
       templateWebsiteTitleApproval--"{title}"-->templateWritingWebContent
       templateSpecifyingTheAssigment--"{assigment}"-->templateWritingWebContent
       templateKeywordAnalysis--"{keywords}"-->templateWritingWebContent
       templateCreatingTheBeginningOfTheWebsiteContent--"{contentBeginning}"-->templateWritingWebContent
-      templateCombineContent(🔗 Combine content)
+      templateCombineContent(🔗 Combine the content)
       templateCreatingTheBeginningOfTheWebsiteContent--"{contentBeginning}"-->templateCombineContent
       templateWritingWebContent--"{contentBody}"-->templateCombineContent
 
