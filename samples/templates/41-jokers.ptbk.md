@@ -15,12 +15,12 @@ flowchart LR
 
       direction TB
 
-      input[Input]:::hidden
+      input[<!--Input-->]:::hidden
       templateQuestion[💬 Question]
       input--"{name1}"-->templateQuestion
       input--"{name2}"-->templateQuestion
 
-      classDef hidden display: none;
+      classDef hidden visibility: hidden;
 
   end;
 ```

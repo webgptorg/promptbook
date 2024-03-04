@@ -86,7 +86,7 @@ async function generateSampleGraphs({ isCommited }: { isCommited: boolean }) {
 
                           direction TB
 
-                          input[Input]:::hidden
+                          input[<!--Input-->]:::hidden
                           ${block(
                               ptbkJson.promptTemplates
                                   .flatMap(({ title, dependentParameterNames, resultingParameterName }) => [
@@ -103,7 +103,7 @@ async function generateSampleGraphs({ isCommited }: { isCommited: boolean }) {
                                   .join('\n'),
                           )}
 
-                          classDef hidden display: none;
+                          classDef hidden visibility: hidden;
 
                       end;
 

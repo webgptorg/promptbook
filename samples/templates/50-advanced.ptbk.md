@@ -20,7 +20,7 @@ flowchart LR
 
       direction TB
 
-      input[Input]:::hidden
+      input[<!--Input-->]:::hidden
       templateSynonym[💬 Synonym]
       input--"{word}"-->templateSynonym
       templateTestThatWordIsNotOriginalWord[⚙ Test that word is not original word]
@@ -42,7 +42,7 @@ flowchart LR
       templateSentenceWithoutOriginalWord--"{sentenceWithOriginalWordRemoved}"-->templateSummary
       templateComparison--"{comparisonOfTwoSentences}"-->templateSummary
 
-      classDef hidden display: none;
+      classDef hidden visibility: hidden;
 
   end;
 ```

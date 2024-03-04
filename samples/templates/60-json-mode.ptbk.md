@@ -18,11 +18,11 @@ flowchart LR
 
       direction TB
 
-      input[Input]:::hidden
+      input[<!--Input-->]:::hidden
       templateExtrakceKontaktnChDaj[🖋 Extrakce kontaktních údajů]
       input--"{unstructuredContacts}"-->templateExtrakceKontaktnChDaj
 
-      classDef hidden display: none;
+      classDef hidden visibility: hidden;
 
   end;
 ```

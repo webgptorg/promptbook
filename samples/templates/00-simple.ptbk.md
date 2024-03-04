@@ -14,10 +14,10 @@ flowchart LR
 
       direction TB
 
-      input[Input]:::hidden
+      input[<!--Input-->]:::hidden
       templatePrompt[💬 Prompt]
 
-      classDef hidden display: none;
+      classDef hidden visibility: hidden;
 
   end;
 ```

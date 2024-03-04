@@ -18,14 +18,14 @@ flowchart LR
 
       direction TB
 
-      input[Input]:::hidden
+      input[<!--Input-->]:::hidden
       templateSentence[Sentence]
       input--"{word}"-->templateSentence
       templateSynonym--"{wordSynonym}"-->templateSentence
       templateSynonym[Synonym]
       input--"{word}"-->templateSynonym
 
-      classDef hidden display: none;
+      classDef hidden visibility: hidden;
 
   end;
 ```

@@ -20,7 +20,7 @@ flowchart LR
 
       direction TB
 
-      input[Input]:::hidden
+      input[<!--Input-->]:::hidden
       templateSynonym[💬 Synonym]
       input--"{word}"-->templateSynonym
       templateSentence[💬 Sentence]
@@ -29,7 +29,7 @@ flowchart LR
       templateMakeADocument[Make a document]
       templateSentence--"{sentence}"-->templateMakeADocument
 
-      classDef hidden display: none;
+      classDef hidden visibility: hidden;
 
   end;
 ```
