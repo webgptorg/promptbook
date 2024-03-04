@@ -14,11 +14,11 @@ flowchart LR
 
       direction TB
 
-      input[<!--Input-->]:::hidden
-      templateQuestion[💬 Question]
+      input((Input)):::input
+      templateQuestion(💬 Question)
       input--"{sentence}"-->templateQuestion
 
-      classDef hidden visibility: hidden;
+      classDef input color: grey;
 
   end;
 ```

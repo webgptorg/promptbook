@@ -86,11 +86,11 @@ async function generateSampleGraphs({ isCommited }: { isCommited: boolean }) {
 
                           direction TB
 
-                          input[<!--Input-->]:::hidden
+                          input((Input)):::input
                           ${block(
                               ptbkJson.promptTemplates
                                   .flatMap(({ title, dependentParameterNames, resultingParameterName }) => [
-                                      `${parameterNameToTemplateName(resultingParameterName)}[${title}]`,
+                                      `${parameterNameToTemplateName(resultingParameterName)}(${title})`,
                                       ...dependentParameterNames.map(
                                           (dependentParameterName) =>
                                               `${parameterNameToTemplateName(
@@ -103,7 +103,7 @@ async function generateSampleGraphs({ isCommited }: { isCommited: boolean }) {
                                   .join('\n'),
                           )}
 
-                          classDef hidden visibility: hidden;
+                          classDef input color: grey;
 
                       end;
 

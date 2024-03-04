@@ -64,212 +64,213 @@ File `write-website-content.ptbk.md`:
 
 <!------------------------[ Sample: ]------------------------>
 
-```markdown
-# 🌍 Create website content
-
-Instructions for creating web page content using [📖 Prompt template pipelines](https://github.com/webgptorg/promptbook).
-
--   PTBK URL https://ptbk.webgpt.com/en/write-website-content.ptbk.md@v0.1.0
--   PTBK VERSION 0.0.1
--   MODEL VARIANT CHAT
--   Use GPT-3.5
--   INPUT  PARAM `{rawTitle}` Automatically suggested a site name or empty text
--   INPUT  PARAM `{rawAssigment}` Automatically generated site entry from image recognition
--   OUTPUT PARAM `{content}` Web content
-
-## 👤 Specifying the assigment
-
-What is your web about?
-
--   PROMPT DIALOG
-
-\`\`\`text
-{rawAssigment}
-\`\`\`
-
-`-> {assigment}` Website assignment and specification
-
-## 💬 Improvement of the web title
-
--   POSTPROCESSING `unwrapResult`
-
-\`\`\`markdown
-As an experienced marketing specialist, you have been entrusted with improving the name of your client's business.
-
-A suggested name from a client:
-"{rawTitle}"
-
-Assignment from customer:
-
-> {assigment}
-
-## Instructions:
-
--   Write only one name suggestion
--   The name will be used on the website, business cards, visuals, etc.
-    \`\`\`
-
-`-> {enhancedTitle}` Enhanced title
-
-## 👤 Schválení názvu uživatelem
-
-Is the title for your website okay?
-
--   PROMPT DIALOG
-
-\`\`\`text
-{enhancedTitle}
-\`\`\`
-
-`-> {title}` Title for the website
-
-## 💬 Cunning subtitle
-
--   POSTPROCESSING `unwrapResult`
-
-\`\`\`markdown
-As an experienced copywriter, you have been entrusted with creating a claim for the "{title}" web page.
-
-A website assignment from a customer:
-
-> {assigment}
-
-## Instructions:
-
--   Write only one name suggestion
--   Claim will be used on website, business cards, visuals, etc.
--   Claim should be punchy, funny, original
-    \`\`\`
-
-`-> {claim}` Claim for the web
-
-## 💬 Keyword analysis
-
-\`\`\`markdown
-As an experienced SEO specialist, you have been entrusted with creating keywords for the website "{title}".
-
-Website assignment from the customer:
-
-> {assigment}
-
-## Instructions:
-
--   Write a list of keywords
--   Keywords are in basic form
-
-## Example:
-
--   Ice cream
--   Olomouc
--   Quality
--   Family
--   Tradition
--   Italy
--   Craft
-    \`\`\`
-
-`-> {keywords}` Keywords
-
-## 🔗 Vytvoření začátku obsahu webu
-
--   SIMPLE TEMPLATE
-
-\`\`\`text
-
-# {title}
-
-> {claim}
-
-\`\`\`
-
-`-> {contentBeginning}` Beginning of web content
-
-## 🖋 Writing web content
-
--   MODEL VARIANT COMPLETION
--   MODEL NAME `gpt-3.5-turbo-instruct`
-
-\`\`\`markdown
-As an experienced copywriter and web designer, you have been entrusted with creating text for a new website {title}.
-
-A website assignment from a customer:
-
-> {assigment}
-
-## Instructions:
-
--   Text formatting is in Markdown
--   Be concise and to the point
--   Use keywords, but they should be naturally in the text
--   This is the complete content of the page, so don't forget all the important information and elements the page should contain
--   Use headings, bullets, text formatting
-
-## Keywords:
-
-{keywords}
-
-## Web Content:
-
-{contentBeginning}
-\`\`\`
-
-`-> {contentBody}` Middle of the web content
-
-## 🔗 Combine content
-
--   SIMPLE TEMPLATE
-
-\`\`\`markdown
-{contentBeginning}
-
-{contentBody}
-\`\`\`
-
-`-> {content}`
-```
+> # 🌍 Create website content
+>
+> Instructions for creating web page content.
+>
+> -   PTBK URL https://ptbk.webgpt.com/en/write-website-content.ptbk.md@v0.1.0
+> -   PTBK VERSION 0.0.1
+> -   INPUT  PARAM `{rawTitle}` Automatically suggested a site name or empty text
+> -   INPUT  PARAM `{rawAssigment}` Automatically generated site entry from image recognition
+> -   OUTPUT PARAM `{content}` Web content
+>
+> ## 👤 Specifying the assigment
+>
+> What is your web about?
+>
+> -   PROMPT DIALOG
+>
+> ```
+> {rawAssigment}
+> ```
+>
+> `-> {assigment}` Website assignment and specification
+>
+> ## 💬 Improvement of the web title
+>
+> -   POSTPROCESSING `unwrapResult`
+>
+> ```
+> As an experienced marketing specialist, you have been entrusted with improving the name of your client's business.
+>
+> A suggested name from a client:
+> "{rawTitle}"
+>
+> Assignment from customer:
+>
+> > {assigment}
+>
+> ## Instructions:
+>
+> -   Write only one name suggestion
+> -   The name will be used on the website, business cards, visuals, etc.
+> ```
+>
+> `-> {enhancedTitle}` Enhanced title
+>
+> ## 👤 Website title approval
+>
+> Is the title for your website okay?
+>
+> -   PROMPT DIALOG
+>
+> ```
+> {enhancedTitle}
+> ```
+>
+> `-> {title}` Title for the website
+>
+> ## 💬 Cunning subtitle
+>
+> -   POSTPROCESSING `unwrapResult`
+>
+> ```
+> As an experienced copywriter, you have been entrusted with creating a claim for the "{title}" web page.
+>
+> A website assignment from a customer:
+>
+> > {assigment}
+>
+> ## Instructions:
+>
+> -   Write only one name suggestion
+> -   Claim will be used on website, business cards, visuals, etc.
+> -   Claim should be punchy, funny, original
+> ```
+>
+> `-> {claim}` Claim for the web
+>
+> ## 💬 Keyword analysis
+>
+> ```
+> As an experienced SEO specialist, you have been entrusted with creating keywords for the website "{title}".
+>
+> Website assignment from the customer:
+>
+> > {assigment}
+>
+> ## Instructions:
+>
+> -   Write a list of keywords
+> -   Keywords are in basic form
+>
+> ## Example:
+>
+> -   Ice cream
+> -   Olomouc
+> -   Quality
+> -   Family
+> -   Tradition
+> -   Italy
+> -   Craft
+>
+> ```
+>
+> `-> {keywords}` Keywords
+>
+> ## 🔗 Creating the beginning of the website content
+>
+> -   SIMPLE TEMPLATE
+>
+> ```
+>
+> # {title}
+>
+> > {claim}
+>
+> ```
+>
+> `-> {contentBeginning}` Beginning of web content
+>
+> ## 🖋 Writing web content
+>
+> -   MODEL VARIANT COMPLETION
+> -   MODEL NAME `gpt-3.5-turbo-instruct`
+>
+> ```
+> As an experienced copywriter and web designer, you have been entrusted with creating text for a new website {title}.
+>
+> A website assignment from a customer:
+>
+> > {assigment}
+>
+> ## Instructions:
+>
+> -   Text formatting is in Markdown
+> -   Be concise and to the point
+> -   Use keywords, but they should be naturally in the text
+> -   This is the complete content of the page, so don't forget all the important information and elements the page should contain
+> -   Use headings, bullets, text formatting
+>
+> ## Keywords:
+>
+> {keywords}
+>
+> ## Web Content:
+>
+> {contentBeginning}
+> ```
+>
+> `-> {contentBody}` Middle of the web content
+>
+> ## 🔗 Combine content
+>
+> -   SIMPLE TEMPLATE
+>
+> ```markdown
+> {contentBeginning}
+>
+> {contentBody}
+> ```
+>
+> `-> {content}`
 
 <!------------------------[ /Sample ]------------------------>
+
+Following is the scheme how the promptbook above is executed:
+
+```mermaid
+%% 🔮 Tip: Open this on GitHub or in the VSCode website to see the Mermaid graph visually
+
+flowchart LR
+  subgraph "🌍 Create website content"
+
+      direction TB
+
+      input((Input)):::input
+      templateSpecifyingTheAssigment(👤 Specifying the assigment)
+      input--"{rawAssigment}"-->templateSpecifyingTheAssigment
+      templateImprovementOfTheWebTitle(💬 Improvement of the web title)
+      input--"{rawTitle}"-->templateImprovementOfTheWebTitle
+      templateSpecifyingTheAssigment--"{assigment}"-->templateImprovementOfTheWebTitle
+      templateWebsiteTitleApproval(👤 Website title approval)
+      templateImprovementOfTheWebTitle--"{enhancedTitle}"-->templateWebsiteTitleApproval
+      templateCunningSubtitle(💬 Cunning subtitle)
+      templateWebsiteTitleApproval--"{title}"-->templateCunningSubtitle
+      templateSpecifyingTheAssigment--"{assigment}"-->templateCunningSubtitle
+      templateKeywordAnalysis(💬 Keyword analysis)
+      templateWebsiteTitleApproval--"{title}"-->templateKeywordAnalysis
+      templateSpecifyingTheAssigment--"{assigment}"-->templateKeywordAnalysis
+      templateCreatingTheBeginningOfTheWebsiteContent(🔗 Creating the beginning of the website content)
+      templateWebsiteTitleApproval--"{title}"-->templateCreatingTheBeginningOfTheWebsiteContent
+      templateCunningSubtitle--"{claim}"-->templateCreatingTheBeginningOfTheWebsiteContent
+      templateWritingWebContent(🖋 Writing web content)
+      templateWebsiteTitleApproval--"{title}"-->templateWritingWebContent
+      templateSpecifyingTheAssigment--"{assigment}"-->templateWritingWebContent
+      templateKeywordAnalysis--"{keywords}"-->templateWritingWebContent
+      templateCreatingTheBeginningOfTheWebsiteContent--"{contentBeginning}"-->templateWritingWebContent
+      templateCombineContent(🔗 Combine content)
+      templateCreatingTheBeginningOfTheWebsiteContent--"{contentBeginning}"-->templateCombineContent
+      templateWritingWebContent--"{contentBody}"-->templateCombineContent
+
+      classDef input color: grey;
+
+  end;
+```
 
 [More template samples](./samples/templates/)
 
 _Note: We are using [postprocessing functions](#postprocessing-functions) like `unwrapResult` that can be used to postprocess the result._
-
-## 💠 Scheme
-
-> ⚠ Warning: This chart should be done BETTER
-
-<!-- TODO: !!! Make it better -->
-
-```mermaid
-flowchart LR
-    subgraph Promptbook execution
-        direction TB
-        start[Start]
-        input_params[Input Parameters] --> prompt_pipeline[Prompt Template Pipeline]
-        prompt_pipeline --> output_params[Output Parameters]
-
-        prompt_pipeline --> execution_tools[Execution Tools]
-        execution_tools -.-> LLMs[Natural Execution Tools]
-        execution_tools -.-> scripts[Script Execution Tools]
-        execution_tools -.-> user_interface[User Interface Tools]
-        execution_tools --> jokers[Jokers]
-        execution_tools --> expectations[Expectations]
-
-        LLMs --> external_models[External LLM Sources]
-        scripts --> scripting_lang[Supported Scripting Languages]
-        user_interface --> UI_methods[User Interface Methods]
-
-        jokers --> joker_handling[Joker Handling]
-        expectations --> expectation_validation[Expectation Validation]
-        output_params --> postprocessing[Postprocessing Functions]
-        postprocessing -->result[Execution Report]
-
-        result --> completion[Execution Complete]
-    end
-
-    start --> input_params
-    completion -->|Feedback & Iteration| start
-```
 
 ## 📚 Dictionary
 

@@ -16,14 +16,14 @@ flowchart LR
 
       direction TB
 
-      input[<!--Input-->]:::hidden
-      templateSynonym[💬 Synonym]
+      input((Input)):::input
+      templateSynonym(💬 Synonym)
       input--"{word}"-->templateSynonym
-      templateSentence[💬 Sentence]
+      templateSentence(💬 Sentence)
       input--"{word}"-->templateSentence
       templateSynonym--"{wordSynonym}"-->templateSentence
 
-      classDef hidden visibility: hidden;
+      classDef input color: grey;
 
   end;
 ```
