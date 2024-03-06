@@ -4,9 +4,9 @@ import { Server, Socket } from 'socket.io';
 import spaceTrim from 'spacetrim';
 import { PROMPTBOOK_VERSION } from '../../../../version';
 import { PromptResult } from '../../../PromptResult';
-import { Promptbooks_Error } from './interfaces/Promptbooks_Error';
-import { Promptbooks_Request } from './interfaces/Promptbooks_Request';
-import { Promptbooks_Response } from './interfaces/Promptbooks_Response';
+import { Promptbook_Server_Error } from './interfaces/Promptbook_Server_Error';
+import { Promptbook_Server_Request } from './interfaces/Promptbook_Server_Request';
+import { Promptbook_Server_Response } from './interfaces/Promptbook_Server_Response';
 import { RemoteServerOptions } from './interfaces/RemoteServerOptions';
 
 /**
@@ -51,7 +51,7 @@ export function runRemoteServer(options: RemoteServerOptions) {
     server.on('connection', (socket: Socket) => {
         console.info(chalk.gray(`Client connected`), socket.id);
 
-        socket.on('request', async (request: Promptbooks_Request) => {
+        socket.on('request', async (request: Promptbook_Server_Request) => {
             const { prompt, clientId } = request;
             // TODO: !! Validate here clientId (pass validator as dependency)
 
@@ -80,13 +80,13 @@ export function runRemoteServer(options: RemoteServerOptions) {
                     console.info(chalk.bgGreen(`PromptResult:`), chalk.green(JSON.stringify(promptResult, null, 4)));
                 }
 
-                socket.emit('response', { promptResult } satisfies Promptbooks_Response);
+                socket.emit('response', { promptResult } satisfies Promptbook_Server_Response);
             } catch (error) {
                 if (!(error instanceof Error)) {
                     throw error;
                 }
 
-                socket.emit('error', { errorMessage: error.message } satisfies Promptbooks_Error);
+                socket.emit('error', { errorMessage: error.message } satisfies Promptbook_Server_Error);
             } finally {
                 socket.disconnect();
             }

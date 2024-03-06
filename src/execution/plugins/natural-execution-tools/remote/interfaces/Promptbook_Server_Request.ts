@@ -1,4 +1,4 @@
-import type { client_id } from '../../../../.././types/typeAliases';
+import type { client_id } from '../../../../../types/typeAliases';
 import type { Prompt } from '../../../../../types/Prompt';
 
 /**
@@ -6,7 +6,7 @@ import type { Prompt } from '../../../../../types/Prompt';
  *
  * This is a request from client to server
  */
-export interface Promptbooks_Request {
+export interface Promptbook_Server_Request {
     /**
      * Client responsible for the requests
      */
