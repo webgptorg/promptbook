@@ -6,6 +6,8 @@ _Note: This is not recommended but it should work_
 
 -   PROMPTBOOK URL https://promptbook.example.com/samples/parameter-used-in-reverse-order.ptbk.md@v1
 -   PROMPTBOOK VERSION 1.0.0
+-   MODEL VARIANT Chat
+-   MODEL NAME `gpt-3.5-turbo`
 -   INPUT  PARAMETER `{word}` Any single word
 
 <!--Graph-->

@@ -66,6 +66,8 @@ What is your web about?
 
 ## ✨ Improving the title
 
+-   MODEL VARIANT Chat
+-   MODEL NAME `gpt-4`
 -   POSTPROCESSING `unwrapResult`
 
 ```
@@ -100,6 +102,8 @@ Is the title for your website okay?
 
 ## 🐰 Cunning subtitle
 
+-   MODEL VARIANT Chat
+-   MODEL NAME `gpt-4`
 -   POSTPROCESSING `unwrapResult`
 
 ```
@@ -119,6 +123,9 @@ A website assignment from a customer:
 `-> {claim}` Claim for the web
 
 ## 🚦 Keyword analysis
+
+-   MODEL VARIANT Chat
+-   MODEL NAME `gpt-4`
 
 ```
 As an experienced SEO specialist, you have been entrusted with creating keywords for the website "{title}".
@@ -162,7 +169,7 @@ Website assignment from the customer:
 
 ## 🖋 Write the content
 
--   MODEL VARIANT COMPLETION
+-   MODEL VARIANT Completion
 -   MODEL NAME `gpt-3.5-turbo-instruct`
 
 ```

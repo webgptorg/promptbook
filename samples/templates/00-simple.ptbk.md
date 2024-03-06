@@ -3,6 +3,8 @@
 Show how to use a simple prompt with no parameters.
 
 -   PROMPTBOOK VERSION 1.0.0
+-   MODEL VARIANT Chat
+-   MODEL NAME `gpt-3.5-turbo`
 
 <!--Graph-->
 <!-- ⚠️ WARNING: This section was auto-generated -->

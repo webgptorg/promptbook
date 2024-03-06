@@ -19,9 +19,14 @@
         {
             "name": "ExtrakceKontaktnChDaj",
             "title": "🖋 Extrakce kontaktních údajů",
-            "dependentParameterNames": ["unstructuredContacts"],
+            "dependentParameterNames": [
+                "unstructuredContacts"
+            ],
             "executionType": "PROMPT_TEMPLATE",
-            "postprocessing": ["trimEndOfCodeBlock"],
+            "postprocessing": [
+                "trimEndOfCodeBlock"
+            ],
+            "expectFormat": "JSON",
             "modelRequirements": {
                 "modelVariant": "COMPLETION",
                 "modelName": "gpt-3.5-turbo-instruct"

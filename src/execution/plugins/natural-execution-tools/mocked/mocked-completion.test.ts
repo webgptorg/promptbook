@@ -20,7 +20,7 @@ describe('createPromptbookExecutor + MockedEchoExecutionTools with sample chat p
 
             ## Prompt
 
-            - MODEL VARIANT COMPLETION
+            - MODEL VARIANT Completion
             - MODEL NAME \`gpt-3.5-turbo-instruct\`
 
             \`\`\`

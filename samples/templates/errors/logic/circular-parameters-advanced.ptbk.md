@@ -2,6 +2,9 @@
 
 Sample of wrong promptbookwith circular parameters dependencies
 
+-   MODEL VARIANT Chat
+-   MODEL NAME `gpt-3.5-turbo`
+
 ## Word 1
 
 Synonym for word

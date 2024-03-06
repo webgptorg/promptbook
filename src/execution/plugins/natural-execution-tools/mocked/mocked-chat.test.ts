@@ -16,6 +16,8 @@ describe('createPromptbookExecutor + MockedEchoExecutionTools with sample chat p
 
             -   PROMPTBOOK VERSION 1.0.0
             -   PROMPTBOOK URL https://example.com/promptbook.json
+            -   MODEL VARIANT Chat
+            -   MODEL NAME gpt-3.5-turbo
             -   INPUT  PARAMETER {thing} Any thing to buy
 
             ## Prompt

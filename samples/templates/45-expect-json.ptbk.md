@@ -28,7 +28,7 @@ flowchart LR
 
 ## 💬 Question
 
--   MODEL VARIANT COMPLETION
+-   MODEL VARIANT Completion
 -   MODEL NAME `gpt-3.5-turbo-instruct`
 -   POSTPROCESSING `trimEndOfCodeBlock`
 -   Expect JSON

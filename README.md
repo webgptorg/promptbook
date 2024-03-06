@@ -184,7 +184,7 @@ File `write-website-content.ptbk.md`:
 >
 > ## 🖋 Write the content
 >
-> -   MODEL VARIANT COMPLETION
+> -   MODEL VARIANT Completion
 > -   MODEL NAME `gpt-3.5-turbo-instruct`
 >
 > ```

@@ -27,6 +27,24 @@ export function validatePromptbookJson(promptbook: PromptbookJson): void {
             throw new Error(`Parameter {${template.resultingParameterName}} is defined multiple times`);
         }
 
+        if (
+            template.executionType === 'PROMPT_TEMPLATE' &&
+            (template.modelRequirements.modelVariant === undefined ||
+                template.modelRequirements.modelName === undefined)
+        ) {
+            throw new Error(
+                spaceTrim(`
+
+                  You must specify MODEL VARIANT and MODEL NAME in the prompt template "${template.title}"
+
+                  For example:
+                  - MODEL VARIANT Chat
+                  - MODEL NAME \`gpt-4-1106-preview\`
+
+              `),
+            );
+        }
+
         if (template.jokers && template.jokers.length > 0) {
             if (
                 !template.expectFormat &&

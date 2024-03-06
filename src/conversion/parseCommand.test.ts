@@ -55,6 +55,25 @@ describe('how parseCommand works', () => {
         });
     });
 
+    it('should parse PROMPTBOOK_URL command in shortcut form', () => {
+        expect(parseCommand('ptbkurl https://promptbook.webgpt.com/cs/write-website-content.ptbk.md@v1.0.4')).toEqual({
+            type: 'PROMPTBOOK_URL',
+            promptbookUrl: new URL('https://promptbook.webgpt.com/cs/write-website-content.ptbk.md@v1.0.4'),
+        });
+        expect(parseCommand('ptbkUrl https://promptbook.webgpt.com/cs/write-website-content.ptbk.md@v1.0.5')).toEqual({
+            type: 'PROMPTBOOK_URL',
+            promptbookUrl: new URL('https://promptbook.webgpt.com/cs/write-website-content.ptbk.md@v1.0.5'),
+        });
+        expect(parseCommand('PTBK_URL https://promptbook.webgpt.com/cs/write-website-content.ptbk.md@v1.0.6')).toEqual({
+            type: 'PROMPTBOOK_URL',
+            promptbookUrl: new URL('https://promptbook.webgpt.com/cs/write-website-content.ptbk.md@v1.0.6'),
+        });
+        expect(parseCommand('PTBK URL https://promptbook.webgpt.com/cs/write-website-content.ptbk.md@v1.0.7')).toEqual({
+            type: 'PROMPTBOOK_URL',
+            promptbookUrl: new URL('https://promptbook.webgpt.com/cs/write-website-content.ptbk.md@v1.0.7'),
+        });
+    });
+
     it('should fail parsing PROMPTBOOK_URL command', () => {
         expect(() => parseCommand('PROMPTBOOK_URL')).toThrowError(/Invalid PROMPTBOOK_URL command/i);
         expect(() =>
@@ -76,6 +95,15 @@ describe('how parseCommand works', () => {
 
     it('should parse PROMPTBOOK_VERSION command', () => {
         expect(parseCommand('promptbook version 1.0.0')).toEqual({
+            type: 'PROMPTBOOK_VERSION',
+            promptbookVersion: '1.0.0',
+        });
+        expect(parseCommand('PTBK version 1.0.0')).toEqual({
+            type: 'PROMPTBOOK_VERSION',
+            promptbookVersion: '1.0.0',
+        });
+
+        expect(parseCommand('PTBK version 1.0.0')).toEqual({
             type: 'PROMPTBOOK_VERSION',
             promptbookVersion: '1.0.0',
         });
@@ -133,7 +161,7 @@ describe('how parseCommand works', () => {
             key: 'modelVariant',
             value: 'COMPLETION',
         });
-        expect(parseCommand('MODEL VARIANT COMPLETION   ')).toEqual({
+        expect(parseCommand('MODEL VARIANT Completion   ')).toEqual({
             type: 'MODEL',
             key: 'modelVariant',
             value: 'COMPLETION',

@@ -23,7 +23,10 @@
             "name": "Sentence",
             "title": "Sentence",
             "description": "Sentence with word and wordSynonym",
-            "dependentParameterNames": ["word", "wordSynonym"],
+            "dependentParameterNames": [
+                "word",
+                "wordSynonym"
+            ],
             "executionType": "PROMPT_TEMPLATE",
             "modelRequirements": {
                 "modelVariant": "CHAT",
@@ -36,7 +39,9 @@
             "name": "Synonym",
             "title": "Synonym",
             "description": "Synonym for word",
-            "dependentParameterNames": ["word"],
+            "dependentParameterNames": [
+                "word"
+            ],
             "executionType": "PROMPT_TEMPLATE",
             "modelRequirements": {
                 "modelVariant": "CHAT",

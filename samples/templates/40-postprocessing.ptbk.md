@@ -4,6 +4,8 @@ Show how to use two consecutive prompts with one parameter each.
 
 -   PROMPTBOOK URL https://promptbook.example.com/samples/postprocessing-1.ptbk.md@v1
 -   PROMPTBOOK VERSION 1.0.0
+-   MODEL VARIANT Chat
+-   MODEL NAME `gpt-3.5-turbo`
 -   INPUT  PARAMETER `{word}` Any single word
 
 <!--Graph-->

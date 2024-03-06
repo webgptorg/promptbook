@@ -30,7 +30,7 @@ flowchart LR
 
 ## 💬 Synonym
 
--   MODEL VARIANT CHAT
+-   MODEL VARIANT Chat
 -   MODEL NAME `gpt-4-1106-preview`
 
 Synonym for word

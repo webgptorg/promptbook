@@ -22,9 +22,15 @@
         {
             "name": "Question",
             "title": "💬 Question",
-            "dependentParameterNames": ["name1", "name2"],
+            "dependentParameterNames": [
+                "name1",
+                "name2"
+            ],
             "executionType": "PROMPT_TEMPLATE",
-            "jokers": ["name1", "name2"],
+            "jokers": [
+                "name1",
+                "name2"
+            ],
             "expectAmount": {
                 "words": {
                     "min": 2

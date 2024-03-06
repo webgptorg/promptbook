@@ -4,6 +4,8 @@ Show how to use a simple prompt with one parameter.
 
 -   PROMPTBOOK URL https://promptbook.example.com/samples/single.ptbk.md@v1
 -   PROMPTBOOK VERSION 1.0.0
+-   MODEL VARIANT Chat
+-   MODEL NAME `gpt-3.5-turbo`
 -   INPUT  PARAMETER `{word}` Any single word
 
 <!--Graph-->

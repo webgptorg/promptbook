@@ -25,7 +25,7 @@ import { parseCommand } from './parseCommand';
  * Note: This function does not validate logic of the pipeline only the syntax
  */
 export function promptbookStringToJson(promptbookString: PromptbookString): PromptbookJson {
-    const ptbJson: WritableDeep<PromptbookJson> = {
+    const promptbookJson: WritableDeep<PromptbookJson> = {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         title: undefined as any /* <- Note: Putting here placeholder to keep `title` on top at final JSON */,
         promptbookUrl: undefined /* <- Note: Putting here placeholder to keep `promptbookUrl` on top at final JSON */,
@@ -52,7 +52,7 @@ export function promptbookStringToJson(promptbookString: PromptbookString): Prom
     const addParam = (parameterCommand: Omit<ParameterCommand, 'type'>) => {
         const { parameterName, parameterDescription, isInputParameter } = parameterCommand;
 
-        const existingParameter = ptbJson.parameters.find(
+        const existingParameter = promptbookJson.parameters.find(
             (parameter: PromptTemplateParameterJson) => parameter.name === parameterName,
         );
         if (
@@ -81,7 +81,7 @@ export function promptbookStringToJson(promptbookString: PromptbookString): Prom
                 existingParameter.description = parameterDescription;
             }
         } else {
-            ptbJson.parameters.push({
+            promptbookJson.parameters.push({
                 name: parameterName,
                 description: parameterDescription || undefined,
                 isInput: isInputParameter,
@@ -104,7 +104,7 @@ export function promptbookStringToJson(promptbookString: PromptbookString): Prom
         );
     }
 
-    ptbJson.title = markdownStructure.title;
+    promptbookJson.title = markdownStructure.title;
 
     // TODO: [1] DRY description
     let description: string | undefined = markdownStructure.content;
@@ -117,7 +117,7 @@ export function promptbookStringToJson(promptbookString: PromptbookString): Prom
     if (description === '') {
         description = undefined;
     }
-    ptbJson.description = description;
+    promptbookJson.description = description;
 
     const defaultModelRequirements: Partial<Writable<ModelRequirements>> = {};
     const listItems = extractAllListItemsFromMarkdown(markdownStructure.content);
@@ -126,11 +126,11 @@ export function promptbookStringToJson(promptbookString: PromptbookString): Prom
 
         switch (command.type) {
             case 'PROMPTBOOK_URL':
-                ptbJson.promptbookUrl = command.promptbookUrl.href;
+                promptbookJson.promptbookUrl = command.promptbookUrl.href;
                 break;
 
             case 'PROMPTBOOK_VERSION':
-                ptbJson.promptbookVersion = command.promptbookVersion;
+                promptbookJson.promptbookVersion = command.promptbookVersion;
                 break;
 
             case 'MODEL':
@@ -318,21 +318,7 @@ export function promptbookStringToJson(promptbookString: PromptbookString): Prom
 
         dependentParameterNames = [...new Set(dependentParameterNames)];
 
-        if (templateModelRequirements.modelVariant === undefined || templateModelRequirements.modelName === undefined) {
-            throw new Error(
-                spaceTrim(`
-
-                    You must specify MODEL VARIANT and MODEL NAME in the prompt template "${section.title}"
-
-                    For example:
-                    - MODEL VARIANT Chat
-                    - MODEL NAME \`gpt-4-1106-preview\`
-
-                `),
-            );
-        }
-
-        ptbJson.promptTemplates.push({
+        promptbookJson.promptTemplates.push({
             name: normalizeTo_PascalCase(section.title),
             title: section.title,
             description,
@@ -350,7 +336,7 @@ export function promptbookStringToJson(promptbookString: PromptbookString): Prom
     }
 
     // =============================================================
-    return ptbJson;
+    return promptbookJson;
 }
 
 /**

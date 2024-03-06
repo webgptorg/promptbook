@@ -9,16 +9,16 @@ describe('validatePromptbookJson', () => {
             const promptbookString = importPromptbook(
                 '../../samples/templates/errors/logic/undefined-parameter.ptbk.md',
             );
-            const ptbJson = promptbookStringToJson(promptbookString);
-            validatePromptbookJson(ptbJson);
+            const promptbookJson = promptbookStringToJson(promptbookString);
+            validatePromptbookJson(promptbookJson);
         }).toThrowError(/Can not resolve some parameters/i);
     });
 
     it('should fail when picked the incompativble combination of model variant and name', () => {
         expect(() => {
             const promptbookString = importPromptbook('../../samples/templates/errors/logic/model-mismatch.ptbk.md');
-            const ptbJson = promptbookStringToJson(promptbookString);
-            validatePromptbookJson(ptbJson);
+            const promptbookJson = promptbookStringToJson(promptbookString);
+            validatePromptbookJson(promptbookJson);
         }).toThrowError(/Unknown model key/i);
     });
 
@@ -27,8 +27,8 @@ describe('validatePromptbookJson', () => {
             const promptbookString = importPromptbook(
                 '../../samples/templates/errors/logic/wrong-expectations.ptbk.md',
             );
-            const ptbJson = promptbookStringToJson(promptbookString);
-            validatePromptbookJson(ptbJson);
+            const promptbookJson = promptbookStringToJson(promptbookString);
+            validatePromptbookJson(promptbookJson);
         }).toThrowError(/Max expectation of words must be positive/i);
     });
 
@@ -37,8 +37,8 @@ describe('validatePromptbookJson', () => {
             const promptbookString = importPromptbook(
                 '../../samples/templates/errors/logic/joker-without-expectations.ptbk.md',
             );
-            const ptbJson = promptbookStringToJson(promptbookString);
-            validatePromptbookJson(ptbJson);
+            const promptbookJson = promptbookStringToJson(promptbookString);
+            validatePromptbookJson(promptbookJson);
         }).toThrowError(/Joker parameters are used but no expectations are defined/i);
     });
 
@@ -47,16 +47,16 @@ describe('validatePromptbookJson', () => {
             const promptbookString = importPromptbook(
                 '../../samples/templates/errors/logic/circular-parameters-simple.ptbk.md',
             );
-            const ptbJson = promptbookStringToJson(promptbookString);
-            validatePromptbookJson(ptbJson);
+            const promptbookJson = promptbookStringToJson(promptbookString);
+            validatePromptbookJson(promptbookJson);
         }).toThrowError(/circular dependencies/i);
 
         expect(() => {
             const promptbookString = importPromptbook(
                 '../../samples/templates/errors/logic/circular-parameters-advanced.ptbk.md',
             );
-            const ptbJson = promptbookStringToJson(promptbookString);
-            validatePromptbookJson(ptbJson);
+            const promptbookJson = promptbookStringToJson(promptbookString);
+            validatePromptbookJson(promptbookJson);
         }).toThrowError(/circular dependencies/i);
     });
 });

@@ -11,6 +11,8 @@ describe('createPromptbookExecutor + MockedEchoExecutionTools with sample chat p
         spaceTrim(`
             # ✨ Sample: Jokers
 
+            -   MODEL VARIANT Chat
+            -   MODEL NAME gpt-3.5-turbo
             -   INPUT  PARAMETER {yourName} Name of the hero or nothing
 
             ## 💬 Question

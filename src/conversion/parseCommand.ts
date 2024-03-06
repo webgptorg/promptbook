@@ -43,11 +43,14 @@ export function parseCommand(listItem: string_markdown_text): Command {
         .split(' ')
         .map((part) => part.trim())
         .filter((item) => item !== '')
+        .filter((item) => !/^PTBK$/i.test(item))
         .filter((item) => !/^PROMPTBOOK$/i.test(item))
         .map(removeMarkdownFormatting);
 
     if (
         type.startsWith('URL') ||
+        type.startsWith('PTBK_URL') ||
+        type.startsWith('PTBKURL') ||
         type.startsWith('PROMPTBOOK_URL') ||
         type.startsWith('PROMPTBOOKURL') ||
         type.startsWith('HTTPS')
@@ -100,7 +103,7 @@ export function parseCommand(listItem: string_markdown_text): Command {
             type: 'PROMPTBOOK_URL',
             promptbookUrl,
         } satisfies PromptbookUrlCommand;
-    } else if (type.startsWith('PROMPTBOOK_VERSION')) {
+    } else if (type.startsWith('PROMPTBOOK_VERSION') || type.startsWith('PTBK_VERSION')) {
         if (listItemParts.length !== 2) {
             throw new Error(
                 spaceTrim(
@@ -196,7 +199,7 @@ export function parseCommand(listItem: string_markdown_text): Command {
 
                           Example:
 
-                          - MODEL VARIANT CHAT
+                          - MODEL VARIANT Chat
                           - MODEL NAME gpt-4
                     `,
                 ),

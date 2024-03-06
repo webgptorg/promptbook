@@ -28,7 +28,7 @@ flowchart LR
 
 ## 💬 Question
 
--   MODEL VARIANT CHAT
+-   MODEL VARIANT Chat
 -   MODEL NAME `gpt-3.5-turbo`
 -   EXPECT MAX 30 CHARACTERS
 -   EXPECT MIN 2 CHARACTERS

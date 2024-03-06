@@ -20,8 +20,8 @@ describe('validatePromptbookJson', () => {
             expect(() => {
                 try {
                     const promptbookString = importPromptbook(join(samplesDir, name) as `${string}.ptbk.md`);
-                    const ptbJson = promptbookStringToJson(promptbookString);
-                    validatePromptbookJson(ptbJson);
+                    const promptbookJson = promptbookStringToJson(promptbookString);
+                    validatePromptbookJson(promptbookJson);
                 } catch (error) {
                     if (!(error instanceof Error)) {
                         throw error;

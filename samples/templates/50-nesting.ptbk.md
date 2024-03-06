@@ -4,7 +4,7 @@ How block are nested in the promptbook
 
 -   PROMPTBOOK URL https://promptbook.example.com/samples/language-capabilities.ptbk.md@v1
 -   PROMPTBOOK VERSION 1.0.0
--   MODEL VARIANT CHAT
+-   MODEL VARIANT Chat
 -   MODEL NAME `gpt-3.5-turbo`
 -   Input  parameter `{word}` The word to use in the prompt.
 -   OUTPUT PARAMETER `{comparisonOfTwoSentences}` Comparison between two sentences
@@ -41,7 +41,7 @@ flowchart LR
 
 Synonym for word
 
--   MODEL VARIANT CHAT
+-   MODEL VARIANT Chat
 -   MODEL NAME `gpt-3.5-turbo`
 -   POSTPROCESSING `unwrapResult`
 -   EXPECT EXACTLY 1 WORD
@@ -56,7 +56,7 @@ Write synonym for "{word}"
 
 Sentence with the both words
 
--   MODEL VARIANT CHAT
+-   MODEL VARIANT Chat
 -   MODEL NAME `gpt-3.5-turbo`
 -   POSTPROCESSING `unwrapResult`
 -   EXPECT MIN 1 SENTENCE
@@ -69,7 +69,7 @@ Write sentence with "{word}" and "{wordSynonym}"
 
 ## Make a document
 
--   MODEL VARIANT CHAT
+-   MODEL VARIANT Chat
 -   MODEL NAME `gpt-3.5-turbo`
 -   POSTPROCESSING `unwrapResult`
 

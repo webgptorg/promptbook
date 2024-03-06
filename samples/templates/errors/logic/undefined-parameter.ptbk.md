@@ -2,6 +2,9 @@
 
 Sample of wrong promptbookwith parameter that is not defined
 
+-   MODEL VARIANT Chat
+-   MODEL NAME `gpt-3.5-turbo`
+
 ## Sentence
 
 Sentence with word and wordSynonym

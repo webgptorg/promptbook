@@ -28,7 +28,7 @@ export interface NaturalTemplateJson extends PromptTemplateJsonCommon {
      * Requirements for the model
      * - This is required only for executionType PROMPT_TEMPLATE
      */
-    readonly modelRequirements?: ModelRequirements;
+    readonly modelRequirements: ModelRequirements;
 }
 
 /**
