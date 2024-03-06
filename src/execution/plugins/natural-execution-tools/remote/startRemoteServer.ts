@@ -65,13 +65,17 @@ export function startRemoteServer(options: RemoteServerOptions): IDestroyable {
 
                 // TODO: [🎛] Check validity of the prompt against promptbookLibrary
 
+                const onProgress = (taskProgress: TaskProgress) => {
+                    socket.emit('progress', { taskProgress } satisfies Ptps_Progress);
+                };
+
                 let promptResult: PromptResult;
                 switch (prompt.modelRequirements.modelVariant) {
                     case 'CHAT':
-                        promptResult = await executionToolsForClient.gptChat(prompt);
+                        promptResult = await executionToolsForClient.gptChat(prompt, onProgress);
                         break;
                     case 'COMPLETION':
-                        promptResult = await executionToolsForClient.gptComplete(prompt);
+                        promptResult = await executionToolsForClient.gptComplete(prompt, onProgress);
                         break;
                     default:
                         throw new Error(`Unknown model variant "${prompt.modelRequirements.modelVariant}"`);
@@ -127,6 +131,7 @@ export function startRemoteServer(options: RemoteServerOptions): IDestroyable {
 }
 
 /**
+ * TODO: !!! This should be name runRemoteServer OR startRemoteServer and return Destroyable OR Promise<Destroyable>
  * TODO: Handle progress - support streaming
  * TODO: [🤹‍♂️] Do not hang up immediately but wait until client closes OR timeout
  * TODO: [🤹‍♂️] Timeout on chat to free up resources

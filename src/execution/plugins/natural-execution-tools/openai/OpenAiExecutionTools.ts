@@ -1,12 +1,11 @@
 import chalk from 'chalk';
 import OpenAI from 'openai';
-import type { Prompt } from '../../../../types/Prompt';
-import { string_date_iso8601 } from '../../../../types/typeAliases';
-import { getCurrentIsoDate } from '../../../../utils/getCurrentIsoDate';
-import type { NaturalExecutionTools } from '../../../NaturalExecutionTools';
-import type { PromptChatResult, PromptCompletionResult } from '../../../PromptResult';
-import type { OpenAiExecutionToolsOptions } from './OpenAiExecutionToolsOptions';
-import { computeOpenaiUsage } from './computeOpenaiUsage';
+import { Promisable } from 'type-fest';
+import { Prompt } from '../../../../types/Prompt';
+import { TaskProgress } from '../../../../types/TaskProgress';
+import { NaturalExecutionTools } from '../../../NaturalExecutionTools';
+import { PromptChatResult, PromptCompletionResult } from '../../../PromptResult';
+import { OpenAiExecutionToolsOptions } from './OpenAiExecutionToolsOptions';
 
 /**
  * Execution Tools for calling OpenAI API.
@@ -26,7 +25,10 @@ export class OpenAiExecutionTools implements NaturalExecutionTools {
     /**
      * Calls OpenAI API to use a chat model.
      */
-    public async gptChat(prompt: Prompt): Promise<PromptChatResult> {
+    public async gptChat(
+        prompt: Prompt,
+        onProgress: (taskProgress: TaskProgress) => Promisable<void>,
+    ): Promise<PromptChatResult> {
         if (this.options.isVerbose) {
             console.info('💬 OpenAI gptChat call');
         }
@@ -44,7 +46,7 @@ export class OpenAiExecutionTools implements NaturalExecutionTools {
             max_tokens: modelRequirements.maxTokens,
             //                                      <- TODO: Make some global max cap for maxTokens
         };
-        const rawRequest: OpenAI.Chat.Completions.CompletionCreateParamsNonStreaming = {
+        const rawRequest: OpenAI.Chat.Completions.ChatCompletionCreateParamsStreaming = {
             ...modelSettings,
             messages: [
                 {
@@ -52,6 +54,7 @@ export class OpenAiExecutionTools implements NaturalExecutionTools {
                     content,
                 },
             ],
+            stream: true,
             user: this.options.user,
         };
         const start: string_date_iso8601 = getCurrentIsoDate();
@@ -99,12 +102,23 @@ export class OpenAiExecutionTools implements NaturalExecutionTools {
     /**
      * Calls OpenAI API to use a complete model.
      */
-    public async gptComplete(prompt: Prompt): Promise<PromptCompletionResult> {
+    public async gptComplete(
+        prompt: Prompt,
+        onProgress?: (taskProgress: TaskProgress) => Promisable<void>,
+    ): Promise<PromptCompletionResult> {
         if (this.options.isVerbose) {
             console.info('🖋 OpenAI gptComplete call');
         }
 
         const { content, modelRequirements } = prompt;
+
+        if (onProgress) {
+            onProgress({
+                name: 'progress',
+                title: 'OpenAI gptComplete call !!!!',
+                isDone: false,
+            });
+        }
 
         // TODO: [☂] Use here more modelRequirements
         if (modelRequirements.modelVariant !== 'COMPLETION') {

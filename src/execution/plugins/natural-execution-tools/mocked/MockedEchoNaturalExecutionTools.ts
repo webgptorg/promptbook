@@ -1,4 +1,5 @@
 import spaceTrim from 'spacetrim';
+import { Promisable } from 'type-fest';
 import { Prompt } from '../../../../types/Prompt';
 import { getCurrentIsoDate } from '../../../../utils/getCurrentIsoDate';
 import { CommonExecutionToolsOptions } from '../../../CommonExecutionToolsOptions';
@@ -14,10 +15,22 @@ export class MockedEchoNaturalExecutionTools implements NaturalExecutionTools {
     /**
      * Mocks chat model
      */
-    public async gptChat(prompt: Prompt): Promise<PromptChatResult> {
+    public async gptChat(
+        prompt: Prompt,
+        onProgress?: (taskProgress: TaskProgress) => Promisable<void>,
+    ): Promise<PromptChatResult> {
         if (this.options.isVerbose) {
             console.info('💬 Mocked gptChat call');
         }
+
+        if (onProgress) {
+            await onProgress({
+                name: 'progress',
+                title: 'Mocked progress',
+                isDone: false,
+            });
+        }
+
         return {
             content: spaceTrim(
                 (block) => `
@@ -45,10 +58,22 @@ export class MockedEchoNaturalExecutionTools implements NaturalExecutionTools {
     /**
      * Mocks completion model
      */
-    public async gptComplete(prompt: Prompt): Promise<PromptCompletionResult> {
+    public async gptComplete(
+        prompt: Prompt,
+        onProgress?: (taskProgress: TaskProgress) => Promisable<void>,
+    ): Promise<PromptCompletionResult> {
         if (this.options.isVerbose) {
             console.info('🖋 Mocked gptComplete call');
         }
+
+        if (onProgress) {
+            await onProgress({
+                name: 'progress',
+                title: 'Mocked progress',
+                isDone: false,
+            });
+        }
+
         return {
             content: spaceTrim(
                 (block) => `
