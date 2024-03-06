@@ -105,6 +105,10 @@ Export less functions from `@promptbook/utils`
 
 -   You can use `prettifyMarkdown` for postprocessing
 
+## 0.35.1 _(2024-03-06)_
+
+-   Fix spelling errors in OpenAI error messages
+
 ## Upcomming
 
 -   Rename "natural" -> "llm"
