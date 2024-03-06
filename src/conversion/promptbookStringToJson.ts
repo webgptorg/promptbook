@@ -16,7 +16,7 @@ import { markdownToMarkdownStructure } from '../utils/markdown-json/markdownToMa
 import { extractAllListItemsFromMarkdown } from '../utils/markdown/extractAllListItemsFromMarkdown';
 import { extractOneBlockFromMarkdown } from '../utils/markdown/extractOneBlockFromMarkdown';
 import { removeContentComments } from '../utils/markdown/removeContentComments';
-import { PTBK_VERSION } from '../version';
+import { PROMPTBOOK_VERSION } from '../version';
 import { parseCommand } from './parseCommand';
 
 /**
@@ -28,15 +28,15 @@ export function promptbookStringToJson(promptbookString: PromptbookString): Prom
     const ptbJson: WritableDeep<PromptbookJson> = {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         title: undefined as any /* <- Note: Putting here placeholder to keep `title` on top at final JSON */,
-        ptbkUrl: undefined /* <- Note: Putting here placeholder to keep `ptbkUrl` on top at final JSON */,
-        ptbkVersion: PTBK_VERSION,
+        promptbookUrl: undefined /* <- Note: Putting here placeholder to keep `promptbookUrl` on top at final JSON */,
+        promptbookVersion: PROMPTBOOK_VERSION,
         description: undefined /* <- Note: Putting here placeholder to keep `description` on top at final JSON */,
         parameters: [],
         promptTemplates: [],
     };
 
     // =============================================================
-    // Note: 1️⃣ Normalization of the PTBK string
+    // Note: 1️⃣ Normalization of the PROMPTBOOK string
     promptbookString = removeContentComments(promptbookString);
     promptbookString = promptbookString.replaceAll(
         /`\{(?<paramName>[a-z0-9_]+)\}`/gi,
@@ -125,12 +125,12 @@ export function promptbookStringToJson(promptbookString: PromptbookString): Prom
         const command = parseCommand(listItem);
 
         switch (command.type) {
-            case 'PTBK_URL':
-                ptbJson.ptbkUrl = command.ptbkUrl.href;
+            case 'PROMPTBOOK_URL':
+                ptbJson.promptbookUrl = command.promptbookUrl.href;
                 break;
 
-            case 'PTBK_VERSION':
-                ptbJson.ptbkVersion = command.ptbkVersion;
+            case 'PROMPTBOOK_VERSION':
+                ptbJson.promptbookVersion = command.promptbookVersion;
                 break;
 
             case 'MODEL':

@@ -7,7 +7,7 @@ import type {
     PromptCompletionResult,
     PromptResult,
 } from '../execution/PromptResult';
-import type { PtbkExecutor } from '../execution/PtbkExecutor';
+import type { PromptbookExecutor } from '../execution/PromptbookExecutor';
 import type { ScriptExecutionTools, ScriptExecutionToolsExecuteOptions } from '../execution/ScriptExecutionTools';
 import type { UserInterfaceTools, UserInterfaceToolsPromptDialogOptions } from '../execution/UserInterfaceTools';
 import type { ExecutionType } from '../types/ExecutionTypes';
@@ -93,9 +93,9 @@ import type {
     string_person_profile,
     string_pgp_key,
     string_prompt,
+    string_promptbook_url,
+    string_promptbook_url_with_hashtemplate,
     string_protocol,
-    string_ptbk_url,
-    string_ptbk_url_with_hashtemplate,
     string_script,
     string_sha256,
     string_ssh_key,
@@ -142,9 +142,9 @@ export {
     PromptResult,
     PromptTemplateJson,
     PromptTemplateParameterJson,
+    PromptbookExecutor,
     PromptbookJson,
     PromptbookString,
-    PtbkExecutor,
     ScriptExecutionTools,
     ScriptExecutionToolsExecuteOptions,
     ScriptLanguage,
@@ -214,9 +214,9 @@ export {
     string_person_profile,
     string_pgp_key,
     string_prompt,
+    string_promptbook_url,
+    string_promptbook_url_with_hashtemplate,
     string_protocol,
-    string_ptbk_url,
-    string_ptbk_url_with_hashtemplate,
     string_script,
     string_sha256,
     string_ssh_key,

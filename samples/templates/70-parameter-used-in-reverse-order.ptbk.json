@@ -1,7 +1,7 @@
 {
     "title": "✨ Sample of logic error",
-    "ptbkUrl": "https://ptbk.example.com/samples/parameter-used-in-reverse-order.ptbk.md@v1",
-    "ptbkVersion": "1.0.0",
+    "promptbookUrl": "https://promptbook.example.com/samples/parameter-used-in-reverse-order.ptbk.md@v1",
+    "promptbookVersion": "1.0.0",
     "description": "Sample of using parameter in reverse order\n\n_Note: This is not recommended but it should work_",
     "parameters": [
         {
@@ -23,10 +23,7 @@
             "name": "Sentence",
             "title": "Sentence",
             "description": "Sentence with word and wordSynonym",
-            "dependentParameterNames": [
-                "word",
-                "wordSynonym"
-            ],
+            "dependentParameterNames": ["word", "wordSynonym"],
             "executionType": "PROMPT_TEMPLATE",
             "modelRequirements": {
                 "modelVariant": "CHAT",
@@ -39,9 +36,7 @@
             "name": "Synonym",
             "title": "Synonym",
             "description": "Synonym for word",
-            "dependentParameterNames": [
-                "word"
-            ],
+            "dependentParameterNames": ["word"],
             "executionType": "PROMPT_TEMPLATE",
             "modelRequirements": {
                 "modelVariant": "CHAT",

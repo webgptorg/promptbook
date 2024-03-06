@@ -13,16 +13,16 @@ import type { string_name } from '../types/typeAliases';
  * -   if it is valid json
  * -   if it is meaningful
  *
- * @param ptbk valid or invalid PromptbookJson
+ * @param promptbook valid or invalid PromptbookJson
  * @throws {Error} if invalid
  */
-export function validatePromptbookJson(ptbk: PromptbookJson): void {
+export function validatePromptbookJson(promptbook: PromptbookJson): void {
     const definedParameters: Set<string> = new Set(
-        ptbk.parameters.filter(({ isInput }) => isInput).map(({ name }) => name),
+        promptbook.parameters.filter(({ isInput }) => isInput).map(({ name }) => name),
     );
 
     // Note: Check each template individually
-    for (const template of ptbk.promptTemplates) {
+    for (const template of promptbook.promptTemplates) {
         if (definedParameters.has(template.resultingParameterName)) {
             throw new Error(`Parameter {${template.resultingParameterName}} is defined multiple times`);
         }
@@ -62,10 +62,10 @@ export function validatePromptbookJson(ptbk: PromptbookJson): void {
     }
 
     // Note: Detect circular dependencies
-    let resovedParameters: Array<string_name> = ptbk.parameters
+    let resovedParameters: Array<string_name> = promptbook.parameters
         .filter(({ isInput }) => isInput)
         .map(({ name }) => name);
-    let unresovedTemplates: Array<PromptTemplateJson> = [...ptbk.promptTemplates];
+    let unresovedTemplates: Array<PromptTemplateJson> = [...promptbook.promptTemplates];
     while (unresovedTemplates.length > 0) {
         const currentlyResovedTemplates = unresovedTemplates.filter((template) =>
             template.dependentParameterNames.every((name) => resovedParameters.includes(name)),
@@ -108,7 +108,7 @@ export function validatePromptbookJson(ptbk: PromptbookJson): void {
 }
 
 /**
- * TODO: [🧠] Work with ptbkVersion
+ * TODO: [🧠] Work with promptbookVersion
  * TODO: Use here some json-schema, Zod or something similar and change it to:
  *     > /**
  *     >  * Validates PromptbookJson if it is logically valid.
@@ -116,5 +116,5 @@ export function validatePromptbookJson(ptbk: PromptbookJson): void {
  *     >  * It checks:
  *     >  * -   it has a valid structure
  *     >  * -   ...
- *     >  ex port function validatePromptbookJson(ptbk: unknown): asserts ptbk is PromptbookJson {
+ *     >  ex port function validatePromptbookJson(promptbook: unknown): asserts promptbook is PromptbookJson {
  */

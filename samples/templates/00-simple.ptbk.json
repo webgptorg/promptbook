@@ -1,6 +1,6 @@
 {
     "title": "✨ Sample prompt",
-    "ptbkVersion": "1.0.0",
+    "promptbookVersion": "1.0.0",
     "description": "Show how to use a simple prompt with no parameters.",
     "parameters": [
         {

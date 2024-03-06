@@ -1,4 +1,4 @@
-import { string_ptbk_url, string_version } from '../typeAliases';
+import { string_promptbook_url, string_version } from '../typeAliases';
 import { PromptTemplateJson } from './PromptTemplateJson';
 import { PromptTemplateParameterJson } from './PromptTemplateParameterJson';
 
@@ -15,10 +15,10 @@ export interface PromptbookJson {
      * Note: It must be unique across all promptbooks libraries
      * Note: It must use HTTPs URL
      * Tip: You can do versioning in the URL
-     *      For example: https://ptbk.webgpt.com/cs/write-website-content.ptbk.md@1.0.0
+     *      For example: https://promptbook.webgpt.com/cs/write-website-content.ptbk.md@1.0.0
      * Warning: Do not hash part of the URL, hash part is used for identification of the prompt template in the pipeline
      */
-    readonly ptbkUrl?: string_ptbk_url;
+    readonly promptbookUrl?: string_promptbook_url;
 
     /**
      * Title of the promptbook
@@ -29,7 +29,7 @@ export interface PromptbookJson {
     /**
      * Version of the .ptbk.json file
      */
-    readonly ptbkVersion: string_version;
+    readonly promptbookVersion: string_version;
 
     /**
      * Description of the promptbook

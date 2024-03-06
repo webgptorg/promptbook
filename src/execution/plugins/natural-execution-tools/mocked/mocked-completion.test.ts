@@ -2,20 +2,20 @@ import { describe, expect, it } from '@jest/globals';
 import spaceTrim from 'spacetrim';
 import { promptbookStringToJson } from '../../../../conversion/promptbookStringToJson';
 import { PromptbookString } from '../../../../types/PromptbookString';
-import { PTBK_VERSION } from '../../../../version';
-import { createPtbkExecutor } from '../../../createPtbkExecutor';
+import { PROMPTBOOK_VERSION } from '../../../../version';
+import { createPromptbookExecutor } from '../../../createPromptbookExecutor';
 import { CallbackInterfaceTools } from '../../user-interface-execution-tools/callback/CallbackInterfaceTools';
 import { MockedEchoNaturalExecutionTools } from './MockedEchoNaturalExecutionTools';
 
-describe('createPtbkExecutor + MockedEchoExecutionTools with sample chat prompt', () => {
+describe('createPromptbookExecutor + MockedEchoExecutionTools with sample chat prompt', () => {
     const promptbook = promptbookStringToJson(
         spaceTrim(`
             # Sample prompt
 
             Show how to use a simple completion prompt
 
-            -   PTBK VERSION 1.0.0
-            -   PTBK URL https://example.com/ptbk.json
+            -   PROMPTBOOK VERSION 1.0.0
+            -   PROMPTBOOK URL https://example.com/promptbook.json
             -   INPUT  PARAMETER {thing} Any thing to buy
 
             ## Prompt
@@ -31,8 +31,8 @@ describe('createPtbkExecutor + MockedEchoExecutionTools with sample chat prompt'
             -> {response}
          `) as PromptbookString,
     );
-    const ptbkExecutor = createPtbkExecutor({
-      promptbook,
+    const promptbookExecutor = createPromptbookExecutor({
+        promptbook,
         tools: {
             natural: new MockedEchoNaturalExecutionTools({ isVerbose: true }),
             script: [],
@@ -49,7 +49,7 @@ describe('createPtbkExecutor + MockedEchoExecutionTools with sample chat prompt'
     });
 
     it('should work when every INPUT  PARAMETER defined', () => {
-        expect(ptbkExecutor({ thing: 'a cup of coffee' }, () => {})).resolves.toMatchObject({
+        expect(promptbookExecutor({ thing: 'a cup of coffee' }, () => {})).resolves.toMatchObject({
             outputParameters: {
                 thing: 'a cup of coffee',
                 response: spaceTrim(`
@@ -62,16 +62,16 @@ describe('createPtbkExecutor + MockedEchoExecutionTools with sample chat prompt'
     });
 
     it('should fail when some INPUT  PARAMETER is missing', () => {
-        expect(ptbkExecutor({}, () => {})).resolves.toEqual({
+        expect(promptbookExecutor({}, () => {})).resolves.toEqual({
             isSuccessful: false,
             errors: [new Error(`Parameter {thing} is not defined`)],
             executionReport: {
                 title: 'Sample prompt',
                 description: 'Show how to use a simple completion prompt',
                 promptExecutions: [],
-                ptbkUrl: 'https://example.com/ptbk.json',
-                ptbkRequestedVersion: '1.0.0',
-                ptbkUsedVersion: PTBK_VERSION,
+                promptbookUrl: 'https://example.com/promptbook.json',
+                promptbookRequestedVersion: '1.0.0',
+                promptbookUsedVersion: PROMPTBOOK_VERSION,
             },
             outputParameters: {},
         });
@@ -80,11 +80,11 @@ describe('createPtbkExecutor + MockedEchoExecutionTools with sample chat prompt'
     /*
     TODO: [🧠] Should be this failing or not?
     it('should fail when there is INPUT  PARAMETER extra', () => {
-        expect(ptbkExecutor({ thing: 'a cup of coffee', sound: 'Meow!' }, () => {})).rejects.toThrowError(/Parameter \{sound\} should not be defined/i);
+        expect(promptbookExecutor({ thing: 'a cup of coffee', sound: 'Meow!' }, () => {})).rejects.toThrowError(/Parameter \{sound\} should not be defined/i);
     });
     */
 });
 
 /**
- * TODO: [🧠] What should be name of this test "MockedEchoExecutionTools.test.ts" or "createPtbkExecutor.test.ts"
+ * TODO: [🧠] What should be name of this test "MockedEchoExecutionTools.test.ts" or "createPromptbookExecutor.test.ts"
  */

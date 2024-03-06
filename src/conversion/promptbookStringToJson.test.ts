@@ -1,7 +1,7 @@
 import { describe, expect, it } from '@jest/globals';
 import { readdirSync } from 'fs';
 import { join } from 'path';
-import { importPtbk } from './_importPtbk';
+import { importPromptbook } from './_importPromptbook';
 import { promptbookStringToJson } from './promptbookStringToJson';
 
 describe('promptbookStringToJson', () => {
@@ -18,8 +18,8 @@ describe('promptbookStringToJson', () => {
 
     for (const { name } of samples) {
         it(`should parse ${name}`, () => {
-            expect(promptbookStringToJson(importPtbk(join(samplesDir, name) as `${string}.ptbk.md`))).toEqual(
-                importPtbk(join(samplesDir, name).replace('.ptbk.md', '.ptbk.json') as `${string}.ptbk.json`),
+            expect(promptbookStringToJson(importPromptbook(join(samplesDir, name) as `${string}.ptbk.md`))).toEqual(
+                importPromptbook(join(samplesDir, name).replace('.ptbk.md', '.ptbk.json') as `${string}.ptbk.json`),
             );
         });
     }

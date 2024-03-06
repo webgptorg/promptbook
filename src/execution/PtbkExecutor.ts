@@ -1,7 +1,7 @@
 import type { Promisable } from 'type-fest';
-import type { string_name } from '../types/typeAliases';
 import type { TaskProgress } from '../types/TaskProgress';
 import type { ExecutionReportJson } from '../types/execution-report/ExecutionReportJson';
+import type { string_name } from '../types/typeAliases';
 
 /**
  * Executor is a simple async function that takes INPUT  PARAMETERs and returns result parameters _(along with all intermediate parameters and INPUT  PARAMETERs = it extends input object)_.
@@ -9,11 +9,11 @@ import type { ExecutionReportJson } from '../types/execution-report/ExecutionRep
  *
  * It can be done in two ways:
  * -   From `PromptbookLibrary.getExecutor` method
- * -   `createPtbkExecutor` utility function
+ * -   `createPromptbookExecutor` utility function
  *
  * @see https://github.com/webgptorg/promptbook#executor
  */
-export interface PtbkExecutor {
+export interface PromptbookExecutor {
     (
         inputParameters: Record<string_name, string>,
         onProgress: (taskProgress: TaskProgress) => Promisable<void>,

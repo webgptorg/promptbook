@@ -3,7 +3,7 @@
  *
  * This is sent from server to client when error occurs and stops the process
  */
-export interface Ptbks_Error {
+export interface Promptbooks_Error {
     /**
      * The error message which caused the error
      */

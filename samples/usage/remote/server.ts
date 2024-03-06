@@ -32,7 +32,7 @@ async function main() {
     runRemoteServer({
         path: '/promptbook',
         port: 4460,
-        ptbkLibrary: library,
+        promptbookLibrary: library,
         createNaturalExecutionTools(clientId) {
             console.log('clientId', clientId);
             return new OpenAiExecutionTools({
@@ -45,7 +45,7 @@ async function main() {
 }
 
 /**
- * TODO: [🈴] Identify PTBKs by URL
+ * TODO: [🈴] Identify PROMPTBOOKs by URL
  * TODO: There should be no need to set this script or userInterface in tools
  * TODO: Implement and use here PromptbookLibrary.fromDirectory (directory vs folder)
  * TODO: Make sample with Wizzard

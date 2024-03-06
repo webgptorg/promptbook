@@ -1,22 +1,22 @@
 import spaceTrim from 'spacetrim';
 import type { Promisable } from 'type-fest';
-import type { string_name } from '../types/typeAliases';
 import { PromptbookJson } from '../_packages/types.index';
 import { validatePromptbookJson } from '../conversion/validatePromptbookJson';
 import type { Prompt } from '../types/Prompt';
 import type { ExpectationUnit, PromptTemplateJson } from '../types/PromptbookJson/PromptTemplateJson';
 import type { TaskProgress } from '../types/TaskProgress';
 import type { ExecutionReportJson } from '../types/execution-report/ExecutionReportJson';
+import type { string_name } from '../types/typeAliases';
 import { CountUtils } from '../utils/expectation-counters';
 import { isValidJsonString } from '../utils/isValidJsonString';
 import { replaceParameters } from '../utils/replaceParameters';
-import { PTBK_VERSION } from '../version';
+import { PROMPTBOOK_VERSION } from '../version';
 import { ExecutionTools } from './ExecutionTools';
 import { ExpectError } from './ExpectError';
 import type { PromptChatResult, PromptCompletionResult, PromptResult } from './PromptResult';
-import { PtbkExecutor } from './PtbkExecutor';
+import { PromptbookExecutor } from './PromptbookExecutor';
 
-export interface CreatePtbkExecutorSettings {
+export interface CreatePromptbookExecutorSettings {
     /**
      * When executor does not satisfy expectations it will be retried this amount of times
      *
@@ -28,21 +28,21 @@ export interface CreatePtbkExecutorSettings {
 /**
  * Options for creating a promptbook executor
  */
-interface CreatePtbkExecutorOptions {
+interface CreatePromptbookExecutorOptions {
     /**
      * The promptbook to be executed
      */
     readonly promptbook: PromptbookJson;
 
     /**
-     * The execution tools to be used during the execution of the PTBK
+     * The execution tools to be used during the execution of the PROMPTBOOK
      */
     readonly tools: ExecutionTools;
 
     /**
-     * Optional settings for the PTBK executor
+     * Optional settings for the PROMPTBOOK executor
      */
-    readonly settings?: Partial<CreatePtbkExecutorSettings>;
+    readonly settings?: Partial<CreatePromptbookExecutorSettings>;
 }
 
 /**
@@ -50,28 +50,28 @@ interface CreatePtbkExecutorOptions {
  *
  * Note: Consider using getExecutor method of the library instead of using this function
  */
-export function createPtbkExecutor(options: CreatePtbkExecutorOptions): PtbkExecutor {
+export function createPromptbookExecutor(options: CreatePromptbookExecutorOptions): PromptbookExecutor {
     const { promptbook, tools, settings = {} } = options;
     const { maxExecutionAttempts = 3 } = settings;
 
     validatePromptbookJson(promptbook);
 
-    const ptbkExecutor: PtbkExecutor = async (
+    const promptbookExecutor: PromptbookExecutor = async (
         inputParameters: Record<string_name, string>,
         onProgress?: (taskProgress: TaskProgress) => Promisable<void>,
     ) => {
         let parametersToPass: Record<string_name, string> = inputParameters;
         const executionReport: ExecutionReportJson = {
-            ptbkUrl: promptbook.ptbkUrl,
+            promptbookUrl: promptbook.promptbookUrl,
             title: promptbook.title,
-            ptbkUsedVersion: PTBK_VERSION,
-            ptbkRequestedVersion: promptbook.ptbkVersion,
+            promptbookUsedVersion: PROMPTBOOK_VERSION,
+            promptbookRequestedVersion: promptbook.promptbookVersion,
             description: promptbook.description,
             promptExecutions: [],
         };
 
         async function executeSingleTemplate(currentTemplate: PromptTemplateJson) {
-            const name = `ptbk-executor-frame-${currentTemplate.name}`;
+            const name = `promptbook-executor-frame-${currentTemplate.name}`;
             const title = currentTemplate.title;
             const priority = promptbook.promptTemplates.length - promptbook.promptTemplates.indexOf(currentTemplate);
 
@@ -128,10 +128,10 @@ export function createPtbkExecutor(options: CreatePtbkExecutorOptions): PtbkExec
                             case 'PROMPT_TEMPLATE':
                                 prompt = {
                                     title: currentTemplate.title,
-                                    ptbkUrl: `${
-                                        promptbook.ptbkUrl
-                                            ? promptbook.ptbkUrl
-                                            : 'anonymous' /* <- [🧠][🈴] How to deal with anonymous PTBKs, do here some auto-url like SHA-256 based ad-hoc identifier? */
+                                    promptbookUrl: `${
+                                        promptbook.promptbookUrl
+                                            ? promptbook.promptbookUrl
+                                            : 'anonymous' /* <- [🧠][🈴] How to deal with anonymous PROMPTBOOKs, do here some auto-url like SHA-256 based ad-hoc identifier? */
                                     }#${currentTemplate.name}`,
                                     parameters: parametersToPass,
                                     content: replaceParameters(currentTemplate.content, parametersToPass) /* <- [2] */,
@@ -416,11 +416,11 @@ export function createPtbkExecutor(options: CreatePtbkExecutorOptions): PtbkExec
         };
     };
 
-    return ptbkExecutor;
+    return promptbookExecutor;
 }
 
 /**
  * TODO: [🧠] When not meet expectations in PROMPT_DIALOG, make some way to tell the user
  * TODO: [👧] Strongly type the executors to avoid need of remove nullables whtn noUncheckedIndexedAccess in tsconfig.json
- * Note: CreatePtbkExecutorOptions are just connected to PtbkExecutor so do not extract to types folder
+ * Note: CreatePromptbookExecutorOptions are just connected to PromptbookExecutor so do not extract to types folder
  */

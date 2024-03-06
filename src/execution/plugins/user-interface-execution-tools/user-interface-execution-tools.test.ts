@@ -3,18 +3,18 @@ import spaceTrim from 'spacetrim';
 import { promptbookStringToJson } from '../../../conversion/promptbookStringToJson';
 import { PromptbookString } from '../../../types/PromptbookString';
 import { assertsExecutionSuccessful } from '../../assertsExecutionSuccessful';
-import { createPtbkExecutor } from '../../createPtbkExecutor';
+import { createPromptbookExecutor } from '../../createPromptbookExecutor';
 import { MockedEchoNaturalExecutionTools } from '../natural-execution-tools/mocked/MockedEchoNaturalExecutionTools';
 import { CallbackInterfaceTools } from '../user-interface-execution-tools/callback/CallbackInterfaceTools';
 
-describe('createPtbkExecutor + executing user interface prompts in ptbk', () => {
+describe('createPromptbookExecutor + executing user interface prompts in promptbook', () => {
     const promptbook = promptbookStringToJson(
         spaceTrim(`
             # Sample prompt
 
             Show how to use prompt dialog
 
-            -   PTBK VERSION 1.0.0
+            -   PROMPTBOOK VERSION 1.0.0
             -   INPUT  PARAMETER {thing} Any thing to buy
 
             ## Thing
@@ -30,7 +30,7 @@ describe('createPtbkExecutor + executing user interface prompts in ptbk', () => 
             -> {favoriteThing}
          `) as PromptbookString,
     );
-    const ptbkExecutor = createPtbkExecutor({
+    const promptbookExecutor = createPromptbookExecutor({
         promptbook,
         tools: {
             natural: new MockedEchoNaturalExecutionTools({ isVerbose: true }),
@@ -48,12 +48,12 @@ describe('createPtbkExecutor + executing user interface prompts in ptbk', () => 
     });
 
     it('should work when every INPUT  PARAMETER defined', () => {
-        expect(ptbkExecutor({ thing: 'apple' }, () => {})).resolves.toMatchObject({
+        expect(promptbookExecutor({ thing: 'apple' }, () => {})).resolves.toMatchObject({
             outputParameters: {
                 favoriteThing: 'Answer to question "Thing: What is your favorite apple to buy?" is not apple but Pear.',
             },
         });
-        expect(ptbkExecutor({ thing: 'a cup of coffee' }, () => {})).resolves.toMatchObject({
+        expect(promptbookExecutor({ thing: 'a cup of coffee' }, () => {})).resolves.toMatchObject({
             outputParameters: {
                 favoriteThing:
                     'Answer to question "Thing: What is your favorite a cup of coffee to buy?" is not a cup of coffee but Pear.',
@@ -62,12 +62,12 @@ describe('createPtbkExecutor + executing user interface prompts in ptbk', () => 
     });
 
     it('should fail when some INPUT  PARAMETER is missing', () => {
-        expect(ptbkExecutor({}, () => {})).resolves.toMatchObject({
+        expect(promptbookExecutor({}, () => {})).resolves.toMatchObject({
             isSuccessful: false,
             errors: [new Error(`Parameter {thing} is not defined`)],
         });
 
-        expect(() => ptbkExecutor({}, () => {}).then(assertsExecutionSuccessful)).rejects.toThrowError(
+        expect(() => promptbookExecutor({}, () => {}).then(assertsExecutionSuccessful)).rejects.toThrowError(
             /Parameter \{thing\} is not defined/,
         );
     });

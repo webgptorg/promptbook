@@ -11,7 +11,7 @@ import { getSupabaseForServer } from '../../../utils/supabase/getSupabaseForServ
 import { SupabaseLoggerWrapperOfNaturalExecutionToolsOptions } from './SupabaseLoggerWrapperOfNaturalExecutionToolsOptions';
 
 /**
- * Wrapper for any PtbkExecutionTools which logs every request+result to Supabase.
+ * Wrapper for any PromptbookExecutionTools which logs every request+result to Supabase.
  */
 export class SupabaseLoggerWrapperOfNaturalExecutionTools implements NaturalExecutionTools {
     public constructor(private readonly options: SupabaseLoggerWrapperOfNaturalExecutionToolsOptions) {
@@ -81,11 +81,11 @@ export class SupabaseLoggerWrapperOfNaturalExecutionTools implements NaturalExec
             .insert(
                 {
                     clientId: this.options.clientId,
-                    ptbkUrl: prompt.ptbkUrl,
+                    promptbookUrl: prompt.promptbookUrl,
                     promptAt,
                     promptContent: prompt.content,
                     promptModelRequirements: prompt.modelRequirements,
-                    promPtbkarameters: prompt.parameters,
+                    promPromptbookarameters: prompt.parameters,
                     resultAt,
                     resultContent: promptResult.content,
                     usedModel: promptResult.model,

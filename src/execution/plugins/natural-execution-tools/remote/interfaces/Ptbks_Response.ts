@@ -5,7 +5,7 @@ import { PromptResult } from '../../../../../execution/PromptResult';
  *
  * This is sent from server to client when the generated text is completed
  */
-export interface Ptbks_Response {
+export interface Promptbooks_Response {
     /**
      * The result of the prompt
      */

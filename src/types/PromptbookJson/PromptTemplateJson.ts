@@ -82,7 +82,7 @@ interface PromptTemplateJsonCommon {
      * Name of the template
      * - It must be unique across the pipeline
      * - It should start uppercase and contain letters and numbers
-     * - The ptbkUrl together with hash and name are used to identify the prompt template in the pipeline
+     * - The promptbookUrl together with hash and name are used to identify the prompt template in the pipeline
      */
     readonly name: string_name;
 

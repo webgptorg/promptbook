@@ -2,8 +2,8 @@
 
 Trying the language capabilities of GPT models.
 
--   PTBK URL https://ptbk.example.com/samples/language-capabilities.ptbk.md@v1
--   PTBK VERSION 1.0.0
+-   PROMPTBOOK URL https://promptbook.example.com/samples/language-capabilities.ptbk.md@v1
+-   PROMPTBOOK VERSION 1.0.0
 -   MODEL VARIANT CHAT
 -   MODEL NAME `gpt-3.5-turbo`
 -   Input  parameter `{word}` The word to use in the prompt.
@@ -12,6 +12,7 @@ Trying the language capabilities of GPT models.
 
 <!--Graph-->
 <!-- ⚠️ WARNING: This section was auto-generated -->
+
 ```mermaid
 %% 🔮 Tip: Open this on GitHub or in the VSCode website to see the Mermaid graph visually
 
@@ -46,6 +47,7 @@ flowchart LR
 
   end;
 ```
+
 <!--/Graph-->
 
 ## 💬 Synonym

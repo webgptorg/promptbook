@@ -2,8 +2,8 @@
 
 Trying the language capabilities of GPT models.
 
--   PTBK URL https://ptbk.example.com/samples/json-mode.ptbk.md@v1
--   PTBK VERSION 1.0.0
+-   PROMPTBOOK URL https://promptbook.example.com/samples/json-mode.ptbk.md@v1
+-   PROMPTBOOK VERSION 1.0.0
 -   MODEL VARIANT CHAT
 -   INPUT  PARAM `{unstructuredContacts}` nestrukturovaný seznam kontaktních údajů
 -   OUTPUT PARAM `{contactlist}` JSON seznam kontaktních údajů

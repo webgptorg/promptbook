@@ -1,7 +1,7 @@
 {
     "title": "✨ Sample: JSON mode",
-    "ptbkUrl": "https://ptbk.example.com/samples/json-mode.ptbk.md@v1",
-    "ptbkVersion": "1.0.0",
+    "promptbookUrl": "https://promptbook.example.com/samples/json-mode.ptbk.md@v1",
+    "promptbookVersion": "1.0.0",
     "description": "Trying the language capabilities of GPT models.",
     "parameters": [
         {
@@ -19,13 +19,9 @@
         {
             "name": "ExtrakceKontaktnChDaj",
             "title": "🖋 Extrakce kontaktních údajů",
-            "dependentParameterNames": [
-                "unstructuredContacts"
-            ],
+            "dependentParameterNames": ["unstructuredContacts"],
             "executionType": "PROMPT_TEMPLATE",
-            "postprocessing": [
-                "trimEndOfCodeBlock"
-            ],
+            "postprocessing": ["trimEndOfCodeBlock"],
             "modelRequirements": {
                 "modelVariant": "COMPLETION",
                 "modelName": "gpt-3.5-turbo-instruct"

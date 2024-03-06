@@ -1,9 +1,9 @@
 import { string_name } from '.././types/typeAliases';
 import { promptbookStringToJson } from '../conversion/promptbookStringToJson';
 import { validatePromptbookJson } from '../conversion/validatePromptbookJson';
-import { createPtbkExecutor, CreatePtbkExecutorSettings } from '../execution/createPtbkExecutor';
+import { createPromptbookExecutor, CreatePromptbookExecutorSettings } from '../execution/createPromptbookExecutor';
 import { ExecutionTools } from '../execution/ExecutionTools';
-import { PtbkExecutor } from '../execution/PtbkExecutor';
+import { PromptbookExecutor } from '../execution/PromptbookExecutor';
 import { Prompt } from '../types/Prompt';
 import { PromptbookJson } from '../types/PromptbookJson/PromptbookJson';
 import { PromptbookString } from '../types/PromptbookString';
@@ -20,7 +20,7 @@ type PromptbookLibraryOptions = {
     /**
      * Optional settings for creating a PromptbookExecutor
      */
-    readonly settings?: Partial<CreatePtbkExecutorSettings>;
+    readonly settings?: Partial<CreatePromptbookExecutorSettings>;
 };
 
 /**
@@ -39,16 +39,16 @@ export class PromptbookLibrary {
      * Note: During the construction syntax and logic of all sources are validated
      * Note: You can combine .ptbk.md and .ptbk.json files BUT it is not recommended
      *
-     * @param ptbkSources contents of .ptbk.md or .ptbk.json files
+     * @param promptbookSources contents of .ptbk.md or .ptbk.json files
      * @param settings settings for creating executor functions
      * @returns PromptbookLibrary
      */
     public static fromSources(
-        ptbkSources: Record<string_name, PromptbookJson | PromptbookString>,
-        settings?: Partial<CreatePtbkExecutorSettings>,
+        promptbookSources: Record<string_name, PromptbookJson | PromptbookString>,
+        settings?: Partial<CreatePromptbookExecutorSettings>,
     ): PromptbookLibrary {
         const library: Record<string_name, PromptbookJson> = {};
-        for (const [name, source] of Object.entries(ptbkSources)) {
+        for (const [name, source] of Object.entries(promptbookSources)) {
             if (typeof source === 'string') {
                 // Note: When directly creating from string, no need to validate the source
                 //       The validation is performed always before execution
@@ -66,14 +66,14 @@ export class PromptbookLibrary {
     /**
      * Gets all promptbooks in the library
      */
-    public get ptbkNames(): Array<string_name> {
+    public get promptbookNames(): Array<string_name> {
         return Object.keys(this.options.library);
     }
 
     /**
      * Gets promptbook by name
      */
-    public getPtbkByName(name: string_name): PromptbookJson {
+    public getPromptbookByName(name: string_name): PromptbookJson {
         const promptbook = this.options.library[name];
         if (!promptbook) {
             throw new Error(`Promptbook with name "${name}" not found`);
@@ -93,14 +93,14 @@ export class PromptbookLibrary {
     /**
      * Gets executor function for given promptbook
      */
-    public createExecutor(name: string_name, tools: ExecutionTools): PtbkExecutor {
-        const promptbook = this.getPtbkByName(name);
-        return createPtbkExecutor({ promptbook, tools, settings: this.options.settings });
+    public createExecutor(name: string_name, tools: ExecutionTools): PromptbookExecutor {
+        const promptbook = this.getPromptbookByName(name);
+        return createPromptbookExecutor({ promptbook, tools, settings: this.options.settings });
     }
 }
 
 /**
- * TODO: [🈴] Identify promptbooks by url `ptbkUrls` + `getPtbkByUrl`
+ * TODO: [🈴] Identify promptbooks by url `promptbookUrls` + `getPromptbookByUrl`
  * TODO: !!! This should be renamed to Promptbook
  * TODO: !! [👐][🧠] Split of Promptbook,PromptbookLibrary between interface and class
  * TODO: !! [👐] Make promptbooks private WHEN split between interface and class
@@ -108,8 +108,8 @@ export class PromptbookLibrary {
  * TODO: [🧠] Maybe createExecutor should be separate utility function
  * TODO: Static method fromDirectory
  * TODO: [🤜] Add generic type for entry and result parameters
- * TODO: [🧠] Is it better to ptbkLibrary.executePtbk('writeXyz',{...}) OR ptbkLibrary.createExecutor('writeXyz')({...}) OR createExecutor(ptbkLibrary.getPtbk('writeXyz'))
- * TODO: [🧠] Formarly (before commit 62229afce7668a5b85077cc18becf798b583bf8d) there were two classes PromptbookLibrary+PtbkLibraryExecutor (maybe it was better?)
+ * TODO: [🧠] Is it better to promptbookLibrary.executePromptbook('writeXyz',{...}) OR promptbookLibrary.createExecutor('writeXyz')({...}) OR createExecutor(promptbookLibrary.getPromptbook('writeXyz'))
+ * TODO: [🧠] Formarly (before commit 62229afce7668a5b85077cc18becf798b583bf8d) there were two classes PromptbookLibrary+PromptbookLibraryExecutor (maybe it was better?)
  * TODO: [🧠] Is it better to pass tools into getExecutor or into constructor
  *             Maybe it is not a good idea to cache executors when they are can be created with different tools
  * TODO: [👧] Strongly type the executors to avoid need of remove nullables whtn noUncheckedIndexedAccess in tsconfig.json

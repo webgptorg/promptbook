@@ -2,14 +2,15 @@
 
 Instructions for creating web page content.
 
--   PTBK URL https://ptbk.webgpt.com/en/write-website-content.ptbk.md@v0.1.0
--   PTBK VERSION 0.0.1
+-   PROMPTBOOK URL https://promptbook.webgpt.com/en/write-website-content.ptbk.md@v0.1.0
+-   PROMPTBOOK VERSION 0.0.1
 -   INPUT  PARAM `{rawTitle}` Automatically suggested a site name or empty text
 -   INPUT  PARAM `{rawAssigment}` Automatically generated site entry from image recognition
 -   OUTPUT PARAM `{content}` Web content
 
 <!--Graph-->
 <!-- ⚠️ WARNING: This section was auto-generated -->
+
 ```mermaid
 %% 🔮 Tip: Open this on GitHub or in the VSCode website to see the Mermaid graph visually
 
@@ -48,6 +49,7 @@ flowchart LR
 
   end;
 ```
+
 <!--/Graph-->
 
 ## 👤 Specifying the assigment

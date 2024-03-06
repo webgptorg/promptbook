@@ -2,19 +2,19 @@ import { describe, expect, it } from '@jest/globals';
 import spaceTrim from 'spacetrim';
 import { promptbookStringToJson } from '../../../conversion/promptbookStringToJson';
 import { PromptbookString } from '../../../types/PromptbookString';
-import { createPtbkExecutor } from '../../createPtbkExecutor';
+import { createPromptbookExecutor } from '../../createPromptbookExecutor';
 import { MockedEchoNaturalExecutionTools } from '../natural-execution-tools/mocked/MockedEchoNaturalExecutionTools';
 import { CallbackInterfaceTools } from '../user-interface-execution-tools/callback/CallbackInterfaceTools';
 import { JavascriptEvalExecutionTools } from './javascript/JavascriptEvalExecutionTools';
 
-describe('createPtbkExecutor + postprocessing', () => {
+describe('createPromptbookExecutor + postprocessing', () => {
     const promptbook = promptbookStringToJson(
         spaceTrim(`
             # Sample prompt
 
             Show how to use postprocessing
 
-            -   PTBK VERSION 1.0.0
+            -   PROMPTBOOK VERSION 1.0.0
             -   INPUT  PARAMETER {yourName} Name of the hero
 
             ## Question
@@ -31,8 +31,8 @@ describe('createPtbkExecutor + postprocessing', () => {
          `) as PromptbookString,
     );
 
-    const ptbkExecutor = createPtbkExecutor({
-      promptbook,
+    const promptbookExecutor = createPromptbookExecutor({
+        promptbook,
         tools: {
             natural: new MockedEchoNaturalExecutionTools({ isVerbose: true }),
             script: [
@@ -54,7 +54,7 @@ describe('createPtbkExecutor + postprocessing', () => {
     });
 
     it('should work when every INPUT  PARAMETER defined', () => {
-        expect(ptbkExecutor({ yourName: 'Paůl' }, () => {})).resolves.toMatchObject({
+        expect(promptbookExecutor({ yourName: 'Paůl' }, () => {})).resolves.toMatchObject({
             isSuccessful: true,
             errors: [],
             outputParameters: {
@@ -62,7 +62,7 @@ describe('createPtbkExecutor + postprocessing', () => {
             },
         });
 
-        expect(ptbkExecutor({ yourName: 'Adam' }, () => {})).resolves.toMatchObject({
+        expect(promptbookExecutor({ yourName: 'Adam' }, () => {})).resolves.toMatchObject({
             isSuccessful: true,
             errors: [],
             outputParameters: {
@@ -70,7 +70,7 @@ describe('createPtbkExecutor + postprocessing', () => {
             },
         });
 
-        expect(ptbkExecutor({ yourName: 'John' }, () => {})).resolves.toMatchObject({
+        expect(promptbookExecutor({ yourName: 'John' }, () => {})).resolves.toMatchObject({
             isSuccessful: true,
             errors: [],
             outputParameters: {
@@ -78,7 +78,7 @@ describe('createPtbkExecutor + postprocessing', () => {
             },
         });
 
-        expect(ptbkExecutor({ yourName: 'DAVID' }, () => {})).resolves.toMatchObject({
+        expect(promptbookExecutor({ yourName: 'DAVID' }, () => {})).resolves.toMatchObject({
             isSuccessful: true,
             errors: [],
             outputParameters: {

@@ -1,5 +1,5 @@
 import spaceTrim from 'spacetrim';
-import type { PtbkExecutor } from './PtbkExecutor';
+import type { PromptbookExecutor } from './PromptbookExecutor';
 
 /**
  * Asserts that the execution of a promptnook is successful
@@ -8,7 +8,7 @@ import type { PtbkExecutor } from './PtbkExecutor';
  * @throws Error - If the execution is not successful or if multiple errors occurred
  */
 export function assertsExecutionSuccessful(
-    executionResult: Pick<Awaited<ReturnType<PtbkExecutor>>, 'isSuccessful' | 'errors'>,
+    executionResult: Pick<Awaited<ReturnType<PromptbookExecutor>>, 'isSuccessful' | 'errors'>,
 ): void {
     const { isSuccessful, errors } = executionResult;
 

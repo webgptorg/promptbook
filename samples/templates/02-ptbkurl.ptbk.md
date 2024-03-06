@@ -2,11 +2,12 @@
 
 Show how to use a simple prompt with no parameters.
 
--   PTBK URL https://ptbk.example.com/samples/simple.ptbk.md@v1
--   PTBK VERSION 1.0.0
+-   PROMPTBOOK URL https://promptbook.example.com/samples/simple.ptbk.md@v1
+-   PROMPTBOOK VERSION 1.0.0
 
 <!--Graph-->
 <!-- ⚠️ WARNING: This section was auto-generated -->
+
 ```mermaid
 %% 🔮 Tip: Open this on GitHub or in the VSCode website to see the Mermaid graph visually
 
@@ -22,6 +23,7 @@ flowchart LR
 
   end;
 ```
+
 <!--/Graph-->
 
 ## 💬 Prompt

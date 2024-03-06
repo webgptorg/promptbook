@@ -2,11 +2,11 @@ import { describe, expect, it } from '@jest/globals';
 import spaceTrim from 'spacetrim';
 import { promptbookStringToJson } from '../../../../conversion/promptbookStringToJson';
 import { PromptbookString } from '../../../../types/PromptbookString';
-import { createPtbkExecutor } from '../../../createPtbkExecutor';
+import { createPromptbookExecutor } from '../../../createPromptbookExecutor';
 import { CallbackInterfaceTools } from '../../user-interface-execution-tools/callback/CallbackInterfaceTools';
 import { MockedEchoNaturalExecutionTools } from './MockedEchoNaturalExecutionTools';
 
-describe('createPtbkExecutor + MockedEchoExecutionTools with sample chat prompt', () => {
+describe('createPromptbookExecutor + MockedEchoExecutionTools with sample chat prompt', () => {
     const promptbook = promptbookStringToJson(
         spaceTrim(`
             # ✨ Sample: Jokers
@@ -25,7 +25,7 @@ describe('createPtbkExecutor + MockedEchoExecutionTools with sample chat prompt'
             -> {name}
          `) as PromptbookString,
     );
-    const ptbkExecutor = createPtbkExecutor({
+    const promptbookExecutor = createPromptbookExecutor({
         promptbook,
         tools: {
             natural: new MockedEchoNaturalExecutionTools({ isVerbose: true }),
@@ -43,7 +43,7 @@ describe('createPtbkExecutor + MockedEchoExecutionTools with sample chat prompt'
     });
 
     it('should work when joker is used', () => {
-        expect(ptbkExecutor({ yourName: 'Good name' }, () => {})).resolves.toMatchObject({
+        expect(promptbookExecutor({ yourName: 'Good name' }, () => {})).resolves.toMatchObject({
             isSuccessful: true,
             errors: [],
             outputParameters: {
@@ -54,7 +54,7 @@ describe('createPtbkExecutor + MockedEchoExecutionTools with sample chat prompt'
     });
 
     it('should work when joker is NOT used', () => {
-        expect(ptbkExecutor({ yourName: 'Badname' }, () => {})).resolves.toMatchObject({
+        expect(promptbookExecutor({ yourName: 'Badname' }, () => {})).resolves.toMatchObject({
             isSuccessful: true,
             errors: [],
             outputParameters: {
@@ -69,5 +69,5 @@ describe('createPtbkExecutor + MockedEchoExecutionTools with sample chat prompt'
 });
 
 /**
- * TODO: [🧠] What should be name of this test "MockedEchoExecutionTools.test.ts" or "createPtbkExecutor.test.ts"
+ * TODO: [🧠] What should be name of this test "MockedEchoExecutionTools.test.ts" or "createPromptbookExecutor.test.ts"
  */

@@ -17,7 +17,7 @@ if (process.cwd() !== join(__dirname, '../..')) {
     process.exit(1);
 }
 
-const PTBK_SAMPLES_DIR = join(process.cwd(), 'samples/templates');
+const PROMPTBOOK_SAMPLES_DIR = join(process.cwd(), 'samples/templates');
 
 const program = new commander.Command();
 program.option('--commit', `Autocommit changes`, false);
@@ -41,22 +41,24 @@ async function generateSampleJsons({ isCommited }: { isCommited: boolean }) {
         throw new Error(`Working tree is not clean`);
     }
 
-    for (const ptbkMarkdownFilePath of await glob(join(PTBK_SAMPLES_DIR, '*.ptbk.md').split('\\').join('/'))) {
-        console.info(`📖  Generating JSON from ${ptbkMarkdownFilePath}`);
-        const ptbkMarkdown = await readFile(ptbkMarkdownFilePath, 'utf-8');
+    for (const promptbookMarkdownFilePath of await glob(
+        join(PROMPTBOOK_SAMPLES_DIR, '*.ptbk.md').split('\\').join('/'),
+    )) {
+        console.info(`📖  Generating JSON from ${promptbookMarkdownFilePath}`);
+        const promptbookMarkdown = await readFile(promptbookMarkdownFilePath, 'utf-8');
 
         try {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const ptbkJson = promptbookStringToJson(ptbkMarkdown as any /* <- TODO: Remove any */);
-            const ptbkJsonFilePath = ptbkMarkdownFilePath.replace(/\.ptbk\.md$/, '.ptbk.json');
-            await writeFile(ptbkJsonFilePath, JSON.stringify(ptbkJson, null, 4) + '\n');
+            const promptbookJson = promptbookStringToJson(promptbookMarkdown as any /* <- TODO: Remove any */);
+            const promptbookJsonFilePath = promptbookMarkdownFilePath.replace(/\.promptbook\.md$/, '.ptbk.json');
+            await writeFile(promptbookJsonFilePath, JSON.stringify(promptbookJson, null, 4) + '\n');
         } catch (error) {
             if (!(error instanceof Error)) {
                 throw error;
             }
 
             console.info(chalk.bgGray('========================='));
-            console.info(chalk.red(`Error in ${ptbkMarkdownFilePath}`));
+            console.info(chalk.red(`Error in ${promptbookMarkdownFilePath}`));
             console.error(chalk.bgRed(error.name));
             console.error(error);
             console.info(chalk.bgGray('========================='));
@@ -64,7 +66,7 @@ async function generateSampleJsons({ isCommited }: { isCommited: boolean }) {
     }
 
     if (isCommited) {
-        await commit(PTBK_SAMPLES_DIR, `📖 Convert samples .ptbk.md -> .ptbk.json`);
+        await commit(PROMPTBOOK_SAMPLES_DIR, `📖 Convert samples .ptbk.md -> .ptbk.json`);
     }
 
     console.info(`[ Done 📖  Convert samples .ptbk.md -> .ptbk.json]`);

@@ -6,7 +6,7 @@ import { CommonExecutionToolsOptions } from '../../../CommonExecutionToolsOption
  */
 export interface RemoteNaturalExecutionToolsOptions extends CommonExecutionToolsOptions {
     /**
-     * URL of the remote PTBK server
+     * URL of the remote PROMPTBOOK server
      * On this server will be connected to the socket.io server
      */
     readonly remoteUrl: URL;

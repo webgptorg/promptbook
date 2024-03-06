@@ -1,7 +1,7 @@
 {
     "title": "🌍 Create website content",
-    "ptbkUrl": "https://ptbk.webgpt.com/en/write-website-content.ptbk.md@v0.1.0",
-    "ptbkVersion": "0.0.1",
+    "promptbookUrl": "https://promptbook.webgpt.com/en/write-website-content.ptbk.md@v0.1.0",
+    "promptbookVersion": "0.0.1",
     "description": "Instructions for creating web page content.",
     "parameters": [
         {
@@ -60,9 +60,7 @@
             "name": "SpecifyingTheAssigment",
             "title": "👤 Specifying the assigment",
             "description": "What is your web about?",
-            "dependentParameterNames": [
-                "rawAssigment"
-            ],
+            "dependentParameterNames": ["rawAssigment"],
             "executionType": "PROMPT_DIALOG",
             "modelRequirements": {
                 "modelVariant": "CHAT",
@@ -74,14 +72,9 @@
         {
             "name": "ImprovingTheTitle",
             "title": "✨ Improving the title",
-            "dependentParameterNames": [
-                "rawTitle",
-                "assigment"
-            ],
+            "dependentParameterNames": ["rawTitle", "assigment"],
             "executionType": "PROMPT_TEMPLATE",
-            "postprocessing": [
-                "unwrapResult"
-            ],
+            "postprocessing": ["unwrapResult"],
             "modelRequirements": {
                 "modelVariant": "CHAT",
                 "modelName": "gpt-3.5-turbo"
@@ -93,9 +86,7 @@
             "name": "WebsiteTitleApproval",
             "title": "👤 Website title approval",
             "description": "Is the title for your website okay?",
-            "dependentParameterNames": [
-                "enhancedTitle"
-            ],
+            "dependentParameterNames": ["enhancedTitle"],
             "executionType": "PROMPT_DIALOG",
             "modelRequirements": {
                 "modelVariant": "CHAT",
@@ -107,14 +98,9 @@
         {
             "name": "CunningSubtitle",
             "title": "🐰 Cunning subtitle",
-            "dependentParameterNames": [
-                "title",
-                "assigment"
-            ],
+            "dependentParameterNames": ["title", "assigment"],
             "executionType": "PROMPT_TEMPLATE",
-            "postprocessing": [
-                "unwrapResult"
-            ],
+            "postprocessing": ["unwrapResult"],
             "modelRequirements": {
                 "modelVariant": "CHAT",
                 "modelName": "gpt-3.5-turbo"
@@ -125,10 +111,7 @@
         {
             "name": "KeywordAnalysis",
             "title": "🚦 Keyword analysis",
-            "dependentParameterNames": [
-                "title",
-                "assigment"
-            ],
+            "dependentParameterNames": ["title", "assigment"],
             "executionType": "PROMPT_TEMPLATE",
             "modelRequirements": {
                 "modelVariant": "CHAT",
@@ -140,10 +123,7 @@
         {
             "name": "CombineTheBeginning",
             "title": "🔗 Combine the beginning",
-            "dependentParameterNames": [
-                "title",
-                "claim"
-            ],
+            "dependentParameterNames": ["title", "claim"],
             "executionType": "SIMPLE_TEMPLATE",
             "modelRequirements": {
                 "modelVariant": "CHAT",
@@ -155,12 +135,7 @@
         {
             "name": "WriteTheContent",
             "title": "🖋 Write the content",
-            "dependentParameterNames": [
-                "title",
-                "assigment",
-                "keywords",
-                "contentBeginning"
-            ],
+            "dependentParameterNames": ["title", "assigment", "keywords", "contentBeginning"],
             "executionType": "PROMPT_TEMPLATE",
             "modelRequirements": {
                 "modelVariant": "COMPLETION",
@@ -172,10 +147,7 @@
         {
             "name": "CombineTheContent",
             "title": "🔗 Combine the content",
-            "dependentParameterNames": [
-                "contentBeginning",
-                "contentBody"
-            ],
+            "dependentParameterNames": ["contentBeginning", "contentBody"],
             "executionType": "SIMPLE_TEMPLATE",
             "modelRequirements": {
                 "modelVariant": "CHAT",

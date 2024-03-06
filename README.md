@@ -68,8 +68,8 @@ File `write-website-content.ptbk.md`:
 >
 > Instructions for creating web page content.
 >
-> -   PTBK URL https://ptbk.webgpt.com/en/write-website-content.ptbk.md@v0.1.0
-> -   PTBK VERSION 0.0.1
+> -   PROMPTBOOK URL https://promptbook.webgpt.com/en/write-website-content.ptbk.md@v0.1.0
+> -   PROMPTBOOK VERSION 0.0.1
 > -   INPUT  PARAM `{rawTitle}` Automatically suggested a site name or empty text
 > -   INPUT  PARAM `{rawAssigment}` Automatically generated site entry from image recognition
 > -   OUTPUT PARAM `{content}` Web content
@@ -445,7 +445,7 @@ Executor is made by combining execution tools and promptbook library.
 It can be done in two ways:
 
 -   From `PromptbookLibrary.getExecutor` method
--   `createPtbkExecutor` utility function
+-   `createPromptbookExecutor` utility function
 
 ### 🃏 Jokers
 
@@ -480,8 +480,8 @@ _Note: LLMs work with tokens, not characters, but in Promptbooks we want to use 
 ```markdown
 # ✨ Sample: Expectations
 
--   PTBK URL https://ptbk.example.com/samples/postprocessing-2.ptbk.md@v1
--   PTBK VERSION 1.0.0
+-   PROMPTBOOK URL https://promptbook.example.com/samples/postprocessing-2.ptbk.md@v1
+-   PROMPTBOOK VERSION 1.0.0
 -   INPUT  PARAMETER {yourName} Name of the hero
 
 ## 💬 Question

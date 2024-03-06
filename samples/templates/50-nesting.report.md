@@ -2,8 +2,8 @@
 
 How block are nested in the promptbook
 
--   PTBK URL https://ptbk.example.com/samples/language-capabilities.ptbk.md@v1
--   PTBK VERSION 0.1.0 _(requested 1.0.0)_
+-   PROMPTBOOK URL https://promptbook.example.com/samples/language-capabilities.ptbk.md@v1
+-   PROMPTBOOK VERSION 0.1.0 _(requested 1.0.0)_
 -   STARTED AT 2024-02-11 15:54:55
 -   COMPLETED AT 2024-02-11 15:55:03
 -   TOTAL DURATION 8 seconds

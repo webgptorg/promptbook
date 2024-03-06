@@ -1,8 +1,8 @@
 import { readFileSync } from 'fs';
 import { join } from 'path';
-import { string_file_path } from '../types/typeAliases';
 import { PromptbookJson } from '../types/PromptbookJson/PromptbookJson';
 import { PromptbookString } from '../types/PromptbookString';
+import { string_file_path } from '../types/typeAliases';
 
 /**
  * Import the text file
@@ -12,9 +12,9 @@ import { PromptbookString } from '../types/PromptbookString';
  *
  * @private
  */
-export function importPtbk(path: `${string}.ptbk.md`): PromptbookString;
-export function importPtbk(path: `${string}.ptbk.json`): PromptbookJson;
-export function importPtbk(path: string_file_path): PromptbookString | PromptbookJson {
+export function importPromptbook(path: `${string}.ptbk.md`): PromptbookString;
+export function importPromptbook(path: `${string}.ptbk.json`): PromptbookJson;
+export function importPromptbook(path: string_file_path): PromptbookString | PromptbookJson {
     const content = readFileSync(join(__dirname, path), 'utf-8');
     //                         <- Note: In production it is not good practice to use synchronous functions
     //                                  But this is only a test before the build, so it is okay

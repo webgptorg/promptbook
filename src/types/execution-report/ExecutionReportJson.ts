@@ -1,6 +1,6 @@
 import type { PromptResult } from '../../execution/PromptResult';
 import type { Prompt } from '../Prompt';
-import type { string_ptbk_url, string_version } from '../typeAliases';
+import type { string_promptbook_url, string_version } from '../typeAliases';
 
 /**
  * ExecutionReport is result of executing one promptbook
@@ -14,27 +14,27 @@ import type { string_ptbk_url, string_version } from '../typeAliases';
  */
 export type ExecutionReportJson = {
     /**
-     * Unique identifier of the ptbk from ptbk which was executed
+     * Unique identifier of the promptbook from promptbook which was executed
      */
-    readonly ptbkUrl?: string_ptbk_url;
+    readonly promptbookUrl?: string_promptbook_url;
 
     /**
-     * Title of from ptbk which was executed
+     * Title of from promptbook which was executed
      */
     readonly title?: string;
 
     /**
-     * Version from ptbk which was executed
+     * Version from promptbook which was executed
      */
-    readonly ptbkUsedVersion: string_version;
+    readonly promptbookUsedVersion: string_version;
 
     /**
-     * Version from ptbk which was requested by promptbook
+     * Version from promptbook which was requested by promptbook
      */
-    readonly ptbkRequestedVersion?: string_version;
+    readonly promptbookRequestedVersion?: string_version;
 
     /**
-     * Description of the ptbk which was executed
+     * Description of the promptbook which was executed
      */
     readonly description?: string;
 
@@ -45,7 +45,7 @@ export type ExecutionReportJson = {
         /**
          * The prompt wich was executed
          */
-        prompt: Omit<Prompt, 'ptbkUrl' | 'parameters'>;
+        prompt: Omit<Prompt, 'promptbookUrl' | 'parameters'>;
 
         /**
          * Result of the prompt execution (if not failed during LLM execution)

@@ -3,19 +3,19 @@ import spaceTrim from 'spacetrim';
 import { promptbookStringToJson } from '../../../conversion/promptbookStringToJson';
 import { PromptbookString } from '../../../types/PromptbookString';
 import { assertsExecutionSuccessful } from '../../assertsExecutionSuccessful';
-import { createPtbkExecutor } from '../../createPtbkExecutor';
+import { createPromptbookExecutor } from '../../createPromptbookExecutor';
 import { MockedEchoNaturalExecutionTools } from '../natural-execution-tools/mocked/MockedEchoNaturalExecutionTools';
 import { CallbackInterfaceTools } from '../user-interface-execution-tools/callback/CallbackInterfaceTools';
 import { JavascriptEvalExecutionTools } from './javascript/JavascriptEvalExecutionTools';
 
-describe('createPtbkExecutor + missing custom function', () => {
+describe('createPromptbookExecutor + missing custom function', () => {
     const promptbook = promptbookStringToJson(
         spaceTrim(`
             # Custom functions
 
             Show how to use custom postprocessing functions
 
-            -   PTBK VERSION 1.0.0
+            -   PROMPTBOOK VERSION 1.0.0
             -   INPUT  PARAMETER {yourName} Name of the hero
 
             ## Question
@@ -31,8 +31,8 @@ describe('createPtbkExecutor + missing custom function', () => {
          `) as PromptbookString,
     );
 
-    const ptbkExecutor = createPtbkExecutor({
-      promptbook,
+    const promptbookExecutor = createPromptbookExecutor({
+        promptbook,
         tools: {
             natural: new MockedEchoNaturalExecutionTools({ isVerbose: true }),
             script: [
@@ -61,7 +61,7 @@ describe('createPtbkExecutor + missing custom function', () => {
 
     it('should throw error when custom postprocessing function does not exist', () => {
         expect(() =>
-            ptbkExecutor({ yourName: 'Matthew' }, () => {}).then(assertsExecutionSuccessful),
+            promptbookExecutor({ yourName: 'Matthew' }, () => {}).then(assertsExecutionSuccessful),
         ).rejects.toThrowError(/Function \{addHello\} is not defined/);
     });
 });

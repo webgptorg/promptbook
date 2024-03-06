@@ -3,19 +3,19 @@ import spaceTrim from 'spacetrim';
 import { promptbookStringToJson } from '../../../conversion/promptbookStringToJson';
 import { PromptbookString } from '../../../types/PromptbookString';
 import { assertsExecutionSuccessful } from '../../assertsExecutionSuccessful';
-import { createPtbkExecutor } from '../../createPtbkExecutor';
+import { createPromptbookExecutor } from '../../createPromptbookExecutor';
 import { MockedEchoNaturalExecutionTools } from '../natural-execution-tools/mocked/MockedEchoNaturalExecutionTools';
 import { CallbackInterfaceTools } from '../user-interface-execution-tools/callback/CallbackInterfaceTools';
 import { JavascriptEvalExecutionTools } from './javascript/JavascriptEvalExecutionTools';
 
-describe('createPtbkExecutor + executing scripts in ptbk', () => {
+describe('createPromptbookExecutor + executing scripts in promptbook', () => {
     const promptbook = promptbookStringToJson(
         spaceTrim(`
             # Sample prompt
 
             Show how to execute a script
 
-            -   PTBK VERSION 1.0.0
+            -   PROMPTBOOK VERSION 1.0.0
             -   INPUT  PARAMETER {thing} Any thing to buy
 
             ## Execution
@@ -32,8 +32,8 @@ describe('createPtbkExecutor + executing scripts in ptbk', () => {
             -> {bhing}
          `) as PromptbookString,
     );
-    const ptbkExecutor = createPtbkExecutor({
-      promptbook,
+    const promptbookExecutor = createPromptbookExecutor({
+        promptbook,
         tools: {
             natural: new MockedEchoNaturalExecutionTools({ isVerbose: true }),
             script: [
@@ -55,21 +55,21 @@ describe('createPtbkExecutor + executing scripts in ptbk', () => {
     });
 
     it('should work when every INPUT  PARAMETER is allowed', () => {
-        expect(ptbkExecutor({ thing: 'a cup of coffee' }, () => {})).resolves.toMatchObject({
+        expect(promptbookExecutor({ thing: 'a cup of coffee' }, () => {})).resolves.toMatchObject({
             isSuccessful: true,
             errors: [],
             outputParameters: {
                 bhing: 'b cup of coffee',
             },
         });
-        expect(ptbkExecutor({ thing: 'arrow' }, () => {})).resolves.toMatchObject({
+        expect(promptbookExecutor({ thing: 'arrow' }, () => {})).resolves.toMatchObject({
             isSuccessful: true,
             errors: [],
             outputParameters: {
                 bhing: 'brrow',
             },
         });
-        expect(ptbkExecutor({ thing: 'aaa' }, () => {})).resolves.toMatchObject({
+        expect(promptbookExecutor({ thing: 'aaa' }, () => {})).resolves.toMatchObject({
             isSuccessful: true,
             errors: [],
             outputParameters: {
@@ -80,12 +80,12 @@ describe('createPtbkExecutor + executing scripts in ptbk', () => {
 
     it('should fail when INPUT  PARAMETER is NOT allowed', () => {
         for (const thing of ['apple', 'apples', 'an apple', 'Apple', 'The Apple', '🍏 Apple', 'Apple 🍎']) {
-            expect(ptbkExecutor({ thing }, () => {})).resolves.toMatchObject({
+            expect(promptbookExecutor({ thing }, () => {})).resolves.toMatchObject({
                 isSuccessful: false,
                 errors: [new Error(`I do not like Apples!`)],
             });
 
-            expect(() => ptbkExecutor({ thing }, () => {}).then(assertsExecutionSuccessful)).rejects.toThrowError(
+            expect(() => promptbookExecutor({ thing }, () => {}).then(assertsExecutionSuccessful)).rejects.toThrowError(
                 /I do not like Apples!/,
             );
         }
