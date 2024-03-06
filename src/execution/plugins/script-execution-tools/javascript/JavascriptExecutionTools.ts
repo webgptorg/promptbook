@@ -1,5 +1,5 @@
-import { CommonExecutionToolsOptions } from '../../../CommonExecutionToolsOptions';
 import { ScriptExecutionTools, ScriptExecutionToolsExecuteOptions } from '../../../ScriptExecutionTools';
+import { JavascriptExecutionToolsOptions } from './JavascriptExecutionToolsOptions';
 
 /**
  * ScriptExecutionTools for JavaScript implemented via vm2
@@ -7,7 +7,7 @@ import { ScriptExecutionTools, ScriptExecutionToolsExecuteOptions } from '../../
  * Warning: This is not implemented yet
  */
 export class JavascriptExecutionTools implements ScriptExecutionTools {
-    public constructor(private readonly options: CommonExecutionToolsOptions) {}
+    public constructor(private readonly options: JavascriptExecutionToolsOptions) {}
 
     /**
      * Executes a JavaScript

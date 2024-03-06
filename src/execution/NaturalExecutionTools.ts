@@ -26,5 +26,6 @@ export interface NaturalExecutionTools {
 }
 
 /**
+ * TODO: [🏳] gptChat -> chat, gptComplete -> complete, translate
  * TODO: [🧠] Should or should not there be a word "GPT" in both gptComplete and gptChat
  */

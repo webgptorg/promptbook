@@ -2,19 +2,62 @@
 
 Trying the language capabilities of GPT models.
 
--   PTBK URL https://ptbk.example.com/samples/language-capabilities.ptbk.md@v1
--   PTBK version 1.0.0
--   Use Chat
-<!-- TODO: [🌚]> -   Use GPT-3 -->
--   Input parameter `{word}` The word to use in the prompt.
--   Output parameter `{comparisonOfTwoSentences}` Comparison between two sentences
--   Output parameter `{summary}` The overall summary of the comparison
+-   PROMPTBOOK URL https://promptbook.example.com/samples/language-capabilities.ptbk.md@v1
+-   PROMPTBOOK VERSION 1.0.0
+-   MODEL VARIANT Chat
+-   MODEL NAME `gpt-3.5-turbo`
+-   Input  parameter `{word}` The word to use in the prompt.
+-   OUTPUT PARAMETER `{comparisonOfTwoSentences}` Comparison between two sentences
+-   OUTPUT PARAMETER `{summary}` The overall summary of the comparison
+
+<!--Graph-->
+<!-- ⚠️ WARNING: This section was auto-generated -->
+
+```mermaid
+%% 🔮 Tip: Open this on GitHub or in the VSCode website to see the Mermaid graph visually
+
+flowchart LR
+  subgraph "✨ Sample: Language Capabilities"
+
+      direction TB
+
+      input((Input)):::input
+      templateSynonym(💬 Synonym)
+      input--"{word}"-->templateSynonym
+      templateTestThatWordIsNotOriginalWord(⚙ Test that word is not original word)
+      input--"{word}"-->templateTestThatWordIsNotOriginalWord
+      templateSynonym--"{wordSynonym}"-->templateTestThatWordIsNotOriginalWord
+      templateSentenceWithSynonym(💬 Sentence with Synonym)
+      input--"{word}"-->templateSentenceWithSynonym
+      templateSynonym--"{wordSynonym}"-->templateSentenceWithSynonym
+      templateSentenceWithoutOriginalWord(💬 Sentence without original word)
+      templateSentenceWithSynonym--"{sentenceWithTwoSynonyms}"-->templateSentenceWithoutOriginalWord
+      input--"{word}"-->templateSentenceWithoutOriginalWord
+      templateComparison(💬 Comparison)
+      templateSentenceWithSynonym--"{sentenceWithTwoSynonyms}"-->templateComparison
+      templateSentenceWithoutOriginalWord--"{sentenceWithOriginalWordRemoved}"-->templateComparison
+      templateSummary(🔗 Summary)
+      input--"{word}"-->templateSummary
+      templateSynonym--"{wordSynonym}"-->templateSummary
+      templateSentenceWithSynonym--"{sentenceWithTwoSynonyms}"-->templateSummary
+      templateSentenceWithoutOriginalWord--"{sentenceWithOriginalWordRemoved}"-->templateSummary
+      templateComparison--"{comparisonOfTwoSentences}"-->templateSummary
+
+      classDef input color: grey;
+
+  end;
+```
+
+<!--/Graph-->
 
 ## 💬 Synonym
 
 Synonym for word
 
--   Postprocessing `unwrapResult`
+-   MODEL VARIANT Chat
+-   MODEL NAME `gpt-3.5-turbo`
+-   POSTPROCESSING `unwrapResult`
+-   EXPECT EXACTLY 1 WORD
 
 ```text
 Write synonym for "{word}"
@@ -24,10 +67,10 @@ Write synonym for "{word}"
 
 ## ⚙ Test that word is not original word
 
--   Execute script
+-   EXECUTE SCRIPT
 
 ```javascript
-if (wordSynonym === word) {
+if (word !== '' && wordSynonym === word) {
     throw new Error(`Synonym returned from LLM is same as original word "${word}"`);
 }
 
@@ -40,7 +83,10 @@ return wordSynonym;
 
 Sentence with word and wordSynonym
 
--   Execute prompt template <!-- This is the default -->
+-   MODEL VARIANT Chat
+-   MODEL NAME `gpt-3.5-turbo`
+-   EXPECT MAX 20 WORDS
+-   EXPECT EXACTLY 1 SENTENCE
 
 ```text
 Write sentence with "{word}" and "{wordSynonym}" in it
@@ -52,7 +98,10 @@ Write sentence with "{word}" and "{wordSynonym}" in it
 
 Sentence "{sentenceWithTwoSynonyms}" without "{word}".
 
--   Execute prompt template <!-- This is the default -->
+-   MODEL VARIANT Chat
+-   MODEL NAME `gpt-3.5-turbo`
+-   EXPECT MAX 20 WORDS
+-   EXPECT EXACTLY 1 SENTENCE
 
 ```markdown
 Remove word "{word}" from sentence and modify it so that it makes sense:
@@ -73,9 +122,10 @@ Remove word "{word}" from sentence and modify it so that it makes sense:
 
 Comparison between "{sentenceWithTwoSynonyms}" and "{sentenceWithOriginalWordRemoved}".
 
--   Use Chat
-<!-- TODO: [🌚]> -   Use GPT-4 -->
--   Execute prompt template <!-- This is the default -->
+-   MODEL VARIANT Chat
+-   MODEL NAME `gpt-4`
+-   EXPECT MIN 1 SENTENCE
+-   EXPECT MAX 5 SENTENCES
 
 ```markdown
 Compare meaning of thee two sentences:
@@ -93,7 +143,7 @@ Compare meaning of thee two sentences:
 
 ## 🔗 Summary
 
--   Simple template
+-   SIMPLE TEMPLATE
 
 ```markdown
 You have entered a word **{word}**. For this word the best synonym is **{wordSynonym}**. The sentence with both words is **{sentenceWithTwoSynonyms}**. The sentence without the original word is **{sentenceWithOriginalWordRemoved}**. And the comparison between the two sentences is:

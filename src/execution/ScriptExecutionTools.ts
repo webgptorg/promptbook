@@ -2,7 +2,7 @@ import { string_name, string_script } from '.././types/typeAliases';
 import { ScriptLanguage } from '../types/ScriptLanguage';
 
 /**
- * Represents all the tools needed to execute scripts
+ * Represents all the tools needed to EXECUTE SCRIPTs
  *
  * @see https://github.com/webgptorg/promptbook#script-execution-tools
  */
@@ -36,3 +36,8 @@ export interface ScriptExecutionToolsExecuteOptions {
      */
     script: string_script;
 }
+
+
+/**
+ * TODO: [🧠][💙] Distinct between options passed into ExecutionTools and to ExecutionTools.execute
+ */

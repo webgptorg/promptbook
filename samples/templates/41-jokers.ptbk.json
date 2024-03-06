@@ -1,0 +1,47 @@
+{
+    "title": "✨ Sample: Jokers",
+    "promptbookUrl": "https://promptbook.example.com/samples/jokers.ptbk.md@v1",
+    "promptbookVersion": "1.0.0",
+    "parameters": [
+        {
+            "name": "name1",
+            "description": "First name or nothing",
+            "isInput": true
+        },
+        {
+            "name": "name2",
+            "description": "Second name or nothing",
+            "isInput": true
+        },
+        {
+            "name": "name",
+            "isInput": false
+        }
+    ],
+    "promptTemplates": [
+        {
+            "name": "Question",
+            "title": "💬 Question",
+            "dependentParameterNames": [
+                "name1",
+                "name2"
+            ],
+            "executionType": "PROMPT_TEMPLATE",
+            "jokers": [
+                "name1",
+                "name2"
+            ],
+            "expectAmount": {
+                "words": {
+                    "min": 2
+                }
+            },
+            "modelRequirements": {
+                "modelVariant": "CHAT",
+                "modelName": "gpt-3.5-turbo"
+            },
+            "content": "Write some name for hero",
+            "resultingParameterName": "name"
+        }
+    ]
+}

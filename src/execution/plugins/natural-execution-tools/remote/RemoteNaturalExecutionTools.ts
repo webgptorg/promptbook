@@ -6,10 +6,9 @@ import { TaskProgress } from '../../../../types/TaskProgress';
 import { NaturalExecutionTools } from '../../../NaturalExecutionTools';
 import { PromptChatResult, PromptCompletionResult, PromptResult } from '../../../PromptResult';
 import { RemoteNaturalExecutionToolsOptions } from './RemoteNaturalExecutionToolsOptions';
-import { Ptps_Error } from './interfaces/Ptps_Error';
-import { Ptps_Progress } from './interfaces/Ptps_Progress';
-import { Ptps_Request } from './interfaces/Ptps_Request';
-import { Ptps_Response } from './interfaces/Ptps_Response';
+import { Promptbook_Server_Error } from './interfaces/Promptbook_Server_Error';
+import { Promptbook_Server_Request } from './interfaces/Promptbook_Server_Request';
+import { Promptbook_Server_Response } from './interfaces/Promptbook_Server_Response';
 
 /**
  * Remote server is a proxy server that uses its execution tools internally and exposes the executor interface externally.
@@ -28,12 +27,12 @@ export class RemoteNaturalExecutionTools implements NaturalExecutionTools {
     private makeConnection(): Promise<Socket> {
         return new Promise((resolve, reject) => {
             const socket = io(this.options.remoteUrl.href, {
-                path: '/ptp/socket.io',
+                path: this.options.path,
                 // path: `${this.remoteUrl.pathname}/socket.io`,
                 transports: [/*'websocket', <- TODO: [🌬] Make websocket transport work */ 'polling'],
             });
 
-            console.log('Connecting to', this.options.remoteUrl.href, { socket });
+            // console.log('Connecting to', this.options.remoteUrl.href, { socket });
 
             socket.on('connect', () => {
                 resolve(socket);
@@ -79,14 +78,14 @@ export class RemoteNaturalExecutionTools implements NaturalExecutionTools {
         onProgress?: (taskProgress: TaskProgress) => Promisable<void>,
     ): Promise<PromptResult> {
         const socket = await this.makeConnection();
-        socket.emit('request', { clientId: this.options.clientId, prompt } satisfies Ptps_Request);
+        socket.emit('request', { clientId: this.options.clientId, prompt } satisfies Promptbook_Server_Request);
 
         const promptResult = await new Promise<PromptResult>((resolve, reject) => {
-            socket.on('response', (response: Ptps_Response) => {
+            socket.on('response', (response: Promptbook_Server_Response) => {
                 resolve(response.promptResult);
                 socket.disconnect();
             });
-            socket.on('error', (error: Ptps_Error) => {
+            socket.on('error', (error: Promptbook_Server_Error) => {
                 //            <- TODO: Custom type of error
                 reject(new Error(error.errorMessage));
                 socket.disconnect();

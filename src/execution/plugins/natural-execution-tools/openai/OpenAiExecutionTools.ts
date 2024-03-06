@@ -1,11 +1,12 @@
 import chalk from 'chalk';
 import OpenAI from 'openai';
-import { Promisable } from 'type-fest';
-import { Prompt } from '../../../../types/Prompt';
-import { TaskProgress } from '../../../../types/TaskProgress';
-import { NaturalExecutionTools } from '../../../NaturalExecutionTools';
-import { PromptChatResult, PromptCompletionResult } from '../../../PromptResult';
-import { OpenAiExecutionToolsOptions } from './OpenAiExecutionToolsOptions';
+import type { Prompt } from '../../../../types/Prompt';
+import { string_date_iso8601 } from '../../../../types/typeAliases';
+import { getCurrentIsoDate } from '../../../../utils/getCurrentIsoDate';
+import type { NaturalExecutionTools } from '../../../NaturalExecutionTools';
+import type { PromptChatResult, PromptCompletionResult } from '../../../PromptResult';
+import type { OpenAiExecutionToolsOptions } from './OpenAiExecutionToolsOptions';
+import { computeOpenaiUsage } from './computeOpenaiUsage';
 
 /**
  * Execution Tools for calling OpenAI API.
@@ -36,12 +37,16 @@ export class OpenAiExecutionTools implements NaturalExecutionTools {
         const { content, modelRequirements } = prompt;
 
         // TODO: [☂] Use here more modelRequirements
-        if (modelRequirements.variant !== 'CHAT') {
+        if (modelRequirements.modelVariant !== 'CHAT') {
             throw new Error('Use gptChat only for CHAT variant');
         }
 
-        const model = 'gpt-3.5-turbo'; /* <- TODO: [☂] Use here more modelRequirements */
-        const modelSettings = { model };
+        const model = modelRequirements.modelName;
+        const modelSettings = {
+            model,
+            max_tokens: modelRequirements.maxTokens,
+            //                                      <- TODO: Make some global max cap for maxTokens
+        };
         const rawRequest: OpenAI.Chat.Completions.ChatCompletionCreateParamsStreaming = {
             ...modelSettings,
             messages: [
@@ -51,7 +56,10 @@ export class OpenAiExecutionTools implements NaturalExecutionTools {
                 },
             ],
             stream: true,
+            user: this.options.user,
         };
+        const start: string_date_iso8601 = getCurrentIsoDate();
+        let complete: string_date_iso8601;
 
         if (this.options.isVerbose) {
             console.error(chalk.bgGray('rawRequest'), JSON.stringify(rawRequest, null, 4));
@@ -62,23 +70,31 @@ export class OpenAiExecutionTools implements NaturalExecutionTools {
         }
 
         if (!rawResponse.choices[0]) {
-            throw new Error('No choises from OpenAPI');
+            throw new Error('No choises from OpenAI');
         }
 
         if (rawResponse.choices.length > 1) {
             // TODO: This should be maybe only warning
-            throw new Error('More than one choise from OpenAPI');
+            throw new Error('More than one choise from OpenAI');
         }
 
         const resultContent = rawResponse.choices[0].message.content;
+        // eslint-disable-next-line prefer-const
+        complete = getCurrentIsoDate();
+        const usage = computeOpenaiUsage(rawResponse);
 
         if (!resultContent) {
-            throw new Error('No response message from OpenAPI');
+            throw new Error('No response message from OpenAI');
         }
 
         return {
             content: resultContent,
             model,
+            timing: {
+                start,
+                complete,
+            },
+            usage,
             rawResponse,
             // <- [🤹‍♂️]
         };
@@ -106,20 +122,24 @@ export class OpenAiExecutionTools implements NaturalExecutionTools {
         }
 
         // TODO: [☂] Use here more modelRequirements
-        if (modelRequirements.variant !== 'COMPLETION') {
+        if (modelRequirements.modelVariant !== 'COMPLETION') {
             throw new Error('Use gptComplete only for COMPLETION variant');
         }
 
-        const model = 'gpt-3.5-turbo-instruct'; /* <- TODO: [☂] Use here more modelRequirements */
+        const model = modelRequirements.modelName;
         const modelSettings = {
             model,
-            max_tokens: 2000 /* <- TODO: [☂] Use here more modelRequirements */,
+            max_tokens: modelRequirements.maxTokens || 2000, // <- Note: 2000 is for lagacy reasons
+            //                                                  <- TODO: Make some global max cap for maxTokens
         };
 
         const rawRequest: OpenAI.Completions.CompletionCreateParamsNonStreaming = {
             ...modelSettings,
             prompt: content,
+            user: this.options.user,
         };
+        const start: string_date_iso8601 = getCurrentIsoDate();
+        let complete: string_date_iso8601;
 
         if (this.options.isVerbose) {
             console.error(chalk.bgGray('rawRequest'), JSON.stringify(rawRequest, null, 4));
@@ -130,23 +150,31 @@ export class OpenAiExecutionTools implements NaturalExecutionTools {
         }
 
         if (!rawResponse.choices[0]) {
-            throw new Error('No choises from OpenAPI');
+            throw new Error('No choises from OpenAI');
         }
 
         if (rawResponse.choices.length > 1) {
             // TODO: This should be maybe only warning
-            throw new Error('More than one choise from OpenAPI');
+            throw new Error('More than one choise from OpenAI');
         }
 
         const resultContent = rawResponse.choices[0].text;
+        // eslint-disable-next-line prefer-const
+        complete = getCurrentIsoDate();
+        const usage = computeOpenaiUsage(rawResponse);
 
         if (!resultContent) {
-            throw new Error('No response message from OpenAPI');
+            throw new Error('No response message from OpenAI');
         }
 
         return {
             content: resultContent,
             model,
+            timing: {
+                start,
+                complete,
+            },
+            usage,
             rawResponse,
             // <- [🤹‍♂️]
         };
@@ -154,6 +182,7 @@ export class OpenAiExecutionTools implements NaturalExecutionTools {
 }
 
 /**
+
  * TODO: Maybe Create some common util for gptChat and gptComplete
  * TODO: Maybe make custom OpenaiError
  */

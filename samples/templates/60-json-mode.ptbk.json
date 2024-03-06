@@ -1,0 +1,38 @@
+{
+    "title": "✨ Sample: JSON mode",
+    "promptbookUrl": "https://promptbook.example.com/samples/json-mode.ptbk.md@v1",
+    "promptbookVersion": "1.0.0",
+    "description": "Trying the language capabilities of GPT models.",
+    "parameters": [
+        {
+            "name": "unstructuredContacts",
+            "description": "nestrukturovaný seznam kontaktních údajů",
+            "isInput": true
+        },
+        {
+            "name": "contactlist",
+            "description": "JSON seznam kontaktních údajů",
+            "isInput": false
+        }
+    ],
+    "promptTemplates": [
+        {
+            "name": "ExtrakceKontaktnChDaj",
+            "title": "🖋 Extrakce kontaktních údajů",
+            "dependentParameterNames": [
+                "unstructuredContacts"
+            ],
+            "executionType": "PROMPT_TEMPLATE",
+            "postprocessing": [
+                "trimEndOfCodeBlock"
+            ],
+            "expectFormat": "JSON",
+            "modelRequirements": {
+                "modelVariant": "COMPLETION",
+                "modelName": "gpt-3.5-turbo-instruct"
+            },
+            "content": "Extrahuj kontaktní data z nestrukturovaného seznamu kontaktních údajů\n\n## 1. Nestrukturované údaje\n\n```text\ninfo@webgpt.cz\nhttps://www.facebook.com/webgptorg\nhttps://www.instagram.com/webgpt.cz/\nhttps://www.linkedin.com/company/98725909/\n\nAI Web s.r.o.\nIČO: 21012288\nDatová schránka: hzuu4yn\n\nPavol Hejný\nVývojář\npavol@webgpt.cz\n+420774080996\n\nJiří Jahn\nMarketing, Obchod\njirka@webgpt.cz\n\nAinautes\nSkupina lidí za projektem\nhttps://ainautes.com\n```\n\n## 1. Strukturované údaje\n\n```json\n[\n  {\n    \"role\": \"OWNER\",\n    \"fullname\": \"AI Web s.r.o.\",\n    \"share\": 1\n  },\n  {\n    \"role\": \"TECHNICAL\",\n    \"fullname\": \"Pavol Hejný\",\n    \"email\": \"pavol@webgpt.cz\",\n    \"phone\": \"+420420774080996\"\n  },\n  {\n    \"role\": \"LEGAL\",\n    \"fullname\": \"Jiří Jahn\",\n    \"email\": \"jirka@webgpt.cz\"\n  },\n  {\n    \"role\": \"CONTENT_MANAGER\",\n    \"fullname\": \"Jiří Jahn\",\n    \"email\": \"jirka@webgpt.cz\"\n  },\n  {\n    \"role\": \"OTHER\",\n    \"roleDescription\": \"Skupina lidí za projektem\",\n    \"fullname\": \"Ainautes\",\n    \"web\": \"https://ainautes.com\"\n  }\n]\n```\n\n## 2. Nestrukturované údaje\n\n```text\n{unstructuredContacts}\n```\n\n## 2. Strukturované údaje\n\n```json",
+            "resultingParameterName": "contactlist"
+        }
+    ]
+}

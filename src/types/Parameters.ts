@@ -2,9 +2,9 @@
  * Parameters of the prompt template (pipeline)
  *
  * There are three types of parameters:
- * - **Input parameters** are required to execute the prompt template pipeline.
- * - **Intermediate parameters** are used internally in the prompt template pipeline.
- * - **Output parameters** are not used internally in the prompt template pipeline, but are returned as the result of the prompt template pipeline execution.
+ * - **INPUT PARAMETERs** are required to execute the pipeline.
+ * - **Intermediate parameters** are used internally in the pipeline.
+ * - **OUTPUT PARAMETERs** are not used internally in the pipeline, but are returned as the result of the pipeline execution.
  *
  * @see https://github.com/webgptorg/promptbook#parameters
  */

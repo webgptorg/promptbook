@@ -1,0 +1,156 @@
+Alternative (unfinished) solutions:
+
+
+---------------------------------------
+
+import { parse } from 'acorn';
+import { string_javascript, string_name } from '../types/typeAliases';
+/**
+ * Parses the given script and returns the list of all used variables that are not defined in the script
+ *
+ * @param script from which to extract the variables
+ * @returns the list of variable names
+ *
+ * @private within the library
+ */
+
+export function extractVariables(script: string_javascript): Array<string_name> {
+    const syntaxTree = parse(script, {
+        ecmaVersion: 'latest',
+        sourceType: 'script',
+    });
+
+    
+
+    console.log(syntaxTree);
+
+    return [];
+}
+
+
+---------------------------------------
+
+
+function extractVariables(code: string_javascript): Array<string_javascript_name> {
+    // An array to store the variables
+    const variables: Array<string_javascript_name> = [];
+
+    // A regular expression to match variable names
+    // It assumes that variables start with a letter, underscore, or dollar sign
+    // and can contain alphanumeric characters, underscores, or dollar signs
+    const regex = /\b([a-zA-Z_$][\w$]*)\b/g;
+
+    // A set to avoid duplicates
+    const seen = new Set();
+
+    // Loop through the matches of the regex
+    let match;
+    while ((match = regex.exec(code))) {
+        // Get the variable name from the match
+        const variable = match[1]!;
+
+        // Check if it is a reserved word or already seen
+        if (!isReservedWord(variable) && !seen.has(variable)) {
+            // Add it to the array and the set
+            variables.push(variable);
+            seen.add(variable);
+        }
+    }
+
+    // Return the array of variables
+    return variables;
+}
+
+// A function to check if a word is a reserved word in JavaScript
+// It uses a hard-coded list of keywords, literals, and built-in objects
+function isReservedWord(word: string) {
+    const reservedWords: Array<string> = [
+        'abstract',
+        'arguments',
+        'await',
+        'boolean',
+        'break',
+        'byte',
+        'case',
+        'catch',
+        'char',
+        'class',
+        'const',
+        'continue',
+        'debugger',
+        'default',
+        'delete',
+        'do',
+        'double',
+        'else',
+        'enum',
+        'eval',
+        'export',
+        'extends',
+        'false',
+        'final',
+        'finally',
+        'float',
+        'for',
+        'function',
+        'goto',
+        'if',
+        'implements',
+        'import',
+        'in',
+        'instanceof',
+        'int',
+        'interface',
+        'let',
+        'long',
+        'native',
+        'new',
+        'null',
+        'package',
+        'private',
+        'protected',
+        'public',
+        'return',
+        'short',
+        'static',
+        'super',
+        'switch',
+        'synchronized',
+        'this',
+        'throw',
+        'throws',
+        'transient',
+        'true',
+        'try',
+        'typeof',
+        'var',
+        'void',
+        'volatile',
+        'while',
+        'with',
+        'yield',
+        'Array',
+        'Date',
+        'eval',
+        'function',
+        'hasOwnProperty',
+        'Infinity',
+        'isFinite',
+        'isNaN',
+        'isPrototypeOf',
+        'length',
+        'Math',
+        'NaN',
+        'name',
+        'Number',
+        'Object',
+        'prototype',
+        'String',
+        'toString',
+        'undefined',
+        'valueOf',
+    ];
+
+    // Return true if the word is in the list, false otherwise
+    return reservedWords.includes(word);
+}

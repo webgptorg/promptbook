@@ -1,5 +1,10 @@
-import { string_name, string_prompt, string_ptbk_url_with_hashtemplate } from '.././types/typeAliases';
-import { ModelRequirements } from './ModelRequirements';
+import type {
+    string_name,
+    string_prompt,
+    string_promptbook_url_with_hashtemplate,
+    string_title,
+} from '.././types/typeAliases';
+import type { ModelRequirements } from './ModelRequirements';
 
 /**
  * Prompt in a text along with model requirements, but without any execution or templating logic.
@@ -7,6 +12,13 @@ import { ModelRequirements } from './ModelRequirements';
  * @see https://github.com/webgptorg/promptbook#prompt
  */
 export interface Prompt {
+    /**
+     * The title of the prompt
+     *
+     * Note: This has no effect on the model, it is just for the reporting
+     */
+    readonly title: string_title;
+
     /**
      * The text of the prompt
      *
@@ -21,16 +33,16 @@ export interface Prompt {
     readonly modelRequirements: ModelRequirements;
 
     /**
-     * Unique identifier of the prompt template pipeline with specific template name as hash
+     * Unique identifier of the promptbook with specific template name as hash
      *
-     * @example https://ptbk.webgpt.com/cs/write-website-content.ptbk.md@v2.4.15#keywords
+     * @example https://promptbook.webgpt.com/cs/write-website-content.ptbk.md@v2.4.15#keywords
      */
-    readonly ptbkUrl: string_ptbk_url_with_hashtemplate;
+    readonly promptbookUrl: string_promptbook_url_with_hashtemplate;
 
     /**
      * Parameters used in the prompt
      *
-     * Note: This is redundant (same information is in ptbkUrl+content) but useful for logging and debugging
+     * Note: This is redundant (same information is in promptbookUrl+content) but useful for logging and debugging
      */
     readonly parameters: Record<string_name, string>;
 }

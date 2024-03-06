@@ -1,0 +1,193 @@
+{
+    "promptbookUrl": "https://promptbook.example.com/samples/language-capabilities.ptbk.md@v1",
+    "title": "✨ Sample: Language Capabilities",
+    "promptbookUsedVersion": "0.1.0",
+    "promptbookRequestedVersion": "1.0.0",
+    "description": "Trying the language capabilities of GPT models.",
+    "promptExecutions": [
+        {
+            "prompt": {
+                "title": "💬 Synonym",
+                "content": "Write synonym for \"cat\"",
+                "modelRequirements": {
+                    "modelVariant": "CHAT",
+                    "modelName": "gpt-3.5-turbo"
+                }
+            },
+            "result": {
+                "content": "Feline",
+                "model": "gpt-3.5-turbo",
+                "timing": {
+                    "start": "2024-02-11T14:54:07.848Z",
+                    "complete": "2024-02-11T14:54:08.907Z"
+                },
+                "usage": {
+                    "price": 0.0000235,
+                    "inputTokens": 13,
+                    "outputTokens": 2
+                },
+                "rawResponse": {
+                    "id": "chatcmpl-8r5VYBjbeE5Pp2aDfGdSwxp4ktcsa",
+                    "object": "chat.completion",
+                    "created": 1707663248,
+                    "model": "gpt-3.5-turbo-0613",
+                    "choices": [
+                        {
+                            "index": 0,
+                            "message": {
+                                "role": "assistant",
+                                "content": "Feline"
+                            },
+                            "logprobs": null,
+                            "finish_reason": "stop"
+                        }
+                    ],
+                    "usage": {
+                        "prompt_tokens": 13,
+                        "completion_tokens": 2,
+                        "total_tokens": 15
+                    },
+                    "system_fingerprint": null
+                }
+            }
+        },
+        {
+            "prompt": {
+                "title": "💬 Sentence with Synonym",
+                "content": "Write sentence with \"cat\" and \"Feline\" in it",
+                "modelRequirements": {
+                    "modelVariant": "CHAT",
+                    "modelName": "gpt-3.5-turbo"
+                }
+            },
+            "result": {
+                "content": "The cat, a domestic feline, gracefully leaped onto the windowsill to bask in the warm sunlight streaming through the glass.",
+                "model": "gpt-3.5-turbo",
+                "timing": {
+                    "start": "2024-02-11T14:54:08.923Z",
+                    "complete": "2024-02-11T14:54:09.677Z"
+                },
+                "usage": {
+                    "price": 0.000084,
+                    "inputTokens": 20,
+                    "outputTokens": 27
+                },
+                "rawResponse": {
+                    "id": "chatcmpl-8r5VZSCJg0IoXFBIDnDUBBVKTDQqg",
+                    "object": "chat.completion",
+                    "created": 1707663249,
+                    "model": "gpt-3.5-turbo-0613",
+                    "choices": [
+                        {
+                            "index": 0,
+                            "message": {
+                                "role": "assistant",
+                                "content": "The cat, a domestic feline, gracefully leaped onto the windowsill to bask in the warm sunlight streaming through the glass."
+                            },
+                            "logprobs": null,
+                            "finish_reason": "stop"
+                        }
+                    ],
+                    "usage": {
+                        "prompt_tokens": 20,
+                        "completion_tokens": 27,
+                        "total_tokens": 47
+                    },
+                    "system_fingerprint": null
+                }
+            }
+        },
+        {
+            "prompt": {
+                "title": "💬 Sentence without original word",
+                "content": "Remove word \"cat\" from sentence and modify it so that it makes sense:\n\n## Rules:\n\n-   Sentence must be grammatically correct\n-   Sentence must make sense after removing the word\n\n## The Sentence:\n\n> The cat, a domestic feline, gracefully leaped onto the windowsill to bask in the warm sunlight streaming through the glass.",
+                "modelRequirements": {
+                    "modelVariant": "CHAT",
+                    "modelName": "gpt-3.5-turbo"
+                }
+            },
+            "result": {
+                "content": "The, a domestic feline, gracefully leaped onto the windowsill to bask in the warm sunlight streaming through the glass.",
+                "model": "gpt-3.5-turbo",
+                "timing": {
+                    "start": "2024-02-11T14:54:09.683Z",
+                    "complete": "2024-02-11T14:54:10.577Z"
+                },
+                "usage": {
+                    "price": 0.00016900000000000002,
+                    "inputTokens": 78,
+                    "outputTokens": 26
+                },
+                "rawResponse": {
+                    "id": "chatcmpl-8r5VasFQSxSHOeTEiWDpsgdJ3Puof",
+                    "object": "chat.completion",
+                    "created": 1707663250,
+                    "model": "gpt-3.5-turbo-0613",
+                    "choices": [
+                        {
+                            "index": 0,
+                            "message": {
+                                "role": "assistant",
+                                "content": "The, a domestic feline, gracefully leaped onto the windowsill to bask in the warm sunlight streaming through the glass."
+                            },
+                            "logprobs": null,
+                            "finish_reason": "stop"
+                        }
+                    ],
+                    "usage": {
+                        "prompt_tokens": 78,
+                        "completion_tokens": 26,
+                        "total_tokens": 104
+                    },
+                    "system_fingerprint": null
+                }
+            }
+        },
+        {
+            "prompt": {
+                "title": "💬 Comparison",
+                "content": "Compare meaning of thee two sentences:\n\n## Sentence 1:\n\n> The cat, a domestic feline, gracefully leaped onto the windowsill to bask in the warm sunlight streaming through the glass.\n\n## Sentence 2:\n\n> The, a domestic feline, gracefully leaped onto the windowsill to bask in the warm sunlight streaming through the glass.",
+                "modelRequirements": {
+                    "modelVariant": "CHAT",
+                    "modelName": "gpt-4"
+                }
+            },
+            "result": {
+                "content": "Both sentences describe a similar event, which is a domestic feline jumping onto a windowsill to enjoy the sunlight that's shining through the glass. They paint a picture of a peaceful and calming scene. \n\nHowever, Sentence 1 is grammatically correct and makes sense since it specifies that it's a cat doing the action. Sentence 2 seems to have a typographical error. It should likely also refer to a 'cat', but it says 'The' in place of 'The cat', leaving the subject of the sentence unclear, which makes it difficult to understand.",
+                "model": "gpt-4",
+                "timing": {
+                    "start": "2024-02-11T14:54:10.583Z",
+                    "complete": "2024-02-11T14:54:18.461Z"
+                },
+                "usage": {
+                    "price": 0.00421,
+                    "inputTokens": 79,
+                    "outputTokens": 114
+                },
+                "rawResponse": {
+                    "id": "chatcmpl-8r5VbALj6P6CQq09YS6aYrXtuAeYE",
+                    "object": "chat.completion",
+                    "created": 1707663251,
+                    "model": "gpt-4-0613",
+                    "choices": [
+                        {
+                            "index": 0,
+                            "message": {
+                                "role": "assistant",
+                                "content": "Both sentences describe a similar event, which is a domestic feline jumping onto a windowsill to enjoy the sunlight that's shining through the glass. They paint a picture of a peaceful and calming scene. \n\nHowever, Sentence 1 is grammatically correct and makes sense since it specifies that it's a cat doing the action. Sentence 2 seems to have a typographical error. It should likely also refer to a 'cat', but it says 'The' in place of 'The cat', leaving the subject of the sentence unclear, which makes it difficult to understand."
+                            },
+                            "logprobs": null,
+                            "finish_reason": "stop"
+                        }
+                    ],
+                    "usage": {
+                        "prompt_tokens": 79,
+                        "completion_tokens": 114,
+                        "total_tokens": 193
+                    },
+                    "system_fingerprint": null
+                }
+            }
+        }
+    ]
+}

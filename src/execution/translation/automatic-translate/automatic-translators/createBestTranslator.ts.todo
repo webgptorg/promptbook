@@ -1,0 +1,37 @@
+import { GoogleAutomaticTranslator, IGoogleAutomaticTranslatorOptions } from './GoogleAutomaticTranslator.ts.todo';
+import { IAutomaticTranslator } from './IAutomaticTranslator';
+import { ITranslatorOptions } from './ITranslatorOptions';
+import { LindatAutomaticTranslator } from './LindatAutomaticTranslator';
+
+export function createBestTranslator({
+    from,
+    to,
+    isHeadless,
+}: ITranslatorOptions & IGoogleAutomaticTranslatorOptions): IAutomaticTranslator {
+    // console.log(`createBestTranslator( ${from} => ${to} )`);
+
+    /* [🌐] */
+    if (to === 'en') {
+        return new LindatAutomaticTranslator({
+            from,
+            to,
+            apiUrl: new URL(`https://lindat.mff.cuni.cz/services/translation/api/v2/languages/`),
+        });
+    } else if (to === 'sk') {
+        return new GoogleAutomaticTranslator({ from, to, isHeadless });
+    } else if (to === 'pl') {
+        return new LindatAutomaticTranslator({
+            from,
+            to,
+            apiUrl: new URL(`https://lindat.mff.cuni.cz/services/translation/api/v2/languages/`),
+        });
+    } else if (to === 'uk') {
+        return new LindatAutomaticTranslator({
+            from,
+            to,
+            apiUrl: new URL(`https://lindat.cz/translation/api/v2/languages/`),
+        });
+    } else {
+        return new GoogleAutomaticTranslator({ from, to });
+    }
+}

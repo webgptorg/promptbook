@@ -1,4 +1,4 @@
-import { string_name, string_template } from '.././types/typeAliases';
+import { string_template } from '.././types/typeAliases';
 import { Parameters } from '../types/Parameters';
 
 /**
@@ -7,49 +7,45 @@ import { Parameters } from '../types/Parameters';
  * @param template the template with parameters in {curly} braces
  * @param parameters the object with parameters
  * @returns the template with replaced parameters
- *
+ * 
  * @private within the library
  */
 export function replaceParameters(template: string_template, parameters: Parameters): string {
-    let result = '';
-    let openedParamName: string | null = null;
+    const placeholders = template.match(/{\w+}/g);
+    let replacedTemplate = template;
 
-    // Note: We dont want parameters with index signature here because it wont be compatible with PromptTemplateParameters which has its own reasons to not have index signature
-    const parametersChecked = parameters as Record<
-        string_name,
-        string
-    >; /* <- TODO: Make here some util validateTemplateParameters */
+    if (placeholders) {
+        for (const placeholder of placeholders) {
+            const paramName = placeholder.slice(1, -1); // Remove the curly braces to get the parameter name
 
-    for (const char of template.split('')) {
-        if (char === '{') {
-            if (openedParamName !== null) {
-                throw new Error(`Parameter is already opened`);
+            if (paramName === '') {
+                continue; // Skip empty placeholders. It's used to avoid confusion with JSON-like strings
             }
-            openedParamName = '';
-        } else if (char === '}') {
-            if (openedParamName === null) {
-                throw new Error(`Parameter is not opened`);
+
+            if (paramName.indexOf('{') !== -1 || paramName.indexOf('}') !== -1) {
+                throw new Error('Parameter is already opened or not closed');
             }
-            if (parametersChecked[openedParamName] === undefined) {
-                throw new Error(`Parameter {${openedParamName}} is not defined`);
+
+            if ((parameters as Record<string, string>)[paramName] === undefined) {
+                throw new Error(`Parameter {${paramName}} is not defined`);
             }
-            result += parametersChecked[openedParamName];
-            openedParamName = null;
-        } else if (openedParamName === null) {
-            result += char;
-        } else if (openedParamName !== null) {
-            openedParamName += char;
+
+            replacedTemplate = replacedTemplate.replace(
+                new RegExp(placeholder, 'g'),
+                (parameters as Record<string, string>)[paramName]!,
+            );
         }
     }
 
-    if (openedParamName !== null) {
-        throw new Error(`Parameter is not closed`);
+    // [💫] Check if there are parameters that are not closed properly
+    if (/{\w+$/.test(replacedTemplate)) {
+        throw new Error('Parameter is not closed');
     }
 
-    return result;
-}
+    // [💫] Check if there are parameters that are not opened properly
+    if (/^\w+}/.test(replacedTemplate)) {
+        throw new Error('Parameter is not opened');
+    }
 
-/**
- * TODO: [🧠] More advanced templating
- * TODO: [🧠] Maybe use some template engine / library not own simple implementation
- */
+    return replacedTemplate;
+}

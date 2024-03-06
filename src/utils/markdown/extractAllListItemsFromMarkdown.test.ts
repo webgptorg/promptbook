@@ -7,7 +7,7 @@ describe('how extractAllListItemsFromMarkdown works', () => {
         expect(
             extractAllListItemsFromMarkdown(
                 spaceTrim(`
-                    Hello world
+                    Hello World
                 `),
             ),
         ).toEqual([]);
@@ -15,8 +15,8 @@ describe('how extractAllListItemsFromMarkdown works', () => {
         expect(
             extractAllListItemsFromMarkdown(
                 spaceTrim(`
-                    Hello world
-                    Hello world
+                    Hello World
+                    Hello World
                 `),
             ),
         ).toEqual([]);
@@ -24,7 +24,7 @@ describe('how extractAllListItemsFromMarkdown works', () => {
         expect(
             extractAllListItemsFromMarkdown(
                 spaceTrim(`
-                    # Hello world
+                    # Hello World
 
                     Content with **bold** and *italic* text
                 `),
@@ -36,15 +36,15 @@ describe('how extractAllListItemsFromMarkdown works', () => {
         expect(
             extractAllListItemsFromMarkdown(
                 spaceTrim(`
-                    - Hello world
+                    - Hello World
                 `),
             ),
-        ).toEqual(['Hello world']);
+        ).toEqual(['Hello World']);
 
         expect(
             extractAllListItemsFromMarkdown(
                 spaceTrim(`
-                    # Hello world
+                    # Hello World
 
                     - Item with **bold** and *italic* text
                 `),
@@ -56,7 +56,7 @@ describe('how extractAllListItemsFromMarkdown works', () => {
         expect(
             extractAllListItemsFromMarkdown(
                 spaceTrim(`
-                    # Hello world
+                    # Hello World
 
                     Some text that is not a list item
 
@@ -75,7 +75,7 @@ describe('how extractAllListItemsFromMarkdown works', () => {
         expect(
             extractAllListItemsFromMarkdown(
                 spaceTrim(`
-                    # Hello world
+                    # Hello World
 
                     - First item
                     - Second item
@@ -93,7 +93,7 @@ describe('how extractAllListItemsFromMarkdown works', () => {
         expect(
             extractAllListItemsFromMarkdown(
                 spaceTrim(`
-                    # Hello world
+                    # Hello World
 
                     - First item
                     - Second item
@@ -133,7 +133,7 @@ describe('how extractAllListItemsFromMarkdown works', () => {
         expect(
             extractAllListItemsFromMarkdown(
                 spaceTrim(`
-                    # Hello world
+                    # Hello World
 
                     - First item
                     - Second item
@@ -173,7 +173,7 @@ describe('how extractAllListItemsFromMarkdown works', () => {
         expect(
             extractAllListItemsFromMarkdown(
                 spaceTrim(`
-                    # Hello world
+                    # Hello World
 
                     - First item
                     - Second item

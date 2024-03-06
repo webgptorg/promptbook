@@ -1,9 +1,23 @@
 import { normalizeTo_SCREAMING_CASE } from 'n12';
 import spaceTrim from 'spacetrim';
-import { string_markdown_text } from '.././types/typeAliases';
-import { Command } from '../types/Command';
+import type { string_markdown_text } from '.././types/typeAliases';
+import type {
+    Command,
+    ExecuteCommand,
+    ExpectAmountCommand,
+    ExpectCommand,
+    ExpectFormatCommand,
+    JokerCommand,
+    ModelCommand,
+    ParameterCommand,
+    PostprocessCommand,
+    PromptbookUrlCommand,
+    PromptbookVersionCommand,
+} from '../types/Command';
 import { ExecutionTypes } from '../types/ExecutionTypes';
+import { EXPECTATION_UNITS } from '../types/PromptbookJson/PromptTemplateJson';
 import { removeMarkdownFormatting } from '../utils/markdown/removeMarkdownFormatting';
+import { parseNumber } from '../utils/parseNumber';
 
 /**
  * Parses one line of ul/ol to command
@@ -30,19 +44,22 @@ export function parseCommand(listItem: string_markdown_text): Command {
         .map((part) => part.trim())
         .filter((item) => item !== '')
         .filter((item) => !/^PTBK$/i.test(item))
+        .filter((item) => !/^PROMPTBOOK$/i.test(item))
         .map(removeMarkdownFormatting);
 
     if (
         type.startsWith('URL') ||
         type.startsWith('PTBK_URL') ||
         type.startsWith('PTBKURL') ||
+        type.startsWith('PROMPTBOOK_URL') ||
+        type.startsWith('PROMPTBOOKURL') ||
         type.startsWith('HTTPS')
     ) {
         if (!(listItemParts.length === 2 || (listItemParts.length === 1 && type.startsWith('HTTPS')))) {
             throw new Error(
                 spaceTrim(
                     `
-                        Invalid PTBK_URL command:
+                        Invalid PROMPTBOOK_URL command:
 
                         - ${listItem}
                     `,
@@ -50,14 +67,14 @@ export function parseCommand(listItem: string_markdown_text): Command {
             );
         }
 
-        const ptbkUrlString = listItemParts.pop()!;
-        const ptbkUrl = new URL(ptbkUrlString);
+        const promptbookUrlString = listItemParts.pop()!;
+        const promptbookUrl = new URL(promptbookUrlString);
 
-        if (ptbkUrl.protocol !== 'https:') {
+        if (promptbookUrl.protocol !== 'https:') {
             throw new Error(
                 spaceTrim(
                     `
-                        Invalid PTBK_URL command:
+                        Invalid PROMPTBOOK_URL command:
 
                         - ${listItem}
 
@@ -67,11 +84,11 @@ export function parseCommand(listItem: string_markdown_text): Command {
             );
         }
 
-        if (ptbkUrl.hash !== '') {
+        if (promptbookUrl.hash !== '') {
             throw new Error(
                 spaceTrim(
                     `
-                        Invalid PTBK_URL command:
+                        Invalid PROMPTBOOK_URL command:
 
                         - ${listItem}
 
@@ -83,15 +100,15 @@ export function parseCommand(listItem: string_markdown_text): Command {
         }
 
         return {
-            type: 'PTBK_URL',
-            ptbkUrl,
-        };
-    } else if (type.startsWith('PTBK_VERSION')) {
+            type: 'PROMPTBOOK_URL',
+            promptbookUrl,
+        } satisfies PromptbookUrlCommand;
+    } else if (type.startsWith('PROMPTBOOK_VERSION') || type.startsWith('PTBK_VERSION')) {
         if (listItemParts.length !== 2) {
             throw new Error(
                 spaceTrim(
                     `
-                        Invalid PTBK_VERSION command:
+                        Invalid PROMPTBOOK_VERSION command:
 
                         - ${listItem}
                     `,
@@ -99,13 +116,13 @@ export function parseCommand(listItem: string_markdown_text): Command {
             );
         }
 
-        const ptbkVersion = listItemParts.pop()!;
+        const promptbookVersion = listItemParts.pop()!;
         // TODO: Validate version
 
         return {
-            type: 'PTBK_VERSION',
-            ptbkVersion,
-        };
+            type: 'PROMPTBOOK_VERSION',
+            promptbookVersion,
+        } satisfies PromptbookVersionCommand;
     } else if (
         type.startsWith('EXECUTE') ||
         type.startsWith('EXEC') ||
@@ -132,31 +149,58 @@ export function parseCommand(listItem: string_markdown_text): Command {
         return {
             type: 'EXECUTE',
             executionType: executionTypes[0]!,
-        };
-    } else if (type.startsWith('USE')) {
+        } satisfies ExecuteCommand;
+    } else if (type.startsWith('MODEL')) {
         // TODO: Make this more elegant and dynamically
-        if (type.includes('CHAT')) {
+        if (type.startsWith('MODEL_VARIANT')) {
+            if (type === 'MODEL_VARIANT_CHAT') {
+                return {
+                    type: 'MODEL',
+                    key: 'modelVariant',
+                    value: 'CHAT',
+                } satisfies ModelCommand;
+            } else if (type === 'MODEL_VARIANT_COMPLETION') {
+                return {
+                    type: 'MODEL',
+                    key: 'modelVariant',
+                    value: 'COMPLETION',
+                } satisfies ModelCommand;
+            } else {
+                throw new Error(
+                    spaceTrim(
+                        (block) => `
+                            Unknown model variant in command:
+
+                            - ${listItem}
+
+                            Supported variants are:
+                            ${block(['CHAT', 'COMPLETION'].join(', '))}
+                        `,
+                    ),
+                );
+            }
+        }
+        if (type.startsWith('MODEL_NAME')) {
             return {
-                type: 'USE',
-                key: 'variant',
-                value: 'CHAT',
-            };
-        } else if (type.includes('COMPLETION')) {
-            return {
-                type: 'USE',
-                key: 'variant',
-                value: 'COMPLETION',
-            };
+                type: 'MODEL',
+                key: 'modelName',
+                value: listItemParts.pop()!,
+            } satisfies ModelCommand;
         } else {
             throw new Error(
                 spaceTrim(
                     (block) => `
-                          Unknown variant in command:
+                          Unknown model key in command:
 
                           - ${listItem}
 
-                          Supported variants are:
-                          ${block(['CHAT', 'COMPLETION'].join(', '))}
+                          Supported model keys are:
+                          ${block(['variant', 'name'].join(', '))}
+
+                          Example:
+
+                          - MODEL VARIANT Chat
+                          - MODEL NAME gpt-4
                     `,
                 ),
             );
@@ -208,7 +252,41 @@ export function parseCommand(listItem: string_markdown_text): Command {
             parameterName,
             parameterDescription: parameterDescription.trim() || null,
             isInputParameter,
-        };
+        } satisfies ParameterCommand;
+    } else if (type.startsWith('JOKER')) {
+        if (listItemParts.length !== 2) {
+            throw new Error(
+                spaceTrim(
+                    `
+                Invalid JOKER command:
+
+                - ${listItem}
+            `,
+                ),
+            );
+        }
+
+        const parametersMatch = (listItemParts.pop() || '').match(/^\{(?<parameterName>[a-z0-9_]+)\}$/im);
+
+        if (!parametersMatch || !parametersMatch.groups || !parametersMatch.groups.parameterName) {
+            throw new Error(
+                spaceTrim(
+                    `
+                      Invalid parameter in command:
+
+                      - ${listItem}
+                  `,
+                ),
+            );
+        }
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { parameterName } = parametersMatch.groups as any;
+
+        return {
+            type: 'JOKER',
+            parameterName,
+        } satisfies JokerCommand;
     } else if (type.startsWith('POSTPROCESS') || type.startsWith('POST_PROCESS')) {
         if (listItemParts.length !== 2) {
             throw new Error(
@@ -227,7 +305,84 @@ export function parseCommand(listItem: string_markdown_text): Command {
         return {
             type: 'POSTPROCESS',
             functionName,
-        };
+        } satisfies PostprocessCommand;
+    } else if (type.startsWith('EXPECT_JSON')) {
+        return {
+            type: 'EXPECT_FORMAT',
+            format: 'JSON',
+        } satisfies ExpectFormatCommand;
+
+        // [🥤]
+    } else if (type.startsWith('EXPECT')) {
+        try {
+            listItemParts.shift();
+
+            let sign: ExpectAmountCommand['sign'];
+            const signRaw = listItemParts.shift()!;
+            if (/^exact/i.test(signRaw)) {
+                sign = 'EXACTLY';
+            } else if (/^min/i.test(signRaw)) {
+                sign = 'MINIMUM';
+            } else if (/^max/i.test(signRaw)) {
+                sign = 'MAXIMUM';
+            } else {
+                throw new Error(`Invalid sign "${signRaw}"`);
+            }
+
+            const amountRaw = listItemParts.shift()!;
+            const amount = parseNumber(amountRaw);
+            if (amount < 0) {
+                throw new Error('Amount must be positive number or zero');
+            }
+            if (amount !== Math.floor(amount)) {
+                throw new Error('Amount must be whole number');
+            }
+
+            const unitRaw = listItemParts.shift()!;
+            let unit: ExpectAmountCommand['unit'] | undefined = undefined;
+            for (const existingUnit of EXPECTATION_UNITS) {
+                let existingUnitText: string = existingUnit;
+
+                existingUnitText = existingUnitText.substring(0, existingUnitText.length - 1);
+                if (existingUnitText === 'CHARACTER') {
+                    existingUnitText = 'CHAR';
+                }
+
+                if (
+                    new RegExp(`^${existingUnitText.toLowerCase()}`).test(unitRaw.toLowerCase()) ||
+                    new RegExp(`^${unitRaw.toLowerCase()}`).test(existingUnitText.toLowerCase())
+                ) {
+                    if (unit !== undefined) {
+                        throw new Error(`Ambiguous unit "${unitRaw}"`);
+                    }
+                    unit = existingUnit;
+                }
+            }
+            if (unit === undefined) {
+                throw new Error(`Invalid unit "${unitRaw}"`);
+            }
+
+            return {
+                type: 'EXPECT_AMOUNT',
+                sign,
+                unit,
+                amount,
+            } satisfies ExpectCommand;
+        } catch (error) {
+            if (!(error instanceof Error)) {
+                throw error;
+            }
+
+            throw new Error(
+                spaceTrim(
+                    `
+                  Invalid EXPECT command; ${error.message}:
+
+                  - ${listItem}
+              `,
+                ),
+            );
+        }
     } else {
         throw new Error(
             spaceTrim(
@@ -238,11 +393,11 @@ export function parseCommand(listItem: string_markdown_text): Command {
 
                     Supported commands are:
                     - Execute
-                    - Use
+                    - Model
                     - Parameter
-                    - Input parameter
-                    - Output parameter
-                    - PTBK Version
+                    - INPUT  PARAMETER
+                    - OUTPUT PARAMETER
+                    - PROMPTBOOK VERSION
                 `,
             ),
         );

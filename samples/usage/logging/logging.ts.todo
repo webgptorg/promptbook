@@ -1,6 +1,6 @@
 #!/usr/bin/env ts-node
 
-import { PromptTemplatePipelineLibrary } from '@promptbook/core';
+import { PromptbookLibrary } from '@promptbook/core';
 import { JavascriptEvalExecutionTools } from '@promptbook/execute-javascript';
 import { OpenAiExecutionTools } from '@promptbook/openai';
 import chalk from 'chalk';
@@ -19,9 +19,14 @@ main();
 async function main() {
     console.info(chalk.bgGray('🔴 Testing logging capabilities of PromptBook'));
 
-    const library = PromptTemplatePipelineLibrary.fromSources({
-        advanced: await readFile('./samples/templates/50-advanced.ptbk.md', 'utf-8'),
-    });
+    const library = PromptbookLibrary.fromSources(
+        {
+            advanced: await readFile('./samples/templates/50-advanced.ptbk.md', 'utf-8'),
+        },
+        {
+            maxExecutionAttempts: 3,
+        },
+    );
 
     const tools = {
         natural: new OpenAiExecutionTools({
@@ -38,15 +43,17 @@ async function main() {
 
     const executor = library.createExecutor('advanced', tools);
 
-    const input = { word: 'cat' };
-    const output = await executor(input);
+    const inputParameters = { word: 'cat' };
+    const { isSuccessful, errors, outputParameters } = await executor(inputParameters);
 
-    console.info(output);
+    assertsExecutionSuccessful({ isSuccessful, errors });
+
+    console.info(outputParameters);
 }
 
 /**
- * TODO: !!! Identify PTPs by URL
- * TODO: !!! No need to set this script or userInterface in tools
- * TODO: !!! Use PromptTemplatePipelineLibrary.fromDirectory (directory vs folder)
- * TODO: !!! Also sample with Wizzard
+ * TODO: [🈴][⚾️] Identify PROMPTBOOKs by URL
+ * TODO: [⚾️] No need to set this script or userInterface in tools
+ * TODO: [⚾️] Use PromptbookLibrary.fromDirectory (directory vs folder)
+ * TODO: [⚾️] Also sample with Wizzard
  */

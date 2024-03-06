@@ -1,7 +1,7 @@
 {
     "title": "✨ Sample: Language Capabilities",
-    "ptbkUrl": "https://ptbk.example.com/samples/language-capabilities.ptbk.md@v1",
-    "ptbkVersion": "1.0.0",
+    "promptbookUrl": "https://promptbook.example.com/samples/language-capabilities.ptbk.md@v1",
+    "promptbookVersion": "1.0.0",
     "description": "Trying the language capabilities of GPT models.",
     "parameters": [
         {
@@ -24,11 +24,6 @@
             "isInput": false
         },
         {
-            "name": "wordSynonymBeforeUnwrapResult",
-            "description": "*(💬 Synonym postprocessing 1/1)* {wordSynonym} before `unwrapResult`",
-            "isInput": false
-        },
-        {
             "name": "wordSynonymTested",
             "isInput": false
         },
@@ -48,40 +43,63 @@
             "name": "Synonym",
             "title": "💬 Synonym",
             "description": "Synonym for word",
+            "dependentParameterNames": [
+                "word"
+            ],
             "executionType": "PROMPT_TEMPLATE",
+            "postprocessing": [
+                "unwrapResult"
+            ],
+            "expectAmount": {
+                "words": {
+                    "min": 1,
+                    "max": 1
+                }
+            },
             "modelRequirements": {
-                "variant": "CHAT"
+                "modelVariant": "CHAT",
+                "modelName": "gpt-3.5-turbo"
             },
             "content": "Write synonym for \"{word}\"",
-            "resultingParameterName": "wordSynonymBeforeUnwrapResult"
-        },
-        {
-            "name": "SynonymPostprocessing0",
-            "title": "(1/1) 💬 Synonym postprocessing",
-            "description": "Postprocessing of section 💬 Synonym finally with resulting parameter {wordSynonym}",
-            "executionType": "SCRIPT",
-            "contentLanguage": "javascript",
-            "content": "unwrapResult(wordSynonymBeforeUnwrapResult)",
             "resultingParameterName": "wordSynonym"
         },
         {
             "name": "TestThatWordIsNotOriginalWord",
             "title": "⚙ Test that word is not original word",
+            "dependentParameterNames": [
+                "word",
+                "wordSynonym"
+            ],
             "executionType": "SCRIPT",
             "modelRequirements": {
-                "variant": "CHAT"
+                "modelVariant": "CHAT",
+                "modelName": "gpt-3.5-turbo"
             },
             "contentLanguage": "javascript",
-            "content": "if (wordSynonym === word) {\n    throw new Error(`Synonym returned from LLM is same as original word \"${word}\"`);\n}\n\nreturn wordSynonym;",
+            "content": "if (word !== '' && wordSynonym === word) {\n    throw new Error(`Synonym returned from LLM is same as original word \"${word}\"`);\n}\n\nreturn wordSynonym;",
             "resultingParameterName": "wordSynonymTested"
         },
         {
             "name": "SentenceWithSynonym",
             "title": "💬 Sentence with Synonym",
             "description": "Sentence with word and wordSynonym",
+            "dependentParameterNames": [
+                "word",
+                "wordSynonym"
+            ],
             "executionType": "PROMPT_TEMPLATE",
+            "expectAmount": {
+                "words": {
+                    "max": 20
+                },
+                "sentences": {
+                    "min": 1,
+                    "max": 1
+                }
+            },
             "modelRequirements": {
-                "variant": "CHAT"
+                "modelVariant": "CHAT",
+                "modelName": "gpt-3.5-turbo"
             },
             "content": "Write sentence with \"{word}\" and \"{wordSynonym}\" in it",
             "resultingParameterName": "sentenceWithTwoSynonyms"
@@ -90,9 +108,23 @@
             "name": "SentenceWithoutOriginalWord",
             "title": "💬 Sentence without original word",
             "description": "Sentence \"{sentenceWithTwoSynonyms}\" without \"{word}\".",
+            "dependentParameterNames": [
+                "sentenceWithTwoSynonyms",
+                "word"
+            ],
             "executionType": "PROMPT_TEMPLATE",
+            "expectAmount": {
+                "words": {
+                    "max": 20
+                },
+                "sentences": {
+                    "min": 1,
+                    "max": 1
+                }
+            },
             "modelRequirements": {
-                "variant": "CHAT"
+                "modelVariant": "CHAT",
+                "modelName": "gpt-3.5-turbo"
             },
             "content": "Remove word \"{word}\" from sentence and modify it so that it makes sense:\n\n## Rules:\n\n-   Sentence must be grammatically correct\n-   Sentence must make sense after removing the word\n\n## The Sentence:\n\n> {sentenceWithTwoSynonyms}",
             "resultingParameterName": "sentenceWithOriginalWordRemoved"
@@ -101,9 +133,20 @@
             "name": "Comparison",
             "title": "💬 Comparison",
             "description": "Comparison between \"{sentenceWithTwoSynonyms}\" and \"{sentenceWithOriginalWordRemoved}\".",
+            "dependentParameterNames": [
+                "sentenceWithTwoSynonyms",
+                "sentenceWithOriginalWordRemoved"
+            ],
             "executionType": "PROMPT_TEMPLATE",
+            "expectAmount": {
+                "sentences": {
+                    "min": 1,
+                    "max": 5
+                }
+            },
             "modelRequirements": {
-                "variant": "CHAT"
+                "modelVariant": "CHAT",
+                "modelName": "gpt-4"
             },
             "content": "Compare meaning of thee two sentences:\n\n## Sentence 1:\n\n> {sentenceWithTwoSynonyms}\n\n## Sentence 2:\n\n> {sentenceWithOriginalWordRemoved}",
             "resultingParameterName": "comparisonOfTwoSentences"
@@ -111,9 +154,17 @@
         {
             "name": "Summary",
             "title": "🔗 Summary",
+            "dependentParameterNames": [
+                "word",
+                "wordSynonym",
+                "sentenceWithTwoSynonyms",
+                "sentenceWithOriginalWordRemoved",
+                "comparisonOfTwoSentences"
+            ],
             "executionType": "SIMPLE_TEMPLATE",
             "modelRequirements": {
-                "variant": "CHAT"
+                "modelVariant": "CHAT",
+                "modelName": "gpt-3.5-turbo"
             },
             "content": "You have entered a word **{word}**. For this word the best synonym is **{wordSynonym}**. The sentence with both words is **{sentenceWithTwoSynonyms}**. The sentence without the original word is **{sentenceWithOriginalWordRemoved}**. And the comparison between the two sentences is:\n\n> {comparisonOfTwoSentences}",
             "resultingParameterName": "summary"

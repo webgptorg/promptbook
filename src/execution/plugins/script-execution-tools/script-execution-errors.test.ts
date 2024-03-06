@@ -1,26 +1,26 @@
 import { describe, expect, it } from '@jest/globals';
 import spaceTrim from 'spacetrim';
-import { PromptTemplatePipeline } from '../../../classes/PromptTemplatePipeline';
-import { promptTemplatePipelineStringToJson } from '../../../conversion/promptTemplatePipelineStringToJson';
-import { PromptTemplatePipelineString } from '../../../types/PromptTemplatePipelineString';
-import { createPtpExecutor } from '../../createPtpExecutor';
+import { promptbookStringToJson } from '../../../conversion/promptbookStringToJson';
+import { PromptbookString } from '../../../types/PromptbookString';
+import { assertsExecutionSuccessful } from '../../assertsExecutionSuccessful';
+import { createPromptbookExecutor } from '../../createPromptbookExecutor';
 import { MockedEchoNaturalExecutionTools } from '../natural-execution-tools/mocked/MockedEchoNaturalExecutionTools';
 import { CallbackInterfaceTools } from '../user-interface-execution-tools/callback/CallbackInterfaceTools';
 import { JavascriptEvalExecutionTools } from './javascript/JavascriptEvalExecutionTools';
 
-describe('createPtpExecutor + executing scripts in ptp', () => {
-    const ptbJson = promptTemplatePipelineStringToJson(
+describe('createPromptbookExecutor + executing scripts in promptbook', () => {
+    const promptbook = promptbookStringToJson(
         spaceTrim(`
             # Sample prompt
 
-            Show how to use a simple prompt with no parameters.
+            Show how to execute a script
 
-            -   PTBK version 1.0.0
-            -   Input parameter {thing} Any thing to buy
+            -   PROMPTBOOK VERSION 1.0.0
+            -   INPUT  PARAMETER {thing} Any thing to buy
 
             ## Execution
 
-            -   Execute script
+            -   EXECUTE SCRIPT
 
             \`\`\`javascript
             if(/Apple/i.test(thing)){
@@ -30,14 +30,18 @@ describe('createPtpExecutor + executing scripts in ptp', () => {
             \`\`\`
 
             -> {bhing}
-         `) as PromptTemplatePipelineString,
+         `) as PromptbookString,
     );
-    const ptp = PromptTemplatePipeline.fromJson(ptbJson);
-    const ptpExecutor = createPtpExecutor({
-        ptp,
+    const promptbookExecutor = createPromptbookExecutor({
+        promptbook,
         tools: {
             natural: new MockedEchoNaturalExecutionTools({ isVerbose: true }),
-            script: [new JavascriptEvalExecutionTools({ isVerbose: true })],
+            script: [
+                new JavascriptEvalExecutionTools({
+                    isVerbose: true,
+                    // Note: [🕎] Custom functions are tested elsewhere
+                }),
+            ],
             userInterface: new CallbackInterfaceTools({
                 isVerbose: true,
                 async callback() {
@@ -45,27 +49,45 @@ describe('createPtpExecutor + executing scripts in ptp', () => {
                 },
             }),
         },
+        settings: {
+            maxExecutionAttempts: 3,
+        },
     });
 
-    it('should work when every input parameter is allowed', () => {
-        expect(ptpExecutor({ thing: 'a cup of coffee' }, () => {})).resolves.toMatchObject({
-            bhing: 'b cup of coffee',
+    it('should work when every INPUT  PARAMETER is allowed', () => {
+        expect(promptbookExecutor({ thing: 'a cup of coffee' }, () => {})).resolves.toMatchObject({
+            isSuccessful: true,
+            errors: [],
+            outputParameters: {
+                bhing: 'b cup of coffee',
+            },
         });
-        expect(ptpExecutor({ thing: 'arrow' }, () => {})).resolves.toMatchObject({
-            bhing: 'brrow',
+        expect(promptbookExecutor({ thing: 'arrow' }, () => {})).resolves.toMatchObject({
+            isSuccessful: true,
+            errors: [],
+            outputParameters: {
+                bhing: 'brrow',
+            },
         });
-        expect(ptpExecutor({ thing: 'aaa' }, () => {})).resolves.toMatchObject({
-            bhing: 'bbb',
+        expect(promptbookExecutor({ thing: 'aaa' }, () => {})).resolves.toMatchObject({
+            isSuccessful: true,
+            errors: [],
+            outputParameters: {
+                bhing: 'bbb',
+            },
         });
     });
 
-    it('should fail when input parameter is NOT allowed', () => {
-        expect(() => ptpExecutor({ thing: 'apple' }, () => {})).rejects.toThrowError(/I do not like Apples/i);
-        expect(() => ptpExecutor({ thing: 'apples' }, () => {})).rejects.toThrowError(/I do not like Apples/i);
-        expect(() => ptpExecutor({ thing: 'an apple' }, () => {})).rejects.toThrowError(/I do not like Apples/i);
-        expect(() => ptpExecutor({ thing: 'Apple' }, () => {})).rejects.toThrowError(/I do not like Apples/i);
-        expect(() => ptpExecutor({ thing: 'The Apple' }, () => {})).rejects.toThrowError(/I do not like Apples/i);
-        expect(() => ptpExecutor({ thing: '🍏 Apple' }, () => {})).rejects.toThrowError(/I do not like Apples/i);
-        expect(() => ptpExecutor({ thing: 'Apple 🍎' }, () => {})).rejects.toThrowError(/I do not like Apples/i);
+    it('should fail when INPUT  PARAMETER is NOT allowed', () => {
+        for (const thing of ['apple', 'apples', 'an apple', 'Apple', 'The Apple', '🍏 Apple', 'Apple 🍎']) {
+            expect(promptbookExecutor({ thing }, () => {})).resolves.toMatchObject({
+                isSuccessful: false,
+                errors: [new Error(`I do not like Apples!`)],
+            });
+
+            expect(() => promptbookExecutor({ thing }, () => {}).then(assertsExecutionSuccessful)).rejects.toThrowError(
+                /I do not like Apples!/,
+            );
+        }
     });
 });

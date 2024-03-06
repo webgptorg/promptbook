@@ -2,9 +2,33 @@
 
 Show how to use a simple prompt with one parameter.
 
--   PTBK URL https://ptbk.example.com/samples/single.ptbk.md@v1
--   PTBK version 1.0.0
--   Input parameter `{word}` Any single word
+-   PROMPTBOOK URL https://promptbook.example.com/samples/single.ptbk.md@v1
+-   PROMPTBOOK VERSION 1.0.0
+-   MODEL VARIANT Chat
+-   MODEL NAME `gpt-3.5-turbo`
+-   INPUT  PARAMETER `{word}` Any single word
+
+<!--Graph-->
+<!-- ⚠️ WARNING: This section was auto-generated -->
+
+```mermaid
+%% 🔮 Tip: Open this on GitHub or in the VSCode website to see the Mermaid graph visually
+
+flowchart LR
+  subgraph "✨ Sample prompt"
+
+      direction TB
+
+      input((Input)):::input
+      templateSynonym(💬 Synonym)
+      input--"{word}"-->templateSynonym
+
+      classDef input color: grey;
+
+  end;
+```
+
+<!--/Graph-->
 
 ## 💬 Synonym
 

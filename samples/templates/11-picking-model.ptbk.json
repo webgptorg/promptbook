@@ -1,0 +1,34 @@
+{
+    "title": "✨ Pick the model",
+    "promptbookUrl": "https://promptbook.example.com/samples/single.ptbk.md@v1",
+    "promptbookVersion": "1.0.0",
+    "description": "Show how to pick exact model",
+    "parameters": [
+        {
+            "name": "word",
+            "description": "Any single word",
+            "isInput": true
+        },
+        {
+            "name": "poem",
+            "isInput": false
+        }
+    ],
+    "promptTemplates": [
+        {
+            "name": "Synonym",
+            "title": "💬 Synonym",
+            "description": "Synonym for word",
+            "dependentParameterNames": [
+                "word"
+            ],
+            "executionType": "PROMPT_TEMPLATE",
+            "modelRequirements": {
+                "modelVariant": "CHAT",
+                "modelName": "gpt-4-1106-preview"
+            },
+            "content": "Write poem with word \"{word}\"",
+            "resultingParameterName": "poem"
+        }
+    ]
+}

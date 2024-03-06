@@ -1,40 +1,44 @@
 import { describe, expect, it } from '@jest/globals';
 import spaceTrim from 'spacetrim';
-import { PromptTemplatePipeline } from '../../../classes/PromptTemplatePipeline';
-import { promptTemplatePipelineStringToJson } from '../../../conversion/promptTemplatePipelineStringToJson';
-import { PromptTemplatePipelineString } from '../../../types/PromptTemplatePipelineString';
-import { createPtpExecutor } from '../../createPtpExecutor';
+import { promptbookStringToJson } from '../../../conversion/promptbookStringToJson';
+import { PromptbookString } from '../../../types/PromptbookString';
+import { assertsExecutionSuccessful } from '../../assertsExecutionSuccessful';
+import { createPromptbookExecutor } from '../../createPromptbookExecutor';
 import { MockedEchoNaturalExecutionTools } from '../natural-execution-tools/mocked/MockedEchoNaturalExecutionTools';
 import { CallbackInterfaceTools } from '../user-interface-execution-tools/callback/CallbackInterfaceTools';
 import { JavascriptEvalExecutionTools } from './javascript/JavascriptEvalExecutionTools';
 
-describe('createPtpExecutor + executing scripts in ptp', () => {
-    const ptbJson = promptTemplatePipelineStringToJson(
+describe('createPromptbookExecutor + executing scripts in promptbook', () => {
+    const promptbook = promptbookStringToJson(
         spaceTrim(`
             # Sample prompt
 
-            Show how to use a simple prompt with no parameters.
+            Show how to execute a script
 
-            -   PTBK version 1.0.0
-            -   Input parameter {thing} Any thing to buy
+            -   PROMPTBOOK VERSION 1.0.0
+            -   INPUT  PARAMETER {thing} Any thing to buy
 
             ## Execution
 
-            -   Execute script
+            -   EXECUTE SCRIPT
 
             \`\`\`javascript
             thing.split('a').join('b')
             \`\`\`
 
             -> {bhing}
-         `) as PromptTemplatePipelineString,
+         `) as PromptbookString,
     );
-    const ptp = PromptTemplatePipeline.fromJson(ptbJson);
-    const ptpExecutor = createPtpExecutor({
-        ptp,
+    const promptbookExecutor = createPromptbookExecutor({
+        promptbook,
         tools: {
             natural: new MockedEchoNaturalExecutionTools({ isVerbose: true }),
-            script: [new JavascriptEvalExecutionTools({ isVerbose: true })],
+            script: [
+                new JavascriptEvalExecutionTools({
+                    isVerbose: true,
+                    // Note: [🕎] Custom functions are tested elsewhere
+                }),
+            ],
             userInterface: new CallbackInterfaceTools({
                 isVerbose: true,
                 async callback() {
@@ -42,18 +46,49 @@ describe('createPtpExecutor + executing scripts in ptp', () => {
                 },
             }),
         },
+        settings: {
+            maxExecutionAttempts: 3,
+        },
     });
 
-    it('should work when every input parameter defined', () => {
-        expect(ptpExecutor({ thing: 'apple' }, () => {})).resolves.toMatchObject({
-            bhing: 'bpple',
+    it('should work when every INPUT  PARAMETER defined', () => {
+        expect(promptbookExecutor({ thing: 'apple' }, () => {})).resolves.toMatchObject({
+            isSuccessful: true,
+            errors: [],
+            outputParameters: {
+                bhing: 'bpple',
+            },
         });
-        expect(ptpExecutor({ thing: 'a cup of coffee' }, () => {})).resolves.toMatchObject({
-            bhing: 'b cup of coffee',
+        expect(promptbookExecutor({ thing: 'a cup of coffee' }, () => {})).resolves.toMatchObject({
+            isSuccessful: true,
+            errors: [],
+            outputParameters: {
+                bhing: 'b cup of coffee',
+            },
         });
     });
 
-    it('should fail when some input parameter is missing', () => {
-        expect(ptpExecutor({}, () => {})).rejects.toThrowError(/not defined/i);
+    it('should fail when some INPUT  PARAMETER is missing', () => {
+        expect(promptbookExecutor({}, () => {})).resolves.toMatchObject({
+            isSuccessful: false,
+            errors: [
+                new Error(
+                    spaceTrim(`
+                        Parameter {thing} is not defined
+
+                        This happen during evaluation of the javascript, which has access to the following parameters as javascript variables:
+
+
+                        The script is:
+
+                        return thing.split('a').join('b')
+                  `),
+                ),
+            ],
+        });
+
+        expect(() => promptbookExecutor({}, () => {}).then(assertsExecutionSuccessful)).rejects.toThrowError(
+            /Parameter \{thing\} is not defined/,
+        );
     });
 });

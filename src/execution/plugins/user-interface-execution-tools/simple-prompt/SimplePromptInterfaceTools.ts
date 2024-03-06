@@ -12,16 +12,24 @@ export class SimplePromptInterfaceTools implements UserInterfaceTools {
     public constructor(private readonly options: CommonExecutionToolsOptions) {}
 
     /**
-     * Trigger window.prompt dialog
+     * Trigger window.PROMPT DIALOG
      */
     public async promptDialog(options: UserInterfaceToolsPromptDialogOptions): Promise<string> {
-        const answer = window.prompt(options.prompt);
+        const answer = window.prompt(
+            spaceTrim(
+                (block) => `
+                    ${block(options.promptTitle)}
+                    
+                    ${block(options.promptMessage)}
+                `,
+            ),
+        );
 
         if (this.options.isVerbose) {
             console.info(
                 spaceTrim(
                     (block) => `
-                        📖 ${block(options.prompt)}
+                        📖 ${block(options.promptTitle)}
                         👤 ${block(answer || '🚫 User cancelled prompt')}
                     `,
                 ),

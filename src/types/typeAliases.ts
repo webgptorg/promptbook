@@ -45,20 +45,6 @@ export type string_template = string;
 /**
  * Semantic helper
  *
- * For example `"A cat wearing a hat"`
- */
-export type string_image_prompt = string_prompt;
-
-/**
- * Semantic helper
- *
- * For example `"A cat wearing a hat --wallpaper --v 5.2"`
- */
-export type string_midjourney_prompt = string_image_prompt;
-
-/**
- * Semantic helper
- *
  * For example `"How many hats does the cat wear?"`
  */
 export type string_text_prompt = string_prompt;
@@ -239,16 +225,16 @@ export type string_url = string;
 /**
  * Semantic helper
  *
- * For example `"https://ptbk.webgpt.com/cs/write-website-content.ptbk.md@v2.4.15"`
+ * For example `"https://promptbook.webgpt.com/cs/write-website-content.ptbk.md@v2.4.15"`
  */
-export type string_ptbk_url = string;
+export type string_promptbook_url = string;
 
 /**
  * Semantic helper
  *
- * For example `"https://ptbk.webgpt.com/cs/write-website-content.ptbk.md@v2.4.15#keywords"`
+ * For example `"https://promptbook.webgpt.com/cs/write-website-content.ptbk.md@v2.4.15#keywords"`
  */
-export type string_ptbk_url_with_hashtemplate = string;
+export type string_promptbook_url_with_hashtemplate = string;
 
 /**
  * Semantic helper
@@ -319,34 +305,11 @@ export type string_host = string;
 export type string_email = string;
 
 /**
- * Branded type for UUIDs version 4
- * This will not allow to pass some random string where should be only a valid UUID
- *
- * Use utils:
- *   - `randomUuid` to generate
- *   - `isValidUuid  to check validity
- *
- * For example `"5a0a153d-7be9-4018-9eda-e0e2e2b89bd9"`
+ * Branded type client id
  */
-export type uuid = string & {
-    readonly __type: 'UUID' /* <- TODO: [0] What is the best shape of the additional object in branded types */;
+export type client_id = string & {
+    readonly _type: 'client_id' /* <- TODO: [🏟] What is the best shape of the additional object in branded types */;
 };
-
-/**
- * Semantic helper
- *
- * For example `"5a0a153d-7be9-4018-9eda-e0e2e2b89bd9"`
- */
-export type string_wallpaper_id = uuid | string_uriid;
-
-/**
- * Semantic helper
- * UUID with only the first part of the UUID
- *
- *
- * For example `"5a0a153d"`
- */
-export type uuid_first_segment = string;
 
 /**
  * Semantic helper
@@ -473,46 +436,6 @@ export interface IRepository {
 }
 
 /**
- * CSS cursor type
- */
-export type string_css_cursor =
-    | 'alias'
-    | 'all-scroll'
-    | 'auto'
-    | 'cell'
-    | 'context-menu'
-    | 'col-resize'
-    | 'copy'
-    | 'crosshair'
-    | 'default'
-    | 'e-resize'
-    | 'ew-resize'
-    | 'grab'
-    | 'grabbing'
-    | 'help'
-    | 'move'
-    | 'n-resize'
-    | 'ne-resize'
-    | 'nesw-resize'
-    | 'ns-resize'
-    | 'nw-resize'
-    | 'nwse-resize'
-    | 'no-drop'
-    | 'none'
-    | 'not-allowed'
-    | 'pointer'
-    | 'progress'
-    | 'row-resize'
-    | 's-resize'
-    | 'se-resize'
-    | 'sw-resize'
-    | 'text'
-    | 'w-resize'
-    | 'wait'
-    | 'zoom-in'
-    | 'zoom-out';
-
-/**
  * Semantic helper for attributes
  *
  * - case insensitive
@@ -568,10 +491,31 @@ export type string_password = string;
 export type string_ssh_key = string;
 export type string_pgp_key = string;
 
+/**
+ * Semantic helper for `Date.toISOString()` result
+ *
+ * @example "2011-10-05T14:48:00.000Z".
+ * @see https://en.wikipedia.org/wiki/ISO_8601
+ * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toISOString
+ */
+export type string_date_iso8601 = `${number}-${number}-${number}${string}${number}:${number}:${number}${string}`;
+
 //=========================[ Numbers ]=========================
+
+/**
+ * Semantic helper for US Dollars
+ */
+export type number_usd = number;
+
+/**
+ * Semantic helper for number of tokens
+ */
+export type number_tokens = number_integer & number_positive_or_zero;
 
 export type number_positive = number;
 export type number_negative = number;
+export type number_positive_or_zero = number;
+export type number_negative_or_zero = number;
 export type number_integer = number;
 
 /**
@@ -599,7 +543,7 @@ export type number_weeks = number;
 export type number_months = number;
 export type number_years = number;
 
-export type number_bytes = number_positive & number_integer;
+export type number_bytes = number_integer & number_positive;
 export type number_kilobytes = number_positive;
 export type number_megabytes = number_positive;
 export type number_gigabytes = number_positive;

@@ -1,21 +1,24 @@
 import { describe, expect, it } from '@jest/globals';
 import spaceTrim from 'spacetrim';
-import { PromptTemplatePipeline } from '../../../../classes/PromptTemplatePipeline';
-import { promptTemplatePipelineStringToJson } from '../../../../conversion/promptTemplatePipelineStringToJson';
-import { PromptTemplatePipelineString } from '../../../../types/PromptTemplatePipelineString';
-import { createPtpExecutor } from '../../../createPtpExecutor';
+import { promptbookStringToJson } from '../../../../conversion/promptbookStringToJson';
+import { PromptbookString } from '../../../../types/PromptbookString';
+import { PROMPTBOOK_VERSION } from '../../../../version';
+import { createPromptbookExecutor } from '../../../createPromptbookExecutor';
 import { CallbackInterfaceTools } from '../../user-interface-execution-tools/callback/CallbackInterfaceTools';
 import { MockedEchoNaturalExecutionTools } from './MockedEchoNaturalExecutionTools';
 
-describe('createPtpExecutor + MockedEchoExecutionTools with sample chat prompt', () => {
-    const ptbJson = promptTemplatePipelineStringToJson(
+describe('createPromptbookExecutor + MockedEchoExecutionTools with sample chat prompt', () => {
+    const promptbook = promptbookStringToJson(
         spaceTrim(`
             # Sample prompt
 
-            Show how to use a simple prompt with no parameters.
+            Show how to use a simple chat prompt
 
-            -   PTBK version 1.0.0
-            -   Input parameter {thing} Any thing to buy
+            -   PROMPTBOOK VERSION 1.0.0
+            -   PROMPTBOOK URL https://example.com/promptbook.json
+            -   MODEL VARIANT Chat
+            -   MODEL NAME gpt-3.5-turbo
+            -   INPUT  PARAMETER {thing} Any thing to buy
 
             ## Prompt
 
@@ -25,11 +28,10 @@ describe('createPtpExecutor + MockedEchoExecutionTools with sample chat prompt',
             \`\`\`
 
             -> {response}
-         `) as PromptTemplatePipelineString,
+         `) as PromptbookString,
     );
-    const ptp = PromptTemplatePipeline.fromJson(ptbJson);
-    const ptpExecutor = createPtpExecutor({
-        ptp,
+    const promptbookExecutor = createPromptbookExecutor({
+        promptbook,
         tools: {
             natural: new MockedEchoNaturalExecutionTools({ isVerbose: true }),
             script: [],
@@ -40,30 +42,56 @@ describe('createPtpExecutor + MockedEchoExecutionTools with sample chat prompt',
                 },
             }),
         },
+        settings: {
+            maxExecutionAttempts: 3,
+        },
     });
 
-    it('should work when every input parameter defined', () => {
-        expect(ptpExecutor({ thing: 'a cup of coffee' }, () => {})).resolves.toMatchObject({
-            response: spaceTrim(`
-                You said:
-                One day I went to the shop and bought a cup of coffee.
-                Now I have a cup of coffee.
-            `),
+    it('should work when every INPUT  PARAMETER defined', () => {
+        expect(promptbookExecutor({ thing: 'a cup of coffee' }, () => {})).resolves.toMatchObject({
+            isSuccessful: true,
+            errors: [],
+            executionReport: {
+                title: 'Sample prompt',
+                promptbookRequestedVersion: '1.0.0',
+                promptbookUrl: 'https://example.com/promptbook.json',
+                promptbookUsedVersion: PROMPTBOOK_VERSION,
+            },
+            outputParameters: {
+                thing: 'a cup of coffee',
+                response: spaceTrim(`
+                    You said:
+                    One day I went to the shop and bought a cup of coffee.
+                    Now I have a cup of coffee.
+                `),
+            },
         });
     });
 
-    it('should fail when some input parameter is missing', () => {
-        expect(ptpExecutor({}, () => {})).rejects.toThrowError(/Parameter \{thing\} is not defined/i);
+    it('should fail when some INPUT  PARAMETER is missing', () => {
+        expect(promptbookExecutor({}, () => {})).resolves.toEqual({
+            isSuccessful: false,
+            errors: [new Error(`Parameter {thing} is not defined`)],
+            executionReport: {
+                title: 'Sample prompt',
+                description: 'Show how to use a simple chat prompt',
+                promptExecutions: [],
+                promptbookUrl: 'https://example.com/promptbook.json',
+                promptbookRequestedVersion: '1.0.0',
+                promptbookUsedVersion: PROMPTBOOK_VERSION,
+            },
+            outputParameters: {},
+        });
     });
 
     /*
     TODO: [🧠] Should be this failing or not?
-    it('should fail when there is input parameter extra', () => {
-        expect(ptpExecutor({ thing: 'a cup of coffee', sound: 'Meow!' }, () => {})).rejects.toThrowError(/Parameter \{sound\} should not be defined/i);
+    it('should fail when there is INPUT  PARAMETER extra', () => {
+        expect(promptbookExecutor({ thing: 'a cup of coffee', sound: 'Meow!' }, () => {})).rejects.toThrowError(/Parameter \{sound\} should not be defined/i);
     });
     */
 });
 
 /**
- * TODO: [🧠] What should be name of this test "MockedEchoExecutionTools.test.ts" or "createPtpExecutor.test.ts"
+ * TODO: [🧠] What should be name of this test "MockedEchoExecutionTools.test.ts" or "createPromptbookExecutor.test.ts"
  */

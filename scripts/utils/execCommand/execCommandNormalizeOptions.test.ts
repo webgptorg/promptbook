@@ -78,9 +78,9 @@ describe('how normalizing exec options works', () => {
     });
 
     it('can split arg flags', () => {
-        expect(execCommandNormalizeOptions(`git commit -m "Hello world"`)).toEqual({
+        expect(execCommandNormalizeOptions(`git commit -m "Hello World"`)).toEqual({
             command: 'git',
-            args: ['commit', '-m', '"Hello world"'],
+            args: ['commit', '-m', '"Hello World"'],
             cwd: process.cwd(),
             crashOnError: true,
             humanReadableCommand: 'git',

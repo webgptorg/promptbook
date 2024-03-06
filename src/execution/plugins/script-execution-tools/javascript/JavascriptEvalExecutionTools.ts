@@ -13,11 +13,14 @@ import {
     parseKeywordsFromString,
 } from 'n12';
 import { spaceTrim as _spaceTrim } from 'spacetrim';
+import { prettifyMarkdown as _prettifyMarkdown } from '../../../../utils/markdown/prettifyMarkdown';
 import { removeEmojis as _removeEmojis } from '../../../../utils/removeEmojis';
 import { removeQuotes as _removeQuotes } from '../../../../utils/removeQuotes';
+import { trimCodeBlock as _trimCodeBlock } from '../../../../utils/trimCodeBlock';
+import { trimEndOfCodeBlock as _trimEndOfCodeBlock } from '../../../../utils/trimEndOfCodeBlock';
 import { unwrapResult as _unwrapResult } from '../../../../utils/unwrapResult';
-import { CommonExecutionToolsOptions } from '../../../CommonExecutionToolsOptions';
 import { ScriptExecutionTools, ScriptExecutionToolsExecuteOptions } from '../../../ScriptExecutionTools';
+import { JavascriptExecutionToolsOptions } from './JavascriptExecutionToolsOptions';
 import { preserve } from './utils/preserve';
 
 /**
@@ -27,9 +30,7 @@ import { preserve } from './utils/preserve';
  *          **NOT intended to use in the production** due to its unsafe nature, use `JavascriptExecutionTools` instead.
  */
 export class JavascriptEvalExecutionTools implements ScriptExecutionTools {
-    public constructor(private readonly options: CommonExecutionToolsOptions) {
-        // TODO: !!! This should NOT work in node + explain
-    }
+    public constructor(private readonly options: JavascriptExecutionToolsOptions) {}
 
     /**
      * Executes a JavaScript
@@ -54,6 +55,12 @@ export class JavascriptEvalExecutionTools implements ScriptExecutionTools {
         const unwrapResult = _unwrapResult;
         preserve(unwrapResult);
 
+        const trimEndOfCodeBlock = _trimEndOfCodeBlock;
+        preserve(trimEndOfCodeBlock);
+
+        const trimCodeBlock = _trimCodeBlock;
+        preserve(trimCodeBlock);
+
         const trim = (str: string) => str.trim();
         preserve(trim);
 
@@ -62,6 +69,9 @@ export class JavascriptEvalExecutionTools implements ScriptExecutionTools {
 
         const removeEmojis = _removeEmojis;
         preserve(removeEmojis);
+
+        const prettifyMarkdown = _prettifyMarkdown;
+        preserve(prettifyMarkdown);
 
         //-------[n12:]---
         const capitalize = _capitalize;
@@ -97,8 +107,18 @@ export class JavascriptEvalExecutionTools implements ScriptExecutionTools {
             script = `return ${script}`;
         }
 
+        const customFunctions = this.options.functions || {};
+        const customFunctionsStatement = Object.keys(customFunctions)
+            .map(
+                (functionName) =>
+                    // Note: Custom functions are exposed to the current scope as variables
+                    `const ${functionName} = customFunctions.${functionName};`,
+            )
+            .join('\n');
+
         const statementToEvaluate = spaceTrim(
             (block) => `
+                ${block(customFunctionsStatement)}
                 ${block(
                     Object.entries(parameters)
                         .map(([key, value]) => `const ${key} = ${JSON.stringify(value)};`)
@@ -119,8 +139,64 @@ export class JavascriptEvalExecutionTools implements ScriptExecutionTools {
             );
         }
 
-        // TODO: !!! Fix the eval
-        const result = eval(statementToEvaluate);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        let result: any;
+        try {
+            result = await eval(statementToEvaluate);
+
+            if (typeof result !== 'string') {
+                throw new Error(`Script must return a string, but returned ${result.toString()} ${typeof result}`);
+            }
+        } catch (error) {
+            if (!(error instanceof Error)) {
+                throw error;
+            }
+
+            if (error instanceof ReferenceError) {
+                const undefinedName = error.message.split(' ')[0];
+                /*
+                Note: Remapping error
+                      From: [ReferenceError: thing is not defined],
+                      To:   [Error: Parameter {thing} is not defined],
+                */
+
+                if (!statementToEvaluate.includes(undefinedName + '(')) {
+                    throw new Error(
+                        spaceTrim(
+                            (block) => `
+
+                              Parameter {${undefinedName}} is not defined
+
+                              This happen during evaluation of the javascript, which has access to the following parameters as javascript variables:
+
+                              ${block(
+                                  Object.keys(parameters)
+                                      .map((key) => `  - ${key}\n`)
+                                      .join(''),
+                              )}
+                              The script is:
+
+                              ${block(script)}
+
+
+                            `,
+                        ),
+                    );
+                } else {
+                    throw new Error(
+                        spaceTrim(`
+                              Function {${undefinedName}} is not defined
+
+                              -  Make sure that the function is one of built-in functions
+                              -  Or you have to defined the function during construction of JavascriptExecutionTools
+
+                        `),
+                    );
+                }
+            }
+
+            throw error;
+        }
 
         if (typeof result !== 'string') {
             throw new Error(`Script must return a string, but returned ${typeof result}`);
@@ -132,4 +208,5 @@ export class JavascriptEvalExecutionTools implements ScriptExecutionTools {
 
 /**
  * TODO: Put predefined functions (like removeQuotes, spaceTrim, etc.) into annotation OR pass into constructor
+ * TODO: [🧠][💙] Distinct between options passed into ExecutionTools and to ExecutionTools.execute
  */

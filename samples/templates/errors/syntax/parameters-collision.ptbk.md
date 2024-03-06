@@ -1,6 +1,9 @@
-# ✨ Sample parsing error
+# ✨ Sample of parsing error
 
-Sample of wrong prompt template pipeline with undefined parameter
+Sample of wrong promptbookwith undefined parameter
+
+-   MODEL VARIANT Chat
+-   MODEL NAME `gpt-3.5-turbo`
 
 ## 💬 Synonym
 

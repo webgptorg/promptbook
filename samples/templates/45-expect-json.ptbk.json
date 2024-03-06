@@ -1,0 +1,36 @@
+{
+    "title": "✨ Sample: Parsing data to JSON",
+    "promptbookUrl": "https://promptbook.example.com/samples/postprocessing-2.ptbk.md@v1",
+    "promptbookVersion": "1.0.0",
+    "parameters": [
+        {
+            "name": "sentence",
+            "description": "Sentence to be processed",
+            "isInput": true
+        },
+        {
+            "name": "parsedSentence",
+            "isInput": false
+        }
+    ],
+    "promptTemplates": [
+        {
+            "name": "Question",
+            "title": "💬 Question",
+            "dependentParameterNames": [
+                "sentence"
+            ],
+            "executionType": "PROMPT_TEMPLATE",
+            "postprocessing": [
+                "trimEndOfCodeBlock"
+            ],
+            "expectFormat": "JSON",
+            "modelRequirements": {
+                "modelVariant": "COMPLETION",
+                "modelName": "gpt-3.5-turbo-instruct"
+            },
+            "content": "Dark horse hopping over the fence.\n\n```json\n{\n  \"subject\": \"horse\",\n  \"action\": \"hopping\",\n  \"object\": \"fence\"\n}\n```\n\n---\n\n{sentence}\n\n```json",
+            "resultingParameterName": "parsedSentence"
+        }
+    ]
+}

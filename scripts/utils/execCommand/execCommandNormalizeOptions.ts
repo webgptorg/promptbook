@@ -41,14 +41,14 @@ export function execCommandNormalizeOptions(options: IExecCommandOptions): Pick<
         .filter((arg) => arg !== '');
 
     if (_.length > 1) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         [command, ...args] = _ as any;
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     if ((options as any).args) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         args = [...args, ...(options as any).args];
-    }
-
-    for (const arg of args) {
     }
 
     let humanReadableCommand = !['npx', 'npm'].includes(command) ? command : args[0]!;

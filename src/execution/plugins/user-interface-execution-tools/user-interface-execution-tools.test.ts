@@ -1,25 +1,25 @@
 import { describe, expect, it } from '@jest/globals';
 import spaceTrim from 'spacetrim';
-import { PromptTemplatePipeline } from '../../../classes/PromptTemplatePipeline';
-import { promptTemplatePipelineStringToJson } from '../../../conversion/promptTemplatePipelineStringToJson';
-import { PromptTemplatePipelineString } from '../../../types/PromptTemplatePipelineString';
-import { createPtpExecutor } from '../../createPtpExecutor';
+import { promptbookStringToJson } from '../../../conversion/promptbookStringToJson';
+import { PromptbookString } from '../../../types/PromptbookString';
+import { assertsExecutionSuccessful } from '../../assertsExecutionSuccessful';
+import { createPromptbookExecutor } from '../../createPromptbookExecutor';
 import { MockedEchoNaturalExecutionTools } from '../natural-execution-tools/mocked/MockedEchoNaturalExecutionTools';
 import { CallbackInterfaceTools } from '../user-interface-execution-tools/callback/CallbackInterfaceTools';
 
-describe('createPtpExecutor + executing user interface prompts in ptp', () => {
-    const ptbJson = promptTemplatePipelineStringToJson(
+describe('createPromptbookExecutor + executing user interface prompts in promptbook', () => {
+    const promptbook = promptbookStringToJson(
         spaceTrim(`
             # Sample prompt
 
-            Show how to use a simple prompt with no parameters.
+            Show how to use prompt dialog
 
-            -   PTBK version 1.0.0
-            -   Input parameter {thing} Any thing to buy
+            -   PROMPTBOOK VERSION 1.0.0
+            -   INPUT  PARAMETER {thing} Any thing to buy
 
-            ## Prompt
+            ## Thing
 
-            -   Prompt dialog
+            -   PROMPT DIALOG
 
             What is your favorite {thing} to buy?
 
@@ -28,34 +28,47 @@ describe('createPtpExecutor + executing user interface prompts in ptp', () => {
             \`\`\`
 
             -> {favoriteThing}
-         `) as PromptTemplatePipelineString,
+         `) as PromptbookString,
     );
-    const ptp = PromptTemplatePipeline.fromJson(ptbJson);
-    const ptpExecutor = createPtpExecutor({
-        ptp,
+    const promptbookExecutor = createPromptbookExecutor({
+        promptbook,
         tools: {
             natural: new MockedEchoNaturalExecutionTools({ isVerbose: true }),
             script: [],
             userInterface: new CallbackInterfaceTools({
                 isVerbose: true,
-                async callback({ prompt, defaultValue }) {
-                    return `Answer to question "${prompt}" is not ${defaultValue} but Pear.`;
+                async callback({ promptTitle, promptMessage, defaultValue }) {
+                    return `Answer to question "${promptTitle}: ${promptMessage}" is not ${defaultValue} but Pear.`;
                 },
             }),
         },
+        settings: {
+            maxExecutionAttempts: 3,
+        },
     });
 
-    it('should work when every input parameter defined', () => {
-        expect(ptpExecutor({ thing: 'apple' }, () => {})).resolves.toMatchObject({
-            favoriteThing: 'Answer to question "What is your favorite apple to buy?" is not apple but Pear.',
+    it('should work when every INPUT  PARAMETER defined', () => {
+        expect(promptbookExecutor({ thing: 'apple' }, () => {})).resolves.toMatchObject({
+            outputParameters: {
+                favoriteThing: 'Answer to question "Thing: What is your favorite apple to buy?" is not apple but Pear.',
+            },
         });
-        expect(ptpExecutor({ thing: 'a cup of coffee' }, () => {})).resolves.toMatchObject({
-            favoriteThing:
-                'Answer to question "What is your favorite a cup of coffee to buy?" is not a cup of coffee but Pear.',
+        expect(promptbookExecutor({ thing: 'a cup of coffee' }, () => {})).resolves.toMatchObject({
+            outputParameters: {
+                favoriteThing:
+                    'Answer to question "Thing: What is your favorite a cup of coffee to buy?" is not a cup of coffee but Pear.',
+            },
         });
     });
 
-    it('should fail when some input parameter is missing', () => {
-        expect(ptpExecutor({}, () => {})).rejects.toThrowError(/Parameter \{thing\} is not defined/i);
+    it('should fail when some INPUT  PARAMETER is missing', () => {
+        expect(promptbookExecutor({}, () => {})).resolves.toMatchObject({
+            isSuccessful: false,
+            errors: [new Error(`Parameter {thing} is not defined`)],
+        });
+
+        expect(() => promptbookExecutor({}, () => {}).then(assertsExecutionSuccessful)).rejects.toThrowError(
+            /Parameter \{thing\} is not defined/,
+        );
     });
 });

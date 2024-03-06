@@ -44,7 +44,7 @@ describe('removeContentComments', () => {
         ).toBe(
             spaceTrim(`
                     <h1>Hello World</h1>
-                    
+
                     <p>Some content</p>
             `),
         );
@@ -70,7 +70,7 @@ describe('removeContentComments', () => {
         expect(
             removeContentComments(
                 spaceTrim(`
-                    
+
                     # Hello World
                     <!-- This is an markdown comment -->
                     Some content
@@ -125,16 +125,16 @@ describe('removeContentComments', () => {
                     This is an comment
                     Using multiple
                     lines
-                    
+
 
                     wohoo
                     -->
                     Hello <!--
-                    
+
                     Flat
                     or
                     Round
-                    
+
                     -->World
                 `),
             ),

@@ -1,7 +1,7 @@
 {
     "title": "✨ Sample prompt",
-    "ptbkUrl": "https://ptbk.example.com/samples/single.ptbk.md@v1",
-    "ptbkVersion": "1.0.0",
+    "promptbookUrl": "https://promptbook.example.com/samples/single.ptbk.md@v1",
+    "promptbookVersion": "1.0.0",
     "description": "Show how to use a simple prompt with one parameter.",
     "parameters": [
         {
@@ -19,9 +19,13 @@
             "name": "Synonym",
             "title": "💬 Synonym",
             "description": "Synonym for word",
+            "dependentParameterNames": [
+                "word"
+            ],
             "executionType": "PROMPT_TEMPLATE",
             "modelRequirements": {
-                "variant": "CHAT"
+                "modelVariant": "CHAT",
+                "modelName": "gpt-3.5-turbo"
             },
             "content": "Write synonym for \"{word}\"",
             "resultingParameterName": "wordSynonym"

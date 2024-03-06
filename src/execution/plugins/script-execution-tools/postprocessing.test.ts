@@ -1,43 +1,48 @@
 import { describe, expect, it } from '@jest/globals';
 import spaceTrim from 'spacetrim';
-import { PromptTemplatePipeline } from '../../../classes/PromptTemplatePipeline';
-import { promptTemplatePipelineStringToJson } from '../../../conversion/promptTemplatePipelineStringToJson';
-import { PromptTemplatePipelineString } from '../../../types/PromptTemplatePipelineString';
-import { createPtpExecutor } from '../../createPtpExecutor';
+import { promptbookStringToJson } from '../../../conversion/promptbookStringToJson';
+import { PromptbookString } from '../../../types/PromptbookString';
+import { createPromptbookExecutor } from '../../createPromptbookExecutor';
 import { MockedEchoNaturalExecutionTools } from '../natural-execution-tools/mocked/MockedEchoNaturalExecutionTools';
 import { CallbackInterfaceTools } from '../user-interface-execution-tools/callback/CallbackInterfaceTools';
 import { JavascriptEvalExecutionTools } from './javascript/JavascriptEvalExecutionTools';
 
-describe('createPtpExecutor + executing scripts in ptp', () => {
-    const ptbJson = promptTemplatePipelineStringToJson(
+describe('createPromptbookExecutor + postprocessing', () => {
+    const promptbook = promptbookStringToJson(
         spaceTrim(`
             # Sample prompt
 
-            Show how to use a simple prompt with no parameters.
+            Show how to use postprocessing
 
-            -   PTBK version 1.0.0
-            -   Input parameter {yourName} Name of the hero
+            -   PROMPTBOOK VERSION 1.0.0
+            -   MODEL VARIANT Chat
+            -   MODEL NAME gpt-3.5-turbo
+            -   INPUT  PARAMETER {yourName} Name of the hero
 
             ## Question
 
-            -   Postprocess reverse
-            -   Postprocess removeDiacritics
-            -   Postprocess normalizeTo_SCREAMING_CASE
+            -   POSTPROCESSING reverse
+            -   POSTPROCESSING removeDiacritics
+            -   POSTPROCESSING normalizeTo_SCREAMING_CASE
 
             \`\`\`markdown
             Hello {yourName}!
             \`\`\`
 
             -> {greeting}
-         `) as PromptTemplatePipelineString,
+         `) as PromptbookString,
     );
 
-    const ptp = PromptTemplatePipeline.fromJson(ptbJson);
-    const ptpExecutor = createPtpExecutor({
-        ptp,
+    const promptbookExecutor = createPromptbookExecutor({
+        promptbook,
         tools: {
             natural: new MockedEchoNaturalExecutionTools({ isVerbose: true }),
-            script: [new JavascriptEvalExecutionTools({ isVerbose: true })],
+            script: [
+                new JavascriptEvalExecutionTools({
+                    isVerbose: true,
+                    // Note: [🕎] Custom functions are tested elsewhere
+                }),
+            ],
             userInterface: new CallbackInterfaceTools({
                 isVerbose: true,
                 async callback() {
@@ -45,27 +50,42 @@ describe('createPtpExecutor + executing scripts in ptp', () => {
                 },
             }),
         },
+        settings: {
+            maxExecutionAttempts: 3,
+        },
     });
 
-    it('should work when every input parameter defined', () => {
-        expect(ptpExecutor({ yourName: 'Paůl' }, () => {})).resolves.toMatchObject({
-            greeting: 'LUA_P_OLLE_H_DIAS_UO_Y',
+    it('should work when every INPUT  PARAMETER defined', () => {
+        expect(promptbookExecutor({ yourName: 'Paůl' }, () => {})).resolves.toMatchObject({
+            isSuccessful: true,
+            errors: [],
+            outputParameters: {
+                greeting: 'LUA_P_OLLE_H_DIAS_UO_Y',
+            },
         });
 
-        expect(ptpExecutor({ yourName: 'Adam' }, () => {})).resolves.toMatchObject({
-            greeting: 'MAD_A_OLLE_H_DIAS_UO_Y',
+        expect(promptbookExecutor({ yourName: 'Adam' }, () => {})).resolves.toMatchObject({
+            isSuccessful: true,
+            errors: [],
+            outputParameters: {
+                greeting: 'MAD_A_OLLE_H_DIAS_UO_Y',
+            },
         });
 
-        expect(ptpExecutor({ yourName: 'John' }, () => {})).resolves.toMatchObject({
-            greeting: 'NHO_J_OLLE_H_DIAS_UO_Y',
+        expect(promptbookExecutor({ yourName: 'John' }, () => {})).resolves.toMatchObject({
+            isSuccessful: true,
+            errors: [],
+            outputParameters: {
+                greeting: 'NHO_J_OLLE_H_DIAS_UO_Y',
+            },
         });
 
-        expect(ptpExecutor({ yourName: 'DAVID' }, () => {})).resolves.toMatchObject({
-            greeting: 'DIVAD_OLLE_H_DIAS_UO_Y',
+        expect(promptbookExecutor({ yourName: 'DAVID' }, () => {})).resolves.toMatchObject({
+            isSuccessful: true,
+            errors: [],
+            outputParameters: {
+                greeting: 'DIVAD_OLLE_H_DIAS_UO_Y',
+            },
         });
     });
 });
-
-/**
- * TODO: What is the ideal folder for this test?
- */

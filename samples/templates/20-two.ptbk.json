@@ -1,7 +1,7 @@
 {
     "title": "✨ Sample prompt with two consecutive prompts",
-    "ptbkUrl": "https://ptbk.example.com/samples/two.ptbk.md@v1",
-    "ptbkVersion": "1.0.0",
+    "promptbookUrl": "https://promptbook.example.com/samples/two.ptbk.md@v1",
+    "promptbookVersion": "1.0.0",
     "description": "Show how to use two consecutive prompts with one parameter each.",
     "parameters": [
         {
@@ -23,9 +23,13 @@
             "name": "Synonym",
             "title": "💬 Synonym",
             "description": "Synonym for word",
+            "dependentParameterNames": [
+                "word"
+            ],
             "executionType": "PROMPT_TEMPLATE",
             "modelRequirements": {
-                "variant": "CHAT"
+                "modelVariant": "CHAT",
+                "modelName": "gpt-3.5-turbo"
             },
             "content": "Write synonym for \"{word}\"",
             "resultingParameterName": "wordSynonym"
@@ -34,9 +38,14 @@
             "name": "Sentence",
             "title": "💬 Sentence",
             "description": "Sentence with word and wordSynonym",
+            "dependentParameterNames": [
+                "word",
+                "wordSynonym"
+            ],
             "executionType": "PROMPT_TEMPLATE",
             "modelRequirements": {
-                "variant": "CHAT"
+                "modelVariant": "CHAT",
+                "modelName": "gpt-3.5-turbo"
             },
             "content": "Write sentence with \"{word}\" and \"{wordSynonym}\" in it",
             "resultingParameterName": "sentenceWithTwoSynonyms"
