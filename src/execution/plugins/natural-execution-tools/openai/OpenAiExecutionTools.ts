@@ -1,12 +1,11 @@
 import chalk from 'chalk';
 import OpenAI from 'openai';
-import type { Prompt } from '../../../../types/Prompt';
-import { string_date_iso8601 } from '../../../../types/typeAliases';
-import { getCurrentIsoDate } from '../../../../utils/getCurrentIsoDate';
-import type { NaturalExecutionTools } from '../../../NaturalExecutionTools';
-import type { PromptChatResult, PromptCompletionResult } from '../../../PromptResult';
-import type { OpenAiExecutionToolsOptions } from './OpenAiExecutionToolsOptions';
-import { computeOpenaiUsage } from './computeOpenaiUsage';
+import { Promisable } from 'type-fest';
+import { Prompt } from '../../../../types/Prompt';
+import { TaskProgress } from '../../../../types/TaskProgress';
+import { NaturalExecutionTools } from '../../../NaturalExecutionTools';
+import { PromptChatResult, PromptCompletionResult } from '../../../PromptResult';
+import { OpenAiExecutionToolsOptions } from './OpenAiExecutionToolsOptions';
 
 /**
  * Execution Tools for calling OpenAI API.
