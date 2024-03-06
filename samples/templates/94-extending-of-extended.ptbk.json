@@ -1,0 +1,40 @@
+{
+    "title": "✨ Sample: Language Capabilities",
+    "ptbkUrl": "https://ptbk.example.com/samples/language-capabilities-extended-extended.ptbk.md@v1",
+    "parent": "https://ptbk.example.com/samples/language-capabilities-extended.ptbk.md@v1",
+    "ptbkVersion": "0.34.0",
+    "description": "Extending another promptbook which is already extended.",
+    "parameters": [
+        {
+            "name": "sentenceWithOriginalWordRemoved",
+            "isInput": false
+        }
+    ],
+    "promptTemplates": [
+        {
+            "name": "SentenceWithoutOriginalWord",
+            "title": "💬 Sentence without original word",
+            "description": "Sentence \"{sentenceWithTwoSynonyms}\" without \"{word}\".",
+            "dependentParameterNames": [
+                "sentenceWithTwoSynonyms",
+                "word"
+            ],
+            "executionType": "PROMPT_TEMPLATE",
+            "expectAmount": {
+                "words": {
+                    "max": 20
+                },
+                "sentences": {
+                    "min": 1,
+                    "max": 1
+                }
+            },
+            "modelRequirements": {
+                "modelVariant": "CHAT",
+                "modelName": "gpt-3.5-turbo"
+            },
+            "content": "Remove word \"{word}\" from sentence and modify it so that it makes sense:\n\n> {sentenceWithTwoSynonyms}",
+            "resultingParameterName": "sentenceWithOriginalWordRemoved"
+        }
+    ]
+}

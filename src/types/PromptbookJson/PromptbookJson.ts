@@ -32,6 +32,13 @@ export interface PromptbookJson {
     readonly promptbookVersion: string_version;
 
     /**
+     * Extends another promptbook
+     *
+     * Note: The parent promptbook must be in same library
+     */
+    readonly parent?: string_promptbook_url;
+
+    /**
      * Description of the promptbook
      * It can use multiple paragraphs of simple markdown formatting like **bold**, *italic*, [link](https://example.com), ... BUT not code blocks and structure
      */

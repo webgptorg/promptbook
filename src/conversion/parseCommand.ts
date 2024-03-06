@@ -7,6 +7,7 @@ import type {
     ExpectAmountCommand,
     ExpectCommand,
     ExpectFormatCommand,
+    ExtendsCommand,
     JokerCommand,
     ModelCommand,
     ParameterCommand,
@@ -123,6 +124,55 @@ export function parseCommand(listItem: string_markdown_text): Command {
             type: 'PROMPTBOOK_VERSION',
             promptbookVersion,
         } satisfies PromptbookVersionCommand;
+    } else if (type.startsWith('EXTEND')) {
+        if (!(listItemParts.length === 2)) {
+            throw new Error(
+                spaceTrim(
+                    `
+                      Invalid EXTENDS command:
+
+                      - ${listItem}
+                  `,
+                ),
+            );
+        }
+
+        const ptbkUrlString = listItemParts.pop()!;
+        const parent = new URL(ptbkUrlString);
+
+        if (parent.protocol !== 'https:') {
+            throw new Error(
+                spaceTrim(
+                    `
+                      Invalid PTBK_URL command:
+
+                      - ${listItem}
+
+                      Protocol must be HTTPS
+                  `,
+                ),
+            );
+        }
+
+        if (parent.hash !== '') {
+            throw new Error(
+                spaceTrim(
+                    `
+                      Invalid PTBK_URL command:
+
+                      - ${listItem}
+
+                      URL must not contain hash
+                      Hash is used for identification of the prompt template in the pipeline
+                  `,
+                ),
+            );
+        }
+
+        return {
+            type: 'EXTENDS',
+            parent,
+        } satisfies ExtendsCommand;
     } else if (
         type.startsWith('EXECUTE') ||
         type.startsWith('EXEC') ||
@@ -387,7 +437,7 @@ export function parseCommand(listItem: string_markdown_text): Command {
         throw new Error(
             spaceTrim(
                 `
-                    Unknown command:
+                    Unknown command ${type.split('_')[0]}:
 
                     - ${listItem}
 

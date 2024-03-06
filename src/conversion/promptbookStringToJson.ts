@@ -29,6 +29,7 @@ export function promptbookStringToJson(promptbookString: PromptbookString): Prom
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         title: undefined as any /* <- Note: Putting here placeholder to keep `title` on top at final JSON */,
         promptbookUrl: undefined /* <- Note: Putting here placeholder to keep `promptbookUrl` on top at final JSON */,
+        parent: undefined /* <- Note: Putting here placeholder to keep `ptbkUrl` on top at final JSON */,
         promptbookVersion: PROMPTBOOK_VERSION,
         description: undefined /* <- Note: Putting here placeholder to keep `description` on top at final JSON */,
         parameters: [],
@@ -131,6 +132,10 @@ export function promptbookStringToJson(promptbookString: PromptbookString): Prom
 
             case 'PROMPTBOOK_VERSION':
                 promptbookJson.promptbookVersion = command.promptbookVersion;
+                break;
+
+            case 'EXTENDS':
+                ptbJson.parent = command.parent.href;
                 break;
 
             case 'MODEL':

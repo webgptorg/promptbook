@@ -21,7 +21,8 @@ async function main() {
     console.info(chalk.bgGray('⚪ Testing basic capabilities of PromptBook'));
 
     // const sampleName = '50-nesting';
-    const sampleName = '50-advanced';
+    // const sampleName = '50-advanced';
+    const sampleName = '90-extending.ptbk.md'; // <- !!!! Run
 
     const library = PromptbookLibrary.fromSources(
         {

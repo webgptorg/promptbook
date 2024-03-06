@@ -10,6 +10,7 @@ import type { ExpectationAmount, ExpectationUnit } from './PromptbookJson/Prompt
 export type Command =
     | PromptbookUrlCommand
     | PromptbookVersionCommand
+    | ExtendsCommand
     | ExecuteCommand
     | ModelCommand
     | JokerCommand
@@ -37,6 +38,17 @@ export interface PromptbookUrlCommand {
 export interface PromptbookVersionCommand {
     readonly type: 'PROMPTBOOK_VERSION';
     readonly promptbookVersion: string_version;
+}
+
+/**
+ * Extands command tells that current promptbook extends another promptbook
+ *
+ * - The parent promptbook must be in same library
+ * - It is defined per whole .ptp file in the header
+ */
+export interface ExtendsCommand {
+    readonly type: 'EXTENDS';
+    readonly parent: URL;
 }
 
 /**
