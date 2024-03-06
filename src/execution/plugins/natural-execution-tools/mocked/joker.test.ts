@@ -1,13 +1,13 @@
 import { describe, expect, it } from '@jest/globals';
 import spaceTrim from 'spacetrim';
-import { promptTemplatePipelineStringToJson } from '../../../../conversion/promptTemplatePipelineStringToJson';
-import { PromptTemplatePipelineString } from '../../../../types/PromptTemplatePipelineString';
-import { createPtpExecutor } from '../../../createPtpExecutor';
+import { promptbookStringToJson } from '../../../../conversion/promptbookStringToJson';
+import { PromptbookString } from '../../../../types/PromptbookString';
+import { createPtbkExecutor } from '../../../createPtbkExecutor';
 import { CallbackInterfaceTools } from '../../user-interface-execution-tools/callback/CallbackInterfaceTools';
 import { MockedEchoNaturalExecutionTools } from './MockedEchoNaturalExecutionTools';
 
-describe('createPtpExecutor + MockedEchoExecutionTools with sample chat prompt', () => {
-    const ptbJson = promptTemplatePipelineStringToJson(
+describe('createPtbkExecutor + MockedEchoExecutionTools with sample chat prompt', () => {
+    const ptbJson = promptbookStringToJson(
         spaceTrim(`
             # ✨ Sample: Jokers
 
@@ -23,11 +23,11 @@ describe('createPtpExecutor + MockedEchoExecutionTools with sample chat prompt',
             \`\`\`
 
             -> {name}
-         `) as PromptTemplatePipelineString,
+         `) as PromptbookString,
     );
-    const ptp = ptbJson;
-    const ptpExecutor = createPtpExecutor({
-        ptp,
+    const ptbk = ptbJson;
+    const ptbkExecutor = createPtbkExecutor({
+        ptbk,
         tools: {
             natural: new MockedEchoNaturalExecutionTools({ isVerbose: true }),
             script: [],
@@ -44,7 +44,7 @@ describe('createPtpExecutor + MockedEchoExecutionTools with sample chat prompt',
     });
 
     it('should work when joker is used', () => {
-        expect(ptpExecutor({ yourName: 'Good name' }, () => {})).resolves.toMatchObject({
+        expect(ptbkExecutor({ yourName: 'Good name' }, () => {})).resolves.toMatchObject({
             isSuccessful: true,
             errors: [],
             outputParameters: {
@@ -55,7 +55,7 @@ describe('createPtpExecutor + MockedEchoExecutionTools with sample chat prompt',
     });
 
     it('should work when joker is NOT used', () => {
-        expect(ptpExecutor({ yourName: 'Badname' }, () => {})).resolves.toMatchObject({
+        expect(ptbkExecutor({ yourName: 'Badname' }, () => {})).resolves.toMatchObject({
             isSuccessful: true,
             errors: [],
             outputParameters: {
@@ -70,5 +70,5 @@ describe('createPtpExecutor + MockedEchoExecutionTools with sample chat prompt',
 });
 
 /**
- * TODO: [🧠] What should be name of this test "MockedEchoExecutionTools.test.ts" or "createPtpExecutor.test.ts"
+ * TODO: [🧠] What should be name of this test "MockedEchoExecutionTools.test.ts" or "createPtbkExecutor.test.ts"
  */

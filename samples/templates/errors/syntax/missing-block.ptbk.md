@@ -1,6 +1,6 @@
 # ✨ Sample of parsing error
 
-Sample of wrong prompt template pipeline that omits a block to wrap the prompt.
+Sample of wrong promptbookthat omits a block to wrap the prompt.
 
 ## 💬 Prompt
 

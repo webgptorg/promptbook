@@ -4,9 +4,9 @@ import { Server, Socket } from 'socket.io';
 import spaceTrim from 'spacetrim';
 import { PTBK_VERSION } from '../../../../version';
 import { PromptResult } from '../../../PromptResult';
-import { Ptps_Error } from './interfaces/Ptps_Error';
-import { Ptps_Request } from './interfaces/Ptps_Request';
-import { Ptps_Response } from './interfaces/Ptps_Response';
+import { Ptbks_Error } from './interfaces/Ptbks_Error';
+import { Ptbks_Request } from './interfaces/Ptbks_Request';
+import { Ptbks_Response } from './interfaces/Ptbks_Response';
 import { RemoteServerOptions } from './interfaces/RemoteServerOptions';
 
 /**
@@ -51,7 +51,7 @@ export function runRemoteServer(options: RemoteServerOptions) {
     server.on('connection', (socket: Socket) => {
         console.info(chalk.gray(`Client connected`), socket.id);
 
-        socket.on('request', async (request: Ptps_Request) => {
+        socket.on('request', async (request: Ptbks_Request) => {
             const { prompt, clientId } = request;
             // TODO: !! Validate here clientId (pass validator as dependency)
 
@@ -80,13 +80,13 @@ export function runRemoteServer(options: RemoteServerOptions) {
                     console.info(chalk.bgGreen(`PromptResult:`), chalk.green(JSON.stringify(promptResult, null, 4)));
                 }
 
-                socket.emit('response', { promptResult } satisfies Ptps_Response);
+                socket.emit('response', { promptResult } satisfies Ptbks_Response);
             } catch (error) {
                 if (!(error instanceof Error)) {
                     throw error;
                 }
 
-                socket.emit('error', { errorMessage: error.message } satisfies Ptps_Error);
+                socket.emit('error', { errorMessage: error.message } satisfies Ptbks_Error);
             } finally {
                 socket.disconnect();
             }
@@ -103,7 +103,7 @@ export function runRemoteServer(options: RemoteServerOptions) {
     httpServer.listen(port);
 
     // Note: We want to log this also in non-verbose mode
-    console.info(chalk.bgGreen(`PTP server listening on port ${port}`));
+    console.info(chalk.bgGreen(`PTBK server listening on port ${port}`));
     if (isVerbose) {
         console.info(chalk.green(`Verbose mode is enabled`));
     }

@@ -15,7 +15,7 @@ import type {
     PtbkVersionCommand,
 } from '../types/Command';
 import { ExecutionTypes } from '../types/ExecutionTypes';
-import { EXPECTATION_UNITS } from '../types/PromptTemplatePipelineJson/PromptTemplateJson';
+import { EXPECTATION_UNITS } from '../types/PromptbookJson/PromptTemplateJson';
 import { removeMarkdownFormatting } from '../utils/markdown/removeMarkdownFormatting';
 import { parseNumber } from '../utils/parseNumber';
 

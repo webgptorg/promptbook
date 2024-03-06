@@ -45,7 +45,7 @@ async function main() {
 }
 
 /**
- * TODO: [🈴] Identify PTPs by URL
+ * TODO: [🈴] Identify PTBKs by URL
  * TODO: There should be no need to set this script or userInterface in tools
  * TODO: Implement and use here PromptbookLibrary.fromDirectory (directory vs folder)
  * TODO: Make sample with Wizzard

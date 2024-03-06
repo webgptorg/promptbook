@@ -6,7 +6,7 @@ import type { Prompt } from '../../../../../types/Prompt';
  *
  * This is a request from client to server
  */
-export interface Ptps_Request {
+export interface Ptbks_Request {
     /**
      * Client responsible for the requests
      */

@@ -1,8 +1,8 @@
 import { readFileSync } from 'fs';
 import { join } from 'path';
 import { string_file_path } from '.././types/typeAliases';
-import { PromptTemplatePipelineJson } from '../types/PromptTemplatePipelineJson/PromptTemplatePipelineJson';
-import { PromptTemplatePipelineString } from '../types/PromptTemplatePipelineString';
+import { PromptbookJson } from '../types/PromptbookJson/PromptbookJson';
+import { PromptbookString } from '../types/PromptbookString';
 
 /**
  * Import the text file
@@ -12,16 +12,16 @@ import { PromptTemplatePipelineString } from '../types/PromptTemplatePipelineStr
  *
  * @private
  */
-export function importPtp(path: `${string}.ptbk.md`): PromptTemplatePipelineString;
-export function importPtp(path: `${string}.ptbk.json`): PromptTemplatePipelineJson;
-export function importPtp(path: string_file_path): PromptTemplatePipelineString | PromptTemplatePipelineJson {
+export function importPtbk(path: `${string}.ptbk.md`): PromptbookString;
+export function importPtbk(path: `${string}.ptbk.json`): PromptbookJson;
+export function importPtbk(path: string_file_path): PromptbookString | PromptbookJson {
     const content = readFileSync(join(__dirname, path), 'utf-8');
     //                         <- Note: In production it is not good practice to use synchronous functions
     //                                  But this is only a test before the build, so it is okay
     if (path.endsWith('.ptbk.json')) {
-        return JSON.parse(content) as PromptTemplatePipelineJson;
+        return JSON.parse(content) as PromptbookJson;
     } else if (path.endsWith('.ptbk.md')) {
-        return content as PromptTemplatePipelineString;
+        return content as PromptbookString;
     } else {
         throw new Error('This should be used only for .ptbk.md or .ptbk.json files');
     }

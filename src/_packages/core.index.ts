@@ -1,7 +1,7 @@
 import { PromptbookLibrary } from '../classes/PromptbookLibrary';
-import { promptTemplatePipelineStringToJson } from '../conversion/promptTemplatePipelineStringToJson';
-import { validatePromptTemplatePipelineJson } from '../conversion/validatePromptTemplatePipelineJson';
-import { createPtpExecutor } from '../execution/createPtpExecutor';
+import { promptbookStringToJson } from '../conversion/promptbookStringToJson';
+import { validatePromptbookJson } from '../conversion/validatePromptbookJson';
+import { createPtbkExecutor } from '../execution/createPtbkExecutor';
 import { MockedEchoNaturalExecutionTools } from '../execution/plugins/natural-execution-tools/mocked/MockedEchoNaturalExecutionTools';
 import { CallbackInterfaceTools } from '../execution/plugins/user-interface-execution-tools/callback/CallbackInterfaceTools';
 import { CallbackInterfaceToolsOptions } from '../execution/plugins/user-interface-execution-tools/callback/CallbackInterfaceToolsOptions';
@@ -16,13 +16,13 @@ export { ExecutionTypes, PTBK_VERSION, PromptbookLibrary };
 export { SimplePromptInterfaceTools };
 
 // @promptbook/parser
-export { promptTemplatePipelineStringToJson, validatePromptTemplatePipelineJson };
+export { promptbookStringToJson, validatePromptbookJson };
 
 // @promptbook/mock
 export { MockedEchoNaturalExecutionTools };
 
 // @promptbook/executor
-export { createPtpExecutor };
+export { createPtbkExecutor };
 
 // @promptbook/callback-prompt
 export { CallbackInterfaceTools, CallbackInterfaceToolsOptions };

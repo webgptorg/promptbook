@@ -1,4 +1,4 @@
-# 📖 Prompt book
+# 📖 Promptbook
 
 Library to supercharge your use of large language models
 
@@ -37,11 +37,11 @@ In any of these situations, but especially in (3), the Promptbook library can ma
 -   Interactive **User interaction** with the model and the user.
 -   Leverage **external** sources (like ChatGPT plugins or OpenAI's GPTs).
 -   Simplify your code to be **DRY** and not repeat all the boilerplate code for each prompt.
--   **Versioning** of prompt template pipelines.
--   **Reuse** parts of prompt template pipelines in/between projects.
+-   **Versioning** of promptbooks
+-   **Reuse** parts of promptbooks in/between projects.
 -   Run the LLM **optimally** in parallel, with the best _cost/quality_ ratio or _speed/quality_ ratio.
 -   **Execution report** to see what happened during the execution.
--   **Logging** the results of the prompt template pipelines.
+-   **Logging** the results of the promptbooks.
 -   _(Not ready yet)_ **Caching** calls to LLMs to save money and time.
 -   _(Not ready yet)_ Extend one prompt book from another one.
 -   _(Not ready yet)_ Leverage the **streaming** to make super cool UI/UX.
@@ -49,7 +49,7 @@ In any of these situations, but especially in (3), the Promptbook library can ma
 
 ![WebGPT](./other/screencasts/screencast-fiabciakcmgepblmdkmemdbbkilneeeh-2023.10.26-21_46_17.gif)
 
-## 🧔 Prompt template pipelines _(for prompt-engeneers)_
+## 🧔 Promptbook _(for prompt-engeneers)_
 
 **P**romp**t** **b**oo**k** markdown file (**PTBK** for short, or `.ptbk.md`) is document that describes a series of prompts that are chained together to form somewhat reciepe for transforming natural language input. Inside a PTBK you can use chat prompts, completion prompts, scripting or trigger interaction with user to ask for additional information.
 
@@ -333,7 +333,7 @@ For example:
 
 ### Execution type
 
-Each block of prompt template pipeline can have a different execution type.
+Each block of promptbook can have a different execution type.
 It is specified in list of requirements for the block.
 By default, it is `Prompt template`
 
@@ -354,30 +354,26 @@ It is a simple key-value object.
 }
 ```
 
-There are three types of template parameters, depending on how they are used in the prompt template pipeline:
+There are three types of template parameters, depending on how they are used in the promptbook pipeline:
 
--   **INPUT  PARAMETERs** are required to execute the prompt template pipeline.
--   **Intermediate parameters** are used internally in the prompt template pipeline.
--   **OUTPUT PARAMETERs** are not used internally in the prompt template pipeline, but are returned as the result of the prompt template pipeline execution.
+-   **INPUT PARAMETERs** are required to execute the pipeline.
+-   **Intermediate parameters** are used internally in the pipeline.
+-   **OUTPUT PARAMETERs** are not used internally in the pipeline, but are returned as the result of the pipeline execution.
 
-### Prompt Template Pipeline
+### Promptbook
 
-Prompt template pipeline is the **core concept of this library**.
-It represents a series of prompt templates chained together to form a pipeline / one big prompt template with input and result parameters.
+Promptbook is **core concept of this library**.
+It represents a series of prompt templates chained together to form a **pipeline** / one big prompt template with input and result parameters.
 
-Internally it can have 3 formats:
+Internally it can have multiple formats:
 
 -   **.ptbk.md file** in custom markdown format described above
+-   _(concept)_ **.ptbk** format, custom fileextension based on markdown
 -   _(internal)_ **JSON** format, parsed from the .ptbk.md file
 
-### Prompt Template Pipeline **Library**
+### Promptbook **Library**
 
-Library of prompt template pipelines that groups together prompt template pipelines for an application.
-This is a very thin wrapper around the Array / Set of prompt template pipelines.
-
-Promptbook library is a useful helper in execution, it can be shared between execution and consumer parts of the app and make common knowledge about prompt template pipelines.
-
-It allows to create executor functions from prompt template pipelines in the library.
+Library of all promptbooks used in your application.
 
 ### Prompt Result
 
@@ -449,7 +445,7 @@ Executor is made by combining execution tools and promptbook library.
 It can be done in two ways:
 
 -   From `PromptbookLibrary.getExecutor` method
--   `createPtpExecutor` utility function
+-   `createPtbkExecutor` utility function
 
 ### 🃏 Jokers
 
@@ -516,7 +512,7 @@ Look at [expectations.ptbk.md](samples/templates/45-expectations.ptbk.md) and [e
 
 ### Execution report
 
-Execution report is a simple object or markdown that contains information about the execution of the prompt template pipeline.
+Execution report is a simple object or markdown that contains information about the execution of the promptbook.
 
 <!-- TODO: Write more -->
 
@@ -559,7 +555,7 @@ If you have a question [start a discussion](https://github.com/webgptorg/promptb
 
 ### Why not just use the OpenAI SDK / Anthropic Claude SDK / ...?
 
-Different levels of abstraction. OpenAI library is for direct use of OpenAI API. This library is for a higher level of abstraction. It is for creating prompt templates and prompt template pipelines that are independent of the underlying library, LLM model, or even LLM provider.
+Different levels of abstraction. OpenAI library is for direct use of OpenAI API. This library is for a higher level of abstraction. It is for creating prompt templates and promptbooks that are independent of the underlying library, LLM model, or even LLM provider.
 
 ### How is it different from the Langchain library?
 
@@ -586,22 +582,20 @@ See [CHANGELOG.md](./CHANGELOG.md)
 
 ## 🎯 TODOs
 
--   [ ] [🧠] Figure out the best name for this library - `Prompt Template Pipeline`, `Prompt Template Engine`, `Prompt Template Processor`, `Open Prompt Initiative`
 -   [ ] Make from this folder a separate repository + npm package
--   [ ] Add tests
+-   [x] Add tests
 -   [ ] Annotate all entities
 -   [ ] Make internal string aliases
 -   [ ] Make branded types instead of pure `string` aliases
--   [ ] Remove all anys
--   [ ] Make promptbooks non-linear
--   [ ] Logging pipeline name, version, step,...
--   [ ] No circular dependencies
+-   [ ] Remove all `any`
+-   [x] Make promptbooks non-linear
+-   [x] Logging pipeline name, version, step,...
 -   [ ][🧠] Wording: "param" vs "parameter" vs "variable" vs "argument"
 -   [ ] All entities must have public / private / protected modifiers
 -   [ ] Everything not needed should be private or not exported
 -   [ ] Refactor circular dependencies
 -   [ ] Importing subtemplates
--   [ ] Use spaceTrim more effectively
+-   [ ] Use `spaceTrim` more effectively
 -   [ ] [🤹‍♂️] Allow chats to be continued with previous message
 -   [ ] [🧠][🤹‍♂️] How to mark continued chat in .ptbk.md format?
 -   [ ] Use newest version of socket.io for remote server
@@ -610,7 +604,7 @@ See [CHANGELOG.md](./CHANGELOG.md)
 -   [ ] Fix error `content.js:73 Uncaught (in promise) TypeError: object null is not iterable (cannot read property Symbol(Symbol.iterator))`
 -   [ ] Aborting execution, maybe use native AbortController
 -   [ ] Change `import {...} from '...';` to `import type {...} from '...';` when importing only types
--   [ ] Wrap OpenAI billing errors:
+-   [x] Wrap OpenAI billing errors:
 -   [ ] Integrate word stemmer https://github.com/maxpatiiuk/porter-stemming/blob/main/src/index.ts
 -   [ ] Integrate faker to generate simple mocked data
 

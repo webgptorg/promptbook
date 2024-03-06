@@ -9,11 +9,11 @@ import type { ExecutionReportJson } from '../types/execution-report/ExecutionRep
  *
  * It can be done in two ways:
  * -   From `PromptbookLibrary.getExecutor` method
- * -   `createPtpExecutor` utility function
+ * -   `createPtbkExecutor` utility function
  *
  * @see https://github.com/webgptorg/promptbook#executor
  */
-export interface PtpExecutor {
+export interface PtbkExecutor {
     (
         inputParameters: Record<string_name, string>,
         onProgress: (taskProgress: TaskProgress) => Promisable<void>,

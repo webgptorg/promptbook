@@ -1,10 +1,10 @@
 import spaceTrim from 'spacetrim';
-import type { PromptTemplateJson } from '../types/PromptTemplatePipelineJson/PromptTemplateJson';
-import type { PromptTemplatePipelineJson } from '../types/PromptTemplatePipelineJson/PromptTemplatePipelineJson';
+import type { PromptTemplateJson } from '../types/PromptbookJson/PromptTemplateJson';
+import type { PromptbookJson } from '../types/PromptbookJson/PromptbookJson';
 import type { string_name } from '../types/typeAliases';
 
 /**
- * Validates PromptTemplatePipelineJson if it is logically valid.
+ * Validates PromptbookJson if it is logically valid.
  *
  * It checks:
  * -   if it has correct parameters dependency
@@ -13,16 +13,16 @@ import type { string_name } from '../types/typeAliases';
  * -   if it is valid json
  * -   if it is meaningful
  *
- * @param ptp valid or invalid PromptTemplatePipelineJson
+ * @param ptbk valid or invalid PromptbookJson
  * @throws {Error} if invalid
  */
-export function validatePromptTemplatePipelineJson(ptp: PromptTemplatePipelineJson): void {
+export function validatePromptbookJson(ptbk: PromptbookJson): void {
     const definedParameters: Set<string> = new Set(
-        ptp.parameters.filter(({ isInput }) => isInput).map(({ name }) => name),
+        ptbk.parameters.filter(({ isInput }) => isInput).map(({ name }) => name),
     );
 
     // Note: Check each template individually
-    for (const template of ptp.promptTemplates) {
+    for (const template of ptbk.promptTemplates) {
         if (definedParameters.has(template.resultingParameterName)) {
             throw new Error(`Parameter {${template.resultingParameterName}} is defined multiple times`);
         }
@@ -62,8 +62,10 @@ export function validatePromptTemplatePipelineJson(ptp: PromptTemplatePipelineJs
     }
 
     // Note: Detect circular dependencies
-    let resovedParameters: Array<string_name> = ptp.parameters.filter(({ isInput }) => isInput).map(({ name }) => name);
-    let unresovedTemplates: Array<PromptTemplateJson> = [...ptp.promptTemplates];
+    let resovedParameters: Array<string_name> = ptbk.parameters
+        .filter(({ isInput }) => isInput)
+        .map(({ name }) => name);
+    let unresovedTemplates: Array<PromptTemplateJson> = [...ptbk.promptTemplates];
     while (unresovedTemplates.length > 0) {
         const currentlyResovedTemplates = unresovedTemplates.filter((template) =>
             template.dependentParameterNames.every((name) => resovedParameters.includes(name)),
@@ -109,10 +111,10 @@ export function validatePromptTemplatePipelineJson(ptp: PromptTemplatePipelineJs
  * TODO: [🧠] Work with ptbkVersion
  * TODO: Use here some json-schema, Zod or something similar and change it to:
  *     > /**
- *     >  * Validates PromptTemplatePipelineJson if it is logically valid.
+ *     >  * Validates PromptbookJson if it is logically valid.
  *     >  *
  *     >  * It checks:
  *     >  * -   it has a valid structure
  *     >  * -   ...
- *     >  ex port function validatePromptTemplatePipelineJson(ptp: unknown): asserts ptp is PromptTemplatePipelineJson {
+ *     >  ex port function validatePromptbookJson(ptbk: unknown): asserts ptbk is PromptbookJson {
  */

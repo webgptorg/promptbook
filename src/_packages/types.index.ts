@@ -7,7 +7,7 @@ import type {
     PromptCompletionResult,
     PromptResult,
 } from '../execution/PromptResult';
-import type { PtpExecutor } from '../execution/PtpExecutor';
+import type { PtbkExecutor } from '../execution/PtbkExecutor';
 import type { ScriptExecutionTools, ScriptExecutionToolsExecuteOptions } from '../execution/ScriptExecutionTools';
 import type { UserInterfaceTools, UserInterfaceToolsPromptDialogOptions } from '../execution/UserInterfaceTools';
 import type { ExecutionType } from '../types/ExecutionTypes';
@@ -19,10 +19,10 @@ import type {
     ExpectationAmount,
     ExpectationUnit,
     PromptTemplateJson,
-} from '../types/PromptTemplatePipelineJson/PromptTemplateJson';
-import type { PromptTemplateParameterJson } from '../types/PromptTemplatePipelineJson/PromptTemplateParameterJson';
-import type { PromptTemplatePipelineJson } from '../types/PromptTemplatePipelineJson/PromptTemplatePipelineJson';
-import type { PromptTemplatePipelineString } from '../types/PromptTemplatePipelineString';
+} from '../types/PromptbookJson/PromptTemplateJson';
+import type { PromptTemplateParameterJson } from '../types/PromptbookJson/PromptTemplateParameterJson';
+import type { PromptbookJson } from '../types/PromptbookJson/PromptbookJson';
+import type { PromptbookString } from '../types/PromptbookString';
 import type { ScriptLanguage } from '../types/ScriptLanguage';
 import type { TaskProgress } from '../types/TaskProgress';
 import type { ExecutionReportJson } from '../types/execution-report/ExecutionReportJson';
@@ -142,9 +142,9 @@ export {
     PromptResult,
     PromptTemplateJson,
     PromptTemplateParameterJson,
-    PromptTemplatePipelineJson,
-    PromptTemplatePipelineString,
-    PtpExecutor,
+    PromptbookJson,
+    PromptbookString,
+    PtbkExecutor,
     ScriptExecutionTools,
     ScriptExecutionToolsExecuteOptions,
     ScriptLanguage,

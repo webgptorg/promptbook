@@ -1,15 +1,15 @@
 import { describe, expect, it } from '@jest/globals';
 import spaceTrim from 'spacetrim';
-import { promptTemplatePipelineStringToJson } from '../../../conversion/promptTemplatePipelineStringToJson';
-import { PromptTemplatePipelineString } from '../../../types/PromptTemplatePipelineString';
+import { promptbookStringToJson } from '../../../conversion/promptbookStringToJson';
+import { PromptbookString } from '../../../types/PromptbookString';
 import { assertsExecutionSuccessful } from '../../assertsExecutionSuccessful';
-import { createPtpExecutor } from '../../createPtpExecutor';
+import { createPtbkExecutor } from '../../createPtbkExecutor';
 import { MockedEchoNaturalExecutionTools } from '../natural-execution-tools/mocked/MockedEchoNaturalExecutionTools';
 import { CallbackInterfaceTools } from '../user-interface-execution-tools/callback/CallbackInterfaceTools';
 import { JavascriptEvalExecutionTools } from './javascript/JavascriptEvalExecutionTools';
 
-describe('createPtpExecutor + executing scripts in ptp', () => {
-    const ptp = promptTemplatePipelineStringToJson(
+describe('createPtbkExecutor + executing scripts in ptbk', () => {
+    const ptbk = promptbookStringToJson(
         spaceTrim(`
             # Sample prompt
 
@@ -27,10 +27,10 @@ describe('createPtpExecutor + executing scripts in ptp', () => {
             \`\`\`
 
             -> {bhing}
-         `) as PromptTemplatePipelineString,
+         `) as PromptbookString,
     );
-    const ptpExecutor = createPtpExecutor({
-        ptp,
+    const ptbkExecutor = createPtbkExecutor({
+        ptbk,
         tools: {
             natural: new MockedEchoNaturalExecutionTools({ isVerbose: true }),
             script: [
@@ -52,14 +52,14 @@ describe('createPtpExecutor + executing scripts in ptp', () => {
     });
 
     it('should work when every INPUT  PARAMETER defined', () => {
-        expect(ptpExecutor({ thing: 'apple' }, () => {})).resolves.toMatchObject({
+        expect(ptbkExecutor({ thing: 'apple' }, () => {})).resolves.toMatchObject({
             isSuccessful: true,
             errors: [],
             outputParameters: {
                 bhing: 'bpple',
             },
         });
-        expect(ptpExecutor({ thing: 'a cup of coffee' }, () => {})).resolves.toMatchObject({
+        expect(ptbkExecutor({ thing: 'a cup of coffee' }, () => {})).resolves.toMatchObject({
             isSuccessful: true,
             errors: [],
             outputParameters: {
@@ -69,25 +69,25 @@ describe('createPtpExecutor + executing scripts in ptp', () => {
     });
 
     it('should fail when some INPUT  PARAMETER is missing', () => {
-        expect(ptpExecutor({}, () => {})).resolves.toMatchObject({
+        expect(ptbkExecutor({}, () => {})).resolves.toMatchObject({
             isSuccessful: false,
             errors: [
                 new Error(
                     spaceTrim(`
                         Parameter {thing} is not defined
-                        
+
                         This happen during evaluation of the javascript, which has access to the following parameters as javascript variables:
-                        
-                        
+
+
                         The script is:
-                        
+
                         return thing.split('a').join('b')
                   `),
                 ),
             ],
         });
 
-        expect(() => ptpExecutor({}, () => {}).then(assertsExecutionSuccessful)).rejects.toThrowError(
+        expect(() => ptbkExecutor({}, () => {}).then(assertsExecutionSuccessful)).rejects.toThrowError(
             /Parameter \{thing\} is not defined/,
         );
     });

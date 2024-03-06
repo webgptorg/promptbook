@@ -4,9 +4,9 @@ import { Prompt } from '../../../../types/Prompt';
 import { NaturalExecutionTools } from '../../../NaturalExecutionTools';
 import { PromptChatResult, PromptCompletionResult, PromptResult } from '../../../PromptResult';
 import { RemoteNaturalExecutionToolsOptions } from './RemoteNaturalExecutionToolsOptions';
-import { Ptps_Error } from './interfaces/Ptps_Error';
-import { Ptps_Request } from './interfaces/Ptps_Request';
-import { Ptps_Response } from './interfaces/Ptps_Response';
+import { Ptbks_Error } from './interfaces/Ptbks_Error';
+import { Ptbks_Request } from './interfaces/Ptbks_Request';
+import { Ptbks_Response } from './interfaces/Ptbks_Response';
 
 /**
  * Remote server is a proxy server that uses its execution tools internally and exposes the executor interface externally.
@@ -67,14 +67,14 @@ export class RemoteNaturalExecutionTools implements NaturalExecutionTools {
      */
     private async gptCommon(prompt: Prompt): Promise<PromptResult> {
         const socket = await this.makeConnection();
-        socket.emit('request', { clientId: this.options.clientId, prompt } satisfies Ptps_Request);
+        socket.emit('request', { clientId: this.options.clientId, prompt } satisfies Ptbks_Request);
 
         const promptResult = await new Promise<PromptResult>((resolve, reject) => {
-            socket.on('response', (response: Ptps_Response) => {
+            socket.on('response', (response: Ptbks_Response) => {
                 resolve(response.promptResult);
                 socket.disconnect();
             });
-            socket.on('error', (error: Ptps_Error) => {
+            socket.on('error', (error: Ptbks_Error) => {
                 //            <- TODO: Custom type of error
                 reject(new Error(error.errorMessage));
                 socket.disconnect();

@@ -1,6 +1,6 @@
 # ✨ Sample of parsing error
 
-Sample of wrong prompt template pipeline that omits a return parameter.
+Sample of wrong promptbookthat omits a return parameter.
 
 ## 💬 Prompt
 

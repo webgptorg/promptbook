@@ -1,14 +1,14 @@
 import { describe, expect, it } from '@jest/globals';
 import spaceTrim from 'spacetrim';
+import { promptbookStringToJson } from '../../../../conversion/promptbookStringToJson';
+import { PromptbookString } from '../../../../types/PromptbookString';
 import { PTBK_VERSION } from '../../../../version';
-import { promptTemplatePipelineStringToJson } from '../../../../conversion/promptTemplatePipelineStringToJson';
-import { PromptTemplatePipelineString } from '../../../../types/PromptTemplatePipelineString';
-import { createPtpExecutor } from '../../../createPtpExecutor';
+import { createPtbkExecutor } from '../../../createPtbkExecutor';
 import { CallbackInterfaceTools } from '../../user-interface-execution-tools/callback/CallbackInterfaceTools';
 import { MockedEchoNaturalExecutionTools } from './MockedEchoNaturalExecutionTools';
 
-describe('createPtpExecutor + MockedEchoExecutionTools with sample chat prompt', () => {
-    const ptp = promptTemplatePipelineStringToJson(
+describe('createPtbkExecutor + MockedEchoExecutionTools with sample chat prompt', () => {
+    const ptbk = promptbookStringToJson(
         spaceTrim(`
             # Sample prompt
 
@@ -29,10 +29,10 @@ describe('createPtpExecutor + MockedEchoExecutionTools with sample chat prompt',
             \`\`\`
 
             -> {response}
-         `) as PromptTemplatePipelineString,
+         `) as PromptbookString,
     );
-    const ptpExecutor = createPtpExecutor({
-        ptp,
+    const ptbkExecutor = createPtbkExecutor({
+        ptbk,
         tools: {
             natural: new MockedEchoNaturalExecutionTools({ isVerbose: true }),
             script: [],
@@ -49,7 +49,7 @@ describe('createPtpExecutor + MockedEchoExecutionTools with sample chat prompt',
     });
 
     it('should work when every INPUT  PARAMETER defined', () => {
-        expect(ptpExecutor({ thing: 'a cup of coffee' }, () => {})).resolves.toMatchObject({
+        expect(ptbkExecutor({ thing: 'a cup of coffee' }, () => {})).resolves.toMatchObject({
             outputParameters: {
                 thing: 'a cup of coffee',
                 response: spaceTrim(`
@@ -62,7 +62,7 @@ describe('createPtpExecutor + MockedEchoExecutionTools with sample chat prompt',
     });
 
     it('should fail when some INPUT  PARAMETER is missing', () => {
-        expect(ptpExecutor({}, () => {})).resolves.toEqual({
+        expect(ptbkExecutor({}, () => {})).resolves.toEqual({
             isSuccessful: false,
             errors: [new Error(`Parameter {thing} is not defined`)],
             executionReport: {
@@ -80,11 +80,11 @@ describe('createPtpExecutor + MockedEchoExecutionTools with sample chat prompt',
     /*
     TODO: [🧠] Should be this failing or not?
     it('should fail when there is INPUT  PARAMETER extra', () => {
-        expect(ptpExecutor({ thing: 'a cup of coffee', sound: 'Meow!' }, () => {})).rejects.toThrowError(/Parameter \{sound\} should not be defined/i);
+        expect(ptbkExecutor({ thing: 'a cup of coffee', sound: 'Meow!' }, () => {})).rejects.toThrowError(/Parameter \{sound\} should not be defined/i);
     });
     */
 });
 
 /**
- * TODO: [🧠] What should be name of this test "MockedEchoExecutionTools.test.ts" or "createPtpExecutor.test.ts"
+ * TODO: [🧠] What should be name of this test "MockedEchoExecutionTools.test.ts" or "createPtbkExecutor.test.ts"
  */

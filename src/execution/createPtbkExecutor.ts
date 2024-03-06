@@ -1,10 +1,10 @@
 import spaceTrim from 'spacetrim';
 import type { Promisable } from 'type-fest';
-import type { string_name } from '.././types/typeAliases';
-import { PromptTemplatePipelineJson } from '../_packages/types.index';
-import { validatePromptTemplatePipelineJson } from '../conversion/validatePromptTemplatePipelineJson';
+import type { string_name } from '../types/typeAliases';
+import { PromptbookJson } from '../_packages/types.index';
+import { validatePromptbookJson } from '../conversion/validatePromptbookJson';
 import type { Prompt } from '../types/Prompt';
-import type { ExpectationUnit, PromptTemplateJson } from '../types/PromptTemplatePipelineJson/PromptTemplateJson';
+import type { ExpectationUnit, PromptTemplateJson } from '../types/PromptbookJson/PromptTemplateJson';
 import type { TaskProgress } from '../types/TaskProgress';
 import type { ExecutionReportJson } from '../types/execution-report/ExecutionReportJson';
 import { CountUtils } from '../utils/expectation-counters';
@@ -14,9 +14,9 @@ import { PTBK_VERSION } from '../version';
 import { ExecutionTools } from './ExecutionTools';
 import { ExpectError } from './ExpectError';
 import type { PromptChatResult, PromptCompletionResult, PromptResult } from './PromptResult';
-import { PtpExecutor } from './PtpExecutor';
+import { PtbkExecutor } from './PtbkExecutor';
 
-export interface CreatePtpExecutorSettings {
+export interface CreatePtbkExecutorSettings {
     /**
      * When executor does not satisfy expectations it will be retried this amount of times
      *
@@ -26,54 +26,54 @@ export interface CreatePtpExecutorSettings {
 }
 
 /**
- * Options for creating a PTP (Prompt Template Pipeline) executor
+ * Options for creating a promptbook executor
  */
-interface CreatePtpExecutorOptions {
+interface CreatePtbkExecutorOptions {
     /**
-     * The Prompt Template Pipeline (PTP) to be executed
+     * The promptbook to be executed
      */
-    readonly ptp: PromptTemplatePipelineJson; // <- TODO: Probbably rename to ptbk
+    readonly promptbook: PromptbookJson;
 
     /**
-     * The execution tools to be used during the execution of the PTP
+     * The execution tools to be used during the execution of the PTBK
      */
     readonly tools: ExecutionTools;
 
     /**
-     * Optional settings for the PTP executor
+     * Optional settings for the PTBK executor
      */
-    readonly settings?: Partial<CreatePtpExecutorSettings>;
+    readonly settings?: Partial<CreatePtbkExecutorSettings>;
 }
 
 /**
- * Creates executor function from prompt template pipeline and execution tools.
+ * Creates executor function from promptbook and execution tools.
  *
  * Note: Consider using getExecutor method of the library instead of using this function
  */
-export function createPtpExecutor(options: CreatePtpExecutorOptions): PtpExecutor {
-    const { ptp, tools, settings = {} } = options;
+export function createPtbkExecutor(options: CreatePtbkExecutorOptions): PtbkExecutor {
+    const { promptbook, tools, settings = {} } = options;
     const { maxExecutionAttempts = 3 } = settings;
 
-    validatePromptTemplatePipelineJson(ptp);
+    validatePromptbookJson(promptbook);
 
-    const ptpExecutor: PtpExecutor = async (
+    const ptbkExecutor: PtbkExecutor = async (
         inputParameters: Record<string_name, string>,
         onProgress?: (taskProgress: TaskProgress) => Promisable<void>,
     ) => {
         let parametersToPass: Record<string_name, string> = inputParameters;
         const executionReport: ExecutionReportJson = {
-            ptbkUrl: ptp.ptbkUrl,
-            title: ptp.title,
+            ptbkUrl: promptbook.ptbkUrl,
+            title: promptbook.title,
             ptbkUsedVersion: PTBK_VERSION,
-            ptbkRequestedVersion: ptp.ptbkVersion,
-            description: ptp.description,
+            ptbkRequestedVersion: promptbook.ptbkVersion,
+            description: promptbook.description,
             promptExecutions: [],
         };
 
         async function executeSingleTemplate(currentTemplate: PromptTemplateJson) {
-            const name = `ptp-executor-frame-${currentTemplate.name}`;
+            const name = `ptbk-executor-frame-${currentTemplate.name}`;
             const title = currentTemplate.title;
-            const priority = ptp.promptTemplates.length - ptp.promptTemplates.indexOf(currentTemplate);
+            const priority = promptbook.promptTemplates.length - promptbook.promptTemplates.indexOf(currentTemplate);
 
             if (onProgress) {
                 await onProgress({
@@ -129,9 +129,9 @@ export function createPtpExecutor(options: CreatePtpExecutorOptions): PtpExecuto
                                 prompt = {
                                     title: currentTemplate.title,
                                     ptbkUrl: `${
-                                        ptp.ptbkUrl
-                                            ? ptp.ptbkUrl
-                                            : 'anonymous' /* <- [🧠][🈴] How to deal with anonymous PTPs, do here some auto-url like SHA-256 based ad-hoc identifier? */
+                                        promptbook.ptbkUrl
+                                            ? promptbook.ptbkUrl
+                                            : 'anonymous' /* <- [🧠][🈴] How to deal with anonymous PTBKs, do here some auto-url like SHA-256 based ad-hoc identifier? */
                                     }#${currentTemplate.name}`,
                                     parameters: parametersToPass,
                                     content: replaceParameters(currentTemplate.content, parametersToPass) /* <- [2] */,
@@ -358,15 +358,15 @@ export function createPtpExecutor(options: CreatePtpExecutorOptions): PtpExecuto
             parametersToPass = {
                 ...parametersToPass,
                 [currentTemplate.resultingParameterName]:
-                    resultString /* <- Note: Not need to detect parameter collision here because PromptTemplatePipeline checks logic consistency during construction */,
+                    resultString /* <- Note: Not need to detect parameter collision here because Promptbook checks logic consistency during construction */,
             };
         }
 
         try {
-            let resovedParameters: Array<string_name> = ptp.parameters
+            let resovedParameters: Array<string_name> = promptbook.parameters
                 .filter(({ isInput }) => isInput)
                 .map(({ name }) => name);
-            let unresovedTemplates: Array<PromptTemplateJson> = [...ptp.promptTemplates];
+            let unresovedTemplates: Array<PromptTemplateJson> = [...promptbook.promptTemplates];
             let resolving: Array<Promise<void>> = [];
 
             while (unresovedTemplates.length > 0) {
@@ -376,7 +376,7 @@ export function createPtpExecutor(options: CreatePtpExecutorOptions): PtpExecuto
 
                 if (!currentTemplate && resolving.length === 0) {
                     throw new Error(`Can not resolve some parameters`);
-                    //              <- TODO: [🥨] Make some NeverShouldHappenError, should be catched during validatePromptTemplatePipelineJson
+                    //              <- TODO: [🥨] Make some NeverShouldHappenError, should be catched during validatePromptbookJson
                 } else if (!currentTemplate) {
                     /* [5] */ await Promise.race(resolving);
                 } else {
@@ -416,11 +416,11 @@ export function createPtpExecutor(options: CreatePtpExecutorOptions): PtpExecuto
         };
     };
 
-    return ptpExecutor;
+    return ptbkExecutor;
 }
 
 /**
  * TODO: [🧠] When not meet expectations in PROMPT_DIALOG, make some way to tell the user
  * TODO: [👧] Strongly type the executors to avoid need of remove nullables whtn noUncheckedIndexedAccess in tsconfig.json
- * Note: CreatePtpExecutorOptions are just connected to PtpExecutor so do not extract to types folder
+ * Note: CreatePtbkExecutorOptions are just connected to PtbkExecutor so do not extract to types folder
  */

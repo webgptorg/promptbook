@@ -1,7 +1,7 @@
-import { string_name } from '../.././types/typeAliases';
+import { string_name } from '../typeAliases';
 
 /**
- * Describes one parameter of the prompt template pipeline
+ * Describes one parameter of the promptbook
  */
 export interface PromptTemplateParameterJson {
     /**

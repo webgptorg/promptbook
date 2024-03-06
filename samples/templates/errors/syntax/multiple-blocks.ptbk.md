@@ -1,6 +1,6 @@
 # ✨ Sample
 
-Sample of wrong prompt template pipeline that has multiple blocks.
+Sample of wrong promptbookthat has multiple blocks.
 
 ## 💬 Prompt
 

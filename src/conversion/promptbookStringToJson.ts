@@ -5,10 +5,10 @@ import { DEFAULT_MODEL_REQUIREMENTS } from '../config';
 import { ParameterCommand } from '../types/Command';
 import { ExecutionType } from '../types/ExecutionTypes';
 import { ModelRequirements } from '../types/ModelRequirements';
-import { ExpectationUnit, PromptTemplateJson } from '../types/PromptTemplatePipelineJson/PromptTemplateJson';
-import { PromptTemplateParameterJson } from '../types/PromptTemplatePipelineJson/PromptTemplateParameterJson';
-import { PromptTemplatePipelineJson } from '../types/PromptTemplatePipelineJson/PromptTemplatePipelineJson';
-import { PromptTemplatePipelineString } from '../types/PromptTemplatePipelineString';
+import { ExpectationUnit, PromptTemplateJson } from '../types/PromptbookJson/PromptTemplateJson';
+import { PromptTemplateParameterJson } from '../types/PromptbookJson/PromptTemplateParameterJson';
+import { PromptbookJson } from '../types/PromptbookJson/PromptbookJson';
+import { PromptbookString } from '../types/PromptbookString';
 import { SUPPORTED_SCRIPT_LANGUAGES, ScriptLanguage } from '../types/ScriptLanguage';
 import { extractParameters } from '../utils/extractParameters';
 import { extractVariables } from '../utils/extractVariables';
@@ -17,18 +17,16 @@ import { markdownToMarkdownStructure } from '../utils/markdown-json/markdownToMa
 import { extractAllListItemsFromMarkdown } from '../utils/markdown/extractAllListItemsFromMarkdown';
 import { extractOneBlockFromMarkdown } from '../utils/markdown/extractOneBlockFromMarkdown';
 import { removeContentComments } from '../utils/markdown/removeContentComments';
-import { parseCommand } from './parseCommand';
 import { PTBK_VERSION } from '../version';
+import { parseCommand } from './parseCommand';
 
 /**
- * Parse prompt template pipeline from string format to JSON format
+ * Parse promptbook from string format to JSON format
  *
  * Note: This function does not validate logic of the pipeline only the syntax
  */
-export function promptTemplatePipelineStringToJson(
-    promptTemplatePipelineString: PromptTemplatePipelineString,
-): PromptTemplatePipelineJson {
-    const ptbJson: WritableDeep<PromptTemplatePipelineJson> = {
+export function promptbookStringToJson(promptbookString: PromptbookString): PromptbookJson {
+    const ptbJson: WritableDeep<PromptbookJson> = {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         title: undefined as any /* <- Note: Putting here placeholder to keep `title` on top at final JSON */,
         ptbkUrl: undefined /* <- Note: Putting here placeholder to keep `ptbkUrl` on top at final JSON */,
@@ -39,16 +37,16 @@ export function promptTemplatePipelineStringToJson(
     };
 
     // =============================================================
-    // Note: 1️⃣ Normalization of the PTP string
-    promptTemplatePipelineString = removeContentComments(promptTemplatePipelineString);
-    promptTemplatePipelineString = promptTemplatePipelineString.replaceAll(
+    // Note: 1️⃣ Normalization of the PTBK string
+    promptbookString = removeContentComments(promptbookString);
+    promptbookString = promptbookString.replaceAll(
         /`\{(?<paramName>[a-z0-9_]+)\}`/gi,
         '{$<paramName>}',
-    ) as PromptTemplatePipelineString;
-    promptTemplatePipelineString = promptTemplatePipelineString.replaceAll(
+    ) as PromptbookString;
+    promptbookString = promptbookString.replaceAll(
         /`->\s+\{(?<paramName>[a-z0-9_]+)\}`/gi,
         '-> {$<paramName>}',
-    ) as PromptTemplatePipelineString;
+    ) as PromptbookString;
 
     // =============================================================
     ///Note: 2️⃣ Function for adding parameters
@@ -94,7 +92,7 @@ export function promptTemplatePipelineStringToJson(
 
     // =============================================================
     // Note: 3️⃣ Parse the dynamic part - the template pipeline
-    const markdownStructure = markdownToMarkdownStructure(promptTemplatePipelineString);
+    const markdownStructure = markdownToMarkdownStructure(promptbookString);
     const markdownStructureDeepness = countMarkdownStructureDeepness(markdownStructure);
 
     if (markdownStructureDeepness !== 2) {
@@ -147,7 +145,7 @@ export function promptTemplatePipelineStringToJson(
 
             default:
                 throw new Error(
-                    `Command ${command.type} is not allowed in the head of the prompt template pipeline ONLY at the prompt template block`,
+                    `Command ${command.type} is not allowed in the head of the promptbook ONLY at the prompt template block`,
                 );
         }
     }
@@ -236,7 +234,7 @@ export function promptTemplatePipelineStringToJson(
 
                 default:
                     throw new Error(
-                        `Command ${command.type} is not allowed in the block of the prompt template ONLY at the head of the prompt template pipeline`,
+                        `Command ${command.type} is not allowed in the block of the prompt template ONLY at the head of the promptbook`,
                     );
             }
         }

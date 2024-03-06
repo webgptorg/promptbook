@@ -33,7 +33,7 @@ export interface Prompt {
     readonly modelRequirements: ModelRequirements;
 
     /**
-     * Unique identifier of the prompt template pipeline with specific template name as hash
+     * Unique identifier of the promptbook with specific template name as hash
      *
      * @example https://ptbk.webgpt.com/cs/write-website-content.ptbk.md@v2.4.15#keywords
      */

@@ -8,7 +8,7 @@ import commander from 'commander';
 import { readFile, writeFile } from 'fs/promises';
 import glob from 'glob-promise';
 import { join } from 'path';
-import { promptTemplatePipelineStringToJson } from '../../src/conversion/promptTemplatePipelineStringToJson';
+import { promptbookStringToJson } from '../../src/conversion/promptbookStringToJson';
 import { commit } from '../utils/autocommit/commit';
 import { isWorkingTreeClean } from '../utils/autocommit/isWorkingTreeClean';
 
@@ -47,7 +47,7 @@ async function generateSampleJsons({ isCommited }: { isCommited: boolean }) {
 
         try {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const ptbkJson = promptTemplatePipelineStringToJson(ptbkMarkdown as any /* <- TODO: Remove any */);
+            const ptbkJson = promptbookStringToJson(ptbkMarkdown as any /* <- TODO: Remove any */);
             const ptbkJsonFilePath = ptbkMarkdownFilePath.replace(/\.ptbk\.md$/, '.ptbk.json');
             await writeFile(ptbkJsonFilePath, JSON.stringify(ptbkJson, null, 4) + '\n');
         } catch (error) {

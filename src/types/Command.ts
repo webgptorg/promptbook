@@ -1,7 +1,7 @@
 import type { string_markdown_text, string_name, string_version } from '.././types/typeAliases';
 import type { ExecutionType } from './ExecutionTypes';
 import type { ModelRequirements } from './ModelRequirements';
-import type { ExpectationAmount, ExpectationUnit } from './PromptTemplatePipelineJson/PromptTemplateJson';
+import type { ExpectationAmount, ExpectationUnit } from './PromptbookJson/PromptTemplateJson';
 
 /**
  * Command is one piece of the prompt template which adds some logic to the prompt template or the whole pipeline.
@@ -18,10 +18,10 @@ export type Command =
     | ExpectCommand;
 
 /**
- * PtpVersion command tells which version is .ptp file using
+ * PtbkVersion command tells which version is .ptbk file using
  *
  * - It is used for backward compatibility
- * - It is defined per whole .ptp file in the header
+ * - It is defined per whole .ptbk file in the header
  */
 export interface PtbkUrlCommand {
     readonly type: 'PTBK_URL';
@@ -29,10 +29,10 @@ export interface PtbkUrlCommand {
 }
 
 /**
- * PtpVersion command tells which version is .ptp file using
+ * PtbkVersion command tells which version is .ptbk file using
  *
  * - It is used for backward compatibility
- * - It is defined per whole .ptp file in the header
+ * - It is defined per whole .ptbk file in the header
  */
 export interface PtbkVersionCommand {
     readonly type: 'PTBK_VERSION';

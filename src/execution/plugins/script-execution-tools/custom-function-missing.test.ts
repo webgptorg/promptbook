@@ -1,15 +1,15 @@
 import { describe, expect, it } from '@jest/globals';
 import spaceTrim from 'spacetrim';
-import { promptTemplatePipelineStringToJson } from '../../../conversion/promptTemplatePipelineStringToJson';
-import { PromptTemplatePipelineString } from '../../../types/PromptTemplatePipelineString';
+import { promptbookStringToJson } from '../../../conversion/promptbookStringToJson';
+import { PromptbookString } from '../../../types/PromptbookString';
 import { assertsExecutionSuccessful } from '../../assertsExecutionSuccessful';
-import { createPtpExecutor } from '../../createPtpExecutor';
+import { createPtbkExecutor } from '../../createPtbkExecutor';
 import { MockedEchoNaturalExecutionTools } from '../natural-execution-tools/mocked/MockedEchoNaturalExecutionTools';
 import { CallbackInterfaceTools } from '../user-interface-execution-tools/callback/CallbackInterfaceTools';
 import { JavascriptEvalExecutionTools } from './javascript/JavascriptEvalExecutionTools';
 
-describe('createPtpExecutor + missing custom function', () => {
-    const ptp = promptTemplatePipelineStringToJson(
+describe('createPtbkExecutor + missing custom function', () => {
+    const ptbk = promptbookStringToJson(
         spaceTrim(`
             # Custom functions
 
@@ -28,11 +28,11 @@ describe('createPtpExecutor + missing custom function', () => {
             \`\`\`
 
             -> {greeting}
-         `) as PromptTemplatePipelineString,
+         `) as PromptbookString,
     );
 
-    const ptpExecutor = createPtpExecutor({
-        ptp,
+    const ptbkExecutor = createPtbkExecutor({
+        ptbk,
         tools: {
             natural: new MockedEchoNaturalExecutionTools({ isVerbose: true }),
             script: [
@@ -61,7 +61,7 @@ describe('createPtpExecutor + missing custom function', () => {
 
     it('should throw error when custom postprocessing function does not exist', () => {
         expect(() =>
-            ptpExecutor({ yourName: 'Matthew' }, () => {}).then(assertsExecutionSuccessful),
+            ptbkExecutor({ yourName: 'Matthew' }, () => {}).then(assertsExecutionSuccessful),
         ).rejects.toThrowError(/Function \{addHello\} is not defined/);
     });
 });

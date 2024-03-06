@@ -2,7 +2,7 @@
 # ✨ Sample of parsing error
 -->
 
-Sample of wrong prompt template pipeline that lacks a structure
+Sample of wrong promptbookthat lacks a structure
 
 ```
 Hello

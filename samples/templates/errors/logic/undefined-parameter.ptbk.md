@@ -1,6 +1,6 @@
 # ✨ Sample of logic error
 
-Sample of wrong prompt template pipeline with parameter that is not defined
+Sample of wrong promptbookwith parameter that is not defined
 
 ## Sentence
 

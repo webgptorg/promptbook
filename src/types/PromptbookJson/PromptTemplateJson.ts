@@ -1,3 +1,7 @@
+import { ExpectFormatCommand } from '../Command';
+import { ExecutionType } from '../ExecutionTypes';
+import { ModelRequirements } from '../ModelRequirements';
+import { ScriptLanguage } from '../ScriptLanguage';
 import {
     number_integer,
     number_positive_or_zero,
@@ -7,14 +11,10 @@ import {
     string_name,
     string_prompt,
     string_template,
-} from '../.././types/typeAliases';
-import { ExpectFormatCommand } from '../Command';
-import { ExecutionType } from '../ExecutionTypes';
-import { ModelRequirements } from '../ModelRequirements';
-import { ScriptLanguage } from '../ScriptLanguage';
+} from '../typeAliases';
 
 /**
- * Describes one prompt template in the prompt template pipeline
+ * Describes one prompt template in the promptbook
  */
 export type PromptTemplateJson = NaturalTemplateJson | SimpleTemplateJson | ScriptTemplateJson | PromptDialogJson;
 

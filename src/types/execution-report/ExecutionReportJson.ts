@@ -14,27 +14,27 @@ import type { string_ptbk_url, string_version } from '../typeAliases';
  */
 export type ExecutionReportJson = {
     /**
-     * Unique identifier of the ptp from ptp which was executed
+     * Unique identifier of the ptbk from ptbk which was executed
      */
     readonly ptbkUrl?: string_ptbk_url;
 
     /**
-     * Title of from ptp which was executed
+     * Title of from ptbk which was executed
      */
     readonly title?: string;
 
     /**
-     * Version from ptp which was executed
+     * Version from ptbk which was executed
      */
     readonly ptbkUsedVersion: string_version;
 
     /**
-     * Version from ptp which was requested by promptbook
+     * Version from ptbk which was requested by promptbook
      */
     readonly ptbkRequestedVersion?: string_version;
 
     /**
-     * Description of the ptp which was executed
+     * Description of the ptbk which was executed
      */
     readonly description?: string;
 

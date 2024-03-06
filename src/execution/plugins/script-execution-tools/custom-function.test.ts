@@ -1,14 +1,14 @@
 import { describe, expect, it } from '@jest/globals';
 import spaceTrim from 'spacetrim';
-import { promptTemplatePipelineStringToJson } from '../../../conversion/promptTemplatePipelineStringToJson';
-import { PromptTemplatePipelineString } from '../../../types/PromptTemplatePipelineString';
-import { createPtpExecutor } from '../../createPtpExecutor';
+import { promptbookStringToJson } from '../../../conversion/promptbookStringToJson';
+import { PromptbookString } from '../../../types/PromptbookString';
+import { createPtbkExecutor } from '../../createPtbkExecutor';
 import { MockedEchoNaturalExecutionTools } from '../natural-execution-tools/mocked/MockedEchoNaturalExecutionTools';
 import { CallbackInterfaceTools } from '../user-interface-execution-tools/callback/CallbackInterfaceTools';
 import { JavascriptEvalExecutionTools } from './javascript/JavascriptEvalExecutionTools';
 
-describe('createPtpExecutor + custom function without dependencies', () => {
-    const ptp = promptTemplatePipelineStringToJson(
+describe('createPtbkExecutor + custom function without dependencies', () => {
+    const ptbk = promptbookStringToJson(
         spaceTrim(`
             # Custom functions
 
@@ -27,11 +27,11 @@ describe('createPtpExecutor + custom function without dependencies', () => {
             \`\`\`
 
             -> {greeting}
-         `) as PromptTemplatePipelineString,
+         `) as PromptbookString,
     );
 
-    const ptpExecutor = createPtpExecutor({
-        ptp,
+    const ptbkExecutor = createPtbkExecutor({
+        ptbk,
         tools: {
             natural: new MockedEchoNaturalExecutionTools({ isVerbose: true }),
             script: [
@@ -59,7 +59,7 @@ describe('createPtpExecutor + custom function without dependencies', () => {
     });
 
     it('should use custom postprocessing function', () => {
-        expect(ptpExecutor({ yourName: 'Matthew' }, () => {})).resolves.toMatchObject({
+        expect(ptbkExecutor({ yourName: 'Matthew' }, () => {})).resolves.toMatchObject({
             isSuccessful: true,
             errors: [],
             outputParameters: {
@@ -67,7 +67,7 @@ describe('createPtpExecutor + custom function without dependencies', () => {
             },
         });
 
-        expect(ptpExecutor({ yourName: 'Mark' }, () => {})).resolves.toMatchObject({
+        expect(ptbkExecutor({ yourName: 'Mark' }, () => {})).resolves.toMatchObject({
             isSuccessful: true,
             errors: [],
             outputParameters: {
@@ -75,7 +75,7 @@ describe('createPtpExecutor + custom function without dependencies', () => {
             },
         });
 
-        expect(ptpExecutor({ yourName: 'Luke' }, () => {})).resolves.toMatchObject({
+        expect(ptbkExecutor({ yourName: 'Luke' }, () => {})).resolves.toMatchObject({
             isSuccessful: true,
             errors: [],
             outputParameters: {
@@ -83,7 +83,7 @@ describe('createPtpExecutor + custom function without dependencies', () => {
             },
         });
 
-        expect(ptpExecutor({ yourName: 'John' }, () => {})).resolves.toMatchObject({
+        expect(ptbkExecutor({ yourName: 'John' }, () => {})).resolves.toMatchObject({
             isSuccessful: true,
             errors: [],
             outputParameters: {

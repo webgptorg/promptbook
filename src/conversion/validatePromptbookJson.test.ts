@@ -2,11 +2,11 @@ import { describe, expect, it } from '@jest/globals';
 import { readdirSync } from 'fs';
 import { join } from 'path';
 import spaceTrim from 'spacetrim';
-import { importPtp } from './_importPtp';
-import { promptTemplatePipelineStringToJson } from './promptTemplatePipelineStringToJson';
-import { validatePromptTemplatePipelineJson } from './validatePromptTemplatePipelineJson';
+import { importPtbk } from './_importPtbk';
+import { promptbookStringToJson } from './promptbookStringToJson';
+import { validatePromptbookJson } from './validatePromptbookJson';
 
-describe('validatePromptTemplatePipelineJson', () => {
+describe('validatePromptbookJson', () => {
     const samplesDir = '../../samples/templates';
     const samples = readdirSync(join(__dirname, samplesDir), { withFileTypes: true, recursive: false })
         //                         <- Note: In production it is not good practice to use synchronous functions
@@ -19,9 +19,9 @@ describe('validatePromptTemplatePipelineJson', () => {
         it(`should validate ${name} logic`, () => {
             expect(() => {
                 try {
-                    const ptbkString = importPtp(join(samplesDir, name) as `${string}.ptbk.md`);
-                    const ptbJson = promptTemplatePipelineStringToJson(ptbkString);
-                    validatePromptTemplatePipelineJson(ptbJson);
+                    const ptbkString = importPtbk(join(samplesDir, name) as `${string}.ptbk.md`);
+                    const ptbJson = promptbookStringToJson(ptbkString);
+                    validatePromptbookJson(ptbJson);
                 } catch (error) {
                     if (!(error instanceof Error)) {
                         throw error;

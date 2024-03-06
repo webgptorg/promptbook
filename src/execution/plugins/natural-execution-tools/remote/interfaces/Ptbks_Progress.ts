@@ -5,7 +5,7 @@ import { TaskProgress } from '../../../../../types/TaskProgress';
  *
  * This is sent from server to client arbitrarily and may be sent multiple times
  */
-export interface Ptps_Progress {
+export interface Ptbks_Progress {
     /**
      * The progress of text generation
      */

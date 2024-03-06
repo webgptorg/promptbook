@@ -57,7 +57,7 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
             `./packages/${packageName}/README.md`,
             spaceTrim(`
 
-                # 📖 Prompt template pipelines
+                # 📖 Promptbook
 
                 Library to supercharge your use of large language models
 

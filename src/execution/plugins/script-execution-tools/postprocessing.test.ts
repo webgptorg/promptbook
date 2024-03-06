@@ -1,14 +1,14 @@
 import { describe, expect, it } from '@jest/globals';
 import spaceTrim from 'spacetrim';
-import { promptTemplatePipelineStringToJson } from '../../../conversion/promptTemplatePipelineStringToJson';
-import { PromptTemplatePipelineString } from '../../../types/PromptTemplatePipelineString';
-import { createPtpExecutor } from '../../createPtpExecutor';
+import { promptbookStringToJson } from '../../../conversion/promptbookStringToJson';
+import { PromptbookString } from '../../../types/PromptbookString';
+import { createPtbkExecutor } from '../../createPtbkExecutor';
 import { MockedEchoNaturalExecutionTools } from '../natural-execution-tools/mocked/MockedEchoNaturalExecutionTools';
 import { CallbackInterfaceTools } from '../user-interface-execution-tools/callback/CallbackInterfaceTools';
 import { JavascriptEvalExecutionTools } from './javascript/JavascriptEvalExecutionTools';
 
-describe('createPtpExecutor + postprocessing', () => {
-    const ptp = promptTemplatePipelineStringToJson(
+describe('createPtbkExecutor + postprocessing', () => {
+    const ptbk = promptbookStringToJson(
         spaceTrim(`
             # Sample prompt
 
@@ -28,11 +28,11 @@ describe('createPtpExecutor + postprocessing', () => {
             \`\`\`
 
             -> {greeting}
-         `) as PromptTemplatePipelineString,
+         `) as PromptbookString,
     );
 
-    const ptpExecutor = createPtpExecutor({
-        ptp,
+    const ptbkExecutor = createPtbkExecutor({
+        ptbk,
         tools: {
             natural: new MockedEchoNaturalExecutionTools({ isVerbose: true }),
             script: [
@@ -54,7 +54,7 @@ describe('createPtpExecutor + postprocessing', () => {
     });
 
     it('should work when every INPUT  PARAMETER defined', () => {
-        expect(ptpExecutor({ yourName: 'Paůl' }, () => {})).resolves.toMatchObject({
+        expect(ptbkExecutor({ yourName: 'Paůl' }, () => {})).resolves.toMatchObject({
             isSuccessful: true,
             errors: [],
             outputParameters: {
@@ -62,7 +62,7 @@ describe('createPtpExecutor + postprocessing', () => {
             },
         });
 
-        expect(ptpExecutor({ yourName: 'Adam' }, () => {})).resolves.toMatchObject({
+        expect(ptbkExecutor({ yourName: 'Adam' }, () => {})).resolves.toMatchObject({
             isSuccessful: true,
             errors: [],
             outputParameters: {
@@ -70,7 +70,7 @@ describe('createPtpExecutor + postprocessing', () => {
             },
         });
 
-        expect(ptpExecutor({ yourName: 'John' }, () => {})).resolves.toMatchObject({
+        expect(ptbkExecutor({ yourName: 'John' }, () => {})).resolves.toMatchObject({
             isSuccessful: true,
             errors: [],
             outputParameters: {
@@ -78,7 +78,7 @@ describe('createPtpExecutor + postprocessing', () => {
             },
         });
 
-        expect(ptpExecutor({ yourName: 'DAVID' }, () => {})).resolves.toMatchObject({
+        expect(ptbkExecutor({ yourName: 'DAVID' }, () => {})).resolves.toMatchObject({
             isSuccessful: true,
             errors: [],
             outputParameters: {

@@ -1,6 +1,6 @@
 # ✨ Sample of parsing error
 
-Sample of wrong prompt template pipeline
+Sample of wrong promptbook
 
 ## 💬 Prompt
 
