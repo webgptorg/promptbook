@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { PromptTemplatePipelineLibrary } from '@promptbook/core';
-import { JavascriptEvalExecutionTools } from '@promptbook/execute-javascript';
+import { JavascriptExecutionTools } from '@promptbook/execute-javascript';
 import { OpenAiExecutionTools } from '@promptbook/openai';
 import { assertsExecutionSuccessful, executionReportJsonToString } from '@promptbook/utils';
 import chalk from 'chalk';
@@ -38,7 +38,7 @@ async function main() {
             openAiApiKey: process.env.OPENAI_API_KEY,
         }),
         script: [
-            new JavascriptEvalExecutionTools({
+            new JavascriptExecutionTools({
                 isVerbose: true,
             }),
         ],

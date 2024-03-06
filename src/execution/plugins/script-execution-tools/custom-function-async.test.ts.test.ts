@@ -36,7 +36,7 @@ describe('createPtpExecutor + custom async function ', () => {
         tools: {
             natural: new MockedEchoNaturalExecutionTools({ isVerbose: true }),
             script: [
-                new JavascriptEvalExecutionTools({
+                new JavascriptExecutionTools({
                     isVerbose: true,
 
                     // Note: [🕎]

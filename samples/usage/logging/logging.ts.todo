@@ -34,7 +34,7 @@ async function main() {
             openAiApiKey: process.env.OPENAI_API_KEY,
         }),
         script: [
-            new JavascriptEvalExecutionTools({
+            new JavascriptExecutionTools({
                 isVerbose: true,
             }),
         ],

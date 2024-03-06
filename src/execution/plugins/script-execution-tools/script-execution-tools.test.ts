@@ -6,7 +6,7 @@ import { assertsExecutionSuccessful } from '../../assertsExecutionSuccessful';
 import { createPtpExecutor } from '../../createPtpExecutor';
 import { MockedEchoNaturalExecutionTools } from '../natural-execution-tools/mocked/MockedEchoNaturalExecutionTools';
 import { CallbackInterfaceTools } from '../user-interface-execution-tools/callback/CallbackInterfaceTools';
-import { JavascriptEvalExecutionTools } from './javascript/JavascriptEvalExecutionTools';
+import { JavascriptExecutionTools } from './javascript/JavascriptEvalExecutionTools';
 
 describe('createPtpExecutor + executing scripts in ptp', () => {
     const ptp = promptTemplatePipelineStringToJson(
@@ -34,7 +34,7 @@ describe('createPtpExecutor + executing scripts in ptp', () => {
         tools: {
             natural: new MockedEchoNaturalExecutionTools({ isVerbose: true }),
             script: [
-                new JavascriptEvalExecutionTools({
+                new JavascriptExecutionTools({
                     isVerbose: true,
                     // Note: [🕎] Custom functions are tested elsewhere
                 }),
@@ -75,12 +75,12 @@ describe('createPtpExecutor + executing scripts in ptp', () => {
                 new Error(
                     spaceTrim(`
                         Parameter {thing} is not defined
-                        
+
                         This happen during evaluation of the javascript, which has access to the following parameters as javascript variables:
-                        
-                        
+
+
                         The script is:
-                        
+
                         return thing.split('a').join('b')
                   `),
                 ),

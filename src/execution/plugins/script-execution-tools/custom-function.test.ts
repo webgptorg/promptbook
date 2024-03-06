@@ -5,7 +5,7 @@ import { PromptTemplatePipelineString } from '../../../types/PromptTemplatePipel
 import { createPtpExecutor } from '../../createPtpExecutor';
 import { MockedEchoNaturalExecutionTools } from '../natural-execution-tools/mocked/MockedEchoNaturalExecutionTools';
 import { CallbackInterfaceTools } from '../user-interface-execution-tools/callback/CallbackInterfaceTools';
-import { JavascriptEvalExecutionTools } from './javascript/JavascriptEvalExecutionTools';
+import { JavascriptExecutionTools } from './javascript/JavascriptExecutionTools';
 
 describe('createPtpExecutor + custom function without dependencies', () => {
     const ptp = promptTemplatePipelineStringToJson(
@@ -35,7 +35,7 @@ describe('createPtpExecutor + custom function without dependencies', () => {
         tools: {
             natural: new MockedEchoNaturalExecutionTools({ isVerbose: true }),
             script: [
-                new JavascriptEvalExecutionTools({
+                new JavascriptExecutionTools({
                     isVerbose: true,
 
                     // Note: [🕎]
