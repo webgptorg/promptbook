@@ -32,11 +32,13 @@ import { preserve } from './utils/preserve';
  *          **NOT intended to use in the production** due to its unsafe nature, use `JavascriptExecutionTools` instead.
  */
 export class JavascriptEvalExecutionTools implements ScriptExecutionTools {
+
     public constructor(private readonly options: JavascriptExecutionToolsOptions) {
         if (isRunningInNode()) {
             throw new Error(`JavascriptEvalExecutionTools is not intended to be used in Node.js environment`);
         }
     }
+
 
     /**
      * Executes a JavaScript

@@ -1,4 +1,4 @@
 import { RemoteServerOptions } from '../execution/plugins/natural-execution-tools/remote/interfaces/RemoteServerOptions';
-import { runRemoteServer } from '../execution/plugins/natural-execution-tools/remote/runRemoteServer';
+import { startRemoteServer } from '../execution/plugins/natural-execution-tools/remote/startRemoteServer';
 
-export { RemoteServerOptions, runRemoteServer };
+export { RemoteServerOptions, startRemoteServer };

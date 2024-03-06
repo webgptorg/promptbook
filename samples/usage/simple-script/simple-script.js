@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { PromptTemplatePipelineLibrary } from '@promptbook/core';
+import { PromptbookLibrary } from '@promptbook/core';
 import { JavascriptExecutionTools } from '@promptbook/execute-javascript';
 import { OpenAiExecutionTools } from '@promptbook/openai';
 import { assertsExecutionSuccessful, executionReportJsonToString } from '@promptbook/utils';
@@ -23,7 +23,7 @@ async function main() {
     // const sampleName = '50-nesting';
     const sampleName = '50-advanced';
 
-    const library = PromptTemplatePipelineLibrary.fromSources(
+    const library = PromptbookLibrary.fromSources(
         {
             advanced: await readFile(`./samples/templates/${sampleName}.ptbk.md`, 'utf-8'),
         },
@@ -67,8 +67,8 @@ async function main() {
 }
 
 /**
- * TODO: [🈴] Identify PTPs by URL
+ * TODO: [🈴] Identify PROMPTBOOKs by URL
  * TODO: There should be no need to set this script or userInterface in tools
- * TODO: Implement and use here PromptTemplatePipelineLibrary.fromDirectory (directory vs folder)
+ * TODO: Implement and use here PromptbookLibrary.fromDirectory (directory vs folder)
  * TODO: Make sample with Wizzard
  */

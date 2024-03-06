@@ -2,9 +2,9 @@
 
 Trying the language capabilities of GPT models.
 
--   PTBK URL https://ptbk.example.com/samples/json-mode.ptbk.md@v1
--   PTBK VERSION 1.0.0
--   MODEL VARIANT CHAT
+-   PROMPTBOOK URL https://promptbook.example.com/samples/json-mode.ptbk.md@v1
+-   PROMPTBOOK VERSION 1.0.0
+-   MODEL VARIANT Chat
 -   INPUT  PARAM `{unstructuredContacts}` nestrukturovaný seznam kontaktních údajů
 -   OUTPUT PARAM `{contactlist}` JSON seznam kontaktních údajů
 
@@ -32,7 +32,7 @@ flowchart LR
 
 ## 🖋 Extrakce kontaktních údajů
 
--   MODEL VARIANT COMPLETION
+-   MODEL VARIANT Completion
 -   MODEL NAME `gpt-3.5-turbo-instruct`
 -   POSTPROCESSING `trimEndOfCodeBlock`
 -   EXPECT JSON

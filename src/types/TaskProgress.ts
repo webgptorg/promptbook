@@ -2,7 +2,7 @@ import { ExecutionType } from './ExecutionTypes';
 import { string_markdown_text, string_name } from './typeAliases';
 
 /**
- * TaskProgress represents the progress of a PromptTemplatePipeline execution.
+ * TaskProgress represents the progress of a Promptbook execution.
  */
 export interface TaskProgress {
     /**

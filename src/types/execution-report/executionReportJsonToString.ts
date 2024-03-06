@@ -34,15 +34,15 @@ export function executionReportJsonToString(
 
     const headerList: Array<string> = [];
 
-    if (executionReportJson.ptbkUrl) {
-        headerList.push(`PTBK URL ${executionReportJson.ptbkUrl}`);
+    if (executionReportJson.promptbookUrl) {
+        headerList.push(`PROMPTBOOK URL ${executionReportJson.promptbookUrl}`);
     }
 
     headerList.push(
-        `PTBK VERSION ${executionReportJson.ptbkUsedVersion}` +
-            (!executionReportJson.ptbkRequestedVersion
+        `PROMPTBOOK VERSION ${executionReportJson.promptbookUsedVersion}` +
+            (!executionReportJson.promptbookRequestedVersion
                 ? ''
-                : ` *(requested ${executionReportJson.ptbkRequestedVersion})*`),
+                : ` *(requested ${executionReportJson.promptbookRequestedVersion})*`),
     );
 
     if (executionReportJson.promptExecutions.length !== 0) {

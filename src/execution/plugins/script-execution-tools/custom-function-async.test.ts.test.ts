@@ -1,21 +1,21 @@
 import { describe, expect, it } from '@jest/globals';
 import spaceTrim from 'spacetrim';
 import { forTime } from 'waitasecond';
-import { promptTemplatePipelineStringToJson } from '../../../conversion/promptTemplatePipelineStringToJson';
-import { PromptTemplatePipelineString } from '../../../types/PromptTemplatePipelineString';
-import { createPtpExecutor } from '../../createPtpExecutor';
+import { promptbookStringToJson } from '../../../conversion/promptbookStringToJson';
+import { PromptbookString } from '../../../types/PromptbookString';
+import { createPromptbookExecutor } from '../../createPromptbookExecutor';
 import { MockedEchoNaturalExecutionTools } from '../natural-execution-tools/mocked/MockedEchoNaturalExecutionTools';
 import { CallbackInterfaceTools } from '../user-interface-execution-tools/callback/CallbackInterfaceTools';
 import { JavascriptEvalExecutionTools } from './javascript/JavascriptEvalExecutionTools';
 
-describe('createPtpExecutor + custom async function ', () => {
-    const ptp = promptTemplatePipelineStringToJson(
+describe('createPromptbookExecutor + custom async function ', () => {
+    const promptbook = promptbookStringToJson(
         spaceTrim(`
             # Custom functions
 
             Show how to use custom postprocessing async function
 
-            -   PTBK VERSION 1.0.0
+            -   PROMPTBOOK VERSION 1.0.0
             -   INPUT  PARAMETER {yourName} Name of the hero
 
             ## Question
@@ -28,11 +28,11 @@ describe('createPtpExecutor + custom async function ', () => {
             \`\`\`
 
             -> {greeting}
-         `) as PromptTemplatePipelineString,
+         `) as PromptbookString,
     );
 
-    const ptpExecutor = createPtpExecutor({
-        ptp,
+    const promptbookExecutor = createPromptbookExecutor({
+        promptbook,
         tools: {
             natural: new MockedEchoNaturalExecutionTools({ isVerbose: true }),
             script: [
@@ -61,7 +61,7 @@ describe('createPtpExecutor + custom async function ', () => {
     });
 
     it('should use custom postprocessing function', () => {
-        expect(ptpExecutor({ yourName: 'Matthew' }, () => {})).resolves.toMatchObject({
+        expect(promptbookExecutor({ yourName: 'Matthew' }, () => {})).resolves.toMatchObject({
             isSuccessful: true,
             errors: [],
             outputParameters: {
@@ -69,7 +69,7 @@ describe('createPtpExecutor + custom async function ', () => {
             },
         });
 
-        expect(ptpExecutor({ yourName: 'Mark' }, () => {})).resolves.toMatchObject({
+        expect(promptbookExecutor({ yourName: 'Mark' }, () => {})).resolves.toMatchObject({
             isSuccessful: true,
             errors: [],
             outputParameters: {
@@ -77,7 +77,7 @@ describe('createPtpExecutor + custom async function ', () => {
             },
         });
 
-        expect(ptpExecutor({ yourName: 'Luke' }, () => {})).resolves.toMatchObject({
+        expect(promptbookExecutor({ yourName: 'Luke' }, () => {})).resolves.toMatchObject({
             isSuccessful: true,
             errors: [],
             outputParameters: {
@@ -85,7 +85,7 @@ describe('createPtpExecutor + custom async function ', () => {
             },
         });
 
-        expect(ptpExecutor({ yourName: 'John' }, () => {})).resolves.toMatchObject({
+        expect(promptbookExecutor({ yourName: 'John' }, () => {})).resolves.toMatchObject({
             isSuccessful: true,
             errors: [],
             outputParameters: {

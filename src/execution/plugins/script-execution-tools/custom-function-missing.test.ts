@@ -1,21 +1,21 @@
 import { describe, expect, it } from '@jest/globals';
 import spaceTrim from 'spacetrim';
-import { promptTemplatePipelineStringToJson } from '../../../conversion/promptTemplatePipelineStringToJson';
-import { PromptTemplatePipelineString } from '../../../types/PromptTemplatePipelineString';
+import { promptbookStringToJson } from '../../../conversion/promptbookStringToJson';
+import { PromptbookString } from '../../../types/PromptbookString';
 import { assertsExecutionSuccessful } from '../../assertsExecutionSuccessful';
-import { createPtpExecutor } from '../../createPtpExecutor';
+import { createPromptbookExecutor } from '../../createPromptbookExecutor';
 import { MockedEchoNaturalExecutionTools } from '../natural-execution-tools/mocked/MockedEchoNaturalExecutionTools';
 import { CallbackInterfaceTools } from '../user-interface-execution-tools/callback/CallbackInterfaceTools';
 import { JavascriptExecutionTools } from './javascript/JavascriptExecutionTools';
 
-describe('createPtpExecutor + missing custom function', () => {
-    const ptp = promptTemplatePipelineStringToJson(
+describe('createPromptbookExecutor + missing custom function', () => {
+    const promptbook = promptbookStringToJson(
         spaceTrim(`
             # Custom functions
 
             Show how to use custom postprocessing functions
 
-            -   PTBK VERSION 1.0.0
+            -   PROMPTBOOK VERSION 1.0.0
             -   INPUT  PARAMETER {yourName} Name of the hero
 
             ## Question
@@ -28,11 +28,11 @@ describe('createPtpExecutor + missing custom function', () => {
             \`\`\`
 
             -> {greeting}
-         `) as PromptTemplatePipelineString,
+         `) as PromptbookString,
     );
 
-    const ptpExecutor = createPtpExecutor({
-        ptp,
+    const promptbookExecutor = createPromptbookExecutor({
+        promptbook,
         tools: {
             natural: new MockedEchoNaturalExecutionTools({ isVerbose: true }),
             script: [
@@ -61,7 +61,7 @@ describe('createPtpExecutor + missing custom function', () => {
 
     it('should throw error when custom postprocessing function does not exist', () => {
         expect(() =>
-            ptpExecutor({ yourName: 'Matthew' }, () => {}).then(assertsExecutionSuccessful),
+            promptbookExecutor({ yourName: 'Matthew' }, () => {}).then(assertsExecutionSuccessful),
         ).rejects.toThrowError(/Function \{addHello\} is not defined/);
     });
 });

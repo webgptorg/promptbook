@@ -1,6 +1,9 @@
 # ✨ Sample of parsing error
 
-Sample of wrong prompt template pipeline
+Sample of wrong promptbook
+
+-   MODEL VARIANT Chat
+-   MODEL NAME `gpt-3.5-turbo`
 
 ## 💬 Prompt
 

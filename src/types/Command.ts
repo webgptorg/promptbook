@@ -1,15 +1,15 @@
 import type { string_markdown_text, string_name, string_version } from '.././types/typeAliases';
 import type { ExecutionType } from './ExecutionTypes';
 import type { ModelRequirements } from './ModelRequirements';
-import type { ExpectationAmount, ExpectationUnit } from './PromptTemplatePipelineJson/PromptTemplateJson';
+import type { ExpectationAmount, ExpectationUnit } from './PromptbookJson/PromptTemplateJson';
 
 /**
  * Command is one piece of the prompt template which adds some logic to the prompt template or the whole pipeline.
  * It is parsed from the markdown from ul/ol items - one command per one item.
  */
 export type Command =
-    | PtbkUrlCommand
-    | PtbkVersionCommand
+    | PromptbookUrlCommand
+    | PromptbookVersionCommand
     | ExecuteCommand
     | ModelCommand
     | JokerCommand
@@ -18,25 +18,25 @@ export type Command =
     | ExpectCommand;
 
 /**
- * PtpVersion command tells which version is .ptp file using
+ * PromptbookVersion command tells which version is .promptbook file using
  *
  * - It is used for backward compatibility
- * - It is defined per whole .ptp file in the header
+ * - It is defined per whole .promptbook file in the header
  */
-export interface PtbkUrlCommand {
-    readonly type: 'PTBK_URL';
-    readonly ptbkUrl: URL;
+export interface PromptbookUrlCommand {
+    readonly type: 'PROMPTBOOK_URL';
+    readonly promptbookUrl: URL;
 }
 
 /**
- * PtpVersion command tells which version is .ptp file using
+ * PromptbookVersion command tells which version is .promptbook file using
  *
  * - It is used for backward compatibility
- * - It is defined per whole .ptp file in the header
+ * - It is defined per whole .promptbook file in the header
  */
-export interface PtbkVersionCommand {
-    readonly type: 'PTBK_VERSION';
-    readonly ptbkVersion: string_version;
+export interface PromptbookVersionCommand {
+    readonly type: 'PROMPTBOOK_VERSION';
+    readonly promptbookVersion: string_version;
 }
 
 /**

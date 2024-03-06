@@ -17,7 +17,7 @@ if (process.cwd() !== join(__dirname, '../..')) {
     process.exit(1);
 }
 
-const PTBK_SAMPLES_DIR = join(process.cwd(), 'samples/templates');
+const PROMPTBOOK_SAMPLES_DIR = join(process.cwd(), 'samples/templates');
 
 const program = new commander.Command();
 program.option('--commit', `Autocommit changes`, false);
@@ -41,7 +41,7 @@ async function generateSampleJsons({ isCommited }: { isCommited: boolean }) {
         throw new Error(`Working tree is not clean`);
     }
 
-    for (const reportFilePath of await glob(join(PTBK_SAMPLES_DIR, '*.report.json').split('\\').join('/'))) {
+    for (const reportFilePath of await glob(join(PROMPTBOOK_SAMPLES_DIR, '*.report.json').split('\\').join('/'))) {
         console.info(`📖  Generating Markdown report from ${reportFilePath}`);
         const executionReport = JSON.parse(await readFile(reportFilePath, 'utf-8'));
         const executionReportString = executionReportJsonToString(executionReport);
@@ -50,7 +50,7 @@ async function generateSampleJsons({ isCommited }: { isCommited: boolean }) {
     }
 
     if (isCommited) {
-        await commit(PTBK_SAMPLES_DIR, `📖 Generate reports .report.json -> .report.md`);
+        await commit(PROMPTBOOK_SAMPLES_DIR, `📖 Generate reports .report.json -> .report.md`);
     }
 
     console.info(`[ Done 📖  Generate reports .report.json -> .report.md]`);

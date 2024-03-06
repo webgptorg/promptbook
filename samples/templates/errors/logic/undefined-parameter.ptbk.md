@@ -1,6 +1,9 @@
 # ✨ Sample of logic error
 
-Sample of wrong prompt template pipeline with parameter that is not defined
+Sample of wrong promptbookwith parameter that is not defined
+
+-   MODEL VARIANT Chat
+-   MODEL NAME `gpt-3.5-turbo`
 
 ## Sentence
 

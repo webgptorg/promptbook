@@ -11,11 +11,11 @@ import type {
     ModelCommand,
     ParameterCommand,
     PostprocessCommand,
-    PtbkUrlCommand,
-    PtbkVersionCommand,
+    PromptbookUrlCommand,
+    PromptbookVersionCommand,
 } from '../types/Command';
 import { ExecutionTypes } from '../types/ExecutionTypes';
-import { EXPECTATION_UNITS } from '../types/PromptTemplatePipelineJson/PromptTemplateJson';
+import { EXPECTATION_UNITS } from '../types/PromptbookJson/PromptTemplateJson';
 import { removeMarkdownFormatting } from '../utils/markdown/removeMarkdownFormatting';
 import { parseNumber } from '../utils/parseNumber';
 
@@ -44,19 +44,22 @@ export function parseCommand(listItem: string_markdown_text): Command {
         .map((part) => part.trim())
         .filter((item) => item !== '')
         .filter((item) => !/^PTBK$/i.test(item))
+        .filter((item) => !/^PROMPTBOOK$/i.test(item))
         .map(removeMarkdownFormatting);
 
     if (
         type.startsWith('URL') ||
         type.startsWith('PTBK_URL') ||
         type.startsWith('PTBKURL') ||
+        type.startsWith('PROMPTBOOK_URL') ||
+        type.startsWith('PROMPTBOOKURL') ||
         type.startsWith('HTTPS')
     ) {
         if (!(listItemParts.length === 2 || (listItemParts.length === 1 && type.startsWith('HTTPS')))) {
             throw new Error(
                 spaceTrim(
                     `
-                        Invalid PTBK_URL command:
+                        Invalid PROMPTBOOK_URL command:
 
                         - ${listItem}
                     `,
@@ -64,14 +67,14 @@ export function parseCommand(listItem: string_markdown_text): Command {
             );
         }
 
-        const ptbkUrlString = listItemParts.pop()!;
-        const ptbkUrl = new URL(ptbkUrlString);
+        const promptbookUrlString = listItemParts.pop()!;
+        const promptbookUrl = new URL(promptbookUrlString);
 
-        if (ptbkUrl.protocol !== 'https:') {
+        if (promptbookUrl.protocol !== 'https:') {
             throw new Error(
                 spaceTrim(
                     `
-                        Invalid PTBK_URL command:
+                        Invalid PROMPTBOOK_URL command:
 
                         - ${listItem}
 
@@ -81,11 +84,11 @@ export function parseCommand(listItem: string_markdown_text): Command {
             );
         }
 
-        if (ptbkUrl.hash !== '') {
+        if (promptbookUrl.hash !== '') {
             throw new Error(
                 spaceTrim(
                     `
-                        Invalid PTBK_URL command:
+                        Invalid PROMPTBOOK_URL command:
 
                         - ${listItem}
 
@@ -97,15 +100,15 @@ export function parseCommand(listItem: string_markdown_text): Command {
         }
 
         return {
-            type: 'PTBK_URL',
-            ptbkUrl,
-        } satisfies PtbkUrlCommand;
-    } else if (type.startsWith('PTBK_VERSION')) {
+            type: 'PROMPTBOOK_URL',
+            promptbookUrl,
+        } satisfies PromptbookUrlCommand;
+    } else if (type.startsWith('PROMPTBOOK_VERSION') || type.startsWith('PTBK_VERSION')) {
         if (listItemParts.length !== 2) {
             throw new Error(
                 spaceTrim(
                     `
-                        Invalid PTBK_VERSION command:
+                        Invalid PROMPTBOOK_VERSION command:
 
                         - ${listItem}
                     `,
@@ -113,13 +116,13 @@ export function parseCommand(listItem: string_markdown_text): Command {
             );
         }
 
-        const ptbkVersion = listItemParts.pop()!;
+        const promptbookVersion = listItemParts.pop()!;
         // TODO: Validate version
 
         return {
-            type: 'PTBK_VERSION',
-            ptbkVersion,
-        } satisfies PtbkVersionCommand;
+            type: 'PROMPTBOOK_VERSION',
+            promptbookVersion,
+        } satisfies PromptbookVersionCommand;
     } else if (
         type.startsWith('EXECUTE') ||
         type.startsWith('EXEC') ||
@@ -196,7 +199,7 @@ export function parseCommand(listItem: string_markdown_text): Command {
 
                           Example:
 
-                          - MODEL VARIANT CHAT
+                          - MODEL VARIANT Chat
                           - MODEL NAME gpt-4
                     `,
                 ),
@@ -394,7 +397,7 @@ export function parseCommand(listItem: string_markdown_text): Command {
                     - Parameter
                     - INPUT  PARAMETER
                     - OUTPUT PARAMETER
-                    - PTBK VERSION
+                    - PROMPTBOOK VERSION
                 `,
             ),
         );
