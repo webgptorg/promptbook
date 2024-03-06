@@ -107,6 +107,7 @@ Export less functions from `@promptbook/utils`
 
 ## 0.35.1 _(2024-03-06)_
 
+-   Add Mermaid graph to sample promptbooks
 -   Fix spelling errors in OpenAI error messages
 
 ## Upcomming

@@ -8,6 +8,48 @@ Instructions for creating web page content.
 -   INPUT  PARAM `{rawAssigment}` Automatically generated site entry from image recognition
 -   OUTPUT PARAM `{content}` Web content
 
+<!--Graph-->
+<!-- ⚠️ WARNING: This section was auto-generated -->
+```mermaid
+%% 🔮 Tip: Open this on GitHub or in the VSCode website to see the Mermaid graph visually
+
+flowchart LR
+  subgraph "🌍 Create website content"
+
+      direction TB
+
+      input((Input)):::input
+      templateSpecifyingTheAssigment(👤 Specifying the assigment)
+      input--"{rawAssigment}"-->templateSpecifyingTheAssigment
+      templateImprovingTheTitle(✨ Improving the title)
+      input--"{rawTitle}"-->templateImprovingTheTitle
+      templateSpecifyingTheAssigment--"{assigment}"-->templateImprovingTheTitle
+      templateWebsiteTitleApproval(👤 Website title approval)
+      templateImprovingTheTitle--"{enhancedTitle}"-->templateWebsiteTitleApproval
+      templateCunningSubtitle(🐰 Cunning subtitle)
+      templateWebsiteTitleApproval--"{title}"-->templateCunningSubtitle
+      templateSpecifyingTheAssigment--"{assigment}"-->templateCunningSubtitle
+      templateKeywordAnalysis(🚦 Keyword analysis)
+      templateWebsiteTitleApproval--"{title}"-->templateKeywordAnalysis
+      templateSpecifyingTheAssigment--"{assigment}"-->templateKeywordAnalysis
+      templateCombineTheBeginning(🔗 Combine the beginning)
+      templateWebsiteTitleApproval--"{title}"-->templateCombineTheBeginning
+      templateCunningSubtitle--"{claim}"-->templateCombineTheBeginning
+      templateWriteTheContent(🖋 Write the content)
+      templateWebsiteTitleApproval--"{title}"-->templateWriteTheContent
+      templateSpecifyingTheAssigment--"{assigment}"-->templateWriteTheContent
+      templateKeywordAnalysis--"{keywords}"-->templateWriteTheContent
+      templateCombineTheBeginning--"{contentBeginning}"-->templateWriteTheContent
+      templateCombineTheContent(🔗 Combine the content)
+      templateCombineTheBeginning--"{contentBeginning}"-->templateCombineTheContent
+      templateWriteTheContent--"{contentBody}"-->templateCombineTheContent
+
+      classDef input color: grey;
+
+  end;
+```
+<!--/Graph-->
+
 ## 👤 Specifying the assigment
 
 What is your web about?
