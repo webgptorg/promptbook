@@ -110,6 +110,12 @@ Export less functions from `@promptbook/utils`
 -   Add Mermaid graph to sample promptbooks
 -   Fix spelling errors in OpenAI error messages
 
+## !!!
+
+-   Implement `JavascriptExecutionTools`
+-   Deprecate `JavascriptEvalExecutionTools`
+-   Do not allow to use `JavascriptEvalExecutionTools` in node.js environment
+
 ## Upcomming
 
 -   Rename "natural" -> "llm"
