@@ -10,6 +10,7 @@ Trying the language capabilities of GPT models.
 
 <!--Graph-->
 <!-- ⚠️ WARNING: This section was auto-generated -->
+
 ```mermaid
 %% 🔮 Tip: Open this on GitHub or in the VSCode website to see the Mermaid graph visually
 
@@ -26,6 +27,7 @@ flowchart LR
 
   end;
 ```
+
 <!--/Graph-->
 
 ## 🖋 Extrakce kontaktních údajů
@@ -33,8 +35,7 @@ flowchart LR
 -   MODEL VARIANT COMPLETION
 -   MODEL NAME `gpt-3.5-turbo-instruct`
 -   POSTPROCESSING `trimEndOfCodeBlock`
-
-<!-- TODO: !!! Use here JSON mode-->
+-   EXPECT JSON
 
 ```
 Extrahuj kontaktní data z nestrukturovaného seznamu kontaktních údajů

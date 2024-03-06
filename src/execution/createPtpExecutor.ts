@@ -131,7 +131,7 @@ export function createPtpExecutor(options: CreatePtpExecutorOptions): PtpExecuto
                                     ptbkUrl: `${
                                         ptp.ptbkUrl
                                             ? ptp.ptbkUrl
-                                            : 'anonymous' /* <- [🧠] !!! How to deal with anonymous PTPs, do here some auto-url like SHA-256 based ad-hoc identifier? */
+                                            : 'anonymous' /* <- [🧠][🈴] How to deal with anonymous PTPs, do here some auto-url like SHA-256 based ad-hoc identifier? */
                                     }#${currentTemplate.name}`,
                                     parameters: parametersToPass,
                                     content: replaceParameters(currentTemplate.content, parametersToPass) /* <- [2] */,

@@ -413,6 +413,7 @@ Internally it calls OpenAI, Azure, GPU, proxy, cache, logging,...
 `NaturalExecutionTools` an abstract interface that is implemented by concrete execution tools:
 
 -   `OpenAiExecutionTools`
+-   _(Not implemented yet)_ `AnthropicClaudeExecutionTools`
 -   _(Not implemented yet)_ `AzureOpenAiExecutionTools`
 -   _(Not implemented yet)_ `BardExecutionTools`
 -   _(Not implemented yet)_ `LamaExecutionTools`
