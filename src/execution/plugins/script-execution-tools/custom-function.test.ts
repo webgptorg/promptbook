@@ -5,7 +5,7 @@ import { PromptbookString } from '../../../types/PromptbookString';
 import { createPromptbookExecutor } from '../../createPromptbookExecutor';
 import { MockedEchoNaturalExecutionTools } from '../natural-execution-tools/mocked/MockedEchoNaturalExecutionTools';
 import { CallbackInterfaceTools } from '../user-interface-execution-tools/callback/CallbackInterfaceTools';
-import { JavascriptEvalExecutionTools } from './javascript/JavascriptEvalExecutionTools';
+import { JavascriptExecutionTools } from './javascript/JavascriptExecutionTools';
 
 describe('createPromptbookExecutor + custom function without dependencies', () => {
     const promptbook = promptbookStringToJson(
@@ -35,7 +35,7 @@ describe('createPromptbookExecutor + custom function without dependencies', () =
         tools: {
             natural: new MockedEchoNaturalExecutionTools({ isVerbose: true }),
             script: [
-                new JavascriptEvalExecutionTools({
+                new JavascriptExecutionTools({
                     isVerbose: true,
 
                     // Note: [🕎]

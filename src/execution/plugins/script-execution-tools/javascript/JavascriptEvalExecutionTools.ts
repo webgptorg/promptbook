@@ -13,6 +13,7 @@ import {
     parseKeywordsFromString,
 } from 'n12';
 import { spaceTrim as _spaceTrim } from 'spacetrim';
+import { isRunningInNode } from '../../../../utils/isRunningInWhatever';
 import { prettifyMarkdown as _prettifyMarkdown } from '../../../../utils/markdown/prettifyMarkdown';
 import { removeEmojis as _removeEmojis } from '../../../../utils/removeEmojis';
 import { removeQuotes as _removeQuotes } from '../../../../utils/removeQuotes';
@@ -20,17 +21,24 @@ import { trimCodeBlock as _trimCodeBlock } from '../../../../utils/trimCodeBlock
 import { trimEndOfCodeBlock as _trimEndOfCodeBlock } from '../../../../utils/trimEndOfCodeBlock';
 import { unwrapResult as _unwrapResult } from '../../../../utils/unwrapResult';
 import { ScriptExecutionTools, ScriptExecutionToolsExecuteOptions } from '../../../ScriptExecutionTools';
-import { JavascriptExecutionToolsOptions } from './JavascriptExecutionToolsOptions';
+import type { JavascriptExecutionToolsOptions } from './JavascriptExecutionToolsOptions';
 import { preserve } from './utils/preserve';
 
 /**
  * ScriptExecutionTools for JavaScript implemented via eval
  *
+ * @deprecated Use `JavascriptExecutionTools` instead
  * Warning: It is used for testing and mocking
  *          **NOT intended to use in the production** due to its unsafe nature, use `JavascriptExecutionTools` instead.
  */
 export class JavascriptEvalExecutionTools implements ScriptExecutionTools {
-    public constructor(private readonly options: JavascriptExecutionToolsOptions) {}
+
+    public constructor(private readonly options: JavascriptExecutionToolsOptions) {
+        if (isRunningInNode()) {
+            throw new Error(`JavascriptEvalExecutionTools is not intended to be used in Node.js environment`);
+        }
+    }
+
 
     /**
      * Executes a JavaScript

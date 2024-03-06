@@ -127,6 +127,14 @@ Cleanup and renaming
 -   Change command `PTBK_NAME` to `PROMPTBOOK_NAME` _(but keep backward compatibility and preserve alias `PTBK`)_
 -   Rename `runRemoteServer` -> `startRemoteServer` and return `Destroyable` object
 
+## !!! This branch !!!
+
+-   Implement `JavascriptExecutionTools`
+-   Deprecate `JavascriptEvalExecutionTools`
+-   Do not allow to use `JavascriptEvalExecutionTools` in node.js environment
+
+---
+
 ## Upcomming
 
 -   Rename "natural" -> "llm"
