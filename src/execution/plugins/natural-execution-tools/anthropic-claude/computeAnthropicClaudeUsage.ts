@@ -1,25 +1,29 @@
-import type OpenAI from 'openai';
+import type AnthropicClaude from 'anthropicclaude';
 import type { PromptResult } from '../../../PromptResult';
 
-export function computeOpenaiUsage(
-    rawResponse: Pick<OpenAI.Chat.Completions.ChatCompletion | OpenAI.Completions.Completion, 'model' | 'usage'>,
+export function computeAnthropicClaudeUsage(
+    rawResponse: Pick<
+        AnthropicClaude.Chat.Completions.ChatCompletion | AnthropicClaude.Completions.Completion,
+        'model' | 'usage'
+    >,
 ): PromptResult['usage'] {
     if (rawResponse.usage === undefined) {
-        throw new Error('The usage is not defined in the response from OpenAI');
+        throw new Error('The usage is not defined in the response from AnthropicClaude');
     }
 
     if (rawResponse.usage?.prompt_tokens === undefined) {
-        throw new Error('In OpenAI response `usage.prompt_tokens` not defined');
+        throw new Error('In AnthropicClaude response `usage.prompt_tokens` not defined');
     }
 
     if (rawResponse.usage?.completion_tokens === undefined) {
-        throw new Error('In OpenAI response `usage.completion_tokens` not defined');
+        throw new Error('In AnthropicClaude response `usage.completion_tokens` not defined');
     }
 
     const inputTokens = rawResponse.usage.prompt_tokens;
     const outputTokens = rawResponse.usage.completion_tokens;
 
     const pricePerThousandTokens = {
+      // TODO: !!!! Put here claude BOT OpenAI
         'gpt-3.5-turbo-0613': {
             prompt: 0.0015,
             completion: 0.002,

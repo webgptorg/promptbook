@@ -1,34 +1,36 @@
+import AnthropicClaude from 'anthropicclaude';
 import chalk from 'chalk';
-import OpenAI from 'openai';
 import type { Prompt } from '../../../../types/Prompt';
 import { string_date_iso8601 } from '../../../../types/typeAliases';
 import { getCurrentIsoDate } from '../../../../utils/getCurrentIsoDate';
 import type { NaturalExecutionTools } from '../../../NaturalExecutionTools';
 import type { PromptChatResult, PromptCompletionResult } from '../../../PromptResult';
-import type { OpenAiExecutionToolsOptions } from './OpenAiExecutionToolsOptions';
-import { computeOpenaiUsage } from './computeOpenaiUsage';
+import type { AnthropicClaudeExecutionToolsOptions } from './AnthropicClaudeExecutionToolsOptions';
+import { computeAnthropicClaudeUsage } from './computeAnthropicClaudeUsage';
+
+// TODO: !!!! Put here claude BOT OpenAI
 
 /**
- * Execution Tools for calling OpenAI API.
+ * Execution Tools for calling AnthropicClaude API.
  */
-export class OpenAiExecutionTools implements NaturalExecutionTools {
+export class AnthropicClaudeExecutionTools implements NaturalExecutionTools {
     /**
-     * OpenAI API client.
+     * AnthropicClaude API client.
      */
-    private readonly openai: OpenAI;
+    private readonly anthropicclaude: AnthropicClaude;
 
-    public constructor(private readonly options: OpenAiExecutionToolsOptions) {
-        this.openai = new OpenAI({
-            apiKey: this.options.openAiApiKey,
+    public constructor(private readonly options: AnthropicClaudeExecutionToolsOptions) {
+        this.anthropicclaude = new AnthropicClaude({
+            apiKey: this.options.anthropicClaudeApiKey,
         });
     }
 
     /**
-     * Calls OpenAI API to use a chat model.
+     * Calls AnthropicClaude API to use a chat model.
      */
     public async gptChat(prompt: Prompt): Promise<PromptChatResult> {
         if (this.options.isVerbose) {
-            console.info('💬 OpenAI gptChat call');
+            console.info('💬 AnthropicClaude gptChat call');
         }
 
         const { content, modelRequirements } = prompt;
@@ -44,7 +46,7 @@ export class OpenAiExecutionTools implements NaturalExecutionTools {
             max_tokens: modelRequirements.maxTokens,
             //                                      <- TODO: Make some global max cap for maxTokens
         };
-        const rawRequest: OpenAI.Chat.Completions.CompletionCreateParamsNonStreaming = {
+        const rawRequest: AnthropicClaude.Chat.Completions.CompletionCreateParamsNonStreaming = {
             ...modelSettings,
             messages: [
                 {
@@ -60,27 +62,27 @@ export class OpenAiExecutionTools implements NaturalExecutionTools {
         if (this.options.isVerbose) {
             console.error(chalk.bgGray('rawRequest'), JSON.stringify(rawRequest, null, 4));
         }
-        const rawResponse = await this.openai.chat.completions.create(rawRequest);
+        const rawResponse = await this.anthropicclaude.chat.completions.create(rawRequest);
         if (this.options.isVerbose) {
             console.error(chalk.bgGray('rawResponse'), JSON.stringify(rawResponse, null, 4));
         }
 
         if (!rawResponse.choices[0]) {
-            throw new Error('No choises from OpenAI');
+            throw new Error('No choises from AnthropicClaude');
         }
 
         if (rawResponse.choices.length > 1) {
             // TODO: This should be maybe only warning
-            throw new Error('More than one choise from OpenAI');
+            throw new Error('More than one choise from AnthropicClaude');
         }
 
         const resultContent = rawResponse.choices[0].message.content;
         // eslint-disable-next-line prefer-const
         complete = getCurrentIsoDate();
-        const usage = computeOpenaiUsage(rawResponse);
+        const usage = computeAnthropicClaudeUsage(rawResponse);
 
         if (!resultContent) {
-            throw new Error('No response message from OpenAI');
+            throw new Error('No response message from AnthropicClaude');
         }
 
         return {
@@ -97,11 +99,11 @@ export class OpenAiExecutionTools implements NaturalExecutionTools {
     }
 
     /**
-     * Calls OpenAI API to use a complete model.
+     * Calls AnthropicClaude API to use a complete model.
      */
     public async gptComplete(prompt: Prompt): Promise<PromptCompletionResult> {
         if (this.options.isVerbose) {
-            console.info('🖋 OpenAI gptComplete call');
+            console.info('🖋 AnthropicClaude gptComplete call');
         }
 
         const { content, modelRequirements } = prompt;
@@ -118,7 +120,7 @@ export class OpenAiExecutionTools implements NaturalExecutionTools {
             //                                                  <- TODO: Make some global max cap for maxTokens
         };
 
-        const rawRequest: OpenAI.Completions.CompletionCreateParamsNonStreaming = {
+        const rawRequest: AnthropicClaude.Completions.CompletionCreateParamsNonStreaming = {
             ...modelSettings,
             prompt: content,
             user: this.options.user,
@@ -129,27 +131,27 @@ export class OpenAiExecutionTools implements NaturalExecutionTools {
         if (this.options.isVerbose) {
             console.error(chalk.bgGray('rawRequest'), JSON.stringify(rawRequest, null, 4));
         }
-        const rawResponse = await this.openai.completions.create(rawRequest);
+        const rawResponse = await this.anthropicclaude.completions.create(rawRequest);
         if (this.options.isVerbose) {
             console.error(chalk.bgGray('rawResponse'), JSON.stringify(rawResponse, null, 4));
         }
 
         if (!rawResponse.choices[0]) {
-            throw new Error('No choises from OpenAI');
+            throw new Error('No choises from AnthropicClaude');
         }
 
         if (rawResponse.choices.length > 1) {
             // TODO: This should be maybe only warning
-            throw new Error('More than one choise from OpenAI');
+            throw new Error('More than one choise from AnthropicClaude');
         }
 
         const resultContent = rawResponse.choices[0].text;
         // eslint-disable-next-line prefer-const
         complete = getCurrentIsoDate();
-        const usage = computeOpenaiUsage(rawResponse);
+        const usage = computeAnthropicClaudeUsage(rawResponse);
 
         if (!resultContent) {
-            throw new Error('No response message from OpenAI');
+            throw new Error('No response message from AnthropicClaude');
         }
 
         return {
@@ -169,5 +171,5 @@ export class OpenAiExecutionTools implements NaturalExecutionTools {
 /**
 
  * TODO: Maybe Create some common util for gptChat and gptComplete
- * TODO: Maybe make custom OpenaiError
+ * TODO: Maybe make custom AnthropicClaudeError
  */
