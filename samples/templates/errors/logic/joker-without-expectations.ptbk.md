@@ -1,7 +1,9 @@
 # ✨ Sample: Joker without expectations
 
--   PTBK URL https://ptbk.example.com/samples/jokers.ptbk.md@v1
--   PTBK VERSION 1.0.0
+-   PROMPTBOOK URL https://promptbook.example.com/samples/jokers.ptbk.md@v1
+-   PROMPTBOOK VERSION 1.0.0
+-   MODEL VARIANT Chat
+-   MODEL NAME `gpt-3.5-turbo`
 -   INPUT  PARAMETER {yourName} Name of the hero or nothing
 
 ## 💬 Question

@@ -2,11 +2,55 @@
 
 Instructions for creating web page content.
 
--   PTBK URL https://ptbk.webgpt.com/en/write-website-content.ptbk.md@v0.1.0
--   PTBK VERSION 0.0.1
+-   PROMPTBOOK URL https://promptbook.webgpt.com/en/write-website-content.ptbk.md@v0.1.0
+-   PROMPTBOOK VERSION 0.0.1
 -   INPUT  PARAM `{rawTitle}` Automatically suggested a site name or empty text
 -   INPUT  PARAM `{rawAssigment}` Automatically generated site entry from image recognition
 -   OUTPUT PARAM `{content}` Web content
+
+<!--Graph-->
+<!-- ⚠️ WARNING: This section was auto-generated -->
+
+```mermaid
+%% 🔮 Tip: Open this on GitHub or in the VSCode website to see the Mermaid graph visually
+
+flowchart LR
+  subgraph "🌍 Create website content"
+
+      direction TB
+
+      input((Input)):::input
+      templateSpecifyingTheAssigment(👤 Specifying the assigment)
+      input--"{rawAssigment}"-->templateSpecifyingTheAssigment
+      templateImprovingTheTitle(✨ Improving the title)
+      input--"{rawTitle}"-->templateImprovingTheTitle
+      templateSpecifyingTheAssigment--"{assigment}"-->templateImprovingTheTitle
+      templateWebsiteTitleApproval(👤 Website title approval)
+      templateImprovingTheTitle--"{enhancedTitle}"-->templateWebsiteTitleApproval
+      templateCunningSubtitle(🐰 Cunning subtitle)
+      templateWebsiteTitleApproval--"{title}"-->templateCunningSubtitle
+      templateSpecifyingTheAssigment--"{assigment}"-->templateCunningSubtitle
+      templateKeywordAnalysis(🚦 Keyword analysis)
+      templateWebsiteTitleApproval--"{title}"-->templateKeywordAnalysis
+      templateSpecifyingTheAssigment--"{assigment}"-->templateKeywordAnalysis
+      templateCombineTheBeginning(🔗 Combine the beginning)
+      templateWebsiteTitleApproval--"{title}"-->templateCombineTheBeginning
+      templateCunningSubtitle--"{claim}"-->templateCombineTheBeginning
+      templateWriteTheContent(🖋 Write the content)
+      templateWebsiteTitleApproval--"{title}"-->templateWriteTheContent
+      templateSpecifyingTheAssigment--"{assigment}"-->templateWriteTheContent
+      templateKeywordAnalysis--"{keywords}"-->templateWriteTheContent
+      templateCombineTheBeginning--"{contentBeginning}"-->templateWriteTheContent
+      templateCombineTheContent(🔗 Combine the content)
+      templateCombineTheBeginning--"{contentBeginning}"-->templateCombineTheContent
+      templateWriteTheContent--"{contentBody}"-->templateCombineTheContent
+
+      classDef input color: grey;
+
+  end;
+```
+
+<!--/Graph-->
 
 ## 👤 Specifying the assigment
 
@@ -22,6 +66,8 @@ What is your web about?
 
 ## ✨ Improving the title
 
+-   MODEL VARIANT Chat
+-   MODEL NAME `gpt-4`
 -   POSTPROCESSING `unwrapResult`
 
 ```
@@ -56,6 +102,8 @@ Is the title for your website okay?
 
 ## 🐰 Cunning subtitle
 
+-   MODEL VARIANT Chat
+-   MODEL NAME `gpt-4`
 -   POSTPROCESSING `unwrapResult`
 
 ```
@@ -75,6 +123,9 @@ A website assignment from a customer:
 `-> {claim}` Claim for the web
 
 ## 🚦 Keyword analysis
+
+-   MODEL VARIANT Chat
+-   MODEL NAME `gpt-4`
 
 ```
 As an experienced SEO specialist, you have been entrusted with creating keywords for the website "{title}".
@@ -118,7 +169,7 @@ Website assignment from the customer:
 
 ## 🖋 Write the content
 
--   MODEL VARIANT COMPLETION
+-   MODEL VARIANT Completion
 -   MODEL NAME `gpt-3.5-turbo-instruct`
 
 ```

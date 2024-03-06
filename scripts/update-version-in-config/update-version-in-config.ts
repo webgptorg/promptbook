@@ -46,7 +46,7 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
             /**
              * The version of the Promptbook library
              */
-            export const PTBK_VERSION: string_version = '${version}';
+            export const PROMPTBOOK_VERSION: string_version = '${version}';
         `),
     );
 

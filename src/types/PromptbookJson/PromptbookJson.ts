@@ -1,31 +1,27 @@
-import { string_ptbk_url, string_version } from '../.././types/typeAliases';
+import { string_promptbook_url, string_version } from '../typeAliases';
 import { PromptTemplateJson } from './PromptTemplateJson';
 import { PromptTemplateParameterJson } from './PromptTemplateParameterJson';
 
 /**
- * Prompt template pipeline is the **core concept of this library**.
+ * Promptbook is the **core concept of this library**.
  * It represents a series of prompt templates chained together to form a pipeline / one big prompt template with input and result parameters.
  *
- * It can have 3 formats:
- * -   **.ptbk.md file** in custom markdown format described above
- * -   _(this)_ **JSON** format, parsed from the .ptbk.md file
- *
- * @see https://github.com/webgptorg/promptbook#prompt-template-pipeline
+ * @see https://github.com/webgptorg/promptbook#promptbook
  */
-export interface PromptTemplatePipelineJson {
+export interface PromptbookJson {
     /**
-     * Unique identifier of the prompt template pipeline
+     * Unique identifier of the promptbook
      *
-     * Note: It must be unique across all prompt template pipelines
+     * Note: It must be unique across all promptbooks libraries
      * Note: It must use HTTPs URL
      * Tip: You can do versioning in the URL
-     *      For example: https://ptbk.webgpt.com/cs/write-website-content.ptbk.md@1.0.0
+     *      For example: https://promptbook.webgpt.com/cs/write-website-content.ptbk.md@1.0.0
      * Warning: Do not hash part of the URL, hash part is used for identification of the prompt template in the pipeline
      */
-    readonly ptbkUrl?: string_ptbk_url;
+    readonly promptbookUrl?: string_promptbook_url;
 
     /**
-     * Title of the prompt template pipeline
+     * Title of the promptbook
      * -It can use simple markdown formatting like **bold**, *italic*, [link](https://example.com), ... BUT not code blocks and structure
      */
     readonly title: string;
@@ -33,10 +29,10 @@ export interface PromptTemplatePipelineJson {
     /**
      * Version of the .ptbk.json file
      */
-    readonly ptbkVersion: string_version;
+    readonly promptbookVersion: string_version;
 
     /**
-     * Description of the prompt template pipeline
+     * Description of the promptbook
      * It can use multiple paragraphs of simple markdown formatting like **bold**, *italic*, [link](https://example.com), ... BUT not code blocks and structure
      */
     readonly description?: string;

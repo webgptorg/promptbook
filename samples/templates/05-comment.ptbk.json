@@ -1,7 +1,7 @@
 {
     "title": "✨ Sample prompt with comments",
-    "ptbkUrl": "https://ptbk.example.com/samples/comment.ptbk.md@v1",
-    "ptbkVersion": "1.0.0",
+    "promptbookUrl": "https://promptbook.example.com/samples/comment.ptbk.md@v1",
+    "promptbookVersion": "1.0.0",
     "description": "Show how to use a simple prompt with no parameters and comments that should be ignored.",
     "parameters": [
         {

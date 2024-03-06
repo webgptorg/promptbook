@@ -1,11 +1,14 @@
 import { describe, expect, it } from '@jest/globals';
 import { readdirSync } from 'fs';
 import { join } from 'path';
-import { importPtp } from './_importPtp';
-import { promptTemplatePipelineStringToJson } from './promptTemplatePipelineStringToJson';
+import { importPromptbook } from './_importPromptbook';
+import { promptbookStringToJson } from './promptbookStringToJson';
 
-describe('promptTemplatePipelineStringToJson', () => {
+describe('promptbookStringToJson', () => {
     const samplesDir = '../../samples/templates';
+
+    console.log('join(__dirname, samplesDir)', join(__dirname, samplesDir));
+
     const samples = readdirSync(join(__dirname, samplesDir), { withFileTypes: true, recursive: false })
         //                         <- Note: In production it is not good practice to use synchronous functions
         //                                  But this is only a test before the build, so it is okay
@@ -15,9 +18,9 @@ describe('promptTemplatePipelineStringToJson', () => {
 
     for (const { name } of samples) {
         it(`should parse ${name}`, () => {
-            expect(
-                promptTemplatePipelineStringToJson(importPtp(join(samplesDir, name) as `${string}.ptbk.md`)),
-            ).toEqual(importPtp(join(samplesDir, name).replace('.ptbk.md', '.ptbk.json') as `${string}.ptbk.json`));
+            expect(promptbookStringToJson(importPromptbook(join(samplesDir, name) as `${string}.ptbk.md`))).toEqual(
+                importPromptbook(join(samplesDir, name).replace('.ptbk.md', '.ptbk.json') as `${string}.ptbk.json`),
+            );
         });
     }
 });

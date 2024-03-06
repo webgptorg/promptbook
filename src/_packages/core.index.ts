@@ -1,28 +1,28 @@
-import { PromptTemplatePipelineLibrary } from '../classes/PromptTemplatePipelineLibrary';
-import { PTBK_VERSION } from '../version';
-import { promptTemplatePipelineStringToJson } from '../conversion/promptTemplatePipelineStringToJson';
-import { validatePromptTemplatePipelineJson } from '../conversion/validatePromptTemplatePipelineJson';
-import { createPtpExecutor } from '../execution/createPtpExecutor';
+import { PromptbookLibrary } from '../classes/PromptbookLibrary';
+import { promptbookStringToJson } from '../conversion/promptbookStringToJson';
+import { validatePromptbookJson } from '../conversion/validatePromptbookJson';
+import { createPromptbookExecutor } from '../execution/createPromptbookExecutor';
 import { MockedEchoNaturalExecutionTools } from '../execution/plugins/natural-execution-tools/mocked/MockedEchoNaturalExecutionTools';
 import { CallbackInterfaceTools } from '../execution/plugins/user-interface-execution-tools/callback/CallbackInterfaceTools';
 import { CallbackInterfaceToolsOptions } from '../execution/plugins/user-interface-execution-tools/callback/CallbackInterfaceToolsOptions';
 import { SimplePromptInterfaceTools } from '../execution/plugins/user-interface-execution-tools/simple-prompt/SimplePromptInterfaceTools';
 import { ExecutionTypes } from '../types/ExecutionTypes';
+import { PROMPTBOOK_VERSION } from '../version';
 
 // @promptbook/core
-export { ExecutionTypes, PTBK_VERSION, PromptTemplatePipelineLibrary };
+export { ExecutionTypes, PROMPTBOOK_VERSION, PromptbookLibrary };
 
 // @promptbook/simple-prompt
 export { SimplePromptInterfaceTools };
 
 // @promptbook/parser
-export { promptTemplatePipelineStringToJson, validatePromptTemplatePipelineJson };
+export { promptbookStringToJson, validatePromptbookJson };
 
 // @promptbook/mock
 export { MockedEchoNaturalExecutionTools };
 
 // @promptbook/executor
-export { createPtpExecutor };
+export { createPromptbookExecutor };
 
 // @promptbook/callback-prompt
 export { CallbackInterfaceTools, CallbackInterfaceToolsOptions };

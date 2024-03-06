@@ -1,5 +1,5 @@
 import { removeDiacritics } from 'n12';
-import type { ExpectationAmount } from '../../types/PromptTemplatePipelineJson/PromptTemplateJson';
+import type { ExpectationAmount } from '../../types/PromptbookJson/PromptTemplateJson';
 
 /**
  * Counts number of words in the text

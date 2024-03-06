@@ -1,20 +1,22 @@
 import { describe, expect, it } from '@jest/globals';
 import spaceTrim from 'spacetrim';
-import { promptTemplatePipelineStringToJson } from '../../../conversion/promptTemplatePipelineStringToJson';
-import { PromptTemplatePipelineString } from '../../../types/PromptTemplatePipelineString';
-import { createPtpExecutor } from '../../createPtpExecutor';
+import { promptbookStringToJson } from '../../../conversion/promptbookStringToJson';
+import { PromptbookString } from '../../../types/PromptbookString';
+import { createPromptbookExecutor } from '../../createPromptbookExecutor';
 import { MockedEchoNaturalExecutionTools } from '../natural-execution-tools/mocked/MockedEchoNaturalExecutionTools';
 import { CallbackInterfaceTools } from '../user-interface-execution-tools/callback/CallbackInterfaceTools';
 import { JavascriptEvalExecutionTools } from './javascript/JavascriptEvalExecutionTools';
 
-describe('createPtpExecutor + postprocessing', () => {
-    const ptp = promptTemplatePipelineStringToJson(
+describe('createPromptbookExecutor + postprocessing', () => {
+    const promptbook = promptbookStringToJson(
         spaceTrim(`
             # Sample prompt
 
             Show how to use postprocessing
 
-            -   PTBK VERSION 1.0.0
+            -   PROMPTBOOK VERSION 1.0.0
+            -   MODEL VARIANT Chat
+            -   MODEL NAME gpt-3.5-turbo
             -   INPUT  PARAMETER {yourName} Name of the hero
 
             ## Question
@@ -28,11 +30,11 @@ describe('createPtpExecutor + postprocessing', () => {
             \`\`\`
 
             -> {greeting}
-         `) as PromptTemplatePipelineString,
+         `) as PromptbookString,
     );
 
-    const ptpExecutor = createPtpExecutor({
-        ptp,
+    const promptbookExecutor = createPromptbookExecutor({
+        promptbook,
         tools: {
             natural: new MockedEchoNaturalExecutionTools({ isVerbose: true }),
             script: [
@@ -54,7 +56,7 @@ describe('createPtpExecutor + postprocessing', () => {
     });
 
     it('should work when every INPUT  PARAMETER defined', () => {
-        expect(ptpExecutor({ yourName: 'Paůl' }, () => {})).resolves.toMatchObject({
+        expect(promptbookExecutor({ yourName: 'Paůl' }, () => {})).resolves.toMatchObject({
             isSuccessful: true,
             errors: [],
             outputParameters: {
@@ -62,7 +64,7 @@ describe('createPtpExecutor + postprocessing', () => {
             },
         });
 
-        expect(ptpExecutor({ yourName: 'Adam' }, () => {})).resolves.toMatchObject({
+        expect(promptbookExecutor({ yourName: 'Adam' }, () => {})).resolves.toMatchObject({
             isSuccessful: true,
             errors: [],
             outputParameters: {
@@ -70,7 +72,7 @@ describe('createPtpExecutor + postprocessing', () => {
             },
         });
 
-        expect(ptpExecutor({ yourName: 'John' }, () => {})).resolves.toMatchObject({
+        expect(promptbookExecutor({ yourName: 'John' }, () => {})).resolves.toMatchObject({
             isSuccessful: true,
             errors: [],
             outputParameters: {
@@ -78,7 +80,7 @@ describe('createPtpExecutor + postprocessing', () => {
             },
         });
 
-        expect(ptpExecutor({ yourName: 'DAVID' }, () => {})).resolves.toMatchObject({
+        expect(promptbookExecutor({ yourName: 'DAVID' }, () => {})).resolves.toMatchObject({
             isSuccessful: true,
             errors: [],
             outputParameters: {

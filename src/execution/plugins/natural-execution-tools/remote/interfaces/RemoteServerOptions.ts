@@ -1,4 +1,4 @@
-import type { PromptTemplatePipelineLibrary } from '../../../../../classes/PromptTemplatePipelineLibrary';
+import type { PromptbookLibrary } from '../../../../../classes/PromptbookLibrary';
 import type { client_id, string_uri } from '../../../../../types/typeAliases';
 import type { CommonExecutionToolsOptions } from '../../../../CommonExecutionToolsOptions';
 import type { NaturalExecutionTools } from '../../../../NaturalExecutionTools';
@@ -18,11 +18,11 @@ export interface RemoteServerOptions extends CommonExecutionToolsOptions {
     readonly path: string_uri;
 
     /**
-     * Prompt template pipeline library to use
+     * Promptbook library to use
      *
      * This is used to checkl validity of the prompt to prevent DDoS
      */
-    readonly ptbkLibrary: PromptTemplatePipelineLibrary;
+    readonly library: PromptbookLibrary;
 
     /**
      * Creates natural execution tools for each client
