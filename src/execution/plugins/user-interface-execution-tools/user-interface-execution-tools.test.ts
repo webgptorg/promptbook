@@ -1,20 +1,20 @@
 import { describe, expect, it } from '@jest/globals';
 import spaceTrim from 'spacetrim';
-import { promptTemplatePipelineStringToJson } from '../../../conversion/promptTemplatePipelineStringToJson';
-import { PromptTemplatePipelineString } from '../../../types/PromptTemplatePipelineString';
+import { promptbookStringToJson } from '../../../conversion/promptbookStringToJson';
+import { PromptbookString } from '../../../types/PromptbookString';
 import { assertsExecutionSuccessful } from '../../assertsExecutionSuccessful';
-import { createPtpExecutor } from '../../createPtpExecutor';
+import { createPromptbookExecutor } from '../../createPromptbookExecutor';
 import { MockedEchoNaturalExecutionTools } from '../natural-execution-tools/mocked/MockedEchoNaturalExecutionTools';
 import { CallbackInterfaceTools } from '../user-interface-execution-tools/callback/CallbackInterfaceTools';
 
-describe('createPtpExecutor + executing user interface prompts in ptp', () => {
-    const ptp = promptTemplatePipelineStringToJson(
+describe('createPromptbookExecutor + executing user interface prompts in promptbook', () => {
+    const promptbook = promptbookStringToJson(
         spaceTrim(`
             # Sample prompt
 
             Show how to use prompt dialog
 
-            -   PTBK VERSION 1.0.0
+            -   PROMPTBOOK VERSION 1.0.0
             -   INPUT  PARAMETER {thing} Any thing to buy
 
             ## Thing
@@ -28,10 +28,10 @@ describe('createPtpExecutor + executing user interface prompts in ptp', () => {
             \`\`\`
 
             -> {favoriteThing}
-         `) as PromptTemplatePipelineString,
+         `) as PromptbookString,
     );
-    const ptpExecutor = createPtpExecutor({
-        ptp,
+    const promptbookExecutor = createPromptbookExecutor({
+        promptbook,
         tools: {
             natural: new MockedEchoNaturalExecutionTools({ isVerbose: true }),
             script: [],
@@ -48,12 +48,12 @@ describe('createPtpExecutor + executing user interface prompts in ptp', () => {
     });
 
     it('should work when every INPUT  PARAMETER defined', () => {
-        expect(ptpExecutor({ thing: 'apple' }, () => {})).resolves.toMatchObject({
+        expect(promptbookExecutor({ thing: 'apple' }, () => {})).resolves.toMatchObject({
             outputParameters: {
                 favoriteThing: 'Answer to question "Thing: What is your favorite apple to buy?" is not apple but Pear.',
             },
         });
-        expect(ptpExecutor({ thing: 'a cup of coffee' }, () => {})).resolves.toMatchObject({
+        expect(promptbookExecutor({ thing: 'a cup of coffee' }, () => {})).resolves.toMatchObject({
             outputParameters: {
                 favoriteThing:
                     'Answer to question "Thing: What is your favorite a cup of coffee to buy?" is not a cup of coffee but Pear.',
@@ -62,12 +62,12 @@ describe('createPtpExecutor + executing user interface prompts in ptp', () => {
     });
 
     it('should fail when some INPUT  PARAMETER is missing', () => {
-        expect(ptpExecutor({}, () => {})).resolves.toMatchObject({
+        expect(promptbookExecutor({}, () => {})).resolves.toMatchObject({
             isSuccessful: false,
             errors: [new Error(`Parameter {thing} is not defined`)],
         });
 
-        expect(() => ptpExecutor({}, () => {}).then(assertsExecutionSuccessful)).rejects.toThrowError(
+        expect(() => promptbookExecutor({}, () => {}).then(assertsExecutionSuccessful)).rejects.toThrowError(
             /Parameter \{thing\} is not defined/,
         );
     });

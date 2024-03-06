@@ -1,8 +1,8 @@
 {
-    "ptbkUrl": "https://ptbk.example.com/samples/language-capabilities.ptbk.md@v1",
+    "promptbookUrl": "https://promptbook.example.com/samples/language-capabilities.ptbk.md@v1",
     "title": "✨ Sample: Nesting",
-    "ptbkUsedVersion": "0.1.0",
-    "ptbkRequestedVersion": "1.0.0",
+    "promptbookUsedVersion": "0.1.0",
+    "promptbookRequestedVersion": "1.0.0",
     "description": "How block are nested in the promptbook",
     "promptExecutions": [
         {

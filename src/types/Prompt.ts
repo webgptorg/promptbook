@@ -1,7 +1,7 @@
 import type {
     string_name,
     string_prompt,
-    string_ptbk_url_with_hashtemplate,
+    string_promptbook_url_with_hashtemplate,
     string_title,
 } from '.././types/typeAliases';
 import type { ModelRequirements } from './ModelRequirements';
@@ -33,16 +33,16 @@ export interface Prompt {
     readonly modelRequirements: ModelRequirements;
 
     /**
-     * Unique identifier of the prompt template pipeline with specific template name as hash
+     * Unique identifier of the promptbook with specific template name as hash
      *
-     * @example https://ptbk.webgpt.com/cs/write-website-content.ptbk.md@v2.4.15#keywords
+     * @example https://promptbook.webgpt.com/cs/write-website-content.ptbk.md@v2.4.15#keywords
      */
-    readonly ptbkUrl: string_ptbk_url_with_hashtemplate;
+    readonly promptbookUrl: string_promptbook_url_with_hashtemplate;
 
     /**
      * Parameters used in the prompt
      *
-     * Note: This is redundant (same information is in ptbkUrl+content) but useful for logging and debugging
+     * Note: This is redundant (same information is in promptbookUrl+content) but useful for logging and debugging
      */
     readonly parameters: Record<string_name, string>;
 }

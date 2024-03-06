@@ -1,6 +1,9 @@
 # ✨ Sample of parsing error
 
-Sample of wrong prompt template pipeline that does not wrap the return parameter in a block.
+Sample of wrong promptbookthat does not wrap the return parameter in a block.
+
+-   MODEL VARIANT Chat
+-   MODEL NAME `gpt-3.5-turbo`
 
 ## 💬 Prompt
 

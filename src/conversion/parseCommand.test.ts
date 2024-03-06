@@ -2,83 +2,121 @@ import { describe, expect, it } from '@jest/globals';
 import { parseCommand } from './parseCommand';
 
 describe('how parseCommand works', () => {
-    it('should parse PTBK_URL command', () => {
-        expect(parseCommand('https://ptbk.webgpt.com/cs/write-website-content.ptbk.md@v1.0.0')).toEqual({
-            type: 'PTBK_URL',
-            ptbkUrl: new URL('https://ptbk.webgpt.com/cs/write-website-content.ptbk.md@v1.0.0'),
+    it('should parse PROMPTBOOK_URL command', () => {
+        expect(parseCommand('https://promptbook.webgpt.com/cs/write-website-content.ptbk.md@v1.0.0')).toEqual({
+            type: 'PROMPTBOOK_URL',
+            promptbookUrl: new URL('https://promptbook.webgpt.com/cs/write-website-content.ptbk.md@v1.0.0'),
         });
-        expect(parseCommand('   https://ptbk.webgpt.com/cs/write-website-content.ptbk.md@v1.0.1        ')).toEqual({
-            type: 'PTBK_URL',
-            ptbkUrl: new URL('https://ptbk.webgpt.com/cs/write-website-content.ptbk.md@v1.0.1'),
+        expect(
+            parseCommand('   https://promptbook.webgpt.com/cs/write-website-content.ptbk.md@v1.0.1        '),
+        ).toEqual({
+            type: 'PROMPTBOOK_URL',
+            promptbookUrl: new URL('https://promptbook.webgpt.com/cs/write-website-content.ptbk.md@v1.0.1'),
         });
-        expect(parseCommand('url https://ptbk.webgpt.com/cs/write-website-content.ptbk.md@v1.0.2')).toEqual({
-            type: 'PTBK_URL',
-            ptbkUrl: new URL('https://ptbk.webgpt.com/cs/write-website-content.ptbk.md@v1.0.2'),
+        expect(parseCommand('url https://promptbook.webgpt.com/cs/write-website-content.ptbk.md@v1.0.2')).toEqual({
+            type: 'PROMPTBOOK_URL',
+            promptbookUrl: new URL('https://promptbook.webgpt.com/cs/write-website-content.ptbk.md@v1.0.2'),
         });
-        expect(parseCommand('URL https://ptbk.webgpt.com/cs/write-website-content.ptbk.md@v1.0.3')).toEqual({
-            type: 'PTBK_URL',
-            ptbkUrl: new URL('https://ptbk.webgpt.com/cs/write-website-content.ptbk.md@v1.0.3'),
+        expect(parseCommand('URL https://promptbook.webgpt.com/cs/write-website-content.ptbk.md@v1.0.3')).toEqual({
+            type: 'PROMPTBOOK_URL',
+            promptbookUrl: new URL('https://promptbook.webgpt.com/cs/write-website-content.ptbk.md@v1.0.3'),
         });
-        expect(parseCommand('ptbkurl https://ptbk.webgpt.com/cs/write-website-content.ptbk.md@v1.0.4')).toEqual({
-            type: 'PTBK_URL',
-            ptbkUrl: new URL('https://ptbk.webgpt.com/cs/write-website-content.ptbk.md@v1.0.4'),
+        expect(
+            parseCommand('promptbookurl https://promptbook.webgpt.com/cs/write-website-content.ptbk.md@v1.0.4'),
+        ).toEqual({
+            type: 'PROMPTBOOK_URL',
+            promptbookUrl: new URL('https://promptbook.webgpt.com/cs/write-website-content.ptbk.md@v1.0.4'),
         });
-        expect(parseCommand('ptbkUrl https://ptbk.webgpt.com/cs/write-website-content.ptbk.md@v1.0.5')).toEqual({
-            type: 'PTBK_URL',
-            ptbkUrl: new URL('https://ptbk.webgpt.com/cs/write-website-content.ptbk.md@v1.0.5'),
+        expect(
+            parseCommand('promptbookUrl https://promptbook.webgpt.com/cs/write-website-content.ptbk.md@v1.0.5'),
+        ).toEqual({
+            type: 'PROMPTBOOK_URL',
+            promptbookUrl: new URL('https://promptbook.webgpt.com/cs/write-website-content.ptbk.md@v1.0.5'),
         });
-        expect(parseCommand('PTBK_URL https://ptbk.webgpt.com/cs/write-website-content.ptbk.md@v1.0.6')).toEqual({
-            type: 'PTBK_URL',
-            ptbkUrl: new URL('https://ptbk.webgpt.com/cs/write-website-content.ptbk.md@v1.0.6'),
+        expect(
+            parseCommand('PROMPTBOOK_URL https://promptbook.webgpt.com/cs/write-website-content.ptbk.md@v1.0.6'),
+        ).toEqual({
+            type: 'PROMPTBOOK_URL',
+            promptbookUrl: new URL('https://promptbook.webgpt.com/cs/write-website-content.ptbk.md@v1.0.6'),
         });
-        expect(parseCommand('PTBK URL https://ptbk.webgpt.com/cs/write-website-content.ptbk.md@v1.0.7')).toEqual({
-            type: 'PTBK_URL',
-            ptbkUrl: new URL('https://ptbk.webgpt.com/cs/write-website-content.ptbk.md@v1.0.7'),
+        expect(
+            parseCommand('PROMPTBOOK URL https://promptbook.webgpt.com/cs/write-website-content.ptbk.md@v1.0.7'),
+        ).toEqual({
+            type: 'PROMPTBOOK_URL',
+            promptbookUrl: new URL('https://promptbook.webgpt.com/cs/write-website-content.ptbk.md@v1.0.7'),
         });
-        expect(parseCommand('url *https://ptbk.webgpt.com/cs/write-website-content.ptbk.md@v1.0.8*')).toEqual({
-            type: 'PTBK_URL',
-            ptbkUrl: new URL('https://ptbk.webgpt.com/cs/write-website-content.ptbk.md@v1.0.8'),
+        expect(parseCommand('url *https://promptbook.webgpt.com/cs/write-website-content.ptbk.md@v1.0.8*')).toEqual({
+            type: 'PROMPTBOOK_URL',
+            promptbookUrl: new URL('https://promptbook.webgpt.com/cs/write-website-content.ptbk.md@v1.0.8'),
         });
-        expect(parseCommand('`https://ptbk.webgpt.com/cs/write-website-content.ptbk.md`')).toEqual({
-            type: 'PTBK_URL',
-            ptbkUrl: new URL('https://ptbk.webgpt.com/cs/write-website-content.ptbk.md'),
+        expect(parseCommand('`https://promptbook.webgpt.com/cs/write-website-content.ptbk.md`')).toEqual({
+            type: 'PROMPTBOOK_URL',
+            promptbookUrl: new URL('https://promptbook.webgpt.com/cs/write-website-content.ptbk.md'),
         });
     });
 
-    it('should fail parsing PTBK_URL command', () => {
-        expect(() => parseCommand('PTBK_URL')).toThrowError(/Invalid PTBK_URL command/i);
+    it('should parse PROMPTBOOK_URL command in shortcut form', () => {
+        expect(parseCommand('ptbkurl https://promptbook.webgpt.com/cs/write-website-content.ptbk.md@v1.0.4')).toEqual({
+            type: 'PROMPTBOOK_URL',
+            promptbookUrl: new URL('https://promptbook.webgpt.com/cs/write-website-content.ptbk.md@v1.0.4'),
+        });
+        expect(parseCommand('ptbkUrl https://promptbook.webgpt.com/cs/write-website-content.ptbk.md@v1.0.5')).toEqual({
+            type: 'PROMPTBOOK_URL',
+            promptbookUrl: new URL('https://promptbook.webgpt.com/cs/write-website-content.ptbk.md@v1.0.5'),
+        });
+        expect(parseCommand('PTBK_URL https://promptbook.webgpt.com/cs/write-website-content.ptbk.md@v1.0.6')).toEqual({
+            type: 'PROMPTBOOK_URL',
+            promptbookUrl: new URL('https://promptbook.webgpt.com/cs/write-website-content.ptbk.md@v1.0.6'),
+        });
+        expect(parseCommand('PTBK URL https://promptbook.webgpt.com/cs/write-website-content.ptbk.md@v1.0.7')).toEqual({
+            type: 'PROMPTBOOK_URL',
+            promptbookUrl: new URL('https://promptbook.webgpt.com/cs/write-website-content.ptbk.md@v1.0.7'),
+        });
+    });
+
+    it('should fail parsing PROMPTBOOK_URL command', () => {
+        expect(() => parseCommand('PROMPTBOOK_URL')).toThrowError(/Invalid PROMPTBOOK_URL command/i);
         expect(() =>
             parseCommand(
-                'URL https://ptbk.webgpt.com/cs/write-website-content.ptbk.md@v1.0.0 https://ptbk.webgpt.com/cs/write-website-content.ptbk.md@v1.0.0',
+                'URL https://promptbook.webgpt.com/cs/write-website-content.ptbk.md@v1.0.0 https://promptbook.webgpt.com/cs/write-website-content.ptbk.md@v1.0.0',
             ),
-        ).toThrowError(/Invalid PTBK_URL command/i);
+        ).toThrowError(/Invalid PROMPTBOOK_URL command/i);
 
         expect(() => parseCommand('url http:^404')).toThrowError(/Invalid URL/i);
 
-        expect(() => parseCommand('url http://ptbk.webgpt.com/cs/write-website-content@v1.0.0')).toThrowError(
+        expect(() => parseCommand('url http://promptbook.webgpt.com/cs/write-website-content@v1.0.0')).toThrowError(
             /Protocol must be HTTPS/i,
         );
 
         expect(() =>
-            parseCommand('url https://ptbk.webgpt.com/cs/write-website-content.ptbk.md@v1.0.0#keywords'),
+            parseCommand('url https://promptbook.webgpt.com/cs/write-website-content.ptbk.md@v1.0.0#keywords'),
         ).toThrowError(/URL must not contain hash/i);
     });
 
-    it('should parse PTBK_VERSION command', () => {
-        expect(parseCommand('ptbk version 1.0.0')).toEqual({
-            type: 'PTBK_VERSION',
-            ptbkVersion: '1.0.0',
+    it('should parse PROMPTBOOK_VERSION command', () => {
+        expect(parseCommand('promptbook version 1.0.0')).toEqual({
+            type: 'PROMPTBOOK_VERSION',
+            promptbookVersion: '1.0.0',
         });
         expect(parseCommand('PTBK version 1.0.0')).toEqual({
-            type: 'PTBK_VERSION',
-            ptbkVersion: '1.0.0',
+            type: 'PROMPTBOOK_VERSION',
+            promptbookVersion: '1.0.0',
+        });
+
+        expect(parseCommand('PTBK version 1.0.0')).toEqual({
+            type: 'PROMPTBOOK_VERSION',
+            promptbookVersion: '1.0.0',
+        });
+        expect(parseCommand('PROMPTBOOK version 1.0.0')).toEqual({
+            type: 'PROMPTBOOK_VERSION',
+            promptbookVersion: '1.0.0',
         });
     });
 
-    it('should fail parsing PTBK_VERSION command', () => {
-        expect(() => parseCommand('PTBK version')).toThrowError(/Invalid PTBK_VERSION command/i);
-        expect(() => parseCommand('PTBK version   ')).toThrowError(/Invalid PTBK_VERSION command/i);
-        // TODO: Also test invalid version in PTBK_VERSION command
+    it('should fail parsing PROMPTBOOK_VERSION command', () => {
+        expect(() => parseCommand('PROMPTBOOK version')).toThrowError(/Invalid PROMPTBOOK_VERSION command/i);
+        expect(() => parseCommand('PROMPTBOOK version   ')).toThrowError(/Invalid PROMPTBOOK_VERSION command/i);
+        // TODO: Also test invalid version in PROMPTBOOK_VERSION command
     });
 
     it('should parse PTBK_URL command', () => {
@@ -157,7 +195,7 @@ describe('how parseCommand works', () => {
             key: 'modelVariant',
             value: 'COMPLETION',
         });
-        expect(parseCommand('MODEL VARIANT COMPLETION   ')).toEqual({
+        expect(parseCommand('MODEL VARIANT Completion   ')).toEqual({
             type: 'MODEL',
             key: 'modelVariant',
             value: 'COMPLETION',

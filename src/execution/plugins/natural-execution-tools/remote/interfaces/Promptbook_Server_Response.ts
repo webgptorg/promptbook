@@ -1,11 +1,11 @@
-import { PromptResult } from '../../../../../execution/PromptResult';
+import { PromptResult } from '../../../../PromptResult';
 
 /**
  * Socket.io error for remote text generation
  *
  * This is sent from server to client when the generated text is completed
  */
-export interface Ptps_Response {
+export interface Promptbook_Server_Response {
     /**
      * The result of the prompt
      */

@@ -25,12 +25,12 @@
 -   Add `EXPECT` command to promptbooks
 -   Add `ExecutionReport`
 -   Add `parseNumber` utility function
--   `PtpExecutor` returns richer result and does not throw, just returns `isSuccessful=false`, You can use `assertsExecutionSuccessful` utility function to check if the execution was successful
+-   `PtbkExecutor` returns richer result and does not throw, just returns `isSuccessful=false`, You can use `assertsExecutionSuccessful` utility function to check if the execution was successful
 -   Add `assertsExecutionSuccessful` utility function
 
 ## 0.25.0 _(2024-02-03)_
 
--   `CreatePtpExecutorSettings` are not mandatory anymore
+-   `CreatePtbkExecutorSettings` are not mandatory anymore
 
 ## 0.26.0 _(2024-02-03)_
 
@@ -39,11 +39,11 @@
 
 ## 0.27.0 _(2024-02-03)_
 
-Moving logic from `promptTemplatePipelineStringToJson` to `createPtpExecutor`
+Moving logic from `promptbookStringToJson` to `createPtbkExecutor`
 
 -   Allow postprocessing and expectations in all execution types
 -   Postprocessing is happening before checking expectations
--   In `PromptTemplatePipelineJson` postprocessing is represented internally in each `PromptTemplateJson` not as separate `PromptTemplateJson`
+-   In `PromptbookJson` postprocessing is represented internally in each `PromptTemplateJson` not as separate `PromptTemplateJson`
 -   Introduce `ExpectError`
 -   Rename `maxNaturalExecutionAttempts` to `maxExecutionAttempts` (because now it is not just for natural execution)
 -   If title in promptbook contains emojis, pass it innto report
@@ -68,11 +68,11 @@ Better execution report in markdown format
 
 ## 0.30.0 _(2024-02-09)_
 
--   Remove `PromptTemplatePipeline` _(just using JSON `PromptTemplatePipelineJson` format)_
-    -   `CreatePtpExecutorOptions` has `PromptTemplatePipelineJson`
+-   Remove `Promptbook` _(just using JSON `PromptbookJson` format)_
+    -   `CreatePtbkExecutorOptions` has `PromptbookJson`
 -   Promptbooks are executed in parallel
     -   `PromptTemplateJson` contains `dependentParameterNames`
-    -   `validatePromptTemplatePipelineJson` is checking for circular dependencies
+    -   `validatePromptbookJson` is checking for circular dependencies
     -   Test that joker is one of the dependent parameters
 
 ## 0.31.0 _(2024-02-12)_
@@ -101,11 +101,39 @@ Export less functions from `@promptbook/utils`
 
 -   Do not remove emojis or formatting from task title in progress
 
-## 0.35.0 _(2024-02-XX)_
+## 0.35.0 _(2024-03-01)_
+
+-   You can use `prettifyMarkdown` for postprocessing
+
+## 0.35.1 _(2024-03-06)_
+
+-   Add Mermaid graph to sample promptbooks
+-   Fix spelling errors in OpenAI error messages
+
+## 0.36.0 _(2024-03-06)_
+
+Cleanup and renaming
+
+-   Cleanup the project
+-   Do not export unused types from `@promptbook/types`
+-   Rename "Prompt template pipelines" to more meaningful "Promptbooks"
+-   Remove `DEFAULT_MODEL_REQUIREMENTS` - You need to explicitly specify the requirements
+-   Rename `PromptTemplatePipelineLibrary` -> `PromptbookLibrary`
+-   Rename `RemoteServerOptions`.`ptbkLibrary` -> `library`
+-   Add `RemoteServerOptions`.`ptbkNames`
+-   Rename `RemoteServerOptions`.`getPtp` -> `getPtbkByName`
+-   Do not use shortcut "Ptbk" but full "Promptbook" name in the code, classes, methods, etc.
+-   Change command `PTBK_URL` to `PROMPTBOOK_URL` _(but keep backward compatibility and preserve alias `PTBK`)_
+-   Change command `PTBK_NAME` to `PROMPTBOOK_NAME` _(but keep backward compatibility and preserve alias `PTBK`)_
+-   Rename `runRemoteServer` -> `startRemoteServer` and return `Destroyable` object
+
+## !!! This branch !!!
 
 Extending promptbooks
 
 <!-- TODO: !!!! Describe in detail -->
+
+---
 
 ## Upcomming
 
