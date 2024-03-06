@@ -14,7 +14,7 @@ export function preserve(
     // Note: NOT calling the function
 
     (async () => {
-        // TODO: !!! Change to forEver
+        // TODO: Change to `await forEver` or something better
         await forTime(100000000);
 
         // [1]

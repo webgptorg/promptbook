@@ -66,12 +66,12 @@ export class OpenAiExecutionTools implements NaturalExecutionTools {
         }
 
         if (!rawResponse.choices[0]) {
-            throw new Error('No choises from OpenAPI');
+            throw new Error('No choises from OpenAI');
         }
 
         if (rawResponse.choices.length > 1) {
             // TODO: This should be maybe only warning
-            throw new Error('More than one choise from OpenAPI');
+            throw new Error('More than one choise from OpenAI');
         }
 
         const resultContent = rawResponse.choices[0].message.content;
@@ -80,7 +80,7 @@ export class OpenAiExecutionTools implements NaturalExecutionTools {
         const usage = computeOpenaiUsage(rawResponse);
 
         if (!resultContent) {
-            throw new Error('No response message from OpenAPI');
+            throw new Error('No response message from OpenAI');
         }
 
         return {
@@ -135,14 +135,13 @@ export class OpenAiExecutionTools implements NaturalExecutionTools {
         }
 
         if (!rawResponse.choices[0]) {
-            throw new Error('No choises from OpenAPI');
+            throw new Error('No choises from OpenAI');
         }
 
         if (rawResponse.choices.length > 1) {
             // TODO: This should be maybe only warning
-            throw new Error('More than one choise from OpenAPI');
+            throw new Error('More than one choise from OpenAI');
         }
-
 
         const resultContent = rawResponse.choices[0].text;
         // eslint-disable-next-line prefer-const
@@ -150,7 +149,7 @@ export class OpenAiExecutionTools implements NaturalExecutionTools {
         const usage = computeOpenaiUsage(rawResponse);
 
         if (!resultContent) {
-            throw new Error('No response message from OpenAPI');
+            throw new Error('No response message from OpenAI');
         }
 
         return {

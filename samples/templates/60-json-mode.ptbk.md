@@ -2,19 +2,40 @@
 
 Trying the language capabilities of GPT models.
 
--   PTBK URL https://ptbk.example.com/samples/json-mode.ptbk.md@v1
--   PTBK VERSION 1.0.0
--   MODEL VARIANT CHAT
+-   PROMPTBOOK URL https://promptbook.example.com/samples/json-mode.ptbk.md@v1
+-   PROMPTBOOK VERSION 1.0.0
+-   MODEL VARIANT Chat
 -   INPUT  PARAM `{unstructuredContacts}` nestrukturovaný seznam kontaktních údajů
 -   OUTPUT PARAM `{contactlist}` JSON seznam kontaktních údajů
 
+<!--Graph-->
+<!-- ⚠️ WARNING: This section was auto-generated -->
+
+```mermaid
+%% 🔮 Tip: Open this on GitHub or in the VSCode website to see the Mermaid graph visually
+
+flowchart LR
+  subgraph "✨ Sample: JSON mode"
+
+      direction TB
+
+      input((Input)):::input
+      templateExtrakceKontaktnChDaj(🖋 Extrakce kontaktních údajů)
+      input--"{unstructuredContacts}"-->templateExtrakceKontaktnChDaj
+
+      classDef input color: grey;
+
+  end;
+```
+
+<!--/Graph-->
+
 ## 🖋 Extrakce kontaktních údajů
 
--   MODEL VARIANT COMPLETION
+-   MODEL VARIANT Completion
 -   MODEL NAME `gpt-3.5-turbo-instruct`
 -   POSTPROCESSING `trimEndOfCodeBlock`
-
-<!-- TODO: !!! Use here JSON mode-->
+-   EXPECT JSON
 
 ```
 Extrahuj kontaktní data z nestrukturovaného seznamu kontaktních údajů

@@ -1,6 +1,6 @@
 #!/usr/bin/env ts-node
 
-import { PromptTemplatePipelineLibrary } from '@promptbook/core';
+import { PromptbookLibrary } from '@promptbook/core';
 import { OpenAiExecutionTools } from '@promptbook/openai';
 import { runRemoteServer } from '@promptbook/remote-server';
 import chalk from 'chalk';
@@ -19,7 +19,7 @@ main();
 async function main() {
     console.info(chalk.bgGray('🔵 Testing remote server of PromptBook'));
 
-    const library = PromptTemplatePipelineLibrary.fromSources(
+    const library = PromptbookLibrary.fromSources(
         {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             advanced: (await readFile('./samples/templates/50-advanced.ptbk.md', 'utf-8')) as any,
@@ -30,23 +30,24 @@ async function main() {
     );
 
     runRemoteServer({
+        path: '/promptbook',
         port: 4460,
-        ptbkLibrary: library,
-        createNaturalExecutionTools(/* clientId */) {
-            // console.log('clientId', clientId);
-            // TODO: !!! Use clientId with logging
+        promptbookLibrary: library,
+        createNaturalExecutionTools(clientId) {
+            console.log('clientId', clientId);
             return new OpenAiExecutionTools({
                 isVerbose: true,
                 openAiApiKey: process.env.OPENAI_API_KEY!,
-                user: 'here-put-user-id',
+                user: clientId,
             });
         },
     });
 }
 
 /**
- * TODO: !!! Identify PTPs by URL
- * TODO: !!! No need to set this script or userInterface in tools
- * TODO: !!! Use PromptTemplatePipelineLibrary.fromDirectory (directory vs folder)
- * TODO: !!! Also sample with Wizzard
+ * TODO: [🈴] Identify PROMPTBOOKs by URL
+ * TODO: There should be no need to set this script or userInterface in tools
+ * TODO: Implement and use here PromptbookLibrary.fromDirectory (directory vs folder)
+ * TODO: Make sample with Wizzard
+ * TODO: [🃏] Pass here some security token to prevent malitious usage and/or DDoS
  */

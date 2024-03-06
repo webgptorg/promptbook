@@ -1,12 +1,13 @@
 import chalk from 'chalk';
+import type { IDestroyable } from 'destroyable';
 import http from 'http';
 import { Server, Socket } from 'socket.io';
 import spaceTrim from 'spacetrim';
-import { PTBK_VERSION } from '../../../../version';
+import { PROMPTBOOK_VERSION } from '../../../../version';
 import { PromptResult } from '../../../PromptResult';
-import { Ptps_Error } from './interfaces/Ptps_Error';
-import { Ptps_Request } from './interfaces/Ptps_Request';
-import { Ptps_Response } from './interfaces/Ptps_Response';
+import { Promptbook_Server_Error } from './interfaces/Promptbook_Server_Error';
+import { Promptbook_Server_Request } from './interfaces/Promptbook_Server_Request';
+import { Promptbook_Server_Response } from './interfaces/Promptbook_Server_Response';
 import { RemoteServerOptions } from './interfaces/RemoteServerOptions';
 
 /**
@@ -17,8 +18,8 @@ import { RemoteServerOptions } from './interfaces/RemoteServerOptions';
  *
  * @see https://github.com/webgptorg/promptbook#remote-server
  */
-export function runRemoteServer(options: RemoteServerOptions) {
-    const { port, path, /* [🎛] ptbkLibrary, */ createNaturalExecutionTools, isVerbose } = options;
+export function startRemoteServer(options: RemoteServerOptions): IDestroyable {
+    const { port, path, /* [🎛] promptbookLibrary, */ createNaturalExecutionTools, isVerbose } = options;
 
     const httpServer = http.createServer({}, (request, response) => {
         if (request.url?.includes('socket.io')) {
@@ -28,13 +29,13 @@ export function runRemoteServer(options: RemoteServerOptions) {
         response.write(
             spaceTrim(`
                 Server for processing promptbook remote requests is running.
-                
-                Version: ${PTBK_VERSION}
+
+                Version: ${PROMPTBOOK_VERSION}
 
                 For more information look at:
                 https://github.com/webgptorg/promptbook
 
-            `), // <- !!!! Put here version from package.json
+            `),
         );
         response.end();
     });
@@ -51,7 +52,7 @@ export function runRemoteServer(options: RemoteServerOptions) {
     server.on('connection', (socket: Socket) => {
         console.info(chalk.gray(`Client connected`), socket.id);
 
-        socket.on('request', async (request: Ptps_Request) => {
+        socket.on('request', async (request: Promptbook_Server_Request) => {
             const { prompt, clientId } = request;
             // TODO: !! Validate here clientId (pass validator as dependency)
 
@@ -62,7 +63,7 @@ export function runRemoteServer(options: RemoteServerOptions) {
             try {
                 const executionToolsForClient = createNaturalExecutionTools(clientId);
 
-                // TODO: [🎛] Check validity of the prompt against ptbkLibrary
+                // TODO: [🎛] Check validity of the prompt against promptbookLibrary
 
                 let promptResult: PromptResult;
                 switch (prompt.modelRequirements.modelVariant) {
@@ -80,13 +81,13 @@ export function runRemoteServer(options: RemoteServerOptions) {
                     console.info(chalk.bgGreen(`PromptResult:`), chalk.green(JSON.stringify(promptResult, null, 4)));
                 }
 
-                socket.emit('response', { promptResult } satisfies Ptps_Response);
+                socket.emit('response', { promptResult } satisfies Promptbook_Server_Response);
             } catch (error) {
                 if (!(error instanceof Error)) {
                     throw error;
                 }
 
-                socket.emit('error', { errorMessage: error.message } satisfies Ptps_Error);
+                socket.emit('error', { errorMessage: error.message } satisfies Promptbook_Server_Error);
             } finally {
                 socket.disconnect();
             }
@@ -103,16 +104,31 @@ export function runRemoteServer(options: RemoteServerOptions) {
     httpServer.listen(port);
 
     // Note: We want to log this also in non-verbose mode
-    console.info(chalk.bgGreen(`PTP server listening on port ${port}`));
+    console.info(chalk.bgGreen(`PROMPTBOOK server listening on port ${port}`));
     if (isVerbose) {
         console.info(chalk.green(`Verbose mode is enabled`));
     }
+
+    let isDestroyed = false;
+
+    return {
+        get isDestroyed() {
+            return isDestroyed;
+        },
+        destroy() {
+            if (isDestroyed) {
+                return;
+            }
+            isDestroyed = true;
+            httpServer.close();
+            server.close();
+        },
+    };
 }
 
 /**
- * TODO: !!! This should be name runRemoteServer OR startRemoteServer and return Destroyable OR Promise<Destroyable>
  * TODO: Handle progress - support streaming
  * TODO: [🤹‍♂️] Do not hang up immediately but wait until client closes OR timeout
  * TODO: [🤹‍♂️] Timeout on chat to free up resources
- * TODO: [🃏] Pass here some security token to prevent DDoS
+ * TODO: [🃏] Pass here some security token to prevent malitious usage and/or DDoS
  */

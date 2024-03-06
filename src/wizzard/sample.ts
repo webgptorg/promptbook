@@ -1,6 +1,6 @@
 import { Wizzard } from './Wizzard';
 
-const { comment } = Wizzard.takeCookbook({ url: 'https://ptbk.example.com/samples/', isLazy: true })
+const { comment } = Wizzard.takeCookbook({ url: 'https://promptbook.example.com/samples/', isLazy: true })
     .useOpenAi({ apiKey: 'sss' })
     .askUserInCallback()
     .askUserInStdio()

@@ -1,6 +1,9 @@
 # ✨ Sample of logic error
 
-Sample of wrong prompt template pipeline with circular parameters dependencies
+Sample of wrong promptbookwith circular parameters dependencies
+
+-   MODEL VARIANT Chat
+-   MODEL NAME `gpt-3.5-turbo`
 
 ## Word 1
 

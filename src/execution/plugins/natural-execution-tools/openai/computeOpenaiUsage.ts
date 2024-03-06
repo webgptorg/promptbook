@@ -5,15 +5,15 @@ export function computeOpenaiUsage(
     rawResponse: Pick<OpenAI.Chat.Completions.ChatCompletion | OpenAI.Completions.Completion, 'model' | 'usage'>,
 ): PromptResult['usage'] {
     if (rawResponse.usage === undefined) {
-        throw new Error('The usage is not defined in the response from OpenAPI');
+        throw new Error('The usage is not defined in the response from OpenAI');
     }
 
     if (rawResponse.usage?.prompt_tokens === undefined) {
-        throw new Error('In OpenAPI response `usage.prompt_tokens` not defined');
+        throw new Error('In OpenAI response `usage.prompt_tokens` not defined');
     }
 
     if (rawResponse.usage?.completion_tokens === undefined) {
-        throw new Error('In OpenAPI response `usage.completion_tokens` not defined');
+        throw new Error('In OpenAI response `usage.completion_tokens` not defined');
     }
 
     const inputTokens = rawResponse.usage.prompt_tokens;
@@ -25,7 +25,7 @@ export function computeOpenaiUsage(
             completion: 0.002,
         },
         'gpt-4-0613': {
-            // TODO: !!! Not sure if this is correct
+            // TODO: Not sure if this is correct
             prompt: 0.01,
             completion: 0.03,
         },

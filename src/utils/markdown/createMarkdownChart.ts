@@ -90,3 +90,8 @@ export function createMarkdownChart(options: CreateMarkdownChartOptions): string
 
     return createMarkdownTable(table) + '\n\n' + legend;
 }
+
+/**
+ * TODO: Maybe use Mermain Gant Diagrams
+ *       @see https://jojozhuang.github.io/tutorial/mermaid-cheat-sheet/
+ */

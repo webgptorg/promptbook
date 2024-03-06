@@ -1,0 +1,176 @@
+{
+    "title": "🌍 Create website content",
+    "promptbookUrl": "https://promptbook.webgpt.com/en/write-website-content.ptbk.md@v0.1.0",
+    "promptbookVersion": "0.0.1",
+    "description": "Instructions for creating web page content.",
+    "parameters": [
+        {
+            "name": "rawTitle",
+            "description": "Automatically suggested a site name or empty text",
+            "isInput": true
+        },
+        {
+            "name": "rawAssigment",
+            "description": "Automatically generated site entry from image recognition",
+            "isInput": true
+        },
+        {
+            "name": "content",
+            "description": "Web content",
+            "isInput": false
+        },
+        {
+            "name": "assigment",
+            "description": "Website assignment and specification",
+            "isInput": false
+        },
+        {
+            "name": "enhancedTitle",
+            "description": "Enhanced title",
+            "isInput": false
+        },
+        {
+            "name": "title",
+            "description": "Title for the website",
+            "isInput": false
+        },
+        {
+            "name": "claim",
+            "description": "Claim for the web",
+            "isInput": false
+        },
+        {
+            "name": "keywords",
+            "description": "Keywords",
+            "isInput": false
+        },
+        {
+            "name": "contentBeginning",
+            "description": "Beginning of web content",
+            "isInput": false
+        },
+        {
+            "name": "contentBody",
+            "description": "Middle of the web content",
+            "isInput": false
+        }
+    ],
+    "promptTemplates": [
+        {
+            "name": "SpecifyingTheAssigment",
+            "title": "👤 Specifying the assigment",
+            "description": "What is your web about?",
+            "dependentParameterNames": [
+                "rawAssigment"
+            ],
+            "executionType": "PROMPT_DIALOG",
+            "modelRequirements": {},
+            "content": "{rawAssigment}",
+            "resultingParameterName": "assigment"
+        },
+        {
+            "name": "ImprovingTheTitle",
+            "title": "✨ Improving the title",
+            "dependentParameterNames": [
+                "rawTitle",
+                "assigment"
+            ],
+            "executionType": "PROMPT_TEMPLATE",
+            "postprocessing": [
+                "unwrapResult"
+            ],
+            "modelRequirements": {
+                "modelVariant": "CHAT",
+                "modelName": "gpt-4"
+            },
+            "content": "As an experienced marketing specialist, you have been entrusted with improving the name of your client's business.\n\nA suggested name from a client:\n\"{rawTitle}\"\n\nAssignment from customer:\n\n> {assigment}\n\n## Instructions:\n\n-   Write only one name suggestion\n-   The name will be used on the website, business cards, visuals, etc.",
+            "resultingParameterName": "enhancedTitle"
+        },
+        {
+            "name": "WebsiteTitleApproval",
+            "title": "👤 Website title approval",
+            "description": "Is the title for your website okay?",
+            "dependentParameterNames": [
+                "enhancedTitle"
+            ],
+            "executionType": "PROMPT_DIALOG",
+            "modelRequirements": {},
+            "content": "{enhancedTitle}",
+            "resultingParameterName": "title"
+        },
+        {
+            "name": "CunningSubtitle",
+            "title": "🐰 Cunning subtitle",
+            "dependentParameterNames": [
+                "title",
+                "assigment"
+            ],
+            "executionType": "PROMPT_TEMPLATE",
+            "postprocessing": [
+                "unwrapResult"
+            ],
+            "modelRequirements": {
+                "modelVariant": "CHAT",
+                "modelName": "gpt-4"
+            },
+            "content": "As an experienced copywriter, you have been entrusted with creating a claim for the \"{title}\" web page.\n\nA website assignment from a customer:\n\n> {assigment}\n\n## Instructions:\n\n-   Write only one name suggestion\n-   Claim will be used on website, business cards, visuals, etc.\n-   Claim should be punchy, funny, original",
+            "resultingParameterName": "claim"
+        },
+        {
+            "name": "KeywordAnalysis",
+            "title": "🚦 Keyword analysis",
+            "dependentParameterNames": [
+                "title",
+                "assigment"
+            ],
+            "executionType": "PROMPT_TEMPLATE",
+            "modelRequirements": {
+                "modelVariant": "CHAT",
+                "modelName": "gpt-4"
+            },
+            "content": "As an experienced SEO specialist, you have been entrusted with creating keywords for the website \"{title}\".\n\nWebsite assignment from the customer:\n\n> {assigment}\n\n## Instructions:\n\n-   Write a list of keywords\n-   Keywords are in basic form\n\n## Example:\n\n-   Ice cream\n-   Olomouc\n-   Quality\n-   Family\n-   Tradition\n-   Italy\n-   Craft\n",
+            "resultingParameterName": "keywords"
+        },
+        {
+            "name": "CombineTheBeginning",
+            "title": "🔗 Combine the beginning",
+            "dependentParameterNames": [
+                "title",
+                "claim"
+            ],
+            "executionType": "SIMPLE_TEMPLATE",
+            "modelRequirements": {},
+            "content": "# {title}\n\n> {claim}\n",
+            "resultingParameterName": "contentBeginning"
+        },
+        {
+            "name": "WriteTheContent",
+            "title": "🖋 Write the content",
+            "dependentParameterNames": [
+                "title",
+                "assigment",
+                "keywords",
+                "contentBeginning"
+            ],
+            "executionType": "PROMPT_TEMPLATE",
+            "modelRequirements": {
+                "modelVariant": "COMPLETION",
+                "modelName": "gpt-3.5-turbo-instruct"
+            },
+            "content": "As an experienced copywriter and web designer, you have been entrusted with creating text for a new website {title}.\n\nA website assignment from a customer:\n\n> {assigment}\n\n## Instructions:\n\n-   Text formatting is in Markdown\n-   Be concise and to the point\n-   Use keywords, but they should be naturally in the text\n-   This is the complete content of the page, so don't forget all the important information and elements the page should contain\n-   Use headings, bullets, text formatting\n\n## Keywords:\n\n{keywords}\n\n## Web Content:\n\n{contentBeginning}",
+            "resultingParameterName": "contentBody"
+        },
+        {
+            "name": "CombineTheContent",
+            "title": "🔗 Combine the content",
+            "dependentParameterNames": [
+                "contentBeginning",
+                "contentBody"
+            ],
+            "executionType": "SIMPLE_TEMPLATE",
+            "modelRequirements": {},
+            "content": "{contentBeginning}\n\n{contentBody}",
+            "resultingParameterName": "content"
+        }
+    ]
+}
