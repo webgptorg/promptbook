@@ -375,7 +375,7 @@ Internally it can have 3 formats:
 Library of prompt template pipelines that groups together prompt template pipelines for an application.
 This is a very thin wrapper around the Array / Set of prompt template pipelines.
 
-Prompt Template Pipeline library is a useful helper in execution, it can be shared between execution and consumer parts of the app and make common knowledge about prompt template pipelines.
+Promptbook library is a useful helper in execution, it can be shared between execution and consumer parts of the app and make common knowledge about prompt template pipelines.
 
 It allows to create executor functions from prompt template pipelines in the library.
 
@@ -445,7 +445,7 @@ There are [postprocessing functions](#postprocessing-functions) that can be used
 
 Executor is a simple async function that takes INPUT  PARAMETERs and returns OUTPUT PARAMETERs _(along with all intermediate parameters and INPUT  PARAMETERs = it extends input object)_.
 
-Executor is made by combining execution tools and prompt template pipeline library.
+Executor is made by combining execution tools and promptbook library.
 It can be done in two ways:
 
 -   From `PromptbookLibrary.getExecutor` method
@@ -557,7 +557,7 @@ npm install --save @promptbook/core @promptbook/wizzard @promptbook/openai @prom
 
 If you have a question [start a discussion](https://github.com/webgptorg/promptbook/discussions/), [open an issue](https://github.com/webgptorg/promptbook/issues) or [write me an email](https://www.pavolhejny.com/contact).
 
-### Why not just use the OpenAI library?
+### Why not just use the OpenAI SDK / Anthropic Claude SDK / ...?
 
 Different levels of abstraction. OpenAI library is for direct use of OpenAI API. This library is for a higher level of abstraction. It is for creating prompt templates and prompt template pipelines that are independent of the underlying library, LLM model, or even LLM provider.
 

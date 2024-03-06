@@ -112,10 +112,14 @@ Export less functions from `@promptbook/utils`
 
 ## 0.36.0 _(2024-03-06)_
 
+Cleanup and renaming
+
 -   Cleanup the project
 -   Do not export unused types from `@promptbook/types`
+-   Rename "Prompt template pipelines" to more meaningful "Promptbooks"
 -   Remove `DEFAULT_MODEL_REQUIREMENTS` - You need to explicitly specify the requirements
 -   Rename `PromptTemplatePipelineLibrary` -> `PromptbookLibrary`
+-   Rename `RemoteServerOptions`.`ptbkLibrary` -> `library`
 
 ## Upcomming
 

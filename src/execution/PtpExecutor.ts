@@ -5,7 +5,7 @@ import type { ExecutionReportJson } from '../types/execution-report/ExecutionRep
 
 /**
  * Executor is a simple async function that takes INPUT  PARAMETERs and returns result parameters _(along with all intermediate parameters and INPUT  PARAMETERs = it extends input object)_.
- * Executor is made by combining execution tools and prompt template pipeline library.
+ * Executor is made by combining execution tools and promptbook library.
  *
  * It can be done in two ways:
  * -   From `PromptbookLibrary.getExecutor` method

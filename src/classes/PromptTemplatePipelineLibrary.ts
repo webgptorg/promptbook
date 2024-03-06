@@ -26,7 +26,7 @@ type PromptbookLibraryOptions = {
 /**
  * Library of prompt template pipelines that groups together prompt template pipelines for an application. This is a very thin wrapper around the Array / Set of prompt template pipelines.
  *
- * Prompt Template Pipeline library is a useful helper in execution, it can be shared between execution and consumer parts of the app and make common knowledge about prompt template pipelines.
+ * Promptbook library is a useful helper in execution, it can be shared between execution and consumer parts of the app and make common knowledge about prompt template pipelines.
  *
  * It allows to create executor functions from prompt template pipelines in the library.
  *

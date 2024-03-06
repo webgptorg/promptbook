@@ -18,11 +18,11 @@ export interface RemoteServerOptions extends CommonExecutionToolsOptions {
     readonly path: string_uri;
 
     /**
-     * Prompt template pipeline library to use
+     * Promptbook library to use
      *
      * This is used to checkl validity of the prompt to prevent DDoS
      */
-    readonly ptbkLibrary: PromptbookLibrary;
+    readonly library: PromptbookLibrary;
 
     /**
      * Creates natural execution tools for each client
