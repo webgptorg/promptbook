@@ -8,7 +8,7 @@ import type { ExecutionReportJson } from '../types/execution-report/ExecutionRep
  * Executor is made by combining execution tools and prompt template pipeline library.
  *
  * It can be done in two ways:
- * -   From `PromptTemplatePipelineLibrary.getExecutor` method
+ * -   From `PromptbookLibrary.getExecutor` method
  * -   `createPtpExecutor` utility function
  *
  * @see https://github.com/webgptorg/promptbook#executor

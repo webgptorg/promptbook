@@ -9,9 +9,9 @@ import { PromptTemplatePipelineJson } from '../types/PromptTemplatePipelineJson/
 import { PromptTemplatePipelineString } from '../types/PromptTemplatePipelineString';
 
 /**
- * Options for PromptTemplatePipelineLibrary
+ * Options for PromptbookLibrary
  */
-type PromptTemplatePipelineLibraryOptions = {
+type PromptbookLibraryOptions = {
     /**
      * The library of prompt template pipelines
      */
@@ -32,7 +32,7 @@ type PromptTemplatePipelineLibraryOptions = {
  *
  * @see https://github.com/webgptorg/promptbook#prompt-template-pipeline-library
  */
-export class PromptTemplatePipelineLibrary {
+export class PromptbookLibrary {
     /**
      * Constructs PromptTemplatePipeline from any sources
      *
@@ -41,12 +41,12 @@ export class PromptTemplatePipelineLibrary {
      *
      * @param ptbkSources contents of .ptbk.md or .ptbk.json files
      * @param settings settings for creating executor functions
-     * @returns PromptTemplatePipelineLibrary
+     * @returns PromptbookLibrary
      */
     public static fromSources(
         ptbkSources: Record<string_name, PromptTemplatePipelineJson | PromptTemplatePipelineString>,
         settings?: Partial<CreatePtpExecutorSettings>,
-    ): PromptTemplatePipelineLibrary {
+    ): PromptbookLibrary {
         const library: Record<string_name, PromptTemplatePipelineJson> = {};
         for (const [name, source] of Object.entries(ptbkSources)) {
             if (typeof source === 'string') {
@@ -58,10 +58,10 @@ export class PromptTemplatePipelineLibrary {
                 library[name] = source;
             }
         }
-        return new PromptTemplatePipelineLibrary({ library, settings });
+        return new PromptbookLibrary({ library, settings });
     }
 
-    private constructor(public readonly options: PromptTemplatePipelineLibraryOptions) {}
+    private constructor(public readonly options: PromptbookLibraryOptions) {}
 
     /**
      * Gets prompt template pipeline by name
@@ -94,14 +94,14 @@ export class PromptTemplatePipelineLibrary {
 
 /**
  * TODO: !!! This should be renamed to Promptbook
- * TODO: !! [👐][🧠] Split of PromptTemplatePipeline,PromptTemplatePipelineLibrary between interface and class
+ * TODO: !! [👐][🧠] Split of PromptTemplatePipeline,PromptbookLibrary between interface and class
  * TODO: !! [👐] Make promptTemplatePipelines private WHEN split between interface and class
  * TODO: [🧠] Maybe isPromptInLibrary should be separate utility function
  * TODO: [🧠] Maybe createExecutor should be separate utility function
  * TODO: Static method fromDirectory
  * TODO: [🤜] Add generic type for entry and result parameters
  * TODO: [🧠] Is it better to ptbkLibrary.executePtp('writeXyz',{...}) OR ptbkLibrary.createExecutor('writeXyz')({...}) OR createExecutor(ptbkLibrary.getPtp('writeXyz'))
- * TODO: [🧠] Formarly (before commit 62229afce7668a5b85077cc18becf798b583bf8d) there were two classes PromptTemplatePipelineLibrary+PtpLibraryExecutor (maybe it was better?)
+ * TODO: [🧠] Formarly (before commit 62229afce7668a5b85077cc18becf798b583bf8d) there were two classes PromptbookLibrary+PtpLibraryExecutor (maybe it was better?)
  * TODO: [🧠] Is it better to pass tools into getExecutor or into constructor
  *             Maybe it is not a good idea to cache executors when they are can be created with different tools
  * TODO: [👧] Strongly type the executors to avoid need of remove nullables whtn noUncheckedIndexedAccess in tsconfig.json

@@ -110,6 +110,13 @@ Export less functions from `@promptbook/utils`
 -   Add Mermaid graph to sample promptbooks
 -   Fix spelling errors in OpenAI error messages
 
+## 0.36.0 _(2024-03-06)_
+
+-   Cleanup the project
+-   Do not export unused types from `@promptbook/types`
+-   Remove `DEFAULT_MODEL_REQUIREMENTS` - You need to explicitly specify the requirements
+-   Rename `PromptTemplatePipelineLibrary` -> `PromptbookLibrary`
+
 ## Upcomming
 
 -   Rename "natural" -> "llm"

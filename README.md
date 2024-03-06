@@ -448,7 +448,7 @@ Executor is a simple async function that takes INPUT  PARAMETERs and returns
 Executor is made by combining execution tools and prompt template pipeline library.
 It can be done in two ways:
 
--   From `PromptTemplatePipelineLibrary.getExecutor` method
+-   From `PromptbookLibrary.getExecutor` method
 -   `createPtpExecutor` utility function
 
 ### 🃏 Jokers
