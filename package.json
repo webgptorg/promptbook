@@ -60,14 +60,15 @@
         "yaml": "2.3.3"
     },
     "dependencies": {
+        "destroyable": "^0.12.26",
         "moment": "^2.30.1",
-        "type-fest": "4.5.0",
         "n12": "1.8.18",
         "openai": "4.2.0",
         "prettier": "2.8.1",
         "socket.io": "4.7.2",
         "socket.io-client": "4.7.2",
         "spacetrim": "0.11.0",
+        "type-fest": "4.5.0",
         "waitasecond": "1.11.33"
     }
 }

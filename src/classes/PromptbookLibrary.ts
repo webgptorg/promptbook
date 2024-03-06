@@ -101,7 +101,6 @@ export class PromptbookLibrary {
 
 /**
  * TODO: [🈴] Identify promptbooks by url `promptbookUrls` + `getPromptbookByUrl`
- * TODO: !!! This should be renamed to Promptbook
  * TODO: !! [👐][🧠] Split of Promptbook,PromptbookLibrary between interface and class
  * TODO: !! [👐] Make promptbooks private WHEN split between interface and class
  * TODO: [🧠] Maybe isPromptInLibrary should be separate utility function

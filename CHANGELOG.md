@@ -125,6 +125,7 @@ Cleanup and renaming
 -   Do not use shortcut "Ptbk" but full "Promptbook" name in the code, classes, methods, etc.
 -   Change command `PTBK_URL` to `PROMPTBOOK_URL` _(but keep backward compatibility and preserve alias `PTBK`)_
 -   Change command `PTBK_NAME` to `PROMPTBOOK_NAME` _(but keep backward compatibility and preserve alias `PTBK`)_
+-   Rename `runRemoteServer` -> `startRemoteServer` and return `Destroyable` object
 
 ## Upcomming
 

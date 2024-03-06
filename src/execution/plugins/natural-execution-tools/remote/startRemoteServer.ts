@@ -1,4 +1,5 @@
 import chalk from 'chalk';
+import type { IDestroyable } from 'destroyable';
 import http from 'http';
 import { Server, Socket } from 'socket.io';
 import spaceTrim from 'spacetrim';
@@ -17,7 +18,7 @@ import { RemoteServerOptions } from './interfaces/RemoteServerOptions';
  *
  * @see https://github.com/webgptorg/promptbook#remote-server
  */
-export function runRemoteServer(options: RemoteServerOptions) {
+export function startRemoteServer(options: RemoteServerOptions): IDestroyable {
     const { port, path, /* [🎛] promptbookLibrary, */ createNaturalExecutionTools, isVerbose } = options;
 
     const httpServer = http.createServer({}, (request, response) => {
@@ -107,10 +108,25 @@ export function runRemoteServer(options: RemoteServerOptions) {
     if (isVerbose) {
         console.info(chalk.green(`Verbose mode is enabled`));
     }
+
+    let isDestroyed = false;
+
+    return {
+        get isDestroyed() {
+            return isDestroyed;
+        },
+        destroy() {
+            if (isDestroyed) {
+                return;
+            }
+            isDestroyed = true;
+            httpServer.close();
+            server.close();
+        },
+    };
 }
 
 /**
- * TODO: !!! This should be name runRemoteServer OR startRemoteServer and return Destroyable OR Promise<Destroyable>
  * TODO: Handle progress - support streaming
  * TODO: [🤹‍♂️] Do not hang up immediately but wait until client closes OR timeout
  * TODO: [🤹‍♂️] Timeout on chat to free up resources
