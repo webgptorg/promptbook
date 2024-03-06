@@ -9,7 +9,7 @@ import { CallbackInterfaceTools } from '../user-interface-execution-tools/callba
 import { JavascriptEvalExecutionTools } from './javascript/JavascriptEvalExecutionTools';
 
 describe('createPtbkExecutor + missing custom function', () => {
-    const ptbk = promptbookStringToJson(
+    const promptbook = promptbookStringToJson(
         spaceTrim(`
             # Custom functions
 
@@ -32,7 +32,7 @@ describe('createPtbkExecutor + missing custom function', () => {
     );
 
     const ptbkExecutor = createPtbkExecutor({
-        ptbk,
+      promptbook,
         tools: {
             natural: new MockedEchoNaturalExecutionTools({ isVerbose: true }),
             script: [

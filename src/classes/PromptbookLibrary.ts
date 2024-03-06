@@ -94,8 +94,8 @@ export class PromptbookLibrary {
      * Gets executor function for given promptbook
      */
     public createExecutor(name: string_name, tools: ExecutionTools): PtbkExecutor {
-        const ptbk = this.getPtbkByName(name);
-        return createPtbkExecutor({ ptbk, tools, settings: this.options.settings });
+        const promptbook = this.getPtbkByName(name);
+        return createPtbkExecutor({ promptbook, tools, settings: this.options.settings });
     }
 }
 

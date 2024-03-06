@@ -8,7 +8,7 @@ import { CallbackInterfaceTools } from '../../user-interface-execution-tools/cal
 import { MockedEchoNaturalExecutionTools } from './MockedEchoNaturalExecutionTools';
 
 describe('createPtbkExecutor + MockedEchoExecutionTools with sample chat prompt', () => {
-    const ptbk = promptbookStringToJson(
+    const promptbook = promptbookStringToJson(
         spaceTrim(`
             # Sample prompt
 
@@ -32,7 +32,7 @@ describe('createPtbkExecutor + MockedEchoExecutionTools with sample chat prompt'
          `) as PromptbookString,
     );
     const ptbkExecutor = createPtbkExecutor({
-        ptbk,
+      promptbook,
         tools: {
             natural: new MockedEchoNaturalExecutionTools({ isVerbose: true }),
             script: [],

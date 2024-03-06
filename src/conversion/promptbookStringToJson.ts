@@ -1,7 +1,6 @@
 import { normalizeTo_PascalCase } from 'n12';
 import spaceTrim from 'spacetrim';
 import { Writable, WritableDeep } from 'type-fest';
-import { DEFAULT_MODEL_REQUIREMENTS } from '../config';
 import { ParameterCommand } from '../types/Command';
 import { ExecutionType } from '../types/ExecutionTypes';
 import { ModelRequirements } from '../types/ModelRequirements';
@@ -120,7 +119,7 @@ export function promptbookStringToJson(promptbookString: PromptbookString): Prom
     }
     ptbJson.description = description;
 
-    const defaultModelRequirements: Writable<ModelRequirements> = { ...DEFAULT_MODEL_REQUIREMENTS };
+    const defaultModelRequirements: Partial<Writable<ModelRequirements>> = {};
     const listItems = extractAllListItemsFromMarkdown(markdownStructure.content);
     for (const listItem of listItems) {
         const command = parseCommand(listItem);
@@ -135,7 +134,6 @@ export function promptbookStringToJson(promptbookString: PromptbookString): Prom
                 break;
 
             case 'MODEL':
-                // @ts-expect-error [🤸‍♂️] No idea why this occurs after adding maxTokens into modelRequirements
                 defaultModelRequirements[command.key] = command.value;
                 break;
 
@@ -153,7 +151,7 @@ export function promptbookStringToJson(promptbookString: PromptbookString): Prom
     for (const section of markdownStructure.sections) {
         // TODO: Parse prompt template description (the content out of the codeblock and lists)
 
-        const templateModelRequirements: Writable<ModelRequirements> = { ...defaultModelRequirements };
+        const templateModelRequirements: Partial<Writable<ModelRequirements>> = { ...defaultModelRequirements };
         const listItems = extractAllListItemsFromMarkdown(section.content);
         let dependentParameterNames: PromptTemplateJson['dependentParameterNames'] = [];
         let executionType: ExecutionType = 'PROMPT_TEMPLATE';
@@ -182,7 +180,6 @@ export function promptbookStringToJson(promptbookString: PromptbookString): Prom
                     break;
 
                 case 'MODEL':
-                    // @ts-expect-error [🤸‍♂️] No idea why this occurs after adding maxTokens into modelRequirements
                     templateModelRequirements[command.key] = command.value;
                     break;
 
@@ -321,6 +318,20 @@ export function promptbookStringToJson(promptbookString: PromptbookString): Prom
 
         dependentParameterNames = [...new Set(dependentParameterNames)];
 
+        if (templateModelRequirements.modelVariant === undefined || templateModelRequirements.modelName === undefined) {
+            throw new Error(
+                spaceTrim(`
+
+                    You must specify MODEL VARIANT and MODEL NAME in the prompt template "${section.title}"
+
+                    For example:
+                    - MODEL VARIANT Chat
+                    - MODEL NAME \`gpt-4-1106-preview\`
+
+                `),
+            );
+        }
+
         ptbJson.promptTemplates.push({
             name: normalizeTo_PascalCase(section.title),
             title: section.title,
@@ -331,7 +342,7 @@ export function promptbookStringToJson(promptbookString: PromptbookString): Prom
             postprocessing,
             expectAmount,
             expectFormat,
-            modelRequirements: templateModelRequirements,
+            modelRequirements: templateModelRequirements as ModelRequirements,
             contentLanguage: executionType === 'SCRIPT' ? (language as ScriptLanguage) : undefined,
             content,
             resultingParameterName,

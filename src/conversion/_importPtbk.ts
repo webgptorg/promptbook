@@ -1,6 +1,6 @@
 import { readFileSync } from 'fs';
 import { join } from 'path';
-import { string_file_path } from '.././types/typeAliases';
+import { string_file_path } from '../types/typeAliases';
 import { PromptbookJson } from '../types/PromptbookJson/PromptbookJson';
 import { PromptbookString } from '../types/PromptbookString';
 

@@ -1,5 +1,5 @@
 import type { Promisable } from 'type-fest';
-import type { string_name } from '.././types/typeAliases';
+import type { string_name } from '../types/typeAliases';
 import type { TaskProgress } from '../types/TaskProgress';
 import type { ExecutionReportJson } from '../types/execution-report/ExecutionReportJson';
 

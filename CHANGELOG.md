@@ -122,6 +122,7 @@ Cleanup and renaming
 -   Rename `RemoteServerOptions`.`ptbkLibrary` -> `library`
 -   Add `RemoteServerOptions`.`ptbkNames`
 -   Rename `RemoteServerOptions`.`getPtp` -> `getPtbkByName`
+-   Do not use shortcut "Ptbk" but full "Promptbook" name in the code, classes, methods, etc.
 
 ## Upcomming
 
