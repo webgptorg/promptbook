@@ -89,6 +89,8 @@ File `write-website-content.ptbk.md`:
 >
 > ## ✨ Improving the title
 >
+> -   MODEL VARIANT Chat
+> -   MODEL NAME `gpt-4`
 > -   POSTPROCESSING `unwrapResult`
 >
 > ```
@@ -123,6 +125,8 @@ File `write-website-content.ptbk.md`:
 >
 > ## 🐰 Cunning subtitle
 >
+> -   MODEL VARIANT Chat
+> -   MODEL NAME `gpt-4`
 > -   POSTPROCESSING `unwrapResult`
 >
 > ```
@@ -142,6 +146,9 @@ File `write-website-content.ptbk.md`:
 > `-> {claim}` Claim for the web
 >
 > ## 🚦 Keyword analysis
+>
+> -   MODEL VARIANT Chat
+> -   MODEL NAME `gpt-4`
 >
 > ```
 > As an experienced SEO specialist, you have been entrusted with creating keywords for the website "{title}".
