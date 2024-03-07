@@ -139,3 +139,7 @@ describe('how createMarkdownChart works', () => {
 
     // TODO: !!!! ## ⌚ Time chart must make sense
 });
+
+/**
+ * TODO: !!!! Make 2 in 1 test mermaid + ASCII chart
+ */
