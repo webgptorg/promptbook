@@ -6,16 +6,19 @@
         {
             "name": "name1",
             "description": "First name or nothing",
-            "isInput": true
+            "isInput": true,
+            "isOutput": false
         },
         {
             "name": "name2",
             "description": "Second name or nothing",
-            "isInput": true
+            "isInput": true,
+            "isOutput": false
         },
         {
             "name": "name",
-            "isInput": false
+            "isInput": false,
+            "isOutput": true
         }
     ],
     "promptTemplates": [

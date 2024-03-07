@@ -7,6 +7,7 @@ Show how to use two consecutive prompts with one parameter each.
 -   MODEL VARIANT Chat
 -   MODEL NAME `gpt-3.5-turbo`
 -   INPUT  PARAMETER `{word}` Any single word
+-   OUTPUT PARAMETER `{sentenceWithTwoSynonyms}`
 
 <!--Graph-->
 <!-- ⚠️ WARNING: This section was auto-generated -->
@@ -26,7 +27,11 @@ flowchart LR
       input--"{word}"-->templateSentence
       templateSynonym--"{wordSynonym}"-->templateSentence
 
+      templateSentence--"{sentenceWithTwoSynonyms}"-->output
+      output((Output)):::output
+
       classDef input color: grey;
+      classDef output color: grey;
 
   end;
 ```

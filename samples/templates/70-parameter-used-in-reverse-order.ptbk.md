@@ -9,6 +9,7 @@ _Note: This is not recommended but it should work_
 -   MODEL VARIANT Chat
 -   MODEL NAME `gpt-3.5-turbo`
 -   INPUT  PARAMETER `{word}` Any single word
+-   OUTPUT PARAMETER `{sentenceWithTwoSynonyms}`
 
 <!--Graph-->
 <!-- ⚠️ WARNING: This section was auto-generated -->
@@ -28,7 +29,11 @@ flowchart LR
       templateSynonym(Synonym)
       input--"{word}"-->templateSynonym
 
+      templateSentence--"{sentenceWithTwoSynonyms}"-->output
+      output((Output)):::output
+
       classDef input color: grey;
+      classDef output color: grey;
 
   end;
 ```

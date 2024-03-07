@@ -7,29 +7,23 @@
         {
             "name": "word",
             "description": "The word to use in the prompt.",
-            "isInput": true
-        },
-        {
-            "name": "comparisonOfTwoSentences",
-            "description": "Comparison between two sentences",
-            "isInput": false
-        },
-        {
-            "name": "summary",
-            "description": "The overall summary of the comparison",
-            "isInput": false
-        },
-        {
-            "name": "wordSynonym",
-            "isInput": false
-        },
-        {
-            "name": "sentence",
-            "isInput": false
+            "isInput": true,
+            "isOutput": false
         },
         {
             "name": "poem",
-            "isInput": false
+            "isInput": false,
+            "isOutput": true
+        },
+        {
+            "name": "wordSynonym",
+            "isInput": false,
+            "isOutput": false
+        },
+        {
+            "name": "sentence",
+            "isInput": false,
+            "isOutput": false
         }
     ],
     "promptTemplates": [

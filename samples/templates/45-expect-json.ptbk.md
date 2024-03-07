@@ -3,6 +3,7 @@
 -   PROMPTBOOK URL https://promptbook.example.com/samples/postprocessing-2.ptbk.md@v1
 -   PROMPTBOOK VERSION 1.0.0
 -   INPUT  PARAMETER {sentence} Sentence to be processed
+-   OUTPUT PARAMETER `{parsedSentence}`
 
 <!--Graph-->
 <!-- ⚠️ WARNING: This section was auto-generated -->
@@ -19,7 +20,11 @@ flowchart LR
       templateQuestion(💬 Question)
       input--"{sentence}"-->templateQuestion
 
+      templateQuestion--"{parsedSentence}"-->output
+      output((Output)):::output
+
       classDef input color: grey;
+      classDef output color: grey;
 
   end;
 ```

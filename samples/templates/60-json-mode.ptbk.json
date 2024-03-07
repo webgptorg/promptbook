@@ -7,12 +7,14 @@
         {
             "name": "unstructuredContacts",
             "description": "nestrukturovaný seznam kontaktních údajů",
-            "isInput": true
+            "isInput": true,
+            "isOutput": false
         },
         {
             "name": "contactlist",
             "description": "JSON seznam kontaktních údajů",
-            "isInput": false
+            "isInput": false,
+            "isOutput": true
         }
     ],
     "promptTemplates": [

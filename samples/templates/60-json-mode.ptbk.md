@@ -23,7 +23,11 @@ flowchart LR
       templateExtrakceKontaktnChDaj(🖋 Extrakce kontaktních údajů)
       input--"{unstructuredContacts}"-->templateExtrakceKontaktnChDaj
 
+      templateExtrakceKontaktnChDaj--"{contactlist}"-->output
+      output((Output)):::output
+
       classDef input color: grey;
+      classDef output color: grey;
 
   end;
 ```

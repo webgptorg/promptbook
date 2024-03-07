@@ -6,9 +6,10 @@ Trying the language capabilities of GPT models.
 -   PROMPTBOOK VERSION 1.0.0
 -   MODEL VARIANT Chat
 -   MODEL NAME `gpt-3.5-turbo`
--   Input  parameter `{word}` The word to use in the prompt.
+-   INPUT  PARAMETER `{word}` The word to use in the prompt.
 -   OUTPUT PARAMETER `{comparisonOfTwoSentences}` Comparison between two sentences
 -   OUTPUT PARAMETER `{summary}` The overall summary of the comparison
+-   OUTPUT PARAMETER `{wordSynonymTested}`
 
 <!--Graph-->
 <!-- ⚠️ WARNING: This section was auto-generated -->
@@ -43,7 +44,13 @@ flowchart LR
       templateSentenceWithoutOriginalWord--"{sentenceWithOriginalWordRemoved}"-->templateSummary
       templateComparison--"{comparisonOfTwoSentences}"-->templateSummary
 
+      templateComparison--"{comparisonOfTwoSentences}"-->output
+      templateSummary--"{summary}"-->output
+      templateTestThatWordIsNotOriginalWord--"{wordSynonymTested}"-->output
+      output((Output)):::output
+
       classDef input color: grey;
+      classDef output color: grey;
 
   end;
 ```

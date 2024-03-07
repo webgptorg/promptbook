@@ -7,6 +7,7 @@ Show how to use a simple prompt with one parameter.
 -   MODEL VARIANT Chat
 -   MODEL NAME `gpt-3.5-turbo`
 -   INPUT  PARAMETER `{word}` Any single word
+-   OUTPUT PARAMETER `{wordSynonym}`
 
 <!--Graph-->
 <!-- ⚠️ WARNING: This section was auto-generated -->
@@ -23,7 +24,11 @@ flowchart LR
       templateSynonym(💬 Synonym)
       input--"{word}"-->templateSynonym
 
+      templateSynonym--"{wordSynonym}"-->output
+      output((Output)):::output
+
       classDef input color: grey;
+      classDef output color: grey;
 
   end;
 ```

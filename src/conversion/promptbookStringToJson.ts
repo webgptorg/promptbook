@@ -50,7 +50,7 @@ export function promptbookStringToJson(promptbookString: PromptbookString): Prom
     // =============================================================
     ///Note: 2️⃣ Function for adding parameters
     const addParam = (parameterCommand: Omit<ParameterCommand, 'type'>) => {
-        const { parameterName, parameterDescription, isInputParameter } = parameterCommand;
+        const { parameterName, parameterDescription, isInput, isOutput } = parameterCommand;
 
         const existingParameter = promptbookJson.parameters.find(
             (parameter: PromptTemplateParameterJson) => parameter.name === parameterName,
@@ -84,7 +84,8 @@ export function promptbookStringToJson(promptbookString: PromptbookString): Prom
             promptbookJson.parameters.push({
                 name: parameterName,
                 description: parameterDescription || undefined,
-                isInput: isInputParameter,
+                isInput,
+                isOutput,
             });
         }
     };

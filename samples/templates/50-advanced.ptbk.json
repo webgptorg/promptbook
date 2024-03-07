@@ -7,35 +7,42 @@
         {
             "name": "word",
             "description": "The word to use in the prompt.",
-            "isInput": true
+            "isInput": true,
+            "isOutput": false
         },
         {
             "name": "comparisonOfTwoSentences",
             "description": "Comparison between two sentences",
-            "isInput": false
+            "isInput": false,
+            "isOutput": true
         },
         {
             "name": "summary",
             "description": "The overall summary of the comparison",
-            "isInput": false
-        },
-        {
-            "name": "wordSynonym",
-            "isInput": false
+            "isInput": false,
+            "isOutput": true
         },
         {
             "name": "wordSynonymTested",
-            "isInput": false
+            "isInput": false,
+            "isOutput": true
+        },
+        {
+            "name": "wordSynonym",
+            "isInput": false,
+            "isOutput": false
         },
         {
             "name": "sentenceWithTwoSynonyms",
             "description": "Sentence with word and wordSynonym",
-            "isInput": false
+            "isInput": false,
+            "isOutput": false
         },
         {
             "name": "sentenceWithOriginalWordRemoved",
             "description": "Sentence with both synomyms but without a original word",
-            "isInput": false
+            "isInput": false,
+            "isOutput": false
         }
     ],
     "promptTemplates": [

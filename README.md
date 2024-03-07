@@ -248,30 +248,34 @@ flowchart LR
       input((Input)):::input
       templateSpecifyingTheAssigment(👤 Specifying the assigment)
       input--"{rawAssigment}"-->templateSpecifyingTheAssigment
-      templateImprovementOfTheWebTitle(✨ Improving the title)
-      input--"{rawTitle}"-->templateImprovementOfTheWebTitle
-      templateSpecifyingTheAssigment--"{assigment}"-->templateImprovementOfTheWebTitle
+      templateImprovingTheTitle(✨ Improving the title)
+      input--"{rawTitle}"-->templateImprovingTheTitle
+      templateSpecifyingTheAssigment--"{assigment}"-->templateImprovingTheTitle
       templateWebsiteTitleApproval(👤 Website title approval)
-      templateImprovementOfTheWebTitle--"{enhancedTitle}"-->templateWebsiteTitleApproval
+      templateImprovingTheTitle--"{enhancedTitle}"-->templateWebsiteTitleApproval
       templateCunningSubtitle(🐰 Cunning subtitle)
       templateWebsiteTitleApproval--"{title}"-->templateCunningSubtitle
       templateSpecifyingTheAssigment--"{assigment}"-->templateCunningSubtitle
       templateKeywordAnalysis(🚦 Keyword analysis)
       templateWebsiteTitleApproval--"{title}"-->templateKeywordAnalysis
       templateSpecifyingTheAssigment--"{assigment}"-->templateKeywordAnalysis
-      templateCreatingTheBeginningOfTheWebsiteContent(🔗 Combine the beginning)
-      templateWebsiteTitleApproval--"{title}"-->templateCreatingTheBeginningOfTheWebsiteContent
-      templateCunningSubtitle--"{claim}"-->templateCreatingTheBeginningOfTheWebsiteContent
-      templateWritingWebContent(🖋 Write the content)
-      templateWebsiteTitleApproval--"{title}"-->templateWritingWebContent
-      templateSpecifyingTheAssigment--"{assigment}"-->templateWritingWebContent
-      templateKeywordAnalysis--"{keywords}"-->templateWritingWebContent
-      templateCreatingTheBeginningOfTheWebsiteContent--"{contentBeginning}"-->templateWritingWebContent
-      templateCombineContent(🔗 Combine the content)
-      templateCreatingTheBeginningOfTheWebsiteContent--"{contentBeginning}"-->templateCombineContent
-      templateWritingWebContent--"{contentBody}"-->templateCombineContent
+      templateCombineTheBeginning(🔗 Combine the beginning)
+      templateWebsiteTitleApproval--"{title}"-->templateCombineTheBeginning
+      templateCunningSubtitle--"{claim}"-->templateCombineTheBeginning
+      templateWriteTheContent(🖋 Write the content)
+      templateWebsiteTitleApproval--"{title}"-->templateWriteTheContent
+      templateSpecifyingTheAssigment--"{assigment}"-->templateWriteTheContent
+      templateKeywordAnalysis--"{keywords}"-->templateWriteTheContent
+      templateCombineTheBeginning--"{contentBeginning}"-->templateWriteTheContent
+      templateCombineTheContent(🔗 Combine the content)
+      templateCombineTheBeginning--"{contentBeginning}"-->templateCombineTheContent
+      templateWriteTheContent--"{contentBody}"-->templateCombineTheContent
+
+      templateCombineTheContent--"{content}"-->output
+      output((Output)):::output
 
       classDef input color: grey;
+      classDef output color: grey;
 
   end;
 ```
@@ -622,9 +626,10 @@ In large language models, you will get better results if you have prompts in the
 
 The best way to manage this is to have suffixed promptbooks like `write-website-content.en.ptbk.md` and `write-website-content.cs.ptbk.md` for each supported language.
 
+<!--
+TODO: (Maybe)
 ### Why you need to explicitly specify input and output parameters?
-
-[🌅]
+-->
 
 ## ⌚ Changelog
 

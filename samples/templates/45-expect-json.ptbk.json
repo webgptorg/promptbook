@@ -6,11 +6,13 @@
         {
             "name": "sentence",
             "description": "Sentence to be processed",
-            "isInput": true
+            "isInput": true,
+            "isOutput": false
         },
         {
             "name": "parsedSentence",
-            "isInput": false
+            "isInput": false,
+            "isOutput": true
         }
     ],
     "promptTemplates": [

@@ -6,11 +6,13 @@
         {
             "name": "yourName",
             "description": "Name of the hero",
-            "isInput": true
+            "isInput": true,
+            "isOutput": false
         },
         {
             "name": "greeting",
-            "isInput": false
+            "isInput": false,
+            "isOutput": true
         }
     ],
     "promptTemplates": [

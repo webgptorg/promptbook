@@ -410,7 +410,14 @@ export function createPromptbookExecutor(options: CreatePromptbookExecutorOption
             };
         }
 
-        // TODO: [🌅] Filter here ONLY output parameters
+        // Note: Filter ONLY output parameters
+        for (const parameter of promptbook.parameters) {
+            if (parameter.isOutput) {
+                continue;
+            }
+
+            delete parametersToPass[parameter.name];
+        }
 
         return {
             isSuccessful: true,

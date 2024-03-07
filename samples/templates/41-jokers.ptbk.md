@@ -6,6 +6,7 @@
 -   MODEL NAME `gpt-3.5-turbo`
 -   INPUT  PARAMETER {name1} First name or nothing
 -   INPUT  PARAMETER {name2} Second name or nothing
+-   OUTPUT PARAMETER `{name}`
 
 <!--Graph-->
 <!-- ⚠️ WARNING: This section was auto-generated -->
@@ -23,7 +24,11 @@ flowchart LR
       input--"{name1}"-->templateQuestion
       input--"{name2}"-->templateQuestion
 
+      templateQuestion--"{name}"-->output
+      output((Output)):::output
+
       classDef input color: grey;
+      classDef output color: grey;
 
   end;
 ```

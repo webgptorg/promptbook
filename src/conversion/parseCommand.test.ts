@@ -198,68 +198,79 @@ describe('how parseCommand works', () => {
     it('should parse PARAMETER command', () => {
         expect(parseCommand('parameter {name} Name for the hero')).toEqual({
             type: 'PARAMETER',
-            isInputParameter: false,
+            isInput: false,
+            isOutput: false,
             parameterName: 'name',
             parameterDescription: 'Name for the hero',
         });
         expect(parseCommand('{name} Name for the hero')).toEqual({
             type: 'PARAMETER',
-            isInputParameter: false,
+            isInput: false,
+            isOutput: false,
             parameterName: 'name',
             parameterDescription: 'Name for the hero',
         });
         expect(parseCommand('> {name} Name for the hero')).toEqual({
             type: 'PARAMETER',
-            isInputParameter: false,
+            isInput: false,
+            isOutput: false,
             parameterName: 'name',
             parameterDescription: 'Name for the hero',
         });
         expect(parseCommand('{name} Input for the hero')).toEqual({
             type: 'PARAMETER',
-            isInputParameter: false,
+            isInput: false,
+            isOutput: false,
             parameterName: 'name',
             parameterDescription: 'Input for the hero',
         });
         expect(parseCommand('input parameter {name} Name for the hero')).toEqual({
             type: 'PARAMETER',
-            isInputParameter: true,
+            isInput: true,
+            isOutput: false,
             parameterName: 'name',
             parameterDescription: 'Name for the hero',
         });
         expect(parseCommand('input parameter {name}')).toEqual({
             type: 'PARAMETER',
-            isInputParameter: true,
+            isInput: true,
+            isOutput: false,
             parameterName: 'name',
             parameterDescription: null,
         });
         expect(parseCommand('input   parameter {name}          ')).toEqual({
             type: 'PARAMETER',
-            isInputParameter: true,
+            isInput: true,
+            isOutput: false,
             parameterName: 'name',
             parameterDescription: null,
         });
 
         expect(parseCommand('OUTPUT parameter {name} Name for the hero')).toEqual({
             type: 'PARAMETER',
-            isInputParameter: false,
+            isInput: false,
+            isOutput: true,
             parameterName: 'name',
             parameterDescription: 'Name for the hero',
         });
         expect(parseCommand('   parameter    {name}        Name for the hero         ')).toEqual({
             type: 'PARAMETER',
-            isInputParameter: false,
+            isInput: false,
+            isOutput: false,
             parameterName: 'name',
             parameterDescription: 'Name for the hero',
         });
         expect(parseCommand('parameter {name} **Name** for the hero')).toEqual({
             type: 'PARAMETER',
-            isInputParameter: false,
+            isInput: false,
+            isOutput: false,
             parameterName: 'name',
             parameterDescription: '**Name** for the hero',
         });
         expect(parseCommand('parameter {name} **Name** for `the` {')).toEqual({
             type: 'PARAMETER',
-            isInputParameter: false,
+            isInput: false,
+            isOutput: false,
             parameterName: 'name',
             parameterDescription: '**Name** for `the` {',
         });

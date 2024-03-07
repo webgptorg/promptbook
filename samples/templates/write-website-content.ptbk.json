@@ -7,52 +7,62 @@
         {
             "name": "rawTitle",
             "description": "Automatically suggested a site name or empty text",
-            "isInput": true
+            "isInput": true,
+            "isOutput": false
         },
         {
             "name": "rawAssigment",
             "description": "Automatically generated site entry from image recognition",
-            "isInput": true
+            "isInput": true,
+            "isOutput": false
         },
         {
             "name": "content",
             "description": "Web content",
-            "isInput": false
+            "isInput": false,
+            "isOutput": true
         },
         {
             "name": "assigment",
             "description": "Website assignment and specification",
-            "isInput": false
+            "isInput": false,
+            "isOutput": false
         },
         {
             "name": "enhancedTitle",
             "description": "Enhanced title",
-            "isInput": false
+            "isInput": false,
+            "isOutput": false
         },
         {
             "name": "title",
             "description": "Title for the website",
-            "isInput": false
+            "isInput": false,
+            "isOutput": false
         },
         {
             "name": "claim",
             "description": "Claim for the web",
-            "isInput": false
+            "isInput": false,
+            "isOutput": false
         },
         {
             "name": "keywords",
             "description": "Keywords",
-            "isInput": false
+            "isInput": false,
+            "isOutput": false
         },
         {
             "name": "contentBeginning",
             "description": "Beginning of web content",
-            "isInput": false
+            "isInput": false,
+            "isOutput": false
         },
         {
             "name": "contentBody",
             "description": "Middle of the web content",
-            "isInput": false
+            "isInput": false,
+            "isOutput": false
         }
     ],
     "promptTemplates": [

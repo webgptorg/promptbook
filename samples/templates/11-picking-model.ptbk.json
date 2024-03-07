@@ -7,11 +7,13 @@
         {
             "name": "word",
             "description": "Any single word",
-            "isInput": true
+            "isInput": true,
+            "isOutput": false
         },
         {
             "name": "poem",
-            "isInput": false
+            "isInput": false,
+            "isOutput": true
         }
     ],
     "promptTemplates": [

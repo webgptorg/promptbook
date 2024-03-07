@@ -5,6 +5,7 @@ Show how to pick exact model
 -   PROMPTBOOK URL https://promptbook.example.com/samples/single.ptbk.md@v1
 -   PROMPTBOOK VERSION 1.0.0
 -   INPUT  PARAMETER `{word}` Any single word
+-   OUTPUT PARAMETER `{poem}`
 
 <!--Graph-->
 <!-- ⚠️ WARNING: This section was auto-generated -->
@@ -21,7 +22,11 @@ flowchart LR
       templateSynonym(💬 Synonym)
       input--"{word}"-->templateSynonym
 
+      templateSynonym--"{poem}"-->output
+      output((Output)):::output
+
       classDef input color: grey;
+      classDef output color: grey;
 
   end;
 ```

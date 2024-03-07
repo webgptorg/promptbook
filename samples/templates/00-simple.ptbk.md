@@ -5,6 +5,7 @@ Show how to use a simple prompt with no parameters.
 -   PROMPTBOOK VERSION 1.0.0
 -   MODEL VARIANT Chat
 -   MODEL NAME `gpt-3.5-turbo`
+-   OUTPUT PARAMETER `{greeting}`
 
 <!--Graph-->
 <!-- ⚠️ WARNING: This section was auto-generated -->
@@ -20,7 +21,11 @@ flowchart LR
       input((Input)):::input
       templatePrompt(💬 Prompt)
 
+      templatePrompt--"{greeting}"-->output
+      output((Output)):::output
+
       classDef input color: grey;
+      classDef output color: grey;
 
   end;
 ```

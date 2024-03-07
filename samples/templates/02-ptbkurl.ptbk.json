@@ -6,7 +6,8 @@
     "parameters": [
         {
             "name": "greeting",
-            "isInput": false
+            "isInput": false,
+            "isOutput": true
         }
     ],
     "promptTemplates": [

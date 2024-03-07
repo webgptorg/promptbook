@@ -127,7 +127,7 @@ Cleanup and renaming
 -   Change command `PTBK_NAME` to `PROMPTBOOK_NAME` _(but keep backward compatibility and preserve alias `PTBK`)_
 -   Rename `runRemoteServer` -> `startRemoteServer` and return `Destroyable` object
 
-## 0.37.0 _(2024-03-07)_
+## 0.37.0 _(2024-03-08)_
 
 Explicit output parameters
 

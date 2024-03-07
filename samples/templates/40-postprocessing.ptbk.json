@@ -7,15 +7,18 @@
         {
             "name": "word",
             "description": "Any single word",
-            "isInput": true
-        },
-        {
-            "name": "wordSynonym",
-            "isInput": false
+            "isInput": true,
+            "isOutput": false
         },
         {
             "name": "sentenceWithTwoSynonyms",
-            "isInput": false
+            "isInput": false,
+            "isOutput": true
+        },
+        {
+            "name": "wordSynonym",
+            "isInput": false,
+            "isOutput": false
         }
     ],
     "promptTemplates": [

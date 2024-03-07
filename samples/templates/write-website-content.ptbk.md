@@ -45,7 +45,11 @@ flowchart LR
       templateCombineTheBeginning--"{contentBeginning}"-->templateCombineTheContent
       templateWriteTheContent--"{contentBody}"-->templateCombineTheContent
 
+      templateCombineTheContent--"{content}"-->output
+      output((Output)):::output
+
       classDef input color: grey;
+      classDef output color: grey;
 
   end;
 ```

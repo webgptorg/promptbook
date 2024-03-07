@@ -6,9 +6,8 @@ How block are nested in the promptbook
 -   PROMPTBOOK VERSION 1.0.0
 -   MODEL VARIANT Chat
 -   MODEL NAME `gpt-3.5-turbo`
--   Input  parameter `{word}` The word to use in the prompt.
--   OUTPUT PARAMETER `{comparisonOfTwoSentences}` Comparison between two sentences
--   OUTPUT PARAMETER `{summary}` The overall summary of the comparison
+-   INPUT  PARAMETER `{word}` The word to use in the prompt.
+-   OUTPUT PARAMETER `{poem}`
 
 <!--Graph-->
 <!-- ⚠️ WARNING: This section was auto-generated -->
@@ -30,7 +29,11 @@ flowchart LR
       templateMakeADocument(Make a document)
       templateSentence--"{sentence}"-->templateMakeADocument
 
+      templateMakeADocument--"{poem}"-->output
+      output((Output)):::output
+
       classDef input color: grey;
+      classDef output color: grey;
 
   end;
 ```

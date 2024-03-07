@@ -21,6 +21,47 @@ export function validatePromptbookJson(promptbook: PromptbookJson): void {
         promptbook.parameters.filter(({ isInput }) => isInput).map(({ name }) => name),
     );
 
+    // Note: Check each parameter individually
+    for (const parameter of promptbook.parameters) {
+        if (parameter.isInput && parameter.isOutput) {
+            throw new Error(`Parameter {${parameter.name}} can not be both input and output`);
+        }
+
+        // Note: Testing that parameter is either intermediate or output BUT not created and unused
+        if (
+            !parameter.isInput &&
+            !parameter.isOutput &&
+            !promptbook.promptTemplates.some((template) => template.dependentParameterNames.includes(parameter.name))
+        ) {
+            throw new Error(
+                spaceTrim(`
+                    Parameter {${parameter.name}} is created but not used
+
+                    You can declare {${parameter.name}} as output parameter by adding in the header:
+                    - OUTPUT PARAMETER \`{${parameter.name}}\` ${parameter.description || ''}
+
+                `),
+            );
+        }
+
+        // Note: Testing that parameter is either input or result of some template
+        if (
+            !parameter.isInput &&
+            !promptbook.promptTemplates.some((template) => template.resultingParameterName === parameter.name)
+        ) {
+            throw new Error(
+                spaceTrim(`
+                    Parameter {${parameter.name}} is declared but not defined
+
+                    You can do one of these:
+                    - Remove declaration of {${parameter.name}}
+                    - Add prompt template that results in -> {${parameter.name}}
+
+                `),
+            );
+        }
+    }
+
     // Note: Check each template individually
     for (const template of promptbook.promptTemplates) {
         if (definedParameters.has(template.resultingParameterName)) {
@@ -75,9 +116,6 @@ export function validatePromptbookJson(promptbook: PromptbookJson): void {
                 }
             }
         }
-
-        // TODO: [🌅]
-        // Note: Testing that parameter is either intermediate or output BUT not created and unused
 
         definedParameters.add(template.resultingParameterName);
     }

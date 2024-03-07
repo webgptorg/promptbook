@@ -75,7 +75,8 @@ export interface JokerCommand {
  */
 export interface ParameterCommand {
     readonly type: 'PARAMETER';
-    readonly isInputParameter: boolean;
+    readonly isInput: boolean;
+    readonly isOutput: boolean;
     readonly parameterName: string_name;
     readonly parameterDescription: string_markdown_text | null;
 }

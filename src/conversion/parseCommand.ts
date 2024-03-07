@@ -245,13 +245,15 @@ export function parseCommand(listItem: string_markdown_text): Command {
             );
         }
 
-        const isInputParameter = type.startsWith('INPUT');
+        const isInput = type.startsWith('INPUT');
+        const isOutput = type.startsWith('OUTPUT');
 
         return {
             type: 'PARAMETER',
             parameterName,
             parameterDescription: parameterDescription.trim() || null,
-            isInputParameter,
+            isInput,
+            isOutput,
         } satisfies ParameterCommand;
     } else if (type.startsWith('JOKER')) {
         if (listItemParts.length !== 2) {

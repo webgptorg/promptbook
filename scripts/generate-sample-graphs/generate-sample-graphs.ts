@@ -90,7 +90,6 @@ async function generateSampleGraphs({ isCommited }: { isCommited: boolean }) {
                           direction TB
 
                           input((Input)):::input
-                          %% [🌅] + Add it into README
                           ${block(
                               promptbookJson.promptTemplates
                                   .flatMap(({ title, dependentParameterNames, resultingParameterName }) => [
@@ -107,7 +106,16 @@ async function generateSampleGraphs({ isCommited }: { isCommited: boolean }) {
                                   .join('\n'),
                           )}
 
+                          ${block(
+                              promptbookJson.parameters
+                                  .filter(({ isOutput }) => isOutput)
+                                  .map(({ name }) => `${parameterNameToTemplateName(name)}--"{${name}}"-->output`)
+                                  .join('\n'),
+                          )}
+                          output((Output)):::output
+
                           classDef input color: grey;
+                          classDef output color: grey;
 
                       end;
 
@@ -153,6 +161,5 @@ async function generateSampleGraphs({ isCommited }: { isCommited: boolean }) {
 }
 
 /**
- * TODO: [🌅] Explicit output parameters
  * TODO: Maybe use some Mermaid library instead of string templating
  */

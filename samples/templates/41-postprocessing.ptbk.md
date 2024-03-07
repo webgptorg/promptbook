@@ -5,6 +5,7 @@
 -   MODEL VARIANT Chat
 -   MODEL NAME `gpt-3.5-turbo`
 -   INPUT  PARAMETER {yourName} Name of the hero
+-   OUTPUT PARAMETER `{greeting}`
 
 <!--Graph-->
 <!-- ⚠️ WARNING: This section was auto-generated -->
@@ -21,7 +22,11 @@ flowchart LR
       templateQuestion(💬 Question)
       input--"{yourName}"-->templateQuestion
 
+      templateQuestion--"{greeting}"-->output
+      output((Output)):::output
+
       classDef input color: grey;
+      classDef output color: grey;
 
   end;
 ```

@@ -13,12 +13,13 @@ export interface PromptTemplateParameterJson {
 
     /**
      * The parameter is input of the pipeline
-     *
-     * Note: OUTPUT PARAMETER is every parameter including input one
      */
     readonly isInput: boolean;
 
-    // [🌅]
+    /**
+     * The parameter is output of the pipeline
+     */
+    readonly isOutput: boolean;
 
     /**
      * Description of the parameter
