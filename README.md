@@ -553,17 +553,10 @@ npm install --save @promptbook/wizzard
 
 -->
 
-### 🔌 Advanced usage
+### 🔌 Usage in Typescript / Javascript
 
-Install all the components:
-
-```bash
-npm install --save @promptbook/core @promptbook/wizzard @promptbook/openai @promptbook/execute-javascript @promptbook/remote-client @promptbook/remote-server @promptbook/utils @promptbook/types
-```
-
-> TODO: !!! Write the remote sample
-
-[Usage samples](./samples/usage/)
+-   [Simple usage](./samples/usage/simple-script)
+-   [Usage with client and remote server](./samples/usage/remote)
 
 ## ❔ FAQ
 
