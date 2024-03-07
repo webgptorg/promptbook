@@ -604,23 +604,23 @@ Logging and monitoring
 
 ### Where should I store my promptbooks?
 
-When you are using raw SDKs, you just Put prompts Inside The code mixed with typescript, javascript, python, whatever. together.
+If you use raw SDKs, you just put prompts in the sourcecode, mixed in with typescript, javascript, python or whatever programming language you use.
 
-When you are using promptbooks, you can store them in multiple places, each with its own advantages and disadvantages:
+If you use promptbooks, you can store them in several places, each with its own advantages and disadvantages:
 
-1. As **source code** which is typically git commited. In this case, you can use the versioning system and the promptbooks will be tightly coupled with the version of the application. You are still leveraging the power of the promptbooks as you are separating the concerns of the prompt engineer and the programmer.
+1. As **source code**, typically git-committed. In this case you can use the versioning system and the promptbooks will be tightly coupled with the version of the application. You still get the power of promptbooks, as you separate the concerns of the prompt-engineer and the programmer.
 
-2. As data in **database** In this case promptbooks are like posts and articles in the blog. They can be modified independently of the application. You don’t need to redeploy the application to change the promptbooks. You can have multiple versions of the promptbooks for each user. You can have a web interface for non-programmers to create and modify promptbooks. But you are losing the versioning system and still you need to have in mind the interface between the promptbooks and the application (= input and output parameters)
+2. As data in a **database** In this case, promptbooks are like posts / articles on the blog. They can be modified independently of the application. You don't need to redeploy the application to change the promptbooks. You can have multiple versions of promptbooks for each user. You can have a web interface for non-programmers to create and modify promptbooks. But you lose the versioning system and you still have to consider the interface between the promptbooks and the application _(= input and output parameters)_.
 
-3. Into a **configuration** in environment variables. This is a good way to store promptbooks if you have app with multiple deployments and you want to have different promptbooks for each deployment and you don’t need to change them often.
+3. In a **configuration** in environment variables. This is a good way to store promptbooks if you have an application with multiple deployments and you want to have different but simple promptbooks for each deployment and you don't need to change them often.
 
 ### What should I do when I need same promptbook in multiple human languages?
 
-Single promptbook can be written for multiple languages at once. But we recommend to have separate promptbooks for each human language.
+A single promptbook can be written for several _(human)_ languages at once. However, we recommend that you have separate promptbooks for each language.
 
-In Large Language Models, you get better results when you have instructions in the same language as the user input.
+In large language models, you will get better results if you have prompts in the same language as the user input.
 
-Best way is to which promptbook to use based on the user's / app language. and have suffixed promptbooks like `write-website-content.en.ptbk.md` and `write-website-content.cs.ptbk.md` for each supported language.
+The best way to manage this is to have suffixed promptbooks like `write-website-content.en.ptbk.md` and `write-website-content.cs.ptbk.md` for each supported language.
 
 ### Why you need to explicitly specify input and output parameters?
 
