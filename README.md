@@ -604,15 +604,23 @@ Logging and monitoring
 
 ### Where should I store my promptbooks?
 
-In other libraries when you are using raw SDKs, you Put fromts Inside The code when you are using from Books You Can separate The concerns and Put The promch in support File Watch is commited
+When you are using raw SDKs, you just Put prompts Inside The code mixed with typescript, javascript, python, whatever. together.
 
-source git commited
+When you are using promptbooks, you can store them in multiple places, each with its own advantages and disadvantages:
 
-data in database
+1. As **source code** which is typically git commited. In this case, you can use the versioning system and the promptbooks will be tightly coupled with the version of the application. You are still leveraging the power of the promptbooks as you are separating the concerns of the prompt engineer and the programmer.
 
-configuration in environment
+2. As data in **database** In this case promptbooks are like posts and articles in the blog. They can be modified independently of the application. You don’t need to redeploy the application to change the promptbooks. You can have multiple versions of the promptbooks for each user. You can have a web interface for non-programmers to create and modify promptbooks. But you are losing the versioning system and still you need to have in mind the interface between the promptbooks and the application (= input and output parameters)
+
+3. Into a **configuration** in environment variables. This is a good way to store promptbooks if you have app with multiple deployments and you want to have different promptbooks for each deployment and you don’t need to change them often.
 
 ### What should I do when I need same promptbook in multiple human languages?
+
+Single promptbook can be written for multiple languages at once. But we recommend to have separate promptbooks for each human language.
+
+In Large Language Models, you get better results when you have instructions in the same language as the user input.
+
+Best way is to which promptbook to use based on the user's / app language. and have suffixed promptbooks like `write-website-content.en.ptbk.md` and `write-website-content.cs.ptbk.md` for each supported language.
 
 ### Why you need to explicitly specify input and output parameters?
 
