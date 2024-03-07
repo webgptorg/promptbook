@@ -73,6 +73,7 @@ File `write-website-content.ptbk.md`:
 > -   INPUT  PARAM `{rawTitle}` Automatically suggested a site name or empty text
 > -   INPUT  PARAM `{rawAssigment}` Automatically generated site entry from image recognition
 > -   OUTPUT PARAM `{content}` Web content
+> -   OUTPUT PARAM `{keywords}` Keywords
 >
 > ## 👤 Specifying the assigment
 >
@@ -356,9 +357,11 @@ It is a simple key-value object.
 
 There are three types of template parameters, depending on how they are used in the promptbook pipeline:
 
--   **INPUT PARAMETERs** are required to execute the pipeline.
+-   **INPUT PARAMETER**s are required to execute the pipeline.
 -   **Intermediate parameters** are used internally in the pipeline.
--   **OUTPUT PARAMETERs** are not used internally in the pipeline, but are returned as the result of the pipeline execution.
+-   **OUTPUT PARAMETER**s are explicitelly marked and they are returned as the result of the pipeline execution.
+
+_Note: Parameter can be both intermedite and output at the same time._
 
 ### Promptbook
 
@@ -563,9 +566,23 @@ Langchain is primarily aimed at ML developers working in Python. This library is
 
 We are considering creating a bridge/converter between these two libraries.
 
-### Promptbooks vsGPTs
+### Promptbooks vs. OpenAI`s GPTs
 
-> ...
+<!--
+TODO: !!!
+### Promptbooks vs. Langtail
+-->
+
+<!--
+TODO: !!!
+### Logging
+
+Evidentally AI
+-->
+
+### Why you need to explicitly specify input and output parameters?
+
+[🌅]
 
 <!--
 Include:

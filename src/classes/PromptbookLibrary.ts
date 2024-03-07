@@ -61,7 +61,12 @@ export class PromptbookLibrary {
         return new PromptbookLibrary({ library, settings });
     }
 
-    private constructor(private readonly options: PromptbookLibraryOptions) {}
+    private constructor(public readonly options: PromptbookLibraryOptions) {
+        //                       <- Note: Options can not be private or protected because of the following error:
+        //                              > Type 'import("node_modules/@promptbook/core/esm/typings/classes/PromptbookLibrary").PromptbookLibrary' is not assignable
+        //                              > to type 'import("node_modules/@promptbook/remote-server/esm/typings/classes/PromptbookLibrary").PromptbookLibrary'.
+        //                              > Types have separate declarations of a private property 'options'.ts(2322)
+    }
 
     /**
      * Gets all promptbooks in the library

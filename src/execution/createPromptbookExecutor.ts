@@ -408,6 +408,8 @@ export function createPromptbookExecutor(options: CreatePromptbookExecutorOption
             };
         }
 
+        // TODO: [🌅] Filter here ONLY output parameters
+
         return {
             isSuccessful: true,
             errors: [],
