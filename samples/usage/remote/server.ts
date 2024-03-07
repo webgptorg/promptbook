@@ -48,6 +48,6 @@ async function main() {
  * TODO: [🈴] Identify PROMPTBOOKs by URL
  * TODO: There should be no need to set this script or userInterface in tools
  * TODO: Implement and use here PromptbookLibrary.fromDirectory (directory vs folder)
- * TODO: Make sample with Wizzard
+ * TODO: [🧙‍♂️] Make sample with Wizzard
  * TODO: [🃏] Pass here some security token to prevent malitious usage and/or DDoS
  */

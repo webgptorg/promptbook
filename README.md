@@ -535,6 +535,10 @@ This is useful to make all logic on browser side but not expose your API keys or
 
 ## 👨‍💻 Usage and integration _(for developers)_
 
+<!--
+
+TODO: [🧙‍♂️]
+
 ### 🧙‍♂️ Using wizzard
 
 First you need to install this library:
@@ -543,9 +547,11 @@ First you need to install this library:
 npm install --save @promptbook/wizzard
 ```
 
-> TODO: !!! Write the Wizzard sample
+> TODO: !! Write the Wizzard sample
 
 [Usage samples](./samples/usage/)
+
+-->
 
 ### 🔌 Advanced usage
 
@@ -625,7 +631,8 @@ See [CHANGELOG.md](./CHANGELOG.md)
 
 ## 🎯 TODOs
 
--   [ ] Make from this folder a separate repository + npm package
+-   [ ][🧙‍♂️] Make Wizzard
+-   [x] Make from this folder a separate repository + npm package
 -   [x] Add tests
 -   [ ] Annotate all entities
 -   [ ] Make internal string aliases

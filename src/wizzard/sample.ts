@@ -27,6 +27,7 @@ const { websiteContent } = recipe.cook();
 console.info({ websiteContent });
 
 /**
+ * TODO: [🧙‍♂️]
 url, sources nebo folder
  * TODO: [🧠] OpenAi apiKey vs token
  */
