@@ -459,16 +459,16 @@ It can be done in two ways:
 
 ### 🃏 Jokers
 
-<!--
-TODO: !!! Write:
+Joker is a previously defined parameter that is used to bypass some parts of the pipeline.
+If the joker is present in the template, it is checked to see if it meets the requirements (without postprocessing), and if so, it is used instead of executing that prompt template. There can be multiple wildcards in a prompt template, if so they are checked in order and the first one that meets the requirements is used.
 
-JOKER {foo}
-no postprocessing just expect
-allow multiple jokers
-require at least 1 min expectation to use jokers
+If none of the jokers meet the requirements, the prompt template is executed as usual.
 
-If theese parameters meet the requirements, they are used instead of executing this prompt template
--->
+This can be useful, for example, if you want to use some predefined data, or if you want to use some data from the user, but you are not sure if it is suitable form.
+
+When using wildcards, you must have at least one minimum expectation. If you do not have a minimum expectation, the joker will always fulfil the expectation because it has none, so it makes no logical sense.
+
+Look at [jokers.ptbk.md](samples/templates/41-jokers.ptbk.md) sample.
 
 ### Postprocessing functions
 
