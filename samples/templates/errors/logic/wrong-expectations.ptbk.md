@@ -4,7 +4,7 @@
 -   PROMPTBOOK VERSION 1.0.0
 -   MODEL VARIANT Chat
 -   MODEL NAME `gpt-3.5-turbo`
--   INPUT  PARAMETER {yourName} Name of the hero or nothing
+-   OUTPUT PARAMETER `{name}`
 
 ## 💬 Question
 

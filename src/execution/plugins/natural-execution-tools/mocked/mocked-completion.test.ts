@@ -17,6 +17,7 @@ describe('createPromptbookExecutor + MockedEchoExecutionTools with sample chat p
             -   PROMPTBOOK VERSION 1.0.0
             -   PROMPTBOOK URL https://example.com/promptbook.json
             -   INPUT  PARAMETER {thing} Any thing to buy
+            -   OUTPUT PARAMETER {response}
 
             ## Prompt
 
@@ -51,7 +52,6 @@ describe('createPromptbookExecutor + MockedEchoExecutionTools with sample chat p
     it('should work when every INPUT  PARAMETER defined', () => {
         expect(promptbookExecutor({ thing: 'a cup of coffee' }, () => {})).resolves.toMatchObject({
             outputParameters: {
-                thing: 'a cup of coffee',
                 response: spaceTrim(`
                     One day I went to the shop and bought a cup of coffee.
                     Now I have a cup of coffee.

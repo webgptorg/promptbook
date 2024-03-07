@@ -17,6 +17,7 @@ describe('createPromptbookExecutor + executing scripts in promptbook', () => {
 
             -   PROMPTBOOK VERSION 1.0.0
             -   INPUT  PARAMETER {thing} Any thing to buy
+            -   OUTPUT PARAMETER {bhing}
 
             ## Execution
 

@@ -16,6 +16,7 @@ describe('createPromptbookExecutor + executing user interface prompts in promptb
 
             -   PROMPTBOOK VERSION 1.0.0
             -   INPUT  PARAMETER {thing} Any thing to buy
+            -   OUTPUT PARAMETER {favoriteThing}
 
             ## Thing
 

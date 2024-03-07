@@ -7,6 +7,7 @@ Show how to pick exact model
 -   MODEL VARIANT Chat
 -   MODEL NAME `gpt-3.5-turbo`
 -   INPUT  PARAMETER `{word}` Any single word
+-   OUTPUT PARAMETER `{poem}`
 
 ## 💬 Synonym
 

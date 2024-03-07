@@ -19,6 +19,7 @@ describe('createPromptbookExecutor + MockedEchoExecutionTools with sample chat p
             -   MODEL VARIANT Chat
             -   MODEL NAME gpt-3.5-turbo
             -   INPUT  PARAMETER {thing} Any thing to buy
+            -   OUTPUT PARAMETER {response}
 
             ## Prompt
 
@@ -58,7 +59,6 @@ describe('createPromptbookExecutor + MockedEchoExecutionTools with sample chat p
                 promptbookUsedVersion: PROMPTBOOK_VERSION,
             },
             outputParameters: {
-                thing: 'a cup of coffee',
                 response: spaceTrim(`
                     You said:
                     One day I went to the shop and bought a cup of coffee.

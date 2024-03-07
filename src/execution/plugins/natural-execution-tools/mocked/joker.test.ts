@@ -14,6 +14,7 @@ describe('createPromptbookExecutor + MockedEchoExecutionTools with sample chat p
             -   MODEL VARIANT Chat
             -   MODEL NAME gpt-3.5-turbo
             -   INPUT  PARAMETER {yourName} Name of the hero or nothing
+            -   OUTPUT PARAMETER {name}
 
             ## 💬 Question
 
@@ -49,7 +50,6 @@ describe('createPromptbookExecutor + MockedEchoExecutionTools with sample chat p
             isSuccessful: true,
             errors: [],
             outputParameters: {
-                yourName: 'Good name',
                 name: 'Good name',
             },
         });
@@ -60,7 +60,6 @@ describe('createPromptbookExecutor + MockedEchoExecutionTools with sample chat p
             isSuccessful: true,
             errors: [],
             outputParameters: {
-                yourName: 'Badname',
                 name: spaceTrim(`
                     You said:
                     Write some name for Badname

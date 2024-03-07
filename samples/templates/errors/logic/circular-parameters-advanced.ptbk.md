@@ -1,9 +1,11 @@
 # ✨ Sample of logic error
 
-Sample of wrong promptbookwith circular parameters dependencies
+Sample of wrong promptbook with circular parameters dependencies
 
 -   MODEL VARIANT Chat
 -   MODEL NAME `gpt-3.5-turbo`
+-   OUTPUT PARAMETER `{word4}`
+-   OUTPUT PARAMETER `{word2antonym}`
 
 ## Word 1
 

@@ -17,6 +17,7 @@ describe('createPromptbookExecutor + custom function with dependencies', () => {
 
             -   PROMPTBOOK VERSION 1.0.0
             -   INPUT  PARAMETER {yourName} Name of the hero
+            -   OUTPUT PARAMETER {greeting}
 
             ## Question
 
