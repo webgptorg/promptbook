@@ -52,11 +52,34 @@ export function createMarkdownChart(options: CreateMarkdownChartOptions): string
     const table: Array<Array<string_markdown_text>> = [[nameHeader, valueHeader]];
 
     for (const item of items) {
-        const before = Math.round((item.from - from) * scale);
-        const during = Math.round((item.to - item.from) * scale);
+        const before = Math.floor((item.from - from) * scale);
+        let duringChar = '█';
+        let during = Math.round((item.to - item.from) * scale);
+
+        if (during === 0) {
+            duringChar = '▓';
+            during = 1;
+        }
+
         const after = width - before - during;
 
-        table.push([removeEmojis(item.title).trim(), '░'.repeat(before) + '█'.repeat(during) + '░'.repeat(after)]);
+        if (before < 0 || during < 0 || after < 0) {
+            console.error(
+                'Problem in createMarkdownChart',
+                { before, during, after },
+                { item, items, table, scale, options },
+                // <- TODO: Error with extra info
+            );
+            throw new Error(
+                //         <- TODO: [🥨] Make some NeverShouldHappenError
+                'Problem in createMarkdownChart, see more in console',
+            );
+        }
+
+        table.push([
+            removeEmojis(item.title).trim(),
+            '░'.repeat(before) + duringChar.repeat(during) + '░'.repeat(after),
+        ]);
     }
 
     const legend = `_Note: Each █ represents ${formatNumber(

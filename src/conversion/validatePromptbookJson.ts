@@ -76,6 +76,9 @@ export function validatePromptbookJson(promptbook: PromptbookJson): void {
             }
         }
 
+        // TODO: [🌅]
+        // Note: Testing that parameter is either intermediate or output BUT not created and unused
+
         definedParameters.add(template.resultingParameterName);
     }
 
