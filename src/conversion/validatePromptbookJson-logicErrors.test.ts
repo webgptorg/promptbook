@@ -14,6 +14,14 @@ describe('validatePromptbookJson', () => {
         }).toThrowError(/Can not resolve some parameters/i);
     });
 
+    it('should fail on creating parameter that is then not used', () => {
+        expect(() => {
+            const promptbookString = importPromptbook('../../samples/templates/errors/logic/unused-parameter.ptbk.md');
+            const promptbookJson = promptbookStringToJson(promptbookString);
+            validatePromptbookJson(promptbookJson);
+        }).toThrowError(/Parameter \{name\} is created but not used/i);
+    });
+
     it('should fail when picked the incompativble combination of model variant and name', () => {
         expect(() => {
             const promptbookString = importPromptbook('../../samples/templates/errors/logic/model-mismatch.ptbk.md');
