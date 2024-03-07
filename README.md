@@ -25,7 +25,7 @@ If you need something more advanced or want to extend the capabilities of LLMs, 
 2. **Prompt-engineer** the prompt to the best shape you can achieve.
 3. Use **multiple prompts** in a pipeline to get the best result.
 
-In any of these situations, but especially in (3), the Promptbook library can make your life easier.
+In any of these situations, but especially in (3), the Promptbook library can make your life easier and make **orchestraror for your prompts**.
 
 -   **Separation of concerns** between prompt engineer and programmer; between code files and prompt files; and between prompts, templates, templating pipelines, and their execution logic.
 -   Set up a **common format** for prompts that is interchangeable between projects and language/technology stacks.
@@ -587,6 +587,25 @@ TODO: !!!
 Evidentally AI
 -->
 
+<!--
+!!!
+
+
+In other libraries when you are using raw SDKs, you Put fromts Inside The code when you are using from Books You Can separate The concerns and Put The promch in support File Watch is commited
+
+
+source git commited
+
+data in database
+
+configuration in environment
+
+-->
+
+<!--
+!!! Translations
+-->
+
 ### Why you need to explicitly specify input and output parameters?
 
 [🌅]
@@ -612,6 +631,7 @@ See [CHANGELOG.md](./CHANGELOG.md)
 -   [ ] Make internal string aliases
 -   [ ] Make branded types instead of pure `string` aliases
 -   [ ] Remove all `any`
+-   [ ][👧] Make strongy typed input+output parameters in executors
 -   [x] Make promptbooks non-linear
 -   [x] Logging pipeline name, version, step,...
 -   [ ][🧠] Wording: "param" vs "parameter" vs "variable" vs "argument"
@@ -631,6 +651,7 @@ See [CHANGELOG.md](./CHANGELOG.md)
 -   [x] Wrap OpenAI billing errors:
 -   [ ] Integrate word stemmer https://github.com/maxpatiiuk/porter-stemming/blob/main/src/index.ts
 -   [ ] Integrate faker to generate simple mocked data
+-   [ ] Scenario: Expect all information (for example in incomming email), when not then return = kinda reverse joker
 
     -   "Billing hard limit has been reached"
     -   "You exceeded your current quota, please check your plan and billing details."

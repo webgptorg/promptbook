@@ -75,7 +75,7 @@ export function createPromptbookExecutor(options: CreatePromptbookExecutorOption
             const title = currentTemplate.title;
             const priority = promptbook.promptTemplates.length - promptbook.promptTemplates.indexOf(currentTemplate);
 
-            if (onProgress) {
+            if (onProgress /* <- [3] */) {
                 await onProgress({
                     name,
                     title,
@@ -84,6 +84,7 @@ export function createPromptbookExecutor(options: CreatePromptbookExecutorOption
                     executionType: currentTemplate.executionType,
                     parameterName: currentTemplate.resultingParameterName,
                     parameterValue: null,
+                    // <- [3]
                 });
             }
 
@@ -343,7 +344,7 @@ export function createPromptbookExecutor(options: CreatePromptbookExecutorOption
                 throw new Error('Something went wrong and prompt result is null');
             }
 
-            if (onProgress) {
+            if (onProgress /* <- [3] */) {
                 onProgress({
                     name,
                     title,
@@ -352,6 +353,7 @@ export function createPromptbookExecutor(options: CreatePromptbookExecutorOption
                     executionType: currentTemplate.executionType,
                     parameterName: currentTemplate.resultingParameterName,
                     parameterValue: resultString,
+                    // <- [3]
                 });
             }
 
@@ -425,4 +427,5 @@ export function createPromptbookExecutor(options: CreatePromptbookExecutorOption
  * TODO: [🧠] When not meet expectations in PROMPT_DIALOG, make some way to tell the user
  * TODO: [👧] Strongly type the executors to avoid need of remove nullables whtn noUncheckedIndexedAccess in tsconfig.json
  * Note: CreatePromptbookExecutorOptions are just connected to PromptbookExecutor so do not extract to types folder
+ * TODO: [🧠][3] transparent = (report intermediate parameters) / opaque execution = (report only output parameters) progress reporting mode
  */
