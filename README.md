@@ -572,26 +572,39 @@ Langchain is primarily aimed at ML developers working in Python. This library is
 
 We are considering creating a bridge/converter between these two libraries.
 
+<!--
+
+==========
+Include:
+- Langchain is the python library and JavaScript is on second place
+- Langchain primarily focused on making templates, not on combining templates into larger structures
+- at the language level it distinguishes between chat and completion, I need to mix the two into one template pipeline
+- for a non-programmer it's quite hard to work with such a thing and write templates - I would much prefer a system that allows non-technical people to write templates (of which there are many more on the market than free pythonists)
+- The focus of promptbooks is primarily on building user applications, not the data processing, training or autogpt.
+-->
+
 ### Promptbooks vs. OpenAI`s GPTs
 
+GPTs are chat assistants that can be assigned to specific tasks and materials. But they are still chat assistants. Promptbooks are a way to orchestrate many more predefined tasks to have much tighter control over the process. Promptbooks are not a good technology for creating human-like chatbots, GPTs are not a good technology for creating outputs with specific requirements.
+
 <!--
-TODO: !!!
+TODO:
 ### Promptbooks vs. Langtail
+
+
 -->
 
 <!--
-TODO: !!!
-### Logging
+TODO:
+### Promptbooks vs. Evidentally AI
 
-Evidentally AI
+Logging and monitoring
+
 -->
 
-<!--
-!!!
-
+### Where should I store my promptbooks?
 
 In other libraries when you are using raw SDKs, you Put fromts Inside The code when you are using from Books You Can separate The concerns and Put The promch in support File Watch is commited
-
 
 source git commited
 
@@ -599,24 +612,11 @@ data in database
 
 configuration in environment
 
--->
-
-<!--
-!!! Translations
--->
+### What should I do when I need same promptbook in multiple human languages?
 
 ### Why you need to explicitly specify input and output parameters?
 
 [🌅]
-
-<!--
-Include:
-- jde naprosto hlavně o python knihovnu a JavaScript je tam na druhém místě
-- je zaměřený primárně na dělání templates ne na spojování templates do větších struktur
-- na úrovni jazyka rozlišuje chat a completion, já potřebuji tyhle dvě věci mixovat do jedné template pipeline
-- pro neprogramátora je docela těžké s takovou věcí pracovat a template psát- já bych měl mnohem radši systém který umožňuje psát šablony i pro netechnické lidi ( kterých je na trhu mnohem více než volných pythonistů)
-- Focus mého projektu je primárně zaměřený na budování uživatelských aplikací, nepředgenerovávání, zpracování dat, tréning či autogpt.
--->
 
 ## ⌚ Changelog
 
