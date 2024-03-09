@@ -160,6 +160,14 @@ Working on **Promptbook Library**. Identify promptbooks by URL.
 -   Make `PromptbookLibrary.listPromptbooks` async method
 -   Make `PromptbookLibrary.getPromptbookByUrl` async method
 
+
+## 0.40.0 _(2024-03-10)_
+
+Custom errors
+
+-   Add `PromptbookLibraryError`
+
+
 ---
 
 ## Upcomming

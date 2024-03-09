@@ -1,6 +1,7 @@
 import spaceTrim from 'spacetrim';
 import { promptbookStringToJson } from '../conversion/promptbookStringToJson';
 import { validatePromptbookJson } from '../conversion/validatePromptbookJson';
+import { NotFoundError } from '../errors/NotFoundError';
 import { CreatePromptbookExecutorSettings } from '../execution/createPromptbookExecutor';
 import type { Prompt } from '../types/Prompt';
 import type { PromptbookJson } from '../types/PromptbookJson/PromptbookJson';
@@ -93,7 +94,7 @@ export class SimplePromptbookLibrary implements PromptbookLibrary {
     public getPromptbookByUrl(url: string_promptbook_url): PromptbookJson {
         const promptbook = this.options.library[url];
         if (!promptbook) {
-            throw new Error(
+            throw new NotFoundError(
                 spaceTrim(
                     (block) => `
                         Promptbook with url "${url}" not found

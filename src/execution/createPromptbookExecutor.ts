@@ -12,7 +12,7 @@ import { isValidJsonString } from '../utils/isValidJsonString';
 import { replaceParameters } from '../utils/replaceParameters';
 import { PROMPTBOOK_VERSION } from '../version';
 import { ExecutionTools } from './ExecutionTools';
-import { ExpectError } from './ExpectError';
+import { ExpectError } from '../errors/ExpectError';
 import type { PromptChatResult, PromptCompletionResult, PromptResult } from './PromptResult';
 import { PromptbookExecutor } from './PromptbookExecutor';
 

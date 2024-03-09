@@ -1,3 +1,5 @@
+import { ExpectError } from '../errors/ExpectError';
+import { NotFoundError } from '../errors/NotFoundError';
 import type { CommonExecutionToolsOptions } from '../execution/CommonExecutionToolsOptions';
 import type { ExecutionTools } from '../execution/ExecutionTools';
 import type { NaturalExecutionTools } from '../execution/NaturalExecutionTools';
@@ -155,6 +157,9 @@ export {
     string_version,
 };
 
+export { ExpectError, NotFoundError };
+
 /**
- * TODO: Delete type aliases that are not exported here
+ * TODO: [🧠] Is this the best package to export custom errors from?
+ * TODO: Delete type aliases (from ../types/typeAliases) that are not exported here
  */

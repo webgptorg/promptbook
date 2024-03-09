@@ -8,7 +8,3 @@ export class ExpectError extends Error {
         Object.setPrototypeOf(this, ExpectError.prototype);
     }
 }
-
-/**
- * TODO: [🧠] Should be this exported from the library
- */
