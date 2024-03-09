@@ -10,6 +10,7 @@ import type {
 import type { PromptbookExecutor } from '../execution/PromptbookExecutor';
 import type { ScriptExecutionTools, ScriptExecutionToolsExecuteOptions } from '../execution/ScriptExecutionTools';
 import type { UserInterfaceTools, UserInterfaceToolsPromptDialogOptions } from '../execution/UserInterfaceTools';
+import { PromptbookLibrary } from '../library/PromptbookLibrary';
 import type { ExecutionType } from '../types/ExecutionTypes';
 import type { ModelRequirements, ModelVariant } from '../types/ModelRequirements';
 import type { Parameters } from '../types/Parameters';
@@ -98,6 +99,7 @@ export {
     PromptTemplateParameterJson,
     PromptbookExecutor,
     PromptbookJson,
+    PromptbookLibrary,
     PromptbookString,
     ScriptExecutionTools,
     ScriptExecutionToolsExecuteOptions,

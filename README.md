@@ -53,7 +53,7 @@ In any of these situations, but especially in (3), the Promptbook library can ma
 
 **P**romp**t** **b**oo**k** markdown file (**PTBK** for short, or `.ptbk.md`) is document that describes a series of prompts that are chained together to form somewhat reciepe for transforming natural language input. Inside a PTBK you can use chat prompts, completion prompts, scripting or trigger interaction with user to ask for additional information.
 
--   Multiple PTBKs forms a library which will become a **part of your application codebase**.
+-   Multiple PTBKs forms a library <!-- TODO: !!! Write better --> which will become a **part of your application codebase**.
 -   Theese pipelines are designed such as they **can be written by non-programmers**.
 
 <!-- TODO: [🧠] Make some more clear escaping -->
@@ -389,6 +389,8 @@ Internally it can have multiple formats:
 
 Library of all promptbooks used in your application.
 
+<!-- TODO: !!! Write more -->
+
 ### Prompt Result
 
 Prompt result is the simplest concept of execution.
@@ -453,13 +455,8 @@ There are [postprocessing functions](#postprocessing-functions) that can be used
 
 ### Executor
 
-Executor is a simple async function that takes INPUT  PARAMETERs and returns OUTPUT PARAMETERs _(along with all intermediate parameters and INPUT  PARAMETERs = it extends input object)_.
-
-Executor is made by combining execution tools and promptbook library.
-It can be done in two ways:
-
--   From `PromptbookLibrary.getExecutor` method
--   `createPromptbookExecutor` utility function
+Executor is a simple async function that takes **input parameters** and returns **output parameters**.
+It is constructed by combining execution tools and promptbook to execute together.
 
 ### 🃏 Jokers
 

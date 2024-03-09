@@ -227,7 +227,7 @@ export type string_url = string;
  *
  * For example `"https://promptbook.webgpt.com/cs/write-website-content.ptbk.md@v2.4.15"`
  */
-export type string_promptbook_url = string;
+export type string_promptbook_url = string;// <- TODO: `${string}.ptbk.md`
 
 /**
  * Semantic helper
@@ -399,16 +399,12 @@ export type string_person_fullname = string;
  */
 export type string_person_profile = string;
 
-
 /**
  * Semantic helper
  *
  * For example `"MIT"`
  */
 export type string_license = string;
-
-
-
 
 /**
  * Semantic helper for attributes

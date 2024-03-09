@@ -114,7 +114,7 @@ export function executionReportJsonToString(
                         hash = '-' + hash;
                     }
 
-                    // TODO: [🈴] Make hash link work in md + pdf
+                    // TODO: Make working hash link for the template in md + pdf
 
                     return `- [${promptExecution.prompt.title}](#${hash})`;
                 })

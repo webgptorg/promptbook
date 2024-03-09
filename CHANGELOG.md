@@ -133,7 +133,7 @@ Explicit output parameters
 
 -   Every promptbook has to have `OUTPUT PARAMETER` property in header
 
-## 0.38.0 _(2024-03-08)_
+## 0.38.0 _(2024-03-09)_
 
 Remove "I" prefix from interfaces and change interfaces to types.
 
@@ -147,6 +147,16 @@ Remove "I" prefix from interfaces and change interfaces to types.
 
 _Note: Keeping "I" prefix in internal tooling like `IEntity`, `IExecCommandOptions`, `IExecCommandOptions`_
 _Note: Also keeping stuff imported from external libraries like `IDestroyable`_
+
+## 0.39.0 _(2024-03-09)_
+
+Working on **Promptbook Library**. Identify promptbooks by URL.
+
+-   Change `PromptbookLibrary` class to interface
+-   Add `SimplePromptbookLibrary` class which implements `PromptbookLibrary`
+-   Rename `PromptbookLibrary.promptbookNames` to `PromptbookLibrary.promptbookUrls`
+-   Remove `PromptbookLibrary.createExecutor` to separate responsibility
+-   Make more renamings and reorganizations in `PromptbookLibrary`
 
 ---
 

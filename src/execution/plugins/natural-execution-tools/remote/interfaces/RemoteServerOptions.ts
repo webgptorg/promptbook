@@ -1,4 +1,4 @@
-import type { PromptbookLibrary } from '../../../../../classes/PromptbookLibrary';
+import type { PromptbookLibrary } from '../../../../../library/PromptbookLibrary';
 import type { client_id, string_uri } from '../../../../../types/typeAliases';
 import type { CommonExecutionToolsOptions } from '../../../../CommonExecutionToolsOptions';
 import type { NaturalExecutionTools } from '../../../../NaturalExecutionTools';
