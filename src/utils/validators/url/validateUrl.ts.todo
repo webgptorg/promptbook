@@ -1,0 +1,14 @@
+import type { string_url } from '../../../types/typeAliases';
+import { isValidUrl } from './isValidUrl';
+
+export function validateUrl(value: unknown): string_url {
+    if (!isValidUrl(value)) {
+        throw new Error(`Invalid url "${value}"`);
+    }
+
+    return value;
+}
+
+/**
+ * TODO: Remove or integrate into system of validators
+ */

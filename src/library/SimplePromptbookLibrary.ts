@@ -46,14 +46,32 @@ export class SimplePromptbookLibrary implements PromptbookLibrary {
     ): SimplePromptbookLibrary {
         const library: Record<string_name, PromptbookJson> = {};
         for (const [name, source] of Object.entries(promptbookSources)) {
+            let promptbook: PromptbookJson;
+
             if (typeof source === 'string') {
                 // Note: When directly creating from string, no need to validate the source
                 //       The validation is performed always before execution
-                library[name] = promptbookStringToJson(source);
+
+                promptbook = promptbookStringToJson(source);
             } else {
-                validatePromptbookJson(source);
-                library[name] = source;
+                promptbook = source;
             }
+            validatePromptbookJson(promptbook);
+
+            if (promptbook.promptbookUrl === undefined) {
+                throw new Error(
+                    spaceTrim(`
+                      Promptbook with name "${name}" does not have defined URL
+
+                      Note: Promptbooks without URLs are called anonymous promptbooks
+                            They can be used as standalone promptbooks, but they cannot be referenced by other promptbooks
+                            And also they cannot be used in the promptbook library
+
+                  `),
+                );
+            }
+
+            library[promptbook.promptbookUrl] = promptbook;
         }
         return new SimplePromptbookLibrary({ library, settings });
     }

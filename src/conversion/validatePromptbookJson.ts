@@ -2,6 +2,7 @@ import spaceTrim from 'spacetrim';
 import type { PromptTemplateJson } from '../types/PromptbookJson/PromptTemplateJson';
 import type { PromptbookJson } from '../types/PromptbookJson/PromptbookJson';
 import type { string_name } from '../types/typeAliases';
+import { isValidUrl } from '../utils/validators/url/isValidUrl';
 
 /**
  * Validates PromptbookJson if it is logically valid.
@@ -17,6 +18,12 @@ import type { string_name } from '../types/typeAliases';
  * @throws {Error} if invalid
  */
 export function validatePromptbookJson(promptbook: PromptbookJson): void {
+    if (promptbook.promptbookUrl !== undefined) {
+        if (!isValidUrl(promptbook.promptbookUrl)) {
+            throw new Error(`Invalid promptbook URL "${promptbook.promptbookUrl}"`);
+        }
+    }
+
     const definedParameters: Set<string> = new Set(
         promptbook.parameters.filter(({ isInput }) => isInput).map(({ name }) => name),
     );
