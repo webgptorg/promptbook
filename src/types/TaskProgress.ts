@@ -4,7 +4,7 @@ import { string_markdown_text, string_name } from './typeAliases';
 /**
  * TaskProgress represents the progress of a Promptbook execution.
  */
-export interface TaskProgress {
+export type TaskProgress = {
     /**
      * The unique name of the task.
      *
@@ -46,4 +46,4 @@ export interface TaskProgress {
      * The parameter value or null if the parameter is not yet processed.
      */
     readonly parameterValue: string | null;
-}
+};

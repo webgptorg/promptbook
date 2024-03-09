@@ -16,14 +16,14 @@ import { ExpectError } from './ExpectError';
 import type { PromptChatResult, PromptCompletionResult, PromptResult } from './PromptResult';
 import { PromptbookExecutor } from './PromptbookExecutor';
 
-export interface CreatePromptbookExecutorSettings {
+export type CreatePromptbookExecutorSettings = {
     /**
      * When executor does not satisfy expectations it will be retried this amount of times
      *
      * @default 3
      */
     readonly maxExecutionAttempts: number;
-}
+};
 
 /**
  * Options for creating a promptbook executor

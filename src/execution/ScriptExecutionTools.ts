@@ -6,14 +6,14 @@ import { ScriptLanguage } from '../types/ScriptLanguage';
  *
  * @see https://github.com/webgptorg/promptbook#script-execution-tools
  */
-export interface ScriptExecutionTools {
+export type ScriptExecutionTools = {
     execute(options: ScriptExecutionToolsExecuteOptions): Promise<string>;
-}
+};
 
 /**
  * Input for the script execution
  */
-export interface ScriptExecutionToolsExecuteOptions {
+export type ScriptExecutionToolsExecuteOptions = {
     /**
      * Language of the script
      */
@@ -35,8 +35,7 @@ export interface ScriptExecutionToolsExecuteOptions {
      * - It can use the parameters as variables and functions from global scope
      */
     script: string_script;
-}
-
+};
 
 /**
  * TODO: [🧠][💙] Distinct between options passed into ExecutionTools and to ExecutionTools.execute

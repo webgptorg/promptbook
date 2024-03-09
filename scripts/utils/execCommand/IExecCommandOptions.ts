@@ -6,11 +6,11 @@ export type IExecCommandOptions =
     | RequiredAndOptional<IExecCommandOptionsAdvanced, 'command', 'args' | 'cwd' | 'crashOnError' | 'timeout'>;
 // TODO: | RequiredAndOptional<IExecCommandOptionsAdvanced, 'commands', 'args' | 'cwd' | 'crashOnError'>;
 
-export interface IExecCommandOptionsAdvanced {
+export type IExecCommandOptionsAdvanced = {
     readonly command: string;
     readonly args: string[];
     // TODO: readonly commands: {command: string, args?: string[]}[];
     readonly cwd: string;
     readonly crashOnError: boolean;
     readonly timeout: number;
-}
+};

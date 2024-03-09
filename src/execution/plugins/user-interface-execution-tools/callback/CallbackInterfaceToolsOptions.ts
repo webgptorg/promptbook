@@ -5,9 +5,9 @@ import { UserInterfaceToolsPromptDialogOptions } from '../../../UserInterfaceToo
 /**
  * Options for CallbackInterfaceTools
  */
-export interface CallbackInterfaceToolsOptions extends CommonExecutionToolsOptions {
+export type CallbackInterfaceToolsOptions = CommonExecutionToolsOptions & {
     /**
      * The callback function to be called when promptDialog is called
      */
     callback(prompt: UserInterfaceToolsPromptDialogOptions): Promisable<string>;
-}
+};

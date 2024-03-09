@@ -135,7 +135,7 @@ Explicit output parameters
 
 ## 0.38.0 _(2024-03-08)_
 
-Remove "I" prefix from interfaces
+Remove "I" prefix from interfaces and change interfaces to types.
 
 -   Rename `IAutomaticTranslator` -> `AutomaticTranslator`
 -   Rename `ITranslatorOptions` -> `TranslatorOptions`

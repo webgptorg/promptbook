@@ -1,9 +1,9 @@
 /**
  * Represents the structure of a markdown file.
- * 
+ *
  * @private within the library
  */
-export interface MarkdownStructure {
+export type MarkdownStructure = {
     /**
      * The section level of the markdown file.
      * h1 is level 1, h2 is level 2, etc.
@@ -25,4 +25,4 @@ export interface MarkdownStructure {
      * The sub-sections of current section which are recursively structured.
      */
     sections: MarkdownStructure[];
-}
+};

@@ -23,11 +23,11 @@ export type PromptCompletionResult = PromptCommonResult;
 /**
  * Prompt chat result
  */
-export interface PromptChatResult extends PromptCommonResult {
+export type PromptChatResult = PromptCommonResult & {
     // TODO: [🤹‍♂️][🧠] Figure out way how to pass thread / previous messages
-}
+};
 
-export interface PromptCommonResult {
+export type PromptCommonResult = {
     /**
      * Exact text response from the model
      */
@@ -84,7 +84,7 @@ export interface PromptCommonResult {
      * Raw response from the model
      */
     readonly rawResponse: object;
-}
+};
 
 /**
  * TODO: [🧠] Maybe timing more accurate then seconds?

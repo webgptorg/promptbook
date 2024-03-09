@@ -5,7 +5,7 @@ import { number_integer, number_positive } from '../types/typeAliases';
  *
  * @see https://github.com/webgptorg/promptbook#user-interface-tools
  */
-export interface UserInterfaceTools {
+export type UserInterfaceTools = {
     /**
      * Asks the user to answer a free-text (multiline) question
      *
@@ -13,9 +13,9 @@ export interface UserInterfaceTools {
      * @returns the answer from the user
      */
     promptDialog(options: UserInterfaceToolsPromptDialogOptions): Promise<string>;
-}
+};
 
-export interface UserInterfaceToolsPromptDialogOptions {
+export type UserInterfaceToolsPromptDialogOptions = {
     /**
      * Prompt title
      *
@@ -48,4 +48,4 @@ export interface UserInterfaceToolsPromptDialogOptions {
      * Note: This would be reflected for example into the UI z-index of the prompt modal
      */
     priority: number_integer & number_positive;
-}
+};

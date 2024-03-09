@@ -11,7 +11,7 @@ import type { ModelRequirements } from './ModelRequirements';
  *
  * @see https://github.com/webgptorg/promptbook#prompt
  */
-export interface Prompt {
+export type Prompt = {
     /**
      * The title of the prompt
      *
@@ -45,7 +45,7 @@ export interface Prompt {
      * Note: This is redundant (same information is in promptbookUrl+content) but useful for logging and debugging
      */
     readonly parameters: Record<string_name, string>;
-}
+};
 
 /**
  * TODO: [✔] Check ModelRequirements in runtime

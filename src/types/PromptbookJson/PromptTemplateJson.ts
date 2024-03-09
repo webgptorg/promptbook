@@ -21,7 +21,7 @@ export type PromptTemplateJson = NaturalTemplateJson | SimpleTemplateJson | Scri
 /**
  * Template for prompt to LLM
  */
-export interface NaturalTemplateJson extends PromptTemplateJsonCommon {
+export type NaturalTemplateJson = PromptTemplateJsonCommon & {
     readonly executionType: 'PROMPT_TEMPLATE';
 
     /**
@@ -29,7 +29,7 @@ export interface NaturalTemplateJson extends PromptTemplateJsonCommon {
      * - This is required only for executionType PROMPT_TEMPLATE
      */
     readonly modelRequirements: ModelRequirements;
-}
+};
 
 /**
  * Units of text measurement

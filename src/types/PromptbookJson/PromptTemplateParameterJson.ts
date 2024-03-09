@@ -3,7 +3,7 @@ import { string_name } from '../typeAliases';
 /**
  * Describes one parameter of the promptbook
  */
-export interface PromptTemplateParameterJson {
+export type PromptTemplateParameterJson = {
     /**
      * Name of the parameter
      * - It must be unique across the pipeline
@@ -26,4 +26,4 @@ export interface PromptTemplateParameterJson {
      * - It can use simple markdown formatting like **bold**, *italic*, [link](https://example.com), ... BUT not code blocks and structure
      */
     readonly description?: string;
-}
+};

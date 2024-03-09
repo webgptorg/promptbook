@@ -4,7 +4,7 @@ import { CommonExecutionToolsOptions } from '../../../CommonExecutionToolsOption
 /**
  * Options for RemoteNaturalExecutionTools
  */
-export interface RemoteNaturalExecutionToolsOptions extends CommonExecutionToolsOptions {
+export type RemoteNaturalExecutionToolsOptions = CommonExecutionToolsOptions & {
     /**
      * URL of the remote PROMPTBOOK server
      * On this server will be connected to the socket.io server
@@ -23,4 +23,4 @@ export interface RemoteNaturalExecutionToolsOptions extends CommonExecutionTools
      * Your client ID
      */
     readonly clientId: client_id;
-}
+};

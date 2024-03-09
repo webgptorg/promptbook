@@ -13,7 +13,7 @@ import type { string_name } from '../types/typeAliases';
  *
  * @see https://github.com/webgptorg/promptbook#executor
  */
-export interface PromptbookExecutor {
+export type PromptbookExecutor = {
     (
         inputParameters: Record<string_name, string>,
         onProgress: (taskProgress: TaskProgress) => Promisable<void>,
@@ -40,7 +40,7 @@ export interface PromptbookExecutor {
          */
         outputParameters: Record<string_name, string>;
     }>;
-}
+};
 
 /**
  * TODO: [🧠] Should this file be in /execution or /types folder?

@@ -8,7 +8,7 @@ import { PromptChatResult, PromptCompletionResult } from './PromptResult';
  *
  * @see https://github.com/webgptorg/promptbook#natural-execution-tools
  */
-export interface NaturalExecutionTools {
+export type NaturalExecutionTools = {
     /**
      * Use a chat model
      */
@@ -18,7 +18,7 @@ export interface NaturalExecutionTools {
      * Use a completion model
      */
     gptComplete(prompt: Prompt): Promise<PromptCompletionResult>;
-}
+};
 
 /**
  * TODO: [🏳] gptChat -> chat, gptComplete -> complete, translate

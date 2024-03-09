@@ -4,7 +4,7 @@ import { CommonExecutionToolsOptions } from '../../../CommonExecutionToolsOption
 /**
  * Options for OpenAiExecutionTools
  */
-export interface OpenAiExecutionToolsOptions extends CommonExecutionToolsOptions {
+export type OpenAiExecutionToolsOptions = CommonExecutionToolsOptions & {
     /**
      * OpenAI API key
      */
@@ -15,4 +15,4 @@ export interface OpenAiExecutionToolsOptions extends CommonExecutionToolsOptions
      * and detect abuse. [Learn more](/docs/guides/safety-best-practices/end-user-ids).
      */
     user?: string_token;
-}
+};

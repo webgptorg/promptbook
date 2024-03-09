@@ -6,7 +6,7 @@ import { AutomaticTranslator } from './AutomaticTranslator';
 import { TranslatorOptions } from './TranslatorOptions';
 import { extractMultiplicatedOccurrence } from './utils/extractMultiplicatedOccurrence';
 
-export interface GoogleAutomaticTranslatorOptions extends TranslatorOptions {
+export type GoogleAutomaticTranslatorOptions = TranslatorOptions & {
     isHeadless?: boolean;
 }
 export class GoogleAutomaticTranslator implements AutomaticTranslator {

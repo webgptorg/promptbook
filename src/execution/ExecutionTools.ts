@@ -7,7 +7,7 @@ import { UserInterfaceTools } from './UserInterfaceTools';
  *
  * @see https://github.com/webgptorg/promptbook#execution-tools
  */
-export interface ExecutionTools {
+export type ExecutionTools = {
     /**
      * Tools for executing prompts to large language models like GPT-4
      */
@@ -25,4 +25,4 @@ export interface ExecutionTools {
      * Tools for interacting with the user
      */
     userInterface: UserInterfaceTools;
-}
+};

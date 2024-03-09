@@ -4,7 +4,7 @@ import type { uuid } from '../../../utils/typeAliases';
 /**
  * Options for SupabaseLoggerWrapperOfNaturalExecutionTools
  */
-export interface SupabaseLoggerWrapperOfNaturalExecutionToolsOptions extends CommonExecutionToolsOptions {
+export type SupabaseLoggerWrapperOfNaturalExecutionToolsOptions = CommonExecutionToolsOptions & {
     /**
      * Execution tools to use
      * Theese tools will be wrapped in a logger for each client to log all requests

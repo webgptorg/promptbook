@@ -8,7 +8,7 @@ import { PromptTemplateParameterJson } from './PromptTemplateParameterJson';
  *
  * @see https://github.com/webgptorg/promptbook#promptbook
  */
-export interface PromptbookJson {
+export type PromptbookJson = {
     /**
      * Unique identifier of the promptbook
      *
@@ -46,7 +46,7 @@ export interface PromptbookJson {
      * Sequence of prompt templates that are chained together to form a pipeline
      */
     readonly promptTemplates: Array<PromptTemplateJson>;
-}
+};
 
 /**
  * TODO: [🧠] Best format of this code?

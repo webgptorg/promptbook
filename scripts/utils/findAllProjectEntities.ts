@@ -3,29 +3,22 @@ import { readAllProjectFiles } from './readAllProjectFiles';
 /**
  * All possible entity types in javascript and typescript
  */
-type IEntityType =
-    | 'const'
-    | 'let'
-    | 'class'
-    | 'function'
-    | 'interface'
-    | 'type' /* <- TODO: More */;
+type IEntityType = 'const' | 'let' | 'class' | 'function' | 'interface' | 'type' /* <- TODO: More */;
 
 /**
  *  Metadata of entity in javascript and typescript
  */
-export interface IEntity {
+export type IEntity = {
     filePath: string;
     type: IEntityType;
     name: string;
     anotation?: string;
     tags: string[];
     // TODO: Detect other things like abstract, async...
-}
+};
 
 export async function findAllProjectEntities(): Promise<IEntity[]> {
     const files = await readAllProjectFiles();
-
 
     const entitities: IEntity[] = [];
     for (const file of files) {
@@ -34,9 +27,7 @@ export async function findAllProjectEntities(): Promise<IEntity[]> {
         )) {
             const { type, name, anotation } = match.groups!;
 
-            const tags = Array.from(
-                anotation?.match(/@([a-zA-Z0-9_-]+)*/g) || [],
-            );
+            const tags = Array.from(anotation?.match(/@([a-zA-Z0-9_-]+)*/g) || []);
 
             entitities.push({
                 filePath: file.path,

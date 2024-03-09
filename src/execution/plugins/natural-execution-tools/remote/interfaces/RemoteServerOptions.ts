@@ -3,7 +3,7 @@ import type { client_id, string_uri } from '../../../../../types/typeAliases';
 import type { CommonExecutionToolsOptions } from '../../../../CommonExecutionToolsOptions';
 import type { NaturalExecutionTools } from '../../../../NaturalExecutionTools';
 
-export interface RemoteServerOptions extends CommonExecutionToolsOptions {
+export type RemoteServerOptions = CommonExecutionToolsOptions & {
     /**
      * Port on which the server will listen
      */
@@ -28,4 +28,4 @@ export interface RemoteServerOptions extends CommonExecutionToolsOptions {
      * Creates natural execution tools for each client
      */
     createNaturalExecutionTools(clientId: client_id): NaturalExecutionTools /* <- TODO: &({}|IDestroyable) */;
-}
+};
