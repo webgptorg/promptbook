@@ -12,7 +12,7 @@ export type PromptbookLibrary = {
     /**
      * Gets all promptbooks in the library
      */
-    listPromptbooks(): Array<string_promptbook_url>;
+    listPromptbooks(): Promisable<Array<string_promptbook_url>>;
 
     /**
      * Gets promptbook by its URL
