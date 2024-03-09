@@ -1,6 +1,6 @@
-import { IAutomaticTranslator } from './IAutomaticTranslator';
+import { AutomaticTranslator } from './AutomaticTranslator';
 
-export class FakeAutomaticTranslator implements IAutomaticTranslator {
+export class FakeAutomaticTranslator implements AutomaticTranslator {
     public constructor() {}
 
     public translate(message: string): string {

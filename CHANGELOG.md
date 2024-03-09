@@ -133,6 +133,21 @@ Explicit output parameters
 
 -   Every promptbook has to have `OUTPUT PARAMETER` property in header
 
+## 0.38.0 _(2024-03-08)_
+
+Remove "I" prefix from interfaces
+
+-   Rename `IAutomaticTranslator` -> `AutomaticTranslator`
+-   Rename `ITranslatorOptions` -> `TranslatorOptions`
+-   Rename `IGoogleAutomaticTranslatorOptions` -> `GoogleAutomaticTranslatorOptions`
+-   Rename `ILindatAutomaticTranslatorOptions` -> `LindatAutomaticTranslatorOptions`
+-   Remove unused `IPersonProfile`
+-   Remove unused `ILicense`
+-   Remove unused `IRepository`
+
+_Note: Keeping "I" prefix in internal tooling like `IEntity`, `IExecCommandOptions`, `IExecCommandOptions`_
+_Note: Also keeping stuff imported from external libraries like `IDestroyable`_
+
 ---
 
 ## Upcomming

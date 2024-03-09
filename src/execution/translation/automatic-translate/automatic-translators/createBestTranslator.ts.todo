@@ -1,13 +1,13 @@
-import { GoogleAutomaticTranslator, IGoogleAutomaticTranslatorOptions } from './GoogleAutomaticTranslator.ts.todo';
-import { IAutomaticTranslator } from './IAutomaticTranslator';
-import { ITranslatorOptions } from './ITranslatorOptions';
+import { GoogleAutomaticTranslator, GoogleAutomaticTranslatorOptions } from './GoogleAutomaticTranslator.ts.todo';
+import { AutomaticTranslator } from './AutomaticTranslator';
+import { TranslatorOptions } from './TranslatorOptions';
 import { LindatAutomaticTranslator } from './LindatAutomaticTranslator';
 
 export function createBestTranslator({
     from,
     to,
     isHeadless,
-}: ITranslatorOptions & IGoogleAutomaticTranslatorOptions): IAutomaticTranslator {
+}: TranslatorOptions & GoogleAutomaticTranslatorOptions): AutomaticTranslator {
     // console.log(`createBestTranslator( ${from} => ${to} )`);
 
     /* [🌐] */

@@ -1,12 +1,12 @@
 import { Promisable } from 'type-fest';
-import { IAutomaticTranslator } from './IAutomaticTranslator';
+import { AutomaticTranslator } from './AutomaticTranslator';
 
 interface IMultiAutomaticTranslatorOptions {
-    createAutomaticTranslator(options: { from: string; to: string }): IAutomaticTranslator;
+    createAutomaticTranslator(options: { from: string; to: string }): AutomaticTranslator;
 }
 
 export class MultiAutomaticTranslator {
-    private translators: Record<string, IAutomaticTranslator> = {};
+    private translators: Record<string, AutomaticTranslator> = {};
 
     constructor(private readonly options: IMultiAutomaticTranslatorOptions) {}
 

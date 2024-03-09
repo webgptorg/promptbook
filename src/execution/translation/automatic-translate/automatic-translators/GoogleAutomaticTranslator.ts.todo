@@ -2,19 +2,19 @@ import type { Browser, ElementHandle, Page } from 'puppeteer';
 import { launch } from 'puppeteer';
 import spaceTrim from 'spacetrim';
 import { forTime } from 'waitasecond';
-import { IAutomaticTranslator } from './IAutomaticTranslator';
-import { ITranslatorOptions } from './ITranslatorOptions';
+import { AutomaticTranslator } from './AutomaticTranslator';
+import { TranslatorOptions } from './TranslatorOptions';
 import { extractMultiplicatedOccurrence } from './utils/extractMultiplicatedOccurrence';
 
-export interface IGoogleAutomaticTranslatorOptions extends ITranslatorOptions {
+export interface GoogleAutomaticTranslatorOptions extends TranslatorOptions {
     isHeadless?: boolean;
 }
-export class GoogleAutomaticTranslator implements IAutomaticTranslator {
+export class GoogleAutomaticTranslator implements AutomaticTranslator {
     private readonly whenReady: Promise<void>;
     private browser: Browser;
     private page: Page;
 
-    public constructor(private readonly options: IGoogleAutomaticTranslatorOptions) {
+    public constructor(private readonly options: GoogleAutomaticTranslatorOptions) {
         this.whenReady = this.init();
     }
 

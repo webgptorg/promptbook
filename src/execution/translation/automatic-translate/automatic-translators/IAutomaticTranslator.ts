@@ -1,5 +1,5 @@
 import { Promisable } from 'type-fest';
 
-export interface IAutomaticTranslator {
+export interface AutomaticTranslator {
     translate(message: string): Promisable<string>;
 }

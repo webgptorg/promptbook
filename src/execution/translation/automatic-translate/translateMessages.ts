@@ -5,14 +5,14 @@ import JSON5 from 'json5';
 import { join } from 'path';
 import { spaceTrim } from 'spacetrim';
 import { promisify } from 'util';
-import { IAutomaticTranslator } from './automatic-translators/IAutomaticTranslator';
-import { ITranslatorOptions } from './automatic-translators/ITranslatorOptions';
+import { AutomaticTranslator } from './automatic-translators/AutomaticTranslator';
+import { TranslatorOptions } from './automatic-translators/TranslatorOptions';
 
 export async function translateMessages({
     automaticTranslator,
     from,
     to,
-}: { automaticTranslator: IAutomaticTranslator } & ITranslatorOptions) {
+}: { automaticTranslator: AutomaticTranslator } & TranslatorOptions) {
     for (const filePath of await glob(join(__dirname, '../../translations/', from, '/**/*.json5'))) {
         const fileData = JSON5.parse(await promisify(readFile)(filePath, 'utf8'));
 

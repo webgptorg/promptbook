@@ -1,15 +1,15 @@
 import FormData from 'form-data';
 import fetch from 'node-fetch'; /* <- TODO: [🌿] Use the Node native fetch */
 import spaceTrim from 'spacetrim';
-import { IAutomaticTranslator } from './IAutomaticTranslator';
-import { ITranslatorOptions } from './ITranslatorOptions';
+import { AutomaticTranslator } from './AutomaticTranslator';
+import { TranslatorOptions } from './TranslatorOptions';
 
-interface ILindatAutomaticTranslatorOptions extends ITranslatorOptions {
+interface LindatAutomaticTranslatorOptions extends TranslatorOptions {
     apiUrl: URL;
 }
 
-export class LindatAutomaticTranslator implements IAutomaticTranslator {
-    public constructor(private readonly options: ILindatAutomaticTranslatorOptions) {}
+export class LindatAutomaticTranslator implements AutomaticTranslator {
+    public constructor(private readonly options: LindatAutomaticTranslatorOptions) {}
     public async translate(message: string): Promise<string> {
         const formData = new FormData();
         formData.append('input_text', message);

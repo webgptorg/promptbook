@@ -399,18 +399,6 @@ export type string_person_fullname = string;
  */
 export type string_person_profile = string;
 
-/**
- * Full profile of the person with his email and web (like in package.json)
- */
-export interface IPersonProfile {
-    readonly name?: string_person_fullname;
-
-    /**
-     * Note: Photos are taken from Gravatar by email
-     */
-    readonly email?: string_email;
-    readonly url?: string_url;
-}
 
 /**
  * Semantic helper
@@ -419,21 +407,8 @@ export interface IPersonProfile {
  */
 export type string_license = string;
 
-/**
- * License with its type and url like in package.json
- */
-export interface ILicense {
-    readonly type?: string_license;
-    readonly url?: string;
-}
 
-/**
- * Repository with its type and url like in package.json
- */
-export interface IRepository {
-    readonly type?: string | 'git';
-    readonly url?: string;
-}
+
 
 /**
  * Semantic helper for attributes
@@ -476,7 +451,6 @@ export type string_translate_name_not_normalized = string;
  * Implementing ISO 639-1
  *
  * TODO: Probably use enum
- * TODO: Rename - remove string_ prefix like ITranslateLanguageCode
  */
 export type string_translate_language = 'en' | 'cs';
 
