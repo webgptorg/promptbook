@@ -7,7 +7,7 @@ import { number_integer, number_positive } from '../types/typeAliases';
  */
 export type UserInterfaceTools = {
     /**
-     * Asks the user to answer a free-text (multiline) question
+     * Asks the user to answer a free-text (multi-line) question
      *
      * @param options the question to ask
      * @returns the answer from the user

@@ -25,7 +25,7 @@ describe('countMarkdownStructureDeepness', () => {
         ).toEqual(1);
     });
 
-    it('counts simple case with multiline text', () => {
+    it('counts simple case with multi-line text', () => {
         expect(
             countMarkdownStructureDeepness({
                 level: 1,
@@ -100,17 +100,17 @@ describe('countMarkdownStructureDeepness', () => {
                         level: 2,
                         title: 'Section 1',
                         content: spaceTrim(`
-        
+
                                 Text below section 1
-        
+
                                 \`\`\`markdown
-        
+
                                 ### Title in code block
-        
+
                                 Text below title in code block
-        
+
                                 \`\`\`
-                            
+
                             `),
                         sections: [],
                     },

@@ -37,7 +37,7 @@ describe('removeEmojis', () => {
         expect(removeEmojis('I 👨‍❤️‍👨 Programming')).toBe('I  Programming');
     });
 
-    it('should remove multiple emojis from multiline text', () => {
+    it('should remove multiple emojis from multi-line text', () => {
         expect(
             spaceTrim(
                 removeEmojis(`

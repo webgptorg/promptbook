@@ -497,7 +497,7 @@ describe('how parseCommand works', () => {
         expect(() => parseCommand('Expect PNG')).toThrowError(/Invalid EXPECT command/i);
     });
 
-    it('should fail parsing multiline command', () => {
+    it('should fail parsing multi-line command', () => {
         expect(() => parseCommand('execute\nprompt template')).toThrowError(/Can not contain new line/i);
         expect(() => parseCommand('execute prompt template\n')).toThrowError(/Can not contain new line/i);
     });

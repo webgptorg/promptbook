@@ -29,7 +29,7 @@ describe('markdownToMarkdownStructure', () => {
         });
     });
 
-    it('parses simple case with multiline text', () => {
+    it('parses simple case with multi-line text', () => {
         expect(
             markdownToMarkdownStructure(
                 spaceTrim(`

@@ -12,7 +12,7 @@ describe('unwrapResult', () => {
         expect(unwrapResult('Hello WebGPT how are you?!')).toBe('Hello WebGPT how are you?!');
     });
 
-    it('should preserve unquoted multiline text', () => {
+    it('should preserve unquoted multi-line text', () => {
         expect(
             unwrapResult(
                 spaceTrim(`

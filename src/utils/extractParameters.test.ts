@@ -46,7 +46,7 @@ describe('extractParameters', () => {
         expect(extractParameters('{greeting} {name}, how are you? {greeting} {name}')).toEqual(['greeting', 'name']);
     });
 
-    it('should parse multiline templates', () => {
+    it('should parse multi-line templates', () => {
         expect(
             extractParameters(
                 spaceTrim(`

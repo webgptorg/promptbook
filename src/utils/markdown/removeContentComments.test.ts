@@ -117,7 +117,7 @@ describe('removeContentComments', () => {
         );
     });
 
-    it('should remove multiline comments from simple text', () => {
+    it('should remove multi-line comments from simple text', () => {
         expect(
             removeContentComments(
                 spaceTrim(`
