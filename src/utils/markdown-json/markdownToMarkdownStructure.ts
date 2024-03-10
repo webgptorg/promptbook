@@ -39,7 +39,7 @@ export function markdownToMarkdownStructure(markdown: string): MarkdownStructure
                 parent = current;
                 while (parent.level !== level - 1) {
                     if (parent.parent === null /* <- Note: We are in root */) {
-                      // !!!!!
+                        // [🌻]
                         throw new Error(
                             spaceTrim(`
                                 The file has an invalid structure.
@@ -62,7 +62,7 @@ export function markdownToMarkdownStructure(markdown: string): MarkdownStructure
         return markdownStructure;
     }
 
-    // !!!!!
+    // [🌻]
     throw new Error('The markdown file must have exactly one top-level section.');
     // return root;
 }

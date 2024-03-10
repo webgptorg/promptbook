@@ -1,8 +1,8 @@
 import { describe, expect, it } from '@jest/globals';
 import { readdirSync } from 'fs';
 import { join } from 'path';
+import { promptbookStringToJson } from '../promptbookStringToJson';
 import { importPromptbook } from './_importPromptbook';
-import { promptbookStringToJson } from './promptbookStringToJson';
 
 describe('promptbookStringToJson', () => {
     const samplesDir = '../../samples/templates';

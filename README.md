@@ -667,6 +667,7 @@ See [CHANGELOG.md](./CHANGELOG.md)
 -   [ ] System to bundle up Preprocessing + Postprocessing + Expectations
 -   [ ] Integrate ceaser-cipher to auto preprocess some and postprocess templates
 -   [ ] Scenario: Expect all information (for example in incomming email), when not then return = kinda reverse joker
+-   [ ] Make VSCode extension for validation/syntax highlite (and for other editors)
 
     -   "Billing hard limit has been reached"
     -   "You exceeded your current quota, please check your plan and billing details."

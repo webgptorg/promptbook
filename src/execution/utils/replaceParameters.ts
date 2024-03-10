@@ -1,5 +1,6 @@
-import { string_template } from '.././types/typeAliases';
-import { Parameters } from '../types/Parameters';
+import { PromptbookExecutionError } from '../../errors/PromptbookExecutionError';
+import { Parameters } from '../../types/Parameters';
+import { string_template } from '../../types/typeAliases';
 
 /**
  * Replaces parameters in template with values from parameters object
@@ -8,7 +9,7 @@ import { Parameters } from '../types/Parameters';
  * @param parameters the object with parameters
  * @returns the template with replaced parameters
  *
- * @private within the library
+ * @private within the createPromptbookExecutor
  */
 export function replaceParameters(template: string_template, parameters: Parameters): string {
     const placeholders = template.match(/{\w+}/g);
@@ -23,13 +24,11 @@ export function replaceParameters(template: string_template, parameters: Paramet
             }
 
             if (paramName.indexOf('{') !== -1 || paramName.indexOf('}') !== -1) {
-                // !!!!!
-                throw new Error('Parameter is already opened or not closed');
+                throw new PromptbookExecutionError('Parameter is already opened or not closed');
             }
 
             if ((parameters as Record<string, string>)[paramName] === undefined) {
-                // !!!!!
-                throw new Error(`Parameter {${paramName}} is not defined`);
+                throw new PromptbookExecutionError(`Parameter {${paramName}} is not defined`);
             }
 
             replacedTemplate = replacedTemplate.replace(
@@ -41,14 +40,12 @@ export function replaceParameters(template: string_template, parameters: Paramet
 
     // [💫] Check if there are parameters that are not closed properly
     if (/{\w+$/.test(replacedTemplate)) {
-        // !!!!!
-        throw new Error('Parameter is not closed');
+        throw new PromptbookExecutionError('Parameter is not closed');
     }
 
     // [💫] Check if there are parameters that are not opened properly
     if (/^\w+}/.test(replacedTemplate)) {
-        // !!!!!
-        throw new Error('Parameter is not opened');
+        throw new PromptbookExecutionError('Parameter is not opened');
     }
 
     return replacedTemplate;

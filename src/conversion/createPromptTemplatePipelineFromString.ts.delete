@@ -1,7 +1,0 @@
-import { Promptbook } from '../classes/Promptbook';
-import { parsePromptbookString } from './promptbookStringToJson';
-
-export function createPromptbookFromString(promptbookContent: string): Promptbook {
-    const promptbookJson = parsePromptbookString(promptbookContent);
-    return Promptbook.createFromJson(promptbookJson);
-}

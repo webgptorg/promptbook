@@ -1,6 +1,6 @@
 import { normalizeTo_SCREAMING_CASE } from 'n12';
 import spaceTrim from 'spacetrim';
-import type { string_markdown_text } from '.././types/typeAliases';
+import { PromptbookSyntaxError } from '../../errors/PromptbookSyntaxError';
 import type {
     Command,
     ExecuteCommand,
@@ -13,15 +13,17 @@ import type {
     PostprocessCommand,
     PromptbookUrlCommand,
     PromptbookVersionCommand,
-} from '../types/Command';
-import { ExecutionTypes } from '../types/ExecutionTypes';
-import { EXPECTATION_UNITS } from '../types/PromptbookJson/PromptTemplateJson';
-import { removeMarkdownFormatting } from '../utils/markdown/removeMarkdownFormatting';
-import { parseNumber } from '../utils/parseNumber';
-import { PromptbookSyntaxError } from '../errors/PromptbookSyntaxError';
+} from '../../types/Command';
+import { ExecutionTypes } from '../../types/ExecutionTypes';
+import { EXPECTATION_UNITS } from '../../types/PromptbookJson/PromptTemplateJson';
+import type { string_markdown_text } from '../../types/typeAliases';
+import { removeMarkdownFormatting } from '../../utils/markdown/removeMarkdownFormatting';
+import { parseNumber } from './parseNumber';
 
 /**
  * Parses one line of ul/ol to command
+ *
+ * @private within the promptbookStringToJson
  */
 export function parseCommand(listItem: string_markdown_text): Command {
     if (listItem.includes('\n') || listItem.includes('\r')) {

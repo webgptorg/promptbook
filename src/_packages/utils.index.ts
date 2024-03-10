@@ -1,3 +1,4 @@
+import { parseNumber } from '../conversion/utils/parseNumber';
 import { assertsExecutionSuccessful } from '../execution/assertsExecutionSuccessful';
 import {
     ExecutionReportStringOptions,
@@ -17,13 +18,13 @@ import { extractAllListItemsFromMarkdown } from '../utils/markdown/extractAllLis
 import { extractOneBlockFromMarkdown } from '../utils/markdown/extractOneBlockFromMarkdown';
 import { removeContentComments } from '../utils/markdown/removeContentComments';
 import { removeMarkdownFormatting } from '../utils/markdown/removeMarkdownFormatting';
-import { parseNumber } from '../utils/parseNumber';
 import { removeEmojis } from '../utils/removeEmojis';
 import { removeQuotes } from '../utils/removeQuotes';
 import { trimCodeBlock } from '../utils/trimCodeBlock';
 import { trimEndOfCodeBlock } from '../utils/trimEndOfCodeBlock';
 import { unwrapResult } from '../utils/unwrapResult';
 
+// TODO: [🌻] For all, decide if theese are internal or external
 export {
     CountUtils,
     ExecutionReportStringOptions,
@@ -36,9 +37,9 @@ export {
     countSentences,
     countWords,
     executionReportJsonToString,
-    extractAllBlocksFromMarkdown,
-    extractAllListItemsFromMarkdown,
-    extractOneBlockFromMarkdown,
+    extractAllBlocksFromMarkdown, // <- [🌻]
+    extractAllListItemsFromMarkdown, // <- [🌻]
+    extractOneBlockFromMarkdown, // <- [🌻]
     isValidJsonString,
     parseNumber,
     removeContentComments,

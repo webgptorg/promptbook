@@ -1,4 +1,0 @@
-TODO: Unit test each util here
-TODO: Util for every conversion step from string -> json -> class
-TODO: Maybe create xml equivalent to json
-TODO: Make VSCode extension for validation/syntax highlite (and for other editors)

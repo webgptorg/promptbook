@@ -1,6 +1,7 @@
 import { normalizeTo_PascalCase } from 'n12';
 import spaceTrim from 'spacetrim';
 import { Writable, WritableDeep } from 'type-fest';
+import { PromptbookSyntaxError } from '../errors/PromptbookSyntaxError';
 import { ParameterCommand } from '../types/Command';
 import { ExecutionType } from '../types/ExecutionTypes';
 import { ModelRequirements } from '../types/ModelRequirements';
@@ -10,15 +11,14 @@ import { PromptbookJson } from '../types/PromptbookJson/PromptbookJson';
 import { PromptbookString } from '../types/PromptbookString';
 import { SUPPORTED_SCRIPT_LANGUAGES, ScriptLanguage } from '../types/ScriptLanguage';
 import { extractParameters } from '../utils/extractParameters';
-import { extractVariables } from '../utils/extractVariables';
 import { countMarkdownStructureDeepness } from '../utils/markdown-json/countMarkdownStructureDeepness';
 import { markdownToMarkdownStructure } from '../utils/markdown-json/markdownToMarkdownStructure';
 import { extractAllListItemsFromMarkdown } from '../utils/markdown/extractAllListItemsFromMarkdown';
 import { extractOneBlockFromMarkdown } from '../utils/markdown/extractOneBlockFromMarkdown';
 import { removeContentComments } from '../utils/markdown/removeContentComments';
 import { PROMPTBOOK_VERSION } from '../version';
-import { parseCommand } from './parseCommand';
-import { PromptbookSyntaxError } from '../errors/PromptbookSyntaxError';
+import { extractVariables } from './utils/extractVariables';
+import { parseCommand } from './utils/parseCommand';
 
 /**
  * Parse promptbook from string format to JSON format

@@ -1,12 +1,13 @@
 import spaceTrim from 'spacetrim';
-import { string_javascript, string_javascript_name } from '../types/typeAliases';
+import { PromptbookSyntaxError } from '../../errors/PromptbookSyntaxError';
+import { string_javascript, string_javascript_name } from '../../types/typeAliases';
 /**
  * Parses the given script and returns the list of all used variables that are not defined in the script
  *
  * @param script from which to extract the variables
  * @returns the list of variable names
  *
- * @private within the library
+ * @private within the promptbookStringToJson
  */
 
 export function extractVariables(script: string_javascript): Array<string_javascript_name> {
@@ -45,8 +46,7 @@ export function extractVariables(script: string_javascript): Array<string_javasc
             throw error;
         }
 
-        // !!!!!
-        throw new Error(
+        throw new PromptbookSyntaxError(
             spaceTrim(
                 (block) => `
                     Can not extract variables from the script

@@ -1,6 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
+import { promptbookStringToJson } from '../promptbookStringToJson';
 import { importPromptbook } from './_importPromptbook';
-import { promptbookStringToJson } from './promptbookStringToJson';
 
 describe('promptbookStringToJson', () => {
     it('should fail on invalid language block', () => {

@@ -2,8 +2,8 @@ import { describe, expect, it } from '@jest/globals';
 import { readdirSync } from 'fs';
 import { join } from 'path';
 import spaceTrim from 'spacetrim';
-import { importPromptbook } from './_importPromptbook';
 import { promptbookStringToJson } from './promptbookStringToJson';
+import { importPromptbook } from './test/_importPromptbook';
 import { validatePromptbookJson } from './validatePromptbookJson';
 
 describe('validatePromptbookJson', () => {

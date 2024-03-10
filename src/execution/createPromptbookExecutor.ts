@@ -2,6 +2,8 @@ import spaceTrim from 'spacetrim';
 import type { Promisable } from 'type-fest';
 import { PromptbookJson } from '../_packages/types.index';
 import { validatePromptbookJson } from '../conversion/validatePromptbookJson';
+import { ExpectError } from '../errors/ExpectError';
+import { PromptbookExecutionError } from '../errors/PromptbookExecutionError';
 import type { Prompt } from '../types/Prompt';
 import type { ExpectationUnit, PromptTemplateJson } from '../types/PromptbookJson/PromptTemplateJson';
 import type { TaskProgress } from '../types/TaskProgress';
@@ -9,13 +11,11 @@ import type { ExecutionReportJson } from '../types/execution-report/ExecutionRep
 import type { string_name } from '../types/typeAliases';
 import { CountUtils } from '../utils/expectation-counters';
 import { isValidJsonString } from '../utils/isValidJsonString';
-import { replaceParameters } from '../utils/replaceParameters';
 import { PROMPTBOOK_VERSION } from '../version';
 import { ExecutionTools } from './ExecutionTools';
-import { ExpectError } from '../errors/ExpectError';
 import type { PromptChatResult, PromptCompletionResult, PromptResult } from './PromptResult';
 import { PromptbookExecutor } from './PromptbookExecutor';
-import { PromptbookExecutionError } from '../errors/PromptbookExecutionError';
+import { replaceParameters } from './utils/replaceParameters';
 
 export type CreatePromptbookExecutorSettings = {
     /**
