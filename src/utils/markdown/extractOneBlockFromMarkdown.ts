@@ -13,9 +13,9 @@ import { extractAllBlocksFromMarkdown } from './extractAllBlocksFromMarkdown';
 export function extractOneBlockFromMarkdown(markdown: string_markdown): { language: string | null; content: string } {
     const codeBlocks = extractAllBlocksFromMarkdown(markdown);
 
-
     if (codeBlocks.length !== 1) {
         // TODO: Report more specific place where the error happened
+        // !!!!!
         throw new Error('There should be exactly one code block in the markdown');
     }
 

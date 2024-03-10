@@ -7,7 +7,7 @@ import { Parameters } from '../types/Parameters';
  * @param template the template with parameters in {curly} braces
  * @param parameters the object with parameters
  * @returns the template with replaced parameters
- * 
+ *
  * @private within the library
  */
 export function replaceParameters(template: string_template, parameters: Parameters): string {
@@ -23,10 +23,12 @@ export function replaceParameters(template: string_template, parameters: Paramet
             }
 
             if (paramName.indexOf('{') !== -1 || paramName.indexOf('}') !== -1) {
+                // !!!!!
                 throw new Error('Parameter is already opened or not closed');
             }
 
             if ((parameters as Record<string, string>)[paramName] === undefined) {
+                // !!!!!
                 throw new Error(`Parameter {${paramName}} is not defined`);
             }
 
@@ -39,11 +41,13 @@ export function replaceParameters(template: string_template, parameters: Paramet
 
     // [💫] Check if there are parameters that are not closed properly
     if (/{\w+$/.test(replacedTemplate)) {
+        // !!!!!
         throw new Error('Parameter is not closed');
     }
 
     // [💫] Check if there are parameters that are not opened properly
     if (/^\w+}/.test(replacedTemplate)) {
+        // !!!!!
         throw new Error('Parameter is not opened');
     }
 

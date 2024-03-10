@@ -1,19 +1,20 @@
 import type OpenAI from 'openai';
 import type { PromptResult } from '../../../PromptResult';
+import { PromptbookExecutionError } from '../../../../errors/PromptbookExecutionError';
 
 export function computeOpenaiUsage(
     rawResponse: Pick<OpenAI.Chat.Completions.ChatCompletion | OpenAI.Completions.Completion, 'model' | 'usage'>,
 ): PromptResult['usage'] {
     if (rawResponse.usage === undefined) {
-        throw new Error('The usage is not defined in the response from OpenAI');
+        throw new PromptbookExecutionError('The usage is not defined in the response from OpenAI');
     }
 
     if (rawResponse.usage?.prompt_tokens === undefined) {
-        throw new Error('In OpenAI response `usage.prompt_tokens` not defined');
+        throw new PromptbookExecutionError('In OpenAI response `usage.prompt_tokens` not defined');
     }
 
     if (rawResponse.usage?.completion_tokens === undefined) {
-        throw new Error('In OpenAI response `usage.completion_tokens` not defined');
+        throw new PromptbookExecutionError('In OpenAI response `usage.completion_tokens` not defined');
     }
 
     const inputTokens = rawResponse.usage.prompt_tokens;

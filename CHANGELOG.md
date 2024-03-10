@@ -160,13 +160,15 @@ Working on **Promptbook Library**. Identify promptbooks by URL.
 -   Make `PromptbookLibrary.listPromptbooks` async method
 -   Make `PromptbookLibrary.getPromptbookByUrl` async method
 
-
 ## 0.40.0 _(2024-03-10)_
 
-Custom errors
+Custom errors + enhance templating
 
--   Add `PromptbookLibraryError`
-
+-   Add `NotFoundError`
+-   Add `PromptbookSyntaxError`
+-   Add `PromptbookLogicError`
+-   Add `PromptbookExecutionError`
+-   Preserve col-chars in multi-line templates, See more in `replaceParameters` unit test
 
 ---
 

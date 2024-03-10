@@ -15,6 +15,7 @@ import { ExecutionTools } from './ExecutionTools';
 import { ExpectError } from '../errors/ExpectError';
 import type { PromptChatResult, PromptCompletionResult, PromptResult } from './PromptResult';
 import { PromptbookExecutor } from './PromptbookExecutor';
+import { PromptbookExecutionError } from '../errors/PromptbookExecutionError';
 
 export type CreatePromptbookExecutorSettings = {
     /**
@@ -103,7 +104,7 @@ export function createPromptbookExecutor(options: CreatePromptbookExecutorOption
                 const joker = jokers[jokers.length + attempt];
 
                 if (isJokerAttempt && !joker) {
-                    throw new Error(`Joker not found in attempt ${attempt}`);
+                    throw new PromptbookExecutionError(`Joker not found in attempt ${attempt}`);
                     //              <- TODO: [🥨] Make some NeverShouldHappenError
                 }
 
@@ -113,7 +114,7 @@ export function createPromptbookExecutor(options: CreatePromptbookExecutorOption
 
                 if (isJokerAttempt) {
                     if (typeof parametersToPass[joker!] === 'undefined') {
-                        throw new Error(`Joker parameter {${joker}} not defined`);
+                        throw new PromptbookExecutionError(`Joker parameter {${joker}} not defined`);
                     }
 
                     resultString = parametersToPass[joker!]!;
@@ -152,7 +153,7 @@ export function createPromptbookExecutor(options: CreatePromptbookExecutorOption
                                         resultString = completionResult.content;
                                         break variant;
                                     default:
-                                        throw new Error(
+                                        throw new PromptbookExecutionError(
                                             `Unknown model variant "${
                                                 currentTemplate.modelRequirements!.modelVariant
                                             }"`,
@@ -163,10 +164,10 @@ export function createPromptbookExecutor(options: CreatePromptbookExecutorOption
 
                             case 'SCRIPT':
                                 if (tools.script.length === 0) {
-                                    throw new Error('No script execution tools are available');
+                                    throw new PromptbookExecutionError('No script execution tools are available');
                                 }
                                 if (!currentTemplate.contentLanguage) {
-                                    throw new Error(
+                                    throw new PromptbookExecutionError(
                                         `Script language is not defined for prompt template "${currentTemplate.name}"`,
                                     );
                                 }
@@ -200,7 +201,7 @@ export function createPromptbookExecutor(options: CreatePromptbookExecutorOption
                                 if (scriptExecutionErrors.length === 1) {
                                     throw scriptExecutionErrors[0];
                                 } else {
-                                    throw new Error(
+                                    throw new PromptbookExecutionError(
                                         spaceTrim(
                                             (block) => `
                                               Script execution failed ${scriptExecutionErrors.length} times
@@ -235,7 +236,7 @@ export function createPromptbookExecutor(options: CreatePromptbookExecutorOption
                                 break executionType;
 
                             default:
-                                throw new Error(
+                                throw new PromptbookExecutionError(
                                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
                                     `Unknown execution type "${(currentTemplate as any).executionType}"`,
                                 );
@@ -327,7 +328,7 @@ export function createPromptbookExecutor(options: CreatePromptbookExecutorOption
                 }
 
                 if (expectError !== null && attempt === maxAttempts - 1) {
-                    throw new Error(
+                    throw new PromptbookExecutionError(
                         spaceTrim(
                             (block) => `
                               Natural execution failed ${settings.maxExecutionAttempts}x
@@ -341,7 +342,7 @@ export function createPromptbookExecutor(options: CreatePromptbookExecutorOption
 
             if (resultString === null) {
                 //              <- TODO: [🥨] Make some NeverShouldHappenError
-                throw new Error('Something went wrong and prompt result is null');
+                throw new PromptbookExecutionError('Something went wrong and prompt result is null');
             }
 
             if (onProgress /* <- [3] */) {
@@ -377,7 +378,7 @@ export function createPromptbookExecutor(options: CreatePromptbookExecutorOption
                 );
 
                 if (!currentTemplate && resolving.length === 0) {
-                    throw new Error(`Can not resolve some parameters`);
+                    throw new PromptbookExecutionError(`Can not resolve some parameters`);
                     //              <- TODO: [🥨] Make some NeverShouldHappenError, should be catched during validatePromptbookJson
                 } else if (!currentTemplate) {
                     /* [5] */ await Promise.race(resolving);

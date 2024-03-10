@@ -3,6 +3,7 @@ import { isValidUrl } from './isValidUrl';
 
 export function validateUrl(value: unknown): string_url {
     if (!isValidUrl(value)) {
+        // TODO: Custom error
         throw new Error(`Invalid url "${value}"`);
     }
 

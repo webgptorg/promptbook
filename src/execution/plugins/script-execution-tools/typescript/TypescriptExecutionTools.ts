@@ -1,6 +1,7 @@
 import spaceTrim from 'spacetrim';
 import { CommonExecutionToolsOptions } from '../../../CommonExecutionToolsOptions';
 import { ScriptExecutionTools, ScriptExecutionToolsExecuteOptions } from '../../../ScriptExecutionTools';
+import { PromptbookExecutionError } from '../../../../errors/PromptbookExecutionError';
 
 /**
  * ScriptExecutionTools for TypeScript
@@ -17,7 +18,7 @@ export class TypescriptExecutionTools implements ScriptExecutionTools {
         const { scriptLanguage, script } = options;
 
         if (scriptLanguage !== 'typescript') {
-            throw new Error(
+            throw new PromptbookExecutionError(
                 `Script language ${scriptLanguage} not supported to be executed by TypescriptExecutionTools`,
             );
         }
@@ -33,6 +34,6 @@ export class TypescriptExecutionTools implements ScriptExecutionTools {
             );
         }
 
-        throw new Error('Not implemented');
+        throw new PromptbookExecutionError('Not implemented');
     }
 }

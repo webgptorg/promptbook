@@ -22,6 +22,7 @@ import { unwrapResult as _unwrapResult } from '../../../../utils/unwrapResult';
 import { ScriptExecutionTools, ScriptExecutionToolsExecuteOptions } from '../../../ScriptExecutionTools';
 import { JavascriptExecutionToolsOptions } from './JavascriptExecutionToolsOptions';
 import { preserve } from './utils/preserve';
+import { PromptbookExecutionError } from '../../../../errors/PromptbookExecutionError';
 
 /**
  * ScriptExecutionTools for JavaScript implemented via eval
@@ -40,7 +41,7 @@ export class JavascriptEvalExecutionTools implements ScriptExecutionTools {
         let { script } = options;
 
         if (scriptLanguage !== 'javascript') {
-            throw new Error(
+            throw new PromptbookExecutionError(
                 `Script language ${scriptLanguage} not supported to be executed by JavascriptEvalExecutionTools`,
             );
         }
@@ -145,7 +146,7 @@ export class JavascriptEvalExecutionTools implements ScriptExecutionTools {
             result = await eval(statementToEvaluate);
 
             if (typeof result !== 'string') {
-                throw new Error(`Script must return a string, but returned ${result.toString()} ${typeof result}`);
+                throw new PromptbookExecutionError(`Script must return a string, but returned ${result.toString()} ${typeof result}`);
             }
         } catch (error) {
             if (!(error instanceof Error)) {
@@ -161,7 +162,7 @@ export class JavascriptEvalExecutionTools implements ScriptExecutionTools {
                 */
 
                 if (!statementToEvaluate.includes(undefinedName + '(')) {
-                    throw new Error(
+                    throw new PromptbookExecutionError(
                         spaceTrim(
                             (block) => `
 
@@ -183,7 +184,7 @@ export class JavascriptEvalExecutionTools implements ScriptExecutionTools {
                         ),
                     );
                 } else {
-                    throw new Error(
+                    throw new PromptbookExecutionError(
                         spaceTrim(`
                               Function {${undefinedName}} is not defined
 
@@ -199,7 +200,7 @@ export class JavascriptEvalExecutionTools implements ScriptExecutionTools {
         }
 
         if (typeof result !== 'string') {
-            throw new Error(`Script must return a string, but returned ${typeof result}`);
+            throw new PromptbookExecutionError(`Script must return a string, but returned ${typeof result}`);
         }
 
         return result;

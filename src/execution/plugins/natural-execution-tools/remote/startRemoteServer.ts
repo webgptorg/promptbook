@@ -9,6 +9,7 @@ import { Promptbook_Server_Error } from './interfaces/Promptbook_Server_Error';
 import { Promptbook_Server_Request } from './interfaces/Promptbook_Server_Request';
 import { Promptbook_Server_Response } from './interfaces/Promptbook_Server_Response';
 import { RemoteServerOptions } from './interfaces/RemoteServerOptions';
+import { PromptbookExecutionError } from '../../../../errors/PromptbookExecutionError';
 
 /**
  * Remote server is a proxy server that uses its execution tools internally and exposes the executor interface externally.
@@ -74,7 +75,7 @@ export function startRemoteServer(options: RemoteServerOptions): IDestroyable {
                         promptResult = await executionToolsForClient.gptComplete(prompt);
                         break;
                     default:
-                        throw new Error(`Unknown model variant "${prompt.modelRequirements.modelVariant}"`);
+                        throw new PromptbookExecutionError(`Unknown model variant "${prompt.modelRequirements.modelVariant}"`);
                 }
 
                 if (isVerbose) {

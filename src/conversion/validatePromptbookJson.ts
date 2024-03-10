@@ -3,6 +3,7 @@ import type { PromptTemplateJson } from '../types/PromptbookJson/PromptTemplateJ
 import type { PromptbookJson } from '../types/PromptbookJson/PromptbookJson';
 import type { string_name } from '../types/typeAliases';
 import { isValidUrl } from '../utils/validators/url/isValidUrl';
+import { PromptbookLogicError } from '../errors/PromptbookLogicError';
 
 /**
  * Validates PromptbookJson if it is logically valid.
@@ -20,7 +21,8 @@ import { isValidUrl } from '../utils/validators/url/isValidUrl';
 export function validatePromptbookJson(promptbook: PromptbookJson): void {
     if (promptbook.promptbookUrl !== undefined) {
         if (!isValidUrl(promptbook.promptbookUrl)) {
-            throw new Error(`Invalid promptbook URL "${promptbook.promptbookUrl}"`);
+          // TODO: This should be maybe the syntax error detected during parsing
+            throw new PromptbookLogicError(`Invalid promptbook URL "${promptbook.promptbookUrl}"`);
         }
     }
 
@@ -31,7 +33,7 @@ export function validatePromptbookJson(promptbook: PromptbookJson): void {
     // Note: Check each parameter individually
     for (const parameter of promptbook.parameters) {
         if (parameter.isInput && parameter.isOutput) {
-            throw new Error(`Parameter {${parameter.name}} can not be both input and output`);
+            throw new PromptbookLogicError(`Parameter {${parameter.name}} can not be both input and output`);
         }
 
         // Note: Testing that parameter is either intermediate or output BUT not created and unused
@@ -40,7 +42,7 @@ export function validatePromptbookJson(promptbook: PromptbookJson): void {
             !parameter.isOutput &&
             !promptbook.promptTemplates.some((template) => template.dependentParameterNames.includes(parameter.name))
         ) {
-            throw new Error(
+            throw new PromptbookLogicError(
                 spaceTrim(`
                     Parameter {${parameter.name}} is created but not used
 
@@ -56,7 +58,7 @@ export function validatePromptbookJson(promptbook: PromptbookJson): void {
             !parameter.isInput &&
             !promptbook.promptTemplates.some((template) => template.resultingParameterName === parameter.name)
         ) {
-            throw new Error(
+            throw new PromptbookLogicError(
                 spaceTrim(`
                     Parameter {${parameter.name}} is declared but not defined
 
@@ -72,7 +74,7 @@ export function validatePromptbookJson(promptbook: PromptbookJson): void {
     // Note: Check each template individually
     for (const template of promptbook.promptTemplates) {
         if (definedParameters.has(template.resultingParameterName)) {
-            throw new Error(`Parameter {${template.resultingParameterName}} is defined multiple times`);
+            throw new PromptbookLogicError(`Parameter {${template.resultingParameterName}} is defined multiple times`);
         }
 
         if (
@@ -80,7 +82,7 @@ export function validatePromptbookJson(promptbook: PromptbookJson): void {
             (template.modelRequirements.modelVariant === undefined ||
                 template.modelRequirements.modelName === undefined)
         ) {
-            throw new Error(
+            throw new PromptbookLogicError(
                 spaceTrim(`
 
                   You must specify MODEL VARIANT and MODEL NAME in the prompt template "${template.title}"
@@ -98,12 +100,12 @@ export function validatePromptbookJson(promptbook: PromptbookJson): void {
                 !template.expectFormat &&
                 !template.expectAmount /* <- TODO: Require at least 1 -> min <- expectation to use jokers */
             ) {
-                throw new Error(`Joker parameters are used but no expectations are defined`);
+                throw new PromptbookLogicError(`Joker parameters are used but no expectations are defined`);
             }
 
             for (const joker of template.jokers) {
                 if (!template.dependentParameterNames.includes(joker)) {
-                    throw new Error(`Parameter {${joker}} is used as joker but not in dependentParameterNames`);
+                    throw new PromptbookLogicError(`Parameter {${joker}} is used as joker but not in dependentParameterNames`);
                 }
             }
         }
@@ -111,15 +113,15 @@ export function validatePromptbookJson(promptbook: PromptbookJson): void {
         if (template.expectAmount) {
             for (const [unit, { min, max }] of Object.entries(template.expectAmount)) {
                 if (min !== undefined && max !== undefined && min > max) {
-                    throw new Error(`Min expectation (=${min}) of ${unit} is higher than max expectation (=${max})`);
+                    throw new PromptbookLogicError(`Min expectation (=${min}) of ${unit} is higher than max expectation (=${max})`);
                 }
 
                 if (min !== undefined && min < 0) {
-                    throw new Error(`Min expectation of ${unit} must be zero or positive`);
+                    throw new PromptbookLogicError(`Min expectation of ${unit} must be zero or positive`);
                 }
 
                 if (max !== undefined && max <= 0) {
-                    throw new Error(`Max expectation of ${unit} must be positive`);
+                    throw new PromptbookLogicError(`Max expectation of ${unit} must be positive`);
                 }
             }
         }
@@ -138,7 +140,7 @@ export function validatePromptbookJson(promptbook: PromptbookJson): void {
         );
 
         if (currentlyResovedTemplates.length === 0) {
-            throw new Error(
+            throw new PromptbookLogicError(
                 spaceTrim(
                     (block) => `
 

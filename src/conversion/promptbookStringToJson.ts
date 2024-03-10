@@ -18,6 +18,7 @@ import { extractOneBlockFromMarkdown } from '../utils/markdown/extractOneBlockFr
 import { removeContentComments } from '../utils/markdown/removeContentComments';
 import { PROMPTBOOK_VERSION } from '../version';
 import { parseCommand } from './parseCommand';
+import { PromptbookSyntaxError } from '../errors/PromptbookSyntaxError';
 
 /**
  * Parse promptbook from string format to JSON format
@@ -61,7 +62,7 @@ export function promptbookStringToJson(promptbookString: PromptbookString): Prom
             existingParameter.description !== parameterDescription &&
             parameterDescription
         ) {
-            throw new Error(
+            throw new PromptbookSyntaxError(
                 spaceTrim(
                     (block) => `
                         Parameter {${parameterName}} is defined multiple times with different description.
@@ -96,7 +97,7 @@ export function promptbookStringToJson(promptbookString: PromptbookString): Prom
     const markdownStructureDeepness = countMarkdownStructureDeepness(markdownStructure);
 
     if (markdownStructureDeepness !== 2) {
-        throw new Error(
+        throw new PromptbookSyntaxError(
             spaceTrim(`
                 Invalid markdown structure.
                 The markdown must have exactly 2 levels of headings (one top-level section and one section for each template).
@@ -143,7 +144,7 @@ export function promptbookStringToJson(promptbookString: PromptbookString): Prom
                 break;
 
             default:
-                throw new Error(
+                throw new PromptbookSyntaxError(
                     `Command ${command.type} is not allowed in the head of the promptbook ONLY at the prompt template block`,
                 );
         }
@@ -172,7 +173,7 @@ export function promptbookStringToJson(promptbookString: PromptbookString): Prom
                     break;
                 case 'EXECUTE':
                     if (isExecutionTypeChanged) {
-                        throw new Error(
+                        throw new PromptbookSyntaxError(
                             'Execution type is already defined in the prompt template. It can be defined only once.',
                         );
                     }
@@ -200,7 +201,7 @@ export function promptbookStringToJson(promptbookString: PromptbookString): Prom
 
                     if (command.sign === 'MINIMUM' || command.sign === 'EXACTLY') {
                         if (expectAmount[unit]!.min !== undefined) {
-                            throw new Error(
+                            throw new PromptbookSyntaxError(
                                 `Already defined minumum ${
                                     expectAmount[unit]!.min
                                 } ${command.unit.toLowerCase()}, now trying to redefine it to ${command.amount}`,
@@ -210,7 +211,7 @@ export function promptbookStringToJson(promptbookString: PromptbookString): Prom
                     } /* not else */
                     if (command.sign === 'MAXIMUM' || command.sign === 'EXACTLY') {
                         if (expectAmount[unit]!.max !== undefined) {
-                            throw new Error(
+                            throw new PromptbookSyntaxError(
                                 `Already defined maximum ${
                                     expectAmount[unit]!.max
                                 } ${command.unit.toLowerCase()}, now trying to redefine it to ${command.amount}`,
@@ -222,7 +223,7 @@ export function promptbookStringToJson(promptbookString: PromptbookString): Prom
 
                 case 'EXPECT_FORMAT':
                     if (expectFormat !== undefined && command.format !== expectFormat) {
-                        throw new Error(
+                        throw new PromptbookSyntaxError(
                             `Expect format is already defined to "${expectFormat}". Now you try to redefine it by "${command.format}".`,
                         );
                     }
@@ -231,7 +232,7 @@ export function promptbookStringToJson(promptbookString: PromptbookString): Prom
                     break;
 
                 default:
-                    throw new Error(
+                    throw new PromptbookSyntaxError(
                         `Command ${command.type} is not allowed in the block of the prompt template ONLY at the head of the promptbook`,
                     );
             }
@@ -241,9 +242,9 @@ export function promptbookStringToJson(promptbookString: PromptbookString): Prom
 
         if (executionType === 'SCRIPT') {
             if (!language) {
-                throw new Error('You must specify the language of the script in the prompt template');
+                throw new PromptbookSyntaxError('You must specify the language of the script in the prompt template');
             } else if (!SUPPORTED_SCRIPT_LANGUAGES.includes(language as ScriptLanguage)) {
-                throw new Error(
+                throw new PromptbookSyntaxError(
                     spaceTrim(
                         (block) => `
                             Script language ${language} is not supported.
@@ -260,7 +261,7 @@ export function promptbookStringToJson(promptbookString: PromptbookString): Prom
         const lastLine = section.content.split('\n').pop()!;
         const match = /^->\s*\{(?<resultingParamName>[a-z0-9_]+)\}/im.exec(lastLine);
         if (!match || match.groups === undefined || match.groups.resultingParamName === undefined) {
-            throw new Error(
+            throw new PromptbookSyntaxError(
                 spaceTrim(
                     (block) => `
                         Invalid template - each section must end with "-> {...}"

@@ -46,6 +46,7 @@ export function parseNumber(value: string | number): number {
         const denominator = parseNumber(denominator_!);
 
         if (denominator === 0) {
+          // !!!!!
             throw new Error(`Unable to parse number from "${originalValue}" because denominator is zero`);
         }
 
@@ -62,12 +63,14 @@ export function parseNumber(value: string | number): number {
     }
 
     if (!/^[0-9.]+$/.test(value) || value.split('.').length > 2) {
+      // !!!!!
         throw new Error(`Unable to parse number from "${originalValue}"`);
     }
 
     const num = parseFloat(value);
 
     if (isNaN(num)) {
+      // !!!!!
         throw new Error(`Unexpected NaN when parsing number from "${originalValue}"`);
     }
 

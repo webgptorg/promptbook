@@ -36,6 +36,7 @@ export function extractAllBlocksFromMarkdown(markdown: string_markdown): Array<C
                 currentCodeBlock = { language, content: '' };
             } else {
                 if (language !== null) {
+                    // !!!!!
                     throw new Error(
                         `${capitalize(
                             currentCodeBlock.language || 'the',
@@ -55,6 +56,7 @@ export function extractAllBlocksFromMarkdown(markdown: string_markdown): Array<C
     }
 
     if (currentCodeBlock !== null) {
+        // !!!!!
         throw new Error(
             `${capitalize(currentCodeBlock.language || 'the')} code block was not closed at the end of the markdown`,
         );

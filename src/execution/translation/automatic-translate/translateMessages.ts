@@ -5,6 +5,7 @@ import JSON5 from 'json5';
 import { join } from 'path';
 import { spaceTrim } from 'spacetrim';
 import { promisify } from 'util';
+import { PromptbookExecutionError } from '../../../errors/PromptbookExecutionError';
 import { AutomaticTranslator } from './automatic-translators/AutomaticTranslator';
 import { TranslatorOptions } from './automatic-translators/TranslatorOptions';
 
@@ -18,12 +19,12 @@ export async function translateMessages({
 
         for (const row of fileData) {
             if (row.language !== from) {
-                throw new Error(
+                throw new PromptbookExecutionError(
                     spaceTrim(`
-                  Language ${row.language} is not ${from}
-                  Check the file:
-                  ${filePath}
-            `),
+                          Language ${row.language} is not ${from}
+                          Check the file:
+                          ${filePath}
+                    `),
                 );
             }
 

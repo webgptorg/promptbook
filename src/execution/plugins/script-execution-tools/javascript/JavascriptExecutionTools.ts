@@ -1,3 +1,4 @@
+import { PromptbookExecutionError } from '../../../../errors/PromptbookExecutionError';
 import { ScriptExecutionTools, ScriptExecutionToolsExecuteOptions } from '../../../ScriptExecutionTools';
 import { JavascriptExecutionToolsOptions } from './JavascriptExecutionToolsOptions';
 
@@ -16,12 +17,12 @@ export class JavascriptExecutionTools implements ScriptExecutionTools {
         const { scriptLanguage /*, script, parameters */ } = options;
 
         if (scriptLanguage !== 'javascript') {
-            throw new Error(
+            throw new PromptbookExecutionError(
                 `Script language ${scriptLanguage} not supported to be executed by JavascriptExecutionTools`,
             );
         }
 
-        throw new Error('Not implemented');
+        throw new PromptbookExecutionError('Not implemented');
     }
 }
 

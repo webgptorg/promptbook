@@ -1,5 +1,8 @@
 import { ExpectError } from '../errors/ExpectError';
 import { NotFoundError } from '../errors/NotFoundError';
+import { PromptbookExecutionError } from '../errors/PromptbookExecutionError';
+import { PromptbookLogicError } from '../errors/PromptbookLogicError';
+import { PromptbookSyntaxError } from '../errors/PromptbookSyntaxError';
 import type { CommonExecutionToolsOptions } from '../execution/CommonExecutionToolsOptions';
 import type { ExecutionTools } from '../execution/ExecutionTools';
 import type { NaturalExecutionTools } from '../execution/NaturalExecutionTools';
@@ -157,7 +160,7 @@ export {
     string_version,
 };
 
-export { ExpectError, NotFoundError };
+export { ExpectError, NotFoundError, PromptbookExecutionError, PromptbookLogicError, PromptbookSyntaxError };
 
 /**
  * TODO: [🧠] Is this the best package to export custom errors from?

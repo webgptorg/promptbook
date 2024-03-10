@@ -1,6 +1,7 @@
 import spaceTrim from 'spacetrim';
 import { CommonExecutionToolsOptions } from '../../../CommonExecutionToolsOptions';
 import { UserInterfaceTools, UserInterfaceToolsPromptDialogOptions } from '../../../UserInterfaceTools';
+import { PromptbookExecutionError } from '../../../../errors/PromptbookExecutionError';
 
 /**
  * Wrapper around `window.prompt` synchronous function that interacts with the user via browser prompt
@@ -19,7 +20,7 @@ export class SimplePromptInterfaceTools implements UserInterfaceTools {
             spaceTrim(
                 (block) => `
                     ${block(options.promptTitle)}
-                    
+
                     ${block(options.promptMessage)}
                 `,
             ),
@@ -37,7 +38,7 @@ export class SimplePromptInterfaceTools implements UserInterfaceTools {
         }
 
         if (answer === null) {
-            throw new Error('User cancelled prompt');
+            throw new PromptbookExecutionError('User cancelled prompt');
         }
 
         return answer;

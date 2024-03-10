@@ -45,6 +45,7 @@ export function extractVariables(script: string_javascript): Array<string_javasc
             throw error;
         }
 
+        // !!!!!
         throw new Error(
             spaceTrim(
                 (block) => `

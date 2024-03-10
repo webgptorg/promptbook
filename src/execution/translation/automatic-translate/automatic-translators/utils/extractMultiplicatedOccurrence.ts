@@ -5,5 +5,6 @@ export function extractMultiplicatedOccurrence(message: string): string {
         }
     }
 
+    // !!!!!
     throw new Error(`Cannot extract multiplicated occurrence from "${message}"`);
 }

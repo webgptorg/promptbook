@@ -3,6 +3,7 @@ import fetch from 'node-fetch'; /* <- TODO: [🌿] Use the Node native fetch */
 import spaceTrim from 'spacetrim';
 import { AutomaticTranslator } from './AutomaticTranslator';
 import { TranslatorOptions } from './TranslatorOptions';
+import { PromptbookExecutionError } from '../../../../errors/PromptbookExecutionError';
 
 interface LindatAutomaticTranslatorOptions extends TranslatorOptions {
     apiUrl: URL;
@@ -31,9 +32,9 @@ export class LindatAutomaticTranslator implements AutomaticTranslator {
         } else {
             const json = await response.json();
             if (json.message) {
-                throw new Error(json.message);
+                throw new PromptbookExecutionError(json.message);
             } else {
-                throw new Error(
+                throw new PromptbookExecutionError(
                     spaceTrim(`
                       Lindat: Unknown error
                       From: ${this.options.from}

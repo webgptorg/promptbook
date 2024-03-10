@@ -661,6 +661,11 @@ See [CHANGELOG.md](./CHANGELOG.md)
 -   [x] Wrap OpenAI billing errors:
 -   [ ] Integrate word stemmer https://github.com/maxpatiiuk/porter-stemming/blob/main/src/index.ts
 -   [ ] Integrate faker to generate simple mocked data
+-   [ ] Put postprocessing + expectations into mermaid graphs
+-   [ ] mermaid graphs as exported CLI util
+-   [ ] Preprocessing
+-   [ ] System to bundle up Preprocessing + Postprocessing + Expectations
+-   [ ] Integrate ceaser-cipher to auto preprocess some and postprocess templates
 -   [ ] Scenario: Expect all information (for example in incomming email), when not then return = kinda reverse joker
 
     -   "Billing hard limit has been reached"

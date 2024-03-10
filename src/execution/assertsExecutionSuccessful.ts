@@ -1,5 +1,6 @@
 import spaceTrim from 'spacetrim';
 import type { PromptbookExecutor } from './PromptbookExecutor';
+import { PromptbookExecutionError } from '../errors/PromptbookExecutionError';
 
 /**
  * Asserts that the execution of a promptnook is successful
@@ -16,11 +17,11 @@ export function assertsExecutionSuccessful(
         return;
     }
     if (errors.length === 0) {
-        throw new Error(`Promptnook Execution failed because of unknown reason`);
+        throw new PromptbookExecutionError(`Promptnook Execution failed because of unknown reason`);
     } else if (errors.length === 1) {
         throw errors[0];
     } else {
-        throw new Error(
+        throw new PromptbookExecutionError(
             spaceTrim(
                 (block) => `
                     Multiple errors occurred during promptnook execution

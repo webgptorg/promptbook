@@ -7,6 +7,7 @@ import type { NaturalExecutionTools } from '../../../NaturalExecutionTools';
 import type { PromptChatResult, PromptCompletionResult } from '../../../PromptResult';
 import type { OpenAiExecutionToolsOptions } from './OpenAiExecutionToolsOptions';
 import { computeOpenaiUsage } from './computeOpenaiUsage';
+import { PromptbookExecutionError } from '../../../../errors/PromptbookExecutionError';
 
 /**
  * Execution Tools for calling OpenAI API.
@@ -35,7 +36,7 @@ export class OpenAiExecutionTools implements NaturalExecutionTools {
 
         // TODO: [☂] Use here more modelRequirements
         if (modelRequirements.modelVariant !== 'CHAT') {
-            throw new Error('Use gptChat only for CHAT variant');
+            throw new PromptbookExecutionError('Use gptChat only for CHAT variant');
         }
 
         const model = modelRequirements.modelName;
@@ -66,12 +67,12 @@ export class OpenAiExecutionTools implements NaturalExecutionTools {
         }
 
         if (!rawResponse.choices[0]) {
-            throw new Error('No choises from OpenAI');
+            throw new PromptbookExecutionError('No choises from OpenAI');
         }
 
         if (rawResponse.choices.length > 1) {
             // TODO: This should be maybe only warning
-            throw new Error('More than one choise from OpenAI');
+            throw new PromptbookExecutionError('More than one choise from OpenAI');
         }
 
         const resultContent = rawResponse.choices[0].message.content;
@@ -80,7 +81,7 @@ export class OpenAiExecutionTools implements NaturalExecutionTools {
         const usage = computeOpenaiUsage(rawResponse);
 
         if (!resultContent) {
-            throw new Error('No response message from OpenAI');
+            throw new PromptbookExecutionError('No response message from OpenAI');
         }
 
         return {
@@ -108,7 +109,7 @@ export class OpenAiExecutionTools implements NaturalExecutionTools {
 
         // TODO: [☂] Use here more modelRequirements
         if (modelRequirements.modelVariant !== 'COMPLETION') {
-            throw new Error('Use gptComplete only for COMPLETION variant');
+            throw new PromptbookExecutionError('Use gptComplete only for COMPLETION variant');
         }
 
         const model = modelRequirements.modelName;
@@ -135,12 +136,12 @@ export class OpenAiExecutionTools implements NaturalExecutionTools {
         }
 
         if (!rawResponse.choices[0]) {
-            throw new Error('No choises from OpenAI');
+            throw new PromptbookExecutionError('No choises from OpenAI');
         }
 
         if (rawResponse.choices.length > 1) {
             // TODO: This should be maybe only warning
-            throw new Error('More than one choise from OpenAI');
+            throw new PromptbookExecutionError('More than one choise from OpenAI');
         }
 
         const resultContent = rawResponse.choices[0].text;
@@ -149,7 +150,7 @@ export class OpenAiExecutionTools implements NaturalExecutionTools {
         const usage = computeOpenaiUsage(rawResponse);
 
         if (!resultContent) {
-            throw new Error('No response message from OpenAI');
+            throw new PromptbookExecutionError('No response message from OpenAI');
         }
 
         return {
