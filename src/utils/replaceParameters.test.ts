@@ -82,7 +82,7 @@ describe('replaceParameters', () => {
         ).toBe('Hello World, how are you? Hello World');
     });
 
-    it('should replace multiline templates', () => {
+    it('should replace multi-line templates', () => {
         expect(
             replaceParameters(
                 spaceTrim(`
@@ -131,5 +131,162 @@ describe('replaceParameters', () => {
         expect(() =>
             replaceParameters('greeting} {name}, how are you?', { greeting: 'Hello', name: 'World' }),
         ).toThrowError(/Parameter is not opened/i);
+    });
+
+    it('should preserve indentation in multi-line templates', () => {
+        expect(
+            replaceParameters(
+                spaceTrim(`
+                    Hello {name}, how are you?
+
+                    {response}
+                `),
+                {
+                    name: 'Pavol',
+                    response: spaceTrim(`
+                        I am fine.
+                        And you?
+
+                        But I need some bananas 🍌
+                    `),
+                },
+            ),
+        ).toBe(
+            just(
+                spaceTrim(`
+                    Hello Pavol, how are you?
+
+                    I am fine.
+                    And you?
+
+                    But I need some bananas 🍌
+                `),
+            ),
+        );
+    });
+
+    it('should preserve multiple indentations in multi-line templates', () => {
+        expect(
+            replaceParameters(
+                spaceTrim(`
+                  Hello {name}, how are you?
+
+                    {response}
+              `),
+                {
+                    name: 'Pavol',
+                    response: spaceTrim(`
+                        I am fine.
+                        And you?
+
+                            But I need some bananas 🍌
+                    `),
+                },
+            ),
+        ).toBe(
+            just(
+                spaceTrim(`
+                  Hello Pavol, how are you?
+
+                      I am fine.
+                      And you?
+
+                          But I need some bananas 🍌
+              `),
+            ),
+        );
+    });
+
+    it('should preserve col-chars in multi-line templates', () => {
+        expect(
+            replaceParameters(
+                spaceTrim(`
+                    Hello {name}, how are you?
+
+                    > {response}
+                `),
+                {
+                    name: 'Pavol',
+                    response: spaceTrim(`
+                        I am fine.
+                        And you?
+
+                        But I need some bananas 🍌
+                    `),
+                },
+            ),
+        ).toBe(
+            just(
+                spaceTrim(`
+                    Hello Pavol, how are you?
+
+                    > I am fine.
+                    > And you?
+                    >
+                    > But I need some bananas 🍌
+                `),
+            ),
+        );
+        expect(
+            replaceParameters(
+                spaceTrim(`
+                    Hello {name}, how are you?
+
+                    $ {response}
+                `),
+                {
+                    name: 'Pavol',
+                    response: spaceTrim(`
+                        I am fine.
+                        And you?
+
+                        But I need some bananas 🍌
+                    `),
+                },
+            ),
+        ).toBe(
+            just(
+                spaceTrim(`
+                    Hello Pavol, how are you?
+
+                    $ I am fine.
+                    $ And you?
+                    $
+                    $ But I need some bananas 🍌
+                `),
+            ),
+        );
+    });
+
+    it('should not-preserve non-col-chars in multi-line templates', () => {
+        expect(
+            replaceParameters(
+                spaceTrim(`
+                  Hello {name}, how are you?
+
+                  The response from {name} is: {response}
+              `),
+                {
+                    name: 'Pavol',
+                    response: spaceTrim(`
+                      I am fine.
+                      And you?
+
+                      But I need some bananas 🍌
+                  `),
+                },
+            ),
+        ).toBe(
+            just(
+                spaceTrim(`
+                  Hello Pavol, how are you?
+
+                  The response from Pavol is: I am fine.
+                  And you?
+
+                  But I need some bananas 🍌
+              `),
+            ),
+        );
     });
 });
