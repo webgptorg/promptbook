@@ -19,7 +19,7 @@ import type { PromptChatResult, PromptCompletionResult, PromptResult } from './P
 import { PromptbookExecutor } from './PromptbookExecutor';
 import { replaceParameters } from './utils/replaceParameters';
 
-export type CreatePromptbookExecutorSettings = {
+type CreatePromptbookExecutorSettings = {
     /**
      * When executor does not satisfy expectations it will be retried this amount of times
      *

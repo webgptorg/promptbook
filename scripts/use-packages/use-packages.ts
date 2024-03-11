@@ -82,6 +82,7 @@ async function usePackages() {
 }
 
 /**
+ * TODO: [🤣]
  * TODO: !! [👵] test before publish
  * TODO: !! Add warning to the copy/used files
  * TODO: !! Use prettier to format the used files

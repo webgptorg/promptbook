@@ -2,27 +2,11 @@ import spaceTrim from 'spacetrim';
 import { promptbookStringToJson } from '../conversion/promptbookStringToJson';
 import { validatePromptbookJson } from '../conversion/test/validatePromptbookJson';
 import { NotFoundError } from '../errors/NotFoundError';
-import { CreatePromptbookExecutorSettings } from '../execution/createPromptbookExecutor';
 import type { Prompt } from '../types/Prompt';
 import type { PromptbookJson } from '../types/PromptbookJson/PromptbookJson';
 import type { PromptbookString } from '../types/PromptbookString';
 import type { string_name, string_promptbook_url } from '../types/typeAliases';
 import { PromptbookLibrary } from './PromptbookLibrary';
-
-/**
- * Options for SimplePromptbookLibrary
- */
-type SimplePromptbookLibraryLibraryOptions = {
-    /**
-     * The library of promptbooks
-     */
-    readonly library: Record<string_promptbook_url, PromptbookJson>;
-
-    /**
-     * Optional settings for creating a PromptbookExecutor
-     */
-    readonly settings?: Partial<CreatePromptbookExecutorSettings>;
-};
 
 /**
  * Library of promptbooks that groups together promptbooks for an application.
@@ -41,11 +25,8 @@ export class SimplePromptbookLibrary implements PromptbookLibrary {
      * @param settings settings for creating executor functions
      * @returns PromptbookLibrary
      */
-    public static fromSources(
-        promptbookSources: Array<PromptbookJson | PromptbookString>,
-        settings?: Partial<CreatePromptbookExecutorSettings>,
-    ): SimplePromptbookLibrary {
-        const library: Record<string_name, PromptbookJson> = {};
+    public static fromSources(...promptbookSources: Array<PromptbookJson | PromptbookString>): SimplePromptbookLibrary {
+        const library = new Map<string_name, PromptbookJson>();
         for (const source of promptbookSources) {
             let promptbook: PromptbookJson;
 
@@ -72,18 +53,18 @@ export class SimplePromptbookLibrary implements PromptbookLibrary {
                 );
             }
 
-            library[promptbook.promptbookUrl] = promptbook;
+            library.set(promptbook.promptbookUrl, promptbook);
         }
-        return new SimplePromptbookLibrary({ library, settings });
+        return new SimplePromptbookLibrary(library);
     }
 
-    private constructor(private readonly options: SimplePromptbookLibraryLibraryOptions) {}
+    private constructor(private readonly library: Map<string_promptbook_url, PromptbookJson>) {}
 
     /**
      * Gets all promptbooks in the library
      */
     public listPromptbooks(): Array<string_promptbook_url> {
-        return Object.keys(this.options.library);
+        return this.library.keys();
     }
 
     /**
@@ -92,7 +73,7 @@ export class SimplePromptbookLibrary implements PromptbookLibrary {
      * Note: This is not a direct fetching from the URL, but a lookup in the library
      */
     public getPromptbookByUrl(url: string_promptbook_url): PromptbookJson {
-        const promptbook = this.options.library[url];
+        const promptbook = this.library.get(url);
         if (!promptbook) {
             throw new NotFoundError(
                 spaceTrim(

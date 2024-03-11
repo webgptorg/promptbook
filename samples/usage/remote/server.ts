@@ -1,6 +1,6 @@
 #!/usr/bin/env ts-node
 
-import { PromptbookLibrary } from '@promptbook/core';
+import { SimplePromptbookLibrary } from '@promptbook/core';
 import { OpenAiExecutionTools } from '@promptbook/openai';
 import { runRemoteServer } from '@promptbook/remote-server';
 import chalk from 'chalk';
@@ -19,14 +19,9 @@ main();
 async function main() {
     console.info(chalk.bgGray('🔵 Testing remote server of PromptBook'));
 
-    const library = PromptbookLibrary.fromSources(
-        [
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            (await readFile('./samples/templates/50-advanced.ptbk.md', 'utf-8')) as any,
-        ],
-        {
-            maxExecutionAttempts: 3,
-        },
+    const library = SimplePromptbookLibrary.fromSources(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (await readFile('./samples/templates/50-advanced.ptbk.md', 'utf-8')) as any,
     );
 
     runRemoteServer({

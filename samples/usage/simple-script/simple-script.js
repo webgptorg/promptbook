@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { PromptbookLibrary } from '@promptbook/core';
+import { SimplePromptbookLibrary } from '@promptbook/core';
 import { JavascriptEvalExecutionTools } from '@promptbook/execute-javascript';
 import { OpenAiExecutionTools } from '@promptbook/openai';
 import { assertsExecutionSuccessful, executionReportJsonToString } from '@promptbook/utils';
@@ -23,11 +23,8 @@ async function main() {
     // const sampleName = '50-nesting';
     const sampleName = '50-advanced';
 
-    const library = PromptbookLibrary.fromSources(
-        [await readFile(`./samples/templates/${sampleName}.ptbk.md`, 'utf-8')],
-        {
-            maxExecutionAttempts: 3,
-        },
+    const library = SimplePromptbookLibrary.fromSources(
+        await readFile(`./samples/templates/${sampleName}.ptbk.md`, 'utf-8'),
     );
 
     const tools = {
