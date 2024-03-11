@@ -62,7 +62,7 @@ export class SimplePromptbookLibrary implements PromptbookLibrary {
             if (promptbook.promptbookUrl === undefined) {
                 throw new Error(
                     spaceTrim(`
-                      Promptbook with name "${name}" does not have defined URL
+                      Promptbook with name "${promptbook.title}" does not have defined URL
 
                       Note: Promptbooks without URLs are called anonymous promptbooks
                             They can be used as standalone promptbooks, but they cannot be referenced by other promptbooks
