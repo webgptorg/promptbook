@@ -64,7 +64,7 @@ export class SimplePromptbookLibrary implements PromptbookLibrary {
      * Gets all promptbooks in the library
      */
     public listPromptbooks(): Array<string_promptbook_url> {
-        return this.library.keys();
+        return Array.from(this.library.keys());
     }
 
     /**
@@ -102,4 +102,6 @@ export class SimplePromptbookLibrary implements PromptbookLibrary {
         prompt;
         return true;
     }
+
+    // TODO !!!! Sublibrary
 }
