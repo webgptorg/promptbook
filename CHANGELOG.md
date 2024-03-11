@@ -168,6 +168,7 @@ Custom errors + enhance templating
 -   Add `PromptbookSyntaxError`
 -   Add `PromptbookLogicError`
 -   Add `PromptbookExecutionError`
+-   Add `UnexepctedError`
 -   Preserve col-chars in multi-line templates, See more in `replaceParameters` unit test
 
 ---
