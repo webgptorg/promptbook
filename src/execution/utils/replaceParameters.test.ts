@@ -171,7 +171,7 @@ describe('replaceParameters', () => {
                 spaceTrim(`
                   Hello {name}, how are you?
 
-                    {response}
+                      {response}
               `),
                 {
                     name: 'Pavol',
@@ -190,7 +190,7 @@ describe('replaceParameters', () => {
 
                       I am fine.
                       And you?
-
+                      ${`` /* <- Preserve indentation */}
                           But I need some bananas 🍌
               `),
             ),
@@ -222,7 +222,7 @@ describe('replaceParameters', () => {
 
                     > I am fine.
                     > And you?
-                    >
+                    > ${`` /* <- Preserve space */}
                     > But I need some bananas 🍌
                 `),
             ),
@@ -251,7 +251,7 @@ describe('replaceParameters', () => {
 
                     $ I am fine.
                     $ And you?
-                    $
+                    $ ${`` /* <- Preserve space */}
                     $ But I need some bananas 🍌
                 `),
             ),
@@ -271,7 +271,7 @@ describe('replaceParameters', () => {
                     response: spaceTrim(`
                       I am fine.
                       And you?
-
+                      ${`` /* <- Preserve indentation */}
                       But I need some bananas 🍌
                   `),
                 },
@@ -283,7 +283,7 @@ describe('replaceParameters', () => {
 
                   The response from Pavol is: I am fine.
                   And you?
-
+                  ${`` /* <- Preserve indentation */}
                   But I need some bananas 🍌
               `),
             ),
@@ -319,20 +319,20 @@ describe('replaceParameters', () => {
 
                     > I am fine.
                     > And you?
-                    >
+                    > ${`` /* <- Preserve space */}
                     > But I need some bananas 🍌
 
                     | I am fine.
                     | And you?
-                    |
+                    | ${`` /* <- Preserve space */}
                     | But I need some bananas 🍌
 
                     Pavol said "I am fine.
                     And you?
-
+                    ${`` /* <- Preserve indentation */}
                     But I need some bananas 🍌" and "I am fine.
                     And you?
-
+                    ${`` /* <- Preserve indentation */}
                     But I need some bananas 🍌"
                 `),
             ),

@@ -1,4 +1,6 @@
+import { LOOP_LIMIT } from '../../config';
 import { PromptbookExecutionError } from '../../errors/PromptbookExecutionError';
+import { UnexpectedError } from '../../errors/UnexpectedError';
 import { Parameters } from '../../types/Parameters';
 import { string_template } from '../../types/typeAliases';
 
@@ -12,32 +14,47 @@ import { string_template } from '../../types/typeAliases';
  * @private within the createPromptbookExecutor
  */
 export function replaceParameters(template: string_template, parameters: Parameters): string {
-    const placeholders = template.match(/{\w+}/g);
     let replacedTemplate = template;
+    let match: RegExpExecArray | null;
 
-    if (placeholders) {
-        for (const placeholder of placeholders) {
-            const paramName = placeholder.slice(1, -1); // Remove the curly braces to get the parameter name
-
-            if (paramName === '') {
-                continue; // Skip empty placeholders. It's used to avoid confusion with JSON-like strings
-            }
-
-            if (paramName.indexOf('{') !== -1 || paramName.indexOf('}') !== -1) {
-                throw new PromptbookExecutionError('Parameter is already opened or not closed');
-            }
-
-            if ((parameters as Record<string, string>)[paramName] === undefined) {
-                throw new PromptbookExecutionError(`Parameter {${paramName}} is not defined`);
-            }
-
-            let parameterValue = (parameters as Record<string, string>)[paramName]!;
-
-            replacedTemplate = replacedTemplate.replace(
-                new RegExp(placeholder, 'g'),
-                parameterValue,
-            );
+    let loopLimit = LOOP_LIMIT;
+    while (
+        (match = /^(?<precol>.*){(?<parameterName>\w+)}(.*)/m /* <- Not global */
+            .exec(replacedTemplate))
+    ) {
+        if (loopLimit-- < 0) {
+            throw new UnexpectedError('Loop limit reached during parameters replacement in `replaceParameters`');
         }
+
+        const precol = match.groups!.precol!;
+        const parameterName = match.groups!.parameterName!;
+
+        if (parameterName === '') {
+            // Note: Skip empty placeholders. It's used to avoid confusion with JSON-like strings
+            continue;
+        }
+
+        if (parameterName.indexOf('{') !== -1 || parameterName.indexOf('}') !== -1) {
+            throw new PromptbookExecutionError('Parameter is already opened or not closed');
+        }
+
+        if ((parameters as Record<string, string>)[parameterName] === undefined) {
+            throw new PromptbookExecutionError(`Parameter {${parameterName}} is not defined`);
+        }
+
+        let parameterValue = (parameters as Record<string, string>)[parameterName]!;
+
+        if (parameterValue.includes('\n') && /^\s*\W{0,3}\s*$/.test(precol)) {
+            parameterValue = parameterValue
+                .split('\n')
+                .map((line, index) => (index === 0 ? line : `${precol}${line}`))
+                .join('\n');
+        }
+
+        replacedTemplate =
+            replacedTemplate.substring(0, match.index + precol.length) +
+            parameterValue +
+            replacedTemplate.substring(match.index + precol.length + parameterName.length + 2);
     }
 
     // [💫] Check if there are parameters that are not closed properly
