@@ -1,8 +1,11 @@
+/*
+[🆔]
 import { ExpectError } from '../errors/ExpectError';
 import { NotFoundError } from '../errors/NotFoundError';
 import { PromptbookExecutionError } from '../errors/PromptbookExecutionError';
 import { PromptbookLogicError } from '../errors/PromptbookLogicError';
 import { PromptbookSyntaxError } from '../errors/PromptbookSyntaxError';
+*/
 import type { CommonExecutionToolsOptions } from '../execution/CommonExecutionToolsOptions';
 import type { ExecutionTools } from '../execution/ExecutionTools';
 import type { NaturalExecutionTools } from '../execution/NaturalExecutionTools';
@@ -160,9 +163,19 @@ export {
     string_version,
 };
 
-export { ExpectError, NotFoundError, PromptbookExecutionError, PromptbookLogicError, PromptbookSyntaxError };
+/*
+[🆔]
+export {
+    ExpectError,
+    NotFoundError,
+    PromptbookExecutionError,
+    PromptbookLogicError,
+    PromptbookSyntaxError,
+    // <- TODO: [🆔] Export exactly same objects as thrown to be able to do: "Error instanceof NotFoundError"
+};
+*/
 
 /**
- * TODO: [🧠] Is this the best package to export custom errors from?
+ * TODO: [🧠][🆔] Is this the best package to export custom errors from?
  * TODO: Delete type aliases (from ../types/typeAliases) that are not exported here
  */

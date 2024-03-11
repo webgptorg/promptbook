@@ -164,11 +164,13 @@ Working on **Promptbook Library**. Identify promptbooks by URL.
 
 Custom errors + enhance templating
 
--   Add `NotFoundError`
--   Add `PromptbookSyntaxError`
--   Add `PromptbookLogicError`
--   Add `PromptbookExecutionError`
--   Add `UnexepctedError`
+<!--[🆔]-->
+
+-   Throwing `NotFoundError`
+-   Throwing `PromptbookSyntaxError`
+-   Throwing `PromptbookLogicError`
+-   Throwing `PromptbookExecutionError`
+-   Throwing `UnexepctedError`
 -   Preserve col-chars in multi-line templates, See more in `replaceParameters` unit test
 
 ---
