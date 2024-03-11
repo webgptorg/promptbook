@@ -171,6 +171,7 @@ export {
     PromptbookExecutionError,
     PromptbookLogicError,
     PromptbookSyntaxError,
+    PromptbookReferenceError
     // <- TODO: [🆔] Export exactly same objects as thrown to be able to do: "Error instanceof NotFoundError"
 };
 */

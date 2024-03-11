@@ -1,64 +1,49 @@
 import spaceTrim from 'spacetrim';
-import { promptbookStringToJson } from '../conversion/promptbookStringToJson';
-import { validatePromptbookJson } from '../conversion/test/validatePromptbookJson';
+import { validatePromptbookJson } from '../_packages/core.index';
 import { NotFoundError } from '../errors/NotFoundError';
+import { PromptbookReferenceError } from '../errors/PromptbookReferenceError';
 import type { Prompt } from '../types/Prompt';
 import type { PromptbookJson } from '../types/PromptbookJson/PromptbookJson';
-import type { PromptbookString } from '../types/PromptbookString';
-import type { string_name, string_promptbook_url } from '../types/typeAliases';
+import type { string_promptbook_url } from '../types/typeAliases';
 import { PromptbookLibrary } from './PromptbookLibrary';
 
 /**
  * Library of promptbooks that groups together promptbooks for an application.
- * This implementation is a very thin wrapper around the Array / Set of promptbooks.
+ * This implementation is a very thin wrapper around the Array / Map of promptbooks.
  *
  * @see https://github.com/webgptorg/promptbook#promptbook-library
  */
 export class SimplePromptbookLibrary implements PromptbookLibrary {
-    /**
-     * Constructs Promptbook from any sources
+    private library: Map<string_promptbook_url, PromptbookJson>;
+
+    /**!!!
      *
-     * Note: During the construction syntax and logic of all sources are validated
-     * Note: You can combine .ptbk.md and .ptbk.json files BUT it is not recommended
+     * @param promptbooks !!!
      *
-     * @param promptbookSources contents of .ptbk.md or .ptbk.json files
-     * @param settings settings for creating executor functions
-     * @returns PromptbookLibrary
+     * Note: During the construction logic of all promptbooks are validated
+     * Note: It is not recommended to use this constructor directly, use `createPromptbookLibraryFromSources` *(or other variant)* instead
      */
-    public static fromSources(...promptbookSources: Array<PromptbookJson | PromptbookString>): SimplePromptbookLibrary {
-        const library = new Map<string_name, PromptbookJson>();
-        for (const source of promptbookSources) {
-            let promptbook: PromptbookJson;
-
-            if (typeof source === 'string') {
-                // Note: When directly creating from string, no need to validate the source
-                //       The validation is performed always before execution
-
-                promptbook = promptbookStringToJson(source);
-            } else {
-                promptbook = source;
-            }
-            validatePromptbookJson(promptbook);
-
+    public constructor(...promptbooks: Array<PromptbookJson>) {
+        this.library = new Map<string_promptbook_url, PromptbookJson>();
+        for (const promptbook of promptbooks) {
             if (promptbook.promptbookUrl === undefined) {
-                throw new Error(
+                throw new PromptbookReferenceError(
                     spaceTrim(`
-                      Promptbook with name "${promptbook.title}" does not have defined URL
+                        Promptbook with name "${promptbook.title}" does not have defined URL
 
-                      Note: Promptbooks without URLs are called anonymous promptbooks
-                            They can be used as standalone promptbooks, but they cannot be referenced by other promptbooks
-                            And also they cannot be used in the promptbook library
+                        Note: Promptbooks without URLs are called anonymous promptbooks
+                              They can be used as standalone promptbooks, but they cannot be referenced by other promptbooks
+                              And also they cannot be used in the promptbook library
 
-                  `),
+                    `),
                 );
             }
 
-            library.set(promptbook.promptbookUrl, promptbook);
-        }
-        return new SimplePromptbookLibrary(library);
-    }
+            validatePromptbookJson(promptbook);
 
-    private constructor(private readonly library: Map<string_promptbook_url, PromptbookJson>) {}
+            this.library.set(promptbook.promptbookUrl, promptbook);
+        }
+    }
 
     /**
      * Gets all promptbooks in the library
@@ -98,10 +83,8 @@ export class SimplePromptbookLibrary implements PromptbookLibrary {
      * Checks whether given prompt was defined in any promptbook in the library
      */
     public isResponsibleForPrompt(prompt: Prompt): boolean {
-        // TODO: [🎛] DO not hardcode this, really validate whether the prompt is in the library
+        // TODO: !!!  DO not hardcode this, really validate whether the prompt is in the library
         prompt;
         return true;
     }
-
-    // TODO !!!! Sublibrary
 }

@@ -24,5 +24,5 @@ export type PromptbookLibrary = {
     /**
      * Checks whether given prompt was defined in any promptbook in the library
      */
-    isResponsibleForPrompt(prompt: Prompt): boolean;
+    isResponsibleForPrompt(prompt: Prompt): Promisable<boolean>;
 };

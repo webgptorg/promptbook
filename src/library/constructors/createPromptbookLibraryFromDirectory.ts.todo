@@ -1,0 +1,13 @@
+import { PromptbookLibrary } from "../PromptbookLibrary";
+
+
+
+export function createPromptbookLibraryFromDirectory(): PromptbookLibrary{
+
+
+}
+
+
+/***
+ * TODO: !!! Annotate all + all to README and samples
+ */

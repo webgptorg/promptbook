@@ -170,9 +170,12 @@ Custom errors + enhance templating
 -   Throwing `PromptbookSyntaxError`
 -   Throwing `PromptbookLogicError`
 -   Throwing `PromptbookExecutionError`
+-   Throwing `PromptbookReferenceError`
 -   Throwing `UnexepctedError`
 -   Preserve col-chars in multi-line templates, See more in `replaceParameters` unit test
--   Static method `SimplePromptbookLibrary.fromSources` receives `Array` instead of `Record`
+-   Change static methods of `PromptbookLibrary` to standalone functions
+-   Static method `createPromptbookLibraryFromSources` receives spreaded arguments `Array` instead of `Record`
+-   Add factory function `createPromptbookLibraryFromPromise`
 
 ---
 

@@ -3,13 +3,13 @@ import type { IDestroyable } from 'destroyable';
 import http from 'http';
 import { Server, Socket } from 'socket.io';
 import spaceTrim from 'spacetrim';
+import { PromptbookExecutionError } from '../../../../errors/PromptbookExecutionError';
 import { PROMPTBOOK_VERSION } from '../../../../version';
 import { PromptResult } from '../../../PromptResult';
 import { Promptbook_Server_Error } from './interfaces/Promptbook_Server_Error';
 import { Promptbook_Server_Request } from './interfaces/Promptbook_Server_Request';
 import { Promptbook_Server_Response } from './interfaces/Promptbook_Server_Response';
 import { RemoteServerOptions } from './interfaces/RemoteServerOptions';
-import { PromptbookExecutionError } from '../../../../errors/PromptbookExecutionError';
 
 /**
  * Remote server is a proxy server that uses its execution tools internally and exposes the executor interface externally.
@@ -20,7 +20,7 @@ import { PromptbookExecutionError } from '../../../../errors/PromptbookExecution
  * @see https://github.com/webgptorg/promptbook#remote-server
  */
 export function startRemoteServer(options: RemoteServerOptions): IDestroyable {
-    const { port, path, /* [🎛] promptbookLibrary, */ createNaturalExecutionTools, isVerbose } = options;
+    const { port, path, library, createNaturalExecutionTools, isVerbose } = options;
 
     const httpServer = http.createServer({}, (request, response) => {
         if (request.url?.includes('socket.io')) {
@@ -64,7 +64,9 @@ export function startRemoteServer(options: RemoteServerOptions): IDestroyable {
             try {
                 const executionToolsForClient = createNaturalExecutionTools(clientId);
 
-                // TODO: [🎛] Check validity of the prompt against promptbookLibrary
+                if (!(await library.isResponsibleForPrompt(prompt))) {
+                    throw new PromptbookExecutionError(`Prompt is not in the library of this server`);
+                }
 
                 let promptResult: PromptResult;
                 switch (prompt.modelRequirements.modelVariant) {
@@ -75,7 +77,9 @@ export function startRemoteServer(options: RemoteServerOptions): IDestroyable {
                         promptResult = await executionToolsForClient.gptComplete(prompt);
                         break;
                     default:
-                        throw new PromptbookExecutionError(`Unknown model variant "${prompt.modelRequirements.modelVariant}"`);
+                        throw new PromptbookExecutionError(
+                            `Unknown model variant "${prompt.modelRequirements.modelVariant}"`,
+                        );
                 }
 
                 if (isVerbose) {
