@@ -31,9 +31,11 @@ export function replaceParameters(template: string_template, parameters: Paramet
                 throw new PromptbookExecutionError(`Parameter {${paramName}} is not defined`);
             }
 
+            let parameterValue = (parameters as Record<string, string>)[paramName]!;
+
             replacedTemplate = replacedTemplate.replace(
                 new RegExp(placeholder, 'g'),
-                (parameters as Record<string, string>)[paramName]!,
+                parameterValue,
             );
         }
     }

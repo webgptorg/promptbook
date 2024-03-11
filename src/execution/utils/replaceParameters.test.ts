@@ -289,4 +289,53 @@ describe('replaceParameters', () => {
             ),
         );
     });
+
+    it('should work with combination of col-chars and non-col-chars in multi-line templates', () => {
+        expect(
+            replaceParameters(
+                spaceTrim(`
+                    Hello {name}, how are you?
+
+                    > {response}
+
+                    | {response}
+
+                    Pavol said "{response}" and "{response}"
+                `),
+                {
+                    name: 'Pavol',
+                    response: spaceTrim(`
+                        I am fine.
+                        And you?
+
+                        But I need some bananas 🍌
+                    `),
+                },
+            ),
+        ).toBe(
+            just(
+                spaceTrim(`
+                    Hello Pavol, how are you?
+
+                    > I am fine.
+                    > And you?
+                    >
+                    > But I need some bananas 🍌
+
+                    | I am fine.
+                    | And you?
+                    |
+                    | But I need some bananas 🍌
+
+                    Pavol said "I am fine.
+                    And you?
+
+                    But I need some bananas 🍌" and "I am fine.
+                    And you?
+
+                    But I need some bananas 🍌"
+                `),
+            ),
+        );
+    });
 });
