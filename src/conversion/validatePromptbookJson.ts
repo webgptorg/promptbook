@@ -1,9 +1,11 @@
 import spaceTrim from 'spacetrim';
+import { LOOP_LIMIT } from '../config';
+import { PromptbookLogicError } from '../errors/PromptbookLogicError';
+import { UnexpectedError } from '../errors/UnexpectedError';
 import type { PromptTemplateJson } from '../types/PromptbookJson/PromptTemplateJson';
 import type { PromptbookJson } from '../types/PromptbookJson/PromptbookJson';
 import type { string_name } from '../types/typeAliases';
 import { isValidUrl } from '../utils/validators/url/isValidUrl';
-import { PromptbookLogicError } from '../errors/PromptbookLogicError';
 
 /**
  * Validates PromptbookJson if it is logically valid.
@@ -21,7 +23,7 @@ import { PromptbookLogicError } from '../errors/PromptbookLogicError';
 export function validatePromptbookJson(promptbook: PromptbookJson): void {
     if (promptbook.promptbookUrl !== undefined) {
         if (!isValidUrl(promptbook.promptbookUrl)) {
-          // TODO: This should be maybe the syntax error detected during parsing
+            // TODO: This should be maybe the syntax error detected during parsing
             throw new PromptbookLogicError(`Invalid promptbook URL "${promptbook.promptbookUrl}"`);
         }
     }
@@ -105,7 +107,9 @@ export function validatePromptbookJson(promptbook: PromptbookJson): void {
 
             for (const joker of template.jokers) {
                 if (!template.dependentParameterNames.includes(joker)) {
-                    throw new PromptbookLogicError(`Parameter {${joker}} is used as joker but not in dependentParameterNames`);
+                    throw new PromptbookLogicError(
+                        `Parameter {${joker}} is used as joker but not in dependentParameterNames`,
+                    );
                 }
             }
         }
@@ -113,7 +117,9 @@ export function validatePromptbookJson(promptbook: PromptbookJson): void {
         if (template.expectAmount) {
             for (const [unit, { min, max }] of Object.entries(template.expectAmount)) {
                 if (min !== undefined && max !== undefined && min > max) {
-                    throw new PromptbookLogicError(`Min expectation (=${min}) of ${unit} is higher than max expectation (=${max})`);
+                    throw new PromptbookLogicError(
+                        `Min expectation (=${min}) of ${unit} is higher than max expectation (=${max})`,
+                    );
                 }
 
                 if (min !== undefined && min < 0) {
@@ -134,7 +140,15 @@ export function validatePromptbookJson(promptbook: PromptbookJson): void {
         .filter(({ isInput }) => isInput)
         .map(({ name }) => name);
     let unresovedTemplates: Array<PromptTemplateJson> = [...promptbook.promptTemplates];
+    
+    let loopLimit = LOOP_LIMIT;
     while (unresovedTemplates.length > 0) {
+        if (loopLimit-- < 0) {
+            throw new UnexpectedError(
+                'Loop limit reached during detection of circular dependencies in `validatePromptbookJson`',
+            );
+        }
+
         const currentlyResovedTemplates = unresovedTemplates.filter((template) =>
             template.dependentParameterNames.every((name) => resovedParameters.includes(name)),
         );

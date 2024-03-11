@@ -1,9 +1,11 @@
 import spaceTrim from 'spacetrim';
 import type { Promisable } from 'type-fest';
 import { PromptbookJson } from '../_packages/types.index';
+import { LOOP_LIMIT } from '../config';
 import { validatePromptbookJson } from '../conversion/validatePromptbookJson';
 import { ExpectError } from '../errors/ExpectError';
 import { PromptbookExecutionError } from '../errors/PromptbookExecutionError';
+import { UnexpectedError } from '../errors/UnexpectedError';
 import type { Prompt } from '../types/Prompt';
 import type { ExpectationUnit, PromptTemplateJson } from '../types/PromptbookJson/PromptTemplateJson';
 import type { TaskProgress } from '../types/TaskProgress';
@@ -104,8 +106,7 @@ export function createPromptbookExecutor(options: CreatePromptbookExecutorOption
                 const joker = jokers[jokers.length + attempt];
 
                 if (isJokerAttempt && !joker) {
-                    throw new PromptbookExecutionError(`Joker not found in attempt ${attempt}`);
-                    //              <- TODO: [🥨] Make some NeverShouldHappenError
+                    throw new UnexpectedError(`Joker not found in attempt ${attempt}`);
                 }
 
                 result = null;
@@ -341,8 +342,7 @@ export function createPromptbookExecutor(options: CreatePromptbookExecutorOption
             }
 
             if (resultString === null) {
-                //              <- TODO: [🥨] Make some NeverShouldHappenError
-                throw new PromptbookExecutionError('Something went wrong and prompt result is null');
+                throw new UnexpectedError('Something went wrong and prompt result is null');
             }
 
             if (onProgress /* <- [3] */) {
@@ -372,14 +372,24 @@ export function createPromptbookExecutor(options: CreatePromptbookExecutorOption
             let unresovedTemplates: Array<PromptTemplateJson> = [...promptbook.promptTemplates];
             let resolving: Array<Promise<void>> = [];
 
+            let loopLimit = LOOP_LIMIT;
             while (unresovedTemplates.length > 0) {
+                if (loopLimit-- < 0) {
+                    throw new UnexpectedError('Loop limit reached during resolving parameters promptbook execution');
+                }
+
                 const currentTemplate = unresovedTemplates.find((template) =>
                     template.dependentParameterNames.every((name) => resovedParameters.includes(name)),
                 );
 
                 if (!currentTemplate && resolving.length === 0) {
-                    throw new PromptbookExecutionError(`Can not resolve some parameters`);
-                    //              <- TODO: [🥨] Make some NeverShouldHappenError, should be catched during validatePromptbookJson
+                    throw new UnexpectedError(
+                        spaceTrim(`
+                            Can not resolve some parameters
+
+                            Note: This should be catched during validatePromptbookJson
+                        `),
+                    );
                 } else if (!currentTemplate) {
                     /* [5] */ await Promise.race(resolving);
                 } else {

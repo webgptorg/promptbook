@@ -63,7 +63,15 @@ export class GoogleAutomaticTranslator implements AutomaticTranslator {
             let translatedElement: ElementHandle | undefined;
 
             let i = 0;
+
+            let loopLimit = LOOP_LIMIT;
             while (!translatedElement) {
+
+                if (loopLimit-- < 0) {
+                    throw new UnexpectedError('Loop limit reached during ... in `...`');
+                }
+
+
                 await forTime(500 /* for retry to find an translation result */);
                 translatedElement = (await this.page.$x(`//*[@data-result-index]`))[0]!;
                 //console.log(translatedElement);

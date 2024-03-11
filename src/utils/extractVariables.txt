@@ -20,7 +20,7 @@ export function extractVariables(script: string_javascript): Array<string_name> 
         sourceType: 'script',
     });
 
-    
+
 
     console.log(syntaxTree);
 
@@ -45,7 +45,14 @@ function extractVariables(code: string_javascript): Array<string_javascript_name
 
     // Loop through the matches of the regex
     let match;
+
+    let loopLimit = LOOP_LIMIT;
     while ((match = regex.exec(code))) {
+
+        if (loopLimit-- < 0) {
+                    throw new UnexpectedError('Loop limit reached during ... in `...`');
+        }
+
         // Get the variable name from the match
         const variable = match[1]!;
 

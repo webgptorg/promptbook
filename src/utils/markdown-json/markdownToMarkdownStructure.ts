@@ -1,4 +1,6 @@
 import spaceTrim from 'spacetrim';
+import { LOOP_LIMIT } from '../../config';
+import { UnexpectedError } from '../../errors/UnexpectedError';
 import { MarkdownStructure } from './MarkdownStructure';
 
 /**
@@ -37,7 +39,15 @@ export function markdownToMarkdownStructure(markdown: string): MarkdownStructure
             } else {
                 // Note: Going up or staying at the same level (next section is sibling or parent or grandparent,... of current)
                 parent = current;
+
+                let loopLimit = LOOP_LIMIT;
                 while (parent.level !== level - 1) {
+                    if (loopLimit-- < 0) {
+                        throw new UnexpectedError(
+                            'Loop limit reached during parsing of markdown structure in `markdownToMarkdownStructure`',
+                        );
+                    }
+
                     if (parent.parent === null /* <- Note: We are in root */) {
                         // [🌻]
                         throw new Error(

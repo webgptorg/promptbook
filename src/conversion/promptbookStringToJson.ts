@@ -40,12 +40,12 @@ export function promptbookStringToJson(promptbookString: PromptbookString): Prom
     // Note: 1️⃣ Normalization of the PROMPTBOOK string
     promptbookString = removeContentComments(promptbookString);
     promptbookString = promptbookString.replaceAll(
-        /`\{(?<paramName>[a-z0-9_]+)\}`/gi,
-        '{$<paramName>}',
+        /`\{(?<parameterName>[a-z0-9_]+)\}`/gi,
+        '{$<parameterName>}',
     ) as PromptbookString;
     promptbookString = promptbookString.replaceAll(
-        /`->\s+\{(?<paramName>[a-z0-9_]+)\}`/gi,
-        '-> {$<paramName>}',
+        /`->\s+\{(?<parameterName>[a-z0-9_]+)\}`/gi,
+        '-> {$<parameterName>}',
     ) as PromptbookString;
 
     // =============================================================
