@@ -162,7 +162,7 @@ Working on **Promptbook Library**. Identify promptbooks by URL.
 
 ## 0.40.0 _(2024-03-10)_
 
-Custom errors + enhance templating
+Multiple factories for `PromptbookLibrary`, Custom errors, enhance templating
 
 <!--[🆔]-->
 
