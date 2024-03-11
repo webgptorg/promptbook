@@ -37,9 +37,9 @@
 
                 // TODO: !! PromptbookLibrary.fromUrl
                 const advanced = await (await fetch('/samples/templates/50-advanced.ptbk.md')).text();
-                const library = PromptbookLibrary.fromSources({
+                const library = PromptbookLibrary.fromSources([
                     advanced
-                },
+                ],
                 {
                     maxExecutionAttempts: 3,
                 }

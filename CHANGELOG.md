@@ -172,6 +172,7 @@ Custom errors + enhance templating
 -   Throwing `PromptbookExecutionError`
 -   Throwing `UnexepctedError`
 -   Preserve col-chars in multi-line templates, See more in `replaceParameters` unit test
+-   Static method `SimplePromptbookLibrary.fromSources` receives `Array` instead of `Record`
 
 ---
 

@@ -20,10 +20,10 @@ async function main() {
     console.info(chalk.bgGray('🔵 Testing remote server of PromptBook'));
 
     const library = PromptbookLibrary.fromSources(
-        {
+        [
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            advanced: (await readFile('./samples/templates/50-advanced.ptbk.md', 'utf-8')) as any,
-        },
+            (await readFile('./samples/templates/50-advanced.ptbk.md', 'utf-8')) as any,
+        ],
         {
             maxExecutionAttempts: 3,
         },

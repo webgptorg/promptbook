@@ -42,11 +42,11 @@ export class SimplePromptbookLibrary implements PromptbookLibrary {
      * @returns PromptbookLibrary
      */
     public static fromSources(
-        promptbookSources: Record<string_promptbook_url, PromptbookJson | PromptbookString>,
+        promptbookSources: Array<PromptbookJson | PromptbookString>,
         settings?: Partial<CreatePromptbookExecutorSettings>,
     ): SimplePromptbookLibrary {
         const library: Record<string_name, PromptbookJson> = {};
-        for (const [name, source] of Object.entries(promptbookSources)) {
+        for (const source of promptbookSources) {
             let promptbook: PromptbookJson;
 
             if (typeof source === 'string') {

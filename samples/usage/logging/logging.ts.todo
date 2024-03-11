@@ -20,9 +20,7 @@ async function main() {
     console.info(chalk.bgGray('🔴 Testing logging capabilities of PromptBook'));
 
     const library = PromptbookLibrary.fromSources(
-        {
-            advanced: await readFile('./samples/templates/50-advanced.ptbk.md', 'utf-8'),
-        },
+        [await readFile('./samples/templates/50-advanced.ptbk.md', 'utf-8')],
         {
             maxExecutionAttempts: 3,
         },

@@ -24,9 +24,9 @@ async function main() {
     const sampleName = '50-advanced';
 
     const library = PromptbookLibrary.fromSources(
-        {
-            advanced: await readFile(`./samples/templates/${sampleName}.ptbk.md`, 'utf-8'),
-        },
+        [
+            await readFile(`./samples/templates/${sampleName}.ptbk.md`, 'utf-8'),
+        ],
         {
             maxExecutionAttempts: 3,
         },
