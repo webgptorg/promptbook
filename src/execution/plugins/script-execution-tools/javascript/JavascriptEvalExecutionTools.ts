@@ -12,7 +12,8 @@ import {
     removeDiacritics as _removeDiacritics,
     parseKeywordsFromString,
 } from 'n12';
-import { spaceTrim as _spaceTrim } from 'spacetrim';
+import _spaceTrim from 'spacetrim';
+import { PromptbookExecutionError } from '../../../../errors/PromptbookExecutionError';
 import { prettifyMarkdown as _prettifyMarkdown } from '../../../../utils/markdown/prettifyMarkdown';
 import { removeEmojis as _removeEmojis } from '../../../../utils/removeEmojis';
 import { removeQuotes as _removeQuotes } from '../../../../utils/removeQuotes';
@@ -22,7 +23,6 @@ import { unwrapResult as _unwrapResult } from '../../../../utils/unwrapResult';
 import { ScriptExecutionTools, ScriptExecutionToolsExecuteOptions } from '../../../ScriptExecutionTools';
 import { JavascriptExecutionToolsOptions } from './JavascriptExecutionToolsOptions';
 import { preserve } from './utils/preserve';
-import { PromptbookExecutionError } from '../../../../errors/PromptbookExecutionError';
 
 /**
  * ScriptExecutionTools for JavaScript implemented via eval
@@ -146,7 +146,9 @@ export class JavascriptEvalExecutionTools implements ScriptExecutionTools {
             result = await eval(statementToEvaluate);
 
             if (typeof result !== 'string') {
-                throw new PromptbookExecutionError(`Script must return a string, but returned ${result.toString()} ${typeof result}`);
+                throw new PromptbookExecutionError(
+                    `Script must return a string, but returned ${result.toString()} ${typeof result}`,
+                );
             }
         } catch (error) {
             if (!(error instanceof Error)) {
