@@ -1,11 +1,11 @@
 import spaceTrim from 'spacetrim';
-import { LOOP_LIMIT } from '../config';
-import { PromptbookLogicError } from '../errors/PromptbookLogicError';
-import { UnexpectedError } from '../errors/UnexpectedError';
-import type { PromptTemplateJson } from '../types/PromptbookJson/PromptTemplateJson';
-import type { PromptbookJson } from '../types/PromptbookJson/PromptbookJson';
-import type { string_name } from '../types/typeAliases';
-import { isValidUrl } from '../utils/validators/url/isValidUrl';
+import { LOOP_LIMIT } from '../../config';
+import { PromptbookLogicError } from '../../errors/PromptbookLogicError';
+import { UnexpectedError } from '../../errors/UnexpectedError';
+import type { PromptTemplateJson } from '../../types/PromptbookJson/PromptTemplateJson';
+import type { PromptbookJson } from '../../types/PromptbookJson/PromptbookJson';
+import type { string_name } from '../../types/typeAliases';
+import { isValidUrl } from '../../utils/validators/url/isValidUrl';
 
 /**
  * Validates PromptbookJson if it is logically valid.
@@ -140,7 +140,7 @@ export function validatePromptbookJson(promptbook: PromptbookJson): void {
         .filter(({ isInput }) => isInput)
         .map(({ name }) => name);
     let unresovedTemplates: Array<PromptTemplateJson> = [...promptbook.promptTemplates];
-    
+
     let loopLimit = LOOP_LIMIT;
     while (unresovedTemplates.length > 0) {
         if (loopLimit-- < 0) {

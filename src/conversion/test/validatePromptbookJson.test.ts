@@ -2,12 +2,12 @@ import { describe, expect, it } from '@jest/globals';
 import { readdirSync } from 'fs';
 import { join } from 'path';
 import spaceTrim from 'spacetrim';
-import { promptbookStringToJson } from './promptbookStringToJson';
-import { importPromptbook } from './test/_importPromptbook';
+import { promptbookStringToJson } from '../promptbookStringToJson';
+import { importPromptbook } from './_importPromptbook';
 import { validatePromptbookJson } from './validatePromptbookJson';
 
 describe('validatePromptbookJson', () => {
-    const samplesDir = '../../samples/templates';
+    const samplesDir = '../../../samples/templates';
     const samples = readdirSync(join(__dirname, samplesDir), { withFileTypes: true, recursive: false })
         //                         <- Note: In production it is not good practice to use synchronous functions
         //                                  But this is only a test before the build, so it is okay

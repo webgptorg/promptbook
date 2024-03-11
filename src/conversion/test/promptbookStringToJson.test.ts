@@ -5,9 +5,7 @@ import { promptbookStringToJson } from '../promptbookStringToJson';
 import { importPromptbook } from './_importPromptbook';
 
 describe('promptbookStringToJson', () => {
-    const samplesDir = '../../samples/templates';
-
-    console.log('join(__dirname, samplesDir)', join(__dirname, samplesDir));
+    const samplesDir = '../../../samples/templates';
 
     const samples = readdirSync(join(__dirname, samplesDir), { withFileTypes: true, recursive: false })
         //                         <- Note: In production it is not good practice to use synchronous functions

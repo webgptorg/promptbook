@@ -1,6 +1,6 @@
 import spaceTrim from 'spacetrim';
 import { promptbookStringToJson } from '../conversion/promptbookStringToJson';
-import { validatePromptbookJson } from '../conversion/validatePromptbookJson';
+import { validatePromptbookJson } from '../conversion/test/validatePromptbookJson';
 import { NotFoundError } from '../errors/NotFoundError';
 import { CreatePromptbookExecutorSettings } from '../execution/createPromptbookExecutor';
 import type { Prompt } from '../types/Prompt';
