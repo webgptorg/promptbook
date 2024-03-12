@@ -196,7 +196,7 @@ export class JavascriptEvalExecutionTools implements ScriptExecutionTools {
                     throw new PromptbookExecutionError(
                         _spaceTrim(
                             (block) => `
-                                  Function {${undefinedName}} is not defined
+                                  Function ${undefinedName}() is not defined
 
                                   -  Make sure that the function is one of built-in functions
                                   -  Or you have to defined the function during construction of JavascriptEvalExecutionTools
