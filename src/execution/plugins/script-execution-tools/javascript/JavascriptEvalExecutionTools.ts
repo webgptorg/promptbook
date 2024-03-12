@@ -170,24 +170,23 @@ export class JavascriptEvalExecutionTools implements ScriptExecutionTools {
                         _spaceTrim(
                             (block) => `
 
-                              Parameter {${undefinedName}} is not defined
+                                Parameter {${undefinedName}} is not defined
 
-                              This happen during evaluation of the javascript, which has access to the following parameters as javascript variables:
+                                This happen during evaluation of the javascript, which has access to the following parameters as javascript variables:
 
-                              ${block(
-                                  Object.keys(parameters)
-                                      .map((key) => `  - ${key}\n`)
-                                      .join(''),
-                              )}
-                              
-                              The script is:
-                              \`\`\`javascript
-                              ${block(script)}
-                              \`\`\`
+                                ${block(
+                                    Object.keys(parameters)
+                                        .map((key) => `  - ${key}\n`)
+                                        .join(''),
+                                )}
+                                
+                                The script is:
+                                \`\`\`javascript
+                                ${block(script)}
+                                \`\`\`
 
-
-                              Original error message:
-                              ${(error as Error).message}
+                                Original error message:
+                                ${block((error as Error).message)}
 
 
                             `,
@@ -195,16 +194,18 @@ export class JavascriptEvalExecutionTools implements ScriptExecutionTools {
                     );
                 } else {
                     throw new PromptbookExecutionError(
-                        spaceTrim(`
-                              Function {${undefinedName}} is not defined
+                        _spaceTrim(
+                            (block) => `
+                                  Function {${undefinedName}} is not defined
 
-                              -  Make sure that the function is one of built-in functions
-                              -  Or you have to defined the function during construction of JavascriptEvalExecutionTools
+                                  -  Make sure that the function is one of built-in functions
+                                  -  Or you have to defined the function during construction of JavascriptEvalExecutionTools
 
-                              Original error message:
-                              ${(error as Error).message}
+                                  Original error message:
+                                  ${block((error as Error).message)}
 
-                        `),
+                            `,
+                        ),
                     );
                 }
             }
