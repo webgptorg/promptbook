@@ -119,7 +119,7 @@ export class JavascriptEvalExecutionTools implements ScriptExecutionTools {
             )
             .join('\n');
 
-        const statementToEvaluate = spaceTrim(
+        const statementToEvaluate = _spaceTrim(
             (block) => `
                 ${block(customFunctionsStatement)}
                 ${block(
@@ -133,7 +133,7 @@ export class JavascriptEvalExecutionTools implements ScriptExecutionTools {
 
         if (this.options.isVerbose) {
             console.info(
-                spaceTrim(
+                _spaceTrim(
                     (block) => `
                         🚀 Evaluating ${scriptLanguage} script:
 
@@ -167,7 +167,7 @@ export class JavascriptEvalExecutionTools implements ScriptExecutionTools {
 
                 if (!statementToEvaluate.includes(undefinedName + '(')) {
                     throw new PromptbookExecutionError(
-                        spaceTrim(
+                        _spaceTrim(
                             (block) => `
 
                               Parameter {${undefinedName}} is not defined
