@@ -187,7 +187,7 @@ export class JavascriptEvalExecutionTools implements ScriptExecutionTools {
 
 
                               Original error message:
-                              ${error.message}
+                              ${(error as Error).message}
 
 
                             `,
@@ -202,7 +202,7 @@ export class JavascriptEvalExecutionTools implements ScriptExecutionTools {
                               -  Or you have to defined the function during construction of JavascriptEvalExecutionTools
 
                               Original error message:
-                              ${error.message}
+                              ${(error as Error).message}
 
                         `),
                     );
