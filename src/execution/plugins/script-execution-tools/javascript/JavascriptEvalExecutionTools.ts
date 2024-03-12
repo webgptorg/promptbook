@@ -179,9 +179,15 @@ export class JavascriptEvalExecutionTools implements ScriptExecutionTools {
                                       .map((key) => `  - ${key}\n`)
                                       .join(''),
                               )}
+                              
                               The script is:
-
+                              \`\`\`javascript
                               ${block(script)}
+                              \`\`\`
+
+
+                              Original error message:
+                              ${error.message}
 
 
                             `,
@@ -194,6 +200,9 @@ export class JavascriptEvalExecutionTools implements ScriptExecutionTools {
 
                               -  Make sure that the function is one of built-in functions
                               -  Or you have to defined the function during construction of JavascriptEvalExecutionTools
+
+                              Original error message:
+                              ${error.message}
 
                         `),
                     );
