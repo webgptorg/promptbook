@@ -47,7 +47,9 @@ export class JavascriptEvalExecutionTools implements ScriptExecutionTools {
         }
 
         // Note: Using direct eval, following variables are in same scope as eval call so they are accessible from inside the evaluated script:
-        const spaceTrim = _spaceTrim;
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const spaceTrim = (_: any) => _spaceTrim(_);
         preserve(spaceTrim);
 
         const removeQuotes = _removeQuotes;
@@ -191,7 +193,7 @@ export class JavascriptEvalExecutionTools implements ScriptExecutionTools {
                               Function {${undefinedName}} is not defined
 
                               -  Make sure that the function is one of built-in functions
-                              -  Or you have to defined the function during construction of JavascriptExecutionTools
+                              -  Or you have to defined the function during construction of JavascriptEvalExecutionTools
 
                         `),
                     );
