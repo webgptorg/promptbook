@@ -63,6 +63,6 @@ describe('createPromptbookExecutor + missing custom function', () => {
     it('should throw error when custom postprocessing function does not exist', () => {
         expect(() =>
             promptbookExecutor({ yourName: 'Matthew' }, () => {}).then(assertsExecutionSuccessful),
-        ).rejects.toThrowError(/Function \{addHello\} is not defined/);
+        ).rejects.toThrowError(/Function addHello\(\) is not defined/);
     });
 });
