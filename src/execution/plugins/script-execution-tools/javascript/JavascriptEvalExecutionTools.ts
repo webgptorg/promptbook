@@ -110,6 +110,40 @@ export class JavascriptEvalExecutionTools implements ScriptExecutionTools {
             script = `return ${script}`;
         }
 
+        // TODO: DRY [1]
+        const buildinFunctions = {
+            // TODO: !! DRY all these functions across the file
+            spaceTrim,
+            removeQuotes,
+            unwrapResult,
+            trimEndOfCodeBlock,
+            trimCodeBlock,
+            trim,
+            reverse,
+            removeEmojis,
+            prettifyMarkdown,
+            capitalize,
+            decapitalize,
+            nameToUriPart,
+            nameToUriParts,
+            removeDiacritics,
+            normalizeWhitespaces,
+            normalizeToKebabCase,
+            normalizeTo_camelCase,
+            normalizeTo_snake_case,
+            normalizeTo_PascalCase,
+            parseKeywords,
+            normalizeTo_SCREAMING_CASE,
+        };
+        const buildinFunctionsStatement = Object.keys(buildinFunctions)
+            .map(
+                (functionName) =>
+                    // Note: Custom functions are exposed to the current scope as variables
+                    `const ${functionName} = buildinFunctions.${functionName};`,
+            )
+            .join('\n');
+
+        // TODO: DRY [1]
         const customFunctions = this.options.functions || {};
         const customFunctionsStatement = Object.keys(customFunctions)
             .map(
@@ -121,7 +155,14 @@ export class JavascriptEvalExecutionTools implements ScriptExecutionTools {
 
         const statementToEvaluate = _spaceTrim(
             (block) => `
-                ${block(customFunctionsStatement)}
+
+                // Build-in functions:
+                ${block(buildinFunctionsStatement)}
+
+                // Custom functions:
+                ${block(customFunctionsStatement || '// -- No custom functions --')}
+
+                // The script:
                 ${block(
                     Object.entries(parameters)
                         .map(([key, value]) => `const ${key} = ${JSON.stringify(value)};`)
