@@ -14,6 +14,7 @@ import {
 } from 'n12';
 import _spaceTrim from 'spacetrim';
 import { PromptbookExecutionError } from '../../../../errors/PromptbookExecutionError';
+import type { string_javascript } from '../../../../types/typeAliases';
 import { prettifyMarkdown as _prettifyMarkdown } from '../../../../utils/markdown/prettifyMarkdown';
 import { removeEmojis as _removeEmojis } from '../../../../utils/removeEmojis';
 import { removeQuotes as _removeQuotes } from '../../../../utils/removeQuotes';
@@ -22,6 +23,7 @@ import { trimEndOfCodeBlock as _trimEndOfCodeBlock } from '../../../../utils/tri
 import { unwrapResult as _unwrapResult } from '../../../../utils/unwrapResult';
 import { ScriptExecutionTools, ScriptExecutionToolsExecuteOptions } from '../../../ScriptExecutionTools';
 import { JavascriptExecutionToolsOptions } from './JavascriptExecutionToolsOptions';
+import { exportToEval } from './utils/exportToEval';
 import { preserve } from './utils/preserve';
 
 /**
@@ -39,6 +41,7 @@ export class JavascriptEvalExecutionTools implements ScriptExecutionTools {
     public async execute(options: ScriptExecutionToolsExecuteOptions): Promise<string> {
         const { scriptLanguage, parameters } = options;
         let { script } = options;
+        const buildinFunctionStatements: Array<string_javascript> = [];
 
         if (scriptLanguage !== 'javascript') {
             throw new PromptbookExecutionError(
@@ -48,62 +51,53 @@ export class JavascriptEvalExecutionTools implements ScriptExecutionTools {
 
         // Note: Using direct eval, following variables are in same scope as eval call so they are accessible from inside the evaluated script:
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const spaceTrim = (_: any) => _spaceTrim(_);
-        preserve(spaceTrim);
+        const _foo = () => 'bar';
+        const _trim = (str: string) => str.trim();
+        const _reverse = (str: string) => str.split('').reverse().join('');
 
-        const removeQuotes = _removeQuotes;
-        preserve(removeQuotes);
+        console.log(_spaceTrim);
 
-        const unwrapResult = _unwrapResult;
-        preserve(unwrapResult);
+        preserve(_removeQuotes);
 
-        const trimEndOfCodeBlock = _trimEndOfCodeBlock;
-        preserve(trimEndOfCodeBlock);
+        buildinFunctionStatements.push(
+            ...exportToEval({
+                _foo,
 
-        const trimCodeBlock = _trimCodeBlock;
-        preserve(trimCodeBlock);
+                _removeQuotes,
+                _unwrapResult,
+                _trimEndOfCodeBlock,
+                _trimCodeBlock,
+                _trim,
+                _reverse,
+                _removeEmojis,
+                _prettifyMarkdown,
 
-        const trim = (str: string) => str.trim();
-        preserve(trim);
-
-        const reverse = (str: string) => str.split('').reverse().join('');
-        preserve(reverse);
-
-        const removeEmojis = _removeEmojis;
-        preserve(removeEmojis);
-
-        const prettifyMarkdown = _prettifyMarkdown;
-        preserve(prettifyMarkdown);
+                _spaceTrim,
+            }),
+        );
 
         //-------[n12:]---
-        const capitalize = _capitalize;
-        const decapitalize = _decapitalize;
-        const nameToUriPart = _nameToUriPart;
-        const nameToUriParts = _nameToUriParts;
-        const removeDiacritics = _removeDiacritics;
-        const normalizeWhitespaces = _normalizeWhitespaces;
-        const normalizeToKebabCase = _normalizeToKebabCase;
-        const normalizeTo_camelCase = _normalizeTo_camelCase;
-        const normalizeTo_snake_case = _normalizeTo_snake_case;
-        const normalizeTo_PascalCase = _normalizeTo_PascalCase;
-        const parseKeywords = (input: string) =>
+        const _parseKeywords = (input: string) =>
             Array.from(parseKeywordsFromString(input)).join(
                 ', ',
             ); /* <- TODO: [🧠] What is the best format comma list, bullet list,...? */
-        const normalizeTo_SCREAMING_CASE = _normalizeTo_SCREAMING_CASE;
-        preserve(capitalize);
-        preserve(decapitalize);
-        preserve(nameToUriPart);
-        preserve(nameToUriParts);
-        preserve(removeDiacritics);
-        preserve(normalizeWhitespaces);
-        preserve(normalizeToKebabCase);
-        preserve(normalizeTo_camelCase);
-        preserve(normalizeTo_snake_case);
-        preserve(normalizeTo_PascalCase);
-        preserve(parseKeywords);
-        preserve(normalizeTo_SCREAMING_CASE);
+
+        buildinFunctionStatements.push(
+            ...exportToEval({
+                _capitalize,
+                _decapitalize,
+                _nameToUriPart,
+                _nameToUriParts,
+                _removeDiacritics,
+                _normalizeWhitespaces,
+                _normalizeToKebabCase,
+                _normalizeTo_camelCase,
+                _normalizeTo_snake_case,
+                _normalizeTo_PascalCase,
+                _parseKeywords,
+                _normalizeTo_SCREAMING_CASE,
+            }),
+        );
         //-------[/n12]---
 
         if (!script.includes('return')) {
@@ -121,7 +115,14 @@ export class JavascriptEvalExecutionTools implements ScriptExecutionTools {
 
         const statementToEvaluate = _spaceTrim(
             (block) => `
-                ${block(customFunctionsStatement)}
+
+                // Built-in functions:
+                ${block(buildinFunctionStatements.join('\n'))}
+
+                // Custom functions:
+                ${block(customFunctionsStatement || '// -- No custom functions --')}
+
+                // The script:
                 ${block(
                     Object.entries(parameters)
                         .map(([key, value]) => `const ${key} = ${JSON.stringify(value)};`)
