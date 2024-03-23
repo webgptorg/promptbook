@@ -33,7 +33,12 @@ async function usePackages() {
     console.info(`🌍  Using packages`);
 
     let isWaitedForNpm = false;
-    for (const remoteFolder of ['./samples/usage', '../webgpt-app', '../../webgpt/webgpt-app-ruka']) {
+    for (const remoteFolder of [
+        './samples/usage',
+        '../webgpt-app',
+        '../../webgpt/webgpt-app-ruka',
+        '../../webgpt/calculator',
+    ]) {
         const mainPackageJson = JSON.parse(await readFile('./package.json', 'utf-8')) as PackageJson;
         const currentVersion = mainPackageJson.version;
 
