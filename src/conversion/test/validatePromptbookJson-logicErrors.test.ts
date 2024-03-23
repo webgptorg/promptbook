@@ -49,7 +49,7 @@ describe('validatePromptbookJson', () => {
             );
             const promptbookJson = promptbookStringToJson(promptbookString);
             validatePromptbookJson(promptbookJson);
-        }).toThrowError(/Joker parameters are used but no expectations are defined/i);
+        }).toThrowError(/Joker parameters are used for \{name\} but no expectations are defined/i);
     });
 
     it('should fail on circular dependencies', () => {
