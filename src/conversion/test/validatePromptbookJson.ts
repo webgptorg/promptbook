@@ -102,13 +102,15 @@ export function validatePromptbookJson(promptbook: PromptbookJson): void {
                 !template.expectFormat &&
                 !template.expectAmount /* <- TODO: Require at least 1 -> min <- expectation to use jokers */
             ) {
-                throw new PromptbookLogicError(`Joker parameters are used but no expectations are defined`);
+                throw new PromptbookLogicError(
+                    `Joker parameters are used for {${template.resultingParameterName}} but no expectations are defined`,
+                );
             }
 
             for (const joker of template.jokers) {
                 if (!template.dependentParameterNames.includes(joker)) {
                     throw new PromptbookLogicError(
-                        `Parameter {${joker}} is used as joker but not in dependentParameterNames`,
+                        `Parameter {${joker}} is used for {${template.resultingParameterName}} as joker but not in dependentParameterNames`,
                     );
                 }
             }
