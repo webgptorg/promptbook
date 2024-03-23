@@ -177,6 +177,13 @@ Multiple factories for `PromptbookLibrary`, Custom errors, enhance templating
 -   Static method `createPromptbookLibraryFromSources` receives spreaded arguments `Array` instead of `Record`
 -   Add factory function `createPromptbookLibraryFromPromise`
 
+## 0.41.0 _(2024-03-23)_
+
+More options to create `PromptbookLibrary`
+
+-   Add `createPromptbookLibraryFromDirectory`
+-   Add `createPromptbookLibraryFromList`
+
 ---
 
 ## Upcomming

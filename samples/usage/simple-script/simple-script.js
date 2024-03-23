@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { SimplePromptbookLibrary } from '@promptbook/core';
+import { createPromptbookLibraryFromSources } from '@promptbook/core';
 import { JavascriptEvalExecutionTools } from '@promptbook/execute-javascript';
 import { OpenAiExecutionTools } from '@promptbook/openai';
 import { assertsExecutionSuccessful, executionReportJsonToString } from '@promptbook/utils';
@@ -20,10 +20,9 @@ main();
 async function main() {
     console.info(chalk.bgGray('⚪ Testing basic capabilities of PromptBook'));
 
-    // const sampleName = '50-nesting';
-    const sampleName = '50-advanced';
+    const promptbookUrl = 'https://promptbook.example.com/samples/language-capabilities.ptbk.md@v1';
 
-    const library = SimplePromptbookLibrary.fromSources(
+    const library = createPromptbookLibraryFromSources(
         await readFile(`./samples/templates/${sampleName}.ptbk.md`, 'utf-8'),
     );
 
@@ -40,7 +39,7 @@ async function main() {
         userInterface: null,
     };
 
-    const executor = library.createExecutor('advanced', tools);
+    const executor = library.getPromptbookByUrl((await library.listPromptbooks())[0]);
 
     const inputParameters = { word: 'cat' };
     const { isSuccessful, errors, outputParameters, executionReport } = await executor(inputParameters);

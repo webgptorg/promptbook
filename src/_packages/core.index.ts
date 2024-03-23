@@ -18,8 +18,8 @@ export { ExecutionTypes, PROMPTBOOK_VERSION };
 // @promptbook/library
 export {
     SimplePromptbookLibrary,
-    // TODO: createPromptbookLibraryFromDirectory,
-    // TODO:  createPromptbookLibraryFromList,
+    // TODO: !!!createPromptbookLibraryFromDirectory,
+    // TODO:  !!! createPromptbookLibraryFromList,
     createPromptbookLibraryFromPromise,
     createPromptbookLibraryFromSources,
     createPromptbookSublibrary,
