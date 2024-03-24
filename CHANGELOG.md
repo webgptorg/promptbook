@@ -181,8 +181,10 @@ Multiple factories for `PromptbookLibrary`, Custom errors, enhance templating
 
 More options to create `PromptbookLibrary`
 
--   Add `createPromptbookLibraryFromDirectory`
--   Add `createPromptbookLibraryFromList`
+-   Utility `createPromptbookLibraryFromDirectory`
+-   Utility `createPromptbookLibraryFromList`
+-   Add `extractOneBlockFromMarkdown` to build-in functions
+-   !!! When postprocessing fails, retry in same way as failed expectations
 -   !!! Remove problematic usage of `chalk` _( !!! to be reverted and done better)_
 
 ---
