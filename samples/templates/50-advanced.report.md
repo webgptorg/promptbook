@@ -3,12 +3,12 @@
 Trying the language capabilities of GPT models.
 
 -   PROMPTBOOK URL https://promptbook.example.com/samples/language-capabilities.ptbk.md@v1
--   PROMPTBOOK VERSION 0.1.0 _(requested 1.0.0)_
--   STARTED AT 2024-02-11 15:54:07
--   COMPLETED AT 2024-02-11 15:54:18
--   TOTAL DURATION 11 seconds
--   TOTAL NATURAL DURATION 11 seconds
--   TOTAL COST $0.00449
+-   PROMPTBOOK VERSION 0.40.0-10 _(requested 1.0.0)_
+-   STARTED AT 2024-03-24 10:30:38
+-   COMPLETED AT 2024-03-24 10:30:43
+-   TOTAL DURATION 5 seconds
+-   TOTAL NATURAL DURATION 5 seconds
+-   TOTAL COST $0.00338 _(Some cost is unknown)_
 
 ## 🗃 Index
 
@@ -21,28 +21,25 @@ Trying the language capabilities of GPT models.
 
 | Template                       | Timeline                             |
 | ------------------------------ | ------------------------------------ |
-| Synonym                        | ████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ |
-| Sentence with Synonym          | ░░░░███░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ |
-| Sentence without original word | ░░░░░░███░░░░░░░░░░░░░░░░░░░░░░░░░░░ |
-| Comparison                     | ░░░░░░░░░███████████████████████████ |
+| Synonym                        | █████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ |
+| Sentence with Synonym          | ░░░░░████████░░░░░░░░░░░░░░░░░░░░░░░ |
+| Sentence without original word | ░░░░░░░░░░░░░█████░░░░░░░░░░░░░░░░░░ |
+| Comparison                     | ░░░░░░░░░░░░░░░░░░██████████████████ |
 
-_Note: Each █ represents 0.295 seconds, width of timeline is 10.61 seconds = 36 squares_
+_Note: Each █ represents 0.1405 seconds, width of timeline is 5.06 seconds = 36 squares_
 
 ## 💸 Cost chart
 
-| Template                       | Cost                                 |
-| ------------------------------ | ------------------------------------ |
-| Synonym                        | ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ |
-| Sentence with Synonym          | █░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ |
-| Sentence without original word | █░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ |
-| Comparison                     | ████████████████████████████████████ |
+| Template   | Cost                                 |
+| ---------- | ------------------------------------ |
+| Comparison | ████████████████████████████████████ |
 
-_Note: Each █ represents 0.000117 USD, width of cost is 0.00421 USD = 36 squares_
+_Note: Each █ represents 0.0000939 USD, width of cost is 0.00338 USD = 36 squares_
 
 ## 💬 Synonym
 
 -   DURATION a few seconds
--   COST $0.0000235
+-   COST UNKNOWN
 
 ### Prompt
 
@@ -53,30 +50,30 @@ Write synonym for "cat"
 ### Result
 
 ```
-Feline
+feline
 ```
 
 ## 💬 Sentence with Synonym
 
 -   DURATION a few seconds
--   COST $0.000084
+-   COST UNKNOWN
 
 ### Prompt
 
 ```
-Write sentence with "cat" and "Feline" in it
+Write sentence with "cat" and "feline" in it
 ```
 
 ### Result
 
 ```
-The cat, a domestic feline, gracefully leaped onto the windowsill to bask in the warm sunlight streaming through the glass.
+My cat is a sleek and agile feline, always ready to pounce on any toy that moves.
 ```
 
 ## 💬 Sentence without original word
 
 -   DURATION a few seconds
--   COST $0.000169
+-   COST UNKNOWN
 
 ### Prompt
 
@@ -90,19 +87,19 @@ Remove word "cat" from sentence and modify it so that it makes sense:
 
 ## The Sentence:
 
-> The cat, a domestic feline, gracefully leaped onto the windowsill to bask in the warm sunlight streaming through the glass.
+> My cat is a sleek and agile feline, always ready to pounce on any toy that moves.
 ```
 
 ### Result
 
 ```
-The, a domestic feline, gracefully leaped onto the windowsill to bask in the warm sunlight streaming through the glass.
+My sleek and agile feline is always ready to pounce on any toy that moves.
 ```
 
 ## 💬 Comparison
 
--   DURATION 8 seconds
--   COST $0.00421
+-   DURATION a few seconds
+-   COST $0.00338
 
 ### Prompt
 
@@ -111,17 +108,17 @@ Compare meaning of thee two sentences:
 
 ## Sentence 1:
 
-> The cat, a domestic feline, gracefully leaped onto the windowsill to bask in the warm sunlight streaming through the glass.
+> My cat is a sleek and agile feline, always ready to pounce on any toy that moves.
 
 ## Sentence 2:
 
-> The, a domestic feline, gracefully leaped onto the windowsill to bask in the warm sunlight streaming through the glass.
+> My sleek and agile feline is always ready to pounce on any toy that moves.
 ```
 
 ### Result
 
 ```
-Both sentences describe a similar event, which is a domestic feline jumping onto a windowsill to enjoy the sunlight that's shining through the glass. They paint a picture of a peaceful and calming scene.
+Both sentences convey the same meaning. They both talk about a cat belonging to the speaker, described as sleek and agile, who pounces on toys that move.
 
-However, Sentence 1 is grammatically correct and makes sense since it specifies that it's a cat doing the action. Sentence 2 seems to have a typographical error. It should likely also refer to a 'cat', but it says 'The' in place of 'The cat', leaving the subject of the sentence unclear, which makes it difficult to understand.
+The only difference lies in the delivery of the message. The first sentence identifies the cat ('my cat') before describing it ('is a sleek and agile feline'), while the second sentence directly uses the description of the cat ('my sleek and agile feline') as the subject of the sentence.
 ```

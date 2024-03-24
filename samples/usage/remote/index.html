@@ -56,10 +56,10 @@
                     userInterface: null,
                 };
 
-                const executor = library.createExecutor('advanced', tools);
+                const promptbookExecutor = library.createExecutor('advanced', tools);
 
                 const input = { word };
-                const output = await executor(input,(progress)=>{
+                const output = await promptbookExecutor(input,(progress)=>{
                     console.info('☑',progress);
                 });
 

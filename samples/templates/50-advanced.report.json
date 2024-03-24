@@ -1,7 +1,7 @@
 {
     "promptbookUrl": "https://promptbook.example.com/samples/language-capabilities.ptbk.md@v1",
     "title": "✨ Sample: Language Capabilities",
-    "promptbookUsedVersion": "0.1.0",
+    "promptbookUsedVersion": "0.40.0-10",
     "promptbookRequestedVersion": "1.0.0",
     "description": "Trying the language capabilities of GPT models.",
     "promptExecutions": [
@@ -15,28 +15,28 @@
                 }
             },
             "result": {
-                "content": "Feline",
+                "content": "feline",
                 "model": "gpt-3.5-turbo",
                 "timing": {
-                    "start": "2024-02-11T14:54:07.848Z",
-                    "complete": "2024-02-11T14:54:08.907Z"
+                    "start": "2024-03-24T09:30:38.325Z",
+                    "complete": "2024-03-24T09:30:39.087Z"
                 },
                 "usage": {
-                    "price": 0.0000235,
+                    "price": "UNKNOWN",
                     "inputTokens": 13,
                     "outputTokens": 2
                 },
                 "rawResponse": {
-                    "id": "chatcmpl-8r5VYBjbeE5Pp2aDfGdSwxp4ktcsa",
+                    "id": "chatcmpl-96ETYXfpt5c1Smq0pa578YAFbwhjv",
                     "object": "chat.completion",
-                    "created": 1707663248,
-                    "model": "gpt-3.5-turbo-0613",
+                    "created": 1711272640,
+                    "model": "gpt-3.5-turbo-0125",
                     "choices": [
                         {
                             "index": 0,
                             "message": {
                                 "role": "assistant",
-                                "content": "Feline"
+                                "content": "feline"
                             },
                             "logprobs": null,
                             "finish_reason": "stop"
@@ -47,42 +47,42 @@
                         "completion_tokens": 2,
                         "total_tokens": 15
                     },
-                    "system_fingerprint": null
+                    "system_fingerprint": "fp_3bc1b5746c"
                 }
             }
         },
         {
             "prompt": {
                 "title": "💬 Sentence with Synonym",
-                "content": "Write sentence with \"cat\" and \"Feline\" in it",
+                "content": "Write sentence with \"cat\" and \"feline\" in it",
                 "modelRequirements": {
                     "modelVariant": "CHAT",
                     "modelName": "gpt-3.5-turbo"
                 }
             },
             "result": {
-                "content": "The cat, a domestic feline, gracefully leaped onto the windowsill to bask in the warm sunlight streaming through the glass.",
+                "content": "My cat is a sleek and agile feline, always ready to pounce on any toy that moves.",
                 "model": "gpt-3.5-turbo",
                 "timing": {
-                    "start": "2024-02-11T14:54:08.923Z",
-                    "complete": "2024-02-11T14:54:09.677Z"
+                    "start": "2024-03-24T09:30:39.096Z",
+                    "complete": "2024-03-24T09:30:40.198Z"
                 },
                 "usage": {
-                    "price": 0.000084,
+                    "price": "UNKNOWN",
                     "inputTokens": 20,
-                    "outputTokens": 27
+                    "outputTokens": 21
                 },
                 "rawResponse": {
-                    "id": "chatcmpl-8r5VZSCJg0IoXFBIDnDUBBVKTDQqg",
+                    "id": "chatcmpl-96ETZfX5ViUqSQYhl2DNzzMr7d8XL",
                     "object": "chat.completion",
-                    "created": 1707663249,
-                    "model": "gpt-3.5-turbo-0613",
+                    "created": 1711272641,
+                    "model": "gpt-3.5-turbo-0125",
                     "choices": [
                         {
                             "index": 0,
                             "message": {
                                 "role": "assistant",
-                                "content": "The cat, a domestic feline, gracefully leaped onto the windowsill to bask in the warm sunlight streaming through the glass."
+                                "content": "My cat is a sleek and agile feline, always ready to pounce on any toy that moves."
                             },
                             "logprobs": null,
                             "finish_reason": "stop"
@@ -90,100 +90,100 @@
                     ],
                     "usage": {
                         "prompt_tokens": 20,
-                        "completion_tokens": 27,
-                        "total_tokens": 47
+                        "completion_tokens": 21,
+                        "total_tokens": 41
                     },
-                    "system_fingerprint": null
+                    "system_fingerprint": "fp_3bc1b5746c"
                 }
             }
         },
         {
             "prompt": {
                 "title": "💬 Sentence without original word",
-                "content": "Remove word \"cat\" from sentence and modify it so that it makes sense:\n\n## Rules:\n\n-   Sentence must be grammatically correct\n-   Sentence must make sense after removing the word\n\n## The Sentence:\n\n> The cat, a domestic feline, gracefully leaped onto the windowsill to bask in the warm sunlight streaming through the glass.",
+                "content": "Remove word \"cat\" from sentence and modify it so that it makes sense:\n\n## Rules:\n\n-   Sentence must be grammatically correct\n-   Sentence must make sense after removing the word\n\n## The Sentence:\n\n> My cat is a sleek and agile feline, always ready to pounce on any toy that moves.",
                 "modelRequirements": {
                     "modelVariant": "CHAT",
                     "modelName": "gpt-3.5-turbo"
                 }
             },
             "result": {
-                "content": "The, a domestic feline, gracefully leaped onto the windowsill to bask in the warm sunlight streaming through the glass.",
+                "content": "My sleek and agile feline is always ready to pounce on any toy that moves.",
                 "model": "gpt-3.5-turbo",
                 "timing": {
-                    "start": "2024-02-11T14:54:09.683Z",
-                    "complete": "2024-02-11T14:54:10.577Z"
+                    "start": "2024-03-24T09:30:40.199Z",
+                    "complete": "2024-03-24T09:30:40.843Z"
                 },
                 "usage": {
-                    "price": 0.00016900000000000002,
-                    "inputTokens": 78,
-                    "outputTokens": 26
+                    "price": "UNKNOWN",
+                    "inputTokens": 72,
+                    "outputTokens": 18
                 },
                 "rawResponse": {
-                    "id": "chatcmpl-8r5VasFQSxSHOeTEiWDpsgdJ3Puof",
+                    "id": "chatcmpl-96ETaklThe229g0jGroazVYdKybLC",
                     "object": "chat.completion",
-                    "created": 1707663250,
-                    "model": "gpt-3.5-turbo-0613",
+                    "created": 1711272642,
+                    "model": "gpt-3.5-turbo-0125",
                     "choices": [
                         {
                             "index": 0,
                             "message": {
                                 "role": "assistant",
-                                "content": "The, a domestic feline, gracefully leaped onto the windowsill to bask in the warm sunlight streaming through the glass."
+                                "content": "My sleek and agile feline is always ready to pounce on any toy that moves."
                             },
                             "logprobs": null,
                             "finish_reason": "stop"
                         }
                     ],
                     "usage": {
-                        "prompt_tokens": 78,
-                        "completion_tokens": 26,
-                        "total_tokens": 104
+                        "prompt_tokens": 72,
+                        "completion_tokens": 18,
+                        "total_tokens": 90
                     },
-                    "system_fingerprint": null
+                    "system_fingerprint": "fp_3bc1b5746c"
                 }
             }
         },
         {
             "prompt": {
                 "title": "💬 Comparison",
-                "content": "Compare meaning of thee two sentences:\n\n## Sentence 1:\n\n> The cat, a domestic feline, gracefully leaped onto the windowsill to bask in the warm sunlight streaming through the glass.\n\n## Sentence 2:\n\n> The, a domestic feline, gracefully leaped onto the windowsill to bask in the warm sunlight streaming through the glass.",
+                "content": "Compare meaning of thee two sentences:\n\n## Sentence 1:\n\n> My cat is a sleek and agile feline, always ready to pounce on any toy that moves.\n\n## Sentence 2:\n\n> My sleek and agile feline is always ready to pounce on any toy that moves.",
                 "modelRequirements": {
                     "modelVariant": "CHAT",
                     "modelName": "gpt-4"
                 }
             },
             "result": {
-                "content": "Both sentences describe a similar event, which is a domestic feline jumping onto a windowsill to enjoy the sunlight that's shining through the glass. They paint a picture of a peaceful and calming scene. \n\nHowever, Sentence 1 is grammatically correct and makes sense since it specifies that it's a cat doing the action. Sentence 2 seems to have a typographical error. It should likely also refer to a 'cat', but it says 'The' in place of 'The cat', leaving the subject of the sentence unclear, which makes it difficult to understand.",
+                "content": "Both sentences convey the same meaning. They both talk about a cat belonging to the speaker, described as sleek and agile, who pounces on toys that move.\n\nThe only difference lies in the delivery of the message. The first sentence identifies the cat ('my cat') before describing it ('is a sleek and agile feline'), while the second sentence directly uses the description of the cat ('my sleek and agile feline') as the subject of the sentence.",
                 "model": "gpt-4",
                 "timing": {
-                    "start": "2024-02-11T14:54:10.583Z",
-                    "complete": "2024-02-11T14:54:18.461Z"
+                    "start": "2024-03-24T09:30:40.845Z",
+                    "complete": "2024-03-24T09:30:43.383Z"
                 },
                 "usage": {
-                    "price": 0.00421,
-                    "inputTokens": 79,
-                    "outputTokens": 114
+                    "price": 0.0033799999999999998,
+                    "inputTokens": 65,
+                    "outputTokens": 91
                 },
                 "rawResponse": {
-                    "id": "chatcmpl-8r5VbALj6P6CQq09YS6aYrXtuAeYE",
+                    "id": "chatcmpl-96ETbGvtPriU6qLEf65huDK7vQcl1",
                     "object": "chat.completion",
-                    "created": 1707663251,
+                    "created": 1711272643,
                     "model": "gpt-4-0613",
                     "choices": [
                         {
                             "index": 0,
                             "message": {
                                 "role": "assistant",
-                                "content": "Both sentences describe a similar event, which is a domestic feline jumping onto a windowsill to enjoy the sunlight that's shining through the glass. They paint a picture of a peaceful and calming scene. \n\nHowever, Sentence 1 is grammatically correct and makes sense since it specifies that it's a cat doing the action. Sentence 2 seems to have a typographical error. It should likely also refer to a 'cat', but it says 'The' in place of 'The cat', leaving the subject of the sentence unclear, which makes it difficult to understand."
+                                "content": "Both sentences convey the same meaning. They both talk about a cat belonging to the speaker, described as sleek and agile, who pounces on toys that move.\n\nThe only difference lies in the delivery of the message. The first sentence identifies the cat ('my cat') before describing it ('is a sleek and agile feline'), while the second sentence directly uses the description of the cat ('my sleek and agile feline') as the subject of the sentence."
                             },
                             "logprobs": null,
                             "finish_reason": "stop"
                         }
                     ],
                     "usage": {
-                        "prompt_tokens": 79,
-                        "completion_tokens": 114,
-                        "total_tokens": 193
+                        "prompt_tokens": 65,
+                        "completion_tokens": 91,
+                        "total_tokens": 156
                     },
                     "system_fingerprint": null
                 }

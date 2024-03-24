@@ -37,10 +37,10 @@ async function main() {
         userInterface: null,
     };
 
-    const executor = library.createExecutor('advanced', tools);
+    const promptbookExecutor = library.createExecutor('advanced', tools);
 
     const inputParameters = { word: 'cat' };
-    const { isSuccessful, errors, outputParameters } = await executor(inputParameters);
+    const { isSuccessful, errors, outputParameters } = await promptbookExecutor(inputParameters);
 
     assertsExecutionSuccessful({ isSuccessful, errors });
 
