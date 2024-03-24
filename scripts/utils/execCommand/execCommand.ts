@@ -1,8 +1,8 @@
 import { spawn } from 'child_process';
+import colors from 'colors';
 import spaceTrim from 'spacetrim';
 import { forTime } from 'waitasecond';
 import { IExecCommandOptions } from './IExecCommandOptions';
-import colors from 'colors';
 import { execCommandNormalizeOptions } from './execCommandNormalizeOptions';
 
 export function execCommand(options: IExecCommandOptions): Promise<string> {
@@ -28,7 +28,7 @@ export function execCommand(options: IExecCommandOptions): Promise<string> {
             command = `${command}.cmd`;
         }
 
-        console.info(colors.yellow(cwd) + ' ' + colors.green(command) + ' ' + colors.blueBright(args.join(' ')));
+        console.info(colors.yellow(cwd) + ' ' + colors.green(command) + ' ' + colors.blue(args.join(' ')));
 
         try {
             const commandProcess = spawn(command, args, { cwd });
