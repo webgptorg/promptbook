@@ -50,6 +50,10 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
 
     const mainPackageJson = JSON.parse(await readFile('./package.json', 'utf-8')) as PackageJson;
 
+    if (!mainPackageJson.version) {
+        throw new Error(`Version is not defined in the package.json`);
+    }
+
     console.info(colors.bgWhite(mainPackageJson.version));
 
     for (const packageName of packageNames) {
