@@ -1,8 +1,8 @@
-import chalk from 'chalk';
 import { mkdir, unlink, writeFile } from 'fs/promises';
 import { dirname, join } from 'path';
 import spaceTrim from 'spacetrim';
 import { execCommand } from '../execCommand/execCommand';
+import colors from 'colors';
 import { isWorkingTreeClean } from './isWorkingTreeClean';
 
 export async function commit(addPath: string, message: string): Promise<void> {
@@ -19,7 +19,7 @@ export async function commit(addPath: string, message: string): Promise<void> {
     );
 
     if (await isWorkingTreeClean(projectPath)) {
-        console.info(chalk.gray(`⏩ Not commiting because nothings changed`));
+        console.info(colors.gray(`⏩ Not commiting because nothings changed`));
         return;
     }
 

@@ -3,7 +3,7 @@
 import * as dotenv from 'dotenv';
 dotenv.config({ path: '.env' });
 
-import chalk from 'chalk';
+import colors from 'colors';
 import commander from 'commander';
 import { readFile, writeFile } from 'fs/promises';
 import glob from 'glob-promise';
@@ -14,7 +14,7 @@ import { commit } from '../utils/autocommit/commit';
 import { isWorkingTreeClean } from '../utils/autocommit/isWorkingTreeClean';
 
 if (process.cwd() !== join(__dirname, '../..')) {
-    console.error(chalk.red(`CWD must be root of the project`));
+    console.error(colors.red(`CWD must be root of the project`));
     process.exit(1);
 }
 
@@ -27,7 +27,7 @@ const { commit: isCommited } = program.opts();
 
 generateSampleJsons({ isCommited })
     .catch((error) => {
-        console.error(chalk.bgRed(error.name));
+        console.error(colors.bgRed(error.name));
         console.error(error);
         process.exit(1);
     })
@@ -62,11 +62,11 @@ async function generateSampleJsons({ isCommited }: { isCommited: boolean }) {
                 throw error;
             }
 
-            console.info(chalk.bgGray('========================='));
-            console.info(chalk.red(`Error in ${promptbookMarkdownFilePath}`));
-            console.error(chalk.bgRed(error.name));
+            console.info(colors.bgWhite('========================='));
+            console.info(colors.red(`Error in ${promptbookMarkdownFilePath}`));
+            console.error(colors.bgRed(error.name));
             console.error(error);
-            console.info(chalk.bgGray('========================='));
+            console.info(colors.bgWhite('========================='));
         }
     }
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env ts-node
 
-import chalk from 'chalk';
+import colors from 'colors';
 import commander from 'commander';
 import { readFile, writeFile } from 'fs/promises';
 import { join } from 'path';
@@ -13,7 +13,7 @@ import { isWorkingTreeClean } from '../utils/autocommit/isWorkingTreeClean';
 import { execCommand } from '../utils/execCommand/execCommand';
 
 if (process.cwd() !== join(__dirname, '../..')) {
-    console.error(chalk.red(`CWD must be root of the project`));
+    console.error(colors.red(`CWD must be root of the project`));
     process.exit(1);
 }
 
@@ -26,7 +26,7 @@ const { commit: isCommited } = program.opts();
 
 generatePackages({ isCommited })
     .catch((error: Error) => {
-        console.error(chalk.bgRed(error.name));
+        console.error(colors.bgRed(error.name));
         console.error(error);
         process.exit(1);
     })
@@ -50,7 +50,7 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
 
     const mainPackageJson = JSON.parse(await readFile('./package.json', 'utf-8')) as PackageJson;
 
-    console.info(chalk.bgGray(mainPackageJson.version));
+    console.info(colors.bgWhite(mainPackageJson.version));
 
     for (const packageName of packageNames) {
         await writeFile(

@@ -1,3 +1,4 @@
+import colors from 'colors';
 import type { IDestroyable } from 'destroyable';
 import http from 'http';
 import { Server, Socket } from 'socket.io';
@@ -50,14 +51,14 @@ export function startRemoteServer(options: RemoteServerOptions): IDestroyable {
     });
 
     server.on('connection', (socket: Socket) => {
-        console.info((`Client connected`), socket.id);
+        console.info(colors.gray(`Client connected`), socket.id);
 
         socket.on('request', async (request: Promptbook_Server_Request) => {
             const { prompt, clientId } = request;
             // TODO: !! Validate here clientId (pass validator as dependency)
 
             if (isVerbose) {
-                console.info((`Prompt:`), (JSON.stringify(request, null, 4)));
+                console.info(colors.bgWhite(`Prompt:`), colors.gray(JSON.stringify(request, null, 4)));
             }
 
             try {
@@ -82,7 +83,7 @@ export function startRemoteServer(options: RemoteServerOptions): IDestroyable {
                 }
 
                 if (isVerbose) {
-                    console.info((`PromptResult:`), (JSON.stringify(promptResult, null, 4)));
+                    console.info(colors.bgGreen(`PromptResult:`), colors.green(JSON.stringify(promptResult, null, 4)));
                 }
 
                 socket.emit('response', { promptResult } satisfies Promptbook_Server_Response);
@@ -100,7 +101,7 @@ export function startRemoteServer(options: RemoteServerOptions): IDestroyable {
         socket.on('disconnect', () => {
             // TODO: Destroy here executionToolsForClient
             if (isVerbose) {
-                console.info((`Client disconnected`), socket.id);
+                console.info(colors.gray(`Client disconnected`), socket.id);
             }
         });
     });
@@ -108,9 +109,9 @@ export function startRemoteServer(options: RemoteServerOptions): IDestroyable {
     httpServer.listen(port);
 
     // Note: We want to log this also in non-verbose mode
-    console.info((`PROMPTBOOK server listening on port ${port}`));
+    console.info(colors.bgGreen(`PROMPTBOOK server listening on port ${port}`));
     if (isVerbose) {
-        console.info((`Verbose mode is enabled`));
+        console.info(colors.green(`Verbose mode is enabled`));
     }
 
     let isDestroyed = false;

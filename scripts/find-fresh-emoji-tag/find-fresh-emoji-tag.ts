@@ -4,7 +4,7 @@ import * as dotenv from 'dotenv';
 
 dotenv.config({ path: '.env' });
 
-import chalk from 'chalk';
+import colors from 'colors';
 import { readFileSync } from 'fs';
 import glob from 'glob-promise';
 import { join } from 'path';
@@ -14,13 +14,13 @@ import { EMOJIS, EMOJIS_OF_SINGLE_PICTOGRAM } from './utils/emojis';
 import { $shuffleItems } from './utils/shuffleItems';
 
 if (process.cwd() !== join(__dirname, '../..')) {
-    console.error(chalk.red(`CWD must be root of the project`));
+    console.error(colors.red(`CWD must be root of the project`));
     process.exit(1);
 }
 
 findFreshEmojiTag()
     .catch((error) => {
-        console.error(chalk.bgRed(error.name));
+        console.error(colors.bgRed(error.name));
         console.error(error);
         process.exit(1);
     })
@@ -54,10 +54,10 @@ async function findFreshEmojiTag() {
 
     const freshEmojis = difference(EMOJIS_OF_SINGLE_PICTOGRAM, usedEmojis);
 
-    console.info(chalk.green(`Avialable fresh tags:`));
+    console.info(colors.green(`Avialable fresh tags:`));
     for (const emoji of $shuffleItems(...Array.from(freshEmojis)).splice(0, 10)) {
         const tag = `[${emoji}]`;
-        console.info(chalk.bgGray(tag));
+        console.info(colors.bgWhite(tag));
     }
 
     //========================================/

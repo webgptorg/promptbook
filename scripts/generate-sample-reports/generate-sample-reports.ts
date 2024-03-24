@@ -3,9 +3,9 @@
 import * as dotenv from 'dotenv';
 dotenv.config({ path: '.env' });
 
-import chalk from 'chalk';
 import commander from 'commander';
 import { readFile, writeFile } from 'fs/promises';
+import colors from 'colors';
 import glob from 'glob-promise';
 import { join } from 'path';
 import { executionReportJsonToString } from '../../src/types/execution-report/executionReportJsonToString';
@@ -13,7 +13,7 @@ import { commit } from '../utils/autocommit/commit';
 import { isWorkingTreeClean } from '../utils/autocommit/isWorkingTreeClean';
 
 if (process.cwd() !== join(__dirname, '../..')) {
-    console.error(chalk.red(`CWD must be root of the project`));
+    console.error(colors.red(`CWD must be root of the project`));
     process.exit(1);
 }
 
@@ -26,7 +26,7 @@ const { commit: isCommited } = program.opts();
 
 generateSampleJsons({ isCommited })
     .catch((error) => {
-        console.error(chalk.bgRed(error.name));
+        console.error(colors.bgRed(error.name));
         console.error(error);
         process.exit(1);
     })

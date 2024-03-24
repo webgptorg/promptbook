@@ -1,4 +1,6 @@
+import colors from 'colors';
 import OpenAI from 'openai';
+import { PromptbookExecutionError } from '../../../../errors/PromptbookExecutionError';
 import type { Prompt } from '../../../../types/Prompt';
 import { string_date_iso8601 } from '../../../../types/typeAliases';
 import { getCurrentIsoDate } from '../../../../utils/getCurrentIsoDate';
@@ -6,7 +8,6 @@ import type { NaturalExecutionTools } from '../../../NaturalExecutionTools';
 import type { PromptChatResult, PromptCompletionResult } from '../../../PromptResult';
 import type { OpenAiExecutionToolsOptions } from './OpenAiExecutionToolsOptions';
 import { computeOpenaiUsage } from './computeOpenaiUsage';
-import { PromptbookExecutionError } from '../../../../errors/PromptbookExecutionError';
 
 /**
  * Execution Tools for calling OpenAI API.
@@ -58,11 +59,11 @@ export class OpenAiExecutionTools implements NaturalExecutionTools {
         let complete: string_date_iso8601;
 
         if (this.options.isVerbose) {
-            console.error(('rawRequest'), JSON.stringify(rawRequest, null, 4));
+            console.info(colors.bgWhite('rawRequest'), JSON.stringify(rawRequest, null, 4));
         }
         const rawResponse = await this.openai.chat.completions.create(rawRequest);
         if (this.options.isVerbose) {
-            console.error(('rawResponse'), JSON.stringify(rawResponse, null, 4));
+            console.info(colors.bgWhite('rawResponse'), JSON.stringify(rawResponse, null, 4));
         }
 
         if (!rawResponse.choices[0]) {
@@ -127,11 +128,11 @@ export class OpenAiExecutionTools implements NaturalExecutionTools {
         let complete: string_date_iso8601;
 
         if (this.options.isVerbose) {
-            console.error(('rawRequest'), JSON.stringify(rawRequest, null, 4));
+            console.info(colors.bgWhite('rawRequest'), JSON.stringify(rawRequest, null, 4));
         }
         const rawResponse = await this.openai.completions.create(rawRequest);
         if (this.options.isVerbose) {
-            console.error(('rawResponse'), JSON.stringify(rawResponse, null, 4));
+            console.info(colors.bgWhite('rawResponse'), JSON.stringify(rawResponse, null, 4));
         }
 
         if (!rawResponse.choices[0]) {

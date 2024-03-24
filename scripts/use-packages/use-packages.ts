@@ -1,6 +1,5 @@
 #!/usr/bin/env ts-node
 
-import chalk from 'chalk';
 import commander from 'commander';
 import { readFile, writeFile } from 'fs/promises';
 import { join } from 'path';
@@ -8,9 +7,10 @@ import { PackageJson } from 'type-fest';
 import { forTime } from 'waitasecond';
 import { commit } from '../utils/autocommit/commit';
 import { execCommand } from '../utils/execCommand/execCommand';
+import colors from 'colors';
 
 if (process.cwd() !== join(__dirname, '../..')) {
-    console.error(chalk.red(`CWD must be root of the project`));
+    console.error(colors.red(`CWD must be root of the project`));
     process.exit(1);
 }
 
@@ -21,7 +21,7 @@ program.parse(process.argv);
 
 usePackages()
     .catch((error: Error) => {
-        console.error(chalk.bgRed(error.name));
+        console.error(colors.bgRed(error.name));
         console.error(error);
         process.exit(1);
     })
@@ -59,7 +59,7 @@ async function usePackages() {
         }
 
         await writeFile(remotePackageJsonPath, JSON.stringify(remotePackageJson, null, 4) + '\n');
-        console.info(chalk.green(`Update version of @promptbook/* to ${currentVersion} in ${remotePackageJsonPath}`));
+        console.info(colors.green(`Update version of @promptbook/* to ${currentVersion} in ${remotePackageJsonPath}`));
 
         // TODO: [🤣] Update in all places
 

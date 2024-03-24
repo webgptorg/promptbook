@@ -1,16 +1,16 @@
 #!/usr/bin/env ts-node
 
-import chalk from 'chalk';
 import commander from 'commander';
 import { writeFile } from 'fs/promises';
 import { join } from 'path';
 import spaceTrim from 'spacetrim';
 import { version } from '../../package.json';
 import { commit } from '../utils/autocommit/commit';
+import colors from 'colors';
 import { isWorkingTreeClean } from '../utils/autocommit/isWorkingTreeClean';
 
 if (process.cwd() !== join(__dirname, '../..')) {
-    console.error(chalk.red(`CWD must be root of the project`));
+    console.error(colors.red(`CWD must be root of the project`));
     process.exit(1);
 }
 
@@ -23,7 +23,7 @@ const { commit: isCommited } = program.opts();
 
 generatePackages({ isCommited })
     .catch((error: Error) => {
-        console.error(chalk.bgRed(error.name));
+        console.error(colors.bgRed(error.name));
         console.error(error);
         process.exit(1);
     })
@@ -42,7 +42,7 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
         `./src/version.ts`,
         spaceTrim(`
             import type { string_version } from './types/typeAliases';
-            
+
             /**
              * The version of the Promptbook library
              */

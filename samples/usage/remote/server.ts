@@ -3,12 +3,12 @@
 import { createPromptbookLibraryFromSources } from '@promptbook/core';
 import { OpenAiExecutionTools } from '@promptbook/openai';
 import { runRemoteServer } from '@promptbook/remote-server';
-import chalk from 'chalk';
+import colors from 'colors';
 import * as dotenv from 'dotenv';
 import { readFile } from 'fs/promises';
 
 if (process.cwd().split(/[\\/]/).pop() !== 'promptbook') {
-    console.error(chalk.red(`CWD must be root of the project`));
+    console.error(colors.red(`CWD must be root of the project`));
     process.exit(1);
 }
 
@@ -17,7 +17,7 @@ dotenv.config({ path: '.env' });
 main();
 
 async function main() {
-    console.info(chalk.bgGray('🔵 Testing remote server of PromptBook'));
+    console.info(colors.bgWhite('🔵 Testing remote server of PromptBook'));
 
     const library = createPromptbookLibraryFromSources(
         // eslint-disable-next-line @typescript-eslint/no-explicit-any

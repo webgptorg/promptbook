@@ -185,7 +185,7 @@ More options to create `PromptbookLibrary`
 -   Utility `createPromptbookLibraryFromList`
 -   Add `extractOneBlockFromMarkdown` to build-in functions
 -   !!! When postprocessing fails, retry in same way as failed expectations
--   !!! Remove problematic usage of `chalk` _( !!! to be reverted and done better)_
+-   Remove problematic usage of `chalk` and use `colors` instead
 
 ---
 

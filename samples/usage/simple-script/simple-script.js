@@ -4,12 +4,12 @@ import { createPromptbookExecutor, createPromptbookLibraryFromSources } from '@p
 import { JavascriptEvalExecutionTools } from '@promptbook/execute-javascript';
 import { OpenAiExecutionTools } from '@promptbook/openai';
 import { assertsExecutionSuccessful, executionReportJsonToString } from '@promptbook/utils';
-import chalk from 'chalk';
+import colors from 'colors';
 import * as dotenv from 'dotenv';
 import { readFile, writeFile } from 'fs/promises';
 
 if (process.cwd().split(/[\\/]/).pop() !== 'promptbook') {
-    console.error(chalk.red(`CWD must be root of the project`));
+    console.error(colors.red(`CWD must be root of the project`));
     process.exit(1);
 }
 
@@ -18,7 +18,7 @@ dotenv.config({ path: '.env' });
 main();
 
 async function main() {
-    console.info(chalk.bgGray('⚪ Testing basic capabilities of PromptBook'));
+    console.info(colors.bgWhite('⚪ Testing basic capabilities of PromptBook'));
 
     const promptbookUrl = 'https://promptbook.example.com/samples/language-capabilities.ptbk.md@v1';
 

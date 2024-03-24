@@ -4,6 +4,7 @@ import JSON5 from 'json5';
 import { join } from 'path';
 import { spaceTrim } from 'spacetrim';
 import { promisify } from 'util';
+import colors from 'colors';
 import { PromptbookExecutionError } from '../../../errors/PromptbookExecutionError';
 import { AutomaticTranslator } from './automatic-translators/AutomaticTranslator';
 import { TranslatorOptions } from './automatic-translators/TranslatorOptions';
@@ -29,7 +30,7 @@ export async function translateMessages({
 
             const source = spaceTrim(row.message);
             const translated = spaceTrim(await automaticTranslator.translate(row.message));
-            console.info((`${source} ▶️   ${translated}`));
+            console.info(colors.gray(`${source} ▶️   ${translated}`));
             row.message = translated;
             row.language = to;
             row.isAutomaticTranslation = true;

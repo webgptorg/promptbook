@@ -1,3 +1,4 @@
+import colors from 'colors';
 import { AutomaticTranslator } from './AutomaticTranslator';
 
 /**
@@ -10,7 +11,7 @@ export class DebugAutomaticTranslator implements AutomaticTranslator {
         const messageTranslated = await this.automaticTranslator.translate(message);
 
         // TODO: Write by "" only if needed
-        console.log((`"${message}" → "${messageTranslated}"`));
+        console.log(colors.green(`"${message}" → "${messageTranslated}"`));
 
         return messageTranslated;
     }
