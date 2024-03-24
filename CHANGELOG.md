@@ -183,6 +183,7 @@ More options to create `PromptbookLibrary`
 
 -   Add `createPromptbookLibraryFromDirectory`
 -   Add `createPromptbookLibraryFromList`
+-   !!! Remove problematic usage of `chalk` _( !!! to be reverted and done better)_
 
 ---
 
