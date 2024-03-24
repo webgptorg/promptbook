@@ -1,4 +1,3 @@
-import chalk from 'chalk';
 import { readFile, writeFile } from 'fs';
 import glob from 'glob-promise';
 import JSON5 from 'json5';
@@ -30,7 +29,7 @@ export async function translateMessages({
 
             const source = spaceTrim(row.message);
             const translated = spaceTrim(await automaticTranslator.translate(row.message));
-            console.info(chalk.gray(`${source} ▶️   ${translated}`));
+            console.info((`${source} ▶️   ${translated}`));
             row.message = translated;
             row.language = to;
             row.isAutomaticTranslation = true;

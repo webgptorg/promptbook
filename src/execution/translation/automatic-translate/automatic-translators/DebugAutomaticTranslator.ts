@@ -1,4 +1,3 @@
-import chalk from 'chalk';
 import { AutomaticTranslator } from './AutomaticTranslator';
 
 /**
@@ -11,7 +10,7 @@ export class DebugAutomaticTranslator implements AutomaticTranslator {
         const messageTranslated = await this.automaticTranslator.translate(message);
 
         // TODO: Write by "" only if needed
-        console.log(chalk.green(`"${message}" → "${messageTranslated}"`));
+        console.log((`"${message}" → "${messageTranslated}"`));
 
         return messageTranslated;
     }

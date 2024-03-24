@@ -1,4 +1,3 @@
-import chalk from 'chalk';
 import OpenAI from 'openai';
 import type { Prompt } from '../../../../types/Prompt';
 import { string_date_iso8601 } from '../../../../types/typeAliases';
@@ -59,11 +58,11 @@ export class OpenAiExecutionTools implements NaturalExecutionTools {
         let complete: string_date_iso8601;
 
         if (this.options.isVerbose) {
-            console.error(chalk.bgGray('rawRequest'), JSON.stringify(rawRequest, null, 4));
+            console.error(('rawRequest'), JSON.stringify(rawRequest, null, 4));
         }
         const rawResponse = await this.openai.chat.completions.create(rawRequest);
         if (this.options.isVerbose) {
-            console.error(chalk.bgGray('rawResponse'), JSON.stringify(rawResponse, null, 4));
+            console.error(('rawResponse'), JSON.stringify(rawResponse, null, 4));
         }
 
         if (!rawResponse.choices[0]) {
@@ -128,11 +127,11 @@ export class OpenAiExecutionTools implements NaturalExecutionTools {
         let complete: string_date_iso8601;
 
         if (this.options.isVerbose) {
-            console.error(chalk.bgGray('rawRequest'), JSON.stringify(rawRequest, null, 4));
+            console.error(('rawRequest'), JSON.stringify(rawRequest, null, 4));
         }
         const rawResponse = await this.openai.completions.create(rawRequest);
         if (this.options.isVerbose) {
-            console.error(chalk.bgGray('rawResponse'), JSON.stringify(rawResponse, null, 4));
+            console.error(('rawResponse'), JSON.stringify(rawResponse, null, 4));
         }
 
         if (!rawResponse.choices[0]) {
