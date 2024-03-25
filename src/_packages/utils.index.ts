@@ -18,11 +18,14 @@ import { extractAllListItemsFromMarkdown } from '../utils/markdown/extractAllLis
 import { extractOneBlockFromMarkdown } from '../utils/markdown/extractOneBlockFromMarkdown';
 import { removeContentComments } from '../utils/markdown/removeContentComments';
 import { removeMarkdownFormatting } from '../utils/markdown/removeMarkdownFormatting';
+import { extractBlock } from '../utils/postprocessing/extractBlock';
 import { removeEmojis } from '../utils/removeEmojis';
 import { removeQuotes } from '../utils/removeQuotes';
 import { trimCodeBlock } from '../utils/trimCodeBlock';
 import { trimEndOfCodeBlock } from '../utils/trimEndOfCodeBlock';
 import { unwrapResult } from '../utils/unwrapResult';
+
+
 
 // TODO: [🌻] For all, decide if theese are internal or external
 export {
@@ -40,6 +43,7 @@ export {
     extractAllBlocksFromMarkdown, // <- [🌻]
     extractAllListItemsFromMarkdown, // <- [🌻]
     extractOneBlockFromMarkdown, // <- [🌻]
+    extractBlock,
     isValidJsonString,
     parseNumber,
     removeContentComments,

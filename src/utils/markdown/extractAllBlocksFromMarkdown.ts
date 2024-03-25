@@ -4,7 +4,7 @@ import { string_markdown } from '../../types/typeAliases';
 /**
  * Single code block inside markdown.
  */
-type CodeBlock = {
+export type CodeBlock = {
     /**
      * Language of the code block OR null if the language is not specified in opening ```
      */
@@ -19,8 +19,14 @@ type CodeBlock = {
 /**
  * Extracts all code blocks from markdown.
  *
+ * Note: There are 3 simmilar function:
+ * - `extractBlock` just extracts the content of the code block which is also used as build-in function for postprocessing
+ * - `extractOneBlockFromMarkdown` extracts exactly one code block with language of the code block
+ * - `extractAllBlocksFromMarkdown` extracts all code blocks with language of the code block
+ *
  * @param markdown any valid markdown
  * @returns code blocks with language and content
+ *
  */
 export function extractAllBlocksFromMarkdown(markdown: string_markdown): Array<CodeBlock> {
     const codeBlocks: Array<CodeBlock> = [];

@@ -13,7 +13,6 @@ import {
     parseKeywordsFromString,
 } from 'n12';
 import _spaceTrim from 'spacetrim';
-import { extractOneBlockFromMarkdown } from '../../../../_packages/utils.index';
 import { PromptbookExecutionError } from '../../../../errors/PromptbookExecutionError';
 import { prettifyMarkdown as _prettifyMarkdown } from '../../../../utils/markdown/prettifyMarkdown';
 import { removeEmojis as _removeEmojis } from '../../../../utils/removeEmojis';
@@ -24,6 +23,7 @@ import { unwrapResult as _unwrapResult } from '../../../../utils/unwrapResult';
 import { ScriptExecutionTools, ScriptExecutionToolsExecuteOptions } from '../../../ScriptExecutionTools';
 import { JavascriptExecutionToolsOptions } from './JavascriptExecutionToolsOptions';
 import { preserve } from './utils/preserve';
+import { extractBlock } from '../../../../utils/postprocessing/extractBlock';
 
 /**
  * ScriptExecutionTools for JavaScript implemented via eval
@@ -135,7 +135,7 @@ export class JavascriptEvalExecutionTools implements ScriptExecutionTools {
             normalizeTo_PascalCase,
             parseKeywords,
             normalizeTo_SCREAMING_CASE,
-            extractOneBlockFromMarkdown, // <- !!!! Remove balast in all other functions, use this one as example
+            extractBlock, // <- !!!! Remove balast in all other functions, use this one as example
         };
         const buildinFunctionsStatement = Object.keys(buildinFunctions)
             .map(
