@@ -192,5 +192,9 @@ More options to create `PromptbookLibrary`
 
 -   When postprocessing fails, retry in same way as failed expectations
 -   Rename "natural" -> "llm"
+-   Add command `EXPECT "..."` <-[🥤]
+-   Add command `EXPECT /.../i` <-[🥤]
+-   Add command `EXPECT "...{foo}..."` <-[🥤]
+-   Add command `EXPECT /...{foo}.../i` <-[🥤]
 -   Add command `EXPECT JSON ARRAY` and `EXPECT JSON OBJECT` _(In future this will be suggar code for `EXPECT JSON SCHEMA`)_ <-[🥤]
 -   When making next attempt for `PROMPT DIALOG`, preserve the previous user input <-[🌹]
