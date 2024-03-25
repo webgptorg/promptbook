@@ -184,13 +184,13 @@ More options to create `PromptbookLibrary`
 -   Utility `createPromptbookLibraryFromDirectory`
 -   Utility `createPromptbookLibraryFromList`
 -   Add `extractBlock` to build-in functions
--   !!! When postprocessing fails, retry in same way as failed expectations
 -   Remove problematic usage of `chalk` and use `colors` instead
 
 ---
 
 ## Upcomming
 
+-   When postprocessing fails, retry in same way as failed expectations
 -   Rename "natural" -> "llm"
 -   Add command `EXPECT JSON ARRAY` and `EXPECT JSON OBJECT` _(In future this will be suggar code for `EXPECT JSON SCHEMA`)_ <-[🥤]
 -   When making next attempt for `PROMPT DIALOG`, preserve the previous user input <-[🌹]
