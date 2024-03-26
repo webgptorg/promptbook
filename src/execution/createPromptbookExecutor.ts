@@ -2,7 +2,7 @@ import spaceTrim from 'spacetrim';
 import type { Promisable } from 'type-fest';
 import { PromptbookJson } from '../_packages/types.index';
 import { LOOP_LIMIT } from '../config';
-import { validatePromptbookJson } from '../conversion/test/validatePromptbookJson';
+import { validatePromptbookJson } from '../conversion/validation/validatePromptbookJson';
 import { ExpectError } from '../errors/ExpectError';
 import { PromptbookExecutionError } from '../errors/PromptbookExecutionError';
 import { UnexpectedError } from '../errors/UnexpectedError';

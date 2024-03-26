@@ -9,7 +9,7 @@ import { readFile, writeFile } from 'fs/promises';
 import glob from 'glob-promise';
 import { join } from 'path';
 import { promptbookStringToJson } from '../../src/conversion/promptbookStringToJson';
-import { validatePromptbookJson } from '../../src/conversion/validatePromptbookJson';
+import { validatePromptbookJson } from '../../src/conversion/validation/validatePromptbookJson';
 import { commit } from '../utils/autocommit/commit';
 import { isWorkingTreeClean } from '../utils/autocommit/isWorkingTreeClean';
 

@@ -1,5 +1,5 @@
 import { promptbookStringToJson } from '../conversion/promptbookStringToJson';
-import { validatePromptbookJson } from '../conversion/test/validatePromptbookJson';
+import { validatePromptbookJson } from '../conversion/validation/validatePromptbookJson';
 import { createPromptbookExecutor } from '../execution/createPromptbookExecutor';
 import { MockedEchoNaturalExecutionTools } from '../execution/plugins/natural-execution-tools/mocked/MockedEchoNaturalExecutionTools';
 import { CallbackInterfaceTools } from '../execution/plugins/user-interface-execution-tools/callback/CallbackInterfaceTools';
@@ -17,12 +17,12 @@ export { ExecutionTypes, PROMPTBOOK_VERSION };
 
 // @promptbook/library
 export {
-    SimplePromptbookLibrary,
     // TODO: !!!createPromptbookLibraryFromDirectory,
     // TODO:  !!! createPromptbookLibraryFromList,
     createPromptbookLibraryFromPromise,
     createPromptbookLibraryFromSources,
     createPromptbookSublibrary,
+    SimplePromptbookLibrary,
 };
 
 // @promptbook/simple-prompt

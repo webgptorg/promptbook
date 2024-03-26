@@ -388,8 +388,11 @@ export function parseCommand(listItem: string_markdown_text): Command {
                 ),
             );
         }
+
+        /*
     } else if (type.startsWith('__________________')) {
         // <- [🥻] Insert here when making new command
+    */
     } else {
         throw new PromptbookSyntaxError(
             spaceTrim(
