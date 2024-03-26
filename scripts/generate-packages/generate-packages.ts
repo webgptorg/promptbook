@@ -21,7 +21,6 @@ const program = new commander.Command();
 program.option('--commit', `Autocommit changes`, false);
 program.parse(process.argv);
 
-program.parse(process.argv);
 const { commit: isCommited } = program.opts();
 
 generatePackages({ isCommited })

@@ -1,5 +1,6 @@
 #!/usr/bin/env ts-node
 
+import colors from 'colors';
 import commander from 'commander';
 import { readFile, writeFile } from 'fs/promises';
 import { join } from 'path';
@@ -7,7 +8,6 @@ import { PackageJson } from 'type-fest';
 import { forTime } from 'waitasecond';
 import { commit } from '../utils/autocommit/commit';
 import { execCommand } from '../utils/execCommand/execCommand';
-import colors from 'colors';
 
 if (process.cwd() !== join(__dirname, '../..')) {
     console.error(colors.red(`CWD must be root of the project`));
@@ -15,8 +15,6 @@ if (process.cwd() !== join(__dirname, '../..')) {
 }
 
 const program = new commander.Command();
-program.parse(process.argv);
-
 program.parse(process.argv);
 
 usePackages()

@@ -86,8 +86,10 @@
             "focus": false
         },
         {
-            "name": "🏭📖 Generate samples mermaid graphs -> .ptbk.md",
-            "commands": ["ts-node ./scripts/generate-sample-graphs/generate-sample-graphs.ts"],
+            "name": "🏭📖 Prettify samples and add mermaid graphs -> .ptbk.md",
+            "commands": [
+                "ts-node ./scripts/promptbook-cli/promptbook-cli.ts prettify samples/templates/**/*.ptbk.md --ignore \"samples/templates/errors/**/*.ptbk.md\""
+            ],
             "execute": false,
             "onlySingle": false,
             "focus": false

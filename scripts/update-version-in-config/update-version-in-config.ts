@@ -1,12 +1,12 @@
 #!/usr/bin/env ts-node
 
+import colors from 'colors';
 import commander from 'commander';
 import { writeFile } from 'fs/promises';
 import { join } from 'path';
 import spaceTrim from 'spacetrim';
 import { version } from '../../package.json';
 import { commit } from '../utils/autocommit/commit';
-import colors from 'colors';
 import { isWorkingTreeClean } from '../utils/autocommit/isWorkingTreeClean';
 
 if (process.cwd() !== join(__dirname, '../..')) {
@@ -18,7 +18,6 @@ const program = new commander.Command();
 program.option('--commit', `Autocommit changes`, false);
 program.parse(process.argv);
 
-program.parse(process.argv);
 const { commit: isCommited } = program.opts();
 
 generatePackages({ isCommited })

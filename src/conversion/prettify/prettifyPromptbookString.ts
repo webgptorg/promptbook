@@ -109,6 +109,7 @@ export function prettifyPromptbookString(
 }
 
 /**
+ * TODO: Maybe use some Mermaid library instead of string templating
  * TODO: [🧠] Should this be here OR in other folder
  * TODO: [🕌] When more than 2 functionalities, split into separate functions
  */
