@@ -42,6 +42,33 @@ Je to změna, kterou chcete provést?
 
 -->
 
+<!--Graph-->
+<!-- ⚠️ WARNING: This section was auto-generated -->
+
+```mermaid
+%% 🔮 Tip: Open this on GitHub or in the VSCode website to see the Mermaid graph visually
+
+flowchart LR
+  subgraph "🌍 Aktualizace obsahu webu"
+
+      direction TB
+
+      input((Input)):::input
+      templatePravy(🖋 Úpravy)
+      input--"{suggestedAssignment}"-->templatePravy
+      input--"{oldContent}"-->templatePravy
+
+      templatePravy--"{newContent}"-->output
+      output((Output)):::output
+
+      classDef input color: grey;
+      classDef output color: grey;
+
+  end;
+```
+
+<!--/Graph-->
+
 ## 🖋 Úpravy
 
 -   MODEL VARIANT Chat
