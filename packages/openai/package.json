@@ -1,6 +1,6 @@
 {
     "name": "@promptbook/openai",
-    "version": "0.41.1",
+    "version": "0.41.103",
     "description": "Library to supercharge your use of large language models",
     "private": false,
     "sideEffects": false,
@@ -38,7 +38,7 @@
         "openai": "4.2.0"
     },
     "peerDependencies": {
-        "@promptbook/core": "0.41.1"
+        "@promptbook/core": "0.41.103"
     },
     "main": "./umd/index.umd.js",
     "module": "./esm/index.es.js",
