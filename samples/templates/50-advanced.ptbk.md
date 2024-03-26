@@ -23,21 +23,21 @@ flowchart LR
       direction TB
 
       input((Input)):::input
-      templateSynonym(💬 Synonym)
+      templateSynonym("💬 Synonym")
       input--"{word}"-->templateSynonym
-      templateTestThatWordIsNotOriginalWord(⚙ Test that word is not original word)
+      templateTestThatWordIsNotOriginalWord("⚙ Test that word is not original word")
       input--"{word}"-->templateTestThatWordIsNotOriginalWord
       templateSynonym--"{wordSynonym}"-->templateTestThatWordIsNotOriginalWord
-      templateSentenceWithSynonym(💬 Sentence with Synonym)
+      templateSentenceWithSynonym("💬 Sentence with Synonym")
       input--"{word}"-->templateSentenceWithSynonym
       templateSynonym--"{wordSynonym}"-->templateSentenceWithSynonym
-      templateSentenceWithoutOriginalWord(💬 Sentence without original word)
+      templateSentenceWithoutOriginalWord("💬 Sentence without original word")
       templateSentenceWithSynonym--"{sentenceWithTwoSynonyms}"-->templateSentenceWithoutOriginalWord
       input--"{word}"-->templateSentenceWithoutOriginalWord
-      templateComparison(💬 Comparison)
+      templateComparison("💬 Comparison")
       templateSentenceWithSynonym--"{sentenceWithTwoSynonyms}"-->templateComparison
       templateSentenceWithoutOriginalWord--"{sentenceWithOriginalWordRemoved}"-->templateComparison
-      templateSummary(🔗 Summary)
+      templateSummary("🔗 Summary")
       input--"{word}"-->templateSummary
       templateSynonym--"{wordSynonym}"-->templateSummary
       templateSentenceWithSynonym--"{sentenceWithTwoSynonyms}"-->templateSummary

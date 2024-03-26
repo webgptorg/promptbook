@@ -20,7 +20,7 @@ flowchart LR
       direction TB
 
       input((Input)):::input
-      templateExtrakceKontaktnChDaj(🖋 Extrakce kontaktních údajů)
+      templateExtrakceKontaktnChDaj("🖋 Extrakce kontaktních údajů")
       input--"{unstructuredContacts}"-->templateExtrakceKontaktnChDaj
 
       templateExtrakceKontaktnChDaj--"{contactlist}"-->output

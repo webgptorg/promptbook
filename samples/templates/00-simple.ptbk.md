@@ -19,7 +19,7 @@ flowchart LR
       direction TB
 
       input((Input)):::input
-      templatePrompt(💬 Prompt)
+      templatePrompt("💬 Prompt")
 
       templatePrompt--"{greeting}"-->output
       output((Output)):::output

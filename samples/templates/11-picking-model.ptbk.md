@@ -19,7 +19,7 @@ flowchart LR
       direction TB
 
       input((Input)):::input
-      templateSynonym(💬 Synonym)
+      templateSynonym("💬 Synonym")
       input--"{word}"-->templateSynonym
 
       templateSynonym--"{poem}"-->output

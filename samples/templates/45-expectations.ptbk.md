@@ -17,7 +17,7 @@ flowchart LR
       direction TB
 
       input((Input)):::input
-      templateQuestion(💬 Question)
+      templateQuestion("💬 Question")
       input--"{yourName}"-->templateQuestion
 
       templateQuestion--"{greeting}"-->output

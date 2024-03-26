@@ -20,28 +20,28 @@ flowchart LR
       direction TB
 
       input((Input)):::input
-      templateSpecifyingTheAssigment(👤 Specifying the assigment)
+      templateSpecifyingTheAssigment("👤 Specifying the assigment")
       input--"{rawAssigment}"-->templateSpecifyingTheAssigment
-      templateImprovingTheTitle(✨ Improving the title)
+      templateImprovingTheTitle("✨ Improving the title")
       input--"{rawTitle}"-->templateImprovingTheTitle
       templateSpecifyingTheAssigment--"{assigment}"-->templateImprovingTheTitle
-      templateWebsiteTitleApproval(👤 Website title approval)
+      templateWebsiteTitleApproval("👤 Website title approval")
       templateImprovingTheTitle--"{enhancedTitle}"-->templateWebsiteTitleApproval
-      templateCunningSubtitle(🐰 Cunning subtitle)
+      templateCunningSubtitle("🐰 Cunning subtitle")
       templateWebsiteTitleApproval--"{title}"-->templateCunningSubtitle
       templateSpecifyingTheAssigment--"{assigment}"-->templateCunningSubtitle
-      templateKeywordAnalysis(🚦 Keyword analysis)
+      templateKeywordAnalysis("🚦 Keyword analysis")
       templateWebsiteTitleApproval--"{title}"-->templateKeywordAnalysis
       templateSpecifyingTheAssigment--"{assigment}"-->templateKeywordAnalysis
-      templateCombineTheBeginning(🔗 Combine the beginning)
+      templateCombineTheBeginning("🔗 Combine the beginning")
       templateWebsiteTitleApproval--"{title}"-->templateCombineTheBeginning
       templateCunningSubtitle--"{claim}"-->templateCombineTheBeginning
-      templateWriteTheContent(🖋 Write the content)
+      templateWriteTheContent("🖋 Write the content")
       templateWebsiteTitleApproval--"{title}"-->templateWriteTheContent
       templateSpecifyingTheAssigment--"{assigment}"-->templateWriteTheContent
       templateKeywordAnalysis--"{keywords}"-->templateWriteTheContent
       templateCombineTheBeginning--"{contentBeginning}"-->templateWriteTheContent
-      templateCombineTheContent(🔗 Combine the content)
+      templateCombineTheContent("🔗 Combine the content")
       templateCombineTheBeginning--"{contentBeginning}"-->templateCombineTheContent
       templateWriteTheContent--"{contentBody}"-->templateCombineTheContent
 

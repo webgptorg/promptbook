@@ -21,12 +21,12 @@ flowchart LR
       direction TB
 
       input((Input)):::input
-      templateSynonym(💬 Synonym)
+      templateSynonym("💬 Synonym")
       input--"{word}"-->templateSynonym
-      templateSentence(💬 Sentence)
+      templateSentence("💬 Sentence")
       input--"{word}"-->templateSentence
       templateSynonym--"{wordSynonym}"-->templateSentence
-      templateMakeADocument(Make a document)
+      templateMakeADocument("Make a document")
       templateSentence--"{sentence}"-->templateMakeADocument
 
       templateMakeADocument--"{poem}"-->output

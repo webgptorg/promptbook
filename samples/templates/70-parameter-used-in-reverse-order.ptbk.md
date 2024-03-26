@@ -23,10 +23,10 @@ flowchart LR
       direction TB
 
       input((Input)):::input
-      templateSentence(Sentence)
+      templateSentence("Sentence")
       input--"{word}"-->templateSentence
       templateSynonym--"{wordSynonym}"-->templateSentence
-      templateSynonym(Synonym)
+      templateSynonym("Synonym")
       input--"{word}"-->templateSynonym
 
       templateSentence--"{sentenceWithTwoSynonyms}"-->output

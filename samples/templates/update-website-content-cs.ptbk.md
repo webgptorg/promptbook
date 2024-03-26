@@ -54,7 +54,7 @@ flowchart LR
       direction TB
 
       input((Input)):::input
-      templatePravy(🖋 Úpravy)
+      templatePravy("🖋 Úpravy")
       input--"{suggestedAssignment}"-->templatePravy
       input--"{oldContent}"-->templatePravy
 
