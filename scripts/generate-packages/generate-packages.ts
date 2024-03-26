@@ -67,7 +67,8 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
 
                 [Read the manual](https://github.com/webgptorg/promptbook)
 
-        `), // <- TODO: [🧠] Maybe make custom README.md for each package
+        `), // <- TODO: [🧠] !!! Better README.md for each package
+            // <- TODO: [🧠] Maybe make custom README.md for each package
         );
 
         const packageJson = JSON.parse(JSON.stringify(mainPackageJson) /* <- Note: Make deep copy */) as PackageJson;

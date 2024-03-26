@@ -1,3 +1,5 @@
+import { prettifyPromptbookString } from '../conversion/prettify/prettifyPromptbookString';
+import { prettifyPromptbookStringCli } from '../conversion/prettify/prettifyPromptbookStringCli';
 import { parseNumber } from '../conversion/utils/parseNumber';
 import { assertsExecutionSuccessful } from '../execution/assertsExecutionSuccessful';
 import {
@@ -25,27 +27,35 @@ import { trimCodeBlock } from '../utils/trimCodeBlock';
 import { trimEndOfCodeBlock } from '../utils/trimEndOfCodeBlock';
 import { unwrapResult } from '../utils/unwrapResult';
 
-
+/**
+ * Hidden utilities which should not be used by external consumers.
+ */
+const __ = {
+    // Note: [🥠]
+    prettifyPromptbookStringCli,
+};
 
 // TODO: [🌻] For all, decide if theese are internal or external
 export {
-    CountUtils,
-    ExecutionReportStringOptions,
-    ExecutionReportStringOptionsDefaults,
+    __,
     assertsExecutionSuccessful,
     countCharacters,
     countLines,
     countPages,
     countParagraphs,
     countSentences,
+    CountUtils,
     countWords,
     executionReportJsonToString,
+    ExecutionReportStringOptions,
+    ExecutionReportStringOptionsDefaults,
     extractAllBlocksFromMarkdown, // <- [🌻]
-    extractAllListItemsFromMarkdown, // <- [🌻]
-    extractOneBlockFromMarkdown, // <- [🌻]
-    extractBlock,
+    extractAllListItemsFromMarkdown,
+    extractBlock, // <- [🌻]
+    extractOneBlockFromMarkdown,
     isValidJsonString,
-    parseNumber,
+    parseNumber, // <- [🌻]
+    prettifyPromptbookString,
     removeContentComments,
     removeEmojis,
     removeMarkdownFormatting,

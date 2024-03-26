@@ -186,6 +186,14 @@ More options to create `PromptbookLibrary`
 -   Add `extractBlock` to build-in functions
 -   Remove problematic usage of `chalk` and use `colors` instead
 
+
+
+## 0.42.0 _(2024-03-23)_
+
+
+Better logo
+
+
 ---
 
 ## Upcomming

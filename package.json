@@ -61,6 +61,7 @@
     },
     "dependencies": {
         "colors": "^1.4.0",
+        "commander": "12.0.0",
         "destroyable": "^0.12.26",
         "moment": "^2.30.1",
         "n12": "1.8.18",

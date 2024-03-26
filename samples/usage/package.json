@@ -6,7 +6,7 @@
         "@promptbook/types": "0.41.0",
         "@promptbook/remote-client": "0.41.0",
         "@promptbook/remote-server": "0.41.0",
-        "@promptbook/utils": "0.41.0",
+        "@promptbook/utils": "0.41.4",
         "@promptbook/wizzard": "0.41.0"
     }
 }
