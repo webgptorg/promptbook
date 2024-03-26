@@ -186,13 +186,20 @@ More options to create `PromptbookLibrary`
 -   Add `extractBlock` to build-in functions
 -   Remove problematic usage of `chalk` and use `colors` instead
 
+## 0.42.0 _(2024-03-24)_
 
+Better logo and branding of Promptbook.
 
-## 0.42.0 _(2024-03-23)_
+## 0.43.0 _(2024-03-26)_
 
+CLI utils exported from `@promptbook/utils`
 
-Better logo
+After install you can use `promptbook` command in terminal:
 
+```bash
+npm i @promptbook/utils
+npx promptbook prettify promptbook/**/*.ptbk.md
+```
 
 ---
 
