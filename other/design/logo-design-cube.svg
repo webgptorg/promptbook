@@ -26,8 +26,8 @@
      inkscape:document-units="mm"
      showgrid="false"
      inkscape:zoom="0.72441743"
-     inkscape:cx="376.85454"
-     inkscape:cy="370.64266"
+     inkscape:cx="501.09231"
+     inkscape:cy="315.42587"
      inkscape:window-width="1920"
      inkscape:window-height="1017"
      inkscape:window-x="-8"
@@ -187,7 +187,7 @@
     <g
        id="rect238-0-1-5-3-4"
        style="stroke:none;stroke-width:1.32292;stroke-dasharray:none;stroke-opacity:1"
-       transform="translate(44.853507,73.923176)">
+       transform="translate(143.10199,17.007897)">
       <g
          id="g6-2"
          style="stroke:none">
@@ -320,7 +320,7 @@
     </g>
     <g
        id="g4"
-       transform="translate(59.898706,13.148496)">
+       transform="translate(94.961358,17.866537)">
       <use
          x="0"
          y="0"
@@ -342,7 +342,181 @@
          y="0"
          xlink:href="#rect238-0-1-5-3-4"
          id="use4"
-         transform="matrix(0.70710678,0.35355339,-0.70710678,0.35355339,-32.646099,-27.017958)" />
+         transform="matrix(0.70710678,0.35355339,-0.70710678,0.35355339,-142.36345,-41.631454)" />
+    </g>
+    <g
+       id="g18"
+       transform="translate(253.29306,24.86079)"
+       style="fill:#1a1a1a;stroke:none;stroke-width:1.32292;stroke-dasharray:none;stroke-opacity:1">
+      <g
+         id="g16"
+         transform="matrix(0.5,0,0,0.5,18.403191,-31.985652)"
+         style="fill:#1a1a1a">
+        <g
+           id="g14"
+           transform="matrix(0.5,0,0,0.5,49.07001,-17.587609)"
+           style="fill:#1a1a1a">
+          <g
+             id="g12"
+             transform="matrix(0.5,0,0,0.5,20.470936,-28.563695)"
+             style="fill:#1a1a1a">
+            <g
+               id="g10"
+               transform="matrix(0.5,0,0,0.5,24.73224,-28.563695)"
+               style="fill:#1a1a1a">
+              <g
+                 id="g9"
+                 transform="matrix(0.5,0,0,0.5,23.5055,-27.877659)"
+                 style="fill:#1a1a1a">
+                <path
+                   style="color:#000000;fill:#1a1a1a;stroke:none;stroke-width:0.66146;stroke-linecap:butt;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1;paint-order:stroke fill markers"
+                   d="m 51.917958,-58.49946 h 26.181076 l -13.090541,13.090537 v 0 z"
+                   id="path6-7-4-5"
+                   sodipodi:nodetypes="ccccc" />
+                <use
+                   x="0"
+                   y="0"
+                   xlink:href="#path6-7-4-5"
+                   id="use7"
+                   transform="translate(26.181076)"
+                   style="fill:#1a1a1a" />
+                <use
+                   x="0"
+                   y="0"
+                   xlink:href="#path6-7-4-5"
+                   id="use8"
+                   transform="translate(13.090535,13.090537)"
+                   style="fill:#1a1a1a" />
+              </g>
+              <use
+                 x="0"
+                 y="0"
+                 xlink:href="#g9"
+                 id="use9"
+                 transform="translate(26.181076)"
+                 style="fill:#1a1a1a" />
+              <use
+                 x="0"
+                 y="0"
+                 xlink:href="#g9"
+                 id="use10"
+                 transform="translate(13.090535,13.090537)"
+                 style="fill:#1a1a1a" />
+            </g>
+            <use
+               x="0"
+               y="0"
+               xlink:href="#g10"
+               id="use11"
+               transform="translate(26.181076)"
+               style="fill:#1a1a1a" />
+            <use
+               x="0"
+               y="0"
+               xlink:href="#g10"
+               id="use12"
+               transform="translate(13.090535,13.090537)"
+               style="fill:#1a1a1a" />
+          </g>
+          <use
+             x="0"
+             y="0"
+             xlink:href="#g12"
+             id="use13"
+             transform="translate(26.181076)"
+             style="fill:#1a1a1a" />
+          <use
+             x="0"
+             y="0"
+             xlink:href="#g12"
+             id="use14"
+             transform="translate(13.090535,13.090537)"
+             style="fill:#1a1a1a" />
+        </g>
+        <use
+           x="0"
+           y="0"
+           xlink:href="#g14"
+           id="use15"
+           transform="translate(26.181076)"
+           style="fill:#1a1a1a" />
+        <use
+           x="0"
+           y="0"
+           xlink:href="#g14"
+           id="use16"
+           transform="translate(13.090535,13.090537)"
+           style="fill:#1a1a1a" />
+      </g>
+      <use
+         x="0"
+         y="0"
+         xlink:href="#g16"
+         id="use17"
+         transform="translate(26.181076)"
+         style="fill:#1a1a1a" />
+      <use
+         x="0"
+         y="0"
+         xlink:href="#g16"
+         id="use18"
+         transform="translate(13.090535,13.090537)"
+         style="fill:#1a1a1a" />
+    </g>
+    <g
+       id="g1464"
+       transform="translate(69.321318,-0.9845856)">
+      <g
+         id="rect238-0-1-5-3-4-9"
+         style="stroke:none;stroke-width:1.32292;stroke-dasharray:none;stroke-opacity:1"
+         transform="translate(-24.467813,77.82965)">
+        <g
+           id="g6-2-7"
+           style="stroke:none">
+          <rect
+             style="fill:#f9f9f9;fill-opacity:1;stroke:none;stroke-width:1.32292;stroke-linecap:round;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:stroke fill markers"
+             id="rect238-0-1-5-2-8"
+             width="52.362148"
+             height="52.362148"
+             x="170.43529"
+             y="4.895752" />
+        </g>
+      </g>
+      <use
+         x="0"
+         y="0"
+         xlink:href="#g18"
+         id="use1464"
+         transform="translate(-161.56458,112.92592)" />
+    </g>
+    <g
+       id="g1465">
+      <g
+         id="g4-3"
+         transform="translate(12.754807,17.866535)">
+        <use
+           x="0"
+           y="0"
+           xlink:href="#g7-2"
+           id="use2-8"
+           transform="matrix(0.70710731,0.35311907,0,1,-80.985203,24.426938)"
+           inkscape:transform-center-x="18.512828"
+           inkscape:transform-center-y="16.936036" />
+        <use
+           x="0"
+           y="0"
+           xlink:href="#g8-6"
+           id="use3-8"
+           transform="matrix(0.70710731,-0.3531634,0,1,-88.379608,172.81966)"
+           inkscape:transform-center-x="-18.512831"
+           inkscape:transform-center-y="16.934871" />
+      </g>
+      <use
+         x="0"
+         y="0"
+         xlink:href="#g1464"
+         id="use1465"
+         transform="matrix(0.70710678,0.35355339,-0.70710678,0.35355339,-17.825203,-10.184465)" />
     </g>
   </g>
 </svg>
