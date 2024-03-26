@@ -461,6 +461,8 @@ describe('how parseCommand works', () => {
         // [🥤] - Test here relative and absolute schema reference
     });
 
+    // <- [🥻] Insert success-case here when making new command
+
     it('should fail parsing POSTPROCESS command', () => {
         expect(() => parseCommand('Postprocess spaceTrim unwrapResult')).toThrowError(
             /Invalid POSTPROCESSING command/i,
@@ -507,6 +509,8 @@ describe('how parseCommand works', () => {
         expect(() => parseCommand('nothing to get')).toThrowError(/Unknown command/i);
         expect(() => parseCommand('prameter {name}')).toThrowError(/Unknown command/i);
     });
+
+    // <- [🥻] Insert fail-case here when making new command
 });
 
 /**

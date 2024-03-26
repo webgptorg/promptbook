@@ -521,6 +521,11 @@ There are two types of expectations which are not strictly symmetrical:
 
 Look at [expectations.ptbk.md](samples/templates/45-expectations.ptbk.md) and [expect-json.ptbk.md](samples/templates/45-expect-json.ptbk.md) samples for more.
 
+<!--
+### New
+[🥻] Insert here when making new command
+-->
+
 ### Execution report
 
 Execution report is a simple object or markdown that contains information about the execution of the promptbook.

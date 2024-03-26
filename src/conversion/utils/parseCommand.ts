@@ -388,6 +388,8 @@ export function parseCommand(listItem: string_markdown_text): Command {
                 ),
             );
         }
+    } else if (type.startsWith('__________________')) {
+        // <- [🥻] Insert here when making new command
     } else {
         throw new PromptbookSyntaxError(
             spaceTrim(
@@ -397,14 +399,25 @@ export function parseCommand(listItem: string_markdown_text): Command {
                     - ${listItem}
 
                     Supported commands are:
-                    - Execute
-                    - Model
-                    - Parameter
-                    - INPUT  PARAMETER
-                    - OUTPUT PARAMETER
-                    - PROMPTBOOK VERSION
+                    - PROMPTBOOK_URL <url>
+                    - PROMPTBOOK_VERSION <version>
+                    - EXECUTE PROMPT TEMPLATE
+                    - EXECUTE SIMPLE TEMPLATE
+                    -         SIMPLE TEMPLATE
+                    - EXECUTE SCRIPT
+                    - EXECUTE PROMPT_DIALOG'
+                    -         PROMPT_DIALOG'
+                    - MODEL NAME <name>
+                    - MODEL VARIANT <"Chat"|"Completion">
+                    - INPUT  PARAM {<name>} <description>
+                    - OUTPUT PARAM {<name>} <description>
+                    - POSTPROCESS \`{functionName}\`
+                    - JOKER {<name>}
+                    - EXPECT JSON
+                    - EXPECT <"Exactly"|"Min"|"Max"> <number> <"Chars"|"Words"|"Sentences"|"Paragraphs"|"Pages">
+
                 `,
-            ),
+            ), // <- [🥻] Insert here when making new command
         );
     }
 }

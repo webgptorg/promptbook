@@ -12,4 +12,10 @@ export type ExecutionType = TupleToUnion<typeof ExecutionTypes>;
  *
  * @see https://github.com/webgptorg/promptbook#execution-type
  */
-export const ExecutionTypes = ['PROMPT_TEMPLATE', 'SIMPLE_TEMPLATE', 'SCRIPT', 'PROMPT_DIALOG'] as const;
+export const ExecutionTypes = [
+    'PROMPT_TEMPLATE',
+    'SIMPLE_TEMPLATE',
+    'SCRIPT',
+    'PROMPT_DIALOG',
+    // <- [🥻] Insert here when making new command
+] as const;

@@ -116,3 +116,5 @@ export type ExpectFormatCommand = {
     readonly type: 'EXPECT_FORMAT';
     readonly format: 'JSON';
 };
+
+// <- [🥻] Insert here when making new command
