@@ -192,7 +192,7 @@ Better logo and branding of Promptbook.
 
 ## 0.43.0 _(2024-03-26)_
 
-CLI utils exported from `@promptbook/utils`
+CLI utils exported from `@promptbook/cli`
 
 After install you can use `promptbook` command in terminal:
 

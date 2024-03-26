@@ -89,7 +89,7 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
         packageJson.module = `./esm/index.es.js`;
         packageJson.typings = `./esm/typings/_packages/${packageName}.index.d.ts`;
 
-        if (packageName === 'utils') {
+        if (packageName === 'cli') {
             packageJson.bin = {
                 promptbook: 'bin/promptbook-cli.js',
             };
