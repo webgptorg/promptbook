@@ -56,7 +56,7 @@ export function prettifyPromptbookString(
                       ${block(
                           promptbookJson.promptTemplates
                               .flatMap(({ title, dependentParameterNames, resultingParameterName }) => [
-                                  `${parameterNameToTemplateName(resultingParameterName)}(${title})`,
+                                  `${parameterNameToTemplateName(resultingParameterName)}("${title}")`,
                                   ...dependentParameterNames.map(
                                       (dependentParameterName) =>
                                           `${parameterNameToTemplateName(
