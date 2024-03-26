@@ -88,6 +88,13 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
         packageJson.main = `./umd/index.umd.js`;
         packageJson.module = `./esm/index.es.js`;
         packageJson.typings = `./esm/typings/_packages/${packageName}.index.d.ts`;
+
+        if (packageName === 'utils') {
+            packageJson.bin = {
+                promptbook: 'bin/promptbook-cli.js',
+            };
+        }
+
         // TODO: !! Filter out dependencies only for the current package
         await writeFile(`./packages/${packageName}/package.json`, JSON.stringify(packageJson, null, 4) + '\n');
 
