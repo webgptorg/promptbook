@@ -530,6 +530,8 @@ Look at [expectations.ptbk.md](samples/templates/45-expectations.ptbk.md) and [e
 
 Execution report is a simple object or markdown that contains information about the execution of the promptbook.
 
+[See the example of such a report](/samples/templates/50-advanced.report.md)
+
 <!-- TODO: Write more -->
 
 ### Remote server
