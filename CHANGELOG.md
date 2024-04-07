@@ -185,6 +185,7 @@ More options to create `PromptbookLibrary`
 -   Utility `createPromptbookLibraryFromList`
 -   Add `extractBlock` to build-in functions
 -   Remove problematic usage of `chalk` and use `colors` instead
+-   Export `replaceParameters` from `@promptbook/utils`
 
 ## 0.42.0 _(2024-03-24)_
 

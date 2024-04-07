@@ -1,6 +1,7 @@
 import { prettifyPromptbookString } from '../conversion/prettify/prettifyPromptbookString';
 import { parseNumber } from '../conversion/utils/parseNumber';
 import { assertsExecutionSuccessful } from '../execution/assertsExecutionSuccessful';
+import { replaceParameters } from '../execution/utils/replaceParameters';
 import {
     ExecutionReportStringOptions,
     ExecutionReportStringOptionsDefaults,
@@ -50,6 +51,7 @@ export {
     removeEmojis,
     removeMarkdownFormatting,
     removeQuotes,
+    replaceParameters,
     trimCodeBlock,
     trimEndOfCodeBlock,
     unwrapResult,
