@@ -1,7 +1,12 @@
 import type OpenAI from 'openai';
-import type { PromptResult } from '../../../PromptResult';
 import { PromptbookExecutionError } from '../../../../errors/PromptbookExecutionError';
+import type { PromptResult } from '../../../PromptResult';
 
+/**
+ * !!!
+ *
+ * @throws {PromptbookExecutionError} If the usage is not defined in the response from OpenAI
+ */
 export function computeOpenaiUsage(
     rawResponse: Pick<OpenAI.Chat.Completions.ChatCompletion | OpenAI.Completions.Completion, 'model' | 'usage'>,
 ): PromptResult['usage'] {

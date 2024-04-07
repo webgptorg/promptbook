@@ -23,6 +23,9 @@ import { parseNumber } from './parseNumber';
 /**
  * Parses one line of ul/ol to command
  *
+ * @returns parsed command object
+ * @throws {PromptbookSyntaxError} if the command is invalid
+ *
  * @private within the promptbookStringToJson
  */
 export function parseCommand(listItem: string_markdown_text): Command {

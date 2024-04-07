@@ -51,7 +51,8 @@ interface CreatePromptbookExecutorOptions {
 /**
  * Creates executor function from promptbook and execution tools.
  *
- * Note: Consider using getExecutor method of the library instead of using this function
+ * @returns The executor function
+ * @throws {PromptbookLogicError} on logical error in the promptbook
  */
 export function createPromptbookExecutor(options: CreatePromptbookExecutorOptions): PromptbookExecutor {
     const { promptbook, tools, settings = {} } = options;

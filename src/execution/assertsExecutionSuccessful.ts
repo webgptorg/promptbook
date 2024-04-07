@@ -1,12 +1,12 @@
 import spaceTrim from 'spacetrim';
-import type { PromptbookExecutor } from './PromptbookExecutor';
 import { PromptbookExecutionError } from '../errors/PromptbookExecutionError';
+import type { PromptbookExecutor } from './PromptbookExecutor';
 
 /**
  * Asserts that the execution of a promptnook is successful
  *
  * @param executionResult - The partial result of the promptnook execution
- * @throws Error - If the execution is not successful or if multiple errors occurred
+ * @throws {PromptbookExecutionError} If the execution is not successful or if multiple errors occurred
  */
 export function assertsExecutionSuccessful(
     executionResult: Pick<Awaited<ReturnType<PromptbookExecutor>>, 'isSuccessful' | 'errors'>,

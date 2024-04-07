@@ -7,9 +7,7 @@ import type { string_name } from '../types/typeAliases';
  * Executor is a simple async function that takes INPUT  PARAMETERs and returns result parameters _(along with all intermediate parameters and INPUT  PARAMETERs = it extends input object)_.
  * Executor is made by combining execution tools and promptbook library.
  *
- * It can be done in two ways:
- * -   From `PromptbookLibrary.getExecutor` method
- * -   `createPromptbookExecutor` utility function
+ * It can be created with `createPromptbookExecutor` function.
  *
  * @see https://github.com/webgptorg/promptbook#executor
  */

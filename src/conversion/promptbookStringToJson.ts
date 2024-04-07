@@ -23,6 +23,8 @@ import { parseCommand } from './utils/parseCommand';
 /**
  * Parse promptbook from string format to JSON format
  *
+ * @throws {PromptbookSyntaxError} if the promptbook string is not valid
+ *
  * Note: This function does not validate logic of the pipeline only the syntax
  */
 export function promptbookStringToJson(promptbookString: PromptbookString): PromptbookJson {

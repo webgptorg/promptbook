@@ -6,6 +6,9 @@ import { PromptbookSyntaxError } from '../../errors/PromptbookSyntaxError';
  * Unlike Number.parseInt, Number.parseFloat it will never ever result in NaN
  * Note: it also works only with decimal numbers
  *
+ * @returns parsed number
+ * @throws {PromptbookSyntaxError} if the value is not a number
+ *
  * @private within the parseCommand
  */
 export function parseNumber(value: string | number): number {

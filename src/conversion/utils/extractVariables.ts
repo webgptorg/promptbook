@@ -6,6 +6,7 @@ import { string_javascript, string_javascript_name } from '../../types/typeAlias
  *
  * @param script from which to extract the variables
  * @returns the list of variable names
+ * @throws {PromptbookSyntaxError} if the script is invalid
  *
  * @private within the promptbookStringToJson
  */

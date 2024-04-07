@@ -18,7 +18,7 @@ import { isValidUrl } from '../../utils/validators/url/isValidUrl';
  * -   if it is meaningful
  *
  * @param promptbook valid or invalid PromptbookJson
- * @throws {Error} if invalid
+ * @throws {PromptbookLogicError} on logical error in the promptbook
  */
 export function validatePromptbookJson(promptbook: PromptbookJson): void {
     if (promptbook.promptbookUrl !== undefined) {
