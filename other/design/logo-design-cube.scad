@@ -15,7 +15,7 @@ difference() {
       translate([0, 0, -cube_size/2 + letter_depth]){
          rotate([0, 180, 0]){
           linear_extrude(height = letter_depth + 1){
-              text("P", size = cube_size/2, valign = "center", halign = "center");
+              text("P", size = cube_size*(2/3), valign = "center", halign = "center");
           }
          }
       }
@@ -25,7 +25,7 @@ difference() {
       translate([0, 0, -cube_size/2 + letter_depth]){
          rotate([0, 180, 90]){
           linear_extrude(height = letter_depth + 1){
-              text("B", size = cube_size/2, valign = "center", halign = "center");
+              text("B", size = cube_size*(2/3), valign = "center", halign = "center");
           }
          }
       }
