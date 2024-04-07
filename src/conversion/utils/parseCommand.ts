@@ -331,7 +331,7 @@ export function parseCommand(listItem: string_markdown_text): Command {
             } else if (/^max/i.test(signRaw)) {
                 sign = 'MAXIMUM';
             } else {
-                throw new PromptbookSyntaxError(`Invalid sign "${signRaw}"`);
+                throw new PromptbookSyntaxError(`Invalid sign "${signRaw}", expected EXACTLY, MIN or MAX`);
             }
 
             const amountRaw = listItemParts.shift()!;
