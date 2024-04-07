@@ -49,6 +49,8 @@ export function replaceParameters(template: string_template, parameters: Paramet
             throw new TemplateError(`Parameter {${parameterName}} is not defined`);
         }
 
+        parameterValue = parameterValue.toString();
+
         if (parameterValue.includes('\n') && /^\s*\W{0,3}\s*$/.test(precol)) {
             parameterValue = parameterValue
                 .split('\n')
