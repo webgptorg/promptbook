@@ -1,5 +1,5 @@
 import { LOOP_LIMIT } from '../../config';
-import { PromptbookExecutionError } from '../../errors/PromptbookExecutionError';
+import { TemplateError } from '../../errors/TemplateError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import { Parameters } from '../../types/Parameters';
 import { string_template } from '../../types/typeAliases';
@@ -10,6 +10,7 @@ import { string_template } from '../../types/typeAliases';
  * @param template the template with parameters in {curly} braces
  * @param parameters the object with parameters
  * @returns the template with replaced parameters
+ * @throws {TemplateError} if parameter is not defined, not closed, or not opened
  *
  * @private within the createPromptbookExecutor
  */
@@ -35,14 +36,18 @@ export function replaceParameters(template: string_template, parameters: Paramet
         }
 
         if (parameterName.indexOf('{') !== -1 || parameterName.indexOf('}') !== -1) {
-            throw new PromptbookExecutionError('Parameter is already opened or not closed');
+            throw new TemplateError('Parameter is already opened or not closed');
         }
 
         if ((parameters as Record<string, string>)[parameterName] === undefined) {
-            throw new PromptbookExecutionError(`Parameter {${parameterName}} is not defined`);
+            throw new TemplateError(`Parameter {${parameterName}} is not defined`);
         }
 
-        let parameterValue = (parameters as Record<string, string>)[parameterName]!;
+        let parameterValue = (parameters as Record<string, string>)[parameterName];
+
+        if (parameterValue === undefined) {
+            throw new TemplateError(`Parameter {${parameterName}} is not defined`);
+        }
 
         if (parameterValue.includes('\n') && /^\s*\W{0,3}\s*$/.test(precol)) {
             parameterValue = parameterValue
@@ -59,12 +64,12 @@ export function replaceParameters(template: string_template, parameters: Paramet
 
     // [💫] Check if there are parameters that are not closed properly
     if (/{\w+$/.test(replacedTemplate)) {
-        throw new PromptbookExecutionError('Parameter is not closed');
+        throw new TemplateError('Parameter is not closed');
     }
 
     // [💫] Check if there are parameters that are not opened properly
     if (/^\w+}/.test(replacedTemplate)) {
-        throw new PromptbookExecutionError('Parameter is not opened');
+        throw new TemplateError('Parameter is not opened');
     }
 
     return replacedTemplate;
