@@ -1,8 +1,8 @@
 
-$fn=10; // Number of facets
+$fn=100; // Number of facets
 cube_size = 20; // Size of the cube
-letter_P_depth = 20; // Depth of the engraved P letter
-letter_B_depth = 20; // Depth of the engraved B letter
+letter_P_depth = 5; // Depth of the engraved P letter
+letter_B_depth = 5; // Depth of the engraved B letter
 triangle_depth = 2; // Depth of the engraved triangle
 
 
