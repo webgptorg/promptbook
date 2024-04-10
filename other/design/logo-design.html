@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>3D Model Viewer</title>
+        <style>
+            html,
+            body {
+                margin: 0;
+                padding: 0;
+                overflow: hidden;
+                background-color: black; /* Set the background color to black */
+            }
+            #canvas {
+                width: 100%;
+                height: 100%;
+                outline: none;
+                border: none;
+
+                position: absolute;
+                top: 0;
+                bottom: 0;
+                left: 0;
+                right: 0;
+            }
+        </style>
+    </head>
+    <body>
+        <canvas id="canvas"></canvas>
+        <script type="module">
+            import BABYLON from 'https://cdn.jsdelivr.net/npm/babylonjs@7.1.0/+esm';
+            import 'https://cdn.jsdelivr.net/npm/babylonjs-loaders@7.1.0/+esm';
+
+            const canvas = document.getElementById('canvas');
+            const engine = new BABYLON.Engine(canvas, true);
+
+            const createScene = async () => {
+                const scene = new BABYLON.Scene(engine);
+
+                scene.clearColor = new BABYLON.Color4(0, 0, 0, 0);
+
+                const model = await BABYLON.SceneLoader.ImportMeshAsync(null, './', 'logo-design-cube.gltf');
+                const cube = model.meshes[0];
+                //cube.scaling = new BABYLON.Vector3(0.1, 0.1, 0.1);
+                cube.rotation = new BABYLON.Vector3(Math.PI / 2, 0, -Math.PI / 2);
+
+                //const cube = BABYLON.MeshBuilder.CreateBox('cube', { size: 2, wireframe: true }, scene);
+
+                // Set up camera and lights
+                const camera = new BABYLON.ArcRotateCamera(
+                    'camera',
+                    Math.PI / 4,
+                    Math.PI / 3,
+                    100,
+                    BABYLON.Vector3.Zero(),
+                    scene,
+                );
+                camera.attachControl(canvas, true);
+
+                const light1 = new BABYLON.HemisphericLight('light1', new BABYLON.Vector3(-10, 0, 0), scene);
+                light1.diffuse = new BABYLON.Color3(1, 0, 0); // Red light
+
+                const light2 = new BABYLON.HemisphericLight('light2', new BABYLON.Vector3(10, 0, 0), scene);
+                light2.diffuse = new BABYLON.Color3(0, 0, 1); // Blue light
+
+                return scene;
+            };
+
+            const scene = await createScene();
+
+            engine.runRenderLoop(() => {
+                scene.render();
+            });
+
+            window.addEventListener('resize', () => {
+                engine.resize();
+            });
+        </script>
+    </body>
+</html>
