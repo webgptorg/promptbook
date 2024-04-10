@@ -10,72 +10,134 @@
                 margin: 0;
                 padding: 0;
                 overflow: hidden;
-                background-color: black; /* Set the background color to black */
+                background-color: black;
             }
-            #canvas {
-                width: 100%;
-                height: 100%;
-                outline: none;
-                border: none;
+            #scene-container {
+                /*/
+                outline: 1px dotted red !important;
+                /**/
 
                 position: absolute;
                 top: 0;
                 bottom: 0;
                 left: 0;
                 right: 0;
+
+                display: flex;
+                justify-content: center /* <-[x] */;
+                align-items: center /* <-[y] */;
+            }
+            #scene-container canvas {
+                /*/
+                outline: 1px dotted red !important;
+                /**/
+
+                aspect-ratio: 1 / 1;
+
+                height: 100%;
+                outline: none;
             }
         </style>
     </head>
     <body>
-        <canvas id="canvas"></canvas>
+        <div id="scene-container">
+            <canvas></canvas>
+        </div>
         <script type="module">
             import BABYLON from 'https://cdn.jsdelivr.net/npm/babylonjs@7.1.0/+esm';
             import 'https://cdn.jsdelivr.net/npm/babylonjs-loaders@7.1.0/+esm';
 
-            const canvas = document.getElementById('canvas');
+            const canvas = document.querySelector('canvas');
             const engine = new BABYLON.Engine(canvas, true);
+            const scene = new BABYLON.Scene(engine);
 
-            const createScene = async () => {
-                const scene = new BABYLON.Scene(engine);
+            scene.clearColor = new BABYLON.Color4(0, 0, 0, 0);
 
-                scene.clearColor = new BABYLON.Color4(0, 0, 0, 0);
+            const model = await BABYLON.SceneLoader.ImportMeshAsync(null, './', 'logo-design-cube.gltf');
+            const cube = model.meshes[0];
+            //cube.scaling = new BABYLON.Vector3(0.1, 0.1, 0.1);
+            cube.rotation = new BABYLON.Vector3(Math.PI / 2, 0, -Math.PI / 2);
 
-                const model = await BABYLON.SceneLoader.ImportMeshAsync(null, './', 'logo-design-cube.gltf');
-                const cube = model.meshes[0];
-                //cube.scaling = new BABYLON.Vector3(0.1, 0.1, 0.1);
-                cube.rotation = new BABYLON.Vector3(Math.PI / 2, 0, -Math.PI / 2);
+            //const cube = BABYLON.MeshBuilder.CreateBox('cube', { size: 2, wireframe: true }, scene);
 
-                //const cube = BABYLON.MeshBuilder.CreateBox('cube', { size: 2, wireframe: true }, scene);
-
-                // Set up camera and lights
-                const camera = new BABYLON.ArcRotateCamera(
-                    'camera',
+            // Set up camera and lights
+            /**/
+            const camera = new BABYLON.ArcRotateCamera(
+                'camera',
+                Math.PI / 4,
+                Math.PI / 4,
+                100,
+                BABYLON.Vector3.Zero(),
+                scene,
+            );
+            camera.mode = BABYLON.Camera.ORTHOGRAPHIC_CAMERA;
+            camera.orthoTop = 100;
+            camera.orthoBottom = -100;
+            camera.orthoLeft = -100;
+            camera.orthoRight = 100;
+            /**/
+            /*/
+                var camera = new BABYLON.AnaglyphArcRotateCamera(
+                    'aar_cam',
+                    -Math.PI / 2,
                     Math.PI / 4,
-                    Math.PI / 3,
-                    100,
-                    BABYLON.Vector3.Zero(),
+                    20,
+                    new BABYLON.Vector3.Zero(),
+                    0.033,
                     scene,
                 );
-                camera.attachControl(canvas, true);
+                /**/
+            camera.attachControl(canvas, true);
 
-                const light1 = new BABYLON.HemisphericLight('light1', new BABYLON.Vector3(-10, 0, 0), scene);
-                light1.diffuse = new BABYLON.Color3(1, 0, 0); // Red light
+            const light1 = new BABYLON.HemisphericLight('light1', new BABYLON.Vector3(-100, 0, 0), scene);
+            light1.diffuse = new BABYLON.Color3(1, 0, 0);
+            light1.intensity = 0.5;
 
-                const light2 = new BABYLON.HemisphericLight('light2', new BABYLON.Vector3(10, 0, 0), scene);
-                light2.diffuse = new BABYLON.Color3(0, 0, 1); // Blue light
+            // const light2 = new BABYLON.HemisphericLight('light2', new BABYLON.Vector3(0, 100, 0), scene);
+            // light2.diffuse = new BABYLON.Color3(0.1, 1, 0.3);
+            // light2.intensity = 0.5;
 
-                return scene;
-            };
-
-            const scene = await createScene();
+            const light3 = new BABYLON.HemisphericLight('light3', new BABYLON.Vector3(0, 0, -100), scene);
+            light3.diffuse = new BABYLON.Color3(0.1, 0.1, 1);
+            light3.intensity = 0.5;
 
             engine.runRenderLoop(() => {
+                light1.position = camera.position;
+
                 scene.render();
             });
 
             window.addEventListener('resize', () => {
                 engine.resize();
             });
+
+            /*/
+            let isRotating = false;
+            let lastPointerPosition = null;
+            window.addEventListener('pointerdown', () => {
+                isRotating = true;
+            });
+            window.addEventListener('pointermove', (event) => {
+                if (!isRotating) {
+                    return;
+                }
+
+                const currentPointerPosition = new BABYLON.Vector2(event.clientX, event.clientY);
+                const delta = lastPointerPosition
+                    ? currentPointerPosition.subtract(lastPointerPosition)
+                    : BABYLON.Vector2.Zero();
+                lastPointerPosition = currentPointerPosition;
+
+                cube.rotation.y -= delta.x / 100;
+
+                cube.rotation.x += (Math.cos(delta.x) * delta.y) / 100;
+                cube.rotation.z += (Math.sin(delta.x) * delta.y) / 100;
+            });
+            window.addEventListener('pointerup', () => {
+                isRotating = false;
+                lastPointerPosition = null;
+            });
+            /**/
         </script>
     </body>
 </html>
