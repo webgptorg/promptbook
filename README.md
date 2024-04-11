@@ -1,4 +1,4 @@
-# 📖 Promptbook
+# ![Promptbook logo - cube with letters P and B](./other/design/logo-render-h1.png) Promptbook
 
 Library to supercharge your use of large language models
 
@@ -12,8 +12,6 @@ Library to supercharge your use of large language models
 <!--/Badges-->
 
 > ⚠ Warning: This library is still in early development.
-
-![Promptbook full of ideas](./other/design/promptbook.jpg)
 
 ## 🤍 Whitepaper
 

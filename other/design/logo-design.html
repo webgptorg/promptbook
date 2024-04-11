@@ -72,7 +72,7 @@
             );
             camera.mode = BABYLON.Camera.ORTHOGRAPHIC_CAMERA;
             camera.orthoTop = 50;
-            camera.orthoBottom = - camera.orthoTop;
+            camera.orthoBottom = -camera.orthoTop;
             camera.orthoLeft = -camera.orthoTop;
             camera.orthoRight = camera.orthoTop;
             /**/
@@ -91,23 +91,23 @@
 
             const light1 = new BABYLON.DirectionalLight('light1', new BABYLON.Vector3(-1, 0, 0), scene);
             light1.diffuse = new BABYLON.Color3(1, 0, 0);
-            light1.intensity = 1;
+            light1.intensity = 1.5;
 
-            // const light2 = new BABYLON.DirectionalLight('light2', new BABYLON.Vector3(0, -1, 0), scene);
-            // light2.diffuse = new BABYLON.Color3(0.1, 1, 0.3);
-            // light2.intensity = light1.intensity;
-            //
+            const light2 = new BABYLON.DirectionalLight('light2', new BABYLON.Vector3(0, -1, 0), scene);
+            //light2.diffuse = new BABYLON.Color3(0.1, 1, 0.3);
+            light2.intensity = 0.1; //light1.intensity;
 
             const light3 = new BABYLON.DirectionalLight('light3', new BABYLON.Vector3(0, 0, -1), scene);
             light3.diffuse = new BABYLON.Color3(0.1, 0.1, 1);
             light3.intensity = light1.intensity;
 
             engine.runRenderLoop(() => {
+                /*/
                 const a = -camera.alpha + Math.PI / 4;
                 const b = -camera.alpha - Math.PI / 4;
                 light1.direction = new BABYLON.Vector3(-Math.cos(a), 0, Math.sin(a));
                 light3.direction = new BABYLON.Vector3(-Math.cos(b), 0, Math.sin(b));
-
+                /**/
                 scene.render();
             });
 
