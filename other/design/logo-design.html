@@ -71,10 +71,10 @@
                 scene,
             );
             camera.mode = BABYLON.Camera.ORTHOGRAPHIC_CAMERA;
-            camera.orthoTop = 100;
-            camera.orthoBottom = -100;
-            camera.orthoLeft = -100;
-            camera.orthoRight = 100;
+            camera.orthoTop = 50;
+            camera.orthoBottom = - camera.orthoTop;
+            camera.orthoLeft = -camera.orthoTop;
+            camera.orthoRight = camera.orthoTop;
             /**/
             /*/
                 var camera = new BABYLON.AnaglyphArcRotateCamera(
