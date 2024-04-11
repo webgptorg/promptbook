@@ -333,7 +333,7 @@ export function createPromptbookExecutor(options: CreatePromptbookExecutorOption
                     throw new PromptbookExecutionError(
                         spaceTrim(
                             (block) => `
-                              Natural execution failed ${settings.maxExecutionAttempts}x
+                              Natural execution failed ${maxExecutionAttempts}x
 
                               ${block(expectError?.message || '')}
                           `,
