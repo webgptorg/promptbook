@@ -276,6 +276,56 @@ describe('how parseCommand works', () => {
         });
     });
 
+    it('should not be confused by input/output word in parameter name or description', () => {
+        expect(parseCommand('> {inputText} The input text')).toEqual({
+            type: 'PARAMETER',
+            isInput: false, // <- Note: Not input despite the word input in the parameter name
+            isOutput: false,
+            parameterName: 'inputText',
+            parameterDescription: 'The input text',
+        });
+
+        expect(parseCommand('> {outputText} The output text')).toEqual({
+            type: 'PARAMETER',
+            isInput: false,
+            isOutput: false, // <- Note: Not output despite the word output in the parameter name
+            parameterName: 'outputText',
+            parameterDescription: 'The output text',
+        });
+
+        expect(parseCommand('PARAMETER {inputText} The input text')).toEqual({
+            type: 'PARAMETER',
+            isInput: false, // <- Note: Not input despite the word input in the parameter name
+            isOutput: false,
+            parameterName: 'inputText',
+            parameterDescription: 'The input text',
+        });
+
+        expect(parseCommand('PARAMETER {outputText} The output text')).toEqual({
+            type: 'PARAMETER',
+            isInput: false,
+            isOutput: false, // <- Note: Not output despite the word output in the parameter name
+            parameterName: 'outputText',
+            parameterDescription: 'The output text',
+        });
+
+        expect(parseCommand('OUTPUT PARAMETER {inputText} The input text')).toEqual({
+            type: 'PARAMETER',
+            isInput: false, // <- Note: Not input despite the word input in the parameter name
+            isOutput: true,
+            parameterName: 'inputText',
+            parameterDescription: 'The input text',
+        });
+
+        expect(parseCommand('INPUT PARAMETER {outputText} The output text')).toEqual({
+            type: 'PARAMETER',
+            isInput: true,
+            isOutput: false, // <- Note: Not output despite the word output in the parameter name
+            parameterName: 'outputText',
+            parameterDescription: 'The output text',
+        });
+    });
+
     it('should parse JOKER command', () => {
         expect(parseCommand('joker {name}')).toEqual({
             type: 'JOKER',

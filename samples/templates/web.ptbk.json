@@ -1,0 +1,166 @@
+{
+    "title": "🗞 Zadání webu",
+    "promptbookUrl": "https://webgpt.cz/promptbook/ruka/web.ptbk.md",
+    "promptbookVersion": "0.20.0",
+    "description": "Instrukce pro napsání úvodník do městského časopisu za pomocí [🌠 Prompt template pipelines](https://github.com/webgptorg/promptbook).",
+    "parameters": [
+        {
+            "name": "inputText",
+            "description": "Vstupní text",
+            "isInput": true,
+            "isOutput": false
+        },
+        {
+            "name": "outputText",
+            "description": "Text emailu",
+            "isInput": false,
+            "isOutput": true
+        },
+        {
+            "name": "inputTextCleaned",
+            "isInput": false,
+            "isOutput": false
+        },
+        {
+            "name": "title",
+            "isInput": false,
+            "isOutput": false
+        },
+        {
+            "name": "domainsCommaSeparated",
+            "isInput": false,
+            "isOutput": false
+        },
+        {
+            "name": "domains",
+            "isInput": false,
+            "isOutput": false
+        },
+        {
+            "name": "assignment",
+            "isInput": false,
+            "isOutput": false
+        }
+    ],
+    "promptTemplates": [
+        {
+            "name": "VyITNVstupu",
+            "title": "Vyčištění vstupu",
+            "dependentParameterNames": [
+                "inputText"
+            ],
+            "executionType": "PROMPT_TEMPLATE",
+            "postprocessing": [
+                "spaceTrim"
+            ],
+            "modelRequirements": {
+                "modelVariant": "CHAT",
+                "modelName": "gpt-4-1106-preview"
+            },
+            "content": "Vyčisti email pro další zpracování\n\n## Pravidla\n\n- Tvým úkolem je vyčistit text emailu\n- Napiš pouze vyčištěný text, nic jiného\n- Odstraň zbytečné informace typu podpis, citace, zdvořilostní fráze, atd.\n\n## Text emailu\n\n> {inputText}\n",
+            "resultingParameterName": "inputTextCleaned"
+        },
+        {
+            "name": "NZevWebu",
+            "title": "Název webu",
+            "dependentParameterNames": [
+                "inputTextCleaned"
+            ],
+            "executionType": "PROMPT_TEMPLATE",
+            "postprocessing": [
+                "spaceTrim"
+            ],
+            "expectAmount": {
+                "words": {
+                    "max": 3
+                },
+                "lines": {
+                    "max": 1
+                },
+                "characters": {
+                    "max": 30
+                }
+            },
+            "modelRequirements": {
+                "modelVariant": "CHAT",
+                "modelName": "gpt-4-1106-preview"
+            },
+            "content": "Jsi zkušený copywrighter a dostal jsi zakázku na vytvoření názvu pro nový web. Zákazník ti poslal zadání.\n\n## Pravidla\n\n- Tvým úkolem vymyslet jednoduchý a výstižný název pro web\n- Napiš pouze jeden název, nic jiného\n- Vymýšlej název, ne doménu\n\n## Zadání\n\n> {inputTextCleaned}\n",
+            "resultingParameterName": "title"
+        },
+        {
+            "name": "DomNy",
+            "title": "Domény",
+            "dependentParameterNames": [
+                "title",
+                "inputTextCleaned"
+            ],
+            "executionType": "PROMPT_TEMPLATE",
+            "postprocessing": [
+                "spaceTrim"
+            ],
+            "expectAmount": {
+                "lines": {
+                    "max": 1
+                }
+            },
+            "modelRequirements": {
+                "modelVariant": "CHAT",
+                "modelName": "gpt-4-1106-preview"
+            },
+            "content": "Jsi zkušený copywrighter a webový designer  jsi dostal zakázku na vytvoření seznamu nejvhodnějších domén pro webovou stránku \"{title}\"\n\n## Pravidla\n\n- Tvým úkolem vymyslet seznam nejvhodnějších domén web \"{title}\"\n- Napiš pouze jeden domény oddělené čárkou, nic jiného\n- Neber do úvahy, zda je doména volná nebo ne, to bude zkontrolováno při dalším kroku\n\n## Zadání webu\n\nTak to vypadá zadání webu, Řiď se primárně názvem webu \"{title}\", avšak do úvahy můžeš vzít i další prvky ze zadání od zákazníka:\n\n> {inputTextCleaned}\n",
+            "resultingParameterName": "domainsCommaSeparated"
+        },
+        {
+            "name": "DomNy",
+            "title": "Domény",
+            "dependentParameterNames": [
+                "domainsCommaSeparated"
+            ],
+            "executionType": "SCRIPT",
+            "modelRequirements": {},
+            "contentLanguage": "javascript",
+            "content": "domainsCommaSeparated.split(',').join('\\n');",
+            "resultingParameterName": "domains"
+        },
+        {
+            "name": "ZadN",
+            "title": "Zadání",
+            "dependentParameterNames": [
+                "title",
+                "inputTextCleaned"
+            ],
+            "executionType": "PROMPT_TEMPLATE",
+            "postprocessing": [
+                "spaceTrim"
+            ],
+            "expectAmount": {
+                "words": {
+                    "min": 10
+                },
+                "lines": {
+                    "min": 3
+                }
+            },
+            "modelRequirements": {
+                "modelVariant": "CHAT",
+                "modelName": "gpt-4-1106-preview"
+            },
+            "content": "Jsi zkušený webový vývojář a dostal jsi zakázku na vytvoření nového webu \"{title}\". Zákazník ti poslal email.\n\n## Pravidla\n\n- Tvým úkolem je z emailu vytvořit zadání pro nový web\n- Napiš pouze zadání pro web\n- Zadání je strukturované a obsahuje všechny potřebné informace\n- Zadání obsahuje číslovaný seznam všech požadavků\n\n\n## Text emailu\n\n> {inputTextCleaned}\n",
+            "resultingParameterName": "assignment"
+        },
+        {
+            "name": "Email",
+            "title": "Email",
+            "dependentParameterNames": [
+                "title",
+                "assignment",
+                "domains"
+            ],
+            "executionType": "SIMPLE_TEMPLATE",
+            "modelRequirements": {},
+            "content": "Dobrý den,\n\nna Vaše zadání jsme se podívali a připravili ho pro našeho vývojáře.\nZde je zadání pro váš nový web **\"{title}\"**:\n\n> {assignment}\n\n\nNejvhodnější domény pro web **\"{title}\"** jsou:\n\n- {domains}\n\n\n*PS: Jedná se o automaticky vygenerovanou odpověď, kterou si je potřeba překontrolovat.*\n\nS pozdravem,\nR.U.K.A.",
+            "resultingParameterName": "outputText"
+        }
+    ]
+}

@@ -28,10 +28,6 @@ export function validatePromptbookJson(promptbook: PromptbookJson): void {
         }
     }
 
-    const definedParameters: Set<string> = new Set(
-        promptbook.parameters.filter(({ isInput }) => isInput).map(({ name }) => name),
-    );
-
     // Note: Check each parameter individually
     for (const parameter of promptbook.parameters) {
         if (parameter.isInput && parameter.isOutput) {
@@ -74,10 +70,15 @@ export function validatePromptbookJson(promptbook: PromptbookJson): void {
     }
 
     // Note: Check each template individually
+    const definedParameters: Set<string> = new Set(
+        promptbook.parameters.filter(({ isInput }) => isInput).map(({ name }) => name),
+    );
     for (const template of promptbook.promptTemplates) {
         if (definedParameters.has(template.resultingParameterName)) {
             throw new PromptbookLogicError(`Parameter {${template.resultingParameterName}} is defined multiple times`);
         }
+
+        definedParameters.add(template.resultingParameterName);
 
         if (
             template.executionType === 'PROMPT_TEMPLATE' &&
@@ -133,8 +134,6 @@ export function validatePromptbookJson(promptbook: PromptbookJson): void {
                 }
             }
         }
-
-        definedParameters.add(template.resultingParameterName);
     }
 
     // Note: Detect circular dependencies

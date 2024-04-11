@@ -251,8 +251,13 @@ export function parseCommand(listItem: string_markdown_text): Command {
             );
         }
 
-        const isInput = type.startsWith('INPUT');
-        const isOutput = type.startsWith('OUTPUT');
+        let isInput = type.startsWith('INPUT');
+        let isOutput = type.startsWith('OUTPUT');
+
+        if (listItem.startsWith('> {')) {
+            isInput = false;
+            isOutput = false;
+        }
 
         return {
             type: 'PARAMETER',
