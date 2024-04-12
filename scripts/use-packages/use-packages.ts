@@ -35,6 +35,7 @@ async function usePackages() {
         './samples/usage',
         '../webgpt-app',
         '../../webgpt/webgpt-app-ruka',
+        '../../webgpt/webgpt-sdk',
         '../../webgpt/calculator',
     ]) {
         const mainPackageJson = JSON.parse(await readFile('./package.json', 'utf-8')) as PackageJson;
