@@ -254,13 +254,15 @@ const defaultDiacriticsRemovalMap = [
 export const DIACRITIC_VARIANTS_LETTERS: Record<string, string> = {};
 // tslint:disable-next-line: prefer-for-of
 for (let i = 0; i < defaultDiacriticsRemovalMap.length; i++) {
-    const letters = defaultDiacriticsRemovalMap[i].letters;
+    const letters = defaultDiacriticsRemovalMap[i]!.letters;
     // tslint:disable-next-line: prefer-for-of
     for (let j = 0; j < letters.length; j++) {
-        DIACRITIC_VARIANTS_LETTERS[letters[j]] =
-            defaultDiacriticsRemovalMap[i].base;
+        DIACRITIC_VARIANTS_LETTERS[letters[j]!] =
+            defaultDiacriticsRemovalMap[i]!.base;
     }
 }
+
+// <- TODO: !!!! Put to maker function
 
 /*
   @see https://stackoverflow.com/questions/990904/remove-accents-diacritics-in-a-string-in-javascript
