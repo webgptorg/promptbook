@@ -1,4 +1,5 @@
-import { normalizeTo_snake_case } from '../src/normalizeTo_snake_case';
+import { describe, expect, it } from '@jest/globals';
+import { normalizeTo_snake_case } from './normalizeTo_snake_case';
 
 describe('how normalizing to snake_case works', () => {
     it('can normalize one word', () => {

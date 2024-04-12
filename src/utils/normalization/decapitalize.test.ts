@@ -1,4 +1,5 @@
-import { decapitalize } from '../src/decapitalize';
+import { describe, expect, it } from '@jest/globals';
+import { decapitalize } from './decapitalize';
 
 describe('how capitalize works', () => {
     it('will handle words beginning with lowercase', () => {

@@ -1,4 +1,5 @@
-import { normalizeTo_camelCase } from '../src/normalizeTo_camelCase';
+import { describe, expect, it } from '@jest/globals';
+import { normalizeTo_camelCase } from './normalizeTo_camelCase';
 
 describe('how normalizing to camelCase works', () => {
     it('can normalize one word', () => {

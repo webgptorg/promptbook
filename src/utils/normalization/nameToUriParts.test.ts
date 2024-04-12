@@ -1,4 +1,5 @@
-import { nameToUriParts } from '../src/nameToUriParts';
+import { describe, expect, it } from '@jest/globals';
+import { nameToUriParts } from './nameToUriParts';
 
 describe('how converting name to parts of URI works', () => {
     it('should convert simple name to parts of URI', () => {
@@ -10,10 +11,7 @@ describe('how converting name to parts of URI works', () => {
 
     it('should convert name with diacritics to parts of URI', () => {
         expect(nameToUriParts(`ěščřŽýáíéúů`)).toEqual([`escrzyaieuu`]);
-        expect(nameToUriParts(`ěščř--++++////---ŽÝÁÍÉÚŮ`)).toEqual([
-            `escr`,
-            `zyaieuu`,
-        ]);
+        expect(nameToUriParts(`ěščř--++++////---ŽÝÁÍÉÚŮ`)).toEqual([`escr`, `zyaieuu`]);
     });
 
     it('should empty array on empty name', () => {

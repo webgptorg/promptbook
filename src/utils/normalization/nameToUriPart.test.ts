@@ -1,4 +1,5 @@
-import { nameToUriPart } from '../src/nameToUriPart';
+import { describe, expect, it } from '@jest/globals';
+import { nameToUriPart } from './nameToUriPart';
 
 describe('how converting name to part of URI works', () => {
     it('can convert simple name to part of URI', () => {

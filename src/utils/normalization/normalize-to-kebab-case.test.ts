@@ -1,4 +1,5 @@
-import { normalizeToKebabCase } from '../src/normalize-to-kebab-case';
+import { describe, expect, it } from '@jest/globals';
+import { normalizeToKebabCase } from './normalize-to-kebab-case';
 
 describe('how normalizing to kebab-case works', () => {
     it('will normalize one word', () => {
