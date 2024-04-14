@@ -1,4 +1,4 @@
-import { normalizeTo_SCREAMING_CASE } from 'n12';
+
 import spaceTrim from 'spacetrim';
 import { PromptbookSyntaxError } from '../../errors/PromptbookSyntaxError';
 import type {
@@ -19,6 +19,7 @@ import { EXPECTATION_UNITS } from '../../types/PromptbookJson/PromptTemplateJson
 import type { string_markdown_text } from '../../types/typeAliases';
 import { removeMarkdownFormatting } from '../../utils/markdown/removeMarkdownFormatting';
 import { parseNumber } from './parseNumber';
+import { normalizeTo_SCREAMING_CASE } from '../../utils/normalization';
 
 /**
  * Parses one line of ul/ol to command

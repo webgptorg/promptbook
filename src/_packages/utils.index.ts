@@ -2,11 +2,11 @@ import { prettifyPromptbookString } from '../conversion/prettify/prettifyPromptb
 import { parseNumber } from '../conversion/utils/parseNumber';
 import { assertsExecutionSuccessful } from '../execution/assertsExecutionSuccessful';
 import { replaceParameters } from '../execution/utils/replaceParameters';
+import { executionReportJsonToString } from '../types/execution-report/executionReportJsonToString';
 import {
     ExecutionReportStringOptions,
     ExecutionReportStringOptionsDefaults,
 } from '../types/execution-report/ExecutionReportStringOptions';
-import { executionReportJsonToString } from '../types/execution-report/executionReportJsonToString';
 import { CountUtils } from '../utils/expectation-counters';
 import { countCharacters } from '../utils/expectation-counters/countCharacters';
 import { countLines } from '../utils/expectation-counters/countLines';
@@ -55,6 +55,48 @@ export {
     trimCodeBlock,
     trimEndOfCodeBlock,
     unwrapResult,
+};
+
+// And the normalization (originally n12 library) utilities:
+
+import { capitalize } from '../utils/normalization/capitalize';
+import { decapitalize } from '../utils/normalization/decapitalize';
+import { DIACRITIC_VARIANTS_LETTERS } from '../utils/normalization/DIACRITIC_VARIANTS_LETTERS';
+import { IKeywords, string_keyword } from '../utils/normalization/IKeywords';
+import { isValidKeyword } from '../utils/normalization/isValidKeyword';
+import { nameToUriPart } from '../utils/normalization/nameToUriPart';
+import { nameToUriParts } from '../utils/normalization/nameToUriParts';
+import { normalizeToKebabCase } from '../utils/normalization/normalize-to-kebab-case';
+import { normalizeTo_camelCase } from '../utils/normalization/normalizeTo_camelCase';
+import { normalizeTo_PascalCase } from '../utils/normalization/normalizeTo_PascalCase';
+import { normalizeTo_SCREAMING_CASE } from '../utils/normalization/normalizeTo_SCREAMING_CASE';
+import { normalizeTo_snake_case } from '../utils/normalization/normalizeTo_snake_case';
+import { normalizeWhitespaces } from '../utils/normalization/normalizeWhitespaces';
+import { parseKeywords } from '../utils/normalization/parseKeywords';
+import { parseKeywordsFromString } from '../utils/normalization/parseKeywordsFromString';
+import { removeDiacritics } from '../utils/normalization/removeDiacritics';
+import { searchKeywords } from '../utils/normalization/searchKeywords';
+
+// TODO: !!! Try to Export also snake-case ,...
+export {
+    capitalize,
+    decapitalize,
+    DIACRITIC_VARIANTS_LETTERS,
+    IKeywords,
+    isValidKeyword,
+    nameToUriPart,
+    nameToUriParts,
+    normalizeTo_camelCase,
+    normalizeTo_PascalCase,
+    normalizeTo_SCREAMING_CASE,
+    normalizeTo_snake_case,
+    normalizeToKebabCase,
+    normalizeWhitespaces,
+    parseKeywords,
+    parseKeywordsFromString,
+    removeDiacritics,
+    searchKeywords,
+    string_keyword,
 };
 
 /**

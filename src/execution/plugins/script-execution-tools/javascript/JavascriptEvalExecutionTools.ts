@@ -1,20 +1,19 @@
-import {
-    capitalize as _capitalize,
-    decapitalize as _decapitalize,
-    nameToUriPart as _nameToUriPart,
-    nameToUriParts as _nameToUriParts,
-    normalizeToKebabCase as _normalizeToKebabCase,
-    normalizeTo_PascalCase as _normalizeTo_PascalCase,
-    normalizeTo_SCREAMING_CASE as _normalizeTo_SCREAMING_CASE,
-    normalizeTo_camelCase as _normalizeTo_camelCase,
-    normalizeTo_snake_case as _normalizeTo_snake_case,
-    normalizeWhitespaces as _normalizeWhitespaces,
-    removeDiacritics as _removeDiacritics,
-    parseKeywordsFromString,
-} from 'n12';
 import _spaceTrim from 'spacetrim';
 import { PromptbookExecutionError } from '../../../../errors/PromptbookExecutionError';
 import { prettifyMarkdown as _prettifyMarkdown } from '../../../../utils/markdown/prettifyMarkdown';
+import { parseKeywordsFromString } from '../../../../utils/normalization';
+import { capitalize as _capitalize } from '../../../../utils/normalization/capitalize';
+import { decapitalize as _decapitalize } from '../../../../utils/normalization/decapitalize';
+import { nameToUriPart as _nameToUriPart } from '../../../../utils/normalization/nameToUriPart';
+import { nameToUriParts as _nameToUriParts } from '../../../../utils/normalization/nameToUriParts';
+import { normalizeToKebabCase as _normalizeToKebabCase } from '../../../../utils/normalization/normalize-to-kebab-case';
+import { normalizeTo_PascalCase as _normalizeTo_PascalCase } from '../../../../utils/normalization/normalizeTo_PascalCase';
+import { normalizeTo_SCREAMING_CASE as _normalizeTo_SCREAMING_CASE } from '../../../../utils/normalization/normalizeTo_SCREAMING_CASE';
+import { normalizeTo_camelCase as _normalizeTo_camelCase } from '../../../../utils/normalization/normalizeTo_camelCase';
+import { normalizeTo_snake_case as _normalizeTo_snake_case } from '../../../../utils/normalization/normalizeTo_snake_case';
+import { normalizeWhitespaces as _normalizeWhitespaces } from '../../../../utils/normalization/normalizeWhitespaces';
+import { removeDiacritics as _removeDiacritics } from '../../../../utils/normalization/removeDiacritics';
+import { extractBlock } from '../../../../utils/postprocessing/extractBlock';
 import { removeEmojis as _removeEmojis } from '../../../../utils/removeEmojis';
 import { removeQuotes as _removeQuotes } from '../../../../utils/removeQuotes';
 import { trimCodeBlock as _trimCodeBlock } from '../../../../utils/trimCodeBlock';
@@ -23,7 +22,6 @@ import { unwrapResult as _unwrapResult } from '../../../../utils/unwrapResult';
 import { ScriptExecutionTools, ScriptExecutionToolsExecuteOptions } from '../../../ScriptExecutionTools';
 import { JavascriptExecutionToolsOptions } from './JavascriptExecutionToolsOptions';
 import { preserve } from './utils/preserve';
-import { extractBlock } from '../../../../utils/postprocessing/extractBlock';
 
 /**
  * ScriptExecutionTools for JavaScript implemented via eval

@@ -1,4 +1,3 @@
-import { normalizeTo_PascalCase } from 'n12';
 import spaceTrim from 'spacetrim';
 import { Writable, WritableDeep } from 'type-fest';
 import { PromptbookSyntaxError } from '../errors/PromptbookSyntaxError';
@@ -16,6 +15,7 @@ import { markdownToMarkdownStructure } from '../utils/markdown-json/markdownToMa
 import { extractAllListItemsFromMarkdown } from '../utils/markdown/extractAllListItemsFromMarkdown';
 import { extractOneBlockFromMarkdown } from '../utils/markdown/extractOneBlockFromMarkdown';
 import { removeContentComments } from '../utils/markdown/removeContentComments';
+import { normalizeTo_PascalCase } from '../utils/normalization';
 import { PROMPTBOOK_VERSION } from '../version';
 import { extractVariables } from './utils/extractVariables';
 import { parseCommand } from './utils/parseCommand';

@@ -1,5 +1,4 @@
 import moment from 'moment';
-import { normalizeToKebabCase } from 'n12';
 import spaceTrim from 'spacetrim';
 import { FromtoItems } from '../../utils/FromtoItems';
 import { formatNumber } from '../../utils/formatNumber';
@@ -14,6 +13,7 @@ import type { ExecutionReportStringOptions } from './ExecutionReportStringOption
 import { ExecutionReportStringOptionsDefaults } from './ExecutionReportStringOptions';
 import { MOMENT_ARG_THRESHOLDS } from './config';
 import { countWorkingDuration } from './countWorkingDuration';
+import { normalizeToKebabCase } from '../../utils/normalization';
 
 /**
  * Converts execution report from JSON to string format
