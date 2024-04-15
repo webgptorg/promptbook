@@ -205,7 +205,7 @@ npx promptbook prettify promptbook/**/*.ptbk.md
 ## 0.44.0 _(2024-04-12)_
 
 -   Normalization library `n12` is not used and all its functions are bringed to `@promptbook/utils`
--   Add splitters !!!
+-   Add splitter functions like `splitIntoSentences` (made from `countSentences`)
 -   Better error names
 -   Better error used
 -   Make `ExpectError` private
