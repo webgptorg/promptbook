@@ -9,14 +9,12 @@ import { parseKeywordsFromString } from './parseKeywordsFromString';
  * @param input of any kind
  * @returns {Set} of keywords without diacritics in lowercase
  */
-export function parseKeywords(input: any): IKeywords {
+export function parseKeywords(input: unknown): IKeywords {
     if (typeof input === 'string') {
         return parseKeywordsFromString(input);
     } else if (typeof input === 'object') {
         if (Array.isArray(input)) {
-            return input
-                .map(parseKeywords)
-                .reduce((a, b) => new Set([...a, ...b]), new Set());
+            return input.map(parseKeywords).reduce((a, b) => new Set([...a, ...b]), new Set());
         } else if (input === null) {
             return new Set();
         } else {
