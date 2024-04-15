@@ -1,7 +1,6 @@
 import _spaceTrim from 'spacetrim';
 import { PromptbookExecutionError } from '../../../../errors/PromptbookExecutionError';
 import { prettifyMarkdown as _prettifyMarkdown } from '../../../../utils/markdown/prettifyMarkdown';
-import { parseKeywordsFromString } from '../../../../utils/normalization';
 import { capitalize as _capitalize } from '../../../../utils/normalization/capitalize';
 import { decapitalize as _decapitalize } from '../../../../utils/normalization/decapitalize';
 import { nameToUriPart as _nameToUriPart } from '../../../../utils/normalization/nameToUriPart';
@@ -12,6 +11,7 @@ import { normalizeTo_SCREAMING_CASE as _normalizeTo_SCREAMING_CASE } from '../..
 import { normalizeTo_camelCase as _normalizeTo_camelCase } from '../../../../utils/normalization/normalizeTo_camelCase';
 import { normalizeTo_snake_case as _normalizeTo_snake_case } from '../../../../utils/normalization/normalizeTo_snake_case';
 import { normalizeWhitespaces as _normalizeWhitespaces } from '../../../../utils/normalization/normalizeWhitespaces';
+import { parseKeywordsFromString } from '../../../../utils/normalization/parseKeywordsFromString';
 import { removeDiacritics as _removeDiacritics } from '../../../../utils/normalization/removeDiacritics';
 import { extractBlock } from '../../../../utils/postprocessing/extractBlock';
 import { removeEmojis as _removeEmojis } from '../../../../utils/removeEmojis';

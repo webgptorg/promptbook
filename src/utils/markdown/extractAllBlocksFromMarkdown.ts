@@ -1,5 +1,5 @@
 import { string_markdown } from '../../types/typeAliases';
-import { capitalize } from '../normalization';
+import { capitalize } from '../normalization/capitalize';
 
 /**
  * Single code block inside markdown.

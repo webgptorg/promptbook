@@ -13,7 +13,7 @@ import type { ExecutionReportStringOptions } from './ExecutionReportStringOption
 import { ExecutionReportStringOptionsDefaults } from './ExecutionReportStringOptions';
 import { MOMENT_ARG_THRESHOLDS } from './config';
 import { countWorkingDuration } from './countWorkingDuration';
-import { normalizeToKebabCase } from '../../utils/normalization';
+import { normalizeToKebabCase } from '../../_packages/utils.index';
 
 /**
  * Converts execution report from JSON to string format

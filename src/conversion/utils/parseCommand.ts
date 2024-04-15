@@ -19,7 +19,7 @@ import { EXPECTATION_UNITS } from '../../types/PromptbookJson/PromptTemplateJson
 import type { string_markdown_text } from '../../types/typeAliases';
 import { removeMarkdownFormatting } from '../../utils/markdown/removeMarkdownFormatting';
 import { parseNumber } from './parseNumber';
-import { normalizeTo_SCREAMING_CASE } from '../../utils/normalization';
+import { normalizeTo_SCREAMING_CASE } from '../../_packages/utils.index';
 
 /**
  * Parses one line of ul/ol to command
