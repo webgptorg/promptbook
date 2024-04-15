@@ -1,5 +1,5 @@
 import spaceTrim from 'spacetrim';
-import { NotFoundError } from '../../errors/NotFoundError';
+import { PromptbookNotFoundError } from '../../errors/PromptbookNotFoundError';
 import type { Prompt } from '../../types/Prompt';
 import type { PromptbookJson } from '../../types/PromptbookJson/PromptbookJson';
 import type { string_promptbook_url } from '../../types/typeAliases';
@@ -16,7 +16,7 @@ export function createPromptbookSublibrary(
     }
     async function getPromptbookByUrl(url: string_promptbook_url): Promise<PromptbookJson> {
         if (!predicate(url)) {
-            throw new NotFoundError(
+            throw new PromptbookNotFoundError(
                 await spaceTrim(
                     async (block) => `
                         Promptbook with url "${url}" not found or not accessible

@@ -3,7 +3,7 @@ import type { Promisable } from 'type-fest';
 import { PromptbookJson } from '../_packages/types.index';
 import { LOOP_LIMIT } from '../config';
 import { validatePromptbookJson } from '../conversion/validation/validatePromptbookJson';
-import { ExpectError } from '../errors/ExpectError';
+import { ExpectError } from '../errors/_ExpectError';
 import { PromptbookExecutionError } from '../errors/PromptbookExecutionError';
 import { UnexpectedError } from '../errors/UnexpectedError';
 import type { Prompt } from '../types/Prompt';
