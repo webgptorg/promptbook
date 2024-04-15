@@ -205,6 +205,7 @@ npx promptbook prettify promptbook/**/*.ptbk.md
 ## 0.44.0 _(2024-04-12)_
 
 Normalization library `n12` is not used !!!!
+Add splitters !!!
 
 
 

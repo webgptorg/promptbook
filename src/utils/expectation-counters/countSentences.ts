@@ -6,3 +6,5 @@ import type { ExpectationAmount } from '../../types/PromptbookJson/PromptTemplat
 export function countSentences(text: string): ExpectationAmount {
     return text.split(/[.!?]+/).filter((sentence) => sentence.trim() !== '').length;
 }
+
+// TODO: !!! splitIntoSentences
