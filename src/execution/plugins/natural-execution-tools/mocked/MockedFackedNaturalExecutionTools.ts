@@ -16,14 +16,17 @@ export class MockedFackedNaturalExecutionTools implements NaturalExecutionTools 
      */
     public async gptChat(prompt: Prompt): Promise<PromptChatResult & PromptCompletionResult> {
         if (this.options.isVerbose) {
-            console.info('💬 Mocked faked call');
+            console.info('💬 Mocked faked prompt', prompt);
         }
-        return {
-            content: $fakeTextToExpectations(
-                prompt.expectations || {
-                    sentences: { min: 1, max: 1 },
-                },
-            ),
+
+        const content = $fakeTextToExpectations(
+            prompt.expectations || {
+                sentences: { min: 1, max: 1 },
+            },
+        );
+
+        const result = {
+            content,
             model: 'mocked-facked',
             timing: {
                 start: getCurrentIsoDate(),
@@ -38,7 +41,13 @@ export class MockedFackedNaturalExecutionTools implements NaturalExecutionTools 
                 note: 'This is mocked echo',
             },
             // <- [🤹‍♂️]
-        };
+        } satisfies PromptChatResult & PromptCompletionResult;
+
+        if (this.options.isVerbose) {
+            console.info('💬 Mocked faked result', result);
+        }
+
+        return result;
     }
 
     /**
