@@ -51,8 +51,8 @@ In any of these situations, but especially in (3), the Promptbook library can ma
 
 **P**romp**t** **b**oo**k** markdown file (**PTBK** for short, or `.ptbk.md`) is document that describes a series of prompts that are chained together to form somewhat reciepe for transforming natural language input. Inside a PTBK you can use chat prompts, completion prompts, scripting or trigger interaction with user to ask for additional information.
 
--   Multiple PTBKs forms a library <!-- TODO: !!! Write better --> which will become a **part of your application codebase**.
--   Theese pipelines are designed such as they **can be written by non-programmers**.
+-   Multiple promptbooks forms a library which will become a **part of your application codebase**.
+-   Theese promptbooks are designed such as they **can be written by non-programmers**.
 
 <!-- TODO: [🧠] Make some more clear escaping -->
 
@@ -364,11 +364,11 @@ It is a simple key-value object.
 }
 ```
 
-There are three types of template parameters, depending on how they are used in the promptbook pipeline:
+There are three types of template parameters, depending on how they are used in the promptbook:
 
--   **INPUT PARAMETER**s are required to execute the pipeline.
--   **Intermediate parameters** are used internally in the pipeline.
--   **OUTPUT PARAMETER**s are explicitelly marked and they are returned as the result of the pipeline execution.
+-   **INPUT PARAMETER**s are required to execute the promptbook.
+-   **Intermediate parameters** are used internally in the promptbook.
+-   **OUTPUT PARAMETER**s are explicitelly marked and they are returned as the result of the promptbook execution.
 
 _Note: Parameter can be both intermedite and output at the same time._
 
@@ -405,7 +405,7 @@ For example:
 
 ### Execution Tools
 
-`ExecutionTools` is an interface which contains all the tools needed to execute prompts (template pipelines).
+`ExecutionTools` is an interface which contains all the tools needed to execute prompts.
 It contais 3 subtools:
 
 -   `NaturalExecutionTools`
