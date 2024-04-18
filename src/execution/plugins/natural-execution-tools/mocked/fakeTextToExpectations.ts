@@ -1,4 +1,5 @@
 import { LoremIpsum } from 'lorem-ipsum';
+import spaceTrim from 'spacetrim';
 import { LOOP_LIMIT } from '../../../../config';
 import type { Expectations } from '../../../../types/PromptbookJson/PromptTemplateJson';
 import { isPassingExpectations } from '../../../utils/checkExpectations';
@@ -25,11 +26,20 @@ export function $fakeTextToExpectations(expectations: Expectations): string {
 
         text += loremText.substring(0, 1);
         loremText = loremText.substring(1);
-
-        console.log(text);
     }
 
-    throw new Error('Can not generate fake text to met the expectations; Loop limit reached');
+    throw new Error(
+        spaceTrim(
+            (block) => `
+                Can not generate fake text to met the expectations
+
+                Loop limit reached
+                The expectations:
+                ${block(JSON.stringify(expectations, null, 4))}
+
+            `,
+        ),
+    );
 }
 
 /**
