@@ -74,7 +74,7 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
         delete packageJson.scripts;
         delete packageJson.devDependencies;
         packageJson.name = `@promptbook/${packageName}`;
-        if (!['core', 'utils'].includes(packageName!)) {
+        if (packageName !== 'core') {
             packageJson.peerDependencies = {
                 '@promptbook/core': packageJson.version,
             };
