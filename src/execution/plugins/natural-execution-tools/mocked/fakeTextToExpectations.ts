@@ -1,6 +1,6 @@
 import { LoremIpsum } from 'lorem-ipsum';
 import spaceTrim from 'spacetrim';
-import { LOOP_LIMIT } from '../../../../config';
+import { CHARACTER_LOOP_LIMIT } from '../../../../config';
 import type { Expectations } from '../../../../types/PromptbookJson/PromptTemplateJson';
 import { isPassingExpectations } from '../../../utils/checkExpectations';
 
@@ -18,7 +18,7 @@ export function $fakeTextToExpectations(expectations: Expectations): string {
 
     let text = '';
 
-    for (let loopLimit = LOOP_LIMIT; loopLimit-- > 0; ) {
+    for (let loopLimit = CHARACTER_LOOP_LIMIT; loopLimit-- > 0; ) {
         if (isPassingExpectations(expectations, text)) {
             return text;
         }
