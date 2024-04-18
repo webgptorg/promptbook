@@ -34,7 +34,7 @@
                 "name1",
                 "name2"
             ],
-            "expectAmount": {
+            "expectations": {
                 "words": {
                     "min": 2
                 }

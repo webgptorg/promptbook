@@ -23,7 +23,7 @@
                 "yourName"
             ],
             "executionType": "PROMPT_TEMPLATE",
-            "expectAmount": {
+            "expectations": {
                 "characters": {
                     "max": 30,
                     "min": 2

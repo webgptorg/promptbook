@@ -70,7 +70,7 @@
             "postprocessing": [
                 "spaceTrim"
             ],
-            "expectAmount": {
+            "expectations": {
                 "words": {
                     "max": 3
                 },
@@ -99,7 +99,7 @@
             "postprocessing": [
                 "spaceTrim"
             ],
-            "expectAmount": {
+            "expectations": {
                 "lines": {
                     "max": 1
                 }
@@ -134,7 +134,7 @@
             "postprocessing": [
                 "spaceTrim"
             ],
-            "expectAmount": {
+            "expectations": {
                 "words": {
                     "min": 10
                 },

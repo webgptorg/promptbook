@@ -57,7 +57,7 @@
             "postprocessing": [
                 "unwrapResult"
             ],
-            "expectAmount": {
+            "expectations": {
                 "words": {
                     "min": 1,
                     "max": 1
@@ -95,7 +95,7 @@
                 "wordSynonym"
             ],
             "executionType": "PROMPT_TEMPLATE",
-            "expectAmount": {
+            "expectations": {
                 "words": {
                     "max": 20
                 },
@@ -120,7 +120,7 @@
                 "word"
             ],
             "executionType": "PROMPT_TEMPLATE",
-            "expectAmount": {
+            "expectations": {
                 "words": {
                     "max": 20
                 },
@@ -145,7 +145,7 @@
                 "sentenceWithOriginalWordRemoved"
             ],
             "executionType": "PROMPT_TEMPLATE",
-            "expectAmount": {
+            "expectations": {
                 "sentences": {
                     "min": 1,
                     "max": 5
