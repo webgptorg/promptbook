@@ -10,7 +10,10 @@ import { isPassingExpectations } from '../../../utils/checkExpectations';
  * @private internal util for MockedFackedNaturalExecutionTools
  */
 export function $fakeTextToExpectations(expectations: Expectations): string {
-    const lorem = new LoremIpsum({});
+    const lorem = new LoremIpsum({
+        wordsPerSentence: { min: 5, max: 15 },
+        sentencesPerParagraph: { min: 5, max: 15 },
+    });
     let loremText = '';
 
     let text = '';
@@ -21,7 +24,7 @@ export function $fakeTextToExpectations(expectations: Expectations): string {
         }
 
         if (loremText === '') {
-            loremText = lorem.generateParagraphs(2);
+            loremText = lorem.generateParagraphs(1) + '\n\n';
         }
 
         text += loremText.substring(0, 1);
@@ -36,6 +39,9 @@ export function $fakeTextToExpectations(expectations: Expectations): string {
                 Loop limit reached
                 The expectations:
                 ${block(JSON.stringify(expectations, null, 4))}
+
+                The draft text:
+                ${block(text)}
 
             `,
         ),

@@ -36,12 +36,43 @@ describe('how $fakeTextToExpectations works', () => {
         }).not.toThrow();
     });
 
+    it('should fake the text with lines expectation', () => {
+        expect(() => {
+            const expectations = { lines: { min: 2 } } satisfies Expectations;
+            const text = $fakeTextToExpectations(expectations);
+            checkExpectations(expectations, text);
+        }).not.toThrow();
+    });
+
+    it('should fake the text with pages expectation', () => {
+        expect(() => {
+            const expectations = { pages: { min: 2 } } satisfies Expectations;
+            const text = $fakeTextToExpectations(expectations);
+            checkExpectations(expectations, text);
+        }).not.toThrow();
+    });
+
     it('should fake the text with both characters, words and sentences expectation', () => {
         expect(() => {
             const expectations = {
                 characters: { min: 10, max: 500 },
                 words: { min: 1, max: 5 },
                 sentences: { min: 1, max: 5 },
+            } satisfies Expectations;
+            const text = $fakeTextToExpectations(expectations);
+            checkExpectations(expectations, text);
+        }).not.toThrow();
+    });
+
+    it('should fake the text with both words and lines expectation', () => {
+        expect(() => {
+            const expectations = {
+                words: {
+                    min: 10,
+                },
+                lines: {
+                    min: 3,
+                },
             } satisfies Expectations;
             const text = $fakeTextToExpectations(expectations);
             checkExpectations(expectations, text);
