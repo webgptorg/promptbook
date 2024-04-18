@@ -1,5 +1,6 @@
 import spaceTrim from 'spacetrim';
 import { Writable, WritableDeep } from 'type-fest';
+import { normalizeTo_PascalCase } from '../_packages/utils.index';
 import { PromptbookSyntaxError } from '../errors/PromptbookSyntaxError';
 import { ParameterCommand } from '../types/Command';
 import { ExecutionType } from '../types/ExecutionTypes';
@@ -18,7 +19,6 @@ import { removeContentComments } from '../utils/markdown/removeContentComments';
 import { PROMPTBOOK_VERSION } from '../version';
 import { extractVariables } from './utils/extractVariables';
 import { parseCommand } from './utils/parseCommand';
-import { normalizeTo_PascalCase } from '../_packages/utils.index';
 
 /**
  * Parse promptbook from string format to JSON format
@@ -161,7 +161,7 @@ export function promptbookStringToJson(promptbookString: PromptbookString): Prom
         let executionType: ExecutionType = 'PROMPT_TEMPLATE';
         let jokers: PromptTemplateJson['jokers'] = [];
         let postprocessing: PromptTemplateJson['postprocessing'] = [];
-        let expectAmount: PromptTemplateJson['expectAmount'] = {};
+        let expectAmount: PromptTemplateJson['expectations'] = {};
         let expectFormat: PromptTemplateJson['expectFormat'] | undefined = undefined;
 
         let isExecutionTypeChanged = false;
@@ -330,7 +330,7 @@ export function promptbookStringToJson(promptbookString: PromptbookString): Prom
             executionType,
             jokers,
             postprocessing,
-            expectAmount,
+            expectations: expectAmount,
             expectFormat,
             modelRequirements: templateModelRequirements as ModelRequirements,
             contentLanguage: executionType === 'SCRIPT' ? (language as ScriptLanguage) : undefined,

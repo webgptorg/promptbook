@@ -101,7 +101,7 @@ export function validatePromptbookJson(promptbook: PromptbookJson): void {
         if (template.jokers && template.jokers.length > 0) {
             if (
                 !template.expectFormat &&
-                !template.expectAmount /* <- TODO: Require at least 1 -> min <- expectation to use jokers */
+                !template.expectations /* <- TODO: Require at least 1 -> min <- expectation to use jokers */
             ) {
                 throw new PromptbookLogicError(
                     `Joker parameters are used for {${template.resultingParameterName}} but no expectations are defined`,
@@ -117,8 +117,8 @@ export function validatePromptbookJson(promptbook: PromptbookJson): void {
             }
         }
 
-        if (template.expectAmount) {
-            for (const [unit, { min, max }] of Object.entries(template.expectAmount)) {
+        if (template.expectations) {
+            for (const [unit, { min, max }] of Object.entries(template.expectations)) {
                 if (min !== undefined && max !== undefined && min > max) {
                     throw new PromptbookLogicError(
                         `Min expectation (=${min}) of ${unit} is higher than max expectation (=${max})`,

@@ -3,9 +3,9 @@ import type { Promisable } from 'type-fest';
 import { PromptbookJson } from '../_packages/types.index';
 import { LOOP_LIMIT } from '../config';
 import { validatePromptbookJson } from '../conversion/validation/validatePromptbookJson';
-import { ExpectError } from '../errors/_ExpectError';
 import { PromptbookExecutionError } from '../errors/PromptbookExecutionError';
 import { UnexpectedError } from '../errors/UnexpectedError';
+import { ExpectError } from '../errors/_ExpectError';
 import type { Prompt } from '../types/Prompt';
 import type { ExpectationUnit, PromptTemplateJson } from '../types/PromptbookJson/PromptTemplateJson';
 import type { TaskProgress } from '../types/TaskProgress';
@@ -140,6 +140,7 @@ export function createPromptbookExecutor(options: CreatePromptbookExecutorOption
                                     parameters: parametersToPass,
                                     content: replaceParameters(currentTemplate.content, parametersToPass) /* <- [2] */,
                                     modelRequirements: currentTemplate.modelRequirements!,
+                                    expectations: currentTemplate.expectations,
                                 };
 
                                 variant: switch (currentTemplate.modelRequirements!.modelVariant) {
@@ -287,8 +288,8 @@ export function createPromptbookExecutor(options: CreatePromptbookExecutorOption
                         }
                     }
 
-                    if (currentTemplate.expectAmount) {
-                        for (const [unit, { max, min }] of Object.entries(currentTemplate.expectAmount)) {
+                    if (currentTemplate.expectations) {
+                        for (const [unit, { max, min }] of Object.entries(currentTemplate.expectations)) {
                             const amount = CountUtils[unit.toUpperCase() as ExpectationUnit](resultString || '');
 
                             if (min && amount < min) {
@@ -321,6 +322,7 @@ export function createPromptbookExecutor(options: CreatePromptbookExecutorOption
                                 title: currentTemplate.title /* <- Note: If title in promptbook contains emojis, pass it innto report */,
                                 content: prompt.content,
                                 modelRequirements: prompt.modelRequirements,
+                                expectations: prompt.expectations,
                                 // <- Note: Do want to pass ONLY wanted information to the report
                             },
                             result: result || undefined,

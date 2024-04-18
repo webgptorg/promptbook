@@ -5,6 +5,7 @@ import type {
     string_title,
 } from '.././types/typeAliases';
 import type { ModelRequirements } from './ModelRequirements';
+import type { Expectations } from './PromptbookJson/PromptTemplateJson';
 
 /**
  * Prompt in a text along with model requirements, but without any execution or templating logic.
@@ -31,6 +32,14 @@ export type Prompt = {
      * Requirements for the model
      */
     readonly modelRequirements: ModelRequirements;
+
+    /**
+     * Expectations for the answer
+     *
+     * For example 5 words, 3 sentences, 2 paragraphs, ...
+     * If not set, nothing is expected from the answer
+     */
+    readonly expectations?: Expectations;
 
     /**
      * Unique identifier of the promptbook with specific template name as hash

@@ -2,6 +2,7 @@ import { promptbookStringToJson } from '../conversion/promptbookStringToJson';
 import { validatePromptbookJson } from '../conversion/validation/validatePromptbookJson';
 import { createPromptbookExecutor } from '../execution/createPromptbookExecutor';
 import { MockedEchoNaturalExecutionTools } from '../execution/plugins/natural-execution-tools/mocked/MockedEchoNaturalExecutionTools';
+import { MockedFackedNaturalExecutionTools } from '../execution/plugins/natural-execution-tools/mocked/MockedFackedNaturalExecutionTools';
 import { CallbackInterfaceTools } from '../execution/plugins/user-interface-execution-tools/callback/CallbackInterfaceTools';
 import { CallbackInterfaceToolsOptions } from '../execution/plugins/user-interface-execution-tools/callback/CallbackInterfaceToolsOptions';
 import { SimplePromptInterfaceTools } from '../execution/plugins/user-interface-execution-tools/simple-prompt/SimplePromptInterfaceTools';
@@ -32,7 +33,7 @@ export { SimplePromptInterfaceTools };
 export { promptbookStringToJson, validatePromptbookJson };
 
 // @promptbook/mock
-export { MockedEchoNaturalExecutionTools };
+export { MockedEchoNaturalExecutionTools, MockedFackedNaturalExecutionTools };
 
 // @promptbook/executor
 export { createPromptbookExecutor };

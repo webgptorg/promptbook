@@ -209,6 +209,10 @@ npx promptbook prettify promptbook/**/*.ptbk.md
 -   Better error names
 -   Better error used
 -   Make `ExpectError` private
+-   `@promptbook/core` is not be peer dependency of `@promptbook/utils`
+-   Rename `expectAmount` in json to `expectations`
+-   Expectations are passed into prompt object and used in natural tools
+-   Add `MockedFackedNaturalExecutionTools`
 
 ---
 

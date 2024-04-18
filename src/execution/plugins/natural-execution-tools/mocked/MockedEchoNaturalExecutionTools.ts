@@ -75,5 +75,5 @@ export class MockedEchoNaturalExecutionTools implements NaturalExecutionTools {
 }
 
 /**
- * TODO: Allow in spaceTrim: nesting with > ${block(prompt.request)}
+ * TODO: Allow in spaceTrim: nesting with > ${block(prompt.request)}, same as replace params
  */
