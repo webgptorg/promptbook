@@ -213,6 +213,7 @@ npx promptbook prettify promptbook/**/*.ptbk.md
 -   Rename `expectAmount` in json to `expectations`
 -   Expectations are passed into prompt object and used in natural tools
 -   Add `MockedFackedNaturalExecutionTools`
+-   Add utils `checkExpectations` and `isPassingExpectations`
 
 ---
 
