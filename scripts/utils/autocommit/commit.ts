@@ -1,8 +1,8 @@
+import colors from 'colors';
 import { mkdir, unlink, writeFile } from 'fs/promises';
 import { dirname, join } from 'path';
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import { execCommand } from '../execCommand/execCommand';
-import colors from 'colors';
 import { isWorkingTreeClean } from './isWorkingTreeClean';
 
 export async function commit(addPath: string, message: string): Promise<void> {

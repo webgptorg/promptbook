@@ -1,4 +1,4 @@
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 
 /**
  * Function trimEndOfCodeBlock will remove ending code block from the string if it is present.

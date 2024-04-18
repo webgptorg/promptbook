@@ -1,4 +1,4 @@
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import { Writable, WritableDeep } from 'type-fest';
 import { normalizeTo_PascalCase } from '../_packages/utils.index';
 import { PromptbookSyntaxError } from '../errors/PromptbookSyntaxError';

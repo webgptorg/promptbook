@@ -1,7 +1,7 @@
 import { readFile } from 'fs';
 import { join } from 'path';
 import prettier from 'prettier';
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import { promisify } from 'util';
 
 /**

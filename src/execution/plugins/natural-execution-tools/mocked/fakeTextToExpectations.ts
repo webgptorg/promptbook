@@ -1,5 +1,5 @@
 import { LoremIpsum } from 'lorem-ipsum';
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import { CHARACTER_LOOP_LIMIT } from '../../../../config';
 import type { Expectations } from '../../../../types/PromptbookJson/PromptTemplateJson';
 import { isPassingExpectations } from '../../../utils/checkExpectations';

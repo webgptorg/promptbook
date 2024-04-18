@@ -1,4 +1,4 @@
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import { PromptbookExecutionError } from '../errors/PromptbookExecutionError';
 import type { PromptbookExecutor } from './PromptbookExecutor';
 

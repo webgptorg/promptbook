@@ -2,7 +2,7 @@ import colors from 'colors';
 import type { IDestroyable } from 'destroyable';
 import http from 'http';
 import { Server, Socket } from 'socket.io';
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import { PromptbookExecutionError } from '../../../../errors/PromptbookExecutionError';
 import { PROMPTBOOK_VERSION } from '../../../../version';
 import { PromptResult } from '../../../PromptResult';

@@ -2,7 +2,7 @@ import colors from 'colors';
 import commander from 'commander';
 import { readFile, writeFile } from 'fs/promises';
 import glob from 'glob-promise';
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import { forTime } from 'waitasecond';
 import { PromptbookString } from '../../types/PromptbookString';
 import { isRunningInNode } from '../../utils/isRunningInWhatever';

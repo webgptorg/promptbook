@@ -6,7 +6,7 @@
  *
  */
 
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 
 export function trimCodeBlock(value: string): string {
     value = spaceTrim(value);

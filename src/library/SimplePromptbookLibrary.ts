@@ -1,4 +1,4 @@
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import { validatePromptbookJson } from '../_packages/core.index';
 import { PromptbookNotFoundError } from '../errors/PromptbookNotFoundError';
 import { PromptbookReferenceError } from '../errors/PromptbookReferenceError';

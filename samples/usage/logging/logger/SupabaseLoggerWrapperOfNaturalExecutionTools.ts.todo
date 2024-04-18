@@ -5,7 +5,7 @@ import type {
     PromptCompletionResult,
     PromptResult,
 } from '@promptbook/types';
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import { isRunningInNode } from '../../../utils/isRunningInWhatever';
 import { getSupabaseForServer } from '../../../utils/supabase/getSupabaseForServer';
 import { SupabaseLoggerWrapperOfNaturalExecutionToolsOptions } from './SupabaseLoggerWrapperOfNaturalExecutionToolsOptions';

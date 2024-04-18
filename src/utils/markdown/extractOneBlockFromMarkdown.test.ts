@@ -1,5 +1,5 @@
 import { describe, expect, it } from '@jest/globals';
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import { extractOneBlockFromMarkdown } from './extractOneBlockFromMarkdown';
 
 describe('how extractOneBlockFromMarkdown works', () => {

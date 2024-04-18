@@ -1,6 +1,6 @@
 import { spawn } from 'child_process';
 import colors from 'colors';
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import { forTime } from 'waitasecond';
 import { IExecCommandOptions } from './IExecCommandOptions';
 import { execCommandNormalizeOptions } from './execCommandNormalizeOptions';

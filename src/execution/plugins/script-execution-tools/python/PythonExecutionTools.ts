@@ -1,7 +1,7 @@
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
+import { PromptbookExecutionError } from '../../../../errors/PromptbookExecutionError';
 import { CommonExecutionToolsOptions } from '../../../CommonExecutionToolsOptions';
 import { ScriptExecutionTools, ScriptExecutionToolsExecuteOptions } from '../../../ScriptExecutionTools';
-import { PromptbookExecutionError } from '../../../../errors/PromptbookExecutionError';
 
 /**
  * ScriptExecutionTools for Python
@@ -18,7 +18,9 @@ export class PythonExecutionTools implements ScriptExecutionTools {
         const { scriptLanguage, script } = options;
 
         if (scriptLanguage !== 'python') {
-            throw new PromptbookExecutionError(`Script language ${scriptLanguage} not supported to be executed by PythonExecutionTools`);
+            throw new PromptbookExecutionError(
+                `Script language ${scriptLanguage} not supported to be executed by PythonExecutionTools`,
+            );
         }
 
         if (this.options.isVerbose) {

@@ -1,4 +1,4 @@
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import { LOOP_LIMIT } from '../../config';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import { MarkdownStructure } from './MarkdownStructure';

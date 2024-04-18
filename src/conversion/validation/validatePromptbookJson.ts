@@ -1,4 +1,4 @@
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import { LOOP_LIMIT } from '../../config';
 import { PromptbookLogicError } from '../../errors/PromptbookLogicError';
 import { UnexpectedError } from '../../errors/UnexpectedError';

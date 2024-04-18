@@ -1,4 +1,4 @@
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import { PromptbookSyntaxError } from '../../errors/PromptbookSyntaxError';
 import { string_javascript, string_javascript_name } from '../../types/typeAliases';
 /**

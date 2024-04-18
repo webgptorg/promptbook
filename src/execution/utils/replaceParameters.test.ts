@@ -1,5 +1,5 @@
 import { describe, expect, it } from '@jest/globals';
-import spaceTrim from 'spacetrim';
+import { spaceTrim } from 'spacetrim';
 import { just } from '../../utils/just';
 import { replaceParameters } from './replaceParameters';
 
