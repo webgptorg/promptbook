@@ -7,16 +7,16 @@ import { PromptbookExecutionError } from '../errors/PromptbookExecutionError';
 import { UnexpectedError } from '../errors/UnexpectedError';
 import { ExpectError } from '../errors/_ExpectError';
 import type { Prompt } from '../types/Prompt';
-import type { ExpectationUnit, PromptTemplateJson } from '../types/PromptbookJson/PromptTemplateJson';
+import type { PromptTemplateJson } from '../types/PromptbookJson/PromptTemplateJson';
 import type { TaskProgress } from '../types/TaskProgress';
 import type { ExecutionReportJson } from '../types/execution-report/ExecutionReportJson';
 import type { string_name } from '../types/typeAliases';
-import { CountUtils } from '../utils/expectation-counters';
 import { isValidJsonString } from '../utils/isValidJsonString';
 import { PROMPTBOOK_VERSION } from '../version';
 import { ExecutionTools } from './ExecutionTools';
 import type { PromptChatResult, PromptCompletionResult, PromptResult } from './PromptResult';
 import { PromptbookExecutor } from './PromptbookExecutor';
+import { checkExpectations } from './utils/checkExpectations';
 import { replaceParameters } from './utils/replaceParameters';
 
 type CreatePromptbookExecutorSettings = {
@@ -278,6 +278,7 @@ export function createPromptbookExecutor(options: CreatePromptbookExecutorOption
                         }
                     }
 
+                    // TODO: [💝] Unite object for expecting amount and format
                     if (currentTemplate.expectFormat) {
                         if (currentTemplate.expectFormat === 'JSON') {
                             if (!isValidJsonString(resultString || '')) {
@@ -288,18 +289,9 @@ export function createPromptbookExecutor(options: CreatePromptbookExecutorOption
                         }
                     }
 
+                    // TODO: [💝] Unite object for expecting amount and format
                     if (currentTemplate.expectations) {
-                        for (const [unit, { max, min }] of Object.entries(currentTemplate.expectations)) {
-                            const amount = CountUtils[unit.toUpperCase() as ExpectationUnit](resultString || '');
-
-                            if (min && amount < min) {
-                                throw new ExpectError(`Expected at least ${min} ${unit} but got ${amount}`);
-                            } /* not else */
-
-                            if (max && amount > max) {
-                                throw new ExpectError(`Expected at most ${max} ${unit} but got ${amount}`);
-                            }
-                        }
+                        checkExpectations(currentTemplate.expectations, resultString || '');
                     }
 
                     break attempts;

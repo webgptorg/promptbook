@@ -1,6 +1,7 @@
 import { prettifyPromptbookString } from '../conversion/prettify/prettifyPromptbookString';
 import { parseNumber } from '../conversion/utils/parseNumber';
 import { assertsExecutionSuccessful } from '../execution/assertsExecutionSuccessful';
+import { checkExpectations, isPassingExpectations } from '../execution/utils/checkExpectations';
 import { replaceParameters } from '../execution/utils/replaceParameters';
 import { executionReportJsonToString } from '../types/execution-report/executionReportJsonToString';
 import {
@@ -47,6 +48,7 @@ import { unwrapResult } from '../utils/unwrapResult';
 // TODO: [🌻] For all, decide if theese are internal or external
 export {
     assertsExecutionSuccessful,
+    checkExpectations,
     executionReportJsonToString,
     ExecutionReportStringOptions,
     ExecutionReportStringOptionsDefaults,
@@ -54,6 +56,7 @@ export {
     extractAllListItemsFromMarkdown,
     extractBlock, // <- [🌻]
     extractOneBlockFromMarkdown,
+    isPassingExpectations,
     isValidJsonString,
     parseNumber, // <- [🌻]
     prettifyPromptbookString,
