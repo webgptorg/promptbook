@@ -15,7 +15,6 @@ export function $fakeTextToExpectations(expectations: Expectations): string {
         sentencesPerParagraph: { min: 5, max: 15 },
     });
     let loremText = '';
-
     let text = '';
 
     for (let loopLimit = CHARACTER_LOOP_LIMIT; loopLimit-- > 0; ) {

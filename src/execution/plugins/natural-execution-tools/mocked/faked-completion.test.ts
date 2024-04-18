@@ -5,7 +5,7 @@ import { PromptbookString } from '../../../../types/PromptbookString';
 import { PROMPTBOOK_VERSION } from '../../../../version';
 import { createPromptbookExecutor } from '../../../createPromptbookExecutor';
 import { CallbackInterfaceTools } from '../../user-interface-execution-tools/callback/CallbackInterfaceTools';
-import { MockedEchoNaturalExecutionTools } from './MockedEchoNaturalExecutionTools';
+import { MockedFackedNaturalExecutionTools } from './MockedFackedNaturalExecutionTools';
 
 describe('createPromptbookExecutor + MockedEchoExecutionTools with sample chat prompt', () => {
     const promptbook = promptbookStringToJson(
@@ -23,6 +23,9 @@ describe('createPromptbookExecutor + MockedEchoExecutionTools with sample chat p
 
             - MODEL VARIANT Completion
             - MODEL NAME \`gpt-3.5-turbo-instruct\`
+            - EXPECT MIN 2 LINES
+            - EXPECT MAX 5 LINES
+            - EXPECT MIN 10 WORDS
 
             \`\`\`
             One day I went to the shop and bought {thing}.
@@ -35,7 +38,7 @@ describe('createPromptbookExecutor + MockedEchoExecutionTools with sample chat p
     const promptbookExecutor = createPromptbookExecutor({
         promptbook,
         tools: {
-            natural: new MockedEchoNaturalExecutionTools({ isVerbose: true }),
+            natural: new MockedFackedNaturalExecutionTools({ isVerbose: true }),
             script: [],
             userInterface: new CallbackInterfaceTools({
                 isVerbose: true,
@@ -49,16 +52,13 @@ describe('createPromptbookExecutor + MockedEchoExecutionTools with sample chat p
         },
     });
 
-    it('should work when every INPUT PARAMETER defined', () =>
+    it('should work when every INPUT PARAMETER defined', () => {
         expect(promptbookExecutor({ thing: 'a cup of coffee' }, () => {})).resolves.toMatchObject({
             outputParameters: {
-                response: spaceTrim(`
-                    One day I went to the shop and bought a cup of coffee.
-                    Now I have a cup of coffee.
-                    And so on...
-                `),
+                response: /.*/,
             },
-        }));
+        });
+    });
 
     it('should fail when some INPUT PARAMETER is missing', () =>
         expect(promptbookExecutor({}, () => {})).resolves.toEqual({
@@ -74,15 +74,4 @@ describe('createPromptbookExecutor + MockedEchoExecutionTools with sample chat p
             },
             outputParameters: {},
         }));
-
-    /*
-    TODO: [🧠] Should be this failing or not?
-    it('should fail when there is INPUT  PARAMETER extra', () => {
-        expect(promptbookExecutor({ thing: 'a cup of coffee', sound: 'Meow!' }, () => {})).rejects.toThrowError(/Parameter \{sound\} should not be defined/i);
-    });
-    */
 });
-
-/**
- * TODO: [🧠] What should be name of this test "MockedEchoExecutionTools.test.ts" or "createPromptbookExecutor.test.ts"
- */

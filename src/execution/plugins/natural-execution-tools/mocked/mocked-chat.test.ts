@@ -48,7 +48,7 @@ describe('createPromptbookExecutor + MockedEchoExecutionTools with sample chat p
         },
     });
 
-    it('should work when every INPUT  PARAMETER defined', () => {
+    it('should work when every INPUT PARAMETER defined', () =>
         expect(promptbookExecutor({ thing: 'a cup of coffee' }, () => {})).resolves.toMatchObject({
             isSuccessful: true,
             errors: [],
@@ -65,10 +65,9 @@ describe('createPromptbookExecutor + MockedEchoExecutionTools with sample chat p
                     Now I have a cup of coffee.
                 `),
             },
-        });
-    });
+        }));
 
-    it('should fail when some INPUT  PARAMETER is missing', () => {
+    it('should fail when some INPUT PARAMETER is missing', () =>
         expect(promptbookExecutor({}, () => {})).resolves.toEqual({
             isSuccessful: false,
             errors: [new Error(`Parameter {thing} is not defined`)],
@@ -81,8 +80,7 @@ describe('createPromptbookExecutor + MockedEchoExecutionTools with sample chat p
                 promptbookUsedVersion: PROMPTBOOK_VERSION,
             },
             outputParameters: {},
-        });
-    });
+        }));
 
     /*
     TODO: [🧠] Should be this failing or not?
