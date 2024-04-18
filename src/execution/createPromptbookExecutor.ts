@@ -329,7 +329,11 @@ export function createPromptbookExecutor(options: CreatePromptbookExecutorOption
                             (block) => `
                               Natural execution failed ${maxExecutionAttempts}x
 
+                              Last error ${expectError?.name || ''}:
                               ${block(expectError?.message || '')}
+
+                              Last result:
+                              ${resultString}
                           `,
                         ),
                     );
