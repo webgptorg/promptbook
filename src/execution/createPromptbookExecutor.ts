@@ -12,6 +12,7 @@ import type { TaskProgress } from '../types/TaskProgress';
 import type { ExecutionReportJson } from '../types/execution-report/ExecutionReportJson';
 import type { string_name } from '../types/typeAliases';
 import { isValidJsonString } from '../utils/isValidJsonString';
+import { just } from '../utils/just';
 import { PROMPTBOOK_VERSION } from '../version';
 import { ExecutionTools } from './ExecutionTools';
 import type { PromptChatResult, PromptCompletionResult, PromptResult } from './PromptResult';
@@ -141,6 +142,51 @@ export function createPromptbookExecutor(options: CreatePromptbookExecutorOption
                                     content: replaceParameters(currentTemplate.content, parametersToPass) /* <- [2] */,
                                     modelRequirements: currentTemplate.modelRequirements!,
                                     expectations: currentTemplate.expectations,
+                                    postprocessing: (currentTemplate.postprocessing || []).map(
+                                        (functionName) => async (result: string) => {
+                                            // TODO: DRY [☯]
+                                            just(result);
+                                            const errors: Array<Error> = [];
+                                            for (const scriptTools of tools.script) {
+                                                try {
+                                                    return await scriptTools.execute({
+                                                        scriptLanguage: `javascript` /* <- TODO: Try it in each languages; In future allow postprocessing with arbitrary combination of languages to combine */,
+                                                        script: `${functionName}(result)`,
+                                                        parameters: {
+                                                            ...parametersToPass,
+                                                            resultString: resultString || '',
+                                                        },
+                                                    });
+                                                } catch (error) {
+                                                    if (!(error instanceof Error)) {
+                                                        throw error;
+                                                    }
+
+                                                    errors.push(error);
+                                                }
+                                            }
+
+                                            if (errors.length === 0) {
+                                                throw new PromptbookExecutionError(
+                                                    'Postprocessing in NaturalExecutionTools failed because no ScriptExecutionTools were provided',
+                                                );
+                                            } else if (errors.length === 1) {
+                                                throw errors[0];
+                                            } else {
+                                                throw new PromptbookExecutionError(
+                                                    spaceTrim(
+                                                        (block) => `
+                                                        Postprocessing in NaturalExecutionTools failed ${errors.length}x
+
+                                                        ${block(
+                                                            errors.map((error) => '- ' + error.message).join('\n\n'),
+                                                        )}
+                                                      `,
+                                                    ),
+                                                );
+                                            }
+                                        },
+                                    ),
                                 };
 
                                 variant: switch (currentTemplate.modelRequirements!.modelVariant) {
@@ -179,6 +225,7 @@ export function createPromptbookExecutor(options: CreatePromptbookExecutorOption
 
                                 scriptExecutionErrors = [];
 
+                                // TODO: DRY [☯]
                                 scripts: for (const scriptTools of tools.script) {
                                     try {
                                         resultString = await scriptTools.execute({
@@ -329,11 +376,13 @@ export function createPromptbookExecutor(options: CreatePromptbookExecutorOption
                             (block) => `
                               Natural execution failed ${maxExecutionAttempts}x
 
+                              ---
                               Last error ${expectError?.name || ''}:
                               ${block(expectError?.message || '')}
 
                               Last result:
                               ${resultString}
+                              ---
                           `,
                         ),
                     );
