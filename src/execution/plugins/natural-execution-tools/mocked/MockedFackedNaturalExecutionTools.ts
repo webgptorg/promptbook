@@ -19,10 +19,11 @@ export class MockedFackedNaturalExecutionTools implements NaturalExecutionTools 
             console.info('💬 Mocked faked prompt', prompt);
         }
 
-        const content = $fakeTextToExpectations(
+        const content = await $fakeTextToExpectations(
             prompt.expectations || {
                 sentences: { min: 1, max: 1 },
             },
+            prompt.postprocessing,
         );
 
         const result = {

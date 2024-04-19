@@ -150,6 +150,7 @@ interface PromptTemplateJsonCommon {
      * Expect this format of the answer
      *
      * Note: Expectations are performed after all postprocessing steps
+     * @deprecated [💝]
      */
     readonly expectFormat?: ExpectFormatCommand['format'];
 

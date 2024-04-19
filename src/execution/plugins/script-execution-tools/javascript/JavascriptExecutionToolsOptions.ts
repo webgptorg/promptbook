@@ -16,14 +16,17 @@ export type JavascriptExecutionToolsOptions = CommonExecutionToolsOptions & {
      * Note: There are also some built-in functions available:
      *      @see ./JavascriptEvalExecutionTools.ts
      */
-    functions?: Record<
-        string_javascript_name,
-        | ((value: string) => Promisable<string>)
-        // Note: [0]
-        // eslint-disable-next-line @typescript-eslint/ban-types
-        | Function
-    >;
+    functions?: Record<string_javascript_name, PostprocessingFunction>;
 };
+
+/**
+ * Function that can be used to postprocess the output of the LLM
+ */
+export type PostprocessingFunction =
+    | ((value: string) => Promisable<string>)
+    // Note: [0]
+    // eslint-disable-next-line @typescript-eslint/ban-types
+    | Function;
 
 /**
  * TODO: [🧠][💙] Distinct between options passed into ExecutionTools and to ExecutionTools.execute
