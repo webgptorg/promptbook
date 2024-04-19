@@ -197,7 +197,7 @@ export function createPromptbookExecutor(options: CreatePromptbookExecutorOption
                                     }
                                 }
 
-                                if (resultString) {
+                                if (resultString !== null) {
                                     break executionType;
                                 }
 
