@@ -12,7 +12,6 @@ import type { TaskProgress } from '../types/TaskProgress';
 import type { ExecutionReportJson } from '../types/execution-report/ExecutionReportJson';
 import type { string_name } from '../types/typeAliases';
 import { isValidJsonString } from '../utils/isValidJsonString';
-import { just } from '../utils/just';
 import { PROMPTBOOK_VERSION } from '../version';
 import { ExecutionTools } from './ExecutionTools';
 import type { PromptChatResult, PromptCompletionResult, PromptResult } from './PromptResult';
@@ -145,7 +144,6 @@ export function createPromptbookExecutor(options: CreatePromptbookExecutorOption
                                     postprocessing: (currentTemplate.postprocessing || []).map(
                                         (functionName) => async (result: string) => {
                                             // TODO: DRY [☯]
-                                            just(result);
                                             const errors: Array<Error> = [];
                                             for (const scriptTools of tools.script) {
                                                 try {
@@ -153,8 +151,8 @@ export function createPromptbookExecutor(options: CreatePromptbookExecutorOption
                                                         scriptLanguage: `javascript` /* <- TODO: Try it in each languages; In future allow postprocessing with arbitrary combination of languages to combine */,
                                                         script: `${functionName}(result)`,
                                                         parameters: {
-                                                            ...parametersToPass,
-                                                            resultString: resultString || '',
+                                                            result: result || '',
+                                                            // Note: No ...parametersToPass, because working with result only
                                                         },
                                                     });
                                                 } catch (error) {
@@ -304,7 +302,10 @@ export function createPromptbookExecutor(options: CreatePromptbookExecutorOption
                                     resultString = await scriptTools.execute({
                                         scriptLanguage: `javascript` /* <- TODO: Try it in each languages; In future allow postprocessing with arbitrary combination of languages to combine */,
                                         script: `${functionName}(resultString)`,
-                                        parameters: { ...parametersToPass, resultString: resultString || '' },
+                                        parameters: {
+                                            resultString: resultString || '',
+                                            // Note: No ...parametersToPass, because working with result only
+                                        },
                                     });
 
                                     postprocessingError = null;
