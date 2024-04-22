@@ -593,6 +593,14 @@ Include:
 
 GPTs are chat assistants that can be assigned to specific tasks and materials. But they are still chat assistants. Promptbooks are a way to orchestrate many more predefined tasks to have much tighter control over the process. Promptbooks are not a good technology for creating human-like chatbots, GPTs are not a good technology for creating outputs with specific requirements.
 
+
+<!--
+TODO:!!! 
+### Promptbooks vs. Semantic Kernel
+
+
+-->
+
 <!--
 TODO:
 ### Promptbooks vs. Langtail
@@ -632,6 +640,31 @@ The best way to manage this is to have suffixed promptbooks like `write-website-
 TODO: (Maybe)
 ### Why you need to explicitly specify input and output parameters?
 -->
+
+
+<!--
+
+
+
+!!!! 
+
+
+
+unit testing 
+
+escaping
+
+how i get block into prompt
+
+
+## 🚷 Limitations
+
+function calling
+system message
+iterations
+
+-->
+
 
 ## ⌚ Changelog
 
