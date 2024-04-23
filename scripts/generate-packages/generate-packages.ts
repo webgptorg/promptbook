@@ -60,7 +60,7 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
             `./packages/${packageName}/README.md`,
             spaceTrim(`
 
-                # 📖 Promptbook
+                # ![Promptbook logo - cube with letters P and B](./other/design/logo-h1.png) Promptbook
 
                 Library to supercharge your use of large language models
 
