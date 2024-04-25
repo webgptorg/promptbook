@@ -22,6 +22,7 @@ import { unwrapResult as _unwrapResult } from '../../../../utils/unwrapResult';
 import { ScriptExecutionTools, ScriptExecutionToolsExecuteOptions } from '../../../ScriptExecutionTools';
 import { JavascriptExecutionToolsOptions } from './JavascriptExecutionToolsOptions';
 import { preserve } from './utils/preserve';
+import { unknownToString } from './utils/unknownToString';
 
 /**
  * ScriptExecutionTools for JavaScript implemented via eval
@@ -190,7 +191,7 @@ export class JavascriptEvalExecutionTools implements ScriptExecutionTools {
 
             if (typeof result !== 'string') {
                 throw new PromptbookExecutionError(
-                    `Script must return a string, but returned ${result.toString()} ${typeof result}`,
+                    `Script must return a string, but returned ${unknownToString(result)}`,
                 );
             }
         } catch (error) {
@@ -255,7 +256,7 @@ export class JavascriptEvalExecutionTools implements ScriptExecutionTools {
         }
 
         if (typeof result !== 'string') {
-            throw new PromptbookExecutionError(`Script must return a string, but returned ${typeof result}`);
+            throw new PromptbookExecutionError(`Script must return a string, but ${unknownToString(result)}`);
         }
 
         return result;

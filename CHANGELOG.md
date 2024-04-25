@@ -215,6 +215,7 @@ npx promptbook prettify promptbook/**/*.ptbk.md
 -   Expectations are passed into prompt object and used in natural tools
 -   Add `MockedFackedNaturalExecutionTools`
 -   Add utils `checkExpectations` and `isPassingExpectations`
+-   Better error messages from `JavascriptEvalExecutionTools`
 
 ---
 
