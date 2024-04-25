@@ -77,9 +77,11 @@ export { splitIntoSentences };
 // And the normalization (originally n12 library) utilities:
 
 export const normalizeTo = {
+    // [🕙] lowercase: normalizeTo_lowercase,
+    // [🕙] UPPERCASE: normalizeTo_UPPERCASE,
     camelCase: normalizeTo_camelCase,
     PascalCase: normalizeTo_PascalCase,
-    'SCREAMING-CASE': normalizeTo_SCREAMING_CASE,
+    SCREAMING_CASE: normalizeTo_SCREAMING_CASE,
     snake_case: normalizeTo_snake_case,
     'kebab-case': normalizeToKebabCase,
 };
@@ -92,6 +94,8 @@ export {
     isValidKeyword,
     nameToUriPart,
     nameToUriParts,
+    // [🕙] normalizeTo_lowercase,
+    // [🕙] normalizeTo_UPPERCASE,
     normalizeTo_camelCase,
     normalizeTo_PascalCase,
     normalizeTo_SCREAMING_CASE,
@@ -107,4 +111,5 @@ export {
 
 /**
  * TODO: [🧠] Maybe create some indipendent package like `markdown-tools` from both here exported and @private utilities
+ * Note: [🕙] It does not make sence to have simple lower / UPPER case normalization
  */
