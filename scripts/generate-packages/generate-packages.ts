@@ -4,7 +4,6 @@ import colors from 'colors';
 import commander from 'commander';
 import { readFile, writeFile } from 'fs/promises';
 import { join } from 'path';
-import { spaceTrim } from 'spacetrim';
 import { PackageJson } from 'type-fest';
 import YAML from 'yaml';
 import { packageNames } from '../../rollup.config';
@@ -55,9 +54,13 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
 
     console.info(colors.bgWhite(mainPackageJson.version));
 
+    const mainReadme = await readFile('./README.md', 'utf-8');
+
     for (const packageName of packageNames) {
         await writeFile(
             `./packages/${packageName}/README.md`,
+            mainReadme,
+            /*
             spaceTrim(`
 
                 # ![Promptbook logo - cube with letters P and B](./other/design/logo-h1.png) Promptbook
@@ -66,7 +69,9 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
 
                 [Read the manual](https://github.com/webgptorg/promptbook)
 
-        `), // <- TODO: [🧠] !!! Better README.md for each package
+            `),
+            */
+            // <- TODO: [🧠] !!! Better README.md for each package
             // <- TODO: [🧠] Maybe make custom README.md for each package
         );
 

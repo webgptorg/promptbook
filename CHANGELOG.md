@@ -206,7 +206,7 @@ npx promptbook prettify promptbook/**/*.ptbk.md
 
 -   Lower bundle size
 -   Normalization library `n12` is not used and all its functions are bringed to `@promptbook/utils`
--   Add splitter functions like `splitIntoSentences` (made from `countSentences`)
+-   Add splitter functions like `splitIntoSentences` ( TODO: !!! made from `countSentences`, make all)
 -   Better error names
 -   Better error used
 -   Make `ExpectError` private
@@ -216,6 +216,7 @@ npx promptbook prettify promptbook/**/*.ptbk.md
 -   Add `MockedFackedNaturalExecutionTools`
 -   Add utils `checkExpectations` and `isPassingExpectations`
 -   Better error messages from `JavascriptEvalExecutionTools`
+-   Each exported NPM package has full README
 
 ---
 
