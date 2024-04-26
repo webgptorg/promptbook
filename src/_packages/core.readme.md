@@ -1,0 +1,1 @@
+Core of the library, it contains the main logic for promptbooks

@@ -11,6 +11,24 @@ Library to supercharge your use of large language models
 
 <!--/Badges-->
 
+## 📦 Package @promptbook/openai
+
+Promptbooks are [divided into several](#-packages) packages, all are published from [single monorepo](https://github.com/webgptorg/promptbook).
+Package `@promptbook/openai` is one part of the promptbook ecosystem.
+
+```bash
+npm i @promptbook/openai
+```
+
+Wrapper around [OpenAI's SDK](https://www.npmjs.com/package/openai) to make it easier to use inside Promptbooks.
+
+<!--!!! Simillar wrappers-->
+
+
+---
+
+Rest of the documentation is common for entire promptbook ecosystem:
+
 > ⚠ Warning: This library is still in early development.
 
 ## 🤍 Whitepaper
@@ -281,6 +299,22 @@ flowchart LR
 [More template samples](./samples/templates/)
 
 _Note: We are using [postprocessing functions](#postprocessing-functions) like `unwrapResult` that can be used to postprocess the result._
+
+## 📦 Packages
+
+This library is divided into several packages, all are published from [single monorepo](https://github.com/webgptorg/promptbook):
+
+<!--[🔠]-->
+
+-   **[@promptbook/core]** - Core of the library, it contains the main logic for promptbooks
+-   **[@promptbook/utils]** - Utility functions used in the library but also useful for individual use in preprocessing and postprocessing LLM inputs and outputs
+-   _(Not finished)_ **[@promptbook/wizzard]** - Wizard for creating+running promptbooks in single line
+-   **[@promptbook/execute-javascript]** - Execution tools for javascript inside promptbooks
+-   **[@promptbook/openai]** - Execution tools for OpenAI API, wrapper around OpenAI SDK
+-   **[@promptbook/remote-client]** - Remote client for remote execution of promptbooks
+-   **[@promptbook/remote-server]** - Remote server for remote execution of promptbooks
+-   **[@promptbook/types]** - Just typescript types used in the library
+-   **[@promptbook/cli]** - Command line interface utilities for promptbooks
 
 ## 📚 Dictionary
 

@@ -4,6 +4,7 @@ import colors from 'colors';
 import commander from 'commander';
 import { readFile, writeFile } from 'fs/promises';
 import { join } from 'path';
+import spaceTrim from 'spacetrim';
 import { PackageJson } from 'type-fest';
 import YAML from 'yaml';
 import { packageNames } from '../../rollup.config';
@@ -57,9 +58,49 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
     const mainReadme = await readFile('./README.md', 'utf-8');
 
     for (const packageName of packageNames) {
+        let packageReadme = mainReadme;
+        const packageReadmePart = await readFile(`./src/_packages/${packageName}.readme.md`, 'utf-8');
+
+        let installCommand = `npm i @promptbook/${packageName}`;
+
+        if (packageName === 'cli') {
+            installCommand = spaceTrim(`
+
+                # Install as dev dependency
+                npm i -D @promptbook/${packageName}
+
+                # Or install globally
+                npm i -g @promptbook/${packageName}
+
+            `);
+        } else if (packageName === 'types') {
+            installCommand = `npm i -D @promptbook/${packageName}`;
+        }
+
+        packageReadme = packageReadme.split(`<!--/Here will be placed specific package info-->`).join(
+            spaceTrim(
+                (block) => `
+                    ## 📦 Package @promptbook/${packageName}
+
+                    Promptbooks are [divided into several](#-packages) packages, all are published from [single monorepo](https://github.com/webgptorg/promptbook).
+                    Package \`@promptbook/${packageName}\` is one part of the promptbook ecosystem.
+
+                    \`\`\`bash
+                    ${block(installCommand)}
+                    \`\`\`
+
+                    ${block(packageReadmePart)}
+
+                    ---
+
+                    Rest of the documentation is common for entire promptbook ecosystem:
+                `,
+            ),
+        );
+
         await writeFile(
             `./packages/${packageName}/README.md`,
-            mainReadme,
+            packageReadme,
             /*
             spaceTrim(`
 
