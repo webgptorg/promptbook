@@ -1,6 +1,6 @@
 {
     "name": "@promptbook/openai",
-    "version": "0.44.0-21",
+    "version": "0.44.0-22",
     "description": "Library to supercharge your use of large language models",
     "private": false,
     "sideEffects": false,
@@ -28,7 +28,7 @@
         "text-generation",
         "language-model"
     ],
-    "license": "SEE LICENSE IN LICENSE",
+    "license": "CC-BY-4.0",
     "bugs": {
         "url": "https://github.com/webgptorg/promptbook/issues"
     },
@@ -38,7 +38,7 @@
         "openai": "4.2.0"
     },
     "peerDependencies": {
-        "@promptbook/core": "0.44.0-21"
+        "@promptbook/core": "0.44.0-22"
     },
     "main": "./umd/index.umd.js",
     "module": "./esm/index.es.js",
