@@ -106,7 +106,7 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
 
         packageReadme = packageReadme.split(`\n<!--/Badges-->`).join(badge + '\n\n<!--/Badges-->');
 
-        // TODO: !!! Convert mermaid diagrams to images
+        // TODO: !!!! Convert mermaid diagrams to images OR remove
 
         packageReadme = packageReadme.split('!'.repeat(3)).join('');
 
@@ -126,8 +126,6 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
 
             `),
             */
-            // <- TODO: [🧠] !!! Better README.md for each package
-            // <- TODO: [🧠] Maybe make custom README.md for each package
         );
 
         const packageJson = JSON.parse(JSON.stringify(mainPackageJson) /* <- Note: Make deep copy */) as PackageJson;
