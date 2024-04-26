@@ -8,6 +8,7 @@ import spaceTrim from 'spacetrim';
 import { PackageJson } from 'type-fest';
 import YAML from 'yaml';
 import { packageNames } from '../../rollup.config';
+import { prettifyMarkdown } from '../../src/utils/markdown/prettifyMarkdown';
 import { commit } from '../utils/autocommit/commit';
 import { isWorkingTreeClean } from '../utils/autocommit/isWorkingTreeClean';
 import { execCommand } from '../utils/execCommand/execCommand';
@@ -59,7 +60,7 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
 
     for (const packageName of packageNames) {
         let packageReadme = mainReadme;
-        const packageReadmePart = await readFile(`./src/_packages/${packageName}.readme.md`, 'utf-8');
+        const packageReadmeExtra = await readFile(`./src/_packages/${packageName}.readme.md`, 'utf-8');
 
         let installCommand = `npm i @promptbook/${packageName}`;
 
@@ -77,26 +78,37 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
             installCommand = `npm i -D @promptbook/${packageName}`;
         }
 
-        packageReadme = packageReadme.split(`<!--/Here will be placed specific package info-->`).join(
-            spaceTrim(
-                (block) => `
-                    ## 📦 Package @promptbook/${packageName}
+        const packageReadmeFullextra = spaceTrim(
+            (block) => `
+                ## 📦 Package \`@promptbook/${packageName}\`
 
-                    Promptbooks are [divided into several](#-packages) packages, all are published from [single monorepo](https://github.com/webgptorg/promptbook).
-                    Package \`@promptbook/${packageName}\` is one part of the promptbook ecosystem.
+                - Promptbooks are [divided into several](#-packages) packages, all are published from [single monorepo](https://github.com/webgptorg/promptbook).
+                - This package \`@promptbook/${packageName}\` is one part of the promptbook ecosystem.
 
-                    \`\`\`bash
-                    ${block(installCommand)}
-                    \`\`\`
+                To install this package, run:
 
-                    ${block(packageReadmePart)}
+                \`\`\`bash
+                ${block(installCommand)}
+                \`\`\`
 
-                    ---
+                ${block(packageReadmeExtra)}
 
-                    Rest of the documentation is common for entire promptbook ecosystem:
-                `,
-            ),
+                ---
+
+                Rest of the documentation is common for entire promptbook ecosystem:
+          `,
         );
+        packageReadme = packageReadme
+            .split(`<!--/Here will be placed specific package info-->`)
+            .join(packageReadmeFullextra);
+
+        const badge = `[![Socket Badge](https://socket.dev/api/badge/npm/package/@promptbook/${packageName})](https://socket.dev/npm/package/@promptbook/${packageName})`;
+
+        packageReadme = packageReadme.split(`\n<!--/Badges-->`).join(badge + '\n\n<!--/Badges-->');
+
+        // TODO: !!! Convert mermaid diagrams to images
+
+        prettifyMarkdown(packageReadme);
 
         await writeFile(
             `./packages/${packageName}/README.md`,

@@ -13,7 +13,10 @@ Library to supercharge your use of large language models
 
 <!--/Here will be placed specific package info-->
 
+<!--
+TODO: Probbably remove this section only in packages
 > ⚠ Warning: This library is still in early development.
+-->
 
 ## 🤍 Whitepaper
 
@@ -290,15 +293,15 @@ This library is divided into several packages, all are published from [single mo
 
 <!--[🔠]-->
 
--   **[@promptbook/core]** - Core of the library, it contains the main logic for promptbooks
--   **[@promptbook/utils]** - Utility functions used in the library but also useful for individual use in preprocessing and postprocessing LLM inputs and outputs
--   _(Not finished)_ **[@promptbook/wizzard]** - Wizard for creating+running promptbooks in single line
--   **[@promptbook/execute-javascript]** - Execution tools for javascript inside promptbooks
--   **[@promptbook/openai]** - Execution tools for OpenAI API, wrapper around OpenAI SDK
--   **[@promptbook/remote-client]** - Remote client for remote execution of promptbooks
--   **[@promptbook/remote-server]** - Remote server for remote execution of promptbooks
--   **[@promptbook/types]** - Just typescript types used in the library
--   **[@promptbook/cli]** - Command line interface utilities for promptbooks
+-   **[@promptbook/core](https://www.npmjs.com/package/@promptbook/core)** - Core of the library, it contains the main logic for promptbooks
+-   **[@promptbook/utils](https://www.npmjs.com/package/@promptbook/utils)** - Utility functions used in the library but also useful for individual use in preprocessing and postprocessing LLM inputs and outputs
+-   _(Not finished)_ **[@promptbook/wizzard](https://www.npmjs.com/package/@promptbook/wizzard)** - Wizard for creating+running promptbooks in single line
+-   **[@promptbook/execute-javascript](https://www.npmjs.com/package/@promptbook/execute-javascript)** - Execution tools for javascript inside promptbooks
+-   **[@promptbook/openai](https://www.npmjs.com/package/@promptbook/openai)** - Execution tools for OpenAI API, wrapper around OpenAI SDK
+-   **[@promptbook/remote-client](https://www.npmjs.com/package/@promptbook/remote-client)** - Remote client for remote execution of promptbooks
+-   **[@promptbook/remote-server](https://www.npmjs.com/package/@promptbook/remote-server)** - Remote server for remote execution of promptbooks
+-   **[@promptbook/types](https://www.npmjs.com/package/@promptbook/types)** - Just typescript types used in the library
+-   **[@promptbook/cli](https://www.npmjs.com/package/@promptbook/cli)** - Command line interface utilities for promptbooks
 
 ## 📚 Dictionary
 

@@ -8,13 +8,16 @@ Library to supercharge your use of large language models
 [![License of 📖 Prompt book](https://img.shields.io/github/license/webgptorg/promptbook.svg?style=flat)](https://github.com/webgptorg/promptbook/blob/main/LICENSE)
 [![Known Vulnerabilities](https://snyk.io/test/github/webgptorg/promptbook/badge.svg)](https://snyk.io/test/github/webgptorg/promptbook)
 [![Issues](https://img.shields.io/github/issues/webgptorg/promptbook.svg?style=flat)](https://github.com/webgptorg/promptbook/issues)
+[![Socket Badge](https://socket.dev/api/badge/npm/package/@promptbook/wizzard)](https://socket.dev/npm/package/@promptbook/wizzard)
 
 <!--/Badges-->
 
-## 📦 Package @promptbook/wizzard
+## 📦 Package `@promptbook/wizzard`
 
-Promptbooks are [divided into several](#-packages) packages, all are published from [single monorepo](https://github.com/webgptorg/promptbook).
-Package `@promptbook/wizzard` is one part of the promptbook ecosystem.
+- Promptbooks are [divided into several](#-packages) packages, all are published from [single monorepo](https://github.com/webgptorg/promptbook).
+- This package `@promptbook/wizzard` is one part of the promptbook ecosystem.
+
+To install this package, run:
 
 ```bash
 npm i @promptbook/wizzard
@@ -33,7 +36,10 @@ TODO: [🧙‍♂️]
 
 Rest of the documentation is common for entire promptbook ecosystem:
 
+<!--
+TODO: Probbably remove this section only in packages
 > ⚠ Warning: This library is still in early development.
+-->
 
 ## 🤍 Whitepaper
 
@@ -310,15 +316,15 @@ This library is divided into several packages, all are published from [single mo
 
 <!--[🔠]-->
 
--   **[@promptbook/core]** - Core of the library, it contains the main logic for promptbooks
--   **[@promptbook/utils]** - Utility functions used in the library but also useful for individual use in preprocessing and postprocessing LLM inputs and outputs
--   _(Not finished)_ **[@promptbook/wizzard]** - Wizard for creating+running promptbooks in single line
--   **[@promptbook/execute-javascript]** - Execution tools for javascript inside promptbooks
--   **[@promptbook/openai]** - Execution tools for OpenAI API, wrapper around OpenAI SDK
--   **[@promptbook/remote-client]** - Remote client for remote execution of promptbooks
--   **[@promptbook/remote-server]** - Remote server for remote execution of promptbooks
--   **[@promptbook/types]** - Just typescript types used in the library
--   **[@promptbook/cli]** - Command line interface utilities for promptbooks
+-   **[@promptbook/core](https://www.npmjs.com/package/@promptbook/core)** - Core of the library, it contains the main logic for promptbooks
+-   **[@promptbook/utils](https://www.npmjs.com/package/@promptbook/utils)** - Utility functions used in the library but also useful for individual use in preprocessing and postprocessing LLM inputs and outputs
+-   _(Not finished)_ **[@promptbook/wizzard](https://www.npmjs.com/package/@promptbook/wizzard)** - Wizard for creating+running promptbooks in single line
+-   **[@promptbook/execute-javascript](https://www.npmjs.com/package/@promptbook/execute-javascript)** - Execution tools for javascript inside promptbooks
+-   **[@promptbook/openai](https://www.npmjs.com/package/@promptbook/openai)** - Execution tools for OpenAI API, wrapper around OpenAI SDK
+-   **[@promptbook/remote-client](https://www.npmjs.com/package/@promptbook/remote-client)** - Remote client for remote execution of promptbooks
+-   **[@promptbook/remote-server](https://www.npmjs.com/package/@promptbook/remote-server)** - Remote server for remote execution of promptbooks
+-   **[@promptbook/types](https://www.npmjs.com/package/@promptbook/types)** - Just typescript types used in the library
+-   **[@promptbook/cli](https://www.npmjs.com/package/@promptbook/cli)** - Command line interface utilities for promptbooks
 
 ## 📚 Dictionary
 
