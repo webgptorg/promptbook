@@ -95,7 +95,7 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
 
                 ---
 
-                Rest of the documentation is common for entire promptbook ecosystem:
+                Rest of the documentation is common for **entire promptbook ecosystem**:
           `,
         );
         packageReadme = packageReadme

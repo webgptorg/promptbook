@@ -3,6 +3,7 @@ module.exports = {
         'organizeImports',
         'contributing',
         'partners',
+        'license',
         // 'badges',
     ],
 };

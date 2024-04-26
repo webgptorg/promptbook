@@ -28,7 +28,7 @@
         "text-generation",
         "language-model"
     ],
-    "license": "SEE LICENSE IN LICENSE",
+    "license": "CC-BY-4.0",
     "bugs": {
         "url": "https://github.com/webgptorg/promptbook/issues"
     },
