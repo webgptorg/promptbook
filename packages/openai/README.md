@@ -25,7 +25,7 @@ npm i @promptbook/openai
 
 Wrapper around [OpenAI's SDK](https://www.npmjs.com/package/openai) to make it easier to use inside Promptbooks.
 
-<!-- Simillar wrappers-->
+<!-- Link Simillar wrappers -->
 
 
 ---
@@ -664,7 +664,7 @@ TODO:
 -->
 
 <!--
-TODO: 
+TODO: !
 ### Promptbooks vs. Langtail
 
 
