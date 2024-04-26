@@ -1,3 +1,4 @@
+import { spaceTrim } from 'spacetrim';
 import { prettifyPromptbookString } from '../conversion/prettify/prettifyPromptbookString';
 import { parseNumber } from '../conversion/utils/parseNumber';
 import { assertsExecutionSuccessful } from '../execution/assertsExecutionSuccessful';
@@ -65,6 +66,7 @@ export {
     removeMarkdownFormatting,
     removeQuotes,
     replaceParameters,
+    spaceTrim,
     trimCodeBlock,
     trimEndOfCodeBlock,
     unwrapResult,

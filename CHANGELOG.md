@@ -217,6 +217,7 @@ npx promptbook prettify promptbook/**/*.ptbk.md
 -   Add utils `checkExpectations` and `isPassingExpectations`
 -   Better error messages from `JavascriptEvalExecutionTools`
 -   Each exported NPM package has full README
+-   `spaceTrim` is re-exported from `@promptbook/utils`
 
 ---
 
