@@ -108,6 +108,8 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
 
         // TODO: !!! Convert mermaid diagrams to images
 
+        packageReadme = packageReadme.split('!'.repeat(3)).join('');
+
         prettifyMarkdown(packageReadme);
 
         await writeFile(

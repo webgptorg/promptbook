@@ -407,8 +407,7 @@ Internally it can have multiple formats:
 ### Promptbook **Library**
 
 Library of all promptbooks used in your application.
-
-<!-- TODO: !!! Write more -->
+Each promptbook is a separate `.ptbk.md` file with unique `PROMPTBOOK URL`. Theese urls are used to reference promptbooks in other promptbooks or in the application code.
 
 ### Prompt Result
 
@@ -585,6 +584,30 @@ npm install --save @promptbook/wizzard
 -   [Simple usage](./samples/usage/simple-script)
 -   [Usage with client and remote server](./samples/usage/remote)
 
+## ➕➖ When to use Promptbook?
+
+### ➕ When to use
+
+-   When you are writing app that generates complex things via LLM - like **websites, articles, presentations, code, stories, songs**,...
+-   When you want to **separate code from text prompts**
+-   When you want to describe **complex prompt pipelines** and don't want to do it in the code
+-   When you want to **orchestrate multiple prompts** together
+-   When you want to **reuse** parts of prompts in multiple places
+-   When you want to **version** your prompts and **test multiple versions**
+-   When you want to **log** the execution of prompts and backtrace the issues
+
+### ➖ When not to use
+
+-   When you are writing just a simple chatbot without any extra logic, just system messages
+
+## 🐜 Known issues
+
+<!-- TODO: !!! -->
+
+## 🧼 Intentionally not implemented features
+
+<!-- TODO: !!! -->
+
 ## ❔ FAQ
 
 If you have a question [start a discussion](https://github.com/webgptorg/promptbook/discussions/), [open an issue](https://github.com/webgptorg/promptbook/issues) or [write me an email](https://www.pavolhejny.com/contact).
@@ -615,14 +638,14 @@ Include:
 GPTs are chat assistants that can be assigned to specific tasks and materials. But they are still chat assistants. Promptbooks are a way to orchestrate many more predefined tasks to have much tighter control over the process. Promptbooks are not a good technology for creating human-like chatbots, GPTs are not a good technology for creating outputs with specific requirements.
 
 <!--
-TODO:!!!
+TODO:
 ### Promptbooks vs. Semantic Kernel
 
 
 -->
 
 <!--
-TODO:
+TODO: !!!
 ### Promptbooks vs. Langtail
 
 
