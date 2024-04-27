@@ -1,7 +1,7 @@
 import { spaceTrim } from 'spacetrim';
 import type { Writable, WritableDeep } from 'type-fest';
 import { normalizeTo_PascalCase } from '../_packages/utils.index';
-import type { PromptbookSyntaxError } from '../errors/PromptbookSyntaxError';
+import { PromptbookSyntaxError } from '../errors/PromptbookSyntaxError';
 import type { ParameterCommand } from '../types/Command';
 import type { ExecutionType } from '../types/ExecutionTypes';
 import type { ModelRequirements } from '../types/ModelRequirements';
