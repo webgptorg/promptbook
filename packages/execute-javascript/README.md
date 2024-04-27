@@ -307,7 +307,14 @@ _Note: We are using [postprocessing functions](#postprocessing-functions) like `
 
 ## 📦 Packages
 
-This library is divided into several packages, all are published from [single monorepo](https://github.com/webgptorg/promptbook):
+This library is divided into several packages, all are published from [single monorepo](https://github.com/webgptorg/promptbook).
+You can install all of them at once:
+
+```bash
+npm i ptbk
+```
+
+Or you can install them separately:
 
 <!--[🔠]-->
 
@@ -318,6 +325,8 @@ This library is divided into several packages, all are published from [single mo
 -   _(Not finished)_ **[@promptbook/wizzard](https://www.npmjs.com/package/@promptbook/wizzard)** - Wizard for creating+running promptbooks in single line
 -   **[@promptbook/execute-javascript](https://www.npmjs.com/package/@promptbook/execute-javascript)** - Execution tools for javascript inside promptbooks
 -   **[@promptbook/openai](https://www.npmjs.com/package/@promptbook/openai)** - Execution tools for OpenAI API, wrapper around OpenAI SDK
+-   **[@promptbook/langtail](https://www.npmjs.com/package/@promptbook/langtail)** - Execution tools for Langtail API, wrapper around Langtail SDK
+-   **[@promptbook/mock](https://www.npmjs.com/package/@promptbook/mock)** - Mocked execution tools for testing the library and saving the tokens
 -   **[@promptbook/remote-client](https://www.npmjs.com/package/@promptbook/remote-client)** - Remote client for remote execution of promptbooks
 -   **[@promptbook/remote-server](https://www.npmjs.com/package/@promptbook/remote-server)** - Remote server for remote execution of promptbooks
 -   **[@promptbook/types](https://www.npmjs.com/package/@promptbook/types)** - Just typescript types used in the library

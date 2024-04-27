@@ -1,6 +1,6 @@
 {
     "name": "promptbook",
-    "version": "0.45.0",
+    "version": "0.46.0-0",
     "description": "Library to supercharge your use of large language models",
     "private": false,
     "sideEffects": false,
@@ -34,18 +34,18 @@
     },
     "homepage": "https://www.npmjs.com/package/@promptbook/core",
     "dependencies": {
-        "@promptbook/core": "0.45.0",
-        "@promptbook/execute-javascript": "0.45.0",
-        "@promptbook/langtail": "0.45.0",
-        "@promptbook/mock": "0.45.0",
-        "@promptbook/openai": "0.45.0",
-        "@promptbook/remote-client": "0.45.0",
-        "@promptbook/remote-server": "0.45.0",
-        "@promptbook/utils": "0.45.0",
-        "@promptbook/wizzard": "0.45.0"
+        "@promptbook/core": "0.46.0-0",
+        "@promptbook/execute-javascript": "0.46.0-0",
+        "@promptbook/langtail": "0.46.0-0",
+        "@promptbook/mock": "0.46.0-0",
+        "@promptbook/openai": "0.46.0-0",
+        "@promptbook/remote-client": "0.46.0-0",
+        "@promptbook/remote-server": "0.46.0-0",
+        "@promptbook/utils": "0.46.0-0",
+        "@promptbook/wizzard": "0.46.0-0"
     },
     "devDependencies": {
-        "@promptbook/cli": "0.45.0",
-        "@promptbook/types": "0.45.0"
+        "@promptbook/cli": "0.46.0-0",
+        "@promptbook/types": "0.46.0-0"
     }
 }
