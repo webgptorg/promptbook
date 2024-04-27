@@ -228,6 +228,16 @@ More direct usage of OpenAI API, Refactoring
     -   Change `openAiApiKey` -> `apiKey` when creating new `OpenAiExecutionTools`
 -   Change all import statements to import type when importing just types
 
+## In prepare
+
+### 0.46.0 _(2024-04-27)_
+
+!!!
+
+-   New package `promptbook` !!!
+-   New package `ptbk` !!!
+-   New package `@promptbook/mock` !!!
+
 ## In pre-release
 
 ### 0.46.0 _(2024-)_
