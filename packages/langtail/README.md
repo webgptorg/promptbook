@@ -2,20 +2,15 @@
 
 Library to supercharge your use of large language models
 
-
-
-
 [![License of 📖 Prompt book](https://img.shields.io/github/license/webgptorg/promptbook.svg?style=flat)](https://github.com/webgptorg/promptbook/blob/main/LICENSE)
 [![Known Vulnerabilities](https://snyk.io/test/github/webgptorg/promptbook/badge.svg)](https://snyk.io/test/github/webgptorg/promptbook)
 [![Issues](https://img.shields.io/github/issues/webgptorg/promptbook.svg?style=flat)](https://github.com/webgptorg/promptbook/issues)
 [![Socket Badge](https://socket.dev/api/badge/npm/package/@promptbook/langtail)](https://socket.dev/npm/package/@promptbook/langtail)
 
-
-
 ## 📦 Package `@promptbook/langtail`
 
-- Promptbooks are [divided into several](#-packages) packages, all are published from [single monorepo](https://github.com/webgptorg/promptbook).
-- This package `@promptbook/langtail` is one part of the promptbook ecosystem.
+-   Promptbooks are [divided into several](#-packages) packages, all are published from [single monorepo](https://github.com/webgptorg/promptbook).
+-   This package `@promptbook/langtail` is one part of the promptbook ecosystem.
 
 To install this package, run:
 
@@ -23,19 +18,13 @@ To install this package, run:
 npm i @promptbook/langtail
 ```
 
-Use [Langtail](https://langtail.com/) to Ship AI Apps With Fewer Surprises.
+Use [Langtail](https://langtail.com/) to **ship AI apps with fewer surprises**.
 
 This package is wrapper of [Langtail's OpenAI proxy](https://langtail.com/docs/proxy/openai) to make it easier to use inside the Promptbooks.
-
-
-
-
 
 ---
 
 Rest of the documentation is common for **entire promptbook ecosystem**:
-
-
 
 ## 🤍 Whitepaper
 
@@ -78,13 +67,9 @@ In any of these situations, but especially in (3), the Promptbook library can ma
 -   Multiple promptbooks forms a library which will become a **part of your application codebase**.
 -   Theese promptbooks are designed such as they **can be written by non-programmers**.
 
-
-
 ### Sample:
 
 File `write-website-content.ptbk.md`:
-
-
 
 > # 🌍 Create website content
 >
@@ -255,8 +240,6 @@ File `write-website-content.ptbk.md`:
 >
 > `-> {content}`
 
-
-
 Following is the scheme how the promptbook above is executed:
 
 ```mermaid
@@ -316,9 +299,6 @@ npm i ptbk
 ```
 
 Or you can install them separately:
-
-
-
 
 -   ⭐ **[ptbk](https://www.npmjs.com/package/@promptbook/core)** - Bundle of all packages, when you want to install everything and you don't care about the size
 -   **[promptbook](https://www.npmjs.com/package/@promptbook/core)** - Just alias for `ptbk`
@@ -500,7 +480,7 @@ There are [postprocessing functions](#postprocessing-functions) that can be used
 
 -   _(Not implemented yet)_ `ConsoleInterfaceTools` is a wrapper around `readline` module that interacts with the user via console.
 -   `SimplePromptInterfaceTools` is a wrapper around `window.prompt` synchronous function that interacts with the user via browser prompt. It is used for testing and mocking **NOT intended to use in the production** due to its synchronous nature.
--   `CallbackInterfaceTools` delagates the user interaction to a async callback function. You need to provide your own implementation of this callback function and its bind to UI. 
+-   `CallbackInterfaceTools` delagates the user interaction to a async callback function. You need to provide your own implementation of this callback function and its bind to UI.
 
 ### Executor
 
@@ -570,15 +550,11 @@ There are two types of expectations which are not strictly symmetrical:
 
 Look at [expectations.ptbk.md](samples/templates/45-expectations.ptbk.md) and [expect-json.ptbk.md](samples/templates/45-expect-json.ptbk.md) samples for more.
 
-
-
 ### Execution report
 
 Execution report is a simple object or markdown that contains information about the execution of the promptbook.
 
 [See the example of such a report](/samples/templates/50-advanced.report.md)
-
-
 
 ### Remote server
 
@@ -588,8 +564,6 @@ You can simply use `RemoteExecutionTools` on client-side javascript and connect 
 This is useful to make all logic on browser side but not expose your API keys or no need to use customer's GPU.
 
 ## 👨‍💻 Usage and integration _(for developers)_
-
-
 
 ### 🔌 Usage in Typescript / Javascript
 
@@ -614,11 +588,7 @@ This is useful to make all logic on browser side but not expose your API keys or
 
 ## 🐜 Known issues
 
-
-
 ## 🧼 Intentionally not implemented features
-
-
 
 ## ❔ FAQ
 
@@ -634,17 +604,9 @@ Langchain is primarily aimed at ML developers working in Python. This library is
 
 We are considering creating a bridge/converter between these two libraries.
 
-
-
 ### Promptbooks vs. OpenAI`s GPTs
 
 GPTs are chat assistants that can be assigned to specific tasks and materials. But they are still chat assistants. Promptbooks are a way to orchestrate many more predefined tasks to have much tighter control over the process. Promptbooks are not a good technology for creating human-like chatbots, GPTs are not a good technology for creating outputs with specific requirements.
-
-
-
-
-
-
 
 ### Where should I store my promptbooks?
 
@@ -666,10 +628,6 @@ In large language models, you will get better results if you have prompts in the
 
 The best way to manage this is to have suffixed promptbooks like `write-website-content.en.ptbk.md` and `write-website-content.cs.ptbk.md` for each supported language.
 
-
-
-
-
 ## ⌚ Changelog
 
 See [CHANGELOG.md](./CHANGELOG.md)
@@ -677,9 +635,6 @@ See [CHANGELOG.md](./CHANGELOG.md)
 ## 📜 License
 
 <p xmlns:cc="http://creativecommons.org/ns#" xmlns:dct="http://purl.org/dc/terms/"><a property="dct:title" rel="cc:attributionURL" href="https://github.com/webgptorg/promptbook">Promptbook</a> by <a rel="cc:attributionURL dct:creator" property="cc:attributionName" href="https://github.com/hejny/">Pavol Hejný</a> is licensed under <a href="https://creativecommons.org/licenses/by/4.0/?ref=chooser-v1" target="_blank" rel="license noopener noreferrer" style="display:inline-block;">CC BY 4.0</a></p>
-
-
-
 
 ## 🖋️ Contributing
 
