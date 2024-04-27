@@ -4,7 +4,7 @@ import colors from 'colors';
 import commander from 'commander';
 import { readFile, writeFile } from 'fs/promises';
 import { join } from 'path';
-import { PackageJson } from 'type-fest';
+import type { PackageJson } from 'type-fest';
 import { forTime } from 'waitasecond';
 import { commit } from '../utils/autocommit/commit';
 import { execCommand } from '../utils/execCommand/execCommand';

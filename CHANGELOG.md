@@ -220,13 +220,17 @@ npx promptbook prettify promptbook/**/*.ptbk.md
 -   Each exported NPM package has full README
 -   `spaceTrim` is re-exported from `@promptbook/utils`
 
+### 0.45.0 _(2024-04-27)_
+
+More direct usage of OpenAI API, Refactoring
+
+-   Pass directly Open AI otpions to `OpenAiExecutionTools`
+    -   Change `openAiApiKey` -> `apiKey` when creating new `OpenAiExecutionTools`
+-   Change all import statements to import type when importing just types
+
 ## In pre-release
 
-##
-
-Change `openAiApiKey` -> `apiKey` when creating new `OpenAiExecutionTools`
-
-### 0.45.0 _(2024-)_
+### 0.46.0 _(2024-)_
 
 -   TODO: !!! Add splitInto functions to `@promptbook/utils` besides all the `count` functions
 

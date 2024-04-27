@@ -1,5 +1,5 @@
-import { Promisable } from 'type-fest';
-import { AutomaticTranslator } from './AutomaticTranslator';
+import type { Promisable } from 'type-fest';
+import type { AutomaticTranslator } from './AutomaticTranslator';
 
 interface IMultiAutomaticTranslatorOptions {
     createAutomaticTranslator(options: { from: string; to: string }): AutomaticTranslator;

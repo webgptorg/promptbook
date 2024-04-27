@@ -5,7 +5,7 @@ import commander from 'commander';
 import { readFile, writeFile } from 'fs/promises';
 import { join } from 'path';
 import spaceTrim from 'spacetrim';
-import { PackageJson } from 'type-fest';
+import type { PackageJson } from 'type-fest';
 import YAML from 'yaml';
 import { packageNames } from '../../rollup.config';
 import { prettifyMarkdown } from '../../src/utils/markdown/prettifyMarkdown';

@@ -1,5 +1,5 @@
 import type { client_id, string_uri } from '../../../.././types/typeAliases';
-import { CommonExecutionToolsOptions } from '../../../CommonExecutionToolsOptions';
+import type { CommonExecutionToolsOptions } from '../../../CommonExecutionToolsOptions';
 
 /**
  * Options for RemoteNaturalExecutionTools

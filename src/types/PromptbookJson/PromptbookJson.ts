@@ -1,6 +1,6 @@
-import { string_promptbook_url, string_version } from '../typeAliases';
-import { PromptTemplateJson } from './PromptTemplateJson';
-import { PromptTemplateParameterJson } from './PromptTemplateParameterJson';
+import type { string_promptbook_url, string_version } from '../typeAliases';
+import type { PromptTemplateJson } from './PromptTemplateJson';
+import type { PromptTemplateParameterJson } from './PromptTemplateParameterJson';
 
 /**
  * Promptbook is the **core concept of this library**.

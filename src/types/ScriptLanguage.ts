@@ -1,4 +1,4 @@
-import { TupleToUnion } from 'type-fest';
+import type { TupleToUnion } from 'type-fest';
 
 /**
  * Supported script languages

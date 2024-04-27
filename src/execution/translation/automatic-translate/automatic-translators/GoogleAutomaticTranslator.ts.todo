@@ -3,7 +3,7 @@ import { launch } from 'puppeteer';
 import { spaceTrim } from 'spacetrim';
 import { forTime } from 'waitasecond';
 import { AutomaticTranslator } from './AutomaticTranslator';
-import { TranslatorOptions } from './TranslatorOptions';
+import type { TranslatorOptions } from './TranslatorOptions';
 import { extractMultiplicatedOccurrence } from './utils/extractMultiplicatedOccurrence';
 
 export type GoogleAutomaticTranslatorOptions = TranslatorOptions & {

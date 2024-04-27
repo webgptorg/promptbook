@@ -1,4 +1,4 @@
-import { string_model_name } from './typeAliases';
+import type { string_model_name } from './typeAliases';
 
 export const MODEL_VARIANTS = ['COMPLETION', 'CHAT' /* [🏳]  */] as const;
 

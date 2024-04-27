@@ -1,5 +1,5 @@
-import { string_name, string_script } from '.././types/typeAliases';
-import { ScriptLanguage } from '../types/ScriptLanguage';
+import type { string_name, string_script } from '.././types/typeAliases';
+import type { ScriptLanguage } from '../types/ScriptLanguage';
 
 /**
  * Represents all the tools needed to EXECUTE SCRIPTs

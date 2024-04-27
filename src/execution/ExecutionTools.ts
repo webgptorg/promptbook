@@ -1,6 +1,6 @@
-import { NaturalExecutionTools } from './NaturalExecutionTools';
-import { ScriptExecutionTools } from './ScriptExecutionTools';
-import { UserInterfaceTools } from './UserInterfaceTools';
+import type { NaturalExecutionTools } from './NaturalExecutionTools';
+import type { ScriptExecutionTools } from './ScriptExecutionTools';
+import type { UserInterfaceTools } from './UserInterfaceTools';
 
 /**
  * All the tools needed to execute prompts (template pipelines).

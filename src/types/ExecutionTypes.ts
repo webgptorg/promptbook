@@ -1,4 +1,4 @@
-import { TupleToUnion } from 'type-fest';
+import type { TupleToUnion } from 'type-fest';
 
 /**
  * Execution type describes the way how the block is executed

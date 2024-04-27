@@ -1,6 +1,6 @@
-import { Promisable } from 'type-fest';
-import { CommonExecutionToolsOptions } from '../../../CommonExecutionToolsOptions';
-import { UserInterfaceToolsPromptDialogOptions } from '../../../UserInterfaceTools';
+import type { Promisable } from 'type-fest';
+import type { CommonExecutionToolsOptions } from '../../../CommonExecutionToolsOptions';
+import type { UserInterfaceToolsPromptDialogOptions } from '../../../UserInterfaceTools';
 
 /**
  * Options for CallbackInterfaceTools

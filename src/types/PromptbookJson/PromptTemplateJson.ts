@@ -1,8 +1,8 @@
-import { ExpectFormatCommand } from '../Command';
-import { ExecutionType } from '../ExecutionTypes';
-import { ModelRequirements } from '../ModelRequirements';
-import { ScriptLanguage } from '../ScriptLanguage';
-import {
+import type { ExpectFormatCommand } from '../Command';
+import type { ExecutionType } from '../ExecutionTypes';
+import type { ModelRequirements } from '../ModelRequirements';
+import type { ScriptLanguage } from '../ScriptLanguage';
+import type {
     number_integer,
     number_positive_or_zero,
     string_javascript,

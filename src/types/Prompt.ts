@@ -4,7 +4,7 @@ import type {
     string_promptbook_url_with_hashtemplate,
     string_title,
 } from '.././types/typeAliases';
-import { PostprocessingFunction } from '../execution/plugins/script-execution-tools/javascript/JavascriptExecutionToolsOptions';
+import type { PostprocessingFunction } from '../execution/plugins/script-execution-tools/javascript/JavascriptExecutionToolsOptions';
 import type { ModelRequirements } from './ModelRequirements';
 import type { Expectations } from './PromptbookJson/PromptTemplateJson';
 
