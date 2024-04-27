@@ -28,7 +28,7 @@ import { unwrapResult } from '@promptbook/utils';
 unwrapResult('Best greeting for the user is "Hi Pavol!"'); // 'Hi Pavol!'
 ```
 
-## Replace Parameters
+## Templating
 
 There is a function `replaceParameters` which is used to replace the parameters in given template optimized to LLM prompt templates.
 
