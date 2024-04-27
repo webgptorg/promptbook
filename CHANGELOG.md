@@ -230,6 +230,8 @@ More direct usage of OpenAI API, Refactoring
 
 ## In pre-release
 
+### 0.46.0 _(2024-)_
+
 Reorganize packages
 
 > 💡 Now you can just install `promptbook` or `ptbk` as alias for everything
@@ -238,6 +240,7 @@ Reorganize packages
 -   New package `ptbk` as an alias to `promptbook`
 -   New package `@promptbook/mock`
     -   Move there `MockedEchoNaturalExecutionTools` and `MockedFackedNaturalExecutionTools` from `@promptbook/core`
+-   New package `@promptbook/langtail` to prepare for [Langtail](https://langtail.com/) integration
 
 ## In prepare
 
