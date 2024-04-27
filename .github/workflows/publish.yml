@@ -34,6 +34,16 @@ jobs:
               run: npm publish --access public
               env:
                   NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
+            - name: Publish @promptbook/langtail
+              working-directory: ./packages/langtail
+              run: npm publish --access public
+              env:
+                  NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
+            - name: Publish @promptbook/mock
+              working-directory: ./packages/mock
+              run: npm publish --access public
+              env:
+                  NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
             - name: Publish @promptbook/openai
               working-directory: ./packages/openai
               run: npm publish --access public
@@ -61,6 +71,16 @@ jobs:
                   NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
             - name: Publish @promptbook/wizzard
               working-directory: ./packages/wizzard
+              run: npm publish --access public
+              env:
+                  NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
+            - name: Publish promptbook
+              working-directory: ./packages/promptbook
+              run: npm publish --access public
+              env:
+                  NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
+            - name: Publish ptbk
+              working-directory: ./packages/ptbk
               run: npm publish --access public
               env:
                   NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
