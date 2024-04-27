@@ -300,8 +300,9 @@ Or you can install them separately:
 
 <!--[🔠]-->
 
-<!-- !!!  Add all new -->
 
+-   ⭐ **[ptbk](https://www.npmjs.com/package/@promptbook/core)** - Bundle of all packages, when you want to install everything and you don't care about the size
+-   **[promptbook](https://www.npmjs.com/package/@promptbook/core)** - Just alias for `ptbk`
 -   **[@promptbook/core](https://www.npmjs.com/package/@promptbook/core)** - Core of the library, it contains the main logic for promptbooks
 -   ⭐ **[@promptbook/utils](https://www.npmjs.com/package/@promptbook/utils)** - Utility functions used in the library but also useful for individual use in preprocessing and postprocessing LLM inputs and outputs
 -   _(Not finished)_ **[@promptbook/wizzard](https://www.npmjs.com/package/@promptbook/wizzard)** - Wizard for creating+running promptbooks in single line

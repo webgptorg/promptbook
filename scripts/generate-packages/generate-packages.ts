@@ -9,6 +9,7 @@ import type { PackageJson } from 'type-fest';
 import YAML from 'yaml';
 import { packages } from '../../rollup.config';
 import { prettifyMarkdown } from '../../src/utils/markdown/prettifyMarkdown';
+import { removeContentComments } from '../../src/utils/markdown/removeContentComments';
 import { commit } from '../utils/autocommit/commit';
 import { isWorkingTreeClean } from '../utils/autocommit/isWorkingTreeClean';
 import { execCommand } from '../utils/execCommand/execCommand';
@@ -101,9 +102,12 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
                 Rest of the documentation is common for **entire promptbook ecosystem**:
           `,
         );
-        packageReadme = packageReadme
-            .split(`<!--/Here will be placed specific package info-->`)
-            .join(packageReadmeFullextra);
+
+        if (isBuilded /* [🚘] */) {
+            packageReadme = packageReadme
+                .split(`<!--/Here will be placed specific package info-->`)
+                .join(packageReadmeFullextra);
+        }
 
         const badge = `[![Socket Badge](https://socket.dev/api/badge/npm/package/${packageFullname})](https://socket.dev/npm/package/${packageFullname})`;
 
@@ -111,7 +115,7 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
 
         // TODO: !!!! Convert mermaid diagrams to images OR remove
 
-        packageReadme = packageReadme.split('!'.repeat(3)).join('');
+        packageReadme = removeContentComments(packageReadme);
 
         prettifyMarkdown(packageReadme);
 
