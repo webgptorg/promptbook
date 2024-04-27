@@ -49,7 +49,7 @@ async function usePackages() {
                 continue;
             }
             for (const packageName of Object.keys(remotePackageJson[dependenciesType] as Record<string, string>)) {
-                if (!packageName.startsWith('@promptbook/')) {
+                if (!packageName.startsWith('@promptbook/') && packageName !== 'promptbook' && packageName !== 'ptbk') {
                     continue;
                 }
 

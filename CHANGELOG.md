@@ -228,18 +228,18 @@ More direct usage of OpenAI API, Refactoring
     -   Change `openAiApiKey` -> `apiKey` when creating new `OpenAiExecutionTools`
 -   Change all import statements to import type when importing just types
 
-## In prepare
-
-### 0.46.0 _(2024-04-27)_
+## In pre-release
 
 Reorganize packages
+
+> 💡 Now you can just install `promptbook` or `ptbk` as alias for everything
 
 -   New package `promptbook` as a link to all other packages
 -   New package `ptbk` as an alias to `promptbook`
 -   New package `@promptbook/mock`
     -   Move there `MockedEchoNaturalExecutionTools` and `MockedFackedNaturalExecutionTools` from `@promptbook/core`
 
-## In pre-release
+## In prepare
 
 ### 0.46.0 _(2024-)_
 
