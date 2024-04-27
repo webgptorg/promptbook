@@ -7,7 +7,7 @@ import { join } from 'path';
 import spaceTrim from 'spacetrim';
 import type { PackageJson } from 'type-fest';
 import YAML from 'yaml';
-import { packageNames } from '../../rollup.config';
+import { packages } from '../../rollup.config';
 import { prettifyMarkdown } from '../../src/utils/markdown/prettifyMarkdown';
 import { commit } from '../utils/autocommit/commit';
 import { isWorkingTreeClean } from '../utils/autocommit/isWorkingTreeClean';
@@ -41,7 +41,10 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
         throw new Error(`Working tree is not clean`);
     }
 
-    for (const packageName of packageNames) {
+    for (const { isBuilded, packageName } of packages) {
+        if (!isBuilded) {
+            continue;
+        }
         await execCommand(`rm -rf ./packages/${packageName}/umd`);
         await execCommand(`rm -rf ./packages/${packageName}/esm`);
     }
@@ -58,32 +61,32 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
 
     const mainReadme = await readFile('./README.md', 'utf-8');
 
-    for (const packageName of packageNames) {
+    for (const { isBuilded, packageFullname, packageName, dependencies, devDependencies } of packages) {
         let packageReadme = mainReadme;
         const packageReadmeExtra = await readFile(`./src/_packages/${packageName}.readme.md`, 'utf-8');
 
-        let installCommand = `npm i @promptbook/${packageName}`;
+        let installCommand = `npm i ${packageFullname}`;
 
-        if (packageName === 'cli') {
+        if (packageFullname === '@promptbook/cli') {
             installCommand = spaceTrim(`
 
                 # Install as dev dependency
-                npm i -D @promptbook/${packageName}
+                npm i -D ${packageFullname}
 
                 # Or install globally
-                npm i -g @promptbook/${packageName}
+                npm i -g ${packageFullname}
 
             `);
-        } else if (packageName === 'types') {
-            installCommand = `npm i -D @promptbook/${packageName}`;
+        } else if (packageFullname === '@promptbook/types') {
+            installCommand = `npm i -D ${packageFullname}`;
         }
 
         const packageReadmeFullextra = spaceTrim(
             (block) => `
-                ## 📦 Package \`@promptbook/${packageName}\`
+                ## 📦 Package \`${packageFullname}\`
 
                 - Promptbooks are [divided into several](#-packages) packages, all are published from [single monorepo](https://github.com/webgptorg/promptbook).
-                - This package \`@promptbook/${packageName}\` is one part of the promptbook ecosystem.
+                - This package \`${packageFullname}\` is one part of the promptbook ecosystem.
 
                 To install this package, run:
 
@@ -102,7 +105,7 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
             .split(`<!--/Here will be placed specific package info-->`)
             .join(packageReadmeFullextra);
 
-        const badge = `[![Socket Badge](https://socket.dev/api/badge/npm/package/@promptbook/${packageName})](https://socket.dev/npm/package/@promptbook/${packageName})`;
+        const badge = `[![Socket Badge](https://socket.dev/api/badge/npm/package/${packageFullname})](https://socket.dev/npm/package/${packageFullname})`;
 
         packageReadme = packageReadme.split(`\n<!--/Badges-->`).join(badge + '\n\n<!--/Badges-->');
 
@@ -131,23 +134,47 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
         const packageJson = JSON.parse(JSON.stringify(mainPackageJson) /* <- Note: Make deep copy */) as PackageJson;
         delete packageJson.scripts;
         delete packageJson.devDependencies;
-        packageJson.name = `@promptbook/${packageName}`;
-        if (!['core', 'utils'].includes(packageName!)) {
+        packageJson.name = packageFullname;
+
+        if (!['@promptbook/core', '@promptbook/utils'].includes(packageFullname)) {
             packageJson.peerDependencies = {
                 '@promptbook/core': packageJson.version,
             };
         }
-        const indexContent = await readFile(`./packages/${packageName}/esm/index.es.js`, 'utf-8');
-        for (const dependencyName in packageJson.dependencies) {
-            if (!indexContent.includes(`from '${dependencyName}'`)) {
-                delete packageJson.dependencies[dependencyName];
-            }
-        }
-        packageJson.main = `./umd/index.umd.js`;
-        packageJson.module = `./esm/index.es.js`;
-        packageJson.typings = `./esm/typings/_packages/${packageName}.index.d.ts`;
 
-        if (packageName === 'cli') {
+        if (isBuilded) {
+            const indexContent = await readFile(`./packages/${packageName}/esm/index.es.js`, 'utf-8');
+            for (const dependencyName in packageJson.dependencies) {
+                if (!indexContent.includes(`from '${dependencyName}'`)) {
+                    delete packageJson.dependencies[dependencyName];
+                }
+            }
+        } else {
+            delete packageJson.dependencies;
+            delete packageJson.devDependencies;
+            delete packageJson.peerDependencies;
+        }
+
+        packageJson.dependencies = {
+            ...(packageJson.dependencies || {}),
+            ...Object.fromEntries(dependencies.map((dependency) => [dependency, packageJson.version])),
+        };
+        packageJson.devDependencies = {
+            ...(packageJson.devDependencies || {}),
+            ...Object.fromEntries(devDependencies.map((dependency) => [dependency, packageJson.version])),
+        };
+
+        if (Object.keys(packageJson.devDependencies).length === 0) {
+            delete packageJson.devDependencies;
+        }
+
+        if (isBuilded) {
+            packageJson.main = `./umd/index.umd.js`;
+            packageJson.module = `./esm/index.es.js`;
+            packageJson.typings = `./esm/typings/_packages/${packageName}.index.d.ts`;
+        }
+
+        if (packageFullname === '@promptbook/cli') {
             packageJson.bin = {
                 promptbook: 'bin/promptbook-cli.js',
             };
@@ -156,8 +183,10 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
         // TODO: !! Filter out dependencies only for the current package
         await writeFile(`./packages/${packageName}/package.json`, JSON.stringify(packageJson, null, 4) + '\n');
 
-        await writeFile(`./packages/${packageName}/.gitignore`, ['esm', 'umd'].join('\n'));
-        await writeFile(`./packages/${packageName}/.npmignore`, '');
+        if (isBuilded) {
+            await writeFile(`./packages/${packageName}/.gitignore`, ['esm', 'umd'].join('\n'));
+            await writeFile(`./packages/${packageName}/.npmignore`, '');
+        }
     }
 
     await writeFile(
@@ -198,8 +227,8 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
                                 //       This is run after a version tag is pushed to the repository, so used publish.yml is one version behing
                                 run: `npx ts-node ./scripts/generate-packages/generate-packages.ts`,
                             },
-                            ...packageNames.map((packageName) => ({
-                                name: `Publish @promptbook/${packageName}`,
+                            ...packages.map(({ packageName, packageFullname }) => ({
+                                name: `Publish ${packageFullname}`,
                                 'working-directory': `./packages/${packageName}`,
                                 run: 'npm publish --access public',
                                 env: {

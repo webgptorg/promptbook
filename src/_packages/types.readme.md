@@ -6,3 +6,5 @@ import { promptbookStringToJson } from '@promptbook/core';
 
 const promptbook: PromptbookJson = promptbookStringToJson(...);
 ```
+
+_Note: `@promptbook/types` does not export brand-specific types like `OpenAiExecutionToolsOptions`, `ClaudeExecutionToolsOptions`, `LangchainExecutionToolsOptions`,... etc._

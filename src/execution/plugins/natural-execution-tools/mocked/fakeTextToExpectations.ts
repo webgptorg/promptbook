@@ -60,6 +60,6 @@ export async function $fakeTextToExpectations(
 }
 
 /**
- * TODO: Implement better - create FakeLLM from this
+ * TODO: [🚏] Implement better - create FakeLLM from this
  * TODO: [💝] Unite object for expecting amount and format - use here also a format
  */

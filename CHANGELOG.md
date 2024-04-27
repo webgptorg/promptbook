@@ -232,11 +232,12 @@ More direct usage of OpenAI API, Refactoring
 
 ### 0.46.0 _(2024-04-27)_
 
-!!!
+Reorganize packages
 
--   New package `promptbook` !!!
--   New package `ptbk` !!!
--   New package `@promptbook/mock` !!!
+-   New package `promptbook` as a link to all other packages
+-   New package `ptbk` as an alias to `promptbook`
+-   New package `@promptbook/mock`
+    -   Move there `MockedEchoNaturalExecutionTools` and `MockedFackedNaturalExecutionTools` from `@promptbook/core`
 
 ## In pre-release
 
