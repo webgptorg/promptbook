@@ -32,7 +32,7 @@ export { SimplePromptInterfaceTools };
 // @promptbook/parser
 export { promptbookStringToJson, validatePromptbookJson };
 
-// @promptbook/mock
+// Make !!! @promptbook/mock
 export { MockedEchoNaturalExecutionTools, MockedFackedNaturalExecutionTools };
 
 // @promptbook/executor
