@@ -222,6 +222,10 @@ npx promptbook prettify promptbook/**/*.ptbk.md
 
 ## In pre-release
 
+##
+
+Change `openAiApiKey` -> `apiKey` when creating new `OpenAiExecutionTools`
+
 ### 0.45.0 _(2024-)_
 
 -   TODO: !!! Add splitInto functions to `@promptbook/utils` besides all the `count` functions

@@ -2,7 +2,7 @@ import colors from 'colors';
 import OpenAI from 'openai';
 import { PromptbookExecutionError } from '../../../../errors/PromptbookExecutionError';
 import type { Prompt } from '../../../../types/Prompt';
-import { string_date_iso8601 } from '../../../../types/typeAliases';
+import type { string_date_iso8601 } from '../../../../types/typeAliases';
 import { getCurrentIsoDate } from '../../../../utils/getCurrentIsoDate';
 import type { NaturalExecutionTools } from '../../../NaturalExecutionTools';
 import type { PromptChatResult, PromptCompletionResult } from '../../../PromptResult';
@@ -18,9 +18,18 @@ export class OpenAiExecutionTools implements NaturalExecutionTools {
      */
     private readonly openai: OpenAI;
 
+    /**
+     * Creates OpenAI Execution Tools.
+     *
+     * @param options which are relevant are directly passed to the OpenAI client
+     */
     public constructor(private readonly options: OpenAiExecutionToolsOptions) {
+        // Note: Passing only OpenAI relevant options to OpenAI constructor
+        const openAiOptions = { ...options };
+        delete openAiOptions.isVerbose;
+        delete openAiOptions.user;
         this.openai = new OpenAI({
-            apiKey: this.options.openAiApiKey,
+            ...openAiOptions,
         });
     }
 
