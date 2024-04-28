@@ -23,7 +23,12 @@ To install this package, run:
 npm i @promptbook/core
 ```
 
-Core of the library, it contains the main logic for promptbooks
+Core of the library, it contains the main logic for promptbooks.
+
+
+
+> 💡 This package does not make sense by itself, look at [all promptbook packages](#-packages) or just install all by `npm i ptbk`
+
 
 ---
 
