@@ -18,7 +18,7 @@ TODO: Probbably remove this section only in packages
 > ⚠ Warning: This library is still in early development.
 -->
 
-## 🤍 Whitepaper
+## 🤍 The Promptbook Whitepaper
 
 When you have a simple, single prompt for ChatGPT, GPT-4, Anthropic Claude, Google Gemini, Llama 2, or whatever, it doesn't matter how it is integrated. Whether it's the direct calling of a REST API, using the SDK, hardcoding the prompt in the source code, or importing a text file, the process remains the same.
 
