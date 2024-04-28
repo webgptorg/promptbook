@@ -258,19 +258,29 @@ Reorganize packages
 
 ### 0..0 _(2024-0-)_
 
+More options to create `PromptbookLibrary`
+
+### 0..0 _(2024-0-)_
+
 Intagration with Langtail
 
 ### 0..0 _(2024-0-)_
 
 Tools refactoring
 
-## Upcomming features
-
--   When postprocessing fails, retry in same way as failed expectations
 -   Rename "natural" -> "llm"
+
+### 0..0 _(2024-0-)_
+
+More expect variations
+
 -   Add command `EXPECT "..."` <-[🥤]
 -   Add command `EXPECT /.../i` <-[🥤]
 -   Add command `EXPECT "...{foo}..."` <-[🥤]
 -   Add command `EXPECT /...{foo}.../i` <-[🥤]
 -   Add command `EXPECT JSON ARRAY` and `EXPECT JSON OBJECT` _(In future this will be suggar code for `EXPECT JSON SCHEMA`)_ <-[🥤]
+
+## Upcomming features
+
+-   When postprocessing fails, retry in same way as failed expectations
 -   When making next attempt for `PROMPT DIALOG`, preserve the previous user input <-[🌹]
