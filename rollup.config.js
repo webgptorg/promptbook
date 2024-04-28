@@ -18,23 +18,17 @@ export const packages = readdirSync(join(__dirname, 'src/_packages'), { recursiv
             dependencies: [
                 // Note: Dependencies will be added automatically in generate-packages script
             ],
-            devDependencies: [
-                // Note: Dependencies will be added automatically in generate-packages script
-            ],
         };
     });
 
-const devDependencies = ['@promptbook/cli', '@promptbook/types'];
+// Note: Packages `@promptbook/cli` and `@promptbook/types` are not marked as devDependencies in `promptbook` package to ensure that they are installed
 
 packages.push({
     isBuilded: false,
     packageScope: null,
     packageName: 'promptbook',
     packageFullname: 'promptbook',
-    dependencies: packages
-        .map(({ packageFullname }) => packageFullname)
-        .filter((packageFullname) => !devDependencies.includes(packageFullname)),
-    devDependencies,
+    dependencies: packages.map(({ packageFullname }) => packageFullname),
 });
 
 packages.push({

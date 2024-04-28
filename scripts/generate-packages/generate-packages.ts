@@ -62,7 +62,7 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
 
     const mainReadme = await readFile('./README.md', 'utf-8');
 
-    for (const { isBuilded, packageFullname, packageName, dependencies, devDependencies } of packages) {
+    for (const { isBuilded, packageFullname, packageName, dependencies } of packages) {
         let packageReadme = mainReadme;
         const packageReadmeExtra = await readFile(`./src/_packages/${packageName}.readme.md`, 'utf-8');
 
@@ -163,14 +163,6 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
             ...(packageJson.dependencies || {}),
             ...Object.fromEntries(dependencies.map((dependency) => [dependency, packageJson.version])),
         };
-        packageJson.devDependencies = {
-            ...(packageJson.devDependencies || {}),
-            ...Object.fromEntries(devDependencies.map((dependency) => [dependency, packageJson.version])),
-        };
-
-        if (Object.keys(packageJson.devDependencies).length === 0) {
-            delete packageJson.devDependencies;
-        }
 
         if (isBuilded) {
             packageJson.main = `./umd/index.umd.js`;
