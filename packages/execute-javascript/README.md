@@ -20,6 +20,10 @@ Library to supercharge your use of large language models
 To install this package, run:
 
 ```bash
+# Install entire promptbook ecosystem
+npm i ptbk
+
+# Install just this package to save space
 npm i @promptbook/execute-javascript
 ```
 
