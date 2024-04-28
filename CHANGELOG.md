@@ -228,9 +228,7 @@ More direct usage of OpenAI API, Refactoring
     -   Change `openAiApiKey` -> `apiKey` when creating new `OpenAiExecutionTools`
 -   Change all import statements to import type when importing just types
 
-## In pre-release
-
-### 0.46.0 _(2024-)_
+### 0.46.0 _(2024-04-28)_
 
 Reorganize packages
 
@@ -242,9 +240,11 @@ Reorganize packages
     -   Move there `MockedEchoNaturalExecutionTools` and `MockedFackedNaturalExecutionTools` from `@promptbook/core`
 -   New package `@promptbook/langtail` to prepare for [Langtail](https://langtail.com/) integration
 
+## In pre-release
+
 ## In prepare
 
-### 0.46.0 _(2024-)_
+### 0..0 _(2024-0-)_
 
 -   TODO: !!! Add splitInto functions to `@promptbook/utils` besides all the `count` functions
 
@@ -256,7 +256,15 @@ Reorganize packages
 -   Add `CountUtils` -> `splitIntoUtils`
 -   Add `countWords` -> `splitIntoWords`
 
-## Upcomming
+### 0..0 _(2024-0-)_
+
+Intagration with Langtail
+
+### 0..0 _(2024-0-)_
+
+Tools refactoring
+
+## Upcomming features
 
 -   When postprocessing fails, retry in same way as failed expectations
 -   Rename "natural" -> "llm"
