@@ -66,7 +66,13 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
         let packageReadme = mainReadme;
         const packageReadmeExtra = await readFile(`./src/_packages/${packageName}.readme.md`, 'utf-8');
 
-        let installCommand = `npm i ${packageFullname}`;
+        let installCommand = spaceTrim(`
+
+            # Install just this package to save space
+            npm i ${packageFullname}
+
+
+        `);
 
         if (packageFullname === '@promptbook/cli') {
             installCommand = spaceTrim(`
@@ -92,6 +98,9 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
                 To install this package, run:
 
                 \`\`\`bash
+                # Install entire promptbook ecosystem
+                npm i ptbk
+
                 ${block(installCommand)}
                 \`\`\`
 
