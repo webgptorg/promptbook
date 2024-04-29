@@ -20,7 +20,7 @@ import { RemoteServerOptions } from './interfaces/RemoteServerOptions';
  * @see https://github.com/webgptorg/promptbook#remote-server
  */
 export function startRemoteServer(options: RemoteServerOptions): IDestroyable {
-    const { port, path, library, createNaturalExecutionTools, isVerbose } = options;
+    const { port, path, library, createLlmExecutionTools, isVerbose } = options;
 
     const httpServer = http.createServer({}, (request, response) => {
         if (request.url?.includes('socket.io')) {
@@ -62,7 +62,7 @@ export function startRemoteServer(options: RemoteServerOptions): IDestroyable {
             }
 
             try {
-                const executionToolsForClient = createNaturalExecutionTools(clientId);
+                const executionToolsForClient = createLlmExecutionTools(clientId);
 
                 if (!(await library.isResponsibleForPrompt(prompt))) {
                     throw new PromptbookExecutionError(`Prompt is not in the library of this server`);

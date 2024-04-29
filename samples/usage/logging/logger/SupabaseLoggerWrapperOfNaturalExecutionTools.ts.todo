@@ -1,5 +1,5 @@
 import type {
-    NaturalExecutionTools,
+    LlmExecutionTools,
     Prompt,
     PromptChatResult,
     PromptCompletionResult,
@@ -8,13 +8,13 @@ import type {
 import { spaceTrim } from 'spacetrim';
 import { isRunningInNode } from '../../../utils/isRunningInWhatever';
 import { getSupabaseForServer } from '../../../utils/supabase/getSupabaseForServer';
-import { SupabaseLoggerWrapperOfNaturalExecutionToolsOptions } from './SupabaseLoggerWrapperOfNaturalExecutionToolsOptions';
+import { SupabaseLoggerWrapperOfLlmExecutionToolsOptions } from './SupabaseLoggerWrapperOfLlmExecutionToolsOptions';
 
 /**
  * Wrapper for any PromptbookExecutionTools which logs every request+result to Supabase.
  */
-export class SupabaseLoggerWrapperOfNaturalExecutionTools implements NaturalExecutionTools {
-    public constructor(private readonly options: SupabaseLoggerWrapperOfNaturalExecutionToolsOptions) {
+export class SupabaseLoggerWrapperOfLlmExecutionTools implements LlmExecutionTools {
+    public constructor(private readonly options: SupabaseLoggerWrapperOfLlmExecutionToolsOptions) {
         if (!isRunningInNode()) {
             throw new Error('SupabaseLoggerWrapperOfExecutionTools can be used only on server');
         }
@@ -45,10 +45,10 @@ export class SupabaseLoggerWrapperOfNaturalExecutionTools implements NaturalExec
         let promptResult: PromptResult;
         switch (prompt.modelRequirements.variant) {
             case 'CHAT':
-                promptResult = await this.options.naturalExecutionTools.gptChat(prompt);
+                promptResult = await this.options.llmExecutionTools.gptChat(prompt);
                 break;
             case 'COMPLETION':
-                promptResult = await this.options.naturalExecutionTools.gptComplete(prompt);
+                promptResult = await this.options.llmExecutionTools.gptComplete(prompt);
                 break;
             default:
                 throw new Error(`Unknown model variant "${prompt.modelRequirements.variant}"`);
@@ -108,8 +108,8 @@ export class SupabaseLoggerWrapperOfNaturalExecutionTools implements NaturalExec
 }
 
 /**
- * TODO: [⚾️][🧠] Best name for this class "SupabaseLoggerWrapperOfNaturalExecutionTools" vs "NaturalExecutionToolsWithSupabaseLogger" or just helper "withSupabaseLogger"
+ * TODO: [⚾️][🧠] Best name for this class "SupabaseLoggerWrapperOfLlmExecutionTools" vs "LlmExecutionToolsWithSupabaseLogger" or just helper "withSupabaseLogger"
  * TODO: [⚾️] Log also failed results
  * TODO: [⚾️][🧠] Maybe do equivalent for UserInterfaceTools OR make this for whole ExecutionTools
- * TODO: [⚾️] Create abstract LoggerWrapperOfNaturalExecutionTools which can be extended to implement more loggers
+ * TODO: [⚾️] Create abstract LoggerWrapperOfLlmExecutionTools which can be extended to implement more loggers
  */

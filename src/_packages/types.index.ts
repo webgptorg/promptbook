@@ -8,7 +8,7 @@ import { PromptbookSyntaxError } from '../errors/PromptbookSyntaxError';
 */
 import type { CommonExecutionToolsOptions } from '../execution/CommonExecutionToolsOptions';
 import type { ExecutionTools } from '../execution/ExecutionTools';
-import type { NaturalExecutionTools } from '../execution/NaturalExecutionTools';
+import type { LlmExecutionTools } from '../execution/LlmExecutionTools';
 import type {
     PromptChatResult,
     PromptCommonResult,
@@ -86,36 +86,33 @@ import type {
 import { FromtoItems } from '../utils/FromtoItems';
 
 export {
+    client_id,
     CommonExecutionToolsOptions,
-    EXPECTATION_UNITS,
     ExecutionReportJson,
     ExecutionTools,
     ExecutionType,
+    EXPECTATION_UNITS,
     ExpectationAmount,
     ExpectationUnit,
     FromtoItems,
+    LlmExecutionTools as LlmExecutionTools,
     ModelRequirements,
     ModelVariant,
-    NaturalExecutionTools,
     Parameters,
     Prompt,
+    PromptbookExecutor,
+    PromptbookJson,
+    PromptbookLibrary,
+    PromptbookString,
     PromptChatResult,
     PromptCommonResult,
     PromptCompletionResult,
     PromptResult,
     PromptTemplateJson,
     PromptTemplateParameterJson,
-    PromptbookExecutor,
-    PromptbookJson,
-    PromptbookLibrary,
-    PromptbookString,
     ScriptExecutionTools,
     ScriptExecutionToolsExecuteOptions,
     ScriptLanguage,
-    TaskProgress,
-    UserInterfaceTools,
-    UserInterfaceToolsPromptDialogOptions,
-    client_id,
     string_char,
     string_char_emoji,
     string_chat_prompt,
@@ -161,6 +158,9 @@ export {
     string_url,
     string_url_image,
     string_version,
+    TaskProgress,
+    UserInterfaceTools,
+    UserInterfaceToolsPromptDialogOptions,
 };
 
 /*

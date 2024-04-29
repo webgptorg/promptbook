@@ -16,12 +16,12 @@ import type {
 /**
  * Describes one prompt template in the promptbook
  */
-export type PromptTemplateJson = NaturalTemplateJson | SimpleTemplateJson | ScriptTemplateJson | PromptDialogJson;
+export type PromptTemplateJson = LlmTemplateJson | SimpleTemplateJson | ScriptTemplateJson | PromptDialogJson;
 
 /**
  * Template for prompt to LLM
  */
-export type NaturalTemplateJson = PromptTemplateJsonCommon & {
+export type LlmTemplateJson = PromptTemplateJsonCommon & {
     readonly executionType: 'PROMPT_TEMPLATE';
 
     /**

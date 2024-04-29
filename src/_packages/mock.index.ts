@@ -1,7 +1,7 @@
-import { MockedEchoNaturalExecutionTools } from '../execution/plugins/natural-execution-tools/mocked/MockedEchoNaturalExecutionTools';
-import { MockedFackedNaturalExecutionTools } from '../execution/plugins/natural-execution-tools/mocked/MockedFackedNaturalExecutionTools';
+import { MockedEchoLlmExecutionTools } from '../execution/plugins/llm-execution-tools/mocked/MockedEchoLlmExecutionTools';
+import { MockedFackedLlmExecutionTools } from '../execution/plugins/llm-execution-tools/mocked/MockedFackedLlmExecutionTools';
 
-export { MockedEchoNaturalExecutionTools, MockedFackedNaturalExecutionTools };
+export { MockedEchoLlmExecutionTools, MockedFackedLlmExecutionTools };
 
 /**
  * TODO: [🚏] FakeLLM

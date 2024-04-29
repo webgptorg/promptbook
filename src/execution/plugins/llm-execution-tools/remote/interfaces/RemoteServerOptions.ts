@@ -1,7 +1,7 @@
 import type { PromptbookLibrary } from '../../../../../library/PromptbookLibrary';
 import type { client_id, string_uri } from '../../../../../types/typeAliases';
 import type { CommonExecutionToolsOptions } from '../../../../CommonExecutionToolsOptions';
-import type { NaturalExecutionTools } from '../../../../NaturalExecutionTools';
+import type { LlmExecutionTools } from '../../../../LlmExecutionTools';
 
 export type RemoteServerOptions = CommonExecutionToolsOptions & {
     /**
@@ -25,7 +25,7 @@ export type RemoteServerOptions = CommonExecutionToolsOptions & {
     readonly library: PromptbookLibrary;
 
     /**
-     * Creates natural execution tools for each client
+     * Creates llm execution tools for each client
      */
-    createNaturalExecutionTools(clientId: client_id): NaturalExecutionTools /* <- TODO: &({}|IDestroyable) */;
+    createLlmExecutionTools(clientId: client_id): LlmExecutionTools /* <- TODO: &({}|IDestroyable) */;
 };

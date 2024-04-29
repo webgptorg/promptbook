@@ -1,4 +1,4 @@
-import type { NaturalExecutionTools } from './NaturalExecutionTools';
+import type { LlmExecutionTools } from './LlmExecutionTools';
 import type { ScriptExecutionTools } from './ScriptExecutionTools';
 import type { UserInterfaceTools } from './UserInterfaceTools';
 
@@ -11,7 +11,7 @@ export type ExecutionTools = {
     /**
      * Tools for executing prompts to large language models like GPT-4
      */
-    natural: NaturalExecutionTools;
+    llm: LlmExecutionTools;
 
     /**
      * Tools for executing scripts

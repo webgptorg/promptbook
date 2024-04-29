@@ -7,7 +7,7 @@ Trying the language capabilities of GPT models.
 -   STARTED AT 2024-03-24 10:30:38
 -   COMPLETED AT 2024-03-24 10:30:43
 -   TOTAL DURATION 5 seconds
--   TOTAL NATURAL DURATION 5 seconds
+-   TOTAL LLM DURATION 5 seconds
 -   TOTAL COST $0.00338 _(Some cost is unknown)_
 
 ## 🗃 Index

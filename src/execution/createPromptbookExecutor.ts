@@ -166,7 +166,7 @@ export function createPromptbookExecutor(options: CreatePromptbookExecutorOption
 
                                             if (errors.length === 0) {
                                                 throw new PromptbookExecutionError(
-                                                    'Postprocessing in NaturalExecutionTools failed because no ScriptExecutionTools were provided',
+                                                    'Postprocessing in LlmExecutionTools failed because no ScriptExecutionTools were provided',
                                                 );
                                             } else if (errors.length === 1) {
                                                 throw errors[0];
@@ -174,7 +174,7 @@ export function createPromptbookExecutor(options: CreatePromptbookExecutorOption
                                                 throw new PromptbookExecutionError(
                                                     spaceTrim(
                                                         (block) => `
-                                                        Postprocessing in NaturalExecutionTools failed ${errors.length}x
+                                                        Postprocessing in LlmExecutionTools failed ${errors.length}x
 
                                                         ${block(
                                                             errors.map((error) => '- ' + error.message).join('\n\n'),
@@ -189,13 +189,13 @@ export function createPromptbookExecutor(options: CreatePromptbookExecutorOption
 
                                 variant: switch (currentTemplate.modelRequirements!.modelVariant) {
                                     case 'CHAT':
-                                        chatThread = await tools.natural.gptChat(prompt);
+                                        chatThread = await tools.llm.gptChat(prompt);
                                         // TODO: [🍬] Destroy chatThread
                                         result = chatThread;
                                         resultString = chatThread.content;
                                         break variant;
                                     case 'COMPLETION':
-                                        completionResult = await tools.natural.gptComplete(prompt);
+                                        completionResult = await tools.llm.gptComplete(prompt);
                                         result = completionResult;
                                         resultString = completionResult.content;
                                         break variant;
@@ -354,7 +354,7 @@ export function createPromptbookExecutor(options: CreatePromptbookExecutorOption
                         currentTemplate.executionType === 'PROMPT_TEMPLATE' &&
                         prompt!
                         //    <- Note:  [2] When some expected parameter is not defined, error will occur in replaceParameters
-                        //              In that case we don’t want to make a report about it because it’s not a natural execution error
+                        //              In that case we don’t want to make a report about it because it’s not a llm execution error
                     ) {
                         // TODO: [🧠] Maybe put other executionTypes into report
                         executionReport.promptExecutions.push({
@@ -375,7 +375,7 @@ export function createPromptbookExecutor(options: CreatePromptbookExecutorOption
                     throw new PromptbookExecutionError(
                         spaceTrim(
                             (block) => `
-                              Natural execution failed ${maxExecutionAttempts}x
+                              LLM execution failed ${maxExecutionAttempts}x
 
                               ---
                               Last error ${expectError?.name || ''}:

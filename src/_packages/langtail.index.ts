@@ -1,4 +1,4 @@
-import { LangtailExecutionTools } from '../execution/plugins/natural-execution-tools/langtail/LangtailExecutionTools';
-import { LangtailExecutionToolsOptions } from '../execution/plugins/natural-execution-tools/langtail/LangtailExecutionToolsOptions';
+import { LangtailExecutionTools } from '../execution/plugins/llm-execution-tools/langtail/LangtailExecutionTools';
+import { LangtailExecutionToolsOptions } from '../execution/plugins/llm-execution-tools/langtail/LangtailExecutionToolsOptions';
 
 export { LangtailExecutionTools, LangtailExecutionToolsOptions };

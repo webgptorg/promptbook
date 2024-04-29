@@ -214,7 +214,7 @@ npx promptbook prettify promptbook/**/*.ptbk.md
 -   `@promptbook/core` is not be peer dependency of `@promptbook/utils`
 -   Rename `expectAmount` in json to `expectations`
 -   Expectations are passed into prompt object and used in natural tools
--   Add `MockedFackedNaturalExecutionTools`
+-   Add `MockedFackedLlmExecutionTools`
 -   Add utils `checkExpectations` and `isPassingExpectations`
 -   Better error messages from `JavascriptEvalExecutionTools`
 -   Each exported NPM package has full README
@@ -237,12 +237,26 @@ Reorganize packages
 -   New package `promptbook` as a link to all other packages
 -   New package `ptbk` as an alias to `promptbook`
 -   New package `@promptbook/mock`
-    -   Move there `MockedEchoNaturalExecutionTools` and `MockedFackedNaturalExecutionTools` from `@promptbook/core`
+    -   Move there `MockedEchoLlmExecutionTools` and `MockedFackedLlmExecutionTools` from `@promptbook/core`
 -   New package `@promptbook/langtail` to prepare for [Langtail](https://langtail.com/) integration
+
+### 0.47.0 _(2024-0-)_
+
+Tools refactoring
+
+-   Rename "natural" -> "llm"
 
 ## In pre-release
 
 ## In prepare
+
+### 0..0 _(2024-0-)_
+
+More options to create `PromptbookLibrary`
+
+### 0..0 _(2024-0-)_
+
+Intagration with Langtail
 
 ### 0..0 _(2024-0-)_
 
@@ -255,20 +269,6 @@ Reorganize packages
 -   Add `countSentences` -> `splitIntoSentences`
 -   Add `CountUtils` -> `splitIntoUtils`
 -   Add `countWords` -> `splitIntoWords`
-
-### 0..0 _(2024-0-)_
-
-More options to create `PromptbookLibrary`
-
-### 0..0 _(2024-0-)_
-
-Intagration with Langtail
-
-### 0..0 _(2024-0-)_
-
-Tools refactoring
-
--   Rename "natural" -> "llm"
 
 ### 0..0 _(2024-0-)_
 

@@ -4,7 +4,7 @@ import { PromptbookExecutionError } from '../../../../errors/PromptbookExecution
 import type { Prompt } from '../../../../types/Prompt';
 import type { string_date_iso8601 } from '../../../../types/typeAliases';
 import { getCurrentIsoDate } from '../../../../utils/getCurrentIsoDate';
-import type { NaturalExecutionTools } from '../../../NaturalExecutionTools';
+import type { LlmExecutionTools } from '../../../LlmExecutionTools';
 import type { PromptChatResult, PromptCompletionResult } from '../../../PromptResult';
 import type { OpenAiExecutionToolsOptions } from './OpenAiExecutionToolsOptions';
 import { computeOpenaiUsage } from './computeOpenaiUsage';
@@ -12,7 +12,7 @@ import { computeOpenaiUsage } from './computeOpenaiUsage';
 /**
  * Execution Tools for calling OpenAI API.
  */
-export class OpenAiExecutionTools implements NaturalExecutionTools {
+export class OpenAiExecutionTools implements LlmExecutionTools {
     /**
      * OpenAI API client.
      */

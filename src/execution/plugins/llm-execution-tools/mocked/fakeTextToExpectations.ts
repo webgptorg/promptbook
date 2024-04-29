@@ -11,7 +11,7 @@ import { PostprocessingFunction } from '../../script-execution-tools/javascript/
  * Note: You can provide postprocessing functions to modify the text before checking the expectations
  *       The result will be the text BEFORE the postprocessing
  *
- * @private internal util for MockedFackedNaturalExecutionTools
+ * @private internal util for MockedFackedLlmExecutionTools
  */
 export async function $fakeTextToExpectations(
     expectations: Expectations,

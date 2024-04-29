@@ -30,7 +30,7 @@ async function main() {
     const promptbook = library.getPromptbookByUrl((await library.listPromptbooks())[0]);
 
     const tools = {
-        natural: new OpenAiExecutionTools({
+        llm: new OpenAiExecutionTools({
             isVerbose: true,
             openAiApiKey: process.env.OPENAI_API_KEY,
         }),

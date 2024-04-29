@@ -77,7 +77,7 @@ export function executionReportJsonToString(
             }));
 
         const duration = moment.duration(completedAt.diff(startedAt));
-        const naturalDuration = moment.duration(countWorkingDuration(timingItems) * 1000);
+        const llmDuration = moment.duration(countWorkingDuration(timingItems) * 1000);
 
         const executionsWithKnownCost = executionReportJson.promptExecutions.filter(
             (promptExecution) => (promptExecution.result?.usage?.price || 'UNKNOWN') !== 'UNKNOWN',
@@ -90,7 +90,7 @@ export function executionReportJsonToString(
         headerList.push(`STARTED AT ${moment(startedAt).format(`YYYY-MM-DD HH:mm:ss`)}`);
         headerList.push(`COMPLETED AT ${moment(completedAt).format(`YYYY-MM-DD HH:mm:ss`)}`);
         headerList.push(`TOTAL DURATION ${duration.humanize(MOMENT_ARG_THRESHOLDS)}`);
-        headerList.push(`TOTAL NATURAL DURATION ${naturalDuration.humanize(MOMENT_ARG_THRESHOLDS)}`);
+        headerList.push(`TOTAL LLM DURATION ${llmDuration.humanize(MOMENT_ARG_THRESHOLDS)}`);
 
         headerList.push(
             `TOTAL COST $${formatNumber(cost * (1 + taxRate))}` +

@@ -1,10 +1,10 @@
-import type { client_id, string_uri } from '../../../.././types/typeAliases';
+import type { client_id, string_uri } from '../../../../types/typeAliases';
 import type { CommonExecutionToolsOptions } from '../../../CommonExecutionToolsOptions';
 
 /**
- * Options for RemoteNaturalExecutionTools
+ * Options for RemoteLlmExecutionTools
  */
-export type RemoteNaturalExecutionToolsOptions = CommonExecutionToolsOptions & {
+export type RemoteLlmExecutionToolsOptions = CommonExecutionToolsOptions & {
     /**
      * URL of the remote PROMPTBOOK server
      * On this server will be connected to the socket.io server

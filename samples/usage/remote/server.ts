@@ -28,7 +28,7 @@ async function main() {
         path: '/promptbook',
         port: 4460,
         promptbookLibrary: library,
-        createNaturalExecutionTools(clientId) {
+        createLlmExecutionTools(clientId) {
             console.log('clientId', clientId);
             return new OpenAiExecutionTools({
                 isVerbose: true,

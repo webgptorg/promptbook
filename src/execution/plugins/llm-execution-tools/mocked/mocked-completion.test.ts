@@ -5,7 +5,7 @@ import { PromptbookString } from '../../../../types/PromptbookString';
 import { PROMPTBOOK_VERSION } from '../../../../version';
 import { createPromptbookExecutor } from '../../../createPromptbookExecutor';
 import { CallbackInterfaceTools } from '../../user-interface-execution-tools/callback/CallbackInterfaceTools';
-import { MockedEchoNaturalExecutionTools } from './MockedEchoNaturalExecutionTools';
+import { MockedEchoLlmExecutionTools } from './MockedEchoLlmExecutionTools';
 
 describe('createPromptbookExecutor + MockedEchoExecutionTools with sample chat prompt', () => {
     const promptbook = promptbookStringToJson(
@@ -35,7 +35,7 @@ describe('createPromptbookExecutor + MockedEchoExecutionTools with sample chat p
     const promptbookExecutor = createPromptbookExecutor({
         promptbook,
         tools: {
-            natural: new MockedEchoNaturalExecutionTools({ isVerbose: true }),
+            llm: new MockedEchoLlmExecutionTools({ isVerbose: true }),
             script: [],
             userInterface: new CallbackInterfaceTools({
                 isVerbose: true,

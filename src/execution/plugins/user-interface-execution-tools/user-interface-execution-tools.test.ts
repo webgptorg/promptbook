@@ -4,7 +4,7 @@ import { promptbookStringToJson } from '../../../conversion/promptbookStringToJs
 import { PromptbookString } from '../../../types/PromptbookString';
 import { assertsExecutionSuccessful } from '../../assertsExecutionSuccessful';
 import { createPromptbookExecutor } from '../../createPromptbookExecutor';
-import { MockedEchoNaturalExecutionTools } from '../natural-execution-tools/mocked/MockedEchoNaturalExecutionTools';
+import { MockedEchoLlmExecutionTools } from '../llm-execution-tools/mocked/MockedEchoLlmExecutionTools';
 import { CallbackInterfaceTools } from '../user-interface-execution-tools/callback/CallbackInterfaceTools';
 
 describe('createPromptbookExecutor + executing user interface prompts in promptbook', () => {
@@ -34,7 +34,7 @@ describe('createPromptbookExecutor + executing user interface prompts in promptb
     const promptbookExecutor = createPromptbookExecutor({
         promptbook,
         tools: {
-            natural: new MockedEchoNaturalExecutionTools({ isVerbose: true }),
+            llm: new MockedEchoLlmExecutionTools({ isVerbose: true }),
             script: [],
             userInterface: new CallbackInterfaceTools({
                 isVerbose: true,

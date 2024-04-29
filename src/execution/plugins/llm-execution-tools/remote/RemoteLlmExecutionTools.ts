@@ -1,9 +1,9 @@
 import type { Socket } from 'socket.io-client';
 import { io } from 'socket.io-client';
 import { Prompt } from '../../../../types/Prompt';
-import { NaturalExecutionTools } from '../../../NaturalExecutionTools';
+import { LlmExecutionTools } from '../../../LlmExecutionTools';
 import { PromptChatResult, PromptCompletionResult, PromptResult } from '../../../PromptResult';
-import { RemoteNaturalExecutionToolsOptions } from './RemoteNaturalExecutionToolsOptions';
+import { RemoteLlmExecutionToolsOptions } from './RemoteLlmExecutionToolsOptions';
 import { Promptbook_Server_Error } from './interfaces/Promptbook_Server_Error';
 import { Promptbook_Server_Request } from './interfaces/Promptbook_Server_Request';
 import { Promptbook_Server_Response } from './interfaces/Promptbook_Server_Response';
@@ -16,8 +16,8 @@ import { Promptbook_Server_Response } from './interfaces/Promptbook_Server_Respo
  *
  * @see https://github.com/webgptorg/promptbook#remote-server
  */
-export class RemoteNaturalExecutionTools implements NaturalExecutionTools {
-    public constructor(private readonly options: RemoteNaturalExecutionToolsOptions) {}
+export class RemoteLlmExecutionTools implements LlmExecutionTools {
+    public constructor(private readonly options: RemoteLlmExecutionToolsOptions) {}
 
     /**
      * Creates a connection to the remote proxy server.
@@ -88,5 +88,5 @@ export class RemoteNaturalExecutionTools implements NaturalExecutionTools {
 }
 
 /**
- * TODO: [🤹‍♂️] RemoteNaturalExecutionTools should extend Destroyable and implement IDestroyable
+ * TODO: [🤹‍♂️] RemoteLlmExecutionTools should extend Destroyable and implement IDestroyable
  */

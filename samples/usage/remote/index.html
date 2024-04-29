@@ -17,7 +17,7 @@
 
         <script type="module">
             // TODO: [🤣] !!! Auto update version
-            import { RemoteNaturalExecutionTools } from 'https://cdn.jsdelivr.net/npm/@promptbook/remote-client@0.40.0/+esm';
+            import { RemoteLlmExecutionTools } from 'https://cdn.jsdelivr.net/npm/@promptbook/remote-client@0.40.0/+esm';
             import { JavascriptEvalExecutionTools } from 'https://cdn.jsdelivr.net/npm/@promptbook/execute-javascript@0.40.0/+esm';
             import { SimplePromptbookLibrary } from 'https://cdn.jsdelivr.net/npm/@promptbook/core@0.40.0/+esm';
 
@@ -43,7 +43,7 @@
                 );
 
                 const tools = {
-                    natural:  new RemoteNaturalExecutionTools({
+                    llm:  new RemoteLlmExecutionTools({
                                     path: '/promptbook',
                                     remoteUrl: new URL(`http://localhost:4460/`),
                                     clientId,

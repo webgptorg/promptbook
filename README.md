@@ -441,19 +441,19 @@ For example:
 `ExecutionTools` is an interface which contains all the tools needed to execute prompts.
 It contais 3 subtools:
 
--   `NaturalExecutionTools`
+-   `LlmExecutionTools`
 -   `ScriptExecutionTools`
 -   `UserInterfaceTools`
 
 Which are described below:
 
-#### Natural Execution Tools
+#### LLM Execution Tools
 
-`NaturalExecutionTools` is a container for all the tools needed to execute prompts to large language models like GPT-4.
+`LlmExecutionTools` is a container for all the tools needed to execute prompts to large language models like GPT-4.
 On its interface it exposes common methods for prompt execution.
 Internally it calls OpenAI, Azure, GPU, proxy, cache, logging,...
 
-`NaturalExecutionTools` an abstract interface that is implemented by concrete execution tools:
+`LlmExecutionTools` an abstract interface that is implemented by concrete execution tools:
 
 -   `OpenAiExecutionTools`
 -   _(Not implemented yet)_ `AnthropicClaudeExecutionTools`
@@ -461,9 +461,9 @@ Internally it calls OpenAI, Azure, GPU, proxy, cache, logging,...
 -   _(Not implemented yet)_ `BardExecutionTools`
 -   _(Not implemented yet)_ `LamaExecutionTools`
 -   _(Not implemented yet)_ `GpuExecutionTools`
--   And a special case are `RemoteNaturalExecutionTools` that connect to a remote server and run one of the above execution tools on that server.
--   The second special case is `MockedEchoNaturalExecutionTools` that is used for testing and mocking.
--   The third special case is `LogNaturalExecutionToolsWrapper` that is technically also an execution tools but it is more proxy wrapper around other execution tools that logs all calls to execution tools.
+-   And a special case are `RemoteLlmExecutionTools` that connect to a remote server and run one of the above execution tools on that server.
+-   The second special case is `MockedEchoLlmExecutionTools` that is used for testing and mocking.
+-   The third special case is `LogLlmExecutionToolsWrapper` that is technically also an execution tools but it is more proxy wrapper around other execution tools that logs all calls to execution tools.
 
 #### Script Execution Tools
 

@@ -4,7 +4,7 @@ import { forTime } from 'waitasecond';
 import { promptbookStringToJson } from '../../../conversion/promptbookStringToJson';
 import { PromptbookString } from '../../../types/PromptbookString';
 import { createPromptbookExecutor } from '../../createPromptbookExecutor';
-import { MockedEchoNaturalExecutionTools } from '../natural-execution-tools/mocked/MockedEchoNaturalExecutionTools';
+import { MockedEchoLlmExecutionTools } from '../llm-execution-tools/mocked/MockedEchoLlmExecutionTools';
 import { CallbackInterfaceTools } from '../user-interface-execution-tools/callback/CallbackInterfaceTools';
 import { JavascriptEvalExecutionTools } from './javascript/JavascriptEvalExecutionTools';
 
@@ -35,7 +35,7 @@ describe('createPromptbookExecutor + custom async function ', () => {
     const promptbookExecutor = createPromptbookExecutor({
         promptbook,
         tools: {
-            natural: new MockedEchoNaturalExecutionTools({ isVerbose: true }),
+            llm: new MockedEchoLlmExecutionTools({ isVerbose: true }),
             script: [
                 new JavascriptEvalExecutionTools({
                     isVerbose: true,

@@ -2,13 +2,13 @@ import { spaceTrim } from 'spacetrim';
 import { Prompt } from '../../../../types/Prompt';
 import { getCurrentIsoDate } from '../../../../utils/getCurrentIsoDate';
 import { CommonExecutionToolsOptions } from '../../../CommonExecutionToolsOptions';
-import { NaturalExecutionTools } from '../../../NaturalExecutionTools';
+import { LlmExecutionTools } from '../../../LlmExecutionTools';
 import { PromptChatResult, PromptCompletionResult } from '../../../PromptResult';
 
 /**
  * Mocked execution Tools for just echoing the requests for testing purposes.
  */
-export class MockedEchoNaturalExecutionTools implements NaturalExecutionTools {
+export class MockedEchoLlmExecutionTools implements LlmExecutionTools {
     public constructor(private readonly options: CommonExecutionToolsOptions) {}
 
     /**

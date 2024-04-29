@@ -1,5 +1,5 @@
-import { RemoteServerOptions } from '../execution/plugins/natural-execution-tools/remote/interfaces/RemoteServerOptions';
-import { RemoteNaturalExecutionTools } from '../execution/plugins/natural-execution-tools/remote/RemoteNaturalExecutionTools';
-import { RemoteNaturalExecutionToolsOptions } from '../execution/plugins/natural-execution-tools/remote/RemoteNaturalExecutionToolsOptions';
+import { RemoteServerOptions } from '../execution/plugins/llm-execution-tools/remote/interfaces/RemoteServerOptions';
+import { RemoteLlmExecutionTools } from '../execution/plugins/llm-execution-tools/remote/RemoteLlmExecutionTools';
+import { RemoteLlmExecutionToolsOptions } from '../execution/plugins/llm-execution-tools/remote/RemoteLlmExecutionToolsOptions';
 
-export { RemoteNaturalExecutionTools, RemoteNaturalExecutionToolsOptions, RemoteServerOptions };
+export { RemoteLlmExecutionTools, RemoteLlmExecutionToolsOptions, RemoteServerOptions };
