@@ -7,6 +7,46 @@ Instrukce pro napsání úvodník do městského časopisu za pomocí [🌠 Prom
 -   Input param `{inputText}` Vstupní text
 -   Output param `{outputText}` Text emailu
 
+<!--Graph-->
+<!-- ⚠️ WARNING: This section was auto-generated -->
+
+```mermaid
+%% 🔮 Tip: Open this on GitHub or in the VSCode website to see the Mermaid graph visually
+
+flowchart LR
+  subgraph "🗞 Zadání webu"
+
+      direction TB
+
+      input((Input)):::input
+      templateVyITNVstupu("Vyčištění vstupu")
+      input--"{inputText}"-->templateVyITNVstupu
+      templateNZevWebu("Název webu")
+      templateVyITNVstupu--"{inputTextCleaned}"-->templateNZevWebu
+      templateDomNy("Domény")
+      templateNZevWebu--"{title}"-->templateDomNy
+      templateVyITNVstupu--"{inputTextCleaned}"-->templateDomNy
+      templateDomNy("Domény")
+      templateDomNy--"{domainsCommaSeparated}"-->templateDomNy
+      templateZadN("Zadání")
+      templateNZevWebu--"{title}"-->templateZadN
+      templateVyITNVstupu--"{inputTextCleaned}"-->templateZadN
+      templateEmail("Email")
+      templateNZevWebu--"{title}"-->templateEmail
+      templateZadN--"{assignment}"-->templateEmail
+      templateDomNy--"{domains}"-->templateEmail
+
+      templateEmail--"{outputText}"-->output
+      output((Output)):::output
+
+      classDef input color: grey;
+      classDef output color: grey;
+
+  end;
+```
+
+<!--/Graph-->
+
 ## Vyčištění vstupu
 
 -   MODEL VARIANT Chat
