@@ -1,5 +1,6 @@
 import { spaceTrim } from 'spacetrim';
 import { prettifyPromptbookString } from '../conversion/prettify/prettifyPromptbookString';
+import { renderPromptbookMermaid } from '../conversion/prettify/renderPromptbookMermaid';
 import { parseNumber } from '../conversion/utils/parseNumber';
 import { assertsExecutionSuccessful } from '../execution/assertsExecutionSuccessful';
 import { checkExpectations, isPassingExpectations } from '../execution/utils/checkExpectations';
@@ -110,6 +111,9 @@ export {
     searchKeywords,
     string_keyword,
 };
+
+// Promptbook
+export { renderPromptbookMermaid };
 
 /**
  * TODO: [🧠] Maybe create some indipendent package like `markdown-tools` from both here exported and @private utilities
