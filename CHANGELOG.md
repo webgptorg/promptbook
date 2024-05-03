@@ -254,6 +254,14 @@ Tools refactoring
 
 ### 0..0 _(2024-0-)_
 
+Better script execution
+
+-   Gettings rid of `JavascriptEvalExecutionTools` and implement propper isolated script execution in `JavascriptExecutionTools`
+-   List all default postprocessing functions in `@promptbook/utils` README
+-   Implement `PythonExecutionTools` for executing Python scripts
+
+### 0..0 _(2024-0-)_
+
 More options to create `PromptbookLibrary`
 
 ### 0..0 _(2024-0-)_
