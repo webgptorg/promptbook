@@ -5,9 +5,13 @@ Library to supercharge your use of large language models
 
 
 
-[![License of 📖 Prompt book](https://img.shields.io/github/license/webgptorg/promptbook.svg?style=flat)](https://github.com/webgptorg/promptbook/blob/main/LICENSE)
+
+[![NPM Version of ![Promptbook logo - cube with letters P and B](./other/design/logo-h1.png) Promptbook](https://badge.fury.io/js/promptbook.svg)](https://www.npmjs.com/package/promptbook)
+[![Quality of package ![Promptbook logo - cube with letters P and B](./other/design/logo-h1.png) Promptbook](https://packagequality.com/shield/promptbook.svg)](https://packagequality.com/#?package=promptbook)
 [![Known Vulnerabilities](https://snyk.io/test/github/webgptorg/promptbook/badge.svg)](https://snyk.io/test/github/webgptorg/promptbook)
 [![Issues](https://img.shields.io/github/issues/webgptorg/promptbook.svg?style=flat)](https://github.com/webgptorg/promptbook/issues)
+[![Socket](https://socket.dev/api/badge/npm/package/promptbook)](https://socket.dev/npm/package/promptbook)
+
 [![Socket Badge](https://socket.dev/api/badge/npm/package/@promptbook/openai)](https://socket.dev/npm/package/@promptbook/openai)
 
 

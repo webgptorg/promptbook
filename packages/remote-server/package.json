@@ -1,6 +1,6 @@
 {
     "name": "@promptbook/remote-server",
-    "version": "0.47.0-0",
+    "version": "0.47.0",
     "description": "Library to supercharge your use of large language models",
     "private": false,
     "sideEffects": false,
@@ -36,10 +36,20 @@
     "dependencies": {
         "colors": "1.4.0",
         "socket.io": "4.7.2",
-        "spacetrim": "0.11.20"
+        "spacetrim": "0.11.23"
     },
+    "funding": [
+        {
+            "type": "individual",
+            "url": "https://buymeacoffee.com/hejny"
+        },
+        {
+            "type": "github",
+            "url": "https://github.com/webgptorg/promptbook/blob/main/README.md#%EF%B8%8F-contributing"
+        }
+    ],
     "peerDependencies": {
-        "@promptbook/core": "0.47.0-0"
+        "@promptbook/core": "0.47.0"
     },
     "main": "./umd/index.umd.js",
     "module": "./esm/index.es.js",
