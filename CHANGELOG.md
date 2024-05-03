@@ -240,15 +240,15 @@ Reorganize packages
     -   Move there `MockedEchoLlmExecutionTools` and `MockedFackedLlmExecutionTools` from `@promptbook/core`
 -   New package `@promptbook/langtail` to prepare for [Langtail](https://langtail.com/) integration
 
-## In pre-release
-
-### 0.47.0 _(2024-0-)_
+### 0.47.0 _(2024-05-02)_
 
 Tools refactoring
 
 -   Rename "natural" -> "llm"
 -   Allow to pass multiple `llm` into `ExecutionTools` container
 -   Export `renderPromptbookMermaid` through `@promptbook/utils`
+
+## In pre-release
 
 ## In prepare
 
