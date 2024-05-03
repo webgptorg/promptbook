@@ -21,6 +21,7 @@ export type LlmExecutionTools = {
 };
 
 /**
+ * TODO: [🍓][♐] Allow to list compatible models with each variant
  * TODO: [🏳] gptChat -> chat, gptComplete -> complete, translate
  * TODO: [🧠] Should or should not there be a word "GPT" in both gptComplete and gptChat
  */

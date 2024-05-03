@@ -16,7 +16,8 @@ import { PromptbookLibrary } from './PromptbookLibrary';
 export class SimplePromptbookLibrary implements PromptbookLibrary {
     private library: Map<string_promptbook_url, PromptbookJson>;
 
-    /**!!!
+    /**
+     * Constructs a promptbook library from promptbooks
      *
      * @param promptbooks !!!
      *
@@ -83,7 +84,7 @@ export class SimplePromptbookLibrary implements PromptbookLibrary {
      * Checks whether given prompt was defined in any promptbook in the library
      */
     public isResponsibleForPrompt(prompt: Prompt): boolean {
-        // TODO: !!!  DO not hardcode this, really validate whether the prompt is in the library
+        // TODO: [🍓] !!!  DO not hardcode this, really validate whether the prompt is in the library
         prompt;
         return true;
     }

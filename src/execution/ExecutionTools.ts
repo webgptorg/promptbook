@@ -19,7 +19,7 @@ export type ExecutionTools = {
      * Note: You can pass multiple ScriptExecutionTools, they will be tried one by one until one of them supports the script
      *       If none of them supports the script, an error is thrown
      */
-    script: Array<ScriptExecutionTools>;
+    script: Array<ScriptExecutionTools>; // <- TODO: [🧠] Maybe not Array but Arrayable
 
     /**
      * Tools for interacting with the user
@@ -28,5 +28,5 @@ export type ExecutionTools = {
 };
 
 /**
- * TODO: !!!! Allow more
+ * TODO: [🍓] !!!! Allow to have more LlmExecutionTools
  */

@@ -10,7 +10,7 @@ import { PROMPTBOOK_VERSION } from '../../version';
 import { prettifyPromptbookString } from './prettifyPromptbookString';
 
 /**
- * !!! Initialize
+ * Runs CLI script for prettifying promptbooks
  */
 export async function prettifyPromptbookStringCli(): Promise<void> {
     if (!isRunningInNode()) {

@@ -6,6 +6,25 @@ import { PromptbookLibrary } from '../PromptbookLibrary';
 import { SimplePromptbookLibrary } from '../SimplePromptbookLibrary';
 import { createPromptbookLibraryFromSources } from './createPromptbookLibraryFromSources';
 
+/**
+ * Constructs Promptbook from async sources
+ * It can be one of the following:
+ * - Promise of array of PromptbookJson or PromptbookString
+ * - Factory function that returns Promise of array of PromptbookJson or PromptbookString
+ *
+ * Note: This is useful as internal tool for other constructor functions like
+ *       `createPromptbookLibraryFromUrl` or `createPromptbookLibraryFromDirectory`
+ *       Consider using those functions instead of this one
+ *
+ * Note: The function does NOT return promise it returns the library directly which waits for the sources to be resolved
+ *       when error occurs in given promise or factory function, it is thrown during `listPromptbooks` or `getPromptbookByUrl` call
+ *
+ *
+ * @param promptbookSourcesPromiseOrFactory
+ * @returns PromptbookLibrary
+ *
+ * @deprecated Consider using `createPromptbookLibraryFromUrl` or `createPromptbookLibraryFromDirectory`
+ */
 export function createPromptbookLibraryFromPromise(
     promptbookSourcesPromiseOrFactory:
         | Promise<Array<PromptbookJson | PromptbookString>>
@@ -43,5 +62,5 @@ export function createPromptbookLibraryFromPromise(
 }
 
 /***
- * TODO: !!! Annotate all + all to README and samples
+ * TODO: [🍓][🚯] !!! Add to README and samples + maybe make `@promptbook/library` package
  */

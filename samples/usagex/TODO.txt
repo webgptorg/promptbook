@@ -1,2 +1,2 @@
-TODO: !!! Probbably remove usagex - just want usage
+TODO: [🍓] !!! Probbably remove usagex - just want usage
 TODO: This is only for debugging NPM always install latest prerelease version

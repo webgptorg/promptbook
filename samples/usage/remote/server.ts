@@ -31,6 +31,7 @@ async function main() {
         createLlmExecutionTools(clientId) {
             console.log('clientId', clientId);
             return new OpenAiExecutionTools({
+              // TODO: [♐] Pick just the best model of required variant
                 isVerbose: true,
                 openAiApiKey: process.env.OPENAI_API_KEY!,
                 user: clientId,
@@ -40,7 +41,7 @@ async function main() {
 }
 
 /**
- * TODO: [🈴] !!! Identify PROMPTBOOKs by URL
+ * TODO: [🈴] !!! Identify PROMPTBOOKs by URL in this sample
  * TODO: There should be no need to set this script or userInterface in tools
  * TODO: Implement and use here PromptbookLibrary.fromDirectory (directory vs folder)
  * TODO: [🧙‍♂️] Make sample with Wizzard

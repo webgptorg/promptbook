@@ -7,5 +7,5 @@ import { OpenAiExecutionTools } from '../openai/OpenAiExecutionTools';
 export class LangtailExecutionTools extends OpenAiExecutionTools implements LlmExecutionTools {}
 
 /**
- * TODO: !!! Make lib which exports this
+ * TODO: [🍓][♐] Allow to list the aviable prompts in Langtail
  */

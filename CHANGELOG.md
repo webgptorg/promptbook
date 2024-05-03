@@ -184,7 +184,7 @@ Multiple factories for `PromptbookLibrary`, Custom errors, enhance templating
 More options to create `PromptbookLibrary`
 
 -   Utility `createPromptbookLibraryFromDirectory`
--   Utility `createPromptbookLibraryFromList`
+-   Utility `createPromptbookLibraryFromUrl`
 -   Add `extractBlock` to build-in functions
 -   Remove problematic usage of `chalk` and use `colors` instead
 -   Export `replaceParameters` from `@promptbook/utils`
@@ -262,6 +262,8 @@ Better script execution
 
 ### 0..0 _(2024-0-)_
 
+<!--[🍓]-->
+
 More options to create `PromptbookLibrary`
 
 ### 0..0 _(2024-0-)_
@@ -270,7 +272,9 @@ Intagration with Langtail
 
 ### 0..0 _(2024-0-)_
 
--   TODO: !!! Add splitInto functions to `@promptbook/utils` besides all the `count` functions
+<!--[🍓]-->
+
+-   TODO: Add splitInto functions to `@promptbook/utils` besides all the `count` functions
 
 -   Add `countCharacters` -> `splitIntoCharacters`
 -   Add `countLines` -> `splitIntoLines`
@@ -284,6 +288,8 @@ Intagration with Langtail
 
 More expect variations
 
+<!--[🍓]-->
+
 -   Add command `EXPECT "..."` <-[🥤]
 -   Add command `EXPECT /.../i` <-[🥤]
 -   Add command `EXPECT "...{foo}..."` <-[🥤]
@@ -294,3 +300,7 @@ More expect variations
 
 -   When postprocessing fails, retry in same way as failed expectations
 -   When making next attempt for `PROMPT DIALOG`, preserve the previous user input <-[🌹]
+
+## 1.0.0 Release
+
+Across the repository there are marked [🍓] places that are required to be done before `1.0.0` release

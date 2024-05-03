@@ -5,6 +5,15 @@ import type { PromptbookJson } from '../../types/PromptbookJson/PromptbookJson';
 import type { string_promptbook_url } from '../../types/typeAliases';
 import { PromptbookLibrary } from '../PromptbookLibrary';
 
+/**
+ * Creates PromptbookLibrary as a subset of another PromptbookLibrary
+ *
+ * Note: You can use any type of library as a parent library - local, remote, etc.
+ * Note: This is just a thin wrapper / proxy around the parent library
+ *
+ * @param promptbookSources
+ * @returns PromptbookLibrary
+ */
 export function createPromptbookSublibrary(
     library: PromptbookLibrary,
     predicate: (url: string_promptbook_url) => boolean,
@@ -52,5 +61,5 @@ export function createPromptbookSublibrary(
 }
 
 /***
- * TODO: !!! Annotate all + all to README and samples
+ * TODO: [🍓][🚯] !!! Add to README and samples + maybe make `@promptbook/library` package
  */

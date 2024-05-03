@@ -177,7 +177,7 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
 }
 
 /**
-
+ * TODO: [🍓][♐] Allow to list compatible models with each variant
  * TODO: Maybe Create some common util for gptChat and gptComplete
  * TODO: Maybe make custom OpenaiError
  */

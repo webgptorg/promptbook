@@ -3,7 +3,7 @@ import { PromptbookExecutionError } from '../../../../errors/PromptbookExecution
 import type { PromptResult } from '../../../PromptResult';
 
 /**
- * !!!
+ * Computes the usage of the OpenAI API based on the response from OpenAI
  *
  * @throws {PromptbookExecutionError} If the usage is not defined in the response from OpenAI
  */
@@ -59,3 +59,7 @@ export function computeOpenaiUsage(
         outputTokens,
     };
 }
+
+/**
+ * TODO: [🍓] Make better
+ */

@@ -134,7 +134,7 @@ export class JavascriptEvalExecutionTools implements ScriptExecutionTools {
             normalizeTo_PascalCase,
             parseKeywords,
             normalizeTo_SCREAMING_CASE,
-            extractBlock, // <- !!!! Remove balast in all other functions, use this one as example
+            extractBlock, // <- [🍓] !!!! Remove balast in all other functions, use this one as example
         };
         const buildinFunctionsStatement = Object.keys(buildinFunctions)
             .map(

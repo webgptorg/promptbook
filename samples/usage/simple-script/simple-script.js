@@ -23,7 +23,7 @@ async function main() {
     const promptbookUrl = 'https://promptbook.example.com/samples/language-capabilities.ptbk.md@v1';
 
     const library = createPromptbookLibraryFromSources(
-        // TODO: !!! Use createPromptbookLibraryFromDirectory
+        // TODO:[🍓] !!! Use createPromptbookLibraryFromDirectory
         await readFile(`./samples/templates/50-advanced.ptbk.md`, 'utf-8'),
     );
 
@@ -31,6 +31,7 @@ async function main() {
 
     const tools = {
         llm: new OpenAiExecutionTools({
+            // TODO: [♐] Pick just the best model of required variant
             isVerbose: true,
             openAiApiKey: process.env.OPENAI_API_KEY,
         }),
@@ -66,7 +67,7 @@ async function main() {
 }
 
 /**
- * TODO: [🈴] !!! Identify PROMPTBOOKs by URL
+ * TODO: [🈴] !!! Identify PROMPTBOOKs by URL in this sample
  * TODO: There should be no need to set this script or userInterface in tools
  * TODO: Implement and use here PromptbookLibrary.fromDirectory (directory vs folder)
  * TODO: Make sample with Wizzard

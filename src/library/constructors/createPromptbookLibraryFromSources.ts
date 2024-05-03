@@ -2,6 +2,15 @@ import { PromptbookJson, PromptbookString } from '../../_packages/types.index';
 import { promptbookStringToJson } from '../../conversion/promptbookStringToJson';
 import { SimplePromptbookLibrary } from '../SimplePromptbookLibrary';
 
+/**
+ * Creates PromptbookLibrary from array of PromptbookJson or PromptbookString
+ *
+ * Note: You can combine `PromptbookString` (`.ptbk.md`) with `PromptbookJson` BUT it is not recommended
+ * Note: During the construction syntax and logic of all sources are validated
+ *
+ * @param promptbookSources
+ * @returns PromptbookLibrary
+ */
 export function createPromptbookLibraryFromSources(
     ...promptbookSources: Array<PromptbookJson | PromptbookString>
 ): SimplePromptbookLibrary {
@@ -23,17 +32,6 @@ export function createPromptbookLibraryFromSources(
     return new SimplePromptbookLibrary(...promptbooks);
 }
 
-/**
- * Constructs Promptbook from any sources
- *
- * Note: During the construction syntax and logic of all sources are validated
- * Note: You can combine .ptbk.md and .ptbk.json files BUT it is not recommended
- *
- * @param promptbookSources contents of .ptbk.md or .ptbk.json files
- * @param settings settings for creating executor functions
- * @returns PromptbookLibrary
- */
-
 /***
- * TODO: !!! Annotate all + all to README and samples
+ * TODO: [🍓][🚯] !!! Add to README and samples + maybe make `@promptbook/library` package
  */
