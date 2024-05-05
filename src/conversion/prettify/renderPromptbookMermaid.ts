@@ -1,5 +1,6 @@
 import { spaceTrim } from 'spacetrim';
 import { PromptbookJson } from '../../_packages/types.index';
+import { normalizeTo_camelCase } from '../../_packages/utils.index';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import { string_name } from '../../types/typeAliases';
 import { titleToName } from '../utils/titleToName';
@@ -29,7 +30,7 @@ export function renderPromptbookMermaid(promptbookJson: PromptbookJson): string 
             throw new Error(`Could not find template for {${parameterName}}`);
         }
 
-        return 'template-' + titleToName(template.title);
+        return normalizeTo_camelCase('template-' + titleToName(template.title));
     };
 
     const promptbookMermaid = spaceTrim(

@@ -19,22 +19,22 @@ flowchart LR
       direction TB
 
       input((Input)):::input
-      templateVyITNVstupu("Vyčištění vstupu")
-      input--"{inputText}"-->templateVyITNVstupu
-      templateNZevWebu("Název webu")
-      templateVyITNVstupu--"{inputTextCleaned}"-->templateNZevWebu
-      templateDomNy("Domény")
-      templateNZevWebu--"{title}"-->templateDomNy
-      templateVyITNVstupu--"{inputTextCleaned}"-->templateDomNy
-      templateDomNy("Domény")
-      templateDomNy--"{domainsCommaSeparated}"-->templateDomNy
-      templateZadN("Zadání")
-      templateNZevWebu--"{title}"-->templateZadN
-      templateVyITNVstupu--"{inputTextCleaned}"-->templateZadN
+      templateVycisteniVstupu("Vyčištění vstupu")
+      input--"{inputText}"-->templateVycisteniVstupu
+      templateNazevWebu("Název webu")
+      templateVycisteniVstupu--"{inputTextCleaned}"-->templateNazevWebu
+      templateDomeny("Domény")
+      templateNazevWebu--"{title}"-->templateDomeny
+      templateVycisteniVstupu--"{inputTextCleaned}"-->templateDomeny
+      templateDomeny("Domény")
+      templateDomeny--"{domainsCommaSeparated}"-->templateDomeny
+      templateZadani("Zadání")
+      templateNazevWebu--"{title}"-->templateZadani
+      templateVycisteniVstupu--"{inputTextCleaned}"-->templateZadani
       templateEmail("Email")
-      templateNZevWebu--"{title}"-->templateEmail
-      templateZadN--"{assignment}"-->templateEmail
-      templateDomNy--"{domains}"-->templateEmail
+      templateNazevWebu--"{title}"-->templateEmail
+      templateZadani--"{assignment}"-->templateEmail
+      templateDomeny--"{domains}"-->templateEmail
 
       templateEmail--"{outputText}"-->output
       output((Output)):::output

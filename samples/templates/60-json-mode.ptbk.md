@@ -20,10 +20,10 @@ flowchart LR
       direction TB
 
       input((Input)):::input
-      templateExtrakceKontaktnChDaj("🖋 Extrakce kontaktních údajů")
-      input--"{unstructuredContacts}"-->templateExtrakceKontaktnChDaj
+      templateExtrakceKontaktnichUdaju("🖋 Extrakce kontaktních údajů")
+      input--"{unstructuredContacts}"-->templateExtrakceKontaktnichUdaju
 
-      templateExtrakceKontaktnChDaj--"{contactlist}"-->output
+      templateExtrakceKontaktnichUdaju--"{contactlist}"-->output
       output((Output)):::output
 
       classDef input color: grey;
