@@ -28,7 +28,7 @@
     ],
     "promptTemplates": [
         {
-            "name": "Synonym",
+            "name": "synonym",
             "title": "💬 Synonym",
             "description": "Synonym for word",
             "dependentParameterNames": [
@@ -52,7 +52,7 @@
             "resultingParameterName": "wordSynonym"
         },
         {
-            "name": "Sentence",
+            "name": "sentence",
             "title": "💬 Sentence",
             "description": "Sentence with the both words",
             "dependentParameterNames": [
@@ -76,7 +76,7 @@
             "resultingParameterName": "sentence"
         },
         {
-            "name": "MakeADocument",
+            "name": "make-a-document",
             "title": "Make a document",
             "dependentParameterNames": [
                 "sentence"

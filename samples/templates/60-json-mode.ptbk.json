@@ -19,7 +19,7 @@
     ],
     "promptTemplates": [
         {
-            "name": "ExtrakceKontaktnChDaj",
+            "name": "extrakce-kontaktnich-udaju",
             "title": "🖋 Extrakce kontaktních údajů",
             "dependentParameterNames": [
                 "unstructuredContacts"

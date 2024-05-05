@@ -47,7 +47,7 @@
     ],
     "promptTemplates": [
         {
-            "name": "Synonym",
+            "name": "synonym",
             "title": "💬 Synonym",
             "description": "Synonym for word",
             "dependentParameterNames": [
@@ -71,7 +71,7 @@
             "resultingParameterName": "wordSynonym"
         },
         {
-            "name": "TestThatWordIsNotOriginalWord",
+            "name": "test-that-word-is-not-original-word",
             "title": "⚙ Test that word is not original word",
             "dependentParameterNames": [
                 "word",
@@ -87,7 +87,7 @@
             "resultingParameterName": "wordSynonymTested"
         },
         {
-            "name": "SentenceWithSynonym",
+            "name": "sentence-with-synonym",
             "title": "💬 Sentence with Synonym",
             "description": "Sentence with word and wordSynonym",
             "dependentParameterNames": [
@@ -112,7 +112,7 @@
             "resultingParameterName": "sentenceWithTwoSynonyms"
         },
         {
-            "name": "SentenceWithoutOriginalWord",
+            "name": "sentence-without-original-word",
             "title": "💬 Sentence without original word",
             "description": "Sentence \"{sentenceWithTwoSynonyms}\" without \"{word}\".",
             "dependentParameterNames": [
@@ -137,7 +137,7 @@
             "resultingParameterName": "sentenceWithOriginalWordRemoved"
         },
         {
-            "name": "Comparison",
+            "name": "comparison",
             "title": "💬 Comparison",
             "description": "Comparison between \"{sentenceWithTwoSynonyms}\" and \"{sentenceWithOriginalWordRemoved}\".",
             "dependentParameterNames": [
@@ -159,7 +159,7 @@
             "resultingParameterName": "comparisonOfTwoSentences"
         },
         {
-            "name": "Summary",
+            "name": "summary",
             "title": "🔗 Summary",
             "dependentParameterNames": [
                 "word",

@@ -18,7 +18,7 @@
     ],
     "promptTemplates": [
         {
-            "name": "Synonym",
+            "name": "synonym",
             "title": "💬 Synonym",
             "description": "Synonym for word",
             "dependentParameterNames": [

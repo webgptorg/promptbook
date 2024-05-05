@@ -67,7 +67,7 @@
     ],
     "promptTemplates": [
         {
-            "name": "SpecifyingTheAssigment",
+            "name": "specifying-the-assigment",
             "title": "👤 Specifying the assigment",
             "description": "What is your web about?",
             "dependentParameterNames": [
@@ -79,7 +79,7 @@
             "resultingParameterName": "assigment"
         },
         {
-            "name": "ImprovingTheTitle",
+            "name": "improving-the-title",
             "title": "✨ Improving the title",
             "dependentParameterNames": [
                 "rawTitle",
@@ -97,7 +97,7 @@
             "resultingParameterName": "enhancedTitle"
         },
         {
-            "name": "WebsiteTitleApproval",
+            "name": "website-title-approval",
             "title": "👤 Website title approval",
             "description": "Is the title for your website okay?",
             "dependentParameterNames": [
@@ -109,7 +109,7 @@
             "resultingParameterName": "title"
         },
         {
-            "name": "CunningSubtitle",
+            "name": "cunning-subtitle",
             "title": "🐰 Cunning subtitle",
             "dependentParameterNames": [
                 "title",
@@ -127,7 +127,7 @@
             "resultingParameterName": "claim"
         },
         {
-            "name": "KeywordAnalysis",
+            "name": "keyword-analysis",
             "title": "🚦 Keyword analysis",
             "dependentParameterNames": [
                 "title",
@@ -142,7 +142,7 @@
             "resultingParameterName": "keywords"
         },
         {
-            "name": "CombineTheBeginning",
+            "name": "combine-the-beginning",
             "title": "🔗 Combine the beginning",
             "dependentParameterNames": [
                 "title",
@@ -154,7 +154,7 @@
             "resultingParameterName": "contentBeginning"
         },
         {
-            "name": "WriteTheContent",
+            "name": "write-the-content",
             "title": "🖋 Write the content",
             "dependentParameterNames": [
                 "title",
@@ -171,7 +171,7 @@
             "resultingParameterName": "contentBody"
         },
         {
-            "name": "CombineTheContent",
+            "name": "combine-the-content",
             "title": "🔗 Combine the content",
             "dependentParameterNames": [
                 "contentBeginning",

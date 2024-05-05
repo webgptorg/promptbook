@@ -12,7 +12,7 @@
     ],
     "promptTemplates": [
         {
-            "name": "Prompt",
+            "name": "prompt",
             "title": "💬 Prompt",
             "dependentParameterNames": [],
             "executionType": "PROMPT_TEMPLATE",

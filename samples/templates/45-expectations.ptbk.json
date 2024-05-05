@@ -17,7 +17,7 @@
     ],
     "promptTemplates": [
         {
-            "name": "Question",
+            "name": "question",
             "title": "💬 Question",
             "dependentParameterNames": [
                 "yourName"

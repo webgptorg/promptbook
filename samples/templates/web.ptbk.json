@@ -44,7 +44,7 @@
     ],
     "promptTemplates": [
         {
-            "name": "VyITNVstupu",
+            "name": "vycisteni-vstupu",
             "title": "Vyčištění vstupu",
             "dependentParameterNames": [
                 "inputText"
@@ -61,7 +61,7 @@
             "resultingParameterName": "inputTextCleaned"
         },
         {
-            "name": "NZevWebu",
+            "name": "nazev-webu",
             "title": "Název webu",
             "dependentParameterNames": [
                 "inputTextCleaned"
@@ -89,7 +89,7 @@
             "resultingParameterName": "title"
         },
         {
-            "name": "DomNy",
+            "name": "domeny",
             "title": "Domény",
             "dependentParameterNames": [
                 "title",
@@ -112,7 +112,7 @@
             "resultingParameterName": "domainsCommaSeparated"
         },
         {
-            "name": "DomNy",
+            "name": "domeny",
             "title": "Domény",
             "dependentParameterNames": [
                 "domainsCommaSeparated"
@@ -124,7 +124,7 @@
             "resultingParameterName": "domains"
         },
         {
-            "name": "ZadN",
+            "name": "zadani",
             "title": "Zadání",
             "dependentParameterNames": [
                 "title",
@@ -150,7 +150,7 @@
             "resultingParameterName": "assignment"
         },
         {
-            "name": "Email",
+            "name": "email",
             "title": "Email",
             "dependentParameterNames": [
                 "title",

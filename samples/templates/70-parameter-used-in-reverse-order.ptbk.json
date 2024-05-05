@@ -23,7 +23,7 @@
     ],
     "promptTemplates": [
         {
-            "name": "Sentence",
+            "name": "sentence",
             "title": "Sentence",
             "description": "Sentence with word and wordSynonym",
             "dependentParameterNames": [
@@ -39,7 +39,7 @@
             "resultingParameterName": "sentenceWithTwoSynonyms"
         },
         {
-            "name": "Synonym",
+            "name": "synonym",
             "title": "Synonym",
             "description": "Synonym for word",
             "dependentParameterNames": [
