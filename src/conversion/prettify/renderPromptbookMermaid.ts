@@ -1,8 +1,8 @@
 import { spaceTrim } from 'spacetrim';
 import { PromptbookJson } from '../../_packages/types.index';
-import { normalizeTo_PascalCase } from '../../_packages/utils.index';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import { string_name } from '../../types/typeAliases';
+import { titleToName } from '../utils/titleToName';
 
 /**
  * Creates a Mermaid graph based on the promptbook
@@ -29,7 +29,7 @@ export function renderPromptbookMermaid(promptbookJson: PromptbookJson): string 
             throw new Error(`Could not find template for {${parameterName}}`);
         }
 
-        return 'template' + normalizeTo_PascalCase(template.title);
+        return 'template-' + titleToName(template.title);
     };
 
     const promptbookMermaid = spaceTrim(
@@ -74,6 +74,8 @@ export function renderPromptbookMermaid(promptbookJson: PromptbookJson): string 
 
         `,
     );
+
+    // TODO: !!!!! Allow to put link callback into `renderPromptbookMermaid`
 
     return promptbookMermaid;
 }

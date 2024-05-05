@@ -665,12 +665,20 @@ TODO:
 
 <!--
 TODO: !!!!
-### Promptbooks vs. RAG
+### Promptbooks vs. RAG *(Retrieval-Augmented Generation)*
 
 
 -->
 
+
+<!--
+TODO: !!!!
+### Promptbooks vs. [DSPY](https://github.com/stanfordnlp/dspy)
+
+
 -->
+
+
 
 <!--
 TODO: !!!!
@@ -681,7 +689,11 @@ TODO: !!!!
 
 <!--
 TODO: !!!!
-### Promptbooks vs. Promptflow
+### Promptbooks vs. [Promptflow](https://github.com/microsoft/promptflow)
+
+
+
+[Prompty format](https://github.com/microsoft/promptflow/blob/main/examples/prompty/eval-apology/apology.prompty)
 
 
 -->

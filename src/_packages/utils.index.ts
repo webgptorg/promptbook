@@ -2,6 +2,7 @@ import { spaceTrim } from 'spacetrim';
 import { prettifyPromptbookString } from '../conversion/prettify/prettifyPromptbookString';
 import { renderPromptbookMermaid } from '../conversion/prettify/renderPromptbookMermaid';
 import { parseNumber } from '../conversion/utils/parseNumber';
+import { titleToName } from '../conversion/utils/titleToName';
 import { assertsExecutionSuccessful } from '../execution/assertsExecutionSuccessful';
 import { checkExpectations, isPassingExpectations } from '../execution/utils/checkExpectations';
 import { replaceParameters } from '../execution/utils/replaceParameters';
@@ -110,6 +111,7 @@ export {
     removeDiacritics,
     searchKeywords,
     string_keyword,
+    titleToName,
 };
 
 // Promptbook

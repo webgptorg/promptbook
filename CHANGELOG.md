@@ -255,6 +255,9 @@ Tools refactoring
 Better utilities (for Promptbase app)
 
 -   Add reverse utility the `promptbookJsonToString`
+-   Allow to put link callback into `renderPromptbookMermaid`
+-   Better prompt template identification
+-   Add function `titleToName` exported from `@promptbook/utils`
 
 ## In prepare
 

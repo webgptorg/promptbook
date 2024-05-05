@@ -45,6 +45,8 @@ export function computeOpenaiUsage(
         },
     }[rawResponse.model];
 
+    // TODO: !!!!! Retrieve dynamically - post [ ]
+
     let price: PromptResult['usage']['price'];
 
     if (pricePerThousandTokens === undefined) {

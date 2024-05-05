@@ -1,6 +1,5 @@
 import { spaceTrim } from 'spacetrim';
 import type { Writable, WritableDeep } from 'type-fest';
-import { normalizeTo_PascalCase } from '../_packages/utils.index';
 import { PromptbookSyntaxError } from '../errors/PromptbookSyntaxError';
 import type { ParameterCommand } from '../types/Command';
 import type { ExecutionType } from '../types/ExecutionTypes';
@@ -20,6 +19,7 @@ import { removeContentComments } from '../utils/markdown/removeContentComments';
 import { PROMPTBOOK_VERSION } from '../version';
 import { extractVariables } from './utils/extractVariables';
 import { parseCommand } from './utils/parseCommand';
+import { titleToName } from './utils/titleToName';
 
 /**
  * Parse promptbook from string format to JSON format
@@ -324,7 +324,7 @@ export function promptbookStringToJson(promptbookString: PromptbookString): Prom
         dependentParameterNames = [...new Set(dependentParameterNames)];
 
         promptbookJson.promptTemplates.push({
-            name: normalizeTo_PascalCase(section.title),
+            name: titleToName(section.title),
             title: section.title,
             description,
             dependentParameterNames,
