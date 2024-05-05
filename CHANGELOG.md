@@ -250,6 +250,12 @@ Tools refactoring
 
 ## In pre-release
 
+### 0.48.0 _(2024-0-)_
+
+Better utilities (for Promptbase app)
+
+-   Add reverse utility the `promptbookJsonToString`
+
 ## In prepare
 
 ### 0..0 _(2024-0-)_

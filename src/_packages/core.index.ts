@@ -1,4 +1,5 @@
 import { promptbookStringToJson } from '../conversion/promptbookStringToJson';
+import { promptbookJsonToString } from '../conversion/promptbookJsonToString';
 import { validatePromptbookJson } from '../conversion/validation/validatePromptbookJson';
 import { createPromptbookExecutor } from '../execution/createPromptbookExecutor';
 import { CallbackInterfaceTools } from '../execution/plugins/user-interface-execution-tools/callback/CallbackInterfaceTools';
@@ -28,7 +29,7 @@ export {
 export { SimplePromptInterfaceTools };
 
 // @promptbook/parser
-export { promptbookStringToJson, validatePromptbookJson };
+export { promptbookStringToJson,promptbookJsonToString, validatePromptbookJson };
 
 // @promptbook/executor
 export { createPromptbookExecutor };
