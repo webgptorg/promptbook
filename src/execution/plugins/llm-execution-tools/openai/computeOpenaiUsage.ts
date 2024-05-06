@@ -45,7 +45,7 @@ export function computeOpenaiUsage(
         },
     }[rawResponse.model];
 
-    // TODO: !!!!! Retrieve dynamically - post [ ]
+    // TODO: !!! Retrieve dynamically
 
     let price: PromptResult['usage']['price'];
 
