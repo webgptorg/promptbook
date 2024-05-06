@@ -1,0 +1,41 @@
+
+// TODO: [👜] This probbably does not make sence because in PromptTemplateJson already are listed dependencies
+
+import { describe, expect, it } from '@jest/globals';
+import { importPromptbook } from '../validation/_importPromptbook';
+import { PromptbookJson } from '../../types/PromptbookJson/PromptbookJson';
+import { PromptTemplateJson } from '../../types/PromptbookJson/PromptTemplateJson';
+import { PromptTemplateParameterJson } from '../../types/PromptbookJson/PromptTemplateParameterJson';
+
+describe('how findUsableParameters works', () => {
+    it('should find no usable parameter', () => {
+        const promptbook = importPromptbook(`50-advanced.ptbk.json`);
+        const promptTemplate = promptbook.promptTemplates[0];
+
+        expect(findUsableParameters({ promptbook, promptTemplate })).toBe([]);
+    });
+});
+
+type FindUsableParametersOptions = {
+    /**
+     * Promptbook to search for usable parameters
+     */
+    promptbook: PromptbookJson;
+
+    /**
+     * Prompt template which potential usable parameters are searched for
+     */
+    promptTemplate: PromptTemplateJson;
+};
+
+/**
+ * Function findUsableParameters will find all usable parameters for given prompt template
+ * In other words, it will find all parameters that are not used in the prompt template itseld and all its dependencies
+ */
+export function findUsableParameters(options: FindUsableParametersOptions): Array<PromptTemplateParameterJson> {
+    const { promptbook, promptTemplate } = options;
+
+    const usableParameters: Array<PromptTemplateParameterJson> = [];
+
+    return usableParameters;
+}
