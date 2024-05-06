@@ -25,7 +25,7 @@ flowchart LR
       templateSynonym--"{poem}"-->output
       output((Output)):::output
 
-      click templateSynonym href "#synonym";
+      click templateSynonym href "#synonym" "💬 Synonym";
 
       classDef input color: grey;
       classDef output color: grey;

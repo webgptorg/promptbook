@@ -32,9 +32,9 @@ flowchart LR
       templateMakeADocument--"{poem}"-->output
       output((Output)):::output
 
-      click templateSynonym callback "Tooltip for a callback";
-      click templateSentence href "#sentence" _blank;
-      click templateMakeADocument href "#make-a-document" _blank;
+      click templateSynonym href "#synonym" "💬 Synonym";
+      click templateSentence href "#sentence" "💬 Sentence";
+      click templateMakeADocument href "#make-a-document" "Make a document";
 
       classDef input color: grey;
       classDef output color: grey;

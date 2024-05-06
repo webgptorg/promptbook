@@ -12,7 +12,7 @@ export type renderPromptbookMermaidOptions = {
     /**
      * Callback for creating from prompt template graph node
      */
-    linkPromptTemplate?(promptTemplate: PromptTemplateJson): string_href | null;
+    linkPromptTemplate?(promptTemplate: PromptTemplateJson): { href: string_href; title: string } | null;
 };
 
 /**
@@ -86,15 +86,17 @@ export function renderPromptbookMermaid(
                   ${block(
                       promptbookJson.promptTemplates
                           .map((promptTemplate) => {
-                              const href = linkPromptTemplate(promptTemplate);
+                              const link = linkPromptTemplate(promptTemplate);
 
-                              if (href === null) {
+                              if (link === null) {
                                   return '';
                               }
 
-                              return `click ${parameterNameToTemplateName(
-                                  promptTemplate.resultingParameterName,
-                              )} href "${href}";`;
+                              const { href, title } = link;
+
+                              const templateName = parameterNameToTemplateName(promptTemplate.resultingParameterName);
+
+                              return `click ${templateName} href "${href}" "${title}";`;
                           })
                           .filter((line) => line !== '')
                           .join('\n'),

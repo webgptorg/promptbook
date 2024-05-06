@@ -61,7 +61,7 @@ flowchart LR
       templateUpravy--"{newContent}"-->output
       output((Output)):::output
 
-      click templateUpravy href "#upravy";
+      click templateUpravy href "#upravy" "🖋 Úpravy";
 
       classDef input color: grey;
       classDef output color: grey;

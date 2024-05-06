@@ -23,7 +23,7 @@ flowchart LR
       templateQuestion--"{parsedSentence}"-->output
       output((Output)):::output
 
-      click templateQuestion href "#question";
+      click templateQuestion href "#question" "💬 Question";
 
       classDef input color: grey;
       classDef output color: grey;

@@ -20,7 +20,7 @@ export function prettifyPromptbookString(
 
         const promptbookMermaid = renderPromptbookMermaid(promptbookJson, {
             linkPromptTemplate(promptTemplate) {
-                return `#${promptTemplate.name}`;
+                return {href:`#${promptTemplate.name}`,title: promptTemplate.title};
             },
         });
 
