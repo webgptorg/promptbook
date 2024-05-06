@@ -10,12 +10,14 @@ import { string_file_path } from '../../types/typeAliases';
  * Note: Using here custom import to work in jest tests
  * Note: Using sync version is 💩 in the production code, but it's ok here in tests
  *
+ * @param path - The path to the file relative to samples/templates directory
  * @private
  */
 export function importPromptbook(path: `${string}.ptbk.md`): PromptbookString;
 export function importPromptbook(path: `${string}.ptbk.json`): PromptbookJson;
 export function importPromptbook(path: string_file_path): PromptbookString | PromptbookJson {
-    const content = readFileSync(join(__dirname, path), 'utf-8');
+    const samplesDir = '../../../samples/templates';
+    const content = readFileSync(join(__dirname, samplesDir, path), 'utf-8');
     //                         <- Note: In production it is not good practice to use synchronous functions
     //                                  But this is only a test before the build, so it is okay
     if (path.endsWith('.ptbk.json')) {

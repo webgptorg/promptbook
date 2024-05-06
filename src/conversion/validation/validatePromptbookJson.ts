@@ -8,7 +8,7 @@ import type { string_name } from '../../types/typeAliases';
 import { isValidUrl } from '../../utils/validators/url/isValidUrl';
 
 /**
- * Validates PromptbookJson if it is logically valid.
+ * Validates PromptbookJson if it is logically valid
  *
  * It checks:
  * -   if it has correct parameters dependency
@@ -18,9 +18,10 @@ import { isValidUrl } from '../../utils/validators/url/isValidUrl';
  * -   if it is meaningful
  *
  * @param promptbook valid or invalid PromptbookJson
+ * @returns the same promptbook if it is logically valid
  * @throws {PromptbookLogicError} on logical error in the promptbook
  */
-export function validatePromptbookJson(promptbook: PromptbookJson): void {
+export function validatePromptbookJson(promptbook: PromptbookJson): PromptbookJson {
     if (promptbook.promptbookUrl !== undefined) {
         if (!isValidUrl(promptbook.promptbookUrl)) {
             // TODO: This should be maybe the syntax error detected during parsing
@@ -188,6 +189,7 @@ export function validatePromptbookJson(promptbook: PromptbookJson): void {
 
         unresovedTemplates = unresovedTemplates.filter((template) => !currentlyResovedTemplates.includes(template));
     }
+    return promptbook;
 }
 
 /**

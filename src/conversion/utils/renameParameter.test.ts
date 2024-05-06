@@ -1,9 +1,5 @@
-// TODO: [👜] This probbably does not make sence because in PromptTemplateJson already are listed dependencies
-
 import { describe, expect, it } from '@jest/globals';
 import { validatePromptbookJson } from '../../_packages/core.index';
-import { PromptbookJson } from '../../types/PromptbookJson/PromptbookJson';
-import { string_name } from '../../types/typeAliases';
 import { renameParameter } from './renameParameter';
 
 describe('how renameParameter works', () => {
@@ -241,24 +237,8 @@ describe('how renameParameter works', () => {
                 oldParameterName: 'word',
                 newParameterName: 'wordSynonym',
             }),
-        ).toThrowError(/Name collision-xxxx/);
+        ).toThrowError(
+            /Can not replace {word} to {wordSynonym} because {wordSynonym} is already used in the promptbook/i,
+        );
     });
 });
-
-export type RenameParameterOptions = {
-    /**
-     * Promptbook to search and replace for parameters
-     * This promptbook is returned as copy with replaced parameters
-     */
-    promptbook: PromptbookJson;
-
-    /**
-     * Original parameter name that should be replaced
-     */
-    oldParameterName: string_name;
-
-    /**
-     * New parameter name that should replace the original parameter name
-     */
-    newParameterName: string_name;
-};

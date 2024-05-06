@@ -6,9 +6,7 @@ import { validatePromptbookJson } from './validatePromptbookJson';
 describe('validatePromptbookJson', () => {
     it('should fail on using parameter that is not defined', () => {
         expect(() => {
-            const promptbookString = importPromptbook(
-                '../../../samples/templates/errors/logic/undefined-parameter.ptbk.md',
-            );
+            const promptbookString = importPromptbook('errors/logic/undefined-parameter.ptbk.md');
             const promptbookJson = promptbookStringToJson(promptbookString);
             validatePromptbookJson(promptbookJson);
         }).toThrowError(/Can not resolve some parameters/i);
@@ -16,9 +14,7 @@ describe('validatePromptbookJson', () => {
 
     it('should fail on creating parameter that is then not used', () => {
         expect(() => {
-            const promptbookString = importPromptbook(
-                '../../../samples/templates/errors/logic/unused-parameter.ptbk.md',
-            );
+            const promptbookString = importPromptbook('errors/logic/unused-parameter.ptbk.md');
             const promptbookJson = promptbookStringToJson(promptbookString);
             validatePromptbookJson(promptbookJson);
         }).toThrowError(/Parameter \{name\} is created but not used/i);
@@ -26,7 +22,7 @@ describe('validatePromptbookJson', () => {
 
     it('should fail when picked the incompativble combination of model variant and name', () => {
         expect(() => {
-            const promptbookString = importPromptbook('../../../samples/templates/errors/logic/model-mismatch.ptbk.md');
+            const promptbookString = importPromptbook('errors/logic/model-mismatch.ptbk.md');
             const promptbookJson = promptbookStringToJson(promptbookString);
             validatePromptbookJson(promptbookJson);
         }).toThrowError(/Unknown model key/i);
@@ -34,9 +30,7 @@ describe('validatePromptbookJson', () => {
 
     it('should fail when expecting maximally 0 words', () => {
         expect(() => {
-            const promptbookString = importPromptbook(
-                '../../../samples/templates/errors/logic/wrong-expectations.ptbk.md',
-            );
+            const promptbookString = importPromptbook('errors/logic/wrong-expectations.ptbk.md');
             const promptbookJson = promptbookStringToJson(promptbookString);
             validatePromptbookJson(promptbookJson);
         }).toThrowError(/Max expectation of words must be positive/i);
@@ -44,9 +38,7 @@ describe('validatePromptbookJson', () => {
 
     it('should fail when there is joker but no expectations', () => {
         expect(() => {
-            const promptbookString = importPromptbook(
-                '../../../samples/templates/errors/logic/joker-without-expectations.ptbk.md',
-            );
+            const promptbookString = importPromptbook('errors/logic/joker-without-expectations.ptbk.md');
             const promptbookJson = promptbookStringToJson(promptbookString);
             validatePromptbookJson(promptbookJson);
         }).toThrowError(/Joker parameters are used for \{name\} but no expectations are defined/i);
@@ -54,17 +46,13 @@ describe('validatePromptbookJson', () => {
 
     it('should fail on circular dependencies', () => {
         expect(() => {
-            const promptbookString = importPromptbook(
-                '../../../samples/templates/errors/logic/circular-parameters-simple.ptbk.md',
-            );
+            const promptbookString = importPromptbook('errors/logic/circular-parameters-simple.ptbk.md');
             const promptbookJson = promptbookStringToJson(promptbookString);
             validatePromptbookJson(promptbookJson);
         }).toThrowError(/circular dependencies/i);
 
         expect(() => {
-            const promptbookString = importPromptbook(
-                '../../../samples/templates/errors/logic/circular-parameters-advanced.ptbk.md',
-            );
+            const promptbookString = importPromptbook('errors/logic/circular-parameters-advanced.ptbk.md');
             const promptbookJson = promptbookStringToJson(promptbookString);
             validatePromptbookJson(promptbookJson);
         }).toThrowError(/circular dependencies/i);

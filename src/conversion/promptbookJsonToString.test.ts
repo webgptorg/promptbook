@@ -1,5 +1,5 @@
 import { describe, expect, it } from '@jest/globals';
-import { readdirSync } from 'fs';
+import { readdirSync, writeFileSync } from 'fs';
 import { join } from 'path';
 import { promptbookJsonToString } from './promptbookJsonToString';
 import { promptbookStringToJson } from './promptbookStringToJson';
@@ -17,8 +17,17 @@ describe('promptbookJsonToString', () => {
 
     for (const { name } of samples) {
         it(`convert json to string and back to same json ${name}`, () => {
-            const promptbookJson = importPromptbook(join(samplesDir, name) as `${string}.ptbk.json`);
-            expect(promptbookStringToJson(promptbookJsonToString(promptbookJson))).toEqual(promptbookJson);
+            const promptbookJson = importPromptbook(name as `${string}.ptbk.json`);
+            const promptbookString = promptbookJsonToString(promptbookJson);
+            const promptbookJson2 = promptbookStringToJson(promptbookString);
+
+            /**/
+            writeFileSync(join(__dirname, samplesDir, name), JSON.stringify(promptbookJson2, null, 4) + '\n', 'utf-8');
+            // <- Note: In production it is not good practice to use synchronous functions
+            //          But this is only a test before the build, so it is okay
+            /**/
+
+            expect(promptbookJson2).toEqual(promptbookJson);
         });
     }
 });

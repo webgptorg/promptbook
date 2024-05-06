@@ -19,7 +19,7 @@ describe('validatePromptbookJson', () => {
         it(`should validate ${name} logic`, () => {
             expect(() => {
                 try {
-                    const promptbookString = importPromptbook(join(samplesDir, name) as `${string}.ptbk.md`);
+                    const promptbookString = importPromptbook(( name) as `${string}.ptbk.md`);
                     const promptbookJson = promptbookStringToJson(promptbookString);
                     validatePromptbookJson(promptbookJson);
                 } catch (error) {

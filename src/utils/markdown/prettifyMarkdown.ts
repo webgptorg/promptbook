@@ -5,12 +5,12 @@ import type { string_html } from '../../types/typeAliases';
 /**
  * Prettify the html code
  *
- * @param html raw html code
+ * @param content raw html code
  * @returns formatted html code
  */
-export function prettifyMarkdown(html: string_html): string_html {
+export function prettifyMarkdown<TContent extends string_html>(content: TContent): TContent {
     try {
-        return format(html, {
+        return format(content, {
             parser: 'markdown',
             plugins: [parserHtml],
 
@@ -24,12 +24,12 @@ export function prettifyMarkdown(html: string_html): string_html {
             htmlWhitespaceSensitivity: 'ignore',
             jsxBracketSameLine: false,
             bracketSpacing: true,
-        });
+        }) as TContent;
     } catch (error) {
         console.error('There was an error with prettifying the markdown, using the original as the fallback', {
             error,
-            html,
+            html: content,
         });
-        return html;
+        return content;
     }
 }

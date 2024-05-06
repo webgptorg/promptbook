@@ -16,7 +16,7 @@ describe('promptbookStringToJson', () => {
 
     for (const { name } of samples) {
         it(`should parse ${name}`, () => {
-            expect(promptbookStringToJson(importPromptbook(join(samplesDir, name) as `${string}.ptbk.md`))).toEqual(
+            expect(promptbookStringToJson(importPromptbook(name as `${string}.ptbk.md`))).toEqual(
                 importPromptbook(join(samplesDir, name).replace('.ptbk.md', '.ptbk.json') as `${string}.ptbk.json`),
             );
         });
