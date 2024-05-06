@@ -265,6 +265,12 @@ Better utilities (for Promptbase app)
 
 ### 0..0 _(2024-0-)_
 
+<!-- Search ACRY "MODEL NAME " -->
+
+-   Allow to specify model creativity eg. `MODEL CREATIVITY EXTREME`
+
+### 0..0 _(2024-0-)_
+
 Better script execution
 
 -   Gettings rid of `JavascriptEvalExecutionTools` and implement propper isolated script execution in `JavascriptExecutionTools`
