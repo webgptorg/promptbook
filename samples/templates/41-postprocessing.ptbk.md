@@ -25,6 +25,8 @@ flowchart LR
       templateQuestion--"{greeting}"-->output
       output((Output)):::output
 
+      click templateQuestion href "#question";
+
       classDef input color: grey;
       classDef output color: grey;
 

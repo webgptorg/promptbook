@@ -24,7 +24,7 @@ export function renderPromptbookMermaid(
     promptbookJson: PromptbookJson,
     options?: renderPromptbookMermaidOptions,
 ): string {
-    const { linkPromptTemplate = (promptTemplate: PromptTemplateJson) => null } = options || {};
+    const { linkPromptTemplate = () => null } = options || {};
 
     const parameterNameToTemplateName = (parameterName: string_name) => {
         const parameter = promptbookJson.parameters.find((parameter) => parameter.name === parameterName);
@@ -107,7 +107,6 @@ export function renderPromptbookMermaid(
 
         `,
     );
-
 
     return promptbookMermaid;
 }

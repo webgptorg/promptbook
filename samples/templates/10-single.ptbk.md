@@ -27,6 +27,8 @@ flowchart LR
       templateSynonym--"{wordSynonym}"-->output
       output((Output)):::output
 
+      click templateSynonym href "#synonym";
+
       classDef input color: grey;
       classDef output color: grey;
 

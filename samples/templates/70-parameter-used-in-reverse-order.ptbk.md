@@ -32,6 +32,9 @@ flowchart LR
       templateSentence--"{sentenceWithTwoSynonyms}"-->output
       output((Output)):::output
 
+      click templateSentence href "#sentence";
+      click templateSynonym href "#synonym";
+
       classDef input color: grey;
       classDef output color: grey;
 

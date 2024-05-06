@@ -39,6 +39,13 @@ flowchart LR
       templateEmail--"{outputText}"-->output
       output((Output)):::output
 
+      click templateVycisteniVstupu href "#vycisteni-vstupu";
+      click templateNazevWebu href "#nazev-webu";
+      click templateDomeny href "#domeny";
+      click templateDomeny href "#domeny";
+      click templateZadani href "#zadani";
+      click templateEmail href "#email";
+
       classDef input color: grey;
       classDef output color: grey;
 

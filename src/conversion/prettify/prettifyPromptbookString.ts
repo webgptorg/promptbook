@@ -18,7 +18,11 @@ export function prettifyPromptbookString(
     if (isGraphAdded) {
         const promptbookJson = promptbookStringToJson(promptbookString);
 
-        const promptbookMermaid = renderPromptbookMermaid(promptbookJson);
+        const promptbookMermaid = renderPromptbookMermaid(promptbookJson, {
+            linkPromptTemplate(promptTemplate) {
+                return `#${promptTemplate.name}`;
+            },
+        });
 
         const promptbookMermaidBlock = spaceTrim(
             (block) => `

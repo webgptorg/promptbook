@@ -25,6 +25,8 @@ flowchart LR
       templatePrompt--"{greeting}"-->output
       output((Output)):::output
 
+      click templatePrompt href "#prompt";
+
       classDef input color: grey;
       classDef output color: grey;
 

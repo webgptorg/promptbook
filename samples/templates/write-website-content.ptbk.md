@@ -48,6 +48,15 @@ flowchart LR
       templateCombineTheContent--"{content}"-->output
       output((Output)):::output
 
+      click templateSpecifyingTheAssigment href "#specifying-the-assigment";
+      click templateImprovingTheTitle href "#improving-the-title";
+      click templateWebsiteTitleApproval href "#website-title-approval";
+      click templateCunningSubtitle href "#cunning-subtitle";
+      click templateKeywordAnalysis href "#keyword-analysis";
+      click templateCombineTheBeginning href "#combine-the-beginning";
+      click templateWriteTheContent href "#write-the-content";
+      click templateCombineTheContent href "#combine-the-content";
+
       classDef input color: grey;
       classDef output color: grey;
 

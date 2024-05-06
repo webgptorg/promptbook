@@ -49,6 +49,13 @@ flowchart LR
       templateTestThatWordIsNotOriginalWord--"{wordSynonymTested}"-->output
       output((Output)):::output
 
+      click templateSynonym href "#synonym";
+      click templateTestThatWordIsNotOriginalWord href "#test-that-word-is-not-original-word";
+      click templateSentenceWithSynonym href "#sentence-with-synonym";
+      click templateSentenceWithoutOriginalWord href "#sentence-without-original-word";
+      click templateComparison href "#comparison";
+      click templateSummary href "#summary";
+
       classDef input color: grey;
       classDef output color: grey;
 

@@ -26,6 +26,8 @@ flowchart LR
       templateExtrakceKontaktnichUdaju--"{contactlist}"-->output
       output((Output)):::output
 
+      click templateExtrakceKontaktnichUdaju href "#extrakce-kontaktnich-udaju";
+
       classDef input color: grey;
       classDef output color: grey;
 
