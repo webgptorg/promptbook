@@ -32,7 +32,7 @@ flowchart LR
       templateMakeADocument--"{poem}"-->output
       output((Output)):::output
 
-      click templateSynonym callback  "Tooltip for a callback";
+      click templateSynonym callback "Tooltip for a callback";
       click templateSentence href "#sentence" _blank;
       click templateMakeADocument href "#make-a-document" _blank;
 
