@@ -1,12 +1,12 @@
 import { spaceTrim } from 'spacetrim';
-import type { PromptbookJson } from '../../_packages/types.index';
+import type { PromptbookJson, PromptTemplateJson } from '../../_packages/types.index';
 import { normalizeTo_camelCase } from '../../_packages/utils.index';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { string_href, string_name } from '../../types/typeAliases';
 import { titleToName } from '../utils/titleToName';
 
 /**
- * Options for rendering Mermaid graph
+ * Addtional options for rendering Mermaid graph
  */
 export type renderPromptbookMermaidOptions = {
     /**
@@ -20,7 +20,12 @@ export type renderPromptbookMermaidOptions = {
  *
  * Note: The result is not wrapped in a Markdown code block
  */
-export function renderPromptbookMermaid(promptbookJson: PromptbookJson): string {
+export function renderPromptbookMermaid(
+    promptbookJson: PromptbookJson,
+    options?: renderPromptbookMermaidOptions,
+): string {
+    const { linkPromptTemplate = (promptTemplate: PromptTemplateJson) => null } = options || {};
+
     const parameterNameToTemplateName = (parameterName: string_name) => {
         const parameter = promptbookJson.parameters.find((parameter) => parameter.name === parameterName);
 
@@ -78,6 +83,23 @@ export function renderPromptbookMermaid(promptbookJson: PromptbookJson): string 
                   )}
                   output((Output)):::output
 
+                  ${block(
+                      promptbookJson.promptTemplates
+                          .map((promptTemplate) => {
+                              const href = linkPromptTemplate(promptTemplate);
+
+                              if (href === null) {
+                                  return '';
+                              }
+
+                              return `click ${parameterNameToTemplateName(
+                                  promptTemplate.resultingParameterName,
+                              )} href "${href}";`;
+                          })
+                          .filter((line) => line !== '')
+                          .join('\n'),
+                  )}
+
                   classDef input color: grey;
                   classDef output color: grey;
 
@@ -86,7 +108,6 @@ export function renderPromptbookMermaid(promptbookJson: PromptbookJson): string 
         `,
     );
 
-    // TODO: !!!!! Allow to put link callback into `renderPromptbookMermaid`
 
     return promptbookMermaid;
 }
