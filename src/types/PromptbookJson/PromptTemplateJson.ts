@@ -28,7 +28,7 @@ export type LlmTemplateJson = PromptTemplateJsonCommon & {
      * Requirements for the model
      * - This is required only for executionType PROMPT_TEMPLATE
      */
-    readonly modelRequirements: Partial<ModelRequirements>;
+    readonly modelRequirements: ModelRequirements; // <- TODO: !!! Make Partial<ModelRequirements>;
 };
 
 /**
