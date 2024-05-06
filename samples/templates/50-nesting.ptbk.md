@@ -32,9 +32,9 @@ flowchart LR
       templateMakeADocument--"{poem}"-->output
       output((Output)):::output
 
-      click templateSynonym href "#synonym";
-      click templateSentence href "#sentence";
-      click templateMakeADocument href "#make-a-document";
+      click templateSynonym href "#synonym" _parent;
+      click templateSentence href "#sentence" _parent;
+      click templateMakeADocument href "#make-a-document" _parent;
 
       classDef input color: grey;
       classDef output color: grey;
