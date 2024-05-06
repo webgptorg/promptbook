@@ -1,9 +1,19 @@
 import { spaceTrim } from 'spacetrim';
-import { PromptbookJson } from '../../_packages/types.index';
+import type { PromptbookJson } from '../../_packages/types.index';
 import { normalizeTo_camelCase } from '../../_packages/utils.index';
 import { UnexpectedError } from '../../errors/UnexpectedError';
-import { string_name } from '../../types/typeAliases';
+import type { string_href, string_name } from '../../types/typeAliases';
 import { titleToName } from '../utils/titleToName';
+
+/**
+ * Options for rendering Mermaid graph
+ */
+export type renderPromptbookMermaidOptions = {
+    /**
+     * Callback for creating from prompt template graph node
+     */
+    linkPromptTemplate?(promptTemplate: PromptTemplateJson): string_href | null;
+};
 
 /**
  * Creates a Mermaid graph based on the promptbook

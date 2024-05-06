@@ -258,6 +258,8 @@ Better utilities (for Promptbase app)
 -   Allow to put link callback into `renderPromptbookMermaid`
 -   Better prompt template identification
 -   Add function `titleToName` exported from `@promptbook/utils`
+-   Add function `findUsableParameters` exported from `@promptbook/utils`
+-   Add function `renameParameter` exported from `@promptbook/utils`
 
 ## In prepare
 
