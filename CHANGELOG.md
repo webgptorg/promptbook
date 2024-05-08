@@ -248,9 +248,7 @@ Tools refactoring
 -   Allow to pass multiple `llm` into `ExecutionTools` container
 -   Export `renderPromptbookMermaid` through `@promptbook/utils`
 
-## In pre-release
-
-### 0.48.0 _(2024-0-)_
+### 0.48.0 _(2024-05-08)_
 
 Better utilities (for Promptbase app)
 
@@ -262,7 +260,17 @@ Better utilities (for Promptbase app)
 -   Add function `renameParameter` exported from `@promptbook/utils`
 -   Rename "Script Template" to just "Script"
 
+## In pre-release
+
 ## In prepare
+
+### 0..0 _(2024-0-)_
+
+Better expectation format in `PromptbookJson`
+
+### 0..0 _(2024-0-)_
+
+Allow to split parameters into multiple values and iterate over them
 
 ### 0..0 _(2024-0-)_
 
