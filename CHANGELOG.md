@@ -2,26 +2,26 @@
 
 ## Released versions
 
-### 0.20.0 _(2023-12-29)_
+### `0.20.0` _(2023-12-29)_
 
 -   Change keyword `USE` to `MODEL VARIANT`
 -   Allow to specify exact model eg. `MODEL NAME gpt-4-1106-preview`
 
-### 0.20.1 _(2024-01-15)_
+### `0.20.1` _(2024-01-15)_
 
 -   Add postprocessing function `trimEndOfCodeBlock`
 
-### 0.20.2 _(2024-01-16)_
+### `0.20.2` _(2024-01-16)_
 
 -   `replaceParameters` works with inlined JSONs
 
-### 0.23.0 _(2024-01-25)_
+### `0.23.0` _(2024-01-25)_
 
 -   You are able to send markdown code block in prompts _(without traces of escaping)_
 -   Postprocessing function `trimEndOfCodeBlock` is not working with escaped code blocks JUST with markdown code blocks
 -   Rename `extractBlocksFromMarkdown` to `extractAllBlocksFromMarkdown`
 
-### 0.24.0 _(2024-01-25)_
+### `0.24.0` _(2024-01-25)_
 
 -   Add postprocessing function `trimCodeBlock`
 -   Add `EXPECT` command to promptbooks
@@ -30,16 +30,16 @@
 -   `PtbkExecutor` returns richer result and does not throw, just returns `isSuccessful=false`, You can use `assertsExecutionSuccessful` utility function to check if the execution was successful
 -   Add `assertsExecutionSuccessful` utility function
 
-### 0.25.0 _(2024-02-03)_
+### `0.25.0` _(2024-02-03)_
 
 -   `CreatePtbkExecutorSettings` are not mandatory anymore
 
-### 0.26.0 _(2024-02-03)_
+### `0.26.0` _(2024-02-03)_
 
 -   Add `EXPECT JSON` command to promptbooks
 -   Split internal representation `EXPECT` into `EXPECT_AMOUNT` and `EXPECT_FORMAT`
 
-### 0.27.0 _(2024-02-03)_
+### `0.27.0` _(2024-02-03)_
 
 Moving logic from `promptbookStringToJson` to `createPtbkExecutor`
 
@@ -52,7 +52,7 @@ Moving logic from `promptbookStringToJson` to `createPtbkExecutor`
 -   Fix `description` in report
 -   Asking user infinite times for input if the input not matches the expectations
 
-### 0.28.0 _(2024-02-05)_
+### `0.28.0` _(2024-02-05)_
 
 Better execution report in markdown format
 
@@ -63,7 +63,7 @@ Better execution report in markdown format
 -   Maximum must be higher than minimum in `EXPECT` statement
 -   Maximum 0 is not valid, should be at least 1 in `EXPECT` statement
 
-### 0.29.0 _(2024-02-06)_
+### `0.29.0` _(2024-02-06)_
 
 -   Allow to use custom postprocessing functions
 -   Allow async postprocessing functions
@@ -77,7 +77,7 @@ Better execution report in markdown format
     -   `validatePromptbookJson` is checking for circular dependencies
     -   Test that joker is one of the dependent parameters
 
-### 0.31.0 _(2024-02-12)_
+### `0.31.0` _(2024-02-12)_
 
 Better execution reports
 
@@ -87,7 +87,7 @@ Better execution reports
 -   Escape code blocks in markdown
 -   Do not export `replaceParameters` utility function
 
-### 0.32.0 _(2024-02-12)_
+### `0.32.0` _(2024-02-12)_
 
 Export less functions from `@promptbook/utils`
 
@@ -99,20 +99,20 @@ Export less functions from `@promptbook/utils`
     -   ~~`Array<string>` will itterate over all values~~
     -   ~~You can use postprocessing functions or `EXECUTE SCRIPT` to split string into array and vice versa~~
 
-### 0.34.0 _(2024-02-19)_
+### `0.34.0` _(2024-02-19)_
 
 -   Do not remove emojis or formatting from task title in progress
 
-### 0.35.0 _(2024-03-01)_
+### `0.35.0` _(2024-03-01)_
 
 -   You can use `prettifyMarkdown` for postprocessing
 
-### 0.35.1 _(2024-03-06)_
+### `0.35.1` _(2024-03-06)_
 
 -   Add Mermaid graph to sample promptbooks
 -   Fix spelling errors in OpenAI error messages
 
-### 0.36.0 _(2024-03-06)_
+### `0.36.0` _(2024-03-06)_
 
 Cleanup and renaming
 
@@ -129,13 +129,13 @@ Cleanup and renaming
 -   Change command `PTBK_NAME` to `PROMPTBOOK_NAME` _(but keep backward compatibility and preserve alias `PTBK`)_
 -   Rename `runRemoteServer` -> `startRemoteServer` and return `Destroyable` object
 
-### 0.37.0 _(2024-03-08)_
+### `0.37.0` _(2024-03-08)_
 
 Explicit output parameters
 
 -   Every promptbook has to have `OUTPUT PARAMETER` property in header
 
-### 0.38.0 _(2024-03-09)_
+### `0.38.0` _(2024-03-09)_
 
 Remove "I" prefix from interfaces and change interfaces to types.
 
@@ -150,7 +150,7 @@ Remove "I" prefix from interfaces and change interfaces to types.
 _Note: Keeping "I" prefix in internal tooling like `IEntity`, `IExecCommandOptions`, `IExecCommandOptions`_
 _Note: Also keeping stuff imported from external libraries like `IDestroyable`_
 
-### 0.39.0 _(2024-03-09)_
+### `0.39.0` _(2024-03-09)_
 
 Working on **Promptbook Library**. Identify promptbooks by URL.
 
@@ -162,7 +162,7 @@ Working on **Promptbook Library**. Identify promptbooks by URL.
 -   Make `PromptbookLibrary.listPromptbooks` async method
 -   Make `PromptbookLibrary.getPromptbookByUrl` async method
 
-### 0.40.0 _(2024-03-10)_
+### `0.40.0` _(2024-03-10)_
 
 Multiple factories for `PromptbookLibrary`, Custom errors, enhance templating
 
@@ -179,7 +179,7 @@ Multiple factories for `PromptbookLibrary`, Custom errors, enhance templating
 -   Static method `createPromptbookLibraryFromSources` receives spreaded arguments `Array` instead of `Record`
 -   Add factory function `createPromptbookLibraryFromPromise`
 
-### 0.41.0 _(2024-03-23)_
+### `0.41.0` _(2024-03-23)_
 
 More options to create `PromptbookLibrary`
 
@@ -189,11 +189,11 @@ More options to create `PromptbookLibrary`
 -   Remove problematic usage of `chalk` and use `colors` instead
 -   Export `replaceParameters` from `@promptbook/utils`
 
-### 0.42.0 _(2024-03-24)_
+### `0.42.0` _(2024-03-24)_
 
 Better logo and branding of Promptbook.
 
-### 0.43.0 _(2024-03-26)_
+### `0.43.0` _(2024-03-26)_
 
 CLI utils exported from `@promptbook/cli`
 
@@ -204,7 +204,7 @@ npm i @promptbook/utils
 npx promptbook prettify promptbook/**/*.ptbk.md
 ```
 
-### 0.44.0 _(2024-04-26)_
+### `0.44.0` _(2024-04-26)_
 
 -   Lower bundle size
 -   Normalization library `n12` is not used and all its functions are bringed to `@promptbook/utils`
@@ -220,7 +220,7 @@ npx promptbook prettify promptbook/**/*.ptbk.md
 -   Each exported NPM package has full README
 -   `spaceTrim` is re-exported from `@promptbook/utils`
 
-### 0.45.0 _(2024-04-27)_
+### `0.45.0` _(2024-04-27)_
 
 More direct usage of OpenAI API, Refactoring
 
@@ -228,7 +228,7 @@ More direct usage of OpenAI API, Refactoring
     -   Change `openAiApiKey` -> `apiKey` when creating new `OpenAiExecutionTools`
 -   Change all import statements to import type when importing just types
 
-### 0.46.0 _(2024-04-28)_
+### `0.46.0` _(2024-04-28)_
 
 Reorganize packages
 
@@ -240,7 +240,7 @@ Reorganize packages
     -   Move there `MockedEchoLlmExecutionTools` and `MockedFackedLlmExecutionTools` from `@promptbook/core`
 -   New package `@promptbook/langtail` to prepare for [Langtail](https://langtail.com/) integration
 
-### 0.47.0 _(2024-05-02)_
+### `0.47.0` _(2024-05-02)_
 
 Tools refactoring
 
@@ -248,7 +248,7 @@ Tools refactoring
 -   Allow to pass multiple `llm` into `ExecutionTools` container
 -   Export `renderPromptbookMermaid` through `@promptbook/utils`
 
-### 0.48.0 _(2024-05-08)_
+### `0.48.0` and `0.49.0` _(2024-05-08)_
 
 Better utilities (for Promptbase app)
 
@@ -264,21 +264,21 @@ Better utilities (for Promptbase app)
 
 ## In prepare
 
-### 0..0 _(2024-0-)_
+### `0..0` _(2024-0-)_
 
 Better expectation format in `PromptbookJson`
 
-### 0..0 _(2024-0-)_
+### `0..0` _(2024-0-)_
 
 Allow to split parameters into multiple values and iterate over them
 
-### 0..0 _(2024-0-)_
+### `0..0` _(2024-0-)_
 
 <!-- Search ACRY "MODEL NAME " -->
 
 -   Allow to specify model creativity eg. `MODEL CREATIVITY EXTREME`
 
-### 0..0 _(2024-0-)_
+### `0..0` _(2024-0-)_
 
 Better script execution
 
@@ -286,17 +286,17 @@ Better script execution
 -   List all default postprocessing functions in `@promptbook/utils` README
 -   Implement `PythonExecutionTools` for executing Python scripts
 
-### 0..0 _(2024-0-)_
+### `0..0` _(2024-0-)_
 
 <!--[🍓]-->
 
 More options to create `PromptbookLibrary`
 
-### 0..0 _(2024-0-)_
+### `0..0` _(2024-0-)_
 
 Intagration with Langtail
 
-### 0..0 _(2024-0-)_
+### `0..0` _(2024-0-)_
 
 <!--[🍓]-->
 
@@ -310,7 +310,7 @@ Intagration with Langtail
 -   Add `CountUtils` -> `splitIntoUtils`
 -   Add `countWords` -> `splitIntoWords`
 
-### 0..0 _(2024-0-)_
+### `0..0` _(2024-0-)_
 
 More expect variations
 
@@ -327,6 +327,6 @@ More expect variations
 -   When postprocessing fails, retry in same way as failed expectations
 -   When making next attempt for `PROMPT DIALOG`, preserve the previous user input <-[🌹]
 
-## 1.0.0 Release
+## `1.0.0` Release
 
 Across the repository there are marked [🍓] places that are required to be done before `1.0.0` release
