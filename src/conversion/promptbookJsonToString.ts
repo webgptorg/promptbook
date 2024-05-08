@@ -1,3 +1,4 @@
+import spaceTrim from 'spacetrim';
 import { PromptTemplateParameterJson } from '../_packages/types.index';
 import type { PromptbookJson } from '../types/PromptbookJson/PromptbookJson';
 import type { PromptbookString } from '../types/PromptbookString';
@@ -70,7 +71,7 @@ export function promptbookJsonToString(promptbookJson: PromptbookJson): Promptbo
 
         // TODO:> const commands: Array<Command>
         const commands: Array<string> = [];
-        let contentLanguage: 'markdown' | 'javascript' | 'typescript' | 'python' | '' = 'markdown';
+        let contentLanguage: 'markdown' | 'text' | 'javascript' | 'typescript' | 'python' | '' = 'text';
 
         if (executionType === 'PROMPT_TEMPLATE') {
             const { modelRequirements } = promptTemplate;
@@ -137,7 +138,9 @@ export function promptbookJsonToString(promptbookJson: PromptbookJson): Promptbo
         promptbookString += '\n\n';
         promptbookString += '```' + contentLanguage;
         promptbookString += '\n';
-        promptbookString += content; // <- TODO: !!! Escape
+        promptbookString += spaceTrim(content);
+        //                   <- TODO: !!! Escape
+        //                   <- TODO: [🧠] Some clear strategy how to spaceTrim the blocks
         promptbookString += '\n';
         promptbookString += '```';
 
