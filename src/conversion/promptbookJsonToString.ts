@@ -5,6 +5,12 @@ import type { string_markdown } from '../types/typeAliases';
 import { prettifyMarkdown } from '../utils/markdown/prettifyMarkdown';
 import { capitalize } from '../utils/normalization/capitalize';
 
+/**
+ * Converts promptbook in JSON format to string format
+ *
+ * @param promptbookJson Promptbook in JSON format (.ptbk.json)
+ * @returns Promptbook in string format (.ptbk.md)
+ */
 export function promptbookJsonToString(promptbookJson: PromptbookJson): PromptbookString {
     const { title, promptbookUrl, promptbookVersion, description, parameters, promptTemplates } = promptbookJson;
 
@@ -157,8 +163,5 @@ function promptTemplateParameterJsonToString(promptTemplateParameterJson: Prompt
 }
 
 /**
- * TODO: !!!!! Implement
- * TODO: !!!!! Annotate and warn
- * TODO: !!!!! Test + test together with promptbookStringToJson
  * TODO: Escape all
  */
