@@ -260,6 +260,7 @@ Better utilities (for Promptbase app)
 -   Add function `titleToName` exported from `@promptbook/utils`
 <!-- [👜] -   Add function `findUsableParameters` exported from `@promptbook/utils` -->
 -   Add function `renameParameter` exported from `@promptbook/utils`
+-   Rename "Script Template" to just "Script"
 
 ## In prepare
 

@@ -16,7 +16,7 @@ import type {
 /**
  * Describes one prompt template in the promptbook
  */
-export type PromptTemplateJson = LlmTemplateJson | SimpleTemplateJson | ScriptTemplateJson | PromptDialogJson;
+export type PromptTemplateJson = LlmTemplateJson | SimpleTemplateJson | ScriptJson | PromptDialogJson;
 
 /**
  * Template for prompt to LLM
@@ -67,7 +67,7 @@ interface SimpleTemplateJson extends PromptTemplateJsonCommon {
 /**
  * Template for script execution
  */
-interface ScriptTemplateJson extends PromptTemplateJsonCommon {
+interface ScriptJson extends PromptTemplateJsonCommon {
     readonly executionType: 'SCRIPT';
 
     /**
