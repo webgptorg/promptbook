@@ -5,12 +5,11 @@ Library to supercharge your use of large language models
 
 
 
-
 [![NPM Version of ![Promptbook logo - cube with letters P and B](./other/design/logo-h1.png) Promptbook](https://badge.fury.io/js/promptbook.svg)](https://www.npmjs.com/package/promptbook)
 [![Quality of package ![Promptbook logo - cube with letters P and B](./other/design/logo-h1.png) Promptbook](https://packagequality.com/shield/promptbook.svg)](https://packagequality.com/#?package=promptbook)
 [![Known Vulnerabilities](https://snyk.io/test/github/webgptorg/promptbook/badge.svg)](https://snyk.io/test/github/webgptorg/promptbook)
 [![Issues](https://img.shields.io/github/issues/webgptorg/promptbook.svg?style=flat)](https://github.com/webgptorg/promptbook/issues)
-[![Socket](https://socket.dev/api/badge/npm/package/promptbook)](https://socket.dev/npm/package/promptbook)
+
 
 [![Socket Badge](https://socket.dev/api/badge/npm/package/@promptbook/core)](https://socket.dev/npm/package/@promptbook/core)
 
@@ -649,9 +648,6 @@ We are considering creating a bridge/converter between these two libraries.
 ### Promptbooks vs. OpenAI`s GPTs
 
 GPTs are chat assistants that can be assigned to specific tasks and materials. But they are still chat assistants. Promptbooks are a way to orchestrate many more predefined tasks to have much tighter control over the process. Promptbooks are not a good technology for creating human-like chatbots, GPTs are not a good technology for creating outputs with specific requirements.
-
-
-
 
 
 
