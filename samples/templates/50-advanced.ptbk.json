@@ -78,10 +78,7 @@
                 "wordSynonym"
             ],
             "executionType": "SCRIPT",
-            "modelRequirements": {
-                "modelVariant": "CHAT",
-                "modelName": "gpt-3.5-turbo"
-            },
+            "modelRequirements": {},
             "contentLanguage": "javascript",
             "content": "if (word !== '' && wordSynonym === word) {\n    throw new Error(`Synonym returned from LLM is same as original word \"${word}\"`);\n}\n\nreturn wordSynonym;",
             "resultingParameterName": "wordSynonymTested"
@@ -153,9 +150,9 @@
             },
             "modelRequirements": {
                 "modelVariant": "CHAT",
-                "modelName": "gpt-4"
+                "modelName": "gpt-4o"
             },
-            "content": "Compare meaning of thee two sentences:\n\n## Sentence 1:\n\n> {sentenceWithTwoSynonyms}\n\n## Sentence 2:\n\n> {sentenceWithOriginalWordRemoved}",
+            "content": "Write a short comparison of the meaning of the two sentences, writing a maximum of 5 sentences:\n\n## Sentence 1:\n\n> {sentenceWithTwoSynonyms}\n\n## Sentence 2:\n\n> {sentenceWithOriginalWordRemoved}",
             "resultingParameterName": "comparisonOfTwoSentences"
         },
         {
@@ -169,10 +166,7 @@
                 "comparisonOfTwoSentences"
             ],
             "executionType": "SIMPLE_TEMPLATE",
-            "modelRequirements": {
-                "modelVariant": "CHAT",
-                "modelName": "gpt-3.5-turbo"
-            },
+            "modelRequirements": {},
             "content": "You have entered a word **{word}**. For this word the best synonym is **{wordSynonym}**. The sentence with both words is **{sentenceWithTwoSynonyms}**. The sentence without the original word is **{sentenceWithOriginalWordRemoved}**. And the comparison between the two sentences is:\n\n> {comparisonOfTwoSentences}",
             "resultingParameterName": "summary"
         }
