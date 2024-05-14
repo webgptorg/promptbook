@@ -181,21 +181,22 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
      */
     public listModels(): Promisable<Array<AvailableModel>> {
         return [
-          // TODO: !!!! [🕚] Make this list dynamic
-          {
-              modelName: 'gpt-3.5-turbo',
-              modelVariant: 'COMPLETION',
-          },
-          {
-              modelName: 'gpt-4-turbo',
-              modelVariant: 'CHAT',
-          },
-          {
-            modelName: 'gpt-4o',
-            modelVariant: 'CHAT',
-        },
-
-
+            // TODO: !!!! [🕚] Make this list dynamic
+            {
+                modelTitle: 'GPT 3.5 Turbo',
+                modelName: 'gpt-3.5-turbo',
+                modelVariant: 'COMPLETION',
+            },
+            {
+                modelTitle: 'GPT 4 Turbo',
+                modelName: 'gpt-4-turbo',
+                modelVariant: 'CHAT',
+            },
+            {
+                modelTitle: 'GPT 4o',
+                modelName: 'gpt-4o',
+                modelVariant: 'CHAT',
+            },
         ];
     }
 }

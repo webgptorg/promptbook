@@ -64,10 +64,12 @@ export class MockedFackedLlmExecutionTools implements LlmExecutionTools {
     public listModels(): Array<AvailableModel> {
         return [
             {
+                modelTitle: 'Fake chat',
                 modelName: 'mocked-echo',
                 modelVariant: 'CHAT',
             },
             {
+              modelTitle: 'Fake completion',
                 modelName: 'mocked-echo',
                 modelVariant: 'COMPLETION',
             },

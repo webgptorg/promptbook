@@ -79,10 +79,12 @@ export class MockedEchoLlmExecutionTools implements LlmExecutionTools {
     public listModels(): Array<AvailableModel> {
         return [
             {
+                modelTitle: 'Echo chat',
                 modelName: 'mocked-echo',
                 modelVariant: 'CHAT',
             },
             {
+                modelTitle: 'Echo completion',
                 modelName: 'mocked-echo',
                 modelVariant: 'COMPLETION',
             },
