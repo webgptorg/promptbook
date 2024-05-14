@@ -20,7 +20,7 @@ main();
 async function main() {
     console.info(colors.bgWhite('⚪ Testing basic capabilities of PromptBook'));
 
-    const promptbookUrl = 'https://promptbook.example.com/samples/language-capabilities.ptbk.md@v1';
+    // const promptbookUrl = 'https://promptbook.example.com/samples/language-capabilities.ptbk.md@v1';
 
     const library = createPromptbookLibraryFromSources(
         // TODO:[🍓] !!! Use createPromptbookLibraryFromDirectory

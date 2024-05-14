@@ -262,6 +262,10 @@ Better utilities (for Promptbase app)
 
 ## In pre-release
 
+### `0.50.0` _(2024-05-14)_
+
+Add new OpenaAI models `gpt-4o` and `gpt-4o-2024-05-13`
+
 ## In prepare
 
 ### `0..0` _(2024-0-)_

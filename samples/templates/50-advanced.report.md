@@ -3,12 +3,12 @@
 Trying the language capabilities of GPT models.
 
 -   PROMPTBOOK URL https://promptbook.example.com/samples/language-capabilities.ptbk.md@v1
--   PROMPTBOOK VERSION 0.40.0-10 _(requested 1.0.0)_
--   STARTED AT 2024-03-24 10:30:38
--   COMPLETED AT 2024-03-24 10:30:43
--   TOTAL DURATION 5 seconds
--   TOTAL LLM DURATION 5 seconds
--   TOTAL COST $0.00338 _(Some cost is unknown)_
+-   PROMPTBOOK VERSION 0.48.1-0 _(requested 1.0.0)_
+-   STARTED AT 2024-05-14 12:26:20
+-   COMPLETED AT 2024-05-14 12:26:23
+-   TOTAL DURATION 4 seconds
+-   TOTAL LLM DURATION 4 seconds
+-   TOTAL COST $0 _(Some cost is unknown)_
 
 ## 🗃 Index
 
@@ -21,20 +21,19 @@ Trying the language capabilities of GPT models.
 
 | Template                       | Timeline                             |
 | ------------------------------ | ------------------------------------ |
-| Synonym                        | █████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ |
-| Sentence with Synonym          | ░░░░░████████░░░░░░░░░░░░░░░░░░░░░░░ |
-| Sentence without original word | ░░░░░░░░░░░░░█████░░░░░░░░░░░░░░░░░░ |
-| Comparison                     | ░░░░░░░░░░░░░░░░░░██████████████████ |
+| Synonym                        | ███████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ |
+| Sentence with Synonym          | ░░░░░░░████████░░░░░░░░░░░░░░░░░░░░░ |
+| Sentence without original word | ░░░░░░░░░░░░░░░██████░░░░░░░░░░░░░░░ |
+| Comparison                     | ░░░░░░░░░░░░░░░░░░░░░███████████████ |
 
-_Note: Each █ represents 0.1405 seconds, width of timeline is 5.06 seconds = 36 squares_
+_Note: Each █ represents 0.1065 seconds, width of timeline is 3.83 seconds = 36 squares_
 
 ## 💸 Cost chart
 
-| Template   | Cost                                 |
-| ---------- | ------------------------------------ |
-| Comparison | ████████████████████████████████████ |
+| Template | Cost |
+| -------- | ---- |
 
-_Note: Each █ represents 0.0000939 USD, width of cost is 0.00338 USD = 36 squares_
+_Note: Each █ represents -Infinity USD, width of cost is -Infinity USD = 36 squares_
 
 ## 💬 Synonym
 
@@ -67,7 +66,7 @@ Write sentence with "cat" and "feline" in it
 ### Result
 
 ```
-My cat is a sleek and agile feline, always ready to pounce on any toy that moves.
+The cat displayed all the classic feline characteristics, from its sleek fur to its graceful movements.
 ```
 
 ## 💬 Sentence without original word
@@ -87,38 +86,36 @@ Remove word "cat" from sentence and modify it so that it makes sense:
 
 ## The Sentence:
 
-> My cat is a sleek and agile feline, always ready to pounce on any toy that moves.
+> The cat displayed all the classic feline characteristics, from its sleek fur to its graceful movements.
 ```
 
 ### Result
 
 ```
-My sleek and agile feline is always ready to pounce on any toy that moves.
+The displayed all the classic feline characteristics, from its sleek fur to its graceful movements.
 ```
 
 ## 💬 Comparison
 
 -   DURATION a few seconds
--   COST $0.00338
+-   COST UNKNOWN
 
 ### Prompt
 
 ```
-Compare meaning of thee two sentences:
+Write a short comparison of the meaning of the two sentences, writing a maximum of 5 sentences:
 
 ## Sentence 1:
 
-> My cat is a sleek and agile feline, always ready to pounce on any toy that moves.
+> The cat displayed all the classic feline characteristics, from its sleek fur to its graceful movements.
 
 ## Sentence 2:
 
-> My sleek and agile feline is always ready to pounce on any toy that moves.
+> The displayed all the classic feline characteristics, from its sleek fur to its graceful movements.
 ```
 
 ### Result
 
 ```
-Both sentences convey the same meaning. They both talk about a cat belonging to the speaker, described as sleek and agile, who pounces on toys that move.
-
-The only difference lies in the delivery of the message. The first sentence identifies the cat ('my cat') before describing it ('is a sleek and agile feline'), while the second sentence directly uses the description of the cat ('my sleek and agile feline') as the subject of the sentence.
+Sentence 1 specifies "the cat" as the subject, attributing the classic feline characteristics directly to it. In contrast, Sentence 2 is incomplete, missing the noun "cat," which makes it unclear what is displaying those characteristics. As a result, Sentence 1 is clear and complete, while Sentence 2 is vague and grammatically incorrect. Thus, only Sentence 1 effectively conveys the intended meaning of a cat exemplifying typical feline traits.
 ```

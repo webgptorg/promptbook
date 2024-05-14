@@ -4,8 +4,11 @@ Trying the language capabilities of GPT models.
 
 -   PROMPTBOOK URL https://promptbook.example.com/samples/language-capabilities.ptbk.md@v1
 -   PROMPTBOOK VERSION 1.0.0
+<!--
+TODO: [🧠] Do not allow model in header of promptbook OR mandatory word "MODEL MODEL Chat"
 -   MODEL VARIANT Chat
 -   MODEL NAME `gpt-3.5-turbo`
+    -->
 -   INPUT  PARAMETER `{word}` The word to use in the prompt.
 -   OUTPUT PARAMETER `{comparisonOfTwoSentences}` Comparison between two sentences
 -   OUTPUT PARAMETER `{summary}` The overall summary of the comparison
@@ -137,12 +140,12 @@ Remove word "{word}" from sentence and modify it so that it makes sense:
 Comparison between "{sentenceWithTwoSynonyms}" and "{sentenceWithOriginalWordRemoved}".
 
 -   MODEL VARIANT Chat
--   MODEL NAME `gpt-4`
+-   MODEL NAME `gpt-4o`
 -   EXPECT MIN 1 SENTENCE
 -   EXPECT MAX 5 SENTENCES
 
 ```markdown
-Compare meaning of thee two sentences:
+Write a short comparison of the meaning of the two sentences, writing a maximum of 5 sentences:
 
 ## Sentence 1:
 
