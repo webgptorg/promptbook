@@ -1,8 +1,11 @@
+import type { Promisable } from 'type-fest';
+import type { ModelVariant } from '../types/ModelRequirements';
 import type { Prompt } from '../types/Prompt';
+import type { string_model_name } from '../types/typeAliases';
 import type { PromptChatResult, PromptCompletionResult } from './PromptResult';
 
 /**
- * Vontainer for all the tools needed to execute prompts to large language models like GPT-4
+ * Container for all the tools needed to execute prompts to large language models like GPT-4
  * On its interface it exposes common methods for prompt execution.
  * Inside (in constructor) it calls OpenAI, Azure, GPU, proxy, cache, logging,...
  *
@@ -18,10 +21,32 @@ export type LlmExecutionTools = {
      * Use a completion model
      */
     gptComplete(prompt: Prompt): Promise<PromptCompletionResult>;
+
+    /**
+     * List all available models that can be used
+     */
+    listModels(): Promisable<Array<AviableModel>>;
 };
 
 /**
- * TODO: [🍓][♐] Allow to list compatible models with each variant
+ * Represents a model that can be used for prompt execution
+ */
+export type AviableModel = {
+    /**
+     * The model name aviailable
+     */
+    readonly modelName: string_model_name;
+
+    /**
+     * Variant of the model
+     */
+    readonly modelVariant: ModelVariant;
+
+    // <- TODO: [♐] Add metadata about the model to make the best choice
+};
+
+/**
+ * TODO: [🍓][♐] Some heuristic to pick the best model in listed models
  * TODO: [🏳] gptChat -> chat, gptComplete -> complete, translate
  * TODO: [🧠] Should or should not there be a word "GPT" in both gptComplete and gptChat
  */

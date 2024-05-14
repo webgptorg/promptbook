@@ -1,12 +1,12 @@
 import type { Socket } from 'socket.io-client';
 import { io } from 'socket.io-client';
-import { Prompt } from '../../../../types/Prompt';
-import { LlmExecutionTools } from '../../../LlmExecutionTools';
-import { PromptChatResult, PromptCompletionResult, PromptResult } from '../../../PromptResult';
-import { RemoteLlmExecutionToolsOptions } from './RemoteLlmExecutionToolsOptions';
-import { Promptbook_Server_Error } from './interfaces/Promptbook_Server_Error';
-import { Promptbook_Server_Request } from './interfaces/Promptbook_Server_Request';
-import { Promptbook_Server_Response } from './interfaces/Promptbook_Server_Response';
+import type { Prompt } from '../../../../types/Prompt';
+import type { AviableModel, LlmExecutionTools } from '../../../LlmExecutionTools';
+import type { PromptChatResult, PromptCompletionResult, PromptResult } from '../../../PromptResult';
+import type { RemoteLlmExecutionToolsOptions } from './RemoteLlmExecutionToolsOptions';
+import type { Promptbook_Server_Error } from './interfaces/Promptbook_Server_Error';
+import type { Promptbook_Server_Request } from './interfaces/Promptbook_Server_Request';
+import type { Promptbook_Server_Response } from './interfaces/Promptbook_Server_Response';
 
 /**
  * Remote server is a proxy server that uses its execution tools internally and exposes the executor interface externally.
@@ -84,6 +84,15 @@ export class RemoteLlmExecutionTools implements LlmExecutionTools {
         socket.disconnect();
 
         return promptResult;
+    }
+
+    /**
+     * List all available models that can be used
+     */
+    public async listModels(): Promise<Array<AviableModel>> {
+        return [
+            /* !!!!! */
+        ];
     }
 }
 

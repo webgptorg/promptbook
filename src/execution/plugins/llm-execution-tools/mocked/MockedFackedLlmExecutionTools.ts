@@ -1,8 +1,8 @@
-import { Prompt } from '../../../../types/Prompt';
+import type{ Prompt } from '../../../../types/Prompt';
 import { getCurrentIsoDate } from '../../../../utils/getCurrentIsoDate';
-import { CommonExecutionToolsOptions } from '../../../CommonExecutionToolsOptions';
-import { LlmExecutionTools } from '../../../LlmExecutionTools';
-import { PromptChatResult, PromptCompletionResult } from '../../../PromptResult';
+import type { CommonExecutionToolsOptions } from '../../../CommonExecutionToolsOptions';
+import type { AviableModel, LlmExecutionTools } from '../../../LlmExecutionTools';
+import type{ PromptChatResult, PromptCompletionResult } from '../../../PromptResult';
 import { $fakeTextToExpectations } from './fakeTextToExpectations';
 
 /**
@@ -57,4 +57,21 @@ export class MockedFackedLlmExecutionTools implements LlmExecutionTools {
     public async gptComplete(prompt: Prompt): Promise<PromptCompletionResult> {
         return this.gptChat(prompt);
     }
+
+
+        /**
+     * List all available fake-models that can be used
+     */
+        public listModels(): Array<AviableModel> {
+          return [
+              {
+                  modelName: 'mocked-echo',
+                  modelVariant: 'CHAT',
+              },
+              {
+                  modelName: 'mocked-echo',
+                  modelVariant: 'COMPLETION',
+              },
+          ];
+      }
 }

@@ -1,9 +1,9 @@
 import { spaceTrim } from 'spacetrim';
-import { Prompt } from '../../../../types/Prompt';
+import type { Prompt } from '../../../../types/Prompt';
 import { getCurrentIsoDate } from '../../../../utils/getCurrentIsoDate';
-import { CommonExecutionToolsOptions } from '../../../CommonExecutionToolsOptions';
-import { LlmExecutionTools } from '../../../LlmExecutionTools';
-import { PromptChatResult, PromptCompletionResult } from '../../../PromptResult';
+import type { CommonExecutionToolsOptions } from '../../../CommonExecutionToolsOptions';
+import type { AviableModel, LlmExecutionTools } from '../../../LlmExecutionTools';
+import type { PromptChatResult, PromptCompletionResult } from '../../../PromptResult';
 
 /**
  * Mocked execution Tools for just echoing the requests for testing purposes.
@@ -71,6 +71,22 @@ export class MockedEchoLlmExecutionTools implements LlmExecutionTools {
             },
             // <- [🤹‍♂️]
         };
+    }
+
+    /**
+     * List all available mocked-models that can be used
+     */
+    public listModels(): Array<AviableModel> {
+        return [
+            {
+                modelName: 'mocked-echo',
+                modelVariant: 'CHAT',
+            },
+            {
+                modelName: 'mocked-echo',
+                modelVariant: 'COMPLETION',
+            },
+        ];
     }
 }
 

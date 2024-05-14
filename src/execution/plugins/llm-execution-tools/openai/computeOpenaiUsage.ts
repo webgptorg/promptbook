@@ -25,6 +25,7 @@ export function computeOpenaiUsage(
     const inputTokens = rawResponse.usage.prompt_tokens;
     const outputTokens = rawResponse.usage.completion_tokens;
 
+    // TODO: !!!! [🕚] Make this list dynamic
     const pricePerThousandTokens = {
         'gpt-3.5-turbo-0613': {
             prompt: 0.0015,

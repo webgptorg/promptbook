@@ -1,10 +1,11 @@
 import colors from 'colors';
 import OpenAI from 'openai';
+import type { Promisable } from 'type-fest';
 import { PromptbookExecutionError } from '../../../../errors/PromptbookExecutionError';
 import type { Prompt } from '../../../../types/Prompt';
 import type { string_date_iso8601 } from '../../../../types/typeAliases';
 import { getCurrentIsoDate } from '../../../../utils/getCurrentIsoDate';
-import type { LlmExecutionTools } from '../../../LlmExecutionTools';
+import type { AviableModel, LlmExecutionTools } from '../../../LlmExecutionTools';
 import type { PromptChatResult, PromptCompletionResult } from '../../../PromptResult';
 import type { OpenAiExecutionToolsOptions } from './OpenAiExecutionToolsOptions';
 import { computeOpenaiUsage } from './computeOpenaiUsage';
@@ -173,6 +174,29 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
             rawResponse,
             // <- [🤹‍♂️]
         };
+    }
+
+    /**
+     * List all available OpenAI models that can be used
+     */
+    public listModels(): Promisable<Array<AviableModel>> {
+        return [
+          // TODO: !!!! [🕚] Make this list dynamic
+          {
+              modelName: 'gpt-3.5-turbo',
+              modelVariant: 'COMPLETION',
+          },
+          {
+              modelName: 'gpt-4-turbo',
+              modelVariant: 'CHAT',
+          },
+          {
+            modelName: 'gpt-4o',
+            modelVariant: 'CHAT',
+        },
+
+
+        ];
     }
 }
 
