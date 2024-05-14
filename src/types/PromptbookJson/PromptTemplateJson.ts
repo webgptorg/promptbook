@@ -60,14 +60,14 @@ export type ExpectationAmount = number_integer & number_positive_or_zero;
 /**
  * Template for simple concatenation of strings
  */
-interface SimpleTemplateJson extends PromptTemplateJsonCommon {
+export interface SimpleTemplateJson extends PromptTemplateJsonCommon {
     readonly executionType: 'SIMPLE_TEMPLATE';
 }
 
 /**
  * Template for script execution
  */
-interface ScriptJson extends PromptTemplateJsonCommon {
+export interface ScriptJson extends PromptTemplateJsonCommon {
     readonly executionType: 'SCRIPT';
 
     /**
@@ -81,7 +81,7 @@ interface ScriptJson extends PromptTemplateJsonCommon {
 /**
  * Template for prompt to user
  */
-interface PromptDialogJson extends PromptTemplateJsonCommon {
+export interface PromptDialogJson extends PromptTemplateJsonCommon {
     readonly executionType: 'PROMPT_DIALOG';
 }
 
