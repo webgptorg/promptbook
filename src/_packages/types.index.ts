@@ -8,7 +8,7 @@ import { PromptbookSyntaxError } from '../errors/PromptbookSyntaxError';
 */
 import type { CommonExecutionToolsOptions } from '../execution/CommonExecutionToolsOptions';
 import type { ExecutionTools } from '../execution/ExecutionTools';
-import type { LlmExecutionTools } from '../execution/LlmExecutionTools';
+import type { AvailableModel, LlmExecutionTools } from '../execution/LlmExecutionTools';
 import type {
     PromptChatResult,
     PromptCommonResult,
@@ -86,6 +86,7 @@ import type {
 import { FromtoItems } from '../utils/FromtoItems';
 
 export {
+    AvailableModel,
     client_id,
     CommonExecutionToolsOptions,
     ExecutionReportJson,

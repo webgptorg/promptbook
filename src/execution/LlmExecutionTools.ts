@@ -25,13 +25,13 @@ export type LlmExecutionTools = {
     /**
      * List all available models that can be used
      */
-    listModels(): Promisable<Array<AviableModel>>;
+    listModels(): Promisable<Array<AvailableModel>>;
 };
 
 /**
  * Represents a model that can be used for prompt execution
  */
-export type AviableModel = {
+export type AvailableModel = {
     /**
      * The model name aviailable
      */

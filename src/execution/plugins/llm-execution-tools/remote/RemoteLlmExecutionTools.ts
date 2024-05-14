@@ -1,7 +1,7 @@
 import type { Socket } from 'socket.io-client';
 import { io } from 'socket.io-client';
 import type { Prompt } from '../../../../types/Prompt';
-import type { AviableModel, LlmExecutionTools } from '../../../LlmExecutionTools';
+import type { AvailableModel, LlmExecutionTools } from '../../../LlmExecutionTools';
 import type { PromptChatResult, PromptCompletionResult, PromptResult } from '../../../PromptResult';
 import type { RemoteLlmExecutionToolsOptions } from './RemoteLlmExecutionToolsOptions';
 import type { Promptbook_Server_Error } from './interfaces/Promptbook_Server_Error';
@@ -89,7 +89,7 @@ export class RemoteLlmExecutionTools implements LlmExecutionTools {
     /**
      * List all available models that can be used
      */
-    public async listModels(): Promise<Array<AviableModel>> {
+    public async listModels(): Promise<Array<AvailableModel>> {
         return [
             /* !!!!! */
         ];

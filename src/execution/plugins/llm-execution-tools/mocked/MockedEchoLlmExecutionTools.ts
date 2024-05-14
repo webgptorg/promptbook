@@ -2,7 +2,7 @@ import { spaceTrim } from 'spacetrim';
 import type { Prompt } from '../../../../types/Prompt';
 import { getCurrentIsoDate } from '../../../../utils/getCurrentIsoDate';
 import type { CommonExecutionToolsOptions } from '../../../CommonExecutionToolsOptions';
-import type { AviableModel, LlmExecutionTools } from '../../../LlmExecutionTools';
+import type { AvailableModel, LlmExecutionTools } from '../../../LlmExecutionTools';
 import type { PromptChatResult, PromptCompletionResult } from '../../../PromptResult';
 
 /**
@@ -76,7 +76,7 @@ export class MockedEchoLlmExecutionTools implements LlmExecutionTools {
     /**
      * List all available mocked-models that can be used
      */
-    public listModels(): Array<AviableModel> {
+    public listModels(): Array<AvailableModel> {
         return [
             {
                 modelName: 'mocked-echo',
