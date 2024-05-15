@@ -102,6 +102,12 @@
             "focus": false
         },
         {
+            "name": "🧸 Playground",
+            "command": "ts-node ./other/playground/playground.ts",
+            "onlySingle": true,
+            "focus": true
+        },
+        {
             "name": "🔼👑 Release major version",
             "command": "npm version major",
             "onlySingle": true,

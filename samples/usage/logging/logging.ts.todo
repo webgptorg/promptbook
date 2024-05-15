@@ -26,7 +26,7 @@ async function main() {
     const tools = {
         llm: new OpenAiExecutionTools({
             isVerbose: true,
-            openAiApiKey: process.env.OPENAI_API_KEY,
+            apiKey: process.env.OPENAI_API_KEY,
         }),
         script: [
             new JavascriptEvalExecutionTools({

@@ -33,7 +33,7 @@ async function main() {
             return new OpenAiExecutionTools({
               // TODO: [♐] Pick just the best model of required variant
                 isVerbose: true,
-                openAiApiKey: process.env.OPENAI_API_KEY!,
+                apiKey: process.env.OPENAI_API_KEY!,
                 user: clientId,
             });
         },
