@@ -20,5 +20,5 @@
         "declaration": true,
         "outDir": "typings"
     },
-    "include": ["src", "other/playground/playground.ts"]
+    "include": ["src"]
 }
