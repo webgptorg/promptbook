@@ -48,7 +48,7 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
             throw new PromptbookExecutionError('Use gptChat only for CHAT variant');
         }
 
-        const model = modelRequirements.modelName;
+        const model = modelRequirements.modelName || this.getDefaultChatModel().modelName;
         const modelSettings = {
             model,
             max_tokens: modelRequirements.maxTokens,
@@ -121,7 +121,7 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
             throw new PromptbookExecutionError('Use gptComplete only for COMPLETION variant');
         }
 
-        const model = modelRequirements.modelName;
+        const model = modelRequirements.modelName || this.getDefaultChatModel().modelName;
         const modelSettings = {
             model,
             max_tokens: modelRequirements.maxTokens || 2000, // <- Note: 2000 is for lagacy reasons
@@ -176,6 +176,28 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
     }
 
     /**
+     * Default model for chat variant.
+     */
+    private getDefaultChatModel(): AvailableModel {
+        return {
+            modelVariant: 'CHAT',
+            modelTitle: 'gpt-4o',
+            modelName: 'gpt-4o',
+        };
+    }
+
+    /**
+     * Default model for completion variant.
+     */
+    private getDefaultCompletionModel(): AvailableModel {
+        return {
+            modelVariant: 'COMPLETION',
+            modelTitle: 'gpt-3.5-turbo-instruct',
+            modelName: 'gpt-3.5-turbo-instruct',
+        };
+    }
+
+    /**
      * List all available OpenAI models that can be used
      */
     public listModels(): Array<AvailableModel> {
@@ -188,12 +210,11 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
         */
 
         return [
-          // Note: Done at 2024-05-15
+            // Note: Done at 2024-05-15
             // TODO: [🕚] Make this list dynamic - dynamically can be listed modelNames but not modelVariant, legacy status, context length and pricing
             // @see https://platform.openai.com/docs/models/gpt-4-turbo-and-gpt-4
             // @see https://openai.com/api/pricing/
             // @see /other/playground/playground.ts
-            
 
             /*/
             {

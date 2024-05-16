@@ -271,6 +271,7 @@ Add new OpenaAI models `gpt-4o` and `gpt-4o-2024-05-13`
 -   Classes that implements `LlmExecutionTools` must expose compatible models <!-- [♐] -->
 -   List OpenAI models dynamically
 -   Export types `LlmTemplateJson`, `SimpleTemplateJson`, `ScriptJson`, `PromptDialogJson` from `@promptbook/types`
+-   `ModelRequirements.modelName` is not required anymore
 
 ## In prepare
 
