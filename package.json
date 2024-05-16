@@ -71,7 +71,7 @@
         "socket.io-client": "4.7.2",
         "spacetrim": "0.11.25",
         "type-fest": "4.5.0",
-        "waitasecond": "1.11.69"
+        "waitasecond": "^1.11.70"
     },
     "funding": [
         {
