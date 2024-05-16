@@ -39,14 +39,7 @@ async function main() {
             new JavascriptEvalExecutionTools({
                 isVerbose: true,
             }),
-        ],
-        // TODO: !!! Allow to pass here> userInterface: null,
-        userInterface: new CallbackInterfaceTools({
-            isVerbose: true,
-            async callback() {
-                return 'Hello';
-            },
-        }),
+        ]
     };
 
     const promptbookExecutor = createPromptbookExecutor({ promptbook, tools });
@@ -54,7 +47,7 @@ async function main() {
     const inputParameters = { word: 'cat' };
     const { isSuccessful, errors, outputParameters, executionReport } = await promptbookExecutor(
         inputParameters,
-        /* TODO: !!! Allow this to be undefined*/ (progress) => {
+        (progress) => {
             console.info({ progress });
         },
     );

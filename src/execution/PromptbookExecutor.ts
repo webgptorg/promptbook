@@ -14,7 +14,7 @@ import type { string_name } from '../types/typeAliases';
 export type PromptbookExecutor = {
     (
         inputParameters: Record<string_name, string>,
-        onProgress: (taskProgress: TaskProgress) => Promisable<void>,
+        onProgress?: (taskProgress: TaskProgress) => Promisable<void>,
     ): Promise<{
         /**
          * Whether the execution was successful

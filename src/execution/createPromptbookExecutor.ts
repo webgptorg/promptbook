@@ -268,6 +268,10 @@ export function createPromptbookExecutor(options: CreatePromptbookExecutorOption
                                 break executionType;
 
                             case 'PROMPT_DIALOG':
+                                if (tools.userInterface === undefined) {
+                                    throw new PromptbookExecutionError('User interface tools are not available');
+                                }
+
                                 // TODO: [🌹] When making next attempt for `PROMPT DIALOG`, preserve the previous user input
                                 resultString = await tools.userInterface.promptDialog({
                                     promptTitle: currentTemplate.title,

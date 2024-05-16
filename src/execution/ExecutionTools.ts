@@ -23,8 +23,10 @@ export type ExecutionTools = {
 
     /**
      * Tools for interacting with the user
+     *
+     * Note: When undefined, the user interface is disabled and promptbook which requires user interaction will fail
      */
-    userInterface: UserInterfaceTools;
+    userInterface?: UserInterfaceTools;
 };
 
 /**
