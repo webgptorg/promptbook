@@ -1,6 +1,6 @@
-#!/usr/bin/env node
+#!/usr/bin/env ts-node
 
-import { createPromptbookExecutor, createPromptbookLibraryFromSources } from '@promptbook/core';
+import { CallbackInterfaceTools, createPromptbookExecutor, createPromptbookLibraryFromSources } from '@promptbook/core';
 import { JavascriptEvalExecutionTools } from '@promptbook/execute-javascript';
 import { OpenAiExecutionTools } from '@promptbook/openai';
 import { assertsExecutionSuccessful, executionReportJsonToString } from '@promptbook/utils';
@@ -24,7 +24,7 @@ async function main() {
 
     const library = createPromptbookLibraryFromSources(
         // TODO:[🍓] !!! Use createPromptbookLibraryFromDirectory
-        await readFile(`./samples/templates/50-advanced.ptbk.md`, 'utf-8'),
+        (await readFile(`./samples/templates/50-advanced.ptbk.md`, 'utf-8')) as any,
     );
 
     const promptbook = library.getPromptbookByUrl((await library.listPromptbooks())[0]);
@@ -40,13 +40,24 @@ async function main() {
                 isVerbose: true,
             }),
         ],
-        userInterface: null,
+        // TODO: !!! Allow to pass here> userInterface: null,
+        userInterface: new CallbackInterfaceTools({
+            isVerbose: true,
+            async callback() {
+                return 'Hello';
+            },
+        }),
     };
 
     const promptbookExecutor = createPromptbookExecutor({ promptbook, tools });
 
     const inputParameters = { word: 'cat' };
-    const { isSuccessful, errors, outputParameters, executionReport } = await promptbookExecutor(inputParameters);
+    const { isSuccessful, errors, outputParameters, executionReport } = await promptbookExecutor(
+        inputParameters,
+        /* TODO: !!! Allow this to be undefined*/ (progress) => {
+            console.info({ progress });
+        },
+    );
 
     console.info(outputParameters);
 
@@ -70,5 +81,6 @@ async function main() {
  * TODO: [🈴] !!! Identify PROMPTBOOKs by URL in this sample
  * TODO: There should be no need to set this script or userInterface in tools
  * TODO: Implement and use here PromptbookLibrary.fromDirectory (directory vs folder)
+ * TODO: [🧠] Maybe make .js version of simple-script
  * TODO: Make sample with Wizzard
  */

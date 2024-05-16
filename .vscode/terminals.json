@@ -3,7 +3,7 @@
     "terminals": [
         {
             "name": "👨‍💻⚪ Run simple-script sample",
-            "command": "node ./samples/usage/simple-script/simple-script.js",
+            "command": "ts-node ./samples/usage/simple-script/simple-script.ts",
             "execute": false,
             "onlySingle": false,
             "focus": false

@@ -2,7 +2,7 @@
 
 import { createPromptbookLibraryFromSources } from '@promptbook/core';
 import { OpenAiExecutionTools } from '@promptbook/openai';
-import { runRemoteServer } from '@promptbook/remote-server';
+import { startRemoteServer } from '@promptbook/remote-server';
 import colors from 'colors';
 import * as dotenv from 'dotenv';
 import { readFile } from 'fs/promises';
@@ -24,14 +24,14 @@ async function main() {
         (await readFile('./samples/templates/50-advanced.ptbk.md', 'utf-8')) as any,
     );
 
-    runRemoteServer({
+    startRemoteServer({
         path: '/promptbook',
         port: 4460,
-        promptbookLibrary: library,
+        library,
         createLlmExecutionTools(clientId) {
             console.log('clientId', clientId);
             return new OpenAiExecutionTools({
-              // TODO: [♐] Pick just the best model of required variant
+                // TODO: [♐] Pick just the best model of required variant
                 isVerbose: true,
                 apiKey: process.env.OPENAI_API_KEY!,
                 user: clientId,
