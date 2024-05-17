@@ -1,6 +1,6 @@
 {
     "name": "@promptbook/remote-server",
-    "version": "0.50.0",
+    "version": "0.50.0-11",
     "description": "Library to supercharge your use of large language models",
     "private": false,
     "sideEffects": false,
@@ -36,7 +36,7 @@
     "dependencies": {
         "colors": "1.4.0",
         "socket.io": "4.7.2",
-        "spacetrim": "0.11.26"
+        "spacetrim": "0.11.25"
     },
     "funding": [
         {
@@ -49,7 +49,7 @@
         }
     ],
     "peerDependencies": {
-        "@promptbook/core": "0.50.0"
+        "@promptbook/core": "0.50.0-11"
     },
     "main": "./umd/index.umd.js",
     "module": "./esm/index.es.js",
