@@ -270,7 +270,7 @@ Add new OpenaAI models `gpt-4o` and `gpt-4o-2024-05-13`
 -   Add model `gpt-4o-2024-05-13`
 -   Classes that implements `LlmExecutionTools` must expose compatible models <!-- [♐] -->
 -   List OpenAI models dynamically
--   Export types `LlmTemplateJson`, `SimpleTemplateJson`, `ScriptJson`, `PromptDialogJson` from `@promptbook/types`
+-   Export types `LlmTemplateJson`, `SimpleTemplateJson`, `ScriptJson`, `PromptDialogJson`, `Expectations` from `@promptbook/types`
 -   `ModelRequirements.modelName` is not required anymore
 -   `PromptbookExecutor` does not require `onProgress` anymore
 -   `ExecutionTools` does not require `userInterface` anymore, when not set, the user interface is disabled and promptbook which requires user interaction will fail

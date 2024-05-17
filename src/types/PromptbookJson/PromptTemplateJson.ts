@@ -163,4 +163,5 @@ interface PromptTemplateJsonCommon {
 /**
  * TODO: [💝] Unite object for expecting amount and format - remove expectFormat
  * TODO: use one helper type> (string_prompt | string_javascript | string_markdown) & string_template
+ * TODO: [👙][🧠] Just selecting gpt3 or gpt4 level of model
  */

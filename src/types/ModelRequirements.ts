@@ -45,4 +45,5 @@ export type ModelRequirements = {
 /**
  * TODO: Maybe figure out better word than "variant"
  * TODO: Add here more requirement options like max context size, max tokens, etc.
+ * TODO: [👙][🧠] Just selecting gpt3 or gpt4 level of model
  */

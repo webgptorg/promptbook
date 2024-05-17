@@ -26,6 +26,7 @@ import type { Prompt } from '../types/Prompt';
 import type {
     EXPECTATION_UNITS,
     ExpectationAmount,
+    Expectations,
     ExpectationUnit,
     LlmTemplateJson,
     PromptDialogJson,
@@ -98,6 +99,7 @@ export {
     ExecutionType,
     EXPECTATION_UNITS,
     ExpectationAmount,
+    Expectations,
     ExpectationUnit,
     FromtoItems,
     LlmExecutionTools,
