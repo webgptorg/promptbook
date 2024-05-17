@@ -1,6 +1,6 @@
 {
     "name": "promptbook",
-    "version": "0.50.0",
+    "version": "0.50.0-11",
     "description": "Library to supercharge your use of large language models",
     "private": false,
     "sideEffects": false,
@@ -61,7 +61,7 @@
     "dependencies": {
         "colors": "1.4.0",
         "commander": "12.0.0",
-        "destroyable": "0.12.49",
+        "destroyable": "0.12.48",
         "glob-promise": "6.0.5",
         "lorem-ipsum": "2.0.8",
         "moment": "2.30.1",
@@ -69,9 +69,9 @@
         "prettier": "2.8.1",
         "socket.io": "4.7.2",
         "socket.io-client": "4.7.2",
-        "spacetrim": "0.11.26",
+        "spacetrim": "0.11.25",
         "type-fest": "4.5.0",
-        "waitasecond": "1.11.70"
+        "waitasecond": "1.11.69"
     },
     "funding": [
         {
