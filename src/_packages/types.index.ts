@@ -24,7 +24,6 @@ import type { ModelRequirements, ModelVariant } from '../types/ModelRequirements
 import type { Parameters } from '../types/Parameters';
 import type { Prompt } from '../types/Prompt';
 import type {
-    EXPECTATION_UNITS,
     ExpectationAmount,
     Expectations,
     ExpectationUnit,
@@ -34,6 +33,7 @@ import type {
     ScriptJson,
     SimpleTemplateJson,
 } from '../types/PromptbookJson/PromptTemplateJson';
+import { EXPECTATION_UNITS } from '../types/PromptbookJson/PromptTemplateJson';
 import type { PromptTemplateParameterJson } from '../types/PromptbookJson/PromptTemplateParameterJson';
 import type { PromptbookJson } from '../types/PromptbookJson/PromptbookJson';
 import type { PromptbookString } from '../types/PromptbookString';
