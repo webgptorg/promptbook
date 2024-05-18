@@ -1,6 +1,6 @@
 {
     "name": "promptbook",
-    "version": "0.50.0-13",
+    "version": "0.50.0-14",
     "description": "Library to supercharge your use of large language models",
     "private": false,
     "sideEffects": false,
@@ -44,16 +44,16 @@
         }
     ],
     "dependencies": {
-        "@promptbook/cli": "0.50.0-13",
-        "@promptbook/core": "0.50.0-13",
-        "@promptbook/execute-javascript": "0.50.0-13",
-        "@promptbook/langtail": "0.50.0-13",
-        "@promptbook/mock": "0.50.0-13",
-        "@promptbook/openai": "0.50.0-13",
-        "@promptbook/remote-client": "0.50.0-13",
-        "@promptbook/remote-server": "0.50.0-13",
-        "@promptbook/types": "0.50.0-13",
-        "@promptbook/utils": "0.50.0-13",
-        "@promptbook/wizzard": "0.50.0-13"
+        "@promptbook/cli": "0.50.0-14",
+        "@promptbook/core": "0.50.0-14",
+        "@promptbook/execute-javascript": "0.50.0-14",
+        "@promptbook/langtail": "0.50.0-14",
+        "@promptbook/mock": "0.50.0-14",
+        "@promptbook/openai": "0.50.0-14",
+        "@promptbook/remote-client": "0.50.0-14",
+        "@promptbook/remote-server": "0.50.0-14",
+        "@promptbook/types": "0.50.0-14",
+        "@promptbook/utils": "0.50.0-14",
+        "@promptbook/wizzard": "0.50.0-14"
     }
 }
