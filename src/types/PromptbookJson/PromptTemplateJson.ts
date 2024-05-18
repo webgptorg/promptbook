@@ -45,7 +45,7 @@ export type Expectations = Partial<
 /**
  * Units of text measurement
  */
-export const EXPECTATION_UNITS = ['CHARACTERS', 'WORDS', 'SENTENCES', 'PARAGRAPHS', 'LINES', 'PAGES'] as const;
+export const EXPECTATION_UNITS = ['CHARACTERS', 'WORDS', 'SENTENCES', 'LINES', 'PARAGRAPHS', 'PAGES'] as const;
 
 /**
  * Unit of text measurement
