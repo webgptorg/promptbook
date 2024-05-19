@@ -274,6 +274,9 @@ Add new OpenaAI models `gpt-4o` and `gpt-4o-2024-05-13`
 -   `ModelRequirements.modelName` is not required anymore
 -   `PromptbookExecutor` does not require `onProgress` anymore
 -   `ExecutionTools` does not require `userInterface` anymore, when not set, the user interface is disabled and promptbook which requires user interaction will fail
+-   Export `extractParameters`, `extractVariables` and `extractParametersFromPromptTemplate` from `@promptbook/utils`
+-   Add and export set operations `difference`, `intersection` and `union` from `@promptbook/utils`
+
 
 ## In prepare
 

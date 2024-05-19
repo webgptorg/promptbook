@@ -5,19 +5,14 @@ import { string_name, string_template } from '../types/typeAliases';
  *
  * @param template the template with parameters in {curly} braces
  * @returns the list of parameter names
- *
- * @private within the library
  */
-
-export function extractParameters(template: string_template): Array<string_name> {
+export function extractParameters(template: string_template): Set<string_name> {
     const matches = template.matchAll(/{\w+}/g);
-    const parameterNames: Array<string_name> = [];
+    const parameterNames = new Set<string_name>();
     for (const match of matches) {
         const parameterName = match[0].slice(1, -1);
 
-        if (!parameterNames.includes(parameterName)) {
-            parameterNames.push(parameterName);
-        }
+        parameterNames.add(parameterName);
     }
 
     return parameterNames;

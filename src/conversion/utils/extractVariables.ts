@@ -7,12 +7,9 @@ import { string_javascript, string_javascript_name } from '../../types/typeAlias
  * @param script from which to extract the variables
  * @returns the list of variable names
  * @throws {PromptbookSyntaxError} if the script is invalid
- *
- * @private within the promptbookStringToJson
  */
-
-export function extractVariables(script: string_javascript): Array<string_javascript_name> {
-    const variables: Array<string_javascript_name> = [];
+export function extractVariables(script: string_javascript): Set<string_javascript_name> {
+    const variables = new Set<string_javascript_name>();
 
     script = `(()=>{${script}})()`;
 
@@ -38,7 +35,7 @@ export function extractVariables(script: string_javascript): Array<string_javasc
                 if (script.includes(undefinedName + '(')) {
                     script = `const ${undefinedName} = ()=>'';` + script;
                 } else {
-                    variables.push(undefinedName);
+                    variables.add(undefinedName);
                     script = `const ${undefinedName} = '';` + script;
                 }
             }
@@ -60,3 +57,7 @@ export function extractVariables(script: string_javascript): Array<string_javasc
 
     return variables;
 }
+
+/**
+ * TODO: [🔣] Support for multiple languages - python, java,...
+ */

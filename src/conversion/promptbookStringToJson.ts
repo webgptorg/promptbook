@@ -1,5 +1,5 @@
 import { spaceTrim } from 'spacetrim';
-import type { Writable, WritableDeep } from 'type-fest';
+import type { IterableElement, Writable, WritableDeep } from 'type-fest';
 import { PromptbookSyntaxError } from '../errors/PromptbookSyntaxError';
 import type { ParameterCommand } from '../types/Command';
 import type { ExecutionType } from '../types/ExecutionTypes';
@@ -10,14 +10,14 @@ import type { PromptbookJson } from '../types/PromptbookJson/PromptbookJson';
 import type { PromptbookString } from '../types/PromptbookString';
 import type { ScriptLanguage } from '../types/ScriptLanguage';
 import { SUPPORTED_SCRIPT_LANGUAGES } from '../types/ScriptLanguage';
-import { extractParameters } from '../utils/extractParameters';
 import { countMarkdownStructureDeepness } from '../utils/markdown-json/countMarkdownStructureDeepness';
 import { markdownToMarkdownStructure } from '../utils/markdown-json/markdownToMarkdownStructure';
 import { extractAllListItemsFromMarkdown } from '../utils/markdown/extractAllListItemsFromMarkdown';
 import { extractOneBlockFromMarkdown } from '../utils/markdown/extractOneBlockFromMarkdown';
 import { removeContentComments } from '../utils/markdown/removeContentComments';
+import { union } from '../utils/sets/union';
 import { PROMPTBOOK_VERSION } from '../version';
-import { extractVariables } from './utils/extractVariables';
+import { extractParametersFromPromptTemplate } from './utils/extractParametersFromPromptTemplate';
 import { parseCommand } from './utils/parseCommand';
 import { titleToName } from './utils/titleToName';
 
@@ -158,7 +158,7 @@ export function promptbookStringToJson(promptbookString: PromptbookString): Prom
 
         const templateModelRequirements: Partial<Writable<ModelRequirements>> = { ...defaultModelRequirements };
         const listItems = extractAllListItemsFromMarkdown(section.content);
-        let dependentParameterNames: PromptTemplateJson['dependentParameterNames'] = [];
+        let dependentParameterNames = new Set<IterableElement<PromptTemplateJson['dependentParameterNames']>>();
         let executionType: ExecutionType = 'PROMPT_TEMPLATE';
         let jokers: PromptTemplateJson['jokers'] = [];
         let postprocessing: PromptTemplateJson['postprocessing'] = [];
@@ -172,7 +172,7 @@ export function promptbookStringToJson(promptbookString: PromptbookString): Prom
             switch (command.type) {
                 case 'JOKER':
                     jokers.push(command.parameterName);
-                    dependentParameterNames.push(command.parameterName);
+                    dependentParameterNames.add(command.parameterName);
                     break;
                 case 'EXECUTE':
                     if (isExecutionTypeChanged) {
@@ -307,27 +307,21 @@ export function promptbookStringToJson(promptbookString: PromptbookString): Prom
             postprocessing = undefined;
         }
 
-        for (const parameterName of [
-            ...extractParameters(section.title),
-            ...extractParameters(description || ''),
-            ...extractParameters(content),
-        ]) {
-            dependentParameterNames.push(parameterName);
-        }
-
-        if (executionType === 'SCRIPT') {
-            for (const parameterName of extractVariables(content)) {
-                dependentParameterNames.push(parameterName);
-            }
-        }
-
-        dependentParameterNames = [...new Set(dependentParameterNames)];
+        dependentParameterNames = union(
+            dependentParameterNames,
+            extractParametersFromPromptTemplate({
+                ...section,
+                description,
+                executionType,
+                content,
+            }),
+        );
 
         promptbookJson.promptTemplates.push({
             name: titleToName(section.title),
             title: section.title,
             description,
-            dependentParameterNames,
+            dependentParameterNames: Array.from(dependentParameterNames),
             executionType,
             jokers,
             postprocessing,

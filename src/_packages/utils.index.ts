@@ -1,6 +1,8 @@
 import { spaceTrim } from 'spacetrim';
 import { prettifyPromptbookString } from '../conversion/prettify/prettifyPromptbookString';
 import { renderPromptbookMermaid } from '../conversion/prettify/renderPromptbookMermaid';
+import { extractParametersFromPromptTemplate } from '../conversion/utils/extractParametersFromPromptTemplate';
+import { extractVariables } from '../conversion/utils/extractVariables';
 import { parseNumber } from '../conversion/utils/parseNumber';
 import { renameParameter } from '../conversion/utils/renameParameter';
 import { titleToName } from '../conversion/utils/titleToName';
@@ -19,6 +21,7 @@ import { countPages } from '../utils/expectation-counters/countPages';
 import { countParagraphs } from '../utils/expectation-counters/countParagraphs';
 import { countSentences, splitIntoSentences } from '../utils/expectation-counters/countSentences';
 import { countWords } from '../utils/expectation-counters/countWords';
+import { extractParameters } from '../utils/extractParameters';
 import { isValidJsonString } from '../utils/isValidJsonString';
 import { extractAllBlocksFromMarkdown } from '../utils/markdown/extractAllBlocksFromMarkdown';
 import { extractAllListItemsFromMarkdown } from '../utils/markdown/extractAllListItemsFromMarkdown';
@@ -45,6 +48,9 @@ import { searchKeywords } from '../utils/normalization/searchKeywords';
 import { extractBlock } from '../utils/postprocessing/extractBlock';
 import { removeEmojis } from '../utils/removeEmojis';
 import { removeQuotes } from '../utils/removeQuotes';
+import { difference } from '../utils/sets/difference';
+import { intersection } from '../utils/sets/intersection';
+import { union } from '../utils/sets/union';
 import { trimCodeBlock } from '../utils/trimCodeBlock';
 import { trimEndOfCodeBlock } from '../utils/trimEndOfCodeBlock';
 import { unwrapResult } from '../utils/unwrapResult';
@@ -60,6 +66,8 @@ export {
     extractAllListItemsFromMarkdown,
     extractBlock, // <- [🌻]
     extractOneBlockFromMarkdown,
+    extractParameters,
+    extractVariables,
     isPassingExpectations,
     isValidJsonString,
     parseNumber, // <- [🌻]
@@ -116,7 +124,9 @@ export {
 };
 
 // Promptbook
-export { renameParameter, renderPromptbookMermaid };
+export { extractParametersFromPromptTemplate, renameParameter, renderPromptbookMermaid };
+
+export { difference, intersection, union };
 
 /**
  * TODO: [🧠] Maybe create some indipendent package like `markdown-tools` from both here exported and @private utilities
