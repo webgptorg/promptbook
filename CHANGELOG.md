@@ -277,7 +277,6 @@ Add new OpenaAI models `gpt-4o` and `gpt-4o-2024-05-13`
 -   Export `extractParameters`, `extractVariables` and `extractParametersFromPromptTemplate` from `@promptbook/utils`
 -   Add and export set operations `difference`, `intersection` and `union` from `@promptbook/utils`
 
-
 ## In prepare
 
 ### `0..0` _(2024-0-)_
