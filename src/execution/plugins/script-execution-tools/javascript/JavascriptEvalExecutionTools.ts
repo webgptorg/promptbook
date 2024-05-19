@@ -64,9 +64,11 @@ export class JavascriptEvalExecutionTools implements ScriptExecutionTools {
         const trimCodeBlock = _trimCodeBlock;
         preserve(trimCodeBlock);
 
+        // TODO: DRY [🍯] 
         const trim = (str: string) => str.trim();
         preserve(trim);
 
+        // TODO: DRY [🍯] 
         const reverse = (str: string) => str.split('').reverse().join('');
         preserve(reverse);
 
@@ -88,6 +90,7 @@ export class JavascriptEvalExecutionTools implements ScriptExecutionTools {
         const normalizeTo_snake_case = _normalizeTo_snake_case;
         const normalizeTo_PascalCase = _normalizeTo_PascalCase;
         const parseKeywords = (input: string) =>
+          // TODO: DRY [🍯] 
             Array.from(parseKeywordsFromString(input)).join(
                 ', ',
             ); /* <- TODO: [🧠] What is the best format comma list, bullet list,...? */
@@ -110,9 +113,9 @@ export class JavascriptEvalExecutionTools implements ScriptExecutionTools {
             script = `return ${script}`;
         }
 
-        // TODO: DRY [1]
+        // TODO: DRY [🍯]
         const buildinFunctions = {
-            // TODO: !! DRY all these functions across the file
+            // TODO: [🍯] DRY all these functions across the file
             spaceTrim,
             removeQuotes,
             unwrapResult,
@@ -144,7 +147,7 @@ export class JavascriptEvalExecutionTools implements ScriptExecutionTools {
             )
             .join('\n');
 
-        // TODO: DRY [1]
+        // TODO: DRY [🍯]
         const customFunctions = this.options.functions || {};
         const customFunctionsStatement = Object.keys(customFunctions)
             .map(
