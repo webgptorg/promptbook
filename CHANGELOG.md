@@ -270,6 +270,8 @@ Add new OpenaAI models `gpt-4o` and `gpt-4o-2024-05-13`
 -   Add model `gpt-4o-2024-05-13`
 -   Classes that implements `LlmExecutionTools` must expose compatible models <!-- [♐] -->
 -   List OpenAI models dynamically
+-   All GPT models have pricing information
+-   Export `OPENAI_MODELS` from `@promptbook/openai`
 -   Export types `LlmTemplateJson`, `SimpleTemplateJson`, `ScriptJson`, `PromptDialogJson`, `Expectations` from `@promptbook/types`
 -   `ModelRequirements.modelName` is not required anymore
 -   `PromptbookExecutor` does not require `onProgress` anymore

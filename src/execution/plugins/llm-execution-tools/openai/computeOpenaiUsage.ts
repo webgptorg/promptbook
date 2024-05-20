@@ -1,6 +1,7 @@
 import type OpenAI from 'openai';
 import { PromptbookExecutionError } from '../../../../errors/PromptbookExecutionError';
 import type { PromptResult } from '../../../PromptResult';
+import { OPENAI_MODELS } from './models';
 
 /**
  * Computes the usage of the OpenAI API based on the response from OpenAI
@@ -25,35 +26,14 @@ export function computeOpenaiUsage(
     const inputTokens = rawResponse.usage.prompt_tokens;
     const outputTokens = rawResponse.usage.completion_tokens;
 
-    // TODO: !!!! [🕚] Make this list dynamic
-    const pricePerThousandTokens = {
-        'gpt-3.5-turbo-0613': {
-            prompt: 0.0015,
-            completion: 0.002,
-        },
-        'gpt-4-0613': {
-            // TODO: Not sure if this is correct
-            prompt: 0.01,
-            completion: 0.03,
-        },
-        'gpt-3.5-turbo-instruct': {
-            prompt: 0.0015,
-            completion: 0.002,
-        },
-        'gpt-4-0125-preview': {
-            prompt: 0.01,
-            completion: 0.03,
-        },
-    }[rawResponse.model];
-
-    // TODO: !!! Retrieve dynamically
+    const modelInfo = OPENAI_MODELS.find((model) => model.modelName === rawResponse.model);
 
     let price: PromptResult['usage']['price'];
 
-    if (pricePerThousandTokens === undefined) {
+    if (modelInfo === undefined || modelInfo.pricing === undefined) {
         price = 'UNKNOWN';
     } else {
-        price = (inputTokens * pricePerThousandTokens.prompt + outputTokens * pricePerThousandTokens.completion) / 1000;
+        price = inputTokens * modelInfo.pricing.prompt + outputTokens * modelInfo.pricing.output;
     }
 
     return {
@@ -63,6 +43,3 @@ export function computeOpenaiUsage(
     };
 }
 
-/**
- * TODO: [🍓] Make better
- */
