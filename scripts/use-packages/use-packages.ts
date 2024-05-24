@@ -33,7 +33,8 @@ async function usePackages() {
     let isWaitedForNpm = false;
     for (const remoteFolder of [
         './samples/usage',
-        '../webgpt-app',
+        '../../webgpt/webgpt-app',
+        '../../webgpt/promptbook-studio',
         '../../webgpt/webgpt-app-ruka',
         '../../webgpt/webgpt-sdk',
         '../../webgpt/calculator',
