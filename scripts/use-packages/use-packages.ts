@@ -32,6 +32,7 @@ async function usePackages() {
 
     let isWaitedForNpm = false;
     for (const remoteFolder of [
+        // Note: Theese are the hardcoded folders where the packages are used for @hejny, maybe this should be in some config file
         './samples/usage',
         '../../webgpt/webgpt-app',
         '../../webgpt/promptbook-studio',
