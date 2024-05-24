@@ -260,9 +260,11 @@ Better utilities (for Promptbase app)
 -   Add function `renameParameter` exported from `@promptbook/utils`
 -   Rename "Script Template" to just "Script"
 
-## In pre-release
+### `0.50.0` _(2024-05-17)_
 
-### `0.50.0` _(2024-05-14)_
+Was accidentally released as earlier, re-released fully completed as `0.51.0`
+
+### `0.51.0` _(2024-05-24)_
 
 Add new OpenaAI models `gpt-4o` and `gpt-4o-2024-05-13`
 
@@ -279,6 +281,12 @@ Add new OpenaAI models `gpt-4o` and `gpt-4o-2024-05-13`
 -   Export `extractParameters`, `extractVariables` and `extractParametersFromPromptTemplate` from `@promptbook/utils`
 -   Add and export set operations `difference`, `intersection` and `union` from `@promptbook/utils`
 -   Export `POSTPROCESSING_FUNCTIONS` from `@promptbook/execute-javascript`
+
+## In pre-release
+
+### `0.52.0` _(2024-05-24)_
+
+Test releases
 
 ## In prepare
 
