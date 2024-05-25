@@ -11,14 +11,14 @@ Library to supercharge your use of large language models
 [![Issues](https://img.shields.io/github/issues/webgptorg/promptbook.svg?style=flat)](https://github.com/webgptorg/promptbook/issues)
 
 
-[![Socket Badge](https://socket.dev/api/badge/npm/package/@promptbook/langtail)](https://socket.dev/npm/package/@promptbook/langtail)
+[![Socket Badge](https://socket.dev/api/badge/npm/package/@promptbook/azure-openai)](https://socket.dev/npm/package/@promptbook/azure-openai)
 
 
 
-## 📦 Package `@promptbook/langtail`
+## 📦 Package `@promptbook/azure-openai`
 
 - Promptbooks are [divided into several](#-packages) packages, all are published from [single monorepo](https://github.com/webgptorg/promptbook).
-- This package `@promptbook/langtail` is one part of the promptbook ecosystem.
+- This package `@promptbook/azure-openai` is one part of the promptbook ecosystem.
 
 To install this package, run:
 
@@ -27,14 +27,8 @@ To install this package, run:
 npm i ptbk
 
 # Install just this package to save space
-npm i @promptbook/langtail
+npm i @promptbook/azure-openai
 ```
-
-Use [Langtail](https://langtail.com/) to **ship AI apps with fewer surprises**.
-
-This package is wrapper of [Langtail's OpenAI proxy](https://langtail.com/docs/proxy/openai) to make it easier to use inside the Promptbooks.
-
-
 
 
 
