@@ -286,7 +286,10 @@ Add new OpenaAI models `gpt-4o` and `gpt-4o-2024-05-13`
 
 ### `0.52.0` _(2024-05-24)_
 
-Add support for Claude \ Anthropic models via package `@promptbook/anthropic-claude` and add Azure OpenAI models via package `@promptbook/azure-openai`
+Add support for Claude \\ Anthropic models via package `@promptbook/anthropic-claude` and add Azure OpenAI models via package `@promptbook/azure-openai`
+
+-   Always use "modelName" not just "model"
+-   Standartization of model providers
 
 ## In prepare
 
