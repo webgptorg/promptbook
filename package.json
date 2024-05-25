@@ -59,6 +59,7 @@
         "yaml": "2.3.3"
     },
     "dependencies": {
+        "@azure/openai": "1.0.0-beta.12",
         "colors": "1.4.0",
         "commander": "12.0.0",
         "destroyable": "0.12.48",
