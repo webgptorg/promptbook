@@ -334,7 +334,7 @@ Or you can install them separately:
 -   _(Not finished)_ **[@promptbook/wizzard](https://www.npmjs.com/package/@promptbook/wizzard)** - Wizard for creating+running promptbooks in single line
 -   **[@promptbook/execute-javascript](https://www.npmjs.com/package/@promptbook/execute-javascript)** - Execution tools for javascript inside promptbooks
 -   **[@promptbook/openai](https://www.npmjs.com/package/@promptbook/openai)** - Execution tools for OpenAI API, wrapper around OpenAI SDK
--   **[@promptbook/anthropic-claude](https://www.npmjs.com/package/@promptbook/anthropic-claude)** - Execution tools for Anthropic Claude API, wrapper around Anthropic Claude SDK
+-   **[@promptbook/anthropic-claude](https://www.npmjs.com/package/@promptbook/anthropic-claude)** - Execution tools for Anthropic Claude API, wrapper around Anthropic Claude SDK 
 -   **[@promptbook/azure-openai](https://www.npmjs.com/package/@promptbook/azure-openai)** - Execution tools for Azure OpenAI API
 -   **[@promptbook/langtail](https://www.npmjs.com/package/@promptbook/langtail)** - Execution tools for Langtail API, wrapper around Langtail SDK
 -   **[@promptbook/mock](https://www.npmjs.com/package/@promptbook/mock)** - Mocked execution tools for testing the library and saving the tokens
@@ -487,8 +487,9 @@ Internally it calls OpenAI, Azure, GPU, proxy, cache, logging,...
 `LlmExecutionTools` an abstract interface that is implemented by concrete execution tools:
 
 -   `OpenAiExecutionTools`
--   _(Not implemented yet !!!!! )_ `AnthropicClaudeExecutionTools`
--   _(Not implemented yet !!!!! )_ `AzureOpenAiExecutionTools`
+-   `AnthropicClaudeExecutionTools`
+-   `AzureOpenAiExecutionTools`
+-   `LangtailExecutionTools`
 -   _(Not implemented yet)_ `BardExecutionTools`
 -   _(Not implemented yet)_ `LamaExecutionTools`
 -   _(Not implemented yet)_ `GpuExecutionTools`
