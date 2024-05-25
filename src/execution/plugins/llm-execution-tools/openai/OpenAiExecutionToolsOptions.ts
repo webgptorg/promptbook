@@ -12,7 +12,9 @@ export type OpenAiExecutionToolsOptions = CommonExecutionToolsOptions &
     ClientOptions & {
         /**
          * A unique identifier representing your end-user, which can help OpenAI to monitor
-         * and detect abuse. [Learn more](/docs/guides/safety-best-practices/end-user-ids).
+         * and detect abuse.
+         *
+         * @see https://platform.openai.com/docs/guides/safety-best-practices/end-user-ids
          */
         user?: string_token;
     };

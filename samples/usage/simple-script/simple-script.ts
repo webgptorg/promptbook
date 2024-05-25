@@ -1,8 +1,9 @@
 #!/usr/bin/env ts-node
 
-import { CallbackInterfaceTools, createPromptbookExecutor, createPromptbookLibraryFromSources } from '@promptbook/core';
+import { createPromptbookExecutor, createPromptbookLibraryFromSources } from '@promptbook/core';
 import { JavascriptEvalExecutionTools } from '@promptbook/execute-javascript';
 import { OpenAiExecutionTools } from '@promptbook/openai';
+import { A } from '@promptbook/azure-openai';
 import { assertsExecutionSuccessful, executionReportJsonToString } from '@promptbook/utils';
 import colors from 'colors';
 import * as dotenv from 'dotenv';
@@ -18,13 +19,14 @@ dotenv.config({ path: '.env' });
 main();
 
 async function main() {
-    console.info(colors.bgWhite('⚪ Testing basic capabilities of PromptBook'));
+    console.info(colors.bgWhite('⚪ Testing basic capabilities of Promptbook'));
 
     // const promptbookUrl = 'https://promptbook.example.com/samples/language-capabilities.ptbk.md@v1';
 
     const library = createPromptbookLibraryFromSources(
         // TODO:[🍓] !!! Use createPromptbookLibraryFromDirectory
-        (await readFile(`./samples/templates/50-advanced.ptbk.md`, 'utf-8')) as any,
+        (await readFile(`./samples/templates/02-ptbkurl.ptbk.md`, 'utf-8')) as any,
+        //(await readFile(`./samples/templates/50-advanced.ptbk.md`, 'utf-8')) as any,
     );
 
     const promptbook = library.getPromptbookByUrl((await library.listPromptbooks())[0]);
@@ -32,14 +34,16 @@ async function main() {
     const tools = {
         llm: new OpenAiExecutionTools({
             // TODO: [♐] Pick just the best model of required variant
+            baseURL: 'https://greenhack.openai.azure.com/',
+            apiKey: '6b87f6e28ae944f6a4ac7fe955703e7f',
             isVerbose: true,
-            apiKey: process.env.OPENAI_API_KEY,
+            // apiKey: process.env.OPENAI_API_KEY,
         }),
         script: [
             new JavascriptEvalExecutionTools({
                 isVerbose: true,
             }),
-        ]
+        ],
     };
 
     const promptbookExecutor = createPromptbookExecutor({ promptbook, tools });

@@ -1,9 +1,9 @@
 import type {
-    number_positive_or_zero,
-    number_tokens,
-    number_usd,
-    string_date_iso8601,
-    string_model_name,
+  number_positive_or_zero,
+  number_tokens,
+  number_usd,
+  string_date_iso8601,
+  string_model_name,
 } from '.././types/typeAliases';
 
 /**
@@ -36,7 +36,7 @@ export type PromptCommonResult = {
     /**
      * Name of the model used to generate the response
      */
-    readonly model: string_model_name;
+    readonly modelName: string_model_name;
 
     /**
      * Timing
@@ -72,12 +72,12 @@ export type PromptCommonResult = {
         /**
          * Number of tokens used in the input aka. `prompt_tokens`
          */
-        inputTokens: number_tokens;
+        inputTokens: number_tokens | 'UNKNOWN';
 
         /**
          * Number of tokens used in the output aka. `completion_tokens`
          */
-        outputTokens: number_tokens;
+        outputTokens: number_tokens | 'UNKNOWN';
     };
 
     /**

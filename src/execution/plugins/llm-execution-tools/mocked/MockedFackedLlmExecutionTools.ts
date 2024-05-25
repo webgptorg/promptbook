@@ -14,7 +14,9 @@ export class MockedFackedLlmExecutionTools implements LlmExecutionTools {
     /**
      * Fakes chat model
      */
-    public async gptChat(prompt: Prompt): Promise<PromptChatResult & PromptCompletionResult> {
+    public async gptChat(
+        prompt: Pick<Prompt, 'content' | 'modelRequirements'>,
+    ): Promise<PromptChatResult & PromptCompletionResult> {
         if (this.options.isVerbose) {
             console.info('💬 Mocked faked prompt', prompt);
         }
@@ -28,7 +30,7 @@ export class MockedFackedLlmExecutionTools implements LlmExecutionTools {
 
         const result = {
             content,
-            model: 'mocked-facked',
+            modelName: 'mocked-facked',
             timing: {
                 start: getCurrentIsoDate(),
                 complete: getCurrentIsoDate(),
@@ -54,7 +56,7 @@ export class MockedFackedLlmExecutionTools implements LlmExecutionTools {
     /**
      * Fakes completion model
      */
-    public async gptComplete(prompt: Prompt): Promise<PromptCompletionResult> {
+    public async gptComplete(prompt: Pick<Prompt, 'content' | 'modelRequirements'>): Promise<PromptCompletionResult> {
         return this.gptChat(prompt);
     }
 
@@ -69,7 +71,7 @@ export class MockedFackedLlmExecutionTools implements LlmExecutionTools {
                 modelVariant: 'CHAT',
             },
             {
-              modelTitle: 'Fake completion',
+                modelTitle: 'Fake completion',
                 modelName: 'mocked-echo',
                 modelVariant: 'COMPLETION',
             },

@@ -108,6 +108,30 @@
             "focus": true
         },
         {
+            "name": "🧸 OpenAI Playground",
+            "command": "ts-node ./src/execution/plugins/llm-execution-tools/openai/playground/playground.ts",
+            "onlySingle": true,
+            "focus": true
+        },
+        {
+            "name": "🧸 Anthropic Claude Playground",
+            "command": "ts-node ./src/execution/plugins/llm-execution-tools/anthropic-claude/playground/playground.ts",
+            "onlySingle": true,
+            "focus": true
+        },
+        {
+            "name": "🧸 Azure OpenAI Playground",
+            "command": "ts-node ./src/execution/plugins/llm-execution-tools/azure-openai/playground/playground.ts",
+            "onlySingle": true,
+            "focus": true
+        },
+        {
+            "name": "🧸 Langtail Playground",
+            "command": "ts-node ./src/execution/plugins/llm-execution-tools/langtail/playground/playground.ts",
+            "onlySingle": true,
+            "focus": true
+        },
+        {
             "name": "🔼👑 Release major version",
             "command": "npm version major",
             "onlySingle": true,

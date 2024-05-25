@@ -45,7 +45,7 @@ export class RemoteLlmExecutionTools implements LlmExecutionTools {
     /**
      * Calls remote proxy server to use a chat model.
      */
-    public gptChat(prompt: Prompt): Promise<PromptChatResult> {
+    public gptChat(prompt: Pick<Prompt, 'content' | 'modelRequirements'>): Promise<PromptChatResult> {
         if (this.options.isVerbose) {
             console.info(`🖋 Remote gptChat call`);
         }
@@ -55,7 +55,7 @@ export class RemoteLlmExecutionTools implements LlmExecutionTools {
     /**
      * Calls remote proxy server to use a completion model.
      */
-    public gptComplete(prompt: Prompt): Promise<PromptCompletionResult> {
+    public gptComplete(prompt: Pick<Prompt, 'content' | 'modelRequirements'>): Promise<PromptCompletionResult> {
         if (this.options.isVerbose) {
             console.info(`💬 Remote gptComplete call`);
         }

@@ -1,45 +1,44 @@
 import colors from 'colors';
-import OpenAI from 'openai';
+import xxxx from 'openai';
 import { PromptbookExecutionError } from '../../../../errors/PromptbookExecutionError';
 import type { Prompt } from '../../../../types/Prompt';
 import type { string_date_iso8601 } from '../../../../types/typeAliases';
 import { getCurrentIsoDate } from '../../../../utils/getCurrentIsoDate';
 import type { AvailableModel, LlmExecutionTools } from '../../../LlmExecutionTools';
 import type { PromptChatResult, PromptCompletionResult } from '../../../PromptResult';
-import type { OpenAiExecutionToolsOptions } from './OpenAiExecutionToolsOptions';
-import { computeOpenaiUsage } from './computeOpenaiUsage';
+import type { AnthropicClaudeExecutionToolsOptions } from './AnthropicClaudeExecutionToolsOptions';
 import { OPENAI_MODELS } from './models';
 
 /**
- * Execution Tools for calling OpenAI API.
+ * Execution Tools for calling Anthropic Claude API.
  */
-export class OpenAiExecutionTools implements LlmExecutionTools {
+export class AnthropicClaudeExecutionTools implements LlmExecutionTools {
     /**
-     * OpenAI API client.
+     * Anthropic Claude API client.
      */
-    private readonly client: OpenAI;
+    private readonly client: xxxx;
 
     /**
-     * Creates OpenAI Execution Tools.
+     * Creates Anthropic Claude Execution Tools.
      *
-     * @param options which are relevant are directly passed to the OpenAI client
+     * @param options which are relevant are directly passed to the Anthropic Claude client
      */
-    public constructor(private readonly options: OpenAiExecutionToolsOptions) {
-        // Note: Passing only OpenAI relevant options to OpenAI constructor
+    public constructor(private readonly options: AnthropicClaudeExecutionToolsOptions) {
+        // Note: Passing only Anthropic Claude relevant options to Anthropic Claude constructor
         const openAiOptions = { ...options };
         delete openAiOptions.isVerbose;
         delete openAiOptions.user;
-        this.client = new OpenAI({
+        this.client = new xxxx({
             ...openAiOptions,
         });
     }
 
     /**
-     * Calls OpenAI API to use a chat model.
+     * Calls Anthropic Claude API to use a chat model.
      */
     public async gptChat(prompt: Pick<Prompt, 'content' | 'modelRequirements'>): Promise<PromptChatResult> {
         if (this.options.isVerbose) {
-            console.info('💬 OpenAI gptChat call');
+            console.info('💬 Anthropic Claude gptChat call');
         }
 
         const { content, modelRequirements } = prompt;
@@ -55,7 +54,7 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
             max_tokens: modelRequirements.maxTokens,
             //                                      <- TODO: Make some global max cap for maxTokens
         };
-        const rawRequest: OpenAI.Chat.Completions.CompletionCreateParamsNonStreaming = {
+        const rawRequest: xxxx.Chat.Completions.CompletionCreateParamsNonStreaming = {
             ...modelSettings,
             messages: [
                 {
@@ -77,21 +76,21 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
         }
 
         if (!rawResponse.choices[0]) {
-            throw new PromptbookExecutionError('No choises from OpenAI');
+            throw new PromptbookExecutionError('No choises from Anthropic Claude');
         }
 
         if (rawResponse.choices.length > 1) {
             // TODO: This should be maybe only warning
-            throw new PromptbookExecutionError('More than one choise from OpenAI');
+            throw new PromptbookExecutionError('More than one choise from Anthropic Claude');
         }
 
         const resultContent = rawResponse.choices[0].message.content;
         // eslint-disable-next-line prefer-const
         complete = getCurrentIsoDate();
-        const usage = computeOpenaiUsage(rawResponse);
+        const usage = { price: 'UNKNOWN', inputTokens: 0, outputTokens: 0 /* <- TODO: [🐞] Compute usage */ } as const;
 
         if (!resultContent) {
-            throw new PromptbookExecutionError('No response message from OpenAI');
+            throw new PromptbookExecutionError('No response message from Anthropic Claude');
         }
 
         return {
@@ -108,11 +107,11 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
     }
 
     /**
-     * Calls OpenAI API to use a complete model.
+     * Calls Anthropic Claude API to use a complete model.
      */
     public async gptComplete(prompt: Pick<Prompt, 'content' | 'modelRequirements'>): Promise<PromptCompletionResult> {
         if (this.options.isVerbose) {
-            console.info('🖋 OpenAI gptComplete call');
+            console.info('🖋 Anthropic Claude gptComplete call');
         }
 
         const { content, modelRequirements } = prompt;
@@ -122,14 +121,14 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
             throw new PromptbookExecutionError('Use gptComplete only for COMPLETION variant');
         }
 
-        const model = modelRequirements.modelName || this.getDefaultCompletionModel().modelName;
+        const model = modelRequirements.modelName || this.getDefaultChatModel().modelName;
         const modelSettings = {
-            model,
+            model: rawResponse.model || model,
             max_tokens: modelRequirements.maxTokens || 2000, // <- Note: 2000 is for lagacy reasons
             //                                                  <- TODO: Make some global max cap for maxTokens
         };
 
-        const rawRequest: OpenAI.Completions.CompletionCreateParamsNonStreaming = {
+        const rawRequest: xxxx.Completions.CompletionCreateParamsNonStreaming = {
             ...modelSettings,
             prompt: content,
             user: this.options.user,
@@ -146,21 +145,21 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
         }
 
         if (!rawResponse.choices[0]) {
-            throw new PromptbookExecutionError('No choises from OpenAI');
+            throw new PromptbookExecutionError('No choises from Anthropic Claude');
         }
 
         if (rawResponse.choices.length > 1) {
             // TODO: This should be maybe only warning
-            throw new PromptbookExecutionError('More than one choise from OpenAI');
+            throw new PromptbookExecutionError('More than one choise from Anthropic Claude');
         }
 
         const resultContent = rawResponse.choices[0].text;
         // eslint-disable-next-line prefer-const
         complete = getCurrentIsoDate();
-        const usage = computeOpenaiUsage(rawResponse);
+        const usage = { price: 'UNKNOWN', inputTokens: 0, outputTokens: 0 /* <- TODO: [🐞] Compute usage */ } as const;
 
         if (!resultContent) {
-            throw new PromptbookExecutionError('No response message from OpenAI');
+            throw new PromptbookExecutionError('No response message from Anthropic Claude');
         }
 
         return {
@@ -199,7 +198,7 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
     }
 
     /**
-     * List all available OpenAI models that can be used
+     * List all available Anthropic Claude models that can be used
      */
     public listModels(): Array<AvailableModel> {
         /*

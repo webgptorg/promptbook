@@ -14,7 +14,7 @@ export class MockedEchoLlmExecutionTools implements LlmExecutionTools {
     /**
      * Mocks chat model
      */
-    public async gptChat(prompt: Prompt): Promise<PromptChatResult> {
+    public async gptChat(prompt: Pick<Prompt, 'content' | 'modelRequirements'>): Promise<PromptChatResult> {
         if (this.options.isVerbose) {
             console.info('💬 Mocked gptChat call');
         }
@@ -25,7 +25,7 @@ export class MockedEchoLlmExecutionTools implements LlmExecutionTools {
                     ${block(prompt.content)}
                 `,
             ),
-            model: 'mocked-echo',
+            modelName: 'mocked-echo',
             timing: {
                 start: getCurrentIsoDate(),
                 complete: getCurrentIsoDate(),
@@ -45,7 +45,7 @@ export class MockedEchoLlmExecutionTools implements LlmExecutionTools {
     /**
      * Mocks completion model
      */
-    public async gptComplete(prompt: Prompt): Promise<PromptCompletionResult> {
+    public async gptComplete(prompt: Pick<Prompt, 'content' | 'modelRequirements'>): Promise<PromptCompletionResult> {
         if (this.options.isVerbose) {
             console.info('🖋 Mocked gptComplete call');
         }
@@ -56,7 +56,7 @@ export class MockedEchoLlmExecutionTools implements LlmExecutionTools {
                     And so on...
                 `,
             ),
-            model: 'mocked-echo',
+            modelName: 'mocked-echo',
             timing: {
                 start: getCurrentIsoDate(),
                 complete: getCurrentIsoDate(),

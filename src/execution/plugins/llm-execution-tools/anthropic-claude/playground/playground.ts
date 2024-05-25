@@ -5,7 +5,7 @@ import * as dotenv from 'dotenv';
 dotenv.config({ path: '.env' });
 
 import chalk from 'colors';
-import { AzureOpenAiExecutionTools } from '../AzureOpenAiExecutionTools';
+import { AnthropicClaudeExecutionTools } from '../AnthropicClaudeExecutionTools';
 
 playground()
     .catch((error) => {
@@ -18,43 +18,46 @@ playground()
     });
 
 async function playground() {
-    console.info(`🧸  Azure OpenAI Playground`);
+    console.info(`🧸  Anthropic Claude Playground`);
 
     // Do here stuff you want to test
     //========================================>
 
-    const azureOpenAiExecutionTools = new AzureOpenAiExecutionTools({
+    const anthropicClaudeExecutionTools = new AnthropicClaudeExecutionTools({
         isVerbose: true,
         resourceName: process.env.AZUREOPENAI_RESOURCE_NAME!,
         deploymentName: process.env.AZUREOPENAI_DEPLOYMENT_NAME!,
         apiKey: process.env.AZUREOPENAI_API_KEY!,
     });
 
-    /**/
-    const models = await azureOpenAiExecutionTools.listModels();
+    /*/
+    // TODO: !!!!! This should work
+    const models = await anthropicClaudeExecutionTools.listModels();
     console.info({ models });
     /**/
 
     /*/
+     // TODO: !!!!! This should work
     const prompt = {
         content: `Hello, my name is Alice.`,
         modelRequirements: {
             modelVariant: 'COMPLETION',
         },
     } as const;
-    const promptResult = await azureOpenAiExecutionTools.gptComplete(prompt);
+    const promptResult = await anthropicClaudeExecutionTools.gptComplete(prompt);
     console.info({ promptResult });
     console.info(chalk.green(prompt.content + promptResult.content));
     /**/
 
-    /*/
+    /**/
+    // TODO: !!!!! This should work
     const prompt = {
         content: `Hello, my name is Alice.`,
         modelRequirements: {
             modelVariant: 'CHAT',
         },
     } as const;
-    const promptResult = await azureOpenAiExecutionTools.gptChat(prompt);
+    const promptResult = await anthropicClaudeExecutionTools.gptChat(prompt);
     console.info({ promptResult });
     console.info(chalk.bgBlue(' User: ') + chalk.blue(prompt.content));
     console.info(chalk.bgGreen(' Chat: ') + chalk.green(promptResult.content));
@@ -62,5 +65,5 @@ async function playground() {
 
     //========================================/
 
-    console.info(`[ Done 🧸  Azure OpenAI Playground ]`);
+    console.info(`[ Done 🧸  Anthropic Claude Playground ]`);
 }

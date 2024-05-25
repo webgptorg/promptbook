@@ -23,14 +23,14 @@ export class SupabaseLoggerWrapperOfLlmExecutionTools implements LlmExecutionToo
     /**
      * Calls a chat model and logs the request+result
      */
-    public gptChat(prompt: Prompt): Promise<PromptChatResult> {
+    public gptChat(prompt: Pick<Prompt, 'content' | 'modelRequirements'>): Promise<PromptChatResult> {
         return /* not await */ this.gptCommon(prompt);
     }
 
     /**
      * Calls a completion model and logs the request+result
      */
-    public gptComplete(prompt: Prompt): Promise<PromptCompletionResult> {
+    public gptComplete(prompt: Pick<Prompt, 'content' | 'modelRequirements'>): Promise<PromptCompletionResult> {
         return /* not await */ this.gptCommon(prompt);
     }
 
