@@ -15,12 +15,12 @@ export type LlmExecutionTools = {
     /**
      * Use a chat model
      */
-    gptChat(prompt: Pick<Prompt, 'content' | 'modelRequirements'>): Promise<PromptChatResult>;
+    gptChat(prompt: Prompt): Promise<PromptChatResult>;
 
     /**
      * Use a completion model
      */
-    gptComplete(prompt: Pick<Prompt, 'content' | 'modelRequirements'>): Promise<PromptCompletionResult>;
+    gptComplete(prompt: Prompt): Promise<PromptCompletionResult>;
 
     /**
      * List all available models that can be used

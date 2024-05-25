@@ -15,7 +15,7 @@ export class MockedFackedLlmExecutionTools implements LlmExecutionTools {
      * Fakes chat model
      */
     public async gptChat(
-        prompt: Pick<Prompt, 'content' | 'modelRequirements'>,
+        prompt: Pick<Prompt, 'content' | 'modelRequirements' | 'expectations' | 'postprocessing'>,
     ): Promise<PromptChatResult & PromptCompletionResult> {
         if (this.options.isVerbose) {
             console.info('💬 Mocked faked prompt', prompt);
@@ -56,7 +56,7 @@ export class MockedFackedLlmExecutionTools implements LlmExecutionTools {
     /**
      * Fakes completion model
      */
-    public async gptComplete(prompt: Pick<Prompt, 'content' | 'modelRequirements'>): Promise<PromptCompletionResult> {
+    public async gptComplete(prompt: Pick<Prompt, 'content' | 'modelRequirements'|'expectations'|'postprocessing'>): Promise<PromptCompletionResult> {
         return this.gptChat(prompt);
     }
 
