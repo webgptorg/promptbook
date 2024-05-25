@@ -303,7 +303,7 @@ Or you can install them separately:
 
 > ⭐ Marked packages are worth to try first
 
-<!--[🔠]-->
+<!--[➕]-->
 
 -   ⭐ **[ptbk](https://www.npmjs.com/package/ptbk)** - Bundle of all packages, when you want to install everything and you don't care about the size
 -   **[promptbook](https://www.npmjs.com/package/promptbook)** - Same as `ptbk`
@@ -318,6 +318,8 @@ Or you can install them separately:
 -   **[@promptbook/remote-server](https://www.npmjs.com/package/@promptbook/remote-server)** - Remote server for remote execution of promptbooks
 -   **[@promptbook/types](https://www.npmjs.com/package/@promptbook/types)** - Just typescript types used in the library
 -   **[@promptbook/cli](https://www.npmjs.com/package/@promptbook/cli)** - Command line interface utilities for promptbooks
+
+<!-- <- Note: When creating new package look at places marked by [➕] -->
 
 ## 📚 Dictionary
 
