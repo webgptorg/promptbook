@@ -24,14 +24,39 @@ async function playground() {
     //========================================>
 
     const openAiExecutionTools = new OpenAiExecutionTools({
-        // TODO: [♐] Pick just the best model of required variant
         isVerbose: true,
-        apiKey: process.env.OPENAI_API_KEY,
+        apiKey: process.env.OPENAI_API_KEY!,
     });
 
+    /*/
     const models = await openAiExecutionTools.listModels();
-
     console.info({ models });
+    /**/
+
+    /*/
+    const prompt = {
+        content: `Hello, my name is Alice.`,
+        modelRequirements: {
+            modelVariant: 'COMPLETION',
+        },
+    } as const;
+    const promptResult = await openAiExecutionTools.gptComplete(prompt);
+    console.info({ promptResult });
+    console.info(chalk.green(prompt.content + promptResult.content));
+    /**/
+
+    /**/
+    const prompt = {
+        content: `Hello, my name is Alice.`,
+        modelRequirements: {
+            modelVariant: 'CHAT',
+        },
+    } as const;
+    const promptResult = await openAiExecutionTools.gptChat(prompt);
+    console.info({ promptResult });
+    console.info(chalk.bgBlue(' User: ') + chalk.blue(prompt.content));
+    console.info(chalk.bgGreen(' Chat: ') + chalk.green(promptResult.content));
+    /**/
 
     //========================================/
 

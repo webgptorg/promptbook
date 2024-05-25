@@ -1,13 +1,15 @@
+import Anthropic from '@anthropic-ai/sdk';
+import type { MessageCreateParamsNonStreaming } from '@anthropic-ai/sdk/resources';
 import colors from 'colors';
-import xxxx from 'openai';
 import { PromptbookExecutionError } from '../../../../errors/PromptbookExecutionError';
 import type { Prompt } from '../../../../types/Prompt';
 import type { string_date_iso8601 } from '../../../../types/typeAliases';
 import { getCurrentIsoDate } from '../../../../utils/getCurrentIsoDate';
+import { just } from '../../../../utils/just';
 import type { AvailableModel, LlmExecutionTools } from '../../../LlmExecutionTools';
 import type { PromptChatResult, PromptCompletionResult } from '../../../PromptResult';
 import type { AnthropicClaudeExecutionToolsOptions } from './AnthropicClaudeExecutionToolsOptions';
-import { OPENAI_MODELS } from './models';
+import { ANTHROPIC_CLAUDE_MODELS } from './anthropic-claude-models';
 
 /**
  * Execution Tools for calling Anthropic Claude API.
@@ -16,7 +18,7 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools {
     /**
      * Anthropic Claude API client.
      */
-    private readonly client: xxxx;
+    private readonly client: Anthropic;
 
     /**
      * Creates Anthropic Claude Execution Tools.
@@ -24,13 +26,10 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools {
      * @param options which are relevant are directly passed to the Anthropic Claude client
      */
     public constructor(private readonly options: AnthropicClaudeExecutionToolsOptions) {
-        // Note: Passing only Anthropic Claude relevant options to Anthropic Claude constructor
-        const openAiOptions = { ...options };
-        delete openAiOptions.isVerbose;
-        delete openAiOptions.user;
-        this.client = new xxxx({
-            ...openAiOptions,
-        });
+        // Note: Passing only Anthropic Claude relevant options to Anthropic constructor
+        const anthropicOptions = { ...options };
+        delete anthropicOptions.isVerbose;
+        this.client = new Anthropic(anthropicOptions);
     }
 
     /**
@@ -48,21 +47,17 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools {
             throw new PromptbookExecutionError('Use gptChat only for CHAT variant');
         }
 
-        const model = modelRequirements.modelName || this.getDefaultChatModel().modelName;
-        const modelSettings = {
-            model: rawResponse.model || model,
-            max_tokens: modelRequirements.maxTokens,
-            //                                      <- TODO: Make some global max cap for maxTokens
-        };
-        const rawRequest: xxxx.Chat.Completions.CompletionCreateParamsNonStreaming = {
-            ...modelSettings,
+        const rawRequest: MessageCreateParamsNonStreaming = {
+            model: modelRequirements.modelName || this.getDefaultChatModel().modelName,
+            max_tokens: modelRequirements.maxTokens || 10000,
+            //                                            <- TODO: Make some global max cap for maxTokens
             messages: [
                 {
                     role: 'user',
                     content,
                 },
             ],
-            user: this.options.user,
+            // TODO: Is here some equivalent of user identification?> user: this.options.user,
         };
         const start: string_date_iso8601 = getCurrentIsoDate();
         let complete: string_date_iso8601;
@@ -70,24 +65,27 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools {
         if (this.options.isVerbose) {
             console.info(colors.bgWhite('rawRequest'), JSON.stringify(rawRequest, null, 4));
         }
-        const rawResponse = await this.client.chat.completions.create(rawRequest);
+        const rawResponse = await this.client.messages.create(rawRequest);
         if (this.options.isVerbose) {
             console.info(colors.bgWhite('rawResponse'), JSON.stringify(rawResponse, null, 4));
         }
 
-        if (!rawResponse.choices[0]) {
-            throw new PromptbookExecutionError('No choises from Anthropic Claude');
+        if (!rawResponse.content[0]) {
+            throw new PromptbookExecutionError('No content from Anthropic Claude');
         }
 
-        if (rawResponse.choices.length > 1) {
-            // TODO: This should be maybe only warning
-            throw new PromptbookExecutionError('More than one choise from Anthropic Claude');
+        if (rawResponse.content.length > 1) {
+            throw new PromptbookExecutionError('More than one content blocks from Anthropic Claude');
         }
 
-        const resultContent = rawResponse.choices[0].message.content;
+        const resultContent = rawResponse.content[0].text;
         // eslint-disable-next-line prefer-const
         complete = getCurrentIsoDate();
-        const usage = { price: 'UNKNOWN', inputTokens: 0, outputTokens: 0 /* <- TODO: [🐞] Compute usage */ } as const;
+        const usage = {
+            price: 'UNKNOWN' /* <- TODO: [🐞] Compute usage */,
+            inputTokens: rawResponse.usage.input_tokens,
+            outputTokens: rawResponse.usage.output_tokens,
+        } as const;
 
         if (!resultContent) {
             throw new PromptbookExecutionError('No response message from Anthropic Claude');
@@ -95,7 +93,7 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools {
 
         return {
             content: resultContent,
-            modelName: rawResponse.model || model,
+            modelName: rawResponse.model,
             timing: {
                 start,
                 complete,
@@ -110,6 +108,9 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools {
      * Calls Anthropic Claude API to use a complete model.
      */
     public async gptComplete(prompt: Pick<Prompt, 'content' | 'modelRequirements'>): Promise<PromptCompletionResult> {
+        just(prompt);
+        throw new Error('Anthropic complation models are not implemented to Promptbook yet');
+        /*
         if (this.options.isVerbose) {
             console.info('🖋 Anthropic Claude gptComplete call');
         }
@@ -156,7 +157,7 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools {
         const resultContent = rawResponse.choices[0].text;
         // eslint-disable-next-line prefer-const
         complete = getCurrentIsoDate();
-        const usage = { price: 'UNKNOWN', inputTokens: 0, outputTokens: 0 /* <- TODO: [🐞] Compute usage */ } as const;
+        const usage = { price: 'UNKNOWN', inputTokens: 0, outputTokens: 0 /* <- TODO: [🐞] Compute usage * / } as const;
 
         if (!resultContent) {
             throw new PromptbookExecutionError('No response message from Anthropic Claude');
@@ -173,43 +174,21 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools {
             rawResponse,
             // <- [🤹‍♂️]
         };
+        */
     }
 
     /**
      * Default model for chat variant.
      */
     private getDefaultChatModel(): AvailableModel {
-        return {
-            modelVariant: 'CHAT',
-            modelTitle: 'gpt-4o',
-            modelName: 'gpt-4o',
-        };
-    }
-
-    /**
-     * Default model for completion variant.
-     */
-    private getDefaultCompletionModel(): AvailableModel {
-        return {
-            modelVariant: 'COMPLETION',
-            modelTitle: 'gpt-3.5-turbo-instruct',
-            modelName: 'gpt-3.5-turbo-instruct',
-        };
+        return ANTHROPIC_CLAUDE_MODELS.find(({ modelName }) => modelName === 'claude-3-opus')!;
     }
 
     /**
      * List all available Anthropic Claude models that can be used
      */
     public listModels(): Array<AvailableModel> {
-        /*
-        Note: Dynamic lising of the models
-        const models = await this.openai.models.list({});
-
-        console.log({ models });
-        console.log(models.data);
-        */
-
-        return OPENAI_MODELS;
+        return ANTHROPIC_CLAUDE_MODELS;
     }
 }
 

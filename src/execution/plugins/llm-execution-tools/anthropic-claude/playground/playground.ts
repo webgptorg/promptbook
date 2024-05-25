@@ -25,9 +25,7 @@ async function playground() {
 
     const anthropicClaudeExecutionTools = new AnthropicClaudeExecutionTools({
         isVerbose: true,
-        resourceName: process.env.AZUREOPENAI_RESOURCE_NAME!,
-        deploymentName: process.env.AZUREOPENAI_DEPLOYMENT_NAME!,
-        apiKey: process.env.AZUREOPENAI_API_KEY!,
+        apiKey: process.env.ANTHROPIC_CLAUDE_API_KEY!,
     });
 
     /*/

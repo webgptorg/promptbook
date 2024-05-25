@@ -1,7 +1,7 @@
 import type OpenAI from 'openai';
 import { PromptbookExecutionError } from '../../../../errors/PromptbookExecutionError';
 import type { PromptResult } from '../../../PromptResult';
-import { OPENAI_MODELS } from './models';
+import { OPENAI_MODELS } from './openai-models';
 
 /**
  * Computes the usage of the OpenAI API based on the response from OpenAI
@@ -42,4 +42,3 @@ export function computeOpenaiUsage(
         outputTokens,
     };
 }
-

@@ -1,13 +1,9 @@
-import type { OpenAiExecutionToolsOptions } from '../openai/OpenAiExecutionToolsOptions';
+import type { ClientOptions } from '@anthropic-ai/sdk';
+import type { CommonExecutionToolsOptions } from '../../../CommonExecutionToolsOptions';
 
 /**
  * Options for AnthropicClaudeExecutionTools
  *
- * This extends OpenAI's `ClientOptions` with are directly passed to the OpenAI client.
- * Rest is used by the `OpenAiExecutionTools`.
+ * This extends Anthropic's `ClientOptions` with are directly passed to the Anthropic client.
  */
-export type AnthropicClaudeExecutionToolsOptions = OpenAiExecutionToolsOptions;
-
-/**
- * TODO: !!! Use or remove
- */
+export type AnthropicClaudeExecutionToolsOptions = CommonExecutionToolsOptions & ClientOptions;

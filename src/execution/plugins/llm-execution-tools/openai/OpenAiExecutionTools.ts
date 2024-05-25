@@ -8,7 +8,7 @@ import type { AvailableModel, LlmExecutionTools } from '../../../LlmExecutionToo
 import type { PromptChatResult, PromptCompletionResult } from '../../../PromptResult';
 import type { OpenAiExecutionToolsOptions } from './OpenAiExecutionToolsOptions';
 import { computeOpenaiUsage } from './computeOpenaiUsage';
-import { OPENAI_MODELS } from './models';
+import { OPENAI_MODELS } from './openai-models';
 
 /**
  * Execution Tools for calling OpenAI API.
@@ -51,7 +51,7 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
 
         const model = modelRequirements.modelName || this.getDefaultChatModel().modelName;
         const modelSettings = {
-            model: rawResponse.model || model,
+            model,
             max_tokens: modelRequirements.maxTokens,
             //                                      <- TODO: Make some global max cap for maxTokens
         };
@@ -180,22 +180,14 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
      * Default model for chat variant.
      */
     private getDefaultChatModel(): AvailableModel {
-        return {
-            modelVariant: 'CHAT',
-            modelTitle: 'gpt-4o',
-            modelName: 'gpt-4o',
-        };
+        return OPENAI_MODELS.find(({ modelName }) => modelName === 'gpt-4o')!;
     }
 
     /**
      * Default model for completion variant.
      */
     private getDefaultCompletionModel(): AvailableModel {
-        return {
-            modelVariant: 'COMPLETION',
-            modelTitle: 'gpt-3.5-turbo-instruct',
-            modelName: 'gpt-3.5-turbo-instruct',
-        };
+        return OPENAI_MODELS.find(({ modelName }) => modelName === 'gpt-3.5-turbo-instruct')!;
     }
 
     /**
