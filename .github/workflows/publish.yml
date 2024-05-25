@@ -19,6 +19,16 @@ jobs:
               run: npm ci
             - name: Build packages bundles
               run: npx ts-node ./scripts/generate-packages/generate-packages.ts
+            - name: Publish @promptbook/anthropic-claude
+              working-directory: ./packages/anthropic-claude
+              run: npm publish --access public
+              env:
+                  NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
+            - name: Publish @promptbook/azure-openai
+              working-directory: ./packages/azure-openai
+              run: npm publish --access public
+              env:
+                  NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
             - name: Publish @promptbook/cli
               working-directory: ./packages/cli
               run: npm publish --access public
