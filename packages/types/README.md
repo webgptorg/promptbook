@@ -497,9 +497,10 @@ Internally it calls OpenAI, Azure, GPU, proxy, cache, logging,...
 -   _(Not implemented yet)_ `BardExecutionTools`
 -   _(Not implemented yet)_ `LamaExecutionTools`
 -   _(Not implemented yet)_ `GpuExecutionTools`
--   And a special case are `RemoteLlmExecutionTools` that connect to a remote server and run one of the above execution tools on that server.
--   The second special case is `MockedEchoLlmExecutionTools` that is used for testing and mocking.
--   The third special case is `LogLlmExecutionToolsWrapper` that is technically also an execution tools but it is more proxy wrapper around other execution tools that logs all calls to execution tools.
+-   And a special case are `MultipleLlmExecutionTools` that combines multiple execution tools together and tries to execute the prompt on the best one.
+-   Another special case are `RemoteLlmExecutionTools` that connect to a remote server and run one of the above execution tools on that server.
+-   The another special case is `MockedEchoLlmExecutionTools` that is used for testing and mocking.
+-   The another special case is `LogLlmExecutionToolsWrapper` that is technically also an execution tools but it is more proxy wrapper around other execution tools that logs all calls to execution tools.
 
 #### Script Execution Tools
 
@@ -595,6 +596,8 @@ Look at [expectations.ptbk.md](samples/templates/45-expectations.ptbk.md) and [e
 Execution report is a simple object or markdown that contains information about the execution of the promptbook.
 
 [See the example of such a report](/samples/templates/50-advanced.report.md)
+
+
 
 
 
