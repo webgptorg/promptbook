@@ -286,7 +286,7 @@ Add new OpenaAI models `gpt-4o` and `gpt-4o-2024-05-13`
 
 ### `0.52.0` _(2024-05-24)_
 
-Test releases
+Add support for Claude \ Anthropic models via package `@promptbook/anthropic-claude` and add Azure OpenAI models via package `@promptbook/azure-openai`
 
 ## In prepare
 
@@ -356,3 +356,5 @@ More expect variations
 ## `1.0.0` Release
 
 Across the repository there are marked [🍓] places that are required to be done before `1.0.0` release
+
+<!--[➕]-->
