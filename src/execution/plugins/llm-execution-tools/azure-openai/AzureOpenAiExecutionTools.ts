@@ -110,7 +110,7 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools {
                 // <- [🤹‍♂️]
             };
         } catch (error) {
-            throw this.transformAzureError(error);
+            throw this.transformAzureError(error as { code: string; message: string });
         }
     }
 
@@ -182,7 +182,7 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools {
                 // <- [🤹‍♂️]
             };
         } catch (error) {
-            throw this.transformAzureError(error);
+            throw this.transformAzureError(error as { code: string; message: string });
         }
     }
 
