@@ -45,69 +45,73 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools {
             throw new PromptbookExecutionError('Use gptChat only for CHAT variant');
         }
 
-        const modelName = prompt.modelRequirements.modelName || this.options.deploymentName;
-        const modelSettings = {
-            maxTokens: modelRequirements.maxTokens,
-            //                                      <- TODO: Make some global max cap for maxTokens
-            user: this.options.user,
-        };
+        try {
+            const modelName = prompt.modelRequirements.modelName || this.options.deploymentName;
+            const modelSettings = {
+                maxTokens: modelRequirements.maxTokens,
+                //                                      <- TODO: Make some global max cap for maxTokens
+                user: this.options.user,
+            };
 
-        const messages = [
-            {
-                role: 'user',
-                content,
-            },
-        ];
+            const messages = [
+                {
+                    role: 'user',
+                    content,
+                },
+            ];
 
-        const start: string_date_iso8601 = getCurrentIsoDate();
-        let complete: string_date_iso8601;
+            const start: string_date_iso8601 = getCurrentIsoDate();
+            let complete: string_date_iso8601;
 
-        if (this.options.isVerbose) {
-            console.info(colors.bgWhite('messages'), JSON.stringify(messages, null, 4));
+            if (this.options.isVerbose) {
+                console.info(colors.bgWhite('messages'), JSON.stringify(messages, null, 4));
+            }
+            const rawResponse = await this.client.getChatCompletions(modelName, messages, modelSettings);
+
+            if (this.options.isVerbose) {
+                console.info(colors.bgWhite('rawResponse'), JSON.stringify(rawResponse, null, 4));
+            }
+
+            if (!rawResponse.choices[0]) {
+                throw new PromptbookExecutionError('No choises from Azure OpenAI');
+            }
+
+            if (rawResponse.choices.length > 1) {
+                // TODO: This should be maybe only warning
+                throw new PromptbookExecutionError('More than one choise from Azure OpenAI');
+            }
+
+            if (!rawResponse.choices[0].message || !rawResponse.choices[0].message.content) {
+                throw new PromptbookExecutionError('Empty response from Azure OpenAI');
+            }
+
+            const resultContent = rawResponse.choices[0].message.content;
+            // eslint-disable-next-line prefer-const
+            complete = getCurrentIsoDate();
+            const usage = {
+                price: 'UNKNOWN' /* <- TODO: [🐞] Compute usage */,
+                inputTokens: rawResponse.usage?.promptTokens || 'UNKNOWN',
+                outputTokens: rawResponse.usage?.completionTokens || 'UNKNOWN',
+            } as const;
+
+            if (!resultContent) {
+                throw new PromptbookExecutionError('No response message from OpenAI');
+            }
+
+            return {
+                content: resultContent,
+                modelName,
+                timing: {
+                    start,
+                    complete,
+                },
+                usage,
+                rawResponse,
+                // <- [🤹‍♂️]
+            };
+        } catch (error) {
+            throw this.transformAzureError(error);
         }
-        const rawResponse = await this.client.getChatCompletions(modelName, messages, modelSettings);
-
-        if (this.options.isVerbose) {
-            console.info(colors.bgWhite('rawResponse'), JSON.stringify(rawResponse, null, 4));
-        }
-
-        if (!rawResponse.choices[0]) {
-            throw new PromptbookExecutionError('No choises from Azure OpenAI');
-        }
-
-        if (rawResponse.choices.length > 1) {
-            // TODO: This should be maybe only warning
-            throw new PromptbookExecutionError('More than one choise from Azure OpenAI');
-        }
-
-        if (!rawResponse.choices[0].message || !rawResponse.choices[0].message.content) {
-            throw new PromptbookExecutionError('Empty response from Azure OpenAI');
-        }
-
-        const resultContent = rawResponse.choices[0].message.content;
-        // eslint-disable-next-line prefer-const
-        complete = getCurrentIsoDate();
-        const usage = {
-            price: 'UNKNOWN' /* <- TODO: [🐞] Compute usage */,
-            inputTokens: rawResponse.usage?.promptTokens || 'UNKNOWN',
-            outputTokens: rawResponse.usage?.completionTokens || 'UNKNOWN',
-        } as const;
-
-        if (!resultContent) {
-            throw new PromptbookExecutionError('No response message from OpenAI');
-        }
-
-        return {
-            content: resultContent,
-            modelName,
-            timing: {
-                start,
-                complete,
-            },
-            usage,
-            rawResponse,
-            // <- [🤹‍♂️]
-        };
     }
 
     /**
@@ -125,57 +129,73 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools {
             throw new PromptbookExecutionError('Use gptComplete only for COMPLETION variant');
         }
 
-        const modelName = prompt.modelRequirements.modelName || this.options.deploymentName;
-        const modelSettings = {
-            maxTokens: modelRequirements.maxTokens || 2000, // <- Note: 2000 is for lagacy reasons
-            //                                                  <- TODO: Make some global max cap for maxTokens
-            user: this.options.user,
-        };
+        try {
+            const modelName = prompt.modelRequirements.modelName || this.options.deploymentName;
+            const modelSettings = {
+                maxTokens: modelRequirements.maxTokens || 2000, // <- Note: 2000 is for lagacy reasons
+                //                                                  <- TODO: Make some global max cap for maxTokens
+                user: this.options.user,
+            };
 
-        const start: string_date_iso8601 = getCurrentIsoDate();
-        let complete: string_date_iso8601;
+            const start: string_date_iso8601 = getCurrentIsoDate();
+            let complete: string_date_iso8601;
 
-        if (this.options.isVerbose) {
-            console.info(colors.bgWhite('content'), JSON.stringify(content, null, 4));
+            if (this.options.isVerbose) {
+                console.info(colors.bgWhite('content'), JSON.stringify(content, null, 4));
+            }
+            const rawResponse = await this.client.getCompletions(modelName, [content], modelSettings);
+            if (this.options.isVerbose) {
+                console.info(colors.bgWhite('rawResponse'), JSON.stringify(rawResponse, null, 4));
+            }
+
+            if (!rawResponse.choices[0]) {
+                throw new PromptbookExecutionError('No choises from OpenAI');
+            }
+
+            if (rawResponse.choices.length > 1) {
+                // TODO: This should be maybe only warning
+                throw new PromptbookExecutionError('More than one choise from OpenAI');
+            }
+
+            const resultContent = rawResponse.choices[0].text;
+            // eslint-disable-next-line prefer-const
+            complete = getCurrentIsoDate();
+            const usage = {
+                price: 'UNKNOWN' /* <- TODO: [🐞] Compute usage */,
+                inputTokens: rawResponse.usage.promptTokens,
+                outputTokens: rawResponse.usage.completionTokens,
+            } as const;
+
+            if (!resultContent) {
+                throw new PromptbookExecutionError('No response message from OpenAI');
+            }
+
+            return {
+                content: resultContent,
+                modelName,
+                timing: {
+                    start,
+                    complete,
+                },
+                usage,
+                rawResponse,
+                // <- [🤹‍♂️]
+            };
+        } catch (error) {
+            throw this.transformAzureError(error);
         }
-        const rawResponse = await this.client.getCompletions(modelName, [content], modelSettings);
-        if (this.options.isVerbose) {
-            console.info(colors.bgWhite('rawResponse'), JSON.stringify(rawResponse, null, 4));
+    }
+
+    /**
+     * Changes Azure error (which is not propper Error but object) to propper Error
+     */
+    private transformAzureError(azureError: { code: string; message: string }): Error {
+        if (typeof azureError !== 'object' || azureError === null) {
+            return new PromptbookExecutionError(`Unknown Azure OpenAI error`);
         }
 
-        if (!rawResponse.choices[0]) {
-            throw new PromptbookExecutionError('No choises from OpenAI');
-        }
-
-        if (rawResponse.choices.length > 1) {
-            // TODO: This should be maybe only warning
-            throw new PromptbookExecutionError('More than one choise from OpenAI');
-        }
-
-        const resultContent = rawResponse.choices[0].text;
-        // eslint-disable-next-line prefer-const
-        complete = getCurrentIsoDate();
-        const usage = {
-            price: 'UNKNOWN' /* <- TODO: [🐞] Compute usage */,
-            inputTokens: rawResponse.usage.promptTokens,
-            outputTokens: rawResponse.usage.completionTokens,
-        } as const;
-
-        if (!resultContent) {
-            throw new PromptbookExecutionError('No response message from OpenAI');
-        }
-
-        return {
-            content: resultContent,
-            modelName,
-            timing: {
-                start,
-                complete,
-            },
-            usage,
-            rawResponse,
-            // <- [🤹‍♂️]
-        };
+        const { code, message } = azureError;
+        return new PromptbookExecutionError(`${code}: ${message}`);
     }
 
     /**

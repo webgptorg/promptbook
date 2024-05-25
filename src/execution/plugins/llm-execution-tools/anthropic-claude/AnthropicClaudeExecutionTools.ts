@@ -193,6 +193,7 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools {
 }
 
 /**
+ * TODO: [🧠] Maybe handle errors via transformAnthropicError (like transformAzureError)
  * TODO: [🍓][♐] Allow to list compatible models with each variant
  * TODO: Maybe Create some common util for gptChat and gptComplete
  * TODO: Maybe make custom OpenaiError

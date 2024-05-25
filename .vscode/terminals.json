@@ -132,6 +132,12 @@
             "focus": true
         },
         {
+            "name": "🧸 Multiple LLMs Playground",
+            "command": "ts-node ./src/execution/plugins/llm-execution-tools/multiple/playground/playground.ts",
+            "onlySingle": true,
+            "focus": true
+        },
+        {
             "name": "🔼👑 Release major version",
             "command": "npm version major",
             "onlySingle": true,

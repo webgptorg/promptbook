@@ -11,6 +11,7 @@ import { createPromptbookLibraryFromSources } from '../library/constructors/crea
 import { createPromptbookSublibrary } from '../library/constructors/createPromptbookSublibrary';
 import { ExecutionTypes } from '../types/ExecutionTypes';
 import { PROMPTBOOK_VERSION } from '../version';
+import { MultipleLlmExecutionTools } from '../execution/plugins/llm-execution-tools/multiple/MultipleLlmExecutionTools';
 
 // @promptbook/core
 export { ExecutionTypes, PROMPTBOOK_VERSION };
@@ -32,7 +33,7 @@ export { SimplePromptInterfaceTools };
 export { promptbookStringToJson,promptbookJsonToString, validatePromptbookJson };
 
 // @promptbook/executor
-export { createPromptbookExecutor };
+export { createPromptbookExecutor,MultipleLlmExecutionTools };
 
 // @promptbook/callback-prompt
 export { CallbackInterfaceTools, CallbackInterfaceToolsOptions };
