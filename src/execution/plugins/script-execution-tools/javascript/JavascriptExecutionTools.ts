@@ -8,7 +8,11 @@ import { JavascriptExecutionToolsOptions } from './JavascriptExecutionToolsOptio
  * Warning: This is not implemented yet
  */
 export class JavascriptExecutionTools implements ScriptExecutionTools {
-    public constructor(private readonly options: JavascriptExecutionToolsOptions) {}
+    private readonly options: JavascriptExecutionToolsOptions;
+
+    public constructor(options?: JavascriptExecutionToolsOptions) {
+        this.options = options || {};
+    }
 
     /**
      * Executes a JavaScript

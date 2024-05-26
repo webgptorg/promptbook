@@ -29,13 +29,13 @@ async function playground() {
     });
 
     /**/
-    // TODO: !!!!! This should work
+    //TODO: [🦻] This should work
     const models = await langtailExecutionTools.listModels();
     console.info({ models });
     /**/
 
     /*/
-    // TODO: !!!!! This should work
+    // TODO: [🦻] This should work
     const prompt = {
         content: `Hello, my name is Alice.`,
         modelRequirements: {
@@ -48,7 +48,7 @@ async function playground() {
     /**/
 
     /*/
-    // TODO: !!!!! This should work
+    // TODO: [🦻] This should work
     const prompt = {
         content: `Hello, my name is Alice.`,
         modelRequirements: {

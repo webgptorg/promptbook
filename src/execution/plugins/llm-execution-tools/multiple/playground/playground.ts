@@ -27,7 +27,7 @@ async function playground() {
     //========================================>
 
     // TODO: !!!! Filter and use as sample in READMEs - first sample just one second with MultipleLlmExecutionTools third link remote
-    const azureOpenAiExecutionTools = new MultipleLlmExecutionTools(
+    const executionTools = new MultipleLlmExecutionTools(
         new OpenAiExecutionTools({
             isVerbose: true,
             apiKey: process.env.OPENAI_API_KEY!,
@@ -43,30 +43,27 @@ async function playground() {
             apiKey: process.env.AZUREOPENAI_API_KEY!,
         }),
 
-        // TODO: !!!! Add langtail
+        // TODO: [🦻] Add langtail
     );
 
-    /*/
-    // TODO: !!!!! This should work
-    const models = await azureOpenAiExecutionTools.listModels();
+    /**/
+    const models = await executionTools.listModels();
     console.info({ models });
     /**/
 
     /*/
-    // TODO: !!!!! This should work for ALL together
     const prompt = {
         content: `Hello, my name is Alice.`,
         modelRequirements: {
             modelVariant: 'COMPLETION',
         },
     } as const;
-    const promptResult = await azureOpenAiExecutionTools.gptComplete(prompt);
+    const promptResult = await executionTools.gptComplete(prompt);
     console.info({ promptResult });
     console.info(chalk.green(prompt.content + promptResult.content));
     /**/
 
-    /**/
-    // TODO: !!!!! This should work for ALL together
+    /*/
     const prompt = {
         title: 'A chat',
         content: `Hello, my name is Alice.`,
@@ -77,7 +74,7 @@ async function playground() {
         promptbookUrl: '',
         parameters: {},
     } as const;
-    const promptResult = await azureOpenAiExecutionTools.gptChat(prompt);
+    const promptResult = await executionTools.gptChat(prompt);
     console.info({ promptResult });
     console.info(chalk.bgBlue(' User: ') + chalk.blue(prompt.content));
     console.info(chalk.bgGreen(' Chat: ') + chalk.green(promptResult.content));
