@@ -34,6 +34,19 @@ npm i @promptbook/azure-openai
 
 https://oai.azure.com/portal/
 
+
+
+
+
+
+
+## Other models
+
+See the other models available in the Promptbook package:
+
+-   [OpenAI](https://www.npmjs.com/package/@promptbook/openai)
+-   [Anthropic Claude](https://www.npmjs.com/package/@promptbook/anthropic-claude)
+
 ---
 
 Rest of the documentation is common for **entire promptbook ecosystem**:
