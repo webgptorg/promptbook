@@ -109,8 +109,9 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools {
      */
     public async gptComplete(prompt: Pick<Prompt, 'content' | 'modelRequirements'>): Promise<PromptCompletionResult> {
         just(prompt);
-        throw new Error('Anthropic complation models are not implemented to Promptbook yet');
+        throw new Error('Anthropic complation models are not implemented to Promptbook yet [👏]');
         /*
+        TODO: [👏]
         if (this.options.isVerbose) {
             console.info('🖋 Anthropic Claude gptComplete call');
         }

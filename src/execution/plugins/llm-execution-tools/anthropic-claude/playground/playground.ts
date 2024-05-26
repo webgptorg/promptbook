@@ -29,13 +29,12 @@ async function playground() {
     });
 
     /*/
-    // TODO: !!!!! This should work
     const models = await anthropicClaudeExecutionTools.listModels();
     console.info({ models });
     /**/
 
-    /*/
-     // TODO: !!!!! This should work
+    /**/
+    // TODO: [👏] Make Claude completion models work
     const prompt = {
         content: `Hello, my name is Alice.`,
         modelRequirements: {
@@ -47,8 +46,7 @@ async function playground() {
     console.info(chalk.green(prompt.content + promptResult.content));
     /**/
 
-    /**/
-    // TODO: !!!!! This should work
+    /*/
     const prompt = {
         content: `Hello, my name is Alice.`,
         modelRequirements: {
