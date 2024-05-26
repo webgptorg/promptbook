@@ -20,7 +20,7 @@ export const ANTHROPIC_CLAUDE_MODELS: Array<
     {
         modelVariant: 'CHAT',
         modelTitle: 'Claude 3 Opus',
-        modelName: 'claude-3-opus', // <- TODO: [🙌] Maybe include full model name like `claude-3-opus-20240229`
+        modelName: 'claude-3-opus-20240229',
         pricing: {
             prompt: computeUsage(`$15.00 / 1M tokens`),
             output: computeUsage(`$75.00 / 1M tokens`),
@@ -29,7 +29,7 @@ export const ANTHROPIC_CLAUDE_MODELS: Array<
     {
         modelVariant: 'CHAT',
         modelTitle: 'Claude 3 Sonnet',
-        modelName: 'claude-3-sonnet', // <- TODO: [🙌] Maybe include full model name like `claude-3-sonnet-20240229`
+        modelName: 'claude-3-sonnet-20240229',
         pricing: {
             prompt: computeUsage(`$3.00 / 1M tokens`),
             output: computeUsage(`$15.00 / 1M tokens`),
@@ -38,7 +38,7 @@ export const ANTHROPIC_CLAUDE_MODELS: Array<
     {
         modelVariant: 'CHAT',
         modelTitle: 'Claude 3 Haiku',
-        modelName: '	claude-3-haiku', // <- TODO: [🙌] Maybe include full model name like `	claude-3-haiku-20240307`
+        modelName: '	claude-3-haiku-20240307',
         pricing: {
             prompt: computeUsage(`$0.25 / 1M tokens`),
             output: computeUsage(`$1.25 / 1M tokens`),

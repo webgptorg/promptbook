@@ -49,7 +49,7 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools {
 
         const rawRequest: MessageCreateParamsNonStreaming = {
             model: modelRequirements.modelName || this.getDefaultChatModel().modelName,
-            max_tokens: modelRequirements.maxTokens || 10000,
+            max_tokens: modelRequirements.maxTokens || 4096,
             //                                            <- TODO: Make some global max cap for maxTokens
             messages: [
                 {
@@ -181,7 +181,7 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools {
      * Default model for chat variant.
      */
     private getDefaultChatModel(): AvailableModel {
-        return ANTHROPIC_CLAUDE_MODELS.find(({ modelName }) => modelName === 'claude-3-opus')!;
+        return ANTHROPIC_CLAUDE_MODELS.find(({ modelName }) => modelName.startsWith('claude-3-opus'))!;
     }
 
     /**
