@@ -37,17 +37,21 @@ Wrapper around [OpenAI's SDK](https://www.npmjs.com/package/openai) to make it e
 ## Usage
 
 ```typescript
-import { createPromptbookExecutor, createPromptbookLibraryFromDirectory } from '@promptbook/core';
+import {
+    createPromptbookExecutor,
+    createPromptbookLibraryFromDirectory,
+    assertsExecutionSuccessful,
+} from '@promptbook/core';
 import { JavascriptEvalExecutionTools } from '@promptbook/execute-javascript';
 import { OpenAiExecutionTools } from '@promptbook/openai';
-import { assertsExecutionSuccessful } from '@promptbook/utils';
 
-// TODO: !!!!! Test that this code works
-// TODO: !!!!! Comment
-
+// Create whole Promptbook library
 const library = createPromptbookLibraryFromDirectory('./promptbook');
+
+// Get one Promptbook
 const promptbook = library.getPromptbookByUrl(`https://promptbook.studio/my-library/write-article.ptbk.md`);
 
+// Prepare tools
 const tools = {
     llm: new OpenAiExecutionTools({
         apiKey: process.env.OPENAI_API_KEY,
@@ -55,14 +59,21 @@ const tools = {
     script: [new JavascriptEvalExecutionTools()],
 };
 
+// Create executor - the function that will execute the Promptbook
 const promptbookExecutor = createPromptbookExecutor({ promptbook, tools });
 
+// Prepare input parameters
 const inputParameters = { word: 'cat' };
-const { isSuccessful, errors, outputParameters, executionReport } = await promptbookExecutor(inputParameters);
 
+// 🚀 Execute the Promptbook
+const result = await promptbookExecutor(inputParameters);
+
+// Fail if the execution was not successful
+assertsExecutionSuccessful(result);
+
+// Handle the result
+const { isSuccessful, errors, outputParameters, executionReport } = result;
 console.info(outputParameters);
-
-assertsExecutionSuccessful({ isSuccessful, errors });
 ```
 
 
