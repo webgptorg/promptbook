@@ -9,6 +9,7 @@ import { CallbackInterfaceTools } from '../execution/plugins/user-interface-exec
 import { CallbackInterfaceToolsOptions } from '../execution/plugins/user-interface-execution-tools/callback/CallbackInterfaceToolsOptions';
 import { SimplePromptInterfaceTools } from '../execution/plugins/user-interface-execution-tools/simple-prompt/SimplePromptInterfaceTools';
 import { checkExpectations, isPassingExpectations } from '../execution/utils/checkExpectations';
+import { createPromptbookLibraryFromDirectory } from '../library/constructors/createPromptbookLibraryFromDirectory';
 import { createPromptbookLibraryFromPromise } from '../library/constructors/createPromptbookLibraryFromPromise';
 import { createPromptbookLibraryFromSources } from '../library/constructors/createPromptbookLibraryFromSources';
 import { createPromptbookSublibrary } from '../library/constructors/createPromptbookSublibrary';
@@ -37,7 +38,7 @@ export {
 
 // @promptbook/library
 export {
-    // TODO: !!! [🍓] createPromptbookLibraryFromDirectory,
+    createPromptbookLibraryFromDirectory,
     // TODO:  !!! [🍓] createPromptbookLibraryFromUrl,
     createPromptbookLibraryFromPromise,
     createPromptbookLibraryFromSources,
