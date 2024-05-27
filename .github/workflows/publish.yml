@@ -79,11 +79,6 @@ jobs:
               run: npm publish --access public
               env:
                   NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
-            - name: Publish @promptbook/wizzard
-              working-directory: ./packages/wizzard
-              run: npm publish --access public
-              env:
-                  NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
             - name: Publish promptbook
               working-directory: ./packages/promptbook
               run: npm publish --access public
