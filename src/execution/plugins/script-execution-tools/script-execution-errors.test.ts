@@ -6,7 +6,7 @@ import { assertsExecutionSuccessful } from '../../assertsExecutionSuccessful';
 import { createPromptbookExecutor } from '../../createPromptbookExecutor';
 import { MockedEchoLlmExecutionTools } from '../llm-execution-tools/mocked/MockedEchoLlmExecutionTools';
 import { CallbackInterfaceTools } from '../user-interface-execution-tools/callback/CallbackInterfaceTools';
-import { JavascriptEvalExecutionTools } from './javascript/JavascriptEvalExecutionTools';
+import { JavascriptExecutionTools } from './javascript/JavascriptExecutionTools';
 
 describe('createPromptbookExecutor + executing scripts in promptbook', () => {
     const promptbook = promptbookStringToJson(
@@ -38,7 +38,7 @@ describe('createPromptbookExecutor + executing scripts in promptbook', () => {
         tools: {
             llm: new MockedEchoLlmExecutionTools({ isVerbose: true }),
             script: [
-                new JavascriptEvalExecutionTools({
+                new JavascriptExecutionTools({
                     isVerbose: true,
                     // Note: [🕎] Custom functions are tested elsewhere
                 }),

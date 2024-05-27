@@ -1,37 +1,8 @@
-import { PromptbookExecutionError } from '../../../../errors/PromptbookExecutionError';
-import { ScriptExecutionTools, ScriptExecutionToolsExecuteOptions } from '../../../ScriptExecutionTools';
-import { JavascriptExecutionToolsOptions } from './JavascriptExecutionToolsOptions';
+import { JavascriptEvalExecutionTools } from './JavascriptEvalExecutionTools';
 
 /**
- * ScriptExecutionTools for JavaScript implemented via vm2
+ * Placeholder for better implementation of JavascriptExecutionTools - some propper sandboxing
  *
- * Warning: This is not implemented yet
+ * @alias JavascriptExecutionTools
  */
-export class JavascriptExecutionTools implements ScriptExecutionTools {
-    private readonly options: JavascriptExecutionToolsOptions;
-
-    public constructor(options?: JavascriptExecutionToolsOptions) {
-        this.options = options || {};
-    }
-
-    /**
-     * Executes a JavaScript
-     */
-    public async execute(options: ScriptExecutionToolsExecuteOptions): Promise<string> {
-        const { scriptLanguage /*, script, parameters */ } = options;
-
-        if (scriptLanguage !== 'javascript') {
-            throw new PromptbookExecutionError(
-                `Script language ${scriptLanguage} not supported to be executed by JavascriptExecutionTools`,
-            );
-        }
-
-        throw new PromptbookExecutionError('Not implemented');
-    }
-}
-
-/**
- * TODO: !! Pass isVerbose to constructor and use it
- * TODO: !! Probbably make some common util createStatementToEvaluate
- * TODO: !! Implement via vm2
- */
+export const JavascriptExecutionTools = JavascriptEvalExecutionTools;

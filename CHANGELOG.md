@@ -293,6 +293,7 @@ Add support for Claude \\ Anthropic models via package `@promptbook/anthropic-cl
 -   Standartization of model providers
 -   Delete `@promptbook/wizzard`
 -   Move `assertsExecutionSuccessful`,`checkExpectations`,`executionReportJsonToString`,`ExecutionReportStringOptions`,`ExecutionReportStringOptionsDefaults`,`isPassingExpectations`,`prettifyPromptbookString` from `@promptbook/utils` to `@promptbook/core`
+-   Make and use `JavascriptExecutionTools` as placeholder for better implementation with propper sandboxing
 
 ## In prepare
 

@@ -10,7 +10,7 @@ import {
     createPromptbookLibraryFromDirectory,
     assertsExecutionSuccessful,
 } from '@promptbook/core';
-import { JavascriptEvalExecutionTools } from '@promptbook/execute-javascript';
+import { JavascriptExecutionTools } from '@promptbook/execute-javascript';
 import { OpenAiExecutionTools } from '@promptbook/openai';
 
 // Create whole Promptbook library
@@ -24,7 +24,7 @@ const tools = {
     llm: new OpenAiExecutionTools({
         apiKey: process.env.OPENAI_API_KEY,
     }),
-    script: [new JavascriptEvalExecutionTools()],
+    script: [new JavascriptExecutionTools()],
 };
 
 // Create executor - the function that will execute the Promptbook
