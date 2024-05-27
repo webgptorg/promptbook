@@ -5,10 +5,13 @@ Wrapper around [OpenAI's SDK](https://www.npmjs.com/package/openai) to make it e
 ## Usage
 
 ```typescript
-import { createPromptbookExecutor, createPromptbookLibraryFromDirectory } from '@promptbook/core';
+import {
+    createPromptbookExecutor,
+    createPromptbookLibraryFromDirectory,
+    assertsExecutionSuccessful,
+} from '@promptbook/core';
 import { JavascriptEvalExecutionTools } from '@promptbook/execute-javascript';
 import { OpenAiExecutionTools } from '@promptbook/openai';
-import { assertsExecutionSuccessful } from '@promptbook/utils';
 
 // TODO: !!!!! Test that this code works
 // TODO: !!!!! Comment

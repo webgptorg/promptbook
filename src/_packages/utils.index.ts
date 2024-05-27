@@ -1,19 +1,11 @@
 import { spaceTrim } from 'spacetrim';
-import { prettifyPromptbookString } from '../conversion/prettify/prettifyPromptbookString';
 import { renderPromptbookMermaid } from '../conversion/prettify/renderPromptbookMermaid';
 import { extractParametersFromPromptTemplate } from '../conversion/utils/extractParametersFromPromptTemplate';
 import { extractVariables } from '../conversion/utils/extractVariables';
 import { parseNumber } from '../conversion/utils/parseNumber';
 import { renameParameter } from '../conversion/utils/renameParameter';
 import { titleToName } from '../conversion/utils/titleToName';
-import { assertsExecutionSuccessful } from '../execution/assertsExecutionSuccessful';
-import { checkExpectations, isPassingExpectations } from '../execution/utils/checkExpectations';
 import { replaceParameters } from '../execution/utils/replaceParameters';
-import { executionReportJsonToString } from '../types/execution-report/executionReportJsonToString';
-import {
-    ExecutionReportStringOptions,
-    ExecutionReportStringOptionsDefaults,
-} from '../types/execution-report/ExecutionReportStringOptions';
 import { CountUtils } from '../utils/expectation-counters';
 import { countCharacters } from '../utils/expectation-counters/countCharacters';
 import { countLines } from '../utils/expectation-counters/countLines';
@@ -57,21 +49,14 @@ import { unwrapResult } from '../utils/unwrapResult';
 
 // TODO: [🌻] For all, decide if theese are internal or external
 export {
-    assertsExecutionSuccessful,
-    checkExpectations,
-    executionReportJsonToString,
-    ExecutionReportStringOptions,
-    ExecutionReportStringOptionsDefaults,
     extractAllBlocksFromMarkdown, // <- [🌻]
     extractAllListItemsFromMarkdown,
     extractBlock, // <- [🌻]
     extractOneBlockFromMarkdown,
     extractParameters,
     extractVariables,
-    isPassingExpectations,
     isValidJsonString,
     parseNumber, // <- [🌻]
-    prettifyPromptbookString,
     removeContentComments,
     removeEmojis,
     removeMarkdownFormatting,
