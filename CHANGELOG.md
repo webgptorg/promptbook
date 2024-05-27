@@ -291,6 +291,8 @@ Add support for Claude \\ Anthropic models via package `@promptbook/anthropic-cl
 -   Export `MultipleLlmExecutionTools` from `@promptbook/core`
 -   Always use "modelName" not just "model"
 -   Standartization of model providers
+-   Delete `@promptbook/wizzard`
+-   Move `assertsExecutionSuccessful`,`checkExpectations`,`executionReportJsonToString`,`ExecutionReportStringOptions`,`ExecutionReportStringOptionsDefaults`,`isPassingExpectations`,`prettifyPromptbookString` from `@promptbook/utils` to `@promptbook/core`
 
 ## In prepare
 
