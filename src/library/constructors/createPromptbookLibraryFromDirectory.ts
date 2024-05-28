@@ -39,11 +39,11 @@ export function createPromptbookLibraryFromDirectory(
     const { isRecursive = true } = options || {};
 
     return createPromptbookLibraryFromPromise(async () => {
-        const { readdir } = await import('fs/promises');
-        const readdirResult = await readdir(path);
+        //const { readdir } = await import('fs/promises');
+        //const readdirResult = await readdir(path);
         // TODO: !!! Implement
 
-        console.info('createPromptbookLibraryFromDirectory', { path, isRecursive, readdirResult });
+        console.info('createPromptbookLibraryFromDirectory', { path, isRecursive /*, readdirResult/*/ });
         throw new Error('Not implemented yet');
 
         return [];
