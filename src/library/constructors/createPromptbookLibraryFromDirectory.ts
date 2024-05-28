@@ -1,4 +1,3 @@
-import { readdir } from 'fs/promises';
 import { string_folder_path } from '../../types/typeAliases';
 import { isRunningInNode } from '../../utils/isRunningInWhatever';
 import { PromptbookLibrary } from '../PromptbookLibrary';
@@ -35,25 +34,20 @@ export function createPromptbookLibraryFromDirectory(
         throw new Error(
             'Function `createPromptbookLibraryFromDirectory` can only be run in Node.js environment because it reads the file system.',
         );
-
-        const { isRecursive = true } = options || {};
-
-        return createPromptbookLibraryFromPromise(async () => {
-            console.info('createPromptbookLibraryFromDirectory', { path, isRecursive });
-
-            await readdir(path);
-            // TODO: !!! Implement
-
-            return [];
-        });
     }
 
-    throw new Error('Not implemented yet');
+    const { isRecursive = true } = options || {};
 
-    // TODO: !! Load dynamically DO NOT use createPromptbookLibraryFromPromise
+    return createPromptbookLibraryFromPromise(async () => {
+        const { readdir } = await import('fs/promises');
+        const readdirResult = await readdir(path);
+        // TODO: !!! Implement
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return null as any;
+        console.info('createPromptbookLibraryFromDirectory', { path, isRecursive, readdirResult });
+        throw new Error('Not implemented yet');
+
+        return [];
+    });
 }
 
 /***
