@@ -1,5 +1,20 @@
+import { readdir } from 'fs/promises';
+import { string_folder_path } from '../../types/typeAliases';
 import { isRunningInNode } from '../../utils/isRunningInWhatever';
 import { PromptbookLibrary } from '../PromptbookLibrary';
+import { createPromptbookLibraryFromPromise } from './createPromptbookLibraryFromPromise';
+
+/**
+ * Options for `createPromptbookLibraryFromDirectory` function
+ */
+type CreatePromptbookLibraryFromDirectoryOptions = {
+    /**
+     * If true, the directory is searched recursively for promptbooks
+     *
+     * @default true
+     */
+    isRecursive?: boolean;
+};
 
 /**
  * Constructs Promptbook from given directory
@@ -8,13 +23,29 @@ import { PromptbookLibrary } from '../PromptbookLibrary';
  * Note: The function does NOT return promise it returns the library directly which dynamically loads promptbooks when needed
  *       SO during the construction syntax and logic sources IS NOT validated
  *
+ * @param path - path to the directory with promptbooks
+ * @param options - Misc options for the library
  * @returns PromptbookLibrary
  */
-export function createPromptbookLibraryFromDirectory(): PromptbookLibrary {
+export function createPromptbookLibraryFromDirectory(
+    path: string_folder_path,
+    options?: CreatePromptbookLibraryFromDirectoryOptions,
+): PromptbookLibrary {
     if (!isRunningInNode()) {
         throw new Error(
             'Function `createPromptbookLibraryFromDirectory` can only be run in Node.js environment because it reads the file system.',
         );
+
+        const { isRecursive = true } = options || {};
+
+        return createPromptbookLibraryFromPromise(async () => {
+            console.info('createPromptbookLibraryFromDirectory', { path, isRecursive });
+
+            await readdir(path);
+            // TODO: !!! Implement
+
+            return [];
+        });
     }
 
     throw new Error('Not implemented yet');
