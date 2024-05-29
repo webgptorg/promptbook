@@ -1,9 +1,13 @@
 #!/usr/bin/env ts-node
 
-import { createPromptbookExecutor, createPromptbookLibraryFromDirectory } from '@promptbook/core';
+import {
+    assertsExecutionSuccessful,
+    createPromptbookExecutor,
+    createPromptbookLibraryFromDirectory,
+    executionReportJsonToString,
+} from '@promptbook/core';
 import { JavascriptExecutionTools } from '@promptbook/execute-javascript';
 import { OpenAiExecutionTools } from '@promptbook/openai';
-import { assertsExecutionSuccessful, executionReportJsonToString } from '@promptbook/utils';
 import colors from 'colors';
 import * as dotenv from 'dotenv';
 import { writeFile } from 'fs/promises';
@@ -21,7 +25,7 @@ async function main() {
     console.info(colors.bgWhite('⚪ Testing basic capabilities of Promptbook'));
 
     const library = createPromptbookLibraryFromDirectory('./samples/templates/');
-    const promptbook = library.getPromptbookByUrl(
+    const promptbook = await library.getPromptbookByUrl(
         `https://promptbook.example.com/samples/language-capabilities.ptbk.md@v1`,
     );
 
@@ -50,15 +54,15 @@ async function main() {
     console.info(outputParameters);
 
     await writeFile(
-        // TODO: !!! Unhardcode 50-advanced
-        `./samples/templates/50-advanced.report.json`,
+        // TODO: !!! Unhardcode language-capabilities
+        `./samples/templates/language-capabilities.report.json`,
         JSON.stringify(executionReport, null, 4) + '\n',
         'utf-8',
     );
 
     const executionReportString = executionReportJsonToString(executionReport);
     // TODO: !!! Unhardcode 50-advanced
-    await writeFile(`./samples/templates/50-advanced.report.md`, executionReportString, 'utf-8');
+    await writeFile(`./samples/templates/language-capabilities.report.md`, executionReportString, 'utf-8');
 
     assertsExecutionSuccessful({ isSuccessful, errors });
 

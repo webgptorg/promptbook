@@ -1,12 +1,5 @@
 {
     "dependencies": {
-        "@promptbook/core": "0.52.0-17",
-        "@promptbook/execute-javascript": "0.52.0-17",
-        "@promptbook/openai": "0.52.0-17",
-        "@promptbook/types": "0.52.0-17",
-        "@promptbook/remote-client": "0.52.0-17",
-        "@promptbook/remote-server": "0.52.0-17",
-        "@promptbook/utils": "0.52.0-17",
-        "@promptbook/wizzard": "0.52.0-17"
+        "ptbk": "0.52.0-17"
     }
 }
