@@ -61,6 +61,18 @@ export class SimplePromptbookLibrary implements PromptbookLibrary {
     public getPromptbookByUrl(url: string_promptbook_url): PromptbookJson {
         const promptbook = this.library.get(url);
         if (!promptbook) {
+            if (this.listPromptbooks().length === 0) {
+                throw new PromptbookNotFoundError(
+                    spaceTrim(
+                        `
+                            Promptbook with url "${url}" not found
+
+                            No promptbooks available
+                        `,
+                    ),
+                );
+            }
+
             throw new PromptbookNotFoundError(
                 spaceTrim(
                     (block) => `

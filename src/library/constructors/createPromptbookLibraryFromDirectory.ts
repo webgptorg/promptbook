@@ -1,5 +1,11 @@
+import type { readdir as readdirType, readFile as readFileType } from 'fs/promises';
+import { join } from 'path';
+import { PromptbookJson } from '../../_packages/types.index';
+import { promptbookStringToJson } from '../../conversion/promptbookStringToJson';
+import { PromptbookString } from '../../types/PromptbookString';
 import { string_folder_path } from '../../types/typeAliases';
 import { isRunningInNode } from '../../utils/isRunningInWhatever';
+import { just } from '../../utils/just';
 import { PromptbookLibrary } from '../PromptbookLibrary';
 import { createPromptbookLibraryFromPromise } from './createPromptbookLibraryFromPromise';
 
@@ -13,6 +19,13 @@ type CreatePromptbookLibraryFromDirectoryOptions = {
      * @default true
      */
     isRecursive?: boolean;
+
+    /**
+     * If true, the library ceation outputs information about each file it reads
+     *
+     * @default false
+     */
+    isVerbose?: boolean;
 };
 
 /**
@@ -36,36 +49,65 @@ export function createPromptbookLibraryFromDirectory(
         );
     }
 
-    const { isRecursive = true } = options || {};
+    const { isRecursive = true, isVerbose = false } = options || {};
 
     return createPromptbookLibraryFromPromise(async () => {
-        /*
-        const justR_equire = require; /* <- Note: [1] * /
-        const readdir = justR_equire(just('fs/promises') /* <- Note: [2] * /).readdir as typeof readdirType;
+        const justR_equire = require; /* <- Note: [1] */
+        const fsPromises = justR_equire(just('fs/promises') /* <- Note: [2] */);
+        const readdir = fsPromises.readdir as typeof readdirType;
+        const readFile = fsPromises.readFile as typeof readFileType;
 
         // TODO: !!!! Implement recursive reading
         // TODO: !!!!! readAllFiles util
 
         const dirents = await readdir(path, {
-            withFileTypes: true /* Note: This is not working: recursive: isRecursive * /,
+            withFileTypes: true /* Note: This is not working: recursive: isRecursive */,
         });
-        const fileNames = dirents.filter((dirent) => dirent.isFile()).map(({ name }) => join(name, path));
+        const fileNames = dirents.filter((dirent) => dirent.isFile()).map(({ name }) => join(path, name));
 
-        // TODO: !!! Implement
+        if (isVerbose) {
+            console.info('createPromptbookLibraryFromDirectory', { path, isRecursive, dirents, fileNames });
+        }
 
-        console.info('createPromptbookLibraryFromDirectory', { path, isRecursive, fileNames });
-        throw new Error('Not implemented yet');
+        const promptbooks: Array<PromptbookJson> = [];
 
-        */
+        for (const fileName of fileNames) {
+            if (fileName.endsWith('.ptbk.md')) {
+                const promptbookString = (await readFile(fileName, 'utf8')) as PromptbookString;
+                const promptbook = promptbookStringToJson(promptbookString);
 
-        console.info('createPromptbookLibraryFromDirectory', { path, isRecursive });
+                if (!promptbook.promptbookUrl) {
+                    if (isVerbose) {
+                        console.info(`Not loading ${fileName} - missing URL`);
+                    }
+                } else {
+                    if (isVerbose) {
+                        console.info(`Loading ${fileName}`);
+                    }
 
-        return [];
+                    // TODO: !!!! Chack url uniqueness and collisions
+                    promptbooks.push(promptbook);
+                }
+            } else if (fileName.endsWith('.ptbk.json')) {
+                if (isVerbose) {
+                    console.info(`Loading ${fileName}`);
+                }
+
+                // TODO: !!!! Implement JSON loading
+                // TODO: !!!! Chack url uniqueness and collisions
+            } else {
+                if (isVerbose) {
+                    console.info(`Skipping file ${fileName}`);
+                }
+            }
+        }
+
+        return promptbooks;
     });
 }
 
 /***
- * Note: [1] Fixing the dynamic import issue in Webpack
+ * Note: [1] Fixing the dynamic import issue in Webpack (! Not working !)
  *     > ./node_modules/@promptbook/core/esm/index.es.js
  *     > Critical dependency: the request of a dependency is an expression
  *

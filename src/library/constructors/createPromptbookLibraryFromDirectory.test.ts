@@ -30,12 +30,12 @@ describe('createPromptbookLibraryFromDirectory', () => {
 
     `) as PromptbookString;
 
-    const library = createPromptbookLibraryFromDirectory('./samples/templates');
+    const library = createPromptbookLibraryFromDirectory('./samples/templates', { isVerbose: true });
 
     it('should get promptbook by url from library', () =>
         expect(
             (async () => {
-                const promptbookFromLibrary = library.getPromptbookByUrl(
+                const promptbookFromLibrary = await library.getPromptbookByUrl(
                     'https://promptbook.example.com/samples/simple.ptbk.md@v1',
                 );
                 return promptbookFromLibrary;
@@ -45,10 +45,10 @@ describe('createPromptbookLibraryFromDirectory', () => {
     it('should get different promptbook by url from library', () =>
         expect(
             (async () => {
-                const promptbookFromLibrary = library.getPromptbookByUrl(
+                const promptbookFromLibrary = await library.getPromptbookByUrl(
                     'https://promptbook.example.com/samples/jokers.ptbk.md@v1',
                 );
-                return promptbookFromLibrary;
+                return promptbookFromLibrary.title;
             })(),
-        ).resolves.toEqual(promptbookStringToJson(promptbook)));
+        ).resolves.toBe('✨ Sample: Jokers'));
 });
