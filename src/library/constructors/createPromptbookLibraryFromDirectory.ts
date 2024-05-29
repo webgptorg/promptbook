@@ -1,5 +1,6 @@
 import { string_folder_path } from '../../types/typeAliases';
 import { isRunningInNode } from '../../utils/isRunningInWhatever';
+import { just } from '../../utils/just';
 import { PromptbookLibrary } from '../PromptbookLibrary';
 import { createPromptbookLibraryFromPromise } from './createPromptbookLibraryFromPromise';
 
@@ -39,8 +40,8 @@ export function createPromptbookLibraryFromDirectory(
     const { isRecursive = true } = options || {};
 
     return createPromptbookLibraryFromPromise(async () => {
-        const justRequire = require;
-        const { readdir } = justRequire('fs/promises');
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        const { readdir } = require(just('fs/promises') /* <- Note: Using require just !!!!! */);
         const readdirResult = await readdir(path);
         // TODO: !!! Implement
 
