@@ -1,5 +1,5 @@
-import glob from 'glob-promise';
 import { isRunningInNode } from '../../utils/isRunningInWhatever';
+import { just } from '../../utils/just';
 
 /**
  * Just testing imports and compatibility
@@ -11,6 +11,7 @@ export async function justTestFsImport() {
         );
     }
 
-    const files = await glob('/**/*');
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const files = await require(just('glob-promise'))('/**/*');
     console.info('testFiles', { files });
 }
