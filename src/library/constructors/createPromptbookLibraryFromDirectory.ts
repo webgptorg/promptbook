@@ -1,3 +1,5 @@
+import { type readdir as readdirType } from 'fs/promises';
+import { join } from 'path';
 import { string_folder_path } from '../../types/typeAliases';
 import { isRunningInNode } from '../../utils/isRunningInWhatever';
 import { just } from '../../utils/just';
@@ -41,11 +43,21 @@ export function createPromptbookLibraryFromDirectory(
 
     return createPromptbookLibraryFromPromise(async () => {
         // eslint-disable-next-line @typescript-eslint/no-var-requires
-        const { readdir } = require(just('fs/promises') /* <- Note: Using require just !!!!! */);
-        const readdirResult = await readdir(path);
+        const readdir = require(just('fs/promises')).readdir as typeof readdirType;
+        //                          <- Note: Using require(just('fs/promises')) to allow
+        //                                   the `@promptbook/core` work for both Node.js and browser environments
+
+        // TODO: !!!! Implement recursive reading
+        // TODO: !!!!! readAllFiles util
+
+        const dirents = await readdir(path, {
+            withFileTypes: true /* Note: This is not working: recursive: isRecursive */,
+        });
+        const fileNames = dirents.filter((dirent) => dirent.isFile()).map(({ name }) => join(name, path));
+
         // TODO: !!! Implement
 
-        console.info('createPromptbookLibraryFromDirectory', { path, isRecursive, readdirResult });
+        console.info('createPromptbookLibraryFromDirectory', { path, isRecursive, fileNames });
         throw new Error('Not implemented yet');
 
         return [];
