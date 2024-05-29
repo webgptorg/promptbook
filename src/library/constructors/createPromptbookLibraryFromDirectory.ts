@@ -42,10 +42,8 @@ export function createPromptbookLibraryFromDirectory(
     const { isRecursive = true } = options || {};
 
     return createPromptbookLibraryFromPromise(async () => {
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
-        const readdir = require(just('fs/promises')).readdir as typeof readdirType;
-        //                          <- Note: Using require(just('fs/promises')) to allow
-        //                                   the `@promptbook/core` work for both Node.js and browser environments
+        const justR_equire = require; /* <- Note: [1] */
+        const readdir = justR_equire(just('fs/promises') /* <- Note: [2] */).readdir as typeof readdirType;
 
         // TODO: !!!! Implement recursive reading
         // TODO: !!!!! readAllFiles util
@@ -65,5 +63,11 @@ export function createPromptbookLibraryFromDirectory(
 }
 
 /***
+ * Note: [1] Fixing the dynamic import issue in Webpack
+ *     > ./node_modules/@promptbook/core/esm/index.es.js
+ *     > Critical dependency: the request of a dependency is an expression
+ *
+ * Note: [2] Using require(just('fs/promises')) to allow
+ *     the `@promptbook/core` work for both Node.js and browser environments
  * TODO: [🍓][🚯] !!! Add to README and samples + maybe make `@promptbook/library` package
  */
