@@ -58,6 +58,8 @@ export function createPromptbookLibraryFromDirectory(
 
         */
 
+        console.info('createPromptbookLibraryFromDirectory', { path, isRecursive });
+
         return [];
     });
 }
