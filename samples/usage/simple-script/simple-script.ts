@@ -1,12 +1,12 @@
 #!/usr/bin/env ts-node
 
-import { createPromptbookExecutor, createPromptbookLibraryFromSources } from '@promptbook/core';
+import { createPromptbookExecutor, createPromptbookLibraryFromDirectory } from '@promptbook/core';
 import { JavascriptExecutionTools } from '@promptbook/execute-javascript';
 import { OpenAiExecutionTools } from '@promptbook/openai';
 import { assertsExecutionSuccessful, executionReportJsonToString } from '@promptbook/utils';
 import colors from 'colors';
 import * as dotenv from 'dotenv';
-import { readFile, writeFile } from 'fs/promises';
+import { writeFile } from 'fs/promises';
 
 if (process.cwd().split(/[\\/]/).pop() !== 'promptbook') {
     console.error(colors.red(`CWD must be root of the project`));
@@ -20,15 +20,10 @@ main();
 async function main() {
     console.info(colors.bgWhite('⚪ Testing basic capabilities of Promptbook'));
 
-    // const promptbookUrl = 'https://promptbook.example.com/samples/language-capabilities.ptbk.md@v1';
-
-    const library = createPromptbookLibraryFromSources(
-        // TODO:[🍓] !!!!! Use createPromptbookLibraryFromDirectory
-        (await readFile(`./samples/templates/02-ptbkurl.ptbk.md`, 'utf-8')) as any,
-        //(await readFile(`./samples/templates/50-advanced.ptbk.md`, 'utf-8')) as any,
+    const library = createPromptbookLibraryFromDirectory('./samples/templates/');
+    const promptbook = library.getPromptbookByUrl(
+        `https://promptbook.example.com/samples/language-capabilities.ptbk.md@v1`,
     );
-
-    const promptbook = library.getPromptbookByUrl((await library.listPromptbooks())[0]);
 
     const tools = {
         llm: new OpenAiExecutionTools({
@@ -71,7 +66,6 @@ async function main() {
 }
 
 /**
- * TODO: [🈴] !!! Identify PROMPTBOOKs by URL in this sample
  * TODO: There should be no need to set this script or userInterface in tools
  * TODO: Implement and use here PromptbookLibrary.fromDirectory (directory vs folder)
  * TODO: [🧠] Maybe make .js version of simple-script
