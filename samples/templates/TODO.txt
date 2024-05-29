@@ -1,0 +1,3 @@
+TODO: !!! Remove @v1 prefixes from all the promptbook URLs here
+TODO: !!! Make all the promptbook URLs unique
+TODO: !!! Relate the promptbook URLs to the promptbook.studio

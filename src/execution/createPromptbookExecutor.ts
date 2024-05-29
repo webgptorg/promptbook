@@ -135,7 +135,7 @@ export function createPromptbookExecutor(options: CreatePromptbookExecutorOption
                                     promptbookUrl: `${
                                         promptbook.promptbookUrl
                                             ? promptbook.promptbookUrl
-                                            : 'anonymous' /* <- [🧠][🈴] How to deal with anonymous PROMPTBOOKs, do here some auto-url like SHA-256 based ad-hoc identifier? */
+                                            : 'anonymous' /* <- TODO: [🧠] How to deal with anonymous PROMPTBOOKs, do here some auto-url like SHA-256 based ad-hoc identifier? */
                                     }#${currentTemplate.name}`,
                                     parameters: parametersToPass,
                                     content: replaceParameters(currentTemplate.content, parametersToPass) /* <- [2] */,
