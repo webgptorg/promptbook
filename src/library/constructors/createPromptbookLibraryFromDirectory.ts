@@ -39,8 +39,8 @@ export function createPromptbookLibraryFromDirectory(
     const { isRecursive = true } = options || {};
 
     return createPromptbookLibraryFromPromise(async () => {
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
-        const { readdir } = require('fs/promises');
+        const justRequire = require;
+        const { readdir } = justRequire('fs/promises');
         const readdirResult = await readdir(path);
         // TODO: !!! Implement
 

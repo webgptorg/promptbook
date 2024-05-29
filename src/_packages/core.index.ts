@@ -11,6 +11,7 @@ import { SimplePromptInterfaceTools } from '../execution/plugins/user-interface-
 import { checkExpectations, isPassingExpectations } from '../execution/utils/checkExpectations';
 import { createPromptbookLibraryFromDirectory } from '../library/constructors/createPromptbookLibraryFromDirectory';
 import { createPromptbookLibraryFromPromise } from '../library/constructors/createPromptbookLibraryFromPromise';
+import { createPromptbookLibraryFromUrl } from '../library/constructors/createPromptbookLibraryFromUrl';
 import { createPromptbookLibraryFromSources } from '../library/constructors/createPromptbookLibraryFromSources';
 import { createPromptbookSublibrary } from '../library/constructors/createPromptbookSublibrary';
 import { SimplePromptbookLibrary } from '../library/SimplePromptbookLibrary';
@@ -39,7 +40,7 @@ export {
 // @promptbook/library
 export {
     createPromptbookLibraryFromDirectory,
-    // TODO:  !!! [🍓] createPromptbookLibraryFromUrl,
+    createPromptbookLibraryFromUrl,
     createPromptbookLibraryFromPromise,
     createPromptbookLibraryFromSources,
     createPromptbookSublibrary,
