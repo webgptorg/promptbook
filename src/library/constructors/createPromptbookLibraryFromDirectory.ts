@@ -1,8 +1,5 @@
-import { type readdir as readdirType } from 'fs/promises';
-import { join } from 'path';
 import { string_folder_path } from '../../types/typeAliases';
 import { isRunningInNode } from '../../utils/isRunningInWhatever';
-import { just } from '../../utils/just';
 import { PromptbookLibrary } from '../PromptbookLibrary';
 import { createPromptbookLibraryFromPromise } from './createPromptbookLibraryFromPromise';
 
@@ -42,14 +39,15 @@ export function createPromptbookLibraryFromDirectory(
     const { isRecursive = true } = options || {};
 
     return createPromptbookLibraryFromPromise(async () => {
-        const justR_equire = require; /* <- Note: [1] */
-        const readdir = justR_equire(just('fs/promises') /* <- Note: [2] */).readdir as typeof readdirType;
+        /*
+        const justR_equire = require; /* <- Note: [1] * /
+        const readdir = justR_equire(just('fs/promises') /* <- Note: [2] * /).readdir as typeof readdirType;
 
         // TODO: !!!! Implement recursive reading
         // TODO: !!!!! readAllFiles util
 
         const dirents = await readdir(path, {
-            withFileTypes: true /* Note: This is not working: recursive: isRecursive */,
+            withFileTypes: true /* Note: This is not working: recursive: isRecursive * /,
         });
         const fileNames = dirents.filter((dirent) => dirent.isFile()).map(({ name }) => join(name, path));
 
@@ -57,6 +55,8 @@ export function createPromptbookLibraryFromDirectory(
 
         console.info('createPromptbookLibraryFromDirectory', { path, isRecursive, fileNames });
         throw new Error('Not implemented yet');
+
+        */
 
         return [];
     });
