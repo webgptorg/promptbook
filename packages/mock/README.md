@@ -554,8 +554,6 @@ _Note: LLMs work with tokens, not characters, but in Promptbooks we want to use 
 ```markdown
 # ✨ Sample: Expectations
 
--   PROMPTBOOK URL https://promptbook.example.com/samples/postprocessing-2.ptbk.md@v1
--   PROMPTBOOK VERSION 1.0.0
 -   INPUT  PARAMETER {yourName} Name of the hero
 
 ## 💬 Question
