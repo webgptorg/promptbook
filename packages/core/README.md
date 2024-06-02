@@ -96,7 +96,7 @@ File `write-website-content.ptbk.md`:
 >
 > Instructions for creating web page content.
 >
-> -   PROMPTBOOK URL https://promptbook.webgpt.com/en/write-website-content.ptbk.md@v0.1.0
+> -   PROMPTBOOK URL https://promptbook.webgpt.com/en/write-website-content.ptbk.md
 > -   PROMPTBOOK VERSION 0.0.1
 > -   INPUT  PARAM `{rawTitle}` Automatically suggested a site name or empty text
 > -   INPUT  PARAM `{rawAssigment}` Automatically generated site entry from image recognition
