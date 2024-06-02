@@ -70,7 +70,7 @@ describe('how renameParameter works', () => {
             renameParameter({
                 promptbook: validatePromptbookJson({
                     title: '✨ Sample prompt with two consecutive prompts',
-                    promptbookUrl: 'https://promptbook.example.com/samples/two.ptbk.md@v1',
+                    promptbookUrl: 'https://promptbook.example.com/samples/two.ptbk.md',
                     promptbookVersion: '1.0.0',
                     description: 'Show how to use two consecutive prompts with one parameter each.',
                     parameters: [
@@ -126,7 +126,7 @@ describe('how renameParameter works', () => {
         ).toEqual(
             validatePromptbookJson({
                 title: '✨ Sample prompt with two consecutive prompts',
-                promptbookUrl: 'https://promptbook.example.com/samples/two.ptbk.md@v1',
+                promptbookUrl: 'https://promptbook.example.com/samples/two.ptbk.md',
                 promptbookVersion: '1.0.0',
                 description: 'Show how to use two consecutive prompts with one parameter each.',
                 parameters: [
@@ -184,7 +184,7 @@ describe('how renameParameter works', () => {
             renameParameter({
                 promptbook: validatePromptbookJson({
                     title: '✨ Sample prompt with two consecutive prompts',
-                    promptbookUrl: 'https://promptbook.example.com/samples/two.ptbk.md@v1',
+                    promptbookUrl: 'https://promptbook.example.com/samples/two.ptbk.md',
                     promptbookVersion: '1.0.0',
                     description: 'Show how to use two consecutive prompts with one parameter each.',
                     parameters: [

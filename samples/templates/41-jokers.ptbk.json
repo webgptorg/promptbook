@@ -1,6 +1,6 @@
 {
     "title": "✨ Sample: Jokers",
-    "promptbookUrl": "https://promptbook.example.com/samples/jokers.ptbk.md@v1",
+    "promptbookUrl": "https://promptbook.example.com/samples/jokers.ptbk.md",
     "promptbookVersion": "1.0.0",
     "parameters": [
         {
@@ -25,15 +25,9 @@
         {
             "name": "question",
             "title": "💬 Question",
-            "dependentParameterNames": [
-                "name1",
-                "name2"
-            ],
+            "dependentParameterNames": ["name1", "name2"],
             "executionType": "PROMPT_TEMPLATE",
-            "jokers": [
-                "name1",
-                "name2"
-            ],
+            "jokers": ["name1", "name2"],
             "expectations": {
                 "words": {
                     "min": 2

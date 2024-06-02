@@ -1,6 +1,6 @@
 {
     "title": "✨ Sample: Language Capabilities",
-    "promptbookUrl": "https://promptbook.example.com/samples/advanced.ptbk.md@v1",
+    "promptbookUrl": "https://promptbook.example.com/samples/advanced.ptbk.md",
     "promptbookVersion": "1.0.0",
     "description": "Trying the language capabilities of GPT models.",
     "parameters": [
@@ -50,13 +50,9 @@
             "name": "synonym",
             "title": "💬 Synonym",
             "description": "Synonym for word",
-            "dependentParameterNames": [
-                "word"
-            ],
+            "dependentParameterNames": ["word"],
             "executionType": "PROMPT_TEMPLATE",
-            "postprocessing": [
-                "unwrapResult"
-            ],
+            "postprocessing": ["unwrapResult"],
             "expectations": {
                 "words": {
                     "min": 1,
@@ -73,10 +69,7 @@
         {
             "name": "test-that-word-is-not-original-word",
             "title": "⚙ Test that word is not original word",
-            "dependentParameterNames": [
-                "word",
-                "wordSynonym"
-            ],
+            "dependentParameterNames": ["word", "wordSynonym"],
             "executionType": "SCRIPT",
             "modelRequirements": {},
             "contentLanguage": "javascript",
@@ -87,10 +80,7 @@
             "name": "sentence-with-synonym",
             "title": "💬 Sentence with Synonym",
             "description": "Sentence with word and wordSynonym",
-            "dependentParameterNames": [
-                "word",
-                "wordSynonym"
-            ],
+            "dependentParameterNames": ["word", "wordSynonym"],
             "executionType": "PROMPT_TEMPLATE",
             "expectations": {
                 "words": {
@@ -112,10 +102,7 @@
             "name": "sentence-without-original-word",
             "title": "💬 Sentence without original word",
             "description": "Sentence \"{sentenceWithTwoSynonyms}\" without \"{word}\".",
-            "dependentParameterNames": [
-                "sentenceWithTwoSynonyms",
-                "word"
-            ],
+            "dependentParameterNames": ["sentenceWithTwoSynonyms", "word"],
             "executionType": "PROMPT_TEMPLATE",
             "expectations": {
                 "words": {
@@ -137,10 +124,7 @@
             "name": "comparison",
             "title": "💬 Comparison",
             "description": "Comparison between \"{sentenceWithTwoSynonyms}\" and \"{sentenceWithOriginalWordRemoved}\".",
-            "dependentParameterNames": [
-                "sentenceWithTwoSynonyms",
-                "sentenceWithOriginalWordRemoved"
-            ],
+            "dependentParameterNames": ["sentenceWithTwoSynonyms", "sentenceWithOriginalWordRemoved"],
             "executionType": "PROMPT_TEMPLATE",
             "expectations": {
                 "sentences": {

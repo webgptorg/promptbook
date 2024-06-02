@@ -4,7 +4,7 @@ const { comment } = Wizzard.takeCookbook({ url: 'https://promptbook.example.com/
     .useOpenAi({ apiKey: 'sss' })
     .askUserInCallback()
     .askUserInStdio()
-    .takeRecipe('comment.ptbk.md@v1')
+    .takeRecipe('comment.ptbk.md')
     .cook();
 
 console.info({ comment });
@@ -21,7 +21,7 @@ const wizzard = Wizzard.takeCookbook({
     .denyPython()
     .askUserWithUglyBrowserPrompt();
 
-const recipe = wizzard.takeRecipe('website.ptbk.md@v1');
+const recipe = wizzard.takeRecipe('website.ptbk.md');
 const { websiteContent } = recipe.cook();
 
 console.info({ websiteContent });

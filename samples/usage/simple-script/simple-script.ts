@@ -26,7 +26,7 @@ async function main() {
 
     const library = createPromptbookLibraryFromDirectory('./samples/templates/');
     const promptbook = await library.getPromptbookByUrl(
-        `https://promptbook.example.com/samples/language-capabilities.ptbk.md@v1`,
+        `https://promptbook.example.com/samples/language-capabilities.ptbk.md`,
     );
 
     const tools = {

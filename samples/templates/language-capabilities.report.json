@@ -1,5 +1,5 @@
 {
-    "promptbookUrl": "https://promptbook.example.com/samples/language-capabilities.ptbk.md@v1",
+    "promptbookUrl": "https://promptbook.example.com/samples/language-capabilities.ptbk.md",
     "title": "✨ Sample: Nesting",
     "promptbookUsedVersion": "0.52.0-17",
     "promptbookRequestedVersion": "1.0.0",

@@ -10,7 +10,7 @@ describe('createPromptbookLibraryFromDirectory', () => {
 
           Show how to use a simple prompt with no parameters.
 
-          -   PROMPTBOOK URL https://promptbook.example.com/samples/simple.ptbk.md@v1
+          -   PROMPTBOOK URL https://promptbook.example.com/samples/simple.ptbk.md
           -   PROMPTBOOK VERSION 1.0.0
           -   MODEL VARIANT Chat
           -   MODEL NAME gpt-3.5-turbo
@@ -37,7 +37,7 @@ describe('createPromptbookLibraryFromDirectory', () => {
         expect(
             (async () => {
                 const promptbookFromLibrary = await library.getPromptbookByUrl(
-                    'https://promptbook.example.com/samples/simple.ptbk.md@v1',
+                    'https://promptbook.example.com/samples/simple.ptbk.md',
                 );
                 return promptbookFromLibrary;
             })(),
@@ -47,7 +47,7 @@ describe('createPromptbookLibraryFromDirectory', () => {
         expect(
             (async () => {
                 const promptbookFromLibrary = await library.getPromptbookByUrl(
-                    'https://promptbook.example.com/samples/jokers.ptbk.md@v1',
+                    'https://promptbook.example.com/samples/jokers.ptbk.md',
                 );
                 return promptbookFromLibrary.title;
             })(),
@@ -59,7 +59,7 @@ describe('createPromptbookLibraryFromDirectory', () => {
         expect(
             (async () => {
                 const promptbookFromLibrary = await library.getPromptbookByUrl(
-                    'https://promptbook.webgpt.com/en/write-website-content.ptbk.md@v0.1.0',
+                    'https://promptbook.webgpt.com/en/write-website-content.ptbk.md',
                 );
                 return promptbookFromLibrary.title;
             })(),

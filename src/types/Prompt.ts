@@ -50,7 +50,7 @@ export type Prompt = {
     /**
      * Unique identifier of the promptbook with specific template name as hash
      *
-     * @example https://promptbook.webgpt.com/cs/write-website-content.ptbk.md@v2.4.15#keywords
+     * @example https://promptbook.webgpt.com/cs/write-website-content.ptbk.md#keywords
      */
     readonly promptbookUrl: string_promptbook_url_with_hashtemplate;
 

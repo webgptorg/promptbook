@@ -1,6 +1,6 @@
 {
     "title": "✨ Sample prompt with URL",
-    "promptbookUrl": "https://promptbook.example.com/samples/simple.ptbk.md@v1",
+    "promptbookUrl": "https://promptbook.example.com/samples/simple.ptbk.md",
     "promptbookVersion": "1.0.0",
     "description": "Show how to use a simple prompt with no parameters.",
     "parameters": [

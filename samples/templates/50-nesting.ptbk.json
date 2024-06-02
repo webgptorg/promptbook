@@ -1,6 +1,6 @@
 {
     "title": "✨ Sample: Nesting",
-    "promptbookUrl": "https://promptbook.example.com/samples/nesting.ptbk.md@v1",
+    "promptbookUrl": "https://promptbook.example.com/samples/nesting.ptbk.md",
     "promptbookVersion": "1.0.0",
     "description": "How block are nested in the promptbook",
     "parameters": [
@@ -31,13 +31,9 @@
             "name": "synonym",
             "title": "💬 Synonym",
             "description": "Synonym for word",
-            "dependentParameterNames": [
-                "word"
-            ],
+            "dependentParameterNames": ["word"],
             "executionType": "PROMPT_TEMPLATE",
-            "postprocessing": [
-                "unwrapResult"
-            ],
+            "postprocessing": ["unwrapResult"],
             "expectations": {
                 "words": {
                     "min": 1,
@@ -55,14 +51,9 @@
             "name": "sentence",
             "title": "💬 Sentence",
             "description": "Sentence with the both words",
-            "dependentParameterNames": [
-                "word",
-                "wordSynonym"
-            ],
+            "dependentParameterNames": ["word", "wordSynonym"],
             "executionType": "PROMPT_TEMPLATE",
-            "postprocessing": [
-                "unwrapResult"
-            ],
+            "postprocessing": ["unwrapResult"],
             "expectations": {
                 "sentences": {
                     "min": 1
@@ -78,13 +69,9 @@
         {
             "name": "make-a-document",
             "title": "Make a document",
-            "dependentParameterNames": [
-                "sentence"
-            ],
+            "dependentParameterNames": ["sentence"],
             "executionType": "PROMPT_TEMPLATE",
-            "postprocessing": [
-                "unwrapResult"
-            ],
+            "postprocessing": ["unwrapResult"],
             "modelRequirements": {
                 "modelVariant": "CHAT",
                 "modelName": "gpt-3.5-turbo"

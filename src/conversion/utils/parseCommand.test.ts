@@ -3,51 +3,41 @@ import { parseCommand } from './parseCommand';
 
 describe('how parseCommand works', () => {
     it('should parse PROMPTBOOK_URL command', () => {
-        expect(parseCommand('https://promptbook.webgpt.com/cs/write-website-content.ptbk.md@v1.0.0')).toEqual({
+        expect(parseCommand('https://promptbook.webgpt.com/cs/write-website-content.ptbk.md')).toEqual({
             type: 'PROMPTBOOK_URL',
-            promptbookUrl: new URL('https://promptbook.webgpt.com/cs/write-website-content.ptbk.md@v1.0.0'),
+            promptbookUrl: new URL('https://promptbook.webgpt.com/cs/write-website-content.ptbk.md'),
         });
-        expect(
-            parseCommand('   https://promptbook.webgpt.com/cs/write-website-content.ptbk.md@v1.0.1        '),
-        ).toEqual({
+        expect(parseCommand('   https://promptbook.webgpt.com/cs/write-website-content.ptbk.md        ')).toEqual({
             type: 'PROMPTBOOK_URL',
-            promptbookUrl: new URL('https://promptbook.webgpt.com/cs/write-website-content.ptbk.md@v1.0.1'),
+            promptbookUrl: new URL('https://promptbook.webgpt.com/cs/write-website-content.ptbk.md'),
         });
-        expect(parseCommand('url https://promptbook.webgpt.com/cs/write-website-content.ptbk.md@v1.0.2')).toEqual({
+        expect(parseCommand('url https://promptbook.webgpt.com/cs/write-website-content.ptbk.md')).toEqual({
             type: 'PROMPTBOOK_URL',
-            promptbookUrl: new URL('https://promptbook.webgpt.com/cs/write-website-content.ptbk.md@v1.0.2'),
+            promptbookUrl: new URL('https://promptbook.webgpt.com/cs/write-website-content.ptbk.md'),
         });
-        expect(parseCommand('URL https://promptbook.webgpt.com/cs/write-website-content.ptbk.md@v1.0.3')).toEqual({
+        expect(parseCommand('URL https://promptbook.webgpt.com/cs/write-website-content.ptbk.md')).toEqual({
             type: 'PROMPTBOOK_URL',
-            promptbookUrl: new URL('https://promptbook.webgpt.com/cs/write-website-content.ptbk.md@v1.0.3'),
+            promptbookUrl: new URL('https://promptbook.webgpt.com/cs/write-website-content.ptbk.md'),
         });
-        expect(
-            parseCommand('promptbookurl https://promptbook.webgpt.com/cs/write-website-content.ptbk.md@v1.0.4'),
-        ).toEqual({
+        expect(parseCommand('promptbookurl https://promptbook.webgpt.com/cs/write-website-content.ptbk.md')).toEqual({
             type: 'PROMPTBOOK_URL',
-            promptbookUrl: new URL('https://promptbook.webgpt.com/cs/write-website-content.ptbk.md@v1.0.4'),
+            promptbookUrl: new URL('https://promptbook.webgpt.com/cs/write-website-content.ptbk.md'),
         });
-        expect(
-            parseCommand('promptbookUrl https://promptbook.webgpt.com/cs/write-website-content.ptbk.md@v1.0.5'),
-        ).toEqual({
+        expect(parseCommand('promptbookUrl https://promptbook.webgpt.com/cs/write-website-content.ptbk.md')).toEqual({
             type: 'PROMPTBOOK_URL',
-            promptbookUrl: new URL('https://promptbook.webgpt.com/cs/write-website-content.ptbk.md@v1.0.5'),
+            promptbookUrl: new URL('https://promptbook.webgpt.com/cs/write-website-content.ptbk.md'),
         });
-        expect(
-            parseCommand('PROMPTBOOK_URL https://promptbook.webgpt.com/cs/write-website-content.ptbk.md@v1.0.6'),
-        ).toEqual({
+        expect(parseCommand('PROMPTBOOK_URL https://promptbook.webgpt.com/cs/write-website-content.ptbk.md')).toEqual({
             type: 'PROMPTBOOK_URL',
-            promptbookUrl: new URL('https://promptbook.webgpt.com/cs/write-website-content.ptbk.md@v1.0.6'),
+            promptbookUrl: new URL('https://promptbook.webgpt.com/cs/write-website-content.ptbk.md'),
         });
-        expect(
-            parseCommand('PROMPTBOOK URL https://promptbook.webgpt.com/cs/write-website-content.ptbk.md@v1.0.7'),
-        ).toEqual({
+        expect(parseCommand('PROMPTBOOK URL https://promptbook.webgpt.com/cs/write-website-content.ptbk.md')).toEqual({
             type: 'PROMPTBOOK_URL',
-            promptbookUrl: new URL('https://promptbook.webgpt.com/cs/write-website-content.ptbk.md@v1.0.7'),
+            promptbookUrl: new URL('https://promptbook.webgpt.com/cs/write-website-content.ptbk.md'),
         });
-        expect(parseCommand('url *https://promptbook.webgpt.com/cs/write-website-content.ptbk.md@v1.0.8*')).toEqual({
+        expect(parseCommand('url *https://promptbook.webgpt.com/cs/write-website-content.ptbk.md*')).toEqual({
             type: 'PROMPTBOOK_URL',
-            promptbookUrl: new URL('https://promptbook.webgpt.com/cs/write-website-content.ptbk.md@v1.0.8'),
+            promptbookUrl: new URL('https://promptbook.webgpt.com/cs/write-website-content.ptbk.md'),
         });
         expect(parseCommand('`https://promptbook.webgpt.com/cs/write-website-content.ptbk.md`')).toEqual({
             type: 'PROMPTBOOK_URL',
@@ -56,21 +46,21 @@ describe('how parseCommand works', () => {
     });
 
     it('should parse PROMPTBOOK_URL command in shortcut form', () => {
-        expect(parseCommand('ptbkurl https://promptbook.webgpt.com/cs/write-website-content.ptbk.md@v1.0.4')).toEqual({
+        expect(parseCommand('ptbkurl https://promptbook.webgpt.com/cs/write-website-content.ptbk.md')).toEqual({
             type: 'PROMPTBOOK_URL',
-            promptbookUrl: new URL('https://promptbook.webgpt.com/cs/write-website-content.ptbk.md@v1.0.4'),
+            promptbookUrl: new URL('https://promptbook.webgpt.com/cs/write-website-content.ptbk.md'),
         });
-        expect(parseCommand('ptbkUrl https://promptbook.webgpt.com/cs/write-website-content.ptbk.md@v1.0.5')).toEqual({
+        expect(parseCommand('ptbkUrl https://promptbook.webgpt.com/cs/write-website-content.ptbk.md')).toEqual({
             type: 'PROMPTBOOK_URL',
-            promptbookUrl: new URL('https://promptbook.webgpt.com/cs/write-website-content.ptbk.md@v1.0.5'),
+            promptbookUrl: new URL('https://promptbook.webgpt.com/cs/write-website-content.ptbk.md'),
         });
-        expect(parseCommand('PTBK_URL https://promptbook.webgpt.com/cs/write-website-content.ptbk.md@v1.0.6')).toEqual({
+        expect(parseCommand('PTBK_URL https://promptbook.webgpt.com/cs/write-website-content.ptbk.md')).toEqual({
             type: 'PROMPTBOOK_URL',
-            promptbookUrl: new URL('https://promptbook.webgpt.com/cs/write-website-content.ptbk.md@v1.0.6'),
+            promptbookUrl: new URL('https://promptbook.webgpt.com/cs/write-website-content.ptbk.md'),
         });
-        expect(parseCommand('PTBK URL https://promptbook.webgpt.com/cs/write-website-content.ptbk.md@v1.0.7')).toEqual({
+        expect(parseCommand('PTBK URL https://promptbook.webgpt.com/cs/write-website-content.ptbk.md')).toEqual({
             type: 'PROMPTBOOK_URL',
-            promptbookUrl: new URL('https://promptbook.webgpt.com/cs/write-website-content.ptbk.md@v1.0.7'),
+            promptbookUrl: new URL('https://promptbook.webgpt.com/cs/write-website-content.ptbk.md'),
         });
     });
 
@@ -78,18 +68,18 @@ describe('how parseCommand works', () => {
         expect(() => parseCommand('PROMPTBOOK_URL')).toThrowError(/Invalid PROMPTBOOK_URL command/i);
         expect(() =>
             parseCommand(
-                'URL https://promptbook.webgpt.com/cs/write-website-content.ptbk.md@v1.0.0 https://promptbook.webgpt.com/cs/write-website-content.ptbk.md@v1.0.0',
+                'URL https://promptbook.webgpt.com/cs/write-website-content.ptbk.md https://promptbook.webgpt.com/cs/write-website-content.ptbk.md',
             ),
         ).toThrowError(/Invalid PROMPTBOOK_URL command/i);
 
         expect(() => parseCommand('url http:^404')).toThrowError(/Invalid URL/i);
 
-        expect(() => parseCommand('url http://promptbook.webgpt.com/cs/write-website-content@v1.0.0')).toThrowError(
+        expect(() => parseCommand('url http://promptbook.webgpt.com/cs/write-website-content')).toThrowError(
             /Protocol must be HTTPS/i,
         );
 
         expect(() =>
-            parseCommand('url https://promptbook.webgpt.com/cs/write-website-content.ptbk.md@v1.0.0#keywords'),
+            parseCommand('url https://promptbook.webgpt.com/cs/write-website-content.ptbk.md#keywords'),
         ).toThrowError(/URL must not contain hash/i);
     });
 
