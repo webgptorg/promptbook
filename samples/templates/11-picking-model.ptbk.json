@@ -1,6 +1,6 @@
 {
     "title": "✨ Pick the model",
-    "promptbookUrl": "https://promptbook.example.com/samples/single.ptbk.md@v1",
+    "promptbookUrl": "https://promptbook.example.com/samples/picking-model.ptbk.md@v1",
     "promptbookVersion": "1.0.0",
     "description": "Show how to pick exact model",
     "parameters": [

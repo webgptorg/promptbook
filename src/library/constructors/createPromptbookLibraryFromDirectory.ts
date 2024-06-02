@@ -65,10 +65,27 @@ export function createPromptbookLibraryFromDirectory(
         const promptbooks: Array<PromptbookJson> = [];
 
         for (const fileName of fileNames) {
+            let promptbook: PromptbookJson | null = null;
+
             if (fileName.endsWith('.ptbk.md')) {
                 const promptbookString = (await readFile(fileName, 'utf8')) as PromptbookString;
-                const promptbook = promptbookStringToJson(promptbookString);
+                promptbook = promptbookStringToJson(promptbookString);
+            } else if (fileName.endsWith('.ptbk.json')) {
+                if (isVerbose) {
+                    console.info(`Loading ${fileName}`);
+                }
 
+                // TODO: Handle non-valid JSON files
+                promptbook = JSON.parse(await readFile(fileName, 'utf8')) as PromptbookJson;
+            } else {
+                if (isVerbose) {
+                    console.info(`Skipping file ${fileName}`);
+                }
+            }
+
+            // ---
+
+            if (promptbook !== null) {
                 if (!promptbook.promptbookUrl) {
                     if (isVerbose) {
                         console.info(`Not loading ${fileName} - missing URL`);
@@ -78,19 +95,8 @@ export function createPromptbookLibraryFromDirectory(
                         console.info(`Loading ${fileName}`);
                     }
 
-                    // TODO: !!!! Check url uniqueness and collisions
+                    // Note: [🦄] Promptbook with same url uniqueness will be checked automatically in SimplePromptbookLibrary
                     promptbooks.push(promptbook);
-                }
-            } else if (fileName.endsWith('.ptbk.json')) {
-                if (isVerbose) {
-                    console.info(`Loading ${fileName}`);
-                }
-
-                // TODO: !!!! Implement JSON loading
-                // TODO: !!!! Check url uniqueness and collisions
-            } else {
-                if (isVerbose) {
-                    console.info(`Skipping file ${fileName}`);
                 }
             }
         }

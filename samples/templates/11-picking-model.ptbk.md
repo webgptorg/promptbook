@@ -2,7 +2,7 @@
 
 Show how to pick exact model
 
--   PROMPTBOOK URL https://promptbook.example.com/samples/single.ptbk.md@v1
+-   PROMPTBOOK URL https://promptbook.example.com/samples/picking-model.ptbk.md@v1
 -   PROMPTBOOK VERSION 1.0.0
 -   INPUT  PARAMETER `{word}` Any single word
 -   OUTPUT PARAMETER `{poem}`

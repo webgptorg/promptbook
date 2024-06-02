@@ -1,5 +1,5 @@
 import { spaceTrim } from 'spacetrim';
-import { validatePromptbookJson } from '../_packages/core.index';
+import { promptbookJsonToString, validatePromptbookJson } from '../_packages/core.index';
 import { PromptbookNotFoundError } from '../errors/PromptbookNotFoundError';
 import { PromptbookReferenceError } from '../errors/PromptbookReferenceError';
 import type { Prompt } from '../types/Prompt';
@@ -41,6 +41,23 @@ export class SimplePromptbookLibrary implements PromptbookLibrary {
             }
 
             validatePromptbookJson(promptbook);
+
+            // Note: [🦄]
+            if (
+                this.library.has(promptbook.promptbookUrl) &&
+                promptbookJsonToString(promptbook) !==
+                    promptbookJsonToString(this.library.get(promptbook.promptbookUrl)!)
+            ) {
+                throw new PromptbookReferenceError(
+                    spaceTrim(`
+                        Promptbook with URL "${promptbook.promptbookUrl}" is already in the library
+
+                        Note: Promptbooks with the same URL are not allowed
+                        Note: Automatically check whether the promptbooks are the same BUT they are DIFFERENT
+
+                    `),
+                );
+            }
 
             this.library.set(promptbook.promptbookUrl, promptbook);
         }
