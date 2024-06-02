@@ -296,6 +296,7 @@ Add support for Claude \\ Anthropic models via package `@promptbook/anthropic-cl
 -   Make and use `JavascriptExecutionTools` as placeholder for better implementation with propper sandboxing
 -   Implement `createPromptbookLibraryFromDirectory` and export from `@promptbook/core`
 -   Check Promptbook URL uniqueness in `SimplePromptbookLibrary` _(see [🦄])_
+-   Util `createPromptbookLibraryFromPromise` is not public anymore
 
 ## In prepare
 

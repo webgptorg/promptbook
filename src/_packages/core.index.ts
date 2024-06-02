@@ -10,7 +10,6 @@ import { CallbackInterfaceToolsOptions } from '../execution/plugins/user-interfa
 import { SimplePromptInterfaceTools } from '../execution/plugins/user-interface-execution-tools/simple-prompt/SimplePromptInterfaceTools';
 import { checkExpectations, isPassingExpectations } from '../execution/utils/checkExpectations';
 import { createPromptbookLibraryFromDirectory } from '../library/constructors/createPromptbookLibraryFromDirectory';
-import { createPromptbookLibraryFromPromise } from '../library/constructors/createPromptbookLibraryFromPromise';
 import { createPromptbookLibraryFromSources } from '../library/constructors/createPromptbookLibraryFromSources';
 import { createPromptbookLibraryFromUrl } from '../library/constructors/createPromptbookLibraryFromUrl';
 import { createPromptbookSublibrary } from '../library/constructors/createPromptbookSublibrary';
@@ -44,7 +43,6 @@ export {
 // @promptbook/library
 export {
     createPromptbookLibraryFromDirectory,
-    createPromptbookLibraryFromPromise,
     createPromptbookLibraryFromSources,
     createPromptbookLibraryFromUrl,
     createPromptbookSublibrary,

@@ -1,20 +1,52 @@
+import { string_url } from '../../types/typeAliases';
 import { PromptbookLibrary } from '../PromptbookLibrary';
+import { createPromptbookLibraryFromPromise } from './createPromptbookLibraryFromPromise';
+
+/**
+ * Options for `createPromptbookLibraryFromDirectory` function
+ */
+type CreatePromptbookLibraryFromUrlyOptions = {
+    /**
+     * If true, the library creation outputs information about each file it reads
+     *
+     * @default false
+     */
+    isVerbose?: boolean;
+
+    /**
+     * If true, directory will be scanned only when needed not during the construction
+     *
+     * @default false
+     */
+    isLazyLoaded?: boolean;
+};
 
 /**
  * Constructs Promptbook from remote Promptbase URL
- *
- * Note: The function does NOT return promise it returns the library directly which dynamically loads promptbooks when needed
- *       SO during the construction syntax and logic sources IS NOT validated
- *
+
  * @returns PromptbookLibrary
  */
-export function createPromptbookLibraryFromUrl(): PromptbookLibrary {
-    throw new Error('Not implemented yet');
+export async function createPromptbookLibraryFromUrl(
+    url: string_url | URL,
+    options: CreatePromptbookLibraryFromUrlyOptions,
+): Promise<PromptbookLibrary> {
+    const { isVerbose = false, isLazyLoaded = false } = options || {};
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return null as any;
+    const library = createPromptbookLibraryFromPromise(async () => {
+        if (isVerbose) {
+            console.info(`Creating promptbook library from url ${url.toString()}`);
+        }
 
-    // TODO: !! Load dynamically DO NOT use createPromptbookLibraryFromPromise
+        throw new Error('Not implemented yet');
+    });
+
+    if (isLazyLoaded === false) {
+        await library.listPromptbooks();
+    }
+
+    return library;
+
+    // TODO: !! Implement via createPromptbookLibraryFromPromise
 }
 
 /***

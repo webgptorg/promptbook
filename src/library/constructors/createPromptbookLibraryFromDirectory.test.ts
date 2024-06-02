@@ -28,14 +28,29 @@ describe('createPromptbookLibraryFromDirectory', () => {
 
     `) as PromptbookString;
 
-    const library = createPromptbookLibraryFromDirectory('./samples/templates', {
-        isVerbose: true,
-        isRecursive: false,
-    });
-
     it('should get promptbook by url from library', () =>
         expect(
             (async () => {
+                const library = await createPromptbookLibraryFromDirectory('./samples/templates', {
+                    isVerbose: true,
+                    isRecursive: false,
+                    isLazyLoaded: false,
+                });
+                const promptbookFromLibrary = await library.getPromptbookByUrl(
+                    'https://promptbook.example.com/samples/simple.ptbk.md',
+                );
+                return promptbookFromLibrary;
+            })(),
+        ).resolves.toEqual(promptbookStringToJson(promptbook)));
+
+    it('should get lazy-loaded promptbook by url from library', () =>
+        expect(
+            (async () => {
+                const library = await createPromptbookLibraryFromDirectory('./samples/templates', {
+                    isVerbose: true,
+                    isRecursive: false,
+                    isLazyLoaded: true,
+                });
                 const promptbookFromLibrary = await library.getPromptbookByUrl(
                     'https://promptbook.example.com/samples/simple.ptbk.md',
                 );
@@ -46,6 +61,10 @@ describe('createPromptbookLibraryFromDirectory', () => {
     it('should get different promptbook by url from library', () =>
         expect(
             (async () => {
+                const library = await createPromptbookLibraryFromDirectory('./samples/templates', {
+                    isVerbose: true,
+                    isRecursive: false,
+                });
                 const promptbookFromLibrary = await library.getPromptbookByUrl(
                     'https://promptbook.example.com/samples/jokers.ptbk.md',
                 );
@@ -58,6 +77,10 @@ describe('createPromptbookLibraryFromDirectory', () => {
     it('should find promptbook in subdirectory', () =>
         expect(
             (async () => {
+              const library = await   createPromptbookLibraryFromDirectory('./samples/templates', {
+                    isVerbose: true,
+                    isRecursive: false,
+                });
                 const promptbookFromLibrary = await library.getPromptbookByUrl(
                     'https://promptbook.webgpt.com/en/write-website-content.ptbk.md',
                 );

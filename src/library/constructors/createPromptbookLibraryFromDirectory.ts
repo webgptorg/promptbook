@@ -21,37 +21,46 @@ type CreatePromptbookLibraryFromDirectoryOptions = {
     isRecursive?: boolean;
 
     /**
-     * If true, the library ceation outputs information about each file it reads
+     * If true, the library creation outputs information about each file it reads
      *
      * @default false
      */
     isVerbose?: boolean;
+
+    /**
+     * If true, directory will be scanned only when needed not during the construction
+     *
+     * @default false
+     */
+    isLazyLoaded?: boolean;
 };
 
 /**
  * Constructs Promptbook from given directory
  *
  * Note: Works only in Node.js environment because it reads the file system
- * Note: The function does NOT return promise it returns the library directly which dynamically loads promptbooks when needed
- *       SO during the construction syntax and logic sources IS NOT validated
  *
  * @param path - path to the directory with promptbooks
  * @param options - Misc options for the library
  * @returns PromptbookLibrary
  */
-export function createPromptbookLibraryFromDirectory(
+export async function createPromptbookLibraryFromDirectory(
     path: string_folder_path,
     options?: CreatePromptbookLibraryFromDirectoryOptions,
-): PromptbookLibrary {
+): Promise<PromptbookLibrary> {
     if (!isRunningInNode()) {
         throw new Error(
             'Function `createPromptbookLibraryFromDirectory` can only be run in Node.js environment because it reads the file system.',
         );
     }
 
-    const { isRecursive = true, isVerbose = false } = options || {};
+    const { isRecursive = true, isVerbose = false, isLazyLoaded = false } = options || {};
 
-    return createPromptbookLibraryFromPromise(async () => {
+    const library = createPromptbookLibraryFromPromise(async () => {
+        if (isVerbose) {
+            console.info(`Creating promptbook library from path ${path}`);
+        }
+
         // eslint-disable-next-line @typescript-eslint/no-var-requires
         const fsPromises = require(just('fs/promises') /* <- Note: [1] */);
         const readFile = fsPromises.readFile as typeof readFileType;
@@ -103,6 +112,12 @@ export function createPromptbookLibraryFromDirectory(
 
         return promptbooks;
     });
+
+    if (isLazyLoaded === false) {
+        await library.listPromptbooks();
+    }
+
+    return library;
 }
 
 /**
