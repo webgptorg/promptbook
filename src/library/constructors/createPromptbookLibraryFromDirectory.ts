@@ -136,11 +136,11 @@ async function listAllFiles(path: string_folder_path, isRecursive: boolean): Pro
 
 /***
  * TODO: [🧠] Maybe do not do hacks like [1] and just create package @promptbook/node
+ *       [🍓][🚯] maybe make `@promptbook/library` package
  * TODO: Fix the dynamic import issue in Webpack (! Not working !)
  *     > ./node_modules/@promptbook/core/esm/index.es.js
  *     > Critical dependency: the request of a dependency is an expression
  *
  * Note: [1] Using require(just('fs/promises')) to allow
  *     the `@promptbook/core` work for both Node.js and browser environments
- * TODO: [🍓][🚯] !!! Add to README and samples + maybe make `@promptbook/library` package
  */

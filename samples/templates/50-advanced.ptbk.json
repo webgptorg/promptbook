@@ -1,6 +1,6 @@
 {
     "title": "✨ Sample: Language Capabilities",
-    "promptbookUrl": "https://promptbook.example.com/samples/language-capabilities.ptbk.md@v1",
+    "promptbookUrl": "https://promptbook.example.com/samples/advanced.ptbk.md@v1",
     "promptbookVersion": "1.0.0",
     "description": "Trying the language capabilities of GPT models.",
     "parameters": [

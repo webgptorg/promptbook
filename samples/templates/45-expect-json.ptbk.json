@@ -1,6 +1,6 @@
 {
     "title": "✨ Sample: Parsing data to JSON",
-    "promptbookUrl": "https://promptbook.example.com/samples/postprocessing-2.ptbk.md@v1",
+    "promptbookUrl": "https://promptbook.example.com/samples/expect-json.ptbk.md@v1",
     "promptbookVersion": "1.0.0",
     "parameters": [
         {

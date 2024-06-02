@@ -1,6 +1,6 @@
 # ✨ Sample: Parsing data to JSON
 
--   PROMPTBOOK URL https://promptbook.example.com/samples/postprocessing-2.ptbk.md@v1
+-   PROMPTBOOK URL https://promptbook.example.com/samples/expect-json.ptbk.md@v1
 -   PROMPTBOOK VERSION 1.0.0
 -   INPUT  PARAMETER {sentence} Sentence to be processed
 -   OUTPUT PARAMETER `{parsedSentence}`

@@ -2,7 +2,7 @@
 
 Trying the language capabilities of GPT models.
 
--   PROMPTBOOK URL https://promptbook.example.com/samples/language-capabilities.ptbk.md@v1
+-   PROMPTBOOK URL https://promptbook.example.com/samples/advanced.ptbk.md@v1
 -   PROMPTBOOK VERSION 1.0.0
 <!--
 TODO: [🧠] Do not allow model in header of promptbook OR mandatory word "MODEL MODEL Chat"
