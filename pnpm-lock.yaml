@@ -21,8 +21,8 @@ importers:
         specifier: 12.0.0
         version: 12.0.0
       destroyable:
-        specifier: 0.12.48
-        version: 0.12.48
+        specifier: 0.12.50
+        version: 0.12.50
       glob-promise:
         specifier: 6.0.5
         version: 6.0.5(glob@7.2.3)
@@ -902,8 +902,8 @@ packages:
     resolution: {integrity: sha512-ZySD7Nf91aLB0RxL4KGrKHBXl7Eds1DAmEdcoVawXnLD7SDhpNgtuII2aAkg7a7QS41jxPSZ17p4VdGnMHk3MQ==}
     engines: {node: '>=0.4.0'}
 
-  destroyable@0.12.48:
-    resolution: {integrity: sha512-qBYV57miVrzY6V3OS6cViXxGFNwubwmkHx5o1M6eBP7z4z36qDkP1K3iQRvgWoJwnDSINg9D4+XyMOIv04n4mw==}
+  destroyable@0.12.50:
+    resolution: {integrity: sha512-yBcM/JzdV5E9xrtFYOY/BYX2MKdZTW96MVIx/WvV27wkiZM0N1xcacgjjzVn/hmUSt0XuwuEoGR+ZNMICH/85g==}
 
   detect-newline@3.1.0:
     resolution: {integrity: sha512-TLz+x/vEXm/Y7P7wn1EJFNLxYpUD4TgMosxY6fAVJUnJMbupHBOncxyWUG9OpTaH9EBD7uFI5LfEgmMOc54DsA==}
@@ -3206,7 +3206,7 @@ snapshots:
 
   delayed-stream@1.0.0: {}
 
-  destroyable@0.12.48:
+  destroyable@0.12.50:
     dependencies:
       rxjs: 6.6.3
       type-fest: 2.5.2
