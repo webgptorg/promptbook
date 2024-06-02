@@ -4,8 +4,6 @@ import { promptbookStringToJson } from '../../conversion/promptbookStringToJson'
 import type { PromptbookString } from '../../types/PromptbookString';
 import { createPromptbookLibraryFromDirectory } from './createPromptbookLibraryFromDirectory';
 
-// TODO: !!!! Pass the test
-
 describe('createPromptbookLibraryFromDirectory', () => {
     const promptbook = spaceTrim(`
           # ✨ Sample prompt with URL
@@ -30,7 +28,10 @@ describe('createPromptbookLibraryFromDirectory', () => {
 
     `) as PromptbookString;
 
-    const library = createPromptbookLibraryFromDirectory('./samples/templates', { isVerbose: true });
+    const library = createPromptbookLibraryFromDirectory('./samples/templates', {
+        isVerbose: true,
+        isRecursive: false,
+    });
 
     it('should get promptbook by url from library', () =>
         expect(
@@ -51,4 +52,17 @@ describe('createPromptbookLibraryFromDirectory', () => {
                 return promptbookFromLibrary.title;
             })(),
         ).resolves.toBe('✨ Sample: Jokers'));
+
+    /*
+    TODO: Make separate folder for errors and enable this test
+    it('should find promptbook in subdirectory', () =>
+        expect(
+            (async () => {
+                const promptbookFromLibrary = await library.getPromptbookByUrl(
+                    'https://promptbook.webgpt.com/en/write-website-content.ptbk.md@v0.1.0',
+                );
+                return promptbookFromLibrary.title;
+            })(),
+        ).resolves.toBe('🌍 Create website content'));
+    */
 });
