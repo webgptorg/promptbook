@@ -1,6 +1,6 @@
 {
     "name": "@promptbook/anthropic-claude",
-    "version": "0.52.0-20",
+    "version": "0.52.0-21",
     "description": "Library to supercharge your use of large language models",
     "private": false,
     "sideEffects": false,
@@ -48,7 +48,7 @@
         }
     ],
     "peerDependencies": {
-        "@promptbook/core": "0.52.0-20"
+        "@promptbook/core": "0.52.0-21"
     },
     "main": "./umd/index.umd.js",
     "module": "./esm/index.es.js",
