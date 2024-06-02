@@ -21,7 +21,9 @@
             "name": "synonym",
             "title": "💬 Synonym",
             "description": "Synonym for word",
-            "dependentParameterNames": ["word"],
+            "dependentParameterNames": [
+                "word"
+            ],
             "executionType": "PROMPT_TEMPLATE",
             "modelRequirements": {
                 "modelVariant": "CHAT",

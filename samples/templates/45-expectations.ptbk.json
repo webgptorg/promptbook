@@ -19,7 +19,9 @@
         {
             "name": "question",
             "title": "💬 Question",
-            "dependentParameterNames": ["yourName"],
+            "dependentParameterNames": [
+                "yourName"
+            ],
             "executionType": "PROMPT_TEMPLATE",
             "expectations": {
                 "characters": {

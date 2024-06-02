@@ -19,9 +19,13 @@
         {
             "name": "question",
             "title": "💬 Question",
-            "dependentParameterNames": ["sentence"],
+            "dependentParameterNames": [
+                "sentence"
+            ],
             "executionType": "PROMPT_TEMPLATE",
-            "postprocessing": ["trimEndOfCodeBlock"],
+            "postprocessing": [
+                "trimEndOfCodeBlock"
+            ],
             "expectFormat": "JSON",
             "modelRequirements": {
                 "modelVariant": "COMPLETION",
