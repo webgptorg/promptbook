@@ -45,8 +45,8 @@ importers:
         specifier: 4.7.2
         version: 4.7.2
       spacetrim:
-        specifier: 0.11.25
-        version: 0.11.25
+        specifier: 0.11.27
+        version: 0.11.27
       type-fest:
         specifier: 4.5.0
         version: 4.5.0
@@ -1852,8 +1852,8 @@ packages:
     resolution: {integrity: sha512-l3BikUxvPOcn5E74dZiq5BGsTb5yEwhaTSzccU6t4sDOH8NWJCstKO5QT2CvtFoK6F0saL7p9xHAqHOlCPJygA==}
     engines: {node: '>= 8'}
 
-  spacetrim@0.11.25:
-    resolution: {integrity: sha512-SWxXDROciuJs9YEYXUBjot5k/cqNGPPbT3QmkInFne4AGc1y+76It+jqU8rfsXKt57RRiunzZn1m9+KfuuNklw==}
+  spacetrim@0.11.27:
+    resolution: {integrity: sha512-dwH0FuVEdapG4Qb2kNlZXM5kCyOgqsC0LkZbF+ESICLMTWH3RQsisSlnNy9raB38qxvUlUvpFrbEirB0RFKv5A==}
 
   sprintf-js@1.0.3:
     resolution: {integrity: sha512-D9cPgkvLlV3t3IzL0D0YLvGA9Ahk4PcvVwUbN0dSGr1aP0Nrt4AEnTUbuGvquEC0mA64Gqt1fzirlRs5ibXx8g==}
@@ -4403,7 +4403,7 @@ snapshots:
 
   source-map@0.7.4: {}
 
-  spacetrim@0.11.25: {}
+  spacetrim@0.11.27: {}
 
   sprintf-js@1.0.3: {}
 
