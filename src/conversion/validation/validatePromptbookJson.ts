@@ -23,6 +23,8 @@ import { isValidUrl } from '../../utils/validators/url/isValidUrl';
  * @throws {PromptbookLogicError} on logical error in the promptbook
  */
 export function validatePromptbookJson(promptbook: PromptbookJson): PromptbookJson {
+    // TODO: [🧠] Maybe test if promptbook is a promise and make specific error case for that
+
     if (promptbook.promptbookUrl !== undefined) {
         if (!isValidUrl(promptbook.promptbookUrl)) {
             // TODO: This should be maybe the syntax error detected during parsing
