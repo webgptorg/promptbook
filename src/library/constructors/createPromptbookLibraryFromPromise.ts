@@ -19,7 +19,7 @@ import { createPromptbookLibraryFromSources } from './createPromptbookLibraryFro
  * Note: The function does NOT return promise it returns the library directly which waits for the sources to be resolved
  *       when error occurs in given promise or factory function, it is thrown during `listPromptbooks` or `getPromptbookByUrl` call
  *
- * Note: Consider using `createPromptbookLibraryFromUrl` or `createPromptbookLibraryFromDirectory`
+ * Note: Consider using  `createPromptbookLibraryFromDirectory` or `createPromptbookLibraryFromUrl`
  *
  * @param promptbookSourcesPromiseOrFactory
  * @returns PromptbookLibrary
