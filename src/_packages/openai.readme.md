@@ -1,6 +1,6 @@
 Wrapper around [OpenAI's SDK](https://www.npmjs.com/package/openai) to make it easier to use inside Promptbooks.
 
-<!-- TODO: [🈷] !!!!!!!!! -->
+<!-- TODO: [🈷] !!!! Write more text about -->
 
 ## Usage
 
@@ -47,7 +47,7 @@ console.info(outputParameters);
 <!--
 ## Usage with backup
 
-TODO: !!!
+TODO: !!!! [77] Write sample with multiple LLMs
 -->
 
 ## Other models

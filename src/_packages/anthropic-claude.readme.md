@@ -1,4 +1,4 @@
-<!-- TODO: [🈷] !!!!!!!!! -->
+<!-- TODO: [🈷] !!!! Write sample usage similar to openai -->
 
 <!--
 ## Usage

@@ -1,4 +1,4 @@
-<!-- TODO: [🈷] !!!!!!!!! -->
+<!-- TODO: [🈷] !!!! Write sample usage similar to openai -->
 
 https://oai.azure.com/portal/
 
@@ -6,14 +6,14 @@ https://oai.azure.com/portal/
 <!--
 ## Usage
 
-TODO: !!! [🈷] 
+TODO: !!! [🈷]
 -->
 
 
 <!--
 ## Usage with backup
 
-TODO: !!! [🈷] 
+TODO: !!! [🈷]
 -->
 
 ## Other models
