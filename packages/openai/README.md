@@ -46,7 +46,7 @@ import { JavascriptExecutionTools } from '@promptbook/execute-javascript';
 import { OpenAiExecutionTools } from '@promptbook/openai';
 
 // Create whole Promptbook library
-const library = await createPromptbookLibraryFromDirectory('./promptbook');
+const library = await createPromptbookLibraryFromDirectory('./promptbook-library');
 
 // Get one Promptbook
 const promptbook = library.getPromptbookByUrl(`https://promptbook.studio/my-library/write-article.ptbk.md`);
