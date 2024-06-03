@@ -1,6 +1,6 @@
 {
     "name": "@promptbook/execute-javascript",
-    "version": "0.52.0-21",
+    "version": "0.52.0-22",
     "description": "Library to supercharge your use of large language models",
     "private": false,
     "sideEffects": false,
@@ -49,7 +49,7 @@
         }
     ],
     "peerDependencies": {
-        "@promptbook/core": "0.52.0-21"
+        "@promptbook/core": "0.52.0-22"
     },
     "main": "./umd/index.umd.js",
     "module": "./esm/index.es.js",
