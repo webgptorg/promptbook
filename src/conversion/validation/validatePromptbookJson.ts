@@ -1,6 +1,7 @@
 import { spaceTrim } from 'spacetrim';
 import { LOOP_LIMIT } from '../../config';
 import { PromptbookLogicError } from '../../errors/PromptbookLogicError';
+import { PromptbookSyntaxError } from '../../errors/PromptbookSyntaxError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { PromptTemplateJson } from '../../types/PromptbookJson/PromptTemplateJson';
 import type { PromptbookJson } from '../../types/PromptbookJson/PromptbookJson';
@@ -27,6 +28,30 @@ export function validatePromptbookJson(promptbook: PromptbookJson): PromptbookJs
             // TODO: This should be maybe the syntax error detected during parsing
             throw new PromptbookLogicError(`Invalid promptbook URL "${promptbook.promptbookUrl}"`);
         }
+    }
+
+    // TODO: [🧠] Maybe do here some propper JSON-schema / ZOD checking
+    if (!Array.isArray(promptbook.parameters)) {
+        // TODO: [🧠] what is the correct error tp throw - maybe PromptbookSchemaError
+        throw new PromptbookSyntaxError(
+            spaceTrim(`
+                Promptbook is valid JSON but with wrong structure
+
+                promptbook.parameters expected to be an array, but got ${typeof promptbook.parameters}
+            `),
+        );
+    }
+
+    // TODO: [🧠] Maybe do here some propper JSON-schema / ZOD checking
+    if (!Array.isArray(promptbook.promptTemplates)) {
+        // TODO: [🧠] what is the correct error tp throw - maybe PromptbookSchemaError
+        throw new PromptbookSyntaxError(
+            spaceTrim(`
+              Promptbook is valid JSON but with wrong structure
+
+              promptbook.promptTemplates expected to be an array, but got ${typeof promptbook.promptTemplates}
+          `),
+        );
     }
 
     // Note: Check each parameter individually
