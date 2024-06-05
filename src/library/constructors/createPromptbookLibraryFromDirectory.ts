@@ -1,9 +1,10 @@
 import type { readdir as readdirType, readFile as readFileType } from 'fs/promises';
 import { join } from 'path';
 import spaceTrim from 'spacetrim';
-import { PromptbookJson } from '../../_packages/types.index';
 import { promptbookStringToJson } from '../../conversion/promptbookStringToJson';
+import { validatePromptbookJson } from '../../conversion/validation/validatePromptbookJson';
 import { PromptbookLibraryError } from '../../errors/PromptbookLibraryError';
+import { PromptbookJson } from '../../types/PromptbookJson/PromptbookJson';
 import { PromptbookString } from '../../types/PromptbookString';
 import { string_file_path, string_folder_path } from '../../types/typeAliases';
 import { isRunningInNode } from '../../utils/isRunningInWhatever';
@@ -116,6 +117,13 @@ export async function createPromptbookLibraryFromDirectory(
                             console.info(`Loading ${fileName}`);
                         }
 
+                        if (!isCrashOnError) {
+                            // TODO: !!!! Is it working
+                            // Note: Validate promptbook to check if it is logically correct to not crash on invalid promptbooks
+                            //       But be handled in current try-catch block
+                            validatePromptbookJson(promptbook);
+                        }
+
                         // Note: [🦄] Promptbook with same url uniqueness will be checked automatically in SimplePromptbookLibrary
                         promptbooks.push(promptbook);
                     }
@@ -127,7 +135,7 @@ export async function createPromptbookLibraryFromDirectory(
 
                 const wrappedErrorMessage = spaceTrim(
                     (block) => `
-                        Error during loading promptbook from file ${fileName}:
+                        Error during loading promptbook from file ${fileName.split('\\').join('/')}:
 
                         ${block((error as Error).message)}
 
