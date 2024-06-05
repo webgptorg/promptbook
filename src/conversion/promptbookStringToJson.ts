@@ -317,6 +317,10 @@ export function promptbookStringToJson(promptbookString: PromptbookString): Prom
             }),
         );
 
+        if (templateModelRequirements.modelVariant === undefined) {
+            templateModelRequirements.modelVariant = 'CHAT';
+        }
+
         promptbookJson.promptTemplates.push({
             name: titleToName(section.title),
             title: section.title,

@@ -281,6 +281,7 @@ Add new OpenaAI models `gpt-4o` and `gpt-4o-2024-05-13`
 -   Export `extractParameters`, `extractVariables` and `extractParametersFromPromptTemplate` from `@promptbook/utils`
 -   Add and export set operations `difference`, `intersection` and `union` from `@promptbook/utils`
 -   Export `POSTPROCESSING_FUNCTIONS` from `@promptbook/execute-javascript`
+-   No need to specify MODEL VARIANT and MODEL NAME in .ptbk.md explicitly, CHAT VARIANT will be used as default
 
 ## In pre-release
 
