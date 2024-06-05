@@ -1,156 +1,52 @@
 {
-    "promptbookUrl": "https://promptbook.example.com/samples/language-capabilities.ptbk.md",
-    "title": "✨ Sample: Nesting",
-    "promptbookUsedVersion": "0.52.0-17",
+    "promptbookUrl": "https://promptbook.example.com/samples/simple.ptbk.md",
+    "title": "✨ Sample prompt with URL",
+    "promptbookUsedVersion": "0.52.0-29",
     "promptbookRequestedVersion": "1.0.0",
-    "description": "How block are nested in the promptbook",
+    "description": "Show how to use a simple prompt with no parameters.",
     "promptExecutions": [
         {
             "prompt": {
-                "title": "💬 Synonym",
-                "content": "Write synonym for \"cat\"",
+                "title": "💬 Prompt",
+                "content": "Hello",
                 "modelRequirements": {
-                    "modelVariant": "CHAT",
-                    "modelName": "gpt-3.5-turbo"
-                },
-                "expectations": {
-                    "words": {
-                        "min": 1,
-                        "max": 1
-                    }
+                    "modelVariant": "CHAT"
                 }
             },
             "result": {
-                "content": "feline",
-                "modelName": "gpt-3.5-turbo-0125",
+                "content": "Hi there! How can I assist you today?",
+                "modelName": "gpt-4o-2024-05-13",
                 "timing": {
-                    "start": "2024-05-29T18:23:09.609Z",
-                    "complete": "2024-05-29T18:23:10.468Z"
+                    "start": "2024-06-05T20:50:12.638Z",
+                    "complete": "2024-06-05T20:50:13.496Z"
                 },
                 "usage": {
-                    "price": 0.0000095,
-                    "inputTokens": 13,
-                    "outputTokens": 2
+                    "price": 0.00019,
+                    "inputTokens": 8,
+                    "outputTokens": 10
                 },
                 "rawResponse": {
-                    "id": "chatcmpl-9UIF2090DqKdxSB1d8vtgBevigIaM",
+                    "id": "chatcmpl-9WrsDd4rWDjH2bJgVhPE5Z0JbeG3a",
                     "object": "chat.completion",
-                    "created": 1717006988,
-                    "model": "gpt-3.5-turbo-0125",
+                    "created": 1717620613,
+                    "model": "gpt-4o-2024-05-13",
                     "choices": [
                         {
                             "index": 0,
                             "message": {
                                 "role": "assistant",
-                                "content": "feline"
+                                "content": "Hi there! How can I assist you today?"
                             },
                             "logprobs": null,
                             "finish_reason": "stop"
                         }
                     ],
                     "usage": {
-                        "prompt_tokens": 13,
-                        "completion_tokens": 2,
-                        "total_tokens": 15
+                        "prompt_tokens": 8,
+                        "completion_tokens": 10,
+                        "total_tokens": 18
                     },
-                    "system_fingerprint": null
-                }
-            }
-        },
-        {
-            "prompt": {
-                "title": "💬 Sentence",
-                "content": "Write sentence with \"cat\" and \"feline\"",
-                "modelRequirements": {
-                    "modelVariant": "CHAT",
-                    "modelName": "gpt-3.5-turbo"
-                },
-                "expectations": {
-                    "sentences": {
-                        "min": 1
-                    }
-                }
-            },
-            "result": {
-                "content": "The cat grooming itself on the windowsill was a perfect example of a graceful feline in action.",
-                "modelName": "gpt-3.5-turbo-0125",
-                "timing": {
-                    "start": "2024-05-29T18:23:10.479Z",
-                    "complete": "2024-05-29T18:23:11.402Z"
-                },
-                "usage": {
-                    "price": 0.000039,
-                    "inputTokens": 18,
-                    "outputTokens": 20
-                },
-                "rawResponse": {
-                    "id": "chatcmpl-9UIF3wzrDi4eVdtFKfOV27TByTCJX",
-                    "object": "chat.completion",
-                    "created": 1717006989,
-                    "model": "gpt-3.5-turbo-0125",
-                    "choices": [
-                        {
-                            "index": 0,
-                            "message": {
-                                "role": "assistant",
-                                "content": "The cat grooming itself on the windowsill was a perfect example of a graceful feline in action."
-                            },
-                            "logprobs": null,
-                            "finish_reason": "stop"
-                        }
-                    ],
-                    "usage": {
-                        "prompt_tokens": 18,
-                        "completion_tokens": 20,
-                        "total_tokens": 38
-                    },
-                    "system_fingerprint": null
-                }
-            }
-        },
-        {
-            "prompt": {
-                "title": "Make a document",
-                "content": "Write poem with starting sentence:\n\n```text\nThe cat grooming itself on the windowsill was a perfect example of a graceful feline in action.\n```",
-                "modelRequirements": {
-                    "modelVariant": "CHAT",
-                    "modelName": "gpt-3.5-turbo"
-                }
-            },
-            "result": {
-                "content": "The cat grooming itself on the windowsill\nWas a perfect example of a graceful feline in action,\nWith each delicate lick and preen,\nIt moved with effortless satisfaction.\n\nIts fur, a silky coat of midnight black,\nGlistened in the sunlight's gentle glow,\nEyes closed in peaceful contentment,\nA serene aura that seemed to flow.\n\nThe windowsill, a perch fit for a queen,\nAs the cat groomed with precision and poise,\nEvery movement a ballet of elegance,\nA sight that could never fail to rejoice.\n\nIn that moment, all worries disappeared,\nThere was only the cat and its serene grace,\nA reminder of the beauty of simple things,\nA lesson in living life at its own pace.",
-                "modelName": "gpt-3.5-turbo-0125",
-                "timing": {
-                    "start": "2024-05-29T18:23:11.409Z",
-                    "complete": "2024-05-29T18:23:14.432Z"
-                },
-                "usage": {
-                    "price": 0.0002375,
-                    "inputTokens": 37,
-                    "outputTokens": 146
-                },
-                "rawResponse": {
-                    "id": "chatcmpl-9UIF4SOBMyDC1T25oK7QShqncSM3m",
-                    "object": "chat.completion",
-                    "created": 1717006990,
-                    "model": "gpt-3.5-turbo-0125",
-                    "choices": [
-                        {
-                            "index": 0,
-                            "message": {
-                                "role": "assistant",
-                                "content": "The cat grooming itself on the windowsill\nWas a perfect example of a graceful feline in action,\nWith each delicate lick and preen,\nIt moved with effortless satisfaction.\n\nIts fur, a silky coat of midnight black,\nGlistened in the sunlight's gentle glow,\nEyes closed in peaceful contentment,\nA serene aura that seemed to flow.\n\nThe windowsill, a perch fit for a queen,\nAs the cat groomed with precision and poise,\nEvery movement a ballet of elegance,\nA sight that could never fail to rejoice.\n\nIn that moment, all worries disappeared,\nThere was only the cat and its serene grace,\nA reminder of the beauty of simple things,\nA lesson in living life at its own pace."
-                            },
-                            "logprobs": null,
-                            "finish_reason": "stop"
-                        }
-                    ],
-                    "usage": {
-                        "prompt_tokens": 37,
-                        "completion_tokens": 146,
-                        "total_tokens": 183
-                    },
-                    "system_fingerprint": null
+                    "system_fingerprint": "fp_aa87380ac5"
                 }
             }
         }

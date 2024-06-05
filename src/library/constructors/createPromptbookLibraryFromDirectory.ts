@@ -74,6 +74,7 @@ export async function createPromptbookLibraryFromDirectory(
         const promptbooks: Array<PromptbookJson> = [];
 
         for (const fileName of fileNames) {
+            // TODO: !!!!! Report file where the problem is
             let promptbook: PromptbookJson | null = null;
 
             if (fileName.endsWith('.ptbk.md')) {

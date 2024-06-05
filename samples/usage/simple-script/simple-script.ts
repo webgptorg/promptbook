@@ -24,9 +24,11 @@ main();
 async function main() {
     console.info(colors.bgWhite('⚪ Testing basic capabilities of Promptbook'));
 
-    const library = await createPromptbookLibraryFromDirectory('./samples/templates/');
+    // TODO: !!!!! Report file where the problem is - turn on recursive mode
+    const library = await createPromptbookLibraryFromDirectory('./samples/templates/', { isRecursive: false });
     const promptbook = await library.getPromptbookByUrl(
-        `https://promptbook.example.com/samples/language-capabilities.ptbk.md`,
+        `https://promptbook.example.com/samples/simple.ptbk.md`,
+        // `https://promptbook.example.com/samples/language-capabilities.ptbk.md`,
     );
 
     const tools = {
