@@ -11,7 +11,6 @@ Library to supercharge your use of large language models
 [![Issues](https://img.shields.io/github/issues/webgptorg/promptbook.svg?style=flat)](https://github.com/webgptorg/promptbook/issues)
 
 
-[![Socket Badge](https://socket.dev/api/badge/npm/package/@promptbook/mock)](https://socket.dev/npm/package/@promptbook/mock)
 
 
 
