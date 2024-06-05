@@ -2,6 +2,7 @@ import { describe, expect, it } from '@jest/globals';
 import spaceTrim from 'spacetrim';
 import { promptbookStringToJson } from '../../conversion/promptbookStringToJson';
 import type { PromptbookString } from '../../types/PromptbookString';
+import { just } from '../../utils/just';
 import { createPromptbookLibraryFromDirectory } from './createPromptbookLibraryFromDirectory';
 
 describe('createPromptbookLibraryFromDirectory', () => {
@@ -69,6 +70,30 @@ describe('createPromptbookLibraryFromDirectory', () => {
                 return promptbookFromLibrary.title;
             })(),
         ).resolves.toBe('✨ Sample: Jokers'));
+
+    it('should NOT crash when include error promptbooks but lazy-loaded', () =>
+        expect(
+            (async () => {
+                const library = await createPromptbookLibraryFromDirectory('./samples/templates', {
+                    isVerbose: true,
+                    isRecursive: true /* <- Note: Include Errors */,
+                    isLazyLoaded: true,
+                });
+                just(library);
+            })(),
+        ).resolves.not.toThrow());
+
+    it('should crash when include error promptbooks', () =>
+        expect(
+            (async () => {
+                const library = await createPromptbookLibraryFromDirectory('./samples/templates', {
+                    isVerbose: true,
+                    isRecursive: true /* <- Note: Include Errors */,
+                    isLazyLoaded: false,
+                });
+                just(library);
+            })(),
+        ).rejects.toThrowError(/Error during loading promptbook/i));
 
     /*
     TODO: Make separate folder for errors and enable this test

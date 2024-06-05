@@ -1,7 +1,9 @@
 import type { readdir as readdirType, readFile as readFileType } from 'fs/promises';
 import { join } from 'path';
+import spaceTrim from 'spacetrim';
 import { PromptbookJson } from '../../_packages/types.index';
 import { promptbookStringToJson } from '../../conversion/promptbookStringToJson';
+import { PromptbookLibraryError } from '../../errors/PromptbookLibraryError';
 import { PromptbookString } from '../../types/PromptbookString';
 import { string_file_path, string_folder_path } from '../../types/typeAliases';
 import { isRunningInNode } from '../../utils/isRunningInWhatever';
@@ -33,6 +35,14 @@ type CreatePromptbookLibraryFromDirectoryOptions = {
      * @default false
      */
     isLazyLoaded?: boolean;
+
+    /**
+     * If true, whole library creation crashes on error in any promptbook
+     * If true and isLazyLoaded is true, the error is thrown on first access to the promptbook
+     *
+     * @default true
+     */
+    isCrashOnError?: boolean;
 };
 
 /**
@@ -54,7 +64,7 @@ export async function createPromptbookLibraryFromDirectory(
         );
     }
 
-    const { isRecursive = true, isVerbose = false, isLazyLoaded = false } = options || {};
+    const { isRecursive = true, isVerbose = false, isLazyLoaded = false, isCrashOnError = true } = options || {};
 
     const library = createPromptbookLibraryFromPromise(async () => {
         if (isVerbose) {
@@ -74,40 +84,61 @@ export async function createPromptbookLibraryFromDirectory(
         const promptbooks: Array<PromptbookJson> = [];
 
         for (const fileName of fileNames) {
-            // TODO: !!!!! Report file where the problem is
-            let promptbook: PromptbookJson | null = null;
+            try {
+                // TODO: !!!!! Report file where the problem is
+                let promptbook: PromptbookJson | null = null;
 
-            if (fileName.endsWith('.ptbk.md')) {
-                const promptbookString = (await readFile(fileName, 'utf8')) as PromptbookString;
-                promptbook = promptbookStringToJson(promptbookString);
-            } else if (fileName.endsWith('.ptbk.json')) {
-                if (isVerbose) {
-                    console.info(`Loading ${fileName}`);
-                }
-
-                // TODO: Handle non-valid JSON files
-                promptbook = JSON.parse(await readFile(fileName, 'utf8')) as PromptbookJson;
-            } else {
-                if (isVerbose) {
-                    console.info(`Skipping file ${fileName}`);
-                }
-            }
-
-            // ---
-
-            if (promptbook !== null) {
-                if (!promptbook.promptbookUrl) {
-                    if (isVerbose) {
-                        console.info(`Not loading ${fileName} - missing URL`);
-                    }
-                } else {
+                if (fileName.endsWith('.ptbk.md')) {
+                    const promptbookString = (await readFile(fileName, 'utf8')) as PromptbookString;
+                    promptbook = promptbookStringToJson(promptbookString);
+                } else if (fileName.endsWith('.ptbk.json')) {
                     if (isVerbose) {
                         console.info(`Loading ${fileName}`);
                     }
 
-                    // Note: [🦄] Promptbook with same url uniqueness will be checked automatically in SimplePromptbookLibrary
-                    promptbooks.push(promptbook);
+                    // TODO: Handle non-valid JSON files
+                    promptbook = JSON.parse(await readFile(fileName, 'utf8')) as PromptbookJson;
+                } else {
+                    if (isVerbose) {
+                        console.info(`Skipping file ${fileName}`);
+                    }
                 }
+
+                // ---
+
+                if (promptbook !== null) {
+                    if (!promptbook.promptbookUrl) {
+                        if (isVerbose) {
+                            console.info(`Not loading ${fileName} - missing URL`);
+                        }
+                    } else {
+                        if (isVerbose) {
+                            console.info(`Loading ${fileName}`);
+                        }
+
+                        // Note: [🦄] Promptbook with same url uniqueness will be checked automatically in SimplePromptbookLibrary
+                        promptbooks.push(promptbook);
+                    }
+                }
+            } catch (error) {
+                if (!(error instanceof Error)) {
+                    throw error;
+                }
+
+                const wrappedErrorMessage = spaceTrim(
+                    (block) => `
+                        Error during loading promptbook from file ${fileName}:
+
+                        ${block((error as Error).message)}
+
+                    `,
+                );
+
+                if (isCrashOnError) {
+                    throw new PromptbookLibraryError(wrappedErrorMessage);
+                }
+
+                console.error(wrappedErrorMessage);
             }
         }
 

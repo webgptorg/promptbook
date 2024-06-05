@@ -4,6 +4,7 @@ import { ExpectError } from '../errors/ExpectError';
 import { NotFoundError } from '../errors/NotFoundError';
 import { PromptbookExecutionError } from '../errors/PromptbookExecutionError';
 import { PromptbookLogicError } from '../errors/PromptbookLogicError';
+import { PromptbookLibraryError } from '../errors/PromptbookLibraryError';
 import { PromptbookSyntaxError } from '../errors/PromptbookSyntaxError';
 */
 import type { CommonExecutionToolsOptions } from '../execution/CommonExecutionToolsOptions';
@@ -181,6 +182,7 @@ export {
     NotFoundError,
     PromptbookExecutionError,
     PromptbookLogicError,
+    PromptbookLibraryError,
     PromptbookSyntaxError,
     PromptbookReferenceError
     // <- TODO: [🆔] Export exactly same objects as thrown to be able to do: "Error instanceof NotFoundError"
