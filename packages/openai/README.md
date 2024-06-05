@@ -52,6 +52,7 @@ const promptbook = await library.getPromptbookByUrl(`https://promptbook.studio/m
 // ▶ Prepare tools
 const tools = {
     llm: new OpenAiExecutionTools({
+        isVerbose: true,
         apiKey: process.env.OPENAI_API_KEY,
     }),
     script: [new JavascriptExecutionTools()],
@@ -97,15 +98,12 @@ const promptbook = await library.getPromptbookByUrl(`https://promptbook.studio/m
 const tools = new MultipleLlmExecutionTools(
     // Note: You can use multiple LLM providers in one Promptbook execution. The best model will be chosen automatically according to the prompt and the model's capabilities.
     new OpenAiExecutionTools({
-        isVerbose: true,
         apiKey: process.env.OPENAI_API_KEY,
     }),
     new AnthropicClaudeExecutionTools({
-        isVerbose: true,
         apiKey: process.env.ANTHROPIC_CLAUDE_API_KEY,
     }),
     new AzureOpenAiExecutionTools({
-        isVerbose: true,
         resourceName: process.env.AZUREOPENAI_RESOURCE_NAME,
         deploymentName: process.env.AZUREOPENAI_DEPLOYMENT_NAME,
         apiKey: process.env.AZUREOPENAI_API_KEY,
@@ -116,7 +114,7 @@ const tools = new MultipleLlmExecutionTools(
 const promptbookExecutor = createPromptbookExecutor({ promptbook, tools });
 
 // ▶ Prepare input parameters
-const inputParameters = { word: 'cat' };
+const inputParameters = { word: 'dog' };
 
 // 🚀▶ Execute the Promptbook
 const result = await promptbookExecutor(inputParameters);

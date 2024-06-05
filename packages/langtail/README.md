@@ -40,7 +40,6 @@ This package is wrapper of [Langtail's OpenAI proxy](https://langtail.com/docs/p
 
 
 
-
 ## 💙 Integration with other models
 
 See the other models available in the Promptbook package:
