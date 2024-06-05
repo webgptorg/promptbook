@@ -40,7 +40,7 @@ https://oai.azure.com/portal/
 
 
 
-## Other models
+## 💙 Integration with other models
 
 See the other models available in the Promptbook package:
 
