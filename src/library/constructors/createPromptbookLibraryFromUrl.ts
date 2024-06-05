@@ -50,5 +50,6 @@ export async function createPromptbookLibraryFromUrl(
 }
 
 /***
+ * TODO: [⚖] Compatible with remote server
  * TODO: [🍓][🚯] !!! Add to README and samples + maybe make `@promptbook/library` package
  */

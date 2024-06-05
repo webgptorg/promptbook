@@ -1,11 +1,10 @@
 #!/usr/bin/env ts-node
 
-import { createPromptbookLibraryFromSources } from '@promptbook/core';
+import { createPromptbookLibraryFromDirectory } from '@promptbook/core';
 import { OpenAiExecutionTools } from '@promptbook/openai';
 import { startRemoteServer } from '@promptbook/remote-server';
 import colors from 'colors';
 import * as dotenv from 'dotenv';
-import { readFile } from 'fs/promises';
 
 if (process.cwd().split(/[\\/]/).pop() !== 'promptbook') {
     console.error(colors.red(`CWD must be root of the project`));
@@ -16,14 +15,14 @@ dotenv.config({ path: '.env' });
 
 main();
 
+// TODO: [🍓] This must work - BUT first do browser sample
+
 async function main() {
     console.info(colors.bgWhite('🔵 Testing remote server of PromptBook'));
 
-    const library = createPromptbookLibraryFromSources(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (await readFile('./samples/templates/50-advanced.ptbk.md', 'utf-8')) as any,
-    );
+    const library = await createPromptbookLibraryFromDirectory('./samples/templates/');
 
+    // [⚖]
     startRemoteServer({
         path: '/promptbook',
         port: 4460,
