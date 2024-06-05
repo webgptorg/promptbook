@@ -110,13 +110,12 @@ export function validatePromptbookJson(promptbook: PromptbookJson): PromptbookJs
 
         if (
             template.executionType === 'PROMPT_TEMPLATE' &&
-            (template.modelRequirements.modelVariant === undefined ||
-                template.modelRequirements.modelName === undefined)
+            (template.modelRequirements.modelVariant === undefined)
         ) {
             throw new PromptbookLogicError(
                 spaceTrim(`
 
-                  You must specify MODEL VARIANT and MODEL NAME in the prompt template "${template.title}"
+                  You must specify MODEL VARIANT in the prompt template "${template.title}"
 
                   For example:
                   - MODEL VARIANT Chat
