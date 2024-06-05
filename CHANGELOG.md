@@ -270,7 +270,7 @@ Add new OpenaAI models `gpt-4o` and `gpt-4o-2024-05-13`
 
 -   Add model `gpt-4o`
 -   Add model `gpt-4o-2024-05-13`
--   Classes that implements `LlmExecutionTools` must expose compatible models <!-- [♐] -->
+-   Classes that implements `LlmExecutionTools` must expose compatible models
 -   List OpenAI models dynamically
 -   All GPT models have pricing information
 -   Export `OPENAI_MODELS` from `@promptbook/openai`

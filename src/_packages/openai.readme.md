@@ -1,5 +1,9 @@
 Wrapper around [OpenAI's SDK](https://www.npmjs.com/package/openai) to make it easier to use inside Promptbooks.
 
+<!-- TODO: [🧠][🧙‍♂️] Maybe there can be some wizzard for thoose who want to use just OpenAI in simple CLI environment -->
+
+
+
 <!-- TODO: [🈷] !!!! Write more text about -->
 
 ## Usage

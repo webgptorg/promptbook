@@ -4,8 +4,6 @@ Show how to use a simple prompt with no parameters and comments that should be i
 
 -   PROMPTBOOK URL https://promptbook.example.com/samples/comment.ptbk.md
 -   PROMPTBOOK VERSION 1.0.0
--   MODEL VARIANT Chat
--   MODEL NAME `gpt-3.5-turbo` <!-- <- TODO: [♐] Pick just the best model of required variant-->
 -   OUTPUT PARAMETER `{greeting}`
 
 <!--Graph-->
