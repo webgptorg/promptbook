@@ -17,7 +17,7 @@ TODO: !!!
 TODO: !!!
 -->
 
-## Other models
+## 💙 Integration with other models
 
 See the other models available in the Promptbook package:
 
