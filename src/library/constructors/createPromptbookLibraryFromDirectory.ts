@@ -86,7 +86,6 @@ export async function createPromptbookLibraryFromDirectory(
 
         for (const fileName of fileNames) {
             try {
-                // TODO: !!!!! Report file where the problem is
                 let promptbook: PromptbookJson | null = null;
 
                 if (fileName.endsWith('.ptbk.md')) {
@@ -118,7 +117,6 @@ export async function createPromptbookLibraryFromDirectory(
                         }
 
                         if (!isCrashOnError) {
-                            // TODO: !!!! Is it working
                             // Note: Validate promptbook to check if it is logically correct to not crash on invalid promptbooks
                             //       But be handled in current try-catch block
                             validatePromptbookJson(promptbook);

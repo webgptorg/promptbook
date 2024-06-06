@@ -24,10 +24,9 @@ main();
 async function main() {
     console.info(colors.bgWhite('⚪ Testing basic capabilities of Promptbook'));
 
-    // TODO: !!!!! Report file where the problem is - turn on recursive mode
     const library = await createPromptbookLibraryFromDirectory('./samples/templates/', {
-        isRecursive: true,
-        isCrashOnError: false,
+        isRecursive: false,
+        isCrashOnError: true,
     });
     const promptbook = await library.getPromptbookByUrl(
         `https://promptbook.example.com/samples/simple.ptbk.md`,
