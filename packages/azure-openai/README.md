@@ -176,15 +176,6 @@ In any of these situations, but especially in (3), the Promptbook library can ma
 -   _(Not ready yet)_ Leverage the **streaming** to make super cool UI/UX.
 -   _(Not ready yet)_ **A/B testing** to determine which prompt works best for the job.
 
-![WebGPT](./other/screencasts/screencast-fiabciakcmgepblmdkmemdbbkilneeeh-2023.10.26-21_46_17.gif)
-
-## 🧔 Promptbook _(for prompt-engeneers)_
-
-**P**romp**t** **b**oo**k** markdown file (**PTBK** for short, or `.ptbk.md`) is document that describes a series of prompts that are chained together to form somewhat reciepe for transforming natural language input. Inside a PTBK you can use chat prompts, completion prompts, scripting or trigger interaction with user to ask for additional information.
-
--   Multiple promptbooks forms a library which will become a **part of your application codebase**.
--   Theese promptbooks are designed such as they **can be written by non-programmers**.
-
 
 
 ### Sample:
