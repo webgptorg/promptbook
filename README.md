@@ -53,7 +53,11 @@ In any of these situations, but especially in (3), the Promptbook library can ma
 -   _(Not ready yet)_ Leverage the **streaming** to make super cool UI/UX.
 -   _(Not ready yet)_ **A/B testing** to determine which prompt works best for the job.
 
+<!--
+TODO: !!! Should be this here
 ![WebGPT](./other/screencasts/screencast-fiabciakcmgepblmdkmemdbbkilneeeh-2023.10.26-21_46_17.gif)
+--
+
 
 ## 🧔 Promptbook _(for prompt-engeneers)_
 
