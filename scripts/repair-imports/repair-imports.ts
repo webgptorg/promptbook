@@ -121,6 +121,7 @@ async function repairImports({
         }
     }
 
+    // Note: [🤛] Organizing brakes multiline imports (or does sth. which brakes the code where shouldn’t be)
     await writeAllProjectFiles(files, isOrganized);
 
     /*
