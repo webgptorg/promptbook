@@ -2,6 +2,15 @@ import { prettifyPromptbookString } from '../conversion/prettify/prettifyPromptb
 import { promptbookJsonToString } from '../conversion/promptbookJsonToString';
 import { promptbookStringToJson } from '../conversion/promptbookStringToJson';
 import { validatePromptbookJson } from '../conversion/validation/validatePromptbookJson';
+import { ExpectError } from '../errors/_ExpectError';
+import { PromptbookExecutionError } from '../errors/PromptbookExecutionError';
+import { PromptbookLibraryError } from '../errors/PromptbookLibraryError';
+import { PromptbookLogicError } from '../errors/PromptbookLogicError';
+import { PromptbookNotFoundError } from '../errors/PromptbookNotFoundError';
+import { PromptbookReferenceError } from '../errors/PromptbookReferenceError';
+import { PromptbookSyntaxError } from '../errors/PromptbookSyntaxError';
+import { TemplateError } from '../errors/TemplateError';
+import { UnexpectedError } from '../errors/UnexpectedError';
 import { assertsExecutionSuccessful } from '../execution/assertsExecutionSuccessful';
 import { createPromptbookExecutor } from '../execution/createPromptbookExecutor';
 import { MultipleLlmExecutionTools } from '../execution/plugins/llm-execution-tools/multiple/MultipleLlmExecutionTools';
@@ -60,3 +69,16 @@ export { createPromptbookExecutor, MultipleLlmExecutionTools };
 
 // @promptbook/callback-prompt
 export { CallbackInterfaceTools, CallbackInterfaceToolsOptions };
+
+// Errors
+export {
+    ExpectError,
+    PromptbookExecutionError,
+    PromptbookLibraryError,
+    PromptbookLogicError,
+    PromptbookNotFoundError,
+    PromptbookReferenceError,
+    PromptbookSyntaxError,
+    TemplateError,
+    UnexpectedError,
+};

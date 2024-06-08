@@ -166,8 +166,6 @@ Working on **Promptbook Library**. Identify promptbooks by URL.
 
 Multiple factories for `PromptbookLibrary`, Custom errors, enhance templating
 
-<!--[🆔]-->
-
 -   Throwing `NotFoundError`
 -   Throwing `PromptbookSyntaxError`
 -   Throwing `PromptbookLogicError`
@@ -302,6 +300,10 @@ Add support for Claude \\ Anthropic models via package `@promptbook/anthropic-cl
 ### `0.53.0` _(2024-06-08)_
 
 Repair and organize imports
+
+### `0.54.0` _(2024-06-08)_
+
+-   Custom errors `ExpectError`,`NotFoundError`,`PromptbookExecutionError`,`PromptbookLogicError`,`PromptbookLibraryError`,`PromptbookSyntaxError` exported from `@promptbook/core`
 
 ## In pre-release
 
