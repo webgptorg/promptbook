@@ -33,7 +33,7 @@ const { organize: isOrganized, organizeAll: isOrganizedAll, commit: isCommited }
  */
 repairImports({ isOrganized, isOrganizedAll, isCommited })
     .catch((error: Error) => {
-        console.error(colors.bgRed(error.name) + '>');
+        console.error(colors.bgRed(error.name));
         console.error(error);
         process.exit(1);
     })
