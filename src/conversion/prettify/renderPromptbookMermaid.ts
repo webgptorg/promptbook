@@ -1,6 +1,7 @@
 import { spaceTrim } from 'spacetrim';
-import type { PromptbookJson, PromptTemplateJson } from '../../_packages/types.index';
-import { normalizeTo_camelCase } from '../../_packages/utils.index';
+import type { PromptbookJson } from './../../types/PromptbookJson/PromptbookJson';
+import type { PromptTemplateJson } from './../../types/PromptbookJson/PromptTemplateJson';
+import { normalizeTo_camelCase } from './../../utils/normalization/normalizeTo_camelCase';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { string_href, string_name } from '../../types/typeAliases';
 import { titleToName } from '../utils/titleToName';

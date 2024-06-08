@@ -1,6 +1,6 @@
 import { spaceTrim } from 'spacetrim';
 import type { Promisable } from 'type-fest';
-import { PromptbookJson } from '../_packages/types.index';
+import type { PromptbookJson } from './../types/PromptbookJson/PromptbookJson';
 import { LOOP_LIMIT } from '../config';
 import { validatePromptbookJson } from '../conversion/validation/validatePromptbookJson';
 import { PromptbookExecutionError } from '../errors/PromptbookExecutionError';

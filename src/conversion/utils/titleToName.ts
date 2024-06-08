@@ -1,4 +1,4 @@
-import { normalizeToKebabCase } from '../../_packages/utils.index';
+import { normalizeToKebabCase } from './../../utils/normalization/normalize-to-kebab-case';
 import { removeEmojis } from '../../utils/removeEmojis';
 
 /**

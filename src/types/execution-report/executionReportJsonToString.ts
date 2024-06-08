@@ -1,6 +1,6 @@
 import moment from 'moment';
 import { spaceTrim } from 'spacetrim';
-import { normalizeToKebabCase } from '../../_packages/utils.index';
+import { normalizeToKebabCase } from './../../utils/normalization/normalize-to-kebab-case';
 import { FromtoItems } from '../../utils/FromtoItems';
 import { formatNumber } from '../../utils/formatNumber';
 import { just } from '../../utils/just';

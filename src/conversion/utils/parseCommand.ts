@@ -1,5 +1,5 @@
 import { spaceTrim } from 'spacetrim';
-import { normalizeTo_SCREAMING_CASE } from '../../_packages/utils.index';
+import { normalizeTo_SCREAMING_CASE } from './../../utils/normalization/normalizeTo_SCREAMING_CASE';
 import { PromptbookSyntaxError } from '../../errors/PromptbookSyntaxError';
 import type {
     Command,

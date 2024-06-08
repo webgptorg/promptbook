@@ -1,5 +1,6 @@
 import { spaceTrim } from 'spacetrim';
-import { promptbookJsonToString, validatePromptbookJson } from '../_packages/core.index';
+import { promptbookJsonToString } from './../conversion/promptbookJsonToString';
+import { validatePromptbookJson } from './../conversion/validation/validatePromptbookJson';
 import { PromptbookNotFoundError } from '../errors/PromptbookNotFoundError';
 import { PromptbookReferenceError } from '../errors/PromptbookReferenceError';
 import type { Prompt } from '../types/Prompt';
