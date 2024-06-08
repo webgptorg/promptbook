@@ -5,12 +5,14 @@ import commander from 'commander';
 import { dirname, join, relative } from 'path';
 import spaceTrim from 'spacetrim';
 import { commit } from '../utils/autocommit/commit';
-import { execCommands } from '../utils/execCommand/execCommands';
 import { findAllProjectEntities } from '../utils/findAllProjectEntities';
-import { findAllProjectFiles } from '../utils/findAllProjectFiles';
 import { readAllProjectFiles } from '../utils/readAllProjectFiles';
 import { writeAllProjectFiles } from '../utils/writeAllProjectFiles';
+/*
+import { findAllProjectFiles } from '../utils/findAllProjectFiles';
+import { execCommands } from '../utils/execCommand/execCommands';
 import { splitArrayIntoChunks } from './utils/splitArrayIntoChunks';
+*/
 
 if (process.cwd() !== join(__dirname, '../..')) {
     console.error(colors.red(`CWD must be root of the project`));
@@ -43,7 +45,7 @@ repairImports({ isOrganized, isOrganizedAll, isCommited })
 
 async function repairImports({
     isOrganized,
-    isOrganizedAll,
+    // isOrganizedAll,
     isCommited,
 }: {
     isOrganized: boolean;
@@ -108,22 +110,38 @@ async function repairImports({
 
     await writeAllProjectFiles(files, isOrganized);
 
+    /*
+    TODO: Fix & implement
     if (isOrganizedAll) {
         console.info('Organizing all imports...');
-        const cwd = join(__dirname, '../../');
-        await execCommands({
-            cwd,
-            commands: splitArrayIntoChunks(
-                await findAllProjectFiles(),
-                100 /* <- Note: We are getting here "Error: spawn ENAMETOOLONG" so the command is splitted into multiple ones */,
-            ).map(
-                (paths) =>
-                    `npx organize-imports-cli ${paths
-                        .map((path) => relative(cwd, path).split('\\').join('/'))
-                        .join(' ')}`,
-            ),
-        });
+
+        try {
+            const cwd = join(__dirname, '../../');
+            await execCommands({
+                cwd,
+                commands: splitArrayIntoChunks(
+                    await findAllProjectFiles(),
+                    100 /* <- Note: We are getting here "Error: spawn ENAMETOOLONG" so the command is splitted into multiple ones * /,
+                ).map(
+                    (paths) =>
+                        `npx organize-imports-cli ${paths
+                            .map((path) => relative(cwd, path).split('\\').join('/'))
+                            .join(' ')}`,
+                ),
+            });
+        } catch (error) {
+            if (!(error instanceof Error)) {
+                throw error;
+            }
+
+            if (error.message.includes('No files specified')) {
+                console.info(colors.red(`No files to be organized`));
+            }
+
+            throw error;
+        }
     }
+    */
 
     if (isCommited) {
         await commit('.', `🧹 Organize imports`);
