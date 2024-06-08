@@ -1,5 +1,4 @@
-import type { string_promptbook_url } from '../typeAliases';
-import type { string_version } from '../typeAliases';
+import type { string_markdown_text, string_promptbook_url, string_version } from '../typeAliases';
 import type { PromptTemplateJson } from './PromptTemplateJson';
 import type { PromptTemplateParameterJson } from './PromptTemplateParameterJson';
 
@@ -25,7 +24,7 @@ export type PromptbookJson = {
      * Title of the promptbook
      * -It can use simple markdown formatting like **bold**, *italic*, [link](https://example.com), ... BUT not code blocks and structure
      */
-    readonly title: string;
+    readonly title: string_markdown_text;
 
     /**
      * Version of the .ptbk.json file
@@ -36,7 +35,7 @@ export type PromptbookJson = {
      * Description of the promptbook
      * It can use multiple paragraphs of simple markdown formatting like **bold**, *italic*, [link](https://example.com), ... BUT not code blocks and structure
      */
-    readonly description?: string;
+    readonly description?: string_markdown_text;
 
     /**
      * Set of variables that are used across the pipeline
