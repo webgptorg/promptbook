@@ -4,6 +4,7 @@ import colors from 'colors';
 import commander from 'commander';
 import { dirname, join, relative } from 'path';
 import spaceTrim from 'spacetrim';
+import { commit } from '../utils/autocommit/commit';
 import { execCommands } from '../utils/execCommand/execCommands';
 import { findAllProjectEntities } from '../utils/findAllProjectEntities';
 import { findAllProjectFiles } from '../utils/findAllProjectFiles';
@@ -124,15 +125,7 @@ async function repairImports({
     }
 
     if (isCommited) {
-        await execCommands({
-            cwd: join(__dirname, '../../'),
-            crashOnError: false /* <- Note: [1] */,
-            commands: [
-                `git add ./`,
-                // TODO: In execCommands do not include " in the commit message
-                `git commit --message "🧹 Organize imports"`,
-            ],
-        });
+        await commit('.', `🧹 Organize imports`);
     }
 }
 
