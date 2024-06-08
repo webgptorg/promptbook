@@ -72,6 +72,13 @@ async function repairImports({
             continue;
         }
 
+        /*/
+        // Note: Keep this for testing single file
+        if (!file.path.includes('promptbookStringToJson.ts')) {
+            continue;
+        }
+        /**/
+
         const matches = Array.from(
             file.content.matchAll(
                 /**/ /^import\s+(type\s+)?\{\s+(?<importedEntities>[^;]*?)\s+\}\s+from\s+'\..*?';$/gm,
@@ -105,16 +112,19 @@ async function repairImports({
                             );
                         }
 
-                        return `import ${!entity.isType ? `` : `type `}{ ${importedEntity} } from './${relative(
-                            dirname(file.path),
-                            entity.filePath,
-                        )
+                        let importFrom = relative(dirname(file.path), entity.filePath)
                             // Note: Changing Windows path to Unix path (\ to /)
                             .split('\\')
                             .join('/')
                             // Note: Removing extension
                             .split(/\.(?:tsx?|jsx?)$/)
-                            .join('')}'`;
+                            .join('');
+
+                        if (!importFrom.startsWith('.')) {
+                            importFrom = './' + importFrom;
+                        }
+
+                        return `import ${!entity.isType ? `` : `type `}{ ${importedEntity} } from '${importFrom}';`;
                     })
                     .join('\n'),
             );
@@ -161,8 +171,3 @@ async function repairImports({
         await commit('.', `🧹 Organize imports`);
     }
 }
-
-/**
- * TODO: Replace './../ with '../
- * TODO: Do also prettier with this command
- */
