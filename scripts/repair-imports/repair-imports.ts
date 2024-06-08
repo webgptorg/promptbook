@@ -33,7 +33,7 @@ const { organize: isOrganized, organizeAll: isOrganizedAll, commit: isCommited }
  */
 repairImports({ isOrganized, isOrganizedAll, isCommited })
     .catch((error: Error) => {
-        console.error(colors.bgRed(error.name));
+        console.error(colors.bgRed(error.name) + '>');
         console.error(error);
         process.exit(1);
     })
@@ -109,6 +109,7 @@ async function repairImports({
     await writeAllProjectFiles(files, isOrganized);
 
     if (isOrganizedAll) {
+        console.info('Organizing all imports...');
         const cwd = join(__dirname, '../../');
         await execCommands({
             cwd,
