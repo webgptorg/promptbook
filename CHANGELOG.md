@@ -283,9 +283,7 @@ Add new OpenaAI models `gpt-4o` and `gpt-4o-2024-05-13`
 -   Export `POSTPROCESSING_FUNCTIONS` from `@promptbook/execute-javascript`
 -   No need to specify MODEL VARIANT and MODEL NAME in .ptbk.md explicitly, CHAT VARIANT will be used as default
 
-## In pre-release
-
-### `0.52.0` _(2024-05-24)_
+### `0.52.0` _(2024-06-06)_
 
 Add support for Claude \\ Anthropic models via package `@promptbook/anthropic-claude` and add Azure OpenAI models via package `@promptbook/azure-openai`
 
@@ -300,6 +298,12 @@ Add support for Claude \\ Anthropic models via package `@promptbook/anthropic-cl
 -   Check Promptbook URL uniqueness in `SimplePromptbookLibrary` _(see [🦄])_
 -   Util `createPromptbookLibraryFromPromise` is not public anymore
 -   Util `forEachAsync` export from `@promptbook/utils`
+
+### `0.53.0` _(2024-06-08)_
+
+Repair and organize imports
+
+## In pre-release
 
 ## In prepare
 
