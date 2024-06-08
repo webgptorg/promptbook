@@ -1,5 +1,5 @@
-import { string_url } from '../../types/typeAliases';
-import { PromptbookLibrary } from '../PromptbookLibrary';
+import type { string_url } from '../../types/typeAliases';
+import type { PromptbookLibrary } from '../PromptbookLibrary';
 import { createPromptbookLibraryFromPromise } from './createPromptbookLibraryFromPromise';
 
 /**

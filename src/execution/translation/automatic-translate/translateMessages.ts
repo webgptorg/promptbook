@@ -6,8 +6,8 @@ import { spaceTrim } from 'spacetrim';
 import { promisify } from 'util';
 import colors from 'colors';
 import { PromptbookExecutionError } from '../../../errors/PromptbookExecutionError';
-import { AutomaticTranslator } from './automatic-translators/AutomaticTranslator';
-import { TranslatorOptions } from './automatic-translators/TranslatorOptions';
+import type { AutomaticTranslator } from './automatic-translators/AutomaticTranslator';
+import type { TranslatorOptions } from './automatic-translators/TranslatorOptions';
 
 export async function translateMessages({
     automaticTranslator,

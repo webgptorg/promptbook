@@ -4,12 +4,13 @@ import spaceTrim from 'spacetrim';
 import { promptbookStringToJson } from '../../conversion/promptbookStringToJson';
 import { validatePromptbookJson } from '../../conversion/validation/validatePromptbookJson';
 import { PromptbookLibraryError } from '../../errors/PromptbookLibraryError';
-import { PromptbookJson } from '../../types/PromptbookJson/PromptbookJson';
-import { PromptbookString } from '../../types/PromptbookString';
-import { string_file_path, string_folder_path } from '../../types/typeAliases';
+import type { PromptbookJson } from '../../types/PromptbookJson/PromptbookJson';
+import type { PromptbookString } from '../../types/PromptbookString';
+import type { string_file_path } from '../../types/typeAliases';
+import type { string_folder_path } from '../../types/typeAliases';
 import { isRunningInNode } from '../../utils/isRunningInWhatever';
 import { just } from '../../utils/just';
-import { PromptbookLibrary } from '../PromptbookLibrary';
+import type { PromptbookLibrary } from '../PromptbookLibrary';
 import { createPromptbookLibraryFromPromise } from './createPromptbookLibraryFromPromise';
 
 /**

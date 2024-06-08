@@ -1,4 +1,5 @@
-import type { ExpectationAmount, ExpectationUnit } from '../../types/PromptbookJson/PromptTemplateJson';
+import type { ExpectationAmount } from '../../types/PromptbookJson/PromptTemplateJson';
+import type { ExpectationUnit } from '../../types/PromptbookJson/PromptTemplateJson';
 import { countCharacters } from './countCharacters';
 import { countLines } from './countLines';
 import { countPages } from './countPages';

@@ -1,5 +1,5 @@
 import type { ClientOptions } from 'openai';
-import type { string_token } from '../../../.././types/typeAliases';
+import type { string_token } from '../../../../types/typeAliases';
 import type { CommonExecutionToolsOptions } from '../../../CommonExecutionToolsOptions';
 
 /**

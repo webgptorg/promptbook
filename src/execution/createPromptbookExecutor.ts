@@ -1,6 +1,6 @@
 import { spaceTrim } from 'spacetrim';
 import type { Promisable } from 'type-fest';
-import type { PromptbookJson } from './../types/PromptbookJson/PromptbookJson';
+import type { PromptbookJson } from '../types/PromptbookJson/PromptbookJson';
 import { LOOP_LIMIT } from '../config';
 import { validatePromptbookJson } from '../conversion/validation/validatePromptbookJson';
 import { PromptbookExecutionError } from '../errors/PromptbookExecutionError';
@@ -13,9 +13,11 @@ import type { ExecutionReportJson } from '../types/execution-report/ExecutionRep
 import type { string_name } from '../types/typeAliases';
 import { isValidJsonString } from '../utils/isValidJsonString';
 import { PROMPTBOOK_VERSION } from '../version';
-import { ExecutionTools } from './ExecutionTools';
-import type { PromptChatResult, PromptCompletionResult, PromptResult } from './PromptResult';
-import { PromptbookExecutor } from './PromptbookExecutor';
+import type { ExecutionTools } from './ExecutionTools';
+import type { PromptChatResult } from './PromptResult';
+import type { PromptCompletionResult } from './PromptResult';
+import type { PromptResult } from './PromptResult';
+import type { PromptbookExecutor } from './PromptbookExecutor';
 import { checkExpectations } from './utils/checkExpectations';
 import { replaceParameters } from './utils/replaceParameters';
 

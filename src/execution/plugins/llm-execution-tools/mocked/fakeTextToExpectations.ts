@@ -3,7 +3,7 @@ import { spaceTrim } from 'spacetrim';
 import { CHARACTER_LOOP_LIMIT } from '../../../../config';
 import type { Expectations } from '../../../../types/PromptbookJson/PromptTemplateJson';
 import { isPassingExpectations } from '../../../utils/checkExpectations';
-import { PostprocessingFunction } from '../../script-execution-tools/javascript/JavascriptExecutionToolsOptions';
+import type { PostprocessingFunction } from '../../script-execution-tools/javascript/JavascriptExecutionToolsOptions';
 
 /**
  * Gets the expectations and creates a fake text that meets the expectations

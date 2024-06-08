@@ -2,8 +2,8 @@ import FormData from 'form-data';
 import fetch from 'node-fetch'; /* <- TODO: [🌿] Use the Node native fetch */
 import { spaceTrim } from 'spacetrim';
 import { PromptbookExecutionError } from '../../../../errors/PromptbookExecutionError';
-import { AutomaticTranslator } from './AutomaticTranslator';
-import { TranslatorOptions } from './TranslatorOptions';
+import type { AutomaticTranslator } from './AutomaticTranslator';
+import type { TranslatorOptions } from './TranslatorOptions';
 
 interface LindatAutomaticTranslatorOptions extends TranslatorOptions {
     apiUrl: URL;

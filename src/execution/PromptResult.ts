@@ -1,10 +1,8 @@
-import type {
-  number_positive_or_zero,
-  number_tokens,
-  number_usd,
-  string_date_iso8601,
-  string_model_name,
-} from '.././types/typeAliases';
+import type { number_positive_or_zero } from '../types/typeAliases';
+import type { number_tokens } from '../types/typeAliases';
+import type { number_usd } from '../types/typeAliases';
+import type { string_date_iso8601 } from '../types/typeAliases';
+import type { string_model_name } from '../types/typeAliases';
 
 /**
  * Prompt result is the simplest concept of execution.

@@ -1,4 +1,4 @@
-import { number_usd } from '../../../../types/typeAliases';
+import type { number_usd } from '../../../../types/typeAliases';
 import type { AvailableModel } from '../../../LlmExecutionTools';
 import { computeUsage } from '../openai/computeUsage';
 

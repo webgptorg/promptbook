@@ -1,5 +1,5 @@
-import type { PromptbookJson } from './../../types/PromptbookJson/PromptbookJson';
-import type { PromptbookString } from './../../types/PromptbookString';
+import type { PromptbookJson } from '../../types/PromptbookJson/PromptbookJson';
+import type { PromptbookString } from '../../types/PromptbookString';
 import { promptbookStringToJson } from '../../conversion/promptbookStringToJson';
 import { SimplePromptbookLibrary } from '../SimplePromptbookLibrary';
 

@@ -4,7 +4,7 @@ import { readFile, writeFile } from 'fs/promises';
 import glob from 'glob-promise';
 import { spaceTrim } from 'spacetrim';
 import { forTime } from 'waitasecond';
-import { PromptbookString } from '../../types/PromptbookString';
+import type { PromptbookString } from '../../types/PromptbookString';
 import { isRunningInNode } from '../../utils/isRunningInWhatever';
 import { PROMPTBOOK_VERSION } from '../../version';
 import { prettifyPromptbookString } from './prettifyPromptbookString';

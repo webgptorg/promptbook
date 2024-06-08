@@ -1,4 +1,5 @@
-import { string_name, string_template } from '../types/typeAliases';
+import type { string_name } from '../types/typeAliases';
+import type { string_template } from '../types/typeAliases';
 
 /**
  * Parses the template and returns the list of all parameter names

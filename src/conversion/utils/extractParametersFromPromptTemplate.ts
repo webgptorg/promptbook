@@ -1,5 +1,5 @@
-import { PromptTemplateJson } from '../../types/PromptbookJson/PromptTemplateJson';
-import { string_name } from '../../types/typeAliases';
+import type { PromptTemplateJson } from '../../types/PromptbookJson/PromptTemplateJson';
+import type { string_name } from '../../types/typeAliases';
 import { extractParameters } from '../../utils/extractParameters';
 import { extractVariables } from './extractVariables';
 
@@ -31,7 +31,6 @@ export function extractParametersFromPromptTemplate(
 
     return parameterNames;
 }
-
 
 /**
  * TODO: [🔣] If script require contentLanguage

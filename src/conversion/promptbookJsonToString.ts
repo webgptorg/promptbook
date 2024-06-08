@@ -1,5 +1,5 @@
 import spaceTrim from 'spacetrim';
-import { PromptTemplateParameterJson } from '../types/PromptbookJson/PromptTemplateParameterJson';
+import type { PromptTemplateParameterJson } from '../types/PromptbookJson/PromptTemplateParameterJson';
 import type { PromptbookJson } from '../types/PromptbookJson/PromptbookJson';
 import type { PromptbookString } from '../types/PromptbookString';
 import type { string_markdown } from '../types/typeAliases';

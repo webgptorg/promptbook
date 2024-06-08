@@ -1,7 +1,8 @@
 import { spaceTrim } from 'spacetrim';
 import { PromptbookExecutionError } from '../../../../errors/PromptbookExecutionError';
-import { CommonExecutionToolsOptions } from '../../../CommonExecutionToolsOptions';
-import { UserInterfaceTools, UserInterfaceToolsPromptDialogOptions } from '../../../UserInterfaceTools';
+import type { CommonExecutionToolsOptions } from '../../../CommonExecutionToolsOptions';
+import type { UserInterfaceTools } from '../../../UserInterfaceTools';
+import type { UserInterfaceToolsPromptDialogOptions } from '../../../UserInterfaceTools';
 
 /**
  * Wrapper around `window.prompt` synchronous function that interacts with the user via browser prompt

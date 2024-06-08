@@ -1,5 +1,5 @@
 import { describe, expect, it } from '@jest/globals';
-import { validatePromptbookJson } from './../validation/validatePromptbookJson';
+import { validatePromptbookJson } from '../validation/validatePromptbookJson';
 import { renameParameter } from './renameParameter';
 
 describe('how renameParameter works', () => {
