@@ -62,9 +62,20 @@ async function repairImports({
             continue;
         }
 
+        if (file.path.includes('_packages')) {
+            // Note: Do not repair imports in files which defines expoeted packages
+            continue;
+        }
+
+        if (file.path.includes('JavascriptEvalExecutionTools.ts')) {
+            // Note: Do not repair imports in file where we need a bit special treatment of imports because of the `eval`
+            continue;
+        }
+
         const matches = Array.from(
             file.content.matchAll(
-                /^import\s+(type\s+)?\{\s+(?<importedEntities>[^;]*?)\s+\}\s+from\s+'((.*?\.index))';$/gm,
+                /**/ /^import\s+(type\s+)?\{\s+(?<importedEntities>[^;]*?)\s+\}\s+from\s+'\..*?';$/gm,
+                //   /^import\s+(type\s+)?\{\s+(?<importedEntities>[^;]*?)\s+\}\s+from\s+'((.*?\.index))';$/gm,
             ),
         );
 
@@ -87,6 +98,8 @@ async function repairImports({
                         const entity = entities.find(({ name }) => name === importedEntity);
 
                         if (!entity) {
+                            console.info(colors.blue(entities.map(({ type, name }) => `- ${type} ${name}`).join('\n')));
+
                             throw new Error(
                                 `Can not find in which file is entity "${importedEntity}" imported by file "${file.path}".`,
                             );

@@ -2,6 +2,7 @@ import colors from 'colors';
 import { readFile, writeFile } from 'fs';
 import { join } from 'path';
 import { promisify } from 'util';
+import { splitArrayIntoChunks } from '../repair-imports/utils/splitArrayIntoChunks';
 import { execCommand } from './execCommand/execCommand';
 import { prettify } from './prettify';
 
@@ -23,11 +24,14 @@ export async function writeAllProjectFiles(
     }
 
     if (isOrganized && files.length > 0) {
-        await execCommand({
-            cwd: join(__dirname, '../../'),
-            command: `npx organize-imports-cli ${changedFilesPaths
-                .map((path) => path.split('\\').join('/'))
-                .join(' ')}`,
-        });
+        const changedFilesPathsChunks = splitArrayIntoChunks(changedFilesPaths, 30);
+        for (const pachangedFilesPathsChunk of changedFilesPathsChunks) {
+            await execCommand({
+                cwd: join(__dirname, '../../'),
+                command: `npx organize-imports-cli ${pachangedFilesPathsChunk
+                    .map((path) => path.split('\\').join('/'))
+                    .join(' ')}`,
+            });
+        }
     }
 }

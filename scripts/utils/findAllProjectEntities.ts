@@ -47,7 +47,7 @@ export async function findAllProjectEntities(): Promise<IEntity[]> {
     const entitities: IEntity[] = [];
     for (const file of files) {
         for (const match of file.content.matchAll(
-            /(?<anotation>\/\*\*((?!\/\*\*).)*?\*\/\s*)?export(?:\s+declare)?(?:\s+abstract)?(?:\s+async)?(?:\s+(?<type>[a-z]+))(?:\s+(?<name>[a-zA-Z0-9_]+))/gs,
+            /(?<anotation>\/\*\*((?!\/\*\*).)*?\*\/\s*)?export(?:\s+declare)?(?:\s+abstract)?(?:\s+async)?(?:\s+(?<type>[a-z]+))(?:\s+(?<name>[a-zA-Z0-9_$]+))/gs,
         )) {
             const { type, name, anotation } = match.groups!;
 
