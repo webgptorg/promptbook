@@ -1,4 +1,4 @@
-import type { OpenAiExecutionToolsOptions } from '../openai/OpenAiExecutionToolsOptions';
+import type { OpenAiExecutionToolsOptions } from './../openai/OpenAiExecutionToolsOptions';
 
 /**
  * Options for LangtailExecutionTools

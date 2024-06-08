@@ -1,6 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
 import { spaceTrim } from 'spacetrim';
-import { just } from '../just';
+import { just } from './../just';
 import { prettifyMarkdown } from './prettifyMarkdown';
 
 describe(`prettifyMarkdown`, () => {

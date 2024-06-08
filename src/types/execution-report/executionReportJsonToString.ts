@@ -1,19 +1,19 @@
 import moment from 'moment';
 import { spaceTrim } from 'spacetrim';
+import { formatNumber } from './../../utils/formatNumber';
+import type { FromtoItems } from './../../utils/FromtoItems';
+import { just } from './../../utils/just';
+import { createMarkdownChart } from './../../utils/markdown/createMarkdownChart';
+import { escapeMarkdownBlock } from './../../utils/markdown/escapeMarkdownBlock';
+import { prettifyMarkdown } from './../../utils/markdown/prettifyMarkdown';
 import { normalizeToKebabCase } from './../../utils/normalization/normalize-to-kebab-case';
-import { FromtoItems } from '../../utils/FromtoItems';
-import { formatNumber } from '../../utils/formatNumber';
-import { just } from '../../utils/just';
-import { createMarkdownChart } from '../../utils/markdown/createMarkdownChart';
-import { escapeMarkdownBlock } from '../../utils/markdown/escapeMarkdownBlock';
-import { prettifyMarkdown } from '../../utils/markdown/prettifyMarkdown';
-import { number_usd } from '../typeAliases';
+import type { number_usd } from './../typeAliases';
+import { MOMENT_ARG_THRESHOLDS } from './config';
+import { countWorkingDuration } from './countWorkingDuration';
 import type { ExecutionReportJson } from './ExecutionReportJson';
 import type { ExecutionReportString } from './ExecutionReportString';
 import type { ExecutionReportStringOptions } from './ExecutionReportStringOptions';
 import { ExecutionReportStringOptionsDefaults } from './ExecutionReportStringOptions';
-import { MOMENT_ARG_THRESHOLDS } from './config';
-import { countWorkingDuration } from './countWorkingDuration';
 
 /**
  * Converts execution report from JSON to string format

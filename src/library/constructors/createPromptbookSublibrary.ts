@@ -1,9 +1,9 @@
 import { spaceTrim } from 'spacetrim';
-import { PromptbookNotFoundError } from '../../errors/PromptbookNotFoundError';
-import type { Prompt } from '../../types/Prompt';
-import type { PromptbookJson } from '../../types/PromptbookJson/PromptbookJson';
-import type { string_promptbook_url } from '../../types/typeAliases';
-import { PromptbookLibrary } from '../PromptbookLibrary';
+import { PromptbookNotFoundError } from './../../errors/PromptbookNotFoundError';
+import type { Prompt } from './../../types/Prompt';
+import type { PromptbookJson } from './../../types/PromptbookJson/PromptbookJson';
+import type { string_promptbook_url } from './../../types/typeAliases';
+import type { PromptbookLibrary } from './../PromptbookLibrary';
 
 /**
  * Creates PromptbookLibrary as a subset of another PromptbookLibrary

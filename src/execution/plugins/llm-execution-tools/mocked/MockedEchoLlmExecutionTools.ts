@@ -1,9 +1,9 @@
 import { spaceTrim } from 'spacetrim';
-import type { Prompt } from '../../../../types/Prompt';
-import { getCurrentIsoDate } from '../../../../utils/getCurrentIsoDate';
-import type { CommonExecutionToolsOptions } from '../../../CommonExecutionToolsOptions';
-import type { AvailableModel, LlmExecutionTools } from '../../../LlmExecutionTools';
-import type { PromptChatResult, PromptCompletionResult } from '../../../PromptResult';
+import type { Prompt } from './../../../../types/Prompt';
+import { getCurrentIsoDate } from './../../../../utils/getCurrentIsoDate';
+import type { CommonExecutionToolsOptions } from './../../../CommonExecutionToolsOptions';
+import type { AvailableModel, LlmExecutionTools } from './../../../LlmExecutionTools';
+import type { PromptChatResult, PromptCompletionResult } from './../../../PromptResult';
 
 /**
  * Mocked execution Tools for just echoing the requests for testing purposes.

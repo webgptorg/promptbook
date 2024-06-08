@@ -1,4 +1,4 @@
-import { string_char_emoji } from '../types/typeAliasEmoji';
+import type { string_char_emoji } from './../types/typeAliasEmoji';
 
 /**
  * All possible emoji chars like "🍆", "🍡", "🍤"...

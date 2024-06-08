@@ -2,9 +2,9 @@ import { describe, expect, it } from '@jest/globals';
 import { readdirSync } from 'fs';
 import { join } from 'path';
 import { spaceTrim } from 'spacetrim';
-import { promptbookStringToJson } from '../promptbookStringToJson';
-import { importPromptbook } from './_importPromptbook';
+import { promptbookStringToJson } from './../promptbookStringToJson';
 import { validatePromptbookJson } from './validatePromptbookJson';
+import { importPromptbook } from './_importPromptbook';
 
 describe('validatePromptbookJson', () => {
     const samplesDir = '../../../samples/templates';
@@ -19,7 +19,7 @@ describe('validatePromptbookJson', () => {
         it(`should validate ${name} logic`, () => {
             expect(() => {
                 try {
-                    const promptbookString = importPromptbook(( name) as `${string}.ptbk.md`);
+                    const promptbookString = importPromptbook(name as `${string}.ptbk.md`);
                     const promptbookJson = promptbookStringToJson(promptbookString);
                     validatePromptbookJson(promptbookJson);
                 } catch (error) {

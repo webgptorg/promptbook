@@ -1,4 +1,4 @@
-import type { ExpectationAmount } from '../../types/PromptbookJson/PromptTemplateJson';
+import type { ExpectationAmount } from './../../types/PromptbookJson/PromptTemplateJson';
 
 /**
  * Split text into sentences

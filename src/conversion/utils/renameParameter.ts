@@ -1,7 +1,7 @@
 import type { WritableDeep } from 'type-fest';
-import { PromptbookLogicError } from '../../errors/PromptbookLogicError';
-import type { PromptbookJson } from '../../types/PromptbookJson/PromptbookJson';
-import type { string_name } from '../../types/typeAliases';
+import { PromptbookLogicError } from './../../errors/PromptbookLogicError';
+import type { PromptbookJson } from './../../types/PromptbookJson/PromptbookJson';
+import type { string_name } from './../../types/typeAliases';
 
 type RenameParameterOptions = {
     /**

@@ -1,4 +1,4 @@
-import type { number_integer, number_positive } from '../types/typeAliases';
+import type { number_integer, number_positive } from './../types/typeAliases';
 
 /**
  * Represents all the tools needed to interact with the user.

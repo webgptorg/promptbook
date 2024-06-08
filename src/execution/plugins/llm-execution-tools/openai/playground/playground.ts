@@ -5,7 +5,7 @@ import * as dotenv from 'dotenv';
 dotenv.config({ path: '.env' });
 
 import chalk from 'colors';
-import { OpenAiExecutionTools } from '../OpenAiExecutionTools';
+import { OpenAiExecutionTools } from './../OpenAiExecutionTools';
 
 playground()
     .catch((error) => {

@@ -1,12 +1,12 @@
 import { spaceTrim } from 'spacetrim';
 import { promptbookJsonToString } from './../conversion/promptbookJsonToString';
 import { validatePromptbookJson } from './../conversion/validation/validatePromptbookJson';
-import { PromptbookNotFoundError } from '../errors/PromptbookNotFoundError';
-import { PromptbookReferenceError } from '../errors/PromptbookReferenceError';
-import type { Prompt } from '../types/Prompt';
-import type { PromptbookJson } from '../types/PromptbookJson/PromptbookJson';
-import type { string_promptbook_url } from '../types/typeAliases';
-import { PromptbookLibrary } from './PromptbookLibrary';
+import { PromptbookNotFoundError } from './../errors/PromptbookNotFoundError';
+import { PromptbookReferenceError } from './../errors/PromptbookReferenceError';
+import type { Prompt } from './../types/Prompt';
+import type { PromptbookJson } from './../types/PromptbookJson/PromptbookJson';
+import type { string_promptbook_url } from './../types/typeAliases';
+import type { PromptbookLibrary } from './PromptbookLibrary';
 
 /**
  * Library of promptbooks that groups together promptbooks for an application.

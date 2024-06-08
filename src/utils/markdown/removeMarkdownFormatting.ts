@@ -1,4 +1,4 @@
-import { string_markdown_text } from '../../types/typeAliases';
+import type { string_markdown_text } from './../../types/typeAliases';
 
 /**
  * Removes Markdown formatting tags from a string.

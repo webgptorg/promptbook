@@ -1,7 +1,7 @@
-import type { string_markdown_text, string_name, string_version } from '.././types/typeAliases';
 import type { ExecutionType } from './ExecutionTypes';
 import type { ModelRequirements } from './ModelRequirements';
 import type { ExpectationAmount, ExpectationUnit } from './PromptbookJson/PromptTemplateJson';
+import type { string_markdown_text, string_name, string_version } from './typeAliases';
 
 /**
  * Command is one piece of the prompt template which adds some logic to the prompt template or the whole pipeline.

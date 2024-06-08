@@ -1,12 +1,11 @@
 import type { Socket } from 'socket.io-client';
 import { io } from 'socket.io-client';
-import type { Prompt } from '../../../../types/Prompt';
-import type { AvailableModel, LlmExecutionTools } from '../../../LlmExecutionTools';
-import type { PromptChatResult, PromptCompletionResult, PromptResult } from '../../../PromptResult';
-import type { RemoteLlmExecutionToolsOptions } from './RemoteLlmExecutionToolsOptions';
+import type { Prompt } from './../../../../types/Prompt';
+import type { AvailableModel, LlmExecutionTools } from './../../../LlmExecutionTools';
+import type { PromptChatResult, PromptCompletionResult, PromptResult } from './../../../PromptResult';
 import type { Promptbook_Server_Error } from './interfaces/Promptbook_Server_Error';
-import type { Promptbook_Server_Request } from './interfaces/Promptbook_Server_Request';
 import type { Promptbook_Server_Response } from './interfaces/Promptbook_Server_Response';
+import type { RemoteLlmExecutionToolsOptions } from './RemoteLlmExecutionToolsOptions';
 
 /**
  * Remote server is a proxy server that uses its execution tools internally and exposes the executor interface externally.

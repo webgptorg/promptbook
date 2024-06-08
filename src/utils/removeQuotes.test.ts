@@ -7,7 +7,7 @@ describe('removeQuotes', () => {
     });
 
     it('should remove single quotes', () => {
-        expect(removeQuotes('\'Hello\'')).toBe('Hello');
+        expect(removeQuotes("'Hello'")).toBe('Hello');
     });
 
     it('should remove double quotes', () => {
@@ -15,17 +15,17 @@ describe('removeQuotes', () => {
     });
 
     it('should NOT remove single quote from the beginning', () => {
-        expect(removeQuotes('\'Hello')).toBe('\'Hello');
+        expect(removeQuotes("'Hello")).toBe("'Hello");
         expect(removeQuotes('"Hello')).toBe('"Hello');
     });
 
     it('should NOT remove single quote from the end', () => {
-        expect(removeQuotes('Hello\'')).toBe('Hello\'');
+        expect(removeQuotes("Hello'")).toBe("Hello'");
         expect(removeQuotes('Hello"')).toBe('Hello"');
     });
 
     it('should NOT remove quote from the middle', () => {
-        expect(removeQuotes('Hel\'lo')).toBe('Hel\'lo');
+        expect(removeQuotes("Hel'lo")).toBe("Hel'lo");
         expect(removeQuotes('Hel"lo')).toBe('Hel"lo');
     });
 });

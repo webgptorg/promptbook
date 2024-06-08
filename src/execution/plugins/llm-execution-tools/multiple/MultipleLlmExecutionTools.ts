@@ -1,7 +1,7 @@
 import spaceTrim from 'spacetrim';
-import type { Prompt } from '../../../../types/Prompt';
-import type { AvailableModel, LlmExecutionTools } from '../../../LlmExecutionTools';
-import type { PromptChatResult, PromptCompletionResult, PromptResult } from '../../../PromptResult';
+import type { Prompt } from './../../../../types/Prompt';
+import type { AvailableModel, LlmExecutionTools } from './../../../LlmExecutionTools';
+import type { PromptChatResult, PromptCompletionResult, PromptResult } from './../../../PromptResult';
 
 /**
  * Multiple LLM Execution Tools is a proxy server that uses multiple execution tools internally and exposes the executor interface externally.

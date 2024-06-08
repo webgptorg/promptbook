@@ -1,7 +1,7 @@
+import { promptbookStringToJson } from './../../conversion/promptbookStringToJson';
 import type { PromptbookJson } from './../../types/PromptbookJson/PromptbookJson';
 import type { PromptbookString } from './../../types/PromptbookString';
-import { promptbookStringToJson } from '../../conversion/promptbookStringToJson';
-import { SimplePromptbookLibrary } from '../SimplePromptbookLibrary';
+import { SimplePromptbookLibrary } from './../SimplePromptbookLibrary';
 
 /**
  * Creates PromptbookLibrary from array of PromptbookJson or PromptbookString

@@ -1,4 +1,4 @@
-import type { ExpectationAmount } from '../../types/PromptbookJson/PromptTemplateJson';
+import type { ExpectationAmount } from './../../types/PromptbookJson/PromptTemplateJson';
 
 /**
  * Counts number of pages in the text

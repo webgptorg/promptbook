@@ -1,8 +1,8 @@
 import { describe, expect, it } from '@jest/globals';
 import spaceTrim from 'spacetrim';
 import { forTime } from 'waitasecond';
-import { promptbookStringToJson } from '../../conversion/promptbookStringToJson';
-import type { PromptbookString } from '../../types/PromptbookString';
+import { promptbookStringToJson } from './../../conversion/promptbookStringToJson';
+import type { PromptbookString } from './../../types/PromptbookString';
 import { createPromptbookLibraryFromPromise } from './createPromptbookLibraryFromPromise';
 
 describe('createPromptbookLibraryFromPromise', () => {

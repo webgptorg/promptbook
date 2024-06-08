@@ -1,7 +1,7 @@
 import { describe, expect, it } from '@jest/globals';
-import { promptbookStringToJson } from '../promptbookStringToJson';
-import { importPromptbook } from './_importPromptbook';
+import { promptbookStringToJson } from './../promptbookStringToJson';
 import { validatePromptbookJson } from './validatePromptbookJson';
+import { importPromptbook } from './_importPromptbook';
 
 describe('validatePromptbookJson', () => {
     it('should fail on using parameter that is not defined', () => {

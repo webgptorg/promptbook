@@ -1,8 +1,8 @@
-import { LOOP_LIMIT } from '../../config';
-import { TemplateError } from '../../errors/TemplateError';
-import { UnexpectedError } from '../../errors/UnexpectedError';
-import { Parameters } from '../../types/Parameters';
-import { string_template } from '../../types/typeAliases';
+import { LOOP_LIMIT } from './../../config';
+import { TemplateError } from './../../errors/TemplateError';
+import { UnexpectedError } from './../../errors/UnexpectedError';
+import type { Parameters } from './../../types/Parameters';
+import type { string_template } from './../../types/typeAliases';
 
 /**
  * Replaces parameters in template with values from parameters object

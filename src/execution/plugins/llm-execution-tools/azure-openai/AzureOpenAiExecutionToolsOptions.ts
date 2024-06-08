@@ -1,9 +1,9 @@
-import { string_name, string_token } from '../../../../types/typeAliases';
-import type { CommonExecutionToolsOptions } from '../../../CommonExecutionToolsOptions';
+import type { string_name, string_token } from './../../../../types/typeAliases';
+import type { CommonExecutionToolsOptions } from './../../../CommonExecutionToolsOptions';
 
 /**
  * Options for AzureOpenAiExecutionTools
- * 
+ *
  * @see https://oai.azure.com/portal/
  */
 export type AzureOpenAiExecutionToolsOptions = CommonExecutionToolsOptions & {

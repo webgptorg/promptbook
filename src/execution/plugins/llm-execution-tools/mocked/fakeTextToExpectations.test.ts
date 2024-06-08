@@ -1,6 +1,5 @@
 import { describe, expect, it } from '@jest/globals';
-import type { Expectations } from '../../../../types/PromptbookJson/PromptTemplateJson';
-import { checkExpectations } from '../../../utils/checkExpectations';
+import { checkExpectations } from './../../../utils/checkExpectations';
 import { $fakeTextToExpectations } from './fakeTextToExpectations';
 
 describe('how $fakeTextToExpectations works', () => {

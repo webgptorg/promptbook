@@ -1,12 +1,7 @@
-import type {
-    string_name,
-    string_prompt,
-    string_promptbook_url_with_hashtemplate,
-    string_title,
-} from '.././types/typeAliases';
-import type { PostprocessingFunction } from '../execution/plugins/script-execution-tools/javascript/JavascriptExecutionToolsOptions';
+import type { PostprocessingFunction } from './../execution/plugins/script-execution-tools/javascript/JavascriptExecutionToolsOptions';
 import type { ModelRequirements } from './ModelRequirements';
 import type { Expectations } from './PromptbookJson/PromptTemplateJson';
+import type { string_name, string_prompt, string_promptbook_url_with_hashtemplate, string_title } from './typeAliases';
 
 /**
  * Prompt in a text along with model requirements, but without any execution or templating logic.

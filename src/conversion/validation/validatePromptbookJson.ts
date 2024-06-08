@@ -1,12 +1,12 @@
 import { spaceTrim } from 'spacetrim';
-import { LOOP_LIMIT } from '../../config';
-import { PromptbookLogicError } from '../../errors/PromptbookLogicError';
-import { PromptbookSyntaxError } from '../../errors/PromptbookSyntaxError';
-import { UnexpectedError } from '../../errors/UnexpectedError';
-import type { PromptTemplateJson } from '../../types/PromptbookJson/PromptTemplateJson';
-import type { PromptbookJson } from '../../types/PromptbookJson/PromptbookJson';
-import type { string_name } from '../../types/typeAliases';
-import { isValidUrl } from '../../utils/validators/url/isValidUrl';
+import { LOOP_LIMIT } from './../../config';
+import { PromptbookLogicError } from './../../errors/PromptbookLogicError';
+import { PromptbookSyntaxError } from './../../errors/PromptbookSyntaxError';
+import { UnexpectedError } from './../../errors/UnexpectedError';
+import type { PromptbookJson } from './../../types/PromptbookJson/PromptbookJson';
+import type { PromptTemplateJson } from './../../types/PromptbookJson/PromptTemplateJson';
+import type { string_name } from './../../types/typeAliases';
+import { isValidUrl } from './../../utils/validators/url/isValidUrl';
 
 /**
  * Validates PromptbookJson if it is logically valid
@@ -108,10 +108,7 @@ export function validatePromptbookJson(promptbook: PromptbookJson): PromptbookJs
 
         definedParameters.add(template.resultingParameterName);
 
-        if (
-            template.executionType === 'PROMPT_TEMPLATE' &&
-            (template.modelRequirements.modelVariant === undefined)
-        ) {
+        if (template.executionType === 'PROMPT_TEMPLATE' && template.modelRequirements.modelVariant === undefined) {
             throw new PromptbookLogicError(
                 spaceTrim(`
 

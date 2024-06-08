@@ -1,4 +1,4 @@
-import { string_markdown_text } from '../../types/typeAliases';
+import type { string_markdown_text } from './../../types/typeAliases';
 
 /**
  * Function escapeMarkdownBlock will escape markdown block if needed

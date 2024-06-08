@@ -1,7 +1,7 @@
 import type { Promisable } from 'type-fest';
-import type { ModelVariant } from '../types/ModelRequirements';
-import type { Prompt } from '../types/Prompt';
-import type { string_model_name, string_title } from '../types/typeAliases';
+import type { ModelVariant } from './../types/ModelRequirements';
+import type { Prompt } from './../types/Prompt';
+import type { string_model_name, string_title } from './../types/typeAliases';
 import type { PromptChatResult, PromptCompletionResult } from './PromptResult';
 
 /**

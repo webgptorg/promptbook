@@ -1,7 +1,7 @@
 import { describe, expect, it } from '@jest/globals';
 import spaceTrim from 'spacetrim';
-import { promptbookStringToJson } from '../../conversion/promptbookStringToJson';
-import type { PromptbookString } from '../../types/PromptbookString';
+import { promptbookStringToJson } from './../../conversion/promptbookStringToJson';
+import type { PromptbookString } from './../../types/PromptbookString';
 import { createPromptbookLibraryFromSources } from './createPromptbookLibraryFromSources';
 
 describe('createPromptbookLibraryFromSources', () => {

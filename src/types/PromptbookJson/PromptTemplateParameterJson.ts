@@ -1,4 +1,4 @@
-import type { string_name } from '../typeAliases';
+import type { string_name } from './../typeAliases';
 
 /**
  * Describes one parameter of the promptbook

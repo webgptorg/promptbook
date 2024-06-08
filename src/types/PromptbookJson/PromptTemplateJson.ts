@@ -1,17 +1,8 @@
-import type { ExpectFormatCommand } from '../Command';
-import type { ExecutionType } from '../ExecutionTypes';
-import type { ModelRequirements } from '../ModelRequirements';
-import type { ScriptLanguage } from '../ScriptLanguage';
-import type {
-    number_integer,
-    number_positive_or_zero,
-    string_javascript,
-    string_javascript_name,
-    string_markdown,
-    string_name,
-    string_prompt,
-    string_template,
-} from '../typeAliases';
+import type { ExpectFormatCommand } from './../Command';
+import type { ExecutionType } from './../ExecutionTypes';
+import type { ModelRequirements } from './../ModelRequirements';
+import type { ScriptLanguage } from './../ScriptLanguage';
+import type { number_integer, number_positive_or_zero, string_javascript, string_javascript_name, string_markdown, string_name, string_prompt, string_template } from './../typeAliases';
 
 /**
  * Describes one prompt template in the promptbook

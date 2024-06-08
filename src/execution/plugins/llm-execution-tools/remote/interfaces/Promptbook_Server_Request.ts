@@ -1,5 +1,5 @@
-import type { client_id } from '../../../../../types/typeAliases';
-import type { Prompt } from '../../../../../types/Prompt';
+import type { Prompt } from './../../../../../types/Prompt';
+import type { client_id } from './../../../../../types/typeAliases';
 
 /**
  * Socket.io progress for remote text generation

@@ -1,10 +1,10 @@
 import { spaceTrim } from 'spacetrim';
+import { UnexpectedError } from './../../errors/UnexpectedError';
 import type { PromptbookJson } from './../../types/PromptbookJson/PromptbookJson';
 import type { PromptTemplateJson } from './../../types/PromptbookJson/PromptTemplateJson';
+import type { string_href, string_name } from './../../types/typeAliases';
 import { normalizeTo_camelCase } from './../../utils/normalization/normalizeTo_camelCase';
-import { UnexpectedError } from '../../errors/UnexpectedError';
-import type { string_href, string_name } from '../../types/typeAliases';
-import { titleToName } from '../utils/titleToName';
+import { titleToName } from './../utils/titleToName';
 
 /**
  * Addtional options for rendering Mermaid graph

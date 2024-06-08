@@ -1,6 +1,6 @@
 import { spaceTrim } from 'spacetrim';
-import { UserInterfaceTools, UserInterfaceToolsPromptDialogOptions } from '../../../UserInterfaceTools';
-import { CallbackInterfaceToolsOptions } from './CallbackInterfaceToolsOptions';
+import type { UserInterfaceTools, UserInterfaceToolsPromptDialogOptions } from './../../../UserInterfaceTools';
+import type { CallbackInterfaceToolsOptions } from './CallbackInterfaceToolsOptions';
 
 /**
  * Delagates the user interaction to a async callback function
