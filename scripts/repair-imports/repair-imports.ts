@@ -1,0 +1,142 @@
+#!/usr/bin/env ts-node
+
+import colors from 'colors';
+import commander from 'commander';
+import { dirname, join, relative } from 'path';
+import spaceTrim from 'spacetrim';
+import { execCommands } from '../utils/execCommand/execCommands';
+import { findAllProjectEntities } from '../utils/findAllProjectEntities';
+import { findAllProjectFiles } from '../utils/findAllProjectFiles';
+import { readAllProjectFiles } from '../utils/readAllProjectFiles';
+import { writeAllProjectFiles } from '../utils/writeAllProjectFiles';
+import { splitArrayIntoChunks } from './utils/splitArrayIntoChunks';
+
+if (process.cwd() !== join(__dirname, '../..')) {
+    console.error(colors.red(`CWD must be root of the project`));
+    process.exit(1);
+}
+
+const program = new commander.Command();
+program.option('--organize', `Organize imports`, false);
+program.option('--organize-all', `Organize all imports`, false);
+program.option('--commit', `Auto commit`, false);
+program.parse(process.argv);
+
+const { organize: isOrganized, organizeAll: isOrganizedAll, commit: isCommited } = program.opts();
+
+/**
+ * VSCode sometimes offers auto-import which is malformed, for example:
+ * > import type { PromptbookJson, PromptTemplateJson } from '../../_packages/types.index';
+ *
+ * This script fixes that
+ */
+repairImports({ isOrganized, isOrganizedAll, isCommited })
+    .catch((error: Error) => {
+        console.error(colors.bgRed(error.name));
+        console.error(error);
+        process.exit(1);
+    })
+    .then(() => {
+        process.exit(0);
+    });
+
+async function repairImports({
+    isOrganized,
+    isOrganizedAll,
+    isCommited,
+}: {
+    isOrganized: boolean;
+    isOrganizedAll: boolean;
+    isCommited: boolean;
+}) {
+    console.info(`🏭🩹 Repair imports`);
+
+    const entities = await findAllProjectEntities();
+    const files = await readAllProjectFiles();
+
+    for (const file of files) {
+        if (file.path === join(__dirname, '../../src/index.tsx').split('\\').join('/')) {
+            continue;
+        }
+
+        const matches = Array.from(
+            file.content.matchAll(
+                /^import\s+(type\s+)?\{\s+(?<importedEntities>[^;]*?)\s+\}\s+from\s+'((.*?\.index))';$/gm,
+            ),
+        );
+
+        if (matches.length !== 0) {
+            console.info(
+                colors.green('/' + relative(process.cwd(), file.path).split('\\').join('/') + ` (${matches.length}x)`),
+            );
+        }
+
+        for (const match of matches) {
+            const importedEntities = match
+                .groups!.importedEntities.split(',')
+                .map((importedEntity) => spaceTrim(importedEntity))
+                .filter((entity) => entity !== '');
+
+            file.content = file.content.replace(
+                match[0]!,
+                importedEntities
+                    .map((importedEntity: string) => {
+                        const entity = entities.find(({ name }) => name === importedEntity);
+
+                        if (!entity) {
+                            throw new Error(
+                                `Can not find in which file is entity "${importedEntity}" imported by file "${file.path}".`,
+                            );
+                        }
+
+                        return `import ${!entity.isType ? `` : `type `}{ ${importedEntity} } from './${relative(
+                            dirname(file.path),
+                            entity.filePath,
+                        )
+                            // Note: Changing Windows path to Unix path (\ to /)
+                            .split('\\')
+                            .join('/')
+                            // Note: Removing extension
+                            .split(/\.(?:tsx?|jsx?)$/)
+                            .join('')}'`;
+                    })
+                    .join('\n'),
+            );
+        }
+    }
+
+    await writeAllProjectFiles(files, isOrganized);
+
+    if (isOrganizedAll) {
+        const cwd = join(__dirname, '../../');
+        await execCommands({
+            cwd,
+            commands: splitArrayIntoChunks(
+                await findAllProjectFiles(),
+                100 /* <- Note: We are getting here "Error: spawn ENAMETOOLONG" so the command is splitted into multiple ones */,
+            ).map(
+                (paths) =>
+                    `npx organize-imports-cli ${paths
+                        .map((path) => relative(cwd, path).split('\\').join('/'))
+                        .join(' ')}`,
+            ),
+        });
+    }
+
+    if (isCommited) {
+        await execCommands({
+            cwd: join(__dirname, '../../'),
+            crashOnError: false /* <- Note: [1] */,
+            commands: [
+                `git add ./`,
+                // TODO: In execCommands do not include " in the commit message
+                `git commit --message "🧹 Organize imports"`,
+            ],
+        });
+    }
+}
+
+/**
+ * TODO: Replace './../ with '../
+ * TODO: Do also prettier with this command
+ */

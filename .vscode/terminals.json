@@ -97,9 +97,16 @@
         {
             "name": "🏭📖 Generate reports .report.json -> .report.md",
             "commands": ["ts-node ./scripts/generate-sample-reports/generate-sample-reports.ts"],
-            "execute": false,
+            "execute": true,
             "onlySingle": true,
-            "focus": false
+            "focus": true
+        },
+        {
+            "name": "🏭🩹 Repair imports",
+            "commands": ["ts-node ./scripts/repair-imports/repair-imports.ts --organize --organize-all"],
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
         },
         {
             "name": "🧸 Playground",
