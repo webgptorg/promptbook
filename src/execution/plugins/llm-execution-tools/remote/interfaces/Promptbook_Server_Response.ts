@@ -1,4 +1,4 @@
-import type { PromptResult } from './../../../../PromptResult';
+import { PromptResult } from '../../../../PromptResult';
 
 /**
  * Socket.io error for remote text generation

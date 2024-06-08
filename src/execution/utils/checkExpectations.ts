@@ -1,6 +1,6 @@
-import { ExpectError } from './../../errors/_ExpectError';
-import type { Expectations, ExpectationUnit } from './../../types/PromptbookJson/PromptTemplateJson';
-import { CountUtils } from './../../utils/expectation-counters/index';
+import { ExpectError } from '../../errors/_ExpectError';
+import type { Expectations, ExpectationUnit } from '../../types/PromptbookJson/PromptTemplateJson';
+import { CountUtils } from '../../utils/expectation-counters';
 
 /**
  * Function checkExpectations will check if the expectations on given value are met

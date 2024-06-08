@@ -1,12 +1,12 @@
 import { describe, expect, it } from '@jest/globals';
 import { spaceTrim } from 'spacetrim';
-import { promptbookStringToJson } from './../../../conversion/promptbookStringToJson';
-import type { PromptbookString } from './../../../types/PromptbookString';
 import { countCharacters } from './../../../utils/expectation-counters/countCharacters';
 import { countWords } from './../../../utils/expectation-counters/countWords';
-import { createPromptbookExecutor } from './../../createPromptbookExecutor';
-import { MockedEchoLlmExecutionTools } from './../llm-execution-tools/mocked/MockedEchoLlmExecutionTools';
-import { CallbackInterfaceTools } from './../user-interface-execution-tools/callback/CallbackInterfaceTools';
+import { promptbookStringToJson } from '../../../conversion/promptbookStringToJson';
+import { PromptbookString } from '../../../types/PromptbookString';
+import { createPromptbookExecutor } from '../../createPromptbookExecutor';
+import { MockedEchoLlmExecutionTools } from '../llm-execution-tools/mocked/MockedEchoLlmExecutionTools';
+import { CallbackInterfaceTools } from '../user-interface-execution-tools/callback/CallbackInterfaceTools';
 import { JavascriptExecutionTools } from './javascript/JavascriptExecutionTools';
 
 describe('createPromptbookExecutor + custom function with dependencies', () => {

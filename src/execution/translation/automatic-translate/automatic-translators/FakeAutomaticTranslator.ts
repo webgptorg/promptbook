@@ -1,4 +1,4 @@
-import type { AutomaticTranslator } from './AutomaticTranslator';
+import { AutomaticTranslator } from './AutomaticTranslator';
 
 export class FakeAutomaticTranslator implements AutomaticTranslator {
     public constructor() {}

@@ -1,4 +1,4 @@
-import type { string_date_iso8601 } from './../types/typeAliases';
+import type { string_date_iso8601 } from '../types/typeAliases';
 
 /**
  * Get current date in ISO 8601 format

@@ -1,7 +1,7 @@
 import type { Promisable } from 'type-fest';
-import type { Prompt } from './../types/Prompt';
-import type { PromptbookJson } from './../types/PromptbookJson/PromptbookJson';
-import type { string_promptbook_url } from './../types/typeAliases';
+import type { Prompt } from '../types/Prompt';
+import type { PromptbookJson } from '../types/PromptbookJson/PromptbookJson';
+import type { string_promptbook_url } from '../types/typeAliases';
 
 /**
  * Library of promptbooks that groups together promptbooks for an application.

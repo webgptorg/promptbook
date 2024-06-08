@@ -1,11 +1,23 @@
 import { spaceTrim } from 'spacetrim';
-import { PromptbookSyntaxError } from './../../errors/PromptbookSyntaxError';
-import type { Command, ExpectAmountCommand } from './../../types/Command';
-import { ExecutionTypes } from './../../types/ExecutionTypes';
-import { EXPECTATION_UNITS } from './../../types/PromptbookJson/PromptTemplateJson';
-import type { string_markdown_text } from './../../types/typeAliases';
-import { removeMarkdownFormatting } from './../../utils/markdown/removeMarkdownFormatting';
 import { normalizeTo_SCREAMING_CASE } from './../../utils/normalization/normalizeTo_SCREAMING_CASE';
+import { PromptbookSyntaxError } from '../../errors/PromptbookSyntaxError';
+import type {
+    Command,
+    ExecuteCommand,
+    ExpectAmountCommand,
+    ExpectCommand,
+    ExpectFormatCommand,
+    JokerCommand,
+    ModelCommand,
+    ParameterCommand,
+    PostprocessCommand,
+    PromptbookUrlCommand,
+    PromptbookVersionCommand,
+} from '../../types/Command';
+import { ExecutionTypes } from '../../types/ExecutionTypes';
+import { EXPECTATION_UNITS } from '../../types/PromptbookJson/PromptTemplateJson';
+import type { string_markdown_text } from '../../types/typeAliases';
+import { removeMarkdownFormatting } from '../../utils/markdown/removeMarkdownFormatting';
 import { parseNumber } from './parseNumber';
 
 /**

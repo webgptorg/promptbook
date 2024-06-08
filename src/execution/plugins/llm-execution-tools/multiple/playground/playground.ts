@@ -5,10 +5,10 @@ import * as dotenv from 'dotenv';
 dotenv.config({ path: '.env' });
 
 import chalk from 'colors';
-import { AnthropicClaudeExecutionTools } from './../../anthropic-claude/AnthropicClaudeExecutionTools';
-import { AzureOpenAiExecutionTools } from './../../azure-openai/AzureOpenAiExecutionTools';
-import { OpenAiExecutionTools } from './../../openai/OpenAiExecutionTools';
-import { MultipleLlmExecutionTools } from './../MultipleLlmExecutionTools';
+import { AnthropicClaudeExecutionTools } from '../../anthropic-claude/AnthropicClaudeExecutionTools';
+import { AzureOpenAiExecutionTools } from '../../azure-openai/AzureOpenAiExecutionTools';
+import { OpenAiExecutionTools } from '../../openai/OpenAiExecutionTools';
+import { MultipleLlmExecutionTools } from '../MultipleLlmExecutionTools';
 
 playground()
     .catch((error) => {

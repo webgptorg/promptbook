@@ -1,5 +1,5 @@
 import { spaceTrim } from 'spacetrim';
-import type { string_markdown, string_name } from './../../types/typeAliases';
+import type { string_markdown, string_name } from '../../types/typeAliases';
 import { removeContentComments } from './removeContentComments';
 
 /**

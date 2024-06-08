@@ -1,6 +1,6 @@
 import { format } from 'prettier';
 import parserHtml from 'prettier/parser-html';
-import type { string_html } from './../../types/typeAliases';
+import type { string_html } from '../../types/typeAliases';
 
 /**
  * Prettify the html code

@@ -1,4 +1,4 @@
-import type { TaskProgress } from './../../../../../types/TaskProgress';
+import { TaskProgress } from '../../../../../types/TaskProgress';
 
 /**
  * Socket.io progress for remote text generation

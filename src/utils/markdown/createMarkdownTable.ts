@@ -1,4 +1,4 @@
-import type { string_markdown, string_markdown_text } from './../../types/typeAliases';
+import { string_markdown, string_markdown_text } from '../../types/typeAliases';
 
 /**
  * Create a markdown table from a 2D array of strings

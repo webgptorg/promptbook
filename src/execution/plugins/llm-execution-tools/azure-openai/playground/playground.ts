@@ -5,7 +5,7 @@ import * as dotenv from 'dotenv';
 dotenv.config({ path: '.env' });
 
 import chalk from 'colors';
-import { AzureOpenAiExecutionTools } from './../AzureOpenAiExecutionTools';
+import { AzureOpenAiExecutionTools } from '../AzureOpenAiExecutionTools';
 
 playground()
     .catch((error) => {

@@ -1,5 +1,5 @@
-import type { LlmExecutionTools } from './../../../LlmExecutionTools';
-import { OpenAiExecutionTools } from './../openai/OpenAiExecutionTools';
+import type { LlmExecutionTools } from '../../../LlmExecutionTools';
+import { OpenAiExecutionTools } from '../openai/OpenAiExecutionTools';
 
 /**
  * Execution Tools for calling OpenAI API.

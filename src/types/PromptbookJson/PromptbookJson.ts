@@ -1,4 +1,4 @@
-import type { string_promptbook_url, string_version } from './../typeAliases';
+import type { string_promptbook_url, string_version } from '../typeAliases';
 import type { PromptTemplateJson } from './PromptTemplateJson';
 import type { PromptTemplateParameterJson } from './PromptTemplateParameterJson';
 

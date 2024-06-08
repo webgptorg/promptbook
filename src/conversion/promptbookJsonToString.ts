@@ -1,10 +1,10 @@
 import spaceTrim from 'spacetrim';
-import type { PromptbookJson } from './../types/PromptbookJson/PromptbookJson';
-import type { PromptTemplateParameterJson } from './../types/PromptbookJson/PromptTemplateParameterJson';
-import type { PromptbookString } from './../types/PromptbookString';
-import type { string_markdown } from './../types/typeAliases';
-import { prettifyMarkdown } from './../utils/markdown/prettifyMarkdown';
-import { capitalize } from './../utils/normalization/capitalize';
+import { PromptTemplateParameterJson } from '../types/PromptbookJson/PromptTemplateParameterJson';
+import type { PromptbookJson } from '../types/PromptbookJson/PromptbookJson';
+import type { PromptbookString } from '../types/PromptbookString';
+import type { string_markdown } from '../types/typeAliases';
+import { prettifyMarkdown } from '../utils/markdown/prettifyMarkdown';
+import { capitalize } from '../utils/normalization/capitalize';
 
 /**
  * Converts promptbook in JSON format to string format

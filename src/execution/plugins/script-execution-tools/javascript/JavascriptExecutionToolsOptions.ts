@@ -1,6 +1,6 @@
 import type { Promisable } from 'type-fest';
-import type { string_javascript_name } from './../../../../types/typeAliases';
-import type { CommonExecutionToolsOptions } from './../../../CommonExecutionToolsOptions';
+import type { string_javascript_name } from '../../../../types/typeAliases';
+import type { CommonExecutionToolsOptions } from '../../../CommonExecutionToolsOptions';
 
 /**
  * Options for javascript execution

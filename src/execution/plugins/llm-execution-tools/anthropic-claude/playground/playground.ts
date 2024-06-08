@@ -5,7 +5,7 @@ import * as dotenv from 'dotenv';
 dotenv.config({ path: '.env' });
 
 import chalk from 'colors';
-import { AnthropicClaudeExecutionTools } from './../AnthropicClaudeExecutionTools';
+import { AnthropicClaudeExecutionTools } from '../AnthropicClaudeExecutionTools';
 
 playground()
     .catch((error) => {

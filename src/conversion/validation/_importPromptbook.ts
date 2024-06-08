@@ -1,8 +1,8 @@
 import { readFileSync } from 'fs';
 import { join } from 'path';
-import type { PromptbookJson } from './../../types/PromptbookJson/PromptbookJson';
-import type { PromptbookString } from './../../types/PromptbookString';
-import type { string_file_path } from './../../types/typeAliases';
+import { PromptbookJson } from '../../types/PromptbookJson/PromptbookJson';
+import { PromptbookString } from '../../types/PromptbookString';
+import { string_file_path } from '../../types/typeAliases';
 
 /**
  * Import the text file

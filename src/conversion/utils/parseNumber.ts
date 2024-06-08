@@ -1,4 +1,4 @@
-import { PromptbookSyntaxError } from './../../errors/PromptbookSyntaxError';
+import { PromptbookSyntaxError } from '../../errors/PromptbookSyntaxError';
 
 /**
  * Function parseNumber will parse number from string

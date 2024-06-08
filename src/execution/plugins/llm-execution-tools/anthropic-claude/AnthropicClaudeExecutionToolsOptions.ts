@@ -1,5 +1,5 @@
 import type { ClientOptions } from '@anthropic-ai/sdk';
-import type { CommonExecutionToolsOptions } from './../../../CommonExecutionToolsOptions';
+import type { CommonExecutionToolsOptions } from '../../../CommonExecutionToolsOptions';
 
 /**
  * Options for AnthropicClaudeExecutionTools

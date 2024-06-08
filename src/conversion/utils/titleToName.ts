@@ -1,5 +1,5 @@
 import { normalizeToKebabCase } from './../../utils/normalization/normalize-to-kebab-case';
-import { removeEmojis } from './../../utils/removeEmojis';
+import { removeEmojis } from '../../utils/removeEmojis';
 
 /**
  * Function normalizes title to name which can be used as identifier

@@ -1,5 +1,5 @@
 import colors from 'colors';
-import type { AutomaticTranslator } from './AutomaticTranslator';
+import { AutomaticTranslator } from './AutomaticTranslator';
 
 /**
  * This will wrap an automatic translator and log each translation into the console

@@ -1,4 +1,4 @@
-import type { IKeywords } from './IKeywords';
+import { IKeywords } from './IKeywords';
 import { normalizeTo_SCREAMING_CASE } from './normalizeTo_SCREAMING_CASE';
 import { removeDiacritics } from './removeDiacritics';
 

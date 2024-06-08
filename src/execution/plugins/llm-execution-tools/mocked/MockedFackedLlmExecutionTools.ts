@@ -1,8 +1,8 @@
-import type { Prompt } from './../../../../types/Prompt';
-import { getCurrentIsoDate } from './../../../../utils/getCurrentIsoDate';
-import type { CommonExecutionToolsOptions } from './../../../CommonExecutionToolsOptions';
-import type { AvailableModel, LlmExecutionTools } from './../../../LlmExecutionTools';
-import type { PromptChatResult, PromptCompletionResult } from './../../../PromptResult';
+import type { Prompt } from '../../../../types/Prompt';
+import { getCurrentIsoDate } from '../../../../utils/getCurrentIsoDate';
+import type { CommonExecutionToolsOptions } from '../../../CommonExecutionToolsOptions';
+import type { AvailableModel, LlmExecutionTools } from '../../../LlmExecutionTools';
+import type { PromptChatResult, PromptCompletionResult } from '../../../PromptResult';
 import { $fakeTextToExpectations } from './fakeTextToExpectations';
 
 /**
@@ -56,9 +56,7 @@ export class MockedFackedLlmExecutionTools implements LlmExecutionTools {
     /**
      * Fakes completion model
      */
-    public async gptComplete(
-        prompt: Pick<Prompt, 'content' | 'modelRequirements' | 'expectations' | 'postprocessing'>,
-    ): Promise<PromptCompletionResult> {
+    public async gptComplete(prompt: Pick<Prompt, 'content' | 'modelRequirements'|'expectations'|'postprocessing'>): Promise<PromptCompletionResult> {
         return this.gptChat(prompt);
     }
 

@@ -1,7 +1,7 @@
 import type { Promisable } from 'type-fest';
-import type { ExecutionReportJson } from './../types/execution-report/ExecutionReportJson';
-import type { TaskProgress } from './../types/TaskProgress';
-import type { string_name } from './../types/typeAliases';
+import type { TaskProgress } from '../types/TaskProgress';
+import type { ExecutionReportJson } from '../types/execution-report/ExecutionReportJson';
+import type { string_name } from '../types/typeAliases';
 
 /**
  * Executor is a simple async function that takes INPUT  PARAMETERs and returns result parameters _(along with all intermediate parameters and INPUT  PARAMETERs = it extends input object)_.

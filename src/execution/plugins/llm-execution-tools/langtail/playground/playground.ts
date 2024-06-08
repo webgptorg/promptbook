@@ -5,7 +5,7 @@ import * as dotenv from 'dotenv';
 dotenv.config({ path: '.env' });
 
 import chalk from 'colors';
-import { LangtailExecutionTools } from './../LangtailExecutionTools';
+import { LangtailExecutionTools } from '../LangtailExecutionTools';
 
 playground()
     .catch((error) => {

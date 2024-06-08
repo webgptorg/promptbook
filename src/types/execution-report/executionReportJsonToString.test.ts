@@ -1,5 +1,5 @@
 import { describe, expect, it } from '@jest/globals';
-import { readdirSync, readFileSync } from 'fs';
+import { readFileSync, readdirSync } from 'fs';
 import { join } from 'path';
 import { executionReportJsonToString } from './executionReportJsonToString';
 

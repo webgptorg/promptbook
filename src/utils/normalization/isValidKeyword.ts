@@ -1,4 +1,4 @@
-import type { string_keyword } from './IKeywords';
+import { string_keyword } from './IKeywords';
 import { parseKeywordsFromString } from './parseKeywordsFromString';
 
 /**

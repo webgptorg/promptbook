@@ -1,9 +1,9 @@
-import type { Prompt } from './../../types/Prompt';
-import type { PromptbookJson } from './../../types/PromptbookJson/PromptbookJson';
-import type { PromptbookString } from './../../types/PromptbookString';
-import type { string_promptbook_url } from './../../types/typeAliases';
-import type { PromptbookLibrary } from './../PromptbookLibrary';
-import { SimplePromptbookLibrary } from './../SimplePromptbookLibrary';
+import type { Prompt } from '../../types/Prompt';
+import type { PromptbookJson } from '../../types/PromptbookJson/PromptbookJson';
+import { PromptbookString } from '../../types/PromptbookString';
+import type { string_promptbook_url } from '../../types/typeAliases';
+import { PromptbookLibrary } from '../PromptbookLibrary';
+import { SimplePromptbookLibrary } from '../SimplePromptbookLibrary';
 import { createPromptbookLibraryFromSources } from './createPromptbookLibraryFromSources';
 
 /**

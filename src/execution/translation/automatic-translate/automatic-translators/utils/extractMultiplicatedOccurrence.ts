@@ -1,10 +1,11 @@
-import { PromptbookExecutionError } from './../../../../../errors/PromptbookExecutionError';
+import { PromptbookExecutionError } from '../../../../../errors/PromptbookExecutionError';
+
 
 /**
  *
  * @param message
  * @returns
- * @throws {PromptbookExecutionError}
+ * @throws {PromptbookExecutionError} 
  */
 export function extractMultiplicatedOccurrence(message: string): string {
     for (let subLength = 1; subLength < message.length / 2; subLength++) {

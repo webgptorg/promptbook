@@ -1,6 +1,6 @@
 import { spaceTrim } from 'spacetrim';
-import { PromptbookSyntaxError } from './../../errors/PromptbookSyntaxError';
-import type { string_javascript, string_javascript_name } from './../../types/typeAliases';
+import { PromptbookSyntaxError } from '../../errors/PromptbookSyntaxError';
+import { string_javascript, string_javascript_name } from '../../types/typeAliases';
 /**
  * Parses the given script and returns the list of all used variables that are not defined in the script
  *

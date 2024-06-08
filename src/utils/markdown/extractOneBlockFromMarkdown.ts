@@ -1,6 +1,5 @@
-import type { string_markdown } from './../../types/typeAliases';
-import type { CodeBlock } from './extractAllBlocksFromMarkdown';
-import { extractAllBlocksFromMarkdown } from './extractAllBlocksFromMarkdown';
+import { string_markdown } from '../.././types/typeAliases';
+import { CodeBlock, extractAllBlocksFromMarkdown } from './extractAllBlocksFromMarkdown';
 
 /**
  * Extracts exactly ONE code block from markdown.

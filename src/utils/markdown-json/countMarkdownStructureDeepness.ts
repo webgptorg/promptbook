@@ -1,8 +1,9 @@
-import type { MarkdownStructure } from './MarkdownStructure';
+import { MarkdownStructure } from './MarkdownStructure';
+
 
 /**
  * Computes the deepness of the markdown structure.
- *
+ * 
  * @private within the library
  */
 export function countMarkdownStructureDeepness(markdownStructure: MarkdownStructure): number {
