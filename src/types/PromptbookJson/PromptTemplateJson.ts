@@ -2,7 +2,7 @@ import type { ExpectFormatCommand } from '../Command';
 import type { ExecutionType } from '../ExecutionTypes';
 import type { ModelRequirements } from '../ModelRequirements';
 import type { ScriptLanguage } from '../ScriptLanguage';
-import type { number_integer } from '../typeAliases';
+import type { number_integer, string_markdown_text } from '../typeAliases';
 import type { number_positive_or_zero } from '../typeAliases';
 import type { string_javascript } from '../typeAliases';
 import type { string_javascript_name } from '../typeAliases';
@@ -105,7 +105,7 @@ interface PromptTemplateJsonCommon {
      * Description of the prompt template
      * It can use multiple paragraphs of simple markdown formatting like **bold**, *italic*, [link](https://example.com), ... BUT not code blocks and structure
      */
-    readonly description?: string;
+    readonly description?: string_markdown_text;
 
     /**
      * List of parameter names that are used in the prompt template and must be defined before the prompt template is executed

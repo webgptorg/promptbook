@@ -1,7 +1,6 @@
 import type { PromptResult } from '../../execution/PromptResult';
 import type { Prompt } from '../Prompt';
-import type { string_promptbook_url } from '../typeAliases';
-import type { string_version } from '../typeAliases';
+import type { string_markdown_text, string_promptbook_url, string_version } from '../typeAliases';
 
 /**
  * ExecutionReport is result of executing one promptbook
@@ -37,7 +36,7 @@ export type ExecutionReportJson = {
     /**
      * Description of the promptbook which was executed
      */
-    readonly description?: string;
+    readonly description?: string_markdown_text;
 
     /**
      * Sequence of prompt templates in order which were executed
