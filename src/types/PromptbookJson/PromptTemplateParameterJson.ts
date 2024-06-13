@@ -1,4 +1,5 @@
-import type { string_markdown_text, string_name } from '../typeAliases';
+import type { string_markdown_text } from '../typeAliases';
+import type { string_name } from '../typeAliases';
 
 /**
  * Describes one parameter of the promptbook
