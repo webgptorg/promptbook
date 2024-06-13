@@ -33,14 +33,12 @@ export function promptbookJsonToString(promptbookJson: PromptbookJson): Promptbo
 
     promptbookString = prettifyMarkdown(promptbookString);
 
-    for (const parameter of parameters) {
-        const { isInput, isOutput } = parameter;
+    for (const parameter of parameters.filter(({ isInput }) => isInput)) {
+        commands.push(`INPUT PARAMETER ${promptTemplateParameterJsonToString(parameter)}`);
+    }
 
-        if (isInput) {
-            commands.push(`INPUT PARAMETER ${promptTemplateParameterJsonToString(parameter)}`);
-        } else if (isOutput) {
-            commands.push(`OUTPUT PARAMETER ${promptTemplateParameterJsonToString(parameter)}`);
-        }
+    for (const parameter of parameters.filter(({ isOutput }) => isOutput)) {
+        commands.push(`OUTPUT PARAMETER ${promptTemplateParameterJsonToString(parameter)}`);
     }
 
     promptbookString += '\n\n';
