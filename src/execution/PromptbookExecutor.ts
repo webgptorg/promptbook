@@ -18,24 +18,24 @@ export type PromptbookExecutor = {
         onProgress?: (taskProgress: TaskProgress) => Promisable<void>,
     ): Promise<{
         /**
-         * Whether the execution was successful
+         * Whether the execution was successful, details are aviable in `executionReport`
          */
         isSuccessful: boolean;
-
-        /**
-         * Errors that occured during the execution
-         */
-        errors: Array<Error>;
-
-        /**
-         * The report of the execution
-         */
-        executionReport: ExecutionReportJson;
 
         /**
          * Added usage of whole execution, detailed usage is aviable in `executionReport`
          */
         usage: PromptResultUsage;
+
+        /**
+         * Errors that occured during the execution, details are aviable in `executionReport`
+         */
+        errors: Array<Error>;
+
+        /**
+         * The report of the execution with all details
+         */
+        executionReport: ExecutionReportJson;
 
         /**
          * Result parameters of the execution

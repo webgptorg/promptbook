@@ -14,9 +14,7 @@ import type { string_name } from '../types/typeAliases';
 import { isValidJsonString } from '../utils/isValidJsonString';
 import { PROMPTBOOK_VERSION } from '../version';
 import type { ExecutionTools } from './ExecutionTools';
-import type { PromptChatResult } from './PromptResult';
-import type { PromptCompletionResult } from './PromptResult';
-import type { PromptResult } from './PromptResult';
+import type { PromptChatResult, PromptCompletionResult, PromptResult } from './PromptResult';
 import type { PromptbookExecutor } from './PromptbookExecutor';
 import { addUsage } from './utils/addUsage';
 import { checkExpectations } from './utils/checkExpectations';
@@ -469,9 +467,15 @@ export function createPromptbookExecutor(options: CreatePromptbookExecutorOption
                 throw error;
             }
 
+            // Note: Count usage, [🧠] Maybe put to separate function executionReportJsonToUsage + DRY [5]
+            const usage = addUsage(
+                ...executionReport.promptExecutions.map(({ result }) => result?.usage || addUsage()),
+            );
+
             return {
                 isSuccessful: false,
                 errors: [error],
+                usage,
                 executionReport,
                 outputParameters: parametersToPass,
             };
@@ -486,14 +490,14 @@ export function createPromptbookExecutor(options: CreatePromptbookExecutorOption
             delete parametersToPass[parameter.name];
         }
 
-        // Note: Count usage, [🧠] Maybe put to separate function executionReportJsonToUsage
+        // Note: Count usage, [🧠] Maybe put to separate function executionReportJsonToUsage + DRY [5]
         const usage = addUsage(...executionReport.promptExecutions.map(({ result }) => result?.usage || addUsage()));
 
         return {
             isSuccessful: true,
             errors: [],
-            executionReport,
             usage,
+            executionReport,
             outputParameters: parametersToPass,
         };
     };
