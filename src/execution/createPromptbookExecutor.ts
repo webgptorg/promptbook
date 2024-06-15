@@ -1,6 +1,5 @@
 import { spaceTrim } from 'spacetrim';
 import type { Promisable } from 'type-fest';
-import type { PromptbookJson } from '../types/PromptbookJson/PromptbookJson';
 import { LOOP_LIMIT } from '../config';
 import { validatePromptbookJson } from '../conversion/validation/validatePromptbookJson';
 import { PromptbookExecutionError } from '../errors/PromptbookExecutionError';
@@ -8,16 +7,16 @@ import { UnexpectedError } from '../errors/UnexpectedError';
 import { ExpectError } from '../errors/_ExpectError';
 import type { Prompt } from '../types/Prompt';
 import type { PromptTemplateJson } from '../types/PromptbookJson/PromptTemplateJson';
+import type { PromptbookJson } from '../types/PromptbookJson/PromptbookJson';
 import type { TaskProgress } from '../types/TaskProgress';
 import type { ExecutionReportJson } from '../types/execution-report/ExecutionReportJson';
 import type { string_name } from '../types/typeAliases';
 import { isValidJsonString } from '../utils/isValidJsonString';
 import { PROMPTBOOK_VERSION } from '../version';
 import type { ExecutionTools } from './ExecutionTools';
-import type { PromptChatResult } from './PromptResult';
-import type { PromptCompletionResult } from './PromptResult';
-import type { PromptResult } from './PromptResult';
+import type { PromptChatResult, PromptCompletionResult, PromptResult } from './PromptResult';
 import type { PromptbookExecutor } from './PromptbookExecutor';
+import { addPromptResultUsage } from './addPromptResultUsage';
 import { checkExpectations } from './utils/checkExpectations';
 import { replaceParameters } from './utils/replaceParameters';
 
@@ -485,10 +484,16 @@ export function createPromptbookExecutor(options: CreatePromptbookExecutorOption
             delete parametersToPass[parameter.name];
         }
 
+        // Note: Count usage, [🧠] Maybe put to separate function executionReportJsonToUsage
+        const usage = addPromptResultUsage(
+            ...executionReport.promptExecutions.map(({ result }) => result?.usage || addPromptResultUsage()),
+        );
+
         return {
             isSuccessful: true,
             errors: [],
             executionReport,
+            usage,
             outputParameters: parametersToPass,
         };
     };

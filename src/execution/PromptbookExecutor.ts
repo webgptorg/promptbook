@@ -2,6 +2,7 @@ import type { Promisable } from 'type-fest';
 import type { TaskProgress } from '../types/TaskProgress';
 import type { ExecutionReportJson } from '../types/execution-report/ExecutionReportJson';
 import type { string_name } from '../types/typeAliases';
+import { PromptResultUsage } from './PromptResult';
 
 /**
  * Executor is a simple async function that takes INPUT  PARAMETERs and returns result parameters _(along with all intermediate parameters and INPUT  PARAMETERs = it extends input object)_.
@@ -30,6 +31,11 @@ export type PromptbookExecutor = {
          * The report of the execution
          */
         executionReport: ExecutionReportJson;
+
+        /**
+         * Added usage of whole execution, detailed usage is aviable in `executionReport`
+         */
+        usage: PromptResultUsage;
 
         /**
          * Result parameters of the execution
