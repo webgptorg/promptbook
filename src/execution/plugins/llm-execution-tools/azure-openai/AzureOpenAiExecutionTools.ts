@@ -4,12 +4,10 @@ import { PromptbookExecutionError } from '../../../../errors/PromptbookExecution
 import type { Prompt } from '../../../../types/Prompt';
 import type { string_date_iso8601 } from '../../../../types/typeAliases';
 import { getCurrentIsoDate } from '../../../../utils/getCurrentIsoDate';
-import { computeUsageCounts } from '../../../computeUsageCounts';
-import type { AvailableModel } from '../../../LlmExecutionTools';
-import type { LlmExecutionTools } from '../../../LlmExecutionTools';
-import type { PromptChatResult } from '../../../PromptResult';
-import type { PromptCompletionResult } from '../../../PromptResult';
-import type { PromptResultUsage } from '../../../PromptResult';
+import type { AvailableModel, LlmExecutionTools } from '../../../LlmExecutionTools';
+import type { PromptChatResult, PromptCompletionResult, PromptResultUsage } from '../../../PromptResult';
+import { computeUsageCounts } from '../../../utils/computeUsageCounts';
+import { uncertainNumber } from '../../../utils/uncertainNumber';
 import { OPENAI_MODELS } from '../openai/openai-models';
 import type { AzureOpenAiExecutionToolsOptions } from './AzureOpenAiExecutionToolsOptions';
 
@@ -93,13 +91,13 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools {
             // eslint-disable-next-line prefer-const
             complete = getCurrentIsoDate();
             const usage = {
-                price: { value: 0, isUncertain: true /* uncertainNumber */ } /* <- TODO: [🐞] Compute usage */,
+                price: uncertainNumber() /* <- TODO: [🐞] Compute usage */,
                 input: {
-                    tokensCount: { value: rawResponse.usage?.promptTokens || 0 /* uncertainNumber */ },
+                    tokensCount: uncertainNumber(rawResponse.usage?.promptTokens),
                     ...computeUsageCounts(prompt.content),
                 },
                 output: {
-                    tokensCount: { value: rawResponse.usage?.completionTokens || 0 /* uncertainNumber */ },
+                    tokensCount: uncertainNumber(rawResponse.usage?.completionTokens),
                     ...computeUsageCounts(prompt.content),
                 },
             } satisfies PromptResultUsage;
@@ -172,13 +170,13 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools {
             complete = getCurrentIsoDate();
 
             const usage = {
-                price: { value: 0, isUncertain: true /* uncertainNumber */ } /* <- TODO: [🐞] Compute usage */,
+                price: uncertainNumber() /* <- TODO: [🐞] Compute usage */,
                 input: {
-                    tokensCount: { value: rawResponse.usage?.promptTokens || 0 /* uncertainNumber */ },
+                    tokensCount: uncertainNumber(rawResponse.usage?.promptTokens),
                     ...computeUsageCounts(prompt.content),
                 },
                 output: {
-                    tokensCount: { value: rawResponse.usage?.completionTokens || 0 /* uncertainNumber */ },
+                    tokensCount: uncertainNumber(rawResponse.usage?.completionTokens),
                     ...computeUsageCounts(prompt.content),
                 },
             } satisfies PromptResultUsage;

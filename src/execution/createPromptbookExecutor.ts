@@ -16,7 +16,7 @@ import { PROMPTBOOK_VERSION } from '../version';
 import type { ExecutionTools } from './ExecutionTools';
 import type { PromptChatResult, PromptCompletionResult, PromptResult } from './PromptResult';
 import type { PromptbookExecutor } from './PromptbookExecutor';
-import { addUsage } from './addUsage';
+import { addUsage } from './utils/addUsage';
 import { checkExpectations } from './utils/checkExpectations';
 import { replaceParameters } from './utils/replaceParameters';
 

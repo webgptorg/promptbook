@@ -1,10 +1,9 @@
 import type OpenAI from 'openai';
 import { PromptbookExecutionError } from '../../../../errors/PromptbookExecutionError';
 import type { Prompt } from '../../../../types/Prompt';
-import { computeUsageCounts } from '../../../computeUsageCounts';
-import type { PromptResult } from '../../../PromptResult';
-import type { PromptResultUsage } from '../../../PromptResult';
-import type { UncertainNumber } from '../../../PromptResult';
+import type { PromptResult, PromptResultUsage, UncertainNumber } from '../../../PromptResult';
+import { computeUsageCounts } from '../../../utils/computeUsageCounts';
+import { uncertainNumber } from '../../../utils/uncertainNumber';
 import { OPENAI_MODELS } from './openai-models';
 
 /**
@@ -37,21 +36,20 @@ export function computeOpenaiUsage(
 
     let price: UncertainNumber;
 
-    // uncertainNumber
     if (modelInfo === undefined || modelInfo.pricing === undefined) {
-        price = { value: 0, isUncertain: true };
+        price = uncertainNumber();
     } else {
-        price = { value: inputTokens * modelInfo.pricing.prompt + outputTokens * modelInfo.pricing.output };
+        price = uncertainNumber(inputTokens * modelInfo.pricing.prompt + outputTokens * modelInfo.pricing.output);
     }
 
     return {
         price,
         input: {
-            tokensCount: { value: rawResponse.usage.prompt_tokens || 0 /* uncertainNumber */ },
+            tokensCount: uncertainNumber(rawResponse.usage.prompt_tokens),
             ...computeUsageCounts(promptContent),
         },
         output: {
-            tokensCount: { value: rawResponse.usage.completion_tokens || 0 /* uncertainNumber */ },
+            tokensCount: uncertainNumber(rawResponse.usage.completion_tokens),
             ...computeUsageCounts(resultContent),
         },
     };

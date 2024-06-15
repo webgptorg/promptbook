@@ -4,7 +4,7 @@ import { getCurrentIsoDate } from '../../../../utils/getCurrentIsoDate';
 import type { CommonExecutionToolsOptions } from '../../../CommonExecutionToolsOptions';
 import type { AvailableModel, LlmExecutionTools } from '../../../LlmExecutionTools';
 import type { PromptChatResult, PromptCompletionResult } from '../../../PromptResult';
-import { addUsage } from '../../../addUsage';
+import { addUsage } from '../../../utils/addUsage';
 
 /**
  * Mocked execution Tools for just echoing the requests for testing purposes.

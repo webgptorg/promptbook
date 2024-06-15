@@ -6,14 +6,12 @@ import type { Prompt } from '../../../../types/Prompt';
 import type { string_date_iso8601 } from '../../../../types/typeAliases';
 import { getCurrentIsoDate } from '../../../../utils/getCurrentIsoDate';
 import { just } from '../../../../utils/just';
-import { computeUsageCounts } from '../../../computeUsageCounts';
-import type { AvailableModel } from '../../../LlmExecutionTools';
-import type { LlmExecutionTools } from '../../../LlmExecutionTools';
-import type { PromptChatResult } from '../../../PromptResult';
-import type { PromptCompletionResult } from '../../../PromptResult';
-import type { PromptResultUsage } from '../../../PromptResult';
+import type { AvailableModel, LlmExecutionTools } from '../../../LlmExecutionTools';
+import type { PromptChatResult, PromptCompletionResult, PromptResultUsage } from '../../../PromptResult';
+import { computeUsageCounts } from '../../../utils/computeUsageCounts';
 import { ANTHROPIC_CLAUDE_MODELS } from './anthropic-claude-models';
 import type { AnthropicClaudeExecutionToolsOptions } from './AnthropicClaudeExecutionToolsOptions';
+import { uncertainNumber } from '../../../utils/uncertainNumber';
 
 /**
  * Execution Tools for calling Anthropic Claude API.
@@ -88,11 +86,11 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools {
         const usage = {
             price: { value: 0, isUncertain: true } /* <- TODO: [🐞] Compute usage */,
             input: {
-                tokensCount: { value: rawResponse.usage.input_tokens /* uncertainNumber */ },
+                tokensCount: uncertainNumber(rawResponse.usage.input_tokens),
                 ...computeUsageCounts(prompt.content),
             },
             output: {
-                tokensCount: { value: rawResponse.usage.output_tokens /* uncertainNumber */ },
+                tokensCount: uncertainNumber(rawResponse.usage.output_tokens),
                 ...computeUsageCounts(prompt.content),
             },
         } satisfies PromptResultUsage;

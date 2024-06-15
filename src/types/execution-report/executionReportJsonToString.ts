@@ -73,7 +73,9 @@ export function executionReportJsonToString(
             .map((promptExecution) => ({
                 title: promptExecution.prompt.title,
                 from: 0,
-                to: (promptExecution.result?.usage?.price.value || 0) /* uncertainNumber */ * (1 + taxRate),
+                to:
+                    (promptExecution.result?.usage?.price.value || 0) /* <- TODO: look at uncertain numbers */ *
+                    (1 + taxRate),
             }));
 
         const duration = moment.duration(completedAt.diff(startedAt));
@@ -83,7 +85,8 @@ export function executionReportJsonToString(
             (promptExecution) => (promptExecution.result?.usage?.price || 'UNKNOWN') !== 'UNKNOWN',
         );
         const cost: number_usd = executionsWithKnownCost.reduce(
-            (cost, promptExecution) => cost + ((promptExecution.result!.usage.price.value  /* uncertainNumber */) || 0),
+            (cost, promptExecution) =>
+                cost + (promptExecution.result!.usage.price.value /* <- Look at uncertain number */ || 0),
             0,
         );
 

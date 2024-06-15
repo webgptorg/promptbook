@@ -1,9 +1,9 @@
 import type { Prompt } from '../../../../types/Prompt';
 import { getCurrentIsoDate } from '../../../../utils/getCurrentIsoDate';
-import { addUsage } from '../../../addUsage';
 import type { CommonExecutionToolsOptions } from '../../../CommonExecutionToolsOptions';
 import type { AvailableModel, LlmExecutionTools } from '../../../LlmExecutionTools';
 import type { PromptChatResult, PromptCompletionResult } from '../../../PromptResult';
+import { addUsage } from '../../../utils/addUsage';
 import { $fakeTextToExpectations } from './fakeTextToExpectations';
 
 /**
