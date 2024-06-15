@@ -316,6 +316,7 @@ Better usage computation and shape
 -   Export type `PromptResultUsage`, `PromptResultUsageCounts` and `UncertainNumber` from `@promptbook/types`
 -   Export util `addUsage` from `@promptbook/core`
 -   Put usage directly in result of each execution
+-   Export function `usageToWorktime` from `@promptbook/core`
 
 ## In prepare
 

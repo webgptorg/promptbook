@@ -21,6 +21,7 @@ import { CallbackInterfaceToolsOptions } from '../execution/plugins/user-interfa
 import { SimplePromptInterfaceTools } from '../execution/plugins/user-interface-execution-tools/simple-prompt/SimplePromptInterfaceTools';
 import { addUsage } from '../execution/utils/addUsage';
 import { checkExpectations, isPassingExpectations } from '../execution/utils/checkExpectations';
+import { usageToWorktime } from '../execution/utils/usageToWorktime';
 import { createPromptbookLibraryFromDirectory } from '../library/constructors/createPromptbookLibraryFromDirectory';
 import { createPromptbookLibraryFromSources } from '../library/constructors/createPromptbookLibraryFromSources';
 import { createPromptbookLibraryFromUrl } from '../library/constructors/createPromptbookLibraryFromUrl';
@@ -51,6 +52,7 @@ export {
     ExecutionReportStringOptionsDefaults,
     isPassingExpectations,
     prettifyPromptbookString,
+    usageToWorktime,
 };
 
 // @promptbook/library
