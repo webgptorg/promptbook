@@ -2,7 +2,7 @@ import { describe, expect, it } from '@jest/globals';
 import { addPromptResultUsage } from './addPromptResultUsage';
 
 describe('how addPromptResultUsage works', () => {
-    it('should creates void usage with 0 items', () =>
+    it('should create void usage with 0 items', () =>
         expect(addPromptResultUsage()).toEqual({
             price: { value: 0 },
             input: {
@@ -25,7 +25,7 @@ describe('how addPromptResultUsage works', () => {
             },
         }));
 
-    it('should preserves 1 item', () =>
+    it('should preserve 1 item', () =>
         expect(
             addPromptResultUsage({
                 price: { value: 1 },
@@ -70,31 +70,160 @@ describe('how addPromptResultUsage works', () => {
             },
         }));
 
-    it('should adds 2 items', () =>
+    it('should add 2 items', () =>
         expect(
             addPromptResultUsage(
                 {
-                    // TODO:
+                    price: { value: 1 },
+                    input: {
+                        tokensCount: { value: 10 },
+                        charactersCount: { value: 5 },
+                        wordsCount: { value: 7 },
+                        sentencesCount: { value: 3 },
+                        linesCount: { value: 2 },
+                        paragraphsCount: { value: 1 },
+                        pagesCount: { value: 0 },
+                    },
+                    output: {
+                        tokensCount: { value: 10 },
+                        charactersCount: { value: 5 },
+                        wordsCount: { value: 7 },
+                        sentencesCount: { value: 3 },
+                        linesCount: { value: 2 },
+                        paragraphsCount: { value: 1 },
+                        pagesCount: { value: 0 },
+                    },
                 },
                 {
-                    // TODO:
+                    price: { value: 2 },
+                    input: {
+                        tokensCount: { value: 15 },
+                        charactersCount: { value: 10 },
+                        wordsCount: { value: 5 },
+                        sentencesCount: { value: 2 },
+                        linesCount: { value: 3 },
+                        paragraphsCount: { value: 2 },
+                        pagesCount: { value: 1 },
+                    },
+                    output: {
+                        tokensCount: { value: 15 },
+                        charactersCount: { value: 10 },
+                        wordsCount: { value: 5 },
+                        sentencesCount: { value: 2 },
+                        linesCount: { value: 3 },
+                        paragraphsCount: { value: 2 },
+                        pagesCount: { value: 1 },
+                    },
                 },
             ),
         ).toEqual({
-            // TODO:
+            price: { value: 3 },
+            input: {
+                tokensCount: { value: 25 },
+                charactersCount: { value: 15 },
+                wordsCount: { value: 12 },
+                sentencesCount: { value: 5 },
+                linesCount: { value: 5 },
+                paragraphsCount: { value: 3 },
+                pagesCount: { value: 1 },
+            },
+            output: {
+                tokensCount: { value: 25 },
+                charactersCount: { value: 15 },
+                wordsCount: { value: 12 },
+                sentencesCount: { value: 5 },
+                linesCount: { value: 5 },
+                paragraphsCount: { value: 3 },
+                pagesCount: { value: 1 },
+            },
         }));
 
-    it('should adds 3 items', () =>
+    it('should add 3 items', () =>
         expect(
             addPromptResultUsage(
                 {
-                    // TODO:
+                    price: { value: 1 },
+                    input: {
+                        tokensCount: { value: 10 },
+                        charactersCount: { value: 5 },
+                        wordsCount: { value: 7 },
+                        sentencesCount: { value: 3 },
+                        linesCount: { value: 2 },
+                        paragraphsCount: { value: 1 },
+                        pagesCount: { value: 0 },
+                    },
+                    output: {
+                        tokensCount: { value: 10 },
+                        charactersCount: { value: 5 },
+                        wordsCount: { value: 7 },
+                        sentencesCount: { value: 3 },
+                        linesCount: { value: 2 },
+                        paragraphsCount: { value: 1 },
+                        pagesCount: { value: 0 },
+                    },
                 },
                 {
-                    // TODO:
+                    price: { value: 2 },
+                    input: {
+                        tokensCount: { value: 15 },
+                        charactersCount: { value: 10 },
+                        wordsCount: { value: 5 },
+                        sentencesCount: { value: 2 },
+                        linesCount: { value: 3 },
+                        paragraphsCount: { value: 2 },
+                        pagesCount: { value: 1 },
+                    },
+                    output: {
+                        tokensCount: { value: 15 },
+                        charactersCount: { value: 10 },
+                        wordsCount: { value: 5 },
+                        sentencesCount: { value: 2 },
+                        linesCount: { value: 3 },
+                        paragraphsCount: { value: 2 },
+                        pagesCount: { value: 1 },
+                    },
+                },
+                {
+                    price: { value: 3 },
+                    input: {
+                        tokensCount: { value: 5 },
+                        charactersCount: { value: 2 },
+                        wordsCount: { value: 3 },
+                        sentencesCount: { value: 1 },
+                        linesCount: { value: 1 },
+                        paragraphsCount: { value: 0 },
+                        pagesCount: { value: 0 },
+                    },
+                    output: {
+                        tokensCount: { value: 5 },
+                        charactersCount: { value: 2 },
+                        wordsCount: { value: 3 },
+                        sentencesCount: { value: 1 },
+                        linesCount: { value: 1 },
+                        paragraphsCount: { value: 0 },
+                        pagesCount: { value: 0 },
+                    },
                 },
             ),
         ).toEqual({
-            // TODO:
+            price: { value: 6 },
+            input: {
+                tokensCount: { value: 30 },
+                charactersCount: { value: 17 },
+                wordsCount: { value: 15 },
+                sentencesCount: { value: 6 },
+                linesCount: { value: 6 },
+                paragraphsCount: { value: 3 },
+                pagesCount: { value: 1 },
+            },
+            output: {
+                tokensCount: { value: 30 },
+                charactersCount: { value: 17 },
+                wordsCount: { value: 15 },
+                sentencesCount: { value: 6 },
+                linesCount: { value: 6 },
+                paragraphsCount: { value: 3 },
+                pagesCount: { value: 1 },
+            },
         }));
 });

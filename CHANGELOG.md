@@ -309,7 +309,7 @@ Repair and organize imports
 
 ### `0.54.0` _(2024-06-15)_
 
-Better usage computation
+Better usage computation and shape
 
 -   Change shape of `PromptResult.usage`
 -   Remove types `number_positive_or_zero` and `number_negative_or_zero`
