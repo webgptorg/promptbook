@@ -6,8 +6,9 @@ import type { Prompt } from '../../../../types/Prompt';
 import type { string_date_iso8601 } from '../../../../types/typeAliases';
 import { getCurrentIsoDate } from '../../../../utils/getCurrentIsoDate';
 import { just } from '../../../../utils/just';
+import { computeUsageCounts } from '../../../computeUsageCounts';
 import type { AvailableModel, LlmExecutionTools } from '../../../LlmExecutionTools';
-import type { PromptChatResult, PromptCompletionResult } from '../../../PromptResult';
+import type { PromptChatResult, PromptCompletionResult, PromptResultUsage } from '../../../PromptResult';
 import { ANTHROPIC_CLAUDE_MODELS } from './anthropic-claude-models';
 import type { AnthropicClaudeExecutionToolsOptions } from './AnthropicClaudeExecutionToolsOptions';
 
@@ -82,9 +83,15 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools {
         // eslint-disable-next-line prefer-const
         complete = getCurrentIsoDate();
         const usage = {
-            price: 'UNKNOWN' /* <- TODO: [🐞] Compute usage */,
-            inputTokens: rawResponse.usage.input_tokens,
-            outputTokens: rawResponse.usage.output_tokens,
+            price: { value: 0, isUncertain: true } /* <- TODO: [🐞] Compute usage */,
+            input: {
+                tokensCount: { value: rawResponse.usage.input_tokens /* uncertainNumber */ },
+                ...computeUsageCounts(prompt.content),
+            },
+            output: {
+                tokensCount: { value: rawResponse.usage.output_tokens  /* uncertainNumber */ },
+                ...computeUsageCounts(prompt.content),
+            },
         } satisfies PromptResultUsage;
 
         if (!resultContent) {

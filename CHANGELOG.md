@@ -307,7 +307,7 @@ Repair and organize imports
 
 ## In pre-release
 
-### `0.54.0` _(2024-06-15)_
+### `0.55.0` _(2024-06-15)_
 
 Better usage computation and shape
 

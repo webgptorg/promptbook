@@ -4,8 +4,9 @@ import { PromptbookExecutionError } from '../../../../errors/PromptbookExecution
 import type { Prompt } from '../../../../types/Prompt';
 import type { string_date_iso8601 } from '../../../../types/typeAliases';
 import { getCurrentIsoDate } from '../../../../utils/getCurrentIsoDate';
+import { computeUsageCounts } from '../../../computeUsageCounts';
 import type { AvailableModel, LlmExecutionTools } from '../../../LlmExecutionTools';
-import type { PromptChatResult, PromptCompletionResult } from '../../../PromptResult';
+import type { PromptChatResult, PromptCompletionResult, PromptResultUsage } from '../../../PromptResult';
 import { OPENAI_MODELS } from '../openai/openai-models';
 import type { AzureOpenAiExecutionToolsOptions } from './AzureOpenAiExecutionToolsOptions';
 
@@ -89,9 +90,15 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools {
             // eslint-disable-next-line prefer-const
             complete = getCurrentIsoDate();
             const usage = {
-                price: 'UNKNOWN' /* <- TODO: [🐞] Compute usage */,
-                inputTokens: rawResponse.usage?.promptTokens || 'UNKNOWN',
-                outputTokens: rawResponse.usage?.completionTokens || 'UNKNOWN',
+                price: { value: 0, isUncertain: true /* uncertainNumber */ } /* <- TODO: [🐞] Compute usage */,
+                input: {
+                    tokensCount: { value: rawResponse.usage?.promptTokens || 0 /* uncertainNumber */ },
+                    ...computeUsageCounts(prompt.content),
+                },
+                output: {
+                    tokensCount: { value: rawResponse.usage?.completionTokens || 0 /* uncertainNumber */ },
+                    ...computeUsageCounts(prompt.content),
+                },
             } satisfies PromptResultUsage;
 
             if (!resultContent) {
@@ -160,10 +167,17 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools {
             const resultContent = rawResponse.choices[0].text;
             // eslint-disable-next-line prefer-const
             complete = getCurrentIsoDate();
+
             const usage = {
-                price: 'UNKNOWN' /* <- TODO: [🐞] Compute usage */,
-                inputTokens: rawResponse.usage.promptTokens,
-                outputTokens: rawResponse.usage.completionTokens,
+                price: { value: 0, isUncertain: true /* uncertainNumber */ } /* <- TODO: [🐞] Compute usage */,
+                input: {
+                    tokensCount: { value: rawResponse.usage?.promptTokens || 0 /* uncertainNumber */ },
+                    ...computeUsageCounts(prompt.content),
+                },
+                output: {
+                    tokensCount: { value: rawResponse.usage?.completionTokens || 0 /* uncertainNumber */ },
+                    ...computeUsageCounts(prompt.content),
+                },
             } satisfies PromptResultUsage;
 
             if (!resultContent) {

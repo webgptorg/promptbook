@@ -1,12 +1,12 @@
 import moment from 'moment';
 import { spaceTrim } from 'spacetrim';
-import { normalizeToKebabCase } from '../../utils/normalization/normalize-to-kebab-case';
 import type { FromtoItems } from '../../utils/FromtoItems';
 import { formatNumber } from '../../utils/formatNumber';
 import { just } from '../../utils/just';
 import { createMarkdownChart } from '../../utils/markdown/createMarkdownChart';
 import { escapeMarkdownBlock } from '../../utils/markdown/escapeMarkdownBlock';
 import { prettifyMarkdown } from '../../utils/markdown/prettifyMarkdown';
+import { normalizeToKebabCase } from '../../utils/normalization/normalize-to-kebab-case';
 import type { number_usd } from '../typeAliases';
 import type { ExecutionReportJson } from './ExecutionReportJson';
 import type { ExecutionReportString } from './ExecutionReportString';
@@ -73,7 +73,7 @@ export function executionReportJsonToString(
             .map((promptExecution) => ({
                 title: promptExecution.prompt.title,
                 from: 0,
-                to: (promptExecution.result?.usage?.price as number) * (1 + taxRate),
+                to: (promptExecution.result?.usage?.price.value || 0) /* uncertainNumber */ * (1 + taxRate),
             }));
 
         const duration = moment.duration(completedAt.diff(startedAt));
@@ -83,7 +83,7 @@ export function executionReportJsonToString(
             (promptExecution) => (promptExecution.result?.usage?.price || 'UNKNOWN') !== 'UNKNOWN',
         );
         const cost: number_usd = executionsWithKnownCost.reduce(
-            (cost, promptExecution) => cost + ((promptExecution.result!.usage.price! as number) || 0),
+            (cost, promptExecution) => cost + ((promptExecution.result!.usage.price.value  /* uncertainNumber */) || 0),
             0,
         );
 

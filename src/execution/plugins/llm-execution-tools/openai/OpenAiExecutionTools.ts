@@ -88,7 +88,7 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
         const resultContent = rawResponse.choices[0].message.content;
         // eslint-disable-next-line prefer-const
         complete = getCurrentIsoDate();
-        const usage = computeOpenaiUsage(rawResponse);
+        const usage = computeOpenaiUsage(content, resultContent || '', rawResponse);
 
         if (!resultContent) {
             throw new PromptbookExecutionError('No response message from OpenAI');
@@ -157,7 +157,7 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
         const resultContent = rawResponse.choices[0].text;
         // eslint-disable-next-line prefer-const
         complete = getCurrentIsoDate();
-        const usage = computeOpenaiUsage(rawResponse);
+        const usage = computeOpenaiUsage(content, resultContent || '', rawResponse);
 
         if (!resultContent) {
             throw new PromptbookExecutionError('No response message from OpenAI');
