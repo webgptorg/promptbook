@@ -8,7 +8,7 @@ Show how to use a simple prompt with no parameters.
 -   COMPLETED AT 2024-06-06 09:01:37
 -   TOTAL DURATION a few seconds
 -   TOTAL LLM DURATION a few seconds
--   TOTAL COST $0.000175
+-   TOTAL COST $0
 
 ## 🗃 Index
 
@@ -24,11 +24,11 @@ _Note: Each █ represents 0.0226 seconds, width of timeline is 0.814 seconds = 
 
 ## 💸 Cost chart
 
-| Template | Cost                                 |
-| -------- | ------------------------------------ |
-| Prompt   | ████████████████████████████████████ |
+| Template | Cost |
+| -------- | ---- |
+| Prompt   |      |
 
-_Note: Each █ represents 0.00000486 USD, width of cost is 0.000175 USD = 36 squares_
+_Note: Each █ represents 0 USD, width of cost is 0 USD = 36 squares_
 
 ## 💬 Prompt
 
