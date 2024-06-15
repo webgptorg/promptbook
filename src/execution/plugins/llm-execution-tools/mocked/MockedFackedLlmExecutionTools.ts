@@ -1,11 +1,9 @@
 import type { Prompt } from '../../../../types/Prompt';
 import { getCurrentIsoDate } from '../../../../utils/getCurrentIsoDate';
-import { addPromptResultUsage } from '../../../addPromptResultUsage';
+import { addUsage } from '../../../addUsage';
 import type { CommonExecutionToolsOptions } from '../../../CommonExecutionToolsOptions';
-import type { AvailableModel } from '../../../LlmExecutionTools';
-import type { LlmExecutionTools } from '../../../LlmExecutionTools';
-import type { PromptChatResult } from '../../../PromptResult';
-import type { PromptCompletionResult } from '../../../PromptResult';
+import type { AvailableModel, LlmExecutionTools } from '../../../LlmExecutionTools';
+import type { PromptChatResult, PromptCompletionResult } from '../../../PromptResult';
 import { $fakeTextToExpectations } from './fakeTextToExpectations';
 
 /**
@@ -38,7 +36,7 @@ export class MockedFackedLlmExecutionTools implements LlmExecutionTools {
                 start: getCurrentIsoDate(),
                 complete: getCurrentIsoDate(),
             },
-            usage: addPromptResultUsage(/* <- TODO: [🧠] Compute here at least words, characters,... etc */),
+            usage: addUsage(/* <- TODO: [🧠] Compute here at least words, characters,... etc */),
             rawResponse: {
                 note: 'This is mocked echo',
             },

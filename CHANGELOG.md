@@ -314,7 +314,7 @@ Better usage computation and shape
 -   Change shape of `PromptResult.usage`
 -   Remove types `number_positive_or_zero` and `number_negative_or_zero`
 -   Export type `PromptResultUsage`, `PromptResultUsageCounts` and `UncertainNumber` from `@promptbook/types`
--   Export util `addPromptResultUsage` from `@promptbook/core`
+-   Export util `addUsage` from `@promptbook/core`
 -   Put usage directly in result of each execution
 
 ## In prepare

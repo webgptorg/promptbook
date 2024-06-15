@@ -1,9 +1,9 @@
 import { describe, expect, it } from '@jest/globals';
-import { addPromptResultUsage } from './addPromptResultUsage';
+import { addUsage } from './addUsage';
 
-describe('how addPromptResultUsage works', () => {
+describe('how addUsage works', () => {
     it('should create void usage with 0 items', () =>
-        expect(addPromptResultUsage()).toEqual({
+        expect(addUsage()).toEqual({
             price: { value: 0 },
             input: {
                 tokensCount: { value: 0 },
@@ -27,7 +27,7 @@ describe('how addPromptResultUsage works', () => {
 
     it('should preserve 1 item', () =>
         expect(
-            addPromptResultUsage({
+            addUsage({
                 price: { value: 1 },
                 input: {
                     tokensCount: { value: 20 },
@@ -72,7 +72,7 @@ describe('how addPromptResultUsage works', () => {
 
     it('should add 2 items', () =>
         expect(
-            addPromptResultUsage(
+            addUsage(
                 {
                     price: { value: 1 },
                     input: {
@@ -140,7 +140,7 @@ describe('how addPromptResultUsage works', () => {
 
     it('should add 3 items', () =>
         expect(
-            addPromptResultUsage(
+            addUsage(
                 {
                     price: { value: 1 },
                     input: {

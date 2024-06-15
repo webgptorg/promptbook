@@ -13,7 +13,7 @@ import { PromptbookReferenceError } from '../errors/PromptbookReferenceError';
 import { PromptbookSyntaxError } from '../errors/PromptbookSyntaxError';
 import { TemplateError } from '../errors/TemplateError';
 import { UnexpectedError } from '../errors/UnexpectedError';
-import { addPromptResultUsage } from '../execution/addPromptResultUsage';
+import { addUsage } from '../execution/addUsage';
 import { assertsExecutionSuccessful } from '../execution/assertsExecutionSuccessful';
 import { createPromptbookExecutor } from '../execution/createPromptbookExecutor';
 import { MultipleLlmExecutionTools } from '../execution/plugins/llm-execution-tools/multiple/MultipleLlmExecutionTools';
@@ -43,7 +43,7 @@ export { ExecutionTypes, PROMPTBOOK_VERSION };
 
 // Core utilities
 export {
-    addPromptResultUsage,
+    addUsage,
     assertsExecutionSuccessful,
     checkExpectations,
     executionReportJsonToString,

@@ -1,12 +1,12 @@
 import type { PromptResultUsage } from './PromptResult';
 
 /**
- * Function addPromptResultUsage will add multiple usages into one
+ * Function `addUsage` will add multiple usages into one
  *
  * Note: If you provide 0 values, it returns void usage
  */
 
-export function addPromptResultUsage(...usageItems: Array<PromptResultUsage>): PromptResultUsage {
+export function addUsage(...usageItems: Array<PromptResultUsage>): PromptResultUsage {
     const initialStructure: PromptResultUsage = {
         price: { value: 0 },
         input: {

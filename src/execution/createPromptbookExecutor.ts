@@ -16,7 +16,7 @@ import { PROMPTBOOK_VERSION } from '../version';
 import type { ExecutionTools } from './ExecutionTools';
 import type { PromptChatResult, PromptCompletionResult, PromptResult } from './PromptResult';
 import type { PromptbookExecutor } from './PromptbookExecutor';
-import { addPromptResultUsage } from './addPromptResultUsage';
+import { addUsage } from './addUsage';
 import { checkExpectations } from './utils/checkExpectations';
 import { replaceParameters } from './utils/replaceParameters';
 
@@ -485,9 +485,7 @@ export function createPromptbookExecutor(options: CreatePromptbookExecutorOption
         }
 
         // Note: Count usage, [🧠] Maybe put to separate function executionReportJsonToUsage
-        const usage = addPromptResultUsage(
-            ...executionReport.promptExecutions.map(({ result }) => result?.usage || addPromptResultUsage()),
-        );
+        const usage = addUsage(...executionReport.promptExecutions.map(({ result }) => result?.usage || addUsage()));
 
         return {
             isSuccessful: true,
