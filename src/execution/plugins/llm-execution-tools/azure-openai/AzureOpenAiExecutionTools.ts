@@ -6,7 +6,7 @@ import type { string_date_iso8601 } from '../../../../types/typeAliases';
 import { getCurrentIsoDate } from '../../../../utils/getCurrentIsoDate';
 import type { AvailableModel } from '../../../LlmExecutionTools';
 import type { LlmExecutionTools } from '../../../LlmExecutionTools';
-import type { PromptChatResult } from '../../../PromptResult';
+import type { PromptChatResult, PromptResultUsage } from '../../../PromptResult';
 import type { PromptCompletionResult } from '../../../PromptResult';
 import { OPENAI_MODELS } from '../openai/openai-models';
 import type { AzureOpenAiExecutionToolsOptions } from './AzureOpenAiExecutionToolsOptions';
@@ -94,7 +94,7 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools {
                 price: 'UNKNOWN' /* <- TODO: [🐞] Compute usage */,
                 inputTokens: rawResponse.usage?.promptTokens || 'UNKNOWN',
                 outputTokens: rawResponse.usage?.completionTokens || 'UNKNOWN',
-            } as const;
+            } satisfies PromptResultUsage;
 
             if (!resultContent) {
                 throw new PromptbookExecutionError('No response message from OpenAI');
@@ -166,7 +166,7 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools {
                 price: 'UNKNOWN' /* <- TODO: [🐞] Compute usage */,
                 inputTokens: rawResponse.usage.promptTokens,
                 outputTokens: rawResponse.usage.completionTokens,
-            } as const;
+            } satisfies PromptResultUsage;
 
             if (!resultContent) {
                 throw new PromptbookExecutionError('No response message from OpenAI');

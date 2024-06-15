@@ -1,6 +1,6 @@
 import type OpenAI from 'openai';
 import { PromptbookExecutionError } from '../../../../errors/PromptbookExecutionError';
-import type { PromptResult } from '../../../PromptResult';
+import type { PromptResult, PromptResultUsage, UncertainNumber } from '../../../PromptResult';
 import { OPENAI_MODELS } from './openai-models';
 
 /**
@@ -10,7 +10,7 @@ import { OPENAI_MODELS } from './openai-models';
  */
 export function computeOpenaiUsage(
     rawResponse: Pick<OpenAI.Chat.Completions.ChatCompletion | OpenAI.Completions.Completion, 'model' | 'usage'>,
-): PromptResult['usage'] {
+): PromptResultUsage {
     if (rawResponse.usage === undefined) {
         throw new PromptbookExecutionError('The usage is not defined in the response from OpenAI');
     }
@@ -28,7 +28,7 @@ export function computeOpenaiUsage(
 
     const modelInfo = OPENAI_MODELS.find((model) => model.modelName === rawResponse.model);
 
-    let price: PromptResult['usage']['price'];
+    let price: UncertainNumber;
 
     if (modelInfo === undefined || modelInfo.pricing === undefined) {
         price = 'UNKNOWN';

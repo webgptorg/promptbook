@@ -8,7 +8,7 @@ import { getCurrentIsoDate } from '../../../../utils/getCurrentIsoDate';
 import { just } from '../../../../utils/just';
 import type { AvailableModel } from '../../../LlmExecutionTools';
 import type { LlmExecutionTools } from '../../../LlmExecutionTools';
-import type { PromptChatResult } from '../../../PromptResult';
+import type { PromptChatResult, PromptResultUsage } from '../../../PromptResult';
 import type { PromptCompletionResult } from '../../../PromptResult';
 import type { AnthropicClaudeExecutionToolsOptions } from './AnthropicClaudeExecutionToolsOptions';
 import { ANTHROPIC_CLAUDE_MODELS } from './anthropic-claude-models';
@@ -87,7 +87,7 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools {
             price: 'UNKNOWN' /* <- TODO: [🐞] Compute usage */,
             inputTokens: rawResponse.usage.input_tokens,
             outputTokens: rawResponse.usage.output_tokens,
-        } as const;
+        } satisfies PromptResultUsage;
 
         if (!resultContent) {
             throw new PromptbookExecutionError('No response message from Anthropic Claude');
@@ -160,7 +160,7 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools {
         const resultContent = rawResponse.choices[0].text;
         // eslint-disable-next-line prefer-const
         complete = getCurrentIsoDate();
-        const usage = { price: 'UNKNOWN', inputTokens: 0, outputTokens: 0 /* <- TODO: [🐞] Compute usage * / } as const;
+        const usage = { price: 'UNKNOWN', inputTokens: 0, outputTokens: 0 /* <- TODO: [🐞] Compute usage * / } satisfies PromptResultUsage;
 
         if (!resultContent) {
             throw new PromptbookExecutionError('No response message from Anthropic Claude');
