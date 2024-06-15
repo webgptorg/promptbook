@@ -1,3 +1,5 @@
+// @promptbook/cli
+
 import { prettifyPromptbookStringCli } from '../conversion/prettify/prettifyPromptbookStringCli';
 
 /**

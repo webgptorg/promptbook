@@ -307,6 +307,15 @@ Repair and organize imports
 
 ## In pre-release
 
+### `0.54.0` _(2024-06-15)_
+
+Better usage computation
+
+-   Change shape of `PromptResult.usage`
+-   Remove types `number_positive_or_zero` and `number_negative_or_zero`
+-   Export type `PromptResultUsage`, `PromptResultUsageCounts` and `UncertainNumber` from `@promptbook/types`
+-   Export util `addPromptResultUsage` from `@promptbook/core`
+
 ## In prepare
 
 ### `0..0` _(2024-0-)_

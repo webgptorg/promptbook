@@ -1,8 +1,6 @@
-import type { number_positive_or_zero } from '../types/typeAliases';
-import type { number_tokens } from '../types/typeAliases';
-import type { number_usd } from '../types/typeAliases';
-import type { string_date_iso8601 } from '../types/typeAliases';
-import type { string_model_name } from '../types/typeAliases';
+import type { KebabCase } from 'type-fest';
+import { ExpectationUnit } from '../_packages/types.index';
+import type { number_positive, number_usd, string_date_iso8601, string_model_name } from '../types/typeAliases';
 
 /**
  * Prompt result is the simplest concept of execution.
@@ -59,29 +57,57 @@ export type PromptCommonResult = {
     /**
      * Usage of the prompt execution
      */
-    readonly usage: {
-        /**
-         * Cost of the execution in USD
-         *
-         * If the cost is unknown, the value is `'UNKNOWN'`
-         */
-        price: (number_positive_or_zero & number_usd) | 'UNKNOWN';
-
-        /**
-         * Number of tokens used in the input aka. `prompt_tokens`
-         */
-        inputTokens: number_tokens | 'UNKNOWN';
-
-        /**
-         * Number of tokens used in the output aka. `completion_tokens`
-         */
-        outputTokens: number_tokens | 'UNKNOWN';
-    };
+    readonly usage: PromptResultUsage;
 
     /**
      * Raw response from the model
      */
     readonly rawResponse: object;
+};
+
+/**
+ * Usage statistics for one or many prompt results
+ */
+export type PromptResultUsage = {
+    /**
+     * Cost of the execution in USD
+     *
+     * Note: If the cost is unknown, the value 0 and isUncertain is true
+     */
+    price: UncertainNumber;
+
+    /**
+     * Number of whatever used in the input aka. `prompt_tokens`
+     */
+    input: PromptResultUsageCounts;
+
+    /**
+     * Number of tokens used in the output aka. `completion_tokens`
+     */
+    output: PromptResultUsageCounts;
+};
+
+/**
+ * Record of all possible measurable units
+ */
+export type PromptResultUsageCounts = Record<`${KebabCase<'TOKENS' | ExpectationUnit>}Count`, UncertainNumber>;
+
+/**
+ * Number which can be uncertain
+ *
+ * Note: If the value is completelly unknown, the value 0 and isUncertain is true
+ * Note: Not using NaN or null because it looses the value which is better to be uncertain then not to be at all
+ */
+export type UncertainNumber = {
+    /**
+     * The numeric value
+     */
+    value: number_usd & (number_positive | 0);
+
+    /**
+     * Is the value uncertain
+     */
+    isUncertain?: true;
 };
 
 /**

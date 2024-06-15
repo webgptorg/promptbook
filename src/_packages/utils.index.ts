@@ -1,3 +1,5 @@
+// @promptbook/utils
+
 import { spaceTrim } from 'spacetrim';
 import { renderPromptbookMermaid } from '../conversion/prettify/renderPromptbookMermaid';
 import { extractParametersFromPromptTemplate } from '../conversion/utils/extractParametersFromPromptTemplate';

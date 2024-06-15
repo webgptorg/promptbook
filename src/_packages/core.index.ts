@@ -1,3 +1,5 @@
+// @promptbook/core
+
 import { prettifyPromptbookString } from '../conversion/prettify/prettifyPromptbookString';
 import { promptbookJsonToString } from '../conversion/promptbookJsonToString';
 import { promptbookStringToJson } from '../conversion/promptbookStringToJson';
@@ -11,6 +13,7 @@ import { PromptbookReferenceError } from '../errors/PromptbookReferenceError';
 import { PromptbookSyntaxError } from '../errors/PromptbookSyntaxError';
 import { TemplateError } from '../errors/TemplateError';
 import { UnexpectedError } from '../errors/UnexpectedError';
+import { addPromptResultUsage } from '../execution/addPromptResultUsage';
 import { assertsExecutionSuccessful } from '../execution/assertsExecutionSuccessful';
 import { createPromptbookExecutor } from '../execution/createPromptbookExecutor';
 import { MultipleLlmExecutionTools } from '../execution/plugins/llm-execution-tools/multiple/MultipleLlmExecutionTools';
@@ -40,6 +43,7 @@ export { ExecutionTypes, PROMPTBOOK_VERSION };
 
 // Core utilities
 export {
+    addPromptResultUsage,
     assertsExecutionSuccessful,
     checkExpectations,
     executionReportJsonToString,

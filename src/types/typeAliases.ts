@@ -480,12 +480,10 @@ export type number_usd = number;
 /**
  * Semantic helper for number of tokens
  */
-export type number_tokens = number_integer & number_positive_or_zero;
+export type number_tokens = number_integer & (number_positive | 0);
 
 export type number_positive = number;
 export type number_negative = number;
-export type number_positive_or_zero = number;
-export type number_negative_or_zero = number;
 export type number_integer = number;
 
 /**

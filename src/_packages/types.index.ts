@@ -1,3 +1,5 @@
+// @promptbook/types
+
 import type { CommonExecutionToolsOptions } from '../execution/CommonExecutionToolsOptions';
 import type { ExecutionTools } from '../execution/ExecutionTools';
 import type { AvailableModel, LlmExecutionTools } from '../execution/LlmExecutionTools';
@@ -6,6 +8,9 @@ import type {
     PromptCommonResult,
     PromptCompletionResult,
     PromptResult,
+    PromptResultUsage,
+    PromptResultUsageCounts,
+    UncertainNumber,
 } from '../execution/PromptResult';
 import type { PromptbookExecutor } from '../execution/PromptbookExecutor';
 import type { ScriptExecutionTools, ScriptExecutionToolsExecuteOptions } from '../execution/ScriptExecutionTools';
@@ -109,6 +114,8 @@ export {
     PromptCompletionResult,
     PromptDialogJson,
     PromptResult,
+    PromptResultUsage,
+    PromptResultUsageCounts,
     PromptTemplateJson,
     PromptTemplateParameterJson,
     ScriptExecutionTools,
@@ -162,11 +169,10 @@ export {
     string_url_image,
     string_version,
     TaskProgress,
+    UncertainNumber,
     UserInterfaceTools,
     UserInterfaceToolsPromptDialogOptions,
 };
-
-
 
 /**
  * TODO: Delete type aliases (from ../types/typeAliases) that are not exported here
