@@ -5,8 +5,11 @@ import type { Prompt } from '../../../../types/Prompt';
 import type { string_date_iso8601 } from '../../../../types/typeAliases';
 import { getCurrentIsoDate } from '../../../../utils/getCurrentIsoDate';
 import { computeUsageCounts } from '../../../computeUsageCounts';
-import type { AvailableModel, LlmExecutionTools } from '../../../LlmExecutionTools';
-import type { PromptChatResult, PromptCompletionResult, PromptResultUsage } from '../../../PromptResult';
+import type { AvailableModel } from '../../../LlmExecutionTools';
+import type { LlmExecutionTools } from '../../../LlmExecutionTools';
+import type { PromptChatResult } from '../../../PromptResult';
+import type { PromptCompletionResult } from '../../../PromptResult';
+import type { PromptResultUsage } from '../../../PromptResult';
 import { OPENAI_MODELS } from '../openai/openai-models';
 import type { AzureOpenAiExecutionToolsOptions } from './AzureOpenAiExecutionToolsOptions';
 

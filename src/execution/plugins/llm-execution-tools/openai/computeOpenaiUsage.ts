@@ -1,8 +1,10 @@
 import type OpenAI from 'openai';
 import { PromptbookExecutionError } from '../../../../errors/PromptbookExecutionError';
-import { Prompt } from '../../../../types/Prompt';
+import type { Prompt } from '../../../../types/Prompt';
 import { computeUsageCounts } from '../../../computeUsageCounts';
-import type { PromptResult, PromptResultUsage, UncertainNumber } from '../../../PromptResult';
+import type { PromptResult } from '../../../PromptResult';
+import type { PromptResultUsage } from '../../../PromptResult';
+import type { UncertainNumber } from '../../../PromptResult';
 import { OPENAI_MODELS } from './openai-models';
 
 /**

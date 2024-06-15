@@ -1,12 +1,10 @@
-import {
-    countCharacters,
-    countLines,
-    countPages,
-    countParagraphs,
-    countSentences,
-    countWords,
-} from '../_packages/utils.index';
-import { PromptResultUsageCounts } from './PromptResult';
+import { countCharacters } from '../utils/expectation-counters/countCharacters';
+import { countLines } from '../utils/expectation-counters/countLines';
+import { countPages } from '../utils/expectation-counters/countPages';
+import { countParagraphs } from '../utils/expectation-counters/countParagraphs';
+import { countSentences } from '../utils/expectation-counters/countSentences';
+import { countWords } from '../utils/expectation-counters/countWords';
+import type { PromptResultUsageCounts } from './PromptResult';
 
 /**
  * Helper of usage compute
