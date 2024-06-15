@@ -1,5 +1,5 @@
 import type { KebabCase } from 'type-fest';
-import { ExpectationUnit } from '../_packages/types.index';
+import type { ExpectationUnit } from '../types/PromptbookJson/PromptTemplateJson';
 import type { number_positive, number_usd, string_date_iso8601, string_model_name } from '../types/typeAliases';
 
 /**

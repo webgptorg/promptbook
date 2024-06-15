@@ -1,4 +1,4 @@
-import { PromptResultUsage } from './PromptResult';
+import type { PromptResultUsage } from './PromptResult';
 
 /**
  * Function addPromptResultUsage will add multiple usages into one

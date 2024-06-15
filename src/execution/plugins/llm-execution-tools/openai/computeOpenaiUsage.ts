@@ -1,6 +1,6 @@
 import type OpenAI from 'openai';
 import { PromptbookExecutionError } from '../../../../errors/PromptbookExecutionError';
-import type { PromptResult, PromptResultUsage, UncertainNumber } from '../../../PromptResult';
+import type { PromptResultUsage, UncertainNumber } from '../../../PromptResult';
 import { OPENAI_MODELS } from './openai-models';
 
 /**
