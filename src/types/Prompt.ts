@@ -1,8 +1,11 @@
 import type { PostprocessingFunction } from '../execution/plugins/script-execution-tools/javascript/JavascriptExecutionToolsOptions';
-import { ExpectFormatCommand } from './Command';
+import type { ExpectFormatCommand } from './Command';
 import type { ModelRequirements } from './ModelRequirements';
 import type { Expectations } from './PromptbookJson/PromptTemplateJson';
-import type { string_name, string_prompt, string_promptbook_url_with_hashtemplate, string_title } from './typeAliases';
+import type { string_name } from './typeAliases';
+import type { string_prompt } from './typeAliases';
+import type { string_promptbook_url_with_hashtemplate } from './typeAliases';
+import type { string_title } from './typeAliases';
 
 /**
  * Prompt in a text along with model requirements, but without any execution or templating logic.
