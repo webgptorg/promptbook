@@ -13,5 +13,6 @@ When adding new package, search across the repository for [➕]
 
 When deleting a package, search across the repository for [➖]
 
+-   [➖] Delete from here package.index.ts and package.readme.md
 -   [➖] Delete folder from /packages
 -   [➖] Deprecate package on NPM
