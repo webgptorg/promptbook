@@ -59,7 +59,3 @@ export function createPromptbookSublibrary(
         isResponsibleForPrompt,
     };
 }
-
-/***
- * TODO: [🍓][🚯] !!! Add to README and samples + maybe make `@promptbook/library` package
- */

@@ -22,7 +22,6 @@ import { SimplePromptInterfaceTools } from '../execution/plugins/user-interface-
 import { addUsage } from '../execution/utils/addUsage';
 import { checkExpectations, isPassingExpectations } from '../execution/utils/checkExpectations';
 import { usageToWorktime } from '../execution/utils/usageToWorktime';
-import { createPromptbookLibraryFromDirectory } from '../library/constructors/createPromptbookLibraryFromDirectory';
 import { createPromptbookLibraryFromSources } from '../library/constructors/createPromptbookLibraryFromSources';
 import { createPromptbookLibraryFromUrl } from '../library/constructors/createPromptbookLibraryFromUrl';
 import { createPromptbookSublibrary } from '../library/constructors/createPromptbookSublibrary';
@@ -57,7 +56,6 @@ export {
 
 // @promptbook/library
 export {
-    createPromptbookLibraryFromDirectory,
     createPromptbookLibraryFromSources,
     createPromptbookLibraryFromUrl,
     createPromptbookSublibrary,

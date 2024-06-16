@@ -32,7 +32,3 @@ export function createPromptbookLibraryFromSources(
     }
     return new SimplePromptbookLibrary(...promptbooks);
 }
-
-/***
- * TODO: [🍓][🚯] !!! Add to README and samples + maybe make `@promptbook/library` package
- */

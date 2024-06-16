@@ -48,8 +48,3 @@ export async function createPromptbookLibraryFromUrl(
 
     // TODO: !! Implement via createPromptbookLibraryFromPromise
 }
-
-/***
- * TODO: [⚖] Compatible with remote server
- * TODO: [🍓][🚯] !!! Add to README and samples + maybe make `@promptbook/library` package
- */

@@ -1,4 +1,4 @@
-import type { readdir as readdirType, readFile as readFileType } from 'fs/promises';
+import { readdir, readFile } from 'fs/promises';
 import { join } from 'path';
 import spaceTrim from 'spacetrim';
 import { promptbookStringToJson } from '../../conversion/promptbookStringToJson';
@@ -6,10 +6,8 @@ import { validatePromptbookJson } from '../../conversion/validation/validateProm
 import { PromptbookLibraryError } from '../../errors/PromptbookLibraryError';
 import type { PromptbookJson } from '../../types/PromptbookJson/PromptbookJson';
 import type { PromptbookString } from '../../types/PromptbookString';
-import type { string_file_path } from '../../types/typeAliases';
-import type { string_folder_path } from '../../types/typeAliases';
+import type { string_file_path, string_folder_path } from '../../types/typeAliases';
 import { isRunningInNode } from '../../utils/isRunningInWhatever';
-import { just } from '../../utils/just';
 import type { PromptbookLibrary } from '../PromptbookLibrary';
 import { createPromptbookLibraryFromPromise } from './createPromptbookLibraryFromPromise';
 
@@ -72,10 +70,6 @@ export async function createPromptbookLibraryFromDirectory(
         if (isVerbose) {
             console.info(`Creating promptbook library from path ${path}`);
         }
-
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
-        const fsPromises = require(just('fs/promises') /* <- Note: [1] */);
-        const readFile = fsPromises.readFile as typeof readFileType;
 
         const fileNames = await listAllFiles(path, isRecursive);
 
@@ -168,10 +162,6 @@ export async function createPromptbookLibraryFromDirectory(
  * @private internal function for `createPromptbookLibraryFromDirectory`
  */
 async function listAllFiles(path: string_folder_path, isRecursive: boolean): Promise<Array<string_file_path>> {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const fsPromises = require(just('fs/promises') /* <- Note: [1] */);
-    const readdir = fsPromises.readdir as typeof readdirType;
-
     const dirents = await readdir(path, {
         withFileTypes: true /* Note: This is not working: recursive: isRecursive */,
     });
@@ -187,14 +177,3 @@ async function listAllFiles(path: string_folder_path, isRecursive: boolean): Pro
 
     return fileNames;
 }
-
-/***
- * TODO: [🧠] Maybe do not do hacks like [1] and just create package @promptbook/node
- *       [🍓][🚯] maybe make `@promptbook/library` package
- * TODO: Fix the dynamic import issue in Webpack (! Not working !)
- *     > ./node_modules/@promptbook/core/esm/index.es.js
- *     > Critical dependency: the request of a dependency is an expression
- *
- * Note: [1] Using require(just('fs/promises')) to allow
- *     the `@promptbook/core` work for both Node.js and browser environments
- */

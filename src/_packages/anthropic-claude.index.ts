@@ -2,6 +2,9 @@
 
 import { AnthropicClaudeExecutionTools } from '../execution/plugins/llm-execution-tools/anthropic-claude/AnthropicClaudeExecutionTools';
 import { AnthropicClaudeExecutionToolsOptions } from '../execution/plugins/llm-execution-tools/anthropic-claude/AnthropicClaudeExecutionToolsOptions';
+import { PROMPTBOOK_VERSION } from '../version';
+
+export { PROMPTBOOK_VERSION };
 
 export { AnthropicClaudeExecutionTools, AnthropicClaudeExecutionToolsOptions };
 

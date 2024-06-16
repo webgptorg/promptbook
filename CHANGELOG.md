@@ -322,6 +322,7 @@ Rename and reorganize libraries
 
 -   Take `createPromptbookLibraryFromDirectory` from `@promptbook/core` -> `@promptbook/node` (to avoid dependency risk errors)
 -   Rename `@promptbook/mocked` -> `@promptbook/mocked-llm`
+-   Export `PROMPTBOOK_VERSION` from each package
 
 ## In pre-release
 
