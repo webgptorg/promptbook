@@ -36,11 +36,8 @@ npm i @promptbook/azure-openai
 ## 🧡 Usage
 
 ```typescript
-import {
-    createPromptbookExecutor,
-    createPromptbookLibraryFromDirectory,
-    assertsExecutionSuccessful,
-} from '@promptbook/core';
+import { createPromptbookExecutor, assertsExecutionSuccessful } from '@promptbook/core';
+import { createPromptbookLibraryFromDirectory } from '@promptbook/node';
 import { JavascriptExecutionTools } from '@promptbook/execute-javascript';
 import { OpenAiExecutionTools } from '@promptbook/openai';
 
@@ -83,11 +80,8 @@ console.info(outputParameters);
 You can use multiple LLM providers in one Promptbook execution. The best model will be chosen automatically according to the prompt and the model's capabilities.
 
 ```typescript
-import {
-    createPromptbookExecutor,
-    createPromptbookLibraryFromDirectory,
-    assertsExecutionSuccessful,
-} from '@promptbook/core';
+import { createPromptbookExecutor, assertsExecutionSuccessful } from '@promptbook/core';
+import { createPromptbookLibraryFromDirectory } from '@promptbook/node';
 import { JavascriptExecutionTools } from '@promptbook/execute-javascript';
 import { OpenAiExecutionTools } from '@promptbook/openai';
 
