@@ -89,7 +89,7 @@ import type { FromtoItems } from '../utils/FromtoItems';
 import { PROMPTBOOK_VERSION } from '../version';
 
 // Note: Exporting version from each package
-export {
+export type {
     AvailableModel,
     client_id,
     CommonExecutionToolsOptions,
