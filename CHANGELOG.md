@@ -305,8 +305,6 @@ Repair and organize imports
 
 -   Custom errors `ExpectError`,`NotFoundError`,`PromptbookExecutionError`,`PromptbookLogicError`,`PromptbookLibraryError`,`PromptbookSyntaxError` exported from `@promptbook/core`
 
-## In pre-release
-
 ### `0.55.0` _(2024-06-15)_
 
 Better usage computation and shape
@@ -317,6 +315,21 @@ Better usage computation and shape
 -   Export util `addUsage` from `@promptbook/core`
 -   Put usage directly in result of each execution
 -   Export function `usageToWorktime` from `@promptbook/core`
+
+### `0.56.0` _(2024-06-15)_
+
+Rename and reorganize libraries
+
+-   Take `createPromptbookLibraryFromDirectory` from `@promptbook/core` -> `@promptbook/node` (to avoid dependency risk errors)
+-   Rename `@promptbook/mocked` -> `@promptbook/mocked-llm`
+
+## In pre-release
+
+### `0.57.0` _(2024-06-15)_
+
+Better JSON Mode
+
+-   `OpenAiExecutionTools` will use JSON mode natively
 
 ## In prepare
 
