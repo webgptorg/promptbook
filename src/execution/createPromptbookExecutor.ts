@@ -14,9 +14,7 @@ import type { string_name } from '../types/typeAliases';
 import { isValidJsonString } from '../utils/isValidJsonString';
 import { PROMPTBOOK_VERSION } from '../version';
 import type { ExecutionTools } from './ExecutionTools';
-import type { PromptChatResult } from './PromptResult';
-import type { PromptCompletionResult } from './PromptResult';
-import type { PromptResult } from './PromptResult';
+import type { PromptChatResult, PromptCompletionResult, PromptResult } from './PromptResult';
 import type { PromptbookExecutor } from './PromptbookExecutor';
 import { addUsage } from './utils/addUsage';
 import { checkExpectations } from './utils/checkExpectations';
@@ -144,6 +142,7 @@ export function createPromptbookExecutor(options: CreatePromptbookExecutorOption
                                     content: replaceParameters(currentTemplate.content, parametersToPass) /* <- [2] */,
                                     modelRequirements: currentTemplate.modelRequirements!,
                                     expectations: currentTemplate.expectations,
+                                    expectFormat: currentTemplate.expectFormat,
                                     postprocessing: (currentTemplate.postprocessing || []).map(
                                         (functionName) => async (result: string) => {
                                             // TODO: DRY [☯]
@@ -370,6 +369,7 @@ export function createPromptbookExecutor(options: CreatePromptbookExecutorOption
                                 content: prompt.content,
                                 modelRequirements: prompt.modelRequirements,
                                 expectations: prompt.expectations,
+                                expectFormat: prompt.expectFormat,
                                 // <- Note: Do want to pass ONLY wanted information to the report
                             },
                             result: result || undefined,
