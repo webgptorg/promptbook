@@ -105,9 +105,7 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools {
                 },
             } satisfies PromptResultUsage;
 
-            if (!resultContent) {
-                throw new PromptbookExecutionError('No response message from OpenAI');
-            }
+
 
             return {
                 content: resultContent,
@@ -184,9 +182,7 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools {
                 },
             } satisfies PromptResultUsage;
 
-            if (!resultContent) {
-                throw new PromptbookExecutionError('No response message from OpenAI');
-            }
+       
 
             return {
                 content: resultContent,

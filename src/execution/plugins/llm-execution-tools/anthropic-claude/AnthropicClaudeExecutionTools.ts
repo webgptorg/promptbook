@@ -98,9 +98,7 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools {
             },
         } satisfies PromptResultUsage;
 
-        if (!resultContent) {
-            throw new PromptbookExecutionError('No response message from Anthropic Claude');
-        }
+
 
         return {
             content: resultContent,
@@ -171,9 +169,7 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools {
         complete = getCurrentIsoDate();
         const usage = { price: 'UNKNOWN', inputTokens: 0, outputTokens: 0 /* <- TODO: [🐞] Compute usage * / } satisfies PromptResultUsage;
 
-        if (!resultContent) {
-            throw new PromptbookExecutionError('No response message from Anthropic Claude');
-        }
+
 
         return {
             content: resultContent,

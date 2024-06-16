@@ -4,10 +4,8 @@ import { PromptbookExecutionError } from '../../../../errors/PromptbookExecution
 import type { Prompt } from '../../../../types/Prompt';
 import type { string_date_iso8601 } from '../../../../types/typeAliases';
 import { getCurrentIsoDate } from '../../../../utils/getCurrentIsoDate';
-import type { AvailableModel } from '../../../LlmExecutionTools';
-import type { LlmExecutionTools } from '../../../LlmExecutionTools';
-import type { PromptChatResult } from '../../../PromptResult';
-import type { PromptCompletionResult } from '../../../PromptResult';
+import type { AvailableModel, LlmExecutionTools } from '../../../LlmExecutionTools';
+import type { PromptChatResult, PromptCompletionResult } from '../../../PromptResult';
 import { computeOpenaiUsage } from './computeOpenaiUsage';
 import { OPENAI_MODELS } from './openai-models';
 import type { OpenAiExecutionToolsOptions } from './OpenAiExecutionToolsOptions';
@@ -101,7 +99,7 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
         complete = getCurrentIsoDate();
         const usage = computeOpenaiUsage(content, resultContent || '', rawResponse);
 
-        if (!resultContent) {
+        if (resultContent === null) {
             throw new PromptbookExecutionError('No response message from OpenAI');
         }
 
@@ -169,10 +167,6 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
         // eslint-disable-next-line prefer-const
         complete = getCurrentIsoDate();
         const usage = computeOpenaiUsage(content, resultContent || '', rawResponse);
-
-        if (!resultContent) {
-            throw new PromptbookExecutionError('No response message from OpenAI');
-        }
 
         return {
             content: resultContent,
