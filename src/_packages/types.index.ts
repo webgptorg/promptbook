@@ -89,6 +89,12 @@ import type { FromtoItems } from '../utils/FromtoItems';
 import { PROMPTBOOK_VERSION } from '../version';
 
 // Note: Exporting version from each package
+export { PROMPTBOOK_VERSION };
+
+// Note: Non-types
+export { EXPECTATION_UNITS };
+
+// Note: Types
 export type {
     AvailableModel,
     client_id,
@@ -96,7 +102,6 @@ export type {
     ExecutionReportJson,
     ExecutionTools,
     ExecutionType,
-    EXPECTATION_UNITS,
     ExpectationAmount,
     Expectations,
     ExpectationUnit,
@@ -107,7 +112,6 @@ export type {
     ModelVariant,
     Parameters,
     Prompt,
-    PROMPTBOOK_VERSION,
     PromptbookExecutor,
     PromptbookJson,
     PromptbookLibrary,
