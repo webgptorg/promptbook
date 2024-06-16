@@ -4,10 +4,8 @@ import { PromptbookExecutionError } from '../../../../errors/PromptbookExecution
 import type { Prompt } from '../../../../types/Prompt';
 import type { string_date_iso8601 } from '../../../../types/typeAliases';
 import { getCurrentIsoDate } from '../../../../utils/getCurrentIsoDate';
-import type { AvailableModel } from '../../../LlmExecutionTools';
-import type { LlmExecutionTools } from '../../../LlmExecutionTools';
-import type { PromptChatResult } from '../../../PromptResult';
-import type { PromptCompletionResult } from '../../../PromptResult';
+import type { AvailableModel, LlmExecutionTools } from '../../../LlmExecutionTools';
+import type { PromptChatResult, PromptCompletionResult } from '../../../PromptResult';
 import { computeOpenaiUsage } from './computeOpenaiUsage';
 import { OPENAI_MODELS } from './openai-models';
 import type { OpenAiExecutionToolsOptions } from './OpenAiExecutionToolsOptions';
@@ -43,7 +41,7 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
         prompt: Pick<Prompt, 'content' | 'modelRequirements' | 'expectFormat'>,
     ): Promise<PromptChatResult> {
         if (this.options.isVerbose) {
-            console.info('💬 OpenAI gptChat call');
+            console.info('💬 OpenAI gptChat call', { prompt });
         }
 
         const { content, modelRequirements, expectFormat } = prompt;
@@ -123,7 +121,7 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
      */
     public async gptComplete(prompt: Pick<Prompt, 'content' | 'modelRequirements'>): Promise<PromptCompletionResult> {
         if (this.options.isVerbose) {
-            console.info('🖋 OpenAI gptComplete call');
+            console.info('🖋 OpenAI gptComplete call', { prompt });
         }
 
         const { content, modelRequirements } = prompt;
