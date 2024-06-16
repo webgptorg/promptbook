@@ -234,7 +234,7 @@ Reorganize packages
 
 -   New package `promptbook` as a link to all other packages
 -   New package `ptbk` as an alias to `promptbook`
--   New package `@promptbook/mock`
+-   New package `@promptbook/fake-llm`
     -   Move there `MockedEchoLlmExecutionTools` and `MockedFackedLlmExecutionTools` from `@promptbook/core`
 -   New package `@promptbook/langtail` to prepare for [Langtail](https://langtail.com/) integration
 
@@ -321,7 +321,7 @@ Better usage computation and shape
 Rename and reorganize libraries
 
 -   Take `createPromptbookLibraryFromDirectory` from `@promptbook/core` -> `@promptbook/node` (to avoid dependency risk errors)
--   Rename `@promptbook/mocked` -> `@promptbook/fake-llm`
+-   Rename `@promptbook/fake-llmed` -> `@promptbook/fake-llm`
 -   Export `PROMPTBOOK_VERSION` from each package
 -   Use `export type` in `@promptbook/types`
 

@@ -1,4 +1,4 @@
-Core of the library, it contains the main logic for promptbooks.
+Core of the library for Node.js, it contains the main logic for promptbooks which uses filesystem.
 
 <!-- TODO: Maybe dont show whole README, just following message -->
 

@@ -2,22 +2,15 @@
 
 Library to supercharge your use of large language models
 
-
-
-
 [![NPM Version of ![Promptbook logo - cube with letters P and B](./other/design/logo-h1.png) Promptbook](https://badge.fury.io/js/promptbook.svg)](https://www.npmjs.com/package/promptbook)
 [![Quality of package ![Promptbook logo - cube with letters P and B](./other/design/logo-h1.png) Promptbook](https://packagequality.com/shield/promptbook.svg)](https://packagequality.com/#?package=promptbook)
 [![Known Vulnerabilities](https://snyk.io/test/github/webgptorg/promptbook/badge.svg)](https://snyk.io/test/github/webgptorg/promptbook)
 [![Issues](https://img.shields.io/github/issues/webgptorg/promptbook.svg?style=flat)](https://github.com/webgptorg/promptbook/issues)
 
-
-
-
-
 ## 📦 Package `@promptbook/utils`
 
-- Promptbooks are [divided into several](#-packages) packages, all are published from [single monorepo](https://github.com/webgptorg/promptbook).
-- This package `@promptbook/utils` is one part of the promptbook ecosystem.
+-   Promptbooks are [divided into several](#-packages) packages, all are published from [single monorepo](https://github.com/webgptorg/promptbook).
+-   This package `@promptbook/utils` is one part of the promptbook ecosystem.
 
 To install this package, run:
 
@@ -38,7 +31,7 @@ Here is a overview of the functions which are exported from the `@promptbook/uti
 Sometimes you need to postprocess the output of the LLM model, every postprocessing function that is available through `POSTPROCESS` command in promptbook is exported from `@promptbook/utils`. You can use:
 
 `spaceTrim`,
-`extractAllBlocksFromMarkdown`, 
+`extractAllBlocksFromMarkdown`,
 `extractAllListItemsFromMarkdown`,
 `extractBlock` ,
 `extractOneBlockFromMarkdown`,
@@ -143,21 +136,16 @@ console.log(normalizeTo['kebab-case']('Hello, world!')); // 'hello-world'
 
 See also the documentation for all the functions in the `@promptbook/utils` package, every function is documented by jsdoc, typed by typescript and tested by jest.
 
-
-
 `assertsExecutionSuccessful`,
 `checkExpectations`,
 `executionReportJsonToString`,
 `isPassingExpectations`,
 `isValidJsonString`,
-`parseNumber` 
-
+`parseNumber`
 
 ---
 
 Rest of the documentation is common for **entire promptbook ecosystem**:
-
-
 
 ## 🤍 The Promptbook Whitepaper
 
@@ -191,13 +179,9 @@ In any of these situations, but especially in (3), the Promptbook library can ma
 -   _(Not ready yet)_ Leverage the **streaming** to make super cool UI/UX.
 -   _(Not ready yet)_ **A/B testing** to determine which prompt works best for the job.
 
-
-
 ### Sample:
 
 File `write-website-content.ptbk.md`:
-
-
 
 > # 🌍 Create website content
 >
@@ -368,8 +352,6 @@ File `write-website-content.ptbk.md`:
 >
 > `-> {content}`
 
-
-
 Following is the scheme how the promptbook above is executed:
 
 ```mermaid
@@ -432,8 +414,6 @@ Or you can install them separately:
 
 > ⭐ Marked packages are worth to try first
 
-
-
 -   ⭐ **[ptbk](https://www.npmjs.com/package/ptbk)** - Bundle of all packages, when you want to install everything and you don't care about the size
 -   **[promptbook](https://www.npmjs.com/package/promptbook)** - Same as `ptbk`
 -   **[@promptbook/core](https://www.npmjs.com/package/@promptbook/core)** - Core of the library, it contains the main logic for promptbooks
@@ -441,16 +421,14 @@ Or you can install them separately:
 -   _(Not finished)_ **[@promptbook/wizzard](https://www.npmjs.com/package/@promptbook/wizzard)** - Wizard for creating+running promptbooks in single line
 -   **[@promptbook/execute-javascript](https://www.npmjs.com/package/@promptbook/execute-javascript)** - Execution tools for javascript inside promptbooks
 -   **[@promptbook/openai](https://www.npmjs.com/package/@promptbook/openai)** - Execution tools for OpenAI API, wrapper around OpenAI SDK
--   **[@promptbook/anthropic-claude](https://www.npmjs.com/package/@promptbook/anthropic-claude)** - Execution tools for Anthropic Claude API, wrapper around Anthropic Claude SDK 
+-   **[@promptbook/anthropic-claude](https://www.npmjs.com/package/@promptbook/anthropic-claude)** - Execution tools for Anthropic Claude API, wrapper around Anthropic Claude SDK
 -   **[@promptbook/azure-openai](https://www.npmjs.com/package/@promptbook/azure-openai)** - Execution tools for Azure OpenAI API
 -   **[@promptbook/langtail](https://www.npmjs.com/package/@promptbook/langtail)** - Execution tools for Langtail API, wrapper around Langtail SDK
--   **[@promptbook/mock](https://www.npmjs.com/package/@promptbook/mock)** - Mocked execution tools for testing the library and saving the tokens
+-   **[@promptbook/fake-llm](https://www.npmjs.com/package/@promptbook/fake-llm)** - Mocked execution tools for testing the library and saving the tokens
 -   **[@promptbook/remote-client](https://www.npmjs.com/package/@promptbook/remote-client)** - Remote client for remote execution of promptbooks
 -   **[@promptbook/remote-server](https://www.npmjs.com/package/@promptbook/remote-server)** - Remote server for remote execution of promptbooks
 -   **[@promptbook/types](https://www.npmjs.com/package/@promptbook/types)** - Just typescript types used in the library
 -   **[@promptbook/cli](https://www.npmjs.com/package/@promptbook/cli)** - Command line interface utilities for promptbooks
-
-
 
 ## 📚 Dictionary
 
@@ -574,8 +552,6 @@ For example:
 
 ### Execution Tools
 
-
-
 `ExecutionTools` is an interface which contains all the tools needed to execute prompts.
 It contais 3 subtools:
 
@@ -622,14 +598,14 @@ There are [postprocessing functions](#postprocessing-functions) that can be used
 
 -   _(Not implemented yet)_ `ConsoleInterfaceTools` is a wrapper around `readline` module that interacts with the user via console.
 -   `SimplePromptInterfaceTools` is a wrapper around `window.prompt` synchronous function that interacts with the user via browser prompt. It is used for testing and mocking **NOT intended to use in the production** due to its synchronous nature.
--   `CallbackInterfaceTools` delagates the user interaction to a async callback function. You need to provide your own implementation of this callback function and its bind to UI. 
+-   `CallbackInterfaceTools` delagates the user interaction to a async callback function. You need to provide your own implementation of this callback function and its bind to UI.
 
 ### Executor
 
 Executor is a simple async function that takes **input parameters** and returns **output parameters**.
 It is constructed by combining execution tools and promptbook to execute together.
 
-### 🃏 Jokers (conditions) 
+### 🃏 Jokers (conditions)
 
 Joker is a previously defined parameter that is used to bypass some parts of the pipeline.
 If the joker is present in the template, it is checked to see if it meets the requirements (without postprocessing), and if so, it is used instead of executing that prompt template. There can be multiple wildcards in a prompt template, if so they are checked in order and the first one that meets the requirements is used.
@@ -690,17 +666,11 @@ There are two types of expectations which are not strictly symmetrical:
 
 Look at [expectations.ptbk.md](samples/templates/45-expectations.ptbk.md) and [expect-json.ptbk.md](samples/templates/45-expect-json.ptbk.md) samples for more.
 
-
-
 ### Execution report
 
 Execution report is a simple object or markdown that contains information about the execution of the promptbook.
 
 [See the example of such a report](/samples/templates/50-advanced.report.md)
-
-
-
-
 
 ### Remote server
 
@@ -710,8 +680,6 @@ You can simply use `RemoteExecutionTools` on client-side javascript and connect 
 This is useful to make all logic on browser side but not expose your API keys or no need to use customer's GPU.
 
 ## 👨‍💻 Usage and integration _(for developers)_
-
-
 
 ### 🔌 Usage in Typescript / Javascript
 
@@ -736,11 +704,7 @@ This is useful to make all logic on browser side but not expose your API keys or
 
 ## 🐜 Known issues
 
-
-
 ## 🧼 Intentionally not implemented features
-
-
 
 ## ❔ FAQ
 
@@ -756,25 +720,9 @@ Langchain is primarily aimed at ML developers working in Python. This library is
 
 We are considering creating a bridge/converter between these two libraries.
 
-
-
 ### Promptbooks vs. OpenAI`s GPTs
 
 GPTs are chat assistants that can be assigned to specific tasks and materials. But they are still chat assistants. Promptbooks are a way to orchestrate many more predefined tasks to have much tighter control over the process. Promptbooks are not a good technology for creating human-like chatbots, GPTs are not a good technology for creating outputs with specific requirements.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 ### Where should I store my promptbooks?
 
@@ -796,10 +744,6 @@ In large language models, you will get better results if you have prompts in the
 
 The best way to manage this is to have suffixed promptbooks like `write-website-content.en.ptbk.md` and `write-website-content.cs.ptbk.md` for each supported language.
 
-
-
-
-
 ## ⌚ Changelog
 
 See [CHANGELOG.md](./CHANGELOG.md)
@@ -811,9 +755,6 @@ See [CHANGELOG.md](./CHANGELOG.md)
 ## 🎯 Todos
 
 See [TODO.md](./TODO.md)
-
-
-
 
 ## 🖋️ Contributing
 

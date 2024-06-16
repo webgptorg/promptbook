@@ -49,7 +49,7 @@ jobs:
               run: npm publish --access public
               env:
                   NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
-            - name: Publish @promptbook/mock
+            - name: Publish @promptbook/fake-llm
               working-directory: ./packages/mock
               run: npm publish --access public
               env:

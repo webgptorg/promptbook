@@ -50,7 +50,7 @@
         "@promptbook/core": "0.55.0",
         "@promptbook/execute-javascript": "0.55.0",
         "@promptbook/langtail": "0.55.0",
-        "@promptbook/mock": "0.55.0",
+        "@promptbook/fake-llm": "0.55.0",
         "@promptbook/openai": "0.55.0",
         "@promptbook/remote-client": "0.55.0",
         "@promptbook/remote-server": "0.55.0",
