@@ -1,10 +1,8 @@
-import type { string_name } from './typeAliases';
-import type { string_prompt } from './typeAliases';
-import type { string_promptbook_url_with_hashtemplate } from './typeAliases';
-import type { string_title } from './typeAliases';
 import type { PostprocessingFunction } from '../execution/plugins/script-execution-tools/javascript/JavascriptExecutionToolsOptions';
+import { ExpectFormatCommand } from './Command';
 import type { ModelRequirements } from './ModelRequirements';
 import type { Expectations } from './PromptbookJson/PromptTemplateJson';
+import type { string_name, string_prompt, string_promptbook_url_with_hashtemplate, string_title } from './typeAliases';
 
 /**
  * Prompt in a text along with model requirements, but without any execution or templating logic.
@@ -44,6 +42,14 @@ export type Prompt = {
      * If not set, nothing is expected from the answer
      */
     readonly expectations?: Expectations;
+
+    /**
+     * Expect this format of the answer
+     *
+     * Note: Expectations are performed after all postprocessing steps
+     * @deprecated [💝]
+     */
+    readonly expectFormat?: ExpectFormatCommand['format'];
 
     /**
      * Unique identifier of the promptbook with specific template name as hash

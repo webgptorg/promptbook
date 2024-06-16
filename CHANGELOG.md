@@ -316,7 +316,7 @@ Better usage computation and shape
 -   Put usage directly in result of each execution
 -   Export function `usageToWorktime` from `@promptbook/core`
 
-### `0.56.0` _(2024-06-15)_
+### `0.56.0` _(2024-06-16)_
 
 Rename and reorganize libraries
 
@@ -327,7 +327,7 @@ Rename and reorganize libraries
 
 ## In pre-release
 
-### `0.57.0` _(2024-06-15)_
+### `0.57.0` _(2024-06-)_
 
 Better JSON Mode
 

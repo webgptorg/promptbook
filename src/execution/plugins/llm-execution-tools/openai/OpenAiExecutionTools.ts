@@ -4,10 +4,8 @@ import { PromptbookExecutionError } from '../../../../errors/PromptbookExecution
 import type { Prompt } from '../../../../types/Prompt';
 import type { string_date_iso8601 } from '../../../../types/typeAliases';
 import { getCurrentIsoDate } from '../../../../utils/getCurrentIsoDate';
-import type { AvailableModel } from '../../../LlmExecutionTools';
-import type { LlmExecutionTools } from '../../../LlmExecutionTools';
-import type { PromptChatResult } from '../../../PromptResult';
-import type { PromptCompletionResult } from '../../../PromptResult';
+import type { AvailableModel, LlmExecutionTools } from '../../../LlmExecutionTools';
+import type { PromptChatResult, PromptCompletionResult } from '../../../PromptResult';
 import { computeOpenaiUsage } from './computeOpenaiUsage';
 import { OPENAI_MODELS } from './openai-models';
 import type { OpenAiExecutionToolsOptions } from './OpenAiExecutionToolsOptions';
@@ -39,12 +37,14 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
     /**
      * Calls OpenAI API to use a chat model.
      */
-    public async gptChat(prompt: Pick<Prompt, 'content' | 'modelRequirements'>): Promise<PromptChatResult> {
+    public async gptChat(
+        prompt: Pick<Prompt, 'content' | 'modelRequirements' | 'expectFormat'>,
+    ): Promise<PromptChatResult> {
         if (this.options.isVerbose) {
             console.info('💬 OpenAI gptChat call');
         }
 
-        const { content, modelRequirements } = prompt;
+        const { content, modelRequirements, expectFormat } = prompt;
 
         // TODO: [☂] Use here more modelRequirements
         if (modelRequirements.modelVariant !== 'CHAT') {
@@ -55,8 +55,15 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
         const modelSettings = {
             model,
             max_tokens: modelRequirements.maxTokens,
-            //                                      <- TODO: Make some global max cap for maxTokens
-        };
+            //                                   <- TODO: Make some global max cap for maxTokens
+        } as OpenAI.Chat.Completions.CompletionCreateParamsNonStreaming; // <- TODO: Guard here types better
+
+        if (expectFormat === 'JSON') {
+            modelSettings.response_format = {
+                type: 'json_object',
+            };
+        }
+
         const rawRequest: OpenAI.Chat.Completions.CompletionCreateParamsNonStreaming = {
             ...modelSettings,
             messages: [
