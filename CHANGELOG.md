@@ -332,6 +332,7 @@ Rename and reorganize libraries
 Better JSON Mode
 
 -   `OpenAiExecutionTools` will use JSON mode natively
+-   `OpenAiExecutionTools` Do not fail on empty _(but valid string)_ responses
 
 ## In prepare
 
