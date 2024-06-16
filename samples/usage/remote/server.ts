@@ -1,6 +1,6 @@
 #!/usr/bin/env ts-node
 
-import { createPromptbookLibraryFromDirectory } from '@promptbook/core';
+import { createPromptbookLibraryFromDirectory } from '@promptbook/node';
 import { OpenAiExecutionTools } from '@promptbook/openai';
 import { startRemoteServer } from '@promptbook/remote-server';
 import colors from 'colors';

@@ -1,12 +1,8 @@
 #!/usr/bin/env ts-node
 
-import {
-    assertsExecutionSuccessful,
-    createPromptbookExecutor,
-    createPromptbookLibraryFromDirectory,
-    executionReportJsonToString,
-} from '@promptbook/core';
+import { assertsExecutionSuccessful, createPromptbookExecutor, executionReportJsonToString } from '@promptbook/core';
 import { JavascriptExecutionTools } from '@promptbook/execute-javascript';
+import { createPromptbookLibraryFromDirectory } from '@promptbook/node';
 import { OpenAiExecutionTools } from '@promptbook/openai';
 import colors from 'colors';
 import * as dotenv from 'dotenv';

@@ -8,6 +8,7 @@ import {
     createPromptbookLibraryFromDirectory,
     assertsExecutionSuccessful,
 } from '@promptbook/core';
+import { createPromptbookLibraryFromDirectory } from '@promptbook/node';
 import { JavascriptExecutionTools } from '@promptbook/execute-javascript';
 import { OpenAiExecutionTools } from '@promptbook/openai';
 
