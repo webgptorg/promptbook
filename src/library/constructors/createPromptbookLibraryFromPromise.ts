@@ -23,7 +23,7 @@ import { createPromptbookLibraryFromSources } from './createPromptbookLibraryFro
  *
  * @param promptbookSourcesPromiseOrFactory
  * @returns PromptbookLibrary
- * @private Just internal tool for other constructor functions
+ * @deprecated Do not use, it will became internal tool for other constructor functions
  */
 export function createPromptbookLibraryFromPromise(
     promptbookSourcesPromiseOrFactory:

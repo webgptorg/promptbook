@@ -22,10 +22,10 @@ import { SimplePromptInterfaceTools } from '../execution/plugins/user-interface-
 import { addUsage } from '../execution/utils/addUsage';
 import { checkExpectations, isPassingExpectations } from '../execution/utils/checkExpectations';
 import { usageToWorktime } from '../execution/utils/usageToWorktime';
+import { createPromptbookLibraryFromPromise } from '../library/constructors/createPromptbookLibraryFromPromise';
 import { createPromptbookLibraryFromSources } from '../library/constructors/createPromptbookLibraryFromSources';
 import { createPromptbookLibraryFromUrl } from '../library/constructors/createPromptbookLibraryFromUrl';
 import { createPromptbookSublibrary } from '../library/constructors/createPromptbookSublibrary';
-import { justTestFsImport } from '../library/constructors/justTestFsImport';
 import { SimplePromptbookLibrary } from '../library/SimplePromptbookLibrary';
 import { executionReportJsonToString } from '../types/execution-report/executionReportJsonToString';
 import {
@@ -37,10 +37,6 @@ import { PROMPTBOOK_VERSION } from '../version';
 
 // Note: Exporting version from each package
 export { PROMPTBOOK_VERSION };
-
-
-// Just test
-export { justTestFsImport };
 
 // @promptbook/core
 export { ExecutionTypes };
@@ -60,6 +56,7 @@ export {
 
 // @promptbook/library
 export {
+    createPromptbookLibraryFromPromise,
     createPromptbookLibraryFromSources,
     createPromptbookLibraryFromUrl,
     createPromptbookSublibrary,
