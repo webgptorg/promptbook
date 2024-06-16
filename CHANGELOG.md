@@ -321,7 +321,7 @@ Better usage computation and shape
 Rename and reorganize libraries
 
 -   Take `createPromptbookLibraryFromDirectory` from `@promptbook/core` -> `@promptbook/node` (to avoid dependency risk errors)
--   Rename `@promptbook/mocked` -> `@promptbook/mocked-llm`
+-   Rename `@promptbook/mocked` -> `@promptbook/fake-llm`
 -   Export `PROMPTBOOK_VERSION` from each package
 -   Use `export type` in `@promptbook/types`
 
