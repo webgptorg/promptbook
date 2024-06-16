@@ -85,8 +85,10 @@ import type {
     string_url_image,
     string_version,
 } from '../types/typeAliases';
-import { FromtoItems } from '../utils/FromtoItems';
+import type { FromtoItems } from '../utils/FromtoItems';
+import { PROMPTBOOK_VERSION } from '../version';
 
+// Note: Exporting version from each package
 export {
     AvailableModel,
     client_id,
@@ -105,6 +107,7 @@ export {
     ModelVariant,
     Parameters,
     Prompt,
+    PROMPTBOOK_VERSION,
     PromptbookExecutor,
     PromptbookJson,
     PromptbookLibrary,

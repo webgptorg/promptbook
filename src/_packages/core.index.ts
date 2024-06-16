@@ -35,11 +35,15 @@ import {
 import { ExecutionTypes } from '../types/ExecutionTypes';
 import { PROMPTBOOK_VERSION } from '../version';
 
+// Note: Exporting version from each package
+export { PROMPTBOOK_VERSION };
+
+
 // Just test
 export { justTestFsImport };
 
 // @promptbook/core
-export { ExecutionTypes, PROMPTBOOK_VERSION };
+export { ExecutionTypes };
 
 // Core utilities
 export {
