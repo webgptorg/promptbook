@@ -46,5 +46,6 @@ export async function createPromptbookLibraryFromUrl(
 
     return library;
 
+    // TODO: Look at WebGPT "📖 Make Promptbook library" and https://webgpt.cz/_promptbook-library.json
     // TODO: !! Implement via createPromptbookLibraryFromPromise
 }
