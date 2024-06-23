@@ -9,7 +9,7 @@ importers:
   .:
     dependencies:
       '@anthropic-ai/sdk':
-        specifier: ^0.21.1
+        specifier: 0.21.1
         version: 0.21.1
       '@azure/openai':
         specifier: 1.0.0-beta.12
@@ -51,8 +51,8 @@ importers:
         specifier: 4.5.0
         version: 4.5.0
       waitasecond:
-        specifier: 1.11.71
-        version: 1.11.71(typescript@4.3.4)
+        specifier: 1.11.80
+        version: 1.11.80(typescript@4.3.4)
     devDependencies:
       '@rollup/plugin-typescript':
         specifier: 8.3.0
@@ -2081,8 +2081,8 @@ packages:
     resolution: {integrity: sha512-4tzD0mF8iSiMiNs30BiLO3EpfGLZUT2MSX/G+o7ZywDzliWQ3OPtTZ0PTC3B3ca1UAf4cJMHB+2Bf56EriJuRA==}
     engines: {node: '>=10'}
 
-  waitasecond@1.11.71:
-    resolution: {integrity: sha512-VgR87HwgkdP/JCQpuOJmdSyFlTLAzzrT5/LiVlLMiDbqXK1WlcKZoLWtjSa8vATOChJJJCdMv7N4mUabveoY7w==}
+  waitasecond@1.11.80:
+    resolution: {integrity: sha512-80P6Ix3ttdqSJpLn/Em4/+EbD7JOwo4uD6bj3A6GER9zcA+oyapi4ORQn4lDorkhnlIRbxER3XnLZByUvP7L3A==}
 
   walker@1.0.8:
     resolution: {integrity: sha512-ts/8E8l5b7kY0vlWLewOkDXMmPdLcVV4GmOQLyxuSswIJsweeFZtAsMF7k1Nszz+TYBQrlYRmzOnr398y1JemQ==}
@@ -4611,7 +4611,7 @@ snapshots:
     dependencies:
       xml-name-validator: 3.0.0
 
-  waitasecond@1.11.71(typescript@4.3.4):
+  waitasecond@1.11.80(typescript@4.3.4):
     dependencies:
       ts-essentials: 8.1.0(typescript@4.3.4)
     transitivePeerDependencies:
