@@ -1,3 +1,3 @@
 module.exports = {
-    ignoreWorkflows: ['organizeImports', 'contributing', 'partners', 'license', 'badges', 'publishPatchVersion'],
+    ignoreWorkflows: ['organizeImports', 'contributing', 'partners', 'license', 'badges'],
 };
