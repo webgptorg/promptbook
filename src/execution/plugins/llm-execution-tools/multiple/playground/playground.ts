@@ -26,8 +26,7 @@ async function playground() {
     // Do here stuff you want to test
     //========================================>
 
-    // TODO: !!!! Filter and use as sample in READMEs - first sample just one second with MultipleLlmExecutionTools third link remote
-    const executionTools = new MultipleLlmExecutionTools(
+    const tools = new MultipleLlmExecutionTools(
         new OpenAiExecutionTools({
             isVerbose: true,
             apiKey: process.env.OPENAI_API_KEY!,
@@ -47,7 +46,7 @@ async function playground() {
     );
 
     /**/
-    const models = await executionTools.listModels();
+    const models = await tools.listModels();
     console.info({ models });
     /**/
 

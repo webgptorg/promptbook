@@ -5,11 +5,11 @@ import { Server, Socket } from 'socket.io';
 import { spaceTrim } from 'spacetrim';
 import { PromptbookExecutionError } from '../../../../errors/PromptbookExecutionError';
 import { PROMPTBOOK_VERSION } from '../../../../version';
-import { PromptResult } from '../../../PromptResult';
-import { Promptbook_Server_Error } from './interfaces/Promptbook_Server_Error';
-import { Promptbook_Server_Request } from './interfaces/Promptbook_Server_Request';
-import { Promptbook_Server_Response } from './interfaces/Promptbook_Server_Response';
-import { RemoteServerOptions } from './interfaces/RemoteServerOptions';
+import type { PromptResult } from '../../../PromptResult';
+import type { Promptbook_Server_Error } from './interfaces/Promptbook_Server_Error';
+import type { Promptbook_Server_Request } from './interfaces/Promptbook_Server_Request';
+import type { Promptbook_Server_Response } from './interfaces/Promptbook_Server_Response';
+import type { RemoteServerOptions } from './interfaces/RemoteServerOptions';
 
 /**
  * Remote server is a proxy server that uses its execution tools internally and exposes the executor interface externally.
@@ -132,6 +132,7 @@ export function startRemoteServer(options: RemoteServerOptions): IDestroyable {
 }
 
 /**
+ * TODO: [⚖] Expose the library to be able to connect to same library via createPromptbookLibraryFromUrl
  * TODO: Handle progress - support streaming
  * TODO: [🤹‍♂️] Do not hang up immediately but wait until client closes OR timeout
  * TODO: [🤹‍♂️] Timeout on chat to free up resources

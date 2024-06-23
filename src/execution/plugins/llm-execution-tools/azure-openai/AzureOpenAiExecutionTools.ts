@@ -4,8 +4,13 @@ import { PromptbookExecutionError } from '../../../../errors/PromptbookExecution
 import type { Prompt } from '../../../../types/Prompt';
 import type { string_date_iso8601 } from '../../../../types/typeAliases';
 import { getCurrentIsoDate } from '../../../../utils/getCurrentIsoDate';
-import type { AvailableModel, LlmExecutionTools } from '../../../LlmExecutionTools';
-import type { PromptChatResult, PromptCompletionResult } from '../../../PromptResult';
+import type { AvailableModel } from '../../../LlmExecutionTools';
+import type { LlmExecutionTools } from '../../../LlmExecutionTools';
+import type { PromptChatResult } from '../../../PromptResult';
+import type { PromptCompletionResult } from '../../../PromptResult';
+import type { PromptResultUsage } from '../../../PromptResult';
+import { computeUsageCounts } from '../../../utils/computeUsageCounts';
+import { uncertainNumber } from '../../../utils/uncertainNumber';
 import { OPENAI_MODELS } from '../openai/openai-models';
 import type { AzureOpenAiExecutionToolsOptions } from './AzureOpenAiExecutionToolsOptions';
 
@@ -89,14 +94,18 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools {
             // eslint-disable-next-line prefer-const
             complete = getCurrentIsoDate();
             const usage = {
-                price: 'UNKNOWN' /* <- TODO: [🐞] Compute usage */,
-                inputTokens: rawResponse.usage?.promptTokens || 'UNKNOWN',
-                outputTokens: rawResponse.usage?.completionTokens || 'UNKNOWN',
-            } as const;
+                price: uncertainNumber() /* <- TODO: [🐞] Compute usage */,
+                input: {
+                    tokensCount: uncertainNumber(rawResponse.usage?.promptTokens),
+                    ...computeUsageCounts(prompt.content),
+                },
+                output: {
+                    tokensCount: uncertainNumber(rawResponse.usage?.completionTokens),
+                    ...computeUsageCounts(prompt.content),
+                },
+            } satisfies PromptResultUsage;
 
-            if (!resultContent) {
-                throw new PromptbookExecutionError('No response message from OpenAI');
-            }
+
 
             return {
                 content: resultContent,
@@ -160,15 +169,20 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools {
             const resultContent = rawResponse.choices[0].text;
             // eslint-disable-next-line prefer-const
             complete = getCurrentIsoDate();
-            const usage = {
-                price: 'UNKNOWN' /* <- TODO: [🐞] Compute usage */,
-                inputTokens: rawResponse.usage.promptTokens,
-                outputTokens: rawResponse.usage.completionTokens,
-            } as const;
 
-            if (!resultContent) {
-                throw new PromptbookExecutionError('No response message from OpenAI');
-            }
+            const usage = {
+                price: uncertainNumber() /* <- TODO: [🐞] Compute usage */,
+                input: {
+                    tokensCount: uncertainNumber(rawResponse.usage?.promptTokens),
+                    ...computeUsageCounts(prompt.content),
+                },
+                output: {
+                    tokensCount: uncertainNumber(rawResponse.usage?.completionTokens),
+                    ...computeUsageCounts(prompt.content),
+                },
+            } satisfies PromptResultUsage;
+
+       
 
             return {
                 content: resultContent,
@@ -220,7 +234,6 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools {
 }
 
 /**
- * TODO: [🍓][♐] Allow to list compatible models with each variant
  * TODO: Maybe Create some common util for gptChat and gptComplete
  * TODO: Maybe make custom AzureOpenaiError
  */

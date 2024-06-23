@@ -1,4 +1,5 @@
-import type { string_name, string_script } from '.././types/typeAliases';
+import type { string_name } from '../types/typeAliases';
+import type { string_script } from '../types/typeAliases';
 import type { ScriptLanguage } from '../types/ScriptLanguage';
 
 /**

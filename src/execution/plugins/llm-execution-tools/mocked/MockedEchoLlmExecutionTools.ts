@@ -2,8 +2,11 @@ import { spaceTrim } from 'spacetrim';
 import type { Prompt } from '../../../../types/Prompt';
 import { getCurrentIsoDate } from '../../../../utils/getCurrentIsoDate';
 import type { CommonExecutionToolsOptions } from '../../../CommonExecutionToolsOptions';
-import type { AvailableModel, LlmExecutionTools } from '../../../LlmExecutionTools';
-import type { PromptChatResult, PromptCompletionResult } from '../../../PromptResult';
+import type { AvailableModel } from '../../../LlmExecutionTools';
+import type { LlmExecutionTools } from '../../../LlmExecutionTools';
+import type { PromptChatResult } from '../../../PromptResult';
+import type { PromptCompletionResult } from '../../../PromptResult';
+import { addUsage } from '../../../utils/addUsage';
 
 /**
  * Mocked execution Tools for just echoing the requests for testing purposes.
@@ -18,6 +21,7 @@ export class MockedEchoLlmExecutionTools implements LlmExecutionTools {
         if (this.options.isVerbose) {
             console.info('💬 Mocked gptChat call');
         }
+
         return {
             content: spaceTrim(
                 (block) => `
@@ -30,11 +34,7 @@ export class MockedEchoLlmExecutionTools implements LlmExecutionTools {
                 start: getCurrentIsoDate(),
                 complete: getCurrentIsoDate(),
             },
-            usage: {
-                price: 0,
-                inputTokens: 0,
-                outputTokens: 0,
-            },
+            usage: addUsage(/* <- TODO: [🧠] Compute here at least words, characters,... etc */),
             rawResponse: {
                 note: 'This is mocked echo',
             },
@@ -61,11 +61,7 @@ export class MockedEchoLlmExecutionTools implements LlmExecutionTools {
                 start: getCurrentIsoDate(),
                 complete: getCurrentIsoDate(),
             },
-            usage: {
-                price: 0,
-                inputTokens: 0,
-                outputTokens: 0,
-            },
+            usage: addUsage(/* <- TODO: [🧠] Compute here at least words, characters,... etc */),
             rawResponse: {
                 note: 'This is mocked echo',
             },

@@ -3,7 +3,7 @@ import { PromptbookNotFoundError } from '../../errors/PromptbookNotFoundError';
 import type { Prompt } from '../../types/Prompt';
 import type { PromptbookJson } from '../../types/PromptbookJson/PromptbookJson';
 import type { string_promptbook_url } from '../../types/typeAliases';
-import { PromptbookLibrary } from '../PromptbookLibrary';
+import type { PromptbookLibrary } from '../PromptbookLibrary';
 
 /**
  * Creates PromptbookLibrary as a subset of another PromptbookLibrary
@@ -59,7 +59,3 @@ export function createPromptbookSublibrary(
         isResponsibleForPrompt,
     };
 }
-
-/***
- * TODO: [🍓][🚯] !!! Add to README and samples + maybe make `@promptbook/library` package
- */

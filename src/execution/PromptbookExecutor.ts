@@ -2,6 +2,7 @@ import type { Promisable } from 'type-fest';
 import type { TaskProgress } from '../types/TaskProgress';
 import type { ExecutionReportJson } from '../types/execution-report/ExecutionReportJson';
 import type { string_name } from '../types/typeAliases';
+import type { PromptResultUsage } from './PromptResult';
 
 /**
  * Executor is a simple async function that takes INPUT  PARAMETERs and returns result parameters _(along with all intermediate parameters and INPUT  PARAMETERs = it extends input object)_.
@@ -17,17 +18,22 @@ export type PromptbookExecutor = {
         onProgress?: (taskProgress: TaskProgress) => Promisable<void>,
     ): Promise<{
         /**
-         * Whether the execution was successful
+         * Whether the execution was successful, details are aviable in `executionReport`
          */
         isSuccessful: boolean;
 
         /**
-         * Errors that occured during the execution
+         * Added usage of whole execution, detailed usage is aviable in `executionReport`
+         */
+        usage: PromptResultUsage;
+
+        /**
+         * Errors that occured during the execution, details are aviable in `executionReport`
          */
         errors: Array<Error>;
 
         /**
-         * The report of the execution
+         * The report of the execution with all details
          */
         executionReport: ExecutionReportJson;
 

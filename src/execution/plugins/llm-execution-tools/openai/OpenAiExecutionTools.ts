@@ -4,11 +4,13 @@ import { PromptbookExecutionError } from '../../../../errors/PromptbookExecution
 import type { Prompt } from '../../../../types/Prompt';
 import type { string_date_iso8601 } from '../../../../types/typeAliases';
 import { getCurrentIsoDate } from '../../../../utils/getCurrentIsoDate';
-import type { AvailableModel, LlmExecutionTools } from '../../../LlmExecutionTools';
-import type { PromptChatResult, PromptCompletionResult } from '../../../PromptResult';
-import type { OpenAiExecutionToolsOptions } from './OpenAiExecutionToolsOptions';
+import type { AvailableModel } from '../../../LlmExecutionTools';
+import type { LlmExecutionTools } from '../../../LlmExecutionTools';
+import type { PromptChatResult } from '../../../PromptResult';
+import type { PromptCompletionResult } from '../../../PromptResult';
 import { computeOpenaiUsage } from './computeOpenaiUsage';
 import { OPENAI_MODELS } from './openai-models';
+import type { OpenAiExecutionToolsOptions } from './OpenAiExecutionToolsOptions';
 
 /**
  * Execution Tools for calling OpenAI API.
@@ -37,12 +39,14 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
     /**
      * Calls OpenAI API to use a chat model.
      */
-    public async gptChat(prompt: Pick<Prompt, 'content' | 'modelRequirements'>): Promise<PromptChatResult> {
+    public async gptChat(
+        prompt: Pick<Prompt, 'content' | 'modelRequirements' | 'expectFormat'>,
+    ): Promise<PromptChatResult> {
         if (this.options.isVerbose) {
-            console.info('💬 OpenAI gptChat call');
+            console.info('💬 OpenAI gptChat call', { prompt });
         }
 
-        const { content, modelRequirements } = prompt;
+        const { content, modelRequirements, expectFormat } = prompt;
 
         // TODO: [☂] Use here more modelRequirements
         if (modelRequirements.modelVariant !== 'CHAT') {
@@ -53,8 +57,15 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
         const modelSettings = {
             model,
             max_tokens: modelRequirements.maxTokens,
-            //                                      <- TODO: Make some global max cap for maxTokens
-        };
+            //                                   <- TODO: Make some global max cap for maxTokens
+        } as OpenAI.Chat.Completions.CompletionCreateParamsNonStreaming; // <- TODO: Guard here types better
+
+        if (expectFormat === 'JSON') {
+            modelSettings.response_format = {
+                type: 'json_object',
+            };
+        }
+
         const rawRequest: OpenAI.Chat.Completions.CompletionCreateParamsNonStreaming = {
             ...modelSettings,
             messages: [
@@ -88,9 +99,9 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
         const resultContent = rawResponse.choices[0].message.content;
         // eslint-disable-next-line prefer-const
         complete = getCurrentIsoDate();
-        const usage = computeOpenaiUsage(rawResponse);
+        const usage = computeOpenaiUsage(content, resultContent || '', rawResponse);
 
-        if (!resultContent) {
+        if (resultContent === null) {
             throw new PromptbookExecutionError('No response message from OpenAI');
         }
 
@@ -112,7 +123,7 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
      */
     public async gptComplete(prompt: Pick<Prompt, 'content' | 'modelRequirements'>): Promise<PromptCompletionResult> {
         if (this.options.isVerbose) {
-            console.info('🖋 OpenAI gptComplete call');
+            console.info('🖋 OpenAI gptComplete call', { prompt });
         }
 
         const { content, modelRequirements } = prompt;
@@ -157,11 +168,7 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
         const resultContent = rawResponse.choices[0].text;
         // eslint-disable-next-line prefer-const
         complete = getCurrentIsoDate();
-        const usage = computeOpenaiUsage(rawResponse);
-
-        if (!resultContent) {
-            throw new PromptbookExecutionError('No response message from OpenAI');
-        }
+        const usage = computeOpenaiUsage(content, resultContent || '', rawResponse);
 
         return {
             content: resultContent,
@@ -207,7 +214,7 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
 }
 
 /**
- * TODO: [🍓][♐] Allow to list compatible models with each variant
+ * TODO: [🧠][🧙‍♂️] Maybe there can be some wizzard for thoose who want to use just OpenAI
  * TODO: Maybe Create some common util for gptChat and gptComplete
  * TODO: Maybe make custom OpenaiError
  */

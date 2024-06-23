@@ -118,9 +118,13 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
                 .join(packageReadmeFullextra);
         }
 
+        /*
+        TODO: Fix or remove Socket badge
+
         const badge = `[![Socket Badge](https://socket.dev/api/badge/npm/package/${packageFullname})](https://socket.dev/npm/package/${packageFullname})`;
 
         packageReadme = packageReadme.split(`\n<!--/Badges-->`).join(badge + '\n\n<!--/Badges-->');
+        */
 
         // TODO: !!! Convert mermaid diagrams to images OR remove
 

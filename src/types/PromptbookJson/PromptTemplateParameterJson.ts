@@ -1,3 +1,4 @@
+import type { string_markdown_text } from '../typeAliases';
 import type { string_name } from '../typeAliases';
 
 /**
@@ -25,5 +26,5 @@ export type PromptTemplateParameterJson = {
      * Description of the parameter
      * - It can use simple markdown formatting like **bold**, *italic*, [link](https://example.com), ... BUT not code blocks and structure
      */
-    readonly description?: string;
+    readonly description?: string_markdown_text;
 };

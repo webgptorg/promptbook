@@ -11,14 +11,13 @@ Library to supercharge your use of large language models
 [![Issues](https://img.shields.io/github/issues/webgptorg/promptbook.svg?style=flat)](https://github.com/webgptorg/promptbook/issues)
 
 
-[![Socket Badge](https://socket.dev/api/badge/npm/package/@promptbook/mock)](https://socket.dev/npm/package/@promptbook/mock)
 
 
 
-## 📦 Package `@promptbook/mock`
+## 📦 Package `@promptbook/fake-llm`
 
 - Promptbooks are [divided into several](#-packages) packages, all are published from [single monorepo](https://github.com/webgptorg/promptbook).
-- This package `@promptbook/mock` is one part of the promptbook ecosystem.
+- This package `@promptbook/fake-llm` is one part of the promptbook ecosystem.
 
 To install this package, run:
 
@@ -27,7 +26,7 @@ To install this package, run:
 npm i ptbk
 
 # Install just this package to save space
-npm i @promptbook/mock
+npm i @promptbook/fake-llm
 ```
 
 Mock objects for testing the execution tools without token usage.
@@ -73,15 +72,6 @@ In any of these situations, but especially in (3), the Promptbook library can ma
 -   _(Not ready yet)_ Extend one prompt book from another one.
 -   _(Not ready yet)_ Leverage the **streaming** to make super cool UI/UX.
 -   _(Not ready yet)_ **A/B testing** to determine which prompt works best for the job.
-
-![WebGPT](./other/screencasts/screencast-fiabciakcmgepblmdkmemdbbkilneeeh-2023.10.26-21_46_17.gif)
-
-## 🧔 Promptbook _(for prompt-engeneers)_
-
-**P**romp**t** **b**oo**k** markdown file (**PTBK** for short, or `.ptbk.md`) is document that describes a series of prompts that are chained together to form somewhat reciepe for transforming natural language input. Inside a PTBK you can use chat prompts, completion prompts, scripting or trigger interaction with user to ask for additional information.
-
--   Multiple promptbooks forms a library which will become a **part of your application codebase**.
--   Theese promptbooks are designed such as they **can be written by non-programmers**.
 
 
 
@@ -329,6 +319,7 @@ Or you can install them separately:
 -   ⭐ **[ptbk](https://www.npmjs.com/package/ptbk)** - Bundle of all packages, when you want to install everything and you don't care about the size
 -   **[promptbook](https://www.npmjs.com/package/promptbook)** - Same as `ptbk`
 -   **[@promptbook/core](https://www.npmjs.com/package/@promptbook/core)** - Core of the library, it contains the main logic for promptbooks
+-   **[@promptbook/node](https://www.npmjs.com/package/@promptbook/node)** - Core of the library for Node.js
 -   ⭐ **[@promptbook/utils](https://www.npmjs.com/package/@promptbook/utils)** - Utility functions used in the library but also useful for individual use in preprocessing and postprocessing LLM inputs and outputs
 -   _(Not finished)_ **[@promptbook/wizzard](https://www.npmjs.com/package/@promptbook/wizzard)** - Wizard for creating+running promptbooks in single line
 -   **[@promptbook/execute-javascript](https://www.npmjs.com/package/@promptbook/execute-javascript)** - Execution tools for javascript inside promptbooks
@@ -336,7 +327,7 @@ Or you can install them separately:
 -   **[@promptbook/anthropic-claude](https://www.npmjs.com/package/@promptbook/anthropic-claude)** - Execution tools for Anthropic Claude API, wrapper around Anthropic Claude SDK 
 -   **[@promptbook/azure-openai](https://www.npmjs.com/package/@promptbook/azure-openai)** - Execution tools for Azure OpenAI API
 -   **[@promptbook/langtail](https://www.npmjs.com/package/@promptbook/langtail)** - Execution tools for Langtail API, wrapper around Langtail SDK
--   **[@promptbook/mock](https://www.npmjs.com/package/@promptbook/mock)** - Mocked execution tools for testing the library and saving the tokens
+-   **[@promptbook/fake-llm](https://www.npmjs.com/package/@promptbook/fake-llm)** - Mocked execution tools for testing the library and saving the tokens
 -   **[@promptbook/remote-client](https://www.npmjs.com/package/@promptbook/remote-client)** - Remote client for remote execution of promptbooks
 -   **[@promptbook/remote-server](https://www.npmjs.com/package/@promptbook/remote-server)** - Remote server for remote execution of promptbooks
 -   **[@promptbook/types](https://www.npmjs.com/package/@promptbook/types)** - Just typescript types used in the library
@@ -521,7 +512,7 @@ There are [postprocessing functions](#postprocessing-functions) that can be used
 Executor is a simple async function that takes **input parameters** and returns **output parameters**.
 It is constructed by combining execution tools and promptbook to execute together.
 
-### 🃏 Jokers
+### 🃏 Jokers (conditions)
 
 Joker is a previously defined parameter that is used to bypass some parts of the pipeline.
 If the joker is present in the template, it is checked to see if it meets the requirements (without postprocessing), and if so, it is used instead of executing that prompt template. There can be multiple wildcards in a prompt template, if so they are checked in order and the first one that meets the requirements is used.

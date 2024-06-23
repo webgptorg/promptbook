@@ -1,7 +1,8 @@
 import { spaceTrim } from 'spacetrim';
 import { PromptbookExecutionError } from '../../../../errors/PromptbookExecutionError';
-import { CommonExecutionToolsOptions } from '../../../CommonExecutionToolsOptions';
-import { ScriptExecutionTools, ScriptExecutionToolsExecuteOptions } from '../../../ScriptExecutionTools';
+import type { CommonExecutionToolsOptions } from '../../../CommonExecutionToolsOptions';
+import type { ScriptExecutionTools } from '../../../ScriptExecutionTools';
+import type { ScriptExecutionToolsExecuteOptions } from '../../../ScriptExecutionTools';
 
 /**
  * ScriptExecutionTools for TypeScript

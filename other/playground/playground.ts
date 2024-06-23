@@ -30,7 +30,6 @@ async function playground() {
     //========================================>
 
     const openAiExecutionTools = new OpenAiExecutionTools({
-        // TODO: [♐] Pick just the best model of required variant
         isVerbose: true,
         apiKey: process.env.OPENAI_API_KEY,
     });

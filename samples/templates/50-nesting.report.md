@@ -8,7 +8,7 @@ How block are nested in the promptbook
 -   COMPLETED AT 2024-02-11 15:55:03
 -   TOTAL DURATION 8 seconds
 -   TOTAL LLM DURATION 8 seconds
--   TOTAL COST $0.000827
+-   TOTAL COST $0
 
 ## 🗃 Index
 
@@ -28,13 +28,13 @@ _Note: Each █ represents 0.216 seconds, width of timeline is 7.78 seconds = 36
 
 ## 💸 Cost chart
 
-| Template        | Cost                                 |
-| --------------- | ------------------------------------ |
-| Synonym         | █░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ |
-| Sentence        | ███░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ |
-| Make a document | ████████████████████████████████████ |
+| Template        | Cost |
+| --------------- | ---- |
+| Synonym         |      |
+| Sentence        |      |
+| Make a document |      |
 
-_Note: Each █ represents 0.0000205 USD, width of cost is 0.000738 USD = 36 squares_
+_Note: Each █ represents 0 USD, width of cost is 0 USD = 36 squares_
 
 ## 💬 Synonym
 

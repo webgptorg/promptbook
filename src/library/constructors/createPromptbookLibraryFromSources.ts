@@ -1,4 +1,5 @@
-import { PromptbookJson, PromptbookString } from '../../_packages/types.index';
+import type { PromptbookJson } from '../../types/PromptbookJson/PromptbookJson';
+import type { PromptbookString } from '../../types/PromptbookString';
 import { promptbookStringToJson } from '../../conversion/promptbookStringToJson';
 import { SimplePromptbookLibrary } from '../SimplePromptbookLibrary';
 
@@ -31,7 +32,3 @@ export function createPromptbookLibraryFromSources(
     }
     return new SimplePromptbookLibrary(...promptbooks);
 }
-
-/***
- * TODO: [🍓][🚯] !!! Add to README and samples + maybe make `@promptbook/library` package
- */

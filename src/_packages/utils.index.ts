@@ -1,3 +1,5 @@
+// @promptbook/utils
+
 import { spaceTrim } from 'spacetrim';
 import { renderPromptbookMermaid } from '../conversion/prettify/renderPromptbookMermaid';
 import { extractParametersFromPromptTemplate } from '../conversion/utils/extractParametersFromPromptTemplate';
@@ -5,6 +7,7 @@ import { extractVariables } from '../conversion/utils/extractVariables';
 import { parseNumber } from '../conversion/utils/parseNumber';
 import { renameParameter } from '../conversion/utils/renameParameter';
 import { titleToName } from '../conversion/utils/titleToName';
+import { forEachAsync } from '../execution/utils/forEachAsync';
 import { replaceParameters } from '../execution/utils/replaceParameters';
 import { CountUtils } from '../utils/expectation-counters';
 import { countCharacters } from '../utils/expectation-counters/countCharacters';
@@ -46,6 +49,10 @@ import { union } from '../utils/sets/union';
 import { trimCodeBlock } from '../utils/trimCodeBlock';
 import { trimEndOfCodeBlock } from '../utils/trimEndOfCodeBlock';
 import { unwrapResult } from '../utils/unwrapResult';
+import { PROMPTBOOK_VERSION } from '../version';
+
+// Note: Exporting version from each package
+export { forEachAsync, PROMPTBOOK_VERSION };
 
 // TODO: [🌻] For all, decide if theese are internal or external
 export {

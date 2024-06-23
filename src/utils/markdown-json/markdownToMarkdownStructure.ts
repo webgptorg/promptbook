@@ -1,7 +1,7 @@
 import { spaceTrim } from 'spacetrim';
 import { LOOP_LIMIT } from '../../config';
 import { UnexpectedError } from '../../errors/UnexpectedError';
-import { MarkdownStructure } from './MarkdownStructure';
+import type { MarkdownStructure } from './MarkdownStructure';
 
 /**
  * Parse a markdown string into a MarkdownStructure object.

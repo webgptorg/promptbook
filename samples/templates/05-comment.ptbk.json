@@ -17,8 +17,7 @@
             "dependentParameterNames": [],
             "executionType": "PROMPT_TEMPLATE",
             "modelRequirements": {
-                "modelVariant": "CHAT",
-                "modelName": "gpt-3.5-turbo"
+                "modelVariant": "CHAT"
             },
             "content": "Hello",
             "resultingParameterName": "greeting"

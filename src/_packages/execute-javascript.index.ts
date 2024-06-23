@@ -1,3 +1,6 @@
+// @promptbook/execute-javascript
+
+
 import spaceTrim from 'spacetrim';
 import { JavascriptEvalExecutionTools } from '../execution/plugins/script-execution-tools/javascript/JavascriptEvalExecutionTools';
 import { JavascriptExecutionTools } from '../execution/plugins/script-execution-tools/javascript/JavascriptExecutionTools';
@@ -20,6 +23,11 @@ import { removeQuotes } from '../utils/removeQuotes';
 import { trimCodeBlock } from '../utils/trimCodeBlock';
 import { trimEndOfCodeBlock } from '../utils/trimEndOfCodeBlock';
 import { unwrapResult } from '../utils/unwrapResult';
+import { PROMPTBOOK_VERSION } from '../version';
+
+// Note: Exporting version from each package
+export { PROMPTBOOK_VERSION };
+
 
 const parseKeywords = (input: string) =>
     // TODO: DRY [🍯]

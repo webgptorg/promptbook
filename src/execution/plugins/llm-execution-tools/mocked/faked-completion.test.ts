@@ -1,7 +1,7 @@
 import { describe, expect, it } from '@jest/globals';
 import { spaceTrim } from 'spacetrim';
 import { promptbookStringToJson } from '../../../../conversion/promptbookStringToJson';
-import { PromptbookString } from '../../../../types/PromptbookString';
+import type { PromptbookString } from '../../../../types/PromptbookString';
 import { PROMPTBOOK_VERSION } from '../../../../version';
 import { createPromptbookExecutor } from '../../../createPromptbookExecutor';
 import { CallbackInterfaceTools } from '../../user-interface-execution-tools/callback/CallbackInterfaceTools';
@@ -73,5 +73,56 @@ describe('createPromptbookExecutor + MockedEchoExecutionTools with sample chat p
                 promptbookUsedVersion: PROMPTBOOK_VERSION,
             },
             outputParameters: {},
+            usage: {
+                input: {
+                    charactersCount: {
+                        value: 0,
+                    },
+                    linesCount: {
+                        value: 0,
+                    },
+                    pagesCount: {
+                        value: 0,
+                    },
+                    paragraphsCount: {
+                        value: 0,
+                    },
+                    sentencesCount: {
+                        value: 0,
+                    },
+                    tokensCount: {
+                        value: 0,
+                    },
+                    wordsCount: {
+                        value: 0,
+                    },
+                },
+                output: {
+                    charactersCount: {
+                        value: 0,
+                    },
+                    linesCount: {
+                        value: 0,
+                    },
+                    pagesCount: {
+                        value: 0,
+                    },
+                    paragraphsCount: {
+                        value: 0,
+                    },
+                    sentencesCount: {
+                        value: 0,
+                    },
+                    tokensCount: {
+                        value: 0,
+                    },
+                    wordsCount: {
+                        value: 0,
+                    },
+                },
+                price: {
+                    value: 0,
+                },
+            },
         }));
 });

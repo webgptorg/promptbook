@@ -1,6 +1,5 @@
 import { spaceTrim } from 'spacetrim';
 import type { Promisable } from 'type-fest';
-import { PromptbookJson } from '../_packages/types.index';
 import { LOOP_LIMIT } from '../config';
 import { validatePromptbookJson } from '../conversion/validation/validatePromptbookJson';
 import { PromptbookExecutionError } from '../errors/PromptbookExecutionError';
@@ -8,14 +7,18 @@ import { UnexpectedError } from '../errors/UnexpectedError';
 import { ExpectError } from '../errors/_ExpectError';
 import type { Prompt } from '../types/Prompt';
 import type { PromptTemplateJson } from '../types/PromptbookJson/PromptTemplateJson';
+import type { PromptbookJson } from '../types/PromptbookJson/PromptbookJson';
 import type { TaskProgress } from '../types/TaskProgress';
 import type { ExecutionReportJson } from '../types/execution-report/ExecutionReportJson';
 import type { string_name } from '../types/typeAliases';
 import { isValidJsonString } from '../utils/isValidJsonString';
 import { PROMPTBOOK_VERSION } from '../version';
-import { ExecutionTools } from './ExecutionTools';
-import type { PromptChatResult, PromptCompletionResult, PromptResult } from './PromptResult';
-import { PromptbookExecutor } from './PromptbookExecutor';
+import type { ExecutionTools } from './ExecutionTools';
+import type { PromptChatResult } from './PromptResult';
+import type { PromptCompletionResult } from './PromptResult';
+import type { PromptResult } from './PromptResult';
+import type { PromptbookExecutor } from './PromptbookExecutor';
+import { addUsage } from './utils/addUsage';
 import { checkExpectations } from './utils/checkExpectations';
 import { replaceParameters } from './utils/replaceParameters';
 
@@ -141,6 +144,7 @@ export function createPromptbookExecutor(options: CreatePromptbookExecutorOption
                                     content: replaceParameters(currentTemplate.content, parametersToPass) /* <- [2] */,
                                     modelRequirements: currentTemplate.modelRequirements!,
                                     expectations: currentTemplate.expectations,
+                                    expectFormat: currentTemplate.expectFormat,
                                     postprocessing: (currentTemplate.postprocessing || []).map(
                                         (functionName) => async (result: string) => {
                                             // TODO: DRY [☯]
@@ -367,6 +371,7 @@ export function createPromptbookExecutor(options: CreatePromptbookExecutorOption
                                 content: prompt.content,
                                 modelRequirements: prompt.modelRequirements,
                                 expectations: prompt.expectations,
+                                expectFormat: prompt.expectFormat,
                                 // <- Note: Do want to pass ONLY wanted information to the report
                             },
                             result: result || undefined,
@@ -466,9 +471,15 @@ export function createPromptbookExecutor(options: CreatePromptbookExecutorOption
                 throw error;
             }
 
+            // Note: Count usage, [🧠] Maybe put to separate function executionReportJsonToUsage + DRY [5]
+            const usage = addUsage(
+                ...executionReport.promptExecutions.map(({ result }) => result?.usage || addUsage()),
+            );
+
             return {
                 isSuccessful: false,
                 errors: [error],
+                usage,
                 executionReport,
                 outputParameters: parametersToPass,
             };
@@ -483,9 +494,13 @@ export function createPromptbookExecutor(options: CreatePromptbookExecutorOption
             delete parametersToPass[parameter.name];
         }
 
+        // Note: Count usage, [🧠] Maybe put to separate function executionReportJsonToUsage + DRY [5]
+        const usage = addUsage(...executionReport.promptExecutions.map(({ result }) => result?.usage || addUsage()));
+
         return {
             isSuccessful: true,
             errors: [],
+            usage,
             executionReport,
             outputParameters: parametersToPass,
         };

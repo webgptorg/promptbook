@@ -1,0 +1,81 @@
+import { describe, expect, it } from '@jest/globals';
+import { readFileSync, readdirSync } from 'fs';
+import { join } from 'path';
+import { executionReportJsonToString } from './executionReportJsonToString';
+
+/*
+TODO: Allow back after fixing this annoying error:
+      Error is superstrange because all functions are deterministic BUT sometimes it makes  and sometimes 0.0000278 🤯
+
+Summary of all failing tests
+ FAIL  src/types/execution-report/executionReportJsonToString.test.ts
+  ● executionReportJsonToString.test › should generate report for 50-advanced.report.json
+
+    expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 4
+    + Received  + 4
+
+    @@ -14,15 +14,15 @@
+
+      -   [�� Prompt](#-prompt)
+
+      ## ⌚ Time chart
+
+    - | Template | Timeline |
+    - | -------- | -------- |
+    - | Prompt   |          |
+    + | Template | Timeline                             |
+    + | -------- | ------------------------------------ |
+    + | Prompt   | ████████████████████████████████████ |
+
+    - _Note: Each █ represents 0 seconds, width of timeline is 0 seconds = 36 squares_
+    + _Note: Each █ represents 0.0000278 seconds, width of timeline is 0.001 seconds = 36 squares_
+
+      ## �� Cost chart
+
+      | Template | Cost |
+      | -------- | ---- |
+
+      22 |                     ),
+      23 |                 ),
+    > 24 |             ).toEqual(readFileSync(join(__dirname, samplesDir, name).replace('.report.json', '.report.md'), 'utf-8'));
+         |               ^
+      25 |         });
+      26 |     }
+      27 | });
+
+      at Object.<anonymous> (src/types/execution-report/executionReportJsonToString.test.ts:24:15)
+
+
+Test Suites: 1 failed, 83 passed, 84 total
+Tests:       1 failed, 394 passed, 395 total
+Snapshots:   0 total
+Time:        30.388 s, estimated 74 s
+Ran all test suites.
+
+
+*/
+
+describe('executionReportJsonToString.test', () => {
+    const samplesDir = '../../../samples/templates';
+    const samples = readdirSync(join(__dirname, samplesDir), { withFileTypes: true, recursive: false })
+        //                         <- Note: In production it is not good practice to use synchronous functions
+        //                                  But this is only a test before the build, so it is okay
+        .filter((dirent) => dirent.isFile())
+        .filter(({ name }) => name.endsWith('.report.json'));
+
+    for (const { name } of samples) {
+        it(`should generate report for ${name}`, () => {
+            expect(
+                executionReportJsonToString(
+                    JSON.parse(
+                        readFileSync(join(__dirname, samplesDir, name), 'utf-8'),
+                        //          <- Note: In production it is not good practice to use synchronous functions
+                        //                   But this is only a test before the build, so it is okay
+                    ),
+                ),
+            ).toEqual(readFileSync(join(__dirname, samplesDir, name).replace('.report.json', '.report.md'), 'utf-8'));
+        });
+    }
+});

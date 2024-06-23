@@ -166,8 +166,6 @@ Working on **Promptbook Library**. Identify promptbooks by URL.
 
 Multiple factories for `PromptbookLibrary`, Custom errors, enhance templating
 
-<!--[🆔]-->
-
 -   Throwing `NotFoundError`
 -   Throwing `PromptbookSyntaxError`
 -   Throwing `PromptbookLogicError`
@@ -236,7 +234,7 @@ Reorganize packages
 
 -   New package `promptbook` as a link to all other packages
 -   New package `ptbk` as an alias to `promptbook`
--   New package `@promptbook/mock`
+-   New package `@promptbook/fake-llm`
     -   Move there `MockedEchoLlmExecutionTools` and `MockedFackedLlmExecutionTools` from `@promptbook/core`
 -   New package `@promptbook/langtail` to prepare for [Langtail](https://langtail.com/) integration
 
@@ -270,7 +268,7 @@ Add new OpenaAI models `gpt-4o` and `gpt-4o-2024-05-13`
 
 -   Add model `gpt-4o`
 -   Add model `gpt-4o-2024-05-13`
--   Classes that implements `LlmExecutionTools` must expose compatible models <!-- [♐] -->
+-   Classes that implements `LlmExecutionTools` must expose compatible models
 -   List OpenAI models dynamically
 -   All GPT models have pricing information
 -   Export `OPENAI_MODELS` from `@promptbook/openai`
@@ -281,10 +279,9 @@ Add new OpenaAI models `gpt-4o` and `gpt-4o-2024-05-13`
 -   Export `extractParameters`, `extractVariables` and `extractParametersFromPromptTemplate` from `@promptbook/utils`
 -   Add and export set operations `difference`, `intersection` and `union` from `@promptbook/utils`
 -   Export `POSTPROCESSING_FUNCTIONS` from `@promptbook/execute-javascript`
+-   No need to specify MODEL VARIANT and MODEL NAME in .ptbk.md explicitly, CHAT VARIANT will be used as default
 
-## In pre-release
-
-### `0.52.0` _(2024-05-24)_
+### `0.52.0` _(2024-06-06)_
 
 Add support for Claude \\ Anthropic models via package `@promptbook/anthropic-claude` and add Azure OpenAI models via package `@promptbook/azure-openai`
 
@@ -294,9 +291,48 @@ Add support for Claude \\ Anthropic models via package `@promptbook/anthropic-cl
 -   Delete `@promptbook/wizzard`
 -   Move `assertsExecutionSuccessful`,`checkExpectations`,`executionReportJsonToString`,`ExecutionReportStringOptions`,`ExecutionReportStringOptionsDefaults`,`isPassingExpectations`,`prettifyPromptbookString` from `@promptbook/utils` to `@promptbook/core`
 -   Make and use `JavascriptExecutionTools` as placeholder for better implementation with propper sandboxing
--   Implement `createPromptbookLibraryFromDirectory` and export from `@promptbook/core`
+-   Implement `createPromptbookLibraryFromDirectory` export from `@promptbook/core`
+-   Make `PromptbookLibraryError`
 -   Check Promptbook URL uniqueness in `SimplePromptbookLibrary` _(see [🦄])_
 -   Util `createPromptbookLibraryFromPromise` is not public anymore
+-   Util `forEachAsync` export from `@promptbook/utils`
+
+### `0.53.0` _(2024-06-08)_
+
+Repair and organize imports
+
+### `0.54.0` _(2024-06-08)_
+
+-   Custom errors `ExpectError`,`NotFoundError`,`PromptbookExecutionError`,`PromptbookLogicError`,`PromptbookLibraryError`,`PromptbookSyntaxError` exported from `@promptbook/core`
+
+### `0.55.0` _(2024-06-15)_
+
+Better usage computation and shape
+
+-   Change shape of `PromptResult.usage`
+-   Remove types `number_positive_or_zero` and `number_negative_or_zero`
+-   Export type `PromptResultUsage`, `PromptResultUsageCounts` and `UncertainNumber` from `@promptbook/types`
+-   Export util `addUsage` from `@promptbook/core`
+-   Put usage directly in result of each execution
+-   Export function `usageToWorktime` from `@promptbook/core`
+
+### `0.56.0` _(2024-06-16)_
+
+Rename and reorganize libraries
+
+-   Take `createPromptbookLibraryFromDirectory` from `@promptbook/core` -> `@promptbook/node` (to avoid dependency risk errors)
+-   Rename `@promptbook/fake-llmed` -> `@promptbook/fake-llm`
+-   Export `PROMPTBOOK_VERSION` from each package
+-   Use `export type` in `@promptbook/types`
+
+## In pre-release
+
+### `0.57.0` _(2024-06-)_
+
+Better JSON Mode
+
+-   `OpenAiExecutionTools` will use JSON mode natively
+-   `OpenAiExecutionTools` Do not fail on empty _(but valid string)_ responses
 
 ## In prepare
 

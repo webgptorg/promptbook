@@ -1,5 +1,5 @@
-import { string_url } from '../../types/typeAliases';
-import { PromptbookLibrary } from '../PromptbookLibrary';
+import type { string_url } from '../../types/typeAliases';
+import type { PromptbookLibrary } from '../PromptbookLibrary';
 import { createPromptbookLibraryFromPromise } from './createPromptbookLibraryFromPromise';
 
 /**
@@ -46,9 +46,6 @@ export async function createPromptbookLibraryFromUrl(
 
     return library;
 
+    // TODO: Look at WebGPT "📖 Make Promptbook library" and https://webgpt.cz/_promptbook-library.json
     // TODO: !! Implement via createPromptbookLibraryFromPromise
 }
-
-/***
- * TODO: [🍓][🚯] !!! Add to README and samples + maybe make `@promptbook/library` package
- */

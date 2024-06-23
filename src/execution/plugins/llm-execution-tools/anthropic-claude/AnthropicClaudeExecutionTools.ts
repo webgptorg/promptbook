@@ -6,10 +6,15 @@ import type { Prompt } from '../../../../types/Prompt';
 import type { string_date_iso8601 } from '../../../../types/typeAliases';
 import { getCurrentIsoDate } from '../../../../utils/getCurrentIsoDate';
 import { just } from '../../../../utils/just';
-import type { AvailableModel, LlmExecutionTools } from '../../../LlmExecutionTools';
-import type { PromptChatResult, PromptCompletionResult } from '../../../PromptResult';
-import type { AnthropicClaudeExecutionToolsOptions } from './AnthropicClaudeExecutionToolsOptions';
+import type { AvailableModel } from '../../../LlmExecutionTools';
+import type { LlmExecutionTools } from '../../../LlmExecutionTools';
+import type { PromptChatResult } from '../../../PromptResult';
+import type { PromptCompletionResult } from '../../../PromptResult';
+import type { PromptResultUsage } from '../../../PromptResult';
+import { computeUsageCounts } from '../../../utils/computeUsageCounts';
 import { ANTHROPIC_CLAUDE_MODELS } from './anthropic-claude-models';
+import type { AnthropicClaudeExecutionToolsOptions } from './AnthropicClaudeExecutionToolsOptions';
+import { uncertainNumber } from '../../../utils/uncertainNumber';
 
 /**
  * Execution Tools for calling Anthropic Claude API.
@@ -82,14 +87,18 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools {
         // eslint-disable-next-line prefer-const
         complete = getCurrentIsoDate();
         const usage = {
-            price: 'UNKNOWN' /* <- TODO: [🐞] Compute usage */,
-            inputTokens: rawResponse.usage.input_tokens,
-            outputTokens: rawResponse.usage.output_tokens,
-        } as const;
+            price: { value: 0, isUncertain: true } /* <- TODO: [🐞] Compute usage */,
+            input: {
+                tokensCount: uncertainNumber(rawResponse.usage.input_tokens),
+                ...computeUsageCounts(prompt.content),
+            },
+            output: {
+                tokensCount: uncertainNumber(rawResponse.usage.output_tokens),
+                ...computeUsageCounts(prompt.content),
+            },
+        } satisfies PromptResultUsage;
 
-        if (!resultContent) {
-            throw new PromptbookExecutionError('No response message from Anthropic Claude');
-        }
+
 
         return {
             content: resultContent,
@@ -158,11 +167,9 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools {
         const resultContent = rawResponse.choices[0].text;
         // eslint-disable-next-line prefer-const
         complete = getCurrentIsoDate();
-        const usage = { price: 'UNKNOWN', inputTokens: 0, outputTokens: 0 /* <- TODO: [🐞] Compute usage * / } as const;
+        const usage = { price: 'UNKNOWN', inputTokens: 0, outputTokens: 0 /* <- TODO: [🐞] Compute usage * / } satisfies PromptResultUsage;
 
-        if (!resultContent) {
-            throw new PromptbookExecutionError('No response message from Anthropic Claude');
-        }
+
 
         return {
             content: resultContent,
@@ -195,7 +202,6 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools {
 
 /**
  * TODO: [🧠] Maybe handle errors via transformAnthropicError (like transformAzureError)
- * TODO: [🍓][♐] Allow to list compatible models with each variant
  * TODO: Maybe Create some common util for gptChat and gptComplete
  * TODO: Maybe make custom OpenaiError
  */

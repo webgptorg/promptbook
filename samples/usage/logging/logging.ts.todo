@@ -1,11 +1,7 @@
 #!/usr/bin/env ts-node
 
-import { createPromptbookLibraryFromSources } from '@promptbook/core';
-import { JavascriptEvalExecutionTools } from '@promptbook/execute-javascript';
-import { OpenAiExecutionTools } from '@promptbook/openai';
 import colors from 'colors';
 import * as dotenv from 'dotenv';
-import { readFile } from 'fs/promises';
 
 if (process.cwd().split(/[\\/]/).pop() !== 'promptbook') {
     console.error(colors.red(`CWD must be root of the project`));
@@ -19,36 +15,5 @@ main();
 async function main() {
     console.info(colors.bgWhite('🔴 Testing logging capabilities of PromptBook'));
 
-    const library = createPromptbookLibraryFromSources(
-        await readFile('./samples/templates/50-advanced.ptbk.md', 'utf-8'),
-    );
-
-    const tools = {
-        llm: new OpenAiExecutionTools({
-            isVerbose: true,
-            apiKey: process.env.OPENAI_API_KEY,
-        }),
-        script: [
-            new JavascriptEvalExecutionTools({
-                isVerbose: true,
-            }),
-        ],
-        userInterface: null,
-    };
-
-    const promptbookExecutor = library.createExecutor('advanced', tools);
-
-    const inputParameters = { word: 'cat' };
-    const { isSuccessful, errors, outputParameters } = await promptbookExecutor(inputParameters);
-
-    assertsExecutionSuccessful({ isSuccessful, errors });
-
-    console.info(outputParameters);
+    // TODO: Use here logging + report + anomaly detection
 }
-
-/**
- * TODO: [🈴] !!!!! Identify PROMPTBOOKs by URL in this sample
- * TODO: [⚾️] No need to set this script or userInterface in tools
- * TODO: [⚾️] Use PromptbookLibrary.fromDirectory (directory vs folder)
- * TODO: [⚾️] Also sample with Wizzard
- */

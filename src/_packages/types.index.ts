@@ -1,11 +1,5 @@
-/*
-[🆔]
-import { ExpectError } from '../errors/ExpectError';
-import { NotFoundError } from '../errors/NotFoundError';
-import { PromptbookExecutionError } from '../errors/PromptbookExecutionError';
-import { PromptbookLogicError } from '../errors/PromptbookLogicError';
-import { PromptbookSyntaxError } from '../errors/PromptbookSyntaxError';
-*/
+// @promptbook/types
+
 import type { CommonExecutionToolsOptions } from '../execution/CommonExecutionToolsOptions';
 import type { ExecutionTools } from '../execution/ExecutionTools';
 import type { AvailableModel, LlmExecutionTools } from '../execution/LlmExecutionTools';
@@ -14,6 +8,9 @@ import type {
     PromptCommonResult,
     PromptCompletionResult,
     PromptResult,
+    PromptResultUsage,
+    PromptResultUsageCounts,
+    UncertainNumber,
 } from '../execution/PromptResult';
 import type { PromptbookExecutor } from '../execution/PromptbookExecutor';
 import type { ScriptExecutionTools, ScriptExecutionToolsExecuteOptions } from '../execution/ScriptExecutionTools';
@@ -88,16 +85,23 @@ import type {
     string_url_image,
     string_version,
 } from '../types/typeAliases';
-import { FromtoItems } from '../utils/FromtoItems';
+import type { FromtoItems } from '../utils/FromtoItems';
+import { PROMPTBOOK_VERSION } from '../version';
 
-export {
+// Note: Exporting version from each package
+export { PROMPTBOOK_VERSION };
+
+// Note: Non-types
+export { EXPECTATION_UNITS };
+
+// Note: Types
+export type {
     AvailableModel,
     client_id,
     CommonExecutionToolsOptions,
     ExecutionReportJson,
     ExecutionTools,
     ExecutionType,
-    EXPECTATION_UNITS,
     ExpectationAmount,
     Expectations,
     ExpectationUnit,
@@ -117,6 +121,8 @@ export {
     PromptCompletionResult,
     PromptDialogJson,
     PromptResult,
+    PromptResultUsage,
+    PromptResultUsageCounts,
     PromptTemplateJson,
     PromptTemplateParameterJson,
     ScriptExecutionTools,
@@ -170,24 +176,11 @@ export {
     string_url_image,
     string_version,
     TaskProgress,
+    UncertainNumber,
     UserInterfaceTools,
     UserInterfaceToolsPromptDialogOptions,
 };
 
-/*
-[🆔]
-export {
-    ExpectError,
-    NotFoundError,
-    PromptbookExecutionError,
-    PromptbookLogicError,
-    PromptbookSyntaxError,
-    PromptbookReferenceError
-    // <- TODO: [🆔] Export exactly same objects as thrown to be able to do: "Error instanceof NotFoundError"
-};
-*/
-
 /**
- * TODO: [🧠][🆔] Is this the best package to export custom errors from?
  * TODO: Delete type aliases (from ../types/typeAliases) that are not exported here
  */

@@ -2,16 +2,15 @@ import type { ExpectFormatCommand } from '../Command';
 import type { ExecutionType } from '../ExecutionTypes';
 import type { ModelRequirements } from '../ModelRequirements';
 import type { ScriptLanguage } from '../ScriptLanguage';
-import type {
-    number_integer,
-    number_positive_or_zero,
-    string_javascript,
-    string_javascript_name,
-    string_markdown,
-    string_name,
-    string_prompt,
-    string_template,
-} from '../typeAliases';
+import type { number_integer } from '../typeAliases';
+import type { number_positive } from '../typeAliases';
+import type { string_javascript } from '../typeAliases';
+import type { string_javascript_name } from '../typeAliases';
+import type { string_markdown } from '../typeAliases';
+import type { string_markdown_text } from '../typeAliases';
+import type { string_name } from '../typeAliases';
+import type { string_prompt } from '../typeAliases';
+import type { string_template } from '../typeAliases';
 
 /**
  * Describes one prompt template in the promptbook
@@ -55,7 +54,7 @@ export type ExpectationUnit = typeof EXPECTATION_UNITS[number];
 /**
  * Amount of text measurement
  */
-export type ExpectationAmount = number_integer & number_positive_or_zero;
+export type ExpectationAmount = number_integer & (number_positive | 0);
 
 /**
  * Template for simple concatenation of strings
@@ -107,7 +106,7 @@ interface PromptTemplateJsonCommon {
      * Description of the prompt template
      * It can use multiple paragraphs of simple markdown formatting like **bold**, *italic*, [link](https://example.com), ... BUT not code blocks and structure
      */
-    readonly description?: string;
+    readonly description?: string_markdown_text;
 
     /**
      * List of parameter names that are used in the prompt template and must be defined before the prompt template is executed

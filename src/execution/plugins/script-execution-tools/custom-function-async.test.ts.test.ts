@@ -2,7 +2,7 @@ import { describe, expect, it } from '@jest/globals';
 import { spaceTrim } from 'spacetrim';
 import { forTime } from 'waitasecond';
 import { promptbookStringToJson } from '../../../conversion/promptbookStringToJson';
-import { PromptbookString } from '../../../types/PromptbookString';
+import type { PromptbookString } from '../../../types/PromptbookString';
 import { createPromptbookExecutor } from '../../createPromptbookExecutor';
 import { MockedEchoLlmExecutionTools } from '../llm-execution-tools/mocked/MockedEchoLlmExecutionTools';
 import { CallbackInterfaceTools } from '../user-interface-execution-tools/callback/CallbackInterfaceTools';

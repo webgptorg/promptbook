@@ -1,8 +1,8 @@
 import type { Prompt } from '../../types/Prompt';
 import type { PromptbookJson } from '../../types/PromptbookJson/PromptbookJson';
-import { PromptbookString } from '../../types/PromptbookString';
+import type { PromptbookString } from '../../types/PromptbookString';
 import type { string_promptbook_url } from '../../types/typeAliases';
-import { PromptbookLibrary } from '../PromptbookLibrary';
+import type { PromptbookLibrary } from '../PromptbookLibrary';
 import { SimplePromptbookLibrary } from '../SimplePromptbookLibrary';
 import { createPromptbookLibraryFromSources } from './createPromptbookLibraryFromSources';
 
@@ -19,11 +19,11 @@ import { createPromptbookLibraryFromSources } from './createPromptbookLibraryFro
  * Note: The function does NOT return promise it returns the library directly which waits for the sources to be resolved
  *       when error occurs in given promise or factory function, it is thrown during `listPromptbooks` or `getPromptbookByUrl` call
  *
- * Note: Consider using `createPromptbookLibraryFromUrl` or `createPromptbookLibraryFromDirectory`
+ * Note: Consider using  `createPromptbookLibraryFromDirectory` or `createPromptbookLibraryFromUrl`
  *
  * @param promptbookSourcesPromiseOrFactory
  * @returns PromptbookLibrary
- * @private Just internal tool for other constructor functions
+ * @deprecated Do not use, it will became internal tool for other constructor functions
  */
 export function createPromptbookLibraryFromPromise(
     promptbookSourcesPromiseOrFactory:
@@ -60,7 +60,3 @@ export function createPromptbookLibraryFromPromise(
         isResponsibleForPrompt,
     };
 }
-
-/***
- * TODO: [🍓][🚯] !!! Add to README and samples + maybe make `@promptbook/library` package
- */

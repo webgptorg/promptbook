@@ -16,6 +16,7 @@
         <pre id="output"><pre>
 
         <script type="module">
+            // TODO: [🍓] This must work - BUT first do browser sample
             // TODO: [🍓][🤣] !!! Auto update version
             import { RemoteLlmExecutionTools } from 'https://cdn.jsdelivr.net/npm/@promptbook/remote-client@0.40.0/+esm';
             import { JavascriptExecutionTools } from 'https://cdn.jsdelivr.net/npm/@promptbook/execute-javascript@0.40.0/+esm';
@@ -35,8 +36,8 @@
                 const clientId = formData.get('clientId');
 
 
-                // TODO: !! PromptbookLibrary.fromUrl
-                const advanced = await (await fetch('/samples/templates/50-advanced.ptbk.md')).text();
+
+                // TODO: [🍓][⚖] createPromptbookLibraryFromUrl
                 const library = createPromptbookLibraryFromSources(
                     advanced
 
@@ -56,6 +57,8 @@
                     userInterface: null,
                 };
 
+                /*
+                TODO: [🍓] !!! Uncomment - This must work
                 const promptbookExecutor = library.createExecutor('advanced', tools);
 
                 const input = { word };
@@ -65,6 +68,8 @@
 
                 console.info(output);
                 outputElement.innerText = JSON.stringify(output, null, 4);
+
+                */
             });
         </script>
     </body>

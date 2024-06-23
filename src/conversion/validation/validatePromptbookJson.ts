@@ -1,6 +1,7 @@
 import { spaceTrim } from 'spacetrim';
 import { LOOP_LIMIT } from '../../config';
 import { PromptbookLogicError } from '../../errors/PromptbookLogicError';
+import { PromptbookSyntaxError } from '../../errors/PromptbookSyntaxError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { PromptTemplateJson } from '../../types/PromptbookJson/PromptTemplateJson';
 import type { PromptbookJson } from '../../types/PromptbookJson/PromptbookJson';
@@ -22,11 +23,37 @@ import { isValidUrl } from '../../utils/validators/url/isValidUrl';
  * @throws {PromptbookLogicError} on logical error in the promptbook
  */
 export function validatePromptbookJson(promptbook: PromptbookJson): PromptbookJson {
+    // TODO: [🧠] Maybe test if promptbook is a promise and make specific error case for that
+
     if (promptbook.promptbookUrl !== undefined) {
         if (!isValidUrl(promptbook.promptbookUrl)) {
             // TODO: This should be maybe the syntax error detected during parsing
             throw new PromptbookLogicError(`Invalid promptbook URL "${promptbook.promptbookUrl}"`);
         }
+    }
+
+    // TODO: [🧠] Maybe do here some propper JSON-schema / ZOD checking
+    if (!Array.isArray(promptbook.parameters)) {
+        // TODO: [🧠] what is the correct error tp throw - maybe PromptbookSchemaError
+        throw new PromptbookSyntaxError(
+            spaceTrim(`
+                Promptbook is valid JSON but with wrong structure
+
+                promptbook.parameters expected to be an array, but got ${typeof promptbook.parameters}
+            `),
+        );
+    }
+
+    // TODO: [🧠] Maybe do here some propper JSON-schema / ZOD checking
+    if (!Array.isArray(promptbook.promptTemplates)) {
+        // TODO: [🧠] what is the correct error tp throw - maybe PromptbookSchemaError
+        throw new PromptbookSyntaxError(
+            spaceTrim(`
+              Promptbook is valid JSON but with wrong structure
+
+              promptbook.promptTemplates expected to be an array, but got ${typeof promptbook.promptTemplates}
+          `),
+        );
     }
 
     // Note: Check each parameter individually
@@ -83,13 +110,12 @@ export function validatePromptbookJson(promptbook: PromptbookJson): PromptbookJs
 
         if (
             template.executionType === 'PROMPT_TEMPLATE' &&
-            (template.modelRequirements.modelVariant === undefined ||
-                template.modelRequirements.modelName === undefined)
+            (template.modelRequirements.modelVariant === undefined)
         ) {
             throw new PromptbookLogicError(
                 spaceTrim(`
 
-                  You must specify MODEL VARIANT and MODEL NAME in the prompt template "${template.title}"
+                  You must specify MODEL VARIANT in the prompt template "${template.title}"
 
                   For example:
                   - MODEL VARIANT Chat
