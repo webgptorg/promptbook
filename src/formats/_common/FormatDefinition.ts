@@ -1,4 +1,4 @@
-import type { string_mime_type, string_name } from '../types/typeAliases';
+import type { string_mime_type, string_name } from '../../types/typeAliases';
 
 /**
  * A format definition is a set of functions that define how to validate, heal and convert response from LLM
@@ -7,7 +7,7 @@ import type { string_mime_type, string_name } from '../types/typeAliases';
  */
 export type FormatDefinition<TValue extends TPartialValue, TPartialValue extends string, TSchema extends object> = {
     /**
-     * The name of the format
+     * The name of the format used in .ptbk.md files
      *
      * @sample "JSON"
      */
@@ -52,7 +52,7 @@ export type FormatDefinition<TValue extends TPartialValue, TPartialValue extends
 };
 
 /**
- * TODO: Compute TPartialValue dynamically - PartialString<TValue>
+ * TODO: [👨‍⚖️] Compute TPartialValue dynamically - PartialString<TValue>
  * TODO: [🧠] Should execution tools be aviable to heal, canBeValid and isValid?
  * TODO: [🧠] llm Provider Bindings
  */
