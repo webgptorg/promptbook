@@ -1,5 +1,4 @@
-import type { string_mime_type } from '../../types/typeAliases';
-import type { string_name } from '../../types/typeAliases';
+import type { string_mime_type, string_name } from '../../types/typeAliases';
 
 /**
  * A format definition is a set of functions that define how to validate, heal and convert response from LLM
@@ -13,6 +12,11 @@ export type FormatDefinition<TValue extends TPartialValue, TPartialValue extends
      * @sample "JSON"
      */
     readonly name: string_name;
+
+    /**
+     * Aliases for the name
+     */
+    readonly aliases?: Array<string_name>;
 
     /**
      * The mime type of the format (if any)
@@ -50,9 +54,21 @@ export type FormatDefinition<TValue extends TPartialValue, TPartialValue extends
      * @throws {Error} If the value cannot be healed
      */
     heal(value: string, scheme?: TSchema): TValue;
+
+    /**
+     * Parses just the values and removes structural information
+     *
+     * Note: This is useful when you want to combine format expectations with counting words, characters,...
+     *
+     * @param value The value to check, for example "{\"name\": "John Smith"}"
+     * @param schema Optional schema
+     * @example "{\"name\": "John Smith"}" -> "John Smith"
+     */
+    extractValues(value: string, schema?: TSchema): string;
 };
 
 /**
+ * TODO: `name` and `aliases` should be UPPERCASE only and interpreted as case-insensitive (via normalization)
  * TODO: [👨‍⚖️] Compute TPartialValue dynamically - PartialString<TValue>
  * TODO: [🧠] Should execution tools be aviable to heal, canBeValid and isValid?
  * TODO: [🧠] llm Provider Bindings
