@@ -1,6 +1,6 @@
 {
     "name": "@promptbook/fake-llm",
-    "version": "0.57.0",
+    "version": "0.57.2",
     "description": "Library to supercharge your use of large language models",
     "private": false,
     "sideEffects": false,
@@ -35,7 +35,7 @@
     "homepage": "https://www.npmjs.com/package/@promptbook/core",
     "dependencies": {
         "lorem-ipsum": "2.0.8",
-        "spacetrim": "0.11.27"
+        "spacetrim": "0.11.36"
     },
     "funding": [
         {
@@ -48,7 +48,7 @@
         }
     ],
     "peerDependencies": {
-        "@promptbook/core": "0.57.0"
+        "@promptbook/core": "0.57.2"
     },
     "main": "./umd/index.umd.js",
     "module": "./esm/index.es.js",
