@@ -1,6 +1,6 @@
 {
     "name": "@promptbook/cli",
-    "version": "0.57.2",
+    "version": "0.58.0",
     "description": "Library to supercharge your use of large language models",
     "private": false,
     "sideEffects": false,
@@ -52,7 +52,7 @@
         }
     ],
     "peerDependencies": {
-        "@promptbook/core": "0.57.2"
+        "@promptbook/core": "0.58.0"
     },
     "main": "./umd/index.umd.js",
     "module": "./esm/index.es.js",
