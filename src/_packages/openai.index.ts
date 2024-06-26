@@ -2,7 +2,7 @@
 
 import { OPENAI_MODELS } from '../llm-providers/openai/openai-models';
 import { OpenAiExecutionTools } from '../llm-providers/openai/OpenAiExecutionTools';
-import { OpenAiExecutionToolsOptions } from '../llm-providers/openai/OpenAiExecutionToolsOptions';
+import type { OpenAiExecutionToolsOptions } from '../llm-providers/openai/OpenAiExecutionToolsOptions';
 import { PROMPTBOOK_VERSION } from '../version';
 
 // Note: Exporting version from each package

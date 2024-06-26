@@ -7,6 +7,7 @@ import type { PromptCompletionResult } from '../../execution/PromptResult';
 import type { PromptResult } from '../../execution/PromptResult';
 import type { Prompt } from '../../types/Prompt';
 import type { Promptbook_Server_Error } from './interfaces/Promptbook_Server_Error';
+import type { Promptbook_Server_Request } from './interfaces/Promptbook_Server_Request';
 import type { Promptbook_Server_Response } from './interfaces/Promptbook_Server_Response';
 import type { RemoteLlmExecutionToolsOptions } from './RemoteLlmExecutionToolsOptions';
 

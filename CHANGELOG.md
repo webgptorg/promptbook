@@ -334,7 +334,8 @@ Better JSON Mode
 
 ### `0.58.0` _(2024-06-26)_
 
-Internal reorganization of folders and files
+-   Internal reorganization of folders and files
+-   Export types as type export
 
 ## In pre-release
 

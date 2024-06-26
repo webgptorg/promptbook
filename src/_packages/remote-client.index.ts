@@ -1,8 +1,8 @@
 // @promptbook/remote-client
 
-import { RemoteServerOptions } from '../llm-providers/remote/interfaces/RemoteServerOptions';
+import type { RemoteServerOptions } from '../llm-providers/remote/interfaces/RemoteServerOptions';
 import { RemoteLlmExecutionTools } from '../llm-providers/remote/RemoteLlmExecutionTools';
-import { RemoteLlmExecutionToolsOptions } from '../llm-providers/remote/RemoteLlmExecutionToolsOptions';
+import type { RemoteLlmExecutionToolsOptions } from '../llm-providers/remote/RemoteLlmExecutionToolsOptions';
 import { PROMPTBOOK_VERSION } from '../version';
 
 // Note: Exporting version from each package

@@ -1,9 +1,8 @@
 // @promptbook/execute-javascript
 
-
 import spaceTrim from 'spacetrim';
-import { JavascriptEvalExecutionTools } from '../execution/plugins/script-execution-tools/javascript/JavascriptEvalExecutionTools';
-import { JavascriptExecutionTools } from '../execution/plugins/script-execution-tools/javascript/JavascriptExecutionTools';
+import { JavascriptEvalExecutionTools } from '../scripting/javascript/JavascriptEvalExecutionTools';
+import { JavascriptExecutionTools } from '../scripting/javascript/JavascriptExecutionTools';
 import { prettifyMarkdown } from '../utils/markdown/prettifyMarkdown';
 import { capitalize } from '../utils/normalization/capitalize';
 import { decapitalize } from '../utils/normalization/decapitalize';
@@ -27,7 +26,6 @@ import { PROMPTBOOK_VERSION } from '../version';
 
 // Note: Exporting version from each package
 export { PROMPTBOOK_VERSION };
-
 
 const parseKeywords = (input: string) =>
     // TODO: DRY [🍯]

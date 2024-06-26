@@ -4,6 +4,7 @@ import { PromptbookExecutionError } from '../../errors/PromptbookExecutionError'
 import type { AvailableModel } from '../../execution/LlmExecutionTools';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import type { PromptChatResult } from '../../execution/PromptResult';
+import type { PromptResultUsage } from '../../execution/PromptResult';
 import type { PromptCompletionResult } from '../../execution/PromptResult';
 import { computeUsageCounts } from '../../execution/utils/computeUsageCounts';
 import { uncertainNumber } from '../../execution/utils/uncertainNumber';

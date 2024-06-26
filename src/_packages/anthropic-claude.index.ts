@@ -1,7 +1,7 @@
 // @promptbook/anthropic-claude
 
 import { AnthropicClaudeExecutionTools } from '../llm-providers/anthropic-claude/AnthropicClaudeExecutionTools';
-import { AnthropicClaudeExecutionToolsOptions } from '../llm-providers/anthropic-claude/AnthropicClaudeExecutionToolsOptions';
+import type { AnthropicClaudeExecutionToolsOptions } from '../llm-providers/anthropic-claude/AnthropicClaudeExecutionToolsOptions';
 import { PROMPTBOOK_VERSION } from '../version';
 
 // Note: Exporting version from each package
