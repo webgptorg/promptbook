@@ -15,7 +15,6 @@ import { TemplateError } from '../errors/TemplateError';
 import { UnexpectedError } from '../errors/UnexpectedError';
 import { assertsExecutionSuccessful } from '../execution/assertsExecutionSuccessful';
 import { createPromptbookExecutor } from '../execution/createPromptbookExecutor';
-import { MultipleLlmExecutionTools } from '../execution/plugins/llm-execution-tools/multiple/MultipleLlmExecutionTools';
 import { CallbackInterfaceTools } from '../execution/plugins/user-interface-execution-tools/callback/CallbackInterfaceTools';
 import { CallbackInterfaceToolsOptions } from '../execution/plugins/user-interface-execution-tools/callback/CallbackInterfaceToolsOptions';
 import { SimplePromptInterfaceTools } from '../execution/plugins/user-interface-execution-tools/simple-prompt/SimplePromptInterfaceTools';
@@ -27,6 +26,7 @@ import { createPromptbookLibraryFromSources } from '../library/constructors/crea
 import { createPromptbookLibraryFromUrl } from '../library/constructors/createPromptbookLibraryFromUrl';
 import { createPromptbookSublibrary } from '../library/constructors/createPromptbookSublibrary';
 import { SimplePromptbookLibrary } from '../library/SimplePromptbookLibrary';
+import { MultipleLlmExecutionTools } from '../llm-providers/multiple/MultipleLlmExecutionTools';
 import { executionReportJsonToString } from '../types/execution-report/executionReportJsonToString';
 import {
     ExecutionReportStringOptions,

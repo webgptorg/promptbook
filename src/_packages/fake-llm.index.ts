@@ -1,7 +1,7 @@
 // @promptbook/fake-llm
 
-import { MockedEchoLlmExecutionTools } from '../execution/plugins/llm-execution-tools/mocked/MockedEchoLlmExecutionTools';
-import { MockedFackedLlmExecutionTools } from '../execution/plugins/llm-execution-tools/mocked/MockedFackedLlmExecutionTools';
+import { MockedEchoLlmExecutionTools } from '../llm-providers/mocked/MockedEchoLlmExecutionTools';
+import { MockedFackedLlmExecutionTools } from '../llm-providers/mocked/MockedFackedLlmExecutionTools';
 import { PROMPTBOOK_VERSION } from '../version';
 
 // Note: Exporting version from each package

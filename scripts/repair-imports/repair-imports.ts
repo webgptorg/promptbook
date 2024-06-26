@@ -68,7 +68,7 @@ async function repairImports({
         }
 
         if (file.path.includes('JavascriptEvalExecutionTools.ts')) {
-            // Note: Do not repair imports in file where we need a bit special treatment of imports because of the `eval`
+            // Note: [💎] Do not repair imports in file where we need a bit special treatment of imports because of the `eval`
             continue;
         }
 
@@ -86,7 +86,9 @@ async function repairImports({
             ),
         );
 
-        if (matches.length !== 0) {
+        if (matches.length === 0) {
+            console.info(colors.gray('/' + relative(process.cwd(), file.path).split('\\').join('/')));
+        } else {
             console.info(
                 colors.green('/' + relative(process.cwd(), file.path).split('\\').join('/') + ` (${matches.length}x)`),
             );

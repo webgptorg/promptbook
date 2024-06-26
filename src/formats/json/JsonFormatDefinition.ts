@@ -1,5 +1,5 @@
 import { just } from '../../utils/just';
-import { FormatDefinition } from '../_common/FormatDefinition';
+import type { FormatDefinition } from '../_common/FormatDefinition';
 import { isValidJsonString } from './utils/isValidJsonString';
 
 /**

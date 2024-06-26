@@ -1,10 +1,9 @@
 // @promptbook/openai
 
-import { OPENAI_MODELS } from '../execution/plugins/llm-execution-tools/openai/openai-models';
-import { OpenAiExecutionTools } from '../execution/plugins/llm-execution-tools/openai/OpenAiExecutionTools';
-import { OpenAiExecutionToolsOptions } from '../execution/plugins/llm-execution-tools/openai/OpenAiExecutionToolsOptions';
+import { OPENAI_MODELS } from '../llm-providers/openai/openai-models';
+import { OpenAiExecutionTools } from '../llm-providers/openai/OpenAiExecutionTools';
+import { OpenAiExecutionToolsOptions } from '../llm-providers/openai/OpenAiExecutionToolsOptions';
 import { PROMPTBOOK_VERSION } from '../version';
 
 // Note: Exporting version from each package
-export { PROMPTBOOK_VERSION };
-export { OPENAI_MODELS, OpenAiExecutionTools, OpenAiExecutionToolsOptions };
+export { OPENAI_MODELS, OpenAiExecutionTools, OpenAiExecutionToolsOptions, PROMPTBOOK_VERSION };

@@ -325,14 +325,18 @@ Rename and reorganize libraries
 -   Export `PROMPTBOOK_VERSION` from each package
 -   Use `export type` in `@promptbook/types`
 
-## In pre-release
-
-### `0.57.0` _(2024-06-)_
+### `0.57.0` _(2024-06-15)_
 
 Better JSON Mode
 
 -   `OpenAiExecutionTools` will use JSON mode natively
 -   `OpenAiExecutionTools` Do not fail on empty _(but valid string)_ responses
+
+### `0.58.0` _(2024-06-26)_
+
+Internal reorganization of folders and files
+
+## In pre-release
 
 ## In prepare
 

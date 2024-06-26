@@ -1,4 +1,4 @@
-
+TODO: This is orphan code - code that is not integrated into the main codebase and is not exported.
 TODO: [🏳] Annotate all here
 TODO: [🏳] Make type imports here
 TODO: [🏳] Take content of this folder and make TRANSLATION model variant

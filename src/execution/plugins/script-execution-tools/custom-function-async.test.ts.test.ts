@@ -2,11 +2,11 @@ import { describe, expect, it } from '@jest/globals';
 import { spaceTrim } from 'spacetrim';
 import { forTime } from 'waitasecond';
 import { promptbookStringToJson } from '../../../conversion/promptbookStringToJson';
+import { CallbackInterfaceTools } from '../../../knowledgebase/dialogs/callback/CallbackInterfaceTools';
+import { MockedEchoLlmExecutionTools } from '../../../llm-providers/mocked/MockedEchoLlmExecutionTools';
+import { JavascriptExecutionTools } from '../../../scripting/javascript/JavascriptExecutionTools';
 import type { PromptbookString } from '../../../types/PromptbookString';
 import { createPromptbookExecutor } from '../../createPromptbookExecutor';
-import { MockedEchoLlmExecutionTools } from '../llm-execution-tools/mocked/MockedEchoLlmExecutionTools';
-import { CallbackInterfaceTools } from '../user-interface-execution-tools/callback/CallbackInterfaceTools';
-import { JavascriptExecutionTools } from './javascript/JavascriptExecutionTools';
 
 describe('createPromptbookExecutor + custom async function ', () => {
     const promptbook = promptbookStringToJson(

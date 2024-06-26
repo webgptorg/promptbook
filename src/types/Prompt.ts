@@ -1,4 +1,4 @@
-import type { PostprocessingFunction } from '../execution/plugins/script-execution-tools/javascript/JavascriptExecutionToolsOptions';
+import type { PostprocessingFunction } from '../scripting/javascript/JavascriptExecutionToolsOptions';
 import type { ExpectFormatCommand } from './Command';
 import type { ModelRequirements } from './ModelRequirements';
 import type { Expectations } from './PromptbookJson/PromptTemplateJson';
