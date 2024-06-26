@@ -62,9 +62,9 @@ export type FormatDefinition<TValue extends TPartialValue, TPartialValue extends
      *
      * @param value The value to check, for example "{\"name\": "John Smith"}"
      * @param schema Optional schema
-     * @example "{\"name\": "John Smith"}" -> "John Smith"
+     * @example "{\"name\": "John Smith"}" -> ["John Smith"]
      */
-    extractValues(value: string, schema?: TSchema): string;
+    extractValues(value: string, schema?: TSchema): Array<string>;
 };
 
 /**
