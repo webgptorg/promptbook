@@ -1,8 +1,7 @@
 import type { CommonExecutionToolsOptions } from '../../../execution/CommonExecutionToolsOptions';
 import type { LlmExecutionTools } from '../../../execution/LlmExecutionTools';
-import type { PromptbookLibrary } from '../../../library/PromptbookLibrary';
-import type { client_id } from '../../../types/typeAliases';
-import type { string_uri } from '../../../types/typeAliases';
+import type { PromptbookLibrary } from '../../../promptbook-library/PromptbookLibrary';
+import type { client_id, string_uri } from '../../../types/typeAliases';
 
 export type RemoteServerOptions = CommonExecutionToolsOptions & {
     /**
