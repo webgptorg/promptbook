@@ -26,6 +26,12 @@ export const CsvFormatDefinition: FormatDefinition<string /* <-[0] */, string /*
         just(schema /* <- TODO: Use schema here */);
         throw new Error('Not implemented');
     },
+
+    extractValues(value, schema) {
+        just(value /* <- TODO: Use value here */);
+        just(schema /* <- TODO: Use schema here */);
+        throw new Error('Not implemented');
+    },
 };
 
 
