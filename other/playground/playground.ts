@@ -6,7 +6,7 @@ dotenv.config({ path: '.env' });
 
 import chalk from 'colors';
 import { join } from 'path';
-import { checkGithubName } from '../../src/expectations/drafts/checkGithubName';
+import { checkGithubName } from '../../src/expectations/drafts/isGithubNameFree';
 
 if (process.cwd() !== join(__dirname, '../..')) {
     console.error(chalk.red(`CWD must be root of the project`));
@@ -29,7 +29,7 @@ async function playground() {
     // Do here stuff you want to test
     //========================================>
 
-    console.log(checkGithubName('hejny'));
+    console.log(await checkGithubName('hejny'));
 
     //========================================/
 

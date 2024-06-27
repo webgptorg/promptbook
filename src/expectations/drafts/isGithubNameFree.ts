@@ -1,6 +1,8 @@
 import { string_name } from '../../types/typeAliases';
+import { just } from '../../utils/just';
 
-export async function checkGithubName(name: string_name): Promise<boolean> {
+export async function isGithubNameFree(name: string_name): Promise<boolean> {
+    just(name);
     const response = await fetch('https://github.com/organizations/check_name', {
         headers: {
             accept: '*/*',
@@ -27,10 +29,14 @@ export async function checkGithubName(name: string_name): Promise<boolean> {
 
     console.log(response);
 
+    const data = await response.text();
+
+    console.log(data);
+
     return false;
 }
 
-
 /**
- * TODO: !!!! Test and implement `checkGithubName`
+ * TODO: [🍓][🧠] Test and implement `isGithubNameFree`
+ * TODO: Export via some (and probably new) NPM package
  */
