@@ -68,9 +68,9 @@ export type FormatDefinition<TValue extends TPartialValue, TPartialValue extends
 };
 
 /**
- * TODO: `name` and `aliases` should be UPPERCASE only and interpreted as case-insensitive (via normalization)
- * TODO: [👨‍⚖️] Compute TPartialValue dynamically - PartialString<TValue>
- * TODO: [🧠] Should execution tools be aviable to heal, canBeValid and isValid?
- * TODO: [🧠] llm Provider Bindings
- * TODO: Export via some package
+ * TODO: [🍓]`name` and `aliases` should be UPPERCASE only and interpreted as case-insensitive (via normalization)
+ * TODO: [🍓][👨‍⚖️] Compute TPartialValue dynamically - PartialString<TValue>
+ * TODO: [🍓][🧠] Should execution tools be aviable to heal, canBeValid and isValid?
+ * TODO: [🍓][🧠] llm Provider Bindings
+ * TODO: [🍓]Export via some package
  */

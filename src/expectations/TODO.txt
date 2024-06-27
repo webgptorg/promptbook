@@ -1,1 +1,3 @@
 TODO: Move here all expectations code
+TODO: Expectations in context of iterations - filter N to M
+TODO: Make packages for each expectation and allow them to be installed and used separately

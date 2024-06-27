@@ -1,1 +1,2 @@
-TODO: Move here all postprocessing code
+TODO: [🍓] Move here all postprocessing code
+TODO: [🍓] Make packages for each expectation and allow them to be installed and used separately (its done but do it more systematically)

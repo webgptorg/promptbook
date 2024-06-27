@@ -29,3 +29,11 @@ export const ListFormatDefinition: FormatDefinition<string /* <-[0] */, string /
         throw new Error('Not implemented');
     },
 };
+
+
+/**
+ * TODO: [🍓] In `ListFormatDefinition` implement simple `isValid`
+ * TODO: [🍓] In `ListFormatDefinition` implement partial `canBeValid`
+ * TODO: [🍓] In `ListFormatDefinition` implement `heal
+ * TODO: [🍓] In `ListFormatDefinition` implement `extractValues`
+ */

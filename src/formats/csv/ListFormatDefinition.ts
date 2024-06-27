@@ -27,3 +27,11 @@ export const CsvFormatDefinition: FormatDefinition<string /* <-[0] */, string /*
         throw new Error('Not implemented');
     },
 };
+
+
+/**
+ * TODO: [🍓] In `CsvFormatDefinition` implement simple `isValid`
+ * TODO: [🍓] In `CsvFormatDefinition` implement partial `canBeValid`
+ * TODO: [🍓] In `CsvFormatDefinition` implement `heal
+ * TODO: [🍓] In `CsvFormatDefinition` implement `extractValues`
+ */
