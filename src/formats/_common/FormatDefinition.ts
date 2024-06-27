@@ -1,4 +1,5 @@
-import type { string_mime_type, string_name } from '../../types/typeAliases';
+import type { string_mime_type } from '../../types/typeAliases';
+import type { string_name } from '../../types/typeAliases';
 
 /**
  * A format definition is a set of functions that define how to validate, heal and convert response from LLM
