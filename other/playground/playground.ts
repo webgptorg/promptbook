@@ -6,7 +6,7 @@ dotenv.config({ path: '.env' });
 
 import chalk from 'colors';
 import { join } from 'path';
-import { OpenAiExecutionTools } from '../../src/execution/plugins/llm-execution-tools/openai/OpenAiExecutionTools';
+import { checkGithubName } from '../../src/expectations/drafts/checkGithubName';
 
 if (process.cwd() !== join(__dirname, '../..')) {
     console.error(chalk.red(`CWD must be root of the project`));
@@ -29,14 +29,7 @@ async function playground() {
     // Do here stuff you want to test
     //========================================>
 
-    const openAiExecutionTools = new OpenAiExecutionTools({
-        isVerbose: true,
-        apiKey: process.env.OPENAI_API_KEY,
-    });
-
-    const models = await openAiExecutionTools.listModels();
-
-    console.info({ models });
+    console.log(checkGithubName('hejny'));
 
     //========================================/
 
