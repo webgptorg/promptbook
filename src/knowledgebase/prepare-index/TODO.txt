@@ -1,0 +1,2 @@
+TODO: Knowledge index from .zip file
+TODO: Make packages for each index preparer and allow them to be installed and used separately
