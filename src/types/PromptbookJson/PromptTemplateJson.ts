@@ -98,9 +98,10 @@ interface PromptTemplateJsonCommon {
 
     /**
      * Title of the prompt template
-     * It can use simple markdown formatting like **bold**, *italic*, [link](https://example.com), ... BUT not code blocks and structure
+     *
+     * Note: It can use simple markdown formatting like **bold**, *italic*, [link](https://example.com), ... BUT not code blocks and structure
      */
-    readonly title: string;
+    readonly title: string_markdown_text;
 
     /**
      * Description of the prompt template

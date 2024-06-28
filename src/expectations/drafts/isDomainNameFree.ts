@@ -1,4 +1,4 @@
-import { string_name } from '../../types/typeAliases';
+import type { string_name } from '../../types/typeAliases';
 import { just } from '../../utils/just';
 
 export async function isDomainNameFree(name: string_name): Promise<boolean> {

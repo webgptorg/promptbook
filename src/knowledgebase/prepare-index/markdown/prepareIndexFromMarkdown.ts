@@ -1,5 +1,5 @@
-import { ExecutionTools } from '../../../execution/ExecutionTools';
-import { string_href } from '../../../types/typeAliases';
+import type { ExecutionTools } from '../../../execution/ExecutionTools';
+import type { string_href } from '../../../types/typeAliases';
 import { just } from '../../../utils/just';
 
 export async function prepareIndexFromMarkdown(options: { tools: ExecutionTools }): Promise<{

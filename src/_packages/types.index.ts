@@ -20,6 +20,8 @@ import type { ExecutionType } from '../types/ExecutionTypes';
 import type { ModelRequirements, ModelVariant } from '../types/ModelRequirements';
 import type { Parameters } from '../types/Parameters';
 import type { Prompt } from '../types/Prompt';
+import { JsonFile } from '../types/PromptbookJson/JsonFile';
+import { KnowledgeJson } from '../types/PromptbookJson/KnowledgeJson';
 import type {
     ExpectationAmount,
     Expectations,
@@ -33,6 +35,7 @@ import type {
 import { EXPECTATION_UNITS } from '../types/PromptbookJson/PromptTemplateJson';
 import type { PromptTemplateParameterJson } from '../types/PromptbookJson/PromptTemplateParameterJson';
 import type { PromptbookJson } from '../types/PromptbookJson/PromptbookJson';
+import { PromptbookLibraryJson } from '../types/PromptbookJson/PromptbookLibraryJson';
 import type { PromptbookString } from '../types/PromptbookString';
 import type { ScriptLanguage } from '../types/ScriptLanguage';
 import type { TaskProgress } from '../types/TaskProgress';
@@ -106,6 +109,8 @@ export type {
     Expectations,
     ExpectationUnit,
     FromtoItems,
+    JsonFile,
+    KnowledgeJson,
     LlmExecutionTools,
     LlmTemplateJson,
     ModelRequirements,
@@ -115,6 +120,7 @@ export type {
     PromptbookExecutor,
     PromptbookJson,
     PromptbookLibrary,
+    PromptbookLibraryJson,
     PromptbookString,
     PromptChatResult,
     PromptCommonResult,

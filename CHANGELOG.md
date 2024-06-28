@@ -337,6 +337,14 @@ Better JSON Mode
 -   Internal reorganization of folders and files
 -   Export types as type export
 
+### `0.59.0` _(2024-06-26)_
+
+Make more robust structure of saved promptbooks
+
+-   Add `JsonFile` exported from `@promptbook/types`
+-   Add `PromptbookLibraryJson` exported from `@promptbook/types`
+-   Add `KnowledgeJson` exported from `@promptbook/types`
+
 ## In pre-release
 
 ## In prepare
