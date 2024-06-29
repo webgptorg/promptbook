@@ -1,4 +1,6 @@
-import type { JsonFileCommon } from './JsonFileCommon';
+import type { string_markdown_text } from '../typeAliases';
+import type { string_promptbook_url } from '../typeAliases';
+import type { string_version } from '../typeAliases';
 import type { PromptTemplateJson } from './PromptTemplateJson';
 import type { PromptTemplateParameterJson } from './PromptTemplateParameterJson';
 
@@ -8,8 +10,34 @@ import type { PromptTemplateParameterJson } from './PromptTemplateParameterJson'
  *
  * @see https://github.com/webgptorg/promptbook#promptbook
  */
-export type PromptbookJson = JsonFileCommon & {
-    readonly type: 'PROMPTBOOK';
+export type PromptbookJson = {
+    /**
+     * Unique identifier of the promptbook
+     *
+     * Note: It must be unique across all promptbooks libraries
+     * Note: It must use HTTPs URL
+     * Tip: You can do versioning in the URL
+     *      For example: https://promptbook.webgpt.com/cs/write-website-content.ptbk.md@1.0.0
+     * Warning: Do not hash part of the URL, hash part is used for identification of the prompt template in the pipeline
+     */
+    readonly promptbookUrl?: string_promptbook_url;
+
+    /**
+     * Title of the promptbook
+     * -It can use simple markdown formatting like **bold**, *italic*, [link](https://example.com), ... BUT not code blocks and structure
+     */
+    readonly title: string_markdown_text;
+
+    /**
+     * Version of the .ptbk.json file
+     */
+    readonly promptbookVersion: string_version;
+
+    /**
+     * Description of the promptbook
+     * It can use multiple paragraphs of simple markdown formatting like **bold**, *italic*, [link](https://example.com), ... BUT not code blocks and structure
+     */
+    readonly description?: string_markdown_text;
 
     /**
      * Set of variables that are used across the pipeline
@@ -21,3 +49,12 @@ export type PromptbookJson = JsonFileCommon & {
      */
     readonly promptTemplates: Array<PromptTemplateJson>;
 };
+
+/**
+ * TODO: [🧠] Best format of this code?
+ *             There must be possible to make
+ *             - Branching
+ *             - Loops
+ *             - Paralelization
+ *             - ...and more
+ */
