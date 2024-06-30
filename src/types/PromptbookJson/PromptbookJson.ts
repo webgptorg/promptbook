@@ -1,5 +1,5 @@
 import type { string_markdown_text, string_promptbook_url, string_version } from '../typeAliases';
-import { KnowledgeJson } from './KnowledgeJson';
+import type { KnowledgeJson } from './KnowledgeJson';
 import type { PromptTemplateJson } from './PromptTemplateJson';
 import type { PromptTemplateParameterJson } from './PromptTemplateParameterJson';
 

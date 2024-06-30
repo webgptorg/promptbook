@@ -337,6 +337,13 @@ Better JSON Mode
 -   Internal reorganization of folders and files
 -   Export types as type export
 
+### `0.59.0` _(2024-06-30)_
+
+System for management of external knowledge (RAG)
+
+-   Add `MaterialKnowledgePieceJson`
+-   Add `KnowledgeJson`
+
 ## In pre-release
 
 ## In prepare

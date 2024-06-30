@@ -31,6 +31,7 @@ describe('how renameParameter works', () => {
                             resultingParameterName: 'greet',
                         },
                     ],
+                    knowledge: [],
                 }),
                 oldParameterName: 'greet',
                 newParameterName: 'greeting',
@@ -61,6 +62,7 @@ describe('how renameParameter works', () => {
                         resultingParameterName: 'greeting',
                     },
                 ],
+                knowledge: [],
             }),
         );
     });
@@ -119,6 +121,7 @@ describe('how renameParameter works', () => {
                             resultingParameterName: 'sentenceWithTwoSynonyms',
                         },
                     ],
+                    knowledge: [],
                 }),
                 oldParameterName: 'word',
                 newParameterName: 'originalWord',
@@ -175,6 +178,7 @@ describe('how renameParameter works', () => {
                         resultingParameterName: 'sentenceWithTwoSynonyms',
                     },
                 ],
+                knowledge: [],
             }),
         );
     });
@@ -233,6 +237,7 @@ describe('how renameParameter works', () => {
                             resultingParameterName: 'sentenceWithTwoSynonyms',
                         },
                     ],
+                    knowledge: [],
                 }),
                 oldParameterName: 'word',
                 newParameterName: 'wordSynonym',

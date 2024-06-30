@@ -1,9 +1,8 @@
 import { IVectorData } from 'xyzt';
-import { string_keyword } from '../../_packages/utils.index';
-import { string_href, string_markdown, string_markdown_text, string_model_name, string_name } from '../typeAliases';
+import type { string_keyword } from '../../utils/normalization/IKeywords';
+import type { string_href, string_markdown, string_markdown_text, string_model_name, string_name } from '../typeAliases';
 
 export type MaterialKnowledgePieceJson = {
-
     readonly name: string_name;
 
     readonly title: string_markdown_text;

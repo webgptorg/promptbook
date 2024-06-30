@@ -20,7 +20,8 @@ import type { ExecutionType } from '../types/ExecutionTypes';
 import type { ModelRequirements, ModelVariant } from '../types/ModelRequirements';
 import type { Parameters } from '../types/Parameters';
 import type { Prompt } from '../types/Prompt';
-import { KnowledgeIndexJson } from '../types/PromptbookJson/MaterialKnowledgePieceJson';
+import { KnowledgeJson } from '../types/PromptbookJson/KnowledgeJson';
+import { MaterialKnowledgePieceJson } from '../types/PromptbookJson/MaterialKnowledgePieceJson';
 import type {
     ExpectationAmount,
     Expectations,
@@ -107,9 +108,10 @@ export type {
     Expectations,
     ExpectationUnit,
     FromtoItems,
-    KnowledgeIndexJson,
+    KnowledgeJson,
     LlmExecutionTools,
     LlmTemplateJson,
+    MaterialKnowledgePieceJson,
     ModelRequirements,
     ModelVariant,
     Parameters,

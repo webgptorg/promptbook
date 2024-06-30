@@ -38,6 +38,7 @@ export function promptbookStringToJson(promptbookString: PromptbookString): Prom
         description: undefined /* <- Note: Putting here placeholder to keep `description` on top at final JSON */,
         parameters: [],
         promptTemplates: [],
+        knowledge: [],
     };
 
     // =============================================================
