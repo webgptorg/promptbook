@@ -7,8 +7,8 @@ import type { PromptbookString } from '../../types/PromptbookString';
 import { PROMPTBOOK_VERSION } from '../../version';
 import { MockedFackedLlmExecutionTools } from './MockedFackedLlmExecutionTools';
 
-describe('createPromptbookExecutor + MockedEchoExecutionTools with sample chat prompt', () => {
-    const promptbook = promptbookStringToJson(
+describe('createPromptbookExecutor + MockedEchoExecutionTools with sample chat prompt', async () => {
+    const promptbook = await promptbookStringToJson(
         spaceTrim(`
             # Sample prompt
 

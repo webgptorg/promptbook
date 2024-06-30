@@ -31,11 +31,10 @@ describe('createPromptbookLibraryFromSources', () => {
             -> {response}
          `) as PromptbookString;
 
-    const library = createPromptbookLibraryFromSources(promptbook);
-
     it('should get promptbook by url from library', () =>
         expect(
             (async () => {
+                const library = await createPromptbookLibraryFromSources(promptbook);
                 const promptbookFromLibrary = await library.getPromptbookByUrl('https://example.com/promptbook.json');
                 return promptbookFromLibrary;
             })(),

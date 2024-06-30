@@ -1,6 +1,6 @@
+import { promptbookStringToJson } from '../../conversion/promptbookStringToJson';
 import type { PromptbookJson } from '../../types/PromptbookJson/PromptbookJson';
 import type { PromptbookString } from '../../types/PromptbookString';
-import { promptbookStringToJson } from '../../conversion/promptbookStringToJson';
 import { SimplePromptbookLibrary } from '../SimplePromptbookLibrary';
 
 /**
@@ -12,9 +12,9 @@ import { SimplePromptbookLibrary } from '../SimplePromptbookLibrary';
  * @param promptbookSources
  * @returns PromptbookLibrary
  */
-export function createPromptbookLibraryFromSources(
+export async function createPromptbookLibraryFromSources(
     ...promptbookSources: Array<PromptbookJson | PromptbookString>
-): SimplePromptbookLibrary {
+): Promise<SimplePromptbookLibrary> {
     const promptbooks = new Array<PromptbookJson>();
     for (const source of promptbookSources) {
         let promptbook: PromptbookJson;
@@ -23,7 +23,7 @@ export function createPromptbookLibraryFromSources(
             // Note: When directly creating from string, no need to validate the source
             //       The validation is performed always before execution
 
-            promptbook = promptbookStringToJson(source);
+            promptbook = await promptbookStringToJson(source);
         } else {
             promptbook = source;
         }
