@@ -1,4 +1,4 @@
 export type TranslatorOptions = {
-    from: string;
+    from?: string;
     to: string;
 };

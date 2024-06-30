@@ -8,7 +8,7 @@ import type { CallbackInterfaceToolsOptions } from './CallbackInterfaceToolsOpti
  * You need to provide your own implementation of this callback function and its bind to UI.
  */
 export class CallbackInterfaceTools implements UserInterfaceTools {
-    public constructor(private readonly options: CallbackInterfaceToolsOptions = {}) {}
+    public constructor(private readonly options: CallbackInterfaceToolsOptions) {}
 
     /**
      * Trigger the custom callback function

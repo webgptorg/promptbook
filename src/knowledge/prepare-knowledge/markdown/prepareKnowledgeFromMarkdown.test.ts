@@ -1,4 +1,5 @@
 import { describe, expect, it } from '@jest/globals';
+import spaceTrim from 'spacetrim';
 import { MockedFackedLlmExecutionTools } from '../../../_packages/fake-llm.index';
 import { prepareKnowledgeFromMarkdown } from './prepareKnowledgeFromMarkdown';
 

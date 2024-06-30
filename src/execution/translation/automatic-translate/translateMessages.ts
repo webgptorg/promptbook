@@ -1,10 +1,10 @@
+import colors from 'colors';
 import { readFile, writeFile } from 'fs';
 import glob from 'glob-promise';
 import JSON5 from 'json5';
 import { join } from 'path';
 import { spaceTrim } from 'spacetrim';
 import { promisify } from 'util';
-import colors from 'colors';
 import { PromptbookExecutionError } from '../../../errors/PromptbookExecutionError';
 import type { AutomaticTranslator } from './automatic-translators/AutomaticTranslator';
 import type { TranslatorOptions } from './automatic-translators/TranslatorOptions';
@@ -14,7 +14,7 @@ export async function translateMessages({
     from,
     to,
 }: { automaticTranslator: AutomaticTranslator } & TranslatorOptions) {
-    for (const filePath of await glob(join(__dirname, '../../translations/', from, '/**/*.json5'))) {
+    for (const filePath of await glob(join(__dirname, '../../translations/', from || 'en', '/**/*.json5'))) {
         const fileData = JSON5.parse(await promisify(readFile)(filePath, 'utf8'));
 
         for (const row of fileData) {

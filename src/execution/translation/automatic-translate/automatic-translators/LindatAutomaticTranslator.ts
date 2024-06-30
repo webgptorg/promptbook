@@ -10,7 +10,7 @@ interface LindatAutomaticTranslatorOptions extends TranslatorOptions {
 }
 
 export class LindatAutomaticTranslator implements AutomaticTranslator {
-    public constructor(private readonly options: LindatAutomaticTranslatorOptions = {}) {}
+    public constructor(private readonly options: LindatAutomaticTranslatorOptions) {}
     public async translate(message: string): Promise<string> {
         const formData = new FormData();
         formData.append('input_text', message);

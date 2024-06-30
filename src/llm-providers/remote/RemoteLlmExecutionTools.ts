@@ -17,7 +17,7 @@ import type { RemoteLlmExecutionToolsOptions } from './RemoteLlmExecutionToolsOp
  * @see https://github.com/webgptorg/promptbook#remote-server
  */
 export class RemoteLlmExecutionTools implements LlmExecutionTools {
-    public constructor(private readonly options: RemoteLlmExecutionToolsOptions = {}) {}
+    public constructor(private readonly options: RemoteLlmExecutionToolsOptions) {}
 
     /**
      * Creates a connection to the remote proxy server.

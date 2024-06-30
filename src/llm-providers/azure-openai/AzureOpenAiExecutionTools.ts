@@ -1,11 +1,8 @@
 import { AzureKeyCredential, OpenAIClient } from '@azure/openai';
 import colors from 'colors';
 import { PromptbookExecutionError } from '../../errors/PromptbookExecutionError';
-import type { AvailableModel } from '../../execution/LlmExecutionTools';
-import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { PromptChatResult } from '../../execution/PromptResult';
-import type { PromptResultUsage } from '../../execution/PromptResult';
-import type { PromptCompletionResult } from '../../execution/PromptResult';
+import type { AvailableModel, LlmExecutionTools } from '../../execution/LlmExecutionTools';
+import type { PromptChatResult, PromptCompletionResult, PromptResultUsage } from '../../execution/PromptResult';
 import { computeUsageCounts } from '../../execution/utils/computeUsageCounts';
 import { uncertainNumber } from '../../execution/utils/uncertainNumber';
 import type { Prompt } from '../../types/Prompt';
@@ -28,7 +25,7 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools {
      *
      * @param options which are relevant are directly passed to the OpenAI client
      */
-    public constructor(private readonly options: AzureOpenAiExecutionToolsOptions = {}) {
+    public constructor(private readonly options: AzureOpenAiExecutionToolsOptions) {
         this.client = new OpenAIClient(
             `https://${options.resourceName}.openai.azure.com/`,
             new AzureKeyCredential(options.apiKey),
