@@ -23,5 +23,6 @@
             "content": "Rewrite the function\n\n```javascript\nfunction greet() {\n  return 'Hello';\n}\n```\n\nTo return \"Goodbye\" instead.\n",
             "resultingParameterName": "greeting"
         }
-    ]
+    ],
+    "knowledge": []
 }

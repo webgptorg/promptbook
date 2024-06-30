@@ -32,5 +32,6 @@
             "content": "Write poem with word \"{word}\"",
             "resultingParameterName": "poem"
         }
-    ]
+    ],
+    "knowledge": []
 }

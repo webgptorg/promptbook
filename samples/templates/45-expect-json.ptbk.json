@@ -34,5 +34,6 @@
             "content": "Dark horse hopping over the fence.\n\n```json\n{\n  \"subject\": \"horse\",\n  \"action\": \"hopping\",\n  \"object\": \"fence\"\n}\n```\n\n---\n\n{sentence}\n\n```json",
             "resultingParameterName": "parsedSentence"
         }
-    ]
+    ],
+    "knowledge": []
 }

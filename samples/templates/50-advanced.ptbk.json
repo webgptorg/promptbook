@@ -174,5 +174,6 @@
             "content": "You have entered a word **{word}**. For this word the best synonym is **{wordSynonym}**. The sentence with both words is **{sentenceWithTwoSynonyms}**. The sentence without the original word is **{sentenceWithOriginalWordRemoved}**. And the comparison between the two sentences is:\n\n> {comparisonOfTwoSentences}",
             "resultingParameterName": "summary"
         }
-    ]
+    ],
+    "knowledge": []
 }

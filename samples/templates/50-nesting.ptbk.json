@@ -92,5 +92,6 @@
             "content": "Write poem with starting sentence:\n\n```text\n{sentence}\n```",
             "resultingParameterName": "poem"
         }
-    ]
+    ],
+    "knowledge": []
 }

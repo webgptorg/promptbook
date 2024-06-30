@@ -47,5 +47,6 @@
             "content": "Hello {yourName}!",
             "resultingParameterName": "greeting"
         }
-    ]
+    ],
+    "knowledge": []
 }

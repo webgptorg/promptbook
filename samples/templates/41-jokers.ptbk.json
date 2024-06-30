@@ -46,5 +46,6 @@
             "content": "Write some name for hero",
             "resultingParameterName": "name"
         }
-    ]
+    ],
+    "knowledge": []
 }

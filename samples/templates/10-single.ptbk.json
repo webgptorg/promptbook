@@ -31,5 +31,6 @@
             "content": "Write synonym for \"{word}\"",
             "resultingParameterName": "wordSynonym"
         }
-    ]
+    ],
+    "knowledge": []
 }

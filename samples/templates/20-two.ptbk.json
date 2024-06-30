@@ -51,5 +51,6 @@
             "content": "Write sentence with \"{word}\" and \"{wordSynonym}\" in it",
             "resultingParameterName": "sentenceWithTwoSynonyms"
         }
-    ]
+    ],
+    "knowledge": []
 }
