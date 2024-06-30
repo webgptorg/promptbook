@@ -6,8 +6,7 @@ import type { ParameterCommand } from '../types/Command';
 import type { ExecutionType } from '../types/ExecutionTypes';
 import type { ModelRequirements } from '../types/ModelRequirements';
 import type { PromptbookJson } from '../types/PromptbookJson/PromptbookJson';
-import type { ExpectationUnit } from '../types/PromptbookJson/PromptTemplateJson';
-import type { PromptTemplateJson } from '../types/PromptbookJson/PromptTemplateJson';
+import type { ExpectationUnit, PromptTemplateJson } from '../types/PromptbookJson/PromptTemplateJson';
 import type { PromptTemplateParameterJson } from '../types/PromptbookJson/PromptTemplateParameterJson';
 import type { PromptbookString } from '../types/PromptbookString';
 import type { ScriptLanguage } from '../types/ScriptLanguage';
@@ -25,10 +24,20 @@ import { parseCommand } from './utils/parseCommand';
 import { titleToName } from './utils/titleToName';
 
 /**
+ * Options for promptbookStringToJson
+ */
+type PromptbookStringToJsonOptions = {
+    /**
+     * Tools for processing required for knowledge processing *(not for actual execution)*
+     */
+    llmTools?: LlmExecutionTools;
+};
+
+/**
  * Compile promptbook from string (markdown) format to JSON format
  *
  * @param promptbookString {Promptbook} in string markdown format (.ptbk.md)
- * @param llmTools {LlmExecutionTools} - tools for processing required for knowledge processing *(not for actual execution)*
+ * @param options - Options and tools for the compilation
  * @returns {Promptbook} compiled in JSON format (.ptbk.json)
  * @throws {PromptbookSyntaxError} if the promptbook string is not valid
  *
@@ -37,8 +46,10 @@ import { titleToName } from './utils/titleToName';
  */
 export async function promptbookStringToJson(
     promptbookString: PromptbookString,
-    llmTools?: LlmExecutionTools,
+    options: PromptbookStringToJsonOptions = {},
 ): Promise<PromptbookJson> {
+    const { llmTools } = options;
+
     const promptbookJson: WritableDeep<PromptbookJson> = {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         title: undefined as any /* <- Note: Putting here placeholder to keep `title` on top at final JSON */,

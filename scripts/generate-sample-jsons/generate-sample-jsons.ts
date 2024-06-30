@@ -12,6 +12,7 @@ import { promptbookStringToJson } from '../../src/conversion/promptbookStringToJ
 import { validatePromptbookJson } from '../../src/conversion/validation/validatePromptbookJson';
 import { commit } from '../utils/autocommit/commit';
 import { isWorkingTreeClean } from '../utils/autocommit/isWorkingTreeClean';
+import { PromptbookString } from '../../src/types/PromptbookString';
 
 if (process.cwd() !== join(__dirname, '../..')) {
     console.error(colors.red(`CWD must be root of the project`));
@@ -50,7 +51,10 @@ async function generateSampleJsons({ isCommited }: { isCommited: boolean }) {
 
         try {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const promptbookJson = await promptbookStringToJson(promptbookMarkdown as any /* <- TODO: Remove any */);
+            const promptbookJson = await promptbookStringToJson(promptbookMarkdown as PromptbookString,{
+
+llmTools: 
+            });
             const promptbookJsonFilePath = promptbookMarkdownFilePath.replace(/\.ptbk\.md$/, '.ptbk.json');
 
             // Note: We want to ensure that the generated JSONs are logically correct
