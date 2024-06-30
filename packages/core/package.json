@@ -1,6 +1,6 @@
 {
     "name": "@promptbook/core",
-    "version": "0.58.0",
+    "version": "0.59.0-0",
     "description": "Library to supercharge your use of large language models",
     "private": false,
     "sideEffects": false,
@@ -36,7 +36,7 @@
     "dependencies": {
         "moment": "2.30.1",
         "prettier": "2.8.1",
-        "spacetrim": "0.11.36"
+        "spacetrim": "0.11.37"
     },
     "funding": [
         {
