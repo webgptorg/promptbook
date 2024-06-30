@@ -1,4 +1,6 @@
-import { KnowledgeJson, LlmExecutionTools, string_markdown } from '../../../_packages/types.index';
+import type { KnowledgeJson } from '../../../types/PromptbookJson/KnowledgeJson';
+import type { LlmExecutionTools } from '../../../execution/LlmExecutionTools';
+import type { string_markdown } from '../../../types/typeAliases';
 import { just } from '../../../utils/just';
 
 export async function prepareKnowledgeFromMarkdown(options: {

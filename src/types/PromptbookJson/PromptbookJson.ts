@@ -1,4 +1,6 @@
-import type { string_markdown_text, string_promptbook_url, string_version } from '../typeAliases';
+import type { string_markdown_text } from '../typeAliases';
+import type { string_promptbook_url } from '../typeAliases';
+import type { string_version } from '../typeAliases';
 import type { KnowledgeJson } from './KnowledgeJson';
 import type { PromptTemplateJson } from './PromptTemplateJson';
 import type { PromptTemplateParameterJson } from './PromptTemplateParameterJson';
