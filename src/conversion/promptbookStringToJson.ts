@@ -1,14 +1,13 @@
 import { spaceTrim } from 'spacetrim';
 import type { IterableElement, Writable, WritableDeep } from 'type-fest';
 import { PromptbookSyntaxError } from '../errors/PromptbookSyntaxError';
-import type { ExecutionTools } from '../execution/ExecutionTools';
+import type { LlmExecutionTools } from '../execution/LlmExecutionTools';
 import type { ParameterCommand } from '../types/Command';
 import type { ExecutionType } from '../types/ExecutionTypes';
 import type { ModelRequirements } from '../types/ModelRequirements';
-import type { ExpectationUnit } from '../types/PromptbookJson/PromptTemplateJson';
-import type { PromptTemplateJson } from '../types/PromptbookJson/PromptTemplateJson';
-import type { PromptTemplateParameterJson } from '../types/PromptbookJson/PromptTemplateParameterJson';
 import type { PromptbookJson } from '../types/PromptbookJson/PromptbookJson';
+import type { ExpectationUnit, PromptTemplateJson } from '../types/PromptbookJson/PromptTemplateJson';
+import type { PromptTemplateParameterJson } from '../types/PromptbookJson/PromptTemplateParameterJson';
 import type { PromptbookString } from '../types/PromptbookString';
 import type { ScriptLanguage } from '../types/ScriptLanguage';
 import { SUPPORTED_SCRIPT_LANGUAGES } from '../types/ScriptLanguage';
@@ -23,7 +22,6 @@ import { PROMPTBOOK_VERSION } from '../version';
 import { extractParametersFromPromptTemplate } from './utils/extractParametersFromPromptTemplate';
 import { parseCommand } from './utils/parseCommand';
 import { titleToName } from './utils/titleToName';
-import type { LlmExecutionTools } from '../execution/LlmExecutionTools';
 
 /**
  * Compile promptbook from string (markdown) format to JSON format
