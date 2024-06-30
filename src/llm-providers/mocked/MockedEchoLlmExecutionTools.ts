@@ -12,7 +12,7 @@ import { getCurrentIsoDate } from '../../utils/getCurrentIsoDate';
  * Mocked execution Tools for just echoing the requests for testing purposes.
  */
 export class MockedEchoLlmExecutionTools implements LlmExecutionTools {
-    public constructor(private readonly options: CommonExecutionToolsOptions) {}
+    public constructor(private readonly options: CommonExecutionToolsOptions = {}) {}
 
     /**
      * Mocks chat model

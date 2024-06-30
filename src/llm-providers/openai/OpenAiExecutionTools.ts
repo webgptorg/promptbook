@@ -26,7 +26,7 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
      *
      * @param options which are relevant are directly passed to the OpenAI client
      */
-    public constructor(private readonly options: OpenAiExecutionToolsOptions) {
+    public constructor(private readonly options: OpenAiExecutionToolsOptions = {}) {
         // Note: Passing only OpenAI relevant options to OpenAI constructor
         const openAiOptions = { ...options };
         delete openAiOptions.isVerbose;

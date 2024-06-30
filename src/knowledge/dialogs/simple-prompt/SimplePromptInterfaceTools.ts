@@ -11,7 +11,7 @@ import type { UserInterfaceToolsPromptDialogOptions } from '../../../execution/U
  *          **NOT intended to use in the production** due to its synchronous nature.
  */
 export class SimplePromptInterfaceTools implements UserInterfaceTools {
-    public constructor(private readonly options: CommonExecutionToolsOptions) {}
+    public constructor(private readonly options: CommonExecutionToolsOptions = {}) {}
 
     /**
      * Trigger window.PROMPT DIALOG

@@ -1,10 +1,7 @@
 import type { Socket } from 'socket.io-client';
 import { io } from 'socket.io-client';
-import type { AvailableModel } from '../../execution/LlmExecutionTools';
-import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { PromptChatResult } from '../../execution/PromptResult';
-import type { PromptCompletionResult } from '../../execution/PromptResult';
-import type { PromptResult } from '../../execution/PromptResult';
+import type { AvailableModel, LlmExecutionTools } from '../../execution/LlmExecutionTools';
+import type { PromptChatResult, PromptCompletionResult, PromptResult } from '../../execution/PromptResult';
 import type { Prompt } from '../../types/Prompt';
 import type { Promptbook_Server_Error } from './interfaces/Promptbook_Server_Error';
 import type { Promptbook_Server_Request } from './interfaces/Promptbook_Server_Request';
@@ -20,7 +17,7 @@ import type { RemoteLlmExecutionToolsOptions } from './RemoteLlmExecutionToolsOp
  * @see https://github.com/webgptorg/promptbook#remote-server
  */
 export class RemoteLlmExecutionTools implements LlmExecutionTools {
-    public constructor(private readonly options: RemoteLlmExecutionToolsOptions) {}
+    public constructor(private readonly options: RemoteLlmExecutionToolsOptions = {}) {}
 
     /**
      * Creates a connection to the remote proxy server.

@@ -6,11 +6,11 @@ import type { AutomaticTranslator } from './AutomaticTranslator';
 import type { TranslatorOptions } from './TranslatorOptions';
 
 interface LindatAutomaticTranslatorOptions extends TranslatorOptions {
-    apiUrl: URL;
+    apiUrl?: URL;
 }
 
 export class LindatAutomaticTranslator implements AutomaticTranslator {
-    public constructor(private readonly options: LindatAutomaticTranslatorOptions) {}
+    public constructor(private readonly options: LindatAutomaticTranslatorOptions = {}) {}
     public async translate(message: string): Promise<string> {
         const formData = new FormData();
         formData.append('input_text', message);
@@ -18,7 +18,7 @@ export class LindatAutomaticTranslator implements AutomaticTranslator {
         formData.append('tgt', this.options.to);
 
         const response = await fetch(
-            this.options.apiUrl,
+            this.options.apiUrl || '!!',
 
             {
                 method: 'POST',

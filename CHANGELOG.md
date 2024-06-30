@@ -344,6 +344,7 @@ System for management of external knowledge (RAG)
 -   Add `MaterialKnowledgePieceJson`
 -   Add `KnowledgeJson`
 -   Change `promptbookStringToJson` to async function
+-   Misc Tool classes not requires options anymore _(like `CallbackInterfaceTools`, `OpenAiExecutionTools`, `AnthropicClaudeExecutionTools`, etc.)_
 
 ## In pre-release
 

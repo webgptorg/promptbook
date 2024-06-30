@@ -2,11 +2,8 @@ import Anthropic from '@anthropic-ai/sdk';
 import type { MessageCreateParamsNonStreaming } from '@anthropic-ai/sdk/resources';
 import colors from 'colors';
 import { PromptbookExecutionError } from '../../errors/PromptbookExecutionError';
-import type { AvailableModel } from '../../execution/LlmExecutionTools';
-import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { PromptChatResult } from '../../execution/PromptResult';
-import type { PromptResultUsage } from '../../execution/PromptResult';
-import type { PromptCompletionResult } from '../../execution/PromptResult';
+import type { AvailableModel, LlmExecutionTools } from '../../execution/LlmExecutionTools';
+import type { PromptChatResult, PromptCompletionResult, PromptResultUsage } from '../../execution/PromptResult';
 import { computeUsageCounts } from '../../execution/utils/computeUsageCounts';
 import { uncertainNumber } from '../../execution/utils/uncertainNumber';
 import type { Prompt } from '../../types/Prompt';
@@ -30,7 +27,7 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools {
      *
      * @param options which are relevant are directly passed to the Anthropic Claude client
      */
-    public constructor(private readonly options: AnthropicClaudeExecutionToolsOptions) {
+    public constructor(private readonly options: AnthropicClaudeExecutionToolsOptions = {}) {
         // Note: Passing only Anthropic Claude relevant options to Anthropic constructor
         const anthropicOptions = { ...options };
         delete anthropicOptions.isVerbose;

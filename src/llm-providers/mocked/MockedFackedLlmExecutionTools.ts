@@ -10,7 +10,7 @@ import { $fakeTextToExpectations } from './fakeTextToExpectations';
  * Mocked execution Tools for just faking expected responses for testing purposes
  */
 export class MockedFackedLlmExecutionTools implements LlmExecutionTools {
-    public constructor(private readonly options: CommonExecutionToolsOptions) {}
+    public constructor(private readonly options: CommonExecutionToolsOptions = {}) {}
 
     /**
      * Fakes chat model

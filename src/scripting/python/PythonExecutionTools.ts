@@ -10,7 +10,7 @@ import type { ScriptExecutionToolsExecuteOptions } from '../../execution/ScriptE
  * Warning: This is not implemented yet
  */
 export class PythonExecutionTools implements ScriptExecutionTools {
-    public constructor(private readonly options: CommonExecutionToolsOptions) {}
+    public constructor(private readonly options: CommonExecutionToolsOptions = {}) {}
 
     /**
      * Executes a Python

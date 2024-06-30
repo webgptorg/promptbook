@@ -28,7 +28,7 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools {
      *
      * @param options which are relevant are directly passed to the OpenAI client
      */
-    public constructor(private readonly options: AzureOpenAiExecutionToolsOptions) {
+    public constructor(private readonly options: AzureOpenAiExecutionToolsOptions = {}) {
         this.client = new OpenAIClient(
             `https://${options.resourceName}.openai.azure.com/`,
             new AzureKeyCredential(options.apiKey),
