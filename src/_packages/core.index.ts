@@ -18,9 +18,9 @@ import { createPromptbookExecutor } from '../execution/createPromptbookExecutor'
 import { addUsage } from '../execution/utils/addUsage';
 import { checkExpectations, isPassingExpectations } from '../execution/utils/checkExpectations';
 import { usageToWorktime } from '../execution/utils/usageToWorktime';
-import { CallbackInterfaceTools } from '../knowledgebase/dialogs/callback/CallbackInterfaceTools';
-import type { CallbackInterfaceToolsOptions } from '../knowledgebase/dialogs/callback/CallbackInterfaceToolsOptions';
-import { SimplePromptInterfaceTools } from '../knowledgebase/dialogs/simple-prompt/SimplePromptInterfaceTools';
+import { CallbackInterfaceTools } from '../knowledge/dialogs/callback/CallbackInterfaceTools';
+import type { CallbackInterfaceToolsOptions } from '../knowledge/dialogs/callback/CallbackInterfaceToolsOptions';
+import { SimplePromptInterfaceTools } from '../knowledge/dialogs/simple-prompt/SimplePromptInterfaceTools';
 import { MultipleLlmExecutionTools } from '../llm-providers/multiple/MultipleLlmExecutionTools';
 import { createPromptbookLibraryFromPromise } from '../promptbook-library/constructors/createPromptbookLibraryFromPromise';
 import { createPromptbookLibraryFromSources } from '../promptbook-library/constructors/createPromptbookLibraryFromSources';

@@ -1,6 +1,5 @@
-import type { string_markdown_text } from '../typeAliases';
-import type { string_promptbook_url } from '../typeAliases';
-import type { string_version } from '../typeAliases';
+import type { string_markdown_text, string_promptbook_url, string_version } from '../typeAliases';
+import { KnowledgeJson } from './KnowledgeJson';
 import type { PromptTemplateJson } from './PromptTemplateJson';
 import type { PromptTemplateParameterJson } from './PromptTemplateParameterJson';
 
@@ -48,13 +47,15 @@ export type PromptbookJson = {
      * Sequence of prompt templates that are chained together to form a pipeline
      */
     readonly promptTemplates: Array<PromptTemplateJson>;
+
+    /**
+     * Set of information that are used as external knowledge in the pipeline
+     */
+    readonly knowledge: KnowledgeJson;
 };
 
 /**
- * TODO: [🧠] Best format of this code?
- *             There must be possible to make
- *             - Branching
- *             - Loops
- *             - Paralelization
- *             - ...and more
+ * Note: There was a proposal for multiple types of promptbook objects 78816ff33e2705ee1a187aa2eb8affd976d4ea1a
+ *       But then immediately reverted back to the single type
+ *       With knowledge as part of the promptbook and library just as a collection of promptbooks
  */

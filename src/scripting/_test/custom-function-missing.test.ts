@@ -3,7 +3,7 @@ import { spaceTrim } from 'spacetrim';
 import { promptbookStringToJson } from '../../conversion/promptbookStringToJson';
 import { assertsExecutionSuccessful } from '../../execution/assertsExecutionSuccessful';
 import { createPromptbookExecutor } from '../../execution/createPromptbookExecutor';
-import { CallbackInterfaceTools } from '../../knowledgebase/dialogs/callback/CallbackInterfaceTools';
+import { CallbackInterfaceTools } from '../../knowledge/dialogs/callback/CallbackInterfaceTools';
 import { MockedEchoLlmExecutionTools } from '../../llm-providers/mocked/MockedEchoLlmExecutionTools';
 import type { PromptbookString } from '../../types/PromptbookString';
 import { JavascriptExecutionTools } from '../javascript/JavascriptExecutionTools';
