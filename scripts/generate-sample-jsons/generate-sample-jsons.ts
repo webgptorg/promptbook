@@ -10,9 +10,10 @@ import glob from 'glob-promise';
 import { join } from 'path';
 import { promptbookStringToJson } from '../../src/conversion/promptbookStringToJson';
 import { validatePromptbookJson } from '../../src/conversion/validation/validatePromptbookJson';
+import { PromptbookString } from '../../src/types/PromptbookString';
+import { AnthropicClaudeExecutionTools } from '../AnthropicClaudeExecutionTools';
 import { commit } from '../utils/autocommit/commit';
 import { isWorkingTreeClean } from '../utils/autocommit/isWorkingTreeClean';
-import { PromptbookString } from '../../src/types/PromptbookString';
 
 if (process.cwd() !== join(__dirname, '../..')) {
     console.error(colors.red(`CWD must be root of the project`));
@@ -51,9 +52,11 @@ async function generateSampleJsons({ isCommited }: { isCommited: boolean }) {
 
         try {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const promptbookJson = await promptbookStringToJson(promptbookMarkdown as PromptbookString,{
-
-llmTools: 
+            const promptbookJson = await promptbookStringToJson(promptbookMarkdown as PromptbookString, {
+                llmTools: new AnthropicClaudeExecutionTools({
+                    isVerbose: true,
+                    apiKey: process.env.ANTHROPIC_CLAUDE_API_KEY!,
+                }),
             });
             const promptbookJsonFilePath = promptbookMarkdownFilePath.replace(/\.ptbk\.md$/, '.ptbk.json');
 

@@ -116,31 +116,31 @@
         },
         {
             "name": "🧸 OpenAI Playground",
-            "command": "ts-node ./src/execution/plugins/llm-execution-tools/openai/playground/playground.ts",
+            "command": "ts-node ./src/llm-providers/openai/playground/playground.ts",
             "onlySingle": true,
             "focus": true
         },
         {
             "name": "🧸 Anthropic Claude Playground",
-            "command": "ts-node ./src/execution/plugins/llm-execution-tools/anthropic-claude/playground/playground.ts",
+            "command": "ts-node ./src/llm-providers/anthropic-claude/playground/playground.ts",
             "onlySingle": true,
             "focus": true
         },
         {
             "name": "🧸 Azure OpenAI Playground",
-            "command": "ts-node ./src/execution/plugins/llm-execution-tools/azure-openai/playground/playground.ts",
+            "command": "ts-node ./src/llm-providers/azure-openai/playground/playground.ts",
             "onlySingle": true,
             "focus": true
         },
         {
             "name": "🧸 Langtail Playground",
-            "command": "ts-node ./src/execution/plugins/llm-execution-tools/langtail/playground/playground.ts",
+            "command": "ts-node ./src/llm-providers/langtail/playground/playground.ts",
             "onlySingle": true,
             "focus": true
         },
         {
             "name": "🧸 Multiple LLMs Playground",
-            "command": "ts-node ./src/execution/plugins/llm-execution-tools/multiple/playground/playground.ts",
+            "command": "ts-node ./src/llm-providers/multiple/playground/playground.ts",
             "onlySingle": true,
             "focus": true
         },

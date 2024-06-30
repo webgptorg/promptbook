@@ -2,6 +2,7 @@ import { spaceTrim } from 'spacetrim';
 import type { IterableElement, Writable, WritableDeep } from 'type-fest';
 import { PromptbookSyntaxError } from '../errors/PromptbookSyntaxError';
 import type { LlmExecutionTools } from '../execution/LlmExecutionTools';
+import { prepareKnowledgeFromMarkdown } from '../knowledge/prepare-knowledge/markdown/prepareKnowledgeFromMarkdown';
 import type { ParameterCommand } from '../types/Command';
 import type { ExecutionType } from '../types/ExecutionTypes';
 import type { ModelRequirements } from '../types/ModelRequirements';
@@ -63,6 +64,14 @@ export async function promptbookStringToJson(
 
     // TODO: !!!! Use tools here to compile knowledge
     just(llmTools);
+
+    if (llmTools) {
+        const knowledge = await prepareKnowledgeFromMarkdown({
+            content: 'Roses are red, violets are blue, programmers use Promptbook, users too',
+            llmTools,
+        });
+        console.info('!!!! knowledge', knowledge);
+    }
 
     // =============================================================
     // Note: 1️⃣ Normalization of the PROMPTBOOK string

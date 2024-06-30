@@ -33,7 +33,7 @@ async function playground() {
     console.info({ models });
     /**/
 
-    /**/
+    /*/
     // TODO: [👏] Make Claude completion models work
     const prompt = {
         content: `Hello, my name is Alice.`,
@@ -46,7 +46,7 @@ async function playground() {
     console.info(chalk.green(prompt.content + promptResult.content));
     /**/
 
-    /*/
+    /**/
     const prompt = {
         content: `Hello, my name is Alice.`,
         modelRequirements: {
