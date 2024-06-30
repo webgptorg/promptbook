@@ -343,6 +343,7 @@ System for management of external knowledge (RAG)
 
 -   Add `MaterialKnowledgePieceJson`
 -   Add `KnowledgeJson`
+-   Change `promptbookStringToJson` to async function
 
 ## In pre-release
 

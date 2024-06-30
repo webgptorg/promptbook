@@ -15,10 +15,9 @@ describe('promptbookStringToJson', () => {
         .filter(({ name }) => !name.endsWith('.report.md'));
 
     for (const { name } of samples) {
-        it(`should parse ${name}`, () => {
-            expect(promptbookStringToJson(importPromptbook(name as `${string}.ptbk.md`))).toEqual(
+        it(`should parse ${name}`, () =>
+            expect(promptbookStringToJson(importPromptbook(name as `${string}.ptbk.md`))).resolves.toEqual(
                 importPromptbook(join(samplesDir, name).replace('.ptbk.md', '.ptbk.json') as `${string}.ptbk.json`),
-            );
-        });
+            ));
     }
 });

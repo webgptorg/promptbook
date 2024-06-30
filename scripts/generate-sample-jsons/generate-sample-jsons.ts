@@ -50,7 +50,7 @@ async function generateSampleJsons({ isCommited }: { isCommited: boolean }) {
 
         try {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const promptbookJson = promptbookStringToJson(promptbookMarkdown as any /* <- TODO: Remove any */);
+            const promptbookJson = await promptbookStringToJson(promptbookMarkdown as any /* <- TODO: Remove any */);
             const promptbookJsonFilePath = promptbookMarkdownFilePath.replace(/\.ptbk\.md$/, '.ptbk.json');
 
             // Note: We want to ensure that the generated JSONs are logically correct

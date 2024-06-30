@@ -6,8 +6,7 @@ import { validatePromptbookJson } from '../../conversion/validation/validateProm
 import { PromptbookLibraryError } from '../../errors/PromptbookLibraryError';
 import type { PromptbookJson } from '../../types/PromptbookJson/PromptbookJson';
 import type { PromptbookString } from '../../types/PromptbookString';
-import type { string_file_path } from '../../types/typeAliases';
-import type { string_folder_path } from '../../types/typeAliases';
+import type { string_file_path, string_folder_path } from '../../types/typeAliases';
 import { isRunningInNode } from '../../utils/isRunningInWhatever';
 import type { PromptbookLibrary } from '../PromptbookLibrary';
 import { createPromptbookLibraryFromPromise } from './createPromptbookLibraryFromPromise';
@@ -86,7 +85,7 @@ export async function createPromptbookLibraryFromDirectory(
 
                 if (fileName.endsWith('.ptbk.md')) {
                     const promptbookString = (await readFile(fileName, 'utf8')) as PromptbookString;
-                    promptbook = promptbookStringToJson(promptbookString);
+                    promptbook = await promptbookStringToJson(promptbookString);
                 } else if (fileName.endsWith('.ptbk.json')) {
                     if (isVerbose) {
                         console.info(`Loading ${fileName}`);

@@ -4,8 +4,7 @@ import { PromptbookSyntaxError } from '../errors/PromptbookSyntaxError';
 import type { ParameterCommand } from '../types/Command';
 import type { ExecutionType } from '../types/ExecutionTypes';
 import type { ModelRequirements } from '../types/ModelRequirements';
-import type { ExpectationUnit } from '../types/PromptbookJson/PromptTemplateJson';
-import type { PromptTemplateJson } from '../types/PromptbookJson/PromptTemplateJson';
+import type { ExpectationUnit, PromptTemplateJson } from '../types/PromptbookJson/PromptTemplateJson';
 import type { PromptTemplateParameterJson } from '../types/PromptbookJson/PromptTemplateParameterJson';
 import type { PromptbookJson } from '../types/PromptbookJson/PromptbookJson';
 import type { PromptbookString } from '../types/PromptbookString';
@@ -23,13 +22,15 @@ import { parseCommand } from './utils/parseCommand';
 import { titleToName } from './utils/titleToName';
 
 /**
- * Parse promptbook from string format to JSON format
+ * Compile promptbook from string (markdown) format to JSON format
+ *
  *
  * @throws {PromptbookSyntaxError} if the promptbook string is not valid
  *
  * Note: This function does not validate logic of the pipeline only the syntax
+ * Note: This function acts as compilation process
  */
-export function promptbookStringToJson(promptbookString: PromptbookString): PromptbookJson {
+export async function promptbookStringToJson(promptbookString: PromptbookString): Promise<PromptbookJson> {
     const promptbookJson: WritableDeep<PromptbookJson> = {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         title: undefined as any /* <- Note: Putting here placeholder to keep `title` on top at final JSON */,
