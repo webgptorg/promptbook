@@ -13,5 +13,7 @@ describe('how creating knowledge from markdown works', () => {
                 `),
                 llmTools: new MockedFackedLlmExecutionTools(),
             }),
-        ).resolves.toBe(1));
+        ).resolves.toBe([
+            // !!!! Implement this
+        ]));
 });
