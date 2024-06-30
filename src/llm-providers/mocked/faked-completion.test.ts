@@ -7,7 +7,7 @@ import type { PromptbookString } from '../../types/PromptbookString';
 import { PROMPTBOOK_VERSION } from '../../version';
 import { MockedFackedLlmExecutionTools } from './MockedFackedLlmExecutionTools';
 
-describe('createPromptbookExecutor + MockedEchoExecutionTools with sample chat prompt', () => {
+describe('createPromptbookExecutor + MockedFackedLlmExecutionTools with sample completion prompt', () => {
     it('should work when every INPUT PARAMETER defined', async () => {
         const promptbookExecutor = await getPromptbookExecutor();
         expect(promptbookExecutor({ thing: 'a cup of coffee' }, () => {})).resolves.toMatchObject({
