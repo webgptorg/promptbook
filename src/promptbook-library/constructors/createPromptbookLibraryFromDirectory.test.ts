@@ -27,49 +27,48 @@ describe('createPromptbookLibraryFromDirectory', () => {
 
     `) as PromptbookString;
 
-    it('should get promptbook by url from library', () =>
-        expect(
-            (async () => {
-                const library = await createPromptbookLibraryFromDirectory('./samples/templates', {
-                    isVerbose: true,
-                    isRecursive: false,
-                    isLazyLoaded: false,
-                });
-                const promptbookFromLibrary = await library.getPromptbookByUrl(
-                    'https://promptbook.example.com/samples/simple.ptbk.md',
-                );
-                return promptbookFromLibrary;
-            })(),
-        ).resolves.toEqual(promptbookStringToJson(promptbook)));
+    it('should get promptbook by url from library', async () => {
+        expect.assertions(1);
+        const library = await createPromptbookLibraryFromDirectory('./samples/templates', {
+            isVerbose: true,
+            isRecursive: false,
+            isLazyLoaded: false,
+        });
+        const promptbookFromLibrary = await library.getPromptbookByUrl(
+            'https://promptbook.example.com/samples/simple.ptbk.md',
+        );
 
-    it('should get lazy-loaded promptbook by url from library', () =>
-        expect(
-            (async () => {
-                const library = await createPromptbookLibraryFromDirectory('./samples/templates', {
-                    isVerbose: true,
-                    isRecursive: false,
-                    isLazyLoaded: true,
-                });
-                const promptbookFromLibrary = await library.getPromptbookByUrl(
-                    'https://promptbook.example.com/samples/simple.ptbk.md',
-                );
-                return promptbookFromLibrary;
-            })(),
-        ).resolves.toEqual(promptbookStringToJson(promptbook)));
+        expect(promptbookFromLibrary).toEqual(await promptbookStringToJson(promptbook));
+    });
 
-    it('should get different promptbook by url from library', () =>
-        expect(
-            (async () => {
-                const library = await createPromptbookLibraryFromDirectory('./samples/templates', {
-                    isVerbose: true,
-                    isRecursive: false,
-                });
-                const promptbookFromLibrary = await library.getPromptbookByUrl(
-                    'https://promptbook.example.com/samples/jokers.ptbk.md',
-                );
-                return promptbookFromLibrary.title;
-            })(),
-        ).resolves.toBe('✨ Sample: Jokers'));
+    it('should get lazy-loaded promptbook by url from library', async () => {
+        expect.assertions(1);
+
+        const library = await createPromptbookLibraryFromDirectory('./samples/templates', {
+            isVerbose: true,
+            isRecursive: false,
+            isLazyLoaded: true,
+        });
+        const promptbookFromLibrary = await library.getPromptbookByUrl(
+            'https://promptbook.example.com/samples/simple.ptbk.md',
+        );
+
+        expect(promptbookFromLibrary).toEqual(await promptbookStringToJson(promptbook));
+    });
+
+    it('should get different promptbook by url from library', async () => {
+        expect.assertions(1);
+
+        const library = await createPromptbookLibraryFromDirectory('./samples/templates', {
+            isVerbose: true,
+            isRecursive: false,
+        });
+        const promptbookFromLibrary = await library.getPromptbookByUrl(
+            'https://promptbook.example.com/samples/jokers.ptbk.md',
+        );
+
+        expect(promptbookFromLibrary).toEqual(await promptbookStringToJson(promptbook));
+    });
 
     it('should NOT crash when include error promptbooks but lazy-loaded', () =>
         expect(

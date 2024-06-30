@@ -8,59 +8,64 @@ import { MockedEchoLlmExecutionTools } from '../../llm-providers/mocked/MockedEc
 import type { PromptbookString } from '../../types/PromptbookString';
 import { JavascriptExecutionTools } from '../javascript/JavascriptExecutionTools';
 
-describe('createPromptbookExecutor + missing custom function', async () => {
-    const promptbook = await promptbookStringToJson(
-        spaceTrim(`
-            # Custom functions
+describe('createPromptbookExecutor + missing custom function', () => {
+    async function getPromptbookExecutor() {
+        const promptbook = await promptbookStringToJson(
+            spaceTrim(`
+                # Custom functions
 
-            Show how to use custom postprocessing functions
+                Show how to use custom postprocessing functions
 
-            -   PROMPTBOOK VERSION 1.0.0
-            -   INPUT  PARAMETER {yourName} Name of the hero
-            -   OUTPUT PARAMETER {greeting}
+                -   PROMPTBOOK VERSION 1.0.0
+                -   INPUT  PARAMETER {yourName} Name of the hero
+                -   OUTPUT PARAMETER {greeting}
 
-            ## Question
+                ## Question
 
-            -   SIMPLE TEMPLATE
-            -   POSTPROCESSING addHello
+                -   SIMPLE TEMPLATE
+                -   POSTPROCESSING addHello
 
-            \`\`\`markdown
-            {yourName} the Evangelist
-            \`\`\`
+                \`\`\`markdown
+                {yourName} the Evangelist
+                \`\`\`
 
-            -> {greeting}
-         `) as PromptbookString,
-    );
+                -> {greeting}
+             `) as PromptbookString,
+        );
 
-    const promptbookExecutor = createPromptbookExecutor({
-        promptbook,
-        tools: {
-            llm: new MockedEchoLlmExecutionTools({ isVerbose: true }),
-            script: [
-                new JavascriptExecutionTools({
-                    isVerbose: true,
+        const promptbookExecutor = createPromptbookExecutor({
+            promptbook,
+            tools: {
+                llm: new MockedEchoLlmExecutionTools({ isVerbose: true }),
+                script: [
+                    new JavascriptExecutionTools({
+                        isVerbose: true,
 
-                    // Note: [🕎]
-                    functions: {
-                        addHelloWithTypo(value) {
-                            return `Hello ${value}`;
+                        // Note: [🕎]
+                        functions: {
+                            addHelloWithTypo(value) {
+                                return `Hello ${value}`;
+                            },
                         },
+                    }),
+                ],
+                userInterface: new CallbackInterfaceTools({
+                    isVerbose: true,
+                    async callback() {
+                        return 'Hello';
                     },
                 }),
-            ],
-            userInterface: new CallbackInterfaceTools({
-                isVerbose: true,
-                async callback() {
-                    return 'Hello';
-                },
-            }),
-        },
-        settings: {
-            maxExecutionAttempts: 3,
-        },
-    });
+            },
+            settings: {
+                maxExecutionAttempts: 3,
+            },
+        });
 
-    it('should throw error when custom postprocessing function does not exist', () => {
+        return promptbookExecutor;
+    }
+
+    it('should throw error when custom postprocessing function does not exist', async () => {
+        const promptbookExecutor = await getPromptbookExecutor();
         expect(() =>
             promptbookExecutor({ yourName: 'Matthew' }, () => {}).then(assertsExecutionSuccessful),
         ).rejects.toThrowError(/Function addHello\(\) is not defined/);
