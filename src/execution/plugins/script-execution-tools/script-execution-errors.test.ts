@@ -8,8 +8,8 @@ import type { PromptbookString } from '../../../types/PromptbookString';
 import { assertsExecutionSuccessful } from '../../assertsExecutionSuccessful';
 import { createPromptbookExecutor } from '../../createPromptbookExecutor';
 
-describe('createPromptbookExecutor + executing scripts in promptbook', () => {
-    const promptbook = promptbookStringToJson(
+describe('createPromptbookExecutor + executing scripts in promptbook', async () => {
+    const promptbook = await promptbookStringToJson(
         spaceTrim(`
             # Sample prompt
 
@@ -86,9 +86,9 @@ describe('createPromptbookExecutor + executing scripts in promptbook', () => {
                 errors: [new Error(`I do not like Apples!`)],
             });
 
-            expect(() => promptbookExecutor({ thing }, () => {}).then(assertsExecutionSuccessful)).rejects.toThrowError(
-                /I do not like Apples!/,
-            );
+            expect(async () =>
+                promptbookExecutor({ thing }, () => {}).then(assertsExecutionSuccessful),
+            ).rejects.rejects.toThrowError(/I do not like Apples!/);
         }
     });
 });

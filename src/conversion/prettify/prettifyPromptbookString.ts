@@ -9,10 +9,10 @@ import { renderPromptbookMermaid } from './renderPromptbookMermaid';
 /**
  * Prettyfies Promptbook string and adds Mermaid graph
  */
-export function prettifyPromptbookString(
+export async function prettifyPromptbookString(
     promptbookString: PromptbookString,
     options: PrettifyOptions,
-): PromptbookString {
+): Promise<PromptbookString> {
     const { isGraphAdded, isPrettifyed } = options;
 
     if (isGraphAdded) {

@@ -9,8 +9,8 @@ import { countCharacters } from '../../utils/expectation-counters/countCharacter
 import { countWords } from '../../utils/expectation-counters/countWords';
 import { JavascriptExecutionTools } from '../javascript/JavascriptExecutionTools';
 
-describe('createPromptbookExecutor + custom function with dependencies', () => {
-    const promptbook = promptbookStringToJson(
+describe('createPromptbookExecutor + custom function with dependencies', async () => {
+    const promptbook = await promptbookStringToJson(
         spaceTrim(`
             # Custom functions
 

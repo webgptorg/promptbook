@@ -8,8 +8,8 @@ import type { PromptbookString } from '../../../types/PromptbookString';
 import { assertsExecutionSuccessful } from '../../assertsExecutionSuccessful';
 import { createPromptbookExecutor } from '../../createPromptbookExecutor';
 
-describe('createPromptbookExecutor + executing scripts in promptbook', () => {
-    const promptbook = promptbookStringToJson(
+describe('createPromptbookExecutor + executing scripts in promptbook', async () => {
+    const promptbook = await promptbookStringToJson(
         spaceTrim(`
             # Sample prompt
 
@@ -94,8 +94,8 @@ describe('createPromptbookExecutor + executing scripts in promptbook', () => {
             */
         });
 
-        expect(() => promptbookExecutor({}, () => {}).then(assertsExecutionSuccessful)).rejects.toThrowError(
-            /Parameter \{thing\} is not defined/,
-        );
+        expect(async () =>
+            promptbookExecutor({}, () => {}).then(assertsExecutionSuccessful),
+        ).rejects.rejects.toThrowError(/Parameter \{thing\} is not defined/);
     });
 });

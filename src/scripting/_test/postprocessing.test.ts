@@ -7,8 +7,8 @@ import { MockedEchoLlmExecutionTools } from '../../llm-providers/mocked/MockedEc
 import type { PromptbookString } from '../../types/PromptbookString';
 import { JavascriptExecutionTools } from '../javascript/JavascriptExecutionTools';
 
-describe('createPromptbookExecutor + postprocessing', () => {
-    const promptbook = promptbookStringToJson(
+describe('createPromptbookExecutor + postprocessing', async () => {
+    const promptbook = await promptbookStringToJson(
         spaceTrim(`
             # Sample prompt
 

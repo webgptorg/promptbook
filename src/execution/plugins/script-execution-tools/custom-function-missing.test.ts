@@ -8,8 +8,8 @@ import type { PromptbookString } from '../../../types/PromptbookString';
 import { assertsExecutionSuccessful } from '../../assertsExecutionSuccessful';
 import { createPromptbookExecutor } from '../../createPromptbookExecutor';
 
-describe('createPromptbookExecutor + missing custom function', () => {
-    const promptbook = promptbookStringToJson(
+describe('createPromptbookExecutor + missing custom function',async () => {
+    const promptbook = await promptbookStringToJson(
         spaceTrim(`
             # Custom functions
 
@@ -61,8 +61,8 @@ describe('createPromptbookExecutor + missing custom function', () => {
     });
 
     it('should throw error when custom postprocessing function does not exist', () => {
-        expect(() =>
+        expect(async () =>
             promptbookExecutor({ yourName: 'Matthew' }, () => {}).then(assertsExecutionSuccessful),
-        ).rejects.toThrowError(/Function addHello\(\) is not defined/);
+        ).rejects.rejects.toThrowError(/Function addHello\(\) is not defined/);
     });
 });

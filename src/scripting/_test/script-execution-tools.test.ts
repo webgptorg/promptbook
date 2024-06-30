@@ -8,8 +8,8 @@ import { MockedEchoLlmExecutionTools } from '../../llm-providers/mocked/MockedEc
 import type { PromptbookString } from '../../types/PromptbookString';
 import { JavascriptExecutionTools } from '../javascript/JavascriptExecutionTools';
 
-describe('createPromptbookExecutor + executing scripts in promptbook', () => {
-    const promptbook = promptbookStringToJson(
+describe('createPromptbookExecutor + executing scripts in promptbook',async () => {
+    const promptbook = await promptbookStringToJson(
         spaceTrim(`
             # Sample prompt
 

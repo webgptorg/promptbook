@@ -17,10 +17,10 @@ describe('validatePromptbookJson', () => {
 
     for (const { name } of samples) {
         it(`should validate ${name} logic`, () => {
-            expect(() => {
+            expect(async () => {
                 try {
-                    const promptbookString = importPromptbook(( name) as `${string}.ptbk.md`);
-                    const promptbookJson = promptbookStringToJson(promptbookString);
+                    const promptbookString = importPromptbook(name as `${string}.ptbk.md`);
+                    const promptbookJson = await promptbookStringToJson(promptbookString);
                     validatePromptbookJson(promptbookJson);
                 } catch (error) {
                     if (!(error instanceof Error)) {
@@ -39,7 +39,7 @@ describe('validatePromptbookJson', () => {
                         ),
                     );
                 }
-            }).not.toThrowError();
+            }).resolves.not.toThrowError();
         });
     }
 });

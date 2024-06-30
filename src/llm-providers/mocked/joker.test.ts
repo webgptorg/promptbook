@@ -6,8 +6,8 @@ import { CallbackInterfaceTools } from '../../knowledge/dialogs/callback/Callbac
 import type { PromptbookString } from '../../types/PromptbookString';
 import { MockedEchoLlmExecutionTools } from './MockedEchoLlmExecutionTools';
 
-describe('createPromptbookExecutor + MockedEchoExecutionTools with sample chat prompt', () => {
-    const promptbook = promptbookStringToJson(
+describe('createPromptbookExecutor + MockedEchoExecutionTools with sample chat prompt', async () => {
+    const promptbook = await promptbookStringToJson(
         spaceTrim(`
             # ✨ Sample: Jokers
 

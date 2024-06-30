@@ -8,8 +8,8 @@ import { JavascriptExecutionTools } from '../../../scripting/javascript/Javascri
 import type { PromptbookString } from '../../../types/PromptbookString';
 import { createPromptbookExecutor } from '../../createPromptbookExecutor';
 
-describe('createPromptbookExecutor + custom async function ', () => {
-    const promptbook = promptbookStringToJson(
+describe('createPromptbookExecutor + custom async function ', async () => {
+    const promptbook = await promptbookStringToJson(
         spaceTrim(`
             # Custom functions
 

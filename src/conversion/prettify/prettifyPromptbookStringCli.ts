@@ -59,7 +59,7 @@ export async function prettifyPromptbookStringCli(): Promise<void> {
             let promptbookMarkdown = (await readFile(filePath, 'utf-8')) as PromptbookString;
 
             try {
-                promptbookMarkdown = prettifyPromptbookString(promptbookMarkdown, {
+                promptbookMarkdown = await prettifyPromptbookString(promptbookMarkdown, {
                     isGraphAdded: true,
                     isPrettifyed: true,
                     // <- [🕌]

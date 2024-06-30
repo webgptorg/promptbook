@@ -7,8 +7,8 @@ import { MockedEchoLlmExecutionTools } from '../../llm-providers/mocked/MockedEc
 import type { PromptbookString } from '../../types/PromptbookString';
 import { CallbackInterfaceTools } from './callback/CallbackInterfaceTools';
 
-describe('createPromptbookExecutor + executing user interface prompts in promptbook', () => {
-    const promptbook = promptbookStringToJson(
+describe('createPromptbookExecutor + executing user interface prompts in promptbook', async () => {
+    const promptbook = await promptbookStringToJson(
         spaceTrim(`
             # Sample prompt
 
