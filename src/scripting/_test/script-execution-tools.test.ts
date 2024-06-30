@@ -8,59 +8,22 @@ import { MockedEchoLlmExecutionTools } from '../../llm-providers/mocked/MockedEc
 import type { PromptbookString } from '../../types/PromptbookString';
 import { JavascriptExecutionTools } from '../javascript/JavascriptExecutionTools';
 
-describe('createPromptbookExecutor + executing scripts in promptbook',async () => {
-    const promptbook = await promptbookStringToJson(
-        spaceTrim(`
-            # Sample prompt
-
-            Show how to execute a script
-
-            -   PROMPTBOOK VERSION 1.0.0
-            -   INPUT  PARAMETER {thing} Any thing to buy
-            -   OUTPUT PARAMETER {bhing}
-
-            ## Execution
-
-            -   EXECUTE SCRIPT
-
-            \`\`\`javascript
-            thing.split('a').join('b')
-            \`\`\`
-
-            -> {bhing}
-         `) as PromptbookString,
-    );
-    const promptbookExecutor = createPromptbookExecutor({
-        promptbook,
-        tools: {
-            llm: new MockedEchoLlmExecutionTools({ isVerbose: true }),
-            script: [
-                new JavascriptExecutionTools({
-                    isVerbose: true,
-                    // Note: [🕎] Custom functions are tested elsewhere
-                }),
-            ],
-            userInterface: new CallbackInterfaceTools({
-                isVerbose: true,
-                async callback() {
-                    return 'Hello';
-                },
-            }),
-        },
-        settings: {
-            maxExecutionAttempts: 3,
-        },
-    });
-
+describe('createPromptbookExecutor + executing scripts in promptbook', () => {
     it('should work when every INPUT  PARAMETER defined', () => {
-        expect(promptbookExecutor({ thing: 'apple' }, () => {})).resolves.toMatchObject({
+        expect(
+            getPromptbookExecutor().then((promptbookExecutor) => promptbookExecutor({ thing: 'apple' }, () => {})),
+        ).resolves.toMatchObject({
             isSuccessful: true,
             errors: [],
             outputParameters: {
                 bhing: 'bpple',
             },
         });
-        expect(promptbookExecutor({ thing: 'a cup of coffee' }, () => {})).resolves.toMatchObject({
+        expect(
+            getPromptbookExecutor().then((promptbookExecutor) =>
+                promptbookExecutor({ thing: 'a cup of coffee' }, () => {}),
+            ),
+        ).resolves.toMatchObject({
             isSuccessful: true,
             errors: [],
             outputParameters: {
@@ -70,7 +33,9 @@ describe('createPromptbookExecutor + executing scripts in promptbook',async () =
     });
 
     it('should fail when some INPUT  PARAMETER is missing', () => {
-        expect(promptbookExecutor({}, () => {})).resolves.toMatchObject({
+        expect(
+            getPromptbookExecutor().then((promptbookExecutor) => promptbookExecutor({}, () => {})),
+        ).resolves.toMatchObject({
             isSuccessful: false,
             /*
             TODO:
@@ -94,8 +59,57 @@ describe('createPromptbookExecutor + executing scripts in promptbook',async () =
             */
         });
 
-        expect(() => promptbookExecutor({}, () => {}).then(assertsExecutionSuccessful)).rejects.toThrowError(
-            /Parameter \{thing\} is not defined/,
-        );
+        expect(() =>
+            getPromptbookExecutor()
+                .then((promptbookExecutor) => promptbookExecutor({}, () => {}))
+                .then(assertsExecutionSuccessful),
+        ).rejects.toThrowError(/Parameter \{thing\} is not defined/);
     });
 });
+
+async function getPromptbookExecutor() {
+    const promptbook = await promptbookStringToJson(
+        spaceTrim(`
+          # Sample prompt
+
+          Show how to execute a script
+
+          -   PROMPTBOOK VERSION 1.0.0
+          -   INPUT  PARAMETER {thing} Any thing to buy
+          -   OUTPUT PARAMETER {bhing}
+
+          ## Execution
+
+          -   EXECUTE SCRIPT
+
+          \`\`\`javascript
+          thing.split('a').join('b')
+          \`\`\`
+
+          -> {bhing}
+      `) as PromptbookString,
+    );
+    const promptbookExecutor = createPromptbookExecutor({
+        promptbook,
+        tools: {
+            llm: new MockedEchoLlmExecutionTools({ isVerbose: true }),
+            script: [
+                new JavascriptExecutionTools({
+                    isVerbose: true,
+                    // Note: [🕎] Custom functions are tested elsewhere
+                }),
+            ],
+            userInterface: new CallbackInterfaceTools({
+                isVerbose: true,
+                async callback() {
+                    return 'Hello';
+                },
+            }),
+        },
+        settings: {
+            maxExecutionAttempts: 3,
+        },
+    });
+
+    return promptbookExecutor;
+}

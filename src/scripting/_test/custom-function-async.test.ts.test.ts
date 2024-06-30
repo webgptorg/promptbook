@@ -8,7 +8,51 @@ import { MockedEchoLlmExecutionTools } from '../../llm-providers/mocked/MockedEc
 import type { PromptbookString } from '../../types/PromptbookString';
 import { JavascriptExecutionTools } from '../javascript/JavascriptExecutionTools';
 
-describe('createPromptbookExecutor + custom async function ',async () => {
+describe('createPromptbookExecutor + custom async function ', () => {
+    it('should use custom postprocessing function', () => {
+        expect(
+            getPromptbookExecutor().then((promptbookExecutor) => promptbookExecutor({ yourName: 'Matthew' }, () => {})),
+        ).resolves.toMatchObject({
+            isSuccessful: true,
+            errors: [],
+            outputParameters: {
+                greeting: 'Hello Matthew the Evangelist',
+            },
+        });
+
+        expect(
+            getPromptbookExecutor().then((promptbookExecutor) => promptbookExecutor({ yourName: 'Mark' }, () => {})),
+        ).resolves.toMatchObject({
+            isSuccessful: true,
+            errors: [],
+            outputParameters: {
+                greeting: 'Hello Mark the Evangelist',
+            },
+        });
+
+        expect(
+            getPromptbookExecutor().then((promptbookExecutor) => promptbookExecutor({ yourName: 'Luke' }, () => {})),
+        ).resolves.toMatchObject({
+            isSuccessful: true,
+            errors: [],
+            outputParameters: {
+                greeting: 'Hello Luke the Evangelist',
+            },
+        });
+
+        expect(
+            getPromptbookExecutor().then((promptbookExecutor) => promptbookExecutor({ yourName: 'John' }, () => {})),
+        ).resolves.toMatchObject({
+            isSuccessful: true,
+            errors: [],
+            outputParameters: {
+                greeting: 'Hello John the Evangelist',
+            },
+        });
+    });
+});
+
+async function getPromptbookExecutor() {
     const promptbook = await promptbookStringToJson(
         spaceTrim(`
             # Custom functions
@@ -29,7 +73,7 @@ describe('createPromptbookExecutor + custom async function ',async () => {
             \`\`\`
 
             -> {greeting}
-         `) as PromptbookString,
+        `) as PromptbookString,
     );
 
     const promptbookExecutor = createPromptbookExecutor({
@@ -61,37 +105,5 @@ describe('createPromptbookExecutor + custom async function ',async () => {
         },
     });
 
-    it('should use custom postprocessing function', () => {
-        expect(promptbookExecutor({ yourName: 'Matthew' }, () => {})).resolves.toMatchObject({
-            isSuccessful: true,
-            errors: [],
-            outputParameters: {
-                greeting: 'Hello Matthew the Evangelist',
-            },
-        });
-
-        expect(promptbookExecutor({ yourName: 'Mark' }, () => {})).resolves.toMatchObject({
-            isSuccessful: true,
-            errors: [],
-            outputParameters: {
-                greeting: 'Hello Mark the Evangelist',
-            },
-        });
-
-        expect(promptbookExecutor({ yourName: 'Luke' }, () => {})).resolves.toMatchObject({
-            isSuccessful: true,
-            errors: [],
-            outputParameters: {
-                greeting: 'Hello Luke the Evangelist',
-            },
-        });
-
-        expect(promptbookExecutor({ yourName: 'John' }, () => {})).resolves.toMatchObject({
-            isSuccessful: true,
-            errors: [],
-            outputParameters: {
-                greeting: 'Hello John the Evangelist',
-            },
-        });
-    });
-});
+    return promptbookExecutor;
+}

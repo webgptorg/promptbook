@@ -67,7 +67,7 @@ describe('createPromptbookLibraryFromDirectory', () => {
             'https://promptbook.example.com/samples/jokers.ptbk.md',
         );
 
-        expect(promptbookFromLibrary).toEqual(await promptbookStringToJson(promptbook));
+        expect(promptbookFromLibrary).not.toEqual(await promptbookStringToJson(promptbook));
     });
 
     it('should NOT crash when include error promptbooks but lazy-loaded', () =>

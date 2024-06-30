@@ -17,29 +17,31 @@ describe('validatePromptbookJson', () => {
 
     for (const { name } of samples) {
         it(`should validate ${name} logic`, () => {
-            expect(async () => {
-                try {
-                    const promptbookString = importPromptbook(name as `${string}.ptbk.md`);
-                    const promptbookJson = await promptbookStringToJson(promptbookString);
-                    validatePromptbookJson(promptbookJson);
-                } catch (error) {
-                    if (!(error instanceof Error)) {
-                        throw error;
-                    }
+            expect(
+                (async () => {
+                    try {
+                        const promptbookString = importPromptbook(name as `${string}.ptbk.md`);
+                        const promptbookJson = await promptbookStringToJson(promptbookString);
+                        validatePromptbookJson(promptbookJson);
+                    } catch (error) {
+                        if (!(error instanceof Error)) {
+                            throw error;
+                        }
 
-                    throw new Error(
-                        spaceTrim(
-                            (block) => `
+                        throw new Error(
+                            spaceTrim(
+                                (block) => `
 
                                 Error in ${join(__dirname, samplesDir, name).split('\\').join('/')}:
 
                                 ${block((error as Error).message)}
 
                             `,
-                        ),
-                    );
-                }
-            }).resolves.not.toThrowError();
+                            ),
+                        );
+                    }
+                })(),
+            ).resolves.not.toThrowError();
         });
     }
 });
