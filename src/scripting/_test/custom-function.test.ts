@@ -7,59 +7,10 @@ import { MockedEchoLlmExecutionTools } from '../../llm-providers/mocked/MockedEc
 import type { PromptbookString } from '../../types/PromptbookString';
 import { JavascriptExecutionTools } from '../javascript/JavascriptExecutionTools';
 
-describe('createPromptbookExecutor + custom function without dependencies', async () => {
-    const promptbook = await promptbookStringToJson(
-        spaceTrim(`
-            # Custom functions
+describe('createPromptbookExecutor + custom function without dependencies', () => {
+    it('should use custom postprocessing function', async () => {
+        const promptbookExecutor = await getPromptbookExecutor();
 
-            Show how to use custom postprocessing functions
-
-            -   PROMPTBOOK VERSION 1.0.0
-            -   INPUT  PARAMETER {yourName} Name of the hero
-            -   OUTPUT PARAMETER {greeting}
-
-            ## Question
-
-            -   SIMPLE TEMPLATE
-            -   POSTPROCESSING addHello
-
-            \`\`\`markdown
-            {yourName} the Evangelist
-            \`\`\`
-
-            -> {greeting}
-         `) as PromptbookString,
-    );
-
-    const promptbookExecutor = createPromptbookExecutor({
-        promptbook,
-        tools: {
-            llm: new MockedEchoLlmExecutionTools({ isVerbose: true }),
-            script: [
-                new JavascriptExecutionTools({
-                    isVerbose: true,
-
-                    // Note: [🕎]
-                    functions: {
-                        addHello(value) {
-                            return `Hello ${value}`;
-                        },
-                    },
-                }),
-            ],
-            userInterface: new CallbackInterfaceTools({
-                isVerbose: true,
-                async callback() {
-                    return 'Hello';
-                },
-            }),
-        },
-        settings: {
-            maxExecutionAttempts: 3,
-        },
-    });
-
-    it('should use custom postprocessing function', () => {
         expect(promptbookExecutor({ yourName: 'Matthew' }, () => {})).resolves.toMatchObject({
             isSuccessful: true,
             errors: [],
@@ -93,3 +44,56 @@ describe('createPromptbookExecutor + custom function without dependencies', asyn
         });
     });
 });
+
+async function getPromptbookExecutor() {
+    const promptbook = await promptbookStringToJson(
+        spaceTrim(`
+            # Custom functions
+
+            Show how to use custom postprocessing functions
+
+            -   PROMPTBOOK VERSION 1.0.0
+            -   INPUT  PARAMETER {yourName} Name of the hero
+            -   OUTPUT PARAMETER {greeting}
+
+            ## Question
+
+            -   SIMPLE TEMPLATE
+            -   POSTPROCESSING addHello
+
+            \`\`\`markdown
+            {yourName} the Evangelist
+            \`\`\`
+
+            -> {greeting}
+       `) as PromptbookString,
+    );
+
+    return createPromptbookExecutor({
+        promptbook,
+        tools: {
+            llm: new MockedEchoLlmExecutionTools({ isVerbose: true }),
+            script: [
+                new JavascriptExecutionTools({
+                    isVerbose: true,
+
+                    // Note: [🕎]
+                    functions: {
+                        addHello(value) {
+                            return `Hello ${value}`;
+                        },
+                    },
+                }),
+            ],
+            userInterface: new CallbackInterfaceTools({
+                isVerbose: true,
+                async callback() {
+                    return 'Hello';
+                },
+            }),
+        },
+        settings: {
+            maxExecutionAttempts: 3,
+        },
+    });
+}

@@ -7,7 +7,38 @@ import { MockedEchoLlmExecutionTools } from '../../llm-providers/mocked/MockedEc
 import type { PromptbookString } from '../../types/PromptbookString';
 import { CallbackInterfaceTools } from './callback/CallbackInterfaceTools';
 
-describe('createPromptbookExecutor + executing user interface prompts in promptbook', async () => {
+describe('createPromptbookExecutor + executing user interface prompts in promptbook', () => {
+    it('should work when every INPUT  PARAMETER defined', async () => {
+        const promptbookExecutor = await getPromptbookExecutor();
+
+        expect(promptbookExecutor({ thing: 'apple' }, () => {})).resolves.toMatchObject({
+            outputParameters: {
+                favoriteThing: 'Answer to question "Thing: What is your favorite apple to buy?" is not apple but Pear.',
+            },
+        });
+        expect(promptbookExecutor({ thing: 'a cup of coffee' }, () => {})).resolves.toMatchObject({
+            outputParameters: {
+                favoriteThing:
+                    'Answer to question "Thing: What is your favorite a cup of coffee to buy?" is not a cup of coffee but Pear.',
+            },
+        });
+    });
+
+    it('should fail when some INPUT  PARAMETER is missing', async () => {
+        const promptbookExecutor = await getPromptbookExecutor();
+
+        expect(promptbookExecutor({}, () => {})).resolves.toMatchObject({
+            isSuccessful: false,
+            errors: [new Error(`Parameter {thing} is not defined`)],
+        });
+
+        expect(() => promptbookExecutor({}, () => {}).then(assertsExecutionSuccessful)).rejects.toThrowError(
+            /Parameter \{thing\} is not defined/,
+        );
+    });
+});
+
+async function getPromptbookExecutor() {
     const promptbook = await promptbookStringToJson(
         spaceTrim(`
             # Sample prompt
@@ -29,7 +60,7 @@ describe('createPromptbookExecutor + executing user interface prompts in promptb
             \`\`\`
 
             -> {favoriteThing}
-         `) as PromptbookString,
+      `) as PromptbookString,
     );
     const promptbookExecutor = createPromptbookExecutor({
         promptbook,
@@ -48,28 +79,5 @@ describe('createPromptbookExecutor + executing user interface prompts in promptb
         },
     });
 
-    it('should work when every INPUT  PARAMETER defined', () => {
-        expect(promptbookExecutor({ thing: 'apple' }, () => {})).resolves.toMatchObject({
-            outputParameters: {
-                favoriteThing: 'Answer to question "Thing: What is your favorite apple to buy?" is not apple but Pear.',
-            },
-        });
-        expect(promptbookExecutor({ thing: 'a cup of coffee' }, () => {})).resolves.toMatchObject({
-            outputParameters: {
-                favoriteThing:
-                    'Answer to question "Thing: What is your favorite a cup of coffee to buy?" is not a cup of coffee but Pear.',
-            },
-        });
-    });
-
-    it('should fail when some INPUT  PARAMETER is missing', () => {
-        expect(promptbookExecutor({}, () => {})).resolves.toMatchObject({
-            isSuccessful: false,
-            errors: [new Error(`Parameter {thing} is not defined`)],
-        });
-
-        expect(() => promptbookExecutor({}, () => {}).then(assertsExecutionSuccessful)).rejects.toThrowError(
-            /Parameter \{thing\} is not defined/,
-        );
-    });
-});
+    return promptbookExecutor;
+}

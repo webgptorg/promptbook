@@ -7,49 +7,9 @@ import type { PromptbookString } from '../../types/PromptbookString';
 import { PROMPTBOOK_VERSION } from '../../version';
 import { MockedEchoLlmExecutionTools } from './MockedEchoLlmExecutionTools';
 
-describe('createPromptbookExecutor + MockedEchoExecutionTools with sample chat prompt', async () => {
-    const promptbook =await promptbookStringToJson(
-        spaceTrim(`
-            # Sample prompt
-
-            Show how to use a simple completion prompt
-
-            -   PROMPTBOOK VERSION 1.0.0
-            -   PROMPTBOOK URL https://example.com/promptbook.json
-            -   INPUT  PARAMETER {thing} Any thing to buy
-            -   OUTPUT PARAMETER {response}
-
-            ## Prompt
-
-            - MODEL VARIANT Completion
-            - MODEL NAME \`gpt-3.5-turbo-instruct\`
-
-            \`\`\`
-            One day I went to the shop and bought {thing}.
-            Now I have {thing}.
-            \`\`\`
-
-            -> {response}
-         `) as PromptbookString,
-    );
-    const promptbookExecutor = createPromptbookExecutor({
-        promptbook,
-        tools: {
-            llm: new MockedEchoLlmExecutionTools({ isVerbose: true }),
-            script: [],
-            userInterface: new CallbackInterfaceTools({
-                isVerbose: true,
-                async callback() {
-                    return 'Hello';
-                },
-            }),
-        },
-        settings: {
-            maxExecutionAttempts: 3,
-        },
-    });
-
-    it('should work when every INPUT PARAMETER defined', () =>
+describe('createPromptbookExecutor + MockedEchoExecutionTools with sample chat prompt', () => {
+    it('should work when every INPUT PARAMETER defined', async () => {
+        const promptbookExecutor = await getPromptbookExecutor();
         expect(promptbookExecutor({ thing: 'a cup of coffee' }, () => {})).resolves.toMatchObject({
             outputParameters: {
                 response: spaceTrim(`
@@ -58,9 +18,11 @@ describe('createPromptbookExecutor + MockedEchoExecutionTools with sample chat p
                     And so on...
                 `),
             },
-        }));
+        });
+    });
 
-    it('should fail when some INPUT PARAMETER is missing', () =>
+    it('should fail when some INPUT PARAMETER is missing', async () => {
+        const promptbookExecutor = await getPromptbookExecutor();
         expect(promptbookExecutor({}, () => {})).resolves.toEqual({
             isSuccessful: false,
             errors: [new Error(`Parameter {thing} is not defined`)],
@@ -124,7 +86,8 @@ describe('createPromptbookExecutor + MockedEchoExecutionTools with sample chat p
                     value: 0,
                 },
             },
-        }));
+        });
+    });
 
     /*
     TODO: [🧠] Should be this failing or not?
@@ -133,6 +96,50 @@ describe('createPromptbookExecutor + MockedEchoExecutionTools with sample chat p
     });
     */
 });
+
+async function getPromptbookExecutor() {
+    const promptbook = await promptbookStringToJson(
+        spaceTrim(`
+            # Sample prompt
+
+            Show how to use a simple completion prompt
+
+            -   PROMPTBOOK VERSION 1.0.0
+            -   PROMPTBOOK URL https://example.com/promptbook.json
+            -   INPUT  PARAMETER {thing} Any thing to buy
+            -   OUTPUT PARAMETER {response}
+
+            ## Prompt
+
+            - MODEL VARIANT Completion
+            - MODEL NAME \`gpt-3.5-turbo-instruct\`
+
+            \`\`\`
+            One day I went to the shop and bought {thing}.
+            Now I have {thing}.
+            \`\`\`
+
+            -> {response}
+       `) as PromptbookString,
+    );
+    const promptbookExecutor = createPromptbookExecutor({
+        promptbook,
+        tools: {
+            llm: new MockedEchoLlmExecutionTools({ isVerbose: true }),
+            script: [],
+            userInterface: new CallbackInterfaceTools({
+                isVerbose: true,
+                async callback() {
+                    return 'Hello';
+                },
+            }),
+        },
+        settings: {
+            maxExecutionAttempts: 3,
+        },
+    });
+    return promptbookExecutor;
+}
 
 /**
  * TODO: [🧠] What should be name of this test "MockedEchoExecutionTools.test.ts" or "createPromptbookExecutor.test.ts"

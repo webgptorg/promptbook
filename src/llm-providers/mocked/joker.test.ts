@@ -6,7 +6,34 @@ import { CallbackInterfaceTools } from '../../knowledge/dialogs/callback/Callbac
 import type { PromptbookString } from '../../types/PromptbookString';
 import { MockedEchoLlmExecutionTools } from './MockedEchoLlmExecutionTools';
 
-describe('createPromptbookExecutor + MockedEchoExecutionTools with sample chat prompt', async () => {
+describe('createPromptbookExecutor + MockedEchoExecutionTools with sample chat prompt', () => {
+    it('should work when joker is used', async () => {
+        const promptbookExecutor = await getPromptbookExecutor();
+        expect(promptbookExecutor({ yourName: 'Good name' }, () => {})).resolves.toMatchObject({
+            isSuccessful: true,
+            errors: [],
+            outputParameters: {
+                name: 'Good name',
+            },
+        });
+    });
+
+    it('should work when joker is NOT used', async () => {
+        const promptbookExecutor = await getPromptbookExecutor();
+        expect(promptbookExecutor({ yourName: 'Badname' }, () => {})).resolves.toMatchObject({
+            isSuccessful: true,
+            errors: [],
+            outputParameters: {
+                name: spaceTrim(`
+                    You said:
+                    Write some name for Badname
+                `),
+            },
+        });
+    });
+});
+
+async function getPromptbookExecutor() {
     const promptbook = await promptbookStringToJson(
         spaceTrim(`
             # ✨ Sample: Jokers
@@ -26,9 +53,9 @@ describe('createPromptbookExecutor + MockedEchoExecutionTools with sample chat p
             \`\`\`
 
             -> {name}
-         `) as PromptbookString,
+       `) as PromptbookString,
     );
-    const promptbookExecutor = createPromptbookExecutor({
+    return createPromptbookExecutor({
         promptbook,
         tools: {
             llm: new MockedEchoLlmExecutionTools({ isVerbose: true }),
@@ -44,30 +71,7 @@ describe('createPromptbookExecutor + MockedEchoExecutionTools with sample chat p
             maxExecutionAttempts: 3,
         },
     });
-
-    it('should work when joker is used', () => {
-        expect(promptbookExecutor({ yourName: 'Good name' }, () => {})).resolves.toMatchObject({
-            isSuccessful: true,
-            errors: [],
-            outputParameters: {
-                name: 'Good name',
-            },
-        });
-    });
-
-    it('should work when joker is NOT used', () => {
-        expect(promptbookExecutor({ yourName: 'Badname' }, () => {})).resolves.toMatchObject({
-            isSuccessful: true,
-            errors: [],
-            outputParameters: {
-                name: spaceTrim(`
-                    You said:
-                    Write some name for Badname
-                `),
-            },
-        });
-    });
-});
+}
 
 /**
  * TODO: [🧠] What should be name of this test "MockedEchoExecutionTools.test.ts" or "createPromptbookExecutor.test.ts"

@@ -9,64 +9,10 @@ import { countCharacters } from '../../utils/expectation-counters/countCharacter
 import { countWords } from '../../utils/expectation-counters/countWords';
 import { JavascriptExecutionTools } from '../javascript/JavascriptExecutionTools';
 
-describe('createPromptbookExecutor + custom function with dependencies', async () => {
-    const promptbook = await promptbookStringToJson(
-        spaceTrim(`
-            # Custom functions
+describe('createPromptbookExecutor + custom function with dependencies', () => {
+    it('should use custom postprocessing function', async () => {
+        const promptbookExecutor = await getPromptbookExecutor();
 
-            Show how to use custom postprocessing functions with dependencies
-
-            -   PROMPTBOOK VERSION 1.0.0
-            -   INPUT  PARAMETER {yourName} Name of the hero
-            -   OUTPUT PARAMETER {greeting}
-
-            ## Question
-
-            -   SIMPLE TEMPLATE
-            -   POSTPROCESSING addHello
-            -   POSTPROCESSING withStatistics
-
-            \`\`\`markdown
-            {yourName} the Evangelist
-            \`\`\`
-
-            -> {greeting}
-         `) as PromptbookString,
-    );
-
-    const promptbookExecutor = createPromptbookExecutor({
-        promptbook,
-        tools: {
-            llm: new MockedEchoLlmExecutionTools({ isVerbose: true }),
-            script: [
-                new JavascriptExecutionTools({
-                    isVerbose: true,
-
-                    // Note: [🕎]
-                    functions: {
-                        addHello(value) {
-                            return `Hello ${value}`;
-                        },
-                        withStatistics(value) {
-                            // Note: Testing custom function with dependencies
-                            return value + ` (${countCharacters(value)} characters, ${countWords(value)} words)`;
-                        },
-                    },
-                }),
-            ],
-            userInterface: new CallbackInterfaceTools({
-                isVerbose: true,
-                async callback() {
-                    return 'Hello';
-                },
-            }),
-        },
-        settings: {
-            maxExecutionAttempts: 3,
-        },
-    });
-
-    it('should use custom postprocessing function', () => {
         expect(promptbookExecutor({ yourName: 'Matthew' }, () => {})).resolves.toMatchObject({
             isSuccessful: true,
             errors: [],
@@ -100,3 +46,61 @@ describe('createPromptbookExecutor + custom function with dependencies', async (
         });
     });
 });
+
+async function getPromptbookExecutor() {
+    const promptbook = await promptbookStringToJson(
+        spaceTrim(`
+            # Custom functions
+
+            Show how to use custom postprocessing functions with dependencies
+
+            -   PROMPTBOOK VERSION 1.0.0
+            -   INPUT  PARAMETER {yourName} Name of the hero
+            -   OUTPUT PARAMETER {greeting}
+
+            ## Question
+
+            -   SIMPLE TEMPLATE
+            -   POSTPROCESSING addHello
+            -   POSTPROCESSING withStatistics
+
+            \`\`\`markdown
+            {yourName} the Evangelist
+            \`\`\`
+
+            -> {greeting}
+       `) as PromptbookString,
+    );
+
+    return createPromptbookExecutor({
+        promptbook,
+        tools: {
+            llm: new MockedEchoLlmExecutionTools({ isVerbose: true }),
+            script: [
+                new JavascriptExecutionTools({
+                    isVerbose: true,
+
+                    // Note: [🕎]
+                    functions: {
+                        addHello(value) {
+                            return `Hello ${value}`;
+                        },
+                        withStatistics(value) {
+                            // Note: Testing custom function with dependencies
+                            return value + ` (${countCharacters(value)} characters, ${countWords(value)} words)`;
+                        },
+                    },
+                }),
+            ],
+            userInterface: new CallbackInterfaceTools({
+                isVerbose: true,
+                async callback() {
+                    return 'Hello';
+                },
+            }),
+        },
+        settings: {
+            maxExecutionAttempts: 3,
+        },
+    });
+}
