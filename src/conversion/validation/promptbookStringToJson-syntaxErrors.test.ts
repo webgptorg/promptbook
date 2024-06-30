@@ -39,4 +39,6 @@ describe('promptbookStringToJson', () => {
             async () => await promptbookStringToJson(importPromptbook('errors/syntax/parameters-collision.ptbk.md')),
         ).rejects.toThrowError(/Parameter \{word\} is defined multiple times/i);
     });
+
+    // TODO: !!! Missing LLM tools when processing knowledge
 });

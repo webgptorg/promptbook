@@ -60,3 +60,8 @@ export function createPromptbookLibraryFromPromise(
         isResponsibleForPrompt,
     };
 }
+
+
+/**
+ * TODO: !!!! [🧠] Library precompilation and do not mix markdown and json promptbooks
+ */

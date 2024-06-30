@@ -177,3 +177,8 @@ async function listAllFiles(path: string_folder_path, isRecursive: boolean): Pro
 
     return fileNames;
 }
+
+
+/**
+ * TODO: !!!! [🧠] Library precompilation and do not mix markdown and json promptbooks
+ */

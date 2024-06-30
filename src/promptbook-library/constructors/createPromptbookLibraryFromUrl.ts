@@ -49,3 +49,7 @@ export async function createPromptbookLibraryFromUrl(
     // TODO: Look at WebGPT "📖 Make Promptbook library" and https://webgpt.cz/_promptbook-library.json
     // TODO: !! Implement via createPromptbookLibraryFromPromise
 }
+
+/**
+ * TODO: !!!! [🧠] Library precompilation and do not mix markdown and json promptbooks
+ */

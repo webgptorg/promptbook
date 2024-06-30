@@ -97,7 +97,7 @@
             async function run() {
                 console.log(`🚀 Running`);
 
-                const promptbook = await promptbookStringToJson(promptbookElement.value);
+                const promptbook = await promptbookStringToJson(promptbookElement.value, {llm:});
 
                 console.log(promptbook);
 

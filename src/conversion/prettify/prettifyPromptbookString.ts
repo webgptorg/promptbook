@@ -16,7 +16,7 @@ export async function prettifyPromptbookString(
     const { isGraphAdded, isPrettifyed } = options;
 
     if (isGraphAdded) {
-        const promptbookJson = await promptbookStringToJson(promptbookString);
+        const promptbookJson = await promptbookStringToJson(promptbookString /* , {!!!!} */);
 
         const promptbookMermaid = renderPromptbookMermaid(promptbookJson, {
             linkPromptTemplate(promptTemplate) {

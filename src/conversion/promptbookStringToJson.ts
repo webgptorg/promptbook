@@ -1,6 +1,7 @@
 import { spaceTrim } from 'spacetrim';
 import type { IterableElement, Writable, WritableDeep } from 'type-fest';
 import { PromptbookSyntaxError } from '../errors/PromptbookSyntaxError';
+import { ExecutionTools } from '../execution/ExecutionTools';
 import type { ParameterCommand } from '../types/Command';
 import type { ExecutionType } from '../types/ExecutionTypes';
 import type { ModelRequirements } from '../types/ModelRequirements';
@@ -10,6 +11,7 @@ import type { PromptbookJson } from '../types/PromptbookJson/PromptbookJson';
 import type { PromptbookString } from '../types/PromptbookString';
 import type { ScriptLanguage } from '../types/ScriptLanguage';
 import { SUPPORTED_SCRIPT_LANGUAGES } from '../types/ScriptLanguage';
+import { just } from '../utils/just';
 import { countMarkdownStructureDeepness } from '../utils/markdown-json/countMarkdownStructureDeepness';
 import { markdownToMarkdownStructure } from '../utils/markdown-json/markdownToMarkdownStructure';
 import { extractAllListItemsFromMarkdown } from '../utils/markdown/extractAllListItemsFromMarkdown';
@@ -20,17 +22,23 @@ import { PROMPTBOOK_VERSION } from '../version';
 import { extractParametersFromPromptTemplate } from './utils/extractParametersFromPromptTemplate';
 import { parseCommand } from './utils/parseCommand';
 import { titleToName } from './utils/titleToName';
+import { LlmExecutionTools } from '../execution/LlmExecutionTools';
 
 /**
  * Compile promptbook from string (markdown) format to JSON format
  *
- *
+ * @param promptbookString {Promptbook} in string markdown format (.ptbk.md)
+ * @param llmTools {LlmExecutionTools} - tools for processing required for knowledge processing *(not for actual execution)*
+ * @returns {Promptbook} compiled in JSON format (.ptbk.json)
  * @throws {PromptbookSyntaxError} if the promptbook string is not valid
  *
  * Note: This function does not validate logic of the pipeline only the syntax
  * Note: This function acts as compilation process
  */
-export async function promptbookStringToJson(promptbookString: PromptbookString): Promise<PromptbookJson> {
+export async function promptbookStringToJson(
+    promptbookString: PromptbookString,
+    llmTools?: LlmExecutionTools,
+): Promise<PromptbookJson> {
     const promptbookJson: WritableDeep<PromptbookJson> = {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         title: undefined as any /* <- Note: Putting here placeholder to keep `title` on top at final JSON */,
@@ -41,6 +49,9 @@ export async function promptbookStringToJson(promptbookString: PromptbookString)
         promptTemplates: [],
         knowledge: [],
     };
+
+    // TODO: !!!! Use tools here to compile knowledge
+    just(llmTools);
 
     // =============================================================
     // Note: 1️⃣ Normalization of the PROMPTBOOK string

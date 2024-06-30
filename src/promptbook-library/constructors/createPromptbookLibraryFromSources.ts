@@ -32,3 +32,8 @@ export async function createPromptbookLibraryFromSources(
     }
     return new SimplePromptbookLibrary(...promptbooks);
 }
+
+
+/**
+ * TODO: !!!! [🧠] Library precompilation and do not mix markdown and json promptbooks
+ */

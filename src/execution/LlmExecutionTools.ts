@@ -1,10 +1,8 @@
 import type { Promisable } from 'type-fest';
 import type { ModelVariant } from '../types/ModelRequirements';
 import type { Prompt } from '../types/Prompt';
-import type { string_model_name } from '../types/typeAliases';
-import type { string_title } from '../types/typeAliases';
-import type { PromptChatResult } from './PromptResult';
-import type { PromptCompletionResult } from './PromptResult';
+import type { string_model_name, string_title } from '../types/typeAliases';
+import type { PromptChatResult, PromptCompletionResult } from './PromptResult';
 
 /**
  * Container for all the tools needed to execute prompts to large language models like GPT-4
@@ -23,6 +21,11 @@ export type LlmExecutionTools = {
      * Use a completion model
      */
     gptComplete(prompt: Prompt): Promise<PromptCompletionResult>;
+
+    // TODO: !!!! Remove gpt prefixes
+    // TODO: !!!! Embedding model
+    // TODO: !!!! Translation model
+    // TODO: !!!! emulation
 
     /**
      * List all available models that can be used
