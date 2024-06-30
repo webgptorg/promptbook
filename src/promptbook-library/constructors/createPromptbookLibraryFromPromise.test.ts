@@ -38,6 +38,7 @@ describe('createPromptbookLibraryFromPromise', () => {
     });
 
     it('should get promptbook by url from library', async () => {
+        expect.assertions(1);
         const promptbookFromLibrary = await library.getPromptbookByUrl('https://example.com/promptbook.json');
         expect(promptbookFromLibrary).toEqual(await promptbookStringToJson(promptbook));
     });
