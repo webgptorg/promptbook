@@ -64,5 +64,6 @@ export default packages
                 tsconfig: './tsconfig.json',
                 //       <- Note: This is essential propper type declaration generation
             }),
+            // TODO: !!!! Maybe allow to import JSONs
         ],
     }));
