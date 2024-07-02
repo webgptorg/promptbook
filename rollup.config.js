@@ -1,4 +1,5 @@
-import typescript from '@rollup/plugin-typescript';
+import jsonPlugin from '@rollup/plugin-json';
+import typescriptPlugin from '@rollup/plugin-typescript';
 import { readdirSync } from 'fs';
 import { join } from 'path';
 
@@ -60,9 +61,12 @@ export default packages
             },
         ],
         plugins: [
-            typescript({
+            typescriptPlugin({
                 tsconfig: './tsconfig.json',
                 //       <- Note: This is essential propper type declaration generation
+            }),
+            jsonPlugin({
+                compact: true,
             }),
         ],
     }));
