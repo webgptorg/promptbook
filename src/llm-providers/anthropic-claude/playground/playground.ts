@@ -60,6 +60,4 @@ async function playground() {
     /**/
 
     //========================================/
-
-    console.info(`[ Done 🧸  Anthropic Claude Playground ]`);
 }

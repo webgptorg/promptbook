@@ -145,6 +145,15 @@
             "focus": true
         },
         {
+            "name": "🧸💡 Prepare knowledge from Markdown (playground)",
+            "commands": [
+                "ts-node ./scripts/make-promptbook-library/make-promptbook-library.ts",
+                "ts-node ./src/knowledge/prepare-knowledge/markdown/playground/markdown-knowledge-playground.ts"
+            ],
+            "onlySingle": true,
+            "focus": true
+        },
+        {
             "name": "🔼👑 Release major version",
             "command": "npm version major",
             "onlySingle": true,

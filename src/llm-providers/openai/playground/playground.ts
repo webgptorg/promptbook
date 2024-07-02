@@ -60,5 +60,4 @@ async function playground() {
 
     //========================================/
 
-    console.info(`[ Done 🧸  OpenAI Playground ]`);
 }

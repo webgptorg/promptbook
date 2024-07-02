@@ -63,5 +63,4 @@ async function playground() {
 
     //========================================/
 
-    console.info(`[ Done 🧸  Langtail Playground ]`);
 }

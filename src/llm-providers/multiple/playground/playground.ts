@@ -81,5 +81,4 @@ async function playground() {
 
     //========================================/
 
-    console.info(`[ Done 🧸  Multiple LLMs Playground ]`);
 }

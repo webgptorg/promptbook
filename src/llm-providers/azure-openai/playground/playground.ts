@@ -61,6 +61,4 @@ async function playground() {
     /**/
 
     //========================================/
-
-    console.info(`[ Done 🧸  Azure OpenAI Playground ]`);
 }
