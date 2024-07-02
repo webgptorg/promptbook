@@ -1,20 +1,16 @@
 // import { promptbookStringToJson } from '../../../conversion/promptbookStringToJson';
-import { IVectorData } from 'xyzt';
+import spaceTrim from 'spacetrim';
+import type { IVectorData } from 'xyzt';
 import promptbookLibrary from '../../../../promptbook-library/promptbook-library.json';
-import { PromptbookJson } from '../../../_packages/types.index';
-import { normalizeToKebabCase, spaceTrim, string_keyword } from '../../../_packages/utils.index';
 import { assertsExecutionSuccessful } from '../../../execution/assertsExecutionSuccessful';
 import { createPromptbookExecutor } from '../../../execution/createPromptbookExecutor';
 import type { LlmExecutionTools } from '../../../execution/LlmExecutionTools';
 import { createPromptbookLibraryFromSources } from '../../../promptbook-library/constructors/createPromptbookLibraryFromSources';
 import type { KnowledgeJson } from '../../../types/PromptbookJson/KnowledgeJson';
-import type {
-    string_href,
-    string_markdown,
-    string_markdown_text,
-    string_model_name,
-    string_name,
-} from '../../../types/typeAliases';
+import type { PromptbookJson } from '../../../types/PromptbookJson/PromptbookJson';
+import type { string_href, string_markdown, string_markdown_text, string_model_name, string_name } from '../../../types/typeAliases';
+import type { string_keyword } from '../../../utils/normalization/IKeywords';
+import { normalizeToKebabCase } from '../../../utils/normalization/normalize-to-kebab-case';
 
 export async function prepareKnowledgeFromMarkdown(options: {
     content: string_markdown /* <- TODO: [🖖] Always the file */;
