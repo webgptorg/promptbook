@@ -1,7 +1,7 @@
 import { describe, expect, it } from '@jest/globals';
 import { readFile } from 'fs/promises';
 import { join } from 'path';
-import { MockedEchoLlmExecutionTools } from '../../../_packages/fake-llm.index';
+import { MockedEchoLlmExecutionTools } from '../../../llm-providers/mocked/MockedEchoLlmExecutionTools';
 import { prepareKnowledgeFromPdf } from './prepareKnowledgeFromPdf';
 
 describe('how creating knowledge from pdf works', () => {
