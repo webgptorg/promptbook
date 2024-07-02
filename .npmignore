@@ -1,20 +1,2 @@
 
-
-/.github
-/.vscode
-/.idea
-/node_modules
-/src
-/coverage
-/samples
-
-/secrets.md
-
-TODO.txt
-
-
-## Note: Promptbook library is compiled to bundle files
-/promptbook-library
-
-## Note: Scripts are not published to npm
-/scripts
+# Note: Nothing here - packages are published from subfolder `packages/*`
