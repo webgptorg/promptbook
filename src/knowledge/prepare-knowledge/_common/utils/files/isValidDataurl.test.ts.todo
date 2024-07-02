@@ -1,0 +1,42 @@
+import { isValidDataurl } from './isValidDataurl';
+
+describe(`validation of urls`, () => {
+    it(`is valid base64 without charset dataurl`, () => {
+        expect(isValidDataurl(`data:text/plain;base64,PGgxPkhlbGxvLCBXb3JsZCE8L2gxPg==`)).toBe(true);
+    });
+
+    it(`is valid base64 with charset dataurl`, () => {
+        expect(isValidDataurl(`data:text/plain;charset=utf-8;base64,PGgxPkhlbGxvLCBXb3JsZCE8L2gxPg==`)).toBe(true);
+    });
+
+    it(`is valid non-encoded, escaped dataurl`, () => {
+        expect(isValidDataurl(`data:text/html,%3Ch1%3EHello%2C%20World%21%3C%2Fh1%3E`)).toBe(true);
+    });
+
+    it(`is valid non-encoded, non-escaped dataurl`, () => {
+        expect(isValidDataurl(`data:text/html,<h1>Hello, World!</h1>`)).toBe(true);
+    });
+
+    /*
+    TODO: [🏞️]
+    it(`is corrupted dataurl`, () => {
+        expect(isValidDataurl(`data:text/plain;charset=utf-8;base12345678,PGgxPkhlbGxvLCBXb3JsZCE8L2gxPg==`)).toBe(
+            false,
+        );
+        expect(isValidDataurl(`data:text/plain;base64 PGgxPkhlbGxvLCBXb3JsZCE8L2gxPg==`)).toBe(false);
+        expect(isValidDataurl(`data:PGgxPkhlbGxvLCBXb3JsZCE8L2gxPg==`)).toBe(false);
+    });
+    */
+
+    it(`is valid url BUT not dataurl`, () => {
+        expect(isValidDataurl(`https://collboard.com/`)).toBe(false);
+        expect(isValidDataurl(`http://localhost:9977/fooo/add`)).toBe(false);
+    });
+
+    it(`is NOT valid url`, () => {
+        expect(isValidDataurl(``)).toBe(false);
+        expect(isValidDataurl(`Invalid URL`)).toBe(false);
+        expect(isValidDataurl(`aegfawsgsdasdg`)).toBe(false);
+        expect(isValidDataurl(`wtf://collboard.com/`)).toBe(false);
+    });
+});

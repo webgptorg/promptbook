@@ -1,0 +1,12 @@
+export function shorten(long: string, maxChars: number): string {
+    if (long.length <= maxChars) {
+        return long;
+    }
+
+    return long.substring(0, maxChars - 1) + '…';
+}
+
+/**
+ * TODO: [🧺] Annotate
+ * TODO: [🧠] Create postprocessing function from this
+ */

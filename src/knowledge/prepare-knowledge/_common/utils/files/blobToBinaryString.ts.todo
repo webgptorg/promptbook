@@ -1,0 +1,19 @@
+/**
+ * Convert Blob or File to binary string
+ */
+export function blobToBinaryString(source: Blob | File): Promise<string> {
+    return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.addEventListener('load', async (event) => {
+            const binary = reader.result as string;
+            resolve(binary);
+        });
+        reader.readAsBinaryString(source);
+    });
+}
+
+/**
+ * TODO: [🧺] In future uncomment
+ * TODO: [🧺] Export via `@promptbook/pdf` and `@promptbook/docx`
+ * TODO: Test
+ */

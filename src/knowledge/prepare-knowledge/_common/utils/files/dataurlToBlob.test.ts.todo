@@ -1,0 +1,52 @@
+import { blobToBinaryString } from './blobToBinaryString';
+import { dataurlToBlob } from './dataurlToBlob';
+
+describe(`conversion of dataurl to blob`, () => {
+    it(`converts base64 without charset dataurl`, () => {
+        return expect(
+            dataurlToBlob(`data:text/html;base64,PGgxPkhlbGxvLCBXb3JsZCE8L2gxPg==`).then(async (blob) => [
+                blob.type,
+                await blobToBinaryString(blob),
+            ]),
+        ).resolves.toEqual([`text/html`, `<h1>Hello, World!</h1>`]);
+    });
+
+    it(`converts base64 with charset dataurl`, () => {
+        return expect(
+            dataurlToBlob(`data:text/html;charset=utf-8;base64,PGgxPkhlbGxvLCBXb3JsZCE8L2gxPg==`).then(async (blob) => [
+                blob.type,
+                await blobToBinaryString(blob),
+            ]),
+        ).resolves.toEqual([`text/html`, `<h1>Hello, World!</h1>`]);
+    });
+
+    it(`converts non-encoded, escaped dataurl`, () => {
+        return expect(
+            dataurlToBlob(`data:text/html,%3Ch1%3EHello%2C%20World%21%3C%2Fh1%3E`).then(async (blob) => [
+                blob.type,
+                await blobToBinaryString(blob),
+            ]),
+        ).resolves.toEqual([`text/html`, `<h1>Hello, World!</h1>`]);
+    });
+
+    it(`converts non-encoded, non-escaped dataurl`, () => {
+        return expect(
+            dataurlToBlob(`data:text/html,<h1>Hello, World!</h1>`).then(async (blob) => [
+                blob.type,
+                await blobToBinaryString(blob),
+            ]),
+        ).resolves.toEqual([`text/html`, `<h1>Hello, World!</h1>`]);
+    });
+
+    it(`checks that it is not wrong type`, () => {
+        return expect(
+            dataurlToBlob(`data:text/html;base64,PGgxPkhlbGxvLCBXb3JsZCE8L2gxPg==`).then((blob) => [blob.type]),
+        ).resolves.not.toEqual(`text/plain`);
+    });
+
+    it(`checks that it is not wrong content`, () => {
+        return expect(
+            dataurlToBlob(`data:text/html;base64,PGgxPkhlbGxvLCBXb3JsZCE8L2gxPg==`).then(blobToBinaryString),
+        ).resolves.not.toEqual(`<h1>Hello, Fooo!</h1>`);
+    });
+});

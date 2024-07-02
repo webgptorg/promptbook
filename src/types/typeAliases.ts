@@ -241,7 +241,14 @@ export type string_promptbook_url_with_hashtemplate = string;
  *
  * For example `"data:text/plain;base64,SGVsbG8sIFdvcmxkIQ=="`
  */
-export type string_data_url = string;
+export type string_data_url = `data:${string_mime_type};base64,${string_base64}`;
+
+/**
+ * Semantic helper
+ *
+ * For example `"SGVsbG8sIFdvcmxkIQ=="`
+ */
+export type string_base64 = string;
 
 /**
  * Semantic helper
