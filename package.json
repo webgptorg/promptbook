@@ -44,7 +44,6 @@
         "postversion": "npm run update-version-in-config && npm run generate-packages && git push && git push --tags && npm run use-packages"
     },
     "devDependencies": {
-        "@rollup/plugin-json": "^6.1.0",
         "@rollup/plugin-typescript": "8.3.0",
         "@types/jest": "27.0.2",
         "@typescript-eslint/eslint-plugin": "6.9.0",

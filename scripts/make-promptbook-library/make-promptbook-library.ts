@@ -32,12 +32,13 @@ async function makePromptbookLibrary() {
     console.info(`📖 Make Promptbook library`);
 
     const promptbookSourceDir = 'promptbook-library';
-    const promptbookBuildPath = `${promptbookSourceDir}/promptbook-library.json`;
+    const promptbookBuildPath = `${promptbookSourceDir}/promptbook-library.ts`; // <- Note: [🏳‍🌈] Making .ts file (not .json) to avoid support of json files in bundle
 
     const promptbookFiles = await glob(promptbookSourceDir + '/**/*.ptbk.md');
 
     /*
     TODO: !!!!! Compile, serialize and deserialize whiole promptbook library with one util + Use it in WebGPT and Promptbook.studio
+    TODO: [🏳‍🌈] Allow variant with .json .js and .ts files
 
     const promptbookLibrary = await createPromptbookLibraryFromDirectory(promptbookSourceDir, {
         isRecursive: true,
@@ -75,7 +76,7 @@ async function makePromptbookLibrary() {
         promptbooks.push(ptbkJson);
     }
 
-    await writeFile(promptbookBuildPath, JSON.stringify(promptbooks) + '\n', 'utf-8');
+    await writeFile(promptbookBuildPath, 'export default ' + JSON.stringify(promptbooks) + '\n', 'utf-8');
 
     console.info(`[ Done 📖 Make  Promptbook library ]`);
 }

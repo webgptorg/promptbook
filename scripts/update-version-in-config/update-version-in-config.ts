@@ -38,7 +38,7 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
     }
 
     await writeFile(
-        `./src/version.ts`,
+        `./src/version.ts`, // <- Note: [🏳‍🌈] Making .ts file (not .json) to avoid support of json files in bundle
         spaceTrim(`
             import type { string_version } from './types/typeAliases';
 
