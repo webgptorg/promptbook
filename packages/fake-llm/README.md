@@ -533,7 +533,7 @@ You can define postprocessing functions when creating `JavascriptEvalExecutionTo
 
 ```
 
-Additionally there are some usefull string-manipulation build-in functions, which are [listed here](src/execution/plugins/script-execution-tools/javascript/JavascriptEvalExecutionTools.ts).
+Additionally there are some usefull string-manipulation build-in functions, which are [listed here](src/scripting/javascript/JavascriptEvalExecutionTools.ts).
 
 ### Expectations
 
