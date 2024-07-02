@@ -3,4 +3,4 @@ import type { string_version } from './types/typeAliases';
 /**
  * The version of the Promptbook library
  */
-export const PROMPTBOOK_VERSION: string_version = '0.59.0-4';
+export const PROMPTBOOK_VERSION: string_version = '0.59.0-5';
