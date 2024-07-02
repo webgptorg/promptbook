@@ -12,6 +12,14 @@ describe('how creating knowledge from pdf works', () => {
                 llmTools: new MockedFackedLlmExecutionTools(),
             }),
         ).resolves.toEqual([
-            // !!!! Implement this
+            // TODO: !!!! Test this with real implementation
+            {
+                content: 'M',
+                index: [],
+                keywords: [],
+                name: 'm',
+                sources: [],
+                title: 'M',
+            },
         ]));
 });
