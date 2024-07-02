@@ -8,11 +8,11 @@ type PrepareKnowledgeFromPdfOptions = {
     /**
      * The source of the knowledge in PDF format
      */
-    content: string_base64 /* ;
+    content: string_base64 /* <- TODO: [🖖] Always the file, allow base64+filename+identification+mime or blob+filename+identification or file+identification */;
 
     /**
      * The LLM tools to use for the conversion and extraction of knowledge
-     */;
+     */
     llmTools: LlmExecutionTools;
 };
 

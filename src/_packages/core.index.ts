@@ -21,6 +21,7 @@ import { usageToWorktime } from '../execution/utils/usageToWorktime';
 import { CallbackInterfaceTools } from '../knowledge/dialogs/callback/CallbackInterfaceTools';
 import type { CallbackInterfaceToolsOptions } from '../knowledge/dialogs/callback/CallbackInterfaceToolsOptions';
 import { SimplePromptInterfaceTools } from '../knowledge/dialogs/simple-prompt/SimplePromptInterfaceTools';
+import { prepareKnowledgeFromMarkdown } from '../knowledge/prepare-knowledge/markdown/prepareKnowledgeFromMarkdown';
 import { MultipleLlmExecutionTools } from '../llm-providers/multiple/MultipleLlmExecutionTools';
 import { createPromptbookLibraryFromPromise } from '../promptbook-library/constructors/createPromptbookLibraryFromPromise';
 import { createPromptbookLibraryFromSources } from '../promptbook-library/constructors/createPromptbookLibraryFromSources';
@@ -48,6 +49,7 @@ export {
     ExecutionReportStringOptions,
     ExecutionReportStringOptionsDefaults,
     isPassingExpectations,
+    prepareKnowledgeFromMarkdown,
     prettifyPromptbookString,
     usageToWorktime,
 };

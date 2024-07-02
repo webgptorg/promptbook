@@ -30,7 +30,7 @@ async function playground() {
     const content = await readFile(join(__dirname, '../samples/10-simple.md'), 'utf-8');
 
     const llmTools = new AnthropicClaudeExecutionTools({
-        isVerbose: true,
+        isVerbose: false,
         apiKey: process.env.ANTHROPIC_CLAUDE_API_KEY!,
     });
 

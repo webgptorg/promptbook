@@ -75,12 +75,7 @@ async function makePromptbookLibrary() {
         promptbooks.push(ptbkJson);
     }
 
-    await writeFile(
-        promptbookBuildPath,
-        JSON.stringify({ note: `[🦏] This is a build of promptbook library of WebGPT app `, promptbooks }, null, 4) +
-            '\n',
-        'utf-8',
-    );
+    await writeFile(promptbookBuildPath, JSON.stringify(promptbooks) + '\n', 'utf-8');
 
     console.info(`[ Done 📖 Make  Promptbook library ]`);
 }
