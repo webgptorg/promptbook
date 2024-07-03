@@ -1,8 +1,8 @@
 import spaceTrim from 'spacetrim';
 import type { IVectorData } from 'xyzt';
 // TODO: !!! [🏳‍🌈] Finally take one of .json vs .ts
-// import promptbookLibrary from '../../../../promptbook-library/promptbook-library.json';
-import promptbookLibrary from '../../../../promptbook-library/promptbook-library';
+import promptbookLibrary from '../../../../promptbook-library/promptbook-library.json';
+// import promptbookLibrary from '../../../../promptbook-library/promptbook-library';
 import { assertsExecutionSuccessful } from '../../../execution/assertsExecutionSuccessful';
 import { createPromptbookExecutor } from '../../../execution/createPromptbookExecutor';
 import type { LlmExecutionTools } from '../../../execution/LlmExecutionTools';
