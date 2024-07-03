@@ -61,13 +61,13 @@ export default packages
             },
         ],
         plugins: [
-            jsonPlugin({
-                preferConst: true,
-                compact: true,
-            }),
             typescriptPlugin({
                 tsconfig: './tsconfig.json',
                 //       <- Note: This is essential propper type declaration generation
+            }),
+            jsonPlugin({
+                preferConst: true,
+                compact: true,
             }),
         ],
     }));
