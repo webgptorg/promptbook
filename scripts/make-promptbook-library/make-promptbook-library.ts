@@ -32,7 +32,7 @@ async function makePromptbookLibrary() {
     console.info(`📖 Make Promptbook library`);
 
     const promptbookSourceDir = 'promptbook-library';
-    const promptbookBuildPath = `${promptbookSourceDir}/promptbook-library.ts`; // <- Note: [🏳‍🌈] Making .ts file (not .json) to avoid support of json files in bundle
+    const promptbookBuildPath = `${promptbookSourceDir}/promptbook-library.json`; // <- Note: [🏳‍🌈] Maybe make .ts file (not .json) to avoid support of json files in bundle
 
     const promptbookFiles = await glob(promptbookSourceDir + '/**/*.ptbk.md');
 
@@ -76,7 +76,11 @@ async function makePromptbookLibrary() {
         promptbooks.push(ptbkJson);
     }
 
-    await writeFile(promptbookBuildPath, 'export default ' + JSON.stringify(promptbooks) + '\n', 'utf-8');
+    const contentJson = JSON.stringify(promptbooks);
+    const contentJsonFile = contentJson + '\n';
+    // [🏳‍🌈] const contentTypescriptFile = 'export default ' + contentJson + ';\n';
+
+    await writeFile(promptbookBuildPath, contentJsonFile, 'utf-8');
 
     console.info(`[ Done 📖 Make  Promptbook library ]`);
 }
