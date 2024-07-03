@@ -22,12 +22,12 @@ import { CallbackInterfaceTools } from '../knowledge/dialogs/callback/CallbackIn
 import type { CallbackInterfaceToolsOptions } from '../knowledge/dialogs/callback/CallbackInterfaceToolsOptions';
 import { SimplePromptInterfaceTools } from '../knowledge/dialogs/simple-prompt/SimplePromptInterfaceTools';
 import { prepareKnowledgeFromMarkdown } from '../knowledge/prepare-knowledge/markdown/prepareKnowledgeFromMarkdown';
+import { createPromptbookLibraryFromPromise } from '../library/constructors/createPromptbookLibraryFromPromise';
+import { createPromptbookLibraryFromSources } from '../library/constructors/createPromptbookLibraryFromSources';
+import { createPromptbookLibraryFromUrl } from '../library/constructors/createPromptbookLibraryFromUrl';
+import { createPromptbookSublibrary } from '../library/constructors/createPromptbookSublibrary';
+import { SimplePromptbookLibrary } from '../library/SimplePromptbookLibrary';
 import { MultipleLlmExecutionTools } from '../llm-providers/multiple/MultipleLlmExecutionTools';
-import { createPromptbookLibraryFromPromise } from '../promptbook-library/constructors/createPromptbookLibraryFromPromise';
-import { createPromptbookLibraryFromSources } from '../promptbook-library/constructors/createPromptbookLibraryFromSources';
-import { createPromptbookLibraryFromUrl } from '../promptbook-library/constructors/createPromptbookLibraryFromUrl';
-import { createPromptbookSublibrary } from '../promptbook-library/constructors/createPromptbookSublibrary';
-import { SimplePromptbookLibrary } from '../promptbook-library/SimplePromptbookLibrary';
 import { executionReportJsonToString } from '../types/execution-report/executionReportJsonToString';
 import type { ExecutionReportStringOptions } from '../types/execution-report/ExecutionReportStringOptions';
 import { ExecutionReportStringOptionsDefaults } from '../types/execution-report/ExecutionReportStringOptions';
