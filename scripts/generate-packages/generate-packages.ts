@@ -180,7 +180,7 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
         if (isBuilded) {
             packageJson.main = `./umd/index.umd.js`;
             packageJson.module = `./esm/index.es.js`;
-            packageJson.typings = `./esm/typings/_packages/${packageName}.index.d.ts`;
+            packageJson.typings = `./esm/typings/src/_packages/${packageName}.index.d.ts`;
         }
 
         if (packageFullname === '@promptbook/cli') {
