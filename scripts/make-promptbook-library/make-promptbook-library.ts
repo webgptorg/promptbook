@@ -65,5 +65,6 @@ async function makePromptbookLibrary({ isCommited }: { isCommited: boolean }) {
 }
 
 /**
- * TODO: !!! Transfer this to WebGPT and Promptbook
+ * TODO: !!! Use `promptbook make` cli command instead of this script
+ * TODO: !!! Use `promptbook make` cli command this in WebGPT and Promptbook
  */

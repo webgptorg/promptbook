@@ -12,7 +12,7 @@ export function initializeHello(program: Command) {
     const helloCommand = program.command('hello');
     helloCommand.description(
         spaceTrim(`
-          Just command for testing
+            Just command for testing
       `),
     );
 
