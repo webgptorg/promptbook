@@ -4,6 +4,7 @@ import { SimplePromptbookLibrary } from '../SimplePromptbookLibrary';
 /**
  * Creates PromptbookLibrary from array of PromptbookJson or PromptbookString
  *
+ * Note: Functions `libraryToJson` and `createLibraryFromJson` are complementary
  * Note: During the construction syntax and logic of all sources are validated
  *
  * @param promptbookSources

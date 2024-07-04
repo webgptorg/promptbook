@@ -351,6 +351,7 @@ System for management of external knowledge (RAG)
 -   Class `SimplePromptbookLibrary` not exported anymore directly, only as type
 -   Rename all `createPromptbookLibraryFromXyz` to `createLibraryFromXyz`
 -   Misc Tool classes not requires options anymore _(like `CallbackInterfaceTools`, `OpenAiExecutionTools`, `AnthropicClaudeExecutionTools`, etc.)_
+-   Add util `libraryToJson` exported from `@promptbook/core`
 
 ## In prepare
 

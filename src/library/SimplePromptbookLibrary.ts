@@ -12,7 +12,7 @@ import type { PromptbookLibrary } from './PromptbookLibrary';
  * Library of promptbooks that groups together promptbooks for an application.
  * This implementation is a very thin wrapper around the Array / Map of promptbooks.
  *
- * @private createLibraryFromJson
+ * @private use `createLibraryFromJson` instead
  * @see https://github.com/webgptorg/promptbook#promptbook-library
  */
 export class SimplePromptbookLibrary implements PromptbookLibrary {

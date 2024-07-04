@@ -3,9 +3,10 @@ import spaceTrim from 'spacetrim';
 import { promptbookStringToJson } from '../../conversion/promptbookStringToJson';
 import type { PromptbookString } from '../../types/PromptbookString';
 import { createLibraryFromJson } from './createLibraryFromJson';
+import { libraryToJson } from './libraryToJson';
 
 describe('createLibraryFromJson', () => {
-    const promptbook = spaceTrim(`
+    const promptbookString = spaceTrim(`
             # Sample prompt
 
             Show how to use a simple completion prompt
@@ -33,8 +34,9 @@ describe('createLibraryFromJson', () => {
 
     it('should get promptbook by url from library', async () => {
         expect.assertions(1);
+        const promptbook = await promptbookStringToJson(promptbookString);
         const library = await createLibraryFromJson(promptbook);
-        const promptbookFromLibrary = await library.getPromptbookByUrl('https://example.com/promptbook.json');
-        expect(promptbookFromLibrary).toEqual(await promptbookStringToJson(promptbook));
+        const libraryJson = await libraryToJson(library);
+        expect([promptbook]).toEqual(libraryJson);
     });
 });

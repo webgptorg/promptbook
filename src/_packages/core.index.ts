@@ -26,6 +26,7 @@ import { createLibraryFromJson } from '../library/constructors/createLibraryFrom
 import { createLibraryFromPromise } from '../library/constructors/createLibraryFromPromise';
 import { createLibraryFromUrl } from '../library/constructors/createLibraryFromUrl';
 import { createSublibrary } from '../library/constructors/createSublibrary';
+import { libraryToJson } from '../library/constructors/libraryToJson';
 import { MultipleLlmExecutionTools } from '../llm-providers/multiple/MultipleLlmExecutionTools';
 import { executionReportJsonToString } from '../types/execution-report/executionReportJsonToString';
 import type { ExecutionReportStringOptions } from '../types/execution-report/ExecutionReportStringOptions';
@@ -54,7 +55,7 @@ export {
 };
 
 // @promptbook/library
-export { createLibraryFromJson, createLibraryFromPromise, createLibraryFromUrl, createSublibrary };
+export { createLibraryFromJson, createLibraryFromPromise, createLibraryFromUrl, createSublibrary, libraryToJson };
 
 // @promptbook/simple-prompt
 export { SimplePromptInterfaceTools };
