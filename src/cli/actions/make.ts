@@ -3,9 +3,9 @@ import type { Command } from 'commander';
 import { writeFile } from 'fs/promises';
 import { join } from 'path';
 import spaceTrim from 'spacetrim';
-import { createLibraryFromDirectory } from '../../_packages/node.index';
+import { createLibraryFromDirectory } from '../../library/constructors/createLibraryFromDirectory';
 import { libraryToJson } from '../../library/libraryToJson';
-import { string_file_extension } from '../../types/typeAliases';
+import type { string_file_extension } from '../../types/typeAliases';
 
 /**
  * Initializes `make` command for Promptbook CLI utilities
