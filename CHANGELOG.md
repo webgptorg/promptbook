@@ -353,6 +353,8 @@ System for management of external knowledge (RAG)
 -   Rename all `createPromptbookLibraryFromXyz` to `createLibraryFromXyz`
 -   Misc Tool classes not requires options anymore _(like `CallbackInterfaceTools`, `OpenAiExecutionTools`, `AnthropicClaudeExecutionTools`, etc.)_
 -   Add util `libraryToJson` exported from `@promptbook/core`
+-   CLI util `promptbook make ...` can convert promptbooks to JSON
+-   `promptbookStringToJson` automatically looks for `promptbook-library.json` in root of given directory
 
 ## In prepare
 

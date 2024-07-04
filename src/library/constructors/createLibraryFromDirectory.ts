@@ -1,13 +1,14 @@
-import { readdir, readFile } from 'fs/promises';
+import colors from 'colors';
+import { readdir, readFile, stat } from 'fs/promises';
 import { join } from 'path';
 import spaceTrim from 'spacetrim';
+import { PROMPTBOOK_MAKED_BASE_FILENAME } from '../../config';
 import { promptbookStringToJson } from '../../conversion/promptbookStringToJson';
 import { validatePromptbookJson } from '../../conversion/validation/validatePromptbookJson';
 import { PromptbookLibraryError } from '../../errors/PromptbookLibraryError';
 import type { PromptbookJson } from '../../types/PromptbookJson/PromptbookJson';
 import type { PromptbookString } from '../../types/PromptbookString';
-import type { string_file_path } from '../../types/typeAliases';
-import type { string_folder_path } from '../../types/typeAliases';
+import type { string_file_path, string_folder_path } from '../../types/typeAliases';
 import { isRunningInNode } from '../../utils/isRunningInWhatever';
 import type { PromptbookLibrary } from '../PromptbookLibrary';
 import { createLibraryFromPromise } from './createLibraryFromPromise';
@@ -63,6 +64,20 @@ export async function createLibraryFromDirectory(
         throw new Error(
             'Function `createLibraryFromDirectory` can only be run in Node.js environment because it reads the file system.',
         );
+    }
+
+    const makedLibraryFilePath = join(path, `${PROMPTBOOK_MAKED_BASE_FILENAME}.json`);
+    const makedLibraryFileStat = await stat(makedLibraryFilePath);
+
+    if (!makedLibraryFileStat.isFile()) {
+        console.info(
+            colors.yellow(
+                `Tip: Prebuild your promptbook library (file with supposed prebuild ${makedLibraryFilePath} not found) with CLI util "promptbook make" to speed up the library creation.`,
+            ),
+        );
+    } else {
+        colors.green(`Using your prebuild promptbook library ${makedLibraryFilePath}`);
+        // TODO: !!!!! Implement;
     }
 
     const { isRecursive = true, isVerbose = false, isLazyLoaded = false, isCrashOnError = true } = options || {};
