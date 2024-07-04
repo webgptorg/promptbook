@@ -9,9 +9,9 @@ export { PROMPTBOOK_VERSION };
 /**
  * Hidden utilities which should not be used by external consumers.
  */
-const __ = {
+const __CLI = {
     // Note: [🥠]
-    promptbookCli,
+    __initialize: promptbookCli,
 };
 
-export { __ };
+export { __CLI };

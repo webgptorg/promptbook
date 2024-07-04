@@ -3,6 +3,7 @@ import { spaceTrim } from 'spacetrim';
 import { isRunningInNode } from '../utils/isRunningInWhatever';
 import { PROMPTBOOK_VERSION } from '../version';
 import { initializeHello } from './actions/hello';
+import { initializeMake } from './actions/make';
 import { initializePrettify } from './actions/prettify';
 
 /**
@@ -30,6 +31,7 @@ export async function promptbookCli(): Promise<void> {
     );
 
     initializeHello(program);
+    initializeMake(program);
     initializePrettify(program);
 
     program.parse(process.argv);

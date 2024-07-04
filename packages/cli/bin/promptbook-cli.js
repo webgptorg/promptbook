@@ -1,10 +1,8 @@
 #!/usr/bin/env node
 
-const {
-    __: { prettifyPromptbookStringCli },
-} = require('../umd/index.umd.js');
+const { __CLI /* <- Note: [🥠] */ } = require('../umd/index.umd.js');
 
-promptbookCli();
+__CLI.__initialize();
 
 /**
  * TODO: [🕌] When more functionalities, rename
