@@ -3,8 +3,8 @@ import type { Command } from 'commander';
 import { readFile, writeFile } from 'fs/promises';
 import glob from 'glob-promise';
 import spaceTrim from 'spacetrim';
-import { prettifyPromptbookString } from '../../_packages/core.index';
-import { PromptbookString } from '../../types/PromptbookString';
+import { prettifyPromptbookString } from '../../conversion/prettify/prettifyPromptbookString';
+import type { PromptbookString } from '../../types/PromptbookString';
 
 /**
  * Initializes `prettify` command for Promptbook CLI utilities
