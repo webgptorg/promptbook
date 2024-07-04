@@ -16,6 +16,7 @@ import type { PromptbookExecutor } from '../execution/PromptbookExecutor';
 import type { ScriptExecutionTools, ScriptExecutionToolsExecuteOptions } from '../execution/ScriptExecutionTools';
 import type { UserInterfaceTools, UserInterfaceToolsPromptDialogOptions } from '../execution/UserInterfaceTools';
 import type { PromptbookLibrary } from '../library/PromptbookLibrary';
+import type { SimplePromptbookLibrary } from '../library/SimplePromptbookLibrary';
 import type { ExecutionType } from '../types/ExecutionTypes';
 import type { ModelRequirements, ModelVariant } from '../types/ModelRequirements';
 import type { Parameters } from '../types/Parameters';
@@ -133,6 +134,7 @@ export type {
     ScriptExecutionToolsExecuteOptions,
     ScriptJson,
     ScriptLanguage,
+    SimplePromptbookLibrary,
     SimpleTemplateJson,
     string_char,
     string_char_emoji,

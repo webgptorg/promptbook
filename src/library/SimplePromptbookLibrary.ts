@@ -12,7 +12,7 @@ import type { PromptbookLibrary } from './PromptbookLibrary';
  * Library of promptbooks that groups together promptbooks for an application.
  * This implementation is a very thin wrapper around the Array / Map of promptbooks.
  *
- * @private createPromptbookLibraryFromJsons
+ * @private createLibraryFromJson
  * @see https://github.com/webgptorg/promptbook#promptbook-library
  */
 export class SimplePromptbookLibrary implements PromptbookLibrary {
@@ -23,8 +23,9 @@ export class SimplePromptbookLibrary implements PromptbookLibrary {
      *
      * @param promptbooks !!!
      *
+     * @private Use instead `createLibraryFromJson`
      * Note: During the construction logic of all promptbooks are validated
-     * Note: It is not recommended to use this constructor directly, use `createPromptbookLibraryFromJsons` *(or other variant)* instead
+     * Note: It is not recommended to use this constructor directly, use `createLibraryFromJson` *(or other variant)* instead
      */
     public constructor(...promptbooks: Array<PromptbookJson>) {
         this.library = new Map<string_promptbook_url, PromptbookJson>();

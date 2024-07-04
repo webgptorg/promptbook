@@ -132,7 +132,7 @@ export function startRemoteServer(options: RemoteServerOptions): IDestroyable {
 }
 
 /**
- * TODO: [⚖] Expose the library to be able to connect to same library via createPromptbookLibraryFromUrl
+ * TODO: [⚖] Expose the library to be able to connect to same library via createLibraryFromUrl
  * TODO: Handle progress - support streaming
  * TODO: [🤹‍♂️] Do not hang up immediately but wait until client closes OR timeout
  * TODO: [🤹‍♂️] Timeout on chat to free up resources

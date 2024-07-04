@@ -1,9 +1,9 @@
 import type { string_url } from '../../types/typeAliases';
 import type { PromptbookLibrary } from '../PromptbookLibrary';
-import { createPromptbookLibraryFromPromise } from './createPromptbookLibraryFromPromise';
+import { createLibraryFromPromise } from './createLibraryFromPromise';
 
 /**
- * Options for `createPromptbookLibraryFromDirectory` function
+ * Options for `createLibraryFromDirectory` function
  */
 type CreatePromptbookLibraryFromUrlyOptions = {
     /**
@@ -26,13 +26,13 @@ type CreatePromptbookLibraryFromUrlyOptions = {
 
  * @returns PromptbookLibrary
  */
-export async function createPromptbookLibraryFromUrl(
+export async function createLibraryFromUrl(
     url: string_url | URL,
     options: CreatePromptbookLibraryFromUrlyOptions,
 ): Promise<PromptbookLibrary> {
     const { isVerbose = false, isLazyLoaded = false } = options || {};
 
-    const library = createPromptbookLibraryFromPromise(async () => {
+    const library = createLibraryFromPromise(async () => {
         if (isVerbose) {
             console.info(`Creating promptbook library from url ${url.toString()}`);
         }
@@ -49,7 +49,7 @@ export async function createPromptbookLibraryFromUrl(
     // TODO: !!! [🏳‍🌈] Allow variant with .json .js and .ts files
     // TODO: [🧠][🏳‍🌈] .js and .ts files should create getter function for the library
     // TODO: Look at WebGPT "📖 Make Promptbook library" and https://webgpt.cz/_promptbook-library.json
-    // TODO: !! Implement via createPromptbookLibraryFromPromise
+    // TODO: !! Implement via createLibraryFromPromise
 }
 
 /**

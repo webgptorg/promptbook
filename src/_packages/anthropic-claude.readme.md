@@ -3,17 +3,13 @@
 ## 🧡 Usage
 
 ```typescript
-import {
-    createPromptbookExecutor,
-    createPromptbookLibraryFromDirectory,
-    assertsExecutionSuccessful,
-} from '@promptbook/core';
-import { createPromptbookLibraryFromDirectory } from '@promptbook/node';
+import { createPromptbookExecutor, createLibraryFromDirectory, assertsExecutionSuccessful } from '@promptbook/core';
+import { createLibraryFromDirectory } from '@promptbook/node';
 import { JavascriptExecutionTools } from '@promptbook/execute-javascript';
 import { OpenAiExecutionTools } from '@promptbook/openai';
 
 // ▶ Create whole Promptbook library
-const library = await createPromptbookLibraryFromDirectory('./promptbook-library');
+const library = await createLibraryFromDirectory('./promptbook-library');
 
 // ▶ Get one Promptbook
 const promptbook = await library.getPromptbookByUrl(`https://promptbook.studio/my-library/write-article.ptbk.md`);
@@ -49,16 +45,12 @@ console.info(outputParameters);
 You can use multiple LLM providers in one Promptbook execution. The best model will be chosen automatically according to the prompt and the model's capabilities.
 
 ```typescript
-import {
-    createPromptbookExecutor,
-    createPromptbookLibraryFromDirectory,
-    assertsExecutionSuccessful,
-} from '@promptbook/core';
+import { createPromptbookExecutor, createLibraryFromDirectory, assertsExecutionSuccessful } from '@promptbook/core';
 import { JavascriptExecutionTools } from '@promptbook/execute-javascript';
 import { OpenAiExecutionTools } from '@promptbook/openai';
 
 // ▶ Create whole Promptbook library
-const library = await createPromptbookLibraryFromDirectory('./promptbook-library');
+const library = await createLibraryFromDirectory('./promptbook-library');
 
 // ▶ Get one Promptbook
 const promptbook = await library.getPromptbookByUrl(`https://promptbook.studio/my-library/write-article.ptbk.md`);

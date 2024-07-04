@@ -2,7 +2,7 @@
 
 import { assertsExecutionSuccessful, createPromptbookExecutor, executionReportJsonToString } from '@promptbook/core';
 import { JavascriptExecutionTools } from '@promptbook/execute-javascript';
-import { createPromptbookLibraryFromDirectory } from '@promptbook/node';
+import { createLibraryFromDirectory } from '@promptbook/node';
 import { OpenAiExecutionTools } from '@promptbook/openai';
 import colors from 'colors';
 import * as dotenv from 'dotenv';
@@ -20,7 +20,7 @@ main();
 async function main() {
     console.info(colors.bgWhite('⚪ Testing basic capabilities of Promptbook'));
 
-    const library = await createPromptbookLibraryFromDirectory('./samples/templates/', {
+    const library = await createLibraryFromDirectory('./samples/templates/', {
         isRecursive: false,
         isCrashOnError: true,
     });

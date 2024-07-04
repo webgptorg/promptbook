@@ -22,11 +22,10 @@ import { CallbackInterfaceTools } from '../knowledge/dialogs/callback/CallbackIn
 import type { CallbackInterfaceToolsOptions } from '../knowledge/dialogs/callback/CallbackInterfaceToolsOptions';
 import { SimplePromptInterfaceTools } from '../knowledge/dialogs/simple-prompt/SimplePromptInterfaceTools';
 import { prepareKnowledgeFromMarkdown } from '../knowledge/prepare-knowledge/markdown/prepareKnowledgeFromMarkdown';
-import { createPromptbookLibraryFromJsons } from '../library/constructors/createPromptbookLibraryFromJsons';
-import { createPromptbookLibraryFromPromise } from '../library/constructors/createPromptbookLibraryFromPromise';
-import { createPromptbookLibraryFromUrl } from '../library/constructors/createPromptbookLibraryFromUrl';
-import { createPromptbookSublibrary } from '../library/constructors/createPromptbookSublibrary';
-import { SimplePromptbookLibrary } from '../library/SimplePromptbookLibrary';
+import { createLibraryFromJson } from '../library/constructors/createLibraryFromJson';
+import { createLibraryFromPromise } from '../library/constructors/createLibraryFromPromise';
+import { createLibraryFromUrl } from '../library/constructors/createLibraryFromUrl';
+import { createSublibrary } from '../library/constructors/createSublibrary';
 import { MultipleLlmExecutionTools } from '../llm-providers/multiple/MultipleLlmExecutionTools';
 import { executionReportJsonToString } from '../types/execution-report/executionReportJsonToString';
 import type { ExecutionReportStringOptions } from '../types/execution-report/ExecutionReportStringOptions';
@@ -55,13 +54,7 @@ export {
 };
 
 // @promptbook/library
-export {
-    createPromptbookLibraryFromJsons,
-    createPromptbookLibraryFromPromise,
-    createPromptbookLibraryFromUrl,
-    createPromptbookSublibrary,
-    SimplePromptbookLibrary,
-};
+export { createLibraryFromJson, createLibraryFromPromise, createLibraryFromUrl, createSublibrary };
 
 // @promptbook/simple-prompt
 export { SimplePromptInterfaceTools };

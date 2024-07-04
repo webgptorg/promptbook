@@ -3,9 +3,9 @@ import spaceTrim from 'spacetrim';
 import { promptbookStringToJson } from '../../conversion/promptbookStringToJson';
 import type { PromptbookString } from '../../types/PromptbookString';
 import { just } from '../../utils/just';
-import { createPromptbookLibraryFromDirectory } from './createPromptbookLibraryFromDirectory';
+import { createLibraryFromDirectory } from './createLibraryFromDirectory';
 
-describe('createPromptbookLibraryFromDirectory', () => {
+describe('createLibraryFromDirectory', () => {
     const promptbook = spaceTrim(`
           # ✨ Sample prompt with URL
 
@@ -29,7 +29,7 @@ describe('createPromptbookLibraryFromDirectory', () => {
 
     it('should get promptbook by url from library', async () => {
         expect.assertions(1);
-        const library = await createPromptbookLibraryFromDirectory('./samples/templates', {
+        const library = await createLibraryFromDirectory('./samples/templates', {
             isVerbose: true,
             isRecursive: false,
             isLazyLoaded: false,
@@ -44,7 +44,7 @@ describe('createPromptbookLibraryFromDirectory', () => {
     it('should get lazy-loaded promptbook by url from library', async () => {
         expect.assertions(1);
 
-        const library = await createPromptbookLibraryFromDirectory('./samples/templates', {
+        const library = await createLibraryFromDirectory('./samples/templates', {
             isVerbose: true,
             isRecursive: false,
             isLazyLoaded: true,
@@ -59,7 +59,7 @@ describe('createPromptbookLibraryFromDirectory', () => {
     it('should get different promptbook by url from library', async () => {
         expect.assertions(1);
 
-        const library = await createPromptbookLibraryFromDirectory('./samples/templates', {
+        const library = await createLibraryFromDirectory('./samples/templates', {
             isVerbose: true,
             isRecursive: false,
         });
@@ -73,7 +73,7 @@ describe('createPromptbookLibraryFromDirectory', () => {
     it('should NOT crash when include error promptbooks but lazy-loaded', () =>
         expect(
             (async () => {
-                const library = await createPromptbookLibraryFromDirectory('./samples/templates', {
+                const library = await createLibraryFromDirectory('./samples/templates', {
                     isVerbose: true,
                     isRecursive: true /* <- Note: Include Errors */,
                     isLazyLoaded: true,
@@ -85,7 +85,7 @@ describe('createPromptbookLibraryFromDirectory', () => {
     it('should crash when include error promptbooks', () =>
         expect(
             (async () => {
-                const library = await createPromptbookLibraryFromDirectory('./samples/templates', {
+                const library = await createLibraryFromDirectory('./samples/templates', {
                     isVerbose: true,
                     isRecursive: true /* <- Note: Include Errors */,
                     isLazyLoaded: false,
@@ -99,7 +99,7 @@ describe('createPromptbookLibraryFromDirectory', () => {
     it('should find promptbook in subdirectory', () =>
         expect(
             (async () => {
-              const library = await   createPromptbookLibraryFromDirectory('./samples/templates', {
+              const library = await   createLibraryFromDirectory('./samples/templates', {
                     isVerbose: true,
                     isRecursive: false,
                 });

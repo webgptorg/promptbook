@@ -1,12 +1,11 @@
 import { describe, expect, it } from '@jest/globals';
 import spaceTrim from 'spacetrim';
-import { forTime } from 'waitasecond';
 import { promptbookStringToJson } from '../../conversion/promptbookStringToJson';
 import type { PromptbookString } from '../../types/PromptbookString';
-import { createPromptbookLibraryFromPromise } from './createPromptbookLibraryFromPromise';
+import { createLibraryFromJson } from './createLibraryFromJson';
 
-describe('createPromptbookLibraryFromPromise', () => {
-    const promptbook = spaceTrim(`
+describe('createLibraryFromJson', () => {
+    const promptbookString = spaceTrim(`
             # Sample prompt
 
             Show how to use a simple completion prompt
@@ -32,14 +31,11 @@ describe('createPromptbookLibraryFromPromise', () => {
             -> {response}
          `) as PromptbookString;
 
-    const library = createPromptbookLibraryFromPromise(async () => {
-        await forTime(100);
-        return [promptbook];
-    });
-
     it('should get promptbook by url from library', async () => {
         expect.assertions(1);
+        const promptbook = await promptbookStringToJson(promptbookString);
+        const library = await createLibraryFromJson(promptbook);
         const promptbookFromLibrary = await library.getPromptbookByUrl('https://example.com/promptbook.json');
-        expect(promptbookFromLibrary).toEqual(await promptbookStringToJson(promptbook));
+        expect(promptbookFromLibrary).toEqual(await promptbookStringToJson(promptbookString));
     });
 });

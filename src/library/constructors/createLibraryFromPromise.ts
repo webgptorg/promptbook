@@ -4,7 +4,7 @@ import type { PromptbookString } from '../../types/PromptbookString';
 import type { string_promptbook_url } from '../../types/typeAliases';
 import type { PromptbookLibrary } from '../PromptbookLibrary';
 import { SimplePromptbookLibrary } from '../SimplePromptbookLibrary';
-import { createPromptbookLibraryFromJsons } from './createPromptbookLibraryFromJsons';
+import { createLibraryFromJson } from './createLibraryFromJson';
 
 /**
  * Constructs Promptbook from async sources
@@ -13,19 +13,19 @@ import { createPromptbookLibraryFromJsons } from './createPromptbookLibraryFromJ
  * - Factory function that returns Promise of array of PromptbookJson or PromptbookString
  *
  * Note: This is useful as internal tool for other constructor functions like
- *       `createPromptbookLibraryFromUrl` or `createPromptbookLibraryFromDirectory`
+ *       `createLibraryFromUrl` or `createLibraryFromDirectory`
  *       Consider using those functions instead of this one
  *
  * Note: The function does NOT return promise it returns the library directly which waits for the sources to be resolved
  *       when error occurs in given promise or factory function, it is thrown during `listPromptbooks` or `getPromptbookByUrl` call
  *
- * Note: Consider using  `createPromptbookLibraryFromDirectory` or `createPromptbookLibraryFromUrl`
+ * Note: Consider using  `createLibraryFromDirectory` or `createLibraryFromUrl`
  *
  * @param promptbookSourcesPromiseOrFactory
  * @returns PromptbookLibrary
  * @deprecated Do not use, it will became internal tool for other constructor functions
  */
-export function createPromptbookLibraryFromPromise(
+export function createLibraryFromPromise(
     promptbookSourcesPromiseOrFactory:
         | Promise<Array<PromptbookJson | PromptbookString>>
         | (() => Promise<Array<PromptbookJson | PromptbookString>>),
@@ -38,7 +38,7 @@ export function createPromptbookLibraryFromPromise(
             promptbookSourcesPromiseOrFactory = promptbookSourcesPromiseOrFactory();
         }
         const promptbookSources = await promptbookSourcesPromiseOrFactory;
-        library = await createPromptbookLibraryFromJsons(...promptbookSources);
+        library = await createLibraryFromJson(...promptbookSources);
     }
 
     async function listPromptbooks(): Promise<Array<string_promptbook_url>> {

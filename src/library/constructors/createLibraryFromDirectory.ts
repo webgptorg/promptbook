@@ -6,14 +6,13 @@ import { validatePromptbookJson } from '../../conversion/validation/validateProm
 import { PromptbookLibraryError } from '../../errors/PromptbookLibraryError';
 import type { PromptbookJson } from '../../types/PromptbookJson/PromptbookJson';
 import type { PromptbookString } from '../../types/PromptbookString';
-import type { string_file_path } from '../../types/typeAliases';
-import type { string_folder_path } from '../../types/typeAliases';
+import type { string_file_path, string_folder_path } from '../../types/typeAliases';
 import { isRunningInNode } from '../../utils/isRunningInWhatever';
 import type { PromptbookLibrary } from '../PromptbookLibrary';
-import { createPromptbookLibraryFromPromise } from './createPromptbookLibraryFromPromise';
+import { createLibraryFromPromise } from './createLibraryFromPromise';
 
 /**
- * Options for `createPromptbookLibraryFromDirectory` function
+ * Options for `createLibraryFromDirectory` function
  */
 type CreatePromptbookLibraryFromDirectoryOptions = {
     /**
@@ -55,19 +54,19 @@ type CreatePromptbookLibraryFromDirectoryOptions = {
  * @param options - Misc options for the library
  * @returns PromptbookLibrary
  */
-export async function createPromptbookLibraryFromDirectory(
+export async function createLibraryFromDirectory(
     path: string_folder_path,
     options?: CreatePromptbookLibraryFromDirectoryOptions,
 ): Promise<PromptbookLibrary> {
     if (!isRunningInNode()) {
         throw new Error(
-            'Function `createPromptbookLibraryFromDirectory` can only be run in Node.js environment because it reads the file system.',
+            'Function `createLibraryFromDirectory` can only be run in Node.js environment because it reads the file system.',
         );
     }
 
     const { isRecursive = true, isVerbose = false, isLazyLoaded = false, isCrashOnError = true } = options || {};
 
-    const library = createPromptbookLibraryFromPromise(async () => {
+    const library = createLibraryFromPromise(async () => {
         if (isVerbose) {
             console.info(`Creating promptbook library from path ${path}`);
         }
@@ -75,7 +74,7 @@ export async function createPromptbookLibraryFromDirectory(
         const fileNames = await listAllFiles(path, isRecursive);
 
         if (isVerbose) {
-            console.info('createPromptbookLibraryFromDirectory', { path, isRecursive, fileNames });
+            console.info('createLibraryFromDirectory', { path, isRecursive, fileNames });
         }
 
         const promptbooks: Array<PromptbookJson> = [];
@@ -160,7 +159,7 @@ export async function createPromptbookLibraryFromDirectory(
  * @param path
  * @param isRecursive
  * @returns List of all files in the directory
- * @private internal function for `createPromptbookLibraryFromDirectory`
+ * @private internal function for `createLibraryFromDirectory`
  */
 async function listAllFiles(path: string_folder_path, isRecursive: boolean): Promise<Array<string_file_path>> {
     const dirents = await readdir(path, {

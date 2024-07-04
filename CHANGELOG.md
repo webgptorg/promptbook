@@ -347,7 +347,9 @@ System for management of external knowledge (RAG)
 -   Add `KnowledgeJson`
 -   Add `prepareKnowledgeFromMarkdown` exported from `@promptbook/core`
 -   Change `promptbookStringToJson` to async function
--   Change `createPromptbookLibraryFromSources` to `createPromptbookLibraryFromJsons` and allow only compiled jsons as input
+-   Change `createPromptbookLibraryFromSources` to `createPromptbookLibraryFromJson` and allow only compiled jsons as input
+-   Class `SimplePromptbookLibrary` not exported anymore directly, only as type
+-   Rename all `createPromptbookLibraryFromXyz` to `createLibraryFromXyz`
 -   Misc Tool classes not requires options anymore _(like `CallbackInterfaceTools`, `OpenAiExecutionTools`, `AnthropicClaudeExecutionTools`, etc.)_
 
 ## In prepare

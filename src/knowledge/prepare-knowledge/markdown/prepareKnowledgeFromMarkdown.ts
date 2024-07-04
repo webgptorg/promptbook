@@ -6,7 +6,7 @@ import promptbookLibrary from '../../../../promptbook-library/promptbook-library
 import { assertsExecutionSuccessful } from '../../../execution/assertsExecutionSuccessful';
 import { createPromptbookExecutor } from '../../../execution/createPromptbookExecutor';
 import type { LlmExecutionTools } from '../../../execution/LlmExecutionTools';
-import { createPromptbookLibraryFromJsons } from '../../../library/constructors/createPromptbookLibraryFromJsons';
+import { createLibraryFromJson } from '../../../library/constructors/createLibraryFromJson';
 import type { KnowledgeJson } from '../../../types/PromptbookJson/KnowledgeJson';
 import type { PromptbookJson } from '../../../types/PromptbookJson/PromptbookJson';
 import type {
@@ -43,7 +43,7 @@ export async function prepareKnowledgeFromMarkdown(
 ): Promise<KnowledgeJson> {
     const { content, llmTools, isVerbose = false } = options;
 
-    const library = await createPromptbookLibraryFromJsons(...(promptbookLibrary as Array<PromptbookJson>));
+    const library = await createLibraryFromJson(...(promptbookLibrary as Array<PromptbookJson>));
     const promptbook = library.getPromptbookByUrl(
         'https://promptbook.studio/promptbook/prepare-knowledge-from-markdown.ptbk.md',
     );

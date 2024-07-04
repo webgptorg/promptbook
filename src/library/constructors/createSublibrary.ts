@@ -14,7 +14,7 @@ import type { PromptbookLibrary } from '../PromptbookLibrary';
  * @param promptbookSources
  * @returns PromptbookLibrary
  */
-export function createPromptbookSublibrary(
+export function createSublibrary(
     library: PromptbookLibrary,
     predicate: (url: string_promptbook_url) => boolean,
 ): PromptbookLibrary {

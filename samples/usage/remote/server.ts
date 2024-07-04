@@ -1,6 +1,6 @@
 #!/usr/bin/env ts-node
 
-import { createPromptbookLibraryFromDirectory } from '@promptbook/node';
+import { createLibraryFromDirectory } from '@promptbook/node';
 import { OpenAiExecutionTools } from '@promptbook/openai';
 import { startRemoteServer } from '@promptbook/remote-server';
 import colors from 'colors';
@@ -20,7 +20,7 @@ main();
 async function main() {
     console.info(colors.bgWhite('🔵 Testing remote server of PromptBook'));
 
-    const library = await createPromptbookLibraryFromDirectory('./samples/templates/');
+    const library = await createLibraryFromDirectory('./samples/templates/');
 
     // [⚖]
     startRemoteServer({

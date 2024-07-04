@@ -9,7 +9,7 @@ import glob from 'glob-promise';
 import { join } from 'path';
 import { promptbookStringToJson } from '../../src/conversion/promptbookStringToJson';
 import { validatePromptbookJson } from '../../src/conversion/validation/validatePromptbookJson';
-// import { createPromptbookLibraryFromDirectory } from '../../src/promptbook-library/constructors/createPromptbookLibraryFromDirectory';
+// import { createLibraryFromDirectory } from '../../src/promptbook-library/constructors/createLibraryFromDirectory';
 import { PromptbookJson } from '../../src/types/PromptbookJson/PromptbookJson';
 import { PromptbookString } from '../../src/types/PromptbookString';
 
@@ -39,7 +39,7 @@ async function makePromptbookLibrary() {
     TODO: !!!!! Compile, serialize and deserialize whiole promptbook library with one util + Use it in WebGPT and Promptbook.studio
     TODO: [🏳‍🌈] Allow variant with .json .js and .ts files
 
-    const promptbookLibrary = await createPromptbookLibraryFromDirectory(promptbookSourceDir, {
+    const promptbookLibrary = await createLibraryFromDirectory(promptbookSourceDir, {
         isRecursive: true,
         isLazyLoaded: false,
     });
