@@ -154,6 +154,12 @@
             "focus": true
         },
         {
+            "name": "📖 Make Promptbook library",
+            "command": "ts-node ./scripts/make-promptbook-library/make-promptbook-library.ts --commit",
+            "onlySingle": true,
+            "focus": true
+        },
+        {
             "name": "🔼👑 Release major version",
             "command": "npm version major",
             "onlySingle": true,
