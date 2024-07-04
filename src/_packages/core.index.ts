@@ -22,8 +22,8 @@ import { CallbackInterfaceTools } from '../knowledge/dialogs/callback/CallbackIn
 import type { CallbackInterfaceToolsOptions } from '../knowledge/dialogs/callback/CallbackInterfaceToolsOptions';
 import { SimplePromptInterfaceTools } from '../knowledge/dialogs/simple-prompt/SimplePromptInterfaceTools';
 import { prepareKnowledgeFromMarkdown } from '../knowledge/prepare-knowledge/markdown/prepareKnowledgeFromMarkdown';
+import { createPromptbookLibraryFromJsons } from '../library/constructors/createPromptbookLibraryFromJsons';
 import { createPromptbookLibraryFromPromise } from '../library/constructors/createPromptbookLibraryFromPromise';
-import { createPromptbookLibraryFromSources } from '../library/constructors/createPromptbookLibraryFromSources';
 import { createPromptbookLibraryFromUrl } from '../library/constructors/createPromptbookLibraryFromUrl';
 import { createPromptbookSublibrary } from '../library/constructors/createPromptbookSublibrary';
 import { SimplePromptbookLibrary } from '../library/SimplePromptbookLibrary';
@@ -56,8 +56,8 @@ export {
 
 // @promptbook/library
 export {
+    createPromptbookLibraryFromJsons,
     createPromptbookLibraryFromPromise,
-    createPromptbookLibraryFromSources,
     createPromptbookLibraryFromUrl,
     createPromptbookSublibrary,
     SimplePromptbookLibrary,

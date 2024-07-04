@@ -2,9 +2,9 @@ import { describe, expect, it } from '@jest/globals';
 import spaceTrim from 'spacetrim';
 import { promptbookStringToJson } from '../../conversion/promptbookStringToJson';
 import type { PromptbookString } from '../../types/PromptbookString';
-import { createPromptbookLibraryFromSources } from './createPromptbookLibraryFromSources';
+import { createPromptbookLibraryFromJsons } from './createPromptbookLibraryFromJsons';
 
-describe('createPromptbookLibraryFromSources', () => {
+describe('createPromptbookLibraryFromJsons', () => {
     const promptbook = spaceTrim(`
             # Sample prompt
 
@@ -33,7 +33,7 @@ describe('createPromptbookLibraryFromSources', () => {
 
     it('should get promptbook by url from library', async () => {
         expect.assertions(1);
-        const library = await createPromptbookLibraryFromSources(promptbook);
+        const library = await createPromptbookLibraryFromJsons(promptbook);
         const promptbookFromLibrary = await library.getPromptbookByUrl('https://example.com/promptbook.json');
         expect(promptbookFromLibrary).toEqual(await promptbookStringToJson(promptbook));
     });

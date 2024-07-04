@@ -337,6 +337,8 @@ Better JSON Mode
 -   Internal reorganization of folders and files
 -   Export types as type export
 
+## In pre-release
+
 ### `0.59.0` _(2024-06-30)_
 
 System for management of external knowledge (RAG)
@@ -345,9 +347,8 @@ System for management of external knowledge (RAG)
 -   Add `KnowledgeJson`
 -   Add `prepareKnowledgeFromMarkdown` exported from `@promptbook/core`
 -   Change `promptbookStringToJson` to async function
+-   Change `createPromptbookLibraryFromSources` to `createPromptbookLibraryFromJsons` and allow only compiled jsons as input
 -   Misc Tool classes not requires options anymore _(like `CallbackInterfaceTools`, `OpenAiExecutionTools`, `AnthropicClaudeExecutionTools`, etc.)_
-
-## In pre-release
 
 ## In prepare
 

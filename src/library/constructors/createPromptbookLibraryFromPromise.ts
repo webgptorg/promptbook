@@ -4,7 +4,7 @@ import type { PromptbookString } from '../../types/PromptbookString';
 import type { string_promptbook_url } from '../../types/typeAliases';
 import type { PromptbookLibrary } from '../PromptbookLibrary';
 import { SimplePromptbookLibrary } from '../SimplePromptbookLibrary';
-import { createPromptbookLibraryFromSources } from './createPromptbookLibraryFromSources';
+import { createPromptbookLibraryFromJsons } from './createPromptbookLibraryFromJsons';
 
 /**
  * Constructs Promptbook from async sources
@@ -38,7 +38,7 @@ export function createPromptbookLibraryFromPromise(
             promptbookSourcesPromiseOrFactory = promptbookSourcesPromiseOrFactory();
         }
         const promptbookSources = await promptbookSourcesPromiseOrFactory;
-        library = await createPromptbookLibraryFromSources(...promptbookSources);
+        library = await createPromptbookLibraryFromJsons(...promptbookSources);
     }
 
     async function listPromptbooks(): Promise<Array<string_promptbook_url>> {
@@ -60,7 +60,6 @@ export function createPromptbookLibraryFromPromise(
         isResponsibleForPrompt,
     };
 }
-
 
 /**
  * TODO: !!!! [🧠] Library precompilation and do not mix markdown and json promptbooks

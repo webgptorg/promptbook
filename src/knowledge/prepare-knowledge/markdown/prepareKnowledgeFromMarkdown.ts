@@ -6,14 +6,16 @@ import promptbookLibrary from '../../../../promptbook-library/promptbook-library
 import { assertsExecutionSuccessful } from '../../../execution/assertsExecutionSuccessful';
 import { createPromptbookExecutor } from '../../../execution/createPromptbookExecutor';
 import type { LlmExecutionTools } from '../../../execution/LlmExecutionTools';
-import { createPromptbookLibraryFromSources } from '../../../library/constructors/createPromptbookLibraryFromSources';
+import { createPromptbookLibraryFromJsons } from '../../../library/constructors/createPromptbookLibraryFromJsons';
 import type { KnowledgeJson } from '../../../types/PromptbookJson/KnowledgeJson';
 import type { PromptbookJson } from '../../../types/PromptbookJson/PromptbookJson';
-import type { string_href } from '../../../types/typeAliases';
-import type { string_markdown } from '../../../types/typeAliases';
-import type { string_markdown_text } from '../../../types/typeAliases';
-import type { string_model_name } from '../../../types/typeAliases';
-import type { string_name } from '../../../types/typeAliases';
+import type {
+    string_href,
+    string_markdown,
+    string_markdown_text,
+    string_model_name,
+    string_name,
+} from '../../../types/typeAliases';
 import type { string_keyword } from '../../../utils/normalization/IKeywords';
 import { normalizeToKebabCase } from '../../../utils/normalization/normalize-to-kebab-case';
 
@@ -41,7 +43,7 @@ export async function prepareKnowledgeFromMarkdown(
 ): Promise<KnowledgeJson> {
     const { content, llmTools, isVerbose = false } = options;
 
-    const library = await createPromptbookLibraryFromSources(...(promptbookLibrary as Array<PromptbookJson>));
+    const library = await createPromptbookLibraryFromJsons(...(promptbookLibrary as Array<PromptbookJson>));
     const promptbook = library.getPromptbookByUrl(
         'https://promptbook.studio/promptbook/prepare-knowledge-from-markdown.ptbk.md',
     );
