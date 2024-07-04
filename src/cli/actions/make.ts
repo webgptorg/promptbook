@@ -3,7 +3,7 @@ import type { Command } from 'commander';
 import { writeFile } from 'fs/promises';
 import { join } from 'path';
 import spaceTrim from 'spacetrim';
-import { validatePromptbook } from '../../_packages/core.index';
+import { validatePromptbook } from '../../conversion/validation/validatePromptbook';
 import { createLibraryFromDirectory } from '../../library/constructors/createLibraryFromDirectory';
 import { libraryToJson } from '../../library/libraryToJson';
 import type { string_file_extension } from '../../types/typeAliases';
