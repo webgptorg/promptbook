@@ -1,5 +1,5 @@
-import type { PromptbookJson } from '../../types/PromptbookJson/PromptbookJson';
-import type { PromptbookLibrary } from '../PromptbookLibrary';
+import type { PromptbookJson } from '../types/PromptbookJson/PromptbookJson';
+import type { PromptbookLibrary } from './PromptbookLibrary';
 
 /**
  * Converts PromptbookLibrary to serialized JSON

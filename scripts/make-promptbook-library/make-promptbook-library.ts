@@ -8,7 +8,7 @@ import commander from 'commander';
 import { writeFile } from 'fs/promises';
 import { join } from 'path';
 import { createLibraryFromDirectory } from '../../src/library/constructors/createLibraryFromDirectory';
-import { libraryToJson } from '../../src/library/constructors/libraryToJson';
+import { libraryToJson } from '../../src/library/libraryToJson';
 import { commit } from '../utils/autocommit/commit';
 
 if (process.cwd() !== join(__dirname, '../..')) {

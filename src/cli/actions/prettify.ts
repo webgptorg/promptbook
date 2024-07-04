@@ -1,47 +1,25 @@
 import colors from 'colors';
-import commander from 'commander';
+import type { Command } from 'commander';
 import { readFile, writeFile } from 'fs/promises';
 import glob from 'glob-promise';
-import { spaceTrim } from 'spacetrim';
-import { forTime } from 'waitasecond';
-import type { PromptbookString } from '../../types/PromptbookString';
-import { isRunningInNode } from '../../utils/isRunningInWhatever';
-import { PROMPTBOOK_VERSION } from '../../version';
-import { prettifyPromptbookString } from './prettifyPromptbookString';
+import spaceTrim from 'spacetrim';
+import { prettifyPromptbookString } from '../../_packages/core.index';
+import { PromptbookString } from '../../types/PromptbookString';
 
 /**
- * Runs CLI script for prettifying promptbooks
+ * Initializes `prettify` command for Promptbook CLI utilities
+ *
+ * @private part of `promptbookCli`
  */
-export async function prettifyPromptbookStringCli(): Promise<void> {
-    if (!isRunningInNode()) {
-        throw new Error(
-            spaceTrim(`
-                Function prettifyPromptbookStringCli is initiator of CLI script and should be run in Node.js environment.
-
-                - In browser use prettifyPromptbookString.
-
-            `),
-        );
-    }
-
-    const program = new commander.Command();
-    program.name('promptbook');
-    program.version(PROMPTBOOK_VERSION);
-    program.description(
-        spaceTrim(`
-            Promptbook utilities
-        `),
-    );
-
-    //------
-
+export function initializePrettify(program: Command) {
     const prettifyCommand = program.command('prettify');
     prettifyCommand.description(
         spaceTrim(`
             Iterates over promptbooks and does multiple enhancing operations on them:
+
             1) Adds Mermaid graph
             2) Prettifies the markdown
-        `),
+      `),
     );
 
     prettifyCommand.argument('<filesGlob>', 'Promptbooks to prettify as glob pattern');
@@ -82,32 +60,4 @@ export async function prettifyPromptbookStringCli(): Promise<void> {
         }
         process.exit(0);
     });
-
-    //------
-
-    const helloCommand = program.command('hello');
-    helloCommand.description(
-        spaceTrim(`
-            Just command for testing
-        `),
-    );
-
-    helloCommand.argument('<name>', 'Your name');
-    helloCommand.option('-g, --greeting <greeting>', `Greeting`, 'Hello');
-
-    helloCommand.action(async (name, { greeting }) => {
-        console.info(colors.cyan(`${greeting} ${name}`));
-        await forTime(1000);
-        console.info(colors.rainbow(`Nice to meet you!`));
-        process.exit(0);
-    });
-
-    //------
-    program.parse(process.argv);
 }
-
-/**
- * TODO: [🥠] Do not export to utils directly, its just for CLI script
- * TODO: [🕌] When more functionalities, rename
- * Note: 11:11
- */

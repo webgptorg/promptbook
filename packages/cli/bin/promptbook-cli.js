@@ -4,7 +4,7 @@ const {
     __: { prettifyPromptbookStringCli },
 } = require('../umd/index.umd.js');
 
-prettifyPromptbookStringCli();
+promptbookCli();
 
 /**
  * TODO: [🕌] When more functionalities, rename
