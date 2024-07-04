@@ -35,7 +35,7 @@ describe('createLibraryFromJson', () => {
     it('should get promptbook by url from library', async () => {
         expect.assertions(1);
         const promptbook = await promptbookStringToJson(promptbookString);
-        const library = await createLibraryFromJson(promptbook);
+        const library = createLibraryFromJson(promptbook);
         const libraryJson = await libraryToJson(library);
         expect([promptbook]).toEqual(libraryJson);
     });

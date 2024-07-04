@@ -1,12 +1,12 @@
 import { describe, expect, it } from '@jest/globals';
-import { validatePromptbookJson } from '../validation/validatePromptbookJson';
+import { validatePromptbook } from '../validation/validatePromptbook';
 import { renameParameter } from './renameParameter';
 
 describe('how renameParameter works', () => {
     it('should rename parameter in simple promptbook', () => {
         expect(
             renameParameter({
-                promptbook: validatePromptbookJson({
+                promptbook: validatePromptbook({
                     title: '✨ Sample prompt',
                     promptbookVersion: '1.0.0',
                     description: 'Show how to use a simple prompt with no parameters.',
@@ -37,7 +37,7 @@ describe('how renameParameter works', () => {
                 newParameterName: 'greeting',
             }),
         ).toEqual(
-            validatePromptbookJson({
+            validatePromptbook({
                 title: '✨ Sample prompt',
                 promptbookVersion: '1.0.0',
                 description: 'Show how to use a simple prompt with no parameters.',
@@ -70,7 +70,7 @@ describe('how renameParameter works', () => {
     it('should rename parameter in normal promptbook', () => {
         expect(
             renameParameter({
-                promptbook: validatePromptbookJson({
+                promptbook: validatePromptbook({
                     title: '✨ Sample prompt with two consecutive prompts',
                     promptbookUrl: 'https://promptbook.example.com/samples/two.ptbk.md',
                     promptbookVersion: '1.0.0',
@@ -127,7 +127,7 @@ describe('how renameParameter works', () => {
                 newParameterName: 'originalWord',
             }),
         ).toEqual(
-            validatePromptbookJson({
+            validatePromptbook({
                 title: '✨ Sample prompt with two consecutive prompts',
                 promptbookUrl: 'https://promptbook.example.com/samples/two.ptbk.md',
                 promptbookVersion: '1.0.0',
@@ -186,7 +186,7 @@ describe('how renameParameter works', () => {
     it('should detect name collision', () => {
         expect(() =>
             renameParameter({
-                promptbook: validatePromptbookJson({
+                promptbook: validatePromptbook({
                     title: '✨ Sample prompt with two consecutive prompts',
                     promptbookUrl: 'https://promptbook.example.com/samples/two.ptbk.md',
                     promptbookVersion: '1.0.0',

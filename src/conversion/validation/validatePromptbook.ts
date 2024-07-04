@@ -22,7 +22,7 @@ import { isValidUrl } from '../../utils/validators/url/isValidUrl';
  * @returns the same promptbook if it is logically valid
  * @throws {PromptbookLogicError} on logical error in the promptbook
  */
-export function validatePromptbookJson(promptbook: PromptbookJson): PromptbookJson {
+export function validatePromptbook(promptbook: PromptbookJson): PromptbookJson {
     // TODO: [🧠] Maybe test if promptbook is a promise and make specific error case for that
 
     if (promptbook.promptbookUrl !== undefined) {
@@ -108,10 +108,7 @@ export function validatePromptbookJson(promptbook: PromptbookJson): PromptbookJs
 
         definedParameters.add(template.resultingParameterName);
 
-        if (
-            template.executionType === 'PROMPT_TEMPLATE' &&
-            (template.modelRequirements.modelVariant === undefined)
-        ) {
+        if (template.executionType === 'PROMPT_TEMPLATE' && template.modelRequirements.modelVariant === undefined) {
             throw new PromptbookLogicError(
                 spaceTrim(`
 
@@ -173,7 +170,7 @@ export function validatePromptbookJson(promptbook: PromptbookJson): PromptbookJs
     while (unresovedTemplates.length > 0) {
         if (loopLimit-- < 0) {
             throw new UnexpectedError(
-                'Loop limit reached during detection of circular dependencies in `validatePromptbookJson`',
+                'Loop limit reached during detection of circular dependencies in `validatePromptbook`',
             );
         }
 
@@ -227,5 +224,5 @@ export function validatePromptbookJson(promptbook: PromptbookJson): PromptbookJs
  *     >  * It checks:
  *     >  * -   it has a valid structure
  *     >  * -   ...
- *     >  ex port function validatePromptbookJson(promptbook: unknown): asserts promptbook is PromptbookJson {
+ *     >  ex port function validatePromptbook(promptbook: unknown): asserts promptbook is PromptbookJson {
  */

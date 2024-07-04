@@ -4,9 +4,9 @@ import { join } from 'path';
 import { spaceTrim } from 'spacetrim';
 import { promptbookStringToJson } from '../promptbookStringToJson';
 import { importPromptbook } from './_importPromptbook';
-import { validatePromptbookJson } from './validatePromptbookJson';
+import { validatePromptbook } from './validatePromptbook';
 
-describe('validatePromptbookJson', () => {
+describe('validatePromptbook', () => {
     const samplesDir = '../../../samples/templates';
     const samples = readdirSync(join(__dirname, samplesDir), { withFileTypes: true, recursive: false })
         //                         <- Note: In production it is not good practice to use synchronous functions
@@ -22,7 +22,7 @@ describe('validatePromptbookJson', () => {
                     try {
                         const promptbookString = importPromptbook(name as `${string}.ptbk.md`);
                         const promptbookJson = await promptbookStringToJson(promptbookString);
-                        validatePromptbookJson(promptbookJson);
+                        validatePromptbook(promptbookJson);
                     } catch (error) {
                         if (!(error instanceof Error)) {
                             throw error;

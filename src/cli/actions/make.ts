@@ -3,6 +3,7 @@ import type { Command } from 'commander';
 import { writeFile } from 'fs/promises';
 import { join } from 'path';
 import spaceTrim from 'spacetrim';
+import { validatePromptbook } from '../../_packages/core.index';
 import { createLibraryFromDirectory } from '../../library/constructors/createLibraryFromDirectory';
 import { libraryToJson } from '../../library/libraryToJson';
 import type { string_file_extension } from '../../types/typeAliases';
@@ -43,12 +44,31 @@ export function initializeMake(program: Command) {
     helloCommand.action(async (path, { projectName, format, validation }) => {
         console.info('!!!', { projectName, path, format, validation });
 
+        const formats = ((format as string | false) || '')
+            .split(',')
+            .map((_) => _.trim())
+            .filter((_) => _ !== '');
+        const validations = ((validation as string | false) || '')
+            .split(',')
+            .map((_) => _.trim())
+            .filter((_) => _ !== '');
+
         const library = await createLibraryFromDirectory(path, {
             isVerbose: true,
             isRecursive: true,
         });
 
-        // TODO: !!! Validate logic
+        for (const validation of validations) {
+            for (const promptbookUrl of await library.listPromptbooks()) {
+                const promptbook = await library.getPromptbookByUrl(promptbookUrl);
+
+                if (validation === 'logic') {
+                    validatePromptbook(promptbook);
+                }
+
+                // TODO: Imports validation
+            }
+        }
 
         const libraryJson = await libraryToJson(library);
         const libraryJsonString = JSON.stringify(libraryJson);
@@ -59,24 +79,24 @@ export function initializeMake(program: Command) {
             console.info(colors.green(`Maked ${filePath}`));
         };
 
-        if (format.includes('json')) {
+        if (formats.includes('json')) {
             await saveFile('json', libraryJsonString + '\n');
         }
 
-        if (format.includes('javascript')) {
+        if (formats.includes('javascript')) {
             // TODO: !!!!;
             // TODO: !!! DRY javascript and typescript
-            format.push('javascript');
+            formats.push('javascript');
         }
 
-        if (format.includes('typescript')) {
+        if (formats.includes('typescript')) {
             // TODO: !!!!!!!! Javascript json
             await saveFile(
                 'ts',
                 spaceTrim(
                     `
                         import type { PromptbookLibrary, SimplePromptbookLibrary } from '@promptbook/types';
-                        import type { PromptbookLibrary } from '@promptbook/core';
+                        import type { createLibraryFromJson } from '@promptbook/core';
 
                         /**
                          * Promptbook library for ${projectName}
@@ -94,7 +114,10 @@ export function initializeMake(program: Command) {
                          */
                         export function getPromptbookLibrary(): PromptbookLibrary{
                             if(promptbookLibrary===null){
-                                promptbookLibrary = createLibraryFromJson(...${libraryJsonString});
+                                promptbookLibrary = createLibraryFromJson(${libraryJsonString.substring(
+                                    1,
+                                    libraryJsonString.length - 2,
+                                )});
                             }
 
                             return promptbookLibrary;

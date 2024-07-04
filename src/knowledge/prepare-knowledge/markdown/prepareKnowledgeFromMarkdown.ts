@@ -41,7 +41,7 @@ export async function prepareKnowledgeFromMarkdown(
 ): Promise<KnowledgeJson> {
     const { content, llmTools, isVerbose = false } = options;
 
-    const library = await createLibraryFromJson(...(promptbookLibrary as Array<PromptbookJson>));
+    const library = createLibraryFromJson(...(promptbookLibrary as Array<PromptbookJson>));
     const promptbook = library.getPromptbookByUrl(
         'https://promptbook.studio/promptbook/prepare-knowledge-from-markdown.ptbk.md',
     );

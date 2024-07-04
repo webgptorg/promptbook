@@ -1,7 +1,7 @@
 import { spaceTrim } from 'spacetrim';
 import type { Promisable } from 'type-fest';
 import { LOOP_LIMIT } from '../config';
-import { validatePromptbookJson } from '../conversion/validation/validatePromptbookJson';
+import { validatePromptbook } from '../conversion/validation/validatePromptbook';
 import { ExpectError } from '../errors/_ExpectError';
 import { PromptbookExecutionError } from '../errors/PromptbookExecutionError';
 import { UnexpectedError } from '../errors/UnexpectedError';
@@ -15,9 +15,7 @@ import type { string_name } from '../types/typeAliases';
 import { PROMPTBOOK_VERSION } from '../version';
 import type { ExecutionTools } from './ExecutionTools';
 import type { PromptbookExecutor } from './PromptbookExecutor';
-import type { PromptChatResult } from './PromptResult';
-import type { PromptCompletionResult } from './PromptResult';
-import type { PromptResult } from './PromptResult';
+import type { PromptChatResult, PromptCompletionResult, PromptResult } from './PromptResult';
 import { addUsage } from './utils/addUsage';
 import { checkExpectations } from './utils/checkExpectations';
 import { replaceParameters } from './utils/replaceParameters';
@@ -61,7 +59,7 @@ export function createPromptbookExecutor(options: CreatePromptbookExecutorOption
     const { promptbook, tools, settings = {} } = options;
     const { maxExecutionAttempts = 3 } = settings;
 
-    validatePromptbookJson(promptbook);
+    validatePromptbook(promptbook);
 
     const promptbookExecutor: PromptbookExecutor = async (
         inputParameters: Record<string_name, string>,
@@ -445,7 +443,7 @@ export function createPromptbookExecutor(options: CreatePromptbookExecutorOption
                         spaceTrim(`
                             Can not resolve some parameters
 
-                            Note: This should be catched during validatePromptbookJson
+                            Note: This should be catched during validatePromptbook
                         `),
                     );
                 } else if (!currentTemplate) {

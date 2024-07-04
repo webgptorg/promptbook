@@ -35,7 +35,7 @@ export function createLibraryFromPromise(
             promptbookSourcesPromiseOrFactory = promptbookSourcesPromiseOrFactory();
         }
         const promptbookSources = await promptbookSourcesPromiseOrFactory;
-        library = await createLibraryFromJson(...promptbookSources);
+        library = createLibraryFromJson(...promptbookSources);
     }
 
     async function listPromptbooks(): Promise<Array<string_promptbook_url>> {

@@ -10,6 +10,6 @@ import { SimplePromptbookLibrary } from '../SimplePromptbookLibrary';
  * @param promptbookSources
  * @returns PromptbookLibrary
  */
-export async function createLibraryFromJson(...promptbooks: Array<PromptbookJson>): Promise<SimplePromptbookLibrary> {
+export function createLibraryFromJson(...promptbooks: Array<PromptbookJson>): SimplePromptbookLibrary {
     return new SimplePromptbookLibrary(...promptbooks);
 }

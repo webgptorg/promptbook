@@ -4,7 +4,7 @@ import { join } from 'path';
 import spaceTrim from 'spacetrim';
 import { PROMPTBOOK_MAKED_BASE_FILENAME } from '../../config';
 import { promptbookStringToJson } from '../../conversion/promptbookStringToJson';
-import { validatePromptbookJson } from '../../conversion/validation/validatePromptbookJson';
+import { validatePromptbook } from '../../conversion/validation/validatePromptbook';
 import { PromptbookLibraryError } from '../../errors/PromptbookLibraryError';
 import type { PromptbookJson } from '../../types/PromptbookJson/PromptbookJson';
 import type { PromptbookString } from '../../types/PromptbookString';
@@ -133,7 +133,7 @@ export async function createLibraryFromDirectory(
                         if (!isCrashOnError) {
                             // Note: Validate promptbook to check if it is logically correct to not crash on invalid promptbooks
                             //       But be handled in current try-catch block
-                            validatePromptbookJson(promptbook);
+                            validatePromptbook(promptbook);
                         }
 
                         // Note: [🦄] Promptbook with same url uniqueness will be checked automatically in SimplePromptbookLibrary

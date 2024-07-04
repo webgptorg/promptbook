@@ -1,6 +1,6 @@
 import { spaceTrim } from 'spacetrim';
 import { promptbookJsonToString } from '../conversion/promptbookJsonToString';
-import { validatePromptbookJson } from '../conversion/validation/validatePromptbookJson';
+import { validatePromptbook } from '../conversion/validation/validatePromptbook';
 import { PromptbookNotFoundError } from '../errors/PromptbookNotFoundError';
 import { PromptbookReferenceError } from '../errors/PromptbookReferenceError';
 import type { Prompt } from '../types/Prompt';
@@ -43,7 +43,7 @@ export class SimplePromptbookLibrary implements PromptbookLibrary {
                 );
             }
 
-            validatePromptbookJson(promptbook);
+            validatePromptbook(promptbook);
 
             // Note: [🦄]
             if (
