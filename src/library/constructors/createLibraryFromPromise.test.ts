@@ -34,7 +34,7 @@ describe('createLibraryFromPromise', () => {
 
     const library = createLibraryFromPromise(async () => {
         await forTime(100);
-        return [promptbook];
+        return [await promptbookStringToJson(promptbook)];
     });
 
     it('should get promptbook by url from library', async () => {

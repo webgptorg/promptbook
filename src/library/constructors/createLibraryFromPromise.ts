@@ -1,6 +1,5 @@
 import type { Prompt } from '../../types/Prompt';
 import type { PromptbookJson } from '../../types/PromptbookJson/PromptbookJson';
-import type { PromptbookString } from '../../types/PromptbookString';
 import type { string_promptbook_url } from '../../types/typeAliases';
 import type { PromptbookLibrary } from '../PromptbookLibrary';
 import { SimplePromptbookLibrary } from '../SimplePromptbookLibrary';
@@ -26,9 +25,7 @@ import { createLibraryFromJson } from './createLibraryFromJson';
  * @deprecated Do not use, it will became internal tool for other constructor functions
  */
 export function createLibraryFromPromise(
-    promptbookSourcesPromiseOrFactory:
-        | Promise<Array<PromptbookJson | PromptbookString>>
-        | (() => Promise<Array<PromptbookJson | PromptbookString>>),
+    promptbookSourcesPromiseOrFactory: Promise<Array<PromptbookJson>> | (() => Promise<Array<PromptbookJson>>),
 ): PromptbookLibrary {
     let library: SimplePromptbookLibrary;
 
@@ -60,7 +57,3 @@ export function createLibraryFromPromise(
         isResponsibleForPrompt,
     };
 }
-
-/**
- * TODO: !!!! [🧠] Library precompilation and do not mix markdown and json promptbooks
- */
