@@ -1,5 +1,5 @@
 import colors from 'colors';
-import { readdir, readFile, stat } from 'fs/promises';
+import { access, constants, readdir, readFile } from 'fs/promises';
 import { join } from 'path';
 import spaceTrim from 'spacetrim';
 import { PROMPTBOOK_MAKED_BASE_FILENAME } from '../../config';
@@ -8,8 +8,7 @@ import { validatePromptbookJson } from '../../conversion/validation/validateProm
 import { PromptbookLibraryError } from '../../errors/PromptbookLibraryError';
 import type { PromptbookJson } from '../../types/PromptbookJson/PromptbookJson';
 import type { PromptbookString } from '../../types/PromptbookString';
-import type { string_file_path } from '../../types/typeAliases';
-import type { string_folder_path } from '../../types/typeAliases';
+import type { string_file_path, string_folder_path } from '../../types/typeAliases';
 import { isRunningInNode } from '../../utils/isRunningInWhatever';
 import type { PromptbookLibrary } from '../PromptbookLibrary';
 import { createLibraryFromPromise } from './createLibraryFromPromise';
@@ -68,9 +67,11 @@ export async function createLibraryFromDirectory(
     }
 
     const makedLibraryFilePath = join(path, `${PROMPTBOOK_MAKED_BASE_FILENAME}.json`);
-    const makedLibraryFileStat = await stat(makedLibraryFilePath);
+    const makedLibraryFileExists = await access(makedLibraryFilePath, constants.R_OK)
+        .then(() => true)
+        .catch(() => false);
 
-    if (!makedLibraryFileStat.isFile()) {
+    if (!makedLibraryFileExists) {
         console.info(
             colors.yellow(
                 `Tip: Prebuild your promptbook library (file with supposed prebuild ${makedLibraryFilePath} not found) with CLI util "promptbook make" to speed up the library creation.`,
