@@ -19,11 +19,29 @@ import type {
 import type { string_keyword } from '../../../utils/normalization/IKeywords';
 import { normalizeToKebabCase } from '../../../utils/normalization/normalize-to-kebab-case';
 
-export async function prepareKnowledgeFromMarkdown(options: {
+type PrepareKnowledgeFromMarkdownOptions = {
+    /**
+     * The source of the knowledge in markdown format
+     */
     content: string_markdown /* <- TODO: [🖖] Always the file */;
+
+    /**
+     * The LLM tools to use for the conversion and extraction of knowledge
+     */
     llmTools: LlmExecutionTools;
-}): Promise<KnowledgeJson> {
-    const { content, llmTools } = options;
+
+    /**
+     * If true, the preaparation of knowledge logs additional information
+     *
+     * @default false
+     */
+    isVerbose?: boolean;
+};
+
+export async function prepareKnowledgeFromMarkdown(
+    options: PrepareKnowledgeFromMarkdownOptions,
+): Promise<KnowledgeJson> {
+    const { content, llmTools, isVerbose = false } = options;
 
     const library = await createPromptbookLibraryFromSources(...(promptbookLibrary as Array<PromptbookJson>));
     const promptbook = library.getPromptbookByUrl(
@@ -48,6 +66,10 @@ export async function prepareKnowledgeFromMarkdown(options: {
     const { knowledge: knowledgeRaw } = outputParameters;
 
     const knowledgeTextPieces = (knowledgeRaw || '').split('\n---\n');
+
+    if (isVerbose) {
+        console.info('knowledgeTextPieces:', knowledgeTextPieces);
+    }
 
     const knowledge = await Promise.all(
         knowledgeTextPieces.map(async (knowledgeTextPiece, i) => {
