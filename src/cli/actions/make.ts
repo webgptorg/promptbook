@@ -95,8 +95,8 @@ export function initializeMake(program: Command) {
                 'ts',
                 spaceTrim(
                     `
+                        import { createLibraryFromJson } from '@promptbook/core';
                         import type { PromptbookLibrary, SimplePromptbookLibrary } from '@promptbook/types';
-                        import type { createLibraryFromJson } from '@promptbook/core';
 
                         /**
                          * Promptbook library for ${projectName}
@@ -116,7 +116,7 @@ export function initializeMake(program: Command) {
                             if(promptbookLibrary===null){
                                 promptbookLibrary = createLibraryFromJson(${libraryJsonString.substring(
                                     1,
-                                    libraryJsonString.length - 2,
+                                    libraryJsonString.length - 1,
                                 )});
                             }
 
@@ -124,6 +124,8 @@ export function initializeMake(program: Command) {
                         }
                     ` + '\n',
                 ),
+                // <- TODO: Prettify
+                // <- TODO: Convert inlined \n to spaceTrim
             );
         }
 
