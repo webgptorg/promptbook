@@ -9,11 +9,13 @@ import type { LlmExecutionTools } from '../../../execution/LlmExecutionTools';
 import { createLibraryFromJson } from '../../../library/constructors/createLibraryFromJson';
 import type { KnowledgeJson } from '../../../types/PromptbookJson/KnowledgeJson';
 import type { PromptbookJson } from '../../../types/PromptbookJson/PromptbookJson';
-import type { string_href } from '../../../types/typeAliases';
-import type { string_markdown } from '../../../types/typeAliases';
-import type { string_markdown_text } from '../../../types/typeAliases';
-import type { string_model_name } from '../../../types/typeAliases';
-import type { string_name } from '../../../types/typeAliases';
+import type {
+    string_href,
+    string_markdown,
+    string_markdown_text,
+    string_model_name,
+    string_name,
+} from '../../../types/typeAliases';
 import type { string_keyword } from '../../../utils/normalization/IKeywords';
 import { normalizeToKebabCase } from '../../../utils/normalization/normalize-to-kebab-case';
 
@@ -42,7 +44,7 @@ export async function prepareKnowledgeFromMarkdown(
     const { content, llmTools, isVerbose = false } = options;
 
     const library = createLibraryFromJson(...(promptbookLibrary as Array<PromptbookJson>));
-    const promptbook = library.getPromptbookByUrl(
+    const promptbook = await library.getPromptbookByUrl(
         'https://promptbook.studio/promptbook/prepare-knowledge-from-markdown.ptbk.md',
     );
 
