@@ -28,7 +28,7 @@ async function playground() {
         apiKey: process.env.ANTHROPIC_CLAUDE_API_KEY!,
     });
 
-    /*/
+    /**/
     const models = await anthropicClaudeExecutionTools.listModels();
     console.info({ models });
     /**/

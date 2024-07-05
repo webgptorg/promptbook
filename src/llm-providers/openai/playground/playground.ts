@@ -67,7 +67,7 @@ async function playground() {
         content: `Hello, my name is Alice.`,
         modelRequirements: {
             modelVariant: 'EMBEDDING',
-            modelName: 'text-embedding-ada-003',
+            modelName: 'text-embedding-ada-002',
         },
     } as const;
     const promptResult = await openAiExecutionTools.embed(prompt);
