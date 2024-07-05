@@ -45,10 +45,10 @@ async function makePromptbookLibrary({ isCommited }: { isCommited: boolean }) {
     const libraryJson = await libraryToJson(library);
     const libraryJsonString = JSON.stringify(libraryJson);
 
-    const libraryJsonFilePath = join(promptbookSourceDir, 'promptbook-library.json');
+    const libraryJsonFilePath = join(promptbookSourceDir, 'index.json');
     const libraryJsonFileContent = libraryJsonString + '\n';
 
-    const libraryTypescriptFilePath = join(promptbookSourceDir, 'promptbook-library.ts');
+    const libraryTypescriptFilePath = join(promptbookSourceDir, 'index.ts');
     const libraryTypescriptFileContent = 'export default ' + libraryJsonString + ';\n';
 
     // TODO: [🏳‍🌈] Finally take one of .json vs .ts (using .ts file (not .json) to avoid support of json files in bundle )
@@ -65,6 +65,6 @@ async function makePromptbookLibrary({ isCommited }: { isCommited: boolean }) {
 }
 
 /**
- * TODO: Maybe use `promptbook make` cli command instead of this script (but figure out what to do with nessesity to have library commited here)
+ * TODO: [🌼] Maybe use `promptbook make` cli command instead of this script (but figure out what to do with nessesity to have library commited here)
  * TODO: !!! Use `promptbook make` cli command this in WebGPT and Promptbook
  */
