@@ -58,7 +58,7 @@ async function playground() {
     const promptResult = await langtailExecutionTools.gptChat(prompt);
     console.info({ promptResult });
     console.info(chalk.bgBlue(' User: ') + chalk.blue(prompt.content));
-    console.info(chalk.bgGreen(' Chat: ') + chalk.green(promptResult.content));
+    console.info(chalk.bgGreen(' Completion: ') + chalk.green(promptResult.content));
     /**/
 
     //========================================/

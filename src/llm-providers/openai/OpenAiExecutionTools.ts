@@ -1,10 +1,8 @@
 import colors from 'colors';
 import OpenAI from 'openai';
 import { PromptbookExecutionError } from '../../errors/PromptbookExecutionError';
-import type { AvailableModel } from '../../execution/LlmExecutionTools';
-import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { PromptChatResult } from '../../execution/PromptResult';
-import type { PromptCompletionResult } from '../../execution/PromptResult';
+import type { AvailableModel, LlmExecutionTools } from '../../execution/LlmExecutionTools';
+import type { PromptChatResult, PromptCompletionResult } from '../../execution/PromptResult';
 import type { Prompt } from '../../types/Prompt';
 import type { string_date_iso8601 } from '../../types/typeAliases';
 import { getCurrentIsoDate } from '../../utils/getCurrentIsoDate';
@@ -184,6 +182,83 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
     }
 
     /**
+     * !!!!
+     */
+    public async embed(prompt: Pick<Prompt, 'content' | 'modelRequirements'>): Promise<PromptCompletionResult> {
+        if (this.options.isVerbose) {
+            console.info('🖋 OpenAI embedding call', { prompt });
+        }
+
+        const { content, modelRequirements } = prompt;
+
+        // TODO: [☂] Use here more modelRequirements
+        if (modelRequirements.modelVariant !== 'EMBEDDING') {
+            throw new PromptbookExecutionError('Use gptComplete only for EMBEDDING variant');
+        }
+
+        const model = modelRequirements.modelName || this.getDefaultEmbeddingModel().modelName;
+        const modelSettings = {
+            model,
+            max_tokens: modelRequirements.maxTokens || 2000, // <- Note: 2000 is for lagacy reasons
+            //                                                  <- TODO: Make some global max cap for maxTokens
+        };
+
+        const rawResponse = await this.client.embeddings.create({
+            input: 'Hardcoded test !!!',
+            model: 'text-embedding-ada-002',
+            // TODO: !!!! Test model 3 and dimensions
+        });
+
+        console.log(rawResponse.data);
+
+        throw new Error('!!! Not implemented fully');
+
+        /*
+        const rawRequest: OpenAI.Embeddings.E = {
+            ...modelSettings,
+            prompt: content,
+            user: this.options.user,
+        };
+        const start: string_date_iso8601 = getCurrentIsoDate();
+        let complete: string_date_iso8601;
+
+        if (this.options.isVerbose) {
+            console.info(colors.bgWhite('rawRequest'), JSON.stringify(rawRequest, null, 4));
+        }
+        const rawResponse = await this.client.completions.create(rawRequest);
+        if (this.options.isVerbose) {
+            console.info(colors.bgWhite('rawResponse'), JSON.stringify(rawResponse, null, 4));
+        }
+
+        if (!rawResponse.choices[0]) {
+            throw new PromptbookExecutionError('No choises from OpenAI');
+        }
+
+        if (rawResponse.choices.length > 1) {
+            // TODO: This should be maybe only warning
+            throw new PromptbookExecutionError('More than one choise from OpenAI');
+        }
+
+        const resultContent = rawResponse.choices[0].text;
+        // eslint-disable-next-line prefer-const
+        complete = getCurrentIsoDate();
+        const usage = computeOpenaiUsage(content, resultContent || '', rawResponse);
+
+        return {
+            content: resultContent,
+            modelName: rawResponse.model || model,
+            timing: {
+                start,
+                complete,
+            },
+            usage,
+            rawResponse,
+            // <- [🤹‍♂️]
+        };
+        */
+    }
+
+    /**
      * Default model for chat variant.
      */
     private getDefaultChatModel(): AvailableModel {
@@ -195,6 +270,14 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
      */
     private getDefaultCompletionModel(): AvailableModel {
         return OPENAI_MODELS.find(({ modelName }) => modelName === 'gpt-3.5-turbo-instruct')!;
+    }
+
+    /**
+     * Default model for completion variant.
+     */
+    private getDefaultEmbeddingModel(): AvailableModel {
+        throw new Error('!!!!! Not implemented');
+        // return OPENAI_MODELS.find(({ modelName }) => modelName === 'text-embedding-3-large')!;
     }
 
     /**

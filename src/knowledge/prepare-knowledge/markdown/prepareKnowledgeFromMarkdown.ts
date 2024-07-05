@@ -1,5 +1,4 @@
 import spaceTrim from 'spacetrim';
-import type { IVectorData } from 'xyzt';
 // TODO: [🏳‍🌈] Finally take pick of .json vs .ts
 import promptbookLibrary from '../../../../promptbook-library/index.json';
 // import promptbookLibrary from '../../../../promptbook-library/promptbook-library';
@@ -45,12 +44,12 @@ export async function prepareKnowledgeFromMarkdown(
 
     // TODO: [🌼] In future use `promptbook make` and maked getPromptbookLibrary
     const library = createLibraryFromJson(...(promptbookLibrary as Array<PromptbookJson>));
-    const promptbook = await library.getPromptbookByUrl(
+    const prepareKnowledgeFromMarkdownPromptbook = await library.getPromptbookByUrl(
         'https://promptbook.studio/promptbook/prepare-knowledge-from-markdown.ptbk.md',
     );
 
-    const executor = createPromptbookExecutor({
-        promptbook,
+    const prepareKnowledgeFromMarkdownExecutor = createPromptbookExecutor({
+        promptbook: prepareKnowledgeFromMarkdownPromptbook,
         tools: {
             llm: llmTools,
             script: [
@@ -59,7 +58,21 @@ export async function prepareKnowledgeFromMarkdown(
         },
     });
 
-    const result = await executor({ content });
+    const prepareKeywordsPromptbook = await library.getPromptbookByUrl(
+        'https://promptbook.studio/promptbook/prepare-keywords.ptbk.md',
+    );
+
+    const prepareKeywordsExecutor = createPromptbookExecutor({
+        promptbook: prepareKeywordsPromptbook,
+        tools: {
+            llm: llmTools,
+            script: [
+                /* <- TODO: Allow to just keep script undefined */
+            ],
+        },
+    });
+
+    const result = await prepareKnowledgeFromMarkdownExecutor({ content });
 
     assertsExecutionSuccessful(result);
 
@@ -78,8 +91,11 @@ export async function prepareKnowledgeFromMarkdown(
             let name: string_name = `piece-${i}`;
             let title: string_markdown_text = spaceTrim(knowledgeTextPiece.substring(0, 100));
             const content: string_markdown = spaceTrim(knowledgeTextPiece);
-            const keywords: Array<string_keyword> = [];
-            const index: Array<{ modelName: string_model_name; position: IVectorData }> = [];
+            let keywords: Array<string_keyword> = [];
+            const index: Array<{
+                modelName: string_model_name;
+                position: Array<number>;
+            }> = [];
             const sources: Array<{ title: string_markdown_text; href: string_href }> = [];
 
             try {
@@ -87,8 +103,25 @@ export async function prepareKnowledgeFromMarkdown(
                 title = spaceTrim(knowledgeTextPiece.substring(0, 30));
                 name = normalizeToKebabCase(title);
 
-                // TODO: !!!! Extract keywords via prompt
+                // --- Keywords
+                const result = await prepareKeywordsExecutor({ content });
+                const { outputParameters = {} } = result;
+                const { keywords: keywordsRaw } = outputParameters;
+                keywords = (keywordsRaw || '')
+                    .split(',')
+                    .map((keyword) => keyword.trim())
+                    .filter((keyword) => keyword !== '');
+                if (isVerbose) {
+                    console.info(`Keywords for "${title}":`, keywords);
+                }
+                // ---
+
                 // TODO: !!!! Index through LLM model
+                index.push({
+                    modelName: 'fake-model',
+                    position: new Array(25).fill(0).map(() => Math.random() * 2 - 1),
+                });
+
                 // TODO: [🖖] !!!! Make system for sources and identification of sources
             } catch (error) {
                 console.error(error);

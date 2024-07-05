@@ -361,6 +361,7 @@ export const OPENAI_MODELS: Array<
 ];
 
 /**
+ * TODO: !!!! Add embedding models
  * TODO: [🧠] Some mechanism to propagate unsureness
  * TODO: [🕚][👮‍♀️] Make this list dynamic - dynamically can be listed modelNames but not modelVariant, legacy status, context length and pricing
  * TODO: [🧠][👮‍♀️] Put here more info like description, isVision, trainingDateCutoff, languages, strengths (	Top-level performance, intelligence, fluency, and understanding), contextWindow,...
