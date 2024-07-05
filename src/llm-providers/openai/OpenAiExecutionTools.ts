@@ -1,8 +1,10 @@
 import colors from 'colors';
 import OpenAI from 'openai';
 import { PromptbookExecutionError } from '../../errors/PromptbookExecutionError';
-import type { AvailableModel, LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { PromptChatResult, PromptCompletionResult } from '../../execution/PromptResult';
+import type { AvailableModel } from '../../execution/LlmExecutionTools';
+import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
+import type { PromptChatResult } from '../../execution/PromptResult';
+import type { PromptCompletionResult } from '../../execution/PromptResult';
 import type { Prompt } from '../../types/Prompt';
 import type { string_date_iso8601 } from '../../types/typeAliases';
 import { getCurrentIsoDate } from '../../utils/getCurrentIsoDate';
