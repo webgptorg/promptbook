@@ -39,9 +39,11 @@ export function initializeMake(program: Command) {
         'logic,imports',
     );
 
+    helloCommand.option('--verbose', `Is verbose`, false);
+
     // TODO: !!! Auto-detect AI api keys + explicit api keys as argv
 
-    helloCommand.action(async (path, { projectName, format, validation }) => {
+    helloCommand.action(async (path, { projectName, format, validation, verbose }) => {
         console.info('!!!', { projectName, path, format, validation });
 
         const formats = ((format as string | false) || '')
@@ -54,7 +56,7 @@ export function initializeMake(program: Command) {
             .filter((_) => _ !== '');
 
         const library = await createLibraryFromDirectory(path, {
-            isVerbose: true,
+            isVerbose: verbose,
             isRecursive: true,
         });
 
@@ -64,6 +66,10 @@ export function initializeMake(program: Command) {
 
                 if (validation === 'logic') {
                     validatePromptbook(promptbook);
+
+                    if (verbose) {
+                        console.info(colors.green(`Validated logic of ${promptbook.promptbookUrl}`));
+                    }
                 }
 
                 // TODO: Imports validation
@@ -76,7 +82,10 @@ export function initializeMake(program: Command) {
         const saveFile = async (extension: string_file_extension, content: string) => {
             const filePath = join(path, `promptbook-library.${extension}`);
             await writeFile(filePath, content, 'utf-8');
-            console.info(colors.green(`Maked ${filePath}`));
+
+            if (verbose) {
+                console.info(colors.green(`Maked ${filePath.split('\\').join('/')}`));
+            }
         };
 
         if (formats.includes('json')) {

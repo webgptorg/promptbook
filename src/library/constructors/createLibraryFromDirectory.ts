@@ -8,8 +8,7 @@ import { validatePromptbook } from '../../conversion/validation/validatePromptbo
 import { PromptbookLibraryError } from '../../errors/PromptbookLibraryError';
 import type { PromptbookJson } from '../../types/PromptbookJson/PromptbookJson';
 import type { PromptbookString } from '../../types/PromptbookString';
-import type { string_file_path } from '../../types/typeAliases';
-import type { string_folder_path } from '../../types/typeAliases';
+import type { string_file_path, string_folder_path } from '../../types/typeAliases';
 import { isRunningInNode } from '../../utils/isRunningInWhatever';
 import type { PromptbookLibrary } from '../PromptbookLibrary';
 import { createLibraryFromPromise } from './createLibraryFromPromise';
@@ -87,14 +86,11 @@ export async function createLibraryFromDirectory(
 
     const library = createLibraryFromPromise(async () => {
         if (isVerbose) {
-            console.info(`Creating promptbook library from path ${path}`);
+            console.info(`Creating promptbook library from path ${path.split('\\').join('/')}`);
         }
 
         const fileNames = await listAllFiles(path, isRecursive);
 
-        if (isVerbose) {
-            console.info('createLibraryFromDirectory', { path, isRecursive, fileNames });
-        }
 
         const promptbooks: Array<PromptbookJson> = [];
 
@@ -107,14 +103,14 @@ export async function createLibraryFromDirectory(
                     promptbook = await promptbookStringToJson(promptbookString);
                 } else if (fileName.endsWith('.ptbk.json')) {
                     if (isVerbose) {
-                        console.info(`Loading ${fileName}`);
+                        console.info(`Loading ${fileName.split('\\').join('/')}`);
                     }
 
                     // TODO: Handle non-valid JSON files
                     promptbook = JSON.parse(await readFile(fileName, 'utf8')) as PromptbookJson;
                 } else {
                     if (isVerbose) {
-                        console.info(`Skipping file ${fileName}`);
+                        console.info(`Skipping file ${fileName.split('\\').join('/')}`);
                     }
                 }
 
@@ -123,11 +119,11 @@ export async function createLibraryFromDirectory(
                 if (promptbook !== null) {
                     if (!promptbook.promptbookUrl) {
                         if (isVerbose) {
-                            console.info(`Not loading ${fileName} - missing URL`);
+                            console.info(`Not loading ${fileName.split('\\').join('/')} - missing URL`);
                         }
                     } else {
                         if (isVerbose) {
-                            console.info(`Loading ${fileName}`);
+                            console.info(`Loading ${fileName.split('\\').join('/')}`);
                         }
 
                         if (!isCrashOnError) {
