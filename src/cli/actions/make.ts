@@ -96,14 +96,14 @@ export function initializeMake(program: Command) {
                 spaceTrim(
                     `
                         import { createLibraryFromJson } from '@promptbook/core';
-                        import type { PromptbookLibrary, SimplePromptbookLibrary } from '@promptbook/types';
+                        import type { PromptbookLibrary, PromptbookLibrary } from '@promptbook/types';
 
                         /**
                          * Promptbook library for ${projectName}
                          *
                          * @private internal cache for \`getPromptbookLibrary\`
                          */
-                        let promptbookLibrary: null | SimplePromptbookLibrary = null;
+                        let promptbookLibrary: null | PromptbookLibrary = null;
 
 
                         /**

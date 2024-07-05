@@ -1,4 +1,5 @@
 import type { PromptbookJson } from '../../types/PromptbookJson/PromptbookJson';
+import { PromptbookLibrary } from '../PromptbookLibrary';
 import { SimplePromptbookLibrary } from '../SimplePromptbookLibrary';
 
 /**
@@ -10,6 +11,6 @@ import { SimplePromptbookLibrary } from '../SimplePromptbookLibrary';
  * @param promptbookSources
  * @returns PromptbookLibrary
  */
-export function createLibraryFromJson(...promptbooks: Array<PromptbookJson>): SimplePromptbookLibrary {
+export function createLibraryFromJson(...promptbooks: Array<PromptbookJson>): PromptbookLibrary {
     return new SimplePromptbookLibrary(...promptbooks);
 }

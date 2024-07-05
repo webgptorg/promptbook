@@ -349,7 +349,7 @@ System for management of external knowledge (RAG)
 -   Change `promptbookStringToJson` to async function
 -   Change `createPromptbookLibraryFromSources` to `createPromptbookLibraryFromJson` and allow only compiled jsons as input + it is not `async` anymore
 -   Allow only jsons as input in `createLibraryFromPromise`
--   Class `SimplePromptbookLibrary` not exported anymore directly, only as type
+-   Class `SimplePromptbookLibrary` not exposed at all, only type `PromptbookLibrary` and constructors
 -   Rename all `createPromptbookLibraryFromXyz` to `createLibraryFromXyz`
 -   Misc Tool classes not requires options anymore _(like `CallbackInterfaceTools`, `OpenAiExecutionTools`, `AnthropicClaudeExecutionTools`, etc.)_
 -   Add util `libraryToJson` exported from `@promptbook/core`

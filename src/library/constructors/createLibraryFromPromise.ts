@@ -2,7 +2,6 @@ import type { Prompt } from '../../types/Prompt';
 import type { PromptbookJson } from '../../types/PromptbookJson/PromptbookJson';
 import type { string_promptbook_url } from '../../types/typeAliases';
 import type { PromptbookLibrary } from '../PromptbookLibrary';
-import { SimplePromptbookLibrary } from '../SimplePromptbookLibrary';
 import { createLibraryFromJson } from './createLibraryFromJson';
 
 /**
@@ -27,7 +26,7 @@ import { createLibraryFromJson } from './createLibraryFromJson';
 export function createLibraryFromPromise(
     promptbookSourcesPromiseOrFactory: Promise<Array<PromptbookJson>> | (() => Promise<Array<PromptbookJson>>),
 ): PromptbookLibrary {
-    let library: SimplePromptbookLibrary;
+    let library: PromptbookLibrary;
 
     async function forSources(): Promise<void> {
         if (typeof promptbookSourcesPromiseOrFactory === 'function') {
