@@ -2,21 +2,21 @@
     "autokill": true,
     "terminals": [
         {
-            "name": "👨‍💻⚪ Run simple-script sample",
+            "name": "👨‍💻⚪ Run simple-script sample (💸)",
             "command": "ts-node ./samples/usage/simple-script/simple-script.ts",
             "execute": false,
             "onlySingle": false,
             "focus": false
         },
         {
-            "name": "👨‍💻🔴 Run logging sample",
+            "name": "👨‍💻🔴 Run logging sample (💸)",
             "command": "ts-node ./samples/usage/logging/logging.ts",
             "execute": false,
             "onlySingle": false,
             "focus": false
         },
         {
-            "name": "👨‍💻🔵 Run remote sample",
+            "name": "👨‍💻🔵 Run remote sample (💸)",
             "command": "ts-node ./samples/usage/remote/server.ts",
             "execute": false,
             "onlySingle": false,
@@ -79,7 +79,7 @@
             "focus": false
         },
         {
-            "name": "🏭📖 Generate samples .ptbk.md -> .ptbk.json",
+            "name": "🏭📖 Generate samples .ptbk.md -> .ptbk.json (💸)",
             "commands": ["ts-node ./scripts/generate-sample-jsons/generate-sample-jsons.ts"],
             "execute": false,
             "onlySingle": false,
@@ -109,43 +109,43 @@
             "focus": true
         },
         {
-            "name": "🧸 Playground",
+            "name": "🧸 Playground (💸)",
             "command": "ts-node ./other/playground/playground.ts",
             "onlySingle": true,
             "focus": true
         },
         {
-            "name": "🧸 OpenAI Playground",
+            "name": "🧸 OpenAI Playground (💸)",
             "command": "ts-node ./src/llm-providers/openai/playground/playground.ts",
             "onlySingle": true,
             "focus": true
         },
         {
-            "name": "🧸 Anthropic Claude Playground",
+            "name": "🧸 Anthropic Claude Playground (💸)",
             "command": "ts-node ./src/llm-providers/anthropic-claude/playground/playground.ts",
             "onlySingle": true,
             "focus": true
         },
         {
-            "name": "🧸 Azure OpenAI Playground",
+            "name": "🧸 Azure OpenAI Playground (💸)",
             "command": "ts-node ./src/llm-providers/azure-openai/playground/playground.ts",
             "onlySingle": true,
             "focus": true
         },
         {
-            "name": "🧸 Langtail Playground",
+            "name": "🧸 Langtail Playground (💸)",
             "command": "ts-node ./src/llm-providers/langtail/playground/playground.ts",
             "onlySingle": true,
             "focus": true
         },
         {
-            "name": "🧸 Multiple LLMs Playground",
+            "name": "🧸 Multiple LLMs Playground (💸)",
             "command": "ts-node ./src/llm-providers/multiple/playground/playground.ts",
             "onlySingle": true,
             "focus": true
         },
         {
-            "name": "🧸💡 Prepare knowledge from Markdown (playground)",
+            "name": "🧸💡 Prepare knowledge from Markdown (playground) (💸)",
             "commands": [
                 "ts-node ./scripts/make-promptbook-library/make-promptbook-library.ts",
                 "ts-node ./src/knowledge/prepare-knowledge/markdown/playground/markdown-knowledge-playground.ts"
@@ -154,25 +154,25 @@
             "focus": true
         },
         {
-            "name": "📖 Make Promptbook library",
+            "name": "📖 Make Promptbook library (💸)",
             "command": "ts-node ./scripts/make-promptbook-library/make-promptbook-library.ts --commit",
             "onlySingle": true,
             "focus": true
         },
         {
-            "name": "🔼👑 Release major version",
+            "name": "🔼👑 Release major version (💸)",
             "command": "npm version major",
             "onlySingle": true,
             "focus": true
         },
         {
-            "name": "🔼🚀 Release minor version",
+            "name": "🔼🚀 Release minor version (💸)",
             "command": "npm version minor",
             "onlySingle": true,
             "focus": true
         },
         {
-            "name": "🔼🩹 Release patch version",
+            "name": "🔼🩹 Release patch version (💸)",
             "command": "npm version patch",
             "onlySingle": true,
             "focus": true

@@ -78,9 +78,6 @@
                 "wordSynonym"
             ],
             "executionType": "SCRIPT",
-            "modelRequirements": {
-                "modelVariant": "CHAT"
-            },
             "contentLanguage": "javascript",
             "content": "if (word !== '' && wordSynonym === word) {\n    throw new Error(`Synonym returned from LLM is same as original word \"${word}\"`);\n}\n\nreturn wordSynonym;",
             "resultingParameterName": "wordSynonymTested"
@@ -168,9 +165,6 @@
                 "comparisonOfTwoSentences"
             ],
             "executionType": "SIMPLE_TEMPLATE",
-            "modelRequirements": {
-                "modelVariant": "CHAT"
-            },
             "content": "You have entered a word **{word}**. For this word the best synonym is **{wordSynonym}**. The sentence with both words is **{sentenceWithTwoSynonyms}**. The sentence without the original word is **{sentenceWithOriginalWordRemoved}**. And the comparison between the two sentences is:\n\n> {comparisonOfTwoSentences}",
             "resultingParameterName": "summary"
         }

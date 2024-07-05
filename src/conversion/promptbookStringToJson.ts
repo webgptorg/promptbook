@@ -7,8 +7,7 @@ import type { ParameterCommand } from '../types/Command';
 import type { ExecutionType } from '../types/ExecutionTypes';
 import type { ModelRequirements } from '../types/ModelRequirements';
 import type { PromptbookJson } from '../types/PromptbookJson/PromptbookJson';
-import type { ExpectationUnit } from '../types/PromptbookJson/PromptTemplateJson';
-import type { PromptTemplateJson } from '../types/PromptbookJson/PromptTemplateJson';
+import type { ExpectationUnit, PromptTemplateJson } from '../types/PromptbookJson/PromptTemplateJson';
 import type { PromptTemplateParameterJson } from '../types/PromptbookJson/PromptTemplateParameterJson';
 import type { PromptbookString } from '../types/PromptbookString';
 import type { ScriptLanguage } from '../types/ScriptLanguage';
@@ -356,7 +355,7 @@ export async function promptbookStringToJson(
             templateModelRequirements.modelVariant = 'CHAT';
         }
 
-        promptbookJson.promptTemplates.push({
+        const template = {
             name: titleToName(section.title),
             title: section.title,
             description,
@@ -370,7 +369,14 @@ export async function promptbookStringToJson(
             contentLanguage: executionType === 'SCRIPT' ? (language as ScriptLanguage) : undefined,
             content,
             resultingParameterName,
-        });
+        };
+
+        if (executionType !== 'PROMPT_TEMPLATE') {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            delete (template as any).modelRequirements;
+        }
+
+        promptbookJson.promptTemplates.push(template);
     }
 
     // =============================================================
