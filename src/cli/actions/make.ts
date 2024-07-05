@@ -44,7 +44,7 @@ export function initializeMake(program: Command) {
     // TODO: !!! Auto-detect AI api keys + explicit api keys as argv
 
     helloCommand.action(async (path, { projectName, format, validation, verbose }) => {
-        console.info('!!!', { projectName, path, format, validation });
+        console.info('!!!', { projectName, path, format, validation, verbose });
 
         const formats = ((format as string | false) || '')
             .split(',')
@@ -68,7 +68,7 @@ export function initializeMake(program: Command) {
                     validatePromptbook(promptbook);
 
                     if (verbose) {
-                        console.info(colors.green(`Validated logic of ${promptbook.promptbookUrl}`));
+                        console.info(colors.cyan(`Validated logic of ${promptbook.promptbookUrl}`));
                     }
                 }
 
@@ -83,9 +83,8 @@ export function initializeMake(program: Command) {
             const filePath = join(path, `promptbook-library.${extension}`);
             await writeFile(filePath, content, 'utf-8');
 
-            if (verbose) {
-                console.info(colors.green(`Maked ${filePath.split('\\').join('/')}`));
-            }
+            // Note: Log despite of verbose mode
+            console.info(colors.green(`Maked ${filePath.split('\\').join('/')}`));
         };
 
         if (formats.includes('json')) {
@@ -94,7 +93,7 @@ export function initializeMake(program: Command) {
 
         if (formats.includes('javascript')) {
             await saveFile(
-                'ts',
+                'js',
                 spaceTrim(
                     `
                         import { createLibraryFromJson } from '@promptbook/core';
@@ -137,7 +136,7 @@ export function initializeMake(program: Command) {
                 spaceTrim(
                     `
                         import { createLibraryFromJson } from '@promptbook/core';
-                        import type { PromptbookLibrary, PromptbookLibrary } from '@promptbook/types';
+                        import type { PromptbookLibrary } from '@promptbook/types';
 
                         /**
                          * Promptbook library for ${projectName}
