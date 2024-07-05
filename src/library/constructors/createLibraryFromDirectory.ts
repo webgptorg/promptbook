@@ -8,7 +8,8 @@ import { validatePromptbook } from '../../conversion/validation/validatePromptbo
 import { PromptbookLibraryError } from '../../errors/PromptbookLibraryError';
 import type { PromptbookJson } from '../../types/PromptbookJson/PromptbookJson';
 import type { PromptbookString } from '../../types/PromptbookString';
-import type { string_file_path, string_folder_path } from '../../types/typeAliases';
+import type { string_file_path } from '../../types/typeAliases';
+import type { string_folder_path } from '../../types/typeAliases';
 import { isRunningInNode } from '../../utils/isRunningInWhatever';
 import type { PromptbookLibrary } from '../PromptbookLibrary';
 import { createLibraryFromPromise } from './createLibraryFromPromise';
@@ -90,7 +91,6 @@ export async function createLibraryFromDirectory(
         }
 
         const fileNames = await listAllFiles(path, isRecursive);
-
 
         const promptbooks: Array<PromptbookJson> = [];
 
