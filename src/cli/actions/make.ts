@@ -1,7 +1,7 @@
 import colors from 'colors';
 import type { Command } from 'commander';
-import { writeFile } from 'fs/promises';
-import { join } from 'path';
+import { mkdir, writeFile } from 'fs/promises';
+import { dirname, join } from 'path';
 import spaceTrim from 'spacetrim';
 import { PROMPTBOOK_MAKED_BASE_FILENAME } from '../../config';
 import { validatePromptbook } from '../../conversion/validation/validatePromptbook';
@@ -42,7 +42,7 @@ export function initializeMake(program: Command) {
 
     helloCommand.option('--verbose', `Is verbose`, false);
     helloCommand.option(
-        '-o, --out-file',
+        '-o, --out-file <path>',
         spaceTrim(`
             Where to save the builded library
 
@@ -68,7 +68,8 @@ export function initializeMake(program: Command) {
             .filter((_) => _ !== '');
 
         if (outFile !== PROMPTBOOK_MAKED_BASE_FILENAME && formats.length !== 1) {
-            throw new Error(`You can use only one format when saving to a file`);
+            console.error(colors.red(`You can use only one format when saving to a file`));
+            process.exit(1);
         }
 
         const library = await createLibraryFromDirectory(path, {
@@ -105,6 +106,7 @@ export function initializeMake(program: Command) {
                 console.warn(colors.yellow(`Warning: Extension of output file should be "${extension}"`));
             }
 
+            await mkdir(dirname(filePath));
             await writeFile(filePath, content, 'utf-8');
 
             // Note: Log despite of verbose mode
