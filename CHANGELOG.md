@@ -356,6 +356,7 @@ System for management of external knowledge (RAG)
 -   CLI util `promptbook make ...` can convert promptbooks to JSON
 -   `promptbookStringToJson` automatically looks for `promptbook-library.json` in root of given directory
 -   Rename `validatePromptbookJson` to `validatePromptbook`
+-   Create `embed` method on LLM tools, `PromptEmbeddingResult`, `EmbeddingVector` and `embeddingVectorToString`
 
 ## In prepare
 

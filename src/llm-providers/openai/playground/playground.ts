@@ -6,6 +6,7 @@ dotenv.config({ path: '.env' });
 
 import chalk from 'colors';
 import { OpenAiExecutionTools } from '../OpenAiExecutionTools';
+import { embeddingVectorToString } from '../../../execution/embeddingVectorToString';
 
 playground()
     .catch((error) => {
@@ -73,7 +74,7 @@ async function playground() {
     const promptResult = await openAiExecutionTools.embed(prompt);
     console.info({ promptResult });
     console.info(chalk.bgBlue(' User: ') + chalk.blue(prompt.content));
-    console.info(chalk.bgGreen(' Embedding: ') + chalk.green(promptResult.content));
+    console.info(chalk.bgGreen(' Embedding: ') + chalk.green(embeddingVectorToString(promptResult.content)));
     /**/
 
     //========================================/
