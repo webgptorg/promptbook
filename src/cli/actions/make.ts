@@ -3,6 +3,7 @@ import type { Command } from 'commander';
 import { writeFile } from 'fs/promises';
 import { join } from 'path';
 import spaceTrim from 'spacetrim';
+import { PROMPTBOOK_MAKED_BASE_FILENAME } from '../../config';
 import { validatePromptbook } from '../../conversion/validation/validatePromptbook';
 import { createLibraryFromDirectory } from '../../library/constructors/createLibraryFromDirectory';
 import { libraryToJson } from '../../library/libraryToJson';
@@ -80,7 +81,7 @@ export function initializeMake(program: Command) {
         const libraryJsonString = JSON.stringify(libraryJson);
 
         const saveFile = async (extension: string_file_extension, content: string) => {
-            const filePath = join(path, `promptbook-library.${extension}`);
+            const filePath = join(path, `${PROMPTBOOK_MAKED_BASE_FILENAME}.${extension}`);
             await writeFile(filePath, content, 'utf-8');
 
             // Note: Log despite of verbose mode
