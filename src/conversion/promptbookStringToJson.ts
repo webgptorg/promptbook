@@ -1,4 +1,3 @@
-import { PromptbookSyntaxError } from '../errors/PromptbookSyntaxError';
 import type { LlmExecutionTools } from '../execution/LlmExecutionTools';
 import { prepareKnowledgeFromMarkdown } from '../knowledge/prepare-knowledge/markdown/prepareKnowledgeFromMarkdown';
 import type { PromptbookJson } from '../types/PromptbookJson/PromptbookJson';
