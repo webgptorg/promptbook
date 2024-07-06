@@ -100,6 +100,11 @@ export function initializeMake(program: Command) {
                 outFile !== PROMPTBOOK_MAKED_BASE_FILENAME
                     ? outFile
                     : join(path, `${PROMPTBOOK_MAKED_BASE_FILENAME}.${extension}`);
+
+            if (!outFile.endsWith(`.${extension}`)) {
+                console.warn(colors.yellow(`Warning: Extension of output file should be "${extension}"`));
+            }
+
             await writeFile(filePath, content, 'utf-8');
 
             // Note: Log despite of verbose mode
@@ -192,7 +197,3 @@ export function initializeMake(program: Command) {
         process.exit(0);
     });
 }
-
-/**
- * TODO: Check the correctness of the file extension in case of outFile
- */
