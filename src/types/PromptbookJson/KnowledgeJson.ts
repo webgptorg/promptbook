@@ -4,5 +4,5 @@ export type KnowledgeJson = Array<MaterialKnowledgePieceJson>;
 
 /**
  * !!!! Annotate
- * TODO: [🦪]
+ * TODO: [🦪] Internal links between (Material)KnowledgePieces withing the KnowledgeJson
  */

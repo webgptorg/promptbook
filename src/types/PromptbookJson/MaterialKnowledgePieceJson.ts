@@ -26,7 +26,7 @@ export type MaterialKnowledgePieceJson = {
 /**
  * TODO: !!! Use or uninstall xyzt
  * !!!! Annotate
- * TODO: [🧠][🦪] Maybe allow internal linkes between (Material)KnowledgePieces withing the KnowledgeJson and maybe require to explicitelly reference the source of the knowledge
+ * TODO: [🧠][🦪] Maybe allow internal links between (Material)KnowledgePieces withing the KnowledgeJson and maybe require to explicitelly reference the source of the knowledge
  * TODO: [🧠] Make some non-material sources like external search engine or dialog to user
  * TODO: [🧠] Make some non-material (and maybe non-knowledge-like but tool-like) sources like calculator, code interpreter
  */
