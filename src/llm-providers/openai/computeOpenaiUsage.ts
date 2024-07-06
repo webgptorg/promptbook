@@ -1,8 +1,6 @@
 import type OpenAI from 'openai';
 import { PromptbookExecutionError } from '../../errors/PromptbookExecutionError';
-import type { PromptResult } from '../../execution/PromptResult';
-import type { PromptResultUsage } from '../../execution/PromptResult';
-import type { UncertainNumber } from '../../execution/PromptResult';
+import type { PromptResultUsage, UncertainNumber } from '../../execution/PromptResult';
 import { computeUsageCounts } from '../../execution/utils/computeUsageCounts';
 import { uncertainNumber } from '../../execution/utils/uncertainNumber';
 import type { Prompt } from '../../types/Prompt';
@@ -11,13 +9,21 @@ import { OPENAI_MODELS } from './openai-models';
 /**
  * Computes the usage of the OpenAI API based on the response from OpenAI
  *
+ * @param promptContent The content of the prompt
+ * @param resultContent The content of the result (for embedding prompts or failed prompts pass empty string)
+ * @param rawResponse The raw response from OpenAI API
  * @throws {PromptbookExecutionError} If the usage is not defined in the response from OpenAI
  * @private internal util of `OpenAiExecutionTools`
  */
 export function computeOpenaiUsage(
     promptContent: Prompt['content'], // <- Note: Intentionally using [] to access type properties to bring jsdoc from Prompt/PromptResult to consumer
-    resultContent: PromptResult['content'],
-    rawResponse: Pick<OpenAI.Chat.Completions.ChatCompletion | OpenAI.Completions.Completion, 'model' | 'usage'>,
+    resultContent: string,
+    rawResponse: Pick<
+        | OpenAI.Chat.Completions.ChatCompletion
+        | OpenAI.Completions.Completion
+        | OpenAI.Embeddings.CreateEmbeddingResponse,
+        'model' | 'usage'
+    >,
 ): PromptResultUsage {
     if (rawResponse.usage === undefined) {
         throw new PromptbookExecutionError('The usage is not defined in the response from OpenAI');
@@ -27,12 +33,8 @@ export function computeOpenaiUsage(
         throw new PromptbookExecutionError('In OpenAI response `usage.prompt_tokens` not defined');
     }
 
-    if (rawResponse.usage?.completion_tokens === undefined) {
-        throw new PromptbookExecutionError('In OpenAI response `usage.completion_tokens` not defined');
-    }
-
     const inputTokens = rawResponse.usage.prompt_tokens;
-    const outputTokens = rawResponse.usage.completion_tokens;
+    const outputTokens = (rawResponse as OpenAI.Chat.Completions.ChatCompletion).usage?.completion_tokens || 0;
 
     const modelInfo = OPENAI_MODELS.find((model) => model.modelName === rawResponse.model);
 
@@ -51,7 +53,7 @@ export function computeOpenaiUsage(
             ...computeUsageCounts(promptContent),
         },
         output: {
-            tokensCount: uncertainNumber(rawResponse.usage.completion_tokens),
+            tokensCount: uncertainNumber(outputTokens),
             ...computeUsageCounts(resultContent),
         },
     };

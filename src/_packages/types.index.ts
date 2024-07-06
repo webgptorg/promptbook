@@ -1,9 +1,11 @@
 // @promptbook/types
 
 import type { CommonExecutionToolsOptions } from '../execution/CommonExecutionToolsOptions';
+import { EmbeddingVector } from '../execution/EmbeddingVector';
 import type { ExecutionTools } from '../execution/ExecutionTools';
 import type { AvailableModel, LlmExecutionTools } from '../execution/LlmExecutionTools';
 import type {
+    PromptEmbeddingResult,
     PromptChatResult,
     PromptCommonResult,
     PromptCompletionResult,
@@ -121,6 +123,8 @@ export type {
     PromptbookLibrary,
     PromptbookString,
     PromptChatResult,
+    PromptEmbeddingResult,
+    EmbeddingVector,
     PromptCommonResult,
     PromptCompletionResult,
     PromptDialogJson,

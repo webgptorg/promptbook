@@ -1,16 +1,14 @@
 import colors from 'colors';
 import OpenAI from 'openai';
 import { PromptbookExecutionError } from '../../errors/PromptbookExecutionError';
-import type { AvailableModel } from '../../execution/LlmExecutionTools';
-import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { PromptChatResult } from '../../execution/PromptResult';
-import type { PromptCompletionResult } from '../../execution/PromptResult';
+import type { AvailableModel, LlmExecutionTools } from '../../execution/LlmExecutionTools';
+import type { PromptChatResult, PromptCompletionResult, PromptEmbeddingResult } from '../../execution/PromptResult';
 import type { Prompt } from '../../types/Prompt';
 import type { string_date_iso8601 } from '../../types/typeAliases';
 import { getCurrentIsoDate } from '../../utils/getCurrentIsoDate';
+import type { OpenAiExecutionToolsOptions } from './OpenAiExecutionToolsOptions';
 import { computeOpenaiUsage } from './computeOpenaiUsage';
 import { OPENAI_MODELS } from './openai-models';
-import type { OpenAiExecutionToolsOptions } from './OpenAiExecutionToolsOptions';
 
 /**
  * Execution Tools for calling OpenAI API.
@@ -184,9 +182,9 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
     }
 
     /**
-     * !!!!
+     * Calls OpenAI API to use a embedding model
      */
-    public async embed(prompt: Pick<Prompt, 'content' | 'modelRequirements'>): Promise<PromptCompletionResult> {
+    public async embed(prompt: Pick<Prompt, 'content' | 'modelRequirements'>): Promise<PromptEmbeddingResult> {
         if (this.options.isVerbose) {
             console.info('🖋 OpenAI embedding call', { prompt });
         }
@@ -195,52 +193,42 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
 
         // TODO: [☂] Use here more modelRequirements
         if (modelRequirements.modelVariant !== 'EMBEDDING') {
-            throw new PromptbookExecutionError('Use gptComplete only for EMBEDDING variant');
+            throw new PromptbookExecutionError('Use embed only for EMBEDDING variant');
         }
 
         const model = modelRequirements.modelName || this.getDefaultEmbeddingModel().modelName;
 
-        const rawResponse = await this.client.embeddings.create({
+        const rawRequest: OpenAI.Embeddings.EmbeddingCreateParams = {
             input: content,
             model,
 
             // TODO: !!!! Test model 3 and dimensions
-        });
-
-        console.log(rawResponse.data);
-
-        throw new Error('!!! Not implemented fully');
-
-        /*
-        const rawRequest: OpenAI.Embeddings.E = {
-            ...modelSettings,
-            prompt: content,
-            user: this.options.user,
         };
+
         const start: string_date_iso8601 = getCurrentIsoDate();
         let complete: string_date_iso8601;
 
         if (this.options.isVerbose) {
             console.info(colors.bgWhite('rawRequest'), JSON.stringify(rawRequest, null, 4));
         }
-        const rawResponse = await this.client.completions.create(rawRequest);
+
+        const rawResponse = await this.client.embeddings.create(rawRequest);
+
         if (this.options.isVerbose) {
             console.info(colors.bgWhite('rawResponse'), JSON.stringify(rawResponse, null, 4));
         }
 
-        if (!rawResponse.choices[0]) {
-            throw new PromptbookExecutionError('No choises from OpenAI');
+        if (rawResponse.data.length !== 1) {
+            throw new PromptbookExecutionError(
+                `Expected exactly 1 data item in response, got ${rawResponse.data.length}`,
+            );
         }
 
-        if (rawResponse.choices.length > 1) {
-            // TODO: This should be maybe only warning
-            throw new PromptbookExecutionError('More than one choise from OpenAI');
-        }
+        const resultContent = rawResponse.data[0]!.embedding;
 
-        const resultContent = rawResponse.choices[0].text;
         // eslint-disable-next-line prefer-const
         complete = getCurrentIsoDate();
-        const usage = computeOpenaiUsage(content, resultContent || '', rawResponse);
+        const usage = computeOpenaiUsage(content, '', rawResponse);
 
         return {
             content: resultContent,
@@ -253,7 +241,6 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
             rawResponse,
             // <- [🤹‍♂️]
         };
-        */
     }
 
     /**

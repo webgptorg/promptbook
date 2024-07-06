@@ -1,9 +1,12 @@
+import type { EmbeddingVector } from '../../execution/EmbeddingVector';
 import type { string_keyword } from '../../utils/normalization/IKeywords';
-import type { string_href } from '../typeAliases';
-import type { string_markdown } from '../typeAliases';
-import type { string_markdown_text } from '../typeAliases';
-import type { string_model_name } from '../typeAliases';
-import type { string_name } from '../typeAliases';
+import type {
+    string_href,
+    string_markdown,
+    string_markdown_text,
+    string_model_name,
+    string_name,
+} from '../typeAliases';
 
 export type MaterialKnowledgePieceJson = {
     readonly name: string_name;
@@ -16,7 +19,7 @@ export type MaterialKnowledgePieceJson = {
 
     readonly index: Array<{
         modelName: string_model_name;
-        position: Array<number> /* <- Note: Not using IVectorData due to HUGE dimensionality*/;
+        position: EmbeddingVector;
     }>;
 
     readonly sources: Array<{ title: string_markdown_text; href: string_href }>;

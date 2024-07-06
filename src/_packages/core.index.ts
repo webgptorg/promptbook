@@ -15,6 +15,7 @@ import { TemplateError } from '../errors/TemplateError';
 import { UnexpectedError } from '../errors/UnexpectedError';
 import { assertsExecutionSuccessful } from '../execution/assertsExecutionSuccessful';
 import { createPromptbookExecutor } from '../execution/createPromptbookExecutor';
+import { embeddingVectorToString } from '../execution/embeddingVectorToString';
 import { addUsage } from '../execution/utils/addUsage';
 import { checkExpectations, isPassingExpectations } from '../execution/utils/checkExpectations';
 import { usageToWorktime } from '../execution/utils/usageToWorktime';
@@ -45,6 +46,7 @@ export {
     addUsage,
     assertsExecutionSuccessful,
     checkExpectations,
+    embeddingVectorToString,
     executionReportJsonToString,
     ExecutionReportStringOptions,
     ExecutionReportStringOptionsDefaults,
