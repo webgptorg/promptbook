@@ -341,7 +341,7 @@ Better JSON Mode
 
 ### `0.59.0` _(2024-06-30)_
 
-System for management of external knowledge (RAG)
+System for management of external knowledge (RAG), vector embeddings and propper building of promptbook library.
 
 -   Add `MaterialKnowledgePieceJson`
 -   Add `KnowledgeJson`
