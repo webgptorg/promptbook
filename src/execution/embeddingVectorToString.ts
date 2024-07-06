@@ -1,4 +1,4 @@
-import { EmbeddingVector } from './EmbeddingVector';
+import type { EmbeddingVector } from './EmbeddingVector';
 
 /**
  * Pretty print an embedding vector for logging
