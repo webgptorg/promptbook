@@ -346,7 +346,7 @@ Preparation for system for [management of external knowledge](https://github.com
 -   Add `MaterialKnowledgePieceJson`
 -   Add `KnowledgeJson`
 -   Add `prepareKnowledgeFromMarkdown` exported from `@promptbook/core`
--   Change `promptbookStringToJson` to async function
+-   Change `promptbookStringToJson` to async function (and add `promptbookStringToJsonSync` for promptbooks without external knowledge)
 -   Change `createPromptbookLibraryFromSources` to `createPromptbookLibraryFromJson` and allow only compiled jsons as input + it is not `async` anymore
 -   Allow only jsons as input in `createLibraryFromPromise`
 -   Class `SimplePromptbookLibrary` not exposed at all, only type `PromptbookLibrary` and constructors

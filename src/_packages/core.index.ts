@@ -3,6 +3,7 @@
 import { prettifyPromptbookString } from '../conversion/prettify/prettifyPromptbookString';
 import { promptbookJsonToString } from '../conversion/promptbookJsonToString';
 import { promptbookStringToJson } from '../conversion/promptbookStringToJson';
+import { promptbookStringToJsonSync } from '../conversion/promptbookStringToJsonSync';
 import { validatePromptbook } from '../conversion/validation/validatePromptbook';
 import { ExpectError } from '../errors/_ExpectError';
 import { PromptbookExecutionError } from '../errors/PromptbookExecutionError';
@@ -63,7 +64,7 @@ export { createLibraryFromJson, createLibraryFromPromise, createLibraryFromUrl, 
 export { SimplePromptInterfaceTools };
 
 // @promptbook/parser
-export { promptbookJsonToString, promptbookStringToJson, validatePromptbook };
+export { promptbookJsonToString, promptbookStringToJson, promptbookStringToJsonSync, validatePromptbook };
 
 // @promptbook/executor
 export { createPromptbookExecutor, MultipleLlmExecutionTools };
