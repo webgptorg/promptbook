@@ -271,19 +271,31 @@ export const OPENAI_MODELS: Array<
     },
     /**/
 
-    /*/
-  {
-      modelTitle: 'text-embedding-3-large',
-      modelName: 'text-embedding-3-large',
-  },
-  /**/
+    /**/
+    {
+        modelVariant: 'EMBEDDING',
+        modelTitle: 'text-embedding-3-large',
+        modelName: 'text-embedding-3-large',
+        pricing: {
+            prompt: computeUsage(`$0.13  / 1M tokens`),
+            // TODO: [🏏] Leverage the batch API @see https://platform.openai.com/docs/guides/batch
+            output: 0, // <- Note: [🆖] In Embedding models you dont pay for output
+        },
+    },
+    /**/
 
-    /*/
-  {
-      modelTitle: 'text-embedding-3-small',
-      modelName: 'text-embedding-3-small',
-  },
-  /**/
+    /**/
+    {
+        modelVariant: 'EMBEDDING',
+        modelTitle: 'text-embedding-3-small',
+        modelName: 'text-embedding-3-small',
+        pricing: {
+            prompt: computeUsage(`$0.02 / 1M tokens`),
+            // TODO: [🏏] Leverage the batch API @see https://platform.openai.com/docs/guides/batch
+            output: 0, // <- Note: [🆖] In Embedding models you dont pay for output
+        },
+    },
+    /**/
 
     /**/
     {
@@ -297,16 +309,22 @@ export const OPENAI_MODELS: Array<
     },
     /**/
 
-    /*/
-  {
-      modelTitle: 'text-embedding-ada-002',
-      modelName: 'text-embedding-ada-002',
-  },
-  /**/
+    /**/
+    {
+        modelVariant: 'EMBEDDING',
+        modelTitle: 'text-embedding-ada-002',
+        modelName: 'text-embedding-ada-002',
+        pricing: {
+            prompt: computeUsage(`$0.1 / 1M tokens`), // <- Not sure, taken from https://tokescompare.io/product/openai-text-embedding-ada-002/, no official pricing
+            // TODO: [🏏] Leverage the batch API @see https://platform.openai.com/docs/guides/batch
+            output: 0, // <- Note: [🆖] In Embedding models you dont pay for output
+        },
+    },
+    /**/
 
     /*/
   {
-    modelVariant: 'CHAT',
+      modelVariant: 'CHAT',
       modelTitle: 'gpt-4-1106-vision-preview',
       modelName: 'gpt-4-1106-vision-preview',
   },
@@ -314,6 +332,7 @@ export const OPENAI_MODELS: Array<
 
     /*/
   {
+      modelVariant: 'CHAT',
       modelTitle: 'gpt-4-vision-preview',
       modelName: 'gpt-4-vision-preview',
       pricing: {

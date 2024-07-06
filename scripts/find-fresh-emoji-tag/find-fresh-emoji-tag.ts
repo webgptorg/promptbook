@@ -39,12 +39,14 @@ async function findFreshEmojiTag() {
         ignore: '**/node_modules/**',
     });
 
+    const allEmojis = EMOJIS_OF_SINGLE_PICTOGRAM;
+    // const allEmojis = new Set<string_char_emoji>(['🌼' as string_char_emoji,'🥎' as string_char_emoji]);
     const usedEmojis = new Set<string_char_emoji>();
 
     for (const file of allFiles) {
         const content = readFileSync(file, 'utf-8'); /* <- Note: Its OK to use sync in tooling */
 
-        for (const emoji of EMOJIS_OF_SINGLE_PICTOGRAM) {
+        for (const emoji of allEmojis) {
             const tag = `[${emoji}]`;
             if (content.includes(tag)) {
                 usedEmojis.add(emoji);
@@ -52,7 +54,7 @@ async function findFreshEmojiTag() {
         }
     }
 
-    const freshEmojis = difference(EMOJIS_OF_SINGLE_PICTOGRAM, usedEmojis);
+    const freshEmojis = difference(allEmojis, usedEmojis);
 
     console.info(colors.green(`Avialable fresh tags:`));
     for (const emoji of $shuffleItems(...Array.from(freshEmojis)).splice(0, 10)) {

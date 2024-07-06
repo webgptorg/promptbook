@@ -388,4 +388,5 @@ export async function promptbookStringToJson(
  * TODO: Report here line/column of error
  * TODO: Use spaceTrim more effectively
  * TODO: [🧠] Parameter flags - isInput, isOutput, isInternal
+ * TODO: [🏏] Leverage the batch API and build queues @see https://platform.openai.com/docs/guides/batch
  */

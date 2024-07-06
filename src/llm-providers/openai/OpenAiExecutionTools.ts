@@ -1,13 +1,12 @@
 import colors from 'colors';
 import OpenAI from 'openai';
+import spaceTrim from 'spacetrim';
 import { PromptbookExecutionError } from '../../errors/PromptbookExecutionError';
-import type { AvailableModel } from '../../execution/LlmExecutionTools';
-import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { PromptChatResult } from '../../execution/PromptResult';
-import type { PromptCompletionResult } from '../../execution/PromptResult';
-import type { PromptEmbeddingResult } from '../../execution/PromptResult';
+import { UnexpectedError } from '../../errors/UnexpectedError';
+import type { AvailableModel, LlmExecutionTools } from '../../execution/LlmExecutionTools';
+import type { PromptChatResult, PromptCompletionResult, PromptEmbeddingResult } from '../../execution/PromptResult';
 import type { Prompt } from '../../types/Prompt';
-import type { string_date_iso8601 } from '../../types/typeAliases';
+import type { string_date_iso8601, string_model_name } from '../../types/typeAliases';
 import { getCurrentIsoDate } from '../../utils/getCurrentIsoDate';
 import type { OpenAiExecutionToolsOptions } from './OpenAiExecutionToolsOptions';
 import { computeOpenaiUsage } from './computeOpenaiUsage';
@@ -247,25 +246,46 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
     }
 
     /**
+     * Get the model that should be used as default
+     */
+    private getDefaultModel(defaultModelName: string_model_name): AvailableModel {
+        const model = OPENAI_MODELS.find(({ modelName }) => modelName === defaultModelName);
+        if (model === undefined) {
+            throw new UnexpectedError(
+                spaceTrim(
+                    (block) =>
+                        `
+                            Cannot find model in OpenAI models with name ${defaultModelName} which should be used as default.
+
+                            Available models:
+                            ${block(OPENAI_MODELS.map(({ modelName }) => `- ${modelName}`).join('\n'))}
+
+                        `,
+                ),
+            );
+        }
+        return model;
+    }
+
+    /**
      * Default model for chat variant.
      */
     private getDefaultChatModel(): AvailableModel {
-        return OPENAI_MODELS.find(({ modelName }) => modelName === 'gpt-4o')!;
+        return this.getDefaultModel('gpt-4o');
     }
 
     /**
      * Default model for completion variant.
      */
     private getDefaultCompletionModel(): AvailableModel {
-        return OPENAI_MODELS.find(({ modelName }) => modelName === 'gpt-3.5-turbo-instruct')!;
+        return this.getDefaultModel('gpt-3.5-turbo-instruct');
     }
 
     /**
      * Default model for completion variant.
      */
     private getDefaultEmbeddingModel(): AvailableModel {
-        throw new Error('!!!!! Not implemented');
-        // return OPENAI_MODELS.find(({ modelName }) => modelName === 'text-embedding-3-large')!;
+        return this.getDefaultModel('text-embedding-3-large');
     }
 
     /**

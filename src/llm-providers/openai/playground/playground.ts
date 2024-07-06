@@ -5,8 +5,8 @@ import * as dotenv from 'dotenv';
 dotenv.config({ path: '.env' });
 
 import chalk from 'colors';
-import { OpenAiExecutionTools } from '../OpenAiExecutionTools';
 import { embeddingVectorToString } from '../../../execution/embeddingVectorToString';
+import { OpenAiExecutionTools } from '../OpenAiExecutionTools';
 
 playground()
     .catch((error) => {
@@ -68,7 +68,7 @@ async function playground() {
         content: `Hello, my name is Alice.`,
         modelRequirements: {
             modelVariant: 'EMBEDDING',
-            modelName: 'text-embedding-ada-002',
+            // modelName: 'text-embedding-ada-002',
         },
     } as const;
     const promptResult = await openAiExecutionTools.embed(prompt);
