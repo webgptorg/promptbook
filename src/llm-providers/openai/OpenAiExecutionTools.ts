@@ -2,7 +2,7 @@ import colors from 'colors';
 import OpenAI from 'openai';
 import { PromptbookExecutionError } from '../../errors/PromptbookExecutionError';
 import type { AvailableModel, LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { PromptChatResult, PromptCompletionResult } from '../../execution/PromptResult';
+import type { PromptChatResult, PromptCompletionResult, PromptEmbeddingResult } from '../../execution/PromptResult';
 import type { Prompt } from '../../types/Prompt';
 import type { string_date_iso8601 } from '../../types/typeAliases';
 import { getCurrentIsoDate } from '../../utils/getCurrentIsoDate';
@@ -184,7 +184,7 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
     /**
      * Calls OpenAI API to use a embedding model
      */
-    public async embed(prompt: Pick<Prompt, 'content' | 'modelRequirements'>): Promise<PromptCompletionResult> {
+    public async embed(prompt: Pick<Prompt, 'content' | 'modelRequirements'>): Promise<PromptEmbeddingResult> {
         if (this.options.isVerbose) {
             console.info('🖋 OpenAI embedding call', { prompt });
         }
@@ -231,7 +231,7 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
         const usage = computeOpenaiUsage(content, '', rawResponse);
 
         return {
-            content: JSON.stringify(resultContent) /* <- TODO: !!! Better */,
+            content: resultContent,
             modelName: rawResponse.model || model,
             timing: {
                 start,

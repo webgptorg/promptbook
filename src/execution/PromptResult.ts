@@ -1,9 +1,7 @@
 import type { KebabCase } from 'type-fest';
 import type { ExpectationUnit } from '../types/PromptbookJson/PromptTemplateJson';
-import type { number_positive } from '../types/typeAliases';
-import type { number_usd } from '../types/typeAliases';
-import type { string_date_iso8601 } from '../types/typeAliases';
-import type { string_model_name } from '../types/typeAliases';
+import type { number_positive, number_usd, string_date_iso8601, string_model_name } from '../types/typeAliases';
+import type { EmbeddingVector } from './EmbeddingVector';
 
 /**
  * Prompt result is the simplest concept of execution.
@@ -24,6 +22,17 @@ export type PromptCompletionResult = PromptCommonResult;
  */
 export type PromptChatResult = PromptCommonResult & {
     // TODO: [🤹‍♂️][🧠] Figure out way how to pass thread / previous messages
+};
+
+/**
+ * Prompt embedding result
+ * It contains only the following text NOT the whole completion
+ */
+export type PromptEmbeddingResult = Omit<PromptCommonResult, 'content'> & {
+    /**
+     * The response from the model
+     */
+    content: EmbeddingVector;
 };
 
 export type PromptCommonResult = {
