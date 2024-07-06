@@ -8,8 +8,7 @@ import { validatePromptbook } from '../../conversion/validation/validatePromptbo
 import { PromptbookLibraryError } from '../../errors/PromptbookLibraryError';
 import type { PromptbookJson } from '../../types/PromptbookJson/PromptbookJson';
 import type { PromptbookString } from '../../types/PromptbookString';
-import type { string_file_path } from '../../types/typeAliases';
-import type { string_folder_path } from '../../types/typeAliases';
+import type { string_file_path, string_folder_path } from '../../types/typeAliases';
 import { isRunningInNode } from '../../utils/isRunningInWhatever';
 import type { PromptbookLibrary } from '../PromptbookLibrary';
 import { createLibraryFromPromise } from './createLibraryFromPromise';
@@ -79,8 +78,8 @@ export async function createLibraryFromDirectory(
             ),
         );
     } else {
-        colors.green(`Using your prebuild promptbook library ${makedLibraryFilePath}`);
-        // TODO: !!!!! Implement;
+        colors.green(`(In future, not implemented yet) Using your prebuild promptbook library ${makedLibraryFilePath}`);
+        // TODO: !! Implement;
     }
 
     const { isRecursive = true, isVerbose = false, isLazyLoaded = false, isCrashOnError = true } = options || {};

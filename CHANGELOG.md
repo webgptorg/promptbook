@@ -357,8 +357,13 @@ System for management of external knowledge (RAG), vector embeddings and propper
 -   `promptbookStringToJson` automatically looks for `promptbook-library.json` in root of given directory
 -   Rename `validatePromptbookJson` to `validatePromptbook`
 -   Create `embed` method on LLM tools, `PromptEmbeddingResult`, `EmbeddingVector` and `embeddingVectorToString`
+-   `createLibraryFromDirectory` still DONT use prebuild library (just detects it)
 
 ## In prepare
+
+### `0..0` _(2024-0-)_
+
+`createLibraryFromDirectory` uses prebuild library
 
 ### `0..0` _(2024-0-)_
 
