@@ -359,6 +359,10 @@ Preparation for system for [management of external knowledge](https://github.com
 -   Create `embed` method on LLM tools, `PromptEmbeddingResult`, `EmbeddingVector` and `embeddingVectorToString`
 -   `createLibraryFromDirectory` still DONT use prebuild library (just detects it)
 
+### `0.60.0` _(2024-07-07)_
+
+Renaming and making names more consistent and less disambigous
+
 ## In prepare
 
 ### `0..0` _(2024-0-)_
