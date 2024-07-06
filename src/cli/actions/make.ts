@@ -41,11 +41,22 @@ export function initializeMake(program: Command) {
     );
 
     helloCommand.option('--verbose', `Is verbose`, false);
+    helloCommand.option(
+        '-o, --out-file',
+        spaceTrim(`
+            Where to save the builded library
+
+            Note: If you keep it "${PROMPTBOOK_MAKED_BASE_FILENAME}" it will be saved in the root of the promptbook directory
+                  If you set it to a path, it will be saved in that path
+                  BUT you can use only one format and set correct extension
+        `),
+        PROMPTBOOK_MAKED_BASE_FILENAME,
+    );
 
     // TODO: !!! Auto-detect AI api keys + explicit api keys as argv
 
-    helloCommand.action(async (path, { projectName, format, validation, verbose }) => {
-        console.info('!!!', { projectName, path, format, validation, verbose });
+    helloCommand.action(async (path, { projectName, format, validation, verbose, outFile }) => {
+        console.info('!!!', { projectName, path, format, validation, verbose, outFile });
 
         const formats = ((format as string | false) || '')
             .split(',')
@@ -55,6 +66,10 @@ export function initializeMake(program: Command) {
             .split(',')
             .map((_) => _.trim())
             .filter((_) => _ !== '');
+
+        if (outFile !== PROMPTBOOK_MAKED_BASE_FILENAME && formats.length !== 1) {
+            throw new Error(`You can use only one format when saving to a file`);
+        }
 
         const library = await createLibraryFromDirectory(path, {
             isVerbose: verbose,
@@ -81,7 +96,10 @@ export function initializeMake(program: Command) {
         const libraryJsonString = JSON.stringify(libraryJson);
 
         const saveFile = async (extension: string_file_extension, content: string) => {
-            const filePath = join(path, `${PROMPTBOOK_MAKED_BASE_FILENAME}.${extension}`);
+            const filePath =
+                outFile !== PROMPTBOOK_MAKED_BASE_FILENAME
+                    ? outFile
+                    : join(path, `${PROMPTBOOK_MAKED_BASE_FILENAME}.${extension}`);
             await writeFile(filePath, content, 'utf-8');
 
             // Note: Log despite of verbose mode
@@ -174,3 +192,7 @@ export function initializeMake(program: Command) {
         process.exit(0);
     });
 }
+
+/**
+ * TODO: Check the correctness of the file extension in case of outFile
+ */
