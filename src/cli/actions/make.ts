@@ -106,7 +106,7 @@ export function initializeMake(program: Command) {
                 console.warn(colors.yellow(`Warning: Extension of output file should be "${extension}"`));
             }
 
-            await mkdir(dirname(filePath));
+            await mkdir(dirname(filePath), { recursive: true });
             await writeFile(filePath, content, 'utf-8');
 
             // Note: Log despite of verbose mode
