@@ -1,15 +1,12 @@
 import type { Socket } from 'socket.io-client';
 import { io } from 'socket.io-client';
-import type { AvailableModel } from '../../execution/LlmExecutionTools';
-import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { PromptChatResult } from '../../execution/PromptResult';
-import type { PromptCompletionResult } from '../../execution/PromptResult';
-import type { PromptResult } from '../../execution/PromptResult';
+import type { AvailableModel, LlmExecutionTools } from '../../execution/LlmExecutionTools';
+import type { PromptChatResult, PromptCompletionResult, PromptResult } from '../../execution/PromptResult';
 import type { Prompt } from '../../types/Prompt';
+import type { RemoteLlmExecutionToolsOptions } from './RemoteLlmExecutionToolsOptions';
 import type { Promptbook_Server_Error } from './interfaces/Promptbook_Server_Error';
 import type { Promptbook_Server_Request } from './interfaces/Promptbook_Server_Request';
 import type { Promptbook_Server_Response } from './interfaces/Promptbook_Server_Response';
-import type { RemoteLlmExecutionToolsOptions } from './RemoteLlmExecutionToolsOptions';
 
 /**
  * Remote server is a proxy server that uses its execution tools internally and exposes the executor interface externally.
@@ -48,27 +45,27 @@ export class RemoteLlmExecutionTools implements LlmExecutionTools {
     /**
      * Calls remote proxy server to use a chat model.
      */
-    public gptChat(prompt: Prompt): Promise<PromptChatResult> {
+    public callChatModel(prompt: Prompt): Promise<PromptChatResult> {
         if (this.options.isVerbose) {
-            console.info(`🖋 Remote gptChat call`);
+            console.info(`🖋 Remote callChatModel call`);
         }
-        return /* not await */ this.gptCommon(prompt);
+        return /* not await */ this.callModelCommon(prompt);
     }
 
     /**
      * Calls remote proxy server to use a completion model.
      */
-    public gptComplete(prompt: Prompt): Promise<PromptCompletionResult> {
+    public callCompletionModel(prompt: Prompt): Promise<PromptCompletionResult> {
         if (this.options.isVerbose) {
-            console.info(`💬 Remote gptComplete call`);
+            console.info(`💬 Remote callCompletionModel call`);
         }
-        return /* not await */ this.gptCommon(prompt);
+        return /* not await */ this.callModelCommon(prompt);
     }
 
     /**
      * Calls remote proxy server to use both completion or chat model.
      */
-    private async gptCommon(prompt: Prompt): Promise<PromptResult> {
+    private async callModelCommon(prompt: Prompt): Promise<PromptResult> {
         const socket = await this.makeConnection();
         socket.emit('request', { clientId: this.options.clientId, prompt } satisfies Promptbook_Server_Request);
 

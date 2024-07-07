@@ -1,8 +1,6 @@
 import type { CommonExecutionToolsOptions } from '../../execution/CommonExecutionToolsOptions';
-import type { AvailableModel } from '../../execution/LlmExecutionTools';
-import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { PromptChatResult } from '../../execution/PromptResult';
-import type { PromptCompletionResult } from '../../execution/PromptResult';
+import type { AvailableModel, LlmExecutionTools } from '../../execution/LlmExecutionTools';
+import type { PromptChatResult, PromptCompletionResult } from '../../execution/PromptResult';
 import { addUsage } from '../../execution/utils/addUsage';
 import type { Prompt } from '../../types/Prompt';
 import { getCurrentIsoDate } from '../../utils/getCurrentIsoDate';
@@ -17,7 +15,7 @@ export class MockedFackedLlmExecutionTools implements LlmExecutionTools {
     /**
      * Fakes chat model
      */
-    public async gptChat(
+    public async callChatModel(
         prompt: Pick<Prompt, 'content' | 'modelRequirements' | 'expectations' | 'postprocessing'>,
     ): Promise<PromptChatResult & PromptCompletionResult> {
         if (this.options.isVerbose) {
@@ -55,10 +53,10 @@ export class MockedFackedLlmExecutionTools implements LlmExecutionTools {
     /**
      * Fakes completion model
      */
-    public async gptComplete(
+    public async callCompletionModel(
         prompt: Pick<Prompt, 'content' | 'modelRequirements' | 'expectations' | 'postprocessing'>,
     ): Promise<PromptCompletionResult> {
-        return this.gptChat(prompt);
+        return this.callChatModel(prompt);
     }
 
     /**
@@ -79,7 +77,6 @@ export class MockedFackedLlmExecutionTools implements LlmExecutionTools {
         ];
     }
 }
-
 
 /**
  * TODO: [🕵️‍♀️] Maybe just remove

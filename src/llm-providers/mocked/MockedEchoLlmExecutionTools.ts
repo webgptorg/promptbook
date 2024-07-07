@@ -1,9 +1,7 @@
 import { spaceTrim } from 'spacetrim';
 import type { CommonExecutionToolsOptions } from '../../execution/CommonExecutionToolsOptions';
-import type { AvailableModel } from '../../execution/LlmExecutionTools';
-import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { PromptChatResult } from '../../execution/PromptResult';
-import type { PromptCompletionResult } from '../../execution/PromptResult';
+import type { AvailableModel, LlmExecutionTools } from '../../execution/LlmExecutionTools';
+import type { PromptChatResult, PromptCompletionResult } from '../../execution/PromptResult';
 import { addUsage } from '../../execution/utils/addUsage';
 import type { Prompt } from '../../types/Prompt';
 import { getCurrentIsoDate } from '../../utils/getCurrentIsoDate';
@@ -17,9 +15,9 @@ export class MockedEchoLlmExecutionTools implements LlmExecutionTools {
     /**
      * Mocks chat model
      */
-    public async gptChat(prompt: Pick<Prompt, 'content' | 'modelRequirements'>): Promise<PromptChatResult> {
+    public async callChatModel(prompt: Pick<Prompt, 'content' | 'modelRequirements'>): Promise<PromptChatResult> {
         if (this.options.isVerbose) {
-            console.info('💬 Mocked gptChat call');
+            console.info('💬 Mocked callChatModel call');
         }
 
         return {
@@ -45,9 +43,11 @@ export class MockedEchoLlmExecutionTools implements LlmExecutionTools {
     /**
      * Mocks completion model
      */
-    public async gptComplete(prompt: Pick<Prompt, 'content' | 'modelRequirements'>): Promise<PromptCompletionResult> {
+    public async callCompletionModel(
+        prompt: Pick<Prompt, 'content' | 'modelRequirements'>,
+    ): Promise<PromptCompletionResult> {
         if (this.options.isVerbose) {
-            console.info('🖋 Mocked gptComplete call');
+            console.info('🖋 Mocked callCompletionModel call');
         }
         return {
             content: spaceTrim(

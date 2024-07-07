@@ -41,7 +41,7 @@ async function playground() {
             modelVariant: 'COMPLETION',
         },
     } as const;
-    const promptResult = await openAiExecutionTools.gptComplete(prompt);
+    const promptResult = await openAiExecutionTools.callCompletionModel(prompt);
     console.info({ promptResult });
     console.info(chalk.green(prompt.content + promptResult.content));
     /**/
@@ -53,7 +53,7 @@ async function playground() {
             modelVariant: 'CHAT',
         },
     } as const;
-    const promptResult = await openAiExecutionTools.gptChat(prompt);
+    const promptResult = await openAiExecutionTools.callChatModel(prompt);
     console.info({ promptResult });
     console.info(chalk.bgBlue(' User: ') + chalk.blue(prompt.content));
     console.info(chalk.bgGreen(' Completion: ') + chalk.green(promptResult.content));

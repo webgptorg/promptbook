@@ -1,9 +1,6 @@
 import spaceTrim from 'spacetrim';
-import type { AvailableModel } from '../../execution/LlmExecutionTools';
-import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { PromptChatResult } from '../../execution/PromptResult';
-import type { PromptCompletionResult } from '../../execution/PromptResult';
-import type { PromptResult } from '../../execution/PromptResult';
+import type { AvailableModel, LlmExecutionTools } from '../../execution/LlmExecutionTools';
+import type { PromptChatResult, PromptCompletionResult, PromptResult } from '../../execution/PromptResult';
 import type { Prompt } from '../../types/Prompt';
 
 /**
@@ -27,29 +24,29 @@ export class MultipleLlmExecutionTools implements LlmExecutionTools {
     /**
      * Calls the best available chat model
      */
-    public gptChat(prompt: Prompt): Promise<PromptChatResult> {
-        return this.gptCommon(prompt) as Promise<PromptChatResult>;
+    public callChatModel(prompt: Prompt): Promise<PromptChatResult> {
+        return this.callModelCommon(prompt) as Promise<PromptChatResult>;
     }
 
     /**
      * Calls the best available completion model
      */
-    public gptComplete(prompt: Prompt): Promise<PromptCompletionResult> {
-        return this.gptCommon(prompt) as Promise<PromptChatResult>;
+    public callCompletionModel(prompt: Prompt): Promise<PromptCompletionResult> {
+        return this.callModelCommon(prompt) as Promise<PromptChatResult>;
     }
 
     /**
      * Calls the best available model
      */
-    private async gptCommon(prompt: Prompt): Promise<PromptResult> {
+    private async callModelCommon(prompt: Prompt): Promise<PromptResult> {
         const errors: Array<Error> = [];
 
         for (const llmExecutionTools of this.llmExecutionTools) {
             try {
                 if (prompt.modelRequirements.modelVariant === 'CHAT') {
-                    return await llmExecutionTools.gptChat(prompt);
+                    return await llmExecutionTools.callChatModel(prompt);
                 } else if (prompt.modelRequirements.modelVariant === 'COMPLETION') {
-                    return await llmExecutionTools.gptComplete(prompt);
+                    return await llmExecutionTools.callCompletionModel(prompt);
                 }
             } catch (error) {
                 if (!(error instanceof Error)) {
@@ -64,9 +61,9 @@ export class MultipleLlmExecutionTools implements LlmExecutionTools {
             spaceTrim(
                 (block) => `
                   All execution tools failed:
-                  
+
                   ${block(errors.map((error) => `- ${error.name || 'Error'}: ${error.message}`).join('\n'))}
-            
+
             `,
             ),
         );

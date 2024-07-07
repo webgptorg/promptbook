@@ -363,6 +363,12 @@ Preparation for system for [management of external knowledge](https://github.com
 
 Renaming and making names more consistent and less disambigous
 
+-   Rename word "library"
+-   Rename word "promptbook"
+-   Rename methods in `LlmExecutionTools`
+    -   `gptChat` -> `callChatModel`
+    -   `gptComplete` -> `callCompletionModel`
+
 ## In prepare
 
 ### `0..0` _(2024-0-)_

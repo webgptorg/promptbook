@@ -42,7 +42,7 @@ async function playground() {
             modelVariant: 'COMPLETION',
         },
     } as const;
-    const promptResult = await langtailExecutionTools.gptComplete(prompt);
+    const promptResult = await langtailExecutionTools.callCompletionModel(prompt);
     console.info({ promptResult });
     console.info(chalk.green(prompt.content + promptResult.content));
     /**/
@@ -55,12 +55,11 @@ async function playground() {
             modelVariant: 'CHAT',
         },
     } as const;
-    const promptResult = await langtailExecutionTools.gptChat(prompt);
+    const promptResult = await langtailExecutionTools.callChatModel(prompt);
     console.info({ promptResult });
     console.info(chalk.bgBlue(' User: ') + chalk.blue(prompt.content));
     console.info(chalk.bgGreen(' Completion: ') + chalk.green(promptResult.content));
     /**/
 
     //========================================/
-
 }

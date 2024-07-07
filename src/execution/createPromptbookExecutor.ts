@@ -2,22 +2,20 @@ import { spaceTrim } from 'spacetrim';
 import type { Promisable } from 'type-fest';
 import { LOOP_LIMIT } from '../config';
 import { validatePromptbook } from '../conversion/validation/validatePromptbook';
-import { ExpectError } from '../errors/_ExpectError';
 import { PromptbookExecutionError } from '../errors/PromptbookExecutionError';
 import { UnexpectedError } from '../errors/UnexpectedError';
+import { ExpectError } from '../errors/_ExpectError';
 import { isValidJsonString } from '../formats/json/utils/isValidJsonString';
-import type { ExecutionReportJson } from '../types/execution-report/ExecutionReportJson';
 import type { Prompt } from '../types/Prompt';
-import type { PromptbookJson } from '../types/PromptbookJson/PromptbookJson';
 import type { PromptTemplateJson } from '../types/PromptbookJson/PromptTemplateJson';
+import type { PromptbookJson } from '../types/PromptbookJson/PromptbookJson';
 import type { TaskProgress } from '../types/TaskProgress';
+import type { ExecutionReportJson } from '../types/execution-report/ExecutionReportJson';
 import type { string_name } from '../types/typeAliases';
 import { PROMPTBOOK_VERSION } from '../version';
 import type { ExecutionTools } from './ExecutionTools';
+import type { PromptChatResult, PromptCompletionResult, PromptResult } from './PromptResult';
 import type { PromptbookExecutor } from './PromptbookExecutor';
-import type { PromptChatResult } from './PromptResult';
-import type { PromptCompletionResult } from './PromptResult';
-import type { PromptResult } from './PromptResult';
 import { addUsage } from './utils/addUsage';
 import { checkExpectations } from './utils/checkExpectations';
 import { replaceParameters } from './utils/replaceParameters';
@@ -193,13 +191,13 @@ export function createPromptbookExecutor(options: CreatePromptbookExecutorOption
 
                                 variant: switch (currentTemplate.modelRequirements!.modelVariant) {
                                     case 'CHAT':
-                                        chatThread = await tools.llm.gptChat(prompt);
+                                        chatThread = await tools.llm.callChatModel(prompt);
                                         // TODO: [🍬] Destroy chatThread
                                         result = chatThread;
                                         resultString = chatThread.content;
                                         break variant;
                                     case 'COMPLETION':
-                                        completionResult = await tools.llm.gptComplete(prompt);
+                                        completionResult = await tools.llm.callCompletionModel(prompt);
                                         result = completionResult;
                                         resultString = completionResult.content;
                                         break variant;

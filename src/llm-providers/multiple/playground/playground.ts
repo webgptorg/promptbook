@@ -57,7 +57,7 @@ async function playground() {
             modelVariant: 'COMPLETION',
         },
     } as const;
-    const promptResult = await executionTools.gptComplete(prompt);
+    const promptResult = await executionTools.callCompletionModel(prompt);
     console.info({ promptResult });
     console.info(chalk.green(prompt.content + promptResult.content));
     /**/
@@ -73,7 +73,7 @@ async function playground() {
         promptbookUrl: '',
         parameters: {},
     } as const;
-    const promptResult = await executionTools.gptChat(prompt);
+    const promptResult = await executionTools.callChatModel(prompt);
     console.info({ promptResult });
     console.info(chalk.bgBlue(' User: ') + chalk.blue(prompt.content));
     console.info(chalk.bgGreen(' Completion: ') + chalk.green(promptResult.content));

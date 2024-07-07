@@ -1,11 +1,8 @@
 import { AzureKeyCredential, OpenAIClient } from '@azure/openai';
 import colors from 'colors';
 import { PromptbookExecutionError } from '../../errors/PromptbookExecutionError';
-import type { AvailableModel } from '../../execution/LlmExecutionTools';
-import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { PromptChatResult } from '../../execution/PromptResult';
-import type { PromptCompletionResult } from '../../execution/PromptResult';
-import type { PromptResultUsage } from '../../execution/PromptResult';
+import type { AvailableModel, LlmExecutionTools } from '../../execution/LlmExecutionTools';
+import type { PromptChatResult, PromptCompletionResult, PromptResultUsage } from '../../execution/PromptResult';
 import { computeUsageCounts } from '../../execution/utils/computeUsageCounts';
 import { uncertainNumber } from '../../execution/utils/uncertainNumber';
 import type { Prompt } from '../../types/Prompt';
@@ -38,16 +35,16 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools {
     /**
      * Calls OpenAI API to use a chat model.
      */
-    public async gptChat(prompt: Pick<Prompt, 'content' | 'modelRequirements'>): Promise<PromptChatResult> {
+    public async callChatModel(prompt: Pick<Prompt, 'content' | 'modelRequirements'>): Promise<PromptChatResult> {
         if (this.options.isVerbose) {
-            console.info('💬 OpenAI gptChat call');
+            console.info('💬 OpenAI callChatModel call');
         }
 
         const { content, modelRequirements } = prompt;
 
         // TODO: [☂] Use here more modelRequirements
         if (modelRequirements.modelVariant !== 'CHAT') {
-            throw new PromptbookExecutionError('Use gptChat only for CHAT variant');
+            throw new PromptbookExecutionError('Use callChatModel only for CHAT variant');
         }
 
         try {
@@ -124,16 +121,18 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools {
     /**
      * Calls Azure OpenAI API to use a complete model.
      */
-    public async gptComplete(prompt: Pick<Prompt, 'content' | 'modelRequirements'>): Promise<PromptCompletionResult> {
+    public async callCompletionModel(
+        prompt: Pick<Prompt, 'content' | 'modelRequirements'>,
+    ): Promise<PromptCompletionResult> {
         if (this.options.isVerbose) {
-            console.info('🖋 OpenAI gptComplete call');
+            console.info('🖋 OpenAI callCompletionModel call');
         }
 
         const { content, modelRequirements } = prompt;
 
         // TODO: [☂] Use here more modelRequirements
         if (modelRequirements.modelVariant !== 'COMPLETION') {
-            throw new PromptbookExecutionError('Use gptComplete only for COMPLETION variant');
+            throw new PromptbookExecutionError('Use callCompletionModel only for COMPLETION variant');
         }
 
         try {
@@ -230,6 +229,6 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools {
 }
 
 /**
- * TODO: Maybe Create some common util for gptChat and gptComplete
+ * TODO: Maybe Create some common util for callChatModel and callCompletionModel
  * TODO: Maybe make custom AzureOpenaiError
  */

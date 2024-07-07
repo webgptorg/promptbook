@@ -71,10 +71,10 @@ export function startRemoteServer(options: RemoteServerOptions): IDestroyable {
                 let promptResult: PromptResult;
                 switch (prompt.modelRequirements.modelVariant) {
                     case 'CHAT':
-                        promptResult = await executionToolsForClient.gptChat(prompt);
+                        promptResult = await executionToolsForClient.callChatModel(prompt);
                         break;
                     case 'COMPLETION':
-                        promptResult = await executionToolsForClient.gptComplete(prompt);
+                        promptResult = await executionToolsForClient.callCompletionModel(prompt);
                         break;
                     default:
                         throw new PromptbookExecutionError(

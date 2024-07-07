@@ -4,20 +4,16 @@ import colors from 'colors';
 import spaceTrim from 'spacetrim';
 import { PromptbookExecutionError } from '../../errors/PromptbookExecutionError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
-import type { AvailableModel } from '../../execution/LlmExecutionTools';
-import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { PromptChatResult } from '../../execution/PromptResult';
-import type { PromptCompletionResult } from '../../execution/PromptResult';
-import type { PromptResultUsage } from '../../execution/PromptResult';
+import type { AvailableModel, LlmExecutionTools } from '../../execution/LlmExecutionTools';
+import type { PromptChatResult, PromptCompletionResult, PromptResultUsage } from '../../execution/PromptResult';
 import { computeUsageCounts } from '../../execution/utils/computeUsageCounts';
 import { uncertainNumber } from '../../execution/utils/uncertainNumber';
 import type { Prompt } from '../../types/Prompt';
-import type { string_date_iso8601 } from '../../types/typeAliases';
-import type { string_model_name } from '../../types/typeAliases';
+import type { string_date_iso8601, string_model_name } from '../../types/typeAliases';
 import { getCurrentIsoDate } from '../../utils/getCurrentIsoDate';
 import { just } from '../../utils/just';
-import { ANTHROPIC_CLAUDE_MODELS } from './anthropic-claude-models';
 import type { AnthropicClaudeExecutionToolsOptions } from './AnthropicClaudeExecutionToolsOptions';
+import { ANTHROPIC_CLAUDE_MODELS } from './anthropic-claude-models';
 
 /**
  * Execution Tools for calling Anthropic Claude API.
@@ -43,16 +39,16 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools {
     /**
      * Calls Anthropic Claude API to use a chat model.
      */
-    public async gptChat(prompt: Pick<Prompt, 'content' | 'modelRequirements'>): Promise<PromptChatResult> {
+    public async callChatModel(prompt: Pick<Prompt, 'content' | 'modelRequirements'>): Promise<PromptChatResult> {
         if (this.options.isVerbose) {
-            console.info('💬 Anthropic Claude gptChat call');
+            console.info('💬 Anthropic Claude callChatModel call');
         }
 
         const { content, modelRequirements } = prompt;
 
         // TODO: [☂] Use here more modelRequirements
         if (modelRequirements.modelVariant !== 'CHAT') {
-            throw new PromptbookExecutionError('Use gptChat only for CHAT variant');
+            throw new PromptbookExecutionError('Use callChatModel only for CHAT variant');
         }
 
         const rawRequest: MessageCreateParamsNonStreaming = {
@@ -117,20 +113,22 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools {
     /**
      * Calls Anthropic Claude API to use a complete model.
      */
-    public async gptComplete(prompt: Pick<Prompt, 'content' | 'modelRequirements'>): Promise<PromptCompletionResult> {
+    public async callCompletionModel(
+        prompt: Pick<Prompt, 'content' | 'modelRequirements'>,
+    ): Promise<PromptCompletionResult> {
         just(prompt);
         throw new Error('Anthropic complation models are not implemented to Promptbook yet [👏]');
         /*
         TODO: [👏]
         if (this.options.isVerbose) {
-            console.info('🖋 Anthropic Claude gptComplete call');
+            console.info('🖋 Anthropic Claude callCompletionModel call');
         }
 
         const { content, modelRequirements } = prompt;
 
         // TODO: [☂] Use here more modelRequirements
         if (modelRequirements.modelVariant !== 'COMPLETION') {
-            throw new PromptbookExecutionError('Use gptComplete only for COMPLETION variant');
+            throw new PromptbookExecutionError('Use callCompletionModel only for COMPLETION variant');
         }
 
         const model = modelRequirements.modelName || this.getDefaultChatModel().modelName;
@@ -226,6 +224,6 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools {
 /**
  * TODO: !!!! [🍆] JSON mode
  * TODO: [🧠] Maybe handle errors via transformAnthropicError (like transformAzureError)
- * TODO: Maybe Create some common util for gptChat and gptComplete
+ * TODO: Maybe Create some common util for callChatModel and callCompletionModel
  * TODO: Maybe make custom OpenaiError
  */

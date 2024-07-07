@@ -23,21 +23,21 @@ export class SupabaseLoggerWrapperOfLlmExecutionTools implements LlmExecutionToo
     /**
      * Calls a chat model and logs the request+result
      */
-    public gptChat(prompt: Pick<Prompt, 'content' | 'modelRequirements'>): Promise<PromptChatResult> {
-        return /* not await */ this.gptCommon(prompt);
+    public callChatModel(prompt: Pick<Prompt, 'content' | 'modelRequirements'>): Promise<PromptChatResult> {
+        return /* not await */ this.callModelCommon(prompt);
     }
 
     /**
      * Calls a completion model and logs the request+result
      */
-    public gptComplete(prompt: Pick<Prompt, 'content' | 'modelRequirements'>): Promise<PromptCompletionResult> {
-        return /* not await */ this.gptCommon(prompt);
+    public callCompletionModel(prompt: Pick<Prompt, 'content' | 'modelRequirements'>): Promise<PromptCompletionResult> {
+        return /* not await */ this.callModelCommon(prompt);
     }
 
     /**
      * Calls both completion or chat model and logs the request+result
      */
-    public async gptCommon(prompt: Prompt): Promise<PromptResult> {
+    public async callModelCommon(prompt: Prompt): Promise<PromptResult> {
         const mark = 'gpt-call';
         const promptAt = new Date();
         performance.mark(`${mark}-start`);
@@ -45,10 +45,10 @@ export class SupabaseLoggerWrapperOfLlmExecutionTools implements LlmExecutionToo
         let promptResult: PromptResult;
         switch (prompt.modelRequirements.variant) {
             case 'CHAT':
-                promptResult = await this.options.llmExecutionTools.gptChat(prompt);
+                promptResult = await this.options.llmExecutionTools.callChatModel(prompt);
                 break;
             case 'COMPLETION':
-                promptResult = await this.options.llmExecutionTools.gptComplete(prompt);
+                promptResult = await this.options.llmExecutionTools.callCompletionModel(prompt);
                 break;
             default:
                 throw new Error(`Unknown model variant "${prompt.modelRequirements.variant}"`);

@@ -41,7 +41,7 @@ async function playground() {
             modelVariant: 'COMPLETION',
         },
     } as const;
-    const promptResult = await anthropicClaudeExecutionTools.gptComplete(prompt);
+    const promptResult = await anthropicClaudeExecutionTools.callCompletionModel(prompt);
     console.info({ promptResult });
     console.info(chalk.green(prompt.content + promptResult.content));
     /**/
@@ -53,7 +53,7 @@ async function playground() {
             modelVariant: 'CHAT',
         },
     } as const;
-    const promptResult = await anthropicClaudeExecutionTools.gptChat(prompt);
+    const promptResult = await anthropicClaudeExecutionTools.callChatModel(prompt);
     console.info({ promptResult });
     console.info(chalk.bgBlue(' User: ') + chalk.blue(prompt.content));
     console.info(chalk.bgGreen(' Completion: ') + chalk.green(promptResult.content));

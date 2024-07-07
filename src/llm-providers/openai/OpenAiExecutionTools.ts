@@ -3,14 +3,10 @@ import OpenAI from 'openai';
 import spaceTrim from 'spacetrim';
 import { PromptbookExecutionError } from '../../errors/PromptbookExecutionError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
-import type { AvailableModel } from '../../execution/LlmExecutionTools';
-import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { PromptChatResult } from '../../execution/PromptResult';
-import type { PromptCompletionResult } from '../../execution/PromptResult';
-import type { PromptEmbeddingResult } from '../../execution/PromptResult';
+import type { AvailableModel, LlmExecutionTools } from '../../execution/LlmExecutionTools';
+import type { PromptChatResult, PromptCompletionResult, PromptEmbeddingResult } from '../../execution/PromptResult';
 import type { Prompt } from '../../types/Prompt';
-import type { string_date_iso8601 } from '../../types/typeAliases';
-import type { string_model_name } from '../../types/typeAliases';
+import type { string_date_iso8601, string_model_name } from '../../types/typeAliases';
 import { getCurrentIsoDate } from '../../utils/getCurrentIsoDate';
 import type { OpenAiExecutionToolsOptions } from './OpenAiExecutionToolsOptions';
 import { computeOpenaiUsage } from './computeOpenaiUsage';
@@ -43,18 +39,18 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
     /**
      * Calls OpenAI API to use a chat model.
      */
-    public async gptChat(
+    public async callChatModel(
         prompt: Pick<Prompt, 'content' | 'modelRequirements' | 'expectFormat'>,
     ): Promise<PromptChatResult> {
         if (this.options.isVerbose) {
-            console.info('💬 OpenAI gptChat call', { prompt });
+            console.info('💬 OpenAI callChatModel call', { prompt });
         }
 
         const { content, modelRequirements, expectFormat } = prompt;
 
         // TODO: [☂] Use here more modelRequirements
         if (modelRequirements.modelVariant !== 'CHAT') {
-            throw new PromptbookExecutionError('Use gptChat only for CHAT variant');
+            throw new PromptbookExecutionError('Use callChatModel only for CHAT variant');
         }
 
         const model = modelRequirements.modelName || this.getDefaultChatModel().modelName;
@@ -125,16 +121,18 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
     /**
      * Calls OpenAI API to use a complete model.
      */
-    public async gptComplete(prompt: Pick<Prompt, 'content' | 'modelRequirements'>): Promise<PromptCompletionResult> {
+    public async callCompletionModel(
+        prompt: Pick<Prompt, 'content' | 'modelRequirements'>,
+    ): Promise<PromptCompletionResult> {
         if (this.options.isVerbose) {
-            console.info('🖋 OpenAI gptComplete call', { prompt });
+            console.info('🖋 OpenAI callCompletionModel call', { prompt });
         }
 
         const { content, modelRequirements } = prompt;
 
         // TODO: [☂] Use here more modelRequirements
         if (modelRequirements.modelVariant !== 'COMPLETION') {
-            throw new PromptbookExecutionError('Use gptComplete only for COMPLETION variant');
+            throw new PromptbookExecutionError('Use callCompletionModel only for COMPLETION variant');
         }
 
         const model = modelRequirements.modelName || this.getDefaultCompletionModel().modelName;
@@ -310,6 +308,6 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
 
 /**
  * TODO: [🧠][🧙‍♂️] Maybe there can be some wizzard for thoose who want to use just OpenAI
- * TODO: Maybe Create some common util for gptChat and gptComplete
+ * TODO: Maybe Create some common util for callChatModel and callCompletionModel
  * TODO: Maybe make custom OpenaiError
  */

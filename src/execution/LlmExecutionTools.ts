@@ -1,10 +1,8 @@
 import type { Promisable } from 'type-fest';
 import type { ModelVariant } from '../types/ModelRequirements';
 import type { Prompt } from '../types/Prompt';
-import type { string_model_name } from '../types/typeAliases';
-import type { string_title } from '../types/typeAliases';
-import type { PromptChatResult } from './PromptResult';
-import type { PromptCompletionResult } from './PromptResult';
+import type { string_model_name, string_title } from '../types/typeAliases';
+import type { PromptChatResult, PromptCompletionResult } from './PromptResult';
 
 /**
  * Container for all the tools needed to execute prompts to large language models like GPT-4
@@ -17,14 +15,13 @@ export type LlmExecutionTools = {
     /**
      * Use a chat model
      */
-    gptChat(prompt: Prompt): Promise<PromptChatResult>;
+    callChatModel(prompt: Prompt): Promise<PromptChatResult>;
 
     /**
      * Use a completion model
      */
-    gptComplete(prompt: Prompt): Promise<PromptCompletionResult>;
+    callCompletionModel(prompt: Prompt): Promise<PromptCompletionResult>;
 
-    // TODO: !!!! Remove gpt prefixes
     // TODO: !!!! Translation model
 
     /**
@@ -58,6 +55,6 @@ export type AvailableModel = {
 /**
  * TODO: [🧠] Emulation of one type of model with another one - emuate chat with completion; emulate translation with chat
  * TODO: [🍓][♐] Some heuristic to pick the best model in listed models
- * TODO: [🏳] gptChat -> chat, gptComplete -> complete, translate
- * TODO: [🧠] Should or should not there be a word "GPT" in both gptComplete and gptChat
+ * TODO: [🏳] callChatModel -> chat, callCompletionModel -> complete, translate
+ * TODO: [🧠] Should or should not there be a word "GPT" in both callCompletionModel and callChatModel
  */
