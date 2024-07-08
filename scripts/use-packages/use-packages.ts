@@ -1,5 +1,8 @@
 #!/usr/bin/env ts-node
 
+import * as dotenv from 'dotenv';
+dotenv.config({ path: '.env' });
+
 import colors from 'colors';
 import commander from 'commander';
 import { readFile, writeFile } from 'fs/promises';
@@ -30,17 +33,15 @@ usePackages()
 async function usePackages() {
     console.info(`🌍  Using packages`);
 
+    if (!process.env.USE_THIS_PACKAGE_PATHS) {
+        console.warn(colors.yellow(`Warning: USE_THIS_PACKAGE_PATHS not defined in environment`));
+    }
+
     let isWaitedForNpm = false;
     for (const remoteFolder of [
         // Note: Theese are the hardcoded folders where the packages are used for @hejny, maybe this should be in some config file
         './samples/usage',
-        '../../webgpt/webgpt-app',
-        '../../webgpt/promptbook-studio',
-        '../../webgpt/webgpt-app-ruka',
-        '../../webgpt/webgpt-sdk',
-        '../../webgpt/calculator',
-        '../../npi/sample',
-        '../../npi/vk',
+        ...(process.env.USE_THIS_PACKAGE_PATHS || '').split(','),
     ]) {
         const mainPackageJson = JSON.parse(await readFile('./package.json', 'utf-8')) as PackageJson;
         const currentVersion = mainPackageJson.version;
@@ -62,7 +63,7 @@ async function usePackages() {
         }
 
         await writeFile(remotePackageJsonPath, JSON.stringify(remotePackageJson, null, 4) + '\n');
-        console.info(colors.green(`Update version of @promptbook/* to ${currentVersion} in ${remotePackageJsonPath}`));
+        console.info(colors.blue(`Update version of @promptbook/* to ${currentVersion} in ${remotePackageJsonPath}`));
 
         // TODO: [🤣] Update in all places
 
@@ -95,4 +96,5 @@ async function usePackages() {
  * TODO: !! Add warning to the copy/used files
  * TODO: !! Use prettier to format the used files
  * TODO: !! Normalize order of keys in package.json
+ *
  */
