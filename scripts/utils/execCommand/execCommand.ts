@@ -31,7 +31,7 @@ export function execCommand(options: IExecCommandOptions): Promise<string> {
         console.info(colors.yellow(cwd) + ' ' + colors.green(command) + ' ' + colors.blue(args.join(' ')));
 
         try {
-            const commandProcess = spawn(command, args, { cwd });
+            const commandProcess = spawn(command, args, { cwd, shell: true });
 
             commandProcess.on('message', (message) => {
                 console.info({ message });
