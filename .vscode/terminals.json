@@ -147,7 +147,7 @@
         {
             "name": "🧸💡 Prepare knowledge from Markdown (playground) (💸)",
             "commands": [
-                "ts-node ./scripts/make-promptbook-library/make-promptbook-library.ts",
+                "ts-node ./scripts/make-promptbook-collection/make-promptbook-collection.ts",
                 "ts-node ./src/knowledge/prepare-knowledge/markdown/playground/markdown-knowledge-playground.ts"
             ],
             "onlySingle": true,
@@ -155,7 +155,7 @@
         },
         {
             "name": "📖 Make Promptbook library (💸)",
-            "command": "ts-node ./scripts/make-promptbook-library/make-promptbook-library.ts --commit",
+            "command": "ts-node ./scripts/make-promptbook-collection/make-promptbook-collection.ts --commit",
             "onlySingle": true,
             "focus": true
         },

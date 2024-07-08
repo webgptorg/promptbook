@@ -35,7 +35,7 @@ import { JavascriptExecutionTools } from '@promptbook/execute-javascript';
 import { OpenAiExecutionTools } from '@promptbook/openai';
 
 // ▶ Create whole Promptbook library
-const library = await createCollectionFromDirectory('./promptbook-library');
+const library = await createCollectionFromDirectory('./promptbook-collection');
 
 // ▶ Get one Promptbook
 const promptbook = await library.getPipelineByUrl(`https://promptbook.studio/my-library/write-article.ptbk.md`);
@@ -79,7 +79,7 @@ import { JavascriptExecutionTools } from '@promptbook/execute-javascript';
 import { OpenAiExecutionTools } from '@promptbook/openai';
 
 // ▶ Create whole Promptbook library
-const library = await createCollectionFromDirectory('./promptbook-library');
+const library = await createCollectionFromDirectory('./promptbook-collection');
 
 // ▶ Get one Promptbook
 const promptbook = await library.getPipelineByUrl(`https://promptbook.studio/my-library/write-article.ptbk.md`);

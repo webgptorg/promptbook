@@ -5,16 +5,16 @@ CLI utils for Promptbook. After install you can use `promptbook` command in term
 You can prebuild your own Promptbook library with `promptbook make` command:
 
 ```bash
-npx promptbook make ./promptbook-library --format typescript --verbose
+npx promptbook make ./promptbook-collection --format typescript --verbose
 ```
 
-This will emit `index.ts` with `getPipelineCollection` function file in `promptbook-library` directory.
+This will emit `index.ts` with `getPipelineCollection` function file in `promptbook-collection` directory.
 
 Then just use it:
 
 ```typescript
 import { createPromptbookExecutor, assertsExecutionSuccessful } from '@promptbook/core';
-import { getPipelineCollection } from './promptbook-library'; // <- Importing from pre-built library
+import { getPipelineCollection } from './promptbook-collection'; // <- Importing from pre-built library
 import { JavascriptExecutionTools } from '@promptbook/execute-javascript';
 import { OpenAiExecutionTools } from '@promptbook/openai';
 

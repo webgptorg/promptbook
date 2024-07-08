@@ -13,7 +13,7 @@ import type { PipelineCollection } from './PipelineCollection';
  * This implementation is a very thin wrapper around the Array / Map of promptbooks.
  *
  * @private use `createCollectionFromJson` instead
- * @see https://github.com/webgptorg/promptbook#promptbook-library
+ * @see https://github.com/webgptorg/promptbook#promptbook-collection
  */
 export class SimplePipelineCollection implements PipelineCollection {
     private library: Map<string_pipeline_url, PipelineJson>;

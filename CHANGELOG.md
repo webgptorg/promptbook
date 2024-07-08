@@ -354,7 +354,7 @@ Preparation for system for [management of external knowledge](https://github.com
 -   Misc Tool classes not requires options anymore _(like `CallbackInterfaceTools`, `OpenAiExecutionTools`, `AnthropicClaudeExecutionTools`, etc.)_
 -   Add util `libraryToJson` exported from `@promptbook/core`
 -   CLI util `promptbook make ...` can convert promptbooks to JSON
--   `promptbookStringToJson` automatically looks for `promptbook-library.json` in root of given directory
+-   `promptbookStringToJson` automatically looks for `promptbook-collection.json` in root of given directory
 -   Rename `validatePromptbookJson` to `validatePromptbook`
 -   Create `embed` method on LLM tools, `PromptEmbeddingResult`, `EmbeddingVector` and `embeddingVectorToString`
 -   `createLibraryFromDirectory` still DONT use prebuild library (just detects it)
@@ -373,6 +373,7 @@ Renaming and making names more consistent and less disambigous
     -   `gptChat` -> `callChatModel`
     -   `gptComplete` -> `callCompletionModel`
 -   Rename custom errors
+-   Rename folder `promptbook-collection` -> `promptbook-collection`
 
 ## In prepare
 

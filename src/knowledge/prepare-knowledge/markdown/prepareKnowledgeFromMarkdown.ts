@@ -1,7 +1,7 @@
 import spaceTrim from 'spacetrim';
 // TODO: [🏳‍🌈] Finally take pick of .json vs .ts
-import PipelineCollection from '../../../../promptbook-library/index.json';
-// import PipelineCollection from '../../../../promptbook-library/promptbook-library';
+import PipelineCollection from '../../../../promptbook-collection/index.json';
+// import PipelineCollection from '../../../../promptbook-collection/promptbook-collection';
 import { assertsExecutionSuccessful } from '../../../execution/assertsExecutionSuccessful';
 import { createPromptbookExecutor } from '../../../execution/createPromptbookExecutor';
 import type { LlmExecutionTools } from '../../../execution/LlmExecutionTools';

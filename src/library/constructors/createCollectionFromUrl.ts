@@ -48,7 +48,7 @@ export async function createCollectionFromUrl(
 
     // TODO: !!! [🏳‍🌈] Allow variant with .json .js and .ts files
     // TODO: [🧠][🏳‍🌈] .js and .ts files should create getter function for the library
-    // TODO: Look at WebGPT "📖 Make Promptbook library" and https://webgpt.cz/_promptbook-library.json
+    // TODO: Look at WebGPT "📖 Make Promptbook library" and https://webgpt.cz/_promptbook-collection.json
     // TODO: !! Implement via createCollectionFromPromise
 }
 

@@ -20,5 +20,5 @@
         "declaration": true,
         "outDir": "typings"
     },
-    "include": ["src", "promptbook-library"]
+    "include": ["src", "promptbook-collection"]
 }
