@@ -20,7 +20,7 @@
             // TODO: [🍓][🤣] !!! Auto update version
             import { RemoteLlmExecutionTools } from 'https://cdn.jsdelivr.net/npm/@promptbook/remote-client@0.40.0/+esm';
             import { JavascriptExecutionTools } from 'https://cdn.jsdelivr.net/npm/@promptbook/execute-javascript@0.40.0/+esm';
-            import { createLibraryFromJson } from 'https://cdn.jsdelivr.net/npm/@promptbook/core@0.40.0/+esm';
+            import { createCollectionFromJson } from 'https://cdn.jsdelivr.net/npm/@promptbook/core@0.40.0/+esm';
 
             const inputForm = document.getElementById('input');
             const outputElement = document.getElementById('output');
@@ -37,8 +37,8 @@
 
 
 
-                // TODO: [🍓][⚖] createLibraryFromUrl
-                const library = createLibraryFromJson(
+                // TODO: [🍓][⚖] createCollectionFromUrl
+                const library = createCollectionFromJson(
                     advanced
 
                 );

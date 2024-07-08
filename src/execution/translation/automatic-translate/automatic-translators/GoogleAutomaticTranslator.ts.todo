@@ -77,7 +77,7 @@ export class GoogleAutomaticTranslator implements AutomaticTranslator {
                 //console.log(translatedElement);
 
                 if (i++ > 100) {
-                    throw new PromptbookExecutionError('Can not find data-result-index on the page.');
+                    throw new ExecutionError('Can not find data-result-index on the page.');
                 }
             }
 

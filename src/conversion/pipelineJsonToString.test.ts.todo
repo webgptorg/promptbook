@@ -3,7 +3,7 @@ import { readdirSync, writeFileSync } from 'fs';
 import { join } from 'path';
 import { pipelineJsonToString } from './pipelineJsonToString';
 import { pipelineStringToJson } from './pipelineStringToJson';
-import { importPromptbook } from './validation/_importPromptbook';
+import { importPipeline } from './validation/_importPipeline';
 
 describe('pipelineJsonToString', () => {
     const samplesDir = '../../samples/templates';
@@ -17,7 +17,7 @@ describe('pipelineJsonToString', () => {
 
     for (const { name } of samples) {
         it(`convert json to string and back to same json ${name}`, () => {
-            const pipelineJson = importPromptbook(name as `${string}.ptbk.json`);
+            const pipelineJson = importPipeline(name as `${string}.ptbk.json`);
             const pipelineString = pipelineJsonToString(pipelineJson);
             const pipelineJson2 = await pipelineStringToJson(pipelineString, /* , { Use here mocked LLM } */);
 

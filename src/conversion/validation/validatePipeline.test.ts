@@ -3,10 +3,10 @@ import { readdirSync } from 'fs';
 import { join } from 'path';
 import { spaceTrim } from 'spacetrim';
 import { pipelineStringToJson } from '../pipelineStringToJson';
-import { importPromptbook } from './_importPromptbook';
-import { validatePromptbook } from './validatePromptbook';
+import { importPipeline } from './_importPipeline';
+import { validatePipeline } from './validatePipeline';
 
-describe('validatePromptbook', () => {
+describe('validatePipeline', () => {
     const samplesDir = '../../../samples/templates';
     const samples = readdirSync(join(__dirname, samplesDir), { withFileTypes: true, recursive: false })
         //                         <- Note: In production it is not good practice to use synchronous functions
@@ -20,9 +20,9 @@ describe('validatePromptbook', () => {
             expect(
                 (async () => {
                     try {
-                        const pipelineString = importPromptbook(name as `${string}.ptbk.md`);
+                        const pipelineString = importPipeline(name as `${string}.ptbk.md`);
                         const pipelineJson = await pipelineStringToJson(pipelineString);
-                        validatePromptbook(pipelineJson);
+                        validatePipeline(pipelineJson);
                     } catch (error) {
                         if (!(error instanceof Error)) {
                             throw error;

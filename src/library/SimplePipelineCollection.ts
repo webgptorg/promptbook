@@ -1,37 +1,37 @@
 import { spaceTrim } from 'spacetrim';
 import { pipelineJsonToString } from '../conversion/pipelineJsonToString';
-import { validatePromptbook } from '../conversion/validation/validatePromptbook';
-import { PromptbookNotFoundError } from '../errors/PromptbookNotFoundError';
-import { PromptbookReferenceError } from '../errors/PromptbookReferenceError';
+import { validatePipeline } from '../conversion/validation/validatePipeline';
+import { NotFoundError } from '../errors/NotFoundError';
+import { ReferenceError } from '../errors/ReferenceError';
 import type { PipelineJson } from '../types/PipelineJson/PipelineJson';
 import type { Prompt } from '../types/Prompt';
-import type { string_promptbook_url } from '../types/typeAliases';
-import type { PromptbookLibrary } from './PromptbookLibrary';
+import type { string_pipeline_url } from '../types/typeAliases';
+import type { PipelineCollection } from './PipelineCollection';
 
 /**
  * Library of promptbooks that groups together promptbooks for an application.
  * This implementation is a very thin wrapper around the Array / Map of promptbooks.
  *
- * @private use `createLibraryFromJson` instead
+ * @private use `createCollectionFromJson` instead
  * @see https://github.com/webgptorg/promptbook#promptbook-library
  */
-export class SimplePromptbookLibrary implements PromptbookLibrary {
-    private library: Map<string_promptbook_url, PipelineJson>;
+export class SimplePipelineCollection implements PipelineCollection {
+    private library: Map<string_pipeline_url, PipelineJson>;
 
     /**
      * Constructs a promptbook library from promptbooks
      *
      * @param promptbooks !!!
      *
-     * @private Use instead `createLibraryFromJson`
+     * @private Use instead `createCollectionFromJson`
      * Note: During the construction logic of all promptbooks are validated
-     * Note: It is not recommended to use this constructor directly, use `createLibraryFromJson` *(or other variant)* instead
+     * Note: It is not recommended to use this constructor directly, use `createCollectionFromJson` *(or other variant)* instead
      */
     public constructor(...promptbooks: Array<PipelineJson>) {
-        this.library = new Map<string_promptbook_url, PipelineJson>();
+        this.library = new Map<string_pipeline_url, PipelineJson>();
         for (const promptbook of promptbooks) {
             if (promptbook.promptbookUrl === undefined) {
-                throw new PromptbookReferenceError(
+                throw new ReferenceError(
                     spaceTrim(`
                         Promptbook with name "${promptbook.title}" does not have defined URL
 
@@ -43,14 +43,14 @@ export class SimplePromptbookLibrary implements PromptbookLibrary {
                 );
             }
 
-            validatePromptbook(promptbook);
+            validatePipeline(promptbook);
 
             // Note: [🦄]
             if (
                 this.library.has(promptbook.promptbookUrl) &&
                 pipelineJsonToString(promptbook) !== pipelineJsonToString(this.library.get(promptbook.promptbookUrl)!)
             ) {
-                throw new PromptbookReferenceError(
+                throw new ReferenceError(
                     spaceTrim(`
                         Promptbook with URL "${promptbook.promptbookUrl}" is already in the library
 
@@ -68,7 +68,7 @@ export class SimplePromptbookLibrary implements PromptbookLibrary {
     /**
      * Gets all promptbooks in the library
      */
-    public listPromptbooks(): Array<string_promptbook_url> {
+    public listPipelines(): Array<string_pipeline_url> {
         return Array.from(this.library.keys());
     }
 
@@ -77,11 +77,11 @@ export class SimplePromptbookLibrary implements PromptbookLibrary {
      *
      * Note: This is not a direct fetching from the URL, but a lookup in the library
      */
-    public getPromptbookByUrl(url: string_promptbook_url): PipelineJson {
+    public getPipelineByUrl(url: string_pipeline_url): PipelineJson {
         const promptbook = this.library.get(url);
         if (!promptbook) {
-            if (this.listPromptbooks().length === 0) {
-                throw new PromptbookNotFoundError(
+            if (this.listPipelines().length === 0) {
+                throw new NotFoundError(
                     spaceTrim(
                         `
                             Promptbook with url "${url}" not found
@@ -92,14 +92,14 @@ export class SimplePromptbookLibrary implements PromptbookLibrary {
                 );
             }
 
-            throw new PromptbookNotFoundError(
+            throw new NotFoundError(
                 spaceTrim(
                     (block) => `
                         Promptbook with url "${url}" not found
 
                         Available promptbooks:
                         ${block(
-                            this.listPromptbooks()
+                            this.listPipelines()
                                 .map((promptbookUrl) => `- ${promptbookUrl}`)
                                 .join('\n'),
                         )}

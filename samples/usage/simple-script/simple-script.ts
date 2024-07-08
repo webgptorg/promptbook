@@ -2,7 +2,7 @@
 
 import { assertsExecutionSuccessful, createPromptbookExecutor, executionReportJsonToString } from '@promptbook/core';
 import { JavascriptExecutionTools } from '@promptbook/execute-javascript';
-import { createLibraryFromDirectory } from '@promptbook/node';
+import { createCollectionFromDirectory } from '@promptbook/node';
 import { OpenAiExecutionTools } from '@promptbook/openai';
 import colors from 'colors';
 import * as dotenv from 'dotenv';
@@ -20,11 +20,11 @@ main();
 async function main() {
     console.info(colors.bgWhite('⚪ Testing basic capabilities of Promptbook'));
 
-    const library = await createLibraryFromDirectory('./samples/templates/', {
+    const library = await createCollectionFromDirectory('./samples/templates/', {
         isRecursive: false,
         isCrashOnError: true,
     });
-    const promptbook = await library.getPromptbookByUrl(
+    const promptbook = await library.getPipelineByUrl(
         `https://promptbook.example.com/samples/simple.ptbk.md`,
         // `https://promptbook.example.com/samples/language-capabilities.ptbk.md`,
     );
@@ -71,7 +71,7 @@ async function main() {
 
 /**
  * TODO: There should be no need to set this script or userInterface in tools
- * TODO: Implement and use here PromptbookLibrary.fromDirectory (directory vs folder)
+ * TODO: Implement and use here PipelineCollection.fromDirectory (directory vs folder)
  * TODO: [🧠] Maybe make .js version of simple-script
  * TODO: [🧙‍♂️] Make sample with Wizzard supersimple-script.ts
  */

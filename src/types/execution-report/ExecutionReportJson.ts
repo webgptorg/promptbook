@@ -1,8 +1,6 @@
 import type { PromptResult } from '../../execution/PromptResult';
 import type { Prompt } from '../Prompt';
-import type { string_markdown_text } from '../typeAliases';
-import type { string_promptbook_url } from '../typeAliases';
-import type { string_version } from '../typeAliases';
+import type { string_markdown_text, string_pipeline_url, string_version } from '../typeAliases';
 
 /**
  * ExecutionReport is result of executing one promptbook
@@ -18,7 +16,7 @@ export type ExecutionReportJson = {
     /**
      * Unique identifier of the promptbook from promptbook which was executed
      */
-    readonly promptbookUrl?: string_promptbook_url;
+    readonly promptbookUrl?: string_pipeline_url;
 
     /**
      * Title of from promptbook which was executed

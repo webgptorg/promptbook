@@ -1,12 +1,12 @@
 import { spaceTrim } from 'spacetrim';
-import { PromptbookExecutionError } from '../errors/PromptbookExecutionError';
+import { ExecutionError } from '../errors/ExecutionError';
 import type { PromptbookExecutor } from './PromptbookExecutor';
 
 /**
  * Asserts that the execution of a promptnook is successful
  *
  * @param executionResult - The partial result of the promptnook execution
- * @throws {PromptbookExecutionError} If the execution is not successful or if multiple errors occurred
+ * @throws {ExecutionError} If the execution is not successful or if multiple errors occurred
  */
 export function assertsExecutionSuccessful(
     executionResult: Pick<Awaited<ReturnType<PromptbookExecutor>>, 'isSuccessful' | 'errors'>,
@@ -17,11 +17,11 @@ export function assertsExecutionSuccessful(
         return;
     }
     if (errors.length === 0) {
-        throw new PromptbookExecutionError(`Promptnook Execution failed because of unknown reason`);
+        throw new ExecutionError(`Promptnook Execution failed because of unknown reason`);
     } else if (errors.length === 1) {
         throw errors[0];
     } else {
-        throw new PromptbookExecutionError(
+        throw new ExecutionError(
             spaceTrim(
                 (block) => `
                     Multiple errors occurred during promptnook execution

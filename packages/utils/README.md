@@ -1,23 +1,16 @@
 # ![Promptbook logo - cube with letters P and B](./other/design/logo-h1.png) Promptbook
 
-Library to supercharge your use of large language models
-
-
-
+Supercharge your use of large language models
 
 [![NPM Version of ![Promptbook logo - cube with letters P and B](./other/design/logo-h1.png) Promptbook](https://badge.fury.io/js/promptbook.svg)](https://www.npmjs.com/package/promptbook)
 [![Quality of package ![Promptbook logo - cube with letters P and B](./other/design/logo-h1.png) Promptbook](https://packagequality.com/shield/promptbook.svg)](https://packagequality.com/#?package=promptbook)
 [![Known Vulnerabilities](https://snyk.io/test/github/webgptorg/promptbook/badge.svg)](https://snyk.io/test/github/webgptorg/promptbook)
 [![Issues](https://img.shields.io/github/issues/webgptorg/promptbook.svg?style=flat)](https://github.com/webgptorg/promptbook/issues)
 
-
-
-
-
 ## 📦 Package `@promptbook/utils`
 
-- Promptbooks are [divided into several](#-packages) packages, all are published from [single monorepo](https://github.com/webgptorg/promptbook).
-- This package `@promptbook/utils` is one part of the promptbook ecosystem.
+-   Promptbooks are [divided into several](#-packages) packages, all are published from [single monorepo](https://github.com/webgptorg/promptbook).
+-   This package `@promptbook/utils` is one part of the promptbook ecosystem.
 
 To install this package, run:
 
@@ -143,8 +136,6 @@ console.log(normalizeTo['kebab-case']('Hello, world!')); // 'hello-world'
 
 See also the documentation for all the functions in the `@promptbook/utils` package, every function is documented by jsdoc, typed by typescript and tested by jest.
 
-
-
 `assertsExecutionSuccessful`,
 `checkExpectations`,
 `executionReportJsonToString`,
@@ -152,12 +143,9 @@ See also the documentation for all the functions in the `@promptbook/utils` pack
 `isValidJsonString`,
 `parseNumber`
 
-
 ---
 
 Rest of the documentation is common for **entire promptbook ecosystem**:
-
-
 
 ## 🤍 The Promptbook Whitepaper
 
@@ -191,13 +179,9 @@ In any of these situations, but especially in (3), the Promptbook library can ma
 -   _(Not ready yet)_ Leverage the **streaming** to make super cool UI/UX.
 -   _(Not ready yet)_ **A/B testing** to determine which prompt works best for the job.
 
-
-
 ### Sample:
 
 File `write-website-content.ptbk.md`:
-
-
 
 > # 🌍 Create website content
 >
@@ -368,8 +352,6 @@ File `write-website-content.ptbk.md`:
 >
 > `-> {content}`
 
-
-
 Following is the scheme how the promptbook above is executed:
 
 ```mermaid
@@ -432,8 +414,6 @@ Or you can install them separately:
 
 > ⭐ Marked packages are worth to try first
 
-
-
 -   ⭐ **[ptbk](https://www.npmjs.com/package/ptbk)** - Bundle of all packages, when you want to install everything and you don't care about the size
 -   **[promptbook](https://www.npmjs.com/package/promptbook)** - Same as `ptbk`
 -   **[@promptbook/core](https://www.npmjs.com/package/@promptbook/core)** - Core of the library, it contains the main logic for promptbooks
@@ -450,8 +430,6 @@ Or you can install them separately:
 -   **[@promptbook/remote-server](https://www.npmjs.com/package/@promptbook/remote-server)** - Remote server for remote execution of promptbooks
 -   **[@promptbook/types](https://www.npmjs.com/package/@promptbook/types)** - Just typescript types used in the library
 -   **[@promptbook/cli](https://www.npmjs.com/package/@promptbook/cli)** - Command line interface utilities for promptbooks
-
-
 
 ## 📚 Dictionary
 
@@ -575,8 +553,6 @@ For example:
 
 ### Execution Tools
 
-
-
 `ExecutionTools` is an interface which contains all the tools needed to execute prompts.
 It contais 3 subtools:
 
@@ -691,17 +667,11 @@ There are two types of expectations which are not strictly symmetrical:
 
 Look at [expectations.ptbk.md](samples/templates/45-expectations.ptbk.md) and [expect-json.ptbk.md](samples/templates/45-expect-json.ptbk.md) samples for more.
 
-
-
 ### Execution report
 
 Execution report is a simple object or markdown that contains information about the execution of the promptbook.
 
 [See the example of such a report](/samples/templates/50-advanced.report.md)
-
-
-
-
 
 ### Remote server
 
@@ -711,8 +681,6 @@ You can simply use `RemoteExecutionTools` on client-side javascript and connect 
 This is useful to make all logic on browser side but not expose your API keys or no need to use customer's GPU.
 
 ## 👨‍💻 Usage and integration _(for developers)_
-
-
 
 ### 🔌 Usage in Typescript / Javascript
 
@@ -737,11 +705,7 @@ This is useful to make all logic on browser side but not expose your API keys or
 
 ## 🐜 Known issues
 
-
-
 ## 🧼 Intentionally not implemented features
-
-
 
 ## ❔ FAQ
 
@@ -757,25 +721,9 @@ Langchain is primarily aimed at ML developers working in Python. This library is
 
 We are considering creating a bridge/converter between these two libraries.
 
-
-
 ### Promptbooks vs. OpenAI`s GPTs
 
 GPTs are chat assistants that can be assigned to specific tasks and materials. But they are still chat assistants. Promptbooks are a way to orchestrate many more predefined tasks to have much tighter control over the process. Promptbooks are not a good technology for creating human-like chatbots, GPTs are not a good technology for creating outputs with specific requirements.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 ### Where should I store my promptbooks?
 
@@ -797,10 +745,6 @@ In large language models, you will get better results if you have prompts in the
 
 The best way to manage this is to have suffixed promptbooks like `write-website-content.en.ptbk.md` and `write-website-content.cs.ptbk.md` for each supported language.
 
-
-
-
-
 ## ⌚ Changelog
 
 See [CHANGELOG.md](./CHANGELOG.md)
@@ -812,9 +756,6 @@ See [CHANGELOG.md](./CHANGELOG.md)
 ## 🎯 Todos
 
 See [TODO.md](./TODO.md)
-
-
-
 
 ## 🖋️ Contributing
 

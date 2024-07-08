@@ -4,19 +4,19 @@ import { join } from 'path';
 import spaceTrim from 'spacetrim';
 import { PROMPTBOOK_MAKED_BASE_FILENAME } from '../../config';
 import { pipelineStringToJson } from '../../conversion/pipelineStringToJson';
-import { validatePromptbook } from '../../conversion/validation/validatePromptbook';
-import { PromptbookLibraryError } from '../../errors/PromptbookLibraryError';
+import { validatePipeline } from '../../conversion/validation/validatePipeline';
+import { CollectionError } from '../../errors/CollectionError';
 import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import type { PipelineString } from '../../types/PipelineString';
 import type { string_file_path, string_folder_path } from '../../types/typeAliases';
 import { isRunningInNode } from '../../utils/isRunningInWhatever';
-import type { PromptbookLibrary } from '../PromptbookLibrary';
-import { createLibraryFromPromise } from './createLibraryFromPromise';
+import type { PipelineCollection } from '../PipelineCollection';
+import { createCollectionFromPromise } from './createCollectionFromPromise';
 
 /**
- * Options for `createLibraryFromDirectory` function
+ * Options for `createCollectionFromDirectory` function
  */
-type CreatePromptbookLibraryFromDirectoryOptions = {
+type CreatePipelineCollectionFromDirectoryOptions = {
     /**
      * If true, the directory is searched recursively for promptbooks
      *
@@ -54,15 +54,15 @@ type CreatePromptbookLibraryFromDirectoryOptions = {
  *
  * @param path - path to the directory with promptbooks
  * @param options - Misc options for the library
- * @returns PromptbookLibrary
+ * @returns PipelineCollection
  */
-export async function createLibraryFromDirectory(
+export async function createCollectionFromDirectory(
     path: string_folder_path,
-    options?: CreatePromptbookLibraryFromDirectoryOptions,
-): Promise<PromptbookLibrary> {
+    options?: CreatePipelineCollectionFromDirectoryOptions,
+): Promise<PipelineCollection> {
     if (!isRunningInNode()) {
         throw new Error(
-            'Function `createLibraryFromDirectory` can only be run in Node.js environment because it reads the file system.',
+            'Function `createCollectionFromDirectory` can only be run in Node.js environment because it reads the file system.',
         );
     }
 
@@ -84,7 +84,7 @@ export async function createLibraryFromDirectory(
 
     const { isRecursive = true, isVerbose = false, isLazyLoaded = false, isCrashOnError = true } = options || {};
 
-    const library = createLibraryFromPromise(async () => {
+    const library = createCollectionFromPromise(async () => {
         if (isVerbose) {
             console.info(`Creating promptbook library from path ${path.split('\\').join('/')}`);
         }
@@ -128,10 +128,10 @@ export async function createLibraryFromDirectory(
                         if (!isCrashOnError) {
                             // Note: Validate promptbook to check if it is logically correct to not crash on invalid promptbooks
                             //       But be handled in current try-catch block
-                            validatePromptbook(promptbook);
+                            validatePipeline(promptbook);
                         }
 
-                        // Note: [🦄] Promptbook with same url uniqueness will be checked automatically in SimplePromptbookLibrary
+                        // Note: [🦄] Promptbook with same url uniqueness will be checked automatically in SimplePipelineCollection
                         promptbooks.push(promptbook);
                     }
                 }
@@ -150,7 +150,7 @@ export async function createLibraryFromDirectory(
                 );
 
                 if (isCrashOnError) {
-                    throw new PromptbookLibraryError(wrappedErrorMessage);
+                    throw new CollectionError(wrappedErrorMessage);
                 }
 
                 console.error(wrappedErrorMessage);
@@ -161,7 +161,7 @@ export async function createLibraryFromDirectory(
     });
 
     if (isLazyLoaded === false) {
-        await library.listPromptbooks();
+        await library.listPipelines();
     }
 
     return library;
@@ -173,7 +173,7 @@ export async function createLibraryFromDirectory(
  * @param path
  * @param isRecursive
  * @returns List of all files in the directory
- * @private internal function for `createLibraryFromDirectory`
+ * @private internal function for `createCollectionFromDirectory`
  */
 async function listAllFiles(path: string_folder_path, isRecursive: boolean): Promise<Array<string_file_path>> {
     const dirents = await readdir(path, {

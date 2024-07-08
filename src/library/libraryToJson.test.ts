@@ -2,10 +2,10 @@ import { describe, expect, it } from '@jest/globals';
 import spaceTrim from 'spacetrim';
 import { pipelineStringToJson } from '../conversion/pipelineStringToJson';
 import type { PipelineString } from '../types/PipelineString';
-import { createLibraryFromJson } from './constructors/createLibraryFromJson';
+import { createCollectionFromJson } from './constructors/createCollectionFromJson';
 import { libraryToJson } from './libraryToJson';
 
-describe('createLibraryFromJson', () => {
+describe('createCollectionFromJson', () => {
     const pipelineString = spaceTrim(`
             # Sample prompt
 
@@ -35,7 +35,7 @@ describe('createLibraryFromJson', () => {
     it('should get promptbook by url from library', async () => {
         expect.assertions(1);
         const promptbook = await pipelineStringToJson(pipelineString);
-        const library = createLibraryFromJson(promptbook);
+        const library = createCollectionFromJson(promptbook);
         const libraryJson = await libraryToJson(library);
         expect([promptbook]).toEqual(libraryJson);
     });

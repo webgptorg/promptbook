@@ -1,13 +1,12 @@
 import { spaceTrim } from 'spacetrim';
-import { PromptbookSyntaxError } from '../../errors/PromptbookSyntaxError';
-import type { string_javascript } from '../../types/typeAliases';
-import type { string_javascript_name } from '../../types/typeAliases';
+import { SyntaxError } from '../../errors/SyntaxError';
+import type { string_javascript, string_javascript_name } from '../../types/typeAliases';
 /**
  * Parses the given script and returns the list of all used variables that are not defined in the script
  *
  * @param script from which to extract the variables
  * @returns the list of variable names
- * @throws {PromptbookSyntaxError} if the script is invalid
+ * @throws {SyntaxError} if the script is invalid
  */
 export function extractVariables(script: string_javascript): Set<string_javascript_name> {
     const variables = new Set<string_javascript_name>();
@@ -45,7 +44,7 @@ export function extractVariables(script: string_javascript): Set<string_javascri
             throw error;
         }
 
-        throw new PromptbookSyntaxError(
+        throw new SyntaxError(
             spaceTrim(
                 (block) => `
                     Can not extract variables from the script

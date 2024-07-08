@@ -3,9 +3,9 @@ import spaceTrim from 'spacetrim';
 import { pipelineStringToJson } from '../../conversion/pipelineStringToJson';
 import type { PipelineString } from '../../types/PipelineString';
 import { just } from '../../utils/just';
-import { createLibraryFromDirectory } from './createLibraryFromDirectory';
+import { createCollectionFromDirectory } from './createCollectionFromDirectory';
 
-describe('createLibraryFromDirectory', () => {
+describe('createCollectionFromDirectory', () => {
     const promptbook = spaceTrim(`
           # ✨ Sample prompt with URL
 
@@ -29,12 +29,12 @@ describe('createLibraryFromDirectory', () => {
 
     it('should get promptbook by url from library', async () => {
         expect.assertions(1);
-        const library = await createLibraryFromDirectory('./samples/templates', {
+        const library = await createCollectionFromDirectory('./samples/templates', {
             isVerbose: true,
             isRecursive: false,
             isLazyLoaded: false,
         });
-        const promptbookFromLibrary = await library.getPromptbookByUrl(
+        const promptbookFromLibrary = await library.getPipelineByUrl(
             'https://promptbook.example.com/samples/simple.ptbk.md',
         );
 
@@ -44,12 +44,12 @@ describe('createLibraryFromDirectory', () => {
     it('should get lazy-loaded promptbook by url from library', async () => {
         expect.assertions(1);
 
-        const library = await createLibraryFromDirectory('./samples/templates', {
+        const library = await createCollectionFromDirectory('./samples/templates', {
             isVerbose: true,
             isRecursive: false,
             isLazyLoaded: true,
         });
-        const promptbookFromLibrary = await library.getPromptbookByUrl(
+        const promptbookFromLibrary = await library.getPipelineByUrl(
             'https://promptbook.example.com/samples/simple.ptbk.md',
         );
 
@@ -59,11 +59,11 @@ describe('createLibraryFromDirectory', () => {
     it('should get different promptbook by url from library', async () => {
         expect.assertions(1);
 
-        const library = await createLibraryFromDirectory('./samples/templates', {
+        const library = await createCollectionFromDirectory('./samples/templates', {
             isVerbose: true,
             isRecursive: false,
         });
-        const promptbookFromLibrary = await library.getPromptbookByUrl(
+        const promptbookFromLibrary = await library.getPipelineByUrl(
             'https://promptbook.example.com/samples/jokers.ptbk.md',
         );
 
@@ -73,7 +73,7 @@ describe('createLibraryFromDirectory', () => {
     it('should NOT crash when include error promptbooks but lazy-loaded', () =>
         expect(
             (async () => {
-                const library = await createLibraryFromDirectory('./samples/templates', {
+                const library = await createCollectionFromDirectory('./samples/templates', {
                     isVerbose: true,
                     isRecursive: true /* <- Note: Include Errors */,
                     isLazyLoaded: true,
@@ -85,7 +85,7 @@ describe('createLibraryFromDirectory', () => {
     it('should crash when include error promptbooks', () =>
         expect(
             (async () => {
-                const library = await createLibraryFromDirectory('./samples/templates', {
+                const library = await createCollectionFromDirectory('./samples/templates', {
                     isVerbose: true,
                     isRecursive: true /* <- Note: Include Errors */,
                     isLazyLoaded: false,
@@ -99,11 +99,11 @@ describe('createLibraryFromDirectory', () => {
     it('should find promptbook in subdirectory', () =>
         expect(
             (async () => {
-              const library = await   createLibraryFromDirectory('./samples/templates', {
+              const library = await   createCollectionFromDirectory('./samples/templates', {
                     isVerbose: true,
                     isRecursive: false,
                 });
-                const promptbookFromLibrary = await library.getPromptbookByUrl(
+                const promptbookFromLibrary = await library.getPipelineByUrl(
                     'https://promptbook.webgpt.com/en/write-website-content.ptbk.md',
                 );
                 return promptbookFromLibrary.title;

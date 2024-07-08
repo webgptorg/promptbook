@@ -3,7 +3,7 @@ import type { MarkdownStructure } from './MarkdownStructure';
 /**
  * Computes the deepness of the markdown structure.
  *
- * @private within the library
+ * @private within the package
  */
 export function countMarkdownStructureDeepness(markdownStructure: MarkdownStructure): number {
     let maxDeepness = 0;

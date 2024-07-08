@@ -1,8 +1,7 @@
 import type { CommonExecutionToolsOptions } from '../../../execution/CommonExecutionToolsOptions';
 import type { LlmExecutionTools } from '../../../execution/LlmExecutionTools';
-import type { PromptbookLibrary } from '../../../library/PromptbookLibrary';
-import type { client_id } from '../../../types/typeAliases';
-import type { string_uri } from '../../../types/typeAliases';
+import type { PipelineCollection } from '../../../library/PipelineCollection';
+import type { client_id, string_uri } from '../../../types/typeAliases';
 
 export type RemoteServerOptions = CommonExecutionToolsOptions & {
     /**
@@ -23,7 +22,7 @@ export type RemoteServerOptions = CommonExecutionToolsOptions & {
      *
      * This is used to checkl validity of the prompt to prevent DDoS
      */
-    readonly library: PromptbookLibrary;
+    readonly library: PipelineCollection;
 
     /**
      * Creates llm execution tools for each client

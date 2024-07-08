@@ -9,6 +9,6 @@ export const LOOP_LIMIT = 1000;
 export const CHARACTER_LOOP_LIMIT = 100000;
 
 /**
- * The name of the builded promptbook library made by CLI `promptbook make` and for lookup in `createLibraryFromDirectory`
+ * The name of the builded promptbook library made by CLI `promptbook make` and for lookup in `createCollectionFromDirectory`
  */
 export const PROMPTBOOK_MAKED_BASE_FILENAME = `index`;

@@ -6,7 +6,7 @@ import type { string_char_emoji } from '../types/typeAliasEmoji';
  *
  * @see https://getemoji.com/
  *
- * @private within the library
+ * @private within the package
  * @deprecated Use /\p{Extended_Pictographic}/ instead
  */
 export const EMOJIS_IN_CATEGORIES: Record<string, Array<string_char_emoji>> = {
@@ -117,7 +117,7 @@ export const EMOJIS_IN_CATEGORIES: Record<string, Array<string_char_emoji>> = {
  *
  * All possible emoji chars like "🍆", "🍡", "🍤"...
  *
- * @private within the library
+ * @private within the package
  * @deprecated Use /\p{Extended_Pictographic}/ instead
  */
 export const EMOJIS: Set<string_char_emoji> = new Set(Object.values(EMOJIS_IN_CATEGORIES).flat());

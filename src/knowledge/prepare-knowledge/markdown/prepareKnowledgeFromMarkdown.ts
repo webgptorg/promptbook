@@ -1,11 +1,11 @@
 import spaceTrim from 'spacetrim';
 // TODO: [🏳‍🌈] Finally take pick of .json vs .ts
-import promptbookLibrary from '../../../../promptbook-library/index.json';
-// import promptbookLibrary from '../../../../promptbook-library/promptbook-library';
+import PipelineCollection from '../../../../promptbook-library/index.json';
+// import PipelineCollection from '../../../../promptbook-library/promptbook-library';
 import { assertsExecutionSuccessful } from '../../../execution/assertsExecutionSuccessful';
 import { createPromptbookExecutor } from '../../../execution/createPromptbookExecutor';
 import type { LlmExecutionTools } from '../../../execution/LlmExecutionTools';
-import { createLibraryFromJson } from '../../../library/constructors/createLibraryFromJson';
+import { createCollectionFromJson } from '../../../library/constructors/createCollectionFromJson';
 import type { KnowledgeJson } from '../../../types/PipelineJson/KnowledgeJson';
 import type { PipelineJson } from '../../../types/PipelineJson/PipelineJson';
 import type {
@@ -42,9 +42,9 @@ export async function prepareKnowledgeFromMarkdown(
 ): Promise<KnowledgeJson> {
     const { content, llmTools, isVerbose = false } = options;
 
-    // TODO: [🌼] In future use `promptbook make` and maked getPromptbookLibrary
-    const library = createLibraryFromJson(...(promptbookLibrary as Array<PipelineJson>));
-    const prepareKnowledgeFromMarkdownPromptbook = await library.getPromptbookByUrl(
+    // TODO: [🌼] In future use `promptbook make` and maked getPipelineCollection
+    const library = createCollectionFromJson(...(PipelineCollection as Array<PipelineJson>));
+    const prepareKnowledgeFromMarkdownPromptbook = await library.getPipelineByUrl(
         'https://promptbook.studio/promptbook/prepare-knowledge-from-markdown.ptbk.md',
     );
 
@@ -58,7 +58,7 @@ export async function prepareKnowledgeFromMarkdown(
         },
     });
 
-    const prepareKeywordsPromptbook = await library.getPromptbookByUrl(
+    const prepareKeywordsPromptbook = await library.getPipelineByUrl(
         'https://promptbook.studio/promptbook/prepare-keywords.ptbk.md',
     );
 

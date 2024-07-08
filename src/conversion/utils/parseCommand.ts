@@ -1,5 +1,5 @@
 import { spaceTrim } from 'spacetrim';
-import { PromptbookSyntaxError } from '../../errors/PromptbookSyntaxError';
+import { SyntaxError } from '../../errors/SyntaxError';
 import type {
     Command,
     ExecuteCommand,
@@ -24,13 +24,13 @@ import { parseNumber } from './parseNumber';
  * Parses one line of ul/ol to command
  *
  * @returns parsed command object
- * @throws {PromptbookSyntaxError} if the command is invalid
+ * @throws {SyntaxError} if the command is invalid
  *
  * @private within the pipelineStringToJson
  */
 export function parseCommand(listItem: string_markdown_text): Command {
     if (listItem.includes('\n') || listItem.includes('\r')) {
-        throw new PromptbookSyntaxError('Command can not contain new line characters:');
+        throw new SyntaxError('Command can not contain new line characters:');
     }
 
     let type = listItem.trim();
@@ -62,7 +62,7 @@ export function parseCommand(listItem: string_markdown_text): Command {
         type.startsWith('HTTPS')
     ) {
         if (!(listItemParts.length === 2 || (listItemParts.length === 1 && type.startsWith('HTTPS')))) {
-            throw new PromptbookSyntaxError(
+            throw new SyntaxError(
                 spaceTrim(
                     `
                         Invalid PROMPTBOOK_URL command:
@@ -77,7 +77,7 @@ export function parseCommand(listItem: string_markdown_text): Command {
         const promptbookUrl = new URL(promptbookUrlString);
 
         if (promptbookUrl.protocol !== 'https:') {
-            throw new PromptbookSyntaxError(
+            throw new SyntaxError(
                 spaceTrim(
                     `
                         Invalid PROMPTBOOK_URL command:
@@ -91,7 +91,7 @@ export function parseCommand(listItem: string_markdown_text): Command {
         }
 
         if (promptbookUrl.hash !== '') {
-            throw new PromptbookSyntaxError(
+            throw new SyntaxError(
                 spaceTrim(
                     `
                         Invalid PROMPTBOOK_URL command:
@@ -111,7 +111,7 @@ export function parseCommand(listItem: string_markdown_text): Command {
         } satisfies PromptbookUrlCommand;
     } else if (type.startsWith('PROMPTBOOK_VERSION') || type.startsWith('PTBK_VERSION')) {
         if (listItemParts.length !== 2) {
-            throw new PromptbookSyntaxError(
+            throw new SyntaxError(
                 spaceTrim(
                     `
                         Invalid PROMPTBOOK_VERSION command:
@@ -138,7 +138,7 @@ export function parseCommand(listItem: string_markdown_text): Command {
         const executionTypes = ExecutionTypes.filter((executionType) => type.includes(executionType));
 
         if (executionTypes.length !== 1) {
-            throw new PromptbookSyntaxError(
+            throw new SyntaxError(
                 spaceTrim(
                     (block) => `
                         Unknown execution type in command:
@@ -172,7 +172,7 @@ export function parseCommand(listItem: string_markdown_text): Command {
                     value: 'COMPLETION',
                 } satisfies ModelCommand;
             } else {
-                throw new PromptbookSyntaxError(
+                throw new SyntaxError(
                     spaceTrim(
                         (block) => `
                             Unknown model variant in command:
@@ -193,7 +193,7 @@ export function parseCommand(listItem: string_markdown_text): Command {
                 value: listItemParts.pop()!,
             } satisfies ModelCommand;
         } else {
-            throw new PromptbookSyntaxError(
+            throw new SyntaxError(
                 spaceTrim(
                     (block) => `
                           Unknown model key in command:
@@ -225,7 +225,7 @@ export function parseCommand(listItem: string_markdown_text): Command {
         );
 
         if (!parametersMatch || !parametersMatch.groups || !parametersMatch.groups.parameterName) {
-            throw new PromptbookSyntaxError(
+            throw new SyntaxError(
                 spaceTrim(
                     `
                         Invalid parameter in command:
@@ -240,7 +240,7 @@ export function parseCommand(listItem: string_markdown_text): Command {
         const { parameterName, parameterDescription } = parametersMatch.groups as any;
 
         if (parameterDescription && parameterDescription.match(/\{(?<parameterName>[a-z0-9_]+)\}/im)) {
-            throw new PromptbookSyntaxError(
+            throw new SyntaxError(
                 spaceTrim(
                     `
                         Parameter {${parameterName}} can not contain another parameter in description:
@@ -268,7 +268,7 @@ export function parseCommand(listItem: string_markdown_text): Command {
         } satisfies ParameterCommand;
     } else if (type.startsWith('JOKER')) {
         if (listItemParts.length !== 2) {
-            throw new PromptbookSyntaxError(
+            throw new SyntaxError(
                 spaceTrim(
                     `
                 Invalid JOKER command:
@@ -282,7 +282,7 @@ export function parseCommand(listItem: string_markdown_text): Command {
         const parametersMatch = (listItemParts.pop() || '').match(/^\{(?<parameterName>[a-z0-9_]+)\}$/im);
 
         if (!parametersMatch || !parametersMatch.groups || !parametersMatch.groups.parameterName) {
-            throw new PromptbookSyntaxError(
+            throw new SyntaxError(
                 spaceTrim(
                     `
                       Invalid parameter in command:
@@ -302,7 +302,7 @@ export function parseCommand(listItem: string_markdown_text): Command {
         } satisfies JokerCommand;
     } else if (type.startsWith('POSTPROCESS') || type.startsWith('POST_PROCESS')) {
         if (listItemParts.length !== 2) {
-            throw new PromptbookSyntaxError(
+            throw new SyntaxError(
                 spaceTrim(
                     `
                 Invalid POSTPROCESSING command:
@@ -339,16 +339,16 @@ export function parseCommand(listItem: string_markdown_text): Command {
             } else if (/^max/i.test(signRaw)) {
                 sign = 'MAXIMUM';
             } else {
-                throw new PromptbookSyntaxError(`Invalid sign "${signRaw}", expected EXACTLY, MIN or MAX`);
+                throw new SyntaxError(`Invalid sign "${signRaw}", expected EXACTLY, MIN or MAX`);
             }
 
             const amountRaw = listItemParts.shift()!;
             const amount = parseNumber(amountRaw);
             if (amount < 0) {
-                throw new PromptbookSyntaxError('Amount must be positive number or zero');
+                throw new SyntaxError('Amount must be positive number or zero');
             }
             if (amount !== Math.floor(amount)) {
-                throw new PromptbookSyntaxError('Amount must be whole number');
+                throw new SyntaxError('Amount must be whole number');
             }
 
             const unitRaw = listItemParts.shift()!;
@@ -366,13 +366,13 @@ export function parseCommand(listItem: string_markdown_text): Command {
                     new RegExp(`^${unitRaw.toLowerCase()}`).test(existingUnitText.toLowerCase())
                 ) {
                     if (unit !== undefined) {
-                        throw new PromptbookSyntaxError(`Ambiguous unit "${unitRaw}"`);
+                        throw new SyntaxError(`Ambiguous unit "${unitRaw}"`);
                     }
                     unit = existingUnit;
                 }
             }
             if (unit === undefined) {
-                throw new PromptbookSyntaxError(`Invalid unit "${unitRaw}"`);
+                throw new SyntaxError(`Invalid unit "${unitRaw}"`);
             }
 
             return {
@@ -386,7 +386,7 @@ export function parseCommand(listItem: string_markdown_text): Command {
                 throw error;
             }
 
-            throw new PromptbookSyntaxError(
+            throw new SyntaxError(
                 spaceTrim(
                     `
                   Invalid EXPECT command; ${error.message}:
@@ -402,7 +402,7 @@ export function parseCommand(listItem: string_markdown_text): Command {
         // <- [🥻] Insert here when making new command
     */
     } else {
-        throw new PromptbookSyntaxError(
+        throw new SyntaxError(
             spaceTrim(
                 `
                     Unknown command:

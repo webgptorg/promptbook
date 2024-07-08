@@ -1,4 +1,4 @@
-import { PromptbookSyntaxError } from '../../errors/PromptbookSyntaxError';
+import { SyntaxError } from '../../errors/SyntaxError';
 
 /**
  * Function parseNumber will parse number from string
@@ -7,7 +7,7 @@ import { PromptbookSyntaxError } from '../../errors/PromptbookSyntaxError';
  * Note: it also works only with decimal numbers
  *
  * @returns parsed number
- * @throws {PromptbookSyntaxError} if the value is not a number
+ * @throws {SyntaxError} if the value is not a number
  *
  * @private within the parseCommand
  */
@@ -53,9 +53,7 @@ export function parseNumber(value: string | number): number {
         const denominator = parseNumber(denominator_!);
 
         if (denominator === 0) {
-            throw new PromptbookSyntaxError(
-                `Unable to parse number from "${originalValue}" because denominator is zero`,
-            );
+            throw new SyntaxError(`Unable to parse number from "${originalValue}" because denominator is zero`);
         }
 
         return numerator / denominator;
@@ -71,13 +69,13 @@ export function parseNumber(value: string | number): number {
     }
 
     if (!/^[0-9.]+$/.test(value) || value.split('.').length > 2) {
-        throw new PromptbookSyntaxError(`Unable to parse number from "${originalValue}"`);
+        throw new SyntaxError(`Unable to parse number from "${originalValue}"`);
     }
 
     const num = parseFloat(value);
 
     if (isNaN(num)) {
-        throw new PromptbookSyntaxError(`Unexpected NaN when parsing number from "${originalValue}"`);
+        throw new SyntaxError(`Unexpected NaN when parsing number from "${originalValue}"`);
     }
 
     return num;

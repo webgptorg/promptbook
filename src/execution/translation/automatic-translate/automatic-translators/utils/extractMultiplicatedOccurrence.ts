@@ -1,11 +1,10 @@
-import { PromptbookExecutionError } from '../../../../../errors/PromptbookExecutionError';
-
+import { ExecutionError } from '../../../../../errors/ExecutionError';
 
 /**
  *
  * @param message
  * @returns
- * @throws {PromptbookExecutionError} 
+ * @throws {ExecutionError}
  */
 export function extractMultiplicatedOccurrence(message: string): string {
     for (let subLength = 1; subLength < message.length / 2; subLength++) {
@@ -14,5 +13,5 @@ export function extractMultiplicatedOccurrence(message: string): string {
         }
     }
 
-    throw new PromptbookExecutionError(`Cannot extract multiplicated occurrence from "${message}"`);
+    throw new ExecutionError(`Cannot extract multiplicated occurrence from "${message}"`);
 }

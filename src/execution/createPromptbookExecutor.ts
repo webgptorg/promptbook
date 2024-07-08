@@ -1,8 +1,8 @@
 import { spaceTrim } from 'spacetrim';
 import type { Promisable } from 'type-fest';
 import { LOOP_LIMIT } from '../config';
-import { validatePromptbook } from '../conversion/validation/validatePromptbook';
-import { PromptbookExecutionError } from '../errors/PromptbookExecutionError';
+import { validatePipeline } from '../conversion/validation/validatePipeline';
+import { ExecutionError } from '../errors/ExecutionError';
 import { UnexpectedError } from '../errors/UnexpectedError';
 import { ExpectError } from '../errors/_ExpectError';
 import { isValidJsonString } from '../formats/json/utils/isValidJsonString';
@@ -53,13 +53,13 @@ interface CreatePromptbookExecutorOptions {
  * Creates executor function from promptbook and execution tools.
  *
  * @returns The executor function
- * @throws {PromptbookLogicError} on logical error in the promptbook
+ * @throws {PipelineLogicError} on logical error in the promptbook
  */
 export function createPromptbookExecutor(options: CreatePromptbookExecutorOptions): PromptbookExecutor {
     const { promptbook, tools, settings = {} } = options;
     const { maxExecutionAttempts = 3 } = settings;
 
-    validatePromptbook(promptbook);
+    validatePipeline(promptbook);
 
     const promptbookExecutor: PromptbookExecutor = async (
         inputParameters: Record<string_name, string>,
@@ -117,7 +117,7 @@ export function createPromptbookExecutor(options: CreatePromptbookExecutorOption
 
                 if (isJokerAttempt) {
                     if (typeof parametersToPass[joker!] === 'undefined') {
-                        throw new PromptbookExecutionError(`Joker parameter {${joker}} not defined`);
+                        throw new ExecutionError(`Joker parameter {${joker}} not defined`);
                     }
 
                     resultString = parametersToPass[joker!]!;
@@ -167,13 +167,13 @@ export function createPromptbookExecutor(options: CreatePromptbookExecutorOption
                                             }
 
                                             if (errors.length === 0) {
-                                                throw new PromptbookExecutionError(
+                                                throw new ExecutionError(
                                                     'Postprocessing in LlmExecutionTools failed because no ScriptExecutionTools were provided',
                                                 );
                                             } else if (errors.length === 1) {
                                                 throw errors[0];
                                             } else {
-                                                throw new PromptbookExecutionError(
+                                                throw new ExecutionError(
                                                     spaceTrim(
                                                         (block) => `
                                                         Postprocessing in LlmExecutionTools failed ${errors.length}x
@@ -202,7 +202,7 @@ export function createPromptbookExecutor(options: CreatePromptbookExecutorOption
                                         resultString = completionResult.content;
                                         break variant;
                                     default:
-                                        throw new PromptbookExecutionError(
+                                        throw new ExecutionError(
                                             `Unknown model variant "${
                                                 currentTemplate.modelRequirements!.modelVariant
                                             }"`,
@@ -213,10 +213,10 @@ export function createPromptbookExecutor(options: CreatePromptbookExecutorOption
 
                             case 'SCRIPT':
                                 if (tools.script.length === 0) {
-                                    throw new PromptbookExecutionError('No script execution tools are available');
+                                    throw new ExecutionError('No script execution tools are available');
                                 }
                                 if (!currentTemplate.contentLanguage) {
-                                    throw new PromptbookExecutionError(
+                                    throw new ExecutionError(
                                         `Script language is not defined for prompt template "${currentTemplate.name}"`,
                                     );
                                 }
@@ -251,7 +251,7 @@ export function createPromptbookExecutor(options: CreatePromptbookExecutorOption
                                 if (scriptExecutionErrors.length === 1) {
                                     throw scriptExecutionErrors[0];
                                 } else {
-                                    throw new PromptbookExecutionError(
+                                    throw new ExecutionError(
                                         spaceTrim(
                                             (block) => `
                                               Script execution failed ${scriptExecutionErrors.length} times
@@ -271,7 +271,7 @@ export function createPromptbookExecutor(options: CreatePromptbookExecutorOption
 
                             case 'PROMPT_DIALOG':
                                 if (tools.userInterface === undefined) {
-                                    throw new PromptbookExecutionError('User interface tools are not available');
+                                    throw new ExecutionError('User interface tools are not available');
                                 }
 
                                 // TODO: [🌹] When making next attempt for `PROMPT DIALOG`, preserve the previous user input
@@ -290,7 +290,7 @@ export function createPromptbookExecutor(options: CreatePromptbookExecutorOption
                                 break executionType;
 
                             default:
-                                throw new PromptbookExecutionError(
+                                throw new ExecutionError(
                                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
                                     `Unknown execution type "${(currentTemplate as any).executionType}"`,
                                 );
@@ -379,7 +379,7 @@ export function createPromptbookExecutor(options: CreatePromptbookExecutorOption
                 }
 
                 if (expectError !== null && attempt === maxAttempts - 1) {
-                    throw new PromptbookExecutionError(
+                    throw new ExecutionError(
                         spaceTrim(
                             (block) => `
                               LLM execution failed ${maxExecutionAttempts}x
@@ -443,7 +443,7 @@ export function createPromptbookExecutor(options: CreatePromptbookExecutorOption
                         spaceTrim(`
                             Can not resolve some parameters
 
-                            Note: This should be catched during validatePromptbook
+                            Note: This should be catched during validatePipeline
                         `),
                     );
                 } else if (!currentTemplate) {

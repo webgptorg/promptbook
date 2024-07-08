@@ -3,7 +3,7 @@ import type { IDestroyable } from 'destroyable';
 import http from 'http';
 import { Server, Socket } from 'socket.io';
 import { spaceTrim } from 'spacetrim';
-import { PromptbookExecutionError } from '../../errors/PromptbookExecutionError';
+import { ExecutionError } from '../../errors/ExecutionError';
 import type { PromptResult } from '../../execution/PromptResult';
 import { PROMPTBOOK_VERSION } from '../../version';
 import type { Promptbook_Server_Error } from './interfaces/Promptbook_Server_Error';
@@ -65,7 +65,7 @@ export function startRemoteServer(options: RemoteServerOptions): IDestroyable {
                 const executionToolsForClient = createLlmExecutionTools(clientId);
 
                 if (!(await library.isResponsibleForPrompt(prompt))) {
-                    throw new PromptbookExecutionError(`Prompt is not in the library of this server`);
+                    throw new ExecutionError(`Prompt is not in the library of this server`);
                 }
 
                 let promptResult: PromptResult;
@@ -77,9 +77,7 @@ export function startRemoteServer(options: RemoteServerOptions): IDestroyable {
                         promptResult = await executionToolsForClient.callCompletionModel(prompt);
                         break;
                     default:
-                        throw new PromptbookExecutionError(
-                            `Unknown model variant "${prompt.modelRequirements.modelVariant}"`,
-                        );
+                        throw new ExecutionError(`Unknown model variant "${prompt.modelRequirements.modelVariant}"`);
                 }
 
                 if (isVerbose) {
@@ -132,7 +130,7 @@ export function startRemoteServer(options: RemoteServerOptions): IDestroyable {
 }
 
 /**
- * TODO: [⚖] Expose the library to be able to connect to same library via createLibraryFromUrl
+ * TODO: [⚖] Expose the library to be able to connect to same library via createCollectionFromUrl
  * TODO: Handle progress - support streaming
  * TODO: [🤹‍♂️] Do not hang up immediately but wait until client closes OR timeout
  * TODO: [🤹‍♂️] Timeout on chat to free up resources

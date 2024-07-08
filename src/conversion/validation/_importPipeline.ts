@@ -13,9 +13,9 @@ import type { string_file_path } from '../../types/typeAliases';
  * @param path - The path to the file relative to samples/templates directory
  * @private
  */
-export function importPromptbook(path: `${string}.ptbk.md`): PipelineString;
-export function importPromptbook(path: `${string}.ptbk.json`): PipelineJson;
-export function importPromptbook(path: string_file_path): PipelineString | PipelineJson {
+export function importPipeline(path: `${string}.ptbk.md`): PipelineString;
+export function importPipeline(path: `${string}.ptbk.json`): PipelineJson;
+export function importPipeline(path: string_file_path): PipelineString | PipelineJson {
     const samplesDir = '../../../samples/templates';
     const content = readFileSync(join(__dirname, samplesDir, path), 'utf-8');
     //                         <- Note: In production it is not good practice to use synchronous functions

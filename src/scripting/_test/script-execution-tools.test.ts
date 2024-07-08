@@ -40,7 +40,7 @@ describe('createPromptbookExecutor + executing scripts in promptbook', () => {
             /*
             TODO:
             errors: [
-                new PromptbookExecutionError(
+                new ExecutionError(
                     spaceTrim(`
                         Parameter {thing} is not defined
 

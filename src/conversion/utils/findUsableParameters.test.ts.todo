@@ -2,14 +2,14 @@
 // TODO: [👜] This probbably does not make sence because in PromptTemplateJson already are listed dependencies
 
 import { describe, expect, it } from '@jest/globals';
-import { importPromptbook } from '../validation/_importPromptbook';
+import { importPipeline } from '../validation/_importPipeline';
 import { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import { PromptTemplateJson } from '../../types/PipelineJson/PromptTemplateJson';
 import { PromptTemplateParameterJson } from '../../types/PipelineJson/PromptTemplateParameterJson';
 
 describe('how findUsableParameters works', () => {
     it('should find no usable parameter', () => {
-        const promptbook = importPromptbook(`50-advanced.ptbk.json`);
+        const promptbook = importPipeline(`50-advanced.ptbk.json`);
         const promptTemplate = promptbook.promptTemplates[0];
 
         expect(findUsableParameters({ promptbook, promptTemplate })).toBe([]);

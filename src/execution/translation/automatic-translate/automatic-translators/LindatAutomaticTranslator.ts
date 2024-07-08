@@ -1,7 +1,7 @@
 import FormData from 'form-data';
 import fetch from 'node-fetch'; /* <- TODO: [🌿] Use the Node native fetch */
 import { spaceTrim } from 'spacetrim';
-import { PromptbookExecutionError } from '../../../../errors/PromptbookExecutionError';
+import { ExecutionError } from '../../../../errors/ExecutionError';
 import type { AutomaticTranslator } from './AutomaticTranslator';
 import type { TranslatorOptions } from './TranslatorOptions';
 
@@ -32,9 +32,9 @@ export class LindatAutomaticTranslator implements AutomaticTranslator {
         } else {
             const json = await response.json();
             if (json.message) {
-                throw new PromptbookExecutionError(json.message);
+                throw new ExecutionError(json.message);
             } else {
-                throw new PromptbookExecutionError(
+                throw new ExecutionError(
                     spaceTrim(`
                       Lindat: Unknown error
                       From: ${this.options.from}

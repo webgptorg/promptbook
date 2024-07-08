@@ -1,12 +1,11 @@
 import { describe, expect, it } from '@jest/globals';
 import spaceTrim from 'spacetrim';
-import { forTime } from 'waitasecond';
 import { pipelineStringToJson } from '../../conversion/pipelineStringToJson';
 import type { PipelineString } from '../../types/PipelineString';
-import { createLibraryFromPromise } from './createLibraryFromPromise';
+import { createCollectionFromJson } from './createCollectionFromJson';
 
-describe('createLibraryFromPromise', () => {
-    const promptbook = spaceTrim(`
+describe('createCollectionFromJson', () => {
+    const pipelineString = spaceTrim(`
             # Sample prompt
 
             Show how to use a simple completion prompt
@@ -32,14 +31,11 @@ describe('createLibraryFromPromise', () => {
             -> {response}
          `) as PipelineString;
 
-    const library = createLibraryFromPromise(async () => {
-        await forTime(100);
-        return [await pipelineStringToJson(promptbook)];
-    });
-
     it('should get promptbook by url from library', async () => {
         expect.assertions(1);
-        const promptbookFromLibrary = await library.getPromptbookByUrl('https://example.com/promptbook.json');
-        expect(promptbookFromLibrary).toEqual(await pipelineStringToJson(promptbook));
+        const promptbook = await pipelineStringToJson(pipelineString);
+        const library = createCollectionFromJson(promptbook);
+        const promptbookFromLibrary = await library.getPipelineByUrl('https://example.com/promptbook.json');
+        expect(promptbookFromLibrary).toEqual(await pipelineStringToJson(pipelineString));
     });
 });

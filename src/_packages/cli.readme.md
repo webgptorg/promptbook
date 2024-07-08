@@ -8,18 +8,18 @@ You can prebuild your own Promptbook library with `promptbook make` command:
 npx promptbook make ./promptbook-library --format typescript --verbose
 ```
 
-This will emit `index.ts` with `getPromptbookLibrary` function file in `promptbook-library` directory.
+This will emit `index.ts` with `getPipelineCollection` function file in `promptbook-library` directory.
 
 Then just use it:
 
 ```typescript
 import { createPromptbookExecutor, assertsExecutionSuccessful } from '@promptbook/core';
-import { getPromptbookLibrary } from './promptbook-library'; // <- Importing from pre-built library
+import { getPipelineCollection } from './promptbook-library'; // <- Importing from pre-built library
 import { JavascriptExecutionTools } from '@promptbook/execute-javascript';
 import { OpenAiExecutionTools } from '@promptbook/openai';
 
 // ▶ Get one Promptbook
-const promptbook = await getPromptbookLibrary().getPromptbookByUrl(
+const promptbook = await getPipelineCollection().getPipelineByUrl(
     `https://promptbook.studio/my-library/write-article.ptbk.md`,
 );
 

@@ -1,11 +1,11 @@
 import type { string_url } from '../../types/typeAliases';
-import type { PromptbookLibrary } from '../PromptbookLibrary';
-import { createLibraryFromPromise } from './createLibraryFromPromise';
+import type { PipelineCollection } from '../PipelineCollection';
+import { createCollectionFromPromise } from './createCollectionFromPromise';
 
 /**
- * Options for `createLibraryFromDirectory` function
+ * Options for `createCollectionFromDirectory` function
  */
-type CreatePromptbookLibraryFromUrlyOptions = {
+type CreatePipelineCollectionFromUrlyOptions = {
     /**
      * If true, the library creation outputs information about each file it reads
      *
@@ -24,15 +24,15 @@ type CreatePromptbookLibraryFromUrlyOptions = {
 /**
  * Constructs Promptbook from remote Promptbase URL
 
- * @returns PromptbookLibrary
+ * @returns PipelineCollection
  */
-export async function createLibraryFromUrl(
+export async function createCollectionFromUrl(
     url: string_url | URL,
-    options: CreatePromptbookLibraryFromUrlyOptions,
-): Promise<PromptbookLibrary> {
+    options: CreatePipelineCollectionFromUrlyOptions,
+): Promise<PipelineCollection> {
     const { isVerbose = false, isLazyLoaded = false } = options || {};
 
-    const library = createLibraryFromPromise(async () => {
+    const library = createCollectionFromPromise(async () => {
         if (isVerbose) {
             console.info(`Creating promptbook library from url ${url.toString()}`);
         }
@@ -41,7 +41,7 @@ export async function createLibraryFromUrl(
     });
 
     if (isLazyLoaded === false) {
-        await library.listPromptbooks();
+        await library.listPipelines();
     }
 
     return library;
@@ -49,7 +49,7 @@ export async function createLibraryFromUrl(
     // TODO: !!! [🏳‍🌈] Allow variant with .json .js and .ts files
     // TODO: [🧠][🏳‍🌈] .js and .ts files should create getter function for the library
     // TODO: Look at WebGPT "📖 Make Promptbook library" and https://webgpt.cz/_promptbook-library.json
-    // TODO: !! Implement via createLibraryFromPromise
+    // TODO: !! Implement via createCollectionFromPromise
 }
 
 /**

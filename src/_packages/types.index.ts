@@ -17,7 +17,7 @@ import type {
 import type { PromptbookExecutor } from '../execution/PromptbookExecutor';
 import type { ScriptExecutionTools, ScriptExecutionToolsExecuteOptions } from '../execution/ScriptExecutionTools';
 import type { UserInterfaceTools, UserInterfaceToolsPromptDialogOptions } from '../execution/UserInterfaceTools';
-import type { PromptbookLibrary } from '../library/PromptbookLibrary';
+import type { PipelineCollection } from '../library/PipelineCollection';
 import type { ExecutionType } from '../types/ExecutionTypes';
 import type { ModelRequirements, ModelVariant } from '../types/ModelRequirements';
 import type { Parameters } from '../types/Parameters';
@@ -72,9 +72,9 @@ import type {
     string_model_name,
     string_name,
     string_person_fullname,
+    string_pipeline_url,
+    string_pipeline_url_with_hashtemplate,
     string_prompt,
-    string_promptbook_url,
-    string_promptbook_url_with_hashtemplate,
     string_script,
     string_sha256,
     string_tdl,
@@ -117,6 +117,7 @@ export type {
     ModelRequirements,
     ModelVariant,
     Parameters,
+    PipelineCollection,
     PipelineJson,
     PipelineString,
     Prompt,
@@ -131,7 +132,6 @@ export type {
     PromptTemplateJson,
     PromptTemplateParameterJson,
     PromptbookExecutor,
-    PromptbookLibrary,
     ScriptExecutionTools,
     ScriptExecutionToolsExecuteOptions,
     ScriptJson,
@@ -171,9 +171,9 @@ export type {
     string_model_name,
     string_name,
     string_person_fullname,
+    string_pipeline_url,
+    string_pipeline_url_with_hashtemplate,
     string_prompt,
-    string_promptbook_url,
-    string_promptbook_url_with_hashtemplate,
     string_script,
     string_sha256,
     string_tdl,

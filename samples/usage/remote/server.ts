@@ -1,6 +1,6 @@
 #!/usr/bin/env ts-node
 
-import { createLibraryFromDirectory } from '@promptbook/node';
+import { createCollectionFromDirectory } from '@promptbook/node';
 import { OpenAiExecutionTools } from '@promptbook/openai';
 import { startRemoteServer } from '@promptbook/remote-server';
 import colors from 'colors';
@@ -20,7 +20,7 @@ main();
 async function main() {
     console.info(colors.bgWhite('🔵 Testing remote server of PromptBook'));
 
-    const library = await createLibraryFromDirectory('./samples/templates/');
+    const library = await createCollectionFromDirectory('./samples/templates/');
 
     // [⚖]
     startRemoteServer({
@@ -40,6 +40,6 @@ async function main() {
 
 /**
  * TODO: There should be no need to set this script or userInterface in tools
- * TODO: Implement and use here PromptbookLibrary.fromDirectory (directory vs folder)
+ * TODO: Implement and use here PipelineCollection.fromDirectory (directory vs folder)
  * TODO: [🃏] Pass here some security token to prevent malitious usage and/or DDoS
  */

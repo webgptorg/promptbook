@@ -3,16 +3,16 @@
 ## 🧡 Usage
 
 ```typescript
-import { createPromptbookExecutor, createLibraryFromDirectory, assertsExecutionSuccessful } from '@promptbook/core';
-import { createLibraryFromDirectory } from '@promptbook/node';
+import { createPromptbookExecutor, createCollectionFromDirectory, assertsExecutionSuccessful } from '@promptbook/core';
+import { createCollectionFromDirectory } from '@promptbook/node';
 import { JavascriptExecutionTools } from '@promptbook/execute-javascript';
 import { OpenAiExecutionTools } from '@promptbook/openai';
 
 // ▶ Create whole Promptbook library
-const library = await createLibraryFromDirectory('./promptbook-library');
+const library = await createCollectionFromDirectory('./promptbook-library');
 
 // ▶ Get one Promptbook
-const promptbook = await library.getPromptbookByUrl(`https://promptbook.studio/my-library/write-article.ptbk.md`);
+const promptbook = await library.getPipelineByUrl(`https://promptbook.studio/my-library/write-article.ptbk.md`);
 
 // ▶ Prepare tools
 const tools = {
@@ -45,15 +45,15 @@ console.info(outputParameters);
 You can use multiple LLM providers in one Promptbook execution. The best model will be chosen automatically according to the prompt and the model's capabilities.
 
 ```typescript
-import { createPromptbookExecutor, createLibraryFromDirectory, assertsExecutionSuccessful } from '@promptbook/core';
+import { createPromptbookExecutor, createCollectionFromDirectory, assertsExecutionSuccessful } from '@promptbook/core';
 import { JavascriptExecutionTools } from '@promptbook/execute-javascript';
 import { OpenAiExecutionTools } from '@promptbook/openai';
 
 // ▶ Create whole Promptbook library
-const library = await createLibraryFromDirectory('./promptbook-library');
+const library = await createCollectionFromDirectory('./promptbook-library');
 
 // ▶ Get one Promptbook
-const promptbook = await library.getPromptbookByUrl(`https://promptbook.studio/my-library/write-article.ptbk.md`);
+const promptbook = await library.getPipelineByUrl(`https://promptbook.studio/my-library/write-article.ptbk.md`);
 
 // ▶ Prepare tools
 const tools = new MultipleLlmExecutionTools(

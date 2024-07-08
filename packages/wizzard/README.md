@@ -1,6 +1,6 @@
 # ![Promptbook logo - cube with letters P and B](./other/design/logo-h1.png) Promptbook
 
-Library to supercharge your use of large language models
+Supercharge your use of large language models
 
 [![NPM Version of ![Promptbook logo - cube with letters P and B](./other/design/logo-h1.png) Promptbook](https://badge.fury.io/js/promptbook.svg)](https://www.npmjs.com/package/promptbook)
 [![Quality of package ![Promptbook logo - cube with letters P and B](./other/design/logo-h1.png) Promptbook](https://packagequality.com/shield/promptbook.svg)](https://packagequality.com/#?package=promptbook)

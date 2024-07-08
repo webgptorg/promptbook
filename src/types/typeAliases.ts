@@ -227,14 +227,14 @@ export type string_url = string;
  *
  * For example `"https://promptbook.webgpt.com/cs/write-website-content.ptbk.md"`
  */
-export type string_promptbook_url = string; // <- TODO: `${string}.ptbk.md`
+export type string_pipeline_url = string; // <- TODO: `${string}.ptbk.md`
 
 /**
  * Semantic helper
  *
  * For example `"https://promptbook.webgpt.com/cs/write-website-content.ptbk.md#keywords"`
  */
-export type string_promptbook_url_with_hashtemplate = string;
+export type string_pipeline_url_with_hashtemplate = string;
 
 /**
  * Semantic helper

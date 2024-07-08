@@ -71,7 +71,7 @@
             "/**",
             " * Function $1 will @@@",
             " *",
-            " * @private within the library",
+            " * @private within the package",
             " */",
             "export function $1(value: string): boolean {",
             "    return value === 'Foo';",

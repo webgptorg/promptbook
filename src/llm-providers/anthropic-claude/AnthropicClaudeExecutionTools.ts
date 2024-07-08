@@ -2,7 +2,7 @@ import Anthropic from '@anthropic-ai/sdk';
 import type { MessageCreateParamsNonStreaming } from '@anthropic-ai/sdk/resources';
 import colors from 'colors';
 import spaceTrim from 'spacetrim';
-import { PromptbookExecutionError } from '../../errors/PromptbookExecutionError';
+import { ExecutionError } from '../../errors/ExecutionError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { AvailableModel, LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import type { PromptChatResult, PromptCompletionResult, PromptResultUsage } from '../../execution/PromptResult';
@@ -48,7 +48,7 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools {
 
         // TODO: [☂] Use here more modelRequirements
         if (modelRequirements.modelVariant !== 'CHAT') {
-            throw new PromptbookExecutionError('Use callChatModel only for CHAT variant');
+            throw new ExecutionError('Use callChatModel only for CHAT variant');
         }
 
         const rawRequest: MessageCreateParamsNonStreaming = {
@@ -75,11 +75,11 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools {
         }
 
         if (!rawResponse.content[0]) {
-            throw new PromptbookExecutionError('No content from Anthropic Claude');
+            throw new ExecutionError('No content from Anthropic Claude');
         }
 
         if (rawResponse.content.length > 1) {
-            throw new PromptbookExecutionError('More than one content blocks from Anthropic Claude');
+            throw new ExecutionError('More than one content blocks from Anthropic Claude');
         }
 
         const resultContent = rawResponse.content[0].text;
@@ -128,7 +128,7 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools {
 
         // TODO: [☂] Use here more modelRequirements
         if (modelRequirements.modelVariant !== 'COMPLETION') {
-            throw new PromptbookExecutionError('Use callCompletionModel only for COMPLETION variant');
+            throw new ExecutionError('Use callCompletionModel only for COMPLETION variant');
         }
 
         const model = modelRequirements.modelName || this.getDefaultChatModel().modelName;
@@ -155,12 +155,12 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools {
         }
 
         if (!rawResponse.choices[0]) {
-            throw new PromptbookExecutionError('No choises from Anthropic Claude');
+            throw new ExecutionError('No choises from Anthropic Claude');
         }
 
         if (rawResponse.choices.length > 1) {
             // TODO: This should be maybe only warning
-            throw new PromptbookExecutionError('More than one choise from Anthropic Claude');
+            throw new ExecutionError('More than one choise from Anthropic Claude');
         }
 
         const resultContent = rawResponse.choices[0].text;

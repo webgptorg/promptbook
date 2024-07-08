@@ -1,7 +1,7 @@
 import colors from 'colors';
 import OpenAI from 'openai';
 import spaceTrim from 'spacetrim';
-import { PromptbookExecutionError } from '../../errors/PromptbookExecutionError';
+import { ExecutionError } from '../../errors/ExecutionError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { AvailableModel, LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import type { PromptChatResult, PromptCompletionResult, PromptEmbeddingResult } from '../../execution/PromptResult';
@@ -50,7 +50,7 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
 
         // TODO: [☂] Use here more modelRequirements
         if (modelRequirements.modelVariant !== 'CHAT') {
-            throw new PromptbookExecutionError('Use callChatModel only for CHAT variant');
+            throw new ExecutionError('Use callChatModel only for CHAT variant');
         }
 
         const model = modelRequirements.modelName || this.getDefaultChatModel().modelName;
@@ -88,12 +88,12 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
         }
 
         if (!rawResponse.choices[0]) {
-            throw new PromptbookExecutionError('No choises from OpenAI');
+            throw new ExecutionError('No choises from OpenAI');
         }
 
         if (rawResponse.choices.length > 1) {
             // TODO: This should be maybe only warning
-            throw new PromptbookExecutionError('More than one choise from OpenAI');
+            throw new ExecutionError('More than one choise from OpenAI');
         }
 
         const resultContent = rawResponse.choices[0].message.content;
@@ -102,7 +102,7 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
         const usage = computeOpenaiUsage(content, resultContent || '', rawResponse);
 
         if (resultContent === null) {
-            throw new PromptbookExecutionError('No response message from OpenAI');
+            throw new ExecutionError('No response message from OpenAI');
         }
 
         return {
@@ -132,7 +132,7 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
 
         // TODO: [☂] Use here more modelRequirements
         if (modelRequirements.modelVariant !== 'COMPLETION') {
-            throw new PromptbookExecutionError('Use callCompletionModel only for COMPLETION variant');
+            throw new ExecutionError('Use callCompletionModel only for COMPLETION variant');
         }
 
         const model = modelRequirements.modelName || this.getDefaultCompletionModel().modelName;
@@ -159,12 +159,12 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
         }
 
         if (!rawResponse.choices[0]) {
-            throw new PromptbookExecutionError('No choises from OpenAI');
+            throw new ExecutionError('No choises from OpenAI');
         }
 
         if (rawResponse.choices.length > 1) {
             // TODO: This should be maybe only warning
-            throw new PromptbookExecutionError('More than one choise from OpenAI');
+            throw new ExecutionError('More than one choise from OpenAI');
         }
 
         const resultContent = rawResponse.choices[0].text;
@@ -197,7 +197,7 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
 
         // TODO: [☂] Use here more modelRequirements
         if (modelRequirements.modelVariant !== 'EMBEDDING') {
-            throw new PromptbookExecutionError('Use embed only for EMBEDDING variant');
+            throw new ExecutionError('Use embed only for EMBEDDING variant');
         }
 
         const model = modelRequirements.modelName || this.getDefaultEmbeddingModel().modelName;
@@ -223,9 +223,7 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
         }
 
         if (rawResponse.data.length !== 1) {
-            throw new PromptbookExecutionError(
-                `Expected exactly 1 data item in response, got ${rawResponse.data.length}`,
-            );
+            throw new ExecutionError(`Expected exactly 1 data item in response, got ${rawResponse.data.length}`);
         }
 
         const resultContent = rawResponse.data[0]!.embedding;

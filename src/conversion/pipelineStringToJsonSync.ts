@@ -1,6 +1,6 @@
 import { spaceTrim } from 'spacetrim';
 import type { IterableElement, Writable, WritableDeep } from 'type-fest';
-import { PromptbookSyntaxError } from '../errors/PromptbookSyntaxError';
+import { SyntaxError } from '../errors/SyntaxError';
 import type { ParameterCommand } from '../types/Command';
 import type { ExecutionType } from '../types/ExecutionTypes';
 import type { ModelRequirements } from '../types/ModelRequirements';
@@ -31,7 +31,7 @@ import { titleToName } from './utils/titleToName';
  * @param pipelineString {Promptbook} in string markdown format (.ptbk.md)
  * @param options - Options and tools for the compilation
  * @returns {Promptbook} compiled in JSON format (.ptbk.json)
- * @throws {PromptbookSyntaxError} if the promptbook string is not valid
+ * @throws {SyntaxError} if the promptbook string is not valid
  *
  * Note: This function does not validate logic of the pipeline only the syntax
  * Note: This function acts as compilation process
@@ -74,7 +74,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
             existingParameter.description !== parameterDescription &&
             parameterDescription
         ) {
-            throw new PromptbookSyntaxError(
+            throw new SyntaxError(
                 spaceTrim(
                     (block) => `
                         Parameter {${parameterName}} is defined multiple times with different description.
@@ -109,7 +109,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
     const markdownStructureDeepness = countMarkdownStructureDeepness(markdownStructure);
 
     if (markdownStructureDeepness !== 2) {
-        throw new PromptbookSyntaxError(
+        throw new SyntaxError(
             spaceTrim(`
                 Invalid markdown structure.
                 The markdown must have exactly 2 levels of headings (one top-level section and one section for each template).
@@ -156,7 +156,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
                 break;
 
             default:
-                throw new PromptbookSyntaxError(
+                throw new SyntaxError(
                     `Command ${command.type} is not allowed in the head of the promptbook ONLY at the prompt template block`,
                 );
         }
@@ -185,7 +185,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
                     break;
                 case 'EXECUTE':
                     if (isExecutionTypeChanged) {
-                        throw new PromptbookSyntaxError(
+                        throw new SyntaxError(
                             'Execution type is already defined in the prompt template. It can be defined only once.',
                         );
                     }
@@ -213,7 +213,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
 
                     if (command.sign === 'MINIMUM' || command.sign === 'EXACTLY') {
                         if (expectAmount[unit]!.min !== undefined) {
-                            throw new PromptbookSyntaxError(
+                            throw new SyntaxError(
                                 `Already defined minumum ${
                                     expectAmount[unit]!.min
                                 } ${command.unit.toLowerCase()}, now trying to redefine it to ${command.amount}`,
@@ -223,7 +223,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
                     } /* not else */
                     if (command.sign === 'MAXIMUM' || command.sign === 'EXACTLY') {
                         if (expectAmount[unit]!.max !== undefined) {
-                            throw new PromptbookSyntaxError(
+                            throw new SyntaxError(
                                 `Already defined maximum ${
                                     expectAmount[unit]!.max
                                 } ${command.unit.toLowerCase()}, now trying to redefine it to ${command.amount}`,
@@ -235,7 +235,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
 
                 case 'EXPECT_FORMAT':
                     if (expectFormat !== undefined && command.format !== expectFormat) {
-                        throw new PromptbookSyntaxError(
+                        throw new SyntaxError(
                             `Expect format is already defined to "${expectFormat}". Now you try to redefine it by "${command.format}".`,
                         );
                     }
@@ -244,7 +244,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
                     break;
 
                 default:
-                    throw new PromptbookSyntaxError(
+                    throw new SyntaxError(
                         `Command ${command.type} is not allowed in the block of the prompt template ONLY at the head of the promptbook`,
                     );
             }
@@ -254,9 +254,9 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
 
         if (executionType === 'SCRIPT') {
             if (!language) {
-                throw new PromptbookSyntaxError('You must specify the language of the script in the prompt template');
+                throw new SyntaxError('You must specify the language of the script in the prompt template');
             } else if (!SUPPORTED_SCRIPT_LANGUAGES.includes(language as ScriptLanguage)) {
-                throw new PromptbookSyntaxError(
+                throw new SyntaxError(
                     spaceTrim(
                         (block) => `
                             Script language ${language} is not supported.
@@ -273,7 +273,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
         const lastLine = section.content.split('\n').pop()!;
         const match = /^->\s*\{(?<resultingParamName>[a-z0-9_]+)\}/im.exec(lastLine);
         if (!match || match.groups === undefined || match.groups.resultingParamName === undefined) {
-            throw new PromptbookSyntaxError(
+            throw new SyntaxError(
                 spaceTrim(
                     (block) => `
                         Invalid template - each section must end with "-> {...}"

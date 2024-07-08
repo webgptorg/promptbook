@@ -1,5 +1,5 @@
 import type { WritableDeep } from 'type-fest';
-import { PromptbookLogicError } from '../../errors/PromptbookLogicError';
+import { PipelineLogicError } from '../../errors/PipelineLogicError';
 import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import type { string_name } from '../../types/typeAliases';
 
@@ -25,13 +25,13 @@ type RenameParameterOptions = {
  * Function renameParameter will find all usable parameters for given prompt template
  * In other words, it will find all parameters that are not used in the prompt template itseld and all its dependencies
  *
- * @throws {PromptbookLogicError} If the new parameter name is already used in the promptbook
+ * @throws {PipelineLogicError} If the new parameter name is already used in the promptbook
  */
 export function renameParameter(options: RenameParameterOptions): PipelineJson {
     const { promptbook, oldParameterName, newParameterName } = options;
 
     if (promptbook.parameters.some((parameter) => parameter.name === newParameterName)) {
-        throw new PromptbookLogicError(
+        throw new PipelineLogicError(
             `Can not replace {${oldParameterName}} to {${newParameterName}} because {${newParameterName}} is already used in the promptbook`,
         );
     }

@@ -1,4 +1,4 @@
-import type { string_markdown_text, string_promptbook_url, string_version } from '../typeAliases';
+import type { string_markdown_text, string_pipeline_url, string_version } from '../typeAliases';
 import type { KnowledgeJson } from './KnowledgeJson';
 import type { PromptTemplateJson } from './PromptTemplateJson';
 import type { PromptTemplateParameterJson } from './PromptTemplateParameterJson';
@@ -19,7 +19,7 @@ export type PipelineJson = {
      *      For example: https://promptbook.webgpt.com/cs/write-website-content.ptbk.md@1.0.0
      * Warning: Do not hash part of the URL, hash part is used for identification of the prompt template in the pipeline
      */
-    readonly promptbookUrl?: string_promptbook_url;
+    readonly promptbookUrl?: string_pipeline_url;
 
     /**
      * Title of the promptbook

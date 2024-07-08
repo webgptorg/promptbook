@@ -159,8 +159,8 @@ Working on **Promptbook Library**. Identify promptbooks by URL.
 -   Rename `PromptbookLibrary.promptbookNames` to `PromptbookLibrary.promptbookUrls`
 -   Remove `PromptbookLibrary.createExecutor` to separate responsibility
 -   Make more renamings and reorganizations in `PromptbookLibrary`
--   Make `PromptbookLibrary.listPromptbooks` async method
--   Make `PromptbookLibrary.getPromptbookByUrl` async method
+-   Make `PromptbookLibrary.listPipelines` async method
+-   Make `PromptbookLibrary.getPipelineByUrl` async method
 
 ### `0.40.0` _(2024-03-10)_
 

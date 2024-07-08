@@ -1,41 +1,41 @@
 import { spaceTrim } from 'spacetrim';
-import { PromptbookNotFoundError } from '../../errors/PromptbookNotFoundError';
+import { NotFoundError } from '../../errors/NotFoundError';
 import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import type { Prompt } from '../../types/Prompt';
-import type { string_promptbook_url } from '../../types/typeAliases';
-import type { PromptbookLibrary } from '../PromptbookLibrary';
+import type { string_pipeline_url } from '../../types/typeAliases';
+import type { PipelineCollection } from '../PipelineCollection';
 
 /**
- * Creates PromptbookLibrary as a subset of another PromptbookLibrary
+ * Creates PipelineCollection as a subset of another PipelineCollection
  *
  * Note: You can use any type of library as a parent library - local, remote, etc.
  * Note: This is just a thin wrapper / proxy around the parent library
  *
  * @param promptbookSources
- * @returns PromptbookLibrary
+ * @returns PipelineCollection
  */
-export function createSublibrary(
-    library: PromptbookLibrary,
-    predicate: (url: string_promptbook_url) => boolean,
-): PromptbookLibrary {
-    async function listPromptbooks(): Promise<Array<string_promptbook_url>> {
-        let promptbooks = await library.listPromptbooks();
+export function createSubcollection(
+    library: PipelineCollection,
+    predicate: (url: string_pipeline_url) => boolean,
+): PipelineCollection {
+    async function listPipelines(): Promise<Array<string_pipeline_url>> {
+        let promptbooks = await library.listPipelines();
         promptbooks = promptbooks.filter(predicate);
         return promptbooks;
     }
-    async function getPromptbookByUrl(url: string_promptbook_url): Promise<PipelineJson> {
+    async function getPipelineByUrl(url: string_pipeline_url): Promise<PipelineJson> {
         if (!predicate(url)) {
-            throw new PromptbookNotFoundError(
+            throw new NotFoundError(
                 await spaceTrim(
                     async (block) => `
                         Promptbook with url "${url}" not found or not accessible
 
                         Available promptbooks:
-                        ${block((await listPromptbooks()).map((promptbookUrl) => `- ${promptbookUrl}`).join('\n'))}
+                        ${block((await listPipelines()).map((promptbookUrl) => `- ${promptbookUrl}`).join('\n'))}
 
                         All available promptbooks in parent library:
                         ${block(
-                            (await library.listPromptbooks()).map((promptbookUrl) => `- ${promptbookUrl}`).join('\n'),
+                            (await library.listPipelines()).map((promptbookUrl) => `- ${promptbookUrl}`).join('\n'),
                         )}
 
                     `,
@@ -43,7 +43,7 @@ export function createSublibrary(
             );
         }
 
-        const promptbook = await library.getPromptbookByUrl(url);
+        const promptbook = await library.getPipelineByUrl(url);
 
         return promptbook;
     }
@@ -54,8 +54,8 @@ export function createSublibrary(
     }
 
     return {
-        listPromptbooks,
-        getPromptbookByUrl,
+        listPipelines,
+        getPipelineByUrl,
         isResponsibleForPrompt,
     };
 }

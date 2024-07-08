@@ -7,7 +7,7 @@ import colors from 'colors';
 import commander from 'commander';
 import { writeFile } from 'fs/promises';
 import { join } from 'path';
-import { createLibraryFromDirectory } from '../../src/library/constructors/createLibraryFromDirectory';
+import { createCollectionFromDirectory } from '../../src/library/constructors/createCollectionFromDirectory';
 import { libraryToJson } from '../../src/library/libraryToJson';
 import { commit } from '../utils/autocommit/commit';
 
@@ -22,7 +22,7 @@ program.parse(process.argv);
 
 const { commit: isCommited } = program.opts();
 
-makePromptbookLibrary({ isCommited })
+makePipelineCollection({ isCommited })
     .catch((error) => {
         console.error(colors.bgRed(error.name || 'NamelessError'));
         console.error(error);
@@ -32,12 +32,12 @@ makePromptbookLibrary({ isCommited })
         process.exit(0);
     });
 
-async function makePromptbookLibrary({ isCommited }: { isCommited: boolean }) {
+async function makePipelineCollection({ isCommited }: { isCommited: boolean }) {
     console.info(`📖 Make Promptbook library`);
 
     const promptbookSourceDir = 'promptbook-library';
 
-    const library = await createLibraryFromDirectory(promptbookSourceDir, {
+    const library = await createCollectionFromDirectory(promptbookSourceDir, {
         isVerbose: true,
         isRecursive: true,
     });

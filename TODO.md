@@ -5,7 +5,7 @@
 -   [ ] Make branded types instead of pure `string` aliases
 -   [ ] Remove all `any`
 -   [ ][👧] Make strongy typed input+output parameters in executors
--   [x] Make promptbooks non-linear
+-   [x] Make pipelines non-linear
 -   [x] Logging pipeline name, version, step,...
 -   [ ][🧠] Wording: "param" vs "parameter" vs "variable" vs "argument"
 -   [ ] All entities must have public / private / protected modifiers

@@ -4,13 +4,13 @@ import { pipelineJsonToString } from '../conversion/pipelineJsonToString';
 import { pipelineStringToJson } from '../conversion/pipelineStringToJson';
 import { pipelineStringToJsonSync } from '../conversion/pipelineStringToJsonSync';
 import { prettifyPipelineString } from '../conversion/prettify/prettifyPipelineString';
-import { validatePromptbook } from '../conversion/validation/validatePromptbook';
-import { PromptbookExecutionError } from '../errors/PromptbookExecutionError';
-import { PromptbookLibraryError } from '../errors/PromptbookLibraryError';
-import { PromptbookLogicError } from '../errors/PromptbookLogicError';
-import { PromptbookNotFoundError } from '../errors/PromptbookNotFoundError';
-import { PromptbookReferenceError } from '../errors/PromptbookReferenceError';
-import { PromptbookSyntaxError } from '../errors/PromptbookSyntaxError';
+import { validatePipeline } from '../conversion/validation/validatePipeline';
+import { CollectionError } from '../errors/CollectionError';
+import { ExecutionError } from '../errors/ExecutionError';
+import { NotFoundError } from '../errors/NotFoundError';
+import { PipelineLogicError } from '../errors/PipelineLogicError';
+import { ReferenceError } from '../errors/ReferenceError';
+import { SyntaxError } from '../errors/SyntaxError';
 import { TemplateError } from '../errors/TemplateError';
 import { UnexpectedError } from '../errors/UnexpectedError';
 import { ExpectError } from '../errors/_ExpectError';
@@ -24,10 +24,10 @@ import { CallbackInterfaceTools } from '../knowledge/dialogs/callback/CallbackIn
 import type { CallbackInterfaceToolsOptions } from '../knowledge/dialogs/callback/CallbackInterfaceToolsOptions';
 import { SimplePromptInterfaceTools } from '../knowledge/dialogs/simple-prompt/SimplePromptInterfaceTools';
 import { prepareKnowledgeFromMarkdown } from '../knowledge/prepare-knowledge/markdown/prepareKnowledgeFromMarkdown';
-import { createLibraryFromJson } from '../library/constructors/createLibraryFromJson';
-import { createLibraryFromPromise } from '../library/constructors/createLibraryFromPromise';
-import { createLibraryFromUrl } from '../library/constructors/createLibraryFromUrl';
-import { createSublibrary } from '../library/constructors/createSublibrary';
+import { createCollectionFromJson } from '../library/constructors/createCollectionFromJson';
+import { createCollectionFromPromise } from '../library/constructors/createCollectionFromPromise';
+import { createCollectionFromUrl } from '../library/constructors/createCollectionFromUrl';
+import { createSubcollection } from '../library/constructors/createSubcollection';
 import { libraryToJson } from '../library/libraryToJson';
 import { MultipleLlmExecutionTools } from '../llm-providers/multiple/MultipleLlmExecutionTools';
 import { ExecutionTypes } from '../types/ExecutionTypes';
@@ -58,13 +58,19 @@ export {
 };
 
 // @promptbook/library
-export { createLibraryFromJson, createLibraryFromPromise, createLibraryFromUrl, createSublibrary, libraryToJson };
+export {
+    createCollectionFromJson,
+    createCollectionFromPromise,
+    createCollectionFromUrl,
+    createSubcollection as createSublibrary,
+    libraryToJson,
+};
 
 // @promptbook/simple-prompt
 export { SimplePromptInterfaceTools };
 
 // @promptbook/parser
-export { pipelineJsonToString, pipelineStringToJson, pipelineStringToJsonSync, validatePromptbook };
+export { pipelineJsonToString, pipelineStringToJson, pipelineStringToJsonSync, validatePipeline };
 
 // @promptbook/executor
 export { MultipleLlmExecutionTools, createPromptbookExecutor };
@@ -74,13 +80,13 @@ export { CallbackInterfaceTools, CallbackInterfaceToolsOptions };
 
 // Errors
 export {
+    CollectionError,
+    ExecutionError,
     ExpectError,
-    PromptbookExecutionError,
-    PromptbookLibraryError,
-    PromptbookLogicError,
-    PromptbookNotFoundError,
-    PromptbookReferenceError,
-    PromptbookSyntaxError,
+    NotFoundError,
+    PipelineLogicError,
+    ReferenceError,
+    SyntaxError,
     TemplateError,
     UnexpectedError,
 };

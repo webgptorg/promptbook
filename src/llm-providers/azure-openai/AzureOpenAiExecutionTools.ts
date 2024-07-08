@@ -1,6 +1,6 @@
 import { AzureKeyCredential, OpenAIClient } from '@azure/openai';
 import colors from 'colors';
-import { PromptbookExecutionError } from '../../errors/PromptbookExecutionError';
+import { ExecutionError } from '../../errors/ExecutionError';
 import type { AvailableModel, LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import type { PromptChatResult, PromptCompletionResult, PromptResultUsage } from '../../execution/PromptResult';
 import { computeUsageCounts } from '../../execution/utils/computeUsageCounts';
@@ -44,7 +44,7 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools {
 
         // TODO: [☂] Use here more modelRequirements
         if (modelRequirements.modelVariant !== 'CHAT') {
-            throw new PromptbookExecutionError('Use callChatModel only for CHAT variant');
+            throw new ExecutionError('Use callChatModel only for CHAT variant');
         }
 
         try {
@@ -75,16 +75,16 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools {
             }
 
             if (!rawResponse.choices[0]) {
-                throw new PromptbookExecutionError('No choises from Azure OpenAI');
+                throw new ExecutionError('No choises from Azure OpenAI');
             }
 
             if (rawResponse.choices.length > 1) {
                 // TODO: This should be maybe only warning
-                throw new PromptbookExecutionError('More than one choise from Azure OpenAI');
+                throw new ExecutionError('More than one choise from Azure OpenAI');
             }
 
             if (!rawResponse.choices[0].message || !rawResponse.choices[0].message.content) {
-                throw new PromptbookExecutionError('Empty response from Azure OpenAI');
+                throw new ExecutionError('Empty response from Azure OpenAI');
             }
 
             const resultContent = rawResponse.choices[0].message.content;
@@ -132,7 +132,7 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools {
 
         // TODO: [☂] Use here more modelRequirements
         if (modelRequirements.modelVariant !== 'COMPLETION') {
-            throw new PromptbookExecutionError('Use callCompletionModel only for COMPLETION variant');
+            throw new ExecutionError('Use callCompletionModel only for COMPLETION variant');
         }
 
         try {
@@ -155,12 +155,12 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools {
             }
 
             if (!rawResponse.choices[0]) {
-                throw new PromptbookExecutionError('No choises from OpenAI');
+                throw new ExecutionError('No choises from OpenAI');
             }
 
             if (rawResponse.choices.length > 1) {
                 // TODO: This should be maybe only warning
-                throw new PromptbookExecutionError('More than one choise from OpenAI');
+                throw new ExecutionError('More than one choise from OpenAI');
             }
 
             const resultContent = rawResponse.choices[0].text;
@@ -200,11 +200,11 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools {
      */
     private transformAzureError(azureError: { code: string; message: string }): Error {
         if (typeof azureError !== 'object' || azureError === null) {
-            return new PromptbookExecutionError(`Unknown Azure OpenAI error`);
+            return new ExecutionError(`Unknown Azure OpenAI error`);
         }
 
         const { code, message } = azureError;
-        return new PromptbookExecutionError(`${code}: ${message}`);
+        return new ExecutionError(`${code}: ${message}`);
     }
 
     /**

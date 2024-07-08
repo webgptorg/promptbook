@@ -9,7 +9,7 @@ import { readFile, writeFile } from 'fs/promises';
 import glob from 'glob-promise';
 import { join } from 'path';
 import { pipelineStringToJson } from '../../src/conversion/pipelineStringToJson';
-import { validatePromptbook } from '../../src/conversion/validation/validatePromptbook';
+import { validatePipeline } from '../../src/conversion/validation/validatePipeline';
 // import { AnthropicClaudeExecutionTools } from '../../src/llm-providers/anthropic-claude/AnthropicClaudeExecutionTools';
 import { PipelineString } from '../../src/types/PipelineString';
 import { commit } from '../utils/autocommit/commit';
@@ -64,7 +64,7 @@ async function generateSampleJsons({ isCommited }: { isCommited: boolean }) {
             const pipelineJsonFilePath = promptbookMarkdownFilePath.replace(/\.ptbk\.md$/, '.ptbk.json');
 
             // Note: We want to ensure that the generated JSONs are logically correct
-            validatePromptbook(pipelineJson);
+            validatePipeline(pipelineJson);
 
             await writeFile(pipelineJsonFilePath, JSON.stringify(pipelineJson, null, 4) + '\n');
         } catch (error) {

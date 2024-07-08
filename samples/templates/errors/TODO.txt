@@ -1,2 +1,2 @@
 TODO: Maybe add more error samples
-TODO: Make custom error types PromptbookSyntaxError and PromptbookLogicError
+TODO: Make custom error types SyntaxError and PipelineLogicError
