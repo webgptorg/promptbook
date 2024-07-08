@@ -1,5 +1,5 @@
 /**
- * Options for `prettifyPromptbookString` function
+ * Options for `prettifyPipelineString` function
  */
 export type PrettifyOptions = {
     /***

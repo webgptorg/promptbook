@@ -3,9 +3,9 @@
 
 import { describe, expect, it } from '@jest/globals';
 import { importPromptbook } from '../validation/_importPromptbook';
-import { PromptbookJson } from '../../types/PromptbookJson/PromptbookJson';
-import { PromptTemplateJson } from '../../types/PromptbookJson/PromptTemplateJson';
-import { PromptTemplateParameterJson } from '../../types/PromptbookJson/PromptTemplateParameterJson';
+import { PipelineJson } from '../../types/PipelineJson/PipelineJson';
+import { PromptTemplateJson } from '../../types/PipelineJson/PromptTemplateJson';
+import { PromptTemplateParameterJson } from '../../types/PipelineJson/PromptTemplateParameterJson';
 
 describe('how findUsableParameters works', () => {
     it('should find no usable parameter', () => {
@@ -20,7 +20,7 @@ type FindUsableParametersOptions = {
     /**
      * Promptbook to search for usable parameters
      */
-    promptbook: PromptbookJson;
+    promptbook: PipelineJson;
 
     /**
      * Prompt template which potential usable parameters are searched for

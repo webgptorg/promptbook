@@ -15,7 +15,7 @@ export async function promptbookCli(): Promise<void> {
             spaceTrim(`
                 Function promptbookCli is initiator of CLI script and should be run in Node.js environment.
 
-                - In browser use function exported from \`@promptbook/utils\` or  \`@promptbook/core\` directly, for example \`prettifyPromptbookString\`.
+                - In browser use function exported from \`@promptbook/utils\` or  \`@promptbook/core\` directly, for example \`prettifyPipelineString\`.
 
             `),
         );

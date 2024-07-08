@@ -75,7 +75,7 @@
 
             import {
                 createPromptbookExecutor,
-                promptbookStringToJson,
+                pipelineStringToJson,
             } from 'https://unpkg.com/@promptbook/core@0.47.0-0';
             import { JavascriptEvalExecutionTools } from 'https://unpkg.com/@promptbook/execute-javascript@0.47.0-0';
             import { OpenAiExecutionTools } from 'https://unpkg.com/@promptbook/openai@0.47.0-0';
@@ -97,7 +97,7 @@
             async function run() {
                 console.log(`🚀 Running`);
 
-                const promptbook = await promptbookStringToJson(promptbookElement.value, {llm:});
+                const promptbook = await pipelineStringToJson(promptbookElement.value, {llm:});
 
                 console.log(promptbook);
 

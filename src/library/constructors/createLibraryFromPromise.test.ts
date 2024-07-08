@@ -1,8 +1,8 @@
 import { describe, expect, it } from '@jest/globals';
 import spaceTrim from 'spacetrim';
 import { forTime } from 'waitasecond';
-import { promptbookStringToJson } from '../../conversion/promptbookStringToJson';
-import type { PromptbookString } from '../../types/PromptbookString';
+import { pipelineStringToJson } from '../../conversion/pipelineStringToJson';
+import type { PipelineString } from '../../types/PipelineString';
 import { createLibraryFromPromise } from './createLibraryFromPromise';
 
 describe('createLibraryFromPromise', () => {
@@ -30,16 +30,16 @@ describe('createLibraryFromPromise', () => {
             \`\`\`
 
             -> {response}
-         `) as PromptbookString;
+         `) as PipelineString;
 
     const library = createLibraryFromPromise(async () => {
         await forTime(100);
-        return [await promptbookStringToJson(promptbook)];
+        return [await pipelineStringToJson(promptbook)];
     });
 
     it('should get promptbook by url from library', async () => {
         expect.assertions(1);
         const promptbookFromLibrary = await library.getPromptbookByUrl('https://example.com/promptbook.json');
-        expect(promptbookFromLibrary).toEqual(await promptbookStringToJson(promptbook));
+        expect(promptbookFromLibrary).toEqual(await pipelineStringToJson(promptbook));
     });
 });

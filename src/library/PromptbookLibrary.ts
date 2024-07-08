@@ -1,6 +1,6 @@
 import type { Promisable } from 'type-fest';
+import type { PipelineJson } from '../types/PipelineJson/PipelineJson';
 import type { Prompt } from '../types/Prompt';
-import type { PromptbookJson } from '../types/PromptbookJson/PromptbookJson';
 import type { string_promptbook_url } from '../types/typeAliases';
 
 /**
@@ -19,7 +19,7 @@ export type PromptbookLibrary = {
      *
      * Note: This is not a direct fetching from the URL, but a lookup in the library
      */
-    getPromptbookByUrl(url: string_promptbook_url): Promisable<PromptbookJson>;
+    getPromptbookByUrl(url: string_promptbook_url): Promisable<PipelineJson>;
 
     /**
      * Checks whether given prompt was defined in any promptbook in the library

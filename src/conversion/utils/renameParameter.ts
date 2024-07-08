@@ -1,6 +1,6 @@
 import type { WritableDeep } from 'type-fest';
 import { PromptbookLogicError } from '../../errors/PromptbookLogicError';
-import type { PromptbookJson } from '../../types/PromptbookJson/PromptbookJson';
+import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import type { string_name } from '../../types/typeAliases';
 
 type RenameParameterOptions = {
@@ -8,7 +8,7 @@ type RenameParameterOptions = {
      * Promptbook to search and replace for parameters
      * This promptbook is returned as copy with replaced parameters
      */
-    promptbook: PromptbookJson;
+    promptbook: PipelineJson;
 
     /**
      * Original parameter name that should be replaced
@@ -27,7 +27,7 @@ type RenameParameterOptions = {
  *
  * @throws {PromptbookLogicError} If the new parameter name is already used in the promptbook
  */
-export function renameParameter(options: RenameParameterOptions): PromptbookJson {
+export function renameParameter(options: RenameParameterOptions): PipelineJson {
     const { promptbook, oldParameterName, newParameterName } = options;
 
     if (promptbook.parameters.some((parameter) => parameter.name === newParameterName)) {
@@ -36,7 +36,7 @@ export function renameParameter(options: RenameParameterOptions): PromptbookJson
         );
     }
 
-    const renamedPromptbook: WritableDeep<PromptbookJson> = {
+    const renamedPromptbook: WritableDeep<PipelineJson> = {
         ...promptbook,
         parameters: [...promptbook.parameters],
         promptTemplates: [...promptbook.promptTemplates],

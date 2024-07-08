@@ -1,11 +1,10 @@
 // @promptbook/core
 
-import { prettifyPromptbookString } from '../conversion/prettify/prettifyPromptbookString';
-import { promptbookJsonToString } from '../conversion/promptbookJsonToString';
-import { promptbookStringToJson } from '../conversion/promptbookStringToJson';
-import { promptbookStringToJsonSync } from '../conversion/promptbookStringToJsonSync';
+import { pipelineJsonToString } from '../conversion/pipelineJsonToString';
+import { pipelineStringToJson } from '../conversion/pipelineStringToJson';
+import { pipelineStringToJsonSync } from '../conversion/pipelineStringToJsonSync';
+import { prettifyPipelineString } from '../conversion/prettify/prettifyPipelineString';
 import { validatePromptbook } from '../conversion/validation/validatePromptbook';
-import { ExpectError } from '../errors/_ExpectError';
 import { PromptbookExecutionError } from '../errors/PromptbookExecutionError';
 import { PromptbookLibraryError } from '../errors/PromptbookLibraryError';
 import { PromptbookLogicError } from '../errors/PromptbookLogicError';
@@ -14,6 +13,7 @@ import { PromptbookReferenceError } from '../errors/PromptbookReferenceError';
 import { PromptbookSyntaxError } from '../errors/PromptbookSyntaxError';
 import { TemplateError } from '../errors/TemplateError';
 import { UnexpectedError } from '../errors/UnexpectedError';
+import { ExpectError } from '../errors/_ExpectError';
 import { assertsExecutionSuccessful } from '../execution/assertsExecutionSuccessful';
 import { createPromptbookExecutor } from '../execution/createPromptbookExecutor';
 import { embeddingVectorToString } from '../execution/embeddingVectorToString';
@@ -30,10 +30,10 @@ import { createLibraryFromUrl } from '../library/constructors/createLibraryFromU
 import { createSublibrary } from '../library/constructors/createSublibrary';
 import { libraryToJson } from '../library/libraryToJson';
 import { MultipleLlmExecutionTools } from '../llm-providers/multiple/MultipleLlmExecutionTools';
-import { executionReportJsonToString } from '../types/execution-report/executionReportJsonToString';
+import { ExecutionTypes } from '../types/ExecutionTypes';
 import type { ExecutionReportStringOptions } from '../types/execution-report/ExecutionReportStringOptions';
 import { ExecutionReportStringOptionsDefaults } from '../types/execution-report/ExecutionReportStringOptions';
-import { ExecutionTypes } from '../types/ExecutionTypes';
+import { executionReportJsonToString } from '../types/execution-report/executionReportJsonToString';
 import { PROMPTBOOK_VERSION } from '../version';
 
 // Note: Exporting version from each package
@@ -44,16 +44,16 @@ export { ExecutionTypes };
 
 // Core utilities
 export {
+    ExecutionReportStringOptions,
+    ExecutionReportStringOptionsDefaults,
     addUsage,
     assertsExecutionSuccessful,
     checkExpectations,
     embeddingVectorToString,
     executionReportJsonToString,
-    ExecutionReportStringOptions,
-    ExecutionReportStringOptionsDefaults,
     isPassingExpectations,
     prepareKnowledgeFromMarkdown,
-    prettifyPromptbookString,
+    prettifyPipelineString,
     usageToWorktime,
 };
 
@@ -64,10 +64,10 @@ export { createLibraryFromJson, createLibraryFromPromise, createLibraryFromUrl, 
 export { SimplePromptInterfaceTools };
 
 // @promptbook/parser
-export { promptbookJsonToString, promptbookStringToJson, promptbookStringToJsonSync, validatePromptbook };
+export { pipelineJsonToString, pipelineStringToJson, pipelineStringToJsonSync, validatePromptbook };
 
 // @promptbook/executor
-export { createPromptbookExecutor, MultipleLlmExecutionTools };
+export { MultipleLlmExecutionTools, createPromptbookExecutor };
 
 // @promptbook/callback-prompt
 export { CallbackInterfaceTools, CallbackInterfaceToolsOptions };

@@ -1,7 +1,7 @@
 import { describe, expect, it } from '@jest/globals';
 import spaceTrim from 'spacetrim';
-import { promptbookStringToJson } from '../../conversion/promptbookStringToJson';
-import type { PromptbookString } from '../../types/PromptbookString';
+import { pipelineStringToJson } from '../../conversion/pipelineStringToJson';
+import type { PipelineString } from '../../types/PipelineString';
 import { just } from '../../utils/just';
 import { createLibraryFromDirectory } from './createLibraryFromDirectory';
 
@@ -25,7 +25,7 @@ describe('createLibraryFromDirectory', () => {
           -> {greeting}
 
 
-    `) as PromptbookString;
+    `) as PipelineString;
 
     it('should get promptbook by url from library', async () => {
         expect.assertions(1);
@@ -38,7 +38,7 @@ describe('createLibraryFromDirectory', () => {
             'https://promptbook.example.com/samples/simple.ptbk.md',
         );
 
-        expect(promptbookFromLibrary).toEqual(await promptbookStringToJson(promptbook));
+        expect(promptbookFromLibrary).toEqual(await pipelineStringToJson(promptbook));
     });
 
     it('should get lazy-loaded promptbook by url from library', async () => {
@@ -53,7 +53,7 @@ describe('createLibraryFromDirectory', () => {
             'https://promptbook.example.com/samples/simple.ptbk.md',
         );
 
-        expect(promptbookFromLibrary).toEqual(await promptbookStringToJson(promptbook));
+        expect(promptbookFromLibrary).toEqual(await pipelineStringToJson(promptbook));
     });
 
     it('should get different promptbook by url from library', async () => {
@@ -67,7 +67,7 @@ describe('createLibraryFromDirectory', () => {
             'https://promptbook.example.com/samples/jokers.ptbk.md',
         );
 
-        expect(promptbookFromLibrary).not.toEqual(await promptbookStringToJson(promptbook));
+        expect(promptbookFromLibrary).not.toEqual(await pipelineStringToJson(promptbook));
     });
 
     it('should NOT crash when include error promptbooks but lazy-loaded', () =>

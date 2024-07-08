@@ -1,12 +1,12 @@
 import { describe, expect, it } from '@jest/globals';
 import spaceTrim from 'spacetrim';
-import { promptbookStringToJson } from '../conversion/promptbookStringToJson';
-import type { PromptbookString } from '../types/PromptbookString';
+import { pipelineStringToJson } from '../conversion/pipelineStringToJson';
+import type { PipelineString } from '../types/PipelineString';
 import { createLibraryFromJson } from './constructors/createLibraryFromJson';
 import { libraryToJson } from './libraryToJson';
 
 describe('createLibraryFromJson', () => {
-    const promptbookString = spaceTrim(`
+    const pipelineString = spaceTrim(`
             # Sample prompt
 
             Show how to use a simple completion prompt
@@ -30,11 +30,11 @@ describe('createLibraryFromJson', () => {
             \`\`\`
 
             -> {response}
-         `) as PromptbookString;
+         `) as PipelineString;
 
     it('should get promptbook by url from library', async () => {
         expect.assertions(1);
-        const promptbook = await promptbookStringToJson(promptbookString);
+        const promptbook = await pipelineStringToJson(pipelineString);
         const library = createLibraryFromJson(promptbook);
         const libraryJson = await libraryToJson(library);
         expect([promptbook]).toEqual(libraryJson);

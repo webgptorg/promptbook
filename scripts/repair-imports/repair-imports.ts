@@ -29,7 +29,7 @@ const { organize: isOrganized, organizeAll: isOrganizedAll, commit: isCommited }
 
 /**
  * VSCode sometimes offers auto-import which is malformed, for example:
- * > import type { PromptbookJson, PromptTemplateJson } from '../../_packages/types.index';
+ * > import type { PipelineJson, PromptTemplateJson } from '../../_packages/types.index';
  *
  * This script fixes that
  */
@@ -74,7 +74,7 @@ async function repairImports({
 
         /*/
         // Note: Keep this for testing single file
-        if (!file.path.includes('promptbookStringToJson.ts')) {
+        if (!file.path.includes('pipelineStringToJson.ts')) {
             continue;
         }
         /**/

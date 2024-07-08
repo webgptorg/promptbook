@@ -1,10 +1,10 @@
 import { describe, expect, it } from '@jest/globals';
 import { readdirSync } from 'fs';
 import { join } from 'path';
-import { promptbookStringToJson } from './promptbookStringToJson';
+import { pipelineStringToJson } from './pipelineStringToJson';
 import { importPromptbook } from './validation/_importPromptbook';
 
-describe('promptbookStringToJson', () => {
+describe('pipelineStringToJson', () => {
     const samplesDir = '../../samples/templates';
 
     const samples = readdirSync(join(__dirname, samplesDir), { withFileTypes: true, recursive: false })
@@ -16,7 +16,7 @@ describe('promptbookStringToJson', () => {
 
     for (const { name } of samples) {
         it(`should parse ${name}`, () =>
-            expect(promptbookStringToJson(importPromptbook(name as `${string}.ptbk.md`))).resolves.toEqual(
+            expect(pipelineStringToJson(importPromptbook(name as `${string}.ptbk.md`))).resolves.toEqual(
                 importPromptbook(join(samplesDir, name).replace('.ptbk.md', '.ptbk.json') as `${string}.ptbk.json`),
             ));
     }

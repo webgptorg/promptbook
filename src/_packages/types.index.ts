@@ -5,10 +5,10 @@ import { EmbeddingVector } from '../execution/EmbeddingVector';
 import type { ExecutionTools } from '../execution/ExecutionTools';
 import type { AvailableModel, LlmExecutionTools } from '../execution/LlmExecutionTools';
 import type {
-    PromptEmbeddingResult,
     PromptChatResult,
     PromptCommonResult,
     PromptCompletionResult,
+    PromptEmbeddingResult,
     PromptResult,
     PromptResultUsage,
     PromptResultUsageCounts,
@@ -21,23 +21,23 @@ import type { PromptbookLibrary } from '../library/PromptbookLibrary';
 import type { ExecutionType } from '../types/ExecutionTypes';
 import type { ModelRequirements, ModelVariant } from '../types/ModelRequirements';
 import type { Parameters } from '../types/Parameters';
-import type { Prompt } from '../types/Prompt';
-import { KnowledgeJson } from '../types/PromptbookJson/KnowledgeJson';
-import { MaterialKnowledgePieceJson } from '../types/PromptbookJson/MaterialKnowledgePieceJson';
+import { KnowledgeJson } from '../types/PipelineJson/KnowledgeJson';
+import { MaterialKnowledgePieceJson } from '../types/PipelineJson/MaterialKnowledgePieceJson';
+import type { PipelineJson } from '../types/PipelineJson/PipelineJson';
 import type {
     ExpectationAmount,
-    Expectations,
     ExpectationUnit,
+    Expectations,
     LlmTemplateJson,
     PromptDialogJson,
     PromptTemplateJson,
     ScriptJson,
     SimpleTemplateJson,
-} from '../types/PromptbookJson/PromptTemplateJson';
-import { EXPECTATION_UNITS } from '../types/PromptbookJson/PromptTemplateJson';
-import type { PromptTemplateParameterJson } from '../types/PromptbookJson/PromptTemplateParameterJson';
-import type { PromptbookJson } from '../types/PromptbookJson/PromptbookJson';
-import type { PromptbookString } from '../types/PromptbookString';
+} from '../types/PipelineJson/PromptTemplateJson';
+import { EXPECTATION_UNITS } from '../types/PipelineJson/PromptTemplateJson';
+import type { PromptTemplateParameterJson } from '../types/PipelineJson/PromptTemplateParameterJson';
+import type { PipelineString } from '../types/PipelineString';
+import type { Prompt } from '../types/Prompt';
 import type { ScriptLanguage } from '../types/ScriptLanguage';
 import type { TaskProgress } from '../types/TaskProgress';
 import type { ExecutionReportJson } from '../types/execution-report/ExecutionReportJson';
@@ -101,14 +101,14 @@ export { EXPECTATION_UNITS };
 // Note: Types
 export type {
     AvailableModel,
-    client_id,
     CommonExecutionToolsOptions,
+    EmbeddingVector,
     ExecutionReportJson,
     ExecutionTools,
     ExecutionType,
     ExpectationAmount,
-    Expectations,
     ExpectationUnit,
+    Expectations,
     FromtoItems,
     KnowledgeJson,
     LlmExecutionTools,
@@ -117,27 +117,31 @@ export type {
     ModelRequirements,
     ModelVariant,
     Parameters,
+    PipelineJson,
+    PipelineString,
     Prompt,
-    PromptbookExecutor,
-    PromptbookJson,
-    PromptbookLibrary,
-    PromptbookString,
     PromptChatResult,
-    PromptEmbeddingResult,
-    EmbeddingVector,
     PromptCommonResult,
     PromptCompletionResult,
     PromptDialogJson,
+    PromptEmbeddingResult,
     PromptResult,
     PromptResultUsage,
     PromptResultUsageCounts,
     PromptTemplateJson,
     PromptTemplateParameterJson,
+    PromptbookExecutor,
+    PromptbookLibrary,
     ScriptExecutionTools,
     ScriptExecutionToolsExecuteOptions,
     ScriptJson,
     ScriptLanguage,
     SimpleTemplateJson,
+    TaskProgress,
+    UncertainNumber,
+    UserInterfaceTools,
+    UserInterfaceToolsPromptDialogOptions,
+    client_id,
     string_char,
     string_char_emoji,
     string_chat_prompt,
@@ -183,10 +187,6 @@ export type {
     string_url,
     string_url_image,
     string_version,
-    TaskProgress,
-    UncertainNumber,
-    UserInterfaceTools,
-    UserInterfaceToolsPromptDialogOptions,
 };
 
 /**

@@ -6,9 +6,9 @@ import { PromptbookExecutionError } from '../errors/PromptbookExecutionError';
 import { UnexpectedError } from '../errors/UnexpectedError';
 import { ExpectError } from '../errors/_ExpectError';
 import { isValidJsonString } from '../formats/json/utils/isValidJsonString';
+import type { PipelineJson } from '../types/PipelineJson/PipelineJson';
+import type { PromptTemplateJson } from '../types/PipelineJson/PromptTemplateJson';
 import type { Prompt } from '../types/Prompt';
-import type { PromptTemplateJson } from '../types/PromptbookJson/PromptTemplateJson';
-import type { PromptbookJson } from '../types/PromptbookJson/PromptbookJson';
 import type { TaskProgress } from '../types/TaskProgress';
 import type { ExecutionReportJson } from '../types/execution-report/ExecutionReportJson';
 import type { string_name } from '../types/typeAliases';
@@ -36,7 +36,7 @@ interface CreatePromptbookExecutorOptions {
     /**
      * The promptbook to be executed
      */
-    readonly promptbook: PromptbookJson;
+    readonly promptbook: PipelineJson;
 
     /**
      * The execution tools to be used during the execution of the PROMPTBOOK

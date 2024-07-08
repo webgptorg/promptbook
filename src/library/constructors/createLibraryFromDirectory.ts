@@ -3,13 +3,12 @@ import { access, constants, readdir, readFile } from 'fs/promises';
 import { join } from 'path';
 import spaceTrim from 'spacetrim';
 import { PROMPTBOOK_MAKED_BASE_FILENAME } from '../../config';
-import { promptbookStringToJson } from '../../conversion/promptbookStringToJson';
+import { pipelineStringToJson } from '../../conversion/pipelineStringToJson';
 import { validatePromptbook } from '../../conversion/validation/validatePromptbook';
 import { PromptbookLibraryError } from '../../errors/PromptbookLibraryError';
-import type { PromptbookJson } from '../../types/PromptbookJson/PromptbookJson';
-import type { PromptbookString } from '../../types/PromptbookString';
-import type { string_file_path } from '../../types/typeAliases';
-import type { string_folder_path } from '../../types/typeAliases';
+import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
+import type { PipelineString } from '../../types/PipelineString';
+import type { string_file_path, string_folder_path } from '../../types/typeAliases';
 import { isRunningInNode } from '../../utils/isRunningInWhatever';
 import type { PromptbookLibrary } from '../PromptbookLibrary';
 import { createLibraryFromPromise } from './createLibraryFromPromise';
@@ -92,22 +91,22 @@ export async function createLibraryFromDirectory(
 
         const fileNames = await listAllFiles(path, isRecursive);
 
-        const promptbooks: Array<PromptbookJson> = [];
+        const promptbooks: Array<PipelineJson> = [];
 
         for (const fileName of fileNames) {
             try {
-                let promptbook: PromptbookJson | null = null;
+                let promptbook: PipelineJson | null = null;
 
                 if (fileName.endsWith('.ptbk.md')) {
-                    const promptbookString = (await readFile(fileName, 'utf8')) as PromptbookString;
-                    promptbook = await promptbookStringToJson(promptbookString);
+                    const pipelineString = (await readFile(fileName, 'utf8')) as PipelineString;
+                    promptbook = await pipelineStringToJson(pipelineString);
                 } else if (fileName.endsWith('.ptbk.json')) {
                     if (isVerbose) {
                         console.info(`Loading ${fileName.split('\\').join('/')}`);
                     }
 
                     // TODO: Handle non-valid JSON files
-                    promptbook = JSON.parse(await readFile(fileName, 'utf8')) as PromptbookJson;
+                    promptbook = JSON.parse(await readFile(fileName, 'utf8')) as PipelineJson;
                 } else {
                     if (isVerbose) {
                         console.info(`Skipping file ${fileName.split('\\').join('/')}`);

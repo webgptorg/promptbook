@@ -8,10 +8,10 @@ import commander from 'commander';
 import { readFile, writeFile } from 'fs/promises';
 import glob from 'glob-promise';
 import { join } from 'path';
-import { promptbookStringToJson } from '../../src/conversion/promptbookStringToJson';
+import { pipelineStringToJson } from '../../src/conversion/pipelineStringToJson';
 import { validatePromptbook } from '../../src/conversion/validation/validatePromptbook';
 // import { AnthropicClaudeExecutionTools } from '../../src/llm-providers/anthropic-claude/AnthropicClaudeExecutionTools';
-import { PromptbookString } from '../../src/types/PromptbookString';
+import { PipelineString } from '../../src/types/PipelineString';
 import { commit } from '../utils/autocommit/commit';
 import { isWorkingTreeClean } from '../utils/autocommit/isWorkingTreeClean';
 
@@ -52,7 +52,7 @@ async function generateSampleJsons({ isCommited }: { isCommited: boolean }) {
 
         try {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const promptbookJson = await promptbookStringToJson(promptbookMarkdown as PromptbookString, {
+            const pipelineJson = await pipelineStringToJson(promptbookMarkdown as PipelineString, {
                 /*
                 !!!
                 llmTools: new AnthropicClaudeExecutionTools({
@@ -61,12 +61,12 @@ async function generateSampleJsons({ isCommited }: { isCommited: boolean }) {
                 }),
                 */
             });
-            const promptbookJsonFilePath = promptbookMarkdownFilePath.replace(/\.ptbk\.md$/, '.ptbk.json');
+            const pipelineJsonFilePath = promptbookMarkdownFilePath.replace(/\.ptbk\.md$/, '.ptbk.json');
 
             // Note: We want to ensure that the generated JSONs are logically correct
-            validatePromptbook(promptbookJson);
+            validatePromptbook(pipelineJson);
 
-            await writeFile(promptbookJsonFilePath, JSON.stringify(promptbookJson, null, 4) + '\n');
+            await writeFile(pipelineJsonFilePath, JSON.stringify(pipelineJson, null, 4) + '\n');
         } catch (error) {
             if (!(error instanceof Error)) {
                 throw error;

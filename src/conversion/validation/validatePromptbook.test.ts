@@ -2,7 +2,7 @@ import { describe, expect, it } from '@jest/globals';
 import { readdirSync } from 'fs';
 import { join } from 'path';
 import { spaceTrim } from 'spacetrim';
-import { promptbookStringToJson } from '../promptbookStringToJson';
+import { pipelineStringToJson } from '../pipelineStringToJson';
 import { importPromptbook } from './_importPromptbook';
 import { validatePromptbook } from './validatePromptbook';
 
@@ -20,9 +20,9 @@ describe('validatePromptbook', () => {
             expect(
                 (async () => {
                     try {
-                        const promptbookString = importPromptbook(name as `${string}.ptbk.md`);
-                        const promptbookJson = await promptbookStringToJson(promptbookString);
-                        validatePromptbook(promptbookJson);
+                        const pipelineString = importPromptbook(name as `${string}.ptbk.md`);
+                        const pipelineJson = await pipelineStringToJson(pipelineString);
+                        validatePromptbook(pipelineJson);
                     } catch (error) {
                         if (!(error instanceof Error)) {
                             throw error;

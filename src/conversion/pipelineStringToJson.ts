@@ -1,14 +1,14 @@
 import type { LlmExecutionTools } from '../execution/LlmExecutionTools';
 import { prepareKnowledgeFromMarkdown } from '../knowledge/prepare-knowledge/markdown/prepareKnowledgeFromMarkdown';
-import type { PromptbookJson } from '../types/PromptbookJson/PromptbookJson';
-import type { PromptbookString } from '../types/PromptbookString';
+import type { PipelineJson } from '../types/PipelineJson/PipelineJson';
+import type { PipelineString } from '../types/PipelineString';
 import { just } from '../utils/just';
-import { promptbookStringToJsonSync } from './promptbookStringToJsonSync';
+import { pipelineStringToJsonSync } from './pipelineStringToJsonSync';
 
 /**
- * Options for promptbookStringToJson
+ * Options for pipelineStringToJson
  */
-type PromptbookStringToJsonOptions = {
+type PipelineStringToJsonOptions = {
     /**
      * Tools for processing required for knowledge processing *(not for actual execution)*
      */
@@ -19,10 +19,10 @@ type PromptbookStringToJsonOptions = {
  * Compile promptbook from string (markdown) format to JSON format
  *
  * Note: There are two similar functions:
- * - `promptbookStringToJson` **(preferred)** - which propperly compiles the promptbook and use embedding for external knowledge
- * - `promptbookStringToJsonSync` - use only if you need to compile promptbook synchronously and it contains NO external knowledge
+ * - `pipelineStringToJson` **(preferred)** - which propperly compiles the promptbook and use embedding for external knowledge
+ * - `pipelineStringToJsonSync` - use only if you need to compile promptbook synchronously and it contains NO external knowledge
  *
- * @param promptbookString {Promptbook} in string markdown format (.ptbk.md)
+ * @param pipelineString {Promptbook} in string markdown format (.ptbk.md)
  * @param options - Options and tools for the compilation
  * @returns {Promptbook} compiled in JSON format (.ptbk.json)
  * @throws {PromptbookSyntaxError} if the promptbook string is not valid
@@ -30,10 +30,10 @@ type PromptbookStringToJsonOptions = {
  * Note: This function does not validate logic of the pipeline only the syntax
  * Note: This function acts as compilation process
  */
-export async function promptbookStringToJson(
-    promptbookString: PromptbookString,
-    options: PromptbookStringToJsonOptions = {},
-): Promise<PromptbookJson> {
+export async function pipelineStringToJson(
+    pipelineString: PipelineString,
+    options: PipelineStringToJsonOptions = {},
+): Promise<PipelineJson> {
     const { llmTools } = options;
 
     // TODO: !!!! Use tools here to compile knowledge
@@ -47,10 +47,10 @@ export async function promptbookStringToJson(
         console.info('!!!! knowledge', knowledge);
     }
 
-    // TODO: !!! Preconvert knowledge and error in promptbookStringToJsonSync if still present
-    const promptbookJson = promptbookStringToJsonSync(promptbookString);
+    // TODO: !!! Preconvert knowledge and error in pipelineStringToJsonSync if still present
+    const pipelineJson = pipelineStringToJsonSync(pipelineString);
 
-    return promptbookJson;
+    return pipelineJson;
 }
 
 /**

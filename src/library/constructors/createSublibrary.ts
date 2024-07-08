@@ -1,7 +1,7 @@
 import { spaceTrim } from 'spacetrim';
 import { PromptbookNotFoundError } from '../../errors/PromptbookNotFoundError';
+import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import type { Prompt } from '../../types/Prompt';
-import type { PromptbookJson } from '../../types/PromptbookJson/PromptbookJson';
 import type { string_promptbook_url } from '../../types/typeAliases';
 import type { PromptbookLibrary } from '../PromptbookLibrary';
 
@@ -23,7 +23,7 @@ export function createSublibrary(
         promptbooks = promptbooks.filter(predicate);
         return promptbooks;
     }
-    async function getPromptbookByUrl(url: string_promptbook_url): Promise<PromptbookJson> {
+    async function getPromptbookByUrl(url: string_promptbook_url): Promise<PipelineJson> {
         if (!predicate(url)) {
             throw new PromptbookNotFoundError(
                 await spaceTrim(

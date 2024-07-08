@@ -1,9 +1,9 @@
-import type { PromptbookJson } from '../../types/PromptbookJson/PromptbookJson';
+import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import type { PromptbookLibrary } from '../PromptbookLibrary';
 import { SimplePromptbookLibrary } from '../SimplePromptbookLibrary';
 
 /**
- * Creates PromptbookLibrary from array of PromptbookJson or PromptbookString
+ * Creates PromptbookLibrary from array of PipelineJson or PipelineString
  *
  * Note: Functions `libraryToJson` and `createLibraryFromJson` are complementary
  * Note: During the construction syntax and logic of all sources are validated
@@ -11,6 +11,6 @@ import { SimplePromptbookLibrary } from '../SimplePromptbookLibrary';
  * @param promptbookSources
  * @returns PromptbookLibrary
  */
-export function createLibraryFromJson(...promptbooks: Array<PromptbookJson>): PromptbookLibrary {
+export function createLibraryFromJson(...promptbooks: Array<PipelineJson>): PromptbookLibrary {
     return new SimplePromptbookLibrary(...promptbooks);
 }

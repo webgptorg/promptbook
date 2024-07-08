@@ -1,4 +1,4 @@
-import type { PromptTemplateJson } from '../../types/PromptbookJson/PromptTemplateJson';
+import type { PromptTemplateJson } from '../../types/PipelineJson/PromptTemplateJson';
 import type { string_name } from '../../types/typeAliases';
 import { extractParameters } from '../../utils/extractParameters';
 import { extractVariables } from './extractVariables';

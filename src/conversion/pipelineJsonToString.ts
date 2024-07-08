@@ -1,7 +1,7 @@
 import spaceTrim from 'spacetrim';
-import type { PromptTemplateParameterJson } from '../types/PromptbookJson/PromptTemplateParameterJson';
-import type { PromptbookJson } from '../types/PromptbookJson/PromptbookJson';
-import type { PromptbookString } from '../types/PromptbookString';
+import type { PipelineJson } from '../types/PipelineJson/PipelineJson';
+import type { PromptTemplateParameterJson } from '../types/PipelineJson/PromptTemplateParameterJson';
+import type { PipelineString } from '../types/PipelineString';
 import type { string_markdown } from '../types/typeAliases';
 import { prettifyMarkdown } from '../utils/markdown/prettifyMarkdown';
 import { capitalize } from '../utils/normalization/capitalize';
@@ -9,17 +9,17 @@ import { capitalize } from '../utils/normalization/capitalize';
 /**
  * Converts promptbook in JSON format to string format
  *
- * @param promptbookJson Promptbook in JSON format (.ptbk.json)
+ * @param pipelineJson Promptbook in JSON format (.ptbk.json)
  * @returns Promptbook in string format (.ptbk.md)
  */
-export function promptbookJsonToString(promptbookJson: PromptbookJson): PromptbookString {
-    const { title, promptbookUrl, promptbookVersion, description, parameters, promptTemplates } = promptbookJson;
+export function pipelineJsonToString(pipelineJson: PipelineJson): PipelineString {
+    const { title, promptbookUrl, promptbookVersion, description, parameters, promptTemplates } = pipelineJson;
 
-    let promptbookString: string_markdown = `# ${title}`;
+    let pipelineString: string_markdown = `# ${title}`;
 
     if (description) {
-        promptbookString += '\n\n';
-        promptbookString += description;
+        pipelineString += '\n\n';
+        pipelineString += description;
     }
 
     // TODO:> const commands: Array<Command>
@@ -31,7 +31,7 @@ export function promptbookJsonToString(promptbookJson: PromptbookJson): Promptbo
 
     commands.push(`PROMPTBOOK VERSION ${promptbookVersion}`);
 
-    promptbookString = prettifyMarkdown(promptbookString);
+    pipelineString = prettifyMarkdown(pipelineString);
 
     for (const parameter of parameters.filter(({ isInput }) => isInput)) {
         commands.push(`INPUT PARAMETER ${promptTemplateParameterJsonToString(parameter)}`);
@@ -41,8 +41,8 @@ export function promptbookJsonToString(promptbookJson: PromptbookJson): Promptbo
         commands.push(`OUTPUT PARAMETER ${promptTemplateParameterJsonToString(parameter)}`);
     }
 
-    promptbookString += '\n\n';
-    promptbookString += commands.map((command) => `- ${command}`).join('\n');
+    pipelineString += '\n\n';
+    pipelineString += commands.map((command) => `- ${command}`).join('\n');
 
     for (const promptTemplate of promptTemplates) {
         const {
@@ -59,12 +59,12 @@ export function promptbookJsonToString(promptbookJson: PromptbookJson): Promptbo
             resultingParameterName,
         } = promptTemplate;
 
-        promptbookString += '\n\n';
-        promptbookString += `## ${title}`;
+        pipelineString += '\n\n';
+        pipelineString += `## ${title}`;
 
         if (description) {
-            promptbookString += '\n\n';
-            promptbookString += description;
+            pipelineString += '\n\n';
+            pipelineString += description;
         }
 
         // TODO:> const commands: Array<Command>
@@ -130,27 +130,27 @@ export function promptbookJsonToString(promptbookJson: PromptbookJson): Promptbo
             }
         } /* not else */
 
-        promptbookString += '\n\n';
-        promptbookString += commands.map((command) => `- ${command}`).join('\n');
+        pipelineString += '\n\n';
+        pipelineString += commands.map((command) => `- ${command}`).join('\n');
 
-        promptbookString += '\n\n';
-        promptbookString += '```' + contentLanguage;
-        promptbookString += '\n';
-        promptbookString += spaceTrim(content);
+        pipelineString += '\n\n';
+        pipelineString += '```' + contentLanguage;
+        pipelineString += '\n';
+        pipelineString += spaceTrim(content);
         //                   <- TODO: !!! Escape
         //                   <- TODO: [🧠] Some clear strategy how to spaceTrim the blocks
-        promptbookString += '\n';
-        promptbookString += '```';
+        pipelineString += '\n';
+        pipelineString += '```';
 
-        promptbookString += '\n\n';
-        promptbookString += `\`-> {${resultingParameterName}}\``; // <- TODO: !!! If the parameter here has description, add it and use promptTemplateParameterJsonToString
+        pipelineString += '\n\n';
+        pipelineString += `\`-> {${resultingParameterName}}\``; // <- TODO: !!! If the parameter here has description, add it and use promptTemplateParameterJsonToString
     }
 
-    return promptbookString as PromptbookString;
+    return pipelineString as PipelineString;
 }
 
 /**
- * @private internal util of promptbookJsonToString
+ * @private internal util of pipelineJsonToString
  */
 function promptTemplateParameterJsonToString(promptTemplateParameterJson: PromptTemplateParameterJson): string {
     const { name, description } = promptTemplateParameterJson;

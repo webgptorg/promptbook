@@ -3,13 +3,13 @@ import { LOOP_LIMIT } from '../../config';
 import { PromptbookLogicError } from '../../errors/PromptbookLogicError';
 import { PromptbookSyntaxError } from '../../errors/PromptbookSyntaxError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
-import type { PromptTemplateJson } from '../../types/PromptbookJson/PromptTemplateJson';
-import type { PromptbookJson } from '../../types/PromptbookJson/PromptbookJson';
+import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
+import type { PromptTemplateJson } from '../../types/PipelineJson/PromptTemplateJson';
 import type { string_name } from '../../types/typeAliases';
 import { isValidUrl } from '../../utils/validators/url/isValidUrl';
 
 /**
- * Validates PromptbookJson if it is logically valid
+ * Validates PipelineJson if it is logically valid
  *
  * It checks:
  * -   if it has correct parameters dependency
@@ -18,11 +18,11 @@ import { isValidUrl } from '../../utils/validators/url/isValidUrl';
  * -   if it is valid json
  * -   if it is meaningful
  *
- * @param promptbook valid or invalid PromptbookJson
+ * @param promptbook valid or invalid PipelineJson
  * @returns the same promptbook if it is logically valid
  * @throws {PromptbookLogicError} on logical error in the promptbook
  */
-export function validatePromptbook(promptbook: PromptbookJson): PromptbookJson {
+export function validatePromptbook(promptbook: PipelineJson): PipelineJson {
     // TODO: [🧠] Maybe test if promptbook is a promise and make specific error case for that
 
     if (promptbook.promptbookUrl !== undefined) {
@@ -219,10 +219,10 @@ export function validatePromptbook(promptbook: PromptbookJson): PromptbookJson {
  * TODO: [🧠] Work with promptbookVersion
  * TODO: Use here some json-schema, Zod or something similar and change it to:
  *     > /**
- *     >  * Validates PromptbookJson if it is logically valid.
+ *     >  * Validates PipelineJson if it is logically valid.
  *     >  *
  *     >  * It checks:
  *     >  * -   it has a valid structure
  *     >  * -   ...
- *     >  ex port function validatePromptbook(promptbook: unknown): asserts promptbook is PromptbookJson {
+ *     >  ex port function validatePromptbook(promptbook: unknown): asserts promptbook is PipelineJson {
  */

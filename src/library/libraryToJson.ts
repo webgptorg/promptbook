@@ -1,4 +1,4 @@
-import type { PromptbookJson } from '../types/PromptbookJson/PromptbookJson';
+import type { PipelineJson } from '../types/PipelineJson/PipelineJson';
 import type { PromptbookLibrary } from './PromptbookLibrary';
 
 /**
@@ -6,7 +6,7 @@ import type { PromptbookLibrary } from './PromptbookLibrary';
  *
  * Note: Functions `libraryToJson` and `createLibraryFromJson` are complementary
  */
-export async function libraryToJson(library: PromptbookLibrary): Promise<Array<PromptbookJson>> {
+export async function libraryToJson(library: PromptbookLibrary): Promise<Array<PipelineJson>> {
     const promptbookUrls = await library.listPromptbooks();
     const promptbooks = await Promise.all(promptbookUrls.map((url) => library.getPromptbookByUrl(url)));
     return promptbooks;

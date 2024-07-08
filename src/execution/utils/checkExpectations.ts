@@ -1,6 +1,5 @@
 import { ExpectError } from '../../errors/_ExpectError';
-import type { Expectations } from '../../types/PromptbookJson/PromptTemplateJson';
-import type { ExpectationUnit } from '../../types/PromptbookJson/PromptTemplateJson';
+import type { ExpectationUnit, Expectations } from '../../types/PipelineJson/PromptTemplateJson';
 import { CountUtils } from '../../utils/expectation-counters/index';
 
 /**

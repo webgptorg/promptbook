@@ -4,11 +4,10 @@ import { PromptbookSyntaxError } from '../errors/PromptbookSyntaxError';
 import type { ParameterCommand } from '../types/Command';
 import type { ExecutionType } from '../types/ExecutionTypes';
 import type { ModelRequirements } from '../types/ModelRequirements';
-import type { PromptbookJson } from '../types/PromptbookJson/PromptbookJson';
-import type { ExpectationUnit } from '../types/PromptbookJson/PromptTemplateJson';
-import type { PromptTemplateJson } from '../types/PromptbookJson/PromptTemplateJson';
-import type { PromptTemplateParameterJson } from '../types/PromptbookJson/PromptTemplateParameterJson';
-import type { PromptbookString } from '../types/PromptbookString';
+import type { PipelineJson } from '../types/PipelineJson/PipelineJson';
+import type { ExpectationUnit, PromptTemplateJson } from '../types/PipelineJson/PromptTemplateJson';
+import type { PromptTemplateParameterJson } from '../types/PipelineJson/PromptTemplateParameterJson';
+import type { PipelineString } from '../types/PipelineString';
 import type { ScriptLanguage } from '../types/ScriptLanguage';
 import { SUPPORTED_SCRIPT_LANGUAGES } from '../types/ScriptLanguage';
 import { countMarkdownStructureDeepness } from '../utils/markdown-json/countMarkdownStructureDeepness';
@@ -26,10 +25,10 @@ import { titleToName } from './utils/titleToName';
  * Compile promptbook from string (markdown) format to JSON format synchronously
  *
  * Note: There are two similar functions:
- * - `promptbookStringToJson` **(preferred)** - which propperly compiles the promptbook and use embedding for external knowledge
- * - `promptbookStringToJsonSync` - use only if you need to compile promptbook synchronously and it contains NO external knowledge
+ * - `pipelineStringToJson` **(preferred)** - which propperly compiles the promptbook and use embedding for external knowledge
+ * - `pipelineStringToJsonSync` - use only if you need to compile promptbook synchronously and it contains NO external knowledge
  *
- * @param promptbookString {Promptbook} in string markdown format (.ptbk.md)
+ * @param pipelineString {Promptbook} in string markdown format (.ptbk.md)
  * @param options - Options and tools for the compilation
  * @returns {Promptbook} compiled in JSON format (.ptbk.json)
  * @throws {PromptbookSyntaxError} if the promptbook string is not valid
@@ -37,8 +36,8 @@ import { titleToName } from './utils/titleToName';
  * Note: This function does not validate logic of the pipeline only the syntax
  * Note: This function acts as compilation process
  */
-export function promptbookStringToJsonSync(promptbookString: PromptbookString): PromptbookJson {
-    const promptbookJson: WritableDeep<PromptbookJson> = {
+export function pipelineStringToJsonSync(pipelineString: PipelineString): PipelineJson {
+    const pipelineJson: WritableDeep<PipelineJson> = {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         title: undefined as any /* <- Note: Putting here placeholder to keep `title` on top at final JSON */,
         promptbookUrl: undefined /* <- Note: Putting here placeholder to keep `promptbookUrl` on top at final JSON */,
@@ -51,22 +50,22 @@ export function promptbookStringToJsonSync(promptbookString: PromptbookString): 
 
     // =============================================================
     // Note: 1️⃣ Normalization of the PROMPTBOOK string
-    promptbookString = removeContentComments(promptbookString);
-    promptbookString = promptbookString.replaceAll(
+    pipelineString = removeContentComments(pipelineString);
+    pipelineString = pipelineString.replaceAll(
         /`\{(?<parameterName>[a-z0-9_]+)\}`/gi,
         '{$<parameterName>}',
-    ) as PromptbookString;
-    promptbookString = promptbookString.replaceAll(
+    ) as PipelineString;
+    pipelineString = pipelineString.replaceAll(
         /`->\s+\{(?<parameterName>[a-z0-9_]+)\}`/gi,
         '-> {$<parameterName>}',
-    ) as PromptbookString;
+    ) as PipelineString;
 
     // =============================================================
     ///Note: 2️⃣ Function for adding parameters
     const addParam = (parameterCommand: Omit<ParameterCommand, 'type'>) => {
         const { parameterName, parameterDescription, isInput, isOutput } = parameterCommand;
 
-        const existingParameter = promptbookJson.parameters.find(
+        const existingParameter = pipelineJson.parameters.find(
             (parameter: PromptTemplateParameterJson) => parameter.name === parameterName,
         );
         if (
@@ -95,7 +94,7 @@ export function promptbookStringToJsonSync(promptbookString: PromptbookString): 
                 existingParameter.description = parameterDescription;
             }
         } else {
-            promptbookJson.parameters.push({
+            pipelineJson.parameters.push({
                 name: parameterName,
                 description: parameterDescription || undefined,
                 isInput,
@@ -106,7 +105,7 @@ export function promptbookStringToJsonSync(promptbookString: PromptbookString): 
 
     // =============================================================
     // Note: 3️⃣ Parse the dynamic part - the pipeline
-    const markdownStructure = markdownToMarkdownStructure(promptbookString);
+    const markdownStructure = markdownToMarkdownStructure(pipelineString);
     const markdownStructureDeepness = countMarkdownStructureDeepness(markdownStructure);
 
     if (markdownStructureDeepness !== 2) {
@@ -119,7 +118,7 @@ export function promptbookStringToJsonSync(promptbookString: PromptbookString): 
         );
     }
 
-    promptbookJson.title = markdownStructure.title;
+    pipelineJson.title = markdownStructure.title;
 
     // TODO: [1] DRY description
     let description: string | undefined = markdownStructure.content;
@@ -132,7 +131,7 @@ export function promptbookStringToJsonSync(promptbookString: PromptbookString): 
     if (description === '') {
         description = undefined;
     }
-    promptbookJson.description = description;
+    pipelineJson.description = description;
 
     const defaultModelRequirements: Partial<Writable<ModelRequirements>> = {};
     const listItems = extractAllListItemsFromMarkdown(markdownStructure.content);
@@ -141,11 +140,11 @@ export function promptbookStringToJsonSync(promptbookString: PromptbookString): 
 
         switch (command.type) {
             case 'PROMPTBOOK_URL':
-                promptbookJson.promptbookUrl = command.promptbookUrl.href;
+                pipelineJson.promptbookUrl = command.promptbookUrl.href;
                 break;
 
             case 'PROMPTBOOK_VERSION':
-                promptbookJson.promptbookVersion = command.promptbookVersion;
+                pipelineJson.promptbookVersion = command.promptbookVersion;
                 break;
 
             case 'MODEL':
@@ -352,11 +351,11 @@ export function promptbookStringToJsonSync(promptbookString: PromptbookString): 
             delete (template as any).modelRequirements;
         }
 
-        promptbookJson.promptTemplates.push(template);
+        pipelineJson.promptTemplates.push(template);
     }
 
     // =============================================================
-    return promptbookJson;
+    return pipelineJson;
 }
 
 /**

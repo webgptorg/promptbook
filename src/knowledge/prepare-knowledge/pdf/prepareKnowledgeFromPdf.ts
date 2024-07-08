@@ -1,5 +1,5 @@
 import type { LlmExecutionTools } from '../../../execution/LlmExecutionTools';
-import type { KnowledgeJson } from '../../../types/PromptbookJson/KnowledgeJson';
+import type { KnowledgeJson } from '../../../types/PipelineJson/KnowledgeJson';
 import type { string_base64 } from '../../../types/typeAliases';
 import { just } from '../../../utils/just';
 import { prepareKnowledgeFromMarkdown } from '../markdown/prepareKnowledgeFromMarkdown';

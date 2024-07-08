@@ -3,8 +3,8 @@ import type { Command } from 'commander';
 import { readFile, writeFile } from 'fs/promises';
 import glob from 'glob-promise';
 import spaceTrim from 'spacetrim';
-import { prettifyPromptbookString } from '../../conversion/prettify/prettifyPromptbookString';
-import type { PromptbookString } from '../../types/PromptbookString';
+import { prettifyPipelineString } from '../../conversion/prettify/prettifyPipelineString';
+import type { PipelineString } from '../../types/PipelineString';
 
 /**
  * Initializes `prettify` command for Promptbook CLI utilities
@@ -34,10 +34,10 @@ export function initializePrettify(program: Command) {
                 continue;
             }
 
-            let promptbookMarkdown = (await readFile(filePath, 'utf-8')) as PromptbookString;
+            let promptbookMarkdown = (await readFile(filePath, 'utf-8')) as PipelineString;
 
             try {
-                promptbookMarkdown = await prettifyPromptbookString(promptbookMarkdown, {
+                promptbookMarkdown = await prettifyPipelineString(promptbookMarkdown, {
                     isGraphAdded: true,
                     isPrettifyed: true,
                     // <- [🕌]

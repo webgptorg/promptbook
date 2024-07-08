@@ -1,6 +1,4 @@
-import type { string_markdown_text } from '../typeAliases';
-import type { string_promptbook_url } from '../typeAliases';
-import type { string_version } from '../typeAliases';
+import type { string_markdown_text, string_promptbook_url, string_version } from '../typeAliases';
 import type { KnowledgeJson } from './KnowledgeJson';
 import type { PromptTemplateJson } from './PromptTemplateJson';
 import type { PromptTemplateParameterJson } from './PromptTemplateParameterJson';
@@ -9,9 +7,9 @@ import type { PromptTemplateParameterJson } from './PromptTemplateParameterJson'
  * Promptbook is the **core concept of this library**.
  * It represents a series of prompt templates chained together to form a pipeline / one big prompt template with input and result parameters.
  *
- * @see https://github.com/webgptorg/promptbook#promptbook
+ * @see !!! https://github.com/webgptorg/promptbook#promptbook
  */
-export type PromptbookJson = {
+export type PipelineJson = {
     /**
      * Unique identifier of the promptbook
      *

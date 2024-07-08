@@ -1,10 +1,10 @@
 import { spaceTrim } from 'spacetrim';
-import { promptbookJsonToString } from '../conversion/promptbookJsonToString';
+import { pipelineJsonToString } from '../conversion/pipelineJsonToString';
 import { validatePromptbook } from '../conversion/validation/validatePromptbook';
 import { PromptbookNotFoundError } from '../errors/PromptbookNotFoundError';
 import { PromptbookReferenceError } from '../errors/PromptbookReferenceError';
+import type { PipelineJson } from '../types/PipelineJson/PipelineJson';
 import type { Prompt } from '../types/Prompt';
-import type { PromptbookJson } from '../types/PromptbookJson/PromptbookJson';
 import type { string_promptbook_url } from '../types/typeAliases';
 import type { PromptbookLibrary } from './PromptbookLibrary';
 
@@ -16,7 +16,7 @@ import type { PromptbookLibrary } from './PromptbookLibrary';
  * @see https://github.com/webgptorg/promptbook#promptbook-library
  */
 export class SimplePromptbookLibrary implements PromptbookLibrary {
-    private library: Map<string_promptbook_url, PromptbookJson>;
+    private library: Map<string_promptbook_url, PipelineJson>;
 
     /**
      * Constructs a promptbook library from promptbooks
@@ -27,8 +27,8 @@ export class SimplePromptbookLibrary implements PromptbookLibrary {
      * Note: During the construction logic of all promptbooks are validated
      * Note: It is not recommended to use this constructor directly, use `createLibraryFromJson` *(or other variant)* instead
      */
-    public constructor(...promptbooks: Array<PromptbookJson>) {
-        this.library = new Map<string_promptbook_url, PromptbookJson>();
+    public constructor(...promptbooks: Array<PipelineJson>) {
+        this.library = new Map<string_promptbook_url, PipelineJson>();
         for (const promptbook of promptbooks) {
             if (promptbook.promptbookUrl === undefined) {
                 throw new PromptbookReferenceError(
@@ -48,8 +48,7 @@ export class SimplePromptbookLibrary implements PromptbookLibrary {
             // Note: [🦄]
             if (
                 this.library.has(promptbook.promptbookUrl) &&
-                promptbookJsonToString(promptbook) !==
-                    promptbookJsonToString(this.library.get(promptbook.promptbookUrl)!)
+                pipelineJsonToString(promptbook) !== pipelineJsonToString(this.library.get(promptbook.promptbookUrl)!)
             ) {
                 throw new PromptbookReferenceError(
                     spaceTrim(`
@@ -78,7 +77,7 @@ export class SimplePromptbookLibrary implements PromptbookLibrary {
      *
      * Note: This is not a direct fetching from the URL, but a lookup in the library
      */
-    public getPromptbookByUrl(url: string_promptbook_url): PromptbookJson {
+    public getPromptbookByUrl(url: string_promptbook_url): PipelineJson {
         const promptbook = this.library.get(url);
         if (!promptbook) {
             if (this.listPromptbooks().length === 0) {

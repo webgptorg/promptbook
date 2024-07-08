@@ -11,7 +11,7 @@ Sometimes you need to postprocess the output of the LLM model, every postprocess
 `extractAllListItemsFromMarkdown`,
 `extractBlock` ,<!-- <- [🌻] -->
 `extractOneBlockFromMarkdown`,
-`prettifyPromptbookString`,
+`prettifyPipelineString`,
 `removeContentComments`,
 `removeEmojis`,
 `removeMarkdownFormatting`,

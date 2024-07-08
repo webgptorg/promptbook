@@ -1,16 +1,15 @@
 import { spaceTrim } from 'spacetrim';
-import type { PromptbookJson } from '../../types/PromptbookJson/PromptbookJson';
-import type { PromptTemplateJson } from '../../types/PromptbookJson/PromptTemplateJson';
-import { normalizeTo_camelCase } from '../../utils/normalization/normalizeTo_camelCase';
 import { UnexpectedError } from '../../errors/UnexpectedError';
-import type { string_href } from '../../types/typeAliases';
-import type { string_name } from '../../types/typeAliases';
+import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
+import type { PromptTemplateJson } from '../../types/PipelineJson/PromptTemplateJson';
+import type { string_href, string_name } from '../../types/typeAliases';
+import { normalizeTo_camelCase } from '../../utils/normalization/normalizeTo_camelCase';
 import { titleToName } from '../utils/titleToName';
 
 /**
  * Addtional options for rendering Mermaid graph
  */
-export type renderPromptbookMermaidOptions = {
+export type renderPipelineMermaidOptions = {
     /**
      * Callback for creating from prompt template graph node
      */
@@ -22,14 +21,11 @@ export type renderPromptbookMermaidOptions = {
  *
  * Note: The result is not wrapped in a Markdown code block
  */
-export function renderPromptbookMermaid(
-    promptbookJson: PromptbookJson,
-    options?: renderPromptbookMermaidOptions,
-): string {
+export function renderPromptbookMermaid(pipelineJson: PipelineJson, options?: renderPipelineMermaidOptions): string {
     const { linkPromptTemplate = () => null } = options || {};
 
     const parameterNameToTemplateName = (parameterName: string_name) => {
-        const parameter = promptbookJson.parameters.find((parameter) => parameter.name === parameterName);
+        const parameter = pipelineJson.parameters.find((parameter) => parameter.name === parameterName);
 
         if (!parameter) {
             throw new UnexpectedError(`Could not find {${parameterName}}`);
@@ -39,7 +35,7 @@ export function renderPromptbookMermaid(
             return 'input';
         }
 
-        const template = promptbookJson.promptTemplates.find(
+        const template = pipelineJson.promptTemplates.find(
             (template) => template.resultingParameterName === parameterName,
         );
 
@@ -56,13 +52,13 @@ export function renderPromptbookMermaid(
             %% 🔮 Tip: Open this on GitHub or in the VSCode website to see the Mermaid graph visually
 
             flowchart LR
-              subgraph "${promptbookJson.title}"
+              subgraph "${pipelineJson.title}"
 
                   direction TB
 
                   input((Input)):::input
                   ${block(
-                      promptbookJson.promptTemplates
+                      pipelineJson.promptTemplates
                           .flatMap(({ title, dependentParameterNames, resultingParameterName }) => [
                               `${parameterNameToTemplateName(resultingParameterName)}("${title}")`,
                               ...dependentParameterNames.map(
@@ -78,7 +74,7 @@ export function renderPromptbookMermaid(
                   )}
 
                   ${block(
-                      promptbookJson.parameters
+                      pipelineJson.parameters
                           .filter(({ isOutput }) => isOutput)
                           .map(({ name }) => `${parameterNameToTemplateName(name)}--"{${name}}"-->output`)
                           .join('\n'),
@@ -86,7 +82,7 @@ export function renderPromptbookMermaid(
                   output((Output)):::output
 
                   ${block(
-                      promptbookJson.promptTemplates
+                      pipelineJson.promptTemplates
                           .map((promptTemplate) => {
                               const link = linkPromptTemplate(promptTemplate);
 

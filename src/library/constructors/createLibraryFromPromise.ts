@@ -1,5 +1,5 @@
+import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import type { Prompt } from '../../types/Prompt';
-import type { PromptbookJson } from '../../types/PromptbookJson/PromptbookJson';
 import type { string_promptbook_url } from '../../types/typeAliases';
 import type { PromptbookLibrary } from '../PromptbookLibrary';
 import { createLibraryFromJson } from './createLibraryFromJson';
@@ -7,8 +7,8 @@ import { createLibraryFromJson } from './createLibraryFromJson';
 /**
  * Constructs Promptbook from async sources
  * It can be one of the following:
- * - Promise of array of PromptbookJson or PromptbookString
- * - Factory function that returns Promise of array of PromptbookJson or PromptbookString
+ * - Promise of array of PipelineJson or PipelineString
+ * - Factory function that returns Promise of array of PipelineJson or PipelineString
  *
  * Note: This is useful as internal tool for other constructor functions like
  *       `createLibraryFromUrl` or `createLibraryFromDirectory`
@@ -24,7 +24,7 @@ import { createLibraryFromJson } from './createLibraryFromJson';
  * @deprecated Do not use, it will became internal tool for other constructor functions
  */
 export function createLibraryFromPromise(
-    promptbookSourcesPromiseOrFactory: Promise<Array<PromptbookJson>> | (() => Promise<Array<PromptbookJson>>),
+    promptbookSourcesPromiseOrFactory: Promise<Array<PipelineJson>> | (() => Promise<Array<PipelineJson>>),
 ): PromptbookLibrary {
     let library: PromptbookLibrary;
 
@@ -41,7 +41,7 @@ export function createLibraryFromPromise(
         await forSources();
         return /* not await */ library.listPromptbooks();
     }
-    async function getPromptbookByUrl(url: string_promptbook_url): Promise<PromptbookJson> {
+    async function getPromptbookByUrl(url: string_promptbook_url): Promise<PipelineJson> {
         await forSources();
         return /* not await */ library.getPromptbookByUrl(url);
     }

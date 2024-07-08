@@ -1,4 +1,4 @@
-import type { ExpectationAmount } from '../../types/PromptbookJson/PromptTemplateJson';
+import type { ExpectationAmount } from '../../types/PipelineJson/PromptTemplateJson';
 
 /**
  * Counts number of paragraphs in the text

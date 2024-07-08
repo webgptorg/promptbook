@@ -1,10 +1,10 @@
 import { describe, expect, it } from '@jest/globals';
 import { spaceTrim } from 'spacetrim';
-import { promptbookStringToJson } from '../../conversion/promptbookStringToJson';
+import { pipelineStringToJson } from '../../conversion/pipelineStringToJson';
 import { createPromptbookExecutor } from '../../execution/createPromptbookExecutor';
 import { CallbackInterfaceTools } from '../../knowledge/dialogs/callback/CallbackInterfaceTools';
 import { MockedEchoLlmExecutionTools } from '../../llm-providers/mocked/MockedEchoLlmExecutionTools';
-import type { PromptbookString } from '../../types/PromptbookString';
+import type { PipelineString } from '../../types/PipelineString';
 import { JavascriptExecutionTools } from '../javascript/JavascriptExecutionTools';
 
 describe('createPromptbookExecutor + custom function without dependencies', () => {
@@ -46,7 +46,7 @@ describe('createPromptbookExecutor + custom function without dependencies', () =
 });
 
 async function getPromptbookExecutor() {
-    const promptbook = await promptbookStringToJson(
+    const promptbook = await pipelineStringToJson(
         spaceTrim(`
             # Custom functions
 
@@ -66,7 +66,7 @@ async function getPromptbookExecutor() {
             \`\`\`
 
             -> {greeting}
-       `) as PromptbookString,
+       `) as PipelineString,
     );
 
     return createPromptbookExecutor({

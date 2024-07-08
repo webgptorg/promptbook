@@ -1,7 +1,7 @@
 // @promptbook/utils
 
 import { spaceTrim } from 'spacetrim';
-import { renderPromptbookMermaid } from '../conversion/prettify/renderPromptbookMermaid';
+import { renderPromptbookMermaid } from '../conversion/prettify/renderPipelineMermaidOptions';
 import { extractParametersFromPromptTemplate } from '../conversion/utils/extractParametersFromPromptTemplate';
 import { extractVariables } from '../conversion/utils/extractVariables';
 import { parseNumber } from '../conversion/utils/parseNumber';
@@ -10,32 +10,30 @@ import { titleToName } from '../conversion/utils/titleToName';
 import { forEachAsync } from '../execution/utils/forEachAsync';
 import { replaceParameters } from '../execution/utils/replaceParameters';
 import { isValidJsonString } from '../formats/json/utils/isValidJsonString';
-import { CountUtils } from '../utils/expectation-counters/index';
 import { countCharacters } from '../utils/expectation-counters/countCharacters';
 import { countLines } from '../utils/expectation-counters/countLines';
 import { countPages } from '../utils/expectation-counters/countPages';
 import { countParagraphs } from '../utils/expectation-counters/countParagraphs';
-import { countSentences } from '../utils/expectation-counters/countSentences';
-import { splitIntoSentences } from '../utils/expectation-counters/countSentences';
+import { countSentences, splitIntoSentences } from '../utils/expectation-counters/countSentences';
 import { countWords } from '../utils/expectation-counters/countWords';
+import { CountUtils } from '../utils/expectation-counters/index';
 import { extractParameters } from '../utils/extractParameters';
 import { extractAllBlocksFromMarkdown } from '../utils/markdown/extractAllBlocksFromMarkdown';
 import { extractAllListItemsFromMarkdown } from '../utils/markdown/extractAllListItemsFromMarkdown';
 import { extractOneBlockFromMarkdown } from '../utils/markdown/extractOneBlockFromMarkdown';
 import { removeContentComments } from '../utils/markdown/removeContentComments';
 import { removeMarkdownFormatting } from '../utils/markdown/removeMarkdownFormatting';
+import { DIACRITIC_VARIANTS_LETTERS } from '../utils/normalization/DIACRITIC_VARIANTS_LETTERS';
+import type { IKeywords, string_keyword } from '../utils/normalization/IKeywords';
 import { capitalize } from '../utils/normalization/capitalize';
 import { decapitalize } from '../utils/normalization/decapitalize';
-import { DIACRITIC_VARIANTS_LETTERS } from '../utils/normalization/DIACRITIC_VARIANTS_LETTERS';
-import type { IKeywords } from '../utils/normalization/IKeywords';
-import type { string_keyword } from '../utils/normalization/IKeywords';
 import { isValidKeyword } from '../utils/normalization/isValidKeyword';
 import { nameToUriPart } from '../utils/normalization/nameToUriPart';
 import { nameToUriParts } from '../utils/normalization/nameToUriParts';
 import { normalizeToKebabCase } from '../utils/normalization/normalize-to-kebab-case';
-import { normalizeTo_camelCase } from '../utils/normalization/normalizeTo_camelCase';
 import { normalizeTo_PascalCase } from '../utils/normalization/normalizeTo_PascalCase';
 import { normalizeTo_SCREAMING_CASE } from '../utils/normalization/normalizeTo_SCREAMING_CASE';
+import { normalizeTo_camelCase } from '../utils/normalization/normalizeTo_camelCase';
 import { normalizeTo_snake_case } from '../utils/normalization/normalizeTo_snake_case';
 import { normalizeWhitespaces } from '../utils/normalization/normalizeWhitespaces';
 import { parseKeywords } from '../utils/normalization/parseKeywords';
@@ -54,7 +52,7 @@ import { unwrapResult } from '../utils/unwrapResult';
 import { PROMPTBOOK_VERSION } from '../version';
 
 // Note: Exporting version from each package
-export { forEachAsync, PROMPTBOOK_VERSION };
+export { PROMPTBOOK_VERSION, forEachAsync };
 
 // TODO: [🌻] For all, decide if theese are internal or external
 export {
@@ -77,7 +75,7 @@ export {
     unwrapResult,
 };
 
-export { countCharacters, countLines, countPages, countParagraphs, countSentences, CountUtils, countWords };
+export { CountUtils, countCharacters, countLines, countPages, countParagraphs, countSentences, countWords };
 
 export { splitIntoSentences };
 
@@ -94,20 +92,20 @@ export const normalizeTo = {
 };
 
 export {
-    capitalize,
-    decapitalize,
     DIACRITIC_VARIANTS_LETTERS,
     IKeywords,
+    capitalize,
+    decapitalize,
     isValidKeyword,
     nameToUriPart,
     nameToUriParts,
+    normalizeToKebabCase,
+    normalizeTo_PascalCase,
+    normalizeTo_SCREAMING_CASE,
     // [🕙] normalizeTo_lowercase,
     // [🕙] normalizeTo_UPPERCASE,
     normalizeTo_camelCase,
-    normalizeTo_PascalCase,
-    normalizeTo_SCREAMING_CASE,
     normalizeTo_snake_case,
-    normalizeToKebabCase,
     normalizeWhitespaces,
     parseKeywords,
     parseKeywordsFromString,
