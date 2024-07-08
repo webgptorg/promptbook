@@ -33,3 +33,4 @@
 -   [ ] Integrate ceaser-cipher to auto preprocess some and postprocess templates
 -   [ ][🍓][🧠] Scenario: Expect all information (for example in incomming email), when not then return = kinda reverse joker
 -   [ ] Make VSCode extension for validation/syntax highlite (and for other editors)
+-   [ ] Use `chalk` or `colors` or sth else but unite what is used
