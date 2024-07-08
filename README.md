@@ -33,7 +33,7 @@ If you need something more advanced or want to extend the capabilities of LLMs, 
 
 In any of these situations, but especially in (3), the Promptbook library can make your life easier and make **orchestraror for your prompts**.
 
--   **Separation of concerns** between prompt engineer and programmer; between code files and prompt files; and between prompts, templates, templating pipelines, and their execution logic.
+-   **Separation of concerns** between prompt engineer and programmer; between code files and prompt files; and between prompts and their execution logic.
 -   Set up a **common format** for prompts that is interchangeable between projects and language/technology stacks.
 -   **Preprocessing** and cleaning the input data from the user.
 -   Use default values - **Jokers** to bypass some parts of the pipeline.

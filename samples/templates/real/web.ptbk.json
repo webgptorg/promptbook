@@ -2,7 +2,7 @@
     "title": "🗞 Zadání webu",
     "promptbookUrl": "https://webgpt.cz/promptbook/ruka/web.ptbk.md",
     "promptbookVersion": "0.20.0",
-    "description": "Instrukce pro napsání úvodník do městského časopisu za pomocí [🌠 Prompt template pipelines](https://github.com/webgptorg/promptbook).",
+    "description": "Instrukce pro napsání úvodník do městského časopisu za pomocí [📖 Promptbook](https://github.com/webgptorg/promptbook).",
     "parameters": [
         {
             "name": "inputText",
@@ -46,13 +46,9 @@
         {
             "name": "vycisteni-vstupu",
             "title": "Vyčištění vstupu",
-            "dependentParameterNames": [
-                "inputText"
-            ],
+            "dependentParameterNames": ["inputText"],
             "executionType": "PROMPT_TEMPLATE",
-            "postprocessing": [
-                "spaceTrim"
-            ],
+            "postprocessing": ["spaceTrim"],
             "modelRequirements": {
                 "modelVariant": "CHAT",
                 "modelName": "gpt-4-1106-preview"
@@ -63,13 +59,9 @@
         {
             "name": "nazev-webu",
             "title": "Název webu",
-            "dependentParameterNames": [
-                "inputTextCleaned"
-            ],
+            "dependentParameterNames": ["inputTextCleaned"],
             "executionType": "PROMPT_TEMPLATE",
-            "postprocessing": [
-                "spaceTrim"
-            ],
+            "postprocessing": ["spaceTrim"],
             "expectations": {
                 "words": {
                     "max": 3
@@ -91,14 +83,9 @@
         {
             "name": "domeny",
             "title": "Domény",
-            "dependentParameterNames": [
-                "title",
-                "inputTextCleaned"
-            ],
+            "dependentParameterNames": ["title", "inputTextCleaned"],
             "executionType": "PROMPT_TEMPLATE",
-            "postprocessing": [
-                "spaceTrim"
-            ],
+            "postprocessing": ["spaceTrim"],
             "expectations": {
                 "lines": {
                     "max": 1
@@ -114,9 +101,7 @@
         {
             "name": "domeny",
             "title": "Domény",
-            "dependentParameterNames": [
-                "domainsCommaSeparated"
-            ],
+            "dependentParameterNames": ["domainsCommaSeparated"],
             "executionType": "SCRIPT",
             "modelRequirements": {},
             "contentLanguage": "javascript",
@@ -126,14 +111,9 @@
         {
             "name": "zadani",
             "title": "Zadání",
-            "dependentParameterNames": [
-                "title",
-                "inputTextCleaned"
-            ],
+            "dependentParameterNames": ["title", "inputTextCleaned"],
             "executionType": "PROMPT_TEMPLATE",
-            "postprocessing": [
-                "spaceTrim"
-            ],
+            "postprocessing": ["spaceTrim"],
             "expectations": {
                 "words": {
                     "min": 10
@@ -152,11 +132,7 @@
         {
             "name": "email",
             "title": "Email",
-            "dependentParameterNames": [
-                "title",
-                "assignment",
-                "domains"
-            ],
+            "dependentParameterNames": ["title", "assignment", "domains"],
             "executionType": "SIMPLE_TEMPLATE",
             "modelRequirements": {},
             "content": "Dobrý den,\n\nna Vaše zadání jsme se podívali a připravili ho pro našeho vývojáře.\nZde je zadání pro váš nový web **\"{title}\"**:\n\n> {assignment}\n\n\nNejvhodnější domény pro web **\"{title}\"** jsou:\n\n- {domains}\n\n\n*PS: Jedná se o automaticky vygenerovanou odpověď, kterou si je potřeba překontrolovat.*\n\nS pozdravem,\nR.U.K.A.",

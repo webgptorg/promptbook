@@ -3,7 +3,7 @@ import type { ScriptExecutionTools } from './ScriptExecutionTools';
 import type { UserInterfaceTools } from './UserInterfaceTools';
 
 /**
- * All the tools needed to execute prompts (template pipelines).
+ * All the tools needed to execute pipelines.
  *
  * @see https://github.com/webgptorg/promptbook#execution-tools
  */

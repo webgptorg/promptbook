@@ -105,7 +105,7 @@ export function promptbookStringToJsonSync(promptbookString: PromptbookString): 
     };
 
     // =============================================================
-    // Note: 3️⃣ Parse the dynamic part - the template pipeline
+    // Note: 3️⃣ Parse the dynamic part - the pipeline
     const markdownStructure = markdownToMarkdownStructure(promptbookString);
     const markdownStructureDeepness = countMarkdownStructureDeepness(markdownStructure);
 

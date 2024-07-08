@@ -363,8 +363,12 @@ Preparation for system for [management of external knowledge](https://github.com
 
 Renaming and making names more consistent and less disambigous
 
--   Rename word "library"
 -   Rename word "promptbook"
+    -   Keep name **"Promptbook"** as name for this project.
+    -   Rename promptbook as pipeline of templates defined in `.ptbk.md` to **"pipeline"**
+-   Rename word "library"
+    -   For library used as a collection of templates use name **"collection"**
+    -   For library used as this project and package use word **"package"**
 -   Rename methods in `LlmExecutionTools`
     -   `gptChat` -> `callChatModel`
     -   `gptComplete` -> `callCompletionModel`

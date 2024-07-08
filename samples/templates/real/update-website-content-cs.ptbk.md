@@ -1,6 +1,6 @@
 # 🌍 Aktualizace obsahu webu
 
-Instrukce pro úpravu obsahu webové stránky za pomocí [🌠 Prompt template pipelines](https://github.com/webgptorg/promptbook).
+Instrukce pro úpravu obsahu webové stránky za pomocí [📖 Promptbook](https://github.com/webgptorg/promptbook).
 
 -   PROMPTBOOK URL https://webgpt.cz/promptbook/update-website-content-cs.ptbk.md
 -   PROMPTBOOK VERSION `0.39.*`

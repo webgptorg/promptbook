@@ -2,7 +2,7 @@
     "title": "🌍 Aktualizace obsahu webu",
     "promptbookUrl": "https://webgpt.cz/promptbook/update-website-content-cs.ptbk.md",
     "promptbookVersion": "0.39.*",
-    "description": "Instrukce pro úpravu obsahu webové stránky za pomocí [🌠 Prompt template pipelines](https://github.com/webgptorg/promptbook).",
+    "description": "Instrukce pro úpravu obsahu webové stránky za pomocí [📖 Promptbook](https://github.com/webgptorg/promptbook).",
     "parameters": [
         {
             "name": "oldContent",
@@ -27,14 +27,9 @@
         {
             "name": "upravy",
             "title": "🖋 Úpravy",
-            "dependentParameterNames": [
-                "suggestedAssignment",
-                "oldContent"
-            ],
+            "dependentParameterNames": ["suggestedAssignment", "oldContent"],
             "executionType": "PROMPT_TEMPLATE",
-            "postprocessing": [
-                "spaceTrim"
-            ],
+            "postprocessing": ["spaceTrim"],
             "modelRequirements": {
                 "modelVariant": "CHAT",
                 "modelName": "gpt-4-1106-preview"

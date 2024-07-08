@@ -1,5 +1,5 @@
 /**
- * Parameters of the prompt template (pipeline)
+ * Parameters of the pipeline
  *
  * There are three types of parameters:
  * - **INPUT PARAMETERs** are required to execute the pipeline.

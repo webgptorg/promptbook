@@ -1,6 +1,6 @@
 # 🗞 Zadání webu
 
-Instrukce pro napsání úvodník do městského časopisu za pomocí [🌠 Prompt template pipelines](https://github.com/webgptorg/promptbook).
+Instrukce pro napsání úvodník do městského časopisu za pomocí [📖 Promptbook](https://github.com/webgptorg/promptbook).
 
 -   PROMPTBOOK URL https://webgpt.cz/promptbook/ruka/web.ptbk.md
 -   PROMPTBOOK VERSION 0.20.0
