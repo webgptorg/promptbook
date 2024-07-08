@@ -372,6 +372,7 @@ Renaming and making names more consistent and less disambigous
 -   Rename methods in `LlmExecutionTools`
     -   `gptChat` -> `callChatModel`
     -   `gptComplete` -> `callCompletionModel`
+-   Rename custom errors
 
 ## In prepare
 
