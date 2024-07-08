@@ -1,6 +1,9 @@
 import spaceTrim from 'spacetrim';
-import type { AvailableModel, LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { PromptChatResult, PromptCompletionResult, PromptResult } from '../../execution/PromptResult';
+import type { AvailableModel } from '../../execution/LlmExecutionTools';
+import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
+import type { PromptChatResult } from '../../execution/PromptResult';
+import type { PromptCompletionResult } from '../../execution/PromptResult';
+import type { PromptResult } from '../../execution/PromptResult';
 import type { Prompt } from '../../types/Prompt';
 
 /**

@@ -1,6 +1,8 @@
 import type { PromptResult } from '../../execution/PromptResult';
 import type { Prompt } from '../Prompt';
-import type { string_markdown_text, string_pipeline_url, string_version } from '../typeAliases';
+import type { string_markdown_text } from '../typeAliases';
+import type { string_pipeline_url } from '../typeAliases';
+import type { string_version } from '../typeAliases';
 
 /**
  * ExecutionReport is result of executing one promptbook

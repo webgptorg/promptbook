@@ -1,7 +1,8 @@
 import type { CommonExecutionToolsOptions } from '../../../execution/CommonExecutionToolsOptions';
 import type { LlmExecutionTools } from '../../../execution/LlmExecutionTools';
 import type { PipelineCollection } from '../../../library/PipelineCollection';
-import type { client_id, string_uri } from '../../../types/typeAliases';
+import type { client_id } from '../../../types/typeAliases';
+import type { string_uri } from '../../../types/typeAliases';
 
 export type RemoteServerOptions = CommonExecutionToolsOptions & {
     /**
