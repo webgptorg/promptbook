@@ -104,7 +104,7 @@ describe('createCollectionFromDirectory', () => {
                     isRecursive: false,
                 });
                 const promptbookFromLibrary = await library.getPipelineByUrl(
-                    'https://promptbook.webgpt.com/en/write-website-content.ptbk.md',
+                    'https://promptbook.studio/webgpt/write-website-content.ptbk.md',
                 );
                 return promptbookFromLibrary.title;
             })(),

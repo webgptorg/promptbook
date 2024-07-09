@@ -225,14 +225,14 @@ export type string_url = string;
 /**
  * Semantic helper
  *
- * For example `"https://promptbook.webgpt.com/cs/write-website-content.ptbk.md"`
+ * For example `"https://promptbook.studio/webgpt/write-website-content-cs.ptbk.md"`
  */
 export type string_pipeline_url = string; // <- TODO: `${string}.ptbk.md`
 
 /**
  * Semantic helper
  *
- * For example `"https://promptbook.webgpt.com/cs/write-website-content.ptbk.md#keywords"`
+ * For example `"https://promptbook.studio/webgpt/write-website-content-cs.ptbk.md#keywords"`
  */
 export type string_pipeline_url_with_hashtemplate = string;
 

@@ -2,10 +2,7 @@ import type { PostprocessingFunction } from '../scripting/javascript/JavascriptE
 import type { ExpectFormatCommand } from './Command';
 import type { ModelRequirements } from './ModelRequirements';
 import type { Expectations } from './PipelineJson/PromptTemplateJson';
-import type { string_name } from './typeAliases';
-import type { string_pipeline_url_with_hashtemplate } from './typeAliases';
-import type { string_prompt } from './typeAliases';
-import type { string_title } from './typeAliases';
+import type { string_name, string_pipeline_url_with_hashtemplate, string_prompt, string_title } from './typeAliases';
 
 /**
  * Prompt in a text along with model requirements, but without any execution or templating logic.
@@ -57,7 +54,7 @@ export type Prompt = {
     /**
      * Unique identifier of the promptbook with specific template name as hash
      *
-     * @example https://promptbook.webgpt.com/cs/write-website-content.ptbk.md#keywords
+     * @example https://promptbook.studio/webgpt/write-website-content-cs.ptbk.md#keywords
      */
     readonly promptbookUrl: string_pipeline_url_with_hashtemplate;
 

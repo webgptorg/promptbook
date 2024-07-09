@@ -1,6 +1,4 @@
-import type { string_markdown_text } from '../typeAliases';
-import type { string_pipeline_url } from '../typeAliases';
-import type { string_version } from '../typeAliases';
+import type { string_markdown_text, string_pipeline_url, string_version } from '../typeAliases';
 import type { KnowledgeJson } from './KnowledgeJson';
 import type { PromptTemplateJson } from './PromptTemplateJson';
 import type { PromptTemplateParameterJson } from './PromptTemplateParameterJson';
@@ -18,7 +16,7 @@ export type PipelineJson = {
      * Note: It must be unique across all promptbooks libraries
      * Note: It must use HTTPs URL
      * Tip: You can do versioning in the URL
-     *      For example: https://promptbook.webgpt.com/cs/write-website-content.ptbk.md@1.0.0
+     *      For example: https://promptbook.studio/webgpt/write-website-content-cs.ptbk.md@1.0.0
      * Warning: Do not hash part of the URL, hash part is used for identification of the prompt template in the pipeline
      */
     readonly promptbookUrl?: string_pipeline_url;
