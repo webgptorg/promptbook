@@ -14,5 +14,12 @@ describe('basic usage of execCommand', () => {
             execCommand({
                 command: `unknown-command`,
             }),
-        ).rejects.toThrowError(/Command "unknown-command" failed/i));
+        ).rejects.toThrowError(
+            /unknown-command/i,
+            /*
+              <- Note: There is a difference in the error message:
+                - On Linux: Command "unknown-command" failed
+                - On Windows: 'unknown-command' is not recognized as an internal or external command, operable program or batch file.
+            */
+        ));
 });
