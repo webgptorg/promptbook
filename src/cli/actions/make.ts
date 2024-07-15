@@ -93,7 +93,7 @@ export function initializeMake(program: Command) {
             }
         }
 
-        const collectionJson = await collectionToJson(library);
+        const collectionJson = await collectionToJson(collection);
         const collectionJsonString = JSON.stringify(collectionJson);
 
         const saveFile = async (extension: string_file_extension, content: string) => {
@@ -125,11 +125,11 @@ export function initializeMake(program: Command) {
                         import { createCollectionFromJson } from '@promptbook/core';
 
                         /**
-                         * Promptbook library for ${projectName}
+                         * Pipeline collection for ${projectName}
                          *
                          * @private internal cache for \`getPipelineCollection\`
                          */
-                        let PipelineCollection = null;
+                        let pipelineCollection = null;
 
 
                         /**
@@ -165,11 +165,11 @@ export function initializeMake(program: Command) {
                         import type { PipelineCollection } from '@promptbook/types';
 
                         /**
-                         * Promptbook library for ${projectName}
+                         * Pipeline collection for ${projectName}
                          *
                          * @private internal cache for \`getPipelineCollection\`
                          */
-                        let PipelineCollection: null | PipelineCollection = null;
+                        let pipelineCollection: null | PipelineCollection = null;
 
 
                         /**
