@@ -20,7 +20,7 @@ import { TemplateError } from '../errors/TemplateError';
 import { UnexpectedError } from '../errors/UnexpectedError';
 import { ExpectError } from '../errors/_ExpectError';
 import { assertsExecutionSuccessful } from '../execution/assertsExecutionSuccessful';
-import { createPromptbookExecutor } from '../execution/createPromptbookExecutor';
+import { createPipelineExecutor } from '../execution/createPipelineExecutor';
 import { embeddingVectorToString } from '../execution/embeddingVectorToString';
 import { addUsage } from '../execution/utils/addUsage';
 import { checkExpectations, isPassingExpectations } from '../execution/utils/checkExpectations';
@@ -73,7 +73,7 @@ export { SimplePromptInterfaceTools };
 export { pipelineJsonToString, pipelineStringToJson, pipelineStringToJsonSync, validatePipeline };
 
 // @promptbook/executor
-export { createPromptbookExecutor, MultipleLlmExecutionTools };
+export { createPipelineExecutor, MultipleLlmExecutionTools };
 
 // @promptbook/callback-prompt
 export { CallbackInterfaceTools, CallbackInterfaceToolsOptions };

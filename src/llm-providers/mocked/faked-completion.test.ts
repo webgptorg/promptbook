@@ -1,16 +1,16 @@
 import { describe, expect, it } from '@jest/globals';
 import { spaceTrim } from 'spacetrim';
 import { pipelineStringToJson } from '../../conversion/pipelineStringToJson';
-import { createPromptbookExecutor } from '../../execution/createPromptbookExecutor';
+import { createPipelineExecutor } from '../../execution/createPipelineExecutor';
 import { CallbackInterfaceTools } from '../../knowledge/dialogs/callback/CallbackInterfaceTools';
 import type { PipelineString } from '../../types/PipelineString';
 import { PROMPTBOOK_VERSION } from '../../version';
 import { MockedFackedLlmExecutionTools } from './MockedFackedLlmExecutionTools';
 
-describe('createPromptbookExecutor + MockedFackedLlmExecutionTools with sample completion prompt', () => {
+describe('createPipelineExecutor + MockedFackedLlmExecutionTools with sample completion prompt', () => {
     it('should work when every INPUT PARAMETER defined', async () => {
-        const promptbookExecutor = await getPromptbookExecutor();
-        expect(promptbookExecutor({ thing: 'a cup of coffee' }, () => {})).resolves.toMatchObject({
+        const pipelineExecutor = await getPipelineExecutor();
+        expect(pipelineExecutor({ thing: 'a cup of coffee' }, () => {})).resolves.toMatchObject({
             outputParameters: {
                 response: /.*/,
             },
@@ -18,8 +18,8 @@ describe('createPromptbookExecutor + MockedFackedLlmExecutionTools with sample c
     });
 
     it('should fail when some INPUT PARAMETER is missing', async () => {
-        const promptbookExecutor = await getPromptbookExecutor();
-        expect(promptbookExecutor({}, () => {})).resolves.toEqual({
+        const pipelineExecutor = await getPipelineExecutor();
+        expect(pipelineExecutor({}, () => {})).resolves.toEqual({
             isSuccessful: false,
             errors: [new Error(`Parameter {thing} is not defined`)],
             executionReport: {
@@ -86,7 +86,7 @@ describe('createPromptbookExecutor + MockedFackedLlmExecutionTools with sample c
     });
 });
 
-async function getPromptbookExecutor() {
+async function getPipelineExecutor() {
     const promptbook = await pipelineStringToJson(
         spaceTrim(`
             # Sample prompt
@@ -114,7 +114,7 @@ async function getPromptbookExecutor() {
             -> {response}
        `) as PipelineString,
     );
-    const promptbookExecutor = createPromptbookExecutor({
+    const pipelineExecutor = createPipelineExecutor({
         promptbook,
         tools: {
             llm: new MockedFackedLlmExecutionTools({ isVerbose: true }),
@@ -130,5 +130,5 @@ async function getPromptbookExecutor() {
             maxExecutionAttempts: 3,
         },
     });
-    return promptbookExecutor;
+    return pipelineExecutor;
 }

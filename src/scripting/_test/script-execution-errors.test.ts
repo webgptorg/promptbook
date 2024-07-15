@@ -2,31 +2,31 @@ import { describe, expect, it } from '@jest/globals';
 import { spaceTrim } from 'spacetrim';
 import { pipelineStringToJson } from '../../conversion/pipelineStringToJson';
 import { assertsExecutionSuccessful } from '../../execution/assertsExecutionSuccessful';
-import { createPromptbookExecutor } from '../../execution/createPromptbookExecutor';
+import { createPipelineExecutor } from '../../execution/createPipelineExecutor';
 import { CallbackInterfaceTools } from '../../knowledge/dialogs/callback/CallbackInterfaceTools';
 import { MockedEchoLlmExecutionTools } from '../../llm-providers/mocked/MockedEchoLlmExecutionTools';
 import type { PipelineString } from '../../types/PipelineString';
 import { JavascriptExecutionTools } from '../javascript/JavascriptExecutionTools';
 
-describe('createPromptbookExecutor + executing scripts in promptbook', () => {
+describe('createPipelineExecutor + executing scripts in promptbook', () => {
     it('should work when every INPUT  PARAMETER is allowed', async () => {
-        const promptbookExecutor = await getPromptbookExecutor();
+        const pipelineExecutor = await getPipelineExecutor();
 
-        expect(promptbookExecutor({ thing: 'a cup of coffee' }, () => {})).resolves.toMatchObject({
+        expect(pipelineExecutor({ thing: 'a cup of coffee' }, () => {})).resolves.toMatchObject({
             isSuccessful: true,
             errors: [],
             outputParameters: {
                 bhing: 'b cup of coffee',
             },
         });
-        expect(promptbookExecutor({ thing: 'arrow' }, () => {})).resolves.toMatchObject({
+        expect(pipelineExecutor({ thing: 'arrow' }, () => {})).resolves.toMatchObject({
             isSuccessful: true,
             errors: [],
             outputParameters: {
                 bhing: 'brrow',
             },
         });
-        expect(promptbookExecutor({ thing: 'aaa' }, () => {})).resolves.toMatchObject({
+        expect(pipelineExecutor({ thing: 'aaa' }, () => {})).resolves.toMatchObject({
             isSuccessful: true,
             errors: [],
             outputParameters: {
@@ -36,22 +36,22 @@ describe('createPromptbookExecutor + executing scripts in promptbook', () => {
     });
 
     it('should fail when INPUT  PARAMETER is NOT allowed', async () => {
-        const promptbookExecutor = await getPromptbookExecutor();
+        const pipelineExecutor = await getPipelineExecutor();
 
         for (const thing of ['apple', 'apples', 'an apple', 'Apple', 'The Apple', '🍏 Apple', 'Apple 🍎']) {
-            expect(promptbookExecutor({ thing }, () => {})).resolves.toMatchObject({
+            expect(pipelineExecutor({ thing }, () => {})).resolves.toMatchObject({
                 isSuccessful: false,
                 errors: [new Error(`I do not like Apples!`)],
             });
 
-            expect(() => promptbookExecutor({ thing }, () => {}).then(assertsExecutionSuccessful)).rejects.toThrowError(
+            expect(() => pipelineExecutor({ thing }, () => {}).then(assertsExecutionSuccessful)).rejects.toThrowError(
                 /I do not like Apples!/,
             );
         }
     });
 });
 
-async function getPromptbookExecutor() {
+async function getPipelineExecutor() {
     const promptbook = await pipelineStringToJson(
         spaceTrim(`
             # Sample prompt
@@ -76,7 +76,7 @@ async function getPromptbookExecutor() {
             -> {bhing}
        `) as PipelineString,
     );
-    const promptbookExecutor = createPromptbookExecutor({
+    const pipelineExecutor = createPipelineExecutor({
         promptbook,
         tools: {
             llm: new MockedEchoLlmExecutionTools({ isVerbose: true }),
@@ -98,5 +98,5 @@ async function getPromptbookExecutor() {
         },
     });
 
-    return promptbookExecutor;
+    return pipelineExecutor;
 }

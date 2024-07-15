@@ -2,14 +2,14 @@ import { describe, expect, it } from '@jest/globals';
 import { spaceTrim } from 'spacetrim';
 import { pipelineStringToJson } from '../../conversion/pipelineStringToJson';
 import { assertsExecutionSuccessful } from '../../execution/assertsExecutionSuccessful';
-import { createPromptbookExecutor } from '../../execution/createPromptbookExecutor';
+import { createPipelineExecutor } from '../../execution/createPipelineExecutor';
 import { CallbackInterfaceTools } from '../../knowledge/dialogs/callback/CallbackInterfaceTools';
 import { MockedEchoLlmExecutionTools } from '../../llm-providers/mocked/MockedEchoLlmExecutionTools';
 import type { PipelineString } from '../../types/PipelineString';
 import { JavascriptExecutionTools } from '../javascript/JavascriptExecutionTools';
 
-describe('createPromptbookExecutor + missing custom function', () => {
-    async function getPromptbookExecutor() {
+describe('createPipelineExecutor + missing custom function', () => {
+    async function getPipelineExecutor() {
         const promptbook = await pipelineStringToJson(
             spaceTrim(`
                 # Custom functions
@@ -33,7 +33,7 @@ describe('createPromptbookExecutor + missing custom function', () => {
              `) as PipelineString,
         );
 
-        const promptbookExecutor = createPromptbookExecutor({
+        const pipelineExecutor = createPipelineExecutor({
             promptbook,
             tools: {
                 llm: new MockedEchoLlmExecutionTools({ isVerbose: true }),
@@ -61,13 +61,13 @@ describe('createPromptbookExecutor + missing custom function', () => {
             },
         });
 
-        return promptbookExecutor;
+        return pipelineExecutor;
     }
 
     it('should throw error when custom postprocessing function does not exist', async () => {
-        const promptbookExecutor = await getPromptbookExecutor();
+        const pipelineExecutor = await getPipelineExecutor();
         expect(() =>
-            promptbookExecutor({ yourName: 'Matthew' }, () => {}).then(assertsExecutionSuccessful),
+            pipelineExecutor({ yourName: 'Matthew' }, () => {}).then(assertsExecutionSuccessful),
         ).rejects.toThrowError(/Function addHello\(\) is not defined/);
     });
 });

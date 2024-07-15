@@ -3,16 +3,16 @@
 ## 🧡 Usage
 
 ```typescript
-import { createPromptbookExecutor, assertsExecutionSuccessful } from '@promptbook/core';
+import { createPipelineExecutor, assertsExecutionSuccessful } from '@promptbook/core';
 import { createCollectionFromDirectory } from '@promptbook/node';
 import { JavascriptExecutionTools } from '@promptbook/execute-javascript';
 import { OpenAiExecutionTools } from '@promptbook/openai';
 
-// ▶ Create whole Promptbook library
-const library = await createCollectionFromDirectory('./promptbook-collection');
+// ▶ Create whole pipeline collection
+const collection = await createCollectionFromDirectory('./promptbook-collection');
 
-// ▶ Get one Promptbook
-const promptbook = await library.getPipelineByUrl(`https://promptbook.studio/my-library/write-article.ptbk.md`);
+// ▶ Get single Pipeline
+const pipeline = await library.getPipelineByUrl(`https://promptbook.studio/my-collection/write-article.ptbk.md`);
 
 // ▶ Prepare tools
 const tools = {
@@ -23,14 +23,14 @@ const tools = {
     script: [new JavascriptExecutionTools()],
 };
 
-// ▶ Create executor - the function that will execute the Promptbook
-const promptbookExecutor = createPromptbookExecutor({ promptbook, tools });
+// ▶ Create executor - the function that will execute the Pipeline
+const pipelineExecutor = createPipelineExecutor({ pipeline, tools });
 
 // ▶ Prepare input parameters
 const inputParameters = { word: 'cat' };
 
-// 🚀▶ Execute the Promptbook
-const result = await promptbookExecutor(inputParameters);
+// 🚀▶ Execute the Pipeline
+const result = await pipelineExecutor(inputParameters);
 
 // ▶ Fail if the execution was not successful
 assertsExecutionSuccessful(result);
@@ -45,16 +45,16 @@ console.info(outputParameters);
 You can use multiple LLM providers in one Promptbook execution. The best model will be chosen automatically according to the prompt and the model's capabilities.
 
 ```typescript
-import { createPromptbookExecutor, assertsExecutionSuccessful } from '@promptbook/core';
+import { createPipelineExecutor, assertsExecutionSuccessful } from '@promptbook/core';
 import { createCollectionFromDirectory } from '@promptbook/node';
 import { JavascriptExecutionTools } from '@promptbook/execute-javascript';
 import { OpenAiExecutionTools } from '@promptbook/openai';
 
-// ▶ Create whole Promptbook library
-const library = await createCollectionFromDirectory('./promptbook-collection');
+// ▶ Create whole pipeline collection
+const collection = await createCollectionFromDirectory('./promptbook-collection');
 
-// ▶ Get one Promptbook
-const promptbook = await library.getPipelineByUrl(`https://promptbook.studio/my-library/write-article.ptbk.md`);
+// ▶ Get single Pipeline
+const pipeline = await library.getPipelineByUrl(`https://promptbook.studio/my-collection/write-article.ptbk.md`);
 
 // ▶ Prepare tools
 const tools = new MultipleLlmExecutionTools(
@@ -72,14 +72,14 @@ const tools = new MultipleLlmExecutionTools(
     }),
 );
 
-// ▶ Create executor - the function that will execute the Promptbook
-const promptbookExecutor = createPromptbookExecutor({ promptbook, tools });
+// ▶ Create executor - the function that will execute the Pipeline
+const pipelineExecutor = createPipelineExecutor({ pipeline, tools });
 
 // ▶ Prepare input parameters
 const inputParameters = { word: 'dog' };
 
-// 🚀▶ Execute the Promptbook
-const result = await promptbookExecutor(inputParameters);
+// 🚀▶ Execute the Pipeline
+const result = await pipelineExecutor(inputParameters);
 
 // ▶ Fail if the execution was not successful
 assertsExecutionSuccessful(result);

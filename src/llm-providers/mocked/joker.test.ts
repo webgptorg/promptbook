@@ -1,15 +1,15 @@
 import { describe, expect, it } from '@jest/globals';
 import { spaceTrim } from 'spacetrim';
 import { pipelineStringToJson } from '../../conversion/pipelineStringToJson';
-import { createPromptbookExecutor } from '../../execution/createPromptbookExecutor';
+import { createPipelineExecutor } from '../../execution/createPipelineExecutor';
 import { CallbackInterfaceTools } from '../../knowledge/dialogs/callback/CallbackInterfaceTools';
 import type { PipelineString } from '../../types/PipelineString';
 import { MockedEchoLlmExecutionTools } from './MockedEchoLlmExecutionTools';
 
-describe('createPromptbookExecutor + MockedEchoExecutionTools with sample chat prompt', () => {
+describe('createPipelineExecutor + MockedEchoExecutionTools with sample chat prompt', () => {
     it('should work when joker is used', async () => {
-        const promptbookExecutor = await getPromptbookExecutor();
-        expect(promptbookExecutor({ yourName: 'Good name' }, () => {})).resolves.toMatchObject({
+        const pipelineExecutor = await getPipelineExecutor();
+        expect(pipelineExecutor({ yourName: 'Good name' }, () => {})).resolves.toMatchObject({
             isSuccessful: true,
             errors: [],
             outputParameters: {
@@ -19,8 +19,8 @@ describe('createPromptbookExecutor + MockedEchoExecutionTools with sample chat p
     });
 
     it('should work when joker is NOT used', async () => {
-        const promptbookExecutor = await getPromptbookExecutor();
-        expect(promptbookExecutor({ yourName: 'Badname' }, () => {})).resolves.toMatchObject({
+        const pipelineExecutor = await getPipelineExecutor();
+        expect(pipelineExecutor({ yourName: 'Badname' }, () => {})).resolves.toMatchObject({
             isSuccessful: true,
             errors: [],
             outputParameters: {
@@ -33,7 +33,7 @@ describe('createPromptbookExecutor + MockedEchoExecutionTools with sample chat p
     });
 });
 
-async function getPromptbookExecutor() {
+async function getPipelineExecutor() {
     const promptbook = await pipelineStringToJson(
         spaceTrim(`
             # ✨ Sample: Jokers
@@ -55,7 +55,7 @@ async function getPromptbookExecutor() {
             -> {name}
        `) as PipelineString,
     );
-    return createPromptbookExecutor({
+    return createPipelineExecutor({
         promptbook,
         tools: {
             llm: new MockedEchoLlmExecutionTools({ isVerbose: true }),
@@ -74,5 +74,5 @@ async function getPromptbookExecutor() {
 }
 
 /**
- * TODO: [🧠] What should be name of this test "MockedEchoExecutionTools.test.ts" or "createPromptbookExecutor.test.ts"
+ * TODO: [🧠] What should be name of this test "MockedEchoExecutionTools.test.ts" or "createPipelineExecutor.test.ts"
  */

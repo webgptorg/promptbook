@@ -13,14 +13,14 @@ This will emit `index.ts` with `getPipelineCollection` function file in `promptb
 Then just use it:
 
 ```typescript
-import { createPromptbookExecutor, assertsExecutionSuccessful } from '@promptbook/core';
+import { createPipelineExecutor, assertsExecutionSuccessful } from '@promptbook/core';
 import { getPipelineCollection } from './promptbook-collection'; // <- Importing from pre-built library
 import { JavascriptExecutionTools } from '@promptbook/execute-javascript';
 import { OpenAiExecutionTools } from '@promptbook/openai';
 
-// ▶ Get one Promptbook
+// ▶ Get single Pipeline
 const promptbook = await getPipelineCollection().getPipelineByUrl(
-    `https://promptbook.studio/my-library/write-article.ptbk.md`,
+    `https://promptbook.studio/my-collection/write-article.ptbk.md`,
 );
 
 // ▶ Prepare tools
@@ -32,14 +32,14 @@ const tools = {
     script: [new JavascriptExecutionTools()],
 };
 
-// ▶ Create executor - the function that will execute the Promptbook
-const promptbookExecutor = createPromptbookExecutor({ promptbook, tools });
+// ▶ Create executor - the function that will execute the Pipeline
+const pipelineExecutor = createPipelineExecutor({ pipeline, tools });
 
 // ▶ Prepare input parameters
 const inputParameters = { word: 'cat' };
 
-// 🚀▶ Execute the Promptbook
-const result = await promptbookExecutor(inputParameters);
+// 🚀▶ Execute the Pipeline
+const result = await pipelineExecutor(inputParameters);
 
 // ▶ Fail if the execution was not successful
 assertsExecutionSuccessful(result);

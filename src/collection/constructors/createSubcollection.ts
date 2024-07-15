@@ -43,7 +43,7 @@ export function createSubcollection(
             );
         }
 
-        const promptbook = await library.getPipelineByUrl(url);
+        const pipeline = await library.getPipelineByUrl(url);
 
         return promptbook;
     }

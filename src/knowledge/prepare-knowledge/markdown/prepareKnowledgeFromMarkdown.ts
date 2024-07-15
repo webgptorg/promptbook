@@ -4,7 +4,7 @@ import PipelineCollection from '../../../../promptbook-collection/index.json';
 // import PipelineCollection from '../../../../promptbook-collection/promptbook-collection';
 import { createCollectionFromJson } from '../../../collection/constructors/createCollectionFromJson';
 import { assertsExecutionSuccessful } from '../../../execution/assertsExecutionSuccessful';
-import { createPromptbookExecutor } from '../../../execution/createPromptbookExecutor';
+import { createPipelineExecutor } from '../../../execution/createPipelineExecutor';
 import type { LlmExecutionTools } from '../../../execution/LlmExecutionTools';
 import type { KnowledgeJson } from '../../../types/PipelineJson/KnowledgeJson';
 import type { PipelineJson } from '../../../types/PipelineJson/PipelineJson';
@@ -48,7 +48,7 @@ export async function prepareKnowledgeFromMarkdown(
         'https://promptbook.studio/promptbook/prepare-knowledge-from-markdown.ptbk.md',
     );
 
-    const prepareKnowledgeFromMarkdownExecutor = createPromptbookExecutor({
+    const prepareKnowledgeFromMarkdownExecutor = createPipelineExecutor({
         promptbook: prepareKnowledgeFromMarkdownPromptbook,
         tools: {
             llm: llmTools,
@@ -62,7 +62,7 @@ export async function prepareKnowledgeFromMarkdown(
         'https://promptbook.studio/promptbook/prepare-keywords.ptbk.md',
     );
 
-    const prepareKeywordsExecutor = createPromptbookExecutor({
+    const prepareKeywordsExecutor = createPipelineExecutor({
         promptbook: prepareKeywordsPromptbook,
         tools: {
             llm: llmTools,

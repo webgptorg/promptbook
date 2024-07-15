@@ -72,14 +72,14 @@ export function initializeMake(program: Command) {
             process.exit(1);
         }
 
-        const library = await createCollectionFromDirectory(path, {
+        const collection = await createCollectionFromDirectory(path, {
             isVerbose: verbose,
             isRecursive: true,
         });
 
         for (const validation of validations) {
             for (const promptbookUrl of await library.listPipelines()) {
-                const promptbook = await library.getPipelineByUrl(promptbookUrl);
+                const pipeline = await library.getPipelineByUrl(promptbookUrl);
 
                 if (validation === 'logic') {
                     validatePipeline(promptbook);

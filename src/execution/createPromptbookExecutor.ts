@@ -14,15 +14,13 @@ import type { ExecutionReportJson } from '../types/execution-report/ExecutionRep
 import type { string_name } from '../types/typeAliases';
 import { PROMPTBOOK_VERSION } from '../version';
 import type { ExecutionTools } from './ExecutionTools';
-import type { PromptChatResult } from './PromptResult';
-import type { PromptCompletionResult } from './PromptResult';
-import type { PromptResult } from './PromptResult';
-import type { PromptbookExecutor } from './PromptbookExecutor';
+import type { PipelineExecutor } from './PipelineExecutor';
+import type { PromptChatResult, PromptCompletionResult, PromptResult } from './PromptResult';
 import { addUsage } from './utils/addUsage';
 import { checkExpectations } from './utils/checkExpectations';
 import { replaceParameters } from './utils/replaceParameters';
 
-type CreatePromptbookExecutorSettings = {
+type CreatePipelineExecutorSettings = {
     /**
      * When executor does not satisfy expectations it will be retried this amount of times
      *
@@ -34,7 +32,7 @@ type CreatePromptbookExecutorSettings = {
 /**
  * Options for creating a promptbook executor
  */
-interface CreatePromptbookExecutorOptions {
+interface CreatePipelineExecutorOptions {
     /**
      * The promptbook to be executed
      */
@@ -48,7 +46,7 @@ interface CreatePromptbookExecutorOptions {
     /**
      * Optional settings for the PROMPTBOOK executor
      */
-    readonly settings?: Partial<CreatePromptbookExecutorSettings>;
+    readonly settings?: Partial<CreatePipelineExecutorSettings>;
 }
 
 /**
@@ -57,13 +55,13 @@ interface CreatePromptbookExecutorOptions {
  * @returns The executor function
  * @throws {PipelineLogicError} on logical error in the promptbook
  */
-export function createPromptbookExecutor(options: CreatePromptbookExecutorOptions): PromptbookExecutor {
-    const { promptbook, tools, settings = {} } = options;
+export function createPipelineExecutor(options: CreatePipelineExecutorOptions): PipelineExecutor {
+    const { pipeline, tools, settings = {} } = options;
     const { maxExecutionAttempts = 3 } = settings;
 
     validatePipeline(promptbook);
 
-    const promptbookExecutor: PromptbookExecutor = async (
+    const pipelineExecutor: PipelineExecutor = async (
         inputParameters: Record<string_name, string>,
         onProgress?: (taskProgress: TaskProgress) => Promisable<void>,
     ) => {
@@ -506,12 +504,12 @@ export function createPromptbookExecutor(options: CreatePromptbookExecutorOption
         };
     };
 
-    return promptbookExecutor;
+    return pipelineExecutor;
 }
 
 /**
  * TODO: [🧠] When not meet expectations in PROMPT_DIALOG, make some way to tell the user
  * TODO: [👧] Strongly type the executors to avoid need of remove nullables whtn noUncheckedIndexedAccess in tsconfig.json
- * Note: CreatePromptbookExecutorOptions are just connected to PromptbookExecutor so do not extract to types folder
+ * Note: CreatePipelineExecutorOptions are just connected to PipelineExecutor so do not extract to types folder
  * TODO: [🧠][3] transparent = (report intermediate parameters) / opaque execution = (report only output parameters) progress reporting mode
  */

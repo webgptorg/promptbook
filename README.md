@@ -16,10 +16,7 @@ Supercharge your use of large language models
 
 <!--/Here will be placed specific package info-->
 
-<!--
-TODO: Probbably remove this section only in packages
-> ⚠ Warning: This library is still in early development.
--->
+
 
 ## 🤍 The Promptbook Whitepaper
 

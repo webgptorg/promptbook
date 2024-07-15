@@ -5,6 +5,7 @@ import type { CommonExecutionToolsOptions } from '../execution/CommonExecutionTo
 import { EmbeddingVector } from '../execution/EmbeddingVector';
 import type { ExecutionTools } from '../execution/ExecutionTools';
 import type { AvailableModel, LlmExecutionTools } from '../execution/LlmExecutionTools';
+import type { PipelineExecutor } from '../execution/PipelineExecutor';
 import type {
     PromptChatResult,
     PromptCommonResult,
@@ -15,7 +16,6 @@ import type {
     PromptResultUsageCounts,
     UncertainNumber,
 } from '../execution/PromptResult';
-import type { PromptbookExecutor } from '../execution/PromptbookExecutor';
 import type { ScriptExecutionTools, ScriptExecutionToolsExecuteOptions } from '../execution/ScriptExecutionTools';
 import type { UserInterfaceTools, UserInterfaceToolsPromptDialogOptions } from '../execution/UserInterfaceTools';
 import type { ExecutionType } from '../types/ExecutionTypes';
@@ -118,6 +118,7 @@ export type {
     ModelVariant,
     Parameters,
     PipelineCollection,
+    PipelineExecutor,
     PipelineJson,
     PipelineString,
     Prompt,
@@ -131,7 +132,6 @@ export type {
     PromptResultUsageCounts,
     PromptTemplateJson,
     PromptTemplateParameterJson,
-    PromptbookExecutor,
     ScriptExecutionTools,
     ScriptExecutionToolsExecuteOptions,
     ScriptJson,

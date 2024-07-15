@@ -1,6 +1,6 @@
 #!/usr/bin/env ts-node
 
-import { assertsExecutionSuccessful, createPromptbookExecutor, executionReportJsonToString } from '@promptbook/core';
+import { assertsExecutionSuccessful, createPipelineExecutor, executionReportJsonToString } from '@promptbook/core';
 import { JavascriptExecutionTools } from '@promptbook/execute-javascript';
 import { createCollectionFromDirectory } from '@promptbook/node';
 import { OpenAiExecutionTools } from '@promptbook/openai';
@@ -20,11 +20,11 @@ main();
 async function main() {
     console.info(colors.bgWhite('⚪ Testing basic capabilities of Promptbook'));
 
-    const library = await createCollectionFromDirectory('./samples/templates/', {
+    const collection = await createCollectionFromDirectory('./samples/templates/', {
         isRecursive: false,
         isCrashOnError: true,
     });
-    const promptbook = await library.getPipelineByUrl(
+    const pipeline = await library.getPipelineByUrl(
         `https://promptbook.example.com/samples/simple.ptbk.md`,
         // `https://promptbook.example.com/samples/language-capabilities.ptbk.md`,
     );
@@ -41,10 +41,10 @@ async function main() {
         ],
     };
 
-    const promptbookExecutor = createPromptbookExecutor({ promptbook, tools });
+    const pipelineExecutor = createPipelineExecutor({ pipeline, tools });
 
     const inputParameters = { word: 'cat' };
-    const { isSuccessful, errors, outputParameters, executionReport } = await promptbookExecutor(
+    const { isSuccessful, errors, outputParameters, executionReport } = await pipelineExecutor(
         inputParameters,
         (progress) => {
             console.info({ progress });

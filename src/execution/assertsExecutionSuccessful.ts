@@ -1,6 +1,6 @@
 import { spaceTrim } from 'spacetrim';
 import { ExecutionError } from '../errors/ExecutionError';
-import type { PromptbookExecutor } from './PromptbookExecutor';
+import type { PipelineExecutor } from './PipelineExecutor';
 
 /**
  * Asserts that the execution of a promptnook is successful
@@ -9,7 +9,7 @@ import type { PromptbookExecutor } from './PromptbookExecutor';
  * @throws {ExecutionError} If the execution is not successful or if multiple errors occurred
  */
 export function assertsExecutionSuccessful(
-    executionResult: Pick<Awaited<ReturnType<PromptbookExecutor>>, 'isSuccessful' | 'errors'>,
+    executionResult: Pick<Awaited<ReturnType<PipelineExecutor>>, 'isSuccessful' | 'errors'>,
 ): void {
     const { isSuccessful, errors } = executionResult;
 

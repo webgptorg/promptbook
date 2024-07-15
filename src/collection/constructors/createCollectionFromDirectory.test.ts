@@ -29,7 +29,7 @@ describe('createCollectionFromDirectory', () => {
 
     it('should get promptbook by url from library', async () => {
         expect.assertions(1);
-        const library = await createCollectionFromDirectory('./samples/templates', {
+        const collection = await createCollectionFromDirectory('./samples/templates', {
             isVerbose: true,
             isRecursive: false,
             isLazyLoaded: false,
@@ -44,7 +44,7 @@ describe('createCollectionFromDirectory', () => {
     it('should get lazy-loaded promptbook by url from library', async () => {
         expect.assertions(1);
 
-        const library = await createCollectionFromDirectory('./samples/templates', {
+        const collection = await createCollectionFromDirectory('./samples/templates', {
             isVerbose: true,
             isRecursive: false,
             isLazyLoaded: true,
@@ -59,7 +59,7 @@ describe('createCollectionFromDirectory', () => {
     it('should get different promptbook by url from library', async () => {
         expect.assertions(1);
 
-        const library = await createCollectionFromDirectory('./samples/templates', {
+        const collection = await createCollectionFromDirectory('./samples/templates', {
             isVerbose: true,
             isRecursive: false,
         });
@@ -73,7 +73,7 @@ describe('createCollectionFromDirectory', () => {
     it('should NOT crash when include error promptbooks but lazy-loaded', () =>
         expect(
             (async () => {
-                const library = await createCollectionFromDirectory('./samples/templates', {
+                const collection = await createCollectionFromDirectory('./samples/templates', {
                     isVerbose: true,
                     isRecursive: true /* <- Note: Include Errors */,
                     isLazyLoaded: true,
@@ -85,7 +85,7 @@ describe('createCollectionFromDirectory', () => {
     it('should crash when include error promptbooks', () =>
         expect(
             (async () => {
-                const library = await createCollectionFromDirectory('./samples/templates', {
+                const collection = await createCollectionFromDirectory('./samples/templates', {
                     isVerbose: true,
                     isRecursive: true /* <- Note: Include Errors */,
                     isLazyLoaded: false,

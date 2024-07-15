@@ -37,7 +37,7 @@ async function makePipelineCollection({ isCommited }: { isCommited: boolean }) {
 
     const promptbookSourceDir = 'promptbook-collection';
 
-    const library = await createCollectionFromDirectory(promptbookSourceDir, {
+    const collection = await createCollectionFromDirectory(promptbookSourceDir, {
         isVerbose: true,
         isRecursive: true,
     });
