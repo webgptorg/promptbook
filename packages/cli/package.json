@@ -1,6 +1,6 @@
 {
     "name": "@promptbook/cli",
-    "version": "0.60.0-7",
+    "version": "0.60.0-8",
     "description": "Supercharge your use of large language models",
     "private": false,
     "sideEffects": false,
@@ -52,12 +52,13 @@
         }
     ],
     "peerDependencies": {
-        "@promptbook/core": "0.60.0-7"
+        "@promptbook/core": "0.60.0-8"
     },
     "main": "./umd/index.umd.js",
     "module": "./esm/index.es.js",
     "typings": "./esm/typings/src/_packages/cli.index.d.ts",
     "bin": {
-        "promptbook": "bin/promptbook-cli.js"
+        "promptbook": "bin/promptbook-cli.js",
+        "ptbk": "bin/promptbook-cli.js"
     }
 }
