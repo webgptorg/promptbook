@@ -337,8 +337,6 @@ Better JSON Mode
 -   Internal reorganization of folders and files
 -   Export types as type export
 
-## In pre-release
-
 ### `0.59.0` _(2024-06-30)_
 
 Preparation for system for [management of external knowledge](https://github.com/webgptorg/promptbook/discussions/41) (RAG), vector embeddings and propper building of pipeline collection.
@@ -359,7 +357,7 @@ Preparation for system for [management of external knowledge](https://github.com
 -   Create `embed` method on LLM tools, `PromptEmbeddingResult`, `EmbeddingVector` and `embeddingVectorToString`
 -   `createLibraryFromDirectory` still DONT use prebuild library (just detects it)
 
-### `0.60.0` _(2024-07-07)_
+### `0.60.0` _(2024-07-15)_
 
 Renaming and making names more consistent and less disambigous
 
@@ -375,6 +373,15 @@ Renaming and making names more consistent and less disambigous
 -   Rename custom errors
 -   Rename folder `promptbook-collection` -> `promptbook-collection`
 -   In CLI you ca use both `promptbook` and `ptbk`
+
+## In pre-release
+
+### `0.61.0` _(2024-07-!!!)_
+
+Knowledge preparation
+
+-   Add `callEmbeddingModel` to `LlmExecutionTools`
+-   `callChatModel` and `callCompletionModel` are not required to be implemented in `LlmExecutionTools` anymore
 
 ## In prepare
 

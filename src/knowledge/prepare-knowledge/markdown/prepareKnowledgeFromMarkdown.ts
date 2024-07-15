@@ -126,6 +126,7 @@ export async function prepareKnowledgeFromMarkdown(
                 // ---
 
                 // TODO: !!!! Index through LLM model
+
                 index.push({
                     modelName: 'fake-model',
                     position: new Array(25).fill(0).map(() => Math.random() * 2 - 1),

@@ -1,10 +1,8 @@
 import type { Promisable } from 'type-fest';
 import type { ModelVariant } from '../types/ModelRequirements';
 import type { Prompt } from '../types/Prompt';
-import type { string_model_name } from '../types/typeAliases';
-import type { string_title } from '../types/typeAliases';
-import type { PromptChatResult } from './PromptResult';
-import type { PromptCompletionResult } from './PromptResult';
+import type { string_model_name, string_title } from '../types/typeAliases';
+import type { PromptChatResult, PromptCompletionResult, PromptEmbeddingResult } from './PromptResult';
 
 /**
  * Container for all the tools needed to execute prompts to large language models like GPT-4
@@ -15,16 +13,19 @@ import type { PromptCompletionResult } from './PromptResult';
  */
 export type LlmExecutionTools = {
     /**
-     * Use a chat model
+     * Calls a chat model
      */
-    callChatModel(prompt: Prompt): Promise<PromptChatResult>;
+    callChatModel?(prompt: Prompt): Promise<PromptChatResult>;
 
     /**
-     * Use a completion model
+     * Calls a completion model
      */
-    callCompletionModel(prompt: Prompt): Promise<PromptCompletionResult>;
+    callCompletionModel?(prompt: Prompt): Promise<PromptCompletionResult>;
 
-    // TODO: !!!! Translation model
+    /**
+     * Calls an embedding model
+     */
+    callEmbeddingModel?(prompt: Prompt): Promise<PromptEmbeddingResult>;
 
     /**
      * List all available models that can be used
@@ -55,6 +56,7 @@ export type AvailableModel = {
 };
 
 /**
+ * TODO: !!!! Translation model
  * TODO: [🧠] Emulation of one type of model with another one - emuate chat with completion; emulate translation with chat
  * TODO: [🍓][♐] Some heuristic to pick the best model in listed models
  * TODO: [🏳] callChatModel -> chat, callCompletionModel -> complete, translate
