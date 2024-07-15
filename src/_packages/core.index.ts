@@ -63,7 +63,7 @@ export {
     createCollectionFromJson,
     createCollectionFromPromise,
     createCollectionFromUrl,
-    createSubcollection as createSublibrary,
+    createSubcollection,
 };
 
 // @promptbook/simple-prompt
