@@ -2,17 +2,19 @@ import spaceTrim from 'spacetrim';
 // TODO: [🏳‍🌈] Finally take pick of .json vs .ts
 import PipelineCollection from '../../../../promptbook-collection/index.json';
 // import PipelineCollection from '../../../../promptbook-collection/promptbook-collection';
+import { createCollectionFromJson } from '../../../collection/constructors/createCollectionFromJson';
 import { assertsExecutionSuccessful } from '../../../execution/assertsExecutionSuccessful';
 import { createPromptbookExecutor } from '../../../execution/createPromptbookExecutor';
 import type { LlmExecutionTools } from '../../../execution/LlmExecutionTools';
-import { createCollectionFromJson } from '../../../library/constructors/createCollectionFromJson';
 import type { KnowledgeJson } from '../../../types/PipelineJson/KnowledgeJson';
 import type { PipelineJson } from '../../../types/PipelineJson/PipelineJson';
-import type { string_href } from '../../../types/typeAliases';
-import type { string_markdown } from '../../../types/typeAliases';
-import type { string_markdown_text } from '../../../types/typeAliases';
-import type { string_model_name } from '../../../types/typeAliases';
-import type { string_name } from '../../../types/typeAliases';
+import type {
+    string_href,
+    string_markdown,
+    string_markdown_text,
+    string_model_name,
+    string_name,
+} from '../../../types/typeAliases';
 import type { string_keyword } from '../../../utils/normalization/IKeywords';
 import { normalizeToKebabCase } from '../../../utils/normalization/normalize-to-kebab-case';
 

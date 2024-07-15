@@ -1,6 +1,6 @@
 // @promptbook/node
 
-import { createCollectionFromDirectory } from '../library/constructors/createCollectionFromDirectory';
+import { createCollectionFromDirectory } from '../collection/constructors/createCollectionFromDirectory';
 import { PROMPTBOOK_VERSION } from '../version';
 
 // Note: Exporting version from each package

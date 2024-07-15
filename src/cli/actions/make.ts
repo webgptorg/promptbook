@@ -3,10 +3,10 @@ import type { Command } from 'commander';
 import { mkdir, writeFile } from 'fs/promises';
 import { dirname, join } from 'path';
 import spaceTrim from 'spacetrim';
+import { collectionToJson } from '../../collection/collectionToJson';
+import { createCollectionFromDirectory } from '../../collection/constructors/createCollectionFromDirectory';
 import { PROMPTBOOK_MAKED_BASE_FILENAME } from '../../config';
 import { validatePipeline } from '../../conversion/validation/validatePipeline';
-import { collectionToJson } from '../../library/collectionToJson';
-import { createCollectionFromDirectory } from '../../library/constructors/createCollectionFromDirectory';
 import type { string_file_extension } from '../../types/typeAliases';
 
 /**

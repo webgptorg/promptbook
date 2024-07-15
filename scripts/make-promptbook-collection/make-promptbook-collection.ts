@@ -7,8 +7,8 @@ import colors from 'colors';
 import commander from 'commander';
 import { writeFile } from 'fs/promises';
 import { join } from 'path';
-import { collectionToJson } from '../../src/library/collectionToJson';
-import { createCollectionFromDirectory } from '../../src/library/constructors/createCollectionFromDirectory';
+import { collectionToJson } from '../../src/collection/collectionToJson';
+import { createCollectionFromDirectory } from '../../src/collection/constructors/createCollectionFromDirectory';
 import { commit } from '../utils/autocommit/commit';
 
 if (process.cwd() !== join(__dirname, '../..')) {

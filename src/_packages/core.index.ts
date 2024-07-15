@@ -1,5 +1,10 @@
 // @promptbook/core
 
+import { collectionToJson } from '../collection/collectionToJson';
+import { createCollectionFromJson } from '../collection/constructors/createCollectionFromJson';
+import { createCollectionFromPromise } from '../collection/constructors/createCollectionFromPromise';
+import { createCollectionFromUrl } from '../collection/constructors/createCollectionFromUrl';
+import { createSubcollection } from '../collection/constructors/createSubcollection';
 import { pipelineJsonToString } from '../conversion/pipelineJsonToString';
 import { pipelineStringToJson } from '../conversion/pipelineStringToJson';
 import { pipelineStringToJsonSync } from '../conversion/pipelineStringToJsonSync';
@@ -24,11 +29,6 @@ import { CallbackInterfaceTools } from '../knowledge/dialogs/callback/CallbackIn
 import type { CallbackInterfaceToolsOptions } from '../knowledge/dialogs/callback/CallbackInterfaceToolsOptions';
 import { SimplePromptInterfaceTools } from '../knowledge/dialogs/simple-prompt/SimplePromptInterfaceTools';
 import { prepareKnowledgeFromMarkdown } from '../knowledge/prepare-knowledge/markdown/prepareKnowledgeFromMarkdown';
-import { collectionToJson } from '../library/collectionToJson';
-import { createCollectionFromJson } from '../library/constructors/createCollectionFromJson';
-import { createCollectionFromPromise } from '../library/constructors/createCollectionFromPromise';
-import { createCollectionFromUrl } from '../library/constructors/createCollectionFromUrl';
-import { createSubcollection } from '../library/constructors/createSubcollection';
 import { MultipleLlmExecutionTools } from '../llm-providers/multiple/MultipleLlmExecutionTools';
 import { ExecutionTypes } from '../types/ExecutionTypes';
 import type { ExecutionReportStringOptions } from '../types/execution-report/ExecutionReportStringOptions';
