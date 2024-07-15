@@ -9,7 +9,7 @@
 -   MODEL VARIANT Chat
 -   MODEL NAME `claude-3-opus-20240229`
 -   EXPECT MIN 1 WORD
--   EXPECT MAX 10 WORDS
+-   EXPECT MAX 8 WORDS
 
 ```markdown
 You are experienced content creator, write best title for the document.
@@ -18,7 +18,7 @@ You are experienced content creator, write best title for the document.
 
 -   Write just title, nothing else
 -   Title should be concise and clear
--   Write maximum 10 words for the title
+-   Write maximum 5 words for the title
 
 # The document
 
