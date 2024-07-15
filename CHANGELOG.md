@@ -199,7 +199,7 @@ After install you can use `promptbook` command in terminal:
 
 ```bash
 npm i @promptbook/utils
-npx promptbook prettify promptbook/**/*.ptbk.md
+npx ptbk prettify promptbook/**/*.ptbk.md
 ```
 
 ### `0.44.0` _(2024-04-26)_
@@ -353,7 +353,7 @@ Preparation for system for [management of external knowledge](https://github.com
 -   Rename all `createPromptbookLibraryFromXyz` to `createLibraryFromXyz`
 -   Misc Tool classes not requires options anymore _(like `CallbackInterfaceTools`, `OpenAiExecutionTools`, `AnthropicClaudeExecutionTools`, etc.)_
 -   Add util `libraryToJson` exported from `@promptbook/core`
--   CLI util `promptbook make ...` can convert promptbooks to JSON
+-   CLI util `ptbk make ...` can convert promptbooks to JSON
 -   `promptbookStringToJson` automatically looks for `promptbook-collection.json` in root of given directory
 -   Rename `validatePromptbookJson` to `validatePromptbook`
 -   Create `embed` method on LLM tools, `PromptEmbeddingResult`, `EmbeddingVector` and `embeddingVectorToString`
@@ -374,6 +374,7 @@ Renaming and making names more consistent and less disambigous
     -   `gptComplete` -> `callCompletionModel`
 -   Rename custom errors
 -   Rename folder `promptbook-collection` -> `promptbook-collection`
+-   In CLI you ca use both `promptbook` and `ptbk`
 
 ## In prepare
 

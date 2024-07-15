@@ -65,6 +65,6 @@ async function makePipelineCollection({ isCommited }: { isCommited: boolean }) {
 }
 
 /**
- * TODO: [🌼] Maybe use `promptbook make` cli command instead of this script (but figure out what to do with nessesity to have library commited here)
- * TODO: !!! Use `promptbook make` cli command this in WebGPT and Promptbook
+ * TODO: [🌼] Maybe use `ptbk make` cli command instead of this script (but figure out what to do with nessesity to have library commited here)
+ * TODO: !!! Use `ptbk make` cli command this in WebGPT and Promptbook
  */

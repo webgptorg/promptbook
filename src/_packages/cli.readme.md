@@ -2,10 +2,10 @@ CLI utils for Promptbook. After install you can use `promptbook` command in term
 
 ## Make your Promptbook Library
 
-You can prebuild your own Promptbook library with `promptbook make` command:
+You can prebuild your own Promptbook library with `ptbk make` command:
 
 ```bash
-npx promptbook make ./promptbook-collection --format typescript --verbose
+npx ptbk make ./promptbook-collection --format typescript --verbose
 ```
 
 This will emit `index.ts` with `getPipelineCollection` function file in `promptbook-collection` directory.
@@ -49,14 +49,14 @@ const { isSuccessful, errors, outputParameters, executionReport } = result;
 console.info(outputParameters);
 ```
 
-This is simmilar to compilation process, during the build time the `promptbook make` command will check promptbooks for errors, convert them to the more optimized format and build knowledge base (RAG) for the pipeline collection.
+This is simmilar to compilation process, during the build time the `ptbk make` command will check promptbooks for errors, convert them to the more optimized format and build knowledge base (RAG) for the pipeline collection.
 
 There is also a javascript and json format available.
 
 ## Prettify
 
 ```bash
-npx promptbook prettify promptbook/**/*.ptbk.md
+npx ptbk prettify promptbook/**/*.ptbk.md
 ```
 
 This will prettify all promptbooks in `promptbook` directory and adds Mermaid graphs to them.

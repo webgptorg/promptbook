@@ -186,6 +186,7 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
         if (packageFullname === '@promptbook/cli') {
             packageJson.bin = {
                 promptbook: 'bin/promptbook-cli.js',
+                ptbk: 'bin/promptbook-cli.js',
             };
         }
 
