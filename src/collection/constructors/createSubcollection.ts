@@ -8,8 +8,8 @@ import type { PipelineCollection } from '../PipelineCollection';
 /**
  * Creates PipelineCollection as a subset of another PipelineCollection
  *
- * Note: You can use any type of library as a parent library - local, remote, etc.
- * Note: This is just a thin wrapper / proxy around the parent library
+ * Note: You can use any type of collection as a parent collection - local, remote, etc.
+ * Note: This is just a thin wrapper / proxy around the parent collection
  *
  * @param promptbookSources
  * @returns PipelineCollection
@@ -33,7 +33,7 @@ export function createSubcollection(
                         Available promptbooks:
                         ${block((await listPipelines()).map((promptbookUrl) => `- ${promptbookUrl}`).join('\n'))}
 
-                        All available promptbooks in parent library:
+                        All available promptbooks in parent collection:
                         ${block(
                             (await collection.listPipelines()).map((promptbookUrl) => `- ${promptbookUrl}`).join('\n'),
                         )}

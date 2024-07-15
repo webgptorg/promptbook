@@ -32,7 +32,7 @@ describe('createCollectionFromJson', () => {
             -> {response}
          `) as PipelineString;
 
-    it('should get promptbook by url from library', async () => {
+    it('should get promptbook by url from collection', async () => {
         expect.assertions(1);
         const promptbook = await pipelineStringToJson(pipelineString);
         const collection = createCollectionFromJson(promptbook);

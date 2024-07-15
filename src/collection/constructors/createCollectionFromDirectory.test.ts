@@ -27,21 +27,21 @@ describe('createCollectionFromDirectory', () => {
 
     `) as PipelineString;
 
-    it('should get promptbook by url from library', async () => {
+    it('should get promptbook by url from collection', async () => {
         expect.assertions(1);
         const collection = await createCollectionFromDirectory('./samples/templates', {
             isVerbose: true,
             isRecursive: false,
             isLazyLoaded: false,
         });
-        const promptbookFromLibrary = await library.getPipelineByUrl(
+        const promptbookFromLibrary = await collection.getPipelineByUrl(
             'https://promptbook.example.com/samples/simple.ptbk.md',
         );
 
         expect(promptbookFromLibrary).toEqual(await pipelineStringToJson(promptbook));
     });
 
-    it('should get lazy-loaded promptbook by url from library', async () => {
+    it('should get lazy-loaded promptbook by url from collection', async () => {
         expect.assertions(1);
 
         const collection = await createCollectionFromDirectory('./samples/templates', {
@@ -49,21 +49,21 @@ describe('createCollectionFromDirectory', () => {
             isRecursive: false,
             isLazyLoaded: true,
         });
-        const promptbookFromLibrary = await library.getPipelineByUrl(
+        const promptbookFromLibrary = await collection.getPipelineByUrl(
             'https://promptbook.example.com/samples/simple.ptbk.md',
         );
 
         expect(promptbookFromLibrary).toEqual(await pipelineStringToJson(promptbook));
     });
 
-    it('should get different promptbook by url from library', async () => {
+    it('should get different promptbook by url from collection', async () => {
         expect.assertions(1);
 
         const collection = await createCollectionFromDirectory('./samples/templates', {
             isVerbose: true,
             isRecursive: false,
         });
-        const promptbookFromLibrary = await library.getPipelineByUrl(
+        const promptbookFromLibrary = await collection.getPipelineByUrl(
             'https://promptbook.example.com/samples/jokers.ptbk.md',
         );
 
@@ -78,7 +78,7 @@ describe('createCollectionFromDirectory', () => {
                     isRecursive: true /* <- Note: Include Errors */,
                     isLazyLoaded: true,
                 });
-                just(library);
+                just(collection);
             })(),
         ).resolves.not.toThrow());
 
@@ -90,7 +90,7 @@ describe('createCollectionFromDirectory', () => {
                     isRecursive: true /* <- Note: Include Errors */,
                     isLazyLoaded: false,
                 });
-                just(library);
+                just(collection);
             })(),
         ).rejects.toThrowError(/Error during loading promptbook/i));
 
@@ -99,11 +99,11 @@ describe('createCollectionFromDirectory', () => {
     it('should find promptbook in subdirectory', () =>
         expect(
             (async () => {
-              const library = await   createCollectionFromDirectory('./samples/templates', {
+              const collection = await   createCollectionFromDirectory('./samples/templates', {
                     isVerbose: true,
                     isRecursive: false,
                 });
-                const promptbookFromLibrary = await library.getPipelineByUrl(
+                const promptbookFromLibrary = await collection.getPipelineByUrl(
                     'https://promptbook.studio/webgpt/write-website-content.ptbk.md',
                 );
                 return promptbookFromLibrary.title;

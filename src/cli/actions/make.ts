@@ -5,7 +5,7 @@ import { dirname, join } from 'path';
 import spaceTrim from 'spacetrim';
 import { collectionToJson } from '../../collection/collectionToJson';
 import { createCollectionFromDirectory } from '../../collection/constructors/createCollectionFromDirectory';
-import { PROMPTBOOK_MAKED_BASE_FILENAME } from '../../config';
+import { PIPELINE_COLLECTION_BASE_FILENAME } from '../../config';
 import { validatePipeline } from '../../conversion/validation/validatePipeline';
 import type { string_file_extension } from '../../types/typeAliases';
 
@@ -23,17 +23,17 @@ export function initializeMake(program: Command) {
     );
 
     helloCommand.argument('<path>', 'Path to promptbook directory');
-    helloCommand.option('--project-name', `Name of the project for whom library is`, 'Project');
+    helloCommand.option('--project-name', `Name of the project for whom collection is`, 'Project');
     helloCommand.option(
         '-f, --format <format>',
         spaceTrim(`
-            Output format of builded library "javascript", "typescript" or "json"
+            Output format of builded collection "javascript", "typescript" or "json"
 
             Note: You can use multiple formats separated by comma
         `),
         'javascript' /* <- Note: [🏳‍🌈] */,
     );
-    helloCommand.option('--no-validation', `Do not validate logic of promptbooks in library`, true);
+    helloCommand.option('--no-validation', `Do not validate logic of pipelines in collection`, true);
     helloCommand.option(
         '--validation',
         `Types of validations separated by comma (options "logic","imports")`,
@@ -44,13 +44,13 @@ export function initializeMake(program: Command) {
     helloCommand.option(
         '-o, --out-file <path>',
         spaceTrim(`
-            Where to save the builded library
+            Where to save the builded collection
 
-            Note: If you keep it "${PROMPTBOOK_MAKED_BASE_FILENAME}" it will be saved in the root of the promptbook directory
+            Note: If you keep it "${PIPELINE_COLLECTION_BASE_FILENAME}" it will be saved in the root of the promptbook directory
                   If you set it to a path, it will be saved in that path
                   BUT you can use only one format and set correct extension
         `),
-        PROMPTBOOK_MAKED_BASE_FILENAME,
+        PIPELINE_COLLECTION_BASE_FILENAME,
     );
 
     // TODO: !!! Auto-detect AI api keys + explicit api keys as argv
@@ -67,7 +67,7 @@ export function initializeMake(program: Command) {
             .map((_) => _.trim())
             .filter((_) => _ !== '');
 
-        if (outFile !== PROMPTBOOK_MAKED_BASE_FILENAME && formats.length !== 1) {
+        if (outFile !== PIPELINE_COLLECTION_BASE_FILENAME && formats.length !== 1) {
             console.error(colors.red(`You can use only one format when saving to a file`));
             process.exit(1);
         }
@@ -78,14 +78,14 @@ export function initializeMake(program: Command) {
         });
 
         for (const validation of validations) {
-            for (const promptbookUrl of await library.listPipelines()) {
-                const pipeline = await library.getPipelineByUrl(promptbookUrl);
+            for (const promptbookUrl of await collection.listPipelines()) {
+                const pipeline = await collection.getPipelineByUrl(promptbookUrl);
 
                 if (validation === 'logic') {
-                    validatePipeline(promptbook);
+                    validatePipeline(pipeline);
 
                     if (verbose) {
-                        console.info(colors.cyan(`Validated logic of ${promptbook.promptbookUrl}`));
+                        console.info(colors.cyan(`Validated logic of ${pipeline.promptbookUrl}`));
                     }
                 }
 
@@ -98,9 +98,9 @@ export function initializeMake(program: Command) {
 
         const saveFile = async (extension: string_file_extension, content: string) => {
             const filePath =
-                outFile !== PROMPTBOOK_MAKED_BASE_FILENAME
+                outFile !== PIPELINE_COLLECTION_BASE_FILENAME
                     ? outFile
-                    : join(path, `${PROMPTBOOK_MAKED_BASE_FILENAME}.${extension}`);
+                    : join(path, `${PIPELINE_COLLECTION_BASE_FILENAME}.${extension}`);
 
             if (!outFile.endsWith(`.${extension}`)) {
                 console.warn(colors.yellow(`Warning: Extension of output file should be "${extension}"`));

@@ -14,7 +14,7 @@ import { createCollectionFromJson } from './createCollectionFromJson';
  *       `createCollectionFromUrl` or `createCollectionFromDirectory`
  *       Consider using those functions instead of this one
  *
- * Note: The function does NOT return promise it returns the library directly which waits for the sources to be resolved
+ * Note: The function does NOT return promise it returns the collection directly which waits for the sources to be resolved
  *       when error occurs in given promise or factory function, it is thrown during `listPipelines` or `getPipelineByUrl` call
  *
  * Note: Consider using  `createCollectionFromDirectory` or `createCollectionFromUrl`

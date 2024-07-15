@@ -11,4 +11,4 @@ export const CHARACTER_LOOP_LIMIT = 100000;
 /**
  * The name of the builded pipeline collection made by CLI `promptbook make` and for lookup in `createCollectionFromDirectory`
  */
-export const PROMPTBOOK_MAKED_BASE_FILENAME = `index`;
+export const PIPELINE_COLLECTION_BASE_FILENAME = `index`;

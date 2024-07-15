@@ -37,7 +37,7 @@ describe('createCollectionFromPromise', () => {
         return [await pipelineStringToJson(promptbook)];
     });
 
-    it('should get promptbook by url from library', async () => {
+    it('should get promptbook by url from collection', async () => {
         expect.assertions(1);
         const promptbookFromLibrary = await collection.getPipelineByUrl('https://example.com/promptbook.json');
         expect(promptbookFromLibrary).toEqual(await pipelineStringToJson(promptbook));

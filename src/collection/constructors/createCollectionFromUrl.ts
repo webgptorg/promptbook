@@ -7,7 +7,7 @@ import { createCollectionFromPromise } from './createCollectionFromPromise';
  */
 type CreatePipelineCollectionFromUrlyOptions = {
     /**
-     * If true, the library creation outputs information about each file it reads
+     * If true, the collection creation outputs information about each file it reads
      *
      * @default false
      */
@@ -47,8 +47,8 @@ export async function createCollectionFromUrl(
     return collection;
 
     // TODO: !!! [🏳‍🌈] Allow variant with .json .js and .ts files
-    // TODO: [🧠][🏳‍🌈] .js and .ts files should create getter function for the library
-    // TODO: Look at WebGPT "📖 Make Promptbook library" and https://webgpt.cz/_promptbook-collection.json
+    // TODO: [🧠][🏳‍🌈] .js and .ts files should create getter function for the collection
+    // TODO: Look at WebGPT "📖 Make Promptbook collection" and https://webgpt.cz/_promptbook-collection.json
     // TODO: !! Implement via createCollectionFromPromise
 }
 
