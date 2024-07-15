@@ -243,7 +243,7 @@ describe('how renameParameter works', () => {
                 newParameterName: 'wordSynonym',
             }),
         ).toThrowError(
-            /Can not replace {word} to {wordSynonym} because {wordSynonym} is already used in the promptbook/i,
+            /Can not replace {word} to {wordSynonym} because {wordSynonym} is already used in the pipelines/i,
         );
     });
 });
