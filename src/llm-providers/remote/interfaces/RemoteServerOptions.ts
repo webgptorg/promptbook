@@ -18,11 +18,11 @@ export type RemoteServerOptions = CommonExecutionToolsOptions & {
     readonly path: string_uri;
 
     /**
-     * Promptbook library to use
+     * Promptbook collection to use
      *
-     * This is used to checkl validity of the prompt to prevent DDoS
+     * This is used to check validity of the prompt to prevent DDoS
      */
-    readonly library: PipelineCollection;
+    readonly collection: PipelineCollection;
 
     /**
      * Creates llm execution tools for each client

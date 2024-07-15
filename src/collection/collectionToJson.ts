@@ -6,8 +6,8 @@ import type { PipelineCollection } from './PipelineCollection';
  *
  * Note: Functions `collectionToJson` and `createCollectionFromJson` are complementary
  */
-export async function collectionToJson(library: PipelineCollection): Promise<Array<PipelineJson>> {
-    const promptbookUrls = await library.listPipelines();
-    const promptbooks = await Promise.all(promptbookUrls.map((url) => library.getPipelineByUrl(url)));
+export async function collectionToJson(collection: PipelineCollection): Promise<Array<PipelineJson>> {
+    const promptbookUrls = await collection.listPipelines();
+    const promptbooks = await Promise.all(promptbookUrls.map((url) => collection.getPipelineByUrl(url)));
     return promptbooks;
 }

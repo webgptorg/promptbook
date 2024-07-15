@@ -42,18 +42,18 @@ async function makePipelineCollection({ isCommited }: { isCommited: boolean }) {
         isRecursive: true,
     });
 
-    const libraryJson = await collectionToJson(library);
-    const libraryJsonString = JSON.stringify(libraryJson);
+    const collectionJson = await collectionToJson(library);
+    const collectionJsonString = JSON.stringify(collectionJson);
 
-    const libraryJsonFilePath = join(promptbookSourceDir, 'index.json');
-    const libraryJsonFileContent = libraryJsonString + '\n';
+    const collectionJsonFilePath = join(promptbookSourceDir, 'index.json');
+    const collectionJsonFileContent = collectionJsonString + '\n';
 
     const libraryTypescriptFilePath = join(promptbookSourceDir, 'index.ts');
-    const libraryTypescriptFileContent = 'export default ' + libraryJsonString + ';\n';
+    const libraryTypescriptFileContent = 'export default ' + collectionJsonString + ';\n';
 
     // TODO: [🏳‍🌈] Finally take one of .json vs .ts (using .ts file (not .json) to avoid support of json files in bundle )
-    await writeFile(libraryJsonFilePath, libraryJsonFileContent, 'utf-8');
-    console.info(colors.green(`Maked ${libraryJsonFilePath}`));
+    await writeFile(collectionJsonFilePath, collectionJsonFileContent, 'utf-8');
+    console.info(colors.green(`Maked ${collectionJsonFilePath}`));
     await writeFile(libraryTypescriptFilePath, libraryTypescriptFileContent, 'utf-8');
     console.info(colors.green(`Maked ${libraryTypescriptFilePath}`));
 

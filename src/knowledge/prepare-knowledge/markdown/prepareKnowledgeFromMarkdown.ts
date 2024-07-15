@@ -43,8 +43,8 @@ export async function prepareKnowledgeFromMarkdown(
     const { content, llmTools, isVerbose = false } = options;
 
     // TODO: [🌼] In future use `promptbook make` and maked getPipelineCollection
-    const library = createCollectionFromJson(...(PipelineCollection as Array<PipelineJson>));
-    const prepareKnowledgeFromMarkdownPromptbook = await library.getPipelineByUrl(
+    const collection = createCollectionFromJson(...(PipelineCollection as Array<PipelineJson>));
+    const prepareKnowledgeFromMarkdownPromptbook = await collection.getPipelineByUrl(
         'https://promptbook.studio/promptbook/prepare-knowledge-from-markdown.ptbk.md',
     );
 
@@ -58,7 +58,7 @@ export async function prepareKnowledgeFromMarkdown(
         },
     });
 
-    const prepareKeywordsPromptbook = await library.getPipelineByUrl(
+    const prepareKeywordsPromptbook = await collection.getPipelineByUrl(
         'https://promptbook.studio/promptbook/prepare-keywords.ptbk.md',
     );
 

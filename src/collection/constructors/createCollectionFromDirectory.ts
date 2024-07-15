@@ -8,8 +8,7 @@ import { validatePipeline } from '../../conversion/validation/validatePipeline';
 import { CollectionError } from '../../errors/CollectionError';
 import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import type { PipelineString } from '../../types/PipelineString';
-import type { string_file_path } from '../../types/typeAliases';
-import type { string_folder_path } from '../../types/typeAliases';
+import type { string_file_path, string_folder_path } from '../../types/typeAliases';
 import { isRunningInNode } from '../../utils/isRunningInWhatever';
 import type { PipelineCollection } from '../PipelineCollection';
 import { createCollectionFromPromise } from './createCollectionFromPromise';
@@ -75,19 +74,21 @@ export async function createCollectionFromDirectory(
     if (!makedLibraryFileExists) {
         console.info(
             colors.yellow(
-                `Tip: Prebuild your promptbook library (file with supposed prebuild ${makedLibraryFilePath} not found) with CLI util "promptbook make" to speed up the library creation.`,
+                `Tip: Prebuild your pipeline collection (file with supposed prebuild ${makedLibraryFilePath} not found) with CLI util "promptbook make" to speed up the library creation.`,
             ),
         );
     } else {
-        colors.green(`(In future, not implemented yet) Using your prebuild promptbook library ${makedLibraryFilePath}`);
+        colors.green(
+            `(In future, not implemented yet) Using your prebuild pipeline collection ${makedLibraryFilePath}`,
+        );
         // TODO: !! Implement;
     }
 
     const { isRecursive = true, isVerbose = false, isLazyLoaded = false, isCrashOnError = true } = options || {};
 
-    const library = createCollectionFromPromise(async () => {
+    const collection = createCollectionFromPromise(async () => {
         if (isVerbose) {
-            console.info(`Creating promptbook library from path ${path.split('\\').join('/')}`);
+            console.info(`Creating pipeline collection from path ${path.split('\\').join('/')}`);
         }
 
         const fileNames = await listAllFiles(path, isRecursive);
@@ -162,10 +163,10 @@ export async function createCollectionFromDirectory(
     });
 
     if (isLazyLoaded === false) {
-        await library.listPipelines();
+        await collection.listPipelines();
     }
 
-    return library;
+    return collection;
 }
 
 /**

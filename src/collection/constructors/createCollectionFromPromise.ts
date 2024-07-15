@@ -26,7 +26,7 @@ import { createCollectionFromJson } from './createCollectionFromJson';
 export function createCollectionFromPromise(
     promptbookSourcesPromiseOrFactory: Promise<Array<PipelineJson>> | (() => Promise<Array<PipelineJson>>),
 ): PipelineCollection {
-    let library: PipelineCollection;
+    let collection: PipelineCollection;
 
     async function forSources(): Promise<void> {
         if (typeof promptbookSourcesPromiseOrFactory === 'function') {
@@ -34,20 +34,20 @@ export function createCollectionFromPromise(
             promptbookSourcesPromiseOrFactory = promptbookSourcesPromiseOrFactory();
         }
         const promptbookSources = await promptbookSourcesPromiseOrFactory;
-        library = createCollectionFromJson(...promptbookSources);
+        collection = createCollectionFromJson(...promptbookSources);
     }
 
     async function listPipelines(): Promise<Array<string_pipeline_url>> {
         await forSources();
-        return /* not await */ library.listPipelines();
+        return /* not await */ collection.listPipelines();
     }
     async function getPipelineByUrl(url: string_pipeline_url): Promise<PipelineJson> {
         await forSources();
-        return /* not await */ library.getPipelineByUrl(url);
+        return /* not await */ collection.getPipelineByUrl(url);
     }
     async function isResponsibleForPrompt(prompt: Prompt): Promise<boolean> {
         await forSources();
-        return /* not await */ library.isResponsibleForPrompt(prompt);
+        return /* not await */ collection.isResponsibleForPrompt(prompt);
     }
 
     return {

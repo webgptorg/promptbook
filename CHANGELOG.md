@@ -341,7 +341,7 @@ Better JSON Mode
 
 ### `0.59.0` _(2024-06-30)_
 
-Preparation for system for [management of external knowledge](https://github.com/webgptorg/promptbook/discussions/41) (RAG), vector embeddings and propper building of promptbook library.
+Preparation for system for [management of external knowledge](https://github.com/webgptorg/promptbook/discussions/41) (RAG), vector embeddings and propper building of pipeline collection.
 
 -   Add `MaterialKnowledgePieceJson`
 -   Add `KnowledgeJson`

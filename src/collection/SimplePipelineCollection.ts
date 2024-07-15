@@ -19,7 +19,7 @@ export class SimplePipelineCollection implements PipelineCollection {
     private library: Map<string_pipeline_url, PipelineJson>;
 
     /**
-     * Constructs a promptbook library from promptbooks
+     * Constructs a pipeline collection from promptbooks
      *
      * @param promptbooks !!!
      *
@@ -37,7 +37,7 @@ export class SimplePipelineCollection implements PipelineCollection {
 
                         Note: Promptbooks without URLs are called anonymous promptbooks
                               They can be used as standalone promptbooks, but they cannot be referenced by other promptbooks
-                              And also they cannot be used in the promptbook library
+                              And also they cannot be used in the pipeline collection
 
                     `),
                 );

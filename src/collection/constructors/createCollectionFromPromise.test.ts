@@ -32,14 +32,14 @@ describe('createCollectionFromPromise', () => {
             -> {response}
          `) as PipelineString;
 
-    const library = createCollectionFromPromise(async () => {
+    const collection = createCollectionFromPromise(async () => {
         await forTime(100);
         return [await pipelineStringToJson(promptbook)];
     });
 
     it('should get promptbook by url from library', async () => {
         expect.assertions(1);
-        const promptbookFromLibrary = await library.getPipelineByUrl('https://example.com/promptbook.json');
+        const promptbookFromLibrary = await collection.getPipelineByUrl('https://example.com/promptbook.json');
         expect(promptbookFromLibrary).toEqual(await pipelineStringToJson(promptbook));
     });
 });

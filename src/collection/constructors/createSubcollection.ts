@@ -15,11 +15,11 @@ import type { PipelineCollection } from '../PipelineCollection';
  * @returns PipelineCollection
  */
 export function createSubcollection(
-    library: PipelineCollection,
+    collection: PipelineCollection,
     predicate: (url: string_pipeline_url) => boolean,
 ): PipelineCollection {
     async function listPipelines(): Promise<Array<string_pipeline_url>> {
-        let promptbooks = await library.listPipelines();
+        let promptbooks = await collection.listPipelines();
         promptbooks = promptbooks.filter(predicate);
         return promptbooks;
     }
@@ -35,7 +35,7 @@ export function createSubcollection(
 
                         All available promptbooks in parent library:
                         ${block(
-                            (await library.listPipelines()).map((promptbookUrl) => `- ${promptbookUrl}`).join('\n'),
+                            (await collection.listPipelines()).map((promptbookUrl) => `- ${promptbookUrl}`).join('\n'),
                         )}
 
                     `,
@@ -43,12 +43,12 @@ export function createSubcollection(
             );
         }
 
-        const pipeline = await library.getPipelineByUrl(url);
+        const pipeline = await collection.getPipelineByUrl(url);
 
         return promptbook;
     }
     async function isResponsibleForPrompt(prompt: Prompt): Promise<boolean> {
-        const isResponsible = await library.isResponsibleForPrompt(prompt);
+        const isResponsible = await collection.isResponsibleForPrompt(prompt);
         // TODO: !! Only if responsible, check if predicate is true
         return isResponsible;
     }

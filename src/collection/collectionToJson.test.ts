@@ -35,8 +35,8 @@ describe('createCollectionFromJson', () => {
     it('should get promptbook by url from library', async () => {
         expect.assertions(1);
         const promptbook = await pipelineStringToJson(pipelineString);
-        const library = createCollectionFromJson(promptbook);
-        const libraryJson = await collectionToJson(library);
-        expect([promptbook]).toEqual(libraryJson);
+        const collection = createCollectionFromJson(promptbook);
+        const collectionJson = await collectionToJson(collection);
+        expect([promptbook]).toEqual(collectionJson);
     });
 });
