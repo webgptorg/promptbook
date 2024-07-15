@@ -30,7 +30,7 @@ describe('createPipelineExecutor + MockedEchoLlmExecutionTools with sample compl
                 title: 'Sample prompt',
                 description: 'Show how to use a simple completion prompt',
                 promptExecutions: [],
-                promptbookUrl: 'https://example.com/promptbook.json',
+                pipelineUrl: 'https://example.com/promptbook.json',
                 promptbookRequestedVersion: '1.0.0',
                 promptbookUsedVersion: PROMPTBOOK_VERSION,
             },

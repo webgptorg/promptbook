@@ -156,7 +156,7 @@ Working on **Promptbook Library**. Identify promptbooks by URL.
 
 -   Change `PromptbookLibrary` class to interface
 -   Add `SimplePromptbookLibrary` class which implements `PromptbookLibrary`
--   Rename `PromptbookLibrary.promptbookNames` to `PromptbookLibrary.promptbookUrls`
+-   Rename `PromptbookLibrary.promptbookNames` to `PromptbookLibrary.pipelineUrls`
 -   Remove `PromptbookLibrary.createExecutor` to separate responsibility
 -   Make more renamings and reorganizations in `PromptbookLibrary`
 -   Make `PromptbookLibrary.listPipelines` async method

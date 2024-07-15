@@ -78,14 +78,14 @@ export function initializeMake(program: Command) {
         });
 
         for (const validation of validations) {
-            for (const promptbookUrl of await collection.listPipelines()) {
-                const pipeline = await collection.getPipelineByUrl(promptbookUrl);
+            for (const pipelineUrl of await collection.listPipelines()) {
+                const pipeline = await collection.getPipelineByUrl(pipelineUrl);
 
                 if (validation === 'logic') {
                     validatePipeline(pipeline);
 
                     if (verbose) {
-                        console.info(colors.cyan(`Validated logic of ${pipeline.promptbookUrl}`));
+                        console.info(colors.cyan(`Validated logic of ${pipeline.pipelineUrl}`));
                     }
                 }
 

@@ -5,8 +5,7 @@ import type { ParameterCommand } from '../types/Command';
 import type { ExecutionType } from '../types/ExecutionTypes';
 import type { ModelRequirements } from '../types/ModelRequirements';
 import type { PipelineJson } from '../types/PipelineJson/PipelineJson';
-import type { ExpectationUnit } from '../types/PipelineJson/PromptTemplateJson';
-import type { PromptTemplateJson } from '../types/PipelineJson/PromptTemplateJson';
+import type { ExpectationUnit, PromptTemplateJson } from '../types/PipelineJson/PromptTemplateJson';
 import type { PromptTemplateParameterJson } from '../types/PipelineJson/PromptTemplateParameterJson';
 import type { PipelineString } from '../types/PipelineString';
 import type { ScriptLanguage } from '../types/ScriptLanguage';
@@ -41,7 +40,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
     const pipelineJson: WritableDeep<PipelineJson> = {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         title: undefined as any /* <- Note: Putting here placeholder to keep `title` on top at final JSON */,
-        promptbookUrl: undefined /* <- Note: Putting here placeholder to keep `promptbookUrl` on top at final JSON */,
+        pipelineUrl: undefined /* <- Note: Putting here placeholder to keep `pipelineUrl` on top at final JSON */,
         promptbookVersion: PROMPTBOOK_VERSION,
         description: undefined /* <- Note: Putting here placeholder to keep `description` on top at final JSON */,
         parameters: [],
@@ -141,7 +140,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
 
         switch (command.type) {
             case 'PROMPTBOOK_URL':
-                pipelineJson.promptbookUrl = command.promptbookUrl.href;
+                pipelineJson.pipelineUrl = command.pipelineUrl.href;
                 break;
 
             case 'PROMPTBOOK_VERSION':

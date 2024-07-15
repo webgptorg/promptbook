@@ -30,7 +30,7 @@ export class SimplePipelineCollection implements PipelineCollection {
     public constructor(...promptbooks: Array<PipelineJson>) {
         this.collection = new Map<string_pipeline_url, PipelineJson>();
         for (const promptbook of promptbooks) {
-            if (promptbook.promptbookUrl === undefined) {
+            if (promptbook.pipelineUrl === undefined) {
                 throw new ReferenceError(
                     spaceTrim(`
                         Promptbook with name "${promptbook.title}" does not have defined URL
@@ -47,13 +47,12 @@ export class SimplePipelineCollection implements PipelineCollection {
 
             // Note: [🦄]
             if (
-                this.collection.has(promptbook.promptbookUrl) &&
-                pipelineJsonToString(promptbook) !==
-                    pipelineJsonToString(this.collection.get(promptbook.promptbookUrl)!)
+                this.collection.has(promptbook.pipelineUrl) &&
+                pipelineJsonToString(promptbook) !== pipelineJsonToString(this.collection.get(promptbook.pipelineUrl)!)
             ) {
                 throw new ReferenceError(
                     spaceTrim(`
-                        Promptbook with URL "${promptbook.promptbookUrl}" is already in the collection
+                        Promptbook with URL "${promptbook.pipelineUrl}" is already in the collection
 
                         Note: Promptbooks with the same URL are not allowed
                         Note: Automatically check whether the promptbooks are the same BUT they are DIFFERENT
@@ -62,7 +61,7 @@ export class SimplePipelineCollection implements PipelineCollection {
                 );
             }
 
-            this.collection.set(promptbook.promptbookUrl, promptbook);
+            this.collection.set(promptbook.pipelineUrl, promptbook);
         }
     }
 
@@ -101,7 +100,7 @@ export class SimplePipelineCollection implements PipelineCollection {
                         Available promptbooks:
                         ${block(
                             this.listPipelines()
-                                .map((promptbookUrl) => `- ${promptbookUrl}`)
+                                .map((pipelineUrl) => `- ${pipelineUrl}`)
                                 .join('\n'),
                         )}
 

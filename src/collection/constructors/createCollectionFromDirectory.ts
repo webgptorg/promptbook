@@ -118,7 +118,7 @@ export async function createCollectionFromDirectory(
                 // ---
 
                 if (promptbook !== null) {
-                    if (!promptbook.promptbookUrl) {
+                    if (!promptbook.pipelineUrl) {
                         if (isVerbose) {
                             console.info(`Not loading ${fileName.split('\\').join('/')} - missing URL`);
                         }

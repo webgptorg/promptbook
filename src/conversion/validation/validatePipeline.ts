@@ -25,10 +25,10 @@ import { isValidUrl } from '../../utils/validators/url/isValidUrl';
 export function validatePipeline(pipeline: PipelineJson): PipelineJson {
     // TODO: [🧠] Maybe test if promptbook is a promise and make specific error case for that
 
-    if (pipeline.promptbookUrl !== undefined) {
-        if (!isValidUrl(pipeline.promptbookUrl)) {
+    if (pipeline.pipelineUrl !== undefined) {
+        if (!isValidUrl(pipeline.pipelineUrl)) {
             // TODO: This should be maybe the syntax error detected during parsing
-            throw new PipelineLogicError(`Invalid promptbook URL "${pipeline.promptbookUrl}"`);
+            throw new PipelineLogicError(`Invalid promptbook URL "${pipeline.pipelineUrl}"`);
         }
     }
 

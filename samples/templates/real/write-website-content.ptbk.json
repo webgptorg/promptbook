@@ -1,6 +1,6 @@
 {
     "title": "🌍 Create website content",
-    "promptbookUrl": "https://promptbook.studio/webgpt/write-website-content.ptbk.md",
+    "pipelineUrl": "https://promptbook.studio/webgpt/write-website-content.ptbk.md",
     "promptbookVersion": "0.0.1",
     "description": "Instructions for creating web page content.",
     "parameters": [

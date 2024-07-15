@@ -31,12 +31,10 @@ export function createSubcollection(
                         Promptbook with url "${url}" not found or not accessible
 
                         Available promptbooks:
-                        ${block((await listPipelines()).map((promptbookUrl) => `- ${promptbookUrl}`).join('\n'))}
+                        ${block((await listPipelines()).map((pipelineUrl) => `- ${pipelineUrl}`).join('\n'))}
 
                         All available promptbooks in parent collection:
-                        ${block(
-                            (await collection.listPipelines()).map((promptbookUrl) => `- ${promptbookUrl}`).join('\n'),
-                        )}
+                        ${block((await collection.listPipelines()).map((pipelineUrl) => `- ${pipelineUrl}`).join('\n'))}
 
                     `,
                 ),

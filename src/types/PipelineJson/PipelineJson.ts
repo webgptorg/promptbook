@@ -11,15 +11,15 @@ import type { PromptTemplateParameterJson } from './PromptTemplateParameterJson'
  */
 export type PipelineJson = {
     /**
-     * Unique identifier of the promptbook
+     * Unique identifier of the pipeline
      *
-     * Note: It must be unique across all promptbooks libraries
+     * Note: It must be unique across all pipeline collections
      * Note: It must use HTTPs URL
      * Tip: You can do versioning in the URL
      *      For example: https://promptbook.studio/webgpt/write-website-content-cs.ptbk.md@1.0.0
      * Warning: Do not hash part of the URL, hash part is used for identification of the prompt template in the pipeline
      */
-    readonly promptbookUrl?: string_pipeline_url;
+    readonly pipelineUrl?: string_pipeline_url;
 
     /**
      * Title of the promptbook

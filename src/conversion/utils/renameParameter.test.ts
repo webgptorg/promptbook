@@ -72,7 +72,7 @@ describe('how renameParameter works', () => {
             renameParameter({
                 promptbook: validatePipeline({
                     title: '✨ Sample prompt with two consecutive prompts',
-                    promptbookUrl: 'https://promptbook.example.com/samples/two.ptbk.md',
+                    pipelineUrl: 'https://promptbook.example.com/samples/two.ptbk.md',
                     promptbookVersion: '1.0.0',
                     description: 'Show how to use two consecutive prompts with one parameter each.',
                     parameters: [
@@ -129,7 +129,7 @@ describe('how renameParameter works', () => {
         ).toEqual(
             validatePipeline({
                 title: '✨ Sample prompt with two consecutive prompts',
-                promptbookUrl: 'https://promptbook.example.com/samples/two.ptbk.md',
+                pipelineUrl: 'https://promptbook.example.com/samples/two.ptbk.md',
                 promptbookVersion: '1.0.0',
                 description: 'Show how to use two consecutive prompts with one parameter each.',
                 parameters: [
@@ -188,7 +188,7 @@ describe('how renameParameter works', () => {
             renameParameter({
                 promptbook: validatePipeline({
                     title: '✨ Sample prompt with two consecutive prompts',
-                    promptbookUrl: 'https://promptbook.example.com/samples/two.ptbk.md',
+                    pipelineUrl: 'https://promptbook.example.com/samples/two.ptbk.md',
                     promptbookVersion: '1.0.0',
                     description: 'Show how to use two consecutive prompts with one parameter each.',
                     parameters: [

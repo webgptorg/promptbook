@@ -2,15 +2,17 @@ import type { ExpectFormatCommand } from '../Command';
 import type { ExecutionType } from '../ExecutionTypes';
 import type { ModelRequirements } from '../ModelRequirements';
 import type { ScriptLanguage } from '../ScriptLanguage';
-import type { number_integer } from '../typeAliases';
-import type { number_positive } from '../typeAliases';
-import type { string_javascript } from '../typeAliases';
-import type { string_javascript_name } from '../typeAliases';
-import type { string_markdown } from '../typeAliases';
-import type { string_markdown_text } from '../typeAliases';
-import type { string_name } from '../typeAliases';
-import type { string_prompt } from '../typeAliases';
-import type { string_template } from '../typeAliases';
+import type {
+    number_integer,
+    number_positive,
+    string_javascript,
+    string_javascript_name,
+    string_markdown,
+    string_markdown_text,
+    string_name,
+    string_prompt,
+    string_template,
+} from '../typeAliases';
 
 /**
  * Describes one prompt template in the promptbook
@@ -92,7 +94,7 @@ interface PromptTemplateJsonCommon {
      * Name of the template
      * - It must be unique across the pipeline
      * - It should start uppercase and contain letters and numbers
-     * - The promptbookUrl together with hash and name are used to identify the prompt template in the pipeline
+     * - The pipelineUrl together with hash and name are used to identify the prompt template in the pipeline
      */
     readonly name: string_name;
 

@@ -1,6 +1,6 @@
 {
     "title": "✨ Sample: Postprocessing 2",
-    "promptbookUrl": "https://promptbook.example.com/samples/postprocessing-2.ptbk.md",
+    "pipelineUrl": "https://promptbook.example.com/samples/postprocessing-2.ptbk.md",
     "promptbookVersion": "1.0.0",
     "parameters": [
         {
@@ -19,15 +19,9 @@
         {
             "name": "question",
             "title": "💬 Question",
-            "dependentParameterNames": [
-                "yourName"
-            ],
+            "dependentParameterNames": ["yourName"],
             "executionType": "PROMPT_TEMPLATE",
-            "postprocessing": [
-                "reverse",
-                "removeDiacritics",
-                "normalizeTo_SCREAMING_CASE"
-            ],
+            "postprocessing": ["reverse", "removeDiacritics", "normalizeTo_SCREAMING_CASE"],
             "modelRequirements": {
                 "modelVariant": "CHAT",
                 "modelName": "gpt-3.5-turbo"

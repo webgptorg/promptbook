@@ -67,7 +67,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
     ) => {
         let parametersToPass: Record<string_name, string> = inputParameters;
         const executionReport: ExecutionReportJson = {
-            promptbookUrl: promptbook.promptbookUrl,
+            pipelineUrl: promptbook.pipelineUrl,
             title: promptbook.title,
             promptbookUsedVersion: PROMPTBOOK_VERSION,
             promptbookRequestedVersion: promptbook.promptbookVersion,
@@ -133,9 +133,9 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                             case 'PROMPT_TEMPLATE':
                                 prompt = {
                                     title: currentTemplate.title,
-                                    promptbookUrl: `${
-                                        promptbook.promptbookUrl
-                                            ? promptbook.promptbookUrl
+                                    pipelineUrl: `${
+                                        promptbook.pipelineUrl
+                                            ? promptbook.pipelineUrl
                                             : 'anonymous' /* <- TODO: [🧠] How to deal with anonymous PROMPTBOOKs, do here some auto-url like SHA-256 based ad-hoc identifier? */
                                     }#${currentTemplate.name}`,
                                     parameters: parametersToPass,

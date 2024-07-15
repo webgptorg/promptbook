@@ -1,6 +1,6 @@
 {
     "title": "✨ Pick the model",
-    "promptbookUrl": "https://promptbook.example.com/samples/picking-model.ptbk.md",
+    "pipelineUrl": "https://promptbook.example.com/samples/picking-model.ptbk.md",
     "promptbookVersion": "1.0.0",
     "description": "Show how to pick exact model",
     "parameters": [
@@ -21,9 +21,7 @@
             "name": "synonym",
             "title": "💬 Synonym",
             "description": "Synonym for word",
-            "dependentParameterNames": [
-                "word"
-            ],
+            "dependentParameterNames": ["word"],
             "executionType": "PROMPT_TEMPLATE",
             "modelRequirements": {
                 "modelVariant": "CHAT",

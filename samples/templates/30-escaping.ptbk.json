@@ -1,6 +1,6 @@
 {
     "title": "✨ Sample of escaping",
-    "promptbookUrl": "https://promptbook.example.com/samples/escaping.ptbk.md",
+    "pipelineUrl": "https://promptbook.example.com/samples/escaping.ptbk.md",
     "promptbookVersion": "1.0.0",
     "description": "Show how to put codeblocks in the prompt _(which is already in the codeblock)_",
     "parameters": [

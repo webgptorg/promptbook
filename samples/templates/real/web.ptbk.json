@@ -1,6 +1,6 @@
 {
     "title": "🗞 Zadání webu",
-    "promptbookUrl": "https://webgpt.cz/promptbook/ruka/web.ptbk.md",
+    "pipelineUrl": "https://webgpt.cz/promptbook/ruka/web.ptbk.md",
     "promptbookVersion": "0.20.0",
     "description": "Instrukce pro napsání úvodník do městského časopisu za pomocí [📖 Promptbook](https://github.com/webgptorg/promptbook).",
     "parameters": [

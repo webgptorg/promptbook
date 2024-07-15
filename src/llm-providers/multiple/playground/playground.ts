@@ -70,7 +70,7 @@ async function playground() {
             // modelName: 'foo',
             modelVariant: 'CHAT',
         },
-        promptbookUrl: '',
+        pipelineUrl: '',
         parameters: {},
     } as const;
     const promptResult = await executionTools.callChatModel(prompt);
