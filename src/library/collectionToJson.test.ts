@@ -2,8 +2,8 @@ import { describe, expect, it } from '@jest/globals';
 import spaceTrim from 'spacetrim';
 import { pipelineStringToJson } from '../conversion/pipelineStringToJson';
 import type { PipelineString } from '../types/PipelineString';
+import { collectionToJson } from './collectionToJson';
 import { createCollectionFromJson } from './constructors/createCollectionFromJson';
-import { libraryToJson } from './libraryToJson';
 
 describe('createCollectionFromJson', () => {
     const pipelineString = spaceTrim(`
@@ -36,7 +36,7 @@ describe('createCollectionFromJson', () => {
         expect.assertions(1);
         const promptbook = await pipelineStringToJson(pipelineString);
         const library = createCollectionFromJson(promptbook);
-        const libraryJson = await libraryToJson(library);
+        const libraryJson = await collectionToJson(library);
         expect([promptbook]).toEqual(libraryJson);
     });
 });

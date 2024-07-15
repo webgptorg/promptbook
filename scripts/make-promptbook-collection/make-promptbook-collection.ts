@@ -7,8 +7,8 @@ import colors from 'colors';
 import commander from 'commander';
 import { writeFile } from 'fs/promises';
 import { join } from 'path';
+import { collectionToJson } from '../../src/library/collectionToJson';
 import { createCollectionFromDirectory } from '../../src/library/constructors/createCollectionFromDirectory';
-import { libraryToJson } from '../../src/library/libraryToJson';
 import { commit } from '../utils/autocommit/commit';
 
 if (process.cwd() !== join(__dirname, '../..')) {
@@ -42,7 +42,7 @@ async function makePipelineCollection({ isCommited }: { isCommited: boolean }) {
         isRecursive: true,
     });
 
-    const libraryJson = await libraryToJson(library);
+    const libraryJson = await collectionToJson(library);
     const libraryJsonString = JSON.stringify(libraryJson);
 
     const libraryJsonFilePath = join(promptbookSourceDir, 'index.json');

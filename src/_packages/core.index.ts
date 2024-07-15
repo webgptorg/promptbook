@@ -24,11 +24,11 @@ import { CallbackInterfaceTools } from '../knowledge/dialogs/callback/CallbackIn
 import type { CallbackInterfaceToolsOptions } from '../knowledge/dialogs/callback/CallbackInterfaceToolsOptions';
 import { SimplePromptInterfaceTools } from '../knowledge/dialogs/simple-prompt/SimplePromptInterfaceTools';
 import { prepareKnowledgeFromMarkdown } from '../knowledge/prepare-knowledge/markdown/prepareKnowledgeFromMarkdown';
+import { collectionToJson } from '../library/collectionToJson';
 import { createCollectionFromJson } from '../library/constructors/createCollectionFromJson';
 import { createCollectionFromPromise } from '../library/constructors/createCollectionFromPromise';
 import { createCollectionFromUrl } from '../library/constructors/createCollectionFromUrl';
 import { createSubcollection } from '../library/constructors/createSubcollection';
-import { libraryToJson } from '../library/libraryToJson';
 import { MultipleLlmExecutionTools } from '../llm-providers/multiple/MultipleLlmExecutionTools';
 import { ExecutionTypes } from '../types/ExecutionTypes';
 import type { ExecutionReportStringOptions } from '../types/execution-report/ExecutionReportStringOptions';
@@ -44,13 +44,13 @@ export { ExecutionTypes };
 
 // Core utilities
 export {
-    ExecutionReportStringOptions,
-    ExecutionReportStringOptionsDefaults,
     addUsage,
     assertsExecutionSuccessful,
     checkExpectations,
     embeddingVectorToString,
     executionReportJsonToString,
+    ExecutionReportStringOptions,
+    ExecutionReportStringOptionsDefaults,
     isPassingExpectations,
     prepareKnowledgeFromMarkdown,
     prettifyPipelineString,
@@ -59,11 +59,11 @@ export {
 
 // @promptbook/library
 export {
+    collectionToJson,
     createCollectionFromJson,
     createCollectionFromPromise,
     createCollectionFromUrl,
     createSubcollection as createSublibrary,
-    libraryToJson,
 };
 
 // @promptbook/simple-prompt
@@ -73,7 +73,7 @@ export { SimplePromptInterfaceTools };
 export { pipelineJsonToString, pipelineStringToJson, pipelineStringToJsonSync, validatePipeline };
 
 // @promptbook/executor
-export { MultipleLlmExecutionTools, createPromptbookExecutor };
+export { createPromptbookExecutor, MultipleLlmExecutionTools };
 
 // @promptbook/callback-prompt
 export { CallbackInterfaceTools, CallbackInterfaceToolsOptions };

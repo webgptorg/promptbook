@@ -5,8 +5,8 @@ import { dirname, join } from 'path';
 import spaceTrim from 'spacetrim';
 import { PROMPTBOOK_MAKED_BASE_FILENAME } from '../../config';
 import { validatePipeline } from '../../conversion/validation/validatePipeline';
+import { collectionToJson } from '../../library/collectionToJson';
 import { createCollectionFromDirectory } from '../../library/constructors/createCollectionFromDirectory';
-import { libraryToJson } from '../../library/libraryToJson';
 import type { string_file_extension } from '../../types/typeAliases';
 
 /**
@@ -93,7 +93,7 @@ export function initializeMake(program: Command) {
             }
         }
 
-        const libraryJson = await libraryToJson(library);
+        const libraryJson = await collectionToJson(library);
         const libraryJsonString = JSON.stringify(libraryJson);
 
         const saveFile = async (extension: string_file_extension, content: string) => {
