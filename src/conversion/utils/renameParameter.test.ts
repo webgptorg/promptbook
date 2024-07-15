@@ -6,7 +6,7 @@ describe('how renameParameter works', () => {
     it('should rename parameter in simple promptbook', () => {
         expect(
             renameParameter({
-                promptbook: validatePipeline({
+                pipeline: validatePipeline({
                     title: '✨ Sample prompt',
                     promptbookVersion: '1.0.0',
                     description: 'Show how to use a simple prompt with no parameters.',
@@ -70,7 +70,7 @@ describe('how renameParameter works', () => {
     it('should rename parameter in normal promptbook', () => {
         expect(
             renameParameter({
-                promptbook: validatePipeline({
+                pipeline: validatePipeline({
                     title: '✨ Sample prompt with two consecutive prompts',
                     pipelineUrl: 'https://promptbook.studio/samples/two.ptbk.md',
                     promptbookVersion: '1.0.0',
@@ -186,7 +186,7 @@ describe('how renameParameter works', () => {
     it('should detect name collision', () => {
         expect(() =>
             renameParameter({
-                promptbook: validatePipeline({
+                pipeline: validatePipeline({
                     title: '✨ Sample prompt with two consecutive prompts',
                     pipelineUrl: 'https://promptbook.studio/samples/two.ptbk.md',
                     promptbookVersion: '1.0.0',
