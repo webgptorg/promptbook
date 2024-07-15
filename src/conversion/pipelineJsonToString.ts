@@ -26,7 +26,7 @@ export function pipelineJsonToString(pipelineJson: PipelineJson): PipelineString
     const commands: Array<string> = [];
 
     if (pipelineUrl) {
-        commands.push(`PROMPTBOOK URL ${pipelineUrl}`);
+        commands.push(`PIPELINE URL ${pipelineUrl}`);
     }
 
     commands.push(`PROMPTBOOK VERSION ${promptbookVersion}`);

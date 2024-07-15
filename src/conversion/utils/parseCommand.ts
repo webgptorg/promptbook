@@ -57,7 +57,7 @@ export function parseCommand(listItem: string_markdown_text): Command {
         type.startsWith('URL') ||
         type.startsWith('PTBK_URL') ||
         type.startsWith('PTBKURL') ||
-        type.startsWith('PROMPTBOOK_URL') ||
+        type.startsWith('PIPELINE_URL') ||
         type.startsWith('PROMPTBOOKURL') ||
         type.startsWith('HTTPS')
     ) {
@@ -65,7 +65,7 @@ export function parseCommand(listItem: string_markdown_text): Command {
             throw new SyntaxError(
                 spaceTrim(
                     `
-                        Invalid PROMPTBOOK_URL command:
+                        Invalid PIPELINE_URL command:
 
                         - ${listItem}
                     `,
@@ -80,7 +80,7 @@ export function parseCommand(listItem: string_markdown_text): Command {
             throw new SyntaxError(
                 spaceTrim(
                     `
-                        Invalid PROMPTBOOK_URL command:
+                        Invalid PIPELINE_URL command:
 
                         - ${listItem}
 
@@ -94,7 +94,7 @@ export function parseCommand(listItem: string_markdown_text): Command {
             throw new SyntaxError(
                 spaceTrim(
                     `
-                        Invalid PROMPTBOOK_URL command:
+                        Invalid PIPELINE_URL command:
 
                         - ${listItem}
 
@@ -106,7 +106,7 @@ export function parseCommand(listItem: string_markdown_text): Command {
         }
 
         return {
-            type: 'PROMPTBOOK_URL',
+            type: 'PIPELINE_URL',
             pipelineUrl,
         } satisfies PromptbookUrlCommand;
     } else if (type.startsWith('PROMPTBOOK_VERSION') || type.startsWith('PTBK_VERSION')) {
@@ -410,7 +410,7 @@ export function parseCommand(listItem: string_markdown_text): Command {
                     - ${listItem}
 
                     Supported commands are:
-                    - PROMPTBOOK_URL <url>
+                    - PIPELINE_URL <url>
                     - PROMPTBOOK_VERSION <version>
                     - EXECUTE PROMPT TEMPLATE
                     - EXECUTE SIMPLE TEMPLATE

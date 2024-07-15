@@ -81,7 +81,7 @@ File `write-website-content.ptbk.md`:
 >
 > Instructions for creating web page content.
 >
-> -   PROMPTBOOK URL https://promptbook.studio/webgpt/write-website-content.ptbk.md@v0.1.0
+> -   PIPELINE URL https://promptbook.studio/webgpt/write-website-content.ptbk.md@v0.1.0
 > -   PROMPTBOOK VERSION 0.0.1
 > -   INPUT  PARAM `{rawTitle}` Automatically suggested a site name or empty text
 > -   INPUT  PARAM `{rawAssigment}` Automatically generated site entry from image recognition
@@ -428,7 +428,7 @@ Internally it can have multiple formats:
 ### Promptbook **Library**
 
 Library of all promptbooks used in your application.
-Each promptbook is a separate `.ptbk.md` file with unique `PROMPTBOOK URL`. Theese urls are used to reference promptbooks in other promptbooks or in the application code.
+Each promptbook is a separate `.ptbk.md` file with unique `PIPELINE URL`. Theese urls are used to reference promptbooks in other promptbooks or in the application code.
 
 ### Prompt Result
 
@@ -532,7 +532,7 @@ _Note: LLMs work with tokens, not characters, but in Promptbooks we want to use 
 ```markdown
 # ✨ Sample: Expectations
 
--   PROMPTBOOK URL https://promptbook.example.com/samples/postprocessing-2.ptbk.md@v1
+-   PIPELINE URL https://promptbook.example.com/samples/postprocessing-2.ptbk.md@v1
 -   PROMPTBOOK VERSION 1.0.0
 -   INPUT  PARAMETER {yourName} Name of the hero
 
@@ -564,7 +564,7 @@ Look at [expectations.ptbk.md](samples/templates/45-expectations.ptbk.md) and [e
 
 ### Execution report
 
-Execution report is a simple object or markdown that contains information about the execution of the promptbook.
+Execution report is a simple object or markdown that contains information about the execution of the pipeline.
 
 [See the example of such a report](/samples/templates/50-advanced.report.md)
 

@@ -12,7 +12,7 @@ describe('createCollectionFromPromise', () => {
             Show how to use a simple completion prompt
 
             -   PROMPTBOOK VERSION 1.0.0
-            -   PROMPTBOOK URL https://example.com/promptbook.json
+            -   PIPELINE URL https://example.com/promptbook.json
             -   INPUT  PARAMETER {thing} Any thing to buy
             -   OUTPUT PARAMETER {response}
 

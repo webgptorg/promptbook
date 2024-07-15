@@ -46,7 +46,7 @@ describe('createPipelineExecutor + custom function without dependencies', () => 
 });
 
 async function getPipelineExecutor() {
-    const promptbook = await pipelineStringToJson(
+    const pipeline = await pipelineStringToJson(
         spaceTrim(`
             # Custom functions
 
@@ -70,7 +70,7 @@ async function getPipelineExecutor() {
     );
 
     return createPipelineExecutor({
-        promptbook,
+      pipeline,
         tools: {
             llm: new MockedEchoLlmExecutionTools({ isVerbose: true }),
             script: [

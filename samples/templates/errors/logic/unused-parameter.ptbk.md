@@ -1,6 +1,6 @@
 # ✨ Sample: Unused parameter
 
--   PROMPTBOOK URL https://promptbook.example.com/samples/unused-parameter.ptbk.md
+-   PIPELINE URL https://promptbook.example.com/samples/unused-parameter.ptbk.md
 -   PROMPTBOOK VERSION 1.0.0
 -   MODEL VARIANT Chat
 -   MODEL NAME `gpt-3.5-turbo`

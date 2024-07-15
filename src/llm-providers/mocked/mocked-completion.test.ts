@@ -98,14 +98,14 @@ describe('createPipelineExecutor + MockedEchoLlmExecutionTools with sample compl
 });
 
 async function getPipelineExecutor() {
-    const promptbook = await pipelineStringToJson(
+    const pipeline = await pipelineStringToJson(
         spaceTrim(`
             # Sample prompt
 
             Show how to use a simple completion prompt
 
             -   PROMPTBOOK VERSION 1.0.0
-            -   PROMPTBOOK URL https://example.com/promptbook.json
+            -   PIPELINE URL https://example.com/promptbook.json
             -   INPUT  PARAMETER {thing} Any thing to buy
             -   OUTPUT PARAMETER {response}
 
@@ -123,7 +123,7 @@ async function getPipelineExecutor() {
        `) as PipelineString,
     );
     const pipelineExecutor = createPipelineExecutor({
-        promptbook,
+        pipeline,
         tools: {
             llm: new MockedEchoLlmExecutionTools({ isVerbose: true }),
             script: [],

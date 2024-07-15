@@ -42,7 +42,7 @@ async function makePipelineCollection({ isCommited }: { isCommited: boolean }) {
         isRecursive: true,
     });
 
-    const collectionJson = await collectionToJson(library);
+    const collectionJson = await collectionToJson(collection);
     const collectionJsonString = JSON.stringify(collectionJson);
 
     const collectionJsonFilePath = join(promptbookSourceDir, 'index.json');

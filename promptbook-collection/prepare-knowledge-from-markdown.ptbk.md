@@ -1,6 +1,6 @@
 # Prepare Knowledge from Markdown
 
--   PROMPTBOOK URL `https://promptbook.studio/promptbook/prepare-knowledge-from-markdown.ptbk.md`
+-   PIPELINE URL `https://promptbook.studio/promptbook/prepare-knowledge-from-markdown.ptbk.md`
 -   INPUT PARAMETER `{content}` Markdown document content
 -   OUTPUT PARAMETER `{knowledge}` The knowledge JSON object
 

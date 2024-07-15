@@ -10,7 +10,7 @@ import { JavascriptExecutionTools } from '../javascript/JavascriptExecutionTools
 
 describe('createPipelineExecutor + missing custom function', () => {
     async function getPipelineExecutor() {
-        const promptbook = await pipelineStringToJson(
+        const pipeline = await pipelineStringToJson(
             spaceTrim(`
                 # Custom functions
 
@@ -34,7 +34,7 @@ describe('createPipelineExecutor + missing custom function', () => {
         );
 
         const pipelineExecutor = createPipelineExecutor({
-            promptbook,
+          pipeline,
             tools: {
                 llm: new MockedEchoLlmExecutionTools({ isVerbose: true }),
                 script: [

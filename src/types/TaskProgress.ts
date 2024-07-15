@@ -1,6 +1,5 @@
 import type { ExecutionType } from './ExecutionTypes';
-import type { string_markdown_text } from './typeAliases';
-import type { string_name } from './typeAliases';
+import type { string_markdown_text, string_name } from './typeAliases';
 
 /**
  * TaskProgress represents the progress of a Promptbook execution.
@@ -34,7 +33,7 @@ export type TaskProgress = {
 
     /**
      * The type of the execution.
-     * Note: The Promptbook executor reports everything, in the app level you can filter out the execution types that you don't want to show to the user.
+     * Note: The pipeline executor reports everything, in the app level you can filter out the execution types that you don't want to show to the user.
      */
     readonly executionType: ExecutionType;
 

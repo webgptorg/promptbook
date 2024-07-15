@@ -49,7 +49,7 @@ export async function prepareKnowledgeFromMarkdown(
     );
 
     const prepareKnowledgeFromMarkdownExecutor = createPipelineExecutor({
-        promptbook: prepareKnowledgeFromMarkdownPromptbook,
+        pipeline: prepareKnowledgeFromMarkdownPromptbook,
         tools: {
             llm: llmTools,
             script: [
@@ -63,7 +63,7 @@ export async function prepareKnowledgeFromMarkdown(
     );
 
     const prepareKeywordsExecutor = createPipelineExecutor({
-        promptbook: prepareKeywordsPromptbook,
+        pipeline: prepareKeywordsPromptbook,
         tools: {
             llm: llmTools,
             script: [

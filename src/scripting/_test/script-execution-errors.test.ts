@@ -52,7 +52,7 @@ describe('createPipelineExecutor + executing scripts in promptbook', () => {
 });
 
 async function getPipelineExecutor() {
-    const promptbook = await pipelineStringToJson(
+    const pipeline = await pipelineStringToJson(
         spaceTrim(`
             # Sample prompt
 
@@ -77,7 +77,7 @@ async function getPipelineExecutor() {
        `) as PipelineString,
     );
     const pipelineExecutor = createPipelineExecutor({
-        promptbook,
+        pipeline,
         tools: {
             llm: new MockedEchoLlmExecutionTools({ isVerbose: true }),
             script: [

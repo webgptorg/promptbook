@@ -35,7 +35,7 @@ export function executionReportJsonToString(
     const headerList: Array<string> = [];
 
     if (executionReportJson.pipelineUrl) {
-        headerList.push(`PROMPTBOOK URL ${executionReportJson.pipelineUrl}`);
+        headerList.push(`PIPELINE URL ${executionReportJson.pipelineUrl}`);
     }
 
     headerList.push(

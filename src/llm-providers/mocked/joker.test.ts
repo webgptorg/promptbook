@@ -34,7 +34,7 @@ describe('createPipelineExecutor + MockedEchoExecutionTools with sample chat pro
 });
 
 async function getPipelineExecutor() {
-    const promptbook = await pipelineStringToJson(
+    const pipeline = await pipelineStringToJson(
         spaceTrim(`
             # ✨ Sample: Jokers
 
@@ -56,7 +56,7 @@ async function getPipelineExecutor() {
        `) as PipelineString,
     );
     return createPipelineExecutor({
-        promptbook,
+      pipeline,
         tools: {
             llm: new MockedEchoLlmExecutionTools({ isVerbose: true }),
             script: [],

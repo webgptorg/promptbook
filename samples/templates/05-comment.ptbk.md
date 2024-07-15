@@ -2,7 +2,7 @@
 
 Show how to use a simple prompt with no parameters and comments that should be ignored.
 
--   PROMPTBOOK URL https://promptbook.example.com/samples/comment.ptbk.md
+-   PIPELINE URL https://promptbook.example.com/samples/comment.ptbk.md
 -   PROMPTBOOK VERSION 1.0.0
 -   OUTPUT PARAMETER `{greeting}`
 

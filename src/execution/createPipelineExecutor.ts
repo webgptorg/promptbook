@@ -30,36 +30,36 @@ type CreatePipelineExecutorSettings = {
 };
 
 /**
- * Options for creating a promptbook executor
+ * Options for creating a pipeline executor
  */
 interface CreatePipelineExecutorOptions {
     /**
-     * The promptbook to be executed
+     * The pipeline to be executed
      */
-    readonly promptbook: PipelineJson;
+    readonly pipeline: PipelineJson;
 
     /**
-     * The execution tools to be used during the execution of the PROMPTBOOK
+     * The execution tools to be used during the execution of the pipeline
      */
     readonly tools: ExecutionTools;
 
     /**
-     * Optional settings for the PROMPTBOOK executor
+     * Optional settings for the pipeline executor
      */
     readonly settings?: Partial<CreatePipelineExecutorSettings>;
 }
 
 /**
- * Creates executor function from promptbook and execution tools.
+ * Creates executor function from pipeline and execution tools.
  *
  * @returns The executor function
- * @throws {PipelineLogicError} on logical error in the promptbook
+ * @throws {PipelineLogicError} on logical error in the pipeline
  */
 export function createPipelineExecutor(options: CreatePipelineExecutorOptions): PipelineExecutor {
     const { pipeline, tools, settings = {} } = options;
     const { maxExecutionAttempts = 3 } = settings;
 
-    validatePipeline(promptbook);
+    validatePipeline(pipeline);
 
     const pipelineExecutor: PipelineExecutor = async (
         inputParameters: Record<string_name, string>,
@@ -67,18 +67,18 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
     ) => {
         let parametersToPass: Record<string_name, string> = inputParameters;
         const executionReport: ExecutionReportJson = {
-            pipelineUrl: promptbook.pipelineUrl,
-            title: promptbook.title,
+            pipelineUrl: pipeline.pipelineUrl,
+            title: pipeline.title,
             promptbookUsedVersion: PROMPTBOOK_VERSION,
-            promptbookRequestedVersion: promptbook.promptbookVersion,
-            description: promptbook.description,
+            promptbookRequestedVersion: pipeline.promptbookVersion,
+            description: pipeline.description,
             promptExecutions: [],
         };
 
         async function executeSingleTemplate(currentTemplate: PromptTemplateJson) {
-            const name = `promptbook-executor-frame-${currentTemplate.name}`;
+            const name = `pipeline-executor-frame-${currentTemplate.name}`;
             const title = currentTemplate.title;
-            const priority = promptbook.promptTemplates.length - promptbook.promptTemplates.indexOf(currentTemplate);
+            const priority = pipeline.promptTemplates.length - pipeline.promptTemplates.indexOf(currentTemplate);
 
             if (onProgress /* <- [3] */) {
                 await onProgress({
@@ -134,9 +134,9 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                                 prompt = {
                                     title: currentTemplate.title,
                                     pipelineUrl: `${
-                                        promptbook.pipelineUrl
-                                            ? promptbook.pipelineUrl
-                                            : 'anonymous' /* <- TODO: [🧠] How to deal with anonymous PROMPTBOOKs, do here some auto-url like SHA-256 based ad-hoc identifier? */
+                                        pipeline.pipelineUrl
+                                            ? pipeline.pipelineUrl
+                                            : 'anonymous' /* <- TODO: [🧠] How to deal with anonymous pipelines, do here some auto-url like SHA-256 based ad-hoc identifier? */
                                     }#${currentTemplate.name}`,
                                     parameters: parametersToPass,
                                     content: replaceParameters(currentTemplate.content, parametersToPass) /* <- [2] */,
@@ -365,7 +365,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                         // TODO: [🧠] Maybe put other executionTypes into report
                         executionReport.promptExecutions.push({
                             prompt: {
-                                title: currentTemplate.title /* <- Note: If title in promptbook contains emojis, pass it innto report */,
+                                title: currentTemplate.title /* <- Note: If title in pipeline contains emojis, pass it innto report */,
                                 content: prompt.content,
                                 modelRequirements: prompt.modelRequirements,
                                 expectations: prompt.expectations,
@@ -417,21 +417,21 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
             parametersToPass = {
                 ...parametersToPass,
                 [currentTemplate.resultingParameterName]:
-                    resultString /* <- Note: Not need to detect parameter collision here because Promptbook checks logic consistency during construction */,
+                    resultString /* <- Note: Not need to detect parameter collision here because pipeline checks logic consistency during construction */,
             };
         }
 
         try {
-            let resovedParameters: Array<string_name> = promptbook.parameters
+            let resovedParameters: Array<string_name> = pipeline.parameters
                 .filter(({ isInput }) => isInput)
                 .map(({ name }) => name);
-            let unresovedTemplates: Array<PromptTemplateJson> = [...promptbook.promptTemplates];
+            let unresovedTemplates: Array<PromptTemplateJson> = [...pipeline.promptTemplates];
             let resolving: Array<Promise<void>> = [];
 
             let loopLimit = LOOP_LIMIT;
             while (unresovedTemplates.length > 0) {
                 if (loopLimit-- < 0) {
-                    throw new UnexpectedError('Loop limit reached during resolving parameters promptbook execution');
+                    throw new UnexpectedError('Loop limit reached during resolving parameters pipeline execution');
                 }
 
                 const currentTemplate = unresovedTemplates.find((template) =>
@@ -484,7 +484,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
         }
 
         // Note: Filter ONLY output parameters
-        for (const parameter of promptbook.parameters) {
+        for (const parameter of pipeline.parameters) {
             if (parameter.isOutput) {
                 continue;
             }

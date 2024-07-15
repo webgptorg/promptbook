@@ -2,7 +2,7 @@
 
 Show how to put codeblocks in the prompt _(which is already in the codeblock)_
 
--   PROMPTBOOK URL https://promptbook.example.com/samples/escaping.ptbk.md
+-   PIPELINE URL https://promptbook.example.com/samples/escaping.ptbk.md
 -   PROMPTBOOK VERSION 1.0.0
 -   MODEL VARIANT Chat
 -   MODEL NAME `gpt-3.5-turbo`

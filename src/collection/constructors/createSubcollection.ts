@@ -43,7 +43,7 @@ export function createSubcollection(
 
         const pipeline = await collection.getPipelineByUrl(url);
 
-        return promptbook;
+        return pipeline;
     }
     async function isResponsibleForPrompt(prompt: Prompt): Promise<boolean> {
         const isResponsible = await collection.isResponsibleForPrompt(prompt);
