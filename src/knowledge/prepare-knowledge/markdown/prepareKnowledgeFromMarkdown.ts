@@ -8,11 +8,13 @@ import { createPipelineExecutor } from '../../../execution/createPipelineExecuto
 import type { LlmExecutionTools } from '../../../execution/LlmExecutionTools';
 import type { KnowledgeJson } from '../../../types/PipelineJson/KnowledgeJson';
 import type { PipelineJson } from '../../../types/PipelineJson/PipelineJson';
-import type { string_href } from '../../../types/typeAliases';
-import type { string_markdown } from '../../../types/typeAliases';
-import type { string_markdown_text } from '../../../types/typeAliases';
-import type { string_model_name } from '../../../types/typeAliases';
-import type { string_name } from '../../../types/typeAliases';
+import type {
+    string_href,
+    string_markdown,
+    string_markdown_text,
+    string_model_name,
+    string_name,
+} from '../../../types/typeAliases';
 import type { string_keyword } from '../../../utils/normalization/IKeywords';
 import { normalizeToKebabCase } from '../../../utils/normalization/normalize-to-kebab-case';
 
@@ -42,12 +44,11 @@ export async function prepareKnowledgeFromMarkdown(
 
     // TODO: [🌼] In future use `ptbk make` and maked getPipelineCollection
     const collection = createCollectionFromJson(...(PipelineCollection as Array<PipelineJson>));
-    const prepareKnowledgeFromMarkdownPromptbook = await collection.getPipelineByUrl(
-        'https://promptbook.studio/promptbook/prepare-knowledge-from-markdown.ptbk.md',
-    );
 
     const prepareKnowledgeFromMarkdownExecutor = createPipelineExecutor({
-        pipeline: prepareKnowledgeFromMarkdownPromptbook,
+        pipeline: await collection.getPipelineByUrl(
+            'https://promptbook.studio/promptbook/prepare-knowledge-from-markdown.ptbk.md',
+        ),
         tools: {
             llm: llmTools,
             script: [
@@ -56,12 +57,22 @@ export async function prepareKnowledgeFromMarkdown(
         },
     });
 
-    const prepareKeywordsPromptbook = await collection.getPipelineByUrl(
-        'https://promptbook.studio/promptbook/prepare-keywords.ptbk.md',
-    );
+    const prepareTitleExecutor = createPipelineExecutor({
+        pipeline: await collection.getPipelineByUrl(
+            'https://promptbook.studio/promptbook/prepare-knowledge-title.ptbk.md',
+        ),
+        tools: {
+            llm: llmTools,
+            script: [
+                /* <- TODO: Allow to just keep script undefined */
+            ],
+        },
+    });
 
     const prepareKeywordsExecutor = createPipelineExecutor({
-        pipeline: prepareKeywordsPromptbook,
+        pipeline: await collection.getPipelineByUrl(
+            'https://promptbook.studio/promptbook/prepare-knowledge-keywords.ptbk.md',
+        ),
         tools: {
             llm: llmTools,
             script: [
@@ -97,14 +108,14 @@ export async function prepareKnowledgeFromMarkdown(
             const sources: Array<{ title: string_markdown_text; href: string_href }> = [];
 
             try {
-                // TODO: !!!! Summarize name and title from the content
-                title = spaceTrim(knowledgeTextPiece.substring(0, 30));
+                const titleResult = await prepareTitleExecutor({ content });
+                const { title: titleRaw = 'Untitled' } = titleResult.outputParameters;
+                title = spaceTrim(titleRaw) /* <- TODO: Maybe do in pipeline */;
                 name = normalizeToKebabCase(title);
 
                 // --- Keywords
-                const result = await prepareKeywordsExecutor({ content });
-                const { outputParameters = {} } = result;
-                const { keywords: keywordsRaw } = outputParameters;
+                const keywordsResult = await prepareKeywordsExecutor({ content });
+                const { keywords: keywordsRaw = '' } = keywordsResult.outputParameters;
                 keywords = (keywordsRaw || '')
                     .split(',')
                     .map((keyword) => keyword.trim())

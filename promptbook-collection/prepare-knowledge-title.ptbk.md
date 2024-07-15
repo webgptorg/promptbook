@@ -1,0 +1,28 @@
+# Prepare Title
+
+-   PIPELINE URL `https://promptbook.studio/promptbook/prepare-knowledge-title.ptbk.md`
+-   INPUT PARAMETER `{content}` The content
+-   OUTPUT PARAMETER `{title}` The title of the document
+
+## Knowledge
+
+-   MODEL VARIANT Chat
+-   MODEL NAME `claude-3-opus-20240229`
+-   EXPECT MIN 1 WORD
+-   EXPECT MAX 10 WORDS
+
+```markdown
+You are experienced content creator, write best title for the document.
+
+# Rules
+
+-   Write just title, nothing else
+-   Title should be concise and clear
+-   Write maximum 10 words for the title
+
+# The document
+
+> {content}
+```
+
+`-> {title}`
