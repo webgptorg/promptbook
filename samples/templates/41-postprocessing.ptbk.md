@@ -1,6 +1,6 @@
 # ✨ Sample: Postprocessing 2
 
--   PIPELINE URL https://promptbook.example.com/samples/postprocessing-2.ptbk.md
+-   PIPELINE URL https://promptbook.studio/samples/postprocessing-2.ptbk.md
 -   PROMPTBOOK VERSION 1.0.0
 -   MODEL VARIANT Chat
 -   MODEL NAME `gpt-3.5-turbo`

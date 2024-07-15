@@ -12,7 +12,7 @@ describe('createCollectionFromJson', () => {
             Show how to use a simple completion prompt
 
             -   PROMPTBOOK VERSION 1.0.0
-            -   PIPELINE URL https://example.com/promptbook.json
+            -   PIPELINE URL https://example.com/pipeline.json
             -   INPUT  PARAMETER {thing} Any thing to buy
             -   OUTPUT PARAMETER {response}
 
@@ -32,11 +32,11 @@ describe('createCollectionFromJson', () => {
             -> {response}
          `) as PipelineString;
 
-    it('should get promptbook by url from collection', async () => {
+    it('should get pipeline by url from collection', async () => {
         expect.assertions(1);
-        const promptbook = await pipelineStringToJson(pipelineString);
-        const collection = createCollectionFromJson(promptbook);
+        const pipeline = await pipelineStringToJson(pipelineString);
+        const collection = createCollectionFromJson(pipeline);
         const collectionJson = await collectionToJson(collection);
-        expect([promptbook]).toEqual(collectionJson);
+        expect([pipeline]).toEqual(collectionJson);
     });
 });

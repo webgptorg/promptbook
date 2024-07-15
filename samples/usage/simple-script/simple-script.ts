@@ -25,8 +25,8 @@ async function main() {
         isCrashOnError: true,
     });
     const pipeline = await library.getPipelineByUrl(
-        `https://promptbook.example.com/samples/simple.ptbk.md`,
-        // `https://promptbook.example.com/samples/language-capabilities.ptbk.md`,
+        `https://promptbook.studio/samples/simple.ptbk.md`,
+        // `https://promptbook.studio/samples/language-capabilities.ptbk.md`,
     );
 
     const tools = {

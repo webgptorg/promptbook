@@ -1,6 +1,6 @@
 {
     "title": "✨ Sample of logic error",
-    "pipelineUrl": "https://promptbook.example.com/samples/parameter-used-in-reverse-order.ptbk.md",
+    "pipelineUrl": "https://promptbook.studio/samples/parameter-used-in-reverse-order.ptbk.md",
     "promptbookVersion": "1.0.0",
     "description": "Sample of using parameter in reverse order\n\n_Note: This is not recommended but it should work_",
     "parameters": [
@@ -26,7 +26,10 @@
             "name": "sentence",
             "title": "Sentence",
             "description": "Sentence with word and wordSynonym",
-            "dependentParameterNames": ["word", "wordSynonym"],
+            "dependentParameterNames": [
+                "word",
+                "wordSynonym"
+            ],
             "executionType": "PROMPT_TEMPLATE",
             "modelRequirements": {
                 "modelVariant": "CHAT",
@@ -39,7 +42,9 @@
             "name": "synonym",
             "title": "Synonym",
             "description": "Synonym for word",
-            "dependentParameterNames": ["word"],
+            "dependentParameterNames": [
+                "word"
+            ],
             "executionType": "PROMPT_TEMPLATE",
             "modelRequirements": {
                 "modelVariant": "CHAT",

@@ -6,12 +6,12 @@ import { just } from '../../utils/just';
 import { createCollectionFromDirectory } from './createCollectionFromDirectory';
 
 describe('createCollectionFromDirectory', () => {
-    const promptbook = spaceTrim(`
+    const pipeline = spaceTrim(`
           # ✨ Sample prompt with URL
 
           Show how to use a simple prompt with no parameters.
 
-          -   PIPELINE URL https://promptbook.example.com/samples/simple.ptbk.md
+          -   PIPELINE URL https://promptbook.studio/samples/simple.ptbk.md
           -   PROMPTBOOK VERSION 1.0.0
           -   OUTPUT PARAMETER \`{greeting}\`
 
@@ -27,21 +27,21 @@ describe('createCollectionFromDirectory', () => {
 
     `) as PipelineString;
 
-    it('should get promptbook by url from collection', async () => {
+    it('should get pipeline by url from collection', async () => {
         expect.assertions(1);
         const collection = await createCollectionFromDirectory('./samples/templates', {
             isVerbose: true,
             isRecursive: false,
             isLazyLoaded: false,
         });
-        const promptbookFromLibrary = await collection.getPipelineByUrl(
-            'https://promptbook.example.com/samples/simple.ptbk.md',
+        const pipelineFromCollection = await collection.getPipelineByUrl(
+            'https://promptbook.studio/samples/simple.ptbk.md',
         );
 
-        expect(promptbookFromLibrary).toEqual(await pipelineStringToJson(promptbook));
+        expect(pipelineFromCollection).toEqual(await pipelineStringToJson(pipeline));
     });
 
-    it('should get lazy-loaded promptbook by url from collection', async () => {
+    it('should get lazy-loaded pipeline by url from collection', async () => {
         expect.assertions(1);
 
         const collection = await createCollectionFromDirectory('./samples/templates', {
@@ -49,28 +49,28 @@ describe('createCollectionFromDirectory', () => {
             isRecursive: false,
             isLazyLoaded: true,
         });
-        const promptbookFromLibrary = await collection.getPipelineByUrl(
-            'https://promptbook.example.com/samples/simple.ptbk.md',
+        const pipelineFromCollection = await collection.getPipelineByUrl(
+            'https://promptbook.studio/samples/simple.ptbk.md',
         );
 
-        expect(promptbookFromLibrary).toEqual(await pipelineStringToJson(promptbook));
+        expect(pipelineFromCollection).toEqual(await pipelineStringToJson(pipeline));
     });
 
-    it('should get different promptbook by url from collection', async () => {
+    it('should get different pipeline by url from collection', async () => {
         expect.assertions(1);
 
         const collection = await createCollectionFromDirectory('./samples/templates', {
             isVerbose: true,
             isRecursive: false,
         });
-        const promptbookFromLibrary = await collection.getPipelineByUrl(
-            'https://promptbook.example.com/samples/jokers.ptbk.md',
+        const pipelineFromCollection = await collection.getPipelineByUrl(
+            'https://promptbook.studio/samples/jokers.ptbk.md',
         );
 
-        expect(promptbookFromLibrary).not.toEqual(await pipelineStringToJson(promptbook));
+        expect(pipelineFromCollection).not.toEqual(await pipelineStringToJson(pipeline));
     });
 
-    it('should NOT crash when include error promptbooks but lazy-loaded', () =>
+    it('should NOT crash when include error pipelines but lazy-loaded', () =>
         expect(
             (async () => {
                 const collection = await createCollectionFromDirectory('./samples/templates', {
@@ -82,7 +82,7 @@ describe('createCollectionFromDirectory', () => {
             })(),
         ).resolves.not.toThrow());
 
-    it('should crash when include error promptbooks', () =>
+    it('should crash when include error pipelines', () =>
         expect(
             (async () => {
                 const collection = await createCollectionFromDirectory('./samples/templates', {
@@ -92,21 +92,21 @@ describe('createCollectionFromDirectory', () => {
                 });
                 just(collection);
             })(),
-        ).rejects.toThrowError(/Error during loading promptbook/i));
+        ).rejects.toThrowError(/Error during loading pipeline/i));
 
     /*
     TODO: Make separate folder for errors and enable this test
-    it('should find promptbook in subdirectory', () =>
+    it('should find pipeline in subdirectory', () =>
         expect(
             (async () => {
               const collection = await   createCollectionFromDirectory('./samples/templates', {
                     isVerbose: true,
                     isRecursive: false,
                 });
-                const promptbookFromLibrary = await collection.getPipelineByUrl(
+                const pipelineFromCollection = await collection.getPipelineByUrl(
                     'https://promptbook.studio/webgpt/write-website-content.ptbk.md',
                 );
-                return promptbookFromLibrary.title;
+                return pipelineFromCollection.title;
             })(),
         ).resolves.toBe('🌍 Create website content'));
     */

@@ -50,6 +50,7 @@ export function parseCommand(listItem: string_markdown_text): Command {
         .map((part) => part.trim())
         .filter((item) => item !== '')
         .filter((item) => !/^PTBK$/i.test(item))
+        .filter((item) => !/^PIPELINE$/i.test(item))
         .filter((item) => !/^PROMPTBOOK$/i.test(item))
         .map(removeMarkdownFormatting);
 
@@ -58,6 +59,8 @@ export function parseCommand(listItem: string_markdown_text): Command {
         type.startsWith('PTBK_URL') ||
         type.startsWith('PTBKURL') ||
         type.startsWith('PIPELINE_URL') ||
+        type.startsWith('PIPELINEURL') ||
+        type.startsWith('PROMPTBOOK_URL') ||
         type.startsWith('PROMPTBOOKURL') ||
         type.startsWith('HTTPS')
     ) {

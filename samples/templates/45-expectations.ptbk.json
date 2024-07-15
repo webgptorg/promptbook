@@ -1,6 +1,6 @@
 {
     "title": "✨ Sample: Expectations",
-    "pipelineUrl": "https://promptbook.example.com/samples/expectations.ptbk.md",
+    "pipelineUrl": "https://promptbook.studio/samples/expectations.ptbk.md",
     "promptbookVersion": "1.0.0",
     "parameters": [
         {
@@ -19,7 +19,9 @@
         {
             "name": "question",
             "title": "💬 Question",
-            "dependentParameterNames": ["yourName"],
+            "dependentParameterNames": [
+                "yourName"
+            ],
             "executionType": "PROMPT_TEMPLATE",
             "expectations": {
                 "characters": {

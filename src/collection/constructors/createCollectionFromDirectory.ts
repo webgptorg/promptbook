@@ -144,7 +144,7 @@ export async function createCollectionFromDirectory(
 
                 const wrappedErrorMessage = spaceTrim(
                     (block) => `
-                        Error during loading promptbook from file ${fileName.split('\\').join('/')}:
+                        Error during loading pipeline from file ${fileName.split('\\').join('/')}:
 
                         ${block((error as Error).message)}
 

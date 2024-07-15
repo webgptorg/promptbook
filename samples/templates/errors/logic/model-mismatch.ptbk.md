@@ -2,7 +2,7 @@
 
 Show how to pick exact model
 
--   PIPELINE URL https://promptbook.example.com/samples/model-mismatch.ptbk.md
+-   PIPELINE URL https://promptbook.studio/samples/model-mismatch.ptbk.md
 -   PROMPTBOOK VERSION 1.0.0
 -   MODEL VARIANT Chat
 -   MODEL NAME `gpt-3.5-turbo`

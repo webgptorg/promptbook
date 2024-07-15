@@ -1,6 +1,6 @@
 {
     "title": "✨ Sample prompt with two consecutive prompts",
-    "pipelineUrl": "https://promptbook.example.com/samples/two.ptbk.md",
+    "pipelineUrl": "https://promptbook.studio/samples/two.ptbk.md",
     "promptbookVersion": "1.0.0",
     "description": "Show how to use two consecutive prompts with one parameter each.",
     "parameters": [
@@ -26,7 +26,9 @@
             "name": "synonym",
             "title": "💬 Synonym",
             "description": "Synonym for word",
-            "dependentParameterNames": ["word"],
+            "dependentParameterNames": [
+                "word"
+            ],
             "executionType": "PROMPT_TEMPLATE",
             "modelRequirements": {
                 "modelVariant": "CHAT"
@@ -38,7 +40,10 @@
             "name": "sentence",
             "title": "💬 Sentence",
             "description": "Sentence with word and wordSynonym",
-            "dependentParameterNames": ["word", "wordSynonym"],
+            "dependentParameterNames": [
+                "word",
+                "wordSynonym"
+            ],
             "executionType": "PROMPT_TEMPLATE",
             "modelRequirements": {
                 "modelVariant": "CHAT"

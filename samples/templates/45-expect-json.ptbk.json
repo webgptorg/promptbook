@@ -1,6 +1,6 @@
 {
     "title": "✨ Sample: Parsing data to JSON",
-    "pipelineUrl": "https://promptbook.example.com/samples/expect-json.ptbk.md",
+    "pipelineUrl": "https://promptbook.studio/samples/expect-json.ptbk.md",
     "promptbookVersion": "1.0.0",
     "parameters": [
         {
@@ -19,9 +19,13 @@
         {
             "name": "question",
             "title": "💬 Question",
-            "dependentParameterNames": ["sentence"],
+            "dependentParameterNames": [
+                "sentence"
+            ],
             "executionType": "PROMPT_TEMPLATE",
-            "postprocessing": ["trimEndOfCodeBlock"],
+            "postprocessing": [
+                "trimEndOfCodeBlock"
+            ],
             "expectFormat": "JSON",
             "modelRequirements": {
                 "modelVariant": "COMPLETION",

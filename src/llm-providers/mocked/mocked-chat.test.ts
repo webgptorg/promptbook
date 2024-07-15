@@ -16,7 +16,7 @@ describe('createPipelineExecutor + MockedEchoLlmExecutionTools with sample chat 
             executionReport: {
                 title: 'Sample prompt',
                 promptbookRequestedVersion: '1.0.0',
-                pipelineUrl: 'https://example.com/promptbook.json',
+                pipelineUrl: 'https://example.com/pipeline.json',
                 promptbookUsedVersion: PROMPTBOOK_VERSION,
             },
             outputParameters: {
@@ -38,7 +38,7 @@ describe('createPipelineExecutor + MockedEchoLlmExecutionTools with sample chat 
                 title: 'Sample prompt',
                 description: 'Show how to use a simple chat prompt',
                 promptExecutions: [],
-                pipelineUrl: 'https://example.com/promptbook.json',
+                pipelineUrl: 'https://example.com/pipeline.json',
                 promptbookRequestedVersion: '1.0.0',
                 promptbookUsedVersion: PROMPTBOOK_VERSION,
             },
@@ -113,7 +113,7 @@ async function getPipelineExecutor() {
             Show how to use a simple chat prompt
 
             -   PROMPTBOOK VERSION 1.0.0
-            -   PIPELINE URL https://example.com/promptbook.json
+            -   PIPELINE URL https://example.com/pipeline.json
             -   MODEL VARIANT Chat
             -   MODEL NAME gpt-3.5-turbo
             -   INPUT  PARAMETER {thing} Any thing to buy

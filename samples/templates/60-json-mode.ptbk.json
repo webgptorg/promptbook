@@ -1,6 +1,6 @@
 {
     "title": "✨ Sample: JSON mode",
-    "pipelineUrl": "https://promptbook.example.com/samples/json-mode.ptbk.md",
+    "pipelineUrl": "https://promptbook.studio/samples/json-mode.ptbk.md",
     "promptbookVersion": "1.0.0",
     "description": "Trying the language capabilities of GPT models.",
     "parameters": [
@@ -21,9 +21,13 @@
         {
             "name": "extrakce-kontaktnich-udaju",
             "title": "🖋 Extrakce kontaktních údajů",
-            "dependentParameterNames": ["unstructuredContacts"],
+            "dependentParameterNames": [
+                "unstructuredContacts"
+            ],
             "executionType": "PROMPT_TEMPLATE",
-            "postprocessing": ["trimEndOfCodeBlock"],
+            "postprocessing": [
+                "trimEndOfCodeBlock"
+            ],
             "expectFormat": "JSON",
             "modelRequirements": {
                 "modelVariant": "COMPLETION",

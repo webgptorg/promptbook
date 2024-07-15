@@ -6,13 +6,13 @@ import type { PipelineString } from '../../types/PipelineString';
 import { createCollectionFromPromise } from './createCollectionFromPromise';
 
 describe('createCollectionFromPromise', () => {
-    const promptbook = spaceTrim(`
+    const pipeline = spaceTrim(`
             # Sample prompt
 
             Show how to use a simple completion prompt
 
             -   PROMPTBOOK VERSION 1.0.0
-            -   PIPELINE URL https://example.com/promptbook.json
+            -   PIPELINE URL https://example.com/pipeline.json
             -   INPUT  PARAMETER {thing} Any thing to buy
             -   OUTPUT PARAMETER {response}
 
@@ -34,12 +34,12 @@ describe('createCollectionFromPromise', () => {
 
     const collection = createCollectionFromPromise(async () => {
         await forTime(100);
-        return [await pipelineStringToJson(promptbook)];
+        return [await pipelineStringToJson(pipeline)];
     });
 
-    it('should get promptbook by url from collection', async () => {
+    it('should get pipeline by url from collection', async () => {
         expect.assertions(1);
-        const promptbookFromLibrary = await collection.getPipelineByUrl('https://example.com/promptbook.json');
-        expect(promptbookFromLibrary).toEqual(await pipelineStringToJson(promptbook));
+        const pipelineFromCollection = await collection.getPipelineByUrl('https://example.com/pipeline.json');
+        expect(pipelineFromCollection).toEqual(await pipelineStringToJson(pipeline));
     });
 });
