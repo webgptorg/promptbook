@@ -1,6 +1,6 @@
 {
     "title": "✨ Sample: Expectations",
-    "promptbookUrl": "https://promptbook.example.com/samples/expectations.ptbk.md",
+    "pipelineUrl": "https://promptbook.studio/samples/expectations.ptbk.md",
     "promptbookVersion": "1.0.0",
     "parameters": [
         {

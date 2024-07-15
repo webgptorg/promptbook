@@ -1,3 +1,3 @@
-# 📖 Promptbook library of promptbook
+# 📖 Pipeline collection for Promptbook project
 
-Theese promptbooks are used inside the Promptbook project itsef. The are compiled and available for `@promptbook/*` NPM packages.
+Theese pipelines are used inside the Promptbook package itsef. The are compiled and available for `@promptbook/*` NPM packages.

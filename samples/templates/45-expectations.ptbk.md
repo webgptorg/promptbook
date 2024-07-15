@@ -1,6 +1,6 @@
 # ✨ Sample: Expectations
 
--   PROMPTBOOK URL https://promptbook.example.com/samples/expectations.ptbk.md
+-   PIPELINE URL https://promptbook.studio/samples/expectations.ptbk.md
 -   PROMPTBOOK VERSION 1.0.0
 -   INPUT  PARAMETER {yourName} Name of the hero
 -   OUTPUT PARAMETER `{greeting}`

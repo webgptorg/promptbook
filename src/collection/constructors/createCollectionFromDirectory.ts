@@ -2,7 +2,7 @@ import colors from 'colors';
 import { access, constants, readdir, readFile } from 'fs/promises';
 import { join } from 'path';
 import spaceTrim from 'spacetrim';
-import { PROMPTBOOK_MAKED_BASE_FILENAME } from '../../config';
+import { PIPELINE_COLLECTION_BASE_FILENAME } from '../../config';
 import { pipelineStringToJson } from '../../conversion/pipelineStringToJson';
 import { validatePipeline } from '../../conversion/validation/validatePipeline';
 import { CollectionError } from '../../errors/CollectionError';
@@ -26,7 +26,7 @@ type CreatePipelineCollectionFromDirectoryOptions = {
     isRecursive?: boolean;
 
     /**
-     * If true, the library creation outputs information about each file it reads
+     * If true, the collection creation outputs information about each file it reads
      *
      * @default false
      */
@@ -40,7 +40,7 @@ type CreatePipelineCollectionFromDirectoryOptions = {
     isLazyLoaded?: boolean;
 
     /**
-     * If true, whole library creation crashes on error in any promptbook
+     * If true, whole collection creation crashes on error in any promptbook
      * If true and isLazyLoaded is true, the error is thrown on first access to the promptbook
      *
      * @default true
@@ -54,7 +54,7 @@ type CreatePipelineCollectionFromDirectoryOptions = {
  * Note: Works only in Node.js environment because it reads the file system
  *
  * @param path - path to the directory with promptbooks
- * @param options - Misc options for the library
+ * @param options - Misc options for the collection
  * @returns PipelineCollection
  */
 export async function createCollectionFromDirectory(
@@ -67,7 +67,7 @@ export async function createCollectionFromDirectory(
         );
     }
 
-    const makedLibraryFilePath = join(path, `${PROMPTBOOK_MAKED_BASE_FILENAME}.json`);
+    const makedLibraryFilePath = join(path, `${PIPELINE_COLLECTION_BASE_FILENAME}.json`);
     const makedLibraryFileExists = await access(makedLibraryFilePath, constants.R_OK)
         .then(() => true)
         .catch(() => false);
@@ -75,19 +75,21 @@ export async function createCollectionFromDirectory(
     if (!makedLibraryFileExists) {
         console.info(
             colors.yellow(
-                `Tip: Prebuild your promptbook library (file with supposed prebuild ${makedLibraryFilePath} not found) with CLI util "promptbook make" to speed up the library creation.`,
+                `Tip: Prebuild your pipeline collection (file with supposed prebuild ${makedLibraryFilePath} not found) with CLI util "ptbk make" to speed up the collection creation.`,
             ),
         );
     } else {
-        colors.green(`(In future, not implemented yet) Using your prebuild promptbook library ${makedLibraryFilePath}`);
+        colors.green(
+            `(In future, not implemented yet) Using your prebuild pipeline collection ${makedLibraryFilePath}`,
+        );
         // TODO: !! Implement;
     }
 
     const { isRecursive = true, isVerbose = false, isLazyLoaded = false, isCrashOnError = true } = options || {};
 
-    const library = createCollectionFromPromise(async () => {
+    const collection = createCollectionFromPromise(async () => {
         if (isVerbose) {
-            console.info(`Creating promptbook library from path ${path.split('\\').join('/')}`);
+            console.info(`Creating pipeline collection from path ${path.split('\\').join('/')}`);
         }
 
         const fileNames = await listAllFiles(path, isRecursive);
@@ -117,7 +119,7 @@ export async function createCollectionFromDirectory(
                 // ---
 
                 if (promptbook !== null) {
-                    if (!promptbook.promptbookUrl) {
+                    if (!promptbook.pipelineUrl) {
                         if (isVerbose) {
                             console.info(`Not loading ${fileName.split('\\').join('/')} - missing URL`);
                         }
@@ -143,7 +145,7 @@ export async function createCollectionFromDirectory(
 
                 const wrappedErrorMessage = spaceTrim(
                     (block) => `
-                        Error during loading promptbook from file ${fileName.split('\\').join('/')}:
+                        Error during loading pipeline from file ${fileName.split('\\').join('/')}:
 
                         ${block((error as Error).message)}
 
@@ -162,10 +164,10 @@ export async function createCollectionFromDirectory(
     });
 
     if (isLazyLoaded === false) {
-        await library.listPipelines();
+        await collection.listPipelines();
     }
 
-    return library;
+    return collection;
 }
 
 /**

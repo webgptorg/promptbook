@@ -1,5 +1,5 @@
 /**
- * The thresholds for the relative time in the `moment` library.
+ * The thresholds for the relative time in the `moment` NPM package.
  *
  * @see https://momentjscom.readthedocs.io/en/latest/moment/07-customization/13-relative-time-threshold/
  */

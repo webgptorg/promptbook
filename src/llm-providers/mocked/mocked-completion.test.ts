@@ -1,16 +1,16 @@
 import { describe, expect, it } from '@jest/globals';
 import { spaceTrim } from 'spacetrim';
 import { pipelineStringToJson } from '../../conversion/pipelineStringToJson';
-import { createPromptbookExecutor } from '../../execution/createPromptbookExecutor';
+import { createPipelineExecutor } from '../../execution/createPipelineExecutor';
 import { CallbackInterfaceTools } from '../../knowledge/dialogs/callback/CallbackInterfaceTools';
 import type { PipelineString } from '../../types/PipelineString';
 import { PROMPTBOOK_VERSION } from '../../version';
 import { MockedEchoLlmExecutionTools } from './MockedEchoLlmExecutionTools';
 
-describe('createPromptbookExecutor + MockedEchoLlmExecutionTools with sample completion prompt', () => {
+describe('createPipelineExecutor + MockedEchoLlmExecutionTools with sample completion prompt', () => {
     it('should work when every INPUT PARAMETER defined', async () => {
-        const promptbookExecutor = await getPromptbookExecutor();
-        expect(promptbookExecutor({ thing: 'a cup of coffee' }, () => {})).resolves.toMatchObject({
+        const pipelineExecutor = await getPipelineExecutor();
+        expect(pipelineExecutor({ thing: 'a cup of coffee' }, () => {})).resolves.toMatchObject({
             outputParameters: {
                 response: spaceTrim(`
                     One day I went to the shop and bought a cup of coffee.
@@ -22,15 +22,15 @@ describe('createPromptbookExecutor + MockedEchoLlmExecutionTools with sample com
     });
 
     it('should fail when some INPUT PARAMETER is missing', async () => {
-        const promptbookExecutor = await getPromptbookExecutor();
-        expect(promptbookExecutor({}, () => {})).resolves.toEqual({
+        const pipelineExecutor = await getPipelineExecutor();
+        expect(pipelineExecutor({}, () => {})).resolves.toEqual({
             isSuccessful: false,
             errors: [new Error(`Parameter {thing} is not defined`)],
             executionReport: {
                 title: 'Sample prompt',
                 description: 'Show how to use a simple completion prompt',
                 promptExecutions: [],
-                promptbookUrl: 'https://example.com/promptbook.json',
+                pipelineUrl: 'https://example.com/pipeline.json',
                 promptbookRequestedVersion: '1.0.0',
                 promptbookUsedVersion: PROMPTBOOK_VERSION,
             },
@@ -92,20 +92,20 @@ describe('createPromptbookExecutor + MockedEchoLlmExecutionTools with sample com
     /*
     TODO: [🧠] Should be this failing or not?
     it('should fail when there is INPUT  PARAMETER extra', () => {
-        expect(promptbookExecutor({ thing: 'a cup of coffee', sound: 'Meow!' }, () => {})).rejects.toThrowError(/Parameter \{sound\} should not be defined/i);
+        expect(pipelineExecutor({ thing: 'a cup of coffee', sound: 'Meow!' }, () => {})).rejects.toThrowError(/Parameter \{sound\} should not be defined/i);
     });
     */
 });
 
-async function getPromptbookExecutor() {
-    const promptbook = await pipelineStringToJson(
+async function getPipelineExecutor() {
+    const pipeline = await pipelineStringToJson(
         spaceTrim(`
             # Sample prompt
 
             Show how to use a simple completion prompt
 
             -   PROMPTBOOK VERSION 1.0.0
-            -   PROMPTBOOK URL https://example.com/promptbook.json
+            -   PIPELINE URL https://example.com/pipeline.json
             -   INPUT  PARAMETER {thing} Any thing to buy
             -   OUTPUT PARAMETER {response}
 
@@ -122,8 +122,8 @@ async function getPromptbookExecutor() {
             -> {response}
        `) as PipelineString,
     );
-    const promptbookExecutor = createPromptbookExecutor({
-        promptbook,
+    const pipelineExecutor = createPipelineExecutor({
+        pipeline,
         tools: {
             llm: new MockedEchoLlmExecutionTools({ isVerbose: true }),
             script: [],
@@ -138,9 +138,9 @@ async function getPromptbookExecutor() {
             maxExecutionAttempts: 3,
         },
     });
-    return promptbookExecutor;
+    return pipelineExecutor;
 }
 
 /**
- * TODO: [🧠] What should be name of this test "MockedEchoExecutionTools.test.ts" or "createPromptbookExecutor.test.ts"
+ * TODO: [🧠] What should be name of this test "MockedEchoExecutionTools.test.ts" or "createPipelineExecutor.test.ts"
  */

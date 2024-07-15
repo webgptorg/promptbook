@@ -27,8 +27,8 @@ export type Command =
  * - It is defined per whole .promptbook file in the header
  */
 export type PromptbookUrlCommand = {
-    readonly type: 'PROMPTBOOK_URL';
-    readonly promptbookUrl: URL;
+    readonly type: 'PIPELINE_URL';
+    readonly pipelineUrl: URL;
 };
 
 /**

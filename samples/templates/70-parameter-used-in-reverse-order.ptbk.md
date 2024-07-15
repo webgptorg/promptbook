@@ -4,7 +4,7 @@ Sample of using parameter in reverse order
 
 _Note: This is not recommended but it should work_
 
--   PROMPTBOOK URL https://promptbook.example.com/samples/parameter-used-in-reverse-order.ptbk.md
+-   PIPELINE URL https://promptbook.studio/samples/parameter-used-in-reverse-order.ptbk.md
 -   PROMPTBOOK VERSION 1.0.0
 -   MODEL VARIANT Chat
 -   MODEL NAME `gpt-3.5-turbo`

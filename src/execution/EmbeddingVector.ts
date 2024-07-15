@@ -4,6 +4,6 @@
 export type EmbeddingVector = Array<number>;
 
 /**
- * TODO: Figure out how to use library xyzt
+ * TODO: Figure out how to use NPM package xyzt
  *       Not using IVectorData due to HUGE dimensionality
  */

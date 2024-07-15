@@ -2,10 +2,10 @@ import spaceTrim from 'spacetrim';
 // TODO: [🏳‍🌈] Finally take pick of .json vs .ts
 import PipelineCollection from '../../../../promptbook-collection/index.json';
 // import PipelineCollection from '../../../../promptbook-collection/promptbook-collection';
+import { createCollectionFromJson } from '../../../collection/constructors/createCollectionFromJson';
 import { assertsExecutionSuccessful } from '../../../execution/assertsExecutionSuccessful';
-import { createPromptbookExecutor } from '../../../execution/createPromptbookExecutor';
+import { createPipelineExecutor } from '../../../execution/createPipelineExecutor';
 import type { LlmExecutionTools } from '../../../execution/LlmExecutionTools';
-import { createCollectionFromJson } from '../../../library/constructors/createCollectionFromJson';
 import type { KnowledgeJson } from '../../../types/PipelineJson/KnowledgeJson';
 import type { PipelineJson } from '../../../types/PipelineJson/PipelineJson';
 import type { string_href } from '../../../types/typeAliases';
@@ -40,14 +40,14 @@ export async function prepareKnowledgeFromMarkdown(
 ): Promise<KnowledgeJson> {
     const { content, llmTools, isVerbose = false } = options;
 
-    // TODO: [🌼] In future use `promptbook make` and maked getPipelineCollection
-    const library = createCollectionFromJson(...(PipelineCollection as Array<PipelineJson>));
-    const prepareKnowledgeFromMarkdownPromptbook = await library.getPipelineByUrl(
+    // TODO: [🌼] In future use `ptbk make` and maked getPipelineCollection
+    const collection = createCollectionFromJson(...(PipelineCollection as Array<PipelineJson>));
+    const prepareKnowledgeFromMarkdownPromptbook = await collection.getPipelineByUrl(
         'https://promptbook.studio/promptbook/prepare-knowledge-from-markdown.ptbk.md',
     );
 
-    const prepareKnowledgeFromMarkdownExecutor = createPromptbookExecutor({
-        promptbook: prepareKnowledgeFromMarkdownPromptbook,
+    const prepareKnowledgeFromMarkdownExecutor = createPipelineExecutor({
+        pipeline: prepareKnowledgeFromMarkdownPromptbook,
         tools: {
             llm: llmTools,
             script: [
@@ -56,12 +56,12 @@ export async function prepareKnowledgeFromMarkdown(
         },
     });
 
-    const prepareKeywordsPromptbook = await library.getPipelineByUrl(
+    const prepareKeywordsPromptbook = await collection.getPipelineByUrl(
         'https://promptbook.studio/promptbook/prepare-keywords.ptbk.md',
     );
 
-    const prepareKeywordsExecutor = createPromptbookExecutor({
-        promptbook: prepareKeywordsPromptbook,
+    const prepareKeywordsExecutor = createPipelineExecutor({
+        pipeline: prepareKeywordsPromptbook,
         tools: {
             llm: llmTools,
             script: [

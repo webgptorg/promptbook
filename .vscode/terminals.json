@@ -154,7 +154,7 @@
             "focus": true
         },
         {
-            "name": "📖 Make Promptbook library (💸)",
+            "name": "📖 Make Promptbook collection (💸)",
             "command": "ts-node ./scripts/make-promptbook-collection/make-promptbook-collection.ts --commit",
             "onlySingle": true,
             "focus": true

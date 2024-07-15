@@ -1,6 +1,6 @@
 {
     "title": "✨ Sample prompt",
-    "promptbookUrl": "https://promptbook.example.com/samples/single.ptbk.md",
+    "pipelineUrl": "https://promptbook.studio/samples/single.ptbk.md",
     "promptbookVersion": "1.0.0",
     "description": "Show how to use a simple prompt with one parameter.",
     "parameters": [

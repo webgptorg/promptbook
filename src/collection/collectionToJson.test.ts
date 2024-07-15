@@ -1,8 +1,9 @@
 import { describe, expect, it } from '@jest/globals';
 import spaceTrim from 'spacetrim';
-import { pipelineStringToJson } from '../../conversion/pipelineStringToJson';
-import type { PipelineString } from '../../types/PipelineString';
-import { createCollectionFromJson } from './createCollectionFromJson';
+import { pipelineStringToJson } from '../conversion/pipelineStringToJson';
+import type { PipelineString } from '../types/PipelineString';
+import { collectionToJson } from './collectionToJson';
+import { createCollectionFromJson } from './constructors/createCollectionFromJson';
 
 describe('createCollectionFromJson', () => {
     const pipelineString = spaceTrim(`
@@ -11,7 +12,7 @@ describe('createCollectionFromJson', () => {
             Show how to use a simple completion prompt
 
             -   PROMPTBOOK VERSION 1.0.0
-            -   PROMPTBOOK URL https://example.com/promptbook.json
+            -   PIPELINE URL https://example.com/pipeline.json
             -   INPUT  PARAMETER {thing} Any thing to buy
             -   OUTPUT PARAMETER {response}
 
@@ -31,11 +32,11 @@ describe('createCollectionFromJson', () => {
             -> {response}
          `) as PipelineString;
 
-    it('should get promptbook by url from library', async () => {
+    it('should get pipeline by url from collection', async () => {
         expect.assertions(1);
-        const promptbook = await pipelineStringToJson(pipelineString);
-        const library = createCollectionFromJson(promptbook);
-        const promptbookFromLibrary = await library.getPipelineByUrl('https://example.com/promptbook.json');
-        expect(promptbookFromLibrary).toEqual(await pipelineStringToJson(pipelineString));
+        const pipeline = await pipelineStringToJson(pipelineString);
+        const collection = createCollectionFromJson(pipeline);
+        const collectionJson = await collectionToJson(collection);
+        expect([pipeline]).toEqual(collectionJson);
     });
 });

@@ -1,17 +1,17 @@
 import { describe, expect, it } from '@jest/globals';
 import { spaceTrim } from 'spacetrim';
 import { pipelineStringToJson } from '../../conversion/pipelineStringToJson';
-import { createPromptbookExecutor } from '../../execution/createPromptbookExecutor';
+import { createPipelineExecutor } from '../../execution/createPipelineExecutor';
 import { CallbackInterfaceTools } from '../../knowledge/dialogs/callback/CallbackInterfaceTools';
 import { MockedEchoLlmExecutionTools } from '../../llm-providers/mocked/MockedEchoLlmExecutionTools';
 import type { PipelineString } from '../../types/PipelineString';
 import { JavascriptExecutionTools } from '../javascript/JavascriptExecutionTools';
 
-describe('createPromptbookExecutor + postprocessing', () => {
+describe('createPipelineExecutor + postprocessing', () => {
     it('should work when every INPUT  PARAMETER defined', async () => {
-        const promptbookExecutor = await getPromptbookExecutor();
+        const pipelineExecutor = await getPipelineExecutor();
 
-        expect(promptbookExecutor({ yourName: 'Paůl' }, () => {})).resolves.toMatchObject({
+        expect(pipelineExecutor({ yourName: 'Paůl' }, () => {})).resolves.toMatchObject({
             isSuccessful: true,
             errors: [],
             outputParameters: {
@@ -19,7 +19,7 @@ describe('createPromptbookExecutor + postprocessing', () => {
             },
         });
 
-        expect(promptbookExecutor({ yourName: 'Adam' }, () => {})).resolves.toMatchObject({
+        expect(pipelineExecutor({ yourName: 'Adam' }, () => {})).resolves.toMatchObject({
             isSuccessful: true,
             errors: [],
             outputParameters: {
@@ -27,7 +27,7 @@ describe('createPromptbookExecutor + postprocessing', () => {
             },
         });
 
-        expect(promptbookExecutor({ yourName: 'John' }, () => {})).resolves.toMatchObject({
+        expect(pipelineExecutor({ yourName: 'John' }, () => {})).resolves.toMatchObject({
             isSuccessful: true,
             errors: [],
             outputParameters: {
@@ -35,7 +35,7 @@ describe('createPromptbookExecutor + postprocessing', () => {
             },
         });
 
-        expect(promptbookExecutor({ yourName: 'DAVID' }, () => {})).resolves.toMatchObject({
+        expect(pipelineExecutor({ yourName: 'DAVID' }, () => {})).resolves.toMatchObject({
             isSuccessful: true,
             errors: [],
             outputParameters: {
@@ -45,8 +45,8 @@ describe('createPromptbookExecutor + postprocessing', () => {
     });
 });
 
-async function getPromptbookExecutor() {
-    const promptbook = await pipelineStringToJson(
+async function getPipelineExecutor() {
+    const pipeline = await pipelineStringToJson(
         spaceTrim(`
             # Sample prompt
 
@@ -72,8 +72,8 @@ async function getPromptbookExecutor() {
        `) as PipelineString,
     );
 
-    const promptbookExecutor = createPromptbookExecutor({
-        promptbook,
+    const pipelineExecutor = createPipelineExecutor({
+        pipeline,
         tools: {
             llm: new MockedEchoLlmExecutionTools({ isVerbose: true }),
             script: [
@@ -94,5 +94,5 @@ async function getPromptbookExecutor() {
         },
     });
 
-    return promptbookExecutor;
+    return pipelineExecutor;
 }

@@ -6,7 +6,7 @@ describe('how renameParameter works', () => {
     it('should rename parameter in simple promptbook', () => {
         expect(
             renameParameter({
-                promptbook: validatePipeline({
+                pipeline: validatePipeline({
                     title: '✨ Sample prompt',
                     promptbookVersion: '1.0.0',
                     description: 'Show how to use a simple prompt with no parameters.',
@@ -70,9 +70,9 @@ describe('how renameParameter works', () => {
     it('should rename parameter in normal promptbook', () => {
         expect(
             renameParameter({
-                promptbook: validatePipeline({
+                pipeline: validatePipeline({
                     title: '✨ Sample prompt with two consecutive prompts',
-                    promptbookUrl: 'https://promptbook.example.com/samples/two.ptbk.md',
+                    pipelineUrl: 'https://promptbook.studio/samples/two.ptbk.md',
                     promptbookVersion: '1.0.0',
                     description: 'Show how to use two consecutive prompts with one parameter each.',
                     parameters: [
@@ -129,7 +129,7 @@ describe('how renameParameter works', () => {
         ).toEqual(
             validatePipeline({
                 title: '✨ Sample prompt with two consecutive prompts',
-                promptbookUrl: 'https://promptbook.example.com/samples/two.ptbk.md',
+                pipelineUrl: 'https://promptbook.studio/samples/two.ptbk.md',
                 promptbookVersion: '1.0.0',
                 description: 'Show how to use two consecutive prompts with one parameter each.',
                 parameters: [
@@ -186,9 +186,9 @@ describe('how renameParameter works', () => {
     it('should detect name collision', () => {
         expect(() =>
             renameParameter({
-                promptbook: validatePipeline({
+                pipeline: validatePipeline({
                     title: '✨ Sample prompt with two consecutive prompts',
-                    promptbookUrl: 'https://promptbook.example.com/samples/two.ptbk.md',
+                    pipelineUrl: 'https://promptbook.studio/samples/two.ptbk.md',
                     promptbookVersion: '1.0.0',
                     description: 'Show how to use two consecutive prompts with one parameter each.',
                     parameters: [
@@ -243,7 +243,7 @@ describe('how renameParameter works', () => {
                 newParameterName: 'wordSynonym',
             }),
         ).toThrowError(
-            /Can not replace {word} to {wordSynonym} because {wordSynonym} is already used in the promptbook/i,
+            /Can not replace {word} to {wordSynonym} because {wordSynonym} is already used in the pipeline/i,
         );
     });
 });

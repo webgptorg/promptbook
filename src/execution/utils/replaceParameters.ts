@@ -12,7 +12,7 @@ import type { string_template } from '../../types/typeAliases';
  * @returns the template with replaced parameters
  * @throws {TemplateError} if parameter is not defined, not closed, or not opened
  *
- * @private within the createPromptbookExecutor
+ * @private within the createPipelineExecutor
  */
 export function replaceParameters(template: string_template, parameters: Parameters): string {
     let replacedTemplate = template;

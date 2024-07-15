@@ -2,10 +2,10 @@ CLI utils for Promptbook. After install you can use `promptbook` command in term
 
 ## Make your Promptbook Library
 
-You can prebuild your own Promptbook library with `promptbook make` command:
+You can prebuild your own Promptbook library with `ptbk make` command:
 
 ```bash
-npx promptbook make ./promptbook-collection --format typescript --verbose
+npx ptbk make ./promptbook-collection --format typescript --verbose
 ```
 
 This will emit `index.ts` with `getPipelineCollection` function file in `promptbook-collection` directory.
@@ -13,14 +13,14 @@ This will emit `index.ts` with `getPipelineCollection` function file in `promptb
 Then just use it:
 
 ```typescript
-import { createPromptbookExecutor, assertsExecutionSuccessful } from '@promptbook/core';
+import { createPipelineExecutor, assertsExecutionSuccessful } from '@promptbook/core';
 import { getPipelineCollection } from './promptbook-collection'; // <- Importing from pre-built library
 import { JavascriptExecutionTools } from '@promptbook/execute-javascript';
 import { OpenAiExecutionTools } from '@promptbook/openai';
 
-// ▶ Get one Promptbook
+// ▶ Get single Pipeline
 const promptbook = await getPipelineCollection().getPipelineByUrl(
-    `https://promptbook.studio/my-library/write-article.ptbk.md`,
+    `https://promptbook.studio/my-collection/write-article.ptbk.md`,
 );
 
 // ▶ Prepare tools
@@ -32,14 +32,14 @@ const tools = {
     script: [new JavascriptExecutionTools()],
 };
 
-// ▶ Create executor - the function that will execute the Promptbook
-const promptbookExecutor = createPromptbookExecutor({ promptbook, tools });
+// ▶ Create executor - the function that will execute the Pipeline
+const pipelineExecutor = createPipelineExecutor({ pipeline, tools });
 
 // ▶ Prepare input parameters
 const inputParameters = { word: 'cat' };
 
-// 🚀▶ Execute the Promptbook
-const result = await promptbookExecutor(inputParameters);
+// 🚀▶ Execute the Pipeline
+const result = await pipelineExecutor(inputParameters);
 
 // ▶ Fail if the execution was not successful
 assertsExecutionSuccessful(result);
@@ -49,14 +49,14 @@ const { isSuccessful, errors, outputParameters, executionReport } = result;
 console.info(outputParameters);
 ```
 
-This is simmilar to compilation process, during the build time the `promptbook make` command will check promptbooks for errors, convert them to the more optimized format and build knowledge base (RAG) for the library.
+This is simmilar to compilation process, during the build time the `ptbk make` command will check promptbooks for errors, convert them to the more optimized format and build knowledge base (RAG) for the pipeline collection.
 
 There is also a javascript and json format available.
 
 ## Prettify
 
 ```bash
-npx promptbook prettify promptbook/**/*.ptbk.md
+npx ptbk prettify promptbook/**/*.ptbk.md
 ```
 
 This will prettify all promptbooks in `promptbook` directory and adds Mermaid graphs to them.

@@ -5,10 +5,10 @@ import type { string_name } from '../../types/typeAliases';
 
 type RenameParameterOptions = {
     /**
-     * Promptbook to search and replace for parameters
-     * This promptbook is returned as copy with replaced parameters
+     * Pipeline to search and replace for parameters
+     * This pipeline is returned as copy with replaced parameters
      */
-    promptbook: PipelineJson;
+    pipeline: PipelineJson;
 
     /**
      * Original parameter name that should be replaced
@@ -25,31 +25,31 @@ type RenameParameterOptions = {
  * Function renameParameter will find all usable parameters for given prompt template
  * In other words, it will find all parameters that are not used in the prompt template itseld and all its dependencies
  *
- * @throws {PipelineLogicError} If the new parameter name is already used in the promptbook
+ * @throws {PipelineLogicError} If the new parameter name is already used in the pipeline
  */
 export function renameParameter(options: RenameParameterOptions): PipelineJson {
-    const { promptbook, oldParameterName, newParameterName } = options;
+    const { pipeline: pipeline, oldParameterName, newParameterName } = options;
 
-    if (promptbook.parameters.some((parameter) => parameter.name === newParameterName)) {
+    if (pipeline.parameters.some((parameter) => parameter.name === newParameterName)) {
         throw new PipelineLogicError(
-            `Can not replace {${oldParameterName}} to {${newParameterName}} because {${newParameterName}} is already used in the promptbook`,
+            `Can not replace {${oldParameterName}} to {${newParameterName}} because {${newParameterName}} is already used in the pipeline`,
         );
     }
 
-    const renamedPromptbook: WritableDeep<PipelineJson> = {
-        ...promptbook,
-        parameters: [...promptbook.parameters],
-        promptTemplates: [...promptbook.promptTemplates],
+    const renamedPipeline: WritableDeep<PipelineJson> = {
+        ...pipeline,
+        parameters: [...pipeline.parameters],
+        promptTemplates: [...pipeline.promptTemplates],
     };
 
-    for (const parameter of renamedPromptbook.parameters) {
+    for (const parameter of renamedPipeline.parameters) {
         if (parameter.name !== oldParameterName) {
             continue;
         }
         parameter.name = newParameterName;
     }
 
-    for (const promptTemplate of renamedPromptbook.promptTemplates) {
+    for (const promptTemplate of renamedPipeline.promptTemplates) {
         if (promptTemplate.resultingParameterName === oldParameterName) {
             promptTemplate.resultingParameterName = newParameterName;
         }
@@ -73,5 +73,5 @@ export function renameParameter(options: RenameParameterOptions): PipelineJson {
                 : promptTemplate.description.replace(new RegExp(`{${oldParameterName}}`, 'g'), `{${newParameterName}}`);
     }
 
-    return renamedPromptbook;
+    return renamedPipeline;
 }

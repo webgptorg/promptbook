@@ -1,6 +1,6 @@
 # Prepare Keywords
 
--   PROMPTBOOK URL `https://promptbook.studio/promptbook/prepare-keywords.ptbk.md`
+-   PIPELINE URL `https://promptbook.studio/promptbook/prepare-keywords.ptbk.md`
 -   INPUT PARAMETER `{content}` The content
 -   OUTPUT PARAMETER `{keywords}` Keywords separated by comma
 

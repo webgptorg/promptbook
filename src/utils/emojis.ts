@@ -123,5 +123,5 @@ export const EMOJIS_IN_CATEGORIES: Record<string, Array<string_char_emoji>> = {
 export const EMOJIS: Set<string_char_emoji> = new Set(Object.values(EMOJIS_IN_CATEGORIES).flat());
 
 /**
- * TODO: Mirror from Collboard or some common library
+ * TODO: Mirror from Collboard or some common package
  */

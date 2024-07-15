@@ -20,7 +20,7 @@ import type { RemoteServerOptions } from './interfaces/RemoteServerOptions';
  * @see https://github.com/webgptorg/promptbook#remote-server
  */
 export function startRemoteServer(options: RemoteServerOptions): IDestroyable {
-    const { port, path, library, createLlmExecutionTools, isVerbose } = options;
+    const { port, path, collection, createLlmExecutionTools, isVerbose } = options;
 
     const httpServer = http.createServer({}, (request, response) => {
         if (request.url?.includes('socket.io')) {
@@ -64,8 +64,8 @@ export function startRemoteServer(options: RemoteServerOptions): IDestroyable {
             try {
                 const executionToolsForClient = createLlmExecutionTools(clientId);
 
-                if (!(await library.isResponsibleForPrompt(prompt))) {
-                    throw new ExecutionError(`Prompt is not in the library of this server`);
+                if (!(await collection.isResponsibleForPrompt(prompt))) {
+                    throw new ExecutionError(`Pipeline is not in the collection of this server`);
                 }
 
                 let promptResult: PromptResult;
@@ -130,7 +130,7 @@ export function startRemoteServer(options: RemoteServerOptions): IDestroyable {
 }
 
 /**
- * TODO: [⚖] Expose the library to be able to connect to same library via createCollectionFromUrl
+ * TODO: [⚖] Expose the collection to be able to connect to same collection via createCollectionFromUrl
  * TODO: Handle progress - support streaming
  * TODO: [🤹‍♂️] Do not hang up immediately but wait until client closes OR timeout
  * TODO: [🤹‍♂️] Timeout on chat to free up resources

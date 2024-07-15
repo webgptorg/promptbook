@@ -14,15 +14,15 @@ import type { ExecutionReportJson } from '../types/execution-report/ExecutionRep
 import type { string_name } from '../types/typeAliases';
 import { PROMPTBOOK_VERSION } from '../version';
 import type { ExecutionTools } from './ExecutionTools';
+import type { PipelineExecutor } from './PipelineExecutor';
 import type { PromptChatResult } from './PromptResult';
 import type { PromptCompletionResult } from './PromptResult';
 import type { PromptResult } from './PromptResult';
-import type { PromptbookExecutor } from './PromptbookExecutor';
 import { addUsage } from './utils/addUsage';
 import { checkExpectations } from './utils/checkExpectations';
 import { replaceParameters } from './utils/replaceParameters';
 
-type CreatePromptbookExecutorSettings = {
+type CreatePipelineExecutorSettings = {
     /**
      * When executor does not satisfy expectations it will be retried this amount of times
      *
@@ -32,55 +32,55 @@ type CreatePromptbookExecutorSettings = {
 };
 
 /**
- * Options for creating a promptbook executor
+ * Options for creating a pipeline executor
  */
-interface CreatePromptbookExecutorOptions {
+interface CreatePipelineExecutorOptions {
     /**
-     * The promptbook to be executed
+     * The pipeline to be executed
      */
-    readonly promptbook: PipelineJson;
+    readonly pipeline: PipelineJson;
 
     /**
-     * The execution tools to be used during the execution of the PROMPTBOOK
+     * The execution tools to be used during the execution of the pipeline
      */
     readonly tools: ExecutionTools;
 
     /**
-     * Optional settings for the PROMPTBOOK executor
+     * Optional settings for the pipeline executor
      */
-    readonly settings?: Partial<CreatePromptbookExecutorSettings>;
+    readonly settings?: Partial<CreatePipelineExecutorSettings>;
 }
 
 /**
- * Creates executor function from promptbook and execution tools.
+ * Creates executor function from pipeline and execution tools.
  *
  * @returns The executor function
- * @throws {PipelineLogicError} on logical error in the promptbook
+ * @throws {PipelineLogicError} on logical error in the pipeline
  */
-export function createPromptbookExecutor(options: CreatePromptbookExecutorOptions): PromptbookExecutor {
-    const { promptbook, tools, settings = {} } = options;
+export function createPipelineExecutor(options: CreatePipelineExecutorOptions): PipelineExecutor {
+    const { pipeline, tools, settings = {} } = options;
     const { maxExecutionAttempts = 3 } = settings;
 
-    validatePipeline(promptbook);
+    validatePipeline(pipeline);
 
-    const promptbookExecutor: PromptbookExecutor = async (
+    const pipelineExecutor: PipelineExecutor = async (
         inputParameters: Record<string_name, string>,
         onProgress?: (taskProgress: TaskProgress) => Promisable<void>,
     ) => {
         let parametersToPass: Record<string_name, string> = inputParameters;
         const executionReport: ExecutionReportJson = {
-            promptbookUrl: promptbook.promptbookUrl,
-            title: promptbook.title,
+            pipelineUrl: pipeline.pipelineUrl,
+            title: pipeline.title,
             promptbookUsedVersion: PROMPTBOOK_VERSION,
-            promptbookRequestedVersion: promptbook.promptbookVersion,
-            description: promptbook.description,
+            promptbookRequestedVersion: pipeline.promptbookVersion,
+            description: pipeline.description,
             promptExecutions: [],
         };
 
         async function executeSingleTemplate(currentTemplate: PromptTemplateJson) {
-            const name = `promptbook-executor-frame-${currentTemplate.name}`;
+            const name = `pipeline-executor-frame-${currentTemplate.name}`;
             const title = currentTemplate.title;
-            const priority = promptbook.promptTemplates.length - promptbook.promptTemplates.indexOf(currentTemplate);
+            const priority = pipeline.promptTemplates.length - pipeline.promptTemplates.indexOf(currentTemplate);
 
             if (onProgress /* <- [3] */) {
                 await onProgress({
@@ -135,10 +135,10 @@ export function createPromptbookExecutor(options: CreatePromptbookExecutorOption
                             case 'PROMPT_TEMPLATE':
                                 prompt = {
                                     title: currentTemplate.title,
-                                    promptbookUrl: `${
-                                        promptbook.promptbookUrl
-                                            ? promptbook.promptbookUrl
-                                            : 'anonymous' /* <- TODO: [🧠] How to deal with anonymous PROMPTBOOKs, do here some auto-url like SHA-256 based ad-hoc identifier? */
+                                    pipelineUrl: `${
+                                        pipeline.pipelineUrl
+                                            ? pipeline.pipelineUrl
+                                            : 'anonymous' /* <- TODO: [🧠] How to deal with anonymous pipelines, do here some auto-url like SHA-256 based ad-hoc identifier? */
                                     }#${currentTemplate.name}`,
                                     parameters: parametersToPass,
                                     content: replaceParameters(currentTemplate.content, parametersToPass) /* <- [2] */,
@@ -367,7 +367,7 @@ export function createPromptbookExecutor(options: CreatePromptbookExecutorOption
                         // TODO: [🧠] Maybe put other executionTypes into report
                         executionReport.promptExecutions.push({
                             prompt: {
-                                title: currentTemplate.title /* <- Note: If title in promptbook contains emojis, pass it innto report */,
+                                title: currentTemplate.title /* <- Note: If title in pipeline contains emojis, pass it innto report */,
                                 content: prompt.content,
                                 modelRequirements: prompt.modelRequirements,
                                 expectations: prompt.expectations,
@@ -419,21 +419,21 @@ export function createPromptbookExecutor(options: CreatePromptbookExecutorOption
             parametersToPass = {
                 ...parametersToPass,
                 [currentTemplate.resultingParameterName]:
-                    resultString /* <- Note: Not need to detect parameter collision here because Promptbook checks logic consistency during construction */,
+                    resultString /* <- Note: Not need to detect parameter collision here because pipeline checks logic consistency during construction */,
             };
         }
 
         try {
-            let resovedParameters: Array<string_name> = promptbook.parameters
+            let resovedParameters: Array<string_name> = pipeline.parameters
                 .filter(({ isInput }) => isInput)
                 .map(({ name }) => name);
-            let unresovedTemplates: Array<PromptTemplateJson> = [...promptbook.promptTemplates];
+            let unresovedTemplates: Array<PromptTemplateJson> = [...pipeline.promptTemplates];
             let resolving: Array<Promise<void>> = [];
 
             let loopLimit = LOOP_LIMIT;
             while (unresovedTemplates.length > 0) {
                 if (loopLimit-- < 0) {
-                    throw new UnexpectedError('Loop limit reached during resolving parameters promptbook execution');
+                    throw new UnexpectedError('Loop limit reached during resolving parameters pipeline execution');
                 }
 
                 const currentTemplate = unresovedTemplates.find((template) =>
@@ -486,7 +486,7 @@ export function createPromptbookExecutor(options: CreatePromptbookExecutorOption
         }
 
         // Note: Filter ONLY output parameters
-        for (const parameter of promptbook.parameters) {
+        for (const parameter of pipeline.parameters) {
             if (parameter.isOutput) {
                 continue;
             }
@@ -506,12 +506,12 @@ export function createPromptbookExecutor(options: CreatePromptbookExecutorOption
         };
     };
 
-    return promptbookExecutor;
+    return pipelineExecutor;
 }
 
 /**
  * TODO: [🧠] When not meet expectations in PROMPT_DIALOG, make some way to tell the user
  * TODO: [👧] Strongly type the executors to avoid need of remove nullables whtn noUncheckedIndexedAccess in tsconfig.json
- * Note: CreatePromptbookExecutorOptions are just connected to PromptbookExecutor so do not extract to types folder
+ * Note: CreatePipelineExecutorOptions are just connected to PipelineExecutor so do not extract to types folder
  * TODO: [🧠][3] transparent = (report intermediate parameters) / opaque execution = (report only output parameters) progress reporting mode
  */

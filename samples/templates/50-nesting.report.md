@@ -2,7 +2,7 @@
 
 How block are nested in the promptbook
 
--   PROMPTBOOK URL https://promptbook.example.com/samples/language-capabilities.ptbk.md
+-   PIPELINE URL https://promptbook.studio/samples/language-capabilities.ptbk.md
 -   PROMPTBOOK VERSION 0.1.0 _(requested 1.0.0)_
 -   STARTED AT 2024-02-11 15:54:55
 -   COMPLETED AT 2024-02-11 15:55:03

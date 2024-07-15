@@ -41,7 +41,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
     const pipelineJson: WritableDeep<PipelineJson> = {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         title: undefined as any /* <- Note: Putting here placeholder to keep `title` on top at final JSON */,
-        promptbookUrl: undefined /* <- Note: Putting here placeholder to keep `promptbookUrl` on top at final JSON */,
+        pipelineUrl: undefined /* <- Note: Putting here placeholder to keep `pipelineUrl` on top at final JSON */,
         promptbookVersion: PROMPTBOOK_VERSION,
         description: undefined /* <- Note: Putting here placeholder to keep `description` on top at final JSON */,
         parameters: [],
@@ -140,8 +140,8 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
         const command = parseCommand(listItem);
 
         switch (command.type) {
-            case 'PROMPTBOOK_URL':
-                pipelineJson.promptbookUrl = command.promptbookUrl.href;
+            case 'PIPELINE_URL':
+                pipelineJson.pipelineUrl = command.pipelineUrl.href;
                 break;
 
             case 'PROMPTBOOK_VERSION':

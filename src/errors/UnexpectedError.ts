@@ -12,7 +12,7 @@ export class UnexpectedError extends Error {
                     ${block(message)}
 
                     Note: This error should not happen.
-                    It's probbably a bug in the promptbook library
+                    It's probbably a bug in the pipeline collection
 
                     Please report issue:
                     https://github.com/webgptorg/promptbook/issues

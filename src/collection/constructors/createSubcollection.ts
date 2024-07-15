@@ -8,18 +8,18 @@ import type { PipelineCollection } from '../PipelineCollection';
 /**
  * Creates PipelineCollection as a subset of another PipelineCollection
  *
- * Note: You can use any type of library as a parent library - local, remote, etc.
- * Note: This is just a thin wrapper / proxy around the parent library
+ * Note: You can use any type of collection as a parent collection - local, remote, etc.
+ * Note: This is just a thin wrapper / proxy around the parent collection
  *
  * @param promptbookSources
  * @returns PipelineCollection
  */
 export function createSubcollection(
-    library: PipelineCollection,
+    collection: PipelineCollection,
     predicate: (url: string_pipeline_url) => boolean,
 ): PipelineCollection {
     async function listPipelines(): Promise<Array<string_pipeline_url>> {
-        let promptbooks = await library.listPipelines();
+        let promptbooks = await collection.listPipelines();
         promptbooks = promptbooks.filter(predicate);
         return promptbooks;
     }
@@ -31,24 +31,22 @@ export function createSubcollection(
                         Promptbook with url "${url}" not found or not accessible
 
                         Available promptbooks:
-                        ${block((await listPipelines()).map((promptbookUrl) => `- ${promptbookUrl}`).join('\n'))}
+                        ${block((await listPipelines()).map((pipelineUrl) => `- ${pipelineUrl}`).join('\n'))}
 
-                        All available promptbooks in parent library:
-                        ${block(
-                            (await library.listPipelines()).map((promptbookUrl) => `- ${promptbookUrl}`).join('\n'),
-                        )}
+                        All available promptbooks in parent collection:
+                        ${block((await collection.listPipelines()).map((pipelineUrl) => `- ${pipelineUrl}`).join('\n'))}
 
                     `,
                 ),
             );
         }
 
-        const promptbook = await library.getPipelineByUrl(url);
+        const pipeline = await collection.getPipelineByUrl(url);
 
-        return promptbook;
+        return pipeline;
     }
     async function isResponsibleForPrompt(prompt: Prompt): Promise<boolean> {
-        const isResponsible = await library.isResponsibleForPrompt(prompt);
+        const isResponsible = await collection.isResponsibleForPrompt(prompt);
         // TODO: !! Only if responsible, check if predicate is true
         return isResponsible;
     }

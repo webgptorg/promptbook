@@ -1,5 +1,5 @@
 {
-    "promptbookUrl": "https://promptbook.example.com/samples/simple.ptbk.md",
+    "pipelineUrl": "https://promptbook.studio/samples/simple.ptbk.md",
     "title": "✨ Sample prompt with URL",
     "promptbookUsedVersion": "0.52.0-0",
     "promptbookRequestedVersion": "1.0.0",

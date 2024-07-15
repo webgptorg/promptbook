@@ -48,6 +48,7 @@ export function parseCommand(listItem: string_markdown_text): Command {
         .map((part) => part.trim())
         .filter((item) => item !== '')
         .filter((item) => !/^PTBK$/i.test(item))
+        .filter((item) => !/^PIPELINE$/i.test(item))
         .filter((item) => !/^PROMPTBOOK$/i.test(item))
         .map(removeMarkdownFormatting);
 
@@ -55,6 +56,8 @@ export function parseCommand(listItem: string_markdown_text): Command {
         type.startsWith('URL') ||
         type.startsWith('PTBK_URL') ||
         type.startsWith('PTBKURL') ||
+        type.startsWith('PIPELINE_URL') ||
+        type.startsWith('PIPELINEURL') ||
         type.startsWith('PROMPTBOOK_URL') ||
         type.startsWith('PROMPTBOOKURL') ||
         type.startsWith('HTTPS')
@@ -63,7 +66,7 @@ export function parseCommand(listItem: string_markdown_text): Command {
             throw new SyntaxError(
                 spaceTrim(
                     `
-                        Invalid PROMPTBOOK_URL command:
+                        Invalid PIPELINE_URL command:
 
                         - ${listItem}
                     `,
@@ -71,14 +74,14 @@ export function parseCommand(listItem: string_markdown_text): Command {
             );
         }
 
-        const promptbookUrlString = listItemParts.pop()!;
-        const promptbookUrl = new URL(promptbookUrlString);
+        const pipelineUrlString = listItemParts.pop()!;
+        const pipelineUrl = new URL(pipelineUrlString);
 
-        if (promptbookUrl.protocol !== 'https:') {
+        if (pipelineUrl.protocol !== 'https:') {
             throw new SyntaxError(
                 spaceTrim(
                     `
-                        Invalid PROMPTBOOK_URL command:
+                        Invalid PIPELINE_URL command:
 
                         - ${listItem}
 
@@ -88,11 +91,11 @@ export function parseCommand(listItem: string_markdown_text): Command {
             );
         }
 
-        if (promptbookUrl.hash !== '') {
+        if (pipelineUrl.hash !== '') {
             throw new SyntaxError(
                 spaceTrim(
                     `
-                        Invalid PROMPTBOOK_URL command:
+                        Invalid PIPELINE_URL command:
 
                         - ${listItem}
 
@@ -104,8 +107,8 @@ export function parseCommand(listItem: string_markdown_text): Command {
         }
 
         return {
-            type: 'PROMPTBOOK_URL',
-            promptbookUrl,
+            type: 'PIPELINE_URL',
+            pipelineUrl,
         } satisfies PromptbookUrlCommand;
     } else if (type.startsWith('PROMPTBOOK_VERSION') || type.startsWith('PTBK_VERSION')) {
         if (listItemParts.length !== 2) {
@@ -408,7 +411,7 @@ export function parseCommand(listItem: string_markdown_text): Command {
                     - ${listItem}
 
                     Supported commands are:
-                    - PROMPTBOOK_URL <url>
+                    - PIPELINE_URL <url>
                     - PROMPTBOOK_VERSION <version>
                     - EXECUTE PROMPT TEMPLATE
                     - EXECUTE SIMPLE TEMPLATE

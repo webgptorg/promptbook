@@ -13,7 +13,7 @@ import { capitalize } from '../utils/normalization/capitalize';
  * @returns Promptbook in string format (.ptbk.md)
  */
 export function pipelineJsonToString(pipelineJson: PipelineJson): PipelineString {
-    const { title, promptbookUrl, promptbookVersion, description, parameters, promptTemplates } = pipelineJson;
+    const { title, pipelineUrl, promptbookVersion, description, parameters, promptTemplates } = pipelineJson;
 
     let pipelineString: string_markdown = `# ${title}`;
 
@@ -25,8 +25,8 @@ export function pipelineJsonToString(pipelineJson: PipelineJson): PipelineString
     // TODO:> const commands: Array<Command>
     const commands: Array<string> = [];
 
-    if (promptbookUrl) {
-        commands.push(`PROMPTBOOK URL ${promptbookUrl}`);
+    if (pipelineUrl) {
+        commands.push(`PIPELINE URL ${pipelineUrl}`);
     }
 
     commands.push(`PROMPTBOOK VERSION ${promptbookVersion}`);

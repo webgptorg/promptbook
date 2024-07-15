@@ -34,7 +34,7 @@ export type TaskProgress = {
 
     /**
      * The type of the execution.
-     * Note: The Promptbook library reports everything, in the app level you can filter out the execution types that you don't want to show to the user.
+     * Note: The pipeline executor reports everything, in the app level you can filter out the execution types that you don't want to show to the user.
      */
     readonly executionType: ExecutionType;
 

@@ -7,8 +7,8 @@ import colors from 'colors';
 import commander from 'commander';
 import { writeFile } from 'fs/promises';
 import { join } from 'path';
-import { createCollectionFromDirectory } from '../../src/library/constructors/createCollectionFromDirectory';
-import { libraryToJson } from '../../src/library/libraryToJson';
+import { collectionToJson } from '../../src/collection/collectionToJson';
+import { createCollectionFromDirectory } from '../../src/collection/constructors/createCollectionFromDirectory';
 import { commit } from '../utils/autocommit/commit';
 
 if (process.cwd() !== join(__dirname, '../..')) {
@@ -37,23 +37,23 @@ async function makePipelineCollection({ isCommited }: { isCommited: boolean }) {
 
     const promptbookSourceDir = 'promptbook-collection';
 
-    const library = await createCollectionFromDirectory(promptbookSourceDir, {
+    const collection = await createCollectionFromDirectory(promptbookSourceDir, {
         isVerbose: true,
         isRecursive: true,
     });
 
-    const libraryJson = await libraryToJson(library);
-    const libraryJsonString = JSON.stringify(libraryJson);
+    const collectionJson = await collectionToJson(collection);
+    const collectionJsonString = JSON.stringify(collectionJson);
 
-    const libraryJsonFilePath = join(promptbookSourceDir, 'index.json');
-    const libraryJsonFileContent = libraryJsonString + '\n';
+    const collectionJsonFilePath = join(promptbookSourceDir, 'index.json');
+    const collectionJsonFileContent = collectionJsonString + '\n';
 
     const libraryTypescriptFilePath = join(promptbookSourceDir, 'index.ts');
-    const libraryTypescriptFileContent = 'export default ' + libraryJsonString + ';\n';
+    const libraryTypescriptFileContent = 'export default ' + collectionJsonString + ';\n';
 
     // TODO: [🏳‍🌈] Finally take one of .json vs .ts (using .ts file (not .json) to avoid support of json files in bundle )
-    await writeFile(libraryJsonFilePath, libraryJsonFileContent, 'utf-8');
-    console.info(colors.green(`Maked ${libraryJsonFilePath}`));
+    await writeFile(collectionJsonFilePath, collectionJsonFileContent, 'utf-8');
+    console.info(colors.green(`Maked ${collectionJsonFilePath}`));
     await writeFile(libraryTypescriptFilePath, libraryTypescriptFileContent, 'utf-8');
     console.info(colors.green(`Maked ${libraryTypescriptFilePath}`));
 
@@ -65,6 +65,6 @@ async function makePipelineCollection({ isCommited }: { isCommited: boolean }) {
 }
 
 /**
- * TODO: [🌼] Maybe use `promptbook make` cli command instead of this script (but figure out what to do with nessesity to have library commited here)
- * TODO: !!! Use `promptbook make` cli command this in WebGPT and Promptbook
+ * TODO: [🌼] Maybe use `ptbk make` cli command instead of this script (but figure out what to do with nessesity to have library commited here)
+ * TODO: !!! Use `ptbk make` cli command this in WebGPT and Promptbook
  */

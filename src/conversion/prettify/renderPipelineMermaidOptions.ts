@@ -113,6 +113,6 @@ export function renderPromptbookMermaid(pipelineJson: PipelineJson, options?: re
 }
 
 /**
- * TODO: Maybe use some Mermaid library instead of string templating
+ * TODO: Maybe use some Mermaid package instead of string templating
  * TODO: [🕌] When more than 2 functionalities, split into separate functions
  */

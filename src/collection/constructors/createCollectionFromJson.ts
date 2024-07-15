@@ -5,7 +5,7 @@ import { SimplePipelineCollection } from '../SimplePipelineCollection';
 /**
  * Creates PipelineCollection from array of PipelineJson or PipelineString
  *
- * Note: Functions `libraryToJson` and `createCollectionFromJson` are complementary
+ * Note: Functions `collectionToJson` and `createCollectionFromJson` are complementary
  * Note: During the construction syntax and logic of all sources are validated
  *
  * @param promptbookSources

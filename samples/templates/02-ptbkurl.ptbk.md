@@ -2,7 +2,7 @@
 
 Show how to use a simple prompt with no parameters.
 
--   PROMPTBOOK URL https://promptbook.example.com/samples/simple.ptbk.md
+-   PIPELINE URL https://promptbook.studio/samples/simple.ptbk.md
 -   PROMPTBOOK VERSION 1.0.0
 -   OUTPUT PARAMETER `{greeting}`
 

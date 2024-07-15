@@ -3,10 +3,10 @@ import type { Command } from 'commander';
 import { mkdir, writeFile } from 'fs/promises';
 import { dirname, join } from 'path';
 import spaceTrim from 'spacetrim';
-import { PROMPTBOOK_MAKED_BASE_FILENAME } from '../../config';
+import { collectionToJson } from '../../collection/collectionToJson';
+import { createCollectionFromDirectory } from '../../collection/constructors/createCollectionFromDirectory';
+import { PIPELINE_COLLECTION_BASE_FILENAME } from '../../config';
 import { validatePipeline } from '../../conversion/validation/validatePipeline';
-import { createCollectionFromDirectory } from '../../library/constructors/createCollectionFromDirectory';
-import { libraryToJson } from '../../library/libraryToJson';
 import type { string_file_extension } from '../../types/typeAliases';
 
 /**
@@ -18,22 +18,22 @@ export function initializeMake(program: Command) {
     const helloCommand = program.command('make');
     helloCommand.description(
         spaceTrim(`
-            Makes a new promptbook library in given folder
+            Makes a new pipeline collection in given folder
       `),
     );
 
     helloCommand.argument('<path>', 'Path to promptbook directory');
-    helloCommand.option('--project-name', `Name of the project for whom library is`, 'Project');
+    helloCommand.option('--project-name', `Name of the project for whom collection is`, 'Project');
     helloCommand.option(
         '-f, --format <format>',
         spaceTrim(`
-            Output format of builded library "javascript", "typescript" or "json"
+            Output format of builded collection "javascript", "typescript" or "json"
 
             Note: You can use multiple formats separated by comma
         `),
         'javascript' /* <- Note: [🏳‍🌈] */,
     );
-    helloCommand.option('--no-validation', `Do not validate logic of promptbooks in library`, true);
+    helloCommand.option('--no-validation', `Do not validate logic of pipelines in collection`, true);
     helloCommand.option(
         '--validation',
         `Types of validations separated by comma (options "logic","imports")`,
@@ -44,13 +44,13 @@ export function initializeMake(program: Command) {
     helloCommand.option(
         '-o, --out-file <path>',
         spaceTrim(`
-            Where to save the builded library
+            Where to save the builded collection
 
-            Note: If you keep it "${PROMPTBOOK_MAKED_BASE_FILENAME}" it will be saved in the root of the promptbook directory
+            Note: If you keep it "${PIPELINE_COLLECTION_BASE_FILENAME}" it will be saved in the root of the promptbook directory
                   If you set it to a path, it will be saved in that path
                   BUT you can use only one format and set correct extension
         `),
-        PROMPTBOOK_MAKED_BASE_FILENAME,
+        PIPELINE_COLLECTION_BASE_FILENAME,
     );
 
     // TODO: !!! Auto-detect AI api keys + explicit api keys as argv
@@ -67,25 +67,25 @@ export function initializeMake(program: Command) {
             .map((_) => _.trim())
             .filter((_) => _ !== '');
 
-        if (outFile !== PROMPTBOOK_MAKED_BASE_FILENAME && formats.length !== 1) {
+        if (outFile !== PIPELINE_COLLECTION_BASE_FILENAME && formats.length !== 1) {
             console.error(colors.red(`You can use only one format when saving to a file`));
             process.exit(1);
         }
 
-        const library = await createCollectionFromDirectory(path, {
+        const collection = await createCollectionFromDirectory(path, {
             isVerbose: verbose,
             isRecursive: true,
         });
 
         for (const validation of validations) {
-            for (const promptbookUrl of await library.listPipelines()) {
-                const promptbook = await library.getPipelineByUrl(promptbookUrl);
+            for (const pipelineUrl of await collection.listPipelines()) {
+                const pipeline = await collection.getPipelineByUrl(pipelineUrl);
 
                 if (validation === 'logic') {
-                    validatePipeline(promptbook);
+                    validatePipeline(pipeline);
 
                     if (verbose) {
-                        console.info(colors.cyan(`Validated logic of ${promptbook.promptbookUrl}`));
+                        console.info(colors.cyan(`Validated logic of ${pipeline.pipelineUrl}`));
                     }
                 }
 
@@ -93,14 +93,14 @@ export function initializeMake(program: Command) {
             }
         }
 
-        const libraryJson = await libraryToJson(library);
-        const libraryJsonString = JSON.stringify(libraryJson);
+        const collectionJson = await collectionToJson(collection);
+        const collectionJsonString = JSON.stringify(collectionJson);
 
         const saveFile = async (extension: string_file_extension, content: string) => {
             const filePath =
-                outFile !== PROMPTBOOK_MAKED_BASE_FILENAME
+                outFile !== PIPELINE_COLLECTION_BASE_FILENAME
                     ? outFile
-                    : join(path, `${PROMPTBOOK_MAKED_BASE_FILENAME}.${extension}`);
+                    : join(path, `${PIPELINE_COLLECTION_BASE_FILENAME}.${extension}`);
 
             if (!outFile.endsWith(`.${extension}`)) {
                 console.warn(colors.yellow(`Warning: Extension of output file should be "${extension}"`));
@@ -114,7 +114,7 @@ export function initializeMake(program: Command) {
         };
 
         if (formats.includes('json')) {
-            await saveFile('json', libraryJsonString + '\n');
+            await saveFile('json', collectionJsonString + '\n');
         }
 
         if (formats.includes('javascript')) {
@@ -125,28 +125,28 @@ export function initializeMake(program: Command) {
                         import { createCollectionFromJson } from '@promptbook/core';
 
                         /**
-                         * Promptbook library for ${projectName}
+                         * Pipeline collection for ${projectName}
                          *
                          * @private internal cache for \`getPipelineCollection\`
                          */
-                        let PipelineCollection = null;
+                        let pipelineCollection = null;
 
 
                         /**
-                         *  Get promptbook library for ${projectName}
+                         *  Get pipeline collection for ${projectName}
                          *
                          *  @returns {PipelineCollection} Library of promptbooks for ${projectName}
                          *  @generated by \`@promptbook/cli\`
                          */
                         export function getPipelineCollection(){
-                            if(PipelineCollection===null){
-                                PipelineCollection = createCollectionFromJson(${libraryJsonString.substring(
+                            if(pipelineCollection===null){
+                                pipelineCollection = createCollectionFromJson(${collectionJsonString.substring(
                                     1,
-                                    libraryJsonString.length - 1,
+                                    collectionJsonString.length - 1,
                                 )});
                             }
 
-                            return PipelineCollection;
+                            return pipelineCollection;
                         }
                     ` + '\n',
                 ),
@@ -165,28 +165,28 @@ export function initializeMake(program: Command) {
                         import type { PipelineCollection } from '@promptbook/types';
 
                         /**
-                         * Promptbook library for ${projectName}
+                         * Pipeline collection for ${projectName}
                          *
                          * @private internal cache for \`getPipelineCollection\`
                          */
-                        let PipelineCollection: null | PipelineCollection = null;
+                        let pipelineCollection: null | PipelineCollection = null;
 
 
                         /**
-                         *  Get promptbook library for ${projectName}
+                         *  Get pipeline collection for ${projectName}
                          *
                          *  @returns {PipelineCollection} Library of promptbooks for ${projectName}
                          *  @generated by \`@promptbook/cli\`
                          */
                         export function getPipelineCollection(): PipelineCollection{
-                            if(PipelineCollection===null){
-                                PipelineCollection = createCollectionFromJson(${libraryJsonString.substring(
+                            if(pipelineCollection===null){
+                                pipelineCollection = createCollectionFromJson(${collectionJsonString.substring(
                                     1,
-                                    libraryJsonString.length - 1,
+                                    collectionJsonString.length - 1,
                                 )});
                             }
 
-                            return PipelineCollection;
+                            return pipelineCollection as PipelineCollection;
                         }
                     ` + '\n',
                 ),

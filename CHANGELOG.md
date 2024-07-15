@@ -125,7 +125,7 @@ Cleanup and renaming
 -   Add `RemoteServerOptions`.`ptbkNames`
 -   Rename `RemoteServerOptions`.`getPtp` -> `getPtbkByName`
 -   Do not use shortcut "Ptbk" but full "Promptbook" name in the code, classes, methods, etc.
--   Change command `PTBK_URL` to `PROMPTBOOK_URL` _(but keep backward compatibility and preserve alias `PTBK`)_
+-   Change command `PTBK_URL` to `PIPELINE_URL` _(but keep backward compatibility and preserve alias `PTBK`)_
 -   Change command `PTBK_NAME` to `PROMPTBOOK_NAME` _(but keep backward compatibility and preserve alias `PTBK`)_
 -   Rename `runRemoteServer` -> `startRemoteServer` and return `Destroyable` object
 
@@ -156,7 +156,7 @@ Working on **Promptbook Library**. Identify promptbooks by URL.
 
 -   Change `PromptbookLibrary` class to interface
 -   Add `SimplePromptbookLibrary` class which implements `PromptbookLibrary`
--   Rename `PromptbookLibrary.promptbookNames` to `PromptbookLibrary.promptbookUrls`
+-   Rename `PromptbookLibrary.promptbookNames` to `PromptbookLibrary.pipelineUrls`
 -   Remove `PromptbookLibrary.createExecutor` to separate responsibility
 -   Make more renamings and reorganizations in `PromptbookLibrary`
 -   Make `PromptbookLibrary.listPipelines` async method
@@ -199,7 +199,7 @@ After install you can use `promptbook` command in terminal:
 
 ```bash
 npm i @promptbook/utils
-npx promptbook prettify promptbook/**/*.ptbk.md
+npx ptbk prettify promptbook/**/*.ptbk.md
 ```
 
 ### `0.44.0` _(2024-04-26)_
@@ -341,7 +341,7 @@ Better JSON Mode
 
 ### `0.59.0` _(2024-06-30)_
 
-Preparation for system for [management of external knowledge](https://github.com/webgptorg/promptbook/discussions/41) (RAG), vector embeddings and propper building of promptbook library.
+Preparation for system for [management of external knowledge](https://github.com/webgptorg/promptbook/discussions/41) (RAG), vector embeddings and propper building of pipeline collection.
 
 -   Add `MaterialKnowledgePieceJson`
 -   Add `KnowledgeJson`
@@ -353,7 +353,7 @@ Preparation for system for [management of external knowledge](https://github.com
 -   Rename all `createPromptbookLibraryFromXyz` to `createLibraryFromXyz`
 -   Misc Tool classes not requires options anymore _(like `CallbackInterfaceTools`, `OpenAiExecutionTools`, `AnthropicClaudeExecutionTools`, etc.)_
 -   Add util `libraryToJson` exported from `@promptbook/core`
--   CLI util `promptbook make ...` can convert promptbooks to JSON
+-   CLI util `ptbk make ...` can convert promptbooks to JSON
 -   `promptbookStringToJson` automatically looks for `promptbook-collection.json` in root of given directory
 -   Rename `validatePromptbookJson` to `validatePromptbook`
 -   Create `embed` method on LLM tools, `PromptEmbeddingResult`, `EmbeddingVector` and `embeddingVectorToString`
@@ -374,6 +374,7 @@ Renaming and making names more consistent and less disambigous
     -   `gptComplete` -> `callCompletionModel`
 -   Rename custom errors
 -   Rename folder `promptbook-collection` -> `promptbook-collection`
+-   In CLI you ca use both `promptbook` and `ptbk`
 
 ## In prepare
 

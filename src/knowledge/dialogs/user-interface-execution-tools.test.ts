@@ -2,21 +2,21 @@ import { describe, expect, it } from '@jest/globals';
 import { spaceTrim } from 'spacetrim';
 import { pipelineStringToJson } from '../../conversion/pipelineStringToJson';
 import { assertsExecutionSuccessful } from '../../execution/assertsExecutionSuccessful';
-import { createPromptbookExecutor } from '../../execution/createPromptbookExecutor';
+import { createPipelineExecutor } from '../../execution/createPipelineExecutor';
 import { MockedEchoLlmExecutionTools } from '../../llm-providers/mocked/MockedEchoLlmExecutionTools';
 import type { PipelineString } from '../../types/PipelineString';
 import { CallbackInterfaceTools } from './callback/CallbackInterfaceTools';
 
-describe('createPromptbookExecutor + executing user interface prompts in promptbook', () => {
+describe('createPipelineExecutor + executing user interface prompts in promptbook', () => {
     it('should work when every INPUT  PARAMETER defined', async () => {
-        const promptbookExecutor = await getPromptbookExecutor();
+        const pipelineExecutor = await getPipelineExecutor();
 
-        expect(promptbookExecutor({ thing: 'apple' }, () => {})).resolves.toMatchObject({
+        expect(pipelineExecutor({ thing: 'apple' }, () => {})).resolves.toMatchObject({
             outputParameters: {
                 favoriteThing: 'Answer to question "Thing: What is your favorite apple to buy?" is not apple but Pear.',
             },
         });
-        expect(promptbookExecutor({ thing: 'a cup of coffee' }, () => {})).resolves.toMatchObject({
+        expect(pipelineExecutor({ thing: 'a cup of coffee' }, () => {})).resolves.toMatchObject({
             outputParameters: {
                 favoriteThing:
                     'Answer to question "Thing: What is your favorite a cup of coffee to buy?" is not a cup of coffee but Pear.',
@@ -25,21 +25,21 @@ describe('createPromptbookExecutor + executing user interface prompts in promptb
     });
 
     it('should fail when some INPUT  PARAMETER is missing', async () => {
-        const promptbookExecutor = await getPromptbookExecutor();
+        const pipelineExecutor = await getPipelineExecutor();
 
-        expect(promptbookExecutor({}, () => {})).resolves.toMatchObject({
+        expect(pipelineExecutor({}, () => {})).resolves.toMatchObject({
             isSuccessful: false,
             errors: [new Error(`Parameter {thing} is not defined`)],
         });
 
-        expect(() => promptbookExecutor({}, () => {}).then(assertsExecutionSuccessful)).rejects.toThrowError(
+        expect(() => pipelineExecutor({}, () => {}).then(assertsExecutionSuccessful)).rejects.toThrowError(
             /Parameter \{thing\} is not defined/,
         );
     });
 });
 
-async function getPromptbookExecutor() {
-    const promptbook = await pipelineStringToJson(
+async function getPipelineExecutor() {
+    const pipeline = await pipelineStringToJson(
         spaceTrim(`
             # Sample prompt
 
@@ -62,8 +62,8 @@ async function getPromptbookExecutor() {
             -> {favoriteThing}
       `) as PipelineString,
     );
-    const promptbookExecutor = createPromptbookExecutor({
-        promptbook,
+    const pipelineExecutor = createPipelineExecutor({
+        pipeline,
         tools: {
             llm: new MockedEchoLlmExecutionTools({ isVerbose: true }),
             script: [],
@@ -79,5 +79,5 @@ async function getPromptbookExecutor() {
         },
     });
 
-    return promptbookExecutor;
+    return pipelineExecutor;
 }

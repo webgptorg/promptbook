@@ -1,6 +1,6 @@
 {
     "title": "✨ Sample: JSON mode",
-    "promptbookUrl": "https://promptbook.example.com/samples/json-mode.ptbk.md",
+    "pipelineUrl": "https://promptbook.studio/samples/json-mode.ptbk.md",
     "promptbookVersion": "1.0.0",
     "description": "Trying the language capabilities of GPT models.",
     "parameters": [

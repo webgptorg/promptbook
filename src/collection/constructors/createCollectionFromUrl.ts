@@ -7,7 +7,7 @@ import { createCollectionFromPromise } from './createCollectionFromPromise';
  */
 type CreatePipelineCollectionFromUrlyOptions = {
     /**
-     * If true, the library creation outputs information about each file it reads
+     * If true, the collection creation outputs information about each file it reads
      *
      * @default false
      */
@@ -32,23 +32,23 @@ export async function createCollectionFromUrl(
 ): Promise<PipelineCollection> {
     const { isVerbose = false, isLazyLoaded = false } = options || {};
 
-    const library = createCollectionFromPromise(async () => {
+    const collection = createCollectionFromPromise(async () => {
         if (isVerbose) {
-            console.info(`Creating promptbook library from url ${url.toString()}`);
+            console.info(`Creating pipeline collection from url ${url.toString()}`);
         }
 
         throw new Error('Not implemented yet');
     });
 
     if (isLazyLoaded === false) {
-        await library.listPipelines();
+        await collection.listPipelines();
     }
 
-    return library;
+    return collection;
 
     // TODO: !!! [🏳‍🌈] Allow variant with .json .js and .ts files
-    // TODO: [🧠][🏳‍🌈] .js and .ts files should create getter function for the library
-    // TODO: Look at WebGPT "📖 Make Promptbook library" and https://webgpt.cz/_promptbook-collection.json
+    // TODO: [🧠][🏳‍🌈] .js and .ts files should create getter function for the collection
+    // TODO: Look at WebGPT "📖 Make Promptbook collection" and https://webgpt.cz/_promptbook-collection.json
     // TODO: !! Implement via createCollectionFromPromise
 }
 

@@ -1,5 +1,10 @@
 // @promptbook/core
 
+import { collectionToJson } from '../collection/collectionToJson';
+import { createCollectionFromJson } from '../collection/constructors/createCollectionFromJson';
+import { createCollectionFromPromise } from '../collection/constructors/createCollectionFromPromise';
+import { createCollectionFromUrl } from '../collection/constructors/createCollectionFromUrl';
+import { createSubcollection } from '../collection/constructors/createSubcollection';
 import { pipelineJsonToString } from '../conversion/pipelineJsonToString';
 import { pipelineStringToJson } from '../conversion/pipelineStringToJson';
 import { pipelineStringToJsonSync } from '../conversion/pipelineStringToJsonSync';
@@ -15,7 +20,7 @@ import { TemplateError } from '../errors/TemplateError';
 import { UnexpectedError } from '../errors/UnexpectedError';
 import { ExpectError } from '../errors/_ExpectError';
 import { assertsExecutionSuccessful } from '../execution/assertsExecutionSuccessful';
-import { createPromptbookExecutor } from '../execution/createPromptbookExecutor';
+import { createPipelineExecutor } from '../execution/createPipelineExecutor';
 import { embeddingVectorToString } from '../execution/embeddingVectorToString';
 import { addUsage } from '../execution/utils/addUsage';
 import { checkExpectations, isPassingExpectations } from '../execution/utils/checkExpectations';
@@ -24,11 +29,6 @@ import { CallbackInterfaceTools } from '../knowledge/dialogs/callback/CallbackIn
 import type { CallbackInterfaceToolsOptions } from '../knowledge/dialogs/callback/CallbackInterfaceToolsOptions';
 import { SimplePromptInterfaceTools } from '../knowledge/dialogs/simple-prompt/SimplePromptInterfaceTools';
 import { prepareKnowledgeFromMarkdown } from '../knowledge/prepare-knowledge/markdown/prepareKnowledgeFromMarkdown';
-import { createCollectionFromJson } from '../library/constructors/createCollectionFromJson';
-import { createCollectionFromPromise } from '../library/constructors/createCollectionFromPromise';
-import { createCollectionFromUrl } from '../library/constructors/createCollectionFromUrl';
-import { createSubcollection } from '../library/constructors/createSubcollection';
-import { libraryToJson } from '../library/libraryToJson';
 import { MultipleLlmExecutionTools } from '../llm-providers/multiple/MultipleLlmExecutionTools';
 import { ExecutionTypes } from '../types/ExecutionTypes';
 import type { ExecutionReportStringOptions } from '../types/execution-report/ExecutionReportStringOptions';
@@ -44,13 +44,13 @@ export { ExecutionTypes };
 
 // Core utilities
 export {
-    ExecutionReportStringOptions,
-    ExecutionReportStringOptionsDefaults,
     addUsage,
     assertsExecutionSuccessful,
     checkExpectations,
     embeddingVectorToString,
     executionReportJsonToString,
+    ExecutionReportStringOptions,
+    ExecutionReportStringOptionsDefaults,
     isPassingExpectations,
     prepareKnowledgeFromMarkdown,
     prettifyPipelineString,
@@ -59,11 +59,11 @@ export {
 
 // @promptbook/library
 export {
+    collectionToJson,
     createCollectionFromJson,
     createCollectionFromPromise,
     createCollectionFromUrl,
-    createSubcollection as createSublibrary,
-    libraryToJson,
+    createSubcollection,
 };
 
 // @promptbook/simple-prompt
@@ -73,7 +73,7 @@ export { SimplePromptInterfaceTools };
 export { pipelineJsonToString, pipelineStringToJson, pipelineStringToJsonSync, validatePipeline };
 
 // @promptbook/executor
-export { MultipleLlmExecutionTools, createPromptbookExecutor };
+export { createPipelineExecutor, MultipleLlmExecutionTools };
 
 // @promptbook/callback-prompt
 export { CallbackInterfaceTools, CallbackInterfaceToolsOptions };

@@ -1,16 +1,16 @@
 import { describe, expect, it } from '@jest/globals';
 import { spaceTrim } from 'spacetrim';
 import { pipelineStringToJson } from '../../conversion/pipelineStringToJson';
-import { createPromptbookExecutor } from '../../execution/createPromptbookExecutor';
+import { createPipelineExecutor } from '../../execution/createPipelineExecutor';
 import { CallbackInterfaceTools } from '../../knowledge/dialogs/callback/CallbackInterfaceTools';
 import type { PipelineString } from '../../types/PipelineString';
 import { PROMPTBOOK_VERSION } from '../../version';
 import { MockedFackedLlmExecutionTools } from './MockedFackedLlmExecutionTools';
 
-describe('createPromptbookExecutor + MockedFackedLlmExecutionTools with sample completion prompt', () => {
+describe('createPipelineExecutor + MockedFackedLlmExecutionTools with sample completion prompt', () => {
     it('should work when every INPUT PARAMETER defined', async () => {
-        const promptbookExecutor = await getPromptbookExecutor();
-        expect(promptbookExecutor({ thing: 'a cup of coffee' }, () => {})).resolves.toMatchObject({
+        const pipelineExecutor = await getPipelineExecutor();
+        expect(pipelineExecutor({ thing: 'a cup of coffee' }, () => {})).resolves.toMatchObject({
             outputParameters: {
                 response: /.*/,
             },
@@ -18,15 +18,15 @@ describe('createPromptbookExecutor + MockedFackedLlmExecutionTools with sample c
     });
 
     it('should fail when some INPUT PARAMETER is missing', async () => {
-        const promptbookExecutor = await getPromptbookExecutor();
-        expect(promptbookExecutor({}, () => {})).resolves.toEqual({
+        const pipelineExecutor = await getPipelineExecutor();
+        expect(pipelineExecutor({}, () => {})).resolves.toEqual({
             isSuccessful: false,
             errors: [new Error(`Parameter {thing} is not defined`)],
             executionReport: {
                 title: 'Sample prompt',
                 description: 'Show how to use a simple completion prompt',
                 promptExecutions: [],
-                promptbookUrl: 'https://example.com/promptbook.json',
+                pipelineUrl: 'https://example.com/pipeline.json',
                 promptbookRequestedVersion: '1.0.0',
                 promptbookUsedVersion: PROMPTBOOK_VERSION,
             },
@@ -86,15 +86,15 @@ describe('createPromptbookExecutor + MockedFackedLlmExecutionTools with sample c
     });
 });
 
-async function getPromptbookExecutor() {
-    const promptbook = await pipelineStringToJson(
+async function getPipelineExecutor() {
+    const pipeline = await pipelineStringToJson(
         spaceTrim(`
             # Sample prompt
 
             Show how to use a simple completion prompt
 
             -   PROMPTBOOK VERSION 1.0.0
-            -   PROMPTBOOK URL https://example.com/promptbook.json
+            -   PIPELINE URL https://example.com/pipeline.json
             -   INPUT  PARAMETER {thing} Any thing to buy
             -   OUTPUT PARAMETER {response}
 
@@ -114,8 +114,8 @@ async function getPromptbookExecutor() {
             -> {response}
        `) as PipelineString,
     );
-    const promptbookExecutor = createPromptbookExecutor({
-        promptbook,
+    const pipelineExecutor = createPipelineExecutor({
+        pipeline,
         tools: {
             llm: new MockedFackedLlmExecutionTools({ isVerbose: true }),
             script: [],
@@ -130,5 +130,5 @@ async function getPromptbookExecutor() {
             maxExecutionAttempts: 3,
         },
     });
-    return promptbookExecutor;
+    return pipelineExecutor;
 }

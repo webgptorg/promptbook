@@ -74,7 +74,7 @@
 
 
             import {
-                createPromptbookExecutor,
+                createPipelineExecutor,
                 pipelineStringToJson,
             } from 'https://unpkg.com/@promptbook/core@0.47.0-0';
             import { JavascriptEvalExecutionTools } from 'https://unpkg.com/@promptbook/execute-javascript@0.47.0-0';
@@ -114,10 +114,10 @@
                     userInterface: null,
                 };
 
-                const promptbookExecutor = createPromptbookExecutor({ promptbook, tools });
+                const pipelineExecutor = createPipelineExecutor({ pipeline, tools });
 
                 const inputParameters = { word: 'cat' };
-                const { isSuccessful, errors, outputParameters, executionReport } = await promptbookExecutor(
+                const { isSuccessful, errors, outputParameters, executionReport } = await pipelineExecutor(
                     inputParameters,
                 );
 
