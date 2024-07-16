@@ -49,7 +49,7 @@ async function playground() {
     };
 
     /**/
-    const models = await joinLlmExecutionTools(tools.llm).listModels();
+    const models = await joinLlmExecutionTools(...tools.llm).listModels();
     console.info({ models });
     /**/
 
@@ -91,7 +91,7 @@ async function playground() {
     /**/
 
     /*/
-    // <- Note: [🤖] Test here new model variant if needed 
+    // <- Note: [🤖] Test here new model variant if needed
     /**/
 
     //========================================/

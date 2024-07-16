@@ -1,5 +1,6 @@
 import moment from 'moment';
 import { spaceTrim } from 'spacetrim';
+import { embeddingVectorToString } from '../../execution/embeddingVectorToString';
 import type { FromtoItems } from '../../utils/FromtoItems';
 import { formatNumber } from '../../utils/formatNumber';
 import { just } from '../../utils/just';
@@ -199,18 +200,21 @@ export function executionReportJsonToString(
         }
 
         if (promptExecution.result && promptExecution.result.content) {
-            executionReportString +=
-                '\n\n\n\n' +
-                spaceTrim(
+            executionReportString += '\n\n\n\n' + '### Result';
+
+            if (promptExecution.result === undefined) {
+                executionReportString += '*No result*';
+            } else if (typeof promptExecution.result.content === 'string') {
+                executionReportString += spaceTrim(
                     (block) => `
-
-                        ### Result
-
-                        \`\`\`
-                        ${block(escapeMarkdownBlock(promptExecution.result!.content))}
-                        \`\`\`
-                    `,
+                          \`\`\`
+                          ${block(escapeMarkdownBlock(promptExecution.result!.content as string))}
+                          \`\`\`
+                      `,
                 );
+            } else {
+                executionReportString += embeddingVectorToString(promptExecution.result.content);
+            }
         }
 
         if (promptExecution.error && promptExecution.error.message) {

@@ -9,6 +9,7 @@ import type {
     PromptResult,
 } from '../../execution/PromptResult';
 import type { Prompt } from '../../types/Prompt';
+import type { string_markdown, string_markdown_text, string_title } from '../../types/typeAliases';
 
 /**
  * Multiple LLM Execution Tools is a proxy server that uses multiple execution tools internally and exposes the executor interface externally.
@@ -27,6 +28,14 @@ export class MultipleLlmExecutionTools implements LlmExecutionTools {
      */
     public constructor(...llmExecutionTools: Array<LlmExecutionTools>) {
         this.llmExecutionTools = llmExecutionTools;
+    }
+
+    public get title(): string_title & string_markdown_text {
+        return 'Multiple LLM Providers';
+    }
+
+    public get description(): string_markdown {
+        return this.llmExecutionTools.map((tools) => `- ${tools.title} ${tools.description || ''}`).join('\n');
     }
 
     /**
