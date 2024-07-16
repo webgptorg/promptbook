@@ -6,11 +6,17 @@ import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { AvailableModel, LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import type { PromptChatResult, PromptCompletionResult, PromptEmbeddingResult } from '../../execution/PromptResult';
 import type { Prompt } from '../../types/Prompt';
-import type { string_date_iso8601, string_markdown, string_markdown_text, string_model_name, string_title } from '../../types/typeAliases';
+import type {
+    string_date_iso8601,
+    string_markdown,
+    string_markdown_text,
+    string_model_name,
+    string_title,
+} from '../../types/typeAliases';
 import { getCurrentIsoDate } from '../../utils/getCurrentIsoDate';
+import type { OpenAiExecutionToolsOptions } from './OpenAiExecutionToolsOptions';
 import { computeOpenaiUsage } from './computeOpenaiUsage';
 import { OPENAI_MODELS } from './openai-models';
-import type { OpenAiExecutionToolsOptions } from './OpenAiExecutionToolsOptions';
 
 /**
  * Execution Tools for calling OpenAI API.

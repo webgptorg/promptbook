@@ -1,4 +1,5 @@
 import type { CommonExecutionToolsOptions } from '../../execution/CommonExecutionToolsOptions';
+import { EmbeddingVector } from '../../execution/EmbeddingVector';
 import type { AvailableModel, LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import type { PromptChatResult, PromptCompletionResult, PromptEmbeddingResult } from '../../execution/PromptResult';
 import { addUsage } from '../../execution/utils/addUsage';

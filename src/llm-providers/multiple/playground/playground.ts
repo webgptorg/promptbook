@@ -8,8 +8,8 @@ import chalk from 'colors';
 import { JavascriptExecutionTools } from '../../../scripting/javascript/JavascriptExecutionTools';
 import { AnthropicClaudeExecutionTools } from '../../anthropic-claude/AnthropicClaudeExecutionTools';
 import { AzureOpenAiExecutionTools } from '../../azure-openai/AzureOpenAiExecutionTools';
+import { joinLlmExecutionTools } from '../../multiple/joinLlmExecutionTools';
 import { OpenAiExecutionTools } from '../../openai/OpenAiExecutionTools';
-import { joinLlmExecutionTools } from '../joinLlmExecutionTools';
 
 playground()
     .catch((error) => {

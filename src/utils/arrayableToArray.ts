@@ -1,4 +1,4 @@
-import type { Arrayable } from '../types/Arrayable';
+import { Arrayable } from '../types/Arrayable';
 
 /**
  * Takes an item or an array of items and returns an array of items
