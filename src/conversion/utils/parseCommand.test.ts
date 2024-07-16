@@ -174,6 +174,8 @@ describe('how parseCommand works', () => {
             value: 'CHAT',
         });
 
+        // <- [🤖]
+
         expect(parseCommand('MODEL NAME gpt-4-1106-preview')).toEqual({
             type: 'MODEL',
             key: 'modelName',

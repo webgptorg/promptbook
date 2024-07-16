@@ -1,9 +1,6 @@
 import type { KebabCase } from 'type-fest';
 import type { ExpectationUnit } from '../types/PipelineJson/PromptTemplateJson';
-import type { number_positive } from '../types/typeAliases';
-import type { number_usd } from '../types/typeAliases';
-import type { string_date_iso8601 } from '../types/typeAliases';
-import type { string_model_name } from '../types/typeAliases';
+import type { number_positive, number_usd, string_date_iso8601, string_model_name } from '../types/typeAliases';
 import type { EmbeddingVector } from './EmbeddingVector';
 
 /**
@@ -12,7 +9,7 @@ import type { EmbeddingVector } from './EmbeddingVector';
  *
  * @see https://github.com/webgptorg/promptbook#prompt-result
  */
-export type PromptResult = PromptCompletionResult | PromptChatResult;
+export type PromptResult = PromptCompletionResult | PromptChatResult | PromptEmbeddingResult /* <- [🤖] */;
 
 /**
  * Prompt completion result
@@ -37,6 +34,8 @@ export type PromptEmbeddingResult = Omit<PromptCommonResult, 'content'> & {
      */
     content: EmbeddingVector;
 };
+
+// Note: [🤖] Add new model variant here
 
 export type PromptCommonResult = {
     /**

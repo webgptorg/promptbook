@@ -15,9 +15,7 @@ import type { string_name } from '../types/typeAliases';
 import { PROMPTBOOK_VERSION } from '../version';
 import type { ExecutionTools } from './ExecutionTools';
 import type { PipelineExecutor } from './PipelineExecutor';
-import type { PromptChatResult } from './PromptResult';
-import type { PromptCompletionResult } from './PromptResult';
-import type { PromptResult } from './PromptResult';
+import type { PromptChatResult, PromptCompletionResult, PromptEmbeddingResult, PromptResult } from './PromptResult';
 import { addUsage } from './utils/addUsage';
 import { checkExpectations } from './utils/checkExpectations';
 import { replaceParameters } from './utils/replaceParameters';
@@ -96,8 +94,10 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
             }
 
             let prompt: Prompt;
-            let chatThread: PromptChatResult;
+            let chatResult: PromptChatResult;
             let completionResult: PromptCompletionResult;
+            let embeddingResult: PromptEmbeddingResult;
+            // Note: [🤖]
             let result: PromptResult | null = null;
             let resultString: string | null = null;
             let expectError: ExpectError | null = null;
@@ -193,16 +193,35 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
 
                                 variant: switch (currentTemplate.modelRequirements!.modelVariant) {
                                     case 'CHAT':
-                                        chatThread = await tools.llm.callChatModel(prompt);
+                                        if (tools.llm.callChatModel === undefined) {
+                                            throw new ExecutionError('Chat model is not available');
+                                        }
+
+                                        chatResult = await tools.llm.callChatModel(prompt);
                                         // TODO: [🍬] Destroy chatThread
-                                        result = chatThread;
-                                        resultString = chatThread.content;
+                                        result = chatResult;
+                                        resultString = chatResult.content;
                                         break variant;
                                     case 'COMPLETION':
+                                        if (tools.llm.callCompletionModel === undefined) {
+                                            throw new ExecutionError('Completion model is not available');
+                                        }
+
                                         completionResult = await tools.llm.callCompletionModel(prompt);
                                         result = completionResult;
                                         resultString = completionResult.content;
                                         break variant;
+
+                                    case 'EMBEDDING':
+                                        if (tools.llm.callEmbeddingModel === undefined) {
+                                            throw new ExecutionError('Embedding model is not available');
+                                        }
+
+                                        embeddingResult = await tools.llm.callEmbeddingModel(prompt);
+                                        result = embeddingResult;
+                                        resultString = embeddingResult.content.join(',');
+                                        break variant;
+
                                     default:
                                         throw new ExecutionError(
                                             `Unknown model variant "${

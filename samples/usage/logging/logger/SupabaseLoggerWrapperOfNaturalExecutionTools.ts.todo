@@ -47,9 +47,13 @@ export class SupabaseLoggerWrapperOfLlmExecutionTools implements LlmExecutionToo
             case 'CHAT':
                 promptResult = await this.options.llmExecutionTools.callChatModel(prompt);
                 break;
+                
             case 'COMPLETION':
                 promptResult = await this.options.llmExecutionTools.callCompletionModel(prompt);
                 break;
+
+            // case [🤖]:
+
             default:
                 throw new Error(`Unknown model variant "${prompt.modelRequirements.variant}"`);
         }
@@ -62,8 +66,8 @@ export class SupabaseLoggerWrapperOfLlmExecutionTools implements LlmExecutionToo
                 spaceTrim(
                     (block) => `
                         ===========================[ Chat: ]===
-                        [🧑] ${block(prompt.content)}
-                        [🤖] ${block(promptResult.content)}
+                        User:   ${block(prompt.content)}
+                        System: ${block(promptResult.content)}
                         ---
                         Executed in ${block(
                             performance.measure(mark, `${mark}-start`, `${mark}-end`).duration.toString(),
