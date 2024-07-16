@@ -59,6 +59,5 @@ export type AvailableModel = {
  * TODO: !!!! Translation model
  * TODO: [🧠] Emulation of one type of model with another one - emuate chat with completion; emulate translation with chat
  * TODO: [🍓][♐] Some heuristic to pick the best model in listed models
- * TODO: [🏳] callChatModel -> chat, callCompletionModel -> complete, translate
  * TODO: [🧠] Should or should not there be a word "GPT" in both callCompletionModel and callChatModel
  */

@@ -1,17 +1,20 @@
 import { spaceTrim } from 'spacetrim';
 import { SyntaxError } from '../../errors/SyntaxError';
-import type { Command } from '../../types/Command';
-import type { ExecuteCommand } from '../../types/Command';
-import type { ExpectAmountCommand } from '../../types/Command';
-import type { ExpectCommand } from '../../types/Command';
-import type { ExpectFormatCommand } from '../../types/Command';
-import type { JokerCommand } from '../../types/Command';
-import type { ModelCommand } from '../../types/Command';
-import type { ParameterCommand } from '../../types/Command';
-import type { PostprocessCommand } from '../../types/Command';
-import type { PromptbookUrlCommand } from '../../types/Command';
-import type { PromptbookVersionCommand } from '../../types/Command';
+import type {
+    Command,
+    ExecuteCommand,
+    ExpectAmountCommand,
+    ExpectCommand,
+    ExpectFormatCommand,
+    JokerCommand,
+    ModelCommand,
+    ParameterCommand,
+    PostprocessCommand,
+    PromptbookUrlCommand,
+    PromptbookVersionCommand,
+} from '../../types/Command';
 import { ExecutionTypes } from '../../types/ExecutionTypes';
+import { MODEL_VARIANTS } from '../../types/ModelRequirements';
 import { EXPECTATION_UNITS } from '../../types/PipelineJson/PromptTemplateJson';
 import type { string_markdown_text } from '../../types/typeAliases';
 import { removeMarkdownFormatting } from '../../utils/markdown/removeMarkdownFormatting';
@@ -172,6 +175,7 @@ export function parseCommand(listItem: string_markdown_text): Command {
                     key: 'modelVariant',
                     value: 'COMPLETION',
                 } satisfies ModelCommand;
+                // <- [🤖]
             } else {
                 throw new SyntaxError(
                     spaceTrim(
@@ -181,7 +185,7 @@ export function parseCommand(listItem: string_markdown_text): Command {
                             - ${listItem}
 
                             Supported variants are:
-                            ${block(['CHAT', 'COMPLETION'].join(', '))}
+                            ${block(MODEL_VARIANTS.map((variantName) => `- ${variantName}`).join('\n'))}
                         `,
                     ),
                 );

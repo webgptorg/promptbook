@@ -222,6 +222,8 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                                         resultString = embeddingResult.content.join(',');
                                         break variant;
 
+                                    // case [🤖]:
+
                                     default:
                                         throw new ExecutionError(
                                             `Unknown model variant "${

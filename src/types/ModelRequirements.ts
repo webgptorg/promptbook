@@ -1,6 +1,6 @@
 import type { string_model_name } from './typeAliases';
 
-export const MODEL_VARIANTS = ['COMPLETION', 'CHAT', 'EMBEDDING' /* [🏳]  */] as const;
+export const MODEL_VARIANTS = ['COMPLETION', 'CHAT', 'EMBEDDING' /* <- TODO [🏳] */ /* <- [🤖] */] as const;
 
 /**
  * Model variant describes the very general type of the model
