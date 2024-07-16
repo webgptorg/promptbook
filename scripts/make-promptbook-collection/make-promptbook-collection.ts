@@ -9,6 +9,8 @@ import { writeFile } from 'fs/promises';
 import { join } from 'path';
 import { collectionToJson } from '../../src/collection/collectionToJson';
 import { createCollectionFromDirectory } from '../../src/collection/constructors/createCollectionFromDirectory';
+import { MockedFackedLlmExecutionTools } from '../../src/llm-providers/mocked/MockedFackedLlmExecutionTools';
+import { joinLlmExecutionTools } from '../../src/llm-providers/multiple/joinLlmExecutionTools';
 import { commit } from '../utils/autocommit/commit';
 
 if (process.cwd() !== join(__dirname, '../..')) {
@@ -35,10 +37,29 @@ makePipelineCollection({ isCommited })
 async function makePipelineCollection({ isCommited }: { isCommited: boolean }) {
     console.info(`📖 Make Promptbook library`);
 
+    const isVerbose = true; // <- TODO: [👒] Pass as CLI argument
+
     const promptbookSourceDir = 'promptbook-collection';
 
+    // TODO: !!!! getLlmExecutionToolsFromEnvironment
+    const llmTools = joinLlmExecutionTools(
+        // TODO: !!!! Remove mocked
+        new MockedFackedLlmExecutionTools({ isVerbose }),
+        /*
+            new AnthropicClaudeExecutionTools({
+                isVerbose,
+                apiKey: process.env.ANTHROPIC_CLAUDE_API_KEY!,
+            }),
+            new OpenAiExecutionTools({
+                isVerbose,
+                apiKey: process.env.OPENAI_API_KEY!,
+            }),
+            */
+    );
+
     const collection = await createCollectionFromDirectory(promptbookSourceDir, {
-        isVerbose: true,
+        llmTools,
+        isVerbose,
         isRecursive: true,
     });
 

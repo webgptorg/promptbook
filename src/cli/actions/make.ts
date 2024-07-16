@@ -3,6 +3,10 @@ import type { Command } from 'commander';
 import { mkdir, writeFile } from 'fs/promises';
 import { dirname, join } from 'path';
 import spaceTrim from 'spacetrim';
+import { AnthropicClaudeExecutionTools } from '../../_packages/anthropic-claude.index';
+import { joinLlmExecutionTools } from '../../_packages/core.index';
+import { MockedFackedLlmExecutionTools } from '../../_packages/fake-llm.index';
+import { OpenAiExecutionTools } from '../../_packages/openai.index';
 import { collectionToJson } from '../../collection/collectionToJson';
 import { createCollectionFromDirectory } from '../../collection/constructors/createCollectionFromDirectory';
 import { PIPELINE_COLLECTION_BASE_FILENAME } from '../../config';
@@ -58,6 +62,8 @@ export function initializeMake(program: Command) {
     helloCommand.action(async (path, { projectName, format, validation, verbose, outFile }) => {
         console.info('!!!', { projectName, path, format, validation, verbose, outFile });
 
+        const isVerbose = verbose;
+
         const formats = ((format as string | false) || '')
             .split(',')
             .map((_) => _.trim())
@@ -72,8 +78,25 @@ export function initializeMake(program: Command) {
             process.exit(1);
         }
 
+        // TODO: !!!! getLlmExecutionToolsFromEnvironment
+        const llmTools = joinLlmExecutionTools(
+            // TODO: !!!! Remove mocked
+            new MockedFackedLlmExecutionTools({
+                isVerbose,
+            }),
+            new AnthropicClaudeExecutionTools({
+                isVerbose,
+                apiKey: process.env.ANTHROPIC_CLAUDE_API_KEY!,
+            }),
+            new OpenAiExecutionTools({
+                isVerbose,
+                apiKey: process.env.OPENAI_API_KEY!,
+            }),
+        );
+
         const collection = await createCollectionFromDirectory(path, {
-            isVerbose: verbose,
+            llmTools,
+            isVerbose,
             isRecursive: true,
         });
 

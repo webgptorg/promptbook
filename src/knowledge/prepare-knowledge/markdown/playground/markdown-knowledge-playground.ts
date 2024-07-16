@@ -42,7 +42,7 @@ async function playground() {
             apiKey: process.env.ANTHROPIC_CLAUDE_API_KEY!,
         }),
         new OpenAiExecutionTools({
-            isVerbose: true,
+            isVerbose,
             apiKey: process.env.OPENAI_API_KEY!,
         }),
     );

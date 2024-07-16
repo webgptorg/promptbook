@@ -80,7 +80,7 @@
         },
         {
             "name": "🏭📖 Generate samples .ptbk.md -> .ptbk.json (💸)",
-            "commands": ["ts-node ./scripts/generate-sample-jsons/generate-sample-jsons.ts"],
+            "commands": ["ts-node ./scripts/generate-samples-jsons/generate-samples-jsons.ts"],
             "execute": false,
             "onlySingle": false,
             "focus": false

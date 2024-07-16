@@ -11,6 +11,8 @@ import { join } from 'path';
 import { pipelineStringToJson } from '../../src/conversion/pipelineStringToJson';
 import { validatePipeline } from '../../src/conversion/validation/validatePipeline';
 // import { AnthropicClaudeExecutionTools } from '../../src/llm-providers/anthropic-claude/AnthropicClaudeExecutionTools';
+import { MockedFackedLlmExecutionTools } from '../../src/llm-providers/mocked/MockedFackedLlmExecutionTools';
+import { joinLlmExecutionTools } from '../../src/llm-providers/multiple/joinLlmExecutionTools';
 import { PipelineString } from '../../src/types/PipelineString';
 import { commit } from '../utils/autocommit/commit';
 import { isWorkingTreeClean } from '../utils/autocommit/isWorkingTreeClean';
@@ -40,6 +42,8 @@ generateSampleJsons({ isCommited })
 async function generateSampleJsons({ isCommited }: { isCommited: boolean }) {
     console.info(`🏭📖  Convert samples .ptbk.md -> .ptbk.json`);
 
+    const isVerbose = true; // <- TODO: [👒] Pass as CLI argument
+
     if (isCommited && !(await isWorkingTreeClean(process.cwd()))) {
         throw new Error(`Working tree is not clean`);
     }
@@ -50,16 +54,25 @@ async function generateSampleJsons({ isCommited }: { isCommited: boolean }) {
         console.info(`📖  Generating JSON from ${promptbookMarkdownFilePath}`);
         const promptbookMarkdown = await readFile(promptbookMarkdownFilePath, 'utf-8');
 
+        // TODO: !!!! getLlmExecutionToolsFromEnvironment
+        const llmTools = joinLlmExecutionTools(
+            // TODO: !!!! Remove mocked
+            new MockedFackedLlmExecutionTools({ isVerbose }),
+            /*
+          new AnthropicClaudeExecutionTools({
+              isVerbose,
+              apiKey: process.env.ANTHROPIC_CLAUDE_API_KEY!,
+          }),
+          new OpenAiExecutionTools({
+              isVerbose,
+              apiKey: process.env.OPENAI_API_KEY!,
+          }),
+          */
+        );
+
         try {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const pipelineJson = await pipelineStringToJson(promptbookMarkdown as PipelineString, {
-                /*
-                !!!
-                llmTools: new AnthropicClaudeExecutionTools({
-                    isVerbose: true,
-                    apiKey: process.env.ANTHROPIC_CLAUDE_API_KEY!,
-                }),
-                */
+                llmTools,
             });
             const pipelineJsonFilePath = promptbookMarkdownFilePath.replace(/\.ptbk\.md$/, '.ptbk.json');
 

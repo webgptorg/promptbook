@@ -2,13 +2,12 @@ import type { LlmExecutionTools } from '../execution/LlmExecutionTools';
 import { prepareKnowledgeFromMarkdown } from '../knowledge/prepare-knowledge/markdown/prepareKnowledgeFromMarkdown';
 import type { PipelineJson } from '../types/PipelineJson/PipelineJson';
 import type { PipelineString } from '../types/PipelineString';
-import { just } from '../utils/just';
 import { pipelineStringToJsonSync } from './pipelineStringToJsonSync';
 
 /**
  * Options for pipelineStringToJson
  */
-type PipelineStringToJsonOptions = {
+export type PipelineStringToJsonOptions = {
     /**
      * Tools for processing required for knowledge processing *(not for actual execution)*
      */
@@ -36,19 +35,16 @@ export async function pipelineStringToJson(
 ): Promise<PipelineJson> {
     const { llmTools } = options;
 
-    // TODO: !!!! Use tools here to compile knowledge
-    just(llmTools);
+    // TODO: [🧠] !!! Preconvert knowledge and error in pipelineStringToJsonSync if still present
+    let pipelineJson = pipelineStringToJsonSync(pipelineString);
 
     if (llmTools) {
         const knowledge = await prepareKnowledgeFromMarkdown({
             content: 'Roses are red, violets are blue, programmers use Promptbook, users too',
             llmTools,
         });
-        console.info('!!!! knowledge', knowledge);
+        pipelineJson = { ...pipelineJson, knowledge: [...(pipelineJson.knowledge || []), ...knowledge] };
     }
-
-    // TODO: !!! Preconvert knowledge and error in pipelineStringToJsonSync if still present
-    const pipelineJson = pipelineStringToJsonSync(pipelineString);
 
     return pipelineJson;
 }

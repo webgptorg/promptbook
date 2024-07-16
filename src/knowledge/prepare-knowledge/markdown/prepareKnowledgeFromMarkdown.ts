@@ -103,7 +103,12 @@ export async function prepareKnowledgeFromMarkdown(
                 modelName: string_model_name;
                 position: Array<number>;
             }> = [];
-            const sources: Array<{ title: string_markdown_text; href: string_href }> = [];
+            const sources: Array<{ title: string_markdown_text; href: string_href }> = [
+                {
+                    title: 'Markdown document' /* <- TODO: !!! Unhardcode */,
+                    href: '#' /* <- TODO: !!! Unhardcode */,
+                },
+            ];
 
             try {
                 const titleResult = await prepareTitleExecutor({ content });
