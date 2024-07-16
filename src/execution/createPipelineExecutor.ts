@@ -153,7 +153,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                                         (functionName) => async (result: string) => {
                                             // TODO: DRY [☯]
                                             const errors: Array<Error> = [];
-                                            for (const scriptTools of tools.script) {
+                                            for (const scriptTools of arrayableToArray(tools.script)) {
                                                 try {
                                                     return await scriptTools.execute({
                                                         scriptLanguage: `javascript` /* <- TODO: Try it in each languages; In future allow postprocessing with arbitrary combination of languages to combine */,
@@ -227,7 +227,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                                 break;
 
                             case 'SCRIPT':
-                                if (tools.script.length === 0) {
+                                if (arrayableToArray(tools.script).length === 0) {
                                     throw new ExecutionError('No script execution tools are available');
                                 }
                                 if (!currentTemplate.contentLanguage) {
@@ -241,7 +241,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                                 scriptExecutionErrors = [];
 
                                 // TODO: DRY [☯]
-                                scripts: for (const scriptTools of tools.script) {
+                                scripts: for (const scriptTools of arrayableToArray(tools.script)) {
                                     try {
                                         resultString = await scriptTools.execute({
                                             scriptLanguage: currentTemplate.contentLanguage,
@@ -318,7 +318,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                             scriptExecutionErrors = [];
                             let postprocessingError = null;
 
-                            scripts: for (const scriptTools of tools.script) {
+                            scripts: for (const scriptTools of  arrayableToArray(tools.script)) {
                                 try {
                                     resultString = await scriptTools.execute({
                                         scriptLanguage: `javascript` /* <- TODO: Try it in each languages; In future allow postprocessing with arbitrary combination of languages to combine */,

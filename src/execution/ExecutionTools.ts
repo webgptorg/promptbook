@@ -15,7 +15,7 @@ export type ExecutionTools = {
      * Tip: Combine multiple LLM execution tools - use array of LlmExecutionTools instead of single LlmExecutionTools
      * @see https://github.com/webgptorg/promptbook/?tab=readme-ov-file#llm-execution-tools
      */
-    llm: Arrayable<LlmExecutionTools>;
+    llm?: Arrayable<LlmExecutionTools>;
 
     /**
      * Tools for executing scripts
@@ -24,7 +24,7 @@ export type ExecutionTools = {
      *       If none of them supports the script, an error is thrown
      * @see https://github.com/webgptorg/promptbook/?tab=readme-ov-file#script-execution-tools
      */
-    script: Array<ScriptExecutionTools>; // <- TODO: [🧠] Maybe not Array but Arrayable
+    script?: Arrayable<ScriptExecutionTools>; // <- TODO: [🧠] Maybe not Array but Arrayable
 
     /**
      * Tools for interacting with the user
