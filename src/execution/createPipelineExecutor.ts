@@ -1,5 +1,6 @@
 import { spaceTrim } from 'spacetrim';
 import type { Promisable } from 'type-fest';
+import { joinLlmExecutionTools } from '../_packages/core.index';
 import { LOOP_LIMIT } from '../config';
 import { validatePipeline } from '../conversion/validation/validatePipeline';
 import { ExecutionError } from '../errors/ExecutionError';
@@ -12,6 +13,7 @@ import type { Prompt } from '../types/Prompt';
 import type { TaskProgress } from '../types/TaskProgress';
 import type { ExecutionReportJson } from '../types/execution-report/ExecutionReportJson';
 import type { string_name } from '../types/typeAliases';
+import { arrayableToArray } from '../utils/arrayableToArray';
 import { PROMPTBOOK_VERSION } from '../version';
 import type { ExecutionTools } from './ExecutionTools';
 import type { PipelineExecutor } from './PipelineExecutor';
@@ -60,6 +62,8 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
     const { maxExecutionAttempts = 3 } = settings;
 
     validatePipeline(pipeline);
+
+    const llmTools = joinLlmExecutionTools(...arrayableToArray(tools.llm));
 
     const pipelineExecutor: PipelineExecutor = async (
         inputParameters: Record<string_name, string>,
@@ -193,31 +197,19 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
 
                                 variant: switch (currentTemplate.modelRequirements!.modelVariant) {
                                     case 'CHAT':
-                                        if (tools.llm.callChatModel === undefined) {
-                                            throw new ExecutionError('Chat model is not available');
-                                        }
-
-                                        chatResult = await tools.llm.callChatModel(prompt);
+                                        chatResult = await llmTools.callChatModel(prompt);
                                         // TODO: [🍬] Destroy chatThread
                                         result = chatResult;
                                         resultString = chatResult.content;
                                         break variant;
                                     case 'COMPLETION':
-                                        if (tools.llm.callCompletionModel === undefined) {
-                                            throw new ExecutionError('Completion model is not available');
-                                        }
-
-                                        completionResult = await tools.llm.callCompletionModel(prompt);
+                                        completionResult = await llmTools.callCompletionModel(prompt);
                                         result = completionResult;
                                         resultString = completionResult.content;
                                         break variant;
 
                                     case 'EMBEDDING':
-                                        if (tools.llm.callEmbeddingModel === undefined) {
-                                            throw new ExecutionError('Embedding model is not available');
-                                        }
-
-                                        embeddingResult = await tools.llm.callEmbeddingModel(prompt);
+                                        embeddingResult = await llmTools.callEmbeddingModel(prompt);
                                         result = embeddingResult;
                                         resultString = embeddingResult.content.join(',');
                                         break variant;

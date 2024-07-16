@@ -1,103 +1,51 @@
 import spaceTrim from 'spacetrim';
-import type { AvailableModel } from '../../execution/LlmExecutionTools';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { PromptChatResult } from '../../execution/PromptResult';
-import type { PromptCompletionResult } from '../../execution/PromptResult';
-import type { PromptResult } from '../../execution/PromptResult';
-import type { Prompt } from '../../types/Prompt';
-
-
-
-
-function joinLlmExecutionTools()
-
-
+import { MultipleLlmExecutionTools } from './MultipleLlmExecutionTools';
 
 /**
- * Multiple LLM Execution Tools is a proxy server that uses multiple execution tools internally and exposes the executor interface externally.
+ * Joins multiple LLM Execution Tools into one
  *
- * @see https://github.com/webgptorg/promptbook#multiple-server
+ * @returns {LlmExecutionTools} Single wrapper for multiple LlmExecutionTools
+ *
+ * 0) If there is no LlmExecutionTools, it warns and returns valid but empty LlmExecutionTools
+ * 1) If there is only one LlmExecutionTools, it returns it wrapped in a proxy object
+ * 2) If there are multiple LlmExecutionTools, first will be used first, second will be used if the first hasn`t defined model variant or fails, etc.
+ * 3) When all LlmExecutionTools fail, it throws an error with a list of all errors merged into one
+ *
+ *
+ * Tip: You don't have to use this function directly, just pass an array of LlmExecutionTools to the `ExecutionTools`
  */
-export class MultipleLlmExecutionTools implements LlmExecutionTools {
-    /**
-     * Array of execution tools in order of priority
-     */
-    private llmExecutionTools: Array<LlmExecutionTools>;
+export function joinLlmExecutionTools(...llmExecutionTools: Array<LlmExecutionTools>): MultipleLlmExecutionTools {
+    if (llmExecutionTools.length === 0) {
+        const warningMessage = spaceTrim(`
+            You have provided no LLM Execution Tools.
+            This means that you won't be able to execute any prompts that require large language models like GPT-4 or Anthropic's Claude.
 
-    /**
-     * Gets array of execution tools in order of priority
-     */
-    public constructor(...llmExecutionTools: Array<LlmExecutionTools>) {
-        this.llmExecutionTools = llmExecutionTools;
+            Technically, it's not an error, but it's probably not what you want because it does not make sense to use Promptbook without language models.
+        `);
+
+        console.warn(warningMessage);
+
+        /*
+        return {
+            async listModels() {
+                console.warn(
+                    spaceTrim(
+                        (block) => `
+
+                            You can't list models because you have no LLM Execution Tools defined:
+
+                            tl;dr
+
+                            ${block(warningMessage)}
+                        `,
+                    ),
+                );
+                return [];
+            },
+        };
+        */
     }
 
-    /**
-     * Calls the best available chat model
-     */
-    public callChatModel(prompt: Prompt): Promise<PromptChatResult> {
-        return this.callModelCommon(prompt) as Promise<PromptChatResult>;
-    }
-
-    /**
-     * Calls the best available completion model
-     */
-    public callCompletionModel(prompt: Prompt): Promise<PromptCompletionResult> {
-        return this.callModelCommon(prompt) as Promise<PromptChatResult>;
-    }
-
-    /**
-     * Calls the best available model
-     */
-    private async callModelCommon(prompt: Prompt): Promise<PromptResult> {
-        const errors: Array<Error> = [];
-
-        for (const llmExecutionTools of this.llmExecutionTools) {
-            try {
-                if (prompt.modelRequirements.modelVariant === 'CHAT') {
-                    return await llmExecutionTools.callChatModel(prompt);
-                } else if (prompt.modelRequirements.modelVariant === 'COMPLETION') {
-                    return await llmExecutionTools.callCompletionModel(prompt);
-                }
-            } catch (error) {
-                if (!(error instanceof Error)) {
-                    throw error;
-                }
-
-                errors.push(error);
-            }
-        }
-
-        throw new Error(
-            spaceTrim(
-                (block) => `
-                  All execution tools failed:
-
-                  ${block(errors.map((error) => `- ${error.name || 'Error'}: ${error.message}`).join('\n'))}
-
-            `,
-            ),
-        );
-    }
-
-    /**
-     * List all available models that can be used
-     * This liost is a combination of all available models from all execution tools
-     */
-    public async listModels(): Promise<Array<AvailableModel>> {
-        const availableModels: Array<AvailableModel> = [];
-
-        for (const llmExecutionTools of this.llmExecutionTools) {
-            // TODO: Obtain models in parallel
-            const models = await llmExecutionTools.listModels();
-            availableModels.push(...models);
-        }
-
-        return availableModels;
-    }
+    return new MultipleLlmExecutionTools(...llmExecutionTools);
 }
-
-
-
-/**
- * Note: [🤖]
- */

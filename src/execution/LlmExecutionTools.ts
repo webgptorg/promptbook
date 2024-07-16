@@ -1,7 +1,7 @@
 import type { Promisable } from 'type-fest';
 import type { ModelVariant } from '../types/ModelRequirements';
 import type { Prompt } from '../types/Prompt';
-import type { string_model_name, string_title } from '../types/typeAliases';
+import type { string_markdown, string_markdown_text, string_model_name, string_title } from '../types/typeAliases';
 import type { PromptChatResult, PromptCompletionResult, PromptEmbeddingResult } from './PromptResult';
 
 /**
@@ -12,6 +12,20 @@ import type { PromptChatResult, PromptCompletionResult, PromptEmbeddingResult } 
  * @see https://github.com/webgptorg/promptbook#llm-execution-tools
  */
 export type LlmExecutionTools = {
+    /**
+     * Title of the model provider
+     *
+     * @example "OpenAI"
+     */
+    readonly title: string_title & string_markdown_text;
+
+    /**
+     * Description of the provider
+     *
+     * @example "Use all models from OpenAI"
+     */
+    readonly description: string_markdown;
+
     /**
      * Calls a chat model
      */

@@ -1,3 +1,4 @@
+import { Arrayable } from '../types/Arrayable';
 import type { LlmExecutionTools } from './LlmExecutionTools';
 import type { ScriptExecutionTools } from './ScriptExecutionTools';
 import type { UserInterfaceTools } from './UserInterfaceTools';
