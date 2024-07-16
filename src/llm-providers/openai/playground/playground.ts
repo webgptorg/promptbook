@@ -71,10 +71,14 @@ async function playground() {
             // modelName: 'text-embedding-ada-002',
         },
     } as const;
-    const promptResult = await openAiExecutionTools.embed(prompt);
+    const promptResult = await openAiExecutionTools.callEmbeddingModel(prompt);
     console.info({ promptResult });
     console.info(chalk.bgBlue(' User: ') + chalk.blue(prompt.content));
     console.info(chalk.bgGreen(' Embedding: ') + chalk.green(embeddingVectorToString(promptResult.content)));
+    /**/
+
+    /*/
+    // <- Note: [🤖] Test here new model variant if needed 
     /**/
 
     //========================================/

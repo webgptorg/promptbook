@@ -4,18 +4,13 @@ import colors from 'colors';
 import spaceTrim from 'spacetrim';
 import { ExecutionError } from '../../errors/ExecutionError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
-import type { AvailableModel } from '../../execution/LlmExecutionTools';
-import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { PromptChatResult } from '../../execution/PromptResult';
-import type { PromptCompletionResult } from '../../execution/PromptResult';
-import type { PromptResultUsage } from '../../execution/PromptResult';
+import type { AvailableModel, LlmExecutionTools } from '../../execution/LlmExecutionTools';
+import type { PromptChatResult, PromptResultUsage } from '../../execution/PromptResult';
 import { computeUsageCounts } from '../../execution/utils/computeUsageCounts';
 import { uncertainNumber } from '../../execution/utils/uncertainNumber';
 import type { Prompt } from '../../types/Prompt';
-import type { string_date_iso8601 } from '../../types/typeAliases';
-import type { string_model_name } from '../../types/typeAliases';
+import type { string_date_iso8601, string_model_name } from '../../types/typeAliases';
 import { getCurrentIsoDate } from '../../utils/getCurrentIsoDate';
-import { just } from '../../utils/just';
 import type { AnthropicClaudeExecutionToolsOptions } from './AnthropicClaudeExecutionToolsOptions';
 import { ANTHROPIC_CLAUDE_MODELS } from './anthropic-claude-models';
 
@@ -114,16 +109,12 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools {
         };
     }
 
-    /**
-     * Calls Anthropic Claude API to use a complete model.
-     */
+    /*
+    TODO: [👏]
     public async callCompletionModel(
         prompt: Pick<Prompt, 'content' | 'modelRequirements'>,
     ): Promise<PromptCompletionResult> {
-        just(prompt);
-        throw new Error('Anthropic complation models are not implemented to Promptbook yet [👏]');
-        /*
-        TODO: [👏]
+    
         if (this.options.isVerbose) {
             console.info('🖋 Anthropic Claude callCompletionModel call');
         }
@@ -185,8 +176,10 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools {
             rawResponse,
             // <- [🤹‍♂️]
         };
-        */
     }
+    */
+
+    // <- [🤖] callXxxModel
 
     /**
      * Get the model that should be used as default
@@ -216,6 +209,8 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools {
     private getDefaultChatModel(): AvailableModel {
         return this.getDefaultModel('claude-3-opus');
     }
+
+    // <- [🤖] getDefaultXxxModel
 
     /**
      * List all available Anthropic Claude models that can be used

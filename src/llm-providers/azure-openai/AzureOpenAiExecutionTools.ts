@@ -198,6 +198,8 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools {
         }
     }
 
+    // <- [🤖] callXxxModel
+
     /**
      * Changes Azure error (which is not propper Error but object) to propper Error
      */

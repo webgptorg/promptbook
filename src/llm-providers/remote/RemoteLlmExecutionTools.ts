@@ -65,6 +65,8 @@ export class RemoteLlmExecutionTools implements LlmExecutionTools {
         return /* not await */ this.callModelCommon(prompt);
     }
 
+    // <- [🤖] callXxxModel
+
     /**
      * Calls remote proxy server to use both completion or chat model.
      */

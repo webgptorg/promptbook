@@ -1,11 +1,11 @@
 import { describe, expect, it } from '@jest/globals';
 import { spaceTrim } from 'spacetrim';
-import { pipelineStringToJson } from '../../conversion/pipelineStringToJson';
-import { createPipelineExecutor } from '../../execution/createPipelineExecutor';
-import { CallbackInterfaceTools } from '../../knowledge/dialogs/callback/CallbackInterfaceTools';
-import type { PipelineString } from '../../types/PipelineString';
-import { PROMPTBOOK_VERSION } from '../../version';
-import { MockedEchoLlmExecutionTools } from './MockedEchoLlmExecutionTools';
+import { pipelineStringToJson } from '../../../conversion/pipelineStringToJson';
+import { createPipelineExecutor } from '../../../execution/createPipelineExecutor';
+import { CallbackInterfaceTools } from '../../../knowledge/dialogs/callback/CallbackInterfaceTools';
+import type { PipelineString } from '../../../types/PipelineString';
+import { PROMPTBOOK_VERSION } from '../../../version';
+import { MockedEchoLlmExecutionTools } from '../MockedEchoLlmExecutionTools';
 
 describe('createPipelineExecutor + MockedEchoLlmExecutionTools with sample chat prompt', () => {
     it('should work when every INPUT PARAMETER defined', async () => {
@@ -150,4 +150,5 @@ async function getPipelineExecutor() {
 
 /**
  * TODO: [🧠] What should be name of this test "MockedEchoExecutionTools.test.ts" or "createPipelineExecutor.test.ts"
+ * Note: [🤖] For each new model variant consider adding new testing unit like "faked-completion.test.ts", "mocked-chat.test.ts" and "mocked-completion.test.ts"
  */

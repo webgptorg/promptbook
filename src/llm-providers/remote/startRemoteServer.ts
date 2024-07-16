@@ -76,6 +76,9 @@ export function startRemoteServer(options: RemoteServerOptions): IDestroyable {
                     case 'COMPLETION':
                         promptResult = await executionToolsForClient.callCompletionModel(prompt);
                         break;
+
+                    // case [🤖]:
+
                     default:
                         throw new ExecutionError(`Unknown model variant "${prompt.modelRequirements.modelVariant}"`);
                 }

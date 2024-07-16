@@ -3,14 +3,10 @@ import OpenAI from 'openai';
 import spaceTrim from 'spacetrim';
 import { ExecutionError } from '../../errors/ExecutionError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
-import type { AvailableModel } from '../../execution/LlmExecutionTools';
-import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { PromptChatResult } from '../../execution/PromptResult';
-import type { PromptCompletionResult } from '../../execution/PromptResult';
-import type { PromptEmbeddingResult } from '../../execution/PromptResult';
+import type { AvailableModel, LlmExecutionTools } from '../../execution/LlmExecutionTools';
+import type { PromptChatResult, PromptCompletionResult, PromptEmbeddingResult } from '../../execution/PromptResult';
 import type { Prompt } from '../../types/Prompt';
-import type { string_date_iso8601 } from '../../types/typeAliases';
-import type { string_model_name } from '../../types/typeAliases';
+import type { string_date_iso8601, string_model_name } from '../../types/typeAliases';
 import { getCurrentIsoDate } from '../../utils/getCurrentIsoDate';
 import type { OpenAiExecutionToolsOptions } from './OpenAiExecutionToolsOptions';
 import { computeOpenaiUsage } from './computeOpenaiUsage';
@@ -189,10 +185,12 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
         };
     }
 
+    // <- [🤖] callXxxModel
+
     /**
      * Calls OpenAI API to use a embedding model
      */
-    public async embed(prompt: Pick<Prompt, 'content' | 'modelRequirements'>): Promise<PromptEmbeddingResult> {
+    public async callEmbeddingModel(prompt: Pick<Prompt, 'content' | 'modelRequirements'>): Promise<PromptEmbeddingResult> {
         if (this.options.isVerbose) {
             console.info('🖋 OpenAI embedding call', { prompt });
         }
@@ -291,6 +289,8 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
     private getDefaultEmbeddingModel(): AvailableModel {
         return this.getDefaultModel('text-embedding-3-large');
     }
+
+    // <- [🤖] getDefaultXxxModel
 
     /**
      * List all available OpenAI models that can be used

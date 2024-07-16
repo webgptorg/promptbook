@@ -1,8 +1,6 @@
 import type { CommonExecutionToolsOptions } from '../../execution/CommonExecutionToolsOptions';
-import type { AvailableModel } from '../../execution/LlmExecutionTools';
-import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { PromptChatResult } from '../../execution/PromptResult';
-import type { PromptCompletionResult } from '../../execution/PromptResult';
+import type { AvailableModel, LlmExecutionTools } from '../../execution/LlmExecutionTools';
+import type { PromptChatResult, PromptCompletionResult } from '../../execution/PromptResult';
 import { addUsage } from '../../execution/utils/addUsage';
 import type { Prompt } from '../../types/Prompt';
 import { getCurrentIsoDate } from '../../utils/getCurrentIsoDate';
@@ -61,6 +59,8 @@ export class MockedFackedLlmExecutionTools implements LlmExecutionTools {
         return this.callChatModel(prompt);
     }
 
+    // <- [🤖] callXxxModel
+
     /**
      * List all available fake-models that can be used
      */
@@ -76,6 +76,7 @@ export class MockedFackedLlmExecutionTools implements LlmExecutionTools {
                 modelName: 'mocked-echo',
                 modelVariant: 'COMPLETION',
             },
+            // <- [🤖]
         ];
     }
 }

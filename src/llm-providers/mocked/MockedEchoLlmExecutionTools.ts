@@ -71,6 +71,8 @@ export class MockedEchoLlmExecutionTools implements LlmExecutionTools {
         };
     }
 
+    // <- [🤖] callXxxModel
+
     /**
      * List all available mocked-models that can be used
      */
@@ -86,6 +88,7 @@ export class MockedEchoLlmExecutionTools implements LlmExecutionTools {
                 modelName: 'mocked-echo',
                 modelVariant: 'COMPLETION',
             },
+            // <- [🤖]
         ];
     }
 }

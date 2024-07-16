@@ -1,7 +1,7 @@
 import { describe, expect, it } from '@jest/globals';
-import { checkExpectations } from '../../execution/utils/checkExpectations';
-import type { Expectations } from '../../types/PipelineJson/PromptTemplateJson';
-import { $fakeTextToExpectations } from './fakeTextToExpectations';
+import { checkExpectations } from '../../../execution/utils/checkExpectations';
+import type { Expectations } from '../../../types/PipelineJson/PromptTemplateJson';
+import { $fakeTextToExpectations } from '../fakeTextToExpectations';
 
 describe('how $fakeTextToExpectations works', () => {
     it('should fake the text with characters expectation', () =>

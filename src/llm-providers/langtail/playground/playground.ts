@@ -61,5 +61,9 @@ async function playground() {
     console.info(chalk.bgGreen(' Completion: ') + chalk.green(promptResult.content));
     /**/
 
+    /*/
+    // <- Note: [🤖] Test here new model variant if needed 
+    /**/
+
     //========================================/
 }

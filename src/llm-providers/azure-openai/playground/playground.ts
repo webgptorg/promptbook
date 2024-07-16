@@ -68,5 +68,9 @@ async function playground() {
     // TODO: Test Embeddings in playground
     /**/
 
+    /*/
+    // <- Note: [🤖] Test here new model variant if needed 
+    /**/
+
     //========================================/
 }

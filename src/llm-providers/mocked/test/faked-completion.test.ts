@@ -1,22 +1,18 @@
 import { describe, expect, it } from '@jest/globals';
 import { spaceTrim } from 'spacetrim';
-import { pipelineStringToJson } from '../../conversion/pipelineStringToJson';
-import { createPipelineExecutor } from '../../execution/createPipelineExecutor';
-import { CallbackInterfaceTools } from '../../knowledge/dialogs/callback/CallbackInterfaceTools';
-import type { PipelineString } from '../../types/PipelineString';
-import { PROMPTBOOK_VERSION } from '../../version';
-import { MockedEchoLlmExecutionTools } from './MockedEchoLlmExecutionTools';
+import { pipelineStringToJson } from '../../../conversion/pipelineStringToJson';
+import { createPipelineExecutor } from '../../../execution/createPipelineExecutor';
+import { CallbackInterfaceTools } from '../../../knowledge/dialogs/callback/CallbackInterfaceTools';
+import type { PipelineString } from '../../../types/PipelineString';
+import { PROMPTBOOK_VERSION } from '../../../version';
+import { MockedFackedLlmExecutionTools } from '../MockedFackedLlmExecutionTools';
 
-describe('createPipelineExecutor + MockedEchoLlmExecutionTools with sample completion prompt', () => {
+describe('createPipelineExecutor + MockedFackedLlmExecutionTools with sample completion prompt', () => {
     it('should work when every INPUT PARAMETER defined', async () => {
         const pipelineExecutor = await getPipelineExecutor();
         expect(pipelineExecutor({ thing: 'a cup of coffee' }, () => {})).resolves.toMatchObject({
             outputParameters: {
-                response: spaceTrim(`
-                    One day I went to the shop and bought a cup of coffee.
-                    Now I have a cup of coffee.
-                    And so on...
-                `),
+                response: /.*/,
             },
         });
     });
@@ -88,13 +84,6 @@ describe('createPipelineExecutor + MockedEchoLlmExecutionTools with sample compl
             },
         });
     });
-
-    /*
-    TODO: [🧠] Should be this failing or not?
-    it('should fail when there is INPUT  PARAMETER extra', () => {
-        expect(pipelineExecutor({ thing: 'a cup of coffee', sound: 'Meow!' }, () => {})).rejects.toThrowError(/Parameter \{sound\} should not be defined/i);
-    });
-    */
 });
 
 async function getPipelineExecutor() {
@@ -113,6 +102,9 @@ async function getPipelineExecutor() {
 
             - MODEL VARIANT Completion
             - MODEL NAME \`gpt-3.5-turbo-instruct\`
+            - EXPECT MIN 2 LINES
+            - EXPECT MAX 5 LINES
+            - EXPECT MIN 10 WORDS
 
             \`\`\`
             One day I went to the shop and bought {thing}.
@@ -125,7 +117,7 @@ async function getPipelineExecutor() {
     const pipelineExecutor = createPipelineExecutor({
         pipeline,
         tools: {
-            llm: new MockedEchoLlmExecutionTools({ isVerbose: true }),
+            llm: new MockedFackedLlmExecutionTools({ isVerbose: true }),
             script: [],
             userInterface: new CallbackInterfaceTools({
                 isVerbose: true,
@@ -140,7 +132,3 @@ async function getPipelineExecutor() {
     });
     return pipelineExecutor;
 }
-
-/**
- * TODO: [🧠] What should be name of this test "MockedEchoExecutionTools.test.ts" or "createPipelineExecutor.test.ts"
- */
