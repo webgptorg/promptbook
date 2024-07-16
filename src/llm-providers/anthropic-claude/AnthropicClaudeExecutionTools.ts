@@ -179,7 +179,7 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools {
     }
     */
 
-    // <- [🤖] callXxxModel
+    // <- Note: [🤖] callXxxModel
 
     /**
      * Get the model that should be used as default
@@ -210,7 +210,7 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools {
         return this.getDefaultModel('claude-3-opus');
     }
 
-    // <- [🤖] getDefaultXxxModel
+    // <- Note: [🤖] getDefaultXxxModel
 
     /**
      * List all available Anthropic Claude models that can be used

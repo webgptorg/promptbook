@@ -185,12 +185,12 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
         };
     }
 
-    // <- [🤖] callXxxModel
-
     /**
      * Calls OpenAI API to use a embedding model
      */
-    public async callEmbeddingModel(prompt: Pick<Prompt, 'content' | 'modelRequirements'>): Promise<PromptEmbeddingResult> {
+    public async callEmbeddingModel(
+        prompt: Pick<Prompt, 'content' | 'modelRequirements'>,
+    ): Promise<PromptEmbeddingResult> {
         if (this.options.isVerbose) {
             console.info('🖋 OpenAI embedding call', { prompt });
         }
@@ -247,6 +247,8 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
         };
     }
 
+    // <- Note: [🤖] callXxxModel
+
     /**
      * Get the model that should be used as default
      */
@@ -290,7 +292,7 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
         return this.getDefaultModel('text-embedding-3-large');
     }
 
-    // <- [🤖] getDefaultXxxModel
+    // <- Note: [🤖] getDefaultXxxModel
 
     /**
      * List all available OpenAI models that can be used

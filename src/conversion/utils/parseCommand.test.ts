@@ -158,23 +158,38 @@ describe('how parseCommand works', () => {
             key: 'modelVariant',
             value: 'COMPLETION',
         });
-        expect(parseCommand('MODEL VARIANT Completion   ')).toEqual({
-            type: 'MODEL',
-            key: 'modelVariant',
-            value: 'COMPLETION',
-        });
+
         expect(parseCommand('MODEL VARIANT Chat')).toEqual({
             type: 'MODEL',
             key: 'modelVariant',
             value: 'CHAT',
         });
+
+        expect(parseCommand('MODEL VARIANT Completion   ')).toEqual({
+            type: 'MODEL',
+            key: 'modelVariant',
+            value: 'COMPLETION',
+        });
+
+        expect(parseCommand('MODEL VARIANT Embed')).toEqual({
+            type: 'MODEL',
+            key: 'modelVariant',
+            value: 'EMBEDDING',
+        });
+
+        expect(parseCommand('MODEL VARIANT Embedding')).toEqual({
+            type: 'MODEL',
+            key: 'modelVariant',
+            value: 'EMBEDDING',
+        });
+
+        // <- Note: [🤖]
+
         expect(parseCommand('MODEL VARIANT `CHAT`')).toEqual({
             type: 'MODEL',
             key: 'modelVariant',
             value: 'CHAT',
         });
-
-        // <- [🤖]
 
         expect(parseCommand('MODEL NAME gpt-4-1106-preview')).toEqual({
             type: 'MODEL',

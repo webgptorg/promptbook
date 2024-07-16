@@ -71,10 +71,27 @@ export function startRemoteServer(options: RemoteServerOptions): IDestroyable {
                 let promptResult: PromptResult;
                 switch (prompt.modelRequirements.modelVariant) {
                     case 'CHAT':
+                        if (executionToolsForClient.callChatModel === undefined) {
+                            // Note: [0] This check should not be a thing
+                            throw new ExecutionError(`Chat model is not available`);
+                        }
                         promptResult = await executionToolsForClient.callChatModel(prompt);
                         break;
+
                     case 'COMPLETION':
+                        if (executionToolsForClient.callCompletionModel === undefined) {
+                            // Note: [0] This check should not be a thing
+                            throw new ExecutionError(`Completion model is not available`);
+                        }
                         promptResult = await executionToolsForClient.callCompletionModel(prompt);
+                        break;
+
+                    case 'EMBEDDING':
+                        if (executionToolsForClient.callEmbeddingModel === undefined) {
+                            // Note: [0] This check should not be a thing
+                            throw new ExecutionError(`Embedding model is not available`);
+                        }
+                        promptResult = await executionToolsForClient.callEmbeddingModel(prompt);
                         break;
 
                     // case [🤖]:
@@ -138,4 +155,5 @@ export function startRemoteServer(options: RemoteServerOptions): IDestroyable {
  * TODO: [🤹‍♂️] Do not hang up immediately but wait until client closes OR timeout
  * TODO: [🤹‍♂️] Timeout on chat to free up resources
  * TODO: [🃏] Pass here some security token to prevent malitious usage and/or DDoS
+ * TODO: [0] Set unavailable models as undefined in `RemoteLlmExecutionTools` NOT throw error here
  */

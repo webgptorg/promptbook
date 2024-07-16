@@ -1,10 +1,12 @@
 import type { Socket } from 'socket.io-client';
 import { io } from 'socket.io-client';
-import type { AvailableModel } from '../../execution/LlmExecutionTools';
-import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { PromptChatResult } from '../../execution/PromptResult';
-import type { PromptCompletionResult } from '../../execution/PromptResult';
-import type { PromptResult } from '../../execution/PromptResult';
+import type { AvailableModel, LlmExecutionTools } from '../../execution/LlmExecutionTools';
+import type {
+    PromptChatResult,
+    PromptCompletionResult,
+    PromptEmbeddingResult,
+    PromptResult,
+} from '../../execution/PromptResult';
 import type { Prompt } from '../../types/Prompt';
 import type { RemoteLlmExecutionToolsOptions } from './RemoteLlmExecutionToolsOptions';
 import type { Promptbook_Server_Error } from './interfaces/Promptbook_Server_Error';
@@ -46,29 +48,39 @@ export class RemoteLlmExecutionTools implements LlmExecutionTools {
     }
 
     /**
-     * Calls remote proxy server to use a chat model.
+     * Calls remote proxy server to use a chat model
      */
     public callChatModel(prompt: Prompt): Promise<PromptChatResult> {
         if (this.options.isVerbose) {
             console.info(`🖋 Remote callChatModel call`);
         }
-        return /* not await */ this.callModelCommon(prompt);
+        return /* not await */ this.callModelCommon(prompt) as Promise<PromptChatResult>;
     }
 
     /**
-     * Calls remote proxy server to use a completion model.
+     * Calls remote proxy server to use a completion model
      */
     public callCompletionModel(prompt: Prompt): Promise<PromptCompletionResult> {
         if (this.options.isVerbose) {
             console.info(`💬 Remote callCompletionModel call`);
         }
-        return /* not await */ this.callModelCommon(prompt);
+        return /* not await */ this.callModelCommon(prompt) as Promise<PromptCompletionResult>;
     }
 
-    // <- [🤖] callXxxModel
+    /**
+     * Calls remote proxy server to use a embedding model
+     */
+    public callEmbeddingModel(prompt: Prompt): Promise<PromptEmbeddingResult> {
+        if (this.options.isVerbose) {
+            console.info(`💬 Remote callEmbeddingModel call`);
+        }
+        return /* not await */ this.callModelCommon(prompt) as Promise<PromptEmbeddingResult>;
+    }
+
+    // <- Note: [🤖] callXxxModel
 
     /**
-     * Calls remote proxy server to use both completion or chat model.
+     * Calls remote proxy server to use both completion or chat model
      */
     private async callModelCommon(prompt: Prompt): Promise<PromptResult> {
         const socket = await this.makeConnection();

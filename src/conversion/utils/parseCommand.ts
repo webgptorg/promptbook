@@ -175,7 +175,7 @@ export function parseCommand(listItem: string_markdown_text): Command {
                     key: 'modelVariant',
                     value: 'COMPLETION',
                 } satisfies ModelCommand;
-                // <- [🤖]
+                // <- Note: [🤖]
             } else {
                 throw new SyntaxError(
                     spaceTrim(
