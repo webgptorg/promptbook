@@ -29,7 +29,7 @@ import { CallbackInterfaceTools } from '../knowledge/dialogs/callback/CallbackIn
 import type { CallbackInterfaceToolsOptions } from '../knowledge/dialogs/callback/CallbackInterfaceToolsOptions';
 import { SimplePromptInterfaceTools } from '../knowledge/dialogs/simple-prompt/SimplePromptInterfaceTools';
 import { prepareKnowledgeFromMarkdown } from '../knowledge/prepare-knowledge/markdown/prepareKnowledgeFromMarkdown';
-import { MultipleLlmExecutionTools } from '../llm-providers/multiple/MultipleLlmExecutionTools';
+import { joinLlmExecutionTools } from '../llm-providers/multiple/joinLlmExecutionTools';
 import { ExecutionTypes } from '../types/ExecutionTypes';
 import type { ExecutionReportStringOptions } from '../types/execution-report/ExecutionReportStringOptions';
 import { ExecutionReportStringOptionsDefaults } from '../types/execution-report/ExecutionReportStringOptions';
@@ -73,7 +73,7 @@ export { SimplePromptInterfaceTools };
 export { pipelineJsonToString, pipelineStringToJson, pipelineStringToJsonSync, validatePipeline };
 
 // @promptbook/executor
-export { createPipelineExecutor, MultipleLlmExecutionTools };
+export { createPipelineExecutor, joinLlmExecutionTools };
 
 // @promptbook/callback-prompt
 export { CallbackInterfaceTools, CallbackInterfaceToolsOptions };

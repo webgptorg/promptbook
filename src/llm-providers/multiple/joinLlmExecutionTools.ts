@@ -6,6 +6,13 @@ import type { PromptCompletionResult } from '../../execution/PromptResult';
 import type { PromptResult } from '../../execution/PromptResult';
 import type { Prompt } from '../../types/Prompt';
 
+
+
+
+function joinLlmExecutionTools()
+
+
+
 /**
  * Multiple LLM Execution Tools is a proxy server that uses multiple execution tools internally and exposes the executor interface externally.
  *

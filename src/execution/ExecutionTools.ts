@@ -11,10 +11,10 @@ export type ExecutionTools = {
     /**
      * Tools for executing prompts to large language models like GPT-4
      *
-     * Tip: Combine multiple LLM execution tools with `MultipleLlmExecutionTools`
+     * Tip: Combine multiple LLM execution tools - use array of LlmExecutionTools instead of single LlmExecutionTools
      * @see https://github.com/webgptorg/promptbook/?tab=readme-ov-file#llm-execution-tools
      */
-    llm: LlmExecutionTools;
+    llm: Arrayable<LlmExecutionTools>;
 
     /**
      * Tools for executing scripts

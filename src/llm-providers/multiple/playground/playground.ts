@@ -5,10 +5,11 @@ import * as dotenv from 'dotenv';
 dotenv.config({ path: '.env' });
 
 import chalk from 'colors';
+import { JavascriptExecutionTools } from '../../../scripting/javascript/JavascriptExecutionTools';
 import { AnthropicClaudeExecutionTools } from '../../anthropic-claude/AnthropicClaudeExecutionTools';
 import { AzureOpenAiExecutionTools } from '../../azure-openai/AzureOpenAiExecutionTools';
+import { joinLlmExecutionTools } from '../../multiple/joinLlmExecutionTools';
 import { OpenAiExecutionTools } from '../../openai/OpenAiExecutionTools';
-import { MultipleLlmExecutionTools } from '../MultipleLlmExecutionTools';
 
 playground()
     .catch((error) => {
@@ -26,27 +27,29 @@ async function playground() {
     // Do here stuff you want to test
     //========================================>
 
-    const tools = new MultipleLlmExecutionTools(
-        new OpenAiExecutionTools({
-            isVerbose: true,
-            apiKey: process.env.OPENAI_API_KEY!,
-        }),
-        new AnthropicClaudeExecutionTools({
-            isVerbose: true,
-            apiKey: process.env.ANTHROPIC_CLAUDE_API_KEY!,
-        }),
-        new AzureOpenAiExecutionTools({
-            isVerbose: true,
-            resourceName: process.env.AZUREOPENAI_RESOURCE_NAME!,
-            deploymentName: process.env.AZUREOPENAI_DEPLOYMENT_NAME!,
-            apiKey: process.env.AZUREOPENAI_API_KEY!,
-        }),
-
-        // TODO: [🦻] Add langtail
-    );
+    const tools = {
+        llm: [
+            new OpenAiExecutionTools({
+                isVerbose: true,
+                apiKey: process.env.OPENAI_API_KEY!,
+            }),
+            new AnthropicClaudeExecutionTools({
+                isVerbose: true,
+                apiKey: process.env.ANTHROPIC_CLAUDE_API_KEY!,
+            }),
+            new AzureOpenAiExecutionTools({
+                isVerbose: true,
+                resourceName: process.env.AZUREOPENAI_RESOURCE_NAME!,
+                deploymentName: process.env.AZUREOPENAI_DEPLOYMENT_NAME!,
+                apiKey: process.env.AZUREOPENAI_API_KEY!,
+            }),
+            // TODO: [🦻] Add langtail
+        ],
+        script: [new JavascriptExecutionTools()],
+    };
 
     /**/
-    const models = await tools.listModels();
+    const models = await joinLlmExecutionTools(tools.llm).listModels();
     console.info({ models });
     /**/
 
