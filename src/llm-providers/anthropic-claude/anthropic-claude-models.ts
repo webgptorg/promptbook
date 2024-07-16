@@ -76,6 +76,7 @@ export const ANTHROPIC_CLAUDE_MODELS: Array<
 ];
 
 /**
+ * TODO: [🤖] Add models of new variant
  * TODO: !!!! Add embedding models OR Anthropic has only chat+completion models?
  * TODO: [🧠] Some mechanism to propagate unsureness
  * TODO: [🧠][👮‍♀️] Put here more info like description, isVision, trainingDateCutoff, languages, strengths (	Top-level performance, intelligence, fluency, and understanding), contextWindow,...
