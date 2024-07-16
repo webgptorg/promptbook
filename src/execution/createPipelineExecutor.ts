@@ -1,12 +1,12 @@
 import { spaceTrim } from 'spacetrim';
 import type { Promisable } from 'type-fest';
-import { joinLlmExecutionTools } from '../_packages/core.index';
 import { LOOP_LIMIT } from '../config';
 import { validatePipeline } from '../conversion/validation/validatePipeline';
 import { ExecutionError } from '../errors/ExecutionError';
 import { UnexpectedError } from '../errors/UnexpectedError';
 import { ExpectError } from '../errors/_ExpectError';
 import { isValidJsonString } from '../formats/json/utils/isValidJsonString';
+import { joinLlmExecutionTools } from '../llm-providers/multiple/joinLlmExecutionTools';
 import type { PipelineJson } from '../types/PipelineJson/PipelineJson';
 import type { PromptTemplateJson } from '../types/PipelineJson/PromptTemplateJson';
 import type { Prompt } from '../types/Prompt';
