@@ -59,15 +59,15 @@ async function generateSampleJsons({ isCommited }: { isCommited: boolean }) {
             // TODO: !!!! Remove mocked
             new MockedFackedLlmExecutionTools({ isVerbose }),
             /*
-          new AnthropicClaudeExecutionTools({
-              isVerbose,
-              apiKey: process.env.ANTHROPIC_CLAUDE_API_KEY!,
-          }),
-          new OpenAiExecutionTools({
-              isVerbose,
-              apiKey: process.env.OPENAI_API_KEY!,
-          }),
-          */
+            new AnthropicClaudeExecutionTools({
+                isVerbose,
+                apiKey: process.env.ANTHROPIC_CLAUDE_API_KEY!,
+            }),
+            new OpenAiExecutionTools({
+                isVerbose,
+                apiKey: process.env.OPENAI_API_KEY!,
+            }),
+            */
         );
 
         try {
