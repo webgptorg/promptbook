@@ -1,18 +1,6 @@
 import { spaceTrim } from 'spacetrim';
 import { SyntaxError } from '../../errors/SyntaxError';
-import type {
-    Command,
-    ExecuteCommand,
-    ExpectAmountCommand,
-    ExpectCommand,
-    ExpectFormatCommand,
-    JokerCommand,
-    ModelCommand,
-    ParameterCommand,
-    PostprocessCommand,
-    PromptbookUrlCommand,
-    PromptbookVersionCommand,
-} from '../../types/Command';
+import type { Command, ExpectAmountCommand } from '../../types/Command';
 import { ExecutionTypes } from '../../types/ExecutionTypes';
 import { MODEL_VARIANTS } from '../../types/ModelRequirements';
 import { EXPECTATION_UNITS } from '../../types/PipelineJson/PromptTemplateJson';
