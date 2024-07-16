@@ -17,7 +17,10 @@ import { arrayableToArray } from '../utils/arrayableToArray';
 import { PROMPTBOOK_VERSION } from '../version';
 import type { ExecutionTools } from './ExecutionTools';
 import type { PipelineExecutor } from './PipelineExecutor';
-import type { PromptChatResult, PromptCompletionResult, PromptEmbeddingResult, PromptResult } from './PromptResult';
+import type { PromptChatResult } from './PromptResult';
+import type { PromptCompletionResult } from './PromptResult';
+import type { PromptEmbeddingResult } from './PromptResult';
+import type { PromptResult } from './PromptResult';
 import { addUsage } from './utils/addUsage';
 import { checkExpectations } from './utils/checkExpectations';
 import { replaceParameters } from './utils/replaceParameters';
@@ -318,7 +321,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                             scriptExecutionErrors = [];
                             let postprocessingError = null;
 
-                            scripts: for (const scriptTools of  arrayableToArray(tools.script)) {
+                            scripts: for (const scriptTools of arrayableToArray(tools.script)) {
                                 try {
                                     resultString = await scriptTools.execute({
                                         scriptLanguage: `javascript` /* <- TODO: Try it in each languages; In future allow postprocessing with arbitrary combination of languages to combine */,
