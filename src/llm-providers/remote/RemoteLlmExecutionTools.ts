@@ -8,6 +8,7 @@ import type {
     PromptResult,
 } from '../../execution/PromptResult';
 import type { Prompt } from '../../types/Prompt';
+import { string_markdown, string_markdown_text, string_title } from '../../types/typeAliases';
 import type { RemoteLlmExecutionToolsOptions } from './RemoteLlmExecutionToolsOptions';
 import type { Promptbook_Server_Error } from './interfaces/Promptbook_Server_Error';
 import type { Promptbook_Server_Request } from './interfaces/Promptbook_Server_Request';
@@ -23,6 +24,15 @@ import type { Promptbook_Server_Response } from './interfaces/Promptbook_Server_
  */
 export class RemoteLlmExecutionTools implements LlmExecutionTools {
     public constructor(private readonly options: RemoteLlmExecutionToolsOptions) {}
+
+    public get title(): string_title & string_markdown_text {
+        // TODO: [🧠] Maybe fetch title+description from the remote server (as well as if model methods are defined)
+        return 'Remote server';
+    }
+
+    public get description(): string_markdown {
+        return 'Use all models by your remote server';
+    }
 
     /**
      * Creates a connection to the remote proxy server.

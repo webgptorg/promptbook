@@ -4,6 +4,7 @@ import type { AvailableModel, LlmExecutionTools } from '../../execution/LlmExecu
 import type { PromptChatResult, PromptCompletionResult } from '../../execution/PromptResult';
 import { addUsage } from '../../execution/utils/addUsage';
 import type { Prompt } from '../../types/Prompt';
+import type { string_markdown, string_markdown_text, string_title } from '../../types/typeAliases';
 import { getCurrentIsoDate } from '../../utils/getCurrentIsoDate';
 
 /**
@@ -11,6 +12,14 @@ import { getCurrentIsoDate } from '../../utils/getCurrentIsoDate';
  */
 export class MockedEchoLlmExecutionTools implements LlmExecutionTools {
     public constructor(private readonly options: CommonExecutionToolsOptions = {}) {}
+
+    public get title(): string_title & string_markdown_text {
+        return 'Mocked echo';
+    }
+
+    public get description(): string_markdown {
+        return 'What you say is whay you get - just for testing';
+    }
 
     /**
      * Mocks chat model

@@ -6,7 +6,7 @@ import type { PromptChatResult, PromptCompletionResult, PromptResultUsage } from
 import { computeUsageCounts } from '../../execution/utils/computeUsageCounts';
 import { uncertainNumber } from '../../execution/utils/uncertainNumber';
 import type { Prompt } from '../../types/Prompt';
-import type { string_date_iso8601 } from '../../types/typeAliases';
+import type { string_date_iso8601, string_markdown, string_markdown_text, string_title } from '../../types/typeAliases';
 import { getCurrentIsoDate } from '../../utils/getCurrentIsoDate';
 import { OPENAI_MODELS } from '../openai/openai-models';
 import type { AzureOpenAiExecutionToolsOptions } from './AzureOpenAiExecutionToolsOptions';
@@ -30,6 +30,14 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools {
             `https://${options.resourceName}.openai.azure.com/`,
             new AzureKeyCredential(options.apiKey),
         );
+    }
+
+    public get title(): string_title & string_markdown_text {
+        return 'Azure OpenAI';
+    }
+
+    public get description(): string_markdown {
+        return 'Use all models trained by OpenAI provided by Azure';
     }
 
     /**

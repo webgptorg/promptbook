@@ -9,7 +9,13 @@ import type { PromptChatResult, PromptResultUsage } from '../../execution/Prompt
 import { computeUsageCounts } from '../../execution/utils/computeUsageCounts';
 import { uncertainNumber } from '../../execution/utils/uncertainNumber';
 import type { Prompt } from '../../types/Prompt';
-import type { string_date_iso8601, string_model_name } from '../../types/typeAliases';
+import type {
+    string_date_iso8601,
+    string_markdown,
+    string_markdown_text,
+    string_model_name,
+    string_title,
+} from '../../types/typeAliases';
 import { getCurrentIsoDate } from '../../utils/getCurrentIsoDate';
 import type { AnthropicClaudeExecutionToolsOptions } from './AnthropicClaudeExecutionToolsOptions';
 import { ANTHROPIC_CLAUDE_MODELS } from './anthropic-claude-models';
@@ -33,6 +39,14 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools {
         const anthropicOptions = { ...options };
         delete anthropicOptions.isVerbose;
         this.client = new Anthropic(anthropicOptions);
+    }
+
+    public get title(): string_title & string_markdown_text {
+        return 'Anthropic Claude';
+    }
+
+    public get description(): string_markdown {
+        return 'Use all models provided by Anthropic Claude';
     }
 
     /**
@@ -114,7 +128,7 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools {
     public async callCompletionModel(
         prompt: Pick<Prompt, 'content' | 'modelRequirements'>,
     ): Promise<PromptCompletionResult> {
-    
+
         if (this.options.isVerbose) {
             console.info('🖋 Anthropic Claude callCompletionModel call');
         }

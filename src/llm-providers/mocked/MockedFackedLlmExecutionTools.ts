@@ -4,6 +4,7 @@ import type { AvailableModel, LlmExecutionTools } from '../../execution/LlmExecu
 import type { PromptChatResult, PromptCompletionResult, PromptEmbeddingResult } from '../../execution/PromptResult';
 import { addUsage } from '../../execution/utils/addUsage';
 import type { Prompt } from '../../types/Prompt';
+import type { string_markdown, string_markdown_text, string_title } from '../../types/typeAliases';
 import { getCurrentIsoDate } from '../../utils/getCurrentIsoDate';
 import { just } from '../../utils/just';
 import { $fakeTextToExpectations } from './fakeTextToExpectations';
@@ -13,6 +14,14 @@ import { $fakeTextToExpectations } from './fakeTextToExpectations';
  */
 export class MockedFackedLlmExecutionTools implements LlmExecutionTools {
     public constructor(private readonly options: CommonExecutionToolsOptions = {}) {}
+
+    public get title(): string_title & string_markdown_text {
+        return 'Mocked facked';
+    }
+
+    public get description(): string_markdown {
+        return 'Use faked lorem ipsum data - just for testing';
+    }
 
     /**
      * Fakes chat model

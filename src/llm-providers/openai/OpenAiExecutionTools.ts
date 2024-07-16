@@ -6,7 +6,13 @@ import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { AvailableModel, LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import type { PromptChatResult, PromptCompletionResult, PromptEmbeddingResult } from '../../execution/PromptResult';
 import type { Prompt } from '../../types/Prompt';
-import type { string_date_iso8601, string_model_name } from '../../types/typeAliases';
+import type {
+    string_date_iso8601,
+    string_markdown,
+    string_markdown_text,
+    string_model_name,
+    string_title,
+} from '../../types/typeAliases';
 import { getCurrentIsoDate } from '../../utils/getCurrentIsoDate';
 import type { OpenAiExecutionToolsOptions } from './OpenAiExecutionToolsOptions';
 import { computeOpenaiUsage } from './computeOpenaiUsage';
@@ -34,6 +40,14 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
         this.client = new OpenAI({
             ...openAiOptions,
         });
+    }
+
+    public get title(): string_title & string_markdown_text {
+        return 'OpenAI';
+    }
+
+    public get description(): string_markdown {
+        return 'Use all models provided by OpenAI';
     }
 
     /**
