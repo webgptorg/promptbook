@@ -5,11 +5,12 @@ import * as dotenv from 'dotenv';
 dotenv.config({ path: '.env' });
 
 import chalk from 'colors';
+import { embeddingVectorToString } from '../../../execution/embeddingVectorToString';
 import { JavascriptExecutionTools } from '../../../scripting/javascript/JavascriptExecutionTools';
 import { AnthropicClaudeExecutionTools } from '../../anthropic-claude/AnthropicClaudeExecutionTools';
 import { AzureOpenAiExecutionTools } from '../../azure-openai/AzureOpenAiExecutionTools';
-import { joinLlmExecutionTools } from '../joinLlmExecutionTools';
 import { OpenAiExecutionTools } from '../../openai/OpenAiExecutionTools';
+import { joinLlmExecutionTools } from '../joinLlmExecutionTools';
 
 playground()
     .catch((error) => {
@@ -47,9 +48,11 @@ async function playground() {
         ],
         script: [new JavascriptExecutionTools()],
     };
+    const llmTools = joinLlmExecutionTools(...tools.llm);
 
     /**/
-    const models = await joinLlmExecutionTools(...tools.llm).listModels();
+    const models = await llmTools.listModels();
+    console.info(llmTools.title, llmTools.description);
     console.info({ models });
     /**/
 
@@ -86,8 +89,21 @@ async function playground() {
     // TODO: Test Translations in playground
     /**/
 
-    /*/
-    // TODO: Test Embeddings in playground
+    /**/
+    const prompt = {
+        title: 'Embedding Prompt',
+        content: `Hello, my name is Alice.`,
+        modelRequirements: {
+            modelVariant: 'EMBEDDING',
+            // modelName: 'text-embedding-ada-002',
+        },
+        pipelineUrl: '',
+        parameters: {},
+    } as const;
+    const promptResult = await llmTools.callEmbeddingModel(prompt);
+    console.info({ promptResult });
+    console.info(chalk.bgBlue(' User: ') + chalk.blue(prompt.content));
+    console.info(chalk.bgGreen(' Embedding: ') + chalk.green(embeddingVectorToString(promptResult.content)));
     /**/
 
     /*/

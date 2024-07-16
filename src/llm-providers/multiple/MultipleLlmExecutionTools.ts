@@ -1,16 +1,15 @@
 import spaceTrim from 'spacetrim';
 import { ExecutionError } from '../../errors/ExecutionError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
-import type { AvailableModel } from '../../execution/LlmExecutionTools';
-import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { PromptChatResult } from '../../execution/PromptResult';
-import type { PromptCompletionResult } from '../../execution/PromptResult';
-import type { PromptEmbeddingResult } from '../../execution/PromptResult';
-import type { PromptResult } from '../../execution/PromptResult';
+import type { AvailableModel, LlmExecutionTools } from '../../execution/LlmExecutionTools';
+import type {
+    PromptChatResult,
+    PromptCompletionResult,
+    PromptEmbeddingResult,
+    PromptResult,
+} from '../../execution/PromptResult';
 import type { Prompt } from '../../types/Prompt';
-import type { string_markdown } from '../../types/typeAliases';
-import type { string_markdown_text } from '../../types/typeAliases';
-import type { string_title } from '../../types/typeAliases';
+import type { string_markdown, string_markdown_text, string_title } from '../../types/typeAliases';
 
 /**
  * Multiple LLM Execution Tools is a proxy server that uses multiple execution tools internally and exposes the executor interface externally.
@@ -36,7 +35,9 @@ export class MultipleLlmExecutionTools implements LlmExecutionTools {
     }
 
     public get description(): string_markdown {
-        return this.llmExecutionTools.map((tools) => `- ${tools.title} ${tools.description || ''}`).join('\n');
+        return this.llmExecutionTools
+            .map((tools, index) => `${index + 1}) ${tools.title} ${tools.description || ''}`)
+            .join('\n');
     }
 
     /**
