@@ -161,3 +161,7 @@ export class MultipleLlmExecutionTools implements LlmExecutionTools {
         return availableModels;
     }
 }
+
+/**
+ * TODO: [🧠][🎛] Aggregating multiple models - have result not only from one first aviable model BUT all of them
+ */

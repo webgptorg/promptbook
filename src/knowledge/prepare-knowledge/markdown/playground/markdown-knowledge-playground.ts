@@ -8,6 +8,8 @@ import chalk from 'colors';
 import { readFile, writeFile } from 'fs/promises';
 import { join } from 'path';
 import { AnthropicClaudeExecutionTools } from '../../../../llm-providers/anthropic-claude/AnthropicClaudeExecutionTools';
+import { joinLlmExecutionTools } from '../../../../llm-providers/multiple/joinLlmExecutionTools';
+import { OpenAiExecutionTools } from '../../../../llm-providers/openai/OpenAiExecutionTools';
 import { prepareKnowledgeFromMarkdown } from '../prepareKnowledgeFromMarkdown';
 
 const isVerbose = true;
@@ -33,10 +35,17 @@ async function playground() {
         'utf-8',
     );
 
-    const llmTools = new AnthropicClaudeExecutionTools({
-        isVerbose,
-        apiKey: process.env.ANTHROPIC_CLAUDE_API_KEY!,
-    });
+    // TODO: !!!! getLlmExecutionToolsFromEnvironment
+    const llmTools = joinLlmExecutionTools(
+        new AnthropicClaudeExecutionTools({
+            isVerbose,
+            apiKey: process.env.ANTHROPIC_CLAUDE_API_KEY!,
+        }),
+        new OpenAiExecutionTools({
+            isVerbose: true,
+            apiKey: process.env.OPENAI_API_KEY!,
+        }),
+    );
 
     const knowledge = await prepareKnowledgeFromMarkdown({
         content,

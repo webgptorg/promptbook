@@ -24,11 +24,13 @@ export function joinLlmExecutionTools(...llmExecutionTools: Array<LlmExecutionTo
             Technically, it's not an error, but it's probably not what you want because it does not make sense to use Promptbook without language models.
         `);
 
+        // TODO: [🟥] Detect browser / node and make it colorfull
         console.warn(warningMessage);
 
         /*
         return {
             async listModels() {
+                // TODO: [🟥] Detect browser / node and make it colorfull
                 console.warn(
                     spaceTrim(
                         (block) => `

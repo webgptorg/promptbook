@@ -156,6 +156,7 @@ export async function createCollectionFromDirectory(
                     throw new CollectionError(wrappedErrorMessage);
                 }
 
+                 // TODO: [🟥] Detect browser / node and make it colorfull
                 console.error(wrappedErrorMessage);
             }
         }

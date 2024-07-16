@@ -26,6 +26,8 @@ type PrepareKnowledgeFromMarkdownOptions = {
 
     /**
      * The LLM tools to use for the conversion and extraction of knowledge
+     *
+     * Note: If you want to use multiple LLMs, you can use `joinLlmExecutionTools` to join them first
      */
     llmTools: LlmExecutionTools;
 
@@ -86,6 +88,7 @@ export async function prepareKnowledgeFromMarkdown(
     }
 
     const knowledge = await Promise.all(
+        // TODO: !!! Do not send all at once but in chunks
         knowledgeTextPieces.map(async (knowledgeTextPiece, i) => {
             // Note: Theese are just default values, they will be overwritten by the actual values:
             let name: string_name = `piece-${i}`;
@@ -117,14 +120,30 @@ export async function prepareKnowledgeFromMarkdown(
                 // ---
 
                 // TODO: !!!! Index through LLM model
+                if (!llmTools.callEmbeddingModel) {
+                    // TODO: [🟥] Detect browser / node and make it colorfull
+                    console.error('No callEmbeddingModel function provided');
+                } else {
+                    // TODO: [🧠][🎛] Embedding via multiple models
 
-                index.push({
-                    modelName: 'fake-model',
-                    position: new Array(25).fill(0).map(() => Math.random() * 2 - 1),
-                });
+                    const embeddingResult = await llmTools.callEmbeddingModel({
+                        title: `Embedding for ${title}` /* <- Note: No impact on embedding result itself, just for logging */,
+                        parameters: {},
+                        content,
+                        modelRequirements: {
+                            modelVariant: 'EMBEDDING',
+                        },
+                    });
+
+                    index.push({
+                        modelName: embeddingResult.modelName,
+                        position: embeddingResult.content,
+                    });
+                }
 
                 // TODO: [🖖] !!!! Make system for sources and identification of sources
             } catch (error) {
+                // TODO: [🟥] Detect browser / node and make it colorfull
                 console.error(error);
             }
 

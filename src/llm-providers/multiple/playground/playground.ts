@@ -76,7 +76,6 @@ async function playground() {
             // modelName: 'foo',
             modelVariant: 'CHAT',
         },
-        pipelineUrl: '',
         parameters: {},
     } as const;
     const promptResult = await executionTools.callChatModel(prompt);
@@ -97,7 +96,6 @@ async function playground() {
             modelVariant: 'EMBEDDING',
             // modelName: 'text-embedding-ada-002',
         },
-        pipelineUrl: '',
         parameters: {},
     } as const;
     const promptResult = await llmTools.callEmbeddingModel(prompt);
