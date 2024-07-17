@@ -2,6 +2,9 @@ TODO: [🧠] Figure out less simmilar word for "single", "simple" and "sample"
 TODO: [🧠] Do not allow model in header of promptbook
 TODO: [🧠] Do not allow invalid model command like "MODEL MODEL Chat"
 TODO: [🧠] Mermaid graphs are messy in .ptbk.md files - figure out better solution
+TODO: [🧠] There should be no need to explicitly insert {context} into templates
+TODO: Allow external knowledge from documents and websites @see `27-document-knowledge.ptbk.md` and `28-external-knowledge.ptbk.md`
+TODO: Use here mostly personas and in special cases explicit model variant and names and in superspecial cases override temperature etc...
 TODO: There should be some mechanism when using SIMPLE template with samples that can detect impossible samples acording to template
 TODO: !!! Remove  prefixes from all the promptbook URLs here
 TODO: !!! Make all the promptbook URLs unique

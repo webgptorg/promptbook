@@ -1,0 +1,27 @@
+# ✨ Sample: Knowledge in external document
+
+Show how to use knowledge
+
+-   PIPELINE URL https://promptbook.studio/samples/document-knowledge.ptbk.md
+-   PROMPTBOOK VERSION 1.0.0
+-   INPUT  PARAMETER `{eventName}` The event name
+-   OUTPUT PARAMETER `{bio}` Bio of Pavol Hejný - speaker at the event
+
+## Pavol Hejný
+
+-   KNOWLEDGE FROM ./27-document-knowledge.pdf
+
+## Writing bio
+
+-   EXPECT MIN 1 Sentence
+
+```markdown
+You are writing a bio for Pavol Hejný for the event {eventName}.
+
+## Context
+
+-   Write just the bio, nothing else.
+-   {context}
+```
+
+`-> {bio}`
