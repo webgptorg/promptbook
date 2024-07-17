@@ -1,3 +1,6 @@
+TODO: [🧠] Figure out less simmilar word for "single", "simple" and "sample"
+TODO: [🧠] Do not allow model in header of promptbook
+TODO: [🧠] Do not allow invalid model command like "MODEL MODEL Chat"
 TODO: !!! Remove  prefixes from all the promptbook URLs here
 TODO: !!! Make all the promptbook URLs unique
 TODO: !!! Relate the promptbook URLs to the promptbook.studio

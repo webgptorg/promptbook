@@ -45,6 +45,3 @@ Write synonym for "{word}"
 
 `-> {wordSynonym}`
 
-<!--
-TODO: [🧠] Figure out less simmilar word for "single", "simple" and "sample"
--->

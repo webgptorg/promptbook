@@ -47,7 +47,3 @@ Write poem with word "{word}"
 ```
 
 `-> {poem}`
-
-<!--
-TODO: [🧠] Figure out less simmilar word for "single", "simple" and "sample"
--->

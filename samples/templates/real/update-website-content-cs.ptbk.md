@@ -74,7 +74,7 @@ flowchart LR
 ## 🖋 Úpravy
 
 -   MODEL VARIANT Chat
--   MODEL NAME `gpt-4-1106-preview` <!-- <- TODO: !! The best model for this? -->
+-   MODEL NAME `gpt-4-1106-preview` <!-- <- TODO: Maybe best modal is Claude, but either case, Promptbook should pick the best one -->
 -   POSTPROCESSING `spaceTrim`
 
 ```
