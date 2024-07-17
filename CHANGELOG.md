@@ -384,6 +384,7 @@ Knowledge preparation
 -   `callChatModel` and `callCompletionModel` are not required to be implemented in `LlmExecutionTools` anymore
 -   Remove `MultipleLlmExecutionTools` and make `joinLlmExecutionTools` function
 -   You can pass simple array of `LlmExecutionTools` into `ExecutionTools` and it will be joined automatically via `joinLlmExecutionTools`
+-   Export `flattenMarkdownStructure`, `markdownToMarkdownStructure` and `MarkdownStructure` from `@promptbook/utils`
 
 ## In prepare
 

@@ -1,7 +1,5 @@
 /**
  * Represents the structure of a markdown file.
- *
- * @private within the package
  */
 export type MarkdownStructure = {
     /**

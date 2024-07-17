@@ -5,8 +5,7 @@ import type { ParameterCommand } from '../types/Command';
 import type { ExecutionType } from '../types/ExecutionTypes';
 import type { ModelRequirements } from '../types/ModelRequirements';
 import type { PipelineJson } from '../types/PipelineJson/PipelineJson';
-import type { ExpectationUnit } from '../types/PipelineJson/PromptTemplateJson';
-import type { PromptTemplateJson } from '../types/PipelineJson/PromptTemplateJson';
+import type { ExpectationUnit, PromptTemplateJson } from '../types/PipelineJson/PromptTemplateJson';
 import type { PromptTemplateParameterJson } from '../types/PipelineJson/PromptTemplateParameterJson';
 import type { PipelineString } from '../types/PipelineString';
 import type { ScriptLanguage } from '../types/ScriptLanguage';
@@ -62,8 +61,8 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
     ) as PipelineString;
 
     // =============================================================
-    ///Note: 2️⃣ Function for adding parameters
-    const addParam = (parameterCommand: Omit<ParameterCommand, 'type'>) => {
+    ///Note: 2️⃣ Function for defining parameters
+    const defineParam = (parameterCommand: Omit<ParameterCommand, 'type'>) => {
         const { parameterName, parameterDescription, isInput, isOutput } = parameterCommand;
 
         const existingParameter = pipelineJson.parameters.find(
@@ -105,14 +104,15 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
     };
 
     // =============================================================
-    // Note: 3️⃣ Parse the dynamic part - the pipeline
+    // Note: 3️⃣ Parse each segment of the pipeline
     const markdownStructure = markdownToMarkdownStructure(pipelineString);
     const markdownStructureDeepness = countMarkdownStructureDeepness(markdownStructure);
 
     if (markdownStructureDeepness !== 2) {
         throw new SyntaxError(
             spaceTrim(`
-                Invalid markdown structure.
+                Invalid markdown structure of the promptbook.
+
                 The markdown must have exactly 2 levels of headings (one top-level section and one section for each template).
                 Now it has ${markdownStructureDeepness} levels of headings.
             `),
@@ -153,7 +153,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
                 break;
 
             case 'PARAMETER':
-                addParam(command);
+                defineParam(command);
                 break;
 
             default:
@@ -200,7 +200,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
 
                 case 'PARAMETER':
                     // Note: This is just for detecting resulitng parameter name
-                    addParam(command);
+                    defineParam(command);
                     break;
                 case 'POSTPROCESS':
                     postprocessing.push(command.functionName);

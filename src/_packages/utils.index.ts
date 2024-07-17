@@ -18,6 +18,9 @@ import { countSentences, splitIntoSentences } from '../utils/expectation-counter
 import { countWords } from '../utils/expectation-counters/countWords';
 import { CountUtils } from '../utils/expectation-counters/index';
 import { extractParameters } from '../utils/extractParameters';
+import type { MarkdownStructure } from '../utils/markdown-json/MarkdownStructure';
+import { flattenMarkdownStructure } from '../utils/markdown-json/flattenMarkdownStructure.test';
+import { markdownToMarkdownStructure } from '../utils/markdown-json/markdownToMarkdownStructure';
 import { extractAllBlocksFromMarkdown } from '../utils/markdown/extractAllBlocksFromMarkdown';
 import { extractAllListItemsFromMarkdown } from '../utils/markdown/extractAllListItemsFromMarkdown';
 import { extractOneBlockFromMarkdown } from '../utils/markdown/extractOneBlockFromMarkdown';
@@ -52,7 +55,7 @@ import { unwrapResult } from '../utils/unwrapResult';
 import { PROMPTBOOK_VERSION } from '../version';
 
 // Note: Exporting version from each package
-export { PROMPTBOOK_VERSION, forEachAsync };
+export { forEachAsync, PROMPTBOOK_VERSION };
 
 // TODO: [🌻] For all, decide if theese are internal or external
 export {
@@ -75,7 +78,7 @@ export {
     unwrapResult,
 };
 
-export { CountUtils, countCharacters, countLines, countPages, countParagraphs, countSentences, countWords };
+export { countCharacters, countLines, countPages, countParagraphs, countSentences, CountUtils, countWords };
 
 export { splitIntoSentences };
 
@@ -92,20 +95,20 @@ export const normalizeTo = {
 };
 
 export {
-    DIACRITIC_VARIANTS_LETTERS,
-    IKeywords,
     capitalize,
     decapitalize,
+    DIACRITIC_VARIANTS_LETTERS,
+    IKeywords,
     isValidKeyword,
     nameToUriPart,
     nameToUriParts,
-    normalizeToKebabCase,
-    normalizeTo_PascalCase,
-    normalizeTo_SCREAMING_CASE,
     // [🕙] normalizeTo_lowercase,
     // [🕙] normalizeTo_UPPERCASE,
     normalizeTo_camelCase,
+    normalizeTo_PascalCase,
+    normalizeTo_SCREAMING_CASE,
     normalizeTo_snake_case,
+    normalizeToKebabCase,
     normalizeWhitespaces,
     parseKeywords,
     parseKeywordsFromString,
@@ -115,12 +118,16 @@ export {
     titleToName,
 };
 
+// @promptbook/markdown-utils
+export { flattenMarkdownStructure, markdownToMarkdownStructure };
+export type { MarkdownStructure };
+
 // Promptbook
 export { extractParametersFromPromptTemplate, renameParameter, renderPromptbookMermaid };
 
 export { difference, intersection, union };
 
 /**
- * TODO: [🧠] Maybe create some indipendent package like `markdown-tools` from both here exported and @private utilities
+ * TODO: [🧠] Maybe create some indipendent package like `@promptbook/markdown-utils`
  * Note: [🕙] It does not make sence to have simple lower / UPPER case normalization
  */

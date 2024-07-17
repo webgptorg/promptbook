@@ -57,4 +57,40 @@ describe('validatePipeline', () => {
             validatePipeline(pipelineJson);
         }).rejects.toThrowError(/circular dependencies/i);
     });
+
+    it('should fail when provided sample dont passes the expectations', () => {
+        expect(async () => {
+            const pipelineString = importPipeline('errors/logic/sample-dont-pass-expectations.ptbk.md');
+            const pipelineJson = await pipelineStringToJson(pipelineString);
+            validatePipeline(pipelineJson);
+        }).rejects.toThrowError(/xxxxxx/i);
+    });
+
+    it('should fail when there is unused parameter', () => {
+        expect(async () => {
+            const pipelineString = importPipeline('errors/logic/unused-parameter.ptbk.md');
+            const pipelineJson = await pipelineStringToJson(pipelineString);
+            validatePipeline(pipelineJson);
+        }).rejects.toThrowError(/xxxxxx/i);
+    });
+
+    it('should fail when there is void knowledge', () => {
+        expect(async () => {
+            const pipelineString = importPipeline('errors/logic/void-knowledge.ptbk.md');
+            const pipelineJson = await pipelineStringToJson(pipelineString);
+            validatePipeline(pipelineJson);
+        }).rejects.toThrowError(/xxxxxx/i);
+    });
+
+    it('should fail when there is wrong expectations', () => {
+        expect(async () => {
+            const pipelineString = importPipeline('errors/logic/wrong-expectations.ptbk.md');
+            const pipelineJson = await pipelineStringToJson(pipelineString);
+            validatePipeline(pipelineJson);
+        }).rejects.toThrowError(/xxxxxx/i);
+    });
 });
+
+/**
+ * TODO: Include automatically all samples from logic errors folder (same with syntax errors)
+ */
