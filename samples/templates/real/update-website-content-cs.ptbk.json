@@ -1,6 +1,6 @@
 {
     "title": "🌍 Aktualizace obsahu webu",
-    "pipelineUrl": "https://webgpt.cz/promptbook/update-website-content-cs.ptbk.md",
+    "pipelineUrl": "https://webgpt.cz/promptbook-collection/update-website-content-cs.ptbk.md",
     "promptbookVersion": "0.39.*",
     "description": "Instrukce pro úpravu obsahu webové stránky za pomocí [📖 Promptbook](https://github.com/webgptorg/promptbook).",
     "parameters": [

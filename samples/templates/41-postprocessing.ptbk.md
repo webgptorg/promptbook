@@ -2,8 +2,6 @@
 
 -   PIPELINE URL https://promptbook.studio/samples/postprocessing-2.ptbk.md
 -   PROMPTBOOK VERSION 1.0.0
--   MODEL VARIANT Chat
--   MODEL NAME `gpt-3.5-turbo`
 -   INPUT  PARAMETER {yourName} Name of the hero
 -   OUTPUT PARAMETER `{greeting}`
 
@@ -45,4 +43,24 @@ flowchart LR
 Hello {yourName}!
 ```
 
--> {greeting}
+`-> {greeting}`
+
+### Sample 1
+
+-   SAMPLE
+
+```text
+NHOJ OLLEH
+```
+
+`-> {greeting}`
+
+### Sample 2
+
+-   SAMPLE
+
+```text
+HSOJ IH
+```
+
+`-> {greeting}`

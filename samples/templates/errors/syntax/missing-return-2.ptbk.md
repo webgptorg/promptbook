@@ -11,4 +11,4 @@ Sample of wrong promptbookthat does not wrap the return parameter in a block.
 Hello
 ```
 
--> greeting
+`-> greeting`

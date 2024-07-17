@@ -4,8 +4,6 @@ Show how to put codeblocks in the prompt _(which is already in the codeblock)_
 
 -   PIPELINE URL https://promptbook.studio/samples/escaping.ptbk.md
 -   PROMPTBOOK VERSION 1.0.0
--   MODEL VARIANT Chat
--   MODEL NAME `gpt-3.5-turbo`
 -   OUTPUT PARAMETER `{greeting}`
 
 <!--Graph-->

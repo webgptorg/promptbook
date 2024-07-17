@@ -4,7 +4,6 @@ Trying the language capabilities of GPT models.
 
 -   PIPELINE URL https://promptbook.studio/samples/json-mode.ptbk.md
 -   PROMPTBOOK VERSION 1.0.0
--   MODEL VARIANT Chat
 -   INPUT  PARAM `{unstructuredContacts}` nestrukturovaný seznam kontaktních údajů
 -   OUTPUT PARAM `{contactlist}` JSON seznam kontaktních údajů
 

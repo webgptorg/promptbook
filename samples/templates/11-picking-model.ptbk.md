@@ -47,3 +47,23 @@ Write poem with word "{word}"
 ```
 
 `-> {poem}`
+
+### Simple poem
+
+-   SAMPLE
+
+```text
+Roses are red, violets are blue, sugar is sweet, and so are you.
+```
+
+`-> {poem}`
+
+### Complex poem
+
+-   SAMPLE
+
+```text
+The sun is shining, the birds are singing, the flowers are blooming, and the world is smiling.
+```
+
+`-> {poem}`

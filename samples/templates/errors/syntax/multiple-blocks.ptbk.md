@@ -15,4 +15,4 @@ Hello
 Hello
 ```
 
--> {greeting}
+`-> {greeting}`

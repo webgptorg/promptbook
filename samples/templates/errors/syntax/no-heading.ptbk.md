@@ -11,4 +11,4 @@ Sample of wrong promptbookthat lacks a structure
 Hello
 ```
 
--> {greeting}
+`-> {greeting}`

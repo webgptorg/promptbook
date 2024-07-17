@@ -2,8 +2,8 @@
 
 Instrukce pro napsání úvodník do městského časopisu za pomocí [📖 Promptbook](https://github.com/webgptorg/promptbook).
 
--   PIPELINE URL https://webgpt.cz/promptbook/ruka/web.ptbk.md
--   PROMPTBOOK VERSION 0.20.0
+-   PIPELINE URL https://webgpt.cz/promptbook-collection/ruka/web.ptbk.md
+-   PROMPTBOOK VERSION 1.0.0
 -   Input param `{inputText}` Vstupní text
 -   Output param `{outputText}` Text emailu
 
@@ -75,7 +75,7 @@ Vyčisti email pro další zpracování
 
 ```
 
--> `{inputTextCleaned}`
+`-> {inputTextCleaned}`
 
 ## Název webu
 
@@ -101,7 +101,7 @@ Jsi zkušený copywrighter a dostal jsi zakázku na vytvoření názvu pro nový
 
 ```
 
--> `{title}`
+`-> {title}`
 
 ## Domény
 
@@ -127,7 +127,7 @@ Tak to vypadá zadání webu, Řiď se primárně názvem webu "{title}", avšak
 
 ```
 
--> `{domainsCommaSeparated}`
+`-> {domainsCommaSeparated}`
 
 ## Domény
 
@@ -137,7 +137,7 @@ Tak to vypadá zadání webu, Řiď se primárně názvem webu "{title}", avšak
 domainsCommaSeparated.split(',').join('\n');
 ```
 
--> `{domains}`
+`-> {domains}`
 
 ## Zadání
 
@@ -164,7 +164,7 @@ Jsi zkušený webový vývojář a dostal jsi zakázku na vytvoření nového we
 
 ```
 
--> `{assignment}`
+`-> {assignment}`
 
 ## Email
 

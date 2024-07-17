@@ -15,7 +15,7 @@ This prompt is invalid because it is declared in a language that is not supporte
 Hello;
 ```
 
--> {greeting}
+`-> {greeting}`
 
 <!--
 TODO: [🧠] This is maybe logic error NOT syntax error?

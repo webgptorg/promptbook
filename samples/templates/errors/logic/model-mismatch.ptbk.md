@@ -4,8 +4,6 @@ Show how to pick exact model
 
 -   PIPELINE URL https://promptbook.studio/samples/model-mismatch.ptbk.md
 -   PROMPTBOOK VERSION 1.0.0
--   MODEL VARIANT Chat
--   MODEL NAME `gpt-3.5-turbo`
 -   INPUT  PARAMETER `{word}` Any single word
 -   OUTPUT PARAMETER `{poem}`
 

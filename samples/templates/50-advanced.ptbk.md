@@ -106,6 +106,16 @@ Write sentence with "{word}" and "{wordSynonym}" in it
 
 `-> {sentenceWithTwoSynonyms}` Sentence with word and wordSynonym
 
+### Sample of sentence with word and wordSynonym
+
+-   SAMPLE
+
+```text
+I was happy and you were joyful!
+```
+
+`-> {sentenceWithTwoSynonyms}`
+
 ## 💬 Sentence without original word
 
 Sentence "{sentenceWithTwoSynonyms}" without "{word}".
@@ -161,6 +171,18 @@ Write a short comparison of the meaning of the two sentences, writing a maximum 
 You have entered a word **{word}**. For this word the best synonym is **{wordSynonym}**. The sentence with both words is **{sentenceWithTwoSynonyms}**. The sentence without the original word is **{sentenceWithOriginalWordRemoved}**. And the comparison between the two sentences is:
 
 > {comparisonOfTwoSentences}
+```
+
+`-> {summary}`
+
+### Sample of summary
+
+-   EXAMPLE
+
+```markdown
+You have entered a word **happy**. For this word the best synonym is **joyful**. The sentence with both words is **I was happy and you were joyful!**. The sentence without the original word is **I was and you were joyful!**. And the comparison between the two sentences is:
+
+> The sentence with both words is more expressive than the sentence without the original word.
 ```
 
 `-> {summary}`

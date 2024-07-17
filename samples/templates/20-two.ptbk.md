@@ -58,3 +58,23 @@ Write sentence with "{word}" and "{wordSynonym}" in it
 ```
 
 `-> {sentenceWithTwoSynonyms}`
+
+### Simple sentence
+
+-   SAMPLE
+
+```text
+The quick brown fox jumps over the lazy dog
+```
+
+`-> {sentenceWithTwoSynonyms}`
+
+### Dynamic sentence
+
+-   SAMPLE
+
+```text
+The brown {word} jumps over the lazy {word}
+```
+
+`-> {sentenceWithTwoSynonyms}`

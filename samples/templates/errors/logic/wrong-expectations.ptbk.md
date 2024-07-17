@@ -2,8 +2,6 @@
 
 -   PIPELINE URL https://promptbook.studio/samples/jokers.ptbk.md
 -   PROMPTBOOK VERSION 1.0.0
--   MODEL VARIANT Chat
--   MODEL NAME `gpt-3.5-turbo`
 -   OUTPUT PARAMETER `{name}`
 
 ## 💬 Question
@@ -16,4 +14,4 @@ Expecting 0 words does not make sense.
 Write some name for hero
 ```
 
--> {name}
+`-> {name}`

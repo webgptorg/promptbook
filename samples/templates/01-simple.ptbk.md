@@ -4,7 +4,7 @@ Show how to use a simple prompt with no parameters.
 
 -   PIPELINE URL https://promptbook.studio/samples/simple.ptbk.md
 -   PROMPTBOOK VERSION 1.0.0
--   OUTPUT PARAMETER `{greeting}`
+-   OUTPUT PARAMETER `{greetingResponse}`
 
 <!--Graph-->
 <!-- ⚠️ WARNING: This section was auto-generated -->
@@ -39,5 +39,34 @@ flowchart LR
 Hello
 ```
 
-`-> {greeting}`
+`-> {greetingResponse}`
 
+### Normal response
+
+-   SAMPLE
+
+```text
+Hello, how are you?
+```
+
+`-> {greetingResponse}`
+
+### Formal response
+
+-   SAMPLE
+
+```text
+Dear Sir, how may I help you?
+```
+
+`-> {greetingResponse}`
+
+### Informal response
+
+-   SAMPLE
+
+```text
+Hey, what's up?
+```
+
+`-> {greetingResponse}`

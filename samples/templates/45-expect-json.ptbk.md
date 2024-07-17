@@ -58,4 +58,18 @@ Dark horse hopping over the fence.
 \`\`\`json
 ```
 
--> {parsedSentence}
+`-> {parsedSentence}`
+
+### Sample
+
+Sample must pass the expectations
+
+-   SAMPLE
+
+```json
+{
+    "subject": "dog",
+    "action": "running",
+    "object": "park"
+}
+```

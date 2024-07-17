@@ -4,10 +4,8 @@ Show how to use two consecutive prompts with one parameter each.
 
 -   PIPELINE URL https://promptbook.studio/samples/postprocessing-1.ptbk.md
 -   PROMPTBOOK VERSION 1.0.0
--   MODEL VARIANT Chat
--   MODEL NAME `gpt-3.5-turbo`
 -   INPUT  PARAMETER `{word}` Any single word
--   OUTPUT PARAMETER `{sentenceWithTwoSynonyms}`
+-   OUTPUT PARAMETER `{sentence}` Resulting sentence with two synonyms
 
 <!--Graph-->
 <!-- ⚠️ WARNING: This section was auto-generated -->
@@ -41,6 +39,26 @@ flowchart LR
 
 <!--/Graph-->
 
+### Sample 1
+
+-   SAMPLE
+
+```text
+Happy
+```
+
+`-> {word}`
+
+### Sample 2
+
+-   SAMPLE
+
+```text
+Apple
+```
+
+`-> {word}`
+
 ## 💬 Synonym
 
 Synonym for word
@@ -49,6 +67,26 @@ Synonym for word
 
 ```text
 Write synonym for "{word}"
+```
+
+`-> {wordSynonym}`
+
+### Sample 1
+
+-   SAMPLE
+
+```text
+Joyful
+```
+
+`-> {wordSynonym}`
+
+### Sample 2
+
+-   SAMPLE
+
+```text
+Fruit
 ```
 
 `-> {wordSynonym}`
@@ -64,4 +102,24 @@ Sentence with word and wordSynonym
 Write sentence with "{word}" and "{wordSynonym}" in it
 ```
 
-`-> {sentenceWithTwoSynonyms}`
+`-> {sentence}`
+
+### Sample 1
+
+-   SAMPLE
+
+```text
+I am very happy to see you and joyful to meet you.
+```
+
+`-> {sentence}`
+
+### Sample 2
+
+-   SAMPLE
+
+```text
+An apple or another fruit a day keeps the doctor away.
+```
+
+`-> {sentence}`

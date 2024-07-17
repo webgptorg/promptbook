@@ -47,4 +47,14 @@ flowchart LR
 Hello {yourName}!
 ```
 
--> {greeting}
+`-> {greeting}`
+
+### Sample
+
+Sample must pass the expectations
+
+-   SAMPLE
+
+```text
+Hello John!
+```
