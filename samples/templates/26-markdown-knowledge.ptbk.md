@@ -34,9 +34,16 @@ I have a special heart for this, and I love **open source** – you can find m
 ```markdown
 You are writing a bio for Pavol Hejný for the event {eventName}.
 
-## Context
+## Rules
 
 -   Write just the bio, nothing else.
+-   Write in the third person.
+-   Bio is written in the present tense.
+-   Bio should be written for event named "{eventName}".
+-   Use markdown formatting.
+
+## Context
+
 -   {context}
 ```
 

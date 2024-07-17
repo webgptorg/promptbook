@@ -34,10 +34,57 @@ I have a special heart for this, and I love open source – you can find many of
 ```markdown
 You are writing a bio for Pavol Hejný for the event {eventName}.
 
-## Context
+## Rules
 
 -   Write just the bio, nothing else.
+-   Write in the third person.
+-   Bio is written in the present tense.
+-   Bio should be written for event named "{eventName}".
+-   Write plain text without any formatting (like markdown).
+
+## Context
+
 -   {context}
+```
+
+`-> {bio}`
+
+### Tech conference
+
+-   SAMPLE
+
+```text
+Pavol Hejný is a developer who is passionate about using new tools and technologies. He specialises in creating fully functional user applications using the latest artificial intelligence models. He is a member of the Ainautes consulting group, which supports with the deployment of generative AI around the world. He develops the WebGPT web page generation service. Before the massive emergence of generative AI, he has created the first Czech virtual whiteboard, Collboard, and electronic textbooks, H-edu, which were used by tens of thousands of children. He has also worked on many scientific projects for the Czech Ornithological Society. He regularly gives lectures at conferences, sits on juries, and acts as a mentor in many Czech and international competitions. He has a special heart for this, and he loves open source – you can find many of his things on his GitHub.
+```
+
+`-> {bio}`
+
+### Science conference
+
+-   SAMPLE
+
+```markdown
+Do you know Pavol Hejný? He is a developer who is passionate about using new tools and technologies. He specialises in creating fully functional user applications using the latest artificial intelligence models. He is a member of the Ainautes consulting group, which supports with the deployment of generative AI around the world. He develops the WebGPT web page generation service. Before the massive emergence of generative AI, he has created the first Czech virtual whiteboard, Collboard, and electronic textbooks, H-edu, which were used by tens of thousands of children. He has also worked on many scientific projects for the Czech Ornithological Society. He regularly gives lectures at conferences, sits on juries, and acts as a mentor in many Czech and international competitions. He has a special heart for this, and he loves open source – you can find many of his things on his GitHub.
+```
+
+`-> {bio}`
+
+### Business conference
+
+-   SAMPLE
+
+```markdown
+Mr. Hejný is a enterpreneur in information technology and large language models. He started his career as a developer and has been working in the field for over 10 years. He is a member of the Ainautes consulting group, which supports with the deployment of generative AI around the world. He develops the WebGPT web page generation service. Before the massive emergence of generative AI, he has created the first Czech virtual whiteboard, Collboard, and electronic textbooks, H-edu, which were used by tens of thousands of children. He has also worked on many scientific projects for the Czech Ornithological Society. He regularly gives lectures at conferences, sits on juries, and acts as a mentor in many Czech and international competitions. He has a special heart for this, and he loves open source – you can find many of his things on his GitHub.
+```
+
+`-> {bio}`
+
+### Rock concert
+
+-   SAMPLE
+
+```markdown
+Wanna hear something cool? Meet Pavol Hejný, a developer who is passionate about using new tools and technologies. He specialises in creating fully functional user applications using the latest artificial intelligence models. He will show you how to generate your own lyrics using new AI models.
 ```
 
 `-> {bio}`
