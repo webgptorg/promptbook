@@ -19,7 +19,7 @@ import { countWords } from '../utils/expectation-counters/countWords';
 import { CountUtils } from '../utils/expectation-counters/index';
 import { extractParameters } from '../utils/extractParameters';
 import type { MarkdownStructure } from '../utils/markdown-json/MarkdownStructure';
-import { flattenMarkdownStructure } from '../utils/markdown-json/flattenMarkdownStructure.test';
+import { flattenMarkdownStructure } from '../utils/markdown-json/flattenMarkdownStructure';
 import { markdownToMarkdownStructure } from '../utils/markdown-json/markdownToMarkdownStructure';
 import { extractAllBlocksFromMarkdown } from '../utils/markdown/extractAllBlocksFromMarkdown';
 import { extractAllListItemsFromMarkdown } from '../utils/markdown/extractAllListItemsFromMarkdown';
@@ -119,7 +119,7 @@ export {
 };
 
 // @promptbook/markdown-utils
-export { flattenMarkdownStructure, markdownToMarkdownStructure };
+export { flattenMarkdownStructure, markdownToMarkdownStructure /* <- TODO: [😵] */ };
 export type { MarkdownStructure };
 
 // Promptbook

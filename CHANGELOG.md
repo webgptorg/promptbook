@@ -380,6 +380,9 @@ Renaming and making names more consistent and less disambigous
 
 Knowledge preparation
 
+-   Allow deep structure (h3, h4,...) in `.ptbk.md` files
+-   Add `SAMPLE` command with notation for parameter samples to `.ptbk.md` files
+-   Add `KNOWLEDGE` command to `.ptbk.md` files
 -   Add `callEmbeddingModel` to `LlmExecutionTools`
 -   `callChatModel` and `callCompletionModel` are not required to be implemented in `LlmExecutionTools` anymore
 -   Remove `MultipleLlmExecutionTools` and make `joinLlmExecutionTools` function

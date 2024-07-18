@@ -10,7 +10,6 @@ import type { PromptTemplateParameterJson } from '../types/PipelineJson/PromptTe
 import type { PipelineString } from '../types/PipelineString';
 import type { ScriptLanguage } from '../types/ScriptLanguage';
 import { SUPPORTED_SCRIPT_LANGUAGES } from '../types/ScriptLanguage';
-import { countMarkdownStructureDeepness } from '../utils/markdown-json/countMarkdownStructureDeepness';
 import { markdownToMarkdownStructure } from '../utils/markdown-json/markdownToMarkdownStructure';
 import { extractAllListItemsFromMarkdown } from '../utils/markdown/extractAllListItemsFromMarkdown';
 import { extractOneBlockFromMarkdown } from '../utils/markdown/extractOneBlockFromMarkdown';
@@ -20,6 +19,7 @@ import { PROMPTBOOK_VERSION } from '../version';
 import { extractParametersFromPromptTemplate } from './utils/extractParametersFromPromptTemplate';
 import { parseCommand } from './utils/parseCommand';
 import { titleToName } from './utils/titleToName';
+import { flattenMarkdownStructure } from '../_packages/utils.index';
 
 /**
  * Compile promptbook from string (markdown) format to JSON format synchronously
@@ -105,19 +105,8 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
 
     // =============================================================
     // Note: 3️⃣ Parse each segment of the pipeline
-    const markdownStructure = markdownToMarkdownStructure(pipelineString);
-    const markdownStructureDeepness = countMarkdownStructureDeepness(markdownStructure);
-
-    if (markdownStructureDeepness !== 2) {
-        throw new SyntaxError(
-            spaceTrim(`
-                Invalid markdown structure of the promptbook.
-
-                The markdown must have exactly 2 levels of headings (one top-level section and one section for each template).
-                Now it has ${markdownStructureDeepness} levels of headings.
-            `),
-        );
-    }
+    const markdownStructureUnflatten = markdownToMarkdownStructure(pipelineString);
+    const markdownStructure = flattenMarkdownStructure(markdownStructureUnflatten);
 
     pipelineJson.title = markdownStructure.title;
 
