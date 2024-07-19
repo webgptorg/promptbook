@@ -1,16 +1,5 @@
 import { spaceTrim } from 'spacetrim';
 import { SyntaxError } from '../../errors/SyntaxError';
-import type { Command } from '../../types/Command';
-import type { ExecuteCommand } from '../../types/Command';
-import type { ExpectAmountCommand } from '../../types/Command';
-import type { ExpectCommand } from '../../types/Command';
-import type { ExpectFormatCommand } from '../../types/Command';
-import type { JokerCommand } from '../../types/Command';
-import type { ModelCommand } from '../../types/Command';
-import type { ParameterCommand } from '../../types/Command';
-import type { PostprocessCommand } from '../../types/Command';
-import type { PromptbookUrlCommand } from '../../types/Command';
-import type { PromptbookVersionCommand } from '../../types/Command';
 import { ExecutionTypes } from '../../types/ExecutionTypes';
 import { MODEL_VARIANTS } from '../../types/ModelRequirements';
 import { EXPECTATION_UNITS } from '../../types/PipelineJson/PromptTemplateJson';
@@ -18,6 +7,19 @@ import type { string_markdown_text } from '../../types/typeAliases';
 import { removeMarkdownFormatting } from '../../utils/markdown/removeMarkdownFormatting';
 import { normalizeTo_SCREAMING_CASE } from '../../utils/normalization/normalizeTo_SCREAMING_CASE';
 import { parseNumber } from './parseNumber';
+import type {
+    Command,
+    ExecuteCommand,
+    ExpectAmountCommand,
+    ExpectCommand,
+    ExpectFormatCommand,
+    JokerCommand,
+    ModelCommand,
+    ParameterCommand,
+    PostprocessCommand,
+    PromptbookUrlCommand,
+    PromptbookVersionCommand,
+} from './types/Command';
 
 /**
  * Parses one line of ul/ol to command
@@ -27,24 +29,24 @@ import { parseNumber } from './parseNumber';
  *
  * @private within the pipelineStringToJson
  */
-export function parseCommand(listItem: string_markdown_text): Command {
-    if (listItem.includes('\n') || listItem.includes('\r')) {
+export function parseCommand(raw: string_markdown_text): Command {
+    if (raw.includes('\n') || raw.includes('\r')) {
         throw new SyntaxError('Command can not contain new line characters:');
     }
 
-    let type = listItem.trim();
-    type = type.split('`').join('');
-    type = type.split('"').join('');
-    type = type.split("'").join('');
-    type = type.split('~').join('');
-    type = type.split('[').join('');
-    type = type.split(']').join('');
-    type = type.split('(').join('');
-    type = type.split(')').join('');
-    type = normalizeTo_SCREAMING_CASE(type);
-    type = type.split('DIALOGUE').join('DIALOG');
+    let normalized = raw.trim();
+    normalized = normalized.split('`').join('');
+    normalized = normalized.split('"').join('');
+    normalized = normalized.split("'").join('');
+    normalized = normalized.split('~').join('');
+    normalized = normalized.split('[').join('');
+    normalized = normalized.split(']').join('');
+    normalized = normalized.split('(').join('');
+    normalized = normalized.split(')').join('');
+    normalized = normalizeTo_SCREAMING_CASE(normalized);
+    normalized = normalized.split('DIALOGUE').join('DIALOG');
 
-    const listItemParts = listItem
+    const items = raw
         .split(' ')
         .map((part) => part.trim())
         .filter((item) => item !== '')
@@ -54,28 +56,28 @@ export function parseCommand(listItem: string_markdown_text): Command {
         .map(removeMarkdownFormatting);
 
     if (
-        type.startsWith('URL') ||
-        type.startsWith('PTBK_URL') ||
-        type.startsWith('PTBKURL') ||
-        type.startsWith('PIPELINE_URL') ||
-        type.startsWith('PIPELINEURL') ||
-        type.startsWith('PROMPTBOOK_URL') ||
-        type.startsWith('PROMPTBOOKURL') ||
-        type.startsWith('HTTPS')
+        normalized.startsWith('URL') ||
+        normalized.startsWith('PTBK_URL') ||
+        normalized.startsWith('PTBKURL') ||
+        normalized.startsWith('PIPELINE_URL') ||
+        normalized.startsWith('PIPELINEURL') ||
+        normalized.startsWith('PROMPTBOOK_URL') ||
+        normalized.startsWith('PROMPTBOOKURL') ||
+        normalized.startsWith('HTTPS')
     ) {
-        if (!(listItemParts.length === 2 || (listItemParts.length === 1 && type.startsWith('HTTPS')))) {
+        if (!(items.length === 2 || (items.length === 1 && normalized.startsWith('HTTPS')))) {
             throw new SyntaxError(
                 spaceTrim(
                     `
                         Invalid PIPELINE_URL command:
 
-                        - ${listItem}
+                        - ${raw}
                     `,
                 ),
             );
         }
 
-        const pipelineUrlString = listItemParts.pop()!;
+        const pipelineUrlString = items.pop()!;
         const pipelineUrl = new URL(pipelineUrlString);
 
         if (pipelineUrl.protocol !== 'https:') {
@@ -84,7 +86,7 @@ export function parseCommand(listItem: string_markdown_text): Command {
                     `
                         Invalid PIPELINE_URL command:
 
-                        - ${listItem}
+                        - ${raw}
 
                         Protocol must be HTTPS
                     `,
@@ -98,7 +100,7 @@ export function parseCommand(listItem: string_markdown_text): Command {
                     `
                         Invalid PIPELINE_URL command:
 
-                        - ${listItem}
+                        - ${raw}
 
                         URL must not contain hash
                         Hash is used for identification of the prompt template in the pipeline
@@ -111,20 +113,20 @@ export function parseCommand(listItem: string_markdown_text): Command {
             type: 'PIPELINE_URL',
             pipelineUrl,
         } satisfies PromptbookUrlCommand;
-    } else if (type.startsWith('PROMPTBOOK_VERSION') || type.startsWith('PTBK_VERSION')) {
-        if (listItemParts.length !== 2) {
+    } else if (normalized.startsWith('PROMPTBOOK_VERSION') || normalized.startsWith('PTBK_VERSION')) {
+        if (items.length !== 2) {
             throw new SyntaxError(
                 spaceTrim(
                     `
                         Invalid PROMPTBOOK_VERSION command:
 
-                        - ${listItem}
+                        - ${raw}
                     `,
                 ),
             );
         }
 
-        const promptbookVersion = listItemParts.pop()!;
+        const promptbookVersion = items.pop()!;
         // TODO: Validate version
 
         return {
@@ -132,12 +134,12 @@ export function parseCommand(listItem: string_markdown_text): Command {
             promptbookVersion,
         } satisfies PromptbookVersionCommand;
     } else if (
-        type.startsWith('EXECUTE') ||
-        type.startsWith('EXEC') ||
-        type.startsWith('PROMPT_DIALOG') ||
-        type.startsWith('SIMPLE_TEMPLATE')
+        normalized.startsWith('EXECUTE') ||
+        normalized.startsWith('EXEC') ||
+        normalized.startsWith('PROMPT_DIALOG') ||
+        normalized.startsWith('SIMPLE_TEMPLATE')
     ) {
-        const executionTypes = ExecutionTypes.filter((executionType) => type.includes(executionType));
+        const executionTypes = ExecutionTypes.filter((executionType) => normalized.includes(executionType));
 
         if (executionTypes.length !== 1) {
             throw new SyntaxError(
@@ -145,7 +147,7 @@ export function parseCommand(listItem: string_markdown_text): Command {
                     (block) => `
                         Unknown execution type in command:
 
-                        - ${listItem}
+                        - ${raw}
 
                         Supported execution types are:
                         ${block(ExecutionTypes.join(', '))}
@@ -158,16 +160,16 @@ export function parseCommand(listItem: string_markdown_text): Command {
             type: 'EXECUTE',
             executionType: executionTypes[0]!,
         } satisfies ExecuteCommand;
-    } else if (type.startsWith('MODEL')) {
+    } else if (normalized.startsWith('MODEL')) {
         // TODO: Make this more elegant and dynamically
-        if (type.startsWith('MODEL_VARIANT')) {
-            if (type === 'MODEL_VARIANT_CHAT') {
+        if (normalized.startsWith('MODEL_VARIANT')) {
+            if (normalized === 'MODEL_VARIANT_CHAT') {
                 return {
                     type: 'MODEL',
                     key: 'modelVariant',
                     value: 'CHAT',
                 } satisfies ModelCommand;
-            } else if (type === 'MODEL_VARIANT_COMPLETION') {
+            } else if (normalized === 'MODEL_VARIANT_COMPLETION') {
                 return {
                     type: 'MODEL',
                     key: 'modelVariant',
@@ -180,7 +182,7 @@ export function parseCommand(listItem: string_markdown_text): Command {
                         (block) => `
                             Unknown model variant in command:
 
-                            - ${listItem}
+                            - ${raw}
 
                             Supported variants are:
                             ${block(MODEL_VARIANTS.map((variantName) => `- ${variantName}`).join('\n'))}
@@ -189,11 +191,11 @@ export function parseCommand(listItem: string_markdown_text): Command {
                 );
             }
         }
-        if (type.startsWith('MODEL_NAME')) {
+        if (normalized.startsWith('MODEL_NAME')) {
             return {
                 type: 'MODEL',
                 key: 'modelName',
-                value: listItemParts.pop()!,
+                value: items.pop()!,
             } satisfies ModelCommand;
         } else {
             throw new SyntaxError(
@@ -201,7 +203,7 @@ export function parseCommand(listItem: string_markdown_text): Command {
                     (block) => `
                           Unknown model key in command:
 
-                          - ${listItem}
+                          - ${raw}
 
                           Supported model keys are:
                           ${block(['variant', 'name'].join(', '))}
@@ -215,15 +217,15 @@ export function parseCommand(listItem: string_markdown_text): Command {
             );
         }
     } else if (
-        type.startsWith('PARAM') ||
-        type.startsWith('INPUT_PARAM') ||
-        type.startsWith('OUTPUT_PARAM') ||
-        listItem.startsWith('{') ||
-        listItem.startsWith(
+        normalized.startsWith('PARAM') ||
+        normalized.startsWith('INPUT_PARAM') ||
+        normalized.startsWith('OUTPUT_PARAM') ||
+        raw.startsWith('{') ||
+        raw.startsWith(
             '> {',
         ) /* <- Note: This is a bit hack to parse return parameters defined at the end of each section */
     ) {
-        const parametersMatch = listItem.match(
+        const parametersMatch = raw.match(
             /\{(?<parameterName>[a-z0-9_]+)\}[^\S\r\n]*(?<parameterDescription>.*)$/im,
         );
 
@@ -233,7 +235,7 @@ export function parseCommand(listItem: string_markdown_text): Command {
                     `
                         Invalid parameter in command:
 
-                        - ${listItem}
+                        - ${raw}
                     `,
                 ),
             );
@@ -248,16 +250,16 @@ export function parseCommand(listItem: string_markdown_text): Command {
                     `
                         Parameter {${parameterName}} can not contain another parameter in description:
 
-                        - ${listItem}
+                        - ${raw}
                     `,
                 ),
             );
         }
 
-        let isInput = type.startsWith('INPUT');
-        let isOutput = type.startsWith('OUTPUT');
+        let isInput = normalized.startsWith('INPUT');
+        let isOutput = normalized.startsWith('OUTPUT');
 
-        if (listItem.startsWith('> {')) {
+        if (raw.startsWith('> {')) {
             isInput = false;
             isOutput = false;
         }
@@ -269,20 +271,20 @@ export function parseCommand(listItem: string_markdown_text): Command {
             isInput,
             isOutput,
         } satisfies ParameterCommand;
-    } else if (type.startsWith('JOKER')) {
-        if (listItemParts.length !== 2) {
+    } else if (normalized.startsWith('JOKER')) {
+        if (items.length !== 2) {
             throw new SyntaxError(
                 spaceTrim(
                     `
                 Invalid JOKER command:
 
-                - ${listItem}
+                - ${raw}
             `,
                 ),
             );
         }
 
-        const parametersMatch = (listItemParts.pop() || '').match(/^\{(?<parameterName>[a-z0-9_]+)\}$/im);
+        const parametersMatch = (items.pop() || '').match(/^\{(?<parameterName>[a-z0-9_]+)\}$/im);
 
         if (!parametersMatch || !parametersMatch.groups || !parametersMatch.groups.parameterName) {
             throw new SyntaxError(
@@ -290,7 +292,7 @@ export function parseCommand(listItem: string_markdown_text): Command {
                     `
                       Invalid parameter in command:
 
-                      - ${listItem}
+                      - ${raw}
                   `,
                 ),
             );
@@ -303,38 +305,38 @@ export function parseCommand(listItem: string_markdown_text): Command {
             type: 'JOKER',
             parameterName,
         } satisfies JokerCommand;
-    } else if (type.startsWith('POSTPROCESS') || type.startsWith('POST_PROCESS')) {
-        if (listItemParts.length !== 2) {
+    } else if (normalized.startsWith('POSTPROCESS') || normalized.startsWith('POST_PROCESS')) {
+        if (items.length !== 2) {
             throw new SyntaxError(
                 spaceTrim(
                     `
                 Invalid POSTPROCESSING command:
 
-                - ${listItem}
+                - ${raw}
             `,
                 ),
             );
         }
 
-        const functionName = listItemParts.pop()!;
+        const functionName = items.pop()!;
 
         return {
             type: 'POSTPROCESS',
             functionName,
         } satisfies PostprocessCommand;
-    } else if (type.startsWith('EXPECT_JSON')) {
+    } else if (normalized.startsWith('EXPECT_JSON')) {
         return {
             type: 'EXPECT_FORMAT',
             format: 'JSON',
         } satisfies ExpectFormatCommand;
 
         // [🥤]
-    } else if (type.startsWith('EXPECT')) {
+    } else if (normalized.startsWith('EXPECT')) {
         try {
-            listItemParts.shift();
+            items.shift();
 
             let sign: ExpectAmountCommand['sign'];
-            const signRaw = listItemParts.shift()!;
+            const signRaw = items.shift()!;
             if (/^exact/i.test(signRaw)) {
                 sign = 'EXACTLY';
             } else if (/^min/i.test(signRaw)) {
@@ -345,7 +347,7 @@ export function parseCommand(listItem: string_markdown_text): Command {
                 throw new SyntaxError(`Invalid sign "${signRaw}", expected EXACTLY, MIN or MAX`);
             }
 
-            const amountRaw = listItemParts.shift()!;
+            const amountRaw = items.shift()!;
             const amount = parseNumber(amountRaw);
             if (amount < 0) {
                 throw new SyntaxError('Amount must be positive number or zero');
@@ -354,7 +356,7 @@ export function parseCommand(listItem: string_markdown_text): Command {
                 throw new SyntaxError('Amount must be whole number');
             }
 
-            const unitRaw = listItemParts.shift()!;
+            const unitRaw = items.shift()!;
             let unit: ExpectAmountCommand['unit'] | undefined = undefined;
             for (const existingUnit of EXPECTATION_UNITS) {
                 let existingUnitText: string = existingUnit;
@@ -394,7 +396,7 @@ export function parseCommand(listItem: string_markdown_text): Command {
                     `
                   Invalid EXPECT command; ${error.message}:
 
-                  - ${listItem}
+                  - ${raw}
               `,
                 ),
             );
@@ -410,7 +412,7 @@ export function parseCommand(listItem: string_markdown_text): Command {
                 `
                     Unknown command:
 
-                    - ${listItem}
+                    - ${raw}
 
                     Supported commands are:
                     - PIPELINE_URL <url>

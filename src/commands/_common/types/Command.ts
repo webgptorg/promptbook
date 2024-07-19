@@ -1,10 +1,9 @@
-import type { ExecutionType } from './ExecutionTypes';
-import type { ModelRequirements } from './ModelRequirements';
-import type { ExpectationAmount } from './PipelineJson/PromptTemplateJson';
-import type { ExpectationUnit } from './PipelineJson/PromptTemplateJson';
-import type { string_markdown_text } from './typeAliases';
-import type { string_name } from './typeAliases';
-import type { string_version } from './typeAliases';
+import type { ExecutionType } from '../../../types/ExecutionTypes';
+import type { ModelRequirements } from '../../../types/ModelRequirements';
+import type { ExpectationAmount, ExpectationUnit } from '../../../types/PipelineJson/PromptTemplateJson';
+import type { string_markdown_text, string_name, string_version } from '../../../types/typeAliases';
+
+// TODO: !!!!! Make Command dynamically from index
 
 /**
  * Command is one piece of the prompt template which adds some logic to the prompt template or the whole pipeline.
@@ -42,14 +41,6 @@ export type PromptbookVersionCommand = {
     readonly promptbookVersion: string_version;
 };
 
-/**
- * Execute command tells how to execute the section
- * It can be either prompt template, script or SIMPLE TEMPLATE etc.
- */
-export type ExecuteCommand = {
-    readonly type: 'EXECUTE';
-    readonly executionType: ExecutionType;
-};
 
 /**
  * Model command tells which model and modelRequirements to use for the prompt template. execution

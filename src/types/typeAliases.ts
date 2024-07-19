@@ -103,6 +103,8 @@ export type string_char = string;
  */
 export type string_name = string;
 
+
+
 /**
  * Semantic helper
  * Title of anything

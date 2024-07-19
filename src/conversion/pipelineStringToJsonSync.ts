@@ -1,7 +1,9 @@
 import { spaceTrim } from 'spacetrim';
 import type { IterableElement, Writable, WritableDeep } from 'type-fest';
+import { flattenMarkdownStructure } from '../_packages/utils.index';
+import { parseCommand } from '../commands/_common/parseCommand';
+import type { ParameterCommand } from '../commands/_common/types/Command';
 import { SyntaxError } from '../errors/SyntaxError';
-import type { ParameterCommand } from '../types/Command';
 import type { ExecutionType } from '../types/ExecutionTypes';
 import type { ModelRequirements } from '../types/ModelRequirements';
 import type { PipelineJson } from '../types/PipelineJson/PipelineJson';
@@ -17,9 +19,7 @@ import { removeContentComments } from '../utils/markdown/removeContentComments';
 import { union } from '../utils/sets/union';
 import { PROMPTBOOK_VERSION } from '../version';
 import { extractParametersFromPromptTemplate } from './utils/extractParametersFromPromptTemplate';
-import { parseCommand } from '../commands/_common/parseCommand';
 import { titleToName } from './utils/titleToName';
-import { flattenMarkdownStructure } from '../_packages/utils.index';
 
 /**
  * Compile promptbook from string (markdown) format to JSON format synchronously
