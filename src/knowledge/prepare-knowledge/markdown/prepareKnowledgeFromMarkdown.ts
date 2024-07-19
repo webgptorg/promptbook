@@ -15,6 +15,7 @@ import type { string_model_name } from '../../../types/typeAliases';
 import type { string_name } from '../../../types/typeAliases';
 import type { string_keyword } from '../../../utils/normalization/IKeywords';
 import { normalizeToKebabCase } from '../../../utils/normalization/normalize-to-kebab-case';
+import { titleToName } from '../../../_packages/utils.index';
 
 type PrepareKnowledgeFromMarkdownOptions = {
     /**
@@ -113,7 +114,7 @@ export async function prepareKnowledgeFromMarkdown(
                 // TODO: [0] !!! Aggeregate usage
                 const { title: titleRaw = 'Untitled' } = titleResult.outputParameters;
                 title = spaceTrim(titleRaw) /* <- TODO: Maybe do in pipeline */;
-                name = normalizeToKebabCase(title);
+                name = titleToName(title);
 
                 // --- Keywords
                 const keywordsResult = await prepareKeywordsExecutor({ content });
