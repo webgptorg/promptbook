@@ -1,5 +1,5 @@
 import colors from 'colors';
-import type { Command } from 'commander';
+import type { Command as Program  /* <- Note: Using Program because Command is misleading name */} from 'commander';
 import { readFile, writeFile } from 'fs/promises';
 import glob from 'glob-promise';
 import spaceTrim from 'spacetrim';
@@ -11,7 +11,7 @@ import type { PipelineString } from '../../types/PipelineString';
  *
  * @private part of `promptbookCli`
  */
-export function initializePrettify(program: Command) {
+export function initializePrettifyCommand(program: Program) {
     const prettifyCommand = program.command('prettify');
     prettifyCommand.description(
         spaceTrim(`

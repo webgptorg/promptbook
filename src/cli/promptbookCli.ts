@@ -2,9 +2,9 @@ import commander from 'commander';
 import { spaceTrim } from 'spacetrim';
 import { isRunningInNode } from '../utils/isRunningInWhatever';
 import { PROMPTBOOK_VERSION } from '../version';
-import { initializeHello } from './actions/hello';
-import { initializeMake } from './actions/make';
-import { initializePrettify } from './actions/prettify';
+import { initializeHelloCommand } from './commands/hello';
+import { initializeMakeCommand } from './commands/make';
+import { initializePrettifyCommand } from './commands/prettify';
 
 /**
  * Runs CLI utilities of Promptbook package
@@ -30,9 +30,9 @@ export async function promptbookCli(): Promise<void> {
         `),
     );
 
-    initializeHello(program);
-    initializeMake(program);
-    initializePrettify(program);
+    initializeHelloCommand(program);
+    initializeMakeCommand(program);
+    initializePrettifyCommand(program);
 
     program.parse(process.argv);
 }

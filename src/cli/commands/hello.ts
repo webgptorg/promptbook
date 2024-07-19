@@ -1,5 +1,5 @@
 import colors from 'colors';
-import type { Command } from 'commander';
+import type { Command as Program /* <- Note: Using Program because Command is misleading name */ } from 'commander';
 import spaceTrim from 'spacetrim';
 import { forTime } from 'waitasecond';
 
@@ -8,7 +8,7 @@ import { forTime } from 'waitasecond';
  *
  * @private part of `promptbookCli`
  */
-export function initializeHello(program: Command) {
+export function initializeHelloCommand(program: Program) {
     const helloCommand = program.command('hello');
     helloCommand.description(
         spaceTrim(`

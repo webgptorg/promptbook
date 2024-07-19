@@ -1,16 +1,16 @@
 import colors from 'colors';
-import type { Command } from 'commander';
+import type { Command as Program /* <- Note: Using Program because Command is misleading name */ } from 'commander';
 import { mkdir, writeFile } from 'fs/promises';
 import { dirname, join } from 'path';
 import spaceTrim from 'spacetrim';
-import { AnthropicClaudeExecutionTools } from '../../llm-providers/anthropic-claude/AnthropicClaudeExecutionTools';
-import { joinLlmExecutionTools } from '../../llm-providers/multiple/joinLlmExecutionTools';
-import { MockedFackedLlmExecutionTools } from '../../llm-providers/mocked/MockedFackedLlmExecutionTools';
-import { OpenAiExecutionTools } from '../../llm-providers/openai/OpenAiExecutionTools';
 import { collectionToJson } from '../../collection/collectionToJson';
 import { createCollectionFromDirectory } from '../../collection/constructors/createCollectionFromDirectory';
 import { PIPELINE_COLLECTION_BASE_FILENAME } from '../../config';
 import { validatePipeline } from '../../conversion/validation/validatePipeline';
+import { AnthropicClaudeExecutionTools } from '../../llm-providers/anthropic-claude/AnthropicClaudeExecutionTools';
+import { MockedFackedLlmExecutionTools } from '../../llm-providers/mocked/MockedFackedLlmExecutionTools';
+import { joinLlmExecutionTools } from '../../llm-providers/multiple/joinLlmExecutionTools';
+import { OpenAiExecutionTools } from '../../llm-providers/openai/OpenAiExecutionTools';
 import type { string_file_extension } from '../../types/typeAliases';
 
 /**
@@ -18,7 +18,7 @@ import type { string_file_extension } from '../../types/typeAliases';
  *
  * @private part of `promptbookCli`
  */
-export function initializeMake(program: Command) {
+export function initializeMakeCommand(program: Program) {
     const helloCommand = program.command('make');
     helloCommand.description(
         spaceTrim(`
