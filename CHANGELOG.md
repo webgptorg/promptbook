@@ -388,6 +388,7 @@ Working external knowledge, preparation for instruments and actions
 -   Remove `MultipleLlmExecutionTools` and make `joinLlmExecutionTools` function
 -   You can pass simple array of `LlmExecutionTools` into `ExecutionTools` and it will be joined automatically via `joinLlmExecutionTools`
 -   Export `flattenMarkdownStructure`, `markdownToMarkdownStructure` and `MarkdownStructure` from `@promptbook/utils`
+-   String normalizers goes alongside with types; for example `normalizeTo_SCREAMING_CASE` -> `string_SCREAMING_CASE`
 
 ## In prepare
 

@@ -1,17 +1,27 @@
-/* tslint:disable */
-/* TODO: Enable TSLint */
-
 import { removeDiacritics } from './removeDiacritics';
 
-export function normalizeToKebabCase(sentence: string): string {
-    sentence = removeDiacritics(sentence);
+/**
+ * Semantic helper for kebab-case strings
+ *
+ * @example 'hello-world'
+ * @example 'i-love-promptbook'
+ */
+export type string_kebab_case = string;
+
+/**
+ * @private type of `normalizeToKebabCase`
+ */
+type char_type = 'LOWERCASE' | 'UPPERCASE' | 'NUMBER' | 'SLASH' | 'OTHER';
+
+export function normalizeToKebabCase(text: string): string_kebab_case {
+    text = removeDiacritics(text);
 
     let charType: char_type;
     let lastCharType: char_type = 'OTHER';
 
     let normalizedName = '';
 
-    for (const char of sentence) {
+    for (const char of text) {
         let normalizedChar: string;
 
         if (/^[a-z]$/.test(char)) {
@@ -52,5 +62,3 @@ export function normalizeToKebabCase(sentence: string): string {
 
     return normalizedName;
 }
-
-type char_type = 'LOWERCASE' | 'UPPERCASE' | 'NUMBER' | 'SLASH' | 'OTHER';

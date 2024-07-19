@@ -1,10 +1,10 @@
 // @promptbook/utils
 
 import { spaceTrim } from 'spacetrim';
+import { parseNumber } from '../commands/_common/parseNumber';
 import { renderPromptbookMermaid } from '../conversion/prettify/renderPipelineMermaidOptions';
 import { extractParametersFromPromptTemplate } from '../conversion/utils/extractParametersFromPromptTemplate';
 import { extractVariables } from '../conversion/utils/extractVariables';
-import { parseNumber } from '../commands/_common/parseNumber';
 import { renameParameter } from '../conversion/utils/renameParameter';
 import { titleToName } from '../conversion/utils/titleToName';
 import { forEachAsync } from '../execution/utils/forEachAsync';
@@ -33,11 +33,11 @@ import { decapitalize } from '../utils/normalization/decapitalize';
 import { isValidKeyword } from '../utils/normalization/isValidKeyword';
 import { nameToUriPart } from '../utils/normalization/nameToUriPart';
 import { nameToUriParts } from '../utils/normalization/nameToUriParts';
-import { normalizeToKebabCase } from '../utils/normalization/normalize-to-kebab-case';
-import { normalizeTo_PascalCase } from '../utils/normalization/normalizeTo_PascalCase';
-import { normalizeTo_SCREAMING_CASE } from '../utils/normalization/normalizeTo_SCREAMING_CASE';
-import { normalizeTo_camelCase } from '../utils/normalization/normalizeTo_camelCase';
-import { normalizeTo_snake_case } from '../utils/normalization/normalizeTo_snake_case';
+import { normalizeToKebabCase, string_kebab_case } from '../utils/normalization/normalize-to-kebab-case';
+import { normalizeTo_PascalCase, string_PascalCase } from '../utils/normalization/normalizeTo_PascalCase';
+import { normalizeTo_SCREAMING_CASE, string_SCREAMING_CASE } from '../utils/normalization/normalizeTo_SCREAMING_CASE';
+import { normalizeTo_camelCase, string_camelCase } from '../utils/normalization/normalizeTo_camelCase';
+import { normalizeTo_snake_case, string_snake_case } from '../utils/normalization/normalizeTo_snake_case';
 import { normalizeWhitespaces } from '../utils/normalization/normalizeWhitespaces';
 import { parseKeywords } from '../utils/normalization/parseKeywords';
 import { parseKeywordsFromString } from '../utils/normalization/parseKeywordsFromString';
@@ -117,6 +117,8 @@ export {
     string_keyword,
     titleToName,
 };
+
+export type { string_camelCase, string_kebab_case, string_PascalCase, string_SCREAMING_CASE, string_snake_case };
 
 // @promptbook/markdown-utils
 export { flattenMarkdownStructure, markdownToMarkdownStructure /* <- TODO: [😵] */ };

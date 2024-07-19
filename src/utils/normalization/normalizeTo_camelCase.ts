@@ -1,16 +1,23 @@
-/* tslint:disable */
-/* TODO: Enable TSLint */
+/**
+ * Semantic helper for camelCase strings
+ *
+ * @example 'helloWorld'
+ * @example 'iLovePromptbook'
+ */
+export type string_camelCase = string;
 
-export function normalizeTo_camelCase(
-    sentence: string,
-    __firstLetterCapital = false,
-): string {
+/**
+ * @private type of `normalizeTo_camelCase`
+ */
+type char_type = 'LOWERCASE' | 'UPPERCASE' | 'NUMBER' | 'OTHER';
+
+export function normalizeTo_camelCase(text: string, _isFirstLetterCapital = false): string_camelCase {
     let charType: char_type;
     let lastCharType: char_type | null = null;
 
     let normalizedName = '';
 
-    for (const char of sentence) {
+    for (const char of text) {
         let normalizedChar: string;
 
         if (/^[a-z]$/.test(char)) {
@@ -28,7 +35,7 @@ export function normalizeTo_camelCase(
         }
 
         if (!lastCharType) {
-            if (__firstLetterCapital) {
+            if (_isFirstLetterCapital) {
                 normalizedChar = normalizedChar.toUpperCase(); //TODO: DRY
             }
         } else if (
@@ -47,8 +54,6 @@ export function normalizeTo_camelCase(
 
     return normalizedName;
 }
-
-type char_type = 'LOWERCASE' | 'UPPERCASE' | 'NUMBER' | 'OTHER';
 
 /**
  * TODO: [🌺] Use some intermediate util splitWords
