@@ -17,7 +17,7 @@ import { removeContentComments } from '../utils/markdown/removeContentComments';
 import { union } from '../utils/sets/union';
 import { PROMPTBOOK_VERSION } from '../version';
 import { extractParametersFromPromptTemplate } from './utils/extractParametersFromPromptTemplate';
-import { parseCommand } from './utils/parseCommand';
+import { parseCommand } from '../commands/_common/parseCommand';
 import { titleToName } from './utils/titleToName';
 import { flattenMarkdownStructure } from '../_packages/utils.index';
 

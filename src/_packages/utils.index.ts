@@ -4,7 +4,7 @@ import { spaceTrim } from 'spacetrim';
 import { renderPromptbookMermaid } from '../conversion/prettify/renderPipelineMermaidOptions';
 import { extractParametersFromPromptTemplate } from '../conversion/utils/extractParametersFromPromptTemplate';
 import { extractVariables } from '../conversion/utils/extractVariables';
-import { parseNumber } from '../conversion/utils/parseNumber';
+import { parseNumber } from '../commands/_common/parseNumber';
 import { renameParameter } from '../conversion/utils/renameParameter';
 import { titleToName } from '../conversion/utils/titleToName';
 import { forEachAsync } from '../execution/utils/forEachAsync';

@@ -2,9 +2,9 @@ import commander from 'commander';
 import { spaceTrim } from 'spacetrim';
 import { isRunningInNode } from '../utils/isRunningInWhatever';
 import { PROMPTBOOK_VERSION } from '../version';
-import { initializeHelloCommand } from './commands/hello';
-import { initializeMakeCommand } from './commands/make';
-import { initializePrettifyCommand } from './commands/prettify';
+import { initializeHelloCommand } from './cli-commands/hello';
+import { initializeMakeCommand } from './cli-commands/make';
+import { initializePrettifyCommand } from './cli-commands/prettify';
 
 /**
  * Runs CLI utilities of Promptbook package
