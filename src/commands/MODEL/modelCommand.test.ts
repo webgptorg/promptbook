@@ -4,30 +4,60 @@ import { modelCommandParser } from './modelCommandParser';
 
 describe('how MODEL command in .ptbk.md files works', () => {
     it('should parse MODEL command', () => {
-        expect(parseCommand('MODEL foo')).toEqual({
+        expect(parseCommand('MODEL VARIANT Completion')).toEqual({
             type: 'MODEL',
-            value: 'foo',
+            key: 'modelVariant',
+            value: 'COMPLETION',
         });
-        expect(parseCommand('MODEL bar')).toEqual({
+
+        expect(parseCommand('MODEL VARIANT Chat')).toEqual({
             type: 'MODEL',
-            value: 'bar',
+            key: 'modelVariant',
+            value: 'CHAT',
+        });
+
+        expect(parseCommand('MODEL VARIANT Completion   ')).toEqual({
+            type: 'MODEL',
+            key: 'modelVariant',
+            value: 'COMPLETION',
+        });
+
+        expect(parseCommand('MODEL VARIANT Embed')).toEqual({
+            type: 'MODEL',
+            key: 'modelVariant',
+            value: 'EMBEDDING',
+        });
+
+        expect(parseCommand('MODEL VARIANT Embedding')).toEqual({
+            type: 'MODEL',
+            key: 'modelVariant',
+            value: 'EMBEDDING',
+        });
+
+        // <- Note: [🤖]
+
+        expect(parseCommand('MODEL VARIANT `CHAT`')).toEqual({
+            type: 'MODEL',
+            key: 'modelVariant',
+            value: 'CHAT',
+        });
+
+        expect(parseCommand('MODEL NAME gpt-4-1106-preview')).toEqual({
+            type: 'MODEL',
+            key: 'modelName',
+            value: 'gpt-4-1106-preview',
+        });
+
+        expect(parseCommand('MODEL NAME gpt-3.5-turbo-instruct')).toEqual({
+            type: 'MODEL',
+            key: 'modelName',
+            value: 'gpt-3.5-turbo-instruct',
         });
     });
 
-    it('should parse MODEL command in shortcut form', () => {
-        expect(parseCommand('BP foo')).toEqual({
-            type: 'MODEL',
-            value: 'foo',
-        });
-        expect(parseCommand('BP bar')).toEqual({
-            type: 'MODEL',
-            value: 'bar',
-        });
-    });
-
-    it('should fail parsing MODEL command', () => {
-        expect(() => parseCommand('MODEL')).toThrowError(/requires exactly one argument/i);
-        expect(() => parseCommand('MODEL brr')).toThrowError(/MODEL value can not contain brr/i);
+    it('should fail parsing MODEL VARIANT command', () => {
+        expect(() => parseCommand('MODEL wet')).toThrowError(/Unknown model key/i);
+        expect(() => parseCommand('MODEL {script}')).toThrowError(/Unknown model key/i);
     });
 
     it(`should work with all samples`, () => {

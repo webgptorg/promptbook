@@ -1,3 +1,5 @@
+import type { string_name } from '../../types/typeAliases';
+
 /**
  * Parsed POSTPROCESSING command
  *
@@ -5,6 +7,6 @@
  * @private within the commands folder
  */
 export type PostprocessingCommand = {
-    readonly type: 'POSTPROCESSING';
-    readonly value: string;
+    readonly type: 'POSTPROCESS';
+    readonly functionName: string_name;
 };

@@ -129,7 +129,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
         const command = parseCommand(listItem);
 
         switch (command.type) {
-            case 'PIPELINE_URL':
+            case 'URL':
                 pipelineJson.pipelineUrl = command.pipelineUrl.href;
                 break;
 

@@ -21,7 +21,7 @@ export const jokerCommandParser: CommandParser<JokerCommand> = {
     /**
      * Description of the JOKER command
      */
-    description: `@@`,
+    description: `Joker parameter is used instead of executing the prompt template if it meet the expectations requirements`,
 
     /**
      * Example usages of the JOKER command
@@ -32,21 +32,20 @@ export const jokerCommandParser: CommandParser<JokerCommand> = {
      * Parses the JOKER command
      */
     parse(input: CommandParserInput): JokerCommand {
-        const { args } = input;
+        const { items } = input;
 
-        if (args.length !== 1) {
-            throw new SyntaxError(`JOKER command requires exactly one argument`);
+        const parametersMatch = (items.pop() || '').match(/^\{(?<parameterName>[a-z0-9_]+)\}$/im);
+
+        if (!parametersMatch || !parametersMatch.groups || !parametersMatch.groups.parameterName) {
+            throw new SyntaxError(`Invalid joker`);
         }
 
-        const value = args[0]!.toLowerCase();
-
-        if (value.includes('brr')) {
-            throw new SyntaxError(`JOKER value can not contain brr`);
-        }
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { parameterName } = parametersMatch.groups as any;
 
         return {
             type: 'JOKER',
-            value,
+            parameterName,
         } satisfies JokerCommand;
     },
 };

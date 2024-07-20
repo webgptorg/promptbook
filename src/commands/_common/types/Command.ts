@@ -1,4 +1,4 @@
-import { COMMANDS } from '../..';
+import type { COMMANDS } from '../..';
 
 /**
  * Command is one piece of the prompt template which adds some logic to the prompt template or the whole pipeline.

@@ -1,5 +1,5 @@
-import { string_SCREAMING_CASE } from '../../../_packages/utils.index';
-import { string_markdown_text, string_name } from '../../../types/typeAliases';
+import type { string_SCREAMING_CASE } from '../../../_packages/utils.index';
+import type { string_markdown_text, string_name } from '../../../types/typeAliases';
 
 export type CommandParser<TCommand extends { type: string_name & string_SCREAMING_CASE }> = {
     name: string_name & string_SCREAMING_CASE;
@@ -26,4 +26,5 @@ export type CommandParserInput = {
 
 /**
  * TODO: !!!! Annotate
+ * TODO: [🧠] Maybe put flag if it is for whole `.ptbk.md` file of just one section
  */

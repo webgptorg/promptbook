@@ -4,30 +4,18 @@ import { jokerCommandParser } from './jokerCommandParser';
 
 describe('how JOKER command in .ptbk.md files works', () => {
     it('should parse JOKER command', () => {
-        expect(parseCommand('JOKER foo')).toEqual({
+        expect(parseCommand('joker {name}')).toEqual({
             type: 'JOKER',
-            value: 'foo',
+            parameterName: 'name',
         });
-        expect(parseCommand('JOKER bar')).toEqual({
+        expect(parseCommand('JOKER {woooow}')).toEqual({
             type: 'JOKER',
-            value: 'bar',
-        });
-    });
-
-    it('should parse JOKER command in shortcut form', () => {
-        expect(parseCommand('BP foo')).toEqual({
-            type: 'JOKER',
-            value: 'foo',
-        });
-        expect(parseCommand('BP bar')).toEqual({
-            type: 'JOKER',
-            value: 'bar',
+            parameterName: 'woooow',
         });
     });
-
     it('should fail parsing JOKER command', () => {
         expect(() => parseCommand('JOKER')).toThrowError(/requires exactly one argument/i);
-        expect(() => parseCommand('JOKER brr')).toThrowError(/JOKER value can not contain brr/i);
+        expect(() => parseCommand('JOKER name')).toThrowError(/JOKER must reference a parameter/i);
     });
 
     it(`should work with all samples`, () => {

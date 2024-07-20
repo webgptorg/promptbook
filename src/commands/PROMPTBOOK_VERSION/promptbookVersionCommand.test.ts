@@ -4,32 +4,29 @@ import { promptbookVersionCommandParser } from './promptbookVersionCommandParser
 
 describe('how PROMPTBOOK_VERSION command in .ptbk.md files works', () => {
     it('should parse PROMPTBOOK_VERSION command', () => {
-        expect(parseCommand('PROMPTBOOK_VERSION foo')).toEqual({
+        expect(parseCommand('promptbook version 1.0.0')).toEqual({
             type: 'PROMPTBOOK_VERSION',
-            value: 'foo',
+            promptbookVersion: '1.0.0',
         });
-        expect(parseCommand('PROMPTBOOK_VERSION bar')).toEqual({
+        expect(parseCommand('PTBK version 1.0.0')).toEqual({
             type: 'PROMPTBOOK_VERSION',
-            value: 'bar',
+            promptbookVersion: '1.0.0',
         });
-    });
 
-    it('should parse PROMPTBOOK_VERSION command in shortcut form', () => {
-        expect(parseCommand('BP foo')).toEqual({
+        expect(parseCommand('PTBK version 1.0.0')).toEqual({
             type: 'PROMPTBOOK_VERSION',
-            value: 'foo',
+            promptbookVersion: '1.0.0',
         });
-        expect(parseCommand('BP bar')).toEqual({
+        expect(parseCommand('PROMPTBOOK version 1.0.0')).toEqual({
             type: 'PROMPTBOOK_VERSION',
-            value: 'bar',
+            promptbookVersion: '1.0.0',
         });
     });
 
     it('should fail parsing PROMPTBOOK_VERSION command', () => {
-        expect(() => parseCommand('PROMPTBOOK_VERSION')).toThrowError(/requires exactly one argument/i);
-        expect(() => parseCommand('PROMPTBOOK_VERSION brr')).toThrowError(
-            /PROMPTBOOK_VERSION value can not contain brr/i,
-        );
+        expect(() => parseCommand('PROMPTBOOK version')).toThrowError(/Invalid PROMPTBOOK_VERSION command/i);
+        expect(() => parseCommand('PROMPTBOOK version   ')).toThrowError(/Invalid PROMPTBOOK_VERSION command/i);
+        // TODO: Also test invalid version in PROMPTBOOK_VERSION command
     });
 
     it(`should work with all samples`, () => {

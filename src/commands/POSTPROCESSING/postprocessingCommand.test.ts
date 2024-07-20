@@ -3,31 +3,44 @@ import { parseCommand } from '../_common/parseCommand';
 import { postprocessingCommandParser } from './postprocessingCommandParser';
 
 describe('how POSTPROCESSING command in .ptbk.md files works', () => {
-    it('should parse POSTPROCESSING command', () => {
-        expect(parseCommand('POSTPROCESSING foo')).toEqual({
-            type: 'POSTPROCESSING',
-            value: 'foo',
+    it('should parse POSTPROCESS command', () => {
+        expect(parseCommand('Postprocess spaceTrim')).toEqual({
+            type: 'POSTPROCESS',
+            functionName: 'spaceTrim',
         });
-        expect(parseCommand('POSTPROCESSING bar')).toEqual({
-            type: 'POSTPROCESSING',
-            value: 'bar',
+        expect(parseCommand('Postprocess `spaceTrim`')).toEqual({
+            type: 'POSTPROCESS',
+            functionName: 'spaceTrim',
+        });
+        expect(parseCommand('Postprocess **spaceTrim**')).toEqual({
+            type: 'POSTPROCESS',
+            functionName: 'spaceTrim',
+        });
+        expect(parseCommand('Post-process spaceTrim')).toEqual({
+            type: 'POSTPROCESS',
+            functionName: 'spaceTrim',
+        });
+        expect(parseCommand('Postprocessing unwrapResult')).toEqual({
+            type: 'POSTPROCESS',
+            functionName: 'unwrapResult',
         });
     });
 
     it('should parse POSTPROCESSING command in shortcut form', () => {
-        expect(parseCommand('BP foo')).toEqual({
-            type: 'POSTPROCESSING',
-            value: 'foo',
-        });
-        expect(parseCommand('BP bar')).toEqual({
-            type: 'POSTPROCESSING',
-            value: 'bar',
+        expect(parseCommand('PP unwrapResult')).toEqual({
+            type: 'POSTPROCESS',
+            functionName: 'unwrapResult',
         });
     });
 
-    it('should fail parsing POSTPROCESSING command', () => {
+    it('should fail parsing POSTPROCESS command', () => {
+        expect(() => parseCommand('Postprocess spaceTrim unwrapResult')).toThrowError(
+            /Invalid POSTPROCESSING command/i,
+        );
+        expect(() => parseCommand('Process spaceTrim')).toThrowError(/Unknown command/i);
+        expect(() => parseCommand('Postprocess')).toThrowError(/Invalid POSTPROCESSING command/i);
         expect(() => parseCommand('POSTPROCESSING')).toThrowError(/requires exactly one argument/i);
-        expect(() => parseCommand('POSTPROCESSING brr')).toThrowError(/POSTPROCESSING value can not contain brr/i);
+        expect(() => parseCommand('POSTPROCESSING as^fadf')).toThrowError(/--/i);
     });
 
     it(`should work with all samples`, () => {

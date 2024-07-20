@@ -1,3 +1,5 @@
+import type { string_markdown_text, string_name } from '../../types/typeAliases';
+
 /**
  * Parsed PARAMETER command
  *
@@ -6,5 +8,8 @@
  */
 export type ParameterCommand = {
     readonly type: 'PARAMETER';
-    readonly value: string;
+    readonly isInput: boolean;
+    readonly isOutput: boolean;
+    readonly parameterName: string_name;
+    readonly parameterDescription: string_markdown_text | null;
 };

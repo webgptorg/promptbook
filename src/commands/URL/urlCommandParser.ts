@@ -1,3 +1,4 @@
+import spaceTrim from 'spacetrim';
 import { CommandParser, CommandParserInput } from '../_common/types/CommandParser';
 import { UrlCommand } from './UrlCommand';
 
@@ -16,12 +17,23 @@ export const urlCommandParser: CommandParser<UrlCommand> = {
     /**
      * Aliases for the URL command
      */
-    aliases: ['BP'],
+    aliases: ['HTTPS'], // <- TODO: !!!!
+
+    /*
+      normalized.startsWith('URL') ||
+      normalized.startsWith('PTBK_URL') ||
+      normalized.startsWith('PTBKURL') ||
+      normalized.startsWith('URL') ||
+      normalized.startsWith('PIPELINEURL') ||
+      normalized.startsWith('PROMPTBOOK_URL') ||
+      normalized.startsWith('PROMPTBOOKURL') ||
+      normalized.startsWith('HTTPS')
+    */
 
     /**
      * Description of the URL command
      */
-    description: `@@`,
+    description: `Declares unique URL for the pipeline`,
 
     /**
      * Example usages of the URL command
@@ -38,15 +50,27 @@ export const urlCommandParser: CommandParser<UrlCommand> = {
             throw new SyntaxError(`URL command requires exactly one argument`);
         }
 
-        const value = args[0]!.toLowerCase();
+        const pipelineUrlString = args.pop()!;
+        const pipelineUrl = new URL(pipelineUrlString);
 
-        if (value.includes('brr')) {
-            throw new SyntaxError(`URL value can not contain brr`);
+        if (pipelineUrl.protocol !== 'https:') {
+            throw new SyntaxError(`Protocol must be HTTPS`);
+        }
+
+        if (pipelineUrl.hash !== '') {
+            throw new SyntaxError(
+                spaceTrim(
+                    `
+                        URL must not contain hash
+                        Hash is used for identification of the prompt template in the pipeline
+                    `,
+                ),
+            );
         }
 
         return {
             type: 'URL',
-            value,
+            pipelineUrl,
         } satisfies UrlCommand;
     },
 };

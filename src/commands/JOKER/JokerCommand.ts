@@ -1,3 +1,5 @@
+import type { string_name } from '../../types/typeAliases';
+
 /**
  * Parsed JOKER command
  *
@@ -6,5 +8,5 @@
  */
 export type JokerCommand = {
     readonly type: 'JOKER';
-    readonly value: string;
+    readonly parameterName: string_name;
 };

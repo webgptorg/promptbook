@@ -13,6 +13,11 @@ describe('fail of parseCommand', () => {
         });
     }
 
+    it('should fail parsing multi-line command', () => {
+      expect(() => parseCommand('execute\nprompt template')).toThrowError(/Can not contain new line/i);
+      expect(() => parseCommand('execute prompt template\n')).toThrowError(/Can not contain new line/i);
+  });
+
     it('should fail parsing unknown command', () => {
         expect(() => parseCommand('')).toThrowError(/Malformed command/i);
         expect(() => parseCommand('afasf ddd')).toThrowError(/Malformed or unknown command/i);

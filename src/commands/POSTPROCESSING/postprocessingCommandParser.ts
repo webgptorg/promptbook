@@ -38,15 +38,13 @@ export const postprocessingCommandParser: CommandParser<PostprocessingCommand> =
             throw new SyntaxError(`POSTPROCESSING command requires exactly one argument`);
         }
 
-        const value = args[0]!.toLowerCase();
+        const functionName = args.pop()!;
 
-        if (value.includes('brr')) {
-            throw new SyntaxError(`POSTPROCESSING value can not contain brr`);
-        }
+        // TODO: Validate functionName
 
         return {
-            type: 'POSTPROCESSING',
-            value,
+            type: 'POSTPROCESS',
+            functionName,
         } satisfies PostprocessingCommand;
     },
 };

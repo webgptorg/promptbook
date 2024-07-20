@@ -6,5 +6,5 @@
  */
 export type UrlCommand = {
     readonly type: 'URL';
-    readonly value: string;
+    readonly pipelineUrl: URL;
 };

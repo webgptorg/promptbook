@@ -1,3 +1,5 @@
+import { string_version } from '../../types/typeAliases';
+
 /**
  * Parsed PROMPTBOOK_VERSION command
  *
@@ -6,5 +8,5 @@
  */
 export type PromptbookVersionCommand = {
     readonly type: 'PROMPTBOOK_VERSION';
-    readonly value: string;
+    readonly promptbookVersion: string_version;
 };

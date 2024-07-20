@@ -11,17 +11,12 @@ export const promptbookVersionCommandParser: CommandParser<PromptbookVersionComm
     /**
      * Name of the command
      */
-    name: 'PROMPTBOOK_VERSION',
-
-    /**
-     * Aliases for the PROMPTBOOK_VERSION command
-     */
-    aliases: ['BP'],
+    name: 'VERSION',
 
     /**
      * Description of the PROMPTBOOK_VERSION command
      */
-    description: `@@`,
+    description: `Which version of the promptbook is the .ptbk.md using`,
 
     /**
      * Example usages of the PROMPTBOOK_VERSION command
@@ -38,15 +33,12 @@ export const promptbookVersionCommandParser: CommandParser<PromptbookVersionComm
             throw new SyntaxError(`PROMPTBOOK_VERSION command requires exactly one argument`);
         }
 
-        const value = args[0]!.toLowerCase();
-
-        if (value.includes('brr')) {
-            throw new SyntaxError(`PROMPTBOOK_VERSION value can not contain brr`);
-        }
+        const promptbookVersion = args.pop()!;
+        // TODO: Validate version
 
         return {
             type: 'PROMPTBOOK_VERSION',
-            value,
+            promptbookVersion,
         } satisfies PromptbookVersionCommand;
     },
 };

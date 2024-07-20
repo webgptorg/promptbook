@@ -1,3 +1,5 @@
+import spaceTrim from 'spacetrim';
+import { MODEL_VARIANTS } from '../../types/ModelRequirements';
 import { CommandParser, CommandParserInput } from '../_common/types/CommandParser';
 import { ModelCommand } from './ModelCommand';
 
@@ -14,14 +16,9 @@ export const modelCommandParser: CommandParser<ModelCommand> = {
     name: 'MODEL',
 
     /**
-     * Aliases for the MODEL command
-     */
-    aliases: ['BP'],
-
-    /**
      * Description of the MODEL command
      */
-    description: `@@`,
+    description: `Tells which model and modelRequirements to use for the prompt template execution`,
 
     /**
      * Example usages of the MODEL command
@@ -32,21 +29,62 @@ export const modelCommandParser: CommandParser<ModelCommand> = {
      * Parses the MODEL command
      */
     parse(input: CommandParserInput): ModelCommand {
-        const { args } = input;
+        const { args, normalized } = input;
 
         if (args.length !== 1) {
             throw new SyntaxError(`MODEL command requires exactly one argument`);
         }
 
-        const value = args[0]!.toLowerCase();
+        // TODO: Make this more elegant and dynamically
+        if (normalized.startsWith('MODEL_VARIANT')) {
+            if (normalized === 'MODEL_VARIANT_CHAT') {
+                return {
+                    type: 'MODEL',
+                    key: 'modelVariant',
+                    value: 'CHAT',
+                } satisfies ModelCommand;
+            } else if (normalized === 'MODEL_VARIANT_COMPLETION') {
+                return {
+                    type: 'MODEL',
+                    key: 'modelVariant',
+                    value: 'COMPLETION',
+                } satisfies ModelCommand;
+                // <- Note: [🤖]
+            } else {
+                throw new SyntaxError(
+                    spaceTrim(
+                        (block) => `
+                            Unknown model variant in command:
 
-        if (value.includes('brr')) {
-            throw new SyntaxError(`MODEL value can not contain brr`);
+                            Supported variants are:
+                            ${block(MODEL_VARIANTS.map((variantName) => `- ${variantName}`).join('\n'))}
+                        `,
+                    ),
+                );
+            }
         }
+        if (normalized.startsWith('MODEL_NAME')) {
+            return {
+                type: 'MODEL',
+                key: 'modelName',
+                value: args.pop()!,
+            } satisfies ModelCommand;
+        } else {
+            throw new SyntaxError(
+                spaceTrim(
+                    (block) => `
+                    Unknown model key in command.
 
-        return {
-            type: 'MODEL',
-            value,
-        } satisfies ModelCommand;
+                    Supported model keys are:
+                    ${block(['variant', 'name'].join(', '))}
+
+                    Example:
+
+                    - MODEL VARIANT Chat
+                    - MODEL NAME gpt-4
+              `,
+                ),
+            );
+        }
     },
 };
