@@ -1,5 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
 import { parseCommand } from '../_common/parseCommand';
+import { executeCommandParser } from './executeCommandParser';
 
 describe('how EXECUTE command in .ptbk.md files works', () => {
     it('should parse EXECUTE command', () => {
@@ -36,5 +37,12 @@ describe('how EXECUTE command in .ptbk.md files works', () => {
     it('should fail parsing EXECUTE command', () => {
         expect(() => parseCommand('execute fooo')).toThrowError(/Unknown execution type/i);
         expect(() => parseCommand('execute script prompt template')).toThrowError(/Unknown execution type/i);
+    });
+
+    it(`should work with all samples`, () => {
+        // Note: This is tested also in the common test file parseCommand.test.ts
+        for (const example of executeCommandParser.examples) {
+            expect(() => parseCommand(example)).not.toThrowError();
+        }
     });
 });
