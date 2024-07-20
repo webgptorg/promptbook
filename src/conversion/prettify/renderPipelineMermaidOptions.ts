@@ -2,8 +2,7 @@ import { spaceTrim } from 'spacetrim';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import type { PromptTemplateJson } from '../../types/PipelineJson/PromptTemplateJson';
-import type { string_href } from '../../types/typeAliases';
-import type { string_name } from '../../types/typeAliases';
+import type { string_href, string_name } from '../../types/typeAliases';
 import { normalizeTo_camelCase } from '../../utils/normalization/normalizeTo_camelCase';
 import { titleToName } from '../utils/titleToName';
 

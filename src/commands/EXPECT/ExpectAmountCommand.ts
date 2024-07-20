@@ -1,4 +1,4 @@
-import type { ExpectationAmount, ExpectationUnit } from '../../types/PipelineJson/PromptTemplateJson';
+import type { ExpectationAmount, ExpectationUnit } from '../../types/PipelineJson/Expectations';
 
 /**
  * Expect amount command describes the desired output of the prompt template (after post-processing)

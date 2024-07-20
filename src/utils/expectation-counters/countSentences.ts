@@ -1,4 +1,4 @@
-import type { ExpectationAmount } from '../../types/PipelineJson/PromptTemplateJson';
+import type { ExpectationAmount } from '../../types/PipelineJson/Expectations';
 
 /**
  * Split text into sentences

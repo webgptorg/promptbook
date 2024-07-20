@@ -1,9 +1,6 @@
 import type { KebabCase } from 'type-fest';
-import type { ExpectationUnit } from '../types/PipelineJson/PromptTemplateJson';
-import type { number_positive } from '../types/typeAliases';
-import type { number_usd } from '../types/typeAliases';
-import type { string_date_iso8601 } from '../types/typeAliases';
-import type { string_model_name } from '../types/typeAliases';
+import type { ExpectationUnit } from '../types/PipelineJson/Expectations';
+import type { number_positive, number_usd, string_date_iso8601, string_model_name } from '../types/typeAliases';
 import type { EmbeddingVector } from './EmbeddingVector';
 
 /**
