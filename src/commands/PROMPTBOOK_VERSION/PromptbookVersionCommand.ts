@@ -1,4 +1,4 @@
-import { string_version } from '../../types/typeAliases';
+import type { string_version } from '../../types/typeAliases';
 
 /**
  * Parsed PROMPTBOOK_VERSION command

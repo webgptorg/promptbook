@@ -1,7 +1,8 @@
 import spaceTrim from 'spacetrim';
 import { MODEL_VARIANTS } from '../../types/ModelRequirements';
-import { CommandParser, CommandParserInput } from '../_common/types/CommandParser';
-import { ModelCommand } from './ModelCommand';
+import type { CommandParser } from '../_common/types/CommandParser';
+import type { CommandParserInput } from '../_common/types/CommandParser';
+import type { ModelCommand } from './ModelCommand';
 
 /**
  * Parses the model command

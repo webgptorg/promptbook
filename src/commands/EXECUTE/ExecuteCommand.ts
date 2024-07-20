@@ -1,4 +1,4 @@
-import { ExecutionType } from './ExecutionTypes';
+import type { ExecutionType } from './ExecutionTypes';
 
 /**
  * Parsed EXECUTE command

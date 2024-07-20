@@ -1,5 +1,6 @@
-import { CommandParser, CommandParserInput } from '../_common/types/CommandParser';
-import { KnowledgeCommand } from './KnowledgeCommand';
+import type { CommandParser } from '../_common/types/CommandParser';
+import type { CommandParserInput } from '../_common/types/CommandParser';
+import type { KnowledgeCommand } from './KnowledgeCommand';
 
 /**
  * Parses the knowledge command

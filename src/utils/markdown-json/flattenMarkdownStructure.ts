@@ -1,4 +1,4 @@
-import { MarkdownStructure } from './MarkdownStructure';
+import type { MarkdownStructure } from './MarkdownStructure';
 
 /**
  * Keeps all h1 and h2 headings and from deeper levels change them to h2 headings

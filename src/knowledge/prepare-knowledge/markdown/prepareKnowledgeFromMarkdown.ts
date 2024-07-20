@@ -15,7 +15,7 @@ import type { string_model_name } from '../../../types/typeAliases';
 import type { string_name } from '../../../types/typeAliases';
 import type { string_keyword } from '../../../utils/normalization/IKeywords';
 import { normalizeToKebabCase } from '../../../utils/normalization/normalize-to-kebab-case';
-import { titleToName } from '../../../_packages/utils.index';
+import { titleToName } from '../../../conversion/utils/titleToName';
 
 type PrepareKnowledgeFromMarkdownOptions = {
     /**

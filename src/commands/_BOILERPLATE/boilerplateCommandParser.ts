@@ -1,5 +1,6 @@
-import { CommandParser, CommandParserInput } from '../_common/types/CommandParser';
-import { BoilerplateCommand } from './BoilerplateCommand';
+import type { CommandParser } from '../_common/types/CommandParser';
+import type { CommandParserInput } from '../_common/types/CommandParser';
+import type { BoilerplateCommand } from './BoilerplateCommand';
 
 /**
  * Parses the boilerplate command

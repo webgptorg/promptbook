@@ -1,5 +1,5 @@
-import { CommandParser, CommandParserInput } from '../_common/types/CommandParser';
-import { JokerCommand } from './JokerCommand';
+import type { CommandParser, CommandParserInput } from '../_common/types/CommandParser';
+import type { JokerCommand } from './JokerCommand';
 
 /**
  * Parses the joker command
@@ -12,7 +12,6 @@ export const jokerCommandParser: CommandParser<JokerCommand> = {
      * Name of the command
      */
     name: 'JOKER',
-
 
     /**
      * Description of the JOKER command
@@ -28,9 +27,9 @@ export const jokerCommandParser: CommandParser<JokerCommand> = {
      * Parses the JOKER command
      */
     parse(input: CommandParserInput): JokerCommand {
-        const { items } = input;
+        const { args } = input;
 
-        const parametersMatch = (items.pop() || '').match(/^\{(?<parameterName>[a-z0-9_]+)\}$/im);
+        const parametersMatch = (args.pop() || '').match(/^\{(?<parameterName>[a-z0-9_]+)\}$/im);
 
         if (!parametersMatch || !parametersMatch.groups || !parametersMatch.groups.parameterName) {
             throw new SyntaxError(`Invalid joker`);

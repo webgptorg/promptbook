@@ -1,6 +1,7 @@
 import spaceTrim from 'spacetrim';
-import { CommandParser, CommandParserInput } from '../_common/types/CommandParser';
-import { ExecuteCommand } from './ExecuteCommand';
+import type { CommandParser } from '../_common/types/CommandParser';
+import type { CommandParserInput } from '../_common/types/CommandParser';
+import type { ExecuteCommand } from './ExecuteCommand';
 import { ExecutionTypes } from './ExecutionTypes';
 
 /**

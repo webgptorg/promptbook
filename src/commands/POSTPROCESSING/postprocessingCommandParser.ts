@@ -1,5 +1,6 @@
-import { CommandParser, CommandParserInput } from '../_common/types/CommandParser';
-import { PostprocessingCommand } from './PostprocessingCommand';
+import type { CommandParser } from '../_common/types/CommandParser';
+import type { CommandParserInput } from '../_common/types/CommandParser';
+import type { PostprocessingCommand } from './PostprocessingCommand';
 
 /**
  * Parses the postprocessing command

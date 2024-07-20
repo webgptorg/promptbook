@@ -1,4 +1,5 @@
-import { string_file_relative_path, string_url } from '../../types/typeAliases';
+import type { string_file_relative_path } from '../../types/typeAliases';
+import type { string_url } from '../../types/typeAliases';
 
 /**
  * Parsed KNOWLEDGE command

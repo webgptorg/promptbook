@@ -1,5 +1,5 @@
 import { describe, expect, it } from '@jest/globals';
-import { COMMANDS } from '..';
+import { COMMANDS } from '../index';
 import { parseCommand } from './parseCommand';
 
 describe('fail of parseCommand', () => {
@@ -14,9 +14,9 @@ describe('fail of parseCommand', () => {
     }
 
     it('should fail parsing multi-line command', () => {
-      expect(() => parseCommand('execute\nprompt template')).toThrowError(/Can not contain new line/i);
-      expect(() => parseCommand('execute prompt template\n')).toThrowError(/Can not contain new line/i);
-  });
+        expect(() => parseCommand('execute\nprompt template')).toThrowError(/Can not contain new line/i);
+        expect(() => parseCommand('execute prompt template\n')).toThrowError(/Can not contain new line/i);
+    });
 
     it('should fail parsing unknown command', () => {
         expect(() => parseCommand('')).toThrowError(/Malformed command/i);

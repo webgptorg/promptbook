@@ -1,5 +1,6 @@
-import { CommandParser, CommandParserInput } from '../_common/types/CommandParser';
-import { SampleCommand } from './SampleCommand';
+import type { CommandParser } from '../_common/types/CommandParser';
+import type { CommandParserInput } from '../_common/types/CommandParser';
+import type { SampleCommand } from './SampleCommand';
 
 /**
  * Parses the sample command
@@ -12,7 +13,6 @@ export const sampleCommandParser: CommandParser<SampleCommand> = {
      * Name of the command
      */
     name: 'SAMPLE',
-
 
     /**
      * Description of the SAMPLE command

@@ -1,5 +1,5 @@
 import { spaceTrim } from 'spacetrim';
-import { COMMANDS } from '..';
+import { COMMANDS } from '../index';
 import { SyntaxError } from '../../errors/SyntaxError';
 import type { string_markdown_text } from '../../types/typeAliases';
 import { removeMarkdownFormatting } from '../../utils/markdown/removeMarkdownFormatting';

@@ -1,9 +1,8 @@
 import { spaceTrim } from 'spacetrim';
 import type { IterableElement, Writable, WritableDeep } from 'type-fest';
-import { flattenMarkdownStructure } from '../_packages/utils.index';
-import { parseCommand } from '../commands/_common/parseCommand';
-import type { ParameterCommand } from '../commands/_common/types/Command';
 import type { ExecutionType } from '../commands/EXECUTE/ExecutionTypes';
+import type { ParameterCommand } from '../commands/PARAMETER/ParameterCommand';
+import { parseCommand } from '../commands/_common/parseCommand';
 import { SyntaxError } from '../errors/SyntaxError';
 import type { ModelRequirements } from '../types/ModelRequirements';
 import type { PipelineJson } from '../types/PipelineJson/PipelineJson';
@@ -12,6 +11,7 @@ import type { PromptTemplateParameterJson } from '../types/PipelineJson/PromptTe
 import type { PipelineString } from '../types/PipelineString';
 import type { ScriptLanguage } from '../types/ScriptLanguage';
 import { SUPPORTED_SCRIPT_LANGUAGES } from '../types/ScriptLanguage';
+import { flattenMarkdownStructure } from '../utils/markdown-json/flattenMarkdownStructure';
 import { markdownToMarkdownStructure } from '../utils/markdown-json/markdownToMarkdownStructure';
 import { extractAllListItemsFromMarkdown } from '../utils/markdown/extractAllListItemsFromMarkdown';
 import { extractOneBlockFromMarkdown } from '../utils/markdown/extractOneBlockFromMarkdown';
@@ -341,7 +341,9 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
             delete (template as any).modelRequirements;
         }
 
-        pipelineJson.promptTemplates.push(template);
+        // TODO: !!! Remove any
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        pipelineJson.promptTemplates.push(template as any);
     }
 
     // =============================================================

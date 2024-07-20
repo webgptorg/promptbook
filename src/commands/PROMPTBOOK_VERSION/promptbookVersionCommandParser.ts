@@ -1,6 +1,7 @@
 import { PROMPTBOOK_VERSION } from '../../version';
-import { CommandParser, CommandParserInput } from '../_common/types/CommandParser';
-import { PromptbookVersionCommand } from './PromptbookVersionCommand';
+import type { CommandParser } from '../_common/types/CommandParser';
+import type { CommandParserInput } from '../_common/types/CommandParser';
+import type { PromptbookVersionCommand } from './PromptbookVersionCommand';
 
 /**
  * Parses the PROMPTBOOK_VERSION command
