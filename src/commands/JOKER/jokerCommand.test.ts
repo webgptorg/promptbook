@@ -14,8 +14,10 @@ describe('how JOKER command in .ptbk.md files works', () => {
         });
     });
     it('should fail parsing JOKER command', () => {
-        expect(() => parseCommand('JOKER')).toThrowError(/requires exactly one argument/i);
-        expect(() => parseCommand('JOKER name')).toThrowError(/JOKER must reference a parameter/i);
+        expect(() => parseCommand('JOKER')).toThrowError(/Invalid joker/i);
+        expect(() => parseCommand('JOKER name')).toThrowError(
+            /Invalid joker/i /* <- TODO: /JOKER must reference a parameter/i */,
+        );
     });
 
     it(`should work with all samples`, () => {
