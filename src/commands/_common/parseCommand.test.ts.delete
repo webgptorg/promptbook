@@ -1,0 +1,582 @@
+import { describe, expect, it } from '@jest/globals';
+import { parseCommand } from './parseCommand.ts.delete';
+
+describe('how parseCommand works', () => {
+    it('should parse PIPELINE_URL command', () => {
+        expect(parseCommand('https://promptbook.studio/webgpt/write-website-content-cs.ptbk.md')).toEqual({
+            type: 'PIPELINE_URL',
+            pipelineUrl: new URL('https://promptbook.studio/webgpt/write-website-content-cs.ptbk.md'),
+        });
+        expect(parseCommand('   https://promptbook.studio/webgpt/write-website-content-cs.ptbk.md        ')).toEqual({
+            type: 'PIPELINE_URL',
+            pipelineUrl: new URL('https://promptbook.studio/webgpt/write-website-content-cs.ptbk.md'),
+        });
+        expect(parseCommand('url https://promptbook.studio/webgpt/write-website-content-cs.ptbk.md')).toEqual({
+            type: 'PIPELINE_URL',
+            pipelineUrl: new URL('https://promptbook.studio/webgpt/write-website-content-cs.ptbk.md'),
+        });
+        expect(parseCommand('URL https://promptbook.studio/webgpt/write-website-content-cs.ptbk.md')).toEqual({
+            type: 'PIPELINE_URL',
+            pipelineUrl: new URL('https://promptbook.studio/webgpt/write-website-content-cs.ptbk.md'),
+        });
+        expect(parseCommand('pipelineurl https://promptbook.studio/webgpt/write-website-content-cs.ptbk.md')).toEqual({
+            type: 'PIPELINE_URL',
+            pipelineUrl: new URL('https://promptbook.studio/webgpt/write-website-content-cs.ptbk.md'),
+        });
+
+        expect(parseCommand('pipelineUrl https://promptbook.studio/webgpt/write-website-content-cs.ptbk.md')).toEqual({
+            type: 'PIPELINE_URL',
+            pipelineUrl: new URL('https://promptbook.studio/webgpt/write-website-content-cs.ptbk.md'),
+        });
+        expect(parseCommand('PIPELINE_URL https://promptbook.studio/webgpt/write-website-content-cs.ptbk.md')).toEqual({
+            type: 'PIPELINE_URL',
+            pipelineUrl: new URL('https://promptbook.studio/webgpt/write-website-content-cs.ptbk.md'),
+        });
+        expect(parseCommand('PIPELINE URL https://promptbook.studio/webgpt/write-website-content-cs.ptbk.md')).toEqual({
+            type: 'PIPELINE_URL',
+            pipelineUrl: new URL('https://promptbook.studio/webgpt/write-website-content-cs.ptbk.md'),
+        });
+        expect(
+            parseCommand('PROMPTBOOK URL https://promptbook.studio/webgpt/write-website-content-cs.ptbk.md'),
+        ).toEqual({
+            type: 'PIPELINE_URL',
+            pipelineUrl: new URL('https://promptbook.studio/webgpt/write-website-content-cs.ptbk.md'),
+        });
+        expect(parseCommand('url *https://promptbook.studio/webgpt/write-website-content-cs.ptbk.md*')).toEqual({
+            type: 'PIPELINE_URL',
+            pipelineUrl: new URL('https://promptbook.studio/webgpt/write-website-content-cs.ptbk.md'),
+        });
+        expect(parseCommand('`https://promptbook.studio/webgpt/write-website-content-cs.ptbk.md`')).toEqual({
+            type: 'PIPELINE_URL',
+            pipelineUrl: new URL('https://promptbook.studio/webgpt/write-website-content-cs.ptbk.md'),
+        });
+    });
+
+    it('should parse PIPELINE_URL command in shortcut form', () => {
+        expect(parseCommand('ptbkurl https://promptbook.studio/webgpt/write-website-content-cs.ptbk.md')).toEqual({
+            type: 'PIPELINE_URL',
+            pipelineUrl: new URL('https://promptbook.studio/webgpt/write-website-content-cs.ptbk.md'),
+        });
+        expect(parseCommand('ptbkUrl https://promptbook.studio/webgpt/write-website-content-cs.ptbk.md')).toEqual({
+            type: 'PIPELINE_URL',
+            pipelineUrl: new URL('https://promptbook.studio/webgpt/write-website-content-cs.ptbk.md'),
+        });
+        expect(parseCommand('PTBK_URL https://promptbook.studio/webgpt/write-website-content-cs.ptbk.md')).toEqual({
+            type: 'PIPELINE_URL',
+            pipelineUrl: new URL('https://promptbook.studio/webgpt/write-website-content-cs.ptbk.md'),
+        });
+        expect(parseCommand('PTBK URL https://promptbook.studio/webgpt/write-website-content-cs.ptbk.md')).toEqual({
+            type: 'PIPELINE_URL',
+            pipelineUrl: new URL('https://promptbook.studio/webgpt/write-website-content-cs.ptbk.md'),
+        });
+    });
+
+    it('should fail parsing PIPELINE_URL command', () => {
+        expect(() => parseCommand('PIPELINE_URL')).toThrowError(/Invalid PIPELINE_URL command/i);
+        expect(() =>
+            parseCommand(
+                'URL https://promptbook.studio/webgpt/write-website-content-cs.ptbk.md https://promptbook.studio/webgpt/write-website-content-cs.ptbk.md',
+            ),
+        ).toThrowError(/Invalid PIPELINE_URL command/i);
+
+        expect(() => parseCommand('url http:^404')).toThrowError(/Invalid URL/i);
+
+        expect(() => parseCommand('url http://promptbook.studio/write-website-content')).toThrowError(
+            /Protocol must be HTTPS/i,
+        );
+
+        expect(() =>
+            parseCommand('url https://promptbook.studio/webgpt/write-website-content-cs.ptbk.md#keywords'),
+        ).toThrowError(/URL must not contain hash/i);
+    });
+
+    it('should parse PROMPTBOOK_VERSION command', () => {
+        expect(parseCommand('promptbook version 1.0.0')).toEqual({
+            type: 'PROMPTBOOK_VERSION',
+            promptbookVersion: '1.0.0',
+        });
+        expect(parseCommand('PTBK version 1.0.0')).toEqual({
+            type: 'PROMPTBOOK_VERSION',
+            promptbookVersion: '1.0.0',
+        });
+
+        expect(parseCommand('PTBK version 1.0.0')).toEqual({
+            type: 'PROMPTBOOK_VERSION',
+            promptbookVersion: '1.0.0',
+        });
+        expect(parseCommand('PROMPTBOOK version 1.0.0')).toEqual({
+            type: 'PROMPTBOOK_VERSION',
+            promptbookVersion: '1.0.0',
+        });
+    });
+
+    it('should fail parsing PROMPTBOOK_VERSION command', () => {
+        expect(() => parseCommand('PROMPTBOOK version')).toThrowError(/Invalid PROMPTBOOK_VERSION command/i);
+        expect(() => parseCommand('PROMPTBOOK version   ')).toThrowError(/Invalid PROMPTBOOK_VERSION command/i);
+        // TODO: Also test invalid version in PROMPTBOOK_VERSION command
+    });
+
+    it('should parse EXECUTE command', () => {
+        expect(parseCommand('execute prompt template')).toEqual({
+            type: 'EXECUTE',
+            executionType: 'PROMPT_TEMPLATE',
+        });
+        expect(parseCommand('execute simple template')).toEqual({
+            type: 'EXECUTE',
+            executionType: 'SIMPLE_TEMPLATE',
+        });
+        expect(parseCommand('execute script')).toEqual({
+            type: 'EXECUTE',
+            executionType: 'SCRIPT',
+        });
+        expect(parseCommand('execute prompt dialog')).toEqual({
+            type: 'EXECUTE',
+            executionType: 'PROMPT_DIALOG',
+        });
+        expect(parseCommand('  execute    prompt         template')).toEqual({
+            type: 'EXECUTE',
+            executionType: 'PROMPT_TEMPLATE',
+        });
+        expect(parseCommand('execute PROMPT_TEMPLATE')).toEqual({
+            type: 'EXECUTE',
+            executionType: 'PROMPT_TEMPLATE',
+        });
+        expect(parseCommand('execute `prompt template`')).toEqual({
+            type: 'EXECUTE',
+            executionType: 'PROMPT_TEMPLATE',
+        });
+    });
+
+    it('should fail parsing EXECUTE command', () => {
+        expect(() => parseCommand('execute fooo')).toThrowError(/Unknown execution type/i);
+        expect(() => parseCommand('execute script prompt template')).toThrowError(/Unknown execution type/i);
+    });
+
+    it('should parse MODEL command', () => {
+        expect(parseCommand('MODEL VARIANT Completion')).toEqual({
+            type: 'MODEL',
+            key: 'modelVariant',
+            value: 'COMPLETION',
+        });
+
+        expect(parseCommand('MODEL VARIANT Chat')).toEqual({
+            type: 'MODEL',
+            key: 'modelVariant',
+            value: 'CHAT',
+        });
+
+        expect(parseCommand('MODEL VARIANT Completion   ')).toEqual({
+            type: 'MODEL',
+            key: 'modelVariant',
+            value: 'COMPLETION',
+        });
+
+        expect(parseCommand('MODEL VARIANT Embed')).toEqual({
+            type: 'MODEL',
+            key: 'modelVariant',
+            value: 'EMBEDDING',
+        });
+
+        expect(parseCommand('MODEL VARIANT Embedding')).toEqual({
+            type: 'MODEL',
+            key: 'modelVariant',
+            value: 'EMBEDDING',
+        });
+
+        // <- Note: [🤖]
+
+        expect(parseCommand('MODEL VARIANT `CHAT`')).toEqual({
+            type: 'MODEL',
+            key: 'modelVariant',
+            value: 'CHAT',
+        });
+
+        expect(parseCommand('MODEL NAME gpt-4-1106-preview')).toEqual({
+            type: 'MODEL',
+            key: 'modelName',
+            value: 'gpt-4-1106-preview',
+        });
+
+        expect(parseCommand('MODEL NAME gpt-3.5-turbo-instruct')).toEqual({
+            type: 'MODEL',
+            key: 'modelName',
+            value: 'gpt-3.5-turbo-instruct',
+        });
+    });
+
+    it('should fail parsing MODEL VARIANT command', () => {
+        expect(() => parseCommand('MODEL wet')).toThrowError(/Unknown model key/i);
+        expect(() => parseCommand('MODEL {script}')).toThrowError(/Unknown model key/i);
+    });
+
+    it('should parse PARAMETER command', () => {
+        expect(parseCommand('parameter {name} Name for the hero')).toEqual({
+            type: 'PARAMETER',
+            isInput: false,
+            isOutput: false,
+            parameterName: 'name',
+            parameterDescription: 'Name for the hero',
+        });
+        expect(parseCommand('{name} Name for the hero')).toEqual({
+            type: 'PARAMETER',
+            isInput: false,
+            isOutput: false,
+            parameterName: 'name',
+            parameterDescription: 'Name for the hero',
+        });
+        expect(parseCommand('> {name} Name for the hero')).toEqual({
+            type: 'PARAMETER',
+            isInput: false,
+            isOutput: false,
+            parameterName: 'name',
+            parameterDescription: 'Name for the hero',
+        });
+        expect(parseCommand('{name} Input for the hero')).toEqual({
+            type: 'PARAMETER',
+            isInput: false,
+            isOutput: false,
+            parameterName: 'name',
+            parameterDescription: 'Input for the hero',
+        });
+        expect(parseCommand('input parameter {name} Name for the hero')).toEqual({
+            type: 'PARAMETER',
+            isInput: true,
+            isOutput: false,
+            parameterName: 'name',
+            parameterDescription: 'Name for the hero',
+        });
+        expect(parseCommand('input parameter {name}')).toEqual({
+            type: 'PARAMETER',
+            isInput: true,
+            isOutput: false,
+            parameterName: 'name',
+            parameterDescription: null,
+        });
+        expect(parseCommand('input   parameter {name}          ')).toEqual({
+            type: 'PARAMETER',
+            isInput: true,
+            isOutput: false,
+            parameterName: 'name',
+            parameterDescription: null,
+        });
+
+        expect(parseCommand('OUTPUT parameter {name} Name for the hero')).toEqual({
+            type: 'PARAMETER',
+            isInput: false,
+            isOutput: true,
+            parameterName: 'name',
+            parameterDescription: 'Name for the hero',
+        });
+        expect(parseCommand('   parameter    {name}        Name for the hero         ')).toEqual({
+            type: 'PARAMETER',
+            isInput: false,
+            isOutput: false,
+            parameterName: 'name',
+            parameterDescription: 'Name for the hero',
+        });
+        expect(parseCommand('parameter {name} **Name** for the hero')).toEqual({
+            type: 'PARAMETER',
+            isInput: false,
+            isOutput: false,
+            parameterName: 'name',
+            parameterDescription: '**Name** for the hero',
+        });
+        expect(parseCommand('parameter {name} **Name** for `the` {')).toEqual({
+            type: 'PARAMETER',
+            isInput: false,
+            isOutput: false,
+            parameterName: 'name',
+            parameterDescription: '**Name** for `the` {',
+        });
+    });
+
+    it('should not be confused by input/output word in parameter name or description', () => {
+        expect(parseCommand('> {inputText} The input text')).toEqual({
+            type: 'PARAMETER',
+            isInput: false, // <- Note: Not input despite the word input in the parameter name
+            isOutput: false,
+            parameterName: 'inputText',
+            parameterDescription: 'The input text',
+        });
+
+        expect(parseCommand('> {outputText} The output text')).toEqual({
+            type: 'PARAMETER',
+            isInput: false,
+            isOutput: false, // <- Note: Not output despite the word output in the parameter name
+            parameterName: 'outputText',
+            parameterDescription: 'The output text',
+        });
+
+        expect(parseCommand('PARAMETER {inputText} The input text')).toEqual({
+            type: 'PARAMETER',
+            isInput: false, // <- Note: Not input despite the word input in the parameter name
+            isOutput: false,
+            parameterName: 'inputText',
+            parameterDescription: 'The input text',
+        });
+
+        expect(parseCommand('PARAMETER {outputText} The output text')).toEqual({
+            type: 'PARAMETER',
+            isInput: false,
+            isOutput: false, // <- Note: Not output despite the word output in the parameter name
+            parameterName: 'outputText',
+            parameterDescription: 'The output text',
+        });
+
+        expect(parseCommand('OUTPUT PARAMETER {inputText} The input text')).toEqual({
+            type: 'PARAMETER',
+            isInput: false, // <- Note: Not input despite the word input in the parameter name
+            isOutput: true,
+            parameterName: 'inputText',
+            parameterDescription: 'The input text',
+        });
+
+        expect(parseCommand('INPUT PARAMETER {outputText} The output text')).toEqual({
+            type: 'PARAMETER',
+            isInput: true,
+            isOutput: false, // <- Note: Not output despite the word output in the parameter name
+            parameterName: 'outputText',
+            parameterDescription: 'The output text',
+        });
+    });
+
+    it('should parse JOKER command', () => {
+        expect(parseCommand('joker {name}')).toEqual({
+            type: 'JOKER',
+            parameterName: 'name',
+        });
+        expect(parseCommand('JOKER {woooow}')).toEqual({
+            type: 'JOKER',
+            parameterName: 'woooow',
+        });
+    });
+
+    it('should parse POSTPROCESS command', () => {
+        expect(parseCommand('Postprocess spaceTrim')).toEqual({
+            type: 'POSTPROCESS',
+            functionName: 'spaceTrim',
+        });
+        expect(parseCommand('Postprocess `spaceTrim`')).toEqual({
+            type: 'POSTPROCESS',
+            functionName: 'spaceTrim',
+        });
+        expect(parseCommand('Postprocess **spaceTrim**')).toEqual({
+            type: 'POSTPROCESS',
+            functionName: 'spaceTrim',
+        });
+        expect(parseCommand('Post-process spaceTrim')).toEqual({
+            type: 'POSTPROCESS',
+            functionName: 'spaceTrim',
+        });
+        expect(parseCommand('Postprocessing unwrapResult')).toEqual({
+            type: 'POSTPROCESS',
+            functionName: 'unwrapResult',
+        });
+    });
+
+    it('should parse EXPECT command', () => {
+        expect(parseCommand('Expect exactly 1 character')).toEqual({
+            type: 'EXPECT_AMOUNT',
+            sign: 'EXACTLY',
+            unit: 'CHARACTERS',
+            amount: 1,
+        });
+
+        expect(parseCommand('Expect exactly 1 char')).toEqual({
+            type: 'EXPECT_AMOUNT',
+            sign: 'EXACTLY',
+            unit: 'CHARACTERS',
+            amount: 1,
+        });
+
+        expect(parseCommand('Expect mininimum 1 character')).toEqual({
+            type: 'EXPECT_AMOUNT',
+            sign: 'MINIMUM',
+            unit: 'CHARACTERS',
+            amount: 1,
+        });
+
+        expect(parseCommand('Expect minimally 1 character')).toEqual({
+            type: 'EXPECT_AMOUNT',
+            sign: 'MINIMUM',
+            unit: 'CHARACTERS',
+            amount: 1,
+        });
+
+        expect(parseCommand('Expect min 1 char')).toEqual({
+            type: 'EXPECT_AMOUNT',
+            sign: 'MINIMUM',
+            unit: 'CHARACTERS',
+            amount: 1,
+        });
+
+        expect(parseCommand('Expect maximum 5 character')).toEqual({
+            type: 'EXPECT_AMOUNT',
+            sign: 'MAXIMUM',
+            unit: 'CHARACTERS',
+            amount: 5,
+        });
+
+        expect(parseCommand('Expect maximally 5 characters')).toEqual({
+            type: 'EXPECT_AMOUNT',
+            sign: 'MAXIMUM',
+            unit: 'CHARACTERS',
+            amount: 5,
+        });
+
+        expect(parseCommand('Expect max 5 CHARs')).toEqual({
+            type: 'EXPECT_AMOUNT',
+            sign: 'MAXIMUM',
+            unit: 'CHARACTERS',
+            amount: 5,
+        });
+
+        expect(parseCommand('Expect exact 1 word')).toEqual({
+            type: 'EXPECT_AMOUNT',
+            sign: 'EXACTLY',
+            unit: 'WORDS',
+            amount: 1,
+        });
+
+        expect(parseCommand('Expect exactly 1 word')).toEqual({
+            type: 'EXPECT_AMOUNT',
+            sign: 'EXACTLY',
+            unit: 'WORDS',
+            amount: 1,
+        });
+
+        expect(parseCommand('Expect eXactly 1 word')).toEqual({
+            type: 'EXPECT_AMOUNT',
+            sign: 'EXACTLY',
+            unit: 'WORDS',
+            amount: 1,
+        });
+
+        expect(parseCommand('EXPECT EXACTLY 1 WORD')).toEqual({
+            type: 'EXPECT_AMOUNT',
+            sign: 'EXACTLY',
+            unit: 'WORDS',
+            amount: 1,
+        });
+
+        expect(parseCommand('Expect exactly 2 words')).toEqual({
+            type: 'EXPECT_AMOUNT',
+            sign: 'EXACTLY',
+            unit: 'WORDS',
+            amount: 2,
+        });
+
+        expect(parseCommand('Expect exactly 1 sentence')).toEqual({
+            type: 'EXPECT_AMOUNT',
+            sign: 'EXACTLY',
+            unit: 'SENTENCES',
+            amount: 1,
+        });
+
+        expect(parseCommand('Expect exactly 2 sentences')).toEqual({
+            type: 'EXPECT_AMOUNT',
+            sign: 'EXACTLY',
+            unit: 'SENTENCES',
+            amount: 2,
+        });
+
+        expect(parseCommand('Expect exactly 0 sentences')).toEqual({
+            type: 'EXPECT_AMOUNT',
+            sign: 'EXACTLY',
+            unit: 'SENTENCES',
+            amount: 0,
+        });
+
+        expect(parseCommand('Expect exactly 1 paragraph')).toEqual({
+            type: 'EXPECT_AMOUNT',
+            sign: 'EXACTLY',
+            unit: 'PARAGRAPHS',
+            amount: 1,
+        });
+
+        expect(parseCommand('Expect exactly 2 paragraphs')).toEqual({
+            type: 'EXPECT_AMOUNT',
+            sign: 'EXACTLY',
+            unit: 'PARAGRAPHS',
+            amount: 2,
+        });
+
+        expect(parseCommand('Expect exactly 1 line')).toEqual({
+            type: 'EXPECT_AMOUNT',
+            sign: 'EXACTLY',
+            unit: 'LINES',
+            amount: 1,
+        });
+
+        expect(parseCommand('Expect exactly 2 lines')).toEqual({
+            type: 'EXPECT_AMOUNT',
+            sign: 'EXACTLY',
+            unit: 'LINES',
+            amount: 2,
+        });
+
+        // TODO: Add page test
+
+        expect(parseCommand('Expect JSON')).toEqual({
+            type: 'EXPECT_FORMAT',
+            format: 'JSON',
+        });
+
+        // [🥤] - Test here relative and absolute schema reference
+    });
+
+    // <- [🥻] Insert success-case here when making new command
+
+    it('should fail parsing POSTPROCESS command', () => {
+        expect(() => parseCommand('Postprocess spaceTrim unwrapResult')).toThrowError(
+            /Invalid POSTPROCESSING command/i,
+        );
+        expect(() => parseCommand('Process spaceTrim')).toThrowError(/Unknown command/i);
+        expect(() => parseCommand('Postprocess')).toThrowError(/Invalid POSTPROCESSING command/i);
+    });
+
+    it('should fail parsing PARAMETER command', () => {
+        expect(() => parseCommand('parameter {}')).toThrowError(/Invalid parameter/i);
+        expect(() => parseCommand('parameter { name }')).toThrowError(/Invalid parameter/i);
+        expect(() => parseCommand('parameter name')).toThrowError(/Invalid parameter/i);
+        expect(() => parseCommand('parameter {name} {name}')).toThrowError(
+            /Can not contain another parameter in description/i,
+        );
+        expect(() => parseCommand('parameter {name} {name} Name for the hero')).toThrowError(
+            /Can not contain another parameter in description/i,
+        );
+        expect(() => parseCommand('parameter {name} Name for the hero {name}')).toThrowError(
+            /Can not contain another parameter in description/i,
+        );
+        expect(() => parseCommand('parameter {name} Name for the hero {name} Name for the hero')).toThrowError(
+            /Can not contain another parameter in description/i,
+        );
+        expect(() => parseCommand('parmeter {name} Name for the hero')).toThrowError(/Unknown command/i);
+    });
+
+    it('should fail parsing expect command', () => {
+        expect(() => parseCommand('Expect foo 1 char')).toThrowError(/Invalid EXPECT command/i);
+        expect(() => parseCommand('Expect min 1 vars')).toThrowError(/Invalid EXPECT command/i);
+        expect(() => parseCommand('Expect min chars')).toThrowError(/Invalid EXPECT command/i);
+        expect(() => parseCommand('Expect min xx chars')).toThrowError(/Invalid EXPECT command/i);
+        expect(() => parseCommand('Expect exactly 2 p')).toThrowError(/Ambiguous unit "p"/i);
+        expect(() => parseCommand('Expect PNG')).toThrowError(/Invalid EXPECT command/i);
+    });
+
+    it('should fail parsing multi-line command', () => {
+        expect(() => parseCommand('execute\nprompt template')).toThrowError(/Can not contain new line/i);
+        expect(() => parseCommand('execute prompt template\n')).toThrowError(/Can not contain new line/i);
+    });
+
+    it('should fail parsing unknown command', () => {
+        expect(() => parseCommand('afasf ddd')).toThrowError(/Unknown command/i);
+        expect(() => parseCommand('nothing to get')).toThrowError(/Unknown command/i);
+        expect(() => parseCommand('prameter {name}')).toThrowError(/Unknown command/i);
+    });
+
+    // <- [🥻] Insert fail-case here when making new command
+});
+
+/**
+ * TODO: [🧠] Probbably change syntax MODEL VARIANT -> MODEL
+ */

@@ -1,7 +1,9 @@
 import { string_SCREAMING_CASE } from '../../../_packages/utils.index';
-import { string_markdown_text, string_name } from '../../../types/typeAliases';
+import { string_markdown, string_markdown_text, string_name } from '../../../types/typeAliases';
 
 export type CommandParser<TCommand extends { type: string_name & string_SCREAMING_CASE }> = {
+    documentation: string_markdown;
+
     /**
      * @throws {SyntaxError} if the parsing fails
      */
@@ -13,7 +15,7 @@ export type CommandParserInput = {
 
     normalized: string_name & string_SCREAMING_CASE;
 
-    items: Array<string_name & string_SCREAMING_CASE>;
+    args: Array<string_name & string_SCREAMING_CASE>;
 };
 
 /**
