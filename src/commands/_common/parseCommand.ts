@@ -40,7 +40,7 @@ export function parseCommand(raw: string_markdown_text): Command {
         .filter((item) => !/^PROMPTBOOK$/i.test(item))
         .map(removeMarkdownFormatting);
 
-    const [commandName, ...args] = items;
+    const [commandNameRaw, ...args] = items;
 
     const getSupportedCommandsMessage = () =>
         COMMANDS.map(({ name, aliases, description }) =>
@@ -51,7 +51,7 @@ export function parseCommand(raw: string_markdown_text): Command {
             ),
         ).join('\n');
 
-    if (commandName === undefined) {
+    if (commandNameRaw === undefined) {
         throw new SyntaxError(
             spaceTrim(
                 (block) =>
@@ -68,9 +68,12 @@ export function parseCommand(raw: string_markdown_text): Command {
         );
     }
 
+    const commandName = normalizeTo_SCREAMING_CASE(commandNameRaw);
+
     for (const commandParser of COMMANDS) {
         const { name, aliases, parse } = commandParser;
         const names = [name, ...(aliases || [])];
+        console.log('!!!', { commandName, names });
         if (names.includes(commandName)) {
             try {
                 return parse({ raw, normalized, args });

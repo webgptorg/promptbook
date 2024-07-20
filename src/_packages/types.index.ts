@@ -1,6 +1,7 @@
 // @promptbook/types
 
 import type { PipelineCollection } from '../collection/PipelineCollection';
+import type { ExecutionType } from '../commands/EXECUTE/ExecutionTypes';
 import type { CommonExecutionToolsOptions } from '../execution/CommonExecutionToolsOptions';
 import { EmbeddingVector } from '../execution/EmbeddingVector';
 import type { ExecutionTools } from '../execution/ExecutionTools';
@@ -18,7 +19,6 @@ import type {
 } from '../execution/PromptResult';
 import type { ScriptExecutionTools, ScriptExecutionToolsExecuteOptions } from '../execution/ScriptExecutionTools';
 import type { UserInterfaceTools, UserInterfaceToolsPromptDialogOptions } from '../execution/UserInterfaceTools';
-import type { ExecutionType } from '../types/ExecutionTypes';
 import type { ModelRequirements, ModelVariant } from '../types/ModelRequirements';
 import type { Parameters } from '../types/Parameters';
 import { KnowledgeJson } from '../types/PipelineJson/KnowledgeJson';

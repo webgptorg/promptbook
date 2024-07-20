@@ -1,5 +1,5 @@
 import type { ExpectFormatCommand } from '../../commands/_common/types/Command';
-import type { ExecutionType } from '../ExecutionTypes';
+import type { ExecutionType } from '../../commands/EXECUTE/ExecutionTypes';
 import type { ModelRequirements } from '../ModelRequirements';
 import type { ScriptLanguage } from '../ScriptLanguage';
 import type {

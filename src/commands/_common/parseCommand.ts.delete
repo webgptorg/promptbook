@@ -1,6 +1,5 @@
 import { spaceTrim } from 'spacetrim';
 import { SyntaxError } from '../../errors/SyntaxError';
-import { ExecutionTypes } from '../../types/ExecutionTypes';
 import { MODEL_VARIANTS } from '../../types/ModelRequirements';
 import { EXPECTATION_UNITS } from '../../types/PipelineJson/PromptTemplateJson';
 import type { string_markdown_text } from '../../types/typeAliases';
@@ -9,7 +8,6 @@ import { normalizeTo_SCREAMING_CASE } from '../../utils/normalization/normalizeT
 import { parseNumber } from './parseNumber';
 import type {
     Command,
-    ExecuteCommand,
     ExpectAmountCommand,
     ExpectCommand,
     ExpectFormatCommand,
@@ -133,33 +131,6 @@ export function parseCommand(raw: string_markdown_text): Command {
             type: 'PROMPTBOOK_VERSION',
             promptbookVersion,
         } satisfies PromptbookVersionCommand;
-    } else if (
-        normalized.startsWith('EXECUTE') ||
-        normalized.startsWith('EXEC') ||
-        normalized.startsWith('PROMPT_DIALOG') ||
-        normalized.startsWith('SIMPLE_TEMPLATE')
-    ) {
-        const executionTypes = ExecutionTypes.filter((executionType) => normalized.includes(executionType));
-
-        if (executionTypes.length !== 1) {
-            throw new SyntaxError(
-                spaceTrim(
-                    (block) => `
-                        Unknown execution type in command:
-
-                        - ${raw}
-
-                        Supported execution types are:
-                        ${block(ExecutionTypes.join(', '))}
-                    `,
-                ),
-            );
-        }
-
-        return {
-            type: 'EXECUTE',
-            executionType: executionTypes[0]!,
-        } satisfies ExecuteCommand;
     } else if (normalized.startsWith('MODEL')) {
         // TODO: Make this more elegant and dynamically
         if (normalized.startsWith('MODEL_VARIANT')) {
@@ -225,9 +196,7 @@ export function parseCommand(raw: string_markdown_text): Command {
             '> {',
         ) /* <- Note: This is a bit hack to parse return parameters defined at the end of each section */
     ) {
-        const parametersMatch = raw.match(
-            /\{(?<parameterName>[a-z0-9_]+)\}[^\S\r\n]*(?<parameterDescription>.*)$/im,
-        );
+        const parametersMatch = raw.match(/\{(?<parameterName>[a-z0-9_]+)\}[^\S\r\n]*(?<parameterDescription>.*)$/im);
 
         if (!parametersMatch || !parametersMatch.groups || !parametersMatch.groups.parameterName) {
             throw new SyntaxError(

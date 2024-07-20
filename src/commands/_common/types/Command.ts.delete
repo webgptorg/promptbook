@@ -1,8 +1,6 @@
-import type { ExecutionType } from '../../../types/ExecutionTypes';
 import type { ModelRequirements } from '../../../types/ModelRequirements';
 import type { ExpectationAmount, ExpectationUnit } from '../../../types/PipelineJson/PromptTemplateJson';
 import type { string_markdown_text, string_name, string_version } from '../../../types/typeAliases';
-
 
 /**
  * Command is one piece of the prompt template which adds some logic to the prompt template or the whole pipeline.
@@ -11,7 +9,6 @@ import type { string_markdown_text, string_name, string_version } from '../../..
 export type Command =
     | PromptbookUrlCommand
     | PromptbookVersionCommand
-    | ExecuteCommand
     | ModelCommand
     | JokerCommand
     | ParameterCommand
@@ -39,7 +36,6 @@ export type PromptbookVersionCommand = {
     readonly type: 'PROMPTBOOK_VERSION';
     readonly promptbookVersion: string_version;
 };
-
 
 /**
  * Model command tells which model and modelRequirements to use for the prompt template. execution

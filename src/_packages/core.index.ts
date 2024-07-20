@@ -5,6 +5,7 @@ import { createCollectionFromJson } from '../collection/constructors/createColle
 import { createCollectionFromPromise } from '../collection/constructors/createCollectionFromPromise';
 import { createCollectionFromUrl } from '../collection/constructors/createCollectionFromUrl';
 import { createSubcollection } from '../collection/constructors/createSubcollection';
+import { ExecutionTypes } from '../commands/EXECUTE/ExecutionTypes';
 import { pipelineJsonToString } from '../conversion/pipelineJsonToString';
 import { pipelineStringToJson } from '../conversion/pipelineStringToJson';
 import { pipelineStringToJsonSync } from '../conversion/pipelineStringToJsonSync';
@@ -30,7 +31,6 @@ import type { CallbackInterfaceToolsOptions } from '../knowledge/dialogs/callbac
 import { SimplePromptInterfaceTools } from '../knowledge/dialogs/simple-prompt/SimplePromptInterfaceTools';
 import { prepareKnowledgeFromMarkdown } from '../knowledge/prepare-knowledge/markdown/prepareKnowledgeFromMarkdown';
 import { joinLlmExecutionTools } from '../llm-providers/multiple/joinLlmExecutionTools';
-import { ExecutionTypes } from '../types/ExecutionTypes';
 import type { ExecutionReportStringOptions } from '../types/execution-report/ExecutionReportStringOptions';
 import { ExecutionReportStringOptionsDefaults } from '../types/execution-report/ExecutionReportStringOptions';
 import { executionReportJsonToString } from '../types/execution-report/executionReportJsonToString';

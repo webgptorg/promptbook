@@ -1,4 +1,3 @@
-import type { Command } from '../_common/types/Command';
 import { CommandParser, CommandParserInput } from '../_common/types/CommandParser';
 import { BoilerplateCommand } from './BoilerplateCommand';
 
@@ -22,7 +21,7 @@ export const boilerplateCommandParser: CommandParser<BoilerplateCommand> = {
     /**
      * Description of the BOILERPLATE command
      */
-    description: `Boilerplate uses as showcase for creating new commands. It is a simple command that does nothing but print a message.`,
+    description: `@@`,
 
     /**
      * Example usages of the BOILERPLATE command
@@ -32,7 +31,7 @@ export const boilerplateCommandParser: CommandParser<BoilerplateCommand> = {
     /**
      * Parses the BOILERPLATE command
      */
-    parse(input: CommandParserInput): Command {
+    parse(input: CommandParserInput): BoilerplateCommand {
         const { args } = input;
 
         if (args.length !== 1) {
@@ -48,6 +47,6 @@ export const boilerplateCommandParser: CommandParser<BoilerplateCommand> = {
         return {
             type: 'BOILERPLATE',
             value,
-        };
+        } satisfies BoilerplateCommand;
     },
 };
