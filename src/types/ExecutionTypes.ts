@@ -17,5 +17,8 @@ export const ExecutionTypes = [
     'SIMPLE_TEMPLATE',
     'SCRIPT',
     'PROMPT_DIALOG',
-    // <- [🥻] Insert here when making new command
+    'SAMPLE',
+    'KNOWLEDGE',
+    'INSTRUMENT',
+    'ACTION',
 ] as const;

@@ -1,7 +1,7 @@
 import { spaceTrim } from 'spacetrim';
 import type { IterableElement, Writable, WritableDeep } from 'type-fest';
 import { flattenMarkdownStructure } from '../_packages/utils.index';
-import { parseCommand } from '../commands/_common/parseCommand.ts.delete';
+import { parseCommand } from '../commands/_common/parseCommand';
 import type { ParameterCommand } from '../commands/_common/types/Command';
 import { SyntaxError } from '../errors/SyntaxError';
 import type { ExecutionType } from '../types/ExecutionTypes';

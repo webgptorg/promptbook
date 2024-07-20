@@ -1,5 +1,5 @@
 import { describe, expect, it } from '@jest/globals';
-import { parseCommand } from '../_common/parseCommand.ts.delete';
+import { parseCommand } from '../_common/parseCommand';
 
 describe('how BOILERPLATE command in .ptbk.md files works', () => {
     it('should parse BOILERPLATE command', () => {
@@ -25,7 +25,7 @@ describe('how BOILERPLATE command in .ptbk.md files works', () => {
     });
 
     it('should fail parsing BOILERPLATE command', () => {
-        expect(() => parseCommand('BOILERPLATE')).toThrowError(/Invalid BOILERPLATE command/i);
-        expect(() => parseCommand('BOILERPLATE brr')).toThrowError(/BOILERPLATE can not contain brr/i);
+        expect(() => parseCommand('BOILERPLATE')).toThrowError(/requires exactly one argument/i);
+        expect(() => parseCommand('BOILERPLATE brr')).toThrowError(/BOILERPLATE value can not contain brr/i);
     });
 });

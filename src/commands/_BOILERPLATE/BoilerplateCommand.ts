@@ -1,7 +1,8 @@
 /**
- * Boilerplate command does @@
+ * Parsed BOILERPLATE command
  *
- * @see ./README.md for more details
+ * @see ./boilerplateCommandParser.ts for more details
+ * @private within the commands folder
  */
 export type BoilerplateCommand = {
     readonly type: 'BOILERPLATE';
