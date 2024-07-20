@@ -1,3 +1,5 @@
+import { string_file_relative_path, string_url } from '../../types/typeAliases';
+
 /**
  * Parsed KNOWLEDGE command
  *
@@ -6,5 +8,5 @@
  */
 export type KnowledgeCommand = {
     readonly type: 'KNOWLEDGE';
-    readonly value: string;
+    readonly source: string_url | string_file_relative_path;
 };

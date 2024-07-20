@@ -4,30 +4,19 @@ import { knowledgeCommandParser } from './knowledgeCommandParser';
 
 describe('how KNOWLEDGE command in .ptbk.md files works', () => {
     it('should parse KNOWLEDGE command', () => {
-        expect(parseCommand('KNOWLEDGE foo')).toEqual({
+        expect(parseCommand('KNOWLEDGE https://www.pavolhejny.com/')).toEqual({
             type: 'KNOWLEDGE',
-            value: 'foo',
+            source: 'https://www.pavolhejny.com/',
         });
-        expect(parseCommand('KNOWLEDGE bar')).toEqual({
+        expect(parseCommand('KNOWLEDGE ./hejny-cv.pdf')).toEqual({
             type: 'KNOWLEDGE',
-            value: 'bar',
-        });
-    });
-
-    it('should parse KNOWLEDGE command in shortcut form', () => {
-        expect(parseCommand('BP foo')).toEqual({
-            type: 'KNOWLEDGE',
-            value: 'foo',
-        });
-        expect(parseCommand('BP bar')).toEqual({
-            type: 'KNOWLEDGE',
-            value: 'bar',
+            value: './hejny-cv.pdf',
         });
     });
 
     it('should fail parsing KNOWLEDGE command', () => {
         expect(() => parseCommand('KNOWLEDGE')).toThrowError(/requires exactly one argument/i);
-        expect(() => parseCommand('KNOWLEDGE brr')).toThrowError(/KNOWLEDGE value can not contain brr/i);
+        expect(() => parseCommand('KNOWLEDGE brr')).toThrowError(/Source not valid/i);
     });
 
     it(`should work with all samples`, () => {

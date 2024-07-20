@@ -6,7 +6,7 @@ import { parameterCommandParser } from './PARAMETER/parameterCommandParser';
 import { postprocessingCommandParser } from './POSTPROCESSING/postprocessingCommandParser';
 import { promptbookVersionCommandParser } from './PROMPTBOOK_VERSION/promptbookVersionCommandParser';
 import { urlCommandParser } from './URL/urlCommandParser';
-import { knowledgeCommandParser } from './X_KNOWLEDGE/knowledgeCommandParser';
+import { knowledgeCommandParser } from './KNOWLEDGE/knowledgeCommandParser';
 import { sampleCommandParser } from './X_SAMPLE/sampleCommandParser';
 
 /**

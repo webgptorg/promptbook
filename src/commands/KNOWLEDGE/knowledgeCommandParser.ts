@@ -14,19 +14,20 @@ export const knowledgeCommandParser: CommandParser<KnowledgeCommand> = {
     name: 'KNOWLEDGE',
 
     /**
-     * Aliases for the KNOWLEDGE command
-     */
-    aliases: ['BP'],
-
-    /**
      * Description of the KNOWLEDGE command
      */
-    description: `@@`,
+    description: `Tells promptbook which external knowledge to use`,
 
     /**
      * Example usages of the KNOWLEDGE command
      */
-    examples: ['KNOWLEDGE foo', 'KNOWLEDGE bar', 'BP foo', 'BP bar'],
+    examples: [
+        'KNOWLEDGE https://www.pavolhejny.com/',
+        'KNOWLEDGE ./hejny-cv.txt',
+        'KNOWLEDGE ./hejny-cv.md',
+        'KNOWLEDGE ./hejny-cv.pdf',
+        'KNOWLEDGE ./hejny-cv.docx',
+    ],
 
     /**
      * Parses the KNOWLEDGE command
@@ -38,15 +39,13 @@ export const knowledgeCommandParser: CommandParser<KnowledgeCommand> = {
             throw new SyntaxError(`KNOWLEDGE command requires exactly one argument`);
         }
 
-        const value = args[0]!.toLowerCase();
+        const source = args[0]!.toLowerCase();
 
-        if (value.includes('brr')) {
-            throw new SyntaxError(`KNOWLEDGE value can not contain brr`);
-        }
+        // TODO: !!! Validate that source is a valid path or URL
 
         return {
             type: 'KNOWLEDGE',
-            value,
+            source,
         } satisfies KnowledgeCommand;
     },
 };
