@@ -13,10 +13,6 @@ export const sampleCommandParser: CommandParser<SampleCommand> = {
      */
     name: 'SAMPLE',
 
-    /**
-     * Aliases for the SAMPLE command
-     */
-    aliases: ['BP'],
 
     /**
      * Description of the SAMPLE command

@@ -1,3 +1,4 @@
+import { PROMPTBOOK_VERSION } from '../../version';
 import { CommandParser, CommandParserInput } from '../_common/types/CommandParser';
 import { PromptbookVersionCommand } from './PromptbookVersionCommand';
 
@@ -21,7 +22,7 @@ export const promptbookVersionCommandParser: CommandParser<PromptbookVersionComm
     /**
      * Example usages of the PROMPTBOOK_VERSION command
      */
-    examples: ['PROMPTBOOK_VERSION foo', 'PROMPTBOOK_VERSION bar', 'BP foo', 'BP bar'],
+    examples: ['PROMPTBOOK VERSION ${PROMPTBOOK_VERSION}', `VERSION ${PROMPTBOOK_VERSION}`],
 
     /**
      * Parses the PROMPTBOOK_VERSION command

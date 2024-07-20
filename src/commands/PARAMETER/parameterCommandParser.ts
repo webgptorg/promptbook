@@ -41,7 +41,7 @@ export const parameterCommandParser: CommandParser<ParameterCommand> = {
     /**
      * Example usages of the PARAMETER command
      */
-    examples: ['PARAMETER foo', 'PARAMETER bar', 'BP foo', 'BP bar'],
+    examples: ['PARAMETER {title} Title of the book', 'OUTPUT PARAMETER {content} Content of the book'],
 
     /**
      * Parses the PARAMETER command

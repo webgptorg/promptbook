@@ -38,7 +38,7 @@ export const urlCommandParser: CommandParser<UrlCommand> = {
     /**
      * Example usages of the URL command
      */
-    examples: ['URL foo', 'URL bar', 'BP foo', 'BP bar'],
+    examples: ['URL https://promptbook.studio/libraty/write-cv.ptbk.md'],
 
     /**
      * Parses the URL command

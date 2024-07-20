@@ -13,10 +13,6 @@ export const jokerCommandParser: CommandParser<JokerCommand> = {
      */
     name: 'JOKER',
 
-    /**
-     * Aliases for the JOKER command
-     */
-    aliases: ['BP'],
 
     /**
      * Description of the JOKER command
@@ -26,7 +22,7 @@ export const jokerCommandParser: CommandParser<JokerCommand> = {
     /**
      * Example usages of the JOKER command
      */
-    examples: ['JOKER foo', 'JOKER bar', 'BP foo', 'BP bar'],
+    examples: ['JOKER {documentTitle}'],
 
     /**
      * Parses the JOKER command

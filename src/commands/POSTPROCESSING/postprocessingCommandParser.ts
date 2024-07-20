@@ -14,19 +14,16 @@ export const postprocessingCommandParser: CommandParser<PostprocessingCommand> =
     name: 'POSTPROCESSING',
 
     /**
-     * Aliases for the POSTPROCESSING command
-     */
-    aliases: ['BP'],
-
-    /**
      * Description of the POSTPROCESSING command
      */
-    description: `@@`,
+    description: `Defines the postprocessing function to be used on the result from LLM and before the result is validated`,
 
     /**
      * Example usages of the POSTPROCESSING command
      */
-    examples: ['POSTPROCESSING foo', 'POSTPROCESSING bar', 'BP foo', 'BP bar'],
+    examples: [
+        'POSTPROCESSING unwrapResult' /* <- TODO: !!!!! Make it dynamic, load from all possible postprocessing functions */,
+    ],
 
     /**
      * Parses the POSTPROCESSING command

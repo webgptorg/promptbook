@@ -23,7 +23,7 @@ export const modelCommandParser: CommandParser<ModelCommand> = {
     /**
      * Example usages of the MODEL command
      */
-    examples: ['MODEL foo', 'MODEL bar', 'BP foo', 'BP bar'],
+    examples: ['MODEL VARIANT Chat', 'MODEL NAME `gpt-4`'],
 
     /**
      * Parses the MODEL command

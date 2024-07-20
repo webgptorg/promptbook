@@ -18,10 +18,6 @@ export const expectCommandParser: CommandParser<ExpectCommand> = {
      */
     name: 'EXPECT',
 
-    /**
-     * Aliases for the EXPECT command
-     */
-    aliases: ['BP'],
 
     /**
      * Description of the EXPECT command
@@ -34,7 +30,7 @@ export const expectCommandParser: CommandParser<ExpectCommand> = {
     /**
      * Example usages of the EXPECT command
      */
-    examples: ['EXPECT foo', 'EXPECT bar', 'BP foo', 'BP bar'],
+    examples: ['EXPECT MIN 100 Characters', 'EXPECT MAX 10 Words', 'EXPECT EXACTLY 3 Sentences', 'EXPECT 1 Paragraph','Expect JSON'],
 
     /**
      * Parses the EXPECT command
