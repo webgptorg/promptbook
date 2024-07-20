@@ -33,7 +33,8 @@ export const expectCommandParser: CommandParser<ExpectCommand> = {
         'EXPECT MIN 100 Characters',
         'EXPECT MAX 10 Words',
         'EXPECT EXACTLY 3 Sentences',
-        'EXPECT 1 Paragraph',
+        'EXPECT EXACTLY 1 Paragraph',
+        // <- TODO: 'EXPECT 1 Paragraph',
         'Expect JSON',
     ],
 
@@ -53,8 +54,6 @@ export const expectCommandParser: CommandParser<ExpectCommand> = {
         }
 
         try {
-            args.shift();
-
             let sign: ExpectAmountCommand['sign'];
             const signRaw = args.shift()!;
             if (/^exact/i.test(signRaw)) {

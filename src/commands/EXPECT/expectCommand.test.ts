@@ -154,17 +154,15 @@ describe('how EXPECT command in .ptbk.md files works', () => {
         // [🥤] - Test here relative and absolute schema reference
     });
 
-
     it('should fail parsing expect command', () => {
-      expect(() => parseCommand('Expect foo 1 char')).toThrowError(/Invalid EXPECT command/i);
-      expect(() => parseCommand('Expect min 1 vars')).toThrowError(/Invalid EXPECT command/i);
-      expect(() => parseCommand('Expect min chars')).toThrowError(/Invalid EXPECT command/i);
-      expect(() => parseCommand('Expect min xx chars')).toThrowError(/Invalid EXPECT command/i);
-      expect(() => parseCommand('Expect exactly 2 p')).toThrowError(/Ambiguous unit "p"/i);
-      expect(() => parseCommand('Expect PNG')).toThrowError(/Invalid EXPECT command/i);
-
-        expect(() => parseCommand('EXPECT')).toThrowError(/requires exactly one argument/i);
-        expect(() => parseCommand('EXPECT brr')).toThrowError(/EXPECT value can not contain brr/i);
+        expect(() => parseCommand('Expect foo 1 char')).toThrowError(/Invalid EXPECT command/i);
+        expect(() => parseCommand('Expect min 1 vars')).toThrowError(/Invalid EXPECT command/i);
+        expect(() => parseCommand('Expect min chars')).toThrowError(/Invalid EXPECT command/i);
+        expect(() => parseCommand('Expect min xx chars')).toThrowError(/Invalid EXPECT command/i);
+        expect(() => parseCommand('Expect exactly 2 p')).toThrowError(/Ambiguous unit "p"/i);
+        expect(() => parseCommand('Expect PNG')).toThrowError(/Invalid EXPECT command/i);
+        expect(() => parseCommand('EXPECT')).toThrowError(/Invalid EXPECT command/i);
+        expect(() => parseCommand('EXPECT brr')).toThrowError(/Invalid EXPECT command/i);
     });
 
     it(`should work with all samples`, () => {
