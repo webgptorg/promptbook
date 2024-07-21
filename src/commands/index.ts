@@ -4,7 +4,7 @@ import { jokerCommandParser } from './JOKER/jokerCommandParser';
 import { knowledgeCommandParser } from './KNOWLEDGE/knowledgeCommandParser';
 import { modelCommandParser } from './MODEL/modelCommandParser';
 import { parameterCommandParser } from './PARAMETER/parameterCommandParser';
-import { postprocessingCommandParser } from './POSTPROCESSING/postprocessingCommandParser';
+import { postprocessCommandParser } from './POSTPROCESS/postprocessCommandParser';
 import { promptbookVersionCommandParser } from './PROMPTBOOK_VERSION/promptbookVersionCommandParser';
 import { urlCommandParser } from './URL/urlCommandParser';
 import { boilerplateCommandParser } from './_BOILERPLATE/boilerplateCommandParser';
@@ -18,7 +18,7 @@ export const COMMANDS = [
     jokerCommandParser,
     modelCommandParser,
     parameterCommandParser,
-    postprocessingCommandParser,
+    postprocessCommandParser,
     promptbookVersionCommandParser,
     urlCommandParser,
     knowledgeCommandParser,

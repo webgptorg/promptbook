@@ -1,12 +1,12 @@
 import type { string_name } from '../../types/typeAliases';
 
 /**
- * Parsed POSTPROCESSING command
+ * Parsed POSTPROCESS command
  *
- * @see ./postprocessingCommandParser.ts for more details
+ * @see ./postprocessCommandParser.ts for more details
  * @private within the commands folder
  */
-export type PostprocessingCommand = {
+export type PostprocessCommand = {
     readonly type: 'POSTPROCESS';
     readonly functionName: string_name;
 };

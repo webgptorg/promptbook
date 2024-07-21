@@ -55,3 +55,7 @@ export const boilerplateCommandParser: CommandParser<BoilerplateCommand> = {
         } satisfies BoilerplateCommand;
     },
 };
+
+/**
+ * TODO: [💐] Implement BOILERPLATE command into `pipelineStringToJsonSync` function
+ */

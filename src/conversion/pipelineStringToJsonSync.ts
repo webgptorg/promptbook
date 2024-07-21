@@ -146,9 +146,11 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
                 defineParam(command);
                 break;
 
+            // <- [💐]
+
             default:
                 throw new SyntaxError(
-                    `Command ${command.type} is not allowed in the head of the promptbook ONLY at the prompt template block`,
+                    `Command ${command.type} is not allowed in the head of the promptbook ONLY at the pipeline template`,
                 );
         }
     }
@@ -234,9 +236,11 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
 
                     break;
 
+                // <- [💐]
+
                 default:
                     throw new SyntaxError(
-                        `Command ${command.type} is not allowed in the block of the prompt template ONLY at the head of the promptbook`,
+                        `Command ${command.type} is not allowed in the block of the prompt template ONLY at the head of the pipeline`,
                     );
             }
         }
