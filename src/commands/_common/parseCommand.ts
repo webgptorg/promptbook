@@ -59,7 +59,25 @@ export function parseCommand(raw: string_markdown_text, usagePlace: CommandUsage
         .filter((item) => !/^PTBK$/i.test(item))
         .filter((item) => !/^PIPELINE$/i.test(item))
         .filter((item) => !/^PROMPTBOOK$/i.test(item))
-        .map(removeMarkdownFormatting);
+        .map(removeMarkdownFormatting)
+        .map((item) => item.trim());
+
+    if (items.length === 0 || items[0] === '') {
+        throw new SyntaxError(
+            spaceTrim(
+                (block) =>
+                    `
+                        Malformed command:
+
+                        - ${raw}
+
+                        Supported commands are:
+                        ${block(getSupportedCommandsMessage())}
+
+                    `,
+            ),
+        );
+    }
 
     for (
         let commandNameSegmentsCount = 0;
@@ -104,25 +122,8 @@ function getSupportedCommandsMessage(): string_markdown {
 /**
  * !!!
  */
-function parseCommandVariant(input: CommandParserInput & { commandNameRaw: string | undefined }): Command | null {
+function parseCommandVariant(input: CommandParserInput & { commandNameRaw: string }): Command | null {
     const { commandNameRaw, usagePlace, normalized, args, raw } = input;
-
-    if (commandNameRaw === undefined) {
-        throw new SyntaxError(
-            spaceTrim(
-                (block) =>
-                    `
-                        Malformed command:
-
-                        - ${raw}
-
-                        Supported commands are:
-                        ${block(getSupportedCommandsMessage())}
-
-                    `,
-            ),
-        );
-    }
 
     const commandName = normalizeTo_SCREAMING_CASE(commandNameRaw);
 

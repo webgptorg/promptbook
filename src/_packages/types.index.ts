@@ -71,8 +71,6 @@ import type {
     string_pipeline_url,
     string_pipeline_url_with_hashtemplate,
     string_prompt,
-    string_promptbook_url,
-    string_promptbook_version,
     string_script,
     string_semantic_version,
     string_sha256,
@@ -89,7 +87,7 @@ import type {
     string_uuid,
 } from '../types/typeAliases';
 import type { FromtoItems } from '../utils/FromtoItems';
-import { PROMPTBOOK_VERSION } from '../version';
+import { PROMPTBOOK_VERSION, string_promptbook_version } from '../version';
 
 // Note: Exporting version from each package
 export { PROMPTBOOK_VERSION };
@@ -140,6 +138,7 @@ export type {
     UncertainNumber,
     UserInterfaceTools,
     UserInterfaceToolsPromptDialogOptions,
+    client_id,
     string_char,
     string_char_emoji,
     string_chat_prompt,
@@ -173,7 +172,6 @@ export type {
     string_pipeline_url,
     string_pipeline_url_with_hashtemplate,
     string_prompt,
-    string_promptbook_url,
     string_promptbook_version,
     string_script,
     string_sha256,

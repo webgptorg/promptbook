@@ -1,4 +1,4 @@
-import { isValidPromptbookUrl } from '../../_packages/utils.index';
+import { isValidPipelineUrl } from '../../_packages/utils.index';
 import type { CommandParser, CommandParserInput } from '../_common/types/CommandParser';
 import type { UrlCommand } from './UrlCommand';
 
@@ -49,16 +49,16 @@ export const urlCommandParser: CommandParser<UrlCommand> = {
             throw new SyntaxError(`URL is required`);
         }
 
-        if (!isValidPromptbookUrl(pipelineUrl)) {
-            throw new SyntaxError(`Invalid Promptbook URL "${pipelineUrl}"`);
+        if (!isValidPipelineUrl(pipelineUrl)) {
+            throw new SyntaxError(`Invalid Pipeline URL "${pipelineUrl}"`);
         }
 
         if (args.length > 0) {
-            throw new SyntaxError(`Can not have more than one Promptbook URL`);
+            throw new SyntaxError(`Can not have more than one Pipeline URL`);
         }
 
         /*
-        TODO: [🐠 Maybe more info from `isValidPromptbookUrl`:
+        TODO: [🐠 Maybe more info from `isValidPipelineUrl`:
         if (pipelineUrl.protocol !== 'https:') {
             throw new SyntaxError(`Protocol must be HTTPS`);
         }

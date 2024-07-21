@@ -58,7 +58,7 @@ import { isValidPromptbookVersion } from '../utils/validators/semanticVersion/is
 import { isValidSemanticVersion } from '../utils/validators/semanticVersion/isValidSemanticVersion';
 import { isHostnameOnPrivateNetwork } from '../utils/validators/url/isHostnameOnPrivateNetwork';
 import { isUrlOnPrivateNetwork } from '../utils/validators/url/isUrlOnPrivateNetwork';
-import { isValidPromptbookUrl } from '../utils/validators/url/isValidPromptbookUrl';
+import { isValidPipelineUrl } from '../utils/validators/url/isValidPipelineUrl';
 import { isValidUrl } from '../utils/validators/url/isValidUrl';
 import { isValidUuid } from '../utils/validators/uuid/isValidUuid';
 import { PROMPTBOOK_VERSION } from '../version';
@@ -79,7 +79,7 @@ export {
     isValidFilePath,
     isValidJavascriptName,
     isValidJsonString,
-    isValidPromptbookUrl,
+    isValidPipelineUrl as isValidPipelineUrl,
     isValidPromptbookVersion,
     isValidSemanticVersion,
     isValidUrl,

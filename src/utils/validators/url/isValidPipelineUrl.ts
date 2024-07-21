@@ -2,13 +2,13 @@ import type { string_url } from '../../../types/typeAliases';
 import { isValidUrl } from './isValidUrl';
 
 /**
- * Tests if given string is valid promptbook URL URL.
+ * Tests if given string is valid pipeline URL URL.
  *
  * Note: There are two simmilar functions:
  * - `isValidUrl` which tests any URL
- * - `isValidPromptbookUrl` *(this one)* which tests just promptbook URL
+ * - `isValidPipelineUrl` *(this one)* which tests just pipeline URL
  */
-export function isValidPromptbookUrl(url: unknown): url is string_url {
+export function isValidPipelineUrl(url: unknown): url is string_url {
     if (!isValidUrl(url)) {
         return false;
     }
