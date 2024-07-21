@@ -29,6 +29,11 @@ export const boilerplateCommandParser: CommandParser<BoilerplateCommand> = {
     description: `@@`,
 
     /**
+     * Link to discussion
+     */
+    discussionUrl: 'https://github.com/webgptorg/promptbook/discussions/@@',
+
+    /**
      * Example usages of the BOILERPLATE command
      */
     examples: ['BOILERPLATE foo', 'BOILERPLATE bar', 'BP foo', 'BP bar'],

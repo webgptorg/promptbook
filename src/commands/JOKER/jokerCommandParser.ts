@@ -24,6 +24,11 @@ export const jokerCommandParser: CommandParser<JokerCommand> = {
     description: `Joker parameter is used instead of executing the prompt template if it meet the expectations requirements`,
 
     /**
+     * Link to discussion
+     */
+    discussionUrl: 'https://github.com/webgptorg/promptbook/discussions/66',
+
+    /**
      * Example usages of the JOKER command
      */
     examples: ['JOKER {documentTitle}'],

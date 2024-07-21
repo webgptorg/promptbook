@@ -26,6 +26,11 @@ export const instrumentCommandParser: CommandParser<InstrumentCommand> = {
     description: `Instrument command is used to specify the instrument to be used in the pipeline or template like search, calculate, etc.`,
 
     /**
+     * Link to discussion
+     */
+    discussionUrl: 'https://github.com/webgptorg/promptbook/discussions/71',
+
+    /**
      * Example usages of the INSTRUMENT command
      */
     examples: ['INSTRUMENT foo', 'INSTRUMENT bar', 'BP foo', 'BP bar'],

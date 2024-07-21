@@ -27,6 +27,11 @@ export const postprocessCommandParser: CommandParser<PostprocessCommand> = {
     description: `Defines the postprocess function to be used on the result from LLM and before the result is validated`,
 
     /**
+     * Link to discussion
+     */
+    discussionUrl: 'https://github.com/webgptorg/promptbook/discussions/31',
+
+    /**
      * Example usages of the POSTPROCESS command
      */
     examples: [

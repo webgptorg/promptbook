@@ -26,6 +26,11 @@ export const knowledgeCommandParser: CommandParser<KnowledgeCommand> = {
     description: `Tells promptbook which external knowledge to use`,
 
     /**
+     * Link to discussion
+     */
+    discussionUrl: 'https://github.com/webgptorg/promptbook/discussions/41',
+
+    /**
      * Example usages of the KNOWLEDGE command
      */
     examples: [

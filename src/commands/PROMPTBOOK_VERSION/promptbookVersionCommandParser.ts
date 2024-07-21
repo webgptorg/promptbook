@@ -31,6 +31,11 @@ export const promptbookVersionCommandParser: CommandParser<PromptbookVersionComm
     description: `Which version of the promptbook is the .ptbk.md using`,
 
     /**
+     * Link to discussion
+     */
+    discussionUrl: 'https://github.com/webgptorg/promptbook/discussions/69',
+
+    /**
      * Example usages of the PROMPTBOOK_VERSION command
      */
     examples: [`PROMPTBOOK VERSION ${PROMPTBOOK_VERSION}`, `VERSION ${PROMPTBOOK_VERSION}`],

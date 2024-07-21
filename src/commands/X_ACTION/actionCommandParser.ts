@@ -26,6 +26,11 @@ export const actionCommandParser: CommandParser<ActionCommand> = {
     description: `Actions influences from the pipeline or template into external world. Like turning on a light, sending an email, etc.`,
 
     /**
+     * Link to discussion
+     */
+    discussionUrl: 'https://github.com/webgptorg/promptbook/discussions/72',
+
+    /**
      * Example usages of the ACTION command
      */
     examples: ['ACTION foo', 'ACTION bar', 'BP foo', 'BP bar'],

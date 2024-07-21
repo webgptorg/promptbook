@@ -32,6 +32,11 @@ export const expectCommandParser: CommandParser<ExpectCommand> = {
     `),
 
     /**
+     * Link to discussion
+     */
+    discussionUrl: 'https://github.com/webgptorg/promptbook/discussions/30',
+
+    /**
      * Example usages of the EXPECT command
      */
     examples: [

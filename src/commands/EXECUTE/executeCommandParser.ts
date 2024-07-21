@@ -31,6 +31,11 @@ export const executeCommandParser: CommandParser<ExecuteCommand> = {
     description: `What should the template do`,
 
     /**
+     * Link to discussion
+     */
+    discussionUrl: 'https://github.com/webgptorg/promptbook/discussions/64',
+
+    /**
      * Example usages of the EXECUTE command
      */
     examples: ['EXECUTE SIMPLE TEMPLATE', 'EXECUTE PROMPT TEMPLATE' /* <- TODO: More */],

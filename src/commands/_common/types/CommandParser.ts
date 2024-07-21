@@ -13,6 +13,8 @@ export type CommandParser<TCommand extends { type: string_name & string_SCREAMIN
 
     description: string_markdown_text;
 
+    discussionUrl: `https://github.com/webgptorg/promptbook/discussions/${number | '@@'}`;
+
     examples: Array<string_markdown_text>;
 
     /**

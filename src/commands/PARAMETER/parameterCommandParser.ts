@@ -33,6 +33,11 @@ export const parameterCommandParser: CommandParser<ParameterCommand> = {
     description: `Describes one parameter of the prompt template`,
 
     /**
+     * Link to discussion
+     */
+    discussionUrl: 'https://github.com/webgptorg/promptbook/discussions/68',
+
+    /**
      * Example usages of the PARAMETER command
      */
     examples: ['PARAMETER {title} Title of the book', 'OUTPUT PARAMETER {content} Content of the book'],

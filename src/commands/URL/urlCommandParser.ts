@@ -30,6 +30,11 @@ export const urlCommandParser: CommandParser<UrlCommand> = {
     description: `Declares unique URL for the pipeline`,
 
     /**
+     * Link to discussion
+     */
+    discussionUrl: 'https://github.com/webgptorg/promptbook/discussions/70',
+
+    /**
      * Example usages of the URL command
      */
     examples: [

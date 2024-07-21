@@ -26,6 +26,11 @@ export const modelCommandParser: CommandParser<ModelCommand> = {
     description: `Tells which model and modelRequirements to use for the prompt template execution`,
 
     /**
+     * Link to discussion
+     */
+    discussionUrl: 'https://github.com/webgptorg/promptbook/discussions/67',
+
+    /**
      * Example usages of the MODEL command
      */
     examples: ['MODEL VARIANT Chat', 'MODEL NAME `gpt-4`'],

@@ -113,8 +113,8 @@ export function parseCommand(raw: string_markdown_text, usagePlace: CommandUsage
  * !!!
  */
 function getSupportedCommandsMessage(): string_markdown {
-    return COMMANDS.flatMap(({ name, aliasNames, description }) => [
-        `- **${name}** ${description}`,
+    return COMMANDS.flatMap(({ name, aliasNames, description, discussionUrl }) => [
+        `- **${name}** ${description}, see [discussion](${discussionUrl})`,
         ...(aliasNames || []).map((aliasName) => `    - **${aliasName}** Alias for **${name}**`),
     ]).join('\n');
 }
