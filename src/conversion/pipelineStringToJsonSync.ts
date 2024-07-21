@@ -127,7 +127,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
     const defaultModelRequirements: Partial<Writable<ModelRequirements>> = {};
     const listItems = extractAllListItemsFromMarkdown(markdownStructure.content);
     for (const listItem of listItems) {
-        const command = parseCommand(listItem);
+        const command = parseCommand(listItem, 'PIPELINE_HEAD');
 
         switch (command.type) {
             case 'URL':
@@ -168,7 +168,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
         let isExecutionTypeChanged = false;
 
         for (const listItem of listItems) {
-            const command = parseCommand(listItem);
+            const command = parseCommand(listItem, 'PIPELINE_TEMPLATE');
             switch (command.type) {
                 case 'JOKER':
                     jokers.push(command.parameterName);

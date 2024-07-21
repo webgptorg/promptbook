@@ -1,5 +1,5 @@
 import { describe, expect, it } from '@jest/globals';
-import { isValidUuid } from '../isValidUuid';
+import { isValidUuid } from './isValidUuid';
 
 describe(`validation of UUIDs`, () => {
     it(`is valid`, () => {

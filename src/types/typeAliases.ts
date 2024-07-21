@@ -287,11 +287,6 @@ export type string_uriid = string_uri_part;
 
 /**
  * Semantic helper
- */
-export type string_protocol = 'http:' | 'https:';
-
-/**
- * Semantic helper
  *
  * For example `"localhost"` or `"collboard.com"`
  */
@@ -333,7 +328,16 @@ export type string_emails = string;
  *
  * For example `"5a0a153d-7be9-4018-9eda-e0e2e2b89bd9"`
  */
-export type string_uuid = string;
+export type string_uuid = string & {
+    readonly _type: 'uuid' /* <- TODO: [🏟] What is the best shape of the additional object in branded types */;
+};
+
+/**
+ * Branded type client id
+ */
+export type client_id = string & {
+    readonly _type: 'client_id' /* <- TODO: [🏟] What is the best shape of the additional object in branded types */;
+};
 
 /**
  * Semantic helper
