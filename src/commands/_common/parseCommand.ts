@@ -86,7 +86,9 @@ export function parseCommand(raw: string_markdown_text, usagePlace: CommandUsage
     ) {
         const commandNameRaw = items.slice(0, commandNameSegmentsCount + 1).join('_');
         const args = items.slice(commandNameSegmentsCount + 1);
-        const command = parseCommandVariant({ usagePlace, raw, normalized, args, commandNameRaw });
+
+        const rawArgs = raw.substring(commandNameRaw.length).trim();
+        const command = parseCommandVariant({ usagePlace, raw, rawArgs, normalized, args, commandNameRaw });
 
         if (command !== null) {
             return command;
@@ -123,7 +125,7 @@ function getSupportedCommandsMessage(): string_markdown {
  * !!!
  */
 function parseCommandVariant(input: CommandParserInput & { commandNameRaw: string }): Command | null {
-    const { commandNameRaw, usagePlace, normalized, args, raw } = input;
+    const { commandNameRaw, usagePlace, normalized, args, raw, rawArgs } = input;
 
     const commandName = normalizeTo_SCREAMING_CASE(commandNameRaw);
 
@@ -133,7 +135,7 @@ function parseCommandVariant(input: CommandParserInput & { commandNameRaw: strin
         // console.log('!!!', { commandName, names });
         if (names.includes(commandName)) {
             try {
-                return parse({ usagePlace, raw, normalized, args });
+                return parse({ usagePlace, raw, rawArgs, normalized, args });
             } catch (error) {
                 if (!(error instanceof SyntaxError)) {
                     throw error;

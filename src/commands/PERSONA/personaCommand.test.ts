@@ -50,6 +50,16 @@ describe('how PERSONA command in .ptbk.md files works', () => {
             personaName: 'John',
             personaDescription: 'male 38 years old programmer',
         });
+        expect(parseCommand('PERSONA John; male 38 years old programmer', 'PIPELINE_HEAD')).toEqual({
+            type: 'PERSONA',
+            personaName: 'John',
+            personaDescription: 'male 38 years old programmer',
+        });
+        expect(parseCommand('PERSONA John: male 38 years old programmer', 'PIPELINE_HEAD')).toEqual({
+            type: 'PERSONA',
+            personaName: 'John',
+            personaDescription: 'male 38 years old programmer',
+        });
         expect(parseCommand('PERSONA Joe, male 38 years old programmer', 'PIPELINE_HEAD')).toEqual({
             type: 'PERSONA',
             personaName: 'Joe',

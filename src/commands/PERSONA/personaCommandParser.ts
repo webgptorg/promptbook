@@ -42,17 +42,21 @@ export const personaCommandParser: CommandParser<PersonaCommand> = {
      * Parses the PERSONA command
      */
     parse(input: CommandParserInput): PersonaCommand {
-        const { args } = input;
+        const { rawArgs } = input;
 
-        let personaName = args.pop() || '';
+        const [personaNameRaw, personaDescriptionRaw] = rawArgs.split(/[,;:]/, 2);
 
-        personaName = personaName.trim();
+        const personaName = (personaNameRaw || '').trim();
 
         if (personaName === '') {
             throw new SyntaxError(`You must set name for the persona`);
         }
 
-        const personaDescription = args.join(' ').trim() || null;
+        let personaDescription: string | null = (personaDescriptionRaw || '').trim();
+
+        if (personaDescription === '') {
+            personaDescription = null;
+        }
 
         return {
             type: 'PERSONA',

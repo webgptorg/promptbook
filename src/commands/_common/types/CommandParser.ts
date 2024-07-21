@@ -28,6 +28,8 @@ export type CommandParserInput = {
 
     raw: string_markdown_text;
 
+    rawArgs: string_markdown_text;
+
     normalized: string_name & string_SCREAMING_CASE;
 
     args: Array<string_name & string_SCREAMING_CASE>;
