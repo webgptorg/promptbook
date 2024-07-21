@@ -3,6 +3,7 @@ import type { IterableElement, Writable, WritableDeep } from 'type-fest';
 import type { ExecutionType } from '../commands/EXECUTE/ExecutionTypes';
 import type { ParameterCommand } from '../commands/PARAMETER/ParameterCommand';
 import { parseCommand } from '../commands/_common/parseCommand';
+import { NotImplementedError } from '../errors/NotImplementedError';
 import { SyntaxError } from '../errors/SyntaxError';
 import type { ModelRequirements } from '../types/ModelRequirements';
 import type { ExpectationUnit } from '../types/PipelineJson/Expectations';
@@ -182,6 +183,23 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
                             'Execution type is already defined in the prompt template. It can be defined only once.',
                         );
                     }
+
+                    if (command.executionType === 'SAMPLE') {
+                        throw new NotImplementedError('Execution type SAMPLE is not implemented yet');
+                    }
+
+                    if (command.executionType === 'KNOWLEDGE') {
+                        throw new NotImplementedError('Execution type KNOWLEDGE is not implemented yet');
+                    }
+
+                    if (command.executionType === 'INSTRUMENT') {
+                        throw new NotImplementedError('Execution type INSTRUMENT is not implemented yet');
+                    }
+
+                    if (command.executionType === 'ACTION') {
+                        throw new NotImplementedError('Execution type ACTION is not implemented yet');
+                    }
+
                     executionType = command.executionType;
                     isExecutionTypeChanged = true;
                     break;
