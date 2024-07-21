@@ -1,4 +1,4 @@
-import type { string_markdown_text, string_pipeline_url, string_version } from '../typeAliases';
+import type { string_markdown_text, string_pipeline_url, string_semantic_version } from '../typeAliases';
 import type { KnowledgeJson } from './KnowledgeJson';
 import type { PromptTemplateJson } from './PromptTemplateJson';
 import type { PromptTemplateParameterJson } from './PromptTemplateParameterJson';
@@ -30,7 +30,7 @@ export type PipelineJson = {
     /**
      * Version of the .ptbk.json file
      */
-    readonly promptbookVersion: string_version;
+    readonly promptbookVersion: string_semantic_version;
 
     /**
      * Description of the promptbook

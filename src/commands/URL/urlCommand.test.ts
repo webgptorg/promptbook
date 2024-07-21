@@ -116,17 +116,19 @@ describe('how URL command in .ptbk.md files works', () => {
     });
 
     it('should fail parsing URL command', () => {
-        expect(() => parseCommand('URL', 'PIPELINE_HEAD')).toThrowError(/Invalid URL command/i);
+        expect(() => parseCommand('URL', 'PIPELINE_HEAD')).toThrowError(/URL is required/i);
         expect(() =>
             parseCommand(
                 'URL https://promptbook.studio/webgpt/write-website-content-cs.ptbk.md https://promptbook.studio/webgpt/write-website-content-cs.ptbk.md',
+                'PIPELINE_HEAD',
             ),
-        ).toThrowError(/Invalid URL command/i);
+        ).toThrowError(/Can not have more than one Promptbook URL/i);
 
         expect(() => parseCommand('url http:^404', 'PIPELINE_HEAD')).toThrowError(/Invalid URL/i);
 
         expect(() => parseCommand('url http://promptbook.studio/write-website-content', 'PIPELINE_HEAD')).toThrowError(
-            /Protocol must be HTTPS/i,
+            /Invalid Promptbook URL/i,
+            // <- TODO: [🐠] /Protocol must be HTTPS/i,
         );
 
         expect(() =>
@@ -134,7 +136,10 @@ describe('how URL command in .ptbk.md files works', () => {
                 'url https://promptbook.studio/webgpt/write-website-content-cs.ptbk.md#keywords',
                 'PIPELINE_HEAD',
             ),
-        ).toThrowError(/URL must not contain hash/i);
+        ).toThrowError(
+            /Invalid Promptbook URL/i,
+            // <- TODO: [🐠] /URL must not contain hash/i
+        );
     });
 
     it(`should work with all samples`, () => {

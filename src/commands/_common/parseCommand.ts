@@ -36,6 +36,7 @@ export function parseCommand(raw: string_markdown_text, usagePlace: CommandUsage
         .split(' ')
         .map((part) => part.trim())
         .filter((item) => item !== '')
+        // Note: [📇]
         .filter((item) => !/^PTBK$/i.test(item))
         .filter((item) => !/^PIPELINE$/i.test(item))
         .filter((item) => !/^PROMPTBOOK$/i.test(item))

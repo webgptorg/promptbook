@@ -1,1 +1,2 @@
 TODO: Make propper promptbook expectation validators from this
+TODO: [🐠] Maybe more info why the checked value is invalid

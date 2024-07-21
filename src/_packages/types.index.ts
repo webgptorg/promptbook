@@ -71,7 +71,10 @@ import type {
     string_pipeline_url,
     string_pipeline_url_with_hashtemplate,
     string_prompt,
+    string_promptbook_url,
+    string_promptbook_version,
     string_script,
+    string_semantic_version,
     string_sha256,
     string_tdl,
     string_template,
@@ -84,7 +87,6 @@ import type {
     string_url,
     string_url_image,
     string_uuid,
-    string_version,
 } from '../types/typeAliases';
 import type { FromtoItems } from '../utils/FromtoItems';
 import { PROMPTBOOK_VERSION } from '../version';
@@ -171,6 +173,8 @@ export type {
     string_pipeline_url,
     string_pipeline_url_with_hashtemplate,
     string_prompt,
+    string_promptbook_url,
+    string_promptbook_version,
     string_script,
     string_sha256,
     string_tdl,
@@ -184,7 +188,7 @@ export type {
     string_url,
     string_url_image,
     string_uuid,
-    string_version,
+    string_semantic_version as string_version,
 };
 
 /**

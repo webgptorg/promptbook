@@ -5,7 +5,6 @@ import { string_file_path } from '../../../types/typeAliases';
  *
  * Note: This does not check if the file exists only if the path is valid
  */
-
 export function isValidFilePath(filePath: unknown): filePath is string_file_path {
     if (typeof filePath !== 'string') {
         return false;

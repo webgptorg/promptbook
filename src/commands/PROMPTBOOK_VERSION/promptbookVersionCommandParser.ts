@@ -1,3 +1,4 @@
+import { isValidPromptbookVersion } from '../../_packages/utils.index';
 import { PROMPTBOOK_VERSION } from '../../version';
 import type { CommandParser, CommandParserInput } from '../_common/types/CommandParser';
 import type { PromptbookVersionCommand } from './PromptbookVersionCommand';
@@ -14,6 +15,11 @@ export const promptbookVersionCommandParser: CommandParser<PromptbookVersionComm
      */
     name: 'VERSION',
 
+    /*
+    Note: [📇] No need to put here "PROMPTBOOK" alias here
+    aliasNames: ['PROMPTBOOK_VERSION'],
+    */
+
     /**
      * BOILERPLATE command can be used in:
      */
@@ -27,7 +33,7 @@ export const promptbookVersionCommandParser: CommandParser<PromptbookVersionComm
     /**
      * Example usages of the PROMPTBOOK_VERSION command
      */
-    examples: ['PROMPTBOOK VERSION ${PROMPTBOOK_VERSION}', `VERSION ${PROMPTBOOK_VERSION}`],
+    examples: [`PROMPTBOOK VERSION ${PROMPTBOOK_VERSION}`, `VERSION ${PROMPTBOOK_VERSION}`],
 
     /**
      * Parses the PROMPTBOOK_VERSION command
@@ -35,14 +41,19 @@ export const promptbookVersionCommandParser: CommandParser<PromptbookVersionComm
     parse(input: CommandParserInput): PromptbookVersionCommand {
         const { args } = input;
 
-        if (args.length !== 1) {
-            throw new SyntaxError(`PROMPTBOOK_VERSION command requires exactly one argument`);
+        const promptbookVersion = args.pop()!;
+
+        if (promptbookVersion === undefined) {
+            throw new SyntaxError(`Version is required`);
         }
 
-        const promptbookVersion = args.pop()!;
-        // TODO: Validate version
+        if (!isValidPromptbookVersion(promptbookVersion)) {
+            throw new SyntaxError(`Invalid Promptbook version "${promptbookVersion}"`);
+        }
 
-        // !!!!!!! isValidSemantivVersion
+        if (args.length > 0) {
+          throw new SyntaxError(`Can not have more than one Promptbook version`);
+      }
 
         return {
             type: 'PROMPTBOOK_VERSION',

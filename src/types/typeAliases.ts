@@ -347,7 +347,7 @@ export type string_sha256 = string;
  *
  * For example `"4.2.4"`
  */
-export type string_version = string;
+export type string_semantic_version = string;
 
 /**
  * Semantic helper

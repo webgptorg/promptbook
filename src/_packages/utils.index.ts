@@ -54,8 +54,11 @@ import { trimEndOfCodeBlock } from '../utils/trimEndOfCodeBlock';
 import { unwrapResult } from '../utils/unwrapResult';
 import { isValidFilePath } from '../utils/validators/filePath/isValidFilePath';
 import { isValidJavascriptName } from '../utils/validators/javascriptName/isValidJavascriptName';
+import { isValidPromptbookVersion } from '../utils/validators/semanticVersion/isValidPromptbookVersion';
+import { isValidSemanticVersion } from '../utils/validators/semanticVersion/isValidSemanticVersion';
 import { isHostnameOnPrivateNetwork } from '../utils/validators/url/isHostnameOnPrivateNetwork';
 import { isUrlOnPrivateNetwork } from '../utils/validators/url/isUrlOnPrivateNetwork';
+import { isValidPromptbookUrl } from '../utils/validators/url/isValidPromptbookUrl';
 import { isValidUrl } from '../utils/validators/url/isValidUrl';
 import { isValidUuid } from '../utils/validators/uuid/isValidUuid';
 import { PROMPTBOOK_VERSION } from '../version';
@@ -76,6 +79,9 @@ export {
     isValidFilePath,
     isValidJavascriptName,
     isValidJsonString,
+    isValidPromptbookUrl,
+    isValidPromptbookVersion,
+    isValidSemanticVersion,
     isValidUrl,
     isValidUuid,
     parseNumber, // <- [🌻]
