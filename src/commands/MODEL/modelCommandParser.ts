@@ -36,10 +36,6 @@ export const modelCommandParser: CommandParser<ModelCommand> = {
     parse(input: CommandParserInput): ModelCommand {
         const { args, normalized } = input;
 
-        if (args.length !== 1) {
-            throw new SyntaxError(`MODEL command requires exactly one argument`);
-        }
-
         // TODO: Make this more elegant and dynamically
         if (normalized.startsWith('MODEL_VARIANT')) {
             if (normalized === 'MODEL_VARIANT_CHAT') {
@@ -53,6 +49,12 @@ export const modelCommandParser: CommandParser<ModelCommand> = {
                     type: 'MODEL',
                     key: 'modelVariant',
                     value: 'COMPLETION',
+                } satisfies ModelCommand;
+            } else if (normalized.startsWith('MODEL_VARIANT_EMBED')) {
+                return {
+                    type: 'MODEL',
+                    key: 'modelVariant',
+                    value: 'EMBEDDING',
                 } satisfies ModelCommand;
                 // <- Note: [🤖]
             } else {
