@@ -6,5 +6,4 @@
  */
 export type ActionCommand = {
     readonly type: 'ACTION';
-    readonly value: string;
 };

@@ -1,4 +1,3 @@
-import { NotImplementedError } from '../../errors/NotImplementedError';
 import { just } from '../../utils/just';
 import type { CommandParser, CommandParserInput } from '../_common/types/CommandParser';
 import type { InstrumentCommand } from './InstrumentCommand';
@@ -33,7 +32,7 @@ export const instrumentCommandParser: CommandParser<InstrumentCommand> = {
     /**
      * Example usages of the INSTRUMENT command
      */
-    examples: ['INSTRUMENT foo', 'INSTRUMENT bar', 'BP foo', 'BP bar'],
+    examples: ['INSTRUMENT'],
 
     /**
      * Parses the INSTRUMENT command
@@ -42,13 +41,9 @@ export const instrumentCommandParser: CommandParser<InstrumentCommand> = {
         const { args } = input;
 
         just(args);
-        throw new NotImplementedError(`Instruments are not implemented yet`);
 
-        /*
         return {
             type: 'INSTRUMENT',
-            value,
         } satisfies InstrumentCommand;
-        */
     },
 };

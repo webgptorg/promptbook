@@ -136,12 +136,12 @@ describe('how URL command in .ptbk.md files works', () => {
                 'URL https://promptbook.studio/webgpt/write-website-content-cs.ptbk.md https://promptbook.studio/webgpt/write-website-content-cs.ptbk.md',
                 'PIPELINE_HEAD',
             ),
-        ).toThrowError(/Can not have more than one Promptbook URL/i);
+        ).toThrowError(/Can not have more than one pipeline URL/i);
 
-        expect(() => parseCommand('url http:^404', 'PIPELINE_HEAD')).toThrowError(/Invalid Promptbook URL/i);
+        expect(() => parseCommand('url http:^404', 'PIPELINE_HEAD')).toThrowError(/Invalid pipeline URL/i);
 
         expect(() => parseCommand('url http://promptbook.studio/write-website-content', 'PIPELINE_HEAD')).toThrowError(
-            /Invalid Promptbook URL/i,
+            /Invalid pipeline URL/i,
             // <- TODO: [🐠] /Protocol must be HTTPS/i,
         );
 
@@ -151,7 +151,7 @@ describe('how URL command in .ptbk.md files works', () => {
                 'PIPELINE_HEAD',
             ),
         ).toThrowError(
-            /Invalid Promptbook URL/i,
+            /Invalid pipeline URL/i,
             // <- TODO: [🐠] /URL must not contain hash/i
         );
     });

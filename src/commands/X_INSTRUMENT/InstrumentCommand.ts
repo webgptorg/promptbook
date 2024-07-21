@@ -6,5 +6,4 @@
  */
 export type InstrumentCommand = {
     readonly type: 'INSTRUMENT';
-    readonly value: string;
 };

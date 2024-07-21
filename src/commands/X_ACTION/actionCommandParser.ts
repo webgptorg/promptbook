@@ -1,4 +1,3 @@
-import { NotImplementedError } from '../../errors/NotImplementedError';
 import { just } from '../../utils/just';
 import type { CommandParser, CommandParserInput } from '../_common/types/CommandParser';
 import type { ActionCommand } from './ActionCommand';
@@ -33,7 +32,7 @@ export const actionCommandParser: CommandParser<ActionCommand> = {
     /**
      * Example usages of the ACTION command
      */
-    examples: ['ACTION foo', 'ACTION bar', 'BP foo', 'BP bar'],
+    examples: ['ACTION'],
 
     /**
      * Parses the ACTION command
@@ -42,13 +41,9 @@ export const actionCommandParser: CommandParser<ActionCommand> = {
         const { args } = input;
 
         just(args);
-        throw new NotImplementedError(`Actions are not implemented yet`);
 
-        /*
         return {
             type: 'ACTION',
-            value,
         } satisfies ActionCommand;
-        */
     },
 };

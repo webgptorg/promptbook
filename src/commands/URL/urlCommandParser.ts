@@ -55,11 +55,11 @@ export const urlCommandParser: CommandParser<UrlCommand> = {
         }
 
         if (!isValidPipelineUrl(pipelineUrl)) {
-            throw new SyntaxError(`Invalid Pipeline URL "${pipelineUrl}"`);
+            throw new SyntaxError(`Invalid pipeline URL "${pipelineUrl}"`);
         }
 
         if (args.length > 0) {
-            throw new SyntaxError(`Can not have more than one Pipeline URL`);
+            throw new SyntaxError(`Can not have more than one pipeline URL`);
         }
 
         /*

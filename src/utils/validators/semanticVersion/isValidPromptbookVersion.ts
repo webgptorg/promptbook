@@ -16,7 +16,7 @@ export function isValidPromptbookVersion(version: unknown): version is string_pr
         return false;
     }
 
-    if (version === '1.0.0' || version === '2.0.0' || version === '3.0.0') {
+    if (/* version === '1.0.0' || */ version === '2.0.0' || version === '3.0.0') {
         return false;
     }
     // <- TODO: !!!! Check isValidPromptbookVersion against PROMPTBOOK_VERSIONS
