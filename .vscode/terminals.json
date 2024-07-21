@@ -52,7 +52,7 @@
             "focus": false
         },
         {
-            "name": "🧪 Test",
+            "name": "🧪 Unit Test",
             "command": "npm run test",
             "execute": false,
             "onlySingle": false,
