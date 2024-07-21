@@ -378,7 +378,8 @@ Renaming and making names more consistent and less disambigous
 
 ### `0.61.0` _(2024-07-!!!)_
 
-Working external knowledge, preparation for instruments and actions
+Big syntax additions
+Working external knowledge, personas, preparation for instruments and actions
 
 -   Allow deep structure (h3, h4,...) in `.ptbk.md` files
 -   Add `SAMPLE` command with notation for parameter samples to `.ptbk.md` files
