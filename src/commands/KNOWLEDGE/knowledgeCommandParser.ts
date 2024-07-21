@@ -1,4 +1,4 @@
-import { isValidFilePath } from '../../_packages/utils.index';
+import { isValidFilePath } from '../../utils/validators/filePath/isValidFilePath';
 import { isValidUrl } from '../../utils/validators/url/isValidUrl';
 import type { CommandParser, CommandParserInput } from '../_common/types/CommandParser';
 import type { KnowledgeCommand } from './KnowledgeCommand';

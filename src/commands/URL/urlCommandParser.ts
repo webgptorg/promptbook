@@ -1,4 +1,4 @@
-import { isValidPipelineUrl } from '../../_packages/utils.index';
+import { isValidPipelineUrl } from '../../utils/validators/url/isValidPipelineUrl';
 import type { CommandParser, CommandParserInput } from '../_common/types/CommandParser';
 import type { UrlCommand } from './UrlCommand';
 

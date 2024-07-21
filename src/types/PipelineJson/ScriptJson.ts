@@ -1,5 +1,5 @@
 import type { ScriptLanguage } from '../ScriptLanguage';
-import { PromptTemplateJsonCommon } from './PromptTemplateJsonCommon';
+import type { PromptTemplateJsonCommon } from './PromptTemplateJsonCommon';
 
 /**
  * Template for script execution

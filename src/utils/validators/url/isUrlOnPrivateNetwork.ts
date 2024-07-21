@@ -1,4 +1,4 @@
-import { string_url } from '../../../types/typeAliases';
+import type { string_url } from '../../../types/typeAliases';
 import { isHostnameOnPrivateNetwork } from './isHostnameOnPrivateNetwork';
 
 /**

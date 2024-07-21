@@ -1,4 +1,4 @@
-import { string_file_path } from '../../../types/typeAliases';
+import type { string_file_path } from '../../../types/typeAliases';
 
 /**
  * Tests if given string is valid URL.

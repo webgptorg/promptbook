@@ -1,4 +1,4 @@
-import { isValidJavascriptName } from '../../_packages/utils.index';
+import { isValidJavascriptName } from '../../utils/validators/javascriptName/isValidJavascriptName';
 import type { CommandParser, CommandParserInput } from '../_common/types/CommandParser';
 import type { PostprocessingCommand } from './PostprocessingCommand';
 

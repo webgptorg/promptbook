@@ -1,15 +1,7 @@
 import type { ExecutionType } from '../../commands/EXECUTE/ExecutionTypes';
 import type { ExpectFormatCommand } from '../../commands/EXPECT/ExpectFormatCommand';
-import type {
-    string_javascript,
-    string_javascript_name,
-    string_markdown,
-    string_markdown_text,
-    string_name,
-    string_prompt,
-    string_template,
-} from '../typeAliases';
-import { Expectations } from './Expectations';
+import type { string_javascript, string_javascript_name, string_markdown, string_markdown_text, string_name, string_prompt, string_template } from '../typeAliases';
+import type { Expectations } from './Expectations';
 
 /**
  * Common properties of all prompt templates

@@ -1,4 +1,4 @@
-import { isValidPromptbookVersion } from '../../_packages/utils.index';
+import { isValidPromptbookVersion } from '../../utils/validators/semanticVersion/isValidPromptbookVersion';
 import { PROMPTBOOK_VERSION } from '../../version';
 import type { CommandParser, CommandParserInput } from '../_common/types/CommandParser';
 import type { PromptbookVersionCommand } from './PromptbookVersionCommand';
@@ -52,8 +52,8 @@ export const promptbookVersionCommandParser: CommandParser<PromptbookVersionComm
         }
 
         if (args.length > 0) {
-          throw new SyntaxError(`Can not have more than one Promptbook version`);
-      }
+            throw new SyntaxError(`Can not have more than one Promptbook version`);
+        }
 
         return {
             type: 'PROMPTBOOK_VERSION',

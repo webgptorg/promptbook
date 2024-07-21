@@ -1,5 +1,5 @@
 import type { ModelRequirements } from '../ModelRequirements';
-import { PromptTemplateJsonCommon } from './PromptTemplateJsonCommon';
+import type { PromptTemplateJsonCommon } from './PromptTemplateJsonCommon';
 
 /**
  * Template for prompt to LLM

@@ -1,4 +1,4 @@
-import { string_uuid } from '../../../types/typeAliases';
+import type { string_uuid } from '../../../types/typeAliases';
 
 export function isValidJavascriptName(value: unknown): value is string_uuid {
     if (typeof value !== 'string') {

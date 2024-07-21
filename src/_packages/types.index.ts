@@ -39,6 +39,7 @@ import type { TaskProgress } from '../types/TaskProgress';
 import type { ExecutionReportJson } from '../types/execution-report/ExecutionReportJson';
 import type { string_char_emoji } from '../types/typeAliasEmoji';
 import type {
+    client_id,
     string_char,
     string_chat_prompt,
     string_completion_prompt,

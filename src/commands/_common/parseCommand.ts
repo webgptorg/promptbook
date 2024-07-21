@@ -5,8 +5,8 @@ import { removeMarkdownFormatting } from '../../utils/markdown/removeMarkdownFor
 import { normalizeTo_SCREAMING_CASE } from '../../utils/normalization/normalizeTo_SCREAMING_CASE';
 import { COMMANDS } from '../index';
 import type { Command } from './types/Command';
-import { CommandParserInput } from './types/CommandParser';
-import { CommandUsagePlace } from './types/CommandUsagePlaces';
+import type { CommandParserInput } from './types/CommandParser';
+import type { CommandUsagePlace } from './types/CommandUsagePlaces';
 
 /**
  * Parses one line of ul/ol to command

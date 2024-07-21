@@ -1,4 +1,4 @@
-import { string_uuid } from '../../../types/typeAliases';
+import type { string_uuid } from '../../../types/typeAliases';
 
 /**
  * Checks if value is valid uuid
