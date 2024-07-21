@@ -1,10 +1,11 @@
 import { spaceTrim } from 'spacetrim';
 import { SyntaxError } from '../../errors/SyntaxError';
-import type { string_markdown_text } from '../../types/typeAliases';
+import type { string_markdown, string_markdown_text } from '../../types/typeAliases';
 import { removeMarkdownFormatting } from '../../utils/markdown/removeMarkdownFormatting';
 import { normalizeTo_SCREAMING_CASE } from '../../utils/normalization/normalizeTo_SCREAMING_CASE';
 import { COMMANDS } from '../index';
 import type { Command } from './types/Command';
+import { CommandParserInput } from './types/CommandParser';
 import { CommandUsagePlace } from './types/CommandUsagePlaces';
 
 /**
@@ -34,11 +35,23 @@ export function parseCommand(raw: string_markdown_text, usagePlace: CommandUsage
 
     const items = raw
         .trim()
+        // Note: [🐡]
+        .split(/^>/)
+        .join('')
+        // ---
+        .trim()
         .split(/["'`]/)
         .join('')
+        .trim()
+
         // Note: [🛵]:
         .split(/^http/)
         .join('URL http')
+        // ---
+        // Note: [🦈]
+        .split(/^{/)
+        .join('PARAMETER {')
+        // ---
         .split(' ')
         .map((part) => part.trim())
         .filter((item) => item !== '')
@@ -48,16 +61,51 @@ export function parseCommand(raw: string_markdown_text, usagePlace: CommandUsage
         .filter((item) => !/^PROMPTBOOK$/i.test(item))
         .map(removeMarkdownFormatting);
 
-    const [commandNameRaw, ...args] = items;
+    for (
+        let commandNameSegmentsCount = 0;
+        commandNameSegmentsCount < Math.min(items.length, 3);
+        commandNameSegmentsCount++
+    ) {
+        const commandNameRaw = items.slice(0, commandNameSegmentsCount + 1).join('_');
+        const args = items.slice(commandNameSegmentsCount + 1);
+        const command = parseCommandVariant({ usagePlace, raw, normalized, args, commandNameRaw });
 
-    const getSupportedCommandsMessage = () =>
-        COMMANDS.map(({ name, aliasNames: aliases, description }) =>
-            spaceTrim(
+        if (command !== null) {
+            return command;
+        }
+    }
+
+    throw new SyntaxError(
+        spaceTrim(
+            (block) =>
                 `
-                    - **${name}**${aliases ? ` *(${aliases.join(', ')})*` : ''} ${description}
-                `,
-            ),
-        ).join('\n');
+                  Malformed or unknown command:
+
+                  - ${raw}
+
+                  Supported commands are:
+                  ${block(getSupportedCommandsMessage())}
+
+              `,
+        ),
+    );
+}
+
+/**
+ * !!!
+ */
+function getSupportedCommandsMessage(): string_markdown {
+    return COMMANDS.flatMap(({ name, aliasNames, description }) => [
+        `- **${name}** ${description}`,
+        ...(aliasNames || []).map((aliasName) => `    - **${aliasName}** Alias for **${name}**`),
+    ]).join('\n');
+}
+
+/**
+ * !!!
+ */
+function parseCommandVariant(input: CommandParserInput & { commandNameRaw: string | undefined }): Command | null {
+    const { commandNameRaw, usagePlace, normalized, args, raw } = input;
 
     if (commandNameRaw === undefined) {
         throw new SyntaxError(
@@ -112,18 +160,5 @@ export function parseCommand(raw: string_markdown_text, usagePlace: CommandUsage
         }
     }
 
-    throw new SyntaxError(
-        spaceTrim(
-            (block) =>
-                `
-                    Malformed or unknown command ${commandName}:
-
-                    - ${raw}
-
-                    Supported commands are:
-                    ${block(getSupportedCommandsMessage())}
-
-                `,
-        ),
-    );
+    return null;
 }

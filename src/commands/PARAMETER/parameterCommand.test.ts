@@ -11,6 +11,8 @@ describe('how PARAMETER command in .ptbk.md files works', () => {
             parameterName: 'name',
             parameterDescription: 'Name for the hero',
         });
+
+        // Note: [🐡]
         expect(parseCommand('{name} Name for the hero', 'PIPELINE_HEAD')).toEqual({
             type: 'PARAMETER',
             isInput: false,
@@ -18,6 +20,8 @@ describe('how PARAMETER command in .ptbk.md files works', () => {
             parameterName: 'name',
             parameterDescription: 'Name for the hero',
         });
+
+        // Note: [🐡]
         expect(parseCommand('> {name} Name for the hero', 'PIPELINE_HEAD')).toEqual({
             type: 'PARAMETER',
             isInput: false,
@@ -25,6 +29,8 @@ describe('how PARAMETER command in .ptbk.md files works', () => {
             parameterName: 'name',
             parameterDescription: 'Name for the hero',
         });
+
+        // Note: [🐡]
         expect(parseCommand('{name} Input for the hero', 'PIPELINE_HEAD')).toEqual({
             type: 'PARAMETER',
             isInput: false,
@@ -85,6 +91,7 @@ describe('how PARAMETER command in .ptbk.md files works', () => {
     });
 
     it('should not be confused by input/output word in parameter name or description', () => {
+        // Note: [🐡]
         expect(parseCommand('> {inputText} The input text', 'PIPELINE_HEAD')).toEqual({
             type: 'PARAMETER',
             isInput: false, // <- Note: Not input despite the word input in the parameter name
@@ -93,6 +100,7 @@ describe('how PARAMETER command in .ptbk.md files works', () => {
             parameterDescription: 'The input text',
         });
 
+        // Note: [🐡]
         expect(parseCommand('> {outputText} The output text', 'PIPELINE_HEAD')).toEqual({
             type: 'PARAMETER',
             isInput: false,

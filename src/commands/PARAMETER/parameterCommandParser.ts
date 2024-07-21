@@ -1,13 +1,6 @@
 import type { CommandParser, CommandParserInput } from '../_common/types/CommandParser';
 import type { ParameterCommand } from './ParameterCommand';
 
-/*
-TODO: !!!!!
- raw.startsWith(
-            '> {',
-        ) /* <- Note: This is a bit hack to parse return parameters defined at the end of each section * /
-*/
-
 /**
  * Parses the parameter command
  *
@@ -23,15 +16,11 @@ export const parameterCommandParser: CommandParser<ParameterCommand> = {
     /**
      * Aliases for the PARAMETER command
      */
-    aliasNames: [
-        'PARAM',
-        'INPUT_PARAM',
-        'OUTPUT_PARAM',
-        'INTERMEDIATE_PARAMETER',
-        'INPUT_PARAMETER',
-        'OUTPUT_PARAMETER',
-        'INTERMEDIATE_PARAMETER',
-    ],
+    aliasNames: ['PARAM', 'INPUT_PARAM', 'OUTPUT_PARAM', 'INPUT_PARAMETER', 'OUTPUT_PARAMETER'],
+
+    /*
+    Note: [🦈] No need for extra alias name because it is already preprocessed
+    */
 
     /**
      * BOILERPLATE command can be used in:

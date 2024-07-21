@@ -19,18 +19,6 @@ export const urlCommandParser: CommandParser<UrlCommand> = {
     aliasNames: ['HTTPS'],
     */
 
-    /*
-    !!!!!!!! Probbably working
-      normalized.startsWith('URL') ||
-      normalized.startsWith('PTBK_URL') ||
-      normalized.startsWith('PTBKURL') ||
-      normalized.startsWith('URL') ||
-      normalized.startsWith('PIPELINEURL') ||
-      normalized.startsWith('PROMPTBOOK_URL') ||
-      normalized.startsWith('PROMPTBOOKURL') ||
-      normalized.startsWith('HTTPS')
-    */
-
     /**
      * BOILERPLATE command can be used in:
      */
