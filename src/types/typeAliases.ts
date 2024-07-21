@@ -103,8 +103,6 @@ export type string_char = string;
  */
 export type string_name = string;
 
-
-
 /**
  * Semantic helper
  * Title of anything
@@ -308,17 +306,34 @@ export type string_host = string;
 
 /**
  * Semantic helper
+ */
+export type string_protocol = 'http:' | 'https:';
+
+/**
+ * Semantic helper
  *
  * For example `"pavol@hejny.org"`
  */
 export type string_email = string;
 
 /**
- * Branded type client id
+ * Semantic helper
+ *
+ * For example `"pavol@hejny.org, jirka@webgpt.cz"`
  */
-export type client_id = string & {
-    readonly _type: 'client_id' /* <- TODO: [🏟] What is the best shape of the additional object in branded types */;
-};
+export type string_emails = string;
+
+/**
+ * Branded type for UUIDs version 4
+ * This will not allow to pass some random string where should be only a valid UUID
+ *
+ * Use utils:
+ *   - `randomUuid` to generate
+ *   - `isValidUuid  to check validity
+ *
+ * For example `"5a0a153d-7be9-4018-9eda-e0e2e2b89bd9"`
+ */
+export type string_uuid = string;
 
 /**
  * Semantic helper

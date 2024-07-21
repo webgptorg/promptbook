@@ -16,10 +16,6 @@ describe('how POSTPROCESSING command in .ptbk.md files works', () => {
             type: 'POSTPROCESS',
             functionName: 'spaceTrim',
         });
-        expect(parseCommand('Post-process spaceTrim', 'PIPELINE_TEMPLATE')).toEqual({
-            type: 'POSTPROCESS',
-            functionName: 'spaceTrim',
-        });
         expect(parseCommand('Postprocessing unwrapResult', 'PIPELINE_TEMPLATE')).toEqual({
             type: 'POSTPROCESS',
             functionName: 'unwrapResult',
@@ -35,14 +31,21 @@ describe('how POSTPROCESSING command in .ptbk.md files works', () => {
 
     it('should fail parsing POSTPROCESS command', () => {
         expect(() => parseCommand('Postprocess spaceTrim unwrapResult', 'PIPELINE_TEMPLATE')).toThrowError(
-            /Invalid POSTPROCESSING command/i,
+            /Can not have more than one postprocessing function/i,
+        );
+        expect(() => parseCommand('POSTPROCESS @#$%%', 'PIPELINE_TEMPLATE')).toThrowError(
+            /Invalid postprocessing function name/i,
         );
         expect(() => parseCommand('Process spaceTrim', 'PIPELINE_TEMPLATE')).toThrowError(/Unknown command/i);
-        expect(() => parseCommand('Postprocess', 'PIPELINE_TEMPLATE')).toThrowError(/Invalid POSTPROCESSING command/i);
-        expect(() => parseCommand('POSTPROCESSING', 'PIPELINE_TEMPLATE')).toThrowError(
-            /requires exactly one argument/i,
+        expect(() => parseCommand('Postprocess', 'PIPELINE_TEMPLATE')).toThrowError(
+            /Postprocessing function name is required/i,
         );
-        expect(() => parseCommand('POSTPROCESSING as^fadf', 'PIPELINE_TEMPLATE')).toThrowError(/--/i);
+        expect(() => parseCommand('POSTPROCESSING', 'PIPELINE_TEMPLATE')).toThrowError(
+            /Postprocessing function name is required/i,
+        );
+        expect(() => parseCommand('POSTPROCESSING as^fadf', 'PIPELINE_TEMPLATE')).toThrowError(
+            /Invalid postprocessing function name/i,
+        );
     });
 
     it(`should work with all samples`, () => {

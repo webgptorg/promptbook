@@ -58,6 +58,8 @@ export const urlCommandParser: CommandParser<UrlCommand> = {
         const pipelineUrlString = args.pop()!;
         const pipelineUrl = new URL(pipelineUrlString);
 
+        // !!!!!!! isValidPromptbookUrl
+
         if (pipelineUrl.protocol !== 'https:') {
             throw new SyntaxError(`Protocol must be HTTPS`);
         }

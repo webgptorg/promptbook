@@ -1,3 +1,4 @@
+import { isValidJavascriptName } from '../../_packages/utils.index';
 import type { CommandParser, CommandParserInput } from '../_common/types/CommandParser';
 import type { PostprocessingCommand } from './PostprocessingCommand';
 
@@ -13,6 +14,8 @@ export const postprocessingCommandParser: CommandParser<PostprocessingCommand> =
      */
     name: 'POSTPROCESSING',
 
+    aliasNames: ['POSTPROCESS', 'PP'],
+
     /**
      * BOILERPLATE command can be used in:
      */
@@ -27,7 +30,7 @@ export const postprocessingCommandParser: CommandParser<PostprocessingCommand> =
      * Example usages of the POSTPROCESSING command
      */
     examples: [
-        'POSTPROCESSING unwrapResult' /* <- TODO: !!!!! Make it dynamic, load from all possible postprocessing functions */,
+        'POSTPROCESSING unwrapResult' /* <- TODO: !!!!! Make it `POSTPROCESSING` examples dynamic, load from all possible postprocessing functions */,
     ],
 
     /**
@@ -36,13 +39,19 @@ export const postprocessingCommandParser: CommandParser<PostprocessingCommand> =
     parse(input: CommandParserInput): PostprocessingCommand {
         const { args } = input;
 
-        if (args.length !== 1) {
-            throw new SyntaxError(`POSTPROCESSING command requires exactly one argument`);
-        }
-
         const functionName = args.pop()!;
 
-        // TODO: Validate functionName
+        if (functionName === undefined) {
+            throw new SyntaxError(`Postprocessing function name is required`);
+        }
+
+        if (!isValidJavascriptName(functionName)) {
+            throw new SyntaxError(`Invalid postprocessing function name "${functionName}"`);
+        }
+
+        if (args.length > 0) {
+            throw new SyntaxError(`Can not have more than one postprocessing function`);
+        }
 
         return {
             type: 'POSTPROCESS',

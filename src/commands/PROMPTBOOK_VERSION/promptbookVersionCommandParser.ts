@@ -42,6 +42,8 @@ export const promptbookVersionCommandParser: CommandParser<PromptbookVersionComm
         const promptbookVersion = args.pop()!;
         // TODO: Validate version
 
+        // !!!!!!! isValidSemantivVersion
+
         return {
             type: 'PROMPTBOOK_VERSION',
             promptbookVersion,

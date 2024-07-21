@@ -53,7 +53,11 @@ import { trimCodeBlock } from '../utils/trimCodeBlock';
 import { trimEndOfCodeBlock } from '../utils/trimEndOfCodeBlock';
 import { unwrapResult } from '../utils/unwrapResult';
 import { isValidFilePath } from '../utils/validators/filePath/isValidFilePath';
+import { isValidJavascriptName } from '../utils/validators/javascriptName/isValidJavascriptName';
+import { isHostnameOnPrivateNetwork } from '../utils/validators/url/isHostnameOnPrivateNetwork';
+import { isUrlOnPrivateNetwork } from '../utils/validators/url/isUrlOnPrivateNetwork';
 import { isValidUrl } from '../utils/validators/url/isValidUrl';
+import { isValidUuid } from '../utils/validators/uuid/isValidUuid';
 import { PROMPTBOOK_VERSION } from '../version';
 
 // Note: Exporting version from each package
@@ -67,9 +71,13 @@ export {
     extractOneBlockFromMarkdown,
     extractParameters,
     extractVariables,
+    isHostnameOnPrivateNetwork,
+    isUrlOnPrivateNetwork,
     isValidFilePath,
+    isValidJavascriptName,
     isValidJsonString,
     isValidUrl,
+    isValidUuid,
     parseNumber, // <- [🌻]
     removeContentComments,
     removeEmojis,

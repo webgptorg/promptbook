@@ -39,13 +39,13 @@ import type { TaskProgress } from '../types/TaskProgress';
 import type { ExecutionReportJson } from '../types/execution-report/ExecutionReportJson';
 import type { string_char_emoji } from '../types/typeAliasEmoji';
 import type {
-    client_id,
     string_char,
     string_chat_prompt,
     string_completion_prompt,
     string_data_url,
     string_domain,
     string_email,
+    string_emails,
     string_file_absolute_path,
     string_file_extension,
     string_file_path,
@@ -83,6 +83,7 @@ import type {
     string_uri_part,
     string_url,
     string_url_image,
+    string_uuid,
     string_version,
 } from '../types/typeAliases';
 import type { FromtoItems } from '../utils/FromtoItems';
@@ -137,7 +138,6 @@ export type {
     UncertainNumber,
     UserInterfaceTools,
     UserInterfaceToolsPromptDialogOptions,
-    client_id,
     string_char,
     string_char_emoji,
     string_chat_prompt,
@@ -145,6 +145,7 @@ export type {
     string_data_url,
     string_domain,
     string_email,
+    string_emails,
     string_file_absolute_path,
     string_file_extension,
     string_file_path,
@@ -182,6 +183,7 @@ export type {
     string_uri_part,
     string_url,
     string_url_image,
+    string_uuid,
     string_version,
 };
 
