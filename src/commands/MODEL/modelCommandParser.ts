@@ -1,7 +1,6 @@
 import spaceTrim from 'spacetrim';
 import { MODEL_VARIANTS } from '../../types/ModelRequirements';
-import type { CommandParser } from '../_common/types/CommandParser';
-import type { CommandParserInput } from '../_common/types/CommandParser';
+import type { CommandParser, CommandParserInput } from '../_common/types/CommandParser';
 import type { ModelCommand } from './ModelCommand';
 
 /**
@@ -15,6 +14,11 @@ export const modelCommandParser: CommandParser<ModelCommand> = {
      * Name of the command
      */
     name: 'MODEL',
+
+    /**
+     * BOILERPLATE command can be used in:
+     */
+    usagePlaces: ['PIPELINE_HEAD', 'PIPELINE_TEMPLATE'],
 
     /**
      * Description of the MODEL command

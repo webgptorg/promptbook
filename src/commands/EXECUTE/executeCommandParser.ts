@@ -1,6 +1,5 @@
 import spaceTrim from 'spacetrim';
-import type { CommandParser } from '../_common/types/CommandParser';
-import type { CommandParserInput } from '../_common/types/CommandParser';
+import type { CommandParser, CommandParserInput } from '../_common/types/CommandParser';
 import type { ExecuteCommand } from './ExecuteCommand';
 import { ExecutionTypes } from './ExecutionTypes';
 
@@ -19,7 +18,12 @@ export const executeCommandParser: CommandParser<ExecuteCommand> = {
     /**
      * Aliases for the EXECUTE command
      */
-    aliases: ['EXEC', 'PROMPT_DIALOG', 'SIMPLE_TEMPLATE'],
+    aliasNames: ['EXEC', 'PROMPT_DIALOG', 'SIMPLE_TEMPLATE'],
+
+    /**
+     * BOILERPLATE command can be used in:
+     */
+    usagePlaces: ['PIPELINE_TEMPLATE'],
 
     /**
      * Description of the EXECUTE command

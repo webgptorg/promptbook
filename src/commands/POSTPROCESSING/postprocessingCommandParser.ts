@@ -1,5 +1,4 @@
-import type { CommandParser } from '../_common/types/CommandParser';
-import type { CommandParserInput } from '../_common/types/CommandParser';
+import type { CommandParser, CommandParserInput } from '../_common/types/CommandParser';
 import type { PostprocessingCommand } from './PostprocessingCommand';
 
 /**
@@ -13,6 +12,11 @@ export const postprocessingCommandParser: CommandParser<PostprocessingCommand> =
      * Name of the command
      */
     name: 'POSTPROCESSING',
+
+    /**
+     * BOILERPLATE command can be used in:
+     */
+    usagePlaces: ['PIPELINE_TEMPLATE'],
 
     /**
      * Description of the POSTPROCESSING command

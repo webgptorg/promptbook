@@ -1,6 +1,5 @@
 import { PROMPTBOOK_VERSION } from '../../version';
-import type { CommandParser } from '../_common/types/CommandParser';
-import type { CommandParserInput } from '../_common/types/CommandParser';
+import type { CommandParser, CommandParserInput } from '../_common/types/CommandParser';
 import type { PromptbookVersionCommand } from './PromptbookVersionCommand';
 
 /**
@@ -14,6 +13,11 @@ export const promptbookVersionCommandParser: CommandParser<PromptbookVersionComm
      * Name of the command
      */
     name: 'VERSION',
+
+    /**
+     * BOILERPLATE command can be used in:
+     */
+    usagePlaces: ['PIPELINE_HEAD'],
 
     /**
      * Description of the PROMPTBOOK_VERSION command

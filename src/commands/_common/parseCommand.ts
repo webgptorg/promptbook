@@ -1,10 +1,11 @@
 import { spaceTrim } from 'spacetrim';
-import { COMMANDS } from '../index';
 import { SyntaxError } from '../../errors/SyntaxError';
 import type { string_markdown_text } from '../../types/typeAliases';
 import { removeMarkdownFormatting } from '../../utils/markdown/removeMarkdownFormatting';
 import { normalizeTo_SCREAMING_CASE } from '../../utils/normalization/normalizeTo_SCREAMING_CASE';
+import { COMMANDS } from '../index';
 import type { Command } from './types/Command';
+import { CommandUsagePlace } from './types/CommandUsagePlaces';
 
 /**
  * Parses one line of ul/ol to command
@@ -14,7 +15,7 @@ import type { Command } from './types/Command';
  *
  * @private within the pipelineStringToJson
  */
-export function parseCommand(raw: string_markdown_text): Command {
+export function parseCommand(raw: string_markdown_text, usagePlace: CommandUsagePlace): Command {
     if (raw.includes('\n') || raw.includes('\r')) {
         throw new SyntaxError('Command can not contain new line characters:');
     }
@@ -43,7 +44,7 @@ export function parseCommand(raw: string_markdown_text): Command {
     const [commandNameRaw, ...args] = items;
 
     const getSupportedCommandsMessage = () =>
-        COMMANDS.map(({ name, aliases, description }) =>
+        COMMANDS.map(({ name, aliasNames: aliases, description }) =>
             spaceTrim(
                 `
                     - **${name}**${aliases ? ` *(${aliases.join(', ')})*` : ''} ${description}
@@ -70,13 +71,13 @@ export function parseCommand(raw: string_markdown_text): Command {
 
     const commandName = normalizeTo_SCREAMING_CASE(commandNameRaw);
 
-    for (const commandParser of COMMANDS) {
-        const { name, aliases, parse } = commandParser;
+    for (const commandParser of COMMANDS.filter(({ usagePlaces: places }) => places.includes(usagePlace))) {
+        const { name, aliasNames: aliases, parse } = commandParser;
         const names = [name, ...(aliases || [])];
-        console.log('!!!', { commandName, names });
+        // console.log('!!!', { commandName, names });
         if (names.includes(commandName)) {
             try {
-                return parse({ raw, normalized, args });
+                return parse({ usagePlace, raw, normalized, args });
             } catch (error) {
                 if (!(error instanceof SyntaxError)) {
                     throw error;

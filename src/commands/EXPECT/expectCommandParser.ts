@@ -19,6 +19,11 @@ export const expectCommandParser: CommandParser<ExpectCommand> = {
     name: 'EXPECT',
 
     /**
+     * BOILERPLATE command can be used in:
+     */
+    usagePlaces: ['PIPELINE_TEMPLATE'],
+
+    /**
      * Description of the EXPECT command
      */
     description: spaceTrim(`

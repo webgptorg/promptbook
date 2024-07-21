@@ -1,6 +1,5 @@
 import spaceTrim from 'spacetrim';
-import type { CommandParser } from '../_common/types/CommandParser';
-import type { CommandParserInput } from '../_common/types/CommandParser';
+import type { CommandParser, CommandParserInput } from '../_common/types/CommandParser';
 import type { UrlCommand } from './UrlCommand';
 
 /**
@@ -18,7 +17,7 @@ export const urlCommandParser: CommandParser<UrlCommand> = {
     /**
      * Aliases for the URL command
      */
-    aliases: ['HTTPS'], // <- TODO: !!!!
+    aliasNames: ['HTTPS'], // <- TODO: !!!!
 
     /*
       normalized.startsWith('URL') ||
@@ -30,6 +29,11 @@ export const urlCommandParser: CommandParser<UrlCommand> = {
       normalized.startsWith('PROMPTBOOKURL') ||
       normalized.startsWith('HTTPS')
     */
+
+    /**
+     * BOILERPLATE command can be used in:
+     */
+    usagePlaces: ['PIPELINE_HEAD'],
 
     /**
      * Description of the URL command

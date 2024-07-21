@@ -1,5 +1,4 @@
-import type { CommandParser } from '../_common/types/CommandParser';
-import type { CommandParserInput } from '../_common/types/CommandParser';
+import type { CommandParser, CommandParserInput } from '../_common/types/CommandParser';
 import type { BoilerplateCommand } from './BoilerplateCommand';
 
 /**
@@ -17,7 +16,12 @@ export const boilerplateCommandParser: CommandParser<BoilerplateCommand> = {
     /**
      * Aliases for the BOILERPLATE command
      */
-    aliases: ['BP'],
+    aliasNames: ['BP'],
+
+    /**
+     * BOILERPLATE command can be used in:
+     */
+    usagePlaces: ['PIPELINE_HEAD', 'PIPELINE_TEMPLATE'],
 
     /**
      * Description of the BOILERPLATE command

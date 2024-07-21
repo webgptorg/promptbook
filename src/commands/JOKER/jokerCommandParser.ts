@@ -14,6 +14,11 @@ export const jokerCommandParser: CommandParser<JokerCommand> = {
     name: 'JOKER',
 
     /**
+     * BOILERPLATE command can be used in:
+     */
+    usagePlaces: ['PIPELINE_TEMPLATE'],
+
+    /**
      * Description of the JOKER command
      */
     description: `Joker parameter is used instead of executing the prompt template if it meet the expectations requirements`,

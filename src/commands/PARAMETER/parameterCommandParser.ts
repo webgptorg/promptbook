@@ -1,5 +1,4 @@
-import type { CommandParser } from '../_common/types/CommandParser';
-import type { CommandParserInput } from '../_common/types/CommandParser';
+import type { CommandParser, CommandParserInput } from '../_common/types/CommandParser';
 import type { ParameterCommand } from './ParameterCommand';
 
 /*
@@ -24,7 +23,7 @@ export const parameterCommandParser: CommandParser<ParameterCommand> = {
     /**
      * Aliases for the PARAMETER command
      */
-    aliases: [
+    aliasNames: [
         'PARAM',
         'INPUT_PARAM',
         'OUTPUT_PARAM',
@@ -33,6 +32,11 @@ export const parameterCommandParser: CommandParser<ParameterCommand> = {
         'OUTPUT_PARAMETER',
         'INTERMEDIATE_PARAMETER',
     ],
+
+    /**
+     * BOILERPLATE command can be used in:
+     */
+    usagePlaces: ['PIPELINE_HEAD', 'PIPELINE_TEMPLATE'],
 
     /**
      * Description of the PARAMETER command

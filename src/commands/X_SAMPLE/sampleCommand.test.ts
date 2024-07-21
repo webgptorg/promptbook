@@ -33,7 +33,9 @@ describe('how SAMPLE command in .ptbk.md files works', () => {
     it(`should work with all samples`, () => {
         // Note: This is tested also in the common test file parseCommand.test.ts
         for (const example of sampleCommandParser.examples) {
-            expect(() => parseCommand(example)).not.toThrowError();
+            // @@
+            expect(() => parseCommand(example, 'PIPELINE_HEAD')).not.toThrowError();
+            expect(() => parseCommand(example, 'PIPELINE_TEMPLATE')).not.toThrowError();
         }
     });
 });

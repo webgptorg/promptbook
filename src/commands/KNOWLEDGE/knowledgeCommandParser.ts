@@ -16,6 +16,11 @@ export const knowledgeCommandParser: CommandParser<KnowledgeCommand> = {
     name: 'KNOWLEDGE',
 
     /**
+     * BOILERPLATE command can be used in:
+     */
+    usagePlaces: ['PIPELINE_HEAD'],
+
+    /**
      * Description of the KNOWLEDGE command
      */
     description: `Tells promptbook which external knowledge to use`,
