@@ -35,7 +35,7 @@ export const postprocessCommandParser: CommandParser<PostprocessCommand> = {
      * Example usages of the POSTPROCESS command
      */
     examples: [
-        'POSTPROCESS unwrapResult' /* <- TODO: !!!!! Make it `POSTPROCESS` examples dynamic, load from all possible postprocess functions */,
+        'POSTPROCESS unwrapResult' /* <- TODO: Make it `POSTPROCESS` examples dynamic, load from all possible postprocess functions */,
     ],
 
     /**

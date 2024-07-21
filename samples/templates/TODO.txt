@@ -1,3 +1,4 @@
+TODO: !!!!! USE PERSONAs in .ptbk.md samples instead od MODEL (which should be used primarly in advanced cases)
 TODO: [🧠] Figure out less simmilar word for "single", "simple" and "sample"
 TODO: [🧠] Do not allow model in header of promptbook
 TODO: [🧠] Do not allow invalid model command like "MODEL MODEL Chat"
