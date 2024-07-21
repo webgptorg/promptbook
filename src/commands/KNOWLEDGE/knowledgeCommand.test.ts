@@ -10,13 +10,23 @@ describe('how KNOWLEDGE command in .ptbk.md files works', () => {
         });
         expect(parseCommand('KNOWLEDGE ./hejny-cv.pdf')).toEqual({
             type: 'KNOWLEDGE',
-            value: './hejny-cv.pdf',
+            source: './hejny-cv.pdf',
         });
     });
 
     it('should fail parsing KNOWLEDGE command', () => {
-        expect(() => parseCommand('KNOWLEDGE')).toThrowError(/requires exactly one argument/i);
+        expect(() => parseCommand('KNOWLEDGE')).toThrowError(/Source is not defined/i);
         expect(() => parseCommand('KNOWLEDGE brr')).toThrowError(/Source not valid/i);
+        expect(() => parseCommand('KNOWLEDGE http://www.pavolhejny.com/')).toThrowError(/Source is not secure/i);
+        expect(() => parseCommand('KNOWLEDGE ../hejny-cv.pdf')).toThrowError(/Source cannot be outside .* folder/i);
+        expect(() => parseCommand('KNOWLEDGE /hejny-cv.pdf')).toThrowError(/Source cannot be outside .* folder/i);
+        expect(() => parseCommand('KNOWLEDGE /etc/system-folder/hejny-cv.pdf')).toThrowError(
+            /Source cannot be outside .* folder/i,
+        );
+        expect(() => parseCommand('KNOWLEDGE C:/hejny-cv.pdf')).toThrowError(/Source cannot be outside .* folder/i);
+        expect(() => parseCommand('KNOWLEDGE C://hejny-cv.pdf')).toThrowError(/Source cannot be outside .* folder/i);
+        expect(() => parseCommand('KNOWLEDGE C:\\hejny-cv.pdf')).toThrowError(/Source cannot be outside .* folder/i);
+        expect(() => parseCommand('KNOWLEDGE C:\\\\hejny-cv.pdf')).toThrowError(/Source cannot be outside .* folder/i);
     });
 
     it(`should work with all samples`, () => {

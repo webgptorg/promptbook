@@ -52,6 +52,8 @@ import { union } from '../utils/sets/union';
 import { trimCodeBlock } from '../utils/trimCodeBlock';
 import { trimEndOfCodeBlock } from '../utils/trimEndOfCodeBlock';
 import { unwrapResult } from '../utils/unwrapResult';
+import { isValidFilePath } from '../utils/validators/filePath/isValidFilePath';
+import { isValidUrl } from '../utils/validators/url/isValidUrl';
 import { PROMPTBOOK_VERSION } from '../version';
 
 // Note: Exporting version from each package
@@ -65,7 +67,9 @@ export {
     extractOneBlockFromMarkdown,
     extractParameters,
     extractVariables,
+    isValidFilePath,
     isValidJsonString,
+    isValidUrl,
     parseNumber, // <- [🌻]
     removeContentComments,
     removeEmojis,

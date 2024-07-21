@@ -389,6 +389,7 @@ Working external knowledge, preparation for instruments and actions
 -   You can pass simple array of `LlmExecutionTools` into `ExecutionTools` and it will be joined automatically via `joinLlmExecutionTools`
 -   Export `flattenMarkdownStructure`, `markdownToMarkdownStructure` and `MarkdownStructure` from `@promptbook/utils`
 -   String normalizers goes alongside with types; for example `normalizeTo_SCREAMING_CASE` -> `string_SCREAMING_CASE`
+-   Export `isValidUrl` and `isValidFilePath` from `@promptbook/utils`
 
 ## In prepare
 

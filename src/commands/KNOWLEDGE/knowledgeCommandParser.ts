@@ -1,5 +1,6 @@
-import type { CommandParser } from '../_common/types/CommandParser';
-import type { CommandParserInput } from '../_common/types/CommandParser';
+import { isValidFilePath } from '../../_packages/utils.index';
+import { isValidUrl } from '../../utils/validators/url/isValidUrl';
+import type { CommandParser, CommandParserInput } from '../_common/types/CommandParser';
 import type { KnowledgeCommand } from './KnowledgeCommand';
 
 /**
@@ -36,13 +37,23 @@ export const knowledgeCommandParser: CommandParser<KnowledgeCommand> = {
     parse(input: CommandParserInput): KnowledgeCommand {
         const { args } = input;
 
-        if (args.length !== 1) {
-            throw new SyntaxError(`KNOWLEDGE command requires exactly one argument`);
+        const source = args[0];
+
+        if (source === undefined) {
+            throw new SyntaxError(`Source is not defined`);
         }
 
-        const source = args[0]!.toLowerCase();
+        if (source.startsWith('http://')) {
+            throw new SyntaxError(`Source is not secure`);
+        }
 
-        // TODO: !!! Validate that source is a valid path or URL
+        if (!(isValidFilePath(source) || isValidUrl(source))) {
+            throw new SyntaxError(`Source not valid`);
+        }
+
+        if (source.startsWith('../') || source.startsWith('/') || /^[A-Z]:[\\/]+/i.test(source)) {
+            throw new SyntaxError(`Source cannot be outside of the .ptbk.md folder`);
+        }
 
         return {
             type: 'KNOWLEDGE',
