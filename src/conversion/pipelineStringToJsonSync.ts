@@ -131,20 +131,34 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
         const command = parseCommand(listItem, 'PIPELINE_HEAD');
 
         switch (command.type) {
-            case 'URL':
-                pipelineJson.pipelineUrl = command.pipelineUrl.href;
-                break;
-
-            case 'PROMPTBOOK_VERSION':
-                pipelineJson.promptbookVersion = command.promptbookVersion;
-                break;
-
             case 'MODEL':
                 defaultModelRequirements[command.key] = command.value;
                 break;
-
             case 'PARAMETER':
                 defineParam(command);
+                break;
+            case 'PROMPTBOOK_VERSION':
+                pipelineJson.promptbookVersion = command.promptbookVersion;
+                break;
+            case 'URL':
+                pipelineJson.pipelineUrl = command.pipelineUrl.href;
+                break;
+            case 'KNOWLEDGE':
+                throw new NotImplementedError('Knowledge is not implemented yet');
+                break;
+            case 'ACTION':
+                throw new NotImplementedError('Actions are not implemented yet');
+                break;
+            case 'INSTRUMENT':
+                throw new NotImplementedError('Instruments are not implemented yet');
+                break;
+            case 'PERSONA':
+                throw new NotImplementedError('Personas are not implemented yet');
+                break;
+            case 'BOILERPLATE':
+                throw new SyntaxError(
+                    'BOILERPLATE command is only for testing purposes and should not be used in the .ptbk.md file',
+                );
                 break;
 
             // <- [💐]
@@ -173,10 +187,6 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
         for (const listItem of listItems) {
             const command = parseCommand(listItem, 'PIPELINE_TEMPLATE');
             switch (command.type) {
-                case 'JOKER':
-                    jokers.push(command.parameterName);
-                    dependentParameterNames.add(command.parameterName);
-                    break;
                 case 'EXECUTE':
                     if (isExecutionTypeChanged) {
                         throw new SyntaxError(
@@ -189,33 +199,20 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
                     }
 
                     if (command.executionType === 'KNOWLEDGE') {
-                        throw new NotImplementedError('Execution type KNOWLEDGE is not implemented yet');
-                    }
-
-                    if (command.executionType === 'INSTRUMENT') {
-                        throw new NotImplementedError('Execution type INSTRUMENT is not implemented yet');
+                        throw new NotImplementedError('Knowledge is not implemented yet');
                     }
 
                     if (command.executionType === 'ACTION') {
-                        throw new NotImplementedError('Execution type ACTION is not implemented yet');
+                        throw new NotImplementedError('Actions are not implemented yet');
+                    }
+
+                    if (command.executionType === 'INSTRUMENT') {
+                        throw new NotImplementedError('Instruments are not implemented yet');
                     }
 
                     executionType = command.executionType;
                     isExecutionTypeChanged = true;
                     break;
-
-                case 'MODEL':
-                    templateModelRequirements[command.key] = command.value;
-                    break;
-
-                case 'PARAMETER':
-                    // Note: This is just for detecting resulitng parameter name
-                    defineParam(command);
-                    break;
-                case 'POSTPROCESS':
-                    postprocessing.push(command.functionName);
-                    break;
-
                 case 'EXPECT_AMOUNT':
                     // eslint-disable-next-line no-case-declarations
                     const unit = command.unit.toLowerCase() as Lowercase<ExpectationUnit>;
@@ -252,6 +249,39 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
                     }
                     expectFormat = command.format;
 
+                    break;
+
+                case 'JOKER':
+                    jokers.push(command.parameterName);
+                    dependentParameterNames.add(command.parameterName);
+                    break;
+
+                case 'MODEL':
+                    templateModelRequirements[command.key] = command.value;
+                    break;
+                case 'PARAMETER':
+                    // Note: This is just for detecting resulitng parameter name
+                    defineParam(command);
+                    break;
+                case 'POSTPROCESS':
+                    postprocessing.push(command.functionName);
+                    break;
+                case 'KNOWLEDGE':
+                    throw new NotImplementedError('Knowledge is not implemented yet');
+                    break;
+                case 'ACTION':
+                    throw new NotImplementedError('Actions are not implemented yet');
+                    break;
+                case 'INSTRUMENT':
+                    throw new NotImplementedError('Instruments are not implemented yet');
+                    break;
+                case 'PERSONA':
+                    throw new NotImplementedError('Personas are not implemented yet');
+                    break;
+                case 'BOILERPLATE':
+                    throw new SyntaxError(
+                        'BOILERPLATE command is only for testing purposes and should not be used in the .ptbk.md file',
+                    );
                     break;
 
                 // <- [💐]
