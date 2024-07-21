@@ -1,4 +1,5 @@
-import type { string_url } from '../../../types/typeAliases';
+import type { string_pipeline_url } from '../../../types/typeAliases';
+import { isUrlOnPrivateNetwork } from './isUrlOnPrivateNetwork';
 import { isValidUrl } from './isValidUrl';
 
 /**
@@ -8,7 +9,7 @@ import { isValidUrl } from './isValidUrl';
  * - `isValidUrl` which tests any URL
  * - `isValidPipelineUrl` *(this one)* which tests just pipeline URL
  */
-export function isValidPipelineUrl(url: unknown): url is string_url {
+export function isValidPipelineUrl(url: unknown): url is string_pipeline_url {
     if (!isValidUrl(url)) {
         return false;
     }
@@ -23,6 +24,10 @@ export function isValidPipelineUrl(url: unknown): url is string_url {
 
     if (url.includes('#')) {
         // TODO: [🐠]
+        return false;
+    }
+
+    if (isUrlOnPrivateNetwork(url)) {
         return false;
     }
 

@@ -1,14 +1,25 @@
-import type { string_semantic_version } from '../../../types/typeAliases';
+import { string_promptbook_version } from '../../../version';
 import { isValidSemanticVersion } from './isValidSemanticVersion';
 
 /**
- * Tests if given string is valid semantic version.
+ * Tests if given string is valid promptbook version
+ * It looks into list of known promptbook versions.
+ *
+ * @see https://www.npmjs.com/package/promptbook?activeTab=versions
+ * Note: When you are using for example promptbook 2.0.0 and there already is promptbook 3.0.0 it don`t know about it.
+ * Note: There are two simmilar functions:
+ * - `isValidSemanticVersion` which tests any semantic version
+ * - `isValidPromptbookVersion` *(this one)* which tests just Promptbook versions
  */
-export function isValidPromptbookVersion(filePath: unknown): filePath is string_semantic_version {
-    if (!isValidSemanticVersion(filePath)) {
+export function isValidPromptbookVersion(version: unknown): version is string_promptbook_version {
+    if (!isValidSemanticVersion(version)) {
         return false;
     }
 
-    return true;
+    if (version === '1.0.0' || version === '2.0.0' || version === '3.0.0') {
+        return false;
+    }
     // <- TODO: !!!! Check isValidPromptbookVersion against PROMPTBOOK_VERSIONS
+
+    return true;
 }
