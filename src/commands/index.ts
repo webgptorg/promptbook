@@ -7,7 +7,6 @@ import { parameterCommandParser } from './PARAMETER/parameterCommandParser';
 import { postprocessingCommandParser } from './POSTPROCESSING/postprocessingCommandParser';
 import { promptbookVersionCommandParser } from './PROMPTBOOK_VERSION/promptbookVersionCommandParser';
 import { urlCommandParser } from './URL/urlCommandParser';
-import { sampleCommandParser } from './X_SAMPLE/sampleCommandParser';
 import { boilerplateCommandParser } from './_BOILERPLATE/boilerplateCommandParser';
 
 /**
@@ -23,6 +22,5 @@ export const COMMANDS = [
     promptbookVersionCommandParser,
     urlCommandParser,
     knowledgeCommandParser,
-    sampleCommandParser,
     boilerplateCommandParser, // <- TODO: !!!! Only in development, remove in production
 ] as const;
