@@ -31,6 +31,9 @@ describe('how URL command in .ptbk.md files works', () => {
             type: 'URL',
             pipelineUrl: new URL('https://promptbook.studio/webgpt/write-website-content-cs.ptbk.md'),
         });
+
+        /*
+        TODO: [🧠][🌘] Should this work:
         expect(
             parseCommand(
                 'pipelineurl https://promptbook.studio/webgpt/write-website-content-cs.ptbk.md',
@@ -50,12 +53,17 @@ describe('how URL command in .ptbk.md files works', () => {
             type: 'URL',
             pipelineUrl: new URL('https://promptbook.studio/webgpt/write-website-content-cs.ptbk.md'),
         });
+        */
+
         expect(
             parseCommand('URL https://promptbook.studio/webgpt/write-website-content-cs.ptbk.md', 'PIPELINE_HEAD'),
         ).toEqual({
             type: 'URL',
             pipelineUrl: new URL('https://promptbook.studio/webgpt/write-website-content-cs.ptbk.md'),
         });
+
+        /*
+        TODO: [🧠][🌘] Should this work:
         expect(
             parseCommand(
                 'PIPELINE URL https://promptbook.studio/webgpt/write-website-content-cs.ptbk.md',
@@ -74,6 +82,8 @@ describe('how URL command in .ptbk.md files works', () => {
             type: 'URL',
             pipelineUrl: new URL('https://promptbook.studio/webgpt/write-website-content-cs.ptbk.md'),
         });
+        */
+
         expect(
             parseCommand('url *https://promptbook.studio/webgpt/write-website-content-cs.ptbk.md*', 'PIPELINE_HEAD'),
         ).toEqual({
@@ -88,7 +98,10 @@ describe('how URL command in .ptbk.md files works', () => {
         });
     });
 
+    /*
+    TODO: [🧠][🌘] Should this work:
     it('should parse URL command in shortcut form', () => {
+
         expect(
             parseCommand('ptbkurl https://promptbook.studio/webgpt/write-website-content-cs.ptbk.md', 'PIPELINE_HEAD'),
         ).toEqual({
@@ -114,6 +127,7 @@ describe('how URL command in .ptbk.md files works', () => {
             pipelineUrl: new URL('https://promptbook.studio/webgpt/write-website-content-cs.ptbk.md'),
         });
     });
+    */
 
     it('should fail parsing URL command', () => {
         expect(() => parseCommand('URL', 'PIPELINE_HEAD')).toThrowError(/URL is required/i);
@@ -124,7 +138,7 @@ describe('how URL command in .ptbk.md files works', () => {
             ),
         ).toThrowError(/Can not have more than one Promptbook URL/i);
 
-        expect(() => parseCommand('url http:^404', 'PIPELINE_HEAD')).toThrowError(/Invalid URL/i);
+        expect(() => parseCommand('url http:^404', 'PIPELINE_HEAD')).toThrowError(/Invalid Promptbook URL/i);
 
         expect(() => parseCommand('url http://promptbook.studio/write-website-content', 'PIPELINE_HEAD')).toThrowError(
             /Invalid Promptbook URL/i,

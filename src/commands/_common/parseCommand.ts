@@ -33,10 +33,16 @@ export function parseCommand(raw: string_markdown_text, usagePlace: CommandUsage
     normalized = normalized.split('DIALOGUE').join('DIALOG');
 
     const items = raw
+        .trim()
+        .split(/["'`]/)
+        .join('')
+        // Note: [🛵]:
+        .split(/^http/)
+        .join('URL http')
         .split(' ')
         .map((part) => part.trim())
         .filter((item) => item !== '')
-        // Note: [📇]
+        // Note: [📇]:
         .filter((item) => !/^PTBK$/i.test(item))
         .filter((item) => !/^PIPELINE$/i.test(item))
         .filter((item) => !/^PROMPTBOOK$/i.test(item))

@@ -14,12 +14,13 @@ export const urlCommandParser: CommandParser<UrlCommand> = {
      */
     name: 'URL',
 
-    /**
-     * Aliases for the URL command
-     */
-    aliasNames: ['HTTPS'], // <- TODO: !!!!
+    /*
+    Note: [🛵] No need for alias name because it is already preprocessed
+    aliasNames: ['HTTPS'],
+    */
 
     /*
+    !!!!!!!! Probbably working
       normalized.startsWith('URL') ||
       normalized.startsWith('PTBK_URL') ||
       normalized.startsWith('PTBKURL') ||
@@ -43,7 +44,10 @@ export const urlCommandParser: CommandParser<UrlCommand> = {
     /**
      * Example usages of the URL command
      */
-    examples: ['URL https://promptbook.studio/libraty/write-cv.ptbk.md'],
+    examples: [
+        'URL https://promptbook.studio/library/write-cv.ptbk.md',
+        'https://promptbook.studio/library/write-cv.ptbk.md',
+    ],
 
     /**
      * Parses the URL command
@@ -51,14 +55,14 @@ export const urlCommandParser: CommandParser<UrlCommand> = {
     parse(input: CommandParserInput): UrlCommand {
         const { args } = input;
 
-        const url = args.pop()!;
+        const pipelineUrl = args.pop()!;
 
-        if (url === undefined) {
+        if (pipelineUrl === undefined) {
             throw new SyntaxError(`URL is required`);
         }
 
-        if (!isValidPromptbookUrl(url)) {
-            throw new SyntaxError(`Invalid Promptbook URL "${url}"`);
+        if (!isValidPromptbookUrl(pipelineUrl)) {
+            throw new SyntaxError(`Invalid Promptbook URL "${pipelineUrl}"`);
         }
 
         if (args.length > 0) {
@@ -85,7 +89,7 @@ export const urlCommandParser: CommandParser<UrlCommand> = {
 
         return {
             type: 'URL',
-            pipelineUrl,
+            pipelineUrl: new URL(pipelineUrl),
         } satisfies UrlCommand;
     },
 };
