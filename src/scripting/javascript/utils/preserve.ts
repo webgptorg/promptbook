@@ -1,4 +1,5 @@
 import { forTime } from 'waitasecond';
+import type { really_any } from '../../../types/typeAliases';
 
 /**
  * Does nothing, but preserves the function in the bundle
