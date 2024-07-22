@@ -30,7 +30,7 @@ describe('createPipelineExecutor + MockedEchoLlmExecutionTools with sample compl
                 title: 'Sample prompt',
                 description: 'Show how to use a simple completion prompt',
                 promptExecutions: [],
-                pipelineUrl: 'https://example.com/pipeline.json',
+                pipelineUrl: 'https://promptbook.studio/samples/pipeline.ptbk.md',
                 promptbookRequestedVersion: '1.0.0',
                 promptbookUsedVersion: PROMPTBOOK_VERSION,
             },
@@ -105,7 +105,7 @@ async function getPipelineExecutor() {
             Show how to use a simple completion prompt
 
             -   PROMPTBOOK VERSION 1.0.0
-            -   PIPELINE URL https://example.com/pipeline.json
+            -   PIPELINE URL https://promptbook.studio/samples/pipeline.ptbk.md
             -   INPUT  PARAMETER {thing} Any thing to buy
             -   OUTPUT PARAMETER {response}
 

@@ -54,6 +54,7 @@ export const urlCommandParser: CommandParser<UrlCommand> = {
             throw new SyntaxError(`URL is required`);
         }
 
+        // TODO: [🧠][🚲] This should be maybe tested as logic not syntax
         if (!isValidPipelineUrl(pipelineUrl)) {
             throw new SyntaxError(`Invalid pipeline URL "${pipelineUrl}"`);
         }

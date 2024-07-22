@@ -1,4 +1,5 @@
 import { spaceTrim } from 'spacetrim';
+import { isValidPipelineUrl, isValidPromptbookVersion } from '../../_packages/utils.index';
 import { LOOP_LIMIT } from '../../config';
 import { PipelineLogicError } from '../../errors/PipelineLogicError';
 import { SyntaxError } from '../../errors/SyntaxError';
@@ -6,7 +7,6 @@ import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import type { PromptTemplateJson } from '../../types/PipelineJson/PromptTemplateJson';
 import type { string_name } from '../../types/typeAliases';
-import { isValidUrl } from '../../utils/validators/url/isValidUrl';
 
 /**
  * Validates PipelineJson if it is logically valid
@@ -25,11 +25,17 @@ import { isValidUrl } from '../../utils/validators/url/isValidUrl';
 export function validatePipeline(pipeline: PipelineJson): PipelineJson {
     // TODO: [🧠] Maybe test if promptbook is a promise and make specific error case for that
 
-    if (pipeline.pipelineUrl !== undefined) {
-        if (!isValidUrl(pipeline.pipelineUrl)) {
-            // TODO: This should be maybe the syntax error detected during parsing
-            throw new PipelineLogicError(`Invalid promptbook URL "${pipeline.pipelineUrl}"`);
-        }
+    if (!isValidPipelineUrl(pipeline.pipelineUrl)) {
+        // <- Note: [🚲]
+        throw new PipelineLogicError(
+            `Invalid promptbook URL "${pipeline.pipelineUrl}"`,
+            // <- TODO: [🐠]
+        );
+    }
+
+    if (!isValidPromptbookVersion(pipeline.promptbookVersion)) {
+        // <- Note: [🚲]
+        throw new PipelineLogicError(`Invalid promptbook Version "${pipeline.pipelineUrl}"`);
     }
 
     // TODO: [🧠] Maybe do here some propper JSON-schema / ZOD checking
