@@ -147,8 +147,8 @@ function parseCommandVariant(input: CommandParserInput & { commandNameRaw: strin
     const commandName = normalizeTo_SCREAMING_CASE(commandNameRaw);
 
     for (const commandParser of COMMANDS.filter(({ usagePlaces: places }) => places.includes(usagePlace))) {
-        const { name, aliasNames: aliases, parse } = commandParser;
-        const names = [name, ...(aliases || [])];
+        const { name, aliasNames, deprecatedNames, parse } = commandParser;
+        const names = [name, ...(aliasNames || []), ...(deprecatedNames || [])];
         // console.log('!!!', { commandName, names });
         if (names.includes(commandName)) {
             try {
