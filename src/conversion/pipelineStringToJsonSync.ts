@@ -13,6 +13,7 @@ import type { PromptTemplateParameterJson } from '../types/PipelineJson/PromptTe
 import type { PipelineString } from '../types/PipelineString';
 import type { ScriptLanguage } from '../types/ScriptLanguage';
 import { SUPPORTED_SCRIPT_LANGUAGES } from '../types/ScriptLanguage';
+import type { TODO } from '../types/typeAliases';
 import { flattenMarkdownStructure } from '../utils/markdown-json/flattenMarkdownStructure';
 import { markdownToMarkdownStructure } from '../utils/markdown-json/markdownToMarkdownStructure';
 import { extractAllListItemsFromMarkdown } from '../utils/markdown/extractAllListItemsFromMarkdown';
@@ -40,8 +41,7 @@ import { titleToName } from './utils/titleToName';
  */
 export function pipelineStringToJsonSync(pipelineString: PipelineString): PipelineJson {
     const pipelineJson: WritableDeep<PipelineJson> = {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        title: undefined as any /* <- Note: Putting here placeholder to keep `title` on top at final JSON */,
+        title: undefined as TODO /* <- Note: Putting here placeholder to keep `title` on top at final JSON */,
         pipelineUrl: undefined /* <- Note: Putting here placeholder to keep `pipelineUrl` on top at final JSON */,
         promptbookVersion: PROMPTBOOK_VERSION,
         description: undefined /* <- Note: Putting here placeholder to keep `description` on top at final JSON */,
@@ -390,13 +390,10 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
         };
 
         if (blockType !== 'PROMPT_TEMPLATE') {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            delete (template as any).modelRequirements;
+            delete (template as TODO).modelRequirements;
         }
 
-        // TODO: !!! Remove any
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        pipelineJson.promptTemplates.push(template as any);
+        pipelineJson.promptTemplates.push(template as TODO /* <- !!! */);
     }
 
     // =============================================================

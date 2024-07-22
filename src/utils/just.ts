@@ -1,3 +1,5 @@
+import type { really_any } from '../types/typeAliases';
+
 /**
  * Returns the same value that is passed as argument.
  * No side effects.
@@ -9,8 +11,7 @@
  */
 export function just<T>(value?: T): T {
     if (value === undefined) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        return undefined as any as T;
+        return undefined as really_any as T;
     }
     return value;
 }

@@ -1,3 +1,4 @@
+import type { TODO } from '../../types/typeAliases';
 import type { CommandParser, CommandParserInput } from '../_common/types/CommandParser';
 import type { ParameterCommand } from './ParameterCommand';
 
@@ -54,8 +55,7 @@ export const parameterCommandParser: CommandParser<ParameterCommand> = {
             throw new SyntaxError(`Invalid parameter`);
         }
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const { parameterName, parameterDescription } = parametersMatch.groups as any;
+        const { parameterName, parameterDescription } = parametersMatch.groups as TODO;
 
         if (parameterDescription && parameterDescription.match(/\{(?<parameterName>[a-z0-9_]+)\}/im)) {
             throw new SyntaxError(`Parameter {${parameterName}} can not contain another parameter in description`);

@@ -2,6 +2,7 @@
 import _spaceTrim from 'spacetrim';
 import { ExecutionError } from '../../errors/ExecutionError';
 import type { ScriptExecutionTools, ScriptExecutionToolsExecuteOptions } from '../../execution/ScriptExecutionTools';
+import { TODO } from '../../types/typeAliases';
 import { prettifyMarkdown as _prettifyMarkdown } from '../../utils/markdown/prettifyMarkdown';
 import { capitalize as _capitalize } from '../../utils/normalization/capitalize';
 import { decapitalize as _decapitalize } from '../../utils/normalization/decapitalize';
@@ -54,8 +55,7 @@ export class JavascriptEvalExecutionTools implements ScriptExecutionTools {
         // Note: [💎]
         // Note: Using direct eval, following variables are in same scope as eval call so they are accessible from inside the evaluated script:
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const spaceTrim = (_: any) => _spaceTrim(_);
+        const spaceTrim = (_: TODO) => _spaceTrim(_);
         preserve(spaceTrim);
 
         const removeQuotes = _removeQuotes;
@@ -193,8 +193,7 @@ export class JavascriptEvalExecutionTools implements ScriptExecutionTools {
             );
         }
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        let result: any;
+        let result: TODO;
         try {
             result = await eval(statementToEvaluate);
 

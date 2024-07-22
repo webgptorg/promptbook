@@ -1,4 +1,4 @@
-import type { string_url } from '../../../types/typeAliases';
+import type { really_any, string_url } from '../../../types/typeAliases';
 
 /**
  * Tests if given string is valid URL.
@@ -17,8 +17,7 @@ export function isValidUrl(url: unknown): url is string_url {
             url = url.replace(/^blob:/, '');
         }
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const urlObject = new URL(url as any);
+        const urlObject = new URL(url as really_any /* because fail is handled */);
 
         if (!['http:', 'https:', 'data:'].includes(urlObject.protocol)) {
             return false;

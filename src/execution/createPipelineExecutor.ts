@@ -2,9 +2,9 @@ import { spaceTrim } from 'spacetrim';
 import type { Promisable } from 'type-fest';
 import { LOOP_LIMIT } from '../config';
 import { validatePipeline } from '../conversion/validation/validatePipeline';
-import { ExpectError } from '../errors/_ExpectError';
 import { ExecutionError } from '../errors/ExecutionError';
 import { UnexpectedError } from '../errors/UnexpectedError';
+import { ExpectError } from '../errors/_ExpectError';
 import { isValidJsonString } from '../formats/json/utils/isValidJsonString';
 import { joinLlmExecutionTools } from '../llm-providers/multiple/joinLlmExecutionTools';
 import type { ExecutionReportJson } from '../types/execution-report/ExecutionReportJson';
@@ -12,7 +12,7 @@ import type { PipelineJson } from '../types/PipelineJson/PipelineJson';
 import type { PromptTemplateJson } from '../types/PipelineJson/PromptTemplateJson';
 import type { Prompt } from '../types/Prompt';
 import type { TaskProgress } from '../types/TaskProgress';
-import type { string_name } from '../types/typeAliases';
+import type { string_name, TODO } from '../types/typeAliases';
 import { arrayableToArray } from '../utils/arrayableToArray';
 import { PROMPTBOOK_VERSION } from '../version';
 import type { ExecutionTools } from './ExecutionTools';
@@ -308,8 +308,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
 
                             default:
                                 throw new ExecutionError(
-                                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                                    `Unknown execution type "${(currentTemplate as any).blockType}"`,
+                                    `Unknown execution type "${(currentTemplate as TODO).blockType}"`,
                                 );
                         }
                     }

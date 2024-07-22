@@ -1,14 +1,6 @@
 import type { BlockType } from '../../commands/BLOCK/BlockTypes';
 import type { ExpectFormatCommand } from '../../commands/EXPECT/ExpectFormatCommand';
-import type {
-    string_javascript,
-    string_javascript_name,
-    string_markdown,
-    string_markdown_text,
-    string_name,
-    string_prompt,
-    string_template,
-} from '../typeAliases';
+import type { string_javascript, string_javascript_name, string_markdown, string_markdown_text, string_name, string_prompt, string_template } from '../typeAliases';
 import type { Expectations } from './Expectations';
 
 /**

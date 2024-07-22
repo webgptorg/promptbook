@@ -1,3 +1,4 @@
+import type { TODO } from '../../types/typeAliases';
 import type { CommandParser, CommandParserInput } from '../_common/types/CommandParser';
 import type { JokerCommand } from './JokerCommand';
 
@@ -45,8 +46,7 @@ export const jokerCommandParser: CommandParser<JokerCommand> = {
             throw new SyntaxError(`Invalid joker`);
         }
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const { parameterName } = parametersMatch.groups as any;
+        const { parameterName } = parametersMatch.groups as TODO;
 
         return {
             type: 'JOKER',

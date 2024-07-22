@@ -1,6 +1,6 @@
 import type { ___ } from '../typeAliases';
 import type { LlmTemplateJson } from './LlmTemplateJson';
-import { PromptDialogJson } from './PromptDialogJson';
+import type { PromptDialogJson } from './PromptDialogJson';
 import type { ScriptJson } from './ScriptJson';
 import type { SimpleTemplateJson } from './SimpleTemplateJson';
 

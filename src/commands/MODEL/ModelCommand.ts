@@ -1,4 +1,5 @@
 import type { ModelRequirements } from '../../types/ModelRequirements';
+import type { TODO } from '../../types/typeAliases';
 
 /**
  * Parsed MODEL command
@@ -9,6 +10,5 @@ import type { ModelRequirements } from '../../types/ModelRequirements';
 export type ModelCommand = {
     readonly type: 'MODEL';
     readonly key: keyof ModelRequirements;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    readonly value: any /* <- TODO: Infer from used key, can it be done in TypeScript */;
+    readonly value: TODO /* <- TODO: Infer from used key, can it be done in TypeScript */;
 };

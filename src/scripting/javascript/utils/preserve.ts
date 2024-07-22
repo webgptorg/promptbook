@@ -7,10 +7,7 @@ import { forTime } from 'waitasecond';
  * @param value any function to preserve
  * @returns nothing
  */
-export function preserve(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    func: (...params: Array<any>) => unknown,
-): void {
+export function preserve(func: (...params: Array<really_any>) => unknown): void {
     // Note: NOT calling the function
 
     (async () => {

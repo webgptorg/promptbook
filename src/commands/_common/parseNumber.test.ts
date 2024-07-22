@@ -1,4 +1,5 @@
 import { describe, expect, it } from '@jest/globals';
+import type { TODO } from '../../types/typeAliases';
 import { parseNumber } from './parseNumber';
 
 describe('how parseNumber works', () => {
@@ -77,10 +78,8 @@ describe('how parseNumber works', () => {
         expect(parseNumber('null')).toBe(0);
         expect(parseNumber('undefined')).toBe(0);
         expect(parseNumber(NaN)).toBe(0);
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        expect(parseNumber(null as any)).toBe(0);
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        expect(parseNumber(undefined as any)).toBe(0);
+        expect(parseNumber(null as TODO)).toBe(0);
+        expect(parseNumber(undefined as TODO)).toBe(0);
     });
 
     it('should throw error on invalid entries', () => {
