@@ -61,7 +61,11 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
     const { pipeline, tools, settings = {} } = options;
     const { maxExecutionAttempts = 3 } = settings;
 
+    // TODO: !!!!! Implement new commands
+
     validatePipeline(pipeline);
+
+    // TODO: !!!!! Do here materialization of still unmaterialized or dynamic knowledge
 
     const llmTools = joinLlmExecutionTools(...arrayableToArray(tools.llm));
 

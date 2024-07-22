@@ -401,6 +401,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
 }
 
 /**
+ * TODO: !!!! Warn if used only sync version
  * TODO: Report here line/column of error
  * TODO: Use spaceTrim more effectively
  * TODO: [🧠] Parameter flags - isInput, isOutput, isInternal

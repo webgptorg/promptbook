@@ -35,7 +35,8 @@ export async function pipelineStringToJson(
 ): Promise<PipelineJson> {
     const { llmTools } = options;
 
-    // TODO: [🧠] !!! Preconvert knowledge and error in pipelineStringToJsonSync if still present
+    // TODO: !!!!! Do here materialization of still unmaterialized or dynamic knowledge
+    // TODO:  ----X----- [🧠] !!! Preconvert knowledge and error in pipelineStringToJsonSync if still present
     let pipelineJson = pipelineStringToJsonSync(pipelineString);
 
     if (llmTools) {

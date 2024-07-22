@@ -164,8 +164,8 @@ function promptTemplateParameterJsonToString(promptTemplateParameterJson: Prompt
 }
 
 /**
- * TODO: !!!! Auto detect missing features in pipelineJsonToString
- * TODO: !!!! Knowledge and samples
+ * TODO: !!!!! Implement here new features and commands
+ * TODO: [🧠] Is there a way to auto-detect missing features in pipelineJsonToString
  * TODO: Escape all
  * TODO: [😵] Use markdownStructureToMarkdown
  */
