@@ -1,6 +1,6 @@
 import { spaceTrim } from 'spacetrim';
 import type { IterableElement, Writable, WritableDeep } from 'type-fest';
-import type { ExecutionType } from '../commands/BLOCK/ExecutionTypes';
+import type { BlockType } from '../commands/BLOCK/BlockTypes';
 import type { ParameterCommand } from '../commands/PARAMETER/ParameterCommand';
 import { parseCommand } from '../commands/_common/parseCommand';
 import { NotImplementedError } from '../errors/NotImplementedError';
@@ -176,42 +176,42 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
         const templateModelRequirements: Partial<Writable<ModelRequirements>> = { ...defaultModelRequirements };
         const listItems = extractAllListItemsFromMarkdown(section.content);
         let dependentParameterNames = new Set<IterableElement<PromptTemplateJson['dependentParameterNames']>>();
-        let executionType: ExecutionType = 'PROMPT_TEMPLATE';
+        let blockType: BlockType = 'PROMPT_TEMPLATE';
         let jokers: PromptTemplateJson['jokers'] = [];
         let postprocessing: PromptTemplateJson['postprocessing'] = [];
         let expectAmount: PromptTemplateJson['expectations'] = {};
         let expectFormat: PromptTemplateJson['expectFormat'] | undefined = undefined;
 
-        let isExecutionTypeChanged = false;
+        let isBlockTypeChanged = false;
 
         for (const listItem of listItems) {
             const command = parseCommand(listItem, 'PIPELINE_TEMPLATE');
             switch (command.type) {
-                case 'EXECUTE':
-                    if (isExecutionTypeChanged) {
+                case 'BLOCK':
+                    if (isBlockTypeChanged) {
                         throw new SyntaxError(
-                            'Execution type is already defined in the prompt template. It can be defined only once.',
+                            'Block type is already defined in the prompt template. It can be defined only once.',
                         );
                     }
 
-                    if (command.executionType === 'SAMPLE') {
-                        throw new NotImplementedError('Execution type SAMPLE is not implemented yet');
+                    if (command.blockType === 'SAMPLE') {
+                        throw new NotImplementedError('Block type SAMPLE is not implemented yet');
                     }
 
-                    if (command.executionType === 'KNOWLEDGE') {
+                    if (command.blockType === 'KNOWLEDGE') {
                         throw new NotImplementedError('Knowledge is not implemented yet');
                     }
 
-                    if (command.executionType === 'ACTION') {
+                    if (command.blockType === 'ACTION') {
                         throw new NotImplementedError('Actions are not implemented yet');
                     }
 
-                    if (command.executionType === 'INSTRUMENT') {
+                    if (command.blockType === 'INSTRUMENT') {
                         throw new NotImplementedError('Instruments are not implemented yet');
                     }
 
-                    executionType = command.executionType;
-                    isExecutionTypeChanged = true;
+                    blockType = command.blockType;
+                    isBlockTypeChanged = true;
                     break;
                 case 'EXPECT_AMOUNT':
                     // eslint-disable-next-line no-case-declarations
@@ -295,7 +295,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
 
         const { language, content } = extractOneBlockFromMarkdown(section.content);
 
-        if (executionType === 'SCRIPT') {
+        if (blockType === 'SCRIPT') {
             if (!language) {
                 throw new SyntaxError('You must specify the language of the script in the prompt template');
             } else if (!SUPPORTED_SCRIPT_LANGUAGES.includes(language as ScriptLanguage)) {
@@ -364,7 +364,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
             extractParametersFromPromptTemplate({
                 ...section,
                 description,
-                executionType,
+                blockType,
                 content,
             }),
         );
@@ -378,18 +378,18 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
             title: section.title,
             description,
             dependentParameterNames: Array.from(dependentParameterNames),
-            executionType,
+            blockType,
             jokers,
             postprocessing,
             expectations: expectAmount,
             expectFormat,
             modelRequirements: templateModelRequirements as ModelRequirements,
-            contentLanguage: executionType === 'SCRIPT' ? (language as ScriptLanguage) : undefined,
+            contentLanguage: blockType === 'SCRIPT' ? (language as ScriptLanguage) : undefined,
             content,
             resultingParameterName,
         };
 
-        if (executionType !== 'PROMPT_TEMPLATE') {
+        if (blockType !== 'PROMPT_TEMPLATE') {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             delete (template as any).modelRequirements;
         }

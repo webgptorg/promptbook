@@ -6,7 +6,7 @@ describe('extractParametersFromPromptTemplate', () => {
         const promptTemplate = {
             title: 'name of {foo}',
             description: 'description of {foo} and {bar}',
-            executionType: 'PROMPT_TEMPLATE',
+            blockType: 'PROMPT_TEMPLATE',
             content: 'hello {name}',
         } as const;
 
@@ -19,7 +19,7 @@ describe('extractParametersFromPromptTemplate', () => {
         expect(
             extractParametersFromPromptTemplate({
                 title: 'Script',
-                executionType: 'SCRIPT',
+                blockType: 'SCRIPT',
                 content: 'const greeting = hello;',
             }),
         ).toContain('hello');

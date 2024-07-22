@@ -382,7 +382,7 @@ For example:
 }
 ```
 
-### Execution type
+### Block type
 
 Each block of promptbook can have a different execution type.
 It is specified in list of requirements for the block.
@@ -559,7 +559,6 @@ There are two types of expectations which are not strictly symmetrical:
 -   `EXPECT JSON` is both minimal and maximal expectation
 
 Look at [expectations.ptbk.md](samples/templates/45-expectations.ptbk.md) and [expect-json.ptbk.md](samples/templates/45-expect-json.ptbk.md) samples for more.
-
 
 ### Execution report
 

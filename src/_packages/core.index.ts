@@ -5,7 +5,7 @@ import { createCollectionFromJson } from '../collection/constructors/createColle
 import { createCollectionFromPromise } from '../collection/constructors/createCollectionFromPromise';
 import { createCollectionFromUrl } from '../collection/constructors/createCollectionFromUrl';
 import { createSubcollection } from '../collection/constructors/createSubcollection';
-import { ExecutionTypes } from '../commands/BLOCK/ExecutionTypes';
+import { BlockTypes } from '../commands/BLOCK/BlockTypes';
 import { pipelineJsonToString } from '../conversion/pipelineJsonToString';
 import { pipelineStringToJson } from '../conversion/pipelineStringToJson';
 import { pipelineStringToJsonSync } from '../conversion/pipelineStringToJsonSync';
@@ -40,7 +40,7 @@ import { PROMPTBOOK_VERSION } from '../version';
 export { PROMPTBOOK_VERSION };
 
 // @promptbook/core
-export { ExecutionTypes };
+export { BlockTypes };
 
 // Core utilities
 export {

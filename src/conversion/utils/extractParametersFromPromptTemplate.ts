@@ -11,7 +11,7 @@ import { extractVariables } from './extractVariables';
  * @throws {SyntaxError} if the script is invalid
  */
 export function extractParametersFromPromptTemplate(
-    promptTemplate: Pick<PromptTemplateJson, 'title' | 'description' | 'executionType' | 'content'>,
+    promptTemplate: Pick<PromptTemplateJson, 'title' | 'description' | 'blockType' | 'content'>,
 ): Set<string_name> {
     const parameterNames = new Set<string_name>();
 
@@ -23,7 +23,7 @@ export function extractParametersFromPromptTemplate(
         parameterNames.add(parameterName);
     }
 
-    if (promptTemplate.executionType === 'SCRIPT') {
+    if (promptTemplate.blockType === 'SCRIPT') {
         for (const parameterName of extractVariables(promptTemplate.content)) {
             parameterNames.add(parameterName);
         }

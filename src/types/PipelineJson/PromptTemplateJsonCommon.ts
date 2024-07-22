@@ -1,4 +1,4 @@
-import type { ExecutionType } from '../../commands/BLOCK/ExecutionTypes';
+import type { BlockType } from '../../commands/BLOCK/BlockTypes';
 import type { ExpectFormatCommand } from '../../commands/EXPECT/ExpectFormatCommand';
 import type {
     string_javascript,
@@ -51,7 +51,7 @@ export interface PromptTemplateJsonCommon {
      * Type of the execution
      * This determines if the prompt template is send to LLM, user or some scripting evaluation
      */
-    readonly executionType: ExecutionType;
+    readonly blockType: BlockType;
 
     /**
      * Content of the template with {placeholders} for parameters

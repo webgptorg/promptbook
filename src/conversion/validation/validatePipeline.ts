@@ -1,5 +1,4 @@
 import { spaceTrim } from 'spacetrim';
-import { isValidPipelineUrl, isValidPromptbookVersion } from '../../_packages/utils.index';
 import { LOOP_LIMIT } from '../../config';
 import { PipelineLogicError } from '../../errors/PipelineLogicError';
 import { SyntaxError } from '../../errors/SyntaxError';
@@ -7,6 +6,8 @@ import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import type { PromptTemplateJson } from '../../types/PipelineJson/PromptTemplateJson';
 import type { string_name } from '../../types/typeAliases';
+import { isValidPromptbookVersion } from '../../utils/validators/semanticVersion/isValidPromptbookVersion';
+import { isValidPipelineUrl } from '../../utils/validators/url/isValidPipelineUrl';
 
 /**
  * Validates PipelineJson if it is logically valid
@@ -114,7 +115,7 @@ export function validatePipeline(pipeline: PipelineJson): PipelineJson {
 
         definedParameters.add(template.resultingParameterName);
 
-        if (template.executionType === 'PROMPT_TEMPLATE' && template.modelRequirements.modelVariant === undefined) {
+        if (template.blockType === 'PROMPT_TEMPLATE' && template.modelRequirements.modelVariant === undefined) {
             throw new PipelineLogicError(
                 spaceTrim(`
 

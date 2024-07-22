@@ -2,9 +2,9 @@ import { spaceTrim } from 'spacetrim';
 import type { Promisable } from 'type-fest';
 import { LOOP_LIMIT } from '../config';
 import { validatePipeline } from '../conversion/validation/validatePipeline';
+import { ExpectError } from '../errors/_ExpectError';
 import { ExecutionError } from '../errors/ExecutionError';
 import { UnexpectedError } from '../errors/UnexpectedError';
-import { ExpectError } from '../errors/_ExpectError';
 import { isValidJsonString } from '../formats/json/utils/isValidJsonString';
 import { joinLlmExecutionTools } from '../llm-providers/multiple/joinLlmExecutionTools';
 import type { ExecutionReportJson } from '../types/execution-report/ExecutionReportJson';
@@ -90,7 +90,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                     title,
                     isStarted: false,
                     isDone: false,
-                    executionType: currentTemplate.executionType,
+                    blockType: currentTemplate.blockType,
                     parameterName: currentTemplate.resultingParameterName,
                     parameterValue: null,
                     // <- [3]
@@ -106,7 +106,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
             let resultString: string | null = null;
             let expectError: ExpectError | null = null;
             let scriptExecutionErrors: Array<Error>;
-            const maxAttempts = currentTemplate.executionType === 'PROMPT_DIALOG' ? Infinity : maxExecutionAttempts;
+            const maxAttempts = currentTemplate.blockType === 'PROMPT_DIALOG' ? Infinity : maxExecutionAttempts;
             const jokers = currentTemplate.jokers || [];
 
             attempts: for (let attempt = -jokers.length; attempt < maxAttempts; attempt++) {
@@ -131,10 +131,10 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
 
                 try {
                     if (!isJokerAttempt) {
-                        executionType: switch (currentTemplate.executionType) {
+                        blockType: switch (currentTemplate.blockType) {
                             case 'SIMPLE_TEMPLATE':
                                 resultString = replaceParameters(currentTemplate.content, parametersToPass);
-                                break executionType;
+                                break blockType;
 
                             case 'PROMPT_TEMPLATE':
                                 prompt = {
@@ -260,7 +260,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                                 }
 
                                 if (resultString !== null) {
-                                    break executionType;
+                                    break blockType;
                                 }
 
                                 if (scriptExecutionErrors.length === 1) {
@@ -281,8 +281,8 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                                     );
                                 }
 
-                                // Note: This line is unreachable because of the break executionType above
-                                break executionType;
+                                // Note: This line is unreachable because of the break blockType above
+                                break blockType;
 
                             case 'PROMPT_DIALOG':
                                 if (tools.userInterface === undefined) {
@@ -302,12 +302,12 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                                     placeholder: undefined,
                                     priority,
                                 });
-                                break executionType;
+                                break blockType;
 
                             default:
                                 throw new ExecutionError(
                                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                                    `Unknown execution type "${(currentTemplate as any).executionType}"`,
+                                    `Unknown execution type "${(currentTemplate as any).blockType}"`,
                                 );
                         }
                     }
@@ -372,12 +372,12 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                 } finally {
                     if (
                         !isJokerAttempt &&
-                        currentTemplate.executionType === 'PROMPT_TEMPLATE' &&
+                        currentTemplate.blockType === 'PROMPT_TEMPLATE' &&
                         prompt!
                         //    <- Note:  [2] When some expected parameter is not defined, error will occur in replaceParameters
                         //              In that case we don’t want to make a report about it because it’s not a llm execution error
                     ) {
-                        // TODO: [🧠] Maybe put other executionTypes into report
+                        // TODO: [🧠] Maybe put other blockTypes into report
                         executionReport.promptExecutions.push({
                             prompt: {
                                 title: currentTemplate.title /* <- Note: If title in pipeline contains emojis, pass it innto report */,
@@ -422,7 +422,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                     title,
                     isStarted: true,
                     isDone: true,
-                    executionType: currentTemplate.executionType,
+                    blockType: currentTemplate.blockType,
                     parameterName: currentTemplate.resultingParameterName,
                     parameterValue: resultString,
                     // <- [3]

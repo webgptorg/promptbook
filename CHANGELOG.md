@@ -385,6 +385,7 @@ Working external knowledge, personas, preparation for instruments and actions
 -   Add `SAMPLE` command with notation for parameter samples to `.ptbk.md` files
 -   Add `KNOWLEDGE` command to `.ptbk.md` files
 -   Change `EXECUTE` command to `BLOCK` command
+-   Change `executionType` -> `blockType`
 -   Add `callEmbeddingModel` to `LlmExecutionTools`
 -   `callChatModel` and `callCompletionModel` are not required to be implemented in `LlmExecutionTools` anymore
 -   Remove `MultipleLlmExecutionTools` and make `joinLlmExecutionTools` function

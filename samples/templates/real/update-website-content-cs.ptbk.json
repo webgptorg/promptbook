@@ -28,7 +28,7 @@
             "name": "upravy",
             "title": "🖋 Úpravy",
             "dependentParameterNames": ["suggestedAssignment", "oldContent"],
-            "executionType": "PROMPT_TEMPLATE",
+            "blockType": "PROMPT_TEMPLATE",
             "postprocessing": ["spaceTrim"],
             "modelRequirements": {
                 "modelVariant": "CHAT",

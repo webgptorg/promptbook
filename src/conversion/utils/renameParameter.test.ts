@@ -22,7 +22,7 @@ describe('how renameParameter works', () => {
                             name: 'prompt',
                             title: '💬 Prompt',
                             dependentParameterNames: [],
-                            executionType: 'PROMPT_TEMPLATE',
+                            blockType: 'PROMPT_TEMPLATE',
                             modelRequirements: {
                                 modelVariant: 'CHAT',
                                 modelName: 'gpt-3.5-turbo',
@@ -53,7 +53,7 @@ describe('how renameParameter works', () => {
                         name: 'prompt',
                         title: '💬 Prompt',
                         dependentParameterNames: [],
-                        executionType: 'PROMPT_TEMPLATE',
+                        blockType: 'PROMPT_TEMPLATE',
                         modelRequirements: {
                             modelVariant: 'CHAT',
                             modelName: 'gpt-3.5-turbo',
@@ -99,7 +99,7 @@ describe('how renameParameter works', () => {
                             title: '💬 Synonym',
                             description: 'Synonym for word',
                             dependentParameterNames: ['word'],
-                            executionType: 'PROMPT_TEMPLATE',
+                            blockType: 'PROMPT_TEMPLATE',
                             modelRequirements: {
                                 modelVariant: 'CHAT',
                                 modelName: 'gpt-3.5-turbo',
@@ -112,7 +112,7 @@ describe('how renameParameter works', () => {
                             title: '💬 Sentence',
                             description: 'Sentence with word and wordSynonym',
                             dependentParameterNames: ['word', 'wordSynonym'],
-                            executionType: 'PROMPT_TEMPLATE',
+                            blockType: 'PROMPT_TEMPLATE',
                             modelRequirements: {
                                 modelVariant: 'CHAT',
                                 modelName: 'gpt-3.5-turbo',
@@ -156,7 +156,7 @@ describe('how renameParameter works', () => {
                         title: '💬 Synonym',
                         description: 'Synonym for word',
                         dependentParameterNames: ['originalWord'],
-                        executionType: 'PROMPT_TEMPLATE',
+                        blockType: 'PROMPT_TEMPLATE',
                         modelRequirements: {
                             modelVariant: 'CHAT',
                             modelName: 'gpt-3.5-turbo',
@@ -169,7 +169,7 @@ describe('how renameParameter works', () => {
                         title: '💬 Sentence',
                         description: 'Sentence with word and wordSynonym',
                         dependentParameterNames: ['originalWord', 'wordSynonym'],
-                        executionType: 'PROMPT_TEMPLATE',
+                        blockType: 'PROMPT_TEMPLATE',
                         modelRequirements: {
                             modelVariant: 'CHAT',
                             modelName: 'gpt-3.5-turbo',
@@ -215,7 +215,7 @@ describe('how renameParameter works', () => {
                             title: '💬 Synonym',
                             description: 'Synonym for word',
                             dependentParameterNames: ['word'],
-                            executionType: 'PROMPT_TEMPLATE',
+                            blockType: 'PROMPT_TEMPLATE',
                             modelRequirements: {
                                 modelVariant: 'CHAT',
                                 modelName: 'gpt-3.5-turbo',
@@ -228,7 +228,7 @@ describe('how renameParameter works', () => {
                             title: '💬 Sentence',
                             description: 'Sentence with word and wordSynonym',
                             dependentParameterNames: ['word', 'wordSynonym'],
-                            executionType: 'PROMPT_TEMPLATE',
+                            blockType: 'PROMPT_TEMPLATE',
                             modelRequirements: {
                                 modelVariant: 'CHAT',
                                 modelName: 'gpt-3.5-turbo',

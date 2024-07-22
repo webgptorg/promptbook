@@ -50,13 +50,9 @@
             "name": "synonym",
             "title": "💬 Synonym",
             "description": "Synonym for word",
-            "dependentParameterNames": [
-                "word"
-            ],
-            "executionType": "PROMPT_TEMPLATE",
-            "postprocessing": [
-                "unwrapResult"
-            ],
+            "dependentParameterNames": ["word"],
+            "blockType": "PROMPT_TEMPLATE",
+            "postprocessing": ["unwrapResult"],
             "expectations": {
                 "words": {
                     "min": 1,
@@ -73,11 +69,8 @@
         {
             "name": "test-that-word-is-not-original-word",
             "title": "⚙ Test that word is not original word",
-            "dependentParameterNames": [
-                "word",
-                "wordSynonym"
-            ],
-            "executionType": "SCRIPT",
+            "dependentParameterNames": ["word", "wordSynonym"],
+            "blockType": "SCRIPT",
             "contentLanguage": "javascript",
             "content": "if (word !== '' && wordSynonym === word) {\n    throw new Error(`Synonym returned from LLM is same as original word \"${word}\"`);\n}\n\nreturn wordSynonym;",
             "resultingParameterName": "wordSynonymTested"
@@ -86,11 +79,8 @@
             "name": "sentence-with-synonym",
             "title": "💬 Sentence with Synonym",
             "description": "Sentence with word and wordSynonym",
-            "dependentParameterNames": [
-                "word",
-                "wordSynonym"
-            ],
-            "executionType": "PROMPT_TEMPLATE",
+            "dependentParameterNames": ["word", "wordSynonym"],
+            "blockType": "PROMPT_TEMPLATE",
             "expectations": {
                 "words": {
                     "max": 20
@@ -111,11 +101,8 @@
             "name": "sentence-without-original-word",
             "title": "💬 Sentence without original word",
             "description": "Sentence \"{sentenceWithTwoSynonyms}\" without \"{word}\".",
-            "dependentParameterNames": [
-                "sentenceWithTwoSynonyms",
-                "word"
-            ],
-            "executionType": "PROMPT_TEMPLATE",
+            "dependentParameterNames": ["sentenceWithTwoSynonyms", "word"],
+            "blockType": "PROMPT_TEMPLATE",
             "expectations": {
                 "words": {
                     "max": 20
@@ -136,11 +123,8 @@
             "name": "comparison",
             "title": "💬 Comparison",
             "description": "Comparison between \"{sentenceWithTwoSynonyms}\" and \"{sentenceWithOriginalWordRemoved}\".",
-            "dependentParameterNames": [
-                "sentenceWithTwoSynonyms",
-                "sentenceWithOriginalWordRemoved"
-            ],
-            "executionType": "PROMPT_TEMPLATE",
+            "dependentParameterNames": ["sentenceWithTwoSynonyms", "sentenceWithOriginalWordRemoved"],
+            "blockType": "PROMPT_TEMPLATE",
             "expectations": {
                 "sentences": {
                     "min": 1,
@@ -164,7 +148,7 @@
                 "sentenceWithOriginalWordRemoved",
                 "comparisonOfTwoSentences"
             ],
-            "executionType": "SIMPLE_TEMPLATE",
+            "blockType": "SIMPLE_TEMPLATE",
             "content": "You have entered a word **{word}**. For this word the best synonym is **{wordSynonym}**. The sentence with both words is **{sentenceWithTwoSynonyms}**. The sentence without the original word is **{sentenceWithOriginalWordRemoved}**. And the comparison between the two sentences is:\n\n> {comparisonOfTwoSentences}",
             "resultingParameterName": "summary"
         }
@@ -174,37 +158,17 @@
             "name": "a",
             "title": "A",
             "content": "I",
-            "keywords": [
-                "N"
-            ],
+            "keywords": ["N"],
             "index": [
                 {
                     "modelName": "mocked-facked",
                     "position": [
-                        0.5667493927093847,
-                        0.7543944276823633,
-                        0.1761252270646323,
-                        -0.49780506802407753,
-                        -0.30526410217189737,
-                        -0.07046879985097254,
-                        0.684754365771072,
-                        0.8676961197492852,
-                        0.9742452539599142,
-                        0.22820891306494495,
-                        0.06805632376841153,
-                        0.3627437911256286,
-                        0.7384297776615663,
-                        0.7017473366299436,
-                        -0.8049106302834588,
-                        0.41105782027990845,
-                        -0.7997403836071779,
-                        0.7560106050048532,
-                        -0.031239623761330826,
-                        -0.16968775679097803,
-                        0.3409489969626609,
-                        -0.059358662441536314,
-                        0.7770312286136738,
-                        0.7002659465113101,
+                        0.5667493927093847, 0.7543944276823633, 0.1761252270646323, -0.49780506802407753,
+                        -0.30526410217189737, -0.07046879985097254, 0.684754365771072, 0.8676961197492852,
+                        0.9742452539599142, 0.22820891306494495, 0.06805632376841153, 0.3627437911256286,
+                        0.7384297776615663, 0.7017473366299436, -0.8049106302834588, 0.41105782027990845,
+                        -0.7997403836071779, 0.7560106050048532, -0.031239623761330826, -0.16968775679097803,
+                        0.3409489969626609, -0.059358662441536314, 0.7770312286136738, 0.7002659465113101,
                         -0.9810361333842397
                     ]
                 }

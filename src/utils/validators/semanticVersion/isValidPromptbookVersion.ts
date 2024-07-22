@@ -1,4 +1,4 @@
-import { string_promptbook_version } from '../../../version';
+import type { string_promptbook_version } from '../../../version';
 import { isValidSemanticVersion } from './isValidSemanticVersion';
 
 /**

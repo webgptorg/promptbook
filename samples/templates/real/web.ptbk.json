@@ -47,7 +47,7 @@
             "name": "vycisteni-vstupu",
             "title": "Vyčištění vstupu",
             "dependentParameterNames": ["inputText"],
-            "executionType": "PROMPT_TEMPLATE",
+            "blockType": "PROMPT_TEMPLATE",
             "postprocessing": ["spaceTrim"],
             "modelRequirements": {
                 "modelVariant": "CHAT",
@@ -60,7 +60,7 @@
             "name": "nazev-webu",
             "title": "Název webu",
             "dependentParameterNames": ["inputTextCleaned"],
-            "executionType": "PROMPT_TEMPLATE",
+            "blockType": "PROMPT_TEMPLATE",
             "postprocessing": ["spaceTrim"],
             "expectations": {
                 "words": {
@@ -84,7 +84,7 @@
             "name": "domeny",
             "title": "Domény",
             "dependentParameterNames": ["title", "inputTextCleaned"],
-            "executionType": "PROMPT_TEMPLATE",
+            "blockType": "PROMPT_TEMPLATE",
             "postprocessing": ["spaceTrim"],
             "expectations": {
                 "lines": {
@@ -102,7 +102,7 @@
             "name": "domeny",
             "title": "Domény",
             "dependentParameterNames": ["domainsCommaSeparated"],
-            "executionType": "SCRIPT",
+            "blockType": "SCRIPT",
             "modelRequirements": {},
             "contentLanguage": "javascript",
             "content": "domainsCommaSeparated.split(',').join('\\n');",
@@ -112,7 +112,7 @@
             "name": "zadani",
             "title": "Zadání",
             "dependentParameterNames": ["title", "inputTextCleaned"],
-            "executionType": "PROMPT_TEMPLATE",
+            "blockType": "PROMPT_TEMPLATE",
             "postprocessing": ["spaceTrim"],
             "expectations": {
                 "words": {
@@ -133,7 +133,7 @@
             "name": "email",
             "title": "Email",
             "dependentParameterNames": ["title", "assignment", "domains"],
-            "executionType": "SIMPLE_TEMPLATE",
+            "blockType": "SIMPLE_TEMPLATE",
             "modelRequirements": {},
             "content": "Dobrý den,\n\nna Vaše zadání jsme se podívali a připravili ho pro našeho vývojáře.\nZde je zadání pro váš nový web **\"{title}\"**:\n\n> {assignment}\n\n\nNejvhodnější domény pro web **\"{title}\"** jsou:\n\n- {domains}\n\n\n*PS: Jedná se o automaticky vygenerovanou odpověď, kterou si je potřeba překontrolovat.*\n\nS pozdravem,\nR.U.K.A.",
             "resultingParameterName": "outputText"

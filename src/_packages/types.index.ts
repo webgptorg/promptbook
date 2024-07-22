@@ -1,7 +1,7 @@
 // @promptbook/types
 
 import type { PipelineCollection } from '../collection/PipelineCollection';
-import type { ExecutionType } from '../commands/BLOCK/ExecutionTypes';
+import type { BlockType } from '../commands/BLOCK/BlockTypes';
 import type { CommonExecutionToolsOptions } from '../execution/CommonExecutionToolsOptions';
 import { EmbeddingVector } from '../execution/EmbeddingVector';
 import type { ExecutionTools } from '../execution/ExecutionTools';
@@ -99,11 +99,11 @@ export { EXPECTATION_UNITS };
 // Note: Types
 export type {
     AvailableModel,
+    BlockType,
     CommonExecutionToolsOptions,
     EmbeddingVector,
     ExecutionReportJson,
     ExecutionTools,
-    ExecutionType,
     ExpectationAmount,
     ExpectationUnit,
     Expectations,

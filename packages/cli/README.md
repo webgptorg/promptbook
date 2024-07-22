@@ -435,7 +435,7 @@ For example:
 }
 ```
 
-### Execution type
+### Block type
 
 Each block of promptbook can have a different execution type.
 It is specified in list of requirements for the block.
