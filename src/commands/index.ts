@@ -1,4 +1,4 @@
-import { executeCommandParser } from './BLOCK/executeCommandParser';
+import { blockCommandParser } from './BLOCK/blockCommandParser';
 import { expectCommandParser } from './EXPECT/expectCommandParser';
 import { jokerCommandParser } from './JOKER/jokerCommandParser';
 import { knowledgeCommandParser } from './KNOWLEDGE/knowledgeCommandParser';
@@ -16,7 +16,7 @@ import { boilerplateCommandParser } from './_BOILERPLATE/boilerplateCommandParse
  * All available command parsers
  */
 export const COMMANDS = [
-    executeCommandParser,
+    blockCommandParser,
     expectCommandParser,
     jokerCommandParser,
     modelCommandParser,

@@ -79,6 +79,9 @@ export function parseCommand(raw: string_markdown_text, usagePlace: CommandUsage
         );
     }
 
+    // Note: Taking command name from beginning of the line
+    //       FOO | BAR   Arg1   Arg2   Arg3
+    //       FOO   BAR | Arg1   Arg2   Arg3
     for (
         let commandNameSegmentsCount = 0;
         commandNameSegmentsCount < Math.min(items.length, 3);
@@ -88,6 +91,20 @@ export function parseCommand(raw: string_markdown_text, usagePlace: CommandUsage
         const args = items.slice(commandNameSegmentsCount + 1);
 
         const rawArgs = raw.substring(commandNameRaw.length).trim();
+        const command = parseCommandVariant({ usagePlace, raw, rawArgs, normalized, args, commandNameRaw });
+
+        if (command !== null) {
+            return command;
+        }
+    }
+
+    // Note: Taking command name from end of the line
+    //        Arg1   Arg2   Arg3 | FOO
+    {
+        const commandNameRaw = items.slice(-1).join('_');
+        const args = items.slice(0, -1);
+
+        const rawArgs = raw.substring(0, raw.length - commandNameRaw.length).trim();
         const command = parseCommandVariant({ usagePlace, raw, rawArgs, normalized, args, commandNameRaw });
 
         if (command !== null) {

@@ -18,7 +18,16 @@ export const blockCommandParser: CommandParser<BlockCommand> = {
     /**
      * Aliases for the BLOCK command
      */
-    aliasNames: ['PROMPT_DIALOG', 'SIMPLE_TEMPLATE'],
+    aliasNames: [
+        'PROMPT_TEMPLATE',
+        'SIMPLE_TEMPLATE',
+        'SCRIPT',
+        'PROMPT_DIALOG',
+        'SAMPLE',
+        'KNOWLEDGE',
+        'INSTRUMENT',
+        'ACTION',
+    ],
 
     /**
      * Aliases for the BLOCK command
@@ -44,14 +53,26 @@ export const blockCommandParser: CommandParser<BlockCommand> = {
      * Example usages of the BLOCK command
      */
     examples: [
-        'PROMPT TEMPLATE BLOCK',
-        'SIMPLE TEMPLATE BLOCK',
-        'SCRIPT',
-        'PROMPT_DIALOG',
-        'SAMPLE',
-        'KNOWLEDGE',
-        'INSTRUMENT',
-        'ACTION',
+        'Prompt template BLOCK',
+        'Prompt template',
+        'Simple template BLOCK',
+        'Simple template',
+        'Script BLOCK',
+        'Script',
+        'Prompt dialog BLOCK',
+        'Prompt dialog',
+        'Sample BLOCK',
+        'Sample',
+        'Knowledge BLOCK',
+        // 'Knowledge', // <- Note: [⛱] For execution blocks which are also separate commands shortcut does not work
+
+        //---
+        /* TODO: !!!! Not implemented block types will be in examples in future -> */
+        'Instrument BLOCK',
+        // 'Instrument', // <- Note: [⛱]
+        'Action BLOCK',
+        // 'Action', // <- Note: [⛱]
+        //---
         /* <- TODO: [🧠] Maybe dynamic */
     ],
 
