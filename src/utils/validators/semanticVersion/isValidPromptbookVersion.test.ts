@@ -7,7 +7,8 @@ describe('how isValidPromptbookVersion works', () => {
     });
 
     it('is valid semantic version BUT not promptbook version', () => {
-        expect(isValidPromptbookVersion(`1.0.0`)).toBe(false); // <- Note: Kind of a internal joke which will be removed after 1.0.0 release
+        // expect(isValidPromptbookVersion(`1.0.0`)).toBe(false);
+        //                                   <- Note: Kind of a internal joke which will be removed after 1.0.0 release
         expect(isValidPromptbookVersion(`2.0.0`)).toBe(false);
     });
 
