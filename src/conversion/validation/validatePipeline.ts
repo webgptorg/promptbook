@@ -26,7 +26,7 @@ import { isValidPipelineUrl } from '../../utils/validators/url/isValidPipelineUr
 export function validatePipeline(pipeline: PipelineJson): PipelineJson {
     // TODO: [🧠] Maybe test if promptbook is a promise and make specific error case for that
 
-    if (!isValidPipelineUrl(pipeline.pipelineUrl)) {
+    if (pipeline.pipelineUrl !== undefined && !isValidPipelineUrl(pipeline.pipelineUrl)) {
         // <- Note: [🚲]
         throw new PipelineLogicError(
             `Invalid promptbook URL "${pipeline.pipelineUrl}"`,
