@@ -545,6 +545,13 @@ export type number_megabytes = number_positive;
 export type number_gigabytes = number_positive;
 export type number_terabytes = number_positive;
 
+//=========================[ Code organization ]=========================
+
+/**
+ * Formatting helper to put void to keep longer version of prettier
+ */
+export type ___ = never;
+
 /**
  * TODO: !! Cleanup
  * TODO: !! Change to branded types

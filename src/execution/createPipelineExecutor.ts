@@ -214,7 +214,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                                         resultString = embeddingResult.content.join(',');
                                         break variant;
 
-                                    // case [🤖]:
+                                    // <- case [🤖]:
 
                                     default:
                                         throw new ExecutionError(
@@ -303,6 +303,8 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                                     priority,
                                 });
                                 break blockType;
+
+                            // <- case: [🩻]
 
                             default:
                                 throw new ExecutionError(

@@ -32,6 +32,8 @@ describe('how BLOCK command in .ptbk.md files works', () => {
             type: 'BLOCK',
             blockType: 'PROMPT_TEMPLATE',
         });
+
+        // <- [🩻]
     });
 
     it('should work with deprecated EXECUTE command', () => {

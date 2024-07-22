@@ -469,3 +469,4 @@ Across the repository there are marked [🍓] places that are required to be don
 
 <!-- Note: [➕] All places marked by [➕] to add new NPM package -->
 <!-- Note: [🤖] All places marked by [🤖] to add new model variant -->
+<!-- Note: [🩻] All places marked by [🩻] to add new (execution) block type -->

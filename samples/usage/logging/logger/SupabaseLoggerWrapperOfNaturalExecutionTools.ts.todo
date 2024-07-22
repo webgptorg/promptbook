@@ -47,12 +47,12 @@ export class SupabaseLoggerWrapperOfLlmExecutionTools implements LlmExecutionToo
             case 'CHAT':
                 promptResult = await this.options.llmExecutionTools.callChatModel(prompt);
                 break;
-                
+
             case 'COMPLETION':
                 promptResult = await this.options.llmExecutionTools.callCompletionModel(prompt);
                 break;
 
-            // case [🤖]:
+            // <- case [🤖]:
 
             default:
                 throw new Error(`Unknown model variant "${prompt.modelRequirements.variant}"`);

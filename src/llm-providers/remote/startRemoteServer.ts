@@ -94,7 +94,7 @@ export function startRemoteServer(options: RemoteServerOptions): IDestroyable {
                         promptResult = await executionToolsForClient.callEmbeddingModel(prompt);
                         break;
 
-                    // case [🤖]:
+                    // <- case [🤖]:
 
                     default:
                         throw new ExecutionError(`Unknown model variant "${prompt.modelRequirements.modelVariant}"`);

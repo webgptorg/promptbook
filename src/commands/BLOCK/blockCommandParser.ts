@@ -27,6 +27,7 @@ export const blockCommandParser: CommandParser<BlockCommand> = {
         'KNOWLEDGE',
         'INSTRUMENT',
         'ACTION',
+        // <- [🩻]
     ],
 
     /**
