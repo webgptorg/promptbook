@@ -21,6 +21,8 @@ export type CommandParser<TCommand extends { type: string_name & string_SCREAMIN
      * @throws {SyntaxError} if the parsing fails
      */
     parse(input: CommandParserInput): TCommand;
+
+    // TODO: !!!!! applyToPipelineJson
 };
 
 export type CommandParserInput = {
