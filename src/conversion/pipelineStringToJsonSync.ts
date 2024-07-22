@@ -1,6 +1,6 @@
 import { spaceTrim } from 'spacetrim';
 import type { IterableElement, Writable, WritableDeep } from 'type-fest';
-import type { ExecutionType } from '../commands/EXECUTE/ExecutionTypes';
+import type { ExecutionType } from '../commands/BLOCK/ExecutionTypes';
 import type { ParameterCommand } from '../commands/PARAMETER/ParameterCommand';
 import { parseCommand } from '../commands/_common/parseCommand';
 import { NotImplementedError } from '../errors/NotImplementedError';

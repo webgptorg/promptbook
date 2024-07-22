@@ -1,7 +1,7 @@
 // @promptbook/types
 
 import type { PipelineCollection } from '../collection/PipelineCollection';
-import type { ExecutionType } from '../commands/EXECUTE/ExecutionTypes';
+import type { ExecutionType } from '../commands/BLOCK/ExecutionTypes';
 import type { CommonExecutionToolsOptions } from '../execution/CommonExecutionToolsOptions';
 import { EmbeddingVector } from '../execution/EmbeddingVector';
 import type { ExecutionTools } from '../execution/ExecutionTools';
