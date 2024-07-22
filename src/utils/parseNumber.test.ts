@@ -1,5 +1,5 @@
 import { describe, expect, it } from '@jest/globals';
-import type { TODO } from '../../types/typeAliases';
+import type { TODO } from '../types/typeAliases';
 import { parseNumber } from './parseNumber';
 
 describe('how parseNumber works', () => {

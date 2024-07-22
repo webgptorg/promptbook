@@ -1,7 +1,6 @@
 // @promptbook/utils
 
 import { spaceTrim } from 'spacetrim';
-import { parseNumber } from '../commands/_common/parseNumber';
 import { renderPromptbookMermaid } from '../conversion/prettify/renderPipelineMermaidOptions';
 import { extractParametersFromPromptTemplate } from '../conversion/utils/extractParametersFromPromptTemplate';
 import { extractVariables } from '../conversion/utils/extractVariables';
@@ -43,6 +42,7 @@ import { parseKeywords } from '../utils/normalization/parseKeywords';
 import { parseKeywordsFromString } from '../utils/normalization/parseKeywordsFromString';
 import { removeDiacritics } from '../utils/normalization/removeDiacritics';
 import { searchKeywords } from '../utils/normalization/searchKeywords';
+import { parseNumber } from '../utils/parseNumber';
 import { extractBlock } from '../utils/postprocessing/extractBlock';
 import { removeEmojis } from '../utils/removeEmojis';
 import { removeQuotes } from '../utils/removeQuotes';

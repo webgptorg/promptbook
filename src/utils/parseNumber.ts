@@ -1,4 +1,4 @@
-import { SyntaxError } from '../../errors/SyntaxError';
+import { SyntaxError } from '../errors/SyntaxError';
 
 /**
  * Function parseNumber will parse number from string
