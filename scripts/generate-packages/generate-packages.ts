@@ -126,7 +126,7 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
         packageReadme = packageReadme.split(`\n<!--/Badges-->`).join(badge + '\n\n<!--/Badges-->');
         */
 
-        // TODO: !!! Convert mermaid diagrams to images OR remove
+        // TODO: [🍓] Convert mermaid diagrams to images or remove them from the markdown published to NPM
 
         packageReadme = removeContentComments(packageReadme);
 

@@ -43,7 +43,7 @@ async function makePipelineCollection({ isCommited }: { isCommited: boolean }) {
 
     // TODO: !!!! getLlmExecutionToolsFromEnvironment
     const llmTools = joinLlmExecutionTools(
-        // TODO: !!!! Remove mocked
+        // TODO: !!!! Remove mocked and use getLlmExecutionToolsFromEnvironment
         new MockedFackedLlmExecutionTools({ isVerbose }),
         /*
             new AnthropicClaudeExecutionTools({
