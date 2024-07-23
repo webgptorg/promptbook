@@ -2,7 +2,7 @@
 
 import colors from 'colors';
 import commander from 'commander';
-import { writeFile } from 'fs/promises';
+import { readFile, writeFile } from 'fs/promises';
 import { join } from 'path';
 import { spaceTrim } from 'spacetrim';
 import { version } from '../../package.json';
@@ -52,6 +52,14 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
 
         `),
     );
+
+    // Note: Just append the version into loooong list
+    // TODO: Is there a secure and simple way to write in append-only mode?
+    // TODO: [🧠] Maybe handle this dynamically via `npm view ptbk/* versions` (but its not complete)
+
+    const allVersions = await readFile(`./src/versions.txt`, 'utf-8');
+    const newAllVersions = `${spaceTrim(allVersions)}\n${version}\n`;
+    await writeFile(`./src/versions.txt`, newAllVersions, 'utf-8');
 
     if (isCommited) {
         await commit('src', `🆚 Update version in config`);
