@@ -36,6 +36,7 @@ export async function pipelineStringToJson(
     const { llmTools } = options;
 
     // TODO: !!!!! Do here materialization of still unmaterialized or dynamic knowledge
+    // TODO: !!!!! Do here personaToModelRequirements
     // TODO:  ----X----- [🧠] !!! Preconvert knowledge and error in pipelineStringToJsonSync if still present
     let pipelineJson = pipelineStringToJsonSync(pipelineString);
 
