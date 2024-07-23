@@ -35,7 +35,7 @@ async function playground() {
         'utf-8',
     );
 
-    // TODO: !!!! getLlmExecutionToolsFromEnvironment
+    // TODO: !!!!! getLlmExecutionToolsFromEnvironment and export via `@promptbook/all-llm-providers`
     const llmTools = joinLlmExecutionTools(
         new AnthropicClaudeExecutionTools({
             isVerbose,

@@ -59,7 +59,7 @@ export const expectCommandParser: CommandParser<ExpectCommand> = {
                 type: 'EXPECT_FORMAT',
                 format: 'JSON',
             } satisfies ExpectFormatCommand;
-            // <- TODO: !!!!! Why this is constantly removed by repair-imports.ts
+            // <- TODO: [🦽] Why this is constantly removed by repair-imports.ts
 
             // [🥤]
         }
