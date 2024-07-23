@@ -51,6 +51,7 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
 
     // Note: Just append the version into loooong list
     // TODO: Is there a secure and simple way to write in append-only mode?
+    // TODO: [🧠] Maybe handle this dynamically via `npm view ptbk/* versions` (but its not complete)
 
     const allVersions = await readFile(`./src/versions.txt`, 'utf-8');
     const newAllVersions = `${spaceTrim(allVersions)}\n${version}\n`;
