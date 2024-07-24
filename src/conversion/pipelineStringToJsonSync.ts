@@ -145,16 +145,16 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
                 pipelineJson.pipelineUrl = command.pipelineUrl.href;
                 break;
             case 'KNOWLEDGE':
-                throw new NotYetImplementedError('Knowledge is not implemented yet');
+                console.error(new NotYetImplementedError('Knowledge is not implemented yet'));
                 break;
             case 'ACTION':
-                throw new NotYetImplementedError('Actions are not implemented yet');
+                console.error(new NotYetImplementedError('Actions are not implemented yet'));
                 break;
             case 'INSTRUMENT':
-                throw new NotYetImplementedError('Instruments are not implemented yet');
+                console.error(new NotYetImplementedError('Instruments are not implemented yet'));
                 break;
             case 'PERSONA':
-                throw new NotYetImplementedError('Personas are not implemented yet');
+                console.error(new NotYetImplementedError('Personas are not implemented yet'));
                 break;
             case 'BOILERPLATE':
                 throw new ParsingError(
@@ -197,19 +197,19 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
                     }
 
                     if (command.blockType === 'SAMPLE') {
-                        throw new NotYetImplementedError('Block type SAMPLE is not implemented yet');
+                        console.error(new NotYetImplementedError('Block type SAMPLE is not implemented yet'));
                     }
 
                     if (command.blockType === 'KNOWLEDGE') {
-                        throw new NotYetImplementedError('Knowledge is not implemented yet');
+                        console.error(new NotYetImplementedError('Knowledge is not implemented yet'));
                     }
 
                     if (command.blockType === 'ACTION') {
-                        throw new NotYetImplementedError('Actions are not implemented yet');
+                        console.error(new NotYetImplementedError('Actions are not implemented yet'));
                     }
 
                     if (command.blockType === 'INSTRUMENT') {
-                        throw new NotYetImplementedError('Instruments are not implemented yet');
+                        console.error(new NotYetImplementedError('Instruments are not implemented yet'));
                     }
 
                     blockType = command.blockType;
@@ -269,20 +269,22 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
                     postprocessing.push(command.functionName);
                     break;
                 case 'KNOWLEDGE':
-                    throw new NotYetImplementedError('Knowledge is not implemented yet');
+                    console.error(new NotYetImplementedError('Knowledge is not implemented yet'));
                     break;
                 case 'ACTION':
-                    throw new NotYetImplementedError('Actions are not implemented yet');
+                    console.error(new NotYetImplementedError('Actions are not implemented yet'));
                     break;
                 case 'INSTRUMENT':
-                    throw new NotYetImplementedError('Instruments are not implemented yet');
+                    console.error(new NotYetImplementedError('Instruments are not implemented yet'));
                     break;
                 case 'PERSONA':
-                    throw new NotYetImplementedError('Personas are not implemented yet');
+                    console.error(new NotYetImplementedError('Personas are not implemented yet'));
                     break;
                 case 'BOILERPLATE':
-                    throw new ParsingError(
-                        'BOILERPLATE command is only for testing purposes and should not be used in the .ptbk.md file',
+                    console.error(
+                        new ParsingError(
+                            'BOILERPLATE command is only for testing purposes and should not be used in the .ptbk.md file',
+                        ),
                     );
                     break;
 
