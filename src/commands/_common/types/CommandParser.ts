@@ -18,11 +18,9 @@ export type CommandParser<TCommand extends { type: string_name & string_SCREAMIN
     examples: Array<string_markdown_text>;
 
     /**
-     * @throws {SyntaxError} if the parsing fails
+     * @throws {ParsingError} if the parsing fails
      */
     parse(input: CommandParserInput): TCommand;
-
-
 };
 
 export type CommandParserInput = {

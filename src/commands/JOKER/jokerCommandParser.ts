@@ -43,7 +43,7 @@ export const jokerCommandParser: CommandParser<JokerCommand> = {
         const parametersMatch = (args.pop() || '').match(/^\{(?<parameterName>[a-z0-9_]+)\}$/im);
 
         if (!parametersMatch || !parametersMatch.groups || !parametersMatch.groups.parameterName) {
-            throw new SyntaxError(`Invalid joker`);
+            throw new ParsingError(`Invalid joker`);
         }
 
         const { parameterName } = parametersMatch.groups as TODO;

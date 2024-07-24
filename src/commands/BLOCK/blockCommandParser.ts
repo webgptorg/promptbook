@@ -87,7 +87,7 @@ export const blockCommandParser: CommandParser<BlockCommand> = {
 
         if (blockTypes.length !== 1) {
             // console.log('!!!', { blockType });
-            throw new SyntaxError(
+            throw new ParsingError(
                 spaceTrim(
                     (block) => `
                         Unknown block type in BLOCK command

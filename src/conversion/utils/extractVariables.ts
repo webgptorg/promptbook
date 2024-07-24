@@ -1,13 +1,12 @@
 import { spaceTrim } from 'spacetrim';
-import { SyntaxError } from '../../errors/SyntaxError';
-import type { string_javascript } from '../../types/typeAliases';
-import type { string_javascript_name } from '../../types/typeAliases';
+import { ParsingError } from '../../errors/ParsingError';
+import type { string_javascript, string_javascript_name } from '../../types/typeAliases';
 /**
  * Parses the given script and returns the list of all used variables that are not defined in the script
  *
  * @param script from which to extract the variables
  * @returns the list of variable names
- * @throws {SyntaxError} if the script is invalid
+ * @throws {ParsingError} if the script is invalid
  */
 export function extractVariables(script: string_javascript): Set<string_javascript_name> {
     const variables = new Set<string_javascript_name>();
@@ -45,7 +44,7 @@ export function extractVariables(script: string_javascript): Set<string_javascri
             throw error;
         }
 
-        throw new SyntaxError(
+        throw new ParsingError(
             spaceTrim(
                 (block) => `
                     Can not extract variables from the script

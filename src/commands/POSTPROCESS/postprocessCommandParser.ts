@@ -47,15 +47,15 @@ export const postprocessCommandParser: CommandParser<PostprocessCommand> = {
         const functionName = args.pop()!;
 
         if (functionName === undefined) {
-            throw new SyntaxError(`Postprocess function name is required`);
+            throw new ParsingError(`Postprocess function name is required`);
         }
 
         if (!isValidJavascriptName(functionName)) {
-            throw new SyntaxError(`Invalid postprocess function name "${functionName}"`);
+            throw new ParsingError(`Invalid postprocess function name "${functionName}"`);
         }
 
         if (args.length > 0) {
-            throw new SyntaxError(`Can not have more than one postprocess function`);
+            throw new ParsingError(`Can not have more than one postprocess function`);
         }
 
         return {

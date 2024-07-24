@@ -45,13 +45,13 @@ export const boilerplateCommandParser: CommandParser<BoilerplateCommand> = {
         const { args } = input;
 
         if (args.length !== 1) {
-            throw new SyntaxError(`BOILERPLATE command requires exactly one argument`);
+            throw new ParsingError(`BOILERPLATE command requires exactly one argument`);
         }
 
         const value = args[0]!.toLowerCase();
 
         if (value.includes('brr')) {
-            throw new SyntaxError(`BOILERPLATE value can not contain brr`);
+            throw new ParsingError(`BOILERPLATE value can not contain brr`);
         }
 
         return {

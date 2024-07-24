@@ -8,7 +8,7 @@ import { extractVariables } from './extractVariables';
  *
  * @param promptTemplate the template with used parameters
  * @returns the set of parameter names
- * @throws {SyntaxError} if the script is invalid
+ * @throws {ParsingError} if the script is invalid
  */
 export function extractParametersFromPromptTemplate(
     promptTemplate: Pick<PromptTemplateJson, 'title' | 'description' | 'blockType' | 'content'>,

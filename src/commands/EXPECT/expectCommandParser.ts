@@ -74,16 +74,16 @@ export const expectCommandParser: CommandParser<ExpectCommand> = {
             } else if (/^max/i.test(signRaw)) {
                 sign = 'MAXIMUM';
             } else {
-                throw new SyntaxError(`Invalid sign "${signRaw}", expected EXACTLY, MIN or MAX`);
+                throw new ParsingError(`Invalid sign "${signRaw}", expected EXACTLY, MIN or MAX`);
             }
 
             const amountRaw = args.shift()!;
             const amount = parseNumber(amountRaw);
             if (amount < 0) {
-                throw new SyntaxError('Amount must be positive number or zero');
+                throw new ParsingError('Amount must be positive number or zero');
             }
             if (amount !== Math.floor(amount)) {
-                throw new SyntaxError('Amount must be whole number');
+                throw new ParsingError('Amount must be whole number');
             }
 
             const unitRaw = args.shift()!;
@@ -101,13 +101,13 @@ export const expectCommandParser: CommandParser<ExpectCommand> = {
                     new RegExp(`^${unitRaw.toLowerCase()}`).test(existingUnitText.toLowerCase())
                 ) {
                     if (unit !== undefined) {
-                        throw new SyntaxError(`Ambiguous unit "${unitRaw}"`);
+                        throw new ParsingError(`Ambiguous unit "${unitRaw}"`);
                     }
                     unit = existingUnit;
                 }
             }
             if (unit === undefined) {
-                throw new SyntaxError(`Invalid unit "${unitRaw}"`);
+                throw new ParsingError(`Invalid unit "${unitRaw}"`);
             }
 
             return {
@@ -121,7 +121,7 @@ export const expectCommandParser: CommandParser<ExpectCommand> = {
                 throw error;
             }
 
-            throw new SyntaxError(
+            throw new ParsingError(
                 spaceTrim(
                     (block) =>
                         `

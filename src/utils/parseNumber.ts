@@ -1,4 +1,4 @@
-import { SyntaxError } from '../errors/SyntaxError';
+import { ParsingError } from '../errors/ParsingError';
 
 /**
  * Function parseNumber will parse number from string
@@ -7,7 +7,7 @@ import { SyntaxError } from '../errors/SyntaxError';
  * Note: it also works only with decimal numbers
  *
  * @returns parsed number
- * @throws {SyntaxError} if the value is not a number
+ * @throws {ParsingError} if the value is not a number
  *
  * @private within the parseCommand
  */
@@ -53,7 +53,7 @@ export function parseNumber(value: string | number): number {
         const denominator = parseNumber(denominator_!);
 
         if (denominator === 0) {
-            throw new SyntaxError(`Unable to parse number from "${originalValue}" because denominator is zero`);
+            throw new ParsingError(`Unable to parse number from "${originalValue}" because denominator is zero`);
         }
 
         return numerator / denominator;
@@ -69,13 +69,13 @@ export function parseNumber(value: string | number): number {
     }
 
     if (!/^[0-9.]+$/.test(value) || value.split('.').length > 2) {
-        throw new SyntaxError(`Unable to parse number from "${originalValue}"`);
+        throw new ParsingError(`Unable to parse number from "${originalValue}"`);
     }
 
     const num = parseFloat(value);
 
     if (isNaN(num)) {
-        throw new SyntaxError(`Unexpected NaN when parsing number from "${originalValue}"`);
+        throw new ParsingError(`Unexpected NaN when parsing number from "${originalValue}"`);
     }
 
     return num;

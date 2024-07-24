@@ -1,2 +1,2 @@
 TODO: Maybe add more error samples
-TODO: Make custom error types SyntaxError and PipelineLogicError
+TODO: Make custom error types ParsingError and PipelineLogicError

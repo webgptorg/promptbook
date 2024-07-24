@@ -49,15 +49,15 @@ export const promptbookVersionCommandParser: CommandParser<PromptbookVersionComm
         const promptbookVersion = args.pop()!;
 
         if (promptbookVersion === undefined) {
-            throw new SyntaxError(`Version is required`);
+            throw new ParsingError(`Version is required`);
         }
 
         if (!isValidPromptbookVersion(promptbookVersion)) {
-            throw new SyntaxError(`Invalid Promptbook version "${promptbookVersion}"`);
+            throw new ParsingError(`Invalid Promptbook version "${promptbookVersion}"`);
         }
 
         if (args.length > 0) {
-            throw new SyntaxError(`Can not have more than one Promptbook version`);
+            throw new ParsingError(`Can not have more than one Promptbook version`);
         }
 
         return {

@@ -381,6 +381,7 @@ Renaming and making names more consistent and less disambigous
 Big syntax additions
 Working external knowledge, personas, preparation for instruments and actions
 
+-   Rename `SynraxError` to `ParsingError`
 -   Allow deep structure (h3, h4,...) in `.ptbk.md` files
 -   Add `SAMPLE` command with notation for parameter samples to `.ptbk.md` files
 -   Add `KNOWLEDGE` command to `.ptbk.md` files

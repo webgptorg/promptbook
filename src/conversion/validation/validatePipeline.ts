@@ -1,7 +1,7 @@
 import { spaceTrim } from 'spacetrim';
 import { LOOP_LIMIT } from '../../config';
+import { ParsingError } from '../../errors/ParsingError';
 import { PipelineLogicError } from '../../errors/PipelineLogicError';
-import { SyntaxError } from '../../errors/SyntaxError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import type { PromptTemplateJson } from '../../types/PipelineJson/PromptTemplateJson';
@@ -42,7 +42,7 @@ export function validatePipeline(pipeline: PipelineJson): PipelineJson {
     // TODO: [🧠] Maybe do here some propper JSON-schema / ZOD checking
     if (!Array.isArray(pipeline.parameters)) {
         // TODO: [🧠] what is the correct error tp throw - maybe PromptbookSchemaError
-        throw new SyntaxError(
+        throw new ParsingError(
             spaceTrim(`
                 Promptbook is valid JSON but with wrong structure
 
@@ -54,7 +54,7 @@ export function validatePipeline(pipeline: PipelineJson): PipelineJson {
     // TODO: [🧠] Maybe do here some propper JSON-schema / ZOD checking
     if (!Array.isArray(pipeline.promptTemplates)) {
         // TODO: [🧠] what is the correct error tp throw - maybe PromptbookSchemaError
-        throw new SyntaxError(
+        throw new ParsingError(
             spaceTrim(`
               Promptbook is valid JSON but with wrong structure
 

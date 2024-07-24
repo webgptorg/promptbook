@@ -50,19 +50,19 @@ export const knowledgeCommandParser: CommandParser<KnowledgeCommand> = {
         const source = args[0];
 
         if (source === undefined) {
-            throw new SyntaxError(`Source is not defined`);
+            throw new ParsingError(`Source is not defined`);
         }
 
         if (source.startsWith('http://')) {
-            throw new SyntaxError(`Source is not secure`);
+            throw new ParsingError(`Source is not secure`);
         }
 
         if (!(isValidFilePath(source) || isValidUrl(source))) {
-            throw new SyntaxError(`Source not valid`);
+            throw new ParsingError(`Source not valid`);
         }
 
         if (source.startsWith('../') || source.startsWith('/') || /^[A-Z]:[\\/]+/i.test(source)) {
-            throw new SyntaxError(`Source cannot be outside of the .ptbk.md folder`);
+            throw new ParsingError(`Source cannot be outside of the .ptbk.md folder`);
         }
 
         return {

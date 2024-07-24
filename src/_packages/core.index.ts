@@ -14,9 +14,9 @@ import { validatePipeline } from '../conversion/validation/validatePipeline';
 import { CollectionError } from '../errors/CollectionError';
 import { ExecutionError } from '../errors/ExecutionError';
 import { NotFoundError } from '../errors/NotFoundError';
+import { ParsingError } from '../errors/ParsingError';
 import { PipelineLogicError } from '../errors/PipelineLogicError';
 import { ReferenceError } from '../errors/ReferenceError';
-import { SyntaxError } from '../errors/SyntaxError';
 import { TemplateError } from '../errors/TemplateError';
 import { UnexpectedError } from '../errors/UnexpectedError';
 import { ExpectError } from '../errors/_ExpectError';
@@ -84,9 +84,9 @@ export {
     ExecutionError,
     ExpectError,
     NotFoundError,
+    ParsingError,
     PipelineLogicError,
     ReferenceError,
-    SyntaxError,
     TemplateError,
     UnexpectedError,
 };

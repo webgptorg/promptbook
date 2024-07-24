@@ -24,7 +24,7 @@ export type PipelineStringToJsonOptions = {
  * @param pipelineString {Promptbook} in string markdown format (.ptbk.md)
  * @param options - Options and tools for the compilation
  * @returns {Promptbook} compiled in JSON format (.ptbk.json)
- * @throws {SyntaxError} if the promptbook string is not valid
+ * @throws {ParsingError} if the promptbook string is not valid
  *
  * Note: This function does not validate logic of the pipeline only the syntax
  * Note: This function acts as compilation process

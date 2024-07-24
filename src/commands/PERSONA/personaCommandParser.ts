@@ -49,7 +49,7 @@ export const personaCommandParser: CommandParser<PersonaCommand> = {
         const personaName = (personaNameRaw || '').trim();
 
         if (personaName === '') {
-            throw new SyntaxError(`You must set name for the persona`);
+            throw new ParsingError(`You must set name for the persona`);
         }
 
         let personaDescription: string | null = (personaDescriptionRaw || '').trim();

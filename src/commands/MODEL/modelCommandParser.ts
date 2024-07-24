@@ -63,7 +63,7 @@ export const modelCommandParser: CommandParser<ModelCommand> = {
                 } satisfies ModelCommand;
                 // <- Note: [🤖]
             } else {
-                throw new SyntaxError(
+                throw new ParsingError(
                     spaceTrim(
                         (block) => `
                             Unknown model variant in command:
@@ -82,7 +82,7 @@ export const modelCommandParser: CommandParser<ModelCommand> = {
                 value: args.pop()!,
             } satisfies ModelCommand;
         } else {
-            throw new SyntaxError(
+            throw new ParsingError(
                 spaceTrim(
                     (block) => `
                     Unknown model key in command.

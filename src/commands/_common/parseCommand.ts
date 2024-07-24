@@ -1,5 +1,5 @@
 import { spaceTrim } from 'spacetrim';
-import { SyntaxError } from '../../errors/SyntaxError';
+import { ParsingError } from '../../errors/ParsingError';
 import type { string_markdown, string_markdown_text } from '../../types/typeAliases';
 import { removeMarkdownFormatting } from '../../utils/markdown/removeMarkdownFormatting';
 import { normalizeTo_SCREAMING_CASE } from '../../utils/normalization/normalizeTo_SCREAMING_CASE';
@@ -12,13 +12,13 @@ import type { CommandUsagePlace } from './types/CommandUsagePlaces';
  * Parses one line of ul/ol to command
  *
  * @returns parsed command object
- * @throws {SyntaxError} if the command is invalid
+ * @throws {ParsingError} if the command is invalid
  *
  * @private within the pipelineStringToJson
  */
 export function parseCommand(raw: string_markdown_text, usagePlace: CommandUsagePlace): Command {
     if (raw.includes('\n') || raw.includes('\r')) {
-        throw new SyntaxError('Command can not contain new line characters:');
+        throw new ParsingError('Command can not contain new line characters:');
     }
 
     let normalized = raw.trim();
@@ -63,7 +63,7 @@ export function parseCommand(raw: string_markdown_text, usagePlace: CommandUsage
         .map((item) => item.trim());
 
     if (items.length === 0 || items[0] === '') {
-        throw new SyntaxError(
+        throw new ParsingError(
             spaceTrim(
                 (block) =>
                     `
@@ -112,7 +112,7 @@ export function parseCommand(raw: string_markdown_text, usagePlace: CommandUsage
         }
     }
 
-    throw new SyntaxError(
+    throw new ParsingError(
         spaceTrim(
             (block) =>
                 `
@@ -154,16 +154,16 @@ function parseCommandVariant(input: CommandParserInput & { commandNameRaw: strin
             try {
                 return parse({ usagePlace, raw, rawArgs, normalized, args });
             } catch (error) {
-                if (!(error instanceof SyntaxError)) {
+                if (!(error instanceof ParsingError)) {
                     throw error;
                 }
 
-                throw new SyntaxError(
+                throw new ParsingError(
                     spaceTrim(
                         (block) =>
                             `
                               Invalid ${commandName} command:
-                              ${block((error as SyntaxError).message)}
+                              ${block((error as ParsingError).message)}
 
                               - ${raw}
 

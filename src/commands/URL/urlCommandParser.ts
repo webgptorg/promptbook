@@ -51,26 +51,26 @@ export const urlCommandParser: CommandParser<UrlCommand> = {
         const pipelineUrl = args.pop()!;
 
         if (pipelineUrl === undefined) {
-            throw new SyntaxError(`URL is required`);
+            throw new ParsingError(`URL is required`);
         }
 
         // TODO: [🧠][🚲] This should be maybe tested as logic not syntax
         if (!isValidPipelineUrl(pipelineUrl)) {
-            throw new SyntaxError(`Invalid pipeline URL "${pipelineUrl}"`);
+            throw new ParsingError(`Invalid pipeline URL "${pipelineUrl}"`);
         }
 
         if (args.length > 0) {
-            throw new SyntaxError(`Can not have more than one pipeline URL`);
+            throw new ParsingError(`Can not have more than one pipeline URL`);
         }
 
         /*
         TODO: [🐠 Maybe more info from `isValidPipelineUrl`:
         if (pipelineUrl.protocol !== 'https:') {
-            throw new SyntaxError(`Protocol must be HTTPS`);
+            throw new ParsingError(`Protocol must be HTTPS`);
         }
 
         if (pipelineUrl.hash !== '') {
-            throw new SyntaxError(
+            throw new ParsingError(
                 spaceTrim(
                     `
                         URL must not contain hash

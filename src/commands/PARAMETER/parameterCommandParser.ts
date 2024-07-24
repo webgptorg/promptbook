@@ -52,13 +52,13 @@ export const parameterCommandParser: CommandParser<ParameterCommand> = {
         const parametersMatch = raw.match(/\{(?<parameterName>[a-z0-9_]+)\}[^\S\r\n]*(?<parameterDescription>.*)$/im);
 
         if (!parametersMatch || !parametersMatch.groups || !parametersMatch.groups.parameterName) {
-            throw new SyntaxError(`Invalid parameter`);
+            throw new ParsingError(`Invalid parameter`);
         }
 
         const { parameterName, parameterDescription } = parametersMatch.groups as TODO;
 
         if (parameterDescription && parameterDescription.match(/\{(?<parameterName>[a-z0-9_]+)\}/im)) {
-            throw new SyntaxError(`Parameter {${parameterName}} can not contain another parameter in description`);
+            throw new ParsingError(`Parameter {${parameterName}} can not contain another parameter in description`);
         }
 
         let isInput = normalized.startsWith('INPUT');
