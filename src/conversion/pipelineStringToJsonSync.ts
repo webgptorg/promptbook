@@ -131,7 +131,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
         const command = parseCommand(listItem, 'PIPELINE_HEAD');
 
         switch (command.type) {
-            // TODO: !!!!! Use here applyToPipelineJson
+            // TODO: [🍧] Use here applyToPipelineJson and remove switch statement
             case 'MODEL':
                 defaultModelRequirements[command.key] = command.value;
                 break;
@@ -188,7 +188,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
         for (const listItem of listItems) {
             const command = parseCommand(listItem, 'PIPELINE_TEMPLATE');
             switch (command.type) {
-                // TODO: !!!!! Use here applyToPipelineJson
+                // TODO: [🍧] Use here applyToPipelineJson and remove switch statement
                 case 'BLOCK':
                     if (isBlockTypeChanged) {
                         throw new SyntaxError(

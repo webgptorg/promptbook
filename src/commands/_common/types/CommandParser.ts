@@ -22,8 +22,7 @@ export type CommandParser<TCommand extends { type: string_name & string_SCREAMIN
      */
     parse(input: CommandParserInput): TCommand;
 
-    // TODO: !!!!! applyToPipelineJson
-    // TODO: !!!!! + Throw ParsingError or FatalParsingError
+
 };
 
 export type CommandParserInput = {
@@ -41,4 +40,10 @@ export type CommandParserInput = {
 /**
  * TODO: !!!! Annotate
  * TODO: [🧠] Maybe put flag if it is for whole `.ptbk.md` file of just one section
+ * TODO: [🍧] CommandParser should have applyToPipelineJson method
+ *       which will apply parsed command to the pipeline JSON
+ *       it will be called from `pipelineStringToJsonSync`
+ *       and replace hardcoded switch statement and [💐]
+ *       and throw ParsingError
+ *
  */
