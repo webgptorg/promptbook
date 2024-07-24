@@ -3,7 +3,7 @@ import type { IterableElement, Writable, WritableDeep } from 'type-fest';
 import type { BlockType } from '../commands/BLOCK/BlockTypes';
 import type { ParameterCommand } from '../commands/PARAMETER/ParameterCommand';
 import { parseCommand } from '../commands/_common/parseCommand';
-import { NotImplementedError } from '../errors/NotImplementedError';
+import { NotYetImplementedError } from '../errors/NotYetImplementedError';
 import { ParsingError } from '../errors/ParsingError';
 import type { ModelRequirements } from '../types/ModelRequirements';
 import type { ExpectationUnit } from '../types/PipelineJson/Expectations';
@@ -145,16 +145,16 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
                 pipelineJson.pipelineUrl = command.pipelineUrl.href;
                 break;
             case 'KNOWLEDGE':
-                throw new NotImplementedError('Knowledge is not implemented yet');
+                throw new NotYetImplementedError('Knowledge is not implemented yet');
                 break;
             case 'ACTION':
-                throw new NotImplementedError('Actions are not implemented yet');
+                throw new NotYetImplementedError('Actions are not implemented yet');
                 break;
             case 'INSTRUMENT':
-                throw new NotImplementedError('Instruments are not implemented yet');
+                throw new NotYetImplementedError('Instruments are not implemented yet');
                 break;
             case 'PERSONA':
-                throw new NotImplementedError('Personas are not implemented yet');
+                throw new NotYetImplementedError('Personas are not implemented yet');
                 break;
             case 'BOILERPLATE':
                 throw new ParsingError(
@@ -197,19 +197,19 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
                     }
 
                     if (command.blockType === 'SAMPLE') {
-                        throw new NotImplementedError('Block type SAMPLE is not implemented yet');
+                        throw new NotYetImplementedError('Block type SAMPLE is not implemented yet');
                     }
 
                     if (command.blockType === 'KNOWLEDGE') {
-                        throw new NotImplementedError('Knowledge is not implemented yet');
+                        throw new NotYetImplementedError('Knowledge is not implemented yet');
                     }
 
                     if (command.blockType === 'ACTION') {
-                        throw new NotImplementedError('Actions are not implemented yet');
+                        throw new NotYetImplementedError('Actions are not implemented yet');
                     }
 
                     if (command.blockType === 'INSTRUMENT') {
-                        throw new NotImplementedError('Instruments are not implemented yet');
+                        throw new NotYetImplementedError('Instruments are not implemented yet');
                     }
 
                     blockType = command.blockType;
@@ -269,16 +269,16 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
                     postprocessing.push(command.functionName);
                     break;
                 case 'KNOWLEDGE':
-                    throw new NotImplementedError('Knowledge is not implemented yet');
+                    throw new NotYetImplementedError('Knowledge is not implemented yet');
                     break;
                 case 'ACTION':
-                    throw new NotImplementedError('Actions are not implemented yet');
+                    throw new NotYetImplementedError('Actions are not implemented yet');
                     break;
                 case 'INSTRUMENT':
-                    throw new NotImplementedError('Instruments are not implemented yet');
+                    throw new NotYetImplementedError('Instruments are not implemented yet');
                     break;
                 case 'PERSONA':
-                    throw new NotImplementedError('Personas are not implemented yet');
+                    throw new NotYetImplementedError('Personas are not implemented yet');
                     break;
                 case 'BOILERPLATE':
                     throw new ParsingError(

@@ -3,8 +3,8 @@ import { spaceTrim } from 'spacetrim';
 /**
  * This error type indicates that some part of the code is not implemented yet
  */
-export class NotImplementedError extends Error {
-    public readonly name = 'NotImplementedError';
+export class NotYetImplementedError extends Error {
+    public readonly name = 'NotYetImplementedError';
     public constructor(message: string) {
         super(
             spaceTrim(
@@ -21,6 +21,6 @@ export class NotImplementedError extends Error {
                 `,
             ),
         );
-        Object.setPrototypeOf(this, NotImplementedError.prototype);
+        Object.setPrototypeOf(this, NotYetImplementedError.prototype);
     }
 }
