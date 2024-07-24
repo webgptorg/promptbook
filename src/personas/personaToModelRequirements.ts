@@ -1,20 +1,12 @@
 import { describe, expect, it } from '@jest/globals';
 import { spaceTrim } from 'spacetrim';
-import { just } from '../just';
 
 describe('how personaToModelRequirements works', () => {
-    it('should work with simple', () =>
-        expect(personaToModelRequirements(``)).resolves.toBe(
-            just(
-                spaceTrim(`
-                  Foo
-
-                  Bar
-
-                  Baz
-              `),
-            ),
-        ));
+    it('should work with simple persona description', () =>
+        expect(personaToModelRequirements(`Copywriter`)).resolves.toBe({
+            modelVariant: 'CHAT',
+            modelName: 'gpt-4', // <- TODO: !!!! Allow to specify more model names
+        }));
 
     it('should work with foo', () =>
         expect(
@@ -27,26 +19,18 @@ describe('how personaToModelRequirements works', () => {
                     Baz
                 `),
             ),
-        ).resolves.toBe(
-            just(
-                spaceTrim(`
-                    Foo
+        ).resolves.toBe({
+            modelVariant: 'CHAT',
+            modelName: 'gpt-4', // <- TODO: !!!! Allow to specify more model names
+        }));
 
-                    Bar
-
-                    Baz
-                `),
-            ),
-        ));
-
-    it('should NOT work with bar', () =>
-        expect(
-            personaToModelRequirements(
-                spaceTrim(`
-                    bar
-                `),
-            ),
-        ).rejects.toThrowError(/xxxx/));
+    /*
+    Note: Probbably no failure cases needed
+        > it('should NOT work with bar', () =>
+        >     expect(
+        >         personaToModelRequirements(``),
+        >     ).rejects.toThrowError(/---/));
+    */
 });
 
 /**
