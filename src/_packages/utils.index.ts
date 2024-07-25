@@ -18,8 +18,8 @@ import { countWords } from '../utils/expectation-counters/countWords';
 import { CountUtils } from '../utils/expectation-counters/index';
 import { extractParameters } from '../utils/extractParameters';
 import type { MarkdownStructure } from '../utils/markdown-json/MarkdownStructure';
-import { flattenMarkdownStructure } from '../utils/markdown-json/flattenMarkdownStructure';
-import { markdownToMarkdownStructure } from '../utils/markdown-json/markdownToMarkdownStructure';
+import { flattenMarkdown } from '../utils/markdown/flattenMarkdown';
+import { splitMarkdownByHeadings } from '../utils/markdown/splitMarkdownByHeadings';
 import { extractAllBlocksFromMarkdown } from '../utils/markdown/extractAllBlocksFromMarkdown';
 import { extractAllListItemsFromMarkdown } from '../utils/markdown/extractAllListItemsFromMarkdown';
 import { extractOneBlockFromMarkdown } from '../utils/markdown/extractOneBlockFromMarkdown';
@@ -138,8 +138,7 @@ export {
 
 export type { string_camelCase, string_kebab_case, string_PascalCase, string_SCREAMING_CASE, string_snake_case };
 
-// @promptbook/markdown-utils
-export { flattenMarkdownStructure, markdownToMarkdownStructure /* <- TODO: [😵] */ };
+export { flattenMarkdown, splitMarkdownByHeadings };
 export type { MarkdownStructure };
 
 // Promptbook
