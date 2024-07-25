@@ -1,3 +1,4 @@
+import { ParsingError } from '../../errors/ParsingError';
 import { isValidFilePath } from '../../utils/validators/filePath/isValidFilePath';
 import { isValidUrl } from '../../utils/validators/url/isValidUrl';
 import type { CommandParser, CommandParserInput } from '../_common/types/CommandParser';

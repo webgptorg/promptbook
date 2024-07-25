@@ -5,6 +5,7 @@ import type { CommandParser, CommandParserInput } from '../_common/types/Command
 import type { ExpectAmountCommand } from './ExpectAmountCommand';
 import type { ExpectCommand } from './ExpectCommand';
 import { ExpectFormatCommand } from './ExpectFormatCommand';
+import { ParsingError } from '../../errors/ParsingError';
 
 /**
  * Parses the expect command

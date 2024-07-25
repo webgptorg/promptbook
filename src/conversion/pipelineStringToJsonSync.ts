@@ -171,7 +171,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
         }
     }
 
-    for (const section of markdownStructure.sections) {
+    sections: for (const section of markdownStructure.sections) {
         // TODO: Parse prompt template description (the content out of the codeblock and lists)
 
         const templateModelRequirements: Partial<Writable<ModelRequirements>> = { ...defaultModelRequirements };
@@ -198,18 +198,22 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
 
                     if (command.blockType === 'SAMPLE') {
                         console.error(new NotYetImplementedError('Block type SAMPLE is not implemented yet'));
+                        continue sections;
                     }
 
                     if (command.blockType === 'KNOWLEDGE') {
                         console.error(new NotYetImplementedError('Knowledge is not implemented yet'));
+                        continue sections;
                     }
 
                     if (command.blockType === 'ACTION') {
                         console.error(new NotYetImplementedError('Actions are not implemented yet'));
+                        continue sections;
                     }
 
                     if (command.blockType === 'INSTRUMENT') {
                         console.error(new NotYetImplementedError('Instruments are not implemented yet'));
+                        continue sections;
                     }
 
                     blockType = command.blockType;
@@ -397,6 +401,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
             delete (template as TODO).modelRequirements;
         }
 
+        // TODO: [🍧] What actually about preparation and pushing the block into `promptTemplates`
         pipelineJson.promptTemplates.push(template as TODO /* <- !!! */);
     }
 

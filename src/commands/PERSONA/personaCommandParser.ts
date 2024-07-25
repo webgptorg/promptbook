@@ -1,3 +1,4 @@
+import { ParsingError } from '../../errors/ParsingError';
 import type { CommandParser, CommandParserInput } from '../_common/types/CommandParser';
 import type { PersonaCommand } from './PersonaCommand';
 

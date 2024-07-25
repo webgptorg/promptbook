@@ -1,3 +1,4 @@
+import { ParsingError } from '../../errors/ParsingError';
 import type { TODO } from '../../types/typeAliases';
 import type { CommandParser, CommandParserInput } from '../_common/types/CommandParser';
 import type { ParameterCommand } from './ParameterCommand';

@@ -1,3 +1,4 @@
+import { ParsingError } from '../../errors/ParsingError';
 import { isValidJavascriptName } from '../../utils/validators/javascriptName/isValidJavascriptName';
 import type { CommandParser, CommandParserInput } from '../_common/types/CommandParser';
 import type { PostprocessCommand } from './PostprocessCommand';
