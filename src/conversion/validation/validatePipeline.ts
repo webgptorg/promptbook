@@ -31,12 +31,16 @@ export function validatePipeline(pipeline: PipelineJson): PipelineJson {
         throw new PipelineLogicError(
             `Invalid promptbook URL "${pipeline.pipelineUrl}"`,
             // <- TODO: [🐠]
+            /* <- TODO: [🚞] */
         );
     }
 
     if (!isValidPromptbookVersion(pipeline.promptbookVersion)) {
         // <- Note: [🚲]
-        throw new PipelineLogicError(`Invalid promptbook Version "${pipeline.pipelineUrl}"`);
+        throw new PipelineLogicError(
+            `Invalid promptbook Version "${pipeline.pipelineUrl}"`,
+            /* <- TODO: [🚞] */
+        );
     }
 
     // TODO: [🧠] Maybe do here some propper JSON-schema / ZOD checking
@@ -49,6 +53,7 @@ export function validatePipeline(pipeline: PipelineJson): PipelineJson {
                 promptbook.parameters expected to be an array, but got ${typeof pipeline.parameters}
             `),
         );
+        /* <- TODO: [🚞] */
     }
 
     // TODO: [🧠] Maybe do here some propper JSON-schema / ZOD checking
@@ -60,13 +65,18 @@ export function validatePipeline(pipeline: PipelineJson): PipelineJson {
 
               promptbook.promptTemplates expected to be an array, but got ${typeof pipeline.promptTemplates}
           `),
+            /* <- TODO: [🚞] */
         );
     }
 
     // Note: Check each parameter individually
     for (const parameter of pipeline.parameters) {
         if (parameter.isInput && parameter.isOutput) {
-            throw new PipelineLogicError(`Parameter {${parameter.name}} can not be both input and output`);
+            throw new PipelineLogicError(
+                `Parameter {${parameter.name}} can not be both input and output`,
+
+                /* <- TODO: [🚞] */
+            );
         }
 
         // Note: Testing that parameter is either intermediate or output BUT not created and unused
@@ -83,6 +93,7 @@ export function validatePipeline(pipeline: PipelineJson): PipelineJson {
                     - OUTPUT PARAMETER \`{${parameter.name}}\` ${parameter.description || ''}
 
                 `),
+                /* <- TODO: [🚞] */
             );
         }
 
@@ -100,6 +111,7 @@ export function validatePipeline(pipeline: PipelineJson): PipelineJson {
                     - Add prompt template that results in -> {${parameter.name}}
 
                 `),
+                /* <- TODO: [🚞] */
             );
         }
     }
@@ -126,6 +138,7 @@ export function validatePipeline(pipeline: PipelineJson): PipelineJson {
                   - MODEL NAME \`gpt-4-1106-preview\`
 
               `),
+                /* <- TODO: [🚞] */
             );
         }
 
@@ -136,6 +149,7 @@ export function validatePipeline(pipeline: PipelineJson): PipelineJson {
             ) {
                 throw new PipelineLogicError(
                     `Joker parameters are used for {${template.resultingParameterName}} but no expectations are defined`,
+                    /* <- TODO: [🚞] */
                 );
             }
 
@@ -143,6 +157,7 @@ export function validatePipeline(pipeline: PipelineJson): PipelineJson {
                 if (!template.dependentParameterNames.includes(joker)) {
                     throw new PipelineLogicError(
                         `Parameter {${joker}} is used for {${template.resultingParameterName}} as joker but not in dependentParameterNames`,
+                        /* <- TODO: [🚞] */
                     );
                 }
             }
@@ -153,15 +168,18 @@ export function validatePipeline(pipeline: PipelineJson): PipelineJson {
                 if (min !== undefined && max !== undefined && min > max) {
                     throw new PipelineLogicError(
                         `Min expectation (=${min}) of ${unit} is higher than max expectation (=${max})`,
+                        /* <- TODO: [🚞] */
                     );
                 }
 
                 if (min !== undefined && min < 0) {
-                    throw new PipelineLogicError(`Min expectation of ${unit} must be zero or positive`);
+                    throw new PipelineLogicError(
+                        `Min expectation of ${unit} must be zero or positive` /* <- TODO: [🚞] */,
+                    );
                 }
 
                 if (max !== undefined && max <= 0) {
-                    throw new PipelineLogicError(`Max expectation of ${unit} must be positive`);
+                    throw new PipelineLogicError(`Max expectation of ${unit} must be positive` /* <- TODO: [🚞] */);
                 }
             }
         }
@@ -208,6 +226,7 @@ export function validatePipeline(pipeline: PipelineJson): PipelineJson {
                         Resolved:
                         ${block(resovedParameters.map((name) => `- {${name}}`).join('\n'))}
                     `,
+                    /* <- TODO: [🚞] */
                 ),
             );
         }

@@ -104,7 +104,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
 
         if (RESERVED_PARAMETER_NAMES.includes(parameterName)) {
             throw new ParsingError(
-                `Parameter name {${parameterName}} is reserved and cannot be used as resulting parameter name`,
+                `Parameter name {${parameterName}} is reserved and cannot be used as resulting parameter name` /* <- TODO: [🚞] */,
             );
         }
 
@@ -127,7 +127,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
 
                         Second definition:
                         ${block(parameterDescription || '[undefined]')}
-                    `,
+                    ` /* <- TODO: [🚞] */,
                 ),
             );
         }
@@ -198,7 +198,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
             case 'BOILERPLATE':
                 throw new ParsingError(
                     'BOILERPLATE command is only for testing purposes and should not be used in the .ptbk.md file',
-                );
+                ); /* <- TODO: [🚞] */
                 break;
 
             // <- [💐]
@@ -206,7 +206,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
             default:
                 throw new ParsingError(
                     `Command ${command.type} is not allowed in the head of the promptbook ONLY at the pipeline template`,
-                );
+                ); /* <- TODO: [🚞] */
         }
     }
 
@@ -235,7 +235,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
                     if (isBlockTypeChanged) {
                         throw new ParsingError(
                             'Block type is already defined in the prompt template. It can be defined only once.',
-                        );
+                        ); /* <- TODO: [🚞] */
                     }
 
                     if (command.blockType === 'SAMPLE') {
@@ -273,6 +273,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
                                 `Already defined minumum ${
                                     expectAmount[unit]!.min
                                 } ${command.unit.toLowerCase()}, now trying to redefine it to ${command.amount}`,
+                                /* <- TODO: [🚞] */
                             );
                         }
                         expectAmount[unit]!.min = command.amount;
@@ -283,6 +284,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
                                 `Already defined maximum ${
                                     expectAmount[unit]!.max
                                 } ${command.unit.toLowerCase()}, now trying to redefine it to ${command.amount}`,
+                                /* <- TODO: [🚞] */
                             );
                         }
                         expectAmount[unit]!.max = command.amount;
@@ -293,6 +295,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
                     if (expectFormat !== undefined && command.format !== expectFormat) {
                         throw new ParsingError(
                             `Expect format is already defined to "${expectFormat}". Now you try to redefine it by "${command.format}".`,
+                            /* <- TODO: [🚞] */
                         );
                     }
                     expectFormat = command.format;
@@ -340,6 +343,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
                 default:
                     throw new ParsingError(
                         `Command ${command.type} is not allowed in the block of the prompt template ONLY at the head of the pipeline`,
+                        /* <- TODO: [🚞] */
                     );
             }
         }
@@ -348,7 +352,9 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
 
         if (blockType === 'SCRIPT') {
             if (!language) {
-                throw new ParsingError('You must specify the language of the script in the prompt template');
+                throw new ParsingError(
+                    'You must specify the language of the script in the prompt template' /* <- TODO: [🚞] */,
+                );
             } else if (!SUPPORTED_SCRIPT_LANGUAGES.includes(language as ScriptLanguage)) {
                 throw new ParsingError(
                     spaceTrim(
@@ -359,6 +365,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
                             ${block(SUPPORTED_SCRIPT_LANGUAGES.join(', '))}
 
                         `,
+                        /* <- TODO: [🚞] */
                     ),
                 );
             }
@@ -370,17 +377,18 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
             throw new ParsingError(
                 spaceTrim(
                     (block) => `
-                        Invalid template - each section must end with "-> {...}"
+                        Each section must end with -> {parameterName}
 
                         Invalid section:
                         ${block(
                             // TODO: Show code of invalid sections each time + DRY
                             section.content
                                 .split('\n')
-                                .map((line) => `> ${line}`)
+                                .map((line) => `  | ${line}` /* <- TODO: [🚞] */)
                                 .join('\n'),
                         )}
-                        `,
+                      `,
+                    /* <- TODO: [🚞] */
                 ),
             );
         }
@@ -472,7 +480,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
 
 /**
  * TODO: !!!! Warn if used only sync version
- * TODO: Report here line/column of error
+ * TODO: [🚞] Report here line/column of error
  * TODO: Use spaceTrim more effectively
  * TODO: [🧠] Parameter flags - isInput, isOutput, isInternal
  * TODO: [🥞] Not optimal parsing because `splitMarkdownIntoSections` is executed twice with same string, once through `flattenMarkdown` and second directly here

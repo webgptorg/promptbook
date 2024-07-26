@@ -16,12 +16,12 @@ describe('pipelineStringToJson', () => {
     it('should fail on missing return declaration', () => {
         expect(
             async () => await pipelineStringToJson(importPipeline('errors/syntax/missing-return-1.ptbk.md')),
-        ).rejects.toThrowError(/Invalid template/i);
+        ).rejects.toThrowError(/Each section must end with ->/i);
     });
     it('should fail on invalid return declaration', () => {
         expect(
             async () => await pipelineStringToJson(importPipeline('errors/syntax/missing-return-2.ptbk.md')),
-        ).rejects.toThrowError(/Unknown command/i);
+        ).rejects.toThrowError(/Each section must end with ->/i);
     });
     it('should fail on multiple prompts in one prompt template', () => {
         expect(
