@@ -2,12 +2,7 @@ import spaceTrim from 'spacetrim';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { AvailableModel, LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type {
-    PromptChatResult,
-    PromptCompletionResult,
-    PromptEmbeddingResult,
-    PromptResult,
-} from '../../execution/PromptResult';
+import type { PromptChatResult, PromptCompletionResult, PromptEmbeddingResult, PromptResult } from '../../execution/PromptResult';
 import type { Prompt } from '../../types/Prompt';
 import type { string_markdown, string_markdown_text, string_title } from '../../types/typeAliases';
 

@@ -9,13 +9,7 @@ import { createPipelineExecutor } from '../../../execution/createPipelineExecuto
 import type { LlmExecutionTools } from '../../../execution/LlmExecutionTools';
 import type { KnowledgeJson } from '../../../types/PipelineJson/KnowledgeJson';
 import type { PipelineJson } from '../../../types/PipelineJson/PipelineJson';
-import type {
-    string_href,
-    string_markdown,
-    string_markdown_text,
-    string_model_name,
-    string_name,
-} from '../../../types/typeAliases';
+import type { string_href, string_markdown, string_markdown_text, string_model_name, string_name } from '../../../types/typeAliases';
 import type { string_keyword } from '../../../utils/normalization/IKeywords';
 
 type PrepareKnowledgeFromMarkdownOptions = {
