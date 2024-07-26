@@ -391,7 +391,7 @@ Working external knowledge, personas, preparation for instruments and actions
 -   `callChatModel` and `callCompletionModel` are not required to be implemented in `LlmExecutionTools` anymore
 -   Remove `MultipleLlmExecutionTools` and make `joinLlmExecutionTools` function
 -   You can pass simple array of `LlmExecutionTools` into `ExecutionTools` and it will be joined automatically via `joinLlmExecutionTools`
--   Export `flattenMarkdownStructure`, `markdownToMarkdownStructure` and `MarkdownStructure` from `@promptbook/utils`
+-   Remove the `MarkdownStructure` and replace by simpler solution `flattenMarkdown` + `splitMarkdownByHeadings` which works just with markdown strings and export from `@promptbook/utils` <- [🕞]
 -   String normalizers goes alongside with types; for example `normalizeTo_SCREAMING_CASE` -> `string_SCREAMING_CASE`
 -   Export `isValidUrl`, `isValidPipelineUrl`, `isValidFilePath`, `isValidJavascriptName`, `isValidSemanticVersion`, `isHostnameOnPrivateNetwork`, `isUrlOnPrivateNetwork` and `isValidUuid` from `@promptbook/utils`
 

@@ -1,27 +1,26 @@
 import { describe, expect, it } from '@jest/globals';
 import { spaceTrim } from 'spacetrim';
-import { markdownToMarkdownStructure } from './markdownToMarkdownStructure';
+import { flattenMarkdown } from './flattenMarkdown';
 
-describe('markdownToMarkdownStructure', () => {
+describe('flattenMarkdown', () => {
     it('parses simple case', () => {
-        expect(markdownToMarkdownStructure('# Title')).toEqual({
-            level: 1,
-            title: 'Title',
-            content: '',
-            sections: [],
-        });
+        expect(flattenMarkdown('# Title')).toBe('# Title');
+    });
+
+    it('adds missing h1', () => {
+        expect(flattenMarkdown('')).toBe('# Untitled');
     });
 
     it('parses simple case with text', () => {
         expect(
-            markdownToMarkdownStructure(
+            flattenMarkdown(
                 spaceTrim(`
                     # Title
 
                     Text below title
                 `),
             ),
-        ).toEqual({
+        ).toBe({
             level: 1,
             title: 'Title',
             content: 'Text below title',
@@ -31,7 +30,7 @@ describe('markdownToMarkdownStructure', () => {
 
     it('parses simple case with multi-line text', () => {
         expect(
-            markdownToMarkdownStructure(
+            flattenMarkdown(
                 spaceTrim(`
                     # Title
 
@@ -41,7 +40,7 @@ describe('markdownToMarkdownStructure', () => {
                     Text below title
                 `),
             ),
-        ).toEqual({
+        ).toBe({
             level: 1,
             title: 'Title',
             content: spaceTrim(`
@@ -56,14 +55,14 @@ describe('markdownToMarkdownStructure', () => {
 
     it('parses simple case with bold/italic text', () => {
         expect(
-            markdownToMarkdownStructure(
+            flattenMarkdown(
                 spaceTrim(`
                     # Title
 
                     Text below title **bold** *italic*
                 `),
             ),
-        ).toEqual({
+        ).toBe({
             level: 1,
             title: 'Title',
             content: 'Text below title **bold** *italic*',
@@ -73,7 +72,7 @@ describe('markdownToMarkdownStructure', () => {
 
     it('parses simple case with ul/ol text', () => {
         expect(
-            markdownToMarkdownStructure(
+            flattenMarkdown(
                 spaceTrim(`
                     # Title
 
@@ -86,7 +85,7 @@ describe('markdownToMarkdownStructure', () => {
                     3. ol 3
                 `),
             ),
-        ).toEqual({
+        ).toBe({
             level: 1,
             title: 'Title',
             content: spaceTrim(`
@@ -104,7 +103,7 @@ describe('markdownToMarkdownStructure', () => {
 
     it('parses simple case with text and section', () => {
         expect(
-            markdownToMarkdownStructure(
+            flattenMarkdown(
                 spaceTrim(`
                     # Title
 
@@ -115,7 +114,7 @@ describe('markdownToMarkdownStructure', () => {
                     Text below section 1
                 `),
             ),
-        ).toEqual({
+        ).toBe({
             level: 1,
             title: 'Title',
             content: 'Text below title',
@@ -132,7 +131,7 @@ describe('markdownToMarkdownStructure', () => {
 
     it('ignores structure in code blocks', () => {
         expect(
-            markdownToMarkdownStructure(
+            flattenMarkdown(
                 spaceTrim(`
                     # Title
 
@@ -151,7 +150,7 @@ describe('markdownToMarkdownStructure', () => {
                     \`\`\`
                 `),
             ),
-        ).toEqual({
+        ).toBe({
             level: 1,
             title: 'Title',
             content: 'Text below title',
@@ -179,21 +178,19 @@ describe('markdownToMarkdownStructure', () => {
     });
 
     it('should fails when there is no structure', () => {
-        expect(() => markdownToMarkdownStructure('')).toThrowError(
-            /The markdown file must have exactly one top-level section/i,
-        );
+        expect(() => flattenMarkdown('')).toThrowError(/The markdown file must have exactly one top-level section/i);
     });
 
     /*
     TODO: [🧠] Should theese cases fail or not?
 
     it('should fails when the first heading is not h1', () => {
-        expect(() => markdownToMarkdownStructure(`## Section 1`)).toThrowError(/The file has an invalid structure/i);
+        expect(() => flattenMarkdown(`## Section 1`)).toThrowError(/The file has an invalid structure/i);
     });
 
     it('should fails when there is heading level mismatch', () => {
         expect(() =>
-            markdownToMarkdownStructure(
+            flattenMarkdown(
                 spaceTrim(`
                     # Title
 
@@ -210,7 +207,7 @@ describe('markdownToMarkdownStructure', () => {
 
     it('parses advanced case', () => {
         expect(
-            markdownToMarkdownStructure(
+            flattenMarkdown(
                 spaceTrim(`
                     # Title
 
@@ -233,7 +230,7 @@ describe('markdownToMarkdownStructure', () => {
                     Text below subsection 2.2
                 `),
             ),
-        ).toEqual({
+        ).toBe({
             level: 1,
             title: 'Title',
             content: 'Text below title',

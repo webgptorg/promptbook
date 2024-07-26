@@ -14,8 +14,7 @@ import type { PipelineString } from '../types/PipelineString';
 import type { ScriptLanguage } from '../types/ScriptLanguage';
 import { SUPPORTED_SCRIPT_LANGUAGES } from '../types/ScriptLanguage';
 import type { TODO } from '../types/typeAliases';
-import { flattenMarkdownStructure } from '../utils/markdown-json/flattenMarkdownStructure';
-import { markdownToMarkdownStructure } from '../utils/markdown-json/markdownToMarkdownStructure';
+import { flattenMarkdown } from '../utils/markdown-json/flattenMarkdown';
 import { extractAllListItemsFromMarkdown } from '../utils/markdown/extractAllListItemsFromMarkdown';
 import { extractOneBlockFromMarkdown } from '../utils/markdown/extractOneBlockFromMarkdown';
 import { removeContentComments } from '../utils/markdown/removeContentComments';
@@ -53,6 +52,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
     // =============================================================
     // Note: 1️⃣ Normalization of the PROMPTBOOK string
     pipelineString = removeContentComments(pipelineString);
+    pipelineString = flattenMarkdown(pipelineString);
     pipelineString = pipelineString.replaceAll(
         /`\{(?<parameterName>[a-z0-9_]+)\}`/gi,
         '{$<parameterName>}',
@@ -107,8 +107,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
 
     // =============================================================
     // Note: 3️⃣ Parse each segment of the pipeline
-    const markdownStructureUnflatten = markdownToMarkdownStructure(pipelineString);
-    const markdownStructure = flattenMarkdownStructure(markdownStructureUnflatten);
+    const markdownStructure = splitMarkdownByHeadings(pipelineString);
 
     pipelineJson.title = markdownStructure.title;
 
