@@ -1,10 +1,12 @@
 import { spaceTrim } from 'spacetrim';
 import type { IterableElement, Writable, WritableDeep } from 'type-fest';
+import { flattenMarkdown } from '../_packages/markdown-utils';
 import type { BlockType } from '../commands/BLOCK/BlockTypes';
 import type { ParameterCommand } from '../commands/PARAMETER/ParameterCommand';
 import { parseCommand } from '../commands/_common/parseCommand';
 import { NotYetImplementedError } from '../errors/NotYetImplementedError';
 import { ParsingError } from '../errors/ParsingError';
+import { UnexpectedError } from '../errors/UnexpectedError';
 import type { ModelRequirements } from '../types/ModelRequirements';
 import type { ExpectationUnit } from '../types/PipelineJson/Expectations';
 import type { PipelineJson } from '../types/PipelineJson/PipelineJson';
@@ -14,9 +16,9 @@ import type { PipelineString } from '../types/PipelineString';
 import type { ScriptLanguage } from '../types/ScriptLanguage';
 import { SUPPORTED_SCRIPT_LANGUAGES } from '../types/ScriptLanguage';
 import type { TODO } from '../types/typeAliases';
-import { flattenMarkdown } from '../utils/markdown-json/flattenMarkdown';
 import { extractAllListItemsFromMarkdown } from '../utils/markdown/extractAllListItemsFromMarkdown';
 import { extractOneBlockFromMarkdown } from '../utils/markdown/extractOneBlockFromMarkdown';
+import { parseMarkdownSection } from '../utils/markdown/parseMarkdownSection';
 import { removeContentComments } from '../utils/markdown/removeContentComments';
 import { splitMarkdownIntoSections } from '../utils/markdown/splitMarkdownIntoSections';
 import { union } from '../utils/sets/union';
@@ -62,7 +64,36 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
         /`->\s+\{(?<parameterName>[a-z0-9_]+)\}`/gi,
         '-> {$<parameterName>}',
     ) as PipelineString;
-    const pipelineStringChunks = splitMarkdownIntoSections(pipelineString); /* <- Note: [🥞] */
+    const [pipelineHead, ...pipelineSections] =
+        splitMarkdownIntoSections(pipelineString).map(parseMarkdownSection); /* <- Note: [🥞] */
+
+    if (pipelineHead === undefined) {
+        throw new UnexpectedError(
+            spaceTrim(`
+                Pipeline head is not defined
+
+                This should never happen, because the pipeline already flattened
+            `),
+        );
+    }
+    if (pipelineHead.level !== 1) {
+        throw new UnexpectedError(
+            spaceTrim(`
+                Pipeline head is not h1
+
+                This should never happen, because the pipeline already flattened
+            `),
+        );
+    }
+    if (!pipelineSections.every((section) => section.level === 2)) {
+        throw new UnexpectedError(
+            spaceTrim(`
+                Not every pipeline section is h2
+
+                This should never happen, because the pipeline already flattened
+            `),
+        );
+    }
 
     // =============================================================
     ///Note: 2️⃣ Function for defining parameters
@@ -110,14 +141,14 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
     // =============================================================
     // Note: 3️⃣ Process pipeline head
 
-    pipelineJson.title = pipelineStringChunks.title;
+    pipelineJson.title = pipelineHead.title;
 
     // TODO: [1] DRY description
-    let description: string | undefined = pipelineStringChunks.content;
+    let description: string | undefined = pipelineHead.content;
 
-    // Note: Remove codeblocks
+    // Note: Remove codeblocks - TODO: Maybe put this into util (exported from `@promptbool/utils`)
     description = description.split(/^```.*^```/gms).join('');
-    //Note: Remove lists and return statement
+    //Note: Remove lists and return statement - TODO: Maybe put this into util (exported from `@promptbool/utils`)
     description = description.split(/^(?:(?:-)|(?:\d\))|(?:`?->))\s+.*$/gm).join('');
     description = spaceTrim(description);
     if (description === '') {
@@ -126,7 +157,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
     pipelineJson.description = description;
 
     const defaultModelRequirements: Partial<Writable<ModelRequirements>> = {};
-    const listItems = extractAllListItemsFromMarkdown(pipelineStringChunks.content);
+    const listItems = extractAllListItemsFromMarkdown(pipelineHead.content);
     for (const listItem of listItems) {
         const command = parseCommand(listItem, 'PIPELINE_HEAD');
 
@@ -174,7 +205,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
     // =============================================================
     // Note: 4️⃣ Process each template of the pipeline
 
-    templates: for (const section of pipelineStringChunks.sections) {
+    templates: for (const section of pipelineSections) {
         // TODO: Parse prompt template description (the content out of the codeblock and lists)
 
         const templateModelRequirements: Partial<Writable<ModelRequirements>> = { ...defaultModelRequirements };

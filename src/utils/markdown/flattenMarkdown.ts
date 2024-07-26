@@ -9,11 +9,11 @@ import { splitMarkdownIntoSections } from './splitMarkdownIntoSections';
  * - It always have h1 - if there is no h1 in the markdown, it will be added "# Untitled"
  * - All other headings are normalized to h2
  */
-export function flattenMarkdown(markdown: string_markdown): string_markdown {
+export function flattenMarkdown<TContent extends string_markdown>(markdown: TContent): TContent {
     const sections = splitMarkdownIntoSections(markdown);
 
     if (sections.length === 0) {
-        return '# Untitled';
+        return '# Untitled' as TContent;
     }
 
     let flattenedMarkdown: string_markdown = '';
@@ -34,7 +34,7 @@ export function flattenMarkdown(markdown: string_markdown): string_markdown {
         flattenedMarkdown += content + `\n\n`; // <- [🧠] Maybe 3 new lines?
     }
 
-    return spaceTrim(flattenedMarkdown);
+    return spaceTrim(flattenedMarkdown) as TContent;
 }
 
 /**
