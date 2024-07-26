@@ -3,7 +3,7 @@ import type { IDestroyable } from 'destroyable';
 import http from 'http';
 import { Server, Socket } from 'socket.io';
 import { spaceTrim } from 'spacetrim';
-import { ExecutionError } from '../../errors/ExecutionError';
+import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import type { PromptResult } from '../../execution/PromptResult';
 import { PROMPTBOOK_VERSION } from '../../version';
 import type { Promptbook_Server_Error } from './interfaces/Promptbook_Server_Error';
@@ -65,7 +65,7 @@ export function startRemoteServer(options: RemoteServerOptions): IDestroyable {
                 const executionToolsForClient = createLlmExecutionTools(clientId);
 
                 if (!(await collection.isResponsibleForPrompt(prompt))) {
-                    throw new ExecutionError(`Pipeline is not in the collection of this server`);
+                    throw new PipelineExecutionError(`Pipeline is not in the collection of this server`);
                 }
 
                 let promptResult: PromptResult;
@@ -73,7 +73,7 @@ export function startRemoteServer(options: RemoteServerOptions): IDestroyable {
                     case 'CHAT':
                         if (executionToolsForClient.callChatModel === undefined) {
                             // Note: [0] This check should not be a thing
-                            throw new ExecutionError(`Chat model is not available`);
+                            throw new PipelineExecutionError(`Chat model is not available`);
                         }
                         promptResult = await executionToolsForClient.callChatModel(prompt);
                         break;
@@ -81,7 +81,7 @@ export function startRemoteServer(options: RemoteServerOptions): IDestroyable {
                     case 'COMPLETION':
                         if (executionToolsForClient.callCompletionModel === undefined) {
                             // Note: [0] This check should not be a thing
-                            throw new ExecutionError(`Completion model is not available`);
+                            throw new PipelineExecutionError(`Completion model is not available`);
                         }
                         promptResult = await executionToolsForClient.callCompletionModel(prompt);
                         break;
@@ -89,7 +89,7 @@ export function startRemoteServer(options: RemoteServerOptions): IDestroyable {
                     case 'EMBEDDING':
                         if (executionToolsForClient.callEmbeddingModel === undefined) {
                             // Note: [0] This check should not be a thing
-                            throw new ExecutionError(`Embedding model is not available`);
+                            throw new PipelineExecutionError(`Embedding model is not available`);
                         }
                         promptResult = await executionToolsForClient.callEmbeddingModel(prompt);
                         break;
@@ -97,7 +97,9 @@ export function startRemoteServer(options: RemoteServerOptions): IDestroyable {
                     // <- case [🤖]:
 
                     default:
-                        throw new ExecutionError(`Unknown model variant "${prompt.modelRequirements.modelVariant}"`);
+                        throw new PipelineExecutionError(
+                            `Unknown model variant "${prompt.modelRequirements.modelVariant}"`,
+                        );
                 }
 
                 if (isVerbose) {

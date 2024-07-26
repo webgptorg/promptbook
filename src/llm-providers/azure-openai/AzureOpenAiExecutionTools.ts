@@ -1,18 +1,12 @@
 import { AzureKeyCredential, OpenAIClient } from '@azure/openai';
 import colors from 'colors';
-import { ExecutionError } from '../../errors/ExecutionError';
-import type { AvailableModel } from '../../execution/LlmExecutionTools';
-import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { PromptChatResult } from '../../execution/PromptResult';
-import type { PromptCompletionResult } from '../../execution/PromptResult';
-import type { PromptResultUsage } from '../../execution/PromptResult';
+import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
+import type { AvailableModel, LlmExecutionTools } from '../../execution/LlmExecutionTools';
+import type { PromptChatResult, PromptCompletionResult, PromptResultUsage } from '../../execution/PromptResult';
 import { computeUsageCounts } from '../../execution/utils/computeUsageCounts';
 import { uncertainNumber } from '../../execution/utils/uncertainNumber';
 import type { Prompt } from '../../types/Prompt';
-import type { string_date_iso8601 } from '../../types/typeAliases';
-import type { string_markdown } from '../../types/typeAliases';
-import type { string_markdown_text } from '../../types/typeAliases';
-import type { string_title } from '../../types/typeAliases';
+import type { string_date_iso8601, string_markdown, string_markdown_text, string_title } from '../../types/typeAliases';
 import { getCurrentIsoDate } from '../../utils/getCurrentIsoDate';
 import { OPENAI_MODELS } from '../openai/openai-models';
 import type { AzureOpenAiExecutionToolsOptions } from './AzureOpenAiExecutionToolsOptions';
@@ -58,7 +52,7 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools {
 
         // TODO: [☂] Use here more modelRequirements
         if (modelRequirements.modelVariant !== 'CHAT') {
-            throw new ExecutionError('Use callChatModel only for CHAT variant');
+            throw new PipelineExecutionError('Use callChatModel only for CHAT variant');
         }
 
         try {
@@ -89,16 +83,16 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools {
             }
 
             if (!rawResponse.choices[0]) {
-                throw new ExecutionError('No choises from Azure OpenAI');
+                throw new PipelineExecutionError('No choises from Azure OpenAI');
             }
 
             if (rawResponse.choices.length > 1) {
                 // TODO: This should be maybe only warning
-                throw new ExecutionError('More than one choise from Azure OpenAI');
+                throw new PipelineExecutionError('More than one choise from Azure OpenAI');
             }
 
             if (!rawResponse.choices[0].message || !rawResponse.choices[0].message.content) {
-                throw new ExecutionError('Empty response from Azure OpenAI');
+                throw new PipelineExecutionError('Empty response from Azure OpenAI');
             }
 
             const resultContent = rawResponse.choices[0].message.content;
@@ -146,7 +140,7 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools {
 
         // TODO: [☂] Use here more modelRequirements
         if (modelRequirements.modelVariant !== 'COMPLETION') {
-            throw new ExecutionError('Use callCompletionModel only for COMPLETION variant');
+            throw new PipelineExecutionError('Use callCompletionModel only for COMPLETION variant');
         }
 
         try {
@@ -169,12 +163,12 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools {
             }
 
             if (!rawResponse.choices[0]) {
-                throw new ExecutionError('No choises from OpenAI');
+                throw new PipelineExecutionError('No choises from OpenAI');
             }
 
             if (rawResponse.choices.length > 1) {
                 // TODO: This should be maybe only warning
-                throw new ExecutionError('More than one choise from OpenAI');
+                throw new PipelineExecutionError('More than one choise from OpenAI');
             }
 
             const resultContent = rawResponse.choices[0].text;
@@ -216,11 +210,11 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools {
      */
     private transformAzureError(azureError: { code: string; message: string }): Error {
         if (typeof azureError !== 'object' || azureError === null) {
-            return new ExecutionError(`Unknown Azure OpenAI error`);
+            return new PipelineExecutionError(`Unknown Azure OpenAI error`);
         }
 
         const { code, message } = azureError;
-        return new ExecutionError(`${code}: ${message}`);
+        return new PipelineExecutionError(`${code}: ${message}`);
     }
 
     /**

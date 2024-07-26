@@ -2,9 +2,9 @@ import { spaceTrim } from 'spacetrim';
 import type { Promisable } from 'type-fest';
 import { LOOP_LIMIT } from '../config';
 import { validatePipeline } from '../conversion/validation/validatePipeline';
-import { ExecutionError } from '../errors/ExecutionError';
-import { UnexpectedError } from '../errors/UnexpectedError';
 import { ExpectError } from '../errors/_ExpectError';
+import { PipelineExecutionError } from '../errors/PipelineExecutionError';
+import { UnexpectedError } from '../errors/UnexpectedError';
 import { isValidJsonString } from '../formats/json/utils/isValidJsonString';
 import { joinLlmExecutionTools } from '../llm-providers/multiple/joinLlmExecutionTools';
 import type { ExecutionReportJson } from '../types/execution-report/ExecutionReportJson';
@@ -12,16 +12,12 @@ import type { PipelineJson } from '../types/PipelineJson/PipelineJson';
 import type { PromptTemplateJson } from '../types/PipelineJson/PromptTemplateJson';
 import type { Prompt } from '../types/Prompt';
 import type { TaskProgress } from '../types/TaskProgress';
-import type { string_name } from '../types/typeAliases';
-import type { TODO } from '../types/typeAliases';
+import type { string_name, TODO } from '../types/typeAliases';
 import { arrayableToArray } from '../utils/arrayableToArray';
 import { PROMPTBOOK_VERSION } from '../version';
 import type { ExecutionTools } from './ExecutionTools';
 import type { PipelineExecutor } from './PipelineExecutor';
-import type { PromptChatResult } from './PromptResult';
-import type { PromptCompletionResult } from './PromptResult';
-import type { PromptEmbeddingResult } from './PromptResult';
-import type { PromptResult } from './PromptResult';
+import type { PromptChatResult, PromptCompletionResult, PromptEmbeddingResult, PromptResult } from './PromptResult';
 import { addUsage } from './utils/addUsage';
 import { checkExpectations } from './utils/checkExpectations';
 import { replaceParameters } from './utils/replaceParameters';
@@ -114,7 +110,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
             let result: PromptResult | null = null;
             let resultString: string | null = null;
             let expectError: ExpectError | null = null;
-            let scriptExecutionErrors: Array<Error>;
+            let scriptPipelineExecutionErrors: Array<Error>;
             const maxAttempts = currentTemplate.blockType === 'PROMPT_DIALOG' ? Infinity : maxExecutionAttempts;
             const jokers = currentTemplate.jokers || [];
 
@@ -132,7 +128,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
 
                 if (isJokerAttempt) {
                     if (typeof parametersToPass[joker!] === 'undefined') {
-                        throw new ExecutionError(`Joker parameter {${joker}} not defined`);
+                        throw new PipelineExecutionError(`Joker parameter {${joker}} not defined`);
                     }
 
                     resultString = parametersToPass[joker!]!;
@@ -182,13 +178,13 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                                             }
 
                                             if (errors.length === 0) {
-                                                throw new ExecutionError(
+                                                throw new PipelineExecutionError(
                                                     'Postprocessing in LlmExecutionTools failed because no ScriptExecutionTools were provided',
                                                 );
                                             } else if (errors.length === 1) {
                                                 throw errors[0];
                                             } else {
-                                                throw new ExecutionError(
+                                                throw new PipelineExecutionError(
                                                     spaceTrim(
                                                         (block) => `
                                                         Postprocessing in LlmExecutionTools failed ${errors.length}x
@@ -226,7 +222,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                                     // <- case [🤖]:
 
                                     default:
-                                        throw new ExecutionError(
+                                        throw new PipelineExecutionError(
                                             `Unknown model variant "${
                                                 currentTemplate.modelRequirements!.modelVariant
                                             }"`,
@@ -237,17 +233,17 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
 
                             case 'SCRIPT':
                                 if (arrayableToArray(tools.script).length === 0) {
-                                    throw new ExecutionError('No script execution tools are available');
+                                    throw new PipelineExecutionError('No script execution tools are available');
                                 }
                                 if (!currentTemplate.contentLanguage) {
-                                    throw new ExecutionError(
+                                    throw new PipelineExecutionError(
                                         `Script language is not defined for prompt template "${currentTemplate.name}"`,
                                     );
                                 }
 
                                 // TODO: DRY [1]
 
-                                scriptExecutionErrors = [];
+                                scriptPipelineExecutionErrors = [];
 
                                 // TODO: DRY [☯]
                                 scripts: for (const scriptTools of arrayableToArray(tools.script)) {
@@ -264,7 +260,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                                             throw error;
                                         }
 
-                                        scriptExecutionErrors.push(error);
+                                        scriptPipelineExecutionErrors.push(error);
                                     }
                                 }
 
@@ -272,16 +268,16 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                                     break blockType;
                                 }
 
-                                if (scriptExecutionErrors.length === 1) {
-                                    throw scriptExecutionErrors[0];
+                                if (scriptPipelineExecutionErrors.length === 1) {
+                                    throw scriptPipelineExecutionErrors[0];
                                 } else {
-                                    throw new ExecutionError(
+                                    throw new PipelineExecutionError(
                                         spaceTrim(
                                             (block) => `
-                                              Script execution failed ${scriptExecutionErrors.length} times
+                                              Script execution failed ${scriptPipelineExecutionErrors.length} times
 
                                               ${block(
-                                                  scriptExecutionErrors
+                                                  scriptPipelineExecutionErrors
                                                       .map((error) => '- ' + error.message)
                                                       .join('\n\n'),
                                               )}
@@ -295,7 +291,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
 
                             case 'PROMPT_DIALOG':
                                 if (tools.userInterface === undefined) {
-                                    throw new ExecutionError('User interface tools are not available');
+                                    throw new PipelineExecutionError('User interface tools are not available');
                                 }
 
                                 // TODO: [🌹] When making next attempt for `PROMPT DIALOG`, preserve the previous user input
@@ -316,7 +312,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                             // <- case: [🩻]
 
                             default:
-                                throw new ExecutionError(
+                                throw new PipelineExecutionError(
                                     `Unknown execution type "${(currentTemplate as TODO).blockType}"`,
                                 );
                         }
@@ -325,7 +321,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                     if (!isJokerAttempt && currentTemplate.postprocessing) {
                         for (const functionName of currentTemplate.postprocessing) {
                             // TODO: DRY [1]
-                            scriptExecutionErrors = [];
+                            scriptPipelineExecutionErrors = [];
                             let postprocessingError = null;
 
                             scripts: for (const scriptTools of arrayableToArray(tools.script)) {
@@ -347,7 +343,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                                     }
 
                                     postprocessingError = error;
-                                    scriptExecutionErrors.push(error);
+                                    scriptPipelineExecutionErrors.push(error);
                                 }
                             }
 
@@ -404,7 +400,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                 }
 
                 if (expectError !== null && attempt === maxAttempts - 1) {
-                    throw new ExecutionError(
+                    throw new PipelineExecutionError(
                         spaceTrim(
                             (block) => `
                               LLM execution failed ${maxExecutionAttempts}x

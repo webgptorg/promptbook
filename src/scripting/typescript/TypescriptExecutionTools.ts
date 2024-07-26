@@ -1,8 +1,7 @@
 import { spaceTrim } from 'spacetrim';
-import { ExecutionError } from '../../errors/ExecutionError';
+import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import type { CommonExecutionToolsOptions } from '../../execution/CommonExecutionToolsOptions';
-import type { ScriptExecutionTools } from '../../execution/ScriptExecutionTools';
-import type { ScriptExecutionToolsExecuteOptions } from '../../execution/ScriptExecutionTools';
+import type { ScriptExecutionTools, ScriptExecutionToolsExecuteOptions } from '../../execution/ScriptExecutionTools';
 
 /**
  * ScriptExecutionTools for TypeScript
@@ -19,7 +18,7 @@ export class TypescriptExecutionTools implements ScriptExecutionTools {
         const { scriptLanguage, script } = options;
 
         if (scriptLanguage !== 'typescript') {
-            throw new ExecutionError(
+            throw new PipelineExecutionError(
                 `Script language ${scriptLanguage} not supported to be executed by TypescriptExecutionTools`,
             );
         }
@@ -35,6 +34,6 @@ export class TypescriptExecutionTools implements ScriptExecutionTools {
             );
         }
 
-        throw new ExecutionError('Not implemented');
+        throw new PipelineExecutionError('Not implemented');
     }
 }

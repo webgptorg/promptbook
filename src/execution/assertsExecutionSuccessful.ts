@@ -1,12 +1,12 @@
 import { spaceTrim } from 'spacetrim';
-import { ExecutionError } from '../errors/ExecutionError';
+import { PipelineExecutionError } from '../errors/PipelineExecutionError';
 import type { PipelineExecutor } from './PipelineExecutor';
 
 /**
  * Asserts that the execution of a promptnook is successful
  *
  * @param executionResult - The partial result of the promptnook execution
- * @throws {ExecutionError} If the execution is not successful or if multiple errors occurred
+ * @throws {PipelineExecutionError} If the execution is not successful or if multiple errors occurred
  */
 export function assertsExecutionSuccessful(
     executionResult: Pick<Awaited<ReturnType<PipelineExecutor>>, 'isSuccessful' | 'errors'>,
@@ -17,11 +17,11 @@ export function assertsExecutionSuccessful(
         return;
     }
     if (errors.length === 0) {
-        throw new ExecutionError(`Promptnook Execution failed because of unknown reason`);
+        throw new PipelineExecutionError(`Promptnook Execution failed because of unknown reason`);
     } else if (errors.length === 1) {
         throw errors[0];
     } else {
-        throw new ExecutionError(
+        throw new PipelineExecutionError(
             spaceTrim(
                 (block) => `
                     Multiple errors occurred during promptnook execution

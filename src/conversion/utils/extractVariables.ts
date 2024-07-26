@@ -23,9 +23,8 @@ export function extractVariables(script: string_javascript): Set<string_javascri
                 }
                 const undefinedName = error.message.split(' ')[0];
                 /*
-                Note: Remapping error
-                      From: [ReferenceError: thing is not defined],
-                      To:   [Error: Parameter {thing} is not defined],
+                Note: Parsing the error
+                      [ReferenceError: thing is not defined]
                 */
 
                 if (!undefinedName) {

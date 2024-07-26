@@ -13,12 +13,11 @@ import { pipelineStringToJsonSync } from '../conversion/pipelineStringToJsonSync
 import { prettifyPipelineString } from '../conversion/prettify/prettifyPipelineString';
 import { validatePipeline } from '../conversion/validation/validatePipeline';
 import { CollectionError } from '../errors/CollectionError';
-import { ExecutionError } from '../errors/ExecutionError';
 import { NotFoundError } from '../errors/NotFoundError';
 import { ParsingError } from '../errors/ParsingError';
+import { PipelineExecutionError } from '../errors/PipelineExecutionError';
 import { PipelineLogicError } from '../errors/PipelineLogicError';
 import { ReferenceError } from '../errors/ReferenceError';
-import { TemplateError } from '../errors/TemplateError';
 import { UnexpectedError } from '../errors/UnexpectedError';
 import { ExpectError } from '../errors/_ExpectError';
 import { assertsExecutionSuccessful } from '../execution/assertsExecutionSuccessful';
@@ -82,12 +81,11 @@ export { CallbackInterfaceTools, CallbackInterfaceToolsOptions };
 // Errors
 export {
     CollectionError,
-    ExecutionError,
     ExpectError,
     NotFoundError,
     ParsingError,
+    PipelineExecutionError,
     PipelineLogicError,
     ReferenceError,
-    TemplateError,
     UnexpectedError,
 };

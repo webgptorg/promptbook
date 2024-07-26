@@ -1,8 +1,7 @@
 import { spaceTrim } from 'spacetrim';
-import { ExecutionError } from '../../../errors/ExecutionError';
+import { PipelineExecutionError } from '../../../errors/PipelineExecutionError';
 import type { CommonExecutionToolsOptions } from '../../../execution/CommonExecutionToolsOptions';
-import type { UserInterfaceTools } from '../../../execution/UserInterfaceTools';
-import type { UserInterfaceToolsPromptDialogOptions } from '../../../execution/UserInterfaceTools';
+import type { UserInterfaceTools, UserInterfaceToolsPromptDialogOptions } from '../../../execution/UserInterfaceTools';
 
 /**
  * Wrapper around `window.prompt` synchronous function that interacts with the user via browser prompt
@@ -39,7 +38,7 @@ export class SimplePromptInterfaceTools implements UserInterfaceTools {
         }
 
         if (answer === null) {
-            throw new ExecutionError('User cancelled prompt');
+            throw new PipelineExecutionError('User cancelled prompt');
         }
 
         return answer;

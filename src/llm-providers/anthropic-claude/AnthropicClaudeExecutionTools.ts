@@ -2,20 +2,20 @@ import Anthropic from '@anthropic-ai/sdk';
 import type { MessageCreateParamsNonStreaming } from '@anthropic-ai/sdk/resources';
 import colors from 'colors';
 import spaceTrim from 'spacetrim';
-import { ExecutionError } from '../../errors/ExecutionError';
+import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
-import type { AvailableModel } from '../../execution/LlmExecutionTools';
-import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { PromptChatResult } from '../../execution/PromptResult';
-import type { PromptResultUsage } from '../../execution/PromptResult';
+import type { AvailableModel, LlmExecutionTools } from '../../execution/LlmExecutionTools';
+import type { PromptChatResult, PromptResultUsage } from '../../execution/PromptResult';
 import { computeUsageCounts } from '../../execution/utils/computeUsageCounts';
 import { uncertainNumber } from '../../execution/utils/uncertainNumber';
 import type { Prompt } from '../../types/Prompt';
-import type { string_date_iso8601 } from '../../types/typeAliases';
-import type { string_markdown } from '../../types/typeAliases';
-import type { string_markdown_text } from '../../types/typeAliases';
-import type { string_model_name } from '../../types/typeAliases';
-import type { string_title } from '../../types/typeAliases';
+import type {
+    string_date_iso8601,
+    string_markdown,
+    string_markdown_text,
+    string_model_name,
+    string_title,
+} from '../../types/typeAliases';
 import { getCurrentIsoDate } from '../../utils/getCurrentIsoDate';
 import type { AnthropicClaudeExecutionToolsOptions } from './AnthropicClaudeExecutionToolsOptions';
 import { ANTHROPIC_CLAUDE_MODELS } from './anthropic-claude-models';
@@ -61,7 +61,7 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools {
 
         // TODO: [☂] Use here more modelRequirements
         if (modelRequirements.modelVariant !== 'CHAT') {
-            throw new ExecutionError('Use callChatModel only for CHAT variant');
+            throw new PipelineExecutionError('Use callChatModel only for CHAT variant');
         }
 
         const rawRequest: MessageCreateParamsNonStreaming = {
@@ -88,11 +88,11 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools {
         }
 
         if (!rawResponse.content[0]) {
-            throw new ExecutionError('No content from Anthropic Claude');
+            throw new PipelineExecutionError('No content from Anthropic Claude');
         }
 
         if (rawResponse.content.length > 1) {
-            throw new ExecutionError('More than one content blocks from Anthropic Claude');
+            throw new PipelineExecutionError('More than one content blocks from Anthropic Claude');
         }
 
         const resultContent = rawResponse.content[0].text;
@@ -137,7 +137,7 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools {
 
         // TODO: [☂] Use here more modelRequirements
         if (modelRequirements.modelVariant !== 'COMPLETION') {
-            throw new ExecutionError('Use callCompletionModel only for COMPLETION variant');
+            throw new PipelineExecutionError('Use callCompletionModel only for COMPLETION variant');
         }
 
         const model = modelRequirements.modelName || this.getDefaultChatModel().modelName;
@@ -164,12 +164,12 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools {
         }
 
         if (!rawResponse.choices[0]) {
-            throw new ExecutionError('No choises from Anthropic Claude');
+            throw new PipelineExecutionError('No choises from Anthropic Claude');
         }
 
         if (rawResponse.choices.length > 1) {
             // TODO: This should be maybe only warning
-            throw new ExecutionError('More than one choise from Anthropic Claude');
+            throw new PipelineExecutionError('More than one choise from Anthropic Claude');
         }
 
         const resultContent = rawResponse.choices[0].text;

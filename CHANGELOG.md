@@ -387,6 +387,8 @@ Working external knowledge, personas, preparation for instruments and actions
 -   Change `EXECUTE` command to `BLOCK` command
 -   Change `executionType` -> `blockType`
 -   Rename `SynraxError` to `ParsingError`
+-   Rename `ExecutionError` to `PipelineExecutionError`
+-   Remove `TemplateError` and replace with `ExecutionError`
 -   Allow deep structure (h3, h4,...) in `.ptbk.md` files
 -   Add `callEmbeddingModel` to `LlmExecutionTools`
 -   `callChatModel` and `callCompletionModel` are not required to be implemented in `LlmExecutionTools` anymore

@@ -1,10 +1,10 @@
-import { ExecutionError } from '../../../../../errors/ExecutionError';
+import { PipelineExecutionError } from '../../../../../errors/PipelineExecutionError';
 
 /**
  *
  * @param message
  * @returns
- * @throws {ExecutionError}
+ * @throws {PipelineExecutionError}
  */
 export function extractMultiplicatedOccurrence(message: string): string {
     for (let subLength = 1; subLength < message.length / 2; subLength++) {
@@ -13,5 +13,5 @@ export function extractMultiplicatedOccurrence(message: string): string {
         }
     }
 
-    throw new ExecutionError(`Cannot extract multiplicated occurrence from "${message}"`);
+    throw new PipelineExecutionError(`Cannot extract multiplicated occurrence from "${message}"`);
 }

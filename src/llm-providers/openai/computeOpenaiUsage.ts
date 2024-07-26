@@ -1,7 +1,6 @@
 import type OpenAI from 'openai';
-import { ExecutionError } from '../../errors/ExecutionError';
-import type { PromptResultUsage } from '../../execution/PromptResult';
-import type { UncertainNumber } from '../../execution/PromptResult';
+import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
+import type { PromptResultUsage, UncertainNumber } from '../../execution/PromptResult';
 import { computeUsageCounts } from '../../execution/utils/computeUsageCounts';
 import { uncertainNumber } from '../../execution/utils/uncertainNumber';
 import type { Prompt } from '../../types/Prompt';
@@ -13,7 +12,7 @@ import { OPENAI_MODELS } from './openai-models';
  * @param promptContent The content of the prompt
  * @param resultContent The content of the result (for embedding prompts or failed prompts pass empty string)
  * @param rawResponse The raw response from OpenAI API
- * @throws {ExecutionError} If the usage is not defined in the response from OpenAI
+ * @throws {PipelineExecutionError} If the usage is not defined in the response from OpenAI
  * @private internal util of `OpenAiExecutionTools`
  */
 export function computeOpenaiUsage(
@@ -27,11 +26,11 @@ export function computeOpenaiUsage(
     >,
 ): PromptResultUsage {
     if (rawResponse.usage === undefined) {
-        throw new ExecutionError('The usage is not defined in the response from OpenAI');
+        throw new PipelineExecutionError('The usage is not defined in the response from OpenAI');
     }
 
     if (rawResponse.usage?.prompt_tokens === undefined) {
-        throw new ExecutionError('In OpenAI response `usage.prompt_tokens` not defined');
+        throw new PipelineExecutionError('In OpenAI response `usage.prompt_tokens` not defined');
     }
 
     const inputTokens = rawResponse.usage.prompt_tokens;

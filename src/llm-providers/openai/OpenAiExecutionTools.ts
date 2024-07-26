@@ -1,19 +1,18 @@
 import colors from 'colors';
 import OpenAI from 'openai';
 import spaceTrim from 'spacetrim';
-import { ExecutionError } from '../../errors/ExecutionError';
+import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
-import type { AvailableModel } from '../../execution/LlmExecutionTools';
-import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { PromptChatResult } from '../../execution/PromptResult';
-import type { PromptCompletionResult } from '../../execution/PromptResult';
-import type { PromptEmbeddingResult } from '../../execution/PromptResult';
+import type { AvailableModel, LlmExecutionTools } from '../../execution/LlmExecutionTools';
+import type { PromptChatResult, PromptCompletionResult, PromptEmbeddingResult } from '../../execution/PromptResult';
 import type { Prompt } from '../../types/Prompt';
-import type { string_date_iso8601 } from '../../types/typeAliases';
-import type { string_markdown } from '../../types/typeAliases';
-import type { string_markdown_text } from '../../types/typeAliases';
-import type { string_model_name } from '../../types/typeAliases';
-import type { string_title } from '../../types/typeAliases';
+import type {
+    string_date_iso8601,
+    string_markdown,
+    string_markdown_text,
+    string_model_name,
+    string_title,
+} from '../../types/typeAliases';
 import { getCurrentIsoDate } from '../../utils/getCurrentIsoDate';
 import type { OpenAiExecutionToolsOptions } from './OpenAiExecutionToolsOptions';
 import { computeOpenaiUsage } from './computeOpenaiUsage';
@@ -65,7 +64,7 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
 
         // TODO: [☂] Use here more modelRequirements
         if (modelRequirements.modelVariant !== 'CHAT') {
-            throw new ExecutionError('Use callChatModel only for CHAT variant');
+            throw new PipelineExecutionError('Use callChatModel only for CHAT variant');
         }
 
         const model = modelRequirements.modelName || this.getDefaultChatModel().modelName;
@@ -103,12 +102,12 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
         }
 
         if (!rawResponse.choices[0]) {
-            throw new ExecutionError('No choises from OpenAI');
+            throw new PipelineExecutionError('No choises from OpenAI');
         }
 
         if (rawResponse.choices.length > 1) {
             // TODO: This should be maybe only warning
-            throw new ExecutionError('More than one choise from OpenAI');
+            throw new PipelineExecutionError('More than one choise from OpenAI');
         }
 
         const resultContent = rawResponse.choices[0].message.content;
@@ -117,7 +116,7 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
         const usage = computeOpenaiUsage(content, resultContent || '', rawResponse);
 
         if (resultContent === null) {
-            throw new ExecutionError('No response message from OpenAI');
+            throw new PipelineExecutionError('No response message from OpenAI');
         }
 
         return {
@@ -147,7 +146,7 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
 
         // TODO: [☂] Use here more modelRequirements
         if (modelRequirements.modelVariant !== 'COMPLETION') {
-            throw new ExecutionError('Use callCompletionModel only for COMPLETION variant');
+            throw new PipelineExecutionError('Use callCompletionModel only for COMPLETION variant');
         }
 
         const model = modelRequirements.modelName || this.getDefaultCompletionModel().modelName;
@@ -174,12 +173,12 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
         }
 
         if (!rawResponse.choices[0]) {
-            throw new ExecutionError('No choises from OpenAI');
+            throw new PipelineExecutionError('No choises from OpenAI');
         }
 
         if (rawResponse.choices.length > 1) {
             // TODO: This should be maybe only warning
-            throw new ExecutionError('More than one choise from OpenAI');
+            throw new PipelineExecutionError('More than one choise from OpenAI');
         }
 
         const resultContent = rawResponse.choices[0].text;
@@ -214,7 +213,7 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
 
         // TODO: [☂] Use here more modelRequirements
         if (modelRequirements.modelVariant !== 'EMBEDDING') {
-            throw new ExecutionError('Use embed only for EMBEDDING variant');
+            throw new PipelineExecutionError('Use embed only for EMBEDDING variant');
         }
 
         const model = modelRequirements.modelName || this.getDefaultEmbeddingModel().modelName;
@@ -240,7 +239,9 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
         }
 
         if (rawResponse.data.length !== 1) {
-            throw new ExecutionError(`Expected exactly 1 data item in response, got ${rawResponse.data.length}`);
+            throw new PipelineExecutionError(
+                `Expected exactly 1 data item in response, got ${rawResponse.data.length}`,
+            );
         }
 
         const resultContent = rawResponse.data[0]!.embedding;

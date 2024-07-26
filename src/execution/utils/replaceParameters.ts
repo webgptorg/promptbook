@@ -1,5 +1,5 @@
 import { LOOP_LIMIT } from '../../config';
-import { TemplateError } from '../../errors/TemplateError';
+import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { Parameters } from '../../types/Parameters';
 import type { string_template } from '../../types/typeAliases';
@@ -10,7 +10,7 @@ import type { string_template } from '../../types/typeAliases';
  * @param template the template with parameters in {curly} braces
  * @param parameters the object with parameters
  * @returns the template with replaced parameters
- * @throws {TemplateError} if parameter is not defined, not closed, or not opened
+ * @throws {PipelineExecutionError} if parameter is not defined, not closed, or not opened
  *
  * @private within the createPipelineExecutor
  */
@@ -36,17 +36,17 @@ export function replaceParameters(template: string_template, parameters: Paramet
         }
 
         if (parameterName.indexOf('{') !== -1 || parameterName.indexOf('}') !== -1) {
-            throw new TemplateError('Parameter is already opened or not closed');
+            throw new PipelineExecutionError('Parameter is already opened or not closed');
         }
 
         if ((parameters as Record<string, string>)[parameterName] === undefined) {
-            throw new TemplateError(`Parameter {${parameterName}} is not defined`);
+            throw new PipelineExecutionError(`Parameter {${parameterName}} is not defined`);
         }
 
         let parameterValue = (parameters as Record<string, string>)[parameterName];
 
         if (parameterValue === undefined) {
-            throw new TemplateError(`Parameter {${parameterName}} is not defined`);
+            throw new PipelineExecutionError(`Parameter {${parameterName}} is not defined`);
         }
 
         parameterValue = parameterValue.toString();
@@ -66,12 +66,12 @@ export function replaceParameters(template: string_template, parameters: Paramet
 
     // [💫] Check if there are parameters that are not closed properly
     if (/{\w+$/.test(replacedTemplate)) {
-        throw new TemplateError('Parameter is not closed');
+        throw new PipelineExecutionError('Parameter is not closed');
     }
 
     // [💫] Check if there are parameters that are not opened properly
     if (/^\w+}/.test(replacedTemplate)) {
-        throw new TemplateError('Parameter is not opened');
+        throw new PipelineExecutionError('Parameter is not opened');
     }
 
     return replacedTemplate;

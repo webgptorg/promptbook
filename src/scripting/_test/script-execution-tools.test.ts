@@ -37,7 +37,7 @@ describe('createPipelineExecutor + executing scripts in promptbook', () => {
                 /*
             TODO:
             errors: [
-                new ExecutionError(
+                new PipelineExecutionError(
                     spaceTrim(`
                         Parameter {thing} is not defined
 
