@@ -2,7 +2,7 @@ import { readFileSync } from 'fs';
 import { join } from 'path';
 import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import type { PipelineString } from '../../types/PipelineString';
-import type { string_file_path } from '../../types/typeAliases';
+import type { really_any, string_file_path } from '../../types/typeAliases';
 
 /**
  * Import the text file
@@ -21,7 +21,9 @@ export function importPipeline(path: string_file_path): PipelineString | Pipelin
     //                         <- Note: In production it is not good practice to use synchronous functions
     //                                  But this is only a test before the build, so it is okay
     if (path.endsWith('.ptbk.json')) {
-        return JSON.parse(content) as PipelineJson;
+        const pipeline = JSON.parse(content) as PipelineJson;
+        (pipeline as really_any).knowledge = []; // <- TODO: [🌱] Test with knowledge when seeding implemented
+        return pipeline;
     } else if (path.endsWith('.ptbk.md')) {
         return content as PipelineString;
     } else {
