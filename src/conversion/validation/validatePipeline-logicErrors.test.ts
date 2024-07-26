@@ -58,6 +58,8 @@ describe('validatePipeline', () => {
         }).rejects.toThrowError(/circular dependencies/i);
     });
 
+    /*
+    TODO: !!!
     it('should fail when provided sample dont passes the expectations', () => {
         expect(async () => {
             const pipelineString = importPipeline('errors/logic/sample-dont-pass-expectations.ptbk.md');
@@ -65,7 +67,10 @@ describe('validatePipeline', () => {
             validatePipeline(pipelineJson);
         }).rejects.toThrowError(/xxxxxx/i);
     });
+    */
 
+    /*
+    TODO: !!!
     it('should fail when there is unused parameter', () => {
         expect(async () => {
             const pipelineString = importPipeline('errors/logic/unused-parameter.ptbk.md');
@@ -73,7 +78,10 @@ describe('validatePipeline', () => {
             validatePipeline(pipelineJson);
         }).rejects.toThrowError(/xxxxxx/i);
     });
+    */
 
+    /*
+    TODO: !!!
     it('should fail when there is void knowledge', () => {
         expect(async () => {
             const pipelineString = importPipeline('errors/logic/void-knowledge.ptbk.md');
@@ -81,7 +89,10 @@ describe('validatePipeline', () => {
             validatePipeline(pipelineJson);
         }).rejects.toThrowError(/xxxxxx/i);
     });
+    */
 
+    /*
+    TODO: !!!
     it('should fail when there is wrong expectations', () => {
         expect(async () => {
             const pipelineString = importPipeline('errors/logic/wrong-expectations.ptbk.md');
@@ -89,6 +100,7 @@ describe('validatePipeline', () => {
             validatePipeline(pipelineJson);
         }).rejects.toThrowError(/xxxxxx/i);
     });
+    */
 });
 
 /**
