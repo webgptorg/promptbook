@@ -1,5 +1,5 @@
 import spaceTrim from 'spacetrim';
-import { string_markdown } from '../../types/typeAliases';
+import type { string_markdown } from '../../types/typeAliases';
 import { parseMarkdownSection } from './parseMarkdownSection';
 import { splitMarkdownIntoSections } from './splitMarkdownIntoSections';
 

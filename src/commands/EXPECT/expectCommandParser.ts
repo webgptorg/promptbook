@@ -1,11 +1,11 @@
 import spaceTrim from 'spacetrim';
+import { ParsingError } from '../../errors/ParsingError';
 import { EXPECTATION_UNITS } from '../../types/PipelineJson/Expectations';
 import { parseNumber } from '../../utils/parseNumber';
 import type { CommandParser, CommandParserInput } from '../_common/types/CommandParser';
 import type { ExpectAmountCommand } from './ExpectAmountCommand';
 import type { ExpectCommand } from './ExpectCommand';
-import { ExpectFormatCommand } from './ExpectFormatCommand';
-import { ParsingError } from '../../errors/ParsingError';
+import type { ExpectFormatCommand } from './ExpectFormatCommand';
 
 /**
  * Parses the expect command
