@@ -1,5 +1,6 @@
 import type { BlockType } from '../commands/BLOCK/BlockTypes';
-import type { string_markdown_text, string_name } from './typeAliases';
+import type { string_markdown_text } from './typeAliases';
+import type { string_name } from './typeAliases';
 
 /**
  * TaskProgress represents the progress of a Promptbook execution.

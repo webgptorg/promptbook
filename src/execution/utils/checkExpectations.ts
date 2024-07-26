@@ -1,5 +1,6 @@
 import { ExpectError } from '../../errors/_ExpectError';
-import type { Expectations, ExpectationUnit } from '../../types/PipelineJson/Expectations';
+import type { Expectations } from '../../types/PipelineJson/Expectations';
+import type { ExpectationUnit } from '../../types/PipelineJson/Expectations';
 import { CountUtils } from '../../utils/expectation-counters/index';
 
 /**
