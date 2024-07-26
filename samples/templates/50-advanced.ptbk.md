@@ -177,7 +177,7 @@ You have entered a word **{word}**. For this word the best synonym is **{wordSyn
 
 ### Sample of summary
 
--   EXAMPLE
+-   SAMPLE
 
 ```markdown
 You have entered a word **happy**. For this word the best synonym is **joyful**. The sentence with both words is **I was happy and you were joyful!**. The sentence without the original word is **I was and you were joyful!**. And the comparison between the two sentences is:

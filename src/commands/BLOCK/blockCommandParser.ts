@@ -1,7 +1,6 @@
 import spaceTrim from 'spacetrim';
 import { ParsingError } from '../../errors/ParsingError';
-import type { CommandParser } from '../_common/types/CommandParser';
-import type { CommandParserInput } from '../_common/types/CommandParser';
+import type { CommandParser, CommandParserInput } from '../_common/types/CommandParser';
 import type { BlockCommand } from './BlockCommand';
 import { BlockTypes } from './BlockTypes';
 
@@ -66,6 +65,8 @@ export const blockCommandParser: CommandParser<BlockCommand> = {
         'Prompt dialog',
         'Sample BLOCK',
         'Sample',
+        'Example BLOCK',
+        'Example',
         'Knowledge BLOCK',
         // 'Knowledge', // <- Note: [⛱] For execution blocks which are also separate commands shortcut does not work
 
@@ -83,8 +84,9 @@ export const blockCommandParser: CommandParser<BlockCommand> = {
      * Parses the BLOCK command
      */
     parse(input: CommandParserInput): BlockCommand {
-        const { normalized } = input;
+        let { normalized } = input;
 
+        normalized = normalized.split('EXAMPLE').join('SAMPLE');
         const blockTypes = BlockTypes.filter((blockType) => normalized.includes(blockType));
 
         if (blockTypes.length !== 1) {
