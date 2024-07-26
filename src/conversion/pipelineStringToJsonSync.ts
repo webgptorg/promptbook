@@ -1,10 +1,9 @@
 import { spaceTrim } from 'spacetrim';
 import type { IterableElement, Writable, WritableDeep } from 'type-fest';
-import { RESERVED_PARAMETER_NAMES } from '../config';
-import { difference } from '../utils/sets/difference';
 import type { BlockType } from '../commands/BLOCK/BlockTypes';
 import type { ParameterCommand } from '../commands/PARAMETER/ParameterCommand';
 import { parseCommand } from '../commands/_common/parseCommand';
+import { RESERVED_PARAMETER_NAMES } from '../config';
 import { NotYetImplementedError } from '../errors/NotYetImplementedError';
 import { ParsingError } from '../errors/ParsingError';
 import { UnexpectedError } from '../errors/UnexpectedError';
@@ -16,13 +15,14 @@ import type { PromptTemplateParameterJson } from '../types/PipelineJson/PromptTe
 import type { PipelineString } from '../types/PipelineString';
 import type { ScriptLanguage } from '../types/ScriptLanguage';
 import { SUPPORTED_SCRIPT_LANGUAGES } from '../types/ScriptLanguage';
-import type { TODO } from '../types/typeAliases';
+import type { really_any, TODO } from '../types/typeAliases';
 import { extractAllListItemsFromMarkdown } from '../utils/markdown/extractAllListItemsFromMarkdown';
 import { extractOneBlockFromMarkdown } from '../utils/markdown/extractOneBlockFromMarkdown';
 import { flattenMarkdown } from '../utils/markdown/flattenMarkdown';
 import { parseMarkdownSection } from '../utils/markdown/parseMarkdownSection';
 import { removeContentComments } from '../utils/markdown/removeContentComments';
 import { splitMarkdownIntoSections } from '../utils/markdown/splitMarkdownIntoSections';
+import { difference } from '../utils/sets/difference';
 import { union } from '../utils/sets/union';
 import { PROMPTBOOK_VERSION } from '../version';
 import { extractParametersFromPromptTemplate } from './utils/extractParametersFromPromptTemplate';
@@ -450,6 +450,22 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
         pipelineJson.promptTemplates.push(template as TODO /* <- !!! */);
     }
 
+    // =============================================================
+    // Note: 5️⃣ Cleanup of undefined values
+    pipelineJson.promptTemplates.forEach((promptTemplates) => {
+        for (const [key, value] of Object.entries(promptTemplates)) {
+            if (value === undefined) {
+                delete (promptTemplates as really_any)[key];
+            }
+        }
+    });
+    pipelineJson.parameters.forEach((parameter) => {
+        for (const [key, value] of Object.entries(parameter)) {
+            if (value === undefined) {
+                delete (parameter as really_any)[key];
+            }
+        }
+    });
     // =============================================================
     return pipelineJson;
 }
