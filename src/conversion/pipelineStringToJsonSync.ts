@@ -1,5 +1,7 @@
 import { spaceTrim } from 'spacetrim';
 import type { IterableElement, Writable, WritableDeep } from 'type-fest';
+import { RESERVED_PARAMETER_NAMES } from '../_packages/core.index';
+import { difference } from '../_packages/utils.index';
 import type { BlockType } from '../commands/BLOCK/BlockTypes';
 import type { ParameterCommand } from '../commands/PARAMETER/ParameterCommand';
 import { parseCommand } from '../commands/_common/parseCommand';
@@ -99,6 +101,12 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
     ///Note: 2️⃣ Function for defining parameters
     const defineParam = (parameterCommand: Omit<ParameterCommand, 'type'>) => {
         const { parameterName, parameterDescription, isInput, isOutput } = parameterCommand;
+
+        if (RESERVED_PARAMETER_NAMES.includes(parameterName)) {
+            throw new ParsingError(
+                `Parameter name {${parameterName}} is reserved and cannot be used as resulting parameter name`,
+            );
+        }
 
         const existingParameter = pipelineJson.parameters.find(
             (parameter: PromptTemplateParameterJson) => parameter.name === parameterName,
@@ -301,6 +309,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
                     break;
                 case 'PARAMETER':
                     // Note: This is just for detecting resulitng parameter name
+
                     defineParam(command);
                     break;
                 case 'POSTPROCESS':
@@ -414,6 +423,8 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
         if (templateModelRequirements.modelVariant === undefined) {
             templateModelRequirements.modelVariant = 'CHAT';
         }
+
+        dependentParameterNames = difference(dependentParameterNames, new Set(RESERVED_PARAMETER_NAMES));
 
         const template = {
             name: titleToName(section.title),

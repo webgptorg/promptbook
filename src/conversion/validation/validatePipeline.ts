@@ -190,8 +190,8 @@ export function validatePipeline(pipeline: PipelineJson): PipelineJson {
                 spaceTrim(
                     (block) => `
 
-                        Can not resolve some parameters
-                        It may be circular dependencies
+                        Can not resolve some parameters:
+                        Either you are using a parameter that is not defined, or there are some circular dependencies.
 
                         Can not resolve:
                         ${block(

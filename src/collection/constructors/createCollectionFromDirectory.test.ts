@@ -2,6 +2,7 @@ import { describe, expect, it } from '@jest/globals';
 import spaceTrim from 'spacetrim';
 import { pipelineStringToJson } from '../../conversion/pipelineStringToJson';
 import type { PipelineString } from '../../types/PipelineString';
+import { really_any } from '../../types/typeAliases';
 import { just } from '../../utils/just';
 import { createCollectionFromDirectory } from './createCollectionFromDirectory';
 
@@ -13,7 +14,7 @@ describe('createCollectionFromDirectory', () => {
 
           -   PIPELINE URL https://promptbook.studio/samples/simple.ptbk.md
           -   PROMPTBOOK VERSION 1.0.0
-          -   OUTPUT PARAMETER \`{greeting}\`
+          -   OUTPUT PARAMETER \`{greetingResponse}\`
 
 
           ## 💬 Prompt
@@ -22,7 +23,7 @@ describe('createCollectionFromDirectory', () => {
           Hello
           \`\`\`
 
-          -> {greeting}
+          -> {greetingResponse}
 
 
     `) as PipelineString;
@@ -37,6 +38,8 @@ describe('createCollectionFromDirectory', () => {
         const pipelineFromCollection = await collection.getPipelineByUrl(
             'https://promptbook.studio/samples/simple.ptbk.md',
         );
+
+        delete (pipelineFromCollection as really_any).sourceFile;
 
         expect(pipelineFromCollection).toEqual(await pipelineStringToJson(pipeline));
     });
@@ -53,6 +56,8 @@ describe('createCollectionFromDirectory', () => {
             'https://promptbook.studio/samples/simple.ptbk.md',
         );
 
+        delete (pipelineFromCollection as really_any).sourceFile;
+
         expect(pipelineFromCollection).toEqual(await pipelineStringToJson(pipeline));
     });
 
@@ -66,6 +71,8 @@ describe('createCollectionFromDirectory', () => {
         const pipelineFromCollection = await collection.getPipelineByUrl(
             'https://promptbook.studio/samples/jokers.ptbk.md',
         );
+
+        delete (pipelineFromCollection as really_any).sourceFile;
 
         expect(pipelineFromCollection).not.toEqual(await pipelineStringToJson(pipeline));
     });

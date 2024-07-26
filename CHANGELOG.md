@@ -381,12 +381,13 @@ Renaming and making names more consistent and less disambigous
 Big syntax additions
 Working external knowledge, personas, preparation for instruments and actions
 
--   Rename `SynraxError` to `ParsingError`
--   Allow deep structure (h3, h4,...) in `.ptbk.md` files
+-   Add reserved parameter names
 -   Add `SAMPLE` command with notation for parameter samples to `.ptbk.md` files
 -   Add `KNOWLEDGE` command to `.ptbk.md` files
 -   Change `EXECUTE` command to `BLOCK` command
 -   Change `executionType` -> `blockType`
+-   Rename `SynraxError` to `ParsingError`
+-   Allow deep structure (h3, h4,...) in `.ptbk.md` files
 -   Add `callEmbeddingModel` to `LlmExecutionTools`
 -   `callChatModel` and `callCompletionModel` are not required to be implemented in `LlmExecutionTools` anymore
 -   Remove `MultipleLlmExecutionTools` and make `joinLlmExecutionTools` function

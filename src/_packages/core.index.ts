@@ -6,6 +6,7 @@ import { createCollectionFromPromise } from '../collection/constructors/createCo
 import { createCollectionFromUrl } from '../collection/constructors/createCollectionFromUrl';
 import { createSubcollection } from '../collection/constructors/createSubcollection';
 import { BlockTypes } from '../commands/BLOCK/BlockTypes';
+import { RESERVED_PARAMETER_NAMES } from '../config';
 import { pipelineJsonToString } from '../conversion/pipelineJsonToString';
 import { pipelineStringToJson } from '../conversion/pipelineStringToJson';
 import { pipelineStringToJsonSync } from '../conversion/pipelineStringToJsonSync';
@@ -40,7 +41,7 @@ import { PROMPTBOOK_VERSION } from '../version';
 export { PROMPTBOOK_VERSION };
 
 // @promptbook/core
-export { BlockTypes };
+export { BlockTypes, RESERVED_PARAMETER_NAMES };
 
 // Core utilities
 export {
