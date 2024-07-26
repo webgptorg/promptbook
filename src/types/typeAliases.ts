@@ -138,8 +138,23 @@ export type string_markdown = string;
 /**
  * Semantic helper
  *
+ * Markdown text with exactly ONE heading on first line NO less NO more
+ */
+export type string_markdown_section = string;
+
+/**
+ * Semantic helper
+ *
+ * Markdown without any headings like h1, h2
+ * BUT with formatting, lists, blockquotes, blocks, etc. is allowed
+ */
+export type string_markdown_section_content = string;
+
+/**
+ * Semantic helper
+ *
  * Markdown text without any structure like h1, h2, lists, blockquotes, blocks, etc.
- * BUT with bold, italic, etc.
+ * BUT with bold, italic, etc. is allowed
  *
  * For example `"**Hello** World!"`
  */

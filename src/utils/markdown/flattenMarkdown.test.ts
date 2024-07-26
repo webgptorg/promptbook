@@ -1,9 +1,10 @@
 import { describe, expect, it } from '@jest/globals';
 import { spaceTrim } from 'spacetrim';
+import { just } from '../just';
 import { flattenMarkdown } from './flattenMarkdown';
 
 describe('flattenMarkdown', () => {
-    it('parses simple case', () => {
+    it('keep simple case', () => {
         expect(flattenMarkdown('# Title')).toBe('# Title');
     });
 
@@ -11,7 +12,7 @@ describe('flattenMarkdown', () => {
         expect(flattenMarkdown('')).toBe('# Untitled');
     });
 
-    it('parses simple case with text', () => {
+    it('keep simple case without h2', () => {
         expect(
             flattenMarkdown(
                 spaceTrim(`
@@ -20,15 +21,18 @@ describe('flattenMarkdown', () => {
                     Text below title
                 `),
             ),
-        ).toBe({
-            level: 1,
-            title: 'Title',
-            content: 'Text below title',
-            sections: [],
-        });
+        ).toBe(
+            just(
+                spaceTrim(`
+                    # Title
+
+                    Text below title
+                `),
+            ),
+        );
     });
 
-    it('parses simple case with multi-line text', () => {
+    it('keep simple case with multi-line text', () => {
         expect(
             flattenMarkdown(
                 spaceTrim(`
@@ -40,20 +44,21 @@ describe('flattenMarkdown', () => {
                     Text below title
                 `),
             ),
-        ).toBe({
-            level: 1,
-            title: 'Title',
-            content: spaceTrim(`
-                Text below title
-                Text below title
-                Text below title
-                Text below title
-            `),
-            sections: [],
-        });
+        ).toBe(
+            just(
+                spaceTrim(`
+                    # Title
+
+                    Text below title
+                    Text below title
+                    Text below title
+                    Text below title
+                `),
+            ),
+        );
     });
 
-    it('parses simple case with bold/italic text', () => {
+    it('keep simple case with bold/italic text', () => {
         expect(
             flattenMarkdown(
                 spaceTrim(`
@@ -62,15 +67,18 @@ describe('flattenMarkdown', () => {
                     Text below title **bold** *italic*
                 `),
             ),
-        ).toBe({
-            level: 1,
-            title: 'Title',
-            content: 'Text below title **bold** *italic*',
-            sections: [],
-        });
+        ).toBe(
+            just(
+                spaceTrim(`
+                    # Title
+
+                    Text below title **bold** *italic*
+                `),
+            ),
+        );
     });
 
-    it('parses simple case with ul/ol text', () => {
+    it('keep simple case with ul/ol text', () => {
         expect(
             flattenMarkdown(
                 spaceTrim(`
@@ -85,23 +93,24 @@ describe('flattenMarkdown', () => {
                     3. ol 3
                 `),
             ),
-        ).toBe({
-            level: 1,
-            title: 'Title',
-            content: spaceTrim(`
-                Text below title
-                - ul 1
-                - ul 2
-                - ul 3
-                1. ol 1
-                2. ol 2
-                3. ol 3
-            `),
-            sections: [],
-        });
+        ).toBe(
+            just(
+                spaceTrim(`
+                    # Title
+
+                    Text below title
+                    - ul 1
+                    - ul 2
+                    - ul 3
+                    1. ol 1
+                    2. ol 2
+                    3. ol 3
+                `),
+            ),
+        );
     });
 
-    it('parses simple case with text and section', () => {
+    it('flatten simple case with text and section', () => {
         expect(
             flattenMarkdown(
                 spaceTrim(`
@@ -114,19 +123,19 @@ describe('flattenMarkdown', () => {
                     Text below section 1
                 `),
             ),
-        ).toBe({
-            level: 1,
-            title: 'Title',
-            content: 'Text below title',
-            sections: [
-                {
-                    level: 2,
-                    title: 'Section 1',
-                    content: 'Text below section 1',
-                    sections: [],
-                },
-            ],
-        });
+        ).toBe(
+            just(
+                spaceTrim(`
+                    # Title
+
+                    Text below title
+
+                    ## Section 1
+
+                    Text below section 1
+                `),
+            ),
+        );
     });
 
     it('ignores structure in code blocks', () => {
@@ -150,46 +159,41 @@ describe('flattenMarkdown', () => {
                     \`\`\`
                 `),
             ),
-        ).toBe({
-            level: 1,
-            title: 'Title',
-            content: 'Text below title',
-            sections: [
-                {
-                    level: 2,
-                    title: 'Section 1',
-                    content: spaceTrim(`
+        ).toBe(
+            just(
+                spaceTrim(`
+                    # Title
 
-                        Text below section 1
+                    Text below title
 
-                        \`\`\`markdown
+                    ## Section 1
 
-                        ### Title in code block
+                    Text below section 1
 
-                        Text below title in code block
+                    \`\`\`markdown
 
-                        \`\`\`
+                    ### Title in code block
 
-                    `),
-                    sections: [],
-                },
-            ],
-        });
+                    Text below title in code block
+
+                    \`\`\`
+                `),
+            ),
+        );
     });
 
-    it('should fails when there is no structure', () => {
-        expect(() => flattenMarkdown('')).toThrowError(/The markdown file must have exactly one top-level section/i);
+    it('should work when the first heading is not h1', () => {
+        expect(flattenMarkdown(`## Section 1`)).toBe(
+            spaceTrim(`
+                # Untitled
+
+                ## Section 1
+            `),
+        );
     });
 
-    /*
-    TODO: [🧠] Should theese cases fail or not?
-
-    it('should fails when the first heading is not h1', () => {
-        expect(() => flattenMarkdown(`## Section 1`)).toThrowError(/The file has an invalid structure/i);
-    });
-
-    it('should fails when there is heading level mismatch', () => {
-        expect(() =>
+    it('should work when there is heading level mismatch', () => {
+        expect(
             flattenMarkdown(
                 spaceTrim(`
                     # Title
@@ -201,11 +205,106 @@ describe('flattenMarkdown', () => {
                     Text below subsection 1.1
                 `),
             ),
-        ).toThrowError(/The file has an invalid structure/i);
-    });
-    */
+        ).toBe(
+            just(
+                spaceTrim(`
+                    # Title
 
-    it('parses advanced case', () => {
+                    Text below title
+
+                    ## Subsection 1.1
+
+                    Text below subsection 1.1
+                `),
+            ),
+        );
+    });
+
+    it('should work when there are multiple h1', () => {
+        expect(
+            flattenMarkdown(
+                spaceTrim(`
+                    # Title
+
+                    Text below title
+
+                    # Title 2
+
+                    Text below title 2
+              `),
+            ),
+        ).toBe(
+            just(
+                spaceTrim(`
+                    # Title
+
+                    Text below title
+
+                    ## Title 2
+
+                    Text below title 2
+              `),
+            ),
+        );
+    });
+
+    it('should work when there is h2 at begining', () => {
+        expect(
+            flattenMarkdown(
+                spaceTrim(`
+                    ## Subtitle
+
+                    Text below subtitle
+
+                    # Title
+
+                    Text below title
+                `),
+            ),
+        ).toBe(
+            just(
+                spaceTrim(`
+                    # Untitled
+
+                    ## Subtitle
+
+                    Text below subtitle
+
+                    ## Title
+
+                    Text below title
+                `),
+            ),
+        );
+    });
+
+    it('should work when there is no h1 is not at begining', () => {
+        expect(
+            flattenMarkdown(
+                spaceTrim(`
+                    Text before title
+
+                    # Title
+
+                    Text below title
+                `),
+            ),
+        ).toBe(
+            just(
+                spaceTrim(`
+                    # Untitled
+
+                    Text before title
+
+                    ## Title
+
+                    Text below title
+              `),
+            ),
+        );
+    });
+
+    it('flatten advanced heading case', () => {
         expect(
             flattenMarkdown(
                 spaceTrim(`
@@ -230,37 +329,126 @@ describe('flattenMarkdown', () => {
                     Text below subsection 2.2
                 `),
             ),
-        ).toBe({
-            level: 1,
-            title: 'Title',
-            content: 'Text below title',
-            sections: [
-                {
-                    level: 2,
-                    title: 'Section 1',
-                    content: 'Text below section 1',
-                    sections: [],
-                },
-                {
-                    level: 2,
-                    title: 'Section 2',
-                    content: 'Text below section 2',
-                    sections: [
-                        {
-                            level: 3,
-                            title: 'Subsection 2.1',
-                            content: 'Text below subsection 2.1',
-                            sections: [],
-                        },
-                        {
-                            level: 3,
-                            title: 'Subsection 2.2',
-                            content: 'Text below subsection 2.2',
-                            sections: [],
-                        },
-                    ],
-                },
-            ],
-        });
+        ).toBe(
+            just(
+                spaceTrim(`
+                  # Title
+
+                  Text below title
+
+                  ## Section 1
+
+                  Text below section 1
+
+                  ## Section 2
+
+                  Text below section 2
+
+                  ## Subsection 2.1
+
+                  Text below subsection 2.1
+
+                  ## Subsection 2.2
+
+                  Text below subsection 2.2
+              `),
+            ),
+        );
+    });
+
+    it('should not be cunfused by heading in comment (which should not be taken as heading)', () => {
+        expect(
+            flattenMarkdown(
+                spaceTrim(`
+                    # Title
+
+                    Text below title
+
+                    ## Section 1
+
+                    Text below section 1
+
+                    <!--
+                    ### Subsection 2.1 (commented)
+
+                    Text below subsection 2.1
+                    -->
+
+                    ### Subsection 2.2
+
+                    Text below subsection 2.2
+              `),
+            ),
+        ).toBe(
+            just(
+                spaceTrim(`
+                    # Title
+
+                    Text below title
+
+                    ## Section 1
+
+                    Text below section 1
+
+                    <!--
+                    ### Subsection 2.1 (commented)
+
+                    Text below subsection 2.1
+                    -->
+
+                    ## Subsection 2.2
+
+                    Text below subsection 2.2
+              `),
+            ),
+        );
+    });
+
+    it('should not be cunfused by heading in code block (which should not be taken as heading)', () => {
+        expect(
+            flattenMarkdown(
+                spaceTrim(`
+                    # Title
+
+                    Text below title
+
+                    ## Section 1
+
+                    Text below section 1
+
+                    \`\`\`markdown
+                    ### Subsection 2.1 (in code block)
+
+                    Text below subsection 2.1
+                    \`\`\`
+
+                    ### Subsection 2.2
+
+                    Text below subsection 2.2
+              `),
+            ),
+        ).toBe(
+            just(
+                spaceTrim(`
+                    # Title
+
+                    Text below title
+
+                    ## Section 1
+
+                    Text below section 1
+
+                    \`\`\`markdown
+                    ### Subsection 2.1 (in code block)
+
+                    Text below subsection 2.1
+                    \`\`\`
+
+                    ## Subsection 2.2
+
+                    Text below subsection 2.2
+              `),
+            ),
+        );
     });
 });

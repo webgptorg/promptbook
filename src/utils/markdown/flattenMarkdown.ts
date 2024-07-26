@@ -1,18 +1,40 @@
+import spaceTrim from 'spacetrim';
 import { string_markdown } from '../../types/typeAliases';
+import { parseMarkdownSection } from './parseMarkdownSection';
+import { splitMarkdownIntoSections } from './splitMarkdownIntoSections';
 
 /**
- * !!!
+ * Normalizes the markdown by flattening the structure
  *
- * Note: This function does work with code blocks
- * Note: !!! This function does not work with markdown comments
- *
- * @param markdown The markdown string to parse.
- * @returns The MarkdownStructure object.
+ * - It always have h1 - if there is no h1 in the markdown, it will be added "# Untitled"
+ * - All other headings are normalized to h2
  */
 export function flattenMarkdown(markdown: string_markdown): string_markdown {
-    // const lines = markdown.split('\n');
-    // TODO: USE and implement splitMarkdownByHeadings
-    return markdown;
+    const sections = splitMarkdownIntoSections(markdown);
+
+    if (sections.length === 0) {
+        return '# Untitled';
+    }
+
+    let flattenedMarkdown: string_markdown = '';
+
+    const parsedSections = sections.map(parseMarkdownSection);
+    const firstSection = parsedSections.shift()!;
+
+    if (firstSection.level === 1) {
+        flattenedMarkdown += `# ${firstSection.title}` + `\n\n`;
+        flattenedMarkdown += firstSection.content + `\n\n`; // <- [🧠] Maybe 3 new lines?
+    } else {
+        parsedSections.unshift(firstSection);
+        flattenedMarkdown += `# Untitled` + `\n\n`; // <- [🧠] Maybe 3 new lines?
+    }
+
+    for (const { title, content } of parsedSections) {
+        flattenedMarkdown += `## ${title}` + `\n\n`;
+        flattenedMarkdown += content + `\n\n`; // <- [🧠] Maybe 3 new lines?
+    }
+
+    return spaceTrim(flattenedMarkdown);
 }
 
 /**

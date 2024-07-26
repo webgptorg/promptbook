@@ -18,6 +18,7 @@ import { flattenMarkdown } from '../utils/markdown-json/flattenMarkdown';
 import { extractAllListItemsFromMarkdown } from '../utils/markdown/extractAllListItemsFromMarkdown';
 import { extractOneBlockFromMarkdown } from '../utils/markdown/extractOneBlockFromMarkdown';
 import { removeContentComments } from '../utils/markdown/removeContentComments';
+import { splitMarkdownIntoSections } from '../utils/markdown/splitMarkdownIntoSections';
 import { union } from '../utils/sets/union';
 import { PROMPTBOOK_VERSION } from '../version';
 import { extractParametersFromPromptTemplate } from './utils/extractParametersFromPromptTemplate';
@@ -50,9 +51,9 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
     };
 
     // =============================================================
-    // Note: 1️⃣ Normalization of the PROMPTBOOK string
+    // Note: 1️⃣ Parsing of the markdown into object
     pipelineString = removeContentComments(pipelineString);
-    pipelineString = flattenMarkdown(pipelineString);
+    pipelineString = flattenMarkdown(pipelineString) /* <- Note: [🥞] */;
     pipelineString = pipelineString.replaceAll(
         /`\{(?<parameterName>[a-z0-9_]+)\}`/gi,
         '{$<parameterName>}',
@@ -61,6 +62,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
         /`->\s+\{(?<parameterName>[a-z0-9_]+)\}`/gi,
         '-> {$<parameterName>}',
     ) as PipelineString;
+    const pipelineStringChunks = splitMarkdownIntoSections(pipelineString); /* <- Note: [🥞] */
 
     // =============================================================
     ///Note: 2️⃣ Function for defining parameters
@@ -106,13 +108,12 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
     };
 
     // =============================================================
-    // Note: 3️⃣ Parse each segment of the pipeline
-    const markdownStructure = splitMarkdownByHeadings(pipelineString);
+    // Note: 3️⃣ Process pipeline head
 
-    pipelineJson.title = markdownStructure.title;
+    pipelineJson.title = pipelineStringChunks.title;
 
     // TODO: [1] DRY description
-    let description: string | undefined = markdownStructure.content;
+    let description: string | undefined = pipelineStringChunks.content;
 
     // Note: Remove codeblocks
     description = description.split(/^```.*^```/gms).join('');
@@ -125,7 +126,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
     pipelineJson.description = description;
 
     const defaultModelRequirements: Partial<Writable<ModelRequirements>> = {};
-    const listItems = extractAllListItemsFromMarkdown(markdownStructure.content);
+    const listItems = extractAllListItemsFromMarkdown(pipelineStringChunks.content);
     for (const listItem of listItems) {
         const command = parseCommand(listItem, 'PIPELINE_HEAD');
 
@@ -170,7 +171,10 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
         }
     }
 
-    sections: for (const section of markdownStructure.sections) {
+    // =============================================================
+    // Note: 4️⃣ Process each template of the pipeline
+
+    templates: for (const section of pipelineStringChunks.sections) {
         // TODO: Parse prompt template description (the content out of the codeblock and lists)
 
         const templateModelRequirements: Partial<Writable<ModelRequirements>> = { ...defaultModelRequirements };
@@ -197,22 +201,22 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
 
                     if (command.blockType === 'SAMPLE') {
                         console.error(new NotYetImplementedError('Block type SAMPLE is not implemented yet'));
-                        continue sections;
+                        continue templates;
                     }
 
                     if (command.blockType === 'KNOWLEDGE') {
                         console.error(new NotYetImplementedError('Knowledge is not implemented yet'));
-                        continue sections;
+                        continue templates;
                     }
 
                     if (command.blockType === 'ACTION') {
                         console.error(new NotYetImplementedError('Actions are not implemented yet'));
-                        continue sections;
+                        continue templates;
                     }
 
                     if (command.blockType === 'INSTRUMENT') {
                         console.error(new NotYetImplementedError('Instruments are not implemented yet'));
-                        continue sections;
+                        continue templates;
                     }
 
                     blockType = command.blockType;
@@ -413,4 +417,5 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
  * TODO: Report here line/column of error
  * TODO: Use spaceTrim more effectively
  * TODO: [🧠] Parameter flags - isInput, isOutput, isInternal
+ * TODO: [🥞] Not optimal parsing because `splitMarkdownIntoSections` is executed twice with same string, once through `flattenMarkdown` and second directly here
  */

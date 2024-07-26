@@ -17,14 +17,6 @@ import { countSentences, splitIntoSentences } from '../utils/expectation-counter
 import { countWords } from '../utils/expectation-counters/countWords';
 import { CountUtils } from '../utils/expectation-counters/index';
 import { extractParameters } from '../utils/extractParameters';
-import type { MarkdownStructure } from '../utils/markdown-json/MarkdownStructure';
-import { flattenMarkdown } from '../utils/markdown/flattenMarkdown';
-import { splitMarkdownByHeadings } from '../utils/markdown/splitMarkdownByHeadings';
-import { extractAllBlocksFromMarkdown } from '../utils/markdown/extractAllBlocksFromMarkdown';
-import { extractAllListItemsFromMarkdown } from '../utils/markdown/extractAllListItemsFromMarkdown';
-import { extractOneBlockFromMarkdown } from '../utils/markdown/extractOneBlockFromMarkdown';
-import { removeContentComments } from '../utils/markdown/removeContentComments';
-import { removeMarkdownFormatting } from '../utils/markdown/removeMarkdownFormatting';
 import { DIACRITIC_VARIANTS_LETTERS } from '../utils/normalization/DIACRITIC_VARIANTS_LETTERS';
 import type { IKeywords, string_keyword } from '../utils/normalization/IKeywords';
 import { capitalize } from '../utils/normalization/capitalize';
@@ -68,10 +60,7 @@ export { forEachAsync, PROMPTBOOK_VERSION };
 
 // TODO: [🌻] For all, decide if theese are internal or external
 export {
-    extractAllBlocksFromMarkdown, // <- [🌻]
-    extractAllListItemsFromMarkdown,
-    extractBlock, // <- [🌻]
-    extractOneBlockFromMarkdown,
+    extractBlock, // <- [🌻] + maybe export through `@promptbook/markdown-utils`
     extractParameters,
     extractVariables,
     isHostnameOnPrivateNetwork,
@@ -85,9 +74,7 @@ export {
     isValidUrl,
     isValidUuid,
     parseNumber, // <- [🌻]
-    removeContentComments,
     removeEmojis,
-    removeMarkdownFormatting,
     removeQuotes,
     replaceParameters,
     spaceTrim,
@@ -138,8 +125,6 @@ export {
 
 export type { string_camelCase, string_kebab_case, string_PascalCase, string_SCREAMING_CASE, string_snake_case };
 
-export { flattenMarkdown, splitMarkdownByHeadings };
-export type { MarkdownStructure };
 
 // Promptbook
 export { extractParametersFromPromptTemplate, renameParameter, renderPromptbookMermaid };

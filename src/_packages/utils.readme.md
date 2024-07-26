@@ -6,19 +6,19 @@ Here is a overview of the functions which are exported from the `@promptbook/uti
 
 Sometimes you need to postprocess the output of the LLM model, every postprocessing function that is available through `POSTPROCESS` command in promptbook is exported from `@promptbook/utils`. You can use:
 
-`spaceTrim`,
-`extractAllBlocksFromMarkdown`, <!-- <- [🌻] -->
-`extractAllListItemsFromMarkdown`,
-`extractBlock` ,<!-- <- [🌻] -->
-`extractOneBlockFromMarkdown`,
-`prettifyPipelineString`,
-`removeContentComments`,
-`removeEmojis`,
-`removeMarkdownFormatting`,
-`removeQuotes`,
-`trimCodeBlock`,
-`trimEndOfCodeBlock`,
-`unwrapResult`
+-   `spaceTrim`
+-   `extractAllBlocksFromMarkdown`, _<- Note: Exported from `@promptbook/markdown-utils`_
+-   `extractAllListItemsFromMarkdown` _<- Note: Exported from `@promptbook/markdown-utils`_
+-   `extractBlock`
+-   `extractOneBlockFromMarkdown `_<- Note: Exported from `@promptbook/markdown-utils`_
+-   `prettifyPipelineString`
+-   `removeContentComments`
+-   `removeEmojis`
+-   `removeMarkdownFormatting` _<- Note: Exported from `@promptbook/markdown-utils`_
+-   `removeQuotes`
+-   `trimCodeBlock`
+-   `trimEndOfCodeBlock`
+-   `unwrapResult`
 
 Very often you will use `unwrapResult`, which is used to extract the result you need from output with some additional information:
 
