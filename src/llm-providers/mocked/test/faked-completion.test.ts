@@ -26,7 +26,7 @@ describe('createPipelineExecutor + MockedFackedLlmExecutionTools with sample com
                 title: 'Sample prompt',
                 description: 'Show how to use a simple completion prompt',
                 promptExecutions: [],
-                pipelineUrl: 'https://example.com/pipeline.ptbk.md',
+                pipelineUrl: 'https://promptbook.studio/example.ptbk.md',
                 promptbookRequestedVersion: '1.0.0',
                 promptbookUsedVersion: PROMPTBOOK_VERSION,
             },

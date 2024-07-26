@@ -49,10 +49,15 @@ export function markdownToMarkdownStructure(markdown: string): MarkdownStructure
                     if (parent.parent === null /* <- Note: We are in root */) {
                         // [🌻]
                         throw new Error(
-                            spaceTrim(`
-                                The file has an invalid structure.
-                                The markdown file must have exactly one top-level section.
-                            `),
+                            spaceTrim(
+                                (block) => `
+                                    The file has an invalid structure.
+                                    The markdown file must have exactly one top-level section.
+
+                                    The file contents:
+                                    ${block(markdown)}
+                                `,
+                            ),
                         );
                     }
                     parent = parent.parent;

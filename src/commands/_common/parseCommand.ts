@@ -168,7 +168,7 @@ function parseCommandVariant(input: CommandParserInput & { commandNameRaw: strin
                               - ${raw}
 
                               Usage of ${commandName}:
-                              ${block(commandParser.examples.join('\n'))}
+                              ${block(commandParser.examples.map((example) => `- ${example}`).join('\n'))}
 
                               All supported commands are:
                               ${block(getSupportedCommandsMessage())}

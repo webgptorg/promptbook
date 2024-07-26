@@ -12,7 +12,7 @@ describe('createCollectionFromJson', () => {
             Show how to use a simple completion prompt
 
             -   PROMPTBOOK VERSION 1.0.0
-            -   PIPELINE URL https://example.com/pipeline.ptbk.md
+            -   PIPELINE URL https://promptbook.studio/example.ptbk.md
             -   INPUT  PARAMETER {thing} Any thing to buy
             -   OUTPUT PARAMETER {response}
 
@@ -42,3 +42,10 @@ describe('createCollectionFromJson', () => {
         expect([pipeline]).toEqual(collectionJson);
     });
 });
+
+/**
+ * Note: [🐠] For example here URL https://example.com/pipeline.ptbk.md is not valid
+ *       because it is on private network BUT its very hard to debug because
+ *       there is no error message and false return (the error) happen deep in:
+ *       `isValidPipelineUrl` -> `isValidPipelineUrl` -> `isUrlOnPrivateNetwork`
+ */
