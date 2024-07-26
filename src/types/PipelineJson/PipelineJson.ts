@@ -1,6 +1,9 @@
-import type { string_markdown_text } from '../typeAliases';
-import type { string_pipeline_url } from '../typeAliases';
-import type { string_semantic_version } from '../typeAliases';
+import type {
+    string_file_path,
+    string_markdown_text,
+    string_pipeline_url,
+    string_semantic_version,
+} from '../typeAliases';
 import type { KnowledgeJson } from './KnowledgeJson';
 import type { PromptTemplateJson } from './PromptTemplateJson';
 import type { PromptTemplateParameterJson } from './PromptTemplateParameterJson';
@@ -22,6 +25,11 @@ export type PipelineJson = {
      * Warning: Do not hash part of the URL, hash part is used for identification of the prompt template in the pipeline
      */
     readonly pipelineUrl?: string_pipeline_url;
+
+    /**
+     * Internal helper for tracking the source `.ptbk.md` file of the pipeline
+     */
+    readonly sourceFile?: string_file_path;
 
     /**
      * Title of the promptbook

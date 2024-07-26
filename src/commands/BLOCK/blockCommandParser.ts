@@ -25,6 +25,7 @@ export const blockCommandParser: CommandParser<BlockCommand> = {
         'SCRIPT',
         'PROMPT_DIALOG',
         'SAMPLE',
+        'EXAMPLE',
         'KNOWLEDGE',
         'INSTRUMENT',
         'ACTION',

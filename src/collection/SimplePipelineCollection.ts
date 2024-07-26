@@ -35,6 +35,9 @@ export class SimplePipelineCollection implements PipelineCollection {
                     spaceTrim(`
                         Promptbook with name "${promptbook.title}" does not have defined URL
 
+                        File:
+                        ${promptbook.sourceFile || 'Unknown'}
+
                         Note: Promptbooks without URLs are called anonymous promptbooks
                               They can be used as standalone promptbooks, but they cannot be referenced by other promptbooks
                               And also they cannot be used in the pipeline collection
@@ -50,12 +53,18 @@ export class SimplePipelineCollection implements PipelineCollection {
                 this.collection.has(promptbook.pipelineUrl) &&
                 pipelineJsonToString(promptbook) !== pipelineJsonToString(this.collection.get(promptbook.pipelineUrl)!)
             ) {
+                const existing = this.collection.get(promptbook.pipelineUrl)!;
+
                 throw new ReferenceError(
                     spaceTrim(`
                         Promptbook with URL "${promptbook.pipelineUrl}" is already in the collection
 
+                        Conflicting files:
+                        ${existing.sourceFile || 'Unknown'}
+                        ${promptbook.sourceFile || 'Unknown'}
+
                         Note: Promptbooks with the same URL are not allowed
-                        Note: Automatically check whether the promptbooks are the same BUT they are DIFFERENT
+                              Only exepction is when the promptbooks are identical
 
                     `),
                 );

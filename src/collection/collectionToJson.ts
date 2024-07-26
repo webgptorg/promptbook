@@ -11,3 +11,7 @@ export async function collectionToJson(collection: PipelineCollection): Promise<
     const promptbooks = await Promise.all(pipelineUrls.map((url) => collection.getPipelineByUrl(url)));
     return promptbooks;
 }
+
+/**
+ * TODO: [🧠] Maybe clear `sourceFile` or clear when exposing through API or remote server
+ */

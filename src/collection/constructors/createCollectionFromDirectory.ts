@@ -3,14 +3,13 @@ import { access, constants, readdir, readFile } from 'fs/promises';
 import { join } from 'path';
 import spaceTrim from 'spacetrim';
 import { PIPELINE_COLLECTION_BASE_FILENAME } from '../../config';
-import { pipelineStringToJson } from '../../conversion/pipelineStringToJson';
 import type { PipelineStringToJsonOptions } from '../../conversion/pipelineStringToJson';
+import { pipelineStringToJson } from '../../conversion/pipelineStringToJson';
 import { validatePipeline } from '../../conversion/validation/validatePipeline';
 import { CollectionError } from '../../errors/CollectionError';
 import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import type { PipelineString } from '../../types/PipelineString';
-import type { string_file_path } from '../../types/typeAliases';
-import type { string_folder_path } from '../../types/typeAliases';
+import type { string_file_path, string_folder_path } from '../../types/typeAliases';
 import { isRunningInNode } from '../../utils/isRunningInWhatever';
 import type { PipelineCollection } from '../PipelineCollection';
 import { createCollectionFromPromise } from './createCollectionFromPromise';
@@ -98,12 +97,15 @@ export async function createCollectionFromDirectory(
         const promptbooks: Array<PipelineJson> = [];
 
         for (const fileName of fileNames) {
+            const sourceFile = './' + fileName.split('\\').join('/');
+
             try {
                 let promptbook: PipelineJson | null = null;
 
                 if (fileName.endsWith('.ptbk.md')) {
                     const pipelineString = (await readFile(fileName, 'utf8')) as PipelineString;
                     promptbook = await pipelineStringToJson(pipelineString, options);
+                    promptbook = { ...promptbook, sourceFile };
                 } else if (fileName.endsWith('.ptbk.json')) {
                     if (isVerbose) {
                         console.info(`Loading ${fileName.split('\\').join('/')}`);
@@ -111,6 +113,7 @@ export async function createCollectionFromDirectory(
 
                     // TODO: Handle non-valid JSON files
                     promptbook = JSON.parse(await readFile(fileName, 'utf8')) as PipelineJson;
+                    promptbook = { ...promptbook, sourceFile };
                 } else {
                     if (isVerbose) {
                         console.info(`Skipping file ${fileName.split('\\').join('/')}`);
