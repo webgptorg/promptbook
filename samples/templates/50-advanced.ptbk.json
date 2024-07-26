@@ -50,9 +50,13 @@
             "name": "synonym",
             "title": "💬 Synonym",
             "description": "Synonym for word",
-            "dependentParameterNames": ["word"],
+            "dependentParameterNames": [
+                "word"
+            ],
             "blockType": "PROMPT_TEMPLATE",
-            "postprocessing": ["unwrapResult"],
+            "postprocessing": [
+                "unwrapResult"
+            ],
             "expectations": {
                 "words": {
                     "min": 1,
@@ -69,7 +73,10 @@
         {
             "name": "test-that-word-is-not-original-word",
             "title": "⚙ Test that word is not original word",
-            "dependentParameterNames": ["word", "wordSynonym"],
+            "dependentParameterNames": [
+                "word",
+                "wordSynonym"
+            ],
             "blockType": "SCRIPT",
             "contentLanguage": "javascript",
             "content": "if (word !== '' && wordSynonym === word) {\n    throw new Error(`Synonym returned from LLM is same as original word \"${word}\"`);\n}\n\nreturn wordSynonym;",
@@ -79,7 +86,10 @@
             "name": "sentence-with-synonym",
             "title": "💬 Sentence with Synonym",
             "description": "Sentence with word and wordSynonym",
-            "dependentParameterNames": ["word", "wordSynonym"],
+            "dependentParameterNames": [
+                "word",
+                "wordSynonym"
+            ],
             "blockType": "PROMPT_TEMPLATE",
             "expectations": {
                 "words": {
@@ -101,7 +111,10 @@
             "name": "sentence-without-original-word",
             "title": "💬 Sentence without original word",
             "description": "Sentence \"{sentenceWithTwoSynonyms}\" without \"{word}\".",
-            "dependentParameterNames": ["sentenceWithTwoSynonyms", "word"],
+            "dependentParameterNames": [
+                "sentenceWithTwoSynonyms",
+                "word"
+            ],
             "blockType": "PROMPT_TEMPLATE",
             "expectations": {
                 "words": {
@@ -123,7 +136,10 @@
             "name": "comparison",
             "title": "💬 Comparison",
             "description": "Comparison between \"{sentenceWithTwoSynonyms}\" and \"{sentenceWithOriginalWordRemoved}\".",
-            "dependentParameterNames": ["sentenceWithTwoSynonyms", "sentenceWithOriginalWordRemoved"],
+            "dependentParameterNames": [
+                "sentenceWithTwoSynonyms",
+                "sentenceWithOriginalWordRemoved"
+            ],
             "blockType": "PROMPT_TEMPLATE",
             "expectations": {
                 "sentences": {
@@ -157,19 +173,39 @@
         {
             "name": "a",
             "title": "A",
-            "content": "I",
-            "keywords": ["N"],
+            "content": "Q",
+            "keywords": [
+                "L"
+            ],
             "index": [
                 {
                     "modelName": "mocked-facked",
                     "position": [
-                        0.5667493927093847, 0.7543944276823633, 0.1761252270646323, -0.49780506802407753,
-                        -0.30526410217189737, -0.07046879985097254, 0.684754365771072, 0.8676961197492852,
-                        0.9742452539599142, 0.22820891306494495, 0.06805632376841153, 0.3627437911256286,
-                        0.7384297776615663, 0.7017473366299436, -0.8049106302834588, 0.41105782027990845,
-                        -0.7997403836071779, 0.7560106050048532, -0.031239623761330826, -0.16968775679097803,
-                        0.3409489969626609, -0.059358662441536314, 0.7770312286136738, 0.7002659465113101,
-                        -0.9810361333842397
+                        0.31667254790827437,
+                        0.29330792354515145,
+                        -0.1851166735369456,
+                        0.4654146342940053,
+                        -0.926169430198537,
+                        -0.14616039426176197,
+                        0.8672882423075676,
+                        -0.9168692744075511,
+                        0.8946531034481349,
+                        0.27493080039647033,
+                        -0.9402290973024101,
+                        -0.9323147123221953,
+                        -0.025644194593772873,
+                        0.005835284134580121,
+                        -0.8442061096649391,
+                        -0.09901168931576887,
+                        -0.8987392370301488,
+                        0.8552242835136958,
+                        -0.910980095602056,
+                        -0.6782427288204538,
+                        0.8711127767268212,
+                        0.6026346791060386,
+                        -0.8261830316767131,
+                        -0.4954639416817095,
+                        -0.5472496903073143
                     ]
                 }
             ],

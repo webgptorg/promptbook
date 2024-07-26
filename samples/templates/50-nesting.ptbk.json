@@ -31,9 +31,13 @@
             "name": "synonym",
             "title": "💬 Synonym",
             "description": "Synonym for word",
-            "dependentParameterNames": ["word"],
+            "dependentParameterNames": [
+                "word"
+            ],
             "blockType": "PROMPT_TEMPLATE",
-            "postprocessing": ["unwrapResult"],
+            "postprocessing": [
+                "unwrapResult"
+            ],
             "expectations": {
                 "words": {
                     "min": 1,
@@ -51,9 +55,14 @@
             "name": "sentence",
             "title": "💬 Sentence",
             "description": "Sentence with the both words",
-            "dependentParameterNames": ["word", "wordSynonym"],
+            "dependentParameterNames": [
+                "word",
+                "wordSynonym"
+            ],
             "blockType": "PROMPT_TEMPLATE",
-            "postprocessing": ["unwrapResult"],
+            "postprocessing": [
+                "unwrapResult"
+            ],
             "expectations": {
                 "sentences": {
                     "min": 1
@@ -69,9 +78,13 @@
         {
             "name": "make-a-document",
             "title": "Make a document",
-            "dependentParameterNames": ["sentence"],
+            "dependentParameterNames": [
+                "sentence"
+            ],
             "blockType": "PROMPT_TEMPLATE",
-            "postprocessing": ["unwrapResult"],
+            "postprocessing": [
+                "unwrapResult"
+            ],
             "modelRequirements": {
                 "modelVariant": "CHAT",
                 "modelName": "gpt-3.5-turbo"
@@ -82,21 +95,41 @@
     ],
     "knowledge": [
         {
-            "name": "u",
-            "title": "U",
-            "content": "C",
-            "keywords": ["N"],
+            "name": "s",
+            "title": "S",
+            "content": "N",
+            "keywords": [
+                "E"
+            ],
             "index": [
                 {
                     "modelName": "mocked-facked",
                     "position": [
-                        -0.3211514697022375, -0.045865162140991345, -0.8048266877924135, -0.8595720649323546,
-                        -0.7014882124809061, -0.9427392030179194, -0.5095762911666286, 0.8415202667404915,
-                        -0.3487421216674127, 0.6029940748273948, 0.5181733035762521, -0.1485036876957353,
-                        0.4017260351893275, -0.8357317945309926, -0.2704665706971041, 0.9252943378807461,
-                        -0.3887186300146235, -0.5066617658173196, -0.17385194390677672, -0.9339813302143112,
-                        0.16731457385130755, -0.23710462700864054, 0.8144581583776205, -0.49665146177231145,
-                        0.5319458062114597
+                        0.1102479897454014,
+                        -0.7113807564735577,
+                        -0.9499338450654204,
+                        0.19120543718080985,
+                        0.7462745323586191,
+                        0.6524692964475358,
+                        0.26782838840797396,
+                        0.34716841367510654,
+                        -0.7414147414914747,
+                        -0.023342623920872274,
+                        -0.6007300773594375,
+                        -0.7754382317433142,
+                        0.6907329482957927,
+                        -0.5420758740120148,
+                        0.7751803414931171,
+                        0.87140374461196,
+                        -0.5800115527195477,
+                        0.7076919086895996,
+                        -0.7762105577171776,
+                        -0.7832815967939091,
+                        -0.33943931424779183,
+                        -0.5729216396774408,
+                        -0.9371043647005366,
+                        0.720898601110302,
+                        0.5033414551563333
                     ]
                 }
             ],

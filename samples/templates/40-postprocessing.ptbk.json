@@ -11,7 +11,8 @@
             "isOutput": false
         },
         {
-            "name": "sentenceWithTwoSynonyms",
+            "name": "sentence",
+            "description": "Resulting sentence with two synonyms",
             "isInput": false,
             "isOutput": true
         },
@@ -26,12 +27,15 @@
             "name": "synonym",
             "title": "💬 Synonym",
             "description": "Synonym for word",
-            "dependentParameterNames": ["word"],
+            "dependentParameterNames": [
+                "word"
+            ],
             "blockType": "PROMPT_TEMPLATE",
-            "postprocessing": ["unwrapResult"],
+            "postprocessing": [
+                "unwrapResult"
+            ],
             "modelRequirements": {
-                "modelVariant": "CHAT",
-                "modelName": "gpt-3.5-turbo"
+                "modelVariant": "CHAT"
             },
             "content": "Write synonym for \"{word}\"",
             "resultingParameterName": "wordSynonym"
@@ -40,34 +44,59 @@
             "name": "sentence",
             "title": "💬 Sentence",
             "description": "Sentence with word and wordSynonym",
-            "dependentParameterNames": ["word", "wordSynonym"],
+            "dependentParameterNames": [
+                "word",
+                "wordSynonym"
+            ],
             "blockType": "PROMPT_TEMPLATE",
-            "postprocessing": ["unwrapResult", "spaceTrim"],
+            "postprocessing": [
+                "unwrapResult",
+                "spaceTrim"
+            ],
             "modelRequirements": {
-                "modelVariant": "CHAT",
-                "modelName": "gpt-3.5-turbo"
+                "modelVariant": "CHAT"
             },
             "content": "Write sentence with \"{word}\" and \"{wordSynonym}\" in it",
-            "resultingParameterName": "sentenceWithTwoSynonyms"
+            "resultingParameterName": "sentence"
         }
     ],
     "knowledge": [
         {
-            "name": "f",
-            "title": "F",
-            "content": "O",
-            "keywords": ["V"],
+            "name": "e",
+            "title": "E",
+            "content": "C",
+            "keywords": [
+                "C"
+            ],
             "index": [
                 {
                     "modelName": "mocked-facked",
                     "position": [
-                        0.2296619030980711, -0.7582155612634365, -0.6513543881321788, -0.7605146943031293,
-                        0.11577742997470564, -0.08449533083434435, 0.3598385657597869, -0.225487060833506,
-                        -0.5332489101489739, 0.8658108024958109, 0.8740978786318929, -0.05211723559234427,
-                        -0.12385251505619932, 0.7201768954960839, -0.7377627961252062, -0.06068193398162114,
-                        -0.19259208538860229, -0.7578396782131898, 0.2300662741355861, 0.6655710551312453,
-                        0.778816621706115, -0.3804735003011155, -0.8537746087706255, -0.06510873668029937,
-                        -0.2605299393335119
+                        0.6465900267136884,
+                        -0.006680359468090646,
+                        0.580318309024384,
+                        0.9392719989138776,
+                        -0.15751901858405581,
+                        -0.17546845004090716,
+                        -0.3339616441047206,
+                        -0.18735067098720748,
+                        -0.06566159905875457,
+                        0.29037135347037113,
+                        0.8200178689028927,
+                        0.3575050533914359,
+                        0.18363257004794242,
+                        0.2729782096105611,
+                        0.8809174948266265,
+                        0.7441634064944438,
+                        -0.5746221300668237,
+                        0.869146353049298,
+                        -0.32708726910428965,
+                        0.29485013789888415,
+                        0.6670995121689107,
+                        -0.24404333521246668,
+                        -0.8385828425753079,
+                        -0.0597629433471627,
+                        -0.7131659311483296
                     ]
                 }
             ],
