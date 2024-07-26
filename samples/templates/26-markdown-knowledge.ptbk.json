@@ -1,0 +1,88 @@
+{
+    "title": "✨ Sample: Markdown Knowledge",
+    "pipelineUrl": "https://promptbook.studio/samples/markdown-knowledge.ptbk.md",
+    "promptbookVersion": "1.0.0",
+    "description": "Show how to use knowledge",
+    "parameters": [
+        {
+            "name": "eventName",
+            "description": "The event name",
+            "isInput": true,
+            "isOutput": false
+        },
+        {
+            "name": "bio",
+            "description": "Bio of Pavol Hejný - speaker at the event",
+            "isInput": false,
+            "isOutput": true
+        }
+    ],
+    "promptTemplates": [
+        {
+            "name": "writing-bio",
+            "title": "Writing bio",
+            "dependentParameterNames": [
+                "eventName"
+            ],
+            "blockType": "PROMPT_TEMPLATE",
+            "expectations": {
+                "sentences": {
+                    "min": 1
+                }
+            },
+            "modelRequirements": {
+                "modelVariant": "CHAT"
+            },
+            "content": "You are writing a bio for Pavol Hejný for the event {eventName}.\n\n## Rules\n\n-   Write just the bio, nothing else.\n-   Write in the third person.\n-   Bio is written in the present tense.\n-   Bio should be written for event named \"{eventName}\".\n-   Use markdown formatting.\n\n## Context\n\n-   {context}",
+            "resultingParameterName": "bio"
+        }
+    ],
+    "knowledge": [
+        {
+            "name": "i",
+            "title": "I",
+            "content": "C",
+            "keywords": [
+                "O"
+            ],
+            "index": [
+                {
+                    "modelName": "mocked-facked",
+                    "position": [
+                        0.8144708005814341,
+                        -0.08613315506930208,
+                        0.8340402752822955,
+                        0.3266566320960336,
+                        0.19878670060917036,
+                        -0.8524379410173726,
+                        0.22453620208887148,
+                        -0.5713191698248741,
+                        0.7273296038472172,
+                        0.7229693450939028,
+                        0.15289487131461987,
+                        -0.5399652812848212,
+                        -0.5616668300518151,
+                        0.6483952552361401,
+                        0.7830276627788328,
+                        0.9884006458130363,
+                        -0.1611355674456827,
+                        0.15458536714594873,
+                        -0.5628703093198468,
+                        0.4558909222263554,
+                        -0.3556099237670356,
+                        0.21128808256965748,
+                        0.5466778395122822,
+                        0.13979311202416733,
+                        -0.7992238274961609
+                    ]
+                }
+            ],
+            "sources": [
+                {
+                    "title": "Markdown document",
+                    "href": "#"
+                }
+            ]
+        }
+    ]
+}

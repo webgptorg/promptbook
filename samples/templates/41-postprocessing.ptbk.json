@@ -1,0 +1,86 @@
+{
+    "title": "✨ Sample: Postprocessing 2",
+    "pipelineUrl": "https://promptbook.studio/samples/postprocessing-2.ptbk.md",
+    "promptbookVersion": "1.0.0",
+    "parameters": [
+        {
+            "name": "yourName",
+            "description": "Name of the hero",
+            "isInput": true,
+            "isOutput": false
+        },
+        {
+            "name": "greeting",
+            "isInput": false,
+            "isOutput": true
+        }
+    ],
+    "promptTemplates": [
+        {
+            "name": "question",
+            "title": "💬 Question",
+            "dependentParameterNames": [
+                "yourName"
+            ],
+            "blockType": "PROMPT_TEMPLATE",
+            "postprocessing": [
+                "reverse",
+                "removeDiacritics",
+                "normalizeTo_SCREAMING_CASE"
+            ],
+            "modelRequirements": {
+                "modelVariant": "CHAT"
+            },
+            "content": "Hello {yourName}!",
+            "resultingParameterName": "greeting"
+        }
+    ],
+    "knowledge": [
+        {
+            "name": "a",
+            "title": "A",
+            "content": "I",
+            "keywords": [
+                "E"
+            ],
+            "index": [
+                {
+                    "modelName": "mocked-facked",
+                    "position": [
+                        -0.5354396532521877,
+                        -0.45290229453252984,
+                        -0.16373179249396141,
+                        0.2640427469802318,
+                        0.07474404884719332,
+                        -0.4968930704315646,
+                        -0.5770068170377378,
+                        -0.8206798129735837,
+                        -0.5029773420784891,
+                        -0.9671296651048054,
+                        0.607628574993901,
+                        0.4193410694563888,
+                        -0.9446776496740541,
+                        0.31375100702503556,
+                        -0.1286860101560663,
+                        0.6831698574741032,
+                        0.17138413815197406,
+                        0.20967932817829116,
+                        0.8020682126044036,
+                        0.8492084898100138,
+                        0.7830381227045691,
+                        0.04055274810746701,
+                        0.31321901932093876,
+                        0.7825650657045404,
+                        0.7631973452400511
+                    ]
+                }
+            ],
+            "sources": [
+                {
+                    "title": "Markdown document",
+                    "href": "#"
+                }
+            ]
+        }
+    ]
+}

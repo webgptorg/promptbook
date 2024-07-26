@@ -1,0 +1,103 @@
+{
+    "title": "✨ Sample prompt with two consecutive prompts",
+    "pipelineUrl": "https://promptbook.studio/samples/two.ptbk.md",
+    "promptbookVersion": "1.0.0",
+    "description": "Show how to use two consecutive prompts with one parameter each.",
+    "parameters": [
+        {
+            "name": "word",
+            "description": "Any single word",
+            "isInput": true,
+            "isOutput": false
+        },
+        {
+            "name": "sentenceWithTwoSynonyms",
+            "isInput": false,
+            "isOutput": true
+        },
+        {
+            "name": "wordSynonym",
+            "isInput": false,
+            "isOutput": false
+        }
+    ],
+    "promptTemplates": [
+        {
+            "name": "synonym",
+            "title": "💬 Synonym",
+            "description": "Synonym for word",
+            "dependentParameterNames": [
+                "word"
+            ],
+            "blockType": "PROMPT_TEMPLATE",
+            "modelRequirements": {
+                "modelVariant": "CHAT"
+            },
+            "content": "Write synonym for \"{word}\"",
+            "resultingParameterName": "wordSynonym"
+        },
+        {
+            "name": "sentence",
+            "title": "💬 Sentence",
+            "description": "Sentence with word and wordSynonym",
+            "dependentParameterNames": [
+                "word",
+                "wordSynonym"
+            ],
+            "blockType": "PROMPT_TEMPLATE",
+            "modelRequirements": {
+                "modelVariant": "CHAT"
+            },
+            "content": "Write sentence with \"{word}\" and \"{wordSynonym}\" in it",
+            "resultingParameterName": "sentenceWithTwoSynonyms"
+        }
+    ],
+    "knowledge": [
+        {
+            "name": "a",
+            "title": "A",
+            "content": "E",
+            "keywords": [
+                "E"
+            ],
+            "index": [
+                {
+                    "modelName": "mocked-facked",
+                    "position": [
+                        0.41176982768736403,
+                        -0.1470612082276137,
+                        -0.22798854551753145,
+                        0.7995776921919231,
+                        0.2519936904167901,
+                        0.783117922156833,
+                        -0.01422232918518107,
+                        -0.4370725582173307,
+                        -0.32808271037882175,
+                        -0.9298519874357631,
+                        -0.5132187896341334,
+                        0.5455498577823099,
+                        -0.32141597824418255,
+                        -0.37096959022487885,
+                        0.4049381516334525,
+                        -0.0373455058684109,
+                        0.9667366028993785,
+                        -0.9465774238905151,
+                        -0.9822013385717678,
+                        0.15609683787371242,
+                        0.4581945343946425,
+                        0.5179850860209307,
+                        -0.4236187476865947,
+                        0.5395661132472038,
+                        0.7490163622782973
+                    ]
+                }
+            ],
+            "sources": [
+                {
+                    "title": "Markdown document",
+                    "href": "#"
+                }
+            ]
+        }
+    ]
+}

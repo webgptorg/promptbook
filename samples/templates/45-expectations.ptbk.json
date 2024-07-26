@@ -1,0 +1,99 @@
+{
+    "title": "✨ Sample: Expectations",
+    "pipelineUrl": "https://promptbook.studio/samples/expectations.ptbk.md",
+    "promptbookVersion": "1.0.0",
+    "parameters": [
+        {
+            "name": "yourName",
+            "description": "Name of the hero",
+            "isInput": true,
+            "isOutput": false
+        },
+        {
+            "name": "greeting",
+            "isInput": false,
+            "isOutput": true
+        }
+    ],
+    "promptTemplates": [
+        {
+            "name": "question",
+            "title": "💬 Question",
+            "dependentParameterNames": [
+                "yourName"
+            ],
+            "blockType": "PROMPT_TEMPLATE",
+            "expectations": {
+                "characters": {
+                    "max": 30,
+                    "min": 2
+                },
+                "words": {
+                    "max": 3
+                },
+                "sentences": {
+                    "min": 1,
+                    "max": 1
+                },
+                "lines": {
+                    "min": 1,
+                    "max": 1
+                }
+            },
+            "modelRequirements": {
+                "modelVariant": "CHAT",
+                "modelName": "gpt-3.5-turbo"
+            },
+            "content": "Hello {yourName}!",
+            "resultingParameterName": "greeting"
+        }
+    ],
+    "knowledge": [
+        {
+            "name": "c",
+            "title": "C",
+            "content": "N",
+            "keywords": [
+                "L"
+            ],
+            "index": [
+                {
+                    "modelName": "mocked-facked",
+                    "position": [
+                        -0.11021247229179032,
+                        0.6047296864354972,
+                        -0.6382795397084373,
+                        0.3564391869174188,
+                        0.8314319641760144,
+                        0.04393762575654181,
+                        -0.2091133494102082,
+                        -0.2098663993854073,
+                        -0.44117014890293405,
+                        0.6424028730214832,
+                        0.1431284024720232,
+                        0.26141712173722764,
+                        0.9386322004760057,
+                        -0.5352675000342231,
+                        0.7998717177945411,
+                        0.35371933909725106,
+                        -0.46424673524172944,
+                        0.09092650046731521,
+                        -0.8718066519643508,
+                        0.15609670448405,
+                        -0.3965273362825905,
+                        0.9786317679383489,
+                        -0.03429250802838224,
+                        -0.393985558948299,
+                        0.03689234210953085
+                    ]
+                }
+            ],
+            "sources": [
+                {
+                    "title": "Markdown document",
+                    "href": "#"
+                }
+            ]
+        }
+    ]
+}

@@ -1,0 +1,86 @@
+{
+    "title": "✨ Sample: Parsing data to JSON",
+    "pipelineUrl": "https://promptbook.studio/samples/expect-json.ptbk.md",
+    "promptbookVersion": "1.0.0",
+    "parameters": [
+        {
+            "name": "sentence",
+            "description": "Sentence to be processed",
+            "isInput": true,
+            "isOutput": false
+        },
+        {
+            "name": "parsedSentence",
+            "isInput": false,
+            "isOutput": true
+        }
+    ],
+    "promptTemplates": [
+        {
+            "name": "question",
+            "title": "💬 Question",
+            "dependentParameterNames": [
+                "sentence"
+            ],
+            "blockType": "PROMPT_TEMPLATE",
+            "postprocessing": [
+                "trimEndOfCodeBlock"
+            ],
+            "expectFormat": "JSON",
+            "modelRequirements": {
+                "modelVariant": "COMPLETION",
+                "modelName": "gpt-3.5-turbo-instruct"
+            },
+            "content": "Dark horse hopping over the fence.\n\n```json\n{\n  \"subject\": \"horse\",\n  \"action\": \"hopping\",\n  \"object\": \"fence\"\n}\n```\n\n---\n\n{sentence}\n\n```json",
+            "resultingParameterName": "parsedSentence"
+        }
+    ],
+    "knowledge": [
+        {
+            "name": "m",
+            "title": "M",
+            "content": "C",
+            "keywords": [
+                "E"
+            ],
+            "index": [
+                {
+                    "modelName": "mocked-facked",
+                    "position": [
+                        -0.4907842173041659,
+                        -0.07580962649710443,
+                        -0.06129567394497748,
+                        0.7620031683691004,
+                        0.9325595935241529,
+                        0.1795531512939208,
+                        -0.6516451116646964,
+                        -0.7261320116113614,
+                        -0.7838122656505355,
+                        -0.028371031409339054,
+                        0.21093344414002102,
+                        -0.5987267885463488,
+                        -0.4042742495517011,
+                        0.08229993803485147,
+                        0.5883379108517413,
+                        0.7461098714511833,
+                        0.02327170055906924,
+                        0.0234298403575961,
+                        -0.5106880081406078,
+                        0.08577828728061165,
+                        -0.013365080516997363,
+                        -0.717623754796135,
+                        -0.9724244234043948,
+                        -0.16089146140250898,
+                        -0.7153870346429749
+                    ]
+                }
+            ],
+            "sources": [
+                {
+                    "title": "Markdown document",
+                    "href": "#"
+                }
+            ]
+        }
+    ]
+}

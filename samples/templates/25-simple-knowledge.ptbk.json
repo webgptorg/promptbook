@@ -1,0 +1,88 @@
+{
+    "title": "✨ Sample: Simple Knowledge",
+    "pipelineUrl": "https://promptbook.studio/samples/simple-knowledge.ptbk.md",
+    "promptbookVersion": "1.0.0",
+    "description": "Show how to use knowledge",
+    "parameters": [
+        {
+            "name": "eventName",
+            "description": "The event name",
+            "isInput": true,
+            "isOutput": false
+        },
+        {
+            "name": "bio",
+            "description": "Bio of Pavol Hejný - speaker at the event",
+            "isInput": false,
+            "isOutput": true
+        }
+    ],
+    "promptTemplates": [
+        {
+            "name": "writing-bio",
+            "title": "Writing bio",
+            "dependentParameterNames": [
+                "eventName"
+            ],
+            "blockType": "PROMPT_TEMPLATE",
+            "expectations": {
+                "sentences": {
+                    "min": 1
+                }
+            },
+            "modelRequirements": {
+                "modelVariant": "CHAT"
+            },
+            "content": "You are writing a bio for Pavol Hejný for the event {eventName}.\n\n## Rules\n\n-   Write just the bio, nothing else.\n-   Write in the third person.\n-   Bio is written in the present tense.\n-   Bio should be written for event named \"{eventName}\".\n-   Write plain text without any formatting (like markdown).\n\n## Context\n\n-   {context}",
+            "resultingParameterName": "bio"
+        }
+    ],
+    "knowledge": [
+        {
+            "name": "i",
+            "title": "I",
+            "content": "E",
+            "keywords": [
+                "L"
+            ],
+            "index": [
+                {
+                    "modelName": "mocked-facked",
+                    "position": [
+                        0.8809181029282667,
+                        0.9169234390720828,
+                        -0.4643127312402897,
+                        0.9919455789079681,
+                        0.8476727818256751,
+                        0.41923490894959725,
+                        0.4860894447846045,
+                        0.561594438226265,
+                        0.5609790368156204,
+                        -0.8193364858260845,
+                        0.9527388002129893,
+                        0.7932286368607095,
+                        -0.04645147317861342,
+                        0.28957229348315305,
+                        -0.6609411346890264,
+                        0.8744646027653347,
+                        0.8514240164773668,
+                        -0.875442254457067,
+                        0.5687981059487242,
+                        -0.8420999468887622,
+                        0.9930508471018951,
+                        0.6161098833785843,
+                        -0.49078263255463783,
+                        0.7468369756048485,
+                        0.8808387350629792
+                    ]
+                }
+            ],
+            "sources": [
+                {
+                    "title": "Markdown document",
+                    "href": "#"
+                }
+            ]
+        }
+    ]
+}

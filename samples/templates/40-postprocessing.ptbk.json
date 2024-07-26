@@ -1,0 +1,111 @@
+{
+    "title": "✨ Sample: Postprocessing 1",
+    "pipelineUrl": "https://promptbook.studio/samples/postprocessing-1.ptbk.md",
+    "promptbookVersion": "1.0.0",
+    "description": "Show how to use two consecutive prompts with one parameter each.",
+    "parameters": [
+        {
+            "name": "word",
+            "description": "Any single word",
+            "isInput": true,
+            "isOutput": false
+        },
+        {
+            "name": "sentence",
+            "description": "Resulting sentence with two synonyms",
+            "isInput": false,
+            "isOutput": true
+        },
+        {
+            "name": "wordSynonym",
+            "isInput": false,
+            "isOutput": false
+        }
+    ],
+    "promptTemplates": [
+        {
+            "name": "synonym",
+            "title": "💬 Synonym",
+            "description": "Synonym for word",
+            "dependentParameterNames": [
+                "word"
+            ],
+            "blockType": "PROMPT_TEMPLATE",
+            "postprocessing": [
+                "unwrapResult"
+            ],
+            "modelRequirements": {
+                "modelVariant": "CHAT"
+            },
+            "content": "Write synonym for \"{word}\"",
+            "resultingParameterName": "wordSynonym"
+        },
+        {
+            "name": "sentence",
+            "title": "💬 Sentence",
+            "description": "Sentence with word and wordSynonym",
+            "dependentParameterNames": [
+                "word",
+                "wordSynonym"
+            ],
+            "blockType": "PROMPT_TEMPLATE",
+            "postprocessing": [
+                "unwrapResult",
+                "spaceTrim"
+            ],
+            "modelRequirements": {
+                "modelVariant": "CHAT"
+            },
+            "content": "Write sentence with \"{word}\" and \"{wordSynonym}\" in it",
+            "resultingParameterName": "sentence"
+        }
+    ],
+    "knowledge": [
+        {
+            "name": "e",
+            "title": "E",
+            "content": "V",
+            "keywords": [
+                "M"
+            ],
+            "index": [
+                {
+                    "modelName": "mocked-facked",
+                    "position": [
+                        0.7281731926038968,
+                        0.03305840314579589,
+                        -0.039578165972892876,
+                        0.3331418823809198,
+                        0.8437216837920198,
+                        -0.7370411446756218,
+                        0.01581818640080712,
+                        -0.6449678997775163,
+                        0.5950199098958673,
+                        -0.6567373772546317,
+                        -0.14251886858219187,
+                        0.867598526157837,
+                        -0.6118046054980488,
+                        0.5628183099582373,
+                        -0.36187442384685076,
+                        -0.5765786919853202,
+                        -0.17992042061496516,
+                        0.8555166006964803,
+                        0.6780649011028763,
+                        -0.21672764510326337,
+                        -0.9936726817118693,
+                        -0.777322895775606,
+                        -0.9460873355513755,
+                        0.325514484008786,
+                        0.5081144406189253
+                    ]
+                }
+            ],
+            "sources": [
+                {
+                    "title": "Markdown document",
+                    "href": "#"
+                }
+            ]
+        }
+    ]
+}

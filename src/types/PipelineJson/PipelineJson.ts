@@ -1,9 +1,7 @@
-import type {
-    string_file_path,
-    string_markdown_text,
-    string_pipeline_url,
-    string_semantic_version,
-} from '../typeAliases';
+import type { string_file_path } from '../typeAliases';
+import type { string_markdown_text } from '../typeAliases';
+import type { string_pipeline_url } from '../typeAliases';
+import type { string_semantic_version } from '../typeAliases';
 import type { KnowledgeJson } from './KnowledgeJson';
 import type { PromptTemplateJson } from './PromptTemplateJson';
 import type { PromptTemplateParameterJson } from './PromptTemplateParameterJson';

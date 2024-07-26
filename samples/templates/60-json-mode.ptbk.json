@@ -1,0 +1,88 @@
+{
+    "title": "✨ Sample: JSON mode",
+    "pipelineUrl": "https://promptbook.studio/samples/json-mode.ptbk.md",
+    "promptbookVersion": "1.0.0",
+    "description": "Trying the language capabilities of GPT models.",
+    "parameters": [
+        {
+            "name": "unstructuredContacts",
+            "description": "nestrukturovaný seznam kontaktních údajů",
+            "isInput": true,
+            "isOutput": false
+        },
+        {
+            "name": "contactlist",
+            "description": "JSON seznam kontaktních údajů",
+            "isInput": false,
+            "isOutput": true
+        }
+    ],
+    "promptTemplates": [
+        {
+            "name": "extrakce-kontaktnich-udaju",
+            "title": "🖋 Extrakce kontaktních údajů",
+            "dependentParameterNames": [
+                "unstructuredContacts"
+            ],
+            "blockType": "PROMPT_TEMPLATE",
+            "postprocessing": [
+                "trimEndOfCodeBlock"
+            ],
+            "expectFormat": "JSON",
+            "modelRequirements": {
+                "modelVariant": "COMPLETION",
+                "modelName": "gpt-3.5-turbo-instruct"
+            },
+            "content": "Extrahuj kontaktní data z nestrukturovaného seznamu kontaktních údajů\n\n## 1. Nestrukturované údaje\n\n```text\ninfo@webgpt.cz\nhttps://www.facebook.com/webgptorg\nhttps://www.instagram.com/webgpt.cz/\nhttps://www.linkedin.com/company/98725909/\n\nAI Web s.r.o.\nIČO: 21012288\nDatová schránka: hzuu4yn\n\nPavol Hejný\nVývojář\npavol@webgpt.cz\n+420774080996\n\nJiří Jahn\nMarketing, Obchod\njirka@webgpt.cz\n\nAinautes\nSkupina lidí za projektem\nhttps://ainautes.com\n```\n\n## 1. Strukturované údaje\n\n```json\n[\n  {\n    \"role\": \"OWNER\",\n    \"fullname\": \"AI Web s.r.o.\",\n    \"share\": 1\n  },\n  {\n    \"role\": \"TECHNICAL\",\n    \"fullname\": \"Pavol Hejný\",\n    \"email\": \"pavol@webgpt.cz\",\n    \"phone\": \"+420420774080996\"\n  },\n  {\n    \"role\": \"LEGAL\",\n    \"fullname\": \"Jiří Jahn\",\n    \"email\": \"jirka@webgpt.cz\"\n  },\n  {\n    \"role\": \"CONTENT_MANAGER\",\n    \"fullname\": \"Jiří Jahn\",\n    \"email\": \"jirka@webgpt.cz\"\n  },\n  {\n    \"role\": \"OTHER\",\n    \"roleDescription\": \"Skupina lidí za projektem\",\n    \"fullname\": \"Ainautes\",\n    \"web\": \"https://ainautes.com\"\n  }\n]\n```\n\n## 2. Nestrukturované údaje\n\n```text\n{unstructuredContacts}\n```\n\n## 2. Strukturované údaje\n\n```json",
+            "resultingParameterName": "contactlist"
+        }
+    ],
+    "knowledge": [
+        {
+            "name": "l",
+            "title": "L",
+            "content": "E",
+            "keywords": [
+                "F"
+            ],
+            "index": [
+                {
+                    "modelName": "mocked-facked",
+                    "position": [
+                        -0.982837256948446,
+                        0.20005533267609676,
+                        -0.8844653168905467,
+                        0.29174642452936617,
+                        -0.8722549120156509,
+                        -0.7371362255221539,
+                        0.1610080352094183,
+                        0.657856554762732,
+                        -0.42587780037234824,
+                        0.5066555417803733,
+                        -0.6594384590243716,
+                        -0.835413695906714,
+                        0.6783876198599637,
+                        0.9083908121175677,
+                        0.2483057355099687,
+                        -0.7924355407046724,
+                        -0.8683517971054457,
+                        0.5025841687894608,
+                        0.8370793421362168,
+                        -0.09000101774639058,
+                        0.8546606174003499,
+                        0.6736422322245579,
+                        0.03199642828264748,
+                        -0.5505157898550408,
+                        0.16534689881722242
+                    ]
+                }
+            ],
+            "sources": [
+                {
+                    "title": "Markdown document",
+                    "href": "#"
+                }
+            ]
+        }
+    ]
+}

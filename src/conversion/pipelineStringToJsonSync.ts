@@ -1,7 +1,7 @@
 import { spaceTrim } from 'spacetrim';
 import type { IterableElement, Writable, WritableDeep } from 'type-fest';
-import { RESERVED_PARAMETER_NAMES } from '../_packages/core.index';
-import { difference } from '../_packages/utils.index';
+import { RESERVED_PARAMETER_NAMES } from '../config';
+import { difference } from '../utils/sets/difference';
 import type { BlockType } from '../commands/BLOCK/BlockTypes';
 import type { ParameterCommand } from '../commands/PARAMETER/ParameterCommand';
 import { parseCommand } from '../commands/_common/parseCommand';

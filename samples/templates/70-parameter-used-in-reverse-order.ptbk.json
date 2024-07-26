@@ -1,0 +1,103 @@
+{
+    "title": "✨ Sample of logic error",
+    "pipelineUrl": "https://promptbook.studio/samples/parameter-used-in-reverse-order.ptbk.md",
+    "promptbookVersion": "1.0.0",
+    "description": "Sample of using parameter in reverse order\n\n_Note: This is not recommended but it should work_",
+    "parameters": [
+        {
+            "name": "word",
+            "description": "Any single word",
+            "isInput": true,
+            "isOutput": false
+        },
+        {
+            "name": "sentenceWithTwoSynonyms",
+            "isInput": false,
+            "isOutput": true
+        },
+        {
+            "name": "wordSynonym",
+            "isInput": false,
+            "isOutput": false
+        }
+    ],
+    "promptTemplates": [
+        {
+            "name": "sentence",
+            "title": "Sentence",
+            "description": "Sentence with word and wordSynonym",
+            "dependentParameterNames": [
+                "word",
+                "wordSynonym"
+            ],
+            "blockType": "PROMPT_TEMPLATE",
+            "modelRequirements": {
+                "modelVariant": "CHAT"
+            },
+            "content": "Write sentence with \"{word}\" and \"{wordSynonym}\" in it",
+            "resultingParameterName": "sentenceWithTwoSynonyms"
+        },
+        {
+            "name": "synonym",
+            "title": "Synonym",
+            "description": "Synonym for word",
+            "dependentParameterNames": [
+                "word"
+            ],
+            "blockType": "PROMPT_TEMPLATE",
+            "modelRequirements": {
+                "modelVariant": "CHAT"
+            },
+            "content": "Write synonym for \"{word}\"",
+            "resultingParameterName": "wordSynonym"
+        }
+    ],
+    "knowledge": [
+        {
+            "name": "p",
+            "title": "P",
+            "content": "C",
+            "keywords": [
+                "L"
+            ],
+            "index": [
+                {
+                    "modelName": "mocked-facked",
+                    "position": [
+                        0.7239207513761841,
+                        -0.7251862480378515,
+                        -0.04209482195194214,
+                        -0.5513564638215223,
+                        0.5295435192299638,
+                        0.9650540362478441,
+                        -0.3784660177752537,
+                        0.7870343483131186,
+                        0.7660332408225297,
+                        -0.4230696415463089,
+                        -0.7107113461733134,
+                        -0.7233156415536333,
+                        -0.42012660547237424,
+                        0.32722395723026265,
+                        -0.29297286864085015,
+                        0.3958531033369703,
+                        0.012985799351627136,
+                        0.31412131352182504,
+                        -0.7638210731977773,
+                        0.19299201550009037,
+                        0.9830549912152211,
+                        -0.03947040477271324,
+                        -0.2994282557263692,
+                        -0.11364929175365157,
+                        0.9806377490539369
+                    ]
+                }
+            ],
+            "sources": [
+                {
+                    "title": "Markdown document",
+                    "href": "#"
+                }
+            ]
+        }
+    ]
+}

@@ -2,7 +2,7 @@ import { describe, expect, it } from '@jest/globals';
 import spaceTrim from 'spacetrim';
 import { pipelineStringToJson } from '../../conversion/pipelineStringToJson';
 import type { PipelineString } from '../../types/PipelineString';
-import { really_any } from '../../types/typeAliases';
+import type { really_any } from '../../types/typeAliases';
 import { just } from '../../utils/just';
 import { createCollectionFromDirectory } from './createCollectionFromDirectory';
 

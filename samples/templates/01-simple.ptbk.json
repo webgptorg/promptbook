@@ -1,0 +1,74 @@
+{
+    "title": "✨ Sample prompt with URL",
+    "pipelineUrl": "https://promptbook.studio/samples/simple.ptbk.md",
+    "promptbookVersion": "1.0.0",
+    "description": "Show how to use a simple prompt with no parameters.",
+    "parameters": [
+        {
+            "name": "greetingResponse",
+            "isInput": false,
+            "isOutput": true
+        }
+    ],
+    "promptTemplates": [
+        {
+            "name": "prompt",
+            "title": "💬 Prompt",
+            "dependentParameterNames": [],
+            "blockType": "PROMPT_TEMPLATE",
+            "modelRequirements": {
+                "modelVariant": "CHAT"
+            },
+            "content": "Hello",
+            "resultingParameterName": "greetingResponse"
+        }
+    ],
+    "knowledge": [
+        {
+            "name": "u",
+            "title": "U",
+            "content": "E",
+            "keywords": [
+                "A"
+            ],
+            "index": [
+                {
+                    "modelName": "mocked-facked",
+                    "position": [
+                        0.6789298965062982,
+                        -0.4859720319337426,
+                        -0.606269682491797,
+                        -0.03183173363999536,
+                        0.5275808666440378,
+                        0.5826533911715028,
+                        -0.1815520806075379,
+                        0.1540911662726705,
+                        -0.8680823039268701,
+                        -0.5180702815252776,
+                        -0.029354734857426124,
+                        0.13386292820926338,
+                        0.4883518997752252,
+                        0.43161024956199556,
+                        -0.18752779228720273,
+                        0.507540479503997,
+                        -0.06016424366369311,
+                        0.6122158681058236,
+                        -0.9243255259990653,
+                        0.7509928120500451,
+                        0.9731545645012698,
+                        0.782388441808961,
+                        -0.9812443006539477,
+                        -0.12004480615007962,
+                        -0.31974526696140293
+                    ]
+                }
+            ],
+            "sources": [
+                {
+                    "title": "Markdown document",
+                    "href": "#"
+                }
+            ]
+        }
+    ]
+}
