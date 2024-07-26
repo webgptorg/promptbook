@@ -1,0 +1,50 @@
+// TODO: [🐠] This is the draft how validators should be created:
+
+export const {
+    validate: validateFooBar,
+    asserts: assertsFooBar,
+    isValid: isValidFooBar,
+} = makeValidator<'foo' | 'bar'>((value: unknown) => {
+    if (value !== 'foo' || value !== 'bar') {
+        throw new ValidationError('Value must be either "foo" or "bar"');
+    }
+});
+
+type Validator<TValue> = {
+    validate(value: unknown): TValue;
+    asserts(value: unknown): asserts value is TValue;
+    isValid(value: unknown): value is TValue;
+};
+
+/**
+ *
+ * @private
+ */
+function makeValidator<TValue extends string>(validator: (value: unknown) => TValue): Validator<TValue> {
+    const validate = (value: unknown): TValue => {
+        const result = validator(value);
+        return result;
+    };
+
+    const asserts = (value: unknown): asserts value is TValue => {
+        validator(value);
+    };
+
+    const isValid = (value: unknown): value is TValue => {
+        try {
+            validator(value);
+            return true;
+        } catch {
+            if (!(error instanceof ValidationError)) {
+                throw error;
+            }
+            return false;
+        }
+    };
+
+    return { validate, asserts, isValid };
+}
+
+/**
+ * TODO: What about async validators
+ */
