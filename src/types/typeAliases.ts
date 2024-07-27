@@ -112,6 +112,13 @@ export type string_name = string;
 export type string_title = string;
 
 /**
+ * Description of persona
+ *
+ * For example `"Skilled copywriter"`
+ */
+export type string_persona_description = string;
+
+/**
  * Semantic helper
  *
  * For example `"<div>Hello World!</div>"`

@@ -1,4 +1,4 @@
-import { string_name } from "../../types/typeAliases";
+import { string_name, string_persona_description } from '../../types/typeAliases';
 
 /**
  * Parsed PERSONA command
@@ -9,5 +9,5 @@ import { string_name } from "../../types/typeAliases";
 export type PersonaCommand = {
     readonly type: 'PERSONA';
     personaName: string_name;
-    personaDescription: string | null;
+    personaDescription: string_persona_description | null;
 };

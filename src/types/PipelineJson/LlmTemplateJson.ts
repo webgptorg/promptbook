@@ -21,5 +21,6 @@ export type LlmTemplateJson = PromptTemplateJsonCommon & {
 };
 
 /**
- * TODO: [👙][🧠] Just selecting gpt3 or gpt4 level of modelT
+ * TODO: !!!!emoji ACRY + discussion [🧠] Should be knowledge, actions and ... aviable granularry for each template and/or persona
+ * TODO: !!!! [👙][🧠] Just selecting gpt3 or gpt4 level of modelT
  */

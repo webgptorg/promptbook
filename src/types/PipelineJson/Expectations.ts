@@ -1,5 +1,4 @@
-import type { number_integer } from '../typeAliases';
-import type { number_positive } from '../typeAliases';
+import type { number_integer, number_positive } from '../typeAliases';
 
 /**
  * Expect this amount of each unit in the answer
@@ -9,7 +8,7 @@ import type { number_positive } from '../typeAliases';
  * Note: Expectations are performed after all postprocessing steps
  */
 export type Expectations = Partial<
-    Record<Lowercase<ExpectationUnit>, { min?: ExpectationAmount; max?: ExpectationAmount }>
+    Record<Lowercase<ExpectationUnit>, { readonly min?: ExpectationAmount; readonly max?: ExpectationAmount }>
 >;
 
 /**

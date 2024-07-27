@@ -1,5 +1,7 @@
 import { describe, expect, it } from '@jest/globals';
 import { spaceTrim } from 'spacetrim';
+import { PersonaPreparedJson } from '../types/PipelineJson/PersonaJson';
+import { string_persona_description } from '../types/typeAliases';
 
 describe('how personaToModelRequirements works', () => {
     it('should work with simple persona description', () =>
@@ -38,6 +40,6 @@ describe('how personaToModelRequirements works', () => {
  *
  * @private within the package
  */
-export function personaToModelRequirements(value: string): boolean {
+export function personaToModelRequirements(value: string_persona_description): PersonaPreparedJson['modelRequirements'] {
     return value === 'Foo';
 }

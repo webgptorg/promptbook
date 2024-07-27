@@ -11,5 +11,6 @@
 export type Parameters = object;
 
 /**
+ * TODO: !!!!! Implement samples into parameters
  * TODO: Constrain type to Simple key-value object, only string keys and string values and no index signature + only camelCase keys and spaceTrimmed values
  */
