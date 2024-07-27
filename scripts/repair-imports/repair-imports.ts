@@ -136,6 +136,10 @@ async function repairImports({
     // Note: [🤛] Organizing brakes multiline imports (or does sth. which brakes the code where shouldn’t be)
     await writeAllProjectFiles(files, isOrganized);
 
+    if (isCommited) {
+        await commit('.', `🧹 Repair imports`);
+    }
+
     /*
     TODO: Fix & implement
     if (isOrganizedAll) {
@@ -167,9 +171,9 @@ async function repairImports({
             throw error;
         }
     }
-    */
 
     if (isCommited) {
         await commit('.', `🧹 Organize imports`);
     }
+    */
 }
