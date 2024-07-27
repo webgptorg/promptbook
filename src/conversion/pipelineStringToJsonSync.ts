@@ -127,7 +127,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
 
                         Second definition:
                         ${block(parameterDescription || '[undefined]')}
-                    ` /* <- TODO: [🚞] */,
+                    `, // <- TODO: [🚞]
                 ),
             );
         }
@@ -198,7 +198,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
             case 'BOILERPLATE':
                 throw new ParsingError(
                     'BOILERPLATE command is only for testing purposes and should not be used in the .ptbk.md file',
-                ); /* <- TODO: [🚞] */
+                ); // <- TODO: [🚞]
                 break;
 
             // <- [💐]
@@ -206,7 +206,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
             default:
                 throw new ParsingError(
                     `Command ${command.type} is not allowed in the head of the promptbook ONLY at the pipeline template`,
-                ); /* <- TODO: [🚞] */
+                ); // <- TODO: [🚞]
         }
     }
 
@@ -235,7 +235,8 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
                     if (isBlockTypeChanged) {
                         throw new ParsingError(
                             'Block type is already defined in the prompt template. It can be defined only once.',
-                        ); /* <- TODO: [🚞] */
+                            // <- TODO: [🚞]
+                        );
                     }
 
                     if (command.blockType === 'SAMPLE') {
@@ -273,7 +274,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
                                 `Already defined minumum ${
                                     expectAmount[unit]!.min
                                 } ${command.unit.toLowerCase()}, now trying to redefine it to ${command.amount}`,
-                                /* <- TODO: [🚞] */
+                                // <- TODO: [🚞]
                             );
                         }
                         expectAmount[unit]!.min = command.amount;
@@ -284,7 +285,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
                                 `Already defined maximum ${
                                     expectAmount[unit]!.max
                                 } ${command.unit.toLowerCase()}, now trying to redefine it to ${command.amount}`,
-                                /* <- TODO: [🚞] */
+                                // <- TODO: [🚞]
                             );
                         }
                         expectAmount[unit]!.max = command.amount;
@@ -295,7 +296,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
                     if (expectFormat !== undefined && command.format !== expectFormat) {
                         throw new ParsingError(
                             `Expect format is already defined to "${expectFormat}". Now you try to redefine it by "${command.format}".`,
-                            /* <- TODO: [🚞] */
+                            // <- TODO: [🚞]
                         );
                     }
                     expectFormat = command.format;
@@ -343,7 +344,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
                 default:
                     throw new ParsingError(
                         `Command ${command.type} is not allowed in the block of the prompt template ONLY at the head of the pipeline`,
-                        /* <- TODO: [🚞] */
+                        // <- TODO: [🚞]
                     );
             }
         }
@@ -353,7 +354,8 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
         if (blockType === 'SCRIPT') {
             if (!language) {
                 throw new ParsingError(
-                    'You must specify the language of the script in the prompt template' /* <- TODO: [🚞] */,
+                    'You must specify the language of the script in the prompt template',
+                    // <- TODO: [🚞]
                 );
             } else if (!SUPPORTED_SCRIPT_LANGUAGES.includes(language as ScriptLanguage)) {
                 throw new ParsingError(
@@ -365,7 +367,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
                             ${block(SUPPORTED_SCRIPT_LANGUAGES.join(', '))}
 
                         `,
-                        /* <- TODO: [🚞] */
+                        // <- TODO: [🚞]
                     ),
                 );
             }
@@ -388,7 +390,6 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
                                 .join('\n'),
                         )}
                       `,
-                    /* <- TODO: [🚞] */
                 ),
             );
         }

@@ -99,7 +99,7 @@ export const blockCommandParser: CommandParser<BlockCommand> = {
 
                         Supported block types are:
                         ${block(BlockTypes.join(', '))}
-                    ` /* <- TODO: [🚞] */,
+                    `, // <- TODO: [🚞]
                 ),
             );
         }

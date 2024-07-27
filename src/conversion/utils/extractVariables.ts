@@ -50,7 +50,7 @@ export function extractVariables(script: string_javascript): Set<string_javascri
 
                     ${block((error as Error).name)}: ${block((error as Error).message)}
                 `,
-                /* <- TODO: [🚞] */
+                // <- TODO: [🚞]
             ),
         );
     }
