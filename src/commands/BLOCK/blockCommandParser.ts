@@ -1,6 +1,7 @@
 import spaceTrim from 'spacetrim';
 import { ParsingError } from '../../errors/ParsingError';
-import type { CommandParser, CommandParserInput } from '../_common/types/CommandParser';
+import type { CommandParser } from '../_common/types/CommandParser';
+import type { CommandParserInput } from '../_common/types/CommandParser';
 import type { BlockCommand } from './BlockCommand';
 import { BlockTypes } from './BlockTypes';
 
