@@ -240,7 +240,7 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
                             ...packages.map(({ packageName, packageFullname }) => ({
                                 name: `Publish ${packageFullname}`,
                                 'working-directory': `./packages/${packageName}`,
-                                run: 'npm publish --access public',
+                                run: 'npm publish --provenance --access public',
                                 env: {
                                     NODE_AUTH_TOKEN: '${{secrets.NPM_TOKEN}}',
                                 },
