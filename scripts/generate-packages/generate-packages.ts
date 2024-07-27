@@ -213,6 +213,11 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
                     'publish-npm': {
                         name: 'Publish on NPM package registry',
                         'runs-on': 'ubuntu-latest',
+                        permissions: {
+                            contents: 'read',
+                            'id-token': 'write',
+                            // <- Note: Permissions are required with provenance statement @see https://docs.npmjs.com/generating-provenance-statements
+                        },
                         steps: [
                             {
                                 name: 'Checkout',
