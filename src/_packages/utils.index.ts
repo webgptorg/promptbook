@@ -125,13 +125,11 @@ export {
 
 export type { string_camelCase, string_kebab_case, string_PascalCase, string_SCREAMING_CASE, string_snake_case };
 
-
 // Promptbook
 export { extractParametersFromPromptTemplate, renameParameter, renderPromptbookMermaid };
 
 export { difference, intersection, union };
 
 /**
- * TODO: [🧠] Maybe create some indipendent package like `@promptbook/markdown-utils`
  * Note: [🕙] It does not make sence to have simple lower / UPPER case normalization
  */
