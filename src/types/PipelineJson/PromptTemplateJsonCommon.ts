@@ -1,12 +1,14 @@
 import type { BlockType } from '../../commands/BLOCK/BlockTypes';
 import type { ExpectFormatCommand } from '../../commands/EXPECT/ExpectFormatCommand';
-import type { string_javascript } from '../typeAliases';
-import type { string_javascript_name } from '../typeAliases';
-import type { string_markdown } from '../typeAliases';
-import type { string_markdown_text } from '../typeAliases';
-import type { string_name } from '../typeAliases';
-import type { string_prompt } from '../typeAliases';
-import type { string_template } from '../typeAliases';
+import type {
+    string_javascript,
+    string_javascript_name,
+    string_markdown,
+    string_markdown_text,
+    string_name,
+    string_prompt,
+    string_template,
+} from '../typeAliases';
 import type { Expectations } from './Expectations';
 
 /**
@@ -42,6 +44,8 @@ export interface PromptTemplateJsonCommon {
 
     /**
      * If theese parameters meet the expectations requirements, they are used instead of executing this prompt template
+     *
+     * @see https://github.com/webgptorg/promptbook/discussions/66
      */
     readonly jokers?: Array<string>;
 
@@ -58,6 +62,8 @@ export interface PromptTemplateJsonCommon {
 
     /**
      * List of postprocessing steps that are executed after the prompt template
+     * 
+     * @see https://github.com/webgptorg/promptbook/discussions/31
      */
     readonly postprocessing?: Array<string_javascript_name>;
 
@@ -67,6 +73,7 @@ export interface PromptTemplateJsonCommon {
      * For example 5 words, 3 sentences, 2 paragraphs, ...
      *
      * Note: Expectations are performed after all postprocessing steps
+     * @see https://github.com/webgptorg/promptbook/discussions/30
      */
     readonly expectations?: Expectations;
 
@@ -74,6 +81,7 @@ export interface PromptTemplateJsonCommon {
      * Expect this format of the answer
      *
      * Note: Expectations are performed after all postprocessing steps
+     * @see https://github.com/webgptorg/promptbook/discussions/30
      * @deprecated [💝]
      */
     readonly expectFormat?: ExpectFormatCommand['format'];

@@ -8,6 +8,9 @@ import type {
     string_name,
 } from '../typeAliases';
 
+/**
+ * @see https://github.com/webgptorg/promptbook/discussions/41
+ */
 export type MaterialKnowledgePieceJson = {
     readonly name: string_name;
 

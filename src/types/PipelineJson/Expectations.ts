@@ -6,6 +6,7 @@ import type { number_integer, number_positive } from '../typeAliases';
  * For example 5 words, 3 sentences, 2 paragraphs, ...
  *
  * Note: Expectations are performed after all postprocessing steps
+ * @see https://github.com/webgptorg/promptbook/discussions/30
  */
 export type Expectations = Partial<
     Record<Lowercase<ExpectationUnit>, { readonly min?: ExpectationAmount; readonly max?: ExpectationAmount }>
@@ -13,16 +14,19 @@ export type Expectations = Partial<
 
 /**
  * Units of text measurement
+ * @see https://github.com/webgptorg/promptbook/discussions/30
  */
 export const EXPECTATION_UNITS = ['CHARACTERS', 'WORDS', 'SENTENCES', 'LINES', 'PARAGRAPHS', 'PAGES'] as const;
 
 /**
  * Unit of text measurement
+ * @see https://github.com/webgptorg/promptbook/discussions/30
  */
 export type ExpectationUnit = typeof EXPECTATION_UNITS[number];
 
 /**
  * Amount of text measurement
+ * @see https://github.com/webgptorg/promptbook/discussions/30
  */
 export type ExpectationAmount = number_integer & (number_positive | 0);
 

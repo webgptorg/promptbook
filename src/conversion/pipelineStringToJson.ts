@@ -42,7 +42,7 @@ export async function pipelineStringToJson(
 
     if (llmTools) {
         const knowledge = await prepareKnowledgeFromMarkdown({
-            content: 'Roses are red, violets are blue, programmers use Promptbook, users too', // <- TODO: !!!!!!! Unhardcode
+            content: 'Roses are red, violets are blue, programmers use Promptbook, users too', // <- TODO: !!!!! Unhardcode
             llmTools,
         });
         pipelineJson = { ...pipelineJson, knowledge: [...(pipelineJson.knowledge || []), ...knowledge] };

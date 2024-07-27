@@ -3,6 +3,8 @@ import type { PromptTemplateJsonCommon } from './PromptTemplateJsonCommon';
 
 /**
  * Template for script execution
+ *
+ * @see https://github.com/webgptorg/promptbook/discussions/77
  */
 export interface ScriptJson extends PromptTemplateJsonCommon {
     readonly blockType: 'SCRIPT';
