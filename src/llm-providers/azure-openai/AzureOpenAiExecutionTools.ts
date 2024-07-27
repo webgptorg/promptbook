@@ -2,7 +2,7 @@ import { AzureKeyCredential, OpenAIClient } from '@azure/openai';
 import colors from 'colors';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import type { AvailableModel, LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { PromptChatResult, PromptCompletionResult } from '../../execution/PromptResult';
+import type { PromptChatResult, PromptCompletionResult, PromptResultUsage } from '../../execution/PromptResult';
 import { computeUsageCounts } from '../../execution/utils/computeUsageCounts';
 import { uncertainNumber } from '../../execution/utils/uncertainNumber';
 import type { Prompt } from '../../types/Prompt';
@@ -108,7 +108,7 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools {
                     tokensCount: uncertainNumber(rawResponse.usage?.completionTokens),
                     ...computeUsageCounts(prompt.content),
                 },
-            } satisfies PromptResultUsage;
+            } satisfies PromptResultUsage; /* <- TODO: [🤛] */
 
             return {
                 content: resultContent,
@@ -185,7 +185,7 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools {
                     tokensCount: uncertainNumber(rawResponse.usage?.completionTokens),
                     ...computeUsageCounts(prompt.content),
                 },
-            } satisfies PromptResultUsage;
+            } satisfies PromptResultUsage; /* <- TODO: [🤛] */
 
             return {
                 content: resultContent,

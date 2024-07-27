@@ -5,11 +5,17 @@ import spaceTrim from 'spacetrim';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { AvailableModel, LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { PromptChatResult } from '../../execution/PromptResult';
+import type { PromptChatResult, PromptResultUsage } from '../../execution/PromptResult';
 import { computeUsageCounts } from '../../execution/utils/computeUsageCounts';
 import { uncertainNumber } from '../../execution/utils/uncertainNumber';
 import type { Prompt } from '../../types/Prompt';
-import type { string_date_iso8601, string_markdown, string_markdown_text, string_model_name, string_title } from '../../types/typeAliases';
+import type {
+    string_date_iso8601,
+    string_markdown,
+    string_markdown_text,
+    string_model_name,
+    string_title,
+} from '../../types/typeAliases';
 import { getCurrentIsoDate } from '../../utils/getCurrentIsoDate';
 import { ANTHROPIC_CLAUDE_MODELS } from './anthropic-claude-models';
 import type { AnthropicClaudeExecutionToolsOptions } from './AnthropicClaudeExecutionToolsOptions';
@@ -102,7 +108,7 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools {
                 tokensCount: uncertainNumber(rawResponse.usage.output_tokens),
                 ...computeUsageCounts(prompt.content),
             },
-        } satisfies PromptResultUsage;
+        } satisfies PromptResultUsage; /* <- TODO: [🤛] */
 
         return {
             content: resultContent,
