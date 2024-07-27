@@ -3,14 +3,14 @@ import { readFile } from 'fs/promises';
 import { join } from 'path';
 import { MockedEchoLlmExecutionTools } from '../../../llm-providers/mocked/MockedEchoLlmExecutionTools';
 import { prepareKnowledgeFromPdf } from './prepareKnowledgeFromPdf';
+import { getLlmToolsForTests } from '../_common/utils/getLlmToolsForTests';
 
 describe('how creating knowledge from pdf works', () => {
     it('should work with simple piece of information', async () =>
         expect(
             prepareKnowledgeFromPdf({
                 content: await readFile(join(__dirname, 'samples/10-simple.pdf'), 'base64'),
-                llmTools:
-                    new MockedEchoLlmExecutionTools(/* TODO: [🧠][🕵️‍♀️] Testing with real LLM with seed and (commited) caching */),
+                llmTools: getLlmToolsForTests()
             }),
         ).resolves.toMatchObject([
             // TODO: !!!! Test this with real implementation

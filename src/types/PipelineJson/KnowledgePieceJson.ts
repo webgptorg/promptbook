@@ -29,7 +29,7 @@ export type KnowledgePieceJson = {
  *
  * @see https://github.com/webgptorg/promptbook/discussions/41
  */
-export type KnowledgePiecePreparedJson = {
+export type KnowledgePiecePreparedJson = KnowledgePieceJson&{
     readonly name: string_name;
 
     readonly title: string_markdown_text;

@@ -2,9 +2,9 @@ import { spaceTrim } from 'spacetrim';
 import type { Promisable } from 'type-fest';
 import { LOOP_LIMIT } from '../config';
 import { validatePipeline } from '../conversion/validation/validatePipeline';
+import { ExpectError } from '../errors/_ExpectError';
 import { PipelineExecutionError } from '../errors/PipelineExecutionError';
 import { UnexpectedError } from '../errors/UnexpectedError';
-import { ExpectError } from '../errors/_ExpectError';
 import { isValidJsonString } from '../formats/json/utils/isValidJsonString';
 import { joinLlmExecutionTools } from '../llm-providers/multiple/joinLlmExecutionTools';
 import type { ExecutionReportJson } from '../types/execution-report/ExecutionReportJson';
@@ -12,16 +12,12 @@ import type { PipelineJson } from '../types/PipelineJson/PipelineJson';
 import type { PromptTemplateJson } from '../types/PipelineJson/PromptTemplateJson';
 import type { Prompt } from '../types/Prompt';
 import type { TaskProgress } from '../types/TaskProgress';
-import type { string_name } from '../types/typeAliases';
-import type { TODO } from '../types/typeAliases';
+import type { string_name, TODO } from '../types/typeAliases';
 import { arrayableToArray } from '../utils/arrayableToArray';
 import { PROMPTBOOK_VERSION } from '../version';
 import type { ExecutionTools } from './ExecutionTools';
 import type { PipelineExecutor } from './PipelineExecutor';
-import type { PromptChatResult } from './PromptResult';
-import type { PromptCompletionResult } from './PromptResult';
-import type { PromptEmbeddingResult } from './PromptResult';
-import type { PromptResult } from './PromptResult';
+import type { PromptChatResult, PromptCompletionResult, PromptEmbeddingResult, PromptResult } from './PromptResult';
 import { addUsage } from './utils/addUsage';
 import { checkExpectations } from './utils/checkExpectations';
 import { replaceParameters } from './utils/replaceParameters';
@@ -70,7 +66,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
     validatePipeline(pipeline);
 
     // TODO: !!!!! Do here materialization of still unmaterialized or dynamic knowledge
-    // TODO: !!!!! Do here personaToModelRequirements
+    // TODO: !!!!! Do here preparePersona
 
     const llmTools = joinLlmExecutionTools(...arrayableToArray(tools.llm));
 

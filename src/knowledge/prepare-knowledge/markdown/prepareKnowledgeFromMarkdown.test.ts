@@ -1,6 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
 import spaceTrim from 'spacetrim';
-import { MockedEchoLlmExecutionTools } from '../../../llm-providers/mocked/MockedEchoLlmExecutionTools';
+import { getLlmToolsForTests } from '../_common/utils/getLlmToolsForTests';
 import { prepareKnowledgeFromMarkdown } from './prepareKnowledgeFromMarkdown';
 
 describe('how creating knowledge from markdown works', () => {
@@ -11,8 +11,7 @@ describe('how creating knowledge from markdown works', () => {
                     Springfield is a city in the U.S. state of Illinois. It is the county seat of Sangamon County.
                     The city's population of 10566 as of 2019 makes it the sixth most populous city in the state.
                 `),
-                llmTools:
-                    new MockedEchoLlmExecutionTools(/* TODO: [🧠][🕵️‍♀️] Testing with real LLM with seed and (commited) caching */),
+                llmTools: getLlmToolsForTests(),
             }),
         ).resolves.toMatchObject([
             {

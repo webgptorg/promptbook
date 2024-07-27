@@ -1,5 +1,5 @@
 import type { LlmExecutionTools } from '../../../execution/LlmExecutionTools';
-import type { KnowledgeJson } from '../../../types/PipelineJson/KnowledgeJson';
+import { KnowledgePiecePreparedJson } from '../../../types/PipelineJson/KnowledgePieceJson';
 import type { string_base64 } from '../../../types/typeAliases';
 import { just } from '../../../utils/just';
 import { prepareKnowledgeFromMarkdown } from '../markdown/prepareKnowledgeFromMarkdown';
@@ -16,7 +16,12 @@ type PrepareKnowledgeFromPdfOptions = {
     llmTools: LlmExecutionTools;
 };
 
-export async function prepareKnowledgeFromPdf(options: PrepareKnowledgeFromPdfOptions): Promise<KnowledgeJson> {
+/**
+ * @@@
+ */
+export async function prepareKnowledgeFromPdf(
+    options: PrepareKnowledgeFromPdfOptions,
+): Promise<KnowledgePiecePreparedJson> {
     const { content, llmTools } = options;
 
     /*

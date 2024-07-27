@@ -7,13 +7,15 @@ import { titleToName } from '../../../conversion/utils/titleToName';
 import { assertsExecutionSuccessful } from '../../../execution/assertsExecutionSuccessful';
 import { createPipelineExecutor } from '../../../execution/createPipelineExecutor';
 import type { LlmExecutionTools } from '../../../execution/LlmExecutionTools';
-import type { KnowledgeJson } from '../../../types/PipelineJson/KnowledgeJson';
+import { KnowledgePiecePreparedJson } from '../../../types/PipelineJson/KnowledgePieceJson';
 import type { PipelineJson } from '../../../types/PipelineJson/PipelineJson';
-import type { string_href } from '../../../types/typeAliases';
-import type { string_markdown } from '../../../types/typeAliases';
-import type { string_markdown_text } from '../../../types/typeAliases';
-import type { string_model_name } from '../../../types/typeAliases';
-import type { string_name } from '../../../types/typeAliases';
+import type {
+    string_href,
+    string_markdown,
+    string_markdown_text,
+    string_model_name,
+    string_name,
+} from '../../../types/typeAliases';
 import type { string_keyword } from '../../../utils/normalization/IKeywords';
 
 type PrepareKnowledgeFromMarkdownOptions = {
@@ -37,9 +39,12 @@ type PrepareKnowledgeFromMarkdownOptions = {
     isVerbose?: boolean;
 };
 
+/**
+ * @@@
+ */
 export async function prepareKnowledgeFromMarkdown(
     options: PrepareKnowledgeFromMarkdownOptions,
-): Promise<KnowledgeJson> {
+): Promise<Omit<KnowledgePiecePreparedJson, 'source'>> {
     const { content, llmTools, isVerbose = false } = options;
 
     // TODO: [🌼] In future use `ptbk make` and maked getPipelineCollection
