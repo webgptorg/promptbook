@@ -119,6 +119,18 @@ export type string_title = string;
 export type string_persona_description = string;
 
 /**
+ * Source of one knowledge piece
+ *
+ * It can be a link, a relative path to file or direct text
+ *
+ * For example `"https://pavolhejny.com/"`
+ * For example `"./pavol-hejny-cv.pdf"`
+ * For example `"Pavol Hejný has web https://pavolhejny.com/"`
+ * For example `"Pavol Hejný is web developer and creator of Promptbook and Collboard"`
+ */
+export type string_knowledge_piece_source = string_url | string_file_path | string;
+
+/**
  * Semantic helper
  *
  * For example `"<div>Hello World!</div>"`
@@ -586,7 +598,8 @@ export type TODO = any;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type really_any = any;
 
-/**
+/**.
+ * TODO: !!! Change "For example" to @example
  * TODO: !! Cleanup
  * TODO: !! Change to branded types
  */

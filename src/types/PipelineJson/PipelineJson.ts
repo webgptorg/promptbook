@@ -4,7 +4,7 @@ import type {
     string_pipeline_url,
     string_semantic_version,
 } from '../typeAliases';
-import type { KnowledgeJson } from './KnowledgeJson';
+import { KnowledgePieceJson, KnowledgePiecePreparedJson } from './KnowledgePieceJson';
 import { PersonaJson } from './PersonaJson';
 import { PersonaPreparedJson } from './PersonaPreparedJson';
 import type { PromptTemplateJson } from './PromptTemplateJson';
@@ -65,7 +65,7 @@ export type PipelineJson = {
      *
      * @see https://github.com/webgptorg/promptbook/discussions/41
      */
-    readonly knowledge: KnowledgeJson;
+    readonly knowledge: Array<KnowledgePieceJson | KnowledgePiecePreparedJson>;
 
     /**
      * List of prepared virtual personas that are used in the pipeline
