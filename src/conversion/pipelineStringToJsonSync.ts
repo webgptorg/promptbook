@@ -52,7 +52,10 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
         description: undefined /* <- Note: Putting here placeholder to keep `description` on top at final JSON */,
         parameters: [],
         promptTemplates: [],
-        knowledge: [],
+        knowledgeSources: [],
+        knowledgePieces: [],
+        personas: [],
+        preparations: [],
     };
 
     // =============================================================
@@ -221,9 +224,9 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
         const listItems = extractAllListItemsFromMarkdown(section.content);
         let dependentParameterNames = new Set<IterableElement<PromptTemplateJson['dependentParameterNames']>>();
         let blockType: BlockType = 'PROMPT_TEMPLATE';
-        let jokers: PromptTemplateJson['jokers'] = [];
-        let postprocessing: PromptTemplateJson['postprocessing'] = [];
-        let expectAmount: PromptTemplateJson['expectations'] = {};
+        let jokers: Writable<PromptTemplateJson['jokers']> = [];
+        let postprocessing: Writable<PromptTemplateJson['postprocessing']> = [];
+        let expectAmount: WritableDeep<PromptTemplateJson['expectations']> = {};
         let expectFormat: PromptTemplateJson['expectFormat'] | undefined = undefined;
 
         let isBlockTypeChanged = false;
@@ -446,11 +449,12 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
             postprocessing,
             expectations: expectAmount,
             expectFormat,
+            personaName: null,
             modelRequirements: templateModelRequirements as ModelRequirements,
             contentLanguage: blockType === 'SCRIPT' ? (language as ScriptLanguage) : undefined,
             content,
             resultingParameterName,
-        };
+        } satisfies PromptTemplateJson;
 
         if (blockType !== 'PROMPT_TEMPLATE') {
             delete (template as TODO).modelRequirements;

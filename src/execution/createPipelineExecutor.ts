@@ -388,6 +388,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                             prompt: {
                                 title: currentTemplate.title /* <- Note: If title in pipeline contains emojis, pass it innto report */,
                                 content: prompt.content,
+                                // personaName: !!!!!,
                                 modelRequirements: prompt.modelRequirements,
                                 expectations: prompt.expectations,
                                 expectFormat: prompt.expectFormat,
