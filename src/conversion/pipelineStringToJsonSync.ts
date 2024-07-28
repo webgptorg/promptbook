@@ -224,8 +224,8 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
         const listItems = extractAllListItemsFromMarkdown(section.content);
         let dependentParameterNames = new Set<IterableElement<PromptTemplateJson['dependentParameterNames']>>();
         let blockType: BlockType = 'PROMPT_TEMPLATE';
-        let jokers: Writable<PromptTemplateJson['jokers']> = [];
-        let postprocessing: Writable<PromptTemplateJson['postprocessing']> = [];
+        let jokers: Writable<PromptTemplateJson['jokers']> | undefined = [];
+        let postprocessing: Writable<PromptTemplateJson['postprocessing']> | undefined = [];
         let expectAmount: WritableDeep<PromptTemplateJson['expectations']> = {};
         let expectFormat: PromptTemplateJson['expectFormat'] | undefined = undefined;
 

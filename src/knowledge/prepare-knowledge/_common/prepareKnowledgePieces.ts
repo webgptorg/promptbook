@@ -5,13 +5,6 @@ import { KnowledgePiecePreparedJson } from '../../../types/PipelineJson/Knowledg
 import { KnowledgeSourceJson } from '../../../types/PipelineJson/KnowledgeSourceJson';
 import { prepareKnowledgeFromMarkdown } from '../markdown/prepareKnowledgeFromMarkdown';
 
-type PrepareKnowledgeKnowledge = {
-    /**
-     * Unprepared knowledge
-     */
-    readonly knowledgeSources: Array<KnowledgeSourceJson>;
-};
-
 /**
  * Prepares the knowle
  *
@@ -19,21 +12,20 @@ type PrepareKnowledgeKnowledge = {
  * @private within the package
  */
 export async function prepareKnowledgePieces(
-    knowledge: PrepareKnowledgeKnowledge,
+    knowledgeSources: Array<KnowledgeSourceJson>,
     options: PrepareOptions,
-): Promise<Array<KnowledgePiecePreparedJson>> {
-    const { knowledgeSources } = knowledge;
+): Promise<Array<Omit<KnowledgePiecePreparedJson, 'preparationIds'>>> {
     const { maxParallelCount = MAX_PARALLEL_COUNT } = options;
 
-    const knowledgePrepared: Array<KnowledgePiecePreparedJson> = [];
+    const knowledgePrepared: Array<Omit<KnowledgePiecePreparedJson, 'preparationIds'>> = [];
 
     await forEachAsync(knowledgeSources, { maxParallelCount }, async (knowledgeSource) => {
-        const partialPiece = await prepareKnowledgeFromMarkdown(
+        const partialPieces = await prepareKnowledgeFromMarkdown(
             knowledgeSource.source, // <- TODO: !!!!! Unhardcode markdown
             options,
         );
 
-        const piece = {
+        const pieces = partialPieces.map((partialPiece) => ({
             ...partialPiece,
             sources: [
                 {
@@ -42,13 +34,28 @@ export async function prepareKnowledgePieces(
                     // <- TODO: [❎]
                 },
             ],
-        };
+        }));
 
-        knowledgePrepared.push(piece);
+        knowledgePrepared.push(...pieces);
     });
 
     return knowledgePrepared;
 }
+
+/*
+TODO: [🧊] This is how it can look in future
+> type PrepareKnowledgeKnowledge = {
+>   /**
+>    * Unprepared knowledge
+>    * /
+>   readonly knowledgeSources: Array<KnowledgeSourceJson>;
+> };
+>
+> export async function prepareKnowledgePieces(
+>   knowledge: PrepareKnowledgeKnowledge,
+>   options: PrepareOptions,
+> ):
+*/
 
 /**
  * TODO: !!!! Write tests for `prepareKnowledge`

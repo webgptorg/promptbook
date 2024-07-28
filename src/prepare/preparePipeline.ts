@@ -3,7 +3,7 @@ import { PersonaPreparedJson, PreparationJson } from '../_packages/types.index';
 import { forEachAsync } from '../_packages/utils.index';
 import { MAX_PARALLEL_COUNT } from '../config';
 import { VersionMismatch } from '../errors/VersionMismatch';
-import { prepareKnowledge } from '../knowledge/prepare-knowledge/_common/prepareKnowledgePieces';
+import { prepareKnowledgePieces } from '../knowledge/prepare-knowledge/_common/prepareKnowledgePieces';
 import { preparePersona } from '../personas/preparePersona';
 import type { PipelineJson } from '../types/PipelineJson/PipelineJson';
 import { $currentDate } from '../utils/currentDate';
@@ -30,6 +30,7 @@ export async function preparePipeline(pipeline: PipelineJson, options: PrepareOp
         throw new VersionMismatch(`Can not prepare pipeline`, promptbookVersion);
     }
 
+    // ----- ID -----
     const currentPreparation: PreparationJson = {
         id: 1, // <- TODO: [🧊] Make incremental
         date: $currentDate(),
@@ -42,7 +43,9 @@ export async function preparePipeline(pipeline: PipelineJson, options: PrepareOp
         // <- TODO: [🧊]
         currentPreparation,
     ];
+    // ----- /ID -----
 
+    // ----- Personas preparation -----
     // TODO: [🧠] Implement some `mapAsync` function
     const preparedPersonas: Array<PersonaPreparedJson> = [];
     await forEachAsync(
@@ -60,9 +63,26 @@ export async function preparePipeline(pipeline: PipelineJson, options: PrepareOp
             preparedPersonas.push(preparedPersona);
         },
     );
+    // ----- /Personas preparation -----
 
-    const { knowledgeSources: knowledgeSourcesPrepared, knowledgePieces: knowledgePiecesPrepared } =
-        await prepareKnowledge({ knowledgeSources /* <- TODO: [🧊] `knowledgePieces` */ }, options);
+    // ----- Knowledge preparation -----
+
+    const knowledgeSourcesPrepared = knowledgeSources.map((source) => ({
+        ...source,
+        preparationIds: [/* TODO: [🧊] -> */ currentPreparation.id],
+    }));
+
+    const partialknowledgePiecesPrepared = await prepareKnowledgePieces(
+        knowledgeSources /* <- TODO: [🧊] {knowledgeSources, knowledgePieces} */,
+        options,
+    );
+
+    const knowledgePiecesPrepared = partialknowledgePiecesPrepared.map((piece) => ({
+        ...piece,
+        preparationIds: [/* TODO: [🧊] -> */ currentPreparation.id],
+    }));
+
+    // ----- /Knowledge preparation -----
 
     return {
         ...pipeline,

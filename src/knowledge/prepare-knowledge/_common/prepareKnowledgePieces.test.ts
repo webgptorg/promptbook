@@ -3,13 +3,12 @@ import { prepareKnowledgePieces } from './prepareKnowledgePieces';
 import { getLlmToolsForTests } from './utils/getLlmToolsForTests';
 
 describe('how prepareKnowledge works', () => {
-    it('should work with simple persona description', () =>
+    it('should work with empty knowledge', () =>
         expect(
-            prepareKnowledgePieces({
-                knowledge: {},
+            prepareKnowledgePieces([], {
                 llmTools: getLlmToolsForTests(),
             }),
-        ).resolves.toBe({}));
+        ).resolves.toBe([]));
 
     // TODO: !!!! Test preservation of name from unprepared knowledge
     // TODO: !!!! Test markdown, file and website here, rest in their own preparers
