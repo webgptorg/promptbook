@@ -4,9 +4,10 @@ import type {
     string_pipeline_url,
     string_semantic_version,
 } from '../typeAliases';
-import { KnowledgePieceJson, KnowledgePiecePreparedJson } from './KnowledgePieceJson';
-import { PersonaJson } from './PersonaJson';
-import { PersonaPreparedJson } from './PersonaPreparedJson';
+import { KnowledgePiecePreparedJson } from './KnowledgePieceJson';
+import { KnowledgeSourceJson, KnowledgeSourcePreparedJson } from './KnowledgeSourceJson';
+import { PersonaJson, PersonaPreparedJson } from './PersonaJson';
+import { PreparationJson } from './PreparationJson';
 import type { PromptTemplateJson } from './PromptTemplateJson';
 import type { PromptTemplateParameterJson } from './PromptTemplateParameterJson';
 
@@ -65,7 +66,14 @@ export type PipelineJson = {
      *
      * @see https://github.com/webgptorg/promptbook/discussions/41
      */
-    readonly knowledge: Array<KnowledgePieceJson | KnowledgePiecePreparedJson>;
+    readonly knowledgeSources: Array<KnowledgeSourceJson | KnowledgeSourcePreparedJson>;
+
+    /**
+     * Set of information that are used as external knowledge in the pipeline
+     *
+     * @see https://github.com/webgptorg/promptbook/discussions/41
+     */
+    readonly knowledgePieces: Array<KnowledgePiecePreparedJson>;
 
     /**
      * List of prepared virtual personas that are used in the pipeline
@@ -73,6 +81,13 @@ export type PipelineJson = {
      * @see https://github.com/webgptorg/promptbook/discussions/22
      */
     readonly personas: Array<PersonaJson | PersonaPreparedJson>;
+
+    /**
+     * List of prepared virtual personas that are used in the pipeline
+     *
+     * @see https://github.com/webgptorg/promptbook/discussions/78
+     */
+    readonly preparations: Array<PreparationJson>;
 };
 
 /**

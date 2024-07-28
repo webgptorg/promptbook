@@ -1,7 +1,8 @@
 import type { EmbeddingVector } from '../../execution/EmbeddingVector';
 import type { string_keyword } from '../../utils/normalization/IKeywords';
 import type {
-    string_knowledge_piece_source,
+    number_id,
+    number_linecol_number,
     string_markdown,
     string_markdown_text,
     string_model_name,
@@ -10,44 +11,69 @@ import type {
 
 /**
  * Defines one piece of knowledge in the pipeline
- * For example, a piece of information, a fact, a quote, a definition, website, etc.
+ *
+ * Note: Knowledge piece is by definition prepared
  *
  * @see https://github.com/webgptorg/promptbook/discussions/41
  */
-export type KnowledgePieceJson = {
+export type KnowledgePiecePreparedJson = {
+    /**
+     * Unique name of the knowledge piece based on the title
+     */
     readonly name?: string_name;
 
+    /**
+     * Short title for the information
+     */
     readonly title?: string_markdown_text;
 
+    /**
+     * The information in markdown format
+     */
     readonly content?: string_markdown;
 
-    readonly source: string_knowledge_piece_source;
-};
+    /**
+     * List of sources where the information comes from
+     */
+    readonly sources: Array<{
+        /**
+         * Identifier of the source
+         */
+        name: string_name;
 
-/**
- * Defines one piece of knowledge in the pipeline after it has been prepared
- *
- * @see https://github.com/webgptorg/promptbook/discussions/41
- */
-export type KnowledgePiecePreparedJson = KnowledgePieceJson&{
-    readonly name: string_name;
+        /**
+         * Line number
+         */
+        line?: number_linecol_number;
 
-    readonly title: string_markdown_text;
+        /**
+         * Column number
+         */
+        column?: number_linecol_number;
+    }>;
 
-    readonly content: string_markdown;
-
+    /**
+     * List of keywords that are associated with the knowledge piece
+     */
     readonly keywords: Array<string_keyword>;
 
+    /**
+     * List of models embeddings that are associated with the knowledge piece
+     */
     readonly index: Array<{
+        /**
+         * Model name which generated the embedding
+         */
         readonly modelName: string_model_name;
+
+        /**
+         * Embedding vector of the knowledge piece
+         */
         readonly position: EmbeddingVector;
     }>;
-};
 
-/**
- * TODO: !!!! Annotate
- * TODO: !!! Use or uninstall xyzt
- * TODO: [🧠][🦪] Maybe allow internal links between (Material)KnowledgePieces withing the KnowledgeJson and maybe require to explicitelly reference the source of the knowledge
- * TODO: [🧠] Make some non-material sources like external search engine or dialog to user
- * TODO: [🧠] Make some non-material (and maybe non-knowledge-like but tool-like) sources like calculator, code interpreter
- */
+    /**
+     * List of preparation ids that were used to prepare this knowledge piece
+     */
+    readonly preparationIds: Array<number_id>;
+};

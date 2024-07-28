@@ -119,7 +119,7 @@ export type string_title = string;
 export type string_persona_description = string;
 
 /**
- * Source of one knowledge piece
+ * Source of one knowledge
  *
  * It can be a link, a relative path to file or direct text
  *
@@ -128,7 +128,7 @@ export type string_persona_description = string;
  * For example `"Pavol Hejný has web https://pavolhejny.com/"`
  * For example `"Pavol Hejný is web developer and creator of Promptbook and Collboard"`
  */
-export type string_knowledge_piece_source = string_url | string_file_path | string;
+export type string_knowledge_source = string_url | string_file_path | string;
 
 /**
  * Semantic helper
@@ -538,6 +538,16 @@ export type string_date_iso8601 = `${number}-${number}-${number}${string}${numbe
  * Semantic helper for US Dollars
  */
 export type number_usd = number;
+
+/**
+ * Semantic helper for incremental IDs
+ */
+export type number_id = number_integer & (number_positive | 0);
+
+/**
+ * Semantic helper for number of rows and columns
+ */
+export type number_linecol_number = number_integer & number_positive;
 
 /**
  * Semantic helper for number of tokens

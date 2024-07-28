@@ -1,12 +1,12 @@
 import { describe, expect, it } from '@jest/globals';
-import { prepareKnowledgePiece } from './prepareKnowledgePiece';
+import { prepareKnowledge } from './prepareKnowledge';
 import { getLlmToolsForTests } from './utils/getLlmToolsForTests';
 
-describe('how prepareKnowledgePiece works', () => {
+describe('how prepareKnowledge works', () => {
     it('should work with simple persona description', () =>
         expect(
-            prepareKnowledgePiece({
-                knowledgePiece: {},
+            prepareKnowledge({
+                knowledge: {},
                 llmTools: getLlmToolsForTests(),
             }),
         ).resolves.toBe({}));

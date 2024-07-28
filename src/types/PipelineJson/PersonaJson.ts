@@ -1,5 +1,5 @@
 import { ModelRequirements } from '../ModelRequirements';
-import { string_name, string_persona_description } from '../typeAliases';
+import { number_id, string_name, string_persona_description } from '../typeAliases';
 
 /**
  * Defines a persona in the pipeline
@@ -34,4 +34,9 @@ export type PersonaPreparedJson = PersonaJson & {
     readonly modelRequirements: ModelRequirements & {
         readonly modelVariant: 'CHAT';
     };
+
+    /**
+     * List of preparation ids that were used to prepare this persona
+     */
+    readonly preparationIds: Array<number_id>;
 };
