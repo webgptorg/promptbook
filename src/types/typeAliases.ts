@@ -589,25 +589,6 @@ export type number_megabytes = number_positive;
 export type number_gigabytes = number_positive;
 export type number_terabytes = number_positive;
 
-//=========================[ Code organization ]=========================
-
-/**
- * Formatting helper to put void to keep longer version of prettier
- */
-export type ___ = never;
-
-/**
- * Organizational helper to better mark the place where the type is missing
- */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type TODO = any;
-
-/**
- * Organizational helper to mark a place where to really use any
- */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type really_any = any;
-
 /**.
  * TODO: !!! Change "For example" to @example
  * TODO: !! Cleanup

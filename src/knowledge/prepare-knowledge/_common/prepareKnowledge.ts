@@ -1,28 +1,14 @@
-import { LlmExecutionTools } from '../../../execution/LlmExecutionTools';
-import { KnowledgePreparedJson } from '../../../types/PipelineJson/KnowledgeJson';
+import { MAX_PARALLEL_COUNT } from '../../../config';
+import { PrepareOptions } from '../../../prepare/PrepareOptions';
 import { KnowledgePiecePreparedJson } from '../../../types/PipelineJson/KnowledgePieceJson';
-import { KnowledgeSourcePreparedJson } from '../../../types/PipelineJson/KnowledgeSourceJson';
+import { KnowledgeSourceJson, KnowledgeSourcePreparedJson } from '../../../types/PipelineJson/KnowledgeSourceJson';
 import { prepareKnowledgeFromMarkdown } from '../markdown/prepareKnowledgeFromMarkdown';
 
-type PrepareKnowledgeOptions = {
+type PrepareKnowledgeKnowledge = {
     /**
      * Unprepared knowledge
      */
     readonly knowledgeSources: Array<KnowledgeSourceJson>;
-
-    /**
-     * The LLM tools to use for the conversion and extraction of knowledge
-     *
-     * Note: If you want to use multiple LLMs, you can use `joinLlmExecutionTools` to join them first
-     */
-    readonly llmTools: LlmExecutionTools;
-
-    /**
-     * If true, the preaparation of knowledge logs additional information
-     *
-     * @default false
-     */
-    readonly isVerbose?: boolean;
 };
 
 type PrepareKnowledgeResult = {
@@ -42,16 +28,23 @@ type PrepareKnowledgeResult = {
  *
  * @private within the package
  */
-export async function prepareKnowledge(options: PrepareKnowledgeOptions): Promise<KnowledgePreparedJson> {
-    const { knowledge, llmTools, isVerbose } = options;
-    const knowledgePrepared = await prepareKnowledgeFromMarkdown({
-        content: 'Roses are red, violets are blue, programmers use Promptbook, users too', // <- TODO: !!!!! Unhardcode
-        llmTools,
-        isVerbose,
-    });
+export async function prepareKnowledge(
+    knowledge: PrepareKnowledgeKnowledge,
+    options: PrepareOptions,
+): Promise<PrepareKnowledgeResult> {
+    const { knowledgeSources } = knowledge;
+    const { llmTools, maxParallelCount = MAX_PARALLEL_COUNT, isVerbose = false } = options;
+    const knowledgePrepared = await prepareKnowledgeFromMarkdown(
+        'Roses are red, violets are blue, programmers use Promptbook, users too', // <- TODO: !!!!! Unhardcode
+        {
+            llmTools,
+            maxParallelCount,
+            isVerbose,
+        },
+    );
 
     return {
-        ...knowledge,
+        ...knowledgeSources,
         ...knowledgePrepared,
     };
 }
@@ -61,4 +54,7 @@ export async function prepareKnowledge(options: PrepareKnowledgeOptions): Promis
  * TODO: !!!! Implement `prepareKnowledge`
  * TODO: !!!! Use `prepareKnowledge` in `pipelineStringToJson`
  * TODO: !!!! Use `prepareKnowledge` in `createPipelineExecutor`
+ * TODO: !!!! [ 🪂] Do it in parallel
+ * TODO: [🧊] In future one preparation can take data from previous preparation and save tokens and time
+ *       Put `knowledgePieces` into `PrepareKnowledgeOptions`
  */

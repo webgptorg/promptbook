@@ -1,5 +1,5 @@
 import type { string_name } from '../../types/typeAliases';
-import { just } from '../../utils/just';
+import { just } from '../../utils/organization/just';
 
 export async function isGithubNameFree(name: string_name): Promise<boolean> {
     just(name);

@@ -1,8 +1,8 @@
 import type { LlmExecutionTools } from '../execution/LlmExecutionTools';
+import { preparePipeline } from '../prepare/preparePipeline';
 import type { PipelineJson } from '../types/PipelineJson/PipelineJson';
 import type { PipelineString } from '../types/PipelineString';
 import { pipelineStringToJsonSync } from './pipelineStringToJsonSync';
-import { preparePipeline } from './preparePipeline';
 
 /**
  * Options for `pipelineStringToJson`

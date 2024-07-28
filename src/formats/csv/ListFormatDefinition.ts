@@ -1,4 +1,4 @@
-import { just } from '../../utils/just';
+import { just } from '../../utils/organization/just';
 import type { FormatDefinition } from '../_common/FormatDefinition';
 
 /**
@@ -33,7 +33,6 @@ export const CsvFormatDefinition: FormatDefinition<string /* <-[0] */, string /*
         throw new Error('Not implemented');
     },
 };
-
 
 /**
  * TODO: [🍓] In `CsvFormatDefinition` implement simple `isValid`

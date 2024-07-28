@@ -2,7 +2,6 @@
 import _spaceTrim from 'spacetrim';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import type { ScriptExecutionTools, ScriptExecutionToolsExecuteOptions } from '../../execution/ScriptExecutionTools';
-import { TODO } from '../../types/typeAliases';
 import { prettifyMarkdown as _prettifyMarkdown } from '../../utils/markdown/prettifyMarkdown';
 import { capitalize as _capitalize } from '../../utils/normalization/capitalize';
 import { decapitalize as _decapitalize } from '../../utils/normalization/decapitalize';
@@ -16,6 +15,7 @@ import { normalizeTo_snake_case as _normalizeTo_snake_case } from '../../utils/n
 import { normalizeWhitespaces as _normalizeWhitespaces } from '../../utils/normalization/normalizeWhitespaces';
 import { parseKeywordsFromString } from '../../utils/normalization/parseKeywordsFromString';
 import { removeDiacritics as _removeDiacritics } from '../../utils/normalization/removeDiacritics';
+import { TODO } from '../../utils/organization/TODO';
 import { extractBlock } from '../../utils/postprocessing/extractBlock';
 import { removeEmojis as _removeEmojis } from '../../utils/removeEmojis';
 import { removeQuotes as _removeQuotes } from '../../utils/removeQuotes';

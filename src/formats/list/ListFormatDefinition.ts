@@ -1,4 +1,4 @@
-import { just } from '../../utils/just';
+import { just } from '../../utils/organization/just';
 import type { FormatDefinition } from '../_common/FormatDefinition';
 
 /**
@@ -30,12 +30,11 @@ export const ListFormatDefinition: FormatDefinition<string /* <-[0] */, string /
     },
 
     extractValues(value, schema) {
-      just(value /* <- TODO: Use value here */);
-      just(schema /* <- TODO: Use schema here */);
-      throw new Error('Not implemented');
-  },
+        just(value /* <- TODO: Use value here */);
+        just(schema /* <- TODO: Use schema here */);
+        throw new Error('Not implemented');
+    },
 };
-
 
 /**
  * TODO: [🍓] In `ListFormatDefinition` implement simple `isValid`

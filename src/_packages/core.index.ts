@@ -10,7 +10,6 @@ import { RESERVED_PARAMETER_NAMES } from '../config';
 import { pipelineJsonToString } from '../conversion/pipelineJsonToString';
 import { pipelineStringToJson } from '../conversion/pipelineStringToJson';
 import { pipelineStringToJsonSync } from '../conversion/pipelineStringToJsonSync';
-import { preparePipeline } from '../conversion/preparePipeline';
 import { prettifyPipelineString } from '../conversion/prettify/prettifyPipelineString';
 import { validatePipeline } from '../conversion/validation/validatePipeline';
 import { CollectionError } from '../errors/CollectionError';
@@ -32,6 +31,7 @@ import type { CallbackInterfaceToolsOptions } from '../knowledge/dialogs/callbac
 import { SimplePromptInterfaceTools } from '../knowledge/dialogs/simple-prompt/SimplePromptInterfaceTools';
 import { prepareKnowledgeFromMarkdown } from '../knowledge/prepare-knowledge/markdown/prepareKnowledgeFromMarkdown';
 import { joinLlmExecutionTools } from '../llm-providers/multiple/joinLlmExecutionTools';
+import { preparePipeline } from '../prepare/preparePipeline';
 import type { ExecutionReportStringOptions } from '../types/execution-report/ExecutionReportStringOptions';
 import { ExecutionReportStringOptionsDefaults } from '../types/execution-report/ExecutionReportStringOptions';
 import { executionReportJsonToString } from '../types/execution-report/executionReportJsonToString';

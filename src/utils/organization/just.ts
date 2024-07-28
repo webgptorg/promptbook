@@ -1,4 +1,4 @@
-import type { really_any } from '../types/typeAliases';
+import type { really_any } from './really_any';
 
 /**
  * Returns the same value that is passed as argument.

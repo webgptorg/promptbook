@@ -3,10 +3,11 @@ import spaceTrim from 'spacetrim';
 import PipelineCollection from '../../../../promptbook-collection/index.json';
 // import PipelineCollection from '../../../../promptbook-collection/promptbook-collection';
 import { createCollectionFromJson } from '../../../collection/constructors/createCollectionFromJson';
+import { MAX_PARALLEL_COUNT } from '../../../config';
 import { titleToName } from '../../../conversion/utils/titleToName';
 import { assertsExecutionSuccessful } from '../../../execution/assertsExecutionSuccessful';
 import { createPipelineExecutor } from '../../../execution/createPipelineExecutor';
-import type { LlmExecutionTools } from '../../../execution/LlmExecutionTools';
+import { PrepareOptions } from '../../../prepare/PrepareOptions';
 import { KnowledgePiecePreparedJson } from '../../../types/PipelineJson/KnowledgePieceJson';
 import type { PipelineJson } from '../../../types/PipelineJson/PipelineJson';
 import type {
@@ -17,31 +18,18 @@ import type {
     string_name,
 } from '../../../types/typeAliases';
 import type { string_keyword } from '../../../utils/normalization/IKeywords';
-
-type PrepareKnowledgeFromMarkdownOptions = {
-    /**
-     * The LLM tools to use for the conversion and extraction of knowledge
-     *
-     * Note: If you want to use multiple LLMs, you can use `joinLlmExecutionTools` to join them first
-     */
-    readonly llmTools: LlmExecutionTools;
-
-    /**
-     * If true, the preaparation of knowledge logs additional information
-     *
-     * @default false
-     */
-    readonly isVerbose?: boolean;
-};
+import { TODO_USE } from '../../../utils/organization/TODO_USE';
 
 /**
  * @@@
  */
 export async function prepareKnowledgeFromMarkdown(
     content: string_markdown /* <- TODO: [🖖] (?maybe not) Always the file */,
-    options: PrepareKnowledgeFromMarkdownOptions,
+    options: PrepareOptions,
 ): Promise<Omit<KnowledgePiecePreparedJson, 'source'>> {
-    const { llmTools, isVerbose = false } = options;
+    const { llmTools, maxParallelCount = MAX_PARALLEL_COUNT, isVerbose = false } = options;
+
+    TODO_USE(maxParallelCount); // <- [🪂]
 
     // TODO: [🌼] In future use `ptbk make` and maked getPipelineCollection
     const collection = createCollectionFromJson(...(PipelineCollection as Array<PipelineJson>));
@@ -178,5 +166,5 @@ export async function prepareKnowledgeFromMarkdown(
 }
 
 /**
- * 11:11
+ * TODO: [🪂] Do it in parallel 11:11
  */

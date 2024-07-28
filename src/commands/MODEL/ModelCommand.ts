@@ -1,5 +1,5 @@
 import type { ModelRequirements } from '../../types/ModelRequirements';
-import type { TODO } from '../../types/typeAliases';
+import type { TODO } from '../../utils/organization/TODO';
 
 /**
  * Parsed MODEL command

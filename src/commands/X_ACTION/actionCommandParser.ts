@@ -1,6 +1,5 @@
-import { just } from '../../utils/just';
-import type { CommandParser } from '../_common/types/CommandParser';
-import type { CommandParserInput } from '../_common/types/CommandParser';
+import { just } from '../../utils/organization/just';
+import type { CommandParser, CommandParserInput } from '../_common/types/CommandParser';
 import type { ActionCommand } from './ActionCommand';
 
 /**

@@ -20,7 +20,7 @@ import type { RemoteServerOptions } from './interfaces/RemoteServerOptions';
  * @see https://github.com/webgptorg/promptbook#remote-server
  */
 export function startRemoteServer(options: RemoteServerOptions): IDestroyable {
-    const { port, path, collection, createLlmExecutionTools, isVerbose } = options;
+    const { port, path, collection, createLlmExecutionTools, isVerbose = false } = options;
 
     const httpServer = http.createServer({}, (request, response) => {
         if (request.url?.includes('socket.io')) {

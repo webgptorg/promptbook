@@ -12,8 +12,9 @@ import type { PipelineJson } from '../types/PipelineJson/PipelineJson';
 import type { PromptTemplateJson } from '../types/PipelineJson/PromptTemplateJson';
 import type { Prompt } from '../types/Prompt';
 import type { TaskProgress } from '../types/TaskProgress';
-import type { string_name, TODO } from '../types/typeAliases';
+import type { string_name } from '../types/typeAliases';
 import { arrayableToArray } from '../utils/arrayableToArray';
+import type { TODO } from '../utils/organization/TODO';
 import { PROMPTBOOK_VERSION } from '../version';
 import type { ExecutionTools } from './ExecutionTools';
 import type { PipelineExecutor } from './PipelineExecutor';
@@ -528,6 +529,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
 }
 
 /**
+ * TODO: [🪂] Pass maxParallelCount here
  * TODO: [🧠] When not meet expectations in PROMPT_DIALOG, make some way to tell the user
  * TODO: [👧] Strongly type the executors to avoid need of remove nullables whtn noUncheckedIndexedAccess in tsconfig.json
  * Note: CreatePipelineExecutorOptions are just connected to PipelineExecutor so do not extract to types folder
