@@ -1,9 +1,6 @@
 import type { KebabCase } from 'type-fest';
 import type { ExpectationUnit } from '../types/PipelineJson/Expectations';
-import type { number_positive } from '../types/typeAliases';
-import type { number_usd } from '../types/typeAliases';
-import type { string_date_iso8601 } from '../types/typeAliases';
-import type { string_model_name } from '../types/typeAliases';
+import type { number_positive, number_usd, string_date_iso8601, string_model_name } from '../types/typeAliases';
 import type { EmbeddingVector } from './EmbeddingVector';
 
 /**
@@ -58,17 +55,17 @@ export type PromptCommonResult = {
         /**
          * Start of the execution
          */
-        start: string_date_iso8601;
+        readonly start: string_date_iso8601;
 
         /**
          * First token generated
          */
-        firstToken?: string_date_iso8601;
+        readonly firstToken?: string_date_iso8601;
 
         /**
          * End of the execution
          */
-        complete: string_date_iso8601;
+        readonly complete: string_date_iso8601;
     };
 
     /**
@@ -119,12 +116,12 @@ export type UncertainNumber = {
     /**
      * The numeric value
      */
-    value: number_usd & (number_positive | 0);
+    readonly value: number_usd & (number_positive | 0);
 
     /**
      * Is the value uncertain
      */
-    isUncertain?: true;
+    readonly isUncertain?: true;
 };
 
 /**

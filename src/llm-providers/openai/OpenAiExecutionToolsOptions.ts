@@ -3,7 +3,7 @@ import type { CommonExecutionToolsOptions } from '../../execution/CommonExecutio
 import type { string_token } from '../../types/typeAliases';
 
 /**
- * Options for OpenAiExecutionTools
+ * Options for `OpenAiExecutionTools`
  *
  * This extends OpenAI's `ClientOptions` with are directly passed to the OpenAI client.
  * Rest is used by the `OpenAiExecutionTools`.

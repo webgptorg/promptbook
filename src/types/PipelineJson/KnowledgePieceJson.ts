@@ -39,17 +39,17 @@ export type KnowledgePiecePreparedJson = {
         /**
          * Identifier of the source
          */
-        name: string_name;
+        readonly name: string_name;
 
         /**
          * Line number
          */
-        line?: number_linecol_number;
+        readonly line?: number_linecol_number;
 
         /**
          * Column number
          */
-        column?: number_linecol_number;
+        readonly column?: number_linecol_number;
     }>;
 
     /**

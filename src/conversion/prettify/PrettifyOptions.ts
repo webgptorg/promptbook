@@ -5,10 +5,10 @@ export type PrettifyOptions = {
     /***
      * If true, adds Mermaid graph to the Promptbook string
      */
-    isGraphAdded?: boolean;
+    readonly isGraphAdded?: boolean;
 
     /**
      * If true, the string is prettifyed as markdown
      */
-    isPrettifyed?: boolean;
+    readonly isPrettifyed?: boolean;
 };

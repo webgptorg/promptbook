@@ -3,7 +3,7 @@ import type { CommonExecutionToolsOptions } from '../../../execution/CommonExecu
 import type { UserInterfaceToolsPromptDialogOptions } from '../../../execution/UserInterfaceTools';
 
 /**
- * Options for CallbackInterfaceTools
+ * Options for `CallbackInterfaceTools`
  */
 export type CallbackInterfaceToolsOptions = CommonExecutionToolsOptions & {
     /**

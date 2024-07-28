@@ -1,6 +1,5 @@
 import type { ScriptLanguage } from '../types/ScriptLanguage';
-import type { string_name } from '../types/typeAliases';
-import type { string_script } from '../types/typeAliases';
+import type { string_name, string_script } from '../types/typeAliases';
 
 /**
  * Represents all the tools needed to EXECUTE SCRIPTs
@@ -18,14 +17,14 @@ export type ScriptExecutionToolsExecuteOptions = {
     /**
      * Language of the script
      */
-    scriptLanguage: ScriptLanguage;
+    readonly scriptLanguage: ScriptLanguage;
 
     /**
      * Parameters for the script
      * Theese parameters are passed to the script as variables
      * For example: { "name": "John" } => const name = "John";
      */
-    parameters: Record<string_name, string>;
+    readonly parameters: Record<string_name, string>;
 
     /**
      * The content of the script to execute
@@ -35,7 +34,7 @@ export type ScriptExecutionToolsExecuteOptions = {
      * - It can be IIFE (immediately invoked function expression)
      * - It can use the parameters as variables and functions from global scope
      */
-    script: string_script;
+    readonly script: string_script;
 };
 
 /**

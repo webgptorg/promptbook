@@ -8,7 +8,7 @@ export type PreparePipelineOptions = {
     /**
      * Tools for processing required for knowledge processing *(not for actual execution)*
      */
-    llmTools?: LlmExecutionTools;
+    readonly  llmTools?: LlmExecutionTools;
 };
 
 /**

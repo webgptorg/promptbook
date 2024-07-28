@@ -1,7 +1,9 @@
 import spaceTrim from 'spacetrim';
-import type { string_markdown_section } from '../../types/typeAliases';
-import type { string_markdown_section_content } from '../../types/typeAliases';
-import type { string_markdown_text } from '../../types/typeAliases';
+import type {
+    string_markdown_section,
+    string_markdown_section_content,
+    string_markdown_text,
+} from '../../types/typeAliases';
 
 /**
  * Parsed markdown section
@@ -10,17 +12,17 @@ export type MarkdownSection = {
     /**
      * Title of the section
      */
-    title: string_markdown_text;
+    readonly title: string_markdown_text;
 
     /**
      * Level of the section like h1, h2, h3, h4, h5, h6
      */
-    level: 1 | 2 | 3 | 4 | 5 | 6;
+    readonly level: 1 | 2 | 3 | 4 | 5 | 6;
 
     /**
      * Content of the section with markdown formatting, blocks, lists, etc.
      */
-    content: string_markdown_section_content;
+    readonly content: string_markdown_section_content;
 };
 
 /**

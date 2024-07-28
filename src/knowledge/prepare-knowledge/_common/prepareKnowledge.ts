@@ -1,5 +1,5 @@
 import { LlmExecutionTools } from '../../../execution/LlmExecutionTools';
-import { KnowledgeJson, KnowledgePreparedJson } from '../../../types/PipelineJson/KnowledgeJson';
+import { KnowledgePreparedJson } from '../../../types/PipelineJson/KnowledgeJson';
 import { KnowledgePiecePreparedJson } from '../../../types/PipelineJson/KnowledgePieceJson';
 import { KnowledgeSourcePreparedJson } from '../../../types/PipelineJson/KnowledgeSourceJson';
 import { prepareKnowledgeFromMarkdown } from '../markdown/prepareKnowledgeFromMarkdown';
@@ -8,35 +8,33 @@ type PrepareKnowledgeOptions = {
     /**
      * Unprepared knowledge
      */
-    knowledgeSources: Array<KnowledgeSourceJson>;
+    readonly knowledgeSources: Array<KnowledgeSourceJson>;
 
     /**
      * The LLM tools to use for the conversion and extraction of knowledge
      *
      * Note: If you want to use multiple LLMs, you can use `joinLlmExecutionTools` to join them first
      */
-    llmTools: LlmExecutionTools;
+    readonly llmTools: LlmExecutionTools;
 
     /**
      * If true, the preaparation of knowledge logs additional information
      *
      * @default false
      */
-    isVerbose?: boolean;
+    readonly isVerbose?: boolean;
 };
 
-
 type PrepareKnowledgeResult = {
+    /**
+     * Sources provided in input options with additional information added by the preparation
+     */
+    knowledgeSources: Array<KnowledgeSourcePreparedJson>;
 
-  /**
-   * Sources provided in input options with additional information added by the preparation
-   */
-  knowledgeSources: Array<KnowledgeSourcePreparedJson>;
-
-  /**
-   * Knowledge pieces prepared from the sources
-   */
-  knowledgePieces: Array<KnowledgePiecePreparedJson>;
+    /**
+     * Knowledge pieces prepared from the sources
+     */
+    knowledgePieces: Array<KnowledgePiecePreparedJson>;
 };
 
 /**
@@ -44,9 +42,7 @@ type PrepareKnowledgeResult = {
  *
  * @private within the package
  */
-export async function prepareKnowledge(
-    options: PrepareKnowledgeOptions,
-): Promise<KnowledgePreparedJson> {
+export async function prepareKnowledge(options: PrepareKnowledgeOptions): Promise<KnowledgePreparedJson> {
     const { knowledge, llmTools, isVerbose } = options;
     const knowledgePrepared = await prepareKnowledgeFromMarkdown({
         content: 'Roses are red, violets are blue, programmers use Promptbook, users too', // <- TODO: !!!!! Unhardcode

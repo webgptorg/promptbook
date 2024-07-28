@@ -32,7 +32,7 @@ type CreatePipelineExecutorSettings = {
 };
 
 /**
- * Options for creating a pipeline executor
+ * Options for `createPipelineExecutor`
  */
 interface CreatePipelineExecutorOptions {
     /**

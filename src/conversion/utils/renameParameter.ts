@@ -8,17 +8,17 @@ type RenameParameterOptions = {
      * Pipeline to search and replace for parameters
      * This pipeline is returned as copy with replaced parameters
      */
-    pipeline: PipelineJson;
+    readonly pipeline: PipelineJson;
 
     /**
      * Original parameter name that should be replaced
      */
-    oldParameterName: string_name;
+    readonly oldParameterName: string_name;
 
     /**
      * New parameter name that should replace the original parameter name
      */
-    newParameterName: string_name;
+    readonly newParameterName: string_name;
 };
 
 /**

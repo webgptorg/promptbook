@@ -7,7 +7,7 @@ type PrepareKnowledgeFromPdfOptions = {
     /**
      * The LLM tools to use for the conversion and extraction of knowledge
      */
-    llmTools: LlmExecutionTools;
+    readonly llmTools: LlmExecutionTools;
 };
 
 /**

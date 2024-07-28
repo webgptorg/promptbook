@@ -20,29 +20,29 @@ export type PipelineExecutor = {
         /**
          * Whether the execution was successful, details are aviable in `executionReport`
          */
-        isSuccessful: boolean;
+        readonly isSuccessful: boolean;
 
         /**
          * Added usage of whole execution, detailed usage is aviable in `executionReport`
          */
-        usage: PromptResultUsage;
+        readonly usage: PromptResultUsage;
 
         /**
          * Errors that occured during the execution, details are aviable in `executionReport`
          */
-        errors: Array<Error>;
+        readonly errors: Array<Error>;
 
         /**
          * The report of the execution with all details
          */
-        executionReport: ExecutionReportJson;
+        readonly executionReport: ExecutionReportJson;
 
         /**
          * Result parameters of the execution
          *
          * Note: If the execution was not successful, there are only some of the result parameters
          */
-        outputParameters: Record<string_name, string>;
+        readonly outputParameters: Record<string_name, string>;
     }>;
 };
 

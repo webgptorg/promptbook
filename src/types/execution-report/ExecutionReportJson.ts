@@ -1,8 +1,6 @@
 import type { PromptResult } from '../../execution/PromptResult';
 import type { Prompt } from '../Prompt';
-import type { string_markdown_text } from '../typeAliases';
-import type { string_pipeline_url } from '../typeAliases';
-import type { string_semantic_version } from '../typeAliases';
+import type { string_markdown_text, string_pipeline_url, string_semantic_version } from '../typeAliases';
 
 /**
  * ExecutionReport is result of executing one promptbook
@@ -47,20 +45,20 @@ export type ExecutionReportJson = {
         /**
          * The prompt wich was executed
          */
-        prompt: Omit<Prompt, 'pipelineUrl' | 'parameters'>;
+        readonly prompt: Omit<Prompt, 'pipelineUrl' | 'parameters'>;
 
         /**
          * Result of the prompt execution (if not failed during LLM execution)
          */
-        result?: PromptResult;
+        readonly result?: PromptResult;
 
         /**
          * The error which occured during LLM execution or during postprocessing or expectation checking
          *
          * Note: It makes sense to have both error and result defined, for example when the result not pass expectations
          */
-        error?: {
-            message: string;
+        readonly error?: {
+            readonly message: string;
         };
     }>;
 };

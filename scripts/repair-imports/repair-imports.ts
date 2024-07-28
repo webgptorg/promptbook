@@ -48,9 +48,9 @@ async function repairImports({
     // isOrganizedAll,
     isCommited,
 }: {
-    isOrganized: boolean;
-    isOrganizedAll: boolean;
-    isCommited: boolean;
+    readonly isOrganized: boolean;
+    readonly isOrganizedAll: boolean;
+    readonly isCommited: boolean;
 }) {
     console.info(`🏭🩹 Repair imports`);
 

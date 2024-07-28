@@ -5,17 +5,17 @@ export type FromtoItems = Array<{
     /**
      * The title of the item
      */
-    title: string;
+    readonly title: string;
 
     /**
      * The start of the item
      *
      * This can mean anything, like seconds, milliseconds, dollars, etc.
      */
-    from: number;
+    readonly from: number;
 
     /**
      * The end of the item
      */
-    to: number;
+    readonly to: number;
 }>;

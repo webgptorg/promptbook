@@ -13,8 +13,8 @@ import { computeUsage } from './computeUsage';
 export const OPENAI_MODELS: Array<
     AvailableModel & {
         pricing?: {
-            prompt: number_usd;
-            output: number_usd;
+            readonly prompt: number_usd;
+            readonly output: number_usd;
         };
     }
 > = [

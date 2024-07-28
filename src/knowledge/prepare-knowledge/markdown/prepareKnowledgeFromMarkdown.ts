@@ -24,14 +24,14 @@ type PrepareKnowledgeFromMarkdownOptions = {
      *
      * Note: If you want to use multiple LLMs, you can use `joinLlmExecutionTools` to join them first
      */
-    llmTools: LlmExecutionTools;
+    readonly llmTools: LlmExecutionTools;
 
     /**
      * If true, the preaparation of knowledge logs additional information
      *
      * @default false
      */
-    isVerbose?: boolean;
+    readonly isVerbose?: boolean;
 };
 
 /**

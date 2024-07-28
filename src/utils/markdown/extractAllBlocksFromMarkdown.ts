@@ -8,12 +8,12 @@ export type CodeBlock = {
     /**
      * Language of the code block OR null if the language is not specified in opening ```
      */
-    language: string | null;
+    readonly language: string | null;
 
     /**
      * Content of the code block (unescaped)
      */
-    content: string;
+    readonly content: string;
 };
 
 /**

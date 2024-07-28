@@ -5,7 +5,7 @@ import { pipelineStringToJsonSync } from './pipelineStringToJsonSync';
 import { preparePipeline } from './preparePipeline';
 
 /**
- * Options for pipelineStringToJson
+ * Options for `pipelineStringToJson`
  */
 export type PipelineStringToJsonOptions = {
     /**
@@ -13,7 +13,7 @@ export type PipelineStringToJsonOptions = {
      *
      * Note: If you provide `null`, the knowledge will not be prepared
      */
-    llmTools: LlmExecutionTools | null;
+    readonly llmTools: LlmExecutionTools | null;
 };
 
 /**

@@ -8,9 +8,9 @@ export async function execCommands({
     cwd,
     crashOnError,
 }: {
-    commands: string[];
-    cwd: string;
-    crashOnError?: boolean;
+    readonly commands: string[];
+    readonly cwd: string;
+    readonly crashOnError?: boolean;
 }) {
     for (const command of commands) {
         await execCommand({ command, cwd, crashOnError });

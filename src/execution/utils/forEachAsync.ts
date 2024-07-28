@@ -6,7 +6,7 @@ type ForEachAsyncOptions = {
      *
      * @default Infinity
      */
-    inParallelCount?: number;
+    readonly inParallelCount?: number;
 };
 
 /**

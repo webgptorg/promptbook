@@ -6,17 +6,17 @@ export type PreparationJson = {
     /**
      * Incremental ID of the preparation
      */
-    id: number_id;
+    readonly id: number_id;
 
     /**
      * Date and time of the preparation
      */
-    date: string_date_iso8601;
+    readonly date: string_date_iso8601;
 
     /**
      * Version of the promptbook used for the preparation
      */
-    promptbookVersion: string_promptbook_version;
+    readonly promptbookVersion: string_promptbook_version;
 
     /**
      * Usage of the prompt execution

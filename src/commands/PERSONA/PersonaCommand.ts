@@ -8,6 +8,6 @@ import { string_name, string_persona_description } from '../../types/typeAliases
  */
 export type PersonaCommand = {
     readonly type: 'PERSONA';
-    personaName: string_name;
-    personaDescription: string_persona_description | null;
+    readonly personaName: string_name;
+    readonly personaDescription: string_persona_description | null;
 };

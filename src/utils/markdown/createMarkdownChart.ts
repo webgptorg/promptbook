@@ -1,41 +1,37 @@
-import type { string_markdown } from '../../types/typeAliases';
-import type { string_markdown_text } from '../../types/typeAliases';
+import type { string_markdown, string_markdown_text } from '../../types/typeAliases';
 import type { FromtoItems } from '../FromtoItems';
 import { formatNumber } from '../formatNumber';
 import { removeEmojis } from '../removeEmojis';
 import { createMarkdownTable } from './createMarkdownTable';
 
 /**
- * Options for creating a markdown chart
- */
-/**
- * Options for creating a markdown chart.
+ * Options for `CreateMarkdownChartOptions`
  */
 type CreateMarkdownChartOptions = {
     /**
      * The header for the first column - the name of the item
      */
-    nameHeader: string;
+    readonly nameHeader: string;
 
     /**
      * The header for the second column - the value of the item
      */
-    valueHeader: string;
+    readonly valueHeader: string;
 
     /**
      * The items to be charted
      */
-    items: FromtoItems;
+    readonly items: FromtoItems;
 
     /**
      * The width of the chart in squares
      */
-    width: number;
+    readonly width: number;
 
     /**
      * The name of the unit shown in the chart
      */
-    unitName: string;
+    readonly unitName: string;
 };
 
 /**
