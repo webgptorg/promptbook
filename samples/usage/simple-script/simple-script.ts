@@ -21,6 +21,7 @@ async function main() {
     console.info(colors.bgWhite('⚪ Testing basic capabilities of Promptbook'));
 
     const collection = await createCollectionFromDirectory('./samples/templates/', {
+        llmTools: null,
         isRecursive: false,
         isCrashedOnError: true,
     });

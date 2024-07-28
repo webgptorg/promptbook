@@ -49,6 +49,7 @@ describe('createCollectionFromDirectory', () => {
         expect.assertions(1);
 
         const collection = await createCollectionFromDirectory('./samples/templates', {
+            llmTools: null,
             isVerbose: true,
             isRecursive: false,
             isLazyLoaded: true,
@@ -66,6 +67,7 @@ describe('createCollectionFromDirectory', () => {
         expect.assertions(1);
 
         const collection = await createCollectionFromDirectory('./samples/templates', {
+            llmTools: null,
             isVerbose: true,
             isRecursive: false,
         });
@@ -84,7 +86,8 @@ describe('createCollectionFromDirectory', () => {
                 const collection = await createCollectionFromDirectory('./samples/templates', {
                     llmTools: null,
                     isVerbose: true,
-                    isRecursive: true /* <- Note: Include Errors */,
+                    // Note: Including subdirectories BUT lazy-loaded so it should not crash even if there are errors
+                    isRecursive: true,
                     isLazyLoaded: true,
                 });
                 just(collection);
@@ -97,7 +100,8 @@ describe('createCollectionFromDirectory', () => {
                 const collection = await createCollectionFromDirectory('./samples/templates', {
                     llmTools: null,
                     isVerbose: true,
-                    isRecursive: true /* <- Note: Include Errors */,
+                    // Note: Including subdirectories BUT lazy-loaded so it should not crash even if there are errors
+                    isRecursive: true,
                     isLazyLoaded: false,
                 });
                 just(collection);
