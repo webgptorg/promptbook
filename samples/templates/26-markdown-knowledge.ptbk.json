@@ -30,6 +30,7 @@
                     "min": 1
                 }
             },
+            "personaName": null,
             "modelRequirements": {
                 "modelVariant": "CHAT"
             },
@@ -37,52 +38,65 @@
             "resultingParameterName": "bio"
         }
     ],
-    "knowledge": [
+    "knowledgeSources": [],
+    "knowledgePieces": [],
+    "personas": [],
+    "preparations": [
         {
-            "name": "i",
-            "title": "I",
-            "content": "C",
-            "keywords": [
-                "O"
-            ],
-            "index": [
-                {
-                    "modelName": "mocked-facked",
-                    "position": [
-                        0.8144708005814341,
-                        -0.08613315506930208,
-                        0.8340402752822955,
-                        0.3266566320960336,
-                        0.19878670060917036,
-                        -0.8524379410173726,
-                        0.22453620208887148,
-                        -0.5713191698248741,
-                        0.7273296038472172,
-                        0.7229693450939028,
-                        0.15289487131461987,
-                        -0.5399652812848212,
-                        -0.5616668300518151,
-                        0.6483952552361401,
-                        0.7830276627788328,
-                        0.9884006458130363,
-                        -0.1611355674456827,
-                        0.15458536714594873,
-                        -0.5628703093198468,
-                        0.4558909222263554,
-                        -0.3556099237670356,
-                        0.21128808256965748,
-                        0.5466778395122822,
-                        0.13979311202416733,
-                        -0.7992238274961609
-                    ]
+            "id": 1,
+            "date": "2024-07-28T23:23:17.712Z",
+            "promptbookVersion": "0.61.0-9",
+            "modelUsage": {
+                "price": {
+                    "value": 0
+                },
+                "input": {
+                    "tokensCount": {
+                        "value": 0
+                    },
+                    "charactersCount": {
+                        "value": 0
+                    },
+                    "wordsCount": {
+                        "value": 0
+                    },
+                    "sentencesCount": {
+                        "value": 0
+                    },
+                    "linesCount": {
+                        "value": 0
+                    },
+                    "paragraphsCount": {
+                        "value": 0
+                    },
+                    "pagesCount": {
+                        "value": 0
+                    }
+                },
+                "output": {
+                    "tokensCount": {
+                        "value": 0
+                    },
+                    "charactersCount": {
+                        "value": 0
+                    },
+                    "wordsCount": {
+                        "value": 0
+                    },
+                    "sentencesCount": {
+                        "value": 0
+                    },
+                    "linesCount": {
+                        "value": 0
+                    },
+                    "paragraphsCount": {
+                        "value": 0
+                    },
+                    "pagesCount": {
+                        "value": 0
+                    }
                 }
-            ],
-            "sources": [
-                {
-                    "title": "Markdown document",
-                    "href": "#"
-                }
-            ]
+            }
         }
     ]
 }

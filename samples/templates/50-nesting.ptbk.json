@@ -44,6 +44,7 @@
                     "max": 1
                 }
             },
+            "personaName": null,
             "modelRequirements": {
                 "modelVariant": "CHAT",
                 "modelName": "gpt-3.5-turbo"
@@ -68,6 +69,7 @@
                     "min": 1
                 }
             },
+            "personaName": null,
             "modelRequirements": {
                 "modelVariant": "CHAT",
                 "modelName": "gpt-3.5-turbo"
@@ -85,6 +87,7 @@
             "postprocessing": [
                 "unwrapResult"
             ],
+            "personaName": null,
             "modelRequirements": {
                 "modelVariant": "CHAT",
                 "modelName": "gpt-3.5-turbo"
@@ -93,52 +96,65 @@
             "resultingParameterName": "poem"
         }
     ],
-    "knowledge": [
+    "knowledgeSources": [],
+    "knowledgePieces": [],
+    "personas": [],
+    "preparations": [
         {
-            "name": "p",
-            "title": "P",
-            "content": "C",
-            "keywords": [
-                "C"
-            ],
-            "index": [
-                {
-                    "modelName": "mocked-facked",
-                    "position": [
-                        0.39380488343047926,
-                        0.3538566088786763,
-                        0.8394811044820041,
-                        0.029187386402485416,
-                        0.7550948936794155,
-                        -0.7991267492302847,
-                        -0.7260423060444787,
-                        -0.3826168872136444,
-                        0.3990158727598181,
-                        -0.9548938331902761,
-                        -0.3133425999521524,
-                        -0.20862049664106985,
-                        -0.7525026379065491,
-                        0.5920953016608355,
-                        -0.22503978821000725,
-                        0.8770311705119531,
-                        -0.3044610522182185,
-                        -0.09448889397583393,
-                        -0.47220840171900713,
-                        0.9518618078433123,
-                        0.8849049314048152,
-                        0.38565414567372613,
-                        0.39330576575039977,
-                        -0.6448032423000232,
-                        -0.7091289217503727
-                    ]
+            "id": 1,
+            "date": "2024-07-28T23:23:17.763Z",
+            "promptbookVersion": "0.61.0-9",
+            "modelUsage": {
+                "price": {
+                    "value": 0
+                },
+                "input": {
+                    "tokensCount": {
+                        "value": 0
+                    },
+                    "charactersCount": {
+                        "value": 0
+                    },
+                    "wordsCount": {
+                        "value": 0
+                    },
+                    "sentencesCount": {
+                        "value": 0
+                    },
+                    "linesCount": {
+                        "value": 0
+                    },
+                    "paragraphsCount": {
+                        "value": 0
+                    },
+                    "pagesCount": {
+                        "value": 0
+                    }
+                },
+                "output": {
+                    "tokensCount": {
+                        "value": 0
+                    },
+                    "charactersCount": {
+                        "value": 0
+                    },
+                    "wordsCount": {
+                        "value": 0
+                    },
+                    "sentencesCount": {
+                        "value": 0
+                    },
+                    "linesCount": {
+                        "value": 0
+                    },
+                    "paragraphsCount": {
+                        "value": 0
+                    },
+                    "pagesCount": {
+                        "value": 0
+                    }
                 }
-            ],
-            "sources": [
-                {
-                    "title": "Markdown document",
-                    "href": "#"
-                }
-            ]
+            }
         }
     ]
 }

@@ -29,6 +29,7 @@
                 "trimEndOfCodeBlock"
             ],
             "expectFormat": "JSON",
+            "personaName": null,
             "modelRequirements": {
                 "modelVariant": "COMPLETION",
                 "modelName": "gpt-3.5-turbo-instruct"
@@ -37,52 +38,65 @@
             "resultingParameterName": "contactlist"
         }
     ],
-    "knowledge": [
+    "knowledgeSources": [],
+    "knowledgePieces": [],
+    "personas": [],
+    "preparations": [
         {
-            "name": "l",
-            "title": "L",
-            "content": "E",
-            "keywords": [
-                "F"
-            ],
-            "index": [
-                {
-                    "modelName": "mocked-facked",
-                    "position": [
-                        -0.982837256948446,
-                        0.20005533267609676,
-                        -0.8844653168905467,
-                        0.29174642452936617,
-                        -0.8722549120156509,
-                        -0.7371362255221539,
-                        0.1610080352094183,
-                        0.657856554762732,
-                        -0.42587780037234824,
-                        0.5066555417803733,
-                        -0.6594384590243716,
-                        -0.835413695906714,
-                        0.6783876198599637,
-                        0.9083908121175677,
-                        0.2483057355099687,
-                        -0.7924355407046724,
-                        -0.8683517971054457,
-                        0.5025841687894608,
-                        0.8370793421362168,
-                        -0.09000101774639058,
-                        0.8546606174003499,
-                        0.6736422322245579,
-                        0.03199642828264748,
-                        -0.5505157898550408,
-                        0.16534689881722242
-                    ]
+            "id": 1,
+            "date": "2024-07-28T23:23:17.766Z",
+            "promptbookVersion": "0.61.0-9",
+            "modelUsage": {
+                "price": {
+                    "value": 0
+                },
+                "input": {
+                    "tokensCount": {
+                        "value": 0
+                    },
+                    "charactersCount": {
+                        "value": 0
+                    },
+                    "wordsCount": {
+                        "value": 0
+                    },
+                    "sentencesCount": {
+                        "value": 0
+                    },
+                    "linesCount": {
+                        "value": 0
+                    },
+                    "paragraphsCount": {
+                        "value": 0
+                    },
+                    "pagesCount": {
+                        "value": 0
+                    }
+                },
+                "output": {
+                    "tokensCount": {
+                        "value": 0
+                    },
+                    "charactersCount": {
+                        "value": 0
+                    },
+                    "wordsCount": {
+                        "value": 0
+                    },
+                    "sentencesCount": {
+                        "value": 0
+                    },
+                    "linesCount": {
+                        "value": 0
+                    },
+                    "paragraphsCount": {
+                        "value": 0
+                    },
+                    "pagesCount": {
+                        "value": 0
+                    }
                 }
-            ],
-            "sources": [
-                {
-                    "title": "Markdown document",
-                    "href": "#"
-                }
-            ]
+            }
         }
     ]
 }

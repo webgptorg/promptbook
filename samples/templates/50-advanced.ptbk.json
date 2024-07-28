@@ -63,6 +63,7 @@
                     "max": 1
                 }
             },
+            "personaName": null,
             "modelRequirements": {
                 "modelVariant": "CHAT",
                 "modelName": "gpt-3.5-turbo"
@@ -78,6 +79,7 @@
                 "wordSynonym"
             ],
             "blockType": "SCRIPT",
+            "personaName": null,
             "contentLanguage": "javascript",
             "content": "if (word !== '' && wordSynonym === word) {\n    throw new Error(`Synonym returned from LLM is same as original word \"${word}\"`);\n}\n\nreturn wordSynonym;",
             "resultingParameterName": "wordSynonymTested"
@@ -100,6 +102,7 @@
                     "max": 1
                 }
             },
+            "personaName": null,
             "modelRequirements": {
                 "modelVariant": "CHAT",
                 "modelName": "gpt-3.5-turbo"
@@ -125,6 +128,7 @@
                     "max": 1
                 }
             },
+            "personaName": null,
             "modelRequirements": {
                 "modelVariant": "CHAT",
                 "modelName": "gpt-3.5-turbo"
@@ -147,6 +151,7 @@
                     "max": 5
                 }
             },
+            "personaName": null,
             "modelRequirements": {
                 "modelVariant": "CHAT",
                 "modelName": "gpt-4o"
@@ -165,56 +170,70 @@
                 "comparisonOfTwoSentences"
             ],
             "blockType": "SIMPLE_TEMPLATE",
+            "personaName": null,
             "content": "You have entered a word **{word}**. For this word the best synonym is **{wordSynonym}**. The sentence with both words is **{sentenceWithTwoSynonyms}**. The sentence without the original word is **{sentenceWithOriginalWordRemoved}**. And the comparison between the two sentences is:\n\n> {comparisonOfTwoSentences}",
             "resultingParameterName": "summary"
         }
     ],
-    "knowledge": [
+    "knowledgeSources": [],
+    "knowledgePieces": [],
+    "personas": [],
+    "preparations": [
         {
-            "name": "e",
-            "title": "E",
-            "content": "I",
-            "keywords": [
-                "D"
-            ],
-            "index": [
-                {
-                    "modelName": "mocked-facked",
-                    "position": [
-                        -0.8883824868024606,
-                        -0.6020321746200104,
-                        -0.9393741530532278,
-                        -0.11002128864944272,
-                        0.3574893138512927,
-                        -0.5869817948357818,
-                        -0.46392873161577564,
-                        -0.30633851090576014,
-                        0.9789426038985036,
-                        -0.9134100241893721,
-                        -0.7808339797583361,
-                        0.9833929341079228,
-                        -0.7152915544454097,
-                        -0.12105020025223023,
-                        -0.5133048494023682,
-                        -0.41006779176071184,
-                        -0.9108060611017832,
-                        -0.11725611976835815,
-                        0.2264098892254438,
-                        0.3286038097320585,
-                        0.32833590819696434,
-                        -0.5958587641807758,
-                        0.7177351139361723,
-                        0.7654342740931517,
-                        0.22865740152984326
-                    ]
+            "id": 1,
+            "date": "2024-07-28T23:23:17.759Z",
+            "promptbookVersion": "0.61.0-9",
+            "modelUsage": {
+                "price": {
+                    "value": 0
+                },
+                "input": {
+                    "tokensCount": {
+                        "value": 0
+                    },
+                    "charactersCount": {
+                        "value": 0
+                    },
+                    "wordsCount": {
+                        "value": 0
+                    },
+                    "sentencesCount": {
+                        "value": 0
+                    },
+                    "linesCount": {
+                        "value": 0
+                    },
+                    "paragraphsCount": {
+                        "value": 0
+                    },
+                    "pagesCount": {
+                        "value": 0
+                    }
+                },
+                "output": {
+                    "tokensCount": {
+                        "value": 0
+                    },
+                    "charactersCount": {
+                        "value": 0
+                    },
+                    "wordsCount": {
+                        "value": 0
+                    },
+                    "sentencesCount": {
+                        "value": 0
+                    },
+                    "linesCount": {
+                        "value": 0
+                    },
+                    "paragraphsCount": {
+                        "value": 0
+                    },
+                    "pagesCount": {
+                        "value": 0
+                    }
                 }
-            ],
-            "sources": [
-                {
-                    "title": "Markdown document",
-                    "href": "#"
-                }
-            ]
+            }
         }
     ]
 }

@@ -31,6 +31,7 @@
                 "wordSynonym"
             ],
             "blockType": "PROMPT_TEMPLATE",
+            "personaName": null,
             "modelRequirements": {
                 "modelVariant": "CHAT"
             },
@@ -45,6 +46,7 @@
                 "word"
             ],
             "blockType": "PROMPT_TEMPLATE",
+            "personaName": null,
             "modelRequirements": {
                 "modelVariant": "CHAT"
             },
@@ -52,52 +54,65 @@
             "resultingParameterName": "wordSynonym"
         }
     ],
-    "knowledge": [
+    "knowledgeSources": [],
+    "knowledgePieces": [],
+    "personas": [],
+    "preparations": [
         {
-            "name": "p",
-            "title": "P",
-            "content": "C",
-            "keywords": [
-                "L"
-            ],
-            "index": [
-                {
-                    "modelName": "mocked-facked",
-                    "position": [
-                        0.7239207513761841,
-                        -0.7251862480378515,
-                        -0.04209482195194214,
-                        -0.5513564638215223,
-                        0.5295435192299638,
-                        0.9650540362478441,
-                        -0.3784660177752537,
-                        0.7870343483131186,
-                        0.7660332408225297,
-                        -0.4230696415463089,
-                        -0.7107113461733134,
-                        -0.7233156415536333,
-                        -0.42012660547237424,
-                        0.32722395723026265,
-                        -0.29297286864085015,
-                        0.3958531033369703,
-                        0.012985799351627136,
-                        0.31412131352182504,
-                        -0.7638210731977773,
-                        0.19299201550009037,
-                        0.9830549912152211,
-                        -0.03947040477271324,
-                        -0.2994282557263692,
-                        -0.11364929175365157,
-                        0.9806377490539369
-                    ]
+            "id": 1,
+            "date": "2024-07-28T23:23:17.769Z",
+            "promptbookVersion": "0.61.0-9",
+            "modelUsage": {
+                "price": {
+                    "value": 0
+                },
+                "input": {
+                    "tokensCount": {
+                        "value": 0
+                    },
+                    "charactersCount": {
+                        "value": 0
+                    },
+                    "wordsCount": {
+                        "value": 0
+                    },
+                    "sentencesCount": {
+                        "value": 0
+                    },
+                    "linesCount": {
+                        "value": 0
+                    },
+                    "paragraphsCount": {
+                        "value": 0
+                    },
+                    "pagesCount": {
+                        "value": 0
+                    }
+                },
+                "output": {
+                    "tokensCount": {
+                        "value": 0
+                    },
+                    "charactersCount": {
+                        "value": 0
+                    },
+                    "wordsCount": {
+                        "value": 0
+                    },
+                    "sentencesCount": {
+                        "value": 0
+                    },
+                    "linesCount": {
+                        "value": 0
+                    },
+                    "paragraphsCount": {
+                        "value": 0
+                    },
+                    "pagesCount": {
+                        "value": 0
+                    }
                 }
-            ],
-            "sources": [
-                {
-                    "title": "Markdown document",
-                    "href": "#"
-                }
-            ]
+            }
         }
     ]
 }

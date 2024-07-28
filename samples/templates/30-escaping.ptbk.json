@@ -16,6 +16,7 @@
             "title": "💬 Prompt",
             "dependentParameterNames": [],
             "blockType": "PROMPT_TEMPLATE",
+            "personaName": null,
             "modelRequirements": {
                 "modelVariant": "CHAT"
             },
@@ -23,52 +24,65 @@
             "resultingParameterName": "greeting"
         }
     ],
-    "knowledge": [
+    "knowledgeSources": [],
+    "knowledgePieces": [],
+    "personas": [],
+    "preparations": [
         {
-            "name": "c",
-            "title": "C",
-            "content": "V",
-            "keywords": [
-                "A"
-            ],
-            "index": [
-                {
-                    "modelName": "mocked-facked",
-                    "position": [
-                        0.13580733876644224,
-                        -0.07147958103344543,
-                        0.3109062318120275,
-                        -0.6511545202644125,
-                        -0.2903950645372593,
-                        0.7242879073889714,
-                        0.031630995149014574,
-                        -0.01708027216421648,
-                        -0.9873619151683317,
-                        0.9376961032689417,
-                        0.027208681115055366,
-                        -0.5182675655645013,
-                        -0.035210425337530715,
-                        0.31707380550025244,
-                        -0.11789998131586144,
-                        -0.445353121948763,
-                        0.2987076194625935,
-                        -0.4015227143238316,
-                        0.41181644617235946,
-                        0.5041063359620304,
-                        -0.35062595533095964,
-                        -0.8050678862055216,
-                        0.2855257833181133,
-                        -0.07016735199776347,
-                        -0.6815636201855799
-                    ]
+            "id": 1,
+            "date": "2024-07-28T23:23:17.714Z",
+            "promptbookVersion": "0.61.0-9",
+            "modelUsage": {
+                "price": {
+                    "value": 0
+                },
+                "input": {
+                    "tokensCount": {
+                        "value": 0
+                    },
+                    "charactersCount": {
+                        "value": 0
+                    },
+                    "wordsCount": {
+                        "value": 0
+                    },
+                    "sentencesCount": {
+                        "value": 0
+                    },
+                    "linesCount": {
+                        "value": 0
+                    },
+                    "paragraphsCount": {
+                        "value": 0
+                    },
+                    "pagesCount": {
+                        "value": 0
+                    }
+                },
+                "output": {
+                    "tokensCount": {
+                        "value": 0
+                    },
+                    "charactersCount": {
+                        "value": 0
+                    },
+                    "wordsCount": {
+                        "value": 0
+                    },
+                    "sentencesCount": {
+                        "value": 0
+                    },
+                    "linesCount": {
+                        "value": 0
+                    },
+                    "paragraphsCount": {
+                        "value": 0
+                    },
+                    "pagesCount": {
+                        "value": 0
+                    }
                 }
-            ],
-            "sources": [
-                {
-                    "title": "Markdown document",
-                    "href": "#"
-                }
-            ]
+            }
         }
     ]
 }
