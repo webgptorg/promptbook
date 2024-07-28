@@ -33,6 +33,7 @@ import { SimplePromptInterfaceTools } from '../knowledge/dialogs/simple-prompt/S
 import { prepareKnowledgeFromMarkdown } from '../knowledge/prepare-knowledge/markdown/prepareKnowledgeFromMarkdown';
 import { joinLlmExecutionTools } from '../llm-providers/multiple/joinLlmExecutionTools';
 import { preparePipeline } from '../prepare/preparePipeline';
+import { unpreparePipeline } from '../prepare/unpreparePipeline';
 import type { ExecutionReportStringOptions } from '../types/execution-report/ExecutionReportStringOptions';
 import { ExecutionReportStringOptionsDefaults } from '../types/execution-report/ExecutionReportStringOptions';
 import { executionReportJsonToString } from '../types/execution-report/executionReportJsonToString';
@@ -74,7 +75,8 @@ export { SimplePromptInterfaceTools };
 // @promptbook/parser
 export { pipelineJsonToString, pipelineStringToJson, pipelineStringToJsonSync, validatePipeline };
 
-export { preparePipeline };
+// @promptbook/preparation
+export { preparePipeline, unpreparePipeline };
 
 // @promptbook/executor
 export { createPipelineExecutor, joinLlmExecutionTools };
@@ -93,5 +95,4 @@ export {
     ReferenceError,
     UnexpectedError,
     VersionMismatch,
-    // <- TODO: [📂] Is there some way how to export everything from a folder?
 };

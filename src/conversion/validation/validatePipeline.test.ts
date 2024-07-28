@@ -3,7 +3,7 @@ import { readdirSync } from 'fs';
 import { join } from 'path';
 import { spaceTrim } from 'spacetrim';
 import { pipelineStringToJson } from '../pipelineStringToJson';
-import { importPipeline } from './_importPipeline';
+import { importPipelineWithoutPreparation } from './_importPipeline';
 import { validatePipeline } from './validatePipeline';
 
 describe('validatePipeline', () => {
@@ -20,7 +20,7 @@ describe('validatePipeline', () => {
             expect(
                 (async () => {
                     try {
-                        const pipelineString = importPipeline(name as `${string}.ptbk.md`);
+                        const pipelineString = importPipelineWithoutPreparation(name as `${string}.ptbk.md`);
                         const pipelineJson = await pipelineStringToJson(pipelineString);
                         validatePipeline(pipelineJson);
                     } catch (error) {

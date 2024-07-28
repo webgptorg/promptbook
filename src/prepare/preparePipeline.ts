@@ -2,7 +2,6 @@ import { addUsage } from '../_packages/core.index';
 import { PersonaPreparedJson, PreparationJson } from '../_packages/types.index';
 import { forEachAsync } from '../_packages/utils.index';
 import { MAX_PARALLEL_COUNT } from '../config';
-import { VersionMismatch } from '../errors/VersionMismatch';
 import { prepareKnowledgePieces } from '../knowledge/prepare-knowledge/_common/prepareKnowledgePieces';
 import { preparePersona } from '../personas/preparePersona';
 import type { PipelineJson } from '../types/PipelineJson/PipelineJson';
@@ -19,15 +18,16 @@ import { PrepareOptions } from './PrepareOptions';
 export async function preparePipeline(pipeline: PipelineJson, options: PrepareOptions): Promise<PipelineJson> {
     const { maxParallelCount = MAX_PARALLEL_COUNT } = options;
     const {
-        promptbookVersion,
+        /*
+        <- TODO: [🧠][0] `promptbookVersion` */
         knowledgeSources /*
-        <- TODO [🧊] `knowledgePieces` */,
+        <- TODO: [🧊] `knowledgePieces` */,
         personas /*
-        <- TODO [🧊] `preparations` */,
+        <- TODO: [🧊] `preparations` */,
     } = pipeline;
 
     /*
-    TODO: [🧠] Should this be done or not
+    TODO: [🧠][0] Should this be done or not
     if (promptbookVersion !== PROMPTBOOK_VERSION) {
         throw new VersionMismatch(`Can not prepare the pipeline`, promptbookVersion);
     }
