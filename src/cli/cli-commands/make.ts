@@ -95,7 +95,6 @@ export function initializeMakeCommand(program: Program) {
         );
 
         const collection = await createCollectionFromDirectory(path, {
-            llmTools: null,
             llmTools,
             isVerbose,
             isRecursive: true,
