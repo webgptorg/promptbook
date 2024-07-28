@@ -1,0 +1,1 @@
+TODO: [📂] Is there some way how to export everything from a folder?

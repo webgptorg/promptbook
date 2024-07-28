@@ -19,6 +19,7 @@ import { PipelineExecutionError } from '../errors/PipelineExecutionError';
 import { PipelineLogicError } from '../errors/PipelineLogicError';
 import { ReferenceError } from '../errors/ReferenceError';
 import { UnexpectedError } from '../errors/UnexpectedError';
+import { VersionMismatch } from '../errors/VersionMismatch';
 import { ExpectError } from '../errors/_ExpectError';
 import { assertsExecutionSuccessful } from '../execution/assertsExecutionSuccessful';
 import { createPipelineExecutor } from '../execution/createPipelineExecutor';
@@ -91,4 +92,6 @@ export {
     PipelineLogicError,
     ReferenceError,
     UnexpectedError,
+    VersionMismatch,
+    // <- TODO: [📂] Is there some way how to export everything from a folder?
 };

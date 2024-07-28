@@ -26,9 +26,12 @@ export async function preparePipeline(pipeline: PipelineJson, options: PrepareOp
         <- TODO [🧊] `preparations` */,
     } = pipeline;
 
+    /*
+    TODO: [🧠] Should this be done or not
     if (promptbookVersion !== PROMPTBOOK_VERSION) {
-        throw new VersionMismatch(`Can not prepare pipeline`, promptbookVersion);
+        throw new VersionMismatch(`Can not prepare the pipeline`, promptbookVersion);
     }
+    */
 
     // ----- ID -----
     const currentPreparation: PreparationJson = {
