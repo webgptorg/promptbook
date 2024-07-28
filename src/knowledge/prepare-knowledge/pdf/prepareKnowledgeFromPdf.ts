@@ -11,7 +11,7 @@ import { prepareKnowledgeFromMarkdown } from '../markdown/prepareKnowledgeFromMa
 export async function prepareKnowledgeFromPdf(
     content: string_base64 /* <- TODO: [🖖] Always the file, allow base64+filename+identification+mime or blob+filename+identification or file+identification */,
     options: PrepareOptions,
-): Promise<KnowledgePiecePreparedJson> {
+): Promise<Array<Omit<KnowledgePiecePreparedJson, 'sources' | 'preparationIds'> /* <- [🕡] */>> {
     const { llmTools, maxParallelCount = MAX_PARALLEL_COUNT, isVerbose = false } = options;
 
     TODO_USE(llmTools, maxParallelCount, isVerbose);

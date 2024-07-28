@@ -47,8 +47,7 @@ async function playground() {
         }),
     );
 
-    const knowledge = await prepareKnowledgeFromMarkdown({
-        content,
+    const knowledge = await prepareKnowledgeFromMarkdown(content, {
         llmTools,
         isVerbose,
     });

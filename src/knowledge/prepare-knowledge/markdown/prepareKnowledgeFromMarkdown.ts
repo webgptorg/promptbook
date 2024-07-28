@@ -10,14 +10,8 @@ import { createPipelineExecutor } from '../../../execution/createPipelineExecuto
 import { PrepareOptions } from '../../../prepare/PrepareOptions';
 import { KnowledgePiecePreparedJson } from '../../../types/PipelineJson/KnowledgePieceJson';
 import type { PipelineJson } from '../../../types/PipelineJson/PipelineJson';
-import type {
-    string_href,
-    string_markdown,
-    string_markdown_text,
-    string_model_name,
-    string_name,
-} from '../../../types/typeAliases';
-import type { string_keyword } from '../../../utils/normalization/IKeywords';
+import type { string_markdown } from '../../../types/typeAliases';
+import { TODO } from '../../../utils/organization/TODO';
 import { TODO_USE } from '../../../utils/organization/TODO_USE';
 
 /**
@@ -26,13 +20,13 @@ import { TODO_USE } from '../../../utils/organization/TODO_USE';
 export async function prepareKnowledgeFromMarkdown(
     content: string_markdown /* <- TODO: [🖖] (?maybe not) Always the file */,
     options: PrepareOptions,
-): Promise<Omit<KnowledgePiecePreparedJson, 'source'>> {
+): Promise<Array<Omit<KnowledgePiecePreparedJson, 'sources' | 'preparationIds'> /* <- [🕡] */>> {
     const { llmTools, maxParallelCount = MAX_PARALLEL_COUNT, isVerbose = false } = options;
 
     TODO_USE(maxParallelCount); // <- [🪂]
 
     // TODO: [🌼] In future use `ptbk make` and maked getPipelineCollection
-    const collection = createCollectionFromJson(...(PipelineCollection as Array<PipelineJson>));
+    const collection = createCollectionFromJson(...(PipelineCollection as TODO as Array<PipelineJson>));
 
     const prepareKnowledgeFromMarkdownExecutor = createPipelineExecutor({
         pipeline: await collection.getPipelineByUrl(
@@ -75,27 +69,24 @@ export async function prepareKnowledgeFromMarkdown(
         console.info('knowledgeTextPieces:', knowledgeTextPieces);
     }
 
-    // TODO: [0] !!! Aggeregate usage
+    // TODO: [💸][0] !!! Aggeregate usage
     // const usage = ;
 
     const knowledge = await Promise.all(
-        // TODO: !!! Do not send all at once but in chunks
+        // TODO: [🪂] !! Do not send all at once but in chunks
         knowledgeTextPieces.map(async (knowledgeTextPiece, i) => {
             // Note: Theese are just default values, they will be overwritten by the actual values:
-            let name: string_name = `piece-${i}`;
-            let title: string_markdown_text = spaceTrim(knowledgeTextPiece.substring(0, 100));
-            const content: string_markdown = spaceTrim(knowledgeTextPiece);
-            let keywords: Array<string_keyword> = [];
-            const index: Array<{
-                modelName: string_model_name;
-                position: Array<number>;
-            }> = [];
-            const sources: Array<{ title: string_markdown_text; href: string_href }> = [
-                {
-                    title: 'Markdown document' /* <- TODO: !!! Unhardcode */,
-                    href: '#' /* <- TODO: !!! Unhardcode */,
-                },
+            let name: KnowledgePiecePreparedJson['name'] = `piece-${i}`;
+            let title: KnowledgePiecePreparedJson['title'] = spaceTrim(knowledgeTextPiece.substring(0, 100));
+            const content: KnowledgePiecePreparedJson['content'] = spaceTrim(knowledgeTextPiece);
+            let keywords: KnowledgePiecePreparedJson['keywords'] = [];
+            const index: KnowledgePiecePreparedJson['index'] = [];
+
+            /*
+            TODO: [☀] Track line and column of the source
+            const sources: KnowledgePiecePreparedJson['sources'] = [
             ];
+            */
 
             try {
                 const titleResult = await prepareTitleExecutor({ content });
@@ -153,7 +144,7 @@ export async function prepareKnowledgeFromMarkdown(
                 content,
                 keywords,
                 index,
-                sources,
+                // <- TODO: [☀] sources,
             };
         }),
     );

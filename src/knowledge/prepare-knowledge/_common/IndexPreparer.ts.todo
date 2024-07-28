@@ -1,5 +1,5 @@
 export type IndexPreparer = {
-    // TODO: [🧠] Implement or delete
+    // TODO: [🧠][🕡] Implement or delete
 };
 
 

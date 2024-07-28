@@ -3,7 +3,7 @@ import { PersonaPreparedJson, PreparationJson } from '../_packages/types.index';
 import { forEachAsync } from '../_packages/utils.index';
 import { MAX_PARALLEL_COUNT } from '../config';
 import { VersionMismatch } from '../errors/VersionMismatch';
-import { prepareKnowledge } from '../knowledge/prepare-knowledge/_common/prepareKnowledge';
+import { prepareKnowledge } from '../knowledge/prepare-knowledge/_common/prepareKnowledgePieces';
 import { preparePersona } from '../personas/preparePersona';
 import type { PipelineJson } from '../types/PipelineJson/PipelineJson';
 import { $currentDate } from '../utils/currentDate';
@@ -77,4 +77,5 @@ export async function preparePipeline(pipeline: PipelineJson, options: PrepareOp
  * TODO: Write tests for `preparePipeline`
  * TODO: [🏏] Leverage the batch API and build queues @see https://platform.openai.com/docs/guides/batch
  * TODO: [🧊] In future one preparation can take data from previous preparation and save tokens and time
+ * TODO: [💸] Make utilities `interceptLlmTools` and `costLlmTools` to compute cost and DO put this counting logic in `prepareKnowledge` or `preparePersona`
  */

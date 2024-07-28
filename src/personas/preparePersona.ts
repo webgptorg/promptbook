@@ -8,6 +8,7 @@ import { TODO_USE } from '../utils/organization/TODO_USE';
 /**
  * Prepares the persona for the pipeline
  *
+ * @see https://github.com/webgptorg/promptbook/discussions/22
  * @private within the package
  */
 export async function preparePersona(

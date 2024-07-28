@@ -1,3 +1,4 @@
+import { WritableDeep } from 'type-fest';
 import type { PromptResultUsage } from '../PromptResult';
 
 /**
@@ -7,7 +8,7 @@ import type { PromptResultUsage } from '../PromptResult';
  */
 
 export function addUsage(...usageItems: Array<PromptResultUsage>): PromptResultUsage {
-    const initialStructure: PromptResultUsage = {
+    const initialStructure: WritableDeep<PromptResultUsage> = {
         price: { value: 0 },
         input: {
             tokensCount: { value: 0 },
@@ -29,7 +30,7 @@ export function addUsage(...usageItems: Array<PromptResultUsage>): PromptResultU
         },
     };
 
-    return usageItems.reduce((acc, item) => {
+    return usageItems.reduce((acc: WritableDeep<PromptResultUsage>, item) => {
         acc.price.value += item.price?.value || 0;
 
         for (const key of Object.keys(acc.input)) {
