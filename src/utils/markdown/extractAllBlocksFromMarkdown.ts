@@ -1,3 +1,4 @@
+import { Writable } from 'type-fest';
 import type { string_markdown } from '../../types/typeAliases';
 import { capitalize } from '../normalization/capitalize';
 
@@ -32,7 +33,7 @@ export function extractAllBlocksFromMarkdown(markdown: string_markdown): Array<C
     const codeBlocks: Array<CodeBlock> = [];
     const lines = markdown.split('\n');
 
-    let currentCodeBlock: CodeBlock | null = null;
+    let currentCodeBlock: Writable<CodeBlock> | null = null;
 
     for (const line of lines) {
         if (line.startsWith('```')) {
