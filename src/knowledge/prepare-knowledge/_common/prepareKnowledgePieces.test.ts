@@ -8,8 +8,7 @@ describe('how prepareKnowledge works', () => {
             prepareKnowledgePieces([], {
                 llmTools: getLlmToolsForTests(),
             }),
-        ).resolves.toBe([]));
+        ).resolves.toEqual([]));
 
-    // TODO: !!!! Test preservation of name from unprepared knowledge
     // TODO: !!!! Test markdown, file and website here, rest in their own preparers
 });

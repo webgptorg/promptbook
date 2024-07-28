@@ -9,7 +9,7 @@ describe('how preparePersona works', () => {
             preparePersona(`Copywriter`, {
                 llmTools: getLlmToolsForTests(),
             }),
-        ).resolves.toBe({
+        ).resolves.toEqual({
             modelVariant: 'CHAT',
             modelName: 'gpt-4', // <- TODO: !!!! Allow to specify more model names
         }));
@@ -28,7 +28,7 @@ describe('how preparePersona works', () => {
                     llmTools: getLlmToolsForTests(),
                 },
             ),
-        ).resolves.toBe({
+        ).resolves.toEqual({
             modelVariant: 'CHAT',
             modelName: 'gpt-4', // <- TODO: !!!! Allow to specify more model names
         }));
