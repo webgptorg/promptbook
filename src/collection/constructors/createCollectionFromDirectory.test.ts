@@ -31,6 +31,7 @@ describe('createCollectionFromDirectory', () => {
     it('should get pipeline by url from collection', async () => {
         expect.assertions(1);
         const collection = await createCollectionFromDirectory('./samples/templates', {
+            llmTools: null,
             isVerbose: true,
             isRecursive: false,
             isLazyLoaded: false,
@@ -81,6 +82,7 @@ describe('createCollectionFromDirectory', () => {
         expect(
             (async () => {
                 const collection = await createCollectionFromDirectory('./samples/templates', {
+                    llmTools: null,
                     isVerbose: true,
                     isRecursive: true /* <- Note: Include Errors */,
                     isLazyLoaded: true,
@@ -93,6 +95,7 @@ describe('createCollectionFromDirectory', () => {
         expect(
             (async () => {
                 const collection = await createCollectionFromDirectory('./samples/templates', {
+                    llmTools: null,
                     isVerbose: true,
                     isRecursive: true /* <- Note: Include Errors */,
                     isLazyLoaded: false,

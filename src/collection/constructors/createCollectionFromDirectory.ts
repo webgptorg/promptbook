@@ -9,8 +9,7 @@ import { validatePipeline } from '../../conversion/validation/validatePipeline';
 import { CollectionError } from '../../errors/CollectionError';
 import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import type { PipelineString } from '../../types/PipelineString';
-import type { string_file_path } from '../../types/typeAliases';
-import type { string_folder_path } from '../../types/typeAliases';
+import type { string_file_path, string_folder_path } from '../../types/typeAliases';
 import { isRunningInNode } from '../../utils/isRunningInWhatever';
 import type { PipelineCollection } from '../PipelineCollection';
 import { createCollectionFromPromise } from './createCollectionFromPromise';
@@ -46,7 +45,7 @@ type CreatePipelineCollectionFromDirectoryOptions = PipelineStringToJsonOptions 
      *
      * @default true
      */
-    isCrashOnError?: boolean;
+    isCrashedOnError?: boolean;
 };
 
 /**
@@ -86,7 +85,7 @@ export async function createCollectionFromDirectory(
         // TODO: !! Implement;
     }
 
-    const { isRecursive = true, isVerbose = false, isLazyLoaded = false, isCrashOnError = true } = options || {};
+    const { isRecursive = true, isVerbose = false, isLazyLoaded = false, isCrashedOnError = true } = options || {};
 
     const collection = createCollectionFromPromise(async () => {
         if (isVerbose) {
@@ -133,7 +132,7 @@ export async function createCollectionFromDirectory(
                             console.info(`Loading ${fileName.split('\\').join('/')}`);
                         }
 
-                        if (!isCrashOnError) {
+                        if (!isCrashedOnError) {
                             // Note: Validate promptbook to check if it is logically correct to not crash on invalid promptbooks
                             //       But be handled in current try-catch block
                             validatePipeline(promptbook);
@@ -157,7 +156,7 @@ export async function createCollectionFromDirectory(
                     `,
                 );
 
-                if (isCrashOnError) {
+                if (isCrashedOnError) {
                     throw new CollectionError(wrappedErrorMessage);
                 }
 

@@ -22,7 +22,7 @@ async function main() {
 
     const collection = await createCollectionFromDirectory('./samples/templates/', {
         isRecursive: false,
-        isCrashOnError: true,
+        isCrashedOnError: true,
     });
     const pipeline = await library.getPipelineByUrl(
         `https://promptbook.studio/samples/simple.ptbk.md`,
