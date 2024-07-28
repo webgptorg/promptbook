@@ -68,7 +68,7 @@ export {
     isValidFilePath,
     isValidJavascriptName,
     isValidJsonString,
-    isValidPipelineUrl as isValidPipelineUrl,
+    isValidPipelineUrl,
     isValidPromptbookVersion,
     isValidSemanticVersion,
     isValidUrl,

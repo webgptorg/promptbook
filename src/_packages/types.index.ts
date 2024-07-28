@@ -23,10 +23,12 @@ import type { ModelRequirements, ModelVariant } from '../types/ModelRequirements
 import type { Parameters } from '../types/Parameters';
 import type { ExpectationAmount, ExpectationUnit, Expectations } from '../types/PipelineJson/Expectations';
 import { EXPECTATION_UNITS } from '../types/PipelineJson/Expectations';
-import { KnowledgeJson } from '../types/PipelineJson/KnowledgeJson';
-import { MaterialKnowledgePieceJson } from '../types/PipelineJson/KnowledgePieceJson';
+import { KnowledgePiecePreparedJson } from '../types/PipelineJson/KnowledgePieceJson';
+import { KnowledgeSourceJson, KnowledgeSourcePreparedJson } from '../types/PipelineJson/KnowledgeSourceJson';
 import type { LlmTemplateJson } from '../types/PipelineJson/LlmTemplateJson';
+import { PersonaJson, PersonaPreparedJson } from '../types/PipelineJson/PersonaJson';
 import type { PipelineJson } from '../types/PipelineJson/PipelineJson';
+import { PreparationJson } from '../types/PipelineJson/PreparationJson';
 import type { PromptDialogJson } from '../types/PipelineJson/PromptDialogJson';
 import type { PromptTemplateJson } from '../types/PipelineJson/PromptTemplateJson';
 import type { PromptTemplateParameterJson } from '../types/PipelineJson/PromptTemplateParameterJson';
@@ -108,17 +110,21 @@ export type {
     ExpectationUnit,
     Expectations,
     FromtoItems,
-    KnowledgeJson,
+    KnowledgePiecePreparedJson,
+    KnowledgeSourceJson,
+    KnowledgeSourcePreparedJson,
     LlmExecutionTools,
     LlmTemplateJson,
-    MaterialKnowledgePieceJson,
     ModelRequirements,
     ModelVariant,
     Parameters,
+    PersonaJson,
+    PersonaPreparedJson,
     PipelineCollection,
     PipelineExecutor,
     PipelineJson,
     PipelineString,
+    PreparationJson,
     Prompt,
     PromptChatResult,
     PromptCommonResult,
@@ -175,6 +181,7 @@ export type {
     string_prompt,
     string_promptbook_version,
     string_script,
+    string_semantic_version,
     string_sha256,
     string_tdl,
     string_template,
@@ -187,7 +194,6 @@ export type {
     string_url,
     string_url_image,
     string_uuid,
-    string_semantic_version as string_version,
 };
 
 /**
