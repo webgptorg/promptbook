@@ -15,8 +15,7 @@ import type { PromptTemplateParameterJson } from '../types/PipelineJson/PromptTe
 import type { PipelineString } from '../types/PipelineString';
 import type { ScriptLanguage } from '../types/ScriptLanguage';
 import { SUPPORTED_SCRIPT_LANGUAGES } from '../types/ScriptLanguage';
-import type { really_any } from '../types/typeAliases';
-import type { TODO } from '../types/typeAliases';
+import type { really_any, TODO } from '../types/typeAliases';
 import { extractAllListItemsFromMarkdown } from '../utils/markdown/extractAllListItemsFromMarkdown';
 import { extractOneBlockFromMarkdown } from '../utils/markdown/extractOneBlockFromMarkdown';
 import { flattenMarkdown } from '../utils/markdown/flattenMarkdown';
@@ -30,14 +29,14 @@ import { extractParametersFromPromptTemplate } from './utils/extractParametersFr
 import { titleToName } from './utils/titleToName';
 
 /**
- * Compile promptbook from string (markdown) format to JSON format synchronously
+ * Compile pipeline from string (markdown) format to JSON format synchronously
  *
- * Note: There are two similar functions:
+ * Note: There are 3 similar functions:
  * - `pipelineStringToJson` **(preferred)** - which propperly compiles the promptbook and use embedding for external knowledge
  * - `pipelineStringToJsonSync` - use only if you need to compile promptbook synchronously and it contains NO external knowledge
+ * - `preparePipeline` - just one step in the compilation process
  *
  * @param pipelineString {Promptbook} in string markdown format (.ptbk.md)
- * @param options - Options and tools for the compilation
  * @returns {Promptbook} compiled in JSON format (.ptbk.json)
  * @throws {ParsingError} if the promptbook string is not valid
  *

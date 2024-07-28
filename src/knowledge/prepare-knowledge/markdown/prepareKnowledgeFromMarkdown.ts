@@ -20,11 +20,6 @@ import type { string_keyword } from '../../../utils/normalization/IKeywords';
 
 type PrepareKnowledgeFromMarkdownOptions = {
     /**
-     * The source of the knowledge in markdown format
-     */
-    content: string_markdown /* <- TODO: [🖖] Always the file */;
-
-    /**
      * The LLM tools to use for the conversion and extraction of knowledge
      *
      * Note: If you want to use multiple LLMs, you can use `joinLlmExecutionTools` to join them first
@@ -43,9 +38,10 @@ type PrepareKnowledgeFromMarkdownOptions = {
  * @@@
  */
 export async function prepareKnowledgeFromMarkdown(
+    content: string_markdown /* <- TODO: [🖖] (?maybe not) Always the file */,
     options: PrepareKnowledgeFromMarkdownOptions,
 ): Promise<Omit<KnowledgePiecePreparedJson, 'source'>> {
-    const { content, llmTools, isVerbose = false } = options;
+    const { llmTools, isVerbose = false } = options;
 
     // TODO: [🌼] In future use `ptbk make` and maked getPipelineCollection
     const collection = createCollectionFromJson(...(PipelineCollection as Array<PipelineJson>));

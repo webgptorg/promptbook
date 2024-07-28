@@ -5,11 +5,6 @@ import { just } from '../utils/just';
 
 type PreparePersonaOptions = {
     /**
-     * Description of the persona
-     */
-    personaDescription: string_persona_description;
-
-    /**
      * The LLM tools to use for the conversion and extraction of knowledge
      *
      * Note: If you want to use multiple LLMs, you can use `joinLlmExecutionTools` to join them first
@@ -30,9 +25,10 @@ type PreparePersonaOptions = {
  * @private within the package
  */
 export async function preparePersona(
+    personaDescription: string_persona_description,
     options: PreparePersonaOptions,
 ): Promise<PersonaPreparedJson['modelRequirements']> {
-    const { personaDescription, llmTools, isVerbose } = options;
+    const { llmTools, isVerbose } = options;
 
     just(personaDescription);
     just(llmTools);

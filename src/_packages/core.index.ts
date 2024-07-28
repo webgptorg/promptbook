@@ -10,6 +10,7 @@ import { RESERVED_PARAMETER_NAMES } from '../config';
 import { pipelineJsonToString } from '../conversion/pipelineJsonToString';
 import { pipelineStringToJson } from '../conversion/pipelineStringToJson';
 import { pipelineStringToJsonSync } from '../conversion/pipelineStringToJsonSync';
+import { preparePipeline } from '../conversion/preparePipeline';
 import { prettifyPipelineString } from '../conversion/prettify/prettifyPipelineString';
 import { validatePipeline } from '../conversion/validation/validatePipeline';
 import { CollectionError } from '../errors/CollectionError';
@@ -71,6 +72,8 @@ export { SimplePromptInterfaceTools };
 
 // @promptbook/parser
 export { pipelineJsonToString, pipelineStringToJson, pipelineStringToJsonSync, validatePipeline };
+
+export { preparePipeline };
 
 // @promptbook/executor
 export { createPipelineExecutor, joinLlmExecutionTools };

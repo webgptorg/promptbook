@@ -65,15 +65,14 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
 
     validatePipeline(pipeline);
 
-    // TODO: !!!!! Do here materialization of still unmaterialized or dynamic knowledge
-    // TODO: !!!!! Do here preparePersona
-
     const llmTools = joinLlmExecutionTools(...arrayableToArray(tools.llm));
 
     const pipelineExecutor: PipelineExecutor = async (
         inputParameters: Record<string_name, string>,
         onProgress?: (taskProgress: TaskProgress) => Promisable<void>,
     ) => {
+        // TODO: !!!! preparePipeline();
+
         let parametersToPass: Record<string_name, string> = inputParameters;
         const executionReport: ExecutionReportJson = {
             pipelineUrl: pipeline.pipelineUrl,

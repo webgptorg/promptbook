@@ -1,15 +1,9 @@
 import type { LlmExecutionTools } from '../../../execution/LlmExecutionTools';
 import { KnowledgePiecePreparedJson } from '../../../types/PipelineJson/KnowledgePieceJson';
 import type { string_base64 } from '../../../types/typeAliases';
-import { just } from '../../../utils/just';
 import { prepareKnowledgeFromMarkdown } from '../markdown/prepareKnowledgeFromMarkdown';
 
 type PrepareKnowledgeFromPdfOptions = {
-    /**
-     * The source of the knowledge in PDF format
-     */
-    content: string_base64 /* <- TODO: [🖖] Always the file, allow base64+filename+identification+mime or blob+filename+identification or file+identification */;
-
     /**
      * The LLM tools to use for the conversion and extraction of knowledge
      */
@@ -20,10 +14,9 @@ type PrepareKnowledgeFromPdfOptions = {
  * @@@
  */
 export async function prepareKnowledgeFromPdf(
+    content: string_base64 /* <- TODO: [🖖] Always the file, allow base64+filename+identification+mime or blob+filename+identification or file+identification */,
     options: PrepareKnowledgeFromPdfOptions,
 ): Promise<KnowledgePiecePreparedJson> {
-    const { content, llmTools } = options;
-
     /*
     [🧺]
     if (content.type !== 'application/pdf') {
@@ -32,9 +25,8 @@ export async function prepareKnowledgeFromPdf(
     */
 
     // TODO: !!! Convert PDF to markdown
-    just(content);
 
-    return prepareKnowledgeFromMarkdown({ content: '!!! Convert PDF to markdown', llmTools });
+    return prepareKnowledgeFromMarkdown('TODO: !!! Convert PDF to markdown', options);
 }
 
 /**
