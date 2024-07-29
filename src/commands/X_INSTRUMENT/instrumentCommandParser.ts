@@ -1,5 +1,6 @@
 import { TODO_USE } from '../../utils/organization/TODO_USE';
-import type { CommandParser, CommandParserInput } from '../_common/types/CommandParser';
+import type { CommandParser } from '../_common/types/CommandParser';
+import type { CommandParserInput } from '../_common/types/CommandParser';
 import type { InstrumentCommand } from './InstrumentCommand';
 
 /**
