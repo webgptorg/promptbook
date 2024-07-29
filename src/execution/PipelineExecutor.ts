@@ -1,7 +1,7 @@
 import type { Promisable } from 'type-fest';
 import type { TaskProgress } from '../types/TaskProgress';
 import type { ExecutionReportJson } from '../types/execution-report/ExecutionReportJson';
-import type { string_name } from '../types/typeAliases';
+import type { string_parameter_name, string_parameter_value } from '../types/typeAliases';
 import type { PromptResultUsage } from './PromptResult';
 
 /**
@@ -14,7 +14,7 @@ import type { PromptResultUsage } from './PromptResult';
  */
 export type PipelineExecutor = {
     (
-        inputParameters: Record<string_name, string>,
+        inputParameters: Record<string_parameter_name, string_parameter_value>,
         onProgress?: (taskProgress: TaskProgress) => Promisable<void>,
     ): Promise<{
         /**
@@ -42,7 +42,7 @@ export type PipelineExecutor = {
          *
          * Note: If the execution was not successful, there are only some of the result parameters
          */
-        readonly outputParameters: Record<string_name, string>;
+        readonly outputParameters: Record<string_parameter_name, string_parameter_value>;
     }>;
 };
 

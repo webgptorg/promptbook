@@ -2,7 +2,7 @@ import { LOOP_LIMIT } from '../../config';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { Parameters } from '../../types/Parameters';
-import type { string_template } from '../../types/typeAliases';
+import type { string_parameter_name, string_parameter_value, string_template } from '../../types/typeAliases';
 
 /**
  * Replaces parameters in template with values from parameters object
@@ -39,11 +39,11 @@ export function replaceParameters(template: string_template, parameters: Paramet
             throw new PipelineExecutionError('Parameter is already opened or not closed');
         }
 
-        if ((parameters as Record<string, string>)[parameterName] === undefined) {
+        if ((parameters as Record<string_parameter_name, string_parameter_value>)[parameterName] === undefined) {
             throw new PipelineExecutionError(`Parameter {${parameterName}} is not defined`);
         }
 
-        let parameterValue = (parameters as Record<string, string>)[parameterName];
+        let parameterValue = (parameters as Record<string_parameter_name, string_parameter_value>)[parameterName];
 
         if (parameterValue === undefined) {
             throw new PipelineExecutionError(`Parameter {${parameterName}} is not defined`);

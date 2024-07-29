@@ -105,6 +105,22 @@ export type string_name = string;
 
 /**
  * Semantic helper
+ * Unique identifier of anything
+ *
+ * For example `"eventName"`
+ */
+export type string_parameter_name = string;
+
+/**
+ * Semantic helper
+ * Unique identifier of anything
+ *
+ * For example `"DevConf 2024"`
+ */
+export type string_parameter_value = string;
+
+/**
+ * Semantic helper
  * Title of anything
  *
  * For example `"Ai*nautes"`
@@ -593,4 +609,5 @@ export type number_terabytes = number_positive;
  * TODO: !!! Change "For example" to @example
  * TODO: !! Cleanup
  * TODO: !! Change to branded types
+ * TODO: [📂] Export all this file through `@promptbook/types`
  */

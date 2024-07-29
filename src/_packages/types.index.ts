@@ -70,6 +70,8 @@ import type {
     string_mime_type_with_wildcard,
     string_model_name,
     string_name,
+    string_parameter_name,
+    string_parameter_value,
     string_person_fullname,
     string_pipeline_url,
     string_pipeline_url_with_hashtemplate,
@@ -175,6 +177,8 @@ export type {
     string_mime_type_with_wildcard,
     string_model_name,
     string_name,
+    string_parameter_name,
+    string_parameter_value,
     string_person_fullname,
     string_pipeline_url,
     string_pipeline_url_with_hashtemplate,
@@ -194,6 +198,7 @@ export type {
     string_url,
     string_url_image,
     string_uuid,
+    // <- TODO: [📂]
 };
 
 /**

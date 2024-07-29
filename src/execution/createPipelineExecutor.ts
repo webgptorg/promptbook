@@ -12,7 +12,7 @@ import type { PipelineJson } from '../types/PipelineJson/PipelineJson';
 import type { PromptTemplateJson } from '../types/PipelineJson/PromptTemplateJson';
 import type { Prompt } from '../types/Prompt';
 import type { TaskProgress } from '../types/TaskProgress';
-import type { string_name } from '../types/typeAliases';
+import type { string_name, string_parameter_name, string_parameter_value } from '../types/typeAliases';
 import { arrayableToArray } from '../utils/arrayableToArray';
 import type { TODO } from '../utils/organization/TODO';
 import { PROMPTBOOK_VERSION } from '../version';
@@ -69,12 +69,12 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
     const llmTools = joinLlmExecutionTools(...arrayableToArray(tools.llm));
 
     const pipelineExecutor: PipelineExecutor = async (
-        inputParameters: Record<string_name, string>,
+        inputParameters: Record<string_parameter_name, string_parameter_value>,
         onProgress?: (taskProgress: TaskProgress) => Promisable<void>,
     ) => {
         // TODO: !!!! preparePipeline();
 
-        let parametersToPass: Record<string_name, string> = inputParameters;
+        let parametersToPass: Record<string_parameter_name, string_parameter_value> = inputParameters;
         const executionReport: ExecutionReportJson = {
             pipelineUrl: pipeline.pipelineUrl,
             title: pipeline.title,
