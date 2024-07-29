@@ -188,6 +188,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
                 pipelineJson.pipelineUrl = command.pipelineUrl.href;
                 break;
             case 'KNOWLEDGE':
+                // TODO: !!!!! Implement
                 console.error(new NotYetImplementedError('Knowledge is not implemented yet'));
                 break;
             case 'ACTION':
@@ -197,6 +198,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
                 console.error(new NotYetImplementedError('Instruments are not implemented yet'));
                 break;
             case 'PERSONA':
+                // TODO: !!!!! Implement
                 console.error(new NotYetImplementedError('Personas are not implemented yet'));
                 break;
             case 'BOILERPLATE':
@@ -244,11 +246,13 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
                     }
 
                     if (command.blockType === 'SAMPLE') {
+                        // TODO: !!!!! Implement
                         console.error(new NotYetImplementedError('Block type SAMPLE is not implemented yet'));
                         continue templates;
                     }
 
                     if (command.blockType === 'KNOWLEDGE') {
+                        // TODO: !!!!! Implement
                         console.error(new NotYetImplementedError('Knowledge is not implemented yet'));
                         continue templates;
                     }
@@ -324,15 +328,20 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
                     postprocessing.push(command.functionName);
                     break;
                 case 'KNOWLEDGE':
+                    // TODO: [👙] Maybe just for this template
+                    // TODO: !!!!! Implement
                     console.error(new NotYetImplementedError('Knowledge is not implemented yet'));
                     break;
                 case 'ACTION':
+                    // TODO: [👙] Maybe just for this template
                     console.error(new NotYetImplementedError('Actions are not implemented yet'));
                     break;
                 case 'INSTRUMENT':
+                    // TODO: [👙] Maybe just for this template
                     console.error(new NotYetImplementedError('Instruments are not implemented yet'));
                     break;
                 case 'PERSONA':
+                    // TODO: !!!!! Implement
                     console.error(new NotYetImplementedError('Personas are not implemented yet'));
                     break;
                 case 'BOILERPLATE':
