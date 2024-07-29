@@ -9,6 +9,7 @@ import { titleToName } from '../conversion/utils/titleToName';
 import { forEachAsync } from '../execution/utils/forEachAsync';
 import { replaceParameters } from '../execution/utils/replaceParameters';
 import { isValidJsonString } from '../formats/json/utils/isValidJsonString';
+import { $currentDate } from '../utils/currentDate';
 import { countCharacters } from '../utils/expectation-counters/countCharacters';
 import { countLines } from '../utils/expectation-counters/countLines';
 import { countPages } from '../utils/expectation-counters/countPages';
@@ -36,6 +37,7 @@ import { removeDiacritics } from '../utils/normalization/removeDiacritics';
 import { searchKeywords } from '../utils/normalization/searchKeywords';
 import { parseNumber } from '../utils/parseNumber';
 import { extractBlock } from '../utils/postprocessing/extractBlock';
+import { $randomSeed } from '../utils/random/randomSeed';
 import { removeEmojis } from '../utils/removeEmojis';
 import { removeQuotes } from '../utils/removeQuotes';
 import { difference } from '../utils/sets/difference';
@@ -60,13 +62,14 @@ export { forEachAsync, PROMPTBOOK_VERSION };
 
 // TODO: [🌻] For all, decide if theese are internal or external
 export {
+    $currentDate,
+    $randomSeed,
     extractBlock, // <- [🌻] + maybe export through `@promptbook/markdown-utils`
     extractParameters,
     extractVariables,
     isHostnameOnPrivateNetwork,
     isUrlOnPrivateNetwork,
     isValidFilePath,
-    randomSeed,
     isValidJavascriptName,
     isValidJsonString,
     isValidPipelineUrl,
