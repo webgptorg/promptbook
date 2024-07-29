@@ -398,6 +398,7 @@ Working external knowledge, personas, preparation for instruments and actions
 -   Markdown utils are exported through `@promptbook/markdown-utils` _(and removed from `@promptbook/utils`)_
 -   String normalizers goes alongside with types; for example `normalizeTo_SCREAMING_CASE` -> `string_SCREAMING_CASE`
 -   Export `isValidUrl`, `isValidPipelineUrl`, `isValidFilePath`, `isValidJavascriptName`, `isValidSemanticVersion`, `isHostnameOnPrivateNetwork`, `isUrlOnPrivateNetwork` and `isValidUuid` from `@promptbook/utils`
+-   Add `systemMessage`, `temprerature` and `seed` to `ModelRequirements`
 
 ## In prepare
 

@@ -102,4 +102,5 @@ export async function preparePipeline(pipeline: PipelineJson, options: PrepareOp
  * TODO: [🏏] Leverage the batch API and build queues @see https://platform.openai.com/docs/guides/batch
  * TODO: [🧊] In future one preparation can take data from previous preparation and save tokens and time
  * TODO: [💸] Make utilities `interceptLlmTools` and `costLlmTools` to compute cost and DO put this counting logic in `prepareKnowledge` or `preparePersona`
+ * TODO: [🛠] Actions, instruments (and maybe knowledge) => Functions and tools
  */

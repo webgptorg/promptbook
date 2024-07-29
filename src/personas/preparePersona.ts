@@ -25,6 +25,12 @@ export async function preparePersona(
         modelVariant: 'CHAT',
         modelName: 'gpt-4',
     };
+
+
+
+
+
+
 }
 
 /**

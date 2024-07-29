@@ -42,6 +42,8 @@ import type { ExecutionReportJson } from '../types/execution-report/ExecutionRep
 import type { string_char_emoji } from '../types/typeAliasEmoji';
 import type {
     client_id,
+    number_model_temperature,
+    number_seed,
     string_char,
     string_chat_prompt,
     string_completion_prompt,
@@ -79,6 +81,7 @@ import type {
     string_script,
     string_semantic_version,
     string_sha256,
+    string_system_message,
     string_tdl,
     string_template,
     string_text_prompt,
@@ -148,6 +151,9 @@ export type {
     UserInterfaceTools,
     UserInterfaceToolsPromptDialogOptions,
     client_id,
+    number_model_temperature,
+    number_seed,
+    // <- TODO: [📂]
     string_char,
     string_char_emoji,
     string_chat_prompt,
@@ -187,6 +193,7 @@ export type {
     string_script,
     string_semantic_version,
     string_sha256,
+    string_system_message,
     string_tdl,
     string_template,
     string_text_prompt,
@@ -198,7 +205,6 @@ export type {
     string_url,
     string_url_image,
     string_uuid,
-    // <- TODO: [📂]
 };
 
 /**

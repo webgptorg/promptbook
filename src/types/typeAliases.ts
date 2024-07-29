@@ -59,6 +59,13 @@ export type string_chat_prompt = string_text_prompt;
 /**
  * Semantic helper
  *
+ * For example `"You are an AI assistant. You are here to help me with my work."`
+ */
+export type string_system_message = string_text_prompt;
+
+/**
+ * Semantic helper
+ *
  * For example `"Following is a text about cats: Once upon a time there was a cat"`
  */
 export type string_completion_prompt = string_text_prompt;
@@ -576,9 +583,24 @@ export type number_integer = number;
 
 /**
  * Semantic helper;
- * Percentage from 0 to 1 (100%)
+ * Percentage from 0 to 1 (100%) (and bellow and above)
  */
 export type number_percent = number;
+
+/**
+ * Semantic helper;
+ * Model temperature
+ */
+export type number_model_temperature = number_percent;
+
+/**
+ * Semantic helper;
+ * Seed for random generator
+ *
+ * Percentage from 0 to 1 (100%)
+ * TODO: Is seed (in OpenAI) number from 0 to 1?
+ */
+export type number_seed = number_percent;
 
 /**
  * Likeness of the wallpaper

@@ -535,4 +535,5 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
  * TODO: [👧] Strongly type the executors to avoid need of remove nullables whtn noUncheckedIndexedAccess in tsconfig.json
  * Note: CreatePipelineExecutorOptions are just connected to PipelineExecutor so do not extract to types folder
  * TODO: [🧠][3] transparent = (report intermediate parameters) / opaque execution = (report only output parameters) progress reporting mode
+ * TODO: [🛠] Actions, instruments (and maybe knowledge) => Functions and tools
  */

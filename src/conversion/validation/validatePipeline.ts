@@ -256,3 +256,10 @@ export function validatePipeline(pipeline: PipelineJson): PipelineJson {
  *     >  * -   ...
  *     >  ex port function validatePipeline(promptbook: unknown): asserts promptbook is PipelineJson {
  */
+
+
+
+/**
+ * TODO: [🧠] !!!!! Validate new things
+ * TODO: [🛠] Actions, instruments (and maybe knowledge) => Functions and tools
+ */

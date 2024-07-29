@@ -73,6 +73,9 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
             model,
             max_tokens: modelRequirements.maxTokens,
             //                                   <- TODO: Make some global max cap for maxTokens
+
+            top_p: 0.9,
+            top_k
         } as OpenAI.Chat.Completions.CompletionCreateParamsNonStreaming; // <- TODO: Guard here types better
 
         if (expectFormat === 'JSON') {
