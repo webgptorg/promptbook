@@ -78,8 +78,14 @@ async function playground() {
     /**/
 
     /*/
-    // <- Note: [🤖] Test here new model variant if needed 
+    // <- Note: [🤖] Test here new model variant if needed
     /**/
 
     //========================================/
 }
+
+
+
+/**
+ * TODO: !!! Test here that `systemMessage`, `temprerature` and `seed` are working correctly
+ */
