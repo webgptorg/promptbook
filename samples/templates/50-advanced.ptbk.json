@@ -181,8 +181,8 @@
     "preparations": [
         {
             "id": 1,
-            "date": "2024-07-28T23:23:17.759Z",
-            "promptbookVersion": "0.61.0-9",
+            "date": "2024-07-29T00:41:35.035Z",
+            "promptbookVersion": "0.61.0-10",
             "modelUsage": {
                 "price": {
                     "value": 0

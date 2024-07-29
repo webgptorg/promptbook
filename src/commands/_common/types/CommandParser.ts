@@ -1,5 +1,6 @@
-import type { string_markdown_text } from '../../../types/typeAliases';
-import type { string_name } from '../../../types/typeAliases';
+import type { WritableDeep } from 'type-fest';
+import type { PipelineJson } from '../../../types/PipelineJson/PipelineJson';
+import type { string_markdown_text, string_name } from '../../../types/typeAliases';
 import type { string_SCREAMING_CASE } from '../../../utils/normalization/normalizeTo_SCREAMING_CASE';
 import type { CommandUsagePlace } from './CommandUsagePlaces';
 
@@ -22,6 +23,8 @@ export type CommandParser<TCommand extends { type: string_name & string_SCREAMIN
      * @throws {ParsingError} if the parsing fails
      */
     parse(input: CommandParserInput): TCommand;
+
+    applyToPipelineJson?(pipelineJson:  WritableDeep<PipelineJson>, personaCommand: TCommand): void;
 };
 
 export type CommandParserInput = {

@@ -1,6 +1,8 @@
+import spaceTrim from 'spacetrim';
+import type { WritableDeep } from 'type-fest';
 import { ParsingError } from '../../errors/ParsingError';
-import type { CommandParser } from '../_common/types/CommandParser';
-import type { CommandParserInput } from '../_common/types/CommandParser';
+import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
+import type { CommandParser, CommandParserInput } from '../_common/types/CommandParser';
 import type { PersonaCommand } from './PersonaCommand';
 
 /**
@@ -65,5 +67,44 @@ export const personaCommandParser: CommandParser<PersonaCommand> = {
             personaName,
             personaDescription,
         } satisfies PersonaCommand;
+    },
+
+    /**
+     * Note: Prototype of [🍧] (remove this comment after full implementation)
+     */
+    applyToPipelineJson(pipelineJson: WritableDeep<PipelineJson>, personaCommand: PersonaCommand): void {
+        const { personaName, personaDescription } = personaCommand;
+
+        const persona = pipelineJson.personas.find((persona) => persona.name === personaName);
+
+        if (persona === undefined) {
+            pipelineJson.personas.push({
+                name: personaName,
+                description: personaDescription || '',
+            });
+            return;
+        }
+
+        if (persona.description === personaDescription) {
+            return;
+        }
+
+        console.warn(
+            spaceTrim(`
+
+                Persona "${personaName}" is defined multiple times with different description:
+
+                First definition:
+                ${persona.description}
+
+                Second definition:
+                ${personaDescription}
+
+            `),
+            // <- TODO: [🚞]
+            // <- TODO: [🧠] What is the propper way of theese `pipelineStringToJson` warnings
+        );
+
+        persona.description += '\n\n' + personaDescription;
     },
 };

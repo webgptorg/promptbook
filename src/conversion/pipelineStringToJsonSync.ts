@@ -2,6 +2,7 @@ import { spaceTrim } from 'spacetrim';
 import type { IterableElement, Writable, WritableDeep } from 'type-fest';
 import type { BlockType } from '../commands/BLOCK/BlockTypes';
 import type { ParameterCommand } from '../commands/PARAMETER/ParameterCommand';
+import { personaCommandParser } from '../commands/PERSONA/personaCommandParser';
 import { parseCommand } from '../commands/_common/parseCommand';
 import { RESERVED_PARAMETER_NAMES } from '../config';
 import { NotYetImplementedError } from '../errors/NotYetImplementedError';
@@ -124,7 +125,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
             throw new ParsingError(
                 spaceTrim(
                     (block) => `
-                        Parameter {${parameterName}} is defined multiple times with different description.
+                        Parameter {${parameterName}} is defined multiple times with different description:
 
                         First definition:
                         ${block(existingParameter.description || '[undefined]')}
@@ -198,8 +199,8 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
                 console.error(new NotYetImplementedError('Instruments are not implemented yet'));
                 break;
             case 'PERSONA':
-                // TODO: !!!!! Implement
-                console.error(new NotYetImplementedError('Personas are not implemented yet'));
+                personaCommandParser.applyToPipelineJson!(pipelineJson, command);
+                //                    <- Note: Prototype of [🍧] (remove this comment after full implementation)
                 break;
             case 'BOILERPLATE':
                 throw new ParsingError(
@@ -341,8 +342,8 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
                     console.error(new NotYetImplementedError('Instruments are not implemented yet'));
                     break;
                 case 'PERSONA':
-                    // TODO: !!!!! Implement
-                    console.error(new NotYetImplementedError('Personas are not implemented yet'));
+                    personaCommandParser.applyToPipelineJson!(pipelineJson, command);
+                    //                    <- Note: Prototype of [🍧] (remove this comment after full implementation)
                     break;
                 case 'BOILERPLATE':
                     console.error(
