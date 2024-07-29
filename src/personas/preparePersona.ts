@@ -29,7 +29,13 @@ export async function preparePersona(
         },
     });
 
-    const result = await preparePersonaExecutor({ personaDescription });
+    const availableModels = await llmTools.listModels();
+    const availableModelNames = availableModels
+        .filter(({ modelVariant }) => modelVariant === 'CHAT')
+        .map(({ modelName }) => modelName)
+        .join(',');
+
+    const result = await preparePersonaExecutor({ availableModelNames, personaDescription });
 
     assertsExecutionSuccessful(result);
 
@@ -42,19 +48,18 @@ export async function preparePersona(
         console.info(`PERSONA ${personaDescription}`, modelRequirements);
     }
 
-    const { modelName, systemMessage, temprerature } = modelRequirements;
+    const { modelName, systemMessage, temperature } = modelRequirements;
 
     // TODO: !!! Check validity of `modelName`
     // TODO: !!! Check validity of `systemMessage`
-    // TODO: !!! Check validity of `temprerature`
+    // TODO: !!! Check validity of `temperature`
+
+    console.log('!!!!', { modelName, systemMessage, temperature });
 
     return {
         modelVariant: 'CHAT',
         modelName,
         systemMessage,
-        temprerature,
-
-        // TODO: !!!! Remove:
-        seed: $randomSeed() /* <- [🈁] */,
+        temperature,
     };
 }

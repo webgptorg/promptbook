@@ -47,9 +47,10 @@
             "description": "a linguist",
             "modelRequirements": {
                 "modelVariant": "CHAT",
-                "modelName": "LinguaBot-1",
-                "systemMessage": "I am a linguist specializing in multiple languages, here to assist you with translations, language learning tips, and cultural insights.",
-                "seed": 145543
+                "modelName": "gpt-4",
+                "systemMessage": "You are a virtual assistant created by an experienced AI engineer, equipped with linguistic expertise.",
+                "temperature": 0.5,
+                "seed": 0.333290155257417
             },
             "preparationIds": [
                 1

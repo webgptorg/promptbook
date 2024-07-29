@@ -75,5 +75,5 @@ async function playground() {
 }
 
 /**
- * TODO: !!! Test here that `systemMessage`, `temprerature` and `seed` are working correctly
+ * TODO: !!! Test here that `systemMessage`, `temperature` and `seed` are working correctly
  */

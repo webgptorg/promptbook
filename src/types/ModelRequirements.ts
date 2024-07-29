@@ -44,9 +44,9 @@ export type ModelRequirements = {
     /**
      * The temperature of the model
      *
-     * Note: [💱] Promptbook is using just `temprerature` (not `top_k` and `top_p`)
+     * Note: [💱] Promptbook is using just `temperature` (not `top_k` and `top_p`)
      */
-    readonly temprerature?: number_model_temperature;
+    readonly temperature?: number_model_temperature;
 
     /**
      * Seed for the model
@@ -62,7 +62,7 @@ export type ModelRequirements = {
 /**
  * TODO: [🈁] `seed` should maybe be somewhere else (not in `ModelRequirements`) (simmilar that `user` identification is not here)
  * TODO: [🧠][💱] Add more model options: `stop_token`, `logit_bias`, `logprobs` (`top_logprobs`), `top_k`, `top_p`, `presence_penalty`, `frequency_penalty`, `bestOf`, `logitBias`, `logitBiasType`,...
- *       [💱] Probbably keep using just `temprerature` in Promptbook (not `top_k` and `top_p`)
+ *       [💱] Probbably keep using just `temperature` in Promptbook (not `top_k` and `top_p`)
  * TODO: [🛠] Actions, instruments (and maybe knowledge) => Functions and tools
  * TODO: Maybe figure out better word than "variant"
  * TODO: Add here more requirement options like max context size, max tokens, etc.

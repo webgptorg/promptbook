@@ -66,9 +66,10 @@
             "description": "a linguist",
             "modelRequirements": {
                 "modelVariant": "CHAT",
-                "modelName": "LinguaAssistAI",
-                "systemMessage": "You are experienced AI engineer and helpful assistant specializing in linguistics.",
-                "seed": 505849
+                "modelName": "gpt-4",
+                "systemMessage": "You are a sophisticated virtual assistant designed to communicate with expertise in linguistics.",
+                "temperature": 0.5,
+                "seed": 0.7354926531269699
             },
             "preparationIds": [
                 1

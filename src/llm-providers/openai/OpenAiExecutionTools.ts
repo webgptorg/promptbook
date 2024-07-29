@@ -73,7 +73,7 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
             max_tokens: modelRequirements.maxTokens,
             //                                   <- TODO: Make some global max cap for maxTokens
 
-            // <- TODO: !!!!! Use here `systemMessage`, `temprerature` and `seed`
+            // <- TODO: !!!!! Use here `systemMessage`, `temperature` and `seed`
         } as OpenAI.Chat.Completions.CompletionCreateParamsNonStreaming; // <- TODO: Guard here types better
 
         if (expectFormat === 'JSON') {
@@ -160,7 +160,7 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
             max_tokens: modelRequirements.maxTokens || 2000, // <- Note: 2000 is for lagacy reasons
             //                                                  <- TODO: Make some global max cap for maxTokens
 
-            // <- TODO: !!!!! Use here `systemMessage`, `temprerature` and `seed`
+            // <- TODO: !!!!! Use here `systemMessage`, `temperature` and `seed`
         };
 
         const rawRequest: OpenAI.Completions.CompletionCreateParamsNonStreaming = {

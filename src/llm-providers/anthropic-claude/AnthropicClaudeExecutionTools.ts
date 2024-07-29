@@ -68,7 +68,7 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools {
             model: modelRequirements.modelName || this.getDefaultChatModel().modelName,
             max_tokens: modelRequirements.maxTokens || 4096,
             //                                            <- TODO: Make some global max cap for maxTokens
-            // <- TODO: !!!!! Use here `systemMessage`, `temprerature` and `seed`
+            // <- TODO: !!!!! Use here `systemMessage`, `temperature` and `seed`
             messages: [
                 {
                     role: 'user',
@@ -146,7 +146,7 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools {
             model: rawResponse.model || model,
             max_tokens: modelRequirements.maxTokens || 2000, // <- Note: 2000 is for lagacy reasons
             //                                                  <- TODO: Make some global max cap for maxTokens
-            // <- TODO: Use here `systemMessage`, `temprerature` and `seed`
+            // <- TODO: Use here `systemMessage`, `temperature` and `seed`
         };
 
         const rawRequest: xxxx.Completions.CompletionCreateParamsNonStreaming = {

@@ -188,7 +188,10 @@
             "description": "a linguist",
             "modelRequirements": {
                 "modelVariant": "CHAT",
-                "modelName": "gpt-4"
+                "modelName": "gpt-4",
+                "systemMessage": "You are an experienced AI engineer and helpful assistant with a specialty in linguistics.",
+                "temperature": 0.5,
+                "seed": 0.8701169976146246
             },
             "preparationIds": [
                 1
@@ -199,7 +202,10 @@
             "description": "a linguist",
             "modelRequirements": {
                 "modelVariant": "CHAT",
-                "modelName": "gpt-4"
+                "modelName": "gpt-4o",
+                "systemMessage": "You are an experienced AI engineer and helpful assistant with expertise in linguistics.",
+                "temperature": 0.5,
+                "seed": 0.17410239581448073
             },
             "preparationIds": [
                 1
@@ -210,7 +216,10 @@
             "description": "a linguist",
             "modelRequirements": {
                 "modelVariant": "CHAT",
-                "modelName": "gpt-4"
+                "modelName": "gpt-4o",
+                "systemMessage": "You are a linguist and an invaluable resource in language understanding and communication.",
+                "temperature": 0.5,
+                "seed": 0.7714642543884489
             },
             "preparationIds": [
                 1
@@ -221,7 +230,10 @@
             "description": "a linguist",
             "modelRequirements": {
                 "modelVariant": "CHAT",
-                "modelName": "gpt-4"
+                "modelName": "gpt-4",
+                "systemMessage": "You are an experienced AI engineer and a helpful linguist assistant.",
+                "temperature": 0.5,
+                "seed": 0.10517846933335862
             },
             "preparationIds": [
                 1

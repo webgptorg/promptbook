@@ -79,6 +79,8 @@ async function generateSampleJsons({ isCommited, isVerbose }: { isCommited: bool
             // Note: We want to ensure that the generated JSONs are logically correct
             validatePipeline(pipelineJson);
 
+            // TODO: [🦋] Mixed prettify - everything `JSON.stringify(..., null, 4)` but looong lists of numbers should be `JSON.stringify(...)`
+
             await writeFile(pipelineJsonFilePath, JSON.stringify(pipelineJson, null, 4) + '\n');
         } catch (error) {
             if (!(error instanceof Error)) {
