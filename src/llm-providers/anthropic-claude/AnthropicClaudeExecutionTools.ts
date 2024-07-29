@@ -4,18 +4,18 @@ import colors from 'colors';
 import spaceTrim from 'spacetrim';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
-import type { AvailableModel } from '../../execution/LlmExecutionTools';
-import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { PromptChatResult } from '../../execution/PromptResult';
-import type { PromptResultUsage } from '../../execution/PromptResult';
+import type { AvailableModel, LlmExecutionTools } from '../../execution/LlmExecutionTools';
+import type { PromptChatResult, PromptResultUsage } from '../../execution/PromptResult';
 import { computeUsageCounts } from '../../execution/utils/computeUsageCounts';
 import { uncertainNumber } from '../../execution/utils/uncertainNumber';
 import type { Prompt } from '../../types/Prompt';
-import type { string_date_iso8601 } from '../../types/typeAliases';
-import type { string_markdown } from '../../types/typeAliases';
-import type { string_markdown_text } from '../../types/typeAliases';
-import type { string_model_name } from '../../types/typeAliases';
-import type { string_title } from '../../types/typeAliases';
+import type {
+    string_date_iso8601,
+    string_markdown,
+    string_markdown_text,
+    string_model_name,
+    string_title,
+} from '../../types/typeAliases';
 import { getCurrentIsoDate } from '../../utils/getCurrentIsoDate';
 import { ANTHROPIC_CLAUDE_MODELS } from './anthropic-claude-models';
 import type { AnthropicClaudeExecutionToolsOptions } from './AnthropicClaudeExecutionToolsOptions';
@@ -68,6 +68,7 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools {
             model: modelRequirements.modelName || this.getDefaultChatModel().modelName,
             max_tokens: modelRequirements.maxTokens || 4096,
             //                                            <- TODO: Make some global max cap for maxTokens
+            // <- TODO: !!!!! Use here `systemMessage`, `temprerature` and `seed`
             messages: [
                 {
                     role: 'user',
@@ -145,6 +146,7 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools {
             model: rawResponse.model || model,
             max_tokens: modelRequirements.maxTokens || 2000, // <- Note: 2000 is for lagacy reasons
             //                                                  <- TODO: Make some global max cap for maxTokens
+            // <- TODO: Use here `systemMessage`, `temprerature` and `seed`
         };
 
         const rawRequest: xxxx.Completions.CompletionCreateParamsNonStreaming = {
