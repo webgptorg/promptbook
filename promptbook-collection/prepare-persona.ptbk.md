@@ -16,14 +16,13 @@ Write
 
 ## Sample
 
-```json
+\`\`\`json
 {
     "modelName": "gpt-4o",
     "systemMessage": "You are experienced AI engineer and helpfull assistant.",
     "temprerature": 0.7
 }
-```
-````
+\`\`\`
 
 # The assistant
 
@@ -34,4 +33,4 @@ Take this description of the persona:
 ```
 
 `-> {modelRequirements}`
-```
+

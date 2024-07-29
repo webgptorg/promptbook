@@ -80,7 +80,10 @@
         },
         {
             "name": "🏭📖 Generate samples .ptbk.md -> .ptbk.json (💸)",
-            "commands": ["ts-node ./scripts/generate-samples-jsons/generate-samples-jsons.ts --verbose"],
+            "commands": [
+                "ts-node ./scripts/make-promptbook-collection/make-promptbook-collection.ts --verbose",
+                "ts-node ./scripts/generate-samples-jsons/generate-samples-jsons.ts --verbose"
+            ],
             "execute": false,
             "onlySingle": false,
             "focus": false
