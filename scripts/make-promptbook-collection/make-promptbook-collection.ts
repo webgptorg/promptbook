@@ -19,12 +19,15 @@ if (process.cwd() !== join(__dirname, '../..')) {
 }
 
 const program = new commander.Command();
+
 program.option('--commit', `Auto commit`, false);
+program.option('--verbose', `Is verbose`, false);
+
 program.parse(process.argv);
 
-const { commit: isCommited } = program.opts();
+const { commit: isCommited, verbose: isVerbose } = program.opts();
 
-makePipelineCollection({ isCommited })
+makePipelineCollection({ isCommited, isVerbose })
     .catch((error) => {
         console.error(colors.bgRed(error.name || 'NamelessError'));
         console.error(error);
@@ -34,10 +37,8 @@ makePipelineCollection({ isCommited })
         process.exit(0);
     });
 
-async function makePipelineCollection({ isCommited }: { isCommited: boolean }) {
+async function makePipelineCollection({ isCommited, isVerbose }: { isCommited: boolean; isVerbose: boolean }) {
     console.info(`📖 Make Promptbook library`);
-
-    const isVerbose = true; // <- TODO: [👒] Pass as CLI argument
 
     const promptbookSourceDir = 'promptbook-collection';
 

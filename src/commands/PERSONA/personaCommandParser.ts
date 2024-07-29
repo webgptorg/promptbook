@@ -89,6 +89,15 @@ export const personaCommandParser: CommandParser<PersonaCommand> = {
             return;
         }
 
+        if (personaDescription === null) {
+            return;
+        }
+
+        if (persona.description === '') {
+            persona.description = personaDescription;
+            return;
+        }
+
         console.warn(
             spaceTrim(`
 
@@ -105,6 +114,6 @@ export const personaCommandParser: CommandParser<PersonaCommand> = {
             // <- TODO: [🧠] What is the propper way of theese `pipelineStringToJson` warnings
         );
 
-        persona.description += '\n\n' + personaDescription;
+        persona.description += spaceTrim('\n\n' + personaDescription);
     },
 };

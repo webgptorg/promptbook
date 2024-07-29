@@ -63,7 +63,7 @@
     "personas": [
         {
             "name": "Joe",
-            "description": "a linguist\n\nnull",
+            "description": "a linguist",
             "modelRequirements": {
                 "modelVariant": "CHAT",
                 "modelName": "gpt-4"

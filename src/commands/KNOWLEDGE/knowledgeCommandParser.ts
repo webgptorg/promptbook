@@ -1,8 +1,10 @@
+import type { WritableDeep } from 'type-fest';
+import { PipelineJson } from '../../_packages/types.index';
+import { titleToName } from '../../_packages/utils.index';
 import { ParsingError } from '../../errors/ParsingError';
 import { isValidFilePath } from '../../utils/validators/filePath/isValidFilePath';
 import { isValidUrl } from '../../utils/validators/url/isValidUrl';
-import type { CommandParser } from '../_common/types/CommandParser';
-import type { CommandParserInput } from '../_common/types/CommandParser';
+import type { CommandParser, CommandParserInput } from '../_common/types/CommandParser';
 import type { KnowledgeCommand } from './KnowledgeCommand';
 
 /**
@@ -71,5 +73,19 @@ export const knowledgeCommandParser: CommandParser<KnowledgeCommand> = {
             type: 'KNOWLEDGE',
             source,
         } satisfies KnowledgeCommand;
+    },
+
+    /**
+     * Note: Prototype of [🍧] (remove this comment after full implementation)
+     */
+    applyToPipelineJson(pipelineJson: WritableDeep<PipelineJson>, personaCommand: KnowledgeCommand): void {
+        const { source } = personaCommand;
+
+        const name = titleToName(source);
+
+        pipelineJson.knowledgeSources.push({
+            name,
+            source,
+        });
     },
 };

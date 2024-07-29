@@ -1,6 +1,7 @@
 import { spaceTrim } from 'spacetrim';
 import type { IterableElement, Writable, WritableDeep } from 'type-fest';
 import type { BlockType } from '../commands/BLOCK/BlockTypes';
+import { knowledgeCommandParser } from '../commands/KNOWLEDGE/knowledgeCommandParser';
 import type { ParameterCommand } from '../commands/PARAMETER/ParameterCommand';
 import { personaCommandParser } from '../commands/PERSONA/personaCommandParser';
 import { parseCommand } from '../commands/_common/parseCommand';
@@ -16,6 +17,7 @@ import type { PromptTemplateParameterJson } from '../types/PipelineJson/PromptTe
 import type { PipelineString } from '../types/PipelineString';
 import type { ScriptLanguage } from '../types/ScriptLanguage';
 import { SUPPORTED_SCRIPT_LANGUAGES } from '../types/ScriptLanguage';
+import { string_parameter_name } from '../types/typeAliases';
 import { extractAllListItemsFromMarkdown } from '../utils/markdown/extractAllListItemsFromMarkdown';
 import { extractOneBlockFromMarkdown } from '../utils/markdown/extractOneBlockFromMarkdown';
 import { flattenMarkdown } from '../utils/markdown/flattenMarkdown';
@@ -189,8 +191,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
                 pipelineJson.pipelineUrl = command.pipelineUrl.href;
                 break;
             case 'KNOWLEDGE':
-                // TODO: !!!!! Implement
-                console.error(new NotYetImplementedError('Knowledge is not implemented yet'));
+                knowledgeCommandParser.applyToPipelineJson!(pipelineJson, command);
                 break;
             case 'ACTION':
                 console.error(new NotYetImplementedError('Actions are not implemented yet'));
@@ -232,33 +233,40 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
         let expectAmount: WritableDeep<PromptTemplateJson['expectations']> = {};
         let expectFormat: PromptTemplateJson['expectFormat'] | undefined = undefined;
 
-        let isBlockTypeChanged = false;
+        let isBlockTypeSet = false;
 
         const lastLine = section.content.split('\n').pop()!;
         const resultingParameterNameMatch = /^->\s*\{(?<resultingParamName>[a-z0-9_]+)\}/im.exec(lastLine);
+        let resultingParameterName: string_parameter_name | null = null;
         if (
-            !resultingParameterNameMatch ||
-            resultingParameterNameMatch.groups === undefined ||
-            resultingParameterNameMatch.groups.resultingParamName === undefined
+            resultingParameterNameMatch &&
+            resultingParameterNameMatch.groups !== undefined &&
+            resultingParameterNameMatch.groups.resultingParamName !== undefined
         ) {
+            resultingParameterName = resultingParameterNameMatch.groups.resultingParamName;
+        }
+
+        const expectResultingParameterName = () => {
+            if (resultingParameterName !== null) {
+                return resultingParameterName;
+            }
             throw new ParsingError(
                 spaceTrim(
                     (block) => `
-                        Each section must end with -> {parameterName}
+                    Template section must end with -> {parameterName}
 
-                        Invalid section:
-                        ${block(
-                            // TODO: Show code of invalid sections each time + DRY
-                            section.content
-                                .split('\n')
-                                .map((line) => `  | ${line}` /* <- TODO: [🚞] */)
-                                .join('\n'),
-                        )}
-                      `,
+                    Invalid section:
+                    ${block(
+                        // TODO: Show code of invalid sections each time + DRY
+                        section.content
+                            .split('\n')
+                            .map((line) => `  | ${line}` /* <- TODO: [🚞] */)
+                            .join('\n'),
+                    )}
+                  `,
                 ),
             );
-        }
-        const resultingParameterName = resultingParameterNameMatch.groups.resultingParamName;
+        };
 
         const { language, content } = extractOneBlockFromMarkdown(section.content);
 
@@ -267,7 +275,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
             switch (command.type) {
                 // TODO: [🍧] Use here applyToPipelineJson and remove switch statement
                 case 'BLOCK':
-                    if (isBlockTypeChanged) {
+                    if (isBlockTypeSet) {
                         throw new ParsingError(
                             'Block type is already defined in the prompt template. It can be defined only once.',
                             // <- TODO: [🚞]
@@ -275,6 +283,8 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
                     }
 
                     if (command.blockType === 'SAMPLE') {
+                        expectResultingParameterName();
+
                         const parameter = pipelineJson.parameters.find(
                             (param) => param.name === resultingParameterName,
                         );
@@ -290,8 +300,10 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
                     }
 
                     if (command.blockType === 'KNOWLEDGE') {
-                        // TODO: !!!!! Implement
-                        console.error(new NotYetImplementedError('Knowledge is not implemented yet'));
+                        knowledgeCommandParser.applyToPipelineJson!(pipelineJson, {
+                            type: 'KNOWLEDGE',
+                            source: content, // <- TODO: !!!! Working KNOWLEDGE which not referring to the source file/wweb, but its content itseld
+                        });
                         continue templates;
                     }
 
@@ -305,8 +317,9 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
                         continue templates;
                     }
 
+                    expectResultingParameterName();
                     blockType = command.blockType;
-                    isBlockTypeChanged = true;
+                    isBlockTypeSet = true;
                     break;
                 case 'EXPECT_AMOUNT':
                     // eslint-disable-next-line no-case-declarations
@@ -366,16 +379,15 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
                     postprocessing.push(command.functionName);
                     break;
                 case 'KNOWLEDGE':
-                    // TODO: [👙] Maybe just for this template
-                    // TODO: !!!!! Implement
-                    console.error(new NotYetImplementedError('Knowledge is not implemented yet'));
+                    // TODO: [👙] The knowledge is maybe relevant for just this template
+                    knowledgeCommandParser.applyToPipelineJson!(pipelineJson, command);
                     break;
                 case 'ACTION':
-                    // TODO: [👙] Maybe just for this template
+                    // TODO: [👙] The action is maybe relevant for just this template
                     console.error(new NotYetImplementedError('Actions are not implemented yet'));
                     break;
                 case 'INSTRUMENT':
-                    // TODO: [👙] Maybe just for this template
+                    // TODO: [👙] The instrument is maybe relevant for just this template
                     console.error(new NotYetImplementedError('Instruments are not implemented yet'));
                     break;
                 case 'PERSONA':
@@ -476,7 +488,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
             modelRequirements: templateModelRequirements as ModelRequirements,
             contentLanguage: blockType === 'SCRIPT' ? (language as ScriptLanguage) : undefined,
             content,
-            resultingParameterName,
+            resultingParameterName: expectResultingParameterName(/* <- Note: This is once more redundant */)!,
         } satisfies PromptTemplateJson;
 
         if (blockType !== 'PROMPT_TEMPLATE') {

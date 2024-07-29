@@ -14,7 +14,13 @@
             "name": "bio",
             "description": "Bio of Pavol Hejný - speaker at the event",
             "isInput": false,
-            "isOutput": true
+            "isOutput": true,
+            "sampleValues": [
+                "Pavol Hejný is a developer who is passionate about using new tools and technologies. He specialises in creating fully functional user applications using the latest artificial intelligence models. He is a member of the Ainautes consulting group, which supports with the deployment of generative AI around the world. He develops the WebGPT web page generation service. Before the massive emergence of generative AI, he has created the first Czech virtual whiteboard, Collboard, and electronic textbooks, H-edu, which were used by tens of thousands of children. He has also worked on many scientific projects for the Czech Ornithological Society. He regularly gives lectures at conferences, sits on juries, and acts as a mentor in many Czech and international competitions. He has a special heart for this, and he loves open source – you can find many of his things on his GitHub.",
+                "Do you know Pavol Hejný? He is a developer who is passionate about using new tools and technologies. He specialises in creating fully functional user applications using the latest artificial intelligence models. He is a member of the Ainautes consulting group, which supports with the deployment of generative AI around the world. He develops the WebGPT web page generation service. Before the massive emergence of generative AI, he has created the first Czech virtual whiteboard, Collboard, and electronic textbooks, H-edu, which were used by tens of thousands of children. He has also worked on many scientific projects for the Czech Ornithological Society. He regularly gives lectures at conferences, sits on juries, and acts as a mentor in many Czech and international competitions. He has a special heart for this, and he loves open source – you can find many of his things on his GitHub.",
+                "Mr. Hejný is a enterpreneur in information technology and large language models. He started his career as a developer and has been working in the field for over 10 years. He is a member of the Ainautes consulting group, which supports with the deployment of generative AI around the world. He develops the WebGPT web page generation service. Before the massive emergence of generative AI, he has created the first Czech virtual whiteboard, Collboard, and electronic textbooks, H-edu, which were used by tens of thousands of children. He has also worked on many scientific projects for the Czech Ornithological Society. He regularly gives lectures at conferences, sits on juries, and acts as a mentor in many Czech and international competitions. He has a special heart for this, and he loves open source – you can find many of his things on his GitHub.",
+                "Wanna hear something cool? Meet Pavol Hejný, a developer who is passionate about using new tools and technologies. He specialises in creating fully functional user applications using the latest artificial intelligence models. He will show you how to generate your own lyrics using new AI models."
+            ]
         }
     ],
     "promptTemplates": [
@@ -38,13 +44,81 @@
             "resultingParameterName": "bio"
         }
     ],
-    "knowledgeSources": [],
-    "knowledgePieces": [],
-    "personas": [],
+    "knowledgeSources": [
+        {
+            "name": "i-m-pavol-a-developer-who-is-passionate-about-using-new-tools-and-technologies-i-specialise-in-creating-fully-functional-user-applications-using-the-latest-artificial-intelligence-models-i-am-a-member-of-the-ainautes-consulting-group-which-supports-with-the-deployment-of-generative-ai-around-the-world-i-develop-the-web-gpt-web-page-generation-service-before-the-massive-emergence-of-generative-ai-i-have-created-the-first-czech-virtual-whiteboard-collboard-and-electronic-textbooks-h-edu-which-were-used-by-tens-of-thousands-of-children-i-have-also-worked-on-many-scientific-projects-for-the-czech-ornithological-society-i-regularly-give-lectures-at-conferences-sit-on-juries-and-act-as-a-mentor-in-many-czech-and-international-competitions-i-have-a-special-heart-for-this-and-i-love-open-source-you-can-find-many-of-my-things-on-my-git-hub",
+            "source": "I'm Pavol, a developer who is passionate about using new tools and technologies.\n\nI specialise in creating fully functional user applications using the latest artificial intelligence models.\n\nI am a member of the Ainautes consulting group, which supports with the deployment of generative AI around the world.\n\nI develop the WebGPT web page generation service.\n\nBefore the massive emergence of generative AI, I have created the first Czech virtual whiteboard, Collboard, and electronic textbooks, H-edu, which were used by tens of thousands of children.\n\nI have also worked on many scientific projects for the Czech Ornithological Society.\nI regularly give lectures at conferences, sit on juries, and act as a mentor in many Czech and international competitions.\nI have a special heart for this, and I love open source – you can find many of my things on my GitHub.",
+            "preparationIds": [
+                1
+            ]
+        }
+    ],
+    "knowledgePieces": [
+        {
+            "name": "i",
+            "title": "I",
+            "content": "D",
+            "keywords": [
+                "N"
+            ],
+            "index": [
+                {
+                    "modelName": "mocked-facked",
+                    "position": [
+                        0.7537927951304466,
+                        0.7087193802469249,
+                        0.22981826181665044,
+                        -0.5537744772146964,
+                        -0.5578661888111935,
+                        0.8762421474186639,
+                        0.2707966362012031,
+                        0.4250313983302698,
+                        -0.12438597823325503,
+                        0.01993805635090462,
+                        -0.5384719878987494,
+                        0.28194835552386444,
+                        -0.1430223111946436,
+                        0.01717884427167604,
+                        -0.2812941777615099,
+                        -0.3706620845398718,
+                        0.024057753751531408,
+                        0.06284316961366221,
+                        -0.2353874642804663,
+                        -0.4031909353156231,
+                        0.5287768673881108,
+                        0.03492451803650898,
+                        -0.9128236053578775,
+                        0.9019981586756649,
+                        0.5433116535112394
+                    ]
+                }
+            ],
+            "sources": [
+                {
+                    "name": "i-m-pavol-a-developer-who-is-passionate-about-using-new-tools-and-technologies-i-specialise-in-creating-fully-functional-user-applications-using-the-latest-artificial-intelligence-models-i-am-a-member-of-the-ainautes-consulting-group-which-supports-with-the-deployment-of-generative-ai-around-the-world-i-develop-the-web-gpt-web-page-generation-service-before-the-massive-emergence-of-generative-ai-i-have-created-the-first-czech-virtual-whiteboard-collboard-and-electronic-textbooks-h-edu-which-were-used-by-tens-of-thousands-of-children-i-have-also-worked-on-many-scientific-projects-for-the-czech-ornithological-society-i-regularly-give-lectures-at-conferences-sit-on-juries-and-act-as-a-mentor-in-many-czech-and-international-competitions-i-have-a-special-heart-for-this-and-i-love-open-source-you-can-find-many-of-my-things-on-my-git-hub"
+                }
+            ],
+            "preparationIds": [
+                1
+            ]
+        }
+    ],
+    "personas": [
+        {
+            "name": "Jane",
+            "description": "HR professional with prior experience in writing bios",
+            "modelRequirements": {
+                "modelVariant": "CHAT",
+                "modelName": "gpt-4"
+            },
+            "preparationIds": [
+                1
+            ]
+        }
+    ],
     "preparations": [
         {
             "id": 1,
-            "date": "2024-07-29T00:45:47.425Z",
             "promptbookVersion": "0.61.0-10",
             "modelUsage": {
                 "price": {

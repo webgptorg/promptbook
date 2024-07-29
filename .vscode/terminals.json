@@ -80,7 +80,7 @@
         },
         {
             "name": "🏭📖 Generate samples .ptbk.md -> .ptbk.json (💸)",
-            "commands": ["ts-node ./scripts/generate-samples-jsons/generate-samples-jsons.ts"],
+            "commands": ["ts-node ./scripts/generate-samples-jsons/generate-samples-jsons.ts --verbose"],
             "execute": false,
             "onlySingle": false,
             "focus": false
@@ -147,7 +147,7 @@
         {
             "name": "🧸💡 Prepare knowledge from Markdown (playground) (💸)",
             "commands": [
-                "ts-node ./scripts/make-promptbook-collection/make-promptbook-collection.ts",
+                "ts-node ./scripts/make-promptbook-collection/make-promptbook-collection.ts --verbose",
                 "ts-node ./src/knowledge/prepare-knowledge/markdown/playground/markdown-knowledge-playground.ts"
             ],
             "onlySingle": true,
@@ -155,7 +155,7 @@
         },
         {
             "name": "📖 Make Promptbook collection (💸)",
-            "command": "ts-node ./scripts/make-promptbook-collection/make-promptbook-collection.ts --commit",
+            "command": "ts-node ./scripts/make-promptbook-collection/make-promptbook-collection.ts --verbose --commit",
             "onlySingle": true,
             "focus": true
         },

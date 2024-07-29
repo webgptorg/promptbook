@@ -26,10 +26,12 @@ const PROMPTBOOK_SAMPLES_DIR = join(process.cwd(), 'samples/templates');
 
 const program = new commander.Command();
 program.option('--commit', `Autocommit changes`, false);
-program.parse(process.argv);
-const { commit: isCommited } = program.opts();
+program.option('--verbose', `Is verbose`, false);
 
-generateSampleJsons({ isCommited })
+program.parse(process.argv);
+const { commit: isCommited, verbose: isVerbose } = program.opts();
+
+generateSampleJsons({ isCommited, isVerbose })
     .catch((error) => {
         console.error(colors.bgRed(error.name));
         console.error(error);
@@ -39,10 +41,8 @@ generateSampleJsons({ isCommited })
         process.exit(0);
     });
 
-async function generateSampleJsons({ isCommited }: { isCommited: boolean }) {
+async function generateSampleJsons({ isCommited, isVerbose }: { isCommited: boolean; isVerbose: boolean }) {
     console.info(`🏭📖  Convert samples .ptbk.md -> .ptbk.json`);
-
-    const isVerbose = true; // <- TODO: [👒] Pass as CLI argument
 
     if (isCommited && !(await isWorkingTreeClean(process.cwd()))) {
         throw new Error(`Working tree is not clean`);

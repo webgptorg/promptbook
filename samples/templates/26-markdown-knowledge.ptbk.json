@@ -38,13 +38,81 @@
             "resultingParameterName": "bio"
         }
     ],
-    "knowledgeSources": [],
-    "knowledgePieces": [],
-    "personas": [],
+    "knowledgeSources": [
+        {
+            "name": "i-m-pavol-a-developer-who-is-passionate-about-using-new-tools-and-technologies-i-specialise-in-creating-fully-functional-user-applications-using-the-latest-artificial-intelligence-models-i-am-a-member-of-the-ainautes-https//www-ainautes-com/consulting-group-which-supports-with-the-deployment-of-generative-ai-around-the-world-i-develop-the-web-gpt-https//webgpt-cz/partner-ph-utm-medium-referral-utm-source-personal-e2-80-93page-utm-content-pavolhejny-com-utm-campaign-partner-e2-80-93ph-web-page-generation-service-before-the-massive-emergence-of-generative-ai-i-have-created-the-first-czech-virtual-whiteboard-collboard-https//collboard-com/and-electronic-textbooks-h-edu-https//h-edu-cz/which-were-used-by-tens-of-thousands-of-children-i-have-also-worked-on-many-scientific-projects-for-the-czech-ornithological-society-https//www-birdlife-cz/en/i-regularly-give-lectures-at-conferences-sit-on-juries-and-act-as-a-mentor-in-many-czech-and-international-competitions-i-have-a-special-heart-for-this-and-i-love-open-source-you-can-find-many-of-my-things-on-my-git-hub",
+            "source": "I'm Pavol, a developer who is passionate about using new tools and technologies.\n\nI specialise in creating fully functional user applications using the latest artificial intelligence models.\n\nI am a member of the [Ainautes](https://www.ainautes.com/) consulting group, which supports with the deployment of generative AI around the world.\n\nI develop the [WebGPT](https://webgpt.cz/?partner=ph&utm_medium=referral&utm_source=personal%E2%80%93page&utm_content=pavolhejny.com&utm_campaign=partner%E2%80%93ph) web page generation service.\n\nBefore the massive emergence of generative AI, I have created the first Czech virtual whiteboard, [Collboard](https://collboard.com/), and electronic textbooks, [H-edu](https://h-edu.cz/), which were used by tens of thousands of children.\n\nI have also worked on many scientific projects for the [Czech Ornithological Society](https://www.birdlife.cz/en/).\nI regularly give lectures at conferences, sit on juries, and act as a mentor in many Czech and international competitions.\nI have a special heart for this, and I love **open source** – you can find many of my things on my GitHub.",
+            "preparationIds": [
+                1
+            ]
+        }
+    ],
+    "knowledgePieces": [
+        {
+            "name": "d",
+            "title": "D",
+            "content": "M",
+            "keywords": [
+                "C"
+            ],
+            "index": [
+                {
+                    "modelName": "mocked-facked",
+                    "position": [
+                        -0.6889242162016727,
+                        0.28636305683727903,
+                        -0.45719652804820443,
+                        0.03290424302160222,
+                        0.6057784676337383,
+                        -0.3313903546324184,
+                        0.1101836420282174,
+                        -0.0037882678747331866,
+                        0.3626910149667242,
+                        -0.5000713038509157,
+                        -0.8299232681007047,
+                        -0.7916087651819956,
+                        0.20215668393123476,
+                        -0.7845285899528851,
+                        -0.9585024051071094,
+                        0.07616843971741316,
+                        0.9241911123810174,
+                        0.5125045165678923,
+                        -0.9795934657488741,
+                        -0.42211424280922216,
+                        0.011357257202764703,
+                        -0.36685810096011817,
+                        0.868296920652468,
+                        0.19159344458938898,
+                        -0.4771875838858981
+                    ]
+                }
+            ],
+            "sources": [
+                {
+                    "name": "i-m-pavol-a-developer-who-is-passionate-about-using-new-tools-and-technologies-i-specialise-in-creating-fully-functional-user-applications-using-the-latest-artificial-intelligence-models-i-am-a-member-of-the-ainautes-https//www-ainautes-com/consulting-group-which-supports-with-the-deployment-of-generative-ai-around-the-world-i-develop-the-web-gpt-https//webgpt-cz/partner-ph-utm-medium-referral-utm-source-personal-e2-80-93page-utm-content-pavolhejny-com-utm-campaign-partner-e2-80-93ph-web-page-generation-service-before-the-massive-emergence-of-generative-ai-i-have-created-the-first-czech-virtual-whiteboard-collboard-https//collboard-com/and-electronic-textbooks-h-edu-https//h-edu-cz/which-were-used-by-tens-of-thousands-of-children-i-have-also-worked-on-many-scientific-projects-for-the-czech-ornithological-society-https//www-birdlife-cz/en/i-regularly-give-lectures-at-conferences-sit-on-juries-and-act-as-a-mentor-in-many-czech-and-international-competitions-i-have-a-special-heart-for-this-and-i-love-open-source-you-can-find-many-of-my-things-on-my-git-hub"
+                }
+            ],
+            "preparationIds": [
+                1
+            ]
+        }
+    ],
+    "personas": [
+        {
+            "name": "Jane",
+            "description": "HR professional with prior experience in writing bios",
+            "modelRequirements": {
+                "modelVariant": "CHAT",
+                "modelName": "gpt-4"
+            },
+            "preparationIds": [
+                1
+            ]
+        }
+    ],
     "preparations": [
         {
             "id": 1,
-            "date": "2024-07-29T00:45:47.430Z",
             "promptbookVersion": "0.61.0-10",
             "modelUsage": {
                 "price": {
