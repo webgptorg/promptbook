@@ -1,4 +1,4 @@
-import { Writable } from 'type-fest';
+import type { Writable } from 'type-fest';
 import type { string_markdown } from '../../types/typeAliases';
 import { capitalize } from '../normalization/capitalize';
 

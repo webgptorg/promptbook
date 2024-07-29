@@ -1,4 +1,4 @@
-import { WritableDeep } from 'type-fest';
+import type { WritableDeep } from 'type-fest';
 import type { PromptResultUsage } from '../PromptResult';
 
 /**

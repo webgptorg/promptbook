@@ -1,4 +1,4 @@
-import { Writable } from 'type-fest';
+import type { Writable } from 'type-fest';
 import type { PromptResultUsage } from '../PromptResult';
 import type { UncertainNumber } from '../PromptResult';
 
