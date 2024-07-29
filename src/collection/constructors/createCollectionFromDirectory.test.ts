@@ -2,10 +2,9 @@ import { describe, expect, it } from '@jest/globals';
 import spaceTrim from 'spacetrim';
 import { pipelineStringToJson } from '../../conversion/pipelineStringToJson';
 import type { PipelineString } from '../../types/PipelineString';
-import { just } from '../../utils/organization/just';
+import { notUsing } from '../../utils/organization/notUsing';
 import type { really_any } from '../../utils/organization/really_any';
 import { createCollectionFromDirectory } from './createCollectionFromDirectory';
-import { notUsing } from '../../utils/organization/notUsing';
 
 describe('createCollectionFromDirectory', () => {
     const pipeline = spaceTrim(`
