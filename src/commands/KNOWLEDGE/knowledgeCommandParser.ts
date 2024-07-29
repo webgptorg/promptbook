@@ -1,10 +1,11 @@
 import type { WritableDeep } from 'type-fest';
-import { PipelineJson } from '../../_packages/types.index';
-import { titleToName } from '../../_packages/utils.index';
+import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
+import { titleToName } from '../../conversion/utils/titleToName';
 import { ParsingError } from '../../errors/ParsingError';
 import { isValidFilePath } from '../../utils/validators/filePath/isValidFilePath';
 import { isValidUrl } from '../../utils/validators/url/isValidUrl';
-import type { CommandParser, CommandParserInput } from '../_common/types/CommandParser';
+import type { CommandParser } from '../_common/types/CommandParser';
+import type { CommandParserInput } from '../_common/types/CommandParser';
 import type { KnowledgeCommand } from './KnowledgeCommand';
 
 /**

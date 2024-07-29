@@ -17,7 +17,7 @@ import type { PromptTemplateParameterJson } from '../types/PipelineJson/PromptTe
 import type { PipelineString } from '../types/PipelineString';
 import type { ScriptLanguage } from '../types/ScriptLanguage';
 import { SUPPORTED_SCRIPT_LANGUAGES } from '../types/ScriptLanguage';
-import { string_parameter_name } from '../types/typeAliases';
+import type { string_parameter_name } from '../types/typeAliases';
 import { extractAllListItemsFromMarkdown } from '../utils/markdown/extractAllListItemsFromMarkdown';
 import { extractOneBlockFromMarkdown } from '../utils/markdown/extractOneBlockFromMarkdown';
 import { flattenMarkdown } from '../utils/markdown/flattenMarkdown';

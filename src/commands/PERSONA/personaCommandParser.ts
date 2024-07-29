@@ -2,7 +2,8 @@ import spaceTrim from 'spacetrim';
 import type { WritableDeep } from 'type-fest';
 import { ParsingError } from '../../errors/ParsingError';
 import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
-import type { CommandParser, CommandParserInput } from '../_common/types/CommandParser';
+import type { CommandParser } from '../_common/types/CommandParser';
+import type { CommandParserInput } from '../_common/types/CommandParser';
 import type { PersonaCommand } from './PersonaCommand';
 
 /**

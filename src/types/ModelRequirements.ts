@@ -1,4 +1,7 @@
-import type { number_model_temperature, number_seed, string_model_name, string_system_message } from './typeAliases';
+import type { number_model_temperature } from './typeAliases';
+import type { number_seed } from './typeAliases';
+import type { string_model_name } from './typeAliases';
+import type { string_system_message } from './typeAliases';
 
 export const MODEL_VARIANTS = ['COMPLETION', 'CHAT', 'EMBEDDING' /* <- TODO [🏳] */ /* <- [🤖] */] as const;
 

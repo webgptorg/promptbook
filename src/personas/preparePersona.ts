@@ -1,10 +1,12 @@
 import PipelineCollection from '../../promptbook-collection/index.json';
-import { assertsExecutionSuccessful, createCollectionFromJson, createPipelineExecutor } from '../_packages/core.index';
-import { PipelineJson } from '../_packages/types.index';
+import { assertsExecutionSuccessful } from '../execution/assertsExecutionSuccessful';
+import { createCollectionFromJson } from '../collection/constructors/createCollectionFromJson';
+import { createPipelineExecutor } from '../execution/createPipelineExecutor';
+import type { PipelineJson } from '../types/PipelineJson/PipelineJson';
 import type { PrepareOptions } from '../prepare/PrepareOptions';
 import type { PersonaPreparedJson } from '../types/PipelineJson/PersonaJson';
 import type { string_persona_description } from '../types/typeAliases';
-import { TODO } from '../utils/organization/TODO';
+import type { TODO } from '../utils/organization/TODO';
 import { $randomSeed } from '../utils/random/randomSeed';
 
 /**

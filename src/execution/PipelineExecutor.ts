@@ -1,7 +1,8 @@
 import type { Promisable } from 'type-fest';
 import type { TaskProgress } from '../types/TaskProgress';
 import type { ExecutionReportJson } from '../types/execution-report/ExecutionReportJson';
-import type { string_parameter_name, string_parameter_value } from '../types/typeAliases';
+import type { string_parameter_name } from '../types/typeAliases';
+import type { string_parameter_value } from '../types/typeAliases';
 import type { PromptResultUsage } from './PromptResult';
 
 /**
