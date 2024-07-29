@@ -66,6 +66,7 @@ export {
     isHostnameOnPrivateNetwork,
     isUrlOnPrivateNetwork,
     isValidFilePath,
+    randomSeed,
     isValidJavascriptName,
     isValidJsonString,
     isValidPipelineUrl,

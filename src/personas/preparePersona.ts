@@ -1,8 +1,11 @@
-import { MAX_PARALLEL_COUNT } from '../config';
+import PipelineCollection from '../../promptbook-collection/index.json';
+import { assertsExecutionSuccessful, createCollectionFromJson, createPipelineExecutor } from '../_packages/core.index';
+import { PipelineJson } from '../_packages/types.index';
 import type { PrepareOptions } from '../prepare/PrepareOptions';
 import type { PersonaPreparedJson } from '../types/PipelineJson/PersonaJson';
 import type { string_persona_description } from '../types/typeAliases';
-import { TODO_USE } from '../utils/organization/TODO_USE';
+import { TODO } from '../utils/organization/TODO';
+import { $randomSeed } from '../utils/random/randomSeed';
 
 /**
  * Prepares the persona for the pipeline
@@ -14,25 +17,44 @@ export async function preparePersona(
     personaDescription: string_persona_description,
     options: PrepareOptions,
 ): Promise<PersonaPreparedJson['modelRequirements']> {
-    const { llmTools, maxParallelCount = MAX_PARALLEL_COUNT, isVerbose = false } = options;
+    const { llmTools, isVerbose = false } = options;
 
-    TODO_USE(maxParallelCount); // <- [🪂]
-    TODO_USE(personaDescription); // <- !!!!!
-    TODO_USE(llmTools); // <- !!!!!
-    TODO_USE(isVerbose); // <- !!!!!
+    // TODO: [🌼] In future use `ptbk make` and maked getPipelineCollection
+    const collection = createCollectionFromJson(...(PipelineCollection as TODO as Array<PipelineJson>));
+
+    const preparePersonaExecutor = createPipelineExecutor({
+        pipeline: await collection.getPipelineByUrl('https://promptbook.studio/promptbook/prepare-persona.ptbk.md'),
+        tools: {
+            llm: llmTools,
+        },
+    });
+
+    const result = await preparePersonaExecutor({ personaDescription });
+
+    assertsExecutionSuccessful(result);
+
+    const { outputParameters } = result;
+    const { modelRequirements: modelRequirementsRaw } = outputParameters;
+
+    const modelRequirements = JSON.parse(modelRequirementsRaw!);
+
+    if (isVerbose) {
+        console.info(`PERSONA ${personaDescription}`, modelRequirements);
+    }
+
+    const { modelName, systemMessage, temprerature } = modelRequirements;
+
+    // TODO: !!! Check validity of `modelName`
+    // TODO: !!! Check validity of `systemMessage`
+    // TODO: !!! Check validity of `temprerature`
 
     return {
         modelVariant: 'CHAT',
-        modelName: 'gpt-4',
+        modelName,
+        systemMessage,
+        temprerature,
+
+        // TODO: !!!! Remove:
+        seed: $randomSeed() /* <- [🈁] */,
     };
-
-
-
-
-
-
 }
-
-/**
- * TODO: [🪂] Do it in parallel
- */
