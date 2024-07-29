@@ -7,11 +7,11 @@ import { MAX_PARALLEL_COUNT } from '../../../config';
 import { titleToName } from '../../../conversion/utils/titleToName';
 import { assertsExecutionSuccessful } from '../../../execution/assertsExecutionSuccessful';
 import { createPipelineExecutor } from '../../../execution/createPipelineExecutor';
-import { PrepareOptions } from '../../../prepare/PrepareOptions';
-import { KnowledgePiecePreparedJson } from '../../../types/PipelineJson/KnowledgePieceJson';
+import type { PrepareOptions } from '../../../prepare/PrepareOptions';
+import type { KnowledgePiecePreparedJson } from '../../../types/PipelineJson/KnowledgePieceJson';
 import type { PipelineJson } from '../../../types/PipelineJson/PipelineJson';
 import type { string_markdown } from '../../../types/typeAliases';
-import { TODO } from '../../../utils/organization/TODO';
+import type { TODO } from '../../../utils/organization/TODO';
 import { TODO_USE } from '../../../utils/organization/TODO_USE';
 
 /**
@@ -124,8 +124,6 @@ export async function prepareKnowledgeFromMarkdown(
                         position: embeddingResult.content,
                     });
                 }
-
-
             } catch (error) {
                 // TODO: [🟥] Detect browser / node and make it colorfull
                 console.error(error);

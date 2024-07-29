@@ -1,5 +1,5 @@
 import type { ModelRequirements } from '../ModelRequirements';
-import { string_name } from '../typeAliases';
+import type { string_name } from '../typeAliases';
 import type { PromptTemplateJsonCommon } from './PromptTemplateJsonCommon';
 
 /**

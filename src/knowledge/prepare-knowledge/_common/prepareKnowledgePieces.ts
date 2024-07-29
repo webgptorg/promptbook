@@ -1,8 +1,8 @@
-import { forEachAsync } from '../../../_packages/utils.index';
+import { forEachAsync } from '../../../execution/utils/forEachAsync';
 import { MAX_PARALLEL_COUNT } from '../../../config';
-import { PrepareOptions } from '../../../prepare/PrepareOptions';
-import { KnowledgePiecePreparedJson } from '../../../types/PipelineJson/KnowledgePieceJson';
-import { KnowledgeSourceJson } from '../../../types/PipelineJson/KnowledgeSourceJson';
+import type { PrepareOptions } from '../../../prepare/PrepareOptions';
+import type { KnowledgePiecePreparedJson } from '../../../types/PipelineJson/KnowledgePieceJson';
+import type { KnowledgeSourceJson } from '../../../types/PipelineJson/KnowledgeSourceJson';
 import { prepareKnowledgeFromMarkdown } from '../markdown/prepareKnowledgeFromMarkdown';
 
 /**

@@ -1,14 +1,12 @@
 import type { BlockType } from '../../commands/BLOCK/BlockTypes';
 import type { ExpectFormatCommand } from '../../commands/EXPECT/ExpectFormatCommand';
-import type {
-    string_javascript,
-    string_javascript_name,
-    string_markdown,
-    string_markdown_text,
-    string_name,
-    string_prompt,
-    string_template,
-} from '../typeAliases';
+import type { string_javascript } from '../typeAliases';
+import type { string_javascript_name } from '../typeAliases';
+import type { string_markdown } from '../typeAliases';
+import type { string_markdown_text } from '../typeAliases';
+import type { string_name } from '../typeAliases';
+import type { string_prompt } from '../typeAliases';
+import type { string_template } from '../typeAliases';
 import type { Expectations } from './Expectations';
 
 /**
@@ -62,7 +60,7 @@ export interface PromptTemplateJsonCommon {
 
     /**
      * List of postprocessing steps that are executed after the prompt template
-     * 
+     *
      * @see https://github.com/webgptorg/promptbook/discussions/31
      */
     readonly postprocessing?: Array<string_javascript_name>;

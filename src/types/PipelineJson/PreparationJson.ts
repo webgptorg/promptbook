@@ -1,6 +1,7 @@
-import { PromptResultUsage } from '../../execution/PromptResult';
-import { string_promptbook_version } from '../../version';
-import { number_id, string_date_iso8601 } from '../typeAliases';
+import type { PromptResultUsage } from '../../execution/PromptResult';
+import type { string_promptbook_version } from '../../version';
+import type { number_id } from '../typeAliases';
+import type { string_date_iso8601 } from '../typeAliases';
 
 export type PreparationJson = {
     /**

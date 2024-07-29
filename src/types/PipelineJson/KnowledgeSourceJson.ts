@@ -1,4 +1,6 @@
-import type { number_id, string_knowledge_source, string_name } from '../typeAliases';
+import type { number_id } from '../typeAliases';
+import type { string_knowledge_source } from '../typeAliases';
+import type { string_name } from '../typeAliases';
 
 /**
  * Defines one source of knowledge in the pipeline

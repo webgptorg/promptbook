@@ -1,7 +1,7 @@
 import { MAX_PARALLEL_COUNT } from '../config';
-import { PrepareOptions } from '../prepare/PrepareOptions';
-import { PersonaPreparedJson } from '../types/PipelineJson/PersonaJson';
-import { string_persona_description } from '../types/typeAliases';
+import type { PrepareOptions } from '../prepare/PrepareOptions';
+import type { PersonaPreparedJson } from '../types/PipelineJson/PersonaJson';
+import type { string_persona_description } from '../types/typeAliases';
 import { TODO_USE } from '../utils/organization/TODO_USE';
 
 /**

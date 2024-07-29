@@ -1,4 +1,4 @@
-import { string_date_iso8601 } from '../types/typeAliases';
+import type { string_date_iso8601 } from '../types/typeAliases';
 
 /**
  * Simple wrapper `new Date().toISOString()`

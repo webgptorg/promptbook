@@ -1,5 +1,5 @@
 import { spaceTrim } from 'spacetrim';
-import { string_semantic_version } from '../types/typeAliases';
+import type { string_semantic_version } from '../types/typeAliases';
 import { PROMPTBOOK_VERSION } from '../version';
 
 /**

@@ -1,4 +1,4 @@
-import { really_any } from './really_any';
+import type { really_any } from './really_any';
 
 /**
  * Just marks a place of place where should be something implemented

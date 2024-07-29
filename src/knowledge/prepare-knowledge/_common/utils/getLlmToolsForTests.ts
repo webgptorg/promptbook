@@ -1,5 +1,5 @@
-import { MockedEchoLlmExecutionTools } from '../../../../_packages/fake-llm.index';
-import { LlmExecutionTools } from '../../../../execution/LlmExecutionTools';
+import { MockedEchoLlmExecutionTools } from '../../../../llm-providers/mocked/MockedEchoLlmExecutionTools';
+import type { LlmExecutionTools } from '../../../../execution/LlmExecutionTools';
 
 /**
  * Returns LLM tools for testing purposes

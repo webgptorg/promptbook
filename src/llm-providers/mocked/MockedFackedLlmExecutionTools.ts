@@ -1,10 +1,15 @@
 import type { CommonExecutionToolsOptions } from '../../execution/CommonExecutionToolsOptions';
 import type { EmbeddingVector } from '../../execution/EmbeddingVector';
-import type { AvailableModel, LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { PromptChatResult, PromptCompletionResult, PromptEmbeddingResult } from '../../execution/PromptResult';
+import type { AvailableModel } from '../../execution/LlmExecutionTools';
+import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
+import type { PromptChatResult } from '../../execution/PromptResult';
+import type { PromptCompletionResult } from '../../execution/PromptResult';
+import type { PromptEmbeddingResult } from '../../execution/PromptResult';
 import { addUsage } from '../../execution/utils/addUsage';
 import type { Prompt } from '../../types/Prompt';
-import type { string_markdown, string_markdown_text, string_title } from '../../types/typeAliases';
+import type { string_markdown } from '../../types/typeAliases';
+import type { string_markdown_text } from '../../types/typeAliases';
+import type { string_title } from '../../types/typeAliases';
 import { getCurrentIsoDate } from '../../utils/getCurrentIsoDate';
 import { just } from '../../utils/organization/just';
 import { $fakeTextToExpectations } from './fakeTextToExpectations';
