@@ -21,6 +21,7 @@ export type LlmTemplateJson = PromptTemplateJsonCommon & {
 };
 
 /**
- * TODO: !!!!emoji ACRY + discussion [🧠] Should be knowledge, actions and ... aviable granularry for each template and/or persona
- * TODO: !!!! [👙][🧠] Just selecting gpt3 or gpt4 level of modelT
+ * TODO: [👙][🧠] Maybe add `knowledge`, `actions` and `instruments` to be available granularly for each template
+ *       @see https://github.com/webgptorg/promptbook/discussions/79
+ * TODO: [💕][🧠] Just selecting gpt3 or gpt4 level of model
  */

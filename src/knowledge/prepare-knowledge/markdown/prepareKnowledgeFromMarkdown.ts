@@ -56,7 +56,6 @@ export async function prepareKnowledgeFromMarkdown(
     });
 
     const result = await prepareKnowledgeFromMarkdownExecutor({ content });
-    // TODO: [0] !!! Aggeregate usage
 
     assertsExecutionSuccessful(result);
 
@@ -69,7 +68,6 @@ export async function prepareKnowledgeFromMarkdown(
         console.info('knowledgeTextPieces:', knowledgeTextPieces);
     }
 
-    // TODO: [💸][0] !!! Aggeregate usage
     // const usage = ;
 
     const knowledge = await Promise.all(
@@ -90,14 +88,12 @@ export async function prepareKnowledgeFromMarkdown(
 
             try {
                 const titleResult = await prepareTitleExecutor({ content });
-                // TODO: [0] !!! Aggeregate usage
                 const { title: titleRaw = 'Untitled' } = titleResult.outputParameters;
                 title = spaceTrim(titleRaw) /* <- TODO: Maybe do in pipeline */;
                 name = titleToName(title);
 
                 // --- Keywords
                 const keywordsResult = await prepareKeywordsExecutor({ content });
-                // TODO: [0] !!! Aggeregate usage
                 const { keywords: keywordsRaw = '' } = keywordsResult.outputParameters;
                 keywords = (keywordsRaw || '')
                     .split(',')
@@ -108,7 +104,6 @@ export async function prepareKnowledgeFromMarkdown(
                 }
                 // ---
 
-                // TODO: !!!! Index through LLM model
                 if (!llmTools.callEmbeddingModel) {
                     // TODO: [🟥] Detect browser / node and make it colorfull
                     console.error('No callEmbeddingModel function provided');
@@ -124,15 +119,13 @@ export async function prepareKnowledgeFromMarkdown(
                         },
                     });
 
-                    // TODO: [0] !!! Aggeregate usage embeddingResult.usage
-
                     index.push({
                         modelName: embeddingResult.modelName,
                         position: embeddingResult.content,
                     });
                 }
 
-                // TODO: [🖖] !!!! Make system for sources and identification of sources
+
             } catch (error) {
                 // TODO: [🟥] Detect browser / node and make it colorfull
                 console.error(error);
@@ -149,13 +142,10 @@ export async function prepareKnowledgeFromMarkdown(
         }),
     );
 
-    if (isVerbose) {
-        // TODO: [0] !!! Log usage
-    }
-
     return knowledge;
 }
 
 /**
  * TODO: [🪂] Do it in parallel 11:11
+ * Note: No need to aggregate usage here, it is done by intercepting the llmTools
  */

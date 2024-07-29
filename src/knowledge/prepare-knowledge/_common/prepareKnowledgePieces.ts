@@ -21,7 +21,7 @@ export async function prepareKnowledgePieces(
 
     await forEachAsync(knowledgeSources, { maxParallelCount }, async (knowledgeSource) => {
         const partialPieces = await prepareKnowledgeFromMarkdown(
-            knowledgeSource.source, // <- TODO: !!!!! Unhardcode markdown
+            knowledgeSource.source, // <- TODO: !!!!! Unhardcode markdown, detect which type it is
             options,
         );
 
@@ -58,10 +58,6 @@ TODO: [🧊] This is how it can look in future
 */
 
 /**
- * TODO: !!!! Write tests for `prepareKnowledge`
- * TODO: !!!! Implement `prepareKnowledge`
- * TODO: !!!! Use `prepareKnowledge` in `pipelineStringToJson`
- * TODO: !!!! Use `prepareKnowledge` in `createPipelineExecutor`
  * TODO: [🧊] In future one preparation can take data from previous preparation and save tokens and time
  *       Put `knowledgePieces` into `PrepareKnowledgeOptions`
  * TODO: [🪂] More than max things can run in parallel by acident [1,[2a,2b,_],[3a,3b,_]]

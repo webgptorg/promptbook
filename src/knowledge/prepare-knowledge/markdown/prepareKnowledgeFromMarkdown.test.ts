@@ -4,6 +4,8 @@ import { getLlmToolsForTests } from '../_common/utils/getLlmToolsForTests';
 import { prepareKnowledgeFromMarkdown } from './prepareKnowledgeFromMarkdown';
 
 describe('how creating knowledge from markdown works', () => {
+
+    // TODO: !!!! Read here the samples directory
     it('should work with simple piece of information', async () =>
         expect(
             prepareKnowledgeFromMarkdown(

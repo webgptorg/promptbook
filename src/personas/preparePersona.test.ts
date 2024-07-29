@@ -11,18 +11,19 @@ describe('how preparePersona works', () => {
             }),
         ).resolves.toEqual({
             modelVariant: 'CHAT',
-            modelName: 'gpt-4', // <- TODO: !!!! Allow to specify more model names
+            modelName: 'gpt-4', // <- TODO: [💕] Allow to specify more model names or more general like gpt-4-*, 1234 context window etc.
         }));
 
-    it('should work with foo', () =>
+    it('should work with advanced structured persona description', () =>
         expect(
             preparePersona(
                 spaceTrim(`
-                    Foo
+                    Skilled Copywriter with 5 years of experience in the field.
 
-                    Bar
+                    - Experience with SEO and SEM
+                    - Experience with social media
+                    - Experience with email marketing
 
-                    Baz
                 `),
                 {
                     llmTools: getLlmToolsForTests(),
@@ -30,7 +31,53 @@ describe('how preparePersona works', () => {
             ),
         ).resolves.toEqual({
             modelVariant: 'CHAT',
-            modelName: 'gpt-4', // <- TODO: !!!! Allow to specify more model names
+            modelName: 'gpt-4', // <- TODO: [💕]
+        }));
+
+    it('should work with creative persona', () =>
+        expect(
+            preparePersona(`Poem writer with unconventional style of writing in his own language and style`, {
+                llmTools: getLlmToolsForTests(),
+            }),
+        ).resolves.toEqual({
+            modelVariant: 'CHAT',
+            modelName: 'gpt-4', // <- TODO: [💕]
+        }));
+
+    it('should work with non-creative persona', () =>
+        expect(
+            preparePersona(
+                `Technical writer with 5 years of experience in the field. Experience with writing technical documentation, user manuals, and API documentation.`,
+                {
+                    llmTools: getLlmToolsForTests(),
+                },
+            ),
+        ).resolves.toEqual({
+            modelVariant: 'CHAT',
+            modelName: 'gpt-4', // <- TODO: [💕]
+        }));
+
+    it('should work French native speaker', () =>
+        expect(
+            preparePersona(
+                `Locuteur natif français, j'aime écrire et je suis passionné par la langue et la culture française.`,
+                {
+                    llmTools: getLlmToolsForTests(),
+                },
+            ),
+        ).resolves.toEqual({
+            modelVariant: 'CHAT',
+            modelName: 'gpt-4', // <- TODO: [💕]
+        }));
+
+    it('should work with weird persona description', () =>
+        expect(
+            preparePersona(`Xyzzy with 5 years of experience in the field. Experience with foo and bar.`, {
+                llmTools: getLlmToolsForTests(),
+            }),
+        ).resolves.toEqual({
+            modelVariant: 'CHAT',
+            modelName: 'gpt-4', // <- TODO: [💕]
         }));
 
     /*

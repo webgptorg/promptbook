@@ -5,6 +5,8 @@ import { getLlmToolsForTests } from '../_common/utils/getLlmToolsForTests';
 import { prepareKnowledgeFromPdf } from './prepareKnowledgeFromPdf';
 
 describe('how creating knowledge from pdf works', () => {
+    // TODO: !!!! Read here the samples directory
+
     it('should work with simple piece of information', async () =>
         expect(
             prepareKnowledgeFromPdf(await readFile(join(__dirname, 'samples/10-simple.pdf'), 'base64'), {

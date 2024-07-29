@@ -31,7 +31,7 @@ async function playground() {
     //========================================>
 
     const content = await readFile(
-        join(__dirname, '../samples/10-simple.md' /* <- !!! Dynamic for all samples */),
+        join(__dirname, '../samples/10-simple.md' /* <- !!! Read here the samples directory and itterate through all of them */),
         'utf-8',
     );
 
@@ -56,7 +56,7 @@ async function playground() {
     console.info(knowledge);
 
     await writeFile(
-        join(__dirname, '../samples/10-simple.knowledge.json' /* <- !!! Dynamic for all samples */),
+        join(__dirname, '../samples/10-simple.knowledge.json' /* <- !!! Read here the samples directory and itterate through all of them */),
         JSON.stringify(knowledge, null, 4) + '\n',
         'utf-8',
     );

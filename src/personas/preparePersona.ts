@@ -2,7 +2,6 @@ import { MAX_PARALLEL_COUNT } from '../config';
 import { PrepareOptions } from '../prepare/PrepareOptions';
 import { PersonaPreparedJson } from '../types/PipelineJson/PersonaJson';
 import { string_persona_description } from '../types/typeAliases';
-import { just } from '../utils/organization/just';
 import { TODO_USE } from '../utils/organization/TODO_USE';
 
 /**
@@ -18,9 +17,9 @@ export async function preparePersona(
     const { llmTools, maxParallelCount = MAX_PARALLEL_COUNT, isVerbose = false } = options;
 
     TODO_USE(maxParallelCount); // <- [🪂]
-    just(personaDescription);
-    just(llmTools);
-    just(isVerbose);
+    TODO_USE(personaDescription); // <- !!!!!
+    TODO_USE(llmTools); // <- !!!!!
+    TODO_USE(isVerbose); // <- !!!!!
 
     return {
         modelVariant: 'CHAT',
@@ -29,9 +28,5 @@ export async function preparePersona(
 }
 
 /**
- * TODO: !!!! Write tests for `preparePersona`
- * TODO: !!!! Implement `preparePersona`
- * TODO: !!!! Use `preparePersona` in `pipelineStringToJson`
- * TODO: !!!! Use `preparePersona` in `createPipelineExecutor`
  * TODO: [🪂] Do it in parallel
  */
