@@ -56,11 +56,23 @@
     ],
     "knowledgeSources": [],
     "knowledgePieces": [],
-    "personas": [],
+    "personas": [
+        {
+            "name": "Joe",
+            "description": "a linguist\n\nnull",
+            "modelRequirements": {
+                "modelVariant": "CHAT",
+                "modelName": "gpt-4"
+            },
+            "preparationIds": [
+                1
+            ]
+        }
+    ],
     "preparations": [
         {
             "id": 1,
-            "date": "2024-07-29T00:41:34.954Z",
+            "date": "2024-07-29T00:52:19.018Z",
             "promptbookVersion": "0.61.0-10",
             "modelUsage": {
                 "price": {

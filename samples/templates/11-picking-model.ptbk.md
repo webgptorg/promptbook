@@ -37,6 +37,7 @@ flowchart LR
 
 ## 💬 Synonym
 
+-   PERSONA Jane, a poet
 -   MODEL VARIANT Chat
 -   MODEL NAME `gpt-4-1106-preview`
 

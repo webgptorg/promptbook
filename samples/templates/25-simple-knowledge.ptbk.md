@@ -29,6 +29,7 @@ I have a special heart for this, and I love open source – you can find many of
 
 ## Writing bio
 
+-   Jane, HR professional with prior experience in writing bios
 -   EXPECT MIN 1 Sentence
 
 ```markdown

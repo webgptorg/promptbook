@@ -36,11 +36,23 @@
     ],
     "knowledgeSources": [],
     "knowledgePieces": [],
-    "personas": [],
+    "personas": [
+        {
+            "name": "Jane",
+            "description": "a poet",
+            "modelRequirements": {
+                "modelVariant": "CHAT",
+                "modelName": "gpt-4"
+            },
+            "preparationIds": [
+                1
+            ]
+        }
+    ],
     "preparations": [
         {
             "id": 1,
-            "date": "2024-07-29T00:41:34.946Z",
+            "date": "2024-07-29T00:52:19.009Z",
             "promptbookVersion": "0.61.0-10",
             "modelUsage": {
                 "price": {

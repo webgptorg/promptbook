@@ -39,6 +39,7 @@ flowchart LR
 
 Synonym for word
 
+-   PERSONA Joe, a linguist
 -   EXPECT MIN 1 WORD <!-- <- TODO: [🧠] Allow expectations to be relative to "EXPECT MIN countWords({word})" or simpler "EXPECT +-20% OF {word}" -->
 -   EXPECT MAX 5 WORDS
 

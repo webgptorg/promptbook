@@ -66,7 +66,7 @@ flowchart LR
 
 Synonym for word
 
--   MODEL VARIANT Chat
+-   PERSONA Joe, a linguist
 -   MODEL NAME `gpt-3.5-turbo`
 -   POSTPROCESSING `unwrapResult`
 -   EXPECT EXACTLY 1 WORD
@@ -95,7 +95,7 @@ return wordSynonym;
 
 Sentence with word and wordSynonym
 
--   MODEL VARIANT Chat
+-   PERSONA Jane, a linguist
 -   MODEL NAME `gpt-3.5-turbo`
 -   EXPECT MAX 20 WORDS
 -   EXPECT EXACTLY 1 SENTENCE
@@ -120,8 +120,7 @@ I was happy and you were joyful!
 
 Sentence "{sentenceWithTwoSynonyms}" without "{word}".
 
--   MODEL VARIANT Chat
--   MODEL NAME `gpt-3.5-turbo`
+-   PERSONA Josh, a linguist
 -   EXPECT MAX 20 WORDS
 -   EXPECT EXACTLY 1 SENTENCE
 
@@ -144,6 +143,7 @@ Remove word "{word}" from sentence and modify it so that it makes sense:
 
 Comparison between "{sentenceWithTwoSynonyms}" and "{sentenceWithOriginalWordRemoved}".
 
+-   PERSONA Alice, a linguist
 -   MODEL VARIANT Chat
 -   MODEL NAME `gpt-4o`
 -   EXPECT MIN 1 SENTENCE

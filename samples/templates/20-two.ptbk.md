@@ -43,6 +43,8 @@ flowchart LR
 
 Synonym for word
 
+-   PERSONA Joe, a linguist
+
 ```text
 Write synonym for "{word}"
 ```
@@ -52,6 +54,8 @@ Write synonym for "{word}"
 ## 💬 Sentence
 
 Sentence with word and wordSynonym
+
+-   PERSONA Joe
 
 ```text
 Write sentence with "{word}" and "{wordSynonym}" in it

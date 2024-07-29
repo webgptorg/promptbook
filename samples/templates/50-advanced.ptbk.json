@@ -65,8 +65,8 @@
             },
             "personaName": null,
             "modelRequirements": {
-                "modelVariant": "CHAT",
-                "modelName": "gpt-3.5-turbo"
+                "modelName": "gpt-3.5-turbo",
+                "modelVariant": "CHAT"
             },
             "content": "Write synonym for \"{word}\"",
             "resultingParameterName": "wordSynonym"
@@ -104,8 +104,8 @@
             },
             "personaName": null,
             "modelRequirements": {
-                "modelVariant": "CHAT",
-                "modelName": "gpt-3.5-turbo"
+                "modelName": "gpt-3.5-turbo",
+                "modelVariant": "CHAT"
             },
             "content": "Write sentence with \"{word}\" and \"{wordSynonym}\" in it",
             "resultingParameterName": "sentenceWithTwoSynonyms"
@@ -130,8 +130,7 @@
             },
             "personaName": null,
             "modelRequirements": {
-                "modelVariant": "CHAT",
-                "modelName": "gpt-3.5-turbo"
+                "modelVariant": "CHAT"
             },
             "content": "Remove word \"{word}\" from sentence and modify it so that it makes sense:\n\n## Rules:\n\n-   Sentence must be grammatically correct\n-   Sentence must make sense after removing the word\n\n## The Sentence:\n\n> {sentenceWithTwoSynonyms}",
             "resultingParameterName": "sentenceWithOriginalWordRemoved"
@@ -177,11 +176,56 @@
     ],
     "knowledgeSources": [],
     "knowledgePieces": [],
-    "personas": [],
+    "personas": [
+        {
+            "name": "Joe",
+            "description": "a linguist",
+            "modelRequirements": {
+                "modelVariant": "CHAT",
+                "modelName": "gpt-4"
+            },
+            "preparationIds": [
+                1
+            ]
+        },
+        {
+            "name": "Jane",
+            "description": "a linguist",
+            "modelRequirements": {
+                "modelVariant": "CHAT",
+                "modelName": "gpt-4"
+            },
+            "preparationIds": [
+                1
+            ]
+        },
+        {
+            "name": "Josh",
+            "description": "a linguist",
+            "modelRequirements": {
+                "modelVariant": "CHAT",
+                "modelName": "gpt-4"
+            },
+            "preparationIds": [
+                1
+            ]
+        },
+        {
+            "name": "Alice",
+            "description": "a linguist",
+            "modelRequirements": {
+                "modelVariant": "CHAT",
+                "modelName": "gpt-4"
+            },
+            "preparationIds": [
+                1
+            ]
+        }
+    ],
     "preparations": [
         {
             "id": 1,
-            "date": "2024-07-29T00:41:35.035Z",
+            "date": "2024-07-29T00:52:19.089Z",
             "promptbookVersion": "0.61.0-10",
             "modelUsage": {
                 "price": {
