@@ -1,7 +1,6 @@
 import type { PromptResultUsage } from '../../execution/PromptResult';
 import type { string_promptbook_version } from '../../version';
 import type { number_id } from '../typeAliases';
-import type { string_date_iso8601 } from '../typeAliases';
 
 export type PreparationJson = {
     /**
@@ -9,10 +8,13 @@ export type PreparationJson = {
      */
     readonly id: number_id;
 
-    /**
-     * Date and time of the preparation
-     */
-    readonly date: string_date_iso8601;
+    /*
+    TODO: [🍥]
+    > /**
+    >  * Date and time of the preparation
+    >  * /
+    > readonly date: string_date_iso8601;
+    */
 
     /**
      * Version of the promptbook used for the preparation
@@ -27,4 +29,5 @@ export type PreparationJson = {
 
 /**
  * TODO: Maybe put here used `modelName`
+ * TODO: [🍥] When using `date` it changes all samples .ptbk.json files each time so until some more elegant solution omit the time from prepared pipeline
  */

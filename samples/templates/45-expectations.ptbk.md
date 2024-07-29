@@ -58,3 +58,5 @@ Sample must pass the expectations
 ```text
 Hello John!
 ```
+
+`-> {greeting}`

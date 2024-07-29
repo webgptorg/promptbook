@@ -73,3 +73,5 @@ Sample must pass the expectations
     "object": "park"
 }
 ```
+
+`-> {parsedSentence}`

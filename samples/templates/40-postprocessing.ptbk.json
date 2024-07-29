@@ -8,18 +8,30 @@
             "name": "word",
             "description": "Any single word",
             "isInput": true,
-            "isOutput": false
+            "isOutput": false,
+            "sampleValues": [
+                "Happy",
+                "Apple"
+            ]
         },
         {
             "name": "sentence",
             "description": "Resulting sentence with two synonyms",
             "isInput": false,
-            "isOutput": true
+            "isOutput": true,
+            "sampleValues": [
+                "I am very happy to see you and joyful to meet you.",
+                "An apple or another fruit a day keeps the doctor away."
+            ]
         },
         {
             "name": "wordSynonym",
             "isInput": false,
-            "isOutput": false
+            "isOutput": false,
+            "sampleValues": [
+                "Joyful",
+                "Fruit"
+            ]
         }
     ],
     "promptTemplates": [
@@ -68,7 +80,6 @@
     "preparations": [
         {
             "id": 1,
-            "date": "2024-07-29T00:52:19.055Z",
             "promptbookVersion": "0.61.0-10",
             "modelUsage": {
                 "price": {

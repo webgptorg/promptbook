@@ -60,7 +60,6 @@
     "preparations": [
         {
             "id": 1,
-            "date": "2024-07-29T00:52:19.099Z",
             "promptbookVersion": "0.61.0-10",
             "modelUsage": {
                 "price": {

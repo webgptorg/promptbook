@@ -101,5 +101,5 @@ async function generateSampleJsons({ isCommited }: { isCommited: boolean }) {
 }
 
 /**
- * TODO: Do we want multiple levels of titles like in "The Witcher 3: Wild Hunt" should done like "# The Witcher 3 \n\n ## Wild Hunt"
+ * TODO: [🍥] When using current time in `preparations` it changes all .ptbk.json files each time so until some more elegant solution omit the time from prepared pipeline
  */

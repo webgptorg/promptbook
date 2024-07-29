@@ -13,7 +13,11 @@
         {
             "name": "poem",
             "isInput": false,
-            "isOutput": true
+            "isOutput": true,
+            "sampleValues": [
+                "Roses are red, violets are blue, sugar is sweet, and so are you.",
+                "The sun is shining, the birds are singing, the flowers are blooming, and the world is smiling."
+            ]
         }
     ],
     "promptTemplates": [
@@ -52,7 +56,6 @@
     "preparations": [
         {
             "id": 1,
-            "date": "2024-07-29T00:52:19.009Z",
             "promptbookVersion": "0.61.0-10",
             "modelUsage": {
                 "price": {

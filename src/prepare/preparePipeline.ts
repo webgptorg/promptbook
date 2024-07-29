@@ -37,7 +37,7 @@ export async function preparePipeline(pipeline: PipelineJson, options: PrepareOp
     // ----- ID -----
     const currentPreparation: PreparationJson = {
         id: 1, // <- TODO: [🧊] Make incremental
-        date: $currentDate(),
+        // TODO: [🍥]> date: $currentDate(),
         promptbookVersion: PROMPTBOOK_VERSION,
         modelUsage: addUsage(),
     };

@@ -234,6 +234,34 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
 
         let isBlockTypeChanged = false;
 
+        const lastLine = section.content.split('\n').pop()!;
+        const resultingParameterNameMatch = /^->\s*\{(?<resultingParamName>[a-z0-9_]+)\}/im.exec(lastLine);
+        if (
+            !resultingParameterNameMatch ||
+            resultingParameterNameMatch.groups === undefined ||
+            resultingParameterNameMatch.groups.resultingParamName === undefined
+        ) {
+            throw new ParsingError(
+                spaceTrim(
+                    (block) => `
+                        Each section must end with -> {parameterName}
+
+                        Invalid section:
+                        ${block(
+                            // TODO: Show code of invalid sections each time + DRY
+                            section.content
+                                .split('\n')
+                                .map((line) => `  | ${line}` /* <- TODO: [🚞] */)
+                                .join('\n'),
+                        )}
+                      `,
+                ),
+            );
+        }
+        const resultingParameterName = resultingParameterNameMatch.groups.resultingParamName;
+
+        const { language, content } = extractOneBlockFromMarkdown(section.content);
+
         for (const listItem of listItems) {
             const command = parseCommand(listItem, 'PIPELINE_TEMPLATE');
             switch (command.type) {
@@ -247,8 +275,17 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
                     }
 
                     if (command.blockType === 'SAMPLE') {
-                        // TODO: !!!!! Implement
-                        console.error(new NotYetImplementedError('Block type SAMPLE is not implemented yet'));
+                        const parameter = pipelineJson.parameters.find(
+                            (param) => param.name === resultingParameterName,
+                        );
+                        if (parameter === undefined) {
+                            throw new UnexpectedError(
+                                `Can not find parameter {${resultingParameterName}} to assign sample value`,
+                            );
+                        }
+                        parameter.sampleValues = parameter.sampleValues || [];
+                        parameter.sampleValues.push(content);
+
                         continue templates;
                     }
 
@@ -363,8 +400,6 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
             }
         }
 
-        const { language, content } = extractOneBlockFromMarkdown(section.content);
-
         if (blockType === 'SCRIPT') {
             if (!language) {
                 throw new ParsingError(
@@ -386,28 +421,6 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
                 );
             }
         }
-
-        const lastLine = section.content.split('\n').pop()!;
-        const match = /^->\s*\{(?<resultingParamName>[a-z0-9_]+)\}/im.exec(lastLine);
-        if (!match || match.groups === undefined || match.groups.resultingParamName === undefined) {
-            throw new ParsingError(
-                spaceTrim(
-                    (block) => `
-                        Each section must end with -> {parameterName}
-
-                        Invalid section:
-                        ${block(
-                            // TODO: Show code of invalid sections each time + DRY
-                            section.content
-                                .split('\n')
-                                .map((line) => `  | ${line}` /* <- TODO: [🚞] */)
-                                .join('\n'),
-                        )}
-                      `,
-                ),
-            );
-        }
-        const resultingParameterName = match.groups.resultingParamName;
 
         // TODO: [1] DRY description
         let description: string | undefined = section.content;

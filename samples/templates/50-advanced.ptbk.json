@@ -20,7 +20,10 @@
             "name": "summary",
             "description": "The overall summary of the comparison",
             "isInput": false,
-            "isOutput": true
+            "isOutput": true,
+            "sampleValues": [
+                "You have entered a word **happy**. For this word the best synonym is **joyful**. The sentence with both words is **I was happy and you were joyful!**. The sentence without the original word is **I was and you were joyful!**. And the comparison between the two sentences is:\n\n> The sentence with both words is more expressive than the sentence without the original word."
+            ]
         },
         {
             "name": "wordSynonymTested",
@@ -36,7 +39,10 @@
             "name": "sentenceWithTwoSynonyms",
             "description": "Sentence with word and wordSynonym",
             "isInput": false,
-            "isOutput": false
+            "isOutput": false,
+            "sampleValues": [
+                "I was happy and you were joyful!"
+            ]
         },
         {
             "name": "sentenceWithOriginalWordRemoved",
@@ -225,7 +231,6 @@
     "preparations": [
         {
             "id": 1,
-            "date": "2024-07-29T00:52:19.089Z",
             "promptbookVersion": "0.61.0-10",
             "modelUsage": {
                 "price": {
