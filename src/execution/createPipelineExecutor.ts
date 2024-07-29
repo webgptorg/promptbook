@@ -62,8 +62,6 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
     const { pipeline, tools, settings = {} } = options;
     const { maxExecutionAttempts = 3 } = settings;
 
-    // TODO: !!!!! Implement new commands
-
     validatePipeline(pipeline);
 
     const llmTools = joinLlmExecutionTools(...arrayableToArray(tools.llm));
@@ -72,7 +70,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
         inputParameters: Record<string_parameter_name, string_parameter_value>,
         onProgress?: (taskProgress: TaskProgress) => Promisable<void>,
     ) => {
-        // TODO: !!!! preparePipeline();
+        // TODO: !!!!! preparePipeline(); and warn if something is not prepared
 
         let parametersToPass: Record<string_parameter_name, string_parameter_value> = inputParameters;
         const executionReport: ExecutionReportJson = {
@@ -151,7 +149,10 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                                     }#${currentTemplate.name}`,
                                     parameters: parametersToPass,
                                     content: replaceParameters(currentTemplate.content, parametersToPass) /* <- [2] */,
+                                    // <- TODO: !!!!! Apply {context} and knowledges
+                                    // <- TODO: !!!!! Apply samples
                                     modelRequirements: currentTemplate.modelRequirements!,
+                                    // <- TODO: !!!!! Apply persona
                                     expectations: currentTemplate.expectations,
                                     expectFormat: currentTemplate.expectFormat,
                                     postprocessing: (currentTemplate.postprocessing || []).map(
