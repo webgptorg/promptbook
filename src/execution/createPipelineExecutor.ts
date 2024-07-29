@@ -18,10 +18,7 @@ import type { TODO } from '../utils/organization/TODO';
 import { PROMPTBOOK_VERSION } from '../version';
 import type { ExecutionTools } from './ExecutionTools';
 import type { PipelineExecutor } from './PipelineExecutor';
-import type { PromptChatResult } from './PromptResult';
-import type { PromptCompletionResult } from './PromptResult';
-import type { PromptEmbeddingResult } from './PromptResult';
-import type { PromptResult } from './PromptResult';
+import type { PromptChatResult, PromptCompletionResult, PromptEmbeddingResult, PromptResult } from './PromptResult';
 import { addUsage } from './utils/addUsage';
 import { checkExpectations } from './utils/checkExpectations';
 import { replaceParameters } from './utils/replaceParameters';
@@ -533,6 +530,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
 
 /**
  * TODO: [🪂] Pass maxParallelCount here
+ * TODO: [♈] Probbably move expectations from templates to parameters
  * TODO: [🧠] When not meet expectations in PROMPT_DIALOG, make some way to tell the user
  * TODO: [👧] Strongly type the executors to avoid need of remove nullables whtn noUncheckedIndexedAccess in tsconfig.json
  * Note: CreatePipelineExecutorOptions are just connected to PipelineExecutor so do not extract to types folder

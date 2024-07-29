@@ -500,4 +500,5 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
  * TODO: Use spaceTrim more effectively
  * TODO: [🧠] Parameter flags - isInput, isOutput, isInternal
  * TODO: [🥞] Not optimal parsing because `splitMarkdownIntoSections` is executed twice with same string, once through `flattenMarkdown` and second directly here
+ * TODO: [♈] Probbably move expectations from templates to parameters
  */

@@ -28,3 +28,9 @@ export type PromptTemplateParameterJson = {
      */
     readonly description?: string_markdown_text;
 };
+
+
+
+/**
+ * TODO: [♈] Probbably move expectations from templates to parameters
+ */
