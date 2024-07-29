@@ -58,7 +58,6 @@ async function makePipelineCollection({ isCommited }: { isCommited: boolean }) {
     );
 
     const collection = await createCollectionFromDirectory(promptbookSourceDir, {
-      llmTools: null,
         llmTools,
         isVerbose,
         isRecursive: true,
