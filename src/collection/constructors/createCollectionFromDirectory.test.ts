@@ -5,6 +5,7 @@ import type { PipelineString } from '../../types/PipelineString';
 import { just } from '../../utils/organization/just';
 import type { really_any } from '../../utils/organization/really_any';
 import { createCollectionFromDirectory } from './createCollectionFromDirectory';
+import { notUsing } from '../../utils/organization/notUsing';
 
 describe('createCollectionFromDirectory', () => {
     const pipeline = spaceTrim(`
@@ -90,7 +91,7 @@ describe('createCollectionFromDirectory', () => {
                     isRecursive: true,
                     isLazyLoaded: true,
                 });
-                just(collection);
+                notUsing(collection);
             })(),
         ).resolves.not.toThrow());
 
@@ -104,7 +105,7 @@ describe('createCollectionFromDirectory', () => {
                     isRecursive: true,
                     isLazyLoaded: false,
                 });
-                just(collection);
+                notUsing(collection);
             })(),
         ).rejects.toThrowError(/Error during loading pipeline/i));
 

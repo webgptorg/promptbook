@@ -1,4 +1,5 @@
 import { just } from '../../utils/organization/just';
+import { TODO_USE } from '../../utils/organization/TODO_USE';
 import type { CommandParser } from '../_common/types/CommandParser';
 import type { CommandParserInput } from '../_common/types/CommandParser';
 import type { InstrumentCommand } from './InstrumentCommand';
@@ -41,7 +42,7 @@ export const instrumentCommandParser: CommandParser<InstrumentCommand> = {
     parse(input: CommandParserInput): InstrumentCommand {
         const { args } = input;
 
-        just(args);
+        TODO_USE(args);
 
         return {
             type: 'INSTRUMENT',

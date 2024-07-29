@@ -1,4 +1,4 @@
-import { just } from '../../utils/organization/just';
+import { TODO_USE } from '../../utils/organization/TODO_USE';
 import type { FormatDefinition } from '../_common/FormatDefinition';
 
 /**
@@ -12,26 +12,26 @@ export const ListFormatDefinition: FormatDefinition<string /* <-[0] */, string /
     aliases: ['ARRAY', 'BULLETS'],
 
     isValid(value, schema): value is string /* <-[0] */ {
-        just(value /* <- TODO: Use value here */);
-        just(schema /* <- TODO: Use schema here */);
+        TODO_USE(value /* <- TODO: Use value here */);
+        TODO_USE(schema /* <- TODO: Use schema here */);
         return true;
     },
 
     canBeValid(partialValue, schema): partialValue is string /* <-[0] */ {
-        just(partialValue /* <- TODO: Use partialValue here */);
-        just(schema /* <- TODO: Use schema here */);
+        TODO_USE(partialValue /* <- TODO: Use partialValue here */);
+        TODO_USE(schema /* <- TODO: Use schema here */);
         return true;
     },
 
     heal(value, schema) {
-        just(value /* <- TODO: Use partialValue here */);
-        just(schema /* <- TODO: Use schema here */);
+        TODO_USE(value /* <- TODO: Use partialValue here */);
+        TODO_USE(schema /* <- TODO: Use schema here */);
         throw new Error('Not implemented');
     },
 
     extractValues(value, schema) {
-        just(value /* <- TODO: Use value here */);
-        just(schema /* <- TODO: Use schema here */);
+        TODO_USE(value /* <- TODO: Use value here */);
+        TODO_USE(schema /* <- TODO: Use schema here */);
         throw new Error('Not implemented');
     },
 };

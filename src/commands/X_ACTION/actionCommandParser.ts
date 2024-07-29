@@ -1,6 +1,5 @@
-import { just } from '../../utils/organization/just';
-import type { CommandParser } from '../_common/types/CommandParser';
-import type { CommandParserInput } from '../_common/types/CommandParser';
+import { TODO_USE } from '../../utils/organization/TODO_USE';
+import type { CommandParser, CommandParserInput } from '../_common/types/CommandParser';
 import type { ActionCommand } from './ActionCommand';
 
 /**
@@ -41,7 +40,7 @@ export const actionCommandParser: CommandParser<ActionCommand> = {
     parse(input: CommandParserInput): ActionCommand {
         const { args } = input;
 
-        just(args);
+        TODO_USE(args);
 
         return {
             type: 'ACTION',
