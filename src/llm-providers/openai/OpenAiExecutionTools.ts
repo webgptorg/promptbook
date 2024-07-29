@@ -82,6 +82,9 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
             };
         }
 
+        // <- TODO: [🚸] Not all models are compatible with JSON mode
+        //        > 'response_format' of type 'json_object' is not supported with this model.
+
         const rawRequest: OpenAI.Chat.Completions.CompletionCreateParamsNonStreaming = {
             ...modelSettings,
             messages: [

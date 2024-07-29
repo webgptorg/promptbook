@@ -47,7 +47,9 @@
             "description": "a linguist",
             "modelRequirements": {
                 "modelVariant": "CHAT",
-                "modelName": "gpt-4"
+                "modelName": "LinguaBot-1",
+                "systemMessage": "I am a linguist specializing in multiple languages, here to assist you with translations, language learning tips, and cultural insights.",
+                "seed": 145543
             },
             "preparationIds": [
                 1

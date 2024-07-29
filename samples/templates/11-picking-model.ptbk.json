@@ -46,7 +46,10 @@
             "description": "a poet",
             "modelRequirements": {
                 "modelVariant": "CHAT",
-                "modelName": "gpt-4"
+                "modelName": "VerseAI-1",
+                "systemMessage": "You are an experienced AI engineer and a virtual assistant with the soul of a poet.",
+                "temprerature": 0.5,
+                "seed": 960324
             },
             "preparationIds": [
                 1

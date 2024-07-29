@@ -10,8 +10,9 @@ import glob from 'glob-promise';
 import { join } from 'path';
 import { pipelineStringToJson } from '../../src/conversion/pipelineStringToJson';
 import { validatePipeline } from '../../src/conversion/validation/validatePipeline';
-// import { AnthropicClaudeExecutionTools } from '../../src/llm-providers/anthropic-claude/AnthropicClaudeExecutionTools';
-import { MockedFackedLlmExecutionTools } from '../../src/llm-providers/mocked/MockedFackedLlmExecutionTools';
+import { AnthropicClaudeExecutionTools } from '../../src/llm-providers/anthropic-claude/AnthropicClaudeExecutionTools';
+import { OpenAiExecutionTools } from '../../src/llm-providers/openai/OpenAiExecutionTools';
+//import { MockedFackedLlmExecutionTools } from '../../src/llm-providers/mocked/MockedFackedLlmExecutionTools';
 import { joinLlmExecutionTools } from '../../src/llm-providers/multiple/joinLlmExecutionTools';
 import { PipelineString } from '../../src/types/PipelineString';
 import { commit } from '../utils/autocommit/commit';
@@ -57,8 +58,8 @@ async function generateSampleJsons({ isCommited, isVerbose }: { isCommited: bool
         // TODO: !!!! getLlmExecutionToolsFromEnvironment
         const llmTools = joinLlmExecutionTools(
             // TODO: !!!! Remove mocked and use getLlmExecutionToolsFromEnvironment
-            new MockedFackedLlmExecutionTools({ isVerbose }),
-            /*
+            //new MockedFackedLlmExecutionTools({ isVerbose }),
+
             new AnthropicClaudeExecutionTools({
                 isVerbose,
                 apiKey: process.env.ANTHROPIC_CLAUDE_API_KEY!,
@@ -67,7 +68,6 @@ async function generateSampleJsons({ isCommited, isVerbose }: { isCommited: bool
                 isVerbose,
                 apiKey: process.env.OPENAI_API_KEY!,
             }),
-            */
         );
 
         try {

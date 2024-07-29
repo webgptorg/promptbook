@@ -7,10 +7,10 @@
 ## Make modelRequirements
 
 -   MODEL VARIANT Chat
--   MODEL NAME `gpt-4`
+-   MODEL NAME `gpt-4-turbo`
 -   EXPECT JSON
 
-````markdown
+```markdown
 You are experienced AI engineer, you need to create virtual assistant.
 Write
 
@@ -18,9 +18,9 @@ Write
 
 \`\`\`json
 {
-    "modelName": "gpt-4o",
-    "systemMessage": "You are experienced AI engineer and helpfull assistant.",
-    "temprerature": 0.7
+"modelName": "gpt-4o",
+"systemMessage": "You are experienced AI engineer and helpfull assistant.",
+"temprerature": 0.7
 }
 \`\`\`
 
@@ -29,8 +29,6 @@ Write
 Take this description of the persona:
 
 > {personaDescription}
-
 ```
 
 `-> {modelRequirements}`
-

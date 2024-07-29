@@ -389,4 +389,5 @@ export const OPENAI_MODELS: Array<
  * @see /other/playground/playground.ts
  * TODO: [🍓] Make better
  * TODO: Change model titles to human eg: "gpt-4-turbo-2024-04-09" -> "GPT-4 Turbo (2024-04-09)"
+ * TODO: [🚸] Not all models are compatible with JSON mode, add this information here and use it
  */
