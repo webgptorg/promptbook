@@ -49,11 +49,11 @@
     ],
     "knowledgePieces": [
         {
-            "name": "title-ai-powered-app-developer-pavol",
-            "title": "Title: AI-Powered App Developer Pavol",
+            "name": "pavol-ai-driven-app-developer",
+            "title": "Pavol: AI-Driven App Developer",
             "content": "---\nPavol is a developer passionate about using new tools and technologies, specializing in creating fully functional user applications using the latest artificial intelligence models.",
             "keywords": [
-                "Title: AI-Powered App Developer Pavol"
+                "Pavol: AI-Driven App Developer"
             ],
             "index": [],
             "sources": [
@@ -66,11 +66,11 @@
             ]
         },
         {
-            "name": "title-ainautes-advancing-generative-ai-globally",
-            "title": "Title: Ainautes: Advancing Generative AI Globally",
-            "content": "Pavol is a member of the Ainautes consulting group, which supports the deployment of generative AI around the world, and develops the WebGPT web page generation service.",
+            "name": "web-gpt-generative-ai-web-development",
+            "title": "WebGPT: Generative AI Web Development",
+            "content": "Pavol is a member of the Ainautes consulting group, which supports the deployment of generative AI around the world. He develops the WebGPT web page generation service.",
             "keywords": [
-                "Title: Ainautes: Advancing Generative AI Globally"
+                "WebGPT: Generative AI Web Development"
             ],
             "index": [],
             "sources": [
@@ -83,11 +83,11 @@
             ]
         },
         {
-            "name": "pioneering-ai-and-educational-innovations",
-            "title": "Pioneering AI and Educational Innovations",
-            "content": "Before the emergence of generative AI, Pavol created the first Czech virtual whiteboard, Collboard, and electronic textbooks, H-edu, which were used by tens of thousands of children. He has also worked on many scientific projects for the Czech Ornithological Society.",
+            "name": "pavol-pioneer-of-czech-ed-tech",
+            "title": "Pavol: Pioneer of Czech EdTech",
+            "content": "Before the emergence of generative AI, Pavol created the first Czech virtual whiteboard, Collboard, and electronic textbooks, H-edu, which were used by tens of thousands of children.",
             "keywords": [
-                "Pioneering AI and Educational Innovations"
+                "Pavol: Pioneer of Czech EdTech"
             ],
             "index": [],
             "sources": [
@@ -100,13 +100,30 @@
             ]
         },
         {
-            "name": "pavol-mentor-lecturer-open-source-enthusiast",
-            "title": "Pavol: Mentor, Lecturer, Open Source Enthusiast",
-            "content": "Pavol regularly gives lectures at conferences, sits on juries, and acts as a mentor in many Czech and international competitions. He has a special heart for this and loves open source, with many of his projects available on his GitHub.\n---",
+            "name": "pavol-scientist-mentor-and-speaker",
+            "title": "Pavol: Scientist, Mentor, and Speaker",
+            "content": "Pavol has worked on many scientific projects for the Czech Ornithological Society. He regularly gives lectures at conferences, sits on juries, and acts as a mentor in many Czech and international competitions.",
             "keywords": [
-                "Pavol: Mentor",
-                "Lecturer",
-                "Open Source Enthusiast"
+                "Pavol: Scientist",
+                "Mentor",
+                "and Speaker"
+            ],
+            "index": [],
+            "sources": [
+                {
+                    "name": "i-m-pavol-a-developer-who-is-passionate-about-using-new-tools-and-technologies-i-specialise-in-creating-fully-functional-user-applications-using-the-latest-artificial-intelligence-models-i-am-a-member-of-the-ainautes-https//www-ainautes-com/consulting-group-which-supports-with-the-deployment-of-generative-ai-around-the-world-i-develop-the-web-gpt-https//webgpt-cz/partner-ph-utm-medium-referral-utm-source-personal-e2-80-93page-utm-content-pavolhejny-com-utm-campaign-partner-e2-80-93ph-web-page-generation-service-before-the-massive-emergence-of-generative-ai-i-have-created-the-first-czech-virtual-whiteboard-collboard-https//collboard-com/and-electronic-textbooks-h-edu-https//h-edu-cz/which-were-used-by-tens-of-thousands-of-children-i-have-also-worked-on-many-scientific-projects-for-the-czech-ornithological-society-https//www-birdlife-cz/en/i-regularly-give-lectures-at-conferences-sit-on-juries-and-act-as-a-mentor-in-many-czech-and-international-competitions-i-have-a-special-heart-for-this-and-i-love-open-source-you-can-find-many-of-my-things-on-my-git-hub"
+                }
+            ],
+            "preparationIds": [
+                1
+            ]
+        },
+        {
+            "name": "pavol-s-open-source-git-hub-projects",
+            "title": "Pavol's Open Source GitHub Projects",
+            "content": "Pavol has a special heart for open source and many of his projects can be found on his GitHub.\n---",
+            "keywords": [
+                "Pavol's Open Source GitHub Projects"
             ],
             "index": [],
             "sources": [
@@ -125,8 +142,8 @@
             "description": "HR professional with prior experience in writing bios",
             "modelRequirements": {
                 "modelVariant": "CHAT",
-                "modelName": "gpt-4o",
-                "systemMessage": "You are a helpful assistant with prior experience in HR and writing professional bios.",
+                "modelName": "gpt-4",
+                "systemMessage": "You are an experienced HR professional with expertise in writing bios and providing professional assistance.",
                 "temperature": 0.5
             },
             "preparationIds": [

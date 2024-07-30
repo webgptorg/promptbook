@@ -3,9 +3,9 @@
         "title": "Knowledge",
         "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-title.ptbk.md#knowledge",
         "parameters": {
-            "content": "Pavol regularly gives lectures at conferences, sits on juries, and acts as a mentor in many Czech and international competitions. He has a special heart for this and loves open source, with many of his projects available on his GitHub.\n---"
+            "content": "Pavol has a special heart for open source and many of his projects can be found on his GitHub.\n---"
         },
-        "content": "You are experienced content creator, write best title for the document.\n\n# Rules\n\n-   Write just title, nothing else\n-   Title should be concise and clear\n-   Write maximum 5 words for the title\n\n# The document\n\n> Pavol regularly gives lectures at conferences, sits on juries, and acts as a mentor in many Czech and international competitions. He has a special heart for this and loves open source, with many of his projects available on his GitHub.\n> ---",
+        "content": "You are experienced content creator, write best title for the document.\n\n# Rules\n\n-   Write just title, nothing else\n-   Title should be concise and clear\n-   Write maximum 5 words for the title\n\n# The document\n\n> Pavol has a special heart for open source and many of his projects can be found on his GitHub.\n> ---",
         "modelRequirements": {
             "modelVariant": "CHAT",
             "modelName": "claude-3-opus-20240229"
@@ -19,11 +19,11 @@
         "postprocessing": []
     },
     "promptResult": {
-        "content": "Pavol: Mentor, Lecturer, Open Source Enthusiast",
+        "content": "Pavol's Open Source GitHub Projects",
         "modelName": "claude-3-opus-20240229",
         "timing": {
-            "start": "2024-07-30T17:08:10.322Z",
-            "complete": "2024-07-30T17:08:12.984Z"
+            "start": "2024-07-30T17:21:00.380Z",
+            "complete": "2024-07-30T17:21:03.596Z"
         },
         "usage": {
             "price": {
@@ -36,13 +36,13 @@
                     "isUncertain": true
                 },
                 "charactersCount": {
-                    "value": 455
+                    "value": 314
                 },
                 "wordsCount": {
-                    "value": 72
+                    "value": 51
                 },
                 "sentencesCount": {
-                    "value": 4
+                    "value": 3
                 },
                 "linesCount": {
                     "value": 12
@@ -60,13 +60,13 @@
                     "isUncertain": true
                 },
                 "charactersCount": {
-                    "value": 455
+                    "value": 314
                 },
                 "wordsCount": {
-                    "value": 72
+                    "value": 51
                 },
                 "sentencesCount": {
-                    "value": 4
+                    "value": 3
                 },
                 "linesCount": {
                     "value": 12
@@ -80,21 +80,21 @@
             }
         },
         "rawResponse": {
-            "id": "msg_01Q6kh1jue7pKsz3ijx6nj1z",
+            "id": "msg_016EiQKpFR4qis5pawiPA3Jj",
             "type": "message",
             "role": "assistant",
             "model": "claude-3-opus-20240229",
             "content": [
                 {
                     "type": "text",
-                    "text": "Pavol: Mentor, Lecturer, Open Source Enthusiast"
+                    "text": "Pavol's Open Source GitHub Projects"
                 }
             ],
             "stop_reason": "end_turn",
             "stop_sequence": null,
             "usage": {
-                "input_tokens": 111,
-                "output_tokens": 15
+                "input_tokens": 85,
+                "output_tokens": 11
             }
         }
     }

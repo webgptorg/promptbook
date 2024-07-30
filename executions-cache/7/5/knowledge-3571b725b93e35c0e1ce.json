@@ -13,11 +13,11 @@
         "postprocessing": []
     },
     "promptResult": {
-        "content": "---\nPavol is a developer passionate about using new tools and technologies, specializing in creating fully functional user applications using the latest artificial intelligence models.\n---\nPavol is a member of the Ainautes consulting group, which supports the deployment of generative AI around the world, and develops the WebGPT web page generation service.\n---\nBefore the emergence of generative AI, Pavol created the first Czech virtual whiteboard, Collboard, and electronic textbooks, H-edu, which were used by tens of thousands of children. He has also worked on many scientific projects for the Czech Ornithological Society.\n---\nPavol regularly gives lectures at conferences, sits on juries, and acts as a mentor in many Czech and international competitions. He has a special heart for this and loves open source, with many of his projects available on his GitHub.\n---",
+        "content": "---\nPavol is a developer passionate about using new tools and technologies, specializing in creating user applications using the latest AI models.\n---\nPavol is a member of the Ainautes consulting group, supporting the deployment of generative AI worldwide, and develops the WebGPT web page generation service.\n---\nBefore the emergence of generative AI, Pavol created the first Czech virtual whiteboard, Collboard, and electronic textbooks, H-edu, used by tens of thousands of children. He has also worked on scientific projects for the Czech Ornithological Society.\n---\nPavol regularly gives lectures at conferences, sits on juries, and acts as a mentor in Czech and international competitions. He has a special heart for this and loves open source, sharing many of his projects on GitHub.",
         "modelName": "claude-3-opus-20240229",
         "timing": {
-            "start": "2024-07-30T17:08:00.833Z",
-            "complete": "2024-07-30T17:08:10.061Z"
+            "start": "2024-07-30T17:20:41.388Z",
+            "complete": "2024-07-30T17:20:50.314Z"
         },
         "usage": {
             "price": {
@@ -74,21 +74,21 @@
             }
         },
         "rawResponse": {
-            "id": "msg_01XATTXtfb6y9kt7eHEDWeFa",
+            "id": "msg_01BP3379D9BLXTCif8qi4Auz",
             "type": "message",
             "role": "assistant",
             "model": "claude-3-opus-20240229",
             "content": [
                 {
                     "type": "text",
-                    "text": "---\nPavol is a developer passionate about using new tools and technologies, specializing in creating fully functional user applications using the latest artificial intelligence models.\n---\nPavol is a member of the Ainautes consulting group, which supports the deployment of generative AI around the world, and develops the WebGPT web page generation service.\n---\nBefore the emergence of generative AI, Pavol created the first Czech virtual whiteboard, Collboard, and electronic textbooks, H-edu, which were used by tens of thousands of children. He has also worked on many scientific projects for the Czech Ornithological Society.\n---\nPavol regularly gives lectures at conferences, sits on juries, and acts as a mentor in many Czech and international competitions. He has a special heart for this and loves open source, with many of his projects available on his GitHub.\n---"
+                    "text": "---\nPavol is a developer passionate about using new tools and technologies, specializing in creating user applications using the latest AI models.\n---\nPavol is a member of the Ainautes consulting group, supporting the deployment of generative AI worldwide, and develops the WebGPT web page generation service.\n---\nBefore the emergence of generative AI, Pavol created the first Czech virtual whiteboard, Collboard, and electronic textbooks, H-edu, used by tens of thousands of children. He has also worked on scientific projects for the Czech Ornithological Society.\n---\nPavol regularly gives lectures at conferences, sits on juries, and acts as a mentor in Czech and international competitions. He has a special heart for this and loves open source, sharing many of his projects on GitHub."
                 }
             ],
             "stop_reason": "end_turn",
             "stop_sequence": null,
             "usage": {
                 "input_tokens": 317,
-                "output_tokens": 191
+                "output_tokens": 177
             }
         }
     }

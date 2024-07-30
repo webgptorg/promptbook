@@ -1,3 +1,5 @@
+import hexEncoder from 'crypto-js/enc-hex';
+import sha256 from 'crypto-js/sha256';
 import { mkdir, readFile, stat, unlink, writeFile } from 'fs/promises';
 import { dirname, join } from 'path';
 import { titleToName } from '../../_packages/utils.index';
@@ -7,6 +9,7 @@ import { isRunningInNode } from '../../utils/isRunningInWhatever';
 import { PromptbookStorage } from '../_common/PromptbookStorage';
 import { FilesStorageOptions } from './FilesStorageOptions';
 import { nameToSubfolderPath } from './utils/nameToSubfolderPath';
+import { MAX_FILENAME_LENGTH } from '../../config';
 
 /**
  * @@@
@@ -23,10 +26,12 @@ export class FilesStorage<TItem> implements PromptbookStorage<TItem> {
      */
     private getFilenameForKey(key: string): string_file_path {
         const name = titleToName(key);
+        const hash = sha256(hexEncoder.parse(name)).toString(/* hex */);
+
         return join(
             this.options.cacheFolderPath,
-            ...nameToSubfolderPath(name /* <- TODO: [🎎] Maybe add some SHA256 prefix */),
-            `${name}.json`,
+            ...nameToSubfolderPath(hash /* <- TODO: [🎎] Maybe add some SHA256 prefix */),
+            `${name.substring(0, MAX_FILENAME_LENGTH)}.json`,
         );
     }
 

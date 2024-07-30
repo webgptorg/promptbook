@@ -188,8 +188,8 @@
             "description": "a linguist",
             "modelRequirements": {
                 "modelVariant": "CHAT",
-                "modelName": "gpt-4",
-                "systemMessage": "You are a linguist virtual assistant, designed to provide expert knowledge in languages and linguistics.",
+                "modelName": "gpt-4o",
+                "systemMessage": "You are a linguist and a knowledgeable assistant.",
                 "temperature": 0.5
             },
             "preparationIds": [
@@ -201,21 +201,8 @@
             "description": "a linguist",
             "modelRequirements": {
                 "modelVariant": "CHAT",
-                "modelName": "gpt-4",
-                "systemMessage": "You are a linguist virtual assistant, designed to provide expert knowledge in languages and linguistics.",
-                "temperature": 0.5
-            },
-            "preparationIds": [
-                1
-            ]
-        },
-        {
-            "name": "Josh",
-            "description": "a linguist",
-            "modelRequirements": {
-                "modelVariant": "CHAT",
-                "modelName": "gpt-4",
-                "systemMessage": "You are a linguist virtual assistant, designed to provide expert knowledge in languages and linguistics.",
+                "modelName": "gpt-4o",
+                "systemMessage": "You are a linguist and a knowledgeable assistant.",
                 "temperature": 0.5
             },
             "preparationIds": [
@@ -227,8 +214,21 @@
             "description": "a linguist",
             "modelRequirements": {
                 "modelVariant": "CHAT",
-                "modelName": "gpt-4",
-                "systemMessage": "You are a linguist virtual assistant, designed to provide expert knowledge in languages and linguistics.",
+                "modelName": "gpt-4o",
+                "systemMessage": "You are a linguist and a knowledgeable assistant.",
+                "temperature": 0.5
+            },
+            "preparationIds": [
+                1
+            ]
+        },
+        {
+            "name": "Josh",
+            "description": "a linguist",
+            "modelRequirements": {
+                "modelVariant": "CHAT",
+                "modelName": "gpt-4o",
+                "systemMessage": "You are a linguist and a knowledgeable assistant.",
                 "temperature": 0.5
             },
             "preparationIds": [

@@ -3,9 +3,9 @@
         "title": "Knowledge",
         "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-title.ptbk.md#knowledge",
         "parameters": {
-            "content": "Pavol is a member of the Ainautes consulting group, which supports the deployment of generative AI around the world, and develops the WebGPT web page generation service."
+            "content": "---\nPavol is a developer passionate about using new tools and technologies, specializing in creating fully functional user applications using the latest artificial intelligence models."
         },
-        "content": "You are experienced content creator, write best title for the document.\n\n# Rules\n\n-   Write just title, nothing else\n-   Title should be concise and clear\n-   Write maximum 5 words for the title\n\n# The document\n\n> Pavol is a member of the Ainautes consulting group, which supports the deployment of generative AI around the world, and develops the WebGPT web page generation service.",
+        "content": "You are experienced content creator, write best title for the document.\n\n# Rules\n\n-   Write just title, nothing else\n-   Title should be concise and clear\n-   Write maximum 5 words for the title\n\n# The document\n\n> ---\n> Pavol is a developer passionate about using new tools and technologies, specializing in creating fully functional user applications using the latest artificial intelligence models.",
         "modelRequirements": {
             "modelVariant": "CHAT",
             "modelName": "claude-3-opus-20240229"
@@ -19,11 +19,11 @@
         "postprocessing": []
     },
     "promptResult": {
-        "content": "Title: Ainautes: Advancing Generative AI Globally",
+        "content": "Pavol: AI-Driven App Developer",
         "modelName": "claude-3-opus-20240229",
         "timing": {
-            "start": "2024-07-30T17:08:10.349Z",
-            "complete": "2024-07-30T17:08:12.686Z"
+            "start": "2024-07-30T17:21:00.390Z",
+            "complete": "2024-07-30T17:21:02.828Z"
         },
         "usage": {
             "price": {
@@ -36,16 +36,16 @@
                     "isUncertain": true
                 },
                 "charactersCount": {
-                    "value": 383
+                    "value": 400
                 },
                 "wordsCount": {
-                    "value": 59
+                    "value": 56
                 },
                 "sentencesCount": {
                     "value": 2
                 },
                 "linesCount": {
-                    "value": 11
+                    "value": 12
                 },
                 "paragraphsCount": {
                     "value": 5
@@ -60,16 +60,16 @@
                     "isUncertain": true
                 },
                 "charactersCount": {
-                    "value": 383
+                    "value": 400
                 },
                 "wordsCount": {
-                    "value": 59
+                    "value": 56
                 },
                 "sentencesCount": {
                     "value": 2
                 },
                 "linesCount": {
-                    "value": 11
+                    "value": 12
                 },
                 "paragraphsCount": {
                     "value": 5
@@ -80,21 +80,21 @@
             }
         },
         "rawResponse": {
-            "id": "msg_01S92PuYp57RnMEJqFJAym3s",
+            "id": "msg_01Xwn9tc9LC8rCHJDVf8N7iY",
             "type": "message",
             "role": "assistant",
             "model": "claude-3-opus-20240229",
             "content": [
                 {
                     "type": "text",
-                    "text": "Title: Ainautes: Advancing Generative AI Globally"
+                    "text": "Pavol: AI-Driven App Developer"
                 }
             ],
             "stop_reason": "end_turn",
             "stop_sequence": null,
             "usage": {
-                "input_tokens": 99,
-                "output_tokens": 17
+                "input_tokens": 92,
+                "output_tokens": 13
             }
         }
     }

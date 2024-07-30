@@ -14,6 +14,11 @@ export const CHARACTER_LOOP_LIMIT = 100000;
 export const MAX_PARALLEL_COUNT = 5;
 
 /**
+ * The maximum length of the (generated) filename
+ */
+export const MAX_FILENAME_LENGTH = 30;
+
+/**
  * The name of the builded pipeline collection made by CLI `ptbk make` and for lookup in `createCollectionFromDirectory`
  */
 export const PIPELINE_COLLECTION_BASE_FILENAME = `index`;

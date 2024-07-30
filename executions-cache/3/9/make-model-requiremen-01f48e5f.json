@@ -15,11 +15,11 @@
         "postprocessing": []
     },
     "promptResult": {
-        "content": "{\n  \"modelName\": \"gpt-4o\",\n  \"systemMessage\": \"You are a helpful assistant with prior experience in HR and writing professional bios.\",\n  \"temperature\": 0.5\n}",
+        "content": "{\n  \"modelName\": \"gpt-4\",\n  \"systemMessage\": \"You are an experienced HR professional with expertise in writing bios and providing professional assistance.\",\n  \"temperature\": 0.5\n}",
         "modelName": "gpt-4-turbo-2024-04-09",
         "timing": {
-            "start": "2024-07-30T17:07:58.510Z",
-            "complete": "2024-07-30T17:08:00.616Z"
+            "start": "2024-07-30T17:20:38.777Z",
+            "complete": "2024-07-30T17:20:41.197Z"
         },
         "usage": {
             "price": {
@@ -56,10 +56,10 @@
                     "isUncertain": true
                 },
                 "charactersCount": {
-                    "value": 158
+                    "value": 179
                 },
                 "wordsCount": {
-                    "value": 21
+                    "value": 22
                 },
                 "sentencesCount": {
                     "value": 3
@@ -76,16 +76,16 @@
             }
         },
         "rawResponse": {
-            "id": "chatcmpl-9qkcHlgPxMzEWKi1ZJpbYdNYVbduu",
+            "id": "chatcmpl-9qkoYEEjHnokr2YKx1UG9W6mfRlLN",
             "object": "chat.completion",
-            "created": 1722359277,
+            "created": 1722360038,
             "model": "gpt-4-turbo-2024-04-09",
             "choices": [
                 {
                     "index": 0,
                     "message": {
                         "role": "assistant",
-                        "content": "{\n  \"modelName\": \"gpt-4o\",\n  \"systemMessage\": \"You are a helpful assistant with prior experience in HR and writing professional bios.\",\n  \"temperature\": 0.5\n}"
+                        "content": "{\n  \"modelName\": \"gpt-4\",\n  \"systemMessage\": \"You are an experienced HR professional with expertise in writing bios and providing professional assistance.\",\n  \"temperature\": 0.5\n}"
                     },
                     "logprobs": null,
                     "finish_reason": "stop"

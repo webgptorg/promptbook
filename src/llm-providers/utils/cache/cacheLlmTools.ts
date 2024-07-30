@@ -1,4 +1,8 @@
+import hexEncoder from 'crypto-js/enc-hex';
+import sha256 from 'crypto-js/sha256';
 import type { Promisable } from 'type-fest';
+import { titleToName } from '../../../_packages/utils.index';
+import { MAX_FILENAME_LENGTH } from '../../../config';
 import type { AvailableModel, LlmExecutionTools } from '../../../execution/LlmExecutionTools';
 import type { PromptChatResult } from '../../../execution/PromptResult';
 import { MemoryStorage } from '../../../storage/memory/MemoryStorage';
@@ -36,16 +40,12 @@ export function cacheLlmTools(
 
     if (llmTools.callChatModel !== undefined) {
         proxyTools.callChatModel = async (prompt: Prompt): Promise<PromptChatResult> => {
-            const key =
-                prompt.title +
-                JSON.stringify(
-                    Object.fromEntries(
-                        Object.entries(prompt.parameters).map(([parameterName, parameterValue]) => [
-                            parameterName,
-                            parameterValue.substring(0, 10),
-                        ]),
-                    ),
-                ); // <- TODO: [🎎] Maybe hash whole prompt
+            const key = titleToName(
+                prompt.title.substring(0, MAX_FILENAME_LENGTH - 10) +
+                    '-' +
+                    sha256(hexEncoder.parse(JSON.stringify(prompt.parameters))).toString(/* hex */),
+            );
+
             const cacheItem = await storage.getItem(key);
 
             if (cacheItem) {

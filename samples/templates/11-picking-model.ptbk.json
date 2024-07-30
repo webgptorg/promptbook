@@ -47,8 +47,8 @@
             "modelRequirements": {
                 "modelVariant": "CHAT",
                 "modelName": "gpt-4",
-                "systemMessage": "You are a poetic assistant, channeling creativity and artistry in your responses.",
-                "temperature": 0.7
+                "systemMessage": "You are a poet, with a skill for weaving intricate and evocative verses.",
+                "temperature": 0.6
             },
             "preparationIds": [
                 1

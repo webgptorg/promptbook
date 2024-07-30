@@ -55,11 +55,11 @@
     ],
     "knowledgePieces": [
         {
-            "name": "title-ai-powered-app-developer-pavol",
-            "title": "Title: AI-Powered App Developer Pavol",
-            "content": "---\nPavol is a developer passionate about using new tools and technologies, specializing in creating fully functional user applications using the latest artificial intelligence models.",
+            "name": "pavol-ai-powered-app-developer",
+            "title": "Pavol: AI-Powered App Developer",
+            "content": "---\nPavol is a developer passionate about using new tools and technologies, specializing in creating user applications using the latest AI models.",
             "keywords": [
-                "Title: AI-Powered App Developer Pavol"
+                "Pavol: AI-Powered App Developer"
             ],
             "index": [],
             "sources": [
@@ -72,11 +72,11 @@
             ]
         },
         {
-            "name": "title-ainautes-advancing-generative-ai-globally",
-            "title": "Title: Ainautes: Advancing Generative AI Globally",
-            "content": "Pavol is a member of the Ainautes consulting group, which supports the deployment of generative AI around the world, and develops the WebGPT web page generation service.",
+            "name": "pavol-deploying-generative-ai-globally",
+            "title": "Pavol: Deploying Generative AI Globally",
+            "content": "Pavol is a member of the Ainautes consulting group, supporting the deployment of generative AI worldwide, and develops the WebGPT web page generation service.",
             "keywords": [
-                "Title: Ainautes: Advancing Generative AI Globally"
+                "Pavol: Deploying Generative AI Globally"
             ],
             "index": [],
             "sources": [
@@ -89,11 +89,11 @@
             ]
         },
         {
-            "name": "pioneering-ai-and-educational-innovations",
-            "title": "Pioneering AI and Educational Innovations",
-            "content": "Before the emergence of generative AI, Pavol created the first Czech virtual whiteboard, Collboard, and electronic textbooks, H-edu, which were used by tens of thousands of children. He has also worked on many scientific projects for the Czech Ornithological Society.",
+            "name": "ai-pioneer-s-innovative-educational-tools",
+            "title": "AI Pioneer's Innovative Educational Tools",
+            "content": "Before the emergence of generative AI, Pavol created the first Czech virtual whiteboard, Collboard, and electronic textbooks, H-edu, used by tens of thousands of children. He has also worked on scientific projects for the Czech Ornithological Society.",
             "keywords": [
-                "Pioneering AI and Educational Innovations"
+                "AI Pioneer's Innovative Educational Tools"
             ],
             "index": [],
             "sources": [
@@ -107,12 +107,12 @@
         },
         {
             "name": "pavol-mentor-lecturer-open-source-enthusiast",
-            "title": "Pavol: Mentor, Lecturer, Open Source Enthusiast",
-            "content": "Pavol regularly gives lectures at conferences, sits on juries, and acts as a mentor in many Czech and international competitions. He has a special heart for this and loves open source, with many of his projects available on his GitHub.\n---",
+            "title": "Pavol: Mentor, Lecturer, Open-Source Enthusiast",
+            "content": "Pavol regularly gives lectures at conferences, sits on juries, and acts as a mentor in Czech and international competitions. He has a special heart for this and loves open source, sharing many of his projects on GitHub.",
             "keywords": [
                 "Pavol: Mentor",
                 "Lecturer",
-                "Open Source Enthusiast"
+                "Open-Source Enthusiast"
             ],
             "index": [],
             "sources": [
@@ -131,8 +131,8 @@
             "description": "HR professional with prior experience in writing bios",
             "modelRequirements": {
                 "modelVariant": "CHAT",
-                "modelName": "gpt-4o",
-                "systemMessage": "You are a helpful assistant with prior experience in HR and writing professional bios.",
+                "modelName": "gpt-4",
+                "systemMessage": "You are an experienced HR professional with expertise in writing bios and providing professional assistance.",
                 "temperature": 0.5
             },
             "preparationIds": [
