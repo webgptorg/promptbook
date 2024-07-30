@@ -1,6 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
 import spaceTrim from 'spacetrim';
-import { getLlmToolsForTests } from '../_common/utils/getLlmToolsForTestingAndScriptsAndPlayground';
+import { getLlmToolsForTestingAndScriptsAndPlayground } from '../_common/utils/getLlmToolsForTestingAndScriptsAndPlayground';
 import { prepareKnowledgeFromMarkdown } from './prepareKnowledgeFromMarkdown';
 
 describe('how creating knowledge from markdown works', () => {
@@ -13,7 +13,7 @@ describe('how creating knowledge from markdown works', () => {
                     The city's population of 10566 as of 2019 makes it the sixth most populous city in the state.
                 `),
                 {
-                    llmTools: getLlmToolsForTests(),
+                    llmTools: getLlmToolsForTestingAndScriptsAndPlayground(),
                 },
             ),
         ).resolves.toMatchObject([

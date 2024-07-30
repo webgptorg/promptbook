@@ -11,7 +11,7 @@ export function getSessionStorage<TItem>(): PromptbookStorage<TItem> {
         throw new EnvironmentMismatchError(`You can get sessionStorage works only in browser environment`);
     }
 
-    return makePromptbookStorageFromWebStorage<PromptbookStorage<TItem>>(sessionStorage);
+    return makePromptbookStorageFromWebStorage<TItem>(sessionStorage);
 }
 
 /**

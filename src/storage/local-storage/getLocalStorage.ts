@@ -11,7 +11,7 @@ export function getLocalStorage<TItem>(): PromptbookStorage<TItem> {
         throw new EnvironmentMismatchError(`You can get localStorage works only in browser environment`);
     }
 
-    return makePromptbookStorageFromWebStorage<PromptbookStorage<TItem>>(localStorage);
+    return makePromptbookStorageFromWebStorage<TItem>(localStorage);
 }
 
 /**

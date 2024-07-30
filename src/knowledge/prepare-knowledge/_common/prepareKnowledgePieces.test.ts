@@ -1,12 +1,12 @@
 import { describe, expect, it } from '@jest/globals';
 import { prepareKnowledgePieces } from './prepareKnowledgePieces';
-import { getLlmToolsForTests } from './utils/getLlmToolsForTestingAndScriptsAndPlayground';
+import { getLlmToolsForTestingAndScriptsAndPlayground } from './utils/getLlmToolsForTestingAndScriptsAndPlayground';
 
 describe('how prepareKnowledge works', () => {
     it('should work with empty knowledge', () =>
         expect(
             prepareKnowledgePieces([], {
-                llmTools: getLlmToolsForTests(),
+                llmTools: getLlmToolsForTestingAndScriptsAndPlayground(),
             }),
         ).resolves.toEqual([]));
 

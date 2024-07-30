@@ -1,5 +1,4 @@
-import type { string_name } from '../../typeAliases';
-
+import { string_name } from '../../../types/typeAliases';
 
 /**
  * @@@

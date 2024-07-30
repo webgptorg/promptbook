@@ -1,7 +1,7 @@
 import { describe, expect, it } from '@jest/globals';
 import { readFile } from 'fs/promises';
 import { join } from 'path';
-import { getLlmToolsForTests } from '../_common/utils/getLlmToolsForTestingAndScriptsAndPlayground';
+import { getLlmToolsForTestingAndScriptsAndPlayground } from '../_common/utils/getLlmToolsForTestingAndScriptsAndPlayground';
 import { prepareKnowledgeFromPdf } from './prepareKnowledgeFromPdf';
 
 describe('how creating knowledge from pdf works', () => {
@@ -10,7 +10,7 @@ describe('how creating knowledge from pdf works', () => {
     it('should work with simple piece of information', async () =>
         expect(
             prepareKnowledgeFromPdf(await readFile(join(__dirname, 'samples/10-simple.pdf'), 'base64'), {
-                llmTools: getLlmToolsForTests(),
+                llmTools: getLlmToolsForTestingAndScriptsAndPlayground(),
             }),
         ).resolves.toMatchObject([
             // TODO: !!!! Test this with real cached implementation
