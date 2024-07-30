@@ -1,7 +1,7 @@
 import hexEncoder from 'crypto-js/enc-hex';
 import sha256 from 'crypto-js/sha256';
 import type { Promisable } from 'type-fest';
-import { titleToName } from '../../../_packages/utils.index';
+import { $currentDate, PROMPTBOOK_VERSION, titleToName } from '../../../_packages/utils.index';
 import { MAX_FILENAME_LENGTH } from '../../../config';
 import type { AvailableModel, LlmExecutionTools } from '../../../execution/LlmExecutionTools';
 import type { PromptChatResult } from '../../../execution/PromptResult';
@@ -54,7 +54,12 @@ export function cacheLlmTools(
 
             const promptResult = await llmTools.callChatModel!(prompt);
 
-            await storage.setItem(key, { prompt, promptResult });
+            await storage.setItem(key, {
+                date: $currentDate(),
+                promptbookVersion: PROMPTBOOK_VERSION,
+                prompt,
+                promptResult,
+            });
 
             return promptResult;
         };
