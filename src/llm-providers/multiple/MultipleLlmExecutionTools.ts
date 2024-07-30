@@ -1,16 +1,15 @@
 import spaceTrim from 'spacetrim';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
-import type { AvailableModel } from '../../execution/LlmExecutionTools';
-import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { PromptChatResult } from '../../execution/PromptResult';
-import type { PromptCompletionResult } from '../../execution/PromptResult';
-import type { PromptEmbeddingResult } from '../../execution/PromptResult';
-import type { PromptResult } from '../../execution/PromptResult';
+import type { AvailableModel, LlmExecutionTools } from '../../execution/LlmExecutionTools';
+import type {
+    PromptChatResult,
+    PromptCompletionResult,
+    PromptEmbeddingResult,
+    PromptResult,
+} from '../../execution/PromptResult';
 import type { Prompt } from '../../types/Prompt';
-import type { string_markdown } from '../../types/typeAliases';
-import type { string_markdown_text } from '../../types/typeAliases';
-import type { string_title } from '../../types/typeAliases';
+import type { string_markdown, string_markdown_text, string_title } from '../../types/typeAliases';
 
 /**
  * Multiple LLM Execution Tools is a proxy server that uses multiple execution tools internally and exposes the executor interface externally.
@@ -148,7 +147,7 @@ export class MultipleLlmExecutionTools implements LlmExecutionTools {
 
     /**
      * List all available models that can be used
-     * This liost is a combination of all available models from all execution tools
+     * This lists is a combination of all available models from all execution tools
      */
     public async listModels(): Promise<Array<AvailableModel>> {
         const availableModels: Array<AvailableModel> = [];
@@ -165,4 +164,6 @@ export class MultipleLlmExecutionTools implements LlmExecutionTools {
 
 /**
  * TODO: [🧠][🎛] Aggregating multiple models - have result not only from one first aviable model BUT all of them
+ * TODO: [🏖] If no llmTools have for example not defined `callCompletionModel` this will still return object with defined `callCompletionModel` which just throws `PipelineExecutionError`, make it undefined instead
+ *       Look how `countTotalUsage` (and `cacheLlmTools`) implements it
  */

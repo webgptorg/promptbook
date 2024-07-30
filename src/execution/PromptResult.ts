@@ -1,9 +1,6 @@
 import type { KebabCase } from 'type-fest';
 import type { ExpectationUnit } from '../types/PipelineJson/Expectations';
-import type { number_positive } from '../types/typeAliases';
-import type { number_usd } from '../types/typeAliases';
-import type { string_date_iso8601 } from '../types/typeAliases';
-import type { string_model_name } from '../types/typeAliases';
+import type { number_positive, number_usd, string_date_iso8601, string_model_name } from '../types/typeAliases';
 import type { EmbeddingVector } from './EmbeddingVector';
 
 /**
@@ -17,11 +14,15 @@ export type PromptResult = PromptCompletionResult | PromptChatResult | PromptEmb
 /**
  * Prompt completion result
  * It contains only the following text NOT the whole completion
+ *
+ * Note: This is fully serializable as JSON
  */
 export type PromptCompletionResult = PromptCommonResult;
 
 /**
  * Prompt chat result
+ *
+ * Note: This is fully serializable as JSON
  */
 export type PromptChatResult = PromptCommonResult & {
     // TODO: [🤹‍♂️][🧠] Figure out way how to pass thread / previous messages
@@ -30,6 +31,8 @@ export type PromptChatResult = PromptCommonResult & {
 /**
  * Prompt embedding result
  * It contains only the following text NOT the whole completion
+ *
+ * Note: This is fully serializable as JSON
  */
 export type PromptEmbeddingResult = Omit<PromptCommonResult, 'content'> & {
     /**
@@ -38,8 +41,13 @@ export type PromptEmbeddingResult = Omit<PromptCommonResult, 'content'> & {
     content: EmbeddingVector;
 };
 
-// Note: [🤖] Add new model variant here
+// <- Note: [🤖] Add new model variant here
 
+/**
+ * Common properties for all prompt results
+ *
+ * Note: This is fully serializable as JSON
+ */
 export type PromptCommonResult = {
     /**
      * Exact text response from the model
@@ -133,4 +141,5 @@ export type UncertainNumber = {
  * TODO: [🧠] Maybe type raw properly - not onject but OpenAI.result.whatever
  * TODO: [🧠] Maybe remove redundant raw.choices.text
  * TODO: Log raw even if prompt failed - log the raw error
+ * TODO: [🏳] Add `PromptTranslationResult`
  */

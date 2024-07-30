@@ -1,3 +1,4 @@
 TODO: Move here all expectations code
 TODO: Expectations in context of iterations - filter N to M
 TODO: Make packages for each expectation and allow them to be installed and used separately
+TODO: [🧠][🪐] Should be common things like types, utils in folder containing A,B,C,.. or else outside this listing folder?

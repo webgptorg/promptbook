@@ -1,15 +1,15 @@
 import type { Socket } from 'socket.io-client';
 import { io } from 'socket.io-client';
-import type { AvailableModel } from '../../execution/LlmExecutionTools';
-import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { PromptChatResult } from '../../execution/PromptResult';
-import type { PromptCompletionResult } from '../../execution/PromptResult';
-import type { PromptEmbeddingResult } from '../../execution/PromptResult';
-import type { PromptResult } from '../../execution/PromptResult';
+import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
+import type { AvailableModel, LlmExecutionTools } from '../../execution/LlmExecutionTools';
+import type {
+    PromptChatResult,
+    PromptCompletionResult,
+    PromptEmbeddingResult,
+    PromptResult,
+} from '../../execution/PromptResult';
 import type { Prompt } from '../../types/Prompt';
-import type { string_markdown } from '../../types/typeAliases';
-import type { string_markdown_text } from '../../types/typeAliases';
-import type { string_title } from '../../types/typeAliases';
+import type { string_markdown, string_markdown_text, string_title } from '../../types/typeAliases';
 import type { RemoteLlmExecutionToolsOptions } from './RemoteLlmExecutionToolsOptions';
 import type { Promptbook_Server_Error } from './interfaces/Promptbook_Server_Error';
 import type { Promptbook_Server_Request } from './interfaces/Promptbook_Server_Request';
@@ -95,7 +95,11 @@ export class RemoteLlmExecutionTools implements LlmExecutionTools {
      */
     private async callModelCommon(prompt: Prompt): Promise<PromptResult> {
         const socket = await this.makeConnection();
-        socket.emit('request', { clientId: this.options.clientId, prompt } satisfies Promptbook_Server_Request);
+        socket.emit('request', {
+            clientId: this.options.clientId,
+            prompt,
+            // <- TODO: `prompt` is NOT fully serializable as JSON, it contains functions which are not serializable
+        } satisfies Promptbook_Server_Request);
 
         const promptResult = await new Promise<PromptResult>((resolve, reject) => {
             socket.on('response', (response: Promptbook_Server_Response) => {
@@ -103,8 +107,7 @@ export class RemoteLlmExecutionTools implements LlmExecutionTools {
                 socket.disconnect();
             });
             socket.on('error', (error: Promptbook_Server_Error) => {
-                //            <- TODO: Custom type of error
-                reject(new Error(error.errorMessage));
+                reject(new PipelineExecutionError(error.errorMessage));
                 socket.disconnect();
             });
         });

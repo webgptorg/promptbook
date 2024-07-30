@@ -1,7 +1,5 @@
 import type { ScriptLanguage } from '../types/ScriptLanguage';
-import type { string_parameter_name } from '../types/typeAliases';
-import type { string_parameter_value } from '../types/typeAliases';
-import type { string_script } from '../types/typeAliases';
+import type { string_parameter_name, string_parameter_value, string_script } from '../types/typeAliases';
 
 /**
  * Represents all the tools needed to EXECUTE SCRIPTs
@@ -41,4 +39,5 @@ export type ScriptExecutionToolsExecuteOptions = {
 
 /**
  * TODO: [🧠][💙] Distinct between options passed into ExecutionTools and to ExecutionTools.execute
+ * TODO: [🧠][🪐] Should be common things like types, utils in folder containing A,B,C,.. or else outside this listing folder?
  */
