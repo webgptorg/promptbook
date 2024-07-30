@@ -399,6 +399,7 @@ Working external knowledge, personas, preparation for instruments and actions
 -   String normalizers goes alongside with types; for example `normalizeTo_SCREAMING_CASE` -> `string_SCREAMING_CASE`
 -   Export `isValidUrl`, `isValidPipelineUrl`, `isValidFilePath`, `isValidJavascriptName`, `isValidSemanticVersion`, `isHostnameOnPrivateNetwork`, `isUrlOnPrivateNetwork` and `isValidUuid` from `@promptbook/utils`
 -   Add `systemMessage`, `temperature` and `seed` to `ModelRequirements`
+-   Code blocks can be noteted both by ``` and >
 
 ## In prepare
 

@@ -15,8 +15,49 @@ describe('how extractOneBlockFromMarkdown works', () => {
                 `),
             ),
         ).toEqual({
+            blockNotation: '```',
             language: null,
             content: "print('Hello World')",
+        });
+    });
+
+    it('should work with sample with one code block made by gt char', () => {
+        expect(
+            extractOneBlockFromMarkdown(
+                spaceTrim(`
+                  # Hello World
+
+                  > print('Hello World')
+
+              `),
+            ),
+        ).toEqual({
+            blockNotation: '>',
+            language: null,
+            content: "print('Hello World')",
+        });
+    });
+
+    it('should work with sample with one multiline code block made by gt char', () => {
+        expect(
+            extractOneBlockFromMarkdown(
+                spaceTrim(`
+                # Hello World
+
+                > print('Hello World 1')
+                > print('Hello World 2')
+                > print('Hello World 3')
+
+            `),
+            ),
+        ).toEqual({
+            blockNotation: '>',
+            language: null,
+            content: spaceTrim(`
+                print('Hello World 1')
+                print('Hello World 2')
+                print('Hello World 3')
+           `),
         });
     });
 
@@ -30,6 +71,7 @@ describe('how extractOneBlockFromMarkdown works', () => {
                 `),
             ),
         ).toEqual({
+            blockNotation: '```',
             language: 'python',
             content: "print('Hello World')",
         });
@@ -45,6 +87,7 @@ describe('how extractOneBlockFromMarkdown works', () => {
                 `),
             ),
         ).toEqual({
+            blockNotation: '```',
             language: 'python',
             content: "print('Hello World')",
         });
@@ -72,6 +115,7 @@ describe('how extractOneBlockFromMarkdown works', () => {
               `),
             ),
         ).toEqual({
+            blockNotation: '```',
             language: 'markdown',
             content:
                 spaceTrim(`
