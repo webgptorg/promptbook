@@ -1,7 +1,6 @@
 import type { Promisable } from 'type-fest';
-import { addUsage } from '../../_packages/core.index';
 import type { AvailableModel, LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { PromptChatResult, PromptCompletionResult, PromptEmbeddingResult } from '../../execution/PromptResult';
+import type { PromptChatResult } from '../../execution/PromptResult';
 import type { Prompt } from '../../types/Prompt';
 
 type CacheLlmToolsOptions = {
@@ -22,7 +21,7 @@ type CacheLlmToolsOptions = {
 export function cacheLlmTools(
     llmTools: LlmExecutionTools,
     options: Partial<CacheLlmToolsOptions> = {},
-): LlmExecutionToolsWithTotalCost {
+): LlmExecutionTools {
     const { storage = {} } = options;
 
     const proxyTools: LlmExecutionTools = {
@@ -49,17 +48,16 @@ export function cacheLlmTools(
         };
     }
 
+    /*
+    TODO: !!!!
     if (llmTools.callCompletionModel !== undefined) {
-        proxyTools.callCompletionModel = async (prompt: Prompt): Promise<PromptCompletionResult> => {
-
-        };
+        proxyTools.callCompletionModel = async (prompt: Prompt): Promise<PromptCompletionResult> => {};
     }
 
     if (llmTools.callEmbeddingModel !== undefined) {
-        proxyTools.callEmbeddingModel = async (prompt: Prompt): Promise<PromptEmbeddingResult> => {
-
-        };
+        proxyTools.callEmbeddingModel = async (prompt: Prompt): Promise<PromptEmbeddingResult> => {};
     }
+    */
 
     // <- Note: [🤖]
 

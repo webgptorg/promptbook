@@ -1,3 +1,4 @@
+import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
 
 /**
@@ -7,7 +8,9 @@ import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
  *
  * @returns @@@
  */
-export function createLlmToolsFromEnv(): LlmExecutionTools {}
+export function createLlmToolsFromEnv(): LlmExecutionTools {
+  throw new NotYetImplementedError('createLlmToolsFromEnv');
+}
 
 /**
  * TODO: !!!!! Export this util
