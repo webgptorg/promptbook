@@ -16,7 +16,7 @@ import { SupabaseLoggerWrapperOfLlmExecutionToolsOptions } from './SupabaseLogge
 export class SupabaseLoggerWrapperOfLlmExecutionTools implements LlmExecutionTools {
     public constructor(private readonly options: SupabaseLoggerWrapperOfLlmExecutionToolsOptions = {}) {
         if (!isRunningInNode()) {
-            throw new Error('SupabaseLoggerWrapperOfExecutionTools can be used only on server');
+            throw new EnvironmentMismatchError('SupabaseLoggerWrapperOfExecutionTools can be used only on server');
         }
     }
 

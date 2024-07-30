@@ -35,16 +35,16 @@ export class MemoryStorage<TItem> implements PromptbookStorage<TItem> {
     }
 
     /**
-     * Removes the key/value pair with the given key from the list associated with the object, if a key/value pair with the given key exists.
-     */
-    public removeItem(key: string): void {
-        delete this.storage[key];
-    }
-
-    /**
      * Sets the value of the pair identified by key to value, creating a new key/value pair if none existed for key previously.
      */
     public setItem(key: string, value: TItem): void {
         this.storage[key] = value;
+    }
+
+    /**
+     * Removes the key/value pair with the given key from the list associated with the object, if a key/value pair with the given key exists.
+     */
+    public removeItem(key: string): void {
+        delete this.storage[key];
     }
 }

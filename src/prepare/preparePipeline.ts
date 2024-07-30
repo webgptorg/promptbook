@@ -29,7 +29,7 @@ export async function preparePipeline(pipeline: PipelineJson, options: PrepareOp
     /*
     TODO: [🧠][0] Should this be done or not
     if (promptbookVersion !== PROMPTBOOK_VERSION) {
-        throw new VersionMismatch(`Can not prepare the pipeline`, promptbookVersion);
+        throw new VersionMismatchError(`Can not prepare the pipeline`, promptbookVersion);
     }
     */
 

@@ -7,5 +7,5 @@ export type FilesStorageOptions = {
     /**
      * @@@
      */
-    folderPath: string_folder_path;
+    cacheFolderPath: string_folder_path;
 };

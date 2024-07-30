@@ -1,7 +1,7 @@
 import { notUsing } from '../../utils/organization/notUsing';
 import { PromptbookStorage } from './PromptbookStorage';
 
-// Note: Checking if localStorage and sessionStorage are implementing IStorage<string>
+// Note: Checking if localStorage and sessionStorage are implementing PromptbookStorage<string>
 let storage: PromptbookStorage<string>;
 storage = localStorage;
 storage = sessionStorage;

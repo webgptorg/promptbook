@@ -5,13 +5,14 @@ import { PROMPTBOOK_VERSION } from '../version';
 import { initializeHelloCommand } from './cli-commands/hello';
 import { initializeMakeCommand } from './cli-commands/make';
 import { initializePrettifyCommand } from './cli-commands/prettify';
+import { EnvironmentMismatchError } from '../errors/EnvironmentMismatchError';
 
 /**
  * Runs CLI utilities of Promptbook package
  */
 export async function promptbookCli(): Promise<void> {
     if (!isRunningInNode()) {
-        throw new Error(
+        throw new EnvironmentMismatchError(
             spaceTrim(`
                 Function promptbookCli is initiator of CLI script and should be run in Node.js environment.
 

@@ -9,8 +9,7 @@ import { validatePipeline } from '../../conversion/validation/validatePipeline';
 import { CollectionError } from '../../errors/CollectionError';
 import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import type { PipelineString } from '../../types/PipelineString';
-import type { string_file_path } from '../../types/typeAliases';
-import type { string_folder_path } from '../../types/typeAliases';
+import type { string_file_path, string_folder_path } from '../../types/typeAliases';
 import { isRunningInNode } from '../../utils/isRunningInWhatever';
 import type { PipelineCollection } from '../PipelineCollection';
 import { createCollectionFromPromise } from './createCollectionFromPromise';
@@ -84,6 +83,7 @@ export async function createCollectionFromDirectory(
             `(In future, not implemented yet) Using your prebuild pipeline collection ${makedLibraryFilePath}`,
         );
         // TODO: !! Implement;
+        // TODO: [🌗]
     }
 
     const { isRecursive = true, isVerbose = false, isLazyLoaded = false, isCrashedOnError = true } = options || {};
@@ -114,6 +114,7 @@ export async function createCollectionFromDirectory(
 
                     // TODO: Handle non-valid JSON files
                     promptbook = JSON.parse(await readFile(fileName, 'utf8')) as PipelineJson;
+                    // TODO: [🌗]
                     promptbook = { ...promptbook, sourceFile };
                 } else {
                     if (isVerbose) {

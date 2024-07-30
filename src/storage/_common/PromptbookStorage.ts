@@ -13,15 +13,14 @@ export type PromptbookStorage<TItem> = {
     getItem(key: string): Promisable<TItem | null>;
 
     /**
-     * Removes the key/value pair with the given key from the list associated with the object, if a key/value pair with the given key exists
-     */
-
-    removeItem(key: string): Promisable<void>;
-
-    /**
      * Sets the value of the pair identified by key to value, creating a new key/value pair if none existed for key previously
      */
     setItem(key: string, value: TItem): Promisable<void>;
+
+    /**
+     * Removes the key/value pair with the given key from the list associated with the object, if a key/value pair with the given key exists
+     */
+    removeItem(key: string): Promisable<void>;
 };
 
 /**
