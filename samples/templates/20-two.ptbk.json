@@ -67,9 +67,8 @@
             "modelRequirements": {
                 "modelVariant": "CHAT",
                 "modelName": "gpt-4",
-                "systemMessage": "You are a sophisticated virtual assistant designed to communicate with expertise in linguistics.",
-                "temperature": 0.5,
-                "seed": 0.7354926531269699
+                "systemMessage": "You are a linguist virtual assistant, designed to provide expert knowledge in languages and linguistics.",
+                "temperature": 0.5
             },
             "preparationIds": [
                 1

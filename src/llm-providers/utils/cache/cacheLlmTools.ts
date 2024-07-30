@@ -36,13 +36,32 @@ export function cacheLlmTools(
 
     if (llmTools.callChatModel !== undefined) {
         proxyTools.callChatModel = async (prompt: Prompt): Promise<PromptChatResult> => {
+            const key =
+                prompt.title +
+                JSON.stringify(
+                    Object.fromEntries(
+                        Object.entries(prompt.parameters).map(([parameterName, parameterValue]) => [
+                            parameterName,
+                            parameterValue.substring(0, 10),
+                        ]),
+                    ),
+                ); // <- TODO: [🎎] Maybe hash whole prompt
+            const cacheItem = await storage.getItem(key);
+
+            if (cacheItem) {
+                return cacheItem.promptResult as PromptChatResult;
+            }
+
             const promptResult = await llmTools.callChatModel!(prompt);
+
+            await storage.setItem(key, { prompt, promptResult });
+
             return promptResult;
         };
     }
 
     /*
-    TODO: !!!!
+    TODO: !!!! Implement
     if (llmTools.callCompletionModel !== undefined) {
         proxyTools.callCompletionModel = async (prompt: Prompt): Promise<PromptCompletionResult> => {};
     }

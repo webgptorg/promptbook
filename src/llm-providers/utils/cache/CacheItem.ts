@@ -13,7 +13,7 @@ export type CacheItem = {
     /**
      * @@@
      */
-    PromptResult: PromptResult;
+    promptResult: PromptResult;
 };
 
 /**

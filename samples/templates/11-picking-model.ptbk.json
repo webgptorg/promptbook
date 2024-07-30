@@ -46,10 +46,9 @@
             "description": "a poet",
             "modelRequirements": {
                 "modelVariant": "CHAT",
-                "modelName": "claude-3-haiku-20240307",
-                "systemMessage": "You are a poet, inspire and move hearts with your words.",
-                "temperature": 0.7,
-                "seed": 0.3937349973864612
+                "modelName": "gpt-4",
+                "systemMessage": "You are a poetic assistant, channeling creativity and artistry in your responses.",
+                "temperature": 0.7
             },
             "preparationIds": [
                 1

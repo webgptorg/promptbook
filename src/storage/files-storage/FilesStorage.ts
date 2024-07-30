@@ -1,5 +1,6 @@
 import { mkdir, readFile, stat, unlink, writeFile } from 'fs/promises';
-import { join } from 'path';
+import { dirname, join } from 'path';
+import { titleToName } from '../../_packages/utils.index';
 import { EnvironmentMismatchError } from '../../errors/EnvironmentMismatchError';
 import { string_file_path } from '../../types/typeAliases';
 import { isRunningInNode } from '../../utils/isRunningInWhatever';
@@ -21,10 +22,11 @@ export class FilesStorage<TItem> implements PromptbookStorage<TItem> {
      * @@@
      */
     private getFilenameForKey(key: string): string_file_path {
+        const name = titleToName(key);
         return join(
             this.options.cacheFolderPath,
-            ...nameToSubfolderPath(key /* <- TODO: Maybe add some SHA256 prefix */),
-            `${key}.json`,
+            ...nameToSubfolderPath(name /* <- TODO: [🎎] Maybe add some SHA256 prefix */),
+            `${name}.json`,
         );
     }
 
@@ -58,7 +60,7 @@ export class FilesStorage<TItem> implements PromptbookStorage<TItem> {
 
         const fileContent = JSON.stringify(value, null, 4);
 
-        await mkdir(filename, { recursive: true }); // <- [0]
+        await mkdir(dirname(filename), { recursive: true }); // <- [0]
         await writeFile(filename, fileContent, 'utf-8');
     }
 
