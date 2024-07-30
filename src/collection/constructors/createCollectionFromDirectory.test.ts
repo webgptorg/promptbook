@@ -7,6 +7,7 @@ import type { really_any } from '../../utils/organization/really_any';
 import { createCollectionFromDirectory } from './createCollectionFromDirectory';
 
 describe('createCollectionFromDirectory', () => {
+    // Note: It doesn't matter if the code block is ``` or >
     const pipeline = spaceTrim(`
           # ✨ Sample prompt with URL
 
@@ -19,11 +20,35 @@ describe('createCollectionFromDirectory', () => {
 
           ## 💬 Prompt
 
-          \`\`\`text
-          Hello
-          \`\`\`
+          > Hello
 
           -> {greetingResponse}
+
+
+          ### Normal response
+
+          -   SAMPLE
+
+          > Hello, how are you?
+
+          -> {greetingResponse}
+
+          ### Formal response
+
+          -   SAMPLE
+
+          > Dear Sir, how may I help you?
+
+          -> {greetingResponse}
+
+          ### Informal response
+
+          -   SAMPLE
+
+          > Hey, what's up?
+
+          -> {greetingResponse}
+
 
 
     `) as PipelineString;

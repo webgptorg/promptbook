@@ -4,7 +4,8 @@ Show how to put codeblocks in the prompt _(which is already in the codeblock)_
 
 -   PIPELINE URL https://promptbook.studio/samples/escaping.ptbk.md
 -   PROMPTBOOK VERSION 1.0.0
--   OUTPUT PARAMETER `{greeting}`
+-   OUTPUT PARAMETER `{greeting1}`
+-   OUTPUT PARAMETER `{greeting2}`
 
 <!--Graph-->
 <!-- ⚠️ WARNING: This section was auto-generated -->
@@ -33,7 +34,9 @@ flowchart LR
 
 <!--/Graph-->
 
-## 💬 Prompt
+## Greeting 1
+
+Show how to put codeblocks in codeblocks
 
 ```
 Rewrite the function
@@ -48,4 +51,20 @@ To return "Goodbye" instead.
 
 ```
 
-`-> {greeting}`
+`-> {greeting1}`
+
+## Greeting 2
+
+Show how to put codeblocks in codeblocks in different way
+
+> Rewrite the function
+>
+> ```javascript
+> function greet() {
+>     return 'Hello';
+> }
+> ```
+>
+> To return "Goodbye" instead.
+
+`-> {greeting2}`
