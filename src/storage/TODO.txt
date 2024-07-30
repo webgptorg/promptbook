@@ -1,2 +1,5 @@
 TODO: !!!! Take from everstorage
 TODO: !!!!! Export all this utils and interaces in common
+TODO: [🧠] Make new storages like `DatabaseStorage`, `PrompbookStudioStorage`, `SessionStorage`,...
+TODO: [🧠] Is thare some way how to test meaningfully all the storages (by single test ideally)
+TODO: [🧠] Does it make sence to do `BlackholeStorage`
