@@ -2,7 +2,7 @@ TODO: Maybe add few methods:
 
 -----
 
-export type PrompbookStorage<T> = {
+export type PromptbookStorage<T> = {
 
     /**
      * Returns the number of key/value pairs currently present in the list associated with the object.

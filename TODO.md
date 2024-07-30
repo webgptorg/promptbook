@@ -1,5 +1,6 @@
 # 🎯 TODOs
 
+-   [ ] !!! `folder` vs `directory`
 -   [x] Annotate all entities
 -   [ ] Make internal string aliases
 -   [ ] Make branded types instead of pure `string` aliases

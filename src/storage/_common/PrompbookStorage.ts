@@ -3,10 +3,10 @@ import { Promisable } from 'type-fest';
 /**
  * Storage of objects with asynchronous API
  *
- * Note: Naming `PrompbookStorage` not `Storage` to avoid name collision with global `Storage` interface.
+ * Note: Naming `PromptbookStorage` not `Storage` to avoid name collision with global `Storage` interface.
  * Note: This is simmilar to Web Storage API interface but everything is asynchronous and can store JSON objects.
  */
-export type PrompbookStorage<TItem> = {
+export type PromptbookStorage<TItem> = {
     /**
      * Returns the current value associated with the given key, or null if the given key does not exist in the list associated with the object
      */
@@ -23,3 +23,7 @@ export type PrompbookStorage<TItem> = {
      */
     setItem(key: string, value: TItem): Promisable<void>;
 };
+
+/**
+ * TODO: [🧠][🛫] Constrain `TItem` to JSON-serializable objects only
+ */

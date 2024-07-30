@@ -400,6 +400,7 @@ Working external knowledge, personas, preparation for instruments and actions
 -   Export `isValidUrl`, `isValidPipelineUrl`, `isValidFilePath`, `isValidJavascriptName`, `isValidSemanticVersion`, `isHostnameOnPrivateNetwork`, `isUrlOnPrivateNetwork` and `isValidUuid` from `@promptbook/utils`
 -   Add `systemMessage`, `temperature` and `seed` to `ModelRequirements`
 -   Code blocks can be noteted both by ``` and >
+-   Add caching and storage
 
 ## In prepare
 

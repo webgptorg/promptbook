@@ -1,16 +1,9 @@
 import type { Promisable } from 'type-fest';
-import type { AvailableModel, LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { PromptChatResult } from '../../execution/PromptResult';
-import type { Prompt } from '../../types/Prompt';
-
-type CacheLlmToolsOptions = {
-    /**
-     * Total cost of the execution
-     *
-     * @default @@@
-     */
-    storage: Storage; // <- TODO: !!!! Import and change name to PromptbookStorage / AsyncStorage
-};
+import type { AvailableModel, LlmExecutionTools } from '../../../execution/LlmExecutionTools';
+import type { PromptChatResult } from '../../../execution/PromptResult';
+import { MemoryStorage } from '../../../storage/memory/MemoryStorage';
+import type { Prompt } from '../../../types/Prompt';
+import { CacheLlmToolsOptions } from './CacheLlmToolsOptions';
 
 /**
  * Intercepts LLM tools and counts total usage of the tools
@@ -22,7 +15,7 @@ export function cacheLlmTools(
     llmTools: LlmExecutionTools,
     options: Partial<CacheLlmToolsOptions> = {},
 ): LlmExecutionTools {
-    const { storage = {} } = options;
+    const { storage = new MemoryStorage() } = options;
 
     const proxyTools: LlmExecutionTools = {
         get title() {

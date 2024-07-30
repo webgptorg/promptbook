@@ -13,17 +13,9 @@ describe('how creating knowledge from pdf works', () => {
                 llmTools: getLlmToolsForTests(),
             }),
         ).resolves.toMatchObject([
-            // TODO: !!!! Test this with real implementation
+            // TODO: !!!! Test this with real cached implementation
             {
-                /*
-                [🕵️‍♀️]
-                content: 'M',
-                index: [],
-                keywords: [],
-                name: 'm',
-                sources: [],
-                title: 'M',
-                */
+             
             },
         ]));
 });

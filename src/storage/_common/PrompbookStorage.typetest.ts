@@ -1,8 +1,8 @@
 import { notUsing } from '../../utils/organization/notUsing';
-import { PrompbookStorage } from './PrompbookStorage';
+import { PromptbookStorage } from './PromptbookStorage';
 
 // Note: Checking if localStorage and sessionStorage are implementing IStorage<string>
-let storage: PrompbookStorage<string>;
+let storage: PromptbookStorage<string>;
 storage = localStorage;
 storage = sessionStorage;
 notUsing(storage);

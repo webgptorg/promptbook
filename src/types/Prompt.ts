@@ -13,7 +13,7 @@ import type {
 /**
  * Prompt in a text along with model requirements, but without any execution or templating logic.
  *
- * Note: This is NOT fully serializable as JSON, it contains functions which are not serializable
+ * Note: [🛫] This is NOT fully serializable as JSON, it contains functions which are not serializable
  * @see https://github.com/webgptorg/promptbook#prompt
  */
 export type Prompt = {

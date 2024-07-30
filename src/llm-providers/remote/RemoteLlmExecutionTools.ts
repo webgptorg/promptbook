@@ -98,7 +98,7 @@ export class RemoteLlmExecutionTools implements LlmExecutionTools {
         socket.emit('request', {
             clientId: this.options.clientId,
             prompt,
-            // <- TODO: `prompt` is NOT fully serializable as JSON, it contains functions which are not serializable
+            // <- TODO: [🛫] `prompt` is NOT fully serializable as JSON, it contains functions which are not serializable
         } satisfies Promptbook_Server_Request);
 
         const promptResult = await new Promise<PromptResult>((resolve, reject) => {

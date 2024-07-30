@@ -1,5 +1,5 @@
-import { MockedEchoLlmExecutionTools } from '../../../../llm-providers/mocked/MockedEchoLlmExecutionTools';
 import type { LlmExecutionTools } from '../../../../execution/LlmExecutionTools';
+import { MockedEchoLlmExecutionTools } from '../../../../llm-providers/mocked/MockedEchoLlmExecutionTools';
 
 /**
  * Returns LLM tools for testing purposes
@@ -7,5 +7,9 @@ import type { LlmExecutionTools } from '../../../../execution/LlmExecutionTools'
  * @private within the package - JUST FOR TESTS
  */
 export function getLlmToolsForTests(): LlmExecutionTools {
-    return new MockedEchoLlmExecutionTools(/* TODO: [🧠][🕵️‍♀️] Testing with real LLM with seed and (commited) caching */);
+    // TODO: !!!!!! Use
+    // cacheLlmTools(createLlmToolsFromEnv,{storage: new FilesStorage({cacheFolderPath: process.cwd() + '/executions-cache'})});
+
+    // TODO: !!!!!! Remove
+    return new MockedEchoLlmExecutionTools();
 }

@@ -4,7 +4,6 @@ import { getLlmToolsForTests } from '../_common/utils/getLlmToolsForTests';
 import { prepareKnowledgeFromMarkdown } from './prepareKnowledgeFromMarkdown';
 
 describe('how creating knowledge from markdown works', () => {
-
     // TODO: !!!! Read here the samples directory
     it('should work with simple piece of information', async () =>
         expect(
@@ -18,16 +17,7 @@ describe('how creating knowledge from markdown works', () => {
                 },
             ),
         ).resolves.toMatchObject([
-            {
-                /*
-                [🕵️‍♀️]
-                content: 'L',
-                index: [],
-                keywords: [],
-                name: 'l',
-                sources: [],
-                title: 'L',
-                */
-            },
+            // TODO: !!!! Test this with real cached implementation
+            {},
         ]));
 });

@@ -1,6 +1,10 @@
-import { PrompbookStorage } from '../_common/PrompbookStorage';
+import { PromptbookStorage } from '../_common/PromptbookStorage';
 
-export function makePromptbookStorageFromWebStorage(webStorage: Storage): PrompbookStorage {}
+/**
+ *
+ * @private
+ */
+export function makePromptbookStorageFromWebStorage(webStorage: Storage): PromptbookStorage {}
 
 /**
  * TODO: !!!! Export through `@promptbook/browser`

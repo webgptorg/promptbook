@@ -1,9 +1,9 @@
-import { PrompbookStorage } from '../_common/PrompbookStorage';
+import { PromptbookStorage } from '../_common/PromptbookStorage';
 
 /**
  * Stores
  */
-export class MemoryStorage<TItem> implements PrompbookStorage<TItem> {
+export class MemoryStorage<TItem> implements PromptbookStorage<TItem> {
     private storage: Record<string, TItem | null> = {};
 
     /**
@@ -44,7 +44,7 @@ export class MemoryStorage<TItem> implements PrompbookStorage<TItem> {
     /**
      * Sets the value of the pair identified by key to value, creating a new key/value pair if none existed for key previously.
      */
-    public setItem(key: string, value: T): void {
+    public setItem(key: string, value: TItem): void {
         this.storage[key] = value;
     }
 }
