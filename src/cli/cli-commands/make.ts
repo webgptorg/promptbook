@@ -7,10 +7,7 @@ import { collectionToJson } from '../../collection/collectionToJson';
 import { createCollectionFromDirectory } from '../../collection/constructors/createCollectionFromDirectory';
 import { PIPELINE_COLLECTION_BASE_FILENAME } from '../../config';
 import { validatePipeline } from '../../conversion/validation/validatePipeline';
-import { AnthropicClaudeExecutionTools } from '../../llm-providers/anthropic-claude/AnthropicClaudeExecutionTools';
-import { MockedFackedLlmExecutionTools } from '../../llm-providers/mocked/MockedFackedLlmExecutionTools';
-import { joinLlmExecutionTools } from '../../llm-providers/multiple/joinLlmExecutionTools';
-import { OpenAiExecutionTools } from '../../llm-providers/openai/OpenAiExecutionTools';
+import { getLlmToolsForTestingAndScriptsAndPlayground } from '../../src/knowledge/prepare-knowledge/_common/utils/getLlmToolsForTestingAndScriptsAndPlayground';
 import type { string_file_extension } from '../../types/typeAliases';
 
 /**
@@ -78,21 +75,7 @@ export function initializeMakeCommand(program: Program) {
             process.exit(1);
         }
 
-        // TODO: !!!! getLlmExecutionToolsFromEnvironment
-        const llmTools = joinLlmExecutionTools(
-            // TODO: !!!! Remove mocked
-            new MockedFackedLlmExecutionTools({
-                isVerbose,
-            }),
-            new AnthropicClaudeExecutionTools({
-                isVerbose,
-                apiKey: process.env.ANTHROPIC_CLAUDE_API_KEY!,
-            }),
-            new OpenAiExecutionTools({
-                isVerbose,
-                apiKey: process.env.OPENAI_API_KEY!,
-            }),
-        );
+        const llmTools = getLlmToolsForTestingAndScriptsAndPlayground();
 
         const collection = await createCollectionFromDirectory(path, {
             llmTools,

@@ -9,7 +9,7 @@ import { FilesStorage } from '../../../../storage/files-storage/FilesStorage';
  *
  * @private within the package - JUST FOR TESTS
  */
-export function getLlmToolsForTests(): LlmExecutionTools {
+export function getLlmToolsForTestingAndScriptsAndPlayground(): LlmExecutionTools {
     return cacheLlmTools(createLlmToolsFromEnv(), {
         storage: new FilesStorage({ cacheFolderPath: join(process.cwd(), '/executions-cache') }),
     });

@@ -9,8 +9,7 @@ import { writeFile } from 'fs/promises';
 import { join } from 'path';
 import { collectionToJson } from '../../src/collection/collectionToJson';
 import { createCollectionFromDirectory } from '../../src/collection/constructors/createCollectionFromDirectory';
-import { MockedFackedLlmExecutionTools } from '../../src/llm-providers/mocked/MockedFackedLlmExecutionTools';
-import { joinLlmExecutionTools } from '../../src/llm-providers/multiple/joinLlmExecutionTools';
+import { getLlmToolsForTestingAndScriptsAndPlayground } from '../../src/knowledge/prepare-knowledge/_common/utils/getLlmToolsForTestingAndScriptsAndPlayground';
 import { commit } from '../utils/autocommit/commit';
 
 if (process.cwd() !== join(__dirname, '../..')) {
@@ -42,21 +41,7 @@ async function makePipelineCollection({ isCommited, isVerbose }: { isCommited: b
 
     const promptbookSourceDir = 'promptbook-collection';
 
-    // TODO: !!!! getLlmExecutionToolsFromEnvironment
-    const llmTools = joinLlmExecutionTools(
-        // TODO: !!!! Remove mocked and use getLlmExecutionToolsFromEnvironment
-        new MockedFackedLlmExecutionTools({ isVerbose }),
-        /*
-            new AnthropicClaudeExecutionTools({
-                isVerbose,
-                apiKey: process.env.ANTHROPIC_CLAUDE_API_KEY!,
-            }),
-            new OpenAiExecutionTools({
-                isVerbose,
-                apiKey: process.env.OPENAI_API_KEY!,
-            }),
-            */
-    );
+    const llmTools = getLlmToolsForTestingAndScriptsAndPlayground();
 
     const collection = await createCollectionFromDirectory(promptbookSourceDir, {
         llmTools,

@@ -7,9 +7,8 @@ dotenv.config({ path: '.env' });
 import chalk from 'colors';
 import { readFile, writeFile } from 'fs/promises';
 import { join } from 'path';
-import { AnthropicClaudeExecutionTools } from '../../../../llm-providers/anthropic-claude/AnthropicClaudeExecutionTools';
-import { joinLlmExecutionTools } from '../../../../llm-providers/multiple/joinLlmExecutionTools';
-import { OpenAiExecutionTools } from '../../../../llm-providers/openai/OpenAiExecutionTools';
+import { getLlmToolsForTestingAndScriptsAndPlayground } from '../../src/knowledge/prepare-knowledge/_common/utils/getLlmToolsForTestingAndScriptsAndPlayground';
+
 import { prepareKnowledgeFromMarkdown } from '../prepareKnowledgeFromMarkdown';
 
 const isVerbose = true;
@@ -31,21 +30,14 @@ async function playground() {
     //========================================>
 
     const content = await readFile(
-        join(__dirname, '../samples/10-simple.md' /* <- !!! Read here the samples directory and itterate through all of them */),
+        join(
+            __dirname,
+            '../samples/10-simple.md' /* <- !!! Read here the samples directory and itterate through all of them */,
+        ),
         'utf-8',
     );
 
-    // TODO: !!!!! getLlmExecutionToolsFromEnvironment and export via `@promptbook/all-llm-providers`
-    const llmTools = joinLlmExecutionTools(
-        new AnthropicClaudeExecutionTools({
-            isVerbose,
-            apiKey: process.env.ANTHROPIC_CLAUDE_API_KEY!,
-        }),
-        new OpenAiExecutionTools({
-            isVerbose,
-            apiKey: process.env.OPENAI_API_KEY!,
-        }),
-    );
+    const llmTools = getLlmToolsForTestingAndScriptsAndPlayground();
 
     const knowledge = await prepareKnowledgeFromMarkdown(content, {
         llmTools,
@@ -56,7 +48,10 @@ async function playground() {
     console.info(knowledge);
 
     await writeFile(
-        join(__dirname, '../samples/10-simple.knowledge.json' /* <- !!! Read here the samples directory and itterate through all of them */),
+        join(
+            __dirname,
+            '../samples/10-simple.knowledge.json' /* <- !!! Read here the samples directory and itterate through all of them */,
+        ),
         JSON.stringify(knowledge, null, 4) + '\n',
         'utf-8',
     );

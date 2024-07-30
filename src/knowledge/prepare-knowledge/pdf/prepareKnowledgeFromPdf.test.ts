@@ -1,7 +1,7 @@
 import { describe, expect, it } from '@jest/globals';
 import { readFile } from 'fs/promises';
 import { join } from 'path';
-import { getLlmToolsForTests } from '../_common/utils/getLlmToolsForTests';
+import { getLlmToolsForTests } from '../_common/utils/getLlmToolsForTestingAndScriptsAndPlayground';
 import { prepareKnowledgeFromPdf } from './prepareKnowledgeFromPdf';
 
 describe('how creating knowledge from pdf works', () => {
@@ -14,8 +14,6 @@ describe('how creating knowledge from pdf works', () => {
             }),
         ).resolves.toMatchObject([
             // TODO: !!!! Test this with real cached implementation
-            {
-             
-            },
+            {},
         ]));
 });

@@ -1,6 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
 import spaceTrim from 'spacetrim';
-import { getLlmToolsForTests } from '../_common/utils/getLlmToolsForTests';
+import { getLlmToolsForTests } from '../_common/utils/getLlmToolsForTestingAndScriptsAndPlayground';
 import { prepareKnowledgeFromMarkdown } from './prepareKnowledgeFromMarkdown';
 
 describe('how creating knowledge from markdown works', () => {
