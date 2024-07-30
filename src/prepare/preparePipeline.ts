@@ -63,6 +63,7 @@ export async function preparePipeline(pipeline: PipelineJson, options: PrepareOp
                 preparationIds: [/* TODO: [🧊] -> */ currentPreparation.id],
             };
 
+            // TODO: !!!!! Deterministic order of personas
             preparedPersonas.push(preparedPersona);
         },
     );

@@ -210,7 +210,7 @@
             ]
         },
         {
-            "name": "Alice",
+            "name": "Josh",
             "description": "a linguist",
             "modelRequirements": {
                 "modelVariant": "CHAT",
@@ -223,7 +223,7 @@
             ]
         },
         {
-            "name": "Josh",
+            "name": "Alice",
             "description": "a linguist",
             "modelRequirements": {
                 "modelVariant": "CHAT",
