@@ -272,6 +272,6 @@ describe('how extractOneBlockFromMarkdown works', () => {
                     \`\`\`
                 `),
             ),
-        ).toThrowError(/There should be exactly 1 code block, found 0 code blocks/i);
+        ).toThrowError(/There should be exactly 1 code block, found 2 code blocks/i);
     });
 });
