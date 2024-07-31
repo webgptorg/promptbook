@@ -1,4 +1,5 @@
 import type { Writable } from 'type-fest';
+import { ParsingError } from '../../errors/ParsingError';
 import type { string_markdown } from '../../types/typeAliases';
 import { capitalize } from '../normalization/capitalize';
 
@@ -70,11 +71,11 @@ export function extractAllBlocksFromMarkdown(markdown: string_markdown): Array<C
                 currentCodeBlock = { blockNotation: '```', language, content: '' };
             } else {
                 if (language !== null) {
-                    // [🌻]
-                    throw new Error(
+                    throw new ParsingError(
                         `${capitalize(
                             currentCodeBlock.language || 'the',
                         )} code block was not closed and already opening new ${language} code block`,
+                        // <- [🚞]
                     );
                 }
                 codeBlocks.push(currentCodeBlock);
@@ -90,9 +91,9 @@ export function extractAllBlocksFromMarkdown(markdown: string_markdown): Array<C
     }
 
     if (currentCodeBlock !== null) {
-        // [🌻]
-        throw new Error(
+        throw new ParsingError(
             `${capitalize(currentCodeBlock.language || 'the')} code block was not closed at the end of the markdown`,
+            // <- [🚞]
         );
     }
 

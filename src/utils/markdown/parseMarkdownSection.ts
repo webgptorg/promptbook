@@ -1,7 +1,10 @@
 import spaceTrim from 'spacetrim';
-import type { string_markdown_section } from '../../types/typeAliases';
-import type { string_markdown_section_content } from '../../types/typeAliases';
-import type { string_markdown_text } from '../../types/typeAliases';
+import { ParsingError } from '../../errors/ParsingError';
+import type {
+    string_markdown_section,
+    string_markdown_section_content,
+    string_markdown_text,
+} from '../../types/typeAliases';
 
 /**
  * Parsed markdown section
@@ -30,7 +33,10 @@ export function parseMarkdownSection(value: string_markdown_section): MarkdownSe
     const lines = value.split('\n');
 
     if (!lines[0]!.startsWith('#')) {
-        throw new Error('Markdown section must start with heading');
+        throw new ParsingError(
+            'Markdown section must start with heading',
+            // <- [🚞]
+        );
     }
 
     const title = lines[0]!.replace(/^#+\s*/, '');
@@ -38,7 +44,10 @@ export function parseMarkdownSection(value: string_markdown_section): MarkdownSe
     const content = spaceTrim(lines.slice(1).join('\n'));
 
     if (level < 1 || level > 6) {
-        throw new Error('Markdown section must have heading level between 1 and 6');
+        throw new ParsingError(
+            'Markdown section must have heading level between 1 and 6',
+            // <- [🚞]
+        );
     }
 
     return { title, level: level as 1 | 2 | 3 | 4 | 5 | 6, content };

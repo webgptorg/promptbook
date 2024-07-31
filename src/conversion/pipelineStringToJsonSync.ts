@@ -82,7 +82,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
                 Pipeline head is not defined
 
                 This should never happen, because the pipeline already flattened
-            `),
+            `), // <- TODO: [🚞]
         );
     }
     if (pipelineHead.level !== 1) {
@@ -91,7 +91,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
                 Pipeline head is not h1
 
                 This should never happen, because the pipeline already flattened
-            `),
+            `), // <- TODO: [🚞]
         );
     }
     if (!pipelineSections.every((section) => section.level === 2)) {
@@ -100,7 +100,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
                 Not every pipeline section is h2
 
                 This should never happen, because the pipeline already flattened
-            `),
+            `), // <- TODO: [🚞]
         );
     }
 
@@ -291,6 +291,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
                         if (parameter === undefined) {
                             throw new UnexpectedError(
                                 `Can not find parameter {${resultingParameterName}} to assign sample value`,
+                                // <- TODO: [🚞]
                             );
                         }
                         parameter.sampleValues = parameter.sampleValues || [];
