@@ -55,8 +55,6 @@ export async function preparePersona(
     // TODO: !!! Check validity of `systemMessage`
     // TODO: !!! Check validity of `temperature`
 
-    console.log('!!!!', { modelName, systemMessage, temperature });
-
     return {
         modelVariant: 'CHAT',
         modelName,

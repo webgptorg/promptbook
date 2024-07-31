@@ -150,7 +150,6 @@ function parseCommandVariant(input: CommandParserInput & { commandNameRaw: strin
     for (const commandParser of COMMANDS.filter(({ usagePlaces: places }) => places.includes(usagePlace))) {
         const { name, aliasNames, deprecatedNames, parse } = commandParser;
         const names = [name, ...(aliasNames || []), ...(deprecatedNames || [])];
-        // console.log('!!!', { commandName, names });
         if (names.includes(commandName)) {
             try {
                 return parse({ usagePlace, raw, rawArgs, normalized, args });

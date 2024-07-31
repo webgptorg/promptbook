@@ -57,8 +57,6 @@ export function initializeMakeCommand(program: Program) {
     // TODO: !!! Auto-detect AI api keys + explicit api keys as argv
 
     helloCommand.action(async (path, { projectName, format, validation, verbose, outFile }) => {
-        console.info('!!!', { projectName, path, format, validation, verbose, outFile });
-
         const isVerbose = verbose;
 
         const formats = ((format as string | false) || '')

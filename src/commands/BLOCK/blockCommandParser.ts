@@ -1,7 +1,6 @@
 import spaceTrim from 'spacetrim';
 import { ParsingError } from '../../errors/ParsingError';
-import type { CommandParser } from '../_common/types/CommandParser';
-import type { CommandParserInput } from '../_common/types/CommandParser';
+import type { CommandParser, CommandParserInput } from '../_common/types/CommandParser';
 import type { BlockCommand } from './BlockCommand';
 import { BlockTypes } from './BlockTypes';
 
@@ -92,7 +91,6 @@ export const blockCommandParser: CommandParser<BlockCommand> = {
         const blockTypes = BlockTypes.filter((blockType) => normalized.includes(blockType));
 
         if (blockTypes.length !== 1) {
-            // console.log('!!!', { blockType });
             throw new ParsingError(
                 spaceTrim(
                     (block) => `
