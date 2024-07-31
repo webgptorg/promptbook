@@ -5,23 +5,42 @@
     "description": "Show how to put codeblocks in the prompt _(which is already in the codeblock)_",
     "parameters": [
         {
-            "name": "greeting",
+            "name": "greeting1",
+            "isInput": false,
+            "isOutput": true
+        },
+        {
+            "name": "greeting2",
             "isInput": false,
             "isOutput": true
         }
     ],
     "promptTemplates": [
         {
-            "name": "prompt",
-            "title": "💬 Prompt",
+            "name": "greeting-1",
+            "title": "Greeting 1",
+            "description": "Show how to put codeblocks in codeblocks",
             "dependentParameterNames": [],
             "blockType": "PROMPT_TEMPLATE",
             "personaName": null,
             "modelRequirements": {
                 "modelVariant": "CHAT"
             },
-            "content": "Rewrite the function\n\n```javascript\nfunction greet() {\n  return 'Hello';\n}\n```\n\nTo return \"Goodbye\" instead.\n",
-            "resultingParameterName": "greeting"
+            "content": "Rewrite the function below:\n\n```javascript\nfunction greet() {\n  return 'Hello Anna';\n}\n```\n\nTo return \"Goodbye\" from the function instead of \"Hello\".\n",
+            "resultingParameterName": "greeting1"
+        },
+        {
+            "name": "greeting-2",
+            "title": "Greeting 2",
+            "description": "Show how to put codeblocks in codeblocks in different way\n\n> Rewrite the function below:\n>\n> ```javascript\n> function greet() {\n>     return 'Hello Betty';\n> }\n> ```\n>\n> To return \"Goodbye\" from the function instead of \"Hello\".",
+            "dependentParameterNames": [],
+            "blockType": "PROMPT_TEMPLATE",
+            "personaName": null,
+            "modelRequirements": {
+                "modelVariant": "CHAT"
+            },
+            "content": "Rewrite the function below:\n\n```javascript\nfunction greet() {\n    return 'Hello Betty';\n}\n```\n\nTo return \"Goodbye\" from the function instead of \"Hello\".",
+            "resultingParameterName": "greeting2"
         }
     ],
     "knowledgeSources": [],

@@ -61,6 +61,67 @@ describe('how extractOneBlockFromMarkdown works', () => {
         });
     });
 
+    it('should work with sample with block nested in block with mixed notations', () => {
+        expect(
+            extractOneBlockFromMarkdown(
+                spaceTrim(`
+                    # A
+
+                    B
+
+                    > C
+                    > D
+                    > \`\`\`E
+                    > F
+                    > \`\`\`
+                    > G
+
+                    H
+
+                `),
+            ),
+        ).toEqual({
+            blockNotation: '>',
+            language: null,
+            content: spaceTrim(`
+                C
+                D
+                \`\`\`E
+                F
+                \`\`\`
+                G
+            `),
+        });
+        expect(
+            extractOneBlockFromMarkdown(
+                spaceTrim(`
+                    # A
+
+                    B
+
+                    \`\`\`C
+                    D
+                    > E
+                    > F
+                    G
+                    \`\`\`
+
+                    H
+
+                `),
+            ),
+        ).toEqual({
+            blockNotation: '```',
+            language: 'C',
+            content: spaceTrim(`
+              D
+              > E
+              > F
+              G
+            `),
+        });
+    });
+
     it('should work with sample with one python code block of one line', () => {
         expect(
             extractOneBlockFromMarkdown(

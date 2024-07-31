@@ -45,7 +45,7 @@ export function extractAllBlocksFromMarkdown(markdown: string_markdown): Array<C
     let currentCodeBlock: Writable<CodeBlock> | null = null;
 
     for (const line of lines) {
-        if (line.startsWith('> ')) {
+        if (line.startsWith('> ') || line === '>') {
             if (currentCodeBlock === null) {
                 currentCodeBlock = { blockNotation: '>', language: null, content: '' };
             } /* not else */

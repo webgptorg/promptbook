@@ -39,15 +39,15 @@ flowchart LR
 Show how to put codeblocks in codeblocks
 
 ```
-Rewrite the function
+Rewrite the function below:
 
 \`\`\`javascript
 function greet() {
-  return 'Hello';
+  return 'Hello Anna';
 }
 \`\`\`
 
-To return "Goodbye" instead.
+To return "Goodbye" from the function instead of "Hello".
 
 ```
 
@@ -57,14 +57,14 @@ To return "Goodbye" instead.
 
 Show how to put codeblocks in codeblocks in different way
 
-> Rewrite the function
+> Rewrite the function below:
 >
 > ```javascript
 > function greet() {
->     return 'Hello';
+>     return 'Hello Betty';
 > }
 > ```
 >
-> To return "Goodbye" instead.
+> To return "Goodbye" from the function instead of "Hello".
 
 `-> {greeting2}`

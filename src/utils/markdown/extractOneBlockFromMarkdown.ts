@@ -26,7 +26,7 @@ export function extractOneBlockFromMarkdown(markdown: string_markdown): CodeBloc
                 (block) => `
                     There should be exactly 1 code block, found ${codeBlocks.length} code blocks
 
-                    ${block(codeBlocks.map((block) => block.content).join('\n\n\n---\n\n\n'))}
+                    ${block(codeBlocks.map((block, i) => `Block ${i + 1}:\n${block.content}`).join('\n\n\n'))}
                 `,
             ),
             // <- [🚞]
