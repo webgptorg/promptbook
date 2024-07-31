@@ -50,11 +50,11 @@ export async function preparePipeline(pipeline: PipelineJson, options: PrepareOp
 
     // ----- Personas preparation -----
     // TODO: [🧠] Implement some `mapAsync` function
-    const preparedPersonas: Array<PersonaPreparedJson> = [];
+    const preparedPersonas: Array<PersonaPreparedJson> = new Array(personas.length);
     await forEachAsync(
         personas,
         { maxParallelCount /* <- TODO: [🪂] When there are subtasks, this maximul limit can be broken */ },
-        async (persona) => {
+        async (persona, index) => {
             const modelRequirements = await preparePersona(persona.description, options);
 
             const preparedPersona: PersonaPreparedJson = {
@@ -63,8 +63,7 @@ export async function preparePipeline(pipeline: PipelineJson, options: PrepareOp
                 preparationIds: [/* TODO: [🧊] -> */ currentPreparation.id],
             };
 
-            // TODO: !!!!! Deterministic order of personas
-            preparedPersonas.push(preparedPersona);
+            preparedPersonas[index] = preparedPersona;
         },
     );
     // ----- /Personas preparation -----
