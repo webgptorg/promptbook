@@ -11,7 +11,9 @@ describe('how preparePersona works', () => {
             }),
         ).resolves.toEqual({
             modelVariant: 'CHAT',
-            modelName: 'gpt-4', // <- TODO: [💕] Allow to specify more model names or more general like gpt-4-*, 1234 context window etc.
+            modelName: 'gpt-4o', // <- TODO: [💕] Allow to specify more model names or more general like gpt-4-*, 1234 context window etc.
+            systemMessage: 'You are a linguist and a knowledgeable assistant.',
+            temperature: 0.5,
         }));
 
     it('should work with advanced structured persona description', () =>
@@ -31,7 +33,9 @@ describe('how preparePersona works', () => {
             ),
         ).resolves.toEqual({
             modelVariant: 'CHAT',
-            modelName: 'gpt-4', // <- TODO: [💕]
+            modelName: 'gpt-4-turbo', // <- TODO: [💕]
+            systemMessage: 'You are an experienced AI engineer and a helpful assistant.',
+            temperature: 0.6,
         }));
 
     it('should work with creative persona', () =>
@@ -42,6 +46,9 @@ describe('how preparePersona works', () => {
         ).resolves.toEqual({
             modelVariant: 'CHAT',
             modelName: 'gpt-4', // <- TODO: [💕]
+            systemMessage:
+                'You are a poem writer with an unconventional style, crafting verses in your unique language and style.',
+            temperature: 0.6,
         }));
 
     it('should work with non-creative persona', () =>
@@ -55,6 +62,9 @@ describe('how preparePersona works', () => {
         ).resolves.toEqual({
             modelVariant: 'CHAT',
             modelName: 'gpt-4', // <- TODO: [💕]
+            systemMessage:
+                'You are a technical writer with 5 years of experience, skilled in creating technical documentation, user manuals, and API documentation.',
+            temperature: 0.5,
         }));
 
     it('should work French native speaker', () =>
@@ -67,7 +77,10 @@ describe('how preparePersona works', () => {
             ),
         ).resolves.toEqual({
             modelVariant: 'CHAT',
-            modelName: 'gpt-4', // <- TODO: [💕]
+            modelName: 'gpt-4-turbo', // <- TODO: [💕]
+            systemMessage:
+                'You are an experienced AI engineer and helpful assistant who is a native French speaker, passionate about writing, language, and French culture.',
+            temperature: 0.5,
         }));
 
     it('should work with weird persona description', () =>
@@ -78,6 +91,9 @@ describe('how preparePersona works', () => {
         ).resolves.toEqual({
             modelVariant: 'CHAT',
             modelName: 'gpt-4', // <- TODO: [💕]
+            systemMessage:
+                'You are Xyzzy, an experienced AI engineer with 5 years in the field, proficient in technologies such as foo and bar. You assist users with detailed and informed responses.',
+            temperature: 0.5,
         }));
 
     /*
