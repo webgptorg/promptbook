@@ -158,14 +158,18 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
 
     pipelineJson.title = pipelineHead.title;
 
-    // TODO: [1] DRY description
+    // TODO: [🎾][1] DRY description
     let description: string | undefined = pipelineHead.content;
 
-    // Note: Remove codeblocks - TODO: Maybe put this into util (exported from `@promptbool/utils`)
+    // Note: Remove codeblocks - TODO: [🎾] Make util removeAllBlocksFromMarkdown (exported from `@promptbool/utils`)
     description = description.split(/^```.*^```/gms).join('');
-    //Note: Remove lists and return statement - TODO: Maybe put this into util (exported from `@promptbool/utils`)
+    description = description.split(/^>.*$/gm).join('');
+
+    //Note: Remove lists and return statement - TODO: [🎾] Make util  (exported from `@promptbool/utils`)
     description = description.split(/^(?:(?:-)|(?:\d\))|(?:`?->))\s+.*$/gm).join('');
+
     description = spaceTrim(description);
+
     if (description === '') {
         description = undefined;
     }
@@ -435,14 +439,18 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
             }
         }
 
-        // TODO: [1] DRY description
+        // TODO: [🎾][1] DRY description
         let description: string | undefined = section.content;
 
-        // Note: Remove codeblocks
+        // Note: Remove codeblocks - TODO: [🎾]
         description = description.split(/^```.*^```/gms).join('');
-        //Note: Remove lists and return statement
+        description = description.split(/^>.*$/gm).join('');
+
+        //Note: Remove lists and return statement - TODO: [🎾]
         description = description.split(/^(?:(?:-)|(?:\d\))|(?:`?->))\s+.*$/gm).join('');
+
         description = spaceTrim(description);
+
         if (description === '') {
             description = undefined;
         }

@@ -32,7 +32,7 @@
         {
             "name": "greeting-2",
             "title": "Greeting 2",
-            "description": "Show how to put codeblocks in codeblocks in different way\n\n> Rewrite the function below:\n>\n> ```javascript\n> function greet() {\n>     return 'Hello Betty';\n> }\n> ```\n>\n> To return \"Goodbye\" from the function instead of \"Hello\".",
+            "description": "Show how to put codeblocks in codeblocks in different way",
             "dependentParameterNames": [],
             "blockType": "PROMPT_TEMPLATE",
             "personaName": null,
