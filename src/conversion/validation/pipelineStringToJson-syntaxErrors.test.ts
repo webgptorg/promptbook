@@ -14,7 +14,7 @@ describe('pipelineStringToJson', () => {
         expect(
             async () =>
                 await pipelineStringToJson(importPipelineWithoutPreparation('errors/syntax/missing-block.ptbk.md')),
-        ).rejects.toThrowError(/There should be exactly one code block in the markdown/i);
+        ).rejects.toThrowError(/There should be exactly 1 code block, found 0 code blocks/i);
     });
 
     it('should fail on missing return declaration', () => {
@@ -35,7 +35,7 @@ describe('pipelineStringToJson', () => {
         expect(
             async () =>
                 await pipelineStringToJson(importPipelineWithoutPreparation('errors/syntax/multiple-blocks.ptbk.md')),
-        ).rejects.toThrowError(/There should be exactly one code block in the markdown/i);
+        ).rejects.toThrowError(/There should be exactly 1 code block, found 0 code blocks/i);
     });
 
     it('should fail on parameters collision', () => {
