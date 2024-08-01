@@ -3,11 +3,17 @@ import sha256 from 'crypto-js/sha256';
 import type { Promisable } from 'type-fest';
 import { MAX_FILENAME_LENGTH } from '../../../../config';
 import { titleToName } from '../../../../conversion/utils/titleToName';
+import { PipelineExecutionError } from '../../../../errors/PipelineExecutionError';
 import type { AvailableModel, LlmExecutionTools } from '../../../../execution/LlmExecutionTools';
-import type { PromptChatResult } from '../../../../execution/PromptResult';
+import type {
+    PromptChatResult,
+    PromptCompletionResult,
+    PromptEmbeddingResult,
+} from '../../../../execution/PromptResult';
 import { MemoryStorage } from '../../../../storage/memory/MemoryStorage';
 import type { Prompt } from '../../../../types/Prompt';
 import { $currentDate } from '../../../../utils/currentDate';
+import { TODO } from '../../../../utils/organization/TODO';
 import { PROMPTBOOK_VERSION } from '../../../../version';
 import type { CacheLlmToolsOptions } from './CacheLlmToolsOptions';
 
@@ -40,43 +46,65 @@ export function cacheLlmTools(
         },
     };
 
+    const callCommonModel = async (prompt: Prompt): Promise<TODO> => {
+        const key = titleToName(
+            prompt.title.substring(0, MAX_FILENAME_LENGTH - 10) +
+                '-' +
+                sha256(hexEncoder.parse(JSON.stringify(prompt.parameters))).toString(/* hex */),
+        );
+
+        const cacheItem = await storage.getItem(key);
+
+        if (cacheItem) {
+            return cacheItem.promptResult as PromptChatResult;
+        }
+
+        let promptResult: TODO;
+        variant: switch (prompt.modelRequirements.modelVariant) {
+            case 'CHAT':
+                promptResult = await llmTools.callChatModel!(prompt);
+                break variant;
+            case 'COMPLETION':
+                promptResult = await llmTools.callCompletionModel!(prompt);
+                break variant;
+
+            case 'EMBEDDING':
+                promptResult = await llmTools.callEmbeddingModel!(prompt);
+                break variant;
+
+            // <- case [🤖]:
+
+            default:
+                throw new PipelineExecutionError(`Unknown model variant "${prompt.modelRequirements!.modelVariant}"`);
+        }
+
+        await storage.setItem(key, {
+            date: $currentDate(),
+            promptbookVersion: PROMPTBOOK_VERSION,
+            prompt,
+            promptResult,
+        });
+
+        return promptResult;
+    };
+
     if (llmTools.callChatModel !== undefined) {
         proxyTools.callChatModel = async (prompt: Prompt): Promise<PromptChatResult> => {
-            const key = titleToName(
-                prompt.title.substring(0, MAX_FILENAME_LENGTH - 10) +
-                    '-' +
-                    sha256(hexEncoder.parse(JSON.stringify(prompt.parameters))).toString(/* hex */),
-            );
-
-            const cacheItem = await storage.getItem(key);
-
-            if (cacheItem) {
-                return cacheItem.promptResult as PromptChatResult;
-            }
-
-            const promptResult = await llmTools.callChatModel!(prompt);
-
-            await storage.setItem(key, {
-                date: $currentDate(),
-                promptbookVersion: PROMPTBOOK_VERSION,
-                prompt,
-                promptResult,
-            });
-
-            return promptResult;
+            return /* not await */ callCommonModel(prompt);
         };
     }
 
-    /*
-    TODO: !!!!! Implement
     if (llmTools.callCompletionModel !== undefined) {
-        proxyTools.callCompletionModel = async (prompt: Prompt): Promise<PromptCompletionResult> => {};
+        proxyTools.callCompletionModel = async (prompt: Prompt): Promise<PromptCompletionResult> => {
+            return /* not await */ callCommonModel(prompt);
+        };
     }
 
     if (llmTools.callEmbeddingModel !== undefined) {
-        proxyTools.callEmbeddingModel = async (prompt: Prompt): Promise<PromptEmbeddingResult> => {};
+        proxyTools.callEmbeddingModel = async (prompt: Prompt): Promise<PromptEmbeddingResult> => {
+            return /* not await */ callCommonModel(prompt);
+        };
     }
-    */
 
     // <- Note: [🤖]
 
