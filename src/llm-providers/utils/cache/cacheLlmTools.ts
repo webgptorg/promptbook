@@ -85,9 +85,8 @@ export function cacheLlmTools(
 }
 
 /**
- * TODO: !!!!! Export this util
- * TODO: !!!!! Use this for tests in promptbook project itself
- * TODO: !!!! write discussion about this and storages
+ * TODO: [🔼] Export this util
+ * TODO: @@@ write discussion about this and storages
  *            write how to combine multiple interceptors
  * TODO: [🧠][💸] Maybe make some common abstraction `interceptLlmTools` and use here (or use javascript Proxy?)
  * TODO: [🧠] Is there some meaningfull way how to test this util

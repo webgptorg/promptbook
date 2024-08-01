@@ -28,5 +28,5 @@ export const COMMANDS = [
     actionCommandParser,
     instrumentCommandParser,
     personaCommandParser,
-    boilerplateCommandParser, // <- TODO: !!!! Only in development, remove in production
+    boilerplateCommandParser, // <- TODO: !! Only in development, remove in production
 ] as const;

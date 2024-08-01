@@ -61,7 +61,7 @@ describe('validatePipeline', () => {
     });
 
     /*
-    TODO: !!!
+    TODO: [🐣] !!!
     it('should fail when provided sample dont passes the expectations', () => {
         expect(async () => {
             const pipelineString = importPipeline('errors/logic/sample-dont-pass-expectations.ptbk.md');
@@ -72,7 +72,7 @@ describe('validatePipeline', () => {
     */
 
     /*
-    TODO: !!!
+    TODO: [🐣] !!!
     it('should fail when there is unused parameter', () => {
         expect(async () => {
             const pipelineString = importPipeline('errors/logic/unused-parameter.ptbk.md');
@@ -83,7 +83,7 @@ describe('validatePipeline', () => {
     */
 
     /*
-    TODO: !!!
+    TODO: [🐣] !!!
     it('should fail when there is void knowledge', () => {
         expect(async () => {
             const pipelineString = importPipeline('errors/logic/void-knowledge.ptbk.md');
@@ -94,8 +94,8 @@ describe('validatePipeline', () => {
     */
 
     /*
-    TODO: !!!
-    it('should fail when there is wrong expectations', () => {
+    TODO: [🐣] !!!
+    it('should fail when there are wrong expectations', () => {
         expect(async () => {
             const pipelineString = importPipeline('errors/logic/wrong-expectations.ptbk.md');
             const pipelineJson = await pipelineStringToJson(pipelineString);

@@ -51,10 +51,6 @@ export async function preparePersona(
 
     const { modelName, systemMessage, temperature } = modelRequirements;
 
-    // TODO: !!! Check validity of `modelName`
-    // TODO: !!! Check validity of `systemMessage`
-    // TODO: !!! Check validity of `temperature`
-
     return {
         modelVariant: 'CHAT',
         modelName,
@@ -62,3 +58,9 @@ export async function preparePersona(
         temperature,
     };
 }
+
+/**
+ * TODO: [🏢] !! Check validity of `modelName` in pipeline
+ * TODO: [🏢] !! Check validity of `systemMessage` in pipeline
+ * TODO: [🏢] !! Check validity of `temperature` in pipeline
+ */

@@ -10,5 +10,5 @@ describe('how prepareKnowledge works', () => {
             }),
         ).resolves.toEqual([]));
 
-    // TODO: !!!! Test markdown, file and website here, rest in their own preparers
+    // TODO: [🐝] !!!!! Test markdown, file and website here, rest in their own preparers
 });

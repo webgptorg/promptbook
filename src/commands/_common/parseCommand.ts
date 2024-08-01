@@ -130,7 +130,7 @@ export function parseCommand(raw: string_markdown_text, usagePlace: CommandUsage
 }
 
 /**
- * !!!
+ * @@@
  */
 function getSupportedCommandsMessage(): string_markdown {
     return COMMANDS.flatMap(({ name, aliasNames, description, discussionUrl }) => [
@@ -140,7 +140,7 @@ function getSupportedCommandsMessage(): string_markdown {
 }
 
 /**
- * !!!
+ * @@@
  */
 function parseCommandVariant(input: CommandParserInput & { commandNameRaw: string }): Command | null {
     const { commandNameRaw, usagePlace, normalized, args, raw, rawArgs } = input;

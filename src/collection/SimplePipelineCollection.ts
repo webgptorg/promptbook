@@ -21,7 +21,7 @@ export class SimplePipelineCollection implements PipelineCollection {
     /**
      * Constructs a pipeline collection from promptbooks
      *
-     * @param promptbooks !!!
+     * @param promptbooks @@@
      *
      * @private Use instead `createCollectionFromJson`
      * Note: During the construction logic of all promptbooks are validated

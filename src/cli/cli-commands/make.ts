@@ -3,11 +3,11 @@ import type { Command as Program /* <- Note: Using Program because Command is mi
 import { mkdir, writeFile } from 'fs/promises';
 import { dirname, join } from 'path';
 import spaceTrim from 'spacetrim';
-import { getLlmToolsForTestingAndScriptsAndPlayground } from '../../knowledge/prepare-knowledge/_common/utils/getLlmToolsForTestingAndScriptsAndPlayground';
 import { collectionToJson } from '../../collection/collectionToJson';
 import { createCollectionFromDirectory } from '../../collection/constructors/createCollectionFromDirectory';
 import { PIPELINE_COLLECTION_BASE_FILENAME } from '../../config';
 import { validatePipeline } from '../../conversion/validation/validatePipeline';
+import { getLlmToolsForTestingAndScriptsAndPlayground } from '../../knowledge/prepare-knowledge/_common/utils/getLlmToolsForTestingAndScriptsAndPlayground';
 import type { string_file_extension } from '../../types/typeAliases';
 
 /**
@@ -54,8 +54,6 @@ export function initializeMakeCommand(program: Program) {
         PIPELINE_COLLECTION_BASE_FILENAME,
     );
 
-    // TODO: !!! Auto-detect AI api keys + explicit api keys as argv
-
     helloCommand.action(async (path, { projectName, format, validation, verbose, outFile }) => {
         const isVerbose = verbose;
 
@@ -73,6 +71,8 @@ export function initializeMakeCommand(program: Program) {
             process.exit(1);
         }
 
+        // TODO: !!!!! Auto-detect AI api keys + explicit api keys as argv
+        //       getLlmToolsForCli
         const llmTools = getLlmToolsForTestingAndScriptsAndPlayground();
 
         const collection = await createCollectionFromDirectory(path, {

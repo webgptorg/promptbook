@@ -10,8 +10,6 @@ describe('how creating knowledge from markdown works', () => {
         'utf-8',
     ); /* <- Note: Its OK to use sync in tooling */
 
-    console.log('!!! process.env', process.env.FOO);
-
     it('should work with simple piece of information', async () =>
         expect(
             prepareKnowledgeFromMarkdown(simpleSampleMarkdown, {

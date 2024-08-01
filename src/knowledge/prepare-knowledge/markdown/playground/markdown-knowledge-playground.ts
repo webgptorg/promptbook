@@ -32,7 +32,7 @@ async function playground() {
     const content = await readFile(
         join(
             __dirname,
-            '../samples/10-simple.md' /* <- !!! Read here the samples directory and itterate through all of them */,
+            '../samples/10-simple.md' /* <- TODO: !! Read here the samples directory and itterate through all of them */,
         ),
         'utf-8',
     );
@@ -50,7 +50,7 @@ async function playground() {
     await writeFile(
         join(
             __dirname,
-            '../samples/10-simple.knowledge.json' /* <- !!! Read here the samples directory and itterate through all of them */,
+            '../samples/10-simple.knowledge.json' /* <- TODO: !! Read here the samples directory and itterate through all of them */,
         ),
         JSON.stringify(knowledge, null, 4) + '\n',
         'utf-8',

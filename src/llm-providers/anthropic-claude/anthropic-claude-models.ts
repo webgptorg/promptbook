@@ -77,7 +77,7 @@ export const ANTHROPIC_CLAUDE_MODELS: Array<
 
 /**
  * Note: [🤖] Add models of new variant
- * TODO: !!!! Add embedding models OR Anthropic has only chat+completion models?
+ * TODO: !!!!!! Add embedding models OR Anthropic has only chat+completion models?
  * TODO: [🧠] Some mechanism to propagate unsureness
  * TODO: [🧠][👮‍♀️] Put here more info like description, isVision, trainingDateCutoff, languages, strengths (	Top-level performance, intelligence, fluency, and understanding), contextWindow,...
  * TODO: [🕚] Make this list dynamic - dynamically can be listed modelNames but not modelVariant, legacy status, context length and pricing

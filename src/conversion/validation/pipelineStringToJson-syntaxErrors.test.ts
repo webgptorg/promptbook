@@ -47,5 +47,6 @@ describe('pipelineStringToJson', () => {
         ).rejects.toThrowError(/Parameter \{word\} is defined multiple times/i);
     });
 
-    // TODO: !!! Missing LLM tools when processing knowledge
+    // TODO: Maybe Test that error (or warning) is thrown when missing `llmTools` when processing knowledge in pipeline
+    //       BUT probably not because if knoledge and personas are not prepared here, they will be prepared later in `createPipelineExecutor` (via `preparePipeline`)
 });

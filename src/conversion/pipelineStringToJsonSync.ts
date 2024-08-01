@@ -307,7 +307,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
                     if (command.blockType === 'KNOWLEDGE') {
                         knowledgeCommandParser.applyToPipelineJson!(pipelineJson, {
                             type: 'KNOWLEDGE',
-                            source: content, // <- TODO: !!!! Working KNOWLEDGE which not referring to the source file/wweb, but its content itseld
+                            source: content, // <- TODO: [🐝] !!!! Work with KNOWLEDGE which not referring to the source file/wweb, but its content itself
                         });
                         continue templates;
                     }
@@ -505,7 +505,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
         }
 
         // TODO: [🍧] What actually about preparation and pushing the block into `promptTemplates`
-        pipelineJson.promptTemplates.push(template as TODO /* <- !!! */);
+        pipelineJson.promptTemplates.push(template as TODO /* <- !!!!! */);
     }
 
     // =============================================================

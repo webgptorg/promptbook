@@ -8,6 +8,6 @@ storage = sessionStorage;
 notUsing(storage);
 
 /**
- * TODO: !!!!! Check that this files is not exported into build
+ * Note: [⚪] This should never be in any released package
  * TODO: Is this a good pattern to do type testing?
  */

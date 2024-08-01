@@ -88,5 +88,6 @@ async function generateSampleJsons({ isCommited, isVerbose }: { isCommited: bool
 }
 
 /**
+ * TODO: [🎐] Report here total usage
  * TODO: [🍥] When using current time in `preparations` it changes all .ptbk.json files each time so until some more elegant solution omit the time from prepared pipeline
  */

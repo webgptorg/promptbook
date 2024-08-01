@@ -1,5 +1,5 @@
-import { forEachAsync } from '../../../execution/utils/forEachAsync';
 import { MAX_PARALLEL_COUNT } from '../../../config';
+import { forEachAsync } from '../../../execution/utils/forEachAsync';
 import type { PrepareOptions } from '../../../prepare/PrepareOptions';
 import type { KnowledgePiecePreparedJson } from '../../../types/PipelineJson/KnowledgePieceJson';
 import type { KnowledgeSourceJson } from '../../../types/PipelineJson/KnowledgeSourceJson';
@@ -21,7 +21,7 @@ export async function prepareKnowledgePieces(
 
     await forEachAsync(knowledgeSources, { maxParallelCount }, async (knowledgeSource) => {
         const partialPieces = await prepareKnowledgeFromMarkdown(
-            knowledgeSource.source, // <- TODO: !!!!! Unhardcode markdown, detect which type it is
+            knowledgeSource.source, // <- TODO: [🐝] !!!!! Unhardcode markdown, detect which type it is
             options,
         );
 

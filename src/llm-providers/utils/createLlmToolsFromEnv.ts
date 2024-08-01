@@ -60,8 +60,8 @@ export function createLlmToolsFromEnv(): LlmExecutionTools {
 }
 
 /**
- * TODO: !!!!! Export this util
- * TODO: !!!! write discussion about this - wizzard
+ * TODO: [🔼] Export this util
+ * TODO: @@@ write discussion about this - wizzard
  * TODO: Add Azure
  * TODO: [🧠] Which name is better `createLlmToolsFromEnv` or `createLlmToolsFromEnvironment`?
  * TODO: [🧠] Is there some meaningfull way how to test this util

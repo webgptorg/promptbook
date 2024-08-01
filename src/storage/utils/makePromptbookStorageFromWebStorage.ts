@@ -33,7 +33,7 @@ export function makePromptbookStorageFromWebStorage<TValue>(webStorage: Storage)
 }
 
 /**
- * TODO: !!!! Export through `@promptbook/browser`
+ * TODO: [🔼] Export through `@promptbook/browser`
  * TODO: [🧠] Should this be named `makePromptbookStorageFromWebStorage` vs `createPromptbookStorageFromWebStorage`
  * TODO: [🌗] Maybe some checkers, not all valid JSONs are desired and valid values
  */

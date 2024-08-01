@@ -41,7 +41,7 @@ export type CommandParserInput = {
 };
 
 /**
- * TODO: !!!! Annotate
+ * TODO: @@@ Annotate all
  * TODO: [🧠] Maybe put flag if it is for whole `.ptbk.md` file of just one section
  * TODO: [🍧] CommandParser should have applyToPipelineJson method
  *       which will apply parsed command to the pipeline JSON

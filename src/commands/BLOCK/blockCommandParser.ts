@@ -1,7 +1,6 @@
 import spaceTrim from 'spacetrim';
 import { ParsingError } from '../../errors/ParsingError';
-import type { CommandParser } from '../_common/types/CommandParser';
-import type { CommandParserInput } from '../_common/types/CommandParser';
+import type { CommandParser, CommandParserInput } from '../_common/types/CommandParser';
 import type { BlockCommand } from './BlockCommand';
 import { BlockTypes } from './BlockTypes';
 
@@ -73,7 +72,7 @@ export const blockCommandParser: CommandParser<BlockCommand> = {
         // 'Knowledge', // <- Note: [⛱] For execution blocks which are also separate commands shortcut does not work
 
         //---
-        /* TODO: !!!! Not implemented block types will be in examples in future -> */
+        /* Note: Not implemented block types will be in examples in future -> */
         'Instrument BLOCK',
         // 'Instrument', // <- Note: [⛱]
         'Action BLOCK',
@@ -104,7 +103,7 @@ export const blockCommandParser: CommandParser<BlockCommand> = {
             );
         }
 
-        // TODO: !!!! Not supported yet
+        // TODO: !!!!! Not supported yet
 
         return {
             type: 'BLOCK',

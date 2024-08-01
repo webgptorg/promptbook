@@ -257,9 +257,9 @@ export function validatePipeline(pipeline: PipelineJson): PipelineJson {
  *     >  ex port function validatePipeline(promptbook: unknown): asserts promptbook is PipelineJson {
  */
 
-
-
 /**
- * TODO: [🧠] !!!!! Validate new things
+ * TODO: [🧠][🐣] !!!! Validate that all samples match expectations
+ * TODO: [🧠][🐣] !!!! Validate that knowledge is valid (non-void)
+ * TODO: [🧠] !!! Validationg not only logic itself but imports around - files and websites and rerefenced pipelines exists
  * TODO: [🛠] Actions, instruments (and maybe knowledge) => Functions and tools
  */
