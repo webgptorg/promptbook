@@ -9,7 +9,7 @@ import { writeFile } from 'fs/promises';
 import { join } from 'path';
 import { collectionToJson } from '../../src/collection/collectionToJson';
 import { createCollectionFromDirectory } from '../../src/collection/constructors/createCollectionFromDirectory';
-import { getLlmToolsForTestingAndScriptsAndPlayground } from '../../src/knowledge/prepare-knowledge/_common/utils/getLlmToolsForTestingAndScriptsAndPlayground';
+import { getLlmToolsForTestingAndScriptsAndPlayground } from '../../src/llm-providers/_common/getLlmToolsForTestingAndScriptsAndPlayground';
 import { commit } from '../utils/autocommit/commit';
 
 if (process.cwd() !== join(__dirname, '../..')) {
