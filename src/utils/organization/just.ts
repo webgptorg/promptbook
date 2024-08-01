@@ -8,6 +8,7 @@ import type { really_any } from './really_any';
  *
  * @param value any values
  * @returns the same values
+ * @private within the repository
  */
 export function just<T>(value?: T): T {
     if (value === undefined) {

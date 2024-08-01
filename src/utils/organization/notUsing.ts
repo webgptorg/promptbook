@@ -8,6 +8,7 @@ import type { really_any } from './really_any';
  *
  * @param value any values
  * @returns void
+ * @private within the repository
  */
 export function notUsing(...value: Array<really_any>): void {
     // Note: Do nothing
