@@ -1,5 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
-import { addUsage, ZERO_USAGE } from './addUsage';
+import { addUsage } from './addUsage';
+import { ZERO_USAGE } from './addUsage';
 
 describe('how addUsage works', () => {
     it('should create void usage with 0 items', () =>

@@ -1,7 +1,10 @@
 import { LimitReachedError } from '../../../../errors/LimitReachedError';
 import { NotYetImplementedError } from '../../../../errors/NotYetImplementedError';
 import type { LlmExecutionTools } from '../../../../execution/LlmExecutionTools';
-import type { PromptChatResult, PromptCompletionResult, PromptEmbeddingResult, PromptResultUsage } from '../../../../execution/PromptResult';
+import type { PromptChatResult } from '../../../../execution/PromptResult';
+import type { PromptCompletionResult } from '../../../../execution/PromptResult';
+import type { PromptEmbeddingResult } from '../../../../execution/PromptResult';
+import type { PromptResultUsage } from '../../../../execution/PromptResult';
 import { ZERO_USAGE } from '../../../../execution/utils/addUsage';
 import { MemoryStorage } from '../../../../storage/memory/MemoryStorage';
 import type { PromptbookStorage } from '../../../../storage/_common/PromptbookStorage';
