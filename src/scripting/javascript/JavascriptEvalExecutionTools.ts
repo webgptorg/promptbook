@@ -16,7 +16,6 @@ import { normalizeWhitespaces as _normalizeWhitespaces } from '../../utils/norma
 import { parseKeywordsFromString } from '../../utils/normalization/parseKeywordsFromString';
 import { removeDiacritics as _removeDiacritics } from '../../utils/normalization/removeDiacritics';
 import { TODO } from '../../utils/organization/TODO';
-import { extractBlock } from '../../utils/postprocessing/extractBlock';
 import { removeEmojis as _removeEmojis } from '../../utils/removeEmojis';
 import { removeQuotes as _removeQuotes } from '../../utils/removeQuotes';
 import { trimCodeBlock as _trimCodeBlock } from '../../utils/trimCodeBlock';
@@ -25,6 +24,7 @@ import { unwrapResult as _unwrapResult } from '../../utils/unwrapResult';
 import type { JavascriptExecutionToolsOptions } from './JavascriptExecutionToolsOptions';
 import { preserve } from './utils/preserve';
 import { unknownToString } from './utils/unknownToString';
+import { extractBlock } from '../../postprocessing/utils/extractBlock';
 
 /**
  * ScriptExecutionTools for JavaScript implemented via eval

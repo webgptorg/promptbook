@@ -1,6 +1,7 @@
 // @promptbook/execute-javascript
 
 import spaceTrim from 'spacetrim';
+import { extractBlock } from '../postprocessing/utils/extractBlock';
 import { JavascriptEvalExecutionTools } from '../scripting/javascript/JavascriptEvalExecutionTools';
 import { JavascriptExecutionTools } from '../scripting/javascript/JavascriptExecutionTools';
 import { prettifyMarkdown } from '../utils/markdown/prettifyMarkdown';
@@ -16,7 +17,6 @@ import { normalizeTo_snake_case } from '../utils/normalization/normalizeTo_snake
 import { normalizeWhitespaces } from '../utils/normalization/normalizeWhitespaces';
 import { parseKeywordsFromString } from '../utils/normalization/parseKeywordsFromString';
 import { removeDiacritics } from '../utils/normalization/removeDiacritics';
-import { extractBlock } from '../utils/postprocessing/extractBlock';
 import { removeEmojis } from '../utils/removeEmojis';
 import { removeQuotes } from '../utils/removeQuotes';
 import { trimCodeBlock } from '../utils/trimCodeBlock';
