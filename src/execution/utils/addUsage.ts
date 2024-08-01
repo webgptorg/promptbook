@@ -1,4 +1,6 @@
 import type { WritableDeep } from 'type-fest';
+import { deepClone } from '../../utils/deepClone';
+import { deepFreeze } from '../../utils/deepFreeze';
 import type { PromptResultUsage } from '../PromptResult';
 
 /**
@@ -6,7 +8,7 @@ import type { PromptResultUsage } from '../PromptResult';
  *
  * TODO: [🔼] Export with addUsage
  */
-export const ZERO_USAGE = {
+export const ZERO_USAGE = deepFreeze({
     price: { value: 0 },
     input: {
         tokensCount: { value: 0 },
@@ -26,7 +28,7 @@ export const ZERO_USAGE = {
         paragraphsCount: { value: 0 },
         pagesCount: { value: 0 },
     },
-} as const satisfies PromptResultUsage;
+} as const satisfies PromptResultUsage);
 
 /**
  * Function `addUsage` will add multiple usages into one
@@ -34,9 +36,7 @@ export const ZERO_USAGE = {
  * Note: If you provide 0 values, it returns ZERO_USAGE
  */
 export function addUsage(...usageItems: Array<PromptResultUsage>): PromptResultUsage {
-    const initialStructure: WritableDeep<PromptResultUsage> = ZERO_USAGE;
-
-    return usageItems.reduce((acc: WritableDeep<PromptResultUsage>, item) => {
+    return usageItems.reduce<PromptResultUsage>((acc: WritableDeep<PromptResultUsage>, item) => {
         acc.price.value += item.price?.value || 0;
 
         for (const key of Object.keys(acc.input)) {
@@ -74,5 +74,5 @@ export function addUsage(...usageItems: Array<PromptResultUsage>): PromptResultU
         }
 
         return acc;
-    }, initialStructure);
+    }, deepClone(ZERO_USAGE));
 }

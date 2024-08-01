@@ -1,3 +1,5 @@
+import { deepFreeze } from './utils/deepFreeze';
+
 /**
  * The maximum number of iterations for a loops
  */
@@ -26,11 +28,11 @@ export const PIPELINE_COLLECTION_BASE_FILENAME = `index`;
 /**
  * The names of the parameters that are reserved for special purposes
  */
-export const RESERVED_PARAMETER_NAMES = [
+export const RESERVED_PARAMETER_NAMES = deepFreeze([
     'context',
     // <- TODO: Add more like 'date', 'modelName',...
     // <- TODO: Add [emoji] + instructions ACRY when adding new reserved parameter
-];
+]);
 
 /*
 TODO: !!! Just testing false-negative detection of [🟡][🟢][🔵][⚪] leak
