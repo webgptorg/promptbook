@@ -1,0 +1,103 @@
+{
+    "date": "2024-07-31T20:07:33.246Z",
+    "promptbookVersion": "0.61.0-10",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-title.ptbk.md#knowledge",
+        "parameters": {
+            "content": "Springfield is the county seat of Sangamon County."
+        },
+        "content": "You are experienced content creator, write best title for the document.\n\n# Rules\n\n-   Write just title, nothing else\n-   Title should be concise and clear\n-   Write maximum 5 words for the title\n\n# The document\n\n> Springfield is the county seat of Sangamon County.",
+        "modelRequirements": {
+            "modelVariant": "CHAT",
+            "modelName": "claude-3-opus-20240229"
+        },
+        "expectations": {
+            "words": {
+                "min": 1,
+                "max": 8
+            }
+        },
+        "postprocessing": []
+    },
+    "promptResult": {
+        "content": "Springfield: Sangamon County Seat",
+        "modelName": "claude-3-opus-20240229",
+        "timing": {
+            "start": "2024-07-31T20:07:31.797Z",
+            "complete": "2024-07-31T20:07:33.246Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0,
+                "isUncertain": true
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 0,
+                    "isUncertain": true
+                },
+                "charactersCount": {
+                    "value": 264
+                },
+                "wordsCount": {
+                    "value": 40
+                },
+                "sentencesCount": {
+                    "value": 2
+                },
+                "linesCount": {
+                    "value": 11
+                },
+                "paragraphsCount": {
+                    "value": 5
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 0,
+                    "isUncertain": true
+                },
+                "charactersCount": {
+                    "value": 264
+                },
+                "wordsCount": {
+                    "value": 40
+                },
+                "sentencesCount": {
+                    "value": 2
+                },
+                "linesCount": {
+                    "value": 11
+                },
+                "paragraphsCount": {
+                    "value": 5
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawResponse": {
+            "id": "msg_01CCweELikBE4Yau1Cf22DJE",
+            "type": "message",
+            "role": "assistant",
+            "model": "claude-3-opus-20240229",
+            "content": [
+                {
+                    "type": "text",
+                    "text": "Springfield: Sangamon County Seat"
+                }
+            ],
+            "stop_reason": "end_turn",
+            "stop_sequence": null,
+            "usage": {
+                "input_tokens": 71,
+                "output_tokens": 10
+            }
+        }
+    }
+}

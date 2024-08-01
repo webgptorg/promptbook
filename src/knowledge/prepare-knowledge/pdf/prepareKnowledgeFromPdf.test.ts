@@ -5,15 +5,12 @@ import { getLlmToolsForTestingAndScriptsAndPlayground } from '../_common/utils/g
 import { prepareKnowledgeFromPdf } from './prepareKnowledgeFromPdf';
 
 describe('how creating knowledge from pdf works', () => {
-    // TODO: !!!! Read here the samples directory
+    // TODO: !! Read here the samples directory (same as prepareKnowledgeFromMarkdown.test.ts)
 
     it('should work with simple piece of information', async () =>
         expect(
             prepareKnowledgeFromPdf(await readFile(join(__dirname, 'samples/10-simple.pdf'), 'base64'), {
                 llmTools: getLlmToolsForTestingAndScriptsAndPlayground(),
             }),
-        ).resolves.toMatchObject([
-            // TODO: !!!! Test this with real cached implementation
-            {},
-        ]));
+        ).resolves.toMatchObject([]));
 });

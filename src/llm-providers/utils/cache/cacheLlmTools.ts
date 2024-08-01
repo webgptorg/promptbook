@@ -66,7 +66,7 @@ export function cacheLlmTools(
     }
 
     /*
-    TODO: !!!! Implement
+    TODO: !!!!! Implement
     if (llmTools.callCompletionModel !== undefined) {
         proxyTools.callCompletionModel = async (prompt: Prompt): Promise<PromptCompletionResult> => {};
     }

@@ -3,7 +3,6 @@ import type { PrepareOptions } from '../../../prepare/PrepareOptions';
 import type { KnowledgePiecePreparedJson } from '../../../types/PipelineJson/KnowledgePieceJson';
 import type { string_base64 } from '../../../types/typeAliases';
 import { TODO_USE } from '../../../utils/organization/TODO_USE';
-import { prepareKnowledgeFromMarkdown } from '../markdown/prepareKnowledgeFromMarkdown';
 
 /**
  * @@@
@@ -23,9 +22,9 @@ export async function prepareKnowledgeFromPdf(
     }
     */
 
-    // TODO: !!! Convert PDF to markdown
+    // TODO: Convert PDF to markdown
 
-    return prepareKnowledgeFromMarkdown('TODO: !!! Convert PDF to markdown', options);
+    return [];
 }
 
 /**
