@@ -45,3 +45,8 @@ export class SimplePromptInterfaceTools implements UserInterfaceTools {
         return answer;
     }
 }
+
+
+/**
+ * Note: [🔵] This code should never be published outside of `@promptbook/browser`
+ */

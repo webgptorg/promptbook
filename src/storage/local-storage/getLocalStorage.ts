@@ -16,5 +16,5 @@ export function getLocalStorage<TItem>(): PromptbookStorage<TItem> {
 
 /**
  * TODO: [🔼] !!! Export via `@promptbook/browser`
- * Export through `@promptbook/browser`
+ * Note: [🔵] This code should never be published outside of `@promptbook/browser`
  */

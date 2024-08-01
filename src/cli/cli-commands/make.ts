@@ -203,3 +203,8 @@ export function initializeMakeCommand(program: Program) {
         process.exit(0);
     });
 }
+
+
+/**
+ * Note: [🟡] This code should never be published outside of `@promptbook/cli`
+ */

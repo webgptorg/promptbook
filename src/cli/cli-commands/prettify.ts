@@ -1,5 +1,5 @@
 import colors from 'colors';
-import type { Command as Program  /* <- Note: Using Program because Command is misleading name */} from 'commander';
+import type { Command as Program /* <- Note: Using Program because Command is misleading name */ } from 'commander';
 import { readFile, writeFile } from 'fs/promises';
 import glob from 'glob-promise';
 import spaceTrim from 'spacetrim';
@@ -61,3 +61,7 @@ export function initializePrettifyCommand(program: Program) {
         process.exit(0);
     });
 }
+
+/**
+ * Note: [🟡] This code should never be published outside of `@promptbook/cli`
+ */

@@ -52,6 +52,16 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
 
     await execCommand(`npx rollup --config rollup.config.js`);
 
+    /*
+    TODO: !!! Test that:
+    - Test umd, esm, typings and everything else
+
+    [🟡] This code should never be published outside of `@promptbook/cli`
+    [🟢] This code should never be published outside of `@promptbook/node`
+    [🔵] This code should never be published outside of `@promptbook/browser`
+    [⚪] This should never be in any released package
+    */
+
     const mainPackageJson = JSON.parse(await readFile('./package.json', 'utf-8')) as PackageJson;
 
     if (!mainPackageJson.version) {

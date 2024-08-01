@@ -9,8 +9,7 @@ import { validatePipeline } from '../../conversion/validation/validatePipeline';
 import { CollectionError } from '../../errors/CollectionError';
 import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import type { PipelineString } from '../../types/PipelineString';
-import type { string_file_path } from '../../types/typeAliases';
-import type { string_folder_path } from '../../types/typeAliases';
+import type { string_file_path, string_folder_path } from '../../types/typeAliases';
 import { isRunningInNode } from '../../utils/isRunningInWhatever';
 import type { PipelineCollection } from '../PipelineCollection';
 import { createCollectionFromPromise } from './createCollectionFromPromise';
@@ -205,4 +204,5 @@ async function listAllFiles(path: string_folder_path, isRecursive: boolean): Pro
 
 /**
  * TODO: !!!! [🧠] Library precompilation and do not mix markdown and json promptbooks
+ * Note: [🟢] This code should never be published outside of `@promptbook/node`
  */
