@@ -505,7 +505,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
         }
 
         // TODO: [🍧] What actually about preparation and pushing the block into `promptTemplates`
-        pipelineJson.promptTemplates.push(template as TODO /* <- !!!!! */);
+        pipelineJson.promptTemplates.push(template);
     }
 
     // =============================================================
