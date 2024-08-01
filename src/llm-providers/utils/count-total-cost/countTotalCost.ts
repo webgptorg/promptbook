@@ -1,9 +1,12 @@
 import type { Promisable } from 'type-fest';
-import { addUsage } from '../../../_packages/core.index';
-import type { AvailableModel, LlmExecutionTools } from '../../../execution/LlmExecutionTools';
-import type { PromptChatResult, PromptCompletionResult, PromptEmbeddingResult } from '../../../execution/PromptResult';
+import { addUsage } from '../../../execution/utils/addUsage';
+import type { AvailableModel } from '../../../execution/LlmExecutionTools';
+import type { LlmExecutionTools } from '../../../execution/LlmExecutionTools';
+import type { PromptChatResult } from '../../../execution/PromptResult';
+import type { PromptCompletionResult } from '../../../execution/PromptResult';
+import type { PromptEmbeddingResult } from '../../../execution/PromptResult';
 import type { Prompt } from '../../../types/Prompt';
-import { LlmExecutionToolsWithTotalCost } from './LlmExecutionToolsWithTotalCost';
+import type { LlmExecutionToolsWithTotalCost } from './LlmExecutionToolsWithTotalCost';
 
 /**
  * Intercepts LLM tools and counts total usage of the tools

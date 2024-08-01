@@ -1,13 +1,16 @@
 import hexEncoder from 'crypto-js/enc-hex';
 import sha256 from 'crypto-js/sha256';
 import type { Promisable } from 'type-fest';
-import { $currentDate, PROMPTBOOK_VERSION, titleToName } from '../../../_packages/utils.index';
+import { $currentDate } from '../../../utils/currentDate';
+import { PROMPTBOOK_VERSION } from '../../../version';
+import { titleToName } from '../../../conversion/utils/titleToName';
 import { MAX_FILENAME_LENGTH } from '../../../config';
-import type { AvailableModel, LlmExecutionTools } from '../../../execution/LlmExecutionTools';
+import type { AvailableModel } from '../../../execution/LlmExecutionTools';
+import type { LlmExecutionTools } from '../../../execution/LlmExecutionTools';
 import type { PromptChatResult } from '../../../execution/PromptResult';
 import { MemoryStorage } from '../../../storage/memory/MemoryStorage';
 import type { Prompt } from '../../../types/Prompt';
-import { CacheLlmToolsOptions } from './CacheLlmToolsOptions';
+import type { CacheLlmToolsOptions } from './CacheLlmToolsOptions';
 
 /**
  * Intercepts LLM tools and counts total usage of the tools

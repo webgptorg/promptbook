@@ -1,4 +1,4 @@
-import { string_folder_path } from '../../types/typeAliases';
+import type { string_folder_path } from '../../types/typeAliases';
 
 /**
  * @@@

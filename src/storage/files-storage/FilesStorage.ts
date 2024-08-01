@@ -2,12 +2,12 @@ import hexEncoder from 'crypto-js/enc-hex';
 import sha256 from 'crypto-js/sha256';
 import { mkdir, readFile, stat, unlink, writeFile } from 'fs/promises';
 import { dirname, join } from 'path';
-import { titleToName } from '../../_packages/utils.index';
+import { titleToName } from '../../conversion/utils/titleToName';
 import { EnvironmentMismatchError } from '../../errors/EnvironmentMismatchError';
-import { string_file_path } from '../../types/typeAliases';
+import type { string_file_path } from '../../types/typeAliases';
 import { isRunningInNode } from '../../utils/isRunningInWhatever';
-import { PromptbookStorage } from '../_common/PromptbookStorage';
-import { FilesStorageOptions } from './FilesStorageOptions';
+import type { PromptbookStorage } from '../_common/PromptbookStorage';
+import type { FilesStorageOptions } from './FilesStorageOptions';
 import { nameToSubfolderPath } from './utils/nameToSubfolderPath';
 import { MAX_FILENAME_LENGTH } from '../../config';
 

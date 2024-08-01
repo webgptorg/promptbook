@@ -1,6 +1,6 @@
 import { isRunningInBrowser } from 'openai/core';
 import { EnvironmentMismatchError } from '../../errors/EnvironmentMismatchError';
-import { PromptbookStorage } from '../_common/PromptbookStorage';
+import type { PromptbookStorage } from '../_common/PromptbookStorage';
 import { makePromptbookStorageFromWebStorage } from '../utils/makePromptbookStorageFromWebStorage';
 
 /**
