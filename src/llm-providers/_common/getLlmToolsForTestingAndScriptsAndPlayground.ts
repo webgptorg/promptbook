@@ -27,10 +27,10 @@ export function getLlmToolsForTestingAndScriptsAndPlayground(): LlmExecutionTool
         // Note: In normal situations, we "turn off" ability to use real API keys in tests:
 
         // When working on preparations, you can use:
-        //createLlmToolsFromEnv(),
+        createLlmToolsFromEnv(),
 
         // BUT otherwise keep this by default:
-        new MockedFackedLlmExecutionTools(),
+        //new MockedFackedLlmExecutionTools(), // <- TODO: !!!! Make this work
         {
             storage: new FilesStorage({ cacheFolderPath: join(process.cwd(), '/executions-cache') }),
         },
