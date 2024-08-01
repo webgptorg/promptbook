@@ -5,7 +5,8 @@ import * as dotenv from 'dotenv';
 dotenv.config({ path: '.env' });
 
 import chalk from 'colors';
-import { embeddingVectorToString } from '../../../execution/embeddingVectorToString';
+import { Prompt } from '../../../types/Prompt';
+import { keepUnused } from '../../../utils/organization/keepUnused';
 import { OpenAiExecutionTools } from '../OpenAiExecutionTools';
 
 playground()
@@ -29,6 +30,9 @@ async function playground() {
         apiKey: process.env.OPENAI_API_KEY!,
     });
 
+    keepUnused(openAiExecutionTools);
+    keepUnused<Prompt>();
+
     /*/
     const models = await openAiExecutionTools.listModels();
     console.info({ models });
@@ -40,7 +44,7 @@ async function playground() {
         modelRequirements: {
             modelVariant: 'COMPLETION',
         },
-    } as const;
+    } satisfies Prompt as const;
     const promptResult = await openAiExecutionTools.callCompletionModel(prompt);
     console.info({ promptResult });
     console.info(chalk.green(prompt.content + promptResult.content));
@@ -63,7 +67,7 @@ async function playground() {
     // TODO: Test Translations in playground
     /**/
 
-    /**/
+    /*/
     const prompt = {
         content: `Hello, my name is Alice.`,
         modelRequirements: {

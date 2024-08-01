@@ -2,7 +2,7 @@ import { describe, expect, it } from '@jest/globals';
 import spaceTrim from 'spacetrim';
 import { pipelineStringToJson } from '../../conversion/pipelineStringToJson';
 import type { PipelineString } from '../../types/PipelineString';
-import { notUsing } from '../../utils/organization/notUsing';
+import { keepUnused } from '../../utils/organization/keepUnused';
 import type { really_any } from '../../utils/organization/really_any';
 import { createCollectionFromDirectory } from './createCollectionFromDirectory';
 
@@ -115,7 +115,7 @@ describe('createCollectionFromDirectory', () => {
                     isRecursive: true,
                     isLazyLoaded: true,
                 });
-                notUsing(collection);
+                keepUnused(collection);
             })(),
         ).resolves.not.toThrow());
 
@@ -129,7 +129,7 @@ describe('createCollectionFromDirectory', () => {
                     isRecursive: true,
                     isLazyLoaded: false,
                 });
-                notUsing(collection);
+                keepUnused(collection);
             })(),
         ).rejects.toThrowError(/Error during loading pipeline/i));
 

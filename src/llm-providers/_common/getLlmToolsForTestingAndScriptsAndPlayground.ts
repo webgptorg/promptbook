@@ -3,7 +3,7 @@ import { EnvironmentMismatchError } from '../../errors/EnvironmentMismatchError'
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import { FilesStorage } from '../../storage/files-storage/FilesStorage';
 import { isRunningInNode } from '../../utils/isRunningInWhatever';
-import { keepImported } from '../../utils/organization/keepImported';
+import { keepUnused } from '../../utils/organization/keepUnused';
 import { MockedFackedLlmExecutionTools } from '../mocked/MockedFackedLlmExecutionTools';
 import { createLlmToolsFromEnv } from './createLlmToolsFromEnv';
 import { cacheLlmTools } from './utils/cache/cacheLlmTools';
@@ -20,8 +20,8 @@ export function getLlmToolsForTestingAndScriptsAndPlayground(): LlmExecutionTool
         );
     }
 
-    keepImported(createLlmToolsFromEnv);
-    keepImported(MockedFackedLlmExecutionTools);
+    keepUnused(createLlmToolsFromEnv);
+    keepUnused(MockedFackedLlmExecutionTools);
 
     return cacheLlmTools(
         // Note: In normal situations, we "turn off" ability to use real API keys in tests:
