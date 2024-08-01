@@ -5,6 +5,8 @@ import * as dotenv from 'dotenv';
 dotenv.config({ path: '.env' });
 
 import chalk from 'colors';
+import { Prompt } from '../../../types/Prompt';
+import { keepUnused } from '../../../utils/organization/keepUnused';
 import { AzureOpenAiExecutionTools } from '../AzureOpenAiExecutionTools';
 
 playground()
@@ -30,34 +32,41 @@ async function playground() {
         apiKey: process.env.AZUREOPENAI_API_KEY!,
     });
 
-    /**/
+    keepUnused(azureOpenAiExecutionTools);
+    keepUnused<Prompt>();
+
+    /*/
     const models = await azureOpenAiExecutionTools.listModels();
     console.info({ models });
     /**/
 
     /*/
-    const prompt = {
+    const completionPrompt = {
+        title: 'Hello',
+        parameters: {},
         content: `Hello, my name is Alice.`,
         modelRequirements: {
             modelVariant: 'COMPLETION',
         },
-    } as const;
-    const promptResult = await azureOpenAiExecutionTools.callCompletionModel(prompt);
-    console.info({ promptResult });
-    console.info(chalk.green(prompt.content + promptResult.content));
+    } as const satisfies Prompt;
+    const completionPromptResult = await azureOpenAiExecutionTools.callCompletionModel(completionPrompt);
+    console.info({ completionPromptResult });
+    console.info(chalk.green(completionPrompt.content + completionPromptResult.content));
     /**/
 
     /*/
-    const prompt = {
+    const chatPrompt = {
+        title: 'Hello',
+        parameters: {},
         content: `Hello, my name is Alice.`,
         modelRequirements: {
             modelVariant: 'CHAT',
         },
-    } as const;
-    const promptResult = await azureOpenAiExecutionTools.callChatModel(prompt);
-    console.info({ promptResult });
-    console.info(chalk.bgBlue(' User: ') + chalk.blue(prompt.content));
-    console.info(chalk.bgGreen(' Completion: ') + chalk.green(promptResult.content));
+    } as const satisfies Prompt;
+    const chatPromptResult = await azureOpenAiExecutionTools.callChatModel(chatPrompt);
+    console.info({ chatPromptResult });
+    console.info(chalk.bgBlue(' User: ') + chalk.blue(chatPrompt.content));
+    console.info(chalk.bgGreen(' Completion: ') + chalk.green(chatPromptResult.content));
     /**/
 
     /*/

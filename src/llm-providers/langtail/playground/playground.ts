@@ -5,6 +5,8 @@ import * as dotenv from 'dotenv';
 dotenv.config({ path: '.env' });
 
 import chalk from 'colors';
+import { Prompt } from '../../../types/Prompt';
+import { keepUnused } from '../../../utils/organization/keepUnused';
 import { LangtailExecutionTools } from '../LangtailExecutionTools';
 
 playground()
@@ -28,7 +30,10 @@ async function playground() {
         apiKey: process.env.LANGTAIL_API_KEY!,
     });
 
-    /**/
+    keepUnused(langtailExecutionTools);
+    keepUnused<Prompt>();
+
+    /*/
     //TODO: [🦻] This should work
     const models = await langtailExecutionTools.listModels();
     console.info({ models });
@@ -36,33 +41,37 @@ async function playground() {
 
     /*/
     // TODO: [🦻] This should work
-    const prompt = {
+    const completionPrompt = {
+        title: 'Hello',
+        parameters: {},
         content: `Hello, my name is Alice.`,
         modelRequirements: {
             modelVariant: 'COMPLETION',
         },
-    } as const;
-    const promptResult = await langtailExecutionTools.callCompletionModel(prompt);
-    console.info({ promptResult });
-    console.info(chalk.green(prompt.content + promptResult.content));
+    } as const satisfies Prompt;
+    const completionPromptResult = await langtailExecutionTools.callCompletionModel(completionPrompt);
+    console.info({ completionPromptResult });
+    console.info(chalk.green(completionPrompt.content + completionPromptResult.content));
     /**/
 
     /*/
     // TODO: [🦻] This should work
-    const prompt = {
+    const chatPrompt = {
+        title: 'Hello',
+        parameters: {},
         content: `Hello, my name is Alice.`,
         modelRequirements: {
             modelVariant: 'CHAT',
         },
-    } as const;
-    const promptResult = await langtailExecutionTools.callChatModel(prompt);
-    console.info({ promptResult });
-    console.info(chalk.bgBlue(' User: ') + chalk.blue(prompt.content));
-    console.info(chalk.bgGreen(' Completion: ') + chalk.green(promptResult.content));
+    } as const satisfies Prompt;
+    const chatPromptResult = await langtailExecutionTools.callChatModel(chatPrompt);
+    console.info({ chatPromptResult });
+    console.info(chalk.bgBlue(' User: ') + chalk.blue(chatPrompt.content));
+    console.info(chalk.bgGreen(' Completion: ') + chalk.green(chatPromptResult.content));
     /**/
 
     /*/
-    // <- Note: [🤖] Test here new model variant if needed 
+    // <- Note: [🤖] Test here new model variant if needed
     /**/
 
     //========================================/

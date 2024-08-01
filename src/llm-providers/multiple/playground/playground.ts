@@ -7,6 +7,8 @@ dotenv.config({ path: '.env' });
 import chalk from 'colors';
 import { embeddingVectorToString } from '../../../execution/embeddingVectorToString';
 import { JavascriptExecutionTools } from '../../../scripting/javascript/JavascriptExecutionTools';
+import { Prompt } from '../../../types/Prompt';
+import { keepUnused } from '../../../utils/organization/keepUnused';
 import { AnthropicClaudeExecutionTools } from '../../anthropic-claude/AnthropicClaudeExecutionTools';
 import { AzureOpenAiExecutionTools } from '../../azure-openai/AzureOpenAiExecutionTools';
 import { OpenAiExecutionTools } from '../../openai/OpenAiExecutionTools';
@@ -50,54 +52,60 @@ async function playground() {
     };
     const llmTools = joinLlmExecutionTools(...tools.llm);
 
-    /**/
+    keepUnused(llmTools);
+    keepUnused(embeddingVectorToString);
+    keepUnused<Prompt>();
+
+    /*/
     const models = await llmTools.listModels();
     console.info(llmTools.title, llmTools.description);
     console.info({ models });
     /**/
 
     /*/
-    const prompt = {
+    const completionPrompt = {
+        title: 'Hello',
+        parameters: {},
         content: `Hello, my name is Alice.`,
         modelRequirements: {
             modelVariant: 'COMPLETION',
         },
-    } as const;
-    const promptResult = await executionTools.callCompletionModel(prompt);
-    console.info({ promptResult });
-    console.info(chalk.green(prompt.content + promptResult.content));
+    } as const satisfies Prompt;
+    const completionPromptResult = await llmTools.callCompletionModel(completionPrompt);
+    console.info({ completionPromptResult });
+    console.info(chalk.green(completionPrompt.content + completionPromptResult.content));
     /**/
 
     /*/
-    const prompt = {
-        title: 'A chat',
+    const chatPrompt = {
+        title: 'Hello',
+        parameters: {},
         content: `Hello, my name is Alice.`,
         modelRequirements: {
             // modelName: 'foo',
             modelVariant: 'CHAT',
         },
-        parameters: {},
-    } as const;
-    const promptResult = await executionTools.callChatModel(prompt);
-    console.info({ promptResult });
-    console.info(chalk.bgBlue(' User: ') + chalk.blue(prompt.content));
-    console.info(chalk.bgGreen(' Completion: ') + chalk.green(promptResult.content));
+    } as const satisfies Prompt;
+    const chatPromptResult = await llmTools.callChatModel(chatPrompt);
+    console.info({ chatPromptResult });
+    console.info(chalk.bgBlue(' User: ') + chalk.blue(chatPrompt.content));
+    console.info(chalk.bgGreen(' Completion: ') + chalk.green(chatPromptResult.content));
     /**/
 
     /*/
     // TODO: Test Translations in playground
     /**/
 
-    /**/
+    /*/
     const prompt = {
         title: 'Embedding Prompt',
+        parameters: {},
         content: `Hello, my name is Alice.`,
         modelRequirements: {
             modelVariant: 'EMBEDDING',
             // modelName: 'text-embedding-ada-002',
         },
-        parameters: {},
-    } as const;
+    } as const satisfies Prompt;
     const promptResult = await llmTools.callEmbeddingModel(prompt);
     console.info({ promptResult });
     console.info(chalk.bgBlue(' User: ') + chalk.blue(prompt.content));
