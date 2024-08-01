@@ -66,7 +66,7 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools {
             const modelSettings = {
                 maxTokens: modelRequirements.maxTokens,
                 //                                      <- TODO: Make some global max cap for maxTokens
-                // <- TODO: !!!!! Use here `systemMessage`, `temperature` and `seed`
+                // <- TODO: !!!!!! Use here `systemMessage`, `temperature` and `seed`
                 user: this.options.user,
             };
 
@@ -155,7 +155,7 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools {
             const modelSettings = {
                 maxTokens: modelRequirements.maxTokens || 2000, // <- Note: 2000 is for lagacy reasons
                 //                                                  <- TODO: Make some global max cap for maxTokens
-                // <- TODO: !!!!! Use here `systemMessage`, `temperature` and `seed`
+                // <- TODO: !!!!!! Use here `systemMessage`, `temperature` and `seed`
                 user: this.options.user,
             };
 
