@@ -74,9 +74,9 @@ export const blockCommandParser: CommandParser<BlockCommand> = {
 
         //---
         /* Note: Not implemented block types will be in examples in future -> */
-        'Instrument BLOCK',
+        // TODO: [1]> 'Instrument BLOCK',
         // 'Instrument', // <- Note: [⛱]
-        'Action BLOCK',
+        // TODO: [1]>'Action BLOCK',
         // 'Action', // <- Note: [⛱]
         //---
         /* <- TODO: [🧠] Maybe dynamic */
@@ -106,6 +106,7 @@ export const blockCommandParser: CommandParser<BlockCommand> = {
 
         const blockType = blockTypes[0]!;
 
+        // TODO: [1] Remove following condition when ACTION and INSTRUMENT are implemented
         if (blockType === 'ACTION' || blockType === 'INSTRUMENT') {
             throw new NotYetImplementedError(`Block type "${blockType}" is not supported yet`);
         }
