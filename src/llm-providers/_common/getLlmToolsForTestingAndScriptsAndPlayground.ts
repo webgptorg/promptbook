@@ -4,7 +4,7 @@ import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import { FilesStorage } from '../../storage/files-storage/FilesStorage';
 import { isRunningInNode } from '../../utils/isRunningInWhatever';
 import { keepImported } from '../../utils/organization/keepImported';
-import { joinLlmExecutionTools } from '../multiple/joinLlmExecutionTools';
+import { MockedFackedLlmExecutionTools } from '../mocked/MockedFackedLlmExecutionTools';
 import { createLlmToolsFromEnv } from './createLlmToolsFromEnv';
 import { cacheLlmTools } from './utils/cache/cacheLlmTools';
 
@@ -21,7 +21,7 @@ export function getLlmToolsForTestingAndScriptsAndPlayground(): LlmExecutionTool
     }
 
     keepImported(createLlmToolsFromEnv);
-    keepImported(joinLlmExecutionTools);
+    keepImported(MockedFackedLlmExecutionTools);
 
     return cacheLlmTools(
         // Note: In normal situations, we "turn off" ability to use real API keys in tests:
@@ -30,7 +30,7 @@ export function getLlmToolsForTestingAndScriptsAndPlayground(): LlmExecutionTool
         //createLlmToolsFromEnv(),
 
         // BUT otherwise keep this by default:
-        joinLlmExecutionTools(),
+        new MockedFackedLlmExecutionTools(),
         {
             storage: new FilesStorage({ cacheFolderPath: join(process.cwd(), '/executions-cache') }),
         },

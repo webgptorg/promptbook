@@ -1,15 +1,10 @@
 import type { CommonExecutionToolsOptions } from '../../execution/CommonExecutionToolsOptions';
 import type { EmbeddingVector } from '../../execution/EmbeddingVector';
-import type { AvailableModel } from '../../execution/LlmExecutionTools';
-import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { PromptChatResult } from '../../execution/PromptResult';
-import type { PromptCompletionResult } from '../../execution/PromptResult';
-import type { PromptEmbeddingResult } from '../../execution/PromptResult';
+import type { AvailableModel, LlmExecutionTools } from '../../execution/LlmExecutionTools';
+import type { PromptChatResult, PromptCompletionResult, PromptEmbeddingResult } from '../../execution/PromptResult';
 import { addUsage } from '../../execution/utils/addUsage';
 import type { Prompt } from '../../types/Prompt';
-import type { string_markdown } from '../../types/typeAliases';
-import type { string_markdown_text } from '../../types/typeAliases';
-import type { string_title } from '../../types/typeAliases';
+import type { string_markdown, string_markdown_text, string_title } from '../../types/typeAliases';
 import { getCurrentIsoDate } from '../../utils/getCurrentIsoDate';
 import { notUsing } from '../../utils/organization/notUsing';
 import { $fakeTextToExpectations } from './fakeTextToExpectations';
@@ -83,7 +78,9 @@ export class MockedFackedLlmExecutionTools implements LlmExecutionTools {
     ): Promise<PromptEmbeddingResult> {
         notUsing(prompt);
 
-        const content = new Array(25).fill(0).map(() => Math.random() * 2 - 1) satisfies EmbeddingVector;
+        const content = new Array(1024).fill(0).map(() => Math.random() * 2 - 1) satisfies EmbeddingVector;
+
+        // TODO: Make content vector exactly length of 1
 
         const result = {
             content,
