@@ -249,4 +249,5 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools {
 /**
  * TODO: Maybe Create some common util for callChatModel and callCompletionModel
  * TODO: Maybe make custom AzureOpenaiError
+ * TODO: [🧠][🈁] Maybe use `isDeterministic` from options
  */

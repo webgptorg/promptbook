@@ -337,4 +337,5 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
  * TODO: [🧠][🧙‍♂️] Maybe there can be some wizzard for thoose who want to use just OpenAI
  * TODO: Maybe Create some common util for callChatModel and callCompletionModel
  * TODO: Maybe make custom OpenaiError
+ * TODO: [🧠][🈁] Maybe use `isDeterministic` from options
  */

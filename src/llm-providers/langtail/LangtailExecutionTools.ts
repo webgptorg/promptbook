@@ -18,3 +18,8 @@ export class LangtailExecutionTools extends OpenAiExecutionTools implements LlmE
         return 'Use Langtail API';
     }
 }
+
+
+/**
+ * TODO: [🧠][🈁] Maybe use `isDeterministic` from options
+ */

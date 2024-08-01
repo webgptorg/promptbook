@@ -1,7 +1,4 @@
-import type { number_model_temperature } from './typeAliases';
-import type { number_seed } from './typeAliases';
-import type { string_model_name } from './typeAliases';
-import type { string_system_message } from './typeAliases';
+import type { number_model_temperature, number_seed, string_model_name, string_system_message } from './typeAliases';
 
 export const MODEL_VARIANTS = ['COMPLETION', 'CHAT', 'EMBEDDING' /* <- TODO [🏳] */ /* <- [🤖] */] as const;
 
@@ -63,7 +60,7 @@ export type ModelRequirements = {
 };
 
 /**
- * TODO: [🈁] `seed` should maybe be somewhere else (not in `ModelRequirements`) (simmilar that `user` identification is not here)
+ * TODO: [🧠][🈁] `seed` should maybe be somewhere else (not in `ModelRequirements`) (simmilar that `user` identification is not here)
  * TODO: [🧠][💱] Add more model options: `stop_token`, `logit_bias`, `logprobs` (`top_logprobs`), `top_k`, `top_p`, `presence_penalty`, `frequency_penalty`, `bestOf`, `logitBias`, `logitBiasType`,...
  *       [💱] Probbably keep using just `temperature` in Promptbook (not `top_k` and `top_p`)
  * TODO: [🛠] Actions, instruments (and maybe knowledge) => Functions and tools

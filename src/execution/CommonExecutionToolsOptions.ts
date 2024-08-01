@@ -6,5 +6,6 @@ export type CommonExecutionToolsOptions = {
 };
 
 /**
+ * TODO: [🈁] Maybe add here `isDeterministic`
  * TODO: [🧠][💙] Distinct between options passed into ExecutionTools and to ExecutionTools.execute
  */

@@ -129,5 +129,5 @@ export class MockedFackedLlmExecutionTools implements LlmExecutionTools {
 }
 
 /**
- * TODO: !!! (?[🈁]) Use here `seed`
+ * TODO: [🧠][🈁] Maybe use `isDeterministic` from options
  */
