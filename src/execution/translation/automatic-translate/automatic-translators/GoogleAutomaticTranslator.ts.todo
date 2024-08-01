@@ -68,7 +68,7 @@ export class GoogleAutomaticTranslator implements AutomaticTranslator {
             while (!translatedElement) {
 
                 if (loopLimit-- < 0) {
-                    throw new UnexpectedError('Loop limit reached during ... in `...`');
+                    throw new LimitReachedError('Loop limit reached during ... in `...`');
                 }
 
 

@@ -1,5 +1,5 @@
 import { MAX_PARALLEL_COUNT } from '../config';
-import { addUsage } from '../execution/utils/addUsage';
+import { ZERO_USAGE } from '../execution/utils/addUsage';
 import { forEachAsync } from '../execution/utils/forEachAsync';
 import { prepareKnowledgePieces } from '../knowledge/prepare-knowledge/_common/prepareKnowledgePieces';
 import { preparePersona } from '../personas/preparePersona';
@@ -38,7 +38,7 @@ export async function preparePipeline(pipeline: PipelineJson, options: PrepareOp
         id: 1, // <- TODO: [🧊] Make incremental
         // TODO: [🍥]> date: $currentDate(),
         promptbookVersion: PROMPTBOOK_VERSION,
-        modelUsage: addUsage(),
+        modelUsage: ZERO_USAGE,
     };
 
     const preparations: Array<PreparationJson> = [

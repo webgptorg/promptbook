@@ -12,19 +12,14 @@ import type { PipelineJson } from '../types/PipelineJson/PipelineJson';
 import type { PromptTemplateJson } from '../types/PipelineJson/PromptTemplateJson';
 import type { Prompt } from '../types/Prompt';
 import type { TaskProgress } from '../types/TaskProgress';
-import type { string_name } from '../types/typeAliases';
-import type { string_parameter_name } from '../types/typeAliases';
-import type { string_parameter_value } from '../types/typeAliases';
+import type { string_name, string_parameter_name, string_parameter_value } from '../types/typeAliases';
 import { arrayableToArray } from '../utils/arrayableToArray';
 import type { TODO } from '../utils/organization/TODO';
 import { PROMPTBOOK_VERSION } from '../version';
 import type { ExecutionTools } from './ExecutionTools';
 import type { PipelineExecutor } from './PipelineExecutor';
-import type { PromptChatResult } from './PromptResult';
-import type { PromptCompletionResult } from './PromptResult';
-import type { PromptEmbeddingResult } from './PromptResult';
-import type { PromptResult } from './PromptResult';
-import { addUsage } from './utils/addUsage';
+import type { PromptChatResult, PromptCompletionResult, PromptEmbeddingResult, PromptResult } from './PromptResult';
+import { addUsage, ZERO_USAGE } from './utils/addUsage';
 import { checkExpectations } from './utils/checkExpectations';
 import { replaceParameters } from './utils/replaceParameters';
 
@@ -458,6 +453,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
             let loopLimit = LOOP_LIMIT;
             while (unresovedTemplates.length > 0) {
                 if (loopLimit-- < 0) {
+                    // Note: Really UnexpectedError not LimitReachedError - this should be catched during validatePipeline
                     throw new UnexpectedError('Loop limit reached during resolving parameters pipeline execution');
                 }
 
@@ -498,7 +494,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
 
             // Note: Count usage, [🧠] Maybe put to separate function executionReportJsonToUsage + DRY [5]
             const usage = addUsage(
-                ...executionReport.promptExecutions.map(({ result }) => result?.usage || addUsage()),
+                ...executionReport.promptExecutions.map(({ result }) => result?.usage || ZERO_USAGE),
             );
 
             return {
@@ -520,7 +516,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
         }
 
         // Note: Count usage, [🧠] Maybe put to separate function executionReportJsonToUsage + DRY [5]
-        const usage = addUsage(...executionReport.promptExecutions.map(({ result }) => result?.usage || addUsage()));
+        const usage = addUsage(...executionReport.promptExecutions.map(({ result }) => result?.usage || ZERO_USAGE));
 
         return {
             isSuccessful: true,

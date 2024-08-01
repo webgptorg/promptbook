@@ -198,6 +198,7 @@ export function validatePipeline(pipeline: PipelineJson): PipelineJson {
     let loopLimit = LOOP_LIMIT;
     while (unresovedTemplates.length > 0) {
         if (loopLimit-- < 0) {
+            // Note: Really UnexpectedError not LimitReachedError - this should not happen and be caught below
             throw new UnexpectedError(
                 'Loop limit reached during detection of circular dependencies in `validatePipeline`',
             );

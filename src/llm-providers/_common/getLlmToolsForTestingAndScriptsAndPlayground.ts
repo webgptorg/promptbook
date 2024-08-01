@@ -3,10 +3,12 @@ import { EnvironmentMismatchError } from '../../errors/EnvironmentMismatchError'
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import { FilesStorage } from '../../storage/files-storage/FilesStorage';
 import { isRunningInNode } from '../../utils/isRunningInWhatever';
+import { just } from '../../utils/organization/just';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import { MockedFackedLlmExecutionTools } from '../mocked/MockedFackedLlmExecutionTools';
 import { createLlmToolsFromEnv } from './createLlmToolsFromEnv';
 import { cacheLlmTools } from './utils/cache/cacheLlmTools';
+import { limitTotalCost } from './utils/count-total-cost/limitTotalCost';
 
 /**
  * Returns LLM tools for testing purposes
@@ -23,18 +25,21 @@ export function getLlmToolsForTestingAndScriptsAndPlayground(): LlmExecutionTool
     keepUnused(createLlmToolsFromEnv);
     keepUnused(MockedFackedLlmExecutionTools);
 
-    return cacheLlmTools(
+    let llmTools: LlmExecutionTools = createLlmToolsFromEnv();
+
+    if (
         // Note: In normal situations, we "turn off" ability to use real API keys in tests:
+        just(true)
 
         // When working on preparations, you can use:
-        createLlmToolsFromEnv(),
+        // just(false)
+    ) {
+        llmTools = limitTotalCost(llmTools);
+    }
 
-        // BUT otherwise keep this by default:
-        //new MockedFackedLlmExecutionTools(), // <- TODO: !!!!! Make this work
-        {
-            storage: new FilesStorage({ cacheFolderPath: join(process.cwd(), '/executions-cache') }),
-        },
-    );
+    return cacheLlmTools(llmTools, {
+        storage: new FilesStorage({ cacheFolderPath: join(process.cwd(), '/executions-cache') }),
+    });
 }
 
 /**

@@ -1,4 +1,5 @@
 import { LOOP_LIMIT } from '../../config';
+import { LimitReachedError } from '../../errors/LimitReachedError';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { Parameters } from '../../types/Parameters';
@@ -26,7 +27,7 @@ export function replaceParameters(template: string_template, parameters: Paramet
             .exec(replacedTemplate))
     ) {
         if (loopLimit-- < 0) {
-            throw new UnexpectedError('Loop limit reached during parameters replacement in `replaceParameters`');
+            throw new LimitReachedError('Loop limit reached during parameters replacement in `replaceParameters`');
         }
 
         const precol = match.groups!.precol!;
