@@ -9,7 +9,7 @@ import { cacheLlmTools } from './utils/cache/cacheLlmTools';
 /**
  * Returns LLM tools for CLI
  *
- * @private within the package - for CLI utils
+ * @private within the repository - for CLI utils
  */
 export function getLlmToolsForCli(): LlmExecutionTools {
     if (!isRunningInNode()) {

@@ -3,7 +3,7 @@ import type { FromtoItems } from '../../utils/FromtoItems';
 /**
  * Count the duration of working time
  *
- * @private within the package
+ * @private within the repository
  */
 export function countWorkingDuration(items: FromtoItems): number {
     const steps = Array.from(new Set(items.flatMap((item) => [item.from, item.to])));

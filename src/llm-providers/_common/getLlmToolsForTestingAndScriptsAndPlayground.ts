@@ -11,7 +11,7 @@ import { cacheLlmTools } from './utils/cache/cacheLlmTools';
 /**
  * Returns LLM tools for testing purposes
  *
- * @private within the package - JUST FOR TESTS, SCRIPTS AND PLAYGROUND
+ * @private within the repository - JUST FOR TESTS, SCRIPTS AND PLAYGROUND
  */
 export function getLlmToolsForTestingAndScriptsAndPlayground(): LlmExecutionTools {
     if (!isRunningInNode()) {
