@@ -7,3 +7,7 @@ export const PROMPTBOOK_VERSION: string_promptbook_version = '0.61.0-11';
 
 export type string_promptbook_version = string_semantic_version;
 // TODO: !!!! List here all the versions and annotate + put into script
+
+/**
+ * TODO: [🔼] !!! Export via `@promptbook/code`
+ */

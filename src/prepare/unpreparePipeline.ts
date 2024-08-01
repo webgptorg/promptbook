@@ -19,5 +19,6 @@ export function unpreparePipeline(pipeline: PipelineJson): PipelineJson {
 }
 
 /**
+ * TODO: [🔼] !!! Export via `@promptbook/core`
  * TODO: Write tests for `preparePipeline`
  */

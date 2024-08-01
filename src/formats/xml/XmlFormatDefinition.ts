@@ -43,4 +43,5 @@ export const XmlFormatDefinition: FormatDefinition<string /* <-[0] */, string /*
  * TODO: [🍓] In `XmlFormatDefinition` implement partial `canBeValid`
  * TODO: [🍓] In `XmlFormatDefinition` implement `heal
  * TODO: [🍓] In `XmlFormatDefinition` implement `extractValues`
+ * TODO: [🏢] Allow to expect something inside XML and other formats
  */

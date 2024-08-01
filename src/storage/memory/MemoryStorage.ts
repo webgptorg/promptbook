@@ -48,3 +48,7 @@ export class MemoryStorage<TItem> implements PromptbookStorage<TItem> {
         delete this.storage[key];
     }
 }
+
+/**
+ * TODO: [🔼] !!! Export via `@promptbook/core`
+ */

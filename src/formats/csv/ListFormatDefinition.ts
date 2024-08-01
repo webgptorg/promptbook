@@ -39,4 +39,5 @@ export const CsvFormatDefinition: FormatDefinition<string /* <-[0] */, string /*
  * TODO: [🍓] In `CsvFormatDefinition` implement partial `canBeValid`
  * TODO: [🍓] In `CsvFormatDefinition` implement `heal
  * TODO: [🍓] In `CsvFormatDefinition` implement `extractValues`
+ * TODO: [🏢] Allow to expect something inside CSV objects and other formats
  */

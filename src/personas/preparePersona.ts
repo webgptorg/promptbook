@@ -12,7 +12,6 @@ import type { TODO } from '../utils/organization/TODO';
  * Prepares the persona for the pipeline
  *
  * @see https://github.com/webgptorg/promptbook/discussions/22
- * @private within the package
  */
 export async function preparePersona(
     personaDescription: string_persona_description,
@@ -60,6 +59,7 @@ export async function preparePersona(
 }
 
 /**
+ * TODO: [🔼] !!! Export via `@promptbook/core`
  * TODO: [🏢] !! Check validity of `modelName` in pipeline
  * TODO: [🏢] !! Check validity of `systemMessage` in pipeline
  * TODO: [🏢] !! Check validity of `temperature` in pipeline

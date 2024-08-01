@@ -43,4 +43,5 @@ export const JsonFormatDefinition: FormatDefinition<string /* <-[0] */, string /
  * TODO: [🍓] In `JsonFormatDefinition` implement partial `canBeValid`
  * TODO: [🍓] In `JsonFormatDefinition` implement `heal
  * TODO: [🍓] In `JsonFormatDefinition` implement `extractValues`
+ * TODO: [🏢] Allow to expect something inside JSON objects and other formats
  */

@@ -60,7 +60,7 @@ export function createLlmToolsFromEnv(): LlmExecutionTools {
 }
 
 /**
- * TODO: [🔼] Export this util
+ * TODO: [🔼] !!! Export via `@promptbook/node`
  * TODO: @@@ write discussion about this - wizzard
  * TODO: Add Azure
  * TODO: [🧠] Which name is better `createLlmToolsFromEnv` or `createLlmToolsFromEnvironment`?

@@ -9,7 +9,6 @@ import { prepareKnowledgeFromMarkdown } from '../markdown/prepareKnowledgeFromMa
  * Prepares the knowle
  *
  * @see https://github.com/webgptorg/promptbook/discussions/41
- * @private within the package
  */
 export async function prepareKnowledgePieces(
     knowledgeSources: Array<KnowledgeSourceJson>,
@@ -58,6 +57,7 @@ TODO: [🧊] This is how it can look in future
 */
 
 /**
+ * TODO: [🔼] !!! Export via `@promptbook/core`
  * TODO: [🧊] In future one preparation can take data from previous preparation and save tokens and time
  *       Put `knowledgePieces` into `PrepareKnowledgeOptions`
  * TODO: [🪂] More than max things can run in parallel by acident [1,[2a,2b,_],[3a,3b,_]]

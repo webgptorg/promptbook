@@ -1,3 +1,4 @@
 TODO: [🍓] Move here all postprocessing code
 TODO: [🍓] Make packages for each expectation and allow them to be installed and used separately (its done but do it more systematically)
 TODO: [🧠][🪐] Should be common things like types, utils in folder containing A,B,C,.. or else outside this listing folder?
+TODO: [🐠] Maybe connect together with formats
