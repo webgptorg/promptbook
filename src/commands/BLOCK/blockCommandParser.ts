@@ -1,5 +1,4 @@
 import spaceTrim from 'spacetrim';
-import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
 import { ParsingError } from '../../errors/ParsingError';
 import type { CommandParser, CommandParserInput } from '../_common/types/CommandParser';
 import type { BlockCommand } from './BlockCommand';
@@ -74,9 +73,9 @@ export const blockCommandParser: CommandParser<BlockCommand> = {
 
         //---
         /* Note: Not implemented block types will be in examples in future -> */
-        // TODO: [1]> 'Instrument BLOCK',
+        'Instrument BLOCK',
         // 'Instrument', // <- Note: [⛱]
-        // TODO: [1]>'Action BLOCK',
+        'Action BLOCK',
         // 'Action', // <- Note: [⛱]
         //---
         /* <- TODO: [🧠] Maybe dynamic */
@@ -105,11 +104,6 @@ export const blockCommandParser: CommandParser<BlockCommand> = {
         }
 
         const blockType = blockTypes[0]!;
-
-        // TODO: [1] Remove following condition when ACTION and INSTRUMENT are implemented
-        if (blockType === 'ACTION' || blockType === 'INSTRUMENT') {
-            throw new NotYetImplementedError(`Block type "${blockType}" is not supported yet`);
-        }
 
         return {
             type: 'BLOCK',
