@@ -7,11 +7,11 @@ import { createLlmToolsFromEnv } from './createLlmToolsFromEnv';
 import { cacheLlmTools } from './utils/cache/cacheLlmTools';
 
 /**
- * Returns LLM tools for testing purposes
+ * Returns LLM tools for CLI
  *
- * @private within the package - JUST FOR TESTS, SCRIPTS AND PLAYGROUND
+ * @private within the package - for CLI utils
  */
-export function getLlmToolsForTestingAndScriptsAndPlayground(): LlmExecutionTools {
+export function getLlmToolsForCli(): LlmExecutionTools {
     if (!isRunningInNode()) {
         throw new EnvironmentMismatchError(
             'Function `getLlmToolsForTestingAndScriptsAndPlayground` works only in Node.js environment',
@@ -19,10 +19,10 @@ export function getLlmToolsForTestingAndScriptsAndPlayground(): LlmExecutionTool
     }
 
     return cacheLlmTools(createLlmToolsFromEnv(), {
-        storage: new FilesStorage({ cacheFolderPath: join(process.cwd(), '/executions-cache') }),
+        storage: new FilesStorage({ cacheFolderPath: join(process.cwd(), '/.promptbook/executions-cache') }),
     });
 }
 
 /**
- * Note: [⚪] This should never be in any released package
+ * Note: [🟡] This code should never be published outside of `@promptbook/cli`
  */

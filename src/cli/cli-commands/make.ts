@@ -7,7 +7,7 @@ import { collectionToJson } from '../../collection/collectionToJson';
 import { createCollectionFromDirectory } from '../../collection/constructors/createCollectionFromDirectory';
 import { PIPELINE_COLLECTION_BASE_FILENAME } from '../../config';
 import { validatePipeline } from '../../conversion/validation/validatePipeline';
-import { getLlmToolsForTestingAndScriptsAndPlayground } from '../../llm-providers/_common/getLlmToolsForTestingAndScriptsAndPlayground';
+import { getLlmToolsForCli } from '../../llm-providers/_common/getLlmToolsForCli';
 import type { string_file_extension } from '../../types/typeAliases';
 
 /**
@@ -71,9 +71,7 @@ export function initializeMakeCommand(program: Program) {
             process.exit(1);
         }
 
-        // TODO: !!!!! Auto-detect AI api keys + explicit api keys as argv
-        //       getLlmToolsForCli
-        const llmTools = getLlmToolsForTestingAndScriptsAndPlayground();
+        const llmTools = getLlmToolsForCli();
 
         const collection = await createCollectionFromDirectory(path, {
             llmTools,

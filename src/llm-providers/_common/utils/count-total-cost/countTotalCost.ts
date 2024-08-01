@@ -1,8 +1,12 @@
 import type { Promisable } from 'type-fest';
-import type { AvailableModel, LlmExecutionTools } from '../../../execution/LlmExecutionTools';
-import type { PromptChatResult, PromptCompletionResult, PromptEmbeddingResult } from '../../../execution/PromptResult';
-import { addUsage } from '../../../execution/utils/addUsage';
-import type { Prompt } from '../../../types/Prompt';
+import type { AvailableModel, LlmExecutionTools } from '../../../../execution/LlmExecutionTools';
+import type {
+    PromptChatResult,
+    PromptCompletionResult,
+    PromptEmbeddingResult,
+} from '../../../../execution/PromptResult';
+import { addUsage } from '../../../../execution/utils/addUsage';
+import type { Prompt } from '../../../../types/Prompt';
 import type { LlmExecutionToolsWithTotalCost } from './LlmExecutionToolsWithTotalCost';
 
 /**

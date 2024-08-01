@@ -1,7 +1,7 @@
-import type { PromptResult } from '../../../execution/PromptResult';
-import type { Prompt } from '../../../types/Prompt';
-import type { string_date_iso8601 } from '../../../types/typeAliases';
-import type { string_promptbook_version } from '../../../version';
+import type { PromptResult } from '../../../../execution/PromptResult';
+import type { Prompt } from '../../../../types/Prompt';
+import type { string_date_iso8601 } from '../../../../types/typeAliases';
+import type { string_promptbook_version } from '../../../../version';
 
 /**
  * @@@
