@@ -15,17 +15,19 @@ describe('how creating knowledge from markdown works', () => {
             prepareKnowledgeFromMarkdown(simpleSampleMarkdown, {
                 llmTools: getLlmToolsForTestingAndScriptsAndPlayground(),
             }),
-        ).resolves.toEqual([
+
+            // Note: [0] Not comparing with .toEqual because of index is looooonnnngggg list of numbers
+        ).resolves.toMatchObject([
             {
                 content: 'Springfield is a city located in Illinois, United States.',
-                index: [],
+                // [0]> index: [],
                 keywords: ['Springfield: An Illinois City'],
                 name: 'springfield-an-illinois-city',
                 title: 'Springfield: An Illinois City',
             },
             {
                 content: 'Springfield is the county seat of Sangamon County.',
-                index: [],
+                // [0]> index: [],
                 keywords: ['Springfield: Sangamon County Seat'],
                 name: 'springfield-sangamon-county-seat',
                 title: 'Springfield: Sangamon County Seat',
@@ -33,7 +35,7 @@ describe('how creating knowledge from markdown works', () => {
             {
                 content:
                     'As of 2019, Springfield had a population of 10,566, making it the sixth most populous city in Illinois.',
-                index: [],
+                // [0]> index: [],
                 keywords: ["Springfield: Illinois' Sixth Largest City"],
                 name: 'springfield-illinois-sixth-largest-city',
                 title: "Springfield: Illinois' Sixth Largest City",
