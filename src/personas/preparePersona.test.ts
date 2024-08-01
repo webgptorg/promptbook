@@ -1,6 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
 import { spaceTrim } from 'spacetrim';
-import { getLlmToolsForTestingAndScriptsAndPlayground } from '../knowledge/prepare-knowledge/_common/utils/getLlmToolsForTestingAndScriptsAndPlayground';
+import { getLlmToolsForTestingAndScriptsAndPlayground } from '../llm-providers/_common/getLlmToolsForTestingAndScriptsAndPlayground';
 import { preparePersona } from './preparePersona';
 
 describe('how preparePersona works', () => {

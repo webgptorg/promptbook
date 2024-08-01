@@ -1,6 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
+import { getLlmToolsForTestingAndScriptsAndPlayground } from '../../../llm-providers/_common/getLlmToolsForTestingAndScriptsAndPlayground';
 import { prepareKnowledgePieces } from './prepareKnowledgePieces';
-import { getLlmToolsForTestingAndScriptsAndPlayground } from './utils/getLlmToolsForTestingAndScriptsAndPlayground';
 
 describe('how prepareKnowledge works', () => {
     it('should work with empty knowledge', () =>

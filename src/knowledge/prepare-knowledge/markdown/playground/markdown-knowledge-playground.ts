@@ -7,7 +7,7 @@ dotenv.config({ path: '.env' });
 import chalk from 'colors';
 import { readFile, writeFile } from 'fs/promises';
 import { join } from 'path';
-import { getLlmToolsForTestingAndScriptsAndPlayground } from '../../_common/utils/getLlmToolsForTestingAndScriptsAndPlayground';
+import { getLlmToolsForTestingAndScriptsAndPlayground } from '../../../../llm-providers/_common/getLlmToolsForTestingAndScriptsAndPlayground';
 
 import { prepareKnowledgeFromMarkdown } from '../prepareKnowledgeFromMarkdown';
 

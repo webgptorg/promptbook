@@ -7,7 +7,7 @@ import { collectionToJson } from '../../collection/collectionToJson';
 import { createCollectionFromDirectory } from '../../collection/constructors/createCollectionFromDirectory';
 import { PIPELINE_COLLECTION_BASE_FILENAME } from '../../config';
 import { validatePipeline } from '../../conversion/validation/validatePipeline';
-import { getLlmToolsForTestingAndScriptsAndPlayground } from '../../knowledge/prepare-knowledge/_common/utils/getLlmToolsForTestingAndScriptsAndPlayground';
+import { getLlmToolsForTestingAndScriptsAndPlayground } from '../../llm-providers/_common/getLlmToolsForTestingAndScriptsAndPlayground';
 import type { string_file_extension } from '../../types/typeAliases';
 
 /**
@@ -203,7 +203,6 @@ export function initializeMakeCommand(program: Program) {
         process.exit(0);
     });
 }
-
 
 /**
  * Note: [🟡] This code should never be published outside of `@promptbook/cli`

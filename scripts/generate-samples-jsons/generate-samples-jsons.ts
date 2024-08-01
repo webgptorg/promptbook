@@ -11,7 +11,7 @@ import { join } from 'path';
 import { pipelineStringToJson } from '../../src/conversion/pipelineStringToJson';
 import { validatePipeline } from '../../src/conversion/validation/validatePipeline';
 //import { MockedFackedLlmExecutionTools } from '../../src/llm-providers/mocked/MockedFackedLlmExecutionTools';
-import { getLlmToolsForTestingAndScriptsAndPlayground } from '../../src/knowledge/prepare-knowledge/_common/utils/getLlmToolsForTestingAndScriptsAndPlayground';
+import { getLlmToolsForTestingAndScriptsAndPlayground } from '../../src/llm-providers/_common/getLlmToolsForTestingAndScriptsAndPlayground';
 import { PipelineString } from '../../src/types/PipelineString';
 import { commit } from '../utils/autocommit/commit';
 import { isWorkingTreeClean } from '../utils/autocommit/isWorkingTreeClean';

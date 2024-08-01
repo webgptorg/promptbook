@@ -1,7 +1,7 @@
 import { describe, expect, it } from '@jest/globals';
 import { readFileSync } from 'fs';
 import { join } from 'path';
-import { getLlmToolsForTestingAndScriptsAndPlayground } from '../_common/utils/getLlmToolsForTestingAndScriptsAndPlayground';
+import { getLlmToolsForTestingAndScriptsAndPlayground } from '../../../llm-providers/_common/getLlmToolsForTestingAndScriptsAndPlayground';
 import { prepareKnowledgeFromMarkdown } from './prepareKnowledgeFromMarkdown';
 
 describe('how creating knowledge from markdown works', () => {
