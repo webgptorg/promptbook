@@ -6,7 +6,7 @@ dotenv.config({ path: '.env' });
 
 import chalk from 'colors';
 import { embeddingVectorToString } from '../../../execution/embeddingVectorToString';
-import { Prompt } from '../../../types/Prompt';
+import type { Prompt } from '../../../types/Prompt';
 import { keepUnused } from '../../../utils/organization/keepUnused';
 import { OpenAiExecutionTools } from '../OpenAiExecutionTools';
 

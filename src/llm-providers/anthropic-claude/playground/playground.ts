@@ -5,7 +5,7 @@ import * as dotenv from 'dotenv';
 dotenv.config({ path: '.env' });
 
 import chalk from 'colors';
-import { Prompt } from '../../../types/Prompt';
+import type { Prompt } from '../../../types/Prompt';
 import { keepUnused } from '../../../utils/organization/keepUnused';
 import { AnthropicClaudeExecutionTools } from '../AnthropicClaudeExecutionTools';
 
