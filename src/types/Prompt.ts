@@ -1,6 +1,11 @@
 import type { ExpectFormatCommand } from '../commands/EXPECT/ExpectFormatCommand';
 import type { PostprocessingFunction } from '../scripting/javascript/JavascriptExecutionToolsOptions';
-import type { ModelRequirements } from './ModelRequirements';
+import type {
+    ChatModelRequirements,
+    CompletionModelRequirements,
+    EmbeddingModelRequirements,
+    ModelRequirements,
+} from './ModelRequirements';
 import type { Expectations } from './PipelineJson/Expectations';
 import type {
     string_parameter_name,
@@ -23,7 +28,12 @@ export type Prompt = CompletionPrompt | ChatPrompt | EmbeddingPrompt /* <- [🤖
  *
  * Note: [🛫] This is NOT fully serializable as JSON, it contains functions which are not serializable
  */
-export type CompletionPrompt = CommonPrompt;
+export type CompletionPrompt = CommonPrompt & {
+    /**
+     * Requirements for completion model
+     */
+    modelRequirements: CompletionModelRequirements;
+};
 
 /**
  * Chat prompt
@@ -31,7 +41,12 @@ export type CompletionPrompt = CommonPrompt;
  * Note: [🛫] This is NOT fully serializable as JSON, it contains functions which are not serializable
  */
 export type ChatPrompt = CommonPrompt & {
-    // TODO: [🤹‍♂️][🧠] Figure out way how to pass thread / previous messages
+    /**
+     * Requirements for chat model
+     */
+    modelRequirements: ChatModelRequirements;
+
+    // <-TODO: [🤹‍♂️][🧠] Figure out way how to pass thread / previous messages
 };
 
 /**
@@ -39,7 +54,14 @@ export type ChatPrompt = CommonPrompt & {
  *
  * Note: [🛫] This is NOT fully serializable as JSON, it contains functions which are not serializable
  */
-export type EmbeddingPrompt = CommonPrompt;
+export type EmbeddingPrompt = CommonPrompt & {
+    /**
+     * Requirements for chat model
+     */
+    modelRequirements: EmbeddingModelRequirements;
+
+    // <-TODO: [🤹‍♂️][🧠] Figure out way how to pass thread / previous messages
+};
 
 // <- Note: [🤖] Add new model variant here
 
@@ -68,7 +90,6 @@ export type CommonPrompt = {
      * Requirements for the model
      */
     readonly modelRequirements: ModelRequirements;
-    // <- TODO: !!!!!!!! Split `ModelRequirements` into `CommonModelRequirements`, `ChatModelRequirements`,... + [🔼]
 
     /**
      * List of postprocessing steps that are executed after the prompt
@@ -110,7 +131,7 @@ export type CommonPrompt = {
 
 /**
  * TODO: [🔼] !!!! Export all from `@promptbook/types`
- * TODO: Replace all "github.com/webgptorg/promptbook#xxx" with "ptbk.io/xxx"
+ * TODO: [🧄] Replace all "github.com/webgptorg/promptbook#xxx" with "ptbk.io/xxx"
  * TODO: [✔] Check ModelRequirements in runtime
  * TODO: [🏳] Add options for translation - maybe create `TranslationPrompt`
  */

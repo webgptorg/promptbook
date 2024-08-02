@@ -1,28 +1,75 @@
+import { ModelVariant } from './ModelVariant';
 import type { number_model_temperature, number_seed, string_model_name, string_system_message } from './typeAliases';
 
-export const MODEL_VARIANTS = ['COMPLETION', 'CHAT', 'EMBEDDING' /* <- TODO [🏳] */ /* <- [🤖] */] as const;
-
 /**
- * Model variant describes the very general type of the model
+ * Abstract way to specify the LLM.
+ * It does not specify the LLM with concrete version itself, only the requirements for the LLM.
  *
- * There are two variants:
- * - **COMPLETION** - model that takes prompt and writes the rest of the text
- * - **CHAT** - model that takes prompt and previous messages and returns response
- */
-export type ModelVariant = typeof MODEL_VARIANTS[number];
-
-/**
- * Abstract way to specify the LLM. It does not specify the LLM with concrete version itself, only the requirements for the LLM.
- *
+ * Note: This is fully serializable as JSON
  * @see https://github.com/webgptorg/promptbook#model-requirements
  */
-export type ModelRequirements = {
+export type ModelRequirements =
+    | CompletionModelRequirements
+    | ChatModelRequirements
+    | EmbeddingModelRequirements /* <- [🤖] */;
+
+/**
+ * Model requirements for the completion variant
+ *
+ * Note: This is fully serializable as JSON
+ */
+export type CompletionModelRequirements = CommonModelRequirements & {
+    /**
+     * Completion model variant
+     */
+    modelVariant: 'COMPLETION';
+};
+
+/**
+ * Model requirements for the chat variant
+ *
+ * Note: This is fully serializable as JSON
+ */
+export type ChatModelRequirements = CommonModelRequirements & {
+    /**
+     * Chat model variant
+     */
+    modelVariant: 'CHAT';
+
+    /**
+     * System message to be used in the model
+     */
+    readonly systemMessage?: string_system_message;
+};
+
+/**
+ * Model requirements for the embedding variant
+ *
+ * Note: This is fully serializable as JSON
+ */
+export type EmbeddingModelRequirements = CommonModelRequirements & {
+    /**
+     * Embedding model variant
+     */
+    modelVariant: 'EMBEDDING';
+};
+
+// <- Note: [🤖] Add new model variant here
+
+/**
+ * Common properties for all model requirements variants
+ *
+ * Note: This is fully serializable as JSON
+ */
+export type CommonModelRequirements = {
     /**
      * Model variant describes the very general type of the model
      *
-     * There are two variants:
+     * There are 3 variants:
      * - **COMPLETION** - model that takes prompt and writes the rest of the text
      * - **CHAT** - model that takes prompt and previous messages and returns response
+     * - **EMBEDDING** - model that takes prompt and returns embedding
+     * <- [🤖]
      */
     readonly modelVariant: ModelVariant;
 
@@ -35,11 +82,6 @@ export type ModelRequirements = {
      * @example 'gpt-4', 'gpt-4-32k-0314', 'gpt-3.5-turbo-instruct',...
      */
     readonly modelName?: string_model_name;
-
-    /**
-     * System message to be used in the model
-     */
-    readonly systemMessage?: string_system_message;
 
     /**
      * The temperature of the model
@@ -64,6 +106,7 @@ export type ModelRequirements = {
 };
 
 /**
+ * TODO: [🔼] !!!! Export all from `@promptbook/types`
  * TODO: [🧠][🈁] `seed` should maybe be somewhere else (not in `ModelRequirements`) (simmilar that `user` identification is not here)
  * TODO: [🧠][💱] Add more model options: `stop_token`, `logit_bias`, `logprobs` (`top_logprobs`), `top_k`, `top_p`, `presence_penalty`, `frequency_penalty`, `bestOf`, `logitBias`, `logitBiasType`,...
  *       [💱] Probbably keep using just `temperature` in Promptbook (not `top_k` and `top_p`)
@@ -71,4 +114,5 @@ export type ModelRequirements = {
  * TODO: Maybe figure out better word than "variant"
  * TODO: Add here more requirement options like max context size, max tokens, etc.
  * TODO: [💕][🧠] Just selecting gpt3 or gpt4 level of model
+ * TODO: [🧄] Replace all "github.com/webgptorg/promptbook#xxx" with "ptbk.io/xxx"
  */

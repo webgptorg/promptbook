@@ -18,7 +18,8 @@ import type { PromptResultUsage, PromptResultUsageCounts } from '../execution/Pr
 import type { ScriptExecutionTools, ScriptExecutionToolsExecuteOptions } from '../execution/ScriptExecutionTools';
 import type { UncertainNumber } from '../execution/UncertainNumber';
 import type { UserInterfaceTools, UserInterfaceToolsPromptDialogOptions } from '../execution/UserInterfaceTools';
-import type { ModelRequirements, ModelVariant } from '../types/ModelRequirements';
+import type { ModelRequirements } from '../types/ModelRequirements';
+import type { ModelVariant } from '../types/ModelVariant';
 import type { Parameters } from '../types/Parameters';
 import type { ExpectationAmount, ExpectationUnit, Expectations } from '../types/PipelineJson/Expectations';
 import { EXPECTATION_UNITS } from '../types/PipelineJson/Expectations';

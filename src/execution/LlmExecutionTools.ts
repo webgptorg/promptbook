@@ -1,5 +1,5 @@
 import type { Promisable } from 'type-fest';
-import type { ModelVariant } from '../types/ModelRequirements';
+import type { ModelVariant } from '../types/ModelVariant';
 import type { Prompt } from '../types/Prompt';
 import type { string_markdown, string_markdown_text, string_model_name, string_title } from '../types/typeAliases';
 import type { ChatPromptResult, CompletionPromptResult, EmbeddingPromptResult } from './PromptResult';
