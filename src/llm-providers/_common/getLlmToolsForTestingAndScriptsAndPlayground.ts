@@ -15,7 +15,7 @@ import { limitTotalCost } from './utils/count-total-cost/limitTotalCost';
  *
  * @private within the repository - JUST FOR TESTS, SCRIPTS AND PLAYGROUND
  */
-export function getLlmToolsForTestingAndScriptsAndPlayground(options: CreateLlmToolsFromEnvOptions): LlmExecutionTools {
+export function getLlmToolsForTestingAndScriptsAndPlayground(options?: CreateLlmToolsFromEnvOptions): LlmExecutionTools {
     if (!isRunningInNode()) {
         throw new EnvironmentMismatchError(
             'Function `getLlmToolsForTestingAndScriptsAndPlayground` works only in Node.js environment',
