@@ -60,14 +60,21 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools {
             const modelSettings = {
                 maxTokens: modelRequirements.maxTokens,
                 //                                      <- TODO: [🌾] Make some global max cap for maxTokens
-                // <- TODO: !!!!!! Use here `systemMessage`, `temperature`
-
+                temperature: modelRequirements.temperature,
                 user: this.options.user,
                 // <- TODO: [🈁] Use `seed` here AND/OR use is `isDeterministic` for entire execution tools
                 // <- Note: [🧆]
             }; // <- TODO: Guard here types better
 
             const messages = [
+                ...(modelRequirements.systemMessage === undefined
+                    ? []
+                    : ([
+                          {
+                              role: 'system',
+                              content: modelRequirements.systemMessage,
+                          },
+                      ] as const)),
                 {
                     role: 'user',
                     content,
@@ -152,8 +159,7 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools {
             const modelSettings = {
                 maxTokens: modelRequirements.maxTokens || 2000, // <- Note: [🌾] 2000 is for lagacy reasons
                 //                                                  <- TODO: [🌾] Make some global max cap for maxTokens
-                // <- TODO: !!!!!! Use here `systemMessage`, `temperature`
-
+                temperature: modelRequirements.temperature,
                 user: this.options.user,
                 // <- TODO: [🈁] Use `seed` here AND/OR use is `isDeterministic` for entire execution tools
                 // <- Note: [🧆]
