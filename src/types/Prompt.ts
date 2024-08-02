@@ -127,7 +127,7 @@ export type CommonPrompt = {
      */
     readonly parameters: Record<string_parameter_name, string_parameter_value>;
 
-    // TODO: !!!!!! add reservedParameters:
+    // TODO: !!!!!! Add `reservedParameters: ReservedParameters`
 
     // <- Note: [🧆] Look here when adding new properties to `Prompt`
 };
