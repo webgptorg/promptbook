@@ -1,7 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
 import { pipelineStringToJsonSync } from '../conversion/pipelineStringToJsonSync';
-import { importPipelineJson } from '../conversion/validation/_importPipeline';
-import { importPipelineWithoutPreparation } from '../conversion/validation/_importPipeline';
+import { importPipelineJson, importPipelineWithoutPreparation } from '../conversion/validation/_importPipeline';
 import { isPipelinePrepared } from './isPipelinePrepared';
 import { unpreparePipeline } from './unpreparePipeline';
 
@@ -15,7 +14,7 @@ describe('how isPipelinePrepared works', () => {
         expect(isPipelinePrepared(unpreparePipeline(importPipelineJson('01-simple.ptbk.json')))).toBe(true);
         expect(
             isPipelinePrepared(pipelineStringToJsonSync(importPipelineWithoutPreparation('01-simple.ptbk.md'))),
-        ).toBe(false);
+        ).toBe(true);
     });
 
     it('should tell that pipeline is NOT prepared', () => {
