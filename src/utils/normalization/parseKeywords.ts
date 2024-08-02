@@ -1,4 +1,4 @@
-import { really_unknown } from '../organization/really_unknown';
+import type { really_unknown } from '../organization/really_unknown';
 import type { IKeywords } from './IKeywords';
 import { parseKeywordsFromString } from './parseKeywordsFromString';
 

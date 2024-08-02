@@ -1,6 +1,6 @@
 import type { string_url } from '../../../types/typeAliases';
 import type { really_any } from '../../organization/really_any';
-import { really_unknown } from '../../organization/really_unknown';
+import type { really_unknown } from '../../organization/really_unknown';
 
 /**
  * Tests if given string is valid URL.

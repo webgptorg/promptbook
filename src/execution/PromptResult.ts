@@ -1,7 +1,8 @@
-import type { string_date_iso8601, string_model_name } from '../types/typeAliases';
-import { TODO_object } from '../utils/organization/TODO_object';
+import type { string_date_iso8601 } from '../types/typeAliases';
+import type { string_model_name } from '../types/typeAliases';
+import type { TODO_object } from '../utils/organization/TODO_object';
 import type { EmbeddingVector } from './EmbeddingVector';
-import { PromptResultUsage } from './PromptResultUsage';
+import type { PromptResultUsage } from './PromptResultUsage';
 
 /**
  * Prompt result is the simplest concept of execution.

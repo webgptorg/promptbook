@@ -1,5 +1,5 @@
 import type { string_email } from '../../../types/typeAliases';
-import { really_unknown } from '../../organization/really_unknown';
+import type { really_unknown } from '../../organization/really_unknown';
 
 /**
  * Checks if value is valid email

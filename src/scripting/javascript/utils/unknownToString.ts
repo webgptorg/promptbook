@@ -1,4 +1,4 @@
-import { really_unknown } from '../../../utils/organization/really_unknown';
+import type { really_unknown } from '../../../utils/organization/really_unknown';
 
 /**
  * Converts anything to string that can be used for debugging and logging

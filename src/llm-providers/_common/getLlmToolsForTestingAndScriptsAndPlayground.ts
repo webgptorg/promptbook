@@ -6,7 +6,8 @@ import { isRunningInNode } from '../../utils/isRunningInWhatever';
 import { just } from '../../utils/organization/just';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import { MockedFackedLlmExecutionTools } from '../mocked/MockedFackedLlmExecutionTools';
-import { createLlmToolsFromEnv, CreateLlmToolsFromEnvOptions } from './createLlmToolsFromEnv';
+import { createLlmToolsFromEnv } from './createLlmToolsFromEnv';
+import type { CreateLlmToolsFromEnvOptions } from './createLlmToolsFromEnv';
 import { cacheLlmTools } from './utils/cache/cacheLlmTools';
 import { limitTotalCost } from './utils/count-total-cost/limitTotalCost';
 
@@ -15,7 +16,9 @@ import { limitTotalCost } from './utils/count-total-cost/limitTotalCost';
  *
  * @private within the repository - JUST FOR TESTS, SCRIPTS AND PLAYGROUND
  */
-export function getLlmToolsForTestingAndScriptsAndPlayground(options?: CreateLlmToolsFromEnvOptions): LlmExecutionTools {
+export function getLlmToolsForTestingAndScriptsAndPlayground(
+    options?: CreateLlmToolsFromEnvOptions,
+): LlmExecutionTools {
     if (!isRunningInNode()) {
         throw new EnvironmentMismatchError(
             'Function `getLlmToolsForTestingAndScriptsAndPlayground` works only in Node.js environment',

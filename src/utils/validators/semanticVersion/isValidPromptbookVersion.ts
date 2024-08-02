@@ -1,5 +1,5 @@
 import type { string_promptbook_version } from '../../../version';
-import { really_unknown } from '../../organization/really_unknown';
+import type { really_unknown } from '../../organization/really_unknown';
 import { isValidSemanticVersion } from './isValidSemanticVersion';
 
 /**

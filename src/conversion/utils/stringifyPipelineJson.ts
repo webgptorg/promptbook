@@ -1,5 +1,6 @@
-import { LOOP_LIMIT, REPLACING_NONCE } from '../../config';
-import { string_json } from '../../types/typeAliases';
+import { LOOP_LIMIT } from '../../config';
+import { REPLACING_NONCE } from '../../config';
+import type { string_json } from '../../types/typeAliases';
 
 /**
  * Stringify the PipelineJson with proper formatting
