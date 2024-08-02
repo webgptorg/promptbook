@@ -6,7 +6,6 @@ import { createPipelineExecutor } from '../../execution/createPipelineExecutor';
 import { MockedEchoLlmExecutionTools } from '../../llm-providers/mocked/MockedEchoLlmExecutionTools';
 import type { PipelineString } from '../../types/PipelineString';
 import { CallbackInterfaceTools } from './callback/CallbackInterfaceTools';
-import { MAX_EXECUTION_ATTEMPTS } from '../../config';
 
 describe('createPipelineExecutor + executing user interface prompts in promptbook', () => {
     it('should work when every INPUT  PARAMETER defined', async () => {
@@ -74,7 +73,7 @@ async function getPipelineExecutor() {
                     return `Answer to question "${promptTitle}: ${promptMessage}" is not ${defaultValue} but Pear.`;
                 },
             }),
-        }
+        },
     });
 
     return pipelineExecutor;

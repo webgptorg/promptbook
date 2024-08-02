@@ -1,9 +1,6 @@
 import { spaceTrim } from 'spacetrim';
 import type { Promisable } from 'type-fest';
-import { LOOP_LIMIT } from '../config';
-import { MAX_EXECUTION_ATTEMPTS } from '../config';
-import { MAX_PARALLEL_COUNT } from '../config';
-import { RESERVED_PARAMETER_NAMES } from '../config';
+import { LOOP_LIMIT, MAX_EXECUTION_ATTEMPTS, MAX_PARALLEL_COUNT, RESERVED_PARAMETER_NAMES } from '../config';
 import { validatePipeline } from '../conversion/validation/validatePipeline';
 import { ExpectError } from '../errors/_ExpectError';
 import { PipelineExecutionError } from '../errors/PipelineExecutionError';
@@ -16,26 +13,17 @@ import type { ExecutionReportJson } from '../types/execution-report/ExecutionRep
 import type { Parameters } from '../types/Parameters';
 import type { PipelineJson } from '../types/PipelineJson/PipelineJson';
 import type { PromptTemplateJson } from '../types/PipelineJson/PromptTemplateJson';
-import type { ChatPrompt } from '../types/Prompt';
-import type { CompletionPrompt } from '../types/Prompt';
-import type { EmbeddingPrompt } from '../types/Prompt';
-import type { Prompt } from '../types/Prompt';
+import type { ChatPrompt, CompletionPrompt, EmbeddingPrompt, Prompt } from '../types/Prompt';
 import type { TaskProgress } from '../types/TaskProgress';
-import type { string_name } from '../types/typeAliases';
-import type { string_parameter_name } from '../types/typeAliases';
-import type { string_parameter_value } from '../types/typeAliases';
+import type { string_name, string_parameter_name, string_parameter_value } from '../types/typeAliases';
 import { arrayableToArray } from '../utils/arrayableToArray';
 import type { really_any } from '../utils/organization/really_any';
 import type { TODO_any } from '../utils/organization/TODO_any';
 import { PROMPTBOOK_VERSION } from '../version';
 import type { ExecutionTools } from './ExecutionTools';
 import type { PipelineExecutor } from './PipelineExecutor';
-import type { ChatPromptResult } from './PromptResult';
-import type { CompletionPromptResult } from './PromptResult';
-import type { EmbeddingPromptResult } from './PromptResult';
-import type { PromptResult } from './PromptResult';
-import { addUsage } from './utils/addUsage';
-import { ZERO_USAGE } from './utils/addUsage';
+import type { ChatPromptResult, CompletionPromptResult, EmbeddingPromptResult, PromptResult } from './PromptResult';
+import { addUsage, ZERO_USAGE } from './utils/addUsage';
 import { checkExpectations } from './utils/checkExpectations';
 import { replaceParameters } from './utils/replaceParameters';
 
@@ -175,10 +163,12 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
             }
 
             const context = '!!!!!!';
+            const currentDate = new Date().toISOString(); // <- TODO: [🧠] Better
 
             const parametersForTemplate: Parameters = Object.freeze({
                 ...parametersToPass,
                 context,
+                currentDate,
             });
 
             // Note: Doublecheck that all reserved parameters are defined:
