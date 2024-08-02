@@ -11,6 +11,7 @@ import { pipelineJsonToString } from '../conversion/pipelineJsonToString';
 import { pipelineStringToJson } from '../conversion/pipelineStringToJson';
 import { pipelineStringToJsonSync } from '../conversion/pipelineStringToJsonSync';
 import { prettifyPipelineString } from '../conversion/prettify/prettifyPipelineString';
+import { stringifyPipelineJson } from '../conversion/utils/stringifyPipelineJson';
 import { validatePipeline } from '../conversion/validation/validatePipeline';
 import { CollectionError } from '../errors/CollectionError';
 import { NotFoundError } from '../errors/NotFoundError';
@@ -73,7 +74,13 @@ export {
 export { SimplePromptInterfaceTools };
 
 // @promptbook/parser
-export { pipelineJsonToString, pipelineStringToJson, pipelineStringToJsonSync, validatePipeline };
+export {
+    pipelineJsonToString,
+    pipelineStringToJson,
+    pipelineStringToJsonSync,
+    stringifyPipelineJson,
+    validatePipeline,
+};
 
 // @promptbook/preparation
 export { preparePipeline, unpreparePipeline };

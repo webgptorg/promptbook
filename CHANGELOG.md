@@ -401,6 +401,7 @@ Working external knowledge, personas, preparation for instruments and actions
 -   Add `systemMessage`, `temperature` and `seed` to `ModelRequirements`
 -   Code blocks can be noteted both by ``` and >
 -   Add caching and storage
+-   Export utity `stringifyPipelineJson` to stringify `PipelineJson` with pretty formatting of loooooong knowledge indexes from `@promptbook/core`
 
 ## In prepare
 

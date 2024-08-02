@@ -27,6 +27,5 @@ export function stringifyPipelineJson<TType>(pipeline: TType): string_json<TType
 
 /**
  * TODO: [🧠][0] Maybe rename to `stringifyPipelineJson`, `stringifyIndexedJson`,...
- * TODO: [🔼] Export alongside pipelineStringToJson
  * TODO: [🧠] Maybe more elegant solution than replacing via regex
  */
