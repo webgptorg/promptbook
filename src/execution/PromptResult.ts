@@ -1,9 +1,6 @@
 import type { KebabCase } from 'type-fest';
 import type { ExpectationUnit } from '../types/PipelineJson/Expectations';
-import type { number_positive } from '../types/typeAliases';
-import type { number_usd } from '../types/typeAliases';
-import type { string_date_iso8601 } from '../types/typeAliases';
-import type { string_model_name } from '../types/typeAliases';
+import type { number_positive, number_usd, string_date_iso8601, string_model_name } from '../types/typeAliases';
 import type { EmbeddingVector } from './EmbeddingVector';
 
 /**
@@ -13,6 +10,7 @@ import type { EmbeddingVector } from './EmbeddingVector';
  * @see https://github.com/webgptorg/promptbook#prompt-result
  */
 export type PromptResult = PromptCompletionResult | PromptChatResult | PromptEmbeddingResult /* <- [🤖] */;
+// <- TODO: !!!!!!! Rename `PromptChatResult` to `ChatPromptResult`,...
 
 /**
  * Prompt completion result
@@ -27,7 +25,7 @@ export type PromptCompletionResult = PromptCommonResult;
  *
  * Note: This is fully serializable as JSON
  */
-export type PromptChatResult = PromptCommonResult & {
+export type PromptChatResult = PromptCommonResult & { // <- TODO: !!!!!!!
     // TODO: [🤹‍♂️][🧠] Figure out way how to pass thread / previous messages
 };
 

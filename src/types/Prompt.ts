@@ -2,11 +2,13 @@ import type { ExpectFormatCommand } from '../commands/EXPECT/ExpectFormatCommand
 import type { PostprocessingFunction } from '../scripting/javascript/JavascriptExecutionToolsOptions';
 import type { ModelRequirements } from './ModelRequirements';
 import type { Expectations } from './PipelineJson/Expectations';
-import type { string_parameter_name } from './typeAliases';
-import type { string_parameter_value } from './typeAliases';
-import type { string_pipeline_url_with_hashtemplate } from './typeAliases';
-import type { string_prompt } from './typeAliases';
-import type { string_title } from './typeAliases';
+import type {
+    string_parameter_name,
+    string_parameter_value,
+    string_pipeline_url_with_hashtemplate,
+    string_prompt,
+    string_title,
+} from './typeAliases';
 
 /**
  * Prompt in a text along with model requirements, but without any execution or templating logic.
@@ -34,6 +36,8 @@ export type Prompt = {
      * Requirements for the model
      */
     readonly modelRequirements: ModelRequirements;
+    // <- TODO: !!!!!!!! Split `Prompt` into `CommonPrompt`, `ChatPrompt`,... + [🔼]
+    // <- TODO: !!!!!!!! Split `ModelRequirements` into `CommonModelRequirements`, `ChatModelRequirements`,... + [🔼]
 
     /**
      * List of postprocessing steps that are executed after the prompt
@@ -69,7 +73,6 @@ export type Prompt = {
      * Note: This is redundant (same information is in pipelineUrl+content) but useful for logging and debugging
      */
     readonly parameters: Record<string_parameter_name, string_parameter_value>;
-
 
     // <- Note: [🧆] Look here when adding new properties to `Prompt`
 };

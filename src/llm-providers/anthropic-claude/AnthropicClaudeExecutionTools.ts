@@ -68,7 +68,8 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools {
             model: modelRequirements.modelName || this.getDefaultChatModel().modelName,
             max_tokens: modelRequirements.maxTokens || 4096,
             //                                            <- TODO: [🌾] Make some global max cap for maxTokens
-            // <- TODO: !!!!!! Use here `systemMessage`, `temperature`
+            temperature: modelRequirements.temperature,
+            system: modelRequirements.systemMessage,
 
             // <- TODO: [🈁] Use `seed` here AND/OR use is `isDeterministic` for entire execution tools
             // <- Note: [🧆]
@@ -204,16 +205,16 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools {
      * Get the model that should be used as default
      */
     private getDefaultModel(defaultModelName: string_model_name): AvailableModel {
-        const model = ANTHROPIC_CLAUDE_MODELS.find(({ modelName }) => modelName === defaultModelName);
+        const model = ANTHROPIC_CLAUDE_MODELS.find(({ modelName }) => modelName.startsWith(defaultModelName));
         if (model === undefined) {
             throw new UnexpectedError(
                 spaceTrim(
                     (block) =>
                         `
-                          Cannot find model in OpenAI models with name ${defaultModelName} which should be used as default.
+                          Cannot find model in OpenAI models with name "${defaultModelName}" which should be used as default.
 
                           Available models:
-                          ${block(ANTHROPIC_CLAUDE_MODELS.map(({ modelName }) => `- ${modelName}`).join('\n'))}
+                          ${block(ANTHROPIC_CLAUDE_MODELS.map(({ modelName }) => `- "${modelName}"`).join('\n'))}
 
                       `,
                 ),

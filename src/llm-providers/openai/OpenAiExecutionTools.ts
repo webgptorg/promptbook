@@ -75,8 +75,6 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
 
             temperature: modelRequirements.temperature,
 
-            // <- TODO: !!!!!! Use here `systemMessage`, `temperature`
-
             // <- TODO: [🈁] Use `seed` here AND/OR use is `isDeterministic` for entire execution tools
             // <- Note: [🧆]
         } as OpenAI.Chat.Completions.CompletionCreateParamsNonStreaming; // <- TODO: Guard here types better
@@ -172,8 +170,7 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
             model,
             max_tokens: modelRequirements.maxTokens || 2000, // <- Note: [🌾] 2000 is for lagacy reasons
             //                                                  <- TODO: [🌾] Make some global max cap for maxTokens
-
-            // <- TODO: !!!!!! Use here `systemMessage`, `temperature`
+            temperature: modelRequirements.temperature,
 
             // <- TODO: [🈁] Use `seed` here AND/OR use is `isDeterministic` for entire execution tools
             // <- Note: [🧆]
@@ -298,10 +295,10 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
                 spaceTrim(
                     (block) =>
                         `
-                            Cannot find model in OpenAI models with name ${defaultModelName} which should be used as default.
+                            Cannot find model in OpenAI models with name "${defaultModelName}" which should be used as default.
 
                             Available models:
-                            ${block(OPENAI_MODELS.map(({ modelName }) => `- ${modelName}`).join('\n'))}
+                            ${block(OPENAI_MODELS.map(({ modelName }) => `- "${modelName}"`).join('\n'))}
 
                         `,
                 ),
