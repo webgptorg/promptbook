@@ -1,5 +1,4 @@
 import type { string_date_iso8601, string_model_name } from '../types/typeAliases';
-import { TODO_any } from '../utils/organization/TODO_any';
 import { TODO_object } from '../utils/organization/TODO_object';
 import type { EmbeddingVector } from './EmbeddingVector';
 import { PromptResultUsage } from './PromptResultUsage';
@@ -13,15 +12,15 @@ import { PromptResultUsage } from './PromptResultUsage';
 export type PromptResult = CompletionPromptResult | ChatPromptResult | EmbeddingPromptResult /* <- [🤖] */;
 
 /**
- * Prompt completion result
- * It contains only the following text NOT the whole completion
+ * Completion prompt result
  *
+ * Note:It contains only the newly generated text NOT the whole completion
  * Note: This is fully serializable as JSON
  */
 export type CompletionPromptResult = CommonPromptResult;
 
 /**
- * Prompt chat result
+ *Chat prompt result
  *
  * Note: This is fully serializable as JSON
  */
@@ -30,8 +29,7 @@ export type ChatPromptResult = CommonPromptResult & {
 };
 
 /**
- * Prompt embedding result
- * It contains only the following text NOT the whole completion
+ * Embedding prompt  result
  *
  * Note: This is fully serializable as JSON
  */

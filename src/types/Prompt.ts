@@ -16,7 +16,39 @@ import type {
  * Note: [🛫] This is NOT fully serializable as JSON, it contains functions which are not serializable
  * @see https://github.com/webgptorg/promptbook#prompt
  */
-export type Prompt = {
+export type Prompt = CompletionPrompt | ChatPrompt | EmbeddingPrompt /* <- [🤖] */;
+
+/**
+ * Completion prompt
+ *
+ * Note: [🛫] This is NOT fully serializable as JSON, it contains functions which are not serializable
+ */
+export type CompletionPrompt = CommonPrompt;
+
+/**
+ * Chat prompt
+ *
+ * Note: [🛫] This is NOT fully serializable as JSON, it contains functions which are not serializable
+ */
+export type ChatPrompt = CommonPrompt & {
+    // TODO: [🤹‍♂️][🧠] Figure out way how to pass thread / previous messages
+};
+
+/**
+ * Embedding prompt
+ *
+ * Note: [🛫] This is NOT fully serializable as JSON, it contains functions which are not serializable
+ */
+export type EmbeddingPrompt = CommonPrompt;
+
+// <- Note: [🤖] Add new model variant here
+
+/**
+ * Common properties for all prompt results
+ *
+ * Note: This is fully serializable as JSON
+ */
+export type CommonPrompt = {
     /**
      * The title of the prompt
      *
@@ -36,7 +68,6 @@ export type Prompt = {
      * Requirements for the model
      */
     readonly modelRequirements: ModelRequirements;
-    // <- TODO: !!!!!!!! Split `Prompt` into `CommonPrompt`, `ChatPrompt`,... + [🔼]
     // <- TODO: !!!!!!!! Split `ModelRequirements` into `CommonModelRequirements`, `ChatModelRequirements`,... + [🔼]
 
     /**
@@ -78,6 +109,8 @@ export type Prompt = {
 };
 
 /**
+ * TODO: [🔼] !!!! Export all from `@promptbook/types`
+ * TODO: Replace all "github.com/webgptorg/promptbook#xxx" with "ptbk.io/xxx"
  * TODO: [✔] Check ModelRequirements in runtime
  * TODO: [🏳] Add options for translation - maybe create `TranslationPrompt`
  */
