@@ -1,13 +1,13 @@
 import { join } from 'path';
+import { DEBUG_ALLOW_PAYED_TESTING } from '../../config';
 import { EnvironmentMismatchError } from '../../errors/EnvironmentMismatchError';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import { FilesStorage } from '../../storage/files-storage/FilesStorage';
 import { isRunningInNode } from '../../utils/isRunningInWhatever';
-import { just } from '../../utils/organization/just';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import { MockedFackedLlmExecutionTools } from '../mocked/MockedFackedLlmExecutionTools';
-import { createLlmToolsFromEnv } from './createLlmToolsFromEnv';
 import type { CreateLlmToolsFromEnvOptions } from './createLlmToolsFromEnv';
+import { createLlmToolsFromEnv } from './createLlmToolsFromEnv';
 import { cacheLlmTools } from './utils/cache/cacheLlmTools';
 import { limitTotalCost } from './utils/count-total-cost/limitTotalCost';
 
@@ -30,17 +30,7 @@ export function getLlmToolsForTestingAndScriptsAndPlayground(
 
     let llmTools: LlmExecutionTools = createLlmToolsFromEnv(options);
 
-    if (
-        /**/
-        // Note: In normal situations, we "turn off" ability to use real API keys in tests:
-        just(true)
-        /**/
-
-        /*/
-        // When working on preparations, you can use:
-        just(false)
-        /**/
-    ) {
+    if (!DEBUG_ALLOW_PAYED_TESTING) {
         llmTools = limitTotalCost(llmTools);
     }
 

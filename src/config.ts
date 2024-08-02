@@ -1,4 +1,5 @@
 import { deepFreeze } from './utils/deepFreeze';
+import { just } from './utils/organization/just';
 
 /**
  * The maximum number of iterations for a loops
@@ -26,6 +27,23 @@ export const MAX_EXECUTION_ATTEMPTS = 3;
 export const MAX_FILENAME_LENGTH = 30;
 
 /**
+ * @@@
+ * TODO: !!!!! Use
+ */
+export const MAX_KNOWLEDGE_SOURCES_SCRAPING_DEPTH = 3;
+
+/**
+ * @@@
+ * TODO: !!!!! Use
+ */
+export const MAX_KNOWLEDGE_SOURCES_SCRAPING_TOTAL = 200;
+
+/**
+ * @@@
+ */
+export const EXECUTIONS_CACHE_DIRNAME = '/.promptbook/executions-cache';
+
+/**
  * The name of the builded pipeline collection made by CLI `ptbk make` and for lookup in `createCollectionFromDirectory`
  */
 export const PIPELINE_COLLECTION_BASE_FILENAME = `index`;
@@ -41,6 +59,21 @@ export const RESERVED_PARAMETER_NAMES = deepFreeze([
 ]);
 
 /**
+ * @@@
+ */
+export const DEBUG_ALLOW_PAYED_TESTING: boolean = just(
+    /*/
+    // Note: In normal situations, we "turn off" ability to use real API keys in tests:
+    false
+    /**/
+
+    /**/
+    // When working on preparations, you can use:
+    true,
+    /**/
+);
+
+/**
  * Nonce which is used for replacing things in strings
  */
 export const REPLACING_NONCE = 'u$k42k%!V2zo34w7Fu#@QUHYPW';
@@ -50,3 +83,7 @@ TODO: !!! Just testing false-negative detection of [🟡][🟢][🔵][⚪] leak
 */
 
 // [🟡][🟢][🔵][⚪]
+
+/**
+ * TODO: [🔼] Export all to core
+ */

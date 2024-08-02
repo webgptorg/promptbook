@@ -5,6 +5,7 @@ import { FilesStorage } from '../../storage/files-storage/FilesStorage';
 import { isRunningInNode } from '../../utils/isRunningInWhatever';
 import { createLlmToolsFromEnv } from './createLlmToolsFromEnv';
 import { cacheLlmTools } from './utils/cache/cacheLlmTools';
+import { EXECUTIONS_CACHE_DIRNAME } from '../../config';
 
 /**
  * Returns LLM tools for CLI
@@ -19,7 +20,7 @@ export function getLlmToolsForCli(): LlmExecutionTools {
     }
 
     return cacheLlmTools(createLlmToolsFromEnv(), {
-        storage: new FilesStorage({ cacheFolderPath: join(process.cwd(), '/.promptbook/executions-cache') }),
+        storage: new FilesStorage({ cacheFolderPath: join(process.cwd(), EXECUTIONS_CACHE_DIRNAME) }),
     });
 }
 
