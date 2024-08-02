@@ -10,10 +10,11 @@ import { joinLlmExecutionTools } from '../llm-providers/multiple/joinLlmExecutio
 import type { ExecutionReportJson } from '../types/execution-report/ExecutionReportJson';
 import type { PipelineJson } from '../types/PipelineJson/PipelineJson';
 import type { PromptTemplateJson } from '../types/PipelineJson/PromptTemplateJson';
-import type { Prompt } from '../types/Prompt';
+import { ChatPrompt, CompletionPrompt, EmbeddingPrompt, Prompt } from '../types/Prompt';
 import type { TaskProgress } from '../types/TaskProgress';
 import type { string_name, string_parameter_name, string_parameter_value } from '../types/typeAliases';
 import { arrayableToArray } from '../utils/arrayableToArray';
+import { really_any } from '../utils/organization/really_any';
 import type { TODO_any } from '../utils/organization/TODO_any';
 import { PROMPTBOOK_VERSION } from '../version';
 import type { ExecutionTools } from './ExecutionTools';
@@ -199,23 +200,25 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                                             }
                                         },
                                     ),
-                                };
+                                } as Prompt;
 
                                 variant: switch (currentTemplate.modelRequirements!.modelVariant) {
                                     case 'CHAT':
-                                        chatResult = await llmTools.callChatModel(prompt);
+                                        chatResult = await llmTools.callChatModel(prompt as ChatPrompt);
                                         // TODO: [🍬] Destroy chatThread
                                         result = chatResult;
                                         resultString = chatResult.content;
                                         break variant;
                                     case 'COMPLETION':
-                                        completionResult = await llmTools.callCompletionModel(prompt);
+                                        completionResult = await llmTools.callCompletionModel(
+                                            prompt as CompletionPrompt,
+                                        );
                                         result = completionResult;
                                         resultString = completionResult.content;
                                         break variant;
 
                                     case 'EMBEDDING':
-                                        embeddingResult = await llmTools.callEmbeddingModel(prompt);
+                                        embeddingResult = await llmTools.callEmbeddingModel(prompt as EmbeddingPrompt);
                                         result = embeddingResult;
                                         resultString = embeddingResult.content.join(',');
                                         break variant;
@@ -225,7 +228,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                                     default:
                                         throw new PipelineExecutionError(
                                             `Unknown model variant "${
-                                                currentTemplate.modelRequirements!.modelVariant
+                                                (currentTemplate as really_any).modelRequirements.modelVariant
                                             }"`,
                                         );
                                 }

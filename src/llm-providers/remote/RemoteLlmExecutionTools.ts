@@ -8,7 +8,7 @@ import type {
     EmbeddingPromptResult,
     PromptResult,
 } from '../../execution/PromptResult';
-import type { Prompt } from '../../types/Prompt';
+import { ChatPrompt, CompletionPrompt, EmbeddingPrompt, Prompt } from '../../types/Prompt';
 import type { string_markdown, string_markdown_text, string_title } from '../../types/typeAliases';
 import type { RemoteLlmExecutionToolsOptions } from './RemoteLlmExecutionToolsOptions';
 import type { Promptbook_Server_Error } from './interfaces/Promptbook_Server_Error';
@@ -61,7 +61,7 @@ export class RemoteLlmExecutionTools implements LlmExecutionTools {
     /**
      * Calls remote proxy server to use a chat model
      */
-    public callChatModel(prompt: Prompt): Promise<ChatPromptResult> {
+    public callChatModel(prompt: ChatPrompt): Promise<ChatPromptResult> {
         if (this.options.isVerbose) {
             console.info(`🖋 Remote callChatModel call`);
         }
@@ -71,7 +71,7 @@ export class RemoteLlmExecutionTools implements LlmExecutionTools {
     /**
      * Calls remote proxy server to use a completion model
      */
-    public callCompletionModel(prompt: Prompt): Promise<CompletionPromptResult> {
+    public callCompletionModel(prompt: CompletionPrompt): Promise<CompletionPromptResult> {
         if (this.options.isVerbose) {
             console.info(`💬 Remote callCompletionModel call`);
         }
@@ -81,7 +81,7 @@ export class RemoteLlmExecutionTools implements LlmExecutionTools {
     /**
      * Calls remote proxy server to use a embedding model
      */
-    public callEmbeddingModel(prompt: Prompt): Promise<EmbeddingPromptResult> {
+    public callEmbeddingModel(prompt: EmbeddingPrompt): Promise<EmbeddingPromptResult> {
         if (this.options.isVerbose) {
             console.info(`💬 Remote callEmbeddingModel call`);
         }

@@ -11,8 +11,9 @@ import type {
     EmbeddingPromptResult,
 } from '../../../../execution/PromptResult';
 import { MemoryStorage } from '../../../../storage/memory/MemoryStorage';
-import type { Prompt } from '../../../../types/Prompt';
+import { Prompt } from '../../../../types/Prompt';
 import { $currentDate } from '../../../../utils/currentDate';
+import { really_any } from '../../../../utils/organization/really_any';
 import type { TODO_any } from '../../../../utils/organization/TODO_any';
 import { PROMPTBOOK_VERSION } from '../../../../version';
 import type { CacheLlmToolsOptions } from './CacheLlmToolsOptions';
@@ -75,7 +76,9 @@ export function cacheLlmTools(
             // <- case [🤖]:
 
             default:
-                throw new PipelineExecutionError(`Unknown model variant "${prompt.modelRequirements!.modelVariant}"`);
+                throw new PipelineExecutionError(
+                    `Unknown model variant "${(prompt as really_any).modelRequirements.modelVariant}"`,
+                );
         }
 
         await storage.setItem(key, {

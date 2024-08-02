@@ -10,7 +10,7 @@ import type { PromptResultUsage } from '../../../../execution/PromptResultUsage'
 import { ZERO_USAGE } from '../../../../execution/utils/addUsage';
 import type { PromptbookStorage } from '../../../../storage/_common/PromptbookStorage';
 import { MemoryStorage } from '../../../../storage/memory/MemoryStorage';
-import type { Prompt } from '../../../../types/Prompt';
+import { ChatPrompt, CompletionPrompt, EmbeddingPrompt } from '../../../../types/Prompt';
 import type { TODO_any } from '../../../../utils/organization/TODO_any';
 import { TODO_USE } from '../../../../utils/organization/TODO_USE';
 import { countTotalUsage } from './countTotalCost';
@@ -53,21 +53,21 @@ export function limitTotalCost(
     }
 
     if (proxyTools.callChatModel !== undefined) {
-        proxyTools.callChatModel = async (prompt: Prompt): Promise<ChatPromptResult> => {
+        proxyTools.callChatModel = async (prompt: ChatPrompt): Promise<ChatPromptResult> => {
             TODO_USE(prompt);
             throw new LimitReachedError('Cannot call `callChatModel` because the total cost limit is reached');
         };
     }
 
     if (proxyTools.callCompletionModel !== undefined) {
-        proxyTools.callCompletionModel = async (prompt: Prompt): Promise<CompletionPromptResult> => {
+        proxyTools.callCompletionModel = async (prompt: CompletionPrompt): Promise<CompletionPromptResult> => {
             TODO_USE(prompt);
             throw new LimitReachedError('Cannot call `callCompletionModel` because the total cost limit is reached');
         };
     }
 
     if (proxyTools.callEmbeddingModel !== undefined) {
-        proxyTools.callEmbeddingModel = async (prompt: Prompt): Promise<EmbeddingPromptResult> => {
+        proxyTools.callEmbeddingModel = async (prompt: EmbeddingPrompt): Promise<EmbeddingPromptResult> => {
             TODO_USE(prompt);
             throw new LimitReachedError('Cannot call `callEmbeddingModel` because the total cost limit is reached');
         };

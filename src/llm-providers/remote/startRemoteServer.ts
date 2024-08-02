@@ -5,6 +5,7 @@ import { Server, Socket } from 'socket.io';
 import { spaceTrim } from 'spacetrim';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import type { PromptResult } from '../../execution/PromptResult';
+import { really_any } from '../../utils/organization/really_any';
 import { PROMPTBOOK_VERSION } from '../../version';
 import type { Promptbook_Server_Error } from './interfaces/Promptbook_Server_Error';
 import type { Promptbook_Server_Request } from './interfaces/Promptbook_Server_Request';
@@ -98,7 +99,7 @@ export function startRemoteServer(options: RemoteServerOptions): IDestroyable {
 
                     default:
                         throw new PipelineExecutionError(
-                            `Unknown model variant "${prompt.modelRequirements.modelVariant}"`,
+                            `Unknown model variant "${(prompt as really_any).modelRequirements.modelVariant}"`,
                         );
                 }
 

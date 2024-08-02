@@ -8,8 +8,9 @@ import type {
     EmbeddingPromptResult,
     PromptResult,
 } from '../../execution/PromptResult';
-import type { Prompt } from '../../types/Prompt';
+import { ChatPrompt, CompletionPrompt, EmbeddingPrompt, Prompt } from '../../types/Prompt';
 import type { string_markdown, string_markdown_text, string_title } from '../../types/typeAliases';
+import { really_any } from '../../utils/organization/really_any';
 
 /**
  * Multiple LLM Execution Tools is a proxy server that uses multiple execution tools internally and exposes the executor interface externally.
@@ -43,21 +44,21 @@ export class MultipleLlmExecutionTools implements LlmExecutionTools {
     /**
      * Calls the best available chat model
      */
-    public callChatModel(prompt: Prompt): Promise<ChatPromptResult> {
+    public callChatModel(prompt: ChatPrompt): Promise<ChatPromptResult> {
         return this.callModelCommon(prompt) as Promise<ChatPromptResult>;
     }
 
     /**
      * Calls the best available completion model
      */
-    public callCompletionModel(prompt: Prompt): Promise<CompletionPromptResult> {
+    public callCompletionModel(prompt: CompletionPrompt): Promise<CompletionPromptResult> {
         return this.callModelCommon(prompt) as Promise<ChatPromptResult>;
     }
 
     /**
      * Calls the best available embedding model
      */
-    public callEmbeddingModel(prompt: Prompt): Promise<EmbeddingPromptResult> {
+    public callEmbeddingModel(prompt: EmbeddingPrompt): Promise<EmbeddingPromptResult> {
         return this.callModelCommon(prompt) as Promise<EmbeddingPromptResult>;
     }
 
@@ -98,7 +99,9 @@ export class MultipleLlmExecutionTools implements LlmExecutionTools {
                     // <- case [🤖]:
 
                     default:
-                        throw new UnexpectedError(`Unknown model variant "${prompt.modelRequirements.modelVariant}"`);
+                        throw new UnexpectedError(
+                            `Unknown model variant "${(prompt as really_any).modelRequirements.modelVariant}"`,
+                        );
                 }
             } catch (error) {
                 if (!(error instanceof Error) || error instanceof UnexpectedError) {
