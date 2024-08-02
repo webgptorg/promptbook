@@ -1,4 +1,5 @@
-import { string_parameter_name, string_parameter_value } from './typeAliases';
+import type { string_parameter_name } from './typeAliases';
+import type { string_parameter_value } from './typeAliases';
 
 /**
  * Parameters of the pipeline
