@@ -9,8 +9,7 @@ import type { EmbeddingVector } from './EmbeddingVector';
  *
  * @see https://github.com/webgptorg/promptbook#prompt-result
  */
-export type PromptResult = PromptCompletionResult | PromptChatResult | PromptEmbeddingResult /* <- [🤖] */;
-// <- TODO: !!!!!!! Rename `PromptChatResult` to `ChatPromptResult`,...
+export type PromptResult = CompletionPromptResult | ChatPromptResult | EmbeddingPromptResult /* <- [🤖] */;
 
 /**
  * Prompt completion result
@@ -18,14 +17,15 @@ export type PromptResult = PromptCompletionResult | PromptChatResult | PromptEmb
  *
  * Note: This is fully serializable as JSON
  */
-export type PromptCompletionResult = PromptCommonResult;
+export type CompletionPromptResult = PromptCommonResult;
 
 /**
  * Prompt chat result
  *
  * Note: This is fully serializable as JSON
  */
-export type PromptChatResult = PromptCommonResult & { // <- TODO: !!!!!!!
+export type ChatPromptResult = PromptCommonResult & {
+    // <- TODO: !!!!!!!
     // TODO: [🤹‍♂️][🧠] Figure out way how to pass thread / previous messages
 };
 
@@ -35,7 +35,7 @@ export type PromptChatResult = PromptCommonResult & { // <- TODO: !!!!!!!
  *
  * Note: This is fully serializable as JSON
  */
-export type PromptEmbeddingResult = Omit<PromptCommonResult, 'content'> & {
+export type EmbeddingPromptResult = Omit<PromptCommonResult, 'content'> & {
     /**
      * The response from the model
      */
@@ -142,5 +142,5 @@ export type UncertainNumber = {
  * TODO: [🧠] Maybe type raw properly - not onject but OpenAI.result.whatever
  * TODO: [🧠] Maybe remove redundant raw.choices.text
  * TODO: Log raw even if prompt failed - log the raw error
- * TODO: [🏳] Add `PromptTranslationResult`
+ * TODO: [🏳] Add `TranslationPromptResult`
  */

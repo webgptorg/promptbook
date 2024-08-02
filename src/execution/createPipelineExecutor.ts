@@ -2,9 +2,9 @@ import { spaceTrim } from 'spacetrim';
 import type { Promisable } from 'type-fest';
 import { LOOP_LIMIT } from '../config';
 import { validatePipeline } from '../conversion/validation/validatePipeline';
+import { ExpectError } from '../errors/_ExpectError';
 import { PipelineExecutionError } from '../errors/PipelineExecutionError';
 import { UnexpectedError } from '../errors/UnexpectedError';
-import { ExpectError } from '../errors/_ExpectError';
 import { isValidJsonString } from '../formats/json/utils/isValidJsonString';
 import { joinLlmExecutionTools } from '../llm-providers/multiple/joinLlmExecutionTools';
 import type { ExecutionReportJson } from '../types/execution-report/ExecutionReportJson';
@@ -12,20 +12,14 @@ import type { PipelineJson } from '../types/PipelineJson/PipelineJson';
 import type { PromptTemplateJson } from '../types/PipelineJson/PromptTemplateJson';
 import type { Prompt } from '../types/Prompt';
 import type { TaskProgress } from '../types/TaskProgress';
-import type { string_name } from '../types/typeAliases';
-import type { string_parameter_name } from '../types/typeAliases';
-import type { string_parameter_value } from '../types/typeAliases';
+import type { string_name, string_parameter_name, string_parameter_value } from '../types/typeAliases';
 import { arrayableToArray } from '../utils/arrayableToArray';
 import type { TODO } from '../utils/organization/TODO';
 import { PROMPTBOOK_VERSION } from '../version';
 import type { ExecutionTools } from './ExecutionTools';
 import type { PipelineExecutor } from './PipelineExecutor';
-import type { PromptChatResult } from './PromptResult';
-import type { PromptCompletionResult } from './PromptResult';
-import type { PromptEmbeddingResult } from './PromptResult';
-import type { PromptResult } from './PromptResult';
-import { addUsage } from './utils/addUsage';
-import { ZERO_USAGE } from './utils/addUsage';
+import type { ChatPromptResult, CompletionPromptResult, EmbeddingPromptResult, PromptResult } from './PromptResult';
+import { addUsage, ZERO_USAGE } from './utils/addUsage';
 import { checkExpectations } from './utils/checkExpectations';
 import { replaceParameters } from './utils/replaceParameters';
 
@@ -107,9 +101,9 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
             }
 
             let prompt: Prompt;
-            let chatResult: PromptChatResult;
-            let completionResult: PromptCompletionResult;
-            let embeddingResult: PromptEmbeddingResult;
+            let chatResult: ChatPromptResult;
+            let completionResult: CompletionPromptResult;
+            let embeddingResult: EmbeddingPromptResult;
             // Note: [🤖]
             let result: PromptResult | null = null;
             let resultString: string | null = null;

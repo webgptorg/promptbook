@@ -1,12 +1,12 @@
 import type { Promisable } from 'type-fest';
-import type { AvailableModel } from '../../../../execution/LlmExecutionTools';
-import type { LlmExecutionTools } from '../../../../execution/LlmExecutionTools';
-import type { PromptChatResult } from '../../../../execution/PromptResult';
-import type { PromptCompletionResult } from '../../../../execution/PromptResult';
-import type { PromptEmbeddingResult } from '../../../../execution/PromptResult';
-import type { PromptResultUsage } from '../../../../execution/PromptResult';
-import { addUsage } from '../../../../execution/utils/addUsage';
-import { ZERO_USAGE } from '../../../../execution/utils/addUsage';
+import type { AvailableModel, LlmExecutionTools } from '../../../../execution/LlmExecutionTools';
+import type {
+    ChatPromptResult,
+    CompletionPromptResult,
+    EmbeddingPromptResult,
+    PromptResultUsage,
+} from '../../../../execution/PromptResult';
+import { addUsage, ZERO_USAGE } from '../../../../execution/utils/addUsage';
 import type { Prompt } from '../../../../types/Prompt';
 import type { LlmExecutionToolsWithTotalCost } from './LlmExecutionToolsWithTotalCost';
 
@@ -40,7 +40,7 @@ export function countTotalUsage(llmTools: LlmExecutionTools): LlmExecutionToolsW
     };
 
     if (llmTools.callChatModel !== undefined) {
-        proxyTools.callChatModel = async (prompt: Prompt): Promise<PromptChatResult> => {
+        proxyTools.callChatModel = async (prompt: Prompt): Promise<ChatPromptResult> => {
             const promptResult = await llmTools.callChatModel!(prompt);
             totalUsage = addUsage(totalUsage, promptResult.usage);
             return promptResult;
@@ -48,7 +48,7 @@ export function countTotalUsage(llmTools: LlmExecutionTools): LlmExecutionToolsW
     }
 
     if (llmTools.callCompletionModel !== undefined) {
-        proxyTools.callCompletionModel = async (prompt: Prompt): Promise<PromptCompletionResult> => {
+        proxyTools.callCompletionModel = async (prompt: Prompt): Promise<CompletionPromptResult> => {
             const promptResult = await llmTools.callCompletionModel!(prompt);
             totalUsage = addUsage(totalUsage, promptResult.usage);
             return promptResult;
@@ -56,7 +56,7 @@ export function countTotalUsage(llmTools: LlmExecutionTools): LlmExecutionToolsW
     }
 
     if (llmTools.callEmbeddingModel !== undefined) {
-        proxyTools.callEmbeddingModel = async (prompt: Prompt): Promise<PromptEmbeddingResult> => {
+        proxyTools.callEmbeddingModel = async (prompt: Prompt): Promise<EmbeddingPromptResult> => {
             const promptResult = await llmTools.callEmbeddingModel!(prompt);
             totalUsage = addUsage(totalUsage, promptResult.usage);
             return promptResult;

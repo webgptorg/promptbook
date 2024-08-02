@@ -1,15 +1,10 @@
 import type { CommonExecutionToolsOptions } from '../../execution/CommonExecutionToolsOptions';
 import type { EmbeddingVector } from '../../execution/EmbeddingVector';
-import type { AvailableModel } from '../../execution/LlmExecutionTools';
-import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { PromptChatResult } from '../../execution/PromptResult';
-import type { PromptCompletionResult } from '../../execution/PromptResult';
-import type { PromptEmbeddingResult } from '../../execution/PromptResult';
+import type { AvailableModel, LlmExecutionTools } from '../../execution/LlmExecutionTools';
+import type { ChatPromptResult, CompletionPromptResult, EmbeddingPromptResult } from '../../execution/PromptResult';
 import { addUsage } from '../../execution/utils/addUsage';
 import type { Prompt } from '../../types/Prompt';
-import type { string_markdown } from '../../types/typeAliases';
-import type { string_markdown_text } from '../../types/typeAliases';
-import type { string_title } from '../../types/typeAliases';
+import type { string_markdown, string_markdown_text, string_title } from '../../types/typeAliases';
 import { getCurrentIsoDate } from '../../utils/getCurrentIsoDate';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import { $fakeTextToExpectations } from './fakeTextToExpectations';
@@ -33,7 +28,7 @@ export class MockedFackedLlmExecutionTools implements LlmExecutionTools {
      */
     public async callChatModel(
         prompt: Pick<Prompt, 'content' | 'modelRequirements' | 'expectations' | 'postprocessing'>,
-    ): Promise<PromptChatResult & PromptCompletionResult> {
+    ): Promise<ChatPromptResult & CompletionPromptResult> {
         if (this.options.isVerbose) {
             console.info('💬 Mocked faked prompt', prompt);
         }
@@ -57,7 +52,7 @@ export class MockedFackedLlmExecutionTools implements LlmExecutionTools {
                 note: 'This is mocked echo',
             },
             // <- [🤹‍♂️]
-        } satisfies PromptChatResult & PromptCompletionResult;
+        } satisfies ChatPromptResult & CompletionPromptResult;
 
         if (this.options.isVerbose) {
             console.info('💬 Mocked faked result', result);
@@ -71,7 +66,7 @@ export class MockedFackedLlmExecutionTools implements LlmExecutionTools {
      */
     public async callCompletionModel(
         prompt: Pick<Prompt, 'content' | 'modelRequirements' | 'expectations' | 'postprocessing'>,
-    ): Promise<PromptCompletionResult> {
+    ): Promise<CompletionPromptResult> {
         return this.callChatModel(prompt);
     }
 
@@ -80,7 +75,7 @@ export class MockedFackedLlmExecutionTools implements LlmExecutionTools {
      */
     public async callEmbeddingModel(
         prompt: Pick<Prompt, 'content' | 'modelRequirements' | 'expectations' | 'postprocessing'>,
-    ): Promise<PromptEmbeddingResult> {
+    ): Promise<EmbeddingPromptResult> {
         keepUnused(prompt);
 
         const content = new Array(1024).fill(0).map(() => Math.random() * 2 - 1) satisfies EmbeddingVector;
@@ -99,7 +94,7 @@ export class MockedFackedLlmExecutionTools implements LlmExecutionTools {
                 note: 'This is mocked embedding',
             },
             // <- [🤹‍♂️]
-        } satisfies PromptEmbeddingResult;
+        } satisfies EmbeddingPromptResult;
 
         if (this.options.isVerbose) {
             console.info('💬 Mocked faked result', result);

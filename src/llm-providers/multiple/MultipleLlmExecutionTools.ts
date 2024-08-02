@@ -1,16 +1,15 @@
 import spaceTrim from 'spacetrim';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
-import type { AvailableModel } from '../../execution/LlmExecutionTools';
-import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { PromptChatResult } from '../../execution/PromptResult';
-import type { PromptCompletionResult } from '../../execution/PromptResult';
-import type { PromptEmbeddingResult } from '../../execution/PromptResult';
-import type { PromptResult } from '../../execution/PromptResult';
+import type { AvailableModel, LlmExecutionTools } from '../../execution/LlmExecutionTools';
+import type {
+    ChatPromptResult,
+    CompletionPromptResult,
+    EmbeddingPromptResult,
+    PromptResult,
+} from '../../execution/PromptResult';
 import type { Prompt } from '../../types/Prompt';
-import type { string_markdown } from '../../types/typeAliases';
-import type { string_markdown_text } from '../../types/typeAliases';
-import type { string_title } from '../../types/typeAliases';
+import type { string_markdown, string_markdown_text, string_title } from '../../types/typeAliases';
 
 /**
  * Multiple LLM Execution Tools is a proxy server that uses multiple execution tools internally and exposes the executor interface externally.
@@ -44,22 +43,22 @@ export class MultipleLlmExecutionTools implements LlmExecutionTools {
     /**
      * Calls the best available chat model
      */
-    public callChatModel(prompt: Prompt): Promise<PromptChatResult> {
-        return this.callModelCommon(prompt) as Promise<PromptChatResult>;
+    public callChatModel(prompt: Prompt): Promise<ChatPromptResult> {
+        return this.callModelCommon(prompt) as Promise<ChatPromptResult>;
     }
 
     /**
      * Calls the best available completion model
      */
-    public callCompletionModel(prompt: Prompt): Promise<PromptCompletionResult> {
-        return this.callModelCommon(prompt) as Promise<PromptChatResult>;
+    public callCompletionModel(prompt: Prompt): Promise<CompletionPromptResult> {
+        return this.callModelCommon(prompt) as Promise<ChatPromptResult>;
     }
 
     /**
      * Calls the best available embedding model
      */
-    public callEmbeddingModel(prompt: Prompt): Promise<PromptEmbeddingResult> {
-        return this.callModelCommon(prompt) as Promise<PromptEmbeddingResult>;
+    public callEmbeddingModel(prompt: Prompt): Promise<EmbeddingPromptResult> {
+        return this.callModelCommon(prompt) as Promise<EmbeddingPromptResult>;
     }
 
     // <- Note: [🤖]

@@ -5,7 +5,7 @@ import spaceTrim from 'spacetrim';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { AvailableModel, LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { PromptChatResult, PromptResultUsage } from '../../execution/PromptResult';
+import type { ChatPromptResult, PromptResultUsage } from '../../execution/PromptResult';
 import { computeUsageCounts } from '../../execution/utils/computeUsageCounts';
 import { uncertainNumber } from '../../execution/utils/uncertainNumber';
 import type { Prompt } from '../../types/Prompt';
@@ -52,7 +52,7 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools {
     /**
      * Calls Anthropic Claude API to use a chat model.
      */
-    public async callChatModel(prompt: Pick<Prompt, 'content' | 'modelRequirements'>): Promise<PromptChatResult> {
+    public async callChatModel(prompt: Pick<Prompt, 'content' | 'modelRequirements'>): Promise<ChatPromptResult> {
         if (this.options.isVerbose) {
             console.info('💬 Anthropic Claude callChatModel call');
         }

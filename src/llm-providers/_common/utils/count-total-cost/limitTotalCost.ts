@@ -1,13 +1,15 @@
 import { LimitReachedError } from '../../../../errors/LimitReachedError';
 import { NotYetImplementedError } from '../../../../errors/NotYetImplementedError';
 import type { LlmExecutionTools } from '../../../../execution/LlmExecutionTools';
-import type { PromptChatResult } from '../../../../execution/PromptResult';
-import type { PromptCompletionResult } from '../../../../execution/PromptResult';
-import type { PromptEmbeddingResult } from '../../../../execution/PromptResult';
-import type { PromptResultUsage } from '../../../../execution/PromptResult';
+import type {
+    ChatPromptResult,
+    CompletionPromptResult,
+    EmbeddingPromptResult,
+    PromptResultUsage,
+} from '../../../../execution/PromptResult';
 import { ZERO_USAGE } from '../../../../execution/utils/addUsage';
-import { MemoryStorage } from '../../../../storage/memory/MemoryStorage';
 import type { PromptbookStorage } from '../../../../storage/_common/PromptbookStorage';
+import { MemoryStorage } from '../../../../storage/memory/MemoryStorage';
 import type { Prompt } from '../../../../types/Prompt';
 import type { TODO } from '../../../../utils/organization/TODO';
 import { TODO_USE } from '../../../../utils/organization/TODO_USE';
@@ -51,21 +53,21 @@ export function limitTotalCost(
     }
 
     if (proxyTools.callChatModel !== undefined) {
-        proxyTools.callChatModel = async (prompt: Prompt): Promise<PromptChatResult> => {
+        proxyTools.callChatModel = async (prompt: Prompt): Promise<ChatPromptResult> => {
             TODO_USE(prompt);
             throw new LimitReachedError('Cannot call `callChatModel` because the total cost limit is reached');
         };
     }
 
     if (proxyTools.callCompletionModel !== undefined) {
-        proxyTools.callCompletionModel = async (prompt: Prompt): Promise<PromptCompletionResult> => {
+        proxyTools.callCompletionModel = async (prompt: Prompt): Promise<CompletionPromptResult> => {
             TODO_USE(prompt);
             throw new LimitReachedError('Cannot call `callCompletionModel` because the total cost limit is reached');
         };
     }
 
     if (proxyTools.callEmbeddingModel !== undefined) {
-        proxyTools.callEmbeddingModel = async (prompt: Prompt): Promise<PromptEmbeddingResult> => {
+        proxyTools.callEmbeddingModel = async (prompt: Prompt): Promise<EmbeddingPromptResult> => {
             TODO_USE(prompt);
             throw new LimitReachedError('Cannot call `callEmbeddingModel` because the total cost limit is reached');
         };

@@ -4,11 +4,12 @@ import type { Promisable } from 'type-fest';
 import { MAX_FILENAME_LENGTH } from '../../../../config';
 import { titleToName } from '../../../../conversion/utils/titleToName';
 import { PipelineExecutionError } from '../../../../errors/PipelineExecutionError';
-import type { AvailableModel } from '../../../../execution/LlmExecutionTools';
-import type { LlmExecutionTools } from '../../../../execution/LlmExecutionTools';
-import type { PromptChatResult } from '../../../../execution/PromptResult';
-import type { PromptCompletionResult } from '../../../../execution/PromptResult';
-import type { PromptEmbeddingResult } from '../../../../execution/PromptResult';
+import type { AvailableModel, LlmExecutionTools } from '../../../../execution/LlmExecutionTools';
+import type {
+    ChatPromptResult,
+    CompletionPromptResult,
+    EmbeddingPromptResult,
+} from '../../../../execution/PromptResult';
 import { MemoryStorage } from '../../../../storage/memory/MemoryStorage';
 import type { Prompt } from '../../../../types/Prompt';
 import { $currentDate } from '../../../../utils/currentDate';
@@ -55,7 +56,7 @@ export function cacheLlmTools(
         const cacheItem = await storage.getItem(key);
 
         if (cacheItem) {
-            return cacheItem.promptResult as PromptChatResult;
+            return cacheItem.promptResult as ChatPromptResult;
         }
 
         let promptResult: TODO;
@@ -88,19 +89,19 @@ export function cacheLlmTools(
     };
 
     if (llmTools.callChatModel !== undefined) {
-        proxyTools.callChatModel = async (prompt: Prompt): Promise<PromptChatResult> => {
+        proxyTools.callChatModel = async (prompt: Prompt): Promise<ChatPromptResult> => {
             return /* not await */ callCommonModel(prompt);
         };
     }
 
     if (llmTools.callCompletionModel !== undefined) {
-        proxyTools.callCompletionModel = async (prompt: Prompt): Promise<PromptCompletionResult> => {
+        proxyTools.callCompletionModel = async (prompt: Prompt): Promise<CompletionPromptResult> => {
             return /* not await */ callCommonModel(prompt);
         };
     }
 
     if (llmTools.callEmbeddingModel !== undefined) {
-        proxyTools.callEmbeddingModel = async (prompt: Prompt): Promise<PromptEmbeddingResult> => {
+        proxyTools.callEmbeddingModel = async (prompt: Prompt): Promise<EmbeddingPromptResult> => {
             return /* not await */ callCommonModel(prompt);
         };
     }

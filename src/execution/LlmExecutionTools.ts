@@ -1,13 +1,8 @@
 import type { Promisable } from 'type-fest';
 import type { ModelVariant } from '../types/ModelRequirements';
 import type { Prompt } from '../types/Prompt';
-import type { string_markdown } from '../types/typeAliases';
-import type { string_markdown_text } from '../types/typeAliases';
-import type { string_model_name } from '../types/typeAliases';
-import type { string_title } from '../types/typeAliases';
-import type { PromptChatResult } from './PromptResult';
-import type { PromptCompletionResult } from './PromptResult';
-import type { PromptEmbeddingResult } from './PromptResult';
+import type { string_markdown, string_markdown_text, string_model_name, string_title } from '../types/typeAliases';
+import type { ChatPromptResult, CompletionPromptResult, EmbeddingPromptResult } from './PromptResult';
 
 /**
  * Container for all the tools needed to execute prompts to large language models like GPT-4
@@ -34,17 +29,17 @@ export type LlmExecutionTools = {
     /**
      * Calls a chat model
      */
-    callChatModel?(prompt: Prompt): Promise<PromptChatResult>;
+    callChatModel?(prompt: Prompt): Promise<ChatPromptResult>;
 
     /**
      * Calls a completion model
      */
-    callCompletionModel?(prompt: Prompt): Promise<PromptCompletionResult>;
+    callCompletionModel?(prompt: Prompt): Promise<CompletionPromptResult>;
 
     /**
      * Calls an embedding model
      */
-    callEmbeddingModel?(prompt: Prompt): Promise<PromptEmbeddingResult>;
+    callEmbeddingModel?(prompt: Prompt): Promise<EmbeddingPromptResult>;
 
     /**
      * List all available models that can be used

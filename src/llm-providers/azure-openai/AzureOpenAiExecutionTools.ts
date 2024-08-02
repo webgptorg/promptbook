@@ -2,7 +2,7 @@ import { AzureKeyCredential, OpenAIClient } from '@azure/openai';
 import colors from 'colors';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import type { AvailableModel, LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { PromptChatResult, PromptCompletionResult, PromptResultUsage } from '../../execution/PromptResult';
+import type { ChatPromptResult, CompletionPromptResult, PromptResultUsage } from '../../execution/PromptResult';
 import { computeUsageCounts } from '../../execution/utils/computeUsageCounts';
 import { uncertainNumber } from '../../execution/utils/uncertainNumber';
 import type { Prompt } from '../../types/Prompt';
@@ -43,7 +43,7 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools {
     /**
      * Calls OpenAI API to use a chat model.
      */
-    public async callChatModel(prompt: Pick<Prompt, 'content' | 'modelRequirements'>): Promise<PromptChatResult> {
+    public async callChatModel(prompt: Pick<Prompt, 'content' | 'modelRequirements'>): Promise<ChatPromptResult> {
         if (this.options.isVerbose) {
             console.info('💬 OpenAI callChatModel call');
         }
@@ -142,7 +142,7 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools {
      */
     public async callCompletionModel(
         prompt: Pick<Prompt, 'content' | 'modelRequirements'>,
-    ): Promise<PromptCompletionResult> {
+    ): Promise<CompletionPromptResult> {
         if (this.options.isVerbose) {
             console.info('🖋 OpenAI callCompletionModel call');
         }

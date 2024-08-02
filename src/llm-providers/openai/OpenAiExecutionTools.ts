@@ -4,7 +4,7 @@ import spaceTrim from 'spacetrim';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { AvailableModel, LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { PromptChatResult, PromptCompletionResult, PromptEmbeddingResult } from '../../execution/PromptResult';
+import type { ChatPromptResult, CompletionPromptResult, EmbeddingPromptResult } from '../../execution/PromptResult';
 import type { Prompt } from '../../types/Prompt';
 import type {
     string_date_iso8601,
@@ -55,7 +55,7 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
      */
     public async callChatModel(
         prompt: Pick<Prompt, 'content' | 'modelRequirements' | 'expectFormat'>,
-    ): Promise<PromptChatResult> {
+    ): Promise<ChatPromptResult> {
         if (this.options.isVerbose) {
             console.info('💬 OpenAI callChatModel call', { prompt });
         }
@@ -153,7 +153,7 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
      */
     public async callCompletionModel(
         prompt: Pick<Prompt, 'content' | 'modelRequirements'>,
-    ): Promise<PromptCompletionResult> {
+    ): Promise<CompletionPromptResult> {
         if (this.options.isVerbose) {
             console.info('🖋 OpenAI callCompletionModel call', { prompt });
         }
@@ -224,7 +224,7 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
      */
     public async callEmbeddingModel(
         prompt: Pick<Prompt, 'content' | 'modelRequirements'>,
-    ): Promise<PromptEmbeddingResult> {
+    ): Promise<EmbeddingPromptResult> {
         if (this.options.isVerbose) {
             console.info('🖋 OpenAI embedding call', { prompt });
         }
