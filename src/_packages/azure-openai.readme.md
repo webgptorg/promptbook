@@ -14,7 +14,7 @@ import { OpenAiExecutionTools } from '@promptbook/openai';
 const collection = await createCollectionFromDirectory('./promptbook-collection');
 
 // ▶ Get single Pipeline
-const pipeline = await library.getPipelineByUrl(`https://promptbook.studio/my-collection/write-article.ptbk.md`);
+const pipeline = await collection.getPipelineByUrl(`https://promptbook.studio/my-collection/write-article.ptbk.md`);
 
 // ▶ Prepare tools
 const tools = {
@@ -58,7 +58,7 @@ import { OpenAiExecutionTools } from '@promptbook/openai';
 const collection = await createCollectionFromDirectory('./promptbook-collection');
 
 // ▶ Get single Pipeline
-const pipeline = await library.getPipelineByUrl(`https://promptbook.studio/my-collection/write-article.ptbk.md`);
+const pipeline = await collection.getPipelineByUrl(`https://promptbook.studio/my-collection/write-article.ptbk.md`);
 
 // ▶ Prepare multiple tools
 const tools = {

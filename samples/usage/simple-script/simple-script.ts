@@ -25,7 +25,7 @@ async function main() {
         isRecursive: false,
         isCrashedOnError: true,
     });
-    const pipeline = await library.getPipelineByUrl(
+    const pipeline = await collection.getPipelineByUrl(
         `https://promptbook.studio/samples/simple.ptbk.md`,
         // `https://promptbook.studio/samples/language-capabilities.ptbk.md`,
     );
