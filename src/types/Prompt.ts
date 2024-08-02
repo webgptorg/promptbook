@@ -69,6 +69,9 @@ export type Prompt = {
      * Note: This is redundant (same information is in pipelineUrl+content) but useful for logging and debugging
      */
     readonly parameters: Record<string_parameter_name, string_parameter_value>;
+
+
+    // <- Note: [🧆] Look here when adding new properties to `Prompt`
 };
 
 /**

@@ -54,13 +54,15 @@ async function playground() {
     console.info(chalk.green(completionPrompt.content + completionPromptResult.content));
     /**/
 
-    /*/
+    /**/
     const chatprompt = {
-        title: 'Hello',
+        title: 'Poem about Prague',
         parameters: {},
-        content: `Hello, my name is Alice.`,
+        content: `Write me something about Prague`,
         modelRequirements: {
             modelVariant: 'CHAT',
+            systemMessage: 'You are an assistant who only speaks in rhymes.',
+            temperature: 1.5,
         },
     } as const satisfies Prompt;
     const chatpromptResult = await openAiExecutionTools.callChatModel(chatprompt);

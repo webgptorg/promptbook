@@ -3,17 +3,16 @@ import OpenAI from 'openai';
 import spaceTrim from 'spacetrim';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
-import type { AvailableModel } from '../../execution/LlmExecutionTools';
-import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { PromptChatResult } from '../../execution/PromptResult';
-import type { PromptCompletionResult } from '../../execution/PromptResult';
-import type { PromptEmbeddingResult } from '../../execution/PromptResult';
+import type { AvailableModel, LlmExecutionTools } from '../../execution/LlmExecutionTools';
+import type { PromptChatResult, PromptCompletionResult, PromptEmbeddingResult } from '../../execution/PromptResult';
 import type { Prompt } from '../../types/Prompt';
-import type { string_date_iso8601 } from '../../types/typeAliases';
-import type { string_markdown } from '../../types/typeAliases';
-import type { string_markdown_text } from '../../types/typeAliases';
-import type { string_model_name } from '../../types/typeAliases';
-import type { string_title } from '../../types/typeAliases';
+import type {
+    string_date_iso8601,
+    string_markdown,
+    string_markdown_text,
+    string_model_name,
+    string_title,
+} from '../../types/typeAliases';
 import { getCurrentIsoDate } from '../../utils/getCurrentIsoDate';
 import { computeOpenaiUsage } from './computeOpenaiUsage';
 import { OPENAI_MODELS } from './openai-models';
@@ -72,9 +71,14 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
         const modelSettings = {
             model,
             max_tokens: modelRequirements.maxTokens,
-            //                                   <- TODO: Make some global max cap for maxTokens
+            //                                   <- TODO: [🌾] Make some global max cap for maxTokens
 
-            // <- TODO: !!!!!! Use here `systemMessage`, `temperature` and `seed`
+            temperature: modelRequirements.temperature,
+
+            // <- TODO: !!!!!! Use here `systemMessage`, `temperature`
+
+            // <- TODO: [🈁] Use `seed` here AND/OR use is `isDeterministic` for entire execution tools
+            // <- Note: [🧆]
         } as OpenAI.Chat.Completions.CompletionCreateParamsNonStreaming; // <- TODO: Guard here types better
 
         if (expectFormat === 'JSON') {
@@ -89,6 +93,14 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
         const rawRequest: OpenAI.Chat.Completions.CompletionCreateParamsNonStreaming = {
             ...modelSettings,
             messages: [
+                ...(modelRequirements.systemMessage === undefined
+                    ? []
+                    : ([
+                          {
+                              role: 'system',
+                              content: modelRequirements.systemMessage,
+                          },
+                      ] as const)),
                 {
                     role: 'user',
                     content,
@@ -158,10 +170,13 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
         const model = modelRequirements.modelName || this.getDefaultCompletionModel().modelName;
         const modelSettings = {
             model,
-            max_tokens: modelRequirements.maxTokens || 2000, // <- Note: 2000 is for lagacy reasons
-            //                                                  <- TODO: Make some global max cap for maxTokens
+            max_tokens: modelRequirements.maxTokens || 2000, // <- Note: [🌾] 2000 is for lagacy reasons
+            //                                                  <- TODO: [🌾] Make some global max cap for maxTokens
 
-            // <- TODO: !!!!!! Use here `systemMessage`, `temperature` and `seed`
+            // <- TODO: !!!!!! Use here `systemMessage`, `temperature`
+
+            // <- TODO: [🈁] Use `seed` here AND/OR use is `isDeterministic` for entire execution tools
+            // <- Note: [🧆]
         };
 
         const rawRequest: OpenAI.Completions.CompletionCreateParamsNonStreaming = {
