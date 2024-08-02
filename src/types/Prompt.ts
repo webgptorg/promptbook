@@ -1,15 +1,19 @@
 import type { ExpectFormatCommand } from '../commands/EXPECT/ExpectFormatCommand';
 import type { PostprocessingFunction } from '../scripting/javascript/JavascriptExecutionToolsOptions';
-import type { ChatModelRequirements } from './ModelRequirements';
-import type { CompletionModelRequirements } from './ModelRequirements';
-import type { EmbeddingModelRequirements } from './ModelRequirements';
-import type { ModelRequirements } from './ModelRequirements';
+import type {
+    ChatModelRequirements,
+    CompletionModelRequirements,
+    EmbeddingModelRequirements,
+    ModelRequirements,
+} from './ModelRequirements';
 import type { Expectations } from './PipelineJson/Expectations';
-import type { string_parameter_name } from './typeAliases';
-import type { string_parameter_value } from './typeAliases';
-import type { string_pipeline_url_with_hashtemplate } from './typeAliases';
-import type { string_prompt } from './typeAliases';
-import type { string_title } from './typeAliases';
+import type {
+    string_parameter_name,
+    string_parameter_value,
+    string_pipeline_url_with_hashtemplate,
+    string_prompt,
+    string_title,
+} from './typeAliases';
 
 /**
  * Prompt in a text along with model requirements, but without any execution or templating logic.
@@ -81,6 +85,7 @@ export type CommonPrompt = {
      * @example "What is the capital of France?"
      */
     readonly content: string_prompt;
+    // TODO: !!!!!! Change `CommonPrompt.content` to without replaced parameters
 
     /**
      * Requirements for the model
@@ -121,6 +126,8 @@ export type CommonPrompt = {
      * Note: This is redundant (same information is in pipelineUrl+content) but useful for logging and debugging
      */
     readonly parameters: Record<string_parameter_name, string_parameter_value>;
+
+    // TODO: !!!!!! add reservedParameters:
 
     // <- Note: [🧆] Look here when adding new properties to `Prompt`
 };
