@@ -37,6 +37,7 @@ async function main() {
 
     // TODO: Allow user to pick pipeline
     // > const pipelineUrls = await collection.listPipelines();
+    // @see https://nodejs.org/en/learn/command-line/accept-input-from-the-command-line-in-nodejs
 
     const pipeline = await collection.getPipelineByUrl(
         'https://promptbook.studio/samples/simple-knowledge.ptbk.md',
