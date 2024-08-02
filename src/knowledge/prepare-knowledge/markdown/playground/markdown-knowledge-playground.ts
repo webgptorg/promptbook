@@ -52,7 +52,7 @@ async function playground() {
             __dirname,
             '../samples/10-simple.knowledge.json' /* <- TODO: !! Read here the samples directory and itterate through all of them */,
         ),
-        JSON.stringify(knowledge, null, 4) + '\n',
+        stringifyPipelineJson(knowledge) ,
         'utf-8',
     );
     /**/

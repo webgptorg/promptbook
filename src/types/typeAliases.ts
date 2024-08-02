@@ -244,6 +244,17 @@ export type string_script = string;
  */
 export type string_javascript = string;
 
+
+/**
+ * Semantic helper for JSON strings
+ *
+ * Note: TType is a type of the JSON object inside the string
+ *
+ * For example `{"foo": "bar"}`
+ */
+export type string_json<TType> = string & {_type:'string_json',scheme: TType};
+
+
 /**
  * Semantic helper
  *

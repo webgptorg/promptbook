@@ -9,6 +9,7 @@ import { PIPELINE_COLLECTION_BASE_FILENAME } from '../../config';
 import { validatePipeline } from '../../conversion/validation/validatePipeline';
 import { getLlmToolsForCli } from '../../llm-providers/_common/getLlmToolsForCli';
 import type { string_file_extension } from '../../types/typeAliases';
+import { stringifyPipelineJson } from '../../conversion/utils/stringifyPipelineJson';
 
 /**
  * Initializes `make` command for Promptbook CLI utilities
@@ -96,7 +97,7 @@ export function initializeMakeCommand(program: Program) {
         }
 
         const collectionJson = await collectionToJson(collection);
-        const collectionJsonString = JSON.stringify(collectionJson);
+        const collectionJsonString = stringifyPipelineJson(collectionJson);
 
         const saveFile = async (extension: string_file_extension, content: string) => {
             const filePath =
@@ -116,7 +117,7 @@ export function initializeMakeCommand(program: Program) {
         };
 
         if (formats.includes('json')) {
-            await saveFile('json', collectionJsonString + '\n');
+            await saveFile('json', collectionJsonString);
         }
 
         if (formats.includes('javascript')) {
