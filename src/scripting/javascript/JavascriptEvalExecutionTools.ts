@@ -2,6 +2,7 @@
 import _spaceTrim from 'spacetrim';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import type { ScriptExecutionTools, ScriptExecutionToolsExecuteOptions } from '../../execution/ScriptExecutionTools';
+import { extractBlock } from '../../postprocessing/utils/extractBlock';
 import { prettifyMarkdown as _prettifyMarkdown } from '../../utils/markdown/prettifyMarkdown';
 import { capitalize as _capitalize } from '../../utils/normalization/capitalize';
 import { decapitalize as _decapitalize } from '../../utils/normalization/decapitalize';
@@ -15,7 +16,7 @@ import { normalizeTo_snake_case as _normalizeTo_snake_case } from '../../utils/n
 import { normalizeWhitespaces as _normalizeWhitespaces } from '../../utils/normalization/normalizeWhitespaces';
 import { parseKeywordsFromString } from '../../utils/normalization/parseKeywordsFromString';
 import { removeDiacritics as _removeDiacritics } from '../../utils/normalization/removeDiacritics';
-import { TODO } from '../../utils/organization/TODO';
+import { TODO_any } from '../../utils/organization/TODO_any';
 import { removeEmojis as _removeEmojis } from '../../utils/removeEmojis';
 import { removeQuotes as _removeQuotes } from '../../utils/removeQuotes';
 import { trimCodeBlock as _trimCodeBlock } from '../../utils/trimCodeBlock';
@@ -24,7 +25,6 @@ import { unwrapResult as _unwrapResult } from '../../utils/unwrapResult';
 import type { JavascriptExecutionToolsOptions } from './JavascriptExecutionToolsOptions';
 import { preserve } from './utils/preserve';
 import { unknownToString } from './utils/unknownToString';
-import { extractBlock } from '../../postprocessing/utils/extractBlock';
 
 /**
  * ScriptExecutionTools for JavaScript implemented via eval
@@ -55,7 +55,7 @@ export class JavascriptEvalExecutionTools implements ScriptExecutionTools {
         // Note: [💎]
         // Note: Using direct eval, following variables are in same scope as eval call so they are accessible from inside the evaluated script:
 
-        const spaceTrim = (_: TODO) => _spaceTrim(_);
+        const spaceTrim = (_: TODO_any) => _spaceTrim(_);
         preserve(spaceTrim);
 
         const removeQuotes = _removeQuotes;
@@ -193,7 +193,7 @@ export class JavascriptEvalExecutionTools implements ScriptExecutionTools {
             );
         }
 
-        let result: TODO;
+        let result: TODO_any;
         try {
             result = await eval(statementToEvaluate);
 

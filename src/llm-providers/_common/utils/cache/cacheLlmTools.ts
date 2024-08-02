@@ -13,7 +13,7 @@ import type {
 import { MemoryStorage } from '../../../../storage/memory/MemoryStorage';
 import type { Prompt } from '../../../../types/Prompt';
 import { $currentDate } from '../../../../utils/currentDate';
-import type { TODO } from '../../../../utils/organization/TODO';
+import type { TODO_any } from '../../../../utils/organization/TODO_any';
 import { PROMPTBOOK_VERSION } from '../../../../version';
 import type { CacheLlmToolsOptions } from './CacheLlmToolsOptions';
 
@@ -46,7 +46,7 @@ export function cacheLlmTools(
         },
     };
 
-    const callCommonModel = async (prompt: Prompt): Promise<TODO> => {
+    const callCommonModel = async (prompt: Prompt): Promise<TODO_any> => {
         const key = titleToName(
             prompt.title.substring(0, MAX_FILENAME_LENGTH - 10) +
                 '-' +
@@ -59,7 +59,7 @@ export function cacheLlmTools(
             return cacheItem.promptResult as ChatPromptResult;
         }
 
-        let promptResult: TODO;
+        let promptResult: TODO_any;
         variant: switch (prompt.modelRequirements.modelVariant) {
             case 'CHAT':
                 promptResult = await llmTools.callChatModel!(prompt);

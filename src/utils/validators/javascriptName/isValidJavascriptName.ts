@@ -1,6 +1,7 @@
 import type { string_javascript_name } from '../../../types/typeAliases';
+import { really_unknown } from '../../organization/really_unknown';
 
-export function isValidJavascriptName(javascriptName: unknown): javascriptName is string_javascript_name {
+export function isValidJavascriptName(javascriptName: really_unknown): javascriptName is string_javascript_name {
     if (typeof javascriptName !== 'string') {
         return false;
     }

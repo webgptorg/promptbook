@@ -1,7 +1,6 @@
 import { ParsingError } from '../../errors/ParsingError';
-import type { TODO } from '../../utils/organization/TODO';
-import type { CommandParser } from '../_common/types/CommandParser';
-import type { CommandParserInput } from '../_common/types/CommandParser';
+import type { TODO_any } from '../../utils/organization/TODO_any';
+import type { CommandParser, CommandParserInput } from '../_common/types/CommandParser';
 import type { JokerCommand } from './JokerCommand';
 
 /**
@@ -48,7 +47,7 @@ export const jokerCommandParser: CommandParser<JokerCommand> = {
             throw new ParsingError(`Invalid joker`);
         }
 
-        const { parameterName } = parametersMatch.groups as TODO;
+        const { parameterName } = parametersMatch.groups as TODO_any;
 
         return {
             type: 'JOKER',

@@ -1,4 +1,5 @@
 import type { string_pipeline_url } from '../../../types/typeAliases';
+import { really_unknown } from '../../organization/really_unknown';
 import { isUrlOnPrivateNetwork } from './isUrlOnPrivateNetwork';
 import { isValidUrl } from './isValidUrl';
 
@@ -9,7 +10,7 @@ import { isValidUrl } from './isValidUrl';
  * - `isValidUrl` which tests any URL
  * - `isValidPipelineUrl` *(this one)* which tests just pipeline URL
  */
-export function isValidPipelineUrl(url: unknown): url is string_pipeline_url {
+export function isValidPipelineUrl(url: really_unknown): url is string_pipeline_url {
     if (!isValidUrl(url)) {
         return false;
     }

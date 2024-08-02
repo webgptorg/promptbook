@@ -1,5 +1,5 @@
 import { describe, expect, it } from '@jest/globals';
-import type { TODO } from './organization/TODO';
+import type { TODO_any } from './organization/TODO_any';
 import { parseNumber } from './parseNumber';
 
 describe('how parseNumber works', () => {
@@ -78,8 +78,8 @@ describe('how parseNumber works', () => {
         expect(parseNumber('null')).toBe(0);
         expect(parseNumber('undefined')).toBe(0);
         expect(parseNumber(NaN)).toBe(0);
-        expect(parseNumber(null as TODO)).toBe(0);
-        expect(parseNumber(undefined as TODO)).toBe(0);
+        expect(parseNumber(null as TODO_any)).toBe(0);
+        expect(parseNumber(undefined as TODO_any)).toBe(0);
     });
 
     it('should throw error on invalid entries', () => {

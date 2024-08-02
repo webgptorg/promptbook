@@ -1,7 +1,6 @@
 import { ParsingError } from '../../errors/ParsingError';
-import type { TODO } from '../../utils/organization/TODO';
-import type { CommandParser } from '../_common/types/CommandParser';
-import type { CommandParserInput } from '../_common/types/CommandParser';
+import type { TODO_any } from '../../utils/organization/TODO_any';
+import type { CommandParser, CommandParserInput } from '../_common/types/CommandParser';
 import type { ParameterCommand } from './ParameterCommand';
 
 /**
@@ -57,7 +56,7 @@ export const parameterCommandParser: CommandParser<ParameterCommand> = {
             throw new ParsingError(`Invalid parameter`);
         }
 
-        const { parameterName, parameterDescription } = parametersMatch.groups as TODO;
+        const { parameterName, parameterDescription } = parametersMatch.groups as TODO_any;
 
         if (parameterDescription && parameterDescription.match(/\{(?<parameterName>[a-z0-9_]+)\}/im)) {
             throw new ParsingError(`Parameter {${parameterName}} can not contain another parameter in description`);

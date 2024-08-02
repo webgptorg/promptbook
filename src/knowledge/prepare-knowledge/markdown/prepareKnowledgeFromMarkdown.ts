@@ -11,7 +11,7 @@ import type { PrepareOptions } from '../../../prepare/PrepareOptions';
 import type { KnowledgePiecePreparedJson } from '../../../types/PipelineJson/KnowledgePieceJson';
 import type { PipelineJson } from '../../../types/PipelineJson/PipelineJson';
 import type { string_markdown } from '../../../types/typeAliases';
-import type { TODO } from '../../../utils/organization/TODO';
+import type { TODO_any } from '../../../utils/organization/TODO_any';
 import { TODO_USE } from '../../../utils/organization/TODO_USE';
 
 /**
@@ -26,7 +26,7 @@ export async function prepareKnowledgeFromMarkdown(
     TODO_USE(maxParallelCount); // <- [🪂]
 
     // TODO: [🌼] In future use `ptbk make` and maked getPipelineCollection
-    const collection = createCollectionFromJson(...(PipelineCollection as TODO as Array<PipelineJson>));
+    const collection = createCollectionFromJson(...(PipelineCollection as TODO_any as Array<PipelineJson>));
 
     const prepareKnowledgeFromMarkdownExecutor = createPipelineExecutor({
         pipeline: await collection.getPipelineByUrl(

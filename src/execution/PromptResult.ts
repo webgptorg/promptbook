@@ -1,4 +1,6 @@
 import type { string_date_iso8601, string_model_name } from '../types/typeAliases';
+import { TODO_any } from '../utils/organization/TODO_any';
+import { TODO_object } from '../utils/organization/TODO_object';
 import type { EmbeddingVector } from './EmbeddingVector';
 import { PromptResultUsage } from './PromptResultUsage';
 
@@ -86,14 +88,13 @@ export type CommonPromptResult = {
     /**
      * Raw response from the model
      */
-    readonly rawResponse: object;
+    readonly rawResponse: TODO_object;
 };
-
 
 /**
  * TODO: [🧠] Maybe timing more accurate then seconds?
  * TODO: [🧠] Should here be link to the prompt?
- * TODO: [🧠] Maybe type raw properly - not onject but OpenAI.result.whatever
+ * TODO: [🧠] Maybe type `rawResponse` properly - not onject but OpenAI.result.whatever
  * TODO: [🧠] Maybe remove redundant raw.choices.text
  * TODO: Log raw even if prompt failed - log the raw error
  * TODO: [🏳] Add `TranslationPromptResult`

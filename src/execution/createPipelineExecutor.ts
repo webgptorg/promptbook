@@ -14,7 +14,7 @@ import type { Prompt } from '../types/Prompt';
 import type { TaskProgress } from '../types/TaskProgress';
 import type { string_name, string_parameter_name, string_parameter_value } from '../types/typeAliases';
 import { arrayableToArray } from '../utils/arrayableToArray';
-import type { TODO } from '../utils/organization/TODO';
+import type { TODO_any } from '../utils/organization/TODO_any';
 import { PROMPTBOOK_VERSION } from '../version';
 import type { ExecutionTools } from './ExecutionTools';
 import type { PipelineExecutor } from './PipelineExecutor';
@@ -314,7 +314,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
 
                             default:
                                 throw new PipelineExecutionError(
-                                    `Unknown execution type "${(currentTemplate as TODO).blockType}"`,
+                                    `Unknown execution type "${(currentTemplate as TODO_any).blockType}"`,
                                 );
                         }
                     }

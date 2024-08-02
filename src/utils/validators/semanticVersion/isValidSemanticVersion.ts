@@ -1,4 +1,5 @@
 import type { string_semantic_version } from '../../../types/typeAliases';
+import { really_unknown } from '../../organization/really_unknown';
 
 /**
  * Tests if given string is valid semantic version
@@ -7,7 +8,7 @@ import type { string_semantic_version } from '../../../types/typeAliases';
  * - `isValidSemanticVersion` which tests any semantic version
  * - `isValidPromptbookVersion` *(this one)* which tests just Promptbook versions
  */
-export function isValidSemanticVersion(version: unknown): version is string_semantic_version {
+export function isValidSemanticVersion(version: really_unknown): version is string_semantic_version {
     if (typeof version !== 'string') {
         return false;
     }

@@ -1,4 +1,5 @@
 import type { string_promptbook_version } from '../../../version';
+import { really_unknown } from '../../organization/really_unknown';
 import { isValidSemanticVersion } from './isValidSemanticVersion';
 
 /**
@@ -11,7 +12,7 @@ import { isValidSemanticVersion } from './isValidSemanticVersion';
  * - `isValidSemanticVersion` which tests any semantic version
  * - `isValidPromptbookVersion` *(this one)* which tests just Promptbook versions
  */
-export function isValidPromptbookVersion(version: unknown): version is string_promptbook_version {
+export function isValidPromptbookVersion(version: really_unknown): version is string_promptbook_version {
     if (!isValidSemanticVersion(version)) {
         return false;
     }

@@ -11,7 +11,7 @@ import { ZERO_USAGE } from '../../../../execution/utils/addUsage';
 import type { PromptbookStorage } from '../../../../storage/_common/PromptbookStorage';
 import { MemoryStorage } from '../../../../storage/memory/MemoryStorage';
 import type { Prompt } from '../../../../types/Prompt';
-import type { TODO } from '../../../../utils/organization/TODO';
+import type { TODO_any } from '../../../../utils/organization/TODO_any';
 import { TODO_USE } from '../../../../utils/organization/TODO_USE';
 import { countTotalUsage } from './countTotalCost';
 import type { LlmExecutionToolsWithTotalCost } from './LlmExecutionToolsWithTotalCost';
@@ -32,7 +32,7 @@ type LimitTotalCostOptions = {
      *
      * @default MemoryStorage
      */
-    storage: PromptbookStorage<TODO>;
+    storage: PromptbookStorage<TODO_any>;
 };
 
 /**

@@ -255,7 +255,7 @@ export function validatePipeline(pipeline: PipelineJson): PipelineJson {
  *     >  * It checks:
  *     >  * -   it has a valid structure
  *     >  * -   ...
- *     >  ex port function validatePipeline(promptbook: unknown): asserts promptbook is PipelineJson {
+ *     >  ex port function validatePipeline(promptbook: really_unknown): asserts promptbook is PipelineJson {
  */
 
 /**

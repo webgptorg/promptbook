@@ -1,3 +1,4 @@
+import { really_unknown } from '../organization/really_unknown';
 import type { IKeywords } from './IKeywords';
 import { parseKeywordsFromString } from './parseKeywordsFromString';
 
@@ -9,7 +10,7 @@ import { parseKeywordsFromString } from './parseKeywordsFromString';
  * @param input of any kind
  * @returns {Set} of keywords without diacritics in lowercase
  */
-export function parseKeywords(input: unknown): IKeywords {
+export function parseKeywords(input: really_unknown): IKeywords {
     if (typeof input === 'string') {
         return parseKeywordsFromString(input);
     } else if (typeof input === 'object') {

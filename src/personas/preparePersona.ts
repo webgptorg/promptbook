@@ -6,7 +6,7 @@ import type { PrepareOptions } from '../prepare/PrepareOptions';
 import type { PersonaPreparedJson } from '../types/PipelineJson/PersonaJson';
 import type { PipelineJson } from '../types/PipelineJson/PipelineJson';
 import type { string_persona_description } from '../types/typeAliases';
-import type { TODO } from '../utils/organization/TODO';
+import type { TODO_any } from '../utils/organization/TODO_any';
 
 /**
  * Prepares the persona for the pipeline
@@ -20,7 +20,7 @@ export async function preparePersona(
     const { llmTools, isVerbose = false } = options;
 
     // TODO: [🌼] In future use `ptbk make` and maked getPipelineCollection
-    const collection = createCollectionFromJson(...(PipelineCollection as TODO as Array<PipelineJson>));
+    const collection = createCollectionFromJson(...(PipelineCollection as TODO_any as Array<PipelineJson>));
 
     const preparePersonaExecutor = createPipelineExecutor({
         pipeline: await collection.getPipelineByUrl('https://promptbook.studio/promptbook/prepare-persona.ptbk.md'),

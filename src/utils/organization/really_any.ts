@@ -1,5 +1,5 @@
 /**
- * Organizational helper to mark a place where to really use any
+ * Organizational helper to mark a place where to really use `any`
  *
  * @private within the repository
  */

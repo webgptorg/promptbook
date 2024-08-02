@@ -24,7 +24,7 @@ import { flattenMarkdown } from '../utils/markdown/flattenMarkdown';
 import { parseMarkdownSection } from '../utils/markdown/parseMarkdownSection';
 import { removeContentComments } from '../utils/markdown/removeContentComments';
 import { splitMarkdownIntoSections } from '../utils/markdown/splitMarkdownIntoSections';
-import type { TODO } from '../utils/organization/TODO';
+import type { TODO_any } from '../utils/organization/TODO_any';
 import type { really_any } from '../utils/organization/really_any';
 import { difference } from '../utils/sets/difference';
 import { union } from '../utils/sets/union';
@@ -49,7 +49,7 @@ import { titleToName } from './utils/titleToName';
  */
 export function pipelineStringToJsonSync(pipelineString: PipelineString): PipelineJson {
     const pipelineJson: WritableDeep<PipelineJson> = {
-        title: undefined as TODO /* <- Note: Putting here placeholder to keep `title` on top at final JSON */,
+        title: undefined as TODO_any /* <- Note: Putting here placeholder to keep `title` on top at final JSON */,
         pipelineUrl: undefined /* <- Note: Putting here placeholder to keep `pipelineUrl` on top at final JSON */,
         promptbookVersion: PROMPTBOOK_VERSION,
         description: undefined /* <- Note: Putting here placeholder to keep `description` on top at final JSON */,
@@ -501,7 +501,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
         } satisfies PromptTemplateJson;
 
         if (blockType !== 'PROMPT_TEMPLATE') {
-            delete (template as TODO).modelRequirements;
+            delete (template as TODO_any).modelRequirements;
         }
 
         // TODO: [🍧] What actually about preparation and pushing the block into `promptTemplates`

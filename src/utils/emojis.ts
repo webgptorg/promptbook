@@ -1,5 +1,5 @@
 import type { string_char_emoji } from '../types/typeAliasEmoji';
-import type { TODO } from './organization/TODO';
+import type { TODO_any } from './organization/TODO_any';
 
 /**
  * All possible emoji chars like "🍆", "🍡", "🍤"...
@@ -110,7 +110,7 @@ export const EMOJIS_IN_CATEGORIES: Record<string, Array<string_char_emoji>> = {
 
     'New Emojis (Discorered randomly)': '🖌️'.split(' ') as Array<string_char_emoji>,
 
-    'Emojis used in WebGPT': ['▶', '❤'] as TODO as Array<string_char_emoji>,
+    'Emojis used in WebGPT': ['▶', '❤'] as TODO_any as Array<string_char_emoji>,
 };
 
 /**
