@@ -54,7 +54,7 @@ async function generateSampleJsons({ isCommited, isVerbose }: { isCommited: bool
         console.info(`📖  Generating JSON from ${promptbookMarkdownFilePath}`);
         const promptbookMarkdown = await readFile(promptbookMarkdownFilePath, 'utf-8');
 
-        const llmTools = getLlmToolsForTestingAndScriptsAndPlayground();
+        const llmTools = getLlmToolsForTestingAndScriptsAndPlayground({ isVerbose });
 
         try {
             const pipelineJson = await pipelineStringToJson(promptbookMarkdown as PipelineString, {

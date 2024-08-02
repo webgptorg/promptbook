@@ -6,10 +6,19 @@ import { AnthropicClaudeExecutionTools } from '../anthropic-claude/AnthropicClau
 import { joinLlmExecutionTools } from '../multiple/joinLlmExecutionTools';
 import { OpenAiExecutionTools } from '../openai/OpenAiExecutionTools';
 
+export type CreateLlmToolsFromEnvOptions = {
+    /**
+     * This will will be passed to the created `LlmExecutionTools`
+     *
+     * @default false
+     */
+    isVerbose?: boolean;
+};
+
 /**
  * @@@
  *
- * Note: This function is not cached, every call creates new instance of LlmExecutionTools
+ * Note: This function is not cached, every call creates new instance of `LlmExecutionTools`
  *
  * It looks for environment variables:
  * - `process.env.OPENAI_API_KEY`
@@ -17,17 +26,19 @@ import { OpenAiExecutionTools } from '../openai/OpenAiExecutionTools';
  *
  * @returns @@@
  */
-export function createLlmToolsFromEnv(): LlmExecutionTools {
+export function createLlmToolsFromEnv(options: CreateLlmToolsFromEnvOptions = {}): LlmExecutionTools {
     if (!isRunningInNode()) {
         throw new EnvironmentMismatchError('Function `createLlmToolsFromEnv` works only in Node.js environment');
     }
+
+    const { isVerbose = false } = options;
 
     const llmTools: Array<LlmExecutionTools> = [];
 
     if (typeof process.env.OPENAI_API_KEY === 'string') {
         llmTools.push(
             new OpenAiExecutionTools({
-                isVerbose: true,
+                isVerbose,
                 apiKey: process.env.OPENAI_API_KEY!,
             }),
         );
@@ -36,7 +47,7 @@ export function createLlmToolsFromEnv(): LlmExecutionTools {
     if (typeof process.env.ANTHROPIC_CLAUDE_API_KEY === 'string') {
         llmTools.push(
             new AnthropicClaudeExecutionTools({
-                isVerbose: true,
+                isVerbose,
                 apiKey: process.env.ANTHROPIC_CLAUDE_API_KEY!,
             }),
         );

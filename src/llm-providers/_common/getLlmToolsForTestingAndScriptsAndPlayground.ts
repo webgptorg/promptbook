@@ -6,7 +6,7 @@ import { isRunningInNode } from '../../utils/isRunningInWhatever';
 import { just } from '../../utils/organization/just';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import { MockedFackedLlmExecutionTools } from '../mocked/MockedFackedLlmExecutionTools';
-import { createLlmToolsFromEnv } from './createLlmToolsFromEnv';
+import { createLlmToolsFromEnv, CreateLlmToolsFromEnvOptions } from './createLlmToolsFromEnv';
 import { cacheLlmTools } from './utils/cache/cacheLlmTools';
 import { limitTotalCost } from './utils/count-total-cost/limitTotalCost';
 
@@ -15,7 +15,7 @@ import { limitTotalCost } from './utils/count-total-cost/limitTotalCost';
  *
  * @private within the repository - JUST FOR TESTS, SCRIPTS AND PLAYGROUND
  */
-export function getLlmToolsForTestingAndScriptsAndPlayground(): LlmExecutionTools {
+export function getLlmToolsForTestingAndScriptsAndPlayground(options: CreateLlmToolsFromEnvOptions): LlmExecutionTools {
     if (!isRunningInNode()) {
         throw new EnvironmentMismatchError(
             'Function `getLlmToolsForTestingAndScriptsAndPlayground` works only in Node.js environment',
@@ -25,7 +25,7 @@ export function getLlmToolsForTestingAndScriptsAndPlayground(): LlmExecutionTool
     keepUnused(createLlmToolsFromEnv);
     keepUnused(MockedFackedLlmExecutionTools);
 
-    let llmTools: LlmExecutionTools = createLlmToolsFromEnv();
+    let llmTools: LlmExecutionTools = createLlmToolsFromEnv(options);
 
     if (
         // Note: In normal situations, we "turn off" ability to use real API keys in tests:
