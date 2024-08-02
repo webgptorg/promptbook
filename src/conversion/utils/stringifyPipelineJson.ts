@@ -1,4 +1,3 @@
-import { PipelineJson } from '../../_packages/types.index';
 import { LOOP_LIMIT } from '../../config';
 import { string_json } from '../../types/typeAliases';
 
@@ -9,7 +8,7 @@ import { string_json } from '../../types/typeAliases';
  * Note: In contrast to JSON.stringify, this function ensures that **embedding index** is on single line
  */
 
-export function stringifyPipelineJson(pipeline: PipelineJson): string_json<PipelineJson> {
+export function stringifyPipelineJson<TType>(pipeline: TType): string_json<TType> {
     let pipelineJsonStringified = JSON.stringify(pipeline, null, 4);
 
     for (let i = 0; i < LOOP_LIMIT; i++) {
@@ -18,7 +17,7 @@ export function stringifyPipelineJson(pipeline: PipelineJson): string_json<Pipel
 
     pipelineJsonStringified += '\n';
 
-    return pipelineJsonStringified as string_json<PipelineJson>;
+    return pipelineJsonStringified as string_json<TType>;
 }
 
 /**

@@ -7,8 +7,8 @@ dotenv.config({ path: '.env' });
 import chalk from 'colors';
 import { readFile, writeFile } from 'fs/promises';
 import { join } from 'path';
+import { stringifyPipelineJson } from '../../../../conversion/utils/stringifyPipelineJson';
 import { getLlmToolsForTestingAndScriptsAndPlayground } from '../../../../llm-providers/_common/getLlmToolsForTestingAndScriptsAndPlayground';
-
 import { prepareKnowledgeFromMarkdown } from '../prepareKnowledgeFromMarkdown';
 
 const isVerbose = true;
@@ -52,7 +52,7 @@ async function playground() {
             __dirname,
             '../samples/10-simple.knowledge.json' /* <- TODO: !! Read here the samples directory and itterate through all of them */,
         ),
-        stringifyPipelineJson(knowledge) ,
+        stringifyPipelineJson(knowledge),
         'utf-8',
     );
     /**/

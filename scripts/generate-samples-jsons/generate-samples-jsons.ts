@@ -9,6 +9,7 @@ import { readFile, writeFile } from 'fs/promises';
 import glob from 'glob-promise';
 import { join } from 'path';
 import { pipelineStringToJson } from '../../src/conversion/pipelineStringToJson';
+import { stringifyPipelineJson } from '../../src/conversion/utils/stringifyPipelineJson';
 import { validatePipeline } from '../../src/conversion/validation/validatePipeline';
 //import { MockedFackedLlmExecutionTools } from '../../src/llm-providers/mocked/MockedFackedLlmExecutionTools';
 import { getLlmToolsForTestingAndScriptsAndPlayground } from '../../src/llm-providers/_common/getLlmToolsForTestingAndScriptsAndPlayground';
