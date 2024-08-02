@@ -35,6 +35,7 @@ export const PIPELINE_COLLECTION_BASE_FILENAME = `index`;
  */
 export const RESERVED_PARAMETER_NAMES = deepFreeze([
     'context',
+    'currentDate',
     // <- TODO: Add more like 'date', 'modelName',...
     // <- TODO: Add [emoji] + instructions ACRY when adding new reserved parameter
 ]);

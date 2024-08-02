@@ -1,6 +1,6 @@
 import { spaceTrim } from 'spacetrim';
 import type { Promisable } from 'type-fest';
-import { LOOP_LIMIT, MAX_EXECUTION_ATTEMPTS, MAX_PARALLEL_COUNT } from '../config';
+import { LOOP_LIMIT, MAX_EXECUTION_ATTEMPTS, MAX_PARALLEL_COUNT, RESERVED_PARAMETER_NAMES } from '../config';
 import { validatePipeline } from '../conversion/validation/validatePipeline';
 import { ExpectError } from '../errors/_ExpectError';
 import { PipelineExecutionError } from '../errors/PipelineExecutionError';
@@ -10,6 +10,7 @@ import { joinLlmExecutionTools } from '../llm-providers/multiple/joinLlmExecutio
 import { isPipelinePrepared } from '../prepare/isPipelinePrepared';
 import { preparePipeline } from '../prepare/preparePipeline';
 import type { ExecutionReportJson } from '../types/execution-report/ExecutionReportJson';
+import { Parameters } from '../types/Parameters';
 import type { PipelineJson } from '../types/PipelineJson/PipelineJson';
 import type { PromptTemplateJson } from '../types/PipelineJson/PromptTemplateJson';
 import type { ChatPrompt, CompletionPrompt, EmbeddingPrompt, Prompt } from '../types/Prompt';
@@ -117,9 +118,8 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
         }
 
         // TODO: !!!!! Check that all input parameters are defined
-        // TODO: !!!!! Manage {context}
 
-        let parametersToPass: Record<string_parameter_name, string_parameter_value> = inputParameters;
+        let parametersToPass: Parameters = inputParameters;
         const executionReport: ExecutionReportJson = {
             pipelineUrl: pipeline.pipelineUrl,
             title: pipeline.title,
@@ -147,6 +147,20 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                 });
             }
 
+            const context = '!!!!!!';
+
+            const parametersForTemplate: Parameters = Object.freeze({
+                ...parametersToPass,
+                context,
+            });
+
+            // Note: Doublecheck that all reserved parameters are defined:
+            for (const parameterName of RESERVED_PARAMETER_NAMES) {
+                if (parametersForTemplate[parameterName] === undefined) {
+                    throw new UnexpectedError(`Reserved parameter {${parameterName}} is not defined`);
+                }
+            }
+
             let prompt: Prompt;
             let chatResult: ChatPromptResult;
             let completionResult: CompletionPromptResult;
@@ -172,18 +186,18 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                 expectError = null;
 
                 if (isJokerAttempt) {
-                    if (typeof parametersToPass[joker!] === 'undefined') {
+                    if (typeof parametersForTemplate[joker!] === 'undefined') {
                         throw new PipelineExecutionError(`Joker parameter {${joker}} not defined`);
                     }
 
-                    resultString = parametersToPass[joker!]!;
+                    resultString = parametersForTemplate[joker!]!;
                 }
 
                 try {
                     if (!isJokerAttempt) {
                         blockType: switch (currentTemplate.blockType) {
                             case 'SIMPLE_TEMPLATE':
-                                resultString = replaceParameters(currentTemplate.content, parametersToPass);
+                                resultString = replaceParameters(currentTemplate.content, parametersForTemplate);
                                 break blockType;
 
                             case 'PROMPT_TEMPLATE':
@@ -194,8 +208,11 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                                             ? pipeline.pipelineUrl
                                             : 'anonymous' /* <- TODO: [🧠] How to deal with anonymous pipelines, do here some auto-url like SHA-256 based ad-hoc identifier? */
                                     }#${currentTemplate.name}`,
-                                    parameters: parametersToPass,
-                                    content: replaceParameters(currentTemplate.content, parametersToPass) /* <- [2] */,
+                                    parameters: parametersForTemplate,
+                                    content: replaceParameters(
+                                        currentTemplate.content,
+                                        parametersForTemplate,
+                                    ) /* <- [2] */,
                                     // <- TODO: !!!!! Apply {context} and knowledges
                                     // <- TODO: !!!!! Apply samples
                                     modelRequirements: currentTemplate.modelRequirements!,
@@ -213,7 +230,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                                                         script: `${functionName}(result)`,
                                                         parameters: {
                                                             result: result || '',
-                                                            // Note: No ...parametersToPass, because working with result only
+                                                            // Note: No ...parametersForTemplate, because working with result only
                                                         },
                                                     });
                                                 } catch (error) {
@@ -301,7 +318,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                                         resultString = await scriptTools.execute({
                                             scriptLanguage: currentTemplate.contentLanguage,
                                             script: currentTemplate.content,
-                                            parameters: parametersToPass,
+                                            parameters: parametersForTemplate,
                                         });
 
                                         break scripts;
@@ -349,9 +366,9 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                                     promptTitle: currentTemplate.title,
                                     promptMessage: replaceParameters(
                                         currentTemplate.description || '',
-                                        parametersToPass,
+                                        parametersForTemplate,
                                     ),
-                                    defaultValue: replaceParameters(currentTemplate.content, parametersToPass),
+                                    defaultValue: replaceParameters(currentTemplate.content, parametersForTemplate),
 
                                     // TODO: [🧠] !! Figure out how to define placeholder in .ptbk.md file
                                     placeholder: undefined,
@@ -381,7 +398,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                                         script: `${functionName}(resultString)`,
                                         parameters: {
                                             resultString: resultString || '',
-                                            // Note: No ...parametersToPass, because working with result only
+                                            // Note: No ...parametersForTemplate, because working with result only
                                         },
                                     });
 

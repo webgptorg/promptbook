@@ -103,6 +103,17 @@ describe('validatePipeline', () => {
         }).rejects.toThrowError(/xxxxxx/i);
     });
     */
+
+    /*
+    TODO: [🐣] !!!
+    it('should fail when reserved name is used as parameter', () => {
+        expect(async () => {
+            const pipelineString = importPipeline('errors/logic/---.ptbk.md');
+            const pipelineJson = await pipelineStringToJson(pipelineString);
+            validatePipeline(pipelineJson);
+        }).rejects.toThrowError(/xxxxxx/i);
+    });
+    */
 });
 
 /**

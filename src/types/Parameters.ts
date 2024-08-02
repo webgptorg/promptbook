@@ -1,3 +1,5 @@
+import { string_parameter_name, string_parameter_value } from './typeAliases';
+
 /**
  * Parameters of the pipeline
  *
@@ -8,8 +10,4 @@
  *
  * @see https://github.com/webgptorg/promptbook#parameters
  */
-export type Parameters = object;
-
-/**
- * TODO: Constrain type to Simple key-value object, only string keys and string values and no index signature + only camelCase keys and spaceTrimmed values
- */
+export type Parameters = Record<string_parameter_name, string_parameter_value>;
