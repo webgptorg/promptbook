@@ -34,6 +34,11 @@ export const RESERVED_PARAMETER_NAMES = deepFreeze([
     // <- TODO: Add [emoji] + instructions ACRY when adding new reserved parameter
 ]);
 
+/**
+ * Nonce which is used for replacing things in strings
+ */
+export const REPLACING_NONCE = 'u$k42k%!V2zo34w7Fu#@QUHYPW';
+
 /*
 TODO: !!! Just testing false-negative detection of [🟡][🟢][🔵][⚪] leak
 */

@@ -28,11 +28,15 @@ export function getLlmToolsForTestingAndScriptsAndPlayground(options: CreateLlmT
     let llmTools: LlmExecutionTools = createLlmToolsFromEnv(options);
 
     if (
+        /**/
         // Note: In normal situations, we "turn off" ability to use real API keys in tests:
         just(true)
+        /**/
 
+        /*/
         // When working on preparations, you can use:
-        // just(false)
+        just(false)
+        /**/
     ) {
         llmTools = limitTotalCost(llmTools);
     }
