@@ -1,5 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
 import { spaceTrim } from 'spacetrim';
+import { MAX_EXECUTION_ATTEMPTS } from '../../../config';
 import { pipelineStringToJson } from '../../../conversion/pipelineStringToJson';
 import { createPipelineExecutor } from '../../../execution/createPipelineExecutor';
 import { CallbackInterfaceTools } from '../../../knowledge/dialogs/callback/CallbackInterfaceTools';
@@ -125,9 +126,6 @@ async function getPipelineExecutor() {
                     return 'Hello';
                 },
             }),
-        },
-        settings: {
-            maxExecutionAttempts: 3,
         },
     });
     return pipelineExecutor;

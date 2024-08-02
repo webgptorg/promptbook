@@ -104,9 +104,6 @@ async function getPipelineExecutor() {
                 },
             }),
         },
-        settings: {
-            maxExecutionAttempts: 3,
-        },
     });
 
     return pipelineExecutor;

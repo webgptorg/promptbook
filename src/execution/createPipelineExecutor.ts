@@ -1,12 +1,14 @@
 import { spaceTrim } from 'spacetrim';
 import type { Promisable } from 'type-fest';
-import { LOOP_LIMIT } from '../config';
+import { LOOP_LIMIT, MAX_EXECUTION_ATTEMPTS, MAX_PARALLEL_COUNT } from '../config';
 import { validatePipeline } from '../conversion/validation/validatePipeline';
 import { ExpectError } from '../errors/_ExpectError';
 import { PipelineExecutionError } from '../errors/PipelineExecutionError';
 import { UnexpectedError } from '../errors/UnexpectedError';
 import { isValidJsonString } from '../formats/json/utils/isValidJsonString';
 import { joinLlmExecutionTools } from '../llm-providers/multiple/joinLlmExecutionTools';
+import { isPipelinePrepared } from '../prepare/isPipelinePrepared';
+import { preparePipeline } from '../prepare/preparePipeline';
 import type { ExecutionReportJson } from '../types/execution-report/ExecutionReportJson';
 import type { PipelineJson } from '../types/PipelineJson/PipelineJson';
 import type { PromptTemplateJson } from '../types/PipelineJson/PromptTemplateJson';
@@ -28,9 +30,23 @@ type CreatePipelineExecutorSettings = {
     /**
      * When executor does not satisfy expectations it will be retried this amount of times
      *
-     * @default 3
+     * @default MAX_EXECUTION_ATTEMPTS
      */
-    readonly maxExecutionAttempts: number;
+    readonly maxExecutionAttempts?: number;
+
+    /**
+     * Maximum number of tasks running in parallel
+     *
+     * @default MAX_PARALLEL_COUNT
+     */
+    readonly maxParallelCount?: number;
+
+    /**
+     * If true, the preparation logs additional information
+     *
+     * @default false
+     */
+    readonly isVerbose?: boolean;
 };
 
 /**
@@ -60,18 +76,45 @@ interface CreatePipelineExecutorOptions {
  * @throws {PipelineLogicError} on logical error in the pipeline
  */
 export function createPipelineExecutor(options: CreatePipelineExecutorOptions): PipelineExecutor {
-    const { pipeline, tools, settings = {} } = options;
-    const { maxExecutionAttempts = 3 } = settings;
+    const { pipeline: rawPipeline, tools, settings = {} } = options;
+    const {
+        maxExecutionAttempts = MAX_EXECUTION_ATTEMPTS,
+        maxParallelCount = MAX_PARALLEL_COUNT,
+        isVerbose = false,
+    } = settings;
 
-    validatePipeline(pipeline);
+    validatePipeline(rawPipeline);
 
     const llmTools = joinLlmExecutionTools(...arrayableToArray(tools.llm));
+
+    let pipeline: PipelineJson;
+
+    if (isPipelinePrepared(rawPipeline)) {
+        pipeline = rawPipeline;
+    } else {
+        console.warn(
+            spaceTrim(`
+                Pipeline is not prepared
+
+                It will be prepared ad-hoc before the first execution
+                But it is recommended to prepare the pipeline during collection preparation
+
+                @see more at https://ptbk.io/prepare-pipeline
+            `),
+        );
+    }
 
     const pipelineExecutor: PipelineExecutor = async (
         inputParameters: Record<string_parameter_name, string_parameter_value>,
         onProgress?: (taskProgress: TaskProgress) => Promisable<void>,
     ) => {
-        // TODO: !!!!! preparePipeline(); and warn if something is not prepared
+        if (pipeline === undefined) {
+            pipeline = await preparePipeline(rawPipeline, {
+                llmTools,
+                isVerbose,
+                maxParallelCount,
+            });
+        }
 
         // TODO: !!!!! Check that all input parameters are defined
         // TODO: !!!!! Manage {context}
@@ -537,7 +580,8 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
 }
 
 /**
- * TODO: [🪂] Pass maxParallelCount here
+ * TODO: Use isVerbose here (not only pass to `preparePipeline`)
+ * TODO: [🪂] Use maxParallelCount here (not only pass to `preparePipeline`)
  * TODO: [♈] Probbably move expectations from templates to parameters
  * TODO: [🧠] When not meet expectations in PROMPT_DIALOG, make some way to tell the user
  * TODO: [👧] Strongly type the executors to avoid need of remove nullables whtn noUncheckedIndexedAccess in tsconfig.json

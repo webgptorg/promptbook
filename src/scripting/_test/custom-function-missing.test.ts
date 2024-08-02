@@ -55,10 +55,7 @@ describe('createPipelineExecutor + missing custom function', () => {
                         return 'Hello';
                     },
                 }),
-            },
-            settings: {
-                maxExecutionAttempts: 3,
-            },
+            }
         });
 
         return pipelineExecutor;

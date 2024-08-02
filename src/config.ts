@@ -16,6 +16,11 @@ export const CHARACTER_LOOP_LIMIT = 100000;
 export const MAX_PARALLEL_COUNT = 5;
 
 /**
+ * The maximum number of attempts to execute LLM task before giving up
+ */
+export const MAX_EXECUTION_ATTEMPTS = 3;
+
+/**
  * The maximum length of the (generated) filename
  */
 export const MAX_FILENAME_LENGTH = 30;
