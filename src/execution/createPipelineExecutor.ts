@@ -10,26 +10,17 @@ import { joinLlmExecutionTools } from '../llm-providers/multiple/joinLlmExecutio
 import type { ExecutionReportJson } from '../types/execution-report/ExecutionReportJson';
 import type { PipelineJson } from '../types/PipelineJson/PipelineJson';
 import type { PromptTemplateJson } from '../types/PipelineJson/PromptTemplateJson';
-import type { ChatPrompt } from '../types/Prompt';
-import type { CompletionPrompt } from '../types/Prompt';
-import type { EmbeddingPrompt } from '../types/Prompt';
-import type { Prompt } from '../types/Prompt';
+import type { ChatPrompt, CompletionPrompt, EmbeddingPrompt, Prompt } from '../types/Prompt';
 import type { TaskProgress } from '../types/TaskProgress';
-import type { string_name } from '../types/typeAliases';
-import type { string_parameter_name } from '../types/typeAliases';
-import type { string_parameter_value } from '../types/typeAliases';
+import type { string_name, string_parameter_name, string_parameter_value } from '../types/typeAliases';
 import { arrayableToArray } from '../utils/arrayableToArray';
 import type { really_any } from '../utils/organization/really_any';
 import type { TODO_any } from '../utils/organization/TODO_any';
 import { PROMPTBOOK_VERSION } from '../version';
 import type { ExecutionTools } from './ExecutionTools';
 import type { PipelineExecutor } from './PipelineExecutor';
-import type { ChatPromptResult } from './PromptResult';
-import type { CompletionPromptResult } from './PromptResult';
-import type { EmbeddingPromptResult } from './PromptResult';
-import type { PromptResult } from './PromptResult';
-import { addUsage } from './utils/addUsage';
-import { ZERO_USAGE } from './utils/addUsage';
+import type { ChatPromptResult, CompletionPromptResult, EmbeddingPromptResult, PromptResult } from './PromptResult';
+import { addUsage, ZERO_USAGE } from './utils/addUsage';
 import { checkExpectations } from './utils/checkExpectations';
 import { replaceParameters } from './utils/replaceParameters';
 
@@ -81,6 +72,9 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
         onProgress?: (taskProgress: TaskProgress) => Promisable<void>,
     ) => {
         // TODO: !!!!! preparePipeline(); and warn if something is not prepared
+
+        // TODO: !!!!! Check that all input parameters are defined
+        // TODO: !!!!! Manage {context}
 
         let parametersToPass: Record<string_parameter_name, string_parameter_value> = inputParameters;
         const executionReport: ExecutionReportJson = {

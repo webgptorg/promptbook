@@ -7,6 +7,7 @@ import { OpenAiExecutionTools } from '@promptbook/openai';
 import colors from 'colors';
 import * as dotenv from 'dotenv';
 import { writeFile } from 'fs/promises';
+import { forTime } from 'waitasecond';
 
 if (process.cwd().split(/[\\/]/).pop() !== 'promptbook') {
     console.error(colors.red(`CWD must be root of the project`));
@@ -15,7 +16,15 @@ if (process.cwd().split(/[\\/]/).pop() !== 'promptbook') {
 
 dotenv.config({ path: '.env' });
 
-main();
+main()
+    .catch((error: Error) => {
+        console.error(colors.bgRed(error.name));
+        console.error(error);
+        process.exit(1);
+    })
+    .then(() => {
+        process.exit(0);
+    });
 
 async function main() {
     console.info(colors.bgWhite('⚪ Testing basic capabilities of Promptbook'));
@@ -25,10 +34,17 @@ async function main() {
         isRecursive: false,
         isCrashedOnError: true,
     });
+
+    // TODO: Allow user to pick pipeline
+    // > const pipelineUrls = await collection.listPipelines();
+
     const pipeline = await collection.getPipelineByUrl(
-        `https://promptbook.studio/samples/simple.ptbk.md`,
+        'https://promptbook.studio/samples/simple-knowledge.ptbk.md',
+        // `https://promptbook.studio/samples/simple.ptbk.md`,
         // `https://promptbook.studio/samples/language-capabilities.ptbk.md`,
     );
+
+    await forTime(100);
 
     const tools = {
         llm: new OpenAiExecutionTools({
@@ -44,7 +60,7 @@ async function main() {
 
     const pipelineExecutor = createPipelineExecutor({ pipeline, tools });
 
-    const inputParameters = { word: 'cat' };
+    const inputParameters = { eventName: 'CzechFutureTech' };
     const { isSuccessful, errors, outputParameters, executionReport } = await pipelineExecutor(
         inputParameters,
         (progress) => {
@@ -54,16 +70,23 @@ async function main() {
 
     console.info(outputParameters);
 
+    if (!pipeline.sourceFile) {
+        throw new Error(`Pipeline has no sourceFile`);
+        process.exit(1);
+    }
+
+    /*
+    TODO: After [🔼] !!!!
     await writeFile(
-        // TODO: !!! Unhardcode language-capabilities
-        `./samples/templates/language-capabilities.report.json`,
-        JSON.stringify(executionReport, null, 4) + '\n',
+      pipeline.sourceFile.split('.ptbk.md').join('.report.json'),
+        stringifyPipelineJson(executionReport),
         'utf-8',
     );
+    */
 
     const executionReportString = executionReportJsonToString(executionReport);
     // TODO: !!! Unhardcode 50-advanced
-    await writeFile(`./samples/templates/language-capabilities.report.md`, executionReportString, 'utf-8');
+    await writeFile(pipeline.sourceFile.split('.ptbk.md').join('.report.md'), executionReportString, 'utf-8');
 
     assertsExecutionSuccessful({ isSuccessful, errors });
 
