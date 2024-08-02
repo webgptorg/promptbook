@@ -1,7 +1,6 @@
-import type { KebabCase } from 'type-fest';
-import type { ExpectationUnit } from '../types/PipelineJson/Expectations';
-import type { number_positive, number_usd, string_date_iso8601, string_model_name } from '../types/typeAliases';
+import type { string_date_iso8601, string_model_name } from '../types/typeAliases';
 import type { EmbeddingVector } from './EmbeddingVector';
+import { PromptResultUsage } from './PromptResultUsage';
 
 /**
  * Prompt result is the simplest concept of execution.
@@ -90,50 +89,6 @@ export type CommonPromptResult = {
     readonly rawResponse: object;
 };
 
-/**
- * Usage statistics for one or many prompt results
- */
-export type PromptResultUsage = {
-    /**
-     * Cost of the execution in USD
-     *
-     * Note: If the cost is unknown, the value 0 and isUncertain is true
-     */
-    price: UncertainNumber;
-
-    /**
-     * Number of whatever used in the input aka. `prompt_tokens`
-     */
-    input: PromptResultUsageCounts;
-
-    /**
-     * Number of tokens used in the output aka. `completion_tokens`
-     */
-    output: PromptResultUsageCounts;
-};
-
-/**
- * Record of all possible measurable units
- */
-export type PromptResultUsageCounts = Record<`${KebabCase<'TOKENS' | ExpectationUnit>}Count`, UncertainNumber>;
-
-/**
- * Number which can be uncertain
- *
- * Note: If the value is completelly unknown, the value 0 and isUncertain is true
- * Note: Not using NaN or null because it looses the value which is better to be uncertain then not to be at all
- */
-export type UncertainNumber = {
-    /**
-     * The numeric value
-     */
-    readonly value: number_usd & (number_positive | 0);
-
-    /**
-     * Is the value uncertain
-     */
-    readonly isUncertain?: true;
-};
 
 /**
  * TODO: [🧠] Maybe timing more accurate then seconds?

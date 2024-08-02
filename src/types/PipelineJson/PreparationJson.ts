@@ -1,4 +1,4 @@
-import type { PromptResultUsage } from '../../execution/PromptResult';
+import type { PromptResultUsage } from '../../execution/PromptResultUsage';
 import type { string_promptbook_version } from '../../version';
 import type { number_id } from '../typeAliases';
 

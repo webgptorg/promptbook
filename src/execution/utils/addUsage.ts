@@ -1,7 +1,7 @@
 import type { WritableDeep } from 'type-fest';
 import { deepClone } from '../../utils/deepClone';
 import { deepFreeze } from '../../utils/deepFreeze';
-import type { PromptResultUsage } from '../PromptResult';
+import type { PromptResultUsage } from '../PromptResultUsage';
 
 /**
  * @@@

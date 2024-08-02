@@ -1,6 +1,6 @@
 import type { Writable } from 'type-fest';
-import type { PromptResultUsage } from '../PromptResult';
-import type { UncertainNumber } from '../PromptResult';
+import type { PromptResultUsage } from '../PromptResultUsage';
+import type { UncertainNumber } from '../UncertainNumber';
 
 /**
  * Function usageToWorktime will take usage and estimate saved worktime in hours of reading / writing

@@ -13,11 +13,10 @@ import type {
     CompletionPromptResult,
     EmbeddingPromptResult,
     PromptResult,
-    PromptResultUsage,
-    PromptResultUsageCounts,
-    UncertainNumber,
 } from '../execution/PromptResult';
+import type { PromptResultUsage, PromptResultUsageCounts } from '../execution/PromptResultUsage';
 import type { ScriptExecutionTools, ScriptExecutionToolsExecuteOptions } from '../execution/ScriptExecutionTools';
+import type { UncertainNumber } from '../execution/UncertainNumber';
 import type { UserInterfaceTools, UserInterfaceToolsPromptDialogOptions } from '../execution/UserInterfaceTools';
 import type { ModelRequirements, ModelVariant } from '../types/ModelRequirements';
 import type { Parameters } from '../types/Parameters';

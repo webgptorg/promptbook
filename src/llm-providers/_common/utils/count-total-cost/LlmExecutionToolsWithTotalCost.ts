@@ -1,5 +1,5 @@
 import type { LlmExecutionTools } from '../../../../execution/LlmExecutionTools';
-import type { PromptResultUsage } from '../../../../execution/PromptResult';
+import type { PromptResultUsage } from '../../../../execution/PromptResultUsage';
 
 /**
  * LLM tools with option to get total cost of the execution

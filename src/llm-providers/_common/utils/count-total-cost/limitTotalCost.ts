@@ -5,8 +5,8 @@ import type {
     ChatPromptResult,
     CompletionPromptResult,
     EmbeddingPromptResult,
-    PromptResultUsage,
 } from '../../../../execution/PromptResult';
+import type { PromptResultUsage } from '../../../../execution/PromptResultUsage';
 import { ZERO_USAGE } from '../../../../execution/utils/addUsage';
 import type { PromptbookStorage } from '../../../../storage/_common/PromptbookStorage';
 import { MemoryStorage } from '../../../../storage/memory/MemoryStorage';

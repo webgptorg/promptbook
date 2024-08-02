@@ -1,4 +1,4 @@
-import type { UncertainNumber } from '../PromptResult';
+import type { UncertainNumber } from '../UncertainNumber';
 
 /**
  * Make UncertainNumber

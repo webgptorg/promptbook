@@ -4,8 +4,8 @@ import type {
     ChatPromptResult,
     CompletionPromptResult,
     EmbeddingPromptResult,
-    PromptResultUsage,
 } from '../../../../execution/PromptResult';
+import type { PromptResultUsage } from '../../../../execution/PromptResultUsage';
 import { addUsage, ZERO_USAGE } from '../../../../execution/utils/addUsage';
 import type { Prompt } from '../../../../types/Prompt';
 import type { LlmExecutionToolsWithTotalCost } from './LlmExecutionToolsWithTotalCost';
