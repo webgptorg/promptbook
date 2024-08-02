@@ -17,15 +17,14 @@ export type PromptResult = CompletionPromptResult | ChatPromptResult | Embedding
  *
  * Note: This is fully serializable as JSON
  */
-export type CompletionPromptResult = PromptCommonResult;
+export type CompletionPromptResult = CommonPromptResult;
 
 /**
  * Prompt chat result
  *
  * Note: This is fully serializable as JSON
  */
-export type ChatPromptResult = PromptCommonResult & {
-    // <- TODO: !!!!!!!
+export type ChatPromptResult = CommonPromptResult & {
     // TODO: [🤹‍♂️][🧠] Figure out way how to pass thread / previous messages
 };
 
@@ -35,7 +34,7 @@ export type ChatPromptResult = PromptCommonResult & {
  *
  * Note: This is fully serializable as JSON
  */
-export type EmbeddingPromptResult = Omit<PromptCommonResult, 'content'> & {
+export type EmbeddingPromptResult = Omit<CommonPromptResult, 'content'> & {
     /**
      * The response from the model
      */
@@ -49,7 +48,7 @@ export type EmbeddingPromptResult = Omit<PromptCommonResult, 'content'> & {
  *
  * Note: This is fully serializable as JSON
  */
-export type PromptCommonResult = {
+export type CommonPromptResult = {
     /**
      * Exact text response from the model
      */

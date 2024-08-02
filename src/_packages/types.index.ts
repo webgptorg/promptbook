@@ -9,9 +9,9 @@ import type { AvailableModel, LlmExecutionTools } from '../execution/LlmExecutio
 import type { PipelineExecutor } from '../execution/PipelineExecutor';
 import type {
     ChatPromptResult,
+    CommonPromptResult,
     CompletionPromptResult,
     EmbeddingPromptResult,
-    PromptCommonResult,
     PromptResult,
     PromptResultUsage,
     PromptResultUsageCounts,
@@ -132,7 +132,7 @@ export type {
     PreparationJson,
     Prompt,
     ChatPromptResult as PromptChatResult,
-    PromptCommonResult,
+    CommonPromptResult as PromptCommonResult,
     CompletionPromptResult as PromptCompletionResult,
     PromptDialogJson,
     EmbeddingPromptResult as PromptEmbeddingResult,
