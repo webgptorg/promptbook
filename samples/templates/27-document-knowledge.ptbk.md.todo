@@ -6,10 +6,8 @@ Show how to use knowledge
 -   PROMPTBOOK VERSION 1.0.0
 -   INPUT  PARAMETER `{eventName}` The event name
 -   OUTPUT PARAMETER `{bio}` Bio of Pavol Hejný - speaker at the event
+-   KNOWLEDGE ./27-document-knowledge.pdf
 
-## Pavol Hejný
-
--   KNOWLEDGE FROM ./27-document-knowledge.pdf
 
 ## Writing bio
 
