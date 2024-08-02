@@ -117,9 +117,6 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
             });
         }
 
-        // TODO: !!!!! Check that all input parameters are defined
-
-        let parametersToPass: Parameters = inputParameters;
         const executionReport: ExecutionReportJson = {
             pipelineUrl: pipeline.pipelineUrl,
             title: pipeline.title,
@@ -128,6 +125,24 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
             description: pipeline.description,
             promptExecutions: [],
         };
+
+        // Note: Check that all input input parameters are defined
+        for (const parameter of pipeline.parameters) {
+            if (parameter.isInput && inputParameters[parameter.name] === undefined) {
+                return {
+                    isSuccessful: false,
+                    errors: [
+                        new PipelineExecutionError(`Parameter {${parameter.name}} is required as an input parameter`),
+                        // <- TODO: !!!!! Test this error
+                    ],
+                    executionReport,
+                    outputParameters: {},
+                    usage: ZERO_USAGE,
+                };
+            }
+        }
+
+        let parametersToPass: Parameters = inputParameters;
 
         async function executeSingleTemplate(currentTemplate: PromptTemplateJson) {
             const name = `pipeline-executor-frame-${currentTemplate.name}`;
