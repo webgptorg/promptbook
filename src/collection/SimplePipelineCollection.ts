@@ -31,6 +31,7 @@ export class SimplePipelineCollection implements PipelineCollection {
     public constructor(...pipelines: Array<PipelineJson>) {
         this.collection = new Map<string_pipeline_url, PipelineJson>();
         for (const pipeline of pipelines) {
+            // TODO: [👠] DRY
             if (pipeline.pipelineUrl === undefined) {
                 throw new ReferenceError(
                     spaceTrim(`
@@ -47,10 +48,13 @@ export class SimplePipelineCollection implements PipelineCollection {
                 );
             }
 
+            // Note: [🐨]
             validatePipeline(pipeline);
 
+            // TODO: [🦄] DRY
             // Note: [🦄]
             if (
+                // TODO: [🐽]
                 this.collection.has(pipeline.pipelineUrl) &&
                 pipelineJsonToString(unpreparePipeline(pipeline)) !==
                     pipelineJsonToString(unpreparePipeline(this.collection.get(pipeline.pipelineUrl)!))
@@ -72,6 +76,7 @@ export class SimplePipelineCollection implements PipelineCollection {
                 );
             }
 
+            // Note: [🧠] Overwrite existing pipeline with the same URL
             this.collection.set(pipeline.pipelineUrl, pipeline);
         }
     }
