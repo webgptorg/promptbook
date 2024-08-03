@@ -1,6 +1,5 @@
+import { Parameters } from '../types/Parameters';
 import type { ScriptLanguage } from '../types/ScriptLanguage';
-import type { string_parameter_name } from '../types/typeAliases';
-import type { string_parameter_value } from '../types/typeAliases';
 import type { string_script } from '../types/typeAliases';
 
 /**
@@ -26,7 +25,7 @@ export type ScriptExecutionToolsExecuteOptions = {
      * Theese parameters are passed to the script as variables
      * For example: { "name": "John" } => const name = "John";
      */
-    readonly parameters: Record<string_parameter_name, string_parameter_value>;
+    readonly parameters: Parameters;
 
     /**
      * The content of the script to execute

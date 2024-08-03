@@ -15,7 +15,7 @@ import type { PipelineJson } from '../types/PipelineJson/PipelineJson';
 import type { PromptTemplateJson } from '../types/PipelineJson/PromptTemplateJson';
 import type { ChatPrompt, CompletionPrompt, EmbeddingPrompt, Prompt } from '../types/Prompt';
 import type { TaskProgress } from '../types/TaskProgress';
-import type { string_name, string_parameter_name, string_parameter_value } from '../types/typeAliases';
+import type { string_name } from '../types/typeAliases';
 import { arrayableToArray } from '../utils/arrayableToArray';
 import type { really_any } from '../utils/organization/really_any';
 import type { TODO_any } from '../utils/organization/TODO_any';
@@ -106,7 +106,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
     }
 
     const pipelineExecutor: PipelineExecutor = async (
-        inputParameters: Record<string_parameter_name, string_parameter_value>,
+        inputParameters: Parameters,
         onProgress?: (taskProgress: TaskProgress) => Promisable<void>,
     ) => {
         if (pipeline === undefined) {

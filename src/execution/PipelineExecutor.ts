@@ -1,8 +1,7 @@
 import type { Promisable } from 'type-fest';
+import { Parameters } from '../types/Parameters';
 import type { TaskProgress } from '../types/TaskProgress';
 import type { ExecutionReportJson } from '../types/execution-report/ExecutionReportJson';
-import type { string_parameter_name } from '../types/typeAliases';
-import type { string_parameter_value } from '../types/typeAliases';
 import type { PromptResultUsage } from './PromptResultUsage';
 
 /**
@@ -14,10 +13,7 @@ import type { PromptResultUsage } from './PromptResultUsage';
  * @see https://github.com/webgptorg/promptbook#executor
  */
 export type PipelineExecutor = {
-    (
-        inputParameters: Record<string_parameter_name, string_parameter_value>,
-        onProgress?: (taskProgress: TaskProgress) => Promisable<void>,
-    ): Promise<{
+    (inputParameters: Parameters, onProgress?: (taskProgress: TaskProgress) => Promisable<void>): Promise<{
         /**
          * Whether the execution was successful, details are aviable in `executionReport`
          */
@@ -43,7 +39,7 @@ export type PipelineExecutor = {
          *
          * Note: If the execution was not successful, there are only some of the result parameters
          */
-        readonly outputParameters: Record<string_parameter_name, string_parameter_value>;
+        readonly outputParameters: Parameters;
     }>;
 };
 

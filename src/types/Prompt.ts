@@ -6,14 +6,9 @@ import type {
     EmbeddingModelRequirements,
     ModelRequirements,
 } from './ModelRequirements';
+import { Parameters } from './Parameters';
 import type { Expectations } from './PipelineJson/Expectations';
-import type {
-    string_parameter_name,
-    string_parameter_value,
-    string_pipeline_url_with_hashtemplate,
-    string_prompt,
-    string_title,
-} from './typeAliases';
+import type { string_pipeline_url_with_hashtemplate, string_prompt, string_title } from './typeAliases';
 
 /**
  * Prompt in a text along with model requirements, but without any execution or templating logic.
@@ -125,7 +120,7 @@ export type CommonPrompt = {
      *
      * Note: This is redundant (same information is in pipelineUrl+content) but useful for logging and debugging
      */
-    readonly parameters: Record<string_parameter_name, string_parameter_value>;
+    readonly parameters: Parameters;
 
     // TODO: !!!!!! Add `reservedParameters: ReservedParameters`
 

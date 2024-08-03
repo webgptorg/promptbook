@@ -1,5 +1,4 @@
-import type { string_parameter_name } from './typeAliases';
-import type { string_parameter_value } from './typeAliases';
+import { string_parameter_name, string_parameter_value } from "./typeAliases";
 
 /**
  * Parameters of the pipeline
@@ -12,7 +11,6 @@ import type { string_parameter_value } from './typeAliases';
  * @see https://github.com/webgptorg/promptbook#parameters
  */
 export type Parameters = Record<string_parameter_name, string_parameter_value>;
-
 
 // <- TODO: !!!!!! Make `ReservedParameters`
 // <- TODO: !!!!!! Exclude `ReservedParameters` from `Parameters`
