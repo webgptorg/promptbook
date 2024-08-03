@@ -28,7 +28,6 @@
                 "modelName": "gpt-3.5-turbo"
             },
             "content": "Hello {yourName}!",
-            "resultingParameterName": "greeting",
             "expectations": {
                 "characters": {
                     "max": 30,
@@ -48,7 +47,8 @@
             },
             "dependentParameterNames": [
                 "yourName"
-            ]
+            ],
+            "resultingParameterName": "greeting"
         }
     ],
     "knowledgeSources": [],

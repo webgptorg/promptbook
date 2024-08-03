@@ -25,8 +25,8 @@
                 "modelVariant": "CHAT"
             },
             "content": "Rewrite the function below:\n\n```javascript\nfunction greet() {\n  return 'Hello Anna';\n}\n```\n\nTo return \"Goodbye\" from the function instead of \"Hello\".\n",
-            "resultingParameterName": "greeting1",
-            "dependentParameterNames": []
+            "dependentParameterNames": [],
+            "resultingParameterName": "greeting1"
         },
         {
             "blockType": "PROMPT_TEMPLATE",
@@ -37,8 +37,8 @@
                 "modelVariant": "CHAT"
             },
             "content": "Rewrite the function below:\n\n```javascript\nfunction greet() {\n    return 'Hello Betty';\n}\n```\n\nTo return \"Goodbye\" from the function instead of \"Hello\".",
-            "resultingParameterName": "greeting2",
-            "dependentParameterNames": []
+            "dependentParameterNames": [],
+            "resultingParameterName": "greeting2"
         }
     ],
     "knowledgeSources": [],

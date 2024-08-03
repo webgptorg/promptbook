@@ -26,7 +26,6 @@
                 "modelVariant": "CHAT"
             },
             "content": "Write synonym for \"{word}\"",
-            "resultingParameterName": "wordSynonym",
             "personaName": "Joe",
             "expectations": {
                 "words": {
@@ -36,7 +35,8 @@
             },
             "dependentParameterNames": [
                 "word"
-            ]
+            ],
+            "resultingParameterName": "wordSynonym"
         }
     ],
     "knowledgeSources": [],
@@ -47,9 +47,9 @@
             "description": "a linguist",
             "modelRequirements": {
                 "modelVariant": "CHAT",
-                "modelName": "gpt-4-turbo",
-                "systemMessage": "You are a linguist and knowledgeable virtual assistant.",
-                "temperature": 0.6
+                "modelName": "gpt-4o",
+                "systemMessage": "You are a linguist and a knowledgeable assistant.",
+                "temperature": 0.5
             },
             "preparationIds": [
                 1

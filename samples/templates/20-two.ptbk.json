@@ -35,11 +35,11 @@
                 "modelVariant": "CHAT"
             },
             "content": "Write synonym for \"{word}\"",
-            "resultingParameterName": "wordSynonym",
             "personaName": "Joe",
             "dependentParameterNames": [
                 "word"
-            ]
+            ],
+            "resultingParameterName": "wordSynonym"
         },
         {
             "blockType": "PROMPT_TEMPLATE",
@@ -50,12 +50,12 @@
                 "modelVariant": "CHAT"
             },
             "content": "Write sentence with \"{word}\" and \"{wordSynonym}\" in it",
-            "resultingParameterName": "sentenceWithTwoSynonyms",
             "personaName": "Joe",
             "dependentParameterNames": [
                 "word",
                 "wordSynonym"
-            ]
+            ],
+            "resultingParameterName": "sentenceWithTwoSynonyms"
         }
     ],
     "knowledgeSources": [],
@@ -67,7 +67,7 @@
             "modelRequirements": {
                 "modelVariant": "CHAT",
                 "modelName": "gpt-4o",
-                "systemMessage": "You are an experienced AI engineer and a helpful assistant with expertise in linguistics.",
+                "systemMessage": "You are a linguist and a knowledgeable assistant.",
                 "temperature": 0.5
             },
             "preparationIds": [

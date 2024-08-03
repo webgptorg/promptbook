@@ -37,7 +37,6 @@
                 "modelName": "gpt-3.5-turbo"
             },
             "content": "Write synonym for \"{word}\"",
-            "resultingParameterName": "wordSynonym",
             "postprocessingFunctionNames": [
                 "unwrapResult"
             ],
@@ -49,7 +48,8 @@
             },
             "dependentParameterNames": [
                 "word"
-            ]
+            ],
+            "resultingParameterName": "wordSynonym"
         },
         {
             "blockType": "PROMPT_TEMPLATE",
@@ -61,7 +61,6 @@
                 "modelName": "gpt-3.5-turbo"
             },
             "content": "Write sentence with \"{word}\" and \"{wordSynonym}\"",
-            "resultingParameterName": "sentence",
             "postprocessingFunctionNames": [
                 "unwrapResult"
             ],
@@ -73,7 +72,8 @@
             "dependentParameterNames": [
                 "word",
                 "wordSynonym"
-            ]
+            ],
+            "resultingParameterName": "sentence"
         },
         {
             "blockType": "PROMPT_TEMPLATE",
@@ -84,13 +84,13 @@
                 "modelName": "gpt-3.5-turbo"
             },
             "content": "Write poem with starting sentence:\n\n```text\n{sentence}\n```",
-            "resultingParameterName": "poem",
             "postprocessingFunctionNames": [
                 "unwrapResult"
             ],
             "dependentParameterNames": [
                 "sentence"
-            ]
+            ],
+            "resultingParameterName": "poem"
         }
     ],
     "knowledgeSources": [],

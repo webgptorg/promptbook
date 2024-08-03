@@ -92,6 +92,7 @@ export type PipelineJson = {
 };
 
 /**
+ * TODO: [🧠] Maybe wrap all {parameterNames} in brackets for example { "resultingParameterName": "{foo}" }
  * Note: There was a proposal for multiple types of promptbook objects 78816ff33e2705ee1a187aa2eb8affd976d4ea1a
  *       But then immediately reverted back to the single type
  *       With knowledge as part of the promptbook and collection just as a collection of promptbooks

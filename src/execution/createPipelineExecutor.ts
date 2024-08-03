@@ -1,6 +1,6 @@
 import { spaceTrim } from 'spacetrim';
 import type { Promisable } from 'type-fest';
-import { extractParametersFromPromptTemplate } from '../_packages/utils.index';
+import { difference, extractParametersFromPromptTemplate, union } from '../_packages/utils.index';
 import { LOOP_LIMIT, MAX_EXECUTION_ATTEMPTS, MAX_PARALLEL_COUNT, RESERVED_PARAMETER_NAMES } from '../config';
 import { validatePipeline } from '../conversion/validation/validatePipeline';
 import { ExpectError } from '../errors/_ExpectError';
@@ -199,34 +199,54 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                 });
             }
 
-            const parameters: Parameters = {
+            // Note: Check consistency of used and dependent parameters which was also done in `validatePipeline`, but it’s good to doublecheck
+            const usedParameterNames = extractParametersFromPromptTemplate(currentTemplate);
+            const dependentParameterNames = new Set(currentTemplate.dependentParameterNames);
+            if (
+                union(
+                    difference(usedParameterNames, dependentParameterNames),
+                    difference(dependentParameterNames, usedParameterNames),
+                    // <- TODO: [💯]
+                ).size !== 0
+            ) {
+                throw new UnexpectedError(
+                    spaceTrim(`
+                        Dependent parameters are not consistent used parameters:
+
+                        Dependent parameters:
+                        ${Array.from(dependentParameterNames).join(', ')}
+
+                        Used parameters:
+                        ${Array.from(usedParameterNames).join(', ')}
+
+                    `),
+                );
+            }
+
+            const definedParameters: Parameters = Object.freeze({
                 ...(await getReservedParametersForTemplate(currentTemplate)),
                 ...parametersToPass,
-            };
+            });
+
+            const definedParameterNames = new Set(Object.keys(definedParameters));
+            const parameters: Parameters = {};
 
             // Note: [2] Check that all used parameters are defined and removing unused parameters for this template
-            //       (Real replacement of parameters will be done below)
-            //      (Checking part is also done in `validatePipeline`, but it’s good to doublecheck)
-            const definedParameterNames = new Set(Object.keys(parameters));
-            const usedParameterNames = extractParametersFromPromptTemplate(currentTemplate);
-            for (const parameterName in [
-                ...Array.from(definedParameterNames),
-                ...Array.from(usedParameterNames),
-
-                // <- TODO: Union the set before iterating
-            ]) {
+            for (const parameterName of Array.from(
+                union(definedParameterNames, usedParameterNames, dependentParameterNames),
+            )) {
                 // Situation: Parameter is defined and used
                 if (definedParameterNames.has(parameterName) && usedParameterNames.has(parameterName)) {
-                    // Do nothing, everything is OK
+                    parameters[parameterName] = definedParameters[parameterName]!;
                 }
                 // Situation: Parameter is defined but NOT used
                 else if (definedParameterNames.has(parameterName) && !usedParameterNames.has(parameterName)) {
-                    // Delete the parameter because it’s not used
-                    delete parameters[parameterName];
+                    // Do not pass this parameter to prompt
                 }
                 // Situation: Parameter is NOT defined BUT used
                 else if (!definedParameterNames.has(parameterName) && usedParameterNames.has(parameterName)) {
                     // Houston, we have a problem
+                    // Note: Checking part is also done in `validatePipeline`, but it’s good to doublecheck
                     throw new UnexpectedError(
                         spaceTrim(`
                             Parameter {${parameterName}} is NOT defined
@@ -239,7 +259,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                 }
             }
 
-            // Note: Now we can freeze parameters because we are sure that all and only used parameters are defined
+            // Note: Now we can freeze `parameters` because we are sure that all and only used parameters are defined
             Object.freeze(parameters);
 
             let prompt: Prompt;
@@ -312,6 +332,10 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                                                     });
                                                 } catch (error) {
                                                     if (!(error instanceof Error)) {
+                                                        throw error;
+                                                    }
+
+                                                    if (error instanceof UnexpectedError) {
                                                         throw error;
                                                     }
 
@@ -408,6 +432,10 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                                             throw error;
                                         }
 
+                                        if (error instanceof UnexpectedError) {
+                                            throw error;
+                                        }
+
                                         scriptPipelineExecutionErrors.push(error);
                                     }
                                 }
@@ -489,6 +517,10 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                                         throw error;
                                     }
 
+                                    if (error instanceof UnexpectedError) {
+                                        throw error;
+                                    }
+
                                     postprocessingError = error;
                                     scriptPipelineExecutionErrors.push(error);
                                 }
@@ -521,6 +553,11 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                     if (!(error instanceof ExpectError)) {
                         throw error;
                     }
+
+                    if (error instanceof UnexpectedError) {
+                        throw error;
+                    }
+
                     expectError = error;
                 } finally {
                     if (
@@ -638,6 +675,9 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
             if (!(error instanceof Error)) {
                 throw error;
             }
+
+            // Note: No need to rethrow UnexpectedError
+            // if (error instanceof UnexpectedError) {
 
             // Note: Count usage, [🧠] Maybe put to separate function executionReportJsonToUsage + DRY [5]
             const usage = addUsage(

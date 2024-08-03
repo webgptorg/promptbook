@@ -31,11 +31,11 @@
                 "modelVariant": "CHAT"
             },
             "content": "Write sentence with \"{word}\" and \"{wordSynonym}\" in it",
-            "resultingParameterName": "sentenceWithTwoSynonyms",
             "dependentParameterNames": [
                 "word",
                 "wordSynonym"
-            ]
+            ],
+            "resultingParameterName": "sentenceWithTwoSynonyms"
         },
         {
             "blockType": "PROMPT_TEMPLATE",
@@ -46,10 +46,10 @@
                 "modelVariant": "CHAT"
             },
             "content": "Write synonym for \"{word}\"",
-            "resultingParameterName": "wordSynonym",
             "dependentParameterNames": [
                 "word"
-            ]
+            ],
+            "resultingParameterName": "wordSynonym"
         }
     ],
     "knowledgeSources": [],

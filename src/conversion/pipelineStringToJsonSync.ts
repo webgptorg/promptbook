@@ -291,7 +291,6 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
             description,
             modelRequirements: templateModelRequirements as ModelRequirements,
             content,
-            resultingParameterName: expectResultingParameterName(/* <- Note: This is once more redundant */)!,
         };
 
         /**
@@ -504,6 +503,9 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
         if (templateJson.blockType !== 'PROMPT_TEMPLATE') {
             delete (templateJson as TODO_any).modelRequirements;
         }
+
+        // TODO: [🍧] Make this better - for example each command parser can call and apply this
+        templateJson.resultingParameterName = expectResultingParameterName(/* <- Note: This is once more redundant */);
 
         // TODO: [🍧] What actually about preparation and pushing the block into `promptTemplates`
         pipelineJson.promptTemplates.push(

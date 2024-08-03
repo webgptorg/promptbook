@@ -18,3 +18,7 @@ export function difference<TItem>(
 
     return diff;
 }
+
+/**
+ * TODO: [🧠][💯] Maybe also implement symmetricDifference
+ */

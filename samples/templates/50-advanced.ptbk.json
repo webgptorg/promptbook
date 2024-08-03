@@ -62,7 +62,6 @@
                 "modelVariant": "CHAT"
             },
             "content": "Write synonym for \"{word}\"",
-            "resultingParameterName": "wordSynonym",
             "personaName": "Joe",
             "postprocessingFunctionNames": [
                 "unwrapResult"
@@ -75,19 +74,20 @@
             },
             "dependentParameterNames": [
                 "word"
-            ]
+            ],
+            "resultingParameterName": "wordSynonym"
         },
         {
             "blockType": "SCRIPT",
             "name": "test-that-word-is-not-original-word",
             "title": "⚙ Test that word is not original word",
             "content": "if (word !== '' && wordSynonym === word) {\n    throw new Error(`Synonym returned from LLM is same as original word \"${word}\"`);\n}\n\nreturn wordSynonym;",
-            "resultingParameterName": "wordSynonymTested",
             "contentLanguage": "javascript",
             "dependentParameterNames": [
                 "word",
                 "wordSynonym"
-            ]
+            ],
+            "resultingParameterName": "wordSynonymTested"
         },
         {
             "blockType": "PROMPT_TEMPLATE",
@@ -99,7 +99,6 @@
                 "modelVariant": "CHAT"
             },
             "content": "Write sentence with \"{word}\" and \"{wordSynonym}\" in it",
-            "resultingParameterName": "sentenceWithTwoSynonyms",
             "personaName": "Jane",
             "expectations": {
                 "words": {
@@ -113,7 +112,8 @@
             "dependentParameterNames": [
                 "word",
                 "wordSynonym"
-            ]
+            ],
+            "resultingParameterName": "sentenceWithTwoSynonyms"
         },
         {
             "blockType": "PROMPT_TEMPLATE",
@@ -124,7 +124,6 @@
                 "modelVariant": "CHAT"
             },
             "content": "Remove word \"{word}\" from sentence and modify it so that it makes sense:\n\n## Rules:\n\n-   Sentence must be grammatically correct\n-   Sentence must make sense after removing the word\n\n## The Sentence:\n\n> {sentenceWithTwoSynonyms}",
-            "resultingParameterName": "sentenceWithOriginalWordRemoved",
             "personaName": "Josh",
             "expectations": {
                 "words": {
@@ -138,7 +137,8 @@
             "dependentParameterNames": [
                 "sentenceWithTwoSynonyms",
                 "word"
-            ]
+            ],
+            "resultingParameterName": "sentenceWithOriginalWordRemoved"
         },
         {
             "blockType": "PROMPT_TEMPLATE",
@@ -150,7 +150,6 @@
                 "modelName": "gpt-4o"
             },
             "content": "Write a short comparison of the meaning of the two sentences, writing a maximum of 5 sentences:\n\n## Sentence 1:\n\n> {sentenceWithTwoSynonyms}\n\n## Sentence 2:\n\n> {sentenceWithOriginalWordRemoved}",
-            "resultingParameterName": "comparisonOfTwoSentences",
             "personaName": "Alice",
             "expectations": {
                 "sentences": {
@@ -161,21 +160,22 @@
             "dependentParameterNames": [
                 "sentenceWithTwoSynonyms",
                 "sentenceWithOriginalWordRemoved"
-            ]
+            ],
+            "resultingParameterName": "comparisonOfTwoSentences"
         },
         {
             "blockType": "SIMPLE_TEMPLATE",
             "name": "summary",
             "title": "🔗 Summary",
             "content": "You have entered a word **{word}**. For this word the best synonym is **{wordSynonym}**. The sentence with both words is **{sentenceWithTwoSynonyms}**. The sentence without the original word is **{sentenceWithOriginalWordRemoved}**. And the comparison between the two sentences is:\n\n> {comparisonOfTwoSentences}",
-            "resultingParameterName": "summary",
             "dependentParameterNames": [
                 "word",
                 "wordSynonym",
                 "sentenceWithTwoSynonyms",
                 "sentenceWithOriginalWordRemoved",
                 "comparisonOfTwoSentences"
-            ]
+            ],
+            "resultingParameterName": "summary"
         }
     ],
     "knowledgeSources": [],
@@ -186,8 +186,8 @@
             "description": "a linguist",
             "modelRequirements": {
                 "modelVariant": "CHAT",
-                "modelName": "gpt-4",
-                "systemMessage": "You are a linguist.",
+                "modelName": "gpt-4o",
+                "systemMessage": "You are a linguist and a knowledgeable assistant.",
                 "temperature": 0.5
             },
             "preparationIds": [
@@ -200,8 +200,8 @@
             "modelRequirements": {
                 "modelVariant": "CHAT",
                 "modelName": "gpt-4o",
-                "systemMessage": "You are an experienced AI engineer and helpful assistant with expertise as a linguist.",
-                "temperature": 0.7
+                "systemMessage": "You are a linguist and a knowledgeable assistant.",
+                "temperature": 0.5
             },
             "preparationIds": [
                 1
@@ -212,8 +212,8 @@
             "description": "a linguist",
             "modelRequirements": {
                 "modelVariant": "CHAT",
-                "modelName": "gpt-4-turbo",
-                "systemMessage": "You are an experienced AI engineer and helpful assistant.",
+                "modelName": "gpt-4o",
+                "systemMessage": "You are a linguist and a knowledgeable assistant.",
                 "temperature": 0.5
             },
             "preparationIds": [
@@ -226,7 +226,7 @@
             "modelRequirements": {
                 "modelVariant": "CHAT",
                 "modelName": "gpt-4o",
-                "systemMessage": "You are an experienced AI engineer and knowledgeable linguist.",
+                "systemMessage": "You are a linguist and a knowledgeable assistant.",
                 "temperature": 0.5
             },
             "preparationIds": [

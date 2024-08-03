@@ -24,8 +24,8 @@
                 "modelVariant": "CHAT"
             },
             "content": "Hello",
-            "resultingParameterName": "greetingResponse",
-            "dependentParameterNames": []
+            "dependentParameterNames": [],
+            "resultingParameterName": "greetingResponse"
         }
     ],
     "knowledgeSources": [],

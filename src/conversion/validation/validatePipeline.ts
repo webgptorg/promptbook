@@ -1,11 +1,11 @@
 import { spaceTrim } from 'spacetrim';
-import { LOOP_LIMIT } from '../../config';
+import { LOOP_LIMIT, RESERVED_PARAMETER_NAMES } from '../../config';
 import { ParsingError } from '../../errors/ParsingError';
 import { PipelineLogicError } from '../../errors/PipelineLogicError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import type { PromptTemplateJson } from '../../types/PipelineJson/PromptTemplateJson';
-import type { string_name } from '../../types/typeAliases';
+import type { string_name, string_reserved_parameter_name } from '../../types/typeAliases';
 import { isValidPromptbookVersion } from '../../utils/validators/semanticVersion/isValidPromptbookVersion';
 import { isValidPipelineUrl } from '../../utils/validators/url/isValidPipelineUrl';
 
@@ -116,13 +116,21 @@ export function validatePipeline(pipeline: PipelineJson): PipelineJson {
         }
     }
 
-    // Note: Check each template individually
+    // Note: All input parameters are defined - so that they can be used as result of some template
     const definedParameters: Set<string> = new Set(
         pipeline.parameters.filter(({ isInput }) => isInput).map(({ name }) => name),
     );
+
+    // Note: Checking each template individually
     for (const template of pipeline.promptTemplates) {
         if (definedParameters.has(template.resultingParameterName)) {
             throw new PipelineLogicError(`Parameter {${template.resultingParameterName}} is defined multiple times`);
+        }
+
+        if (RESERVED_PARAMETER_NAMES.includes(template.resultingParameterName as string_reserved_parameter_name)) {
+            throw new PipelineLogicError(
+                `Parameter name {${template.resultingParameterName}} is reserved, please use fifferent name`,
+            );
         }
 
         definedParameters.add(template.resultingParameterName);
@@ -193,6 +201,12 @@ export function validatePipeline(pipeline: PipelineJson): PipelineJson {
     let resovedParameters: Array<string_name> = pipeline.parameters
         .filter(({ isInput }) => isInput)
         .map(({ name }) => name);
+
+    // Note: All reserved parameters are resolved
+    for (const reservedParameterName of RESERVED_PARAMETER_NAMES) {
+        resovedParameters = [...resovedParameters, reservedParameterName];
+    }
+
     let unresovedTemplates: Array<PromptTemplateJson> = [...pipeline.promptTemplates];
     //            <- TODO: [🧠][🥜]
 

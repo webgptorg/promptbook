@@ -28,7 +28,6 @@
                 "modelVariant": "CHAT"
             },
             "content": "Hello {yourName}!",
-            "resultingParameterName": "greeting",
             "postprocessingFunctionNames": [
                 "reverse",
                 "removeDiacritics",
@@ -36,7 +35,8 @@
             ],
             "dependentParameterNames": [
                 "yourName"
-            ]
+            ],
+            "resultingParameterName": "greeting"
         }
     ],
     "knowledgeSources": [],

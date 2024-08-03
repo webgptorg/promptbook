@@ -30,7 +30,6 @@
                 "modelVariant": "CHAT"
             },
             "content": "Write some name for hero",
-            "resultingParameterName": "name",
             "jokerParameterNames": [
                 "name1",
                 "name2"
@@ -43,7 +42,8 @@
             "dependentParameterNames": [
                 "name1",
                 "name2"
-            ]
+            ],
+            "resultingParameterName": "name"
         }
     ],
     "knowledgeSources": [],
