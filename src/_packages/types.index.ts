@@ -20,7 +20,6 @@ import type { UncertainNumber } from '../execution/UncertainNumber';
 import type { UserInterfaceTools, UserInterfaceToolsPromptDialogOptions } from '../execution/UserInterfaceTools';
 import type { ModelRequirements } from '../types/ModelRequirements';
 import type { ModelVariant } from '../types/ModelVariant';
-import type { Parameters, ReservedParameters } from '../types/Parameters';
 import type { ExpectationAmount, ExpectationUnit, Expectations } from '../types/PipelineJson/Expectations';
 import { EXPECTATION_UNITS } from '../types/PipelineJson/Expectations';
 import { KnowledgePiecePreparedJson } from '../types/PipelineJson/KnowledgePieceJson';
@@ -41,6 +40,8 @@ import type { TaskProgress } from '../types/TaskProgress';
 import type { ExecutionReportJson } from '../types/execution-report/ExecutionReportJson';
 import type { string_char_emoji } from '../types/typeAliasEmoji';
 import type {
+    Parameters,
+    ReservedParameters,
     client_id,
     number_model_temperature,
     number_seed,
@@ -78,6 +79,7 @@ import type {
     string_pipeline_url,
     string_pipeline_url_with_hashtemplate,
     string_prompt,
+    string_reserved_parameter_name,
     string_script,
     string_semantic_version,
     string_sha256,
@@ -191,6 +193,7 @@ export type {
     string_pipeline_url_with_hashtemplate,
     string_prompt,
     string_promptbook_version,
+    string_reserved_parameter_name,
     string_script,
     string_semantic_version,
     string_sha256,

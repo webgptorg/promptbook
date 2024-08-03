@@ -109,7 +109,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
     const defineParam = (parameterCommand: Omit<ParameterCommand, 'type'>) => {
         const { parameterName, parameterDescription, isInput, isOutput } = parameterCommand;
 
-        if (RESERVED_PARAMETER_NAMES.includes(parameterName)) {
+        if (RESERVED_PARAMETER_NAMES.includes(parameterName as really_any)) {
             throw new ParsingError(
                 `Parameter name {${parameterName}} is reserved and cannot be used as resulting parameter name` /* <- TODO: [🚞] */,
             );

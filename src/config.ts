@@ -56,7 +56,7 @@ export const RESERVED_PARAMETER_NAMES = deepFreeze([
     'currentDate',
     // <- TODO: Add more like 'date', 'modelName',...
     // <- TODO: Add [emoji] + instructions ACRY when adding new reserved parameter
-]);
+] as const);
 
 /**
  * @@@

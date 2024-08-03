@@ -1,7 +1,8 @@
 import type { Promisable } from 'type-fest';
-import { Parameters } from '../types/Parameters';
+import { PipelineExecutionError } from '../errors/PipelineExecutionError';
 import type { TaskProgress } from '../types/TaskProgress';
 import type { ExecutionReportJson } from '../types/execution-report/ExecutionReportJson';
+import { Parameters } from '../types/typeAliases';
 import type { PromptResultUsage } from './PromptResultUsage';
 
 /**
@@ -27,7 +28,7 @@ export type PipelineExecutor = {
         /**
          * Errors that occured during the execution, details are aviable in `executionReport`
          */
-        readonly errors: Array<Error>;
+        readonly errors: Array<PipelineExecutionError | Error>;
 
         /**
          * The report of the execution with all details

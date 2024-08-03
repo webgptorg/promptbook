@@ -11,17 +11,17 @@ export type PromptResultUsage = {
      *
      * Note: If the cost is unknown, the value 0 and isUncertain is true
      */
-    price: UncertainNumber;
+    readonly price: UncertainNumber;
 
     /**
      * Number of whatever used in the input aka. `prompt_tokens`
      */
-    input: PromptResultUsageCounts;
+    readonly input: PromptResultUsageCounts;
 
     /**
      * Number of tokens used in the output aka. `completion_tokens`
      */
-    output: PromptResultUsageCounts;
+    readonly output: PromptResultUsageCounts;
 };
 
 /**

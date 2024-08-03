@@ -11,14 +11,13 @@ import { joinLlmExecutionTools } from '../llm-providers/multiple/joinLlmExecutio
 import { isPipelinePrepared } from '../prepare/isPipelinePrepared';
 import { preparePipeline } from '../prepare/preparePipeline';
 import type { ExecutionReportJson } from '../types/execution-report/ExecutionReportJson';
-import type { Parameters, ReservedParameters } from '../types/Parameters';
 import type { PipelineJson } from '../types/PipelineJson/PipelineJson';
 import type { PromptTemplateJson } from '../types/PipelineJson/PromptTemplateJson';
 import type { ChatPrompt, CompletionPrompt, EmbeddingPrompt, Prompt } from '../types/Prompt';
 import type { TaskProgress } from '../types/TaskProgress';
-import type { string_name } from '../types/typeAliases';
+import type { Parameters, ReservedParameters, string_name } from '../types/typeAliases';
 import { arrayableToArray } from '../utils/arrayableToArray';
-import { deepFreeze } from '../utils/deepFreeze';
+import { deepFreeze, deepFreezeWithSameType } from '../utils/deepFreeze';
 import type { really_any } from '../utils/organization/really_any';
 import type { TODO_any } from '../utils/organization/TODO_any';
 import { replaceParameters } from '../utils/replaceParameters';
@@ -131,7 +130,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
         // Note: Check that all input input parameters are defined
         for (const parameter of pipeline.parameters) {
             if (parameter.isInput && inputParameters[parameter.name] === undefined) {
-                return {
+                return deepFreezeWithSameType({
                     isSuccessful: false,
                     errors: [
                         new PipelineExecutionError(`Parameter {${parameter.name}} is required as an input parameter`),
@@ -140,7 +139,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                     executionReport,
                     outputParameters: {},
                     usage: ZERO_USAGE,
-                };
+                });
             }
         }
 
@@ -562,11 +561,11 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                 });
             }
 
-            parametersToPass = {
+            parametersToPass = Object.freeze({
                 ...parametersToPass,
                 [currentTemplate.resultingParameterName]:
                     resultString /* <- Note: Not need to detect parameter collision here because pipeline checks logic consistency during construction */,
-            };
+            });
         }
 
         try {
@@ -623,13 +622,13 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                 ...executionReport.promptExecutions.map(({ result }) => result?.usage || ZERO_USAGE),
             );
 
-            return {
+            return deepFreezeWithSameType({
                 isSuccessful: false,
                 errors: [error],
                 usage,
                 executionReport,
                 outputParameters: parametersToPass,
-            };
+            });
         }
 
         // Note: Filter ONLY output parameters
@@ -644,13 +643,13 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
         // Note: Count usage, [🧠] Maybe put to separate function executionReportJsonToUsage + DRY [5]
         const usage = addUsage(...executionReport.promptExecutions.map(({ result }) => result?.usage || ZERO_USAGE));
 
-        return {
+        return deepFreezeWithSameType({
             isSuccessful: true,
             errors: [],
             usage,
             executionReport,
             outputParameters: parametersToPass,
-        };
+        });
     };
 
     return pipelineExecutor;

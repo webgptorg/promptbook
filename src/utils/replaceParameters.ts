@@ -1,8 +1,7 @@
 import { LOOP_LIMIT } from '../config';
 import { LimitReachedError } from '../errors/LimitReachedError';
 import { PipelineExecutionError } from '../errors/PipelineExecutionError';
-import type { Parameters } from '../types/Parameters';
-import type { string_template } from '../types/typeAliases';
+import type { Parameters, string_template } from '../types/typeAliases';
 
 /**
  * Replaces parameters in template with values from parameters object

@@ -4,6 +4,8 @@
 '--------------------------------------------------'
 */
 
+import { RESERVED_PARAMETER_NAMES } from '../config';
+
 /**
  * Semantic helper
  */
@@ -116,15 +118,40 @@ export type string_name = string;
  *
  * For example `"eventName"`
  */
-export type string_parameter_name = string;
+export type string_parameter_name = string_name;
 
 /**
  * Semantic helper
- * Unique identifier of anything
+ * Unique identifier of parameter
  *
  * For example `"DevConf 2024"`
  */
 export type string_parameter_value = string;
+
+/**
+ * Parameters of the pipeline
+ *
+ * There are three types of parameters:
+ * - **INPUT PARAMETERs** are required to execute the pipeline.
+ * - **Intermediate parameters** are used internally in the pipeline.
+ * - **OUTPUT PARAMETERs** are not used internally in the pipeline, but are returned as the result of the pipeline execution.
+ *
+ * @see https://ptbk.io/parameters
+ */
+export type Parameters = Exclude<Record<string_parameter_name, string_parameter_value>, ReservedParameters>;
+
+/**
+ * Semantic helper
+ * Unique identifier of reserved parameter
+ *
+ * For example `"context"`
+ */
+export type string_reserved_parameter_name = typeof RESERVED_PARAMETER_NAMES[number];
+
+/**
+ * @@@
+ */
+export type ReservedParameters = Record<string_reserved_parameter_name, string_parameter_value>;
 
 /**
  * Semantic helper
@@ -244,7 +271,6 @@ export type string_script = string;
  */
 export type string_javascript = string;
 
-
 /**
  * Semantic helper for JSON strings
  *
@@ -252,8 +278,7 @@ export type string_javascript = string;
  *
  * For example `{"foo": "bar"}`
  */
-export type string_json<TType> = string & {_type:'string_json',scheme: TType};
-
+export type string_json<TType> = string & { _type: 'string_json'; scheme: TType };
 
 /**
  * Semantic helper

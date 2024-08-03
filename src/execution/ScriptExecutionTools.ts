@@ -1,6 +1,6 @@
-import { Parameters } from '../types/Parameters';
+
 import type { ScriptLanguage } from '../types/ScriptLanguage';
-import type { string_script } from '../types/typeAliases';
+import type { Parameters, string_script } from '../types/typeAliases';
 
 /**
  * Represents all the tools needed to EXECUTE SCRIPTs
