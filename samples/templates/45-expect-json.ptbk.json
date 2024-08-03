@@ -20,23 +20,22 @@
     ],
     "promptTemplates": [
         {
+            "blockType": "PROMPT_TEMPLATE",
             "name": "question",
             "title": "💬 Question",
-            "dependentParameterNames": [
-                "sentence"
-            ],
-            "blockType": "PROMPT_TEMPLATE",
-            "postprocessing": [
-                "trimEndOfCodeBlock"
-            ],
-            "expectFormat": "JSON",
-            "personaName": null,
             "modelRequirements": {
                 "modelVariant": "COMPLETION",
                 "modelName": "gpt-3.5-turbo-instruct"
             },
             "content": "Dark horse hopping over the fence.\n\n```json\n{\n  \"subject\": \"horse\",\n  \"action\": \"hopping\",\n  \"object\": \"fence\"\n}\n```\n\n---\n\n{sentence}\n\n```json",
-            "resultingParameterName": "parsedSentence"
+            "resultingParameterName": "parsedSentence",
+            "postprocessingFunctionNames": [
+                "trimEndOfCodeBlock"
+            ],
+            "expectFormat": "JSON",
+            "dependentParameterNames": [
+                "sentence"
+            ]
         }
     ],
     "knowledgeSources": [],
@@ -45,7 +44,7 @@
     "preparations": [
         {
             "id": 1,
-            "promptbookVersion": "0.61.0-13",
+            "promptbookVersion": "0.61.0-15",
             "modelUsage": {
                 "price": {
                     "value": 0

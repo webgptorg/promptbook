@@ -28,14 +28,17 @@
     ],
     "promptTemplates": [
         {
+            "blockType": "PROMPT_TEMPLATE",
             "name": "synonym",
             "title": "💬 Synonym",
             "description": "Synonym for word",
-            "dependentParameterNames": [
-                "word"
-            ],
-            "blockType": "PROMPT_TEMPLATE",
-            "postprocessing": [
+            "modelRequirements": {
+                "modelVariant": "CHAT",
+                "modelName": "gpt-3.5-turbo"
+            },
+            "content": "Write synonym for \"{word}\"",
+            "resultingParameterName": "wordSynonym",
+            "postprocessingFunctionNames": [
                 "unwrapResult"
             ],
             "expectations": {
@@ -44,24 +47,22 @@
                     "max": 1
                 }
             },
-            "personaName": null,
+            "dependentParameterNames": [
+                "word"
+            ]
+        },
+        {
+            "blockType": "PROMPT_TEMPLATE",
+            "name": "sentence",
+            "title": "💬 Sentence",
+            "description": "Sentence with the both words",
             "modelRequirements": {
                 "modelVariant": "CHAT",
                 "modelName": "gpt-3.5-turbo"
             },
-            "content": "Write synonym for \"{word}\"",
-            "resultingParameterName": "wordSynonym"
-        },
-        {
-            "name": "sentence",
-            "title": "💬 Sentence",
-            "description": "Sentence with the both words",
-            "dependentParameterNames": [
-                "word",
-                "wordSynonym"
-            ],
-            "blockType": "PROMPT_TEMPLATE",
-            "postprocessing": [
+            "content": "Write sentence with \"{word}\" and \"{wordSynonym}\"",
+            "resultingParameterName": "sentence",
+            "postprocessingFunctionNames": [
                 "unwrapResult"
             ],
             "expectations": {
@@ -69,31 +70,27 @@
                     "min": 1
                 }
             },
-            "personaName": null,
-            "modelRequirements": {
-                "modelVariant": "CHAT",
-                "modelName": "gpt-3.5-turbo"
-            },
-            "content": "Write sentence with \"{word}\" and \"{wordSynonym}\"",
-            "resultingParameterName": "sentence"
+            "dependentParameterNames": [
+                "word",
+                "wordSynonym"
+            ]
         },
         {
+            "blockType": "PROMPT_TEMPLATE",
             "name": "make-a-document",
             "title": "Make a document",
-            "dependentParameterNames": [
-                "sentence"
-            ],
-            "blockType": "PROMPT_TEMPLATE",
-            "postprocessing": [
-                "unwrapResult"
-            ],
-            "personaName": null,
             "modelRequirements": {
                 "modelVariant": "CHAT",
                 "modelName": "gpt-3.5-turbo"
             },
             "content": "Write poem with starting sentence:\n\n```text\n{sentence}\n```",
-            "resultingParameterName": "poem"
+            "resultingParameterName": "poem",
+            "postprocessingFunctionNames": [
+                "unwrapResult"
+            ],
+            "dependentParameterNames": [
+                "sentence"
+            ]
         }
     ],
     "knowledgeSources": [],
@@ -102,7 +99,7 @@
     "preparations": [
         {
             "id": 1,
-            "promptbookVersion": "0.61.0-13",
+            "promptbookVersion": "0.61.0-15",
             "modelUsage": {
                 "price": {
                     "value": 0

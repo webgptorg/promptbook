@@ -23,14 +23,15 @@
     ],
     "promptTemplates": [
         {
+            "blockType": "PROMPT_TEMPLATE",
             "name": "question",
             "title": "💬 Question",
-            "dependentParameterNames": [
-                "name1",
-                "name2"
-            ],
-            "blockType": "PROMPT_TEMPLATE",
-            "jokers": [
+            "modelRequirements": {
+                "modelVariant": "CHAT"
+            },
+            "content": "Write some name for hero",
+            "resultingParameterName": "name",
+            "jokerParameterNames": [
                 "name1",
                 "name2"
             ],
@@ -39,12 +40,10 @@
                     "min": 2
                 }
             },
-            "personaName": null,
-            "modelRequirements": {
-                "modelVariant": "CHAT"
-            },
-            "content": "Write some name for hero",
-            "resultingParameterName": "name"
+            "dependentParameterNames": [
+                "name1",
+                "name2"
+            ]
         }
     ],
     "knowledgeSources": [],
@@ -53,7 +52,7 @@
     "preparations": [
         {
             "id": 1,
-            "promptbookVersion": "0.61.0-13",
+            "promptbookVersion": "0.61.0-15",
             "modelUsage": {
                 "price": {
                     "value": 0

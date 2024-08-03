@@ -21,23 +21,22 @@
     ],
     "promptTemplates": [
         {
+            "blockType": "PROMPT_TEMPLATE",
             "name": "question",
             "title": "💬 Question",
-            "dependentParameterNames": [
-                "yourName"
-            ],
-            "blockType": "PROMPT_TEMPLATE",
-            "postprocessing": [
-                "reverse",
-                "removeDiacritics",
-                "normalizeTo_SCREAMING_CASE"
-            ],
-            "personaName": null,
             "modelRequirements": {
                 "modelVariant": "CHAT"
             },
             "content": "Hello {yourName}!",
-            "resultingParameterName": "greeting"
+            "resultingParameterName": "greeting",
+            "postprocessingFunctionNames": [
+                "reverse",
+                "removeDiacritics",
+                "normalizeTo_SCREAMING_CASE"
+            ],
+            "dependentParameterNames": [
+                "yourName"
+            ]
         }
     ],
     "knowledgeSources": [],
@@ -46,7 +45,7 @@
     "preparations": [
         {
             "id": 1,
-            "promptbookVersion": "0.61.0-13",
+            "promptbookVersion": "0.61.0-15",
             "modelUsage": {
                 "price": {
                     "value": 0

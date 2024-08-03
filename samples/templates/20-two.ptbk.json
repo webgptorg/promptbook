@@ -27,35 +27,35 @@
     ],
     "promptTemplates": [
         {
+            "blockType": "PROMPT_TEMPLATE",
             "name": "synonym",
             "title": "💬 Synonym",
             "description": "Synonym for word",
-            "dependentParameterNames": [
-                "word"
-            ],
-            "blockType": "PROMPT_TEMPLATE",
-            "personaName": null,
             "modelRequirements": {
                 "modelVariant": "CHAT"
             },
             "content": "Write synonym for \"{word}\"",
-            "resultingParameterName": "wordSynonym"
+            "resultingParameterName": "wordSynonym",
+            "personaName": "Joe",
+            "dependentParameterNames": [
+                "word"
+            ]
         },
         {
+            "blockType": "PROMPT_TEMPLATE",
             "name": "sentence",
             "title": "💬 Sentence",
             "description": "Sentence with word and wordSynonym",
-            "dependentParameterNames": [
-                "word",
-                "wordSynonym"
-            ],
-            "blockType": "PROMPT_TEMPLATE",
-            "personaName": null,
             "modelRequirements": {
                 "modelVariant": "CHAT"
             },
             "content": "Write sentence with \"{word}\" and \"{wordSynonym}\" in it",
-            "resultingParameterName": "sentenceWithTwoSynonyms"
+            "resultingParameterName": "sentenceWithTwoSynonyms",
+            "personaName": "Joe",
+            "dependentParameterNames": [
+                "word",
+                "wordSynonym"
+            ]
         }
     ],
     "knowledgeSources": [],
@@ -67,7 +67,7 @@
             "modelRequirements": {
                 "modelVariant": "CHAT",
                 "modelName": "gpt-4o",
-                "systemMessage": "You are a linguist and a knowledgeable assistant.",
+                "systemMessage": "You are an experienced AI engineer and a helpful assistant with expertise in linguistics.",
                 "temperature": 0.5
             },
             "preparationIds": [
@@ -78,7 +78,7 @@
     "preparations": [
         {
             "id": 1,
-            "promptbookVersion": "0.61.0-13",
+            "promptbookVersion": "0.61.0-15",
             "modelUsage": {
                 "price": {
                     "value": 0

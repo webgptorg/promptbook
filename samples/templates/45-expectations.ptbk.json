@@ -20,12 +20,15 @@
     ],
     "promptTemplates": [
         {
+            "blockType": "PROMPT_TEMPLATE",
             "name": "question",
             "title": "💬 Question",
-            "dependentParameterNames": [
-                "yourName"
-            ],
-            "blockType": "PROMPT_TEMPLATE",
+            "modelRequirements": {
+                "modelVariant": "CHAT",
+                "modelName": "gpt-3.5-turbo"
+            },
+            "content": "Hello {yourName}!",
+            "resultingParameterName": "greeting",
             "expectations": {
                 "characters": {
                     "max": 30,
@@ -43,13 +46,9 @@
                     "max": 1
                 }
             },
-            "personaName": null,
-            "modelRequirements": {
-                "modelVariant": "CHAT",
-                "modelName": "gpt-3.5-turbo"
-            },
-            "content": "Hello {yourName}!",
-            "resultingParameterName": "greeting"
+            "dependentParameterNames": [
+                "yourName"
+            ]
         }
     ],
     "knowledgeSources": [],
@@ -58,7 +57,7 @@
     "preparations": [
         {
             "id": 1,
-            "promptbookVersion": "0.61.0-13",
+            "promptbookVersion": "0.61.0-15",
             "modelUsage": {
                 "price": {
                     "value": 0

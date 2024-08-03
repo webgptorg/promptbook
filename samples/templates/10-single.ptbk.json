@@ -18,25 +18,25 @@
     ],
     "promptTemplates": [
         {
+            "blockType": "PROMPT_TEMPLATE",
             "name": "synonym",
             "title": "💬 Synonym",
             "description": "Synonym for word",
-            "dependentParameterNames": [
-                "word"
-            ],
-            "blockType": "PROMPT_TEMPLATE",
+            "modelRequirements": {
+                "modelVariant": "CHAT"
+            },
+            "content": "Write synonym for \"{word}\"",
+            "resultingParameterName": "wordSynonym",
+            "personaName": "Joe",
             "expectations": {
                 "words": {
                     "min": 1,
                     "max": 5
                 }
             },
-            "personaName": null,
-            "modelRequirements": {
-                "modelVariant": "CHAT"
-            },
-            "content": "Write synonym for \"{word}\"",
-            "resultingParameterName": "wordSynonym"
+            "dependentParameterNames": [
+                "word"
+            ]
         }
     ],
     "knowledgeSources": [],
@@ -47,9 +47,9 @@
             "description": "a linguist",
             "modelRequirements": {
                 "modelVariant": "CHAT",
-                "modelName": "gpt-4o",
-                "systemMessage": "You are a linguist and a knowledgeable assistant.",
-                "temperature": 0.5
+                "modelName": "gpt-4-turbo",
+                "systemMessage": "You are a linguist and knowledgeable virtual assistant.",
+                "temperature": 0.6
             },
             "preparationIds": [
                 1
@@ -59,7 +59,7 @@
     "preparations": [
         {
             "id": 1,
-            "promptbookVersion": "0.61.0-13",
+            "promptbookVersion": "0.61.0-15",
             "modelUsage": {
                 "price": {
                     "value": 0
