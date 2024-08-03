@@ -15,11 +15,18 @@ import type { PipelineJson } from '../types/PipelineJson/PipelineJson';
 import type { PromptTemplateJson } from '../types/PipelineJson/PromptTemplateJson';
 import type { ChatPrompt, CompletionPrompt, EmbeddingPrompt, Prompt } from '../types/Prompt';
 import type { TaskProgress } from '../types/TaskProgress';
-import type { Parameters, ReservedParameters, string_name } from '../types/typeAliases';
+import type {
+    Parameters,
+    ReservedParameters,
+    string_markdown,
+    string_name,
+    string_parameter_value,
+} from '../types/typeAliases';
 import { arrayableToArray } from '../utils/arrayableToArray';
 import { deepFreeze, deepFreezeWithSameType } from '../utils/deepFreeze';
 import type { really_any } from '../utils/organization/really_any';
 import type { TODO_any } from '../utils/organization/TODO_any';
+import { TODO_USE } from '../utils/organization/TODO_USE';
 import { replaceParameters } from '../utils/replaceParameters';
 import { PROMPTBOOK_VERSION } from '../version';
 import type { ExecutionTools } from './ExecutionTools';
@@ -145,6 +152,34 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
 
         let parametersToPass: Parameters = inputParameters;
 
+        async function getContextForTemplate(
+            template: PromptTemplateJson,
+        ): Promise<string_parameter_value & string_markdown> {
+            // TODO: !!!!!! Implement Better - use real index and keyword search
+
+            TODO_USE(template);
+            return pipeline.knowledgePieces.map(({ content }) => `- ${content}`).join('\n');
+        }
+
+        async function getReservedParametersForTemplate(template: PromptTemplateJson): Promise<ReservedParameters> {
+            const context = await getContextForTemplate(template);
+            const currentDate = new Date().toISOString(); // <- TODO: [🧠] Better
+
+            const reservedParameters: ReservedParameters = {
+                context,
+                currentDate,
+            };
+
+            // Note: Doublecheck that ALL reserved parameters are defined:
+            for (const parameterName of RESERVED_PARAMETER_NAMES) {
+                if (reservedParameters[parameterName] === undefined) {
+                    throw new UnexpectedError(`Reserved parameter {${parameterName}} is not defined`);
+                }
+            }
+
+            return reservedParameters;
+        }
+
         async function executeSingleTemplate(currentTemplate: PromptTemplateJson) {
             const name = `pipeline-executor-frame-${currentTemplate.name}`;
             const title = currentTemplate.title;
@@ -163,23 +198,8 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                 });
             }
 
-            const context = '!!!!!!';
-            const currentDate = new Date().toISOString(); // <- TODO: [🧠] Better
-
-            const reservedParameters: ReservedParameters = {
-                context,
-                currentDate,
-            };
-
-            // Note: Doublecheck that ALL reserved parameters are defined:
-            for (const parameterName of RESERVED_PARAMETER_NAMES) {
-                if (reservedParameters[parameterName] === undefined) {
-                    throw new UnexpectedError(`Reserved parameter {${parameterName}} is not defined`);
-                }
-            }
-
             const parameters: Parameters = {
-                ...reservedParameters,
+                ...(await getReservedParametersForTemplate(currentTemplate)),
                 ...parametersToPass,
             };
 
