@@ -144,7 +144,7 @@ export async function prepareKnowledgeFromMarkdown(
 }
 
 /**
- * TODO: [🔼] !!! Export via `@promptbook/markdown`
+ * TODO: [🐝][🔼] !!! Export via `@promptbook/markdown`
  * TODO: [🪂] Do it in parallel 11:11
  * Note: No need to aggregate usage here, it is done by intercepting the llmTools
  */

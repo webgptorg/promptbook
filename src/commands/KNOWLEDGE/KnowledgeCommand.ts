@@ -1,4 +1,4 @@
-import type { string_file_relative_path } from '../../types/typeAliases';
+import type { string_file_relative_path, string_knowledge_source } from '../../types/typeAliases';
 import type { string_url } from '../../types/typeAliases';
 
 /**
@@ -9,5 +9,5 @@ import type { string_url } from '../../types/typeAliases';
  */
 export type KnowledgeCommand = {
     readonly type: 'KNOWLEDGE';
-    readonly source: string_url | string_file_relative_path;
+    readonly source: string_knowledge_source;
 };

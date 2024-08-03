@@ -1,2 +1,2 @@
 TODO: Implement function which will make knowledge index from the given docx document
-TODO: [🔼] !!! Export via `@promptbook/docx`
+TODO: [🐝][🔼] !!! Export via `@promptbook/docx`

@@ -1,7 +1,6 @@
 import { ParsingError } from '../../errors/ParsingError';
 import type { TODO_any } from '../../utils/organization/TODO_any';
-import type { CommandParser } from '../_common/types/CommandParser';
-import type { CommandParserInput } from '../_common/types/CommandParser';
+import type { CommandParser, CommandParserInput } from '../_common/types/CommandParser';
 import type { ParameterCommand } from './ParameterCommand';
 
 /**
@@ -38,7 +37,7 @@ export const parameterCommandParser: CommandParser<ParameterCommand> = {
     /**
      * Link to discussion
      */
-    discussionUrl: 'https://github.com/webgptorg/promptbook/discussions/68',
+    documentationUrl: 'https://github.com/webgptorg/promptbook/discussions/68',
 
     /**
      * Example usages of the PARAMETER command

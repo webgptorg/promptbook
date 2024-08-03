@@ -1,7 +1,6 @@
 import { ParsingError } from '../../errors/ParsingError';
 import { isValidJavascriptName } from '../../utils/validators/javascriptName/isValidJavascriptName';
-import type { CommandParser } from '../_common/types/CommandParser';
-import type { CommandParserInput } from '../_common/types/CommandParser';
+import type { CommandParser, CommandParserInput } from '../_common/types/CommandParser';
 import type { PostprocessCommand } from './PostprocessCommand';
 
 /**
@@ -31,7 +30,7 @@ export const postprocessCommandParser: CommandParser<PostprocessCommand> = {
     /**
      * Link to discussion
      */
-    discussionUrl: 'https://github.com/webgptorg/promptbook/discussions/31',
+    documentationUrl: 'https://github.com/webgptorg/promptbook/discussions/31',
 
     /**
      * Example usages of the POSTPROCESS command

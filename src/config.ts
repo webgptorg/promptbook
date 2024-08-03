@@ -28,18 +28,18 @@ export const MAX_FILENAME_LENGTH = 30;
 
 /**
  * @@@
- * TODO: [🦉] !!! Use
+ * TODO: [🐝] !!! Use
  */
 export const MAX_KNOWLEDGE_SOURCES_SCRAPING_DEPTH = 3;
 
 /**
  * @@@
- * TODO: [🦉] !!! Use
+ * TODO: [🐝] !!! Use
  */
 export const MAX_KNOWLEDGE_SOURCES_SCRAPING_TOTAL = 200;
 
 /**
- * @@@
+ * Where to store the cache of executions for promptbook CLI
  */
 export const EXECUTIONS_CACHE_DIRNAME = '/.promptbook/executions-cache';
 

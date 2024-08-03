@@ -1,6 +1,5 @@
 import { TODO_USE } from '../../utils/organization/TODO_USE';
-import type { CommandParser } from '../_common/types/CommandParser';
-import type { CommandParserInput } from '../_common/types/CommandParser';
+import type { CommandParser, CommandParserInput } from '../_common/types/CommandParser';
 import type { ActionCommand } from './ActionCommand';
 
 /**
@@ -28,7 +27,7 @@ export const actionCommandParser: CommandParser<ActionCommand> = {
     /**
      * Link to discussion
      */
-    discussionUrl: 'https://github.com/webgptorg/promptbook/discussions/72',
+    documentationUrl: 'https://github.com/webgptorg/promptbook/discussions/72',
 
     /**
      * Example usages of the ACTION command

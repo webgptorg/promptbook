@@ -307,7 +307,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
                     if (command.blockType === 'KNOWLEDGE') {
                         knowledgeCommandParser.applyToPipelineJson!(pipelineJson, {
                             type: 'KNOWLEDGE',
-                            source: content, // <- TODO: [🐝] !!!! Work with KNOWLEDGE which not referring to the source file/wweb, but its content itself
+                            source: content, // <- TODO: [🐝] !!! Work with KNOWLEDGE which not referring to the source file or website, but its content itself
                         });
                         continue templates;
                     }

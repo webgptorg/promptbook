@@ -177,8 +177,22 @@ export type string_persona_description = string;
  * For example `"./pavol-hejny-cv.pdf"`
  * For example `"Pavol Hejný has web https://pavolhejny.com/"`
  * For example `"Pavol Hejný is web developer and creator of Promptbook and Collboard"`
+ *
+ * @@@ string_knowledge_source vs string_knowledge_source_link
  */
-export type string_knowledge_source = string_url | string_file_path | string;
+export type string_knowledge_source = string_knowledge_source_link | string_markdown;
+
+/**
+ * One link to knowledge source
+ *
+ * It can be a link or relative path
+ *
+ * For example `"https://pavolhejny.com/"`
+ * For example `"./pavol-hejny-cv.pdf"`
+ *
+ * @@@ string_knowledge_source vs string_knowledge_source_link
+ */
+export type string_knowledge_source_link = string_url | string_file_path;
 
 /**
  * Semantic helper
@@ -228,6 +242,13 @@ export type string_markdown_section_content = string;
  * For example `"**Hello** World!"`
  */
 export type string_markdown_text = string;
+
+/**
+ * @@@
+ */
+export type string_promptbook_documentation_url = `https://github.com/webgptorg/promptbook/discussions/${
+    | number
+    | '@@'}`;
 
 /**
  * Semantic helper

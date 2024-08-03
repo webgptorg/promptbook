@@ -1,7 +1,6 @@
 import { ParsingError } from '../../errors/ParsingError';
 import type { TODO_any } from '../../utils/organization/TODO_any';
-import type { CommandParser } from '../_common/types/CommandParser';
-import type { CommandParserInput } from '../_common/types/CommandParser';
+import type { CommandParser, CommandParserInput } from '../_common/types/CommandParser';
 import type { JokerCommand } from './JokerCommand';
 
 /**
@@ -29,7 +28,7 @@ export const jokerCommandParser: CommandParser<JokerCommand> = {
     /**
      * Link to discussion
      */
-    discussionUrl: 'https://github.com/webgptorg/promptbook/discussions/66',
+    documentationUrl: 'https://github.com/webgptorg/promptbook/discussions/66',
 
     /**
      * Example usages of the JOKER command

@@ -2,8 +2,7 @@ import spaceTrim from 'spacetrim';
 import type { WritableDeep } from 'type-fest';
 import { ParsingError } from '../../errors/ParsingError';
 import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
-import type { CommandParser } from '../_common/types/CommandParser';
-import type { CommandParserInput } from '../_common/types/CommandParser';
+import type { CommandParser, CommandParserInput } from '../_common/types/CommandParser';
 import type { PersonaCommand } from './PersonaCommand';
 
 /**
@@ -36,7 +35,7 @@ export const personaCommandParser: CommandParser<PersonaCommand> = {
     /**
      * Link to discussion
      */
-    discussionUrl: 'https://github.com/webgptorg/promptbook/discussions/22',
+    documentationUrl: 'https://github.com/webgptorg/promptbook/discussions/22',
 
     /**
      * Example usages of the PERSONA command

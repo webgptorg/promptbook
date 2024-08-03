@@ -407,6 +407,10 @@ Working external knowledge, personas, preparation for instruments and actions
 
 ### `0..0` _(2024-0-)_
 
+Knowledge scrapers [🐝]
+
+### `0..0` _(2024-0-)_
+
 `createLibraryFromDirectory` uses prebuild library
 
 ### `0..0` _(2024-0-)_

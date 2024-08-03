@@ -1,7 +1,6 @@
 import { spaceTrim } from 'spacetrim';
 import { ParsingError } from '../../errors/ParsingError';
-import type { string_markdown } from '../../types/typeAliases';
-import type { string_markdown_text } from '../../types/typeAliases';
+import type { string_markdown, string_markdown_text } from '../../types/typeAliases';
 import { removeMarkdownFormatting } from '../../utils/markdown/removeMarkdownFormatting';
 import { normalizeTo_SCREAMING_CASE } from '../../utils/normalization/normalizeTo_SCREAMING_CASE';
 import { COMMANDS } from '../index';
@@ -133,8 +132,8 @@ export function parseCommand(raw: string_markdown_text, usagePlace: CommandUsage
  * @@@
  */
 function getSupportedCommandsMessage(): string_markdown {
-    return COMMANDS.flatMap(({ name, aliasNames, description, discussionUrl }) => [
-        `- **${name}** ${description}, see [discussion](${discussionUrl})`,
+    return COMMANDS.flatMap(({ name, aliasNames, description, documentationUrl }) => [
+        `- **${name}** ${description}, see [discussion](${documentationUrl})`,
         ...(aliasNames || []).map((aliasName) => `    - **${aliasName}** Alias for **${name}**`),
     ]).join('\n');
 }

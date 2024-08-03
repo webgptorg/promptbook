@@ -1,6 +1,5 @@
 import { ParsingError } from '../../errors/ParsingError';
-import type { CommandParser } from '../_common/types/CommandParser';
-import type { CommandParserInput } from '../_common/types/CommandParser';
+import type { CommandParser, CommandParserInput } from '../_common/types/CommandParser';
 import type { BoilerplateCommand } from './BoilerplateCommand';
 
 /**
@@ -33,7 +32,7 @@ export const boilerplateCommandParser: CommandParser<BoilerplateCommand> = {
     /**
      * Link to discussion
      */
-    discussionUrl: 'https://github.com/webgptorg/promptbook/discussions/@@',
+    documentationUrl: 'https://github.com/webgptorg/promptbook/discussions/@@',
 
     /**
      * Example usages of the BOILERPLATE command
