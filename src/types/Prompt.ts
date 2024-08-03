@@ -7,7 +7,13 @@ import type {
     ModelRequirements,
 } from './ModelRequirements';
 import type { Expectations } from './PipelineJson/Expectations';
-import type { Parameters, string_pipeline_url_with_hashtemplate, string_prompt, string_title } from './typeAliases';
+import type {
+    Parameters,
+    string_pipeline_url_with_hashtemplate,
+    string_prompt,
+    string_template,
+    string_title,
+} from './typeAliases';
 
 /**
  * Prompt in a text along with model requirements, but without any execution or templating logic.
@@ -73,13 +79,11 @@ export type CommonPrompt = {
     readonly title: string_title;
 
     /**
-     * The text of the prompt
+     * The text of the prompt with placeholders for parameters
      *
-     * Note: This is not a template, this is exactly the text that will be sent to the model
-     * @example "What is the capital of France?"
+     * @example "What is the capital of {country}?"
      */
-    readonly content: string_prompt;
-    // TODO: !!!!!! Change `CommonPrompt.content` to without replaced parameters
+    readonly content: string_prompt & string_template;
 
     /**
      * Requirements for the model
@@ -115,13 +119,9 @@ export type CommonPrompt = {
     readonly pipelineUrl?: string_pipeline_url_with_hashtemplate;
 
     /**
-     * Parameters used in the prompt
-     *
-     * Note: This is redundant (same information is in pipelineUrl+content) but useful for logging and debugging
+     * Parameters used in the `content`
      */
     readonly parameters: Parameters;
-
-    // TODO: !!!!!! Add `reservedParameters: ReservedParameters`
 
     // <- Note: [🧆] Look here when adding new properties to `Prompt`
 };

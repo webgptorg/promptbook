@@ -1,19 +1,15 @@
 import { AzureKeyCredential, OpenAIClient } from '@azure/openai';
 import colors from 'colors';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
-import type { AvailableModel } from '../../execution/LlmExecutionTools';
-import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { ChatPromptResult } from '../../execution/PromptResult';
-import type { CompletionPromptResult } from '../../execution/PromptResult';
+import type { AvailableModel, LlmExecutionTools } from '../../execution/LlmExecutionTools';
+import type { ChatPromptResult, CompletionPromptResult } from '../../execution/PromptResult';
 import type { PromptResultUsage } from '../../execution/PromptResultUsage';
 import { computeUsageCounts } from '../../execution/utils/computeUsageCounts';
 import { uncertainNumber } from '../../execution/utils/uncertainNumber';
 import type { Prompt } from '../../types/Prompt';
-import type { string_date_iso8601 } from '../../types/typeAliases';
-import type { string_markdown } from '../../types/typeAliases';
-import type { string_markdown_text } from '../../types/typeAliases';
-import type { string_title } from '../../types/typeAliases';
+import type { string_date_iso8601, string_markdown, string_markdown_text, string_title } from '../../types/typeAliases';
 import { getCurrentIsoDate } from '../../utils/getCurrentIsoDate';
+import { replaceParameters } from '../../utils/replaceParameters';
 import { OPENAI_MODELS } from '../openai/openai-models';
 import type { AzureOpenAiExecutionToolsOptions } from './AzureOpenAiExecutionToolsOptions';
 
@@ -49,12 +45,14 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools {
     /**
      * Calls OpenAI API to use a chat model.
      */
-    public async callChatModel(prompt: Pick<Prompt, 'content' | 'modelRequirements'>): Promise<ChatPromptResult> {
+    public async callChatModel(
+        prompt: Pick<Prompt, 'content' | 'parameters' | 'modelRequirements'>,
+    ): Promise<ChatPromptResult> {
         if (this.options.isVerbose) {
             console.info('💬 OpenAI callChatModel call');
         }
 
-        const { content, modelRequirements } = prompt;
+        const { content, parameters, modelRequirements } = prompt;
 
         // TODO: [☂] Use here more modelRequirements
         if (modelRequirements.modelVariant !== 'CHAT') {
@@ -83,7 +81,7 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools {
                       ] as const)),
                 {
                     role: 'user',
-                    content,
+                    content: replaceParameters(content, parameters),
                 },
             ];
 
@@ -147,13 +145,13 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools {
      * Calls Azure OpenAI API to use a complete model.
      */
     public async callCompletionModel(
-        prompt: Pick<Prompt, 'content' | 'modelRequirements'>,
+        prompt: Pick<Prompt, 'content' | 'parameters' | 'modelRequirements'>,
     ): Promise<CompletionPromptResult> {
         if (this.options.isVerbose) {
             console.info('🖋 OpenAI callCompletionModel call');
         }
 
-        const { content, modelRequirements } = prompt;
+        const { content, parameters, modelRequirements } = prompt;
 
         // TODO: [☂] Use here more modelRequirements
         if (modelRequirements.modelVariant !== 'COMPLETION') {
@@ -176,8 +174,13 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools {
 
             if (this.options.isVerbose) {
                 console.info(colors.bgWhite('content'), JSON.stringify(content, null, 4));
+                console.info(colors.bgWhite('parameters'), JSON.stringify(parameters, null, 4));
             }
-            const rawResponse = await this.client.getCompletions(modelName, [content], modelSettings);
+            const rawResponse = await this.client.getCompletions(
+                modelName,
+                [replaceParameters(content, parameters)],
+                modelSettings,
+            );
             if (this.options.isVerbose) {
                 console.info(colors.bgWhite('rawResponse'), JSON.stringify(rawResponse, null, 4));
             }

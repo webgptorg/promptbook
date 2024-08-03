@@ -3,18 +3,18 @@ import OpenAI from 'openai';
 import spaceTrim from 'spacetrim';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
-import type { AvailableModel } from '../../execution/LlmExecutionTools';
-import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { ChatPromptResult } from '../../execution/PromptResult';
-import type { CompletionPromptResult } from '../../execution/PromptResult';
-import type { EmbeddingPromptResult } from '../../execution/PromptResult';
+import type { AvailableModel, LlmExecutionTools } from '../../execution/LlmExecutionTools';
+import type { ChatPromptResult, CompletionPromptResult, EmbeddingPromptResult } from '../../execution/PromptResult';
 import type { Prompt } from '../../types/Prompt';
-import type { string_date_iso8601 } from '../../types/typeAliases';
-import type { string_markdown } from '../../types/typeAliases';
-import type { string_markdown_text } from '../../types/typeAliases';
-import type { string_model_name } from '../../types/typeAliases';
-import type { string_title } from '../../types/typeAliases';
+import type {
+    string_date_iso8601,
+    string_markdown,
+    string_markdown_text,
+    string_model_name,
+    string_title,
+} from '../../types/typeAliases';
 import { getCurrentIsoDate } from '../../utils/getCurrentIsoDate';
+import { replaceParameters } from '../../utils/replaceParameters';
 import { computeOpenaiUsage } from './computeOpenaiUsage';
 import { OPENAI_MODELS } from './openai-models';
 import type { OpenAiExecutionToolsOptions } from './OpenAiExecutionToolsOptions';
@@ -55,13 +55,13 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
      * Calls OpenAI API to use a chat model.
      */
     public async callChatModel(
-        prompt: Pick<Prompt, 'content' | 'modelRequirements' | 'expectFormat'>,
+        prompt: Pick<Prompt, 'content' | 'parameters' | 'modelRequirements' | 'expectFormat'>,
     ): Promise<ChatPromptResult> {
         if (this.options.isVerbose) {
             console.info('💬 OpenAI callChatModel call', { prompt });
         }
 
-        const { content, modelRequirements, expectFormat } = prompt;
+        const { content, parameters, modelRequirements, expectFormat } = prompt;
 
         // TODO: [☂] Use here more modelRequirements
         if (modelRequirements.modelVariant !== 'CHAT') {
@@ -102,7 +102,7 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
                       ] as const)),
                 {
                     role: 'user',
-                    content,
+                    content: replaceParameters(content, parameters),
                 },
             ],
             user: this.options.user,
@@ -153,13 +153,13 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
      * Calls OpenAI API to use a complete model.
      */
     public async callCompletionModel(
-        prompt: Pick<Prompt, 'content' | 'modelRequirements'>,
+        prompt: Pick<Prompt, 'content' | 'parameters' | 'modelRequirements'>,
     ): Promise<CompletionPromptResult> {
         if (this.options.isVerbose) {
             console.info('🖋 OpenAI callCompletionModel call', { prompt });
         }
 
-        const { content, modelRequirements } = prompt;
+        const { content, parameters, modelRequirements } = prompt;
 
         // TODO: [☂] Use here more modelRequirements
         if (modelRequirements.modelVariant !== 'COMPLETION') {
@@ -179,7 +179,7 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
 
         const rawRequest: OpenAI.Completions.CompletionCreateParamsNonStreaming = {
             ...modelSettings,
-            prompt: content,
+            prompt: replaceParameters(content, parameters),
             user: this.options.user,
         };
         const start: string_date_iso8601 = getCurrentIsoDate();
@@ -224,13 +224,13 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
      * Calls OpenAI API to use a embedding model
      */
     public async callEmbeddingModel(
-        prompt: Pick<Prompt, 'content' | 'modelRequirements'>,
+        prompt: Pick<Prompt, 'content' | 'parameters' | 'modelRequirements'>,
     ): Promise<EmbeddingPromptResult> {
         if (this.options.isVerbose) {
             console.info('🖋 OpenAI embedding call', { prompt });
         }
 
-        const { content, modelRequirements } = prompt;
+        const { content, parameters, modelRequirements } = prompt;
 
         // TODO: [☂] Use here more modelRequirements
         if (modelRequirements.modelVariant !== 'EMBEDDING') {
@@ -240,7 +240,7 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
         const model = modelRequirements.modelName || this.getDefaultEmbeddingModel().modelName;
 
         const rawRequest: OpenAI.Embeddings.EmbeddingCreateParams = {
-            input: content,
+            input: replaceParameters(content, parameters),
             model,
 
             // TODO: !!!! Test model 3 and dimensions

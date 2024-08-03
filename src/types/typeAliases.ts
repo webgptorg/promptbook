@@ -40,7 +40,7 @@ export type string_prompt = string;
 /**
  * Semantic helper
  *
- * For example `"A cat wearing a {ITEM}"`
+ * For example `"A cat wearing a {item}"`
  */
 export type string_template = string;
 

@@ -1,15 +1,12 @@
 import { spaceTrim } from 'spacetrim';
 import type { CommonExecutionToolsOptions } from '../../execution/CommonExecutionToolsOptions';
-import type { AvailableModel } from '../../execution/LlmExecutionTools';
-import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { ChatPromptResult } from '../../execution/PromptResult';
-import type { CompletionPromptResult } from '../../execution/PromptResult';
+import type { AvailableModel, LlmExecutionTools } from '../../execution/LlmExecutionTools';
+import type { ChatPromptResult, CompletionPromptResult } from '../../execution/PromptResult';
 import { addUsage } from '../../execution/utils/addUsage';
 import type { Prompt } from '../../types/Prompt';
-import type { string_markdown } from '../../types/typeAliases';
-import type { string_markdown_text } from '../../types/typeAliases';
-import type { string_title } from '../../types/typeAliases';
+import type { string_markdown, string_markdown_text, string_title } from '../../types/typeAliases';
 import { getCurrentIsoDate } from '../../utils/getCurrentIsoDate';
+import { replaceParameters } from '../../utils/replaceParameters';
 
 /**
  * Mocked execution Tools for just echoing the requests for testing purposes.
@@ -28,7 +25,9 @@ export class MockedEchoLlmExecutionTools implements LlmExecutionTools {
     /**
      * Mocks chat model
      */
-    public async callChatModel(prompt: Pick<Prompt, 'content' | 'modelRequirements'>): Promise<ChatPromptResult> {
+    public async callChatModel(
+        prompt: Pick<Prompt, 'content' | 'parameters' | 'modelRequirements'>,
+    ): Promise<ChatPromptResult> {
         if (this.options.isVerbose) {
             console.info('💬 Mocked callChatModel call');
         }
@@ -37,7 +36,7 @@ export class MockedEchoLlmExecutionTools implements LlmExecutionTools {
             content: spaceTrim(
                 (block) => `
                     You said:
-                    ${block(prompt.content)}
+                    ${block(replaceParameters(prompt.content, prompt.parameters))}
                 `,
             ),
             modelName: 'mocked-echo',
@@ -57,7 +56,7 @@ export class MockedEchoLlmExecutionTools implements LlmExecutionTools {
      * Mocks completion model
      */
     public async callCompletionModel(
-        prompt: Pick<Prompt, 'content' | 'modelRequirements'>,
+        prompt: Pick<Prompt, 'content' | 'parameters' | 'modelRequirements'>,
     ): Promise<CompletionPromptResult> {
         if (this.options.isVerbose) {
             console.info('🖋 Mocked callCompletionModel call');
@@ -65,7 +64,7 @@ export class MockedEchoLlmExecutionTools implements LlmExecutionTools {
         return {
             content: spaceTrim(
                 (block) => `
-                    ${block(prompt.content)}
+                    ${block(replaceParameters(prompt.content, prompt.parameters))}
                     And so on...
                 `,
             ),
