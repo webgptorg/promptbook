@@ -114,6 +114,17 @@ describe('validatePipeline', () => {
         }).rejects.toThrowError(/xxxxxx/i);
     });
     */
+
+    /*
+    TODO: [🐣] !!!
+    it('should fail when persona is used on COMPLETION variant', () => {
+        expect(async () => {
+            const pipelineString = importPipeline('errors/logic/---.ptbk.md');
+            const pipelineJson = await pipelineStringToJson(pipelineString);
+            validatePipeline(pipelineJson);
+        }).rejects.toThrowError(/xxxxxx/i);
+    });
+    */
 });
 
 /**

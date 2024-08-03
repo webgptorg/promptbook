@@ -276,6 +276,7 @@ export function validatePipeline(pipeline: PipelineJson): PipelineJson {
 /**
  * TODO: [🧠][🐣] !!!! Validate that all samples match expectations
  * TODO: [🧠][🐣] !!!! Validate that knowledge is valid (non-void)
+ * TODO: [🧠][🐣] !!!! Validate that persona can be used only with CHAT variant
  * TODO: !!!! Validate that parameter with reserved name not used RESERVED_PARAMETER_NAMES
  * TODO: !!!! Validate that reserved parameter is not used as joker
  * TODO: [🧠] !!! Validationg not only logic itself but imports around - files and websites and rerefenced pipelines exists

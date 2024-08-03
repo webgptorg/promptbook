@@ -313,8 +313,12 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                                     parameters,
                                     content: currentTemplate.content, // <- Note: For LLM execution, parameters are replaced in the content
                                     modelRequirements: currentTemplate.modelRequirements!,
-                                    // <- TODO: !!!!! Apply persona
-                                    expectations: currentTemplate.expectations,
+                                    expectations: {
+                                        ...(pipeline.personas.find(
+                                            ({ name }) => name === currentTemplate.personaName,
+                                        ) || {}),
+                                        ...currentTemplate.expectations,
+                                    },
                                     expectFormat: currentTemplate.expectFormat,
                                     postprocessing: (currentTemplate.postprocessingFunctionNames || []).map(
                                         (functionName) => async (result: string) => {
