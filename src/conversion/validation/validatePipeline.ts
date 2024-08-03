@@ -1,13 +1,11 @@
 import { spaceTrim } from 'spacetrim';
-import { LOOP_LIMIT } from '../../config';
-import { RESERVED_PARAMETER_NAMES } from '../../config';
+import { LOOP_LIMIT, RESERVED_PARAMETER_NAMES } from '../../config';
 import { ParsingError } from '../../errors/ParsingError';
 import { PipelineLogicError } from '../../errors/PipelineLogicError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import type { PromptTemplateJson } from '../../types/PipelineJson/PromptTemplateJson';
-import type { string_name } from '../../types/typeAliases';
-import type { string_reserved_parameter_name } from '../../types/typeAliases';
+import type { string_name, string_reserved_parameter_name } from '../../types/typeAliases';
 import { isValidPromptbookVersion } from '../../utils/validators/semanticVersion/isValidPromptbookVersion';
 import { isValidPipelineUrl } from '../../utils/validators/url/isValidPipelineUrl';
 
@@ -238,15 +236,15 @@ export function validatePipeline(pipeline: PipelineJson): PipelineJson {
                             unresovedTemplates
                                 .map(
                                     ({ resultingParameterName, dependentParameterNames }) =>
-                                        `- {${resultingParameterName}} depends on ${dependentParameterNames
+                                        `- Parameter {${resultingParameterName}} which depends on ${dependentParameterNames
                                             .map((dependentParameterName) => `{${dependentParameterName}}`)
-                                            .join(', ')}`,
+                                            .join(' and ')}`,
                                 )
                                 .join('\n'),
                         )}
 
                         Resolved:
-                        ${block(resovedParameters.map((name) => `- {${name}}`).join('\n'))}
+                        ${block(resovedParameters.map((name) => `- Parameter {${name}}`).join('\n'))}
                     `,
                     // <- TODO: [🚞]
                 ),

@@ -61,7 +61,7 @@ async function main() {
 
     const pipelineExecutor = createPipelineExecutor({ pipeline, tools });
 
-    const inputParameters = { eventName: 'CzechFutureTech' };
+    const inputParameters = { eventNameX: 'CzechFutureTech' };
     const { isSuccessful, errors, outputParameters, executionReport } = await pipelineExecutor(
         inputParameters,
         (progress) => {
