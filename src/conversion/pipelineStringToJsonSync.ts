@@ -1,6 +1,6 @@
 import { spaceTrim } from 'spacetrim';
 import type { Writable, WritableDeep } from 'type-fest';
-import { ScriptJson } from '../_packages/types.index';
+import type { ScriptJson } from '../types/PipelineJson/ScriptJson';
 import { knowledgeCommandParser } from '../commands/KNOWLEDGE/knowledgeCommandParser';
 import type { ParameterCommand } from '../commands/PARAMETER/ParameterCommand';
 import { personaCommandParser } from '../commands/PERSONA/personaCommandParser';

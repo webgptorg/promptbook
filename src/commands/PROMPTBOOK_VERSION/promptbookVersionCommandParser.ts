@@ -1,7 +1,8 @@
 import { ParsingError } from '../../errors/ParsingError';
 import { isValidPromptbookVersion } from '../../utils/validators/semanticVersion/isValidPromptbookVersion';
 import { PROMPTBOOK_VERSION } from '../../version';
-import type { CommandParser, CommandParserInput } from '../_common/types/CommandParser';
+import type { CommandParser } from '../_common/types/CommandParser';
+import type { CommandParserInput } from '../_common/types/CommandParser';
 import type { PromptbookVersionCommand } from './PromptbookVersionCommand';
 
 /**

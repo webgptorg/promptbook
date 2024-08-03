@@ -2,7 +2,7 @@ import type { Promisable } from 'type-fest';
 import { PipelineExecutionError } from '../errors/PipelineExecutionError';
 import type { TaskProgress } from '../types/TaskProgress';
 import type { ExecutionReportJson } from '../types/execution-report/ExecutionReportJson';
-import { Parameters } from '../types/typeAliases';
+import type { Parameters } from '../types/typeAliases';
 import type { PromptResultUsage } from './PromptResultUsage';
 
 /**

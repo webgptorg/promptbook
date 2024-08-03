@@ -1,6 +1,7 @@
 import { describe, expect, it } from '@jest/globals';
 import { pipelineStringToJsonSync } from '../conversion/pipelineStringToJsonSync';
-import { importPipelineJson, importPipelineWithoutPreparation } from '../conversion/validation/_importPipeline';
+import { importPipelineJson } from '../conversion/validation/_importPipeline';
+import { importPipelineWithoutPreparation } from '../conversion/validation/_importPipeline';
 import { isPipelinePrepared } from './isPipelinePrepared';
 import { unpreparePipeline } from './unpreparePipeline';
 

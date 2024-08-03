@@ -1,6 +1,8 @@
 import spaceTrim from 'spacetrim';
 import { ParsingError } from '../../errors/ParsingError';
-import type { ApplyToPipelineJsonSubjects, CommandParser, CommandParserInput } from '../_common/types/CommandParser';
+import type { ApplyToPipelineJsonSubjects } from '../_common/types/CommandParser';
+import type { CommandParser } from '../_common/types/CommandParser';
+import type { CommandParserInput } from '../_common/types/CommandParser';
 import type { PersonaCommand } from './PersonaCommand';
 
 /**

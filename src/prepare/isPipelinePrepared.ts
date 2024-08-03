@@ -1,4 +1,5 @@
-import { KnowledgeSourcePreparedJson, PersonaPreparedJson } from '../_packages/types.index';
+import type { KnowledgeSourcePreparedJson } from '../types/PipelineJson/KnowledgeSourceJson';
+import type { PersonaPreparedJson } from '../types/PipelineJson/PersonaJson';
 import type { PipelineJson } from '../types/PipelineJson/PipelineJson';
 
 /**

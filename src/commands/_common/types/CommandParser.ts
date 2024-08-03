@@ -1,11 +1,9 @@
 import type { WritableDeep } from 'type-fest';
-import { PromptTemplateJson } from '../../../_packages/types.index';
+import type { PromptTemplateJson } from '../../../types/PipelineJson/PromptTemplateJson';
 import type { PipelineJson } from '../../../types/PipelineJson/PipelineJson';
-import type {
-    string_markdown_text,
-    string_name,
-    string_promptbook_documentation_url,
-} from '../../../types/typeAliases';
+import type { string_markdown_text } from '../../../types/typeAliases';
+import type { string_name } from '../../../types/typeAliases';
+import type { string_promptbook_documentation_url } from '../../../types/typeAliases';
 import type { string_SCREAMING_CASE } from '../../../utils/normalization/normalizeTo_SCREAMING_CASE';
 import type { CommandUsagePlace } from './CommandUsagePlaces';
 
