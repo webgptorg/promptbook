@@ -62,15 +62,19 @@ export const RESERVED_PARAMETER_NAMES = deepFreeze([
  * @@@
  */
 export const DEBUG_ALLOW_PAYED_TESTING: boolean = just(
-    /*/
-    // Note: In normal situations, we "turn off" ability to use real API keys in tests:
-    false
-    /**/
 
     /**/
+    // Note: In normal situations, we "turn off" ability to use real API keys in tests:
+    false,
+    /**/
+
+    /*/
     // When working on preparations, you can use:
     true,
     /**/
+
+    // Commit message:
+    // [🔑] Turn off ability to use real API keys in tests
 );
 
 /**
