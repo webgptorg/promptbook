@@ -12,5 +12,11 @@ import { string_parameter_name, string_parameter_value } from "./typeAliases";
  */
 export type Parameters = Record<string_parameter_name, string_parameter_value>;
 
+
+/**
+ * @@@
+ */
+export type ReservedParameters = Record<string_parameter_name, string_parameter_value>;
+
 // <- TODO: !!!!!! Make `ReservedParameters`
 // <- TODO: !!!!!! Exclude `ReservedParameters` from `Parameters`

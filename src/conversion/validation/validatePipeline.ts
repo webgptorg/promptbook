@@ -142,7 +142,7 @@ export function validatePipeline(pipeline: PipelineJson): PipelineJson {
             );
         }
 
-        if (template.jokers && template.jokers.length > 0) {
+        if (template.jokerParameterNames && template.jokerParameterNames.length > 0) {
             if (
                 !template.expectFormat &&
                 !template.expectations /* <- TODO: Require at least 1 -> min <- expectation to use jokers */
@@ -153,7 +153,7 @@ export function validatePipeline(pipeline: PipelineJson): PipelineJson {
                 );
             }
 
-            for (const joker of template.jokers) {
+            for (const joker of template.jokerParameterNames) {
                 if (!template.dependentParameterNames.includes(joker)) {
                     throw new PipelineLogicError(
                         `Parameter {${joker}} is used for {${template.resultingParameterName}} as joker but not in dependentParameterNames`,
@@ -262,6 +262,7 @@ export function validatePipeline(pipeline: PipelineJson): PipelineJson {
  * TODO: [🧠][🐣] !!!! Validate that all samples match expectations
  * TODO: [🧠][🐣] !!!! Validate that knowledge is valid (non-void)
  * TODO: !!!! Validate that parameter with reserved name not used RESERVED_PARAMETER_NAMES
+ * TODO: !!!! Validate that reserved parameter is not used as joker
  * TODO: [🧠] !!! Validationg not only logic itself but imports around - files and websites and rerefenced pipelines exists
  * TODO: [🛠] Actions, instruments (and maybe knowledge) => Functions and tools
  */

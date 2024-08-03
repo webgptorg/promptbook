@@ -50,10 +50,10 @@ export function pipelineJsonToString(pipelineJson: PipelineJson): PipelineString
             title,
             description,
             /* Note: dependentParameterNames, */
-            jokers,
+            jokerParameterNames: jokers,
             blockType,
             content,
-            postprocessing,
+            postprocessingFunctionNames: postprocessing,
             expectations,
             expectFormat,
             resultingParameterName,

@@ -1,5 +1,6 @@
 import { spaceTrim } from 'spacetrim';
 import type { Promisable } from 'type-fest';
+import { extractParametersFromPromptTemplate } from '../_packages/utils.index';
 import { LOOP_LIMIT, MAX_EXECUTION_ATTEMPTS, MAX_PARALLEL_COUNT, RESERVED_PARAMETER_NAMES } from '../config';
 import { validatePipeline } from '../conversion/validation/validatePipeline';
 import { ExpectError } from '../errors/_ExpectError';
@@ -10,22 +11,23 @@ import { joinLlmExecutionTools } from '../llm-providers/multiple/joinLlmExecutio
 import { isPipelinePrepared } from '../prepare/isPipelinePrepared';
 import { preparePipeline } from '../prepare/preparePipeline';
 import type { ExecutionReportJson } from '../types/execution-report/ExecutionReportJson';
-import type { Parameters } from '../types/Parameters';
+import type { Parameters, ReservedParameters } from '../types/Parameters';
 import type { PipelineJson } from '../types/PipelineJson/PipelineJson';
 import type { PromptTemplateJson } from '../types/PipelineJson/PromptTemplateJson';
 import type { ChatPrompt, CompletionPrompt, EmbeddingPrompt, Prompt } from '../types/Prompt';
 import type { TaskProgress } from '../types/TaskProgress';
 import type { string_name } from '../types/typeAliases';
 import { arrayableToArray } from '../utils/arrayableToArray';
+import { deepFreeze } from '../utils/deepFreeze';
 import type { really_any } from '../utils/organization/really_any';
 import type { TODO_any } from '../utils/organization/TODO_any';
+import { replaceParameters } from '../utils/replaceParameters';
 import { PROMPTBOOK_VERSION } from '../version';
 import type { ExecutionTools } from './ExecutionTools';
 import type { PipelineExecutor } from './PipelineExecutor';
 import type { ChatPromptResult, CompletionPromptResult, EmbeddingPromptResult, PromptResult } from './PromptResult';
 import { addUsage, ZERO_USAGE } from './utils/addUsage';
 import { checkExpectations } from './utils/checkExpectations';
-import { replaceParameters } from './utils/replaceParameters';
 
 type CreatePipelineExecutorSettings = {
     /**
@@ -165,18 +167,60 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
             const context = '!!!!!!';
             const currentDate = new Date().toISOString(); // <- TODO: [🧠] Better
 
-            const parametersForTemplate: Parameters = Object.freeze({
-                ...parametersToPass,
+            const reservedParameters: ReservedParameters = {
                 context,
                 currentDate,
-            });
+            };
 
-            // Note: Doublecheck that all reserved parameters are defined:
+            // Note: Doublecheck that ALL reserved parameters are defined:
             for (const parameterName of RESERVED_PARAMETER_NAMES) {
-                if (parametersForTemplate[parameterName] === undefined) {
+                if (reservedParameters[parameterName] === undefined) {
                     throw new UnexpectedError(`Reserved parameter {${parameterName}} is not defined`);
                 }
             }
+
+            const parameters: Parameters = {
+                ...reservedParameters,
+                ...parametersToPass,
+            };
+
+            // Note: [2] Check that all used parameters are defined and removing unused parameters for this template
+            //       (Real replacement of parameters will be done below)
+            //      (Checking part is also done in `validatePipeline`, but it’s good to doublecheck)
+            const definedParameterNames = new Set(Object.keys(parameters));
+            const usedParameterNames = extractParametersFromPromptTemplate(currentTemplate);
+            for (const parameterName in [
+                ...Array.from(definedParameterNames),
+                ...Array.from(usedParameterNames),
+
+                // <- TODO: Union the set before iterating
+            ]) {
+                // Situation: Parameter is defined and used
+                if (definedParameterNames.has(parameterName) && usedParameterNames.has(parameterName)) {
+                    // Do nothing, everything is OK
+                }
+                // Situation: Parameter is defined but NOT used
+                else if (definedParameterNames.has(parameterName) && !usedParameterNames.has(parameterName)) {
+                    // Delete the parameter because it’s not used
+                    delete parameters[parameterName];
+                }
+                // Situation: Parameter is NOT defined BUT used
+                else if (!definedParameterNames.has(parameterName) && usedParameterNames.has(parameterName)) {
+                    // Houston, we have a problem
+                    throw new UnexpectedError(
+                        spaceTrim(`
+                            Parameter {${parameterName}} is NOT defined
+                            BUT used in template "${currentTemplate.title || currentTemplate.name}"
+
+                            This should be catched in \`validatePipeline\`
+
+                        `),
+                    );
+                }
+            }
+
+            // Note: Now we can freeze parameters because we are sure that all and only used parameters are defined
+            Object.freeze(parameters);
 
             let prompt: Prompt;
             let chatResult: ChatPromptResult;
@@ -188,13 +232,13 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
             let expectError: ExpectError | null = null;
             let scriptPipelineExecutionErrors: Array<Error>;
             const maxAttempts = currentTemplate.blockType === 'PROMPT_DIALOG' ? Infinity : maxExecutionAttempts;
-            const jokers = currentTemplate.jokers || [];
+            const jokerParameterNames = currentTemplate.jokerParameterNames || [];
 
-            attempts: for (let attempt = -jokers.length; attempt < maxAttempts; attempt++) {
+            attempts: for (let attempt = -jokerParameterNames.length; attempt < maxAttempts; attempt++) {
                 const isJokerAttempt = attempt < 0;
-                const joker = jokers[jokers.length + attempt];
+                const jokerParameterName = jokerParameterNames[jokerParameterNames.length + attempt];
 
-                if (isJokerAttempt && !joker) {
+                if (isJokerAttempt && !jokerParameterName) {
                     throw new UnexpectedError(`Joker not found in attempt ${attempt}`);
                 }
 
@@ -203,18 +247,19 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                 expectError = null;
 
                 if (isJokerAttempt) {
-                    if (typeof parametersForTemplate[joker!] === 'undefined') {
-                        throw new PipelineExecutionError(`Joker parameter {${joker}} not defined`);
+                    if (parameters[jokerParameterName!] === undefined) {
+                        throw new PipelineExecutionError(`Joker parameter {${jokerParameterName}} not defined`);
+                        // <- TODO: This is maybe `PipelineLogicError` which should be detected in `validatePipeline` and here just thrown as `UnexpectedError`
+                    } else {
+                        resultString = parameters[jokerParameterName!]!;
                     }
-
-                    resultString = parametersForTemplate[joker!]!;
                 }
 
                 try {
                     if (!isJokerAttempt) {
                         blockType: switch (currentTemplate.blockType) {
                             case 'SIMPLE_TEMPLATE':
-                                resultString = replaceParameters(currentTemplate.content, parametersForTemplate);
+                                resultString = replaceParameters(currentTemplate.content, parameters);
                                 break blockType;
 
                             case 'PROMPT_TEMPLATE':
@@ -225,18 +270,13 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                                             ? pipeline.pipelineUrl
                                             : 'anonymous' /* <- TODO: [🧠] How to deal with anonymous pipelines, do here some auto-url like SHA-256 based ad-hoc identifier? */
                                     }#${currentTemplate.name}`,
-                                    parameters: parametersForTemplate,
-                                    content: replaceParameters(
-                                        currentTemplate.content,
-                                        parametersForTemplate,
-                                    ) /* <- [2] */,
-                                    // <- TODO: !!!!! Apply {context} and knowledges
-                                    // <- TODO: !!!!! Apply samples
+                                    parameters,
+                                    content: currentTemplate.content, // <- Note: For LLM execution, parameters are replaced in the content
                                     modelRequirements: currentTemplate.modelRequirements!,
                                     // <- TODO: !!!!! Apply persona
                                     expectations: currentTemplate.expectations,
                                     expectFormat: currentTemplate.expectFormat,
-                                    postprocessing: (currentTemplate.postprocessing || []).map(
+                                    postprocessing: (currentTemplate.postprocessingFunctionNames || []).map(
                                         (functionName) => async (result: string) => {
                                             // TODO: DRY [☯]
                                             const errors: Array<Error> = [];
@@ -284,21 +324,23 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
 
                                 variant: switch (currentTemplate.modelRequirements!.modelVariant) {
                                     case 'CHAT':
-                                        chatResult = await llmTools.callChatModel(prompt as ChatPrompt);
+                                        chatResult = await llmTools.callChatModel(deepFreeze(prompt) as ChatPrompt);
                                         // TODO: [🍬] Destroy chatThread
                                         result = chatResult;
                                         resultString = chatResult.content;
                                         break variant;
                                     case 'COMPLETION':
                                         completionResult = await llmTools.callCompletionModel(
-                                            prompt as CompletionPrompt,
+                                            deepFreeze(prompt) as CompletionPrompt,
                                         );
                                         result = completionResult;
                                         resultString = completionResult.content;
                                         break variant;
 
                                     case 'EMBEDDING':
-                                        embeddingResult = await llmTools.callEmbeddingModel(prompt as EmbeddingPrompt);
+                                        embeddingResult = await llmTools.callEmbeddingModel(
+                                            deepFreeze(prompt) as EmbeddingPrompt,
+                                        );
                                         result = embeddingResult;
                                         resultString = embeddingResult.content.join(',');
                                         break variant;
@@ -332,11 +374,13 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                                 // TODO: DRY [☯]
                                 scripts: for (const scriptTools of arrayableToArray(tools.script)) {
                                     try {
-                                        resultString = await scriptTools.execute({
-                                            scriptLanguage: currentTemplate.contentLanguage,
-                                            script: currentTemplate.content,
-                                            parameters: parametersForTemplate,
-                                        });
+                                        resultString = await scriptTools.execute(
+                                            deepFreeze({
+                                                scriptLanguage: currentTemplate.contentLanguage,
+                                                script: currentTemplate.content, // <- Note: For Script execution, parameters are used as variables
+                                                parameters,
+                                            }),
+                                        );
 
                                         break scripts;
                                     } catch (error) {
@@ -379,18 +423,17 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                                 }
 
                                 // TODO: [🌹] When making next attempt for `PROMPT DIALOG`, preserve the previous user input
-                                resultString = await tools.userInterface.promptDialog({
-                                    promptTitle: currentTemplate.title,
-                                    promptMessage: replaceParameters(
-                                        currentTemplate.description || '',
-                                        parametersForTemplate,
-                                    ),
-                                    defaultValue: replaceParameters(currentTemplate.content, parametersForTemplate),
+                                resultString = await tools.userInterface.promptDialog(
+                                    deepFreeze({
+                                        promptTitle: currentTemplate.title,
+                                        promptMessage: replaceParameters(currentTemplate.description || '', parameters),
+                                        defaultValue: replaceParameters(currentTemplate.content, parameters),
 
-                                    // TODO: [🧠] !! Figure out how to define placeholder in .ptbk.md file
-                                    placeholder: undefined,
-                                    priority,
-                                });
+                                        // TODO: [🧠] !! Figure out how to define placeholder in .ptbk.md file
+                                        placeholder: undefined,
+                                        priority,
+                                    }),
+                                );
                                 break blockType;
 
                             // <- case: [🩻]
@@ -402,8 +445,8 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                         }
                     }
 
-                    if (!isJokerAttempt && currentTemplate.postprocessing) {
-                        for (const functionName of currentTemplate.postprocessing) {
+                    if (!isJokerAttempt && currentTemplate.postprocessingFunctionNames) {
+                        for (const functionName of currentTemplate.postprocessingFunctionNames) {
                             // TODO: DRY [1]
                             scriptPipelineExecutionErrors = [];
                             let postprocessingError = null;

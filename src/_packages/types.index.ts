@@ -20,7 +20,7 @@ import type { UncertainNumber } from '../execution/UncertainNumber';
 import type { UserInterfaceTools, UserInterfaceToolsPromptDialogOptions } from '../execution/UserInterfaceTools';
 import type { ModelRequirements } from '../types/ModelRequirements';
 import type { ModelVariant } from '../types/ModelVariant';
-import type { Parameters } from '../types/Parameters';
+import type { Parameters, ReservedParameters } from '../types/Parameters';
 import type { ExpectationAmount, ExpectationUnit, Expectations } from '../types/PipelineJson/Expectations';
 import { EXPECTATION_UNITS } from '../types/PipelineJson/Expectations';
 import { KnowledgePiecePreparedJson } from '../types/PipelineJson/KnowledgePieceJson';
@@ -141,6 +141,7 @@ export type {
     PromptResultUsageCounts,
     PromptTemplateJson,
     PromptTemplateParameterJson,
+    ReservedParameters,
     ScriptExecutionTools,
     ScriptExecutionToolsExecuteOptions,
     ScriptJson,

@@ -20,6 +20,8 @@ export function isPipelinePrepared(pipeline: PipelineJson): boolean {
         return false;
     }
 
+    // TODO: !!!!! Is context in each template
+
     return true;
 }
 

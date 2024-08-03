@@ -69,7 +69,6 @@ export async function preparePipeline(pipeline: PipelineJson, options: PrepareOp
     // ----- /Personas preparation -----
 
     // ----- Knowledge preparation -----
-
     const knowledgeSourcesPrepared = knowledgeSources.map((source) => ({
         ...source,
         preparationIds: [/* TODO: [🧊] -> */ currentPreparation.id],
@@ -84,8 +83,12 @@ export async function preparePipeline(pipeline: PipelineJson, options: PrepareOp
         ...piece,
         preparationIds: [/* TODO: [🧊] -> */ currentPreparation.id],
     }));
-
     // ----- /Knowledge preparation -----
+
+
+
+    // TODO: !!!!! Add context to each template (if missing)
+    // TODO: !!!!! Apply samples to each template (if missing)
 
     return {
         ...pipeline,
@@ -97,6 +100,7 @@ export async function preparePipeline(pipeline: PipelineJson, options: PrepareOp
 }
 
 /**
+ * TODO: !!!!! Index the samples and maybe templates
  * TODO: [🔼] !!! Export via `@promptbook/core`
  * TODO: Write tests for `preparePipeline`
  * TODO: [🏏] Leverage the batch API and build queues @see https://platform.openai.com/docs/guides/batch

@@ -7,7 +7,6 @@ import { extractVariables } from '../conversion/utils/extractVariables';
 import { renameParameter } from '../conversion/utils/renameParameter';
 import { titleToName } from '../conversion/utils/titleToName';
 import { forEachAsync } from '../execution/utils/forEachAsync';
-import { replaceParameters } from '../execution/utils/replaceParameters';
 import { isValidJsonString } from '../formats/json/utils/isValidJsonString';
 import { extractBlock } from '../postprocessing/utils/extractBlock';
 import { $currentDate } from '../utils/currentDate';
@@ -19,6 +18,7 @@ import { countSentences, splitIntoSentences } from '../utils/expectation-counter
 import { countWords } from '../utils/expectation-counters/countWords';
 import { CountUtils } from '../utils/expectation-counters/index';
 import { extractParameters } from '../utils/extractParameters';
+import { replaceParameters } from '../utils/replaceParameters';
 import { DIACRITIC_VARIANTS_LETTERS } from '../utils/normalization/DIACRITIC_VARIANTS_LETTERS';
 import type { IKeywords, string_keyword } from '../utils/normalization/IKeywords';
 import { capitalize } from '../utils/normalization/capitalize';
