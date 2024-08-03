@@ -180,7 +180,8 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
             return reservedParameters;
         }
 
-        async function executeSingleTemplate(currentTemplate: PromptTemplateJson) { // <- TODO: [🧠][🥜]
+        async function executeSingleTemplate(currentTemplate: PromptTemplateJson) {
+            // <- TODO: [🧠][🥜]
             const name = `pipeline-executor-frame-${currentTemplate.name}`;
             const title = currentTemplate.title;
             const priority = pipeline.promptTemplates.length - pipeline.promptTemplates.indexOf(currentTemplate);
@@ -652,13 +653,21 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
             });
         }
 
+        const outputParameters: Parameters = {};
+        const errors: Array<PipelineExecutionError> = [];
+
         // Note: Filter ONLY output parameters
-        for (const parameter of pipeline.parameters) {
-            if (parameter.isOutput) {
+        for (const parameter of pipeline.parameters.filter(({ isOutput }) => isOutput)) {
+            if (parametersToPass[parameter.name] === undefined) {
+                errors.push(
+                    new PipelineExecutionError(
+                        `Parameter {${parameter.name}} is required as an output parameter but not set in the pipeline`,
+                    ),
+                    // <- TODO: This should be maybe `UnexpectedError` because it should be catched during `validatePipeline`
+                );
                 continue;
             }
-
-            delete parametersToPass[parameter.name];
+            outputParameters[parameter.name] = parametersToPass[parameter.name] || '';
         }
 
         // Note: Count usage, [🧠] Maybe put to separate function executionReportJsonToUsage + DRY [5]
@@ -666,10 +675,10 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
 
         return deepFreezeWithSameType({
             isSuccessful: true,
-            errors: [],
+            errors,
             usage,
             executionReport,
-            outputParameters: parametersToPass,
+            outputParameters,
         });
     };
 
