@@ -2,7 +2,7 @@
 
 import {
     assertsExecutionSuccessful,
-    createLlmToolsFromEnv,
+    // !!!! createLlmToolsFromEnv,
     createPipelineExecutor,
     executionReportJsonToString,
 } from '@promptbook/core';
@@ -52,7 +52,7 @@ async function main() {
     await forTime(100);
 
     const tools = {
-        llm: createLlmToolsFromEnv(),
+        llm: [], // !!!! createLlmToolsFromEnv(),
         script: [
             new JavascriptExecutionTools({
                 isVerbose: true,
