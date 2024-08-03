@@ -1,6 +1,7 @@
 import { describe, expect, it } from '@jest/globals';
 import spaceTrim from 'spacetrim';
 import { pipelineStringToJson } from '../../conversion/pipelineStringToJson';
+import { unpreparePipeline } from '../../prepare/unpreparePipeline';
 import type { PipelineString } from '../../types/PipelineString';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import type { really_any } from '../../utils/organization/really_any';
@@ -61,10 +62,11 @@ describe('createCollectionFromDirectory', () => {
             isRecursive: false,
             isLazyLoaded: false,
         });
-        const pipelineFromCollection = await collection.getPipelineByUrl(
+        let pipelineFromCollection = await collection.getPipelineByUrl(
             'https://promptbook.studio/samples/simple.ptbk.md',
         );
 
+        pipelineFromCollection = unpreparePipeline(pipelineFromCollection);
         delete (pipelineFromCollection as really_any).sourceFile;
 
         expect(pipelineFromCollection).toEqual(await pipelineStringToJson(pipeline));
@@ -79,10 +81,11 @@ describe('createCollectionFromDirectory', () => {
             isRecursive: false,
             isLazyLoaded: true,
         });
-        const pipelineFromCollection = await collection.getPipelineByUrl(
+        let pipelineFromCollection = await collection.getPipelineByUrl(
             'https://promptbook.studio/samples/simple.ptbk.md',
         );
 
+        pipelineFromCollection = unpreparePipeline(pipelineFromCollection);
         delete (pipelineFromCollection as really_any).sourceFile;
 
         expect(pipelineFromCollection).toEqual(await pipelineStringToJson(pipeline));
@@ -96,10 +99,11 @@ describe('createCollectionFromDirectory', () => {
             isVerbose: true,
             isRecursive: false,
         });
-        const pipelineFromCollection = await collection.getPipelineByUrl(
+        let pipelineFromCollection = await collection.getPipelineByUrl(
             'https://promptbook.studio/samples/jokers.ptbk.md',
         );
 
+        pipelineFromCollection = unpreparePipeline(pipelineFromCollection);
         delete (pipelineFromCollection as really_any).sourceFile;
 
         expect(pipelineFromCollection).not.toEqual(await pipelineStringToJson(pipeline));
@@ -131,7 +135,9 @@ describe('createCollectionFromDirectory', () => {
                 });
                 keepUnused(collection);
             })(),
-        ).rejects.toThrowError(/Error during loading pipeline/i));
+        ).rejects.toThrowError(
+            `PipelineLogicError in pipeline samples/templates/real/update-website-content-cs.ptbk.json`,
+        ));
 
     /*
     TODO: Make separate folder for errors and enable this test
