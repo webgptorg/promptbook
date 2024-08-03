@@ -11,23 +11,28 @@ import { extractVariables } from './extractVariables';
  * @throws {ParsingError} if the script is invalid
  */
 export function extractParametersFromPromptTemplate(
-    promptTemplate: Pick<PromptTemplateJson, 'title' | 'description' | 'blockType' | 'content'>,
+    promptTemplate: Pick<PromptTemplateJson, 'title' | 'description' | 'blockType' | 'content' | 'jokerParameterNames'>,
     // <- TODO: [🧠][🥜]
 ): Set<string_parameter_name> {
+    const { title, description, blockType, content, jokerParameterNames } = promptTemplate;
     const parameterNames = new Set<string_parameter_name>();
 
     for (const parameterName of [
-        ...extractParameters(promptTemplate.title),
-        ...extractParameters(promptTemplate.description || ''),
-        ...extractParameters(promptTemplate.content),
+        ...extractParameters(title),
+        ...extractParameters(description || ''),
+        ...extractParameters(content),
     ]) {
         parameterNames.add(parameterName);
     }
 
-    if (promptTemplate.blockType === 'SCRIPT') {
-        for (const parameterName of extractVariables(promptTemplate.content)) {
+    if (blockType === 'SCRIPT') {
+        for (const parameterName of extractVariables(content)) {
             parameterNames.add(parameterName);
         }
+    }
+
+    for (const jokerName of jokerParameterNames || []) {
+        parameterNames.add(jokerName);
     }
 
     return parameterNames;

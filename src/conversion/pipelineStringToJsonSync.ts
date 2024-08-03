@@ -1,5 +1,5 @@
 import { spaceTrim } from 'spacetrim';
-import type { IterableElement, Writable, WritableDeep } from 'type-fest';
+import type { Writable, WritableDeep } from 'type-fest';
 import { ScriptJson } from '../_packages/types.index';
 import { knowledgeCommandParser } from '../commands/KNOWLEDGE/knowledgeCommandParser';
 import type { ParameterCommand } from '../commands/PARAMETER/ParameterCommand';
@@ -26,8 +26,6 @@ import { removeContentComments } from '../utils/markdown/removeContentComments';
 import { splitMarkdownIntoSections } from '../utils/markdown/splitMarkdownIntoSections';
 import type { TODO_any } from '../utils/organization/TODO_any';
 import type { really_any } from '../utils/organization/really_any';
-import { difference } from '../utils/sets/difference';
-import { union } from '../utils/sets/union';
 import { PROMPTBOOK_VERSION } from '../version';
 import { extractParametersFromPromptTemplate } from './utils/extractParametersFromPromptTemplate';
 import { titleToName } from './utils/titleToName';
@@ -234,7 +232,6 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
             // <- TODO: [🧠][❔] Should there be possibility to set MODEL for entire pipeline?
         };
         const listItems = extractAllListItemsFromMarkdown(section.content);
-        let dependentParameterNames = new Set<IterableElement<PromptTemplateJson['dependentParameterNames']>>();
 
         const lastLine = section.content.split('\n').pop()!;
         const resultingParameterNameMatch = /^->\s*\{(?<resultingParamName>[a-z0-9_]+)\}/im.exec(lastLine);
@@ -292,7 +289,6 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
             name: titleToName(section.title),
             title: section.title,
             description,
-            dependentParameterNames: Array.from(dependentParameterNames),
             modelRequirements: templateModelRequirements as ModelRequirements,
             content,
             resultingParameterName: expectResultingParameterName(/* <- Note: This is once more redundant */)!,
@@ -416,7 +412,6 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
                 case 'JOKER':
                     templateJson.jokerParameterNames = templateJson.jokerParameterNames || [];
                     templateJson.jokerParameterNames.push(command.parameterName);
-                    dependentParameterNames.add(command.parameterName);
 
                     break;
 
@@ -498,16 +493,12 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
             templateModelRequirements.modelVariant = 'CHAT';
         }
 
-        dependentParameterNames = union(
-            dependentParameterNames,
+        templateJson.dependentParameterNames = Array.from(
             extractParametersFromPromptTemplate(
                 templateJson as PromptTemplateJson,
                 // <- TODO: [3]
             ),
         );
-
-        // TODO: [🧠] !!!!! There should be validation that all resulting parameters are NOT used
-        dependentParameterNames = difference(dependentParameterNames, new Set(RESERVED_PARAMETER_NAMES));
 
         // TODO: [🍧][❔] Remove this condition - modelRequirements should be put here via BLOCK command not removed when PROMPT_TEMPLATE
         if (templateJson.blockType !== 'PROMPT_TEMPLATE') {
