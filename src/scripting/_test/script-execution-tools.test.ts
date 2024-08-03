@@ -61,7 +61,7 @@ describe('createPipelineExecutor + executing scripts in promptbook', () => {
             getPipelineExecutor()
                 .then((pipelineExecutor) => pipelineExecutor({}, () => {}))
                 .then(assertsExecutionSuccessful),
-        ).rejects.toThrowError(/Parameter \{thing\} is not defined/);
+        ).rejects.toThrowError(/Parameter \{thing\} is required as an input parameter/);
     });
 });
 

@@ -25,7 +25,7 @@ describe('createPipelineExecutor + MockedEchoLlmExecutionTools with sample compl
         const pipelineExecutor = await getPipelineExecutor();
         expect(pipelineExecutor({}, () => {})).resolves.toEqual({
             isSuccessful: false,
-            errors: [new Error(`Parameter {thing} is not defined`)],
+            errors: [new Error(`Parameter {thing} is required as an input parameter`)],
             executionReport: {
                 title: 'Sample prompt',
                 description: 'Show how to use a simple completion prompt',
@@ -133,7 +133,7 @@ async function getPipelineExecutor() {
                     return 'Hello';
                 },
             }),
-        }
+        },
     });
     return pipelineExecutor;
 }

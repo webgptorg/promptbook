@@ -1,6 +1,5 @@
 import { describe, expect, it } from '@jest/globals';
 import { spaceTrim } from 'spacetrim';
-import { MAX_EXECUTION_ATTEMPTS } from '../../../config';
 import { pipelineStringToJson } from '../../../conversion/pipelineStringToJson';
 import { createPipelineExecutor } from '../../../execution/createPipelineExecutor';
 import { CallbackInterfaceTools } from '../../../knowledge/dialogs/callback/CallbackInterfaceTools';
@@ -22,7 +21,7 @@ describe('createPipelineExecutor + MockedFackedLlmExecutionTools with sample com
         const pipelineExecutor = await getPipelineExecutor();
         expect(pipelineExecutor({}, () => {})).resolves.toEqual({
             isSuccessful: false,
-            errors: [new Error(`Parameter {thing} is not defined`)],
+            errors: [new Error(`Parameter {thing} is required as an input parameter`)],
             executionReport: {
                 title: 'Sample prompt',
                 description: 'Show how to use a simple completion prompt',

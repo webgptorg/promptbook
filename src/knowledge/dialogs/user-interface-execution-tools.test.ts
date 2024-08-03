@@ -8,7 +8,7 @@ import type { PipelineString } from '../../types/PipelineString';
 import { CallbackInterfaceTools } from './callback/CallbackInterfaceTools';
 
 describe('createPipelineExecutor + executing user interface prompts in promptbook', () => {
-    it('should work when every INPUT  PARAMETER defined', async () => {
+    it('should work when every INPUT PARAMETER defined', async () => {
         const pipelineExecutor = await getPipelineExecutor();
 
         expect(pipelineExecutor({ thing: 'apple' }, () => {})).resolves.toMatchObject({
@@ -24,16 +24,16 @@ describe('createPipelineExecutor + executing user interface prompts in promptboo
         });
     });
 
-    it('should fail when some INPUT  PARAMETER is missing', async () => {
+    it('should fail when some INPUT PARAMETER is missing', async () => {
         const pipelineExecutor = await getPipelineExecutor();
 
         expect(pipelineExecutor({}, () => {})).resolves.toMatchObject({
             isSuccessful: false,
-            errors: [new Error(`Parameter {thing} is not defined`)],
+            errors: [new Error(`Parameter {thing} is required as an input parameter`)],
         });
 
         expect(() => pipelineExecutor({}, () => {}).then(assertsExecutionSuccessful)).rejects.toThrowError(
-            /Parameter \{thing\} is not defined/,
+            /Parameter \{thing\} is required as an input parameter/,
         );
     });
 });
