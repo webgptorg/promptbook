@@ -1,7 +1,6 @@
 import { spaceTrim } from 'spacetrim';
 import type { IterableElement, Writable, WritableDeep } from 'type-fest';
 import { ScriptJson } from '../_packages/types.index';
-import type { BlockType } from '../commands/BLOCK/BlockTypes';
 import { knowledgeCommandParser } from '../commands/KNOWLEDGE/knowledgeCommandParser';
 import type { ParameterCommand } from '../commands/PARAMETER/ParameterCommand';
 import { personaCommandParser } from '../commands/PERSONA/personaCommandParser';
@@ -196,7 +195,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
                 pipelineJson.pipelineUrl = command.pipelineUrl.href;
                 break;
             case 'KNOWLEDGE':
-                knowledgeCommandParser.applyToPipelineJson!(command, { pipelineJson, promptTemplateJson: null });
+                knowledgeCommandParser.applyToPipelineJson!(command, { pipelineJson, templateJson: null });
                 break;
             case 'ACTION':
                 console.error(new NotYetImplementedError('Actions are not implemented yet'));
@@ -205,7 +204,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
                 console.error(new NotYetImplementedError('Instruments are not implemented yet'));
                 break;
             case 'PERSONA':
-                personaCommandParser.applyToPipelineJson!(command, { pipelineJson, promptTemplateJson: null });
+                personaCommandParser.applyToPipelineJson!(command, { pipelineJson, templateJson: null });
                 //                    <- Note: Prototype of [🍧] (remove this comment after full implementation)
                 break;
             case 'BOILERPLATE':
@@ -229,16 +228,13 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
     templates: for (const section of pipelineSections) {
         // TODO: Parse prompt template description (the content out of the codeblock and lists)
 
-        const templateModelRequirements: Partial<Writable<ModelRequirements>> = { ...defaultModelRequirements };
+        const templateModelRequirements: Partial<Writable<ModelRequirements>> = {
+            ...defaultModelRequirements,
+
+            // <- TODO: [🧠][❔] Should there be possibility to set MODEL for entire pipeline?
+        };
         const listItems = extractAllListItemsFromMarkdown(section.content);
         let dependentParameterNames = new Set<IterableElement<PromptTemplateJson['dependentParameterNames']>>();
-        let blockType: BlockType = 'PROMPT_TEMPLATE';
-        let jokerParameterNames: Writable<PromptTemplateJson['jokerParameterNames']> | undefined = [];
-        let postprocessingFunctionNames: Writable<PromptTemplateJson['postprocessingFunctionNames']> | undefined = [];
-        let expectAmount: WritableDeep<PromptTemplateJson['expectations']> = {};
-        let expectFormat: PromptTemplateJson['expectFormat'] | undefined = undefined;
-
-        let isBlockTypeSet = false;
 
         const lastLine = section.content.split('\n').pop()!;
         const resultingParameterNameMatch = /^->\s*\{(?<resultingParamName>[a-z0-9_]+)\}/im.exec(lastLine);
@@ -291,20 +287,26 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
             description = undefined;
         }
 
-        const templateJson = {
+        const templateJson: Partial<WritableDeep<PromptTemplateJson>> = {
+            blockType: 'PROMPT_TEMPLATE', // <- Note: [2]
             name: titleToName(section.title),
             title: section.title,
             description,
             dependentParameterNames: Array.from(dependentParameterNames),
-            blockType,
-            jokerParameterNames,
-            postprocessingFunctionNames,
-            expectations: expectAmount,
-            expectFormat,
             modelRequirements: templateModelRequirements as ModelRequirements,
             content,
             resultingParameterName: expectResultingParameterName(/* <- Note: This is once more redundant */)!,
-        } satisfies PromptTemplateJson;
+        };
+
+        /**
+         * This is nessesary because block type can be
+         * - Set zero times, so anticipate 'PROMPT_TEMPLATE'
+         * - Set one time
+         * - Set more times - throw error
+         *
+         * Note: [2]
+         */
+        let isBlockTypeSet = false;
 
         for (const listItem of listItems) {
             const command = parseCommand(listItem, 'PIPELINE_TEMPLATE');
@@ -363,53 +365,59 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
                     }
 
                     expectResultingParameterName();
-                    blockType = command.blockType;
-                    isBlockTypeSet = true;
+                    (templateJson as WritableDeep<PromptTemplateJson>).blockType = command.blockType;
+                    isBlockTypeSet = true; //<- Note: [2]
                     break;
                 case 'EXPECT_AMOUNT':
                     // eslint-disable-next-line no-case-declarations
                     const unit = command.unit.toLowerCase() as Lowercase<ExpectationUnit>;
 
-                    expectAmount[unit] = expectAmount[unit] || {};
+                    templateJson.expectations = templateJson.expectations || {};
+                    templateJson.expectations[unit] = templateJson.expectations[unit] || {};
 
                     if (command.sign === 'MINIMUM' || command.sign === 'EXACTLY') {
-                        if (expectAmount[unit]!.min !== undefined) {
+                        if (templateJson.expectations[unit]!.min !== undefined) {
                             throw new ParsingError(
                                 `Already defined minumum ${
-                                    expectAmount[unit]!.min
+                                    templateJson.expectations[unit]!.min
                                 } ${command.unit.toLowerCase()}, now trying to redefine it to ${command.amount}`,
                                 // <- TODO: [🚞]
                             );
                         }
-                        expectAmount[unit]!.min = command.amount;
+                        templateJson.expectations[unit]!.min = command.amount;
                     } /* not else */
                     if (command.sign === 'MAXIMUM' || command.sign === 'EXACTLY') {
-                        if (expectAmount[unit]!.max !== undefined) {
+                        if (templateJson.expectations[unit]!.max !== undefined) {
                             throw new ParsingError(
                                 `Already defined maximum ${
-                                    expectAmount[unit]!.max
+                                    templateJson.expectations[unit]!.max
                                 } ${command.unit.toLowerCase()}, now trying to redefine it to ${command.amount}`,
                                 // <- TODO: [🚞]
                             );
                         }
-                        expectAmount[unit]!.max = command.amount;
+                        templateJson.expectations[unit]!.max = command.amount;
                     }
                     break;
 
                 case 'EXPECT_FORMAT':
-                    if (expectFormat !== undefined && command.format !== expectFormat) {
+                    if (templateJson.expectFormat !== undefined && command.format !== templateJson.expectFormat) {
                         throw new ParsingError(
-                            `Expect format is already defined to "${expectFormat}". Now you try to redefine it by "${command.format}".`,
+                            spaceTrim(`
+                                Expect format is already defined to "${templateJson.expectFormat}".
+                                Now you try to redefine it by "${command.format}".
+                            `),
                             // <- TODO: [🚞]
                         );
                     }
-                    expectFormat = command.format;
+                    templateJson.expectFormat = command.format;
 
                     break;
 
                 case 'JOKER':
-                    jokerParameterNames.push(command.parameterName);
+                    templateJson.jokerParameterNames = templateJson.jokerParameterNames || [];
+                    templateJson.jokerParameterNames.push(command.parameterName);
                     dependentParameterNames.add(command.parameterName);
+
                     break;
 
                 case 'MODEL':
@@ -421,7 +429,8 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
                     defineParam(command);
                     break;
                 case 'POSTPROCESS':
-                    postprocessingFunctionNames.push(command.functionName);
+                    templateJson.postprocessingFunctionNames = templateJson.postprocessingFunctionNames || [];
+                    templateJson.postprocessingFunctionNames.push(command.functionName);
                     break;
                 case 'KNOWLEDGE':
                     // TODO: [👙] The knowledge is maybe relevant for just this template
@@ -458,7 +467,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
         }
 
         // TODO: [🍧] Should be done in BLOCK command
-        if (blockType === 'SCRIPT') {
+        if ((templateJson as WritableDeep<PromptTemplateJson>).blockType === 'SCRIPT') {
             if (!language) {
                 throw new ParsingError(
                     'You must specify the language of the script in the prompt template',
@@ -484,46 +493,32 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
             (templateJson as TODO_any as Writable<ScriptJson>).contentLanguage = language as TODO_any;
         }
 
-        // TODO: [🍧] Remove this condition - modelRequirements should be put activly by command NOT removed if command not used
-        if (Object.keys(jokerParameterNames).length === 0) {
-            jokerParameterNames = undefined;
-        }
-
-        // TODO: [🍧] Remove this condition - modelRequirements should be put activly by command NOT removed if command not used
-        if (Object.keys(expectAmount).length === 0) {
-            expectAmount = undefined;
-        }
-
-        // TODO: [🍧] Remove this condition - modelRequirements should be put activly by command NOT removed if command not used
-        if (Object.keys(postprocessingFunctionNames).length === 0) {
-            postprocessingFunctionNames = undefined;
-        }
-
-        // TODO: [🍧] Should be done in BLOCK command
+        // TODO: [🍧][❔] Should be done in BLOCK command
         if (templateModelRequirements.modelVariant === undefined) {
             templateModelRequirements.modelVariant = 'CHAT';
         }
 
         dependentParameterNames = union(
             dependentParameterNames,
-            extractParametersFromPromptTemplate({
-                ...section,
-                description,
-                blockType,
-                content,
-            }),
+            extractParametersFromPromptTemplate(
+                templateJson as PromptTemplateJson,
+                // <- TODO: [3]
+            ),
         );
 
         // TODO: [🧠] !!!!! There should be validation that all resulting parameters are NOT used
         dependentParameterNames = difference(dependentParameterNames, new Set(RESERVED_PARAMETER_NAMES));
 
-        // TODO: [🍧] Remove this condition - modelRequirements should be put here via BLOCK command not removed when PROMPT_TEMPLATE
-        if (blockType !== 'PROMPT_TEMPLATE') {
+        // TODO: [🍧][❔] Remove this condition - modelRequirements should be put here via BLOCK command not removed when PROMPT_TEMPLATE
+        if (templateJson.blockType !== 'PROMPT_TEMPLATE') {
             delete (templateJson as TODO_any).modelRequirements;
         }
 
         // TODO: [🍧] What actually about preparation and pushing the block into `promptTemplates`
-        pipelineJson.promptTemplates.push(templateJson);
+        pipelineJson.promptTemplates.push(
+            templateJson as PromptTemplateJson,
+            // <- TODO: [3] Do not do `as PromptTemplateJson` BUT make 100% sure that nothing is missing
+        );
     }
 
     // =============================================================

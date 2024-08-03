@@ -18,7 +18,7 @@ export type PromptTemplateJson =
     | ___;
 //  <- | [🩻] + Add the file with this (execution) block type
 
-
 /**
  * TODO: [🧠][🥜] What is propper name for this - "Template", "Prompt template",...
+ * TODO: [🧠][🥜] Reduce confusion of `PromptTemplateJson` vs (`LlmTemplateJson` which is 'PROMPT_TEMPLATE')
  */

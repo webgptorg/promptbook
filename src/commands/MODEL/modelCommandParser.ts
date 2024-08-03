@@ -19,7 +19,11 @@ export const modelCommandParser: CommandParser<ModelCommand> = {
     /**
      * BOILERPLATE command can be used in:
      */
-    usagePlaces: ['PIPELINE_HEAD', 'PIPELINE_TEMPLATE'],
+    usagePlaces: [
+        'PIPELINE_HEAD',
+        //  <- TODO: [🧠][❔] Should there be possibility to set MODEL for entire pipeline?
+        'PIPELINE_TEMPLATE',
+    ],
 
     /**
      * Description of the MODEL command

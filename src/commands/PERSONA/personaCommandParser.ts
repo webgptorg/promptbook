@@ -72,14 +72,14 @@ export const personaCommandParser: CommandParser<PersonaCommand> = {
      */
     applyToPipelineJson(personaCommand: PersonaCommand, subjects: ApplyToPipelineJsonSubjects): void {
         const { personaName, personaDescription } = personaCommand;
-        const { pipelineJson, promptTemplateJson } = subjects;
+        const { pipelineJson, templateJson } = subjects;
 
-        if (promptTemplateJson !== null) {
-            if (promptTemplateJson.blockType !== 'PROMPT_TEMPLATE') {
+        if (templateJson !== null) {
+            if (templateJson.blockType !== 'PROMPT_TEMPLATE') {
                 throw new ParsingError(`PERSONA command can be used only in PROMPT_TEMPLATE block`);
             }
 
-            promptTemplateJson.personaName = personaName;
+            templateJson.personaName = personaName;
         }
 
         const persona = pipelineJson.personas.find((persona) => persona.name === personaName);

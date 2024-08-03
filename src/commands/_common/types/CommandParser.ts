@@ -51,16 +51,22 @@ export type CommandParserInput = {
  * @@@ Mutated by the command
  */
 export type ApplyToPipelineJsonSubjects = {
+    /**
+     * @@@ Mutated by the command
+     */
     readonly pipelineJson: WritableDeep<PipelineJson>;
 
     /**
      * @@@
      *
+     * @@@ Mutated by the command
+     *
      * When used in
      * - `PIPELINE_HEAD` it is `null`
      * - `PIPELINE_TEMPLATE` it is the prompt template
      */
-    readonly promptTemplateJson: null | WritableDeep<PromptTemplateJson>;
+    readonly templateJson: null | Partial<WritableDeep<PromptTemplateJson>>;
+    //         <- TODO: [🧠][🥜]
 };
 
 /**

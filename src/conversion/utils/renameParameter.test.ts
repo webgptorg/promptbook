@@ -1,7 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
 import { validatePipeline } from '../validation/validatePipeline';
 import { renameParameter } from './renameParameter';
-
 describe('how renameParameter works', () => {
     it('should rename parameter in simple promptbook', () => {
         expect(
@@ -23,7 +22,6 @@ describe('how renameParameter works', () => {
                             title: '💬 Prompt',
                             dependentParameterNames: [],
                             blockType: 'PROMPT_TEMPLATE',
-                            personaName: null,
                             modelRequirements: {
                                 modelVariant: 'CHAT',
                                 modelName: 'gpt-3.5-turbo',
@@ -58,7 +56,6 @@ describe('how renameParameter works', () => {
                         title: '💬 Prompt',
                         dependentParameterNames: [],
                         blockType: 'PROMPT_TEMPLATE',
-                        personaName: null,
                         modelRequirements: {
                             modelVariant: 'CHAT',
                             modelName: 'gpt-3.5-turbo',
@@ -74,7 +71,6 @@ describe('how renameParameter works', () => {
             }),
         );
     });
-
     it('should rename parameter in normal promptbook', () => {
         expect(
             renameParameter({
@@ -108,7 +104,6 @@ describe('how renameParameter works', () => {
                             description: 'Synonym for word',
                             dependentParameterNames: ['word'],
                             blockType: 'PROMPT_TEMPLATE',
-                            personaName: null,
                             modelRequirements: {
                                 modelVariant: 'CHAT',
                                 modelName: 'gpt-3.5-turbo',
@@ -122,7 +117,6 @@ describe('how renameParameter works', () => {
                             description: 'Sentence with word and wordSynonym',
                             dependentParameterNames: ['word', 'wordSynonym'],
                             blockType: 'PROMPT_TEMPLATE',
-                            personaName: null,
                             modelRequirements: {
                                 modelVariant: 'CHAT',
                                 modelName: 'gpt-3.5-turbo',
@@ -170,7 +164,6 @@ describe('how renameParameter works', () => {
                         description: 'Synonym for word',
                         dependentParameterNames: ['originalWord'],
                         blockType: 'PROMPT_TEMPLATE',
-                        personaName: null,
                         modelRequirements: {
                             modelVariant: 'CHAT',
                             modelName: 'gpt-3.5-turbo',
@@ -184,7 +177,6 @@ describe('how renameParameter works', () => {
                         description: 'Sentence with word and wordSynonym',
                         dependentParameterNames: ['originalWord', 'wordSynonym'],
                         blockType: 'PROMPT_TEMPLATE',
-                        personaName: null,
                         modelRequirements: {
                             modelVariant: 'CHAT',
                             modelName: 'gpt-3.5-turbo',
@@ -200,7 +192,6 @@ describe('how renameParameter works', () => {
             }),
         );
     });
-
     it('should detect name collision', () => {
         expect(() =>
             renameParameter({
@@ -234,7 +225,6 @@ describe('how renameParameter works', () => {
                             description: 'Synonym for word',
                             dependentParameterNames: ['word'],
                             blockType: 'PROMPT_TEMPLATE',
-                            personaName: null,
                             modelRequirements: {
                                 modelVariant: 'CHAT',
                                 modelName: 'gpt-3.5-turbo',
@@ -248,7 +238,6 @@ describe('how renameParameter works', () => {
                             description: 'Sentence with word and wordSynonym',
                             dependentParameterNames: ['word', 'wordSynonym'],
                             blockType: 'PROMPT_TEMPLATE',
-                            personaName: null,
                             modelRequirements: {
                                 modelVariant: 'CHAT',
                                 modelName: 'gpt-3.5-turbo',
