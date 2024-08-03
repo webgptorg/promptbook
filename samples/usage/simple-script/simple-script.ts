@@ -1,9 +1,13 @@
 #!/usr/bin/env ts-node
 
-import { assertsExecutionSuccessful, createPipelineExecutor, executionReportJsonToString } from '@promptbook/core';
+import {
+    assertsExecutionSuccessful,
+    createLlmToolsFromEnv,
+    createPipelineExecutor,
+    executionReportJsonToString,
+} from '@promptbook/core';
 import { JavascriptExecutionTools } from '@promptbook/execute-javascript';
 import { createCollectionFromDirectory } from '@promptbook/node';
-import { OpenAiExecutionTools } from '@promptbook/openai';
 import colors from 'colors';
 import * as dotenv from 'dotenv';
 import { writeFile } from 'fs/promises';
@@ -48,10 +52,7 @@ async function main() {
     await forTime(100);
 
     const tools = {
-        llm: new OpenAiExecutionTools({
-            isVerbose: true,
-            apiKey: process.env.OPENAI_API_KEY,
-        }),
+        llm: createLlmToolsFromEnv(),
         script: [
             new JavascriptExecutionTools({
                 isVerbose: true,
@@ -59,7 +60,11 @@ async function main() {
         ],
     };
 
+    // <- TODO: !!!! Use `createLlmToolsFromEnv` in all samples and READMEs
+
     const pipelineExecutor = createPipelineExecutor({ pipeline, tools });
+
+    // <- TODO: !!!! Why this is not prepared?
 
     const inputParameters = { eventNameX: 'CzechFutureTech' };
     const { isSuccessful, errors, outputParameters, executionReport } = await pipelineExecutor(

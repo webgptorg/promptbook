@@ -4,8 +4,6 @@ import { EnvironmentMismatchError } from '../../errors/EnvironmentMismatchError'
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import { FilesStorage } from '../../storage/files-storage/FilesStorage';
 import { isRunningInNode } from '../../utils/isRunningInWhatever';
-import { keepUnused } from '../../utils/organization/keepUnused';
-import { MockedFackedLlmExecutionTools } from '../mocked/MockedFackedLlmExecutionTools';
 import type { CreateLlmToolsFromEnvOptions } from './createLlmToolsFromEnv';
 import { createLlmToolsFromEnv } from './createLlmToolsFromEnv';
 import { cacheLlmTools } from './utils/cache/cacheLlmTools';
@@ -24,9 +22,6 @@ export function getLlmToolsForTestingAndScriptsAndPlayground(
             'Function `getLlmToolsForTestingAndScriptsAndPlayground` works only in Node.js environment',
         );
     }
-
-    keepUnused(createLlmToolsFromEnv);
-    keepUnused(MockedFackedLlmExecutionTools);
 
     let llmTools: LlmExecutionTools = createLlmToolsFromEnv(options);
 
