@@ -1,5 +1,6 @@
 import { spaceTrim } from 'spacetrim';
 import type { IterableElement, Writable, WritableDeep } from 'type-fest';
+import { ScriptJson } from '../_packages/types.index';
 import type { BlockType } from '../commands/BLOCK/BlockTypes';
 import { knowledgeCommandParser } from '../commands/KNOWLEDGE/knowledgeCommandParser';
 import type { ParameterCommand } from '../commands/PARAMETER/ParameterCommand';
@@ -232,8 +233,8 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
         const listItems = extractAllListItemsFromMarkdown(section.content);
         let dependentParameterNames = new Set<IterableElement<PromptTemplateJson['dependentParameterNames']>>();
         let blockType: BlockType = 'PROMPT_TEMPLATE';
-        let jokers: Writable<PromptTemplateJson['jokerParameterNames']> | undefined = [];
-        let postprocessing: Writable<PromptTemplateJson['postprocessingFunctionNames']> | undefined = [];
+        let jokerParameterNames: Writable<PromptTemplateJson['jokerParameterNames']> | undefined = [];
+        let postprocessingFunctionNames: Writable<PromptTemplateJson['postprocessingFunctionNames']> | undefined = [];
         let expectAmount: WritableDeep<PromptTemplateJson['expectations']> = {};
         let expectFormat: PromptTemplateJson['expectFormat'] | undefined = undefined;
 
@@ -273,6 +274,37 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
         };
 
         const { language, content } = extractOneBlockFromMarkdown(section.content);
+
+        // TODO: [🎾][1] DRY description
+        let description: string | undefined = section.content;
+
+        // Note: Remove codeblocks - TODO: [🎾]
+        description = description.split(/^```.*^```/gms).join('');
+        description = description.split(/^>.*$/gm).join('');
+
+        //Note: Remove lists and return statement - TODO: [🎾]
+        description = description.split(/^(?:(?:-)|(?:\d\))|(?:`?->))\s+.*$/gm).join('');
+
+        description = spaceTrim(description);
+
+        if (description === '') {
+            description = undefined;
+        }
+
+        const templateJson = {
+            name: titleToName(section.title),
+            title: section.title,
+            description,
+            dependentParameterNames: Array.from(dependentParameterNames),
+            blockType,
+            jokerParameterNames,
+            postprocessingFunctionNames,
+            expectations: expectAmount,
+            expectFormat,
+            modelRequirements: templateModelRequirements as ModelRequirements,
+            content,
+            resultingParameterName: expectResultingParameterName(/* <- Note: This is once more redundant */)!,
+        } satisfies PromptTemplateJson;
 
         for (const listItem of listItems) {
             const command = parseCommand(listItem, 'PIPELINE_TEMPLATE');
@@ -314,7 +346,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
                             },
                             {
                                 pipelineJson,
-                                template,
+                                templateJson,
                             },
                         );
                         continue templates;
@@ -376,7 +408,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
                     break;
 
                 case 'JOKER':
-                    jokers.push(command.parameterName);
+                    jokerParameterNames.push(command.parameterName);
                     dependentParameterNames.add(command.parameterName);
                     break;
 
@@ -389,11 +421,11 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
                     defineParam(command);
                     break;
                 case 'POSTPROCESS':
-                    postprocessing.push(command.functionName);
+                    postprocessingFunctionNames.push(command.functionName);
                     break;
                 case 'KNOWLEDGE':
                     // TODO: [👙] The knowledge is maybe relevant for just this template
-                    knowledgeCommandParser.applyToPipelineJson!(command, { pipelineJson, template });
+                    knowledgeCommandParser.applyToPipelineJson!(command, { pipelineJson, templateJson });
                     break;
                 case 'ACTION':
                     // TODO: [👙] The action is maybe relevant for just this template
@@ -404,7 +436,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
                     console.error(new NotYetImplementedError('Instruments are not implemented yet'));
                     break;
                 case 'PERSONA':
-                    personaCommandParser.applyToPipelineJson!(command, { pipelineJson, template });
+                    personaCommandParser.applyToPipelineJson!(command, { pipelineJson, templateJson });
                     //                    <- Note: Prototype of [🍧] (remove this comment after full implementation)
                     break;
                 case 'BOILERPLATE':
@@ -425,13 +457,16 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
             }
         }
 
+        // TODO: [🍧] Should be done in BLOCK command
         if (blockType === 'SCRIPT') {
             if (!language) {
                 throw new ParsingError(
                     'You must specify the language of the script in the prompt template',
                     // <- TODO: [🚞]
                 );
-            } else if (!SUPPORTED_SCRIPT_LANGUAGES.includes(language as ScriptLanguage)) {
+            }
+
+            if (!SUPPORTED_SCRIPT_LANGUAGES.includes(language as ScriptLanguage)) {
                 throw new ParsingError(
                     spaceTrim(
                         (block) => `
@@ -445,34 +480,28 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
                     ),
                 );
             }
+
+            (templateJson as TODO_any as Writable<ScriptJson>).contentLanguage = language as TODO_any;
         }
 
-        // TODO: [🎾][1] DRY description
-        let description: string | undefined = section.content;
-
-        // Note: Remove codeblocks - TODO: [🎾]
-        description = description.split(/^```.*^```/gms).join('');
-        description = description.split(/^>.*$/gm).join('');
-
-        //Note: Remove lists and return statement - TODO: [🎾]
-        description = description.split(/^(?:(?:-)|(?:\d\))|(?:`?->))\s+.*$/gm).join('');
-
-        description = spaceTrim(description);
-
-        if (description === '') {
-            description = undefined;
+        // TODO: [🍧] Remove this condition - modelRequirements should be put activly by command NOT removed if command not used
+        if (Object.keys(jokerParameterNames).length === 0) {
+            jokerParameterNames = undefined;
         }
 
-        if (Object.keys(jokers).length === 0) {
-            jokers = undefined;
-        }
-
+        // TODO: [🍧] Remove this condition - modelRequirements should be put activly by command NOT removed if command not used
         if (Object.keys(expectAmount).length === 0) {
             expectAmount = undefined;
         }
 
-        if (Object.keys(postprocessing).length === 0) {
-            postprocessing = undefined;
+        // TODO: [🍧] Remove this condition - modelRequirements should be put activly by command NOT removed if command not used
+        if (Object.keys(postprocessingFunctionNames).length === 0) {
+            postprocessingFunctionNames = undefined;
+        }
+
+        // TODO: [🍧] Should be done in BLOCK command
+        if (templateModelRequirements.modelVariant === undefined) {
+            templateModelRequirements.modelVariant = 'CHAT';
         }
 
         dependentParameterNames = union(
@@ -485,35 +514,16 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
             }),
         );
 
-        if (templateModelRequirements.modelVariant === undefined) {
-            templateModelRequirements.modelVariant = 'CHAT';
-        }
-
+        // TODO: [🧠] !!!!! There should be validation that all resulting parameters are NOT used
         dependentParameterNames = difference(dependentParameterNames, new Set(RESERVED_PARAMETER_NAMES));
 
-        const template = {
-            name: titleToName(section.title),
-            title: section.title,
-            description,
-            dependentParameterNames: Array.from(dependentParameterNames),
-            blockType,
-            jokerParameterNames: jokers,
-            postprocessingFunctionNames: postprocessing,
-            expectations: expectAmount,
-            expectFormat,
-            personaName: null,
-            modelRequirements: templateModelRequirements as ModelRequirements,
-            contentLanguage: blockType === 'SCRIPT' ? (language as ScriptLanguage) : undefined,
-            content,
-            resultingParameterName: expectResultingParameterName(/* <- Note: This is once more redundant */)!,
-        } satisfies PromptTemplateJson;
-
+        // TODO: [🍧] Remove this condition - modelRequirements should be put here via BLOCK command not removed when PROMPT_TEMPLATE
         if (blockType !== 'PROMPT_TEMPLATE') {
-            delete (template as TODO_any).modelRequirements;
+            delete (templateJson as TODO_any).modelRequirements;
         }
 
         // TODO: [🍧] What actually about preparation and pushing the block into `promptTemplates`
-        pipelineJson.promptTemplates.push(template);
+        pipelineJson.promptTemplates.push(templateJson);
     }
 
     // =============================================================
