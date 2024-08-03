@@ -195,7 +195,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
                 pipelineJson.pipelineUrl = command.pipelineUrl.href;
                 break;
             case 'KNOWLEDGE':
-                knowledgeCommandParser.applyToPipelineJson!(pipelineJson, command);
+                knowledgeCommandParser.applyToPipelineJson!(command, { pipelineJson, promptTemplateJson: null });
                 break;
             case 'ACTION':
                 console.error(new NotYetImplementedError('Actions are not implemented yet'));
@@ -204,7 +204,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
                 console.error(new NotYetImplementedError('Instruments are not implemented yet'));
                 break;
             case 'PERSONA':
-                personaCommandParser.applyToPipelineJson!(pipelineJson, command);
+                personaCommandParser.applyToPipelineJson!(command, { pipelineJson, promptTemplateJson: null });
                 //                    <- Note: Prototype of [🍧] (remove this comment after full implementation)
                 break;
             case 'BOILERPLATE':
@@ -276,6 +276,8 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
 
         for (const listItem of listItems) {
             const command = parseCommand(listItem, 'PIPELINE_TEMPLATE');
+            // TODO [🍧][♓️] List commands and before apply order them
+
             switch (command.type) {
                 // TODO: [🍧] Use here applyToPipelineJson and remove switch statement
                 case 'BLOCK':
@@ -305,10 +307,16 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
                     }
 
                     if (command.blockType === 'KNOWLEDGE') {
-                        knowledgeCommandParser.applyToPipelineJson!(pipelineJson, {
-                            type: 'KNOWLEDGE',
-                            source: content, // <- TODO: [🐝] !!! Work with KNOWLEDGE which not referring to the source file or website, but its content itself
-                        });
+                        knowledgeCommandParser.applyToPipelineJson!(
+                            {
+                                type: 'KNOWLEDGE',
+                                source: content, // <- TODO: [🐝] !!! Work with KNOWLEDGE which not referring to the source file or website, but its content itself
+                            },
+                            {
+                                pipelineJson,
+                                template,
+                            },
+                        );
                         continue templates;
                     }
 
@@ -385,7 +393,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
                     break;
                 case 'KNOWLEDGE':
                     // TODO: [👙] The knowledge is maybe relevant for just this template
-                    knowledgeCommandParser.applyToPipelineJson!(pipelineJson, command);
+                    knowledgeCommandParser.applyToPipelineJson!(command, { pipelineJson, template });
                     break;
                 case 'ACTION':
                     // TODO: [👙] The action is maybe relevant for just this template
@@ -396,7 +404,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
                     console.error(new NotYetImplementedError('Instruments are not implemented yet'));
                     break;
                 case 'PERSONA':
-                    personaCommandParser.applyToPipelineJson!(pipelineJson, command);
+                    personaCommandParser.applyToPipelineJson!(command, { pipelineJson, template });
                     //                    <- Note: Prototype of [🍧] (remove this comment after full implementation)
                     break;
                 case 'BOILERPLATE':

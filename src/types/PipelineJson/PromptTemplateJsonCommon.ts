@@ -94,6 +94,7 @@ export interface PromptTemplateJsonCommon {
 }
 
 /**
+ * TODO: [🧠][🥜]
  * TODO: use one helper type> (string_prompt | string_javascript | string_markdown) & string_template
  * TODO: [♈] Probbably move expectations from templates to parameters
  */

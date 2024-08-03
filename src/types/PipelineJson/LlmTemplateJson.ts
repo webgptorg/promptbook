@@ -11,7 +11,7 @@ export type LlmTemplateJson = PromptTemplateJsonCommon & {
     /**
      * Name of the persona who will be responding to this prompt
      */
-    readonly personaName: string_name | null;
+    readonly personaName?: string_name;
 
     /**
      * Requirements for the model
@@ -21,6 +21,7 @@ export type LlmTemplateJson = PromptTemplateJsonCommon & {
 };
 
 /**
+ * TODO: [🧠][🥜]
  * TODO: [👙][🧠] Maybe add `knowledge`, `actions` and `instruments` to be available granularly for each template
  *       @see https://github.com/webgptorg/promptbook/discussions/79
  * TODO: [💕][🧠] Just selecting gpt3 or gpt4 level of model

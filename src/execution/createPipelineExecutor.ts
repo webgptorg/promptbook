@@ -152,7 +152,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
 
         let parametersToPass: Parameters = inputParameters;
 
-        async function getContextForTemplate(
+        async function getContextForTemplate( // <- TODO: [🧠][🥜]
             template: PromptTemplateJson,
         ): Promise<string_parameter_value & string_markdown> {
             // TODO: !!!!!! Implement Better - use real index and keyword search
@@ -180,7 +180,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
             return reservedParameters;
         }
 
-        async function executeSingleTemplate(currentTemplate: PromptTemplateJson) {
+        async function executeSingleTemplate(currentTemplate: PromptTemplateJson) { // <- TODO: [🧠][🥜]
             const name = `pipeline-executor-frame-${currentTemplate.name}`;
             const title = currentTemplate.title;
             const priority = pipeline.promptTemplates.length - pipeline.promptTemplates.indexOf(currentTemplate);
@@ -593,6 +593,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                 .filter(({ isInput }) => isInput)
                 .map(({ name }) => name);
             let unresovedTemplates: Array<PromptTemplateJson> = [...pipeline.promptTemplates];
+            //            <- TODO: [🧠][🥜]
             let resolving: Array<Promise<void>> = [];
 
             let loopLimit = LOOP_LIMIT;

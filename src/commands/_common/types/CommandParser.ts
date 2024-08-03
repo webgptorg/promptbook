@@ -1,4 +1,5 @@
 import type { WritableDeep } from 'type-fest';
+import { PromptTemplateJson } from '../../../_packages/types.index';
 import type { PipelineJson } from '../../../types/PipelineJson/PipelineJson';
 import type {
     string_markdown_text,
@@ -28,7 +29,10 @@ export type CommandParser<TCommand extends { type: string_name & string_SCREAMIN
      */
     parse(input: CommandParserInput): TCommand;
 
-    applyToPipelineJson?(pipelineJson: WritableDeep<PipelineJson>, personaCommand: TCommand): void;
+    /**
+     * @@@ Mutated by the command
+     */
+    applyToPipelineJson?(command: TCommand, subjects: ApplyToPipelineJsonSubjects): void;
 };
 
 export type CommandParserInput = {
@@ -44,9 +48,26 @@ export type CommandParserInput = {
 };
 
 /**
+ * @@@ Mutated by the command
+ */
+export type ApplyToPipelineJsonSubjects = {
+    readonly pipelineJson: WritableDeep<PipelineJson>;
+
+    /**
+     * @@@
+     *
+     * When used in
+     * - `PIPELINE_HEAD` it is `null`
+     * - `PIPELINE_TEMPLATE` it is the prompt template
+     */
+    readonly promptTemplateJson: null | WritableDeep<PromptTemplateJson>;
+};
+
+/**
  * TODO: @@@ Annotate all
+ * TODO: [🍧][♓️] Add order here
  * TODO: [🧠] Maybe put flag if it is for whole `.ptbk.md` file of just one section
- * TODO: [🍧] CommandParser should have applyToPipelineJson method
+ * TODO: [🍧] All commands must implement `applyToPipelineJson` method
  *       which will apply parsed command to the pipeline JSON
  *       it will be called from `pipelineStringToJsonSync`
  *       and replace hardcoded switch statement and [💐]

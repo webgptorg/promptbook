@@ -15,6 +15,8 @@ export type renderPipelineMermaidOptions = {
      * Callback for creating from prompt template graph node
      */
     linkPromptTemplate?(promptTemplate: PromptTemplateJson): { href: string_href; title: string } | null;
+    // <- TODO: [🧠][🥜]
+
 };
 
 /**

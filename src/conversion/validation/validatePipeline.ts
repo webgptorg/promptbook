@@ -194,6 +194,7 @@ export function validatePipeline(pipeline: PipelineJson): PipelineJson {
         .filter(({ isInput }) => isInput)
         .map(({ name }) => name);
     let unresovedTemplates: Array<PromptTemplateJson> = [...pipeline.promptTemplates];
+    //            <- TODO: [🧠][🥜]
 
     let loopLimit = LOOP_LIMIT;
     while (unresovedTemplates.length > 0) {

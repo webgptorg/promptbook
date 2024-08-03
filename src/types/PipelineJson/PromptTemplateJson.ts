@@ -17,3 +17,8 @@ export type PromptTemplateJson =
     | ___
     | ___;
 //  <- | [🩻] + Add the file with this (execution) block type
+
+
+/**
+ * TODO: [🧠][🥜] What is propper name for this - "Template", "Prompt template",...
+ */

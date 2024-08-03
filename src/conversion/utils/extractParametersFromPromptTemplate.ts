@@ -12,6 +12,7 @@ import { extractVariables } from './extractVariables';
  */
 export function extractParametersFromPromptTemplate(
     promptTemplate: Pick<PromptTemplateJson, 'title' | 'description' | 'blockType' | 'content'>,
+    // <- TODO: [🧠][🥜]
 ): Set<string_parameter_name> {
     const parameterNames = new Set<string_parameter_name>();
 

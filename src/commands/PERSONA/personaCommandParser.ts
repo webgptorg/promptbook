@@ -1,8 +1,6 @@
 import spaceTrim from 'spacetrim';
-import type { WritableDeep } from 'type-fest';
 import { ParsingError } from '../../errors/ParsingError';
-import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
-import type { CommandParser, CommandParserInput } from '../_common/types/CommandParser';
+import type { ApplyToPipelineJsonSubjects, CommandParser, CommandParserInput } from '../_common/types/CommandParser';
 import type { PersonaCommand } from './PersonaCommand';
 
 /**
@@ -72,8 +70,17 @@ export const personaCommandParser: CommandParser<PersonaCommand> = {
     /**
      * Note: Prototype of [🍧] (remove this comment after full implementation)
      */
-    applyToPipelineJson(pipelineJson: WritableDeep<PipelineJson>, personaCommand: PersonaCommand): void {
+    applyToPipelineJson(personaCommand: PersonaCommand, subjects: ApplyToPipelineJsonSubjects): void {
         const { personaName, personaDescription } = personaCommand;
+        const { pipelineJson, promptTemplateJson } = subjects;
+
+        if (promptTemplateJson !== null) {
+            if (promptTemplateJson.blockType !== 'PROMPT_TEMPLATE') {
+                throw new ParsingError(`PERSONA command can be used only in PROMPT_TEMPLATE block`);
+            }
+
+            promptTemplateJson.personaName = personaName;
+        }
 
         const persona = pipelineJson.personas.find((persona) => persona.name === personaName);
 

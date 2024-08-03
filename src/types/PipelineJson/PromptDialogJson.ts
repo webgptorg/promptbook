@@ -8,3 +8,8 @@ import type { PromptTemplateJsonCommon } from './PromptTemplateJsonCommon';
 export interface PromptDialogJson extends PromptTemplateJsonCommon {
     readonly blockType: 'PROMPT_DIALOG';
 }
+
+
+/**
+ * TODO: [🧠][🥜]
+ */

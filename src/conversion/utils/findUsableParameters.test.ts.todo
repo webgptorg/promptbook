@@ -26,6 +26,7 @@ type FindUsableParametersOptions = {
      * Prompt template which potential usable parameters are searched for
      */
     promptTemplate: PromptTemplateJson;
+    // <- TODO: [🧠][🥜]
 };
 
 /**

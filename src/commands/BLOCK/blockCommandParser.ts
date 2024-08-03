@@ -81,6 +81,8 @@ export const blockCommandParser: CommandParser<BlockCommand> = {
         /* <- TODO: [🧠] Maybe dynamic */
     ],
 
+    // TODO: [♓️] order: -10 /* <- Note: Putting before other commands */
+
     /**
      * Parses the BLOCK command
      */
