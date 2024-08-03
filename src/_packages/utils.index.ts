@@ -18,7 +18,6 @@ import { countSentences, splitIntoSentences } from '../utils/expectation-counter
 import { countWords } from '../utils/expectation-counters/countWords';
 import { CountUtils } from '../utils/expectation-counters/index';
 import { extractParameters } from '../utils/extractParameters';
-import { replaceParameters } from '../utils/replaceParameters';
 import { DIACRITIC_VARIANTS_LETTERS } from '../utils/normalization/DIACRITIC_VARIANTS_LETTERS';
 import type { IKeywords, string_keyword } from '../utils/normalization/IKeywords';
 import { capitalize } from '../utils/normalization/capitalize';
@@ -40,6 +39,7 @@ import { parseNumber } from '../utils/parseNumber';
 import { $randomSeed } from '../utils/random/randomSeed';
 import { removeEmojis } from '../utils/removeEmojis';
 import { removeQuotes } from '../utils/removeQuotes';
+import { replaceParameters } from '../utils/replaceParameters';
 import { difference } from '../utils/sets/difference';
 import { intersection } from '../utils/sets/intersection';
 import { union } from '../utils/sets/union';
@@ -60,13 +60,14 @@ import { PROMPTBOOK_VERSION } from '../version';
 // Note: Exporting version from each package
 export { forEachAsync, PROMPTBOOK_VERSION };
 
+// Templating
+export { extractParameters, extractVariables, replaceParameters, spaceTrim };
+
 // TODO: [🌻] For all, decide if theese are internal or external
 export {
     $currentDate,
     $randomSeed,
     extractBlock, // <- [🌻] + maybe export through `@promptbook/markdown-utils`
-    extractParameters,
-    extractVariables,
     isHostnameOnPrivateNetwork,
     isUrlOnPrivateNetwork,
     isValidFilePath,
@@ -80,8 +81,6 @@ export {
     parseNumber, // <- [🌻]
     removeEmojis,
     removeQuotes,
-    replaceParameters,
-    spaceTrim,
     trimCodeBlock,
     trimEndOfCodeBlock,
     unwrapResult,

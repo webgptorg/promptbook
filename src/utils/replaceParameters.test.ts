@@ -1,7 +1,7 @@
 import { describe, expect, it } from '@jest/globals';
 import { spaceTrim } from 'spacetrim';
-import { replaceParameters } from '../execution/utils/replaceParameters';
 import { just } from './organization/just';
+import { replaceParameters } from './replaceParameters';
 
 describe('replaceParameters', () => {
     it('should work in supersimple case', () => {
