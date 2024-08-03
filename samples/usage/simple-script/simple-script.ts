@@ -35,6 +35,7 @@ async function main() {
 
     const collection = await createCollectionFromDirectory('./samples/templates/', {
         llmTools: null,
+        isVerbose: true,
         isRecursive: false,
         isCrashedOnError: true,
     });
@@ -49,6 +50,7 @@ async function main() {
         // `https://promptbook.studio/samples/language-capabilities.ptbk.md`,
     );
 
+    console.log(pipeline.sourceFile);
     await forTime(100);
 
     const tools = {

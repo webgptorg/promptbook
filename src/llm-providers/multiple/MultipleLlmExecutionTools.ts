@@ -1,19 +1,15 @@
 import spaceTrim from 'spacetrim';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
-import type { AvailableModel } from '../../execution/LlmExecutionTools';
-import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { ChatPromptResult } from '../../execution/PromptResult';
-import type { CompletionPromptResult } from '../../execution/PromptResult';
-import type { EmbeddingPromptResult } from '../../execution/PromptResult';
-import type { PromptResult } from '../../execution/PromptResult';
-import type { ChatPrompt } from '../../types/Prompt';
-import type { CompletionPrompt } from '../../types/Prompt';
-import type { EmbeddingPrompt } from '../../types/Prompt';
-import type { Prompt } from '../../types/Prompt';
-import type { string_markdown } from '../../types/typeAliases';
-import type { string_markdown_text } from '../../types/typeAliases';
-import type { string_title } from '../../types/typeAliases';
+import type { AvailableModel, LlmExecutionTools } from '../../execution/LlmExecutionTools';
+import type {
+    ChatPromptResult,
+    CompletionPromptResult,
+    EmbeddingPromptResult,
+    PromptResult,
+} from '../../execution/PromptResult';
+import type { ChatPrompt, CompletionPrompt, EmbeddingPrompt, Prompt } from '../../types/Prompt';
+import type { string_markdown, string_markdown_text, string_title } from '../../types/typeAliases';
 import type { really_any } from '../../utils/organization/really_any';
 
 /**
@@ -133,13 +129,11 @@ export class MultipleLlmExecutionTools implements LlmExecutionTools {
             throw new PipelineExecutionError(
                 spaceTrim(
                     (block) => `
-                          No execution tools available for model variant "${prompt.modelRequirements.modelVariant}".
-
-                          tl;dr
-
-                          You have provided no LLM Execution Tools that support model variant "${
+                          You have not provided any \`LlmExecutionTools\` that support model variant "${
                               prompt.modelRequirements.modelVariant
-                          }:
+                          }
+
+                          Available \`LlmExecutionTools\`:
                           ${block(
                               this.llmExecutionTools
                                   .map((tools) => `- ${tools.title} ${tools.description || ''}`)

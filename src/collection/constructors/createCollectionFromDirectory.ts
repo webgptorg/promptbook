@@ -9,8 +9,7 @@ import { validatePipeline } from '../../conversion/validation/validatePipeline';
 import { CollectionError } from '../../errors/CollectionError';
 import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import type { PipelineString } from '../../types/PipelineString';
-import type { string_file_path } from '../../types/typeAliases';
-import type { string_folder_path } from '../../types/typeAliases';
+import type { string_file_path, string_folder_path } from '../../types/typeAliases';
 import { isRunningInNode } from '../../utils/isRunningInWhatever';
 import type { PipelineCollection } from '../PipelineCollection';
 import { createCollectionFromPromise } from './createCollectionFromPromise';
@@ -20,7 +19,7 @@ import { createCollectionFromPromise } from './createCollectionFromPromise';
  */
 type CreatePipelineCollectionFromDirectoryOptions = PipelineStringToJsonOptions & {
     /**
-     * If true, the directory is searched recursively for promptbooks
+     * If true, the directory is searched recursively for pipelines
      *
      * @default true
      */
@@ -41,8 +40,8 @@ type CreatePipelineCollectionFromDirectoryOptions = PipelineStringToJsonOptions 
     isLazyLoaded?: boolean;
 
     /**
-     * If true, whole collection creation crashes on error in any promptbook
-     * If true and isLazyLoaded is true, the error is thrown on first access to the promptbook
+     * If true, whole collection creation crashes on error in any pipeline
+     * If true and isLazyLoaded is true, the error is thrown on first access to the pipeline
      *
      * @default true
      */
@@ -50,11 +49,11 @@ type CreatePipelineCollectionFromDirectoryOptions = PipelineStringToJsonOptions 
 };
 
 /**
- * Constructs Promptbook from given directory
+ * Constructs Pipeline from given directory
  *
  * Note: Works only in Node.js environment because it reads the file system
  *
- * @param path - path to the directory with promptbooks
+ * @param path - path to the directory with pipelines
  * @param options - Misc options for the collection
  * @returns PipelineCollection
  */
@@ -91,58 +90,72 @@ export async function createCollectionFromDirectory(
 
     const collection = createCollectionFromPromise(async () => {
         if (isVerbose) {
-            console.info(`Creating pipeline collection from path ${path.split('\\').join('/')}`);
+            console.info(colors.cyan(`Creating pipeline collection from path ${path.split('\\').join('/')}`));
         }
 
         const fileNames = await listAllFiles(path, isRecursive);
 
-        const promptbooks: Array<PipelineJson> = [];
+        // Note: First load all .ptbk.json and then .ptbk.md files
+        //       .ptbk.json can be prepared so it is faster to load
+        fileNames.sort((a, b) => {
+            if (a.endsWith('.ptbk.json') && b.endsWith('.ptbk.md')) {
+                return -1;
+            }
+            if (a.endsWith('.ptbk.md') && b.endsWith('.ptbk.json')) {
+                return 1;
+            }
+            return 0;
+        });
+
+        const pipelines: Array<PipelineJson> = [];
 
         for (const fileName of fileNames) {
             const sourceFile = './' + fileName.split('\\').join('/');
 
             try {
-                let promptbook: PipelineJson | null = null;
+                let pipeline: PipelineJson | null = null;
 
                 if (fileName.endsWith('.ptbk.md')) {
                     const pipelineString = (await readFile(fileName, 'utf8')) as PipelineString;
-                    promptbook = await pipelineStringToJson(pipelineString, options);
-                    promptbook = { ...promptbook, sourceFile };
+                    pipeline = await pipelineStringToJson(pipelineString, options);
+                    pipeline = { ...pipeline, sourceFile };
                 } else if (fileName.endsWith('.ptbk.json')) {
-                    if (isVerbose) {
-                        console.info(`Loading ${fileName.split('\\').join('/')}`);
-                    }
-
                     // TODO: Handle non-valid JSON files
-                    promptbook = JSON.parse(await readFile(fileName, 'utf8')) as PipelineJson;
+                    pipeline = JSON.parse(await readFile(fileName, 'utf8')) as PipelineJson;
                     // TODO: [🌗]
-                    promptbook = { ...promptbook, sourceFile };
+                    pipeline = { ...pipeline, sourceFile };
                 } else {
                     if (isVerbose) {
-                        console.info(`Skipping file ${fileName.split('\\').join('/')}`);
+                        console.info(colors.gray(`Skipping file ${fileName.split('\\').join('/')}`));
                     }
                 }
 
                 // ---
 
-                if (promptbook !== null) {
-                    if (!promptbook.pipelineUrl) {
+                if (pipeline !== null) {
+                    if (!pipeline.pipelineUrl) {
                         if (isVerbose) {
-                            console.info(`Not loading ${fileName.split('\\').join('/')} - missing URL`);
+                            console.info(
+                                colors.red(
+                                    `Can not load pipeline from ${fileName
+                                        .split('\\')
+                                        .join('/')} because of missing URL`,
+                                ),
+                            );
                         }
                     } else {
-                        if (isVerbose) {
-                            console.info(`Loading ${fileName.split('\\').join('/')}`);
-                        }
-
                         if (!isCrashedOnError) {
-                            // Note: Validate promptbook to check if it is logically correct to not crash on invalid promptbooks
+                            // Note: Validate pipeline to check if it is logically correct to not crash on invalid pipelines
                             //       But be handled in current try-catch block
-                            validatePipeline(promptbook);
+                            validatePipeline(pipeline);
                         }
 
-                        // Note: [🦄] Promptbook with same url uniqueness will be checked automatically in SimplePipelineCollection
-                        promptbooks.push(promptbook);
+                        if (isVerbose) {
+                            console.info(colors.green(`Loading ${fileName.split('\\').join('/')}`));
+                        }
+
+                        // Note: [🦄] Pipeline with same url uniqueness will be checked automatically in SimplePipelineCollection
+                        pipelines.push(pipeline);
                     }
                 }
             } catch (error) {
@@ -168,7 +181,7 @@ export async function createCollectionFromDirectory(
             }
         }
 
-        return promptbooks;
+        return pipelines;
     });
 
     if (isLazyLoaded === false) {
@@ -204,6 +217,6 @@ async function listAllFiles(path: string_folder_path, isRecursive: boolean): Pro
 }
 
 /**
- * TODO: !!!! [🧠] Library precompilation and do not mix markdown and json promptbooks
- * Note: [🟢] This code should never be published outside of `@promptbook/node`
+ * TODO: !!!! [🧠] Library precompilation and do not mix markdown and json pipelines
+ * Note: [🟢] This code should never be published outside of `@pipeline/node`
  */

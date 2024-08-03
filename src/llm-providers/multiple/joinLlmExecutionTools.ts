@@ -18,7 +18,7 @@ import { MultipleLlmExecutionTools } from './MultipleLlmExecutionTools';
 export function joinLlmExecutionTools(...llmExecutionTools: Array<LlmExecutionTools>): MultipleLlmExecutionTools {
     if (llmExecutionTools.length === 0) {
         const warningMessage = spaceTrim(`
-            You have provided no LLM Execution Tools.
+            You have not provided any \`LlmExecutionTools\`
             This means that you won't be able to execute any prompts that require large language models like GPT-4 or Anthropic's Claude.
 
             Technically, it's not an error, but it's probably not what you want because it does not make sense to use Promptbook without language models.
@@ -51,5 +51,3 @@ export function joinLlmExecutionTools(...llmExecutionTools: Array<LlmExecutionTo
 
     return new MultipleLlmExecutionTools(...llmExecutionTools);
 }
-
-
