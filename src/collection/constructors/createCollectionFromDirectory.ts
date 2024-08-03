@@ -11,9 +11,7 @@ import { CollectionError } from '../../errors/CollectionError';
 import { unpreparePipeline } from '../../prepare/unpreparePipeline';
 import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import type { PipelineString } from '../../types/PipelineString';
-import type { string_file_path } from '../../types/typeAliases';
-import type { string_folder_path } from '../../types/typeAliases';
-import type { string_pipeline_url } from '../../types/typeAliases';
+import type { string_file_path, string_folder_path, string_pipeline_url } from '../../types/typeAliases';
 import { isRunningInNode } from '../../utils/isRunningInWhatever';
 import type { PipelineCollection } from '../PipelineCollection';
 import { createCollectionFromPromise } from './createCollectionFromPromise';
@@ -202,7 +200,7 @@ export async function createCollectionFromDirectory(
 
                 const wrappedErrorMessage = spaceTrim(
                     (block) => `
-                        Error ${fileName.split('\\').join('/')} –⁠⁠⁠⁠⁠⁠⁠⁠⁠⁠⁠⁠⁠⁠⁠⁠ ${error.name} occured:
+                        Error ${fileName.split('\\').join('/')} –⁠⁠⁠⁠⁠⁠⁠⁠⁠⁠⁠⁠⁠⁠⁠⁠ ${(error as Error).name} occured:
 
                         ${block((error as Error).message)}
 
