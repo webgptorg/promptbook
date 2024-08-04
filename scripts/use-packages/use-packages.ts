@@ -54,7 +54,7 @@ async function usePackages() {
         }
 
         console.warn(colors.gray(`Waiting for version ${currentVersion} to be available in NPM`));
-        await forTime(1000);
+        await forTime(1111 + 3333 * Math.random());
     }
 
     // Note: Update the version in all packages
