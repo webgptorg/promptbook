@@ -707,7 +707,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                     // [4]
                     warnings.push(
                         new PipelineExecutionError(
-                            `Parameter {${parameter.name}} should be an output parameter, but it was not be resolved`,
+                            `Parameter {${parameter.name}} should be an output parameter, but it was not generated during pipeline execution`,
                         ),
                         // <- TODO: This should be maybe `UnexpectedError` because it should be catched during `validatePipeline`
                     );

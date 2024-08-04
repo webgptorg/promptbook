@@ -43,7 +43,7 @@ describe('createPipelineExecutor + executing scripts in promptbook', () => {
                 isSuccessful: false,
                 errors: [/Error: I do not like Apples!/i],
                 warnings: [
-                    /PipelineExecutionError: Parameter {bhing} should be an output parameter, but it was not be resolved/i,
+                    /PipelineExecutionError: Parameter {bhing} should be an output parameter, but it was not generated/i,
                 ],
             });
 
