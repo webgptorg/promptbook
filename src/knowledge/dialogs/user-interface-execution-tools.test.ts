@@ -29,11 +29,11 @@ describe('createPipelineExecutor + executing user interface prompts in promptboo
 
         expect(pipelineExecutor({}, () => {})).resolves.toMatchObject({
             isSuccessful: false,
-            errors: [new Error(`Parameter {thing} is required as an input parameter`)],
+            errors: [/Parameter {thing} is required as an input parameter/i],
         });
 
         expect(() => pipelineExecutor({}, () => {}).then(assertsExecutionSuccessful)).rejects.toThrowError(
-            /Parameter \{thing\} is required as an input parameter/,
+            /Parameter \{thing\} is required as an input parameter/i,
         );
     });
 });

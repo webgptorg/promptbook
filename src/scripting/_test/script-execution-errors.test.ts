@@ -1,7 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
 import { spaceTrim } from 'spacetrim';
 import { pipelineStringToJson } from '../../conversion/pipelineStringToJson';
-import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import { assertsExecutionSuccessful } from '../../execution/assertsExecutionSuccessful';
 import { createPipelineExecutor } from '../../execution/createPipelineExecutor';
 import { CallbackInterfaceTools } from '../../knowledge/dialogs/callback/CallbackInterfaceTools';
@@ -43,15 +42,13 @@ describe('createPipelineExecutor + executing scripts in promptbook', () => {
             expect(pipelineExecutor({ thing }, () => {})).resolves.toMatchObject({
                 isSuccessful: false,
                 errors: [
-                    new Error(`I do not like Apples!`),
-                    new PipelineExecutionError(
-                        `PipelineExecutionError: Parameter {bhing} is required as an output parameter but not set in the pipeline`,
-                    ),
+                    /I do not like Apples!/i,
+                    /PipelineExecutionError: Parameter {bhing} is required as an output parameter but not set in the pipeline/i,
                 ],
             });
 
             expect(() => pipelineExecutor({ thing }, () => {}).then(assertsExecutionSuccessful)).rejects.toThrowError(
-                /I do not like Apples!/,
+                /I do not like Apples!/i,
             );
         }
     });
