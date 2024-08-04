@@ -16,11 +16,11 @@ import type { PromptTemplateJson } from '../types/PipelineJson/PromptTemplateJso
 import type { ChatPrompt, CompletionPrompt, EmbeddingPrompt, Prompt } from '../types/Prompt';
 import type { TaskProgress } from '../types/TaskProgress';
 import type {
-    Parameters,
-    ReservedParameters,
-    string_markdown,
-    string_name,
-    string_parameter_value,
+  Parameters,
+  ReservedParameters,
+  string_markdown,
+  string_name,
+  string_parameter_value,
 } from '../types/typeAliases';
 import { arrayableToArray } from '../utils/arrayableToArray';
 import { deepFreeze, deepFreezeWithSameType } from '../utils/deepFreeze';
@@ -143,7 +143,6 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                     isSuccessful: false,
                     errors: [
                         new PipelineExecutionError(`Parameter {${parameter.name}} is required as an input parameter`),
-                        // <- TODO: !!!!! Test this error
                     ],
                     executionReport,
                     outputParameters: {},
@@ -161,7 +160,6 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
             if (parameter === undefined) {
                 errors.push(
                     new PipelineExecutionError(`Extra parameter {${parameterName}} is passed as input parameter`),
-                    // <- TODO: !!!!! Test this error
                 );
             } else if (parameter.isInput === false) {
                 // TODO: [🧠] This should be also non-critical error
@@ -171,7 +169,6 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                         new PipelineExecutionError(
                             `Parameter {${parameter.name}} is passed as input parameter but is not input`,
                         ),
-                        // <- TODO: !!!!! Test this error
                     ],
                     executionReport,
                     outputParameters: {},

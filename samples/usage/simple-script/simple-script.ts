@@ -47,7 +47,6 @@ async function main() {
 
     if (!pipeline.sourceFile) {
         throw new Error(`Pipeline has no sourceFile`);
-        process.exit(1);
     }
 
     await forTime(100);
@@ -73,11 +72,7 @@ async function main() {
         },
     );
 
-    console.info(
-        'outputParameters',
-        outputParameters,
-        // <- TODO: !!!!! Do not leak input and internal parameters to the output
-    );
+    console.info('outputParameters', outputParameters);
 
     /*
     TODO: After [🔼] !!!!
