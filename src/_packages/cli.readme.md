@@ -14,6 +14,7 @@ Then just use it:
 
 ```typescript
 import { createPipelineExecutor, assertsExecutionSuccessful } from '@promptbook/core';
+import { createLlmToolsFromEnv } from '@promptbook/node';
 import { getPipelineCollection } from './promptbook-collection'; // <- Importing from pre-built library
 import { JavascriptExecutionTools } from '@promptbook/execute-javascript';
 import { OpenAiExecutionTools } from '@promptbook/openai';
@@ -25,10 +26,7 @@ const promptbook = await getPipelineCollection().getPipelineByUrl(
 
 // ▶ Prepare tools
 const tools = {
-    llm: new OpenAiExecutionTools({
-        isVerbose: true,
-        apiKey: process.env.OPENAI_API_KEY,
-    }),
+    llm: createLlmToolsFromEnv(),
     script: [new JavascriptExecutionTools()],
 };
 

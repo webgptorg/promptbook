@@ -6,7 +6,7 @@
 import { createPipelineExecutor, createCollectionFromDirectory, assertsExecutionSuccessful } from '@promptbook/core';
 import { createCollectionFromDirectory } from '@promptbook/node';
 import { JavascriptExecutionTools } from '@promptbook/execute-javascript';
-import { OpenAiExecutionTools } from '@promptbook/openai';
+import { AnthropicClaudeExecutionTools } from '@promptbook/anthropic-claude';
 
 // ▶ Create whole pipeline collection
 const collection = await createCollectionFromDirectory('./promptbook-collection');
@@ -40,6 +40,45 @@ const { isSuccessful, errors, outputParameters, executionReport } = result;
 console.info(outputParameters);
 ```
 
+## 🧙‍♂️ Connect to LLM providers automatically
+
+You can just use `createLlmToolsFromEnv` function to create LLM tools from environment variables like `ANTHROPIC_CLAUDE_API_KEY` and `OPENAI_API_KEY` automatically.
+
+```typescript
+import { createPipelineExecutor, createCollectionFromDirectory, assertsExecutionSuccessful } from '@promptbook/core';
+import { JavascriptExecutionTools } from '@promptbook/execute-javascript';
+import { createLlmToolsFromEnv } from '@promptbook/node';
+
+// ▶ Create whole pipeline collection
+const collection = await createCollectionFromDirectory('./promptbook-collection');
+
+// ▶ Get single Pipeline
+const pipeline = await collection.getPipelineByUrl(`https://promptbook.studio/my-collection/write-article.ptbk.md`);
+
+// ▶ Prepare multiple tools
+const tools = {
+    // Note: 🧙‍♂️ Just call `createLlmToolsFromEnv` to automatically connect to all configured providers
+    llm: createLlmToolsFromEnv(),
+    script: [new JavascriptExecutionTools()],
+};
+
+// ▶ Create executor - the function that will execute the Pipeline
+const pipelineExecutor = createPipelineExecutor({ pipeline, tools });
+
+// ▶ Prepare input parameters
+const inputParameters = { word: 'dog' };
+
+// 🚀▶ Execute the Pipeline
+const result = await pipelineExecutor(inputParameters);
+
+// ▶ Fail if the execution was not successful
+assertsExecutionSuccessful(result);
+
+// ▶ Handle the result
+const { isSuccessful, errors, outputParameters, executionReport } = result;
+console.info(outputParameters);
+```
+
 ## 💕 Usage of multiple LLM providers
 
 You can use multiple LLM providers in one Promptbook execution. The best model will be chosen automatically according to the prompt and the model's capabilities.
@@ -58,7 +97,7 @@ const pipeline = await collection.getPipelineByUrl(`https://promptbook.studio/my
 // ▶ Prepare multiple tools
 const tools = {
     llm: [
-        // Note: You can use multiple LLM providers in one Promptbook execution.
+        // Note: 💕 You can use multiple LLM providers in one Promptbook execution.
         //       The best model will be chosen automatically according to the prompt and the model's capabilities.
         new AnthropicClaudeExecutionTools({
             apiKey: process.env.ANTHROPIC_CLAUDE_API_KEY,

@@ -54,7 +54,6 @@ async function main() {
 
     const tools = {
         llm: createLlmToolsFromEnv(),
-        // <- TODO: !!!!! Use `createLlmToolsFromEnv` in all samples
         script: [
             new JavascriptExecutionTools({
                 isVerbose: true,
