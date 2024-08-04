@@ -43,7 +43,7 @@ describe('createPipelineExecutor + executing scripts in promptbook', () => {
                 isSuccessful: false,
                 errors: [
                     /I do not like Apples!/i,
-                    /PipelineExecutionError: Parameter {bhing} is required as an output parameter but not set in the pipeline/i,
+                    /PipelineExecutionError: Parameter {bhing} should be an output parameter, but it was not be resolved/i,
                 ],
             });
 
