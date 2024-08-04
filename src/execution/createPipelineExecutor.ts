@@ -796,4 +796,5 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
  * Note: CreatePipelineExecutorOptions are just connected to PipelineExecutor so do not extract to types folder
  * TODO: [🧠][3] transparent = (report intermediate parameters) / opaque execution = (report only output parameters) progress reporting mode
  * TODO: [🛠] Actions, instruments (and maybe knowledge) => Functions and tools
+ * TODO: [💷] !!!! `assertsExecutionSuccessful` should be the method of `PipelineExecutor` result
  */

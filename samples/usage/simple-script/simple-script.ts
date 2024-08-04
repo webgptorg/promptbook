@@ -54,6 +54,7 @@ async function main() {
 
     const tools = {
         llm: createLlmToolsFromEnv(),
+        // <- TODO: !!!!! Use `createLlmToolsFromEnv` in all samples
         script: [
             new JavascriptExecutionTools({
                 isVerbose: true,
@@ -96,6 +97,7 @@ async function main() {
     );
 
     assertsExecutionSuccessful({ isSuccessful, errors });
+    // <- TODO: [💷] !!!! `assertsExecutionSuccessful` should be the method of `PipelineExecutor` result
 
     process.exit(0);
 }

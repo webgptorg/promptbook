@@ -46,4 +46,5 @@ export type PipelineExecutor = {
 
 /**
  * TODO: [🧠] Should this file be in /execution or /types folder?
+ * TODO: [💷] !!!! `assertsExecutionSuccessful` should be the method of `PipelineExecutor` result
  */
