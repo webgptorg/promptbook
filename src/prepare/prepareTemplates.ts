@@ -1,5 +1,6 @@
-import { PromptTemplateJson } from '../_packages/types.index';
-import { forEachAsync, spaceTrim } from '../_packages/utils.index';
+import { spaceTrim } from 'spacetrim';
+import type { PromptTemplateJson } from '../types/PipelineJson/PromptTemplateJson';
+import { forEachAsync } from '../execution/utils/forEachAsync';
 import { MAX_PARALLEL_COUNT } from '../config';
 import type { PipelineJson } from '../types/PipelineJson/PipelineJson';
 import { TODO_USE } from '../utils/organization/TODO_USE';

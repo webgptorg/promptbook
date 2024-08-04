@@ -1,4 +1,5 @@
-import { LOOP_LIMIT, REPLACING_NONCE } from '../../config';
+import { LOOP_LIMIT } from '../../config';
+import { REPLACING_NONCE } from '../../config';
 import type { string_json } from '../../types/typeAliases';
 
 /**
