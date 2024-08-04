@@ -65,8 +65,7 @@ async function main() {
     const pipelineExecutor = createPipelineExecutor({ pipeline, tools });
 
     const inputParameters = {
-        eventName: 'CzechFutureTech',
-        // eventNameX: '!!!! Warn on extra parameter'
+        eventName: 'TypeScript developers summit 2025',
     };
     const { isSuccessful, errors, outputParameters, executionReport } = await pipelineExecutor(
         inputParameters,
@@ -101,6 +100,15 @@ async function main() {
 
     assertsExecutionSuccessful({ isSuccessful, errors });
     // <- TODO: [💷] !!!! `assertsExecutionSuccessful` should be the method of `PipelineExecutor` result
+
+    for (const error of errors) {
+        console.error(colors.bgYellow(error.name /* <- 11:11 */));
+        console.error(colors.yellow(error.stack || error.message));
+    }
+
+    const { bio } = outputParameters;
+
+    console.info(colors.green(bio));
 
     process.exit(0);
 }
