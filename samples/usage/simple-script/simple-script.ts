@@ -1,13 +1,8 @@
 #!/usr/bin/env ts-node
 
-import {
-    assertsExecutionSuccessful,
-    // !!!! createLlmToolsFromEnv,
-    createPipelineExecutor,
-    executionReportJsonToString,
-} from '@promptbook/core';
+import { assertsExecutionSuccessful, createPipelineExecutor, executionReportJsonToString } from '@promptbook/core';
 import { JavascriptExecutionTools } from '@promptbook/execute-javascript';
-import { createCollectionFromDirectory } from '@promptbook/node';
+import { createCollectionFromDirectory, createLlmToolsFromEnv } from '@promptbook/node';
 import colors from 'colors';
 import * as dotenv from 'dotenv';
 import { writeFile } from 'fs/promises';
@@ -50,11 +45,15 @@ async function main() {
         // `https://promptbook.studio/samples/language-capabilities.ptbk.md`,
     );
 
-    console.log(pipeline.sourceFile);
+    if (!pipeline.sourceFile) {
+        throw new Error(`Pipeline has no sourceFile`);
+        process.exit(1);
+    }
+
     await forTime(100);
 
     const tools = {
-        llm: [], // !!!! createLlmToolsFromEnv(),
+        llm: createLlmToolsFromEnv(),
         script: [
             new JavascriptExecutionTools({
                 isVerbose: true,
@@ -68,7 +67,7 @@ async function main() {
 
     // <- TODO: !!!! Why this is not prepared?
 
-    const inputParameters = { eventNameX: 'CzechFutureTech' };
+    const inputParameters = { eventName: 'CzechFutureTech', eventNameX: '!!!! Warn on extra parameter' };
     const { isSuccessful, errors, outputParameters, executionReport } = await pipelineExecutor(
         inputParameters,
         (progress) => {
@@ -77,11 +76,6 @@ async function main() {
     );
 
     console.info(outputParameters);
-
-    if (!pipeline.sourceFile) {
-        throw new Error(`Pipeline has no sourceFile`);
-        process.exit(1);
-    }
 
     /*
     TODO: After [🔼] !!!!
@@ -94,7 +88,12 @@ async function main() {
 
     const executionReportString = executionReportJsonToString(executionReport);
     // TODO: !!! Unhardcode 50-advanced
-    await writeFile(pipeline.sourceFile.split('.ptbk.md').join('.report.md'), executionReportString, 'utf-8');
+    await writeFile(
+        pipeline.sourceFile.split('.ptbk.md').join('.report.md').split('.ptbk.json').join('.report.md'),
+        //                  <- TODO: More elegant way to replace extension
+        executionReportString,
+        'utf-8',
+    );
 
     assertsExecutionSuccessful({ isSuccessful, errors });
 
