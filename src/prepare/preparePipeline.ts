@@ -8,6 +8,7 @@ import type { PipelineJson } from '../types/PipelineJson/PipelineJson';
 import type { PreparationJson } from '../types/PipelineJson/PreparationJson';
 import { PROMPTBOOK_VERSION } from '../version';
 import type { PrepareOptions } from './PrepareOptions';
+import { prepareTemplates } from './prepareTemplates';
 
 /**
  * Prepare pipeline from string (markdown) format to JSON format
@@ -18,6 +19,8 @@ import type { PrepareOptions } from './PrepareOptions';
 export async function preparePipeline(pipeline: PipelineJson, options: PrepareOptions): Promise<PipelineJson> {
     const { maxParallelCount = MAX_PARALLEL_COUNT } = options;
     const {
+        parameters,
+        promptTemplates,
         /*
         <- TODO: [🧠][0] `promptbookVersion` */
         knowledgeSources /*
@@ -49,7 +52,8 @@ export async function preparePipeline(pipeline: PipelineJson, options: PrepareOp
     // ----- /ID -----
 
     // ----- Personas preparation -----
-    // TODO: [🧠] Implement some `mapAsync` function
+    // TODO: !!!! Extract to similar function as `prepareTemplates`
+    // TODO: [🦪][🧠] Implement some `mapAsync` function
     const preparedPersonas: Array<PersonaPreparedJson> = new Array(personas.length);
     await forEachAsync(
         personas,
@@ -69,6 +73,7 @@ export async function preparePipeline(pipeline: PipelineJson, options: PrepareOp
     // ----- /Personas preparation -----
 
     // ----- Knowledge preparation -----
+    // TODO: !!!! Extract to similar function as `prepareTemplates`
     const knowledgeSourcesPrepared = knowledgeSources.map((source) => ({
         ...source,
         preparationIds: [/* TODO: [🧊] -> */ currentPreparation.id],
@@ -85,12 +90,20 @@ export async function preparePipeline(pipeline: PipelineJson, options: PrepareOp
     }));
     // ----- /Knowledge preparation -----
 
-    // TODO: !!!!! Add context to each template (if missing)
-    // TODO: !!!!! Add knowledge to each template (if missing and is in pipeline defined)
-    // TODO: !!!!! Apply samples to each template (if missing and is for the template defined)
+    // ----- Templates preparation -----
+    const { promptTemplatesPrepared /* TODO: parameters: parametersPrepared*/ } = await prepareTemplates(
+        {
+            parameters,
+            promptTemplates,
+            knowledgePiecesCount: knowledgePiecesPrepared.length,
+        },
+        options,
+    );
+    // ----- /Templates preparation -----
 
     return {
         ...pipeline,
+        promptTemplates: promptTemplatesPrepared,
         knowledgeSources: knowledgeSourcesPrepared,
         knowledgePieces: knowledgePiecesPrepared,
         personas: preparedPersonas,
@@ -99,7 +112,6 @@ export async function preparePipeline(pipeline: PipelineJson, options: PrepareOp
 }
 
 /**
- * TODO: !!!!! Index the samples and maybe templates
  * TODO: [🔼] !!! Export via `@promptbook/core`
  * TODO: Write tests for `preparePipeline`
  * TODO: [🏏] Leverage the batch API and build queues @see https://platform.openai.com/docs/guides/batch

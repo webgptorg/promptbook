@@ -52,7 +52,7 @@
     "preparations": [
         {
             "id": 1,
-            "promptbookVersion": "0.61.0-22",
+            "promptbookVersion": "0.61.0-23",
             "modelUsage": {
                 "price": {
                     "value": 0

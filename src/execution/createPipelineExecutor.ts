@@ -202,7 +202,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
             template: PromptTemplateJson,
         ): Promise<string_parameter_value & string_markdown> {
             TODO_USE(template);
-            return '';
+            return RESERVED_PARAMETER_MISSING_VALUE /* <- TODO: !!!! Implement */;
         }
 
         async function getKnowledgeForTemplate( // <- TODO: [🧠][🥜]
@@ -220,7 +220,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
             // TODO: !!!! Implement Better - use real index and keyword search
 
             TODO_USE(template);
-            return '';
+            return RESERVED_PARAMETER_MISSING_VALUE /* <- TODO: !!!! Implement */;
         }
 
         async function getReservedParametersForTemplate(template: PromptTemplateJson): Promise<ReservedParameters> {

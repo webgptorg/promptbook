@@ -25,7 +25,7 @@
             "modelRequirements": {
                 "modelVariant": "CHAT"
             },
-            "content": "You are writing a bio for Pavol Hejný for the event {eventName}.\n\n## Rules\n\n-   Write just the bio, nothing else.\n-   Write in the third person.\n-   Bio is written in the present tense.\n-   Bio should be written for event named \"{eventName}\".\n-   Use markdown formatting.",
+            "content": "You are writing a bio for Pavol Hejný for the event {eventName}.\n\n## Rules\n\n-   Write just the bio, nothing else.\n-   Write in the third person.\n-   Bio is written in the present tense.\n-   Bio should be written for event named \"{eventName}\".\n-   Use markdown formatting.\n\n## Knowledge\n\n{knowledge}",
             "personaName": "Jane",
             "expectations": {
                 "sentences": {
@@ -214,7 +214,7 @@
     "preparations": [
         {
             "id": 1,
-            "promptbookVersion": "0.61.0-22",
+            "promptbookVersion": "0.61.0-23",
             "modelUsage": {
                 "price": {
                     "value": 0
