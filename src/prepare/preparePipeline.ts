@@ -85,10 +85,9 @@ export async function preparePipeline(pipeline: PipelineJson, options: PrepareOp
     }));
     // ----- /Knowledge preparation -----
 
-
-
     // TODO: !!!!! Add context to each template (if missing)
-    // TODO: !!!!! Apply samples to each template (if missing)
+    // TODO: !!!!! Add knowledge to each template (if missing and is in pipeline defined)
+    // TODO: !!!!! Apply samples to each template (if missing and is for the template defined)
 
     return {
         ...pipeline,

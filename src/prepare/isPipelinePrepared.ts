@@ -23,9 +23,7 @@ export function isPipelinePrepared(pipeline: PipelineJson): boolean {
         return false;
     }
 
-    // TODO: !!!!! Is context in each template
-    // TODO: !!!!! Are samples prepared
-    // TODO: !!!!! Are templates prepared
+
 
     return true;
 }
@@ -34,4 +32,8 @@ export function isPipelinePrepared(pipeline: PipelineJson): boolean {
  * TODO: [🐠] Maybe base this on `makeValidator`
  * TODO: [🔼] Export via core or utils
  * TODO: [🧊] Pipeline can be partially prepared, this should return true ONLY if fully prepared
+ * TODO: [🧿] Maybe do same process with same granularity and subfinctions as `preparePipeline`
+ *     - Is context in each template
+ *     - Are samples prepared
+ *     - Are templates prepared
  */
