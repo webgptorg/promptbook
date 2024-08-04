@@ -26,7 +26,18 @@ export function assertsExecutionSuccessful(
                 (block) => `
                     Multiple errors occurred during promptnook execution
 
-                    ${block(errors.map((error) => '- ' + error.message).join('\n'))}
+                    ${block(
+                        errors
+                            .map((error, index) =>
+                                spaceTrim(
+                                    (block) => `
+                                        Error ${index + 1}:
+                                        ${block(error.stack || error.message)}
+                                    `,
+                                ),
+                            )
+                            .join('\n'),
+                    )}
                 `,
             ),
         );
