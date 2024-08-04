@@ -1,6 +1,6 @@
 #!/usr/bin/env ts-node
 
-import { assertsExecutionSuccessful, createPipelineExecutor, executionReportJsonToString } from '@promptbook/core';
+import { createPipelineExecutor, executionReportJsonToString } from '@promptbook/core';
 import { JavascriptExecutionTools } from '@promptbook/execute-javascript';
 import { createCollectionFromDirectory, createLlmToolsFromEnv } from '@promptbook/node';
 import colors from 'colors';
@@ -65,7 +65,7 @@ async function main() {
     const inputParameters = {
         eventName: 'TypeScript developers summit 2025',
     };
-    const { isSuccessful, errors, outputParameters, executionReport } = await pipelineExecutor(
+    const { isSuccessful, errors, warnings, outputParameters, executionReport } = await pipelineExecutor(
         inputParameters,
         (progress) => {
             console.info({ progress });
@@ -92,19 +92,21 @@ async function main() {
         'utf-8',
     );
 
-    assertsExecutionSuccessful({ isSuccessful, errors });
-    // <- TODO: [💷] !!!! `assertsExecutionSuccessful` should be the method of `PipelineExecutor` result
-
     for (const error of errors) {
-        console.error(colors.bgYellow(error.name /* <- 11:11 */));
-        console.error(colors.yellow(error.stack || error.message));
+        console.error(colors.bgRed(error.name /* <- 11:11 */));
+        console.error(colors.red(error.stack || error.message));
+    }
+
+    for (const warning of warnings) {
+        console.error(colors.bgYellow(warning.name /* <- 11:11 */));
+        console.error(colors.yellow(warning.stack || warning.message));
     }
 
     const { bio } = outputParameters;
 
     console.info(colors.green(bio));
 
-    process.exit(0);
+    process.exit(isSuccessful ? 0 : 1);
 }
 
 /**

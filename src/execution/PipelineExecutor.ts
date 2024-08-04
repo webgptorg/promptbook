@@ -14,34 +14,42 @@ import type { PromptResultUsage } from './PromptResultUsage';
  * @see https://github.com/webgptorg/promptbook#executor
  */
 export type PipelineExecutor = {
-    (inputParameters: Parameters, onProgress?: (taskProgress: TaskProgress) => Promisable<void>): Promise<{
-        /**
-         * Whether the execution was successful, details are aviable in `executionReport`
-         */
-        readonly isSuccessful: boolean;
+    (
+        inputParameters: Parameters,
+        onProgress?: (taskProgress: TaskProgress) => Promisable<void>,
+    ): Promise<PipelineExecutorResult>;
+};
 
-        /**
-         * Added usage of whole execution, detailed usage is aviable in `executionReport`
-         */
-        readonly usage: PromptResultUsage;
-
-        /**
-         * Errors that occured during the execution, details are aviable in `executionReport`
-         */
-        readonly errors: Array<PipelineExecutionError | Error>;
-
-        /**
-         * The report of the execution with all details
-         */
-        readonly executionReport: ExecutionReportJson;
-
-        /**
-         * Result parameters of the execution
-         *
-         * Note: If the execution was not successful, there are only some of the result parameters
-         */
-        readonly outputParameters: Parameters;
-    }>;
+/**
+ * @@@
+ */
+export type PipelineExecutorResult = {
+    /**
+     * Whether the execution was successful, details are aviable in `executionReport`
+     */
+    readonly isSuccessful: boolean;
+    /**
+     * Added usage of whole execution, detailed usage is aviable in `executionReport`
+     */
+    readonly usage: PromptResultUsage;
+    /**
+     * Errors that occured during the execution, details are aviable in `executionReport`
+     */
+    readonly errors: Array<PipelineExecutionError | Error>;
+    /**
+     * Warnings that occured during the execution, details are aviable in `executionReport`
+     */
+    readonly warnings: Array<PipelineExecutionError | Error>;
+    /**
+     * The report of the execution with all details
+     */
+    readonly executionReport: ExecutionReportJson;
+    /**
+     * Result parameters of the execution
+     *
+     * Note: If the execution was not successful, there are only some of the result parameters
+     */
+    readonly outputParameters: Parameters;
 };
 
 /**

@@ -16,11 +16,11 @@ import type { PromptTemplateJson } from '../types/PipelineJson/PromptTemplateJso
 import type { ChatPrompt, CompletionPrompt, EmbeddingPrompt, Prompt } from '../types/Prompt';
 import type { TaskProgress } from '../types/TaskProgress';
 import type {
-  Parameters,
-  ReservedParameters,
-  string_markdown,
-  string_name,
-  string_parameter_value,
+    Parameters,
+    ReservedParameters,
+    string_markdown,
+    string_name,
+    string_parameter_value,
 } from '../types/typeAliases';
 import { arrayableToArray } from '../utils/arrayableToArray';
 import { deepFreeze, deepFreezeWithSameType } from '../utils/deepFreeze';
@@ -32,7 +32,7 @@ import { difference } from '../utils/sets/difference';
 import { union } from '../utils/sets/union';
 import { PROMPTBOOK_VERSION } from '../version';
 import type { ExecutionTools } from './ExecutionTools';
-import type { PipelineExecutor } from './PipelineExecutor';
+import type { PipelineExecutor, PipelineExecutorResult } from './PipelineExecutor';
 import type { ChatPromptResult, CompletionPromptResult, EmbeddingPromptResult, PromptResult } from './PromptResult';
 import { addUsage, ZERO_USAGE } from './utils/addUsage';
 import { checkExpectations } from './utils/checkExpectations';
@@ -144,22 +144,27 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                     errors: [
                         new PipelineExecutionError(`Parameter {${parameter.name}} is required as an input parameter`),
                     ],
+                    warnings: [],
                     executionReport,
                     outputParameters: {},
                     usage: ZERO_USAGE,
-                });
+                }) satisfies PipelineExecutorResult;
             }
         }
 
         const errors: Array<PipelineExecutionError> = [];
+        const warnings: Array<PipelineExecutionError /* <- [🧠][⚠] What is propper object type to handle warnings */> =
+            [];
 
         // Note: Check that no extra input parameters are passed
         for (const parameterName of Object.keys(inputParameters)) {
             const parameter = pipeline.parameters.find(({ name }) => name === parameterName);
 
             if (parameter === undefined) {
-                errors.push(
-                    new PipelineExecutionError(`Extra parameter {${parameterName}} is passed as input parameter`),
+                warnings.push(
+                    new PipelineExecutionError(
+                        `Extra parameter {${parameterName}} is being passed which is not part of the pipeline.`,
+                    ),
                 );
             } else if (parameter.isInput === false) {
                 // TODO: [🧠] This should be also non-critical error
@@ -167,13 +172,14 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                     isSuccessful: false,
                     errors: [
                         new PipelineExecutionError(
-                            `Parameter {${parameter.name}} is passed as input parameter but is not input`,
+                            `Parameter {${parameter.name}} is passed as input parameter but it is not input`,
                         ),
                     ],
+                    warnings,
                     executionReport,
                     outputParameters: {},
                     usage: ZERO_USAGE,
-                });
+                }) satisfies PipelineExecutorResult;
             }
         }
 
@@ -664,7 +670,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
             for (const parameter of pipeline.parameters.filter(({ isOutput }) => isOutput)) {
                 if (parametersToPass[parameter.name] === undefined) {
                     // [4]
-                    errors.push(
+                    warnings.push(
                         new PipelineExecutionError(
                             `Parameter {${parameter.name}} should be an output parameter, but it was not be resolved`,
                         ),
@@ -756,31 +762,33 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                 ...executionReport.promptExecutions.map(({ result }) => result?.usage || ZERO_USAGE),
             );
 
-            // Note: Making this on separate than return to grab errors [4]
+            // Note: Making this on separate line before `return` to grab errors [4]
             const outputParameters = filterJustOutputParameters();
 
             return deepFreezeWithSameType({
                 isSuccessful: false,
                 errors: [error, ...errors],
+                warnings,
                 usage,
                 executionReport,
                 outputParameters,
-            });
+            }) satisfies PipelineExecutorResult;
         }
 
         // Note: Count usage, [🧠] Maybe put to separate function executionReportJsonToUsage + DRY [5]
         const usage = addUsage(...executionReport.promptExecutions.map(({ result }) => result?.usage || ZERO_USAGE));
 
-        // Note: Making this on separate than return to grab errors [4]
+        // Note:  Making this on separate line before `return` to grab errors [4]
         const outputParameters = filterJustOutputParameters();
 
         return deepFreezeWithSameType({
             isSuccessful: true,
             errors,
+            warnings,
             usage,
             executionReport,
             outputParameters,
-        });
+        }) satisfies PipelineExecutorResult;
     };
 
     return pipelineExecutor;

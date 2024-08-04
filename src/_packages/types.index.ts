@@ -6,7 +6,7 @@ import type { CommonExecutionToolsOptions } from '../execution/CommonExecutionTo
 import { EmbeddingVector } from '../execution/EmbeddingVector';
 import type { ExecutionTools } from '../execution/ExecutionTools';
 import type { AvailableModel, LlmExecutionTools } from '../execution/LlmExecutionTools';
-import type { PipelineExecutor } from '../execution/PipelineExecutor';
+import type { PipelineExecutor, PipelineExecutorResult } from '../execution/PipelineExecutor';
 import type {
     ChatPromptResult,
     CommonPromptResult,
@@ -39,6 +39,7 @@ import type { ScriptLanguage } from '../types/ScriptLanguage';
 import type { TaskProgress } from '../types/TaskProgress';
 import type { ExecutionReportJson } from '../types/execution-report/ExecutionReportJson';
 import type { string_char_emoji } from '../types/typeAliasEmoji';
+
 import type {
     Parameters,
     ReservedParameters,
@@ -130,6 +131,7 @@ export type {
     PersonaPreparedJson,
     PipelineCollection,
     PipelineExecutor,
+    PipelineExecutorResult,
     PipelineJson,
     PipelineString,
     PreparationJson,
