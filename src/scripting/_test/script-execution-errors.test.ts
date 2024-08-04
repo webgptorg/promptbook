@@ -1,6 +1,7 @@
 import { describe, expect, it } from '@jest/globals';
 import { spaceTrim } from 'spacetrim';
 import { pipelineStringToJson } from '../../conversion/pipelineStringToJson';
+import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import { assertsExecutionSuccessful } from '../../execution/assertsExecutionSuccessful';
 import { createPipelineExecutor } from '../../execution/createPipelineExecutor';
 import { CallbackInterfaceTools } from '../../knowledge/dialogs/callback/CallbackInterfaceTools';
@@ -41,7 +42,12 @@ describe('createPipelineExecutor + executing scripts in promptbook', () => {
         for (const thing of ['apple', 'apples', 'an apple', 'Apple', 'The Apple', '🍏 Apple', 'Apple 🍎']) {
             expect(pipelineExecutor({ thing }, () => {})).resolves.toMatchObject({
                 isSuccessful: false,
-                errors: [new Error(`I do not like Apples!`)],
+                errors: [
+                    new Error(`I do not like Apples!`),
+                    new PipelineExecutionError(
+                        `PipelineExecutionError: Parameter {bhing} is required as an output parameter but not set in the pipeline`,
+                    ),
+                ],
             });
 
             expect(() => pipelineExecutor({ thing }, () => {}).then(assertsExecutionSuccessful)).rejects.toThrowError(
@@ -92,7 +98,7 @@ async function getPipelineExecutor() {
                     return 'Hello';
                 },
             }),
-        }
+        },
     });
 
     return pipelineExecutor;
