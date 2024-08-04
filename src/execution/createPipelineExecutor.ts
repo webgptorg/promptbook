@@ -682,7 +682,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
         }
 
         try {
-            let resovedParameters: Array<string_name> = pipeline.parameters
+            let resovedParameterNames: Array<string_name> = pipeline.parameters
                 .filter(({ isInput }) => isInput)
                 .map(({ name }) => name);
             let unresovedTemplates: Array<PromptTemplateJson> = [...pipeline.promptTemplates];
@@ -697,7 +697,9 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                 }
 
                 const currentTemplate = unresovedTemplates.find((template) =>
-                    template.dependentParameterNames.every((name) => resovedParameters.includes(name)),
+                    template.dependentParameterNames.every((name) =>
+                        [...resovedParameterNames, ...RESERVED_PARAMETER_NAMES].includes(name),
+                    ),
                 );
 
                 if (!currentTemplate && resolving.length === 0) {
@@ -720,7 +722,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                                 )}
 
                                 Resolved:
-                                ${block(resovedParameters.map((name) => `- Parameter {${name}}`).join('\n'))}
+                                ${block(resovedParameterNames.map((name) => `- Parameter {${name}}`).join('\n'))}
 
                                 Note: This should be catched in \`validatePipeline\`
                             `,
@@ -733,7 +735,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
 
                     const work = /* [5] not await */ executeSingleTemplate(currentTemplate)
                         .then(() => {
-                            resovedParameters = [...resovedParameters, currentTemplate.resultingParameterName];
+                            resovedParameterNames = [...resovedParameterNames, currentTemplate.resultingParameterName];
                         })
                         .then(() => {
                             resolving = resolving.filter((w) => w !== work);
