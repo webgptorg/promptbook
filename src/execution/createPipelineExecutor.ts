@@ -4,8 +4,8 @@ import {
     LOOP_LIMIT,
     MAX_EXECUTION_ATTEMPTS,
     MAX_PARALLEL_COUNT,
+    RESERVED_PARAMETER_MISSING_VALUE,
     RESERVED_PARAMETER_NAMES,
-    RESERVED_PARAMETER_UNKNOWN_VALUE,
 } from '../config';
 import { extractParametersFromPromptTemplate } from '../conversion/utils/extractParametersFromPromptTemplate';
 import { validatePipeline } from '../conversion/validation/validatePipeline';
@@ -223,7 +223,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
             const knowledge = await getKnowledgeForTemplate(template);
             const samples = await getSamplesForTemplate(template);
             const currentDate = new Date().toISOString(); // <- TODO: [🧠] Better
-            const modelName = RESERVED_PARAMETER_UNKNOWN_VALUE;
+            const modelName = RESERVED_PARAMETER_MISSING_VALUE;
 
             const reservedParameters: ReservedParameters = {
                 context,

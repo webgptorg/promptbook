@@ -2,7 +2,7 @@
 
 -   PIPELINE URL `https://promptbook.studio/promptbook/prepare-knowledge-from-markdown.ptbk.md`
 -   INPUT PARAMETER `{content}` Markdown document content
--   OUTPUT PARAMETER `{knowledge}` The knowledge JSON object
+-   OUTPUT PARAMETER `{knowledgePieces}` The knowledge JSON object
 
 ## Knowledge
 
@@ -29,4 +29,4 @@ Take information from this document:
 > {content}
 ```
 
-`-> {knowledge}`
+`-> {knowledgePieces}`

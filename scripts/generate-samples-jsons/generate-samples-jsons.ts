@@ -48,31 +48,33 @@ async function generateSampleJsons({ isCommited, isVerbose }: { isCommited: bool
         throw new Error(`Working tree is not clean`);
     }
 
-    for (const promptbookMarkdownFilePath of await glob(
+    for (const pipelineMarkdownFilePath of await glob(
         join(PROMPTBOOK_SAMPLES_DIR, '*.ptbk.md').split('\\').join('/'),
     )) {
-        console.info(`📖  Generating JSON from ${promptbookMarkdownFilePath}`);
-        const promptbookMarkdown = await readFile(promptbookMarkdownFilePath, 'utf-8');
+        const pipelineMarkdown = await readFile(pipelineMarkdownFilePath, 'utf-8');
 
         const llmTools = getLlmToolsForTestingAndScriptsAndPlayground({ isVerbose });
 
         try {
-            const pipelineJson = await pipelineStringToJson(promptbookMarkdown as PipelineString, {
+            const pipelineJson = await pipelineStringToJson(pipelineMarkdown as PipelineString, {
                 llmTools,
             });
-            const pipelineJsonFilePath = promptbookMarkdownFilePath.replace(/\.ptbk\.md$/, '.ptbk.json');
+            const pipelineJsonFilePath = pipelineMarkdownFilePath.replace(/\.ptbk\.md$/, '.ptbk.json');
+
 
             // Note: We want to ensure that the generated JSONs are logically correct
             validatePipeline(pipelineJson);
 
             await writeFile(pipelineJsonFilePath, stringifyPipelineJson(pipelineJson));
+
+            console.info(colors.green(`📖  Generated .ptbk.json from ${pipelineMarkdownFilePath}`));
         } catch (error) {
             if (!(error instanceof Error)) {
                 throw error;
             }
 
             console.info(colors.bgWhite('========================='));
-            console.info(colors.red(`Error in ${promptbookMarkdownFilePath}`));
+            console.info(colors.red(`Error in ${pipelineMarkdownFilePath}`));
             console.error(colors.bgRed(error.name /* <- 11:11 */));
             console.error(colors.red(error.stack || error.message));
             console.info(colors.bgWhite('========================='));

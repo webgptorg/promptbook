@@ -10,7 +10,6 @@ export function isPipelinePrepared(pipeline: PipelineJson): boolean {
     // Note: Ignoring `pipeline.knowledgePieces` @@@
 
     if (!pipeline.personas.every((persona) => (persona as PersonaPreparedJson).modelRequirements !== undefined)) {
-        console.log('!!!!', 'Not all personas have modelRequirements');
         return false;
     }
 
@@ -19,7 +18,6 @@ export function isPipelinePrepared(pipeline: PipelineJson): boolean {
             (knowledgeSource) => (knowledgeSource as KnowledgeSourcePreparedJson).preparationIds !== undefined,
         )
     ) {
-        console.log('!!!!', 'Not all knowledgeSources have preparationIds');
         return false;
     }
 

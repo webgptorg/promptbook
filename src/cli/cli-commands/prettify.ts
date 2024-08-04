@@ -34,16 +34,16 @@ export function initializePrettifyCommand(program: Program) {
                 continue;
             }
 
-            let promptbookMarkdown = (await readFile(filePath, 'utf-8')) as PipelineString;
+            let pipelineMarkdown = (await readFile(filePath, 'utf-8')) as PipelineString;
 
             try {
-                promptbookMarkdown = await prettifyPipelineString(promptbookMarkdown, {
+                pipelineMarkdown = await prettifyPipelineString(pipelineMarkdown, {
                     isGraphAdded: true,
                     isPrettifyed: true,
                     // <- [🕌]
                 });
 
-                await writeFile(filePath, promptbookMarkdown);
+                await writeFile(filePath, pipelineMarkdown);
 
                 console.info(colors.green(`Prettify ${filePath}`));
             } catch (error) {

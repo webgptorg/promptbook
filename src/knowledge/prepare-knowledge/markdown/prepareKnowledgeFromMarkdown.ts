@@ -60,9 +60,9 @@ export async function prepareKnowledgeFromMarkdown(
     assertsExecutionSuccessful(result);
 
     const { outputParameters } = result;
-    const { knowledge: knowledgeRaw } = outputParameters;
+    const { knowledgePieces: knowledgePiecesRaw } = outputParameters;
 
-    const knowledgeTextPieces = (knowledgeRaw || '').split('\n---\n');
+    const knowledgeTextPieces = (knowledgePiecesRaw || '').split('\n---\n');
 
     if (isVerbose) {
         console.info('knowledgeTextPieces:', knowledgeTextPieces);
