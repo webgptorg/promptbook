@@ -39,24 +39,24 @@ export async function prepareTemplates(
         promptTemplates,
         { maxParallelCount /* <- TODO: [🪂] When there are subtasks, this maximul limit can be broken */ },
         async (template, index) => {
-            let { content } = template;
+            // TODO: Maybe use [🧊]> const { preparedContent } = template;
+            let preparedContent = '{content}';
 
             if (knowledgePiecesCount > 0) {
-                content = spaceTrim(
-                    (block) => `
-                        ${block(content)}
+                preparedContent = spaceTrim(`
+                    {content}
 
-                        ## Knowledge
+                    ## Knowledge
 
-                        {knowledge}
-                    `,
-                    // <- TODO: [🧠][🧻] Cutomize shape/language/formatting of the addition to the prompt
-                );
+                    {knowledge}
+                `);
+                // <- TODO: [🧠][🧻] Cutomize shape/language/formatting of the addition to the prompt
             }
 
             const preparedTemplate: PromptTemplateJson = {
                 ...template,
-                content,
+                preparedContent,
+                // <- TODO: [🍙] Make some standart order of json properties
             };
 
             promptTemplatesPrepared[index] = preparedTemplate;

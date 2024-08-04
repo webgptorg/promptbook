@@ -25,7 +25,8 @@
             },
             "content": "Hello",
             "dependentParameterNames": [],
-            "resultingParameterName": "greetingResponse"
+            "resultingParameterName": "greetingResponse",
+            "preparedContent": "{content}"
         }
     ],
     "knowledgeSources": [],

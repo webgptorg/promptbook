@@ -36,7 +36,8 @@
             "dependentParameterNames": [
                 "word"
             ],
-            "resultingParameterName": "wordSynonym"
+            "resultingParameterName": "wordSynonym",
+            "preparedContent": "{content}"
         }
     ],
     "knowledgeSources": [],

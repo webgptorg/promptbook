@@ -5,11 +5,11 @@ import type { PromptTemplateJsonCommon } from './PromptTemplateJsonCommon';
  *
  * @see https://github.com/webgptorg/promptbook/discussions/76
  */
-export interface PromptDialogJson extends PromptTemplateJsonCommon {
+export type PromptDialogJson = PromptTemplateJsonCommon & {
     readonly blockType: 'PROMPT_DIALOG';
-}
-
+};
 
 /**
  * TODO: [🧠][🥜]
+ * TODO: [🍙] Make some standart order of json properties
  */

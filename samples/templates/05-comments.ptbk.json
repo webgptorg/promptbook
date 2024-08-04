@@ -20,7 +20,8 @@
             },
             "content": "Hello",
             "dependentParameterNames": [],
-            "resultingParameterName": "greeting"
+            "resultingParameterName": "greeting",
+            "preparedContent": "{content}"
         }
     ],
     "knowledgeSources": [],

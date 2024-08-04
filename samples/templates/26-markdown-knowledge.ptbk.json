@@ -25,7 +25,7 @@
             "modelRequirements": {
                 "modelVariant": "CHAT"
             },
-            "content": "You are writing a bio for Pavol Hejný for the event {eventName}.\n\n## Rules\n\n-   Write just the bio, nothing else.\n-   Write in the third person.\n-   Bio is written in the present tense.\n-   Bio should be written for event named \"{eventName}\".\n-   Use markdown formatting.\n\n## Knowledge\n\n{knowledge}",
+            "content": "You are writing a bio for Pavol Hejný for the event {eventName}.\n\n## Rules\n\n-   Write just the bio, nothing else.\n-   Write in the third person.\n-   Bio is written in the present tense.\n-   Bio should be written for event named \"{eventName}\".\n-   Use markdown formatting.",
             "personaName": "Jane",
             "expectations": {
                 "sentences": {
@@ -35,7 +35,8 @@
             "dependentParameterNames": [
                 "eventName"
             ],
-            "resultingParameterName": "bio"
+            "resultingParameterName": "bio",
+            "preparedContent": "{content}\n\n## Knowledge\n\n{knowledge}"
         }
     ],
     "knowledgeSources": [

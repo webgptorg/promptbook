@@ -542,4 +542,5 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
  * TODO: [🥞] Not optimal parsing because `splitMarkdownIntoSections` is executed twice with same string, once through `flattenMarkdown` and second directly here
  * TODO: [♈] Probbably move expectations from templates to parameters
  * TODO: [🛠] Actions, instruments (and maybe knowledge) => Functions and tools
+ * TODO: [🍙] Make some standart order of json properties
  */

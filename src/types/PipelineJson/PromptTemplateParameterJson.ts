@@ -1,6 +1,4 @@
-import type { string_markdown_text } from '../typeAliases';
-import type { string_parameter_name } from '../typeAliases';
-import type { string_parameter_value } from '../typeAliases';
+import type { string_markdown_text, string_parameter_name, string_parameter_value } from '../typeAliases';
 
 /**
  * Describes one parameter of the promptbook
@@ -38,4 +36,5 @@ export type PromptTemplateParameterJson = {
 
 /**
  * TODO: [♈] Probbably move expectations from templates to parameters
+ * TODO: [🍙] Make some standart order of json properties
  */

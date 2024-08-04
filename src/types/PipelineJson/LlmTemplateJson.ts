@@ -25,4 +25,5 @@ export type LlmTemplateJson = PromptTemplateJsonCommon & {
  * TODO: [👙][🧠] Maybe add `knowledge`, `actions` and `instruments` to be available granularly for each template
  *       @see https://github.com/webgptorg/promptbook/discussions/79
  * TODO: [💕][🧠] Just selecting gpt3 or gpt4 level of model
+ * TODO: [🍙] Make some standart order of json properties
  */

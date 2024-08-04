@@ -6,7 +6,7 @@ import type { PromptTemplateJsonCommon } from './PromptTemplateJsonCommon';
  *
  * @see https://github.com/webgptorg/promptbook/discussions/77
  */
-export interface ScriptJson extends PromptTemplateJsonCommon {
+export type ScriptJson = PromptTemplateJsonCommon & {
     readonly blockType: 'SCRIPT';
 
     /**
@@ -15,4 +15,8 @@ export interface ScriptJson extends PromptTemplateJsonCommon {
      *
      */
     readonly contentLanguage?: ScriptLanguage;
-}
+};
+
+/**
+ * TODO: [🍙] Make some standart order of json properties
+ */

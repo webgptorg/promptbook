@@ -1,7 +1,5 @@
 import type { ChatModelRequirements } from '../ModelRequirements';
-import type { number_id } from '../typeAliases';
-import type { string_name } from '../typeAliases';
-import type { string_persona_description } from '../typeAliases';
+import type { number_id, string_name, string_persona_description } from '../typeAliases';
 
 /**
  * Defines a persona in the pipeline
@@ -40,3 +38,7 @@ export type PersonaPreparedJson = PersonaJson & {
      */
     readonly preparationIds: Array<number_id>;
 };
+
+/**
+ * TODO: [🍙] Make some standart order of json properties
+ */

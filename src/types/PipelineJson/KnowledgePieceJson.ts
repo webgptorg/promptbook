@@ -1,11 +1,13 @@
 import type { EmbeddingVector } from '../../execution/EmbeddingVector';
 import type { string_keyword } from '../../utils/normalization/IKeywords';
-import type { number_id } from '../typeAliases';
-import type { number_linecol_number } from '../typeAliases';
-import type { string_markdown } from '../typeAliases';
-import type { string_markdown_text } from '../typeAliases';
-import type { string_model_name } from '../typeAliases';
-import type { string_name } from '../typeAliases';
+import type {
+    number_id,
+    number_linecol_number,
+    string_markdown,
+    string_markdown_text,
+    string_model_name,
+    string_name,
+} from '../typeAliases';
 
 /**
  * Defines one piece of knowledge in the pipeline
@@ -75,3 +77,7 @@ export type KnowledgePiecePreparedJson = {
      */
     readonly preparationIds: Array<number_id>;
 };
+
+/**
+ * TODO: [🍙] Make some standart order of json properties
+ */

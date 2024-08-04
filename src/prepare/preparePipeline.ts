@@ -65,6 +65,7 @@ export async function preparePipeline(pipeline: PipelineJson, options: PrepareOp
                 ...persona,
                 modelRequirements,
                 preparationIds: [/* TODO: [🧊] -> */ currentPreparation.id],
+                // <- TODO: [🍙] Make some standart order of json properties
             };
 
             preparedPersonas[index] = preparedPersona;
@@ -87,6 +88,7 @@ export async function preparePipeline(pipeline: PipelineJson, options: PrepareOp
     const knowledgePiecesPrepared = partialknowledgePiecesPrepared.map((piece) => ({
         ...piece,
         preparationIds: [/* TODO: [🧊] -> */ currentPreparation.id],
+        // <- TODO: [🍙] Make some standart order of json properties
     }));
     // ----- /Knowledge preparation -----
 

@@ -34,7 +34,8 @@
             "dependentParameterNames": [
                 "unstructuredContacts"
             ],
-            "resultingParameterName": "contactlist"
+            "resultingParameterName": "contactlist",
+            "preparedContent": "{content}"
         }
     ],
     "knowledgeSources": [],

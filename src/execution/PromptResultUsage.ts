@@ -28,3 +28,7 @@ export type PromptResultUsage = {
  * Record of all possible measurable units
  */
 export type PromptResultUsageCounts = Record<`${KebabCase<'TOKENS' | ExpectationUnit>}Count`, UncertainNumber>;
+
+/**
+ * TODO: [🍙] Make some standart order of json properties
+ */
