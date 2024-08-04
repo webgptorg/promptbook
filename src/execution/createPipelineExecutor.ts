@@ -1,6 +1,12 @@
 import { spaceTrim } from 'spacetrim';
 import type { Promisable } from 'type-fest';
-import { LOOP_LIMIT, MAX_EXECUTION_ATTEMPTS, MAX_PARALLEL_COUNT, RESERVED_PARAMETER_NAMES } from '../config';
+import {
+    LOOP_LIMIT,
+    MAX_EXECUTION_ATTEMPTS,
+    MAX_PARALLEL_COUNT,
+    RESERVED_PARAMETER_NAMES,
+    RESERVED_PARAMETER_UNKNOWN_VALUE,
+} from '../config';
 import { extractParametersFromPromptTemplate } from '../conversion/utils/extractParametersFromPromptTemplate';
 import { validatePipeline } from '../conversion/validation/validatePipeline';
 import { ExpectError } from '../errors/_ExpectError';
@@ -185,7 +191,16 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
 
         let parametersToPass: Parameters = inputParameters;
 
+        // TODO: !!!!! Extract to separate functions and files - ALL FUNCTIONS BELOW
+
         async function getContextForTemplate( // <- TODO: [🧠][🥜]
+            template: PromptTemplateJson,
+        ): Promise<string_parameter_value & string_markdown> {
+            TODO_USE(template);
+            return '';
+        }
+
+        async function getKnowledgeForTemplate( // <- TODO: [🧠][🥜]
             template: PromptTemplateJson,
         ): Promise<string_parameter_value & string_markdown> {
             // TODO: !!!! Implement Better - use real index and keyword search
@@ -194,13 +209,28 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
             return pipeline.knowledgePieces.map(({ content }) => `- ${content}`).join('\n');
         }
 
+        async function getSamplesForTemplate( // <- TODO: [🧠][🥜]
+            template: PromptTemplateJson,
+        ): Promise<string_parameter_value & string_markdown> {
+            // TODO: !!!! Implement Better - use real index and keyword search
+
+            TODO_USE(template);
+            return '';
+        }
+
         async function getReservedParametersForTemplate(template: PromptTemplateJson): Promise<ReservedParameters> {
             const context = await getContextForTemplate(template);
+            const knowledge = await getKnowledgeForTemplate(template);
+            const samples = await getSamplesForTemplate(template);
             const currentDate = new Date().toISOString(); // <- TODO: [🧠] Better
+            const modelName = RESERVED_PARAMETER_UNKNOWN_VALUE;
 
             const reservedParameters: ReservedParameters = {
                 context,
+                knowledge,
+                samples,
                 currentDate,
+                modelName,
             };
 
             // Note: Doublecheck that ALL reserved parameters are defined:

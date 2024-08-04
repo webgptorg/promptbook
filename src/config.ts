@@ -49,10 +49,18 @@ export const EXECUTIONS_CACHE_DIRNAME = '/.promptbook/executions-cache';
 export const PIPELINE_COLLECTION_BASE_FILENAME = `index`;
 
 /**
+ * Nonce which is used for replacing things in strings
+ */
+export const REPLACING_NONCE = 'u$k42k%!V2zo34w7Fu#@QUHYPW';
+
+/**
  * The names of the parameters that are reserved for special purposes
  */
 export const RESERVED_PARAMETER_NAMES = deepFreeze([
     'context',
+    'knowledge',
+    'samples',
+    'modelName',
     'currentDate',
     // <- TODO: Add more like 'date', 'modelName',...
     // <- TODO: Add [emoji] + instructions ACRY when adding new reserved parameter
@@ -61,8 +69,12 @@ export const RESERVED_PARAMETER_NAMES = deepFreeze([
 /**
  * @@@
  */
-export const DEBUG_ALLOW_PAYED_TESTING: boolean = just(
+export const RESERVED_PARAMETER_MISSING_VALUE = 'MISSING-' + REPLACING_NONCE;
 
+/**
+ * @@@
+ */
+export const DEBUG_ALLOW_PAYED_TESTING: boolean = just(
     /**/
     // Note: In normal situations, we "turn off" ability to use real API keys in tests:
     false,
@@ -76,11 +88,6 @@ export const DEBUG_ALLOW_PAYED_TESTING: boolean = just(
     // Commit message:
     // [🔑] Turn off ability to use real API keys in tests
 );
-
-/**
- * Nonce which is used for replacing things in strings
- */
-export const REPLACING_NONCE = 'u$k42k%!V2zo34w7Fu#@QUHYPW';
 
 /*
 TODO: !!! Just testing false-negative detection of [🟡][🟢][🔵][⚪] leak

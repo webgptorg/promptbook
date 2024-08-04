@@ -1,8 +1,8 @@
-import { LOOP_LIMIT } from '../config';
+import { LOOP_LIMIT, RESERVED_PARAMETER_MISSING_VALUE } from '../config';
 import { LimitReachedError } from '../errors/LimitReachedError';
 import { PipelineExecutionError } from '../errors/PipelineExecutionError';
-import type { Parameters } from '../types/typeAliases';
-import type { string_template } from '../types/typeAliases';
+import { UnexpectedError } from '../errors/UnexpectedError';
+import type { Parameters, string_template } from '../types/typeAliases';
 
 /**
  * Replaces parameters in template with values from parameters object
@@ -13,6 +13,12 @@ import type { string_template } from '../types/typeAliases';
  * @throws {PipelineExecutionError} if parameter is not defined, not closed, or not opened
  */
 export function replaceParameters(template: string_template, parameters: Parameters): string {
+    for (const [parameterName, parameterValue] of Object.entries(parameters)) {
+        if (parameterValue === RESERVED_PARAMETER_MISSING_VALUE) {
+            throw new UnexpectedError(`Parameter {${parameterName}} has missing value`);
+        }
+    }
+
     let replacedTemplate = template;
     let match: RegExpExecArray | null;
 
