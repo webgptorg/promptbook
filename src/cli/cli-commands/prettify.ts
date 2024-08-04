@@ -52,8 +52,8 @@ export function initializePrettifyCommand(program: Program) {
                 }
 
                 console.info(colors.red(`Prettify ${error.name} ${filePath}`));
-                console.error(colors.bgRed(error.name));
-                console.error(error);
+                console.error(colors.bgRed(error.name /* <- 11:11 */));
+                console.error(colors.red(error.stack || error.message));
 
                 process.exit(1);
             }

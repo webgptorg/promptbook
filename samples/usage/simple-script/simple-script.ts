@@ -17,8 +17,8 @@ dotenv.config({ path: '.env' });
 
 main()
     .catch((error: Error) => {
-        console.error(colors.bgRed(error.name));
-        console.error(error);
+        console.error(colors.bgRed(error.name /* <- 11:11 */));
+        console.error(colors.red(error.stack || error.message));
         process.exit(1);
     })
     .then(() => {
@@ -75,7 +75,11 @@ async function main() {
         },
     );
 
-    console.info(outputParameters);
+    console.info(
+        'outputParameters',
+        outputParameters,
+        // <- TODO: !!!!! Do not leak input and internal parameters to the output
+    );
 
     /*
     TODO: After [🔼] !!!!

@@ -3,9 +3,9 @@
 import * as dotenv from 'dotenv';
 dotenv.config({ path: '.env' });
 
+import colors from 'colors';
 import commander from 'commander';
 import { readFile, writeFile } from 'fs/promises';
-import colors from 'colors';
 import glob from 'glob-promise';
 import { join } from 'path';
 import { executionReportJsonToString } from '../../src/types/execution-report/executionReportJsonToString';
@@ -26,8 +26,8 @@ const { commit: isCommited } = program.opts();
 
 generateSampleJsons({ isCommited })
     .catch((error) => {
-        console.error(colors.bgRed(error.name));
-        console.error(error);
+        console.error(colors.bgRed(error.name /* <- 11:11 */));
+        console.error(colors.red(error.stack || error.message));
         process.exit(1);
     })
     .then(() => {

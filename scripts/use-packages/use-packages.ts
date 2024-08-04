@@ -22,8 +22,8 @@ program.parse(process.argv);
 
 usePackages()
     .catch((error: Error) => {
-        console.error(colors.bgRed(error.name));
-        console.error(error);
+        console.error(colors.bgRed(error.name /* <- 11:11 */));
+        console.error(colors.red(error.stack || error.message));
         process.exit(1);
     })
     .then(() => {

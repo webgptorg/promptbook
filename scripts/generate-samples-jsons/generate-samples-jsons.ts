@@ -33,8 +33,8 @@ const { commit: isCommited, verbose: isVerbose } = program.opts();
 
 generateSampleJsons({ isCommited, isVerbose })
     .catch((error) => {
-        console.error(colors.bgRed(error.name));
-        console.error(error);
+        console.error(colors.bgRed(error.name /* <- 11:11 */));
+        console.error(colors.red(error.stack || error.message));
         process.exit(1);
     })
     .then(() => {
@@ -73,8 +73,8 @@ async function generateSampleJsons({ isCommited, isVerbose }: { isCommited: bool
 
             console.info(colors.bgWhite('========================='));
             console.info(colors.red(`Error in ${promptbookMarkdownFilePath}`));
-            console.error(colors.bgRed(error.name));
-            console.error(error);
+            console.error(colors.bgRed(error.name /* <- 11:11 */));
+            console.error(colors.red(error.stack || error.message));
             console.info(colors.bgWhite('========================='));
         }
     }
