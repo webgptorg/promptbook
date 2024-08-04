@@ -39,8 +39,7 @@
             "dependentParameterNames": [
                 "word"
             ],
-            "resultingParameterName": "wordSynonym",
-            "preparedContent": "{content}"
+            "resultingParameterName": "wordSynonym"
         },
         {
             "blockType": "PROMPT_TEMPLATE",
@@ -56,8 +55,7 @@
                 "word",
                 "wordSynonym"
             ],
-            "resultingParameterName": "sentenceWithTwoSynonyms",
-            "preparedContent": "{content}"
+            "resultingParameterName": "sentenceWithTwoSynonyms"
         }
     ],
     "knowledgeSources": [],

@@ -43,8 +43,7 @@
                 "name1",
                 "name2"
             ],
-            "resultingParameterName": "name",
-            "preparedContent": "{content}"
+            "resultingParameterName": "name"
         }
     ],
     "knowledgeSources": [],

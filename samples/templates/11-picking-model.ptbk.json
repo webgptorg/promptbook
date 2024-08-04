@@ -35,8 +35,7 @@
             "dependentParameterNames": [
                 "word"
             ],
-            "resultingParameterName": "poem",
-            "preparedContent": "{content}"
+            "resultingParameterName": "poem"
         }
     ],
     "knowledgeSources": [],

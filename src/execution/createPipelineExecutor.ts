@@ -1,10 +1,12 @@
 import { spaceTrim } from 'spacetrim';
 import type { Promisable } from 'type-fest';
-import { LOOP_LIMIT } from '../config';
-import { MAX_EXECUTION_ATTEMPTS } from '../config';
-import { MAX_PARALLEL_COUNT } from '../config';
-import { RESERVED_PARAMETER_MISSING_VALUE } from '../config';
-import { RESERVED_PARAMETER_NAMES } from '../config';
+import {
+    LOOP_LIMIT,
+    MAX_EXECUTION_ATTEMPTS,
+    MAX_PARALLEL_COUNT,
+    RESERVED_PARAMETER_MISSING_VALUE,
+    RESERVED_PARAMETER_NAMES,
+} from '../config';
 import { extractParametersFromPromptTemplate } from '../conversion/utils/extractParametersFromPromptTemplate';
 import { validatePipeline } from '../conversion/validation/validatePipeline';
 import { ExpectError } from '../errors/_ExpectError';
@@ -17,19 +19,17 @@ import { preparePipeline } from '../prepare/preparePipeline';
 import type { ExecutionReportJson } from '../types/execution-report/ExecutionReportJson';
 import type { PipelineJson } from '../types/PipelineJson/PipelineJson';
 import type { PromptTemplateJson } from '../types/PipelineJson/PromptTemplateJson';
-import type { ChatPrompt } from '../types/Prompt';
-import type { CompletionPrompt } from '../types/Prompt';
-import type { EmbeddingPrompt } from '../types/Prompt';
-import type { Prompt } from '../types/Prompt';
+import type { ChatPrompt, CompletionPrompt, EmbeddingPrompt, Prompt } from '../types/Prompt';
 import type { TaskProgress } from '../types/TaskProgress';
-import type { Parameters } from '../types/typeAliases';
-import type { ReservedParameters } from '../types/typeAliases';
-import type { string_markdown } from '../types/typeAliases';
-import type { string_name } from '../types/typeAliases';
-import type { string_parameter_value } from '../types/typeAliases';
+import type {
+    Parameters,
+    ReservedParameters,
+    string_markdown,
+    string_name,
+    string_parameter_value,
+} from '../types/typeAliases';
 import { arrayableToArray } from '../utils/arrayableToArray';
-import { deepFreeze } from '../utils/deepFreeze';
-import { deepFreezeWithSameType } from '../utils/deepFreeze';
+import { deepFreeze, deepFreezeWithSameType } from '../utils/deepFreeze';
 import type { really_any } from '../utils/organization/really_any';
 import type { TODO_any } from '../utils/organization/TODO_any';
 import { TODO_USE } from '../utils/organization/TODO_USE';
@@ -38,14 +38,9 @@ import { difference } from '../utils/sets/difference';
 import { union } from '../utils/sets/union';
 import { PROMPTBOOK_VERSION } from '../version';
 import type { ExecutionTools } from './ExecutionTools';
-import type { PipelineExecutor } from './PipelineExecutor';
-import type { PipelineExecutorResult } from './PipelineExecutor';
-import type { ChatPromptResult } from './PromptResult';
-import type { CompletionPromptResult } from './PromptResult';
-import type { EmbeddingPromptResult } from './PromptResult';
-import type { PromptResult } from './PromptResult';
-import { addUsage } from './utils/addUsage';
-import { ZERO_USAGE } from './utils/addUsage';
+import type { PipelineExecutor, PipelineExecutorResult } from './PipelineExecutor';
+import type { ChatPromptResult, CompletionPromptResult, EmbeddingPromptResult, PromptResult } from './PromptResult';
+import { addUsage, ZERO_USAGE } from './utils/addUsage';
 import { checkExpectations } from './utils/checkExpectations';
 
 type CreatePipelineExecutorSettings = {
@@ -114,9 +109,12 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
     if (isPipelinePrepared(rawPipeline)) {
         pipeline = rawPipeline;
     } else {
+        // TODO: !!!! This should be maybe warning in report
         console.warn(
             spaceTrim(`
                 Pipeline ${rawPipeline.pipelineUrl || rawPipeline.sourceFile || rawPipeline.title} is not prepared
+
+                ${rawPipeline.sourceFile}
 
                 It will be prepared ad-hoc before the first execution
                 But it is recommended to prepare the pipeline during collection preparation
@@ -138,6 +136,10 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
             });
         }
 
+        const errors: Array<PipelineExecutionError> = [];
+        const warnings: Array<PipelineExecutionError /* <- [🧠][⚠] What is propper object type to handle warnings */> =
+            [];
+
         const executionReport: ExecutionReportJson = {
             pipelineUrl: pipeline.pipelineUrl,
             title: pipeline.title,
@@ -154,6 +156,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                     isSuccessful: false,
                     errors: [
                         new PipelineExecutionError(`Parameter {${parameter.name}} is required as an input parameter`),
+                        ...errors,
                     ],
                     warnings: [],
                     executionReport,
@@ -162,10 +165,6 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                 }) satisfies PipelineExecutorResult;
             }
         }
-
-        const errors: Array<PipelineExecutionError> = [];
-        const warnings: Array<PipelineExecutionError /* <- [🧠][⚠] What is propper object type to handle warnings */> =
-            [];
 
         // Note: Check that no extra input parameters are passed
         for (const parameterName of Object.keys(inputParameters)) {
@@ -185,6 +184,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                         new PipelineExecutionError(
                             `Parameter {${parameter.name}} is passed as input parameter but it is not input`,
                         ),
+                        ...errors,
                     ],
                     warnings,
                     executionReport,

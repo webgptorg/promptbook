@@ -16,6 +16,7 @@ describe('how isPipelinePrepared works', () => {
         expect(
             isPipelinePrepared(pipelineStringToJsonSync(importPipelineWithoutPreparation('01-simple.ptbk.md'))),
         ).toBe(true);
+        // Note: [🍫]
     });
 
     it('should tell that pipeline is NOT prepared', () => {

@@ -35,8 +35,7 @@
             "dependentParameterNames": [
                 "sentence"
             ],
-            "resultingParameterName": "parsedSentence",
-            "preparedContent": "{content}"
+            "resultingParameterName": "parsedSentence"
         }
     ],
     "knowledgeSources": [],

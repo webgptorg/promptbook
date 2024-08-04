@@ -1,8 +1,8 @@
 import { spaceTrim } from 'spacetrim';
-import type { PromptTemplateJson } from '../types/PipelineJson/PromptTemplateJson';
-import { forEachAsync } from '../execution/utils/forEachAsync';
 import { MAX_PARALLEL_COUNT } from '../config';
+import { forEachAsync } from '../execution/utils/forEachAsync';
 import type { PipelineJson } from '../types/PipelineJson/PipelineJson';
+import type { PromptTemplateJson } from '../types/PipelineJson/PromptTemplateJson';
 import { TODO_USE } from '../utils/organization/TODO_USE';
 import type { PrepareOptions } from './PrepareOptions';
 
@@ -41,7 +41,7 @@ export async function prepareTemplates(
         { maxParallelCount /* <- TODO: [🪂] When there are subtasks, this maximul limit can be broken */ },
         async (template, index) => {
             // TODO: Maybe use [🧊]> const { preparedContent } = template;
-            let preparedContent = '{content}';
+            let preparedContent: string | undefined = undefined;
 
             if (knowledgePiecesCount > 0) {
                 preparedContent = spaceTrim(`

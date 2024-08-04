@@ -26,8 +26,7 @@
             },
             "content": "Rewrite the function below:\n\n```javascript\nfunction greet() {\n  return 'Hello Anna';\n}\n```\n\nTo return \"Goodbye\" from the function instead of \"Hello\".\n",
             "dependentParameterNames": [],
-            "resultingParameterName": "greeting1",
-            "preparedContent": "{content}"
+            "resultingParameterName": "greeting1"
         },
         {
             "blockType": "PROMPT_TEMPLATE",
@@ -39,8 +38,7 @@
             },
             "content": "Rewrite the function below:\n\n```javascript\nfunction greet() {\n    return 'Hello Betty';\n}\n```\n\nTo return \"Goodbye\" from the function instead of \"Hello\".",
             "dependentParameterNames": [],
-            "resultingParameterName": "greeting2",
-            "preparedContent": "{content}"
+            "resultingParameterName": "greeting2"
         }
     ],
     "knowledgeSources": [],

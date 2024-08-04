@@ -49,8 +49,7 @@
             "dependentParameterNames": [
                 "word"
             ],
-            "resultingParameterName": "wordSynonym",
-            "preparedContent": "{content}"
+            "resultingParameterName": "wordSynonym"
         },
         {
             "blockType": "PROMPT_TEMPLATE",
@@ -74,8 +73,7 @@
                 "word",
                 "wordSynonym"
             ],
-            "resultingParameterName": "sentence",
-            "preparedContent": "{content}"
+            "resultingParameterName": "sentence"
         },
         {
             "blockType": "PROMPT_TEMPLATE",
@@ -92,8 +90,7 @@
             "dependentParameterNames": [
                 "sentence"
             ],
-            "resultingParameterName": "poem",
-            "preparedContent": "{content}"
+            "resultingParameterName": "poem"
         }
     ],
     "knowledgeSources": [],

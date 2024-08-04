@@ -75,8 +75,7 @@
             "dependentParameterNames": [
                 "word"
             ],
-            "resultingParameterName": "wordSynonym",
-            "preparedContent": "{content}"
+            "resultingParameterName": "wordSynonym"
         },
         {
             "blockType": "SCRIPT",
@@ -88,8 +87,7 @@
                 "word",
                 "wordSynonym"
             ],
-            "resultingParameterName": "wordSynonymTested",
-            "preparedContent": "{content}"
+            "resultingParameterName": "wordSynonymTested"
         },
         {
             "blockType": "PROMPT_TEMPLATE",
@@ -115,8 +113,7 @@
                 "word",
                 "wordSynonym"
             ],
-            "resultingParameterName": "sentenceWithTwoSynonyms",
-            "preparedContent": "{content}"
+            "resultingParameterName": "sentenceWithTwoSynonyms"
         },
         {
             "blockType": "PROMPT_TEMPLATE",
@@ -141,8 +138,7 @@
                 "sentenceWithTwoSynonyms",
                 "word"
             ],
-            "resultingParameterName": "sentenceWithOriginalWordRemoved",
-            "preparedContent": "{content}"
+            "resultingParameterName": "sentenceWithOriginalWordRemoved"
         },
         {
             "blockType": "PROMPT_TEMPLATE",
@@ -165,8 +161,7 @@
                 "sentenceWithTwoSynonyms",
                 "sentenceWithOriginalWordRemoved"
             ],
-            "resultingParameterName": "comparisonOfTwoSentences",
-            "preparedContent": "{content}"
+            "resultingParameterName": "comparisonOfTwoSentences"
         },
         {
             "blockType": "SIMPLE_TEMPLATE",
@@ -180,8 +175,7 @@
                 "sentenceWithOriginalWordRemoved",
                 "comparisonOfTwoSentences"
             ],
-            "resultingParameterName": "summary",
-            "preparedContent": "{content}"
+            "resultingParameterName": "summary"
         }
     ],
     "knowledgeSources": [],

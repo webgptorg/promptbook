@@ -36,8 +36,7 @@
             "dependentParameterNames": [
                 "yourName"
             ],
-            "resultingParameterName": "greeting",
-            "preparedContent": "{content}"
+            "resultingParameterName": "greeting"
         }
     ],
     "knowledgeSources": [],
