@@ -1,6 +1,6 @@
 {
     "name": "ptbk",
-    "version": "0.61.0-21",
+    "version": "0.61.0-22",
     "description": "Supercharge your use of large language models",
     "private": false,
     "sideEffects": false,
@@ -44,6 +44,6 @@
         }
     ],
     "dependencies": {
-        "promptbook": "0.61.0-21"
+        "promptbook": "0.61.0-22"
     }
 }
