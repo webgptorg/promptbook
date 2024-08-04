@@ -227,6 +227,7 @@ export function validatePipeline(pipeline: PipelineJson): PipelineJson {
 
         if (currentlyResovedTemplates.length === 0) {
             throw new PipelineLogicError(
+                // TODO: [🐎] DRY
                 spaceTrim(
                     (block) => `
 
