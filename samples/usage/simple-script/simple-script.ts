@@ -61,11 +61,7 @@ async function main() {
         ],
     };
 
-    // <- TODO: !!!! Use `createLlmToolsFromEnv` in all samples and READMEs
-
     const pipelineExecutor = createPipelineExecutor({ pipeline, tools });
-
-    // <- TODO: !!!! Why this is not prepared?
 
     const inputParameters = { eventName: 'CzechFutureTech', eventNameX: '!!!! Warn on extra parameter' };
     const { isSuccessful, errors, outputParameters, executionReport } = await pipelineExecutor(

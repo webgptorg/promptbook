@@ -137,12 +137,40 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
         };
 
         // Note: Check that all input input parameters are defined
-        for (const parameter of pipeline.parameters) {
-            if (parameter.isInput && inputParameters[parameter.name] === undefined) {
+        for (const parameter of pipeline.parameters.filter(({ isInput }) => isInput)) {
+            if (inputParameters[parameter.name] === undefined) {
                 return deepFreezeWithSameType({
                     isSuccessful: false,
                     errors: [
                         new PipelineExecutionError(`Parameter {${parameter.name}} is required as an input parameter`),
+                        // <- TODO: !!!!! Test this error
+                    ],
+                    executionReport,
+                    outputParameters: {},
+                    usage: ZERO_USAGE,
+                });
+            }
+        }
+
+        const errors: Array<PipelineExecutionError> = [];
+
+        // Note: Check that no extra input parameters are passed
+        for (const parameterName of Object.keys(inputParameters)) {
+            const parameter = pipeline.parameters.find(({ name }) => name === parameterName);
+
+            if (parameter === undefined) {
+                errors.push(
+                    new PipelineExecutionError(`Extra parameter {${parameterName}} is passed as input parameter`),
+                    // <- TODO: !!!!! Test this error
+                );
+            } else if (parameter.isInput === false) {
+                // TODO: [🧠] This should be also non-critical error
+                return deepFreezeWithSameType({
+                    isSuccessful: false,
+                    errors: [
+                        new PipelineExecutionError(
+                            `Parameter {${parameter.name}} is passed as input parameter but is not input`,
+                        ),
                         // <- TODO: !!!!! Test this error
                     ],
                     executionReport,
@@ -632,6 +660,27 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
             });
         }
 
+        function filterJustOutputParameters(): Parameters {
+            const outputParameters: Parameters = {};
+
+            // Note: Filter ONLY output parameters
+            for (const parameter of pipeline.parameters.filter(({ isOutput }) => isOutput)) {
+                if (parametersToPass[parameter.name] === undefined) {
+                    // [4]
+                    errors.push(
+                        new PipelineExecutionError(
+                            `Parameter {${parameter.name}} is required as an output parameter but not set in the pipeline`,
+                        ),
+                        // <- TODO: This should be maybe `UnexpectedError` because it should be catched during `validatePipeline`
+                    );
+                    continue;
+                }
+                outputParameters[parameter.name] = parametersToPass[parameter.name] || '';
+            }
+
+            return outputParameters;
+        }
+
         try {
             let resovedParameters: Array<string_name> = pipeline.parameters
                 .filter(({ isInput }) => isInput)
@@ -708,34 +757,23 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                 ...executionReport.promptExecutions.map(({ result }) => result?.usage || ZERO_USAGE),
             );
 
+            // Note: Making this on separate than return to grab errors [4]
+            const outputParameters = filterJustOutputParameters();
+
             return deepFreezeWithSameType({
                 isSuccessful: false,
-                errors: [error],
+                errors: [error, ...errors],
                 usage,
                 executionReport,
-                outputParameters: parametersToPass,
+                outputParameters,
             });
-        }
-
-        const outputParameters: Parameters = {};
-        const errors: Array<PipelineExecutionError> = [];
-
-        // Note: Filter ONLY output parameters
-        for (const parameter of pipeline.parameters.filter(({ isOutput }) => isOutput)) {
-            if (parametersToPass[parameter.name] === undefined) {
-                errors.push(
-                    new PipelineExecutionError(
-                        `Parameter {${parameter.name}} is required as an output parameter but not set in the pipeline`,
-                    ),
-                    // <- TODO: This should be maybe `UnexpectedError` because it should be catched during `validatePipeline`
-                );
-                continue;
-            }
-            outputParameters[parameter.name] = parametersToPass[parameter.name] || '';
         }
 
         // Note: Count usage, [🧠] Maybe put to separate function executionReportJsonToUsage + DRY [5]
         const usage = addUsage(...executionReport.promptExecutions.map(({ result }) => result?.usage || ZERO_USAGE));
+
+        // Note: Making this on separate than return to grab errors [4]
+        const outputParameters = filterJustOutputParameters();
 
         return deepFreezeWithSameType({
             isSuccessful: true,
