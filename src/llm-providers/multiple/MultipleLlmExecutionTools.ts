@@ -1,19 +1,15 @@
 import spaceTrim from 'spacetrim';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
-import type { AvailableModel } from '../../execution/LlmExecutionTools';
-import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { ChatPromptResult } from '../../execution/PromptResult';
-import type { CompletionPromptResult } from '../../execution/PromptResult';
-import type { EmbeddingPromptResult } from '../../execution/PromptResult';
-import type { PromptResult } from '../../execution/PromptResult';
-import type { ChatPrompt } from '../../types/Prompt';
-import type { CompletionPrompt } from '../../types/Prompt';
-import type { EmbeddingPrompt } from '../../types/Prompt';
-import type { Prompt } from '../../types/Prompt';
-import type { string_markdown } from '../../types/typeAliases';
-import type { string_markdown_text } from '../../types/typeAliases';
-import type { string_title } from '../../types/typeAliases';
+import type { AvailableModel, LlmExecutionTools } from '../../execution/LlmExecutionTools';
+import type {
+    ChatPromptResult,
+    CompletionPromptResult,
+    EmbeddingPromptResult,
+    PromptResult,
+} from '../../execution/PromptResult';
+import type { ChatPrompt, CompletionPrompt, EmbeddingPrompt, Prompt } from '../../types/Prompt';
+import type { string_markdown, string_markdown_text, string_title } from '../../types/typeAliases';
 import type { really_any } from '../../utils/organization/really_any';
 
 /**
@@ -120,11 +116,19 @@ export class MultipleLlmExecutionTools implements LlmExecutionTools {
             throw errors[0];
         } else if (errors.length > 1) {
             throw new PipelineExecutionError(
+                // TODO: Tell which execution tools failed like
+                //     1) OpenAI throw PipelineExecutionError: Parameter {knowledge} is not defined
+                //     2) AnthropicClaude throw PipelineExecutionError: Parameter {knowledge} is not defined
+                //     3) ...
                 spaceTrim(
                     (block) => `
                           All execution tools failed:
 
-                          ${block(errors.map((error) => `- ${error.name || 'Error'}: ${error.message}`).join('\n'))}
+                          ${block(
+                              errors
+                                  .map((error, i) => `${i + 1}) **${error.name || 'Error'}:** ${error.message}`)
+                                  .join('\n'),
+                          )}
 
                     `,
                 ),

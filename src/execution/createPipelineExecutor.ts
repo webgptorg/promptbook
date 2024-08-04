@@ -3,7 +3,7 @@ import type { Promisable } from 'type-fest';
 import { LOOP_LIMIT } from '../config';
 import { MAX_EXECUTION_ATTEMPTS } from '../config';
 import { MAX_PARALLEL_COUNT } from '../config';
-import { RESERVED_PARAMETER_MISSING_VALUE } from '../config';
+import { RESERVED_PARAMETER_MISSING_VALUE,RESERVED_PARAMETER_RESTRICTED } from '../config';
 import { RESERVED_PARAMETER_NAMES } from '../config';
 import { extractParametersFromPromptTemplate } from '../conversion/utils/extractParametersFromPromptTemplate';
 import { validatePipeline } from '../conversion/validation/validatePipeline';
@@ -201,7 +201,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
 
         let parametersToPass: Parameters = inputParameters;
 
-        // TODO: !!!!! Extract to separate functions and files - ALL FUNCTIONS BELOW
+        // TODO: !!! Extract to separate functions and files - ALL FUNCTIONS BELOW
 
         async function getContextForTemplate( // <- TODO: [🧠][🥜]
             template: PromptTemplateJson,
@@ -236,6 +236,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
             const modelName = RESERVED_PARAMETER_MISSING_VALUE;
 
             const reservedParameters: ReservedParameters = {
+                content: RESERVED_PARAMETER_RESTRICTED,
                 context,
                 knowledge,
                 samples,
@@ -350,7 +351,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
             const preparedContent = (currentTemplate.preparedContent || '{content}')
                 .split('{content}')
                 .join(currentTemplate.content);
-            //    <- TODO: Use here `replaceParameters` to replace {content} with option to ignore missing parameters
+            //    <- TODO: [🍵] Use here `replaceParameters` to replace {content} with option to ignore missing parameters
 
             attempts: for (let attempt = -jokerParameterNames.length; attempt < maxAttempts; attempt++) {
                 const isJokerAttempt = attempt < 0;

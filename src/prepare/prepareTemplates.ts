@@ -40,10 +40,10 @@ export async function prepareTemplates(
         promptTemplates,
         { maxParallelCount /* <- TODO: [🪂] When there are subtasks, this maximul limit can be broken */ },
         async (template, index) => {
-            // TODO: Maybe use [🧊]> const { preparedContent } = template;
+            let { /* preparedContent <- TODO: Maybe use [🧊] */ dependentParameterNames } = template;
             let preparedContent: string | undefined = undefined;
 
-            if (knowledgePiecesCount > 0) {
+            if (knowledgePiecesCount > 0 && !dependentParameterNames.includes('knowledge')) {
                 preparedContent = spaceTrim(`
                     {content}
 
@@ -52,10 +52,17 @@ export async function prepareTemplates(
                     {knowledge}
                 `);
                 // <- TODO: [🧠][🧻] Cutomize shape/language/formatting of the addition to the prompt
+
+                dependentParameterNames = [
+                    ...dependentParameterNames,
+                    'knowledge',
+                    // <- TODO: [🧠][🏷] There should be maybe some reverse process to remove {knowledge} from `dependentParameterNames`
+                ];
             }
 
             const preparedTemplate: PromptTemplateJson = {
                 ...template,
+                dependentParameterNames,
                 preparedContent,
                 // <- TODO: [🍙] Make some standart order of json properties
             };

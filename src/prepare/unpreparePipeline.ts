@@ -25,4 +25,5 @@ export function unpreparePipeline(pipeline: PipelineJson): PipelineJson {
  * TODO: [🧿] Maybe do same process with same granularity and subfinctions as `preparePipeline`
  * TODO: Write tests for `preparePipeline`
  * TODO: [🍙] Make some standart order of json properties
+ * TODO: [🧠][🏷] There should be maybe some reverse process to remove {knowledge} from `dependentParameterNames`
  */

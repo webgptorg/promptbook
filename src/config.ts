@@ -57,6 +57,7 @@ export const REPLACING_NONCE = 'u$k42k%!V2zo34w7Fu#@QUHYPW';
  * The names of the parameters that are reserved for special purposes
  */
 export const RESERVED_PARAMETER_NAMES = deepFreeze([
+    'content',
     'context',
     'knowledge',
     'samples',
@@ -70,6 +71,11 @@ export const RESERVED_PARAMETER_NAMES = deepFreeze([
  * @@@
  */
 export const RESERVED_PARAMETER_MISSING_VALUE = 'MISSING-' + REPLACING_NONCE;
+
+/**
+ * @@@
+ */
+export const RESERVED_PARAMETER_RESTRICTED = 'RESTRICTED-' + REPLACING_NONCE;
 
 /**
  * @@@

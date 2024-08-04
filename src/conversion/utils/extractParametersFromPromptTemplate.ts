@@ -11,16 +11,20 @@ import { extractVariables } from './extractVariables';
  * @throws {ParsingError} if the script is invalid
  */
 export function extractParametersFromPromptTemplate(
-    promptTemplate: Pick<PromptTemplateJson, 'title' | 'description' | 'blockType' | 'content' | 'jokerParameterNames'>,
+    promptTemplate: Pick<
+        PromptTemplateJson,
+        'title' | 'description' | 'blockType' | 'content' | 'preparedContent' | 'jokerParameterNames'
+    >,
     // <- TODO: [🧠][🥜]
 ): Set<string_parameter_name> {
-    const { title, description, blockType, content, jokerParameterNames } = promptTemplate;
+    const { title, description, blockType, content, preparedContent, jokerParameterNames } = promptTemplate;
     const parameterNames = new Set<string_parameter_name>();
 
     for (const parameterName of [
         ...extractParameters(title),
         ...extractParameters(description || ''),
         ...extractParameters(content),
+        ...extractParameters(preparedContent || ''),
     ]) {
         parameterNames.add(parameterName);
     }
@@ -34,6 +38,9 @@ export function extractParametersFromPromptTemplate(
     for (const jokerName of jokerParameterNames || []) {
         parameterNames.add(jokerName);
     }
+
+    parameterNames.delete('content');
+    //                      <- Note {content} is used in `preparedContent`
 
     return parameterNames;
 }
