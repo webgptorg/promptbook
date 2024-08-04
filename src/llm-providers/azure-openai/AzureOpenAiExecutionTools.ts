@@ -86,7 +86,7 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools {
                       ] as const)),
                 {
                     role: 'user',
-                    content: replaceParameters(content, parameters),
+                    content: replaceParameters(content, { ...parameters, modelName }),
                 },
             ];
 
@@ -183,7 +183,7 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools {
             }
             const rawResponse = await this.client.getCompletions(
                 modelName,
-                [replaceParameters(content, parameters)],
+                [replaceParameters(content, { ...parameters, modelName })],
                 modelSettings,
             );
             if (this.options.isVerbose) {

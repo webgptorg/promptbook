@@ -4,18 +4,19 @@ import colors from 'colors';
 import spaceTrim from 'spacetrim';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
-import type { AvailableModel } from '../../execution/LlmExecutionTools';
-import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
+import type { AvailableModel, LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import type { ChatPromptResult } from '../../execution/PromptResult';
 import type { PromptResultUsage } from '../../execution/PromptResultUsage';
 import { computeUsageCounts } from '../../execution/utils/computeUsageCounts';
 import { uncertainNumber } from '../../execution/utils/uncertainNumber';
 import type { Prompt } from '../../types/Prompt';
-import type { string_date_iso8601 } from '../../types/typeAliases';
-import type { string_markdown } from '../../types/typeAliases';
-import type { string_markdown_text } from '../../types/typeAliases';
-import type { string_model_name } from '../../types/typeAliases';
-import type { string_title } from '../../types/typeAliases';
+import type {
+    string_date_iso8601,
+    string_markdown,
+    string_markdown_text,
+    string_model_name,
+    string_title,
+} from '../../types/typeAliases';
 import { getCurrentIsoDate } from '../../utils/getCurrentIsoDate';
 import { replaceParameters } from '../../utils/replaceParameters';
 import { ANTHROPIC_CLAUDE_MODELS } from './anthropic-claude-models';
@@ -67,6 +68,8 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools {
             throw new PipelineExecutionError('Use callChatModel only for CHAT variant');
         }
 
+        const modelName = modelRequirements.modelName || this.getDefaultChatModel().modelName;
+
         const rawRequest: MessageCreateParamsNonStreaming = {
             model: modelRequirements.modelName || this.getDefaultChatModel().modelName,
             max_tokens: modelRequirements.maxTokens || 4096,
@@ -79,7 +82,7 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools {
             messages: [
                 {
                     role: 'user',
-                    content: replaceParameters(content, parameters),
+                    content: replaceParameters(content, { ...parameters, modelName }),
                 },
             ],
             // TODO: Is here some equivalent of user identification?> user: this.options.user,
@@ -148,9 +151,9 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools {
             throw new PipelineExecutionError('Use callCompletionModel only for COMPLETION variant');
         }
 
-        const model = modelRequirements.modelName || this.getDefaultChatModel().modelName;
+        const modelName = modelRequirements.modelName || this.getDefaultChatModel().modelName;
         const modelSettings = {
-            model: rawResponse.model || model,
+            model: modelName,
             max_tokens: modelRequirements.maxTokens || 2000, // <- Note: 2000 is for lagacy reasons
             //                                                  <- TODO: [🌾] Make some global max cap for maxTokens
             // <- TODO: Use here `systemMessage`, `temperature` and `seed`
@@ -158,7 +161,7 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools {
 
         const rawRequest: xxxx.Completions.CompletionCreateParamsNonStreaming = {
             ...modelSettings,
-            prompt: replaceParameters(content, parameters),
+            prompt: replaceParameters(content, { ...parameters, modelName }),
             user: this.options.user,
         };
         const start: string_date_iso8601 = getCurrentIsoDate();
