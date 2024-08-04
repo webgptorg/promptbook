@@ -48,10 +48,6 @@ You are writing a bio for Pavol Hejný for the event {eventName}.
 -   Bio is written in the present tense.
 -   Bio should be written for event named "{eventName}".
 -   Use markdown formatting.
-
-## Context
-
--   {context}
 ```
 
 `-> {bio}`
