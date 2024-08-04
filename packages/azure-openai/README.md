@@ -39,7 +39,7 @@ npm i @promptbook/azure-openai
 import { createPipelineExecutor, assertsExecutionSuccessful } from '@promptbook/core';
 import { createCollectionFromDirectory } from '@promptbook/node';
 import { JavascriptExecutionTools } from '@promptbook/execute-javascript';
-import { OpenAiExecutionTools } from '@promptbook/openai';
+import { AzureOpenAiExecutionTools } from '@promptbook/azure-openai';
 
 // ▶ Create whole pipeline collection
 const collection = await createCollectionFromDirectory('./promptbook-collection');
@@ -83,7 +83,9 @@ You can use multiple LLM providers in one Promptbook execution. The best model w
 import { createPipelineExecutor, assertsExecutionSuccessful } from '@promptbook/core';
 import { createCollectionFromDirectory } from '@promptbook/node';
 import { JavascriptExecutionTools } from '@promptbook/execute-javascript';
+import { AzureOpenAiExecutionTools } from '@promptbook/azure-openai';
 import { OpenAiExecutionTools } from '@promptbook/openai';
+import { AnthropicClaudeExecutionTools } from '@promptbook/anthropic-claude';
 
 // ▶ Create whole pipeline collection
 const collection = await createCollectionFromDirectory('./promptbook-collection');
