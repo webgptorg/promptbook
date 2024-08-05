@@ -1,7 +1,7 @@
 # Prepare Keywords
 
 -   PIPELINE URL `https://promptbook.studio/promptbook/prepare-knowledge-keywords.ptbk.md`
--   INPUT PARAMETER `{content}` The content
+-   INPUT PARAMETER `{knowledgePieceContent}` The content
 -   OUTPUT PARAMETER `{keywords}` Keywords separated by comma
 
 ## Knowledge
@@ -21,7 +21,7 @@ You are experienced data researcher, detect the important keywords in the docume
 
 Take information from this document:
 
-> {content}
+> {knowledgePieceContent}
 ```
 
 `-> {keywords}`

@@ -2,22 +2,15 @@
 
 Supercharge your use of large language models
 
-
-
-
 [![NPM Version of ![Promptbook logo - cube with letters P and B](./other/design/logo-h1.png) Promptbook](https://badge.fury.io/js/promptbook.svg)](https://www.npmjs.com/package/promptbook)
 [![Quality of package ![Promptbook logo - cube with letters P and B](./other/design/logo-h1.png) Promptbook](https://packagequality.com/shield/promptbook.svg)](https://packagequality.com/#?package=promptbook)
 [![Known Vulnerabilities](https://snyk.io/test/github/webgptorg/promptbook/badge.svg)](https://snyk.io/test/github/webgptorg/promptbook)
 [![Issues](https://img.shields.io/github/issues/webgptorg/promptbook.svg?style=flat)](https://github.com/webgptorg/promptbook/issues)
 
-
-
-
-
 ## 📦 Package `@promptbook/langtail`
 
-- Promptbooks are [divided into several](#-packages) packages, all are published from [single monorepo](https://github.com/webgptorg/promptbook).
-- This package `@promptbook/langtail` is one part of the promptbook ecosystem.
+-   Promptbooks are [divided into several](#-packages) packages, all are published from [single monorepo](https://github.com/webgptorg/promptbook).
+-   This package `@promptbook/langtail` is one part of the promptbook ecosystem.
 
 To install this package, run:
 
@@ -35,10 +28,6 @@ Use [Langtail](https://langtail.com/) to **ship AI apps with fewer surprises**.
 
 This package is wrapper of [Langtail's OpenAI proxy](https://langtail.com/docs/proxy/openai) to make it easier to use inside the Promptbooks.
 
-
-
-
-
 ## 💙 Integration with other models
 
 See the other models available in the Promptbook package:
@@ -46,11 +35,6 @@ See the other models available in the Promptbook package:
 -   [OpenAI](https://www.npmjs.com/package/@promptbook/openai)
 -   [Anthropic Claude](https://www.npmjs.com/package/@promptbook/anthropic-claude)
 -   [Azure OpenAI](https://www.npmjs.com/package/@promptbook/azure-openai)
-
-
-
-
-
 
 ---
 
@@ -88,13 +72,9 @@ In any of these situations, but especially in (3), the Promptbook library can ma
 -   _(Not ready yet)_ Leverage the **streaming** to make super cool UI/UX.
 -   _(Not ready yet)_ **A/B testing** to determine which prompt works best for the job.
 
-
-
 ### Sample:
 
 File `write-website-content.ptbk.md`:
-
-
 
 > # 🌍 Create website content
 >
@@ -104,7 +84,7 @@ File `write-website-content.ptbk.md`:
 > -   PROMPTBOOK VERSION 0.0.1
 > -   INPUT  PARAM `{rawTitle}` Automatically suggested a site name or empty text
 > -   INPUT  PARAM `{rawAssigment}` Automatically generated site entry from image recognition
-> -   OUTPUT PARAM `{content}` Web content
+> -   OUTPUT PARAM `{websiteContent}` Web content
 > -   OUTPUT PARAM `{keywords}` Keywords
 >
 > ## 👤 Specifying the assigment
@@ -263,9 +243,7 @@ File `write-website-content.ptbk.md`:
 > {contentBody}
 > ```
 >
-> `-> {content}`
-
-
+> `-> {websiteContent}`
 
 Following is the scheme how the promptbook above is executed:
 
@@ -303,7 +281,7 @@ flowchart LR
       templateCombineTheBeginning--"{contentBeginning}"-->templateCombineTheContent
       templateWriteTheContent--"{contentBody}"-->templateCombineTheContent
 
-      templateCombineTheContent--"{content}"-->output
+      templateCombineTheContent--"{websiteContent}"-->output
       output((Output)):::output
 
       classDef input color: grey;
@@ -329,8 +307,6 @@ Or you can install them separately:
 
 > ⭐ Marked packages are worth to try first
 
-
-
 -   ⭐ **[ptbk](https://www.npmjs.com/package/ptbk)** - Bundle of all packages, when you want to install everything and you don't care about the size
 -   **[promptbook](https://www.npmjs.com/package/promptbook)** - Same as `ptbk`
 -   **[@promptbook/core](https://www.npmjs.com/package/@promptbook/core)** - Core of the library, it contains the main logic for promptbooks
@@ -340,7 +316,7 @@ Or you can install them separately:
 -   _(Not finished)_ **[@promptbook/wizzard](https://www.npmjs.com/package/@promptbook/wizzard)** - Wizard for creating+running promptbooks in single line
 -   **[@promptbook/execute-javascript](https://www.npmjs.com/package/@promptbook/execute-javascript)** - Execution tools for javascript inside promptbooks
 -   **[@promptbook/openai](https://www.npmjs.com/package/@promptbook/openai)** - Execution tools for OpenAI API, wrapper around OpenAI SDK
--   **[@promptbook/anthropic-claude](https://www.npmjs.com/package/@promptbook/anthropic-claude)** - Execution tools for Anthropic Claude API, wrapper around Anthropic Claude SDK 
+-   **[@promptbook/anthropic-claude](https://www.npmjs.com/package/@promptbook/anthropic-claude)** - Execution tools for Anthropic Claude API, wrapper around Anthropic Claude SDK
 -   **[@promptbook/azure-openai](https://www.npmjs.com/package/@promptbook/azure-openai)** - Execution tools for Azure OpenAI API
 -   **[@promptbook/langtail](https://www.npmjs.com/package/@promptbook/langtail)** - Execution tools for Langtail API, wrapper around Langtail SDK
 -   **[@promptbook/fake-llm](https://www.npmjs.com/package/@promptbook/fake-llm)** - Mocked execution tools for testing the library and saving the tokens
@@ -348,8 +324,6 @@ Or you can install them separately:
 -   **[@promptbook/remote-server](https://www.npmjs.com/package/@promptbook/remote-server)** - Remote server for remote execution of promptbooks
 -   **[@promptbook/types](https://www.npmjs.com/package/@promptbook/types)** - Just typescript types used in the library
 -   **[@promptbook/cli](https://www.npmjs.com/package/@promptbook/cli)** - Command line interface utilities for promptbooks
-
-
 
 ## 📚 Dictionary
 
@@ -473,8 +447,6 @@ For example:
 
 ### Execution Tools
 
-
-
 `ExecutionTools` is an interface which contains all the tools needed to execute prompts.
 It contais 3 subtools:
 
@@ -520,7 +492,7 @@ There are [postprocessing functions](#postprocessing-functions) that can be used
 
 -   _(Not implemented yet)_ `ConsoleInterfaceTools` is a wrapper around `readline` module that interacts with the user via console.
 -   `SimplePromptInterfaceTools` is a wrapper around `window.prompt` synchronous function that interacts with the user via browser prompt. It is used for testing and mocking **NOT intended to use in the production** due to its synchronous nature.
--   `CallbackInterfaceTools` delagates the user interaction to a async callback function. You need to provide your own implementation of this callback function and its bind to UI. 
+-   `CallbackInterfaceTools` delagates the user interaction to a async callback function. You need to provide your own implementation of this callback function and its bind to UI.
 
 ### Executor
 
@@ -594,10 +566,6 @@ Execution report is a simple object or markdown that contains information about 
 
 [See the example of such a report](/samples/templates/50-advanced.report.md)
 
-
-
-
-
 ### Remote server
 
 Remote server is a proxy server that uses its execution tools internally and exposes the executor interface externally.
@@ -606,8 +574,6 @@ You can simply use `RemoteExecutionTools` on client-side javascript and connect 
 This is useful to make all logic on browser side but not expose your API keys or no need to use customer's GPU.
 
 ## 👨‍💻 Usage and integration _(for developers)_
-
-
 
 ### 🔌 Usage in Typescript / Javascript
 
@@ -632,11 +598,7 @@ This is useful to make all logic on browser side but not expose your API keys or
 
 ## 🐜 Known issues
 
-
-
 ## 🧼 Intentionally not implemented features
-
-
 
 ## ❔ FAQ
 
@@ -652,25 +614,9 @@ Langchain is primarily aimed at ML developers working in Python. This library is
 
 We are considering creating a bridge/converter between these two libraries.
 
-
-
 ### Promptbooks vs. OpenAI`s GPTs
 
 GPTs are chat assistants that can be assigned to specific tasks and materials. But they are still chat assistants. Promptbooks are a way to orchestrate many more predefined tasks to have much tighter control over the process. Promptbooks are not a good technology for creating human-like chatbots, GPTs are not a good technology for creating outputs with specific requirements.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 ### Where should I store my promptbooks?
 
@@ -692,10 +638,6 @@ In large language models, you will get better results if you have prompts in the
 
 The best way to manage this is to have suffixed promptbooks like `write-website-content.en.ptbk.md` and `write-website-content.cs.ptbk.md` for each supported language.
 
-
-
-
-
 ## ⌚ Changelog
 
 See [CHANGELOG.md](./CHANGELOG.md)
@@ -707,9 +649,6 @@ See [CHANGELOG.md](./CHANGELOG.md)
 ## 🎯 Todos
 
 See [TODO.md](./TODO.md)
-
-
-
 
 ## 🖋️ Contributing
 

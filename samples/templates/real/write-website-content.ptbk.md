@@ -6,7 +6,7 @@ Instructions for creating web page content.
 -   PROMPTBOOK VERSION 1.0.0
 -   INPUT  PARAM `{rawTitle}` Automatically suggested a site name or empty text
 -   INPUT  PARAM `{rawAssigment}` Automatically generated site entry from image recognition
--   OUTPUT PARAM `{content}` Web content
+-   OUTPUT PARAM `{websiteContent}` Web content
 
 <!--Graph-->
 <!-- ⚠️ WARNING: This section was auto-generated -->
@@ -45,7 +45,7 @@ flowchart LR
       templateCombineTheBeginning--"{contentBeginning}"-->templateCombineTheContent
       templateWriteTheContent--"{contentBody}"-->templateCombineTheContent
 
-      templateCombineTheContent--"{content}"-->output
+      templateCombineTheContent--"{websiteContent}"-->output
       output((Output)):::output
 
       click templateSpecifyingTheAssigment href "#specifying-the-assigment" "👤 Specifying the assigment";
@@ -221,4 +221,4 @@ A website assignment from a customer:
 {contentBody}
 ```
 
-`-> {content}`
+`-> {websiteContent}`

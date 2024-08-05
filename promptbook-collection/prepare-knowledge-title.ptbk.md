@@ -1,7 +1,7 @@
 # Prepare Title
 
 -   PIPELINE URL `https://promptbook.studio/promptbook/prepare-knowledge-title.ptbk.md`
--   INPUT PARAMETER `{content}` The content
+-   INPUT PARAMETER `{knowledgePieceContent}` The content
 -   OUTPUT PARAMETER `{title}` The title of the document
 
 ## Knowledge
@@ -22,7 +22,7 @@ You are experienced content creator, write best title for the document.
 
 # The document
 
-> {content}
+> {knowledgePieceContent}
 ```
 
 `-> {title}`

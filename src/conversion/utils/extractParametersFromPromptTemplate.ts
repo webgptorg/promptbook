@@ -40,7 +40,7 @@ export function extractParametersFromPromptTemplate(
     }
 
     parameterNames.delete('content');
-    //                      <- Note {content} is used in `preparedContent`
+    //                      <- Note {websiteContent} is used in `preparedContent`
 
     return parameterNames;
 }

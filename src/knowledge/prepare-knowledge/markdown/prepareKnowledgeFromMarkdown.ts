@@ -18,7 +18,7 @@ import { TODO_USE } from '../../../utils/organization/TODO_USE';
  * @@@
  */
 export async function prepareKnowledgeFromMarkdown(
-    content: string_markdown /* <- TODO: [🖖] (?maybe not) Always the file */,
+    knowledgeContent: string_markdown /* <- TODO: [🖖] (?maybe not) Always the file */,
     options: PrepareOptions,
 ): Promise<Array<Omit<KnowledgePiecePreparedJson, 'sources' | 'preparationIds'> /* <- [🕡] */>> {
     const { llmTools, maxParallelCount = MAX_PARALLEL_COUNT, isVerbose = false } = options;
@@ -55,7 +55,7 @@ export async function prepareKnowledgeFromMarkdown(
         },
     });
 
-    const result = await prepareKnowledgeFromMarkdownExecutor({ content });
+    const result = await prepareKnowledgeFromMarkdownExecutor({ knowledgeContent });
 
     assertsExecutionSuccessful(result);
 
@@ -76,7 +76,7 @@ export async function prepareKnowledgeFromMarkdown(
             // Note: Theese are just default values, they will be overwritten by the actual values:
             let name: KnowledgePiecePreparedJson['name'] = `piece-${i}`;
             let title: KnowledgePiecePreparedJson['title'] = spaceTrim(knowledgeTextPiece.substring(0, 100));
-            const content: KnowledgePiecePreparedJson['content'] = spaceTrim(knowledgeTextPiece);
+            const knowledgePieceContent: KnowledgePiecePreparedJson['content'] = spaceTrim(knowledgeTextPiece);
             let keywords: KnowledgePiecePreparedJson['keywords'] = [];
             const index: KnowledgePiecePreparedJson['index'] = [];
 
@@ -87,13 +87,13 @@ export async function prepareKnowledgeFromMarkdown(
             */
 
             try {
-                const titleResult = await prepareTitleExecutor({ content });
+                const titleResult = await prepareTitleExecutor({ knowledgePieceContent });
                 const { title: titleRaw = 'Untitled' } = titleResult.outputParameters;
                 title = spaceTrim(titleRaw) /* <- TODO: Maybe do in pipeline */;
                 name = titleToName(title);
 
                 // --- Keywords
-                const keywordsResult = await prepareKeywordsExecutor({ content });
+                const keywordsResult = await prepareKeywordsExecutor({ knowledgePieceContent });
                 const { keywords: keywordsRaw = '' } = keywordsResult.outputParameters;
                 keywords = (keywordsRaw || '')
                     .split(',')

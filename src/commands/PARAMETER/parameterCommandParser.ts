@@ -1,7 +1,6 @@
 import { ParsingError } from '../../errors/ParsingError';
 import type { TODO_any } from '../../utils/organization/TODO_any';
-import type { CommandParser } from '../_common/types/CommandParser';
-import type { CommandParserInput } from '../_common/types/CommandParser';
+import type { CommandParser, CommandParserInput } from '../_common/types/CommandParser';
 import type { ParameterCommand } from './ParameterCommand';
 
 /**
@@ -43,7 +42,7 @@ export const parameterCommandParser: CommandParser<ParameterCommand> = {
     /**
      * Example usages of the PARAMETER command
      */
-    examples: ['PARAMETER {title} Title of the book', 'OUTPUT PARAMETER {content} Content of the book'],
+    examples: ['PARAMETER {title} Title of the book', 'OUTPUT PARAMETER {websiteContent} Content of the book'],
 
     /**
      * Parses the PARAMETER command

@@ -77,7 +77,7 @@ File `write-website-content.ptbk.md`:
 > -   PROMPTBOOK VERSION 0.0.1
 > -   INPUT  PARAM `{rawTitle}` Automatically suggested a site name or empty text
 > -   INPUT  PARAM `{rawAssigment}` Automatically generated site entry from image recognition
-> -   OUTPUT PARAM `{content}` Web content
+> -   OUTPUT PARAM `{websiteContent}` Web content
 > -   OUTPUT PARAM `{keywords}` Keywords
 >
 > ## 👤 Specifying the assigment
@@ -236,7 +236,7 @@ File `write-website-content.ptbk.md`:
 > {contentBody}
 > ```
 >
-> `-> {content}`
+> `-> {websiteContent}`
 
 <!------------------------[ /Sample ]------------------------>
 
@@ -276,7 +276,7 @@ flowchart LR
       templateCombineTheBeginning--"{contentBeginning}"-->templateCombineTheContent
       templateWriteTheContent--"{contentBody}"-->templateCombineTheContent
 
-      templateCombineTheContent--"{content}"-->output
+      templateCombineTheContent--"{websiteContent}"-->output
       output((Output)):::output
 
       classDef input color: grey;
