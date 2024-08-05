@@ -842,6 +842,8 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
 }
 
 /**
+ * TODO: !!!! return `preparedPipeline` from execution
+ * TODO: !!!! `isNotPreparedWarningSupressed`
  * TODO: Use isVerbose here (not only pass to `preparePipeline`)
  * TODO: [🪂] Use maxParallelCount here (not only pass to `preparePipeline`)
  * TODO: [♈] Probbably move expectations from templates to parameters

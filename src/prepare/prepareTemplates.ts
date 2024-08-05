@@ -56,7 +56,7 @@ export async function prepareTemplates(
                 dependentParameterNames = [
                     ...dependentParameterNames,
                     'knowledge',
-                    // <- TODO: [🧠][🏷] There should be maybe some reverse process to remove {knowledge} from `dependentParameterNames`
+                    // <- [🏷] There is the reverse process to remove {knowledge} from `dependentParameterNames`
                 ];
             }
 
