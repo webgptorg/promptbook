@@ -212,7 +212,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
             // TODO: !!!! Implement Better - use real index and keyword search
 
             TODO_USE(template);
-            return pipeline.knowledgePieces.map(({ content }) => `- ${websiteContent}`).join('\n');
+            return pipeline.knowledgePieces.map(({ content }) => `- ${content}`).join('\n');
         }
 
         async function getSamplesForTemplate( // <- TODO: [🧠][🥜]

@@ -113,7 +113,7 @@ export async function prepareKnowledgeFromMarkdown(
                     const embeddingResult = await llmTools.callEmbeddingModel({
                         title: `Embedding for ${title}` /* <- Note: No impact on embedding result itself, just for logging */,
                         parameters: {},
-                        content,
+                        content: knowledgePieceContent,
                         modelRequirements: {
                             modelVariant: 'EMBEDDING',
                         },
@@ -132,7 +132,7 @@ export async function prepareKnowledgeFromMarkdown(
             return {
                 name,
                 title,
-                content,
+                content: knowledgePieceContent,
                 keywords,
                 index,
                 // <- TODO: [☀] sources,
