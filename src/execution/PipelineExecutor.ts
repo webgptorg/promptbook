@@ -1,5 +1,5 @@
 import type { Promisable } from 'type-fest';
-import { PipelineJson } from '../_packages/types.index';
+import type { PipelineJson } from '../types/PipelineJson/PipelineJson';
 import { PipelineExecutionError } from '../errors/PipelineExecutionError';
 import type { TaskProgress } from '../types/TaskProgress';
 import type { ExecutionReportJson } from '../types/execution-report/ExecutionReportJson';
