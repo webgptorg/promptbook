@@ -102,6 +102,8 @@ async function main() {
 
     const { bio } = outputParameters;
 
+    // TODO: [🎐] !!!!! Report here total usage
+
     console.info(colors.green(bio));
 
     process.exit(isSuccessful ? 0 : 1);
