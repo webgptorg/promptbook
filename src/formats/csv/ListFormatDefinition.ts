@@ -4,18 +4,18 @@ import type { FormatDefinition } from '../_common/FormatDefinition';
 /**
  * Definition for CSV spreadsheet
  */
-export const CsvFormatDefinition: FormatDefinition<string /* <-[0] */, string /* <-[👨‍⚖️] */, object /* <-[1] */> = {
+export const CsvFormatDefinition: FormatDefinition<string /* <- [0] */, string /* <- [👨‍⚖️] */, object /* <- [1] */> = {
     name: 'CSV',
 
     aliases: ['SPREADSHEET', 'TABLE'],
 
-    isValid(value, schema): value is string /* <-[0] */ {
+    isValid(value, schema): value is string /* <- [0] */ {
         TODO_USE(value /* <- TODO: Use value here */);
         TODO_USE(schema /* <- TODO: Use schema here */);
         return true;
     },
 
-    canBeValid(partialValue, schema): partialValue is string /* <-[0] */ {
+    canBeValid(partialValue, schema): partialValue is string /* <- [0] */ {
         TODO_USE(partialValue /* <- TODO: Use partialValue here */);
         TODO_USE(schema /* <- TODO: Use schema here */);
         return true;

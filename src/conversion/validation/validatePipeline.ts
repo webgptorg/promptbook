@@ -1,13 +1,11 @@
 import { spaceTrim } from 'spacetrim';
-import { LOOP_LIMIT } from '../../config';
-import { RESERVED_PARAMETER_NAMES } from '../../config';
+import { LOOP_LIMIT, RESERVED_PARAMETER_NAMES } from '../../config';
 import { ParsingError } from '../../errors/ParsingError';
 import { PipelineLogicError } from '../../errors/PipelineLogicError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import type { PromptTemplateJson } from '../../types/PipelineJson/PromptTemplateJson';
-import type { string_name } from '../../types/typeAliases';
-import type { string_reserved_parameter_name } from '../../types/typeAliases';
+import type { string_name, string_reserved_parameter_name } from '../../types/typeAliases';
 import { isValidPromptbookVersion } from '../../utils/validators/semanticVersion/isValidPromptbookVersion';
 import { isValidPipelineUrl } from '../../utils/validators/url/isValidPipelineUrl';
 
@@ -388,11 +386,11 @@ export function validatePipeline(pipeline: PipelineJson): PipelineJson {
  */
 
 /**
- * TODO: [🧠][🐣] !!!! Validate that all samples match expectations
- * TODO: [🧠][🐣] !!!! Validate that knowledge is valid (non-void)
- * TODO: [🧠][🐣] !!!! Validate that persona can be used only with CHAT variant
- * TODO: !!!! Validate that parameter with reserved name not used RESERVED_PARAMETER_NAMES
- * TODO: !!!! Validate that reserved parameter is not used as joker
- * TODO: [🧠] !!! Validationg not only logic itself but imports around - files and websites and rerefenced pipelines exists
+ * TODO: [🐣] !!!! Validate that all samples match expectations
+ * TODO: [🐣][🐝] !!!! Validate that knowledge is valid (non-void)
+ * TODO: [🐣] !!!! Validate that persona can be used only with CHAT variant
+ * TODO: [🐣] !!!! Validate that parameter with reserved name not used RESERVED_PARAMETER_NAMES
+ * TODO: [🐣] !!!! Validate that reserved parameter is not used as joker
+ * TODO: [🧠] Validation not only logic itself but imports around - files and websites and rerefenced pipelines exists
  * TODO: [🛠] Actions, instruments (and maybe knowledge) => Functions and tools
  */

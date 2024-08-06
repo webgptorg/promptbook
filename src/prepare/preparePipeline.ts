@@ -52,7 +52,7 @@ export async function preparePipeline(pipeline: PipelineJson, options: PrepareOp
     // ----- /ID -----
 
     // ----- Personas preparation -----
-    // TODO: !!!! Extract to similar function as `prepareTemplates`
+    // TODO: !! Extract to similar function as `prepareTemplates`
     // TODO: [🦪][🧠] Implement some `mapAsync` function
     const preparedPersonas: Array<PersonaPreparedJson> = new Array(personas.length);
     await forEachAsync(
@@ -74,7 +74,7 @@ export async function preparePipeline(pipeline: PipelineJson, options: PrepareOp
     // ----- /Personas preparation -----
 
     // ----- Knowledge preparation -----
-    // TODO: !!!! Extract to similar function as `prepareTemplates`
+    // TODO: !! Extract to similar function as `prepareTemplates`
     const knowledgeSourcesPrepared = knowledgeSources.map((source) => ({
         ...source,
         preparationIds: [/* TODO: [🧊] -> */ currentPreparation.id],
@@ -118,6 +118,6 @@ export async function preparePipeline(pipeline: PipelineJson, options: PrepareOp
  * TODO: Write tests for `preparePipeline`
  * TODO: [🏏] Leverage the batch API and build queues @see https://platform.openai.com/docs/guides/batch
  * TODO: [🧊] In future one preparation can take data from previous preparation and save tokens and time
- * TODO: [🎐] !!!! Use here countTotalUsage
+ * TODO: [🎐] !!!!!! Use here countTotalUsage
  * TODO: [🛠] Actions, instruments (and maybe knowledge) => Functions and tools
  */

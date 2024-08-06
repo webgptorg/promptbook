@@ -466,16 +466,16 @@ More expect variations
 
 <!--[🍓]-->
 
--   Add command `EXPECT "..."` <-[🥤]
--   Add command `EXPECT /.../i` <-[🥤]
--   Add command `EXPECT "...{foo}..."` <-[🥤]
--   Add command `EXPECT /...{foo}.../i` <-[🥤]
--   Add command `EXPECT JSON ARRAY` and `EXPECT JSON OBJECT` _(In future this will be suggar code for `EXPECT JSON SCHEMA`)_ <-[🥤]
+-   Add command `EXPECT "..."` <- [🥤]
+-   Add command `EXPECT /.../i` <- [🥤]
+-   Add command `EXPECT "...{foo}..."` <- [🥤]
+-   Add command `EXPECT /...{foo}.../i` <- [🥤]
+-   Add command `EXPECT JSON ARRAY` and `EXPECT JSON OBJECT` _(In future this will be suggar code for `EXPECT JSON SCHEMA`)_ <- [🥤]
 
 ## Upcomming features
 
 -   When postprocessing fails, retry in same way as failed expectations
--   When making next attempt for `PROMPT DIALOG`, preserve the previous user input <-[🌹]
+-   When making next attempt for `PROMPT DIALOG`, preserve the previous user input <- [🌹]
 
 ## `1.0.0` Release
 

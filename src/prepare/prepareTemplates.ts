@@ -31,7 +31,7 @@ export async function prepareTemplates(
     const { maxParallelCount = MAX_PARALLEL_COUNT } = options;
     const { promptTemplates, parameters, knowledgePiecesCount } = pipeline;
 
-    // TODO: !!!! Apply samples to each template (if missing and is for the template defined)
+    // TODO: !!!!!! Apply samples to each template (if missing and is for the template defined)
     TODO_USE(parameters);
 
     // TODO: [🦪][🧠] Implement some `mapAsync` function
@@ -77,7 +77,7 @@ export async function prepareTemplates(
 /**
  * TODO: [🧠] Add context to each template (if missing)
  * TODO: [🧠] What is better name `prepareTemplate` or `prepareTemplateAndParameters`
- * TODO: !!!!! Prepare index the samples and maybe templates
+ * TODO: [♨] !!! Prepare index the samples and maybe templates
  * TODO: [🔼] !!! Export via `@promptbook/core`
  * TODO: Write tests for `preparePipeline`
  * TODO: [🏏] Leverage the batch API and build queues @see https://platform.openai.com/docs/guides/batch

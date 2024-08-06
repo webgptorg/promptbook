@@ -244,7 +244,6 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
             input: replaceParameters(content, { ...parameters, modelName }),
             model: modelName,
 
-            // TODO: !!!! Test model 3 and dimensions
         };
 
         const start: string_date_iso8601 = getCurrentIsoDate();

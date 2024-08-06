@@ -4,18 +4,18 @@ import type { FormatDefinition } from '../_common/FormatDefinition';
 /**
  * Definition for XML format
  */
-export const XmlFormatDefinition: FormatDefinition<string /* <-[0] */, string /* <-[👨‍⚖️] */, object /* <-[1] */> = {
+export const XmlFormatDefinition: FormatDefinition<string /* <- [0] */, string /* <- [👨‍⚖️] */, object /* <- [1] */> = {
     name: 'XML',
 
     mimeType: 'application/xml',
 
-    isValid(value, schema): value is string /* <-[0] */ {
+    isValid(value, schema): value is string /* <- [0] */ {
         TODO_USE(value /* <- TODO: Use value here */);
         TODO_USE(schema /* <- TODO: Use schema here */);
         return true;
     },
 
-    canBeValid(partialValue, schema): partialValue is string /* <-[0] */ {
+    canBeValid(partialValue, schema): partialValue is string /* <- [0] */ {
         TODO_USE(partialValue /* <- TODO: Use partialValue here */);
         TODO_USE(schema /* <- TODO: Use schema here */);
         return true;

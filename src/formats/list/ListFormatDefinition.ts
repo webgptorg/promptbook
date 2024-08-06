@@ -6,18 +6,18 @@ import type { FormatDefinition } from '../_common/FormatDefinition';
  *
  * Note: list is just a string with multiple lines or multiple items separated by comma
  */
-export const ListFormatDefinition: FormatDefinition<string /* <-[0] */, string /* <-[👨‍⚖️] */, object /* <-[1] */> = {
+export const ListFormatDefinition: FormatDefinition<string /* <- [0] */, string /* <- [👨‍⚖️] */, object /* <- [1] */> = {
     name: 'LIST',
 
     aliases: ['ARRAY', 'BULLETS'],
 
-    isValid(value, schema): value is string /* <-[0] */ {
+    isValid(value, schema): value is string /* <- [0] */ {
         TODO_USE(value /* <- TODO: Use value here */);
         TODO_USE(schema /* <- TODO: Use schema here */);
         return true;
     },
 
-    canBeValid(partialValue, schema): partialValue is string /* <-[0] */ {
+    canBeValid(partialValue, schema): partialValue is string /* <- [0] */ {
         TODO_USE(partialValue /* <- TODO: Use partialValue here */);
         TODO_USE(schema /* <- TODO: Use schema here */);
         return true;

@@ -1,11 +1,13 @@
 import { spaceTrim } from 'spacetrim';
 import type { Promisable } from 'type-fest';
-import { LOOP_LIMIT } from '../config';
-import { MAX_EXECUTION_ATTEMPTS } from '../config';
-import { MAX_PARALLEL_COUNT } from '../config';
-import { RESERVED_PARAMETER_MISSING_VALUE } from '../config';
-import { RESERVED_PARAMETER_NAMES } from '../config';
-import { RESERVED_PARAMETER_RESTRICTED } from '../config';
+import {
+    LOOP_LIMIT,
+    MAX_EXECUTION_ATTEMPTS,
+    MAX_PARALLEL_COUNT,
+    RESERVED_PARAMETER_MISSING_VALUE,
+    RESERVED_PARAMETER_NAMES,
+    RESERVED_PARAMETER_RESTRICTED,
+} from '../config';
 import { extractParameterNamesFromPromptTemplate } from '../conversion/utils/extractParameterNamesFromPromptTemplate';
 import { validatePipeline } from '../conversion/validation/validatePipeline';
 import { ExpectError } from '../errors/_ExpectError';
@@ -18,19 +20,17 @@ import { preparePipeline } from '../prepare/preparePipeline';
 import type { ExecutionReportJson } from '../types/execution-report/ExecutionReportJson';
 import type { PipelineJson } from '../types/PipelineJson/PipelineJson';
 import type { PromptTemplateJson } from '../types/PipelineJson/PromptTemplateJson';
-import type { ChatPrompt } from '../types/Prompt';
-import type { CompletionPrompt } from '../types/Prompt';
-import type { EmbeddingPrompt } from '../types/Prompt';
-import type { Prompt } from '../types/Prompt';
+import type { ChatPrompt, CompletionPrompt, EmbeddingPrompt, Prompt } from '../types/Prompt';
 import type { TaskProgress } from '../types/TaskProgress';
-import type { Parameters } from '../types/typeAliases';
-import type { ReservedParameters } from '../types/typeAliases';
-import type { string_markdown } from '../types/typeAliases';
-import type { string_name } from '../types/typeAliases';
-import type { string_parameter_value } from '../types/typeAliases';
+import type {
+    Parameters,
+    ReservedParameters,
+    string_markdown,
+    string_name,
+    string_parameter_value,
+} from '../types/typeAliases';
 import { arrayableToArray } from '../utils/arrayableToArray';
-import { deepFreeze } from '../utils/deepFreeze';
-import { deepFreezeWithSameType } from '../utils/deepFreeze';
+import { deepFreeze, deepFreezeWithSameType } from '../utils/deepFreeze';
 import type { really_any } from '../utils/organization/really_any';
 import type { TODO_any } from '../utils/organization/TODO_any';
 import { TODO_USE } from '../utils/organization/TODO_USE';
@@ -39,14 +39,9 @@ import { difference } from '../utils/sets/difference';
 import { union } from '../utils/sets/union';
 import { PROMPTBOOK_VERSION } from '../version';
 import type { ExecutionTools } from './ExecutionTools';
-import type { PipelineExecutor } from './PipelineExecutor';
-import type { PipelineExecutorResult } from './PipelineExecutor';
-import type { ChatPromptResult } from './PromptResult';
-import type { CompletionPromptResult } from './PromptResult';
-import type { EmbeddingPromptResult } from './PromptResult';
-import type { PromptResult } from './PromptResult';
-import { addUsage } from './utils/addUsage';
-import { ZERO_USAGE } from './utils/addUsage';
+import type { PipelineExecutor, PipelineExecutorResult } from './PipelineExecutor';
+import type { ChatPromptResult, CompletionPromptResult, EmbeddingPromptResult, PromptResult } from './PromptResult';
+import { addUsage, ZERO_USAGE } from './utils/addUsage';
 import { checkExpectations } from './utils/checkExpectations';
 
 type CreatePipelineExecutorSettings = {
@@ -115,7 +110,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
     if (isPipelinePrepared(rawPipeline)) {
         pipeline = rawPipeline;
     } else {
-        // TODO: !!!! This should be maybe warning in report
+        // TODO: !!!!! This should be maybe warning in report
         console.warn(
             spaceTrim(`
                 Pipeline ${rawPipeline.pipelineUrl || rawPipeline.sourceFile || rawPipeline.title} is not prepared
@@ -208,13 +203,13 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
             template: PromptTemplateJson,
         ): Promise<string_parameter_value & string_markdown> {
             TODO_USE(template);
-            return RESERVED_PARAMETER_MISSING_VALUE /* <- TODO: !!!! Implement */;
+            return RESERVED_PARAMETER_MISSING_VALUE /* <- TODO: [🏍] Implement */;
         }
 
         async function getKnowledgeForTemplate( // <- TODO: [🧠][🥜]
             template: PromptTemplateJson,
         ): Promise<string_parameter_value & string_markdown> {
-            // TODO: !!!! Implement Better - use real index and keyword search
+            // TODO: [♨] Implement Better - use real index and keyword search
 
             TODO_USE(template);
             return pipeline.knowledgePieces.map(({ content }) => `- ${content}`).join('\n');
@@ -223,14 +218,14 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
         async function getSamplesForTemplate( // <- TODO: [🧠][🥜]
             template: PromptTemplateJson,
         ): Promise<string_parameter_value & string_markdown> {
-            // TODO: !!!! Implement Better - use real index and keyword search
+            // TODO: [♨] Implement Better - use real index and keyword search
 
             TODO_USE(template);
-            return RESERVED_PARAMETER_MISSING_VALUE /* <- TODO: !!!! Implement */;
+            return RESERVED_PARAMETER_MISSING_VALUE /* <- TODO: [♨] Implement */;
         }
 
         async function getReservedParametersForTemplate(template: PromptTemplateJson): Promise<ReservedParameters> {
-            const context = await getContextForTemplate(template);
+            const context = await getContextForTemplate(template); // <- [🏍]
             const knowledge = await getKnowledgeForTemplate(template);
             const samples = await getSamplesForTemplate(template);
             const currentDate = new Date().toISOString(); // <- TODO: [🧠] Better
@@ -238,7 +233,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
 
             const reservedParameters: ReservedParameters = {
                 content: RESERVED_PARAMETER_RESTRICTED,
-                context,
+                context, // <- [🏍]
                 knowledge,
                 samples,
                 currentDate,
@@ -664,7 +659,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                                 expectations: prompt.expectations,
                                 expectFormat: prompt.expectFormat,
 
-                                // <- Note: !!!! Do want to pass ONLY wanted information to the report
+                                // <- Note: !!!!! Do want to pass ONLY wanted information to the report
                             } as really_any,
                             result: result || undefined,
                             error: expectError || undefined,
@@ -847,8 +842,8 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
 }
 
 /**
- * TODO: !!!! return `preparedPipeline` from execution
- * TODO: !!!! `isNotPreparedWarningSupressed`
+ * TODO: !!!!! return `preparedPipeline` from execution
+ * TODO: !!!!! `isNotPreparedWarningSupressed`
  * TODO: Use isVerbose here (not only pass to `preparePipeline`)
  * TODO: [🪂] Use maxParallelCount here (not only pass to `preparePipeline`)
  * TODO: [♈] Probbably move expectations from templates to parameters
@@ -857,5 +852,5 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
  * Note: CreatePipelineExecutorOptions are just connected to PipelineExecutor so do not extract to types folder
  * TODO: [🧠][3] transparent = (report intermediate parameters) / opaque execution = (report only output parameters) progress reporting mode
  * TODO: [🛠] Actions, instruments (and maybe knowledge) => Functions and tools
- * TODO: [💷] !!!! `assertsExecutionSuccessful` should be the method of `PipelineExecutor` result
+ * TODO: [🧠][💷] `assertsExecutionSuccessful` should be the method of `PipelineExecutor` result BUT maybe NOT to preserve pure JSON object
  */
