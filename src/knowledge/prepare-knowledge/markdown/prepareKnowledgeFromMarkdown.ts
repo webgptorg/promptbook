@@ -63,6 +63,7 @@ export async function prepareKnowledgeFromMarkdown(
     const { knowledgePieces: knowledgePiecesRaw } = outputParameters;
 
     const knowledgeTextPieces = (knowledgePiecesRaw || '').split('\n---\n');
+    //                                                               <- TODO: !!!!! Smarter split and filter out empty pieces
 
     if (isVerbose) {
         console.info('knowledgeTextPieces:', knowledgeTextPieces);
