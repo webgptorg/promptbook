@@ -17,7 +17,7 @@ export type LlmTemplateJson = PromptTemplateJsonCommon & {
      * Requirements for the model
      * - This is required only for blockType PROMPT_TEMPLATE
      */
-    readonly modelRequirements: ModelRequirements; // <- TODO: !!!!!! Make Partial<ModelRequirements> and optional OR Remove
+    readonly modelRequirements: ModelRequirements; // <- TODO: !!!!! Make Partial<ModelRequirements> and optional OR Remove
 };
 
 /**
