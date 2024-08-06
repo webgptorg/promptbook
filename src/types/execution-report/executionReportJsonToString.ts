@@ -200,7 +200,7 @@ export function executionReportJsonToString(
         }
 
         if (promptExecution.result && promptExecution.result.content) {
-            executionReportString += '\n\n\n\n' + '### Result';
+            executionReportString += '\n\n\n\n' + '### Result' + '\n\n';
 
             if (promptExecution.result === undefined) {
                 executionReportString += '*No result*';

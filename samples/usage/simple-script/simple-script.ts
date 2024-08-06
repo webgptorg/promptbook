@@ -1,6 +1,6 @@
 #!/usr/bin/env ts-node
 
-import { createPipelineExecutor, executionReportJsonToString } from '@promptbook/core';
+import { createPipelineExecutor, executionReportJsonToString, stringifyPipelineJson } from '@promptbook/core';
 import { JavascriptExecutionTools } from '@promptbook/execute-javascript';
 import { createCollectionFromDirectory, createLlmToolsFromEnv } from '@promptbook/node';
 import colors from 'colors';
@@ -74,14 +74,11 @@ async function main() {
 
     console.info('outputParameters', outputParameters);
 
-    /*
-    TODO: After [🔼] !!!!
     await writeFile(
-      pipeline.sourceFile.split('.ptbk.md').join('.report.json'),
+        pipeline.sourceFile.split('.ptbk.md').join('.report.json'),
         stringifyPipelineJson(executionReport),
         'utf-8',
     );
-    */
 
     const executionReportString = executionReportJsonToString(executionReport);
     // TODO: !!! Unhardcode 50-advanced
