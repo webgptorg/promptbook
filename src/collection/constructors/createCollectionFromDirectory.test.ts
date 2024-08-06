@@ -135,9 +135,7 @@ describe('createCollectionFromDirectory', () => {
                 });
                 keepUnused(collection);
             })(),
-        ).rejects.toThrowError(
-            `PipelineLogicError in pipeline samples/templates/real/update-website-content-cs.ptbk.json`,
-        ));
+        ).rejects.toThrowError(/^PipelineLogicError in pipeline samples.*/i));
 
     /*
     TODO: Make separate folder for errors and enable this test

@@ -1,8 +1,6 @@
 import type { PromptResult } from '../../execution/PromptResult';
 import type { Prompt } from '../Prompt';
-import type { string_markdown_text } from '../typeAliases';
-import type { string_pipeline_url } from '../typeAliases';
-import type { string_semantic_version } from '../typeAliases';
+import type { string_markdown_text, string_pipeline_url, string_semantic_version } from '../typeAliases';
 
 /**
  * ExecutionReport is result of executing one promptbook
@@ -15,6 +13,13 @@ import type { string_semantic_version } from '../typeAliases';
  * @see https://github.com/webgptorg/promptbook#execution-report
  */
 export type ExecutionReportJson = {
+    /*
+    TODO: [💼]
+    > readonly type: 'REPORT';
+
+    + make type test for this
+    */
+
     /**
      * Unique identifier of the pipeline from promptbook which was executed
      */

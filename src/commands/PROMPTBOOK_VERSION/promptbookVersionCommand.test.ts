@@ -35,6 +35,11 @@ describe('how PROMPTBOOK_VERSION command in .ptbk.md files works', () => {
         );
     });
 
+    it('should fail to prevent mismatch between version of pipeline and promptbook', () => {
+        expect(() => parseCommand('VERSION 0.62.0', 'PIPELINE_HEAD')).toThrowError(/---/i);
+        expect(() => parseCommand('V 0.62.0', 'PIPELINE_HEAD')).toThrowError(/---/i);
+    });
+
     it(`should work with all samples`, () => {
         // Note: This is tested also in the common test file parseCommand.test.ts
         for (const example of promptbookVersionCommandParser.examples) {

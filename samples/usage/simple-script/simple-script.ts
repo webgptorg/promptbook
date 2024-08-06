@@ -75,7 +75,8 @@ async function main() {
     console.info('outputParameters', outputParameters);
 
     await writeFile(
-        pipeline.sourceFile.split('.ptbk.md').join('.report.json'),
+        pipeline.sourceFile.split('.ptbk.md').join('.report.md').split('.ptbk.json').join('.report.json'),
+        //                  <- TODO: [0] More elegant way to replace extension
         stringifyPipelineJson(executionReport),
         'utf-8',
     );
@@ -84,7 +85,7 @@ async function main() {
     // TODO: !!! Unhardcode 50-advanced
     await writeFile(
         pipeline.sourceFile.split('.ptbk.md').join('.report.md').split('.ptbk.json').join('.report.md'),
-        //                  <- TODO: More elegant way to replace extension
+        //                  <- TODO: [0] More elegant way to replace extension
         executionReportString,
         'utf-8',
     );
