@@ -33,12 +33,13 @@ export class MockedEchoLlmExecutionTools implements LlmExecutionTools {
         }
 
         const modelName = 'mocked-echo';
+        const rawPromptContent = replaceParameters(prompt.content, { ...prompt.parameters, modelName });
 
         return {
             content: spaceTrim(
                 (block) => `
                     You said:
-                    ${block(replaceParameters(prompt.content, { ...prompt.parameters, modelName }))}
+                    ${block(rawPromptContent)}
                 `,
             ),
             modelName,
@@ -47,6 +48,8 @@ export class MockedEchoLlmExecutionTools implements LlmExecutionTools {
                 complete: getCurrentIsoDate(),
             },
             usage: addUsage(/* <- TODO: [🧠] Compute here at least words, characters,... etc */),
+            rawPromptContent,
+            rawRequest: null,
             rawResponse: {
                 note: 'This is mocked echo',
             },
@@ -65,11 +68,12 @@ export class MockedEchoLlmExecutionTools implements LlmExecutionTools {
         }
 
         const modelName = 'mocked-echo';
+        const rawPromptContent = replaceParameters(prompt.content, { ...prompt.parameters, modelName });
 
         return {
             content: spaceTrim(
                 (block) => `
-                    ${block(replaceParameters(prompt.content, { ...prompt.parameters, modelName }))}
+                    ${block(rawPromptContent)}
                     And so on...
                 `,
             ),
@@ -79,6 +83,8 @@ export class MockedEchoLlmExecutionTools implements LlmExecutionTools {
                 complete: getCurrentIsoDate(),
             },
             usage: addUsage(/* <- TODO: [🧠] Compute here at least words, characters,... etc */),
+            rawPromptContent,
+            rawRequest: null,
             rawResponse: {
                 note: 'This is mocked echo',
             },

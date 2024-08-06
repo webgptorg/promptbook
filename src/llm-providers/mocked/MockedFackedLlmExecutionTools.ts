@@ -6,7 +6,7 @@ import { addUsage } from '../../execution/utils/addUsage';
 import type { Prompt } from '../../types/Prompt';
 import type { string_markdown, string_markdown_text, string_title } from '../../types/typeAliases';
 import { getCurrentIsoDate } from '../../utils/getCurrentIsoDate';
-import { keepUnused } from '../../utils/organization/keepUnused';
+import { replaceParameters } from '../../utils/replaceParameters';
 import { $fakeTextToExpectations } from './fakeTextToExpectations';
 
 /**
@@ -33,6 +33,9 @@ export class MockedFackedLlmExecutionTools implements LlmExecutionTools {
             console.info('💬 Mocked faked prompt', prompt);
         }
 
+        const modelName = 'mocked-facked';
+        const rawPromptContent = replaceParameters(prompt.content, { ...prompt.parameters, modelName });
+
         const content = await $fakeTextToExpectations(
             prompt.expectations || {
                 sentences: { min: 1, max: 1 },
@@ -42,12 +45,14 @@ export class MockedFackedLlmExecutionTools implements LlmExecutionTools {
 
         const result = {
             content,
-            modelName: 'mocked-facked',
+            modelName,
             timing: {
                 start: getCurrentIsoDate(),
                 complete: getCurrentIsoDate(),
             },
             usage: addUsage(/* <- TODO: [🧠] Compute here at least words, characters,... etc */),
+            rawPromptContent,
+            rawRequest: null,
             rawResponse: {
                 note: 'This is mocked echo',
             },
@@ -76,20 +81,22 @@ export class MockedFackedLlmExecutionTools implements LlmExecutionTools {
     public async callEmbeddingModel(
         prompt: Pick<Prompt, 'content' | 'parameters' | 'modelRequirements' | 'expectations' | 'postprocessing'>,
     ): Promise<EmbeddingPromptResult> {
-        keepUnused(prompt);
-
+        const modelName = 'mocked-facked';
+        const rawPromptContent = replaceParameters(prompt.content, { ...prompt.parameters, modelName });
         const content = new Array(1024).fill(0).map(() => Math.random() * 2 - 1) satisfies EmbeddingVector;
 
         // TODO: Make content vector exactly length of 1
 
         const result = {
             content,
-            modelName: 'mocked-facked',
+            modelName,
             timing: {
                 start: getCurrentIsoDate(),
                 complete: getCurrentIsoDate(),
             },
             usage: addUsage(/* <- TODO: [🧠] Compute here at least words, characters,... etc */),
+            rawPromptContent,
+            rawRequest: null,
             rawResponse: {
                 note: 'This is mocked embedding',
             },

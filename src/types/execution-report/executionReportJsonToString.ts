@@ -192,7 +192,11 @@ export function executionReportJsonToString(
                         ### Prompt
 
                         \`\`\`
-                        ${block(escapeMarkdownBlock(promptExecution.prompt.content))}
+                        ${block(
+                            escapeMarkdownBlock(
+                                promptExecution.result?.rawPromptContent || promptExecution.prompt.content,
+                            ),
+                        )}
                         \`\`\`
 
                     `,

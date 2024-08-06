@@ -89,6 +89,7 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
         // <- TODO: [🚸] Not all models are compatible with JSON mode
         //        > 'response_format' of type 'json_object' is not supported with this model.
 
+        const rawPromptContent = replaceParameters(content, { ...parameters, modelName });
         const rawRequest: OpenAI.Chat.Completions.CompletionCreateParamsNonStreaming = {
             ...modelSettings,
             messages: [
@@ -102,7 +103,7 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
                       ] as const)),
                 {
                     role: 'user',
-                    content: replaceParameters(content, { ...parameters, modelName }),
+                    content: rawPromptContent,
                 },
             ],
             user: this.options.user,
@@ -144,6 +145,8 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
                 complete,
             },
             usage,
+            rawPromptContent,
+            rawRequest,
             rawResponse,
             // <- [🗯]
         };
@@ -177,9 +180,10 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
             // <- Note: [🧆]
         };
 
+        const rawPromptContent = replaceParameters(content, { ...parameters, modelName });
         const rawRequest: OpenAI.Completions.CompletionCreateParamsNonStreaming = {
             ...modelSettings,
-            prompt: replaceParameters(content, { ...parameters, modelName }),
+            prompt: rawPromptContent,
             user: this.options.user,
         };
         const start: string_date_iso8601 = getCurrentIsoDate();
@@ -215,6 +219,8 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
                 complete,
             },
             usage,
+            rawPromptContent,
+            rawRequest,
             rawResponse,
             // <- [🗯]
         };
@@ -239,8 +245,9 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
 
         const modelName = modelRequirements.modelName || this.getDefaultEmbeddingModel().modelName;
 
+        const rawPromptContent = replaceParameters(content, { ...parameters, modelName });
         const rawRequest: OpenAI.Embeddings.EmbeddingCreateParams = {
-            input: replaceParameters(content, { ...parameters, modelName }),
+            input: rawPromptContent,
             model: modelName,
         };
 
@@ -277,6 +284,8 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
                 complete,
             },
             usage,
+            rawPromptContent,
+            rawRequest,
             rawResponse,
             // <- [🗯]
         };

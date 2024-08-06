@@ -70,6 +70,7 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools {
 
         const modelName = modelRequirements.modelName || this.getDefaultChatModel().modelName;
 
+        const rawPromptContent = replaceParameters(content, { ...parameters, modelName });
         const rawRequest: MessageCreateParamsNonStreaming = {
             model: modelRequirements.modelName || this.getDefaultChatModel().modelName,
             max_tokens: modelRequirements.maxTokens || 4096,
@@ -82,7 +83,7 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools {
             messages: [
                 {
                     role: 'user',
-                    content: replaceParameters(content, { ...parameters, modelName }),
+                    content: rawPromptContent,
                 },
             ],
             // TODO: Is here some equivalent of user identification?> user: this.options.user,
@@ -129,6 +130,8 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools {
                 complete,
             },
             usage,
+            rawPromptContent,
+            rawRequest,
             rawResponse,
             // <- [🗯]
         };
@@ -161,7 +164,7 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools {
 
         const rawRequest: xxxx.Completions.CompletionCreateParamsNonStreaming = {
             ...modelSettings,
-            prompt: replaceParameters(content, { ...parameters, modelName }),
+            prompt: rawPromptContent,
             user: this.options.user,
         };
         const start: string_date_iso8601 = getCurrentIsoDate();

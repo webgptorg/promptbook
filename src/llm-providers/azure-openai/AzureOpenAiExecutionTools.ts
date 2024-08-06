@@ -7,7 +7,13 @@ import type { PromptResultUsage } from '../../execution/PromptResultUsage';
 import { computeUsageCounts } from '../../execution/utils/computeUsageCounts';
 import { uncertainNumber } from '../../execution/utils/uncertainNumber';
 import type { Prompt } from '../../types/Prompt';
-import type { string_date_iso8601, string_markdown, string_markdown_text, string_title } from '../../types/typeAliases';
+import type {
+    string_completion_prompt,
+    string_date_iso8601,
+    string_markdown,
+    string_markdown_text,
+    string_title,
+} from '../../types/typeAliases';
 import { getCurrentIsoDate } from '../../utils/getCurrentIsoDate';
 import { replaceParameters } from '../../utils/replaceParameters';
 import { OPENAI_MODELS } from '../openai/openai-models';
@@ -70,6 +76,7 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools {
                 // <- Note: [🧆]
             }; // <- TODO: Guard here types better
 
+            const rawPromptContent = replaceParameters(content, { ...parameters, modelName });
             const messages = [
                 ...(modelRequirements.systemMessage === undefined
                     ? []
@@ -81,7 +88,7 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools {
                       ] as const)),
                 {
                     role: 'user',
-                    content: replaceParameters(content, { ...parameters, modelName }),
+                    content: rawPromptContent,
                 },
             ];
 
@@ -91,7 +98,9 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools {
             if (this.options.isVerbose) {
                 console.info(colors.bgWhite('messages'), JSON.stringify(messages, null, 4));
             }
-            const rawResponse = await this.client.getChatCompletions(modelName, messages, modelSettings);
+
+            const rawRequest = [modelName, messages, modelSettings] as const;
+            const rawResponse = await this.client.getChatCompletions(...rawRequest);
 
             if (this.options.isVerbose) {
                 console.info(colors.bgWhite('rawResponse'), JSON.stringify(rawResponse, null, 4));
@@ -133,6 +142,8 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools {
                     complete,
                 },
                 usage,
+                rawPromptContent,
+                rawRequest,
                 rawResponse,
                 // <- [🗯]
             };
@@ -176,11 +187,14 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools {
                 console.info(colors.bgWhite('content'), JSON.stringify(content, null, 4));
                 console.info(colors.bgWhite('parameters'), JSON.stringify(parameters, null, 4));
             }
-            const rawResponse = await this.client.getCompletions(
+
+            const rawPromptContent = replaceParameters(content, { ...parameters, modelName });
+            const rawRequest = [
                 modelName,
-                [replaceParameters(content, { ...parameters, modelName })],
+                [rawPromptContent] as Array<string_completion_prompt>,
                 modelSettings,
-            );
+            ] as const;
+            const rawResponse = await this.client.getCompletions(...rawRequest);
             if (this.options.isVerbose) {
                 console.info(colors.bgWhite('rawResponse'), JSON.stringify(rawResponse, null, 4));
             }
@@ -218,6 +232,8 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools {
                     complete,
                 },
                 usage,
+                rawPromptContent,
+                rawRequest,
                 rawResponse,
                 // <- [🗯]
             };

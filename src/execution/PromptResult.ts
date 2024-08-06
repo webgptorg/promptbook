@@ -1,4 +1,4 @@
-import type { string_date_iso8601, string_model_name } from '../types/typeAliases';
+import type { string_date_iso8601, string_model_name, string_prompt } from '../types/typeAliases';
 import type { TODO_object } from '../utils/organization/TODO_object';
 import type { EmbeddingVector } from './EmbeddingVector';
 import type { PromptResultUsage } from './PromptResultUsage';
@@ -84,11 +84,18 @@ export type CommonPromptResult = {
     readonly usage: PromptResultUsage;
 
     /**
+     * Exact text of the prompt (with all replacements)
+     *
+     * Note: This contains redundant information
+     */
+    readonly rawPromptContent: string_prompt;
+
+    /**
      * Raw request to the model
      *
      * Note: This contains redundant information
      */
-    readonly rawRequest: TODO_object;
+    readonly rawRequest: TODO_object | null;
 
     /**
      * Raw response from the model
