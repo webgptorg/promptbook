@@ -94,28 +94,28 @@ interface CreatePipelineExecutorOptions {
  * @throws {PipelineLogicError} on logical error in the pipeline
  */
 export function createPipelineExecutor(options: CreatePipelineExecutorOptions): PipelineExecutor {
-    const { pipeline: rawPipeline, tools, settings = {} } = options;
+    const { pipeline, tools, settings = {} } = options;
     const {
         maxExecutionAttempts = MAX_EXECUTION_ATTEMPTS,
         maxParallelCount = MAX_PARALLEL_COUNT,
         isVerbose = false,
     } = settings;
 
-    validatePipeline(rawPipeline);
+    validatePipeline(pipeline);
 
     const llmTools = joinLlmExecutionTools(...arrayableToArray(tools.llm));
 
-    let pipeline: PipelineJson;
+    let preparedPipeline: PipelineJson;
 
-    if (isPipelinePrepared(rawPipeline)) {
-        pipeline = rawPipeline;
+    if (isPipelinePrepared(pipeline)) {
+        preparedPipeline = pipeline;
     } else {
         // TODO: !!!!! This should be maybe warning in report
         console.warn(
             spaceTrim(`
-                Pipeline ${rawPipeline.pipelineUrl || rawPipeline.sourceFile || rawPipeline.title} is not prepared
+                Pipeline ${pipeline.pipelineUrl || pipeline.sourceFile || pipeline.title} is not prepared
 
-                ${rawPipeline.sourceFile}
+                ${pipeline.sourceFile}
 
                 It will be prepared ad-hoc before the first execution
                 But it is recommended to prepare the pipeline during collection preparation
@@ -129,8 +129,8 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
         inputParameters: Parameters,
         onProgress?: (taskProgress: TaskProgress) => Promisable<void>,
     ) => {
-        if (pipeline === undefined) {
-            pipeline = await preparePipeline(rawPipeline, {
+        if (preparedPipeline === undefined) {
+            preparedPipeline = await preparePipeline(rawPipeline, {
                 llmTools,
                 isVerbose,
                 maxParallelCount,
@@ -142,16 +142,16 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
             [];
 
         const executionReport: ExecutionReportJson = {
-            pipelineUrl: pipeline.pipelineUrl,
-            title: pipeline.title,
+            pipelineUrl: preparedPipeline.pipelineUrl,
+            title: preparedPipeline.title,
             promptbookUsedVersion: PROMPTBOOK_VERSION,
-            promptbookRequestedVersion: pipeline.promptbookVersion,
-            description: pipeline.description,
+            promptbookRequestedVersion: preparedPipeline.promptbookVersion,
+            description: preparedPipeline.description,
             promptExecutions: [],
         };
 
         // Note: Check that all input input parameters are defined
-        for (const parameter of pipeline.parameters.filter(({ isInput }) => isInput)) {
+        for (const parameter of preparedPipeline.parameters.filter(({ isInput }) => isInput)) {
             if (inputParameters[parameter.name] === undefined) {
                 return deepFreezeWithSameType({
                     isSuccessful: false,
@@ -163,13 +163,14 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                     executionReport,
                     outputParameters: {},
                     usage: ZERO_USAGE,
+                    preparedPipeline,
                 }) satisfies PipelineExecutorResult;
             }
         }
 
         // Note: Check that no extra input parameters are passed
         for (const parameterName of Object.keys(inputParameters)) {
-            const parameter = pipeline.parameters.find(({ name }) => name === parameterName);
+            const parameter = preparedPipeline.parameters.find(({ name }) => name === parameterName);
 
             if (parameter === undefined) {
                 warnings.push(
@@ -191,6 +192,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                     executionReport,
                     outputParameters: {},
                     usage: ZERO_USAGE,
+                    preparedPipeline,
                 }) satisfies PipelineExecutorResult;
             }
         }
@@ -212,7 +214,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
             // TODO: [♨] Implement Better - use real index and keyword search from `template` and {samples}
 
             TODO_USE(template);
-            return pipeline.knowledgePieces.map(({ content }) => `- ${content}`).join('\n');
+            return preparedPipeline.knowledgePieces.map(({ content }) => `- ${content}`).join('\n');
             //                                                      <- TODO: [🧠] !!!!! Some smart aggregation of knowledge pieces, single-line vs multi-line vs mixed
         }
 
@@ -255,7 +257,8 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
             // <- TODO: [🧠][🥜]
             const name = `pipeline-executor-frame-${currentTemplate.name}`;
             const title = currentTemplate.title;
-            const priority = pipeline.promptTemplates.length - pipeline.promptTemplates.indexOf(currentTemplate);
+            const priority =
+                preparedPipeline.promptTemplates.length - preparedPipeline.promptTemplates.indexOf(currentTemplate);
 
             if (onProgress /* <- [3] */) {
                 await onProgress({
@@ -382,15 +385,15 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                                 prompt = {
                                     title: currentTemplate.title,
                                     pipelineUrl: `${
-                                        pipeline.pipelineUrl
-                                            ? pipeline.pipelineUrl
+                                        preparedPipeline.pipelineUrl
+                                            ? preparedPipeline.pipelineUrl
                                             : 'anonymous' /* <- TODO: [🧠] How to deal with anonymous pipelines, do here some auto-url like SHA-256 based ad-hoc identifier? */
                                     }#${currentTemplate.name}`,
                                     parameters,
                                     content: preparedContent, // <- Note: For LLM execution, parameters are replaced in the content
                                     modelRequirements: currentTemplate.modelRequirements!,
                                     expectations: {
-                                        ...(pipeline.personas.find(
+                                        ...(preparedPipeline.personas.find(
                                             ({ name }) => name === currentTemplate.personaName,
                                         ) || {}),
                                         ...currentTemplate.expectations,
@@ -715,7 +718,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
             const outputParameters: Parameters = {};
 
             // Note: Filter ONLY output parameters
-            for (const parameter of pipeline.parameters.filter(({ isOutput }) => isOutput)) {
+            for (const parameter of preparedPipeline.parameters.filter(({ isOutput }) => isOutput)) {
                 if (parametersToPass[parameter.name] === undefined) {
                     // [4]
                     warnings.push(
@@ -733,10 +736,10 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
         }
 
         try {
-            let resovedParameterNames: Array<string_name> = pipeline.parameters
+            let resovedParameterNames: Array<string_name> = preparedPipeline.parameters
                 .filter(({ isInput }) => isInput)
                 .map(({ name }) => name);
-            let unresovedTemplates: Array<PromptTemplateJson> = [...pipeline.promptTemplates];
+            let unresovedTemplates: Array<PromptTemplateJson> = [...preparedPipeline.promptTemplates];
             //            <- TODO: [🧠][🥜]
             let resolving: Array<Promise<void>> = [];
 
@@ -820,6 +823,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                 usage,
                 executionReport,
                 outputParameters,
+                preparedPipeline,
             }) satisfies PipelineExecutorResult;
         }
 
@@ -836,6 +840,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
             usage,
             executionReport,
             outputParameters,
+            preparedPipeline,
         }) satisfies PipelineExecutorResult;
     };
 
