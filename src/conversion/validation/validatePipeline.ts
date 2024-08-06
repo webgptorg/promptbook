@@ -1,13 +1,11 @@
 import { spaceTrim } from 'spacetrim';
-import { LOOP_LIMIT } from '../../config';
-import { RESERVED_PARAMETER_NAMES } from '../../config';
+import { LOOP_LIMIT, RESERVED_PARAMETER_NAMES } from '../../config';
 import { ParsingError } from '../../errors/ParsingError';
 import { PipelineLogicError } from '../../errors/PipelineLogicError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import type { PromptTemplateJson } from '../../types/PipelineJson/PromptTemplateJson';
-import type { string_name } from '../../types/typeAliases';
-import type { string_reserved_parameter_name } from '../../types/typeAliases';
+import type { string_name, string_reserved_parameter_name } from '../../types/typeAliases';
 import { isValidPromptbookVersion } from '../../utils/validators/semanticVersion/isValidPromptbookVersion';
 import { isValidPipelineUrl } from '../../utils/validators/url/isValidPipelineUrl';
 
@@ -28,10 +26,31 @@ import { isValidPipelineUrl } from '../../utils/validators/url/isValidPipelineUr
 export function validatePipeline(pipeline: PipelineJson): PipelineJson {
     // TODO: [🧠] Maybe test if promptbook is a promise and make specific error case for that
 
+    const pipelineIdentification = (() => {
+        // Note: This is a 😐 implementation of [🚞]
+        const _: Array<string> = [];
+
+        if (pipeline.sourceFile !== undefined) {
+            _.push(`File: ${pipeline.sourceFile}`);
+        }
+
+        if (pipeline.pipelineUrl !== undefined) {
+            _.push(`Url: ${pipeline.pipelineUrl}`);
+        }
+
+        return _.join('\n');
+    })();
+
     if (pipeline.pipelineUrl !== undefined && !isValidPipelineUrl(pipeline.pipelineUrl)) {
         // <- Note: [🚲]
         throw new PipelineLogicError(
-            `Invalid promptbook URL "${pipeline.pipelineUrl}"`,
+            spaceTrim(
+                (block) => `
+                    Invalid promptbook URL "${pipeline.pipelineUrl}"
+
+                    ${block(pipelineIdentification)}
+                `,
+            ),
             // <- TODO: [🐠]
             // <- TODO: [🚞]
         );
@@ -40,7 +59,13 @@ export function validatePipeline(pipeline: PipelineJson): PipelineJson {
     if (!isValidPromptbookVersion(pipeline.promptbookVersion)) {
         // <- Note: [🚲]
         throw new PipelineLogicError(
-            `Invalid promptbook Version "${pipeline.pipelineUrl}"`,
+            spaceTrim(
+                (block) => `
+                    Invalid Promptbook Version "${pipeline.promptbookVersion}"
+
+                    ${block(pipelineIdentification)}
+                `,
+            ),
             // <- TODO: [🚞]
         );
     }
@@ -49,11 +74,15 @@ export function validatePipeline(pipeline: PipelineJson): PipelineJson {
     if (!Array.isArray(pipeline.parameters)) {
         // TODO: [🧠] what is the correct error tp throw - maybe PromptbookSchemaError
         throw new ParsingError(
-            spaceTrim(`
-                Promptbook is valid JSON but with wrong structure
+            spaceTrim(
+                (block) => `
+                    Promptbook is valid JSON but with wrong structure
 
-                promptbook.parameters expected to be an array, but got ${typeof pipeline.parameters}
-            `),
+                    \`promptbook.parameters\` expected to be an array, but got ${typeof pipeline.parameters}
+
+                    ${block(pipelineIdentification)}
+                `,
+            ),
             // <- TODO: [🚞]
         );
     }
@@ -62,11 +91,15 @@ export function validatePipeline(pipeline: PipelineJson): PipelineJson {
     if (!Array.isArray(pipeline.promptTemplates)) {
         // TODO: [🧠] what is the correct error tp throw - maybe PromptbookSchemaError
         throw new ParsingError(
-            spaceTrim(`
-              Promptbook is valid JSON but with wrong structure
+            spaceTrim(
+                (block) => `
+                    Promptbook is valid JSON but with wrong structure
 
-              promptbook.promptTemplates expected to be an array, but got ${typeof pipeline.promptTemplates}
-          `),
+                    \`promptbook.promptTemplates\` expected to be an array, but got ${typeof pipeline.promptTemplates}
+
+                    ${block(pipelineIdentification)}
+                `,
+            ),
             // <- TODO: [🚞]
         );
     }
@@ -75,8 +108,14 @@ export function validatePipeline(pipeline: PipelineJson): PipelineJson {
     for (const parameter of pipeline.parameters) {
         if (parameter.isInput && parameter.isOutput) {
             throw new PipelineLogicError(
-                `Parameter {${parameter.name}} can not be both input and output`,
+                spaceTrim(
+                    (block) => `
 
+                        Parameter {${parameter.name}} can not be both input and output
+
+                        ${block(pipelineIdentification)}
+                    `,
+                ),
                 // <- TODO: [🚞]
             );
         }
@@ -88,13 +127,17 @@ export function validatePipeline(pipeline: PipelineJson): PipelineJson {
             !pipeline.promptTemplates.some((template) => template.dependentParameterNames.includes(parameter.name))
         ) {
             throw new PipelineLogicError(
-                spaceTrim(`
-                    Parameter {${parameter.name}} is created but not used
+                spaceTrim(
+                    (block) => `
+                        Parameter {${parameter.name}} is created but not used
 
-                    You can declare {${parameter.name}} as output parameter by adding in the header:
-                    - OUTPUT PARAMETER \`{${parameter.name}}\` ${parameter.description || ''}
+                        You can declare {${parameter.name}} as output parameter by adding in the header:
+                        - OUTPUT PARAMETER \`{${parameter.name}}\` ${parameter.description || ''}
 
-                `),
+                        ${block(pipelineIdentification)}
+
+                    `,
+                ),
                 // <- TODO: [🚞]
             );
         }
@@ -105,14 +148,17 @@ export function validatePipeline(pipeline: PipelineJson): PipelineJson {
             !pipeline.promptTemplates.some((template) => template.resultingParameterName === parameter.name)
         ) {
             throw new PipelineLogicError(
-                spaceTrim(`
-                    Parameter {${parameter.name}} is declared but not defined
+                spaceTrim(
+                    (block) => `
+                        Parameter {${parameter.name}} is declared but not defined
 
-                    You can do one of these:
-                    - Remove declaration of {${parameter.name}}
-                    - Add prompt template that results in -> {${parameter.name}}
+                        You can do one of these:
+                        - Remove declaration of {${parameter.name}}
+                        - Add prompt template that results in -> {${parameter.name}}
 
-                `),
+                        ${block(pipelineIdentification)}
+                    `,
+                ),
                 // <- TODO: [🚞]
             );
         }
@@ -126,12 +172,27 @@ export function validatePipeline(pipeline: PipelineJson): PipelineJson {
     // Note: Checking each template individually
     for (const template of pipeline.promptTemplates) {
         if (definedParameters.has(template.resultingParameterName)) {
-            throw new PipelineLogicError(`Parameter {${template.resultingParameterName}} is defined multiple times`);
+            throw new PipelineLogicError(
+                spaceTrim(
+                    (block) => `
+                        Parameter {${template.resultingParameterName}} is defined multiple times
+                    `,
+                ),
+                // <- TODO: [🚞]
+            );
         }
 
         if (RESERVED_PARAMETER_NAMES.includes(template.resultingParameterName as string_reserved_parameter_name)) {
             throw new PipelineLogicError(
-                `Parameter name {${template.resultingParameterName}} is reserved, please use different name`,
+                spaceTrim(
+                    (block) => `
+                        Parameter name {${template.resultingParameterName}} is reserved, please use different name
+
+                        ${block(pipelineIdentification)}
+                    `,
+                ),
+
+                // <- TODO: [🚞]
             );
         }
 
@@ -139,15 +200,18 @@ export function validatePipeline(pipeline: PipelineJson): PipelineJson {
 
         if (template.blockType === 'PROMPT_TEMPLATE' && template.modelRequirements.modelVariant === undefined) {
             throw new PipelineLogicError(
-                spaceTrim(`
+                spaceTrim(
+                    (block) => `
 
-                  You must specify MODEL VARIANT in the prompt template "${template.title}"
+                        You must specify MODEL VARIANT in the prompt template "${template.title}"
 
-                  For example:
-                  - MODEL VARIANT Chat
-                  - MODEL NAME \`gpt-4-1106-preview\`
+                        For example:
+                        - MODEL VARIANT Chat
+                        - MODEL NAME \`gpt-4-1106-preview\`${/* <- TODO: Dynamic listing of command examples */ ''}
 
-              `),
+                        ${block(pipelineIdentification)}
+                    `,
+                ),
                 // <- TODO: [🚞]
             );
         }
@@ -158,7 +222,15 @@ export function validatePipeline(pipeline: PipelineJson): PipelineJson {
                 !template.expectations /* <- TODO: Require at least 1 -> min <- expectation to use jokers */
             ) {
                 throw new PipelineLogicError(
-                    `Joker parameters are used for {${template.resultingParameterName}} but no expectations are defined`,
+                    spaceTrim(
+                        (block) => `
+                            Joker parameters are used for {${
+                                template.resultingParameterName
+                            }} but no expectations are defined
+
+                            ${block(pipelineIdentification)}
+                        `,
+                    ),
                     // <- TODO: [🚞]
                 );
             }
@@ -166,7 +238,15 @@ export function validatePipeline(pipeline: PipelineJson): PipelineJson {
             for (const joker of template.jokerParameterNames) {
                 if (!template.dependentParameterNames.includes(joker)) {
                     throw new PipelineLogicError(
-                        `Parameter {${joker}} is used for {${template.resultingParameterName}} as joker but not in dependentParameterNames`,
+                        spaceTrim(
+                            (block) => `
+                                Parameter {${joker}} is used for {${
+                                template.resultingParameterName
+                            }} as joker but not in \`dependentParameterNames\`
+
+                                ${block(pipelineIdentification)}
+                            `,
+                        ),
                         // <- TODO: [🚞]
                     );
                 }
@@ -177,21 +257,39 @@ export function validatePipeline(pipeline: PipelineJson): PipelineJson {
             for (const [unit, { min, max }] of Object.entries(template.expectations)) {
                 if (min !== undefined && max !== undefined && min > max) {
                     throw new PipelineLogicError(
-                        `Min expectation (=${min}) of ${unit} is higher than max expectation (=${max})`,
+                        spaceTrim(
+                            (block) => `
+                                Min expectation (=${min}) of ${unit} is higher than max expectation (=${max})
+
+                                ${block(pipelineIdentification)}
+                            `,
+                        ),
                         // <- TODO: [🚞]
                     );
                 }
 
                 if (min !== undefined && min < 0) {
                     throw new PipelineLogicError(
-                        `Min expectation of ${unit} must be zero or positive`,
+                        spaceTrim(
+                            (block) => `
+                                Min expectation of ${unit} must be zero or positive
+
+                                ${block(pipelineIdentification)}
+                            `,
+                        ),
                         // <- TODO: [🚞]
                     );
                 }
 
                 if (max !== undefined && max <= 0) {
                     throw new PipelineLogicError(
-                        `Max expectation of ${unit} must be positive`,
+                        spaceTrim(
+                            (block) => `
+                                Max expectation of ${unit} must be positive
+
+                                ${block(pipelineIdentification)}
+                            `,
+                        ),
                         // <- TODO: [🚞]
                     );
                 }
@@ -217,7 +315,14 @@ export function validatePipeline(pipeline: PipelineJson): PipelineJson {
         if (loopLimit-- < 0) {
             // Note: Really UnexpectedError not LimitReachedError - this should not happen and be caught below
             throw new UnexpectedError(
-                'Loop limit reached during detection of circular dependencies in `validatePipeline`',
+                spaceTrim(
+                    (block) => `
+                        Loop limit reached during detection of circular dependencies in \`validatePipeline\`
+
+                        ${block(pipelineIdentification)}
+                    `,
+                ),
+                // <- TODO: [🚞]
             );
         }
 
@@ -248,6 +353,8 @@ export function validatePipeline(pipeline: PipelineJson): PipelineJson {
 
                         Resolved:
                         ${block(resovedParameters.map((name) => `- Parameter {${name}}`).join('\n'))}
+
+                        ${block(pipelineIdentification)}
                     `,
                     // <- TODO: [🚞]
                 ),
