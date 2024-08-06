@@ -1,7 +1,6 @@
 import { ParsingError } from '../../errors/ParsingError';
 import { isValidPipelineUrl } from '../../utils/validators/url/isValidPipelineUrl';
-import type { CommandParser } from '../_common/types/CommandParser';
-import type { CommandParserInput } from '../_common/types/CommandParser';
+import type { CommandParser, CommandParserInput } from '../_common/types/CommandParser';
 import type { UrlCommand } from './UrlCommand';
 
 /**
@@ -16,8 +15,10 @@ export const urlCommandParser: CommandParser<UrlCommand> = {
      */
     name: 'URL',
 
+    aliasNames: ['PIPELINE_URL'],
+
     /*
-    Note: [🛵] No need for alias name because it is already preprocessed
+    Note: [🛵] No need for this alias name because it is already preprocessed
     aliasNames: ['HTTPS'],
     */
 
@@ -40,6 +41,7 @@ export const urlCommandParser: CommandParser<UrlCommand> = {
      * Example usages of the URL command
      */
     examples: [
+        'PIPELINE URL https://promptbook.studio/library/write-cv.ptbk.md',
         'URL https://promptbook.studio/library/write-cv.ptbk.md',
         'https://promptbook.studio/library/write-cv.ptbk.md',
     ],
