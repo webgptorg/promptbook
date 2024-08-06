@@ -1,8 +1,7 @@
 import { ParsingError } from '../../errors/ParsingError';
 import { isValidPromptbookVersion } from '../../utils/validators/semanticVersion/isValidPromptbookVersion';
 import { PROMPTBOOK_VERSION } from '../../version';
-import type { CommandParser } from '../_common/types/CommandParser';
-import type { CommandParserInput } from '../_common/types/CommandParser';
+import type { CommandParser, CommandParserInput } from '../_common/types/CommandParser';
 import type { PromptbookVersionCommand } from './PromptbookVersionCommand';
 
 /**
@@ -15,12 +14,9 @@ export const promptbookVersionCommandParser: CommandParser<PromptbookVersionComm
     /**
      * Name of the command
      */
-    name: 'VERSION',
+    name: 'PROMPTBOOK_VERSION',
 
-    /*
-    Note: [📇] No need to put here "PROMPTBOOK" alias here
-    aliasNames: ['PROMPTBOOK_VERSION'],
-    */
+    aliasNames: ['PTBK_VERSION', 'PTBK_V', 'PTBKV'],
 
     /**
      * BOILERPLATE command can be used in:
@@ -40,7 +36,7 @@ export const promptbookVersionCommandParser: CommandParser<PromptbookVersionComm
     /**
      * Example usages of the PROMPTBOOK_VERSION command
      */
-    examples: [`PROMPTBOOK VERSION ${PROMPTBOOK_VERSION}`, `VERSION ${PROMPTBOOK_VERSION}`],
+    examples: [`PROMPTBOOK VERSION ${PROMPTBOOK_VERSION}`, `PTBKV ${PROMPTBOOK_VERSION}`],
 
     /**
      * Parses the PROMPTBOOK_VERSION command

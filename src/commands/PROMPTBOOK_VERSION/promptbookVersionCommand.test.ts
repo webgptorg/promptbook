@@ -36,8 +36,8 @@ describe('how PROMPTBOOK_VERSION command in .ptbk.md files works', () => {
     });
 
     it('should fail to prevent mismatch between version of pipeline and promptbook', () => {
-        expect(() => parseCommand('VERSION 0.62.0', 'PIPELINE_HEAD')).toThrowError(/---/i);
-        expect(() => parseCommand('V 0.62.0', 'PIPELINE_HEAD')).toThrowError(/---/i);
+        expect(() => parseCommand('VERSION 0.62.0', 'PIPELINE_HEAD')).toThrowError(/Malformed or unknown command/i);
+        expect(() => parseCommand('V 0.62.0', 'PIPELINE_HEAD')).toThrowError(/Malformed or unknown command/i);
     });
 
     it(`should work with all samples`, () => {
