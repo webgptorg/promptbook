@@ -65,6 +65,17 @@ type CreatePipelineExecutorSettings = {
      * @default false
      */
     readonly isVerbose?: boolean;
+
+    /**
+     * If you pass fully prepared pipeline, this does not matter
+     *
+     * Otherwise:
+     * If false or not set, warning is shown when pipeline is not prepared
+     * If true, warning is suppressed
+     *
+     * @default false
+     */
+    readonly isNotPreparedWarningSupressed?: boolean;
 };
 
 /**
@@ -99,6 +110,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
         maxExecutionAttempts = MAX_EXECUTION_ATTEMPTS,
         maxParallelCount = MAX_PARALLEL_COUNT,
         isVerbose = false,
+        isNotPreparedWarningSupressed = false,
     } = settings;
 
     validatePipeline(pipeline);
@@ -109,15 +121,15 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
 
     if (isPipelinePrepared(pipeline)) {
         preparedPipeline = pipeline;
-    } else {
-        // TODO: !!!!! This should be maybe warning in report
+    } else if (isNotPreparedWarningSupressed !== true) {
+        // TODO: !!!!! Test that this work as intended together with prepared pipeline
         console.warn(
             spaceTrim(`
                 Pipeline ${pipeline.pipelineUrl || pipeline.sourceFile || pipeline.title} is not prepared
 
                 ${pipeline.sourceFile}
 
-                It will be prepared ad-hoc before the first execution
+                It will be prepared ad-hoc before the first execution and **returned as \`preparedPipeline\` in \`PipelineExecutorResult\`**
                 But it is recommended to prepare the pipeline during collection preparation
 
                 @see more at https://ptbk.io/prepare-pipeline
@@ -130,7 +142,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
         onProgress?: (taskProgress: TaskProgress) => Promisable<void>,
     ) => {
         if (preparedPipeline === undefined) {
-            preparedPipeline = await preparePipeline(rawPipeline, {
+            preparedPipeline = await preparePipeline(pipeline, {
                 llmTools,
                 isVerbose,
                 maxParallelCount,
@@ -848,8 +860,6 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
 }
 
 /**
- * TODO: !!!!! return `preparedPipeline` from execution
- * TODO: !!!!! `isNotPreparedWarningSupressed`
  * TODO: Use isVerbose here (not only pass to `preparePipeline`)
  * TODO: [🪂] Use maxParallelCount here (not only pass to `preparePipeline`)
  * TODO: [♈] Probbably move expectations from templates to parameters
