@@ -1,5 +1,4 @@
-import type { string_date_iso8601 } from '../types/typeAliases';
-import type { string_model_name } from '../types/typeAliases';
+import type { string_date_iso8601, string_model_name } from '../types/typeAliases';
 import type { TODO_object } from '../utils/organization/TODO_object';
 import type { EmbeddingVector } from './EmbeddingVector';
 import type { PromptResultUsage } from './PromptResultUsage';
@@ -26,7 +25,7 @@ export type CompletionPromptResult = CommonPromptResult;
  * Note: This is fully serializable as JSON
  */
 export type ChatPromptResult = CommonPromptResult & {
-    // TODO: [🤹‍♂️][🧠] Figure out way how to pass thread / previous messages
+    // TODO: [🗯][🧠] Figure out way how to pass thread / previous messages
 };
 
 /**
@@ -85,7 +84,16 @@ export type CommonPromptResult = {
     readonly usage: PromptResultUsage;
 
     /**
+     * Raw request to the model
+     *
+     * Note: This contains redundant information
+     */
+    readonly rawRequest: TODO_object;
+
+    /**
      * Raw response from the model
+     *
+     * Note: This contains redundant information
      */
     readonly rawResponse: TODO_object;
 };

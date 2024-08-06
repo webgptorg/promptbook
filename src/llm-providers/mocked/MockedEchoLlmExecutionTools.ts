@@ -1,14 +1,10 @@
 import { spaceTrim } from 'spacetrim';
 import type { CommonExecutionToolsOptions } from '../../execution/CommonExecutionToolsOptions';
-import type { AvailableModel } from '../../execution/LlmExecutionTools';
-import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { ChatPromptResult } from '../../execution/PromptResult';
-import type { CompletionPromptResult } from '../../execution/PromptResult';
+import type { AvailableModel, LlmExecutionTools } from '../../execution/LlmExecutionTools';
+import type { ChatPromptResult, CompletionPromptResult } from '../../execution/PromptResult';
 import { addUsage } from '../../execution/utils/addUsage';
 import type { Prompt } from '../../types/Prompt';
-import type { string_markdown } from '../../types/typeAliases';
-import type { string_markdown_text } from '../../types/typeAliases';
-import type { string_title } from '../../types/typeAliases';
+import type { string_markdown, string_markdown_text, string_title } from '../../types/typeAliases';
 import { getCurrentIsoDate } from '../../utils/getCurrentIsoDate';
 import { replaceParameters } from '../../utils/replaceParameters';
 
@@ -54,7 +50,7 @@ export class MockedEchoLlmExecutionTools implements LlmExecutionTools {
             rawResponse: {
                 note: 'This is mocked echo',
             },
-            // <- [🤹‍♂️]
+            // <- [🗯]
         };
     }
 
@@ -86,7 +82,7 @@ export class MockedEchoLlmExecutionTools implements LlmExecutionTools {
             rawResponse: {
                 note: 'This is mocked echo',
             },
-            // <- [🤹‍♂️]
+            // <- [🗯]
         };
     }
 

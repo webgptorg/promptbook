@@ -155,8 +155,8 @@ export function startRemoteServer(options: RemoteServerOptions): IDestroyable {
 /**
  * TODO: [⚖] Expose the collection to be able to connect to same collection via createCollectionFromUrl
  * TODO: Handle progress - support streaming
- * TODO: [🤹‍♂️] Do not hang up immediately but wait until client closes OR timeout
- * TODO: [🤹‍♂️] Timeout on chat to free up resources
+ * TODO: [🗯] Do not hang up immediately but wait until client closes OR timeout
+ * TODO: [🗯] Timeout on chat to free up resources
  * TODO: [🃏] Pass here some security token to prevent malitious usage and/or DDoS
  * TODO: [0] Set unavailable models as undefined in `RemoteLlmExecutionTools` NOT throw error here
  */

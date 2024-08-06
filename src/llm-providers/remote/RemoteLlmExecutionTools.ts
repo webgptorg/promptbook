@@ -1,19 +1,15 @@
 import type { Socket } from 'socket.io-client';
 import { io } from 'socket.io-client';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
-import type { AvailableModel } from '../../execution/LlmExecutionTools';
-import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { ChatPromptResult } from '../../execution/PromptResult';
-import type { CompletionPromptResult } from '../../execution/PromptResult';
-import type { EmbeddingPromptResult } from '../../execution/PromptResult';
-import type { PromptResult } from '../../execution/PromptResult';
-import type { ChatPrompt } from '../../types/Prompt';
-import type { CompletionPrompt } from '../../types/Prompt';
-import type { EmbeddingPrompt } from '../../types/Prompt';
-import type { Prompt } from '../../types/Prompt';
-import type { string_markdown } from '../../types/typeAliases';
-import type { string_markdown_text } from '../../types/typeAliases';
-import type { string_title } from '../../types/typeAliases';
+import type { AvailableModel, LlmExecutionTools } from '../../execution/LlmExecutionTools';
+import type {
+    ChatPromptResult,
+    CompletionPromptResult,
+    EmbeddingPromptResult,
+    PromptResult,
+} from '../../execution/PromptResult';
+import type { ChatPrompt, CompletionPrompt, EmbeddingPrompt, Prompt } from '../../types/Prompt';
+import type { string_markdown, string_markdown_text, string_title } from '../../types/typeAliases';
 import type { RemoteLlmExecutionToolsOptions } from './RemoteLlmExecutionToolsOptions';
 import type { Promptbook_Server_Error } from './interfaces/Promptbook_Server_Error';
 import type { Promptbook_Server_Request } from './interfaces/Promptbook_Server_Request';
@@ -133,5 +129,5 @@ export class RemoteLlmExecutionTools implements LlmExecutionTools {
 
 /**
  * TODO: [🍓] Allow to list compatible models with each variant
- * TODO: [🤹‍♂️] RemoteLlmExecutionTools should extend Destroyable and implement IDestroyable
+ * TODO: [🗯] RemoteLlmExecutionTools should extend Destroyable and implement IDestroyable
  */
