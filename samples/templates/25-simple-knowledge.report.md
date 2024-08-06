@@ -3,11 +3,11 @@
 Show how to use knowledge
 
 -   PIPELINE URL https://promptbook.studio/samples/simple-knowledge.ptbk.md
--   PROMPTBOOK VERSION 0.61.0-24 _(requested 1.0.0)_
--   STARTED AT 2024-08-06 10:24:46
--   COMPLETED AT 2024-08-06 10:24:53
--   TOTAL DURATION 7 seconds
--   TOTAL LLM DURATION 7 seconds
+-   PROMPTBOOK VERSION 0.61.0-25 _(requested 1.0.0)_
+-   STARTED AT 2024-08-06 15:39:48
+-   COMPLETED AT 2024-08-06 15:39:51
+-   TOTAL DURATION 4 seconds
+-   TOTAL LLM DURATION 4 seconds
 -   TOTAL COST $0
 
 ## 🗃 Index
@@ -20,7 +20,7 @@ Show how to use knowledge
 | ----------- | ------------------------------------ |
 | Writing bio | ████████████████████████████████████ |
 
-_Note: Each █ represents 0.198 seconds, width of timeline is 7.13 seconds = 36 squares_
+_Note: Each █ represents 0.109 seconds, width of timeline is 3.92 seconds = 36 squares_
 
 ## 💸 Cost chart
 
@@ -31,7 +31,7 @@ _Note: Each █ represents -Infinity USD, width of cost is -Infinity USD = 36 sq
 
 ## Writing bio
 
--   DURATION 7 seconds
+-   DURATION 4 seconds
 -   COST UNKNOWN
 
 ### Prompt
@@ -52,10 +52,8 @@ You are writing a bio for Pavol Hejný for the event {eventName}.
 {knowledge}
 ```
 
-### Result```
-
-Pavol Hejný is a developer with a profound passion for utilizing new tools and technologies, with a particular focus on creating fully functional user applications leveraging the latest AI models. As a member of the Ainautes consulting group, Pavol plays a crucial role in supporting the global deployment of generative AI. He is the developer behind WebGPT, a web page generation service that exemplifies his innovative spirit. Prior to the advent of generative AI, Pavol made significant strides in educational technology by creating Collboard, the first Czech virtual whiteboard, and H-edu, a series of electronic textbooks used by tens of thousands of children. His diverse expertise extends to working on numerous scientific projects for the Czech Ornithological Society, delivering lectures at conferences, serving on juries, and mentoring in both Czech and international competitions. Pavol’s dedication to open-source development is evident in the many projects he has shared on GitHub. Pavol Hejný continues to inspire and lead within the tech community, making strides at the forefront of AI and technology innovation.
+### Result
 
 ```
-
+Pavol Hejný is a developer passionate about using new tools and technologies, specializing in creating fully functional user applications with the latest AI models. He is a member of the Ainautes consulting group, which supports the deployment of generative AI globally. Pavol develops the WebGPT web page generation service. Before the rise of generative AI, he created the first Czech virtual whiteboard, Collboard, and electronic textbooks, H-edu, which have been used by tens of thousands of children. He has contributed to many scientific projects for the Czech Ornithological Society, gives lectures at conferences, sits on juries, and acts as a mentor in Czech and international competitions. Pavol has a special heart for open source, with many of his projects available on GitHub.
 ```
