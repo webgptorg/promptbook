@@ -1,5 +1,5 @@
 import type { PipelineJson } from '../types/PipelineJson/PipelineJson';
-import { extractParameters } from '../utils/extractParameters';
+import { extractParameterNames } from '../utils/extractParameterNames';
 
 /**
  * Unprepare just strips the preparation data of the pipeline
@@ -12,7 +12,7 @@ export function unpreparePipeline(pipeline: PipelineJson): PipelineJson {
     promptTemplates = promptTemplates.map((promptTemplate) => {
         let { dependentParameterNames } = promptTemplate;
 
-        const parameterNames = extractParameters(promptTemplate.preparedContent || '');
+        const parameterNames = extractParameterNames(promptTemplate.preparedContent || '');
 
         dependentParameterNames = dependentParameterNames.filter(
             (dependentParameterName) => !parameterNames.has(dependentParameterName),

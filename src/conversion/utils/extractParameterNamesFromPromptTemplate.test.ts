@@ -1,7 +1,7 @@
 import { describe, expect, it } from '@jest/globals';
-import { extractParametersFromPromptTemplate } from './extractParametersFromPromptTemplate';
+import { extractParameterNamesFromPromptTemplate } from './extractParameterNamesFromPromptTemplate';
 
-describe('extractParametersFromPromptTemplate', () => {
+describe('extractParameterNamesFromPromptTemplate', () => {
     it('should parse parameters from prompt template', () => {
         const promptTemplate = {
             title: 'name of {foo}',
@@ -10,14 +10,14 @@ describe('extractParametersFromPromptTemplate', () => {
             content: 'hello {name}',
         } as const;
 
-        expect(extractParametersFromPromptTemplate(promptTemplate)).toContain('foo');
-        expect(extractParametersFromPromptTemplate(promptTemplate)).toContain('bar');
-        expect(extractParametersFromPromptTemplate(promptTemplate)).toContain('name');
+        expect(extractParameterNamesFromPromptTemplate(promptTemplate)).toContain('foo');
+        expect(extractParameterNamesFromPromptTemplate(promptTemplate)).toContain('bar');
+        expect(extractParameterNamesFromPromptTemplate(promptTemplate)).toContain('name');
     });
 
     it('should parse parameters from javascript script', () => {
         expect(
-            extractParametersFromPromptTemplate({
+            extractParameterNamesFromPromptTemplate({
                 title: 'Script',
                 blockType: 'SCRIPT',
                 content: 'const greeting = hello;',

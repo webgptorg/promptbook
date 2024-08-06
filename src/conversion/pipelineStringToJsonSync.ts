@@ -1,6 +1,5 @@
 import { spaceTrim } from 'spacetrim';
 import type { Writable, WritableDeep } from 'type-fest';
-import type { ScriptJson } from '../types/PipelineJson/ScriptJson';
 import { knowledgeCommandParser } from '../commands/KNOWLEDGE/knowledgeCommandParser';
 import type { ParameterCommand } from '../commands/PARAMETER/ParameterCommand';
 import { personaCommandParser } from '../commands/PERSONA/personaCommandParser';
@@ -14,6 +13,7 @@ import type { ExpectationUnit } from '../types/PipelineJson/Expectations';
 import type { PipelineJson } from '../types/PipelineJson/PipelineJson';
 import type { PromptTemplateJson } from '../types/PipelineJson/PromptTemplateJson';
 import type { PromptTemplateParameterJson } from '../types/PipelineJson/PromptTemplateParameterJson';
+import type { ScriptJson } from '../types/PipelineJson/ScriptJson';
 import type { PipelineString } from '../types/PipelineString';
 import type { ScriptLanguage } from '../types/ScriptLanguage';
 import { SUPPORTED_SCRIPT_LANGUAGES } from '../types/ScriptLanguage';
@@ -27,7 +27,7 @@ import { splitMarkdownIntoSections } from '../utils/markdown/splitMarkdownIntoSe
 import type { TODO_any } from '../utils/organization/TODO_any';
 import type { really_any } from '../utils/organization/really_any';
 import { PROMPTBOOK_VERSION } from '../version';
-import { extractParametersFromPromptTemplate } from './utils/extractParametersFromPromptTemplate';
+import { extractParameterNamesFromPromptTemplate } from './utils/extractParameterNamesFromPromptTemplate';
 import { titleToName } from './utils/titleToName';
 
 /**
@@ -493,7 +493,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
         }
 
         templateJson.dependentParameterNames = Array.from(
-            extractParametersFromPromptTemplate(
+            extractParameterNamesFromPromptTemplate(
                 templateJson as PromptTemplateJson,
                 // <- TODO: [3]
             ),

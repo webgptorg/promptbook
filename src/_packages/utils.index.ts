@@ -2,7 +2,7 @@
 
 import { spaceTrim } from 'spacetrim';
 import { renderPromptbookMermaid } from '../conversion/prettify/renderPipelineMermaidOptions';
-import { extractParametersFromPromptTemplate } from '../conversion/utils/extractParametersFromPromptTemplate';
+import { extractParameterNamesFromPromptTemplate } from '../conversion/utils/extractParameterNamesFromPromptTemplate';
 import { extractVariables } from '../conversion/utils/extractVariables';
 import { renameParameter } from '../conversion/utils/renameParameter';
 import { titleToName } from '../conversion/utils/titleToName';
@@ -17,7 +17,7 @@ import { countParagraphs } from '../utils/expectation-counters/countParagraphs';
 import { countSentences, splitIntoSentences } from '../utils/expectation-counters/countSentences';
 import { countWords } from '../utils/expectation-counters/countWords';
 import { CountUtils } from '../utils/expectation-counters/index';
-import { extractParameters } from '../utils/extractParameters';
+import { extractParameterNames } from '../utils/extractParameterNames';
 import { DIACRITIC_VARIANTS_LETTERS } from '../utils/normalization/DIACRITIC_VARIANTS_LETTERS';
 import type { IKeywords, string_keyword } from '../utils/normalization/IKeywords';
 import { capitalize } from '../utils/normalization/capitalize';
@@ -61,7 +61,7 @@ import { PROMPTBOOK_VERSION } from '../version';
 export { forEachAsync, PROMPTBOOK_VERSION };
 
 // Templating
-export { extractParameters, extractVariables, replaceParameters, spaceTrim };
+export { extractParameterNames, extractVariables, replaceParameters, spaceTrim };
 
 // TODO: [🌻] For all, decide if theese are internal or external
 export {
@@ -129,7 +129,7 @@ export {
 export type { string_camelCase, string_kebab_case, string_PascalCase, string_SCREAMING_CASE, string_snake_case };
 
 // Promptbook
-export { extractParametersFromPromptTemplate, renameParameter, renderPromptbookMermaid };
+export { extractParameterNamesFromPromptTemplate, renameParameter, renderPromptbookMermaid };
 
 export { difference, intersection, union };
 

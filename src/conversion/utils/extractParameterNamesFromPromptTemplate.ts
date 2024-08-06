@@ -1,6 +1,6 @@
 import type { PromptTemplateJson } from '../../types/PipelineJson/PromptTemplateJson';
 import type { string_parameter_name } from '../../types/typeAliases';
-import { extractParameters } from '../../utils/extractParameters';
+import { extractParameterNames } from '../../utils/extractParameterNames';
 import { extractVariables } from './extractVariables';
 
 /**
@@ -10,7 +10,7 @@ import { extractVariables } from './extractVariables';
  * @returns the set of parameter names
  * @throws {ParsingError} if the script is invalid
  */
-export function extractParametersFromPromptTemplate(
+export function extractParameterNamesFromPromptTemplate(
     promptTemplate: Pick<
         PromptTemplateJson,
         'title' | 'description' | 'blockType' | 'content' | 'preparedContent' | 'jokerParameterNames'
@@ -21,10 +21,10 @@ export function extractParametersFromPromptTemplate(
     const parameterNames = new Set<string_parameter_name>();
 
     for (const parameterName of [
-        ...extractParameters(title),
-        ...extractParameters(description || ''),
-        ...extractParameters(content),
-        ...extractParameters(preparedContent || ''),
+        ...extractParameterNames(title),
+        ...extractParameterNames(description || ''),
+        ...extractParameterNames(content),
+        ...extractParameterNames(preparedContent || ''),
     ]) {
         parameterNames.add(parameterName);
     }

@@ -387,6 +387,7 @@ Working external knowledge, personas, preparation for instruments and actions
 -   Change `EXECUTE` command to `BLOCK` command
 -   Change `executionType` -> `blockType`
 -   Rename `SynraxError` to `ParsingError`
+-   Rename `extractParameters` to `extractParameterNames`
 -   Rename `ExecutionError` to `PipelineExecutionError`
 -   Remove `TemplateError` and replace with `ExecutionError`
 -   Allow deep structure (h3, h4,...) in `.ptbk.md` files
