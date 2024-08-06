@@ -665,17 +665,8 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                         // TODO: [🧠] Maybe put other blockTypes into report
                         executionReport.promptExecutions.push({
                             prompt: {
-                                '!!! All information': null,
                                 ...prompt,
-
-                                '!!! Wanted information': null,
-                                title: currentTemplate.title /* <- Note: If title in pipeline contains emojis, pass it innto report */,
-                                content: prompt.content,
-                                modelRequirements: prompt.modelRequirements,
-                                expectations: prompt.expectations,
-                                expectFormat: prompt.expectFormat,
-
-                                // <- Note: !!!!! Do want to pass ONLY wanted information to the report
+                                // <- TODO: [🧠] How to pick everyhing except `pipelineUrl`
                             } as really_any,
                             result: result || undefined,
                             error: expectError || undefined,
