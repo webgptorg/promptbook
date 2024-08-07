@@ -8,7 +8,8 @@ describe('how usageToHuman works', () => {
         expect(usageToHuman(ZERO_USAGE)).toEqual(
             spaceTrim(`
                 Usage:
-
+                - Cost 0 USD
+                - Saved 0 hours of human time
             `),
         ));
 
@@ -38,7 +39,8 @@ describe('how usageToHuman works', () => {
         ).toEqual(
             spaceTrim(`
                 Usage:
-          
+                - Cost 1 USD
+                - Saved 0.01 hours of human time
             `),
         ));
 
@@ -68,6 +70,8 @@ describe('how usageToHuman works', () => {
         ).toEqual(
             spaceTrim(`
                 Usage:
+                - Cost approximately 1 USD
+                - Saved approximately 33.58 hours of human time
           
             `),
         ));
