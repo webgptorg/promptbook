@@ -153,6 +153,7 @@ export function startRemoteServer(options: RemoteServerOptions): IDestroyable {
 }
 
 /**
+ * TODO: [🍜] Add anonymous option
  * TODO: [⚖] Expose the collection to be able to connect to same collection via createCollectionFromUrl
  * TODO: Handle progress - support streaming
  * TODO: [🗯] Do not hang up immediately but wait until client closes OR timeout

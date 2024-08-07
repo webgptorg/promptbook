@@ -134,4 +134,5 @@ export class RemoteLlmExecutionTools implements LlmExecutionTools {
 /**
  * TODO: [🍓] Allow to list compatible models with each variant
  * TODO: [🗯] RemoteLlmExecutionTools should extend Destroyable and implement IDestroyable
+ * TODO: [🍜] Add anonymous option
  */

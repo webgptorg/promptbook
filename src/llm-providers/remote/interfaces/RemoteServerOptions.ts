@@ -30,3 +30,8 @@ export type RemoteServerOptions = CommonExecutionToolsOptions & {
      */
     createLlmExecutionTools(clientId: client_id): LlmExecutionTools /* <- TODO: &({}|IDestroyable) */;
 };
+
+
+/**
+ * TODO: [🍜] Add anonymous option
+ */
