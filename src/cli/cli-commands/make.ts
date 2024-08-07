@@ -208,7 +208,7 @@ export function initializeMakeCommand(program: Program) {
         if (isVerbose) {
             // TODO: !!!!!! Test that this works
             console.info(colors.green(`Collection builded`));
-            console.info(colors.cyan(usageToHuman(llmTools.totalUsage)));
+            console.info(colors.cyan(usageToHuman(llmTools.getTotalUsage())));
         }
 
         process.exit(0);

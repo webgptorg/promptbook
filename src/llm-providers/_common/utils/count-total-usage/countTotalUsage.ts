@@ -34,13 +34,15 @@ export function countTotalUsage(llmTools: LlmExecutionTools): LlmExecutionToolsW
             return /* not await */ llmTools.listModels();
         },
 
-        get totalUsage() {
+        getTotalUsage() {
+            // <- Note: [🥫] Not using getter `get totalUsage` but `getTotalUsage` to allow this object to be proxied
             return totalUsage;
         },
     };
 
     if (llmTools.callChatModel !== undefined) {
         proxyTools.callChatModel = async (prompt: ChatPrompt): Promise<ChatPromptResult> => {
+            // console.info('[🚕] callChatModel through countTotalUsage');
             const promptResult = await llmTools.callChatModel!(prompt);
             totalUsage = addUsage(totalUsage, promptResult.usage);
             return promptResult;
@@ -49,6 +51,7 @@ export function countTotalUsage(llmTools: LlmExecutionTools): LlmExecutionToolsW
 
     if (llmTools.callCompletionModel !== undefined) {
         proxyTools.callCompletionModel = async (prompt: CompletionPrompt): Promise<CompletionPromptResult> => {
+            // console.info('[🚕] callCompletionModel through countTotalUsage');
             const promptResult = await llmTools.callCompletionModel!(prompt);
             totalUsage = addUsage(totalUsage, promptResult.usage);
             return promptResult;
@@ -57,6 +60,7 @@ export function countTotalUsage(llmTools: LlmExecutionTools): LlmExecutionToolsW
 
     if (llmTools.callEmbeddingModel !== undefined) {
         proxyTools.callEmbeddingModel = async (prompt: EmbeddingPrompt): Promise<EmbeddingPromptResult> => {
+            // console.info('[🚕] callEmbeddingModel through countTotalUsage');
             const promptResult = await llmTools.callEmbeddingModel!(prompt);
             totalUsage = addUsage(totalUsage, promptResult.usage);
             return promptResult;

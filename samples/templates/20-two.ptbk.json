@@ -67,7 +67,7 @@
             "modelRequirements": {
                 "modelVariant": "CHAT",
                 "modelName": "gpt-4",
-                "systemMessage": "You are a knowledgeable linguist and friendly assistant here to help users with their questions about language and linguistics.",
+                "systemMessage": "You are a helpful and knowledgeable linguist.",
                 "temperature": 0.5
             },
             "preparationIds": [
@@ -81,7 +81,7 @@
             "promptbookVersion": "0.62.0-0",
             "usage": {
                 "price": {
-                    "value": 0.007370000000000001
+                    "value": 0.007070000000000001
                 },
                 "input": {
                     "tokensCount": {
@@ -108,13 +108,13 @@
                 },
                 "output": {
                     "tokensCount": {
-                        "value": 46
+                        "value": 36
                     },
                     "charactersCount": {
-                        "value": 192
+                        "value": 116
                     },
                     "wordsCount": {
-                        "value": 26
+                        "value": 14
                     },
                     "sentencesCount": {
                         "value": 3

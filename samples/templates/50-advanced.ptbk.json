@@ -187,7 +187,7 @@
             "modelRequirements": {
                 "modelVariant": "CHAT",
                 "modelName": "gpt-4",
-                "systemMessage": "You are an experienced AI engineer and a helpful assistant with specialized knowledge in linguistics.",
+                "systemMessage": "You are a helpful and knowledgeable linguist.",
                 "temperature": 0.5
             },
             "preparationIds": [
@@ -200,7 +200,7 @@
             "modelRequirements": {
                 "modelVariant": "CHAT",
                 "modelName": "gpt-4",
-                "systemMessage": "You are a knowledgeable linguist and an experienced AI engineer.",
+                "systemMessage": "You are a helpful and knowledgeable linguist.",
                 "temperature": 0.5
             },
             "preparationIds": [
@@ -226,7 +226,7 @@
             "modelRequirements": {
                 "modelVariant": "CHAT",
                 "modelName": "gpt-4",
-                "systemMessage": "You are an experienced AI engineer, a helpful assistant, and a linguist.",
+                "systemMessage": "You are a helpful and knowledgeable linguist.",
                 "temperature": 0.5
             },
             "preparationIds": [
@@ -240,7 +240,7 @@
             "promptbookVersion": "0.62.0-0",
             "usage": {
                 "price": {
-                    "value": 0.028820000000000002
+                    "value": 0.028280000000000003
                 },
                 "input": {
                     "tokensCount": {
@@ -267,13 +267,13 @@
                 },
                 "output": {
                     "tokensCount": {
-                        "value": 162
+                        "value": 144
                     },
                     "charactersCount": {
-                        "value": 566
+                        "value": 464
                     },
                     "wordsCount": {
-                        "value": 72
+                        "value": 56
                     },
                     "sentencesCount": {
                         "value": 12

@@ -45,7 +45,7 @@ async function playground() {
         isVerbose,
     });
 
-    console.info(colors.cyan(usageToHuman(llmTools.totalUsage)));
+    console.info(colors.cyan(usageToHuman(llmTools.getTotalUsage())));
     console.info(colors.bgGreen(' Knowledge: '));
     console.info(knowledge);
 

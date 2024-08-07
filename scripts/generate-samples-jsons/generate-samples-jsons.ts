@@ -13,6 +13,7 @@ import { stringifyPipelineJson } from '../../src/conversion/utils/stringifyPipel
 import { validatePipeline } from '../../src/conversion/validation/validatePipeline';
 import { usageToHuman } from '../../src/execution/utils/usageToHuman';
 //import { MockedFackedLlmExecutionTools } from '../../src/llm-providers/mocked/MockedFackedLlmExecutionTools';
+import { forTime } from 'waitasecond';
 import { getLlmToolsForTestingAndScriptsAndPlayground } from '../../src/llm-providers/_common/getLlmToolsForTestingAndScriptsAndPlayground';
 import { PipelineString } from '../../src/types/PipelineString';
 import { commit } from '../utils/autocommit/commit';
@@ -61,15 +62,24 @@ async function generateSampleJsons({
     const llmTools = getLlmToolsForTestingAndScriptsAndPlayground({ isCacheReloaded, isVerbose });
     //                 <- Note: for example here we don`t want the [🌯]
 
-    for (const pipelineMarkdownFilePath of await glob(
-        join(PROMPTBOOK_SAMPLES_DIR, '*.ptbk.md').split('\\').join('/'),
-    )) {
+    let pipelineMarkdownFilePaths = await glob(join(PROMPTBOOK_SAMPLES_DIR, '*.ptbk.md').split('\\').join('/'));
+
+    /**/
+    // Note: Keep for testing:
+    pipelineMarkdownFilePaths = pipelineMarkdownFilePaths.filter((path) => path.includes('simple-knowledge.ptbk.md'));
+    /**/
+
+    for (const pipelineMarkdownFilePath of pipelineMarkdownFilePaths) {
         const pipelineMarkdown = await readFile(pipelineMarkdownFilePath, 'utf-8');
 
         try {
             const pipelineJson = await pipelineStringToJson(pipelineMarkdown as PipelineString, {
                 llmTools,
             });
+
+            console.info(colors.cyan(usageToHuman(llmTools.getTotalUsage())));
+            await forTime(1000000);
+
             const pipelineJsonFilePath = pipelineMarkdownFilePath.replace(/\.ptbk\.md$/, '.ptbk.json');
 
             // Note: We want to ensure that the generated JSONs are logically correct
@@ -91,7 +101,7 @@ async function generateSampleJsons({
         }
     }
 
-    console.info(colors.cyan(usageToHuman(llmTools.totalUsage)));
+    console.info(colors.cyan(usageToHuman(llmTools.getTotalUsage())));
 
     if (isCommited) {
         await commit(PROMPTBOOK_SAMPLES_DIR, `📖 Convert samples .ptbk.md -> .ptbk.json`);

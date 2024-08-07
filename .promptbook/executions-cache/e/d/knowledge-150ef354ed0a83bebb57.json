@@ -1,11 +1,11 @@
 {
-    "date": "2024-08-07T15:50:09.591Z",
+    "date": "2024-08-07T15:44:27.581Z",
     "promptbookVersion": "0.62.0-0",
     "prompt": {
         "title": "Knowledge",
         "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.ptbk.md#knowledge",
         "parameters": {
-            "knowledgePieceContent": "Pavol is a member of the Ainautes consulting group, supporting the deployment of generative AI worldwide, and develops the WebGPT web page generation service."
+            "knowledgePieceContent": "Prior to the rise of generative AI, Pavol created Collboard, the first Czech virtual whiteboard, and H-edu, electronic textbooks used by tens of thousands of children."
         },
         "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> {knowledgePieceContent}",
         "modelRequirements": {
@@ -16,11 +16,11 @@
         "postprocessing": []
     },
     "promptResult": {
-        "content": "Pavol, Ainautes, consulting group, generative AI, deployment, worldwide, WebGPT, web page generation, service",
+        "content": "Keywords: generative AI, Pavol, Collboard, Czech, virtual whiteboard, H-edu, electronic textbooks, children",
         "modelName": "claude-3-opus-20240229",
         "timing": {
-            "start": "2024-08-07T15:50:06.876Z",
-            "complete": "2024-08-07T15:50:09.590Z"
+            "start": "2024-08-07T15:44:25.831Z",
+            "complete": "2024-08-07T15:44:27.581Z"
         },
         "usage": {
             "price": {
@@ -29,7 +29,7 @@
             },
             "input": {
                 "tokensCount": {
-                    "value": 82
+                    "value": 86
                 },
                 "charactersCount": {
                     "value": 217
@@ -52,7 +52,7 @@
             },
             "output": {
                 "tokensCount": {
-                    "value": 31
+                    "value": 32
                 },
                 "charactersCount": {
                     "value": 217
@@ -74,33 +74,33 @@
                 }
             }
         },
-        "rawPromptContent": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> Pavol is a member of the Ainautes consulting group, supporting the deployment of generative AI worldwide, and develops the WebGPT web page generation service.",
+        "rawPromptContent": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> Prior to the rise of generative AI, Pavol created Collboard, the first Czech virtual whiteboard, and H-edu, electronic textbooks used by tens of thousands of children.",
         "rawRequest": {
             "model": "claude-3-opus-20240229",
             "max_tokens": 4096,
             "messages": [
                 {
                     "role": "user",
-                    "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> Pavol is a member of the Ainautes consulting group, supporting the deployment of generative AI worldwide, and develops the WebGPT web page generation service."
+                    "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> Prior to the rise of generative AI, Pavol created Collboard, the first Czech virtual whiteboard, and H-edu, electronic textbooks used by tens of thousands of children."
                 }
             ]
         },
         "rawResponse": {
-            "id": "msg_012cvhmhXSR7S2s7TSecHQc6",
+            "id": "msg_01TqEWPe272sFSyobzjwttuZ",
             "type": "message",
             "role": "assistant",
             "model": "claude-3-opus-20240229",
             "content": [
                 {
                     "type": "text",
-                    "text": "Pavol, Ainautes, consulting group, generative AI, deployment, worldwide, WebGPT, web page generation, service"
+                    "text": "Keywords: generative AI, Pavol, Collboard, Czech, virtual whiteboard, H-edu, electronic textbooks, children"
                 }
             ],
             "stop_reason": "end_turn",
             "stop_sequence": null,
             "usage": {
-                "input_tokens": 82,
-                "output_tokens": 31
+                "input_tokens": 86,
+                "output_tokens": 32
             }
         }
     }

@@ -34,7 +34,7 @@ export function cacheLlmTools<TLlmTools extends LlmExecutionTools>(
 
     const proxyTools: TLlmTools = {
         ...llmTools,
-        // <- TODO: !!!!!! Is this working?
+        // <- Note: [🥫]
 
         get title() {
             // TODO: [🧠] Maybe put here some suffix

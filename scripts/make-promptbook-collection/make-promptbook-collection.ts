@@ -69,7 +69,7 @@ async function makePipelineCollection({
     const libraryTypescriptFilePath = join(promptbookSourceDir, 'index.ts');
     const libraryTypescriptFileContent = 'export default ' + collectionJsonString + ';\n';
 
-    console.info(colors.cyan(usageToHuman(llmTools.totalUsage)));
+    console.info(colors.cyan(usageToHuman(llmTools.getTotalUsage())));
 
     // TODO: [🏳‍🌈] Finally take one of .json vs .ts (using .ts file (not .json) to avoid support of json files in bundle )
     await writeFile(collectionJsonFilePath, collectionJsonFileContent, 'utf-8');

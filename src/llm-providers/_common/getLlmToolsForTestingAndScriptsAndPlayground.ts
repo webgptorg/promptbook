@@ -41,6 +41,7 @@ export function getLlmToolsForTestingAndScriptsAndPlayground(
         ? countTotalUsage(llmTools)
         : //    <- Note: for example here we don`t want the [🌯]
           limitTotalUsage(llmTools);
+    //          <- Note: `limitTotalUsage` will do everything as `countTotalUsage` and adds usage limit
     //          <- Note: for example here we don`t want the [🌯]
 
     return cacheLlmTools(llmToolsWithUsage, {

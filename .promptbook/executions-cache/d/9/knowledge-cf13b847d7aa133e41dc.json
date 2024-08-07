@@ -1,11 +1,11 @@
 {
-    "date": "2024-08-07T15:50:09.591Z",
+    "date": "2024-08-07T15:44:30.530Z",
     "promptbookVersion": "0.62.0-0",
     "prompt": {
         "title": "Knowledge",
         "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.ptbk.md#knowledge",
         "parameters": {
-            "knowledgePieceContent": "Pavol is a member of the Ainautes consulting group, supporting the deployment of generative AI worldwide, and develops the WebGPT web page generation service."
+            "knowledgePieceContent": "Pavol has worked on scientific projects for the Czech Ornithological Society, regularly lectures at conferences, serves on juries, and mentors in Czech and international competitions. He is passionate about open source and shares his work on GitHub.\n---"
         },
         "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> {knowledgePieceContent}",
         "modelRequirements": {
@@ -16,11 +16,11 @@
         "postprocessing": []
     },
     "promptResult": {
-        "content": "Pavol, Ainautes, consulting group, generative AI, deployment, worldwide, WebGPT, web page generation, service",
+        "content": "Pavol, scientific projects, Czech Ornithological Society, lectures, conferences, juries, mentors, Czech, international, competitions, passionate, open source, GitHub",
         "modelName": "claude-3-opus-20240229",
         "timing": {
-            "start": "2024-08-07T15:50:06.876Z",
-            "complete": "2024-08-07T15:50:09.590Z"
+            "start": "2024-08-07T15:44:25.860Z",
+            "complete": "2024-08-07T15:44:30.530Z"
         },
         "usage": {
             "price": {
@@ -29,7 +29,7 @@
             },
             "input": {
                 "tokensCount": {
-                    "value": 82
+                    "value": 98
                 },
                 "charactersCount": {
                     "value": 217
@@ -52,7 +52,7 @@
             },
             "output": {
                 "tokensCount": {
-                    "value": 31
+                    "value": 38
                 },
                 "charactersCount": {
                     "value": 217
@@ -74,33 +74,33 @@
                 }
             }
         },
-        "rawPromptContent": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> Pavol is a member of the Ainautes consulting group, supporting the deployment of generative AI worldwide, and develops the WebGPT web page generation service.",
+        "rawPromptContent": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> Pavol has worked on scientific projects for the Czech Ornithological Society, regularly lectures at conferences, serves on juries, and mentors in Czech and international competitions. He is passionate about open source and shares his work on GitHub.\n> ---",
         "rawRequest": {
             "model": "claude-3-opus-20240229",
             "max_tokens": 4096,
             "messages": [
                 {
                     "role": "user",
-                    "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> Pavol is a member of the Ainautes consulting group, supporting the deployment of generative AI worldwide, and develops the WebGPT web page generation service."
+                    "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> Pavol has worked on scientific projects for the Czech Ornithological Society, regularly lectures at conferences, serves on juries, and mentors in Czech and international competitions. He is passionate about open source and shares his work on GitHub.\n> ---"
                 }
             ]
         },
         "rawResponse": {
-            "id": "msg_012cvhmhXSR7S2s7TSecHQc6",
+            "id": "msg_01BAySWgAgPPRn2LXK32FxHX",
             "type": "message",
             "role": "assistant",
             "model": "claude-3-opus-20240229",
             "content": [
                 {
                     "type": "text",
-                    "text": "Pavol, Ainautes, consulting group, generative AI, deployment, worldwide, WebGPT, web page generation, service"
+                    "text": "Pavol, scientific projects, Czech Ornithological Society, lectures, conferences, juries, mentors, Czech, international, competitions, passionate, open source, GitHub"
                 }
             ],
             "stop_reason": "end_turn",
             "stop_sequence": null,
             "usage": {
-                "input_tokens": 82,
-                "output_tokens": 31
+                "input_tokens": 98,
+                "output_tokens": 38
             }
         }
     }
