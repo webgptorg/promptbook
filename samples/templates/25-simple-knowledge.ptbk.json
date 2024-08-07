@@ -59,7 +59,7 @@
         {
             "name": "untitled",
             "title": "Untitled",
-            "content": "---\nPavol is a developer passionate about using new tools and technologies, specializing in creating user applications using the latest AI models.",
+            "content": "---\nPavol is a developer passionate about using new tools and technologies, specializing in creating fully functional user applications using the latest AI models.",
             "keywords": [
                 "Pavol",
                 "developer",
@@ -68,6 +68,7 @@
                 "technologies",
                 "specializing",
                 "creating",
+                "fully functional",
                 "user applications",
                 "latest AI models"
             ],
@@ -94,10 +95,14 @@
             "content": "Pavol is a member of the Ainautes consulting group, supporting the deployment of generative AI worldwide, and develops the WebGPT web page generation service.",
             "keywords": [
                 "Pavol",
-                "Ainautes consulting group",
-                "generative AI deployment",
+                "Ainautes",
+                "consulting group",
+                "generative AI",
+                "deployment",
+                "worldwide",
                 "WebGPT",
-                "web page generation service"
+                "web page generation",
+                "service"
             ],
             "index": [
                 {
@@ -119,17 +124,16 @@
         {
             "name": "untitled",
             "title": "Untitled",
-            "content": "Pavol has previously created the first Czech virtual whiteboard, Collboard, and electronic textbooks, H-edu, which were used by tens of thousands of children. He has also worked on many scientific projects for the Czech Ornithological Society.",
+            "content": "Before the emergence of generative AI, Pavol created the first Czech virtual whiteboard, Collboard, and electronic textbooks, H-edu, used by tens of thousands of children.",
             "keywords": [
                 "Pavol",
+                "generative AI",
                 "Czech",
                 "virtual whiteboard",
                 "Collboard",
                 "electronic textbooks",
                 "H-edu",
-                "children",
-                "scientific projects",
-                "Czech Ornithological Society."
+                "children"
             ],
             "index": [
                 {
@@ -151,16 +155,17 @@
         {
             "name": "untitled",
             "title": "Untitled",
-            "content": "Pavol regularly gives lectures at conferences, sits on juries, and acts as a mentor in Czech and international competitions. He has a special heart for this and loves open source, with many of his projects available on GitHub.\n---",
+            "content": "Pavol has worked on many scientific projects for the Czech Ornithological Society, regularly gives lectures at conferences, sits on juries, and acts as a mentor in Czech and international competitions. He has a special heart for open source and shares many of his projects on GitHub.",
             "keywords": [
                 "Pavol",
+                "scientific projects",
+                "Czech Ornithological Society",
                 "lectures",
                 "conferences",
                 "juries",
                 "mentor",
                 "Czech",
-                "international",
-                "competitions",
+                "international competitions",
                 "open source",
                 "GitHub"
             ],
@@ -188,9 +193,9 @@
             "description": "HR professional with prior experience in writing bios",
             "modelRequirements": {
                 "modelVariant": "CHAT",
-                "modelName": "gpt-4-turbo",
-                "systemMessage": "You are an experienced AI engineer and a helpful assistant with a background in HR, specially skilled in writing professional bios.",
-                "temperature": 0.6
+                "modelName": "gpt-4-turbo-2024-04-09",
+                "systemMessage": "You are a virtual assistant shaped by your prior experience as an HR professional with expertise in crafting professional bios.",
+                "temperature": 0.5
             },
             "preparationIds": [
                 1
@@ -203,11 +208,11 @@
             "promptbookVersion": "0.62.0-0",
             "usage": {
                 "price": {
-                    "value": 0.007654440000000001
+                    "value": 0.007804440000000001
                 },
                 "input": {
                     "tokensCount": {
-                        "value": 2513
+                        "value": 2501
                     },
                     "charactersCount": {
                         "value": 6689
@@ -230,13 +235,13 @@
                 },
                 "output": {
                     "tokensCount": {
-                        "value": 682
+                        "value": 725
                     },
                     "charactersCount": {
-                        "value": 4162
+                        "value": 4169
                     },
                     "wordsCount": {
-                        "value": 520
+                        "value": 522
                     },
                     "sentencesCount": {
                         "value": 37

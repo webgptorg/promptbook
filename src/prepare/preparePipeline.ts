@@ -120,8 +120,6 @@ export async function preparePipeline(pipeline: PipelineJson, options: PrepareOp
     );
     // ----- /Templates preparation -----
 
-    console.log('!!!! llmToolsWithUsage.totalUsage', llmToolsWithUsage.getTotalUsage());
-
     // Note: Count total usage
     currentPreparation.usage = llmToolsWithUsage.getTotalUsage();
 

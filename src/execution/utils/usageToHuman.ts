@@ -8,8 +8,7 @@ import { usageToWorktime } from './usageToWorktime';
  * Function `usageToHuman` will take usage and convert it to human readable report
  */
 export function usageToHuman(usage: PromptResultUsage): string_markdown {
-    console.log('!!!! usage', usage);
-
+ 
     let report = 'Usage:';
 
     const uncertainNumberToHuman = ({ value, isUncertain }: UncertainNumber) =>

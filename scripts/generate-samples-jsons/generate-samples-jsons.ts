@@ -62,9 +62,9 @@ async function generateSampleJsons({
     const llmTools = getLlmToolsForTestingAndScriptsAndPlayground({ isCacheReloaded, isVerbose });
     //                 <- Note: for example here we don`t want the [🌯]
 
-    let pipelineMarkdownFilePaths = await glob(join(PROMPTBOOK_SAMPLES_DIR, '*.ptbk.md').split('\\').join('/'));
+    const pipelineMarkdownFilePaths = await glob(join(PROMPTBOOK_SAMPLES_DIR, '*.ptbk.md').split('\\').join('/'));
 
-    /**/
+    /*/
     // Note: Keep for testing:
     pipelineMarkdownFilePaths = pipelineMarkdownFilePaths.filter((path) => path.includes('simple-knowledge.ptbk.md'));
     /**/
@@ -77,8 +77,13 @@ async function generateSampleJsons({
                 llmTools,
             });
 
+            await forTime(0);
+
+            /*/
+            // Note: Keep for testing:
             console.info(colors.cyan(usageToHuman(llmTools.getTotalUsage())));
             await forTime(1000000);
+            /**/
 
             const pipelineJsonFilePath = pipelineMarkdownFilePath.replace(/\.ptbk\.md$/, '.ptbk.json');
 
