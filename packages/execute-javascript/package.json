@@ -1,6 +1,6 @@
 {
     "name": "@promptbook/execute-javascript",
-    "version": "0.61.0",
+    "version": "0.62.0-0",
     "description": "Supercharge your use of large language models",
     "private": false,
     "sideEffects": false,
@@ -35,8 +35,8 @@
     "homepage": "https://www.npmjs.com/package/@promptbook/core",
     "dependencies": {
         "prettier": "2.8.1",
-        "spacetrim": "0.11.37",
-        "waitasecond": "1.11.81"
+        "spacetrim": "0.11.39",
+        "waitasecond": "1.11.83"
     },
     "funding": [
         {
@@ -49,7 +49,7 @@
         }
     ],
     "peerDependencies": {
-        "@promptbook/core": "0.61.0"
+        "@promptbook/core": "0.62.0-0"
     },
     "main": "./umd/index.umd.js",
     "module": "./esm/index.es.js",

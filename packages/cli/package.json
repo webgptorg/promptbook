@@ -1,6 +1,6 @@
 {
     "name": "@promptbook/cli",
-    "version": "0.61.0",
+    "version": "0.62.0-0",
     "description": "Supercharge your use of large language models",
     "private": false,
     "sideEffects": false,
@@ -40,8 +40,8 @@
         "glob-promise": "6.0.5",
         "openai": "4.46.1",
         "prettier": "2.8.1",
-        "spacetrim": "0.11.37",
-        "waitasecond": "1.11.81"
+        "spacetrim": "0.11.39",
+        "waitasecond": "1.11.83"
     },
     "funding": [
         {
@@ -54,7 +54,7 @@
         }
     ],
     "peerDependencies": {
-        "@promptbook/core": "0.61.0"
+        "@promptbook/core": "0.62.0-0"
     },
     "main": "./umd/index.umd.js",
     "module": "./esm/index.es.js",
