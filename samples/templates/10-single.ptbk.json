@@ -33,9 +33,7 @@
                     "max": 5
                 }
             },
-            "dependentParameterNames": [
-                "word"
-            ],
+            "dependentParameterNames": ["word"],
             "resultingParameterName": "wordSynonym"
         }
     ],
@@ -51,16 +49,14 @@
                 "systemMessage": "You are an experienced AI engineer and a helpful assistant.",
                 "temperature": 0.5
             },
-            "preparationIds": [
-                1
-            ]
+            "preparationIds": [1]
         }
     ],
     "preparations": [
         {
             "id": 1,
             "promptbookVersion": "0.62.0-0",
-            "modelUsage": {
+            "usage": {
                 "price": {
                     "value": 0
                 },

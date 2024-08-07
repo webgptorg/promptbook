@@ -30,19 +30,13 @@
                 "modelVariant": "CHAT"
             },
             "content": "Write some name for hero",
-            "jokerParameterNames": [
-                "name1",
-                "name2"
-            ],
+            "jokerParameterNames": ["name1", "name2"],
             "expectations": {
                 "words": {
                     "min": 2
                 }
             },
-            "dependentParameterNames": [
-                "name1",
-                "name2"
-            ],
+            "dependentParameterNames": ["name1", "name2"],
             "resultingParameterName": "name"
         }
     ],
@@ -53,7 +47,7 @@
         {
             "id": 1,
             "promptbookVersion": "0.62.0-0",
-            "modelUsage": {
+            "usage": {
                 "price": {
                     "value": 0
                 },

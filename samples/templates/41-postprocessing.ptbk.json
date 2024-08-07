@@ -13,10 +13,7 @@
             "name": "greeting",
             "isInput": false,
             "isOutput": true,
-            "sampleValues": [
-                "NHOJ OLLEH",
-                "HSOJ IH"
-            ]
+            "sampleValues": ["NHOJ OLLEH", "HSOJ IH"]
         }
     ],
     "promptTemplates": [
@@ -28,14 +25,8 @@
                 "modelVariant": "CHAT"
             },
             "content": "Hello {yourName}!",
-            "postprocessingFunctionNames": [
-                "reverse",
-                "removeDiacritics",
-                "normalizeTo_SCREAMING_CASE"
-            ],
-            "dependentParameterNames": [
-                "yourName"
-            ],
+            "postprocessingFunctionNames": ["reverse", "removeDiacritics", "normalizeTo_SCREAMING_CASE"],
+            "dependentParameterNames": ["yourName"],
             "resultingParameterName": "greeting"
         }
     ],
@@ -46,7 +37,7 @@
         {
             "id": 1,
             "promptbookVersion": "0.62.0-0",
-            "modelUsage": {
+            "usage": {
                 "price": {
                     "value": 0
                 },

@@ -32,9 +32,7 @@
             },
             "content": "Write poem with word \"{word}\"",
             "personaName": "Jane",
-            "dependentParameterNames": [
-                "word"
-            ],
+            "dependentParameterNames": ["word"],
             "resultingParameterName": "poem"
         }
     ],
@@ -50,16 +48,14 @@
                 "systemMessage": "You are a creative and insightful poet.",
                 "temperature": 0.6
             },
-            "preparationIds": [
-                1
-            ]
+            "preparationIds": [1]
         }
     ],
     "preparations": [
         {
             "id": 1,
             "promptbookVersion": "0.62.0-0",
-            "modelUsage": {
+            "usage": {
                 "price": {
                     "value": 0
                 },

@@ -46,7 +46,7 @@ export async function preparePipeline(pipeline: PipelineJson, options: PrepareOp
         id: 1, // <- TODO: [🧊] Make incremental
         // TODO: [🍥]> date: $currentDate(),
         promptbookVersion: PROMPTBOOK_VERSION,
-        modelUsage: ZERO_USAGE,
+        usage: ZERO_USAGE,
     };
 
     const preparations: Array<PreparationJson> = [
@@ -121,7 +121,7 @@ export async function preparePipeline(pipeline: PipelineJson, options: PrepareOp
     // ----- /Templates preparation -----
 
     // Note: Count total usage
-    currentPreparation.modelUsage = llmToolsWithUsage.totalUsage;
+    currentPreparation.usage = llmToolsWithUsage.totalUsage;
 
     return {
         ...pipeline,

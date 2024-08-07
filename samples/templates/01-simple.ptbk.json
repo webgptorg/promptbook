@@ -8,11 +8,7 @@
             "name": "greetingResponse",
             "isInput": false,
             "isOutput": true,
-            "sampleValues": [
-                "Hello, how are you?",
-                "Dear Sir, how may I help you?",
-                "Hey, what's up?"
-            ]
+            "sampleValues": ["Hello, how are you?", "Dear Sir, how may I help you?", "Hey, what's up?"]
         }
     ],
     "promptTemplates": [
@@ -35,7 +31,7 @@
         {
             "id": 1,
             "promptbookVersion": "0.62.0-0",
-            "modelUsage": {
+            "usage": {
                 "price": {
                     "value": 0
                 },

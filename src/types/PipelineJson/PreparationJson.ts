@@ -24,7 +24,7 @@ export type PreparationJson = {
     /**
      * Usage of the prompt execution
      */
-    readonly modelUsage: PromptResultUsage;
+    readonly usage: PromptResultUsage;
 };
 
 /**

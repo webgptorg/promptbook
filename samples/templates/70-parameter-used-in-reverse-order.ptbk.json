@@ -31,10 +31,7 @@
                 "modelVariant": "CHAT"
             },
             "content": "Write sentence with \"{word}\" and \"{wordSynonym}\" in it",
-            "dependentParameterNames": [
-                "word",
-                "wordSynonym"
-            ],
+            "dependentParameterNames": ["word", "wordSynonym"],
             "resultingParameterName": "sentenceWithTwoSynonyms"
         },
         {
@@ -46,9 +43,7 @@
                 "modelVariant": "CHAT"
             },
             "content": "Write synonym for \"{word}\"",
-            "dependentParameterNames": [
-                "word"
-            ],
+            "dependentParameterNames": ["word"],
             "resultingParameterName": "wordSynonym"
         }
     ],
@@ -59,7 +54,7 @@
         {
             "id": 1,
             "promptbookVersion": "0.62.0-0",
-            "modelUsage": {
+            "usage": {
                 "price": {
                     "value": 0
                 },

@@ -13,9 +13,7 @@
             "name": "greeting",
             "isInput": false,
             "isOutput": true,
-            "sampleValues": [
-                "Hello John!"
-            ]
+            "sampleValues": ["Hello John!"]
         }
     ],
     "promptTemplates": [
@@ -45,9 +43,7 @@
                     "max": 1
                 }
             },
-            "dependentParameterNames": [
-                "yourName"
-            ],
+            "dependentParameterNames": ["yourName"],
             "resultingParameterName": "greeting"
         }
     ],
@@ -58,7 +54,7 @@
         {
             "id": 1,
             "promptbookVersion": "0.62.0-0",
-            "modelUsage": {
+            "usage": {
                 "price": {
                     "value": 0
                 },
