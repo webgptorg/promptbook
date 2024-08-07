@@ -36,7 +36,7 @@ export function createLlmToolsFromEnv(options: CreateLlmToolsFromEnvOptions = {}
 
     const { isVerbose = false } = options;
 
-    dotenv.config(); // <- TODO: !!!!!! Double check [🟢]
+    dotenv.config();
 
     const llmTools: Array<LlmExecutionTools> = [];
 
