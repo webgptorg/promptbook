@@ -2,7 +2,7 @@ import type { CommonExecutionToolsOptions, LlmExecutionTools } from '@promptbook
 import type { uuid } from '../../../utils/typeAliases';
 
 /**
- * Options for SupabaseLoggerWrapperOfLlmExecutionTools
+ * Options for `SupabaseLoggerWrapperOfLlmExecutionTools`
  */
 export type SupabaseLoggerWrapperOfLlmExecutionToolsOptions = CommonExecutionToolsOptions & {
     /**

@@ -16,21 +16,21 @@ import { SupabaseLoggerWrapperOfLlmExecutionToolsOptions } from './SupabaseLogge
 export class SupabaseLoggerWrapperOfLlmExecutionTools implements LlmExecutionTools {
     public constructor(private readonly options: SupabaseLoggerWrapperOfLlmExecutionToolsOptions = {}) {
         if (!isRunningInNode()) {
-            throw new Error('SupabaseLoggerWrapperOfExecutionTools can be used only on server');
+            throw new EnvironmentMismatchError('SupabaseLoggerWrapperOfExecutionTools can be used only on server');
         }
     }
 
     /**
      * Calls a chat model and logs the request+result
      */
-    public callChatModel(prompt: Pick<Prompt, 'content' | 'modelRequirements'>): Promise<PromptChatResult> {
+    public callChatModel(prompt: Pick<Prompt, 'content' | 'parameters' | 'modelRequirements'>): Promise<PromptChatResult> {
         return /* not await */ this.callModelCommon(prompt);
     }
 
     /**
      * Calls a completion model and logs the request+result
      */
-    public callCompletionModel(prompt: Pick<Prompt, 'content' | 'modelRequirements'>): Promise<PromptCompletionResult> {
+    public callCompletionModel(prompt: Pick<Prompt, 'content' | 'parameters' | 'modelRequirements'>): Promise<PromptCompletionResult> {
         return /* not await */ this.callModelCommon(prompt);
     }
 
@@ -47,9 +47,13 @@ export class SupabaseLoggerWrapperOfLlmExecutionTools implements LlmExecutionToo
             case 'CHAT':
                 promptResult = await this.options.llmExecutionTools.callChatModel(prompt);
                 break;
+
             case 'COMPLETION':
                 promptResult = await this.options.llmExecutionTools.callCompletionModel(prompt);
                 break;
+
+            // <- case [🤖]:
+
             default:
                 throw new Error(`Unknown model variant "${prompt.modelRequirements.variant}"`);
         }
@@ -62,8 +66,8 @@ export class SupabaseLoggerWrapperOfLlmExecutionTools implements LlmExecutionToo
                 spaceTrim(
                     (block) => `
                         ===========================[ Chat: ]===
-                        [🧑] ${block(prompt.content)}
-                        [🤖] ${block(promptResult.content)}
+                        User:   ${block(prompt.content)}
+                        System: ${block(promptResult.content)}
                         ---
                         Executed in ${block(
                             performance.measure(mark, `${mark}-start`, `${mark}-end`).duration.toString(),
@@ -112,4 +116,5 @@ export class SupabaseLoggerWrapperOfLlmExecutionTools implements LlmExecutionToo
  * TODO: [⚾️] Log also failed results
  * TODO: [⚾️][🧠] Maybe do equivalent for UserInterfaceTools OR make this for whole ExecutionTools
  * TODO: [⚾️] Create abstract LoggerWrapperOfLlmExecutionTools which can be extended to implement more loggers
+ * Note: [🟢] This code should never be published outside of `@promptbook/node`
  */

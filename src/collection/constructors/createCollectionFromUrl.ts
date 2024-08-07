@@ -11,14 +11,14 @@ type CreatePipelineCollectionFromUrlyOptions = {
      *
      * @default false
      */
-    isVerbose?: boolean;
+    readonly isVerbose?: boolean;
 
     /**
      * If true, directory will be scanned only when needed not during the construction
      *
      * @default false
      */
-    isLazyLoaded?: boolean;
+    readonly isLazyLoaded?: boolean;
 };
 
 /**

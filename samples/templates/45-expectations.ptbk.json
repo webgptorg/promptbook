@@ -12,17 +12,22 @@
         {
             "name": "greeting",
             "isInput": false,
-            "isOutput": true
+            "isOutput": true,
+            "sampleValues": [
+                "Hello John!"
+            ]
         }
     ],
     "promptTemplates": [
         {
+            "blockType": "PROMPT_TEMPLATE",
             "name": "question",
             "title": "💬 Question",
-            "dependentParameterNames": [
-                "yourName"
-            ],
-            "executionType": "PROMPT_TEMPLATE",
+            "modelRequirements": {
+                "modelVariant": "CHAT",
+                "modelName": "gpt-3.5-turbo"
+            },
+            "content": "Hello {yourName}!",
             "expectations": {
                 "characters": {
                     "max": 30,
@@ -40,13 +45,70 @@
                     "max": 1
                 }
             },
-            "modelRequirements": {
-                "modelVariant": "CHAT",
-                "modelName": "gpt-3.5-turbo"
-            },
-            "content": "Hello {yourName}!",
+            "dependentParameterNames": [
+                "yourName"
+            ],
             "resultingParameterName": "greeting"
         }
     ],
-    "knowledge": []
+    "knowledgeSources": [],
+    "knowledgePieces": [],
+    "personas": [],
+    "preparations": [
+        {
+            "id": 1,
+            "promptbookVersion": "0.61.0-25",
+            "modelUsage": {
+                "price": {
+                    "value": 0
+                },
+                "input": {
+                    "tokensCount": {
+                        "value": 0
+                    },
+                    "charactersCount": {
+                        "value": 0
+                    },
+                    "wordsCount": {
+                        "value": 0
+                    },
+                    "sentencesCount": {
+                        "value": 0
+                    },
+                    "linesCount": {
+                        "value": 0
+                    },
+                    "paragraphsCount": {
+                        "value": 0
+                    },
+                    "pagesCount": {
+                        "value": 0
+                    }
+                },
+                "output": {
+                    "tokensCount": {
+                        "value": 0
+                    },
+                    "charactersCount": {
+                        "value": 0
+                    },
+                    "wordsCount": {
+                        "value": 0
+                    },
+                    "sentencesCount": {
+                        "value": 0
+                    },
+                    "linesCount": {
+                        "value": 0
+                    },
+                    "paragraphsCount": {
+                        "value": 0
+                    },
+                    "pagesCount": {
+                        "value": 0
+                    }
+                }
+            }
+        }
+    ]
 }

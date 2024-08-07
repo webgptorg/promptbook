@@ -22,7 +22,7 @@ describe('pipelineJsonToString', () => {
             const pipelineJson2 = await pipelineStringToJson(pipelineString, /* , { Use here mocked LLM } */);
 
             /**/
-            writeFileSync(join(__dirname, samplesDir, name), JSON.stringify(pipelineJson2, null, 4) + '\n', 'utf-8');
+            writeFileSync(join(__dirname, samplesDir, name), stringifyPipelineJson(pipelineJson2), 'utf-8');
             // <- Note: In production it is not good practice to use synchronous functions
             //          But this is only a test before the build, so it is okay
             /**/

@@ -12,8 +12,8 @@ import { computeUsage } from '../openai/computeUsage';
 export const ANTHROPIC_CLAUDE_MODELS: Array<
     AvailableModel & {
         pricing?: {
-            prompt: number_usd;
-            output: number_usd;
+            readonly prompt: number_usd;
+            readonly output: number_usd;
         };
     }
 > = [
@@ -76,7 +76,8 @@ export const ANTHROPIC_CLAUDE_MODELS: Array<
 ];
 
 /**
- * TODO: !!!! Add embedding models OR Anthropic has only chat+completion models?
+ * Note: [🤖] Add models of new variant
+ * TODO: [🧠] !!! Add embedding models OR Anthropic has only chat+completion models?
  * TODO: [🧠] Some mechanism to propagate unsureness
  * TODO: [🧠][👮‍♀️] Put here more info like description, isVision, trainingDateCutoff, languages, strengths (	Top-level performance, intelligence, fluency, and understanding), contextWindow,...
  * TODO: [🕚] Make this list dynamic - dynamically can be listed modelNames but not modelVariant, legacy status, context length and pricing

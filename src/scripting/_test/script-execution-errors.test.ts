@@ -41,11 +41,14 @@ describe('createPipelineExecutor + executing scripts in promptbook', () => {
         for (const thing of ['apple', 'apples', 'an apple', 'Apple', 'The Apple', '🍏 Apple', 'Apple 🍎']) {
             expect(pipelineExecutor({ thing }, () => {})).resolves.toMatchObject({
                 isSuccessful: false,
-                errors: [new Error(`I do not like Apples!`)],
+                errors: [/Error: I do not like Apples!/i],
+                warnings: [
+                    /PipelineExecutionError: Parameter {bhing} should be an output parameter, but it was not generated/i,
+                ],
             });
 
             expect(() => pipelineExecutor({ thing }, () => {}).then(assertsExecutionSuccessful)).rejects.toThrowError(
-                /I do not like Apples!/,
+                /I do not like Apples!/i,
             );
         }
     });
@@ -92,9 +95,6 @@ async function getPipelineExecutor() {
                     return 'Hello';
                 },
             }),
-        },
-        settings: {
-            maxExecutionAttempts: 3,
         },
     });
 

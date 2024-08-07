@@ -1,5 +1,7 @@
 /**
  * Creates a new set with all elements that are present in all sets
+ *
+ * @deprecated use new javascript set methods instead @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set
  */
 export function intersection<TItem>(...sets: Array<Set<TItem>>): Set<TItem> {
     const intersection = new Set<TItem>();

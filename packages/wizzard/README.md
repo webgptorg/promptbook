@@ -85,7 +85,7 @@ File `write-website-content.ptbk.md`:
 > -   PROMPTBOOK VERSION 0.0.1
 > -   INPUT  PARAM `{rawTitle}` Automatically suggested a site name or empty text
 > -   INPUT  PARAM `{rawAssigment}` Automatically generated site entry from image recognition
-> -   OUTPUT PARAM `{content}` Web content
+> -   OUTPUT PARAM `{websiteContent}` Web content
 > -   OUTPUT PARAM `{keywords}` Keywords
 >
 > ## 👤 Specifying the assigment
@@ -244,7 +244,7 @@ File `write-website-content.ptbk.md`:
 > {contentBody}
 > ```
 >
-> `-> {content}`
+> `-> {websiteContent}`
 
 Following is the scheme how the promptbook above is executed:
 
@@ -282,7 +282,7 @@ flowchart LR
       templateCombineTheBeginning--"{contentBeginning}"-->templateCombineTheContent
       templateWriteTheContent--"{contentBody}"-->templateCombineTheContent
 
-      templateCombineTheContent--"{content}"-->output
+      templateCombineTheContent--"{websiteContent}"-->output
       output((Output)):::output
 
       classDef input color: grey;
@@ -383,7 +383,7 @@ For example:
 }
 ```
 
-### Execution type
+### Block type
 
 Each block of promptbook can have a different execution type.
 It is specified in list of requirements for the block.
@@ -470,9 +470,8 @@ Internally it calls OpenAI, Azure, GPU, proxy, cache, logging,...
 -   _(Not implemented yet)_ `BardExecutionTools`
 -   _(Not implemented yet)_ `LamaExecutionTools`
 -   _(Not implemented yet)_ `GpuExecutionTools`
--   And a special case are `MultipleLlmExecutionTools` that combines multiple execution tools together and tries to execute the prompt on the best one.
--   Another special case are `RemoteLlmExecutionTools` that connect to a remote server and run one of the above execution tools on that server.
--   The another special case is `MockedEchoLlmExecutionTools` that is used for testing and mocking.
+-   Special case are `RemoteLlmExecutionTools` that connect to a remote server and run one of the above execution tools on that server.
+-   Another special case is `MockedEchoLlmExecutionTools` that is used for testing and mocking.
 -   The another special case is `LogLlmExecutionToolsWrapper` that is technically also an execution tools but it is more proxy wrapper around other execution tools that logs all calls to execution tools.
 
 #### Script Execution Tools

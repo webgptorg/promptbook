@@ -1,8 +1,13 @@
-/* tslint:disable */
-/* TODO: Enable TSLint */
-
 import { normalizeTo_SCREAMING_CASE } from './normalizeTo_SCREAMING_CASE';
 
-export function normalizeTo_snake_case(sentence: string): string {
-    return normalizeTo_SCREAMING_CASE(sentence).toLowerCase();
+/**
+ * Semantic helper for snake_case strings
+ *
+ * @example 'hello_world'
+ * @example 'i_love_promptbook'
+ */
+export type string_snake_case = string;
+
+export function normalizeTo_snake_case(text: string): string_snake_case {
+    return normalizeTo_SCREAMING_CASE(text).toLowerCase();
 }

@@ -23,36 +23,93 @@
     ],
     "promptTemplates": [
         {
+            "blockType": "PROMPT_TEMPLATE",
             "name": "sentence",
             "title": "Sentence",
             "description": "Sentence with word and wordSynonym",
+            "modelRequirements": {
+                "modelVariant": "CHAT"
+            },
+            "content": "Write sentence with \"{word}\" and \"{wordSynonym}\" in it",
             "dependentParameterNames": [
                 "word",
                 "wordSynonym"
             ],
-            "executionType": "PROMPT_TEMPLATE",
-            "modelRequirements": {
-                "modelVariant": "CHAT",
-                "modelName": "gpt-3.5-turbo"
-            },
-            "content": "Write sentence with \"{word}\" and \"{wordSynonym}\" in it",
             "resultingParameterName": "sentenceWithTwoSynonyms"
         },
         {
+            "blockType": "PROMPT_TEMPLATE",
             "name": "synonym",
             "title": "Synonym",
             "description": "Synonym for word",
+            "modelRequirements": {
+                "modelVariant": "CHAT"
+            },
+            "content": "Write synonym for \"{word}\"",
             "dependentParameterNames": [
                 "word"
             ],
-            "executionType": "PROMPT_TEMPLATE",
-            "modelRequirements": {
-                "modelVariant": "CHAT",
-                "modelName": "gpt-3.5-turbo"
-            },
-            "content": "Write synonym for \"{word}\"",
             "resultingParameterName": "wordSynonym"
         }
     ],
-    "knowledge": []
+    "knowledgeSources": [],
+    "knowledgePieces": [],
+    "personas": [],
+    "preparations": [
+        {
+            "id": 1,
+            "promptbookVersion": "0.61.0-25",
+            "modelUsage": {
+                "price": {
+                    "value": 0
+                },
+                "input": {
+                    "tokensCount": {
+                        "value": 0
+                    },
+                    "charactersCount": {
+                        "value": 0
+                    },
+                    "wordsCount": {
+                        "value": 0
+                    },
+                    "sentencesCount": {
+                        "value": 0
+                    },
+                    "linesCount": {
+                        "value": 0
+                    },
+                    "paragraphsCount": {
+                        "value": 0
+                    },
+                    "pagesCount": {
+                        "value": 0
+                    }
+                },
+                "output": {
+                    "tokensCount": {
+                        "value": 0
+                    },
+                    "charactersCount": {
+                        "value": 0
+                    },
+                    "wordsCount": {
+                        "value": 0
+                    },
+                    "sentencesCount": {
+                        "value": 0
+                    },
+                    "linesCount": {
+                        "value": 0
+                    },
+                    "paragraphsCount": {
+                        "value": 0
+                    },
+                    "pagesCount": {
+                        "value": 0
+                    }
+                }
+            }
+        }
+    ]
 }

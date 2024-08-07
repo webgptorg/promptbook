@@ -26,9 +26,12 @@ import { createCollectionFromJson } from './createCollectionFromJson';
 export function createCollectionFromPromise(
     promptbookSourcesPromiseOrFactory: Promise<Array<PipelineJson>> | (() => Promise<Array<PipelineJson>>),
 ): PipelineCollection {
-    let collection: PipelineCollection;
+    let collection: PipelineCollection | null = null;
 
-    async function forSources(): Promise<void> {
+    async function load(): Promise<void> {
+        if (collection !== null) {
+            return;
+        }
         if (typeof promptbookSourcesPromiseOrFactory === 'function') {
             // Note: Calling factory function only once despite multiple calls to resolveSources
             promptbookSourcesPromiseOrFactory = promptbookSourcesPromiseOrFactory();
@@ -38,16 +41,16 @@ export function createCollectionFromPromise(
     }
 
     async function listPipelines(): Promise<Array<string_pipeline_url>> {
-        await forSources();
-        return /* not await */ collection.listPipelines();
+        await load();
+        return /* not await */ collection!.listPipelines();
     }
     async function getPipelineByUrl(url: string_pipeline_url): Promise<PipelineJson> {
-        await forSources();
-        return /* not await */ collection.getPipelineByUrl(url);
+        await load();
+        return /* not await */ collection!.getPipelineByUrl(url);
     }
     async function isResponsibleForPrompt(prompt: Prompt): Promise<boolean> {
-        await forSources();
-        return /* not await */ collection.isResponsibleForPrompt(prompt);
+        await load();
+        return /* not await */ collection!.isResponsibleForPrompt(prompt);
     }
 
     return {

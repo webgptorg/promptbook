@@ -1,3 +1,5 @@
+import spaceTrim from 'spacetrim';
+import { ParsingError } from '../../errors/ParsingError';
 import type { string_markdown } from '../../types/typeAliases';
 import type { CodeBlock } from './extractAllBlocksFromMarkdown';
 import { extractAllBlocksFromMarkdown } from './extractAllBlocksFromMarkdown';
@@ -19,13 +21,21 @@ export function extractOneBlockFromMarkdown(markdown: string_markdown): CodeBloc
     const codeBlocks = extractAllBlocksFromMarkdown(markdown);
 
     if (codeBlocks.length !== 1) {
-        // TODO: Report more specific place where the error happened
-        throw new Error(/* <- [🌻] */ 'There should be exactly one code block in the markdown');
+        throw new ParsingError(
+            spaceTrim(
+                (block) => `
+                    There should be exactly 1 code block, found ${codeBlocks.length} code blocks
+
+                    ${block(codeBlocks.map((block, i) => `Block ${i + 1}:\n${block.content}`).join('\n\n\n'))}
+                `,
+            ),
+            // <- [🚞]
+        );
     }
 
     return codeBlocks[0]!;
 }
 
 /***
- * TODO: [🍓][🌻] !!! Decide of this is internal util, external util OR validator/postprocessor
+ * TODO: [🍓][🌻] Decide of this is internal util, external util OR validator/postprocessor
  */

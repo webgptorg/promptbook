@@ -71,7 +71,7 @@
             "/**",
             " * Function $1 will @@@",
             " *",
-            " * @private within the package",
+            " * @private within the repository",
             " */",
             "export function $1(value: string): boolean {",
             "    return value === 'Foo';",

@@ -1,7 +1,7 @@
 /**
  * Format either small or big number
  *
- * @private within the package
+ * @private within the repository
  */
 export function formatNumber(value: number): string {
     if (value === 0) {

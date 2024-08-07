@@ -1,10 +1,12 @@
+import type { really_unknown } from '../../../utils/organization/really_unknown';
+
 /**
  * Converts anything to string that can be used for debugging and logging
  *
  * @param value String value for logging
  * @private Internal util
  */
-export function unknownToString(value: unknown): string {
+export function unknownToString(value: really_unknown): string {
     if (value === undefined) {
         return 'undefined';
     } else if (value === null) {

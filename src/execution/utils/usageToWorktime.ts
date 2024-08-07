@@ -1,5 +1,6 @@
-import type { PromptResultUsage } from '../PromptResult';
-import type { UncertainNumber } from '../PromptResult';
+import type { Writable } from 'type-fest';
+import type { PromptResultUsage } from '../PromptResultUsage';
+import type { UncertainNumber } from '../UncertainNumber';
 
 /**
  * Function usageToWorktime will take usage and estimate saved worktime in hours of reading / writing
@@ -16,7 +17,7 @@ export function usageToWorktime(usage: PromptResultUsage): UncertainNumber {
 
     const isUncertain = usage.input.wordsCount.isUncertain || usage.output.wordsCount.isUncertain;
 
-    const uncertainNumber: UncertainNumber = { value };
+    const uncertainNumber: Writable<UncertainNumber> = { value };
 
     if (isUncertain === true) {
         uncertainNumber.isUncertain = true;

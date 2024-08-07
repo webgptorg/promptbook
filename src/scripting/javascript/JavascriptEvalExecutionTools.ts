@@ -1,7 +1,8 @@
 // Note: [💎]
 import _spaceTrim from 'spacetrim';
-import { ExecutionError } from '../../errors/ExecutionError';
+import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import type { ScriptExecutionTools, ScriptExecutionToolsExecuteOptions } from '../../execution/ScriptExecutionTools';
+import { extractBlock } from '../../postprocessing/utils/extractBlock';
 import { prettifyMarkdown as _prettifyMarkdown } from '../../utils/markdown/prettifyMarkdown';
 import { capitalize as _capitalize } from '../../utils/normalization/capitalize';
 import { decapitalize as _decapitalize } from '../../utils/normalization/decapitalize';
@@ -15,7 +16,7 @@ import { normalizeTo_snake_case as _normalizeTo_snake_case } from '../../utils/n
 import { normalizeWhitespaces as _normalizeWhitespaces } from '../../utils/normalization/normalizeWhitespaces';
 import { parseKeywordsFromString } from '../../utils/normalization/parseKeywordsFromString';
 import { removeDiacritics as _removeDiacritics } from '../../utils/normalization/removeDiacritics';
-import { extractBlock } from '../../utils/postprocessing/extractBlock';
+import { TODO_any } from '../../utils/organization/TODO_any';
 import { removeEmojis as _removeEmojis } from '../../utils/removeEmojis';
 import { removeQuotes as _removeQuotes } from '../../utils/removeQuotes';
 import { trimCodeBlock as _trimCodeBlock } from '../../utils/trimCodeBlock';
@@ -46,7 +47,7 @@ export class JavascriptEvalExecutionTools implements ScriptExecutionTools {
         let { script } = options;
 
         if (scriptLanguage !== 'javascript') {
-            throw new ExecutionError(
+            throw new PipelineExecutionError(
                 `Script language ${scriptLanguage} not supported to be executed by JavascriptEvalExecutionTools`,
             );
         }
@@ -54,8 +55,7 @@ export class JavascriptEvalExecutionTools implements ScriptExecutionTools {
         // Note: [💎]
         // Note: Using direct eval, following variables are in same scope as eval call so they are accessible from inside the evaluated script:
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const spaceTrim = (_: any) => _spaceTrim(_);
+        const spaceTrim = (_: TODO_any) => _spaceTrim(_);
         preserve(spaceTrim);
 
         const removeQuotes = _removeQuotes;
@@ -193,13 +193,14 @@ export class JavascriptEvalExecutionTools implements ScriptExecutionTools {
             );
         }
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        let result: any;
+        let result: TODO_any;
         try {
             result = await eval(statementToEvaluate);
 
             if (typeof result !== 'string') {
-                throw new ExecutionError(`Script must return a string, but returned ${unknownToString(result)}`);
+                throw new PipelineExecutionError(
+                    `Script must return a string, but returned ${unknownToString(result)}`,
+                );
             }
         } catch (error) {
             if (!(error instanceof Error)) {
@@ -211,11 +212,11 @@ export class JavascriptEvalExecutionTools implements ScriptExecutionTools {
                 /*
                 Note: Remapping error
                       From: [ReferenceError: thing is not defined],
-                      To:   [Error: Parameter {thing} is not defined],
+                      To:   [PipelineExecutionError: Parameter {thing} is not defined],
                 */
 
                 if (!statementToEvaluate.includes(undefinedName + '(')) {
-                    throw new ExecutionError(
+                    throw new PipelineExecutionError(
                         _spaceTrim(
                             (block) => `
 
@@ -242,7 +243,7 @@ export class JavascriptEvalExecutionTools implements ScriptExecutionTools {
                         ),
                     );
                 } else {
-                    throw new ExecutionError(
+                    throw new PipelineExecutionError(
                         _spaceTrim(
                             (block) => `
                                   Function ${undefinedName}() is not defined
@@ -263,7 +264,7 @@ export class JavascriptEvalExecutionTools implements ScriptExecutionTools {
         }
 
         if (typeof result !== 'string') {
-            throw new ExecutionError(`Script must return a string, but ${unknownToString(result)}`);
+            throw new PipelineExecutionError(`Script must return a string, but ${unknownToString(result)}`);
         }
 
         return result;

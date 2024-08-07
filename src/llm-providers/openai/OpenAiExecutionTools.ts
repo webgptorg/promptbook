@@ -1,20 +1,24 @@
 import colors from 'colors';
 import OpenAI from 'openai';
 import spaceTrim from 'spacetrim';
-import { ExecutionError } from '../../errors/ExecutionError';
+import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { AvailableModel } from '../../execution/LlmExecutionTools';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { PromptChatResult } from '../../execution/PromptResult';
-import type { PromptCompletionResult } from '../../execution/PromptResult';
-import type { PromptEmbeddingResult } from '../../execution/PromptResult';
+import type { ChatPromptResult } from '../../execution/PromptResult';
+import type { CompletionPromptResult } from '../../execution/PromptResult';
+import type { EmbeddingPromptResult } from '../../execution/PromptResult';
 import type { Prompt } from '../../types/Prompt';
 import type { string_date_iso8601 } from '../../types/typeAliases';
+import type { string_markdown } from '../../types/typeAliases';
+import type { string_markdown_text } from '../../types/typeAliases';
 import type { string_model_name } from '../../types/typeAliases';
+import type { string_title } from '../../types/typeAliases';
 import { getCurrentIsoDate } from '../../utils/getCurrentIsoDate';
-import type { OpenAiExecutionToolsOptions } from './OpenAiExecutionToolsOptions';
+import { replaceParameters } from '../../utils/replaceParameters';
 import { computeOpenaiUsage } from './computeOpenaiUsage';
 import { OPENAI_MODELS } from './openai-models';
+import type { OpenAiExecutionToolsOptions } from './OpenAiExecutionToolsOptions';
 
 /**
  * Execution Tools for calling OpenAI API.
@@ -40,28 +44,41 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
         });
     }
 
+    public get title(): string_title & string_markdown_text {
+        return 'OpenAI';
+    }
+
+    public get description(): string_markdown {
+        return 'Use all models provided by OpenAI';
+    }
+
     /**
      * Calls OpenAI API to use a chat model.
      */
     public async callChatModel(
-        prompt: Pick<Prompt, 'content' | 'modelRequirements' | 'expectFormat'>,
-    ): Promise<PromptChatResult> {
+        prompt: Pick<Prompt, 'content' | 'parameters' | 'modelRequirements' | 'expectFormat'>,
+    ): Promise<ChatPromptResult> {
         if (this.options.isVerbose) {
             console.info('💬 OpenAI callChatModel call', { prompt });
         }
 
-        const { content, modelRequirements, expectFormat } = prompt;
+        const { content, parameters, modelRequirements, expectFormat } = prompt;
 
         // TODO: [☂] Use here more modelRequirements
         if (modelRequirements.modelVariant !== 'CHAT') {
-            throw new ExecutionError('Use callChatModel only for CHAT variant');
+            throw new PipelineExecutionError('Use callChatModel only for CHAT variant');
         }
 
-        const model = modelRequirements.modelName || this.getDefaultChatModel().modelName;
+        const modelName = modelRequirements.modelName || this.getDefaultChatModel().modelName;
         const modelSettings = {
-            model,
+            model: modelName,
             max_tokens: modelRequirements.maxTokens,
-            //                                   <- TODO: Make some global max cap for maxTokens
+            //                                   <- TODO: [🌾] Make some global max cap for maxTokens
+
+            temperature: modelRequirements.temperature,
+
+            // <- TODO: [🈁] Use `seed` here AND/OR use is `isDeterministic` for entire execution tools
+            // <- Note: [🧆]
         } as OpenAI.Chat.Completions.CompletionCreateParamsNonStreaming; // <- TODO: Guard here types better
 
         if (expectFormat === 'JSON') {
@@ -70,12 +87,24 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
             };
         }
 
+        // <- TODO: [🚸] Not all models are compatible with JSON mode
+        //        > 'response_format' of type 'json_object' is not supported with this model.
+
+        const rawPromptContent = replaceParameters(content, { ...parameters, modelName });
         const rawRequest: OpenAI.Chat.Completions.CompletionCreateParamsNonStreaming = {
             ...modelSettings,
             messages: [
+                ...(modelRequirements.systemMessage === undefined
+                    ? []
+                    : ([
+                          {
+                              role: 'system',
+                              content: modelRequirements.systemMessage,
+                          },
+                      ] as const)),
                 {
                     role: 'user',
-                    content,
+                    content: rawPromptContent,
                 },
             ],
             user: this.options.user,
@@ -92,12 +121,12 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
         }
 
         if (!rawResponse.choices[0]) {
-            throw new ExecutionError('No choises from OpenAI');
+            throw new PipelineExecutionError('No choises from OpenAI');
         }
 
         if (rawResponse.choices.length > 1) {
             // TODO: This should be maybe only warning
-            throw new ExecutionError('More than one choise from OpenAI');
+            throw new PipelineExecutionError('More than one choise from OpenAI');
         }
 
         const resultContent = rawResponse.choices[0].message.content;
@@ -106,19 +135,21 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
         const usage = computeOpenaiUsage(content, resultContent || '', rawResponse);
 
         if (resultContent === null) {
-            throw new ExecutionError('No response message from OpenAI');
+            throw new PipelineExecutionError('No response message from OpenAI');
         }
 
         return {
             content: resultContent,
-            modelName: rawResponse.model || model,
+            modelName: rawResponse.model || modelName,
             timing: {
                 start,
                 complete,
             },
             usage,
+            rawPromptContent,
+            rawRequest,
             rawResponse,
-            // <- [🤹‍♂️]
+            // <- [🗯]
         };
     }
 
@@ -126,29 +157,34 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
      * Calls OpenAI API to use a complete model.
      */
     public async callCompletionModel(
-        prompt: Pick<Prompt, 'content' | 'modelRequirements'>,
-    ): Promise<PromptCompletionResult> {
+        prompt: Pick<Prompt, 'content' | 'parameters' | 'modelRequirements'>,
+    ): Promise<CompletionPromptResult> {
         if (this.options.isVerbose) {
             console.info('🖋 OpenAI callCompletionModel call', { prompt });
         }
 
-        const { content, modelRequirements } = prompt;
+        const { content, parameters, modelRequirements } = prompt;
 
         // TODO: [☂] Use here more modelRequirements
         if (modelRequirements.modelVariant !== 'COMPLETION') {
-            throw new ExecutionError('Use callCompletionModel only for COMPLETION variant');
+            throw new PipelineExecutionError('Use callCompletionModel only for COMPLETION variant');
         }
 
-        const model = modelRequirements.modelName || this.getDefaultCompletionModel().modelName;
+        const modelName = modelRequirements.modelName || this.getDefaultCompletionModel().modelName;
         const modelSettings = {
-            model,
-            max_tokens: modelRequirements.maxTokens || 2000, // <- Note: 2000 is for lagacy reasons
-            //                                                  <- TODO: Make some global max cap for maxTokens
+            model: modelName,
+            max_tokens: modelRequirements.maxTokens || 2000, // <- Note: [🌾] 2000 is for lagacy reasons
+            //                                                  <- TODO: [🌾] Make some global max cap for maxTokens
+            temperature: modelRequirements.temperature,
+
+            // <- TODO: [🈁] Use `seed` here AND/OR use is `isDeterministic` for entire execution tools
+            // <- Note: [🧆]
         };
 
+        const rawPromptContent = replaceParameters(content, { ...parameters, modelName });
         const rawRequest: OpenAI.Completions.CompletionCreateParamsNonStreaming = {
             ...modelSettings,
-            prompt: content,
+            prompt: rawPromptContent,
             user: this.options.user,
         };
         const start: string_date_iso8601 = getCurrentIsoDate();
@@ -163,12 +199,12 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
         }
 
         if (!rawResponse.choices[0]) {
-            throw new ExecutionError('No choises from OpenAI');
+            throw new PipelineExecutionError('No choises from OpenAI');
         }
 
         if (rawResponse.choices.length > 1) {
             // TODO: This should be maybe only warning
-            throw new ExecutionError('More than one choise from OpenAI');
+            throw new PipelineExecutionError('More than one choise from OpenAI');
         }
 
         const resultContent = rawResponse.choices[0].text;
@@ -178,39 +214,42 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
 
         return {
             content: resultContent,
-            modelName: rawResponse.model || model,
+            modelName: rawResponse.model || modelName,
             timing: {
                 start,
                 complete,
             },
             usage,
+            rawPromptContent,
+            rawRequest,
             rawResponse,
-            // <- [🤹‍♂️]
+            // <- [🗯]
         };
     }
 
     /**
      * Calls OpenAI API to use a embedding model
      */
-    public async embed(prompt: Pick<Prompt, 'content' | 'modelRequirements'>): Promise<PromptEmbeddingResult> {
+    public async callEmbeddingModel(
+        prompt: Pick<Prompt, 'content' | 'parameters' | 'modelRequirements'>,
+    ): Promise<EmbeddingPromptResult> {
         if (this.options.isVerbose) {
             console.info('🖋 OpenAI embedding call', { prompt });
         }
 
-        const { content, modelRequirements } = prompt;
+        const { content, parameters, modelRequirements } = prompt;
 
         // TODO: [☂] Use here more modelRequirements
         if (modelRequirements.modelVariant !== 'EMBEDDING') {
-            throw new ExecutionError('Use embed only for EMBEDDING variant');
+            throw new PipelineExecutionError('Use embed only for EMBEDDING variant');
         }
 
-        const model = modelRequirements.modelName || this.getDefaultEmbeddingModel().modelName;
+        const modelName = modelRequirements.modelName || this.getDefaultEmbeddingModel().modelName;
 
+        const rawPromptContent = replaceParameters(content, { ...parameters, modelName });
         const rawRequest: OpenAI.Embeddings.EmbeddingCreateParams = {
-            input: content,
-            model,
-
-            // TODO: !!!! Test model 3 and dimensions
+            input: rawPromptContent,
+            model: modelName,
         };
 
         const start: string_date_iso8601 = getCurrentIsoDate();
@@ -227,7 +266,9 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
         }
 
         if (rawResponse.data.length !== 1) {
-            throw new ExecutionError(`Expected exactly 1 data item in response, got ${rawResponse.data.length}`);
+            throw new PipelineExecutionError(
+                `Expected exactly 1 data item in response, got ${rawResponse.data.length}`,
+            );
         }
 
         const resultContent = rawResponse.data[0]!.embedding;
@@ -238,16 +279,20 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
 
         return {
             content: resultContent,
-            modelName: rawResponse.model || model,
+            modelName: rawResponse.model || modelName,
             timing: {
                 start,
                 complete,
             },
             usage,
+            rawPromptContent,
+            rawRequest,
             rawResponse,
-            // <- [🤹‍♂️]
+            // <- [🗯]
         };
     }
+
+    // <- Note: [🤖] callXxxModel
 
     /**
      * Get the model that should be used as default
@@ -259,10 +304,10 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
                 spaceTrim(
                     (block) =>
                         `
-                            Cannot find model in OpenAI models with name ${defaultModelName} which should be used as default.
+                            Cannot find model in OpenAI models with name "${defaultModelName}" which should be used as default.
 
                             Available models:
-                            ${block(OPENAI_MODELS.map(({ modelName }) => `- ${modelName}`).join('\n'))}
+                            ${block(OPENAI_MODELS.map(({ modelName }) => `- "${modelName}"`).join('\n'))}
 
                         `,
                 ),
@@ -292,6 +337,8 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
         return this.getDefaultModel('text-embedding-3-large');
     }
 
+    // <- Note: [🤖] getDefaultXxxModel
+
     /**
      * List all available OpenAI models that can be used
      */
@@ -312,4 +359,5 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
  * TODO: [🧠][🧙‍♂️] Maybe there can be some wizzard for thoose who want to use just OpenAI
  * TODO: Maybe Create some common util for callChatModel and callCompletionModel
  * TODO: Maybe make custom OpenaiError
+ * TODO: [🧠][🈁] Maybe use `isDeterministic` from options
  */

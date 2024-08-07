@@ -2,8 +2,6 @@
 
 -   PIPELINE URL https://promptbook.studio/samples/jokers.ptbk.md
 -   PROMPTBOOK VERSION 1.0.0
--   MODEL VARIANT Chat
--   MODEL NAME `gpt-3.5-turbo`
 -   INPUT  PARAMETER {name1} First name or nothing
 -   INPUT  PARAMETER {name2} Second name or nothing
 -   OUTPUT PARAMETER `{name}`
@@ -47,4 +45,4 @@ flowchart LR
 Write some name for hero
 ```
 
--> {name}
+`-> {name}`

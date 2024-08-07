@@ -1,6 +1,6 @@
 {
     "name": "@promptbook/cli",
-    "version": "0.60.1",
+    "version": "0.61.0",
     "description": "Supercharge your use of large language models",
     "private": false,
     "sideEffects": false,
@@ -34,9 +34,11 @@
     },
     "homepage": "https://www.npmjs.com/package/@promptbook/core",
     "dependencies": {
+        "@anthropic-ai/sdk": "0.21.1",
         "colors": "1.4.0",
         "commander": "12.0.0",
         "glob-promise": "6.0.5",
+        "openai": "4.46.1",
         "prettier": "2.8.1",
         "spacetrim": "0.11.37",
         "waitasecond": "1.11.81"
@@ -52,7 +54,7 @@
         }
     ],
     "peerDependencies": {
-        "@promptbook/core": "0.60.1"
+        "@promptbook/core": "0.61.0"
     },
     "main": "./umd/index.umd.js",
     "module": "./esm/index.es.js",

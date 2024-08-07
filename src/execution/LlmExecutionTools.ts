@@ -1,10 +1,13 @@
 import type { Promisable } from 'type-fest';
-import type { ModelVariant } from '../types/ModelRequirements';
+import type { ModelVariant } from '../types/ModelVariant';
 import type { Prompt } from '../types/Prompt';
+import type { string_markdown } from '../types/typeAliases';
+import type { string_markdown_text } from '../types/typeAliases';
 import type { string_model_name } from '../types/typeAliases';
 import type { string_title } from '../types/typeAliases';
-import type { PromptChatResult } from './PromptResult';
-import type { PromptCompletionResult } from './PromptResult';
+import type { ChatPromptResult } from './PromptResult';
+import type { CompletionPromptResult } from './PromptResult';
+import type { EmbeddingPromptResult } from './PromptResult';
 
 /**
  * Container for all the tools needed to execute prompts to large language models like GPT-4
@@ -15,16 +18,33 @@ import type { PromptCompletionResult } from './PromptResult';
  */
 export type LlmExecutionTools = {
     /**
-     * Use a chat model
+     * Title of the model provider
+     *
+     * @example "OpenAI"
      */
-    callChatModel(prompt: Prompt): Promise<PromptChatResult>;
+    readonly title: string_title & string_markdown_text;
 
     /**
-     * Use a completion model
+     * Description of the provider
+     *
+     * @example "Use all models from OpenAI"
      */
-    callCompletionModel(prompt: Prompt): Promise<PromptCompletionResult>;
+    readonly description: string_markdown;
 
-    // TODO: !!!! Translation model
+    /**
+     * Calls a chat model
+     */
+    callChatModel?(prompt: Prompt): Promise<ChatPromptResult>;
+
+    /**
+     * Calls a completion model
+     */
+    callCompletionModel?(prompt: Prompt): Promise<CompletionPromptResult>;
+
+    /**
+     * Calls an embedding model
+     */
+    callEmbeddingModel?(prompt: Prompt): Promise<EmbeddingPromptResult>;
 
     /**
      * List all available models that can be used
@@ -55,8 +75,10 @@ export type AvailableModel = {
 };
 
 /**
+ * TODO: [🏳] Add `callTranslationModel`
+ * TODO: Maybe reorder `listModels` and put it befor `callChatModel`, `callCompletionModel`, `callEmbeddingModel`
  * TODO: [🧠] Emulation of one type of model with another one - emuate chat with completion; emulate translation with chat
  * TODO: [🍓][♐] Some heuristic to pick the best model in listed models
- * TODO: [🏳] callChatModel -> chat, callCompletionModel -> complete, translate
  * TODO: [🧠] Should or should not there be a word "GPT" in both callCompletionModel and callChatModel
+ * TODO: [🧠][🪐] Should be common things like types, utils in folder containing A,B,C,.. or else outside this listing folder?
  */

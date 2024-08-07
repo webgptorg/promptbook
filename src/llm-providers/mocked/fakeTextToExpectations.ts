@@ -1,9 +1,10 @@
 import { LoremIpsum } from 'lorem-ipsum';
 import { spaceTrim } from 'spacetrim';
 import { CHARACTER_LOOP_LIMIT } from '../../config';
+import { LimitReachedError } from '../../errors/LimitReachedError';
 import { isPassingExpectations } from '../../execution/utils/checkExpectations';
 import type { PostprocessingFunction } from '../../scripting/javascript/JavascriptExecutionToolsOptions';
-import type { Expectations } from '../../types/PipelineJson/PromptTemplateJson';
+import type { Expectations } from '../../types/PipelineJson/Expectations';
 
 /**
  * Gets the expectations and creates a fake text that meets the expectations
@@ -42,7 +43,7 @@ export async function $fakeTextToExpectations(
         loremText = loremText.substring(1);
     }
 
-    throw new Error(
+    throw new LimitReachedError(
         spaceTrim(
             (block) => `
                 Can not generate fake text to met the expectations

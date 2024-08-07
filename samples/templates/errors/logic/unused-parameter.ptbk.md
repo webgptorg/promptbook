@@ -2,8 +2,6 @@
 
 -   PIPELINE URL https://promptbook.studio/samples/unused-parameter.ptbk.md
 -   PROMPTBOOK VERSION 1.0.0
--   MODEL VARIANT Chat
--   MODEL NAME `gpt-3.5-turbo`
 -   INPUT  PARAMETER {yourName} Name of the hero or nothing
 <!-- Note: Missing declaration of OUTPUT parameter -->
 
@@ -18,4 +16,4 @@ So it triggers logic error.
 Write some name for hero
 ```
 
--> {name}
+`-> {name}`

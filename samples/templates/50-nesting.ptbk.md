@@ -4,8 +4,6 @@ How block are nested in the promptbook
 
 -   PIPELINE URL https://promptbook.studio/samples/nesting.ptbk.md
 -   PROMPTBOOK VERSION 1.0.0
--   MODEL VARIANT Chat
--   MODEL NAME `gpt-3.5-turbo`
 -   INPUT  PARAMETER `{word}` The word to use in the prompt.
 -   OUTPUT PARAMETER `{poem}`
 

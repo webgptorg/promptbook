@@ -1,0 +1,91 @@
+{
+    "title": "✨ Sample prompt with URL",
+    "pipelineUrl": "https://promptbook.studio/samples/simple.ptbk.md",
+    "promptbookVersion": "1.0.0",
+    "description": "Show how to use a simple prompt with no parameters.",
+    "parameters": [
+        {
+            "name": "greetingResponse",
+            "isInput": false,
+            "isOutput": true,
+            "sampleValues": [
+                "Hello, how are you?",
+                "Dear Sir, how may I help you?",
+                "Hey, what's up?"
+            ]
+        }
+    ],
+    "promptTemplates": [
+        {
+            "blockType": "PROMPT_TEMPLATE",
+            "name": "prompt",
+            "title": "💬 Prompt",
+            "modelRequirements": {
+                "modelVariant": "CHAT"
+            },
+            "content": "Hello",
+            "dependentParameterNames": [],
+            "resultingParameterName": "greetingResponse"
+        }
+    ],
+    "knowledgeSources": [],
+    "knowledgePieces": [],
+    "personas": [],
+    "preparations": [
+        {
+            "id": 1,
+            "promptbookVersion": "0.61.0-25",
+            "modelUsage": {
+                "price": {
+                    "value": 0
+                },
+                "input": {
+                    "tokensCount": {
+                        "value": 0
+                    },
+                    "charactersCount": {
+                        "value": 0
+                    },
+                    "wordsCount": {
+                        "value": 0
+                    },
+                    "sentencesCount": {
+                        "value": 0
+                    },
+                    "linesCount": {
+                        "value": 0
+                    },
+                    "paragraphsCount": {
+                        "value": 0
+                    },
+                    "pagesCount": {
+                        "value": 0
+                    }
+                },
+                "output": {
+                    "tokensCount": {
+                        "value": 0
+                    },
+                    "charactersCount": {
+                        "value": 0
+                    },
+                    "wordsCount": {
+                        "value": 0
+                    },
+                    "sentencesCount": {
+                        "value": 0
+                    },
+                    "linesCount": {
+                        "value": 0
+                    },
+                    "paragraphsCount": {
+                        "value": 0
+                    },
+                    "pagesCount": {
+                        "value": 0
+                    }
+                }
+            }
+        }
+    ]
+}

@@ -1,6 +1,6 @@
 {
     "name": "@promptbook/types",
-    "version": "0.60.1",
+    "version": "0.61.0",
     "description": "Supercharge your use of large language models",
     "private": false,
     "sideEffects": false,
@@ -45,7 +45,7 @@
         }
     ],
     "peerDependencies": {
-        "@promptbook/core": "0.60.1"
+        "@promptbook/core": "0.61.0"
     },
     "main": "./umd/index.umd.js",
     "module": "./esm/index.es.js",

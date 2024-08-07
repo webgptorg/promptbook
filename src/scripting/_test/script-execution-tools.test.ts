@@ -37,7 +37,7 @@ describe('createPipelineExecutor + executing scripts in promptbook', () => {
                 /*
             TODO:
             errors: [
-                new ExecutionError(
+                new PipelineExecutionError(
                     spaceTrim(`
                         Parameter {thing} is not defined
 
@@ -61,7 +61,7 @@ describe('createPipelineExecutor + executing scripts in promptbook', () => {
             getPipelineExecutor()
                 .then((pipelineExecutor) => pipelineExecutor({}, () => {}))
                 .then(assertsExecutionSuccessful),
-        ).rejects.toThrowError(/Parameter \{thing\} is not defined/);
+        ).rejects.toThrowError(/Parameter \{thing\} is required as an input parameter/);
     });
 });
 
@@ -103,9 +103,6 @@ async function getPipelineExecutor() {
                     return 'Hello';
                 },
             }),
-        },
-        settings: {
-            maxExecutionAttempts: 3,
         },
     });
 

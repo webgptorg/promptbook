@@ -1,0 +1,135 @@
+{
+    "pipelineUrl": "https://promptbook.studio/samples/simple-knowledge.ptbk.md",
+    "title": "✨ Sample: Simple Knowledge",
+    "promptbookUsedVersion": "0.61.0-27",
+    "promptbookRequestedVersion": "1.0.0",
+    "description": "Show how to use knowledge",
+    "promptExecutions": [
+        {
+            "prompt": {
+                "!!! All information": null,
+                "title": "Writing bio",
+                "pipelineUrl": "https://promptbook.studio/samples/simple-knowledge.ptbk.md#writing-bio",
+                "parameters": {
+                    "knowledge": "- ---\nPavol is a developer who is passionate about using new tools and technologies, specializing in creating fully functional user applications using the latest AI models.\n- Pavol is a member of the Ainautes consulting group, which supports the deployment of generative AI around the world.\n- Pavol develops the WebGPT web page generation service.\n- Before the emergence of generative AI, Pavol created the first Czech virtual whiteboard, Collboard, and electronic textbooks, H-edu, which were used by tens of thousands of children.\n- Pavol has worked on many scientific projects for the Czech Ornithological Society, gives lectures at conferences, sits on juries, and acts as a mentor in Czech and international competitions. He has a special heart for this and loves open source, with many of his projects available on GitHub.",
+                    "eventName": "TypeScript developers summit 2025"
+                },
+                "content": "You are writing a bio for Pavol Hejný for the event {eventName}.\n\n## Rules\n\n-   Write just the bio, nothing else.\n-   Write in the third person.\n-   Bio is written in the present tense.\n-   Bio should be written for event named \"{eventName}\".\n-   Write plain text without any formatting (like markdown).\n\n## Knowledge\n\n{knowledge}",
+                "modelRequirements": {
+                    "modelVariant": "CHAT"
+                },
+                "expectations": {
+                    "name": "Jane",
+                    "description": "HR professional with prior experience in writing bios",
+                    "modelRequirements": {
+                        "modelVariant": "CHAT",
+                        "modelName": "gpt-4",
+                        "systemMessage": "You are an experienced HR professional with expertise in writing bios and providing professional assistance.",
+                        "temperature": 0.5
+                    },
+                    "preparationIds": [1],
+                    "sentences": {
+                        "min": 1
+                    }
+                },
+                "postprocessing": [],
+                "!!! Wanted information": null
+            },
+            "result": {
+                "content": "Pavol Hejný is a developer passionate about using new tools and technologies, specializing in creating fully functional user applications using the latest AI models. He is a member of the Ainautes consulting group, which supports the deployment of generative AI around the world. Pavol develops the WebGPT web page generation service. Before the emergence of generative AI, he created the first Czech virtual whiteboard, Collboard, and electronic textbooks, H-edu, which were used by tens of thousands of children. He has worked on numerous scientific projects for the Czech Ornithological Society, gives lectures at conferences, sits on juries, and acts as a mentor in Czech and international competitions. Pavol has a special heart for open source, with many of his projects available on GitHub.",
+                "modelName": "gpt-4o-2024-05-13",
+                "timing": {
+                    "start": "2024-08-06T15:56:20.012Z",
+                    "complete": "2024-08-06T15:56:23.390Z"
+                },
+                "usage": {
+                    "price": {
+                        "value": 0,
+                        "isUncertain": true
+                    },
+                    "input": {
+                        "tokensCount": {
+                            "value": 0,
+                            "isUncertain": true
+                        },
+                        "charactersCount": {
+                            "value": 330
+                        },
+                        "wordsCount": {
+                            "value": 49
+                        },
+                        "sentencesCount": {
+                            "value": 7
+                        },
+                        "linesCount": {
+                            "value": 13
+                        },
+                        "paragraphsCount": {
+                            "value": 5
+                        },
+                        "pagesCount": {
+                            "value": 2
+                        }
+                    },
+                    "output": {
+                        "tokensCount": {
+                            "value": 0,
+                            "isUncertain": true
+                        },
+                        "charactersCount": {
+                            "value": 797
+                        },
+                        "wordsCount": {
+                            "value": 124
+                        },
+                        "sentencesCount": {
+                            "value": 6
+                        },
+                        "linesCount": {
+                            "value": 1
+                        },
+                        "paragraphsCount": {
+                            "value": 1
+                        },
+                        "pagesCount": {
+                            "value": 2
+                        }
+                    }
+                },
+                "rawPromptContent": "You are writing a bio for Pavol Hejný for the event TypeScript developers summit 2025.\n\n## Rules\n\n-   Write just the bio, nothing else.\n-   Write in the third person.\n-   Bio is written in the present tense.\n-   Bio should be written for event named \"TypeScript developers summit 2025\".\n-   Write plain text without any formatting (like markdown).\n\n## Knowledge\n\n- ---\nPavol is a developer who is passionate about using new tools and technologies, specializing in creating fully functional user applications using the latest AI models.\n- Pavol is a member of the Ainautes consulting group, which supports the deployment of generative AI around the world.\n- Pavol develops the WebGPT web page generation service.\n- Before the emergence of generative AI, Pavol created the first Czech virtual whiteboard, Collboard, and electronic textbooks, H-edu, which were used by tens of thousands of children.\n- Pavol has worked on many scientific projects for the Czech Ornithological Society, gives lectures at conferences, sits on juries, and acts as a mentor in Czech and international competitions. He has a special heart for this and loves open source, with many of his projects available on GitHub.",
+                "rawRequest": {
+                    "model": "gpt-4o",
+                    "messages": [
+                        {
+                            "role": "user",
+                            "content": "You are writing a bio for Pavol Hejný for the event TypeScript developers summit 2025.\n\n## Rules\n\n-   Write just the bio, nothing else.\n-   Write in the third person.\n-   Bio is written in the present tense.\n-   Bio should be written for event named \"TypeScript developers summit 2025\".\n-   Write plain text without any formatting (like markdown).\n\n## Knowledge\n\n- ---\nPavol is a developer who is passionate about using new tools and technologies, specializing in creating fully functional user applications using the latest AI models.\n- Pavol is a member of the Ainautes consulting group, which supports the deployment of generative AI around the world.\n- Pavol develops the WebGPT web page generation service.\n- Before the emergence of generative AI, Pavol created the first Czech virtual whiteboard, Collboard, and electronic textbooks, H-edu, which were used by tens of thousands of children.\n- Pavol has worked on many scientific projects for the Czech Ornithological Society, gives lectures at conferences, sits on juries, and acts as a mentor in Czech and international competitions. He has a special heart for this and loves open source, with many of his projects available on GitHub."
+                        }
+                    ]
+                },
+                "rawResponse": {
+                    "id": "chatcmpl-9tGpn1Of6e7eBndFGqVpZHNVmWlpf",
+                    "object": "chat.completion",
+                    "created": 1722959779,
+                    "model": "gpt-4o-2024-05-13",
+                    "choices": [
+                        {
+                            "index": 0,
+                            "message": {
+                                "role": "assistant",
+                                "content": "Pavol Hejný is a developer passionate about using new tools and technologies, specializing in creating fully functional user applications using the latest AI models. He is a member of the Ainautes consulting group, which supports the deployment of generative AI around the world. Pavol develops the WebGPT web page generation service. Before the emergence of generative AI, he created the first Czech virtual whiteboard, Collboard, and electronic textbooks, H-edu, which were used by tens of thousands of children. He has worked on numerous scientific projects for the Czech Ornithological Society, gives lectures at conferences, sits on juries, and acts as a mentor in Czech and international competitions. Pavol has a special heart for open source, with many of his projects available on GitHub."
+                            },
+                            "logprobs": null,
+                            "finish_reason": "stop"
+                        }
+                    ],
+                    "usage": {
+                        "prompt_tokens": 262,
+                        "completion_tokens": 159,
+                        "total_tokens": 421
+                    },
+                    "system_fingerprint": "fp_3aa7262c27"
+                }
+            }
+        }
+    ]
+}

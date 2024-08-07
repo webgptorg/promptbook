@@ -125,7 +125,7 @@ Cleanup and renaming
 -   Add `RemoteServerOptions`.`ptbkNames`
 -   Rename `RemoteServerOptions`.`getPtp` -> `getPtbkByName`
 -   Do not use shortcut "Ptbk" but full "Promptbook" name in the code, classes, methods, etc.
--   Change command `PTBK_URL` to `PIPELINE_URL` _(but keep backward compatibility and preserve alias `PTBK`)_
+-   Change command `PTBK_URL` to `URL` _(but keep backward compatibility and preserve alias `PTBK`)_
 -   Change command `PTBK_NAME` to `PROMPTBOOK_NAME` _(but keep backward compatibility and preserve alias `PTBK`)_
 -   Rename `runRemoteServer` -> `startRemoteServer` and return `Destroyable` object
 
@@ -337,8 +337,6 @@ Better JSON Mode
 -   Internal reorganization of folders and files
 -   Export types as type export
 
-## In pre-release
-
 ### `0.59.0` _(2024-06-30)_
 
 Preparation for system for [management of external knowledge](https://github.com/webgptorg/promptbook/discussions/41) (RAG), vector embeddings and propper building of pipeline collection.
@@ -359,7 +357,7 @@ Preparation for system for [management of external knowledge](https://github.com
 -   Create `embed` method on LLM tools, `PromptEmbeddingResult`, `EmbeddingVector` and `embeddingVectorToString`
 -   `createLibraryFromDirectory` still DONT use prebuild library (just detects it)
 
-### `0.60.0` _(2024-07-07)_
+### `0.60.0` _(2024-07-15)_
 
 Renaming and making names more consistent and less disambigous
 
@@ -376,7 +374,41 @@ Renaming and making names more consistent and less disambigous
 -   Rename folder `promptbook-collection` -> `promptbook-collection`
 -   In CLI you ca use both `promptbook` and `ptbk`
 
+## In pre-release
+
+### `0.61.0` _(2024-07-!!!)_
+
+Big syntax additions
+Working external knowledge, personas, preparation for instruments and actions
+
+-   Add reserved parameter names
+-   Add `SAMPLE` command with notation for parameter samples to `.ptbk.md` files
+-   Add `KNOWLEDGE` command to `.ptbk.md` files
+-   Change `EXECUTE` command to `BLOCK` command
+-   Change `executionType` -> `blockType`
+-   Rename `SynraxError` to `ParsingError`
+-   Rename `extractParameters` to `extractParameterNames`
+-   Rename `ExecutionError` to `PipelineExecutionError`
+-   Remove `TemplateError` and replace with `ExecutionError`
+-   Allow deep structure (h3, h4,...) in `.ptbk.md` files
+-   Add `callEmbeddingModel` to `LlmExecutionTools`
+-   `callChatModel` and `callCompletionModel` are not required to be implemented in `LlmExecutionTools` anymore
+-   Remove `MultipleLlmExecutionTools` and make `joinLlmExecutionTools` function
+-   You can pass simple array of `LlmExecutionTools` into `ExecutionTools` and it will be joined automatically via `joinLlmExecutionTools`
+-   Remove the `MarkdownStructure` and replace by simpler solution `flattenMarkdown` + `splitMarkdownIntoSections` + `parseMarkdownSection` which works just with markdown strings and export from `@promptbook/utils` <- [🕞]
+-   Markdown utils are exported through `@promptbook/markdown-utils` _(and removed from `@promptbook/utils`)_
+-   String normalizers goes alongside with types; for example `normalizeTo_SCREAMING_CASE` -> `string_SCREAMING_CASE`
+-   Export `isValidUrl`, `isValidPipelineUrl`, `isValidFilePath`, `isValidJavascriptName`, `isValidSemanticVersion`, `isHostnameOnPrivateNetwork`, `isUrlOnPrivateNetwork` and `isValidUuid` from `@promptbook/utils`
+-   Add `systemMessage`, `temperature` and `seed` to `ModelRequirements`
+-   Code blocks can be noteted both by ``` and >
+-   Add caching and storage
+-   Export utity `stringifyPipelineJson` to stringify `PipelineJson` with pretty formatting of loooooong knowledge indexes from `@promptbook/core`
+
 ## In prepare
+
+### `0..0` _(2024-0-)_
+
+Knowledge scrapers [🐝]
 
 ### `0..0` _(2024-0-)_
 
@@ -434,19 +466,21 @@ More expect variations
 
 <!--[🍓]-->
 
--   Add command `EXPECT "..."` <-[🥤]
--   Add command `EXPECT /.../i` <-[🥤]
--   Add command `EXPECT "...{foo}..."` <-[🥤]
--   Add command `EXPECT /...{foo}.../i` <-[🥤]
--   Add command `EXPECT JSON ARRAY` and `EXPECT JSON OBJECT` _(In future this will be suggar code for `EXPECT JSON SCHEMA`)_ <-[🥤]
+-   Add command `EXPECT "..."` <- [🥤]
+-   Add command `EXPECT /.../i` <- [🥤]
+-   Add command `EXPECT "...{foo}..."` <- [🥤]
+-   Add command `EXPECT /...{foo}.../i` <- [🥤]
+-   Add command `EXPECT JSON ARRAY` and `EXPECT JSON OBJECT` _(In future this will be suggar code for `EXPECT JSON SCHEMA`)_ <- [🥤]
 
 ## Upcomming features
 
 -   When postprocessing fails, retry in same way as failed expectations
--   When making next attempt for `PROMPT DIALOG`, preserve the previous user input <-[🌹]
+-   When making next attempt for `PROMPT DIALOG`, preserve the previous user input <- [🌹]
 
 ## `1.0.0` Release
 
 Across the repository there are marked [🍓] places that are required to be done before `1.0.0` release
 
-<!--[➕]-->
+<!-- Note: [➕] All places marked by [➕] to add new NPM package -->
+<!-- Note: [🤖] All places marked by [🤖] to add new model variant -->
+<!-- Note: [🩻] All places marked by [🩻] to add new (execution) block type -->

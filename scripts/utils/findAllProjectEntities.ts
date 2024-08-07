@@ -12,32 +12,32 @@ export type IEntity = {
     /**
      * Where is it
      */
-    filePath: string;
+    readonly filePath: string;
 
     /**
      * What is it - type, class, function,...
      */
-    type: IEntityType;
+    readonly type: IEntityType;
 
     /**
      * Name of the entity
      */
-    name: string;
+    readonly name: string;
 
     /**
      * Documentation text
      */
-    anotation?: string;
+    readonly anotation?: string;
 
     /**
      * JSDoc tags
      */
-    tags: string[];
+    readonly tags: string[];
 
     /**
      * Is signalized that the entity is just a type not avialable in runtime
      */
-    isType: boolean;
+    readonly isType: boolean;
     // TODO: Detect other things like abstract, async...
 };
 

@@ -6,8 +6,6 @@ _Note: This is not recommended but it should work_
 
 -   PIPELINE URL https://promptbook.studio/samples/parameter-used-in-reverse-order.ptbk.md
 -   PROMPTBOOK VERSION 1.0.0
--   MODEL VARIANT Chat
--   MODEL NAME `gpt-3.5-turbo`
 -   INPUT  PARAMETER `{word}` Any single word
 -   OUTPUT PARAMETER `{sentenceWithTwoSynonyms}`
 

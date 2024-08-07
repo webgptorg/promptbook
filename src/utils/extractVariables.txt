@@ -11,7 +11,7 @@ import { string_javascript, string_name } from '../types/typeAliases';
  * @param script from which to extract the variables
  * @returns the list of variable names
  *
- * @private within the package
+ * @private within the repository
  */
 
 export function extractVariables(script: string_javascript): Array<string_name> {

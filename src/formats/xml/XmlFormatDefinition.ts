@@ -1,35 +1,35 @@
-import { just } from '../../utils/just';
+import { TODO_USE } from '../../utils/organization/TODO_USE';
 import type { FormatDefinition } from '../_common/FormatDefinition';
 
 /**
  * Definition for XML format
  */
-export const XmlFormatDefinition: FormatDefinition<string /* <-[0] */, string /* <-[👨‍⚖️] */, object /* <-[1] */> = {
+export const XmlFormatDefinition: FormatDefinition<string /* <- [0] */, string /* <- [👨‍⚖️] */, object /* <- [1] */> = {
     name: 'XML',
 
     mimeType: 'application/xml',
 
-    isValid(value, schema): value is string /* <-[0] */ {
-        just(value /* <- TODO: Use value here */);
-        just(schema /* <- TODO: Use schema here */);
+    isValid(value, schema): value is string /* <- [0] */ {
+        TODO_USE(value /* <- TODO: Use value here */);
+        TODO_USE(schema /* <- TODO: Use schema here */);
         return true;
     },
 
-    canBeValid(partialValue, schema): partialValue is string /* <-[0] */ {
-        just(partialValue /* <- TODO: Use partialValue here */);
-        just(schema /* <- TODO: Use schema here */);
+    canBeValid(partialValue, schema): partialValue is string /* <- [0] */ {
+        TODO_USE(partialValue /* <- TODO: Use partialValue here */);
+        TODO_USE(schema /* <- TODO: Use schema here */);
         return true;
     },
 
     heal(value, schema) {
-        just(value /* <- TODO: Use partialValue here */);
-        just(schema /* <- TODO: Use schema here */);
+        TODO_USE(value /* <- TODO: Use partialValue here */);
+        TODO_USE(schema /* <- TODO: Use schema here */);
         throw new Error('Not implemented');
     },
 
     extractValues(value, schema) {
-        just(value /* <- TODO: Use value here */);
-        just(schema /* <- TODO: Use schema here */);
+        TODO_USE(value /* <- TODO: Use value here */);
+        TODO_USE(schema /* <- TODO: Use schema here */);
         throw new Error('Not implemented');
     },
 };
@@ -43,4 +43,5 @@ export const XmlFormatDefinition: FormatDefinition<string /* <-[0] */, string /*
  * TODO: [🍓] In `XmlFormatDefinition` implement partial `canBeValid`
  * TODO: [🍓] In `XmlFormatDefinition` implement `heal
  * TODO: [🍓] In `XmlFormatDefinition` implement `extractValues`
+ * TODO: [🏢] Allow to expect something inside XML and other formats
  */

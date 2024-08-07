@@ -22,8 +22,8 @@ const { commit: isCommited } = program.opts();
 
 generatePackages({ isCommited })
     .catch((error: Error) => {
-        console.error(colors.bgRed(error.name));
-        console.error(error);
+        console.error(colors.bgRed(error.name /* <- 11:11 */));
+        console.error(colors.red(error.stack || error.message));
         process.exit(1);
     })
     .then(() => {
@@ -40,12 +40,16 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
     await writeFile(
         `./src/version.ts`, // <- Note: [🏳‍🌈] Maybe use json file (used .ts file (not .json) to avoid support of json files in bundle)
         spaceTrim(`
-            import type { string_version } from './types/typeAliases';
+            import type { string_semantic_version } from './types/typeAliases';
 
             /**
              * The version of the Promptbook library
              */
-            export const PROMPTBOOK_VERSION: string_version = '${version}';
+            export const PROMPTBOOK_VERSION: string_promptbook_version = '${version}';
+
+            export type string_promptbook_version = string_semantic_version;
+            // TODO: !!!! List here all the versions and annotate + put into script
+
         `),
     );
 

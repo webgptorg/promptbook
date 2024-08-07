@@ -7,6 +7,9 @@ jobs:
     publish-npm:
         name: Publish on NPM package registry
         runs-on: ubuntu-latest
+        permissions:
+            contents: read
+            id-token: write
         steps:
             - name: Checkout
               uses: actions/checkout@v2
@@ -21,76 +24,81 @@ jobs:
               run: npx ts-node ./scripts/generate-packages/generate-packages.ts
             - name: Publish @promptbook/anthropic-claude
               working-directory: ./packages/anthropic-claude
-              run: npm publish --access public
+              run: npm publish --provenance --access public
               env:
                   NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
             - name: Publish @promptbook/azure-openai
               working-directory: ./packages/azure-openai
-              run: npm publish --access public
+              run: npm publish --provenance --access public
               env:
                   NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
             - name: Publish @promptbook/cli
               working-directory: ./packages/cli
-              run: npm publish --access public
+              run: npm publish --provenance --access public
               env:
                   NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
             - name: Publish @promptbook/core
               working-directory: ./packages/core
-              run: npm publish --access public
+              run: npm publish --provenance --access public
               env:
                   NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
             - name: Publish @promptbook/execute-javascript
               working-directory: ./packages/execute-javascript
-              run: npm publish --access public
+              run: npm publish --provenance --access public
               env:
                   NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
             - name: Publish @promptbook/fake-llm
               working-directory: ./packages/fake-llm
-              run: npm publish --access public
+              run: npm publish --provenance --access public
               env:
                   NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
             - name: Publish @promptbook/langtail
               working-directory: ./packages/langtail
-              run: npm publish --access public
+              run: npm publish --provenance --access public
+              env:
+                  NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
+            - name: Publish @promptbook/markdown-utils
+              working-directory: ./packages/markdown-utils
+              run: npm publish --provenance --access public
               env:
                   NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
             - name: Publish @promptbook/node
               working-directory: ./packages/node
-              run: npm publish --access public
+              run: npm publish --provenance --access public
               env:
                   NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
             - name: Publish @promptbook/openai
               working-directory: ./packages/openai
-              run: npm publish --access public
+              run: npm publish --provenance --access public
               env:
                   NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
             - name: Publish @promptbook/remote-client
               working-directory: ./packages/remote-client
-              run: npm publish --access public
+              run: npm publish --provenance --access public
               env:
                   NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
             - name: Publish @promptbook/remote-server
               working-directory: ./packages/remote-server
-              run: npm publish --access public
+              run: npm publish --provenance --access public
               env:
                   NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
             - name: Publish @promptbook/types
               working-directory: ./packages/types
-              run: npm publish --access public
+              run: npm publish --provenance --access public
               env:
                   NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
             - name: Publish @promptbook/utils
               working-directory: ./packages/utils
-              run: npm publish --access public
+              run: npm publish --provenance --access public
               env:
                   NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
             - name: Publish promptbook
               working-directory: ./packages/promptbook
-              run: npm publish --access public
+              run: npm publish --provenance --access public
               env:
                   NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
             - name: Publish ptbk
               working-directory: ./packages/ptbk
-              run: npm publish --access public
+              run: npm publish --provenance --access public
               env:
                   NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}

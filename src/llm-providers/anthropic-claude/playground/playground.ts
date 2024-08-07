@@ -5,6 +5,8 @@ import * as dotenv from 'dotenv';
 dotenv.config({ path: '.env' });
 
 import chalk from 'colors';
+import type { Prompt } from '../../../types/Prompt';
+import { keepUnused } from '../../../utils/organization/keepUnused';
 import { AnthropicClaudeExecutionTools } from '../AnthropicClaudeExecutionTools';
 
 playground()
@@ -28,35 +30,44 @@ async function playground() {
         apiKey: process.env.ANTHROPIC_CLAUDE_API_KEY!,
     });
 
-    /**/
+    keepUnused(anthropicClaudeExecutionTools);
+    keepUnused<Prompt>();
+
+    /*/
     const models = await anthropicClaudeExecutionTools.listModels();
     console.info({ models });
     /**/
 
     /*/
     // TODO: [👏] Make Claude completion models work
-    const prompt = {
+    const completionPrompt = {
+        title: 'Hello',
+        parameters: {},
         content: `Hello, my name is Alice.`,
         modelRequirements: {
             modelVariant: 'COMPLETION',
         },
-    } as const;
-    const promptResult = await anthropicClaudeExecutionTools.callCompletionModel(prompt);
-    console.info({ promptResult });
-    console.info(chalk.green(prompt.content + promptResult.content));
+    } as const satisfies Prompt;
+    const completionPromptResult = await anthropicClaudeExecutionTools.callCompletionModel(completionPrompt);
+    console.info({ completionPromptResult });
+    console.info(chalk.green(completionPrompt.content + completionPromptResult.content));
     /**/
 
-    /*/
-    const prompt = {
-        content: `Hello, my name is Alice.`,
+    /**/
+    const chatPrompt = {
+        title: 'Poem about Prague',
+        parameters: {},
+        content: `Write me something about Prague`,
         modelRequirements: {
             modelVariant: 'CHAT',
+            systemMessage: 'You are an assistant who only speaks in rhymes.',
+            temperature: 1,
         },
-    } as const;
-    const promptResult = await anthropicClaudeExecutionTools.callChatModel(prompt);
-    console.info({ promptResult });
-    console.info(chalk.bgBlue(' User: ') + chalk.blue(prompt.content));
-    console.info(chalk.bgGreen(' Completion: ') + chalk.green(promptResult.content));
+    } as const satisfies Prompt;
+    const chatPromptResult = await anthropicClaudeExecutionTools.callChatModel(chatPrompt);
+    console.info({ chatPromptResult });
+    console.info(chalk.bgBlue(' User: ') + chalk.blue(chatPrompt.content));
+    console.info(chalk.bgGreen(' Completion: ') + chalk.green(chatPromptResult.content));
     /**/
 
     /*/
@@ -67,5 +78,13 @@ async function playground() {
     // TODO: Test Embeddings in playground
     /**/
 
+    /*/
+    // <- Note: [🤖] Test here new model variant if needed
+    /**/
+
     //========================================/
 }
+
+/**
+ * TODO: !!! Test here that `systemMessage`, `temperature` and `seed` are working correctly
+ */

@@ -1,4 +1,5 @@
 import type { string_char_emoji } from '../types/typeAliasEmoji';
+import type { TODO_any } from './organization/TODO_any';
 
 /**
  * All possible emoji chars like "🍆", "🍡", "🍤"...
@@ -6,7 +7,7 @@ import type { string_char_emoji } from '../types/typeAliasEmoji';
  *
  * @see https://getemoji.com/
  *
- * @private within the package
+ * @private within the repository
  * @deprecated Use /\p{Extended_Pictographic}/ instead
  */
 export const EMOJIS_IN_CATEGORIES: Record<string, Array<string_char_emoji>> = {
@@ -109,19 +110,19 @@ export const EMOJIS_IN_CATEGORIES: Record<string, Array<string_char_emoji>> = {
 
     'New Emojis (Discorered randomly)': '🖌️'.split(' ') as Array<string_char_emoji>,
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    'Emojis used in WebGPT': ['▶', '❤'] as any as Array<string_char_emoji>,
+    'Emojis used in WebGPT': ['▶', '❤'] as TODO_any as Array<string_char_emoji>,
 };
 
 /**
  *
  * All possible emoji chars like "🍆", "🍡", "🍤"...
  *
- * @private within the package
+ * @private within the repository
  * @deprecated Use /\p{Extended_Pictographic}/ instead
  */
 export const EMOJIS: Set<string_char_emoji> = new Set(Object.values(EMOJIS_IN_CATEGORIES).flat());
 
 /**
+ * TODO: [💴] DRY - just one version of emojis.ts
  * TODO: Mirror from Collboard or some common package
  */

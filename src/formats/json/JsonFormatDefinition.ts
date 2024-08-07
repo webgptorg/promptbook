@@ -1,37 +1,37 @@
-import { just } from '../../utils/just';
+import { TODO_USE } from '../../utils/organization/TODO_USE';
 import type { FormatDefinition } from '../_common/FormatDefinition';
 import { isValidJsonString } from './utils/isValidJsonString';
 
 /**
  * Definition for JSON format
  */
-export const JsonFormatDefinition: FormatDefinition<string /* <-[0] */, string /* <-[👨‍⚖️] */, object /* <-[1] */> = {
+export const JsonFormatDefinition: FormatDefinition<string /* <- [0] */, string /* <- [👨‍⚖️] */, object /* <- [1] */> = {
     name: 'JSON',
 
     mimeType: 'application/json',
 
-    isValid(value, schema): value is string /* <-[0] */ {
-        just(schema /* <- TODO: Use schema here */);
+    isValid(value, schema): value is string /* <- [0] */ {
+        TODO_USE(schema /* <- TODO: Use schema here */);
         return isValidJsonString(value);
     },
 
-    canBeValid(partialValue, schema): partialValue is string /* <-[0] */ {
-        just(partialValue /* <- TODO: Use partialValue here */);
-        just(schema /* <- TODO: Use schema here */);
+    canBeValid(partialValue, schema): partialValue is string /* <- [0] */ {
+        TODO_USE(partialValue /* <- TODO: Use partialValue here */);
+        TODO_USE(schema /* <- TODO: Use schema here */);
         return true;
     },
 
     heal(value, schema) {
-        just(value /* <- TODO: Use partialValue here */);
-        just(schema /* <- TODO: Use schema here */);
+        TODO_USE(value /* <- TODO: Use partialValue here */);
+        TODO_USE(schema /* <- TODO: Use schema here */);
         throw new Error('Not implemented');
     },
 
     extractValues(value, schema) {
-      just(value /* <- TODO: Use value here */);
-      just(schema /* <- TODO: Use schema here */);
-      throw new Error('Not implemented');
-  },
+        TODO_USE(value /* <- TODO: Use value here */);
+        TODO_USE(schema /* <- TODO: Use schema here */);
+        throw new Error('Not implemented');
+    },
 };
 
 /**
@@ -43,4 +43,5 @@ export const JsonFormatDefinition: FormatDefinition<string /* <-[0] */, string /
  * TODO: [🍓] In `JsonFormatDefinition` implement partial `canBeValid`
  * TODO: [🍓] In `JsonFormatDefinition` implement `heal
  * TODO: [🍓] In `JsonFormatDefinition` implement `extractValues`
+ * TODO: [🏢] Allow to expect something inside JSON objects and other formats
  */

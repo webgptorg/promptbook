@@ -1,0 +1,29 @@
+# ✨ Sample: Knowledge in external document
+
+Show how to use knowledge
+
+-   PIPELINE URL https://promptbook.studio/samples/document-knowledge.ptbk.md
+-   PROMPTBOOK VERSION 1.0.0
+-   INPUT  PARAMETER `{eventName}` The event name
+-   OUTPUT PARAMETER `{bio}` Bio of Pavol Hejný - speaker at the event
+-   KNOWLEDGE ./27-document-knowledge.pdf
+
+
+## Writing bio
+
+-   PERSONA Jane, HR professional with prior experience in writing bios
+-   EXPECT MIN 1 Sentence
+
+```markdown
+You are writing a bio for Pavol Hejný for the event {eventName}.
+
+## Rules
+
+-   Write just the bio, nothing else.
+-   Write in the third person.
+-   Bio is written in the present tense.
+-   Bio should be written for event named "{eventName}".
+-   Use markdown formatting.
+```
+
+`-> {bio}`

@@ -1,14 +1,22 @@
 #!/usr/bin/env ts-node
 
+import colors from 'colors';
 import commander from 'commander';
 import { createBestTranslator } from './automatic-translators/createBestTranslator.ts.todo';
 import { translateMessages } from './translateMessages';
-import colors from 'colors';
 
 // TODO: This should be some prototype of the generator
 // TODO: Activate TypeScript 3.8 and use top level await instead of wrapped code by main function
 
-main();
+main()
+    .catch((error: Error) => {
+        console.error(colors.bgRed(error.name /* <- 11:11 */));
+        console.error(colors.red(error.stack || error.message));
+        process.exit(1);
+    })
+    .then(() => {
+        process.exit(0);
+    });
 
 async function main() {
     console.info(colors.bgGrey(`🏭🌐 Automatic translation`));

@@ -1,4 +1,4 @@
-import type { ExecutionType } from './ExecutionTypes';
+import type { BlockType } from '../commands/BLOCK/BlockTypes';
 import type { string_markdown_text } from './typeAliases';
 import type { string_name } from './typeAliases';
 
@@ -36,7 +36,7 @@ export type TaskProgress = {
      * The type of the execution.
      * Note: The pipeline executor reports everything, in the app level you can filter out the execution types that you don't want to show to the user.
      */
-    readonly executionType: ExecutionType;
+    readonly blockType: BlockType;
 
     /**
      * The parameter name that is being processed.

@@ -1,4 +1,4 @@
 export type TranslatorOptions = {
-    from?: string;
-    to: string;
+    readonly from?: string;
+    readonly to: string;
 };

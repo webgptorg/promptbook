@@ -1,0 +1,103 @@
+{
+    "date": "2024-07-31T08:39:46.204Z",
+    "promptbookVersion": "0.61.0-10",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-title.ptbk.md#knowledge",
+        "parameters": {
+            "content": "I'm sorry, but I don't see any document provided in the conversation yet. Could you please share the PDF or text document you would like me to extract important information from? Once you provide the document, I'll be happy to analyze it according to the rules you specified and present the key pieces of information in a clear, concise format separated by horizontal lines. Please send over the document whenever you're ready."
+        },
+        "content": "You are experienced content creator, write best title for the document.\n\n# Rules\n\n-   Write just title, nothing else\n-   Title should be concise and clear\n-   Write maximum 5 words for the title\n\n# The document\n\n> I'm sorry, but I don't see any document provided in the conversation yet. Could you please share the PDF or text document you would like me to extract important information from? Once you provide the document, I'll be happy to analyze it according to the rules you specified and present the key pieces of information in a clear, concise format separated by horizontal lines. Please send over the document whenever you're ready.",
+        "modelRequirements": {
+            "modelVariant": "CHAT",
+            "modelName": "claude-3-opus-20240229"
+        },
+        "expectations": {
+            "words": {
+                "min": 1,
+                "max": 8
+            }
+        },
+        "postprocessing": []
+    },
+    "promptResult": {
+        "content": "Extracting Key Document Information",
+        "modelName": "claude-3-opus-20240229",
+        "timing": {
+            "start": "2024-07-31T08:39:44.577Z",
+            "complete": "2024-07-31T08:39:46.204Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0,
+                "isUncertain": true
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 0,
+                    "isUncertain": true
+                },
+                "charactersCount": {
+                    "value": 641
+                },
+                "wordsCount": {
+                    "value": 108
+                },
+                "sentencesCount": {
+                    "value": 5
+                },
+                "linesCount": {
+                    "value": 11
+                },
+                "paragraphsCount": {
+                    "value": 5
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 0,
+                    "isUncertain": true
+                },
+                "charactersCount": {
+                    "value": 641
+                },
+                "wordsCount": {
+                    "value": 108
+                },
+                "sentencesCount": {
+                    "value": 5
+                },
+                "linesCount": {
+                    "value": 11
+                },
+                "paragraphsCount": {
+                    "value": 5
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawResponse": {
+            "id": "msg_01AN65Yqrv1pBRbvvuYtMppM",
+            "type": "message",
+            "role": "assistant",
+            "model": "claude-3-opus-20240229",
+            "content": [
+                {
+                    "type": "text",
+                    "text": "Extracting Key Document Information"
+                }
+            ],
+            "stop_reason": "end_turn",
+            "stop_sequence": null,
+            "usage": {
+                "input_tokens": 144,
+                "output_tokens": 8
+            }
+        }
+    }
+}

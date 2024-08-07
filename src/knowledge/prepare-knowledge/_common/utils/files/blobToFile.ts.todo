@@ -11,9 +11,8 @@ import type { CrossBlob } from './CrossBlob'; // <- Note: [🍝]
 export function blobToFile(blob: File | CrossBlob, filename: string_filename): File {
     // Note: Blob is almost File - it's just missing the two properties below which we will add
     // @see https://stackoverflow.com/questions/27159179/how-to-convert-blob-to-file-in-javascript
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const file: any = blob;
+\
+    const file: TODO = blob;
     //
     file.lastModifiedDate = new Date();
     file.name = filename;

@@ -3,90 +3,106 @@ import { pipelineJsonToString } from '../conversion/pipelineJsonToString';
 import { validatePipeline } from '../conversion/validation/validatePipeline';
 import { NotFoundError } from '../errors/NotFoundError';
 import { ReferenceError } from '../errors/ReferenceError';
+import { unpreparePipeline } from '../prepare/unpreparePipeline';
 import type { PipelineJson } from '../types/PipelineJson/PipelineJson';
 import type { Prompt } from '../types/Prompt';
 import type { string_pipeline_url } from '../types/typeAliases';
 import type { PipelineCollection } from './PipelineCollection';
 
 /**
- * Library of promptbooks that groups together promptbooks for an application.
- * This implementation is a very thin wrapper around the Array / Map of promptbooks.
+ * Library of pipelines that groups together pipelines for an application.
+ * This implementation is a very thin wrapper around the Array / Map of pipelines.
  *
  * @private use `createCollectionFromJson` instead
- * @see https://github.com/webgptorg/promptbook#promptbook-collection
+ * @see https://github.com/webgptorg/pipeline#pipeline-collection
  */
 export class SimplePipelineCollection implements PipelineCollection {
     private collection: Map<string_pipeline_url, PipelineJson>;
 
     /**
-     * Constructs a pipeline collection from promptbooks
+     * Constructs a pipeline collection from pipelines
      *
-     * @param promptbooks !!!
+     * @param pipelines @@@
      *
      * @private Use instead `createCollectionFromJson`
-     * Note: During the construction logic of all promptbooks are validated
+     * Note: During the construction logic of all pipelines are validated
      * Note: It is not recommended to use this constructor directly, use `createCollectionFromJson` *(or other variant)* instead
      */
-    public constructor(...promptbooks: Array<PipelineJson>) {
+    public constructor(...pipelines: Array<PipelineJson>) {
         this.collection = new Map<string_pipeline_url, PipelineJson>();
-        for (const promptbook of promptbooks) {
-            if (promptbook.pipelineUrl === undefined) {
+        for (const pipeline of pipelines) {
+            // TODO: [👠] DRY
+            if (pipeline.pipelineUrl === undefined) {
                 throw new ReferenceError(
                     spaceTrim(`
-                        Promptbook with name "${promptbook.title}" does not have defined URL
+                        Pipeline with name "${pipeline.title}" does not have defined URL
 
-                        Note: Promptbooks without URLs are called anonymous promptbooks
-                              They can be used as standalone promptbooks, but they cannot be referenced by other promptbooks
+                        File:
+                        ${pipeline.sourceFile || 'Unknown'}
+
+                        Note: Pipelines without URLs are called anonymous pipelines
+                              They can be used as standalone pipelines, but they cannot be referenced by other pipelines
                               And also they cannot be used in the pipeline collection
 
                     `),
                 );
             }
 
-            validatePipeline(promptbook);
+            // Note: [🐨]
+            validatePipeline(pipeline);
 
+            // TODO: [🦄] DRY
             // Note: [🦄]
             if (
-                this.collection.has(promptbook.pipelineUrl) &&
-                pipelineJsonToString(promptbook) !== pipelineJsonToString(this.collection.get(promptbook.pipelineUrl)!)
+                // TODO: [🐽]
+                this.collection.has(pipeline.pipelineUrl) &&
+                pipelineJsonToString(unpreparePipeline(pipeline)) !==
+                    pipelineJsonToString(unpreparePipeline(this.collection.get(pipeline.pipelineUrl)!))
             ) {
+                const existing = this.collection.get(pipeline.pipelineUrl)!;
+
                 throw new ReferenceError(
                     spaceTrim(`
-                        Promptbook with URL "${promptbook.pipelineUrl}" is already in the collection
+                        Pipeline with URL "${pipeline.pipelineUrl}" is already in the collection
 
-                        Note: Promptbooks with the same URL are not allowed
-                        Note: Automatically check whether the promptbooks are the same BUT they are DIFFERENT
+                        Conflicting files:
+                        ${existing.sourceFile || 'Unknown'}
+                        ${pipeline.sourceFile || 'Unknown'}
+
+                        Note: Pipelines with the same URL are not allowed
+                              Only exepction is when the pipelines are identical
 
                     `),
                 );
             }
 
-            this.collection.set(promptbook.pipelineUrl, promptbook);
+            // Note: [🧠] Overwrite existing pipeline with the same URL
+            this.collection.set(pipeline.pipelineUrl, pipeline);
         }
     }
 
     /**
-     * Gets all promptbooks in the collection
+     * Gets all pipelines in the collection
      */
     public listPipelines(): Array<string_pipeline_url> {
         return Array.from(this.collection.keys());
     }
 
     /**
-     * Gets promptbook by its URL
+     * Gets pipeline by its URL
      *
      * Note: This is not a direct fetching from the URL, but a lookup in the collection
      */
     public getPipelineByUrl(url: string_pipeline_url): PipelineJson {
-        const promptbook = this.collection.get(url);
-        if (!promptbook) {
+        const pipeline = this.collection.get(url);
+        if (!pipeline) {
             if (this.listPipelines().length === 0) {
                 throw new NotFoundError(
                     spaceTrim(
                         `
-                            Promptbook with url "${url}" not found
+                            Pipeline with url "${url}" not found
 
-                            No promptbooks available
+                            No pipelines available
                         `,
                     ),
                 );
@@ -95,9 +111,9 @@ export class SimplePipelineCollection implements PipelineCollection {
             throw new NotFoundError(
                 spaceTrim(
                     (block) => `
-                        Promptbook with url "${url}" not found
+                        Pipeline with url "${url}" not found
 
-                        Available promptbooks:
+                        Available pipelines:
                         ${block(
                             this.listPipelines()
                                 .map((pipelineUrl) => `- ${pipelineUrl}`)
@@ -108,11 +124,11 @@ export class SimplePipelineCollection implements PipelineCollection {
                 ),
             );
         }
-        return promptbook;
+        return pipeline;
     }
 
     /**
-     * Checks whether given prompt was defined in any promptbook in the collection
+     * Checks whether given prompt was defined in any pipeline in the collection
      */
     public isResponsibleForPrompt(prompt: Prompt): boolean {
         // TODO: [🍓] !!!  DO not hardcode this, really validate whether the prompt is in the collection

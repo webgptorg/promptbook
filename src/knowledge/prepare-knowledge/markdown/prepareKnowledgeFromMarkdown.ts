@@ -3,108 +3,99 @@ import spaceTrim from 'spacetrim';
 import PipelineCollection from '../../../../promptbook-collection/index.json';
 // import PipelineCollection from '../../../../promptbook-collection/promptbook-collection';
 import { createCollectionFromJson } from '../../../collection/constructors/createCollectionFromJson';
+import { MAX_PARALLEL_COUNT } from '../../../config';
+import { titleToName } from '../../../conversion/utils/titleToName';
 import { assertsExecutionSuccessful } from '../../../execution/assertsExecutionSuccessful';
 import { createPipelineExecutor } from '../../../execution/createPipelineExecutor';
-import type { LlmExecutionTools } from '../../../execution/LlmExecutionTools';
-import type { KnowledgeJson } from '../../../types/PipelineJson/KnowledgeJson';
+import type { PrepareOptions } from '../../../prepare/PrepareOptions';
+import type { KnowledgePiecePreparedJson } from '../../../types/PipelineJson/KnowledgePieceJson';
 import type { PipelineJson } from '../../../types/PipelineJson/PipelineJson';
-import type { string_href } from '../../../types/typeAliases';
 import type { string_markdown } from '../../../types/typeAliases';
-import type { string_markdown_text } from '../../../types/typeAliases';
-import type { string_model_name } from '../../../types/typeAliases';
-import type { string_name } from '../../../types/typeAliases';
-import type { string_keyword } from '../../../utils/normalization/IKeywords';
-import { normalizeToKebabCase } from '../../../utils/normalization/normalize-to-kebab-case';
+import type { TODO_any } from '../../../utils/organization/TODO_any';
+import { TODO_USE } from '../../../utils/organization/TODO_USE';
 
-type PrepareKnowledgeFromMarkdownOptions = {
-    /**
-     * The source of the knowledge in markdown format
-     */
-    content: string_markdown /* <- TODO: [🖖] Always the file */;
-
-    /**
-     * The LLM tools to use for the conversion and extraction of knowledge
-     */
-    llmTools: LlmExecutionTools;
-
-    /**
-     * If true, the preaparation of knowledge logs additional information
-     *
-     * @default false
-     */
-    isVerbose?: boolean;
-};
-
+/**
+ * @@@
+ */
 export async function prepareKnowledgeFromMarkdown(
-    options: PrepareKnowledgeFromMarkdownOptions,
-): Promise<KnowledgeJson> {
-    const { content, llmTools, isVerbose = false } = options;
+    knowledgeContent: string_markdown /* <- TODO: [🖖] (?maybe not) Always the file */,
+    options: PrepareOptions,
+): Promise<Array<Omit<KnowledgePiecePreparedJson, 'sources' | 'preparationIds'> /* <- [🕡] */>> {
+    const { llmTools, maxParallelCount = MAX_PARALLEL_COUNT, isVerbose = false } = options;
+
+    TODO_USE(maxParallelCount); // <- [🪂]
 
     // TODO: [🌼] In future use `ptbk make` and maked getPipelineCollection
-    const collection = createCollectionFromJson(...(PipelineCollection as Array<PipelineJson>));
-    const prepareKnowledgeFromMarkdownPromptbook = await collection.getPipelineByUrl(
-        'https://promptbook.studio/promptbook/prepare-knowledge-from-markdown.ptbk.md',
-    );
+    const collection = createCollectionFromJson(...(PipelineCollection as TODO_any as Array<PipelineJson>));
 
     const prepareKnowledgeFromMarkdownExecutor = createPipelineExecutor({
-        pipeline: prepareKnowledgeFromMarkdownPromptbook,
+        pipeline: await collection.getPipelineByUrl(
+            'https://promptbook.studio/promptbook/prepare-knowledge-from-markdown.ptbk.md',
+        ),
         tools: {
             llm: llmTools,
-            script: [
-                /* <- TODO: Allow to just keep script undefined */
-            ],
         },
     });
 
-    const prepareKeywordsPromptbook = await collection.getPipelineByUrl(
-        'https://promptbook.studio/promptbook/prepare-keywords.ptbk.md',
-    );
+    const prepareTitleExecutor = createPipelineExecutor({
+        pipeline: await collection.getPipelineByUrl(
+            'https://promptbook.studio/promptbook/prepare-knowledge-title.ptbk.md',
+        ),
+        tools: {
+            llm: llmTools,
+        },
+    });
 
     const prepareKeywordsExecutor = createPipelineExecutor({
-        pipeline: prepareKeywordsPromptbook,
+        pipeline: await collection.getPipelineByUrl(
+            'https://promptbook.studio/promptbook/prepare-knowledge-keywords.ptbk.md',
+        ),
         tools: {
             llm: llmTools,
-            script: [
-                /* <- TODO: Allow to just keep script undefined */
-            ],
         },
     });
 
-    const result = await prepareKnowledgeFromMarkdownExecutor({ content });
+    const result = await prepareKnowledgeFromMarkdownExecutor({ knowledgeContent });
 
     assertsExecutionSuccessful(result);
 
     const { outputParameters } = result;
-    const { knowledge: knowledgeRaw } = outputParameters;
+    const { knowledgePieces: knowledgePiecesRaw } = outputParameters;
 
-    const knowledgeTextPieces = (knowledgeRaw || '').split('\n---\n');
+    const knowledgeTextPieces = (knowledgePiecesRaw || '').split('\n---\n');
+    //                                                               <- TODO: !!!!! Smarter split and filter out empty pieces
 
     if (isVerbose) {
         console.info('knowledgeTextPieces:', knowledgeTextPieces);
     }
 
+    // const usage = ;
+
     const knowledge = await Promise.all(
+        // TODO: [🪂] !! Do not send all at once but in chunks
         knowledgeTextPieces.map(async (knowledgeTextPiece, i) => {
             // Note: Theese are just default values, they will be overwritten by the actual values:
-            let name: string_name = `piece-${i}`;
-            let title: string_markdown_text = spaceTrim(knowledgeTextPiece.substring(0, 100));
-            const content: string_markdown = spaceTrim(knowledgeTextPiece);
-            let keywords: Array<string_keyword> = [];
-            const index: Array<{
-                modelName: string_model_name;
-                position: Array<number>;
-            }> = [];
-            const sources: Array<{ title: string_markdown_text; href: string_href }> = [];
+            let name: KnowledgePiecePreparedJson['name'] = `piece-${i}`;
+            let title: KnowledgePiecePreparedJson['title'] = spaceTrim(knowledgeTextPiece.substring(0, 100));
+            const knowledgePieceContent: KnowledgePiecePreparedJson['content'] = spaceTrim(knowledgeTextPiece);
+            let keywords: KnowledgePiecePreparedJson['keywords'] = [];
+            const index: KnowledgePiecePreparedJson['index'] = [];
+
+            /*
+            TODO: [☀] Track line and column of the source
+            const sources: KnowledgePiecePreparedJson['sources'] = [
+            ];
+            */
 
             try {
-                // TODO: !!!! Summarize name and title from the content
-                title = spaceTrim(knowledgeTextPiece.substring(0, 30));
-                name = normalizeToKebabCase(title);
+                const titleResult = await prepareTitleExecutor({ knowledgePieceContent });
+                const { title: titleRaw = 'Untitled' } = titleResult.outputParameters;
+                title = spaceTrim(titleRaw) /* <- TODO: Maybe do in pipeline */;
+                name = titleToName(title);
 
                 // --- Keywords
-                const result = await prepareKeywordsExecutor({ content });
-                const { outputParameters = {} } = result;
-                const { keywords: keywordsRaw } = outputParameters;
+                const keywordsResult = await prepareKeywordsExecutor({ knowledgePieceContent });
+                const { keywords: keywordsRaw = '' } = keywordsResult.outputParameters;
                 keywords = (keywordsRaw || '')
                     .split(',')
                     .map((keyword) => keyword.trim())
@@ -114,27 +105,47 @@ export async function prepareKnowledgeFromMarkdown(
                 }
                 // ---
 
-                // TODO: !!!! Index through LLM model
-                index.push({
-                    modelName: 'fake-model',
-                    position: new Array(25).fill(0).map(() => Math.random() * 2 - 1),
-                });
+                if (!llmTools.callEmbeddingModel) {
+                    // TODO: [🟥] Detect browser / node and make it colorfull
+                    console.error('No callEmbeddingModel function provided');
+                } else {
+                    // TODO: [🧠][🎛] Embedding via multiple models
 
-                // TODO: [🖖] !!!! Make system for sources and identification of sources
+                    const embeddingResult = await llmTools.callEmbeddingModel({
+                        title: `Embedding for ${title}` /* <- Note: No impact on embedding result itself, just for logging */,
+                        parameters: {},
+                        content: knowledgePieceContent,
+                        modelRequirements: {
+                            modelVariant: 'EMBEDDING',
+                        },
+                    });
+
+                    index.push({
+                        modelName: embeddingResult.modelName,
+                        position: embeddingResult.content,
+                    });
+                }
             } catch (error) {
+                // TODO: [🟥] Detect browser / node and make it colorfull
                 console.error(error);
             }
 
             return {
                 name,
                 title,
-                content,
+                content: knowledgePieceContent,
                 keywords,
                 index,
-                sources,
+                // <- TODO: [☀] sources,
             };
         }),
     );
 
     return knowledge;
 }
+
+/**
+ * TODO: [🐝][🔼] !!! Export via `@promptbook/markdown`
+ * TODO: [🪂] Do it in parallel 11:11
+ * Note: No need to aggregate usage here, it is done by intercepting the llmTools
+ */

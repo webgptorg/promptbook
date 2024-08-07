@@ -9,4 +9,4 @@ Sample of wrong promptbookthat omits a block to wrap the prompt.
 
 Hello
 
--> {greeting}
+`-> {greeting}`

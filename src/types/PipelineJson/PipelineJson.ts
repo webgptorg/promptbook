@@ -1,7 +1,13 @@
+import type { string_file_path } from '../typeAliases';
 import type { string_markdown_text } from '../typeAliases';
 import type { string_pipeline_url } from '../typeAliases';
-import type { string_version } from '../typeAliases';
-import type { KnowledgeJson } from './KnowledgeJson';
+import type { string_semantic_version } from '../typeAliases';
+import type { KnowledgePiecePreparedJson } from './KnowledgePieceJson';
+import type { KnowledgeSourceJson } from './KnowledgeSourceJson';
+import type { KnowledgeSourcePreparedJson } from './KnowledgeSourceJson';
+import type { PersonaJson } from './PersonaJson';
+import type { PersonaPreparedJson } from './PersonaJson';
+import type { PreparationJson } from './PreparationJson';
 import type { PromptTemplateJson } from './PromptTemplateJson';
 import type { PromptTemplateParameterJson } from './PromptTemplateParameterJson';
 
@@ -9,9 +15,16 @@ import type { PromptTemplateParameterJson } from './PromptTemplateParameterJson'
  * Promptbook is the **core concept of this package**.
  * It represents a series of prompt templates chained together to form a pipeline / one big prompt template with input and result parameters.
  *
- * @see !!! https://github.com/webgptorg/promptbook#promptbook
+ * @see @@@ https://github.com/webgptorg/promptbook#promptbook
  */
 export type PipelineJson = {
+    /*
+    TODO: [💼]
+    > readonly type: 'PIPELINE';
+
+    + make type test for this
+    */
+
     /**
      * Unique identifier of the pipeline
      *
@@ -24,6 +37,11 @@ export type PipelineJson = {
     readonly pipelineUrl?: string_pipeline_url;
 
     /**
+     * Internal helper for tracking the source `.ptbk.md` file of the pipeline
+     */
+    readonly sourceFile?: string_file_path;
+
+    /**
      * Title of the promptbook
      * -It can use simple markdown formatting like **bold**, *italic*, [link](https://example.com), ... BUT not code blocks and structure
      */
@@ -32,7 +50,7 @@ export type PipelineJson = {
     /**
      * Version of the .ptbk.json file
      */
-    readonly promptbookVersion: string_version;
+    readonly promptbookVersion: string_semantic_version;
 
     /**
      * Description of the promptbook
@@ -49,15 +67,41 @@ export type PipelineJson = {
      * Sequence of prompt templates that are chained together to form a pipeline
      */
     readonly promptTemplates: Array<PromptTemplateJson>;
+    // <- TODO: [🧠][🥜]
 
     /**
      * Set of information that are used as external knowledge in the pipeline
+     *
+     * @see https://github.com/webgptorg/promptbook/discussions/41
      */
-    readonly knowledge: KnowledgeJson;
+    readonly knowledgeSources: Array<KnowledgeSourceJson | KnowledgeSourcePreparedJson>;
+
+    /**
+     * Set of information that are used as external knowledge in the pipeline
+     *
+     * @see https://github.com/webgptorg/promptbook/discussions/41
+     */
+    readonly knowledgePieces: Array<KnowledgePiecePreparedJson>;
+
+    /**
+     * List of prepared virtual personas that are used in the pipeline
+     *
+     * @see https://github.com/webgptorg/promptbook/discussions/22
+     */
+    readonly personas: Array<PersonaJson | PersonaPreparedJson>;
+
+    /**
+     * List of prepared virtual personas that are used in the pipeline
+     *
+     * @see https://github.com/webgptorg/promptbook/discussions/78
+     */
+    readonly preparations: Array<PreparationJson>;
 };
 
 /**
- * Note: There was a proposal for multiple types of promptbook objects 78816ff33e2705ee1a187aa2eb8affd976d4ea1a
+ * TODO: [🍙] Make some standart order of json properties
+ * TODO: [🧠] Maybe wrap all {parameterNames} in brackets for example { "resultingParameterName": "{foo}" }
+ * Note: [💼] There was a proposal for multiple types of promptbook objects 78816ff33e2705ee1a187aa2eb8affd976d4ea1a
  *       But then immediately reverted back to the single type
  *       With knowledge as part of the promptbook and collection just as a collection of promptbooks
  */

@@ -4,7 +4,7 @@ import { countPages } from '../../utils/expectation-counters/countPages';
 import { countParagraphs } from '../../utils/expectation-counters/countParagraphs';
 import { countSentences } from '../../utils/expectation-counters/countSentences';
 import { countWords } from '../../utils/expectation-counters/countWords';
-import type { PromptResultUsageCounts } from '../PromptResult';
+import type { PromptResultUsageCounts } from '../PromptResultUsage';
 
 /**
  * Helper of usage compute

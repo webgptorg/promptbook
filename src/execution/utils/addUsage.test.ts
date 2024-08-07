@@ -1,5 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
 import { addUsage } from './addUsage';
+import { ZERO_USAGE } from './addUsage';
 
 describe('how addUsage works', () => {
     it('should create void usage with 0 items', () =>
@@ -24,6 +25,15 @@ describe('how addUsage works', () => {
                 pagesCount: { value: 0 },
             },
         }));
+
+    it('should add multiple ZERO_USAGE and still get ZERO_USAGE', () => {
+        expect(addUsage()).toEqual(ZERO_USAGE);
+        expect(addUsage(ZERO_USAGE)).toEqual(ZERO_USAGE);
+        expect(addUsage(ZERO_USAGE, ZERO_USAGE)).toEqual(ZERO_USAGE);
+        expect(addUsage(ZERO_USAGE, ZERO_USAGE, ZERO_USAGE)).toEqual(ZERO_USAGE);
+        expect(addUsage(ZERO_USAGE, ZERO_USAGE, ZERO_USAGE, ZERO_USAGE)).toEqual(ZERO_USAGE);
+        expect(addUsage(ZERO_USAGE, ZERO_USAGE, addUsage(ZERO_USAGE, ZERO_USAGE))).toEqual(ZERO_USAGE);
+    });
 
     it('should preserve 1 item', () =>
         expect(

@@ -7,6 +7,7 @@ import type { string_html } from '../../types/typeAliases';
  *
  * @param content raw html code
  * @returns formatted html code
+ * @private withing the package because of HUGE size of prettier dependency
  */
 export function prettifyMarkdown<TContent extends string_html>(content: TContent): TContent {
     try {
@@ -26,6 +27,7 @@ export function prettifyMarkdown<TContent extends string_html>(content: TContent
             bracketSpacing: true,
         }) as TContent;
     } catch (error) {
+        // TODO: [🟥] Detect browser / node and make it colorfull
         console.error('There was an error with prettifying the markdown, using the original as the fallback', {
             error,
             html: content,

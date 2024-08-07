@@ -43,6 +43,8 @@ flowchart LR
 
 Synonym for word
 
+-   PERSONA Joe, a linguist
+
 ```text
 Write synonym for "{word}"
 ```
@@ -53,8 +55,30 @@ Write synonym for "{word}"
 
 Sentence with word and wordSynonym
 
+-   PERSONA Joe
+
 ```text
 Write sentence with "{word}" and "{wordSynonym}" in it
+```
+
+`-> {sentenceWithTwoSynonyms}`
+
+### Simple sentence
+
+-   SAMPLE
+
+```text
+The quick brown fox jumps over the lazy dog
+```
+
+`-> {sentenceWithTwoSynonyms}`
+
+### Dynamic sentence
+
+-   SAMPLE
+
+```text
+The brown {word} jumps over the lazy {word}
 ```
 
 `-> {sentenceWithTwoSynonyms}`

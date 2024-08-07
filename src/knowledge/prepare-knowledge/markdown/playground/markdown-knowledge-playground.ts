@@ -7,7 +7,8 @@ dotenv.config({ path: '.env' });
 import chalk from 'colors';
 import { readFile, writeFile } from 'fs/promises';
 import { join } from 'path';
-import { AnthropicClaudeExecutionTools } from '../../../../llm-providers/anthropic-claude/AnthropicClaudeExecutionTools';
+import { stringifyPipelineJson } from '../../../../conversion/utils/stringifyPipelineJson';
+import { getLlmToolsForTestingAndScriptsAndPlayground } from '../../../../llm-providers/_common/getLlmToolsForTestingAndScriptsAndPlayground';
 import { prepareKnowledgeFromMarkdown } from '../prepareKnowledgeFromMarkdown';
 
 const isVerbose = true;
@@ -29,17 +30,16 @@ async function playground() {
     //========================================>
 
     const content = await readFile(
-        join(__dirname, '../samples/10-simple.md' /* <- !!! Dynamic for all samples */),
+        join(
+            __dirname,
+            '../samples/10-simple.md' /* <- TODO: !! Read here the samples directory and itterate through all of them */,
+        ),
         'utf-8',
     );
 
-    const llmTools = new AnthropicClaudeExecutionTools({
-        isVerbose,
-        apiKey: process.env.ANTHROPIC_CLAUDE_API_KEY!,
-    });
+    const llmTools = getLlmToolsForTestingAndScriptsAndPlayground();
 
-    const knowledge = await prepareKnowledgeFromMarkdown({
-        content,
+    const knowledge = await prepareKnowledgeFromMarkdown(content, {
         llmTools,
         isVerbose,
     });
@@ -48,8 +48,11 @@ async function playground() {
     console.info(knowledge);
 
     await writeFile(
-        join(__dirname, '../samples/10-simple.knowledge.json' /* <- !!! Dynamic for all samples */),
-        JSON.stringify(knowledge, null, 4) + '\n',
+        join(
+            __dirname,
+            '../samples/10-simple.knowledge.json' /* <- TODO: !! Read here the samples directory and itterate through all of them */,
+        ),
+        stringifyPipelineJson(knowledge),
         'utf-8',
     );
     /**/

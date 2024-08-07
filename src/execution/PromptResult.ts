@@ -1,10 +1,9 @@
-import type { KebabCase } from 'type-fest';
-import type { ExpectationUnit } from '../types/PipelineJson/PromptTemplateJson';
-import type { number_positive } from '../types/typeAliases';
-import type { number_usd } from '../types/typeAliases';
 import type { string_date_iso8601 } from '../types/typeAliases';
 import type { string_model_name } from '../types/typeAliases';
+import type { string_prompt } from '../types/typeAliases';
+import type { TODO_object } from '../utils/organization/TODO_object';
 import type { EmbeddingVector } from './EmbeddingVector';
+import type { PromptResultUsage } from './PromptResultUsage';
 
 /**
  * Prompt result is the simplest concept of execution.
@@ -12,33 +11,45 @@ import type { EmbeddingVector } from './EmbeddingVector';
  *
  * @see https://github.com/webgptorg/promptbook#prompt-result
  */
-export type PromptResult = PromptCompletionResult | PromptChatResult;
+export type PromptResult = CompletionPromptResult | ChatPromptResult | EmbeddingPromptResult /* <- [🤖] */;
 
 /**
- * Prompt completion result
- * It contains only the following text NOT the whole completion
+ * Completion prompt result
+ *
+ * Note:It contains only the newly generated text NOT the whole completion
+ * Note: This is fully serializable as JSON
  */
-export type PromptCompletionResult = PromptCommonResult;
+export type CompletionPromptResult = CommonPromptResult;
 
 /**
- * Prompt chat result
+ *Chat prompt result
+ *
+ * Note: This is fully serializable as JSON
  */
-export type PromptChatResult = PromptCommonResult & {
-    // TODO: [🤹‍♂️][🧠] Figure out way how to pass thread / previous messages
+export type ChatPromptResult = CommonPromptResult & {
+    // TODO: [🗯][🧠] Figure out way how to pass thread / previous messages
 };
 
 /**
- * Prompt embedding result
- * It contains only the following text NOT the whole completion
+ * Embedding prompt  result
+ *
+ * Note: This is fully serializable as JSON
  */
-export type PromptEmbeddingResult = Omit<PromptCommonResult, 'content'> & {
+export type EmbeddingPromptResult = Omit<CommonPromptResult, 'content'> & {
     /**
      * The response from the model
      */
     content: EmbeddingVector;
 };
 
-export type PromptCommonResult = {
+// <- Note: [🤖] Add new model variant here
+
+/**
+ * Common properties for all prompt results
+ *
+ * Note: This is fully serializable as JSON
+ */
+export type CommonPromptResult = {
     /**
      * Exact text response from the model
      */
@@ -56,17 +67,17 @@ export type PromptCommonResult = {
         /**
          * Start of the execution
          */
-        start: string_date_iso8601;
+        readonly start: string_date_iso8601;
 
         /**
          * First token generated
          */
-        firstToken?: string_date_iso8601;
+        readonly firstToken?: string_date_iso8601;
 
         /**
          * End of the execution
          */
-        complete: string_date_iso8601;
+        readonly complete: string_date_iso8601;
     };
 
     /**
@@ -75,60 +86,32 @@ export type PromptCommonResult = {
     readonly usage: PromptResultUsage;
 
     /**
-     * Raw response from the model
-     */
-    readonly rawResponse: object;
-};
-
-/**
- * Usage statistics for one or many prompt results
- */
-export type PromptResultUsage = {
-    /**
-     * Cost of the execution in USD
+     * Exact text of the prompt (with all replacements)
      *
-     * Note: If the cost is unknown, the value 0 and isUncertain is true
+     * Note: This contains redundant information
      */
-    price: UncertainNumber;
+    readonly rawPromptContent: string_prompt;
 
     /**
-     * Number of whatever used in the input aka. `prompt_tokens`
+     * Raw request to the model
+     *
+     * Note: This contains redundant information
      */
-    input: PromptResultUsageCounts;
+    readonly rawRequest: TODO_object | null;
 
     /**
-     * Number of tokens used in the output aka. `completion_tokens`
+     * Raw response from the model
+     *
+     * Note: This contains redundant information
      */
-    output: PromptResultUsageCounts;
-};
-
-/**
- * Record of all possible measurable units
- */
-export type PromptResultUsageCounts = Record<`${KebabCase<'TOKENS' | ExpectationUnit>}Count`, UncertainNumber>;
-
-/**
- * Number which can be uncertain
- *
- * Note: If the value is completelly unknown, the value 0 and isUncertain is true
- * Note: Not using NaN or null because it looses the value which is better to be uncertain then not to be at all
- */
-export type UncertainNumber = {
-    /**
-     * The numeric value
-     */
-    value: number_usd & (number_positive | 0);
-
-    /**
-     * Is the value uncertain
-     */
-    isUncertain?: true;
+    readonly rawResponse: TODO_object;
 };
 
 /**
  * TODO: [🧠] Maybe timing more accurate then seconds?
  * TODO: [🧠] Should here be link to the prompt?
- * TODO: [🧠] Maybe type raw properly - not onject but OpenAI.result.whatever
+ * TODO: [🧠] Maybe type `rawResponse` properly - not onject but OpenAI.result.whatever
  * TODO: [🧠] Maybe remove redundant raw.choices.text
  * TODO: Log raw even if prompt failed - log the raw error
+ * TODO: [🏳] Add `TranslationPromptResult`
  */

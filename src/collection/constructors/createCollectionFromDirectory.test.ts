@@ -1,11 +1,14 @@
 import { describe, expect, it } from '@jest/globals';
 import spaceTrim from 'spacetrim';
 import { pipelineStringToJson } from '../../conversion/pipelineStringToJson';
+import { unpreparePipeline } from '../../prepare/unpreparePipeline';
 import type { PipelineString } from '../../types/PipelineString';
-import { just } from '../../utils/just';
+import { keepUnused } from '../../utils/organization/keepUnused';
+import type { really_any } from '../../utils/organization/really_any';
 import { createCollectionFromDirectory } from './createCollectionFromDirectory';
 
 describe('createCollectionFromDirectory', () => {
+    // Note: It doesn't matter if the code block is ``` or >
     const pipeline = spaceTrim(`
           # ✨ Sample prompt with URL
 
@@ -13,16 +16,40 @@ describe('createCollectionFromDirectory', () => {
 
           -   PIPELINE URL https://promptbook.studio/samples/simple.ptbk.md
           -   PROMPTBOOK VERSION 1.0.0
-          -   OUTPUT PARAMETER \`{greeting}\`
+          -   OUTPUT PARAMETER \`{greetingResponse}\`
 
 
           ## 💬 Prompt
 
-          \`\`\`text
-          Hello
-          \`\`\`
+          > Hello
 
-          -> {greeting}
+          -> {greetingResponse}
+
+
+          ### Normal response
+
+          -   SAMPLE
+
+          > Hello, how are you?
+
+          -> {greetingResponse}
+
+          ### Formal response
+
+          -   SAMPLE
+
+          > Dear Sir, how may I help you?
+
+          -> {greetingResponse}
+
+          ### Informal response
+
+          -   SAMPLE
+
+          > Hey, what's up?
+
+          -> {greetingResponse}
+
 
 
     `) as PipelineString;
@@ -30,13 +57,17 @@ describe('createCollectionFromDirectory', () => {
     it('should get pipeline by url from collection', async () => {
         expect.assertions(1);
         const collection = await createCollectionFromDirectory('./samples/templates', {
+            llmTools: null,
             isVerbose: true,
             isRecursive: false,
             isLazyLoaded: false,
         });
-        const pipelineFromCollection = await collection.getPipelineByUrl(
+        let pipelineFromCollection = await collection.getPipelineByUrl(
             'https://promptbook.studio/samples/simple.ptbk.md',
         );
+
+        pipelineFromCollection = unpreparePipeline(pipelineFromCollection);
+        delete (pipelineFromCollection as really_any).sourceFile;
 
         expect(pipelineFromCollection).toEqual(await pipelineStringToJson(pipeline));
     });
@@ -45,13 +76,17 @@ describe('createCollectionFromDirectory', () => {
         expect.assertions(1);
 
         const collection = await createCollectionFromDirectory('./samples/templates', {
+            llmTools: null,
             isVerbose: true,
             isRecursive: false,
             isLazyLoaded: true,
         });
-        const pipelineFromCollection = await collection.getPipelineByUrl(
+        let pipelineFromCollection = await collection.getPipelineByUrl(
             'https://promptbook.studio/samples/simple.ptbk.md',
         );
+
+        pipelineFromCollection = unpreparePipeline(pipelineFromCollection);
+        delete (pipelineFromCollection as really_any).sourceFile;
 
         expect(pipelineFromCollection).toEqual(await pipelineStringToJson(pipeline));
     });
@@ -60,12 +95,16 @@ describe('createCollectionFromDirectory', () => {
         expect.assertions(1);
 
         const collection = await createCollectionFromDirectory('./samples/templates', {
+            llmTools: null,
             isVerbose: true,
             isRecursive: false,
         });
-        const pipelineFromCollection = await collection.getPipelineByUrl(
+        let pipelineFromCollection = await collection.getPipelineByUrl(
             'https://promptbook.studio/samples/jokers.ptbk.md',
         );
+
+        pipelineFromCollection = unpreparePipeline(pipelineFromCollection);
+        delete (pipelineFromCollection as really_any).sourceFile;
 
         expect(pipelineFromCollection).not.toEqual(await pipelineStringToJson(pipeline));
     });
@@ -74,11 +113,13 @@ describe('createCollectionFromDirectory', () => {
         expect(
             (async () => {
                 const collection = await createCollectionFromDirectory('./samples/templates', {
+                    llmTools: null,
                     isVerbose: true,
-                    isRecursive: true /* <- Note: Include Errors */,
+                    // Note: Including subdirectories BUT lazy-loaded so it should not crash even if there are errors
+                    isRecursive: true,
                     isLazyLoaded: true,
                 });
-                just(collection);
+                keepUnused(collection);
             })(),
         ).resolves.not.toThrow());
 
@@ -86,13 +127,15 @@ describe('createCollectionFromDirectory', () => {
         expect(
             (async () => {
                 const collection = await createCollectionFromDirectory('./samples/templates', {
+                    llmTools: null,
                     isVerbose: true,
-                    isRecursive: true /* <- Note: Include Errors */,
+                    // Note: Including subdirectories BUT lazy-loaded so it should not crash even if there are errors
+                    isRecursive: true,
                     isLazyLoaded: false,
                 });
-                just(collection);
+                keepUnused(collection);
             })(),
-        ).rejects.toThrowError(/Error during loading pipeline/i));
+        ).rejects.toThrowError(/^PipelineLogicError in pipeline samples.*/i));
 
     /*
     TODO: Make separate folder for errors and enable this test

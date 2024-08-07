@@ -1,5 +1,6 @@
 # 🎯 TODOs
 
+-   [ ][🧠] !! `folder` vs `directory`
 -   [x] Annotate all entities
 -   [ ] Make internal string aliases
 -   [ ] Make branded types instead of pure `string` aliases
@@ -13,10 +14,10 @@
 -   [x] Refactor circular dependencies
 -   [ ][🍓] Importing subtemplates
 -   [x] Use `spaceTrim` more effectively
--   [ ][🍓][🤹‍♂️] Allow chats to be continued with previous message
+-   [ ][🍓][🗯] Allow chats to be continued with previous message
 -   [ ][🍓] Allow to set top_t and other model params
 -   [ ][🍓] Allow to shortvut set top_t and other model params by `MODEL CREATIVITY 50%`
--   [ ] [🧠][🤹‍♂️] How to mark continued chat in .ptbk.md format?
+-   [ ] [🧠][🗯] How to mark continued chat in .ptbk.md format?
 -   [ ] Use newest version of socket.io for remote server
 -   [ ][🍓][🧠] Allow to use and define [function calling](https://platform.openai.com/docs/guides/gpt/function-calling)
 -   [x] Register .ptbk file extension

@@ -27,8 +27,8 @@ const { commit: isCommited } = program.opts();
 
 generatePackages({ isCommited })
     .catch((error: Error) => {
-        console.error(colors.bgRed(error.name));
-        console.error(error);
+        console.error(colors.bgRed(error.name /* <- 11:11 */));
+        console.error(colors.red(error.stack || error.message));
         process.exit(1);
     })
     .then(() => {
@@ -51,6 +51,16 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
     }
 
     await execCommand(`npx rollup --config rollup.config.js`);
+
+    /*
+    TODO: !!! Test that:
+    - Test umd, esm, typings and everything else
+
+    [🟡] This code should never be published outside of `@promptbook/cli`
+    [🟢] This code should never be published outside of `@promptbook/node`
+    [🔵] This code should never be published outside of `@promptbook/browser`
+    [⚪] This should never be in any released package
+    */
 
     const mainPackageJson = JSON.parse(await readFile('./package.json', 'utf-8')) as PackageJson;
 
@@ -126,7 +136,7 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
         packageReadme = packageReadme.split(`\n<!--/Badges-->`).join(badge + '\n\n<!--/Badges-->');
         */
 
-        // TODO: !!! Convert mermaid diagrams to images OR remove
+        // TODO: [🍓] Convert mermaid diagrams to images or remove them from the markdown published to NPM
 
         packageReadme = removeContentComments(packageReadme);
 
@@ -213,6 +223,11 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
                     'publish-npm': {
                         name: 'Publish on NPM package registry',
                         'runs-on': 'ubuntu-latest',
+                        permissions: {
+                            contents: 'read',
+                            'id-token': 'write',
+                            // <- Note: Permissions are required with provenance statement @see https://docs.npmjs.com/generating-provenance-statements
+                        },
                         steps: [
                             {
                                 name: 'Checkout',
@@ -240,7 +255,7 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
                             ...packages.map(({ packageName, packageFullname }) => ({
                                 name: `Publish ${packageFullname}`,
                                 'working-directory': `./packages/${packageName}`,
-                                run: 'npm publish --access public',
+                                run: 'npm publish --provenance --access public',
                                 env: {
                                     NODE_AUTH_TOKEN: '${{secrets.NPM_TOKEN}}',
                                 },

@@ -5,24 +5,100 @@
     "description": "Show how to put codeblocks in the prompt _(which is already in the codeblock)_",
     "parameters": [
         {
-            "name": "greeting",
+            "name": "greeting1",
+            "isInput": false,
+            "isOutput": true
+        },
+        {
+            "name": "greeting2",
             "isInput": false,
             "isOutput": true
         }
     ],
     "promptTemplates": [
         {
-            "name": "prompt",
-            "title": "💬 Prompt",
-            "dependentParameterNames": [],
-            "executionType": "PROMPT_TEMPLATE",
+            "blockType": "PROMPT_TEMPLATE",
+            "name": "greeting-1",
+            "title": "Greeting 1",
+            "description": "Show how to put codeblocks in codeblocks",
             "modelRequirements": {
-                "modelVariant": "CHAT",
-                "modelName": "gpt-3.5-turbo"
+                "modelVariant": "CHAT"
             },
-            "content": "Rewrite the function\n\n```javascript\nfunction greet() {\n  return 'Hello';\n}\n```\n\nTo return \"Goodbye\" instead.\n",
-            "resultingParameterName": "greeting"
+            "content": "Rewrite the function below:\n\n```javascript\nfunction greet() {\n  return 'Hello Anna';\n}\n```\n\nTo return \"Goodbye\" from the function instead of \"Hello\".\n",
+            "dependentParameterNames": [],
+            "resultingParameterName": "greeting1"
+        },
+        {
+            "blockType": "PROMPT_TEMPLATE",
+            "name": "greeting-2",
+            "title": "Greeting 2",
+            "description": "Show how to put codeblocks in codeblocks in different way",
+            "modelRequirements": {
+                "modelVariant": "CHAT"
+            },
+            "content": "Rewrite the function below:\n\n```javascript\nfunction greet() {\n    return 'Hello Betty';\n}\n```\n\nTo return \"Goodbye\" from the function instead of \"Hello\".",
+            "dependentParameterNames": [],
+            "resultingParameterName": "greeting2"
         }
     ],
-    "knowledge": []
+    "knowledgeSources": [],
+    "knowledgePieces": [],
+    "personas": [],
+    "preparations": [
+        {
+            "id": 1,
+            "promptbookVersion": "0.61.0-25",
+            "modelUsage": {
+                "price": {
+                    "value": 0
+                },
+                "input": {
+                    "tokensCount": {
+                        "value": 0
+                    },
+                    "charactersCount": {
+                        "value": 0
+                    },
+                    "wordsCount": {
+                        "value": 0
+                    },
+                    "sentencesCount": {
+                        "value": 0
+                    },
+                    "linesCount": {
+                        "value": 0
+                    },
+                    "paragraphsCount": {
+                        "value": 0
+                    },
+                    "pagesCount": {
+                        "value": 0
+                    }
+                },
+                "output": {
+                    "tokensCount": {
+                        "value": 0
+                    },
+                    "charactersCount": {
+                        "value": 0
+                    },
+                    "wordsCount": {
+                        "value": 0
+                    },
+                    "sentencesCount": {
+                        "value": 0
+                    },
+                    "linesCount": {
+                        "value": 0
+                    },
+                    "paragraphsCount": {
+                        "value": 0
+                    },
+                    "pagesCount": {
+                        "value": 0
+                    }
+                }
+            }
+        }
+    ]
 }

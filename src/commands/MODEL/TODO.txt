@@ -1,0 +1,2 @@
+TODO: [🧠][❔] Should there be possibility to set MODEL for entire pipeline?
+TODO: [🧠] Probbably change syntax MODEL VARIANT -> MODEL

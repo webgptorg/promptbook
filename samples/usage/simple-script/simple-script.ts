@@ -1,12 +1,12 @@
 #!/usr/bin/env ts-node
 
-import { assertsExecutionSuccessful, createPipelineExecutor, executionReportJsonToString } from '@promptbook/core';
+import { createPipelineExecutor, executionReportJsonToString, stringifyPipelineJson } from '@promptbook/core';
 import { JavascriptExecutionTools } from '@promptbook/execute-javascript';
-import { createCollectionFromDirectory } from '@promptbook/node';
-import { OpenAiExecutionTools } from '@promptbook/openai';
+import { createCollectionFromDirectory, createLlmToolsFromEnv } from '@promptbook/node';
 import colors from 'colors';
 import * as dotenv from 'dotenv';
 import { writeFile } from 'fs/promises';
+import { forTime } from 'waitasecond';
 
 if (process.cwd().split(/[\\/]/).pop() !== 'promptbook') {
     console.error(colors.red(`CWD must be root of the project`));
@@ -15,25 +15,44 @@ if (process.cwd().split(/[\\/]/).pop() !== 'promptbook') {
 
 dotenv.config({ path: '.env' });
 
-main();
+main()
+    .catch((error: Error) => {
+        console.error(colors.bgRed(error.name /* <- 11:11 */));
+        console.error(colors.red(error.stack || error.message));
+        process.exit(1);
+    })
+    .then(() => {
+        process.exit(0);
+    });
 
 async function main() {
     console.info(colors.bgWhite('⚪ Testing basic capabilities of Promptbook'));
 
     const collection = await createCollectionFromDirectory('./samples/templates/', {
+        llmTools: null,
+        isVerbose: true,
         isRecursive: false,
-        isCrashOnError: true,
+        isCrashedOnError: true,
     });
-    const pipeline = await library.getPipelineByUrl(
-        `https://promptbook.studio/samples/simple.ptbk.md`,
+
+    // TODO: Allow user to pick pipeline
+    // > const pipelineUrls = await collection.listPipelines();
+    // @see https://nodejs.org/en/learn/command-line/accept-input-from-the-command-line-in-nodejs
+
+    const pipeline = await collection.getPipelineByUrl(
+        'https://promptbook.studio/samples/simple-knowledge.ptbk.md',
+        // `https://promptbook.studio/samples/simple.ptbk.md`,
         // `https://promptbook.studio/samples/language-capabilities.ptbk.md`,
     );
 
+    if (!pipeline.sourceFile) {
+        throw new Error(`Pipeline has no sourceFile`);
+    }
+
+    await forTime(100);
+
     const tools = {
-        llm: new OpenAiExecutionTools({
-            isVerbose: true,
-            apiKey: process.env.OPENAI_API_KEY,
-        }),
+        llm: createLlmToolsFromEnv(),
         script: [
             new JavascriptExecutionTools({
                 isVerbose: true,
@@ -43,30 +62,51 @@ async function main() {
 
     const pipelineExecutor = createPipelineExecutor({ pipeline, tools });
 
-    const inputParameters = { word: 'cat' };
-    const { isSuccessful, errors, outputParameters, executionReport } = await pipelineExecutor(
+    const inputParameters = {
+        eventName: 'TypeScript developers summit 2025',
+    };
+    const { isSuccessful, errors, warnings, outputParameters, executionReport } = await pipelineExecutor(
         inputParameters,
         (progress) => {
             console.info({ progress });
         },
     );
 
-    console.info(outputParameters);
+    console.info('outputParameters', outputParameters);
 
     await writeFile(
-        // TODO: !!! Unhardcode language-capabilities
-        `./samples/templates/language-capabilities.report.json`,
-        JSON.stringify(executionReport, null, 4) + '\n',
+        pipeline.sourceFile.split('.ptbk.md').join('.report.md').split('.ptbk.json').join('.report.json'),
+        //                  <- TODO: [0] More elegant way to replace extension
+        stringifyPipelineJson(executionReport),
         'utf-8',
     );
 
     const executionReportString = executionReportJsonToString(executionReport);
     // TODO: !!! Unhardcode 50-advanced
-    await writeFile(`./samples/templates/language-capabilities.report.md`, executionReportString, 'utf-8');
+    await writeFile(
+        pipeline.sourceFile.split('.ptbk.md').join('.report.md').split('.ptbk.json').join('.report.md'),
+        //                  <- TODO: [0] More elegant way to replace extension
+        executionReportString,
+        'utf-8',
+    );
 
-    assertsExecutionSuccessful({ isSuccessful, errors });
+    for (const error of errors) {
+        console.error(colors.bgRed(error.name /* <- 11:11 */));
+        console.error(colors.red(error.stack || error.message));
+    }
 
-    process.exit(0);
+    for (const warning of warnings) {
+        console.error(colors.bgYellow(warning.name /* <- 11:11 */));
+        console.error(colors.yellow(warning.stack || warning.message));
+    }
+
+    const { bio } = outputParameters;
+
+    // TODO: [🎐] !!!!! Report here total usage
+
+    console.info(colors.green(bio));
+
+    process.exit(isSuccessful ? 0 : 1);
 }
 
 /**

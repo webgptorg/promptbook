@@ -15,8 +15,110 @@ describe('how extractOneBlockFromMarkdown works', () => {
                 `),
             ),
         ).toEqual({
+            blockNotation: '```',
             language: null,
             content: "print('Hello World')",
+        });
+    });
+
+    it('should work with sample with one code block made by gt char', () => {
+        expect(
+            extractOneBlockFromMarkdown(
+                spaceTrim(`
+                  # Hello World
+
+                  > print('Hello World')
+
+              `),
+            ),
+        ).toEqual({
+            blockNotation: '>',
+            language: null,
+            content: "print('Hello World')",
+        });
+    });
+
+    it('should work with sample with one multiline code block made by gt char', () => {
+        expect(
+            extractOneBlockFromMarkdown(
+                spaceTrim(`
+                # Hello World
+
+                > print('Hello World 1')
+                > print('Hello World 2')
+                > print('Hello World 3')
+
+            `),
+            ),
+        ).toEqual({
+            blockNotation: '>',
+            language: null,
+            content: spaceTrim(`
+                print('Hello World 1')
+                print('Hello World 2')
+                print('Hello World 3')
+           `),
+        });
+    });
+
+    it('should work with sample with block nested in block with mixed notations', () => {
+        expect(
+            extractOneBlockFromMarkdown(
+                spaceTrim(`
+                    # A
+
+                    B
+
+                    > C
+                    > D
+                    > \`\`\`E
+                    > F
+                    > \`\`\`
+                    > G
+
+                    H
+
+                `),
+            ),
+        ).toEqual({
+            blockNotation: '>',
+            language: null,
+            content: spaceTrim(`
+                C
+                D
+                \`\`\`E
+                F
+                \`\`\`
+                G
+            `),
+        });
+        expect(
+            extractOneBlockFromMarkdown(
+                spaceTrim(`
+                    # A
+
+                    B
+
+                    \`\`\`C
+                    D
+                    > E
+                    > F
+                    G
+                    \`\`\`
+
+                    H
+
+                `),
+            ),
+        ).toEqual({
+            blockNotation: '```',
+            language: 'C',
+            content: spaceTrim(`
+              D
+              > E
+              > F
+              G
+            `),
         });
     });
 
@@ -30,6 +132,7 @@ describe('how extractOneBlockFromMarkdown works', () => {
                 `),
             ),
         ).toEqual({
+            blockNotation: '```',
             language: 'python',
             content: "print('Hello World')",
         });
@@ -45,6 +148,7 @@ describe('how extractOneBlockFromMarkdown works', () => {
                 `),
             ),
         ).toEqual({
+            blockNotation: '```',
             language: 'python',
             content: "print('Hello World')",
         });
@@ -72,6 +176,7 @@ describe('how extractOneBlockFromMarkdown works', () => {
               `),
             ),
         ).toEqual({
+            blockNotation: '```',
             language: 'markdown',
             content:
                 spaceTrim(`
@@ -96,7 +201,7 @@ describe('how extractOneBlockFromMarkdown works', () => {
                     Hello World
                 `),
             ),
-        ).toThrowError(/There should be exactly one code block in the markdown/i);
+        ).toThrowError(/There should be exactly 1 code block, found 0 code blocks/i);
 
         expect(() =>
             extractOneBlockFromMarkdown(
@@ -105,7 +210,7 @@ describe('how extractOneBlockFromMarkdown works', () => {
                     Hello World
                 `),
             ),
-        ).toThrowError(/There should be exactly one code block in the markdown/i);
+        ).toThrowError(/There should be exactly 1 code block, found 0 code blocks/i);
 
         expect(() =>
             extractOneBlockFromMarkdown(
@@ -115,7 +220,7 @@ describe('how extractOneBlockFromMarkdown works', () => {
                     Content with **bold** and *italic* text
                 `),
             ),
-        ).toThrowError(/There should be exactly one code block in the markdown/i);
+        ).toThrowError(/There should be exactly 1 code block, found 0 code blocks/i);
 
         expect(() =>
             extractOneBlockFromMarkdown(
@@ -139,7 +244,7 @@ describe('how extractOneBlockFromMarkdown works', () => {
                     \`Lennon Wall\` is a wall in Prague. It is located in the center of Prague. On this wall, you can see many graffiti like %#2/*\`\`\`7#^
                 `),
             ),
-        ).toThrowError(/There should be exactly one code block in the markdown/i);
+        ).toThrowError(/There should be exactly 1 code block, found 0 code blocks/i);
     });
 
     it('should fail with sample with multiple code blocks of one line', () => {
@@ -167,6 +272,6 @@ describe('how extractOneBlockFromMarkdown works', () => {
                     \`\`\`
                 `),
             ),
-        ).toThrowError(/There should be exactly one code block in the markdown/i);
+        ).toThrowError(/There should be exactly 1 code block, found 2 code blocks/i);
     });
 });

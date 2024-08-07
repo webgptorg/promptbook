@@ -1,3 +1,5 @@
+import type { Writable } from 'type-fest';
+import { ParsingError } from '../../errors/ParsingError';
 import type { string_markdown } from '../../types/typeAliases';
 import { capitalize } from '../normalization/capitalize';
 
@@ -6,14 +8,19 @@ import { capitalize } from '../normalization/capitalize';
  */
 export type CodeBlock = {
     /**
+     * Which notation was used to open the code block
+     */
+    readonly blockNotation: '```' | '>';
+
+    /**
      * Language of the code block OR null if the language is not specified in opening ```
      */
-    language: string | null;
+    readonly language: string | null;
 
     /**
      * Content of the code block (unescaped)
      */
-    content: string;
+    readonly content: string;
 };
 
 /**
@@ -32,27 +39,49 @@ export function extractAllBlocksFromMarkdown(markdown: string_markdown): Array<C
     const codeBlocks: Array<CodeBlock> = [];
     const lines = markdown.split('\n');
 
-    let currentCodeBlock: CodeBlock | null = null;
+    // Note: [0] Ensure that the last block notated by gt > will be closed
+    lines.push('');
+
+    let currentCodeBlock: Writable<CodeBlock> | null = null;
 
     for (const line of lines) {
+        if (line.startsWith('> ') || line === '>') {
+            if (currentCodeBlock === null) {
+                currentCodeBlock = { blockNotation: '>', language: null, content: '' };
+            } /* not else */
+
+            if (currentCodeBlock.blockNotation === '>') {
+                if (currentCodeBlock.content !== '') {
+                    currentCodeBlock.content += '\n';
+                }
+
+                currentCodeBlock.content += line.slice(2);
+            }
+        } else if (currentCodeBlock !== null && currentCodeBlock.blockNotation === '>' /* <- Note: [0] */) {
+            codeBlocks.push(currentCodeBlock);
+            currentCodeBlock = null;
+        }
+
+        /* not else */
+
         if (line.startsWith('```')) {
             const language = line.slice(3).trim() || null;
 
             if (currentCodeBlock === null) {
-                currentCodeBlock = { language, content: '' };
+                currentCodeBlock = { blockNotation: '```', language, content: '' };
             } else {
                 if (language !== null) {
-                    // [🌻]
-                    throw new Error(
+                    throw new ParsingError(
                         `${capitalize(
                             currentCodeBlock.language || 'the',
                         )} code block was not closed and already opening new ${language} code block`,
+                        // <- [🚞]
                     );
                 }
                 codeBlocks.push(currentCodeBlock);
                 currentCodeBlock = null;
             }
-        } else if (currentCodeBlock !== null) {
+        } else if (currentCodeBlock !== null && currentCodeBlock.blockNotation === '```') {
             if (currentCodeBlock.content !== '') {
                 currentCodeBlock.content += '\n';
             }
@@ -62,11 +91,15 @@ export function extractAllBlocksFromMarkdown(markdown: string_markdown): Array<C
     }
 
     if (currentCodeBlock !== null) {
-        // [🌻]
-        throw new Error(
+        throw new ParsingError(
             `${capitalize(currentCodeBlock.language || 'the')} code block was not closed at the end of the markdown`,
+            // <- [🚞]
         );
     }
 
     return codeBlocks;
 }
+
+/**
+ * TODO: Maybe name for `blockNotation` instead of  '```' and '>'
+ */

@@ -3,8 +3,9 @@ import type { IDestroyable } from 'destroyable';
 import http from 'http';
 import { Server, Socket } from 'socket.io';
 import { spaceTrim } from 'spacetrim';
-import { ExecutionError } from '../../errors/ExecutionError';
+import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import type { PromptResult } from '../../execution/PromptResult';
+import type { really_any } from '../../utils/organization/really_any';
 import { PROMPTBOOK_VERSION } from '../../version';
 import type { Promptbook_Server_Error } from './interfaces/Promptbook_Server_Error';
 import type { Promptbook_Server_Request } from './interfaces/Promptbook_Server_Request';
@@ -20,7 +21,7 @@ import type { RemoteServerOptions } from './interfaces/RemoteServerOptions';
  * @see https://github.com/webgptorg/promptbook#remote-server
  */
 export function startRemoteServer(options: RemoteServerOptions): IDestroyable {
-    const { port, path, collection, createLlmExecutionTools, isVerbose } = options;
+    const { port, path, collection, createLlmExecutionTools, isVerbose = false } = options;
 
     const httpServer = http.createServer({}, (request, response) => {
         if (request.url?.includes('socket.io')) {
@@ -65,19 +66,41 @@ export function startRemoteServer(options: RemoteServerOptions): IDestroyable {
                 const executionToolsForClient = createLlmExecutionTools(clientId);
 
                 if (!(await collection.isResponsibleForPrompt(prompt))) {
-                    throw new ExecutionError(`Pipeline is not in the collection of this server`);
+                    throw new PipelineExecutionError(`Pipeline is not in the collection of this server`);
                 }
 
                 let promptResult: PromptResult;
                 switch (prompt.modelRequirements.modelVariant) {
                     case 'CHAT':
+                        if (executionToolsForClient.callChatModel === undefined) {
+                            // Note: [0] This check should not be a thing
+                            throw new PipelineExecutionError(`Chat model is not available`);
+                        }
                         promptResult = await executionToolsForClient.callChatModel(prompt);
                         break;
+
                     case 'COMPLETION':
+                        if (executionToolsForClient.callCompletionModel === undefined) {
+                            // Note: [0] This check should not be a thing
+                            throw new PipelineExecutionError(`Completion model is not available`);
+                        }
                         promptResult = await executionToolsForClient.callCompletionModel(prompt);
                         break;
+
+                    case 'EMBEDDING':
+                        if (executionToolsForClient.callEmbeddingModel === undefined) {
+                            // Note: [0] This check should not be a thing
+                            throw new PipelineExecutionError(`Embedding model is not available`);
+                        }
+                        promptResult = await executionToolsForClient.callEmbeddingModel(prompt);
+                        break;
+
+                    // <- case [🤖]:
+
                     default:
-                        throw new ExecutionError(`Unknown model variant "${prompt.modelRequirements.modelVariant}"`);
+                        throw new PipelineExecutionError(
+                            `Unknown model variant "${(prompt as really_any).modelRequirements.modelVariant}"`,
+                        );
                 }
 
                 if (isVerbose) {
@@ -132,7 +155,8 @@ export function startRemoteServer(options: RemoteServerOptions): IDestroyable {
 /**
  * TODO: [⚖] Expose the collection to be able to connect to same collection via createCollectionFromUrl
  * TODO: Handle progress - support streaming
- * TODO: [🤹‍♂️] Do not hang up immediately but wait until client closes OR timeout
- * TODO: [🤹‍♂️] Timeout on chat to free up resources
+ * TODO: [🗯] Do not hang up immediately but wait until client closes OR timeout
+ * TODO: [🗯] Timeout on chat to free up resources
  * TODO: [🃏] Pass here some security token to prevent malitious usage and/or DDoS
+ * TODO: [0] Set unavailable models as undefined in `RemoteLlmExecutionTools` NOT throw error here
  */

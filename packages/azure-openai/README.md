@@ -39,13 +39,13 @@ npm i @promptbook/azure-openai
 import { createPipelineExecutor, assertsExecutionSuccessful } from '@promptbook/core';
 import { createCollectionFromDirectory } from '@promptbook/node';
 import { JavascriptExecutionTools } from '@promptbook/execute-javascript';
-import { OpenAiExecutionTools } from '@promptbook/openai';
+import { AzureOpenAiExecutionTools } from '@promptbook/azure-openai';
 
 // ▶ Create whole pipeline collection
 const collection = await createCollectionFromDirectory('./promptbook-collection');
 
 // ▶ Get single Pipeline
-const pipeline = await library.getPipelineByUrl(`https://promptbook.studio/my-collection/write-article.ptbk.md`);
+const pipeline = await collection.getPipelineByUrl(`https://promptbook.studio/my-collection/write-article.ptbk.md`);
 
 // ▶ Prepare tools
 const tools = {
@@ -83,29 +83,35 @@ You can use multiple LLM providers in one Promptbook execution. The best model w
 import { createPipelineExecutor, assertsExecutionSuccessful } from '@promptbook/core';
 import { createCollectionFromDirectory } from '@promptbook/node';
 import { JavascriptExecutionTools } from '@promptbook/execute-javascript';
+import { AzureOpenAiExecutionTools } from '@promptbook/azure-openai';
 import { OpenAiExecutionTools } from '@promptbook/openai';
+import { AnthropicClaudeExecutionTools } from '@promptbook/anthropic-claude';
 
 // ▶ Create whole pipeline collection
 const collection = await createCollectionFromDirectory('./promptbook-collection');
 
 // ▶ Get single Pipeline
-const pipeline = await library.getPipelineByUrl(`https://promptbook.studio/my-collection/write-article.ptbk.md`);
+const pipeline = await collection.getPipelineByUrl(`https://promptbook.studio/my-collection/write-article.ptbk.md`);
 
-// ▶ Prepare tools
-const tools = new MultipleLlmExecutionTools(
-    // Note: You can use multiple LLM providers in one Promptbook execution. The best model will be chosen automatically according to the prompt and the model's capabilities.
-    new AzureOpenAiExecutionTools({
-        resourceName: process.env.AZUREOPENAI_RESOURCE_NAME,
-        deploymentName: process.env.AZUREOPENAI_DEPLOYMENT_NAME,
-        apiKey: process.env.AZUREOPENAI_API_KEY,
-    }),
-    new OpenAiExecutionTools({
-        apiKey: process.env.OPENAI_API_KEY,
-    }),
-    new AnthropicClaudeExecutionTools({
-        apiKey: process.env.ANTHROPIC_CLAUDE_API_KEY,
-    }),
-);
+// ▶ Prepare multiple tools
+const tools = {
+    llm: [
+        // Note: You can use multiple LLM providers in one Promptbook execution.
+        //       The best model will be chosen automatically according to the prompt and the model's capabilities.
+        new AzureOpenAiExecutionTools({
+            resourceName: process.env.AZUREOPENAI_RESOURCE_NAME,
+            deploymentName: process.env.AZUREOPENAI_DEPLOYMENT_NAME,
+            apiKey: process.env.AZUREOPENAI_API_KEY,
+        }),
+        new OpenAiExecutionTools({
+            apiKey: process.env.OPENAI_API_KEY,
+        }),
+        new AnthropicClaudeExecutionTools({
+            apiKey: process.env.ANTHROPIC_CLAUDE_API_KEY,
+        }),
+    ],
+    script: [new JavascriptExecutionTools()],
+};
 
 // ▶ Create executor - the function that will execute the Pipeline
 const pipelineExecutor = createPipelineExecutor({ pipeline, tools });
@@ -184,7 +190,7 @@ File `write-website-content.ptbk.md`:
 > -   PROMPTBOOK VERSION 0.0.1
 > -   INPUT  PARAM `{rawTitle}` Automatically suggested a site name or empty text
 > -   INPUT  PARAM `{rawAssigment}` Automatically generated site entry from image recognition
-> -   OUTPUT PARAM `{content}` Web content
+> -   OUTPUT PARAM `{websiteContent}` Web content
 > -   OUTPUT PARAM `{keywords}` Keywords
 >
 > ## 👤 Specifying the assigment
@@ -343,7 +349,7 @@ File `write-website-content.ptbk.md`:
 > {contentBody}
 > ```
 >
-> `-> {content}`
+> `-> {websiteContent}`
 
 
 
@@ -383,7 +389,7 @@ flowchart LR
       templateCombineTheBeginning--"{contentBeginning}"-->templateCombineTheContent
       templateWriteTheContent--"{contentBody}"-->templateCombineTheContent
 
-      templateCombineTheContent--"{content}"-->output
+      templateCombineTheContent--"{websiteContent}"-->output
       output((Output)):::output
 
       classDef input color: grey;
@@ -416,6 +422,7 @@ Or you can install them separately:
 -   **[@promptbook/core](https://www.npmjs.com/package/@promptbook/core)** - Core of the library, it contains the main logic for promptbooks
 -   **[@promptbook/node](https://www.npmjs.com/package/@promptbook/node)** - Core of the library for Node.js
 -   ⭐ **[@promptbook/utils](https://www.npmjs.com/package/@promptbook/utils)** - Utility functions used in the library but also useful for individual use in preprocessing and postprocessing LLM inputs and outputs
+-   **[@promptbook/markdown-utils](https://www.npmjs.com/package/@promptbook/markdown-utils)** - Utility functions used for processing markdown
 -   _(Not finished)_ **[@promptbook/wizzard](https://www.npmjs.com/package/@promptbook/wizzard)** - Wizard for creating+running promptbooks in single line
 -   **[@promptbook/execute-javascript](https://www.npmjs.com/package/@promptbook/execute-javascript)** - Execution tools for javascript inside promptbooks
 -   **[@promptbook/openai](https://www.npmjs.com/package/@promptbook/openai)** - Execution tools for OpenAI API, wrapper around OpenAI SDK
@@ -489,7 +496,7 @@ For example:
 }
 ```
 
-### Execution type
+### Block type
 
 Each block of promptbook can have a different execution type.
 It is specified in list of requirements for the block.
@@ -578,9 +585,8 @@ Internally it calls OpenAI, Azure, GPU, proxy, cache, logging,...
 -   _(Not implemented yet)_ `BardExecutionTools`
 -   _(Not implemented yet)_ `LamaExecutionTools`
 -   _(Not implemented yet)_ `GpuExecutionTools`
--   And a special case are `MultipleLlmExecutionTools` that combines multiple execution tools together and tries to execute the prompt on the best one.
--   Another special case are `RemoteLlmExecutionTools` that connect to a remote server and run one of the above execution tools on that server.
--   The another special case is `MockedEchoLlmExecutionTools` that is used for testing and mocking.
+-   Special case are `RemoteLlmExecutionTools` that connect to a remote server and run one of the above execution tools on that server.
+-   Another special case is `MockedEchoLlmExecutionTools` that is used for testing and mocking.
 -   The another special case is `LogLlmExecutionToolsWrapper` that is technically also an execution tools but it is more proxy wrapper around other execution tools that logs all calls to execution tools.
 
 #### Script Execution Tools
@@ -667,8 +673,6 @@ There are two types of expectations which are not strictly symmetrical:
 -   `EXPECT JSON` is both minimal and maximal expectation
 
 Look at [expectations.ptbk.md](samples/templates/45-expectations.ptbk.md) and [expect-json.ptbk.md](samples/templates/45-expect-json.ptbk.md) samples for more.
-
-
 
 ### Execution report
 

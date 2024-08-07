@@ -67,6 +67,7 @@ describe('how extractAllBlocksFromMarkdown works', () => {
             ),
         ).toEqual([
             {
+                blockNotation: '```',
                 language: 'python',
                 content: "print('Hello World')",
             },
@@ -84,6 +85,7 @@ describe('how extractAllBlocksFromMarkdown works', () => {
             ),
         ).toEqual([
             {
+                blockNotation: '```',
                 language: 'python',
                 content: "print('Hello World')",
             },
@@ -101,6 +103,7 @@ describe('how extractAllBlocksFromMarkdown works', () => {
             ),
         ).toEqual([
             {
+                blockNotation: '```',
                 language: null,
                 content: "print('Hello World')",
             },
@@ -118,8 +121,34 @@ describe('how extractAllBlocksFromMarkdown works', () => {
             ),
         ).toEqual([
             {
+                blockNotation: '```',
                 language: 'python',
                 content: "print('Hello World')",
+            },
+        ]);
+    });
+
+    it('should work with sample with one multiline code block made by gt char', () => {
+        expect(
+            extractAllBlocksFromMarkdown(
+                spaceTrim(`
+                    # Hello World
+
+                    > print('Hello World 1')
+                    > print('Hello World 2')
+                    > print('Hello World 3')
+
+                `),
+            ),
+        ).toEqual([
+            {
+                blockNotation: '>',
+                language: null,
+                content: spaceTrim(`
+                      print('Hello World 1')
+                      print('Hello World 2')
+                      print('Hello World 3')
+                `),
             },
         ]);
     });
@@ -142,6 +171,7 @@ describe('how extractAllBlocksFromMarkdown works', () => {
             ),
         ).toEqual([
             {
+                blockNotation: '```',
                 language: 'python',
                 content: spaceTrim(`
 
@@ -183,6 +213,7 @@ describe('how extractAllBlocksFromMarkdown works', () => {
             ),
         ).toEqual([
             {
+                blockNotation: '```',
                 language: 'python',
                 content: spaceTrim(`
                     print('Hello World')
@@ -190,6 +221,7 @@ describe('how extractAllBlocksFromMarkdown works', () => {
                 `),
             },
             {
+                blockNotation: '```',
                 language: 'javascript',
                 content: spaceTrim(`
                     console.info('Hello World')
@@ -197,6 +229,7 @@ describe('how extractAllBlocksFromMarkdown works', () => {
                 `),
             },
             {
+                blockNotation: '```',
                 language: null,
                 content: spaceTrim(`
                     $5/-/++'=>Hello World
@@ -233,12 +266,47 @@ describe('how extractAllBlocksFromMarkdown works', () => {
             ),
         ).toEqual([
             {
+                blockNotation: '```',
                 language: 'python',
                 content: "print('Hello World')",
             },
             {
+                blockNotation: '```',
                 language: 'javascript',
                 content: "console.info('Hello World')",
+            },
+        ]);
+    });
+
+    it('should work with sample with multiple mixed style code blocks', () => {
+        expect(
+            extractAllBlocksFromMarkdown(
+                spaceTrim(`
+                  # Hello World
+
+                  Hello World in multiple languages:
+
+                  ## Block style 1
+
+                  \`\`\`text
+                  Block notated by backticks
+                  \`\`\`
+
+                  ## Block style 2
+
+                  > Block notated by gt char
+              `),
+            ),
+        ).toEqual([
+            {
+                blockNotation: '```',
+                language: 'text',
+                content: 'Block notated by backticks',
+            },
+            {
+                blockNotation: '>',
+                language: null,
+                content: 'Block notated by gt char',
             },
         ]);
     });
@@ -259,6 +327,7 @@ describe('how extractAllBlocksFromMarkdown works', () => {
             ),
         ).toEqual([
             {
+                blockNotation: '```',
                 language: 'javascript',
                 content: "console.info('Hello 3 backtics ```')",
             },
@@ -298,6 +367,7 @@ describe('how extractAllBlocksFromMarkdown works', () => {
             ),
         ).toEqual([
             {
+                blockNotation: '```',
                 language: 'markdown',
                 content:
                     spaceTrim(`
@@ -318,6 +388,7 @@ describe('how extractAllBlocksFromMarkdown works', () => {
                     `) + '\n',
             },
             {
+                blockNotation: '```',
                 language: 'python',
                 content: "print('Hello World')",
             },
@@ -379,5 +450,179 @@ describe('how extractAllBlocksFromMarkdown works', () => {
                 `),
             ),
         ).toThrowError(/Markdown code block was not closed and already opening new markdown code block/i);
+    });
+
+    it('should not be confused by nested blocks in blocks', () => {
+        expect(
+            extractAllBlocksFromMarkdown(
+                spaceTrim(`
+
+                  This is a simple markdown with code block with escaped embeded code block as content:
+
+                  \`\`\`markdown
+                  Block
+                  \\\`\\\`\\\`markdown
+                  Block in block
+                  \\\`\\\`\\\`
+                  \`\`\`
+              `),
+            ),
+        ).toEqual([
+            {
+                blockNotation: '```',
+                language: 'markdown',
+                content: spaceTrim(`
+
+                  Block
+                  \`\`\`markdown
+                  Block in block
+                  \`\`\`
+              `),
+            },
+        ]);
+        expect(
+            extractAllBlocksFromMarkdown(
+                spaceTrim(`
+
+                    This is a simple markdown with code block with escaped embeded code block as content:
+
+                    \`\`\`markdown
+                    Block
+                    > markdown
+                    > Block in block
+                    >
+                    \`\`\`
+                `),
+            ),
+        ).toEqual([
+            {
+                blockNotation: '```',
+                language: 'markdown',
+                content: spaceTrim(`
+
+                    Block
+                    > markdown
+                    > Block in block
+                    >
+                `),
+            },
+        ]);
+        expect(
+            extractAllBlocksFromMarkdown(
+                spaceTrim(`
+
+                    This is a simple markdown with code block with escaped embeded code block as content:
+
+                    > Block
+                    > \`\`\`markdown
+                    > Block in block
+                    > \`\`\`
+                `),
+            ),
+        ).toEqual([
+            {
+                blockNotation: '>',
+                language: null,
+                content: spaceTrim(`
+                    Block
+                    \`\`\`markdown
+                    Block in block
+                    \`\`\`
+                `),
+            },
+        ]);
+    });
+
+    it('should not crash when there is just a block, nothing else', () => {
+        expect(
+            extractAllBlocksFromMarkdown(
+                spaceTrim(`
+                    \`\`\`
+                    Block
+                    \`\`\`
+                `),
+            ),
+        ).toEqual([
+            {
+                blockNotation: '```',
+                language: null,
+                content: 'Block',
+            },
+        ]);
+        expect(
+            extractAllBlocksFromMarkdown(
+                spaceTrim(`
+                    > Block
+                `),
+            ),
+        ).toEqual([
+            {
+                blockNotation: '>',
+                language: null,
+                content: 'Block',
+            },
+        ]);
+    });
+
+    it('should not be confused zig-zag blocks with different notations', () => {
+        expect(
+            extractAllBlocksFromMarkdown(
+                spaceTrim(`
+
+                    This is a simple markdown with code block with escaped embeded code block as content:
+
+                    \`\`\`markdown
+                    A
+                    > B
+                    C
+                    > D
+                    \`\`\`
+
+                    E
+
+                    > F
+
+                    G
+
+                    > H
+                    > \`\`\`i
+                    > J
+                    > K
+                    > \`\`\`
+                    > L
+
+                    M
+
+                `),
+            ),
+        ).toEqual([
+            {
+                blockNotation: '```',
+                content: spaceTrim(`
+                    A
+                    > B
+                    C
+                    > D
+                `),
+                language: 'markdown',
+            },
+            {
+                blockNotation: '>',
+                content: 'F',
+                language: null,
+            },
+            {
+                blockNotation: '>',
+                content: spaceTrim(`
+                    H
+                    \`\`\`i
+                    J
+                    K
+                    \`\`\`
+                    L
+                `),
+                language: null,
+            },
+        ]);
     });
 });

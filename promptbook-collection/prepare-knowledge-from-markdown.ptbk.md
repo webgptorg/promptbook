@@ -1,8 +1,8 @@
 # Prepare Knowledge from Markdown
 
 -   PIPELINE URL `https://promptbook.studio/promptbook/prepare-knowledge-from-markdown.ptbk.md`
--   INPUT PARAMETER `{content}` Markdown document content
--   OUTPUT PARAMETER `{knowledge}` The knowledge JSON object
+-   INPUT PARAMETER `{knowledgeContent}` Markdown document content
+-   OUTPUT PARAMETER `{knowledgePieces}` The knowledge JSON object
 
 ## Knowledge
 
@@ -26,7 +26,7 @@ You are experienced data researcher, extract the important knowledge from the do
 
 Take information from this document:
 
-> {content}
+> {knowledgeContent}
 ```
 
-`-> {knowledge}`
+`-> {knowledgePieces}`

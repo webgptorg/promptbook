@@ -35,8 +35,8 @@ const { organize: isOrganized, organizeAll: isOrganizedAll, commit: isCommited }
  */
 repairImports({ isOrganized, isOrganizedAll, isCommited })
     .catch((error: Error) => {
-        console.error(colors.bgRed(error.name));
-        console.error(error);
+        console.error(colors.bgRed(error.name /* <- 11:11 */));
+        console.error(colors.red(error.stack || error.message));
         process.exit(1);
     })
     .then(() => {
@@ -48,9 +48,9 @@ async function repairImports({
     // isOrganizedAll,
     isCommited,
 }: {
-    isOrganized: boolean;
-    isOrganizedAll: boolean;
-    isCommited: boolean;
+    readonly isOrganized: boolean;
+    readonly isOrganizedAll: boolean;
+    readonly isCommited: boolean;
 }) {
     console.info(`🏭🩹 Repair imports`);
 
@@ -136,6 +136,10 @@ async function repairImports({
     // Note: [🤛] Organizing brakes multiline imports (or does sth. which brakes the code where shouldn’t be)
     await writeAllProjectFiles(files, isOrganized);
 
+    if (isCommited) {
+        await commit('.', `🧹 Repair imports`);
+    }
+
     /*
     TODO: Fix & implement
     if (isOrganizedAll) {
@@ -167,9 +171,9 @@ async function repairImports({
             throw error;
         }
     }
-    */
 
     if (isCommited) {
         await commit('.', `🧹 Organize imports`);
     }
+    */
 }

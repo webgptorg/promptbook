@@ -68,7 +68,7 @@ export class GoogleAutomaticTranslator implements AutomaticTranslator {
             while (!translatedElement) {
 
                 if (loopLimit-- < 0) {
-                    throw new UnexpectedError('Loop limit reached during ... in `...`');
+                    throw new LimitReachedError('Loop limit reached during ... in `...`');
                 }
 
 
@@ -77,7 +77,7 @@ export class GoogleAutomaticTranslator implements AutomaticTranslator {
                 //console.log(translatedElement);
 
                 if (i++ > 100) {
-                    throw new ExecutionError('Can not find data-result-index on the page.');
+                    throw new PipelineExecutionError('Can not find data-result-index on the page.');
                 }
             }
 
@@ -93,10 +93,12 @@ export class GoogleAutomaticTranslator implements AutomaticTranslator {
             try {
                 return extractMultiplicatedOccurrence(translatedMessage);
             } catch (error) {
+                 // TODO: [🟥] Detect browser / node and make it colorfull
                 // console.error(error);
                 return translatedMessage;
             }
         } catch (error) {
+            // TODO: [🟥] Detect browser / node and make it colorfull
             console.error(error);
             return message;
         }

@@ -1,5 +1,5 @@
 import type { ScriptLanguage } from '../types/ScriptLanguage';
-import type { string_name } from '../types/typeAliases';
+import type { Parameters } from '../types/typeAliases';
 import type { string_script } from '../types/typeAliases';
 
 /**
@@ -18,14 +18,14 @@ export type ScriptExecutionToolsExecuteOptions = {
     /**
      * Language of the script
      */
-    scriptLanguage: ScriptLanguage;
+    readonly scriptLanguage: ScriptLanguage;
 
     /**
      * Parameters for the script
      * Theese parameters are passed to the script as variables
      * For example: { "name": "John" } => const name = "John";
      */
-    parameters: Record<string_name, string>;
+    readonly parameters: Parameters;
 
     /**
      * The content of the script to execute
@@ -35,9 +35,10 @@ export type ScriptExecutionToolsExecuteOptions = {
      * - It can be IIFE (immediately invoked function expression)
      * - It can use the parameters as variables and functions from global scope
      */
-    script: string_script;
+    readonly script: string_script;
 };
 
 /**
  * TODO: [🧠][💙] Distinct between options passed into ExecutionTools and to ExecutionTools.execute
+ * TODO: [🧠][🪐] Should be common things like types, utils in folder containing A,B,C,.. or else outside this listing folder?
  */

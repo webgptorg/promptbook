@@ -3,7 +3,7 @@ import type { CommonExecutionToolsOptions } from '../../execution/CommonExecutio
 import type { string_javascript_name } from '../../types/typeAliases';
 
 /**
- * Options for javascript execution
+ * Options for `JavascriptExecutionTools`
  */
 export type JavascriptExecutionToolsOptions = CommonExecutionToolsOptions & {
     /**

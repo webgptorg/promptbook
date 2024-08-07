@@ -1,9 +1,9 @@
 import { describe, expect, it } from '@jest/globals';
-import { addUsage } from './addUsage';
 import { usageToWorktime } from './usageToWorktime';
+import { ZERO_USAGE } from './addUsage';
 
 describe('how usageToWorktime works', () => {
-    it('no usage should return no time', () => expect(usageToWorktime(addUsage())).toEqual({ value: 0 }));
+    it('no usage should return no time', () => expect(usageToWorktime(ZERO_USAGE)).toEqual({ value: 0 }));
 
     it('no usage should count worktime', () =>
         expect(

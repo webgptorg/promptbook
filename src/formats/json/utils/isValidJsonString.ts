@@ -2,7 +2,7 @@
  * Function isValidJsonString will tell you if the string is valid JSON or not
  */
 
-export function isValidJsonString(value: string /* <-[👨‍⚖️] */): boolean {
+export function isValidJsonString(value: string /* <- [👨‍⚖️] */): boolean {
     try {
         JSON.parse(value);
         return true;

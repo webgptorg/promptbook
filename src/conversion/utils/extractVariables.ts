@@ -1,5 +1,5 @@
 import { spaceTrim } from 'spacetrim';
-import { SyntaxError } from '../../errors/SyntaxError';
+import { ParsingError } from '../../errors/ParsingError';
 import type { string_javascript } from '../../types/typeAliases';
 import type { string_javascript_name } from '../../types/typeAliases';
 /**
@@ -7,7 +7,7 @@ import type { string_javascript_name } from '../../types/typeAliases';
  *
  * @param script from which to extract the variables
  * @returns the list of variable names
- * @throws {SyntaxError} if the script is invalid
+ * @throws {ParsingError} if the script is invalid
  */
 export function extractVariables(script: string_javascript): Set<string_javascript_name> {
     const variables = new Set<string_javascript_name>();
@@ -24,9 +24,8 @@ export function extractVariables(script: string_javascript): Set<string_javascri
                 }
                 const undefinedName = error.message.split(' ')[0];
                 /*
-                Note: Remapping error
-                      From: [ReferenceError: thing is not defined],
-                      To:   [Error: Parameter {thing} is not defined],
+                Note: Parsing the error
+                      [ReferenceError: thing is not defined]
                 */
 
                 if (!undefinedName) {
@@ -45,13 +44,14 @@ export function extractVariables(script: string_javascript): Set<string_javascri
             throw error;
         }
 
-        throw new SyntaxError(
+        throw new ParsingError(
             spaceTrim(
                 (block) => `
                     Can not extract variables from the script
 
                     ${block((error as Error).name)}: ${block((error as Error).message)}
                 `,
+                // <- TODO: [🚞]
             ),
         );
     }

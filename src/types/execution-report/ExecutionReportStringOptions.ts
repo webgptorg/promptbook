@@ -1,17 +1,17 @@
 import type { number_percent } from '../typeAliases';
 
 /**
- * Options for generating an execution report string
+ * Options for `executionReportJsonToString`
  */
 export type ExecutionReportStringOptions = {
     /**
      * The tax rate to be applied, expressed as a percentage from 0 to 1 (=100%) or even more
      */
-    taxRate: number_percent;
+    readonly taxRate: number_percent;
     /**
      * The width of the charts in the report
      */
-    chartsWidth: number;
+    readonly chartsWidth: number;
 };
 
 /**

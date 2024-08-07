@@ -99,8 +99,5 @@ async function getPipelineExecutor() {
                 },
             }),
         },
-        settings: {
-            maxExecutionAttempts: 3,
-        },
     });
 }

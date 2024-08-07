@@ -13,7 +13,15 @@ if (process.cwd().split(/[\\/]/).pop() !== 'promptbook') {
 
 dotenv.config({ path: '.env' });
 
-main();
+main()
+    .catch((error: Error) => {
+      console.error(colors.bgRed(error.name /* <- 11:11 */));
+      console.error(colors.red(error.stack || error.message));
+        process.exit(1);
+    })
+    .then(() => {
+        process.exit(0);
+    });
 
 // TODO: [🍓] This must work - BUT first do browser sample
 

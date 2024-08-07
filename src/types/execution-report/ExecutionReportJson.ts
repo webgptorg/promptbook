@@ -2,7 +2,7 @@ import type { PromptResult } from '../../execution/PromptResult';
 import type { Prompt } from '../Prompt';
 import type { string_markdown_text } from '../typeAliases';
 import type { string_pipeline_url } from '../typeAliases';
-import type { string_version } from '../typeAliases';
+import type { string_semantic_version } from '../typeAliases';
 
 /**
  * ExecutionReport is result of executing one promptbook
@@ -15,6 +15,13 @@ import type { string_version } from '../typeAliases';
  * @see https://github.com/webgptorg/promptbook#execution-report
  */
 export type ExecutionReportJson = {
+    /*
+    TODO: [💼]
+    > readonly type: 'REPORT';
+
+    + make type test for this
+    */
+
     /**
      * Unique identifier of the pipeline from promptbook which was executed
      */
@@ -28,12 +35,12 @@ export type ExecutionReportJson = {
     /**
      * Version from promptbook which was executed
      */
-    readonly promptbookUsedVersion: string_version;
+    readonly promptbookUsedVersion: string_semantic_version;
 
     /**
      * Version from promptbook which was requested by promptbook
      */
-    readonly promptbookRequestedVersion?: string_version;
+    readonly promptbookRequestedVersion?: string_semantic_version;
 
     /**
      * Description of the promptbook which was executed
@@ -47,20 +54,20 @@ export type ExecutionReportJson = {
         /**
          * The prompt wich was executed
          */
-        prompt: Omit<Prompt, 'pipelineUrl' | 'parameters'>;
+        readonly prompt: Omit<Prompt, 'pipelineUrl'>;
 
         /**
          * Result of the prompt execution (if not failed during LLM execution)
          */
-        result?: PromptResult;
+        readonly result?: PromptResult;
 
         /**
          * The error which occured during LLM execution or during postprocessing or expectation checking
          *
          * Note: It makes sense to have both error and result defined, for example when the result not pass expectations
          */
-        error?: {
-            message: string;
+        readonly error?: {
+            readonly message: string;
         };
     }>;
 };

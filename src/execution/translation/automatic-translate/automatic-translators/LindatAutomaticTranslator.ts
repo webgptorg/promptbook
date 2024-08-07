@@ -1,7 +1,7 @@
 import FormData from 'form-data';
 import fetch from 'node-fetch'; /* <- TODO: [🌿] Use the Node native fetch */
 import { spaceTrim } from 'spacetrim';
-import { ExecutionError } from '../../../../errors/ExecutionError';
+import { PipelineExecutionError } from '../../../../errors/PipelineExecutionError';
 import type { AutomaticTranslator } from './AutomaticTranslator';
 import type { TranslatorOptions } from './TranslatorOptions';
 
@@ -32,9 +32,9 @@ export class LindatAutomaticTranslator implements AutomaticTranslator {
         } else {
             const json = await response.json();
             if (json.message) {
-                throw new ExecutionError(json.message);
+                throw new PipelineExecutionError(json.message);
             } else {
-                throw new ExecutionError(
+                throw new PipelineExecutionError(
                     spaceTrim(`
                       Lindat: Unknown error
                       From: ${this.options.from}

@@ -88,10 +88,7 @@ async function getPipelineExecutor() {
                     return 'Hello';
                 },
             }),
-        },
-        settings: {
-            maxExecutionAttempts: 3,
-        },
+        }
     });
 
     return pipelineExecutor;

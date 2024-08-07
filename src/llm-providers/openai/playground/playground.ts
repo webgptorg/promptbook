@@ -6,6 +6,8 @@ dotenv.config({ path: '.env' });
 
 import chalk from 'colors';
 import { embeddingVectorToString } from '../../../execution/embeddingVectorToString';
+import type { Prompt } from '../../../types/Prompt';
+import { keepUnused } from '../../../utils/organization/keepUnused';
 import { OpenAiExecutionTools } from '../OpenAiExecutionTools';
 
 playground()
@@ -29,53 +31,73 @@ async function playground() {
         apiKey: process.env.OPENAI_API_KEY!,
     });
 
+    keepUnused(openAiExecutionTools);
+    keepUnused(embeddingVectorToString);
+    keepUnused<Prompt>();
+
     /*/
     const models = await openAiExecutionTools.listModels();
     console.info({ models });
     /**/
 
     /*/
-    const prompt = {
+    const completionPrompt = {
+        title: 'Hello',
+        parameters: {},
         content: `Hello, my name is Alice.`,
         modelRequirements: {
             modelVariant: 'COMPLETION',
         },
-    } as const;
-    const promptResult = await openAiExecutionTools.callCompletionModel(prompt);
-    console.info({ promptResult });
-    console.info(chalk.green(prompt.content + promptResult.content));
+    } as const satisfies Prompt;
+    const completionPromptResult = await openAiExecutionTools.callCompletionModel(completionPrompt);
+    console.info({ completionPromptResult });
+    console.info(chalk.green(completionPrompt.content + completionPromptResult.content));
     /**/
 
-    /*/
-    const prompt = {
-        content: `Hello, my name is Alice.`,
+    /**/
+    const chatprompt = {
+        title: 'Poem about Prague',
+        parameters: {},
+        content: `Write me something about Prague`,
         modelRequirements: {
             modelVariant: 'CHAT',
+            systemMessage: 'You are an assistant who only speaks in rhymes.',
+            temperature: 1.5,
         },
-    } as const;
-    const promptResult = await openAiExecutionTools.callChatModel(prompt);
-    console.info({ promptResult });
-    console.info(chalk.bgBlue(' User: ') + chalk.blue(prompt.content));
-    console.info(chalk.bgGreen(' Completion: ') + chalk.green(promptResult.content));
+    } as const satisfies Prompt;
+    const chatpromptResult = await openAiExecutionTools.callChatModel(chatprompt);
+    console.info({ chatpromptResult });
+    console.info(chalk.bgBlue(' User: ') + chalk.blue(chatprompt.content));
+    console.info(chalk.bgGreen(' Completion: ') + chalk.green(chatpromptResult.content));
     /**/
 
     /*/
     // TODO: Test Translations in playground
     /**/
 
-    /**/
+    /*/
     const prompt = {
+        title: 'Hello',
+        parameters: {},
         content: `Hello, my name is Alice.`,
         modelRequirements: {
             modelVariant: 'EMBEDDING',
             // modelName: 'text-embedding-ada-002',
         },
-    } as const;
-    const promptResult = await openAiExecutionTools.embed(prompt);
+    } as const satisfies Prompt;
+    const promptResult = await openAiExecutionTools.callEmbeddingModel(prompt);
     console.info({ promptResult });
     console.info(chalk.bgBlue(' User: ') + chalk.blue(prompt.content));
     console.info(chalk.bgGreen(' Embedding: ') + chalk.green(embeddingVectorToString(promptResult.content)));
     /**/
 
+    /*/
+    // <- Note: [🤖] Test here new model variant if needed
+    /**/
+
     //========================================/
 }
+
+/**
+ * TODO: !!! Test here that `systemMessage`, `temperature` and `seed` are working correctly
+ */

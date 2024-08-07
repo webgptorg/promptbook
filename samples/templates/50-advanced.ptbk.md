@@ -4,11 +4,6 @@ Trying the language capabilities of GPT models.
 
 -   PIPELINE URL https://promptbook.studio/samples/advanced.ptbk.md
 -   PROMPTBOOK VERSION 1.0.0
-<!--
-TODO: [🧠] Do not allow model in header of promptbook OR mandatory word "MODEL MODEL Chat"
--   MODEL VARIANT Chat
--   MODEL NAME `gpt-3.5-turbo`
-    -->
 -   INPUT  PARAMETER `{word}` The word to use in the prompt.
 -   OUTPUT PARAMETER `{comparisonOfTwoSentences}` Comparison between two sentences
 -   OUTPUT PARAMETER `{summary}` The overall summary of the comparison
@@ -71,7 +66,7 @@ flowchart LR
 
 Synonym for word
 
--   MODEL VARIANT Chat
+-   PERSONA Joe, a linguist
 -   MODEL NAME `gpt-3.5-turbo`
 -   POSTPROCESSING `unwrapResult`
 -   EXPECT EXACTLY 1 WORD
@@ -100,7 +95,7 @@ return wordSynonym;
 
 Sentence with word and wordSynonym
 
--   MODEL VARIANT Chat
+-   PERSONA Jane, a linguist
 -   MODEL NAME `gpt-3.5-turbo`
 -   EXPECT MAX 20 WORDS
 -   EXPECT EXACTLY 1 SENTENCE
@@ -111,12 +106,21 @@ Write sentence with "{word}" and "{wordSynonym}" in it
 
 `-> {sentenceWithTwoSynonyms}` Sentence with word and wordSynonym
 
+### Sample of sentence with word and wordSynonym
+
+-   SAMPLE
+
+```text
+I was happy and you were joyful!
+```
+
+`-> {sentenceWithTwoSynonyms}`
+
 ## 💬 Sentence without original word
 
 Sentence "{sentenceWithTwoSynonyms}" without "{word}".
 
--   MODEL VARIANT Chat
--   MODEL NAME `gpt-3.5-turbo`
+-   PERSONA Josh, a linguist
 -   EXPECT MAX 20 WORDS
 -   EXPECT EXACTLY 1 SENTENCE
 
@@ -139,6 +143,7 @@ Remove word "{word}" from sentence and modify it so that it makes sense:
 
 Comparison between "{sentenceWithTwoSynonyms}" and "{sentenceWithOriginalWordRemoved}".
 
+-   PERSONA Alice, a linguist
 -   MODEL VARIANT Chat
 -   MODEL NAME `gpt-4o`
 -   EXPECT MIN 1 SENTENCE
@@ -166,6 +171,18 @@ Write a short comparison of the meaning of the two sentences, writing a maximum 
 You have entered a word **{word}**. For this word the best synonym is **{wordSynonym}**. The sentence with both words is **{sentenceWithTwoSynonyms}**. The sentence without the original word is **{sentenceWithOriginalWordRemoved}**. And the comparison between the two sentences is:
 
 > {comparisonOfTwoSentences}
+```
+
+`-> {summary}`
+
+### Sample of summary
+
+-   SAMPLE
+
+```markdown
+You have entered a word **happy**. For this word the best synonym is **joyful**. The sentence with both words is **I was happy and you were joyful!**. The sentence without the original word is **I was and you were joyful!**. And the comparison between the two sentences is:
+
+> The sentence with both words is more expressive than the sentence without the original word.
 ```
 
 `-> {summary}`

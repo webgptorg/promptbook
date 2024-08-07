@@ -6,7 +6,7 @@ type ForEachAsyncOptions = {
      *
      * @default Infinity
      */
-    inParallelCount?: number;
+    readonly maxParallelCount?: number;
 };
 
 /**
@@ -21,7 +21,7 @@ export async function forEachAsync<TItem>(
     options: ForEachAsyncOptions,
     callbackfunction: (value: TItem, index: number, array: Array<TItem>) => Promisable<void>,
 ) {
-    const { inParallelCount = Infinity } = options;
+    const { maxParallelCount = Infinity } = options;
     let index = 0;
 
     let runningTasks: Promisable<void>[] = [];
@@ -37,7 +37,7 @@ export async function forEachAsync<TItem>(
             runningTasks = runningTasks.filter((t) => t !== task);
         });
 
-        if (inParallelCount < runningTasks.length) {
+        if (maxParallelCount < runningTasks.length) {
             await Promise.race(runningTasks);
         }
     }

@@ -1,3 +1,4 @@
+import type { Arrayable } from '../types/Arrayable';
 import type { LlmExecutionTools } from './LlmExecutionTools';
 import type { ScriptExecutionTools } from './ScriptExecutionTools';
 import type { UserInterfaceTools } from './UserInterfaceTools';
@@ -11,10 +12,10 @@ export type ExecutionTools = {
     /**
      * Tools for executing prompts to large language models like GPT-4
      *
-     * Tip: Combine multiple LLM execution tools with `MultipleLlmExecutionTools`
+     * Tip: Combine multiple LLM execution tools - use array of LlmExecutionTools instead of single LlmExecutionTools
      * @see https://github.com/webgptorg/promptbook/?tab=readme-ov-file#llm-execution-tools
      */
-    llm: LlmExecutionTools;
+    llm?: Arrayable<LlmExecutionTools>;
 
     /**
      * Tools for executing scripts
@@ -23,7 +24,7 @@ export type ExecutionTools = {
      *       If none of them supports the script, an error is thrown
      * @see https://github.com/webgptorg/promptbook/?tab=readme-ov-file#script-execution-tools
      */
-    script: Array<ScriptExecutionTools>; // <- TODO: [🧠] Maybe not Array but Arrayable
+    script?: Arrayable<ScriptExecutionTools>; // <- TODO: [🧠] Maybe not Array but Arrayable
 
     /**
      * Tools for interacting with the user

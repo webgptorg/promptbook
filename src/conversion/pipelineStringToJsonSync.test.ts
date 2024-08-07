@@ -2,7 +2,7 @@ import { describe, expect, it } from '@jest/globals';
 import { readdirSync } from 'fs';
 import { join } from 'path';
 import { pipelineStringToJsonSync } from './pipelineStringToJsonSync';
-import { importPipeline } from './validation/_importPipeline';
+import { importPipelineWithoutPreparation } from './validation/_importPipeline';
 
 describe('pipelineStringToJsonSync', () => {
     const samplesDir = '../../samples/templates';
@@ -16,8 +16,10 @@ describe('pipelineStringToJsonSync', () => {
 
     for (const { name } of samples) {
         it(`should parse ${name}`, () =>
-            expect(pipelineStringToJsonSync(importPipeline(name as `${string}.ptbk.md`))).toEqual(
-                importPipeline(join(samplesDir, name).replace('.ptbk.md', '.ptbk.json') as `${string}.ptbk.json`),
+            expect(pipelineStringToJsonSync(importPipelineWithoutPreparation(name as `${string}.ptbk.md`))).toEqual(
+                importPipelineWithoutPreparation(
+                    join(samplesDir, name).replace('.ptbk.md', '.ptbk.json') as `${string}.ptbk.json`,
+                ),
             ));
     }
 });

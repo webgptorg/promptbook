@@ -2,8 +2,8 @@
 
 Instrukce pro úpravu obsahu webové stránky za pomocí [📖 Promptbook](https://github.com/webgptorg/promptbook).
 
--   PIPELINE URL https://webgpt.cz/promptbook/update-website-content-cs.ptbk.md
--   PROMPTBOOK VERSION `0.39.*`
+-   PIPELINE URL https://webgpt.cz/promptbook-collection/update-website-content-cs.ptbk.md
+-   PROMPTBOOK VERSION `1.0.0`
 -   INPUT  PARAM `{oldContent}` Původní obsah webu
 -   INPUT  PARAM `{suggestedAssignment}` Požadavek od uživatele na změnu
 -   OUTPUT PARAM `{newContent}` Nový obsah webu
@@ -74,7 +74,7 @@ flowchart LR
 ## 🖋 Úpravy
 
 -   MODEL VARIANT Chat
--   MODEL NAME `gpt-4-1106-preview` <!-- <- TODO: !! The best model for this? -->
+-   MODEL NAME `gpt-4-1106-preview` <!-- <- TODO: Maybe best modal is Claude, but either case, Promptbook should pick the best one -->
 -   POSTPROCESSING `spaceTrim`
 
 ```

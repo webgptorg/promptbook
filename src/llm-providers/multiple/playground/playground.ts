@@ -5,10 +5,14 @@ import * as dotenv from 'dotenv';
 dotenv.config({ path: '.env' });
 
 import chalk from 'colors';
+import { embeddingVectorToString } from '../../../execution/embeddingVectorToString';
+import { JavascriptExecutionTools } from '../../../scripting/javascript/JavascriptExecutionTools';
+import type { Prompt } from '../../../types/Prompt';
+import { keepUnused } from '../../../utils/organization/keepUnused';
 import { AnthropicClaudeExecutionTools } from '../../anthropic-claude/AnthropicClaudeExecutionTools';
 import { AzureOpenAiExecutionTools } from '../../azure-openai/AzureOpenAiExecutionTools';
 import { OpenAiExecutionTools } from '../../openai/OpenAiExecutionTools';
-import { MultipleLlmExecutionTools } from '../MultipleLlmExecutionTools';
+import { joinLlmExecutionTools } from '../joinLlmExecutionTools';
 
 playground()
     .catch((error) => {
@@ -26,57 +30,66 @@ async function playground() {
     // Do here stuff you want to test
     //========================================>
 
-    const tools = new MultipleLlmExecutionTools(
-        new OpenAiExecutionTools({
-            isVerbose: true,
-            apiKey: process.env.OPENAI_API_KEY!,
-        }),
-        new AnthropicClaudeExecutionTools({
-            isVerbose: true,
-            apiKey: process.env.ANTHROPIC_CLAUDE_API_KEY!,
-        }),
-        new AzureOpenAiExecutionTools({
-            isVerbose: true,
-            resourceName: process.env.AZUREOPENAI_RESOURCE_NAME!,
-            deploymentName: process.env.AZUREOPENAI_DEPLOYMENT_NAME!,
-            apiKey: process.env.AZUREOPENAI_API_KEY!,
-        }),
+    const tools = {
+        llm: [
+            new OpenAiExecutionTools({
+                isVerbose: true,
+                apiKey: process.env.OPENAI_API_KEY!,
+            }),
+            new AnthropicClaudeExecutionTools({
+                isVerbose: true,
+                apiKey: process.env.ANTHROPIC_CLAUDE_API_KEY!,
+            }),
+            new AzureOpenAiExecutionTools({
+                isVerbose: true,
+                resourceName: process.env.AZUREOPENAI_RESOURCE_NAME!,
+                deploymentName: process.env.AZUREOPENAI_DEPLOYMENT_NAME!,
+                apiKey: process.env.AZUREOPENAI_API_KEY!,
+            }),
+            // TODO: [🦻] Add langtail
+        ],
+        script: [new JavascriptExecutionTools()],
+    };
+    const llmTools = joinLlmExecutionTools(...tools.llm);
 
-        // TODO: [🦻] Add langtail
-    );
+    keepUnused(llmTools);
+    keepUnused(embeddingVectorToString);
+    keepUnused<Prompt>();
 
-    /**/
-    const models = await tools.listModels();
+    /*/
+    const models = await llmTools.listModels();
+    console.info(llmTools.title, llmTools.description);
     console.info({ models });
     /**/
 
     /*/
-    const prompt = {
+    const completionPrompt = {
+        title: 'Hello',
+        parameters: {},
         content: `Hello, my name is Alice.`,
         modelRequirements: {
             modelVariant: 'COMPLETION',
         },
-    } as const;
-    const promptResult = await executionTools.callCompletionModel(prompt);
-    console.info({ promptResult });
-    console.info(chalk.green(prompt.content + promptResult.content));
+    } as const satisfies Prompt;
+    const completionPromptResult = await llmTools.callCompletionModel(completionPrompt);
+    console.info({ completionPromptResult });
+    console.info(chalk.green(completionPrompt.content + completionPromptResult.content));
     /**/
 
     /*/
-    const prompt = {
-        title: 'A chat',
+    const chatPrompt = {
+        title: 'Hello',
+        parameters: {},
         content: `Hello, my name is Alice.`,
         modelRequirements: {
             // modelName: 'foo',
             modelVariant: 'CHAT',
         },
-        pipelineUrl: '',
-        parameters: {},
-    } as const;
-    const promptResult = await executionTools.callChatModel(prompt);
-    console.info({ promptResult });
-    console.info(chalk.bgBlue(' User: ') + chalk.blue(prompt.content));
-    console.info(chalk.bgGreen(' Completion: ') + chalk.green(promptResult.content));
+    } as const satisfies Prompt;
+    const chatPromptResult = await llmTools.callChatModel(chatPrompt);
+    console.info({ chatPromptResult });
+    console.info(chalk.bgBlue(' User: ') + chalk.blue(chatPrompt.content));
+    console.info(chalk.bgGreen(' Completion: ') + chalk.green(chatPromptResult.content));
     /**/
 
     /*/
@@ -84,7 +97,23 @@ async function playground() {
     /**/
 
     /*/
-    // TODO: Test Embeddings in playground
+    const prompt = {
+        title: 'Embedding Prompt',
+        parameters: {},
+        content: `Hello, my name is Alice.`,
+        modelRequirements: {
+            modelVariant: 'EMBEDDING',
+            // modelName: 'text-embedding-ada-002',
+        },
+    } as const satisfies Prompt;
+    const promptResult = await llmTools.callEmbeddingModel(prompt);
+    console.info({ promptResult });
+    console.info(chalk.bgBlue(' User: ') + chalk.blue(prompt.content));
+    console.info(chalk.bgGreen(' Embedding: ') + chalk.green(embeddingVectorToString(promptResult.content)));
+    /**/
+
+    /*/
+    // <- Note: [🤖] Test here new model variant if needed
     /**/
 
     //========================================/

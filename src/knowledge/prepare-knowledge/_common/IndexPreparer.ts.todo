@@ -1,8 +1,0 @@
-export type IndexPreparer = {
-    // TODO: [🧠] Implement or delete
-};
-
-
-/**
- * TODO: Export via some package
- */

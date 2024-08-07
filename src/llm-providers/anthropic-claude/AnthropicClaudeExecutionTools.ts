@@ -2,22 +2,24 @@ import Anthropic from '@anthropic-ai/sdk';
 import type { MessageCreateParamsNonStreaming } from '@anthropic-ai/sdk/resources';
 import colors from 'colors';
 import spaceTrim from 'spacetrim';
-import { ExecutionError } from '../../errors/ExecutionError';
+import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { AvailableModel } from '../../execution/LlmExecutionTools';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { PromptChatResult } from '../../execution/PromptResult';
-import type { PromptCompletionResult } from '../../execution/PromptResult';
-import type { PromptResultUsage } from '../../execution/PromptResult';
+import type { ChatPromptResult } from '../../execution/PromptResult';
+import type { PromptResultUsage } from '../../execution/PromptResultUsage';
 import { computeUsageCounts } from '../../execution/utils/computeUsageCounts';
 import { uncertainNumber } from '../../execution/utils/uncertainNumber';
 import type { Prompt } from '../../types/Prompt';
 import type { string_date_iso8601 } from '../../types/typeAliases';
+import type { string_markdown } from '../../types/typeAliases';
+import type { string_markdown_text } from '../../types/typeAliases';
 import type { string_model_name } from '../../types/typeAliases';
+import type { string_title } from '../../types/typeAliases';
 import { getCurrentIsoDate } from '../../utils/getCurrentIsoDate';
-import { just } from '../../utils/just';
-import type { AnthropicClaudeExecutionToolsOptions } from './AnthropicClaudeExecutionToolsOptions';
+import { replaceParameters } from '../../utils/replaceParameters';
 import { ANTHROPIC_CLAUDE_MODELS } from './anthropic-claude-models';
+import type { AnthropicClaudeExecutionToolsOptions } from './AnthropicClaudeExecutionToolsOptions';
 
 /**
  * Execution Tools for calling Anthropic Claude API.
@@ -40,29 +42,47 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools {
         this.client = new Anthropic(anthropicOptions);
     }
 
+    public get title(): string_title & string_markdown_text {
+        return 'Anthropic Claude';
+    }
+
+    public get description(): string_markdown {
+        return 'Use all models provided by Anthropic Claude';
+    }
+
     /**
      * Calls Anthropic Claude API to use a chat model.
      */
-    public async callChatModel(prompt: Pick<Prompt, 'content' | 'modelRequirements'>): Promise<PromptChatResult> {
+    public async callChatModel(
+        prompt: Pick<Prompt, 'content' | 'parameters' | 'modelRequirements'>,
+    ): Promise<ChatPromptResult> {
         if (this.options.isVerbose) {
             console.info('💬 Anthropic Claude callChatModel call');
         }
 
-        const { content, modelRequirements } = prompt;
+        const { content, parameters, modelRequirements } = prompt;
 
         // TODO: [☂] Use here more modelRequirements
         if (modelRequirements.modelVariant !== 'CHAT') {
-            throw new ExecutionError('Use callChatModel only for CHAT variant');
+            throw new PipelineExecutionError('Use callChatModel only for CHAT variant');
         }
 
+        const modelName = modelRequirements.modelName || this.getDefaultChatModel().modelName;
+
+        const rawPromptContent = replaceParameters(content, { ...parameters, modelName });
         const rawRequest: MessageCreateParamsNonStreaming = {
             model: modelRequirements.modelName || this.getDefaultChatModel().modelName,
             max_tokens: modelRequirements.maxTokens || 4096,
-            //                                            <- TODO: Make some global max cap for maxTokens
+            //                                            <- TODO: [🌾] Make some global max cap for maxTokens
+            temperature: modelRequirements.temperature,
+            system: modelRequirements.systemMessage,
+
+            // <- TODO: [🈁] Use `seed` here AND/OR use is `isDeterministic` for entire execution tools
+            // <- Note: [🧆]
             messages: [
                 {
                     role: 'user',
-                    content,
+                    content: rawPromptContent,
                 },
             ],
             // TODO: Is here some equivalent of user identification?> user: this.options.user,
@@ -79,11 +99,11 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools {
         }
 
         if (!rawResponse.content[0]) {
-            throw new ExecutionError('No content from Anthropic Claude');
+            throw new PipelineExecutionError('No content from Anthropic Claude');
         }
 
         if (rawResponse.content.length > 1) {
-            throw new ExecutionError('More than one content blocks from Anthropic Claude');
+            throw new PipelineExecutionError('More than one content blocks from Anthropic Claude');
         }
 
         const resultContent = rawResponse.content[0].text;
@@ -99,7 +119,7 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools {
                 tokensCount: uncertainNumber(rawResponse.usage.output_tokens),
                 ...computeUsageCounts(prompt.content),
             },
-        } satisfies PromptResultUsage;
+        } satisfies PromptResultUsage; /* <- TODO: [🤛] */
 
         return {
             content: resultContent,
@@ -109,42 +129,41 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools {
                 complete,
             },
             usage,
+            rawPromptContent,
+            rawRequest,
             rawResponse,
-            // <- [🤹‍♂️]
+            // <- [🗯]
         };
     }
 
-    /**
-     * Calls Anthropic Claude API to use a complete model.
-     */
+    /*
+    TODO: [👏]
     public async callCompletionModel(
-        prompt: Pick<Prompt, 'content' | 'modelRequirements'>,
+        prompt: Pick<Prompt, 'content' | 'parameters' | 'modelRequirements'>,
     ): Promise<PromptCompletionResult> {
-        just(prompt);
-        throw new Error('Anthropic complation models are not implemented to Promptbook yet [👏]');
-        /*
-        TODO: [👏]
+
         if (this.options.isVerbose) {
             console.info('🖋 Anthropic Claude callCompletionModel call');
         }
 
-        const { content, modelRequirements } = prompt;
+        const { content, parameters, modelRequirements } = prompt;
 
         // TODO: [☂] Use here more modelRequirements
         if (modelRequirements.modelVariant !== 'COMPLETION') {
-            throw new ExecutionError('Use callCompletionModel only for COMPLETION variant');
+            throw new PipelineExecutionError('Use callCompletionModel only for COMPLETION variant');
         }
 
-        const model = modelRequirements.modelName || this.getDefaultChatModel().modelName;
+        const modelName = modelRequirements.modelName || this.getDefaultChatModel().modelName;
         const modelSettings = {
-            model: rawResponse.model || model,
+            model: modelName,
             max_tokens: modelRequirements.maxTokens || 2000, // <- Note: 2000 is for lagacy reasons
-            //                                                  <- TODO: Make some global max cap for maxTokens
+            //                                                  <- TODO: [🌾] Make some global max cap for maxTokens
+            // <- TODO: Use here `systemMessage`, `temperature` and `seed`
         };
 
         const rawRequest: xxxx.Completions.CompletionCreateParamsNonStreaming = {
             ...modelSettings,
-            prompt: content,
+            prompt: rawPromptContent,
             user: this.options.user,
         };
         const start: string_date_iso8601 = getCurrentIsoDate();
@@ -159,12 +178,12 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools {
         }
 
         if (!rawResponse.choices[0]) {
-            throw new ExecutionError('No choises from Anthropic Claude');
+            throw new PipelineExecutionError('No choises from Anthropic Claude');
         }
 
         if (rawResponse.choices.length > 1) {
             // TODO: This should be maybe only warning
-            throw new ExecutionError('More than one choise from Anthropic Claude');
+            throw new PipelineExecutionError('More than one choise from Anthropic Claude');
         }
 
         const resultContent = rawResponse.choices[0].text;
@@ -183,25 +202,27 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools {
             },
             usage,
             rawResponse,
-            // <- [🤹‍♂️]
+            // <- [🗯]
         };
-        */
     }
+    */
+
+    // <- Note: [🤖] callXxxModel
 
     /**
      * Get the model that should be used as default
      */
     private getDefaultModel(defaultModelName: string_model_name): AvailableModel {
-        const model = ANTHROPIC_CLAUDE_MODELS.find(({ modelName }) => modelName === defaultModelName);
+        const model = ANTHROPIC_CLAUDE_MODELS.find(({ modelName }) => modelName.startsWith(defaultModelName));
         if (model === undefined) {
             throw new UnexpectedError(
                 spaceTrim(
                     (block) =>
                         `
-                          Cannot find model in OpenAI models with name ${defaultModelName} which should be used as default.
+                          Cannot find model in OpenAI models with name "${defaultModelName}" which should be used as default.
 
                           Available models:
-                          ${block(ANTHROPIC_CLAUDE_MODELS.map(({ modelName }) => `- ${modelName}`).join('\n'))}
+                          ${block(ANTHROPIC_CLAUDE_MODELS.map(({ modelName }) => `- "${modelName}"`).join('\n'))}
 
                       `,
                 ),
@@ -217,6 +238,8 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools {
         return this.getDefaultModel('claude-3-opus');
     }
 
+    // <- Note: [🤖] getDefaultXxxModel
+
     /**
      * List all available Anthropic Claude models that can be used
      */
@@ -226,8 +249,9 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools {
 }
 
 /**
- * TODO: !!!! [🍆] JSON mode
+ * TODO:  [🍆] JSON mode
  * TODO: [🧠] Maybe handle errors via transformAnthropicError (like transformAzureError)
  * TODO: Maybe Create some common util for callChatModel and callCompletionModel
  * TODO: Maybe make custom OpenaiError
+ * TODO: [🧠][🈁] Maybe use `isDeterministic` from options
  */

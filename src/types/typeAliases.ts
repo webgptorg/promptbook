@@ -4,6 +4,8 @@
 '--------------------------------------------------'
 */
 
+import { RESERVED_PARAMETER_NAMES } from '../config';
+
 /**
  * Semantic helper
  */
@@ -38,7 +40,7 @@ export type string_prompt = string;
 /**
  * Semantic helper
  *
- * For example `"A cat wearing a {ITEM}"`
+ * For example `"A cat wearing a {item}"`
  */
 export type string_template = string;
 
@@ -55,6 +57,13 @@ export type string_text_prompt = string_prompt;
  * For example `"How many hats does the cat wear?"`
  */
 export type string_chat_prompt = string_text_prompt;
+
+/**
+ * Semantic helper
+ *
+ * For example `"You are an AI assistant. You are here to help me with my work."`
+ */
+export type string_system_message = string_text_prompt;
 
 /**
  * Semantic helper
@@ -105,11 +114,85 @@ export type string_name = string;
 
 /**
  * Semantic helper
+ * Unique identifier of anything
+ *
+ * For example `"eventName"`
+ */
+export type string_parameter_name = string_name;
+
+/**
+ * Semantic helper
+ * Unique identifier of parameter
+ *
+ * For example `"DevConf 2024"`
+ */
+export type string_parameter_value = string;
+
+/**
+ * Parameters of the pipeline
+ *
+ * There are three types of parameters:
+ * - **INPUT PARAMETERs** are required to execute the pipeline.
+ * - **Intermediate parameters** are used internally in the pipeline.
+ * - **OUTPUT PARAMETERs** are not used internally in the pipeline, but are returned as the result of the pipeline execution.
+ *
+ * @see https://ptbk.io/parameters
+ */
+export type Parameters = Exclude<Record<string_parameter_name, string_parameter_value>, ReservedParameters>;
+
+/**
+ * Semantic helper
+ * Unique identifier of reserved parameter
+ *
+ * For example `"context"`
+ */
+export type string_reserved_parameter_name = typeof RESERVED_PARAMETER_NAMES[number];
+
+/**
+ * @@@
+ */
+export type ReservedParameters = Record<string_reserved_parameter_name, string_parameter_value>;
+
+/**
+ * Semantic helper
  * Title of anything
  *
  * For example `"Ai*nautes"`
  */
 export type string_title = string;
+
+/**
+ * Description of persona
+ *
+ * For example `"Skilled copywriter"`
+ */
+export type string_persona_description = string;
+
+/**
+ * Source of one knowledge
+ *
+ * It can be a link, a relative path to file or direct text
+ *
+ * For example `"https://pavolhejny.com/"`
+ * For example `"./pavol-hejny-cv.pdf"`
+ * For example `"Pavol Hejný has web https://pavolhejny.com/"`
+ * For example `"Pavol Hejný is web developer and creator of Promptbook and Collboard"`
+ *
+ * @@@ string_knowledge_source vs string_knowledge_source_link
+ */
+export type string_knowledge_source = string_knowledge_source_link | string_markdown;
+
+/**
+ * One link to knowledge source
+ *
+ * It can be a link or relative path
+ *
+ * For example `"https://pavolhejny.com/"`
+ * For example `"./pavol-hejny-cv.pdf"`
+ *
+ * @@@ string_knowledge_source vs string_knowledge_source_link
+ */
+export type string_knowledge_source_link = string_url | string_file_path;
 
 /**
  * Semantic helper
@@ -138,12 +221,34 @@ export type string_markdown = string;
 /**
  * Semantic helper
  *
+ * Markdown text with exactly ONE heading on first line NO less NO more
+ */
+export type string_markdown_section = string;
+
+/**
+ * Semantic helper
+ *
+ * Markdown without any headings like h1, h2
+ * BUT with formatting, lists, blockquotes, blocks, etc. is allowed
+ */
+export type string_markdown_section_content = string;
+
+/**
+ * Semantic helper
+ *
  * Markdown text without any structure like h1, h2, lists, blockquotes, blocks, etc.
- * BUT with bold, italic, etc.
+ * BUT with bold, italic, etc. is allowed
  *
  * For example `"**Hello** World!"`
  */
 export type string_markdown_text = string;
+
+/**
+ * @@@
+ */
+export type string_promptbook_documentation_url = `https://github.com/webgptorg/promptbook/discussions/${
+    | number
+    | '@@'}`;
 
 /**
  * Semantic helper
@@ -186,6 +291,15 @@ export type string_script = string;
  * For example `console.info("Hello World!")`
  */
 export type string_javascript = string;
+
+/**
+ * Semantic helper for JSON strings
+ *
+ * Note: TType is a type of the JSON object inside the string
+ *
+ * For example `{"foo": "bar"}`
+ */
+export type string_json<TType> = string & { _type: 'string_json'; scheme: TType };
 
 /**
  * Semantic helper
@@ -287,11 +401,6 @@ export type string_uriid = string_uri_part;
 
 /**
  * Semantic helper
- */
-export type string_protocol = 'http:' | 'https:';
-
-/**
- * Semantic helper
  *
  * For example `"localhost"` or `"collboard.com"`
  */
@@ -306,10 +415,36 @@ export type string_host = string;
 
 /**
  * Semantic helper
+ */
+export type string_protocol = 'http:' | 'https:';
+
+/**
+ * Semantic helper
  *
  * For example `"pavol@hejny.org"`
  */
 export type string_email = string;
+
+/**
+ * Semantic helper
+ *
+ * For example `"pavol@hejny.org, jirka@webgpt.cz"`
+ */
+export type string_emails = string;
+
+/**
+ * Branded type for UUIDs version 4
+ * This will not allow to pass some random string where should be only a valid UUID
+ *
+ * Use utils:
+ *   - `randomUuid` to generate
+ *   - `isValidUuid  to check validity
+ *
+ * For example `"5a0a153d-7be9-4018-9eda-e0e2e2b89bd9"`
+ */
+export type string_uuid = string & {
+    readonly _type: 'uuid' /* <- TODO: [🏟] What is the best shape of the additional object in branded types */;
+};
 
 /**
  * Branded type client id
@@ -330,7 +465,7 @@ export type string_sha256 = string;
  *
  * For example `"4.2.4"`
  */
-export type string_version = string;
+export type string_semantic_version = string;
 
 /**
  * Semantic helper
@@ -485,6 +620,16 @@ export type string_date_iso8601 = `${number}-${number}-${number}${string}${numbe
 export type number_usd = number;
 
 /**
+ * Semantic helper for incremental IDs
+ */
+export type number_id = number_integer & (number_positive | 0);
+
+/**
+ * Semantic helper for number of rows and columns
+ */
+export type number_linecol_number = number_integer & number_positive;
+
+/**
  * Semantic helper for number of tokens
  */
 export type number_tokens = number_integer & (number_positive | 0);
@@ -495,9 +640,24 @@ export type number_integer = number;
 
 /**
  * Semantic helper;
- * Percentage from 0 to 1 (100%)
+ * Percentage from 0 to 1 (100%) (and bellow and above)
  */
 export type number_percent = number;
+
+/**
+ * Semantic helper;
+ * Model temperature
+ */
+export type number_model_temperature = number_percent;
+
+/**
+ * Semantic helper;
+ * Seed for random generator
+ *
+ * Percentage from 0 to 1 (100%)
+ * TODO: Is seed (in OpenAI) number from 0 to 1?
+ */
+export type number_seed = number_percent;
 
 /**
  * Likeness of the wallpaper
@@ -524,7 +684,9 @@ export type number_megabytes = number_positive;
 export type number_gigabytes = number_positive;
 export type number_terabytes = number_positive;
 
-/**
+/**.
+ * TODO: !!! Change "For example" to @example
  * TODO: !! Cleanup
  * TODO: !! Change to branded types
+ * TODO: [📂] Export all this file through `@promptbook/types`
  */

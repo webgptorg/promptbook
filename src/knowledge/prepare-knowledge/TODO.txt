@@ -1,4 +1,6 @@
+TODO: [🐝] !!! Move to src/scrapers
 TODO: [🧠] Wording "index", "knowledge", "prepare"/"create"
+TODO: [🐝][🔼] !!! Export all scrapers via its package
 
 TODO: Knowledge index from .zip file
 TODO: Make packages for each index preparer and allow them to be installed and used separately
