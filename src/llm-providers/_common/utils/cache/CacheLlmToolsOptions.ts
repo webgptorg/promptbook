@@ -8,4 +8,12 @@ export type CacheLlmToolsOptions = {
      * @default MemoryStorage
      */
     storage: PromptbookStorage<CacheItem>;
+
+
+    /**
+     * @@@
+     * 
+     * @default false
+     */
+    isReloaded?: boolean;
 };

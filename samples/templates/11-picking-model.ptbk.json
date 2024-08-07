@@ -32,7 +32,9 @@
             },
             "content": "Write poem with word \"{word}\"",
             "personaName": "Jane",
-            "dependentParameterNames": ["word"],
+            "dependentParameterNames": [
+                "word"
+            ],
             "resultingParameterName": "poem"
         }
     ],
@@ -48,7 +50,9 @@
                 "systemMessage": "You are a creative and insightful poet.",
                 "temperature": 0.6
             },
-            "preparationIds": [1]
+            "preparationIds": [
+                1
+            ]
         }
     ],
     "preparations": [

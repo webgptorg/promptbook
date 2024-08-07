@@ -21,13 +21,14 @@ if (process.cwd() !== join(__dirname, '../..')) {
 const program = new commander.Command();
 
 program.option('--commit', `Auto commit`, false);
+program.option('--reload-cache', `Use LLM models even if cached `, false);
 program.option('--verbose', `Is verbose`, false);
 
 program.parse(process.argv);
 
-const { commit: isCommited, verbose: isVerbose } = program.opts();
+const { commit: isCommited, reloadCache: isCacheReloaded, verbose: isVerbose } = program.opts();
 
-makePipelineCollection({ isCommited, isVerbose })
+makePipelineCollection({ isCommited, isCacheReloaded, isVerbose })
     .catch((error) => {
         console.error(colors.bgRed(error.name || 'NamelessError'));
         console.error(error);
@@ -37,17 +38,26 @@ makePipelineCollection({ isCommited, isVerbose })
         process.exit(0);
     });
 
-async function makePipelineCollection({ isCommited, isVerbose }: { isCommited: boolean; isVerbose: boolean }) {
+async function makePipelineCollection({
+    isCommited,
+    isCacheReloaded,
+    isVerbose,
+}: {
+    isCommited: boolean;
+    isCacheReloaded: boolean;
+    isVerbose: boolean;
+}) {
     console.info(`📖 Make Promptbook library`);
 
     const promptbookSourceDir = 'promptbook-collection';
 
-    const llmTools = getLlmToolsForTestingAndScriptsAndPlayground();
+    const llmTools = getLlmToolsForTestingAndScriptsAndPlayground({ isCacheReloaded });
 
     const collection = await createCollectionFromDirectory(promptbookSourceDir, {
         llmTools,
         isVerbose,
         isRecursive: true,
+        // <- TODO: [🍖] isCacheReloaded
     });
 
     const collectionJson = await collectionToJson(collection);

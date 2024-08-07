@@ -27,12 +27,13 @@ const PROMPTBOOK_SAMPLES_DIR = join(process.cwd(), 'samples/templates');
 
 const program = new commander.Command();
 program.option('--commit', `Autocommit changes`, false);
+program.option('--reload-cache', `Use LLM models even if cached `, false);
 program.option('--verbose', `Is verbose`, false);
 
 program.parse(process.argv);
-const { commit: isCommited, verbose: isVerbose } = program.opts();
+const { commit: isCommited, reloadCache: isCacheReloaded, verbose: isVerbose } = program.opts();
 
-generateSampleJsons({ isCommited, isVerbose })
+generateSampleJsons({ isCommited, isCacheReloaded, isVerbose })
     .catch((error) => {
         console.error(colors.bgRed(error.name /* <- 11:11 */));
         console.error(colors.red(error.stack || error.message));
@@ -42,14 +43,22 @@ generateSampleJsons({ isCommited, isVerbose })
         process.exit(0);
     });
 
-async function generateSampleJsons({ isCommited, isVerbose }: { isCommited: boolean; isVerbose: boolean }) {
+async function generateSampleJsons({
+    isCommited,
+    isCacheReloaded,
+    isVerbose,
+}: {
+    isCommited: boolean;
+    isCacheReloaded: boolean;
+    isVerbose: boolean;
+}) {
     console.info(`🏭📖  Convert samples .ptbk.md -> .ptbk.json`);
 
     if (isCommited && !(await isWorkingTreeClean(process.cwd()))) {
         throw new Error(`Working tree is not clean`);
     }
 
-    const llmTools = getLlmToolsForTestingAndScriptsAndPlayground({ isVerbose });
+    const llmTools = getLlmToolsForTestingAndScriptsAndPlayground({ isCacheReloaded, isVerbose });
     //                 <- Note: for example here we don`t want the [🌯]
 
     for (const pipelineMarkdownFilePath of await glob(

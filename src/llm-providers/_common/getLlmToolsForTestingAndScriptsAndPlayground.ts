@@ -11,13 +11,22 @@ import { countTotalUsage } from './utils/count-total-usage/countTotalUsage';
 import { limitTotalUsage } from './utils/count-total-usage/limitTotalUsage';
 import type { LlmExecutionToolsWithTotalUsage } from './utils/count-total-usage/LlmExecutionToolsWithTotalUsage';
 
+type GetLlmToolsForTestingAndScriptsAndPlaygroundOptions = CreateLlmToolsFromEnvOptions & {
+    /**
+     * @@@
+     *
+     * @default false
+     */
+    isCacheReloaded?: boolean;
+};
+
 /**
  * Returns LLM tools for testing purposes
  *
  * @private within the repository - JUST FOR TESTS, SCRIPTS AND PLAYGROUND
  */
 export function getLlmToolsForTestingAndScriptsAndPlayground(
-    options?: CreateLlmToolsFromEnvOptions,
+    options?: GetLlmToolsForTestingAndScriptsAndPlaygroundOptions,
 ): LlmExecutionToolsWithTotalUsage {
     if (!isRunningInNode()) {
         throw new EnvironmentMismatchError(
@@ -25,7 +34,9 @@ export function getLlmToolsForTestingAndScriptsAndPlayground(
         );
     }
 
-    const llmTools: LlmExecutionTools = createLlmToolsFromEnv(options);
+    const { isCacheReloaded = false, ...restOptions } = options ?? {};
+
+    const llmTools: LlmExecutionTools = createLlmToolsFromEnv(restOptions);
     const llmToolsWithUsage = DEBUG_ALLOW_PAYED_TESTING
         ? countTotalUsage(llmTools)
         : //    <- Note: for example here we don`t want the [🌯]
@@ -34,6 +45,7 @@ export function getLlmToolsForTestingAndScriptsAndPlayground(
 
     return cacheLlmTools(llmToolsWithUsage, {
         storage: new FilesStorage({ cacheFolderPath: join(process.cwd(), EXECUTIONS_CACHE_DIRNAME) }),
+        isReloaded: isCacheReloaded,
     });
 }
 

@@ -8,17 +8,28 @@ import { cacheLlmTools } from './utils/cache/cacheLlmTools';
 import { countTotalUsage } from './utils/count-total-usage/countTotalUsage';
 import type { LlmExecutionToolsWithTotalUsage } from './utils/count-total-usage/LlmExecutionToolsWithTotalUsage';
 
+type GetLlmToolsForCliOptions = {
+    /**
+     * @@@
+     *
+     * @default false
+     */
+    isCacheReloaded?: boolean;
+};
+
 /**
  * Returns LLM tools for CLI
  *
  * @private within the repository - for CLI utils
  */
-export function getLlmToolsForCli(): LlmExecutionToolsWithTotalUsage {
+export function getLlmToolsForCli(options?: GetLlmToolsForCliOptions): LlmExecutionToolsWithTotalUsage {
     if (!isRunningInNode()) {
         throw new EnvironmentMismatchError(
             'Function `getLlmToolsForTestingAndScriptsAndPlayground` works only in Node.js environment',
         );
     }
+
+    const { isCacheReloaded = false } = options ?? {};
 
     return cacheLlmTools(
         countTotalUsage(
@@ -27,6 +38,7 @@ export function getLlmToolsForCli(): LlmExecutionToolsWithTotalUsage {
         ),
         {
             storage: new FilesStorage({ cacheFolderPath: join(process.cwd(), EXECUTIONS_CACHE_DIRNAME) }),
+            isReloaded: isCacheReloaded,
         },
     );
 }

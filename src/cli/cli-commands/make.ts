@@ -18,16 +18,16 @@ import type { string_file_extension } from '../../types/typeAliases';
  * @private part of `promptbookCli`
  */
 export function initializeMakeCommand(program: Program) {
-    const helloCommand = program.command('make');
-    helloCommand.description(
+    const makeCommand = program.command('make');
+    makeCommand.description(
         spaceTrim(`
             Makes a new pipeline collection in given folder
       `),
     );
 
-    helloCommand.argument('<path>', 'Path to promptbook directory');
-    helloCommand.option('--project-name', `Name of the project for whom collection is`, 'Project');
-    helloCommand.option(
+    makeCommand.argument('<path>', 'Path to promptbook directory');
+    makeCommand.option('--project-name', `Name of the project for whom collection is`, 'Project');
+    makeCommand.option(
         '-f, --format <format>',
         spaceTrim(`
             Output format of builded collection "javascript", "typescript" or "json"
@@ -36,15 +36,16 @@ export function initializeMakeCommand(program: Program) {
         `),
         'javascript' /* <- Note: [🏳‍🌈] */,
     );
-    helloCommand.option('--no-validation', `Do not validate logic of pipelines in collection`, true);
-    helloCommand.option(
+    makeCommand.option('--no-validation', `Do not validate logic of pipelines in collection`, true);
+    makeCommand.option(
         '--validation',
         `Types of validations separated by comma (options "logic","imports")`,
         'logic,imports',
     );
 
-    helloCommand.option('--verbose', `Is verbose`, false);
-    helloCommand.option(
+    makeCommand.option('--reload-cache', `Use LLM models even if cached `, false);
+    makeCommand.option('--verbose', `Is verbose`, false);
+    makeCommand.option(
         '-o, --out-file <path>',
         spaceTrim(`
             Where to save the builded collection
@@ -56,7 +57,8 @@ export function initializeMakeCommand(program: Program) {
         PIPELINE_COLLECTION_BASE_FILENAME,
     );
 
-    helloCommand.action(async (path, { projectName, format, validation, verbose, outFile }) => {
+    makeCommand.action(async (path, { projectName, format, validation, reloadCache, verbose, outFile }) => {
+        const isCacheReloaded = reloadCache;
         const isVerbose = verbose;
 
         const formats = ((format as string | false) || '')
@@ -73,12 +75,15 @@ export function initializeMakeCommand(program: Program) {
             process.exit(1);
         }
 
-        const llmTools = getLlmToolsForCli();
+        const llmTools = getLlmToolsForCli({
+            isCacheReloaded,
+        });
 
         const collection = await createCollectionFromDirectory(path, {
             llmTools,
             isVerbose,
             isRecursive: true,
+            // <- TODO: [🍖] isCacheReloaded
         });
 
         for (const validation of validations) {

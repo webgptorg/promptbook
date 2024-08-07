@@ -4,11 +4,12 @@ import type { Promisable } from 'type-fest';
 import { MAX_FILENAME_LENGTH } from '../../../../config';
 import { titleToName } from '../../../../conversion/utils/titleToName';
 import { PipelineExecutionError } from '../../../../errors/PipelineExecutionError';
-import type { AvailableModel } from '../../../../execution/LlmExecutionTools';
-import type { LlmExecutionTools } from '../../../../execution/LlmExecutionTools';
-import type { ChatPromptResult } from '../../../../execution/PromptResult';
-import type { CompletionPromptResult } from '../../../../execution/PromptResult';
-import type { EmbeddingPromptResult } from '../../../../execution/PromptResult';
+import type { AvailableModel, LlmExecutionTools } from '../../../../execution/LlmExecutionTools';
+import type {
+    ChatPromptResult,
+    CompletionPromptResult,
+    EmbeddingPromptResult,
+} from '../../../../execution/PromptResult';
 import { MemoryStorage } from '../../../../storage/memory/MemoryStorage';
 import type { Prompt } from '../../../../types/Prompt';
 import { $currentDate } from '../../../../utils/currentDate';
@@ -29,7 +30,7 @@ export function cacheLlmTools<TLlmTools extends LlmExecutionTools>(
     llmTools: TLlmTools,
     options: Partial<CacheLlmToolsOptions> = {},
 ): TLlmTools {
-    const { storage = new MemoryStorage() } = options;
+    const { storage = new MemoryStorage(), isReloaded = false } = options;
 
     const proxyTools: TLlmTools = {
         ...llmTools,
@@ -58,7 +59,7 @@ export function cacheLlmTools<TLlmTools extends LlmExecutionTools>(
                 sha256(hexEncoder.parse(JSON.stringify(prompt.parameters))).toString(/* hex */),
         );
 
-        const cacheItem = await storage.getItem(key);
+        const cacheItem = !isReloaded ? await storage.getItem(key) : null;
 
         if (cacheItem) {
             return cacheItem.promptResult as ChatPromptResult;

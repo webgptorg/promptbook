@@ -1,3 +1,4 @@
+import { stringifyPipelineJson } from '../../_packages/core.index';
 import type { PromptbookStorage } from '../_common/PromptbookStorage';
 
 /**
@@ -22,7 +23,7 @@ export function makePromptbookStorageFromWebStorage<TValue>(webStorage: Storage)
         },
 
         setItem(key: string, value: TValue): void {
-            const stringValue = JSON.stringify(value);
+            const stringValue = stringifyPipelineJson(value);
             webStorage.setItem(key, stringValue);
         },
 

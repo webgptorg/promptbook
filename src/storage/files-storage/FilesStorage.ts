@@ -2,6 +2,7 @@ import hexEncoder from 'crypto-js/enc-hex';
 import sha256 from 'crypto-js/sha256';
 import { mkdir, readFile, stat, unlink, writeFile } from 'fs/promises';
 import { dirname, join } from 'path';
+import { stringifyPipelineJson } from '../../_packages/core.index';
 import { MAX_FILENAME_LENGTH } from '../../config';
 import { titleToName } from '../../conversion/utils/titleToName';
 import { EnvironmentMismatchError } from '../../errors/EnvironmentMismatchError';
@@ -63,7 +64,7 @@ export class FilesStorage<TItem> implements PromptbookStorage<TItem> {
     public async setItem(key: string, value: TItem): Promise<void> {
         const filename = this.getFilenameForKey(key);
 
-        const fileContent = JSON.stringify(value, null, 4);
+        const fileContent = stringifyPipelineJson(value);
 
         await mkdir(dirname(filename), { recursive: true }); // <- [0]
         await writeFile(filename, fileContent, 'utf-8');

@@ -36,7 +36,9 @@
             },
             "content": "Write synonym for \"{word}\"",
             "personaName": "Joe",
-            "dependentParameterNames": ["word"],
+            "dependentParameterNames": [
+                "word"
+            ],
             "resultingParameterName": "wordSynonym"
         },
         {
@@ -49,7 +51,10 @@
             },
             "content": "Write sentence with \"{word}\" and \"{wordSynonym}\" in it",
             "personaName": "Joe",
-            "dependentParameterNames": ["word", "wordSynonym"],
+            "dependentParameterNames": [
+                "word",
+                "wordSynonym"
+            ],
             "resultingParameterName": "sentenceWithTwoSynonyms"
         }
     ],
@@ -65,7 +70,9 @@
                 "systemMessage": "You are an experienced AI engineer and a helpful assistant.",
                 "temperature": 0.5
             },
-            "preparationIds": [1]
+            "preparationIds": [
+                1
+            ]
         }
     ],
     "preparations": [

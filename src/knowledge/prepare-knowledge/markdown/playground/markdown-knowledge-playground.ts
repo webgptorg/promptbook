@@ -8,8 +8,8 @@ import colors from 'colors';
 import { readFile, writeFile } from 'fs/promises';
 import { join } from 'path';
 import { stringifyPipelineJson } from '../../../../conversion/utils/stringifyPipelineJson';
-import { getLlmToolsForTestingAndScriptsAndPlayground } from '../../../../llm-providers/_common/getLlmToolsForTestingAndScriptsAndPlayground';
 import { usageToHuman } from '../../../../execution/utils/usageToHuman';
+import { getLlmToolsForTestingAndScriptsAndPlayground } from '../../../../llm-providers/_common/getLlmToolsForTestingAndScriptsAndPlayground';
 import { prepareKnowledgeFromMarkdown } from '../prepareKnowledgeFromMarkdown';
 
 const isVerbose = true;
@@ -38,7 +38,7 @@ async function playground() {
         'utf-8',
     );
 
-    const llmTools = getLlmToolsForTestingAndScriptsAndPlayground();
+    const llmTools = getLlmToolsForTestingAndScriptsAndPlayground({ isCacheReloaded: true });
 
     const knowledge = await prepareKnowledgeFromMarkdown(content, {
         llmTools,

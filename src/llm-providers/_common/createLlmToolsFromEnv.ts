@@ -13,6 +13,9 @@ export type CreateLlmToolsFromEnvOptions = {
      * @default false
      */
     isVerbose?: boolean;
+
+
+
 };
 
 /**
