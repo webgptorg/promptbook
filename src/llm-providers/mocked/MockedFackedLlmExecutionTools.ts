@@ -1,4 +1,5 @@
 import type { CommonExecutionToolsOptions } from '../../execution/CommonExecutionToolsOptions';
+import { EmbeddingVector } from '../../execution/EmbeddingVector';
 import type { AvailableModel, LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import type { ChatPromptResult, CompletionPromptResult, EmbeddingPromptResult } from '../../execution/PromptResult';
 import { ZERO_USAGE } from '../../execution/utils/addUsage';
@@ -85,7 +86,9 @@ export class MockedFackedLlmExecutionTools implements LlmExecutionTools {
     ): Promise<EmbeddingPromptResult> {
         const modelName = 'mocked-facked';
         const rawPromptContent = replaceParameters(prompt.content, { ...prompt.parameters, modelName });
-        const content = new Array(1024).fill(0).map(() => Math.random() * 2 - 1) satisfies EmbeddingVector;
+        const content = new Array(1024)
+            .fill(0)
+            .map(() => Math.random() * 2 - 1) satisfies EmbeddingVector; /* <- TODO: [🤛] */
 
         const usage = ZERO_USAGE;
         //      <- TODO: [🧠] Compute here at least words, characters,... etc

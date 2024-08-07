@@ -9,7 +9,7 @@ import { readFile, writeFile } from 'fs/promises';
 import { join } from 'path';
 import { stringifyPipelineJson } from '../../../../conversion/utils/stringifyPipelineJson';
 import { getLlmToolsForTestingAndScriptsAndPlayground } from '../../../../llm-providers/_common/getLlmToolsForTestingAndScriptsAndPlayground';
-import { usageToHuman } from '../../_packages/core.index';
+import { usageToHuman } from '../../../../execution/utils/usageToHuman';
 import { prepareKnowledgeFromMarkdown } from '../prepareKnowledgeFromMarkdown';
 
 const isVerbose = true;
