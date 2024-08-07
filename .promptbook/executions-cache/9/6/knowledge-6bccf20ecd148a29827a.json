@@ -1,26 +1,31 @@
 {
-    "date": "2024-08-07T15:26:13.457Z",
-    "promptbookVersion": "0.62.0-0",
+    "date": "2024-08-05T07:20:29.451Z",
+    "promptbookVersion": "0.61.0-24",
     "prompt": {
         "title": "Knowledge",
-        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.ptbk.md#knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-title.ptbk.md#knowledge",
         "parameters": {
             "knowledgePieceContent": "---\nPavol is a developer passionate about using new tools and technologies, specializing in creating fully functional user applications using the latest artificial intelligence models."
         },
-        "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> {knowledgePieceContent}",
+        "content": "You are experienced content creator, write best title for the document.\n\n# Rules\n\n-   Write just title, nothing else\n-   Title should be concise and clear\n-   Write maximum 5 words for the title\n\n# The document\n\n> {knowledgePieceContent}",
         "modelRequirements": {
             "modelVariant": "CHAT",
             "modelName": "claude-3-opus-20240229"
         },
-        "expectations": {},
+        "expectations": {
+            "words": {
+                "min": 1,
+                "max": 8
+            }
+        },
         "postprocessing": []
     },
     "promptResult": {
-        "content": "Pavol, developer, passionate, new tools, technologies, specializing, creating, fully functional, user applications, latest, artificial intelligence models",
+        "content": "AI Developer Embraces Latest Technologies",
         "modelName": "claude-3-opus-20240229",
         "timing": {
-            "start": "2024-08-07T15:26:08.937Z",
-            "complete": "2024-08-07T15:26:13.457Z"
+            "start": "2024-08-05T07:20:27.917Z",
+            "complete": "2024-08-05T07:20:29.451Z"
         },
         "usage": {
             "price": {
@@ -29,13 +34,14 @@
             },
             "input": {
                 "tokensCount": {
-                    "value": 78
+                    "value": 0,
+                    "isUncertain": true
                 },
                 "charactersCount": {
-                    "value": 217
+                    "value": 237
                 },
                 "wordsCount": {
-                    "value": 27
+                    "value": 33
                 },
                 "sentencesCount": {
                     "value": 2
@@ -44,7 +50,7 @@
                     "value": 11
                 },
                 "paragraphsCount": {
-                    "value": 6
+                    "value": 5
                 },
                 "pagesCount": {
                     "value": 1
@@ -52,13 +58,14 @@
             },
             "output": {
                 "tokensCount": {
-                    "value": 32
+                    "value": 0,
+                    "isUncertain": true
                 },
                 "charactersCount": {
-                    "value": 217
+                    "value": 237
                 },
                 "wordsCount": {
-                    "value": 27
+                    "value": 33
                 },
                 "sentencesCount": {
                     "value": 2
@@ -67,40 +74,29 @@
                     "value": 11
                 },
                 "paragraphsCount": {
-                    "value": 6
+                    "value": 5
                 },
                 "pagesCount": {
                     "value": 1
                 }
             }
         },
-        "rawPromptContent": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> ---\n> Pavol is a developer passionate about using new tools and technologies, specializing in creating fully functional user applications using the latest artificial intelligence models.",
-        "rawRequest": {
-            "model": "claude-3-opus-20240229",
-            "max_tokens": 4096,
-            "messages": [
-                {
-                    "role": "user",
-                    "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> ---\n> Pavol is a developer passionate about using new tools and technologies, specializing in creating fully functional user applications using the latest artificial intelligence models."
-                }
-            ]
-        },
         "rawResponse": {
-            "id": "msg_01NtXCLsjmdWToxM2BXLYrch",
+            "id": "msg_01SyizRmkLBoSqBbvLuWRzu1",
             "type": "message",
             "role": "assistant",
             "model": "claude-3-opus-20240229",
             "content": [
                 {
                     "type": "text",
-                    "text": "Pavol, developer, passionate, new tools, technologies, specializing, creating, fully functional, user applications, latest, artificial intelligence models"
+                    "text": "AI Developer Embraces Latest Technologies"
                 }
             ],
             "stop_reason": "end_turn",
             "stop_sequence": null,
             "usage": {
-                "input_tokens": 78,
-                "output_tokens": 32
+                "input_tokens": 92,
+                "output_tokens": 10
             }
         }
     }

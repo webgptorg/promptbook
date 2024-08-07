@@ -1,6 +1,6 @@
 {
-    "date": "2024-08-07T14:40:15.055Z",
-    "promptbookVersion": "0.62.0-0",
+    "date": "2024-08-05T07:20:30.982Z",
+    "promptbookVersion": "0.61.0-24",
     "prompt": {
         "title": "Knowledge",
         "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-title.ptbk.md#knowledge",
@@ -21,11 +21,11 @@
         "postprocessing": []
     },
     "promptResult": {
-        "content": "Pavol: Scientist, Mentor, Open Source Advocate",
+        "content": "Pavol: Scientist, Mentor, Open Source Enthusiast",
         "modelName": "claude-3-opus-20240229",
         "timing": {
-            "start": "2024-08-07T14:40:13.363Z",
-            "complete": "2024-08-07T14:40:15.055Z"
+            "start": "2024-08-05T07:20:27.899Z",
+            "complete": "2024-08-05T07:20:30.982Z"
         },
         "usage": {
             "price": {
@@ -81,26 +81,15 @@
                 }
             }
         },
-        "rawPromptContent": "You are experienced content creator, write best title for the document.\n\n# Rules\n\n-   Write just title, nothing else\n-   Title should be concise and clear\n-   Write maximum 5 words for the title\n\n# The document\n\n> Pavol has worked on many scientific projects for the Czech Ornithological Society, regularly gives lectures at conferences, sits on juries, and acts as a mentor in many Czech and international competitions. He has a special heart for open source and shares many of his projects on GitHub.",
-        "rawRequest": {
-            "model": "claude-3-opus-20240229",
-            "max_tokens": 4096,
-            "messages": [
-                {
-                    "role": "user",
-                    "content": "You are experienced content creator, write best title for the document.\n\n# Rules\n\n-   Write just title, nothing else\n-   Title should be concise and clear\n-   Write maximum 5 words for the title\n\n# The document\n\n> Pavol has worked on many scientific projects for the Czech Ornithological Society, regularly gives lectures at conferences, sits on juries, and acts as a mentor in many Czech and international competitions. He has a special heart for open source and shares many of his projects on GitHub."
-                }
-            ]
-        },
         "rawResponse": {
-            "id": "msg_01JAiUjDsM3wg6rji3W5cVAL",
+            "id": "msg_018TRP2V7c62j9rh4eX4bbgu",
             "type": "message",
             "role": "assistant",
             "model": "claude-3-opus-20240229",
             "content": [
                 {
                     "type": "text",
-                    "text": "Pavol: Scientist, Mentor, Open Source Advocate"
+                    "text": "Pavol: Scientist, Mentor, Open Source Enthusiast"
                 }
             ],
             "stop_reason": "end_turn",

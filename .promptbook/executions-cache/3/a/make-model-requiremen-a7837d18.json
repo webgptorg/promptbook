@@ -1,6 +1,6 @@
 {
-    "date": "2024-08-07T15:56:54.391Z",
-    "promptbookVersion": "0.62.0-0",
+    "date": "2024-07-31T08:28:15.810Z",
+    "promptbookVersion": "0.61.0-10",
     "prompt": {
         "title": "Make modelRequirements",
         "pipelineUrl": "https://promptbook.studio/promptbook/prepare-persona.ptbk.md#make-model-requirements",
@@ -8,61 +8,63 @@
             "availableModelNames": "gpt-3.5-turbo-16k,gpt-4,gpt-4-32k,gpt-4-turbo-2024-04-09,gpt-3.5-turbo-1106,gpt-4-turbo,gpt-3.5-turbo,gpt-3.5-turbo-0301,gpt-4-1106-preview,gpt-4-0125-preview,gpt-3.5-turbo-0125,gpt-4-turbo-preview,gpt-3.5-turbo-0613,gpt-4o-2024-05-13,gpt-4o,gpt-3.5-turbo-16k-0613,claude-3-opus-20240229,claude-3-sonnet-20240229,\tclaude-3-haiku-20240307,claude-2.1,claude-2.0,claude-instant-1.2",
             "personaDescription": "Skilled Copywriter with 5 years of experience in the field.\n\n- Experience with SEO and SEM\n- Experience with social media\n- Experience with email marketing"
         },
-        "content": "You are experienced AI engineer, you need to create virtual assistant.\nWrite\n\n## Sample\n\n```json\n{\n\"modelName\": \"gpt-4o\",\n\"systemMessage\": \"You are experienced AI engineer and helpfull assistant.\",\n\"temperature\": 0.7\n}\n```\n\n## Instructions\n\n### Option `modelName`\n\nPick from the following models:\n\n-   {availableModelNames}\n\n### Option `systemMessage`\n\nThe system message is used to communicate instructions or provide context to the model at the beginning of a conversation. It is displayed in a different format compared to user messages, helping the model understand its role in the conversation. The system message typically guides the model's behavior, sets the tone, or specifies desired output from the model. By utilizing the system message effectively, users can steer the model towards generating more accurate and relevant responses.\n\nFor example:\n\n> You are an experienced AI engineer and helpful assistant.\n\n> You are a friendly and knowledgeable chatbot.\n\n### Option `temperature`\n\nThe sampling temperature, between 0 and 1. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic. If set to 0, the model will use log probability to automatically increase the temperature until certain thresholds are hit.\n\nYou can pick a value between 0 and 2. For example:\n\n-   `0.1`: Low temperature, extremely conservative and deterministic\n-   `0.5`: Medium temperature, balanced between conservative and creative\n-   `1.0`: High temperature, creative and bit random\n-   `1.5`: Very high temperature, extremely creative and often chaotic and unpredictable\n-   `2.0`: Maximum temperature, completely random and unpredictable, for some extreme creative use cases\n\n# The assistant\n\nTake this description of the persona:\n\n> {personaDescription}",
+        "content": "You are experienced AI engineer, you need to create virtual assistant.\nWrite\n\n## Sample\n\n```json\n{\n\"modelName\": \"gpt-4o\",\n\"systemMessage\": \"You are experienced AI engineer and helpfull assistant.\",\n\"temperature\": 0.7\n}\n```\n\n## Instructions\n\n### Option `modelName`\n\nPick from the following models:\n\n-   gpt-3.5-turbo-16k,gpt-4,gpt-4-32k,gpt-4-turbo-2024-04-09,gpt-3.5-turbo-1106,gpt-4-turbo,gpt-3.5-turbo,gpt-3.5-turbo-0301,gpt-4-1106-preview,gpt-4-0125-preview,gpt-3.5-turbo-0125,gpt-4-turbo-preview,gpt-3.5-turbo-0613,gpt-4o-2024-05-13,gpt-4o,gpt-3.5-turbo-16k-0613,claude-3-opus-20240229,claude-3-sonnet-20240229,\tclaude-3-haiku-20240307,claude-2.1,claude-2.0,claude-instant-1.2\n\n### Option `systemMessage`\n\nThe system message is used to communicate instructions or provide context to the model at the beginning of a conversation. It is displayed in a different format compared to user messages, helping the model understand its role in the conversation. The system message typically guides the model's behavior, sets the tone, or specifies desired output from the model. By utilizing the system message effectively, users can steer the model towards generating more accurate and relevant responses.\n\nFor example:\n\n> You are an experienced AI engineer and helpful assistant.\n\n> You are a friendly and knowledgeable chatbot.\n\n### Option `temperature`\n\nThe sampling temperature, between 0 and 1. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic. If set to 0, the model will use log probability to automatically increase the temperature until certain thresholds are hit.\n\nYou can pick a value between 0 and 2. For example:\n\n-   `0.1`: Low temperature, extremely conservative and deterministic\n-   `0.5`: Medium temperature, balanced between conservative and creative\n-   `1.0`: High temperature, creative and bit random\n-   `1.5`: Very high temperature, extremely creative and often chaotic and unpredictable\n-   `2.0`: Maximum temperature, completely random and unpredictable, for some extreme creative use cases\n\n# The assistant\n\nTake this description of the persona:\n\n> Skilled Copywriter with 5 years of experience in the field.\n> \n> - Experience with SEO and SEM\n> - Experience with social media\n> - Experience with email marketing",
         "modelRequirements": {
             "modelVariant": "CHAT",
             "modelName": "gpt-4-turbo"
         },
-        "expectations": {},
         "expectFormat": "JSON",
         "postprocessing": []
     },
     "promptResult": {
-        "content": "{\n  \"modelName\": \"gpt-4o\",\n  \"systemMessage\": \"You are a skilled copywriter with 5 years of experience in SEO, SEM, social media, and email marketing. Provide clear, concise, and informed responses to inquiries related to these areas.\",\n  \"temperature\": 0.5\n}",
+        "content": "{\n\"modelName\": \"gpt-4-turbo\",\n\"systemMessage\": \"You are an experienced AI engineer and a helpful assistant.\",\n\"temperature\": 0.6\n}",
         "modelName": "gpt-4-turbo-2024-04-09",
         "timing": {
-            "start": "2024-08-07T15:56:45.722Z",
-            "complete": "2024-08-07T15:56:54.391Z"
+            "start": "2024-07-31T08:28:13.511Z",
+            "complete": "2024-07-31T08:28:15.809Z"
         },
         "usage": {
             "price": {
-                "value": 0.00834
+                "value": 0,
+                "isUncertain": true
             },
             "input": {
                 "tokensCount": {
-                    "value": 633
+                    "value": 0,
+                    "isUncertain": true
                 },
                 "charactersCount": {
-                    "value": 1815
+                    "value": 2315
                 },
                 "wordsCount": {
-                    "value": 259
+                    "value": 370
                 },
                 "sentencesCount": {
-                    "value": 21
+                    "value": 32
                 },
                 "linesCount": {
-                    "value": 48
+                    "value": 52
                 },
                 "paragraphsCount": {
                     "value": 19
                 },
                 "pagesCount": {
-                    "value": 5
+                    "value": 7
                 }
             },
             "output": {
                 "tokensCount": {
-                    "value": 67
+                    "value": 0,
+                    "isUncertain": true
                 },
                 "charactersCount": {
-                    "value": 259
+                    "value": 130
                 },
                 "wordsCount": {
-                    "value": 37
+                    "value": 18
                 },
                 "sentencesCount": {
-                    "value": 4
+                    "value": 3
                 },
                 "linesCount": {
                     "value": 5
@@ -75,31 +77,17 @@
                 }
             }
         },
-        "rawPromptContent": "You are experienced AI engineer, you need to create virtual assistant.\nWrite\n\n## Sample\n\n```json\n{\n\"modelName\": \"gpt-4o\",\n\"systemMessage\": \"You are experienced AI engineer and helpfull assistant.\",\n\"temperature\": 0.7\n}\n```\n\n## Instructions\n\n### Option `modelName`\n\nPick from the following models:\n\n-   gpt-3.5-turbo-16k,gpt-4,gpt-4-32k,gpt-4-turbo-2024-04-09,gpt-3.5-turbo-1106,gpt-4-turbo,gpt-3.5-turbo,gpt-3.5-turbo-0301,gpt-4-1106-preview,gpt-4-0125-preview,gpt-3.5-turbo-0125,gpt-4-turbo-preview,gpt-3.5-turbo-0613,gpt-4o-2024-05-13,gpt-4o,gpt-3.5-turbo-16k-0613,claude-3-opus-20240229,claude-3-sonnet-20240229,\tclaude-3-haiku-20240307,claude-2.1,claude-2.0,claude-instant-1.2\n\n### Option `systemMessage`\n\nThe system message is used to communicate instructions or provide context to the model at the beginning of a conversation. It is displayed in a different format compared to user messages, helping the model understand its role in the conversation. The system message typically guides the model's behavior, sets the tone, or specifies desired output from the model. By utilizing the system message effectively, users can steer the model towards generating more accurate and relevant responses.\n\nFor example:\n\n> You are an experienced AI engineer and helpful assistant.\n\n> You are a friendly and knowledgeable chatbot.\n\n### Option `temperature`\n\nThe sampling temperature, between 0 and 1. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic. If set to 0, the model will use log probability to automatically increase the temperature until certain thresholds are hit.\n\nYou can pick a value between 0 and 2. For example:\n\n-   `0.1`: Low temperature, extremely conservative and deterministic\n-   `0.5`: Medium temperature, balanced between conservative and creative\n-   `1.0`: High temperature, creative and bit random\n-   `1.5`: Very high temperature, extremely creative and often chaotic and unpredictable\n-   `2.0`: Maximum temperature, completely random and unpredictable, for some extreme creative use cases\n\n# The assistant\n\nTake this description of the persona:\n\n> Skilled Copywriter with 5 years of experience in the field.\n> \n> - Experience with SEO and SEM\n> - Experience with social media\n> - Experience with email marketing",
-        "rawRequest": {
-            "model": "gpt-4-turbo",
-            "response_format": {
-                "type": "json_object"
-            },
-            "messages": [
-                {
-                    "role": "user",
-                    "content": "You are experienced AI engineer, you need to create virtual assistant.\nWrite\n\n## Sample\n\n```json\n{\n\"modelName\": \"gpt-4o\",\n\"systemMessage\": \"You are experienced AI engineer and helpfull assistant.\",\n\"temperature\": 0.7\n}\n```\n\n## Instructions\n\n### Option `modelName`\n\nPick from the following models:\n\n-   gpt-3.5-turbo-16k,gpt-4,gpt-4-32k,gpt-4-turbo-2024-04-09,gpt-3.5-turbo-1106,gpt-4-turbo,gpt-3.5-turbo,gpt-3.5-turbo-0301,gpt-4-1106-preview,gpt-4-0125-preview,gpt-3.5-turbo-0125,gpt-4-turbo-preview,gpt-3.5-turbo-0613,gpt-4o-2024-05-13,gpt-4o,gpt-3.5-turbo-16k-0613,claude-3-opus-20240229,claude-3-sonnet-20240229,\tclaude-3-haiku-20240307,claude-2.1,claude-2.0,claude-instant-1.2\n\n### Option `systemMessage`\n\nThe system message is used to communicate instructions or provide context to the model at the beginning of a conversation. It is displayed in a different format compared to user messages, helping the model understand its role in the conversation. The system message typically guides the model's behavior, sets the tone, or specifies desired output from the model. By utilizing the system message effectively, users can steer the model towards generating more accurate and relevant responses.\n\nFor example:\n\n> You are an experienced AI engineer and helpful assistant.\n\n> You are a friendly and knowledgeable chatbot.\n\n### Option `temperature`\n\nThe sampling temperature, between 0 and 1. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic. If set to 0, the model will use log probability to automatically increase the temperature until certain thresholds are hit.\n\nYou can pick a value between 0 and 2. For example:\n\n-   `0.1`: Low temperature, extremely conservative and deterministic\n-   `0.5`: Medium temperature, balanced between conservative and creative\n-   `1.0`: High temperature, creative and bit random\n-   `1.5`: Very high temperature, extremely creative and often chaotic and unpredictable\n-   `2.0`: Maximum temperature, completely random and unpredictable, for some extreme creative use cases\n\n# The assistant\n\nTake this description of the persona:\n\n> Skilled Copywriter with 5 years of experience in the field.\n> \n> - Experience with SEO and SEM\n> - Experience with social media\n> - Experience with email marketing"
-                }
-            ]
-        },
         "rawResponse": {
-            "id": "chatcmpl-9tdJoNDUxrUZlHXCNopwf5FVujY0D",
+            "id": "chatcmpl-9qyyrzyqLirfekAAh8cO1gLO41hJM",
             "object": "chat.completion",
-            "created": 1723046208,
+            "created": 1722414493,
             "model": "gpt-4-turbo-2024-04-09",
             "choices": [
                 {
                     "index": 0,
                     "message": {
                         "role": "assistant",
-                        "content": "{\n  \"modelName\": \"gpt-4o\",\n  \"systemMessage\": \"You are a skilled copywriter with 5 years of experience in SEO, SEM, social media, and email marketing. Provide clear, concise, and informed responses to inquiries related to these areas.\",\n  \"temperature\": 0.5\n}",
-                        "refusal": null
+                        "content": "{\n\"modelName\": \"gpt-4-turbo\",\n\"systemMessage\": \"You are an experienced AI engineer and a helpful assistant.\",\n\"temperature\": 0.6\n}"
                     },
                     "logprobs": null,
                     "finish_reason": "stop"
@@ -107,10 +95,10 @@
             ],
             "usage": {
                 "prompt_tokens": 633,
-                "completion_tokens": 67,
-                "total_tokens": 700
+                "completion_tokens": 38,
+                "total_tokens": 671
             },
-            "system_fingerprint": "fp_c77e07d4ef"
+            "system_fingerprint": "fp_0993c4a4c0"
         }
     }
 }

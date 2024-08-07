@@ -1,0 +1,103 @@
+{
+    "date": "2024-08-05T07:20:16.846Z",
+    "promptbookVersion": "0.61.0-24",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-title.ptbk.md#knowledge",
+        "parameters": {
+            "knowledgePieceContent": "Pavol has worked on many scientific projects for the Czech Ornithological Society, gives lectures at conferences, sits on juries, and acts as a mentor in Czech and international competitions. He has a special heart for this and loves open source, with many of his projects available on GitHub."
+        },
+        "content": "You are experienced content creator, write best title for the document.\n\n# Rules\n\n-   Write just title, nothing else\n-   Title should be concise and clear\n-   Write maximum 5 words for the title\n\n# The document\n\n> {knowledgePieceContent}",
+        "modelRequirements": {
+            "modelVariant": "CHAT",
+            "modelName": "claude-3-opus-20240229"
+        },
+        "expectations": {
+            "words": {
+                "min": 1,
+                "max": 8
+            }
+        },
+        "postprocessing": []
+    },
+    "promptResult": {
+        "content": "Pavol: Scientist, Mentor, Open-Source Enthusiast",
+        "modelName": "claude-3-opus-20240229",
+        "timing": {
+            "start": "2024-08-05T07:20:14.837Z",
+            "complete": "2024-08-05T07:20:16.846Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0,
+                "isUncertain": true
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 0,
+                    "isUncertain": true
+                },
+                "charactersCount": {
+                    "value": 237
+                },
+                "wordsCount": {
+                    "value": 33
+                },
+                "sentencesCount": {
+                    "value": 2
+                },
+                "linesCount": {
+                    "value": 11
+                },
+                "paragraphsCount": {
+                    "value": 5
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 0,
+                    "isUncertain": true
+                },
+                "charactersCount": {
+                    "value": 237
+                },
+                "wordsCount": {
+                    "value": 33
+                },
+                "sentencesCount": {
+                    "value": 2
+                },
+                "linesCount": {
+                    "value": 11
+                },
+                "paragraphsCount": {
+                    "value": 5
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawResponse": {
+            "id": "msg_01Ws3x5B2ausSpnX2k3Kchdy",
+            "type": "message",
+            "role": "assistant",
+            "model": "claude-3-opus-20240229",
+            "content": [
+                {
+                    "type": "text",
+                    "text": "Pavol: Scientist, Mentor, Open-Source Enthusiast"
+                }
+            ],
+            "stop_reason": "end_turn",
+            "stop_sequence": null,
+            "usage": {
+                "input_tokens": 120,
+                "output_tokens": 19
+            }
+        }
+    }
+}

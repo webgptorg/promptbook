@@ -1,6 +1,6 @@
 {
-    "date": "2024-08-07T14:40:02.497Z",
-    "promptbookVersion": "0.62.0-0",
+    "date": "2024-08-05T07:20:17.770Z",
+    "promptbookVersion": "0.61.0-24",
     "prompt": {
         "title": "Embedding for Pioneering Czech Virtual Learning Platforms",
         "parameters": {},
@@ -3086,8 +3086,8 @@
         ],
         "modelName": "text-embedding-3-large",
         "timing": {
-            "start": "2024-08-07T14:40:01.580Z",
-            "complete": "2024-08-07T14:40:02.497Z"
+            "start": "2024-08-05T07:20:16.757Z",
+            "complete": "2024-08-05T07:20:17.765Z"
         },
         "usage": {
             "price": {
@@ -3142,11 +3142,6 @@
                     "value": 0
                 }
             }
-        },
-        "rawPromptContent": "Before the emergence of generative AI, Pavol created the first Czech virtual whiteboard, Collboard, and electronic textbooks, H-edu, which were used by tens of thousands of children.",
-        "rawRequest": {
-            "input": "Before the emergence of generative AI, Pavol created the first Czech virtual whiteboard, Collboard, and electronic textbooks, H-edu, which were used by tens of thousands of children.",
-            "model": "text-embedding-3-large"
         },
         "rawResponse": {
             "object": "list",

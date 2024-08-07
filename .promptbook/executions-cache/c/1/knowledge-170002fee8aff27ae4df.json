@@ -1,0 +1,103 @@
+{
+    "date": "2024-08-02T13:54:09.047Z",
+    "promptbookVersion": "0.61.0-13",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-title.ptbk.md#knowledge",
+        "parameters": {
+            "content": "Pavol has worked on numerous scientific projects for the Czech Ornithological Society, regularly gives lectures at conferences, sits on juries, and serves as a mentor in many Czech and international competitions."
+        },
+        "content": "You are experienced content creator, write best title for the document.\n\n# Rules\n\n-   Write just title, nothing else\n-   Title should be concise and clear\n-   Write maximum 5 words for the title\n\n# The document\n\n> Pavol has worked on numerous scientific projects for the Czech Ornithological Society, regularly gives lectures at conferences, sits on juries, and serves as a mentor in many Czech and international competitions.",
+        "modelRequirements": {
+            "modelVariant": "CHAT",
+            "modelName": "claude-3-opus-20240229"
+        },
+        "expectations": {
+            "words": {
+                "min": 1,
+                "max": 8
+            }
+        },
+        "postprocessing": []
+    },
+    "promptResult": {
+        "content": "Pavol: Scientist, Lecturer, Mentor, Leader",
+        "modelName": "claude-3-opus-20240229",
+        "timing": {
+            "start": "2024-08-02T13:54:07.478Z",
+            "complete": "2024-08-02T13:54:09.047Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0,
+                "isUncertain": true
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 0,
+                    "isUncertain": true
+                },
+                "charactersCount": {
+                    "value": 426
+                },
+                "wordsCount": {
+                    "value": 63
+                },
+                "sentencesCount": {
+                    "value": 2
+                },
+                "linesCount": {
+                    "value": 11
+                },
+                "paragraphsCount": {
+                    "value": 5
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 0,
+                    "isUncertain": true
+                },
+                "charactersCount": {
+                    "value": 426
+                },
+                "wordsCount": {
+                    "value": 63
+                },
+                "sentencesCount": {
+                    "value": 2
+                },
+                "linesCount": {
+                    "value": 11
+                },
+                "paragraphsCount": {
+                    "value": 5
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawResponse": {
+            "id": "msg_017E6WjFbVyfQDRUQEAjVj1S",
+            "type": "message",
+            "role": "assistant",
+            "model": "claude-3-opus-20240229",
+            "content": [
+                {
+                    "type": "text",
+                    "text": "Pavol: Scientist, Lecturer, Mentor, Leader"
+                }
+            ],
+            "stop_reason": "end_turn",
+            "stop_sequence": null,
+            "usage": {
+                "input_tokens": 101,
+                "output_tokens": 16
+            }
+        }
+    }
+}
