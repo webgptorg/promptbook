@@ -9,6 +9,7 @@ import { extractVariables } from './extractVariables';
  * @param promptTemplate the template with used parameters
  * @returns the set of parameter names
  * @throws {ParsingError} if the script is invalid
+ * @public exported from `@promptbook/utils`
  */
 export function extractParameterNamesFromPromptTemplate(
     promptTemplate: Pick<

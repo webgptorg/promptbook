@@ -1,0 +1,6 @@
+TODO: Should there be ability to specify version wildcard?
+    - 1.0.*
+    - ~1.0.0
+    - ^1.0.0
+    - 1.0.x 
+    OR not (current situation)

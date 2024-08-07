@@ -1,4 +1,4 @@
-TODO: !!!! Test personas with weird non-latin names
+TODO: [Ж] Test personas with weird non-latin names
 TODO: [🧠] Figure out less simmilar word for "single", "simple" and "sample"
 TODO: [🧠] Do not allow model in header of promptbook
 TODO: [🧠] Do not allow invalid model command like "MODEL MODEL Chat"

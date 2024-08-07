@@ -3,6 +3,7 @@
  *
  * @example 'helloWorld'
  * @example 'iLovePromptbook'
+ * @public exported from `@promptbook/utils`
  */
 export type string_camelCase = string;
 
@@ -11,6 +12,17 @@ export type string_camelCase = string;
  */
 type char_type = 'LOWERCASE' | 'UPPERCASE' | 'NUMBER' | 'OTHER';
 
+
+/**
+ * @@@
+ * 
+ * @param text @@@
+ * @param _isFirstLetterCapital @@@
+ * @returns @@@
+ * @example 'helloWorld'
+ * @example 'iLovePromptbook'
+ * @public exported from `@promptbook/utils`
+ */
 export function normalizeTo_camelCase(text: string, _isFirstLetterCapital = false): string_camelCase {
     let charType: char_type;
     let lastCharType: char_type | null = null;

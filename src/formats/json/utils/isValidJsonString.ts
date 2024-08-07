@@ -1,7 +1,8 @@
 /**
  * Function isValidJsonString will tell you if the string is valid JSON or not
+ * 
+ * @public exported from `@promptbook/utils`
  */
-
 export function isValidJsonString(value: string /* <- [👨‍⚖️] */): boolean {
     try {
         JSON.parse(value);

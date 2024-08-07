@@ -9,6 +9,8 @@ import type { really_unknown } from '../../organization/really_unknown';
  * Note: There are two simmilar functions:
  * - `isValidUrl` which tests any URL
  * - `isValidPipelineUrl` *(this one)* which tests just promptbook URL
+ * 
+ * @public exported from `@promptbook/utils`
  */
 export function isValidUrl(url: really_unknown): url is string_url {
     if (typeof url !== 'string') {

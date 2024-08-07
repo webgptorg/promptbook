@@ -32,6 +32,7 @@ interface UnwrapResultOptions {
  *
  * @param text optionally quoted text
  * @returns text without quotes
+ * @public exported from `@promptbook/utils`
  */
 export function unwrapResult(text: string, options?: UnwrapResultOptions): string {
     const { isTrimmed = true, isIntroduceSentenceRemoved = true } = options || {};

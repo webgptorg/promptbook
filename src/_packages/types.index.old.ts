@@ -216,5 +216,6 @@ export type {
 };
 
 /**
+ * TODO: !!!!!! Auto export all non-private types
  * TODO: Delete type aliases (from ../types/typeAliases) that are not exported here
  */

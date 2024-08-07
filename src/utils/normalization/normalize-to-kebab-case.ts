@@ -5,6 +5,7 @@ import { removeDiacritics } from './removeDiacritics';
  *
  * @example 'hello-world'
  * @example 'i-love-promptbook'
+ * @public exported from `@promptbook/utils`
  */
 export type string_kebab_case = string;
 
@@ -13,6 +14,15 @@ export type string_kebab_case = string;
  */
 type char_type = 'LOWERCASE' | 'UPPERCASE' | 'NUMBER' | 'SLASH' | 'OTHER';
 
+/**
+ * @@@
+ *
+ * @param text @@@
+ * @returns @@@
+ * @example 'hello-world'
+ * @example 'i-love-promptbook'
+ * @public exported from `@promptbook/utils`
+ */
 export function normalizeToKebabCase(text: string): string_kebab_case {
     text = removeDiacritics(text);
 

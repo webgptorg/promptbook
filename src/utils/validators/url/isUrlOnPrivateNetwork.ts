@@ -10,6 +10,7 @@ import { isHostnameOnPrivateNetwork } from './isHostnameOnPrivateNetwork';
  *
  * @param {string} ipAddress - The IP address to check.
  * @returns {boolean} Returns true if the IP address is reserved for private networks or localhost, otherwise false.
+ * @public exported from `@promptbook/utils`
  */
 export function isUrlOnPrivateNetwork(url: URL | string_url): boolean {
     if (typeof url === 'string') {

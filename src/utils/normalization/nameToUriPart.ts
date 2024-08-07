@@ -1,5 +1,13 @@
 import { removeDiacritics } from './removeDiacritics';
 
+/**
+ * @@@
+ * 
+ * @param name @@@
+ * @returns @@@
+ * @example @@@
+ * @public exported from `@promptbook/utils`
+ */
 export function nameToUriPart(name: string): string {
     let uriPart = name;
 
