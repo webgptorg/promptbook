@@ -47,8 +47,8 @@
             "modelRequirements": {
                 "modelVariant": "CHAT",
                 "modelName": "gpt-4o",
-                "systemMessage": "You are a creative and insightful poet.",
-                "temperature": 0.6
+                "systemMessage": "You are a virtual assistant with the skills of a seasoned poet.",
+                "temperature": 0.5
             },
             "preparationIds": [
                 1
@@ -61,12 +61,11 @@
             "promptbookVersion": "0.62.0-0",
             "usage": {
                 "price": {
-                    "value": 0
+                    "value": 0.00721
                 },
                 "input": {
                     "tokensCount": {
-                        "value": 0,
-                        "isUncertain": true
+                        "value": 598
                     },
                     "charactersCount": {
                         "value": 1815
@@ -89,14 +88,13 @@
                 },
                 "output": {
                     "tokensCount": {
-                        "value": 0,
-                        "isUncertain": true
+                        "value": 41
                     },
                     "charactersCount": {
-                        "value": 111
+                        "value": 135
                     },
                     "wordsCount": {
-                        "value": 14
+                        "value": 19
                     },
                     "sentencesCount": {
                         "value": 3

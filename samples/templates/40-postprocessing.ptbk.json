@@ -9,7 +9,10 @@
             "description": "Any single word",
             "isInput": true,
             "isOutput": false,
-            "sampleValues": ["Happy", "Apple"]
+            "sampleValues": [
+                "Happy",
+                "Apple"
+            ]
         },
         {
             "name": "sentence",
@@ -25,7 +28,10 @@
             "name": "wordSynonym",
             "isInput": false,
             "isOutput": false,
-            "sampleValues": ["Joyful", "Fruit"]
+            "sampleValues": [
+                "Joyful",
+                "Fruit"
+            ]
         }
     ],
     "promptTemplates": [
@@ -38,8 +44,12 @@
                 "modelVariant": "CHAT"
             },
             "content": "Write synonym for \"{word}\"",
-            "postprocessingFunctionNames": ["unwrapResult"],
-            "dependentParameterNames": ["word"],
+            "postprocessingFunctionNames": [
+                "unwrapResult"
+            ],
+            "dependentParameterNames": [
+                "word"
+            ],
             "resultingParameterName": "wordSynonym"
         },
         {
@@ -51,8 +61,14 @@
                 "modelVariant": "CHAT"
             },
             "content": "Write sentence with \"{word}\" and \"{wordSynonym}\" in it",
-            "postprocessingFunctionNames": ["unwrapResult", "spaceTrim"],
-            "dependentParameterNames": ["word", "wordSynonym"],
+            "postprocessingFunctionNames": [
+                "unwrapResult",
+                "spaceTrim"
+            ],
+            "dependentParameterNames": [
+                "word",
+                "wordSynonym"
+            ],
             "resultingParameterName": "sentence"
         }
     ],

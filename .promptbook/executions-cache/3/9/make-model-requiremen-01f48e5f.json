@@ -1,5 +1,5 @@
 {
-    "date": "2024-08-07T14:39:40.472Z",
+    "date": "2024-08-07T15:26:23.475Z",
     "promptbookVersion": "0.62.0-0",
     "prompt": {
         "title": "Make modelRequirements",
@@ -18,21 +18,19 @@
         "postprocessing": []
     },
     "promptResult": {
-        "content": "{\n\"modelName\": \"gpt-4\",\n\"systemMessage\": \"You are an HR professional with experience in writing bios and providing assistance.\",\n\"temperature\": 0.5\n}",
+        "content": "{\n  \"modelName\": \"gpt-4-turbo\",\n  \"systemMessage\": \"You are an experienced AI engineer and a helpful assistant with a background in HR, specially skilled in writing professional bios.\",\n  \"temperature\": 0.6\n}",
         "modelName": "gpt-4-turbo-2024-04-09",
         "timing": {
-            "start": "2024-08-07T14:39:37.943Z",
-            "complete": "2024-08-07T14:39:40.471Z"
+            "start": "2024-08-07T15:26:19.307Z",
+            "complete": "2024-08-07T15:26:23.475Z"
         },
         "usage": {
             "price": {
-                "value": 0,
-                "isUncertain": true
+                "value": 0.0076300000000000005
             },
             "input": {
                 "tokensCount": {
-                    "value": 0,
-                    "isUncertain": true
+                    "value": 604
                 },
                 "charactersCount": {
                     "value": 1815
@@ -55,14 +53,13 @@
             },
             "output": {
                 "tokensCount": {
-                    "value": 0,
-                    "isUncertain": true
+                    "value": 53
                 },
                 "charactersCount": {
-                    "value": 149
+                    "value": 208
                 },
                 "wordsCount": {
-                    "value": 20
+                    "value": 29
                 },
                 "sentencesCount": {
                     "value": 3
@@ -92,16 +89,16 @@
             ]
         },
         "rawResponse": {
-            "id": "chatcmpl-9tc77u3tYflN8QQm0FjPQxzfz2MgR",
+            "id": "chatcmpl-9tcqIaJxBPoDKI6LXhfQ2GHBTbdzP",
             "object": "chat.completion",
-            "created": 1723041577,
+            "created": 1723044378,
             "model": "gpt-4-turbo-2024-04-09",
             "choices": [
                 {
                     "index": 0,
                     "message": {
                         "role": "assistant",
-                        "content": "{\n\"modelName\": \"gpt-4\",\n\"systemMessage\": \"You are an HR professional with experience in writing bios and providing assistance.\",\n\"temperature\": 0.5\n}",
+                        "content": "{\n  \"modelName\": \"gpt-4-turbo\",\n  \"systemMessage\": \"You are an experienced AI engineer and a helpful assistant with a background in HR, specially skilled in writing professional bios.\",\n  \"temperature\": 0.6\n}",
                         "refusal": null
                     },
                     "logprobs": null,
@@ -110,8 +107,8 @@
             ],
             "usage": {
                 "prompt_tokens": 604,
-                "completion_tokens": 38,
-                "total_tokens": 642
+                "completion_tokens": 53,
+                "total_tokens": 657
             },
             "system_fingerprint": "fp_c77e07d4ef"
         }

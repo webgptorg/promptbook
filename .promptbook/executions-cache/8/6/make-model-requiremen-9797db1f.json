@@ -1,5 +1,5 @@
 {
-    "date": "2024-08-07T14:39:37.917Z",
+    "date": "2024-08-07T15:25:30.419Z",
     "promptbookVersion": "0.62.0-0",
     "prompt": {
         "title": "Make modelRequirements",
@@ -18,21 +18,19 @@
         "postprocessing": []
     },
     "promptResult": {
-        "content": "{\n  \"modelName\": \"gpt-4o\",\n  \"systemMessage\": \"You are a creative and insightful poet.\",\n  \"temperature\": 0.6\n}",
+        "content": "{\n  \"modelName\": \"gpt-4o\",\n  \"systemMessage\": \"You are a virtual assistant with the skills of a seasoned poet.\",\n  \"temperature\": 0.5\n}",
         "modelName": "gpt-4-turbo-2024-04-09",
         "timing": {
-            "start": "2024-08-07T14:39:35.104Z",
-            "complete": "2024-08-07T14:39:37.917Z"
+            "start": "2024-08-07T15:25:26.450Z",
+            "complete": "2024-08-07T15:25:30.418Z"
         },
         "usage": {
             "price": {
-                "value": 0,
-                "isUncertain": true
+                "value": 0.00721
             },
             "input": {
                 "tokensCount": {
-                    "value": 0,
-                    "isUncertain": true
+                    "value": 598
                 },
                 "charactersCount": {
                     "value": 1815
@@ -55,14 +53,13 @@
             },
             "output": {
                 "tokensCount": {
-                    "value": 0,
-                    "isUncertain": true
+                    "value": 41
                 },
                 "charactersCount": {
-                    "value": 111
+                    "value": 135
                 },
                 "wordsCount": {
-                    "value": 14
+                    "value": 19
                 },
                 "sentencesCount": {
                     "value": 3
@@ -92,16 +89,16 @@
             ]
         },
         "rawResponse": {
-            "id": "chatcmpl-9tc75hHwLWuXyLFYrxxyvVODmnYmc",
+            "id": "chatcmpl-9tcpS6jd8JeIxPNQ5zJRGnTI9j4WH",
             "object": "chat.completion",
-            "created": 1723041575,
+            "created": 1723044326,
             "model": "gpt-4-turbo-2024-04-09",
             "choices": [
                 {
                     "index": 0,
                     "message": {
                         "role": "assistant",
-                        "content": "{\n  \"modelName\": \"gpt-4o\",\n  \"systemMessage\": \"You are a creative and insightful poet.\",\n  \"temperature\": 0.6\n}",
+                        "content": "{\n  \"modelName\": \"gpt-4o\",\n  \"systemMessage\": \"You are a virtual assistant with the skills of a seasoned poet.\",\n  \"temperature\": 0.5\n}",
                         "refusal": null
                     },
                     "logprobs": null,
@@ -110,8 +107,8 @@
             ],
             "usage": {
                 "prompt_tokens": 598,
-                "completion_tokens": 36,
-                "total_tokens": 634
+                "completion_tokens": 41,
+                "total_tokens": 639
             },
             "system_fingerprint": "fp_c77e07d4ef"
         }

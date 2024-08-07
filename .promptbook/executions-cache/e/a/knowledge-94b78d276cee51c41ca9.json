@@ -1,11 +1,11 @@
 {
-    "date": "2024-08-07T15:26:36.438Z",
+    "date": "2024-08-07T15:25:48.187Z",
     "promptbookVersion": "0.62.0-0",
     "prompt": {
         "title": "Knowledge",
         "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.ptbk.md#knowledge",
         "parameters": {
-            "knowledgePieceContent": "Before the emergence of generative AI, Pavol created the first Czech virtual whiteboard, Collboard, and electronic textbooks, H-edu, which were used by tens of thousands of children."
+            "knowledgePieceContent": "---\nPavol is a developer passionate about using new tools and technologies, specializing in creating user applications using the latest AI models."
         },
         "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> {knowledgePieceContent}",
         "modelRequirements": {
@@ -16,11 +16,11 @@
         "postprocessing": []
     },
     "promptResult": {
-        "content": "Pavol, generative AI, Czech, virtual whiteboard, Collboard, electronic textbooks, H-edu, children",
+        "content": "Pavol, developer, passionate, new tools, technologies, specializing, creating, user applications, latest AI models",
         "modelName": "claude-3-opus-20240229",
         "timing": {
-            "start": "2024-08-07T15:26:34.539Z",
-            "complete": "2024-08-07T15:26:36.438Z"
+            "start": "2024-08-07T15:25:46.133Z",
+            "complete": "2024-08-07T15:25:48.187Z"
         },
         "usage": {
             "price": {
@@ -29,7 +29,7 @@
             },
             "input": {
                 "tokensCount": {
-                    "value": 88
+                    "value": 75
                 },
                 "charactersCount": {
                     "value": 217
@@ -52,7 +52,7 @@
             },
             "output": {
                 "tokensCount": {
-                    "value": 29
+                    "value": 26
                 },
                 "charactersCount": {
                     "value": 217
@@ -74,33 +74,33 @@
                 }
             }
         },
-        "rawPromptContent": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> Before the emergence of generative AI, Pavol created the first Czech virtual whiteboard, Collboard, and electronic textbooks, H-edu, which were used by tens of thousands of children.",
+        "rawPromptContent": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> ---\n> Pavol is a developer passionate about using new tools and technologies, specializing in creating user applications using the latest AI models.",
         "rawRequest": {
             "model": "claude-3-opus-20240229",
             "max_tokens": 4096,
             "messages": [
                 {
                     "role": "user",
-                    "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> Before the emergence of generative AI, Pavol created the first Czech virtual whiteboard, Collboard, and electronic textbooks, H-edu, which were used by tens of thousands of children."
+                    "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> ---\n> Pavol is a developer passionate about using new tools and technologies, specializing in creating user applications using the latest AI models."
                 }
             ]
         },
         "rawResponse": {
-            "id": "msg_01YSsYjxkm8cEZ3mpADNgHK2",
+            "id": "msg_01LYFBvHMRkbwebCub4WRQme",
             "type": "message",
             "role": "assistant",
             "model": "claude-3-opus-20240229",
             "content": [
                 {
                     "type": "text",
-                    "text": "Pavol, generative AI, Czech, virtual whiteboard, Collboard, electronic textbooks, H-edu, children"
+                    "text": "Pavol, developer, passionate, new tools, technologies, specializing, creating, user applications, latest AI models"
                 }
             ],
             "stop_reason": "end_turn",
             "stop_sequence": null,
             "usage": {
-                "input_tokens": 88,
-                "output_tokens": 29
+                "input_tokens": 75,
+                "output_tokens": 26
             }
         }
     }

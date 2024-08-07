@@ -1,31 +1,26 @@
 {
-    "date": "2024-08-07T14:40:15.001Z",
+    "date": "2024-08-07T15:26:38.009Z",
     "promptbookVersion": "0.62.0-0",
     "prompt": {
         "title": "Knowledge",
-        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-title.ptbk.md#knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.ptbk.md#knowledge",
         "parameters": {
             "knowledgePieceContent": "---\nPavol Hejny is a developer passionate about using new tools and technologies, specializing in creating fully functional user applications using the latest artificial intelligence models."
         },
-        "content": "You are experienced content creator, write best title for the document.\n\n# Rules\n\n-   Write just title, nothing else\n-   Title should be concise and clear\n-   Write maximum 5 words for the title\n\n# The document\n\n> {knowledgePieceContent}",
+        "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> {knowledgePieceContent}",
         "modelRequirements": {
             "modelVariant": "CHAT",
             "modelName": "claude-3-opus-20240229"
         },
-        "expectations": {
-            "words": {
-                "min": 1,
-                "max": 8
-            }
-        },
+        "expectations": {},
         "postprocessing": []
     },
     "promptResult": {
-        "content": "Pavol Hejny: AI-Powered App Developer",
+        "content": "Pavol Hejny, developer, new tools, technologies, functional user applications, latest artificial intelligence models",
         "modelName": "claude-3-opus-20240229",
         "timing": {
-            "start": "2024-08-07T14:40:13.343Z",
-            "complete": "2024-08-07T14:40:15.000Z"
+            "start": "2024-08-07T15:26:35.104Z",
+            "complete": "2024-08-07T15:26:38.001Z"
         },
         "usage": {
             "price": {
@@ -34,14 +29,13 @@
             },
             "input": {
                 "tokensCount": {
-                    "value": 0,
-                    "isUncertain": true
+                    "value": 82
                 },
                 "charactersCount": {
-                    "value": 237
+                    "value": 217
                 },
                 "wordsCount": {
-                    "value": 33
+                    "value": 27
                 },
                 "sentencesCount": {
                     "value": 2
@@ -50,7 +44,7 @@
                     "value": 11
                 },
                 "paragraphsCount": {
-                    "value": 5
+                    "value": 6
                 },
                 "pagesCount": {
                     "value": 1
@@ -58,14 +52,13 @@
             },
             "output": {
                 "tokensCount": {
-                    "value": 0,
-                    "isUncertain": true
+                    "value": 25
                 },
                 "charactersCount": {
-                    "value": 237
+                    "value": 217
                 },
                 "wordsCount": {
-                    "value": 33
+                    "value": 27
                 },
                 "sentencesCount": {
                     "value": 2
@@ -74,40 +67,40 @@
                     "value": 11
                 },
                 "paragraphsCount": {
-                    "value": 5
+                    "value": 6
                 },
                 "pagesCount": {
                     "value": 1
                 }
             }
         },
-        "rawPromptContent": "You are experienced content creator, write best title for the document.\n\n# Rules\n\n-   Write just title, nothing else\n-   Title should be concise and clear\n-   Write maximum 5 words for the title\n\n# The document\n\n> ---\n> Pavol Hejny is a developer passionate about using new tools and technologies, specializing in creating fully functional user applications using the latest artificial intelligence models.",
+        "rawPromptContent": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> ---\n> Pavol Hejny is a developer passionate about using new tools and technologies, specializing in creating fully functional user applications using the latest artificial intelligence models.",
         "rawRequest": {
             "model": "claude-3-opus-20240229",
             "max_tokens": 4096,
             "messages": [
                 {
                     "role": "user",
-                    "content": "You are experienced content creator, write best title for the document.\n\n# Rules\n\n-   Write just title, nothing else\n-   Title should be concise and clear\n-   Write maximum 5 words for the title\n\n# The document\n\n> ---\n> Pavol Hejny is a developer passionate about using new tools and technologies, specializing in creating fully functional user applications using the latest artificial intelligence models."
+                    "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> ---\n> Pavol Hejny is a developer passionate about using new tools and technologies, specializing in creating fully functional user applications using the latest artificial intelligence models."
                 }
             ]
         },
         "rawResponse": {
-            "id": "msg_01P55UNYrGHXmcZQeoqHndPg",
+            "id": "msg_01NDaVsTQEr7uRhtREi8pSQ3",
             "type": "message",
             "role": "assistant",
             "model": "claude-3-opus-20240229",
             "content": [
                 {
                     "type": "text",
-                    "text": "Pavol Hejny: AI-Powered App Developer"
+                    "text": "Pavol Hejny, developer, new tools, technologies, functional user applications, latest artificial intelligence models"
                 }
             ],
             "stop_reason": "end_turn",
             "stop_sequence": null,
             "usage": {
-                "input_tokens": 96,
-                "output_tokens": 17
+                "input_tokens": 82,
+                "output_tokens": 25
             }
         }
     }

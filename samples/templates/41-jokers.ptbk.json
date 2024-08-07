@@ -30,13 +30,19 @@
                 "modelVariant": "CHAT"
             },
             "content": "Write some name for hero",
-            "jokerParameterNames": ["name1", "name2"],
+            "jokerParameterNames": [
+                "name1",
+                "name2"
+            ],
             "expectations": {
                 "words": {
                     "min": 2
                 }
             },
-            "dependentParameterNames": ["name1", "name2"],
+            "dependentParameterNames": [
+                "name1",
+                "name2"
+            ],
             "resultingParameterName": "name"
         }
     ],

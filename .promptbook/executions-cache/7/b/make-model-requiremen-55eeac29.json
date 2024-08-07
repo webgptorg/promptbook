@@ -1,5 +1,5 @@
 {
-    "date": "2024-08-07T14:39:35.084Z",
+    "date": "2024-08-07T15:27:21.083Z",
     "promptbookVersion": "0.62.0-0",
     "prompt": {
         "title": "Make modelRequirements",
@@ -18,21 +18,19 @@
         "postprocessing": []
     },
     "promptResult": {
-        "content": "{\n  \"modelName\": \"gpt-4o\",\n  \"systemMessage\": \"You are an experienced AI engineer and a helpful assistant.\",\n  \"temperature\": 0.5\n}",
+        "content": "{\n  \"modelName\": \"gpt-4\",\n  \"systemMessage\": \"You are a helpful and knowledgeable linguist.\",\n  \"temperature\": 0.5\n}",
         "modelName": "gpt-4-turbo-2024-04-09",
         "timing": {
-            "start": "2024-08-07T14:39:32.154Z",
-            "complete": "2024-08-07T14:39:35.083Z"
+            "start": "2024-08-07T15:27:18.211Z",
+            "complete": "2024-08-07T15:27:21.083Z"
         },
         "usage": {
             "price": {
-                "value": 0,
-                "isUncertain": true
+                "value": 0.007070000000000001
             },
             "input": {
                 "tokensCount": {
-                    "value": 0,
-                    "isUncertain": true
+                    "value": 599
                 },
                 "charactersCount": {
                     "value": 1815
@@ -55,14 +53,13 @@
             },
             "output": {
                 "tokensCount": {
-                    "value": 0,
-                    "isUncertain": true
+                    "value": 36
                 },
                 "charactersCount": {
-                    "value": 131
+                    "value": 116
                 },
                 "wordsCount": {
-                    "value": 17
+                    "value": 14
                 },
                 "sentencesCount": {
                     "value": 3
@@ -92,16 +89,16 @@
             ]
         },
         "rawResponse": {
-            "id": "chatcmpl-9tc72ifTBhjHrKA3NE3ldn6TJgsUK",
+            "id": "chatcmpl-9tcrF4LZXQtGX25j62Cq1kc5WZFa9",
             "object": "chat.completion",
-            "created": 1723041572,
+            "created": 1723044437,
             "model": "gpt-4-turbo-2024-04-09",
             "choices": [
                 {
                     "index": 0,
                     "message": {
                         "role": "assistant",
-                        "content": "{\n  \"modelName\": \"gpt-4o\",\n  \"systemMessage\": \"You are an experienced AI engineer and a helpful assistant.\",\n  \"temperature\": 0.5\n}",
+                        "content": "{\n  \"modelName\": \"gpt-4\",\n  \"systemMessage\": \"You are a helpful and knowledgeable linguist.\",\n  \"temperature\": 0.5\n}",
                         "refusal": null
                     },
                     "logprobs": null,
@@ -110,8 +107,8 @@
             ],
             "usage": {
                 "prompt_tokens": 599,
-                "completion_tokens": 39,
-                "total_tokens": 638
+                "completion_tokens": 36,
+                "total_tokens": 635
             },
             "system_fingerprint": "fp_c77e07d4ef"
         }

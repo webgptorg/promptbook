@@ -66,8 +66,8 @@
             "description": "a linguist",
             "modelRequirements": {
                 "modelVariant": "CHAT",
-                "modelName": "gpt-4o",
-                "systemMessage": "You are an experienced AI engineer and a helpful assistant.",
+                "modelName": "gpt-4",
+                "systemMessage": "You are a knowledgeable linguist and friendly assistant here to help users with their questions about language and linguistics.",
                 "temperature": 0.5
             },
             "preparationIds": [
@@ -81,12 +81,11 @@
             "promptbookVersion": "0.62.0-0",
             "usage": {
                 "price": {
-                    "value": 0
+                    "value": 0.007370000000000001
                 },
                 "input": {
                     "tokensCount": {
-                        "value": 0,
-                        "isUncertain": true
+                        "value": 599
                     },
                     "charactersCount": {
                         "value": 1815
@@ -109,14 +108,13 @@
                 },
                 "output": {
                     "tokensCount": {
-                        "value": 0,
-                        "isUncertain": true
+                        "value": 46
                     },
                     "charactersCount": {
-                        "value": 131
+                        "value": 192
                     },
                     "wordsCount": {
-                        "value": 17
+                        "value": 26
                     },
                     "sentencesCount": {
                         "value": 3

@@ -409,6 +409,10 @@ Working external knowledge, personas, preparation for instruments and actions
 -   Add usage to preparations and reports
 -   Export function `usageToHuman` from `@promptbook/core`
 -   Rename `TotalCost` to `TotalUsage`
+-   Allow to reload cache
+-   Fix error in `uncertainNumber` which always returned "uncertain 0"
+-   !!!! Compute usage in `AnthropicClaudeExecutionTools` [🐞]
+-   !!!! Fix compute usage in `OpenAiExecutionTools`
 
 ## In pre-release
 

@@ -1,5 +1,5 @@
 {
-    "date": "2024-08-07T14:39:47.657Z",
+    "date": "2024-08-07T15:25:44.076Z",
     "promptbookVersion": "0.62.0-0",
     "prompt": {
         "title": "Knowledge",
@@ -16,11 +16,11 @@
         "postprocessing": []
     },
     "promptResult": {
-        "content": "---\nPavol is a developer passionate about using new tools and technologies, specializing in creating fully functional user applications using the latest artificial intelligence models.\n---\nPavol is a member of the Ainautes consulting group, which supports the deployment of generative AI around the world. He develops the WebGPT web page generation service.\n---\nBefore the emergence of generative AI, Pavol created the first Czech virtual whiteboard, Collboard, and electronic textbooks, H-edu, which were used by tens of thousands of children. He has also worked on many scientific projects for the Czech Ornithological Society.\n---\nPavol regularly gives lectures at conferences, sits on juries, and acts as a mentor in many Czech and international competitions. He has a special heart for this and loves open source, with many of his projects available on his GitHub.",
+        "content": "---\nPavol is a developer passionate about using new tools and technologies, specializing in creating user applications using the latest AI models.\n---\nPavol is a member of the Ainautes consulting group, supporting the deployment of generative AI worldwide, and develops the WebGPT web page generation service.\n---\nPavol has previously created the first Czech virtual whiteboard, Collboard, and electronic textbooks, H-edu, which were used by tens of thousands of children. He has also worked on many scientific projects for the Czech Ornithological Society.\n---\nPavol regularly gives lectures at conferences, sits on juries, and acts as a mentor in Czech and international competitions. He has a special heart for this and loves open source, with many of his projects available on GitHub.\n---",
         "modelName": "claude-3-opus-20240229",
         "timing": {
-            "start": "2024-08-07T14:39:40.690Z",
-            "complete": "2024-08-07T14:39:47.656Z"
+            "start": "2024-08-07T15:25:36.980Z",
+            "complete": "2024-08-07T15:25:44.075Z"
         },
         "usage": {
             "price": {
@@ -29,8 +29,7 @@
             },
             "input": {
                 "tokensCount": {
-                    "value": 0,
-                    "isUncertain": true
+                    "value": 317
                 },
                 "charactersCount": {
                     "value": 482
@@ -53,8 +52,7 @@
             },
             "output": {
                 "tokensCount": {
-                    "value": 0,
-                    "isUncertain": true
+                    "value": 177
                 },
                 "charactersCount": {
                     "value": 482
@@ -88,21 +86,21 @@
             ]
         },
         "rawResponse": {
-            "id": "msg_017JzuSzj5ph557524AxM7Xj",
+            "id": "msg_01Uz9Q7zg4wFn75zNC97nzNG",
             "type": "message",
             "role": "assistant",
             "model": "claude-3-opus-20240229",
             "content": [
                 {
                     "type": "text",
-                    "text": "---\nPavol is a developer passionate about using new tools and technologies, specializing in creating fully functional user applications using the latest artificial intelligence models.\n---\nPavol is a member of the Ainautes consulting group, which supports the deployment of generative AI around the world. He develops the WebGPT web page generation service.\n---\nBefore the emergence of generative AI, Pavol created the first Czech virtual whiteboard, Collboard, and electronic textbooks, H-edu, which were used by tens of thousands of children. He has also worked on many scientific projects for the Czech Ornithological Society.\n---\nPavol regularly gives lectures at conferences, sits on juries, and acts as a mentor in many Czech and international competitions. He has a special heart for this and loves open source, with many of his projects available on his GitHub."
+                    "text": "---\nPavol is a developer passionate about using new tools and technologies, specializing in creating user applications using the latest AI models.\n---\nPavol is a member of the Ainautes consulting group, supporting the deployment of generative AI worldwide, and develops the WebGPT web page generation service.\n---\nPavol has previously created the first Czech virtual whiteboard, Collboard, and electronic textbooks, H-edu, which were used by tens of thousands of children. He has also worked on many scientific projects for the Czech Ornithological Society.\n---\nPavol regularly gives lectures at conferences, sits on juries, and acts as a mentor in Czech and international competitions. He has a special heart for this and loves open source, with many of his projects available on GitHub.\n---"
                 }
             ],
             "stop_reason": "end_turn",
             "stop_sequence": null,
             "usage": {
                 "input_tokens": 317,
-                "output_tokens": 189
+                "output_tokens": 177
             }
         }
     }

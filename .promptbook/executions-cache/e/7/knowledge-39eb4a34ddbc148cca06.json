@@ -1,11 +1,11 @@
 {
-    "date": "2024-08-07T15:26:36.438Z",
+    "date": "2024-08-07T15:26:39.041Z",
     "promptbookVersion": "0.62.0-0",
     "prompt": {
         "title": "Knowledge",
         "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.ptbk.md#knowledge",
         "parameters": {
-            "knowledgePieceContent": "Before the emergence of generative AI, Pavol created the first Czech virtual whiteboard, Collboard, and electronic textbooks, H-edu, which were used by tens of thousands of children."
+            "knowledgePieceContent": "He has worked on many scientific projects for the Czech Ornithological Society, regularly gives lectures at conferences, sits on juries, and acts as a mentor in many Czech and international competitions."
         },
         "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> {knowledgePieceContent}",
         "modelRequirements": {
@@ -16,11 +16,11 @@
         "postprocessing": []
     },
     "promptResult": {
-        "content": "Pavol, generative AI, Czech, virtual whiteboard, Collboard, electronic textbooks, H-edu, children",
+        "content": "Czech Ornithological Society, scientific projects, lectures, conferences, juries, mentor, Czech competitions, international competitions.",
         "modelName": "claude-3-opus-20240229",
         "timing": {
-            "start": "2024-08-07T15:26:34.539Z",
-            "complete": "2024-08-07T15:26:36.438Z"
+            "start": "2024-08-07T15:26:35.091Z",
+            "complete": "2024-08-07T15:26:39.040Z"
         },
         "usage": {
             "price": {
@@ -29,7 +29,7 @@
             },
             "input": {
                 "tokensCount": {
-                    "value": 88
+                    "value": 85
                 },
                 "charactersCount": {
                     "value": 217
@@ -52,7 +52,7 @@
             },
             "output": {
                 "tokensCount": {
-                    "value": 29
+                    "value": 27
                 },
                 "charactersCount": {
                     "value": 217
@@ -74,33 +74,33 @@
                 }
             }
         },
-        "rawPromptContent": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> Before the emergence of generative AI, Pavol created the first Czech virtual whiteboard, Collboard, and electronic textbooks, H-edu, which were used by tens of thousands of children.",
+        "rawPromptContent": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> He has worked on many scientific projects for the Czech Ornithological Society, regularly gives lectures at conferences, sits on juries, and acts as a mentor in many Czech and international competitions.",
         "rawRequest": {
             "model": "claude-3-opus-20240229",
             "max_tokens": 4096,
             "messages": [
                 {
                     "role": "user",
-                    "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> Before the emergence of generative AI, Pavol created the first Czech virtual whiteboard, Collboard, and electronic textbooks, H-edu, which were used by tens of thousands of children."
+                    "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> He has worked on many scientific projects for the Czech Ornithological Society, regularly gives lectures at conferences, sits on juries, and acts as a mentor in many Czech and international competitions."
                 }
             ]
         },
         "rawResponse": {
-            "id": "msg_01YSsYjxkm8cEZ3mpADNgHK2",
+            "id": "msg_01TAtCR7FoUytpMjdVhMDuzy",
             "type": "message",
             "role": "assistant",
             "model": "claude-3-opus-20240229",
             "content": [
                 {
                     "type": "text",
-                    "text": "Pavol, generative AI, Czech, virtual whiteboard, Collboard, electronic textbooks, H-edu, children"
+                    "text": "Czech Ornithological Society, scientific projects, lectures, conferences, juries, mentor, Czech competitions, international competitions."
                 }
             ],
             "stop_reason": "end_turn",
             "stop_sequence": null,
             "usage": {
-                "input_tokens": 88,
-                "output_tokens": 29
+                "input_tokens": 85,
+                "output_tokens": 27
             }
         }
     }
