@@ -1,6 +1,11 @@
 #!/usr/bin/env ts-node
 
-import { createPipelineExecutor, executionReportJsonToString, stringifyPipelineJson } from '@promptbook/core';
+import {
+    createPipelineExecutor,
+    executionReportJsonToString,
+    stringifyPipelineJson,
+    usageToHuman,
+} from '@promptbook/core';
 import { JavascriptExecutionTools } from '@promptbook/execute-javascript';
 import { createCollectionFromDirectory, createLlmToolsFromEnv } from '@promptbook/node';
 import colors from 'colors';
@@ -65,7 +70,7 @@ async function main() {
     const inputParameters = {
         eventName: 'TypeScript developers summit 2025',
     };
-    const { isSuccessful, errors, warnings, outputParameters, executionReport } = await pipelineExecutor(
+    const { isSuccessful, errors, warnings, outputParameters, executionReport, usage } = await pipelineExecutor(
         inputParameters,
         (progress) => {
             console.info({ progress });
@@ -100,8 +105,9 @@ async function main() {
         console.error(colors.yellow(warning.stack || warning.message));
     }
 
-    const { bio } = outputParameters;
+    console.info(colors.cyan(usageToHuman(usage /* <- TODO: [🌳] Compare with `llmTools.getTotalUsage()` */)));
 
+    const { bio } = outputParameters;
 
     console.info(colors.green(bio));
     process.exit(isSuccessful ? 0 : 1);

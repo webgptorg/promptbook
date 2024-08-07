@@ -856,7 +856,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
 
 /**
  * TODO: Use isVerbose here (not only pass to `preparePipeline`)
- * TODO: [🧠] Use here `countTotalUsage` and put preparation and prepared pipiline to report
+ * TODO: [🧠][🌳] Use here `countTotalUsage` and put preparation and prepared pipiline to report
  * TODO: [🪂] Use maxParallelCount here (not only pass to `preparePipeline`)
  * TODO: [♈] Probbably move expectations from templates to parameters
  * TODO: [🧠] When not meet expectations in PROMPT_DIALOG, make some way to tell the user

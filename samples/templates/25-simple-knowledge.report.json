@@ -1,7 +1,7 @@
 {
     "pipelineUrl": "https://promptbook.studio/samples/simple-knowledge.ptbk.md",
     "title": "✨ Sample: Simple Knowledge",
-    "promptbookUsedVersion": "0.61.0",
+    "promptbookUsedVersion": "0.62.0-0",
     "promptbookRequestedVersion": "1.0.0",
     "description": "Show how to use knowledge",
     "promptExecutions": [
@@ -10,7 +10,7 @@
                 "title": "Writing bio",
                 "pipelineUrl": "https://promptbook.studio/samples/simple-knowledge.ptbk.md#writing-bio",
                 "parameters": {
-                    "knowledge": "- ---\nPavol is a developer who is passionate about using new tools and technologies, specializing in creating fully functional user applications using the latest AI models.\n- Pavol is a member of the Ainautes consulting group, which supports the deployment of generative AI around the world.\n- Pavol develops the WebGPT web page generation service.\n- Before the emergence of generative AI, Pavol created the first Czech virtual whiteboard, Collboard, and electronic textbooks, H-edu, which were used by tens of thousands of children.\n- Pavol has worked on many scientific projects for the Czech Ornithological Society, gives lectures at conferences, sits on juries, and acts as a mentor in Czech and international competitions. He has a special heart for this and loves open source, with many of his projects available on GitHub.",
+                    "knowledge": "- ---\nPavol is a developer passionate about using new tools and technologies, specializing in creating fully functional user applications using the latest AI models.\n- Pavol is a member of the Ainautes consulting group, supporting the deployment of generative AI worldwide, and develops the WebGPT web page generation service.\n- Before the emergence of generative AI, Pavol created the first Czech virtual whiteboard, Collboard, and electronic textbooks, H-edu, used by tens of thousands of children.\n- Pavol has worked on many scientific projects for the Czech Ornithological Society, regularly gives lectures at conferences, sits on juries, and acts as a mentor in Czech and international competitions. He has a special heart for open source and shares many of his projects on GitHub.",
                     "eventName": "TypeScript developers summit 2025"
                 },
                 "content": "You are writing a bio for Pavol Hejný for the event {eventName}.\n\n## Rules\n\n-   Write just the bio, nothing else.\n-   Write in the third person.\n-   Bio is written in the present tense.\n-   Bio should be written for event named \"{eventName}\".\n-   Write plain text without any formatting (like markdown).\n\n## Knowledge\n\n{knowledge}",
@@ -22,8 +22,8 @@
                     "description": "HR professional with prior experience in writing bios",
                     "modelRequirements": {
                         "modelVariant": "CHAT",
-                        "modelName": "gpt-4",
-                        "systemMessage": "You are an experienced HR professional with expertise in writing bios and providing professional assistance.",
+                        "modelName": "gpt-4-turbo-2024-04-09",
+                        "systemMessage": "You are a virtual assistant shaped by your prior experience as an HR professional with expertise in crafting professional bios.",
                         "temperature": 0.5
                     },
                     "preparationIds": [
@@ -36,21 +36,19 @@
                 "postprocessing": []
             },
             "result": {
-                "content": "Pavol Hejný is a forward-thinking developer with a passion for utilizing new tools and technologies to create fully functional user applications, particularly through the use of the latest AI models. As a committed member of the Ainautes consulting group, he plays a significant role in supporting the deployment of generative AI worldwide. Pavol is the driving force behind the WebGPT web page generation service, pushing the boundaries of what's possible with web technologies. \n\nBefore the rise of generative AI, Pavol was instrumental in the creation of the first Czech virtual whiteboard, Collboard, and electronic textbooks, H-edu, which reached tens of thousands of children. His contributions extend into the scientific community through numerous projects for the Czech Ornithological Society. Pavol regularly shares his expertise by giving lectures at conferences, participating as a juror, and mentoring in both Czech and international competitions. His dedication to open-source software is evident, as many of his projects are accessible on GitHub. Pavol's diverse experiences and deep commitment to technological advancement make him a standout figure at the TypeScript Developers Summit 2025.",
+                "content": "Pavol Hejný is a passionate developer specializing in creating functional user applications leveraging the latest AI models. As a member of the Ainautes consulting group, he supports the global deployment of generative AI and develops the WebGPT web page generation service. Prior to his work with generative AI, Pavol created the first Czech virtual whiteboard, Collboard, and electronic textbooks, H-edu, used by tens of thousands of children. He has contributed to numerous scientific projects for the Czech Ornithological Society and regularly gives lectures at conferences, serves on juries, and mentors in competitions both in the Czech Republic and internationally. With a deep commitment to open source, Pavol shares many of his projects on GitHub. He is a featured speaker at the TypeScript Developers Summit 2025.",
                 "modelName": "gpt-4o-2024-05-13",
                 "timing": {
-                    "start": "2024-08-07T14:18:03.117Z",
-                    "complete": "2024-08-07T14:18:11.152Z"
+                    "start": "2024-08-07T16:36:39.513Z",
+                    "complete": "2024-08-07T16:36:42.529Z"
                 },
                 "usage": {
                     "price": {
-                        "value": 0,
-                        "isUncertain": true
+                        "value": 0.00368
                     },
                     "input": {
                         "tokensCount": {
-                            "value": 0,
-                            "isUncertain": true
+                            "value": 250
                         },
                         "charactersCount": {
                             "value": 330
@@ -73,50 +71,49 @@
                     },
                     "output": {
                         "tokensCount": {
-                            "value": 0,
-                            "isUncertain": true
+                            "value": 162
                         },
                         "charactersCount": {
-                            "value": 1206
+                            "value": 823
                         },
                         "wordsCount": {
-                            "value": 181
+                            "value": 126
                         },
                         "sentencesCount": {
-                            "value": 8
+                            "value": 6
                         },
                         "linesCount": {
-                            "value": 3
+                            "value": 1
                         },
                         "paragraphsCount": {
-                            "value": 2
+                            "value": 1
                         },
                         "pagesCount": {
                             "value": 2
                         }
                     }
                 },
-                "rawPromptContent": "You are writing a bio for Pavol Hejný for the event TypeScript developers summit 2025.\n\n## Rules\n\n-   Write just the bio, nothing else.\n-   Write in the third person.\n-   Bio is written in the present tense.\n-   Bio should be written for event named \"TypeScript developers summit 2025\".\n-   Write plain text without any formatting (like markdown).\n\n## Knowledge\n\n- ---\nPavol is a developer who is passionate about using new tools and technologies, specializing in creating fully functional user applications using the latest AI models.\n- Pavol is a member of the Ainautes consulting group, which supports the deployment of generative AI around the world.\n- Pavol develops the WebGPT web page generation service.\n- Before the emergence of generative AI, Pavol created the first Czech virtual whiteboard, Collboard, and electronic textbooks, H-edu, which were used by tens of thousands of children.\n- Pavol has worked on many scientific projects for the Czech Ornithological Society, gives lectures at conferences, sits on juries, and acts as a mentor in Czech and international competitions. He has a special heart for this and loves open source, with many of his projects available on GitHub.",
+                "rawPromptContent": "You are writing a bio for Pavol Hejný for the event TypeScript developers summit 2025.\n\n## Rules\n\n-   Write just the bio, nothing else.\n-   Write in the third person.\n-   Bio is written in the present tense.\n-   Bio should be written for event named \"TypeScript developers summit 2025\".\n-   Write plain text without any formatting (like markdown).\n\n## Knowledge\n\n- ---\nPavol is a developer passionate about using new tools and technologies, specializing in creating fully functional user applications using the latest AI models.\n- Pavol is a member of the Ainautes consulting group, supporting the deployment of generative AI worldwide, and develops the WebGPT web page generation service.\n- Before the emergence of generative AI, Pavol created the first Czech virtual whiteboard, Collboard, and electronic textbooks, H-edu, used by tens of thousands of children.\n- Pavol has worked on many scientific projects for the Czech Ornithological Society, regularly gives lectures at conferences, sits on juries, and acts as a mentor in Czech and international competitions. He has a special heart for open source and shares many of his projects on GitHub.",
                 "rawRequest": {
                     "model": "gpt-4o",
                     "messages": [
                         {
                             "role": "user",
-                            "content": "You are writing a bio for Pavol Hejný for the event TypeScript developers summit 2025.\n\n## Rules\n\n-   Write just the bio, nothing else.\n-   Write in the third person.\n-   Bio is written in the present tense.\n-   Bio should be written for event named \"TypeScript developers summit 2025\".\n-   Write plain text without any formatting (like markdown).\n\n## Knowledge\n\n- ---\nPavol is a developer who is passionate about using new tools and technologies, specializing in creating fully functional user applications using the latest AI models.\n- Pavol is a member of the Ainautes consulting group, which supports the deployment of generative AI around the world.\n- Pavol develops the WebGPT web page generation service.\n- Before the emergence of generative AI, Pavol created the first Czech virtual whiteboard, Collboard, and electronic textbooks, H-edu, which were used by tens of thousands of children.\n- Pavol has worked on many scientific projects for the Czech Ornithological Society, gives lectures at conferences, sits on juries, and acts as a mentor in Czech and international competitions. He has a special heart for this and loves open source, with many of his projects available on GitHub."
+                            "content": "You are writing a bio for Pavol Hejný for the event TypeScript developers summit 2025.\n\n## Rules\n\n-   Write just the bio, nothing else.\n-   Write in the third person.\n-   Bio is written in the present tense.\n-   Bio should be written for event named \"TypeScript developers summit 2025\".\n-   Write plain text without any formatting (like markdown).\n\n## Knowledge\n\n- ---\nPavol is a developer passionate about using new tools and technologies, specializing in creating fully functional user applications using the latest AI models.\n- Pavol is a member of the Ainautes consulting group, supporting the deployment of generative AI worldwide, and develops the WebGPT web page generation service.\n- Before the emergence of generative AI, Pavol created the first Czech virtual whiteboard, Collboard, and electronic textbooks, H-edu, used by tens of thousands of children.\n- Pavol has worked on many scientific projects for the Czech Ornithological Society, regularly gives lectures at conferences, sits on juries, and acts as a mentor in Czech and international competitions. He has a special heart for open source and shares many of his projects on GitHub."
                         }
                     ]
                 },
                 "rawResponse": {
-                    "id": "chatcmpl-9tbmFZDg1tE2LQGF8NDd0yQktoI98",
+                    "id": "chatcmpl-9tdwNiZrcVopxVmji5xOE7riuJjLD",
                     "object": "chat.completion",
-                    "created": 1723040283,
+                    "created": 1723048599,
                     "model": "gpt-4o-2024-05-13",
                     "choices": [
                         {
                             "index": 0,
                             "message": {
                                 "role": "assistant",
-                                "content": "Pavol Hejný is a forward-thinking developer with a passion for utilizing new tools and technologies to create fully functional user applications, particularly through the use of the latest AI models. As a committed member of the Ainautes consulting group, he plays a significant role in supporting the deployment of generative AI worldwide. Pavol is the driving force behind the WebGPT web page generation service, pushing the boundaries of what's possible with web technologies. \n\nBefore the rise of generative AI, Pavol was instrumental in the creation of the first Czech virtual whiteboard, Collboard, and electronic textbooks, H-edu, which reached tens of thousands of children. His contributions extend into the scientific community through numerous projects for the Czech Ornithological Society. Pavol regularly shares his expertise by giving lectures at conferences, participating as a juror, and mentoring in both Czech and international competitions. His dedication to open-source software is evident, as many of his projects are accessible on GitHub. Pavol's diverse experiences and deep commitment to technological advancement make him a standout figure at the TypeScript Developers Summit 2025.",
+                                "content": "Pavol Hejný is a passionate developer specializing in creating functional user applications leveraging the latest AI models. As a member of the Ainautes consulting group, he supports the global deployment of generative AI and develops the WebGPT web page generation service. Prior to his work with generative AI, Pavol created the first Czech virtual whiteboard, Collboard, and electronic textbooks, H-edu, used by tens of thousands of children. He has contributed to numerous scientific projects for the Czech Ornithological Society and regularly gives lectures at conferences, serves on juries, and mentors in competitions both in the Czech Republic and internationally. With a deep commitment to open source, Pavol shares many of his projects on GitHub. He is a featured speaker at the TypeScript Developers Summit 2025.",
                                 "refusal": null
                             },
                             "logprobs": null,
@@ -124,9 +121,9 @@
                         }
                     ],
                     "usage": {
-                        "prompt_tokens": 262,
-                        "completion_tokens": 223,
-                        "total_tokens": 485
+                        "prompt_tokens": 250,
+                        "completion_tokens": 162,
+                        "total_tokens": 412
                     },
                     "system_fingerprint": "fp_3aa7262c27"
                 }
