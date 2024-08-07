@@ -1,0 +1,116 @@
+{
+    "date": "2024-08-07T15:56:59.096Z",
+    "promptbookVersion": "0.62.0-0",
+    "prompt": {
+        "title": "Make modelRequirements",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-persona.ptbk.md#make-model-requirements",
+        "parameters": {
+            "availableModelNames": "gpt-3.5-turbo-16k,gpt-4,gpt-4-32k,gpt-4-turbo-2024-04-09,gpt-3.5-turbo-1106,gpt-4-turbo,gpt-3.5-turbo,gpt-3.5-turbo-0301,gpt-4-1106-preview,gpt-4-0125-preview,gpt-3.5-turbo-0125,gpt-4-turbo-preview,gpt-3.5-turbo-0613,gpt-4o-2024-05-13,gpt-4o,gpt-3.5-turbo-16k-0613,claude-3-opus-20240229,claude-3-sonnet-20240229,\tclaude-3-haiku-20240307,claude-2.1,claude-2.0,claude-instant-1.2",
+            "personaDescription": "Locuteur natif français, j'aime écrire et je suis passionné par la langue et la culture française."
+        },
+        "content": "You are experienced AI engineer, you need to create virtual assistant.\nWrite\n\n## Sample\n\n```json\n{\n\"modelName\": \"gpt-4o\",\n\"systemMessage\": \"You are experienced AI engineer and helpfull assistant.\",\n\"temperature\": 0.7\n}\n```\n\n## Instructions\n\n### Option `modelName`\n\nPick from the following models:\n\n-   {availableModelNames}\n\n### Option `systemMessage`\n\nThe system message is used to communicate instructions or provide context to the model at the beginning of a conversation. It is displayed in a different format compared to user messages, helping the model understand its role in the conversation. The system message typically guides the model's behavior, sets the tone, or specifies desired output from the model. By utilizing the system message effectively, users can steer the model towards generating more accurate and relevant responses.\n\nFor example:\n\n> You are an experienced AI engineer and helpful assistant.\n\n> You are a friendly and knowledgeable chatbot.\n\n### Option `temperature`\n\nThe sampling temperature, between 0 and 1. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic. If set to 0, the model will use log probability to automatically increase the temperature until certain thresholds are hit.\n\nYou can pick a value between 0 and 2. For example:\n\n-   `0.1`: Low temperature, extremely conservative and deterministic\n-   `0.5`: Medium temperature, balanced between conservative and creative\n-   `1.0`: High temperature, creative and bit random\n-   `1.5`: Very high temperature, extremely creative and often chaotic and unpredictable\n-   `2.0`: Maximum temperature, completely random and unpredictable, for some extreme creative use cases\n\n# The assistant\n\nTake this description of the persona:\n\n> {personaDescription}",
+        "modelRequirements": {
+            "modelVariant": "CHAT",
+            "modelName": "gpt-4-turbo"
+        },
+        "expectations": {},
+        "expectFormat": "JSON",
+        "postprocessing": []
+    },
+    "promptResult": {
+        "content": "{\n  \"modelName\": \"gpt-4o\",\n  \"systemMessage\": \"You are a virtual assistant with native proficiency in French, a passion for writing, and a deep interest in French language and culture.\",\n  \"temperature\": 0.5\n}",
+        "modelName": "gpt-4-turbo-2024-04-09",
+        "timing": {
+            "start": "2024-08-07T15:56:56.365Z",
+            "complete": "2024-08-07T15:56:59.095Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0.00782
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 620
+                },
+                "charactersCount": {
+                    "value": 1815
+                },
+                "wordsCount": {
+                    "value": 259
+                },
+                "sentencesCount": {
+                    "value": 21
+                },
+                "linesCount": {
+                    "value": 48
+                },
+                "paragraphsCount": {
+                    "value": 19
+                },
+                "pagesCount": {
+                    "value": 5
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 54
+                },
+                "charactersCount": {
+                    "value": 209
+                },
+                "wordsCount": {
+                    "value": 30
+                },
+                "sentencesCount": {
+                    "value": 3
+                },
+                "linesCount": {
+                    "value": 5
+                },
+                "paragraphsCount": {
+                    "value": 1
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced AI engineer, you need to create virtual assistant.\nWrite\n\n## Sample\n\n```json\n{\n\"modelName\": \"gpt-4o\",\n\"systemMessage\": \"You are experienced AI engineer and helpfull assistant.\",\n\"temperature\": 0.7\n}\n```\n\n## Instructions\n\n### Option `modelName`\n\nPick from the following models:\n\n-   gpt-3.5-turbo-16k,gpt-4,gpt-4-32k,gpt-4-turbo-2024-04-09,gpt-3.5-turbo-1106,gpt-4-turbo,gpt-3.5-turbo,gpt-3.5-turbo-0301,gpt-4-1106-preview,gpt-4-0125-preview,gpt-3.5-turbo-0125,gpt-4-turbo-preview,gpt-3.5-turbo-0613,gpt-4o-2024-05-13,gpt-4o,gpt-3.5-turbo-16k-0613,claude-3-opus-20240229,claude-3-sonnet-20240229,\tclaude-3-haiku-20240307,claude-2.1,claude-2.0,claude-instant-1.2\n\n### Option `systemMessage`\n\nThe system message is used to communicate instructions or provide context to the model at the beginning of a conversation. It is displayed in a different format compared to user messages, helping the model understand its role in the conversation. The system message typically guides the model's behavior, sets the tone, or specifies desired output from the model. By utilizing the system message effectively, users can steer the model towards generating more accurate and relevant responses.\n\nFor example:\n\n> You are an experienced AI engineer and helpful assistant.\n\n> You are a friendly and knowledgeable chatbot.\n\n### Option `temperature`\n\nThe sampling temperature, between 0 and 1. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic. If set to 0, the model will use log probability to automatically increase the temperature until certain thresholds are hit.\n\nYou can pick a value between 0 and 2. For example:\n\n-   `0.1`: Low temperature, extremely conservative and deterministic\n-   `0.5`: Medium temperature, balanced between conservative and creative\n-   `1.0`: High temperature, creative and bit random\n-   `1.5`: Very high temperature, extremely creative and often chaotic and unpredictable\n-   `2.0`: Maximum temperature, completely random and unpredictable, for some extreme creative use cases\n\n# The assistant\n\nTake this description of the persona:\n\n> Locuteur natif français, j'aime écrire et je suis passionné par la langue et la culture française.",
+        "rawRequest": {
+            "model": "gpt-4-turbo",
+            "response_format": {
+                "type": "json_object"
+            },
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "You are experienced AI engineer, you need to create virtual assistant.\nWrite\n\n## Sample\n\n```json\n{\n\"modelName\": \"gpt-4o\",\n\"systemMessage\": \"You are experienced AI engineer and helpfull assistant.\",\n\"temperature\": 0.7\n}\n```\n\n## Instructions\n\n### Option `modelName`\n\nPick from the following models:\n\n-   gpt-3.5-turbo-16k,gpt-4,gpt-4-32k,gpt-4-turbo-2024-04-09,gpt-3.5-turbo-1106,gpt-4-turbo,gpt-3.5-turbo,gpt-3.5-turbo-0301,gpt-4-1106-preview,gpt-4-0125-preview,gpt-3.5-turbo-0125,gpt-4-turbo-preview,gpt-3.5-turbo-0613,gpt-4o-2024-05-13,gpt-4o,gpt-3.5-turbo-16k-0613,claude-3-opus-20240229,claude-3-sonnet-20240229,\tclaude-3-haiku-20240307,claude-2.1,claude-2.0,claude-instant-1.2\n\n### Option `systemMessage`\n\nThe system message is used to communicate instructions or provide context to the model at the beginning of a conversation. It is displayed in a different format compared to user messages, helping the model understand its role in the conversation. The system message typically guides the model's behavior, sets the tone, or specifies desired output from the model. By utilizing the system message effectively, users can steer the model towards generating more accurate and relevant responses.\n\nFor example:\n\n> You are an experienced AI engineer and helpful assistant.\n\n> You are a friendly and knowledgeable chatbot.\n\n### Option `temperature`\n\nThe sampling temperature, between 0 and 1. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic. If set to 0, the model will use log probability to automatically increase the temperature until certain thresholds are hit.\n\nYou can pick a value between 0 and 2. For example:\n\n-   `0.1`: Low temperature, extremely conservative and deterministic\n-   `0.5`: Medium temperature, balanced between conservative and creative\n-   `1.0`: High temperature, creative and bit random\n-   `1.5`: Very high temperature, extremely creative and often chaotic and unpredictable\n-   `2.0`: Maximum temperature, completely random and unpredictable, for some extreme creative use cases\n\n# The assistant\n\nTake this description of the persona:\n\n> Locuteur natif français, j'aime écrire et je suis passionné par la langue et la culture française."
+                }
+            ]
+        },
+        "rawResponse": {
+            "id": "chatcmpl-9tdJvqJRO5cboycCcHu9OMXnfIoYu",
+            "object": "chat.completion",
+            "created": 1723046215,
+            "model": "gpt-4-turbo-2024-04-09",
+            "choices": [
+                {
+                    "index": 0,
+                    "message": {
+                        "role": "assistant",
+                        "content": "{\n  \"modelName\": \"gpt-4o\",\n  \"systemMessage\": \"You are a virtual assistant with native proficiency in French, a passion for writing, and a deep interest in French language and culture.\",\n  \"temperature\": 0.5\n}",
+                        "refusal": null
+                    },
+                    "logprobs": null,
+                    "finish_reason": "stop"
+                }
+            ],
+            "usage": {
+                "prompt_tokens": 620,
+                "completion_tokens": 54,
+                "total_tokens": 674
+            },
+            "system_fingerprint": "fp_c77e07d4ef"
+        }
+    }
+}

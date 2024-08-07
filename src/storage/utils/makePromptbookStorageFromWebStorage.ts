@@ -1,4 +1,4 @@
-import { stringifyPipelineJson } from '../../_packages/core.index';
+import { stringifyPipelineJson } from '../../conversion/utils/stringifyPipelineJson';
 import type { PromptbookStorage } from '../_common/PromptbookStorage';
 
 /**

@@ -2,7 +2,7 @@ import hexEncoder from 'crypto-js/enc-hex';
 import sha256 from 'crypto-js/sha256';
 import { mkdir, readFile, stat, unlink, writeFile } from 'fs/promises';
 import { dirname, join } from 'path';
-import { stringifyPipelineJson } from '../../_packages/core.index';
+import { stringifyPipelineJson } from '../../conversion/utils/stringifyPipelineJson';
 import { MAX_FILENAME_LENGTH } from '../../config';
 import { titleToName } from '../../conversion/utils/titleToName';
 import { EnvironmentMismatchError } from '../../errors/EnvironmentMismatchError';

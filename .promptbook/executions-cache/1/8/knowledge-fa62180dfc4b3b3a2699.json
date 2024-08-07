@@ -1,0 +1,112 @@
+{
+    "date": "2024-08-07T15:56:55.921Z",
+    "promptbookVersion": "0.62.0-0",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-title.ptbk.md#knowledge",
+        "parameters": {
+            "knowledgePieceContent": "Springfield is a city located in Illinois, United States, and serves as the county seat of Sangamon County."
+        },
+        "content": "You are experienced content creator, write best title for the document.\n\n# Rules\n\n-   Write just title, nothing else\n-   Title should be concise and clear\n-   Write maximum 5 words for the title\n\n# The document\n\n> {knowledgePieceContent}",
+        "modelRequirements": {
+            "modelVariant": "CHAT",
+            "modelName": "claude-3-opus-20240229"
+        },
+        "expectations": {
+            "words": {
+                "min": 1,
+                "max": 8
+            }
+        },
+        "postprocessing": []
+    },
+    "promptResult": {
+        "content": "Springfield: Illinois' Sangamon County Seat",
+        "modelName": "claude-3-opus-20240229",
+        "timing": {
+            "start": "2024-08-07T15:56:53.734Z",
+            "complete": "2024-08-07T15:56:55.921Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0,
+                "isUncertain": true
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 83
+                },
+                "charactersCount": {
+                    "value": 237
+                },
+                "wordsCount": {
+                    "value": 33
+                },
+                "sentencesCount": {
+                    "value": 2
+                },
+                "linesCount": {
+                    "value": 11
+                },
+                "paragraphsCount": {
+                    "value": 5
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 12
+                },
+                "charactersCount": {
+                    "value": 237
+                },
+                "wordsCount": {
+                    "value": 33
+                },
+                "sentencesCount": {
+                    "value": 2
+                },
+                "linesCount": {
+                    "value": 11
+                },
+                "paragraphsCount": {
+                    "value": 5
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced content creator, write best title for the document.\n\n# Rules\n\n-   Write just title, nothing else\n-   Title should be concise and clear\n-   Write maximum 5 words for the title\n\n# The document\n\n> Springfield is a city located in Illinois, United States, and serves as the county seat of Sangamon County.",
+        "rawRequest": {
+            "model": "claude-3-opus-20240229",
+            "max_tokens": 4096,
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "You are experienced content creator, write best title for the document.\n\n# Rules\n\n-   Write just title, nothing else\n-   Title should be concise and clear\n-   Write maximum 5 words for the title\n\n# The document\n\n> Springfield is a city located in Illinois, United States, and serves as the county seat of Sangamon County."
+                }
+            ]
+        },
+        "rawResponse": {
+            "id": "msg_01F1nZTSapvtdr8zme2uN1ur",
+            "type": "message",
+            "role": "assistant",
+            "model": "claude-3-opus-20240229",
+            "content": [
+                {
+                    "type": "text",
+                    "text": "Springfield: Illinois' Sangamon County Seat"
+                }
+            ],
+            "stop_reason": "end_turn",
+            "stop_sequence": null,
+            "usage": {
+                "input_tokens": 83,
+                "output_tokens": 12
+            }
+        }
+    }
+}

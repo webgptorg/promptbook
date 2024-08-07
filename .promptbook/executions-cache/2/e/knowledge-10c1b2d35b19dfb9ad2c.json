@@ -1,0 +1,112 @@
+{
+    "date": "2024-08-07T15:56:56.265Z",
+    "promptbookVersion": "0.62.0-0",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-title.ptbk.md#knowledge",
+        "parameters": {
+            "knowledgePieceContent": "As of 2019, Springfield had a population of 10,566, making it the sixth most populous city in the state of Illinois."
+        },
+        "content": "You are experienced content creator, write best title for the document.\n\n# Rules\n\n-   Write just title, nothing else\n-   Title should be concise and clear\n-   Write maximum 5 words for the title\n\n# The document\n\n> {knowledgePieceContent}",
+        "modelRequirements": {
+            "modelVariant": "CHAT",
+            "modelName": "claude-3-opus-20240229"
+        },
+        "expectations": {
+            "words": {
+                "min": 1,
+                "max": 8
+            }
+        },
+        "postprocessing": []
+    },
+    "promptResult": {
+        "content": "Springfield: Illinois' Sixth Most Populous City",
+        "modelName": "claude-3-opus-20240229",
+        "timing": {
+            "start": "2024-08-07T15:56:53.763Z",
+            "complete": "2024-08-07T15:56:56.265Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0,
+                "isUncertain": true
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 89
+                },
+                "charactersCount": {
+                    "value": 237
+                },
+                "wordsCount": {
+                    "value": 33
+                },
+                "sentencesCount": {
+                    "value": 2
+                },
+                "linesCount": {
+                    "value": 11
+                },
+                "paragraphsCount": {
+                    "value": 5
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 13
+                },
+                "charactersCount": {
+                    "value": 237
+                },
+                "wordsCount": {
+                    "value": 33
+                },
+                "sentencesCount": {
+                    "value": 2
+                },
+                "linesCount": {
+                    "value": 11
+                },
+                "paragraphsCount": {
+                    "value": 5
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced content creator, write best title for the document.\n\n# Rules\n\n-   Write just title, nothing else\n-   Title should be concise and clear\n-   Write maximum 5 words for the title\n\n# The document\n\n> As of 2019, Springfield had a population of 10,566, making it the sixth most populous city in the state of Illinois.",
+        "rawRequest": {
+            "model": "claude-3-opus-20240229",
+            "max_tokens": 4096,
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "You are experienced content creator, write best title for the document.\n\n# Rules\n\n-   Write just title, nothing else\n-   Title should be concise and clear\n-   Write maximum 5 words for the title\n\n# The document\n\n> As of 2019, Springfield had a population of 10,566, making it the sixth most populous city in the state of Illinois."
+                }
+            ]
+        },
+        "rawResponse": {
+            "id": "msg_01JUUCkRThyxGVGN68T45gbc",
+            "type": "message",
+            "role": "assistant",
+            "model": "claude-3-opus-20240229",
+            "content": [
+                {
+                    "type": "text",
+                    "text": "Springfield: Illinois' Sixth Most Populous City"
+                }
+            ],
+            "stop_reason": "end_turn",
+            "stop_sequence": null,
+            "usage": {
+                "input_tokens": 89,
+                "output_tokens": 13
+            }
+        }
+    }
+}
