@@ -1,3 +1,4 @@
+import * as dotenv from 'dotenv';
 import spaceTrim from 'spacetrim';
 import { EnvironmentMismatchError } from '../../errors/EnvironmentMismatchError';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
@@ -13,16 +14,13 @@ export type CreateLlmToolsFromEnvOptions = {
      * @default false
      */
     isVerbose?: boolean;
-
-
-
 };
 
 /**
  * @@@
  *
  * Note: This function is not cached, every call creates new instance of `LlmExecutionTools`
- * 
+ *
  * @@@ .env
  *
  * It looks for environment variables:
@@ -38,7 +36,7 @@ export function createLlmToolsFromEnv(options: CreateLlmToolsFromEnvOptions = {}
 
     const { isVerbose = false } = options;
 
-    // TODO: !!!!!!! Load from .env file
+    dotenv.config(); // <- TODO: !!!!!! Double check [🟢]
 
     const llmTools: Array<LlmExecutionTools> = [];
 
