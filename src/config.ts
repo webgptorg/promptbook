@@ -81,12 +81,12 @@ export const RESERVED_PARAMETER_RESTRICTED = 'RESTRICTED-' + REPLACING_NONCE;
  * @@@
  */
 export const DEBUG_ALLOW_PAYED_TESTING: boolean = just(
-    /*/
+    /**/
     // Note: In normal situations, we "turn off" ability to use real API keys in tests:
     false,
     /**/
 
-    /**/
+    /*/
     // When working on preparations, you can use:
     true,
     /**/
