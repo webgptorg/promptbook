@@ -1,13 +1,20 @@
 import { describe, expect, it } from '@jest/globals';
+import spaceTrim from 'spacetrim';
 import { ZERO_USAGE } from './addUsage';
-import { usageToWorktime } from './usageToWorktime';
+import { usageToHuman } from './usageToHuman';
 
-describe('how usageToWorktime works', () => {
-    it('no usage should return no time', () => expect(usageToWorktime(ZERO_USAGE)).toEqual({ value: 0 }));
+describe('how usageToHuman works', () => {
+    it('no use should return a meaningful report', () =>
+        expect(usageToHuman(ZERO_USAGE)).toEqual(
+            spaceTrim(`
+                Usage:
 
-    it('should count worktime', () =>
+            `),
+        ));
+
+    it('should make report', () =>
         expect(
-            usageToWorktime({
+            usageToHuman({
                 price: { value: 1 },
                 input: {
                     tokensCount: { value: 0 },
@@ -28,11 +35,16 @@ describe('how usageToWorktime works', () => {
                     pagesCount: { value: 6 },
                 },
             }),
-        ).toEqual({ value: 0.01 }));
+        ).toEqual(
+            spaceTrim(`
+                Usage:
+          
+            `),
+        ));
 
-    it('should count uncertain worktime', () =>
+    it('should make report from uncertain usage', () =>
         expect(
-            usageToWorktime({
+            usageToHuman({
                 price: { value: 1, isUncertain: true },
                 input: {
                     tokensCount: { value: 0, isUncertain: true },
@@ -53,5 +65,10 @@ describe('how usageToWorktime works', () => {
                     pagesCount: { value: 6, isUncertain: true },
                 },
             }),
-        ).toEqual({ value: 33.583333333333336, isUncertain: true }));
+        ).toEqual(
+            spaceTrim(`
+                Usage:
+          
+            `),
+        ));
 });

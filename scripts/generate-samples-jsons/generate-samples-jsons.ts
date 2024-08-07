@@ -54,13 +54,13 @@ async function generateSampleJsons({ isCommited, isVerbose }: { isCommited: bool
         const pipelineMarkdown = await readFile(pipelineMarkdownFilePath, 'utf-8');
 
         const llmTools = getLlmToolsForTestingAndScriptsAndPlayground({ isVerbose });
+        //                 <- Note: for example here we don`t want the [🌯]
 
         try {
             const pipelineJson = await pipelineStringToJson(pipelineMarkdown as PipelineString, {
                 llmTools,
             });
             const pipelineJsonFilePath = pipelineMarkdownFilePath.replace(/\.ptbk\.md$/, '.ptbk.json');
-
 
             // Note: We want to ensure that the generated JSONs are logically correct
             validatePipeline(pipelineJson);
@@ -81,6 +81,8 @@ async function generateSampleJsons({ isCommited, isVerbose }: { isCommited: bool
         }
     }
 
+    console.info(colors.cyan(usageToHuman(llmTools.totalUsage)));
+
     if (isCommited) {
         await commit(PROMPTBOOK_SAMPLES_DIR, `📖 Convert samples .ptbk.md -> .ptbk.json`);
     }
@@ -89,6 +91,5 @@ async function generateSampleJsons({ isCommited, isVerbose }: { isCommited: bool
 }
 
 /**
- * TODO: [🎐] Report here total usage
  * TODO: [🍥] When using current time in `preparations` it changes all .ptbk.json files each time so until some more elegant solution omit the time from prepared pipeline
  */

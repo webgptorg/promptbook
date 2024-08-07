@@ -4,7 +4,7 @@ import * as dotenv from 'dotenv';
 
 dotenv.config({ path: '.env' });
 
-import chalk from 'colors';
+import colors from 'colors';
 import { embeddingVectorToString } from '../../../execution/embeddingVectorToString';
 import { JavascriptExecutionTools } from '../../../scripting/javascript/JavascriptExecutionTools';
 import type { Prompt } from '../../../types/Prompt';
@@ -16,7 +16,7 @@ import { joinLlmExecutionTools } from '../joinLlmExecutionTools';
 
 playground()
     .catch((error) => {
-        console.error(chalk.bgRed(error.name || 'NamelessError'));
+        console.error(colors.bgRed(error.name || 'NamelessError'));
         console.error(error);
         process.exit(1);
     })

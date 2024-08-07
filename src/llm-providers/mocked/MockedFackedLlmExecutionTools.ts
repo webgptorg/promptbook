@@ -1,15 +1,9 @@
 import type { CommonExecutionToolsOptions } from '../../execution/CommonExecutionToolsOptions';
-import type { EmbeddingVector } from '../../execution/EmbeddingVector';
-import type { AvailableModel } from '../../execution/LlmExecutionTools';
-import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { ChatPromptResult } from '../../execution/PromptResult';
-import type { CompletionPromptResult } from '../../execution/PromptResult';
-import type { EmbeddingPromptResult } from '../../execution/PromptResult';
-import { addUsage } from '../../execution/utils/addUsage';
+import type { AvailableModel, LlmExecutionTools } from '../../execution/LlmExecutionTools';
+import type { ChatPromptResult, CompletionPromptResult, EmbeddingPromptResult } from '../../execution/PromptResult';
+import { ZERO_USAGE } from '../../execution/utils/addUsage';
 import type { Prompt } from '../../types/Prompt';
-import type { string_markdown } from '../../types/typeAliases';
-import type { string_markdown_text } from '../../types/typeAliases';
-import type { string_title } from '../../types/typeAliases';
+import type { string_markdown, string_markdown_text, string_title } from '../../types/typeAliases';
 import { getCurrentIsoDate } from '../../utils/getCurrentIsoDate';
 import { replaceParameters } from '../../utils/replaceParameters';
 import { $fakeTextToExpectations } from './fakeTextToExpectations';
@@ -41,6 +35,9 @@ export class MockedFackedLlmExecutionTools implements LlmExecutionTools {
         const modelName = 'mocked-facked';
         const rawPromptContent = replaceParameters(prompt.content, { ...prompt.parameters, modelName });
 
+        const usage = ZERO_USAGE;
+        //      <- TODO: [🧠] Compute here at least words, characters,... etc
+
         const content = await $fakeTextToExpectations(
             prompt.expectations || {
                 sentences: { min: 1, max: 1 },
@@ -55,7 +52,7 @@ export class MockedFackedLlmExecutionTools implements LlmExecutionTools {
                 start: getCurrentIsoDate(),
                 complete: getCurrentIsoDate(),
             },
-            usage: addUsage(/* <- TODO: [🧠] Compute here at least words, characters,... etc */),
+            usage,
             rawPromptContent,
             rawRequest: null,
             rawResponse: {
@@ -90,6 +87,9 @@ export class MockedFackedLlmExecutionTools implements LlmExecutionTools {
         const rawPromptContent = replaceParameters(prompt.content, { ...prompt.parameters, modelName });
         const content = new Array(1024).fill(0).map(() => Math.random() * 2 - 1) satisfies EmbeddingVector;
 
+        const usage = ZERO_USAGE;
+        //      <- TODO: [🧠] Compute here at least words, characters,... etc
+
         // TODO: Make content vector exactly length of 1
 
         const result = {
@@ -99,7 +99,7 @@ export class MockedFackedLlmExecutionTools implements LlmExecutionTools {
                 start: getCurrentIsoDate(),
                 complete: getCurrentIsoDate(),
             },
-            usage: addUsage(/* <- TODO: [🧠] Compute here at least words, characters,... etc */),
+            usage,
             rawPromptContent,
             rawRequest: null,
             rawResponse: {

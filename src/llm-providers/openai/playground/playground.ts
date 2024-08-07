@@ -4,7 +4,7 @@ import * as dotenv from 'dotenv';
 
 dotenv.config({ path: '.env' });
 
-import chalk from 'colors';
+import colors from 'colors';
 import { embeddingVectorToString } from '../../../execution/embeddingVectorToString';
 import type { Prompt } from '../../../types/Prompt';
 import { keepUnused } from '../../../utils/organization/keepUnused';
@@ -12,7 +12,7 @@ import { OpenAiExecutionTools } from '../OpenAiExecutionTools';
 
 playground()
     .catch((error) => {
-        console.error(chalk.bgRed(error.name || 'NamelessError'));
+        console.error(colors.bgRed(error.name || 'NamelessError'));
         console.error(error);
         process.exit(1);
     })
@@ -67,8 +67,8 @@ async function playground() {
     } as const satisfies Prompt;
     const chatpromptResult = await openAiExecutionTools.callChatModel(chatprompt);
     console.info({ chatpromptResult });
-    console.info(chalk.bgBlue(' User: ') + chalk.blue(chatprompt.content));
-    console.info(chalk.bgGreen(' Completion: ') + chalk.green(chatpromptResult.content));
+    console.info(colors.bgBlue(' User: ') + colors.blue(chatprompt.content));
+    console.info(colors.bgGreen(' Completion: ') + colors.green(chatpromptResult.content));
     /**/
 
     /*/

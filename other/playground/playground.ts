@@ -4,17 +4,17 @@ import * as dotenv from 'dotenv';
 
 dotenv.config({ path: '.env' });
 
-import chalk from 'colors';
+import colors from 'colors';
 import { join } from 'path';
 
 if (process.cwd() !== join(__dirname, '../..')) {
-    console.error(chalk.red(`CWD must be root of the project`));
+    console.error(colors.red(`CWD must be root of the project`));
     process.exit(1);
 }
 
 playground()
     .catch((error) => {
-        console.error(chalk.bgRed(error.name || 'NamelessError'));
+        console.error(colors.bgRed(error.name || 'NamelessError'));
         console.error(error);
         process.exit(1);
     })

@@ -4,11 +4,12 @@ import type { Promisable } from 'type-fest';
 import { MAX_FILENAME_LENGTH } from '../../../../config';
 import { titleToName } from '../../../../conversion/utils/titleToName';
 import { PipelineExecutionError } from '../../../../errors/PipelineExecutionError';
-import type { AvailableModel } from '../../../../execution/LlmExecutionTools';
-import type { LlmExecutionTools } from '../../../../execution/LlmExecutionTools';
-import type { ChatPromptResult } from '../../../../execution/PromptResult';
-import type { CompletionPromptResult } from '../../../../execution/PromptResult';
-import type { EmbeddingPromptResult } from '../../../../execution/PromptResult';
+import type { AvailableModel, LlmExecutionTools } from '../../../../execution/LlmExecutionTools';
+import type {
+    ChatPromptResult,
+    CompletionPromptResult,
+    EmbeddingPromptResult,
+} from '../../../../execution/PromptResult';
 import { MemoryStorage } from '../../../../storage/memory/MemoryStorage';
 import type { Prompt } from '../../../../types/Prompt';
 import { $currentDate } from '../../../../utils/currentDate';
@@ -20,16 +21,21 @@ import type { CacheLlmToolsOptions } from './CacheLlmToolsOptions';
 /**
  * Intercepts LLM tools and counts total usage of the tools
  *
- * @param llmTools LLM tools to be intercepted with usage counting
+ * Note: It can take extended `LlmExecutionTools` and cache the
+ *
+ * @param llmTools LLM tools to be intercepted with usage counting, it can contain extra methods like `totalUsage`
  * @returns LLM tools with same functionality with added total cost counting
  */
-export function cacheLlmTools(
-    llmTools: LlmExecutionTools,
+export function cacheLlmTools<TLlmTools extends LlmExecutionTools>(
+    llmTools: TLlmTools,
     options: Partial<CacheLlmToolsOptions> = {},
-): LlmExecutionTools {
+): TLlmTools {
     const { storage = new MemoryStorage() } = options;
 
-    const proxyTools: LlmExecutionTools = {
+    const proxyTools: TLlmTools = {
+        ...llmTools,
+        // <- TODO: !!!!!! Is this working?
+
         get title() {
             // TODO: [🧠] Maybe put here some suffix
             return llmTools.title;
@@ -115,8 +121,9 @@ export function cacheLlmTools(
 
 /**
  * TODO: [🔼] !!! Export via `@promptbook/core`
- * TODO: @@@ write discussion about this and storages
- *            write how to combine multiple interceptors
  * TODO: [🧠][💸] Maybe make some common abstraction `interceptLlmTools` and use here (or use javascript Proxy?)
  * TODO: [🧠] Is there some meaningfull way how to test this util
+ * TODO: [👷‍♂️] @@@ Manual about construction of llmTools
+ *            @@@ write discussion about this and storages
+ *            @@@ write how to combine multiple interceptors
  */

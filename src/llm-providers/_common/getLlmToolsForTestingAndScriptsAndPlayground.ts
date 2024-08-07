@@ -7,7 +7,9 @@ import { isRunningInNode } from '../../utils/isRunningInWhatever';
 import type { CreateLlmToolsFromEnvOptions } from './createLlmToolsFromEnv';
 import { createLlmToolsFromEnv } from './createLlmToolsFromEnv';
 import { cacheLlmTools } from './utils/cache/cacheLlmTools';
+import { countTotalUsage } from './utils/count-total-cost/countTotalCost';
 import { limitTotalCost } from './utils/count-total-cost/limitTotalCost';
+import type { LlmExecutionToolsWithTotalCost } from './utils/count-total-cost/LlmExecutionToolsWithTotalCost';
 
 /**
  * Returns LLM tools for testing purposes
@@ -16,24 +18,26 @@ import { limitTotalCost } from './utils/count-total-cost/limitTotalCost';
  */
 export function getLlmToolsForTestingAndScriptsAndPlayground(
     options?: CreateLlmToolsFromEnvOptions,
-): LlmExecutionTools {
+): LlmExecutionToolsWithTotalCost {
     if (!isRunningInNode()) {
         throw new EnvironmentMismatchError(
             'Function `getLlmToolsForTestingAndScriptsAndPlayground` works only in Node.js environment',
         );
     }
 
-    let llmTools: LlmExecutionTools = createLlmToolsFromEnv(options);
+    const llmTools: LlmExecutionTools = createLlmToolsFromEnv(options);
+    const llmToolsWithUsage = DEBUG_ALLOW_PAYED_TESTING
+        ? countTotalUsage(llmTools)
+        : //    <- Note: for example here we don`t want the [🌯]
+          limitTotalCost(llmTools);
+    //          <- Note: for example here we don`t want the [🌯]
 
-    if (!DEBUG_ALLOW_PAYED_TESTING) {
-        llmTools = limitTotalCost(llmTools);
-    }
-
-    return cacheLlmTools(llmTools, {
+    return cacheLlmTools(llmToolsWithUsage, {
         storage: new FilesStorage({ cacheFolderPath: join(process.cwd(), '/executions-cache') }),
     });
 }
 
 /**
  * Note: [⚪] This should never be in any released package
+ * TODO: [👷‍♂️] @@@ Manual about construction of llmTools
  */

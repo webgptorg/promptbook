@@ -51,3 +51,8 @@ export function joinLlmExecutionTools(...llmExecutionTools: Array<LlmExecutionTo
 
     return new MultipleLlmExecutionTools(...llmExecutionTools);
 }
+
+
+/**
+ * TODO: [👷‍♂️] @@@ Manual about construction of llmTools
+ */

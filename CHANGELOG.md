@@ -402,6 +402,13 @@ Working external knowledge, personas, preparation for instruments and actions
 -   Add caching and storage
 -   Export utity `stringifyPipelineJson` to stringify `PipelineJson` with pretty formatting of loooooong knowledge indexes from `@promptbook/core`
 
+### `0.62.0` _(2024-07-8)_
+
+[🎐] Better work with usage
+
+-   Add usage to preparations and reports
+-   Export function `usageToHuman` from `@promptbook/core`
+
 ## In pre-release
 
 ## In prepare

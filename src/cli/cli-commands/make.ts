@@ -6,10 +6,11 @@ import spaceTrim from 'spacetrim';
 import { collectionToJson } from '../../collection/collectionToJson';
 import { createCollectionFromDirectory } from '../../collection/constructors/createCollectionFromDirectory';
 import { PIPELINE_COLLECTION_BASE_FILENAME } from '../../config';
+import { stringifyPipelineJson } from '../../conversion/utils/stringifyPipelineJson';
 import { validatePipeline } from '../../conversion/validation/validatePipeline';
+import { usageToHuman } from '../../execution/utils/usageToHuman';
 import { getLlmToolsForCli } from '../../llm-providers/_common/getLlmToolsForCli';
 import type { string_file_extension } from '../../types/typeAliases';
-import { stringifyPipelineJson } from '../../conversion/utils/stringifyPipelineJson';
 
 /**
  * Initializes `make` command for Promptbook CLI utilities
@@ -197,6 +198,12 @@ export function initializeMakeCommand(program: Program) {
                 // <- TODO: Prettify
                 // <- TODO: Convert inlined \n to spaceTrim
             );
+        }
+
+        if (isVerbose) {
+            // TODO: !!!!!! Test that this works
+            console.info(colors.green(`Collection builded`));
+            console.info(colors.cyan(usageToHuman(llmTools.totalUsage)));
         }
 
         process.exit(0);

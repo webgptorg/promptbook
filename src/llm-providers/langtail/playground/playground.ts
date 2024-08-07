@@ -4,14 +4,14 @@ import * as dotenv from 'dotenv';
 
 dotenv.config({ path: '.env' });
 
-import chalk from 'colors';
+import colors from 'colors';
 import type { Prompt } from '../../../types/Prompt';
 import { keepUnused } from '../../../utils/organization/keepUnused';
 import { LangtailExecutionTools } from '../LangtailExecutionTools';
 
 playground()
     .catch((error) => {
-        console.error(chalk.bgRed(error.name || 'NamelessError'));
+        console.error(colors.bgRed(error.name || 'NamelessError'));
         console.error(error);
         process.exit(1);
     })

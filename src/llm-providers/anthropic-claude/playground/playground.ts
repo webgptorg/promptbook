@@ -4,14 +4,14 @@ import * as dotenv from 'dotenv';
 
 dotenv.config({ path: '.env' });
 
-import chalk from 'colors';
+import colors from 'colors';
 import type { Prompt } from '../../../types/Prompt';
 import { keepUnused } from '../../../utils/organization/keepUnused';
 import { AnthropicClaudeExecutionTools } from '../AnthropicClaudeExecutionTools';
 
 playground()
     .catch((error) => {
-        console.error(chalk.bgRed(error.name || 'NamelessError'));
+        console.error(colors.bgRed(error.name || 'NamelessError'));
         console.error(error);
         process.exit(1);
     })
@@ -66,8 +66,8 @@ async function playground() {
     } as const satisfies Prompt;
     const chatPromptResult = await anthropicClaudeExecutionTools.callChatModel(chatPrompt);
     console.info({ chatPromptResult });
-    console.info(chalk.bgBlue(' User: ') + chalk.blue(chatPrompt.content));
-    console.info(chalk.bgGreen(' Completion: ') + chalk.green(chatPromptResult.content));
+    console.info(colors.bgBlue(' User: ') + colors.blue(chatPrompt.content));
+    console.info(colors.bgGreen(' Completion: ') + colors.green(chatPromptResult.content));
     /**/
 
     /*/

@@ -7,6 +7,7 @@ import colors from 'colors';
 import commander from 'commander';
 import { writeFile } from 'fs/promises';
 import { join } from 'path';
+import { usageToHuman } from '../../_packages/core.index';
 import { collectionToJson } from '../../src/collection/collectionToJson';
 import { createCollectionFromDirectory } from '../../src/collection/constructors/createCollectionFromDirectory';
 import { getLlmToolsForTestingAndScriptsAndPlayground } from '../../src/llm-providers/_common/getLlmToolsForTestingAndScriptsAndPlayground';
@@ -57,6 +58,8 @@ async function makePipelineCollection({ isCommited, isVerbose }: { isCommited: b
 
     const libraryTypescriptFilePath = join(promptbookSourceDir, 'index.ts');
     const libraryTypescriptFileContent = 'export default ' + collectionJsonString + ';\n';
+
+    console.info(colors.cyan(usageToHuman(llmTools.totalUsage)));
 
     // TODO: [🏳‍🌈] Finally take one of .json vs .ts (using .ts file (not .json) to avoid support of json files in bundle )
     await writeFile(collectionJsonFilePath, collectionJsonFileContent, 'utf-8');

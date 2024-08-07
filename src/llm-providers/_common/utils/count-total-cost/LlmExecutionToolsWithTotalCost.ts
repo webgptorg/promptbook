@@ -10,3 +10,8 @@ export type LlmExecutionToolsWithTotalCost = LlmExecutionTools & {
      */
     totalUsage: PromptResultUsage;
 };
+
+
+/**
+ * TODO: [👷‍♂️] @@@ Manual about construction of llmTools
+ */

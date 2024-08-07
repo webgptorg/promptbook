@@ -1,7 +1,9 @@
+import type { Writable } from 'type-fest';
 import { MAX_PARALLEL_COUNT } from '../config';
 import { ZERO_USAGE } from '../execution/utils/addUsage';
 import { forEachAsync } from '../execution/utils/forEachAsync';
 import { prepareKnowledgePieces } from '../knowledge/prepare-knowledge/_common/prepareKnowledgePieces';
+import { countTotalUsage } from '../llm-providers/_common/utils/count-total-cost/countTotalCost';
 import { preparePersona } from '../personas/preparePersona';
 import type { PersonaPreparedJson } from '../types/PipelineJson/PersonaJson';
 import type { PipelineJson } from '../types/PipelineJson/PipelineJson';
@@ -17,7 +19,7 @@ import { prepareTemplates } from './prepareTemplates';
  * Note: This function acts as part of compilation process
  */
 export async function preparePipeline(pipeline: PipelineJson, options: PrepareOptions): Promise<PipelineJson> {
-    const { maxParallelCount = MAX_PARALLEL_COUNT } = options;
+    const { llmTools, maxParallelCount = MAX_PARALLEL_COUNT, isVerbose = false } = options;
     const {
         parameters,
         promptTemplates,
@@ -29,6 +31,9 @@ export async function preparePipeline(pipeline: PipelineJson, options: PrepareOp
         <- TODO: [🧊] `preparations` */,
     } = pipeline;
 
+    const llmToolsWithUsage = countTotalUsage(llmTools);
+    //    <- TODO: [🌯]
+
     /*
     TODO: [🧠][0] Should this be done or not
     if (promptbookVersion !== PROMPTBOOK_VERSION) {
@@ -37,7 +42,7 @@ export async function preparePipeline(pipeline: PipelineJson, options: PrepareOp
     */
 
     // ----- ID -----
-    const currentPreparation: PreparationJson = {
+    const currentPreparation: Writable<PreparationJson> = {
         id: 1, // <- TODO: [🧊] Make incremental
         // TODO: [🍥]> date: $currentDate(),
         promptbookVersion: PROMPTBOOK_VERSION,
@@ -59,7 +64,11 @@ export async function preparePipeline(pipeline: PipelineJson, options: PrepareOp
         personas,
         { maxParallelCount /* <- TODO: [🪂] When there are subtasks, this maximul limit can be broken */ },
         async (persona, index) => {
-            const modelRequirements = await preparePersona(persona.description, options);
+            const modelRequirements = await preparePersona(persona.description, {
+                llmTools: llmToolsWithUsage,
+                maxParallelCount /* <- TODO:  [🪂] */,
+                isVerbose,
+            });
 
             const preparedPersona: PersonaPreparedJson = {
                 ...persona,
@@ -82,7 +91,11 @@ export async function preparePipeline(pipeline: PipelineJson, options: PrepareOp
 
     const partialknowledgePiecesPrepared = await prepareKnowledgePieces(
         knowledgeSources /* <- TODO: [🧊] {knowledgeSources, knowledgePieces} */,
-        options,
+        {
+            llmTools: llmToolsWithUsage,
+            maxParallelCount /* <- TODO:  [🪂] */,
+            isVerbose,
+        },
     );
 
     const knowledgePiecesPrepared = partialknowledgePiecesPrepared.map((piece) => ({
@@ -99,9 +112,16 @@ export async function preparePipeline(pipeline: PipelineJson, options: PrepareOp
             promptTemplates,
             knowledgePiecesCount: knowledgePiecesPrepared.length,
         },
-        options,
+        {
+            llmTools: llmToolsWithUsage,
+            maxParallelCount /* <- TODO:  [🪂] */,
+            isVerbose,
+        },
     );
     // ----- /Templates preparation -----
+
+    // Note: Count total usage
+    currentPreparation.modelUsage = llmToolsWithUsage.totalUsage;
 
     return {
         ...pipeline,
@@ -118,6 +138,5 @@ export async function preparePipeline(pipeline: PipelineJson, options: PrepareOp
  * TODO: Write tests for `preparePipeline`
  * TODO: [🏏] Leverage the batch API and build queues @see https://platform.openai.com/docs/guides/batch
  * TODO: [🧊] In future one preparation can take data from previous preparation and save tokens and time
- * TODO: [🎐] !!!!! Use here countTotalUsage
  * TODO: [🛠] Actions, instruments (and maybe knowledge) => Functions and tools
  */

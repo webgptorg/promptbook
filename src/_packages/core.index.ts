@@ -28,6 +28,7 @@ import { embeddingVectorToString } from '../execution/embeddingVectorToString';
 import { addUsage } from '../execution/utils/addUsage';
 import { checkExpectations, isPassingExpectations } from '../execution/utils/checkExpectations';
 import { usageToWorktime } from '../execution/utils/usageToWorktime';
+import { usageToHuman } from '../execution/utils/usageToHuman';
 import { CallbackInterfaceTools } from '../knowledge/dialogs/callback/CallbackInterfaceTools';
 import type { CallbackInterfaceToolsOptions } from '../knowledge/dialogs/callback/CallbackInterfaceToolsOptions';
 import { SimplePromptInterfaceTools } from '../knowledge/dialogs/simple-prompt/SimplePromptInterfaceTools';
@@ -59,6 +60,7 @@ export {
     prepareKnowledgeFromMarkdown,
     prettifyPipelineString,
     usageToWorktime,
+    usageToHuman,
 };
 
 // @promptbook/library

@@ -4,18 +4,19 @@ import * as dotenv from 'dotenv';
 
 dotenv.config({ path: '.env' });
 
-import chalk from 'colors';
+import colors from 'colors';
 import { readFile, writeFile } from 'fs/promises';
 import { join } from 'path';
 import { stringifyPipelineJson } from '../../../../conversion/utils/stringifyPipelineJson';
 import { getLlmToolsForTestingAndScriptsAndPlayground } from '../../../../llm-providers/_common/getLlmToolsForTestingAndScriptsAndPlayground';
+import { usageToHuman } from '../../_packages/core.index';
 import { prepareKnowledgeFromMarkdown } from '../prepareKnowledgeFromMarkdown';
 
 const isVerbose = true;
 
 playground()
     .catch((error) => {
-        console.error(chalk.bgRed(error.name || 'NamelessError'));
+        console.error(colors.bgRed(error.name || 'NamelessError'));
         console.error(error);
         process.exit(1);
     })
@@ -44,7 +45,8 @@ async function playground() {
         isVerbose,
     });
 
-    console.info(chalk.bgGreen(' Knowledge: '));
+    console.info(colors.cyan(usageToHuman(llmTools.totalUsage)));
+    console.info(colors.bgGreen(' Knowledge: '));
     console.info(knowledge);
 
     await writeFile(

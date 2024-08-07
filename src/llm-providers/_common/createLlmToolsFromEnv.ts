@@ -78,4 +78,5 @@ export function createLlmToolsFromEnv(options: CreateLlmToolsFromEnvOptions = {}
  * TODO: [🧠] Is there some meaningfull way how to test this util
  * TODO: [🧠] Maybe pass env as argument
  * Note: [🟢] This code should never be published outside of `@promptbook/node`
+ * TODO: [👷‍♂️] @@@ Manual about construction of llmTools
  */
