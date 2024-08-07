@@ -19,6 +19,8 @@ export type CreateLlmToolsFromEnvOptions = {
  * @@@
  *
  * Note: This function is not cached, every call creates new instance of `LlmExecutionTools`
+ * 
+ * @@@ .env
  *
  * It looks for environment variables:
  * - `process.env.OPENAI_API_KEY`
@@ -32,6 +34,8 @@ export function createLlmToolsFromEnv(options: CreateLlmToolsFromEnvOptions = {}
     }
 
     const { isVerbose = false } = options;
+
+    // TODO: !!!!!!! Load from .env file
 
     const llmTools: Array<LlmExecutionTools> = [];
 
