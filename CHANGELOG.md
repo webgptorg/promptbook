@@ -374,9 +374,7 @@ Renaming and making names more consistent and less disambigous
 -   Rename folder `promptbook-collection` -> `promptbook-collection`
 -   In CLI you ca use both `promptbook` and `ptbk`
 
-## In pre-release
-
-### `0.61.0` _(2024-07-!!!)_
+### `0.61.0` _(2024-07-8)_
 
 Big syntax additions
 Working external knowledge, personas, preparation for instruments and actions
@@ -403,6 +401,8 @@ Working external knowledge, personas, preparation for instruments and actions
 -   Code blocks can be noteted both by ``` and >
 -   Add caching and storage
 -   Export utity `stringifyPipelineJson` to stringify `PipelineJson` with pretty formatting of loooooong knowledge indexes from `@promptbook/core`
+
+## In pre-release
 
 ## In prepare
 
