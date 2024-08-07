@@ -7,9 +7,9 @@ import { isRunningInNode } from '../../utils/isRunningInWhatever';
 import type { CreateLlmToolsFromEnvOptions } from './createLlmToolsFromEnv';
 import { createLlmToolsFromEnv } from './createLlmToolsFromEnv';
 import { cacheLlmTools } from './utils/cache/cacheLlmTools';
-import { countTotalUsage } from './utils/count-total-cost/countTotalCost';
-import { limitTotalCost } from './utils/count-total-cost/limitTotalCost';
-import type { LlmExecutionToolsWithTotalCost } from './utils/count-total-cost/LlmExecutionToolsWithTotalCost';
+import { countTotalUsage } from './utils/count-total-usage/countTotalUsage';
+import { limitTotalUsage } from './utils/count-total-usage/limitTotalUsage';
+import type { LlmExecutionToolsWithTotalUsage } from './utils/count-total-usage/LlmExecutionToolsWithTotalUsage';
 
 /**
  * Returns LLM tools for testing purposes
@@ -18,7 +18,7 @@ import type { LlmExecutionToolsWithTotalCost } from './utils/count-total-cost/Ll
  */
 export function getLlmToolsForTestingAndScriptsAndPlayground(
     options?: CreateLlmToolsFromEnvOptions,
-): LlmExecutionToolsWithTotalCost {
+): LlmExecutionToolsWithTotalUsage {
     if (!isRunningInNode()) {
         throw new EnvironmentMismatchError(
             'Function `getLlmToolsForTestingAndScriptsAndPlayground` works only in Node.js environment',
@@ -29,7 +29,7 @@ export function getLlmToolsForTestingAndScriptsAndPlayground(
     const llmToolsWithUsage = DEBUG_ALLOW_PAYED_TESTING
         ? countTotalUsage(llmTools)
         : //    <- Note: for example here we don`t want the [🌯]
-          limitTotalCost(llmTools);
+          limitTotalUsage(llmTools);
     //          <- Note: for example here we don`t want the [🌯]
 
     return cacheLlmTools(llmToolsWithUsage, {

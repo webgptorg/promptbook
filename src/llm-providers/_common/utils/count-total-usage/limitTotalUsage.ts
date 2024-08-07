@@ -1,7 +1,11 @@
 import { LimitReachedError } from '../../../../errors/LimitReachedError';
 import { NotYetImplementedError } from '../../../../errors/NotYetImplementedError';
 import type { LlmExecutionTools } from '../../../../execution/LlmExecutionTools';
-import type { ChatPromptResult, CompletionPromptResult, EmbeddingPromptResult } from '../../../../execution/PromptResult';
+import type {
+    ChatPromptResult,
+    CompletionPromptResult,
+    EmbeddingPromptResult,
+} from '../../../../execution/PromptResult';
 import type { PromptResultUsage } from '../../../../execution/PromptResultUsage';
 import { ZERO_USAGE } from '../../../../execution/utils/addUsage';
 import { MemoryStorage } from '../../../../storage/memory/MemoryStorage';
@@ -9,19 +13,19 @@ import type { PromptbookStorage } from '../../../../storage/_common/PromptbookSt
 import type { ChatPrompt, CompletionPrompt, EmbeddingPrompt } from '../../../../types/Prompt';
 import type { TODO_any } from '../../../../utils/organization/TODO_any';
 import { TODO_USE } from '../../../../utils/organization/TODO_USE';
-import { countTotalUsage } from './countTotalCost';
-import type { LlmExecutionToolsWithTotalCost } from './LlmExecutionToolsWithTotalCost';
+import { countTotalUsage } from './countTotalUsage';
+import type { LlmExecutionToolsWithTotalUsage } from './LlmExecutionToolsWithTotalUsage';
 
 /**
- * Options for `limitTotalCost`
+ * Options for `limitTotalUsage`
  */
-type LimitTotalCostOptions = {
+type LimitTotalUsageOptions = {
     /**
      * @@@
      *
      * @default ZERO_USAGE
      */
-    maxTotalCost: PromptResultUsage;
+    maxTotalUsage: PromptResultUsage;
 
     /**
      * @@@
@@ -34,18 +38,18 @@ type LimitTotalCostOptions = {
 /**
  * @@@
  */
-export function limitTotalCost(
+export function limitTotalUsage(
     llmTools: LlmExecutionTools,
-    options: Partial<LimitTotalCostOptions> = {},
-): LlmExecutionToolsWithTotalCost {
-    const { maxTotalCost = ZERO_USAGE, storage = new MemoryStorage() } = options;
+    options: Partial<LimitTotalUsageOptions> = {},
+): LlmExecutionToolsWithTotalUsage {
+    const { maxTotalUsage = ZERO_USAGE, storage = new MemoryStorage() } = options;
 
     TODO_USE(storage);
 
     const proxyTools = countTotalUsage(llmTools);
 
-    if (maxTotalCost.price.value !== 0) {
-        throw new NotYetImplementedError('`limitTotalCost` is not yet implemented for non-zero price');
+    if (maxTotalUsage.price.value !== 0) {
+        throw new NotYetImplementedError('`limitTotalUsage` is not yet implemented for non-zero price');
 
         // TODO: "Cannot call `callChatModel` because the total cost limit is reached"
     }

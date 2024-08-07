@@ -1,10 +1,14 @@
 import type { Promisable } from 'type-fest';
 import type { AvailableModel, LlmExecutionTools } from '../../../../execution/LlmExecutionTools';
-import type { ChatPromptResult, CompletionPromptResult, EmbeddingPromptResult } from '../../../../execution/PromptResult';
+import type {
+    ChatPromptResult,
+    CompletionPromptResult,
+    EmbeddingPromptResult,
+} from '../../../../execution/PromptResult';
 import type { PromptResultUsage } from '../../../../execution/PromptResultUsage';
 import { addUsage, ZERO_USAGE } from '../../../../execution/utils/addUsage';
 import type { ChatPrompt, CompletionPrompt, EmbeddingPrompt } from '../../../../types/Prompt';
-import type { LlmExecutionToolsWithTotalCost } from './LlmExecutionToolsWithTotalCost';
+import type { LlmExecutionToolsWithTotalUsage } from './LlmExecutionToolsWithTotalUsage';
 
 /**
  * Intercepts LLM tools and counts total usage of the tools
@@ -12,10 +16,10 @@ import type { LlmExecutionToolsWithTotalCost } from './LlmExecutionToolsWithTota
  * @param llmTools LLM tools to be intercepted with usage counting
  * @returns LLM tools with same functionality with added total cost counting
  */
-export function countTotalUsage(llmTools: LlmExecutionTools): LlmExecutionToolsWithTotalCost {
+export function countTotalUsage(llmTools: LlmExecutionTools): LlmExecutionToolsWithTotalUsage {
     let totalUsage: PromptResultUsage = ZERO_USAGE;
 
-    const proxyTools: LlmExecutionToolsWithTotalCost = {
+    const proxyTools: LlmExecutionToolsWithTotalUsage = {
         get title() {
             // TODO: [🧠] Maybe put here some suffix
             return llmTools.title;

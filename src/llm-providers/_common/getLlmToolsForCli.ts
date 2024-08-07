@@ -5,15 +5,15 @@ import { FilesStorage } from '../../storage/files-storage/FilesStorage';
 import { isRunningInNode } from '../../utils/isRunningInWhatever';
 import { createLlmToolsFromEnv } from './createLlmToolsFromEnv';
 import { cacheLlmTools } from './utils/cache/cacheLlmTools';
-import { countTotalUsage } from './utils/count-total-cost/countTotalCost';
-import type { LlmExecutionToolsWithTotalCost } from './utils/count-total-cost/LlmExecutionToolsWithTotalCost';
+import { countTotalUsage } from './utils/count-total-usage/countTotalUsage';
+import type { LlmExecutionToolsWithTotalUsage } from './utils/count-total-usage/LlmExecutionToolsWithTotalUsage';
 
 /**
  * Returns LLM tools for CLI
  *
  * @private within the repository - for CLI utils
  */
-export function getLlmToolsForCli(): LlmExecutionToolsWithTotalCost {
+export function getLlmToolsForCli(): LlmExecutionToolsWithTotalUsage {
     if (!isRunningInNode()) {
         throw new EnvironmentMismatchError(
             'Function `getLlmToolsForTestingAndScriptsAndPlayground` works only in Node.js environment',

@@ -408,6 +408,7 @@ Working external knowledge, personas, preparation for instruments and actions
 
 -   Add usage to preparations and reports
 -   Export function `usageToHuman` from `@promptbook/core`
+-   Rename `TotalCost` to `TotalUsage`
 
 ## In pre-release
 
