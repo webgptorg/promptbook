@@ -1,7 +1,7 @@
 import spaceTrim from 'spacetrim';
 import type { string_markdown } from '../../types/typeAliases';
 import type { PromptResultUsage } from '../PromptResultUsage';
-import { UncertainNumber } from '../UncertainNumber';
+import type { UncertainNumber } from '../UncertainNumber';
 import { usageToWorktime } from './usageToWorktime';
 
 /**
