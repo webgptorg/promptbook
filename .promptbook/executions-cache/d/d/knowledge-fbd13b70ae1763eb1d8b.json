@@ -1,0 +1,114 @@
+{
+    "date": "2024-08-07T14:39:49.548Z",
+    "promptbookVersion": "0.62.0-0",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-title.ptbk.md#knowledge",
+        "parameters": {
+            "knowledgePieceContent": "Pavol is a member of the Ainautes consulting group, which supports the deployment of generative AI around the world. He develops the WebGPT web page generation service."
+        },
+        "content": "You are experienced content creator, write best title for the document.\n\n# Rules\n\n-   Write just title, nothing else\n-   Title should be concise and clear\n-   Write maximum 5 words for the title\n\n# The document\n\n> {knowledgePieceContent}",
+        "modelRequirements": {
+            "modelVariant": "CHAT",
+            "modelName": "claude-3-opus-20240229"
+        },
+        "expectations": {
+            "words": {
+                "min": 1,
+                "max": 8
+            }
+        },
+        "postprocessing": []
+    },
+    "promptResult": {
+        "content": "WebGPT: Generating Web Pages Worldwide",
+        "modelName": "claude-3-opus-20240229",
+        "timing": {
+            "start": "2024-08-07T14:39:47.902Z",
+            "complete": "2024-08-07T14:39:49.548Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0,
+                "isUncertain": true
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 0,
+                    "isUncertain": true
+                },
+                "charactersCount": {
+                    "value": 237
+                },
+                "wordsCount": {
+                    "value": 33
+                },
+                "sentencesCount": {
+                    "value": 2
+                },
+                "linesCount": {
+                    "value": 11
+                },
+                "paragraphsCount": {
+                    "value": 5
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 0,
+                    "isUncertain": true
+                },
+                "charactersCount": {
+                    "value": 237
+                },
+                "wordsCount": {
+                    "value": 33
+                },
+                "sentencesCount": {
+                    "value": 2
+                },
+                "linesCount": {
+                    "value": 11
+                },
+                "paragraphsCount": {
+                    "value": 5
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced content creator, write best title for the document.\n\n# Rules\n\n-   Write just title, nothing else\n-   Title should be concise and clear\n-   Write maximum 5 words for the title\n\n# The document\n\n> Pavol is a member of the Ainautes consulting group, which supports the deployment of generative AI around the world. He develops the WebGPT web page generation service.",
+        "rawRequest": {
+            "model": "claude-3-opus-20240229",
+            "max_tokens": 4096,
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "You are experienced content creator, write best title for the document.\n\n# Rules\n\n-   Write just title, nothing else\n-   Title should be concise and clear\n-   Write maximum 5 words for the title\n\n# The document\n\n> Pavol is a member of the Ainautes consulting group, which supports the deployment of generative AI around the world. He develops the WebGPT web page generation service."
+                }
+            ]
+        },
+        "rawResponse": {
+            "id": "msg_01XEV1mRr5s4nuiMM6iyyZRj",
+            "type": "message",
+            "role": "assistant",
+            "model": "claude-3-opus-20240229",
+            "content": [
+                {
+                    "type": "text",
+                    "text": "WebGPT: Generating Web Pages Worldwide"
+                }
+            ],
+            "stop_reason": "end_turn",
+            "stop_sequence": null,
+            "usage": {
+                "input_tokens": 99,
+                "output_tokens": 14
+            }
+        }
+    }
+}

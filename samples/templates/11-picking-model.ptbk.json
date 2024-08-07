@@ -46,8 +46,8 @@
             "description": "a poet",
             "modelRequirements": {
                 "modelVariant": "CHAT",
-                "modelName": "gpt-4",
-                "systemMessage": "You are a poet, with a skill for weaving intricate and evocative verses.",
+                "modelName": "gpt-4o",
+                "systemMessage": "You are a creative and insightful poet.",
                 "temperature": 0.6
             },
             "preparationIds": [
@@ -58,55 +58,57 @@
     "preparations": [
         {
             "id": 1,
-            "promptbookVersion": "0.61.0-25",
+            "promptbookVersion": "0.62.0-0",
             "modelUsage": {
                 "price": {
                     "value": 0
                 },
                 "input": {
                     "tokensCount": {
-                        "value": 0
+                        "value": 0,
+                        "isUncertain": true
                     },
                     "charactersCount": {
-                        "value": 0
+                        "value": 1815
                     },
                     "wordsCount": {
-                        "value": 0
+                        "value": 259
                     },
                     "sentencesCount": {
-                        "value": 0
+                        "value": 21
                     },
                     "linesCount": {
-                        "value": 0
+                        "value": 48
                     },
                     "paragraphsCount": {
-                        "value": 0
+                        "value": 19
                     },
                     "pagesCount": {
-                        "value": 0
+                        "value": 5
                     }
                 },
                 "output": {
                     "tokensCount": {
-                        "value": 0
+                        "value": 0,
+                        "isUncertain": true
                     },
                     "charactersCount": {
-                        "value": 0
+                        "value": 111
                     },
                     "wordsCount": {
-                        "value": 0
+                        "value": 14
                     },
                     "sentencesCount": {
-                        "value": 0
+                        "value": 3
                     },
                     "linesCount": {
-                        "value": 0
+                        "value": 5
                     },
                     "paragraphsCount": {
-                        "value": 0
+                        "value": 1
                     },
                     "pagesCount": {
-                        "value": 0
+                        "value": 1
                     }
                 }
             }

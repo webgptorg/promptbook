@@ -11,6 +11,7 @@ import { join } from 'path';
 import { pipelineStringToJson } from '../../src/conversion/pipelineStringToJson';
 import { stringifyPipelineJson } from '../../src/conversion/utils/stringifyPipelineJson';
 import { validatePipeline } from '../../src/conversion/validation/validatePipeline';
+import { usageToHuman } from '../../src/execution/utils/usageToHuman';
 //import { MockedFackedLlmExecutionTools } from '../../src/llm-providers/mocked/MockedFackedLlmExecutionTools';
 import { getLlmToolsForTestingAndScriptsAndPlayground } from '../../src/llm-providers/_common/getLlmToolsForTestingAndScriptsAndPlayground';
 import { PipelineString } from '../../src/types/PipelineString';
@@ -48,13 +49,13 @@ async function generateSampleJsons({ isCommited, isVerbose }: { isCommited: bool
         throw new Error(`Working tree is not clean`);
     }
 
+    const llmTools = getLlmToolsForTestingAndScriptsAndPlayground({ isVerbose });
+    //                 <- Note: for example here we don`t want the [🌯]
+
     for (const pipelineMarkdownFilePath of await glob(
         join(PROMPTBOOK_SAMPLES_DIR, '*.ptbk.md').split('\\').join('/'),
     )) {
         const pipelineMarkdown = await readFile(pipelineMarkdownFilePath, 'utf-8');
-
-        const llmTools = getLlmToolsForTestingAndScriptsAndPlayground({ isVerbose });
-        //                 <- Note: for example here we don`t want the [🌯]
 
         try {
             const pipelineJson = await pipelineStringToJson(pipelineMarkdown as PipelineString, {

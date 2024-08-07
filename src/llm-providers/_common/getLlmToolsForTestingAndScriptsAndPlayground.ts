@@ -1,5 +1,5 @@
 import { join } from 'path';
-import { DEBUG_ALLOW_PAYED_TESTING } from '../../config';
+import { DEBUG_ALLOW_PAYED_TESTING, EXECUTIONS_CACHE_DIRNAME } from '../../config';
 import { EnvironmentMismatchError } from '../../errors/EnvironmentMismatchError';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import { FilesStorage } from '../../storage/files-storage/FilesStorage';
@@ -33,7 +33,7 @@ export function getLlmToolsForTestingAndScriptsAndPlayground(
     //          <- Note: for example here we don`t want the [🌯]
 
     return cacheLlmTools(llmToolsWithUsage, {
-        storage: new FilesStorage({ cacheFolderPath: join(process.cwd(), '/executions-cache') }),
+        storage: new FilesStorage({ cacheFolderPath: join(process.cwd(), EXECUTIONS_CACHE_DIRNAME) }),
     });
 }
 
