@@ -60,6 +60,7 @@ type CreatePipelineCollectionFromDirectoryOptions = PipelineStringToJsonOptions 
  * @param path - path to the directory with pipelines
  * @param options - Misc options for the collection
  * @returns PipelineCollection
+ * @public exported from `@promptbook/node`
  */
 export async function createCollectionFromDirectory(
     path: string_folder_path,

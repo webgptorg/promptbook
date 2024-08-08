@@ -34,6 +34,8 @@ export const ZERO_USAGE = deepFreeze({
  * Function `addUsage` will add multiple usages into one
  *
  * Note: If you provide 0 values, it returns ZERO_USAGE
+ *
+ * @public exported from `@promptbook/core`
  */
 export function addUsage(...usageItems: Array<PromptResultUsage>): PromptResultUsage {
     return usageItems.reduce<PromptResultUsage>((acc: WritableDeep<PromptResultUsage>, item) => {

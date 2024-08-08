@@ -55,6 +55,8 @@ export const REPLACING_NONCE = 'u$k42k%!V2zo34w7Fu#@QUHYPW';
 
 /**
  * The names of the parameters that are reserved for special purposes
+ *
+ * @public exported from `@promptbook/core`
  */
 export const RESERVED_PARAMETER_NAMES = deepFreeze([
     'content',

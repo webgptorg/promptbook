@@ -11,6 +11,7 @@ import { capitalize } from '../utils/normalization/capitalize';
  *
  * @param pipelineJson Promptbook in JSON format (.ptbk.json)
  * @returns Promptbook in string format (.ptbk.md)
+ * @public exported from `@promptbook/core`
  */
 export function pipelineJsonToString(pipelineJson: PipelineJson): PipelineString {
     const { title, pipelineUrl, promptbookVersion, description, parameters, promptTemplates } = pipelineJson;

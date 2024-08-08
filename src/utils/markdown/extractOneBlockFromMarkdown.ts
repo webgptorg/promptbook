@@ -16,6 +16,7 @@ import { extractAllBlocksFromMarkdown } from './extractAllBlocksFromMarkdown';
  *
  * @param markdown any valid markdown
  * @returns code block with language and content
+ * @public exported from `@promptbook/markdown-utils`
  */
 export function extractOneBlockFromMarkdown(markdown: string_markdown): CodeBlock {
     const codeBlocks = extractAllBlocksFromMarkdown(markdown);

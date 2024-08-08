@@ -7,6 +7,9 @@ import { AnthropicClaudeExecutionTools } from '../anthropic-claude/AnthropicClau
 import { joinLlmExecutionTools } from '../multiple/joinLlmExecutionTools';
 import { OpenAiExecutionTools } from '../openai/OpenAiExecutionTools';
 
+/**
+ * @privxxate <- TODO: !!!!!! Warn that not private or exported
+ */
 export type CreateLlmToolsFromEnvOptions = {
     /**
      * This will will be passed to the created `LlmExecutionTools`
@@ -28,6 +31,7 @@ export type CreateLlmToolsFromEnvOptions = {
  * - `process.env.ANTHROPIC_CLAUDE_API_KEY`
  *
  * @returns @@@
+ * @public exported from `@promptbook/node`
  */
 export function createLlmToolsFromEnv(options: CreateLlmToolsFromEnvOptions = {}): LlmExecutionTools {
     if (!isRunningInNode()) {

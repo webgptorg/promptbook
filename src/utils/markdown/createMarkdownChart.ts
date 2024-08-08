@@ -1,5 +1,4 @@
-import type { string_markdown } from '../../types/typeAliases';
-import type { string_markdown_text } from '../../types/typeAliases';
+import type { string_markdown, string_markdown_text } from '../../types/typeAliases';
 import type { FromtoItems } from '../FromtoItems';
 import { formatNumber } from '../formatNumber';
 import { removeEmojis } from '../removeEmojis';
@@ -38,7 +37,7 @@ type CreateMarkdownChartOptions = {
 /**
  * Function createMarkdownChart will draw a chart in markdown from ⬛+🟦 tiles
  *
- * @private within the repository
+ * @public exported from `@promptbook/markdown-utils`
  */
 export function createMarkdownChart(options: CreateMarkdownChartOptions): string_markdown {
     const { nameHeader, valueHeader, items, width, unitName } = options;

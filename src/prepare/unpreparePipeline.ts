@@ -3,6 +3,8 @@ import { extractParameterNames } from '../utils/extractParameterNames';
 
 /**
  * Unprepare just strips the preparation data of the pipeline
+ * 
+ * @public exported from `@promptbook/core`
  */
 export function unpreparePipeline(pipeline: PipelineJson): PipelineJson {
     let { personas, knowledgeSources, promptTemplates } = pipeline;

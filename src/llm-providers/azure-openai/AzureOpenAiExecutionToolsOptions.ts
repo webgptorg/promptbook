@@ -1,11 +1,11 @@
 import type { CommonExecutionToolsOptions } from '../../execution/CommonExecutionToolsOptions';
-import type { string_name } from '../../types/typeAliases';
-import type { string_token } from '../../types/typeAliases';
+import type { string_name, string_token } from '../../types/typeAliases';
 
 /**
  * Options for `AzureOpenAiExecutionTools`
  *
  * @see https://oai.azure.com/portal/
+ * @public exported from `@promptbook/azure-openai`
  */
 export type AzureOpenAiExecutionToolsOptions = CommonExecutionToolsOptions & {
     /**

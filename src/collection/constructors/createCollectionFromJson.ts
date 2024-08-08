@@ -10,6 +10,7 @@ import { SimplePipelineCollection } from '../SimplePipelineCollection';
  *
  * @param promptbookSources
  * @returns PipelineCollection
+ * @public exported from `@promptbook/core`
  */
 export function createCollectionFromJson(...promptbooks: Array<PipelineJson>): PipelineCollection {
     return new SimplePipelineCollection(...promptbooks);

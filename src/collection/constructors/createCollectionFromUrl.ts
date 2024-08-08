@@ -23,8 +23,8 @@ type CreatePipelineCollectionFromUrlyOptions = {
 
 /**
  * Constructs Promptbook from remote Promptbase URL
-
  * @returns PipelineCollection
+ * @public exported from `@promptbook/core`
  */
 export async function createCollectionFromUrl(
     url: string_url | URL,

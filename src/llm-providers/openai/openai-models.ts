@@ -9,6 +9,7 @@ import { computeUsage } from './computeUsage';
  *
  * @see https://platform.openai.com/docs/models/
  * @see https://openai.com/api/pricing/
+ * @public exported from `@promptbook/openai`
  */
 export const OPENAI_MODELS: Array<
     AvailableModel & {

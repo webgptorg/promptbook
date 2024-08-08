@@ -18,6 +18,8 @@ import { countWorkingDuration } from './countWorkingDuration';
 
 /**
  * Converts execution report from JSON to string format
+ * 
+ * @public exported from `@promptbook/core`
  */
 export function executionReportJsonToString(
     executionReportJson: ExecutionReportJson,

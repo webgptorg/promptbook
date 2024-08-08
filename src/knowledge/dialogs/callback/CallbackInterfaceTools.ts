@@ -6,6 +6,8 @@ import type { CallbackInterfaceToolsOptions } from './CallbackInterfaceToolsOpti
 /**
  * Delagates the user interaction to a async callback function
  * You need to provide your own implementation of this callback function and its bind to UI.
+ * 
+ * @public exported from `@promptbook/core`
  */
 export class CallbackInterfaceTools implements UserInterfaceTools {
     public constructor(private readonly options: CallbackInterfaceToolsOptions) {}

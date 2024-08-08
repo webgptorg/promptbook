@@ -1,5 +1,7 @@
 /**
  * This error indicates that the pipeline collection cannot be propperly loaded
+ *
+ * @public exported from `@promptbook/core`
  */
 export class CollectionError extends Error {
     public readonly name = 'CollectionError';

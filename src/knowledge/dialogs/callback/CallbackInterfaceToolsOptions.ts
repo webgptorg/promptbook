@@ -4,6 +4,8 @@ import type { UserInterfaceToolsPromptDialogOptions } from '../../../execution/U
 
 /**
  * Options for `CallbackInterfaceTools`
+ * 
+ * @public exported from `@promptbook/core`
  */
 export type CallbackInterfaceToolsOptions = CommonExecutionToolsOptions & {
     /**

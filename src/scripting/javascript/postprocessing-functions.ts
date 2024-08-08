@@ -31,6 +31,12 @@ const trim = (str: string) => str.trim();
 // TODO: DRY [🍯]
 const reverse = (str: string) => str.split('').reverse().join('');
 
+
+/**
+ * @@@
+ * 
+ * @public exported from `@promptbook/execute-javascript`
+ */
 export const POSTPROCESSING_FUNCTIONS = {
     spaceTrim,
     removeQuotes,

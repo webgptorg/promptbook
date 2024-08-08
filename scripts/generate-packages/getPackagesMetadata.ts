@@ -23,7 +23,11 @@ export async function getPackagesMetadata(): Promise<Array<PackageMetadata>> {
             // TODO: !!!!!!! Every entity MUST be exported or marked as `@private`
             // TODO: !!!!!! Export all types to `@promptbook/types`
 
-            if (!(anotation || '').includes(packageFullname)) {
+            if (
+                !(anotation || '').includes(
+                    packageFullname,
+                ) /* <- TODO: !!!!!! Better detection of exported status - expect "@public exported from `@promptbook/core`" */
+            ) {
                 continue;
             }
 

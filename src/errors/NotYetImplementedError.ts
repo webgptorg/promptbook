@@ -2,6 +2,8 @@ import { spaceTrim } from 'spacetrim';
 
 /**
  * This error type indicates that some part of the code is not implemented yet
+ * 
+ * @public exported from `@promptbook/core`
  */
 export class NotYetImplementedError extends Error {
     public readonly name = 'NotYetImplementedError';
