@@ -1,7 +1,13 @@
-// @promptbook/langtail
-
+// `@promptbook/langtail`
+import { PROMPTBOOK_VERSION } from '../version';
 import { LangtailExecutionTools } from '../llm-providers/langtail/LangtailExecutionTools';
 import type { LangtailExecutionToolsOptions } from '../llm-providers/langtail/LangtailExecutionToolsOptions';
 
+
 // Note: Exporting version from each package
-export { LangtailExecutionTools, LangtailExecutionToolsOptions };
+export { PROMPTBOOK_VERSION };
+
+
+// Note: Entities of the `@promptbook/langtail`
+export { LangtailExecutionTools };
+export type { LangtailExecutionToolsOptions };

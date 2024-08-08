@@ -1,32 +1,37 @@
-// @promptbook/core
-
+// `@promptbook/core`
+import { PROMPTBOOK_VERSION } from '../version';
 import { collectionToJson } from '../collection/collectionToJson';
 import { createCollectionFromJson } from '../collection/constructors/createCollectionFromJson';
 import { createCollectionFromPromise } from '../collection/constructors/createCollectionFromPromise';
 import { createCollectionFromUrl } from '../collection/constructors/createCollectionFromUrl';
 import { createSubcollection } from '../collection/constructors/createSubcollection';
+import type { BlockType } from '../commands/BLOCK/BlockTypes';
 import { BlockTypes } from '../commands/BLOCK/BlockTypes';
 import { RESERVED_PARAMETER_NAMES } from '../config';
 import { pipelineJsonToString } from '../conversion/pipelineJsonToString';
+import type { PipelineStringToJsonOptions } from '../conversion/pipelineStringToJson';
 import { pipelineStringToJson } from '../conversion/pipelineStringToJson';
 import { pipelineStringToJsonSync } from '../conversion/pipelineStringToJsonSync';
 import { prettifyPipelineString } from '../conversion/prettify/prettifyPipelineString';
 import { stringifyPipelineJson } from '../conversion/utils/stringifyPipelineJson';
 import { validatePipeline } from '../conversion/validation/validatePipeline';
 import { CollectionError } from '../errors/CollectionError';
+import { EnvironmentMismatchError } from '../errors/EnvironmentMismatchError';
+import { LimitReachedError } from '../errors/LimitReachedError';
 import { NotFoundError } from '../errors/NotFoundError';
+import { NotYetImplementedError } from '../errors/NotYetImplementedError';
 import { ParsingError } from '../errors/ParsingError';
 import { PipelineExecutionError } from '../errors/PipelineExecutionError';
 import { PipelineLogicError } from '../errors/PipelineLogicError';
 import { ReferenceError } from '../errors/ReferenceError';
 import { UnexpectedError } from '../errors/UnexpectedError';
 import { VersionMismatchError } from '../errors/VersionMismatchError';
-import { ExpectError } from '../errors/_ExpectError';
 import { assertsExecutionSuccessful } from '../execution/assertsExecutionSuccessful';
 import { createPipelineExecutor } from '../execution/createPipelineExecutor';
 import { embeddingVectorToString } from '../execution/embeddingVectorToString';
 import { addUsage } from '../execution/utils/addUsage';
-import { checkExpectations, isPassingExpectations } from '../execution/utils/checkExpectations';
+import { checkExpectations } from '../execution/utils/checkExpectations';
+import { isPassingExpectations } from '../execution/utils/checkExpectations';
 import { usageToHuman } from '../execution/utils/usageToHuman';
 import { usageToWorktime } from '../execution/utils/usageToWorktime';
 import { CallbackInterfaceTools } from '../knowledge/dialogs/callback/CallbackInterfaceTools';
@@ -36,70 +41,57 @@ import { prepareKnowledgeFromMarkdown } from '../knowledge/prepare-knowledge/mar
 import { joinLlmExecutionTools } from '../llm-providers/multiple/joinLlmExecutionTools';
 import { preparePipeline } from '../prepare/preparePipeline';
 import { unpreparePipeline } from '../prepare/unpreparePipeline';
+import { executionReportJsonToString } from '../types/execution-report/executionReportJsonToString';
 import type { ExecutionReportStringOptions } from '../types/execution-report/ExecutionReportStringOptions';
 import { ExecutionReportStringOptionsDefaults } from '../types/execution-report/ExecutionReportStringOptions';
-import { executionReportJsonToString } from '../types/execution-report/executionReportJsonToString';
+
 
 // Note: Exporting version from each package
+export { PROMPTBOOK_VERSION };
 
-// @promptbook/core
-export { BlockTypes, RESERVED_PARAMETER_NAMES };
 
-// Core utilities
-export {
-    addUsage,
-    assertsExecutionSuccessful,
-    checkExpectations,
-    embeddingVectorToString,
-    executionReportJsonToString,
-    ExecutionReportStringOptions,
-    ExecutionReportStringOptionsDefaults,
-    isPassingExpectations,
-    prepareKnowledgeFromMarkdown,
-    prettifyPipelineString,
-    usageToHuman,
-    usageToWorktime,
-};
-
-// @promptbook/library
-export {
-    collectionToJson,
-    createCollectionFromJson,
-    createCollectionFromPromise,
-    createCollectionFromUrl,
-    createSubcollection,
-};
-
-// @promptbook/simple-prompt
+// Note: Entities of the `@promptbook/core`
+export { collectionToJson };
+export { createCollectionFromJson };
+export { createCollectionFromPromise };
+export { createCollectionFromUrl };
+export { createSubcollection };
+export type { BlockType };
+export { BlockTypes };
+export { RESERVED_PARAMETER_NAMES };
+export { pipelineJsonToString };
+export type { PipelineStringToJsonOptions };
+export { pipelineStringToJson };
+export { pipelineStringToJsonSync };
+export { prettifyPipelineString };
+export { stringifyPipelineJson };
+export { validatePipeline };
+export { CollectionError };
+export { EnvironmentMismatchError };
+export { LimitReachedError };
+export { NotFoundError };
+export { NotYetImplementedError };
+export { ParsingError };
+export { PipelineExecutionError };
+export { PipelineLogicError };
+export { ReferenceError };
+export { UnexpectedError };
+export { VersionMismatchError };
+export { assertsExecutionSuccessful };
+export { createPipelineExecutor };
+export { embeddingVectorToString };
+export { addUsage };
+export { checkExpectations };
+export { isPassingExpectations };
+export { usageToHuman };
+export { usageToWorktime };
+export { CallbackInterfaceTools };
+export type { CallbackInterfaceToolsOptions };
 export { SimplePromptInterfaceTools };
-
-// @promptbook/parser
-export {
-    pipelineJsonToString,
-    pipelineStringToJson,
-    pipelineStringToJsonSync,
-    stringifyPipelineJson,
-    validatePipeline,
-};
-
-// @promptbook/preparation
-export { preparePipeline, unpreparePipeline };
-
-// @promptbook/executor
-export { createPipelineExecutor, joinLlmExecutionTools };
-
-// @promptbook/callback-prompt
-export { CallbackInterfaceTools, CallbackInterfaceToolsOptions };
-
-// Errors
-export {
-    CollectionError,
-    ExpectError,
-    NotFoundError,
-    ParsingError,
-    PipelineExecutionError,
-    PipelineLogicError,
-    ReferenceError,
-    UnexpectedError,
-    VersionMismatchError,
-};
+export { prepareKnowledgeFromMarkdown };
+export { joinLlmExecutionTools };
+export { preparePipeline };
+export { unpreparePipeline };
+export { executionReportJsonToString };
+export type { ExecutionReportStringOptions };
+export { ExecutionReportStringOptionsDefaults };

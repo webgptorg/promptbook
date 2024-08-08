@@ -1,6 +1,15 @@
-// @promptbook/execute-javascript
-
+// `@promptbook/execute-javascript`
+import { PROMPTBOOK_VERSION } from '../version';
+import { JavascriptEvalExecutionTools } from '../scripting/javascript/JavascriptEvalExecutionTools';
+import { JavascriptExecutionTools } from '../scripting/javascript/JavascriptExecutionTools';
 import { POSTPROCESSING_FUNCTIONS } from '../scripting/javascript/postprocessing-functions';
-import { JavascriptEvalExecutionTools, JavascriptExecutionTools } from './execute-javascript.index.old';
 
-export { JavascriptEvalExecutionTools, JavascriptExecutionTools, POSTPROCESSING_FUNCTIONS };
+
+// Note: Exporting version from each package
+export { PROMPTBOOK_VERSION };
+
+
+// Note: Entities of the `@promptbook/execute-javascript`
+export { JavascriptEvalExecutionTools };
+export { JavascriptExecutionTools };
+export { POSTPROCESSING_FUNCTIONS };
