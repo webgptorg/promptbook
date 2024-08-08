@@ -59,7 +59,7 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
 
     // 2️⃣ Generate `entryIndexFilePath` of all packages
     for (const packageMetadata of packagesMetadata) {
-        const { entryIndexFilePath, entities } = packageMetadata;
+        const { entryIndexFilePath, entities, packageFullname } = packageMetadata;
 
         if (entryIndexFilePath === null) {
             continue;
@@ -90,10 +90,15 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
 
         let entryIndexFilePathContent = spaceTrim(
             (block) => `
-
+                import { PROMPTBOOK_VERSION } from '../version';
                 ${block(entryIndexFilePathContentImports.join('\n'))}
 
-                // Note: !!!!!!
+
+                // Note: Exporting version from each package
+                export { PROMPTBOOK_VERSION };
+
+
+                // Note: Entities of the \`${packageFullname}\`
                 ${block(entryIndexFilePathContentExports.join('\n'))}
             
             `,
