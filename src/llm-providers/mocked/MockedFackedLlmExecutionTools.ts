@@ -12,7 +12,7 @@ import { $fakeTextToExpectations } from './fakeTextToExpectations';
 /**
  * Mocked execution Tools for just faking expected responses for testing purposes
  *
- * @public exported from `@promptbook/fake-llm-xxx` <- TODO: !!!!!! Test invalid package name
+ * @public exported from `@promptbook/fake-llm`
  */
 export class MockedFackedLlmExecutionTools implements LlmExecutionTools {
     public constructor(private readonly options: CommonExecutionToolsOptions = {}) {}

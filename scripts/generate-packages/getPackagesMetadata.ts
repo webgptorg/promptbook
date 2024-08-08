@@ -25,9 +25,13 @@ export async function getPackagesMetadata(): Promise<Array<PackageMetadata>> {
 
             const isImplicitlyExported = packageFullname === '@promptbook/types' && isType;
 
-            const isExplicitlyExported = (anotation || '').includes(
-                packageFullname,
-            ); /* <- TODO: !!!!!! Better detection of exported status - expect "@public exported from `@promptbook/core`" */
+            const publicMatch = /@public(?:\s+)exported(?:\s+)from(?:\s+)`(?<packageName>.*?)`/i.exec(anotation || '');
+            const exportedFromPackageName = publicMatch?.groups?.packageName;
+
+            // TODO: !!!!!! Fail on invalid `exportedFromPackageName`
+            // TODO: !!!!!! Multiple exports, for example `RemoteServerOptions`
+
+            const isExplicitlyExported = exportedFromPackageName === packageFullname;
 
             if (isImplicitlyExported || isExplicitlyExported) {
                 if (isImplicitlyExported && isExplicitlyExported) {

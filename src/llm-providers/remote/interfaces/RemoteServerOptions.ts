@@ -7,7 +7,7 @@ import type { client_id, string_uri } from '../../../types/typeAliases';
  * @@@
  *
  * @public exported from `@promptbook/remote-client`
- * @public exported from `@promptbook/remote-server` <- TODO: !!!!! Multiple exports
+ * @public exported from `@promptbook/remote-server` <- TODO: !!!!!! Multiple exports
  */
 export type RemoteServerOptions = CommonExecutionToolsOptions & {
     /**
