@@ -3,7 +3,7 @@ import type { string_semantic_version } from './types/typeAliases';
 /**
  * The version of the Promptbook library
  *
- * @public exported from all packages <- !!!!!! TODO
+ * @public exported from all packages
  */
 export const PROMPTBOOK_VERSION: string_promptbook_version = '0.62.0';
 

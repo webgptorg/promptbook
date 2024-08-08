@@ -5,8 +5,8 @@
  * Words are splitted between multiple keywords @see IKeywords
  *
  * For example `"keyword"`
- * 
- * @public exported from `@promptbook/utils` <- TODO: !!!!!! But also export to types
+ *
+ * @public exported from `@promptbook/utils`
  */
 export type string_keyword = string;
 
@@ -14,7 +14,7 @@ export type string_keyword = string;
  * Semantic helper
  * Set of keywords @see string_keyword
  *
- * @public exported from `@promptbook/utils` <- TODO: !!!!!! But also export to types
+ * @public exported from `@promptbook/utils`
  */
 export type IKeywords = Set<string_keyword>;
 

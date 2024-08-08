@@ -1,5 +1,3 @@
 TODO: Use packages not paterialized entities when possible
       For example in @promptbook/core use @promptbook/utils NOT materialized entities
 TODO: !! Disable partial imports from @promptbook/*
-TODO: [📂] !!!!!! There can be some jsdoc anotation @export `promptbook/*` which can generate packages dynamically
-            OR/AND Export whole folders and all its files dynamically
