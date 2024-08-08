@@ -20,8 +20,8 @@ export async function getPackagesMetadata(): Promise<Array<PackageMetadata>> {
         for (const entity of entities) {
             const { anotation } = entity;
 
-            // TODO: !!!!!!! Use isType
-            // TODO: !!!!!!! Use @private
+            // TODO: !!!!!!! Every entity MUST be exported or marked as `@private`
+            // TODO: !!!!!! Export all types to `@promptbook/types`
 
             if (!(anotation || '').includes(packageFullname)) {
                 continue;
