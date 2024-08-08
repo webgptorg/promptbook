@@ -2,6 +2,8 @@ import type { WritableDeep } from 'type-fest';
 
 /**
  * @@@
+ * 
+ * @public exported from `@promptbook/utils`
  */
 export function deepClone<TObject>(objectValue: TObject): WritableDeep<TObject> {
     return JSON.parse(JSON.stringify(objectValue)) as WritableDeep<TObject>;
@@ -20,6 +22,5 @@ export function deepClone<TObject>(objectValue: TObject): WritableDeep<TObject> 
 }
 
 /**
- * TODO: [🔼] Export from `@promptbook/utils`
  * TODO: [🧠] Is there a way how to meaningfully test this utility
  */

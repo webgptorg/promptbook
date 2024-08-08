@@ -135,7 +135,6 @@ export async function preparePipeline(pipeline: PipelineJson, options: PrepareOp
 }
 
 /**
- * TODO: [🔼] !!! Export via `@promptbook/core`
  * TODO: Write tests for `preparePipeline`
  * TODO: [🏏] Leverage the batch API and build queues @see https://platform.openai.com/docs/guides/batch
  * TODO: [🧊] In future one preparation can take data from previous preparation and save tokens and time

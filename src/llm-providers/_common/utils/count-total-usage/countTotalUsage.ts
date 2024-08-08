@@ -1,15 +1,13 @@
 import type { Promisable } from 'type-fest';
-import type { AvailableModel } from '../../../../execution/LlmExecutionTools';
-import type { LlmExecutionTools } from '../../../../execution/LlmExecutionTools';
-import type { ChatPromptResult } from '../../../../execution/PromptResult';
-import type { CompletionPromptResult } from '../../../../execution/PromptResult';
-import type { EmbeddingPromptResult } from '../../../../execution/PromptResult';
+import type { AvailableModel, LlmExecutionTools } from '../../../../execution/LlmExecutionTools';
+import type {
+    ChatPromptResult,
+    CompletionPromptResult,
+    EmbeddingPromptResult,
+} from '../../../../execution/PromptResult';
 import type { PromptResultUsage } from '../../../../execution/PromptResultUsage';
-import { addUsage } from '../../../../execution/utils/addUsage';
-import { ZERO_USAGE } from '../../../../execution/utils/addUsage';
-import type { ChatPrompt } from '../../../../types/Prompt';
-import type { CompletionPrompt } from '../../../../types/Prompt';
-import type { EmbeddingPrompt } from '../../../../types/Prompt';
+import { addUsage, ZERO_USAGE } from '../../../../execution/utils/addUsage';
+import type { ChatPrompt, CompletionPrompt, EmbeddingPrompt } from '../../../../types/Prompt';
 import type { LlmExecutionToolsWithTotalUsage } from './LlmExecutionToolsWithTotalUsage';
 
 /**
@@ -17,6 +15,7 @@ import type { LlmExecutionToolsWithTotalUsage } from './LlmExecutionToolsWithTot
  *
  * @param llmTools LLM tools to be intercepted with usage counting
  * @returns LLM tools with same functionality with added total cost counting
+ * @public exported from `@promptbook/core`
  */
 export function countTotalUsage(llmTools: LlmExecutionTools): LlmExecutionToolsWithTotalUsage {
     let totalUsage: PromptResultUsage = ZERO_USAGE;
@@ -75,7 +74,6 @@ export function countTotalUsage(llmTools: LlmExecutionTools): LlmExecutionToolsW
 }
 
 /**
- * TODO: [🔼] !!! Export via `@promptbookcore/`
  * TODO: [🧠][💸] Maybe make some common abstraction `interceptLlmTools` and use here (or use javascript Proxy?)
  * TODO: [🧠] Is there some meaningfull way how to test this util
  * TODO: [🧠][🌯] Maybe a way how to hide ability to `get totalUsage`

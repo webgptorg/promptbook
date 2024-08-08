@@ -2,8 +2,8 @@ import hexEncoder from 'crypto-js/enc-hex';
 import sha256 from 'crypto-js/sha256';
 import { mkdir, readFile, stat, unlink, writeFile } from 'fs/promises';
 import { dirname, join } from 'path';
-import { stringifyPipelineJson } from '../../conversion/utils/stringifyPipelineJson';
 import { MAX_FILENAME_LENGTH } from '../../config';
+import { stringifyPipelineJson } from '../../conversion/utils/stringifyPipelineJson';
 import { titleToName } from '../../conversion/utils/titleToName';
 import { EnvironmentMismatchError } from '../../errors/EnvironmentMismatchError';
 import type { string_file_path } from '../../types/typeAliases';
@@ -14,6 +14,8 @@ import { nameToSubfolderPath } from './utils/nameToSubfolderPath';
 
 /**
  * @@@
+ *
+ * @public exported from `@promptbook/node`
  */
 export class FilesStorage<TItem> implements PromptbookStorage<TItem> {
     constructor(private readonly options: FilesStorageOptions) {
@@ -85,7 +87,6 @@ export class FilesStorage<TItem> implements PromptbookStorage<TItem> {
 }
 
 /**
- * TODO: [🔼] !!! Export via `@promptbook/node`
  * TODO: [🌗] Maybe some checkers, not all valid JSONs are desired and valid values
  * Note: [🟢] This code should never be published outside of `@promptbook/node`
  */

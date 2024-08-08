@@ -1,16 +1,16 @@
 import { LimitReachedError } from '../../../../errors/LimitReachedError';
 import { NotYetImplementedError } from '../../../../errors/NotYetImplementedError';
 import type { LlmExecutionTools } from '../../../../execution/LlmExecutionTools';
-import type { ChatPromptResult } from '../../../../execution/PromptResult';
-import type { CompletionPromptResult } from '../../../../execution/PromptResult';
-import type { EmbeddingPromptResult } from '../../../../execution/PromptResult';
+import type {
+    ChatPromptResult,
+    CompletionPromptResult,
+    EmbeddingPromptResult,
+} from '../../../../execution/PromptResult';
 import type { PromptResultUsage } from '../../../../execution/PromptResultUsage';
 import { ZERO_USAGE } from '../../../../execution/utils/addUsage';
-import { MemoryStorage } from '../../../../storage/memory/MemoryStorage';
 import type { PromptbookStorage } from '../../../../storage/_common/PromptbookStorage';
-import type { ChatPrompt } from '../../../../types/Prompt';
-import type { CompletionPrompt } from '../../../../types/Prompt';
-import type { EmbeddingPrompt } from '../../../../types/Prompt';
+import { MemoryStorage } from '../../../../storage/memory/MemoryStorage';
+import type { ChatPrompt, CompletionPrompt, EmbeddingPrompt } from '../../../../types/Prompt';
 import type { TODO_any } from '../../../../utils/organization/TODO_any';
 import { TODO_USE } from '../../../../utils/organization/TODO_USE';
 import { countTotalUsage } from './countTotalUsage';
@@ -37,6 +37,8 @@ type LimitTotalUsageOptions = {
 
 /**
  * @@@
+ *
+ * @public exported from `@promptbook/core`
  */
 export function limitTotalUsage(
     llmTools: LlmExecutionTools,
@@ -85,7 +87,6 @@ export function limitTotalUsage(
 }
 
 /**
- * TODO: [🔼] !!! Export via `@promptbookcore/`
  * TODO: Maybe internally use `countTotalUsage`
  * TODO: [🧠][💸] Maybe make some common abstraction `interceptLlmTools` and use here (or use javascript Proxy?)
  * TODO: [🧠] Is there some meaningfull way how to test this util

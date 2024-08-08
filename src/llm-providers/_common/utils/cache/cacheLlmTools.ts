@@ -4,11 +4,12 @@ import type { Promisable } from 'type-fest';
 import { MAX_FILENAME_LENGTH } from '../../../../config';
 import { titleToName } from '../../../../conversion/utils/titleToName';
 import { PipelineExecutionError } from '../../../../errors/PipelineExecutionError';
-import type { AvailableModel } from '../../../../execution/LlmExecutionTools';
-import type { LlmExecutionTools } from '../../../../execution/LlmExecutionTools';
-import type { ChatPromptResult } from '../../../../execution/PromptResult';
-import type { CompletionPromptResult } from '../../../../execution/PromptResult';
-import type { EmbeddingPromptResult } from '../../../../execution/PromptResult';
+import type { AvailableModel, LlmExecutionTools } from '../../../../execution/LlmExecutionTools';
+import type {
+    ChatPromptResult,
+    CompletionPromptResult,
+    EmbeddingPromptResult,
+} from '../../../../execution/PromptResult';
 import { MemoryStorage } from '../../../../storage/memory/MemoryStorage';
 import type { Prompt } from '../../../../types/Prompt';
 import { $currentDate } from '../../../../utils/currentDate';
@@ -24,6 +25,7 @@ import type { CacheLlmToolsOptions } from './CacheLlmToolsOptions';
  *
  * @param llmTools LLM tools to be intercepted with usage counting, it can contain extra methods like `totalUsage`
  * @returns LLM tools with same functionality with added total cost counting
+ * @public exported from `@promptbook/core`
  */
 export function cacheLlmTools<TLlmTools extends LlmExecutionTools>(
     llmTools: TLlmTools,
@@ -119,7 +121,6 @@ export function cacheLlmTools<TLlmTools extends LlmExecutionTools>(
 }
 
 /**
- * TODO: [🔼] !!! Export via `@promptbook/core`
  * TODO: [🧠][💸] Maybe make some common abstraction `interceptLlmTools` and use here (or use javascript Proxy?)
  * TODO: [🧠] Is there some meaningfull way how to test this util
  * TODO: [👷‍♂️] @@@ Manual about construction of llmTools

@@ -81,7 +81,6 @@ export function createLlmToolsFromEnv(options: CreateLlmToolsFromEnvOptions = {}
 
 /**
  * TODO: [🍜] Use `createLlmToolsFromConfiguration`
- * TODO: [🔼] !!! Export via `@promptbook/node`
  * TODO: @@@ write discussion about this - wizzard
  * TODO: Add Azure
  * TODO: [🧠] Which name is better `createLlmToolsFromEnv` or `createLlmToolsFromEnvironment`?

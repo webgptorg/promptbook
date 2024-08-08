@@ -6,7 +6,7 @@ import type { PromptResultUsage } from '../PromptResultUsage';
 /**
  * @@@
  *
- * TODO: [🔼] Export with addUsage
+ * @public exported from `@promptbook/core`
  */
 export const ZERO_USAGE = deepFreeze({
     price: { value: 0 },

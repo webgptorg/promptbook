@@ -1,10 +1,10 @@
-import type { string_mime_type } from '../../types/typeAliases';
-import type { string_name } from '../../types/typeAliases';
+import type { string_mime_type, string_name } from '../../types/typeAliases';
 
 /**
  * A format definition is a set of functions that define how to validate, heal and convert response from LLM
  *
  * @see https://github.com/webgptorg/promptbook/discussions/36
+ * @private still an internal experimental
  */
 export type FormatDefinition<TValue extends TPartialValue, TPartialValue extends string, TSchema extends object> = {
     /**

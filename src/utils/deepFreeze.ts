@@ -24,6 +24,7 @@ export function deepFreeze<TObject>(objectValue: TObject): ReadonlyDeep<TObject>
  * @@@
  *
  * @returns The same object as the input, but deeply frozen
+ * @public exported from `@promptbook/utils`
  *
  * Note: This function mutates the object and returns the original (but mutated-deep-freezed) object
  */
@@ -32,6 +33,5 @@ export function deepFreezeWithSameType<TObject>(objectValue: TObject): TObject {
 }
 
 /**
- * TODO: [🔼] Export from `@promptbook/utils`
  * TODO: [🧠] Is there a way how to meaningfully test this utility
  */
