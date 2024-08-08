@@ -3,17 +3,17 @@
 import colors from 'colors';
 import commander from 'commander';
 import { readFile, writeFile } from 'fs/promises';
-import { join } from 'path';
+import { join, relative } from 'path';
 import spaceTrim from 'spacetrim';
 import type { PackageJson } from 'type-fest';
+import { forTime } from 'waitasecond';
 import YAML from 'yaml';
-import { packageInfos } from '../../rollup.config';
 import { prettifyMarkdown } from '../../src/utils/markdown/prettifyMarkdown';
 import { removeContentComments } from '../../src/utils/markdown/removeContentComments';
 import { commit } from '../utils/autocommit/commit';
 import { isWorkingTreeClean } from '../utils/autocommit/isWorkingTreeClean';
 import { execCommand } from '../utils/execCommand/execCommand';
-import { findAllProjectEntities } from '../utils/findAllProjectEntities';
+import { getPackagesMetadata } from './getPackagesMetadata';
 
 if (process.cwd() !== join(__dirname, '../..')) {
     console.error(colors.red(`CWD must be root of the project`));
@@ -43,22 +43,70 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
         throw new Error(`Working tree is not clean`);
     }
 
-    packageInfos;
+    // 0️⃣ Get metadata of all packages
+    const packagesMetadata = await getPackagesMetadata();
 
-    for (const entity of await findAllProjectEntities()) {
-        const { name, anotation, filePath, isType } = entity;
-    }
+    // 1️⃣ Cleanup
+    for (const packageMetadata of packagesMetadata) {
+        const { isBuilded, packageBasename } = packageMetadata;
 
-    for (const { isBuilded, packageName } of packageInfos) {
         if (!isBuilded) {
             continue;
         }
-        await execCommand(`rm -rf ./packages/${packageName}/umd`);
-        await execCommand(`rm -rf ./packages/${packageName}/esm`);
+        await execCommand(`rm -rf ./packages/${packageBasename}/umd`);
+        await execCommand(`rm -rf ./packages/${packageBasename}/esm`);
     }
 
+    // 2️⃣ Generate `entryIndexFilePath` of all packages
+    for (const packageMetadata of packagesMetadata) {
+        const { entryIndexFilePath, entities } = packageMetadata;
+
+        if (entryIndexFilePath === null) {
+            continue;
+        }
+
+        if (entities === undefined) {
+            throw new Error(`Entities are not defined for ${packageMetadata.packageFullname}`);
+        }
+
+        const entryIndexFilePathContentImports: Array<string> = [];
+        const entryIndexFilePathContentExports: Array<string> = [];
+
+        for (const entity of entities) {
+            const { filePath, name, isType } = entity;
+
+            const importPath = `./${relative(entryIndexFilePath, filePath).split('\\').join('/')}`;
+            const typePrefix = !isType ? '' : ' type';
+
+            entryIndexFilePathContentImports.push(`import${typePrefix} { ${name} } from '${importPath}';\n`);
+            entryIndexFilePathContentExports.push(`export${typePrefix} { ${name} };\n`);
+        }
+
+        let entryIndexFilePathContent = spaceTrim(
+            (block) => `
+
+                ${block(entryIndexFilePathContentImports.join('\n'))}
+
+                // Note: !!!!!!
+                ${block(entryIndexFilePathContentExports.join('\n'))}
+            
+            `,
+        );
+
+        entryIndexFilePathContent += '\n';
+
+        // TODO: !! `entryIndexFilePathContent = await prettifyTypeScript(entryIndexFilePathContent)`
+
+        writeFile(entryIndexFilePath, entryIndexFilePathContent, 'utf-8');
+        console.info(colors.green(entryIndexFilePath.split('\\').join('/')));
+    }
+
+    await forTime(1000 * 60 * 60);
+
+    // 3️⃣ Generate bundles of all packages
     await execCommand(`npx rollup --config rollup.config.js`);
 
+    // 4️⃣ Test that nothing what should not be published is published
     /*
     TODO: !!! Test that:
     - Test umd, esm, typings and everything else
@@ -69,6 +117,7 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
     [⚪] This should never be in any released package
     */
 
+    // Note: 5️⃣ Postprocess generated packages and create README.md and package.json for each package
     const mainPackageJson = JSON.parse(await readFile('./package.json', 'utf-8')) as PackageJson;
 
     if (!mainPackageJson.version) {
@@ -76,12 +125,16 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
     }
 
     console.info(colors.bgWhite(mainPackageJson.version));
-
     const mainReadme = await readFile('./README.md', 'utf-8');
-
-    for (const { isBuilded, packageFullname, packageName, dependencies } of packageInfos) {
+    for (const {
+        isBuilded,
+        readmeFilePath,
+        packageFullname,
+        packageBasename,
+        additionalDependencies,
+    } of packagesMetadata) {
         let packageReadme = mainReadme;
-        const packageReadmeExtra = await readFile(`./src/_packages/${packageName}.readme.md`, 'utf-8');
+        const packageReadmeExtra = await readFile(readmeFilePath, 'utf-8');
 
         let installCommand = spaceTrim(`
 
@@ -150,7 +203,7 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
         prettifyMarkdown(packageReadme);
 
         await writeFile(
-            `./packages/${packageName}/README.md`,
+            `./packages/${packageBasename}/README.md`,
             packageReadme,
             /*
             spaceTrim(`
@@ -177,7 +230,7 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
         }
 
         if (isBuilded) {
-            const indexContent = await readFile(`./packages/${packageName}/esm/index.es.js`, 'utf-8');
+            const indexContent = await readFile(`./packages/${packageBasename}/esm/index.es.js`, 'utf-8');
             for (const dependencyName in packageJson.dependencies) {
                 if (!indexContent.includes(`from '${dependencyName}'`)) {
                     delete packageJson.dependencies[dependencyName];
@@ -191,13 +244,13 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
 
         packageJson.dependencies = {
             ...(packageJson.dependencies || {}),
-            ...Object.fromEntries(dependencies.map((dependency) => [dependency, packageJson.version])),
+            ...Object.fromEntries(additionalDependencies.map((dependency) => [dependency, packageJson.version])),
         };
 
         if (isBuilded) {
             packageJson.main = `./umd/index.umd.js`;
             packageJson.module = `./esm/index.es.js`;
-            packageJson.typings = `./esm/typings/src/_packages/${packageName}.index.d.ts`;
+            packageJson.typings = `./esm/typings/src/_packages/${packageBasename}.index.d.ts`;
         }
 
         if (packageFullname === '@promptbook/cli') {
@@ -208,11 +261,11 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
         }
 
         // TODO: !! Filter out dependencies only for the current package
-        await writeFile(`./packages/${packageName}/package.json`, JSON.stringify(packageJson, null, 4) + '\n');
+        await writeFile(`./packages/${packageBasename}/package.json`, JSON.stringify(packageJson, null, 4) + '\n');
 
         if (isBuilded) {
-            await writeFile(`./packages/${packageName}/.gitignore`, ['esm', 'umd'].join('\n'));
-            await writeFile(`./packages/${packageName}/.npmignore`, '');
+            await writeFile(`./packages/${packageBasename}/.gitignore`, ['esm', 'umd'].join('\n'));
+            await writeFile(`./packages/${packageBasename}/.npmignore`, '');
         }
     }
 
@@ -259,9 +312,9 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
                                 //       This is run after a version tag is pushed to the repository, so used publish.yml is one version behing
                                 run: `npx ts-node ./scripts/generate-packages/generate-packages.ts`,
                             },
-                            ...packageInfos.map(({ packageName, packageFullname }) => ({
+                            ...packagesMetadata.map(({ packageBasename, packageFullname }) => ({
                                 name: `Publish ${packageFullname}`,
-                                'working-directory': `./packages/${packageName}`,
+                                'working-directory': `./packages/${packageBasename}`,
                                 run: 'npm publish --provenance --access public',
                                 env: {
                                     NODE_AUTH_TOKEN: '${{secrets.NPM_TOKEN}}',

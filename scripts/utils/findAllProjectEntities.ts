@@ -3,12 +3,12 @@ import { readAllProjectFiles } from './readAllProjectFiles';
 /**
  * All possible entity types in javascript and typescript
  */
-type IEntityType = 'const' | 'let' | 'class' | 'function' | 'interface' | 'type' /* <- TODO: More */;
+type EntityType = 'const' | 'let' | 'class' | 'function' | 'interface' | 'type' /* <- TODO: More */;
 
 /**
  *  Metadata of entity in javascript and typescript
  */
-export type IEntity = {
+export type EntityMetadata = {
     /**
      * Where is it
      */
@@ -17,7 +17,7 @@ export type IEntity = {
     /**
      * What is it - type, class, function,...
      */
-    readonly type: IEntityType;
+    readonly type: EntityType;
 
     /**
      * Name of the entity
@@ -41,10 +41,10 @@ export type IEntity = {
     // TODO: Detect other things like abstract, async...
 };
 
-export async function findAllProjectEntities(): Promise<IEntity[]> {
+export async function findAllProjectEntities(): Promise<EntityMetadata[]> {
     const files = await readAllProjectFiles();
 
-    const entitities: IEntity[] = [];
+    const entitities: EntityMetadata[] = [];
     for (const file of files) {
         for (const match of file.content.matchAll(
             /(?<anotation>\/\*\*((?!\/\*\*).)*?\*\/\s*)?export(?:\s+declare)?(?:\s+abstract)?(?:\s+async)?(?:\s+(?<type>[a-z]+))(?:\s+(?<name>[a-zA-Z0-9_$]+))/gs,
@@ -61,7 +61,7 @@ export async function findAllProjectEntities(): Promise<IEntity[]> {
 
             entitities.push({
                 filePath: file.path,
-                type: type as IEntityType,
+                type: type as EntityType,
                 name,
                 anotation,
                 tags,
