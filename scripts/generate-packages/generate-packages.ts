@@ -90,6 +90,7 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
 
         let entryIndexFilePathContent = spaceTrim(
             (block) => `
+                // \`${packageFullname}\`
                 import { PROMPTBOOK_VERSION } from '../version';
                 ${block(entryIndexFilePathContentImports.join('\n'))}
 
