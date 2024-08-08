@@ -2,10 +2,8 @@
 
 import { createCollectionFromDirectory } from '../collection/constructors/createCollectionFromDirectory';
 import { createLlmToolsFromEnv } from '../llm-providers/_common/createLlmToolsFromEnv';
-import { PROMPTBOOK_VERSION } from '../version';
 
 // Note: Exporting version from each package
-export { PROMPTBOOK_VERSION };
 
 export { createCollectionFromDirectory, createLlmToolsFromEnv };
 

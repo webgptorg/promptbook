@@ -27,8 +27,8 @@ import { createPipelineExecutor } from '../execution/createPipelineExecutor';
 import { embeddingVectorToString } from '../execution/embeddingVectorToString';
 import { addUsage } from '../execution/utils/addUsage';
 import { checkExpectations, isPassingExpectations } from '../execution/utils/checkExpectations';
-import { usageToWorktime } from '../execution/utils/usageToWorktime';
 import { usageToHuman } from '../execution/utils/usageToHuman';
+import { usageToWorktime } from '../execution/utils/usageToWorktime';
 import { CallbackInterfaceTools } from '../knowledge/dialogs/callback/CallbackInterfaceTools';
 import type { CallbackInterfaceToolsOptions } from '../knowledge/dialogs/callback/CallbackInterfaceToolsOptions';
 import { SimplePromptInterfaceTools } from '../knowledge/dialogs/simple-prompt/SimplePromptInterfaceTools';
@@ -39,10 +39,8 @@ import { unpreparePipeline } from '../prepare/unpreparePipeline';
 import type { ExecutionReportStringOptions } from '../types/execution-report/ExecutionReportStringOptions';
 import { ExecutionReportStringOptionsDefaults } from '../types/execution-report/ExecutionReportStringOptions';
 import { executionReportJsonToString } from '../types/execution-report/executionReportJsonToString';
-import { PROMPTBOOK_VERSION } from '../version';
 
 // Note: Exporting version from each package
-export { PROMPTBOOK_VERSION };
 
 // @promptbook/core
 export { BlockTypes, RESERVED_PARAMETER_NAMES };
@@ -59,8 +57,8 @@ export {
     isPassingExpectations,
     prepareKnowledgeFromMarkdown,
     prettifyPipelineString,
-    usageToWorktime,
     usageToHuman,
+    usageToWorktime,
 };
 
 // @promptbook/library

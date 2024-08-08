@@ -99,10 +99,9 @@ import type {
     string_uuid,
 } from '../types/typeAliases';
 import type { FromtoItems } from '../utils/FromtoItems';
-import { PROMPTBOOK_VERSION, string_promptbook_version } from '../version';
+import { string_promptbook_version } from '../version';
 
 // Note: Exporting version from each package
-export { PROMPTBOOK_VERSION };
 
 // Note: Non-types
 export { EXPECTATION_UNITS };

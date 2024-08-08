@@ -55,13 +55,17 @@ import { isUrlOnPrivateNetwork } from '../utils/validators/url/isUrlOnPrivateNet
 import { isValidPipelineUrl } from '../utils/validators/url/isValidPipelineUrl';
 import { isValidUrl } from '../utils/validators/url/isValidUrl';
 import { isValidUuid } from '../utils/validators/uuid/isValidUuid';
-import { PROMPTBOOK_VERSION } from '../version';
 
 // Note: Exporting version from each package
 export { forEachAsync, PROMPTBOOK_VERSION };
 
 // Templating
-export { extractParameterNames, extractVariables, replaceParameters, spaceTrim /* <- TODO: !!!!!! Exporting of spaceTrin */ };
+export {
+    extractParameterNames,
+    extractVariables,
+    replaceParameters,
+    spaceTrim /* <- TODO: !!!!!! Exporting of spaceTrin */,
+};
 
 // TODO: [🌻] For all, decide if theese are internal or external
 export {
@@ -93,7 +97,7 @@ export { splitIntoSentences };
 // And the normalization (originally n12 library) utilities:
 
 export const normalizeTo = {
-  // TODO: !!!!!!
+    // TODO: !!!!!!
     // [🕙] lowercase: normalizeTo_lowercase,
     // [🕙] UPPERCASE: normalizeTo_UPPERCASE,
     camelCase: normalizeTo_camelCase,
