@@ -3,7 +3,7 @@
 import colors from 'colors';
 import commander from 'commander';
 import { readFile, writeFile } from 'fs/promises';
-import { join, relative } from 'path';
+import { dirname, join, relative } from 'path';
 import spaceTrim from 'spacetrim';
 import type { PackageJson } from 'type-fest';
 import { forTime } from 'waitasecond';
@@ -75,11 +75,17 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
         for (const entity of entities) {
             const { filePath, name, isType } = entity;
 
-            const importPath = `./${relative(entryIndexFilePath, filePath).split('\\').join('/')}`;
+            let importPath = `${relative(dirname(entryIndexFilePath), filePath).split('\\').join('/')}`;
+            if (!importPath.startsWith('.')) {
+                importPath = './' + importPath;
+            }
+            if (importPath.endsWith('.ts')) {
+                importPath = importPath.slice(0, -3);
+            }
             const typePrefix = !isType ? '' : ' type';
 
-            entryIndexFilePathContentImports.push(`import${typePrefix} { ${name} } from '${importPath}';\n`);
-            entryIndexFilePathContentExports.push(`export${typePrefix} { ${name} };\n`);
+            entryIndexFilePathContentImports.push(`import${typePrefix} { ${name} } from '${importPath}';`);
+            entryIndexFilePathContentExports.push(`export${typePrefix} { ${name} };`);
         }
 
         let entryIndexFilePathContent = spaceTrim(
