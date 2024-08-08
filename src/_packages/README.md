@@ -4,12 +4,16 @@ In this folder there are index files for each library published from this reposi
 
 # New package
 
+<!-- TODO: !!!!!! Review -->
+
 When adding new package, search across the repository for [➕]
 
 -   [➕] In this folder create package.index.ts
 -   [➕] In this folder create package.index.md
 
 # Remove package
+
+<!-- TODO: !!!!!! Review -->
 
 When deleting a package, search across the repository for [➖]
 

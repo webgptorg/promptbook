@@ -7,12 +7,13 @@ import { join } from 'path';
 import spaceTrim from 'spacetrim';
 import type { PackageJson } from 'type-fest';
 import YAML from 'yaml';
-import { packages } from '../../rollup.config';
+import { packageInfos } from '../../rollup.config';
 import { prettifyMarkdown } from '../../src/utils/markdown/prettifyMarkdown';
 import { removeContentComments } from '../../src/utils/markdown/removeContentComments';
 import { commit } from '../utils/autocommit/commit';
 import { isWorkingTreeClean } from '../utils/autocommit/isWorkingTreeClean';
 import { execCommand } from '../utils/execCommand/execCommand';
+import { findAllProjectEntities } from '../utils/findAllProjectEntities';
 
 if (process.cwd() !== join(__dirname, '../..')) {
     console.error(colors.red(`CWD must be root of the project`));
@@ -42,7 +43,13 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
         throw new Error(`Working tree is not clean`);
     }
 
-    for (const { isBuilded, packageName } of packages) {
+    packageInfos;
+
+    for (const entity of await findAllProjectEntities()) {
+        const { name, anotation, filePath, isType } = entity;
+    }
+
+    for (const { isBuilded, packageName } of packageInfos) {
         if (!isBuilded) {
             continue;
         }
@@ -72,7 +79,7 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
 
     const mainReadme = await readFile('./README.md', 'utf-8');
 
-    for (const { isBuilded, packageFullname, packageName, dependencies } of packages) {
+    for (const { isBuilded, packageFullname, packageName, dependencies } of packageInfos) {
         let packageReadme = mainReadme;
         const packageReadmeExtra = await readFile(`./src/_packages/${packageName}.readme.md`, 'utf-8');
 
@@ -252,7 +259,7 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
                                 //       This is run after a version tag is pushed to the repository, so used publish.yml is one version behing
                                 run: `npx ts-node ./scripts/generate-packages/generate-packages.ts`,
                             },
-                            ...packages.map(({ packageName, packageFullname }) => ({
+                            ...packageInfos.map(({ packageName, packageFullname }) => ({
                                 name: `Publish ${packageFullname}`,
                                 'working-directory': `./packages/${packageName}`,
                                 run: 'npm publish --provenance --access public',

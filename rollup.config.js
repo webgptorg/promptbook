@@ -3,15 +3,18 @@ import typescriptPlugin from '@rollup/plugin-typescript';
 import { readdirSync } from 'fs';
 import { join } from 'path';
 
-export const packages = readdirSync(join(__dirname, 'src/_packages'), { recursive: false, withFileTypes: true })
+export const packageInfos = readdirSync(join(__dirname, 'src/_packages'), { recursive: false, withFileTypes: true })
     .filter((dirent) => dirent.isFile())
     .filter((dirent) => dirent.name.endsWith('.index.ts'))
-    .map((dirent) => dirent.name.split('.').shift())
-    .map((packageName) => {
+    .map((dirent) => ({ filePath: dirent.name, packageName: dirent.name.split('.').shift() }))
+    .map((packageInfo) => {
+        const { filePath, packageName } = packageInfo;
+
         if (!packageName) {
             throw new Error('Invalid package name');
         }
         return {
+            filePath,
             isBuilded: true,
             packageScope: 'promptbook',
             packageName,
@@ -24,15 +27,15 @@ export const packages = readdirSync(join(__dirname, 'src/_packages'), { recursiv
 
 // Note: Packages `@promptbook/cli` and `@promptbook/types` are not marked as devDependencies in `promptbook` package to ensure that they are installed
 
-packages.push({
+packageInfos.push({
     isBuilded: false,
     packageScope: null,
     packageName: 'promptbook',
     packageFullname: 'promptbook',
-    dependencies: packages.map(({ packageFullname }) => packageFullname),
+    dependencies: packageInfos.map(({ packageFullname }) => packageFullname),
 });
 
-packages.push({
+packageInfos.push({
     isBuilded: false,
     packageScope: null,
     packageName: 'ptbk',
@@ -43,7 +46,7 @@ packages.push({
 
 // console.info(packages);
 
-export default packages
+export default packageInfos
     .filter(({ isBuilded }) => isBuilded)
     .map(({ packageName }) => ({
         input: `./src/_packages/${packageName}.index.ts`,
