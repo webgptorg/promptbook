@@ -3,48 +3,66 @@ import { just } from './utils/organization/just';
 
 /**
  * The maximum number of iterations for a loops
+ *
+ * @private within the repository - too low-level in comparison to other `MAX_...`
  */
 export const LOOP_LIMIT = 1000;
 
 /**
  * The maximum number of iterations for a loops which adds characters one by one
+ *
+ * @private within the repository - too low-level in comparison to other `MAX_...`
  */
 export const CHARACTER_LOOP_LIMIT = 100000;
 
 /**
  * The maximum number of (LLM) tasks running in parallel
+ *
+ * @public exported from `@promptbook/core`
  */
 export const MAX_PARALLEL_COUNT = 5;
 
 /**
  * The maximum number of attempts to execute LLM task before giving up
+ *
+ * @public exported from `@promptbook/core`
  */
 export const MAX_EXECUTION_ATTEMPTS = 3;
 
 /**
  * The maximum length of the (generated) filename
+ *
+ * @public exported from `@promptbook/core`
  */
 export const MAX_FILENAME_LENGTH = 30;
 
 /**
  * @@@
  * TODO: [🐝] !!! Use
+ *
+ * @public exported from `@promptbook/core`
  */
 export const MAX_KNOWLEDGE_SOURCES_SCRAPING_DEPTH = 3;
 
 /**
  * @@@
  * TODO: [🐝] !!! Use
+ *
+ * @public exported from `@promptbook/core`
  */
 export const MAX_KNOWLEDGE_SOURCES_SCRAPING_TOTAL = 200;
 
 /**
  * Where to store the cache of executions for promptbook CLI
+ *
+ * @public exported from `@promptbook/core`
  */
 export const EXECUTIONS_CACHE_DIRNAME = '/.promptbook/executions-cache';
 
 /**
  * The name of the builded pipeline collection made by CLI `ptbk make` and for lookup in `createCollectionFromDirectory`
+ *
+ * @public exported from `@promptbook/core`
  */
 export const PIPELINE_COLLECTION_BASE_FILENAME = `index`;
 
@@ -71,16 +89,22 @@ export const RESERVED_PARAMETER_NAMES = deepFreeze([
 
 /**
  * @@@
+ *
+ * @private within the repository
  */
 export const RESERVED_PARAMETER_MISSING_VALUE = 'MISSING-' + REPLACING_NONCE;
 
 /**
  * @@@
+ *
+ * @private within the repository
  */
 export const RESERVED_PARAMETER_RESTRICTED = 'RESTRICTED-' + REPLACING_NONCE;
 
 /**
  * @@@
+ *
+ * @private within the repository
  */
 export const DEBUG_ALLOW_PAYED_TESTING: boolean = just(
     /**/
@@ -104,5 +128,5 @@ TODO: !!! Just testing false-negative detection of [🟡][🟢][🔵][⚪] leak
 // [🟡][🟢][🔵][⚪]
 
 /**
- * TODO: [🔼] Export all to core
+ * TODO: !!!!!! Check that all @private contains some normalized explanation
  */
