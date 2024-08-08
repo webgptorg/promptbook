@@ -10,7 +10,7 @@ import { extractOneBlockFromMarkdown } from '../../utils/markdown/extractOneBloc
  * - `extractBlock` just extracts the content of the code block which is also used as build-in function for postprocessing
  * - `extractOneBlockFromMarkdown` extracts exactly one code block with language of the code block
  * - `extractAllBlocksFromMarkdown` extracts all code blocks with language of the code block
- * 
+ *
  * @public exported from `@promptbook/utils`
  */
 export function extractBlock(markdown: string_markdown): string {
@@ -18,4 +18,7 @@ export function extractBlock(markdown: string_markdown): string {
 
     return content;
 }
-//
+
+/**
+ * TODO: [🧠][🌻] Maybe export through `@promptbook/markdown-utils` not `@promptbook/utils`
+ */

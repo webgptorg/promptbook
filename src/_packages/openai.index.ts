@@ -5,4 +5,4 @@ import { OpenAiExecutionTools } from '../llm-providers/openai/OpenAiExecutionToo
 import type { OpenAiExecutionToolsOptions } from '../llm-providers/openai/OpenAiExecutionToolsOptions';
 
 // Note: Exporting version from each package
-export { OPENAI_MODELS, OpenAiExecutionTools, OpenAiExecutionToolsOptions, PROMPTBOOK_VERSION };
+export { OPENAI_MODELS, OpenAiExecutionTools, OpenAiExecutionToolsOptions };

@@ -158,7 +158,6 @@ export type {
     client_id,
     number_model_temperature,
     number_seed,
-    // <- TODO: [📂]
     string_char,
     string_char_emoji,
     string_chat_prompt,
@@ -214,7 +213,3 @@ export type {
     string_uuid,
 };
 
-/**
- * TODO: !!!!!! Auto export all non-private types
- * TODO: Delete type aliases (from ../types/typeAliases) that are not exported here
- */

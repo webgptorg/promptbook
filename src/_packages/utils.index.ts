@@ -71,7 +71,7 @@ export {
 export {
     $currentDate,
     $randomSeed,
-    extractBlock, // <- [🌻] + maybe export through `@promptbook/markdown-utils`
+    extractBlock, // <- [🌻] + maybe export `extractBlock` through `@promptbook/markdown-utils`
     isHostnameOnPrivateNetwork,
     isUrlOnPrivateNetwork,
     isValidFilePath,

@@ -4,4 +4,4 @@ import type { RemoteServerOptions } from '../llm-providers/remote/interfaces/Rem
 import { startRemoteServer } from '../llm-providers/remote/startRemoteServer';
 
 // Note: Exporting version from each package
-export { PROMPTBOOK_VERSION, RemoteServerOptions, startRemoteServer };
+export {  RemoteServerOptions, startRemoteServer };

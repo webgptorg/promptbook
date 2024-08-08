@@ -1,2 +1,2 @@
 TODO: [🔼] !!! Export whole folder via `@promptbook/core`
-TODO: [📂] Is there some way how to export everything from a folder?
+TODO: [📂] !!!!!! Is there some way how to export everything from a folder?

@@ -92,4 +92,5 @@ export function parseNumber(value: string | number): number {
 
 /**
  * TODO: Maybe use sth. like safe-eval in fraction/calculation case @see https://www.npmjs.com/package/safe-eval
+ * TODO: [🧠][🌻] Maybe export through `@promptbook/markdown-utils` not `@promptbook/utils`
  */

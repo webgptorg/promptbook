@@ -4,4 +4,4 @@ import { LangtailExecutionTools } from '../llm-providers/langtail/LangtailExecut
 import type { LangtailExecutionToolsOptions } from '../llm-providers/langtail/LangtailExecutionToolsOptions';
 
 // Note: Exporting version from each package
-export { LangtailExecutionTools, LangtailExecutionToolsOptions, PROMPTBOOK_VERSION };
+export { LangtailExecutionTools, LangtailExecutionToolsOptions };

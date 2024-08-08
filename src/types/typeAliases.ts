@@ -686,7 +686,7 @@ export type number_terabytes = number_positive;
 
 /**.
  * TODO: !!! Change "For example" to @example
- * TODO: !! Cleanup
  * TODO: !! Change to branded types
- * TODO: [📂] Export all this file through `@promptbook/types`
+ * TODO: Delete type aliases that are not exported or used internally
+ * TODO: [📂] !!!!!! Export all this file through `@promptbook/types`
  */

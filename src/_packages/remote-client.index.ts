@@ -5,4 +5,4 @@ import { RemoteLlmExecutionTools } from '../llm-providers/remote/RemoteLlmExecut
 import type { RemoteLlmExecutionToolsOptions } from '../llm-providers/remote/RemoteLlmExecutionToolsOptions';
 
 // Note: Exporting version from each package
-export { PROMPTBOOK_VERSION, RemoteLlmExecutionTools, RemoteLlmExecutionToolsOptions, RemoteServerOptions };
+export {  RemoteLlmExecutionTools, RemoteLlmExecutionToolsOptions, RemoteServerOptions };

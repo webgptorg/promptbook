@@ -4,8 +4,5 @@ import { MockedEchoLlmExecutionTools } from '../llm-providers/mocked/MockedEchoL
 import { MockedFackedLlmExecutionTools } from '../llm-providers/mocked/MockedFackedLlmExecutionTools';
 
 // Note: Exporting version from each package
-export { MockedEchoLlmExecutionTools, MockedFackedLlmExecutionTools, PROMPTBOOK_VERSION };
+export { MockedEchoLlmExecutionTools, MockedFackedLlmExecutionTools };
 
-/**
- * TODO: [🚏] FakeLLM
- */
