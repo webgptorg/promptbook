@@ -1,3 +1,4 @@
+import colors from 'colors';
 import { getPackagesMetadataForRollup } from '../../rollup.config';
 import { findAllProjectEntities } from '../utils/findAllProjectEntities';
 import type { PackageMetadata } from './PackageMetadata';
@@ -18,20 +19,27 @@ export async function getPackagesMetadata(): Promise<Array<PackageMetadata>> {
         packageMetadata.entities = [];
 
         for (const entity of entities) {
-            const { anotation } = entity;
+            const { anotation, isType } = entity;
 
             // TODO: !!!!!!! Every entity MUST be exported or marked as `@private`
-            // TODO: !!!!!! Export all types to `@promptbook/types`
 
-            if (
-                !(anotation || '').includes(
-                    packageFullname,
-                ) /* <- TODO: !!!!!! Better detection of exported status - expect "@public exported from `@promptbook/core`" */
-            ) {
-                continue;
+            const isImplicitlyExported = packageFullname === '@promptbook/types' && isType;
+
+            const isExplicitlyExported = (anotation || '').includes(
+                packageFullname,
+            ); /* <- TODO: !!!!!! Better detection of exported status - expect "@public exported from `@promptbook/core`" */
+
+            if (isImplicitlyExported || isExplicitlyExported) {
+                if (isImplicitlyExported && isExplicitlyExported) {
+                    console.warn(
+                        colors.yellow(
+                            `You don't need to export entity "${entity.name}" explicitly because it is exported either way`,
+                        ),
+                    );
+                }
+
+                packageMetadata.entities.push(entity);
             }
-
-            packageMetadata.entities.push(entity);
         }
     }
 

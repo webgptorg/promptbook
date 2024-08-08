@@ -215,7 +215,7 @@ export type string_xml = string;
  * Semantic helper
  *
  * For example `"**Hello** World!"`
- * 
+ *
  * @public exported from `@promptbook/markdown-utils`
  */
 export type string_markdown = string;
@@ -224,7 +224,7 @@ export type string_markdown = string;
  * Semantic helper
  *
  * Markdown text with exactly ONE heading on first line NO less NO more
- * 
+ *
  * @public exported from `@promptbook/markdown-utils`
  */
 export type string_markdown_section = string;
@@ -234,7 +234,7 @@ export type string_markdown_section = string;
  *
  * Markdown without any headings like h1, h2
  * BUT with formatting, lists, blockquotes, blocks, etc. is allowed
- * 
+ *
  * @public exported from `@promptbook/markdown-utils`
  */
 export type string_markdown_section_content = string;
@@ -246,7 +246,7 @@ export type string_markdown_section_content = string;
  * BUT with bold, italic, etc. is allowed
  *
  * For example `"**Hello** World!"`
- * 
+ *
  * @public exported from `@promptbook/markdown-utils`
  */
 export type string_markdown_text = string;
