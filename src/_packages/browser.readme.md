@@ -1,4 +1,4 @@
-Core of the library for Node.js runtime, it contains the main logic for promptbooks which uses filesystem.
+Core of the library for Browser runtime, it contains the main logic for promptbooks which uses browser-specific things like `localStorage`.
 
 <!-- TODO: Maybe dont show whole README, just following message -->
 
