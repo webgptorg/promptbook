@@ -62,6 +62,6 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
     await writeFile(`./src/versions.txt`, newAllVersions, 'utf-8');
 
     if (isCommited) {
-        await commit('src', `🆚 Update version in config`);
+        await commit(['src'], `🆚 Update version in config`);
     }
 }

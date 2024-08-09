@@ -78,7 +78,7 @@ async function makePipelineCollection({
     console.info(colors.green(`Maked ${libraryTypescriptFilePath}`));
 
     if (isCommited) {
-        await commit(promptbookSourceDir, `📖 Make Promptbook library`);
+        await commit([promptbookSourceDir], `📖 Make Promptbook library`);
     }
 
     console.info(`[ Done 📖 Make Promptbook library ]`);

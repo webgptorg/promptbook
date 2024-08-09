@@ -455,8 +455,7 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
     // 9️⃣ Commit the changes
 
     if (isCommited) {
-        await commit('packages', `📦 Generating packages`);
-        await commit('.github', `📦 Update publish workflow for generated packages`);
+        await commit(['src/_packages', 'packages', '.github'], `📦 Generating packages`);
     }
 }
 
