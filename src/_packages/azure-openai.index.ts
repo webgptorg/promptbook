@@ -1,3 +1,4 @@
+// ⚠️ WARNING: This section has been generated so that any manual changes will be overwritten
 // `@promptbook/azure-openai`
 import { PROMPTBOOK_VERSION } from '../version';
 import { AzureOpenAiExecutionTools } from '../llm-providers/azure-openai/AzureOpenAiExecutionTools';

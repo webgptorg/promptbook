@@ -1,3 +1,4 @@
+// ⚠️ WARNING: This section has been generated so that any manual changes will be overwritten
 // `@promptbook/openai`
 import { PROMPTBOOK_VERSION } from '../version';
 import { OPENAI_MODELS } from '../llm-providers/openai/openai-models';

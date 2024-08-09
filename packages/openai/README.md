@@ -1,3 +1,5 @@
+<!-- ⚠️ WARNING: This section has been generated so that any manual changes will be overwritten -->
+
 # ![Promptbook logo - cube with letters P and B](./other/design/logo-h1.png) Promptbook
 
 Supercharge your use of large language models

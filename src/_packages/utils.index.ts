@@ -1,3 +1,4 @@
+// ⚠️ WARNING: This section has been generated so that any manual changes will be overwritten
 // `@promptbook/utils`
 import { PROMPTBOOK_VERSION } from '../version';
 import { renderPromptbookMermaid } from '../conversion/prettify/renderPipelineMermaidOptions';

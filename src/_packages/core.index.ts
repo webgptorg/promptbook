@@ -1,3 +1,4 @@
+// ⚠️ WARNING: This section has been generated so that any manual changes will be overwritten
 // `@promptbook/core`
 import { PROMPTBOOK_VERSION } from '../version';
 import { collectionToJson } from '../collection/collectionToJson';

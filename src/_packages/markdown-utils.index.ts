@@ -1,3 +1,4 @@
+// ⚠️ WARNING: This section has been generated so that any manual changes will be overwritten
 // `@promptbook/markdown-utils`
 import { PROMPTBOOK_VERSION } from '../version';
 import type { string_markdown } from '../types/typeAliases';

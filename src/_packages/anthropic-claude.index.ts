@@ -1,3 +1,4 @@
+// ⚠️ WARNING: This section has been generated so that any manual changes will be overwritten
 // `@promptbook/anthropic-claude`
 import { PROMPTBOOK_VERSION } from '../version';
 import { ANTHROPIC_CLAUDE_MODELS } from '../llm-providers/anthropic-claude/anthropic-claude-models';

@@ -1,3 +1,4 @@
+// ⚠️ WARNING: This section has been generated so that any manual changes will be overwritten
 // `@promptbook/types`
 import { PROMPTBOOK_VERSION } from '../version';
 import type { PipelineCollection } from '../collection/PipelineCollection';

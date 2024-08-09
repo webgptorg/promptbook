@@ -1,3 +1,4 @@
+// ⚠️ WARNING: This section has been generated so that any manual changes will be overwritten
 // `@promptbook/langtail`
 import { PROMPTBOOK_VERSION } from '../version';
 import { LangtailExecutionTools } from '../llm-providers/langtail/LangtailExecutionTools';
