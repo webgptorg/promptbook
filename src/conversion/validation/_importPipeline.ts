@@ -13,7 +13,7 @@ import type { string_json } from '../../types/typeAliases';
  * Note: Using sync version is 💩 in the production code, but it's ok here in tests
  *
  * @param path - The path to the file relative to samples/templates directory
- * @private
+ * @private internal function of tests
  */
 export function importPipelineWithoutPreparation(path: `${string}.ptbk.md`): PipelineString;
 export function importPipelineWithoutPreparation(path: `${string}.ptbk.json`): PipelineJson;
@@ -35,6 +35,8 @@ export function importPipelineWithoutPreparation(path: string_file_path): Pipeli
 
 /**
  * Import the pipeline.ptbk.json file as parsed JSON
+ *
+ * @private internal function of tests
  */
 export function importPipelineJson(path: `${string}.ptbk.json`): PipelineJson {
     const content = importPipelineJsonAsString(path);
@@ -44,6 +46,8 @@ export function importPipelineJson(path: `${string}.ptbk.json`): PipelineJson {
 
 /**
  * Import the pipeline.ptbk.json file as string
+ *
+ * @private internal function of tests
  */
 export function importPipelineJsonAsString(path: `${string}.ptbk.json`): string_json<PipelineJson> {
     const samplesDir = '../../../samples/templates';

@@ -8,7 +8,7 @@ Show how to use two consecutive prompts with one parameter each.
 -   OUTPUT PARAMETER `{sentence}` Resulting sentence with two synonyms
 
 <!--Graph-->
-<!-- ⚠️ WARNING: This section was auto-generated -->
+<!-- ⚠️ WARNING: This code has been generated so that any manual changes will be overwritten -->
 
 ```mermaid
 %% 🔮 Tip: Open this on GitHub or in the VSCode website to see the Mermaid graph visually

@@ -50,7 +50,7 @@ async function generateSampleJsons({ isCommited }: { isCommited: boolean }) {
     }
 
     if (isCommited) {
-        await commit(PROMPTBOOK_SAMPLES_DIR, `📖 Generate reports .report.json -> .report.md`);
+        await commit([PROMPTBOOK_SAMPLES_DIR], `📖 Generate reports .report.json -> .report.md`);
     }
 
     console.info(`[ Done 📖  Generate reports .report.json -> .report.md]`);

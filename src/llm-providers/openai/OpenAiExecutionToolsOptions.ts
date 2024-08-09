@@ -7,6 +7,8 @@ import type { string_token } from '../../types/typeAliases';
  *
  * This extends OpenAI's `ClientOptions` with are directly passed to the OpenAI client.
  * Rest is used by the `OpenAiExecutionTools`.
+ * 
+ * @public exported from `@promptbook/openai`
  */
 export type OpenAiExecutionToolsOptions = CommonExecutionToolsOptions &
     ClientOptions & {

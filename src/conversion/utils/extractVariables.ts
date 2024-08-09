@@ -8,6 +8,7 @@ import type { string_javascript_name } from '../../types/typeAliases';
  * @param script from which to extract the variables
  * @returns the list of variable names
  * @throws {ParsingError} if the script is invalid
+ * @public exported from `@promptbook/utils`
  */
 export function extractVariables(script: string_javascript): Set<string_javascript_name> {
     const variables = new Set<string_javascript_name>();

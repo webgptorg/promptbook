@@ -9,6 +9,9 @@ interface LindatAutomaticTranslatorOptions extends TranslatorOptions {
     apiUrl?: URL;
 }
 
+/**
+ * @private still in development [🏳]
+ */
 export class LindatAutomaticTranslator implements AutomaticTranslator {
     public constructor(private readonly options: LindatAutomaticTranslatorOptions) {}
     public async translate(message: string): Promise<string> {

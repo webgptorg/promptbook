@@ -38,12 +38,13 @@ import { titleToName } from './utils/titleToName';
  * - `pipelineStringToJsonSync` - use only if you need to compile promptbook synchronously and it contains NO external knowledge
  * - `preparePipeline` - just one step in the compilation process
  *
+ * Note: This function does not validate logic of the pipeline only the syntax
+ * Note: This function acts as compilation process
+ *
  * @param pipelineString {Promptbook} in string markdown format (.ptbk.md)
  * @returns {Promptbook} compiled in JSON format (.ptbk.json)
  * @throws {ParsingError} if the promptbook string is not valid
- *
- * Note: This function does not validate logic of the pipeline only the syntax
- * Note: This function acts as compilation process
+ * @public exported from `@promptbook/core`
  */
 export function pipelineStringToJsonSync(pipelineString: PipelineString): PipelineJson {
     const pipelineJson: WritableDeep<PipelineJson> = {

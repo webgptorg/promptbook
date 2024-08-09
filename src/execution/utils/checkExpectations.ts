@@ -12,6 +12,7 @@ import { CountUtils } from '../../utils/expectation-counters/index';
  *
  * @throws {ExpectError} if the expectations are not met
  * @returns {void} Nothing
+ * @private internal function of `createPipelineExecutor`
  */
 export function checkExpectations(expectations: Expectations, value: string): void {
     for (const [unit, { max, min }] of Object.entries(expectations)) {
@@ -35,6 +36,7 @@ export function checkExpectations(expectations: Expectations, value: string): vo
  * - `isPassingExpectations` which returns a boolean
  *
  * @returns {boolean} True if the expectations are met
+ * @public exported from `@promptbook/core`
  */
 export function isPassingExpectations(expectations: Expectations, value: string): boolean {
     try {

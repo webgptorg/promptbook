@@ -9,6 +9,8 @@ import { isValidUrl } from './isValidUrl';
  * Note: There are two simmilar functions:
  * - `isValidUrl` which tests any URL
  * - `isValidPipelineUrl` *(this one)* which tests just pipeline URL
+ * 
+ * @public exported from `@promptbook/utils`
  */
 export function isValidPipelineUrl(url: really_unknown): url is string_pipeline_url {
     if (!isValidUrl(url)) {

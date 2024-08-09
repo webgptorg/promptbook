@@ -9,6 +9,9 @@ import { PipelineExecutionError } from '../../../errors/PipelineExecutionError';
 import type { AutomaticTranslator } from './automatic-translators/AutomaticTranslator';
 import type { TranslatorOptions } from './automatic-translators/TranslatorOptions';
 
+/**
+ * @private still in development [🏳]
+ */
 export async function translateMessages({
     automaticTranslator,
     from,

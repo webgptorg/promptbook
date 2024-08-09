@@ -9,6 +9,8 @@ import { countWords } from './countWords';
 
 /**
  * Index of all counter functions
+ * 
+ * @public exported from `@promptbook/utils`
  */
 export const CountUtils: Record<ExpectationUnit, (text: string) => ExpectationAmount> = {
     CHARACTERS: countCharacters,

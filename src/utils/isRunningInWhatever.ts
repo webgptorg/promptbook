@@ -1,5 +1,7 @@
 /**
  * Detects if the code is running in a browser environment in main thread (Not in a web worker)
+ *
+ * @public exported from `@promptbook/utils`
  */
 export const isRunningInBrowser = new Function(`
     try {
@@ -11,6 +13,8 @@ export const isRunningInBrowser = new Function(`
 
 /**
  * Detects if the code is running in a Node.js environment
+ *
+ * @public exported from `@promptbook/utils`
  */
 export const isRunningInNode = new Function(`
     try {
@@ -22,6 +26,8 @@ export const isRunningInNode = new Function(`
 
 /**
  * Detects if the code is running in a web worker
+ *
+ * @public exported from `@promptbook/utils`
  */
 export const isRunningInWebWorker = new Function(`
     try {
@@ -34,7 +40,3 @@ export const isRunningInWebWorker = new Function(`
         return false;
     }
 `);
-
-/**
- * TODO: [🔼] !!! Export via `@promptbook/utils`
- */

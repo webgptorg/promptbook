@@ -6,7 +6,7 @@ import { forTime } from 'waitasecond';
 /**
  * Initializes testing `hello` command for Promptbook CLI utilities
  *
- * @private part of `promptbookCli`
+ * @private internal function of `promptbookCli`
  */
 export function initializeHelloCommand(program: Program) {
     const helloCommand = program.command('hello');
@@ -26,7 +26,6 @@ export function initializeHelloCommand(program: Program) {
         process.exit(0);
     });
 }
-
 
 /**
  * Note: [🟡] This code should never be published outside of `@promptbook/cli`

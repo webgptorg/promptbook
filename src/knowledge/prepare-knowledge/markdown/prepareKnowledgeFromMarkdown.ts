@@ -16,6 +16,8 @@ import { TODO_USE } from '../../../utils/organization/TODO_USE';
 
 /**
  * @@@
+ * 
+ * @public exported from `@promptbook/core`
  */
 export async function prepareKnowledgeFromMarkdown(
     knowledgeContent: string_markdown /* <- TODO: [🖖] (?maybe not) Always the file */,

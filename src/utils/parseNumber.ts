@@ -9,7 +9,7 @@ import { ParsingError } from '../errors/ParsingError';
  * @returns parsed number
  * @throws {ParsingError} if the value is not a number
  *
- * @private within the parseCommand
+ * @public exported from `@promptbook/utils`
  */
 export function parseNumber(value: string | number): number {
     const originalValue = value;
@@ -92,4 +92,5 @@ export function parseNumber(value: string | number): number {
 
 /**
  * TODO: Maybe use sth. like safe-eval in fraction/calculation case @see https://www.npmjs.com/package/safe-eval
+ * TODO: [🧠][🌻] Maybe export through `@promptbook/markdown-utils` not `@promptbook/utils`
  */

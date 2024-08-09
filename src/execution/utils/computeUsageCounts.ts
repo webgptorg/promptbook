@@ -12,7 +12,7 @@ import type { PromptResultUsageCounts } from '../PromptResultUsage';
  * @param content the content of prompt or response
  * @returns part of PromptResultUsageCounts
  *
- * @private internal util of LlmExecutionTools
+ * @private internal utility of LlmExecutionTools
  */
 export function computeUsageCounts(content: string): Omit<PromptResultUsageCounts, 'tokensCount'> {
     return {

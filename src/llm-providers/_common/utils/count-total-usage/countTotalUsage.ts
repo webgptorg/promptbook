@@ -17,6 +17,7 @@ import type { LlmExecutionToolsWithTotalUsage } from './LlmExecutionToolsWithTot
  *
  * @param llmTools LLM tools to be intercepted with usage counting
  * @returns LLM tools with same functionality with added total cost counting
+ * @public exported from `@promptbook/core`
  */
 export function countTotalUsage(llmTools: LlmExecutionTools): LlmExecutionToolsWithTotalUsage {
     let totalUsage: PromptResultUsage = ZERO_USAGE;
@@ -75,7 +76,6 @@ export function countTotalUsage(llmTools: LlmExecutionTools): LlmExecutionToolsW
 }
 
 /**
- * TODO: [🔼] !!! Export via `@promptbookcore/`
  * TODO: [🧠][💸] Maybe make some common abstraction `interceptLlmTools` and use here (or use javascript Proxy?)
  * TODO: [🧠] Is there some meaningfull way how to test this util
  * TODO: [🧠][🌯] Maybe a way how to hide ability to `get totalUsage`

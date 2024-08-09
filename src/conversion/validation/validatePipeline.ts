@@ -24,6 +24,7 @@ import { isValidPipelineUrl } from '../../utils/validators/url/isValidPipelineUr
  * @param pipeline valid or invalid PipelineJson
  * @returns the same pipeline if it is logically valid
  * @throws {PipelineLogicError} on logical error in the pipeline
+ * @public exported from `@promptbook/core`
  */
 export function validatePipeline(pipeline: PipelineJson): PipelineJson {
     // TODO: [🧠] Maybe test if promptbook is a promise and make specific error case for that

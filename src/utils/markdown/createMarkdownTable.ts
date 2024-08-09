@@ -4,7 +4,7 @@ import type { string_markdown_text } from '../../types/typeAliases';
 /**
  * Create a markdown table from a 2D array of strings
  *
- * @private within the repository
+ * @public exported from `@promptbook/markdown-utils`
  */
 export function createMarkdownTable(table: Array<Array<string_markdown_text>>): string_markdown {
     const columnWidths: number[] = table.reduce((widths: number[], row: string_markdown_text[]) => {
@@ -32,3 +32,7 @@ export function createMarkdownTable(table: Array<Array<string_markdown_text>>): 
 
     return [header, separator, ...rows].join('\n');
 }
+
+/**
+ * TODO: [🏛] This can be part of markdown builder
+ */

@@ -7,6 +7,7 @@ import type { string_template } from '../types/typeAliases';
  *
  * @param template the template with parameters in {curly} braces
  * @returns the list of parameter names
+ * @public exported from `@promptbook/utils`
  */
 export function extractParameterNames(template: string_template): Set<string_parameter_name> {
     const matches = template.matchAll(/{\w+}/g);

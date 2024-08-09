@@ -8,6 +8,8 @@ import type { ScriptExecutionToolsExecuteOptions } from '../../execution/ScriptE
  * ScriptExecutionTools for TypeScript
  *
  * Warning: This is not implemented yet
+ *
+ * @private still in development
  */
 export class TypescriptExecutionTools implements ScriptExecutionTools {
     public constructor(private readonly options: CommonExecutionToolsOptions = {}) {}

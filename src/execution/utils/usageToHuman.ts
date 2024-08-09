@@ -6,6 +6,8 @@ import { usageToWorktime } from './usageToWorktime';
 
 /**
  * Function `usageToHuman` will take usage and convert it to human readable report
+ * 
+ * @public exported from `@promptbook/core`
  */
 export function usageToHuman(usage: PromptResultUsage): string_markdown {
  

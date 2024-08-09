@@ -13,7 +13,7 @@ import type { PipelineCollection } from './PipelineCollection';
  * Library of pipelines that groups together pipelines for an application.
  * This implementation is a very thin wrapper around the Array / Map of pipelines.
  *
- * @private use `createCollectionFromJson` instead
+ * @private internal function of `createCollectionFromJson`, use `createCollectionFromJson` instead
  * @see https://github.com/webgptorg/pipeline#pipeline-collection
  */
 export class SimplePipelineCollection implements PipelineCollection {
@@ -24,7 +24,6 @@ export class SimplePipelineCollection implements PipelineCollection {
      *
      * @param pipelines @@@
      *
-     * @private Use instead `createCollectionFromJson`
      * Note: During the construction logic of all pipelines are validated
      * Note: It is not recommended to use this constructor directly, use `createCollectionFromJson` *(or other variant)* instead
      */

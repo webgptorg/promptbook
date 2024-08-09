@@ -1,8 +1,12 @@
-// @promptbook/azure-openai
-
+// ⚠️ WARNING: This code has been generated so that any manual changes will be overwritten
+// `@promptbook/azure-openai`
 import { AzureOpenAiExecutionTools } from '../llm-providers/azure-openai/AzureOpenAiExecutionTools';
 import type { AzureOpenAiExecutionToolsOptions } from '../llm-providers/azure-openai/AzureOpenAiExecutionToolsOptions';
 import { PROMPTBOOK_VERSION } from '../version';
 
 // Note: Exporting version from each package
-export { AzureOpenAiExecutionTools, AzureOpenAiExecutionToolsOptions, PROMPTBOOK_VERSION };
+export { PROMPTBOOK_VERSION };
+
+// Note: Entities of the `@promptbook/azure-openai`
+export { AzureOpenAiExecutionTools };
+export type { AzureOpenAiExecutionToolsOptions };

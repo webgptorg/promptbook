@@ -4,6 +4,8 @@ import type { string_markdown_section } from '../../types/typeAliases';
 
 /**
  * Splits the markdown into sections by headings
+ *
+ * @public exported from `@promptbook/markdown-utils`
  */
 export function splitMarkdownIntoSections(markdown: string_markdown): Array<string_markdown_section> {
     const lines = markdown.split('\n');
@@ -62,6 +64,7 @@ export function splitMarkdownIntoSections(markdown: string_markdown): Array<stri
 }
 
 /**
+ * TODO: [🏛] This can be part of markdown builder
  * Note: [🕞] In past (commit 42086e1603cbed506482997c00a8ee979af0a247) there was much more
  *       sophisticated implementation of this function through parsing markdown into JSON structure
  *       and flattening the actual structure

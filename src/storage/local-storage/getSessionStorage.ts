@@ -5,6 +5,8 @@ import { makePromptbookStorageFromWebStorage } from '../utils/makePromptbookStor
 
 /**
  * Gets wrapper around `sessionStorage` object which can be used as `PromptbookStorage`
+ * 
+ * @public exported from `@promptbook/browser`
  */
 export function getSessionStorage<TItem>(): PromptbookStorage<TItem> {
     if (!isRunningInBrowser()) {
@@ -15,6 +17,5 @@ export function getSessionStorage<TItem>(): PromptbookStorage<TItem> {
 }
 
 /**
- * TODO: [🔼] !!! Export via `@promptbook/browser`
  * Note: [🔵] This code should never be published outside of `@promptbook/browser`
  */

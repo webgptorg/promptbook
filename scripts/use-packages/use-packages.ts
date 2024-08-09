@@ -86,7 +86,7 @@ async function usePackages() {
 
         if (remoteFolder === './samples/usage') {
             // Note: No need to check that folder is clean, because this script is executed only after new version which can be triggered only from clean state
-            await commit(remoteFolder, `⏫ Update promptbook to version ${currentVersion} in samples`);
+            await commit([remoteFolder], `⏫ Update promptbook to version ${currentVersion} in samples`);
         }
     }
 

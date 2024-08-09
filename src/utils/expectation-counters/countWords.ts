@@ -3,6 +3,8 @@ import { removeDiacritics } from '../normalization/removeDiacritics';
 
 /**
  * Counts number of words in the text
+ *
+ * @public exported from `@promptbook/utils`
  */
 export function countWords(text: string): ExpectationAmount {
     text = text.replace(/[\p{Extended_Pictographic}]/gu, 'a');

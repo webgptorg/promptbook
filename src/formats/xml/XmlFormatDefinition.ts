@@ -3,6 +3,8 @@ import type { FormatDefinition } from '../_common/FormatDefinition';
 
 /**
  * Definition for XML format
+ *
+ * @private still in development [🏢]
  */
 export const XmlFormatDefinition: FormatDefinition<string /* <- [0] */, string /* <- [👨‍⚖️] */, object /* <- [1] */> = {
     name: 'XML',

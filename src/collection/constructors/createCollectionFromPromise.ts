@@ -22,6 +22,7 @@ import { createCollectionFromJson } from './createCollectionFromJson';
  * @param promptbookSourcesPromiseOrFactory
  * @returns PipelineCollection
  * @deprecated Do not use, it will became internal tool for other constructor functions
+ * @public exported from `@promptbook/core`
  */
 export function createCollectionFromPromise(
     promptbookSourcesPromiseOrFactory: Promise<Array<PipelineJson>> | (() => Promise<Array<PipelineJson>>),

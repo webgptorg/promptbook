@@ -18,7 +18,7 @@ type Validator<TValue> = {
 
 /**
  *
- * @private
+ * @private within the `src/validators` folder
  */
 function makeValidator<TValue extends string>(validator: (value: really_unknown) => TValue): Validator<TValue> {
     const validate = (value: really_unknown): TValue => {

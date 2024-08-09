@@ -4,6 +4,7 @@
 '--------------------------------------------------'
 */
 
+import type { TupleToUnion } from 'type-fest';
 import { RESERVED_PARAMETER_NAMES } from '../config';
 
 /**
@@ -146,7 +147,7 @@ export type Parameters = Exclude<Record<string_parameter_name, string_parameter_
  *
  * For example `"context"`
  */
-export type string_reserved_parameter_name = typeof RESERVED_PARAMETER_NAMES[number];
+export type string_reserved_parameter_name = TupleToUnion<typeof RESERVED_PARAMETER_NAMES>;
 
 /**
  * @@@
@@ -215,6 +216,8 @@ export type string_xml = string;
  * Semantic helper
  *
  * For example `"**Hello** World!"`
+ *
+ * @public exported from `@promptbook/markdown-utils`
  */
 export type string_markdown = string;
 
@@ -222,6 +225,8 @@ export type string_markdown = string;
  * Semantic helper
  *
  * Markdown text with exactly ONE heading on first line NO less NO more
+ *
+ * @public exported from `@promptbook/markdown-utils`
  */
 export type string_markdown_section = string;
 
@@ -230,6 +235,8 @@ export type string_markdown_section = string;
  *
  * Markdown without any headings like h1, h2
  * BUT with formatting, lists, blockquotes, blocks, etc. is allowed
+ *
+ * @public exported from `@promptbook/markdown-utils`
  */
 export type string_markdown_section_content = string;
 
@@ -240,6 +247,8 @@ export type string_markdown_section_content = string;
  * BUT with bold, italic, etc. is allowed
  *
  * For example `"**Hello** World!"`
+ *
+ * @public exported from `@promptbook/markdown-utils`
  */
 export type string_markdown_text = string;
 
@@ -686,7 +695,6 @@ export type number_terabytes = number_positive;
 
 /**.
  * TODO: !!! Change "For example" to @example
- * TODO: !! Cleanup
  * TODO: !! Change to branded types
- * TODO: [📂] Export all this file through `@promptbook/types`
+ * TODO: Delete type aliases that are not exported or used internally
  */

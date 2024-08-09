@@ -109,7 +109,6 @@ export type CommonModelRequirements = {
 };
 
 /**
- * TODO: [🔼] !!!!! (<- To all [🔼]) Export all from `@promptbook/types`
  * TODO: [🧠][🈁] `seed` should maybe be somewhere else (not in `ModelRequirements`) (simmilar that `user` identification is not here)
  * TODO: [🧠][💱] Add more model options: `stop_token`, `logit_bias`, `logprobs` (`top_logprobs`), `top_k`, `top_p`, `presence_penalty`, `frequency_penalty`, `bestOf`, `logitBias`, `logitBiasType`,...
  *       [💱] Probbably keep using just `temperature` in Promptbook (not `top_k` and `top_p`)

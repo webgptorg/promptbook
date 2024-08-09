@@ -13,6 +13,7 @@ import type { PipelineCollection } from '../PipelineCollection';
  *
  * @param promptbookSources
  * @returns PipelineCollection
+ * @public exported from `@promptbook/core`
  */
 export function createSubcollection(
     collection: PipelineCollection,

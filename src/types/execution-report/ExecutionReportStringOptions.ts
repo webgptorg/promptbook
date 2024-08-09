@@ -2,6 +2,8 @@ import type { number_percent } from '../typeAliases';
 
 /**
  * Options for `executionReportJsonToString`
+ *
+ * @public exported from `@promptbook/core`
  */
 export type ExecutionReportStringOptions = {
     /**
@@ -16,6 +18,8 @@ export type ExecutionReportStringOptions = {
 
 /**
  * Default options for generating an execution report string
+ *
+ * @public exported from `@promptbook/core`
  */
 export const ExecutionReportStringOptionsDefaults = {
     taxRate: 0,

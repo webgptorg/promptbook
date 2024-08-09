@@ -21,6 +21,8 @@ import type { AzureOpenAiExecutionToolsOptions } from './AzureOpenAiExecutionToo
 
 /**
  * Execution Tools for calling Azure OpenAI API.
+ * 
+ * @public exported from `@promptbook/azure-openai`
  */
 export class AzureOpenAiExecutionTools implements LlmExecutionTools {
     /**

@@ -33,7 +33,7 @@ export type CodeBlock = {
  *
  * @param markdown any valid markdown
  * @returns code blocks with language and content
- *
+ * @public exported from `@promptbook/markdown-utils`
  */
 export function extractAllBlocksFromMarkdown(markdown: string_markdown): Array<CodeBlock> {
     const codeBlocks: Array<CodeBlock> = [];

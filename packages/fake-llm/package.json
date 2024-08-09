@@ -1,0 +1,56 @@
+{
+    "name": "@promptbook/fake-llm",
+    "version": "0.63.0-4",
+    "description": "Supercharge your use of large language models",
+    "private": false,
+    "sideEffects": false,
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/webgptorg/promptbook"
+    },
+    "contributors": [
+        "Pavol Hejný <me@pavolhejny.com> (https://www.pavolhejny.com/)"
+    ],
+    "keywords": [
+        "autogpt",
+        "openai",
+        "gpt-3",
+        "gpt-4",
+        "chatgpt",
+        "ai",
+        "machine-learning",
+        "natural-language-processing",
+        "nlp",
+        "prompt",
+        "template",
+        "pipeline",
+        "automation",
+        "text-generation",
+        "language-model"
+    ],
+    "license": "CC-BY-4.0",
+    "bugs": {
+        "url": "https://github.com/webgptorg/promptbook/issues"
+    },
+    "homepage": "https://www.npmjs.com/package/@promptbook/core",
+    "funding": [
+        {
+            "type": "individual",
+            "url": "https://buymeacoffee.com/hejny"
+        },
+        {
+            "type": "github",
+            "url": "https://github.com/webgptorg/promptbook/blob/main/README.md#%EF%B8%8F-contributing"
+        }
+    ],
+    "main": "./umd/index.umd.js",
+    "module": "./esm/index.es.js",
+    "typings": "./esm/typings/src/_packages/fake-llm.index.d.ts",
+    "peerDependencies": {
+        "@promptbook/core": "0.63.0-4"
+    },
+    "dependencies": {
+        "lorem-ipsum": "2.0.8",
+        "spacetrim": "0.11.39"
+    }
+}

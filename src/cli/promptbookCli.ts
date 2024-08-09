@@ -1,14 +1,16 @@
 import commander from 'commander';
 import { spaceTrim } from 'spacetrim';
+import { EnvironmentMismatchError } from '../errors/EnvironmentMismatchError';
 import { isRunningInNode } from '../utils/isRunningInWhatever';
 import { PROMPTBOOK_VERSION } from '../version';
 import { initializeHelloCommand } from './cli-commands/hello';
 import { initializeMakeCommand } from './cli-commands/make';
 import { initializePrettifyCommand } from './cli-commands/prettify';
-import { EnvironmentMismatchError } from '../errors/EnvironmentMismatchError';
 
 /**
  * Runs CLI utilities of Promptbook package
+ *
+ * @private within the `@promptbook/cli`
  */
 export async function promptbookCli(): Promise<void> {
     if (!isRunningInNode()) {
@@ -39,7 +41,7 @@ export async function promptbookCli(): Promise<void> {
 }
 
 /**
- * TODO: [🥠] Do not export to utils directly, its just for CLI script
+ * TODO: [🥠] Do not export, its just for CLI script
  * TODO: [🕌] When more functionalities, rename
  * Note: 11:11
  * Note: [🟡] This code should never be published outside of `@promptbook/cli`

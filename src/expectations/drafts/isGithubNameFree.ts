@@ -1,6 +1,9 @@
 import type { string_name } from '../../types/typeAliases';
 import { TODO_USE } from '../../utils/organization/TODO_USE';
 
+/**
+ * @private still in development
+ */
 export async function isGithubNameFree(name: string_name): Promise<boolean> {
     TODO_USE(name);
     const response = await fetch('https://github.com/organizations/check_name', {

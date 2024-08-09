@@ -10,7 +10,8 @@ import type { string_markdown_text } from '../../types/typeAliases';
  * Note: It can not work with html syntax and comments
  *
  * @param markdown any valid markdown
- * @returns
+ * @returns @@@
+ * @public exported from `@promptbook/markdown-utils`
  */
 export function extractAllListItemsFromMarkdown(markdown: string_markdown): string_markdown_text[] {
     const lines = markdown.split('\n');

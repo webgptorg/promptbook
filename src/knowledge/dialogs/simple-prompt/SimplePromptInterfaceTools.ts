@@ -9,6 +9,8 @@ import type { UserInterfaceToolsPromptDialogOptions } from '../../../execution/U
  *
  * Warning: It is used for testing and mocking
  *          **NOT intended to use in the production** due to its synchronous nature.
+ *
+ * @public exported from `@promptbook/browser`
  */
 export class SimplePromptInterfaceTools implements UserInterfaceTools {
     public constructor(private readonly options: CommonExecutionToolsOptions = {}) {}
@@ -45,7 +47,6 @@ export class SimplePromptInterfaceTools implements UserInterfaceTools {
         return answer;
     }
 }
-
 
 /**
  * Note: [🔵] This code should never be published outside of `@promptbook/browser`

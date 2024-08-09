@@ -14,6 +14,7 @@ import type { string_template } from '../types/typeAliases';
  * @param parameters the object with parameters
  * @returns the template with replaced parameters
  * @throws {PipelineExecutionError} if parameter is not defined, not closed, or not opened
+ * @public exported from `@promptbook/utils`
  */
 export function replaceParameters(template: string_template, parameters: Parameters): string {
     for (const [parameterName, parameterValue] of Object.entries(parameters)) {

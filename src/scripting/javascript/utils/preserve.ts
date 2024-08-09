@@ -7,6 +7,7 @@ import type { really_any } from '../../../utils/organization/really_any';
  *
  * @param value any function to preserve
  * @returns nothing
+ * @private internal function of `JavascriptExecutionTools` and `JavascriptEvalExecutionTools`
  */
 export function preserve(func: (...params: Array<really_any>) => unknown): void {
     // Note: NOT calling the function

@@ -1,5 +1,5 @@
 import colors from 'colors';
-import { access, constants, readdir, readFile } from 'fs/promises';
+import { access, constants, readFile } from 'fs/promises';
 import { join } from 'path';
 import spaceTrim from 'spacetrim';
 import { PIPELINE_COLLECTION_BASE_FILENAME } from '../../config';
@@ -11,9 +11,9 @@ import { CollectionError } from '../../errors/CollectionError';
 import { unpreparePipeline } from '../../prepare/unpreparePipeline';
 import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import type { PipelineString } from '../../types/PipelineString';
-import type { string_file_path } from '../../types/typeAliases';
 import type { string_folder_path } from '../../types/typeAliases';
 import type { string_pipeline_url } from '../../types/typeAliases';
+import { listAllFiles } from '../../utils/files/listAllFiles';
 import { isRunningInNode } from '../../utils/isRunningInWhatever';
 import type { PipelineCollection } from '../PipelineCollection';
 import { createCollectionFromPromise } from './createCollectionFromPromise';
@@ -60,6 +60,7 @@ type CreatePipelineCollectionFromDirectoryOptions = PipelineStringToJsonOptions 
  * @param path - path to the directory with pipelines
  * @param options - Misc options for the collection
  * @returns PipelineCollection
+ * @public exported from `@promptbook/node`
  */
 export async function createCollectionFromDirectory(
     path: string_folder_path,
@@ -236,30 +237,5 @@ export async function createCollectionFromDirectory(
 }
 
 /**
- * Reads all files in the directory
- *
- * @param path
- * @param isRecursive
- * @returns List of all files in the directory
- * @private internal function for `createCollectionFromDirectory`
- */
-async function listAllFiles(path: string_folder_path, isRecursive: boolean): Promise<Array<string_file_path>> {
-    const dirents = await readdir(path, {
-        withFileTypes: true /* Note: This is not working: recursive: isRecursive */,
-    });
-
-    const fileNames = dirents.filter((dirent) => dirent.isFile()).map(({ name }) => join(path, name));
-
-    if (isRecursive) {
-        for (const dirent of dirents.filter((dirent) => dirent.isDirectory())) {
-            const subPath = join(path, dirent.name);
-            fileNames.push(...(await listAllFiles(subPath, isRecursive)));
-        }
-    }
-
-    return fileNames;
-}
-
-/**
- * Note: [🟢] This code should never be published outside of `@pipeline/node`
+ * Note: [🟢] This code should never be published outside of `@promptbook/node` and `@promptbook/cli` and `@promptbook/cli`
  */

@@ -38,7 +38,7 @@ type CreateMarkdownChartOptions = {
 /**
  * Function createMarkdownChart will draw a chart in markdown from ⬛+🟦 tiles
  *
- * @private within the repository
+ * @public exported from `@promptbook/markdown-utils`
  */
 export function createMarkdownChart(options: CreateMarkdownChartOptions): string_markdown {
     const { nameHeader, valueHeader, items, width, unitName } = options;

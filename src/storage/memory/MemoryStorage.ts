@@ -2,6 +2,8 @@ import type { PromptbookStorage } from '../_common/PromptbookStorage';
 
 /**
  * Stores
+ * 
+ * @public exported from `@promptbook/core`
  */
 export class MemoryStorage<TItem> implements PromptbookStorage<TItem> {
     private storage: Record<string, TItem | null> = {};
@@ -48,7 +50,3 @@ export class MemoryStorage<TItem> implements PromptbookStorage<TItem> {
         delete this.storage[key];
     }
 }
-
-/**
- * TODO: [🔼] !!! Export via `@promptbook/core`
- */

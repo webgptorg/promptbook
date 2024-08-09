@@ -26,6 +26,7 @@ type RenameParameterOptions = {
  * In other words, it will find all parameters that are not used in the prompt template itseld and all its dependencies
  *
  * @throws {PipelineLogicError} If the new parameter name is already used in the pipeline
+ * @public exported from `@promptbook/utils`
  */
 export function renameParameter(options: RenameParameterOptions): PipelineJson {
     const { pipeline: pipeline, oldParameterName, newParameterName } = options;

@@ -10,6 +10,3 @@ export type FilesStorageOptions = {
     cacheFolderPath: string_folder_path;
 };
 
-/**
- * TODO: [🔼] !!! Export via `@promptbook/types`
- */

@@ -108,6 +108,7 @@ interface CreatePipelineExecutorOptions {
  *
  * @returns The executor function
  * @throws {PipelineLogicError} on logical error in the pipeline
+ * @public exported from `@promptbook/core`
  */
 export function createPipelineExecutor(options: CreatePipelineExecutorOptions): PipelineExecutor {
     const { pipeline, tools, settings = {} } = options;

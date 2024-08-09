@@ -15,6 +15,7 @@ type ForEachAsyncOptions = {
  * @param array - Array to iterate over
  * @param options - Options for the function
  * @param callbackfunction - Function to call for each item
+ * @public exported from `@promptbook/utils`
  */
 export async function forEachAsync<TItem>(
     array: Array<TItem>,

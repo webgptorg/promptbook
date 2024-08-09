@@ -14,6 +14,8 @@ import { MultipleLlmExecutionTools } from './MultipleLlmExecutionTools';
  *
  *
  * Tip: You don't have to use this function directly, just pass an array of LlmExecutionTools to the `ExecutionTools`
+ * 
+ * @public exported from `@promptbook/core`
  */
 export function joinLlmExecutionTools(...llmExecutionTools: Array<LlmExecutionTools>): MultipleLlmExecutionTools {
     if (llmExecutionTools.length === 0) {
