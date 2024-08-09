@@ -113,7 +113,7 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
         console.info(colors.green(entryIndexFilePath.split('\\').join('/')));
     }
 
-    await forTime(1000 * 60 * 60 * 0);
+    await forTime(1000 * 60 * 60);
 
     // 3️⃣ Generate bundles of all packages
     await execCommand(`npx rollup --config rollup.config.js`);
