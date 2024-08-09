@@ -52,19 +52,7 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
     const packagesMetadata = await getPackagesMetadata();
 
     // ==============================
-    // 1️⃣ Cleanup
-    for (const packageMetadata of packagesMetadata) {
-        const { isBuilded, packageBasename } = packageMetadata;
-
-        if (!isBuilded) {
-            continue;
-        }
-        await execCommand(`rm -rf ./packages/${packageBasename}/umd`);
-        await execCommand(`rm -rf ./packages/${packageBasename}/esm`);
-    }
-
-    // ==============================
-    // 2️⃣ Generate `entryIndexFilePath` of all packages
+    // 1️⃣ Generate `entryIndexFilePath` for each package
     for (const packageMetadata of packagesMetadata) {
         const { entryIndexFilePath, entities, packageFullname } = packageMetadata;
 
@@ -121,7 +109,7 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
     }
 
     // ==============================
-    // 3️⃣ Generate package.json, README and other crucial files for each package
+    // 2️⃣ Generate package.json, README and other crucial files for each package
     const mainReadme = await readFile('./README.md', 'utf-8');
     for (const { isBuilded, readmeFilePath, packageFullname, packageBasename } of packagesMetadata) {
         let packageReadme = mainReadme;
@@ -179,12 +167,12 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
         }
 
         /*
-      TODO: Fix or remove Socket badge
+        TODO: Fix or remove Socket badge
 
-      const badge = `[![Socket Badge](https://socket.dev/api/badge/npm/package/${packageFullname})](https://socket.dev/npm/package/${packageFullname})`;
+        const badge = `[![Socket Badge](https://socket.dev/api/badge/npm/package/${packageFullname})](https://socket.dev/npm/package/${packageFullname})`;
 
-      packageReadme = packageReadme.split(`\n<!--/Badges-->`).join(badge + '\n\n<!--/Badges-->');
-      */
+        packageReadme = packageReadme.split(`\n<!--/Badges-->`).join(badge + '\n\n<!--/Badges-->');
+        */
 
         // TODO: [🍓] Convert mermaid diagrams to images or remove them from the markdown published to NPM
 
@@ -223,14 +211,30 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
     }
 
     // ==============================
-    // 4️⃣ Generate bundles of all packages
-    await forTime(1000 * 60 * 60 * 60);
+    // 3️⃣ Cleanup build directories for each package
+    for (const packageMetadata of packagesMetadata) {
+        const { isBuilded, packageBasename } = packageMetadata;
+
+        if (!isBuilded) {
+            continue;
+        }
+        await execCommand(`rm -rf ./packages/${packageBasename}/umd`);
+        await execCommand(`rm -rf ./packages/${packageBasename}/esm`);
+    }
+
+    // ==============================
+    // 4️⃣ Generate bundles for each package
+    await forTime(1000 * 60 * 60 * 0);
     await execCommand(`npx rollup --config rollup.config.js`);
 
     // ==============================
-    // 5️⃣ Test that nothing what should not be published is published
+    // 5️⃣ Postprocess the build
+    // TODO: !!!!!! Keep only one typings
+
+    // ==============================
+    // 6️⃣ Test that nothing what should not be published is published
     /*
-    TODO: !!! Test that:
+    TODO: !!!!!! Test that:
     - Test umd, esm, typings and everything else
 
     [🟡] This code should never be published outside of `@promptbook/cli`
@@ -240,7 +244,7 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
     */
 
     // ==============================
-    // Note: 6️⃣ Postprocess generated packages and create README.md and package.json for each package
+    // Note: 7️⃣ Add dependencies for each package
     for (const { isBuilded, packageFullname, packageBasename, additionalDependencies } of packagesMetadata) {
         const packageJson = JSON.parse(
             await readFile(`./packages/${packageBasename}/package.json`, 'utf-8'),
@@ -288,6 +292,8 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
         //     <- TODO: [0] package.json is is written twice, can it be done in one step?
     }
 
+    // ==============================
+    // Note: 8️⃣ Make publishing instructions for Github Actions
     await writeFile(
         `./.github/workflows/publish.yml`,
         YAML.stringify(
@@ -350,7 +356,7 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
     );
 
     // ==============================
-    // 7️⃣ Commit the changes
+    // 9️⃣ Commit the changes
 
     if (isCommited) {
         await commit('packages', `📦 Generating packages`);
