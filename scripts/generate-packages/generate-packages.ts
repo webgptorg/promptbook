@@ -44,7 +44,8 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
         throw new Error(`Working tree is not clean`);
     }
 
-    // 0️⃣ Prepare the needed information about the packages
+    // ==============================
+    console.info(colors.cyan(`0️⃣  Prepare the needed information about the packages`));
     const mainPackageJson = JSON.parse(await readFile('./package.json', 'utf-8')) as PackageJson;
 
     console.info(`Promptbook version ${mainPackageJson.version}`);
@@ -62,7 +63,8 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
     const packagesMetadata = await getPackagesMetadata();
 
     // ==============================
-    // 1️⃣ Generate `entryIndexFilePath` for each package
+    console.info(colors.cyan(`1️⃣  Generate entry file for each package`));
+
     for (const packageMetadata of packagesMetadata) {
         const { entryIndexFilePath, entities, packageFullname } = packageMetadata;
 
@@ -119,7 +121,8 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
     }
 
     // ==============================
-    // 2️⃣ Generate package.json, README and other crucial files for each package
+    console.info(colors.cyan(`2️⃣  Generate package.json, README and other crucial files for each package`));
+
     const mainReadme = await readFile('./README.md', 'utf-8');
     for (const { isBuilded, readmeFilePath, packageFullname, packageBasename } of packagesMetadata) {
         let packageReadme = mainReadme;
@@ -224,7 +227,8 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
     }
 
     // ==============================
-    // 3️⃣ Cleanup build directories for each package
+    console.info(colors.cyan(`3️⃣  Cleanup build directories for each package`));
+
     if (isBundlerSkipped) {
         console.info(colors.yellow(`Skipping the cleanup for bundler`));
     } else {
@@ -240,7 +244,8 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
     }
 
     // ==============================
-    // 4️⃣ Generate bundles for each package
+    console.info(colors.cyan(`4️⃣  Generate bundles for each package`));
+
     if (isBundlerSkipped) {
         console.info(colors.yellow(`Skipping the bundler`));
     } else {
@@ -249,7 +254,8 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
     }
 
     // ==============================
-    // 5️⃣ Postprocess the build
+    console.info(colors.cyan(`5️⃣  Postprocess the build`));
+
     if (isBundlerSkipped) {
         console.info(colors.yellow(`Skipping the bundles postprocessing`));
     } else {
@@ -257,7 +263,8 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
     }
 
     // ==============================
-    // 6️⃣ Test that nothing what should not be published is published
+    console.info(colors.cyan(`6️⃣  Test that nothing what should not be published is published`));
+
     /*
     TODO: !!!!!! Test that:
     - Test umd, esm, typings and everything else
@@ -269,7 +276,8 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
     */
 
     // ==============================
-    // Note: 7️⃣ Add dependencies for each package
+    console.info(colors.cyan(`7️⃣  Add dependencies for each package`));
+
     for (const { isBuilded, packageFullname, packageBasename, additionalDependencies } of packagesMetadata) {
         const packageJson = JSON.parse(
             await readFile(`./packages/${packageBasename}/package.json`, 'utf-8'),
@@ -319,7 +327,8 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
     }
 
     // ==============================
-    // Note: 8️⃣ Make publishing instructions for Github Actions
+    console.info(colors.cyan(`8️⃣  Make publishing instructions for Github Actions`));
+
     await writeFile(
         `./.github/workflows/publish.yml`,
         YAML.stringify(
