@@ -100,6 +100,7 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
             (block) => `
                 // ${block(GENERATOR_WARNING)}
                 // \`${packageFullname}\`
+
                 import { PROMPTBOOK_VERSION } from '../version';
                 ${block(entryIndexFilePathContentImports.join('\n'))}
 

@@ -43,6 +43,7 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
         spaceTrim(
             (block) => `
                 // ${block(GENERATOR_WARNING)}
+                
                 import type { string_semantic_version } from './types/typeAliases';
 
                 /**
