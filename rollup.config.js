@@ -71,3 +71,7 @@ export default packages
             }),
         ],
     }));
+
+/**
+ * TODO: !!!!!! Keep typings only from esm or umd
+ */
