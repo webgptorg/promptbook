@@ -8,7 +8,7 @@ Show how to put codeblocks in the prompt _(which is already in the codeblock)_
 -   OUTPUT PARAMETER `{greeting2}`
 
 <!--Graph-->
-<!-- ⚠️ WARNING: This section was auto-generated -->
+<!-- ⚠️ WARNING: This section has been generated so that any manual changes will be overwritten -->
 
 ```mermaid
 %% 🔮 Tip: Open this on GitHub or in the VSCode website to see the Mermaid graph visually

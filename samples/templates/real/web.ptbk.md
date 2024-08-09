@@ -8,7 +8,7 @@ Instrukce pro napsání úvodník do městského časopisu za pomocí [📖 Prom
 -   Output param `{outputText}` Text emailu
 
 <!--Graph-->
-<!-- ⚠️ WARNING: This section was auto-generated -->
+<!-- ⚠️ WARNING: This section has been generated so that any manual changes will be overwritten -->
 
 ```mermaid
 %% 🔮 Tip: Open this on GitHub or in the VSCode website to see the Mermaid graph visually

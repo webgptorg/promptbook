@@ -2,6 +2,13 @@ import { deepFreeze } from './utils/deepFreeze';
 import { just } from './utils/organization/just';
 
 /**
+ * Warning message for the generated sections and files files
+ *
+ * @private within the repository
+ */
+export const GENERATOR_WARNING = `⚠️ WARNING: This section has been generated so that any manual changes will be overwritten`;
+
+/**
  * The maximum number of iterations for a loops
  *
  * @private within the repository - too low-level in comparison with other `MAX_...`

@@ -169,4 +169,5 @@ function promptTemplateParameterJsonToString(promptTemplateParameterJson: Prompt
  * TODO: [🧠] Is there a way to auto-detect missing features in pipelineJsonToString
  * TODO: [🏛] Maybe make some markdown builder
  * TODO: [🏛] Escape all
+ * TODO: [🧠] Should be in generated .ptbk.md file GENERATOR_WARNING
  */

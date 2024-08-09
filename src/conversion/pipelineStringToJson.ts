@@ -53,4 +53,5 @@ export async function pipelineStringToJson(
 /**
  * TODO: [🏏] Leverage the batch API and build queues @see https://platform.openai.com/docs/guides/batch
  * TODO: [🛠] Actions, instruments (and maybe knowledge) => Functions and tools
+ * TODO: [🧠] Should be in generated JSON file GENERATOR_WARNING
  */

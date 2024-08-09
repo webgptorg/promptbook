@@ -9,6 +9,7 @@ import spaceTrim from 'spacetrim';
 import type { PackageJson } from 'type-fest';
 import { forTime } from 'waitasecond';
 import YAML from 'yaml';
+import { GENERATOR_WARNING } from '../../src/config';
 import { prettifyMarkdown } from '../../src/utils/markdown/prettifyMarkdown';
 import { removeContentComments } from '../../src/utils/markdown/removeContentComments';
 import { commit } from '../utils/autocommit/commit';
@@ -97,6 +98,7 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
 
         let entryIndexFilePathContent = spaceTrim(
             (block) => `
+                // ${block(GENERATOR_WARNING)}
                 // \`${packageFullname}\`
                 import { PROMPTBOOK_VERSION } from '../version';
                 ${block(entryIndexFilePathContentImports.join('\n'))}
@@ -191,6 +193,13 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
 
         packageReadme = removeContentComments(packageReadme);
 
+        packageReadme = spaceTrim(
+            (block) => `
+                <!-- ${block(GENERATOR_WARNING)} -->
+
+                ${block(packageReadme)}
+            `,
+        );
         prettifyMarkdown(packageReadme);
 
         await writeFile(
@@ -218,11 +227,13 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
         packageJson.name = packageFullname;
 
         await writeFile(`./packages/${packageBasename}/package.json`, JSON.stringify(packageJson, null, 4) + '\n');
+        //     <- TODO: Add GENERATOR_WARNING to package.json
         //     <- TODO: [0] package.json is is written twice, can it be done in one step?
 
         if (isBuilded) {
             await writeFile(`./packages/${packageBasename}/.gitignore`, ['esm', 'umd'].join('\n'));
             await writeFile(`./packages/${packageBasename}/.npmignore`, '');
+            // <- TODO: Add GENERATOR_WARNING to .gitignore and .npmignore
         }
     }
 
@@ -265,6 +276,8 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
             await execCommand(`rm -rf ./packages/${packageBasename}/umd/typings`);
         }
     }
+
+    // TODO: Add GENERATOR_WARNING to each generated file
 
     // ==============================
     console.info(colors.cyan(`6️⃣  Test that nothing what should not be published is published`));
@@ -384,6 +397,7 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
         }
 
         await writeFile(`./packages/${packageBasename}/package.json`, JSON.stringify(packageJson, null, 4) + '\n');
+        //     <- TODO: Add GENERATOR_WARNING to package.json
         //     <- TODO: [0] package.json is is written twice, can it be done in one step?
     }
 
@@ -450,6 +464,7 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
             .split('"')
             .join("'") /* <- TODO: Can the replace be done directly in YAML.stringify options? */,
     );
+    //     <- TODO: Add GENERATOR_WARNING to publish.yml
 
     // ==============================
     // 9️⃣ Commit the changes
@@ -460,7 +475,6 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
 }
 
 /**
- * TODO: !!!!!! Add generator warning message
  * TODO: !! [👵] test before publish
  * TODO: !! Add warning to the copy/generated files
  * TODO: !! Use prettier to format the generated files
