@@ -1,6 +1,7 @@
 import { readdir } from 'fs/promises';
 import { join } from 'path/posix';
-import type { string_file_path, string_folder_path } from '../../types/typeAliases';
+import type { string_file_path } from '../../types/typeAliases';
+import type { string_folder_path } from '../../types/typeAliases';
 
 /**
  * Reads all files in the directory
