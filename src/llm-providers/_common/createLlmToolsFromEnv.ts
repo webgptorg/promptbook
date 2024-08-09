@@ -8,7 +8,9 @@ import { joinLlmExecutionTools } from '../multiple/joinLlmExecutionTools';
 import { OpenAiExecutionTools } from '../openai/OpenAiExecutionTools';
 
 /**
- * @privxxate <- TODO: !!!!!! Warn that not private or exported
+ * Options for `createLlmToolsFromEnv`
+ *
+ * @private internal type for `createLlmToolsFromEnv` and `getLlmToolsForTestingAndScriptsAndPlayground`
  */
 export type CreateLlmToolsFromEnvOptions = {
     /**
