@@ -86,6 +86,6 @@ export function createLlmToolsFromEnv(options: CreateLlmToolsFromEnvOptions = {}
  * TODO: [🧠] Which name is better `createLlmToolsFromEnv` or `createLlmToolsFromEnvironment`?
  * TODO: [🧠] Is there some meaningfull way how to test this util
  * TODO: [🧠] Maybe pass env as argument
- * Note: [🟢] This code should never be published outside of `@promptbook/node`
+ * Note: [🟢] This code should never be published outside of `@promptbook/node` and `@promptbook/cli` and `@promptbook/cli`
  * TODO: [👷‍♂️] @@@ Manual about construction of llmTools
  */

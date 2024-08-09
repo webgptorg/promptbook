@@ -120,10 +120,3 @@ export const DEBUG_ALLOW_PAYED_TESTING: boolean = just(
     // Commit message:
     // [🔑] Turn off ability to use real API keys in tests
 );
-
-/*
-TODO: !!! Just testing false-negative detection of [🟡][🟢][🔵][⚪] leak
-*/
-
-// [🟡][🟢][🔵][⚪]
-

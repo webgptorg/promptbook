@@ -1,6 +1,5 @@
 import { ParsingError } from '../../errors/ParsingError';
-import type { CommandParser } from '../_common/types/CommandParser';
-import type { CommandParserInput } from '../_common/types/CommandParser';
+import type { CommandParser, CommandParserInput } from '../_common/types/CommandParser';
 import type { BoilerplateCommand } from './BoilerplateCommand';
 
 /**
@@ -65,5 +64,4 @@ export const boilerplateCommandParser: CommandParser<BoilerplateCommand> = {
 
 /**
  * TODO: [💐] Implement BOILERPLATE command into `pipelineStringToJsonSync` function
- * Note: [⚪] This should never be in any released package
  */

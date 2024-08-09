@@ -3,6 +3,7 @@
 import colors from 'colors';
 import commander from 'commander';
 import { readFile, writeFile } from 'fs/promises';
+import glob from 'glob-promise';
 import { dirname, join, relative } from 'path';
 import spaceTrim from 'spacetrim';
 import type { PackageJson } from 'type-fest';
@@ -243,7 +244,7 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
     }
 
     // ==============================
-    console.info(colors.cyan(`4️⃣  Generate bundles for each package`));
+    console.info(colors.cyan(`4️⃣  Generate bundle for each package`));
 
     if (isBundlerSkipped) {
         console.info(colors.yellow(`Skipping the bundler`));
@@ -253,28 +254,80 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
     }
 
     // ==============================
-    console.info(colors.cyan(`5️⃣  Postprocess the build`));
+    console.info(colors.cyan(`5️⃣  Postprocess the generated bundle`));
 
     if (isBundlerSkipped) {
-        console.info(colors.yellow(`Skipping the bundles postprocessing`));
+        console.info(colors.yellow(`Skipping postprocessing`));
     } else {
         // Note: Keep `typings` only from `esm` (and remove `umd`)
-        await execCommand(`rm -rf ./packages/${packageBasename}/umd/typings`);
-
+        for (const packageMetadata of packagesMetadata) {
+            const { packageBasename } = packageMetadata;
+            await execCommand(`rm -rf ./packages/${packageBasename}/umd/typings`);
+        }
     }
 
     // ==============================
     console.info(colors.cyan(`6️⃣  Test that nothing what should not be published is published`));
 
-    /*
-    TODO: !!!!!! Test that:
-    - Test umd, esm, typings and everything else
+    for (const packageMetadata of packagesMetadata) {
+        const { packageBasename, packageFullname } = packageMetadata;
+        const bundleFileNames = await glob(`./packages/${packageBasename}/**/*`, { nodir: true });
 
-    [🟡] This code should never be published outside of `@promptbook/cli`
-    [🟢] This code should never be published outside of `@promptbook/node`
-    [🔵] This code should never be published outside of `@promptbook/browser`
-    [⚪] This should never be in any released package
-    */
+        for (const bundleFileName of bundleFileNames) {
+            if (bundleFileName.includes('/typings/')) {
+                // <- TODO: Maybe exclude "typings" directly in glob
+                continue;
+            }
+
+            const bundleFileContent = await readFile(bundleFileName, 'utf-8');
+
+            if (bundleFileContent.includes('[⚪]')) {
+                throw new Error(
+                    spaceTrim(`
+                        Things marked with [⚪] should never be in a released package.
+
+                        ${bundleFileName}
+                    `),
+                );
+            }
+
+            if (packageFullname !== '@promptbook/cli' && bundleFileContent.includes('[🟡]')) {
+                throw new Error(
+                    spaceTrim(`
+                        Things marked with [🟡] should never be never released out of @promptbook/cli
+
+                        ${bundleFileName}
+                    `),
+                );
+            }
+
+            if (
+                packageFullname !== '@promptbook/node' &&
+                packageFullname !== '@promptbook/cli' &&
+                bundleFileContent.includes('[🟢]')
+            ) {
+                throw new Error(
+                    spaceTrim(`
+                        Things marked with [🟢] should never be never released out of @promptbook/node and @promptbook/cli
+
+                        ${bundleFileName}
+                    `),
+                );
+            }
+
+            if (packageFullname !== '@promptbook/browser' && bundleFileContent.includes('[🔵]')) {
+                throw new Error(
+                    spaceTrim(`
+                        Things marked with [🔵] should never be never released out of @promptbook/browser
+
+                        ${bundleFileName}
+                    `),
+                );
+            }
+
+            // console.info(colors.green(`Checked file ${bundleFileName}`));
+        }
+    }
 
     // ==============================
     console.info(colors.cyan(`7️⃣  Add dependencies for each package`));

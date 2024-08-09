@@ -1,8 +1,7 @@
 import { spaceTrim } from 'spacetrim';
 import { PipelineExecutionError } from '../../../errors/PipelineExecutionError';
 import type { CommonExecutionToolsOptions } from '../../../execution/CommonExecutionToolsOptions';
-import type { UserInterfaceTools } from '../../../execution/UserInterfaceTools';
-import type { UserInterfaceToolsPromptDialogOptions } from '../../../execution/UserInterfaceTools';
+import type { UserInterfaceTools, UserInterfaceToolsPromptDialogOptions } from '../../../execution/UserInterfaceTools';
 
 /**
  * Wrapper around `window.prompt` synchronous function that interacts with the user via browser prompt
@@ -10,7 +9,7 @@ import type { UserInterfaceToolsPromptDialogOptions } from '../../../execution/U
  * Warning: It is used for testing and mocking
  *          **NOT intended to use in the production** due to its synchronous nature.
  *
- * @public exported from `@promptbook/core`
+ * @public exported from `@promptbook/browser`
  */
 export class SimplePromptInterfaceTools implements UserInterfaceTools {
     public constructor(private readonly options: CommonExecutionToolsOptions = {}) {}

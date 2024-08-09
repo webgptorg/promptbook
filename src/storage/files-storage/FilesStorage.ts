@@ -88,5 +88,5 @@ export class FilesStorage<TItem> implements PromptbookStorage<TItem> {
 
 /**
  * TODO: [🌗] Maybe some checkers, not all valid JSONs are desired and valid values
- * Note: [🟢] This code should never be published outside of `@promptbook/node`
+ * Note: [🟢] This code should never be published outside of `@promptbook/node` and `@promptbook/cli` and `@promptbook/cli`
  */
