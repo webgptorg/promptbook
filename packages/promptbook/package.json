@@ -1,6 +1,6 @@
 {
     "name": "promptbook",
-    "version": "0.62.0",
+    "version": "0.63.0-0",
     "description": "Supercharge your use of large language models",
     "private": false,
     "sideEffects": false,
@@ -44,20 +44,20 @@
         }
     ],
     "dependencies": {
-        "@promptbook/anthropic-claude": "0.62.0",
-        "@promptbook/azure-openai": "0.62.0",
-        "@promptbook/browser": "0.62.0",
-        "@promptbook/cli": "0.62.0",
-        "@promptbook/core": "0.62.0",
-        "@promptbook/execute-javascript": "0.62.0",
-        "@promptbook/fake-llm": "0.62.0",
-        "@promptbook/langtail": "0.62.0",
-        "@promptbook/markdown-utils": "0.62.0",
-        "@promptbook/node": "0.62.0",
-        "@promptbook/openai": "0.62.0",
-        "@promptbook/remote-client": "0.62.0",
-        "@promptbook/remote-server": "0.62.0",
-        "@promptbook/types": "0.62.0",
-        "@promptbook/utils": "0.62.0"
+        "@promptbook/anthropic-claude": "0.63.0-0",
+        "@promptbook/azure-openai": "0.63.0-0",
+        "@promptbook/browser": "0.63.0-0",
+        "@promptbook/cli": "0.63.0-0",
+        "@promptbook/core": "0.63.0-0",
+        "@promptbook/execute-javascript": "0.63.0-0",
+        "@promptbook/fake-llm": "0.63.0-0",
+        "@promptbook/langtail": "0.63.0-0",
+        "@promptbook/markdown-utils": "0.63.0-0",
+        "@promptbook/node": "0.63.0-0",
+        "@promptbook/openai": "0.63.0-0",
+        "@promptbook/remote-client": "0.63.0-0",
+        "@promptbook/remote-server": "0.63.0-0",
+        "@promptbook/types": "0.63.0-0",
+        "@promptbook/utils": "0.63.0-0"
     }
 }
