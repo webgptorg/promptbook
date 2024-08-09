@@ -59,8 +59,20 @@ export async function findAllProjectEntities(): Promise<EntityMetadata[]> {
                 isType = true;
             }
 
+            const filePath = file.path;
+
+            if (filePath.endsWith('/src/cli/cli-commands/make.ts') && name === 'getPipelineCollection') {
+                // Note: [🍡] This is not a real entity, but an entity enclosed in a string.
+                continue;
+            }
+
+            if (entitities.some((entity) => entity.name === name && entity.filePath === filePath)) {
+                // Note: This is probably overloaded function or interface, so we skip it
+                continue;
+            }
+
             entitities.push({
-                filePath: file.path,
+                filePath,
                 type: type as EntityType,
                 name,
                 anotation,
@@ -75,3 +87,7 @@ export async function findAllProjectEntities(): Promise<EntityMetadata[]> {
 
     return entitities;
 }
+
+/**
+ * TODO: [🧠][🍡] Some better (non-hardcoded) way how to filter non-entities looking like entities
+ */

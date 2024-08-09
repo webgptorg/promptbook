@@ -1,7 +1,7 @@
 import colors from 'colors';
 import spaceTrim from 'spacetrim';
 import { getPackagesMetadataForRollup } from '../../rollup.config';
-import { findAllProjectEntities } from '../utils/findAllProjectEntities';
+import { EntityMetadata, findAllProjectEntities } from '../utils/findAllProjectEntities';
 import type { PackageMetadata } from './PackageMetadata';
 
 /**
@@ -12,6 +12,9 @@ import type { PackageMetadata } from './PackageMetadata';
  * - `getPackagesMetadataForRollup` - Sync version with less information, use this ONLY in rollup config
  */
 export async function getPackagesMetadata(): Promise<Array<PackageMetadata>> {
+    const errors: Array<{ entity: EntityMetadata; message: string }> = [
+        /* <- Note: Buffering errors to show all at once */
+    ];
     const packagesMetadata = getPackagesMetadataForRollup() as Array<PackageMetadata>;
     const packageNames = packagesMetadata.map((packageMetadata) => packageMetadata.packageFullname);
     const entities = await findAllProjectEntities();
@@ -23,9 +26,8 @@ export async function getPackagesMetadata(): Promise<Array<PackageMetadata>> {
         for (const entity of entities) {
             const { anotation, isType } = entity;
 
-            // TODO: !!!!!!! Every entity MUST be exported or marked as `@private`
-
-            const isImplicitlyExported = packageFullname === '@promptbook/types' && isType;
+            const isPrivate = (anotation || '').includes('@private');
+            const isImplicitlyExported = !isPrivate && packageFullname === '@promptbook/types' && isType;
 
             const publicMatches = (anotation || '').matchAll(
                 /@public(?:\s+)exported(?:\s+)from(?:\s+)`(?<packageName>.*?)`/gi,
@@ -34,17 +36,13 @@ export async function getPackagesMetadata(): Promise<Array<PackageMetadata>> {
                 (_) => _ !== undefined,
             );
 
+            if ((anotation || '').includes('@public') && exportedFromPackageNames.length === 0) {
+                errors.push({ message: `Invalid syntax of @public`, entity });
+            }
+
             for (const packageName of exportedFromPackageNames) {
                 if (!packageNames.includes(packageName as string)) {
-                    throw new Error(
-                        colors.red(
-                            spaceTrim(`
-                                Entity "${entity.name}" is exported from non-existing package "${packageName}"
-
-                                ${entity.filePath}
-                            `),
-                        ),
-                    );
+                    errors.push({ message: `Exported from non-existing package "${packageName}"`, entity });
                 }
             }
 
@@ -52,11 +50,7 @@ export async function getPackagesMetadata(): Promise<Array<PackageMetadata>> {
 
             if (isImplicitlyExported || isExplicitlyExported) {
                 if (isImplicitlyExported && isExplicitlyExported) {
-                    console.warn(
-                        colors.yellow(
-                            `You don't need to export entity "${entity.name}" explicitly because it is exported either way`,
-                        ),
-                    );
+                    errors.push({ message: `You don't need to export because it is exported either way`, entity });
                 }
 
                 packageMetadata.entities.push(entity);
@@ -64,9 +58,60 @@ export async function getPackagesMetadata(): Promise<Array<PackageMetadata>> {
         }
     }
 
+    // Note: Check every entity is @public and exported or marked as `@private`
+    for (const entity of entities) {
+        if (
+            entity.isType
+            // <- Note: Types are automatically exported from `@promptbook/types` and don't need to be marked as `@public`
+        ) {
+            continue;
+        }
+
+        if (entity.name === 'PROMPTBOOK_VERSION') {
+            continue;
+        }
+
+        const isPrivate = (entity.anotation || '').includes('@private');
+        const isPublic = (entity.anotation || '').includes('@public');
+
+        if (isPrivate && isPublic) {
+            errors.push({ message: `Can't be both @private and @public`, entity });
+        } else if (!isPrivate && !isPublic) {
+            errors.push({ message: `Must be @private or @public`, entity });
+        } else if (
+            isPublic &&
+            !packagesMetadata.some((packageMetadata) => (packageMetadata.entities || []).includes(entity))
+        ) {
+            errors.push({
+                message: `Invalid syntax of @public`,
+                //         <- Note: "@public" is thare BUT not matching any package in previous step
+                entity,
+            });
+        }
+    }
+
+    if (errors.length > 0) {
+        for (const { message, entity } of errors) {
+            const { anotation, filePath } = entity;
+            console.error(
+                colors.red(
+                    spaceTrim(
+                        (block) => `
+                            ${block(message)}
+                            ${filePath} -> ${entity.name}
+                        `,
+                    ),
+                ),
+            );
+        }
+        throw new Error(`${errors.length} errors in entities`);
+    }
+
     return packagesMetadata;
 }
 
 /**
+ * TODO: Maybe use here `EntityMetadata.tags` instead of parsing raw anotation
+ * TODO: [🧠] Maybe entities checking and matching packages with entities should be done in `findAllProjectEntities`
  * Note: [🧃] Packages `@promptbook/cli` and `@promptbook/types` are marked as dependencies (not devDependencies) to ensure that they are always installed
  */

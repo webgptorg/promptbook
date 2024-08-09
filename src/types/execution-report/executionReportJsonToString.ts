@@ -1,5 +1,6 @@
 import moment from 'moment';
 import { spaceTrim } from 'spacetrim';
+import { MOMENT_ARG_THRESHOLDS } from '../../config';
 import { embeddingVectorToString } from '../../execution/embeddingVectorToString';
 import type { FromtoItems } from '../../utils/FromtoItems';
 import { formatNumber } from '../../utils/formatNumber';
@@ -13,12 +14,11 @@ import type { ExecutionReportJson } from './ExecutionReportJson';
 import type { ExecutionReportString } from './ExecutionReportString';
 import type { ExecutionReportStringOptions } from './ExecutionReportStringOptions';
 import { ExecutionReportStringOptionsDefaults } from './ExecutionReportStringOptions';
-import { MOMENT_ARG_THRESHOLDS } from './config';
 import { countWorkingDuration } from './countWorkingDuration';
 
 /**
  * Converts execution report from JSON to string format
- * 
+ *
  * @public exported from `@promptbook/core`
  */
 export function executionReportJsonToString(

@@ -4,6 +4,7 @@
 '--------------------------------------------------'
 */
 
+import type { TupleToUnion } from 'type-fest';
 import { RESERVED_PARAMETER_NAMES } from '../config';
 
 /**
@@ -146,7 +147,7 @@ export type Parameters = Exclude<Record<string_parameter_name, string_parameter_
  *
  * For example `"context"`
  */
-export type string_reserved_parameter_name = typeof RESERVED_PARAMETER_NAMES[number];
+export type string_reserved_parameter_name = TupleToUnion<typeof RESERVED_PARAMETER_NAMES>;
 
 /**
  * @@@

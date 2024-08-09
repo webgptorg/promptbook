@@ -8,6 +8,7 @@ import { computeUsage } from '../openai/computeUsage';
  * Note: Done at 2024-05-25
  *
  * @see https://docs.anthropic.com/en/docs/models-overview
+ * @public exported from `@promptbook/anthropic-claude`
  */
 export const ANTHROPIC_CLAUDE_MODELS: Array<
     AvailableModel & {

@@ -4,14 +4,14 @@ import { just } from './utils/organization/just';
 /**
  * The maximum number of iterations for a loops
  *
- * @private within the repository - too low-level in comparison to other `MAX_...`
+ * @private within the repository - too low-level in comparison with other `MAX_...`
  */
 export const LOOP_LIMIT = 1000;
 
 /**
  * The maximum number of iterations for a loops which adds characters one by one
  *
- * @private within the repository - too low-level in comparison to other `MAX_...`
+ * @private within the repository - too low-level in comparison with other `MAX_...`
  */
 export const CHARACTER_LOOP_LIMIT = 100000;
 
@@ -68,6 +68,8 @@ export const PIPELINE_COLLECTION_BASE_FILENAME = `index`;
 
 /**
  * Nonce which is used for replacing things in strings
+ *
+ * @private within the repository
  */
 export const REPLACING_NONCE = 'u$k42k%!V2zo34w7Fu#@QUHYPW';
 
@@ -100,6 +102,16 @@ export const RESERVED_PARAMETER_MISSING_VALUE = 'MISSING-' + REPLACING_NONCE;
  * @private within the repository
  */
 export const RESERVED_PARAMETER_RESTRICTED = 'RESTRICTED-' + REPLACING_NONCE;
+
+/**
+ * The thresholds for the relative time in the `moment` NPM package.
+ *
+ * @see https://momentjscom.readthedocs.io/en/latest/moment/07-customization/13-relative-time-threshold/
+ * @private within the repository - too low-level in comparison with other constants
+ */
+export const MOMENT_ARG_THRESHOLDS = {
+    ss: 3, // <- least number of seconds to be counted in seconds, minus 1. Must be set after setting the `s` unit or without setting the `s` unit.
+} as const;
 
 /**
  * @@@

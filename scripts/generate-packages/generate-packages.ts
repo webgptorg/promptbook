@@ -338,7 +338,7 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
         ) as PackageJson;
         //     <- TODO: [0] package.json is is written twice, can it be done in one step?
 
-        if (isBuilded) {
+        if (isBuilded && packageFullname !== '@promptbook/cli') {
             packageJson.main = `./umd/index.umd.js`;
             packageJson.module = `./esm/index.es.js`;
             packageJson.typings = `./esm/typings/src/_packages/${packageBasename}.index.d.ts`;

@@ -14,6 +14,8 @@ import { boilerplateCommandParser } from './_BOILERPLATE/boilerplateCommandParse
 
 /**
  * All available command parsers
+ *
+ * @private internal index of `parseCommand`
  */
 export const COMMANDS = [
     blockCommandParser,

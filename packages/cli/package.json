@@ -43,9 +43,6 @@
             "url": "https://github.com/webgptorg/promptbook/blob/main/README.md#%EF%B8%8F-contributing"
         }
     ],
-    "main": "./umd/index.umd.js",
-    "module": "./esm/index.es.js",
-    "typings": "./esm/typings/src/_packages/cli.index.d.ts",
     "dependencies": {
         "@anthropic-ai/sdk": "0.21.1",
         "colors": "1.4.0",

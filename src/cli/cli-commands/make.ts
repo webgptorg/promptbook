@@ -162,6 +162,7 @@ export function initializeMakeCommand(program: Program) {
                 // <- TODO: DRY Javascript and typescript
                 // <- TODO: Prettify
                 // <- TODO: Convert inlined \n to spaceTrim
+                // <- Note: [🍡]
             );
         }
 
@@ -202,6 +203,7 @@ export function initializeMakeCommand(program: Program) {
                 // <- TODO: DRY Javascript and typescript
                 // <- TODO: Prettify
                 // <- TODO: Convert inlined \n to spaceTrim
+                // <- Note: [🍡]
             );
         }
 
