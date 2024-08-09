@@ -1,4 +1,5 @@
-import type { string_markdown, string_markdown_text } from '../../types/typeAliases';
+import type { string_markdown } from '../../types/typeAliases';
+import type { string_markdown_text } from '../../types/typeAliases';
 
 /**
  * Create a markdown table from a 2D array of strings
@@ -31,7 +32,6 @@ export function createMarkdownTable(table: Array<Array<string_markdown_text>>): 
 
     return [header, separator, ...rows].join('\n');
 }
-
 
 /**
  * TODO: [🏛] This can be part of markdown builder
