@@ -1,4 +1,5 @@
 import colors from 'colors';
+import spaceTrim from 'spacetrim';
 import { getPackagesMetadataForRollup } from '../../rollup.config';
 import { findAllProjectEntities } from '../utils/findAllProjectEntities';
 import type { PackageMetadata } from './PackageMetadata';
@@ -12,6 +13,7 @@ import type { PackageMetadata } from './PackageMetadata';
  */
 export async function getPackagesMetadata(): Promise<Array<PackageMetadata>> {
     const packagesMetadata = getPackagesMetadataForRollup() as Array<PackageMetadata>;
+    const packageNames = packagesMetadata.map((packageMetadata) => packageMetadata.packageFullname);
     const entities = await findAllProjectEntities();
 
     for (const packageMetadata of packagesMetadata) {
@@ -28,10 +30,23 @@ export async function getPackagesMetadata(): Promise<Array<PackageMetadata>> {
             const publicMatches = (anotation || '').matchAll(
                 /@public(?:\s+)exported(?:\s+)from(?:\s+)`(?<packageName>.*?)`/gi,
             );
-            const exportedFromPackageNames = Array.from(publicMatches, (match) => match.groups?.packageName);
+            const exportedFromPackageNames = Array.from(publicMatches, (match) => match.groups?.packageName).filter(
+                (_) => _ !== undefined,
+            );
 
-            // TODO: !!!!!! Fail on invalid `exportedFromPackageName`
-            // TODO: !!!!!! Multiple exports, for example `RemoteServerOptions`
+            for (const packageName of exportedFromPackageNames) {
+                if (!packageNames.includes(packageName as string)) {
+                    throw new Error(
+                        colors.red(
+                            spaceTrim(`
+                                Entity "${entity.name}" is exported from non-existing package "${packageName}"
+
+                                ${entity.filePath}
+                            `),
+                        ),
+                    );
+                }
+            }
 
             const isExplicitlyExported = exportedFromPackageNames.includes(packageFullname);
 
