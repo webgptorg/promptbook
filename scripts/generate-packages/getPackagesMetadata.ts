@@ -25,13 +25,15 @@ export async function getPackagesMetadata(): Promise<Array<PackageMetadata>> {
 
             const isImplicitlyExported = packageFullname === '@promptbook/types' && isType;
 
-            const publicMatch = /@public(?:\s+)exported(?:\s+)from(?:\s+)`(?<packageName>.*?)`/i.exec(anotation || '');
-            const exportedFromPackageName = publicMatch?.groups?.packageName;
+            const publicMatches = (anotation || '').matchAll(
+                /@public(?:\s+)exported(?:\s+)from(?:\s+)`(?<packageName>.*?)`/gi,
+            );
+            const exportedFromPackageNames = Array.from(publicMatches, (match) => match.groups?.packageName);
 
             // TODO: !!!!!! Fail on invalid `exportedFromPackageName`
             // TODO: !!!!!! Multiple exports, for example `RemoteServerOptions`
 
-            const isExplicitlyExported = exportedFromPackageName === packageFullname;
+            const isExplicitlyExported = exportedFromPackageNames.includes(packageFullname);
 
             if (isImplicitlyExported || isExplicitlyExported) {
                 if (isImplicitlyExported && isExplicitlyExported) {
