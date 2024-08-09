@@ -408,7 +408,6 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
 }
 
 /**
- * TODO: !!!!!! Solve README on NPM problem
  * TODO: !!!!!! Add generator warning message
  * TODO: !! [👵] test before publish
  * TODO: !! Add warning to the copy/generated files
