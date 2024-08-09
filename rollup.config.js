@@ -99,4 +99,5 @@ export function getPackagesMetadataForRollup() {
 /**
  * Note: [🧃] Packages `@promptbook/cli` and `@promptbook/types` are marked as dependencies (not devDependencies) to ensure that they are always installed
  * TODO: Maybe make `PackageMetadata` as discriminated union - isBuilded+entryIndexFilePath
+ * TODO: !!!!!! Keep typings only from esm or umd
  */
