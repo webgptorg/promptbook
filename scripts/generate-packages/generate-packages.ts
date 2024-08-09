@@ -22,11 +22,12 @@ if (process.cwd() !== join(__dirname, '../..')) {
 
 const program = new commander.Command();
 program.option('--commit', `Autocommit changes`, false);
+program.option('--skip-bundler', `Skip the build process of bundler`, false);
 program.parse(process.argv);
 
-const { commit: isCommited } = program.opts();
+const { commit: isCommited, skipBundler: isBundlerSkipped } = program.opts();
 
-generatePackages({ isCommited })
+generatePackages({ isCommited, isBundlerSkipped })
     .catch((error: Error) => {
         console.error(colors.bgRed(error.name /* <- 11:11 */));
         console.error(colors.red(error.stack || error.message));
@@ -36,19 +37,28 @@ generatePackages({ isCommited })
         process.exit(0);
     });
 
-async function generatePackages({ isCommited }: { isCommited: boolean }) {
+async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: boolean; isBundlerSkipped: boolean }) {
+    console.info(`📦  Generating packages`);
+
+    if (isCommited && !(await isWorkingTreeClean(process.cwd()))) {
+        throw new Error(`Working tree is not clean`);
+    }
+
     // 0️⃣ Prepare the needed information about the packages
     const mainPackageJson = JSON.parse(await readFile('./package.json', 'utf-8')) as PackageJson;
+
+    console.info(`Promptbook version ${mainPackageJson.version}`);
 
     if (!mainPackageJson.version) {
         throw new Error(`Version is not defined in the package.json`);
     }
 
-    console.info(`📦  Generating packages for version ${mainPackageJson.version}`);
+    const allDependencies = {
+        ...mainPackageJson.devDependencies,
+        ...mainPackageJson.dependencies,
+        // <- TODO: Check collisions between `dependencies` and `devDependencies`
+    };
 
-    if (isCommited && !(await isWorkingTreeClean(process.cwd()))) {
-        throw new Error(`Working tree is not clean`);
-    }
     const packagesMetadata = await getPackagesMetadata();
 
     // ==============================
@@ -198,7 +208,10 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
 
         const packageJson = JSON.parse(JSON.stringify(mainPackageJson) /* <- Note: Make deep copy */) as PackageJson;
         delete packageJson.scripts;
+        delete packageJson.dependencies;
         delete packageJson.devDependencies;
+        delete packageJson.peerDependencies;
+
         packageJson.name = packageFullname;
 
         await writeFile(`./packages/${packageBasename}/package.json`, JSON.stringify(packageJson, null, 4) + '\n');
@@ -212,24 +225,36 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
 
     // ==============================
     // 3️⃣ Cleanup build directories for each package
-    for (const packageMetadata of packagesMetadata) {
-        const { isBuilded, packageBasename } = packageMetadata;
+    if (isBundlerSkipped) {
+        console.info(colors.yellow(`Skipping the cleanup for bundler`));
+    } else {
+        for (const packageMetadata of packagesMetadata) {
+            const { isBuilded, packageBasename } = packageMetadata;
 
-        if (!isBuilded) {
-            continue;
+            if (!isBuilded) {
+                continue;
+            }
+            await execCommand(`rm -rf ./packages/${packageBasename}/umd`);
+            await execCommand(`rm -rf ./packages/${packageBasename}/esm`);
         }
-        await execCommand(`rm -rf ./packages/${packageBasename}/umd`);
-        await execCommand(`rm -rf ./packages/${packageBasename}/esm`);
     }
 
     // ==============================
     // 4️⃣ Generate bundles for each package
-    await forTime(1000 * 60 * 60 * 0);
-    await execCommand(`npx rollup --config rollup.config.js`);
+    if (isBundlerSkipped) {
+        console.info(colors.yellow(`Skipping the bundler`));
+    } else {
+        await forTime(1000 * 60 * 60 * 0);
+        await execCommand(`npx rollup --config rollup.config.js`);
+    }
 
     // ==============================
     // 5️⃣ Postprocess the build
-    // TODO: !!!!!! Keep only one typings
+    if (isBundlerSkipped) {
+        console.info(colors.yellow(`Skipping the bundles postprocessing`));
+    } else {
+        // TODO: !!!!!! Keep only one typings
+    }
 
     // ==============================
     // 6️⃣ Test that nothing what should not be published is published
@@ -251,7 +276,11 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
         ) as PackageJson;
         //     <- TODO: [0] package.json is is written twice, can it be done in one step?
 
-        if (!['@promptbook/core', '@promptbook/utils'].includes(packageFullname)) {
+        if (
+            !['@promptbook/core', '@promptbook/utils', '@promptbook/cli', '@promptbook/markdown-utils'].includes(
+                packageFullname,
+            )
+        ) {
             packageJson.peerDependencies = {
                 '@promptbook/core': packageJson.version,
             };
@@ -260,14 +289,11 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
         if (isBuilded) {
             const indexContent = await readFile(`./packages/${packageBasename}/esm/index.es.js`, 'utf-8');
             for (const dependencyName in packageJson.dependencies) {
-                if (!indexContent.includes(`from '${dependencyName}'`)) {
-                    delete packageJson.dependencies[dependencyName];
+                if (indexContent.includes(`from '${dependencyName}'`)) {
+                    packageJson.dependencies = packageJson.dependencies || [];
+                    packageJson.dependencies[dependencyName] = allDependencies[dependencyName];
                 }
             }
-        } else {
-            delete packageJson.dependencies;
-            delete packageJson.devDependencies;
-            delete packageJson.peerDependencies;
         }
 
         packageJson.dependencies = {

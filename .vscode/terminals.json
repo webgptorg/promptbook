@@ -73,7 +73,7 @@
         },
         {
             "name": "🏭📦 Generate packages",
-            "commands": ["ts-node ./scripts/generate-packages/generate-packages.ts"],
+            "commands": ["ts-node ./scripts/generate-packages/generate-packages.ts --skip-bundler"],
             "execute": false,
             "onlySingle": true,
             "focus": false
