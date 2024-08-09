@@ -37,15 +37,21 @@ generatePackages({ isCommited })
     });
 
 async function generatePackages({ isCommited }: { isCommited: boolean }) {
-    console.info(`📦  Generating packages`);
+    // 0️⃣ Prepare the needed information about the packages
+    const mainPackageJson = JSON.parse(await readFile('./package.json', 'utf-8')) as PackageJson;
+
+    if (!mainPackageJson.version) {
+        throw new Error(`Version is not defined in the package.json`);
+    }
+
+    console.info(`📦  Generating packages for version ${mainPackageJson.version}`);
 
     if (isCommited && !(await isWorkingTreeClean(process.cwd()))) {
         throw new Error(`Working tree is not clean`);
     }
-
-    // 0️⃣ Get metadata of all packages
     const packagesMetadata = await getPackagesMetadata();
 
+    // ==============================
     // 1️⃣ Cleanup
     for (const packageMetadata of packagesMetadata) {
         const { isBuilded, packageBasename } = packageMetadata;
@@ -57,6 +63,7 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
         await execCommand(`rm -rf ./packages/${packageBasename}/esm`);
     }
 
+    // ==============================
     // 2️⃣ Generate `entryIndexFilePath` of all packages
     for (const packageMetadata of packagesMetadata) {
         const { entryIndexFilePath, entities, packageFullname } = packageMetadata;
@@ -101,7 +108,7 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
 
                 // Note: Entities of the \`${packageFullname}\`
                 ${block(entryIndexFilePathContentExports.join('\n'))}
-            
+
             `,
         );
 
@@ -113,38 +120,10 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
         console.info(colors.green('Generated index file ' + entryIndexFilePath.split('\\').join('/')));
     }
 
-    await forTime(1000 * 60 * 60 * 0);
-
-    // 3️⃣ Generate bundles of all packages
-    await execCommand(`npx rollup --config rollup.config.js`);
-
-    // 4️⃣ Test that nothing what should not be published is published
-    /*
-    TODO: !!! Test that:
-    - Test umd, esm, typings and everything else
-
-    [🟡] This code should never be published outside of `@promptbook/cli`
-    [🟢] This code should never be published outside of `@promptbook/node`
-    [🔵] This code should never be published outside of `@promptbook/browser`
-    [⚪] This should never be in any released package
-    */
-
-    // Note: 5️⃣ Postprocess generated packages and create README.md and package.json for each package
-    const mainPackageJson = JSON.parse(await readFile('./package.json', 'utf-8')) as PackageJson;
-
-    if (!mainPackageJson.version) {
-        throw new Error(`Version is not defined in the package.json`);
-    }
-
-    console.info(colors.bgWhite(mainPackageJson.version));
+    // ==============================
+    // 3️⃣ Generate package.json, README and other crucial files for each package
     const mainReadme = await readFile('./README.md', 'utf-8');
-    for (const {
-        isBuilded,
-        readmeFilePath,
-        packageFullname,
-        packageBasename,
-        additionalDependencies,
-    } of packagesMetadata) {
+    for (const { isBuilded, readmeFilePath, packageFullname, packageBasename } of packagesMetadata) {
         let packageReadme = mainReadme;
         const packageReadmeExtra = await readFile(readmeFilePath, 'utf-8');
 
@@ -152,7 +131,6 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
 
             # Install just this package to save space
             npm i ${packageFullname}
-
 
         `);
 
@@ -172,26 +150,26 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
 
         const packageReadmeFullextra = spaceTrim(
             (block) => `
-                ## 📦 Package \`${packageFullname}\`
+                  ## 📦 Package \`${packageFullname}\`
 
-                - Promptbooks are [divided into several](#-packages) packages, all are published from [single monorepo](https://github.com/webgptorg/promptbook).
-                - This package \`${packageFullname}\` is one part of the promptbook ecosystem.
+                  - Promptbooks are [divided into several](#-packages) packages, all are published from [single monorepo](https://github.com/webgptorg/promptbook).
+                  - This package \`${packageFullname}\` is one part of the promptbook ecosystem.
 
-                To install this package, run:
+                  To install this package, run:
 
-                \`\`\`bash
-                # Install entire promptbook ecosystem
-                npm i ptbk
+                  \`\`\`bash
+                  # Install entire promptbook ecosystem
+                  npm i ptbk
 
-                ${block(installCommand)}
-                \`\`\`
+                  ${block(installCommand)}
+                  \`\`\`
 
-                ${block(packageReadmeExtra)}
+                  ${block(packageReadmeExtra)}
 
-                ---
+                  ---
 
-                Rest of the documentation is common for **entire promptbook ecosystem**:
-          `,
+                  Rest of the documentation is common for **entire promptbook ecosystem**:
+            `,
         );
 
         if (isBuilded /* [🚘] */) {
@@ -201,12 +179,12 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
         }
 
         /*
-        TODO: Fix or remove Socket badge
+      TODO: Fix or remove Socket badge
 
-        const badge = `[![Socket Badge](https://socket.dev/api/badge/npm/package/${packageFullname})](https://socket.dev/npm/package/${packageFullname})`;
+      const badge = `[![Socket Badge](https://socket.dev/api/badge/npm/package/${packageFullname})](https://socket.dev/npm/package/${packageFullname})`;
 
-        packageReadme = packageReadme.split(`\n<!--/Badges-->`).join(badge + '\n\n<!--/Badges-->');
-        */
+      packageReadme = packageReadme.split(`\n<!--/Badges-->`).join(badge + '\n\n<!--/Badges-->');
+      */
 
         // TODO: [🍓] Convert mermaid diagrams to images or remove them from the markdown published to NPM
 
@@ -218,22 +196,54 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
             `./packages/${packageBasename}/README.md`,
             packageReadme,
             /*
-            spaceTrim(`
+          spaceTrim(`
 
-                # ![Promptbook logo - cube with letters P and B](./other/design/logo-h1.png) Promptbook
+              # ![Promptbook logo - cube with letters P and B](./other/design/logo-h1.png) Promptbook
 
-                Supercharge your use of large language models
+              Supercharge your use of large language models
 
-                [Read the manual](https://github.com/webgptorg/promptbook)
+              [Read the manual](https://github.com/webgptorg/promptbook)
 
-            `),
-            */
+          `),
+          */
         );
 
         const packageJson = JSON.parse(JSON.stringify(mainPackageJson) /* <- Note: Make deep copy */) as PackageJson;
         delete packageJson.scripts;
         delete packageJson.devDependencies;
         packageJson.name = packageFullname;
+
+        await writeFile(`./packages/${packageBasename}/package.json`, JSON.stringify(packageJson, null, 4) + '\n');
+
+        if (isBuilded) {
+            await writeFile(`./packages/${packageBasename}/.gitignore`, ['esm', 'umd'].join('\n'));
+            await writeFile(`./packages/${packageBasename}/.npmignore`, '');
+        }
+    }
+
+    // ==============================
+    // 4️⃣ Generate bundles of all packages
+    await forTime(1000 * 60 * 60 * 60);
+    await execCommand(`npx rollup --config rollup.config.js`);
+
+    // ==============================
+    // 5️⃣ Test that nothing what should not be published is published
+    /*
+    TODO: !!! Test that:
+    - Test umd, esm, typings and everything else
+
+    [🟡] This code should never be published outside of `@promptbook/cli`
+    [🟢] This code should never be published outside of `@promptbook/node`
+    [🔵] This code should never be published outside of `@promptbook/browser`
+    [⚪] This should never be in any released package
+    */
+
+    // ==============================
+    // Note: 6️⃣ Postprocess generated packages and create README.md and package.json for each package
+    for (const { isBuilded, packageFullname, packageBasename, additionalDependencies } of packagesMetadata) {
+        const packageJson = JSON.parse(
+            await readFile(`./packages/${packageBasename}/package.json`, 'utf-8'),
+        ) as PackageJson;
 
         if (!['@promptbook/core', '@promptbook/utils'].includes(packageFullname)) {
             packageJson.peerDependencies = {
@@ -272,13 +282,7 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
             };
         }
 
-        // TODO: !! Filter out dependencies only for the current package
         await writeFile(`./packages/${packageBasename}/package.json`, JSON.stringify(packageJson, null, 4) + '\n');
-
-        if (isBuilded) {
-            await writeFile(`./packages/${packageBasename}/.gitignore`, ['esm', 'umd'].join('\n'));
-            await writeFile(`./packages/${packageBasename}/.npmignore`, '');
-        }
     }
 
     await writeFile(
@@ -342,12 +346,13 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
             .join("'") /* <- TODO: Can the replace be done directly in YAML.stringify options? */,
     );
 
+    // ==============================
+    // 7️⃣ Commit the changes
+
     if (isCommited) {
         await commit('packages', `📦 Generating packages`);
         await commit('.github', `📦 Update publish workflow for generated packages`);
     }
-
-    console.info(`[ 📦  Generating packages ]`);
 }
 
 /**
