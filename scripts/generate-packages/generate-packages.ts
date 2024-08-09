@@ -258,7 +258,9 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
     if (isBundlerSkipped) {
         console.info(colors.yellow(`Skipping the bundles postprocessing`));
     } else {
-        // TODO: !!!!!! Keep only one typings
+        // Note: Keep `typings` only from `esm` (and remove `umd`)
+        await execCommand(`rm -rf ./packages/${packageBasename}/umd/typings`);
+
     }
 
     // ==============================
