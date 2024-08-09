@@ -356,6 +356,8 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
 }
 
 /**
+ * TODO: !!!!!! Solve README on NPM problem
+ * TODO: !!!!!! Add generator warning message
  * TODO: !! [👵] test before publish
  * TODO: !! Add warning to the copy/generated files
  * TODO: !! Use prettier to format the generated files
