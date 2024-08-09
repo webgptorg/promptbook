@@ -9,6 +9,7 @@ import { prepareKnowledgeFromMarkdown } from '../markdown/prepareKnowledgeFromMa
  * Prepares the knowle
  *
  * @see https://github.com/webgptorg/promptbook/discussions/41
+ * @public exported from `@promptbook/core`
  */
 export async function prepareKnowledgePieces(
     knowledgeSources: Array<KnowledgeSourceJson>,
@@ -20,7 +21,7 @@ export async function prepareKnowledgePieces(
 
     await forEachAsync(knowledgeSources, { maxParallelCount }, async (knowledgeSource) => {
         const partialPieces = await prepareKnowledgeFromMarkdown(
-            knowledgeSource.source, // <- TODO: [🐝] !!! Unhardcode markdown, detect which type it is
+            knowledgeSource.source, // <- TODO: [🐝] !!! Unhardcode markdown, detect which type it is - BE AWARE of big package size
             options,
         );
 
@@ -57,7 +58,6 @@ TODO: [🧊] This is how it can look in future
 */
 
 /**
- * TODO: [🐝][🔼] !!! Export via `@promptbook/core`
  * TODO: [🧊] In future one preparation can take data from previous preparation and save tokens and time
  *       Put `knowledgePieces` into `PrepareKnowledgeOptions`
  * TODO: [🪂] More than max things can run in parallel by acident [1,[2a,2b,_],[3a,3b,_]]

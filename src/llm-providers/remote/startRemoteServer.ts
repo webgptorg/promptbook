@@ -19,6 +19,7 @@ import type { RemoteServerOptions } from './interfaces/RemoteServerOptions';
  * This is useful to make all logic on browser side but not expose your API keys or no need to use customer's GPU.
  *
  * @see https://github.com/webgptorg/promptbook#remote-server
+ * @public exported from `@promptbook/remote-server`
  */
 export function startRemoteServer(options: RemoteServerOptions): IDestroyable {
     const { port, path, collection, createLlmExecutionTools, isVerbose = false } = options;

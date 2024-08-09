@@ -2,7 +2,12 @@ import { normalizeToKebabCase } from '../../utils/normalization/normalize-to-keb
 import { removeEmojis } from '../../utils/removeEmojis';
 
 /**
- * Function normalizes title to name which can be used as identifier
+ * @@@
+ *
+ * @param value @@@
+ * @returns @@@
+ * @example @@@
+ * @public exported from `@promptbook/utils`
  */
 export function titleToName(value: string): string {
     if (value.startsWith('http://') || value.startsWith('https://')) {

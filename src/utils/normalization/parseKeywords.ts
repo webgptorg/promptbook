@@ -9,6 +9,7 @@ import { parseKeywordsFromString } from './parseKeywordsFromString';
  *
  * @param input of any kind
  * @returns {Set} of keywords without diacritics in lowercase
+ * @public exported from `@promptbook/utils`
  */
 export function parseKeywords(input: really_unknown): IKeywords {
     if (typeof input === 'string') {

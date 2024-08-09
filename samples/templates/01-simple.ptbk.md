@@ -7,7 +7,7 @@ Show how to use a simple prompt with no parameters.
 -   OUTPUT PARAMETER `{greetingResponse}`
 
 <!--Graph-->
-<!-- ⚠️ WARNING: This section was auto-generated -->
+<!-- ⚠️ WARNING: This code has been generated so that any manual changes will be overwritten -->
 
 ```mermaid
 %% 🔮 Tip: Open this on GitHub or in the VSCode website to see the Mermaid graph visually

@@ -6,6 +6,7 @@ import { readFile, writeFile } from 'fs/promises';
 import { join } from 'path';
 import { spaceTrim } from 'spacetrim';
 import { version } from '../../package.json';
+import { GENERATOR_WARNING } from '../../src/config';
 import { commit } from '../utils/autocommit/commit';
 import { isWorkingTreeClean } from '../utils/autocommit/isWorkingTreeClean';
 
@@ -39,18 +40,22 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
 
     await writeFile(
         `./src/version.ts`, // <- Note: [🏳‍🌈] Maybe use json file (used .ts file (not .json) to avoid support of json files in bundle)
-        spaceTrim(`
-            import type { string_semantic_version } from './types/typeAliases';
+        spaceTrim(
+            (block) => `
+                // ${block(GENERATOR_WARNING)}
+                
+                import type { string_semantic_version } from './types/typeAliases';
 
-            /**
-             * The version of the Promptbook library
-             */
-            export const PROMPTBOOK_VERSION: string_promptbook_version = '${version}';
+                /**
+                 * The version of the Promptbook library
+                 */
+                export const PROMPTBOOK_VERSION: string_promptbook_version = '${version}';
 
-            export type string_promptbook_version = string_semantic_version;
-            // TODO: !!!! List here all the versions and annotate + put into script
+                export type string_promptbook_version = string_semantic_version;
+                // TODO: !!!! List here all the versions and annotate + put into script
 
-        `),
+            `,
+        ),
     );
 
     // Note: Just append the version into loooong list
@@ -62,6 +67,6 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
     await writeFile(`./src/versions.txt`, newAllVersions, 'utf-8');
 
     if (isCommited) {
-        await commit('src', `🆚 Update version in config`);
+        await commit(['src'], `🆚 Update version in config`);
     }
 }

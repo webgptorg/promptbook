@@ -493,6 +493,6 @@ More expect variations
 
 Across the repository there are marked [🍓] places that are required to be done before `1.0.0` release
 
-<!-- Note: [➕] All places marked by [➕] to add new NPM package -->
-<!-- Note: [🤖] All places marked by [🤖] to add new model variant -->
-<!-- Note: [🩻] All places marked by [🩻] to add new (execution) block type -->
+<!-- Note: All places marked by [➕] to add new NPM package -->
+<!-- Note: All places marked by [🤖] to add new model variant -->
+<!-- Note: All places marked by [🩻] to add new (execution) block type -->

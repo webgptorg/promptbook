@@ -6,6 +6,8 @@ import { parseKeywordsFromString } from './parseKeywordsFromString';
  *
  * @param keyword to test
  * @returns if keyword is valid or not
+ * 
+ * @public exported from `@promptbook/utils`
  */
 export function isValidKeyword(keyword: string): keyword is string_keyword {
     const keywordParsed = parseKeywordsFromString(keyword);

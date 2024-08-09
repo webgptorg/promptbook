@@ -7,8 +7,8 @@ import { removeDiacritics } from './removeDiacritics';
  *
  * @param {string} input
  * @returns {Set} of keywords without diacritics in lowercase
+ * @public exported from `@promptbook/utils`
  */
-
 export function parseKeywordsFromString(input: string): IKeywords {
     const keywords = normalizeTo_SCREAMING_CASE(removeDiacritics(input))
         .toLowerCase()

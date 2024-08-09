@@ -4,9 +4,10 @@ import type { really_any } from './organization/really_any';
 /**
  * @@@
  *
- * @returns The same object as the input, but deeply frozen
- *
  * Note: This function mutates the object and returns the original (but mutated-deep-freezed) object
+ *
+ * @returns The same object as the input, but deeply frozen
+ * @public exported from `@promptbook/utils`
  */
 export function deepFreeze<TObject>(objectValue: TObject): ReadonlyDeep<TObject> {
     const propertyNames = Object.getOwnPropertyNames(objectValue);
@@ -23,15 +24,15 @@ export function deepFreeze<TObject>(objectValue: TObject): ReadonlyDeep<TObject>
  * @@@
  * @@@
  *
- * @returns The same object as the input, but deeply frozen
- *
  * Note: This function mutates the object and returns the original (but mutated-deep-freezed) object
+ *
+ * @returns The same object as the input, but deeply frozen
+ * @private this is in comparison to `deepFreeze` a more specific utility and maybe not very good practice to use without specific reason and considerations
  */
 export function deepFreezeWithSameType<TObject>(objectValue: TObject): TObject {
     return deepFreeze(objectValue) as TObject;
 }
 
 /**
- * TODO: [🔼] Export from `@promptbook/utils`
  * TODO: [🧠] Is there a way how to meaningfully test this utility
  */

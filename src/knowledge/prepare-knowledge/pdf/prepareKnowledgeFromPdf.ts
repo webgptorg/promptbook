@@ -6,6 +6,8 @@ import { TODO_USE } from '../../../utils/organization/TODO_USE';
 
 /**
  * @@@
+ *
+ * @private still in development [🐝]
  */
 export async function prepareKnowledgeFromPdf(
     content: string_base64 /* <- TODO: [🖖] Always the file, allow base64+filename+identification+mime or blob+filename+identification or file+identification */,

@@ -137,7 +137,7 @@ async function repairImports({
     await writeAllProjectFiles(files, isOrganized);
 
     if (isCommited) {
-        await commit('.', `🧹 Repair imports`);
+        await commit(['.'], `🧹 Repair imports`);
     }
 
     /*
@@ -173,7 +173,7 @@ async function repairImports({
     }
 
     if (isCommited) {
-        await commit('.', `🧹 Organize imports`);
+        await commit(['.'], `🧹 Organize imports`);
     }
     */
 }

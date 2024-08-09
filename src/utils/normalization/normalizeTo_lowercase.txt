@@ -1,0 +1,1 @@
+Note: [🕙] It does not make sence to have simple lower / UPPER case normalization

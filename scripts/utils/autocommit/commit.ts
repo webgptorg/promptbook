@@ -5,7 +5,7 @@ import { spaceTrim } from 'spacetrim';
 import { execCommand } from '../execCommand/execCommand';
 import { isWorkingTreeClean } from './isWorkingTreeClean';
 
-export async function commit(addPath: string, message: string): Promise<void> {
+export async function commit(addPaths: Array<string>, message: string): Promise<void> {
     const projectPath = process.cwd();
     // const addPath = '.';
 
@@ -24,11 +24,13 @@ export async function commit(addPath: string, message: string): Promise<void> {
     }
 
     try {
-        await execCommand({
-            cwd: projectPath,
-            crashOnError: false,
-            command: `git add ${addPath}`,
-        });
+        for (const addPath of addPaths) {
+            await execCommand({
+                cwd: projectPath,
+                crashOnError: false,
+                command: `git add ${addPath}`,
+            });
+        }
 
         await mkdir(dirname(commitMessageFilePath), { recursive: true });
         await writeFile(commitMessageFilePath, commitMessage, 'utf8');

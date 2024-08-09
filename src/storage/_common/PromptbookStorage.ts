@@ -24,6 +24,5 @@ export type PromptbookStorage<TItem> = {
 };
 
 /**
- * TODO: [🔼] !!! Export via `@promptbook/types`
  * TODO: [🧠][🛫] Constrain `TItem` to JSON-serializable objects only
  */

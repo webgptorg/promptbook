@@ -1,12 +1,11 @@
-// @promptbook/fake-llm
-
+// ⚠️ WARNING: This code has been generated so that any manual changes will be overwritten
+// `@promptbook/fake-llm`
 import { MockedEchoLlmExecutionTools } from '../llm-providers/mocked/MockedEchoLlmExecutionTools';
 import { MockedFackedLlmExecutionTools } from '../llm-providers/mocked/MockedFackedLlmExecutionTools';
 import { PROMPTBOOK_VERSION } from '../version';
 
 // Note: Exporting version from each package
-export { MockedEchoLlmExecutionTools, MockedFackedLlmExecutionTools, PROMPTBOOK_VERSION };
+export { PROMPTBOOK_VERSION };
 
-/**
- * TODO: [🚏] FakeLLM
- */
+// Note: Entities of the `@promptbook/fake-llm`
+export { MockedEchoLlmExecutionTools, MockedFackedLlmExecutionTools };

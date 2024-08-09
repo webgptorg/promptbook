@@ -7,6 +7,8 @@ import type { string_json } from '../../types/typeAliases';
  *
  * Note: [0] It can be used for more JSON types like whole collection of pipelines, single knowledge piece, etc.
  * Note: In contrast to JSON.stringify, this function ensures that **embedding index** is on single line
+ * 
+ * @public exported from `@promptbook/core`
  */
 export function stringifyPipelineJson<TType>(pipeline: TType): string_json<TType> {
     let pipelineJsonStringified = JSON.stringify(pipeline, null, 4);

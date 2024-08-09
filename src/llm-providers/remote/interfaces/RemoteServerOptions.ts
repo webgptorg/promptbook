@@ -4,6 +4,12 @@ import type { LlmExecutionTools } from '../../../execution/LlmExecutionTools';
 import type { client_id } from '../../../types/typeAliases';
 import type { string_uri } from '../../../types/typeAliases';
 
+/**
+ * @@@
+ *
+ * @public exported from `@promptbook/remote-client`
+ * @public exported from `@promptbook/remote-server`
+ */
 export type RemoteServerOptions = CommonExecutionToolsOptions & {
     /**
      * Port on which the server will listen
@@ -30,7 +36,6 @@ export type RemoteServerOptions = CommonExecutionToolsOptions & {
      */
     createLlmExecutionTools(clientId: client_id): LlmExecutionTools /* <- TODO: &({}|IDestroyable) */;
 };
-
 
 /**
  * TODO: [🍜] Add anonymous option

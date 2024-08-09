@@ -12,7 +12,7 @@ import type { Expectations } from '../../types/PipelineJson/Expectations';
  * Note: You can provide postprocessing functions to modify the text before checking the expectations
  *       The result will be the text BEFORE the postprocessing
  *
- * @private internal util for MockedFackedLlmExecutionTools
+ * @private internal utility for MockedFackedLlmExecutionTools
  */
 export async function $fakeTextToExpectations(
     expectations: Expectations,

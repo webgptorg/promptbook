@@ -8,6 +8,8 @@ import { renderPromptbookMermaid } from './renderPipelineMermaidOptions';
 
 /**
  * Prettyfies Promptbook string and adds Mermaid graph
+ * 
+ * @public exported from `@promptbook/core`
  */
 export async function prettifyPipelineString(
     pipelineString: PipelineString,

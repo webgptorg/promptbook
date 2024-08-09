@@ -23,6 +23,8 @@ import type { AnthropicClaudeExecutionToolsOptions } from './AnthropicClaudeExec
 
 /**
  * Execution Tools for calling Anthropic Claude API.
+ *
+ * @public exported from `@promptbook/anthropic-claude`
  */
 export class AnthropicClaudeExecutionTools implements LlmExecutionTools {
     /**

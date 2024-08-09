@@ -6,6 +6,8 @@ import type { string_hostname } from '../../../types/typeAliases';
  * Note: There are two simmilar functions:
  * - `isUrlOnPrivateNetwork` which tests full URL
  * - `isHostnameOnPrivateNetwork` *(this one)* which tests just hostname
+ * 
+ * @public exported from `@promptbook/utils`
  */
 export function isHostnameOnPrivateNetwork(hostname: string_hostname): boolean {
     if (

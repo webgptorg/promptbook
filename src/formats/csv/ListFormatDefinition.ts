@@ -3,6 +3,8 @@ import type { FormatDefinition } from '../_common/FormatDefinition';
 
 /**
  * Definition for CSV spreadsheet
+ *
+ * @private still in development [🏢]
  */
 export const CsvFormatDefinition: FormatDefinition<string /* <- [0] */, string /* <- [👨‍⚖️] */, object /* <- [1] */> = {
     name: 'CSV',

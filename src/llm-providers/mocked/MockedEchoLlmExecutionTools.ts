@@ -14,6 +14,8 @@ import { replaceParameters } from '../../utils/replaceParameters';
 
 /**
  * Mocked execution Tools for just echoing the requests for testing purposes.
+ * 
+ * @public exported from `@promptbook/fake-llm`
  */
 export class MockedEchoLlmExecutionTools implements LlmExecutionTools {
     public constructor(private readonly options: CommonExecutionToolsOptions = {}) {}

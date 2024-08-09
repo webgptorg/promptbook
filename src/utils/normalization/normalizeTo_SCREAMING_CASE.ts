@@ -3,6 +3,7 @@
  *
  * @example 'HELLO_WORLD'
  * @example 'I_LOVE_PROMPTBOOK'
+ * @public exported from `@promptbook/utils`
  */
 export type string_SCREAMING_CASE = string;
 
@@ -11,6 +12,16 @@ export type string_SCREAMING_CASE = string;
  */
 type char_type = 'LOWERCASE' | 'UPPERCASE' | 'NUMBER' | 'SLASH' | 'OTHER';
 
+
+/**
+ * @@@
+ * 
+ * @param text @@@
+ * @returns @@@
+ * @example 'HELLO_WORLD'
+ * @example 'I_LOVE_PROMPTBOOK'
+ * @public exported from `@promptbook/utils`
+ */
 export function normalizeTo_SCREAMING_CASE(text: string): string_SCREAMING_CASE {
     let charType: char_type;
     let lastCharType: char_type = 'OTHER';

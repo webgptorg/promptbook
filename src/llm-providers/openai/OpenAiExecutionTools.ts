@@ -22,6 +22,8 @@ import type { OpenAiExecutionToolsOptions } from './OpenAiExecutionToolsOptions'
 
 /**
  * Execution Tools for calling OpenAI API.
+ * 
+ * @public exported from `@promptbook/openai`
  */
 export class OpenAiExecutionTools implements LlmExecutionTools {
     /**

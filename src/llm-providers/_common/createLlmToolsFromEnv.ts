@@ -7,6 +7,11 @@ import { AnthropicClaudeExecutionTools } from '../anthropic-claude/AnthropicClau
 import { joinLlmExecutionTools } from '../multiple/joinLlmExecutionTools';
 import { OpenAiExecutionTools } from '../openai/OpenAiExecutionTools';
 
+/**
+ * Options for `createLlmToolsFromEnv`
+ *
+ * @private internal type for `createLlmToolsFromEnv` and `getLlmToolsForTestingAndScriptsAndPlayground`
+ */
 export type CreateLlmToolsFromEnvOptions = {
     /**
      * This will will be passed to the created `LlmExecutionTools`
@@ -28,6 +33,7 @@ export type CreateLlmToolsFromEnvOptions = {
  * - `process.env.ANTHROPIC_CLAUDE_API_KEY`
  *
  * @returns @@@
+ * @public exported from `@promptbook/node`
  */
 export function createLlmToolsFromEnv(options: CreateLlmToolsFromEnvOptions = {}): LlmExecutionTools {
     if (!isRunningInNode()) {
@@ -77,12 +83,11 @@ export function createLlmToolsFromEnv(options: CreateLlmToolsFromEnvOptions = {}
 
 /**
  * TODO: [🍜] Use `createLlmToolsFromConfiguration`
- * TODO: [🔼] !!! Export via `@promptbook/node`
  * TODO: @@@ write discussion about this - wizzard
  * TODO: Add Azure
  * TODO: [🧠] Which name is better `createLlmToolsFromEnv` or `createLlmToolsFromEnvironment`?
  * TODO: [🧠] Is there some meaningfull way how to test this util
  * TODO: [🧠] Maybe pass env as argument
- * Note: [🟢] This code should never be published outside of `@promptbook/node`
+ * Note: [🟢] This code should never be published outside of `@promptbook/node` and `@promptbook/cli` and `@promptbook/cli`
  * TODO: [👷‍♂️] @@@ Manual about construction of llmTools
  */

@@ -5,6 +5,8 @@ import type { FormatDefinition } from '../_common/FormatDefinition';
  * Definition for list of multiple items
  *
  * Note: list is just a string with multiple lines or multiple items separated by comma
+ *
+ * @private still in development [🏢]
  */
 export const ListFormatDefinition: FormatDefinition<string /* <- [0] */, string /* <- [👨‍⚖️] */, object /* <- [1] */> = {
     name: 'LIST',

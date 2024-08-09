@@ -1,0 +1,66 @@
+{
+    "name": "promptbook",
+    "version": "0.63.0-4",
+    "description": "Supercharge your use of large language models",
+    "private": false,
+    "sideEffects": false,
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/webgptorg/promptbook"
+    },
+    "contributors": [
+        "Pavol Hejný <me@pavolhejny.com> (https://www.pavolhejny.com/)"
+    ],
+    "keywords": [
+        "autogpt",
+        "openai",
+        "gpt-3",
+        "gpt-4",
+        "chatgpt",
+        "ai",
+        "machine-learning",
+        "natural-language-processing",
+        "nlp",
+        "prompt",
+        "template",
+        "pipeline",
+        "automation",
+        "text-generation",
+        "language-model"
+    ],
+    "license": "CC-BY-4.0",
+    "bugs": {
+        "url": "https://github.com/webgptorg/promptbook/issues"
+    },
+    "homepage": "https://www.npmjs.com/package/@promptbook/core",
+    "funding": [
+        {
+            "type": "individual",
+            "url": "https://buymeacoffee.com/hejny"
+        },
+        {
+            "type": "github",
+            "url": "https://github.com/webgptorg/promptbook/blob/main/README.md#%EF%B8%8F-contributing"
+        }
+    ],
+    "peerDependencies": {
+        "@promptbook/core": "0.63.0-4"
+    },
+    "dependencies": {
+        "@promptbook/anthropic-claude": "0.63.0-4",
+        "@promptbook/azure-openai": "0.63.0-4",
+        "@promptbook/browser": "0.63.0-4",
+        "@promptbook/cli": "0.63.0-4",
+        "@promptbook/core": "0.63.0-4",
+        "@promptbook/execute-javascript": "0.63.0-4",
+        "@promptbook/fake-llm": "0.63.0-4",
+        "@promptbook/langtail": "0.63.0-4",
+        "@promptbook/markdown-utils": "0.63.0-4",
+        "@promptbook/node": "0.63.0-4",
+        "@promptbook/openai": "0.63.0-4",
+        "@promptbook/remote-client": "0.63.0-4",
+        "@promptbook/remote-server": "0.63.0-4",
+        "@promptbook/types": "0.63.0-4",
+        "@promptbook/utils": "0.63.0-4"
+    }
+}

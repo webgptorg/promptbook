@@ -9,7 +9,7 @@ import type { PipelineString } from '../../types/PipelineString';
 /**
  * Initializes `prettify` command for Promptbook CLI utilities
  *
- * @private part of `promptbookCli`
+ * @private internal function of `promptbookCli`
  */
 export function initializePrettifyCommand(program: Program) {
     const prettifyCommand = program.command('prettify');

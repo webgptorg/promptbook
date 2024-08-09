@@ -24,6 +24,7 @@ import type { CacheLlmToolsOptions } from './CacheLlmToolsOptions';
  *
  * @param llmTools LLM tools to be intercepted with usage counting, it can contain extra methods like `totalUsage`
  * @returns LLM tools with same functionality with added total cost counting
+ * @public exported from `@promptbook/core`
  */
 export function cacheLlmTools<TLlmTools extends LlmExecutionTools>(
     llmTools: TLlmTools,
@@ -119,7 +120,6 @@ export function cacheLlmTools<TLlmTools extends LlmExecutionTools>(
 }
 
 /**
- * TODO: [🔼] !!! Export via `@promptbook/core`
  * TODO: [🧠][💸] Maybe make some common abstraction `interceptLlmTools` and use here (or use javascript Proxy?)
  * TODO: [🧠] Is there some meaningfull way how to test this util
  * TODO: [👷‍♂️] @@@ Manual about construction of llmTools

@@ -31,6 +31,8 @@ import { unknownToString } from './utils/unknownToString';
  *
  * Warning: It is used for testing and mocking
  *          **NOT intended to use in the production** due to its unsafe nature, use `JavascriptExecutionTools` instead.
+ *
+ * @public exported from `@promptbook/execute-javascript`
  */
 export class JavascriptEvalExecutionTools implements ScriptExecutionTools {
     private readonly options: JavascriptExecutionToolsOptions;

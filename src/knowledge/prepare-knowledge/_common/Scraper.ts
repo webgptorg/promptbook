@@ -8,6 +8,11 @@ import type { string_mime_type_with_wildcard } from '../../../types/typeAliases'
 import type { string_promptbook_documentation_url } from '../../../types/typeAliases';
 import type { really_unknown } from '../../../utils/organization/really_unknown';
 
+/**
+ * @@@
+ *
+ * @private still an internal experimental
+ */
 export type Scraper = {
     readonly description: string_markdown_text;
 
@@ -22,6 +27,11 @@ export type Scraper = {
     // TODO: [🧠][🕡] Implement or delete
 };
 
+/**
+ * @@@
+ *
+ * @private still an internal experimental
+ */
 export type ScraperSourceOptions = {
     readonly source: string_knowledge_source_link;
 

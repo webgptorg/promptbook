@@ -23,6 +23,8 @@ type PreparedTemplates = {
 
 /**
  * @@@
+ *
+ * @public exported from `@promptbook/core`
  */
 export async function prepareTemplates(
     pipeline: PrepareTemplateInput,
@@ -78,7 +80,6 @@ export async function prepareTemplates(
  * TODO: [🧠] Add context to each template (if missing)
  * TODO: [🧠] What is better name `prepareTemplate` or `prepareTemplateAndParameters`
  * TODO: [♨] !!! Prepare index the samples and maybe templates
- * TODO: [🔼] !!! Export via `@promptbook/core`
  * TODO: Write tests for `preparePipeline`
  * TODO: [🏏] Leverage the batch API and build queues @see https://platform.openai.com/docs/guides/batch
  * TODO: [🧊] In future one preparation can take data from previous preparation and save tokens and time

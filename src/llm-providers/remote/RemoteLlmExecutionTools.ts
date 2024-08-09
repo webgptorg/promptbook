@@ -26,6 +26,7 @@ import type { Promptbook_Server_Response } from './interfaces/Promptbook_Server_
  * This is useful to make all logic on browser side but not expose your API keys or no need to use customer's GPU.
  *
  * @see https://github.com/webgptorg/promptbook#remote-server
+ * @public exported from `@promptbook/remote-client`
  */
 export class RemoteLlmExecutionTools implements LlmExecutionTools {
     public constructor(private readonly options: RemoteLlmExecutionToolsOptions) {}

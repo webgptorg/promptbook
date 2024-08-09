@@ -5,6 +5,6 @@
  * 2) Undefined represents empty array
  * 3) Array represents itself
  *
- * @private Internal utility type
+ * @private internal type
  */
 export type Arrayable<TItem> = TItem | Array<TItem> | undefined;

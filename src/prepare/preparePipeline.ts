@@ -17,6 +17,7 @@ import { prepareTemplates } from './prepareTemplates';
  *
  * Note: This function does not validate logic of the pipeline
  * Note: This function acts as part of compilation process
+ * @public exported from `@promptbook/core`
  */
 export async function preparePipeline(pipeline: PipelineJson, options: PrepareOptions): Promise<PipelineJson> {
     const { llmTools, maxParallelCount = MAX_PARALLEL_COUNT, isVerbose = false } = options;
@@ -134,7 +135,6 @@ export async function preparePipeline(pipeline: PipelineJson, options: PrepareOp
 }
 
 /**
- * TODO: [🔼] !!! Export via `@promptbook/core`
  * TODO: Write tests for `preparePipeline`
  * TODO: [🏏] Leverage the batch API and build queues @see https://platform.openai.com/docs/guides/batch
  * TODO: [🧊] In future one preparation can take data from previous preparation and save tokens and time

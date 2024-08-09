@@ -3,6 +3,8 @@ import { extractParameterNames } from '../utils/extractParameterNames';
 
 /**
  * Unprepare just strips the preparation data of the pipeline
+ * 
+ * @public exported from `@promptbook/core`
  */
 export function unpreparePipeline(pipeline: PipelineJson): PipelineJson {
     let { personas, knowledgeSources, promptTemplates } = pipeline;
@@ -36,7 +38,6 @@ export function unpreparePipeline(pipeline: PipelineJson): PipelineJson {
 }
 
 /**
- * TODO: [🔼] !!! Export via `@promptbook/core`
  * TODO: [🧿] Maybe do same process with same granularity and subfinctions as `preparePipeline`
  * TODO: Write tests for `preparePipeline`
  * TODO: [🍙] Make some standart order of json properties

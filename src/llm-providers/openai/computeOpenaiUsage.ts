@@ -14,7 +14,7 @@ import { OPENAI_MODELS } from './openai-models';
  * @param resultContent The content of the result (for embedding prompts or failed prompts pass empty string)
  * @param rawResponse The raw response from OpenAI API
  * @throws {PipelineExecutionError} If the usage is not defined in the response from OpenAI
- * @private internal util of `OpenAiExecutionTools`
+ * @private internal utility of `OpenAiExecutionTools`
  */
 export function computeOpenaiUsage(
     promptContent: Prompt['content'], // <- Note: Intentionally using [] to access type properties to bring jsdoc from Prompt/PromptResult to consumer

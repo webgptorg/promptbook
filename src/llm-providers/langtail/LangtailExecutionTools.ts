@@ -6,6 +6,8 @@ import { OpenAiExecutionTools } from '../openai/OpenAiExecutionTools';
 
 /**
  * Execution Tools for calling OpenAI API.
+ * 
+ * @public exported from `@promptbook/langtail`
  */
 export class LangtailExecutionTools extends OpenAiExecutionTools implements LlmExecutionTools {
     // TODO: [🦻] Implement

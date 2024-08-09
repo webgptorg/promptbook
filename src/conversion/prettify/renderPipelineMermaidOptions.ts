@@ -23,6 +23,8 @@ export type renderPipelineMermaidOptions = {
  * Creates a Mermaid graph based on the promptbook
  *
  * Note: The result is not wrapped in a Markdown code block
+ * 
+ * @public exported from `@promptbook/utils`
  */
 export function renderPromptbookMermaid(pipelineJson: PipelineJson, options?: renderPipelineMermaidOptions): string {
     const { linkPromptTemplate = () => null } = options || {};

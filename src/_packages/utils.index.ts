@@ -1,6 +1,5 @@
-// @promptbook/utils
-
-import { spaceTrim } from 'spacetrim';
+// ⚠️ WARNING: This code has been generated so that any manual changes will be overwritten
+// `@promptbook/utils`
 import { renderPromptbookMermaid } from '../conversion/prettify/renderPipelineMermaidOptions';
 import { extractParameterNamesFromPromptTemplate } from '../conversion/utils/extractParameterNamesFromPromptTemplate';
 import { extractVariables } from '../conversion/utils/extractVariables';
@@ -10,6 +9,8 @@ import { forEachAsync } from '../execution/utils/forEachAsync';
 import { isValidJsonString } from '../formats/json/utils/isValidJsonString';
 import { extractBlock } from '../postprocessing/utils/extractBlock';
 import { $currentDate } from '../utils/currentDate';
+import { deepClone } from '../utils/deepClone';
+import { deepFreeze } from '../utils/deepFreeze';
 import { countCharacters } from '../utils/expectation-counters/countCharacters';
 import { countLines } from '../utils/expectation-counters/countLines';
 import { countPages } from '../utils/expectation-counters/countPages';
@@ -18,18 +19,23 @@ import { countSentences, splitIntoSentences } from '../utils/expectation-counter
 import { countWords } from '../utils/expectation-counters/countWords';
 import { CountUtils } from '../utils/expectation-counters/index';
 import { extractParameterNames } from '../utils/extractParameterNames';
-import { DIACRITIC_VARIANTS_LETTERS } from '../utils/normalization/DIACRITIC_VARIANTS_LETTERS';
-import type { IKeywords, string_keyword } from '../utils/normalization/IKeywords';
+import { isRunningInBrowser, isRunningInNode, isRunningInWebWorker } from '../utils/isRunningInWhatever';
 import { capitalize } from '../utils/normalization/capitalize';
 import { decapitalize } from '../utils/normalization/decapitalize';
+import { DIACRITIC_VARIANTS_LETTERS } from '../utils/normalization/DIACRITIC_VARIANTS_LETTERS';
+import type { IKeywords, string_keyword } from '../utils/normalization/IKeywords';
 import { isValidKeyword } from '../utils/normalization/isValidKeyword';
 import { nameToUriPart } from '../utils/normalization/nameToUriPart';
 import { nameToUriParts } from '../utils/normalization/nameToUriParts';
-import { normalizeToKebabCase, string_kebab_case } from '../utils/normalization/normalize-to-kebab-case';
-import { normalizeTo_PascalCase, string_PascalCase } from '../utils/normalization/normalizeTo_PascalCase';
-import { normalizeTo_SCREAMING_CASE, string_SCREAMING_CASE } from '../utils/normalization/normalizeTo_SCREAMING_CASE';
-import { normalizeTo_camelCase, string_camelCase } from '../utils/normalization/normalizeTo_camelCase';
-import { normalizeTo_snake_case, string_snake_case } from '../utils/normalization/normalizeTo_snake_case';
+import type { string_kebab_case } from '../utils/normalization/normalize-to-kebab-case';
+import { normalizeToKebabCase } from '../utils/normalization/normalize-to-kebab-case';
+import type { string_camelCase } from '../utils/normalization/normalizeTo_camelCase';
+import { normalizeTo_camelCase } from '../utils/normalization/normalizeTo_camelCase';
+import type { string_PascalCase } from '../utils/normalization/normalizeTo_PascalCase';
+import { normalizeTo_PascalCase } from '../utils/normalization/normalizeTo_PascalCase';
+import type { string_SCREAMING_CASE } from '../utils/normalization/normalizeTo_SCREAMING_CASE';
+import { normalizeTo_SCREAMING_CASE } from '../utils/normalization/normalizeTo_SCREAMING_CASE';
+import { normalizeTo_snake_case } from '../utils/normalization/normalizeTo_snake_case';
 import { normalizeWhitespaces } from '../utils/normalization/normalizeWhitespaces';
 import { parseKeywords } from '../utils/normalization/parseKeywords';
 import { parseKeywordsFromString } from '../utils/normalization/parseKeywordsFromString';
@@ -46,6 +52,7 @@ import { union } from '../utils/sets/union';
 import { trimCodeBlock } from '../utils/trimCodeBlock';
 import { trimEndOfCodeBlock } from '../utils/trimEndOfCodeBlock';
 import { unwrapResult } from '../utils/unwrapResult';
+import { isValidEmail } from '../utils/validators/email/isValidEmail';
 import { isValidFilePath } from '../utils/validators/filePath/isValidFilePath';
 import { isValidJavascriptName } from '../utils/validators/javascriptName/isValidJavascriptName';
 import { isValidPromptbookVersion } from '../utils/validators/semanticVersion/isValidPromptbookVersion';
@@ -58,60 +65,48 @@ import { isValidUuid } from '../utils/validators/uuid/isValidUuid';
 import { PROMPTBOOK_VERSION } from '../version';
 
 // Note: Exporting version from each package
-export { forEachAsync, PROMPTBOOK_VERSION };
+export { PROMPTBOOK_VERSION };
 
-// Templating
-export { extractParameterNames, extractVariables, replaceParameters, spaceTrim };
-
-// TODO: [🌻] For all, decide if theese are internal or external
+// Note: Entities of the `@promptbook/utils`
 export {
     $currentDate,
     $randomSeed,
-    extractBlock, // <- [🌻] + maybe export through `@promptbook/markdown-utils`
+    capitalize,
+    countCharacters,
+    countLines,
+    countPages,
+    countParagraphs,
+    countSentences,
+    CountUtils,
+    countWords,
+    decapitalize,
+    deepClone,
+    deepFreeze,
+    DIACRITIC_VARIANTS_LETTERS,
+    difference,
+    extractBlock,
+    extractParameterNames,
+    extractParameterNamesFromPromptTemplate,
+    extractVariables,
+    forEachAsync,
+    intersection,
     isHostnameOnPrivateNetwork,
+    isRunningInBrowser,
+    isRunningInNode,
+    isRunningInWebWorker,
     isUrlOnPrivateNetwork,
+    isValidEmail,
     isValidFilePath,
     isValidJavascriptName,
     isValidJsonString,
+    isValidKeyword,
     isValidPipelineUrl,
     isValidPromptbookVersion,
     isValidSemanticVersion,
     isValidUrl,
     isValidUuid,
-    parseNumber, // <- [🌻]
-    removeEmojis,
-    removeQuotes,
-    trimCodeBlock,
-    trimEndOfCodeBlock,
-    unwrapResult,
-};
-
-export { countCharacters, countLines, countPages, countParagraphs, countSentences, CountUtils, countWords };
-
-export { splitIntoSentences };
-
-// And the normalization (originally n12 library) utilities:
-
-export const normalizeTo = {
-    // [🕙] lowercase: normalizeTo_lowercase,
-    // [🕙] UPPERCASE: normalizeTo_UPPERCASE,
-    camelCase: normalizeTo_camelCase,
-    PascalCase: normalizeTo_PascalCase,
-    SCREAMING_CASE: normalizeTo_SCREAMING_CASE,
-    snake_case: normalizeTo_snake_case,
-    'kebab-case': normalizeToKebabCase,
-};
-
-export {
-    capitalize,
-    decapitalize,
-    DIACRITIC_VARIANTS_LETTERS,
-    IKeywords,
-    isValidKeyword,
     nameToUriPart,
     nameToUriParts,
-    // [🕙] normalizeTo_lowercase,
-    // [🕙] normalizeTo_UPPERCASE,
     normalizeTo_camelCase,
     normalizeTo_PascalCase,
     normalizeTo_SCREAMING_CASE,
@@ -120,19 +115,26 @@ export {
     normalizeWhitespaces,
     parseKeywords,
     parseKeywordsFromString,
+    parseNumber,
     removeDiacritics,
+    removeEmojis,
+    removeQuotes,
+    renameParameter,
+    renderPromptbookMermaid,
+    replaceParameters,
     searchKeywords,
-    string_keyword,
+    splitIntoSentences,
     titleToName,
+    trimCodeBlock,
+    trimEndOfCodeBlock,
+    union,
+    unwrapResult,
 };
-
-export type { string_camelCase, string_kebab_case, string_PascalCase, string_SCREAMING_CASE, string_snake_case };
-
-// Promptbook
-export { extractParameterNamesFromPromptTemplate, renameParameter, renderPromptbookMermaid };
-
-export { difference, intersection, union };
-
-/**
- * Note: [🕙] It does not make sence to have simple lower / UPPER case normalization
- */
+export type {
+    IKeywords,
+    string_camelCase,
+    string_kebab_case,
+    string_keyword,
+    string_PascalCase,
+    string_SCREAMING_CASE,
+};
