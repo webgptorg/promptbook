@@ -14,10 +14,10 @@ Supercharge your use of large language models
 
 
 
-## 📦 Package `@promptbook/core`
+## 📦 Package `@promptbook/browser`
 
 - Promptbooks are [divided into several](#-packages) packages, all are published from [single monorepo](https://github.com/webgptorg/promptbook).
-- This package `@promptbook/core` is one part of the promptbook ecosystem.
+- This package `@promptbook/browser` is one part of the promptbook ecosystem.
 
 To install this package, run:
 
@@ -26,10 +26,10 @@ To install this package, run:
 npm i ptbk
 
 # Install just this package to save space
-npm i @promptbook/core
+npm i @promptbook/browser
 ```
 
-Core of the library, it contains the main logic for promptbooks.
+Core of the library for Browser runtime, it contains the main logic for promptbooks which uses browser-specific things like `localStorage`.
 
 
 

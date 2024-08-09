@@ -1,5 +1,5 @@
 {
-    "name": "promptbook",
+    "name": "@promptbook/browser",
     "version": "0.62.0",
     "description": "Supercharge your use of large language models",
     "private": false,
@@ -33,6 +33,7 @@
         "url": "https://github.com/webgptorg/promptbook/issues"
     },
     "homepage": "https://www.npmjs.com/package/@promptbook/core",
+    "dependencies": {},
     "funding": [
         {
             "type": "individual",
@@ -43,21 +44,10 @@
             "url": "https://github.com/webgptorg/promptbook/blob/main/README.md#%EF%B8%8F-contributing"
         }
     ],
-    "dependencies": {
-        "@promptbook/anthropic-claude": "0.62.0",
-        "@promptbook/azure-openai": "0.62.0",
-        "@promptbook/browser": "0.62.0",
-        "@promptbook/cli": "0.62.0",
-        "@promptbook/core": "0.62.0",
-        "@promptbook/execute-javascript": "0.62.0",
-        "@promptbook/fake-llm": "0.62.0",
-        "@promptbook/langtail": "0.62.0",
-        "@promptbook/markdown-utils": "0.62.0",
-        "@promptbook/node": "0.62.0",
-        "@promptbook/openai": "0.62.0",
-        "@promptbook/remote-client": "0.62.0",
-        "@promptbook/remote-server": "0.62.0",
-        "@promptbook/types": "0.62.0",
-        "@promptbook/utils": "0.62.0"
-    }
+    "peerDependencies": {
+        "@promptbook/core": "0.62.0"
+    },
+    "main": "./umd/index.umd.js",
+    "module": "./esm/index.es.js",
+    "typings": "./esm/typings/src/_packages/browser.index.d.ts"
 }
