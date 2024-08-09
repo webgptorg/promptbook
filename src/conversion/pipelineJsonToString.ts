@@ -151,7 +151,7 @@ export function pipelineJsonToString(pipelineJson: PipelineJson): PipelineString
 }
 
 /**
- * @private internal util of pipelineJsonToString
+ * @private internal utility of `pipelineJsonToString`
  */
 function promptTemplateParameterJsonToString(promptTemplateParameterJson: PromptTemplateParameterJson): string {
     const { name, description } = promptTemplateParameterJson;

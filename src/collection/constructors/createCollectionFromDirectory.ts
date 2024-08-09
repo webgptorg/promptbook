@@ -242,7 +242,7 @@ export async function createCollectionFromDirectory(
  * @param path
  * @param isRecursive
  * @returns List of all files in the directory
- * @private internal function for `createCollectionFromDirectory`
+ * @private internal function of `createCollectionFromDirectory`
  */
 async function listAllFiles(path: string_folder_path, isRecursive: boolean): Promise<Array<string_file_path>> {
     const dirents = await readdir(path, {

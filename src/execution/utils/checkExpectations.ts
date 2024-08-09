@@ -12,7 +12,7 @@ import { CountUtils } from '../../utils/expectation-counters/index';
  *
  * @throws {ExpectError} if the expectations are not met
  * @returns {void} Nothing
- * @public exported from `@promptbook/core`
+ * @private internal function of `createPipelineExecutor`
  */
 export function checkExpectations(expectations: Expectations, value: string): void {
     for (const [unit, { max, min }] of Object.entries(expectations)) {

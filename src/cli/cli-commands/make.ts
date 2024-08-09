@@ -15,7 +15,7 @@ import type { string_file_extension } from '../../types/typeAliases';
 /**
  * Initializes `make` command for Promptbook CLI utilities
  *
- * @private part of `promptbookCli`
+ * @private internal function of `promptbookCli`
  */
 export function initializeMakeCommand(program: Program) {
     const makeCommand = program.command('make');

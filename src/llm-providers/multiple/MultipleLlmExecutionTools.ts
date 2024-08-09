@@ -19,7 +19,7 @@ import type { really_any } from '../../utils/organization/really_any';
 /**
  * Multiple LLM Execution Tools is a proxy server that uses multiple execution tools internally and exposes the executor interface externally.
  *
- * @private Internal utility of `joinLlmExecutionTools`
+ * @private internal utility of `joinLlmExecutionTools`
  */
 
 export class MultipleLlmExecutionTools implements LlmExecutionTools {

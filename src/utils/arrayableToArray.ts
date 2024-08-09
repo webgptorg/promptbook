@@ -7,7 +7,7 @@ import type { Arrayable } from '../types/Arrayable';
  * 2) Undefined returns empty array
  * 3) Array returns itself
  *
- * @private Internal utility
+ * @private internal utility
  */
 export function arrayableToArray<TItem>(input?: Arrayable<TItem>): Array<TItem> {
     if (input === undefined) {

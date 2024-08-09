@@ -3,8 +3,7 @@ import { join } from 'path';
 import { unpreparePipeline } from '../../prepare/unpreparePipeline';
 import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import type { PipelineString } from '../../types/PipelineString';
-import type { string_file_path } from '../../types/typeAliases';
-import type { string_json } from '../../types/typeAliases';
+import type { string_file_path, string_json } from '../../types/typeAliases';
 
 /**
  * Import the pipeline.ptbk.md or pipeline.ptbk.json file
@@ -13,7 +12,7 @@ import type { string_json } from '../../types/typeAliases';
  * Note: Using sync version is 💩 in the production code, but it's ok here in tests
  *
  * @param path - The path to the file relative to samples/templates directory
- * @private
+ * @private internal function of tests
  */
 export function importPipelineWithoutPreparation(path: `${string}.ptbk.md`): PipelineString;
 export function importPipelineWithoutPreparation(path: `${string}.ptbk.json`): PipelineJson;
