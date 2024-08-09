@@ -214,6 +214,7 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
         packageJson.name = packageFullname;
 
         await writeFile(`./packages/${packageBasename}/package.json`, JSON.stringify(packageJson, null, 4) + '\n');
+        //     <- TODO: [0] package.json is is written twice, can it be done in one step?
 
         if (isBuilded) {
             await writeFile(`./packages/${packageBasename}/.gitignore`, ['esm', 'umd'].join('\n'));
@@ -244,6 +245,7 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
         const packageJson = JSON.parse(
             await readFile(`./packages/${packageBasename}/package.json`, 'utf-8'),
         ) as PackageJson;
+        //     <- TODO: [0] package.json is is written twice, can it be done in one step?
 
         if (!['@promptbook/core', '@promptbook/utils'].includes(packageFullname)) {
             packageJson.peerDependencies = {
@@ -283,6 +285,7 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
         }
 
         await writeFile(`./packages/${packageBasename}/package.json`, JSON.stringify(packageJson, null, 4) + '\n');
+        //     <- TODO: [0] package.json is is written twice, can it be done in one step?
     }
 
     await writeFile(
