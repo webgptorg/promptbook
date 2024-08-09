@@ -110,7 +110,7 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
         // TODO: !! `entryIndexFilePathContent = await prettifyTypeScript(entryIndexFilePathContent)`
 
         writeFile(entryIndexFilePath, entryIndexFilePathContent, 'utf-8');
-        console.info(colors.green(entryIndexFilePath.split('\\').join('/')));
+        console.info(colors.green('Generated index file ' + entryIndexFilePath.split('\\').join('/')));
     }
 
     await forTime(1000 * 60 * 60 * 0);

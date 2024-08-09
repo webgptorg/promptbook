@@ -5,17 +5,17 @@ import { join } from 'path';
 
 export default getPackagesMetadataForRollup()
     .filter(({ isBuilded }) => isBuilded)
-    .map(({ packageName, entryIndexFilePath }) => ({
+    .map(({ packageBasename, entryIndexFilePath }) => ({
         input: entryIndexFilePath,
         output: [
             {
-                file: `./packages/${packageName}/umd/index.umd.js`,
-                name: `promptbook-${packageName}`,
+                file: `./packages/${packageBasename}/umd/index.umd.js`,
+                name: `promptbook-${packageBasename}`,
                 format: 'umd',
                 sourcemap: true,
             },
             {
-                file: `./packages/${packageName}/esm/index.es.js`,
+                file: `./packages/${packageBasename}/esm/index.es.js`,
                 format: 'es',
                 sourcemap: true,
             },
