@@ -33,13 +33,6 @@
         "url": "https://github.com/webgptorg/promptbook/issues"
     },
     "homepage": "https://www.npmjs.com/package/@promptbook/core",
-    "dependencies": {
-        "@anthropic-ai/sdk": "0.21.1",
-        "colors": "1.4.0",
-        "openai": "4.46.1",
-        "prettier": "2.8.1",
-        "spacetrim": "0.11.39"
-    },
     "funding": [
         {
             "type": "individual",
@@ -50,10 +43,17 @@
             "url": "https://github.com/webgptorg/promptbook/blob/main/README.md#%EF%B8%8F-contributing"
         }
     ],
+    "main": "./umd/index.umd.js",
+    "module": "./esm/index.es.js",
+    "typings": "./esm/typings/src/_packages/node.index.d.ts",
     "peerDependencies": {
         "@promptbook/core": "0.63.0-1"
     },
-    "main": "./umd/index.umd.js",
-    "module": "./esm/index.es.js",
-    "typings": "./esm/typings/src/_packages/node.index.d.ts"
+    "dependencies": {
+        "@anthropic-ai/sdk": "0.21.1",
+        "colors": "1.4.0",
+        "openai": "4.46.1",
+        "prettier": "2.8.1",
+        "spacetrim": "0.11.39"
+    }
 }

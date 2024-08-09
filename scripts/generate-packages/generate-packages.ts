@@ -55,9 +55,8 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
     }
 
     const allDependencies = {
-        ...mainPackageJson.devDependencies,
         ...mainPackageJson.dependencies,
-        // <- TODO: Check collisions between `dependencies` and `devDependencies`
+        // <- TODO: Maybe add `devDependencies` and check collisions between `dependencies` and `devDependencies`
     };
 
     const packagesMetadata = await getPackagesMetadata();
@@ -284,6 +283,12 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
         ) as PackageJson;
         //     <- TODO: [0] package.json is is written twice, can it be done in one step?
 
+        if (isBuilded) {
+            packageJson.main = `./umd/index.umd.js`;
+            packageJson.module = `./esm/index.es.js`;
+            packageJson.typings = `./esm/typings/src/_packages/${packageBasename}.index.d.ts`;
+        }
+
         if (
             !['@promptbook/core', '@promptbook/utils', '@promptbook/cli', '@promptbook/markdown-utils'].includes(
                 packageFullname,
@@ -296,23 +301,24 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
 
         if (isBuilded) {
             const indexContent = await readFile(`./packages/${packageBasename}/esm/index.es.js`, 'utf-8');
-            for (const dependencyName in packageJson.dependencies) {
+            for (const dependencyName of Object.keys(allDependencies)) {
                 if (indexContent.includes(`from '${dependencyName}'`)) {
-                    packageJson.dependencies = packageJson.dependencies || [];
+                    packageJson.dependencies = packageJson.dependencies || {};
+
+                    if (allDependencies[dependencyName] === undefined) {
+                        throw new Error(`Can not find version for dependency "${dependencyName}"`);
+                    }
+
                     packageJson.dependencies[dependencyName] = allDependencies[dependencyName];
+                    // <- Note: [🧃] Using only `dependencies` (not `devDependencies`)
                 }
             }
         }
 
-        packageJson.dependencies = {
-            ...(packageJson.dependencies || {}),
-            ...Object.fromEntries(additionalDependencies.map((dependency) => [dependency, packageJson.version])),
-        };
-
-        if (isBuilded) {
-            packageJson.main = `./umd/index.umd.js`;
-            packageJson.module = `./esm/index.es.js`;
-            packageJson.typings = `./esm/typings/src/_packages/${packageBasename}.index.d.ts`;
+        for (const dependencyName of additionalDependencies) {
+            packageJson.dependencies = packageJson.dependencies || {};
+            packageJson.dependencies[dependencyName] = packageJson.version;
+            // <- Note: [🧃] Using only `dependencies` (not `devDependencies`)
         }
 
         if (packageFullname === '@promptbook/cli') {

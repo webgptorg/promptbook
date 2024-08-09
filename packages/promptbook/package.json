@@ -43,6 +43,9 @@
             "url": "https://github.com/webgptorg/promptbook/blob/main/README.md#%EF%B8%8F-contributing"
         }
     ],
+    "peerDependencies": {
+        "@promptbook/core": "0.63.0-1"
+    },
     "dependencies": {
         "@promptbook/anthropic-claude": "0.63.0-1",
         "@promptbook/azure-openai": "0.63.0-1",

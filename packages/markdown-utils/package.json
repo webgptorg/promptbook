@@ -33,9 +33,6 @@
         "url": "https://github.com/webgptorg/promptbook/issues"
     },
     "homepage": "https://www.npmjs.com/package/@promptbook/core",
-    "dependencies": {
-        "spacetrim": "0.11.39"
-    },
     "funding": [
         {
             "type": "individual",
@@ -46,10 +43,10 @@
             "url": "https://github.com/webgptorg/promptbook/blob/main/README.md#%EF%B8%8F-contributing"
         }
     ],
-    "peerDependencies": {
-        "@promptbook/core": "0.63.0-1"
-    },
     "main": "./umd/index.umd.js",
     "module": "./esm/index.es.js",
-    "typings": "./esm/typings/src/_packages/markdown-utils.index.d.ts"
+    "typings": "./esm/typings/src/_packages/markdown-utils.index.d.ts",
+    "dependencies": {
+        "spacetrim": "0.11.39"
+    }
 }
