@@ -1,4 +1,4 @@
-// ⚠️ WARNING: This section has been generated so that any manual changes will be overwritten
+// ⚠️ WARNING: This code has been generated so that any manual changes will be overwritten
 import type { string_semantic_version } from './types/typeAliases';
 
 /**
