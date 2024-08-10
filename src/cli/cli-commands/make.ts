@@ -157,9 +157,7 @@ export function initializeMakeCommand(program: Program) {
                          */
                         export function getPipelineCollection(){
                             if(pipelineCollection===null){
-                                pipelineCollection = createCollectionFromJson(${block(
-                                    collectionJsonString.substring(1, collectionJsonString.length - 1),
-                                )});
+                                pipelineCollection = createCollectionFromJson(${block(collectionJsonString)});
                             }
 
                             return pipelineCollection;
@@ -203,9 +201,7 @@ export function initializeMakeCommand(program: Program) {
                          */
                         export function getPipelineCollection(): PipelineCollection{
                             if(pipelineCollection===null){
-                                pipelineCollection = createCollectionFromJson(${block(
-                                    collectionJsonString.substring(1, collectionJsonString.length - 1),
-                                )});
+                                pipelineCollection = createCollectionFromJson(${block(collectionJsonString)});
                             }
 
                             return pipelineCollection as PipelineCollection;
