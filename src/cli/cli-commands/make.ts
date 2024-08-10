@@ -71,7 +71,7 @@ export function initializeMakeCommand(program: Program) {
             .filter((_) => _ !== '');
 
         if (outFile !== PIPELINE_COLLECTION_BASE_FILENAME && formats.length !== 1) {
-            console.error(colors.red(`You can use only one format when saving to a file`));
+            console.error(colors.red(`You can only use one format if you specify --out-file`));
             process.exit(1);
         }
 
