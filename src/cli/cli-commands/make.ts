@@ -5,8 +5,7 @@ import { dirname, join } from 'path';
 import spaceTrim from 'spacetrim';
 import { collectionToJson } from '../../collection/collectionToJson';
 import { createCollectionFromDirectory } from '../../collection/constructors/createCollectionFromDirectory';
-import { GENERATOR_WARNING_BY_PROMPTBOOK_CLI } from '../../config';
-import { PIPELINE_COLLECTION_BASE_FILENAME } from '../../config';
+import { GENERATOR_WARNING_BY_PROMPTBOOK_CLI, PIPELINE_COLLECTION_BASE_FILENAME } from '../../config';
 import { stringifyPipelineJson } from '../../conversion/utils/stringifyPipelineJson';
 import { validatePipeline } from '../../conversion/validation/validatePipeline';
 import { usageToHuman } from '../../execution/utils/usageToHuman';
@@ -131,11 +130,10 @@ export function initializeMakeCommand(program: Program) {
 
         if (formats.includes('javascript') || formats.includes('js')) {
             formats = formats.filter((format) => format !== 'javascript' && format !== 'js');
-            await saveFile(
+            (await saveFile(
                 'js',
                 spaceTrim(
-                    (block) =>
-                        `
+                    (block) => `
                         // ${block(GENERATOR_WARNING_BY_PROMPTBOOK_CLI)}
 
                         import { createCollectionFromJson } from '@promptbook/core';
@@ -167,13 +165,13 @@ export function initializeMakeCommand(program: Program) {
 
                             return pipelineCollection;
                         }
-                    ` + '\n',
+                    `,
                 ),
                 // <- TODO: DRY Javascript and typescript
                 // <- TODO: Prettify
                 // <- TODO: Convert inlined \n to spaceTrim
                 // <- Note: [🍡]
-            );
+            )) + '\n';
         }
 
         if (formats.includes('typescript') || formats.includes('ts')) {
@@ -181,8 +179,7 @@ export function initializeMakeCommand(program: Program) {
             await saveFile(
                 'ts',
                 spaceTrim(
-                    (block) =>
-                        `
+                    (block) => `
                         // ${block(GENERATOR_WARNING_BY_PROMPTBOOK_CLI)}
 
                         import { createCollectionFromJson } from '@promptbook/core';
@@ -215,8 +212,8 @@ export function initializeMakeCommand(program: Program) {
 
                             return pipelineCollection as PipelineCollection;
                         }
-                    ` + '\n',
-                ),
+                    `,
+                ) + '\n',
                 // <- TODO: DRY Javascript and typescript
                 // <- TODO: Prettify
                 // <- TODO: Convert inlined \n to spaceTrim
