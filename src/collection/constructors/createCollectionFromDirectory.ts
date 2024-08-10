@@ -11,8 +11,7 @@ import { CollectionError } from '../../errors/CollectionError';
 import { unpreparePipeline } from '../../prepare/unpreparePipeline';
 import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import type { PipelineString } from '../../types/PipelineString';
-import type { string_folder_path } from '../../types/typeAliases';
-import type { string_pipeline_url } from '../../types/typeAliases';
+import type { string_folder_path, string_pipeline_url } from '../../types/typeAliases';
 import { listAllFiles } from '../../utils/files/listAllFiles';
 import { isRunningInNode } from '../../utils/isRunningInWhatever';
 import type { PipelineCollection } from '../PipelineCollection';
@@ -74,7 +73,7 @@ export async function createCollectionFromDirectory(
 
     // TODO: [🍖] Allow to skip
     const makedLibraryFilePath = join(path, `${PIPELINE_COLLECTION_BASE_FILENAME}.json`);
-    const makedLibraryFileExists = await access(makedLibraryFilePath, constants.R_OK)
+    const makedLibraryFileExists = await access(makedLibraryFilePath, constants.R_OK) // <- TODO: [🍌]
         .then(() => true)
         .catch(() => false);
 

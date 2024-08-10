@@ -1,7 +1,6 @@
-import { readdir } from 'fs/promises';
+import { access, constants, readdir } from 'fs/promises';
 import { join } from 'path/posix';
-import type { string_file_path } from '../../types/typeAliases';
-import type { string_folder_path } from '../../types/typeAliases';
+import type { string_file_path, string_folder_path } from '../../types/typeAliases';
 
 /**
  * Reads all files in the directory
@@ -12,6 +11,15 @@ import type { string_folder_path } from '../../types/typeAliases';
  * @private internal function of `createCollectionFromDirectory`
  */
 export async function listAllFiles(path: string_folder_path, isRecursive: boolean): Promise<Array<string_file_path>> {
+    const isLibraryFolderExists = await access(path, constants.R_OK) // <- TODO: [🍌]
+        .then(() => true)
+        .catch(() => false);
+
+    if (isLibraryFolderExists) {
+        throw new Error(`Directory "${path}" does not exist or is not readable`);
+        //           <- TODO: Use some custom error class
+    }
+
     const dirents = await readdir(path, {
         withFileTypes: true /* Note: This is not working: recursive: isRecursive */,
     });

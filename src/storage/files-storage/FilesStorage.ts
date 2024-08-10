@@ -44,6 +44,7 @@ export class FilesStorage<TItem> implements PromptbookStorage<TItem> {
     public async getItem(key: string): Promise<TItem | null> {
         const filename = this.getFilenameForKey(key);
 
+        // TODO: [🍌]
         const isFileExisting = await stat(filename)
             .then((fileStat) => fileStat.isFile())
             .catch(() => false);

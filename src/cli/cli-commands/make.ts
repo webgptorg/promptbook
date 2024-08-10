@@ -25,8 +25,8 @@ export function initializeMakeCommand(program: Program) {
       `),
     );
 
-    makeCommand.argument('<path>', 'Path to promptbook directory');
-    makeCommand.option('--project-name', `Name of the project for whom collection is`, 'Project');
+    makeCommand.argument('<path>', 'Path to promptbook directory', './promptbook-collection');
+    makeCommand.option('--project-name', `Name of the project for whom collection is`, 'Untitled Promptbook project');
     makeCommand.option(
         '-f, --format <format>',
         spaceTrim(`
