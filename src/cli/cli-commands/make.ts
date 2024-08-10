@@ -61,7 +61,7 @@ export function initializeMakeCommand(program: Program) {
         const isCacheReloaded = reloadCache;
         const isVerbose = verbose;
 
-        const formats = ((format as string | false) || '')
+        let formats = ((format as string | false) || '')
             .split(',')
             .map((_) => _.trim())
             .filter((_) => _ !== '');
@@ -123,11 +123,13 @@ export function initializeMakeCommand(program: Program) {
         };
 
         if (formats.includes('json')) {
+            formats = formats.filter((format) => format !== 'json');
             await saveFile('json', collectionJsonString);
             //                            <- TODO: Add GENERATOR_WARNING_BY_PROMPTBOOK_CLI to package.json
         }
 
-        if (formats.includes('javascript')) {
+        if (formats.includes('javascript') || formats.includes('js')) {
+            formats = formats.filter((format) => format !== 'javascript' && format !== 'js');
             await saveFile(
                 'js',
                 spaceTrim(
@@ -173,7 +175,8 @@ export function initializeMakeCommand(program: Program) {
             );
         }
 
-        if (formats.includes('typescript')) {
+        if (formats.includes('typescript') || formats.includes('ts')) {
+            formats = formats.filter((format) => format !== 'typescript' && format !== 'ts');
             await saveFile(
                 'ts',
                 spaceTrim(
@@ -218,6 +221,10 @@ export function initializeMakeCommand(program: Program) {
                 // <- TODO: Convert inlined \n to spaceTrim
                 // <- Note: [🍡]
             );
+        }
+
+        if (formats.length > 0) {
+            console.warn(colors.yellow(`Format ${formats.join(' and ')} is not supported`));
         }
 
         if (isVerbose) {
