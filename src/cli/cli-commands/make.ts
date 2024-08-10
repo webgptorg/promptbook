@@ -157,9 +157,8 @@ export function initializeMakeCommand(program: Program) {
                          */
                         export function getPipelineCollection(){
                             if(pipelineCollection===null){
-                                pipelineCollection = createCollectionFromJson(${collectionJsonString.substring(
-                                    1,
-                                    collectionJsonString.length - 1,
+                                pipelineCollection = createCollectionFromJson(${block(
+                                    collectionJsonString.substring(1, collectionJsonString.length - 1),
                                 )});
                             }
 
@@ -167,7 +166,7 @@ export function initializeMakeCommand(program: Program) {
                         }
                     `,
                 ),
-                // <- TODO: DRY Javascript and typescript
+                // <- TODO: [0] DRY Javascript and typescript
                 // <- TODO: Prettify
                 // <- TODO: Convert inlined \n to spaceTrim
                 // <- Note: [🍡]
@@ -204,9 +203,8 @@ export function initializeMakeCommand(program: Program) {
                          */
                         export function getPipelineCollection(): PipelineCollection{
                             if(pipelineCollection===null){
-                                pipelineCollection = createCollectionFromJson(${collectionJsonString.substring(
-                                    1,
-                                    collectionJsonString.length - 1,
+                                pipelineCollection = createCollectionFromJson(${block(
+                                    collectionJsonString.substring(1, collectionJsonString.length - 1),
                                 )});
                             }
 
@@ -214,7 +212,7 @@ export function initializeMakeCommand(program: Program) {
                         }
                     `,
                 ) + '\n',
-                // <- TODO: DRY Javascript and typescript
+                // <- TODO: [0] DRY Javascript and typescript
                 // <- TODO: Prettify
                 // <- TODO: Convert inlined \n to spaceTrim
                 // <- Note: [🍡]
@@ -235,5 +233,6 @@ export function initializeMakeCommand(program: Program) {
 }
 
 /**
+ * TODO: [0] DRY Javascript and typescript - Maybe make ONLY typescript and for javascript just remove types
  * Note: [🟡] This code should never be published outside of `@promptbook/cli`
  */
