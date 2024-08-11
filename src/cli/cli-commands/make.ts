@@ -8,6 +8,7 @@ import { createCollectionFromDirectory } from '../../collection/constructors/cre
 import { GENERATOR_WARNING_BY_PROMPTBOOK_CLI, PIPELINE_COLLECTION_BASE_FILENAME } from '../../config';
 import { stringifyPipelineJson } from '../../conversion/utils/stringifyPipelineJson';
 import { validatePipeline } from '../../conversion/validation/validatePipeline';
+import { UnexpectedError } from '../../errors/UnexpectedError';
 import { usageToHuman } from '../../execution/utils/usageToHuman';
 import { getLlmToolsForCli } from '../../llm-providers/_common/getLlmToolsForCli';
 import type { string_file_extension } from '../../types/typeAliases';
@@ -108,7 +109,18 @@ export function initializeMakeCommand(program: Program) {
         }
 
         const collectionJson = await collectionToJson(collection);
-        const collectionJsonString = stringifyPipelineJson(collectionJson);
+        const collectionJsonString = stringifyPipelineJson(collectionJson).trim();
+        const collectionJsonItems = (() => {
+            if (collectionJsonString.substring(0, 1) !== '{') {
+                throw new UnexpectedError('Missing { at the beginning of serialized collection');
+            }
+
+            if (collectionJsonString.substring(-1) !== '}') {
+                throw new UnexpectedError('Missing } at the end of serialized collection');
+            }
+
+            return spaceTrim(collectionJsonString.substring(1, collectionJsonString.length - 1));
+        })();
 
         const saveFile = async (extension: string_file_extension, content: string) => {
             const filePath =
@@ -163,7 +175,7 @@ export function initializeMakeCommand(program: Program) {
                         export function getPipelineCollection(){
                             if(pipelineCollection===null){
                                 pipelineCollection = createCollectionFromJson(
-                                    ${block(collectionJsonString)}
+                                    ${block(collectionJsonItems)}
                                 );
                             }
 
@@ -209,11 +221,11 @@ export function initializeMakeCommand(program: Program) {
                         export function getPipelineCollection(): PipelineCollection{
                             if(pipelineCollection===null){
                                 pipelineCollection = createCollectionFromJson(
-                                    ${block(collectionJsonString)}
+                                    ${block(collectionJsonItems)}
                                 );
                             }
 
-                            return pipelineCollection as PipelineCollection;
+                            return pipelineCollection;
                         }
                     `,
                 ) + '\n',
