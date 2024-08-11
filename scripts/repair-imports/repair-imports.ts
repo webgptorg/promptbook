@@ -72,7 +72,7 @@ async function repairImports({
             continue;
         }
 
-        if (file.path.includes('test/ptbk.ts')) {
+        if (file.path.includes('test/ptbk.test.ts')) {
             // Note: No need to repair imports in test files
             continue;
         }
