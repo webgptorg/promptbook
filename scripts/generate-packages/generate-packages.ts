@@ -96,24 +96,43 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
             entryIndexFilePathContentExports.push(`export${typePrefix} { ${name} };`);
         }
 
-        let entryIndexFilePathContent = spaceTrim(
-            (block) => `
-                // ${block(GENERATOR_WARNING)}
-                // \`${packageFullname}\`
+        let entryIndexFilePathContent: string;
 
-                import { PROMPTBOOK_VERSION } from '../version';
-                ${block(entryIndexFilePathContentImports.join('\n'))}
+        if (packageFullname !== '@promptbook/types') {
+            // TODO: DRY [1]
+            entryIndexFilePathContent = spaceTrim(
+                (block) => `
+                    // ${block(GENERATOR_WARNING)}
+                    // \`${packageFullname}\`
+
+                    import { PROMPTBOOK_VERSION } from '../version';
+                    ${block(entryIndexFilePathContentImports.join('\n'))}
 
 
-                // Note: Exporting version from each package
-                export { PROMPTBOOK_VERSION };
+                    // Note: Exporting version from each package
+                    export { PROMPTBOOK_VERSION };
 
 
-                // Note: Entities of the \`${packageFullname}\`
-                ${block(entryIndexFilePathContentExports.join('\n'))}
+                    // Note: Entities of the \`${packageFullname}\`
+                    ${block(entryIndexFilePathContentExports.join('\n'))}
 
-            `,
-        );
+                `,
+            );
+        } else {
+            // TODO: DRY [1]
+            entryIndexFilePathContent = spaceTrim(
+                (block) => `
+                    // ${block(GENERATOR_WARNING)}
+                    // \`${packageFullname}\`
+
+                    ${block(entryIndexFilePathContentImports.join('\n'))}
+
+                    // Note: Entities of the \`${packageFullname}\`
+                    ${block(entryIndexFilePathContentExports.join('\n'))}
+
+                `,
+            );
+        }
 
         entryIndexFilePathContent += '\n';
 
