@@ -36,4 +36,4 @@
 -   [ ] Make VSCode extension for validation/syntax highlite (and for other editors)
 -   [ ] Use `chalk` or `colors` or sth else but unite what is used
 -   [] !!! Backup GitHub [discussions](https://github.com/webgptorg/promptbook/discussions/), issues, PRs, etc. into commited markdown files
--   [] !!!!! Link from here -> ptbk.io -> discussions concepts
+-   [] [🍍] !!!!! Link from here -> ptbk.io -> discussions concepts (with labels)
