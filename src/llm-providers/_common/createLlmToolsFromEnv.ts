@@ -90,4 +90,5 @@ export function createLlmToolsFromEnv(options: CreateLlmToolsFromEnvOptions = {}
  * TODO: [🧠] Maybe pass env as argument
  * Note: [🟢] This code should never be published outside of `@promptbook/node` and `@promptbook/cli` and `@promptbook/cli`
  * TODO: [👷‍♂️] @@@ Manual about construction of llmTools
+ * TODO: [🥃] Allow `ptbk make` without llm tools
  */

@@ -46,4 +46,5 @@ export function getLlmToolsForCli(options?: GetLlmToolsForCliOptions): LlmExecut
 /**
  * Note: [🟡] This code should never be published outside of `@promptbook/cli`
  * TODO: [👷‍♂️] @@@ Manual about construction of llmTools
+ * TODO: [🥃] Allow `ptbk make` without llm tools
  */

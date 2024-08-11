@@ -254,6 +254,7 @@ export function initializeMakeCommand(program: Program) {
 }
 
 /**
+ * TODO: [🥃] !!! Allow `ptbk make` without llm tools
  * TODO: Maybe remove this command - "about" command should be enough?
  * TODO: [0] DRY Javascript and typescript - Maybe make ONLY typescript and for javascript just remove types
  * Note: [🟡] This code should never be published outside of `@promptbook/cli`
