@@ -1,6 +1,5 @@
 import type { TupleToUnion } from 'type-fest';
-import type { number_integer } from '../typeAliases';
-import type { number_positive } from '../typeAliases';
+import type { number_integer, number_positive } from '../typeAliases';
 
 /**
  * Expect this amount of each unit in the answer
@@ -26,7 +25,7 @@ export type ExpectationUnit = TupleToUnion<typeof EXPECTATION_UNITS>;
  * Units of text measurement
  *
  * @see https://github.com/webgptorg/promptbook/discussions/30
- * @private internal base for `ExpectationUnit`
+ * @public exported from `@promptbook/core`
  */
 export const EXPECTATION_UNITS = ['CHARACTERS', 'WORDS', 'SENTENCES', 'LINES', 'PARAGRAPHS', 'PAGES'] as const;
 

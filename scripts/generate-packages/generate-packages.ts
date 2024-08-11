@@ -343,6 +343,8 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
         }
     }
 
+    // TODO: !!!!!! Check that `@promptbook/types` does not contain any runtime code
+
     // ==============================
     console.info(colors.cyan(`7️⃣  Add dependencies for each package`));
 
