@@ -74,7 +74,7 @@ export function pipelineJsonToString(pipelineJson: PipelineJson): PipelineString
 
         if (blockType === 'PROMPT_TEMPLATE') {
             const { modelRequirements } = promptTemplate;
-            const { modelName, modelVariant } = modelRequirements;
+            const { modelName, modelVariant } = modelRequirements || {};
 
             commands.push(`EXECUTE PROMPT TEMPLATE`);
 

@@ -1,13 +1,11 @@
 import { spaceTrim } from 'spacetrim';
-import { LOOP_LIMIT } from '../../config';
-import { RESERVED_PARAMETER_NAMES } from '../../config';
+import { LOOP_LIMIT, RESERVED_PARAMETER_NAMES } from '../../config';
 import { ParsingError } from '../../errors/ParsingError';
 import { PipelineLogicError } from '../../errors/PipelineLogicError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import type { PromptTemplateJson } from '../../types/PipelineJson/PromptTemplateJson';
-import type { string_name } from '../../types/typeAliases';
-import type { string_reserved_parameter_name } from '../../types/typeAliases';
+import type { string_name, string_reserved_parameter_name } from '../../types/typeAliases';
 import { isValidPromptbookVersion } from '../../utils/validators/semanticVersion/isValidPromptbookVersion';
 import { isValidPipelineUrl } from '../../utils/validators/url/isValidPipelineUrl';
 
@@ -202,24 +200,6 @@ export function validatePipeline(pipeline: PipelineJson): PipelineJson {
         }
 
         definedParameters.add(template.resultingParameterName);
-
-        if (template.blockType === 'PROMPT_TEMPLATE' && template.modelRequirements.modelVariant === undefined) {
-            throw new PipelineLogicError(
-                spaceTrim(
-                    (block) => `
-
-                        You must specify MODEL VARIANT in the prompt template "${template.title}"
-
-                        For example:
-                        - MODEL VARIANT Chat
-                        - MODEL NAME \`gpt-4-1106-preview\`${/* <- TODO: Dynamic listing of command examples */ ''}
-
-                        ${block(pipelineIdentification)}
-                    `,
-                ),
-                // <- TODO: [🚞]
-            );
-        }
 
         if (template.jokerParameterNames && template.jokerParameterNames.length > 0) {
             if (
