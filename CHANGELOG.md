@@ -419,6 +419,16 @@ Working external knowledge, personas, preparation for instruments and actions
 -   !!!! Compute usage in `AnthropicClaudeExecutionTools` [🐞]
 -   !!!! Fix compute usage in `OpenAiExecutionTools`
 
+### `0.63.0` _(2024-08-11)_
+
+Better system for imports, exports and dependencies
+
+-   Manage package exports automatically
+-   Automatically export all types from `@promptbook/types`
+-   Protext runtime-specific code - for example protect browser-specific to never reach `@promptbook/node`
+-   Consiese README - move things to discussions
+-   Make Partial<ModelRequirements> and optional
+
 ## In pre-release
 
 ## In prepare
