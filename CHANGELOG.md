@@ -301,11 +301,6 @@ Add support for Claude \\ Anthropic models via package `@promptbook/anthropic-cl
 
 Repair and organize imports
 
--   !!!!!!
--   !!!!!!
--   !!!!!!
--   Make Partial<ModelRequirements> and optional
-
 ### `0.54.0` _(2024-06-08)_
 
 -   Custom errors `ExpectError`,`NotFoundError`,`PromptbookExecutionError`,`PromptbookLogicError`,`PromptbookLibraryError`,`PromptbookSyntaxError` exported from `@promptbook/core`
