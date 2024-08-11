@@ -1,5 +1,5 @@
 import { access, constants, stat } from 'fs/promises';
-import { string_file_path } from '../../types/typeAliases';
+import type { string_file_path } from '../../types/typeAliases';
 
 /**
  * Checks if the file exists
