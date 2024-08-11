@@ -343,7 +343,7 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
         }
     }
 
-    // TODO: !!!!!! Check that `@promptbook/types` does not contain any runtime code
+    // TODO: !!!!!! Check that `@promptbook/types` does not contain any runtime code and if not, delete the empty `esm` and `umd` directories and keep only typings
 
     // ==============================
     console.info(colors.cyan(`7️⃣  Add dependencies for each package`));
@@ -355,8 +355,10 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
         //     <- TODO: [0] package.json is is written twice, can it be done in one step?
 
         if (isBuilded && packageFullname !== '@promptbook/cli') {
-            packageJson.main = `./umd/index.umd.js`;
-            packageJson.module = `./esm/index.es.js`;
+            if (packageFullname !== '@promptbook/types') {
+                packageJson.main = `./umd/index.umd.js`;
+                packageJson.module = `./esm/index.es.js`;
+            }
             packageJson.typings = `./esm/typings/src/_packages/${packageBasename}.index.d.ts`;
         }
 
