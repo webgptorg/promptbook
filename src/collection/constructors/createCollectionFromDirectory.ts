@@ -1,5 +1,5 @@
 import colors from 'colors';
-import { access, constants, readFile } from 'fs/promises';
+import { readFile } from 'fs/promises';
 import { join } from 'path';
 import spaceTrim from 'spacetrim';
 import { PIPELINE_COLLECTION_BASE_FILENAME } from '../../config';
@@ -12,6 +12,7 @@ import { unpreparePipeline } from '../../prepare/unpreparePipeline';
 import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import type { PipelineString } from '../../types/PipelineString';
 import type { string_folder_path, string_pipeline_url } from '../../types/typeAliases';
+import { isFileExisting } from '../../utils/files/isFileExisting';
 import { listAllFiles } from '../../utils/files/listAllFiles';
 import { isRunningInNode } from '../../utils/isRunningInWhatever';
 import type { PipelineCollection } from '../PipelineCollection';
@@ -73,11 +74,8 @@ export async function createCollectionFromDirectory(
 
     // TODO: [🍖] Allow to skip
     const makedLibraryFilePath = join(path, `${PIPELINE_COLLECTION_BASE_FILENAME}.json`);
-    const makedLibraryFileExists = await access(makedLibraryFilePath, constants.R_OK) // <- TODO: [🍌]
-        .then(() => true)
-        .catch(() => false);
 
-    if (!makedLibraryFileExists) {
+    if (!(await isFileExisting(makedLibraryFilePath))) {
         console.info(
             colors.yellow(
                 `Tip: Prebuild your pipeline collection (file with supposed prebuild ${makedLibraryFilePath} not found) with CLI util "ptbk make" to speed up the collection creation.`,
@@ -237,4 +235,5 @@ export async function createCollectionFromDirectory(
 
 /**
  * Note: [🟢] This code should never be published outside of `@promptbook/node` and `@promptbook/cli` and `@promptbook/cli`
+ * TODO: [🖇] What about symlinks? Maybe option isSymlinksFollowed
  */

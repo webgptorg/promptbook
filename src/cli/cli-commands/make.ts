@@ -231,4 +231,5 @@ export function initializeMakeCommand(program: Program) {
 /**
  * TODO: [0] DRY Javascript and typescript - Maybe make ONLY typescript and for javascript just remove types
  * Note: [🟡] This code should never be published outside of `@promptbook/cli`
+ * TODO: [🖇] What about symlinks? Maybe flag --follow-symlinks
  */

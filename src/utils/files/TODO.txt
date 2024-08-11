@@ -1,2 +1,0 @@
-TODO: Move here all file functions and mark them [🟢]
-TODO: [🍌] Make here file utils `isFileExisting` and `isDirectoryExisting` 

@@ -1,0 +1,1 @@
+Note: This file and folder is just to be a testing subject of the function `listAllFiles`

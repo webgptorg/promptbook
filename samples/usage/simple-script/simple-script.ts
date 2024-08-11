@@ -115,7 +115,7 @@ async function main() {
 
 /**
  * TODO: There should be no need to set this script or userInterface in tools
- * TODO: Implement and use here PipelineCollection.fromDirectory (directory vs folder)
+ * TODO: Implement and use here PipelineCollection.fromDirectory ([📂] directory vs folder)
  * TODO: [🧠] Maybe make .js version of simple-script
  * TODO: [🧙‍♂️] Make sample with Wizzard supersimple-script.ts
  */

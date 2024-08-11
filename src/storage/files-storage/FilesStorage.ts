@@ -1,12 +1,13 @@
 import hexEncoder from 'crypto-js/enc-hex';
 import sha256 from 'crypto-js/sha256';
-import { mkdir, readFile, stat, unlink, writeFile } from 'fs/promises';
+import { mkdir, readFile, unlink, writeFile } from 'fs/promises';
 import { dirname, join } from 'path';
 import { MAX_FILENAME_LENGTH } from '../../config';
 import { stringifyPipelineJson } from '../../conversion/utils/stringifyPipelineJson';
 import { titleToName } from '../../conversion/utils/titleToName';
 import { EnvironmentMismatchError } from '../../errors/EnvironmentMismatchError';
 import type { string_file_path } from '../../types/typeAliases';
+import { isFileExisting } from '../../utils/files/isFileExisting';
 import { isRunningInNode } from '../../utils/isRunningInWhatever';
 import type { PromptbookStorage } from '../_common/PromptbookStorage';
 import type { FilesStorageOptions } from './FilesStorageOptions';
@@ -44,12 +45,7 @@ export class FilesStorage<TItem> implements PromptbookStorage<TItem> {
     public async getItem(key: string): Promise<TItem | null> {
         const filename = this.getFilenameForKey(key);
 
-        // TODO: [🍌]
-        const isFileExisting = await stat(filename)
-            .then((fileStat) => fileStat.isFile())
-            .catch(() => false);
-
-        if (!isFileExisting) {
+        if (!(await isFileExisting(filename))) {
             return null;
         }
 

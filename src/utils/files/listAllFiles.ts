@@ -1,6 +1,7 @@
-import { access, constants, readdir } from 'fs/promises';
+import { readdir } from 'fs/promises';
 import { join } from 'path/posix';
 import type { string_file_path, string_folder_path } from '../../types/typeAliases';
+import { isDirectoryExisting } from './isDirectoryExisting';
 
 /**
  * Reads all files in the directory
@@ -11,11 +12,7 @@ import type { string_file_path, string_folder_path } from '../../types/typeAlias
  * @private internal function of `createCollectionFromDirectory`
  */
 export async function listAllFiles(path: string_folder_path, isRecursive: boolean): Promise<Array<string_file_path>> {
-    const isLibraryFolderExists = await access(path, constants.R_OK) // <- TODO: [🍌]
-        .then(() => true)
-        .catch(() => false);
-
-    if (isLibraryFolderExists) {
+    if (!(await isDirectoryExisting(path))) {
         throw new Error(`Directory "${path}" does not exist or is not readable`);
         //           <- TODO: Use some custom error class
     }
@@ -38,4 +35,5 @@ export async function listAllFiles(path: string_folder_path, isRecursive: boolea
 
 /**
  * Note: [🟢] This code should never be published outside of `@promptbook/node` and `@promptbook/cli` and `@promptbook/cli`
+ * TODO: [🖇] What about symlinks?
  */
