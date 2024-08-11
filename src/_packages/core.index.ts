@@ -9,6 +9,7 @@ import { createCollectionFromUrl } from '../collection/constructors/createCollec
 import { createSubcollection } from '../collection/constructors/createSubcollection';
 import type { BlockType } from '../commands/BLOCK/BlockTypes';
 import { BlockTypes } from '../commands/BLOCK/BlockTypes';
+import { CLAIM } from '../config';
 import { MAX_PARALLEL_COUNT } from '../config';
 import { MAX_EXECUTION_ATTEMPTS } from '../config';
 import { MAX_FILENAME_LENGTH } from '../config';
@@ -75,6 +76,7 @@ export { createCollectionFromUrl };
 export { createSubcollection };
 export type { BlockType };
 export { BlockTypes };
+export { CLAIM };
 export { MAX_PARALLEL_COUNT };
 export { MAX_EXECUTION_ATTEMPTS };
 export { MAX_FILENAME_LENGTH };
