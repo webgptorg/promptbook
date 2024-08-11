@@ -62,6 +62,8 @@ import { PrefixStorage } from '../storage/utils/PrefixStorage';
 import { executionReportJsonToString } from '../types/execution-report/executionReportJsonToString';
 import type { ExecutionReportStringOptions } from '../types/execution-report/ExecutionReportStringOptions';
 import { ExecutionReportStringOptionsDefaults } from '../types/execution-report/ExecutionReportStringOptions';
+import { MODEL_VARIANTS } from '../types/ModelVariant';
+import { EXPECTATION_UNITS } from '../types/PipelineJson/Expectations';
 
 
 // Note: Exporting version from each package
@@ -129,3 +131,5 @@ export { PrefixStorage };
 export { executionReportJsonToString };
 export type { ExecutionReportStringOptions };
 export { ExecutionReportStringOptionsDefaults };
+export { MODEL_VARIANTS };
+export { EXPECTATION_UNITS };
