@@ -22,7 +22,11 @@ export function initializePrettifyCommand(program: Program) {
       `),
     );
 
-    prettifyCommand.argument('<filesGlob>', 'Promptbooks to prettify as glob pattern');
+    prettifyCommand.argument(
+        '<filesGlob>',
+        // <- TODO: [🧟‍♂️] Unite path to promptbook collection argument
+        'Promptbooks to prettify as glob pattern',
+    );
     prettifyCommand.option('-i, --ignore <glob>', `Ignore as glob pattern`);
 
     prettifyCommand.action(async (filesGlob, { ignore }) => {

@@ -9,6 +9,15 @@ import { just } from './utils/organization/just';
 export const GENERATOR_WARNING = `⚠️ WARNING: This code has been generated so that any manual changes will be overwritten`;
 
 /**
+ * Claim for the Promptbook
+ *
+ * TODO: [🗽] Unite branding and make single place for it
+ *
+ * @public exported from `@promptbook/core`
+ */
+export const CLAIM = `Supercharge LLM models with Promptbook`;
+
+/**
  * Warning message for the generated sections and files files
  *
  * @private within the repository

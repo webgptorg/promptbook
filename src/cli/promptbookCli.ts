@@ -3,6 +3,7 @@ import { spaceTrim } from 'spacetrim';
 import { EnvironmentMismatchError } from '../errors/EnvironmentMismatchError';
 import { isRunningInNode } from '../utils/isRunningInWhatever';
 import { PROMPTBOOK_VERSION } from '../version';
+import { initializeAboutCommand } from './cli-commands/about';
 import { initializeHelloCommand } from './cli-commands/hello';
 import { initializeMakeCommand } from './cli-commands/make';
 import { initializePrettifyCommand } from './cli-commands/prettify';
@@ -26,6 +27,8 @@ export async function promptbookCli(): Promise<void> {
 
     const program = new commander.Command();
     program.name('promptbook');
+    program.alias('ptbk');
+
     program.version(PROMPTBOOK_VERSION);
     program.description(
         spaceTrim(`
@@ -33,6 +36,7 @@ export async function promptbookCli(): Promise<void> {
         `),
     );
 
+    initializeAboutCommand(program);
     initializeHelloCommand(program);
     initializeMakeCommand(program);
     initializePrettifyCommand(program);

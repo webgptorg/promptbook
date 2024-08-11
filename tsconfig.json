@@ -20,5 +20,5 @@
         "declaration": true,
         "outDir": "typings"
     },
-    "include": ["src", "promptbook-collection"]
+    "include": ["src", "promptbook-collection", "src/cli/test/ptbk.test.ts"]
 }

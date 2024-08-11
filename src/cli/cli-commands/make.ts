@@ -25,7 +25,12 @@ export function initializeMakeCommand(program: Program) {
       `),
     );
 
-    makeCommand.argument('[path]', 'Path to promptbook directory', './promptbook-collection');
+    makeCommand.argument(
+        '[path]',
+        // <- TODO: [🧟‍♂️] Unite path to promptbook collection argument
+        'Path to promptbook directory',
+        './promptbook-collection',
+    );
     makeCommand.option('--project-name', `Name of the project for whom collection is`, 'Untitled Promptbook project');
     makeCommand.option(
         '-f, --format <format>',
@@ -157,7 +162,9 @@ export function initializeMakeCommand(program: Program) {
                          */
                         export function getPipelineCollection(){
                             if(pipelineCollection===null){
-                                pipelineCollection = createCollectionFromJson(${block(collectionJsonString)});
+                                pipelineCollection = createCollectionFromJson(
+                                    ${block(collectionJsonString)}
+                                );
                             }
 
                             return pipelineCollection;
@@ -201,7 +208,9 @@ export function initializeMakeCommand(program: Program) {
                          */
                         export function getPipelineCollection(): PipelineCollection{
                             if(pipelineCollection===null){
-                                pipelineCollection = createCollectionFromJson(${block(collectionJsonString)});
+                                pipelineCollection = createCollectionFromJson(
+                                    ${block(collectionJsonString)}
+                                );
                             }
 
                             return pipelineCollection as PipelineCollection;
@@ -229,6 +238,7 @@ export function initializeMakeCommand(program: Program) {
 }
 
 /**
+ * TODO: Maybe remove this command - "about" command should be enough?
  * TODO: [0] DRY Javascript and typescript - Maybe make ONLY typescript and for javascript just remove types
  * Note: [🟡] This code should never be published outside of `@promptbook/cli`
  * TODO: [🖇] What about symlinks? Maybe flag --follow-symlinks

@@ -16,7 +16,7 @@ export function initializeHelloCommand(program: Program) {
       `),
     );
 
-    helloCommand.argument('<name>', 'Your name');
+    helloCommand.argument('[name]', 'Your name', 'Paul');
     helloCommand.option('-g, --greeting <greeting>', `Greeting`, 'Hello');
 
     helloCommand.action(async (name, { greeting }) => {
