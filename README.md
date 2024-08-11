@@ -69,6 +69,8 @@ File `write-website-content.ptbk.md`:
 
 <!------------------------[ Sample: ]------------------------>
 
+<!-- !!! Update with persona and knowledge -->
+
 > # 🌍 Create website content
 >
 > Instructions for creating web page content.
@@ -301,7 +303,6 @@ npm i ptbk
 Or you can install them separately:
 
 > ⭐ Marked packages are worth to try first
-
 
 -   ⭐ **[ptbk](https://www.npmjs.com/package/ptbk)** - Bundle of all packages, when you want to install everything and you don't care about the size
 -   **[promptbook](https://www.npmjs.com/package/promptbook)** - Same as `ptbk`
