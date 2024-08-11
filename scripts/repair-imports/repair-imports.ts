@@ -54,7 +54,7 @@ async function repairImports({
 }) {
     console.info(`🏭🩹 Repair imports`);
 
-    const entities = await findAllProjectEntities();
+    const allEntities = await findAllProjectEntities();
     const files = await readAllProjectFiles();
 
     for (const file of files) {
@@ -69,6 +69,11 @@ async function repairImports({
 
         if (file.path.includes('JavascriptEvalExecutionTools.ts')) {
             // Note: [💎] Do not repair imports in file where we need a bit special treatment of imports because of the `eval`
+            continue;
+        }
+
+        if (file.path.includes('test/ptbk.ts')) {
+            // Note: No need to repair imports in test files
             continue;
         }
 
@@ -104,10 +109,12 @@ async function repairImports({
                 match[0]!,
                 importedEntities
                     .map((importedEntity: string) => {
-                        const entity = entities.find(({ name }) => name === importedEntity);
+                        const entity = allEntities.find(({ name }) => name === importedEntity);
 
                         if (!entity) {
-                            console.info(colors.blue(entities.map(({ type, name }) => `- ${type} ${name}`).join('\n')));
+                            console.info(
+                                colors.blue(allEntities.map(({ type, name }) => `- ${type} ${name}`).join('\n')),
+                            );
 
                             throw new Error(
                                 `Can not find in which file is entity "${importedEntity}" imported by file "${file.path}".`,
