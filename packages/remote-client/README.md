@@ -71,9 +71,20 @@ In any of these situations, but especially in (3), the Promptbook library can ma
 
 
 
+## 🧔 Promptbook _(for prompt-engeneers)_
+
+**P**romp**t** **b**oo**k** markdown file (or `.ptbk.md` file) is document that describes a **pipeline** - a series of prompts that are chained together to form somewhat reciepe for transforming natural language input.
+
+-   Multiple pipelines forms a **collection** which will handle core **know-how of your LLM application**.
+-   Theese pipelines are designed such as they **can be written by non-programmers**.
+
+
+
 ### Sample:
 
 File `write-website-content.ptbk.md`:
+
+
 
 
 
@@ -293,7 +304,8 @@ flowchart LR
   end;
 ```
 
-[More template samples](./samples/templates/)
+-   [More template samples](./samples/templates/)
+-   [Read more about `.ptbk.md` file format here](https://github.com/webgptorg/promptbook/discussions/categories/concepts?discussions_q=is%3Aopen+label%3A.ptbk.md+category%3AConcepts)
 
 _Note: We are using [postprocessing functions](#postprocessing-functions) like `unwrapResult` that can be used to postprocess the result._
 
@@ -309,7 +321,6 @@ npm i ptbk
 Or you can install them separately:
 
 > ⭐ Marked packages are worth to try first
-
 
 -   ⭐ **[ptbk](https://www.npmjs.com/package/ptbk)** - Bundle of all packages, when you want to install everything and you don't care about the size
 -   **[promptbook](https://www.npmjs.com/package/promptbook)** - Same as `ptbk`
@@ -334,263 +345,39 @@ Or you can install them separately:
 
 ## 📚 Dictionary
 
-The following glossary is used to clarify certain basic concepts:
-
-### Prompt
-
-Prompt in a text along with model requirements, but without any execution or templating logic.
-
-For example:
-
-```json
-{
-    "request": "Which sound does a cat make?",
-    "modelRequirements": {
-        "variant": "CHAT"
-    }
-}
-```
-
-```json
-{
-    "request": "I am a cat.\nI like to eat fish.\nI like to sleep.\nI like to play with a ball.\nI l",
-    "modelRequirements": {
-        "variant": "COMPLETION"
-    }
-}
-```
-
-### Prompt Template
-
-Similar concept to Prompt, but with templating logic.
-
-For example:
-
-```json
-{
-    "request": "Which sound does a {animalName} make?",
-    "modelRequirements": {
-        "variant": "CHAT"
-    }
-}
-```
-
-### Model Requirements
-
-Abstract way to specify the LLM.
-It does not specify the LLM with concrete version itself, only the requirements for the LLM.
-_NOT chatgpt-3.5-turbo BUT CHAT variant of GPT-3.5._
-
-For example:
-
-```json
-{
-    "variant": "CHAT",
-    "version": "GPT-3.5",
-    "temperature": 0.7
-}
-```
-
-### Block type
-
-Each block of promptbook can have a different execution type.
-It is specified in list of requirements for the block.
-By default, it is `Prompt template`
-
--   _(default)_ `Prompt template` The block is a prompt template and is executed by LLM (OpenAI, Azure,...)
--   `SIMPLE TEMPLATE` The block is a simple text template which is just filled with parameters
--   `Script` The block is a script that is executed by some script runtime, the runtime is determined by block type, currently only `javascript` is supported but we plan to add `python` and `typescript` in the future.
--   `PROMPT DIALOG` Ask user for input
-
-### Parameters
-
-Parameters that are placed in the prompt template and replaced to create the prompt.
-It is a simple key-value object.
-
-```json
-{
-    "animalName": "cat",
-    "animalSound": "Meow!"
-}
-```
-
-There are three types of template parameters, depending on how they are used in the promptbook:
-
--   **INPUT PARAMETER**s are required to execute the promptbook.
--   **Intermediate parameters** are used internally in the promptbook.
--   **OUTPUT PARAMETER**s are explicitelly marked and they are returned as the result of the promptbook execution.
-
-_Note: Parameter can be both intermedite and output at the same time._
-
-### Promptbook
-
-Promptbook is **core concept of this library**.
-It represents a series of prompt templates chained together to form a **pipeline** / one big prompt template with input and result parameters.
-
-Internally it can have multiple formats:
-
--   **.ptbk.md file** in custom markdown format described above
--   _(concept)_ **.ptbk** format, custom fileextension based on markdown
--   _(internal)_ **JSON** format, parsed from the .ptbk.md file
-
-### Promptbook **Library**
-
-Library of all promptbooks used in your application.
-Each promptbook is a separate `.ptbk.md` file with unique `PIPELINE URL`. Theese urls are used to reference promptbooks in other promptbooks or in the application code.
-
-### Prompt Result
-
-Prompt result is the simplest concept of execution.
-It is the result of executing one prompt _(NOT a template)_.
-
-For example:
-
-```json
-{
-    "response": "Meow!",
-    "model": "chatgpt-3.5-turbo"
-}
-```
-
-### Execution Tools
-
-
-
-`ExecutionTools` is an interface which contains all the tools needed to execute prompts.
-It contais 3 subtools:
-
--   `LlmExecutionTools`
--   `ScriptExecutionTools`
--   `UserInterfaceTools`
-
-Which are described below:
-
-#### LLM Execution Tools
-
-`LlmExecutionTools` is a container for all the tools needed to execute prompts to large language models like GPT-4.
-On its interface it exposes common methods for prompt execution.
-Internally it calls OpenAI, Azure, GPU, proxy, cache, logging,...
-
-`LlmExecutionTools` an abstract interface that is implemented by concrete execution tools:
-
--   `OpenAiExecutionTools`
--   `AnthropicClaudeExecutionTools`
--   `AzureOpenAiExecutionTools`
--   `LangtailExecutionTools`
--   _(Not implemented yet)_ `BardExecutionTools`
--   _(Not implemented yet)_ `LamaExecutionTools`
--   _(Not implemented yet)_ `GpuExecutionTools`
--   Special case are `RemoteLlmExecutionTools` that connect to a remote server and run one of the above execution tools on that server.
--   Another special case is `MockedEchoLlmExecutionTools` that is used for testing and mocking.
--   The another special case is `LogLlmExecutionToolsWrapper` that is technically also an execution tools but it is more proxy wrapper around other execution tools that logs all calls to execution tools.
-
-#### Script Execution Tools
-
-`ScriptExecutionTools` is an abstract container that represents all the tools needed to EXECUTE SCRIPTs. It is implemented by concrete execution tools:
-
--   `JavascriptExecutionTools` is a wrapper around `vm2` module that executes javascript code in a sandbox.
--   `JavascriptEvalExecutionTools` is wrapper around `eval` function that executes javascript. It is used for testing and mocking **NOT intended to use in the production** due to its unsafe nature, use `JavascriptExecutionTools` instead.
--   _(Not implemented yet)_ `TypescriptExecutionTools` executes typescript code in a sandbox.
--   _(Not implemented yet)_ `PythonExecutionTools` executes python code in a sandbox.
-
-There are [postprocessing functions](#postprocessing-functions) that can be used to postprocess the result.
-
-#### User Interface Tools
-
-`UserInterfaceTools` is an abstract container that represents all the tools needed to interact with the user. It is implemented by concrete execution tools:
-
--   _(Not implemented yet)_ `ConsoleInterfaceTools` is a wrapper around `readline` module that interacts with the user via console.
--   `SimplePromptInterfaceTools` is a wrapper around `window.prompt` synchronous function that interacts with the user via browser prompt. It is used for testing and mocking **NOT intended to use in the production** due to its synchronous nature.
--   `CallbackInterfaceTools` delagates the user interaction to a async callback function. You need to provide your own implementation of this callback function and its bind to UI. 
-
-### Executor
-
-Executor is a simple async function that takes **input parameters** and returns **output parameters**.
-It is constructed by combining execution tools and promptbook to execute together.
-
-### 🃏 Jokers (conditions)
-
-Joker is a previously defined parameter that is used to bypass some parts of the pipeline.
-If the joker is present in the template, it is checked to see if it meets the requirements (without postprocessing), and if so, it is used instead of executing that prompt template. There can be multiple wildcards in a prompt template, if so they are checked in order and the first one that meets the requirements is used.
-
-If none of the jokers meet the requirements, the prompt template is executed as usual.
-
-This can be useful, for example, if you want to use some predefined data, or if you want to use some data from the user, but you are not sure if it is suitable form.
-
-When using wildcards, you must have at least one minimum expectation. If you do not have a minimum expectation, the joker will always fulfil the expectation because it has none, so it makes no logical sense.
-
-Look at [jokers.ptbk.md](samples/templates/41-jokers.ptbk.md) sample.
-
-### Postprocessing functions
-
-You can define postprocessing functions when creating `JavascriptEvalExecutionTools`:
-
-```
-
-```
-
-Additionally there are some usefull string-manipulation build-in functions, which are [listed here](src/scripting/javascript/JavascriptEvalExecutionTools.ts).
-
-### Expectations
-
-`Expect` command describes the desired output of the prompt template (after post-processing)
-It can set limits for the maximum/minimum length of the output, measured in characters, words, sentences, paragraphs,...
-
-_Note: LLMs work with tokens, not characters, but in Promptbooks we want to use some human-recognisable and cross-model interoperable units._
-
-```markdown
-# ✨ Sample: Expectations
-
--   INPUT  PARAMETER {yourName} Name of the hero
-
-## 💬 Question
-
--   EXPECT MAX 30 CHARACTERS
--   EXPECT MIN 2 CHARACTERS
--   EXPECT MAX 3 WORDS
--   EXPECT EXACTLY 1 SENTENCE
--   EXPECT EXACTLY 1 LINE
-
-...
-```
-
-There are two types of expectations which are not strictly symmetrical:
-
-#### Minimal expectations
-
--   `EXPECT MIN 0 ...` is not valid minimal expectation. It makes no sense.
--   `EXPECT JSON` is both minimal and maximal expectation
--   When you are using `JOKER` in same prompt template, you need to have at least one minimal expectation
-
-#### Maximal expectations
-
--   `EXPECT MAX 0 ...` is valid maximal expectation. For example, you can expect 0 pages and 2 sentences.
--   `EXPECT JSON` is both minimal and maximal expectation
-
-Look at [expectations.ptbk.md](samples/templates/45-expectations.ptbk.md) and [expect-json.ptbk.md](samples/templates/45-expect-json.ptbk.md) samples for more.
-
-### Execution report
-
-Execution report is a simple object or markdown that contains information about the execution of the pipeline.
-
-[See the example of such a report](/samples/templates/50-advanced.report.md)
-
-
-
-
-
-### Remote server
-
-Remote server is a proxy server that uses its execution tools internally and exposes the executor interface externally.
-
-You can simply use `RemoteExecutionTools` on client-side javascript and connect to your remote server.
-This is useful to make all logic on browser side but not expose your API keys or no need to use customer's GPU.
-
-## 👨‍💻 Usage and integration _(for developers)_
-
-
-
-### 🔌 Usage in Typescript / Javascript
+The following glossary is used to clarify certain concepts:
+
+
+
+### Core concepts
+
+-   [📚 Collection of pipelines](https://github.com/webgptorg/promptbook/discussions/65)
+-   [📯 Pipeline](https://github.com/webgptorg/promptbook/discussions/64)
+-   [🎺 Pipeline templates](https://github.com/webgptorg/promptbook/discussions/88)
+-   [🤼 Personas](https://github.com/webgptorg/promptbook/discussions/22)
+-   [⭕ Parameters](https://github.com/webgptorg/promptbook/discussions/83)
+-   [🚀 Pipeline execution](https://github.com/webgptorg/promptbook/discussions/84)
+-   [🧪 Expectations](https://github.com/webgptorg/promptbook/discussions/30)
+-   [✂️ Postprocessing](https://github.com/webgptorg/promptbook/discussions/31)
+-   [🔣 Words not tokens](https://github.com/webgptorg/promptbook/discussions/29)
+-   [☯ Separation of concerns](https://github.com/webgptorg/promptbook/discussions/32)
+
+### Advanced concepts
+
+-   [📚 Knowledge (Retrieval-augmented generation)](https://github.com/webgptorg/promptbook/discussions/41)
+-   [🌏 Remote server](https://github.com/webgptorg/promptbook/discussions/89)
+-   [🃏 Jokers (conditions)](https://github.com/webgptorg/promptbook/discussions/66)
+-   [🔳 Metaprompting](https://github.com/webgptorg/promptbook/discussions/35)
+-   [🌏 Linguistically typed languages](https://github.com/webgptorg/promptbook/discussions/53)
+-   [🌍 Auto-Translations](https://github.com/webgptorg/promptbook/discussions/42)
+-   [📽 Images, audio, video, spreadsheets](https://github.com/webgptorg/promptbook/discussions/54)
+-   [🔙 Expectation-aware generation](https://github.com/webgptorg/promptbook/discussions/37)
+-   [⏳ Just-in-time fine-tuning](https://github.com/webgptorg/promptbook/discussions/33)
+-   [🔴 Anomaly detection](https://github.com/webgptorg/promptbook/discussions/40)
+-   [👮 Agent adversary expectations](https://github.com/webgptorg/promptbook/discussions/39)
+-   [view more](https://github.com/webgptorg/promptbook/discussions/categories/concepts)
+
+## 🔌 Usage in Typescript / Javascript
 
 -   [Simple usage](./samples/usage/simple-script)
 -   [Usage with client and remote server](./samples/usage/remote)
@@ -613,13 +400,18 @@ This is useful to make all logic on browser side but not expose your API keys or
 
 ## 🐜 Known issues
 
-
+-   [🤸‍♂️ Iterations not working yet](https://github.com/webgptorg/promptbook/discussions/55)
+-   [⤵️ Imports not working yet](https://github.com/webgptorg/promptbook/discussions/34)
 
 ## 🧼 Intentionally not implemented features
 
 
+-   [➿ No recursion](https://github.com/webgptorg/promptbook/discussions/38)
+-   [🏳 There are no types, just strings](https://github.com/webgptorg/promptbook/discussions/52)
 
 ## ❔ FAQ
+
+
 
 If you have a question [start a discussion](https://github.com/webgptorg/promptbook/discussions/), [open an issue](https://github.com/webgptorg/promptbook/issues) or [write me an email](https://www.pavolhejny.com/contact).
 
