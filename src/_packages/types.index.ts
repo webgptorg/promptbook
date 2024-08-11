@@ -1,7 +1,6 @@
 // ⚠️ WARNING: This code has been generated so that any manual changes will be overwritten
 // `@promptbook/types`
 
-import { PROMPTBOOK_VERSION } from '../version';
 import type { PipelineCollection } from '../collection/PipelineCollection';
 import type { Command } from '../commands/_common/types/Command';
 import type { CommandParser } from '../commands/_common/types/CommandParser';
@@ -208,11 +207,6 @@ import type { string_snake_case } from '../utils/normalization/normalizeTo_snake
 import type { really_any } from '../utils/organization/really_any';
 import type { TODO_any } from '../utils/organization/TODO_any';
 import type { string_promptbook_version } from '../version';
-
-
-// Note: Exporting version from each package
-export { PROMPTBOOK_VERSION };
-
 
 // Note: Entities of the `@promptbook/types`
 export type { PipelineCollection };

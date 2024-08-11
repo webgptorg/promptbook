@@ -362,7 +362,7 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
         }
     }
 
-    // TODO: !!!!!! Check that `@promptbook/types` does not contain any runtime code and if not, delete the empty `esm` and `umd` directories and keep only typings
+    // TODO: Check that `@promptbook/types` does not contain any runtime code and if not, delete the empty `esm` and `umd` directories and keep only typings
 
     // ==============================
     console.info(colors.cyan(`7️⃣  Add dependencies for each package`));
