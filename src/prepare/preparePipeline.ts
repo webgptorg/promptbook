@@ -8,19 +8,25 @@ import { preparePersona } from '../personas/preparePersona';
 import type { PersonaPreparedJson } from '../types/PipelineJson/PersonaJson';
 import type { PipelineJson } from '../types/PipelineJson/PipelineJson';
 import type { PreparationJson } from '../types/PipelineJson/PreparationJson';
+import { clonePipeline } from '../utils/clonePipeline';
 import { PROMPTBOOK_VERSION } from '../version';
+import { isPipelinePrepared } from './isPipelinePrepared';
 import type { PrepareOptions } from './PrepareOptions';
 import { prepareTemplates } from './prepareTemplates';
-import { clonePipeline } from '../utils/clonePipeline';
 
 /**
  * Prepare pipeline from string (markdown) format to JSON format
  *
  * Note: This function does not validate logic of the pipeline
  * Note: This function acts as part of compilation process
+ * Note: When the pipeline is already prepared, it returns the same pipeline
  * @public exported from `@promptbook/core`
  */
 export async function preparePipeline(pipeline: PipelineJson, options: PrepareOptions): Promise<PipelineJson> {
+    if (isPipelinePrepared(pipeline)) {
+        return pipeline;
+    }
+
     const { llmTools, maxParallelCount = MAX_PARALLEL_COUNT, isVerbose = false } = options;
     const {
         parameters,
