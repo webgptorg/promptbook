@@ -68,7 +68,7 @@ export class MultipleLlmExecutionTools implements LlmExecutionTools {
     /**
      * Calls the best available model
      */
-    private async callCommonModel(prompt: Prompt): Promise<PromptResult> {
+    protected async callCommonModel(prompt: Prompt): Promise<PromptResult> {
         const errors: Array<Error> = [];
 
         llm: for (const llmExecutionTools of this.llmExecutionTools) {
