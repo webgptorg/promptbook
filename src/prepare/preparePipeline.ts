@@ -11,6 +11,7 @@ import type { PreparationJson } from '../types/PipelineJson/PreparationJson';
 import { PROMPTBOOK_VERSION } from '../version';
 import type { PrepareOptions } from './PrepareOptions';
 import { prepareTemplates } from './prepareTemplates';
+import { clonePipeline } from '../utils/clonePipeline';
 
 /**
  * Prepare pipeline from string (markdown) format to JSON format
@@ -125,7 +126,7 @@ export async function preparePipeline(pipeline: PipelineJson, options: PrepareOp
     currentPreparation.usage = llmToolsWithUsage.getTotalUsage();
 
     return {
-        ...pipeline,
+        ...clonePipeline(pipeline),
         promptTemplates: promptTemplatesPrepared,
         knowledgeSources: knowledgeSourcesPrepared,
         knowledgePieces: knowledgePiecesPrepared,
