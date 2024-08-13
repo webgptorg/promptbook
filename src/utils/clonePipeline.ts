@@ -1,4 +1,4 @@
-import { PipelineJson } from '../_packages/types.index';
+import type { PipelineJson } from '../types/PipelineJson/PipelineJson';
 
 /**
  * @@@
