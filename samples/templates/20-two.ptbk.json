@@ -1,6 +1,6 @@
 {
-    "title": "✨ Sample prompt with two consecutive prompts",
     "pipelineUrl": "https://promptbook.studio/samples/two.ptbk.md",
+    "title": "✨ Sample prompt with two consecutive prompts",
     "promptbookVersion": "1.0.0",
     "description": "Show how to use two consecutive prompts with one parameter each.",
     "parameters": [
@@ -66,8 +66,8 @@
             "description": "a linguist",
             "modelRequirements": {
                 "modelVariant": "CHAT",
-                "modelName": "gpt-4",
-                "systemMessage": "You are a helpful and knowledgeable linguist.",
+                "modelName": "gpt-4o",
+                "systemMessage": "You are a linguist and a knowledgeable assistant.",
                 "temperature": 0.5
             },
             "preparationIds": [
@@ -78,23 +78,24 @@
     "preparations": [
         {
             "id": 1,
-            "promptbookVersion": "0.62.0-0",
+            "promptbookVersion": "0.63.4",
             "usage": {
                 "price": {
-                    "value": 0.007070000000000001
+                    "value": 0
                 },
                 "input": {
                     "tokensCount": {
-                        "value": 599
+                        "value": 0,
+                        "isUncertain": true
                     },
                     "charactersCount": {
-                        "value": 1815
+                        "value": 2162
                     },
                     "wordsCount": {
-                        "value": 259
+                        "value": 349
                     },
                     "sentencesCount": {
-                        "value": 21
+                        "value": 31
                     },
                     "linesCount": {
                         "value": 48
@@ -103,18 +104,19 @@
                         "value": 19
                     },
                     "pagesCount": {
-                        "value": 5
+                        "value": 7
                     }
                 },
                 "output": {
                     "tokensCount": {
-                        "value": 36
+                        "value": 0,
+                        "isUncertain": true
                     },
                     "charactersCount": {
-                        "value": 116
+                        "value": 121
                     },
                     "wordsCount": {
-                        "value": 14
+                        "value": 15
                     },
                     "sentencesCount": {
                         "value": 3

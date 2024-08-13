@@ -68,7 +68,7 @@ async function main() {
     const pipelineExecutor = createPipelineExecutor({ pipeline, tools });
 
     const inputParameters = {
-        eventName: 'TypeScript developers summit 2025',
+        eventTitle: 'TypeScript developers summit 2025',
     };
     const { isSuccessful, errors, warnings, outputParameters, executionReport, usage } = await pipelineExecutor(
         inputParameters,

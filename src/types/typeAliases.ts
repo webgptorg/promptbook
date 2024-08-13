@@ -117,7 +117,7 @@ export type string_name = string;
  * Semantic helper
  * Unique identifier of anything
  *
- * For example `"eventName"`
+ * For example `"eventTitle"`
  */
 export type string_parameter_name = string_name;
 

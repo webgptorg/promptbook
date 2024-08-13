@@ -62,12 +62,13 @@ export class SimplePipelineCollection implements PipelineCollection {
 
                 throw new ReferenceError(
                     spaceTrim(`
-                        Pipeline with URL "${pipeline.pipelineUrl}" is already in the collection
+                        Pipeline with URL "${pipeline.pipelineUrl}" is already in the collection 🍎
 
                         Conflicting files:
                         ${existing.sourceFile || 'Unknown'}
                         ${pipeline.sourceFile || 'Unknown'}
 
+                        Note: You have probably forgotten to run "ptbk make" to update the collection
                         Note: Pipelines with the same URL are not allowed
                               Only exepction is when the pipelines are identical
 

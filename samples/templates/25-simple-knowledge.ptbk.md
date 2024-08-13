@@ -4,7 +4,8 @@ Show how to use knowledge
 
 -   PIPELINE URL https://promptbook.studio/samples/simple-knowledge.ptbk.md
 -   PROMPTBOOK VERSION 1.0.0
--   INPUT  PARAMETER `{eventName}` The event name
+-   INPUT  PARAMETER `{eventTitle}` The event name
+-   INPUT  PARAMETER `{eventDescription}` The event description
 -   OUTPUT PARAMETER `{bio}` Bio of Pavol Hejný - speaker at the event
 
 ## Pavol Hejný
@@ -33,15 +34,19 @@ I have a special heart for this, and I love open source – you can find many of
 -   EXPECT MIN 1 Sentence
 
 ```markdown
-You are writing a bio for Pavol Hejný for the event {eventName}.
+You are writing a bio for Pavol Hejný for the event {eventTitle}.
 
 ## Rules
 
 -   Write just the bio, nothing else.
 -   Write in the third person.
 -   Bio is written in the present tense.
--   Bio should be written for event named "{eventName}".
+-   Bio should be written for event named "{eventTitle}".
 -   Write plain text without any formatting (like markdown).
+
+## {eventTitle}
+
+> {eventDescription}
 ```
 
 `-> {bio}`

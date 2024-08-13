@@ -1,6 +1,6 @@
 {
-    "title": "✨ Pick the model",
     "pipelineUrl": "https://promptbook.studio/samples/picking-model.ptbk.md",
+    "title": "✨ Pick the model",
     "promptbookVersion": "1.0.0",
     "description": "Show how to pick exact model",
     "parameters": [
@@ -46,9 +46,9 @@
             "description": "a poet",
             "modelRequirements": {
                 "modelVariant": "CHAT",
-                "modelName": "gpt-4o",
-                "systemMessage": "You are a virtual assistant with the skills of a seasoned poet.",
-                "temperature": 0.5
+                "modelName": "gpt-4",
+                "systemMessage": "You are a poet, with a skill for weaving intricate and evocative verses.",
+                "temperature": 0.6
             },
             "preparationIds": [
                 1
@@ -58,23 +58,24 @@
     "preparations": [
         {
             "id": 1,
-            "promptbookVersion": "0.62.0-0",
+            "promptbookVersion": "0.63.4",
             "usage": {
                 "price": {
-                    "value": 0.00721
+                    "value": 0
                 },
                 "input": {
                     "tokensCount": {
-                        "value": 598
+                        "value": 0,
+                        "isUncertain": true
                     },
                     "charactersCount": {
-                        "value": 1815
+                        "value": 2158
                     },
                     "wordsCount": {
-                        "value": 259
+                        "value": 349
                     },
                     "sentencesCount": {
-                        "value": 21
+                        "value": 31
                     },
                     "linesCount": {
                         "value": 48
@@ -83,18 +84,19 @@
                         "value": 19
                     },
                     "pagesCount": {
-                        "value": 5
+                        "value": 7
                     }
                 },
                 "output": {
                     "tokensCount": {
-                        "value": 41
+                        "value": 0,
+                        "isUncertain": true
                     },
                     "charactersCount": {
-                        "value": 135
+                        "value": 143
                     },
                     "wordsCount": {
-                        "value": 19
+                        "value": 20
                     },
                     "sentencesCount": {
                         "value": 3

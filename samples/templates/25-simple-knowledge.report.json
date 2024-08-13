@@ -11,9 +11,9 @@
                 "pipelineUrl": "https://promptbook.studio/samples/simple-knowledge.ptbk.md#writing-bio",
                 "parameters": {
                     "knowledge": "- ---\nPavol is a developer passionate about using new tools and technologies, specializing in creating fully functional user applications using the latest AI models.\n- Pavol is a member of the Ainautes consulting group, supporting the deployment of generative AI worldwide, and develops the WebGPT web page generation service.\n- Before the emergence of generative AI, Pavol created the first Czech virtual whiteboard, Collboard, and electronic textbooks, H-edu, used by tens of thousands of children.\n- Pavol has worked on many scientific projects for the Czech Ornithological Society, regularly gives lectures at conferences, sits on juries, and acts as a mentor in Czech and international competitions. He has a special heart for open source and shares many of his projects on GitHub.",
-                    "eventName": "TypeScript developers summit 2025"
+                    "eventTitle": "TypeScript developers summit 2025"
                 },
-                "content": "You are writing a bio for Pavol Hejný for the event {eventName}.\n\n## Rules\n\n-   Write just the bio, nothing else.\n-   Write in the third person.\n-   Bio is written in the present tense.\n-   Bio should be written for event named \"{eventName}\".\n-   Write plain text without any formatting (like markdown).\n\n## Knowledge\n\n{knowledge}",
+                "content": "You are writing a bio for Pavol Hejný for the event {eventTitle}.\n\n## Rules\n\n-   Write just the bio, nothing else.\n-   Write in the third person.\n-   Bio is written in the present tense.\n-   Bio should be written for event named \"{eventTitle}\".\n-   Write plain text without any formatting (like markdown).\n\n## Knowledge\n\n{knowledge}",
                 "modelRequirements": {
                     "modelVariant": "CHAT"
                 },
@@ -26,9 +26,7 @@
                         "systemMessage": "You are a virtual assistant shaped by your prior experience as an HR professional with expertise in crafting professional bios.",
                         "temperature": 0.5
                     },
-                    "preparationIds": [
-                        1
-                    ],
+                    "preparationIds": [1],
                     "sentences": {
                         "min": 1
                     }

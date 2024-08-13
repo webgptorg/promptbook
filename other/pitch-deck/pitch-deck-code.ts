@@ -35,37 +35,37 @@ async function playground() {
     // Do here stuff you want to test
     //========================================>
 
-const customerName = 'Pavol Hejný';
-const eventName = 'Awesome Developer Conference 2025';
-const userId = '168751566';
-const context = spaceTrim(`
+    const customerName = 'Pavol Hejný';
+    const eventTitle = 'Awesome Developer Conference 2025';
+    const userId = '168751566';
+    const context = spaceTrim(`
 - Awesome Developer Conference 2025 is a conference for developers
 - It will be held in Prague
 - It will have a lot of interesting talks and workshops
 - ...
 `);
 
-const client = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY!,
-});
+    const client = new OpenAI({
+        apiKey: process.env.OPENAI_API_KEY!,
+    });
 
-const response = await client.chat.completions.create({
-    model: 'gpt-4o-2024-05-13',
-    max_tokens: 3633,
-    stop: ['\n\n\n', '---'],
+    const response = await client.chat.completions.create({
+        model: 'gpt-4o-2024-05-13',
+        max_tokens: 3633,
+        stop: ['\n\n\n', '---'],
 
-    messages: [
-        {
-            role: 'system',
-            content: spaceTrim(`
+        messages: [
+            {
+                role: 'system',
+                content: spaceTrim(`
               You are an experienced copywriter who writes top business letters
           `),
-        },
-        {
-            role: 'user',
-            content: spaceTrim(
-                (block) => `
-                  Write email for ${customerName} to invite him to ${eventName}.
+            },
+            {
+                role: 'user',
+                content: spaceTrim(
+                    (block) => `
+                  Write email for ${customerName} to invite him to ${eventTitle}.
 
                   ## Rules
 
@@ -77,15 +77,15 @@ const response = await client.chat.completions.create({
 
                   ${block(context)}
               `,
-            ),
-        },
-    ],
-    user: `client-${userId}`,
-});
+                ),
+            },
+        ],
+        user: `client-${userId}`,
+    });
 
-const letter = response.choices[0]?.message?.content || '';
+    const letter = response.choices[0]?.message?.content || '';
 
-console.log(colors.blue(letter));
+    console.log(colors.blue(letter));
 
     //========================================/
 

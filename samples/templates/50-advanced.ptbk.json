@@ -1,6 +1,6 @@
 {
-    "title": "✨ Sample: Language Capabilities",
     "pipelineUrl": "https://promptbook.studio/samples/advanced.ptbk.md",
+    "title": "✨ Sample: Language Capabilities",
     "promptbookVersion": "1.0.0",
     "description": "Trying the language capabilities of GPT models.",
     "parameters": [
@@ -186,8 +186,8 @@
             "description": "a linguist",
             "modelRequirements": {
                 "modelVariant": "CHAT",
-                "modelName": "gpt-4",
-                "systemMessage": "You are a helpful and knowledgeable linguist.",
+                "modelName": "gpt-4o",
+                "systemMessage": "You are a linguist and a knowledgeable assistant.",
                 "temperature": 0.5
             },
             "preparationIds": [
@@ -199,8 +199,8 @@
             "description": "a linguist",
             "modelRequirements": {
                 "modelVariant": "CHAT",
-                "modelName": "gpt-4",
-                "systemMessage": "You are a helpful and knowledgeable linguist.",
+                "modelName": "gpt-4o",
+                "systemMessage": "You are a linguist and a knowledgeable assistant.",
                 "temperature": 0.5
             },
             "preparationIds": [
@@ -212,8 +212,8 @@
             "description": "a linguist",
             "modelRequirements": {
                 "modelVariant": "CHAT",
-                "modelName": "gpt-4",
-                "systemMessage": "You are a helpful and knowledgeable linguist.",
+                "modelName": "gpt-4o",
+                "systemMessage": "You are a linguist and a knowledgeable assistant.",
                 "temperature": 0.5
             },
             "preparationIds": [
@@ -225,8 +225,8 @@
             "description": "a linguist",
             "modelRequirements": {
                 "modelVariant": "CHAT",
-                "modelName": "gpt-4",
-                "systemMessage": "You are a helpful and knowledgeable linguist.",
+                "modelName": "gpt-4o",
+                "systemMessage": "You are a linguist and a knowledgeable assistant.",
                 "temperature": 0.5
             },
             "preparationIds": [
@@ -237,23 +237,24 @@
     "preparations": [
         {
             "id": 1,
-            "promptbookVersion": "0.62.0-0",
+            "promptbookVersion": "0.63.4",
             "usage": {
                 "price": {
-                    "value": 0.028280000000000003
+                    "value": 0
                 },
                 "input": {
                     "tokensCount": {
-                        "value": 2396
+                        "value": 0,
+                        "isUncertain": true
                     },
                     "charactersCount": {
-                        "value": 7260
+                        "value": 8648
                     },
                     "wordsCount": {
-                        "value": 1036
+                        "value": 1396
                     },
                     "sentencesCount": {
-                        "value": 84
+                        "value": 124
                     },
                     "linesCount": {
                         "value": 192
@@ -262,18 +263,19 @@
                         "value": 76
                     },
                     "pagesCount": {
-                        "value": 20
+                        "value": 28
                     }
                 },
                 "output": {
                     "tokensCount": {
-                        "value": 144
+                        "value": 0,
+                        "isUncertain": true
                     },
                     "charactersCount": {
-                        "value": 464
+                        "value": 484
                     },
                     "wordsCount": {
-                        "value": 56
+                        "value": 60
                     },
                     "sentencesCount": {
                         "value": 12

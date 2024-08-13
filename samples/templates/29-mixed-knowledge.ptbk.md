@@ -4,7 +4,7 @@ Show how to use knowledge
 
 -   PIPELINE URL https://promptbook.studio/samples/mixed-knowledge.ptbk.md
 -   PROMPTBOOK VERSION 1.0.0
--   INPUT  PARAMETER `{eventName}` The event name
+-   INPUT  PARAMETER `{eventTitle}` The event name
 -   OUTPUT PARAMETER `{bio}` Bio of Pavol Hejný - speaker at the event
 
 ## Pavol Hejný
@@ -39,14 +39,14 @@ But be aware that [Pavol Hejný](https://www.pavolhejny.com/) is someone else th
 -   EXPECT MIN 1 Sentence
 
 ```markdown
-You are writing a bio for Pavol Hejný for the event {eventName}.
+You are writing a bio for Pavol Hejný for the event {eventTitle}.
 
 ## Rules
 
 -   Write just the bio, nothing else.
 -   Write in the third person.
 -   Bio is written in the present tense.
--   Bio should be written for event named "{eventName}".
+-   Bio should be written for event named "{eventTitle}".
 -   Use markdown formatting.
 ```
 
