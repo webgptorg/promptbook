@@ -24,20 +24,20 @@ export class SupabaseLoggerWrapperOfLlmExecutionTools implements LlmExecutionToo
      * Calls a chat model and logs the request+result
      */
     public callChatModel(prompt: Pick<Prompt, 'content' | 'parameters' | 'modelRequirements'>): Promise<PromptChatResult> {
-        return /* not await */ this.callModelCommon(prompt);
+        return /* not await */ this.callCommonModel(prompt);
     }
 
     /**
      * Calls a completion model and logs the request+result
      */
     public callCompletionModel(prompt: Pick<Prompt, 'content' | 'parameters' | 'modelRequirements'>): Promise<PromptCompletionResult> {
-        return /* not await */ this.callModelCommon(prompt);
+        return /* not await */ this.callCommonModel(prompt);
     }
 
     /**
      * Calls both completion or chat model and logs the request+result
      */
-    public async callModelCommon(prompt: Prompt): Promise<PromptResult> {
+    public async callCommonModel(prompt: Prompt): Promise<PromptResult> {
         const mark = 'gpt-call';
         const promptAt = new Date();
         performance.mark(`${mark}-start`);
