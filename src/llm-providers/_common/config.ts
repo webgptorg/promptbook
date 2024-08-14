@@ -1,12 +1,12 @@
-import type { TODO_any } from '../../utils/organization/TODO_any';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
+import type { TODO_any } from '../../utils/organization/TODO_any';
 import { AnthropicClaudeExecutionTools } from '../anthropic-claude/AnthropicClaudeExecutionTools';
 import { AzureOpenAiExecutionTools } from '../azure-openai/AzureOpenAiExecutionTools';
 import { OpenAiExecutionTools } from '../openai/OpenAiExecutionTools';
 import type { LlmToolsConfiguration } from './LlmToolsConfiguration';
 
 /**
- * @public exported from `@promptbook/node`
+ * @public exported from `@promptbook/core`
  */
 export const LLM_CONFIGURATION_BOILERPLATES: LlmToolsConfiguration = [
     {
