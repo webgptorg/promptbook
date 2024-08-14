@@ -1,8 +1,6 @@
 import * as dotenv from 'dotenv';
-import type { TODO_any } from '../../utils/organization/TODO_any';
-import { EnvironmentMismatchError } from '../../errors/EnvironmentMismatchError';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import { isRunningInNode } from '../../utils/isRunningInWhatever';
+import type { TODO_any } from '../../utils/organization/TODO_any';
 import { joinLlmExecutionTools } from '../multiple/joinLlmExecutionTools';
 import { MultipleLlmExecutionTools } from '../multiple/MultipleLlmExecutionTools';
 import { EXECUTION_TOOLS_CLASSES } from './config';
@@ -28,16 +26,12 @@ export type CreateLlmToolsFromConfigurationOptions = {
  * Note: This function is not cached, every call creates new instance of `MultipleLlmExecutionTools`
  *
  * @returns @@@
- * @public exported from `@promptbook/node`
+ * @public exported from `@promptbook/core`
  */
 export function createLlmToolsFromConfiguration(
     configuration: LlmToolsConfiguration,
     options: CreateLlmToolsFromConfigurationOptions = {},
 ): MultipleLlmExecutionTools {
-    if (!isRunningInNode()) {
-        throw new EnvironmentMismatchError('Function `createLlmToolsFromEnv` works only in Node.js environment');
-    }
-
     const { isVerbose = false } = options;
 
     dotenv.config();
@@ -56,10 +50,10 @@ export function createLlmToolsFromConfiguration(
 }
 
 /**
+ * TODO: [🎌] Togethere with `createLlmToolsFromConfiguration` + 'EXECUTION_TOOLS_CLASSES' gets to `@promptbook/core` ALL model providers, make this more efficient
  * TODO: [🧠][🎌] Dynamically install required providers
  * TODO: @@@ write discussion about this - wizzard
  * TODO: [🧠][🍛] Which name is better `createLlmToolsFromConfig` or `createLlmToolsFromConfiguration`?
  * TODO: [🧠] Is there some meaningfull way how to test this util
- * Note: [🟢] This code should never be published outside of `@promptbook/node` and `@promptbook/cli` and `@promptbook/cli`
  * TODO: This should be maybe not under `_common` but under `utils`
  */
