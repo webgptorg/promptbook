@@ -181,7 +181,7 @@ export type string_persona_description = string;
  *
  * @@@ string_knowledge_source vs string_knowledge_source_link
  */
-export type string_knowledge_source = string_knowledge_source_link | string_markdown;
+export type string_knowledge_source_content = string_knowledge_source_link | string_markdown;
 
 /**
  * One link to knowledge source

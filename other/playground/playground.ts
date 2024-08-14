@@ -92,6 +92,10 @@ async function playground() {
 
             This Biennial’s tech-enabled jump from 30,000 to 300,000+ attendees also sets a high standard in A.I. discourse: a flagship format uniting professions, principals and young talent held in an iconic landmark.
         `),
+        rules: spaceTrim(`
+            Event is not for technical people, but for children and educators
+            Speak for ordinary people
+        `),
     };
     const { isSuccessful, errors, warnings, outputParameters, usage } = await pipelineExecutor(
         inputParameters,

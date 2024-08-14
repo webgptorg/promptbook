@@ -1,6 +1,4 @@
-import type { number_id } from '../typeAliases';
-import type { string_knowledge_source } from '../typeAliases';
-import type { string_name } from '../typeAliases';
+import type { number_id, string_knowledge_source_content, string_name } from '../typeAliases';
 
 /**
  * Defines one source of knowledge in the pipeline
@@ -9,9 +7,15 @@ import type { string_name } from '../typeAliases';
  * @see https://github.com/webgptorg/promptbook/discussions/41
  */
 export type KnowledgeSourceJson = {
+    /**
+     * @@@
+     */
     readonly name: string_name;
 
-    readonly source: string_knowledge_source;
+    /**
+     * @@@
+     */
+    readonly sourceContent: string_knowledge_source_content;
 };
 
 /**

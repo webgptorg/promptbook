@@ -1,10 +1,10 @@
-import { titleToName } from '../../conversion/utils/titleToName';
+import hexEncoder from 'crypto-js/enc-hex';
+import sha256 from 'crypto-js/sha256';
+import spaceTrim from 'spacetrim';
 import { ParsingError } from '../../errors/ParsingError';
 import { isValidFilePath } from '../../utils/validators/filePath/isValidFilePath';
 import { isValidUrl } from '../../utils/validators/url/isValidUrl';
-import type { ApplyToPipelineJsonSubjects } from '../_common/types/CommandParser';
-import type { CommandParser } from '../_common/types/CommandParser';
-import type { CommandParserInput } from '../_common/types/CommandParser';
+import type { ApplyToPipelineJsonSubjects, CommandParser, CommandParserInput } from '../_common/types/CommandParser';
 import type { KnowledgeCommand } from './KnowledgeCommand';
 
 /**
@@ -51,27 +51,29 @@ export const knowledgeCommandParser: CommandParser<KnowledgeCommand> = {
     parse(input: CommandParserInput): KnowledgeCommand {
         const { args } = input;
 
-        const source = args[0];
+        const sourceContent = spaceTrim(args[0] || '');
 
-        if (source === undefined) {
+        if (sourceContent === '') {
             throw new ParsingError(`Source is not defined`);
         }
 
-        if (source.startsWith('http://')) {
+        // TODO: !!!! Following checks should be applied every link in the `sourceContent`
+
+        if (sourceContent.startsWith('http://')) {
             throw new ParsingError(`Source is not secure`);
         }
 
-        if (!(isValidFilePath(source) || isValidUrl(source))) {
+        if (!(isValidFilePath(sourceContent) || isValidUrl(sourceContent))) {
             throw new ParsingError(`Source not valid`);
         }
 
-        if (source.startsWith('../') || source.startsWith('/') || /^[A-Z]:[\\/]+/i.test(source)) {
+        if (sourceContent.startsWith('../') || sourceContent.startsWith('/') || /^[A-Z]:[\\/]+/i.test(sourceContent)) {
             throw new ParsingError(`Source cannot be outside of the .ptbk.md folder`);
         }
 
         return {
             type: 'KNOWLEDGE',
-            source,
+            sourceContent,
         } satisfies KnowledgeCommand;
     },
 
@@ -79,14 +81,16 @@ export const knowledgeCommandParser: CommandParser<KnowledgeCommand> = {
      * Note: Prototype of [🍧] (remove this comment after full implementation)
      */
     applyToPipelineJson(personaCommand: KnowledgeCommand, subjects: ApplyToPipelineJsonSubjects): void {
-        const { source } = personaCommand;
+        const { sourceContent } = personaCommand;
         const { pipelineJson } = subjects;
 
-        const name = titleToName(source);
+        const name = 'source-' + sha256(hexEncoder.parse(JSON.stringify(sourceContent))).toString(/* hex */);
+        //    <- TODO: [🥬] Encapsulate sha256 to some private utility function
+        //    <- TODO: This should be replaced with a better name later in preparation (done with some propper LLM summarization)
 
         pipelineJson.knowledgeSources.push({
             name,
-            source,
+            sourceContent,
         });
     },
 };

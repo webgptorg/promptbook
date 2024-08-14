@@ -31,6 +31,7 @@ export class FilesStorage<TItem> implements PromptbookStorage<TItem> {
     private getFilenameForKey(key: string): string_file_path {
         const name = titleToName(key);
         const hash = sha256(hexEncoder.parse(name)).toString(/* hex */);
+        //    <- TODO: [🥬] Encapsulate sha256 to some private utility function
 
         return join(
             this.options.cacheFolderPath,

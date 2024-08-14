@@ -1,4 +1,4 @@
-import type { string_knowledge_source } from '../../types/typeAliases';
+import type { string_knowledge_source_content } from '../../types/typeAliases';
 
 /**
  * Parsed KNOWLEDGE command
@@ -8,5 +8,5 @@ import type { string_knowledge_source } from '../../types/typeAliases';
  */
 export type KnowledgeCommand = {
     readonly type: 'KNOWLEDGE';
-    readonly source: string_knowledge_source;
+    readonly sourceContent: string_knowledge_source_content;
 };

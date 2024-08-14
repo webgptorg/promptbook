@@ -340,7 +340,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
                         knowledgeCommandParser.applyToPipelineJson!(
                             {
                                 type: 'KNOWLEDGE',
-                                source: content, // <- TODO: [🐝] !!! Work with KNOWLEDGE which not referring to the source file or website, but its content itself
+                                sourceContent: content, // <- TODO: [🐝] !!! Work with KNOWLEDGE which not referring to the source file or website, but its content itself
                             },
                             {
                                 pipelineJson,

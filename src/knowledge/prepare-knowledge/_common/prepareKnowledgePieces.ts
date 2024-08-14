@@ -21,7 +21,7 @@ export async function prepareKnowledgePieces(
 
     await forEachAsync(knowledgeSources, { maxParallelCount }, async (knowledgeSource) => {
         const partialPieces = await prepareKnowledgeFromMarkdown(
-            knowledgeSource.source, // <- TODO: [🐝] !!! Unhardcode markdown, detect which type it is - BE AWARE of big package size
+            knowledgeSource.sourceContent, // <- TODO: [🐝] !!! Unhardcode markdown, detect which type it is - BE AWARE of big package size
             options,
         );
 

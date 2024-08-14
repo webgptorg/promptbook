@@ -6,9 +6,12 @@ Show how to use knowledge
 -   PROMPTBOOK VERSION 1.0.0
 -   INPUT  PARAMETER `{eventTitle}` The event name
 -   INPUT  PARAMETER `{eventDescription}` The event description
+-   INPUT  PARAMETER `{rules}` Extra rules for writing the bio
 -   OUTPUT PARAMETER `{bio}` Bio of Pavol Hejný - speaker at the event
 
-## Pavol Hejný
+<!-- TODO: !!!! Make every knowledge with identical interface as `simple-knowledge.ptbk.md` -->
+
+## Pavol Hejný (Website)
 
 -   KNOWLEDGE
 
@@ -28,6 +31,18 @@ I regularly give lectures at conferences, sit on juries, and act as a mentor in 
 I have a special heart for this, and I love open source – you can find many of my things on my GitHub.
 ```
 
+## Pavol Hejný (Github)
+
+-   KNOWLEDGE
+
+```text
+Hi I am Pavol,
+
+a developer who is passionate about using new tools and technologies. I specialise in creating fully functional user applications using the latest artificial intelligence models. I am a member of the Ainautes consulting group, which supports with the deployment of generative AI around the world.
+I develop the WebGPT web page generation service.
+Before the massive emergence of generative AI, I created the first Czech virtual whiteboard, Collboard, and electronic textbooks, H-edu, which were used by tens of thousands of children. I have also worked on many scientific projects for the Czech Ornithological Society. I regularly give lectures at conferences, sit on juries, and act as a mentor in many Czech and international competitions. I have a special heart for this, and I love open-source – you can find many of my things on my GitHub.
+```
+
 ## Writing bio
 
 -   PERSONA Jane, HR professional with prior experience in writing bios
@@ -43,6 +58,7 @@ You are writing a bio for Pavol Hejný for the event {eventTitle}.
 -   Bio is written in the present tense
 -   Bio should be written for event named "{eventTitle}", mention the event name in the bio and how Pavol is related to it
 -   Write plain text without any formatting (like markdown)
+-   {rules}
 
 ## {eventTitle}
 
