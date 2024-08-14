@@ -141,7 +141,6 @@ export class RemoteLlmExecutionTools implements LlmExecutionTools {
  * TODO: [🍜] !!!!!! Default remote remoteUrl and path for anonymous server
  * TODO: [🍓] Allow to list compatible models with each variant
  * TODO: [🗯] RemoteLlmExecutionTools should extend Destroyable and implement IDestroyable
- * TODO: [🍜] !!!!!! Add anonymous option
  * TODO: [🧠][🌰] Allow to pass `title` for tracking purposes
  * TODO: [🧠] Maybe remove `@promptbook/remote-client` and just use `@promptbook/core`
  */

@@ -432,7 +432,7 @@ Was accidentally released skipped
 
 ### `0.65.0` _(2024-08-)_
 
-[🍜] !!!!!! Anonymous server
+[🍜] Anonymous server
 
 -   Anonymous server
 -   `LlmConfiguration` and `createLlmToolsFromConfiguration`
