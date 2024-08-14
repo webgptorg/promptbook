@@ -1,6 +1,6 @@
 import { RemoteLlmExecutionTools } from '../remote/RemoteLlmExecutionTools';
 import { AnthropicClaudeExecutionTools } from './AnthropicClaudeExecutionTools';
-import { AnthropicClaudeExecutionToolsOptions } from './AnthropicClaudeExecutionToolsOptions';
+import type { AnthropicClaudeExecutionToolsOptions } from './AnthropicClaudeExecutionToolsOptions';
 
 /**
  * Execution Tools for calling Anthropic Claude API.

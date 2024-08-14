@@ -4,7 +4,7 @@ import http from 'http';
 import { Server, Socket } from 'socket.io';
 import { spaceTrim } from 'spacetrim';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
-import { LlmExecutionTools } from '../../execution/LlmExecutionTools';
+import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import type { PromptResult } from '../../execution/PromptResult';
 import type { really_any } from '../../utils/organization/really_any';
 import { PROMPTBOOK_VERSION } from '../../version';

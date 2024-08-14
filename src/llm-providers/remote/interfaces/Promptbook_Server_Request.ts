@@ -1,6 +1,6 @@
 import type { Prompt } from '../../../types/Prompt';
 import type { client_id } from '../../../types/typeAliases';
-import { LlmToolsConfiguration } from '../../_common/LlmToolsConfiguration';
+import type { LlmToolsConfiguration } from '../../_common/LlmToolsConfiguration';
 
 /**
  * Socket.io progress for remote text generation

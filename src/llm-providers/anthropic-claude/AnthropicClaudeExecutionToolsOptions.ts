@@ -1,6 +1,6 @@
 import type { ClientOptions } from '@anthropic-ai/sdk';
 import type { CommonExecutionToolsOptions } from '../../execution/CommonExecutionToolsOptions';
-import { RemoteLlmExecutionToolsOptions } from '../remote/interfaces/RemoteLlmExecutionToolsOptions';
+import type { RemoteLlmExecutionToolsOptions } from '../remote/interfaces/RemoteLlmExecutionToolsOptions';
 
 /**
  * Options for `AnthropicClaudeExecutionTools`
