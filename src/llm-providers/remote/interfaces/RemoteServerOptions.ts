@@ -30,8 +30,20 @@ export type RemoteServerOptions = CommonExecutionToolsOptions & {
      * @example '/promptbook/socket.io'
      */
     readonly path: string_uri;
-} & (AnonymousRemoteServerOptions | CollectionRemoteServerOptions);
-    // | (AnonymousRemoteServerOptions & CollectionRemoteServerOptions)
+} & (
+        | AnonymousRemoteServerOptions
+        | CollectionRemoteServerOptions
+        | (AnonymousRemoteServerOptions & CollectionRemoteServerOptions)
+    );
+//           <- TODO: [🐛] Typescript bug in this discriminated union
+//                    This should throw typescript error but it doesn't
+//
+//                    > startRemoteServer({
+//                    >     path: '/promptbook',
+//                    >     port: 4460,
+//                    >     isAnonymousModeAllowed: true,
+//                    >     isCollectionModeAllowed: true,
+//                    > });
 
 export type AnonymousRemoteServerOptions = {
     /**
