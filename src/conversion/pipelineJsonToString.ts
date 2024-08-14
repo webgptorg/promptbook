@@ -98,7 +98,7 @@ export function pipelineJsonToString(pipelineJson: PipelineJson): PipelineString
         } else if (blockType === 'PROMPT_DIALOG') {
             commands.push(`PROMPT DIALOG`);
             // Note: Nothing special here
-        } // <- }else if([🩻]
+        } // <- }else if([🅱]
 
         if (jokers) {
             for (const joker of jokers) {

@@ -257,4 +257,5 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools {
  * TODO: Maybe make custom OpenaiError
  * TODO: [🧠][🈁] Maybe use `isDeterministic` from options
  * TODO: [🍜] Auto use anonymous server in browser
+ * TODO: [🧠][🌰] Allow to pass `title` for tracking purposes
  */

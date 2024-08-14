@@ -4,7 +4,7 @@ import type { string_uri } from '../../types/typeAliases';
 
 /**
  * Options for `RemoteLlmExecutionTools`
- * 
+ *
  * @public exported from `@promptbook/remote-client`
  */
 export type RemoteLlmExecutionToolsOptions = CommonExecutionToolsOptions & {
@@ -27,3 +27,5 @@ export type RemoteLlmExecutionToolsOptions = CommonExecutionToolsOptions & {
      */
     readonly clientId: client_id;
 };
+
+

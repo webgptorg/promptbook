@@ -1,18 +1,17 @@
 import { join } from 'path';
-import { DEBUG_ALLOW_PAYED_TESTING } from '../../config';
-import { EXECUTIONS_CACHE_DIRNAME } from '../../config';
+import { DEBUG_ALLOW_PAYED_TESTING, EXECUTIONS_CACHE_DIRNAME } from '../../config';
 import { EnvironmentMismatchError } from '../../errors/EnvironmentMismatchError';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import { FilesStorage } from '../../storage/files-storage/FilesStorage';
 import { isRunningInNode } from '../../utils/isRunningInWhatever';
-import type { CreateLlmToolsFromEnvOptions } from './createLlmToolsFromEnv';
+import { CreateLlmToolsFromConfigurationOptions } from './createLlmToolsFromConfiguration';
 import { createLlmToolsFromEnv } from './createLlmToolsFromEnv';
 import { cacheLlmTools } from './utils/cache/cacheLlmTools';
 import { countTotalUsage } from './utils/count-total-usage/countTotalUsage';
 import { limitTotalUsage } from './utils/count-total-usage/limitTotalUsage';
 import type { LlmExecutionToolsWithTotalUsage } from './utils/count-total-usage/LlmExecutionToolsWithTotalUsage';
 
-type GetLlmToolsForTestingAndScriptsAndPlaygroundOptions = CreateLlmToolsFromEnvOptions & {
+type GetLlmToolsForTestingAndScriptsAndPlaygroundOptions = CreateLlmToolsFromConfigurationOptions & {
     /**
      * @@@
      *
@@ -54,4 +53,5 @@ export function getLlmToolsForTestingAndScriptsAndPlayground(
 /**
  * Note: [⚪] This should never be in any released package
  * TODO: [👷‍♂️] @@@ Manual about construction of llmTools
+ * TODO: This should be maybe not under `_common` but under `utils-internal` / `utils/internal`
  */

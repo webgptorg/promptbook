@@ -1,25 +1,24 @@
 # 🎯 TODOs
 
--   [ ][🧠] !! `folder` vs `directory`
+-   [ ] [🧠] !! `folder` vs `directory`
 -   [x] Annotate all entities
 -   [ ] Make internal string aliases
 -   [ ] Make branded types instead of pure `string` aliases
 -   [ ] Remove all `any`
--   [ ][👧] Make strongy typed input+output parameters in executors
+-   [ ] [👧] Make strongy typed input+output parameters in executors
 -   [x] Make pipelines non-linear
 -   [x] Logging pipeline name, version, step,...
--   [ ][🧠] Wording: "param" vs "parameter" vs "variable" vs "argument"
+-   [ ] [🧠] Wording: "param" vs "parameter" vs "variable" vs "argument"
 -   [ ] All entities must have public / private / protected modifiers
 -   [ ] Everything not needed should be private or not exported
 -   [x] Refactor circular dependencies
 -   [ ][🍓] Importing subtemplates
 -   [x] Use `spaceTrim` more effectively
--   [ ][🍓][🗯] Allow chats to be continued with previous message
--   [ ][🍓] Allow to set top_t and other model params
--   [ ][🍓] Allow to shortvut set top_t and other model params by `MODEL CREATIVITY 50%`
+-   [ ] [🍓][🗯] Allow chats to be continued with previous message
+-   [ ] [🍓] Allow to set top_t and other model params
 -   [ ] [🧠][🗯] How to mark continued chat in .ptbk.md format?
 -   [ ] Use newest version of socket.io for remote server
--   [ ][🍓][🧠] Allow to use and define [function calling](https://platform.openai.com/docs/guides/gpt/function-calling)
+-   [ ] [🍓][🧠] Allow to use and define [function calling](https://platform.openai.com/docs/guides/gpt/function-calling)
 -   [x] Register .ptbk file extension
 -   [x] Fix error `content.js:73 Uncaught (in promise) TypeError: object null is not iterable (cannot read property Symbol(Symbol.iterator))`
 -   [ ] Aborting execution, maybe use native AbortController
@@ -27,13 +26,14 @@
 -   [x] Wrap OpenAI billing errors:
 -   [ ] Integrate word stemmer https://github.com/maxpatiiuk/porter-stemming/blob/main/src/index.ts
 -   [ ] Integrate faker to generate simple mocked data
--   [ ][🍓] Show postprocessing + expectations into mermaid graphs
+-   [ ] [🍓] Show postprocessing + expectations into mermaid graphs
 -   [x] mermaid graphs as exported CLI util
--   [ ][🍓][🧠] Preprocessing DO or remove
--   [ ][🍓] System to bundle up Preprocessing + Postprocessing + Expectations - like `USE ceaserCipher`
+-   [ ] [🍓][🧠] Preprocessing DO or remove
+-   [ ] [🍓] System to bundle up Preprocessing + Postprocessing + Expectations - like `USE ceaserCipher`
 -   [ ] Integrate ceaser-cipher to auto preprocess some and postprocess templates
--   [ ][🍓][🧠] Scenario: Expect all information (for example in incomming email), when not then return = kinda reverse joker
+-   [ ] [🍓][🧠] Scenario: Expect all information (for example in incomming email), when not then return = kinda reverse joker
 -   [ ] Make VSCode extension for validation/syntax highlite (and for other editors)
 -   [ ] Use `chalk` or `colors` or sth else but unite what is used
--   [] !!! Backup GitHub [discussions](https://github.com/webgptorg/promptbook/discussions/), issues, PRs, etc. into commited markdown files
--   [] [🍍] !!!!! Link from here -> ptbk.io -> discussions concepts (with labels)
+-   [ ] !!! Backup GitHub [discussions](https://github.com/webgptorg/promptbook/discussions/), issues, PRs, etc. into commited markdown files
+-   [ ] [🍍] !!!!! Link from here -> ptbk.io -> discussions concepts (with labels)
+-   [ ] [🍛] Use shortcuts or not "Config" vs "configuration", "Env" vs "Environment"

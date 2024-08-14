@@ -23,5 +23,5 @@ export const BlockTypes = [
     'KNOWLEDGE',
     'INSTRUMENT',
     'ACTION',
-    // <- [🩻]
+    // <- [🅱]
 ] as const;

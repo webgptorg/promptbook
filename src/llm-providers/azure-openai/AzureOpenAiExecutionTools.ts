@@ -21,7 +21,7 @@ import type { AzureOpenAiExecutionToolsOptions } from './AzureOpenAiExecutionToo
 
 /**
  * Execution Tools for calling Azure OpenAI API.
- * 
+ *
  * @public exported from `@promptbook/azure-openai`
  */
 export class AzureOpenAiExecutionTools implements LlmExecutionTools {
@@ -283,4 +283,5 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools {
  * TODO: Maybe Create some common util for callChatModel and callCompletionModel
  * TODO: Maybe make custom AzureOpenaiError
  * TODO: [🧠][🈁] Maybe use `isDeterministic` from options
+ * TODO: [🧠][🌰] Allow to pass `title` for tracking purposes
  */

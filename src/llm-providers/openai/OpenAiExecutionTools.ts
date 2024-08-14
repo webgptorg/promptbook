@@ -22,7 +22,7 @@ import type { OpenAiExecutionToolsOptions } from './OpenAiExecutionToolsOptions'
 
 /**
  * Execution Tools for calling OpenAI API.
- * 
+ *
  * @public exported from `@promptbook/openai`
  */
 export class OpenAiExecutionTools implements LlmExecutionTools {
@@ -362,4 +362,5 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
  * TODO: Maybe Create some common util for callChatModel and callCompletionModel
  * TODO: Maybe make custom OpenaiError
  * TODO: [🧠][🈁] Maybe use `isDeterministic` from options
+ * TODO: [🧠][🌰] Allow to pass `title` for tracking purposes
  */

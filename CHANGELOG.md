@@ -426,6 +426,16 @@ Better system for imports, exports and dependencies
 
 ## In pre-release
 
+### `0.64.0` _(2024-08-)_
+
+[🍜] Anonymous server
+
+-   Anonymous server
+-   `LlmConfiguration` and `createLlmToolsFromConfiguration`
+-   Better names for knowledge sources
+-   Rename keys inside prepared knowledge
+-   Use `MultipleLlmExecutionTools` more
+
 ## In prepare
 
 ### `0..0` _(2024-0-)_
@@ -505,4 +515,5 @@ Across the repository there are marked [🍓] places that are required to be don
 
 <!-- Note: All places marked by [➕] to add new NPM package -->
 <!-- Note: All places marked by [🤖] to add new model variant -->
-<!-- Note: All places marked by [🩻] to add new (execution) block type -->
+<!-- Note: All places marked by [🅱] to add new (execution) block type -->
+<!-- Note: All places marked by [🦑] to add new LLM provider -->
