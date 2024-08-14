@@ -7,7 +7,7 @@ dotenv.config({ path: '.env' });
 import colors from 'colors';
 import type { Prompt } from '../../../types/Prompt';
 import { keepUnused } from '../../../utils/organization/keepUnused';
-import { AnthropicClaudeExecutionTools } from '../AnthropicClaudeExecutionTools';
+import { createAnthropicClaudeExecutionTools } from '../createAnthropicClaudeExecutionTools';
 
 playground()
     .catch((error) => {
@@ -25,7 +25,10 @@ async function playground() {
     // Do here stuff you want to test
     //========================================>
 
-    const anthropicClaudeExecutionTools = new AnthropicClaudeExecutionTools({
+    const anthropicClaudeExecutionTools = createAnthropicClaudeExecutionTools({
+        isProxied: true,
+        remoteUrl: 'https://api.anthropic.com',
+        path: '/socket.io',
         isVerbose: true,
         apiKey: process.env.ANTHROPIC_CLAUDE_API_KEY!,
     });
@@ -86,6 +89,6 @@ async function playground() {
 }
 
 /**
- * TODO: [🍜] Playground with WebGPT / Promptbook.studio anonymous server
+ * TODO: [🍜] !!!!!! Playground with WebGPT / Promptbook.studio anonymous server
  * TODO: !!! Test here that `systemMessage`, `temperature` and `seed` are working correctly
  */

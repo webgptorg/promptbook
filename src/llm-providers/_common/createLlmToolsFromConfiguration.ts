@@ -37,7 +37,7 @@ export function createLlmToolsFromConfiguration(
     dotenv.config();
 
     const llmTools: Array<LlmExecutionTools> = configuration.map((llmConfiguration: TODO_any) =>
-        EXECUTION_TOOLS_CLASSES[`get${llmConfiguration.className}`]!(
+        EXECUTION_TOOLS_CLASSES[`create${llmConfiguration.className}`]!(
             //                                                      <- TODO: !!! Check that defined
             {
                 isVerbose,

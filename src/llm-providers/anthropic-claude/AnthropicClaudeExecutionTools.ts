@@ -1,30 +1,34 @@
+import type { ClientOptions } from '@anthropic-ai/sdk';
 import Anthropic from '@anthropic-ai/sdk';
 import type { MessageCreateParamsNonStreaming } from '@anthropic-ai/sdk/resources';
 import colors from 'colors';
 import spaceTrim from 'spacetrim';
+import { really_any } from '../../_packages/types.index';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
-import type { AvailableModel } from '../../execution/LlmExecutionTools';
-import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
+import type { AvailableModel, LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import type { ChatPromptResult } from '../../execution/PromptResult';
 import type { PromptResultUsage } from '../../execution/PromptResultUsage';
 import { computeUsageCounts } from '../../execution/utils/computeUsageCounts';
 import { uncertainNumber } from '../../execution/utils/uncertainNumber';
 import type { Prompt } from '../../types/Prompt';
-import type { string_date_iso8601 } from '../../types/typeAliases';
-import type { string_markdown } from '../../types/typeAliases';
-import type { string_markdown_text } from '../../types/typeAliases';
-import type { string_model_name } from '../../types/typeAliases';
-import type { string_title } from '../../types/typeAliases';
+import type {
+    string_date_iso8601,
+    string_markdown,
+    string_markdown_text,
+    string_model_name,
+    string_title,
+} from '../../types/typeAliases';
 import { getCurrentIsoDate } from '../../utils/getCurrentIsoDate';
 import { replaceParameters } from '../../utils/replaceParameters';
 import { ANTHROPIC_CLAUDE_MODELS } from './anthropic-claude-models';
-import type { AnthropicClaudeExecutionToolsOptions } from './AnthropicClaudeExecutionToolsOptions';
+import type { AnthropicClaudeExecutionToolsDirectOptions } from './AnthropicClaudeExecutionToolsOptions';
 
 /**
  * Execution Tools for calling Anthropic Claude API.
  *
  * @public exported from `@promptbook/anthropic-claude`
+ * @deprecated use `createAnthropicClaudeExecutionTools` instead
  */
 export class AnthropicClaudeExecutionTools implements LlmExecutionTools {
     /**
@@ -37,10 +41,11 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools {
      *
      * @param options which are relevant are directly passed to the Anthropic Claude client
      */
-    public constructor(private readonly options: AnthropicClaudeExecutionToolsOptions = {}) {
+    public constructor(private readonly options: AnthropicClaudeExecutionToolsDirectOptions = { isProxied: false }) {
         // Note: Passing only Anthropic Claude relevant options to Anthropic constructor
-        const anthropicOptions = { ...options };
-        delete anthropicOptions.isVerbose;
+        const anthropicOptions: ClientOptions = { ...options };
+        delete (anthropicOptions as really_any).isVerbose;
+        delete (anthropicOptions as really_any).isProxied;
         this.client = new Anthropic(anthropicOptions);
     }
 
@@ -256,6 +261,7 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools {
  * TODO: Maybe Create some common util for callChatModel and callCompletionModel
  * TODO: Maybe make custom OpenaiError
  * TODO: [🧠][🈁] Maybe use `isDeterministic` from options
- * TODO: [🍜] Auto use anonymous server in browser
+ * TODO: [🍜] !!!!!! Auto use anonymous server in browser
  * TODO: [🧠][🌰] Allow to pass `title` for tracking purposes
+ * TODO: [📅] Maybe instead of `RemoteLlmExecutionToolsOptions` use `proxyWithAnonymousRemoteServer` (if implemented)
  */

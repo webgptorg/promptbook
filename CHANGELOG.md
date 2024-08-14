@@ -432,13 +432,15 @@ Was accidentally released skipped
 
 ### `0.65.0` _(2024-08-)_
 
-[🍜] Anonymous server
+[🍜] !!!!!! Anonymous server
 
 -   Anonymous server
 -   `LlmConfiguration` and `createLlmToolsFromConfiguration`
 -   Better names for knowledge sources
 -   Rename keys inside prepared knowledge
 -   Use `MultipleLlmExecutionTools` more
+-   LLM tools providers have constructor functions, for example `OpenAiExecutionTools` -> `createOpenAiExecutionTools`
+-   `remoteUrl` is `string_base_url`
 
 ## In prepare
 

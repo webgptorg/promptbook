@@ -1,5 +1,6 @@
 import type { CommonExecutionToolsOptions } from '../../../execution/CommonExecutionToolsOptions';
-import type { client_id, string_uri } from '../../../types/typeAliases';
+import type { client_id, string_base_url, string_uri } from '../../../types/typeAliases';
+import { LlmToolsConfiguration } from '../../_common/LlmToolsConfiguration';
 
 /**
  * Options for `RemoteLlmExecutionTools`
@@ -11,7 +12,7 @@ export type RemoteLlmExecutionToolsOptions = CommonExecutionToolsOptions & {
      * URL of the remote PROMPTBOOK server
      * On this server will be connected to the socket.io server
      */
-    readonly remoteUrl: URL;
+    readonly remoteUrl: string_base_url;
 
     /**
      * Path for the Socket.io server to listen
@@ -22,7 +23,34 @@ export type RemoteLlmExecutionToolsOptions = CommonExecutionToolsOptions & {
     readonly path: string_uri;
 
     /**
-     * Your client ID
+     * Mode of the server to connect to
      */
-    readonly clientId: client_id;
-};
+    isAnonymous: boolean;
+} & (
+        | {
+              /**
+               * Use anonymous server with anonymous mode
+               */
+              isAnonymous: true;
+
+              /**
+               * Configuration for the LLM tools
+               */
+              readonly llmToolsConfiguration: LlmToolsConfiguration;
+          }
+        | {
+              /**
+               * Use anonymous server with client identification and fixed collection
+               */
+              isAnonymous: false;
+
+              /**
+               * Your client ID
+               */
+              readonly clientId: client_id;
+          }
+    );
+
+/**
+ * TODO: [🍜] !!!!!! Default remote remoteUrl and path for anonymous server
+ */

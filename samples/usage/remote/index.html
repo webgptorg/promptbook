@@ -46,7 +46,7 @@
                 const tools = {
                     llm:  new RemoteLlmExecutionTools({
                                     path: '/promptbook',
-                                    remoteUrl: new URL(`http://localhost:4460/`),
+                                    remoteUrl: `http://localhost:4460/`,
                                     clientId,
                                 }),
                     script: [

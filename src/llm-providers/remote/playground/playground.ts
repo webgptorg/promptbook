@@ -5,7 +5,9 @@ import * as dotenv from 'dotenv';
 dotenv.config({ path: '.env' });
 
 import colors from 'colors';
-import { forEver } from 'waitasecond';
+import { forEver, forTime } from 'waitasecond';
+import { createCollectionFromDirectory } from '../../../collection/constructors/createCollectionFromDirectory';
+import { OpenAiExecutionTools } from '../../openai/OpenAiExecutionTools';
 import { startRemoteServer } from '../startRemoteServer';
 
 playground()
@@ -29,7 +31,22 @@ async function playground() {
         port: 4460,
         isAnonymousModeAllowed: true,
         isCollectionModeAllowed: true,
+        collection: await createCollectionFromDirectory('./samples/templates/', { llmTools: null, isRecursive: false }),
+        createLlmExecutionTools(clientId) {
+            // <- TODO: [🧠][🤺] Remove `createLlmExecutionTools`, pass just `llmExecutionTools`
+            console.log('clientId', clientId);
+            return new OpenAiExecutionTools({
+                isVerbose: true,
+                apiKey: process.env.OPENAI_API_KEY!,
+                user: clientId,
+            });
+        },
     });
+
+    await forTime(1000);
+
+
+
 
     await forEver();
 

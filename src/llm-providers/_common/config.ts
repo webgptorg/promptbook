@@ -1,6 +1,6 @@
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import type { TODO_any } from '../../utils/organization/TODO_any';
-import { AnthropicClaudeExecutionTools } from '../anthropic-claude/AnthropicClaudeExecutionTools';
+import { createAnthropicClaudeExecutionTools } from '../anthropic-claude/createAnthropicClaudeExecutionTools';
 import { AzureOpenAiExecutionTools } from '../azure-openai/AzureOpenAiExecutionTools';
 import { OpenAiExecutionTools } from '../openai/OpenAiExecutionTools';
 import type { LlmToolsConfiguration } from './LlmToolsConfiguration';
@@ -23,6 +23,9 @@ export const LLM_CONFIGURATION_BOILERPLATES: LlmToolsConfiguration = [
         className: 'AnthropicClaudeExecutionTools',
         options: {
             apiKey: 'sk-ant-api03-',
+            isProxied: true,
+            remoteUrl: 'https://!!!!!!',
+            path: '/socket.io!!!!!!',
         },
     },
     {
@@ -42,15 +45,15 @@ export const LLM_CONFIGURATION_BOILERPLATES: LlmToolsConfiguration = [
 /**
  * @private internal type for `createLlmToolsFromConfiguration`
  */
-export const EXECUTION_TOOLS_CLASSES: Record<`get${string}`, (options: TODO_any) => LlmExecutionTools> = {
-    getOpenAiExecutionTools: (options: TODO_any) =>
+export const EXECUTION_TOOLS_CLASSES: Record<`create${string}`, (options: TODO_any) => LlmExecutionTools> = {
+    createOpenAiExecutionTools: (options: TODO_any) =>
         new OpenAiExecutionTools({
             ...options,
             dangerouslyAllowBrowser:
                 true /* <- TODO: [🧠] !!! Some mechanism for auto-detection of browser, maybe hide in `OpenAiExecutionTools` */,
         }),
-    getAnthropicClaudeExecutionTools: (options: TODO_any) => new AnthropicClaudeExecutionTools(options),
-    getAzureOpenAiExecutionTools: (options: TODO_any) => new AzureOpenAiExecutionTools(options),
+    createAnthropicClaudeExecutionTools,
+    createAzureOpenAiExecutionTools: (options: TODO_any) => new AzureOpenAiExecutionTools(options),
 
     // <- Note: [🦑] Add here new LLM provider
 };

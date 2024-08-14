@@ -41,7 +41,7 @@ export class RemoteLlmExecutionTools implements LlmExecutionTools {
      */
     private makeConnection(): Promise<Socket> {
         return new Promise((resolve, reject) => {
-            const socket = io(this.options.remoteUrl.href, {
+            const socket = io(this.options.remoteUrl, {
                 path: this.options.path,
                 // path: `${this.remoteUrl.pathname}/socket.io`,
                 transports: [/*'websocket', <- TODO: [🌬] Make websocket transport work */ 'polling'],
@@ -54,7 +54,7 @@ export class RemoteLlmExecutionTools implements LlmExecutionTools {
             });
 
             setTimeout(() => {
-                reject(new Error(`Timeout while connecting to ${this.options.remoteUrl.href}`));
+                reject(new Error(`Timeout while connecting to ${this.options.remoteUrl}`));
             }, 60000 /* <- TODO: Timeout to config */);
         });
     }
@@ -96,11 +96,20 @@ export class RemoteLlmExecutionTools implements LlmExecutionTools {
      */
     private async callCommonModel(prompt: Prompt): Promise<PromptResult> {
         const socket = await this.makeConnection();
-        socket.emit('request', {
-            clientId: this.options.clientId,
-            prompt,
-            // <- TODO: [🛫] `prompt` is NOT fully serializable as JSON, it contains functions which are not serializable
-        } satisfies Promptbook_Server_Request);
+
+        if (this.options.isAnonymous) {
+            socket.emit('request', {
+                llmToolsConfiguration: this.options.llmToolsConfiguration,
+                prompt,
+                // <- TODO: [🛫] `prompt` is NOT fully serializable as JSON, it contains functions which are not serializable
+            } satisfies Promptbook_Server_Request);
+        } else {
+            socket.emit('request', {
+                clientId: this.options.clientId,
+                prompt,
+                // <- TODO: [🛫] `prompt` is NOT fully serializable as JSON, it contains functions which are not serializable
+            } satisfies Promptbook_Server_Request);
+        }
 
         const promptResult = await new Promise<PromptResult>((resolve, reject) => {
             socket.on('response', (response: Promptbook_Server_Response) => {
@@ -129,8 +138,10 @@ export class RemoteLlmExecutionTools implements LlmExecutionTools {
 }
 
 /**
+ * TODO: [🍜] !!!!!! Default remote remoteUrl and path for anonymous server
  * TODO: [🍓] Allow to list compatible models with each variant
  * TODO: [🗯] RemoteLlmExecutionTools should extend Destroyable and implement IDestroyable
- * TODO: [🍜] Add anonymous option
+ * TODO: [🍜] !!!!!! Add anonymous option
  * TODO: [🧠][🌰] Allow to pass `title` for tracking purposes
+ * TODO: [🧠] Maybe remove `@promptbook/remote-client` and just use `@promptbook/core`
  */

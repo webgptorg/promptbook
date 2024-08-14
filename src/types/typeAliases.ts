@@ -348,6 +348,13 @@ export type string_url = string;
 /**
  * Semantic helper
  *
+ * For example `"https://collboard.com"`
+ */
+export type string_base_url = string;
+
+/**
+ * Semantic helper
+ *
  * For example `"https://promptbook.studio/webgpt/write-website-content-cs.ptbk.md"`
  */
 export type string_pipeline_url = string; // <- TODO: `${string}.ptbk.md`
