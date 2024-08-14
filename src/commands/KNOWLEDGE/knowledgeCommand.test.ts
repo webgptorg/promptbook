@@ -6,11 +6,11 @@ describe('how KNOWLEDGE command in .ptbk.md files works', () => {
     it('should parse KNOWLEDGE command', () => {
         expect(parseCommand('KNOWLEDGE https://www.pavolhejny.com/', 'PIPELINE_HEAD')).toEqual({
             type: 'KNOWLEDGE',
-            source: 'https://www.pavolhejny.com/',
+            sourceContent: 'https://www.pavolhejny.com/',
         });
         expect(parseCommand('KNOWLEDGE ./hejny-cv.pdf', 'PIPELINE_HEAD')).toEqual({
             type: 'KNOWLEDGE',
-            source: './hejny-cv.pdf',
+            sourceContent: './hejny-cv.pdf',
         });
     });
 
