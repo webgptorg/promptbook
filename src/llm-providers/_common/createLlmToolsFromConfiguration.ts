@@ -1,12 +1,12 @@
 import * as dotenv from 'dotenv';
-import { TODO_any } from '../../_packages/types.index';
+import type { TODO_any } from '../../utils/organization/TODO_any';
 import { EnvironmentMismatchError } from '../../errors/EnvironmentMismatchError';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import { isRunningInNode } from '../../utils/isRunningInWhatever';
 import { joinLlmExecutionTools } from '../multiple/joinLlmExecutionTools';
 import { MultipleLlmExecutionTools } from '../multiple/MultipleLlmExecutionTools';
 import { EXECUTION_TOOLS_CLASSES } from './config';
-import { LlmToolsConfiguration } from './LlmConfiguration';
+import type { LlmToolsConfiguration } from './LlmConfiguration';
 
 /**
  * Options for `createLlmToolsFromEnv`

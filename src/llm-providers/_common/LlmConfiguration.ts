@@ -1,17 +1,15 @@
-import { string_title } from '../../types/typeAliases';
-import { TODO_object } from '../../utils/organization/TODO_object';
-import { TODO_string } from '../../utils/organization/TODO_string';
+import type { string_title } from '../../types/typeAliases';
+import type { TODO_object } from '../../utils/organization/TODO_object';
+import type { TODO_string } from '../../utils/organization/TODO_string';
 
 /**
  * @@@
  */
 export type LlmToolsConfiguration = Array<{
-
     /**
      * @@@
      */
     title: string_title;
-
 
     /**
      * @@@

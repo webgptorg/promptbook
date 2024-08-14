@@ -2,10 +2,8 @@ import spaceTrim from 'spacetrim';
 import { EnvironmentMismatchError } from '../../errors/EnvironmentMismatchError';
 import { isRunningInNode } from '../../utils/isRunningInWhatever';
 import { MultipleLlmExecutionTools } from '../multiple/MultipleLlmExecutionTools';
-import {
-    createLlmToolsFromConfiguration,
-    CreateLlmToolsFromConfigurationOptions,
-} from './createLlmToolsFromConfiguration';
+import { createLlmToolsFromConfiguration } from './createLlmToolsFromConfiguration';
+import type { CreateLlmToolsFromConfigurationOptions } from './createLlmToolsFromConfiguration';
 import { createLlmToolsFromConfigurationFromEnv } from './createLlmToolsFromConfigurationFromEnv';
 
 /**

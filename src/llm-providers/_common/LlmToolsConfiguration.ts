@@ -1,5 +1,5 @@
-import { TODO_object } from '../../utils/organization/TODO_object';
-import { TODO_string } from '../../utils/organization/TODO_string';
+import type { TODO_object } from '../../utils/organization/TODO_object';
+import type { TODO_string } from '../../utils/organization/TODO_string';
 
 /**
  * @@@

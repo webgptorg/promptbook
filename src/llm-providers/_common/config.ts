@@ -1,5 +1,5 @@
-import { TODO_any } from '../../_packages/types.index';
-import { LlmExecutionTools } from '../../execution/LlmExecutionTools';
+import type { TODO_any } from '../../utils/organization/TODO_any';
+import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import { AnthropicClaudeExecutionTools } from '../anthropic-claude/AnthropicClaudeExecutionTools';
 import { AzureOpenAiExecutionTools } from '../azure-openai/AzureOpenAiExecutionTools';
 import { OpenAiExecutionTools } from '../openai/OpenAiExecutionTools';
