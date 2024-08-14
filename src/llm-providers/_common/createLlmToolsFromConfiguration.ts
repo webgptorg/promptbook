@@ -6,7 +6,7 @@ import { isRunningInNode } from '../../utils/isRunningInWhatever';
 import { joinLlmExecutionTools } from '../multiple/joinLlmExecutionTools';
 import { MultipleLlmExecutionTools } from '../multiple/MultipleLlmExecutionTools';
 import { EXECUTION_TOOLS_CLASSES } from './config';
-import type { LlmToolsConfiguration } from './LlmConfiguration';
+import type { LlmToolsConfiguration } from './LlmToolsConfiguration';
 
 /**
  * Options for `createLlmToolsFromEnv`

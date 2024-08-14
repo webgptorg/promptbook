@@ -3,7 +3,7 @@ import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import { AnthropicClaudeExecutionTools } from '../anthropic-claude/AnthropicClaudeExecutionTools';
 import { AzureOpenAiExecutionTools } from '../azure-openai/AzureOpenAiExecutionTools';
 import { OpenAiExecutionTools } from '../openai/OpenAiExecutionTools';
-import type { LlmToolsConfiguration } from './LlmConfiguration';
+import type { LlmToolsConfiguration } from './LlmToolsConfiguration';
 
 /**
  * @public exported from `@promptbook/node`

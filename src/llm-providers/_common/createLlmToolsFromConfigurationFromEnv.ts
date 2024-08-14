@@ -1,6 +1,6 @@
 import { EnvironmentMismatchError } from '../../errors/EnvironmentMismatchError';
 import { isRunningInNode } from '../../utils/isRunningInWhatever';
-import type { LlmToolsConfiguration } from './LlmConfiguration';
+import type { LlmToolsConfiguration } from './LlmToolsConfiguration';
 
 /**
  * @@@
