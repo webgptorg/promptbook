@@ -1,6 +1,6 @@
 {
     "name": "@promptbook/node",
-    "version": "0.65.0-2",
+    "version": "0.65.0-3",
     "description": "Supercharge your use of large language models",
     "private": false,
     "sideEffects": false,
@@ -47,7 +47,7 @@
     "module": "./esm/index.es.js",
     "typings": "./esm/typings/src/_packages/node.index.d.ts",
     "peerDependencies": {
-        "@promptbook/core": "0.65.0-2"
+        "@promptbook/core": "0.65.0-3"
     },
     "dependencies": {
         "@anthropic-ai/sdk": "0.21.1",
@@ -55,6 +55,7 @@
         "colors": "1.4.0",
         "openai": "4.46.1",
         "prettier": "2.8.1",
+        "socket.io-client": "4.7.2",
         "spacetrim": "0.11.39"
     }
 }
