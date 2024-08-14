@@ -48,6 +48,7 @@ import { CallbackInterfaceTools } from '../knowledge/dialogs/callback/CallbackIn
 import type { CallbackInterfaceToolsOptions } from '../knowledge/dialogs/callback/CallbackInterfaceToolsOptions';
 import { prepareKnowledgePieces } from '../knowledge/prepare-knowledge/_common/prepareKnowledgePieces';
 import { prepareKnowledgeFromMarkdown } from '../knowledge/prepare-knowledge/markdown/prepareKnowledgeFromMarkdown';
+import { createLlmToolsFromConfiguration } from '../llm-providers/_common/createLlmToolsFromConfiguration';
 import { cacheLlmTools } from '../llm-providers/_common/utils/cache/cacheLlmTools';
 import { countTotalUsage } from '../llm-providers/_common/utils/count-total-usage/countTotalUsage';
 import { limitTotalUsage } from '../llm-providers/_common/utils/count-total-usage/limitTotalUsage';
@@ -117,6 +118,7 @@ export { CallbackInterfaceTools };
 export type { CallbackInterfaceToolsOptions };
 export { prepareKnowledgePieces };
 export { prepareKnowledgeFromMarkdown };
+export { createLlmToolsFromConfiguration };
 export { cacheLlmTools };
 export { countTotalUsage };
 export { limitTotalUsage };
