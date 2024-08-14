@@ -424,9 +424,13 @@ Better system for imports, exports and dependencies
 -   Consiese README - move things to discussions
 -   Make Partial<ModelRequirements> and optional
 
+### `0.64.0`
+
+Was accidentally released skipped
+
 ## In pre-release
 
-### `0.64.0` _(2024-08-)_
+### `0.65.0` _(2024-08-)_
 
 [🍜] Anonymous server
 
