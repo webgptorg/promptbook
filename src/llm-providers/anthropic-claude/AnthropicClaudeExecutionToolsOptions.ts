@@ -11,4 +11,5 @@ export type AnthropicClaudeExecutionToolsOptions = CommonExecutionToolsOptions &
 
 /**
  * TODO: [🍜] Auto add WebGPT / Promptbook.studio anonymous server in browser
+ * TODO: [🧠][🤺] Detecting `user`
  */

@@ -4,9 +4,11 @@ import http from 'http';
 import { Server, Socket } from 'socket.io';
 import { spaceTrim } from 'spacetrim';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
+import { LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import type { PromptResult } from '../../execution/PromptResult';
 import type { really_any } from '../../utils/organization/really_any';
 import { PROMPTBOOK_VERSION } from '../../version';
+import { createLlmToolsFromConfiguration } from '../_common/createLlmToolsFromConfiguration';
 import type { Promptbook_Server_Error } from './interfaces/Promptbook_Server_Error';
 import type { Promptbook_Server_Request } from './interfaces/Promptbook_Server_Request';
 import type { Promptbook_Server_Response } from './interfaces/Promptbook_Server_Response';
@@ -22,23 +24,50 @@ import type { RemoteServerOptions } from './interfaces/RemoteServerOptions';
  * @public exported from `@promptbook/remote-server`
  */
 export function startRemoteServer(options: RemoteServerOptions): IDestroyable {
-    const { port, path, collection, createLlmExecutionTools, isVerbose = false } = options;
+    const {
+        port,
+        path,
+        collection,
+        createLlmExecutionTools,
+        //    <- TODO: [🧠][🤺] Remove `createLlmExecutionTools`, pass just `llmExecutionTools`
+        isAnonymousModeAllowed,
+        isCollectionModeAllowed,
+        isVerbose = false,
+    } = {
+        isAnonymousModeAllowed: false,
+        isCollectionModeAllowed: false,
+        collection: null,
+        createLlmExecutionTools: null,
+        ...options,
+    };
+    // <- TODO: [🦪] Some helper type to be able to use discriminant union types with destructuring
 
-    const httpServer = http.createServer({}, (request, response) => {
+    const httpServer = http.createServer({}, async (request, response) => {
         if (request.url?.includes('socket.io')) {
             return;
         }
 
         response.write(
-            spaceTrim(`
-                Server for processing promptbook remote requests is running.
+            await spaceTrim(
+                async (block) => `
+                    Server for processing promptbook remote requests is running.
 
-                Version: ${PROMPTBOOK_VERSION}
+                    Version: ${PROMPTBOOK_VERSION}
+                    Anonymouse mode: ${isAnonymousModeAllowed ? 'enabled' : 'disabled'}
+                    Collection mode: ${isCollectionModeAllowed ? 'enabled' : 'disabled'}
+                    ${block(
+                        !isCollectionModeAllowed
+                            ? ''
+                            : 'Pipelines in collection:\n' +
+                                  (await collection!.listPipelines())
+                                      .map((pipelineUrl) => `- ${pipelineUrl}`)
+                                      .join('\n'),
+                    )}
 
-                For more information look at:
-                https://github.com/webgptorg/promptbook
-
-            `),
+                    For more information look at:
+                    https://github.com/webgptorg/promptbook
+            `,
+            ),
         );
         response.end();
     });
@@ -56,44 +85,74 @@ export function startRemoteServer(options: RemoteServerOptions): IDestroyable {
         console.info(colors.gray(`Client connected`), socket.id);
 
         socket.on('request', async (request: Promptbook_Server_Request) => {
-            const { prompt, clientId } = request;
-            // TODO: !! Validate here clientId (pass validator as dependency)
+            const { prompt, clientId, llmToolsConfiguration } = {
+                clientId: null,
+                llmToolsConfiguration: null,
+                ...request,
+            };
+            // <- TODO: [🦪] Some helper type to be able to use discriminant union types with destructuring
 
             if (isVerbose) {
                 console.info(colors.bgWhite(`Prompt:`), colors.gray(JSON.stringify(request, null, 4)));
             }
 
             try {
-                const executionToolsForClient = createLlmExecutionTools(clientId);
+                if (llmToolsConfiguration !== null && !isAnonymousModeAllowed) {
+                    throw new PipelineExecutionError(`Anonymous mode is not allowed`); // <- TODO: !!!!!! Test
+                }
 
-                if (!(await collection.isResponsibleForPrompt(prompt))) {
-                    throw new PipelineExecutionError(`Pipeline is not in the collection of this server`);
+                if (clientId !== null && !isCollectionModeAllowed) {
+                    throw new PipelineExecutionError(`Collection mode is not allowed`); // <- TODO: !!!!!! Test
+                }
+
+                // TODO: !!!! Validate here clientId (pass validator as dependency)
+
+                let llmExecutionTools: LlmExecutionTools;
+
+                if (llmToolsConfiguration !== null) {
+                    // Note: Anonymouse mode
+                    // TODO: Maybe check that configuration is not empty
+                    llmExecutionTools = createLlmToolsFromConfiguration(llmToolsConfiguration);
+                } else if (createLlmExecutionTools !== null) {
+                    // Note: Collection mode
+                    llmExecutionTools = createLlmExecutionTools(
+                        clientId,
+                        // <- TODO: [🧠][🤺] clientId should be property of each prompt
+                    );
+
+                    if (!(await collection.isResponsibleForPrompt(prompt))) {
+                        throw new PipelineExecutionError(`Pipeline is not in the collection of this server`);
+                    }
+                } else {
+                    throw new PipelineExecutionError(
+                        `You must provide either llmToolsConfiguration or createLlmExecutionTools`,
+                    );
                 }
 
                 let promptResult: PromptResult;
                 switch (prompt.modelRequirements.modelVariant) {
                     case 'CHAT':
-                        if (executionToolsForClient.callChatModel === undefined) {
+                        if (llmExecutionTools.callChatModel === undefined) {
                             // Note: [0] This check should not be a thing
                             throw new PipelineExecutionError(`Chat model is not available`);
                         }
-                        promptResult = await executionToolsForClient.callChatModel(prompt);
+                        promptResult = await llmExecutionTools.callChatModel(prompt);
                         break;
 
                     case 'COMPLETION':
-                        if (executionToolsForClient.callCompletionModel === undefined) {
+                        if (llmExecutionTools.callCompletionModel === undefined) {
                             // Note: [0] This check should not be a thing
                             throw new PipelineExecutionError(`Completion model is not available`);
                         }
-                        promptResult = await executionToolsForClient.callCompletionModel(prompt);
+                        promptResult = await llmExecutionTools.callCompletionModel(prompt);
                         break;
 
                     case 'EMBEDDING':
-                        if (executionToolsForClient.callEmbeddingModel === undefined) {
+                        if (llmExecutionTools.callEmbeddingModel === undefined) {
                             // Note: [0] This check should not be a thing
                             throw new PipelineExecutionError(`Embedding model is not available`);
                         }
-                        promptResult = await executionToolsForClient.callEmbeddingModel(prompt);
+                        promptResult = await llmExecutionTools.callEmbeddingModel(prompt);
                         break;
 
                     // <- case [🤖]:
@@ -161,4 +220,5 @@ export function startRemoteServer(options: RemoteServerOptions): IDestroyable {
  * TODO: [🗯] Timeout on chat to free up resources
  * TODO: [🃏] Pass here some security token to prevent malitious usage and/or DDoS
  * TODO: [0] Set unavailable models as undefined in `RemoteLlmExecutionTools` NOT throw error here
+ * TODO: Constrain anonymous mode for specific models / providers
  */

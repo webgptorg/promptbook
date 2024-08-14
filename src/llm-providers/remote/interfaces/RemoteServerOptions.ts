@@ -1,11 +1,18 @@
 import type { PipelineCollection } from '../../../collection/PipelineCollection';
 import type { CommonExecutionToolsOptions } from '../../../execution/CommonExecutionToolsOptions';
 import type { LlmExecutionTools } from '../../../execution/LlmExecutionTools';
-import type { client_id } from '../../../types/typeAliases';
-import type { string_uri } from '../../../types/typeAliases';
+import type { client_id, string_uri } from '../../../types/typeAliases';
 
 /**
  * @@@
+ *
+ * There are two modes of remote server:
+ *
+ * 1) **Collection mode** Server will recieve `collection` and execute prompts only from this collection
+ * 2) **Anonymous mode** Server will recieve full `LlmToolsConfiguration` (with api keys) and just acts as a proxy
+ *    In anonymous mode, `collection` will be ignored and any prompt will be executed
+ *
+ * You can enable both modes at the same time.
  *
  * @public exported from `@promptbook/remote-client`
  * @public exported from `@promptbook/remote-server`
@@ -23,11 +30,26 @@ export type RemoteServerOptions = CommonExecutionToolsOptions & {
      * @example '/promptbook/socket.io'
      */
     readonly path: string_uri;
+} & (AnonymousRemoteServerOptions | CollectionRemoteServerOptions);
+    // | (AnonymousRemoteServerOptions & CollectionRemoteServerOptions)
+
+export type AnonymousRemoteServerOptions = {
+    /**
+     * Enable anonymous mode
+     */
+    readonly isAnonymousModeAllowed: true;
+};
+
+export type CollectionRemoteServerOptions = {
+    /**
+     * Enable collection mode
+     */
+    readonly isCollectionModeAllowed: true;
 
     /**
      * Promptbook collection to use
      *
-     * This is used to check validity of the prompt to prevent DDoS
+     * This is used to check validity of the prompt to prevent misuse
      */
     readonly collection: PipelineCollection;
 
@@ -38,5 +60,6 @@ export type RemoteServerOptions = CommonExecutionToolsOptions & {
 };
 
 /**
- * TODO: [🍜] Add anonymous option
+ * TODO: Constrain anonymous mode for specific models / providers
+ * TODO: [🧠][🤺] Remove `createLlmExecutionTools`, pass just `llmExecutionTools`
  */

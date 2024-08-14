@@ -1,6 +1,5 @@
-import type { CommonExecutionToolsOptions } from '../../execution/CommonExecutionToolsOptions';
-import type { client_id } from '../../types/typeAliases';
-import type { string_uri } from '../../types/typeAliases';
+import type { CommonExecutionToolsOptions } from '../../../execution/CommonExecutionToolsOptions';
+import type { client_id, string_uri } from '../../../types/typeAliases';
 
 /**
  * Options for `RemoteLlmExecutionTools`
@@ -27,5 +26,3 @@ export type RemoteLlmExecutionToolsOptions = CommonExecutionToolsOptions & {
      */
     readonly clientId: client_id;
 };
-
-

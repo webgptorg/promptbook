@@ -5,6 +5,7 @@ import { OpenAiExecutionTools } from '@promptbook/openai';
 import { startRemoteServer } from '@promptbook/remote-server';
 import colors from 'colors';
 import * as dotenv from 'dotenv';
+import { forEver } from 'waitasecond';
 
 if (process.cwd().split(/[\\/]/).pop() !== 'promptbook') {
     console.error(colors.red(`CWD must be root of the project`));
@@ -15,8 +16,8 @@ dotenv.config({ path: '.env' });
 
 main()
     .catch((error: Error) => {
-      console.error(colors.bgRed(error.name /* <- 11:11 */));
-      console.error(colors.red(error.stack || error.message));
+        console.error(colors.bgRed(error.name /* <- 11:11 */));
+        console.error(colors.red(error.stack || error.message));
         process.exit(1);
     })
     .then(() => {
@@ -34,8 +35,11 @@ async function main() {
     startRemoteServer({
         path: '/promptbook',
         port: 4460,
-        library,
+        collection,
+        isAnonymousModeAllowed: true,
+        isCollectionModeAllowed: true,
         createLlmExecutionTools(clientId) {
+            // <- TODO: [🧠][🤺] Remove `createLlmExecutionTools`, pass just `llmExecutionTools`
             console.log('clientId', clientId);
             return new OpenAiExecutionTools({
                 isVerbose: true,
@@ -44,6 +48,8 @@ async function main() {
             });
         },
     });
+
+    await forEver();
 }
 
 /**

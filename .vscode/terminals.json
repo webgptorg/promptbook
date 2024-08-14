@@ -118,32 +118,38 @@
             "focus": true
         },
         {
-            "name": "🧸 OpenAI Playground (💸)",
+            "name": "🧸 OpenAI playground (💸)",
             "command": "ts-node ./src/llm-providers/openai/playground/playground.ts",
             "onlySingle": true,
             "focus": true
         },
         {
-            "name": "🧸 Anthropic Claude Playground (💸)",
+            "name": "🧸 Anthropic Claude playground (💸)",
             "command": "ts-node ./src/llm-providers/anthropic-claude/playground/playground.ts",
             "onlySingle": true,
             "focus": true
         },
         {
-            "name": "🧸 Azure OpenAI Playground (💸)",
+            "name": "🧸 Azure OpenAI playground (💸)",
             "command": "ts-node ./src/llm-providers/azure-openai/playground/playground.ts",
             "onlySingle": true,
             "focus": true
         },
         {
-            "name": "🧸 Langtail Playground (💸)",
+            "name": "🧸 Langtail playground (💸)",
             "command": "ts-node ./src/llm-providers/langtail/playground/playground.ts",
             "onlySingle": true,
             "focus": true
         },
         {
-            "name": "🧸 Multiple LLMs Playground (💸)",
+            "name": "🧸 Multiple LLMs playground (💸)",
             "command": "ts-node ./src/llm-providers/multiple/playground/playground.ts",
+            "onlySingle": true,
+            "focus": true
+        },
+        {
+            "name": "🧸 Remote server playground",
+            "command": "ts-node ./src/llm-providers/remote/playground/playground.ts",
             "onlySingle": true,
             "focus": true
         },

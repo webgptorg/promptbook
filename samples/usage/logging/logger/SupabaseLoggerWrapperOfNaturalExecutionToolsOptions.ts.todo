@@ -15,6 +15,7 @@ export type SupabaseLoggerWrapperOfLlmExecutionToolsOptions = CommonExecutionToo
      * Client responsible for the requests
      */
     readonly clientId: client_id;
+    // <- TODO: [🧠][🤺] clientId should be property of each prompt
 }
 
 /**

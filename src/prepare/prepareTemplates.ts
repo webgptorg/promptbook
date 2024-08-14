@@ -36,7 +36,7 @@ export async function prepareTemplates(
     // TODO: !!!!! Apply samples to each template (if missing and is for the template defined)
     TODO_USE(parameters);
 
-    // TODO: [🦪][🧠] Implement some `mapAsync` function
+    // TODO: [🖌][🧠] Implement some `mapAsync` function
     const promptTemplatesPrepared: Array<PromptTemplateJson> = new Array(promptTemplates.length);
     await forEachAsync(
         promptTemplates,

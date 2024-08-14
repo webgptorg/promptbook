@@ -7,7 +7,7 @@ import type { string_token } from '../../types/typeAliases';
  *
  * This extends OpenAI's `ClientOptions` with are directly passed to the OpenAI client.
  * Rest is used by the `OpenAiExecutionTools`.
- * 
+ *
  * @public exported from `@promptbook/openai`
  */
 export type OpenAiExecutionToolsOptions = CommonExecutionToolsOptions &
@@ -19,4 +19,5 @@ export type OpenAiExecutionToolsOptions = CommonExecutionToolsOptions &
          * @see https://platform.openai.com/docs/guides/safety-best-practices/end-user-ids
          */
         user?: string_token;
+        // <- TODO: [🧠][🤺] `user` should be property of each prompt
     };

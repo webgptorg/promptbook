@@ -66,7 +66,7 @@ export async function preparePipeline(pipeline: PipelineJson, options: PrepareOp
 
     // ----- Personas preparation -----
     // TODO: !! Extract to similar function as `prepareTemplates`
-    // TODO: [🦪][🧠] Implement some `mapAsync` function
+    // TODO: [🖌][🧠] Implement some `mapAsync` function
     const preparedPersonas: Array<PersonaPreparedJson> = new Array(personas.length);
     await forEachAsync(
         personas,
