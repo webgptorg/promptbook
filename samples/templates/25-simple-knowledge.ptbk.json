@@ -37,7 +37,7 @@
             "modelRequirements": {
                 "modelVariant": "CHAT"
             },
-            "content": "You are writing a bio for Pavol Hejný for the event {eventTitle}.\n\n## Rules\n\n-   Write just the bio, nothing else.\n-   Write in the third person.\n-   Bio is written in the present tense.\n-   Bio should be written for event named \"{eventTitle}\".\n-   Write plain text without any formatting (like markdown).\n\n## {eventTitle}\n\n> {eventDescription}",
+            "content": "You are writing a bio for Pavol Hejný for the event {eventTitle}.\n\n## Rules\n\n-   Write just the bio, nothing else\n-   Write in the third person\n-   Bio is written in the present tense\n-   Bio should be written for event named \"{eventTitle}\", mention the event name in the bio and how Pavol is related to it\n-   Write plain text without any formatting (like markdown)\n\n## {eventTitle}\n\n> {eventDescription}",
             "personaName": "Jane",
             "expectations": {
                 "sentences": {

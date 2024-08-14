@@ -73,7 +73,7 @@ async function main() {
     const { isSuccessful, errors, warnings, outputParameters, executionReport, usage } = await pipelineExecutor(
         inputParameters,
         (progress) => {
-            console.info({ progress });
+            console.info(progress.isDone ? '☑' : '☐', progress);
         },
     );
 

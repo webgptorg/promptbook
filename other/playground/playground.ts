@@ -47,10 +47,12 @@ async function playground() {
     await forTime(100);
 
     const tools = {
-        llm: createLlmToolsFromEnv(),
+        llm: createLlmToolsFromEnv({
+            isVerbose: true,
+        }),
         script: [
             new JavascriptExecutionTools({
-                isVerbose: true,
+                isVerbose: false,
             }),
         ],
     };
@@ -94,7 +96,7 @@ async function playground() {
     const { isSuccessful, errors, warnings, outputParameters, usage } = await pipelineExecutor(
         inputParameters,
         (progress) => {
-            console.info({ progress });
+            console.info(progress.isDone ? '☑' : '☐', progress);
         },
     );
 
@@ -112,6 +114,7 @@ async function playground() {
 
     const { bio } = outputParameters;
 
+    console.info(colors.gray('---'));
     console.info(colors.green(bio));
     process.exit(isSuccessful ? 0 : 1);
 

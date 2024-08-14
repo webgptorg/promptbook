@@ -38,11 +38,11 @@ You are writing a bio for Pavol Hejný for the event {eventTitle}.
 
 ## Rules
 
--   Write just the bio, nothing else.
--   Write in the third person.
--   Bio is written in the present tense.
--   Bio should be written for event named "{eventTitle}".
--   Write plain text without any formatting (like markdown).
+-   Write just the bio, nothing else
+-   Write in the third person
+-   Bio is written in the present tense
+-   Bio should be written for event named "{eventTitle}", mention the event name in the bio and how Pavol is related to it
+-   Write plain text without any formatting (like markdown)
 
 ## {eventTitle}
 
