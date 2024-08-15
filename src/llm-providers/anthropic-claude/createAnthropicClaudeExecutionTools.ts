@@ -34,6 +34,7 @@ export function createAnthropicClaudeExecutionTools(
 }
 
 /**
- * TODO: !!!!!! Make this with all LLM providers
- * TODO: !!!!!! Maybe change all `new AnthropicClaudeExecutionTools` -> `createAnthropicClaudeExecutionTools` in manual
+ * TODO: [🧠] !!!! Make anonymous this with all LLM providers
+ * TODO: [🧠] !!!! Maybe change all `new AnthropicClaudeExecutionTools` -> `createAnthropicClaudeExecutionTools` in manual
+ * TODO: [🧠] Maybe auto-detect usage in browser and determine default value of `isProxied`
  */

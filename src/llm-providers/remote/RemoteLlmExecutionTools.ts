@@ -147,7 +147,6 @@ export class RemoteLlmExecutionTools implements LlmExecutionTools {
 }
 
 /**
- * TODO: [🍜] !!!!!! Default remote remoteUrl and path for anonymous server
  * TODO: [🍓] Allow to list compatible models with each variant
  * TODO: [🗯] RemoteLlmExecutionTools should extend Destroyable and implement IDestroyable
  * TODO: [🧠][🌰] Allow to pass `title` for tracking purposes

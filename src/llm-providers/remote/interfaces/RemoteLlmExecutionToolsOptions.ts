@@ -61,6 +61,3 @@ export type RemoteLlmExecutionToolsOptions = CommonExecutionToolsOptions & {
           }
     );
 
-/**
- * TODO: [🍜] !!!!!! Default remote remoteUrl and path for anonymous server
- */

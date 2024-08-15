@@ -99,11 +99,11 @@ export function startRemoteServer(options: RemoteServerOptions): IDestroyable {
 
             try {
                 if (llmToolsConfiguration !== null && !isAnonymousModeAllowed) {
-                    throw new PipelineExecutionError(`Anonymous mode is not allowed`); // <- TODO: !!!!!! Test
+                    throw new PipelineExecutionError(`Anonymous mode is not allowed`); // <- TODO: !!! Test
                 }
 
                 if (clientId !== null && !isCollectionModeAllowed) {
-                    throw new PipelineExecutionError(`Collection mode is not allowed`); // <- TODO: !!!!!! Test
+                    throw new PipelineExecutionError(`Collection mode is not allowed`); // <- TODO: !!! Test
                 }
 
                 // TODO: !!!! Validate here clientId (pass validator as dependency)
@@ -214,7 +214,6 @@ export function startRemoteServer(options: RemoteServerOptions): IDestroyable {
 }
 
 /**
- * TODO: [🍜] !!!!!! Add anonymous option
  * TODO: [⚖] Expose the collection to be able to connect to same collection via createCollectionFromUrl
  * TODO: Handle progress - support streaming
  * TODO: [🗯] Do not hang up immediately but wait until client closes OR timeout

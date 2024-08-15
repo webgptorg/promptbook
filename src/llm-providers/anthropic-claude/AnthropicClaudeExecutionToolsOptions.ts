@@ -35,7 +35,5 @@ export type AnthropicClaudeExecutionToolsProxiedOptions = CommonExecutionToolsOp
     } & Pick<RemoteLlmExecutionToolsOptions, 'remoteUrl' | 'path'>;
 
 /**
- * TODO: [🍜] Default remote remoteUrl and path for anonymous server
- * TODO: [🍜] !!!!!! Auto add WebGPT / Promptbook.studio anonymous server in browser
  * TODO: [🧠][🤺] Detecting `user`
  */
