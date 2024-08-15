@@ -1,4 +1,3 @@
-import * as dotenv from 'dotenv';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import type { TODO_any } from '../../utils/organization/TODO_any';
 import { joinLlmExecutionTools } from '../multiple/joinLlmExecutionTools';
@@ -34,7 +33,7 @@ export function createLlmToolsFromConfiguration(
 ): MultipleLlmExecutionTools {
     const { isVerbose = false } = options;
 
-    dotenv.config();
+
 
     const llmTools: Array<LlmExecutionTools> = configuration.map((llmConfiguration: TODO_any) =>
         EXECUTION_TOOLS_CLASSES[`create${llmConfiguration.className}`]!(
