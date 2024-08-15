@@ -24,8 +24,8 @@ export const LLM_CONFIGURATION_BOILERPLATES: LlmToolsConfiguration = [
         options: {
             apiKey: 'sk-ant-api03-',
             isProxied: true,
-            remoteUrl: 'https://!!!!!!',
-            path: '/socket.io!!!!!!',
+            remoteUrl: `https://api.pavolhejny.com/`,
+            path: '/promptbook/socket.io',
         },
     },
     {
