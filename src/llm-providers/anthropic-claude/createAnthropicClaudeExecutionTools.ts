@@ -1,4 +1,5 @@
 import { RemoteLlmExecutionTools } from '../remote/RemoteLlmExecutionTools';
+import { ANTHROPIC_CLAUDE_MODELS } from './anthropic-claude-models';
 import { AnthropicClaudeExecutionTools } from './AnthropicClaudeExecutionTools';
 import type { AnthropicClaudeExecutionToolsOptions } from './AnthropicClaudeExecutionToolsOptions';
 
@@ -25,6 +26,7 @@ export function createAnthropicClaudeExecutionTools(
                     },
                 },
             ],
+            models: ANTHROPIC_CLAUDE_MODELS,
         });
     }
 
