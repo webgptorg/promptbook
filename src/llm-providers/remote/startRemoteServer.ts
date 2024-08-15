@@ -53,6 +53,7 @@ export function startRemoteServer(options: RemoteServerOptions): IDestroyable {
                     Server for processing promptbook remote requests is running.
 
                     Version: ${PROMPTBOOK_VERSION}
+                    Socket.io path: ${path}/socket.io
                     Anonymouse mode: ${isAnonymousModeAllowed ? 'enabled' : 'disabled'}
                     Collection mode: ${isCollectionModeAllowed ? 'enabled' : 'disabled'}
                     ${block(
@@ -112,7 +113,7 @@ export function startRemoteServer(options: RemoteServerOptions): IDestroyable {
                 if (llmToolsConfiguration !== null) {
                     // Note: Anonymouse mode
                     // TODO: Maybe check that configuration is not empty
-                    llmExecutionTools = createLlmToolsFromConfiguration(llmToolsConfiguration);
+                    llmExecutionTools = createLlmToolsFromConfiguration(llmToolsConfiguration, { isVerbose });
                 } else if (createLlmExecutionTools !== null) {
                     // Note: Collection mode
                     llmExecutionTools = createLlmExecutionTools(

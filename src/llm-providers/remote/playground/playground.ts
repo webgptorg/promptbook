@@ -29,6 +29,7 @@ async function playground() {
     startRemoteServer({
         path: '/promptbook',
         port: 4460,
+        isVerbose: true,
         isAnonymousModeAllowed: true,
         isCollectionModeAllowed: true,
         collection: await createCollectionFromDirectory('./samples/templates/', { llmTools: null, isRecursive: false }),
@@ -44,9 +45,6 @@ async function playground() {
     });
 
     await forTime(1000);
-
-
-
 
     await forEver();
 
