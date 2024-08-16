@@ -5,23 +5,22 @@ import colors from 'colors';
 import spaceTrim from 'spacetrim';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
-import type { AvailableModel } from '../../execution/LlmExecutionTools';
-import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
+import type { AvailableModel, LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import type { ChatPromptResult } from '../../execution/PromptResult';
-import type { PromptResultUsage } from '../../execution/PromptResultUsage';
-import { computeUsageCounts } from '../../execution/utils/computeUsageCounts';
-import { uncertainNumber } from '../../execution/utils/uncertainNumber';
 import type { Prompt } from '../../types/Prompt';
-import type { string_date_iso8601 } from '../../types/typeAliases';
-import type { string_markdown } from '../../types/typeAliases';
-import type { string_markdown_text } from '../../types/typeAliases';
-import type { string_model_name } from '../../types/typeAliases';
-import type { string_title } from '../../types/typeAliases';
+import type {
+    string_date_iso8601,
+    string_markdown,
+    string_markdown_text,
+    string_model_name,
+    string_title,
+} from '../../types/typeAliases';
 import { getCurrentIsoDate } from '../../utils/getCurrentIsoDate';
 import type { really_any } from '../../utils/organization/really_any';
 import { replaceParameters } from '../../utils/replaceParameters';
 import { ANTHROPIC_CLAUDE_MODELS } from './anthropic-claude-models';
 import type { AnthropicClaudeExecutionToolsDirectOptions } from './AnthropicClaudeExecutionToolsOptions';
+import { computeAnthropicClaudeUsage } from './computeAnthropicClaudeUsage';
 
 /**
  * Execution Tools for calling Anthropic Claude API.
@@ -45,10 +44,8 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools {
         const anthropicOptions: ClientOptions = { ...options };
         delete (anthropicOptions as really_any).isVerbose;
         delete (anthropicOptions as really_any).isProxied;
-        this.client = new Anthropic(
-            //            <- TODO: [🧱] Implement in a functional (not new Class) way
-            anthropicOptions,
-        );
+        this.client = new Anthropic(anthropicOptions);
+        // <- TODO: !!!!!! Lazy-load client
     }
 
     public get title(): string_title & string_markdown_text {
@@ -121,23 +118,11 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools {
             throw new PipelineExecutionError(`Returned content is not "text" type but "${contentBlock.type}"`);
         }
 
-        console.log('!!!!!! rawResponse.usage', rawResponse.usage);
-
         const resultContent = contentBlock.text;
 
         // eslint-disable-next-line prefer-const
         complete = getCurrentIsoDate();
-        const usage = {
-            price: { value: 0, isUncertain: true } /* <- TODO: [🐞] !!!!!! Compute usage */,
-            input: {
-                tokensCount: uncertainNumber(rawResponse.usage.input_tokens),
-                ...computeUsageCounts(prompt.content),
-            },
-            output: {
-                tokensCount: uncertainNumber(rawResponse.usage.output_tokens),
-                ...computeUsageCounts(prompt.content),
-            },
-        } satisfies PromptResultUsage; /* <- TODO: [🤛] */
+        const usage = computeAnthropicClaudeUsage(content, '', rawResponse);
 
         return {
             content: resultContent,

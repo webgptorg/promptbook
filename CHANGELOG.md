@@ -447,10 +447,10 @@ Was accidentally released skipped
 
 -   Prefix all non-pure by `$`
 -   Add model `claude-3-5-sonnet-20240620` to `AnthropicClaudeExecutionTools`
--   [🐞] !!!!!! Fix usage counting in `AnthropicClaudeExecutionTools`
--   Update `@anthropic-ai/sdk` from `0.21.1` to `0.26.1` <- TODO: !!!!!! Test that it works
--   Update `@azure/openai` from `1.0.0-beta.12` to `2.0.0-beta.1` <- TODO: !!!!!! Test that it works
--   Update `openai` from `4.46.1` to `4.55.9` <- TODO: !!!!!! Test that it works
+-   [🐞] Fix usage counting in `AnthropicClaudeExecutionTools`
+-   Update `@anthropic-ai/sdk` from `0.21.1` to `0.26.1`
+-   Update `@azure/openai` from `1.0.0-beta.12` to `2.0.0-beta.1`
+-   Update `openai` from `4.46.1` to `4.55.9`
 
 ## In prepare
 

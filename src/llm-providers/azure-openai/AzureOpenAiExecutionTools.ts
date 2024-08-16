@@ -41,10 +41,10 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools {
 
             `https://${options.resourceName}.openai.azure.com/`,
             new AzureKeyCredential(
-                //            <- TODO: [🧱] Implement in a functional (not new Class) way
                 options.apiKey,
             ),
         );
+        // <- TODO: !!!!!! Lazy-load client
     }
 
     public get title(): string_title & string_markdown_text {

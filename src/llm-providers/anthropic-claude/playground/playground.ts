@@ -5,6 +5,7 @@ import * as dotenv from 'dotenv';
 dotenv.config({ path: '.env' });
 
 import colors from 'colors';
+import { usageToHuman } from '../../../execution/utils/usageToHuman';
 import type { Prompt } from '../../../types/Prompt';
 import { keepUnused } from '../../../utils/organization/keepUnused';
 import { createAnthropicClaudeExecutionTools } from '../createAnthropicClaudeExecutionTools';
@@ -34,6 +35,7 @@ async function playground() {
     });
 
     keepUnused(anthropicClaudeExecutionTools);
+    keepUnused(usageToHuman);
     keepUnused<Prompt>();
 
     /*/
@@ -53,6 +55,7 @@ async function playground() {
     } as const satisfies Prompt;
     const completionPromptResult = await anthropicClaudeExecutionTools.callCompletionModel(completionPrompt);
     console.info({ completionPromptResult });
+    console.info(colors.cyan(usageToHuman(chatPromptResult.usage)));
     console.info(chalk.green(completionPrompt.content + completionPromptResult.content));
     /**/
 
@@ -69,6 +72,7 @@ async function playground() {
     } as const satisfies Prompt;
     const chatPromptResult = await anthropicClaudeExecutionTools.callChatModel(chatPrompt);
     console.info({ chatPromptResult });
+    console.info(colors.cyan(usageToHuman(chatPromptResult.usage)));
     console.info(colors.bgBlue(' User: ') + colors.blue(chatPrompt.content));
     console.info(colors.bgGreen(' Completion: ') + colors.green(chatPromptResult.content));
     /**/

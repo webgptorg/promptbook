@@ -10,3 +10,8 @@ import type { really_any } from '../organization/really_any';
 export function $getGlobalScope(): really_any {
     return Function('return this')();
 }
+
+
+/***
+ * TODO: !!!!! Make private and promptbook registry from this
+ */

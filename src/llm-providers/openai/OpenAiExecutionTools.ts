@@ -42,11 +42,11 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
         delete openAiOptions.isVerbose;
         delete openAiOptions.user;
         this.client = new OpenAI(
-            //            <- TODO: [🧱] Implement in a functional (not new Class) way
             {
                 ...openAiOptions,
             },
         );
+        // <- TODO: !!!!!! Lazy-load client
     }
 
     public get title(): string_title & string_markdown_text {

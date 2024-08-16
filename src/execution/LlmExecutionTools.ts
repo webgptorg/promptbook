@@ -1,13 +1,8 @@
 import type { Promisable } from 'type-fest';
 import type { ModelVariant } from '../types/ModelVariant';
 import type { Prompt } from '../types/Prompt';
-import type { string_markdown } from '../types/typeAliases';
-import type { string_markdown_text } from '../types/typeAliases';
-import type { string_model_name } from '../types/typeAliases';
-import type { string_title } from '../types/typeAliases';
-import type { ChatPromptResult } from './PromptResult';
-import type { CompletionPromptResult } from './PromptResult';
-import type { EmbeddingPromptResult } from './PromptResult';
+import type { string_markdown, string_markdown_text, string_model_name, string_title } from '../types/typeAliases';
+import type { ChatPromptResult, CompletionPromptResult, EmbeddingPromptResult } from './PromptResult';
 
 /**
  * Container for all the tools needed to execute prompts to large language models like GPT-4
@@ -32,6 +27,19 @@ export type LlmExecutionTools = {
     readonly description: string_markdown;
 
     /**
+     * Check comfiguration
+     *
+     * @returns nothing if configuration is correct
+     * @throws {Error} if configuration is incorrect
+     */
+    // !!!!!! checkConfiguration(): Promisable<void>;
+
+    /**
+     * List all available models that can be used
+     */
+    listModels(): Promisable<Array<AvailableModel>>;
+
+    /**
      * Calls a chat model
      */
     callChatModel?(prompt: Prompt): Promise<ChatPromptResult>;
@@ -45,11 +53,6 @@ export type LlmExecutionTools = {
      * Calls an embedding model
      */
     callEmbeddingModel?(prompt: Prompt): Promise<EmbeddingPromptResult>;
-
-    /**
-     * List all available models that can be used
-     */
-    listModels(): Promisable<Array<AvailableModel>>;
 };
 
 /**
@@ -75,8 +78,8 @@ export type AvailableModel = {
 };
 
 /**
+ * TODO: Implement destroyable pattern to free resources
  * TODO: [🏳] Add `callTranslationModel`
- * TODO: Maybe reorder `listModels` and put it befor `callChatModel`, `callCompletionModel`, `callEmbeddingModel`
  * TODO: [🧠] Emulation of one type of model with another one - emuate chat with completion; emulate translation with chat
  * TODO: [🍓][♐] Some heuristic to pick the best model in listed models
  * TODO: [🧠] Should or should not there be a word "GPT" in both callCompletionModel and callChatModel

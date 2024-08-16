@@ -6,6 +6,7 @@ dotenv.config({ path: '.env' });
 
 import colors from 'colors';
 import { embeddingVectorToString } from '../../../execution/embeddingVectorToString';
+import { usageToHuman } from '../../../execution/utils/usageToHuman';
 import type { Prompt } from '../../../types/Prompt';
 import { keepUnused } from '../../../utils/organization/keepUnused';
 import { OpenAiExecutionTools } from '../OpenAiExecutionTools';
@@ -36,6 +37,7 @@ async function playground() {
 
     keepUnused(openAiExecutionTools);
     keepUnused(embeddingVectorToString);
+    keepUnused(usageToHuman);
     keepUnused<Prompt>();
 
     /*/
@@ -54,11 +56,12 @@ async function playground() {
     } as const satisfies Prompt;
     const completionPromptResult = await openAiExecutionTools.callCompletionModel(completionPrompt);
     console.info({ completionPromptResult });
+    console.info(colors.cyan(usageToHuman(chatPromptResult.usage)));
     console.info(chalk.green(completionPrompt.content + completionPromptResult.content));
     /**/
 
     /**/
-    const chatprompt = {
+    const chatPrompt = {
         title: 'Poem about Prague',
         parameters: {},
         content: `Write me something about Prague`,
@@ -68,10 +71,11 @@ async function playground() {
             temperature: 1.5,
         },
     } as const satisfies Prompt;
-    const chatpromptResult = await openAiExecutionTools.callChatModel(chatprompt);
-    console.info({ chatpromptResult });
-    console.info(colors.bgBlue(' User: ') + colors.blue(chatprompt.content));
-    console.info(colors.bgGreen(' Completion: ') + colors.green(chatpromptResult.content));
+    const chatPromptResult = await openAiExecutionTools.callChatModel(chatPrompt);
+    console.info({ chatPromptResult });
+    console.info(colors.cyan(usageToHuman(chatPromptResult.usage)));
+    console.info(colors.bgBlue(' User: ') + colors.blue(chatPrompt.content));
+    console.info(colors.bgGreen(' Completion: ') + colors.green(chatPromptResult.content));
     /**/
 
     /*/
@@ -90,6 +94,7 @@ async function playground() {
     } as const satisfies Prompt;
     const promptResult = await openAiExecutionTools.callEmbeddingModel(prompt);
     console.info({ promptResult });
+    console.info(colors.cyan(usageToHuman(chatPromptResult.usage)));
     console.info(chalk.bgBlue(' User: ') + chalk.blue(prompt.content));
     console.info(chalk.bgGreen(' Embedding: ') + chalk.green(embeddingVectorToString(promptResult.content)));
     /**/

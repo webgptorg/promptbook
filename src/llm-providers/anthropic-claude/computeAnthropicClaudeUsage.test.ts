@@ -1,16 +1,16 @@
 import { describe, expect, it } from '@jest/globals';
-import { computeOpenaiUsage } from './computeOpenaiUsage';
+import { computeAnthropicClaudeUsage } from './computeAnthropicClaudeUsage';
 
-describe('how computeOpenaiUsage works', () => {
+describe('how computeAnthropicClaudeUsage works', () => {
     // TODO: [🐞] Test Chat and Completion models
 
-    it('should compute a OpenAI usage of embedding model', () => {
+    it('should compute a Anthropic Claude usage of embedding model', () => {
         expect(
-            computeOpenaiUsage('', '', {
-                model: 'text-embedding-3-large',
+            computeAnthropicClaudeUsage('', '', {
+                model: 'claude-3-opus-20240229',
                 usage: {
-                    prompt_tokens: 29,
-                    // total_tokens: 29,
+                    input_tokens: 7,
+                    output_tokens: 3,
                 },
             }),
         ).toEqual({
@@ -31,7 +31,7 @@ describe('how computeOpenaiUsage works', () => {
                     value: 0,
                 },
                 tokensCount: {
-                    value: 29,
+                    value: 7,
                 },
                 wordsCount: {
                     value: 0,
@@ -54,14 +54,14 @@ describe('how computeOpenaiUsage works', () => {
                     value: 0,
                 },
                 tokensCount: {
-                    value: 0,
+                    value: 3,
                 },
                 wordsCount: {
                     value: 0,
                 },
             },
             price: {
-                value: 0.00000377,
+                value: 0.00033,
             },
         });
     });
