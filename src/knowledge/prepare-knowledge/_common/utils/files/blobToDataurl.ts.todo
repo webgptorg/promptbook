@@ -15,8 +15,12 @@ export async function blobToDataurl(source: Blob | File): Promise<string_data_ur
         return `data:${source.type};base64,${base64}` as string_data_url;
     }
 
-    return new Promise((resolve) => {
-        const reader = new FileReader();
+    return new Promise(
+//            <- TODO: [🧱] Implement in a functional (not new Class) way
+(resolve) => {
+        const reader = new FileReader(
+//            <- TODO: [🧱] Implement in a functional (not new Class) way
+);
         reader.addEventListener('load', async (event) => {
             const dataurl = event.target!.result as string_data_url;
             resolve(dataurl);

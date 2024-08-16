@@ -46,7 +46,10 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools {
         const anthropicOptions: ClientOptions = { ...options };
         delete (anthropicOptions as really_any).isVerbose;
         delete (anthropicOptions as really_any).isProxied;
-        this.client = new Anthropic(anthropicOptions);
+        this.client = new Anthropic(
+            //            <- TODO: [🧱] Implement in a functional (not new Class) way
+            anthropicOptions,
+        );
     }
 
     public get title(): string_title & string_markdown_text {

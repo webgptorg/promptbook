@@ -51,7 +51,10 @@ export function joinLlmExecutionTools(...llmExecutionTools: Array<LlmExecutionTo
         */
     }
 
-    return new MultipleLlmExecutionTools(...llmExecutionTools);
+    return new MultipleLlmExecutionTools(
+        //            <- TODO: [🧱] Implement in a functional (not new Class) way
+        ...llmExecutionTools,
+    );
 }
 
 /**

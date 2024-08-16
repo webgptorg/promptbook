@@ -67,7 +67,10 @@ export async function preparePipeline(pipeline: PipelineJson, options: PrepareOp
     // ----- Personas preparation -----
     // TODO: !! Extract to similar function as `prepareTemplates`
     // TODO: [🖌][🧠] Implement some `mapAsync` function
-    const preparedPersonas: Array<PersonaPreparedJson> = new Array(personas.length);
+    const preparedPersonas: Array<PersonaPreparedJson> = new Array(
+        //            <- TODO: [🧱] Implement in a functional (not new Class) way
+        personas.length,
+    );
     await forEachAsync(
         personas,
         { maxParallelCount /* <- TODO: [🪂] When there are subtasks, this maximul limit can be broken */ },

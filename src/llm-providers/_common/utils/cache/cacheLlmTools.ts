@@ -31,7 +31,11 @@ export function cacheLlmTools<TLlmTools extends LlmExecutionTools>(
     llmTools: TLlmTools,
     options: Partial<CacheLlmToolsOptions> = {},
 ): TLlmTools {
-    const { storage = new MemoryStorage(), isReloaded = false } = options;
+    const {
+        storage = new MemoryStorage(),
+        //            <- TODO: [🧱] Implement in a functional (not new Class) way
+        isReloaded = false,
+    } = options;
 
     const proxyTools: TLlmTools = {
         ...llmTools,

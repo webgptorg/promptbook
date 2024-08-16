@@ -13,5 +13,8 @@ import { SimplePipelineCollection } from '../SimplePipelineCollection';
  * @public exported from `@promptbook/core`
  */
 export function createCollectionFromJson(...promptbooks: Array<PipelineJson>): PipelineCollection {
-    return new SimplePipelineCollection(...promptbooks);
+    return new SimplePipelineCollection(
+        //            <- TODO: [🧱] Implement in a functional (not new Class) way
+        ...promptbooks,
+    );
 }

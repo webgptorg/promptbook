@@ -18,10 +18,13 @@ export async function $fakeTextToExpectations(
     expectations: Expectations,
     postprocessing?: Array<PostprocessingFunction>,
 ): Promise<string> {
-    const lorem = new LoremIpsum({
-        wordsPerSentence: { min: 5, max: 15 },
-        sentencesPerParagraph: { min: 5, max: 15 },
-    });
+    const lorem = new LoremIpsum(
+        //            <- TODO: [🧱] Implement in a functional (not new Class) way
+        {
+            wordsPerSentence: { min: 5, max: 15 },
+            sentencesPerParagraph: { min: 5, max: 15 },
+        },
+    );
     let loremText = '';
     let text = '';
 

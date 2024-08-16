@@ -40,25 +40,28 @@ export class RemoteLlmExecutionTools implements LlmExecutionTools {
      * Creates a connection to the remote proxy server.
      */
     private makeConnection(): Promise<Socket> {
-        return new Promise((resolve, reject) => {
-            const socket = io(this.options.remoteUrl, {
-                path: this.options.path,
-                // path: `${this.remoteUrl.pathname}/socket.io`,
-                transports: [/*'websocket', <- TODO: [🌬] Make websocket transport work */ 'polling'],
-            });
+        return new Promise(
+            //            <- TODO: [🧱] Implement in a functional (not new Class) way
+            (resolve, reject) => {
+                const socket = io(this.options.remoteUrl, {
+                    path: this.options.path,
+                    // path: `${this.remoteUrl.pathname}/socket.io`,
+                    transports: [/*'websocket', <- TODO: [🌬] Make websocket transport work */ 'polling'],
+                });
 
-            // console.log('Connecting to', this.options.remoteUrl.href, { socket });
+                // console.log('Connecting to', this.options.remoteUrl.href, { socket });
 
-            socket.on('connect', () => {
-                resolve(socket);
-            });
+                socket.on('connect', () => {
+                    resolve(socket);
+                });
 
-            // TODO: !!!! Better timeout handling
+                // TODO: !!!! Better timeout handling
 
-            setTimeout(() => {
-                reject(new Error(`Timeout while connecting to ${this.options.remoteUrl}`));
-            }, 1000 /* <- TODO: Timeout to config */);
-        });
+                setTimeout(() => {
+                    reject(new Error(`Timeout while connecting to ${this.options.remoteUrl}`));
+                }, 1000 /* <- TODO: Timeout to config */);
+            },
+        );
     }
 
     /**

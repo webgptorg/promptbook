@@ -37,7 +37,10 @@ export function getLlmToolsForCli(options?: GetLlmToolsForCliOptions): LlmExecut
             createLlmToolsFromEnv(),
         ),
         {
-            storage: new FilesStorage({ cacheFolderPath: join(process.cwd(), EXECUTIONS_CACHE_DIRNAME) }),
+            storage: new FilesStorage(
+                //            <- TODO: [🧱] Implement in a functional (not new Class) way
+                { cacheFolderPath: join(process.cwd(), EXECUTIONS_CACHE_DIRNAME) },
+            ),
             isReloaded: isCacheReloaded,
         },
     );

@@ -48,13 +48,20 @@ export const LLM_CONFIGURATION_BOILERPLATES: LlmToolsConfiguration = [
  */
 export const EXECUTION_TOOLS_CLASSES: Record<`create${string}`, (options: TODO_any) => LlmExecutionTools> = {
     createOpenAiExecutionTools: (options: TODO_any) =>
-        new OpenAiExecutionTools({
-            ...options,
-            dangerouslyAllowBrowser:
-                true /* <- TODO: [🧠] !!! Some mechanism for auto-detection of browser, maybe hide in `OpenAiExecutionTools` */,
-        }),
+        new OpenAiExecutionTools(
+            //            <- TODO: [🧱] Implement in a functional (not new Class) way
+            {
+                ...options,
+                dangerouslyAllowBrowser:
+                    true /* <- TODO: [🧠] !!! Some mechanism for auto-detection of browser, maybe hide in `OpenAiExecutionTools` */,
+            },
+        ),
     createAnthropicClaudeExecutionTools,
-    createAzureOpenAiExecutionTools: (options: TODO_any) => new AzureOpenAiExecutionTools(options),
+    createAzureOpenAiExecutionTools: (options: TODO_any) =>
+        new AzureOpenAiExecutionTools(
+            //            <- TODO: [🧱] Implement in a functional (not new Class) way
+            options,
+        ),
 
     // <- Note: [🦑] Add here new LLM provider
 };

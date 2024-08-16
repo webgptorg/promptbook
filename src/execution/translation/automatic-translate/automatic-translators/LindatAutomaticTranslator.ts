@@ -16,6 +16,7 @@ export class LindatAutomaticTranslator implements AutomaticTranslator {
     public constructor(private readonly options: LindatAutomaticTranslatorOptions) {}
     public async translate(message: string): Promise<string> {
         const formData = new FormData();
+        //            <- TODO: [🧱] Implement in a functional (not new Class) way
         formData.append('input_text', message);
         formData.append('src', this.options.from);
         formData.append('tgt', this.options.to);

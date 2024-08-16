@@ -37,7 +37,10 @@ export async function prepareTemplates(
     TODO_USE(parameters);
 
     // TODO: [🖌][🧠] Implement some `mapAsync` function
-    const promptTemplatesPrepared: Array<PromptTemplateJson> = new Array(promptTemplates.length);
+    const promptTemplatesPrepared: Array<PromptTemplateJson> = new Array(
+        //            <- TODO: [🧱] Implement in a functional (not new Class) way
+        promptTemplates.length,
+    );
     await forEachAsync(
         promptTemplates,
         { maxParallelCount /* <- TODO: [🪂] When there are subtasks, this maximul limit can be broken */ },

@@ -51,9 +51,12 @@ async function playground() {
             isVerbose: true,
         }),
         script: [
-            new JavascriptExecutionTools({
-                isVerbose: false,
-            }),
+            new JavascriptExecutionTools(
+                //            <- TODO: [🧱] Implement in a functional (not new Class) way
+                {
+                    isVerbose: false,
+                },
+            ),
         ],
     };
 

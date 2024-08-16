@@ -12,25 +12,31 @@ export function createAnthropicClaudeExecutionTools(
     options: AnthropicClaudeExecutionToolsOptions,
 ): AnthropicClaudeExecutionTools | RemoteLlmExecutionTools {
     if (options.isProxied) {
-        return new RemoteLlmExecutionTools({
-            ...options,
-            isAnonymous: true,
-            llmToolsConfiguration: [
-                {
-                    title: 'Anthropic Claude (proxied)',
-                    packageName: '@promptbook/anthropic-claude',
-                    className: 'AnthropicClaudeExecutionTools',
-                    options: {
-                        ...options,
-                        isProxied: false,
+        return new RemoteLlmExecutionTools(
+            //            <- TODO: [🧱] Implement in a functional (not new Class) way
+            {
+                ...options,
+                isAnonymous: true,
+                llmToolsConfiguration: [
+                    {
+                        title: 'Anthropic Claude (proxied)',
+                        packageName: '@promptbook/anthropic-claude',
+                        className: 'AnthropicClaudeExecutionTools',
+                        options: {
+                            ...options,
+                            isProxied: false,
+                        },
                     },
-                },
-            ],
-            models: ANTHROPIC_CLAUDE_MODELS,
-        });
+                ],
+                models: ANTHROPIC_CLAUDE_MODELS,
+            },
+        );
     }
 
-    return new AnthropicClaudeExecutionTools(options);
+    return new AnthropicClaudeExecutionTools(
+        //            <- TODO: [🧱] Implement in a functional (not new Class) way
+        options,
+    );
 }
 
 /**

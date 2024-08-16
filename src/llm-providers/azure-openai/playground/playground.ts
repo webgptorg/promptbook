@@ -25,12 +25,15 @@ async function playground() {
     // Do here stuff you want to test
     //========================================>
 
-    const azureOpenAiExecutionTools = new AzureOpenAiExecutionTools({
-        isVerbose: true,
-        resourceName: process.env.AZUREOPENAI_RESOURCE_NAME!,
-        deploymentName: process.env.AZUREOPENAI_DEPLOYMENT_NAME!,
-        apiKey: process.env.AZUREOPENAI_API_KEY!,
-    });
+    const azureOpenAiExecutionTools = new AzureOpenAiExecutionTools(
+        //            <- TODO: [🧱] Implement in a functional (not new Class) way
+        {
+            isVerbose: true,
+            resourceName: process.env.AZUREOPENAI_RESOURCE_NAME!,
+            deploymentName: process.env.AZUREOPENAI_DEPLOYMENT_NAME!,
+            apiKey: process.env.AZUREOPENAI_API_KEY!,
+        },
+    );
 
     keepUnused(azureOpenAiExecutionTools);
     keepUnused<Prompt>();

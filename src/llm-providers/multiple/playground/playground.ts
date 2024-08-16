@@ -32,23 +32,35 @@ async function playground() {
 
     const tools = {
         llm: [
-            new OpenAiExecutionTools({
-                isVerbose: true,
-                apiKey: process.env.OPENAI_API_KEY!,
-            }),
-            new AnthropicClaudeExecutionTools({
-                isVerbose: true,
-                apiKey: process.env.ANTHROPIC_CLAUDE_API_KEY!,
-            }),
-            new AzureOpenAiExecutionTools({
-                isVerbose: true,
-                resourceName: process.env.AZUREOPENAI_RESOURCE_NAME!,
-                deploymentName: process.env.AZUREOPENAI_DEPLOYMENT_NAME!,
-                apiKey: process.env.AZUREOPENAI_API_KEY!,
-            }),
+            new OpenAiExecutionTools(
+                //            <- TODO: [🧱] Implement in a functional (not new Class) way
+                {
+                    isVerbose: true,
+                    apiKey: process.env.OPENAI_API_KEY!,
+                },
+            ),
+            new AnthropicClaudeExecutionTools(
+                //            <- TODO: [🧱] Implement in a functional (not new Class) way
+                {
+                    isVerbose: true,
+                    apiKey: process.env.ANTHROPIC_CLAUDE_API_KEY!,
+                },
+            ),
+            new AzureOpenAiExecutionTools(
+                //            <- TODO: [🧱] Implement in a functional (not new Class) way
+                {
+                    isVerbose: true,
+                    resourceName: process.env.AZUREOPENAI_RESOURCE_NAME!,
+                    deploymentName: process.env.AZUREOPENAI_DEPLOYMENT_NAME!,
+                    apiKey: process.env.AZUREOPENAI_API_KEY!,
+                },
+            ),
             // TODO: [🦻] Add langtail
         ],
-        script: [new JavascriptExecutionTools()],
+        script: [
+            new JavascriptExecutionTools(),
+            //            <- TODO: [🧱] Implement in a functional (not new Class) way
+        ],
     };
     const llmTools = joinLlmExecutionTools(...tools.llm);
 

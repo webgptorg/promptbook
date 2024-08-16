@@ -12,26 +12,36 @@ export function createBestTranslator({
 
     /* [🌐] */
     if (to === 'en') {
-        return new LindatAutomaticTranslator({
+        return new LindatAutomaticTranslator(
+//            <- TODO: [🧱] Implement in a functional (not new Class) way
+{
             from,
             to,
             apiUrl: new URL(`https://lindat.mff.cuni.cz/services/translation/api/v2/languages/`),
         });
     } else if (to === 'sk') {
-        return new GoogleAutomaticTranslator({ from, to, isHeadless });
+        return new GoogleAutomaticTranslator(
+//            <- TODO: [🧱] Implement in a functional (not new Class) way
+{ from, to, isHeadless });
     } else if (to === 'pl') {
-        return new LindatAutomaticTranslator({
+        return new LindatAutomaticTranslator(
+//            <- TODO: [🧱] Implement in a functional (not new Class) way
+{
             from,
             to,
             apiUrl: new URL(`https://lindat.mff.cuni.cz/services/translation/api/v2/languages/`),
         });
     } else if (to === 'uk') {
-        return new LindatAutomaticTranslator({
+        return new LindatAutomaticTranslator(
+//            <- TODO: [🧱] Implement in a functional (not new Class) way
+{
             from,
             to,
             apiUrl: new URL(`https://lindat.cz/translation/api/v2/languages/`),
         });
     } else {
-        return new GoogleAutomaticTranslator({ from, to });
+        return new GoogleAutomaticTranslator(
+//            <- TODO: [🧱] Implement in a functional (not new Class) way
+{ from, to });
     }
 }

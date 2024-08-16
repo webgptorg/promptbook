@@ -3,10 +3,13 @@ import { spaceTrim } from 'spacetrim';
 import { JavascriptEvalExecutionTools } from './JavascriptEvalExecutionTools';
 
 describe('JavascriptEvalExecutionTools', () => {
-    const javascriptEvalExecutionTools = new JavascriptEvalExecutionTools({
-        isVerbose: true,
-        // Note: [🕎] Custom functions are tested elsewhere
-    });
+    const javascriptEvalExecutionTools = new JavascriptEvalExecutionTools(
+        //            <- TODO: [🧱] Implement in a functional (not new Class) way
+        {
+            isVerbose: true,
+            // Note: [🕎] Custom functions are tested elsewhere
+        },
+    );
 
     it('should evaluate supersimple statement', () => {
         expect(

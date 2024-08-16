@@ -45,9 +45,12 @@ async function playground() {
 - ...
 `);
 
-    const client = new OpenAI({
-        apiKey: process.env.OPENAI_API_KEY!,
-    });
+    const client = new OpenAI(
+        //            <- TODO: [🧱] Implement in a functional (not new Class) way
+        {
+            apiKey: process.env.OPENAI_API_KEY!,
+        },
+    );
 
     const response = await client.chat.completions.create({
         model: 'gpt-4o-2024-05-13',

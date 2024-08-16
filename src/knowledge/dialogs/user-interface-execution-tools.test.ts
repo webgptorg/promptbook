@@ -65,14 +65,20 @@ async function getPipelineExecutor() {
     const pipelineExecutor = createPipelineExecutor({
         pipeline,
         tools: {
-            llm: new MockedEchoLlmExecutionTools({ isVerbose: true }),
+            llm: new MockedEchoLlmExecutionTools(
+                //            <- TODO: [🧱] Implement in a functional (not new Class) way
+                { isVerbose: true },
+            ),
             script: [],
-            userInterface: new CallbackInterfaceTools({
-                isVerbose: true,
-                async callback({ promptTitle, promptMessage, defaultValue }) {
-                    return `Answer to question "${promptTitle}: ${promptMessage}" is not ${defaultValue} but Pear.`;
+            userInterface: new CallbackInterfaceTools(
+                //            <- TODO: [🧱] Implement in a functional (not new Class) way
+                {
+                    isVerbose: true,
+                    async callback({ promptTitle, promptMessage, defaultValue }) {
+                        return `Answer to question "${promptTitle}: ${promptMessage}" is not ${defaultValue} but Pear.`;
+                    },
                 },
-            }),
+            ),
         },
     });
 

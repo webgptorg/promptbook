@@ -41,11 +41,14 @@ async function main() {
         createLlmExecutionTools(clientId) {
             // <- TODO: [🧠][🤺] Remove `createLlmExecutionTools`, pass just `llmExecutionTools`
             console.log('clientId', clientId);
-            return new OpenAiExecutionTools({
-                isVerbose: true,
-                apiKey: process.env.OPENAI_API_KEY!,
-                user: clientId,
-            });
+            return new OpenAiExecutionTools(
+                //            <- TODO: [🧱] Implement in a functional (not new Class) way
+                {
+                    isVerbose: true,
+                    apiKey: process.env.OPENAI_API_KEY!,
+                    user: clientId,
+                },
+            );
         },
     });
 

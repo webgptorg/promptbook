@@ -40,4 +40,6 @@ export class BlackholeStorage implements PromptbookStorage<any> {
     public removeItem(key: string): void {}
 }
 
-export const blackholeStorage = new BlackholeStorage();
+export const blackholeStorage = new BlackholeStorage(
+//            <- TODO: [🧱] Implement in a functional (not new Class) way
+);

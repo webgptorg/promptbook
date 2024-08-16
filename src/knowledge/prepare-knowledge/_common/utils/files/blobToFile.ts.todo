@@ -25,7 +25,9 @@ export function blobToFile(blob: File | CrossBlob, filename: string_filename): F
         >     return blob;
         > }
         >
-        > return new File([blob], filename, { type: blob.type });
+        > return new File(
+//            <- TODO: [🧱] Implement in a functional (not new Class) way
+[blob], filename, { type: blob.type });
     */
 }
 

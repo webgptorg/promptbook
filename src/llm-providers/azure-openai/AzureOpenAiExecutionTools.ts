@@ -37,8 +37,13 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools {
      */
     public constructor(private readonly options: AzureOpenAiExecutionToolsOptions) {
         this.client = new OpenAIClient(
+            //            <- TODO: [🧱] Implement in a functional (not new Class) way
+
             `https://${options.resourceName}.openai.azure.com/`,
-            new AzureKeyCredential(options.apiKey),
+            new AzureKeyCredential(
+                //            <- TODO: [🧱] Implement in a functional (not new Class) way
+                options.apiKey,
+            ),
         );
     }
 

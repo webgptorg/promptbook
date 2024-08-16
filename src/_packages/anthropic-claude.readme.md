@@ -16,11 +16,17 @@ const pipeline = await collection.getPipelineByUrl(`https://promptbook.studio/my
 
 // ▶ Prepare tools
 const tools = {
-    llm: new AnthropicClaudeExecutionTools({
-        isVerbose: true,
-        apiKey: process.env.ANTHROPIC_CLAUDE_API_KEY,
-    }),
-    script: [new JavascriptExecutionTools()],
+    llm: new AnthropicClaudeExecutionTools(
+        //            <- TODO: [🧱] Implement in a functional (not new Class) way
+        {
+            isVerbose: true,
+            apiKey: process.env.ANTHROPIC_CLAUDE_API_KEY,
+        },
+    ),
+    script: [
+        new JavascriptExecutionTools(),
+        //            <- TODO: [🧱] Implement in a functional (not new Class) way
+    ],
 };
 
 // ▶ Create executor - the function that will execute the Pipeline
@@ -59,7 +65,10 @@ const pipeline = await collection.getPipelineByUrl(`https://promptbook.studio/my
 const tools = {
     // Note: 🧙‍♂️ Just call `createLlmToolsFromEnv` to automatically connect to all configured providers
     llm: createLlmToolsFromEnv(),
-    script: [new JavascriptExecutionTools()],
+    script: [
+        new JavascriptExecutionTools(),
+        //            <- TODO: [🧱] Implement in a functional (not new Class) way
+    ],
 };
 
 // ▶ Create executor - the function that will execute the Pipeline
@@ -99,19 +108,31 @@ const tools = {
     llm: [
         // Note: 💕 You can use multiple LLM providers in one Promptbook execution.
         //       The best model will be chosen automatically according to the prompt and the model's capabilities.
-        new AnthropicClaudeExecutionTools({
-            apiKey: process.env.ANTHROPIC_CLAUDE_API_KEY,
-        }),
-        new OpenAiExecutionTools({
-            apiKey: process.env.OPENAI_API_KEY,
-        }),
-        new AzureOpenAiExecutionTools({
-            resourceName: process.env.AZUREOPENAI_RESOURCE_NAME,
-            deploymentName: process.env.AZUREOPENAI_DEPLOYMENT_NAME,
-            apiKey: process.env.AZUREOPENAI_API_KEY,
-        }),
+        new AnthropicClaudeExecutionTools(
+            //            <- TODO: [🧱] Implement in a functional (not new Class) way
+            {
+                apiKey: process.env.ANTHROPIC_CLAUDE_API_KEY,
+            },
+        ),
+        new OpenAiExecutionTools(
+            //            <- TODO: [🧱] Implement in a functional (not new Class) way
+            {
+                apiKey: process.env.OPENAI_API_KEY,
+            },
+        ),
+        new AzureOpenAiExecutionTools(
+            //            <- TODO: [🧱] Implement in a functional (not new Class) way
+            {
+                resourceName: process.env.AZUREOPENAI_RESOURCE_NAME,
+                deploymentName: process.env.AZUREOPENAI_DEPLOYMENT_NAME,
+                apiKey: process.env.AZUREOPENAI_API_KEY,
+            },
+        ),
     ],
-    script: [new JavascriptExecutionTools()],
+    script: [
+        new JavascriptExecutionTools(),
+        //            <- TODO: [🧱] Implement in a functional (not new Class) way
+    ],
 };
 
 // ▶ Create executor - the function that will execute the Pipeline

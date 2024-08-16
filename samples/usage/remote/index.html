@@ -31,7 +31,9 @@
                 console.info('🔵 Testing remote server of PromptBook');
 
 
-                const formData = new FormData(event.target);
+                const formData = new FormData(
+//            <- TODO: [🧱] Implement in a functional (not new Class) way
+event.target);
                 const word = formData.get('word');
                 const clientId = formData.get('clientId');
 
@@ -44,13 +46,17 @@
                 );
 
                 const tools = {
-                    llm:  new RemoteLlmExecutionTools({
+                    llm:  new RemoteLlmExecutionTools(
+//            <- TODO: [🧱] Implement in a functional (not new Class) way
+{
                                     path: '/promptbook',
                                     remoteUrl: `http://localhost:4460/`,
                                     clientId,
                                 }),
                     script: [
-                        new JavascriptExecutionTools({
+                        new JavascriptExecutionTools(
+//            <- TODO: [🧱] Implement in a functional (not new Class) way
+{
                             isVerbose: true,
                         }),
                     ],

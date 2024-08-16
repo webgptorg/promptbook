@@ -75,29 +75,38 @@ async function getPipelineExecutor() {
     return createPipelineExecutor({
         pipeline,
         tools: {
-            llm: new MockedEchoLlmExecutionTools({ isVerbose: true }),
+            llm: new MockedEchoLlmExecutionTools(
+                //            <- TODO: [🧱] Implement in a functional (not new Class) way
+                { isVerbose: true },
+            ),
             script: [
-                new JavascriptExecutionTools({
-                    isVerbose: true,
+                new JavascriptExecutionTools(
+                    //            <- TODO: [🧱] Implement in a functional (not new Class) way
+                    {
+                        isVerbose: true,
 
-                    // Note: [🕎]
-                    functions: {
-                        addHello(value) {
-                            return `Hello ${value}`;
-                        },
-                        withStatistics(value) {
-                            // Note: Testing custom function with dependencies
-                            return value + ` (${countCharacters(value)} characters, ${countWords(value)} words)`;
+                        // Note: [🕎]
+                        functions: {
+                            addHello(value) {
+                                return `Hello ${value}`;
+                            },
+                            withStatistics(value) {
+                                // Note: Testing custom function with dependencies
+                                return value + ` (${countCharacters(value)} characters, ${countWords(value)} words)`;
+                            },
                         },
                     },
-                }),
+                ),
             ],
-            userInterface: new CallbackInterfaceTools({
-                isVerbose: true,
-                async callback() {
-                    return 'Hello';
+            userInterface: new CallbackInterfaceTools(
+                //            <- TODO: [🧱] Implement in a functional (not new Class) way
+                {
+                    isVerbose: true,
+                    async callback() {
+                        return 'Hello';
+                    },
                 },
-            }),
+            ),
         },
     });
 }

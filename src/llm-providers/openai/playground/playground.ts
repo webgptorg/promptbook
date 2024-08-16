@@ -26,10 +26,13 @@ async function playground() {
     // Do here stuff you want to test
     //========================================>
 
-    const openAiExecutionTools = new OpenAiExecutionTools({
-        isVerbose: true,
-        apiKey: process.env.OPENAI_API_KEY!,
-    });
+    const openAiExecutionTools = new OpenAiExecutionTools(
+        //            <- TODO: [🧱] Implement in a functional (not new Class) way
+        {
+            isVerbose: true,
+            apiKey: process.env.OPENAI_API_KEY!,
+        },
+    );
 
     keepUnused(openAiExecutionTools);
     keepUnused(embeddingVectorToString);

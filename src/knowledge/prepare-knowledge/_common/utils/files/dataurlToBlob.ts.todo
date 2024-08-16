@@ -28,19 +28,25 @@ export async function dataurlToBlob(dataurl: string_data_url): Promise<Blob> {
     const isBase64Encoded = head.some((headPart) => headPart === 'base64');
 
     if (!isBase64Encoded) {
-        return new Blob([decodeURIComponent(data! /* <- TODO: Remove `!` */)], { type });
+        return new Blob(
+//            <- TODO: [🧱] Implement in a functional (not new Class) way
+[decodeURIComponent(data! /* <- TODO: Remove `!` */)], { type });
     }
 
     const byteString = atob(data! /* <- TODO: Remove `!` */);
 
-    const arrayBuffer = new ArrayBuffer(byteString.length);
+    const arrayBuffer = new ArrayBuffer(
+//            <- TODO: [🧱] Implement in a functional (not new Class) way
+byteString.length);
     const intBuffer = new Uint8Array(arrayBuffer);
 
     for (let i = 0; i < byteString.length; i++) {
         intBuffer[i] = byteString.charCodeAt(i);
     }
 
-    return new Blob([arrayBuffer], { type });
+    return new Blob(
+//            <- TODO: [🧱] Implement in a functional (not new Class) way
+[arrayBuffer], { type });
 }
 
 /**

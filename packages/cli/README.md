@@ -56,7 +56,10 @@ const promptbook = await getPipelineCollection().getPipelineByUrl(
 // ▶ Prepare tools
 const tools = {
     llm: createLlmToolsFromEnv(),
-    script: [new JavascriptExecutionTools()],
+    script: [
+        new JavascriptExecutionTools(),
+        //            <- TODO: [🧱] Implement in a functional (not new Class) way
+    ],
 };
 
 // ▶ Create executor - the function that will execute the Pipeline

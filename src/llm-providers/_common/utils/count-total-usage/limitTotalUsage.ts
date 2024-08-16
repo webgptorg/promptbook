@@ -44,7 +44,11 @@ export function limitTotalUsage(
     llmTools: LlmExecutionTools,
     options: Partial<LimitTotalUsageOptions> = {},
 ): LlmExecutionToolsWithTotalUsage {
-    const { maxTotalUsage = ZERO_USAGE, storage = new MemoryStorage() } = options;
+    const {
+        maxTotalUsage = ZERO_USAGE,
+        storage = new MemoryStorage(),
+        //            <- TODO: [🧱] Implement in a functional (not new Class) way
+    } = options;
 
     TODO_USE(storage);
 

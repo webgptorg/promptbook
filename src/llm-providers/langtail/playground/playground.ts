@@ -25,10 +25,13 @@ async function playground() {
     // Do here stuff you want to test
     //========================================>
 
-    const langtailExecutionTools = new LangtailExecutionTools({
-        isVerbose: true,
-        apiKey: process.env.LANGTAIL_API_KEY!,
-    });
+    const langtailExecutionTools = new LangtailExecutionTools(
+        //            <- TODO: [🧱] Implement in a functional (not new Class) way
+        {
+            isVerbose: true,
+            apiKey: process.env.LANGTAIL_API_KEY!,
+        },
+    );
 
     keepUnused(langtailExecutionTools);
     keepUnused<Prompt>();

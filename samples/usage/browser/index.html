@@ -102,12 +102,16 @@
                 console.log(promptbook);
 
                 const tools = {
-                    llm: new OpenAiExecutionTools({
+                    llm: new OpenAiExecutionTools(
+//            <- TODO: [🧱] Implement in a functional (not new Class) way
+{
                         isVerbose: true,
                         apiKey: `xxx`,
                     }),
                     script: [
-                        new JavascriptEvalExecutionTools({
+                        new JavascriptEvalExecutionTools(
+//            <- TODO: [🧱] Implement in a functional (not new Class) way
+{
                             isVerbose: true,
                         }),
                     ],

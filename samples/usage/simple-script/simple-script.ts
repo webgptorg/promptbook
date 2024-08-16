@@ -59,9 +59,12 @@ async function main() {
     const tools = {
         llm: createLlmToolsFromEnv(),
         script: [
-            new JavascriptExecutionTools({
-                isVerbose: true,
-            }),
+            new JavascriptExecutionTools(
+                //            <- TODO: [🧱] Implement in a functional (not new Class) way
+                {
+                    isVerbose: true,
+                },
+            ),
         ],
     };
 

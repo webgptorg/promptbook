@@ -117,14 +117,20 @@ async function getPipelineExecutor() {
     const pipelineExecutor = createPipelineExecutor({
         pipeline,
         tools: {
-            llm: new MockedFackedLlmExecutionTools({ isVerbose: true }),
+            llm: new MockedFackedLlmExecutionTools(
+                //            <- TODO: [🧱] Implement in a functional (not new Class) way
+                { isVerbose: true },
+            ),
             script: [],
-            userInterface: new CallbackInterfaceTools({
-                isVerbose: true,
-                async callback() {
-                    return 'Hello';
+            userInterface: new CallbackInterfaceTools(
+                //            <- TODO: [🧱] Implement in a functional (not new Class) way
+                {
+                    isVerbose: true,
+                    async callback() {
+                        return 'Hello';
+                    },
                 },
-            }),
+            ),
         },
     });
     return pipelineExecutor;
