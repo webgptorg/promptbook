@@ -116,7 +116,16 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools {
             throw new PipelineExecutionError('More than one content blocks from Anthropic Claude');
         }
 
-        const resultContent = rawResponse.content[0].text;
+        const contentBlock = rawResponse.content[0];
+
+        if (contentBlock.type !== 'text') {
+            throw new PipelineExecutionError(`Returned content is not "text" type but "${contentBlock.type}"`);
+        }
+
+        console.log('rawResponse.usage', rawResponse.usage);
+
+        const resultContent = contentBlock.text;
+
         // eslint-disable-next-line prefer-const
         complete = getCurrentIsoDate();
         const usage = {
