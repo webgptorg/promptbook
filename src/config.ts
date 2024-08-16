@@ -1,4 +1,4 @@
-import { LlmToolsConfiguration } from './_packages/types.index';
+import type { LlmToolsConfiguration } from './llm-providers/_common/LlmToolsConfiguration';
 import { $deepFreeze } from './utils/deepFreeze';
 import { just } from './utils/organization/just';
 
