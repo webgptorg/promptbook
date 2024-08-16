@@ -21,6 +21,8 @@ import { replaceParameters } from '../../utils/replaceParameters';
 import { ANTHROPIC_CLAUDE_MODELS } from './anthropic-claude-models';
 import type { AnthropicClaudeExecutionToolsDirectOptions } from './AnthropicClaudeExecutionToolsOptions';
 import { computeAnthropicClaudeUsage } from './computeAnthropicClaudeUsage';
+import './register2';
+import './register4';
 
 /**
  * Execution Tools for calling Anthropic Claude API.
