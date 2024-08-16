@@ -443,6 +443,8 @@ Was accidentally released skipped
 
 ### `0.66.0` _(2024-08-16)_
 
+[🎰] Model updates
+
 -   Prefix all non-pure by `$`
 -   Add model `claude-3-5-sonnet-20240620` to `AnthropicClaudeExecutionTools`
 -   [🐞] !!!!!! Fix usage counting in `AnthropicClaudeExecutionTools`
