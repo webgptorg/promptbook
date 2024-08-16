@@ -14,7 +14,7 @@ import { MultipleLlmExecutionTools } from './MultipleLlmExecutionTools';
  *
  *
  * Tip: You don't have to use this function directly, just pass an array of LlmExecutionTools to the `ExecutionTools`
- * 
+ *
  * @public exported from `@promptbook/core`
  */
 export function joinLlmExecutionTools(...llmExecutionTools: Array<LlmExecutionTools>): MultipleLlmExecutionTools {
@@ -53,7 +53,6 @@ export function joinLlmExecutionTools(...llmExecutionTools: Array<LlmExecutionTo
 
     return new MultipleLlmExecutionTools(...llmExecutionTools);
 }
-
 
 /**
  * TODO: [👷‍♂️] @@@ Manual about construction of llmTools

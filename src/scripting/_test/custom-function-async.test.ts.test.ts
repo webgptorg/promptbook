@@ -99,7 +99,7 @@ async function getPipelineExecutor() {
                     return 'Hello';
                 },
             }),
-        }
+        },
     });
 
     return pipelineExecutor;

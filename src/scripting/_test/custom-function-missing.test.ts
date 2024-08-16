@@ -34,7 +34,7 @@ describe('createPipelineExecutor + missing custom function', () => {
         );
 
         const pipelineExecutor = createPipelineExecutor({
-          pipeline,
+            pipeline,
             tools: {
                 llm: new MockedEchoLlmExecutionTools({ isVerbose: true }),
                 script: [
@@ -55,7 +55,7 @@ describe('createPipelineExecutor + missing custom function', () => {
                         return 'Hello';
                     },
                 }),
-            }
+            },
         });
 
         return pipelineExecutor;

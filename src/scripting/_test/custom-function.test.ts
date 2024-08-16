@@ -70,7 +70,7 @@ async function getPipelineExecutor() {
     );
 
     return createPipelineExecutor({
-      pipeline,
+        pipeline,
         tools: {
             llm: new MockedEchoLlmExecutionTools({ isVerbose: true }),
             script: [
@@ -91,6 +91,6 @@ async function getPipelineExecutor() {
                     return 'Hello';
                 },
             }),
-        }
+        },
     });
 }
