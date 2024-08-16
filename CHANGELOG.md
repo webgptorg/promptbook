@@ -411,8 +411,7 @@ Working external knowledge, personas, preparation for instruments and actions
 -   Rename `TotalCost` to `TotalUsage`
 -   Allow to reload cache
 -   Fix error in `uncertainNumber` which always returned "uncertain 0"
--   !!!! Compute usage in `AnthropicClaudeExecutionTools` [🐞]
--   !!!! Fix compute usage in `OpenAiExecutionTools`
+-   [🐞] Fix usage counting in `OpenAiExecutionTools`
 
 ### `0.63.0` _(2024-08-11)_
 
@@ -445,6 +444,8 @@ Was accidentally released skipped
 ### `0.66.0` _(2024-08-16)_
 
 -   Prefix all non-pure by `$`
+-   Add model `claude-3-5-sonnet-20240620` to `AnthropicClaudeExecutionTools`
+-   [🐞] Fix usage counting in `AnthropicClaudeExecutionTools`
 
 ## In prepare
 

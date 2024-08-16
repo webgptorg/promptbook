@@ -120,7 +120,7 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools {
         // eslint-disable-next-line prefer-const
         complete = getCurrentIsoDate();
         const usage = {
-            price: { value: 0, isUncertain: true } /* <- TODO: [🐞] Compute usage */,
+            price: { value: 0, isUncertain: true } /* <- TODO: [🐞] !!!!!! Compute usage */,
             input: {
                 tokensCount: uncertainNumber(rawResponse.usage.input_tokens),
                 ...computeUsageCounts(prompt.content),
