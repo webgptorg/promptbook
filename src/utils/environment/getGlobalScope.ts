@@ -1,4 +1,4 @@
-import { really_any } from '../organization/really_any';
+import type { really_any } from '../organization/really_any';
 
 /**
  * @@@
