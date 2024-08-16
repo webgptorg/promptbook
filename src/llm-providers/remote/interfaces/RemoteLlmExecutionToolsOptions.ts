@@ -28,7 +28,7 @@ export type RemoteLlmExecutionToolsOptions = CommonExecutionToolsOptions & {
     /**
      * If set, only these models will be listed as available
      *
-     * TODO: [🧠] !!!! Figure out better solution
+     * TODO: [🧠] !!!!!! Figure out better solution
      */
     readonly models?: Array<AvailableModel>;
 
@@ -61,3 +61,7 @@ export type RemoteLlmExecutionToolsOptions = CommonExecutionToolsOptions & {
           }
     );
 
+
+    /**
+     * TODO: [🧠][🧜‍♂️] Maybe join remoteUrl and path into single value
+     */

@@ -153,6 +153,8 @@ export const DEFAULT_REMOTE_URL = 'https://api.pavolhejny.com/';
  */
 export const DEFAULT_REMOTE_URL_PATH = '/promptbook/socket.io';
 
+// <- TODO: [🧜‍♂️]
+
 /**
  * @@@
  *
@@ -211,3 +213,7 @@ export const DEBUG_ALLOW_PAYED_TESTING: boolean = just(
     // Commit message:
     // [🔑] Turn off ability to use real API keys in tests
 );
+
+/**
+ * TODO: [🧠][🧜‍♂️] Maybe join remoteUrl and path into single value
+ */
