@@ -5,7 +5,7 @@ import { computeUsage } from '../openai/computeUsage';
 /**
  * List of available Anthropic Claude models with pricing
  *
- * Note: Done at 2024-05-25
+ * Note: Done at 2024-08-16
  *
  * @see https://docs.anthropic.com/en/docs/models-overview
  * @public exported from `@promptbook/anthropic-claude`
@@ -18,6 +18,15 @@ export const ANTHROPIC_CLAUDE_MODELS: Array<
         };
     }
 > = [
+    {
+        modelVariant: 'CHAT',
+        modelTitle: 'Claude 3.5 Sonnet',
+        modelName: 'claude-3-5-sonnet-20240620',
+        pricing: {
+            prompt: computeUsage(`$3.00 / 1M tokens`),
+            output: computeUsage(`$15.00 / 1M tokens`),
+        },
+    },
     {
         modelVariant: 'CHAT',
         modelTitle: 'Claude 3 Opus',
