@@ -122,7 +122,7 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools {
             throw new PipelineExecutionError(`Returned content is not "text" type but "${contentBlock.type}"`);
         }
 
-        console.log('rawResponse.usage', rawResponse.usage);
+        console.log('!!!!!! rawResponse.usage', rawResponse.usage);
 
         const resultContent = contentBlock.text;
 
