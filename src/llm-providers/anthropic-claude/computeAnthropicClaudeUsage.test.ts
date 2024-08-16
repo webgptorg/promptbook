@@ -1,6 +1,5 @@
 import { describe, expect, it } from '@jest/globals';
 import { computeAnthropicClaudeUsage } from './computeAnthropicClaudeUsage';
-import './register4';
 
 describe('how computeAnthropicClaudeUsage works', () => {
     // TODO: [🐞] Test Chat and Completion models
