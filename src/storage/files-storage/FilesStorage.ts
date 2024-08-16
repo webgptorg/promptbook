@@ -7,8 +7,8 @@ import { stringifyPipelineJson } from '../../conversion/utils/stringifyPipelineJ
 import { titleToName } from '../../conversion/utils/titleToName';
 import { EnvironmentMismatchError } from '../../errors/EnvironmentMismatchError';
 import type { string_file_path } from '../../types/typeAliases';
-import { isFileExisting } from '../../utils/files/isFileExisting';
-import { isRunningInNode } from '../../utils/isRunningInWhatever';
+import { $isRunningInNode } from '../../utils/environment/isRunningInNode';
+import { $isFileExisting } from '../../utils/files/isFileExisting';
 import type { PromptbookStorage } from '../_common/PromptbookStorage';
 import type { FilesStorageOptions } from './FilesStorageOptions';
 import { nameToSubfolderPath } from './utils/nameToSubfolderPath';
@@ -20,7 +20,7 @@ import { nameToSubfolderPath } from './utils/nameToSubfolderPath';
  */
 export class FilesStorage<TItem> implements PromptbookStorage<TItem> {
     constructor(private readonly options: FilesStorageOptions) {
-        if (!isRunningInNode()) {
+        if (!$isRunningInNode()) {
             throw new EnvironmentMismatchError(`FilesStorage works only in Node.js environment`);
         }
     }
@@ -46,7 +46,7 @@ export class FilesStorage<TItem> implements PromptbookStorage<TItem> {
     public async getItem(key: string): Promise<TItem | null> {
         const filename = this.getFilenameForKey(key);
 
-        if (!(await isFileExisting(filename))) {
+        if (!(await $isFileExisting(filename))) {
             return null;
         }
 

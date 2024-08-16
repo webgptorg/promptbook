@@ -3,7 +3,7 @@ import { DEBUG_ALLOW_PAYED_TESTING, EXECUTIONS_CACHE_DIRNAME } from '../../confi
 import { EnvironmentMismatchError } from '../../errors/EnvironmentMismatchError';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import { FilesStorage } from '../../storage/files-storage/FilesStorage';
-import { isRunningInNode } from '../../utils/isRunningInWhatever';
+import { $isRunningInNode } from '../../utils/environment/isRunningInNode';
 import type { CreateLlmToolsFromConfigurationOptions } from './createLlmToolsFromConfiguration';
 import { createLlmToolsFromEnv } from './createLlmToolsFromEnv';
 import { cacheLlmTools } from './utils/cache/cacheLlmTools';
@@ -28,7 +28,7 @@ type GetLlmToolsForTestingAndScriptsAndPlaygroundOptions = CreateLlmToolsFromCon
 export function getLlmToolsForTestingAndScriptsAndPlayground(
     options?: GetLlmToolsForTestingAndScriptsAndPlaygroundOptions,
 ): LlmExecutionToolsWithTotalUsage {
-    if (!isRunningInNode()) {
+    if (!$isRunningInNode()) {
         throw new EnvironmentMismatchError(
             'Function `getLlmToolsForTestingAndScriptsAndPlayground` works only in Node.js environment',
         );

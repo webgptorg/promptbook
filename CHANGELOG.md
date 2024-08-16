@@ -430,7 +430,7 @@ Was accidentally released skipped
 
 ## In pre-release
 
-### `0.65.0` _(2024-08-)_
+### `0.65.0` _(2024-08-15-)_
 
 [🍜] Anonymous server
 
@@ -441,6 +441,10 @@ Was accidentally released skipped
 -   Use `MultipleLlmExecutionTools` more
 -   LLM tools providers have constructor functions, for example `OpenAiExecutionTools` -> `createOpenAiExecutionTools`
 -   `remoteUrl` is `string_base_url`
+
+### `0.66.0` _(2024-08-16)_
+
+-   Prefix all non-pure by `$`
 
 ## In prepare
 

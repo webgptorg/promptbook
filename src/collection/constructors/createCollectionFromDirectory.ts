@@ -11,11 +11,10 @@ import { CollectionError } from '../../errors/CollectionError';
 import { unpreparePipeline } from '../../prepare/unpreparePipeline';
 import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import type { PipelineString } from '../../types/PipelineString';
-import type { string_folder_path } from '../../types/typeAliases';
-import type { string_pipeline_url } from '../../types/typeAliases';
-import { isFileExisting } from '../../utils/files/isFileExisting';
-import { listAllFiles } from '../../utils/files/listAllFiles';
-import { isRunningInNode } from '../../utils/isRunningInWhatever';
+import type { string_folder_path, string_pipeline_url } from '../../types/typeAliases';
+import { $isRunningInNode } from '../../utils/environment/isRunningInNode';
+import { $isFileExisting } from '../../utils/files/isFileExisting';
+import { $listAllFiles } from '../../utils/files/listAllFiles';
 import type { PipelineCollection } from '../PipelineCollection';
 import { createCollectionFromPromise } from './createCollectionFromPromise';
 
@@ -67,7 +66,7 @@ export async function createCollectionFromDirectory(
     path: string_folder_path,
     options?: CreatePipelineCollectionFromDirectoryOptions,
 ): Promise<PipelineCollection> {
-    if (!isRunningInNode()) {
+    if (!$isRunningInNode()) {
         throw new Error(
             'Function `createCollectionFromDirectory` can only be run in Node.js environment because it reads the file system.',
         );
@@ -76,7 +75,7 @@ export async function createCollectionFromDirectory(
     // TODO: [🍖] Allow to skip
     const makedLibraryFilePath = join(path, `${PIPELINE_COLLECTION_BASE_FILENAME}.json`);
 
-    if (!(await isFileExisting(makedLibraryFilePath))) {
+    if (!(await $isFileExisting(makedLibraryFilePath))) {
         console.info(
             colors.yellow(
                 `Tip: Prebuild your pipeline collection (file with supposed prebuild ${makedLibraryFilePath} not found) with CLI util "ptbk make" to speed up the collection creation.`,
@@ -97,7 +96,7 @@ export async function createCollectionFromDirectory(
             console.info(colors.cyan(`Creating pipeline collection from path ${path.split('\\').join('/')}`));
         }
 
-        const fileNames = await listAllFiles(path, isRecursive);
+        const fileNames = await $listAllFiles(path, isRecursive);
 
         // Note: First load all .ptbk.json and then .ptbk.md files
         //       .ptbk.json can be prepared so it is faster to load

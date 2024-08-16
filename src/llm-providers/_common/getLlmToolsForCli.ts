@@ -2,7 +2,7 @@ import { join } from 'path';
 import { EXECUTIONS_CACHE_DIRNAME } from '../../config';
 import { EnvironmentMismatchError } from '../../errors/EnvironmentMismatchError';
 import { FilesStorage } from '../../storage/files-storage/FilesStorage';
-import { isRunningInNode } from '../../utils/isRunningInWhatever';
+import { $isRunningInNode } from '../../utils/environment/isRunningInNode';
 import { createLlmToolsFromEnv } from './createLlmToolsFromEnv';
 import { cacheLlmTools } from './utils/cache/cacheLlmTools';
 import { countTotalUsage } from './utils/count-total-usage/countTotalUsage';
@@ -23,7 +23,7 @@ type GetLlmToolsForCliOptions = {
  * @private within the repository - for CLI utils
  */
 export function getLlmToolsForCli(options?: GetLlmToolsForCliOptions): LlmExecutionToolsWithTotalUsage {
-    if (!isRunningInNode()) {
+    if (!$isRunningInNode()) {
         throw new EnvironmentMismatchError(
             'Function `getLlmToolsForTestingAndScriptsAndPlayground` works only in Node.js environment',
         );

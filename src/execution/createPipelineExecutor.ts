@@ -30,7 +30,7 @@ import type {
     string_parameter_value,
 } from '../types/typeAliases';
 import { arrayableToArray } from '../utils/arrayableToArray';
-import { deepFreeze, deepFreezeWithSameType } from '../utils/deepFreeze';
+import { $deepFreeze, deepFreezeWithSameType } from '../utils/deepFreeze';
 import type { really_any } from '../utils/organization/really_any';
 import type { TODO_any } from '../utils/organization/TODO_any';
 import { TODO_USE } from '../utils/organization/TODO_USE';
@@ -466,14 +466,14 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
 
                                 variant: switch (currentTemplate.modelRequirements!.modelVariant) {
                                     case 'CHAT':
-                                        chatResult = await llmTools.callChatModel(deepFreeze(prompt) as ChatPrompt);
+                                        chatResult = await llmTools.callChatModel($deepFreeze(prompt) as ChatPrompt);
                                         // TODO: [🍬] Destroy chatThread
                                         result = chatResult;
                                         resultString = chatResult.content;
                                         break variant;
                                     case 'COMPLETION':
                                         completionResult = await llmTools.callCompletionModel(
-                                            deepFreeze(prompt) as CompletionPrompt,
+                                            $deepFreeze(prompt) as CompletionPrompt,
                                         );
                                         result = completionResult;
                                         resultString = completionResult.content;
@@ -481,7 +481,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
 
                                     case 'EMBEDDING':
                                         embeddingResult = await llmTools.callEmbeddingModel(
-                                            deepFreeze(prompt) as EmbeddingPrompt,
+                                            $deepFreeze(prompt) as EmbeddingPrompt,
                                         );
                                         result = embeddingResult;
                                         resultString = embeddingResult.content.join(',');
@@ -517,7 +517,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                                 scripts: for (const scriptTools of arrayableToArray(tools.script)) {
                                     try {
                                         resultString = await scriptTools.execute(
-                                            deepFreeze({
+                                            $deepFreeze({
                                                 scriptLanguage: currentTemplate.contentLanguage,
                                                 script: preparedContent, // <- Note: For Script execution, parameters are used as variables
                                                 parameters,
@@ -570,7 +570,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
 
                                 // TODO: [🌹] When making next attempt for `PROMPT DIALOG`, preserve the previous user input
                                 resultString = await tools.userInterface.promptDialog(
-                                    deepFreeze({
+                                    $deepFreeze({
                                         promptTitle: currentTemplate.title,
                                         promptMessage: replaceParameters(currentTemplate.description || '', parameters),
                                         defaultValue: replaceParameters(preparedContent, parameters),

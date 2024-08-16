@@ -1,9 +1,9 @@
 import spaceTrim from 'spacetrim';
 import { EnvironmentMismatchError } from '../../errors/EnvironmentMismatchError';
-import { isRunningInNode } from '../../utils/isRunningInWhatever';
+import { $isRunningInNode } from '../../utils/environment/isRunningInNode';
 import { MultipleLlmExecutionTools } from '../multiple/MultipleLlmExecutionTools';
-import { createLlmToolsFromConfiguration } from './createLlmToolsFromConfiguration';
 import type { CreateLlmToolsFromConfigurationOptions } from './createLlmToolsFromConfiguration';
+import { createLlmToolsFromConfiguration } from './createLlmToolsFromConfiguration';
 import { createLlmToolsFromConfigurationFromEnv } from './createLlmToolsFromConfigurationFromEnv';
 
 /**
@@ -21,7 +21,7 @@ import { createLlmToolsFromConfigurationFromEnv } from './createLlmToolsFromConf
  * @public exported from `@promptbook/node`
  */
 export function createLlmToolsFromEnv(options: CreateLlmToolsFromConfigurationOptions = {}): MultipleLlmExecutionTools {
-    if (!isRunningInNode()) {
+    if (!$isRunningInNode()) {
         throw new EnvironmentMismatchError('Function `createLlmToolsFromEnv` works only in Node.js environment');
     }
 

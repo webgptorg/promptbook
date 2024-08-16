@@ -1,6 +1,6 @@
 import type { WritableDeep } from 'type-fest';
 import { deepClone } from '../../utils/deepClone';
-import { deepFreeze } from '../../utils/deepFreeze';
+import { $deepFreeze } from '../../utils/deepFreeze';
 import type { PromptResultUsage } from '../PromptResultUsage';
 
 /**
@@ -8,7 +8,7 @@ import type { PromptResultUsage } from '../PromptResultUsage';
  *
  * @public exported from `@promptbook/core`
  */
-export const ZERO_USAGE = deepFreeze({
+export const ZERO_USAGE = $deepFreeze({
     price: { value: 0 },
     input: {
         tokensCount: { value: 0 },

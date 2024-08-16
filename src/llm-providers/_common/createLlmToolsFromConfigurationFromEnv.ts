@@ -1,6 +1,6 @@
 import * as dotenv from 'dotenv';
 import { EnvironmentMismatchError } from '../../errors/EnvironmentMismatchError';
-import { isRunningInNode } from '../../utils/isRunningInWhatever';
+import { $isRunningInNode } from '../../utils/environment/isRunningInNode';
 import type { LlmToolsConfiguration } from './LlmToolsConfiguration';
 
 /**
@@ -16,7 +16,7 @@ import type { LlmToolsConfiguration } from './LlmToolsConfiguration';
  * @public exported from `@promptbook/node`
  */
 export function createLlmToolsFromConfigurationFromEnv(): LlmToolsConfiguration {
-    if (!isRunningInNode()) {
+    if (!$isRunningInNode()) {
         throw new EnvironmentMismatchError('Function `createLlmToolsFromEnv` works only in Node.js environment');
     }
 

@@ -1,19 +1,20 @@
 import { readdir } from 'fs/promises';
 import { join } from 'path/posix';
-import type { string_file_path } from '../../types/typeAliases';
-import type { string_folder_path } from '../../types/typeAliases';
-import { isDirectoryExisting } from './isDirectoryExisting';
+import type { string_file_path, string_folder_path } from '../../types/typeAliases';
+import { $isDirectoryExisting } from './isDirectoryExisting';
 
 /**
  * Reads all files in the directory
+ *
+ * Note: `$` is used to indicate that this function is not a pure function - it looks at the filesystem
  *
  * @param path
  * @param isRecursive
  * @returns List of all files in the directory
  * @private internal function of `createCollectionFromDirectory`
  */
-export async function listAllFiles(path: string_folder_path, isRecursive: boolean): Promise<Array<string_file_path>> {
-    if (!(await isDirectoryExisting(path))) {
+export async function $listAllFiles(path: string_folder_path, isRecursive: boolean): Promise<Array<string_file_path>> {
+    if (!(await $isDirectoryExisting(path))) {
         throw new Error(`Directory "${path}" does not exist or is not readable`);
         //           <- TODO: Use some custom error class
     }
@@ -27,7 +28,7 @@ export async function listAllFiles(path: string_folder_path, isRecursive: boolea
     if (isRecursive) {
         for (const dirent of dirents.filter((dirent) => dirent.isDirectory())) {
             const subPath = join(path, dirent.name);
-            fileNames.push(...(await listAllFiles(subPath, isRecursive)));
+            fileNames.push(...(await $listAllFiles(subPath, isRecursive)));
         }
     }
 
