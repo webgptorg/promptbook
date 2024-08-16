@@ -47,16 +47,16 @@ event.target);
 
                 const tools = {
                     llm:  new RemoteLlmExecutionTools(
-//            <- TODO: [🧱] Implement in a functional (not new Class) way
-{
+                                //            <- TODO: [🧱] Implement in a functional (not new Class) way
+                                {
                                     path: '/promptbook',
                                     remoteUrl: `http://localhost:4460/`,
                                     clientId,
                                 }),
                     script: [
                         new JavascriptExecutionTools(
-//            <- TODO: [🧱] Implement in a functional (not new Class) way
-{
+                        //            <- TODO: [🧱] Implement in a functional (not new Class) way
+                        {
                             isVerbose: true,
                         }),
                     ],

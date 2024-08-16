@@ -1,3 +1,4 @@
+import { LlmToolsConfiguration } from './_packages/types.index';
 import { $deepFreeze } from './utils/deepFreeze';
 import { just } from './utils/organization/just';
 
@@ -137,6 +138,59 @@ export const RESERVED_PARAMETER_RESTRICTED = 'RESTRICTED-' + REPLACING_NONCE;
 export const MOMENT_ARG_THRESHOLDS = {
     ss: 3, // <- least number of seconds to be counted in seconds, minus 1. Must be set after setting the `s` unit or without setting the `s` unit.
 } as const;
+
+/**
+ * @@@
+ *
+ * @public exported from `@promptbook/core`
+ */
+export const DEFAULT_REMOTE_URL = 'https://api.pavolhejny.com/';
+
+/**
+ * @@@
+ *
+ * @public exported from `@promptbook/core`
+ */
+export const DEFAULT_REMOTE_URL_PATH = '/promptbook/socket.io';
+
+/**
+ * @@@
+ *
+ * @public exported from `@promptbook/core`
+ */
+export const BOILERPLATE_LLM_TOOLS_CONFIGURATION_: LlmToolsConfiguration = [
+    {
+        title: 'Open AI',
+        packageName: '@promptbook/openai',
+        className: 'OpenAiExecutionTools',
+        options: {
+            apiKey: 'sk-',
+        },
+    },
+    {
+        title: 'Anthropic Claude',
+        packageName: '@promptbook/anthropic-claude',
+        className: 'AnthropicClaudeExecutionTools',
+        options: {
+            apiKey: 'sk-ant-api03-',
+            isProxied: true,
+            remoteUrl: DEFAULT_REMOTE_URL,
+            path: DEFAULT_REMOTE_URL_PATH,
+        },
+    },
+    {
+        title: 'Azure Open AI',
+        packageName: '@promptbook/azure-openai',
+        className: 'AzureOpenAiExecutionTools',
+        options: {
+            // TODO: !!!> resourceName
+            // TODO: !!!> deploymentName
+            apiKey: 'sk-',
+        },
+    },
+
+    // <- Note: [🦑] Add here new LLM provider
+];
 
 /**
  * @@@

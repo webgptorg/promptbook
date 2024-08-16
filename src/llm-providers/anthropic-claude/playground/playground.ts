@@ -5,6 +5,7 @@ import * as dotenv from 'dotenv';
 dotenv.config({ path: '.env' });
 
 import colors from 'colors';
+import { DEFAULT_REMOTE_URL, DEFAULT_REMOTE_URL_PATH } from '../../../config';
 import type { Prompt } from '../../../types/Prompt';
 import { keepUnused } from '../../../utils/organization/keepUnused';
 import { createAnthropicClaudeExecutionTools } from '../createAnthropicClaudeExecutionTools';
@@ -27,8 +28,8 @@ async function playground() {
 
     const anthropicClaudeExecutionTools = createAnthropicClaudeExecutionTools({
         isProxied: true,
-        remoteUrl: 'https://api.anthropic.com',
-        path: '/socket.io',
+        remoteUrl: DEFAULT_REMOTE_URL,
+        path: DEFAULT_REMOTE_URL_PATH,
         isVerbose: true,
         apiKey: process.env.ANTHROPIC_CLAUDE_API_KEY!,
     });
