@@ -1,5 +1,5 @@
 import { $llmToolsRegister } from '../_common/$llmToolsRegister';
-import { createOpenaiExecutionTools } from './createOpenAiExecutionTools';
+import { createOpenAiExecutionTools } from './createOpenAiExecutionTools';
 
 /**
  * @@@ registration2
@@ -8,4 +8,4 @@ import { createOpenaiExecutionTools } from './createOpenAiExecutionTools';
  *
  * @public exported from `@promptbook/openai`
  */
-export const _OpenaiExecutionToolsRegistration = $llmToolsRegister.register(createOpenaiExecutionTools);
+export const _OpenAiExecutionToolsRegistration = $llmToolsRegister.register(createOpenAiExecutionTools);

@@ -17,7 +17,7 @@ import { OPENAI_MODELS } from './openai-models';
  * @throws {PipelineExecutionError} If the usage is not defined in the response from OpenAI
  * @private internal utility of `OpenAiExecutionTools`
  */
-export function computeOpenaiUsage(
+export function computeOpenAiUsage(
     promptContent: Prompt['content'], // <- Note: Intentionally using [] to access type properties to bring jsdoc from Prompt/PromptResult to consumer
     resultContent: string,
     rawResponse: PartialDeep<
@@ -64,5 +64,5 @@ export function computeOpenaiUsage(
 }
 
 /**
- * TODO: [🤝] DRY Maybe some common abstraction between `computeOpenaiUsage` and `computeAnthropicClaudeUsage`
+ * TODO: [🤝] DRY Maybe some common abstraction between `computeOpenAiUsage` and `computeAnthropicClaudeUsage`
  */

@@ -8,7 +8,6 @@ import { uncertainNumber } from '../../execution/utils/uncertainNumber';
 import type { Prompt } from '../../types/Prompt';
 import { ANTHROPIC_CLAUDE_MODELS } from './anthropic-claude-models';
 
-
 /**
  * Computes the usage of the Anthropic Claude API based on the response from Anthropic Claude
  *
@@ -58,5 +57,5 @@ export function computeAnthropicClaudeUsage(
 }
 
 /**
- * TODO: [🤝] DRY Maybe some common abstraction between `computeOpenaiUsage` and `computeAnthropicClaudeUsage`
+ * TODO: [🤝] DRY Maybe some common abstraction between `computeOpenAiUsage` and `computeAnthropicClaudeUsage`
  */

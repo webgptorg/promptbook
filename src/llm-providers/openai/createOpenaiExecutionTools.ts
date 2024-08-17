@@ -7,7 +7,7 @@ import { OpenAiExecutionToolsOptions } from './OpenAiExecutionToolsOptions';
  *
  * @public exported from `@promptbook/openai`
  */
-export const createOpenaiExecutionTools = Object.assign(
+export const createOpenAiExecutionTools = Object.assign(
     {
         packageName: '@promptbook/openai',
         className: 'OpenAiExecutionTools',
@@ -19,4 +19,4 @@ export const createOpenaiExecutionTools = Object.assign(
     },
 ) satisfies LlmExecutionToolsConstructor;
 
-console.log({ createOpenaiExecutionTools });
+console.log({ createOpenAiExecutionTools });

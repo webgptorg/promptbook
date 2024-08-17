@@ -2,7 +2,7 @@ import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import type { TODO_any } from '../../utils/organization/TODO_any';
 import { createAnthropicClaudeExecutionTools } from '../anthropic-claude/createAnthropicClaudeExecutionTools';
 import { AzureOpenAiExecutionTools } from '../azure-openai/AzureOpenAiExecutionTools';
-import { createOpenaiExecutionTools } from '../openai/createOpenAiExecutionTools';
+import { createOpenAiExecutionTools } from '../openai/createOpenAiExecutionTools';
 
 /**
  * @@@
@@ -12,7 +12,7 @@ import { createOpenaiExecutionTools } from '../openai/createOpenAiExecutionTools
  * @private internal type for `createLlmToolsFromConfiguration`
  */
 export const EXECUTION_TOOLS_CLASSES: Record<`create${string}`, (options: TODO_any) => LlmExecutionTools> = {
-    createOpenaiExecutionTools,
+    createOpenAiExecutionTools,
     createAnthropicClaudeExecutionTools,
     createAzureOpenAiExecutionTools: (options: TODO_any) =>
         new AzureOpenAiExecutionTools(

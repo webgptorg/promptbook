@@ -16,7 +16,7 @@ import type {
 } from '../../types/typeAliases';
 import { getCurrentIsoDate } from '../../utils/getCurrentIsoDate';
 import { replaceParameters } from '../../utils/replaceParameters';
-import { computeOpenaiUsage } from './computeOpenaiUsage';
+import { computeOpenAiUsage } from './computeOpenAiUsage';
 import { OPENAI_MODELS } from './openai-models';
 import type { OpenAiExecutionToolsOptions } from './OpenAiExecutionToolsOptions';
 
@@ -135,7 +135,7 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
         const resultContent = rawResponse.choices[0].message.content;
         // eslint-disable-next-line prefer-const
         complete = getCurrentIsoDate();
-        const usage = computeOpenaiUsage(content, resultContent || '', rawResponse);
+        const usage = computeOpenAiUsage(content, resultContent || '', rawResponse);
 
         if (resultContent === null) {
             throw new PipelineExecutionError('No response message from OpenAI');
@@ -213,7 +213,7 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
         const resultContent = rawResponse.choices[0].text;
         // eslint-disable-next-line prefer-const
         complete = getCurrentIsoDate();
-        const usage = computeOpenaiUsage(content, resultContent || '', rawResponse);
+        const usage = computeOpenAiUsage(content, resultContent || '', rawResponse);
 
         return {
             content: resultContent,
@@ -278,7 +278,7 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
 
         // eslint-disable-next-line prefer-const
         complete = getCurrentIsoDate();
-        const usage = computeOpenaiUsage(content, '', rawResponse);
+        const usage = computeOpenAiUsage(content, '', rawResponse);
 
         return {
             content: resultContent,
@@ -361,7 +361,7 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
 /**
  * TODO: [🧠][🧙‍♂️] Maybe there can be some wizzard for thoose who want to use just OpenAI
  * TODO: Maybe Create some common util for callChatModel and callCompletionModel
- * TODO: Maybe make custom OpenaiError
+ * TODO: Maybe make custom OpenAiError
  * TODO: [🧠][🈁] Maybe use `isDeterministic` from options
  * TODO: [🧠][🌰] Allow to pass `title` for tracking purposes
  */

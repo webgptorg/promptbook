@@ -1,7 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
 import { computeAnthropicClaudeUsage } from './computeAnthropicClaudeUsage';
 
-
 describe('how computeAnthropicClaudeUsage works', () => {
     // TODO: [🐞] Test Chat and Completion models
 
@@ -69,5 +68,5 @@ describe('how computeAnthropicClaudeUsage works', () => {
 });
 
 /**
- * TODO: [🤝] DRY Maybe some common abstraction between `computeOpenaiUsage` and `computeAnthropicClaudeUsage`
+ * TODO: [🤝] DRY Maybe some common abstraction between `computeOpenAiUsage` and `computeAnthropicClaudeUsage`
  */
