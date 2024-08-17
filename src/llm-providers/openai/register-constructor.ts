@@ -8,7 +8,7 @@ import { createOpenAiExecutionTools } from './createOpenAiExecutionTools';
  *
  * @public exported from `@promptbook/openai`
  */
-export const _OpenAiExecutionToolsRegistration = $llmToolsRegister.register(createOpenAiExecutionTools);
+export const _OpenAiRegistration = $llmToolsRegister.register(createOpenAiExecutionTools);
 
 
 /**

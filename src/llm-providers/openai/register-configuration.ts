@@ -7,7 +7,7 @@ import { $llmToolsConfigurationBoilerplatesRegister } from '../_common/$llmTools
  *
  * @public exported from `@promptbook/core`
  */
-export const _OpenAiExecutionToolsRegistration = $llmToolsConfigurationBoilerplatesRegister.register({
+export const _OpenAiConfigurationRegistration = $llmToolsConfigurationBoilerplatesRegister.register({
     title: 'Open AI',
     packageName: '@promptbook/openai',
     className: 'OpenAiExecutionTools',

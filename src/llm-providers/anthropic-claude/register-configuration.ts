@@ -1,5 +1,4 @@
-import { DEFAULT_REMOTE_URL } from '../../config';
-import { DEFAULT_REMOTE_URL_PATH } from '../../config';
+import { DEFAULT_REMOTE_URL, DEFAULT_REMOTE_URL_PATH } from '../../config';
 import { $llmToolsConfigurationBoilerplatesRegister } from '../_common/$llmToolsConfigurationBoilerplatesRegister';
 
 /**
@@ -9,7 +8,7 @@ import { $llmToolsConfigurationBoilerplatesRegister } from '../_common/$llmTools
  *
  * @public exported from `@promptbook/core`
  */
-export const _AnthropicClaudeExecutionToolsRegistration = $llmToolsConfigurationBoilerplatesRegister.register({
+export const _AnthropicClaudeConfigurationRegistration = $llmToolsConfigurationBoilerplatesRegister.register({
     title: 'Anthropic Claude',
     packageName: '@promptbook/anthropic-claude',
     className: 'AnthropicClaudeExecutionTools',
