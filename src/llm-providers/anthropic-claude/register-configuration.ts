@@ -1,6 +1,6 @@
-import { DEFAULT_REMOTE_URL } from '../../config';
-import { DEFAULT_REMOTE_URL_PATH } from '../../config';
-import { $llmToolsConfigurationBoilerplatesRegister } from '../_common/$llmToolsConfigurationBoilerplatesRegister';
+import { DEFAULT_REMOTE_URL, DEFAULT_REMOTE_URL_PATH } from '../../config';
+import { string_name } from '../../types/typeAliases';
+import { $llmToolsMetadataRegister } from '../_common/$llmToolsMetadataRegister';
 
 /**
  * @@@ registration1 of default configuration for Anthropic Claude
@@ -9,14 +9,37 @@ import { $llmToolsConfigurationBoilerplatesRegister } from '../_common/$llmTools
  *
  * @public exported from `@promptbook/core`
  */
-export const _AnthropicClaudeConfigurationRegistration = $llmToolsConfigurationBoilerplatesRegister.register({
+export const _AnthropicClaudeMetadataRegistration = $llmToolsMetadataRegister.register({
     title: 'Anthropic Claude',
     packageName: '@promptbook/anthropic-claude',
     className: 'AnthropicClaudeExecutionTools',
-    options: {
-        apiKey: 'sk-ant-api03-',
-        isProxied: true,
-        remoteUrl: DEFAULT_REMOTE_URL,
-        path: DEFAULT_REMOTE_URL_PATH,
+
+    getBoilerplateConfiguration() {
+        return {
+            title: 'Anthropic Claude (boilerplate)',
+            packageName: '@promptbook/anthropic-claude',
+            className: 'AnthropicClaudeExecutionTools',
+            options: {
+                apiKey: 'sk-ant-api03-',
+                isProxied: true,
+                remoteUrl: DEFAULT_REMOTE_URL,
+                path: DEFAULT_REMOTE_URL_PATH,
+            },
+        };
+    },
+
+    createConfigurationFromEnv(env: Record<string_name, string>) {
+        if (typeof env.ANTHROPIC_CLAUDE_API_KEY === 'string') {
+            return {
+                title: 'Claude (from env)',
+                packageName: '@promptbook/antrhopic-claude',
+                className: 'AnthropicClaudeExecutionTools',
+                options: {
+                    apiKey: process.env.ANTHROPIC_CLAUDE_API_KEY!,
+                },
+            };
+        }
+
+        return null;
     },
 });

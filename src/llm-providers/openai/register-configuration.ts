@@ -1,4 +1,5 @@
-import { $llmToolsConfigurationBoilerplatesRegister } from '../_common/$llmToolsConfigurationBoilerplatesRegister';
+import { string_name } from '../../types/typeAliases';
+import { $llmToolsMetadataRegister } from '../_common/$llmToolsMetadataRegister';
 
 /**
  * @@@ registration1 of default configuration for Open AI
@@ -7,11 +8,34 @@ import { $llmToolsConfigurationBoilerplatesRegister } from '../_common/$llmTools
  *
  * @public exported from `@promptbook/core`
  */
-export const _OpenAiConfigurationRegistration = $llmToolsConfigurationBoilerplatesRegister.register({
-    title: 'Open AI',
-    packageName: '@promptbook/openai',
-    className: 'OpenAiExecutionTools',
-    options: {
-        apiKey: 'sk-',
+export const _OpenAiMetadataRegistration = $llmToolsMetadataRegister.register({
+    title: 'Anthropic Claude',
+    packageName: '@promptbook/anthropic-claude',
+    className: 'AnthropicClaudeExecutionTools',
+
+    getBoilerplateConfiguration() {
+        return {
+            title: 'Open AI (boilerplate)',
+            packageName: '@promptbook/openai',
+            className: 'OpenAiExecutionTools',
+            options: {
+                apiKey: 'sk-',
+            },
+        };
+    },
+
+    createConfigurationFromEnv(env: Record<string_name, string>) {
+        if (typeof env.OPENAI_API_KEY === 'string') {
+            return {
+                title: 'Open AI (from env)',
+                packageName: '@promptbook/openai',
+                className: 'OpenAiExecutionTools',
+                options: {
+                    apiKey: process.env.OPENAI_API_KEY!,
+                },
+            };
+        }
+
+        return null;
     },
 });

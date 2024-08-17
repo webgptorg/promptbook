@@ -10,7 +10,6 @@ import { createOpenAiExecutionTools } from './createOpenAiExecutionTools';
  */
 export const _OpenAiRegistration = $llmToolsRegister.register(createOpenAiExecutionTools);
 
-
 /**
  * TODO: [🎶] Naming "constructor" vs "creator" vs "factory"
  */

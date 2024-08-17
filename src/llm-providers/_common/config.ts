@@ -7,11 +7,12 @@ import { createOpenAiExecutionTools } from '../openai/createOpenAiExecutionTools
 /**
  * @@@
  *
- * TODO: !!!!!! Not centralized - register each provider to each package
+ * TODO: !!!!!! Remove EXECUTION_TOOLS_CLASSES and use $llmToolsRegister  instead
  *
  * @private internal type for `createLlmToolsFromConfiguration`
  */
 export const EXECUTION_TOOLS_CLASSES: Record<`create${string}`, (options: TODO_any) => LlmExecutionTools> = {
+  
     createOpenAiExecutionTools,
     createAnthropicClaudeExecutionTools,
     createAzureOpenAiExecutionTools: (options: TODO_any) =>

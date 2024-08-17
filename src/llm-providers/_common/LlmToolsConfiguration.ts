@@ -1,9 +1,11 @@
 import type { string_title } from '../../types/typeAliases';
-import type { TODO_object } from '../../utils/organization/TODO_object';
 import type { Registered } from '../../utils/Register';
+import { LlmToolsOptions } from './LlmToolsOptions';
 
 /**
  * @@@
+ *
+ * @@@ `LlmToolsMetadata` vs `LlmToolsConfiguration` vs `LlmToolsOptions` (vs `Registered`)
  */
 export type LlmToolsConfiguration = Array<
     Registered & {
@@ -15,11 +17,11 @@ export type LlmToolsConfiguration = Array<
         /**
          * @@@
          */
-        options: TODO_object;
+        options: LlmToolsOptions;
     }
 >;
 
 /**
  * TODO: [🧠][🌰] `title` is redundant BUT maybe allow each provider pass it's own title for tracking purposes
- * TODO: [🧠] Maybe add option for `constructorName` instead of `className`
+ * TODO: Maybe instead of `LlmToolsConfiguration[number]` make `LlmToolsConfigurationItem`
  */

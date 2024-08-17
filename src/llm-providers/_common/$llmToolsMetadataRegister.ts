@@ -1,5 +1,5 @@
 import { Register } from '../../utils/Register';
-import type { LlmToolsConfiguration } from './LlmToolsConfiguration';
+import { LlmToolsMetadata } from './LlmToolsMetadata';
 
 /**
  * @@@
@@ -8,6 +8,6 @@ import type { LlmToolsConfiguration } from './LlmToolsConfiguration';
  * @singleton Only one instance of each register is created per build, but thare can be more @@@
  * @public exported from `@promptbook/core`
  */
-export const $llmToolsConfigurationBoilerplatesRegister = new Register<LlmToolsConfiguration[number]>([
+export const $llmToolsMetadataRegister = new Register<LlmToolsMetadata>([
     // TODO: !!!!!! Take from global scope
 ]);

@@ -8,10 +8,7 @@ import { createAnthropicClaudeExecutionTools } from './createAnthropicClaudeExec
  *
  * @public exported from `@promptbook/anthropic-claude`
  */
-export const _AnthropicClaudeRegistration = $llmToolsRegister.register(
-    createAnthropicClaudeExecutionTools,
-);
-
+export const _AnthropicClaudeRegistration = $llmToolsRegister.register(createAnthropicClaudeExecutionTools);
 
 /**
  * TODO: [🎶] Naming "constructor" vs "creator" vs "factory"

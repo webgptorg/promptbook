@@ -1,6 +1,8 @@
 import * as dotenv from 'dotenv';
 import { EnvironmentMismatchError } from '../../errors/EnvironmentMismatchError';
+import { string_name } from '../../types/typeAliases';
 import { $isRunningInNode } from '../../utils/environment/isRunningInNode';
+import { $llmToolsMetadataRegister } from './$llmToolsMetadataRegister';
 import type { LlmToolsConfiguration } from './LlmToolsConfiguration';
 
 /**
@@ -22,31 +24,10 @@ export function createLlmToolsFromConfigurationFromEnv(): LlmToolsConfiguration 
 
     dotenv.config();
 
-    const llmToolsConfiguration: LlmToolsConfiguration = [];
-
-    if (typeof process.env.OPENAI_API_KEY === 'string') {
-        llmToolsConfiguration.push({
-            title: 'OpenAI (from env)',
-            packageName: '@promptbook/openai',
-            className: 'OpenAiExecutionTools',
-            options: {
-                apiKey: process.env.OPENAI_API_KEY!,
-            },
-        });
-    }
-
-    if (typeof process.env.ANTHROPIC_CLAUDE_API_KEY === 'string') {
-        llmToolsConfiguration.push({
-            title: 'Claude (from env)',
-            packageName: '@promptbook/antrhopic-claude',
-            className: 'AnthropicClaudeExecutionTools',
-            options: {
-                apiKey: process.env.ANTHROPIC_CLAUDE_API_KEY!,
-            },
-        });
-    }
-
-    // <- Note: [🦑] Add here new LLM provider
+    const llmToolsConfiguration: LlmToolsConfiguration = $llmToolsMetadataRegister
+        .list()
+        .map((metadata) => metadata.createConfigurationFromEnv(process.env as Record<string_name, string>))
+        .filter((configuration): configuration is LlmToolsConfiguration[number] => configuration !== null);
 
     return llmToolsConfiguration;
 }
