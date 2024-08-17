@@ -1,4 +1,3 @@
-import type { LlmToolsConfiguration } from './llm-providers/_common/LlmToolsConfiguration';
 import { $deepFreeze } from './utils/deepFreeze';
 import { just } from './utils/organization/just';
 
@@ -154,48 +153,6 @@ export const DEFAULT_REMOTE_URL = 'https://api.pavolhejny.com/';
 export const DEFAULT_REMOTE_URL_PATH = '/promptbook/socket.io';
 
 // <- TODO: [🧜‍♂️]
-
-/**
- * @@@
- *
- * TODO: !!!!!! Not centralized - register each provider to core
- * TODO: !!!!!! Expose as register getter / setter
- *
- *
- */
-export const BOILERPLATE_LLM_TOOLS_CONFIGURATION: LlmToolsConfiguration = [
-    {
-        title: 'Open AI',
-        packageName: '@promptbook/openai',
-        className: 'OpenAiExecutionTools',
-        options: {
-            apiKey: 'sk-',
-        },
-    },
-    {
-        title: 'Anthropic Claude',
-        packageName: '@promptbook/anthropic-claude',
-        className: 'AnthropicClaudeExecutionTools',
-        options: {
-            apiKey: 'sk-ant-api03-',
-            isProxied: true,
-            remoteUrl: DEFAULT_REMOTE_URL,
-            path: DEFAULT_REMOTE_URL_PATH,
-        },
-    },
-    {
-        title: 'Azure Open AI',
-        packageName: '@promptbook/azure-openai',
-        className: 'AzureOpenAiExecutionTools',
-        options: {
-            // TODO: !!!> resourceName
-            // TODO: !!!> deploymentName
-            apiKey: 'sk-',
-        },
-    },
-
-    // <- Note: [🦑] Add here new LLM provider
-];
 
 /**
  * @@@
