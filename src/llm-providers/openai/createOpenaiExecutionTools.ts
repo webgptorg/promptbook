@@ -14,7 +14,7 @@ export const createOpenaiExecutionTools = Object.assign(
         //------------
     },
     (options: OpenAiExecutionToolsOptions): OpenAiExecutionTools => {
+        // TODO: !!!!!! If browser, auto add `dangerouslyAllowBrowser`
         return new OpenAiExecutionTools(options);
     },
 ) satisfies LlmExecutionToolsConstructor;
-
