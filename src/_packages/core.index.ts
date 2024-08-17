@@ -50,11 +50,13 @@ import { CallbackInterfaceTools } from '../knowledge/dialogs/callback/CallbackIn
 import type { CallbackInterfaceToolsOptions } from '../knowledge/dialogs/callback/CallbackInterfaceToolsOptions';
 import { prepareKnowledgePieces } from '../knowledge/prepare-knowledge/_common/prepareKnowledgePieces';
 import { prepareKnowledgeFromMarkdown } from '../knowledge/prepare-knowledge/markdown/prepareKnowledgeFromMarkdown';
+import { $llmToolsConfigurationBoilerplatesRegister } from '../llm-providers/_common/$llmToolsConfigurationBoilerplatesRegister';
+import { $llmToolsRegister } from '../llm-providers/_common/$llmToolsRegister';
 import { createLlmToolsFromConfiguration } from '../llm-providers/_common/createLlmToolsFromConfiguration';
 import { cacheLlmTools } from '../llm-providers/_common/utils/cache/cacheLlmTools';
 import { countTotalUsage } from '../llm-providers/_common/utils/count-total-usage/countTotalUsage';
 import { limitTotalUsage } from '../llm-providers/_common/utils/count-total-usage/limitTotalUsage';
-import { joinLlmExecutionTools } from '../llm-providers/multiple/joinLlmExecutionTools';
+import { _AnthropicClaudeExecutionToolsRegistration } from '../llm-providers/openai/register-configuration';
 import { preparePersona } from '../personas/preparePersona';
 import { isPipelinePrepared } from '../prepare/isPipelinePrepared';
 import { preparePipeline } from '../prepare/preparePipeline';
@@ -74,6 +76,10 @@ export { PROMPTBOOK_VERSION };
 
 // Note: Entities of the `@promptbook/core`
 export {
+    $llmToolsConfigurationBoilerplatesRegister,
+    $llmToolsRegister,
+    _AnthropicClaudeExecutionToolsRegistration,
+    _AnthropicClaudeExecutionToolsRegistration,
     addUsage,
     assertsExecutionSuccessful,
     BlockTypes,

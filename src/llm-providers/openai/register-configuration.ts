@@ -1,13 +1,13 @@
 import { $llmToolsConfigurationBoilerplatesRegister } from '../_common/$llmToolsConfigurationBoilerplatesRegister';
 
 /**
- * @@@ registration1 of default configuration for Anthropic Claude
+ * @@@ registration1 of default configuration for Open AI
  *
  * Note: [🏐] Configurations registrations are done in @@@ BUT constructor @@@
  *
  * @public exported from `@promptbook/core`
  */
-export const _AnthropicClaudeExecutionToolsRegistration = $llmToolsConfigurationBoilerplatesRegister.register({
+export const _OpenAiExecutionToolsRegistration = $llmToolsConfigurationBoilerplatesRegister.register({
     title: 'Open AI',
     packageName: '@promptbook/openai',
     className: 'OpenAiExecutionTools',

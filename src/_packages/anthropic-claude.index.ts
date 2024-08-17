@@ -8,6 +8,7 @@ import type { AnthropicClaudeExecutionToolsOptions } from '../llm-providers/anth
 import type { AnthropicClaudeExecutionToolsDirectOptions } from '../llm-providers/anthropic-claude/AnthropicClaudeExecutionToolsOptions';
 import type { AnthropicClaudeExecutionToolsProxiedOptions } from '../llm-providers/anthropic-claude/AnthropicClaudeExecutionToolsOptions';
 import { createAnthropicClaudeExecutionTools } from '../llm-providers/anthropic-claude/createAnthropicClaudeExecutionTools';
+import { _AnthropicClaudeExecutionToolsRegistration } from '../llm-providers/anthropic-claude/register-constructor';
 import { _ } from '../llm-providers/anthropic-claude/register1';
 
 
@@ -22,4 +23,5 @@ export type { AnthropicClaudeExecutionToolsOptions };
 export type { AnthropicClaudeExecutionToolsDirectOptions };
 export type { AnthropicClaudeExecutionToolsProxiedOptions };
 export { createAnthropicClaudeExecutionTools };
+export { _AnthropicClaudeExecutionToolsRegistration };
 export { _ };
