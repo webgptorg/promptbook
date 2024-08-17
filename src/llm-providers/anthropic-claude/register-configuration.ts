@@ -1,4 +1,5 @@
-import { DEFAULT_REMOTE_URL, DEFAULT_REMOTE_URL_PATH } from '../../config';
+import { DEFAULT_REMOTE_URL } from '../../config';
+import { DEFAULT_REMOTE_URL_PATH } from '../../config';
 import { $llmToolsConfigurationBoilerplatesRegister } from '../_common/$llmToolsConfigurationBoilerplatesRegister';
 
 /**
