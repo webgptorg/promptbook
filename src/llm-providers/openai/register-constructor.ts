@@ -9,3 +9,8 @@ import { createOpenAiExecutionTools } from './createOpenAiExecutionTools';
  * @public exported from `@promptbook/openai`
  */
 export const _OpenAiExecutionToolsRegistration = $llmToolsRegister.register(createOpenAiExecutionTools);
+
+
+/**
+ * TODO: [🎶] Naming "constructor" vs "creator" vs "factory"
+ */

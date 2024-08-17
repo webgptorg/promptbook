@@ -6,3 +6,7 @@ import { LlmExecutionTools } from './LlmExecutionTools';
  * @@@
  */
 export type LlmExecutionToolsConstructor = Registered & ((options: TODO_any) => LlmExecutionTools);
+
+/**
+ * TODO: [🎶] Naming "constructor" vs "creator" vs "factory"
+ */

@@ -11,3 +11,8 @@ import { createAnthropicClaudeExecutionTools } from './createAnthropicClaudeExec
 export const _AnthropicClaudeExecutionToolsRegistration = $llmToolsRegister.register(
     createAnthropicClaudeExecutionTools,
 );
+
+
+/**
+ * TODO: [🎶] Naming "constructor" vs "creator" vs "factory"
+ */
