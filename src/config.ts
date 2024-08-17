@@ -158,9 +158,12 @@ export const DEFAULT_REMOTE_URL_PATH = '/promptbook/socket.io';
 /**
  * @@@
  *
- * @public exported from `@promptbook/core`
+ * TODO: !!!!!! Not centralized - register each provider to core
+ * TODO: !!!!!! Expose as register getter / setter
+ *
+ *
  */
-export const BOILERPLATE_LLM_TOOLS_CONFIGURATION_: LlmToolsConfiguration = [
+export const BOILERPLATE_LLM_TOOLS_CONFIGURATION: LlmToolsConfiguration = [
     {
         title: 'Open AI',
         packageName: '@promptbook/openai',

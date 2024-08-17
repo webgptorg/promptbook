@@ -1,31 +1,23 @@
 import type { string_title } from '../../types/typeAliases';
 import type { TODO_object } from '../../utils/organization/TODO_object';
-import type { TODO_string } from '../../utils/organization/TODO_string';
+import { Registered } from '../../utils/Register';
 
 /**
  * @@@
  */
-export type LlmToolsConfiguration = Array<{
-    /**
-     * @@@
-     */
-    title: string_title;
+export type LlmToolsConfiguration = Array<
+    Registered & {
+        /**
+         * @@@
+         */
+        title: string_title;
 
-    /**
-     * @@@
-     */
-    packageName: TODO_string;
-
-    /**
-     * @@@
-     */
-    className: TODO_string;
-
-    /**
-     * @@@
-     */
-    options: TODO_object;
-}>;
+        /**
+         * @@@
+         */
+        options: TODO_object;
+    }
+>;
 
 /**
  * TODO: [🧠][🌰] `title` is redundant BUT maybe allow each provider pass it's own title for tracking purposes

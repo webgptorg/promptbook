@@ -5,6 +5,10 @@ import { AzureOpenAiExecutionTools } from '../azure-openai/AzureOpenAiExecutionT
 import { OpenAiExecutionTools } from '../openai/OpenAiExecutionTools';
 
 /**
+ * @@@
+ * 
+ * TODO: !!!!!! Not centralized - register each provider to each package
+ * 
  * @private internal type for `createLlmToolsFromConfiguration`
  */
 export const EXECUTION_TOOLS_CLASSES: Record<`create${string}`, (options: TODO_any) => LlmExecutionTools> = {

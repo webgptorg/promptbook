@@ -1,8 +1,6 @@
+import type { AvailableModel } from '../../../execution/AvailableModel';
 import type { CommonExecutionToolsOptions } from '../../../execution/CommonExecutionToolsOptions';
-import type { AvailableModel } from '../../../execution/LlmExecutionTools';
-import type { client_id } from '../../../types/typeAliases';
-import type { string_base_url } from '../../../types/typeAliases';
-import type { string_uri } from '../../../types/typeAliases';
+import type { client_id, string_base_url, string_uri } from '../../../types/typeAliases';
 import type { LlmToolsConfiguration } from '../../_common/LlmToolsConfiguration';
 
 /**
@@ -61,7 +59,6 @@ export type RemoteLlmExecutionToolsOptions = CommonExecutionToolsOptions & {
           }
     );
 
-
-    /**
-     * TODO: [🧠][🧜‍♂️] Maybe join remoteUrl and path into single value
-     */
+/**
+ * TODO: [🧠][🧜‍♂️] Maybe join remoteUrl and path into single value
+ */

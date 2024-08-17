@@ -443,7 +443,7 @@ Was accidentally released skipped
 
 ### `0.66.0` _(2024-08-16)_
 
-[🎰] Model updates
+[🎰] Model updates and registers
 
 -   Prefix all non-pure by `$`
 -   Add model `claude-3-5-sonnet-20240620` to `AnthropicClaudeExecutionTools`
@@ -451,6 +451,9 @@ Was accidentally released skipped
 -   Update `@anthropic-ai/sdk` from `0.21.1` to `0.26.1`
 -   Update `@azure/openai` from `1.0.0-beta.12` to `2.0.0-beta.1`
 -   Update `openai` from `4.46.1` to `4.55.9`
+-   Add `LlmExecutionToolsConstructor`
+-   Add `$llmToolsConfigurationBoilerplatesRegister`
+-   Add `$llmToolsRegister`
 
 ## In prepare
 

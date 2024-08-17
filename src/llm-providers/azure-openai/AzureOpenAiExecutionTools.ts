@@ -1,19 +1,20 @@
 import { AzureKeyCredential, OpenAIClient } from '@azure/openai';
 import colors from 'colors';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
-import type { AvailableModel } from '../../execution/LlmExecutionTools';
+import type { AvailableModel } from '../../execution/AvailableModel';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { ChatPromptResult } from '../../execution/PromptResult';
-import type { CompletionPromptResult } from '../../execution/PromptResult';
+import type { ChatPromptResult, CompletionPromptResult } from '../../execution/PromptResult';
 import type { PromptResultUsage } from '../../execution/PromptResultUsage';
 import { computeUsageCounts } from '../../execution/utils/computeUsageCounts';
 import { uncertainNumber } from '../../execution/utils/uncertainNumber';
 import type { Prompt } from '../../types/Prompt';
-import type { string_completion_prompt } from '../../types/typeAliases';
-import type { string_date_iso8601 } from '../../types/typeAliases';
-import type { string_markdown } from '../../types/typeAliases';
-import type { string_markdown_text } from '../../types/typeAliases';
-import type { string_title } from '../../types/typeAliases';
+import type {
+    string_completion_prompt,
+    string_date_iso8601,
+    string_markdown,
+    string_markdown_text,
+    string_title,
+} from '../../types/typeAliases';
 import { getCurrentIsoDate } from '../../utils/getCurrentIsoDate';
 import { replaceParameters } from '../../utils/replaceParameters';
 import { OPENAI_MODELS } from '../openai/openai-models';
@@ -40,9 +41,7 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools {
             //            <- TODO: [🧱] Implement in a functional (not new Class) way
 
             `https://${options.resourceName}.openai.azure.com/`,
-            new AzureKeyCredential(
-                options.apiKey,
-            ),
+            new AzureKeyCredential(options.apiKey),
         );
         // <- TODO: !!!!!! Lazy-load client
     }
