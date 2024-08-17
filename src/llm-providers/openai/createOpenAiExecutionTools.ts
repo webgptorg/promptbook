@@ -8,15 +8,16 @@ import { OpenAiExecutionToolsOptions } from './OpenAiExecutionToolsOptions';
  * @public exported from `@promptbook/openai`
  */
 export const createOpenAiExecutionTools = Object.assign(
-    {
-        packageName: '@promptbook/openai',
-        className: 'OpenAiExecutionTools',
-        //------------
-    },
     (options: OpenAiExecutionToolsOptions): OpenAiExecutionTools => {
         // TODO: !!!!!! If browser, auto add `dangerouslyAllowBrowser`
         return new OpenAiExecutionTools(options);
     },
+    {
+        packageName: '@promptbook/openai',
+        className: 'OpenAiExecutionTools',
+    },
 ) satisfies LlmExecutionToolsConstructor;
 
-console.log({ createOpenAiExecutionTools });
+/**
+ * TODO: [🦺] Is there some way how to put `packageName` and `className` on top and function definition on bottom?
+ */

@@ -10,11 +10,6 @@ import type { AnthropicClaudeExecutionToolsOptions } from './AnthropicClaudeExec
  * @public exported from `@promptbook/anthropic-claude`
  */
 export const createAnthropicClaudeExecutionTools = Object.assign(
-    {
-        packageName: '@promptbook/anthropic-claude',
-        className: 'AnthropicClaudeExecutionTools',
-        //------------
-    },
     (options: AnthropicClaudeExecutionToolsOptions): AnthropicClaudeExecutionTools | RemoteLlmExecutionTools => {
         if (options.isProxied) {
             return new RemoteLlmExecutionTools(
@@ -40,10 +35,15 @@ export const createAnthropicClaudeExecutionTools = Object.assign(
 
         return new AnthropicClaudeExecutionTools(options);
     },
+    {
+        packageName: '@promptbook/anthropic-claude',
+        className: 'AnthropicClaudeExecutionTools',
+    },
 ) satisfies LlmExecutionToolsConstructor;
 
 /**
  * TODO: [🧠] !!!! Make anonymous this with all LLM providers
  * TODO: [🧠][🧱] !!!! Maybe change all `new AnthropicClaudeExecutionTools` -> `createAnthropicClaudeExecutionTools` in manual
  * TODO: [🧠] Maybe auto-detect usage in browser and determine default value of `isProxied`
+ * TODO: [🦺] Is there some way how to put `packageName` and `className` on top and function definition on bottom?
  */
