@@ -454,6 +454,7 @@ Was accidentally released skipped
 -   Add `LlmExecutionToolsConstructor`
 -   Add `$llmToolsConfigurationBoilerplatesRegister`
 -   Add `$llmToolsRegister`
+-   Rename `Openai` ->`OpenAi`
 
 ## In prepare
 
