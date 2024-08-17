@@ -2,7 +2,6 @@ import { RemoteLlmExecutionTools } from '../remote/RemoteLlmExecutionTools';
 import { ANTHROPIC_CLAUDE_MODELS } from './anthropic-claude-models';
 import { AnthropicClaudeExecutionTools } from './AnthropicClaudeExecutionTools';
 import type { AnthropicClaudeExecutionToolsOptions } from './AnthropicClaudeExecutionToolsOptions';
-import './register4';
 
 /**
  * Execution Tools for calling Anthropic Claude API.

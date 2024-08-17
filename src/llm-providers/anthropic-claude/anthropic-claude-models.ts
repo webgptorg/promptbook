@@ -1,7 +1,7 @@
 import type { AvailableModel } from '../../execution/LlmExecutionTools';
 import type { number_usd } from '../../types/typeAliases';
 import { computeUsage } from '../openai/computeUsage';
-import './register4';
+
 
 /**
  * List of available Anthropic Claude models with pricing
