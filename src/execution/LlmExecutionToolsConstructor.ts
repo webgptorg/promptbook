@@ -1,6 +1,6 @@
-import { TODO_any } from '../_packages/types.index';
-import { Registered } from '../utils/Register';
-import { LlmExecutionTools } from './LlmExecutionTools';
+import type { TODO_any } from '../utils/organization/TODO_any';
+import type { Registered } from '../utils/Register';
+import type { LlmExecutionTools } from './LlmExecutionTools';
 
 /**
  * @@@

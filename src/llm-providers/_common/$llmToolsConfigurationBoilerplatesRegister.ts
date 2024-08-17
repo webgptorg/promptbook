@@ -1,5 +1,5 @@
 import { Register } from '../../utils/Register';
-import { LlmToolsConfiguration } from './LlmToolsConfiguration';
+import type { LlmToolsConfiguration } from './LlmToolsConfiguration';
 
 /**
  * @@@

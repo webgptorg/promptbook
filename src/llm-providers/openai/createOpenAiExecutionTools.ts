@@ -1,6 +1,6 @@
-import { LlmExecutionToolsConstructor } from '../../execution/LlmExecutionToolsConstructor';
+import type { LlmExecutionToolsConstructor } from '../../execution/LlmExecutionToolsConstructor';
 import { OpenAiExecutionTools } from './OpenAiExecutionTools';
-import { OpenAiExecutionToolsOptions } from './OpenAiExecutionToolsOptions';
+import type { OpenAiExecutionToolsOptions } from './OpenAiExecutionToolsOptions';
 
 /**
  * Execution Tools for calling OpenAI API

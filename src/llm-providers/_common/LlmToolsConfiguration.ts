@@ -1,6 +1,6 @@
 import type { string_title } from '../../types/typeAliases';
 import type { TODO_object } from '../../utils/organization/TODO_object';
-import { Registered } from '../../utils/Register';
+import type { Registered } from '../../utils/Register';
 
 /**
  * @@@

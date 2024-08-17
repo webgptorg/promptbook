@@ -1,4 +1,4 @@
-import { LlmExecutionToolsConstructor } from '../../execution/LlmExecutionToolsConstructor';
+import type { LlmExecutionToolsConstructor } from '../../execution/LlmExecutionToolsConstructor';
 import { RemoteLlmExecutionTools } from '../remote/RemoteLlmExecutionTools';
 import { ANTHROPIC_CLAUDE_MODELS } from './anthropic-claude-models';
 import { AnthropicClaudeExecutionTools } from './AnthropicClaudeExecutionTools';
