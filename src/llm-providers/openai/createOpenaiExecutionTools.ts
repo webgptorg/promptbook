@@ -18,3 +18,5 @@ export const createOpenaiExecutionTools = Object.assign(
         return new OpenAiExecutionTools(options);
     },
 ) satisfies LlmExecutionToolsConstructor;
+
+console.log({ createOpenaiExecutionTools });

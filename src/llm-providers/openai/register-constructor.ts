@@ -1,5 +1,5 @@
 import { $llmToolsRegister } from '../_common/$llmToolsRegister';
-import { createOpenaiExecutionTools } from './createOpenaiExecutionTools';
+import { createOpenaiExecutionTools } from './createOpenAiExecutionTools';
 
 /**
  * @@@ registration2

@@ -8,6 +8,7 @@ import { commit } from '../utils/autocommit/commit';
 import { findAllProjectEntities } from '../utils/findAllProjectEntities';
 import { readAllProjectFiles } from '../utils/readAllProjectFiles';
 import { writeAllProjectFiles } from '../utils/writeAllProjectFiles';
+import { isWorkingTreeClean } from '../utils/autocommit/isWorkingTreeClean';
 /*
 import { findAllProjectFiles } from '../utils/findAllProjectFiles';
 import { execCommands } from '../utils/execCommand/execCommands';
@@ -53,6 +54,10 @@ async function repairImports({
     readonly isCommited: boolean;
 }) {
     console.info(`🏭🩹 Repair imports`);
+
+    if (isCommited && !(await isWorkingTreeClean(process.cwd()))) {
+        throw new Error(`Working tree is not clean`);
+    }
 
     const allEntities = await findAllProjectEntities();
     const files = await readAllProjectFiles();

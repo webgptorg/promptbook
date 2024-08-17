@@ -1,3 +1,4 @@
+import spaceTrim from 'spacetrim';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import type { TODO_any } from '../../utils/organization/TODO_any';
 import { joinLlmExecutionTools } from '../multiple/joinLlmExecutionTools';
@@ -33,17 +34,32 @@ export function createLlmToolsFromConfiguration(
 ): MultipleLlmExecutionTools {
     const { isVerbose = false } = options;
 
+    const llmTools: Array<LlmExecutionTools> = configuration.map((llmConfiguration: TODO_any) => {
+        const constructor = EXECUTION_TOOLS_CLASSES[`create${llmConfiguration.className}`];
+
+        if (!constructor) {
+            throw new Error(
+                spaceTrim(
+                    (block) => `
+                        There is no constructor for LLM provider \`${llmConfiguration.className}\`
 
 
-    const llmTools: Array<LlmExecutionTools> = configuration.map((llmConfiguration: TODO_any) =>
-        EXECUTION_TOOLS_CLASSES[`create${llmConfiguration.className}`]!(
-            //                                                      <- TODO: !!! Check that defined
-            {
-                isVerbose,
-                ...llmConfiguration.options,
-            },
-        ),
-    );
+                        @@@
+
+                        Available constructors are:
+                        ${block('@@@')}
+
+
+                    `,
+                ),
+            );
+        }
+
+        return constructor({
+            isVerbose,
+            ...llmConfiguration.options,
+        });
+    });
 
     return joinLlmExecutionTools(...llmTools);
 }
