@@ -1,3 +1,6 @@
+import { UnexpectedError } from '../errors/UnexpectedError';
+import { string_javascript_name } from '../types/typeAliases';
+import { $getGlobalScope } from './environment/$getGlobalScope';
 import type { TODO_string } from './organization/TODO_string';
 
 export type Registered = {
@@ -15,10 +18,28 @@ export type Registered = {
 /**
  * Register is @@@
  *
+ * Note: `$` is used to indicate that this function is not a pure function - it accesses and adds variables in global scope.
+ *
  * @private internal utility, exported are only signleton instances of this class
  */
-export class Register<TRegistered extends Registered> {
-    constructor(private readonly storage: Array<TRegistered>) {}
+export class $Register<TRegistered extends Registered> {
+    private readonly storage: Array<TRegistered>;
+
+    constructor(storageName: string_javascript_name) {
+        storageName = `_promptbook_${storageName}`;
+
+        const globalScope = $getGlobalScope();
+
+        if (globalScope[storageName] === undefined) {
+            globalScope[storageName] = [];
+        } else if (!Array.isArray(globalScope[storageName])) {
+            throw new UnexpectedError(
+                `Expected (global) ${storageName} to be an array, but got ${typeof globalScope[storageName]}`,
+            );
+        }
+
+        this.storage = globalScope[storageName];
+    }
 
     public list(): Array<TRegistered> {
         // <- TODO: ReadonlyDeep<Array<TRegistered>>

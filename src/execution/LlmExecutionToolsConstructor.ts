@@ -1,5 +1,5 @@
+import type { Registered } from '../utils/$Register';
 import type { TODO_any } from '../utils/organization/TODO_any';
-import type { Registered } from '../utils/Register';
 import type { LlmExecutionTools } from './LlmExecutionTools';
 
 /**
