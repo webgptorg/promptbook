@@ -2,6 +2,7 @@ import { describe, expect, it } from '@jest/globals';
 import { readFile } from 'fs/promises';
 import { join } from 'path';
 import { getLlmToolsForTestingAndScriptsAndPlayground } from '../../../llm-providers/_common/getLlmToolsForTestingAndScriptsAndPlayground';
+import '../../src/_packages/core.index'; // <- Note: Really importing @@@5
 import { prepareKnowledgeFromPdf } from './prepareKnowledgeFromPdf';
 
 describe('how creating knowledge from pdf works', () => {
