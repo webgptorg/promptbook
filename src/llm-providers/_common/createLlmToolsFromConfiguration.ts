@@ -4,6 +4,7 @@ import type { TODO_any } from '../../utils/organization/TODO_any';
 import { joinLlmExecutionTools } from '../multiple/joinLlmExecutionTools';
 import { MultipleLlmExecutionTools } from '../multiple/MultipleLlmExecutionTools';
 import { $llmToolsRegister } from './$llmToolsRegister';
+import { $registeredLlmToolsMessage } from './$registeredLlmToolsMessage';
 import type { LlmToolsConfiguration } from './LlmToolsConfiguration';
 
 /**
@@ -48,13 +49,7 @@ export function createLlmToolsFromConfiguration(
                     (block) => `
                         There is no constructor for LLM provider \`${llmConfiguration.className}\`
 
-
-                        @@@
-
-                        Available constructors are:
-                        ${block('@@@')}
-
-
+                        ${block($registeredLlmToolsMessage())}}
                     `,
                 ),
             );
