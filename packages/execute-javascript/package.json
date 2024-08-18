@@ -1,6 +1,6 @@
 {
     "name": "@promptbook/execute-javascript",
-    "version": "0.66.0-7",
+    "version": "0.66.0-8",
     "description": "Supercharge your use of large language models",
     "private": false,
     "sideEffects": false,
@@ -47,7 +47,7 @@
     "module": "./esm/index.es.js",
     "typings": "./esm/typings/src/_packages/execute-javascript.index.d.ts",
     "peerDependencies": {
-        "@promptbook/core": "0.66.0-7"
+        "@promptbook/core": "0.66.0-8"
     },
     "dependencies": {
         "prettier": "2.8.1",

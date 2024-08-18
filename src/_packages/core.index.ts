@@ -57,6 +57,7 @@ import { cacheLlmTools } from '../llm-providers/_common/utils/cache/cacheLlmTool
 import { countTotalUsage } from '../llm-providers/_common/utils/count-total-usage/countTotalUsage';
 import { limitTotalUsage } from '../llm-providers/_common/utils/count-total-usage/limitTotalUsage';
 import { _AnthropicClaudeMetadataRegistration } from '../llm-providers/anthropic-claude/register-configuration';
+import { _AzureOpenAiMetadataRegistration } from '../llm-providers/azure-openai/register-configuration';
 import { joinLlmExecutionTools } from '../llm-providers/multiple/joinLlmExecutionTools';
 import { _OpenAiMetadataRegistration } from '../llm-providers/openai/register-configuration';
 import { preparePersona } from '../personas/preparePersona';
@@ -133,6 +134,7 @@ export { cacheLlmTools };
 export { countTotalUsage };
 export { limitTotalUsage };
 export { _AnthropicClaudeMetadataRegistration };
+export { _AzureOpenAiMetadataRegistration };
 export { joinLlmExecutionTools };
 export { _OpenAiMetadataRegistration };
 export { preparePersona };
