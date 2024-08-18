@@ -1,5 +1,7 @@
 import spaceTrim from 'spacetrim';
 import { string_markdown } from '../../types/typeAliases';
+import { Registered } from '../../utils/$Register';
+import { just } from '../../utils/organization/just';
 import { $llmToolsMetadataRegister } from './$llmToolsMetadataRegister';
 import { $llmToolsRegister } from './$llmToolsRegister';
 
@@ -11,7 +13,33 @@ import { $llmToolsRegister } from './$llmToolsRegister';
  * @private internal function of `createLlmToolsFromConfiguration` and `createLlmToolsFromEnv`
  */
 export function $registeredLlmToolsMessage(): string_markdown {
-    const metadata = $llmToolsMetadataRegister.list().map((metadata) => {
+    /**
+     * Mixes registered LLM tools from $llmToolsMetadataRegister and $llmToolsRegister
+     */
+    const all: Array<Registered> = [];
+
+    for (const { packageName, className } of $llmToolsMetadataRegister.list()) {
+        if (all.some((item) => item.packageName === packageName && item.className === className)) {
+            continue;
+        }
+        all.push({ packageName, className });
+    }
+
+    for (const { packageName, className } of $llmToolsRegister.list()) {
+        if (all.some((item) => item.packageName === packageName && item.className === className)) {
+            continue;
+        }
+        all.push({ packageName, className });
+    }
+
+    const metadata = all.map((metadata) => {
+        const isMetadataAviailable = $llmToolsMetadataRegister
+            .list()
+            .find(
+                ({ packageName, className }) =>
+                    metadata.packageName === packageName && metadata.className === className,
+            );
+
         const isInstalled = $llmToolsRegister
             .list()
             .find(
@@ -19,7 +47,7 @@ export function $registeredLlmToolsMessage(): string_markdown {
                     metadata.packageName === packageName && metadata.className === className,
             );
 
-        return { ...metadata, isInstalled };
+        return { ...metadata, isMetadataAviailable, isInstalled };
     });
 
     return spaceTrim(
@@ -27,10 +55,25 @@ export function $registeredLlmToolsMessage(): string_markdown {
             Available LLM providers are:
             ${block(
                 metadata
-                    .map(
-                        ({ packageName, className, isInstalled }) =>
-                            `- \`${className}\` from \`${packageName}\`${!isInstalled ? '' : ' (installed)'}`,
-                    )
+                    .map(({ packageName, className, isMetadataAviailable, isInstalled }, i) => {
+                        let more: string;
+
+                        if (just(false)) {
+                            more = '';
+                        } else if (!isMetadataAviailable && !isInstalled) {
+                            more = `(not installed and no metadata, looks like a unexpected behavior)`;
+                        } else if (isMetadataAviailable && !isInstalled) {
+                            more = `(not installed)`;
+                        } else if (!isMetadataAviailable && isInstalled) {
+                            more = `(no metadata, looks like a unexpected behavior)`;
+                        } else if (isMetadataAviailable && isInstalled) {
+                            more = `(installed)`;
+                        } else {
+                            more = `(unknown state, looks like a unexpected behavior)`;
+                        }
+
+                        return `${i + 1}) \`${className}\` from \`${packageName}\` ${more}`;
+                    })
                     .join('\n'),
             )}
         `,

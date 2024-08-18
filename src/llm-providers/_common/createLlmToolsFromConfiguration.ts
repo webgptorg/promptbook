@@ -51,7 +51,19 @@ export function createLlmToolsFromConfiguration(
                         llmConfiguration.packageName
                     }\`
 
-                        ${block($registeredLlmToolsMessage())}}
+                        You have probably forgotten install and import the provider package.
+                        To fix this issue, you can:
+
+                        Install:
+
+                        > npm install ${llmConfiguration.packageName}
+
+                        And import:
+
+                        > import '${llmConfiguration.packageName}';
+
+
+                        ${block($registeredLlmToolsMessage())}
                     `,
                 ),
             );
