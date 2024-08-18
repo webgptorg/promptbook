@@ -1,7 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
 import { readFileSync } from 'fs';
 import { join } from 'path';
-import '../../../_packages/core.index'; // <- Note: Really importing @@@5
 import { getLlmToolsForTestingAndScriptsAndPlayground } from '../../../llm-providers/_common/getLlmToolsForTestingAndScriptsAndPlayground';
 import { prepareKnowledgeFromMarkdown } from './prepareKnowledgeFromMarkdown';
 

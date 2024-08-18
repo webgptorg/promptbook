@@ -1,14 +1,13 @@
 #!/usr/bin/env ts-node
 import * as dotenv from 'dotenv';
 
-// TODO: !!!!!!! Common setup script dotenv + registers
+
 dotenv.config({ path: '.env' });
 
 import colors from 'colors';
 import commander from 'commander';
 import { writeFile } from 'fs/promises';
 import { join } from 'path';
-import '../../src/_packages/core.index'; // <- Note: Really importing @@@5 + TODO: !!!!!! Import core to all scripts using `createLlmToolsFromEnv` and `getLlmToolsForTestingAndScriptsAndPlayground`
 import { collectionToJson } from '../../src/collection/collectionToJson';
 import { createCollectionFromDirectory } from '../../src/collection/constructors/createCollectionFromDirectory';
 import { usageToHuman } from '../../src/execution/utils/usageToHuman';

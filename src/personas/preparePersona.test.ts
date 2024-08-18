@@ -1,5 +1,4 @@
 import { describe, expect, it } from '@jest/globals';
-import '../../src/_packages/core.index'; // <- Note: Really importing @@@5
 import { getLlmToolsForTestingAndScriptsAndPlayground } from '../llm-providers/_common/getLlmToolsForTestingAndScriptsAndPlayground';
 import { preparePersona } from './preparePersona';
 
