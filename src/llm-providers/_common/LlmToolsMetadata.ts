@@ -16,12 +16,12 @@ export type LlmToolsMetadata = Registered & {
     /**
      * @@@
      */
-    createConfigurationFromEnv(env: Record<string_name,string>): LlmToolsConfiguration[number] | null;
+    getBoilerplateConfiguration(): LlmToolsConfiguration[number];
 
     /**
      * @@@
      */
-    getBoilerplateConfiguration(): LlmToolsConfiguration[number];
+    createConfigurationFromEnv(env: Record<string_name, string>): LlmToolsConfiguration[number] | null;
 };
 
 /**

@@ -33,6 +33,8 @@ export function createLlmToolsFromEnv(options: CreateLlmToolsFromConfigurationOp
             spaceTrim(`
                 No LLM tools found in the environment
 
+                !!!!!!!@@@@You have maybe forgotten to two things:
+
                 Please set one of environment variables:
                 - OPENAI_API_KEY
                 - ANTHROPIC_CLAUDE_API_KEY

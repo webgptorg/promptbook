@@ -1,6 +1,7 @@
 import { DEFAULT_REMOTE_URL, DEFAULT_REMOTE_URL_PATH } from '../../config';
 import { string_name } from '../../types/typeAliases';
 import { $llmToolsMetadataRegister } from '../_common/$llmToolsMetadataRegister';
+import { LlmToolsConfiguration } from '../_common/LlmToolsConfiguration';
 
 /**
  * @@@ registration1 of default configuration for Anthropic Claude
@@ -14,7 +15,7 @@ export const _AnthropicClaudeMetadataRegistration = $llmToolsMetadataRegister.re
     packageName: '@promptbook/anthropic-claude',
     className: 'AnthropicClaudeExecutionTools',
 
-    getBoilerplateConfiguration() {
+    getBoilerplateConfiguration(): LlmToolsConfiguration[number] {
         return {
             title: 'Anthropic Claude (boilerplate)',
             packageName: '@promptbook/anthropic-claude',
@@ -28,7 +29,7 @@ export const _AnthropicClaudeMetadataRegistration = $llmToolsMetadataRegister.re
         };
     },
 
-    createConfigurationFromEnv(env: Record<string_name, string>) {
+    createConfigurationFromEnv(env: Record<string_name, string>): LlmToolsConfiguration[number] | null {
         if (typeof env.ANTHROPIC_CLAUDE_API_KEY === 'string') {
             return {
                 title: 'Claude (from env)',

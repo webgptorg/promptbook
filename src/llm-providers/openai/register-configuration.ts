@@ -1,5 +1,6 @@
 import { string_name } from '../../types/typeAliases';
 import { $llmToolsMetadataRegister } from '../_common/$llmToolsMetadataRegister';
+import { LlmToolsConfiguration } from '../_common/LlmToolsConfiguration';
 
 /**
  * @@@ registration1 of default configuration for Open AI
@@ -13,7 +14,7 @@ export const _OpenAiMetadataRegistration = $llmToolsMetadataRegister.register({
     packageName: '@promptbook/anthropic-claude',
     className: 'AnthropicClaudeExecutionTools',
 
-    getBoilerplateConfiguration() {
+    getBoilerplateConfiguration(): LlmToolsConfiguration[number] {
         return {
             title: 'Open AI (boilerplate)',
             packageName: '@promptbook/openai',
@@ -24,7 +25,7 @@ export const _OpenAiMetadataRegistration = $llmToolsMetadataRegister.register({
         };
     },
 
-    createConfigurationFromEnv(env: Record<string_name, string>) {
+    createConfigurationFromEnv(env: Record<string_name, string>): LlmToolsConfiguration[number] | null {
         if (typeof env.OPENAI_API_KEY === 'string') {
             return {
                 title: 'Open AI (from env)',

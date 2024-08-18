@@ -14,6 +14,9 @@ import { usageToHuman } from '../../execution/utils/usageToHuman';
 import { getLlmToolsForCli } from '../../llm-providers/_common/getLlmToolsForCli';
 import type { string_file_extension } from '../../types/typeAliases';
 
+
+// TODO: !!!!!! Probbably all LLM tools should be registered in `@promptbook/cli`
+
 /**
  * Initializes `make` command for Promptbook CLI utilities
  *
@@ -254,7 +257,7 @@ export function initializeMakeCommand(program: Program) {
 }
 
 /**
- * TODO: [🥃] !!! Allow `ptbk make` without llm tools
+ * TODO: [🥃] !!! Allow `ptbk make` without configuring any llm tools
  * TODO: Maybe remove this command - "about" command should be enough?
  * TODO: [0] DRY Javascript and typescript - Maybe make ONLY typescript and for javascript just remove types
  * Note: [🟡] This code should never be published outside of `@promptbook/cli`
