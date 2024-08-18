@@ -43,11 +43,13 @@ export function createLlmToolsFromConfiguration(
                     llmConfiguration.packageName === packageName && llmConfiguration.className === className,
             );
 
-        if (!registeredItem) {
+        if (registeredItem === undefined) {
             throw new Error(
                 spaceTrim(
                     (block) => `
-                        There is no constructor for LLM provider \`${llmConfiguration.className}\`
+                        There is no constructor for LLM provider \`${llmConfiguration.className}\` from \`${
+                        llmConfiguration.packageName
+                    }\`
 
                         ${block($registeredLlmToolsMessage())}}
                     `,
