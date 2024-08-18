@@ -1,5 +1,5 @@
 import { UnexpectedError } from '../errors/UnexpectedError';
-import { string_javascript_name } from '../types/typeAliases';
+import type { string_javascript_name } from '../types/typeAliases';
 import { $getGlobalScope } from './environment/$getGlobalScope';
 import type { TODO_string } from './organization/TODO_string';
 
