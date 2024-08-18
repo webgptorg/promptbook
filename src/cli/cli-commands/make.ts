@@ -5,17 +5,13 @@ import { dirname, join } from 'path';
 import spaceTrim from 'spacetrim';
 import { collectionToJson } from '../../collection/collectionToJson';
 import { createCollectionFromDirectory } from '../../collection/constructors/createCollectionFromDirectory';
-import { GENERATOR_WARNING_BY_PROMPTBOOK_CLI } from '../../config';
-import { PIPELINE_COLLECTION_BASE_FILENAME } from '../../config';
+import { GENERATOR_WARNING_BY_PROMPTBOOK_CLI, PIPELINE_COLLECTION_BASE_FILENAME } from '../../config';
 import { stringifyPipelineJson } from '../../conversion/utils/stringifyPipelineJson';
 import { validatePipeline } from '../../conversion/validation/validatePipeline';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import { usageToHuman } from '../../execution/utils/usageToHuman';
 import { getLlmToolsForCli } from '../../llm-providers/_common/getLlmToolsForCli';
 import type { string_file_extension } from '../../types/typeAliases';
-
-
-// TODO: !!!!!! Probbably all LLM tools should be registered in `@promptbook/cli`
 
 /**
  * Initializes `make` command for Promptbook CLI utilities
