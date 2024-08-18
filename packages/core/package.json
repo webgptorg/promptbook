@@ -1,6 +1,6 @@
 {
     "name": "@promptbook/core",
-    "version": "0.66.0-8",
+    "version": "0.66.0-9",
     "description": "Supercharge your use of large language models",
     "private": false,
     "sideEffects": false,
@@ -47,13 +47,8 @@
     "module": "./esm/index.es.js",
     "typings": "./esm/typings/src/_packages/core.index.d.ts",
     "dependencies": {
-        "@anthropic-ai/sdk": "0.26.1",
-        "@azure/openai": "1.0.0-beta.12",
-        "colors": "1.4.0",
         "moment": "2.30.1",
-        "openai": "4.55.9",
         "prettier": "2.8.1",
-        "socket.io-client": "4.7.2",
         "spacetrim": "0.11.39"
     }
 }
