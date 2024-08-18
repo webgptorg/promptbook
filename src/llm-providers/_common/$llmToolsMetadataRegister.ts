@@ -1,4 +1,4 @@
-import { $getGlobalScope } from '../../_packages/utils.index';
+import { $getGlobalScope } from '../../utils/environment/getGlobalScope';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import { Register } from '../../utils/Register';
 import type { LlmToolsMetadata } from './LlmToolsMetadata';
