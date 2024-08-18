@@ -8,6 +8,7 @@ import type { LlmToolsConfiguration } from '../_common/LlmToolsConfiguration';
  * Note: [🏐] Configurations registrations are done in @@@ BUT constructor @@@
  *
  * @public exported from `@promptbook/core`
+ * @public exported from `@promptbook/cli`
  */
 export const _OpenAiMetadataRegistration = $llmToolsMetadataRegister.register({
     title: 'Anthropic Claude',
