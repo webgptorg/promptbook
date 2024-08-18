@@ -58,6 +58,14 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools {
     }
 
     /**
+     * Check the `options` passed to `constructor`
+     */
+    public async checkConfiguration(): Promise<void> {
+        // TODO: !!!!!! Lazy-load client
+        // TODO: [🎍] Do here a real check that API is online, working and API key is correct
+    }
+
+    /**
      * List all available Anthropic Claude models that can be used
      */
     public listModels(): Array<AvailableModel> {

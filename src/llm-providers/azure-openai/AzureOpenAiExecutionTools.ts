@@ -3,17 +3,18 @@ import colors from 'colors';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import type { AvailableModel } from '../../execution/AvailableModel';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { ChatPromptResult } from '../../execution/PromptResult';
-import type { CompletionPromptResult } from '../../execution/PromptResult';
+import type { ChatPromptResult, CompletionPromptResult } from '../../execution/PromptResult';
 import type { PromptResultUsage } from '../../execution/PromptResultUsage';
 import { computeUsageCounts } from '../../execution/utils/computeUsageCounts';
 import { uncertainNumber } from '../../execution/utils/uncertainNumber';
 import type { Prompt } from '../../types/Prompt';
-import type { string_completion_prompt } from '../../types/typeAliases';
-import type { string_date_iso8601 } from '../../types/typeAliases';
-import type { string_markdown } from '../../types/typeAliases';
-import type { string_markdown_text } from '../../types/typeAliases';
-import type { string_title } from '../../types/typeAliases';
+import type {
+    string_completion_prompt,
+    string_date_iso8601,
+    string_markdown,
+    string_markdown_text,
+    string_title,
+} from '../../types/typeAliases';
 import { getCurrentIsoDate } from '../../utils/getCurrentIsoDate';
 import { replaceParameters } from '../../utils/replaceParameters';
 import { OPENAI_MODELS } from '../openai/openai-models';
@@ -51,6 +52,34 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools {
 
     public get description(): string_markdown {
         return 'Use all models trained by OpenAI provided by Azure';
+    }
+
+    /**
+     * Check the `options` passed to `constructor`
+     */
+    public async checkConfiguration(): Promise<void> {
+        // TODO: !!!!!! Lazy-load client
+        // TODO: [🎍] Do here a real check that API is online, working and API key is correct
+    }
+
+    /**
+     * List all available Azure OpenAI models that can be used
+     */
+    public async listModels(): Promise<Array<AvailableModel>> {
+        // TODO: !!! Do here some filtering which models are really available as deployment
+        //       @see https://management.azure.com/subscriptions/subscriptionId/resourceGroups/resourceGroupName/providers/Microsoft.CognitiveServices/accounts/accountName/deployments?api-version=2023-05-01
+        return OPENAI_MODELS.map(
+            ({
+                modelTitle,
+                modelName,
+
+                modelVariant,
+            }) => ({
+                modelTitle: `Azure ${modelTitle}`,
+                modelName,
+                modelVariant,
+            }),
+        );
     }
 
     /**
@@ -259,26 +288,6 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools {
 
         const { code, message } = azureError;
         return new PipelineExecutionError(`${code}: ${message}`);
-    }
-
-    /**
-     * List all available Azure OpenAI models that can be used
-     */
-    public async listModels(): Promise<Array<AvailableModel>> {
-        // TODO: !!! Do here some filtering which models are really available as deployment
-        //       @see https://management.azure.com/subscriptions/subscriptionId/resourceGroups/resourceGroupName/providers/Microsoft.CognitiveServices/accounts/accountName/deployments?api-version=2023-05-01
-        return OPENAI_MODELS.map(
-            ({
-                modelTitle,
-                modelName,
-
-                modelVariant,
-            }) => ({
-                modelTitle: `Azure ${modelTitle}`,
-                modelName,
-                modelVariant,
-            }),
-        );
     }
 }
 

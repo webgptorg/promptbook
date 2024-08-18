@@ -34,6 +34,9 @@ export function createLlmToolsFromEnv(options: CreateLlmToolsFromConfigurationOp
                 No LLM tools found in the environment
 
                 !!!!!!!@@@@You have maybe forgotten to two things:
+                !!!!!!! List all available LLM tools in your environment
+                - Azure 
+                - OpenAI (not imported)
 
                 Please set one of environment variables:
                 - OPENAI_API_KEY

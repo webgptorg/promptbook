@@ -26,6 +26,11 @@ export class MockedEchoLlmExecutionTools implements LlmExecutionTools {
     }
 
     /**
+     * Does nothing, just to implement the interface
+     */
+    public checkConfiguration(): void {}
+
+    /**
      * List all available mocked-models that can be used
      */
     public listModels(): Array<AvailableModel> {
