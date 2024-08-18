@@ -17,8 +17,13 @@ describe('how preparePersona works', () => {
             temperature: 0.6,
             /**/
 
-            /**/
+            /*/
             systemMessage: 'You are a skilled copywriter capable of crafting compelling and high-quality content.',
+            temperature: 0.5,
+            /**/
+
+            /**/
+            systemMessage: 'You are an experienced AI engineer and helpful assistant.',
             temperature: 0.5,
             /**/
         }));
