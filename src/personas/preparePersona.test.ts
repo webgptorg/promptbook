@@ -11,8 +11,8 @@ describe('how preparePersona works', () => {
         ).resolves.toEqual({
             modelVariant: 'CHAT',
             modelName: 'gpt-4', // <- TODO: [💕] Allow to specify more model names or more general like gpt-4-*, 1234 context window etc.
-            systemMessage: 'You are a skilled copywriter capable of crafting compelling and high-quality content.',
-            temperature: 0.5,
+            systemMessage: 'You are an experienced AI engineer and a helpful assistant.',
+            temperature: 0.6,
         }));
 
     /*
