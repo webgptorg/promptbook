@@ -12,7 +12,7 @@ export const createAzureOpenAiExecutionTools = Object.assign(
         return new AzureOpenAiExecutionTools(options);
     },
     {
-        packageName: '@promptbook/openai',
+        packageName: '@promptbook/azure-openai',
         className: 'AzureOpenAiExecutionTools',
     },
 ) satisfies LlmExecutionToolsConstructor;
