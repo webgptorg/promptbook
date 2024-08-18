@@ -33,21 +33,14 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools {
     /**
      * Anthropic Claude API client.
      */
-    private readonly client: Anthropic;
+    private client: Anthropic | null = null;
 
     /**
      * Creates Anthropic Claude Execution Tools.
      *
      * @param options which are relevant are directly passed to the Anthropic Claude client
      */
-    public constructor(private readonly options: AnthropicClaudeExecutionToolsDirectOptions = { isProxied: false }) {
-        // Note: Passing only Anthropic Claude relevant options to Anthropic constructor
-        const anthropicOptions: ClientOptions = { ...options };
-        delete (anthropicOptions as really_any).isVerbose;
-        delete (anthropicOptions as really_any).isProxied;
-        this.client = new Anthropic(anthropicOptions);
-        // <- TODO: !!!!!! Lazy-load client
-    }
+    public constructor(private readonly options: AnthropicClaudeExecutionToolsDirectOptions = { isProxied: false }) {}
 
     public get title(): string_title & string_markdown_text {
         return 'Anthropic Claude';
@@ -57,11 +50,23 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools {
         return 'Use all models provided by Anthropic Claude';
     }
 
+    private async getClient(): Promise<Anthropic> {
+        if (this.client === null) {
+            // Note: Passing only Anthropic Claude relevant options to Anthropic constructor
+            const anthropicOptions: ClientOptions = { ...this.options };
+            delete (anthropicOptions as really_any).isVerbose;
+            delete (anthropicOptions as really_any).isProxied;
+            this.client = new Anthropic(anthropicOptions);
+        }
+
+        return this.client;
+    }
+
     /**
      * Check the `options` passed to `constructor`
      */
     public async checkConfiguration(): Promise<void> {
-        // TODO: !!!!!! Lazy-load client
+        await this.getClient();
         // TODO: [🎍] Do here a real check that API is online, working and API key is correct
     }
 
@@ -83,6 +88,8 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools {
         }
 
         const { content, parameters, modelRequirements } = prompt;
+
+        const client = await this.getClient();
 
         // TODO: [☂] Use here more modelRequirements
         if (modelRequirements.modelVariant !== 'CHAT') {
@@ -115,7 +122,7 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools {
         if (this.options.isVerbose) {
             console.info(colors.bgWhite('rawRequest'), JSON.stringify(rawRequest, null, 4));
         }
-        const rawResponse = await this.client.messages.create(rawRequest);
+        const rawResponse = await client.messages.create(rawRequest);
         if (this.options.isVerbose) {
             console.info(colors.bgWhite('rawResponse'), JSON.stringify(rawResponse, null, 4));
         }

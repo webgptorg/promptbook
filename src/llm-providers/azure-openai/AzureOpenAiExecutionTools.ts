@@ -29,22 +29,14 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools {
     /**
      * OpenAI Azure API client.
      */
-    private readonly client: OpenAIClient;
+    private client: OpenAIClient | null = null;
 
     /**
      * Creates OpenAI Execution Tools.
      *
      * @param options which are relevant are directly passed to the OpenAI client
      */
-    public constructor(private readonly options: AzureOpenAiExecutionToolsOptions) {
-        this.client = new OpenAIClient(
-            //            <- TODO: [🧱] Implement in a functional (not new Class) way
-
-            `https://${options.resourceName}.openai.azure.com/`,
-            new AzureKeyCredential(options.apiKey),
-        );
-        // <- TODO: !!!!!! Lazy-load client
-    }
+    public constructor(private readonly options: AzureOpenAiExecutionToolsOptions) {}
 
     public get title(): string_title & string_markdown_text {
         return 'Azure OpenAI';
@@ -54,11 +46,22 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools {
         return 'Use all models trained by OpenAI provided by Azure';
     }
 
+    private async getClient(): Promise<OpenAIClient> {
+        if (this.client === null) {
+            this.client = new OpenAIClient(
+                `https://${this.options.resourceName}.openai.azure.com/`,
+                new AzureKeyCredential(this.options.apiKey),
+            );
+        }
+
+        return this.client;
+    }
+
     /**
      * Check the `options` passed to `constructor`
      */
     public async checkConfiguration(): Promise<void> {
-        // TODO: !!!!!! Lazy-load client
+        await this.getClient();
         // TODO: [🎍] Do here a real check that API is online, working and API key is correct
     }
 
@@ -93,6 +96,8 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools {
         }
 
         const { content, parameters, modelRequirements } = prompt;
+
+        const client = await this.getClient();
 
         // TODO: [☂] Use here more modelRequirements
         if (modelRequirements.modelVariant !== 'CHAT') {
@@ -134,7 +139,7 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools {
             }
 
             const rawRequest = [modelName, messages, modelSettings] as const;
-            const rawResponse = await this.client.getChatCompletions(...rawRequest);
+            const rawResponse = await client.getChatCompletions(...rawRequest);
 
             if (this.options.isVerbose) {
                 console.info(colors.bgWhite('rawResponse'), JSON.stringify(rawResponse, null, 4));
@@ -198,6 +203,8 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools {
 
         const { content, parameters, modelRequirements } = prompt;
 
+        const client = await this.getClient();
+
         // TODO: [☂] Use here more modelRequirements
         if (modelRequirements.modelVariant !== 'COMPLETION') {
             throw new PipelineExecutionError('Use callCompletionModel only for COMPLETION variant');
@@ -228,7 +235,7 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools {
                 [rawPromptContent] as Array<string_completion_prompt>,
                 modelSettings,
             ] as const;
-            const rawResponse = await this.client.getCompletions(...rawRequest);
+            const rawResponse = await client.getCompletions(...rawRequest);
             if (this.options.isVerbose) {
                 console.info(colors.bgWhite('rawResponse'), JSON.stringify(rawResponse, null, 4));
             }

@@ -29,23 +29,14 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
     /**
      * OpenAI API client.
      */
-    private readonly client: OpenAI;
+    private client: OpenAI | null = null;
 
     /**
      * Creates OpenAI Execution Tools.
      *
      * @param options which are relevant are directly passed to the OpenAI client
      */
-    public constructor(private readonly options: OpenAiExecutionToolsOptions = {}) {
-        // Note: Passing only OpenAI relevant options to OpenAI constructor
-        const openAiOptions = { ...options };
-        delete openAiOptions.isVerbose;
-        delete openAiOptions.user;
-        this.client = new OpenAI({
-            ...openAiOptions,
-        });
-        // <- TODO: !!!!!! Lazy-load client
-    }
+    public constructor(private readonly options: OpenAiExecutionToolsOptions = {}) {}
 
     public get title(): string_title & string_markdown_text {
         return 'OpenAI';
@@ -55,11 +46,25 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
         return 'Use all models provided by OpenAI';
     }
 
+    private async getClient(): Promise<OpenAI> {
+        if (this.client === null) {
+            // Note: Passing only OpenAI relevant options to OpenAI constructor
+            const openAiOptions = { ...this.options };
+            delete openAiOptions.isVerbose;
+            delete openAiOptions.user;
+            this.client = new OpenAI({
+                ...openAiOptions,
+            });
+        }
+
+        return this.client;
+    }
+
     /**
      * Check the `options` passed to `constructor`
      */
     public async checkConfiguration(): Promise<void> {
-        // TODO: !!!!!! Lazy-load client
+        await this.getClient();
         // TODO: [🎍] Do here a real check that API is online, working and API key is correct
     }
 
@@ -89,6 +94,8 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
         }
 
         const { content, parameters, modelRequirements, expectFormat } = prompt;
+
+        const client = await this.getClient();
 
         // TODO: [☂] Use here more modelRequirements
         if (modelRequirements.modelVariant !== 'CHAT') {
@@ -141,7 +148,7 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
         if (this.options.isVerbose) {
             console.info(colors.bgWhite('rawRequest'), JSON.stringify(rawRequest, null, 4));
         }
-        const rawResponse = await this.client.chat.completions.create(rawRequest);
+        const rawResponse = await client.chat.completions.create(rawRequest);
         if (this.options.isVerbose) {
             console.info(colors.bgWhite('rawResponse'), JSON.stringify(rawResponse, null, 4));
         }
@@ -191,6 +198,8 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
 
         const { content, parameters, modelRequirements } = prompt;
 
+        const client = await this.getClient();
+
         // TODO: [☂] Use here more modelRequirements
         if (modelRequirements.modelVariant !== 'COMPLETION') {
             throw new PipelineExecutionError('Use callCompletionModel only for COMPLETION variant');
@@ -219,7 +228,7 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
         if (this.options.isVerbose) {
             console.info(colors.bgWhite('rawRequest'), JSON.stringify(rawRequest, null, 4));
         }
-        const rawResponse = await this.client.completions.create(rawRequest);
+        const rawResponse = await client.completions.create(rawRequest);
         if (this.options.isVerbose) {
             console.info(colors.bgWhite('rawResponse'), JSON.stringify(rawResponse, null, 4));
         }
@@ -265,6 +274,8 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
 
         const { content, parameters, modelRequirements } = prompt;
 
+        const client = await this.getClient();
+
         // TODO: [☂] Use here more modelRequirements
         if (modelRequirements.modelVariant !== 'EMBEDDING') {
             throw new PipelineExecutionError('Use embed only for EMBEDDING variant');
@@ -285,7 +296,7 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
             console.info(colors.bgWhite('rawRequest'), JSON.stringify(rawRequest, null, 4));
         }
 
-        const rawResponse = await this.client.embeddings.create(rawRequest);
+        const rawResponse = await client.embeddings.create(rawRequest);
 
         if (this.options.isVerbose) {
             console.info(colors.bgWhite('rawResponse'), JSON.stringify(rawResponse, null, 4));
