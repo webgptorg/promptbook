@@ -11,9 +11,9 @@ import type { LlmToolsConfiguration } from '../_common/LlmToolsConfiguration';
  * @public exported from `@promptbook/cli`
  */
 export const _OpenAiMetadataRegistration = $llmToolsMetadataRegister.register({
-    title: 'Anthropic Claude',
-    packageName: '@promptbook/anthropic-claude',
-    className: 'AnthropicClaudeExecutionTools',
+    title: 'Open AI',
+    packageName: '@promptbook/openai',
+    className: 'OpenAiExecutionTools',
 
     getBoilerplateConfiguration(): LlmToolsConfiguration[number] {
         return {

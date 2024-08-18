@@ -35,11 +35,12 @@ export class Register<TRegistered extends Registered> {
         );
         const existingRegistration = this.storage[existingRegistrationIndex];
 
-        if (existingRegistration) {
-            console.warn(`!!!!!! Re-registering ${packageName}.${className} again`);
-            this.storage[existingRegistrationIndex] = registered;
-        } else {
+        if (!existingRegistration) {
+            console.warn(`[📦] Registering ${packageName}.${className} again`);
             this.storage.push(registered);
+        } else {
+            console.warn(`[📦] Re-registering ${packageName}.${className} again`);
+            this.storage[existingRegistrationIndex] = registered;
         }
     }
 }
