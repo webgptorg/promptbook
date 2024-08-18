@@ -11,7 +11,7 @@ import { join } from 'path';
 import type { string_char_emoji } from '../../src/types/typeAliasEmoji';
 import { difference } from './utils/difference';
 import { EMOJIS, EMOJIS_OF_SINGLE_PICTOGRAM } from './utils/emojis';
-import { $shuffleItems } from './utils/shuffleItems';
+import { $shuffleItems } from './utils/$shuffleItems';
 
 if (process.cwd() !== join(__dirname, '../..')) {
     console.error(colors.red(`CWD must be root of the project`));
