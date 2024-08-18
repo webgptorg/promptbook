@@ -9,7 +9,7 @@ import type { OpenAiExecutionToolsOptions } from './OpenAiExecutionToolsOptions'
  */
 export const createOpenAiExecutionTools = Object.assign(
     (options: OpenAiExecutionToolsOptions): OpenAiExecutionTools => {
-        // TODO: !!!!!! If browser, auto add `dangerouslyAllowBrowser`
+        // TODO: [🧠] !!!! If browser, auto add `dangerouslyAllowBrowser`
         return new OpenAiExecutionTools(options);
     },
     {
