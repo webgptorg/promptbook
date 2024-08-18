@@ -10,6 +10,8 @@ import type { really_any } from '../../utils/organization/really_any';
 import { PROMPTBOOK_VERSION } from '../../version';
 import { createLlmToolsFromConfiguration } from '../_common/createLlmToolsFromConfiguration';
 import type { PromptbookServer_Error } from './interfaces/PromptbookServer_Error';
+import { PromptbookServer_ListModels_Request } from './interfaces/PromptbookServer_ListModels_Request';
+import { PromptbookServer_ListModels_Response } from './interfaces/PromptbookServer_ListModels_Response';
 import type { PromptbookServer_Prompt_Request } from './interfaces/PromptbookServer_Prompt_Request';
 import type { PromptbookServer_Prompt_Response } from './interfaces/PromptbookServer_Prompt_Response';
 import type { RemoteServerOptions } from './interfaces/RemoteServerOptions';
@@ -89,8 +91,8 @@ export function startRemoteServer(options: RemoteServerOptions): IDestroyable {
     server.on('connection', (socket: Socket) => {
         console.info(colors.gray(`Client connected`), socket.id);
 
-        socket.on('request', async (request: PromptbookServer_Prompt_Request) => {
-            const { prompt, clientId, llmToolsConfiguration } = {
+        socket.on('prompt-request', async (request: PromptbookServer_Prompt_Request) => {
+            const { isAnonymous, prompt, clientId, llmToolsConfiguration } = {
                 clientId: null,
                 llmToolsConfiguration: null,
                 ...request,
@@ -102,11 +104,11 @@ export function startRemoteServer(options: RemoteServerOptions): IDestroyable {
             }
 
             try {
-                if (llmToolsConfiguration !== null && !isAnonymousModeAllowed) {
+                if (isAnonymous === true && !isAnonymousModeAllowed) {
                     throw new PipelineExecutionError(`Anonymous mode is not allowed`); // <- TODO: !!! Test
                 }
 
-                if (clientId !== null && !isCollectionModeAllowed) {
+                if (isAnonymous === false && !isCollectionModeAllowed) {
                     throw new PipelineExecutionError(`Collection mode is not allowed`); // <- TODO: !!! Test
                 }
 
@@ -114,11 +116,11 @@ export function startRemoteServer(options: RemoteServerOptions): IDestroyable {
 
                 let llmExecutionTools: LlmExecutionTools;
 
-                if (llmToolsConfiguration !== null) {
+                if (isAnonymous === true && llmToolsConfiguration !== null) {
                     // Note: Anonymouse mode
                     // TODO: Maybe check that configuration is not empty
                     llmExecutionTools = createLlmToolsFromConfiguration(llmToolsConfiguration, { isVerbose });
-                } else if (createLlmExecutionTools !== null) {
+                } else if (isAnonymous === false && createLlmExecutionTools !== null) {
                     // Note: Collection mode
                     llmExecutionTools = createLlmExecutionTools(
                         clientId,
@@ -130,7 +132,7 @@ export function startRemoteServer(options: RemoteServerOptions): IDestroyable {
                     }
                 } else {
                     throw new PipelineExecutionError(
-                        `You must provide either llmToolsConfiguration or createLlmExecutionTools`,
+                        `You must provide either llmToolsConfiguration or non-anonymous mode must be propperly configured`,
                     );
                 }
 
@@ -172,7 +174,59 @@ export function startRemoteServer(options: RemoteServerOptions): IDestroyable {
                     console.info(colors.bgGreen(`PromptResult:`), colors.green(JSON.stringify(promptResult, null, 4)));
                 }
 
-                socket.emit('response', { promptResult } satisfies PromptbookServer_Prompt_Response);
+                socket.emit('prompt-response', { promptResult } satisfies PromptbookServer_Prompt_Response);
+            } catch (error) {
+                if (!(error instanceof Error)) {
+                    throw error;
+                }
+
+                socket.emit('error', { errorMessage: error.message } satisfies PromptbookServer_Error);
+            } finally {
+                socket.disconnect();
+            }
+        });
+
+        // TODO: [👒] Listing models (and checking configuration) probbably should go through REST API not Socket.io
+        socket.on('listModels-request', async (request: PromptbookServer_ListModels_Request) => {
+            const { isAnonymous, clientId, llmToolsConfiguration } = {
+                clientId: null,
+                llmToolsConfiguration: null,
+                ...request,
+            };
+            // <- TODO: [🦪] Some helper type to be able to use discriminant union types with destructuring
+
+            if (isVerbose) {
+                console.info(colors.bgWhite(`Listing models`));
+            }
+
+            try {
+                if (isAnonymous === true && !isAnonymousModeAllowed) {
+                    throw new PipelineExecutionError(`Anonymous mode is not allowed`); // <- TODO: !!! Test
+                }
+
+                if (isAnonymous === false && !isCollectionModeAllowed) {
+                    throw new PipelineExecutionError(`Collection mode is not allowed`); // <- TODO: !!! Test
+                }
+
+                // TODO: !!!! Validate here clientId (pass validator as dependency)
+
+                let llmExecutionTools: LlmExecutionTools;
+
+                if (isAnonymous === true) {
+                    // Note: Anonymouse mode
+                    // TODO: Maybe check that configuration is not empty
+                    llmExecutionTools = createLlmToolsFromConfiguration(llmToolsConfiguration, { isVerbose });
+                } else {
+                    // Note: Collection mode
+                    llmExecutionTools = createLlmExecutionTools!(
+                        clientId,
+                        // <- TODO: [🧠][🤺] `clientId` should be property of each prompt
+                    );
+                }
+
+                const models = await llmExecutionTools.listModels();
+
+                socket.emit('prompt-response', { models } satisfies PromptbookServer_ListModels_Response);
             } catch (error) {
                 if (!(error instanceof Error)) {
                     throw error;
@@ -218,6 +272,7 @@ export function startRemoteServer(options: RemoteServerOptions): IDestroyable {
 }
 
 /**
+ * TODO: [🧠][🛍] Maybe not `isAnonymous: boolean` BUT `mode: 'ANONYMOUS'|'COLLECTION'`
  * TODO: [⚖] Expose the collection to be able to connect to same collection via createCollectionFromUrl
  * TODO: Handle progress - support streaming
  * TODO: [🗯] Do not hang up immediately but wait until client closes OR timeout

@@ -1,8 +1,5 @@
-import type { AvailableModel } from '../../../execution/AvailableModel';
 import type { CommonExecutionToolsOptions } from '../../../execution/CommonExecutionToolsOptions';
-import type { client_id } from '../../../types/typeAliases';
-import type { string_base_url } from '../../../types/typeAliases';
-import type { string_uri } from '../../../types/typeAliases';
+import type { client_id, string_base_url, string_uri } from '../../../types/typeAliases';
 import type { LlmToolsConfiguration } from '../../_common/LlmToolsConfiguration';
 
 /**
@@ -24,13 +21,6 @@ export type RemoteLlmExecutionToolsOptions = CommonExecutionToolsOptions & {
      * @example '/promptbook/socket.io'
      */
     readonly path: string_uri;
-
-    /**
-     * If set, only these models will be listed as available
-     *
-     * TODO: [🧠] !!!!!! Figure out better solution
-     */
-    readonly models?: Array<AvailableModel>;
 
     /**
      * Mode of the server to connect to
@@ -62,5 +52,6 @@ export type RemoteLlmExecutionToolsOptions = CommonExecutionToolsOptions & {
     );
 
 /**
+ * TODO: [🧠][🛍] Maybe not `isAnonymous: boolean` BUT `mode: 'ANONYMOUS'|'COLLECTION'`
  * TODO: [🧠][🧜‍♂️] Maybe join remoteUrl and path into single value
  */

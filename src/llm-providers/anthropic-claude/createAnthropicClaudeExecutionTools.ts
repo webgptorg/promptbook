@@ -1,6 +1,5 @@
 import type { LlmExecutionToolsConstructor } from '../../execution/LlmExecutionToolsConstructor';
 import { RemoteLlmExecutionTools } from '../remote/RemoteLlmExecutionTools';
-import { ANTHROPIC_CLAUDE_MODELS } from './anthropic-claude-models';
 import { AnthropicClaudeExecutionTools } from './AnthropicClaudeExecutionTools';
 import type { AnthropicClaudeExecutionToolsOptions } from './AnthropicClaudeExecutionToolsOptions';
 
@@ -28,7 +27,6 @@ export const createAnthropicClaudeExecutionTools = Object.assign(
                             },
                         },
                     ],
-                    models: ANTHROPIC_CLAUDE_MODELS,
                 },
             );
         }
