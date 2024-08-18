@@ -3,7 +3,7 @@ import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import type { TODO_any } from '../../utils/organization/TODO_any';
 import { joinLlmExecutionTools } from '../multiple/joinLlmExecutionTools';
 import { MultipleLlmExecutionTools } from '../multiple/MultipleLlmExecutionTools';
-import { EXECUTION_TOOLS_CLASSES } from './config';
+import { $llmToolsRegister } from './$llmToolsRegister';
 import type { LlmToolsConfiguration } from './LlmToolsConfiguration';
 
 /**
@@ -35,9 +35,14 @@ export function createLlmToolsFromConfiguration(
     const { isVerbose = false } = options;
 
     const llmTools: Array<LlmExecutionTools> = configuration.map((llmConfiguration: TODO_any) => {
-        const constructor = EXECUTION_TOOLS_CLASSES[`create${llmConfiguration.className}`];
+        const registeredItem = $llmToolsRegister
+            .list()
+            .find(
+                ({ packageName, className }) =>
+                    llmConfiguration.packageName === packageName && llmConfiguration.className === className,
+            );
 
-        if (!constructor) {
+        if (!registeredItem) {
             throw new Error(
                 spaceTrim(
                     (block) => `
@@ -55,7 +60,7 @@ export function createLlmToolsFromConfiguration(
             );
         }
 
-        return constructor({
+        return registeredItem.constructor({
             isVerbose,
             ...llmConfiguration.options,
         });
