@@ -61,8 +61,10 @@ export function $registeredLlmToolsMessage(): string_markdown {
                         if (just(false)) {
                             more = '';
                         } else if (!isMetadataAviailable && !isInstalled) {
+                            // TODO: [�][�] Maybe do allow to do auto-install if package not registered and not found
                             more = `(not installed and no metadata, looks like a unexpected behavior)`;
                         } else if (isMetadataAviailable && !isInstalled) {
+                            // TODO: [�][�]
                             more = `(not installed)`;
                         } else if (!isMetadataAviailable && isInstalled) {
                             more = `(no metadata, looks like a unexpected behavior)`;

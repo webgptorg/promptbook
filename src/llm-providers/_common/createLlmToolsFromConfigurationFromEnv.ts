@@ -33,6 +33,7 @@ export function createLlmToolsFromConfigurationFromEnv(): LlmToolsConfiguration 
 }
 
 /**
+ * TODO: [🧠][🪁] Maybe do allow to do auto-install if package not registered and not found
  * TODO: Add Azure OpenAI
  * TODO: [🧠][🍛]
  * TODO: [🧠] Is there some meaningfull way how to test this util

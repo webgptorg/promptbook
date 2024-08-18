@@ -56,6 +56,8 @@ export class $Register<TRegistered extends Registered> {
         );
         const existingRegistration = this.storage[existingRegistrationIndex];
 
+        // TODO: !!!!!! Global IS_VERBOSE mode
+
         if (!existingRegistration) {
             console.warn(`[📦] Registering \`${packageName}.${className}\` to \`${this.storageName}\``);
             this.storage.push(registered);
