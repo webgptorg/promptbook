@@ -7,6 +7,7 @@ import { createAnthropicClaudeExecutionTools } from './createAnthropicClaudeExec
  * Note: [🏐] Configurations registrations are done in @@@ BUT constructor @@@
  *
  * @public exported from `@promptbook/anthropic-claude`
+ * @public exported from `@promptbook/cli`
  */
 export const _AnthropicClaudeRegistration = $llmToolsRegister.register(createAnthropicClaudeExecutionTools);
 

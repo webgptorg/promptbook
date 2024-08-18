@@ -57,7 +57,7 @@ export function createLlmToolsFromConfiguration(
             );
         }
 
-        return registeredItem.constructor({
+        return registeredItem({
             isVerbose,
             ...llmConfiguration.options,
         });

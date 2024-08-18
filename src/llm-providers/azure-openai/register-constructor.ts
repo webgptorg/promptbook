@@ -7,6 +7,7 @@ import { createAzureOpenAiExecutionTools } from './createAzureOpenAiExecutionToo
  * Note: [🏐] Configurations registrations are done in @@@ BUT constructor @@@
  *
  * @public exported from `@promptbook/azure-openai`
+ * @public exported from `@promptbook/cli`
  */
 export const _AzureOpenAiRegistration = $llmToolsRegister.register(createAzureOpenAiExecutionTools);
 

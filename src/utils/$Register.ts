@@ -25,7 +25,7 @@ export type Registered = {
 export class $Register<TRegistered extends Registered> {
     private readonly storage: Array<TRegistered>;
 
-    constructor(storageName: string_javascript_name) {
+    constructor(private readonly storageName: string_javascript_name) {
         storageName = `_promptbook_${storageName}`;
 
         const globalScope = $getGlobalScope();
@@ -57,10 +57,10 @@ export class $Register<TRegistered extends Registered> {
         const existingRegistration = this.storage[existingRegistrationIndex];
 
         if (!existingRegistration) {
-            console.warn(`[📦] Registering ${packageName}.${className} again`);
+            console.warn(`[📦] Registering \`${packageName}.${className}\` to \`${this.storageName}\``);
             this.storage.push(registered);
         } else {
-            console.warn(`[📦] Re-registering ${packageName}.${className} again`);
+            console.warn(`[📦] Re-registering \`${packageName}.${className}\` to \`${this.storageName}\``);
             this.storage[existingRegistrationIndex] = registered;
         }
     }

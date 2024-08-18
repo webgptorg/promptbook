@@ -7,6 +7,7 @@ import { createOpenAiExecutionTools } from './createOpenAiExecutionTools';
  * Note: [🏐] Configurations registrations are done in @@@ BUT constructor @@@
  *
  * @public exported from `@promptbook/openai`
+ * @public exported from `@promptbook/cli`
  */
 export const _OpenAiRegistration = $llmToolsRegister.register(createOpenAiExecutionTools);
 

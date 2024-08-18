@@ -1,5 +1,5 @@
 import { join } from 'path';
-import '../../_packages/core.index'; // <- Note: Really importing core index to register all the LLM providers
+import '../../_packages/cli.index'; // <- Note: Really importing core index to register all the LLM providers
 import { DEBUG_ALLOW_PAYED_TESTING, EXECUTIONS_CACHE_DIRNAME } from '../../config';
 import { EnvironmentMismatchError } from '../../errors/EnvironmentMismatchError';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
