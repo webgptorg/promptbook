@@ -9,9 +9,9 @@ import type { PromptResult } from '../../execution/PromptResult';
 import type { really_any } from '../../utils/organization/really_any';
 import { PROMPTBOOK_VERSION } from '../../version';
 import { createLlmToolsFromConfiguration } from '../_common/createLlmToolsFromConfiguration';
-import type { Promptbook_Server_Error } from './interfaces/Promptbook_Server_Error';
-import type { Promptbook_Server_Request } from './interfaces/Promptbook_Server_Request';
-import type { Promptbook_Server_Response } from './interfaces/Promptbook_Server_Response';
+import type { PromptbookServer_Error } from './interfaces/PromptbookServer_Error';
+import type { PromptbookServer_Prompt_Request } from './interfaces/PromptbookServer_Prompt_Request';
+import type { PromptbookServer_Prompt_Response } from './interfaces/PromptbookServer_Prompt_Response';
 import type { RemoteServerOptions } from './interfaces/RemoteServerOptions';
 
 /**
@@ -89,7 +89,7 @@ export function startRemoteServer(options: RemoteServerOptions): IDestroyable {
     server.on('connection', (socket: Socket) => {
         console.info(colors.gray(`Client connected`), socket.id);
 
-        socket.on('request', async (request: Promptbook_Server_Request) => {
+        socket.on('request', async (request: PromptbookServer_Prompt_Request) => {
             const { prompt, clientId, llmToolsConfiguration } = {
                 clientId: null,
                 llmToolsConfiguration: null,
@@ -172,13 +172,13 @@ export function startRemoteServer(options: RemoteServerOptions): IDestroyable {
                     console.info(colors.bgGreen(`PromptResult:`), colors.green(JSON.stringify(promptResult, null, 4)));
                 }
 
-                socket.emit('response', { promptResult } satisfies Promptbook_Server_Response);
+                socket.emit('response', { promptResult } satisfies PromptbookServer_Prompt_Response);
             } catch (error) {
                 if (!(error instanceof Error)) {
                     throw error;
                 }
 
-                socket.emit('error', { errorMessage: error.message } satisfies Promptbook_Server_Error);
+                socket.emit('error', { errorMessage: error.message } satisfies PromptbookServer_Error);
             } finally {
                 socket.disconnect();
             }

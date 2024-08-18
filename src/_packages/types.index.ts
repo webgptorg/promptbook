@@ -49,14 +49,14 @@ import type { AzureOpenAiExecutionToolsOptions } from '../llm-providers/azure-op
 import type { LangtailExecutionToolsOptions } from '../llm-providers/langtail/LangtailExecutionToolsOptions';
 import type { MultipleLlmExecutionTools } from '../llm-providers/multiple/MultipleLlmExecutionTools';
 import type { OpenAiExecutionToolsOptions } from '../llm-providers/openai/OpenAiExecutionToolsOptions';
-import type { Promptbook_Server_Error } from '../llm-providers/remote/interfaces/Promptbook_Server_Error';
-import type { Promptbook_Server_Progress } from '../llm-providers/remote/interfaces/Promptbook_Server_Progress';
+import type { PromptbookServer_Error } from '../llm-providers/remote/interfaces/PromptbookServer_Error';
+import type { PromptbookServer_Prompt_Progress } from '../llm-providers/remote/interfaces/PromptbookServer_Prompt_Progress';
 import type {
-    Promptbook_Server_AnonymousRequest,
-    Promptbook_Server_CollectionRequest,
-    Promptbook_Server_Request,
-} from '../llm-providers/remote/interfaces/Promptbook_Server_Request';
-import type { Promptbook_Server_Response } from '../llm-providers/remote/interfaces/Promptbook_Server_Response';
+    PromptbookServer_Prompt_AnonymousRequest,
+    PromptbookServer_Prompt_CollectionRequest,
+    PromptbookServer_Prompt_Request,
+} from '../llm-providers/remote/interfaces/PromptbookServer_Prompt_Request';
+import type { PromptbookServer_Prompt_Response } from '../llm-providers/remote/interfaces/PromptbookServer_Prompt_Response';
 import type { RemoteLlmExecutionToolsOptions } from '../llm-providers/remote/interfaces/RemoteLlmExecutionToolsOptions';
 import type {
     AnonymousRemoteServerOptions,
@@ -325,12 +325,12 @@ export type {
     PrepareOptions,
     PrettifyOptions,
     Prompt,
-    Promptbook_Server_AnonymousRequest,
-    Promptbook_Server_CollectionRequest,
-    Promptbook_Server_Error,
-    Promptbook_Server_Progress,
-    Promptbook_Server_Request,
-    Promptbook_Server_Response,
+    PromptbookServer_Prompt_AnonymousRequest as PromptbookServer_AnonymousRequest,
+    PromptbookServer_Prompt_CollectionRequest as PromptbookServer_CollectionRequest,
+    PromptbookServer_Error,
+    PromptbookServer_Prompt_Progress as PromptbookServer_Progress,
+    PromptbookServer_Prompt_Request as PromptbookServer_Prompt_Request,
+    PromptbookServer_Prompt_Response as PromptbookServer_Prompt_Response,
     PromptbookStorage,
     PromptDialogJson,
     PromptResult,
