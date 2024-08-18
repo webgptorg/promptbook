@@ -1,6 +1,6 @@
-import { string_name } from '../../types/typeAliases';
+import type { string_name } from '../../types/typeAliases';
 import { $llmToolsMetadataRegister } from '../_common/$llmToolsMetadataRegister';
-import { LlmToolsConfiguration } from '../_common/LlmToolsConfiguration';
+import type { LlmToolsConfiguration } from '../_common/LlmToolsConfiguration';
 
 /**
  * @@@ registration1 of default configuration for Open AI

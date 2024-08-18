@@ -1,7 +1,8 @@
-import { DEFAULT_REMOTE_URL, DEFAULT_REMOTE_URL_PATH } from '../../config';
-import { string_name } from '../../types/typeAliases';
+import { DEFAULT_REMOTE_URL } from '../../config';
+import { DEFAULT_REMOTE_URL_PATH } from '../../config';
+import type { string_name } from '../../types/typeAliases';
 import { $llmToolsMetadataRegister } from '../_common/$llmToolsMetadataRegister';
-import { LlmToolsConfiguration } from '../_common/LlmToolsConfiguration';
+import type { LlmToolsConfiguration } from '../_common/LlmToolsConfiguration';
 
 /**
  * @@@ registration1 of default configuration for Anthropic Claude

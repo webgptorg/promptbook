@@ -1,6 +1,6 @@
 import type { string_title } from '../../types/typeAliases';
 import type { Registered } from '../../utils/Register';
-import { LlmToolsOptions } from './LlmToolsOptions';
+import type { LlmToolsOptions } from './LlmToolsOptions';
 
 /**
  * @@@

@@ -1,5 +1,5 @@
 import { Register } from '../../utils/Register';
-import { LlmToolsMetadata } from './LlmToolsMetadata';
+import type { LlmToolsMetadata } from './LlmToolsMetadata';
 
 /**
  * @@@
