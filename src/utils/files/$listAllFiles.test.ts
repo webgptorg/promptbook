@@ -1,5 +1,5 @@
 import { describe, expect, it } from '@jest/globals';
-import { $listAllFiles } from './listAllFiles';
+import { $listAllFiles } from './$listAllFiles';
 
 describe('how listAllFiles works', () => {
     it('lists all files', () =>

@@ -1,5 +1,5 @@
 import { describe, expect, it } from '@jest/globals';
-import { $isDirectoryExisting } from './isDirectoryExisting';
+import { $isDirectoryExisting } from './$isDirectoryExisting';
 
 describe('how isDirectoryExisting works', () => {
     it('works with existing directories', () =>

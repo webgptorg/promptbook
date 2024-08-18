@@ -1,5 +1,5 @@
 import { describe, expect, it } from '@jest/globals';
-import { $isFileExisting } from './isFileExisting';
+import { $isFileExisting } from './$isFileExisting';
 
 describe('how isFileExisting works', () => {
     it('works with existing files', () =>

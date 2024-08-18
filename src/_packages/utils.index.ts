@@ -13,10 +13,9 @@ import { $currentDate } from '../utils/$currentDate';
 import { clonePipeline } from '../utils/clonePipeline';
 import { deepClone } from '../utils/deepClone';
 import { $deepFreeze } from '../utils/deepFreeze';
-import { $getGlobalScope } from '../utils/environment/getGlobalScope';
-import { $isRunningInBrowser } from '../utils/environment/isRunningInBrowser';
-import { $isRunningInNode } from '../utils/environment/isRunningInNode';
-import { $isRunningInWebWorker } from '../utils/environment/isRunningInWebWorker';
+import { $getGlobalScope } from '../utils/environment/$getGlobalScope';
+import { $isRunningInNode } from '../utils/environment/$isRunningInNode';
+import { $isRunningInWebWorker } from '../utils/environment/$isRunningInWebWorker';
 import { countCharacters } from '../utils/expectation-counters/countCharacters';
 import { countLines } from '../utils/expectation-counters/countLines';
 import { countPages } from '../utils/expectation-counters/countPages';
@@ -77,7 +76,6 @@ export {
     $currentDate,
     $deepFreeze,
     $getGlobalScope,
-    $isRunningInBrowser,
     $isRunningInNode,
     $isRunningInWebWorker,
     $randomSeed,

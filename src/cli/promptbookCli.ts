@@ -1,7 +1,7 @@
 import commander from 'commander';
 import { spaceTrim } from 'spacetrim';
 import { EnvironmentMismatchError } from '../errors/EnvironmentMismatchError';
-import { $isRunningInNode } from '../utils/environment/isRunningInNode';
+import { $isRunningInNode } from '../utils/environment/$isRunningInNode';
 import { PROMPTBOOK_VERSION } from '../version';
 import { initializeAboutCommand } from './cli-commands/about';
 import { initializeHelloCommand } from './cli-commands/hello';

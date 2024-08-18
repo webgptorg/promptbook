@@ -7,8 +7,8 @@ import { stringifyPipelineJson } from '../../conversion/utils/stringifyPipelineJ
 import { titleToName } from '../../conversion/utils/titleToName';
 import { EnvironmentMismatchError } from '../../errors/EnvironmentMismatchError';
 import type { string_file_path } from '../../types/typeAliases';
-import { $isRunningInNode } from '../../utils/environment/isRunningInNode';
-import { $isFileExisting } from '../../utils/files/isFileExisting';
+import { $isRunningInNode } from '../../utils/environment/$isRunningInNode';
+import { $isFileExisting } from '../../utils/files/$isFileExisting';
 import type { PromptbookStorage } from '../_common/PromptbookStorage';
 import type { FilesStorageOptions } from './FilesStorageOptions';
 import { nameToSubfolderPath } from './utils/nameToSubfolderPath';
