@@ -8,7 +8,7 @@ import colors from 'colors';
 import commander from 'commander';
 import { writeFile } from 'fs/promises';
 import { join } from 'path';
-import '../../src/_packages/core.index'; // <- Note: Really importing @@@ + TODO: !!!!!! Import core to all scripts using `createLlmToolsFromEnv` and `getLlmToolsForTestingAndScriptsAndPlayground`
+import '../../src/_packages/core.index'; // <- Note: Really importing @@@5 + TODO: !!!!!! Import core to all scripts using `createLlmToolsFromEnv` and `getLlmToolsForTestingAndScriptsAndPlayground`
 import { collectionToJson } from '../../src/collection/collectionToJson';
 import { createCollectionFromDirectory } from '../../src/collection/constructors/createCollectionFromDirectory';
 import { usageToHuman } from '../../src/execution/utils/usageToHuman';

@@ -1,4 +1,5 @@
 import { describe, expect, it } from '@jest/globals';
+import '../../src/_packages/core.index'; // <- Note: Really importing @@@5
 import { getLlmToolsForTestingAndScriptsAndPlayground } from '../llm-providers/_common/getLlmToolsForTestingAndScriptsAndPlayground';
 import { preparePersona } from './preparePersona';
 
@@ -10,9 +11,8 @@ describe('how preparePersona works', () => {
             }),
         ).resolves.toEqual({
             modelVariant: 'CHAT',
-            modelName: 'gpt-4-turbo', // <- TODO: [💕] Allow to specify more model names or more general like gpt-4-*, 1234 context window etc.
-            systemMessage:
-                'You are an experienced AI engineer and helpful assistant, embodying the role of a skilled copywriter.',
+            modelName: 'gpt-4', // <- TODO: [💕] Allow to specify more model names or more general like gpt-4-*, 1234 context window etc.
+            systemMessage: 'You are a skilled copywriter capable of crafting compelling and high-quality content.',
             temperature: 0.5,
         }));
 
