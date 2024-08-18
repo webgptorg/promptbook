@@ -26,8 +26,20 @@ export class Register<TRegistered extends Registered> {
     }
 
     public register(registered: TRegistered): void {
-        // !!!!!!                             <- TODO: What to return here
-        // TODO: !!!!!! Compare if same is not already registered
-        this.storage.push(registered);
+        //                                    <- TODO: What to return here
+
+        const { packageName, className } = registered;
+
+        const existingRegistrationIndex = this.storage.findIndex(
+            (item) => item.packageName === packageName && item.className === className,
+        );
+        const existingRegistration = this.storage[existingRegistrationIndex];
+
+        if (existingRegistration) {
+            console.warn(`!!!!!! Re-registering ${packageName}.${className} again`);
+            this.storage[existingRegistrationIndex] = registered;
+        } else {
+            this.storage.push(registered);
+        }
     }
 }
