@@ -5,15 +5,15 @@ import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { AvailableModel } from '../../execution/AvailableModel';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { ChatPromptResult } from '../../execution/PromptResult';
-import type { CompletionPromptResult } from '../../execution/PromptResult';
-import type { EmbeddingPromptResult } from '../../execution/PromptResult';
+import type { ChatPromptResult, CompletionPromptResult, EmbeddingPromptResult } from '../../execution/PromptResult';
 import type { Prompt } from '../../types/Prompt';
-import type { string_date_iso8601 } from '../../types/typeAliases';
-import type { string_markdown } from '../../types/typeAliases';
-import type { string_markdown_text } from '../../types/typeAliases';
-import type { string_model_name } from '../../types/typeAliases';
-import type { string_title } from '../../types/typeAliases';
+import type {
+    string_date_iso8601,
+    string_markdown,
+    string_markdown_text,
+    string_model_name,
+    string_title,
+} from '../../types/typeAliases';
 import { getCurrentIsoDate } from '../../utils/getCurrentIsoDate';
 import { replaceParameters } from '../../utils/replaceParameters';
 import { computeOpenAiUsage } from './computeOpenAiUsage';
@@ -53,6 +53,21 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
 
     public get description(): string_markdown {
         return 'Use all models provided by OpenAI';
+    }
+
+    /**
+     * List all available OpenAI models that can be used
+     */
+    public listModels(): Array<AvailableModel> {
+        /*
+        Note: Dynamic lising of the models
+        const models = await this.openai.models.list({});
+
+        console.log({ models });
+        console.log(models.data);
+        */
+
+        return OPENAI_MODELS;
     }
 
     /**
@@ -341,21 +356,6 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
     }
 
     // <- Note: [🤖] getDefaultXxxModel
-
-    /**
-     * List all available OpenAI models that can be used
-     */
-    public listModels(): Array<AvailableModel> {
-        /*
-        Note: Dynamic lising of the models
-        const models = await this.openai.models.list({});
-
-        console.log({ models });
-        console.log(models.data);
-        */
-
-        return OPENAI_MODELS;
-    }
 }
 
 /**

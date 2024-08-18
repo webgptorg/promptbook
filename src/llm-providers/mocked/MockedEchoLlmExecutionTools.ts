@@ -2,13 +2,10 @@ import { spaceTrim } from 'spacetrim';
 import type { AvailableModel } from '../../execution/AvailableModel';
 import type { CommonExecutionToolsOptions } from '../../execution/CommonExecutionToolsOptions';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { ChatPromptResult } from '../../execution/PromptResult';
-import type { CompletionPromptResult } from '../../execution/PromptResult';
+import type { ChatPromptResult, CompletionPromptResult } from '../../execution/PromptResult';
 import { ZERO_USAGE } from '../../execution/utils/addUsage';
 import type { Prompt } from '../../types/Prompt';
-import type { string_markdown } from '../../types/typeAliases';
-import type { string_markdown_text } from '../../types/typeAliases';
-import type { string_title } from '../../types/typeAliases';
+import type { string_markdown, string_markdown_text, string_title } from '../../types/typeAliases';
 import { getCurrentIsoDate } from '../../utils/getCurrentIsoDate';
 import { replaceParameters } from '../../utils/replaceParameters';
 
@@ -26,6 +23,25 @@ export class MockedEchoLlmExecutionTools implements LlmExecutionTools {
 
     public get description(): string_markdown {
         return 'What you say is whay you get - just for testing';
+    }
+
+    /**
+     * List all available mocked-models that can be used
+     */
+    public listModels(): Array<AvailableModel> {
+        return [
+            {
+                modelTitle: 'Echo chat',
+                modelName: 'mocked-echo',
+                modelVariant: 'CHAT',
+            },
+            {
+                modelTitle: 'Echo completion',
+                modelName: 'mocked-echo',
+                modelVariant: 'COMPLETION',
+            },
+            // <- Note: [🤖]
+        ];
     }
 
     /**
@@ -105,25 +121,6 @@ export class MockedEchoLlmExecutionTools implements LlmExecutionTools {
     }
 
     // <- Note: [🤖] callXxxModel
-
-    /**
-     * List all available mocked-models that can be used
-     */
-    public listModels(): Array<AvailableModel> {
-        return [
-            {
-                modelTitle: 'Echo chat',
-                modelName: 'mocked-echo',
-                modelVariant: 'CHAT',
-            },
-            {
-                modelTitle: 'Echo completion',
-                modelName: 'mocked-echo',
-                modelVariant: 'COMPLETION',
-            },
-            // <- Note: [🤖]
-        ];
-    }
 }
 
 /**
