@@ -3,21 +3,21 @@
     "terminals": [
         {
             "name": "👨‍💻⚪ Run simple-script sample (💸)",
-            "command": "ts-node ./samples/usage/simple-script/simple-script.ts",
+            "command": "npx ts-node ./samples/usage/simple-script/simple-script.ts",
             "execute": false,
             "onlySingle": false,
             "focus": false
         },
         {
             "name": "👨‍💻🔴 Run logging sample (💸)",
-            "command": "ts-node ./samples/usage/logging/logging.ts",
+            "command": "npx ts-node ./samples/usage/logging/logging.ts",
             "execute": false,
             "onlySingle": false,
             "focus": false
         },
         {
             "name": "👨‍💻🔵 Run remote sample (💸)",
-            "command": "ts-node ./samples/usage/remote/server.ts",
+            "command": "npx ts-node ./samples/usage/remote/server.ts",
             "execute": false,
             "onlySingle": false,
             "focus": false
@@ -39,14 +39,14 @@
         },
         {
             "name": "🧪 Lint (samples)",
-            "command": "eslint samples",
+            "command": "npx eslint samples",
             "execute": false,
             "onlySingle": false,
             "focus": false
         },
         {
             "name": "🧪 Lint (scripts)",
-            "command": "eslint scripts",
+            "command": "npx eslint scripts",
             "execute": false,
             "onlySingle": false,
             "focus": false
@@ -67,13 +67,13 @@
         },
         {
             "name": "🤪 Find fresh emoji tag",
-            "command": "ts-node ./scripts/find-fresh-emoji-tag/find-fresh-emoji-tag.ts",
+            "command": "npx ts-node ./scripts/find-fresh-emoji-tag/find-fresh-emoji-tag.ts",
             "execute": true,
             "focus": true
         },
         {
             "name": "🏭📦 Generate packages",
-            "commands": ["ts-node ./scripts/generate-packages/generate-packages.ts --skip-bundler"],
+            "commands": ["npx ts-node ./scripts/generate-packages/generate-packages.ts --skip-bundler"],
             "execute": false,
             "onlySingle": true,
             "focus": false
@@ -81,8 +81,8 @@
         {
             "name": "🏭📖 Generate samples .ptbk.md -> .ptbk.json (💸) [🍠]",
             "commands": [
-                "ts-node ./scripts/make-promptbook-collection/make-promptbook-collection.ts --verbose",
-                "ts-node ./scripts/generate-samples-jsons/generate-samples-jsons.ts --verbose"
+                "npx ts-node ./scripts/make-promptbook-collection/make-promptbook-collection.ts --verbose",
+                "npx ts-node ./scripts/generate-samples-jsons/generate-samples-jsons.ts --verbose"
             ],
             "execute": false,
             "onlySingle": false,
@@ -91,7 +91,7 @@
         {
             "name": "🏭📖 Prettify samples and add mermaid graphs -> .ptbk.md",
             "commands": [
-                "ts-node ./scripts/promptbook-cli/promptbook-cli.ts prettify samples/templates/**/*.ptbk.md --ignore \"samples/templates/errors/**/*.ptbk.md\""
+                "npx ts-node ./scripts/promptbook-cli/promptbook-cli.ts prettify samples/templates/**/*.ptbk.md --ignore \"samples/templates/errors/**/*.ptbk.md\""
             ],
             "execute": false,
             "onlySingle": false,
@@ -99,72 +99,72 @@
         },
         {
             "name": "🏭📖 Generate reports .report.json -> .report.md",
-            "commands": ["ts-node ./scripts/generate-sample-reports/generate-sample-reports.ts"],
+            "commands": ["npx ts-node ./scripts/generate-sample-reports/generate-sample-reports.ts"],
             "execute": true,
             "onlySingle": true,
             "focus": true
         },
         {
             "name": "🏭🩹 Repair imports",
-            "commands": ["ts-node ./scripts/repair-imports/repair-imports.ts --organize --organize-all"],
+            "commands": ["npx ts-node ./scripts/repair-imports/repair-imports.ts --organize --organize-all"],
             "execute": true,
             "onlySingle": true,
             "focus": true
         },
         {
             "name": "🧸 Playground (💸)",
-            "command": "ts-node ./other/playground/playground.ts",
+            "command": "npx ts-node ./other/playground/playground.ts",
             "onlySingle": true,
             "focus": true
         },
         {
             "name": "🧸 OpenAI playground (💸)",
-            "command": "ts-node ./src/llm-providers/openai/playground/playground.ts",
+            "command": "npx ts-node ./src/llm-providers/openai/playground/playground.ts",
             "onlySingle": true,
             "focus": true
         },
         {
             "name": "🧸 Anthropic Claude playground (💸)",
-            "command": "ts-node ./src/llm-providers/anthropic-claude/playground/playground.ts",
+            "command": "npx ts-node ./src/llm-providers/anthropic-claude/playground/playground.ts",
             "onlySingle": true,
             "focus": true
         },
         {
             "name": "🧸 Azure OpenAI playground (💸)",
-            "command": "ts-node ./src/llm-providers/azure-openai/playground/playground.ts",
+            "command": "npx ts-node ./src/llm-providers/azure-openai/playground/playground.ts",
             "onlySingle": true,
             "focus": true
         },
         {
             "name": "🧸 Langtail playground (💸)",
-            "command": "ts-node ./src/llm-providers/langtail/playground/playground.ts",
+            "command": "npx ts-node ./src/llm-providers/langtail/playground/playground.ts",
             "onlySingle": true,
             "focus": true
         },
         {
             "name": "🧸 Multiple LLMs playground (💸)",
-            "command": "ts-node ./src/llm-providers/multiple/playground/playground.ts",
+            "command": "npx ts-node ./src/llm-providers/multiple/playground/playground.ts",
             "onlySingle": true,
             "focus": true
         },
         {
             "name": "🧸 Remote server playground",
-            "command": "ts-node ./src/llm-providers/remote/playground/playground.ts",
+            "command": "npx ts-node ./src/llm-providers/remote/playground/playground.ts",
             "onlySingle": true,
             "focus": true
         },
         {
             "name": "🧸💡 Prepare knowledge from Markdown (playground) (💸) [🍠]",
             "commands": [
-                "ts-node ./scripts/make-promptbook-collection/make-promptbook-collection.ts --verbose",
-                "ts-node ./src/knowledge/prepare-knowledge/markdown/playground/markdown-knowledge-playground.ts"
+                "npx ts-node ./scripts/make-promptbook-collection/make-promptbook-collection.ts --verbose",
+                "npx ts-node ./src/knowledge/prepare-knowledge/markdown/playground/markdown-knowledge-playground.ts"
             ],
             "onlySingle": true,
             "focus": true
         },
         {
             "name": "📖 Make Promptbook collection (💸) [🍠]",
-            "command": "ts-node ./scripts/make-promptbook-collection/make-promptbook-collection.ts --verbose --commit",
+            "command": "npx ts-node ./scripts/make-promptbook-collection/make-promptbook-collection.ts --verbose --commit",
             "onlySingle": true,
             "focus": true
         },
