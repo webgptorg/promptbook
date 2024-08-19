@@ -15,6 +15,7 @@ import type { PromptbookServer_ListModels_Response } from './interfaces/Promptbo
 import type { PromptbookServer_Prompt_Request } from './interfaces/PromptbookServer_Prompt_Request';
 import type { PromptbookServer_Prompt_Response } from './interfaces/PromptbookServer_Prompt_Response';
 import type { RemoteServerOptions } from './interfaces/RemoteServerOptions';
+import { IS_VERBOSE } from '../../config';
 
 /**
  * Remote server is a proxy server that uses its execution tools internally and exposes the executor interface externally.
@@ -34,7 +35,7 @@ export function startRemoteServer(options: RemoteServerOptions): IDestroyable {
         //    <- TODO: [🧠][🤺] Remove `createLlmExecutionTools`, pass just `llmExecutionTools`
         isAnonymousModeAllowed,
         isCollectionModeAllowed,
-        isVerbose = false,
+        isVerbose = IS_VERBOSE,
     } = {
         isAnonymousModeAllowed: false,
         isCollectionModeAllowed: false,

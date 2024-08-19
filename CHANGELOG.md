@@ -441,7 +441,7 @@ Was accidentally released skipped
 -   LLM tools providers have constructor functions, for example `OpenAiExecutionTools` -> `createOpenAiExecutionTools`
 -   `remoteUrl` is `string_base_url`
 
-### `0.66.0` _(2024-08-16)_
+### `0.66.0` _(2024-08-19)_
 
 [🎰] Model updates and registers
 

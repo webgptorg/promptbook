@@ -1,5 +1,5 @@
 import type { Writable } from 'type-fest';
-import { MAX_PARALLEL_COUNT } from '../config';
+import { IS_VERBOSE, MAX_PARALLEL_COUNT } from '../config';
 import { ZERO_USAGE } from '../execution/utils/addUsage';
 import { forEachAsync } from '../execution/utils/forEachAsync';
 import { prepareKnowledgePieces } from '../knowledge/prepare-knowledge/_common/prepareKnowledgePieces';
@@ -27,7 +27,7 @@ export async function preparePipeline(pipeline: PipelineJson, options: PrepareOp
         return pipeline;
     }
 
-    const { llmTools, maxParallelCount = MAX_PARALLEL_COUNT, isVerbose = false } = options;
+    const { llmTools, maxParallelCount = MAX_PARALLEL_COUNT, isVerbose = IS_VERBOSE } = options;
     const {
         parameters,
         promptTemplates,

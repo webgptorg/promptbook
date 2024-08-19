@@ -1,3 +1,4 @@
+import { IS_VERBOSE } from '../config';
 import { UnexpectedError } from '../errors/UnexpectedError';
 import type { string_javascript_name } from '../types/typeAliases';
 import { $getGlobalScope } from './environment/$getGlobalScope';
@@ -56,13 +57,16 @@ export class $Register<TRegistered extends Registered> {
         );
         const existingRegistration = this.storage[existingRegistrationIndex];
 
-        // TODO: !!!!!! Global IS_VERBOSE mode
-
+   
         if (!existingRegistration) {
-            console.warn(`[📦] Registering \`${packageName}.${className}\` to \`${this.storageName}\``);
+            if (IS_VERBOSE) {
+                console.warn(`[📦] Registering \`${packageName}.${className}\` to \`${this.storageName}\``);
+            }
             this.storage.push(registered);
         } else {
-            console.warn(`[📦] Re-registering \`${packageName}.${className}\` to \`${this.storageName}\``);
+            if (IS_VERBOSE) {
+                console.warn(`[📦] Re-registering \`${packageName}.${className}\` to \`${this.storageName}\``);
+            }
             this.storage[existingRegistrationIndex] = registered;
         }
     }

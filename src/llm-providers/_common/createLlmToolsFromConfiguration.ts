@@ -6,6 +6,7 @@ import { MultipleLlmExecutionTools } from '../multiple/MultipleLlmExecutionTools
 import { $llmToolsRegister } from './$llmToolsRegister';
 import { $registeredLlmToolsMessage } from './$registeredLlmToolsMessage';
 import type { LlmToolsConfiguration } from './LlmToolsConfiguration';
+import { IS_VERBOSE } from '../../config';
 
 /**
  * Options for `createLlmToolsFromEnv`
@@ -33,7 +34,7 @@ export function createLlmToolsFromConfiguration(
     configuration: LlmToolsConfiguration,
     options: CreateLlmToolsFromConfigurationOptions = {},
 ): MultipleLlmExecutionTools {
-    const { isVerbose = false } = options;
+    const { isVerbose = IS_VERBOSE } = options;
 
     const llmTools: Array<LlmExecutionTools> = configuration.map((llmConfiguration: TODO_any) => {
         const registeredItem = $llmToolsRegister

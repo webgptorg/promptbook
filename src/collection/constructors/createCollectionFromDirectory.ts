@@ -2,7 +2,7 @@ import colors from 'colors';
 import { readFile } from 'fs/promises';
 import { join } from 'path';
 import spaceTrim from 'spacetrim';
-import { PIPELINE_COLLECTION_BASE_FILENAME } from '../../config';
+import { IS_VERBOSE, PIPELINE_COLLECTION_BASE_FILENAME } from '../../config';
 import { pipelineJsonToString } from '../../conversion/pipelineJsonToString';
 import type { PipelineStringToJsonOptions } from '../../conversion/pipelineStringToJson';
 import { pipelineStringToJson } from '../../conversion/pipelineStringToJson';
@@ -90,7 +90,7 @@ export async function createCollectionFromDirectory(
         // TODO: [🌗]
     }
 
-    const { isRecursive = true, isVerbose = false, isLazyLoaded = false, isCrashedOnError = true } = options || {};
+    const { isRecursive = true, isVerbose = IS_VERBOSE, isLazyLoaded = false, isCrashedOnError = true } = options || {};
 
     const collection = createCollectionFromPromise(async () => {
         if (isVerbose) {

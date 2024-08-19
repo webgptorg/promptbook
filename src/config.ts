@@ -157,6 +157,13 @@ export const DEFAULT_REMOTE_URL_PATH = '/promptbook/socket.io';
 /**
  * @@@
  *
+ * @public exported from `@promptbook/core`
+ */
+export const IS_VERBOSE = false;
+
+/**
+ * @@@
+ *
  * @private within the repository
  */
 export const DEBUG_ALLOW_PAYED_TESTING: boolean = just(
