@@ -1,6 +1,7 @@
 import { spaceTrim } from 'spacetrim';
 import type { Promisable } from 'type-fest';
-import { IS_VERBOSE, LOOP_LIMIT } from '../config';
+import { IS_VERBOSE } from '../config';
+import { LOOP_LIMIT } from '../config';
 import { MAX_EXECUTION_ATTEMPTS } from '../config';
 import { MAX_PARALLEL_COUNT } from '../config';
 import { RESERVED_PARAMETER_MISSING_VALUE } from '../config';
