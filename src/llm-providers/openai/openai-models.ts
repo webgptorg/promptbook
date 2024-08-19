@@ -1,4 +1,4 @@
-import type { AvailableModel } from '../../execution/LlmExecutionTools';
+import type { AvailableModel } from '../../execution/AvailableModel';
 import type { number_usd } from '../../types/typeAliases';
 import { computeUsage } from './computeUsage';
 

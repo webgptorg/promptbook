@@ -1,3 +1,4 @@
+import { IS_VERBOSE } from '../../../config';
 import { MAX_PARALLEL_COUNT } from '../../../config';
 import type { PrepareOptions } from '../../../prepare/PrepareOptions';
 import type { KnowledgePiecePreparedJson } from '../../../types/PipelineJson/KnowledgePieceJson';
@@ -13,7 +14,7 @@ export async function prepareKnowledgeFromPdf(
     content: string_base64 /* <- TODO: [🖖] Always the file, allow base64+filename+identification+mime or blob+filename+identification or file+identification */,
     options: PrepareOptions,
 ): Promise<Array<Omit<KnowledgePiecePreparedJson, 'sources' | 'preparationIds'> /* <- [🕡] */>> {
-    const { llmTools, maxParallelCount = MAX_PARALLEL_COUNT, isVerbose = false } = options;
+    const { llmTools, maxParallelCount = MAX_PARALLEL_COUNT, isVerbose = IS_VERBOSE } = options;
 
     TODO_USE(llmTools, maxParallelCount, isVerbose);
 

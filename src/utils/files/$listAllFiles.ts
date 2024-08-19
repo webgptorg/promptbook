@@ -2,7 +2,7 @@ import { readdir } from 'fs/promises';
 import { join } from 'path/posix';
 import type { string_file_path } from '../../types/typeAliases';
 import type { string_folder_path } from '../../types/typeAliases';
-import { $isDirectoryExisting } from './isDirectoryExisting';
+import { $isDirectoryExisting } from './$isDirectoryExisting';
 
 /**
  * Reads all files in the directory

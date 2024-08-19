@@ -1,6 +1,6 @@
 import { spaceTrim } from 'spacetrim';
+import type { AvailableModel } from '../../execution/AvailableModel';
 import type { CommonExecutionToolsOptions } from '../../execution/CommonExecutionToolsOptions';
-import type { AvailableModel } from '../../execution/LlmExecutionTools';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import type { ChatPromptResult } from '../../execution/PromptResult';
 import type { CompletionPromptResult } from '../../execution/PromptResult';
@@ -14,7 +14,7 @@ import { replaceParameters } from '../../utils/replaceParameters';
 
 /**
  * Mocked execution Tools for just echoing the requests for testing purposes.
- * 
+ *
  * @public exported from `@promptbook/fake-llm`
  */
 export class MockedEchoLlmExecutionTools implements LlmExecutionTools {
@@ -26,6 +26,30 @@ export class MockedEchoLlmExecutionTools implements LlmExecutionTools {
 
     public get description(): string_markdown {
         return 'What you say is whay you get - just for testing';
+    }
+
+    /**
+     * Does nothing, just to implement the interface
+     */
+    public checkConfiguration(): void {}
+
+    /**
+     * List all available mocked-models that can be used
+     */
+    public listModels(): Array<AvailableModel> {
+        return [
+            {
+                modelTitle: 'Echo chat',
+                modelName: 'mocked-echo',
+                modelVariant: 'CHAT',
+            },
+            {
+                modelTitle: 'Echo completion',
+                modelName: 'mocked-echo',
+                modelVariant: 'COMPLETION',
+            },
+            // <- Note: [🤖]
+        ];
     }
 
     /**
@@ -105,25 +129,6 @@ export class MockedEchoLlmExecutionTools implements LlmExecutionTools {
     }
 
     // <- Note: [🤖] callXxxModel
-
-    /**
-     * List all available mocked-models that can be used
-     */
-    public listModels(): Array<AvailableModel> {
-        return [
-            {
-                modelTitle: 'Echo chat',
-                modelName: 'mocked-echo',
-                modelVariant: 'CHAT',
-            },
-            {
-                modelTitle: 'Echo completion',
-                modelName: 'mocked-echo',
-                modelVariant: 'COMPLETION',
-            },
-            // <- Note: [🤖]
-        ];
-    }
 }
 
 /**

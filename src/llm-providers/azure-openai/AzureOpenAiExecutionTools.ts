@@ -1,7 +1,7 @@
 import { AzureKeyCredential, OpenAIClient } from '@azure/openai';
 import colors from 'colors';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
-import type { AvailableModel } from '../../execution/LlmExecutionTools';
+import type { AvailableModel } from '../../execution/AvailableModel';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import type { ChatPromptResult } from '../../execution/PromptResult';
 import type { CompletionPromptResult } from '../../execution/PromptResult';
@@ -28,24 +28,14 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools {
     /**
      * OpenAI Azure API client.
      */
-    private readonly client: OpenAIClient;
+    private client: OpenAIClient | null = null;
 
     /**
      * Creates OpenAI Execution Tools.
      *
      * @param options which are relevant are directly passed to the OpenAI client
      */
-    public constructor(private readonly options: AzureOpenAiExecutionToolsOptions) {
-        this.client = new OpenAIClient(
-            //            <- TODO: [🧱] Implement in a functional (not new Class) way
-
-            `https://${options.resourceName}.openai.azure.com/`,
-            new AzureKeyCredential(
-                //            <- TODO: [🧱] Implement in a functional (not new Class) way
-                options.apiKey,
-            ),
-        );
-    }
+    public constructor(private readonly options: AzureOpenAiExecutionToolsOptions) {}
 
     public get title(): string_title & string_markdown_text {
         return 'Azure OpenAI';
@@ -53,6 +43,45 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools {
 
     public get description(): string_markdown {
         return 'Use all models trained by OpenAI provided by Azure';
+    }
+
+    private async getClient(): Promise<OpenAIClient> {
+        if (this.client === null) {
+            this.client = new OpenAIClient(
+                `https://${this.options.resourceName}.openai.azure.com/`,
+                new AzureKeyCredential(this.options.apiKey),
+            );
+        }
+
+        return this.client;
+    }
+
+    /**
+     * Check the `options` passed to `constructor`
+     */
+    public async checkConfiguration(): Promise<void> {
+        await this.getClient();
+        // TODO: [🎍] Do here a real check that API is online, working and API key is correct
+    }
+
+    /**
+     * List all available Azure OpenAI models that can be used
+     */
+    public async listModels(): Promise<Array<AvailableModel>> {
+        // TODO: !!! Do here some filtering which models are really available as deployment
+        //       @see https://management.azure.com/subscriptions/subscriptionId/resourceGroups/resourceGroupName/providers/Microsoft.CognitiveServices/accounts/accountName/deployments?api-version=2023-05-01
+        return OPENAI_MODELS.map(
+            ({
+                modelTitle,
+                modelName,
+
+                modelVariant,
+            }) => ({
+                modelTitle: `Azure ${modelTitle}`,
+                modelName,
+                modelVariant,
+            }),
+        );
     }
 
     /**
@@ -66,6 +95,8 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools {
         }
 
         const { content, parameters, modelRequirements } = prompt;
+
+        const client = await this.getClient();
 
         // TODO: [☂] Use here more modelRequirements
         if (modelRequirements.modelVariant !== 'CHAT') {
@@ -107,7 +138,7 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools {
             }
 
             const rawRequest = [modelName, messages, modelSettings] as const;
-            const rawResponse = await this.client.getChatCompletions(...rawRequest);
+            const rawResponse = await client.getChatCompletions(...rawRequest);
 
             if (this.options.isVerbose) {
                 console.info(colors.bgWhite('rawResponse'), JSON.stringify(rawResponse, null, 4));
@@ -171,6 +202,8 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools {
 
         const { content, parameters, modelRequirements } = prompt;
 
+        const client = await this.getClient();
+
         // TODO: [☂] Use here more modelRequirements
         if (modelRequirements.modelVariant !== 'COMPLETION') {
             throw new PipelineExecutionError('Use callCompletionModel only for COMPLETION variant');
@@ -201,7 +234,7 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools {
                 [rawPromptContent] as Array<string_completion_prompt>,
                 modelSettings,
             ] as const;
-            const rawResponse = await this.client.getCompletions(...rawRequest);
+            const rawResponse = await client.getCompletions(...rawRequest);
             if (this.options.isVerbose) {
                 console.info(colors.bgWhite('rawResponse'), JSON.stringify(rawResponse, null, 4));
             }
@@ -262,31 +295,11 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools {
         const { code, message } = azureError;
         return new PipelineExecutionError(`${code}: ${message}`);
     }
-
-    /**
-     * List all available Azure OpenAI models that can be used
-     */
-    public async listModels(): Promise<Array<AvailableModel>> {
-        // TODO: !!! Do here some filtering which models are really available as deployment
-        //       @see https://management.azure.com/subscriptions/subscriptionId/resourceGroups/resourceGroupName/providers/Microsoft.CognitiveServices/accounts/accountName/deployments?api-version=2023-05-01
-        return OPENAI_MODELS.map(
-            ({
-                modelTitle,
-                modelName,
-
-                modelVariant,
-            }) => ({
-                modelTitle: `Azure ${modelTitle}`,
-                modelName,
-                modelVariant,
-            }),
-        );
-    }
 }
 
 /**
  * TODO: Maybe Create some common util for callChatModel and callCompletionModel
- * TODO: Maybe make custom AzureOpenaiError
+ * TODO: Maybe make custom AzureOpenAiError
  * TODO: [🧠][🈁] Maybe use `isDeterministic` from options
  * TODO: [🧠][🌰] Allow to pass `title` for tracking purposes
  */

@@ -1,7 +1,7 @@
 import spaceTrim from 'spacetrim';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
-import type { AvailableModel } from '../../execution/LlmExecutionTools';
+import type { AvailableModel } from '../../execution/AvailableModel';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import type { ChatPromptResult } from '../../execution/PromptResult';
 import type { CompletionPromptResult } from '../../execution/PromptResult';
@@ -44,6 +44,32 @@ export class MultipleLlmExecutionTools implements LlmExecutionTools {
         return this.llmExecutionTools
             .map((tools, index) => `${index + 1}) ${tools.title} ${tools.description || ''}`)
             .join('\n');
+    }
+
+    /**
+     * Check the configuration of all execution tools
+     */
+    public async checkConfiguration(): Promise<void> {
+        // TODO: Maybe do it in parallel
+        for (const llmExecutionTools of this.llmExecutionTools) {
+            await llmExecutionTools.checkConfiguration();
+        }
+    }
+
+    /**
+     * List all available models that can be used
+     * This lists is a combination of all available models from all execution tools
+     */
+    public async listModels(): Promise<Array<AvailableModel>> {
+        const availableModels: Array<AvailableModel> = [];
+
+        for (const llmExecutionTools of this.llmExecutionTools) {
+            // TODO: [🪂] Obtain models in parallel
+            const models = await llmExecutionTools.listModels();
+            availableModels.push(...models);
+        }
+
+        return availableModels;
     }
 
     /**
@@ -161,22 +187,6 @@ export class MultipleLlmExecutionTools implements LlmExecutionTools {
                 ),
             );
         }
-    }
-
-    /**
-     * List all available models that can be used
-     * This lists is a combination of all available models from all execution tools
-     */
-    public async listModels(): Promise<Array<AvailableModel>> {
-        const availableModels: Array<AvailableModel> = [];
-
-        for (const llmExecutionTools of this.llmExecutionTools) {
-            // TODO: [🪂] Obtain models in parallel
-            const models = await llmExecutionTools.listModels();
-            availableModels.push(...models);
-        }
-
-        return availableModels;
     }
 }
 

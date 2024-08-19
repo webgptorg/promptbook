@@ -5,6 +5,7 @@ import * as dotenv from 'dotenv';
 dotenv.config({ path: '.env' });
 
 import colors from 'colors';
+import { usageToHuman } from '../../../execution/utils/usageToHuman';
 import type { Prompt } from '../../../types/Prompt';
 import { keepUnused } from '../../../utils/organization/keepUnused';
 import { AzureOpenAiExecutionTools } from '../AzureOpenAiExecutionTools';
@@ -36,6 +37,7 @@ async function playground() {
     );
 
     keepUnused(azureOpenAiExecutionTools);
+    keepUnused(usageToHuman);
     keepUnused<Prompt>();
 
     /*/
@@ -54,6 +56,7 @@ async function playground() {
     } as const satisfies Prompt;
     const completionPromptResult = await azureOpenAiExecutionTools.callCompletionModel(completionPrompt);
     console.info({ completionPromptResult });
+    console.info(colors.cyan(usageToHuman(chatPromptResult.usage)));
     console.info(chalk.green(completionPrompt.content + completionPromptResult.content));
     /**/
 
@@ -70,6 +73,7 @@ async function playground() {
     } as const satisfies Prompt;
     const chatPromptResult = await azureOpenAiExecutionTools.callChatModel(chatPrompt);
     console.info({ chatPromptResult });
+    console.info(colors.cyan(usageToHuman(chatPromptResult.usage)));
     console.info(colors.bgBlue(' User: ') + colors.blue(chatPrompt.content));
     console.info(colors.bgGreen(' Completion: ') + colors.green(chatPromptResult.content));
     /**/

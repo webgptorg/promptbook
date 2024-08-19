@@ -441,16 +441,20 @@ Was accidentally released skipped
 -   LLM tools providers have constructor functions, for example `OpenAiExecutionTools` -> `createOpenAiExecutionTools`
 -   `remoteUrl` is `string_base_url`
 
-### `0.66.0` _(2024-08-16)_
+### `0.66.0` _(2024-08-19)_
 
-[🎰] Model updates
+[🎰] Model updates and registers
 
 -   Prefix all non-pure by `$`
 -   Add model `claude-3-5-sonnet-20240620` to `AnthropicClaudeExecutionTools`
--   [🐞] !!!!!! Fix usage counting in `AnthropicClaudeExecutionTools`
--   Update `@anthropic-ai/sdk` from `0.21.1` to `0.26.1` <- TODO: !!!!!! Test that it works
--   Update `@azure/openai` from `1.0.0-beta.12` to `2.0.0-beta.1` <- TODO: !!!!!! Test that it works
--   Update `openai` from `4.46.1` to `4.55.9` <- TODO: !!!!!! Test that it works
+-   [🐞] Fix usage counting in `AnthropicClaudeExecutionTools`
+-   Update `@anthropic-ai/sdk` from `0.21.1` to `0.26.1`
+-   Update `@azure/openai` from `1.0.0-beta.12` to `2.0.0-beta.1`
+-   Update `openai` from `4.46.1` to `4.55.9`
+-   Add `LlmExecutionToolsConstructor`
+-   Add `$llmToolsConfigurationBoilerplatesRegister`
+-   Add `$llmToolsRegister`
+-   Rename `Openai` ->`OpenAi`
 
 ## In prepare
 
@@ -532,4 +536,3 @@ Across the repository there are marked [🍓] places that are required to be don
 <!-- Note: All places marked by [➕] to add new NPM package -->
 <!-- Note: All places marked by [🤖] to add new model variant -->
 <!-- Note: All places marked by [🅱] to add new (execution) block type -->
-<!-- Note: All places marked by [🦑] to add new LLM provider -->

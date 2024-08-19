@@ -1,6 +1,7 @@
 #!/usr/bin/env ts-node
 import * as dotenv from 'dotenv';
 
+
 dotenv.config({ path: '.env' });
 
 import colors from 'colors';
@@ -12,6 +13,7 @@ import { createCollectionFromDirectory } from '../../src/collection/constructors
 import { usageToHuman } from '../../src/execution/utils/usageToHuman';
 import { getLlmToolsForTestingAndScriptsAndPlayground } from '../../src/llm-providers/_common/getLlmToolsForTestingAndScriptsAndPlayground';
 import { commit } from '../utils/autocommit/commit';
+import { isWorkingTreeClean } from '../utils/autocommit/isWorkingTreeClean';
 
 if (process.cwd() !== join(__dirname, '../..')) {
     console.error(colors.red(`CWD must be root of the project`));
@@ -48,6 +50,10 @@ async function makePipelineCollection({
     isVerbose: boolean;
 }) {
     console.info(`📖 Make Promptbook library`);
+
+    if (isCommited && !(await isWorkingTreeClean(process.cwd()))) {
+        throw new Error(`Working tree is not clean`);
+    }
 
     const promptbookSourceDir = 'promptbook-collection';
 

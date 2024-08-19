@@ -1,16 +1,16 @@
 import { describe, expect, it } from '@jest/globals';
-import { computeOpenaiUsage } from './computeOpenaiUsage';
+import { computeOpenAiUsage } from './computeOpenAiUsage';
 
-describe('how computeOpenaiUsage works', () => {
+describe('how computeOpenAiUsage works', () => {
     // TODO: [🐞] Test Chat and Completion models
 
     it('should compute a OpenAI usage of embedding model', () => {
         expect(
-            computeOpenaiUsage('', '', {
+            computeOpenAiUsage('', '', {
                 model: 'text-embedding-3-large',
                 usage: {
                     prompt_tokens: 29,
-                    total_tokens: 29,
+                    // total_tokens: 29,
                 },
             }),
         ).toEqual({
@@ -66,3 +66,7 @@ describe('how computeOpenaiUsage works', () => {
         });
     });
 });
+
+/**
+ * TODO: [🤝] DRY Maybe some common abstraction between `computeOpenAiUsage` and `computeAnthropicClaudeUsage`
+ */

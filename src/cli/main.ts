@@ -5,9 +5,9 @@ import { promptbookCli } from './promptbookCli';
  *
  * @public exported from `@promptbook/cli`
  */
-export const __CLI = {
+export const _CLI = {
     // Note: [🥠]
-    __initialize: promptbookCli,
+    _initialize: promptbookCli,
 };
 
 /**

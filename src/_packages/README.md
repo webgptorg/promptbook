@@ -17,6 +17,3 @@ When deleting a package, search across the repository for [➖]
 -   [➖] Delete from here package.readme.md
 -   [➖] Deprecate package on NPM
 
-## New LLM provider
-
-If you are adding a new LLM provider, search the repository for [🦑] and add a new package here too, following the instructions in the "New package" section above.

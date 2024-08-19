@@ -7,9 +7,16 @@ import type { LlmToolsConfiguration } from '../../_common/LlmToolsConfiguration'
  *
  * This is a request from client to server
  */
-export type Promptbook_Server_Request = Promptbook_Server_CollectionRequest | Promptbook_Server_AnonymousRequest;
+export type PromptbookServer_Prompt_Request =
+    | PromptbookServer_Prompt_CollectionRequest
+    | PromptbookServer_Prompt_AnonymousRequest;
 
-export type Promptbook_Server_CollectionRequest = {
+export type PromptbookServer_Prompt_CollectionRequest = {
+    /**
+     * Collection mode
+     */
+    isAnonymous: false;
+
     /**
      * Client responsible for the requests
      */
@@ -21,7 +28,12 @@ export type Promptbook_Server_CollectionRequest = {
     readonly prompt: Prompt;
 };
 
-export type Promptbook_Server_AnonymousRequest = {
+export type PromptbookServer_Prompt_AnonymousRequest = {
+    /**
+     * Anonymous mode
+     */
+    isAnonymous: true;
+
     /**
      * Configuration for the LLM tools
      */
@@ -32,3 +44,9 @@ export type Promptbook_Server_AnonymousRequest = {
      */
     readonly prompt: Prompt;
 };
+
+
+/**
+ * TODO: [👡] DRY `PromptbookServer_Prompt_Request` and `PromptbookServer_ListModels_Request`
+ * TODO: [🧠][🛍] Maybe not `isAnonymous: boolean` BUT `mode: 'ANONYMOUS'|'COLLECTION'`
+ */

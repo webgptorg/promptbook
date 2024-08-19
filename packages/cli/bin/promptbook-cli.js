@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
-const { __CLI /* <- Note: [🥠] */ } = require('../umd/index.umd.js');
+const { _CLI /* <- Note: [🥠] */ } = require('../umd/index.umd.js');
 
-__CLI.__initialize();
+_CLI._initialize();
 
 /**
  * TODO: [🕌] When more functionalities, rename

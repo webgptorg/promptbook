@@ -3,6 +3,7 @@ import spaceTrim from 'spacetrim';
 import PipelineCollection from '../../../../promptbook-collection/index.json';
 // import PipelineCollection from '../../../../promptbook-collection/promptbook-collection';
 import { createCollectionFromJson } from '../../../collection/constructors/createCollectionFromJson';
+import { IS_VERBOSE } from '../../../config';
 import { MAX_PARALLEL_COUNT } from '../../../config';
 import { titleToName } from '../../../conversion/utils/titleToName';
 import { assertsExecutionSuccessful } from '../../../execution/assertsExecutionSuccessful';
@@ -16,14 +17,14 @@ import { TODO_USE } from '../../../utils/organization/TODO_USE';
 
 /**
  * @@@
- * 
+ *
  * @public exported from `@promptbook/core`
  */
 export async function prepareKnowledgeFromMarkdown(
     knowledgeContent: string_markdown /* <- TODO: [🖖] (?maybe not) Always the file */,
     options: PrepareOptions,
 ): Promise<Array<Omit<KnowledgePiecePreparedJson, 'sources' | 'preparationIds'> /* <- [🕡] */>> {
-    const { llmTools, maxParallelCount = MAX_PARALLEL_COUNT, isVerbose = false } = options;
+    const { llmTools, maxParallelCount = MAX_PARALLEL_COUNT, isVerbose = IS_VERBOSE } = options;
 
     TODO_USE(maxParallelCount); // <- [🪂]
 

@@ -5,9 +5,9 @@ import type { TaskProgress } from '../../../types/TaskProgress';
  *
  * This is sent from server to client arbitrarily and may be sent multiple times
  */
-export type Promptbook_Server_Progress ={
+export type PromptbookServer_Prompt_Progress = {
     /**
      * The progress of text generation
      */
     readonly taskProgress: TaskProgress;
-}
+};

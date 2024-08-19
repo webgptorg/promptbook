@@ -1,4 +1,5 @@
 import type OpenAI from 'openai';
+import type { PartialDeep } from 'type-fest';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import type { PromptResultUsage } from '../../execution/PromptResultUsage';
 import type { UncertainNumber } from '../../execution/UncertainNumber';
@@ -16,14 +17,16 @@ import { OPENAI_MODELS } from './openai-models';
  * @throws {PipelineExecutionError} If the usage is not defined in the response from OpenAI
  * @private internal utility of `OpenAiExecutionTools`
  */
-export function computeOpenaiUsage(
+export function computeOpenAiUsage(
     promptContent: Prompt['content'], // <- Note: Intentionally using [] to access type properties to bring jsdoc from Prompt/PromptResult to consumer
     resultContent: string,
-    rawResponse: Pick<
-        | OpenAI.Chat.Completions.ChatCompletion
-        | OpenAI.Completions.Completion
-        | OpenAI.Embeddings.CreateEmbeddingResponse,
-        'model' | 'usage'
+    rawResponse: PartialDeep<
+        Pick<
+            | OpenAI.Chat.Completions.ChatCompletion
+            | OpenAI.Completions.Completion
+            | OpenAI.Embeddings.CreateEmbeddingResponse,
+            'model' | 'usage'
+        >
     >,
 ): PromptResultUsage {
     if (rawResponse.usage === undefined) {
@@ -59,3 +62,7 @@ export function computeOpenaiUsage(
         },
     };
 }
+
+/**
+ * TODO: [🤝] DRY Maybe some common abstraction between `computeOpenAiUsage` and `computeAnthropicClaudeUsage`
+ */

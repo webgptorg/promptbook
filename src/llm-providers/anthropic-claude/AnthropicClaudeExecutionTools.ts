@@ -5,12 +5,9 @@ import colors from 'colors';
 import spaceTrim from 'spacetrim';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
-import type { AvailableModel } from '../../execution/LlmExecutionTools';
+import type { AvailableModel } from '../../execution/AvailableModel';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import type { ChatPromptResult } from '../../execution/PromptResult';
-import type { PromptResultUsage } from '../../execution/PromptResultUsage';
-import { computeUsageCounts } from '../../execution/utils/computeUsageCounts';
-import { uncertainNumber } from '../../execution/utils/uncertainNumber';
 import type { Prompt } from '../../types/Prompt';
 import type { string_date_iso8601 } from '../../types/typeAliases';
 import type { string_markdown } from '../../types/typeAliases';
@@ -22,6 +19,7 @@ import type { really_any } from '../../utils/organization/really_any';
 import { replaceParameters } from '../../utils/replaceParameters';
 import { ANTHROPIC_CLAUDE_MODELS } from './anthropic-claude-models';
 import type { AnthropicClaudeExecutionToolsDirectOptions } from './AnthropicClaudeExecutionToolsOptions';
+import { computeAnthropicClaudeUsage } from './computeAnthropicClaudeUsage';
 
 /**
  * Execution Tools for calling Anthropic Claude API.
@@ -33,23 +31,14 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools {
     /**
      * Anthropic Claude API client.
      */
-    private readonly client: Anthropic;
+    private client: Anthropic | null = null;
 
     /**
      * Creates Anthropic Claude Execution Tools.
      *
      * @param options which are relevant are directly passed to the Anthropic Claude client
      */
-    public constructor(private readonly options: AnthropicClaudeExecutionToolsDirectOptions = { isProxied: false }) {
-        // Note: Passing only Anthropic Claude relevant options to Anthropic constructor
-        const anthropicOptions: ClientOptions = { ...options };
-        delete (anthropicOptions as really_any).isVerbose;
-        delete (anthropicOptions as really_any).isProxied;
-        this.client = new Anthropic(
-            //            <- TODO: [🧱] Implement in a functional (not new Class) way
-            anthropicOptions,
-        );
-    }
+    public constructor(private readonly options: AnthropicClaudeExecutionToolsDirectOptions = { isProxied: false }) {}
 
     public get title(): string_title & string_markdown_text {
         return 'Anthropic Claude';
@@ -57,6 +46,33 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools {
 
     public get description(): string_markdown {
         return 'Use all models provided by Anthropic Claude';
+    }
+
+    private async getClient(): Promise<Anthropic> {
+        if (this.client === null) {
+            // Note: Passing only Anthropic Claude relevant options to Anthropic constructor
+            const anthropicOptions: ClientOptions = { ...this.options };
+            delete (anthropicOptions as really_any).isVerbose;
+            delete (anthropicOptions as really_any).isProxied;
+            this.client = new Anthropic(anthropicOptions);
+        }
+
+        return this.client;
+    }
+
+    /**
+     * Check the `options` passed to `constructor`
+     */
+    public async checkConfiguration(): Promise<void> {
+        await this.getClient();
+        // TODO: [🎍] Do here a real check that API is online, working and API key is correct
+    }
+
+    /**
+     * List all available Anthropic Claude models that can be used
+     */
+    public listModels(): Array<AvailableModel> {
+        return ANTHROPIC_CLAUDE_MODELS;
     }
 
     /**
@@ -70,6 +86,8 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools {
         }
 
         const { content, parameters, modelRequirements } = prompt;
+
+        const client = await this.getClient();
 
         // TODO: [☂] Use here more modelRequirements
         if (modelRequirements.modelVariant !== 'CHAT') {
@@ -102,7 +120,7 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools {
         if (this.options.isVerbose) {
             console.info(colors.bgWhite('rawRequest'), JSON.stringify(rawRequest, null, 4));
         }
-        const rawResponse = await this.client.messages.create(rawRequest);
+        const rawResponse = await client.messages.create(rawRequest);
         if (this.options.isVerbose) {
             console.info(colors.bgWhite('rawResponse'), JSON.stringify(rawResponse, null, 4));
         }
@@ -121,23 +139,11 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools {
             throw new PipelineExecutionError(`Returned content is not "text" type but "${contentBlock.type}"`);
         }
 
-        console.log('!!!!!! rawResponse.usage', rawResponse.usage);
-
         const resultContent = contentBlock.text;
 
         // eslint-disable-next-line prefer-const
         complete = getCurrentIsoDate();
-        const usage = {
-            price: { value: 0, isUncertain: true } /* <- TODO: [🐞] !!!!!! Compute usage */,
-            input: {
-                tokensCount: uncertainNumber(rawResponse.usage.input_tokens),
-                ...computeUsageCounts(prompt.content),
-            },
-            output: {
-                tokensCount: uncertainNumber(rawResponse.usage.output_tokens),
-                ...computeUsageCounts(prompt.content),
-            },
-        } satisfies PromptResultUsage; /* <- TODO: [🤛] */
+        const usage = computeAnthropicClaudeUsage(content, '', rawResponse);
 
         return {
             content: resultContent,
@@ -257,20 +263,13 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools {
     }
 
     // <- Note: [🤖] getDefaultXxxModel
-
-    /**
-     * List all available Anthropic Claude models that can be used
-     */
-    public listModels(): Array<AvailableModel> {
-        return ANTHROPIC_CLAUDE_MODELS;
-    }
 }
 
 /**
  * TODO:  [🍆] JSON mode
  * TODO: [🧠] Maybe handle errors via transformAnthropicError (like transformAzureError)
  * TODO: Maybe Create some common util for callChatModel and callCompletionModel
- * TODO: Maybe make custom OpenaiError
+ * TODO: Maybe make custom OpenAiError
  * TODO: [🧠][🈁] Maybe use `isDeterministic` from options
  * TODO: [🧠][🌰] Allow to pass `title` for tracking purposes
  * TODO: [📅] Maybe instead of `RemoteLlmExecutionToolsOptions` use `proxyWithAnonymousRemoteServer` (if implemented)

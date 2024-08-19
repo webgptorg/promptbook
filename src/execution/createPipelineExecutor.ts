@@ -1,5 +1,6 @@
 import { spaceTrim } from 'spacetrim';
 import type { Promisable } from 'type-fest';
+import { IS_VERBOSE } from '../config';
 import { LOOP_LIMIT } from '../config';
 import { MAX_EXECUTION_ATTEMPTS } from '../config';
 import { MAX_PARALLEL_COUNT } from '../config';
@@ -115,7 +116,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
     const {
         maxExecutionAttempts = MAX_EXECUTION_ATTEMPTS,
         maxParallelCount = MAX_PARALLEL_COUNT,
-        isVerbose = false,
+        isVerbose = IS_VERBOSE,
         isNotPreparedWarningSupressed = false,
     } = settings;
 

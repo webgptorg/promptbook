@@ -1,5 +1,5 @@
 import type { Promisable } from 'type-fest';
-import type { AvailableModel } from '../../../../execution/LlmExecutionTools';
+import type { AvailableModel } from '../../../../execution/AvailableModel';
 import type { LlmExecutionTools } from '../../../../execution/LlmExecutionTools';
 import type { ChatPromptResult } from '../../../../execution/PromptResult';
 import type { CompletionPromptResult } from '../../../../execution/PromptResult';
@@ -31,6 +31,10 @@ export function countTotalUsage(llmTools: LlmExecutionTools): LlmExecutionToolsW
         get description() {
             // TODO: [🧠] Maybe put here some suffix
             return llmTools.description;
+        },
+
+        async checkConfiguration(): Promise<void> {
+            return /* not await */ llmTools.checkConfiguration();
         },
 
         listModels(): Promisable<Array<AvailableModel>> {

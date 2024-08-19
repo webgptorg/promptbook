@@ -1,7 +1,8 @@
 import spaceTrim from 'spacetrim';
 import { EnvironmentMismatchError } from '../../errors/EnvironmentMismatchError';
-import { $isRunningInNode } from '../../utils/environment/isRunningInNode';
+import { $isRunningInNode } from '../../utils/environment/$isRunningInNode';
 import { MultipleLlmExecutionTools } from '../multiple/MultipleLlmExecutionTools';
+import { $registeredLlmToolsMessage } from './$registeredLlmToolsMessage';
 import type { CreateLlmToolsFromConfigurationOptions } from './createLlmToolsFromConfiguration';
 import { createLlmToolsFromConfiguration } from './createLlmToolsFromConfiguration';
 import { createLlmToolsFromConfigurationFromEnv } from './createLlmToolsFromConfigurationFromEnv';
@@ -30,13 +31,18 @@ export function createLlmToolsFromEnv(options: CreateLlmToolsFromConfigurationOp
     if (configuration.length === 0) {
         // TODO: [🥃]
         throw new Error(
-            spaceTrim(`
-                No LLM tools found in the environment
+            spaceTrim(
+                (block) => `
+                    No LLM tools found in the environment
 
-                Please set one of environment variables:
-                - OPENAI_API_KEY
-                - ANTHROPIC_CLAUDE_API_KEY
-          `),
+                    Please set one of environment variables:
+                    - OPENAI_API_KEY
+                    - ANTHROPIC_CLAUDE_API_KEY
+
+                    ${block($registeredLlmToolsMessage())}}
+                `,
+                // <- TODO: !!! List environment keys dynamically
+            ),
         );
     }
 

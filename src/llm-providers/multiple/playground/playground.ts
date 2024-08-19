@@ -6,6 +6,7 @@ dotenv.config({ path: '.env' });
 
 import colors from 'colors';
 import { embeddingVectorToString } from '../../../execution/embeddingVectorToString';
+import { usageToHuman } from '../../../execution/utils/usageToHuman';
 import { JavascriptExecutionTools } from '../../../scripting/javascript/JavascriptExecutionTools';
 import type { Prompt } from '../../../types/Prompt';
 import { keepUnused } from '../../../utils/organization/keepUnused';
@@ -66,6 +67,7 @@ async function playground() {
 
     keepUnused(llmTools);
     keepUnused(embeddingVectorToString);
+    keepUnused(usageToHuman);
     keepUnused<Prompt>();
 
     /*/
@@ -85,6 +87,7 @@ async function playground() {
     } as const satisfies Prompt;
     const completionPromptResult = await llmTools.callCompletionModel(completionPrompt);
     console.info({ completionPromptResult });
+    console.info(colors.cyan(usageToHuman(chatPromptResult.usage)));
     console.info(chalk.green(completionPrompt.content + completionPromptResult.content));
     /**/
 
@@ -100,6 +103,7 @@ async function playground() {
     } as const satisfies Prompt;
     const chatPromptResult = await llmTools.callChatModel(chatPrompt);
     console.info({ chatPromptResult });
+    console.info(colors.cyan(usageToHuman(chatPromptResult.usage)));
     console.info(chalk.bgBlue(' User: ') + chalk.blue(chatPrompt.content));
     console.info(chalk.bgGreen(' Completion: ') + chalk.green(chatPromptResult.content));
     /**/
@@ -120,6 +124,7 @@ async function playground() {
     } as const satisfies Prompt;
     const promptResult = await llmTools.callEmbeddingModel(prompt);
     console.info({ promptResult });
+    console.info(colors.cyan(usageToHuman(chatPromptResult.usage)));
     console.info(chalk.bgBlue(' User: ') + chalk.blue(prompt.content));
     console.info(chalk.bgGreen(' Embedding: ') + chalk.green(embeddingVectorToString(promptResult.content)));
     /**/

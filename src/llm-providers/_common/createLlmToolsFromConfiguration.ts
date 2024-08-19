@@ -1,9 +1,12 @@
+import spaceTrim from 'spacetrim';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import type { TODO_any } from '../../utils/organization/TODO_any';
 import { joinLlmExecutionTools } from '../multiple/joinLlmExecutionTools';
 import { MultipleLlmExecutionTools } from '../multiple/MultipleLlmExecutionTools';
-import { EXECUTION_TOOLS_CLASSES } from './config';
+import { $llmToolsRegister } from './$llmToolsRegister';
+import { $registeredLlmToolsMessage } from './$registeredLlmToolsMessage';
 import type { LlmToolsConfiguration } from './LlmToolsConfiguration';
+import { IS_VERBOSE } from '../../config';
 
 /**
  * Options for `createLlmToolsFromEnv`
@@ -31,19 +34,47 @@ export function createLlmToolsFromConfiguration(
     configuration: LlmToolsConfiguration,
     options: CreateLlmToolsFromConfigurationOptions = {},
 ): MultipleLlmExecutionTools {
-    const { isVerbose = false } = options;
+    const { isVerbose = IS_VERBOSE } = options;
+
+    const llmTools: Array<LlmExecutionTools> = configuration.map((llmConfiguration: TODO_any) => {
+        const registeredItem = $llmToolsRegister
+            .list()
+            .find(
+                ({ packageName, className }) =>
+                    llmConfiguration.packageName === packageName && llmConfiguration.className === className,
+            );
+
+        if (registeredItem === undefined) {
+            throw new Error(
+                spaceTrim(
+                    (block) => `
+                        There is no constructor for LLM provider \`${llmConfiguration.className}\` from \`${
+                        llmConfiguration.packageName
+                    }\`
+
+                        You have probably forgotten install and import the provider package.
+                        To fix this issue, you can:
+
+                        Install:
+
+                        > npm install ${llmConfiguration.packageName}
+
+                        And import:
+
+                        > import '${llmConfiguration.packageName}';
 
 
+                        ${block($registeredLlmToolsMessage())}
+                    `,
+                ),
+            );
+        }
 
-    const llmTools: Array<LlmExecutionTools> = configuration.map((llmConfiguration: TODO_any) =>
-        EXECUTION_TOOLS_CLASSES[`create${llmConfiguration.className}`]!(
-            //                                                      <- TODO: !!! Check that defined
-            {
-                isVerbose,
-                ...llmConfiguration.options,
-            },
-        ),
-    );
+        return registeredItem({
+            isVerbose,
+            ...llmConfiguration.options,
+        });
+    });
 
     return joinLlmExecutionTools(...llmTools);
 }

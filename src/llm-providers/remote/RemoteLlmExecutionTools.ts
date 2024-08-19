@@ -1,7 +1,7 @@
 import type { Socket } from 'socket.io-client';
 import { io } from 'socket.io-client';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
-import type { AvailableModel } from '../../execution/LlmExecutionTools';
+import type { AvailableModel } from '../../execution/AvailableModel';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import type { ChatPromptResult } from '../../execution/PromptResult';
 import type { CompletionPromptResult } from '../../execution/PromptResult';
@@ -14,9 +14,11 @@ import type { Prompt } from '../../types/Prompt';
 import type { string_markdown } from '../../types/typeAliases';
 import type { string_markdown_text } from '../../types/typeAliases';
 import type { string_title } from '../../types/typeAliases';
-import type { Promptbook_Server_Error } from './interfaces/Promptbook_Server_Error';
-import type { Promptbook_Server_Request } from './interfaces/Promptbook_Server_Request';
-import type { Promptbook_Server_Response } from './interfaces/Promptbook_Server_Response';
+import type { PromptbookServer_Error } from './interfaces/PromptbookServer_Error';
+import type { PromptbookServer_ListModels_Request } from './interfaces/PromptbookServer_ListModels_Request';
+import type { PromptbookServer_ListModels_Response } from './interfaces/PromptbookServer_ListModels_Response';
+import type { PromptbookServer_Prompt_Request } from './interfaces/PromptbookServer_Prompt_Request';
+import type { PromptbookServer_Prompt_Response } from './interfaces/PromptbookServer_Prompt_Response';
 import type { RemoteLlmExecutionToolsOptions } from './interfaces/RemoteLlmExecutionToolsOptions';
 
 /**
@@ -38,6 +40,52 @@ export class RemoteLlmExecutionTools implements LlmExecutionTools {
 
     public get description(): string_markdown {
         return 'Use all models by your remote server';
+    }
+
+    /**
+     * Check the configuration of all execution tools
+     */
+    public async checkConfiguration(): Promise<void> {
+        const socket = await this.makeConnection();
+        socket.disconnect();
+
+        // TODO: !!! Check version of the remote server and compatibility
+        // TODO: [🎍] Send checkConfiguration
+    }
+
+    /**
+     * List all available models that can be used
+     */
+    public async listModels(): Promise<Array<AvailableModel>> {
+        // TODO: [👒] Listing models (and checking configuration) probbably should go through REST API not Socket.io
+        const socket = await this.makeConnection();
+
+        if (this.options.isAnonymous) {
+            socket.emit('listModels-request', {
+                isAnonymous: true,
+                llmToolsConfiguration: this.options.llmToolsConfiguration,
+            } satisfies PromptbookServer_ListModels_Request);
+        } else {
+            socket.emit('listModels-request', {
+                isAnonymous: false,
+                clientId: this.options.clientId,
+            } satisfies PromptbookServer_ListModels_Request);
+        }
+
+        const promptResult = await new Promise<Array<AvailableModel>>((resolve, reject) => {
+            socket.on('listModels-response', (response: PromptbookServer_ListModels_Response) => {
+                resolve(response.models);
+                socket.disconnect();
+            });
+            socket.on('error', (error: PromptbookServer_Error) => {
+                reject(new Error(error.errorMessage));
+                socket.disconnect();
+            });
+        });
+
+        socket.disconnect();
+
+        return promptResult;
     }
 
     /**
@@ -107,25 +155,27 @@ export class RemoteLlmExecutionTools implements LlmExecutionTools {
         const socket = await this.makeConnection();
 
         if (this.options.isAnonymous) {
-            socket.emit('request', {
+            socket.emit('prompt-request', {
+                isAnonymous: true,
                 llmToolsConfiguration: this.options.llmToolsConfiguration,
                 prompt,
                 // <- TODO: [🛫] `prompt` is NOT fully serializable as JSON, it contains functions which are not serializable
-            } satisfies Promptbook_Server_Request);
+            } satisfies PromptbookServer_Prompt_Request);
         } else {
-            socket.emit('request', {
+            socket.emit('prompt-request', {
+                isAnonymous: false,
                 clientId: this.options.clientId,
                 prompt,
                 // <- TODO: [🛫] `prompt` is NOT fully serializable as JSON, it contains functions which are not serializable
-            } satisfies Promptbook_Server_Request);
+            } satisfies PromptbookServer_Prompt_Request);
         }
 
         const promptResult = await new Promise<PromptResult>((resolve, reject) => {
-            socket.on('response', (response: Promptbook_Server_Response) => {
+            socket.on('prompt-response', (response: PromptbookServer_Prompt_Response) => {
                 resolve(response.promptResult);
                 socket.disconnect();
             });
-            socket.on('error', (error: Promptbook_Server_Error) => {
+            socket.on('error', (error: PromptbookServer_Error) => {
                 reject(new PipelineExecutionError(error.errorMessage));
                 socket.disconnect();
             });
@@ -135,21 +185,10 @@ export class RemoteLlmExecutionTools implements LlmExecutionTools {
 
         return promptResult;
     }
-
-    /**
-     * List all available models that can be used
-     */
-    public async listModels(): Promise<Array<AvailableModel>> {
-        return (
-            this.options.models ||
-            [
-                /* !!! */
-            ]
-        );
-    }
 }
 
 /**
+ * TODO: [🧠][🛍] Maybe not `isAnonymous: boolean` BUT `mode: 'ANONYMOUS'|'COLLECTION'`
  * TODO: [🍓] Allow to list compatible models with each variant
  * TODO: [🗯] RemoteLlmExecutionTools should extend Destroyable and implement IDestroyable
  * TODO: [🧠][🌰] Allow to pass `title` for tracking purposes

@@ -2,6 +2,7 @@ import colors from 'colors';
 import { readFile } from 'fs/promises';
 import { join } from 'path';
 import spaceTrim from 'spacetrim';
+import { IS_VERBOSE } from '../../config';
 import { PIPELINE_COLLECTION_BASE_FILENAME } from '../../config';
 import { pipelineJsonToString } from '../../conversion/pipelineJsonToString';
 import type { PipelineStringToJsonOptions } from '../../conversion/pipelineStringToJson';
@@ -13,9 +14,9 @@ import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import type { PipelineString } from '../../types/PipelineString';
 import type { string_folder_path } from '../../types/typeAliases';
 import type { string_pipeline_url } from '../../types/typeAliases';
-import { $isRunningInNode } from '../../utils/environment/isRunningInNode';
-import { $isFileExisting } from '../../utils/files/isFileExisting';
-import { $listAllFiles } from '../../utils/files/listAllFiles';
+import { $isRunningInNode } from '../../utils/environment/$isRunningInNode';
+import { $isFileExisting } from '../../utils/files/$isFileExisting';
+import { $listAllFiles } from '../../utils/files/$listAllFiles';
 import type { PipelineCollection } from '../PipelineCollection';
 import { createCollectionFromPromise } from './createCollectionFromPromise';
 
@@ -90,7 +91,7 @@ export async function createCollectionFromDirectory(
         // TODO: [🌗]
     }
 
-    const { isRecursive = true, isVerbose = false, isLazyLoaded = false, isCrashedOnError = true } = options || {};
+    const { isRecursive = true, isVerbose = IS_VERBOSE, isLazyLoaded = false, isCrashedOnError = true } = options || {};
 
     const collection = createCollectionFromPromise(async () => {
         if (isVerbose) {

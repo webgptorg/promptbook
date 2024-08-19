@@ -3,7 +3,7 @@ import OpenAI from 'openai';
 import spaceTrim from 'spacetrim';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
-import type { AvailableModel } from '../../execution/LlmExecutionTools';
+import type { AvailableModel } from '../../execution/AvailableModel';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import type { ChatPromptResult } from '../../execution/PromptResult';
 import type { CompletionPromptResult } from '../../execution/PromptResult';
@@ -16,12 +16,12 @@ import type { string_model_name } from '../../types/typeAliases';
 import type { string_title } from '../../types/typeAliases';
 import { getCurrentIsoDate } from '../../utils/getCurrentIsoDate';
 import { replaceParameters } from '../../utils/replaceParameters';
-import { computeOpenaiUsage } from './computeOpenaiUsage';
+import { computeOpenAiUsage } from './computeOpenAiUsage';
 import { OPENAI_MODELS } from './openai-models';
 import type { OpenAiExecutionToolsOptions } from './OpenAiExecutionToolsOptions';
 
 /**
- * Execution Tools for calling OpenAI API.
+ * Execution Tools for calling OpenAI API
  *
  * @public exported from `@promptbook/openai`
  */
@@ -29,25 +29,14 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
     /**
      * OpenAI API client.
      */
-    private readonly client: OpenAI;
+    private client: OpenAI | null = null;
 
     /**
      * Creates OpenAI Execution Tools.
      *
      * @param options which are relevant are directly passed to the OpenAI client
      */
-    public constructor(private readonly options: OpenAiExecutionToolsOptions = {}) {
-        // Note: Passing only OpenAI relevant options to OpenAI constructor
-        const openAiOptions = { ...options };
-        delete openAiOptions.isVerbose;
-        delete openAiOptions.user;
-        this.client = new OpenAI(
-            //            <- TODO: [🧱] Implement in a functional (not new Class) way
-            {
-                ...openAiOptions,
-            },
-        );
-    }
+    public constructor(private readonly options: OpenAiExecutionToolsOptions = {}) {}
 
     public get title(): string_title & string_markdown_text {
         return 'OpenAI';
@@ -55,6 +44,43 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
 
     public get description(): string_markdown {
         return 'Use all models provided by OpenAI';
+    }
+
+    private async getClient(): Promise<OpenAI> {
+        if (this.client === null) {
+            // Note: Passing only OpenAI relevant options to OpenAI constructor
+            const openAiOptions = { ...this.options };
+            delete openAiOptions.isVerbose;
+            delete openAiOptions.user;
+            this.client = new OpenAI({
+                ...openAiOptions,
+            });
+        }
+
+        return this.client;
+    }
+
+    /**
+     * Check the `options` passed to `constructor`
+     */
+    public async checkConfiguration(): Promise<void> {
+        await this.getClient();
+        // TODO: [🎍] Do here a real check that API is online, working and API key is correct
+    }
+
+    /**
+     * List all available OpenAI models that can be used
+     */
+    public listModels(): Array<AvailableModel> {
+        /*
+        Note: Dynamic lising of the models
+        const models = await this.openai.models.list({});
+
+        console.log({ models });
+        console.log(models.data);
+        */
+
+        return OPENAI_MODELS;
     }
 
     /**
@@ -68,6 +94,8 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
         }
 
         const { content, parameters, modelRequirements, expectFormat } = prompt;
+
+        const client = await this.getClient();
 
         // TODO: [☂] Use here more modelRequirements
         if (modelRequirements.modelVariant !== 'CHAT') {
@@ -120,7 +148,7 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
         if (this.options.isVerbose) {
             console.info(colors.bgWhite('rawRequest'), JSON.stringify(rawRequest, null, 4));
         }
-        const rawResponse = await this.client.chat.completions.create(rawRequest);
+        const rawResponse = await client.chat.completions.create(rawRequest);
         if (this.options.isVerbose) {
             console.info(colors.bgWhite('rawResponse'), JSON.stringify(rawResponse, null, 4));
         }
@@ -137,7 +165,7 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
         const resultContent = rawResponse.choices[0].message.content;
         // eslint-disable-next-line prefer-const
         complete = getCurrentIsoDate();
-        const usage = computeOpenaiUsage(content, resultContent || '', rawResponse);
+        const usage = computeOpenAiUsage(content, resultContent || '', rawResponse);
 
         if (resultContent === null) {
             throw new PipelineExecutionError('No response message from OpenAI');
@@ -170,6 +198,8 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
 
         const { content, parameters, modelRequirements } = prompt;
 
+        const client = await this.getClient();
+
         // TODO: [☂] Use here more modelRequirements
         if (modelRequirements.modelVariant !== 'COMPLETION') {
             throw new PipelineExecutionError('Use callCompletionModel only for COMPLETION variant');
@@ -198,7 +228,7 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
         if (this.options.isVerbose) {
             console.info(colors.bgWhite('rawRequest'), JSON.stringify(rawRequest, null, 4));
         }
-        const rawResponse = await this.client.completions.create(rawRequest);
+        const rawResponse = await client.completions.create(rawRequest);
         if (this.options.isVerbose) {
             console.info(colors.bgWhite('rawResponse'), JSON.stringify(rawResponse, null, 4));
         }
@@ -215,7 +245,7 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
         const resultContent = rawResponse.choices[0].text;
         // eslint-disable-next-line prefer-const
         complete = getCurrentIsoDate();
-        const usage = computeOpenaiUsage(content, resultContent || '', rawResponse);
+        const usage = computeOpenAiUsage(content, resultContent || '', rawResponse);
 
         return {
             content: resultContent,
@@ -244,6 +274,8 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
 
         const { content, parameters, modelRequirements } = prompt;
 
+        const client = await this.getClient();
+
         // TODO: [☂] Use here more modelRequirements
         if (modelRequirements.modelVariant !== 'EMBEDDING') {
             throw new PipelineExecutionError('Use embed only for EMBEDDING variant');
@@ -264,7 +296,7 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
             console.info(colors.bgWhite('rawRequest'), JSON.stringify(rawRequest, null, 4));
         }
 
-        const rawResponse = await this.client.embeddings.create(rawRequest);
+        const rawResponse = await client.embeddings.create(rawRequest);
 
         if (this.options.isVerbose) {
             console.info(colors.bgWhite('rawResponse'), JSON.stringify(rawResponse, null, 4));
@@ -280,7 +312,7 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
 
         // eslint-disable-next-line prefer-const
         complete = getCurrentIsoDate();
-        const usage = computeOpenaiUsage(content, '', rawResponse);
+        const usage = computeOpenAiUsage(content, '', rawResponse);
 
         return {
             content: resultContent,
@@ -343,27 +375,12 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
     }
 
     // <- Note: [🤖] getDefaultXxxModel
-
-    /**
-     * List all available OpenAI models that can be used
-     */
-    public listModels(): Array<AvailableModel> {
-        /*
-        Note: Dynamic lising of the models
-        const models = await this.openai.models.list({});
-
-        console.log({ models });
-        console.log(models.data);
-        */
-
-        return OPENAI_MODELS;
-    }
 }
 
 /**
  * TODO: [🧠][🧙‍♂️] Maybe there can be some wizzard for thoose who want to use just OpenAI
  * TODO: Maybe Create some common util for callChatModel and callCompletionModel
- * TODO: Maybe make custom OpenaiError
+ * TODO: Maybe make custom OpenAiError
  * TODO: [🧠][🈁] Maybe use `isDeterministic` from options
  * TODO: [🧠][🌰] Allow to pass `title` for tracking purposes
  */
