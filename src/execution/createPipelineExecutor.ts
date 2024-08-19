@@ -233,7 +233,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
 
             TODO_USE(template);
             return preparedPipeline.knowledgePieces.map(({ content }) => `- ${content}`).join('\n');
-            //                                                      <- TODO: [🧠] !!!!! Some smart aggregation of knowledge pieces, single-line vs multi-line vs mixed
+            //                                                      <- TODO: [🧠] Some smart aggregation of knowledge pieces, single-line vs multi-line vs mixed
         }
 
         async function getSamplesForTemplate( // <- TODO: [🧠][🥜]
