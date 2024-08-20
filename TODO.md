@@ -38,3 +38,4 @@
 -   [ ] [🍍] !!!!! Link from here -> ptbk.io -> discussions concepts (with labels)
 -   [ ] [🍛] Use shortcuts or not "Config" vs "configuration", "Env" vs "Environment"
 -   [ ] [🎶] Naming "constructor" vs "creator" vs "factory"
+-   [ ] [🧠][🔛] Auto-translate of entire pipelines
