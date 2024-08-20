@@ -4,6 +4,8 @@ import type { UncertainNumber } from './UncertainNumber';
 
 /**
  * Usage statistics for one or many prompt results
+ *
+ * Note: [🚉] This is fully serializable as JSON
  */
 export type PromptResultUsage = {
     /**
@@ -26,6 +28,8 @@ export type PromptResultUsage = {
 
 /**
  * Record of all possible measurable units
+ *
+ * Note: [🚉] This is fully serializable as JSON
  */
 export type PromptResultUsageCounts = Record<`${KebabCase<'TOKENS' | ExpectationUnit>}Count`, UncertainNumber>;
 

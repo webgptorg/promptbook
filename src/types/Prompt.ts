@@ -1,15 +1,19 @@
 import type { ExpectFormatCommand } from '../commands/EXPECT/ExpectFormatCommand';
 import type { PostprocessingFunction } from '../scripting/javascript/JavascriptExecutionToolsOptions';
-import type { ChatModelRequirements } from './ModelRequirements';
-import type { CompletionModelRequirements } from './ModelRequirements';
-import type { EmbeddingModelRequirements } from './ModelRequirements';
-import type { ModelRequirements } from './ModelRequirements';
+import type {
+    ChatModelRequirements,
+    CompletionModelRequirements,
+    EmbeddingModelRequirements,
+    ModelRequirements,
+} from './ModelRequirements';
 import type { Expectations } from './PipelineJson/Expectations';
-import type { Parameters } from './typeAliases';
-import type { string_pipeline_url_with_hashtemplate } from './typeAliases';
-import type { string_prompt } from './typeAliases';
-import type { string_template } from './typeAliases';
-import type { string_title } from './typeAliases';
+import type {
+    Parameters,
+    string_pipeline_url_with_hashtemplate,
+    string_prompt,
+    string_template,
+    string_title,
+} from './typeAliases';
 
 /**
  * Prompt in a text along with model requirements, but without any execution or templating logic.
@@ -64,7 +68,7 @@ export type EmbeddingPrompt = CommonPrompt & {
 /**
  * Common properties for all prompt results
  *
- * Note: This is fully serializable as JSON
+ * Note: [🚉] This is fully serializable as JSON
  */
 export type CommonPrompt = {
     /**

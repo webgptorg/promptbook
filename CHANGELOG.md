@@ -456,6 +456,13 @@ Was accidentally released skipped
 -   Add `$llmToolsRegister`
 -   Rename `Openai` ->`OpenAi`
 
+### `0.67.0` _(2024-08-)_
+
+Types and interfaces, JSON serialization
+
+-   `ExecutionReportJson` is fully serializable as JSON
+-   Mark all entities that are fully serializable as JSON by `[🚉]`
+
 ## In prepare
 
 ### `0..0` _(2024-0-)_

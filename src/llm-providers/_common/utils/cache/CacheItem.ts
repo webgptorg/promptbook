@@ -30,5 +30,5 @@ export type CacheItem = {
 
 /**
  * TODO: [🧠] Should be this exported alongsite `cacheLlmTools` through `@promptbook/utils` OR through `@promptbook/types`
- * TODO: [🛫] `prompt` is NOT fully serializable as JSON, it contains functions which are not serializable, fix it
+ * TODO: [🛫] `prompt` is NOT [🚉] fully serializable as JSON, it contains functions which are not serializable, fix it
  */

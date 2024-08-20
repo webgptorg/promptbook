@@ -5,6 +5,8 @@ import type { string_persona_description } from '../typeAliases';
 
 /**
  * Defines a persona in the pipeline
+ * 
+ * Note: [🚉] This is fully serializable as JSON
  *
  * @see https://github.com/webgptorg/promptbook/discussions/22
  */
@@ -24,6 +26,8 @@ export type PersonaJson = {
 
 /**
  * Defines a persona in the pipeline after it has been prepared
+ * 
+ * Note: [🚉] This is fully serializable as JSON
  *
  * @see https://github.com/webgptorg/promptbook/discussions/22
  */

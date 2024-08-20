@@ -1,8 +1,6 @@
 import type { PromptResult } from '../../execution/PromptResult';
 import type { Prompt } from '../Prompt';
-import type { string_markdown_text } from '../typeAliases';
-import type { string_pipeline_url } from '../typeAliases';
-import type { string_semantic_version } from '../typeAliases';
+import type { string_markdown_text, string_pipeline_url, string_semantic_version } from '../typeAliases';
 
 /**
  * ExecutionReport is result of executing one promptbook
@@ -11,6 +9,8 @@ import type { string_semantic_version } from '../typeAliases';
  * It can have 2 formats:
  * -   **.md file** created from the **JSON** format
  * -   _(this)_ **JSON** format
+ *
+ * Note: [🚉] This is fully serializable as JSON
  *
  * @see https://github.com/webgptorg/promptbook#execution-report
  */
@@ -48,11 +48,14 @@ export type ExecutionReportJson = {
     readonly description?: string_markdown_text;
 
     /**
+     * !!!!!!!
      * Sequence of prompt templates in order which were executed
      */
     readonly promptExecutions: Array<{
         /**
          * The prompt wich was executed
+         *
+         * Note: !!!!!! [🚉] This is fully serializable as JSON
          */
         readonly prompt: Omit<Prompt, 'pipelineUrl'>;
 
@@ -67,7 +70,7 @@ export type ExecutionReportJson = {
          * Note: It makes sense to have both error and result defined, for example when the result not pass expectations
          */
         readonly error?: {
-            readonly message: string;
+            readonly message: string; // <- !!!!!!!
         };
     }>;
 };

@@ -1,6 +1,4 @@
-import type { string_date_iso8601 } from '../types/typeAliases';
-import type { string_model_name } from '../types/typeAliases';
-import type { string_prompt } from '../types/typeAliases';
+import type { string_date_iso8601, string_model_name, string_prompt } from '../types/typeAliases';
 import type { TODO_object } from '../utils/organization/TODO_object';
 import type { EmbeddingVector } from './EmbeddingVector';
 import type { PromptResultUsage } from './PromptResultUsage';
@@ -17,14 +15,14 @@ export type PromptResult = CompletionPromptResult | ChatPromptResult | Embedding
  * Completion prompt result
  *
  * Note:It contains only the newly generated text NOT the whole completion
- * Note: This is fully serializable as JSON
+ * Note: [🚉] This is fully serializable as JSON
  */
 export type CompletionPromptResult = CommonPromptResult;
 
 /**
  *Chat prompt result
  *
- * Note: This is fully serializable as JSON
+ * Note: [🚉] This is fully serializable as JSON
  */
 export type ChatPromptResult = CommonPromptResult & {
     // TODO: [🗯][🧠] Figure out way how to pass thread / previous messages
@@ -33,7 +31,7 @@ export type ChatPromptResult = CommonPromptResult & {
 /**
  * Embedding prompt  result
  *
- * Note: This is fully serializable as JSON
+ * Note: [🚉] This is fully serializable as JSON
  */
 export type EmbeddingPromptResult = Omit<CommonPromptResult, 'content'> & {
     /**
@@ -47,7 +45,7 @@ export type EmbeddingPromptResult = Omit<CommonPromptResult, 'content'> & {
 /**
  * Common properties for all prompt results
  *
- * Note: This is fully serializable as JSON
+ * Note: [🚉] This is fully serializable as JSON
  */
 export type CommonPromptResult = {
     /**

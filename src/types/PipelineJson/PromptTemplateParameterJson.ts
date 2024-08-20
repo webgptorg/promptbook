@@ -1,9 +1,9 @@
-import type { string_markdown_text } from '../typeAliases';
-import type { string_parameter_name } from '../typeAliases';
-import type { string_parameter_value } from '../typeAliases';
+import type { string_markdown_text, string_parameter_name, string_parameter_value } from '../typeAliases';
 
 /**
  * Describes one parameter of the promptbook
+ *
+ * Note: [🚉] This is fully serializable as JSON
  */
 export type PromptTemplateParameterJson = {
     /**

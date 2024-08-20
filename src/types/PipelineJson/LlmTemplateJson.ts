@@ -4,6 +4,8 @@ import type { PromptTemplateJsonCommon } from './PromptTemplateJsonCommon';
 
 /**
  * Template for prompt to LLM
+ *
+ * Note: [🚉] This is fully serializable as JSON
  */
 export type LlmTemplateJson = PromptTemplateJsonCommon & {
     readonly blockType: 'PROMPT_TEMPLATE';

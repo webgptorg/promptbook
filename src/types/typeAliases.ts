@@ -137,6 +137,7 @@ export type string_parameter_value = string;
  * - **Intermediate parameters** are used internally in the pipeline.
  * - **OUTPUT PARAMETERs** are not used internally in the pipeline, but are returned as the result of the pipeline execution.
  *
+ * Note: [🚉] This is fully serializable as JSON
  * @see https://ptbk.io/parameters
  */
 export type Parameters = Exclude<Record<string_parameter_name, string_parameter_value>, ReservedParameters>;
@@ -151,6 +152,8 @@ export type string_reserved_parameter_name = TupleToUnion<typeof RESERVED_PARAME
 
 /**
  * @@@
+ *
+ * Note: [🚉] This is fully serializable as JSON
  */
 export type ReservedParameters = Record<string_reserved_parameter_name, string_parameter_value>;
 
