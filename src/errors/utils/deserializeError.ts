@@ -1,5 +1,5 @@
-import { ERRORS } from '..';
-import { ErrorJson } from './ErrorJson';
+import { ERRORS } from '../index';
+import type { ErrorJson } from './ErrorJson';
 
 /**
  * Deserializes the error object

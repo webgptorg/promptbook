@@ -1,7 +1,7 @@
 import spaceTrim from 'spacetrim';
-import { ERRORS } from '..';
+import { ERRORS } from '../index';
 import { UnexpectedError } from '../UnexpectedError';
-import { ErrorJson } from './ErrorJson';
+import type { ErrorJson } from './ErrorJson';
 
 /**
  * Serializes an error into a [🚉] JSON-serializable object

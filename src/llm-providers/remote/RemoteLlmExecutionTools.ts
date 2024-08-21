@@ -58,15 +58,21 @@ export class RemoteLlmExecutionTools implements LlmExecutionTools {
         const socket = await this.makeConnection();
 
         if (this.options.isAnonymous) {
-            socket.emit('listModels-request', {
-                isAnonymous: true,
-                llmToolsConfiguration: this.options.llmToolsConfiguration,
-            } satisfies PromptbookServer_ListModels_Request);
+            socket.emit(
+                'listModels-request',
+                {
+                    isAnonymous: true,
+                    llmToolsConfiguration: this.options.llmToolsConfiguration,
+                } satisfies PromptbookServer_ListModels_Request /* <- TODO: [🤛] */,
+            );
         } else {
-            socket.emit('listModels-request', {
-                isAnonymous: false,
-                clientId: this.options.clientId,
-            } satisfies PromptbookServer_ListModels_Request);
+            socket.emit(
+                'listModels-request',
+                {
+                    isAnonymous: false,
+                    clientId: this.options.clientId,
+                } satisfies PromptbookServer_ListModels_Request /* <- TODO: [🤛] */,
+            );
         }
 
         const promptResult = await new Promise<Array<AvailableModel>>((resolve, reject) => {
@@ -152,19 +158,25 @@ export class RemoteLlmExecutionTools implements LlmExecutionTools {
         const socket = await this.makeConnection();
 
         if (this.options.isAnonymous) {
-            socket.emit('prompt-request', {
-                isAnonymous: true,
-                llmToolsConfiguration: this.options.llmToolsConfiguration,
-                prompt,
-                // <- TODO: [🛫] `prompt` is NOT fully [🚉] serializable as JSON, it contains functions which are not serializable
-            } satisfies PromptbookServer_Prompt_Request);
+            socket.emit(
+                'prompt-request',
+                {
+                    isAnonymous: true,
+                    llmToolsConfiguration: this.options.llmToolsConfiguration,
+                    prompt,
+                    // <- TODO: [🛫] `prompt` is NOT fully [🚉] serializable as JSON, it contains functions which are not serializable
+                } satisfies PromptbookServer_Prompt_Request /* <- TODO: [🤛] */,
+            );
         } else {
-            socket.emit('prompt-request', {
-                isAnonymous: false,
-                clientId: this.options.clientId,
-                prompt,
-                // <- TODO: [🛫] `prompt` is NOT fully [🚉] serializable as JSON, it contains functions which are not serializable
-            } satisfies PromptbookServer_Prompt_Request);
+            socket.emit(
+                'prompt-request',
+                {
+                    isAnonymous: false,
+                    clientId: this.options.clientId,
+                    prompt,
+                    // <- TODO: [🛫] `prompt` is NOT fully [🚉] serializable as JSON, it contains functions which are not serializable
+                } satisfies PromptbookServer_Prompt_Request /* <- TODO: [🤛] */,
+            );
         }
 
         const promptResult = await new Promise<PromptResult>((resolve, reject) => {

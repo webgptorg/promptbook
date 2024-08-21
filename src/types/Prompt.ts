@@ -1,19 +1,8 @@
 import type { ExpectFormatCommand } from '../commands/EXPECT/ExpectFormatCommand';
 import type { PostprocessingFunction } from '../scripting/javascript/JavascriptExecutionToolsOptions';
-import type {
-    ChatModelRequirements,
-    CompletionModelRequirements,
-    EmbeddingModelRequirements,
-    ModelRequirements,
-} from './ModelRequirements';
+import type { ChatModelRequirements, CompletionModelRequirements, EmbeddingModelRequirements, ModelRequirements } from './ModelRequirements';
 import type { Expectations } from './PipelineJson/Expectations';
-import type {
-    Parameters,
-    string_pipeline_url_with_hashtemplate,
-    string_prompt,
-    string_template,
-    string_title,
-} from './typeAliases';
+import type { Parameters, string_pipeline_url_with_hashtemplate, string_prompt, string_template, string_title } from './typeAliases';
 
 /**
  * Prompt in a text along with model requirements, but without any execution or templating logic.

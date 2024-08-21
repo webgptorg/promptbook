@@ -9,13 +9,7 @@ import type { AvailableModel } from '../../execution/AvailableModel';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import type { ChatPromptResult } from '../../execution/PromptResult';
 import type { Prompt } from '../../types/Prompt';
-import type {
-    string_date_iso8601,
-    string_markdown,
-    string_markdown_text,
-    string_model_name,
-    string_title,
-} from '../../types/typeAliases';
+import type { string_date_iso8601, string_markdown, string_markdown_text, string_model_name, string_title } from '../../types/typeAliases';
 import { getCurrentIsoDate } from '../../utils/getCurrentIsoDate';
 import type { really_any } from '../../utils/organization/really_any';
 import { replaceParameters } from '../../utils/replaceParameters';

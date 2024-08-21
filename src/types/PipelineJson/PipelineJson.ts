@@ -1,9 +1,4 @@
-import type {
-    string_file_path,
-    string_markdown_text,
-    string_pipeline_url,
-    string_semantic_version,
-} from '../typeAliases';
+import type { string_file_path, string_markdown_text, string_pipeline_url, string_semantic_version } from '../typeAliases';
 import type { KnowledgePiecePreparedJson } from './KnowledgePieceJson';
 import type { KnowledgeSourceJson, KnowledgeSourcePreparedJson } from './KnowledgeSourceJson';
 import type { PersonaJson, PersonaPreparedJson } from './PersonaJson';

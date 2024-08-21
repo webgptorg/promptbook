@@ -1,8 +1,7 @@
 import type { Promisable } from 'type-fest';
 import type { TaskProgress } from '../types/TaskProgress';
 import type { Parameters } from '../types/typeAliases';
-import { PipelineExecutorResult } from './PipelineExecutorResult';
-// <- TODO: !!!!!! Will be this automatically repared to type import
+import type { PipelineExecutorResult } from './PipelineExecutorResult';
 
 /**
  * Executor is a simple async function that takes INPUT  PARAMETERs and returns result parameters _(along with all intermediate parameters and INPUT  PARAMETERs = it extends input object)_.
