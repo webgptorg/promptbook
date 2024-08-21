@@ -1,3 +1,4 @@
+import { ErrorJson } from '../../errors/utils/ErrorJson';
 import type { PromptResult } from '../../execution/PromptResult';
 import type { Prompt } from '../Prompt';
 
@@ -22,7 +23,5 @@ export type ExecutionPromptReportJson = {
      *
      * Note: It makes sense to have both error and result defined, for example when the result not pass expectations
      */
-    readonly error?: {
-        readonly message: string; // <- !!!!!!!
-    };
+    readonly error?: ErrorJson;
 };

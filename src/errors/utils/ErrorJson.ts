@@ -9,15 +9,15 @@ export type ErrorJson = {
     /**
      * The type of the error
      */
-    name: keyof typeof ERRORS | 'Error';
+    readonly name: keyof typeof ERRORS | 'Error';
 
     /**
      * The message of the error
      */
-    message: string;
+    readonly message: string;
 
     /**
      * The stack trace of the error
      */
-    stack?: string;
+    readonly stack?: string;
 };

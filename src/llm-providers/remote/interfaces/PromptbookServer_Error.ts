@@ -1,3 +1,5 @@
+import { ErrorJson } from '../../../errors/utils/ErrorJson';
+
 /**
  * Socket.io error for remote text generation
  *
@@ -5,7 +7,7 @@
  */
 export type PromptbookServer_Error = {
     /**
-     * The error message which caused the error
+     * The error that caused the error
      */
-    readonly errorMessage: string; // <- !!!!!!
+    readonly error: ErrorJson;
 };
