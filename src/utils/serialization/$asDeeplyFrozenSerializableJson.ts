@@ -1,4 +1,5 @@
 import { UnexpectedError } from '../../errors/UnexpectedError';
+import { string_name } from '../../types/typeAliases';
 import { $deepFreeze } from './$deepFreeze';
 import { isSerializableAsJson } from './isSerializableAsJson';
 
@@ -8,12 +9,14 @@ import { isSerializableAsJson } from './isSerializableAsJson';
  *
  * Note: This function mutates the object and returns the original (but mutated-deep-freezed) object
  *
+ * @param name - Name of the object for debugging purposes
+ * @param objectValue - Object to be deeply frozen
  * @returns The same object as the input, but deeply frozen
  * @private this is in comparison to `deepFreeze` a more specific utility and maybe not very good practice to use without specific reason and considerations
  */
-export function $asDeeplyFrozenSerializableJson<TObject>(objectValue: TObject): TObject {
+export function $asDeeplyFrozenSerializableJson<TObject>(name: string_name, objectValue: TObject): TObject {
     if (!isSerializableAsJson(objectValue)) {
-        throw new UnexpectedError(`Object is not serializable as JSON`);
+        throw new UnexpectedError(`${name} is not serializable as JSON`);
         //          <- TODO: [🧠] Better locate where this happen
     }
 
@@ -21,5 +24,6 @@ export function $asDeeplyFrozenSerializableJson<TObject>(objectValue: TObject): 
 }
 
 /**
+ * TODO: [🧠] More elegant way to tracking than passing `name`
  * TODO: [🧠] Is there a way how to meaningfully test this utility
  */

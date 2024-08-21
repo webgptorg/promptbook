@@ -18,7 +18,7 @@ export const ANTHROPIC_CLAUDE_MODELS: Array<
             readonly output: number_usd;
         };
     }
-> = $asDeeplyFrozenSerializableJson([
+> = $asDeeplyFrozenSerializableJson('ANTHROPIC_CLAUDE_MODELS',[
     {
         modelVariant: 'CHAT',
         modelTitle: 'Claude 3.5 Sonnet',

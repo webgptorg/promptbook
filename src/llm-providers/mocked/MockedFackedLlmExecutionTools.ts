@@ -2,14 +2,10 @@ import type { AvailableModel } from '../../execution/AvailableModel';
 import type { CommonExecutionToolsOptions } from '../../execution/CommonExecutionToolsOptions';
 import type { EmbeddingVector } from '../../execution/EmbeddingVector';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { ChatPromptResult } from '../../execution/PromptResult';
-import type { CompletionPromptResult } from '../../execution/PromptResult';
-import type { EmbeddingPromptResult } from '../../execution/PromptResult';
+import type { ChatPromptResult, CompletionPromptResult, EmbeddingPromptResult } from '../../execution/PromptResult';
 import { ZERO_USAGE } from '../../execution/utils/addUsage';
 import type { Prompt } from '../../types/Prompt';
-import type { string_markdown } from '../../types/typeAliases';
-import type { string_markdown_text } from '../../types/typeAliases';
-import type { string_title } from '../../types/typeAliases';
+import type { string_markdown, string_markdown_text, string_title } from '../../types/typeAliases';
 import { getCurrentIsoDate } from '../../utils/getCurrentIsoDate';
 import { replaceParameters } from '../../utils/replaceParameters';
 import { $asDeeplyFrozenSerializableJson } from '../../utils/serialization/$asDeeplyFrozenSerializableJson';
@@ -59,7 +55,10 @@ export class MockedFackedLlmExecutionTools implements LlmExecutionTools {
      * Fakes chat model
      */
     public async callChatModel(
-        prompt: Pick<Prompt, 'content' | 'parameters' | 'modelRequirements' | 'expectations' | 'postprocessingFunctionNames'>,
+        prompt: Pick<
+            Prompt,
+            'content' | 'parameters' | 'modelRequirements' | 'expectations' | 'postprocessingFunctionNames'
+        >,
     ): Promise<ChatPromptResult & CompletionPromptResult> {
         if (this.options.isVerbose) {
             console.info('💬 Mocked faked prompt', prompt);
@@ -78,7 +77,7 @@ export class MockedFackedLlmExecutionTools implements LlmExecutionTools {
             prompt.postprocessingFunctionNames,
         );
 
-        const result = ({
+        const result = {
             content,
             modelName,
             timing: {
@@ -92,20 +91,26 @@ export class MockedFackedLlmExecutionTools implements LlmExecutionTools {
                 note: 'This is mocked echo',
             },
             // <- [🗯]
-        }) satisfies ChatPromptResult & CompletionPromptResult;
+        } satisfies ChatPromptResult & CompletionPromptResult;
 
         if (this.options.isVerbose) {
             console.info('💬 Mocked faked result', result);
         }
 
-        return $asDeeplyFrozenSerializableJson(result);
+        return $asDeeplyFrozenSerializableJson(
+            'ChatPromptResult or CompletionPromptResult (from MockedFackedLlmExecutionTools)',
+            result,
+        );
     }
 
     /**
      * Fakes completion model
      */
     public async callCompletionModel(
-        prompt: Pick<Prompt, 'content' | 'parameters' | 'modelRequirements' | 'expectations' | 'postprocessingFunctionNames'>,
+        prompt: Pick<
+            Prompt,
+            'content' | 'parameters' | 'modelRequirements' | 'expectations' | 'postprocessingFunctionNames'
+        >,
     ): Promise<CompletionPromptResult> {
         return this.callChatModel(prompt);
     }
@@ -114,7 +119,10 @@ export class MockedFackedLlmExecutionTools implements LlmExecutionTools {
      * Fakes embedding model
      */
     public async callEmbeddingModel(
-        prompt: Pick<Prompt, 'content' | 'parameters' | 'modelRequirements' | 'expectations' | 'postprocessingFunctionNames'>,
+        prompt: Pick<
+            Prompt,
+            'content' | 'parameters' | 'modelRequirements' | 'expectations' | 'postprocessingFunctionNames'
+        >,
     ): Promise<EmbeddingPromptResult> {
         const modelName = 'mocked-facked';
         const rawPromptContent = replaceParameters(prompt.content, { ...prompt.parameters, modelName });
@@ -150,7 +158,7 @@ export class MockedFackedLlmExecutionTools implements LlmExecutionTools {
             console.info('💬 Mocked faked result', result);
         }
 
-        return $asDeeplyFrozenSerializableJson(result);
+        return $asDeeplyFrozenSerializableJson('EmbeddingPromptResult (from MockedFackedLlmExecutionTools)', result);
     }
 
     // <- Note: [🤖] callXxxModel

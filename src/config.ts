@@ -103,7 +103,7 @@ export const REPLACING_NONCE = 'u$k42k%!V2zo34w7Fu#@QUHYPW';
  *
  * @public exported from `@promptbook/core`
  */
-export const RESERVED_PARAMETER_NAMES = $asDeeplyFrozenSerializableJson([
+export const RESERVED_PARAMETER_NAMES = $asDeeplyFrozenSerializableJson('RESERVED_PARAMETER_NAMES', [
     'content',
     'context', // <- [🧠][🏍] Is parameter {context} good for anything?
     'knowledge',

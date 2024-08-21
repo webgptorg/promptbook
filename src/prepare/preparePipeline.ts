@@ -135,7 +135,7 @@ export async function preparePipeline(pipeline: PipelineJson, options: PrepareOp
     // Note: Count total usage
     currentPreparation.usage = llmToolsWithUsage.getTotalUsage();
 
-    return $asDeeplyFrozenSerializableJson({
+    return $asDeeplyFrozenSerializableJson('Prepared PipelineJson',{
         ...clonePipeline(pipeline),
         promptTemplates: promptTemplatesPrepared,
         knowledgeSources: knowledgeSourcesPrepared,

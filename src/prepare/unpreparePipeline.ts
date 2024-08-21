@@ -28,7 +28,7 @@ export function unpreparePipeline(pipeline: PipelineJson): PipelineJson {
         return promptTemplateUnprepared;
     });
 
-    return $asDeeplyFrozenSerializableJson({
+    return $asDeeplyFrozenSerializableJson('Unprepared PipelineJson', {
         ...pipeline,
         promptTemplates,
         knowledgeSources,

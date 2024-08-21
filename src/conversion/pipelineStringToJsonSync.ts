@@ -533,7 +533,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
         }
     });
     // =============================================================
-    return $asDeeplyFrozenSerializableJson(pipelineJson);
+    return $asDeeplyFrozenSerializableJson('pipelineJson', pipelineJson);
 }
 
 /**

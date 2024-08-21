@@ -4,7 +4,6 @@ import { pipelineStringToJson } from '../../conversion/pipelineStringToJson';
 import { unpreparePipeline } from '../../prepare/unpreparePipeline';
 import type { PipelineString } from '../../types/PipelineString';
 import { keepUnused } from '../../utils/organization/keepUnused';
-import type { really_any } from '../../utils/organization/really_any';
 import { createCollectionFromDirectory } from './createCollectionFromDirectory';
 
 describe('createCollectionFromDirectory', () => {
@@ -67,7 +66,7 @@ describe('createCollectionFromDirectory', () => {
         );
 
         pipelineFromCollection = unpreparePipeline(pipelineFromCollection);
-        delete (pipelineFromCollection as really_any).sourceFile;
+        pipelineFromCollection = { ...pipelineFromCollection, sourceFile: undefined };
 
         expect(pipelineFromCollection).toEqual(await pipelineStringToJson(pipeline));
     });
@@ -86,7 +85,7 @@ describe('createCollectionFromDirectory', () => {
         );
 
         pipelineFromCollection = unpreparePipeline(pipelineFromCollection);
-        delete (pipelineFromCollection as really_any).sourceFile;
+        pipelineFromCollection = { ...pipelineFromCollection, sourceFile: undefined };
 
         expect(pipelineFromCollection).toEqual(await pipelineStringToJson(pipeline));
     });
@@ -104,7 +103,7 @@ describe('createCollectionFromDirectory', () => {
         );
 
         pipelineFromCollection = unpreparePipeline(pipelineFromCollection);
-        delete (pipelineFromCollection as really_any).sourceFile;
+        pipelineFromCollection = { ...pipelineFromCollection, sourceFile: undefined };
 
         expect(pipelineFromCollection).not.toEqual(await pipelineStringToJson(pipeline));
     });

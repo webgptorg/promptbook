@@ -66,7 +66,7 @@ export class MockedEchoLlmExecutionTools implements LlmExecutionTools {
         const usage = ZERO_USAGE;
         //      <- TODO: [🧠] Compute here at least words, characters,... etc
 
-        return $asDeeplyFrozenSerializableJson({
+        return $asDeeplyFrozenSerializableJson('ChatPromptResult (from MockedEchoLlmExecutionTools)',{
             content: spaceTrim(
                 (block) => `
                     You said:
@@ -104,7 +104,7 @@ export class MockedEchoLlmExecutionTools implements LlmExecutionTools {
         const usage = ZERO_USAGE;
         //      <- TODO: [🧠] Compute here at least words, characters,... etc
 
-        return $asDeeplyFrozenSerializableJson({
+        return $asDeeplyFrozenSerializableJson('CompletionPromptResult (from MockedEchoLlmExecutionTools)',{
             content: spaceTrim(
                 (block) => `
                     ${block(rawPromptContent)}

@@ -2,7 +2,7 @@ import type {
     LlmExecutionTools,
     Prompt,
     PromptChatResult,
-    PromptCompletionResult,
+    CompletionPromptResult,
     PromptResult,
 } from '@promptbook/types';
 import { spaceTrim } from 'spacetrim';
@@ -30,7 +30,7 @@ export class SupabaseLoggerWrapperOfLlmExecutionTools implements LlmExecutionToo
     /**
      * Calls a completion model and logs the request+result
      */
-    public callCompletionModel(prompt: Pick<Prompt, 'content' | 'parameters' | 'modelRequirements'>): Promise<PromptCompletionResult> {
+    public callCompletionModel(prompt: Pick<Prompt, 'content' | 'parameters' | 'modelRequirements'>): Promise<CompletionPromptResult> {
         return /* not await */ this.callCommonModel(prompt);
     }
 

@@ -19,7 +19,7 @@ export const OPENAI_MODELS: Array<
             readonly output: number_usd;
         };
     }
-> = $asDeeplyFrozenSerializableJson([
+> = $asDeeplyFrozenSerializableJson('OPENAI_MODELS',[
     /*/
       {
           modelTitle: 'dall-e-3',

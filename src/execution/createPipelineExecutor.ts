@@ -169,7 +169,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
         // Note: Check that all input input parameters are defined
         for (const parameter of preparedPipeline.parameters.filter(({ isInput }) => isInput)) {
             if (inputParameters[parameter.name] === undefined) {
-                return $asDeeplyFrozenSerializableJson({
+                return $asDeeplyFrozenSerializableJson('PipelineExecutorResult', {
                     isSuccessful: false,
                     errors: [
                         new PipelineExecutionError(`Parameter {${parameter.name}} is required as an input parameter`),
@@ -196,7 +196,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                 );
             } else if (parameter.isInput === false) {
                 // TODO: [🧠] This should be also non-critical error
-                return $asDeeplyFrozenSerializableJson({
+                return $asDeeplyFrozenSerializableJson('PipelineExecutorResult', {
                     isSuccessful: false,
                     errors: [
                         new PipelineExecutionError(
@@ -775,7 +775,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
             // Note: Making this on separate line before `return` to grab errors [4]
             const outputParameters = filterJustOutputParameters();
 
-            return $asDeeplyFrozenSerializableJson({
+            return $asDeeplyFrozenSerializableJson('PipelineExecutorResult', {
                 isSuccessful: false,
                 errors: [error, ...errors].map(serializeError),
                 warnings,
@@ -792,7 +792,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
         // Note:  Making this on separate line before `return` to grab errors [4]
         const outputParameters = filterJustOutputParameters();
 
-        return $asDeeplyFrozenSerializableJson({
+        return $asDeeplyFrozenSerializableJson('PipelineExecutorResult', {
             isSuccessful: true,
             errors,
             warnings,
