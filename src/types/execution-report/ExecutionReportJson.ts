@@ -1,6 +1,5 @@
-import type { PromptResult } from '../../execution/PromptResult';
-import type { Prompt } from '../Prompt';
 import type { string_markdown_text, string_pipeline_url, string_semantic_version } from '../typeAliases';
+import { ExecutionPromptReportJson } from './ExecutionPromptReportJson';
 
 /**
  * ExecutionReport is result of executing one promptbook
@@ -11,7 +10,6 @@ import type { string_markdown_text, string_pipeline_url, string_semantic_version
  * -   _(this)_ **JSON** format
  *
  * Note: [🚉] This is fully serializable as JSON
- *
  * @see https://github.com/webgptorg/promptbook#execution-report
  */
 export type ExecutionReportJson = {
@@ -48,29 +46,7 @@ export type ExecutionReportJson = {
     readonly description?: string_markdown_text;
 
     /**
-     * !!!!!!! Separate type
      * Sequence of prompt templates in order which were executed
      */
-    readonly promptExecutions: Array<{
-        /**
-         * The prompt wich was executed
-         *
-         * Note: !!!!!! [🚉] This is fully serializable as JSON
-         */
-        readonly prompt: Omit<Prompt, 'pipelineUrl'>;
-
-        /**
-         * Result of the prompt execution (if not failed during LLM execution)
-         */
-        readonly result?: PromptResult;
-
-        /**
-         * The error which occured during LLM execution or during postprocessing or expectation checking
-         *
-         * Note: It makes sense to have both error and result defined, for example when the result not pass expectations
-         */
-        readonly error?: {
-            readonly message: string; // <- !!!!!!!
-        };
-    }>;
+    readonly promptExecutions: Array<ExecutionPromptReportJson>;
 };
