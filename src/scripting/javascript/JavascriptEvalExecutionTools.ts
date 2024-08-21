@@ -25,7 +25,6 @@ import { unwrapResult as _unwrapResult } from '../../utils/unwrapResult';
 import type { JavascriptExecutionToolsOptions } from './JavascriptExecutionToolsOptions';
 import { preserve } from './utils/preserve';
 import { unknownToString } from './utils/unknownToString';
-import { PipelineUrlError } from '../../errors/PipelineUrlError';
 
 /**
  * ScriptExecutionTools for JavaScript implemented via eval
