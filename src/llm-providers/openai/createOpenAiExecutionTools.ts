@@ -1,4 +1,5 @@
-import { $isRunningInBrowser, $isRunningInWebWorker } from '../../_packages/utils.index';
+import { $isRunningInBrowser } from '../../utils/environment/$isRunningInBrowser';
+import { $isRunningInWebWorker } from '../../utils/environment/$isRunningInWebWorker';
 import type { LlmExecutionToolsConstructor } from '../../execution/LlmExecutionToolsConstructor';
 import { OpenAiExecutionTools } from './OpenAiExecutionTools';
 import type { OpenAiExecutionToolsOptions } from './OpenAiExecutionToolsOptions';
