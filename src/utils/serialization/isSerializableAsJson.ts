@@ -19,9 +19,13 @@
  */
 export function isSerializableAsJson(value: unknown): boolean {
     try {
-        JSON.stringify(value);
+        JSON.stringify(value); // <- TODO: !!!!!! Fix
         return true;
     } catch {
         return false;
     }
 }
+
+/**
+ * TODO: !!!!!! In-memory cache of same values to prevent multiple checks
+ */
