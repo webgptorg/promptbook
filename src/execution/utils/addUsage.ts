@@ -1,6 +1,6 @@
 import type { WritableDeep } from 'type-fest';
-import { deepClone } from '../../utils/deepClone';
-import { $deepFreeze } from '../../utils/deepFreeze';
+import { deepClone } from '../../utils/serialization/deepClone';
+import { $deepFreeze } from '../../utils/serialization/deepFreeze';
 import type { PromptResultUsage } from '../PromptResultUsage';
 
 /**

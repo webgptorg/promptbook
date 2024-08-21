@@ -48,7 +48,7 @@ export type ExecutionReportJson = {
     readonly description?: string_markdown_text;
 
     /**
-     * !!!!!!!
+     * !!!!!!! Separate type
      * Sequence of prompt templates in order which were executed
      */
     readonly promptExecutions: Array<{

@@ -1,6 +1,5 @@
 import type { Writable } from 'type-fest';
-import { IS_VERBOSE } from '../config';
-import { MAX_PARALLEL_COUNT } from '../config';
+import { IS_VERBOSE, MAX_PARALLEL_COUNT } from '../config';
 import { ZERO_USAGE } from '../execution/utils/addUsage';
 import { forEachAsync } from '../execution/utils/forEachAsync';
 import { prepareKnowledgePieces } from '../knowledge/prepare-knowledge/_common/prepareKnowledgePieces';
@@ -9,7 +8,7 @@ import { preparePersona } from '../personas/preparePersona';
 import type { PersonaPreparedJson } from '../types/PipelineJson/PersonaJson';
 import type { PipelineJson } from '../types/PipelineJson/PipelineJson';
 import type { PreparationJson } from '../types/PipelineJson/PreparationJson';
-import { clonePipeline } from '../utils/clonePipeline';
+import { clonePipeline } from '../utils/serialization/clonePipeline';
 import { PROMPTBOOK_VERSION } from '../version';
 import { isPipelinePrepared } from './isPipelinePrepared';
 import type { PrepareOptions } from './PrepareOptions';

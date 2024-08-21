@@ -31,11 +31,11 @@ import type {
     string_parameter_value,
 } from '../types/typeAliases';
 import { arrayableToArray } from '../utils/arrayableToArray';
-import { $deepFreeze, deepFreezeWithSameType } from '../utils/deepFreeze';
 import type { really_any } from '../utils/organization/really_any';
 import type { TODO_any } from '../utils/organization/TODO_any';
 import { TODO_USE } from '../utils/organization/TODO_USE';
 import { replaceParameters } from '../utils/replaceParameters';
+import { $deepFreeze, deepFreezeWithSameType } from '../utils/serialization/deepFreeze';
 import { difference } from '../utils/sets/difference';
 import { union } from '../utils/sets/union';
 import { PROMPTBOOK_VERSION } from '../version';

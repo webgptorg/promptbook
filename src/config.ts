@@ -1,5 +1,5 @@
-import { $deepFreeze } from './utils/deepFreeze';
 import { just } from './utils/organization/just';
+import { $deepFreeze } from './utils/serialization/deepFreeze';
 
 /**
  * Warning message for the generated sections and files files
