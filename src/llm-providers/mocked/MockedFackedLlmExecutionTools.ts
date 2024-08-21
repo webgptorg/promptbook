@@ -98,7 +98,7 @@ export class MockedFackedLlmExecutionTools implements LlmExecutionTools {
         }
 
         return $asDeeplyFrozenSerializableJson(
-            'ChatPromptResult or CompletionPromptResult (from MockedFackedLlmExecutionTools)',
+            'MockedFackedLlmExecutionTools (ChatPromptResult or CompletionPromptResult)',
             result,
         );
     }
@@ -158,7 +158,7 @@ export class MockedFackedLlmExecutionTools implements LlmExecutionTools {
             console.info('💬 Mocked faked result', result);
         }
 
-        return $asDeeplyFrozenSerializableJson('EmbeddingPromptResult (from MockedFackedLlmExecutionTools)', result);
+        return $asDeeplyFrozenSerializableJson('MockedFackedLlmExecutionTools EmbeddingPromptResult', result);
     }
 
     // <- Note: [🤖] callXxxModel

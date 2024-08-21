@@ -172,7 +172,7 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
             throw new PipelineExecutionError('No response message from OpenAI');
         }
 
-        return $asDeeplyFrozenSerializableJson('ChatPromptResult (from OpenAiExecutionTools)',{
+        return $asDeeplyFrozenSerializableJson('OpenAiExecutionTools ChatPromptResult',{
             content: resultContent,
             modelName: rawResponse.model || modelName,
             timing: {
@@ -248,7 +248,7 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
         complete = getCurrentIsoDate();
         const usage = computeOpenAiUsage(content, resultContent || '', rawResponse);
 
-        return $asDeeplyFrozenSerializableJson('CompletionPromptResult (from OpenAiExecutionTools)',{
+        return $asDeeplyFrozenSerializableJson('OpenAiExecutionTools CompletionPromptResult',{
             content: resultContent,
             modelName: rawResponse.model || modelName,
             timing: {
@@ -315,7 +315,7 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
         complete = getCurrentIsoDate();
         const usage = computeOpenAiUsage(content, '', rawResponse);
 
-        return $asDeeplyFrozenSerializableJson('EmbeddingPromptResult (from OpenAiExecutionTools)',{
+        return $asDeeplyFrozenSerializableJson('OpenAiExecutionTools EmbeddingPromptResult',{
             content: resultContent,
             modelName: rawResponse.model || modelName,
             timing: {

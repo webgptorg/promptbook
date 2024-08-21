@@ -148,7 +148,7 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools {
         complete = getCurrentIsoDate();
         const usage = computeAnthropicClaudeUsage(content, '', rawResponse);
 
-        return $asDeeplyFrozenSerializableJson('ChatPromptResult (from AnthropicClaudeExecutionTools)', {
+        return $asDeeplyFrozenSerializableJson('AnthropicClaudeExecutionTools ChatPromptResult', {
             content: resultContent,
             modelName: rawResponse.model,
             timing: {
@@ -220,7 +220,7 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools {
 
 
 
-        return $asDeeplyFrozenSerializableJson('CompletionPromptResult (from AnthropicClaudeExecutionTools)',{
+        return $asDeeplyFrozenSerializableJson('AnthropicClaudeExecutionTools CompletionPromptResult',{
             content: resultContent,
             modelName: rawResponse.model || model,
             timing: {

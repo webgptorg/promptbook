@@ -17,7 +17,7 @@ describe('how `isSerializableAsJson` works', () => {
         expect(isSerializableAsJson([undefined])).toBe(false);
         expect(isSerializableAsJson([1, undefined])).toBe(false);
         expect(isSerializableAsJson([1, undefined, 3])).toBe(false);
-        expect(isSerializableAsJson({ foo: 'Hi', bar: ['hello', undefined] })).toBe(true);
+        expect(isSerializableAsJson({ foo: 'Hi', bar: ['hello', undefined] })).toBe(false);
     });
 
     it('undefined in object is serializable - it is just omited', () => {
@@ -32,6 +32,19 @@ describe('how `isSerializableAsJson` works', () => {
     it('objects and arrays are serializable if all their properties are serializable', () => {
         expect(isSerializableAsJson({ foo: 'bar' })).toBe(true);
         expect(isSerializableAsJson([1, 2, 3])).toBe(true);
+    });
+
+    it('deep objects and arrays are serializable if all their properties are serializable', () => {
+        expect(isSerializableAsJson({ foo: { bar: 'baz' } })).toBe(true);
+        expect(isSerializableAsJson([1, [2, 3], 4])).toBe(true);
+        expect(isSerializableAsJson([1, [2, { foo: { bar: 'baz', brr: [1, 2, 3, false] } }], 4])).toBe(true);
+    });
+
+    it('objects instantiated from classes are not serializable.', () => {
+        class Foo {
+            constructor(public bar: string) {}
+        }
+        expect(isSerializableAsJson(new Foo('baz')));
     });
 
     it('functions are not serializable', () => {

@@ -169,18 +169,23 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
         // Note: Check that all input input parameters are defined
         for (const parameter of preparedPipeline.parameters.filter(({ isInput }) => isInput)) {
             if (inputParameters[parameter.name] === undefined) {
-                return $asDeeplyFrozenSerializableJson('PipelineExecutorResult', {
-                    isSuccessful: false,
-                    errors: [
-                        new PipelineExecutionError(`Parameter {${parameter.name}} is required as an input parameter`),
-                        ...errors,
-                    ],
-                    warnings: [],
-                    executionReport,
-                    outputParameters: {},
-                    usage: ZERO_USAGE,
-                    preparedPipeline,
-                }) satisfies PipelineExecutorResult;
+                return $asDeeplyFrozenSerializableJson(
+                    `Unuccessful PipelineExecutorResult (with missing parameter {${parameter.name}}) PipelineExecutorResult`,
+                    {
+                        isSuccessful: false,
+                        errors: [
+                            new PipelineExecutionError(
+                                `Parameter {${parameter.name}} is required as an input parameter`,
+                            ),
+                            ...errors,
+                        ].map(serializeError),
+                        warnings: [],
+                        executionReport,
+                        outputParameters: {},
+                        usage: ZERO_USAGE,
+                        preparedPipeline,
+                    },
+                ) satisfies PipelineExecutorResult;
             }
         }
 
@@ -196,20 +201,23 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                 );
             } else if (parameter.isInput === false) {
                 // TODO: [🧠] This should be also non-critical error
-                return $asDeeplyFrozenSerializableJson('PipelineExecutorResult', {
-                    isSuccessful: false,
-                    errors: [
-                        new PipelineExecutionError(
-                            `Parameter {${parameter.name}} is passed as input parameter but it is not input`,
-                        ),
-                        ...errors,
-                    ],
-                    warnings,
-                    executionReport,
-                    outputParameters: {},
-                    usage: ZERO_USAGE,
-                    preparedPipeline,
-                }) satisfies PipelineExecutorResult;
+                return $asDeeplyFrozenSerializableJson(
+                    `Unuccessful PipelineExecutorResult (with extra parameter {${parameter.name}}) PipelineExecutorResult`,
+                    {
+                        isSuccessful: false,
+                        errors: [
+                            new PipelineExecutionError(
+                                `Parameter {${parameter.name}} is passed as input parameter but it is not input`,
+                            ),
+                            ...errors,
+                        ].map(serializeError),
+                        warnings: warnings.map(serializeError),
+                        executionReport,
+                        outputParameters: {},
+                        usage: ZERO_USAGE,
+                        preparedPipeline,
+                    },
+                ) satisfies PipelineExecutorResult;
             }
         }
 
@@ -775,10 +783,10 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
             // Note: Making this on separate line before `return` to grab errors [4]
             const outputParameters = filterJustOutputParameters();
 
-            return $asDeeplyFrozenSerializableJson('PipelineExecutorResult', {
+            return $asDeeplyFrozenSerializableJson('Unuccessful PipelineExecutorResult (with misc errors) PipelineExecutorResult', {
                 isSuccessful: false,
                 errors: [error, ...errors].map(serializeError),
-                warnings,
+                warnings: warnings.map(serializeError),
                 usage,
                 executionReport,
                 outputParameters,
@@ -792,10 +800,10 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
         // Note:  Making this on separate line before `return` to grab errors [4]
         const outputParameters = filterJustOutputParameters();
 
-        return $asDeeplyFrozenSerializableJson('PipelineExecutorResult', {
+        return $asDeeplyFrozenSerializableJson('Successful PipelineExecutorResult', {
             isSuccessful: true,
-            errors,
-            warnings,
+            errors: errors.map(serializeError),
+            warnings: warnings.map(serializeError),
             usage,
             executionReport,
             outputParameters,

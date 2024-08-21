@@ -1,3 +1,5 @@
+import { checkSerializableAsJson } from './checkSerializableAsJson';
+
 /**
  * Tests if the value is [🚉] serializable as JSON
  *
@@ -18,53 +20,10 @@
  * @public exported from `@promptbook/utils`
  */
 export function isSerializableAsJson(value: unknown): boolean {
-    if (value === undefined) {
-        return false;
-    } else if (value === null) {
+    try {
+        checkSerializableAsJson('', value);
         return true;
-    } else if (typeof value === 'boolean') {
-        return true;
-    } else if (typeof value === 'number' && !isNaN(value)) {
-        return true;
-    } else if (typeof value === 'string') {
-        return true;
-    } else if (typeof value === 'symbol') {
-        return false;
-    } else if (typeof value === 'function') {
-        return false;
-    } else if (typeof value === 'object' && Array.isArray(value)) {
-        return value.every(isSerializableAsJson);
-    } else if (typeof value === 'object') {
-        if (value instanceof Date) {
-            return false;
-        } else if (value instanceof Map) {
-            return false;
-        } else if (value instanceof Set) {
-            return false;
-        } else if (value instanceof RegExp) {
-            return false;
-        } else if (value instanceof Error) {
-            return false;
-        } else {
-            const seen = new Set();
-            const stack = [{ value }];
-            while (stack.length > 0) {
-                const { value } = stack.pop()!;
-                if (typeof value === 'object' && value !== null) {
-                    if (seen.has(value)) {
-                        return false;
-                    }
-                    seen.add(value);
-                    if (Array.isArray(value)) {
-                        stack.push(...value.map((value) => ({ value })));
-                    } else {
-                        stack.push(...Object.values(value).map((value) => ({ value })));
-                    }
-                }
-            }
-            return true;
-        }
-    } else {
+    } catch (error) {
         return false;
     }
 }

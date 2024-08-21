@@ -174,7 +174,7 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools {
                 },
             } satisfies PromptResultUsage; /* <- TODO: [🤛] */
 
-            return $asDeeplyFrozenSerializableJson('ChatPromptResult (from AzureOpenAiExecutionTools)',{
+            return $asDeeplyFrozenSerializableJson('AzureOpenAiExecutionTools ChatPromptResult',{
                 content: resultContent,
                 modelName,
                 timing: {
@@ -266,7 +266,7 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools {
                 },
             } satisfies PromptResultUsage; /* <- TODO: [🤛] */
 
-            return $asDeeplyFrozenSerializableJson('CompletionPromptResult (from AzureOpenAiExecutionTools)',{
+            return $asDeeplyFrozenSerializableJson('AzureOpenAiExecutionTools CompletionPromptResult',{
                 content: resultContent,
                 modelName,
                 timing: {
