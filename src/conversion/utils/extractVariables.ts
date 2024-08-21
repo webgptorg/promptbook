@@ -49,7 +49,7 @@ export function extractVariables(script: string_javascript): Set<string_javascri
                 (block) => `
                     Can not extract variables from the script
 
-                    ${block(error.toString())}}
+                    ${block((error as Error).toString())}}
                 `,
                 // <- TODO: [🚞]
             ),
