@@ -1,4 +1,5 @@
 import spaceTrim from 'spacetrim';
+import { UnexpectedError } from '../../errors/UnexpectedError';
 import { string_name } from '../../types/typeAliases';
 
 /**
@@ -23,7 +24,7 @@ import { string_name } from '../../types/typeAliases';
  */
 export function checkSerializableAsJson(name: string_name, value: unknown): void {
     if (value === undefined) {
-        throw new Error(`${name} is undefined`);
+        throw new UnexpectedError(`${name} is undefined`);
     } else if (value === null) {
         return;
     } else if (typeof value === 'boolean') {
@@ -33,16 +34,16 @@ export function checkSerializableAsJson(name: string_name, value: unknown): void
     } else if (typeof value === 'string') {
         return;
     } else if (typeof value === 'symbol') {
-        throw new Error(`${name} is symbol`);
+        throw new UnexpectedError(`${name} is symbol`);
     } else if (typeof value === 'function') {
-        throw new Error(`${name} is function`);
+        throw new UnexpectedError(`${name} is function`);
     } else if (typeof value === 'object' && Array.isArray(value)) {
         for (let i = 0; i < value.length; i++) {
             checkSerializableAsJson(`${name}[${i}]`, value[i]);
         }
     } else if (typeof value === 'object') {
         if (value instanceof Date) {
-            throw new Error(
+            throw new UnexpectedError(
                 spaceTrim(`
                     ${name} is Date
 
@@ -50,13 +51,13 @@ export function checkSerializableAsJson(name: string_name, value: unknown): void
                 `),
             );
         } else if (value instanceof Map) {
-            throw new Error(`${name} is Map`);
+            throw new UnexpectedError(`${name} is Map`);
         } else if (value instanceof Set) {
-            throw new Error(`${name} is Set`);
+            throw new UnexpectedError(`${name} is Set`);
         } else if (value instanceof RegExp) {
-            throw new Error(`${name} is RegExp`);
+            throw new UnexpectedError(`${name} is RegExp`);
         } else if (value instanceof Error) {
-            throw new Error(
+            throw new UnexpectedError(
                 spaceTrim(`
                     ${name} is unserialized Error
 
@@ -64,13 +65,41 @@ export function checkSerializableAsJson(name: string_name, value: unknown): void
                 `),
             );
         } else {
+            for (const [subName, subValue] of Object.entries(value)) {
+                if (subValue === undefined) {
+                    // Note: undefined in object is serializable - it is just omited
+                    continue;
+                }
+                checkSerializableAsJson(`${name}.${subName}`, subValue);
+            }
+
+            try {
+                JSON.stringify(value); // <- TODO: [0]
+            } catch (error) {
+                if (!(error instanceof Error)) {
+                    throw error;
+                }
+
+                throw new UnexpectedError(
+                    spaceTrim(
+                        (block) => `
+                            ${name} is not serializable
+
+                            ${block((error as Error).toString())}
+                        `,
+                    ),
+                );
+            }
+
+            /*
+            TODO: [0] Is there some more elegant way to check circular references?
             const seen = new Set();
             const stack = [{ value }];
             while (stack.length > 0) {
                 const { value } = stack.pop()!;
                 if (typeof value === 'object' && value !== null) {
                     if (seen.has(value)) {
-                        throw new Error(`${name} has circular reference`);
+                        throw new UnexpectedError(`${name} has circular reference`);
                     }
                     seen.add(value);
                     if (Array.isArray(value)) {
@@ -80,19 +109,12 @@ export function checkSerializableAsJson(name: string_name, value: unknown): void
                     }
                 }
             }
-
-            for (const [subName, subValue] of Object.entries(value)) {
-                if (subValue === undefined) {
-                    // Note: undefined in object is serializable - it is just omited
-                    continue;
-                }
-                checkSerializableAsJson(`${name}.${subName}`, subValue);
-            }
+            */
 
             return;
         }
     } else {
-        throw new Error(`${name} is unknown`);
+        throw new UnexpectedError(`${name} is unknown`);
     }
 }
 

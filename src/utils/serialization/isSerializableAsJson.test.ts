@@ -1,4 +1,5 @@
 import { describe, it } from '@jest/globals';
+import { really_any } from '../organization/really_any';
 import { isSerializableAsJson } from './isSerializableAsJson';
 
 describe('how `isSerializableAsJson` works', () => {
@@ -60,9 +61,24 @@ describe('how `isSerializableAsJson` works', () => {
     it('advanced circular references are not serializable', () => {
         const obj1: Record<string, unknown> = {};
         const obj2: Record<string, unknown> = {};
-        obj1.obj = obj2;
-        obj2.obj = obj1;
+        obj1.obj = [obj2];
+        obj2.obj = { foo: [obj1, obj1, obj1], bar: { baz: obj1 } };
         expect(isSerializableAsJson(obj1)).toBe(false);
+    });
+
+    it('objects with same sibling references are serializable', () => {
+        const obj: really_any = {};
+        obj.a = {};
+        obj.b = obj.a;
+        expect(isSerializableAsJson(obj)).toBe(true);
+    });
+
+    it('objects with same family references are serializable', () => {
+        const obj: really_any = {};
+        obj.a = {};
+        obj.b = obj.a;
+        obj.b = { d: { e: [obj.a] } };
+        expect(isSerializableAsJson(obj)).toBe(true);
     });
 
     it('Date objects are not serializable', () => {
