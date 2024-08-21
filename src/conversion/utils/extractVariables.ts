@@ -1,6 +1,5 @@
 import { spaceTrim } from 'spacetrim';
 import { ParsingError } from '../../errors/ParsingError';
-import { PipelineUrlError } from '../../errors/PipelineUrlError';
 import type { string_javascript, string_javascript_name } from '../../types/typeAliases';
 /**
  * Parses the given script and returns the list of all used variables that are not defined in the script
@@ -20,7 +19,7 @@ export function extractVariables(script: string_javascript): Set<string_javascri
             try {
                 eval(script);
             } catch (error) {
-                if (!(error instanceof PipelineUrlError)) {
+                if (!(error instanceof ReferenceError)) {
                     throw error;
                 }
                 const undefinedName = error.message.split(' ')[0];
@@ -50,7 +49,7 @@ export function extractVariables(script: string_javascript): Set<string_javascri
                 (block) => `
                     Can not extract variables from the script
 
-                    ${block((error as Error).name)}: ${block((error as Error).message)}
+                    ${block(error.toString())}}
                 `,
                 // <- TODO: [🚞]
             ),

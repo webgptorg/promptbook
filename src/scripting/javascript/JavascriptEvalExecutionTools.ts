@@ -210,7 +210,7 @@ export class JavascriptEvalExecutionTools implements ScriptExecutionTools {
                 throw error;
             }
 
-            if (error instanceof PipelineUrlError) {
+            if (error instanceof ReferenceError) {
                 const undefinedName = error.message.split(' ')[0];
                 /*
                 Note: Remapping error
