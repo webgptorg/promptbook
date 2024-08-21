@@ -9,8 +9,20 @@ describe('how `isSerializableAsJson` works', () => {
         expect(isSerializableAsJson(null)).toBe(true);
     });
 
-    it('undefined is not serializable', () => {
+    it('undefined alone is not serializable', () => {
         expect(isSerializableAsJson(undefined)).toBe(false);
+    });
+
+    it('undefined in array is not serializable - it brokes order', () => {
+        expect(isSerializableAsJson([undefined])).toBe(false);
+        expect(isSerializableAsJson([1, undefined])).toBe(false);
+        expect(isSerializableAsJson([1, undefined, 3])).toBe(false);
+        expect(isSerializableAsJson({ foo: 'Hi', bar: ['hello', undefined] })).toBe(true);
+    });
+
+    it('undefined in object is serializable - it is just omited', () => {
+        expect(isSerializableAsJson({ foo: undefined })).toBe(true);
+        expect(isSerializableAsJson({ foo: undefined, bar: 'hello' })).toBe(true);
     });
 
     it('NaN is not serializable', () => {
