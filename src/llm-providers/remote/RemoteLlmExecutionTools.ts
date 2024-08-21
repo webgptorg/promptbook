@@ -185,6 +185,7 @@ export class RemoteLlmExecutionTools implements LlmExecutionTools {
 }
 
 /**
+ * TODO: Maybe use `$asDeeplyFrozenSerializableJson`
  * TODO: [🧠][🛍] Maybe not `isAnonymous: boolean` BUT `mode: 'ANONYMOUS'|'COLLECTION'`
  * TODO: [🍓] Allow to list compatible models with each variant
  * TODO: [🗯] RemoteLlmExecutionTools should extend Destroyable and implement IDestroyable

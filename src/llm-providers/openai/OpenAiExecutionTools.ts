@@ -19,6 +19,7 @@ import { replaceParameters } from '../../utils/replaceParameters';
 import { computeOpenAiUsage } from './computeOpenAiUsage';
 import { OPENAI_MODELS } from './openai-models';
 import type { OpenAiExecutionToolsOptions } from './OpenAiExecutionToolsOptions';
+import { $asDeeplyFrozenSerializableJson } from '../../utils/serialization/$asDeeplyFrozenSerializableJson';
 
 /**
  * Execution Tools for calling OpenAI API
@@ -171,7 +172,7 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
             throw new PipelineExecutionError('No response message from OpenAI');
         }
 
-        return {
+        return $asDeeplyFrozenSerializableJson({
             content: resultContent,
             modelName: rawResponse.model || modelName,
             timing: {
@@ -183,7 +184,7 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
             rawRequest,
             rawResponse,
             // <- [🗯]
-        };
+        });
     }
 
     /**
@@ -247,7 +248,7 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
         complete = getCurrentIsoDate();
         const usage = computeOpenAiUsage(content, resultContent || '', rawResponse);
 
-        return {
+        return $asDeeplyFrozenSerializableJson({
             content: resultContent,
             modelName: rawResponse.model || modelName,
             timing: {
@@ -259,7 +260,7 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
             rawRequest,
             rawResponse,
             // <- [🗯]
-        };
+        });
     }
 
     /**
@@ -314,7 +315,7 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
         complete = getCurrentIsoDate();
         const usage = computeOpenAiUsage(content, '', rawResponse);
 
-        return {
+        return $asDeeplyFrozenSerializableJson({
             content: resultContent,
             modelName: rawResponse.model || modelName,
             timing: {
@@ -326,7 +327,7 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
             rawRequest,
             rawResponse,
             // <- [🗯]
-        };
+        });
     }
 
     // <- Note: [🤖] callXxxModel

@@ -35,7 +35,8 @@ import type { really_any } from '../utils/organization/really_any';
 import type { TODO_any } from '../utils/organization/TODO_any';
 import { TODO_USE } from '../utils/organization/TODO_USE';
 import { replaceParameters } from '../utils/replaceParameters';
-import { $deepFreeze, deepFreezeWithSameType } from '../utils/serialization/deepFreeze';
+import { $asDeeplyFrozenSerializableJson } from '../utils/serialization/asDeeplyFrozenSerializableJson';
+import { $deepFreeze } from '../utils/serialization/deepFreeze';
 import { difference } from '../utils/sets/difference';
 import { union } from '../utils/sets/union';
 import { PROMPTBOOK_VERSION } from '../version';
@@ -142,7 +143,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
     const pipelineExecutor: PipelineExecutor = async (
         inputParameters: Parameters,
         onProgress?: (taskProgress: TaskProgress) => Promisable<void>,
-    ) => {
+    ): Promise<PipelineExecutorResult> => {
         if (preparedPipeline === undefined) {
             preparedPipeline = await preparePipeline(pipeline, {
                 llmTools,
@@ -167,7 +168,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
         // Note: Check that all input input parameters are defined
         for (const parameter of preparedPipeline.parameters.filter(({ isInput }) => isInput)) {
             if (inputParameters[parameter.name] === undefined) {
-                return deepFreezeWithSameType({
+                return $asDeeplyFrozenSerializableJson({
                     isSuccessful: false,
                     errors: [
                         new PipelineExecutionError(`Parameter {${parameter.name}} is required as an input parameter`),
@@ -194,7 +195,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                 );
             } else if (parameter.isInput === false) {
                 // TODO: [🧠] This should be also non-critical error
-                return deepFreezeWithSameType({
+                return $asDeeplyFrozenSerializableJson({
                     isSuccessful: false,
                     errors: [
                         new PipelineExecutionError(
@@ -821,7 +822,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
             // Note: Making this on separate line before `return` to grab errors [4]
             const outputParameters = filterJustOutputParameters();
 
-            return deepFreezeWithSameType({
+            return $asDeeplyFrozenSerializableJson({
                 isSuccessful: false,
                 errors: [error, ...errors],
                 warnings,
@@ -838,7 +839,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
         // Note:  Making this on separate line before `return` to grab errors [4]
         const outputParameters = filterJustOutputParameters();
 
-        return deepFreezeWithSameType({
+        return $asDeeplyFrozenSerializableJson({
             isSuccessful: true,
             errors,
             warnings,

@@ -12,6 +12,7 @@ import type { string_markdown_text } from '../../types/typeAliases';
 import type { string_title } from '../../types/typeAliases';
 import { getCurrentIsoDate } from '../../utils/getCurrentIsoDate';
 import { replaceParameters } from '../../utils/replaceParameters';
+import { $asDeeplyFrozenSerializableJson } from '../../utils/serialization/$asDeeplyFrozenSerializableJson';
 import { $fakeTextToExpectations } from './$fakeTextToExpectations';
 
 /**
@@ -77,7 +78,7 @@ export class MockedFackedLlmExecutionTools implements LlmExecutionTools {
             prompt.postprocessing,
         );
 
-        const result = {
+        const result = ({
             content,
             modelName,
             timing: {
@@ -91,13 +92,13 @@ export class MockedFackedLlmExecutionTools implements LlmExecutionTools {
                 note: 'This is mocked echo',
             },
             // <- [🗯]
-        } satisfies ChatPromptResult & CompletionPromptResult;
+        }) satisfies ChatPromptResult & CompletionPromptResult;
 
         if (this.options.isVerbose) {
             console.info('💬 Mocked faked result', result);
         }
 
-        return result;
+        return $asDeeplyFrozenSerializableJson(result);
     }
 
     /**
@@ -149,7 +150,7 @@ export class MockedFackedLlmExecutionTools implements LlmExecutionTools {
             console.info('💬 Mocked faked result', result);
         }
 
-        return result;
+        return $asDeeplyFrozenSerializableJson(result);
     }
 
     // <- Note: [🤖] callXxxModel

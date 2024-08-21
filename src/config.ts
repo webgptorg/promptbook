@@ -1,5 +1,5 @@
 import { just } from './utils/organization/just';
-import { $deepFreeze } from './utils/serialization/deepFreeze';
+import { $asDeeplyFrozenSerializableJson } from './utils/serialization/$asDeeplyFrozenSerializableJson';
 
 /**
  * Warning message for the generated sections and files files
@@ -103,7 +103,7 @@ export const REPLACING_NONCE = 'u$k42k%!V2zo34w7Fu#@QUHYPW';
  *
  * @public exported from `@promptbook/core`
  */
-export const RESERVED_PARAMETER_NAMES = $deepFreeze([
+export const RESERVED_PARAMETER_NAMES = $asDeeplyFrozenSerializableJson([
     'content',
     'context', // <- [🧠][🏍] Is parameter {context} good for anything?
     'knowledge',

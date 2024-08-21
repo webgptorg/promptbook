@@ -1,5 +1,6 @@
 import type { AvailableModel } from '../../execution/AvailableModel';
 import type { number_usd } from '../../types/typeAliases';
+import { $asDeeplyFrozenSerializableJson } from '../../utils/serialization/asDeeplyFrozenSerializableJson';
 import { computeUsage } from '../openai/computeUsage';
 
 /**
@@ -17,7 +18,7 @@ export const ANTHROPIC_CLAUDE_MODELS: Array<
             readonly output: number_usd;
         };
     }
-> = [
+> = $asDeeplyFrozenSerializableJson([
     {
         modelVariant: 'CHAT',
         modelTitle: 'Claude 3.5 Sonnet',
@@ -83,7 +84,7 @@ export const ANTHROPIC_CLAUDE_MODELS: Array<
     },
 
     // TODO: !!! Claude 1 and 2 has also completion versions - ask Hoagy
-];
+]);
 
 /**
  * Note: [🤖] Add models of new variant

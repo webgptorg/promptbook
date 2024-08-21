@@ -3,6 +3,7 @@ import type { IDestroyable } from 'destroyable';
 import http from 'http';
 import { Server, Socket } from 'socket.io';
 import { spaceTrim } from 'spacetrim';
+import { IS_VERBOSE } from '../../config';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import type { PromptResult } from '../../execution/PromptResult';
@@ -15,7 +16,6 @@ import type { PromptbookServer_ListModels_Response } from './interfaces/Promptbo
 import type { PromptbookServer_Prompt_Request } from './interfaces/PromptbookServer_Prompt_Request';
 import type { PromptbookServer_Prompt_Response } from './interfaces/PromptbookServer_Prompt_Response';
 import type { RemoteServerOptions } from './interfaces/RemoteServerOptions';
-import { IS_VERBOSE } from '../../config';
 
 /**
  * Remote server is a proxy server that uses its execution tools internally and exposes the executor interface externally.
@@ -273,6 +273,7 @@ export function startRemoteServer(options: RemoteServerOptions): IDestroyable {
 }
 
 /**
+ * TODO: Maybe use `$asDeeplyFrozenSerializableJson`
  * TODO: [🧠][🛍] Maybe not `isAnonymous: boolean` BUT `mode: 'ANONYMOUS'|'COLLECTION'`
  * TODO: [⚖] Expose the collection to be able to connect to same collection via createCollectionFromUrl
  * TODO: Handle progress - support streaming
