@@ -5,6 +5,7 @@ import { Server, Socket } from 'socket.io';
 import { spaceTrim } from 'spacetrim';
 import { IS_VERBOSE } from '../../config';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
+import { serializeError } from '../../errors/utils/serializeError';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import type { PromptResult } from '../../execution/PromptResult';
 import type { really_any } from '../../utils/organization/really_any';
@@ -181,7 +182,7 @@ export function startRemoteServer(options: RemoteServerOptions): IDestroyable {
                     throw error;
                 }
 
-                socket.emit('error', { errorMessage: error.message } satisfies PromptbookServer_Error);
+                socket.emit('error', serializeError(error) satisfies PromptbookServer_Error);
             } finally {
                 socket.disconnect();
             }
@@ -233,7 +234,7 @@ export function startRemoteServer(options: RemoteServerOptions): IDestroyable {
                     throw error;
                 }
 
-                socket.emit('error', { errorMessage: error.message } satisfies PromptbookServer_Error);
+                socket.emit('error', serializeError(error) satisfies PromptbookServer_Error);
             } finally {
                 socket.disconnect();
             }

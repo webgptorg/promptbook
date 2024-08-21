@@ -1,6 +1,6 @@
 import type { Socket } from 'socket.io-client';
 import { io } from 'socket.io-client';
-import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
+import { deserializeError } from '../../errors/utils/deserializeError';
 import type { AvailableModel } from '../../execution/AvailableModel';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import type {
@@ -11,7 +11,7 @@ import type {
 } from '../../execution/PromptResult';
 import type { ChatPrompt, CompletionPrompt, EmbeddingPrompt, Prompt } from '../../types/Prompt';
 import type { string_markdown, string_markdown_text, string_title } from '../../types/typeAliases';
-import type { PromptbookServer_Error } from './interfaces/PromptbookServer_Error';
+import { PromptbookServer_Error } from './interfaces/PromptbookServer_Error';
 import type { PromptbookServer_ListModels_Request } from './interfaces/PromptbookServer_ListModels_Request';
 import type { PromptbookServer_ListModels_Response } from './interfaces/PromptbookServer_ListModels_Response';
 import type { PromptbookServer_Prompt_Request } from './interfaces/PromptbookServer_Prompt_Request';
@@ -81,7 +81,7 @@ export class RemoteLlmExecutionTools implements LlmExecutionTools {
                 socket.disconnect();
             });
             socket.on('error', (error: PromptbookServer_Error) => {
-                reject(new Error(error.errorMessage));
+                reject(deserializeError(error));
                 socket.disconnect();
             });
         });
@@ -183,7 +183,7 @@ export class RemoteLlmExecutionTools implements LlmExecutionTools {
                 socket.disconnect();
             });
             socket.on('error', (error: PromptbookServer_Error) => {
-                reject(new PipelineExecutionError(error.errorMessage));
+                reject(deserializeError(error));
                 socket.disconnect();
             });
         });

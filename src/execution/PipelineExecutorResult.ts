@@ -28,12 +28,12 @@ export type PipelineExecutorResult = {
     /**
      * Errors that occured during the execution, details are aviable in `executionReport`
      */
-    readonly errors: Array<ErrorJson & { name: 'PipelineExecutionError' | 'Error' }>;
+    readonly errors: Array<ErrorJson>;
 
     /**
      * Warnings that occured during the execution, details are aviable in `executionReport`
      */
-    readonly warnings: Array<ErrorJson & { name: 'PipelineExecutionError' | 'Error' }>;
+    readonly warnings: Array<ErrorJson>;
 
     /**
      * The report of the execution with all details
@@ -51,4 +51,5 @@ export type PipelineExecutorResult = {
 
 /**
  * TODO: [🧠] Should this file be in /execution or /types folder?
+ * TODO: [🧠] Maybe constrain `ErrorJson` -> `ErrorJson & { name: 'PipelineExecutionError' | 'Error' }`
  */

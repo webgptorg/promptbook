@@ -14,6 +14,7 @@ import { validatePipeline } from '../conversion/validation/validatePipeline';
 import { ExpectError } from '../errors/_ExpectError';
 import { PipelineExecutionError } from '../errors/PipelineExecutionError';
 import { UnexpectedError } from '../errors/UnexpectedError';
+import { serializeError } from '../errors/utils/serializeError';
 import { isValidJsonString } from '../formats/json/utils/isValidJsonString';
 import { joinLlmExecutionTools } from '../llm-providers/multiple/joinLlmExecutionTools';
 import { isPipelinePrepared } from '../prepare/isPipelinePrepared';
@@ -624,7 +625,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                                 // <- TODO: [🧠] How to pick everyhing except `pipelineUrl`
                             } as really_any,
                             result: result || undefined,
-                            error: expectError || undefined,
+                            error: expectError === null ? undefined : serializeError(expectError),
                         });
                     }
                 }
@@ -776,7 +777,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
 
             return $asDeeplyFrozenSerializableJson({
                 isSuccessful: false,
-                errors: [error, ...errors],
+                errors: [error, ...errors].map(serializeError),
                 warnings,
                 usage,
                 executionReport,
