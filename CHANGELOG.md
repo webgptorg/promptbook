@@ -462,7 +462,7 @@ Was accidentally released skipped
 
 -   `ExecutionReportJson` is fully serializable as JSON
 -   [🛫] `Prompt` is fully serializable as JSON
--   Postprocessing functions are listed as names not as functions
+-   Add type `string_postprocessing_function_name`
 -   Add `isSerializableAsJson` utility function, use it to protect inputs and check outputs and export from `@promptbook/utils`
 -   Add `serializeError` and `deserializeError` utility functions and export from `@promptbook/utils`
 -   Rename `ReferenceError` to `PipelineUrlError`

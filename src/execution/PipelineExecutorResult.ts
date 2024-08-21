@@ -1,5 +1,5 @@
 import type { ExecutionReportJson, Parameters, PipelineJson } from '../_packages/types.index';
-import { PipelineExecutionError } from '../errors/PipelineExecutionError';
+import { ErrorJson } from '../errors/utils/ErrorJson';
 import type { PromptResultUsage } from './PromptResultUsage';
 
 /**
@@ -28,12 +28,12 @@ export type PipelineExecutorResult = {
     /**
      * Errors that occured during the execution, details are aviable in `executionReport`
      */
-    readonly errors: Array<PipelineExecutionError | Error>; // <- !!!!!!
+    readonly errors: Array<ErrorJson & { name: 'PipelineExecutionError' | 'Error' }>;
 
     /**
      * Warnings that occured during the execution, details are aviable in `executionReport`
      */
-    readonly warnings: Array<PipelineExecutionError | Error>; // <- !!!!!!
+    readonly warnings: Array<ErrorJson & { name: 'PipelineExecutionError' | 'Error' }>;
 
     /**
      * The report of the execution with all details

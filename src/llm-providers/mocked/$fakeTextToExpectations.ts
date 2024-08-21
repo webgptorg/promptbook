@@ -6,7 +6,7 @@ import { LimitReachedError } from '../../errors/LimitReachedError';
 import { ScriptExecutionTools } from '../../execution/ScriptExecutionTools';
 import { isPassingExpectations } from '../../execution/utils/checkExpectations';
 import type { Expectations } from '../../types/PipelineJson/Expectations';
-import { TODO_string } from '../../utils/organization/TODO_string';
+import { string_postprocessing_function_name } from '../../types/typeAliases';
 
 /**
  * Gets the expectations and creates a fake text that meets the expectations
@@ -19,7 +19,7 @@ import { TODO_string } from '../../utils/organization/TODO_string';
  */
 export async function $fakeTextToExpectations(
     expectations: Expectations,
-    postprocessingFunctionNames?: Array<TODO_string /* <- !!!!!! */>,
+    postprocessingFunctionNames?: Array<string_postprocessing_function_name>,
 ): Promise<string> {
     const lorem = new LoremIpsum(
         //            <- TODO: [🧱] Implement in a functional (not new Class) way

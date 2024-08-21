@@ -1,6 +1,6 @@
 import type { Promisable } from 'type-fest';
 import type { CommonExecutionToolsOptions } from '../../execution/CommonExecutionToolsOptions';
-import type { string_javascript_name } from '../../types/typeAliases';
+import type { string_postprocessing_function_name } from '../../types/typeAliases';
 
 /**
  * Options for `JavascriptExecutionTools`
@@ -16,7 +16,7 @@ export type JavascriptExecutionToolsOptions = CommonExecutionToolsOptions & {
      * Note: There are also some built-in functions available:
      *      @see ./JavascriptEvalExecutionTools.ts
      */
-    functions?: Record<string_javascript_name, PostprocessingFunction>; // <- !!!!!! Where it is used
+    functions?: Record<string_postprocessing_function_name, PostprocessingFunction>;
 };
 
 /**

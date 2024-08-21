@@ -1,13 +1,15 @@
 import type { BlockType } from '../../commands/BLOCK/BlockTypes';
 import type { ExpectFormatCommand } from '../../commands/EXPECT/ExpectFormatCommand';
-import type { string_javascript } from '../typeAliases';
-import type { string_javascript_name } from '../typeAliases';
-import type { string_markdown } from '../typeAliases';
-import type { string_markdown_text } from '../typeAliases';
-import type { string_name } from '../typeAliases';
-import type { string_parameter_name } from '../typeAliases';
-import type { string_prompt } from '../typeAliases';
-import type { string_template } from '../typeAliases';
+import type {
+    string_javascript,
+    string_markdown,
+    string_markdown_text,
+    string_name,
+    string_parameter_name,
+    string_postprocessing_function_name,
+    string_prompt,
+    string_template,
+} from '../typeAliases';
 import type { Expectations } from './Expectations';
 
 /**
@@ -75,7 +77,7 @@ export interface PromptTemplateJsonCommon {
      *
      * @see https://github.com/webgptorg/promptbook/discussions/31
      */
-    readonly postprocessingFunctionNames?: Array<string_javascript_name>;
+    readonly postprocessingFunctionNames?: Array<string_postprocessing_function_name>;
 
     /**
      * Expect this amount of each unit in the answer

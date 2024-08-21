@@ -616,6 +616,11 @@ export type string_translate_language = 'en' | 'cs';
  */
 export type string_javascript_name = string;
 
+/**
+ * Semantic helper; For example "unwrapResult" or "spaceTrim"
+ */
+export type string_postprocessing_function_name = string;
+
 export type string_token = string;
 export type string_license_token = string_token;
 export type string_password = string;

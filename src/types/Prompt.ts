@@ -10,6 +10,7 @@ import type { Expectations } from './PipelineJson/Expectations';
 import type {
     Parameters,
     string_pipeline_url_with_hashtemplate,
+    string_postprocessing_function_name,
     string_prompt,
     string_template,
     string_title,
@@ -93,7 +94,7 @@ export type CommonPrompt = {
     /**
      * List of postprocessing steps that are executed after the prompt
      */
-    readonly postprocessingFunctionNames?: Array<TODO_string /* <- !!!!!! */>;
+    readonly postprocessingFunctionNames?: Array<string_postprocessing_function_name>;
 
     /**
      * Expectations for the answer
