@@ -8,7 +8,6 @@ import { PipelineExecutionError } from './PipelineExecutionError';
 import { PipelineLogicError } from './PipelineLogicError';
 import { ReferenceError } from './ReferenceError';
 import { UnexpectedError } from './UnexpectedError';
-import { VersionMismatchError } from './VersionMismatchError';
 
 /**
  * Index of all custom errors
@@ -26,5 +25,5 @@ export const ERRORS = {
     PipelineLogicError,
     ReferenceError,
     UnexpectedError,
-    VersionMismatchError,
+    // TODO: [🪑]> VersionMismatchError,
 } as const;

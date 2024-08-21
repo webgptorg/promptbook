@@ -32,7 +32,7 @@ export async function preparePipeline(pipeline: PipelineJson, options: PrepareOp
         parameters,
         promptTemplates,
         /*
-        <- TODO: [🧠][0] `promptbookVersion` */
+        <- TODO: [🧠][🪑] `promptbookVersion` */
         knowledgeSources /*
         <- TODO: [🧊] `knowledgePieces` */,
         personas /*
@@ -43,7 +43,7 @@ export async function preparePipeline(pipeline: PipelineJson, options: PrepareOp
     //    <- TODO: [🌯]
 
     /*
-    TODO: [🧠][0] Should this be done or not
+    TODO: [🧠][🪑] Should this be done or not
     if (promptbookVersion !== PROMPTBOOK_VERSION) {
         throw new VersionMismatchError(`Can not prepare the pipeline`, promptbookVersion);
     }
