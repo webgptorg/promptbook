@@ -71,3 +71,7 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
         await commit(['src'], `🆚 Update version in config`);
     }
 }
+
+/**
+ * TODO: !!!!!! The version is lagged one behind the actual version
+ */
