@@ -17,7 +17,6 @@
  *
  * @public exported from `@promptbook/utils`
  */
-
 export function isSerializableAsJson(value: unknown): boolean {
     try {
         JSON.stringify(value);

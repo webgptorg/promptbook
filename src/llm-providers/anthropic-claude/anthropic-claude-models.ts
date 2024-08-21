@@ -1,6 +1,6 @@
 import type { AvailableModel } from '../../execution/AvailableModel';
 import type { number_usd } from '../../types/typeAliases';
-import { $asDeeplyFrozenSerializableJson } from '../../utils/serialization/asDeeplyFrozenSerializableJson';
+import { $asDeeplyFrozenSerializableJson } from '../../utils/serialization/$asDeeplyFrozenSerializableJson';
 import { computeUsage } from '../openai/computeUsage';
 
 /**

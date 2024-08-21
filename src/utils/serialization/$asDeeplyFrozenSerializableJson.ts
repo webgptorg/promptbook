@@ -1,6 +1,6 @@
 import { UnexpectedError } from '../../errors/UnexpectedError';
-import { $deepFreeze } from './deepFreeze';
-import { isSerializableAsJson } from './isSerialisableAsJson';
+import { $deepFreeze } from './$deepFreeze';
+import { isSerializableAsJson } from './isSerializableAsJson';
 
 /**
  * @@@

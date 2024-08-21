@@ -1,5 +1,6 @@
 import { spaceTrim } from 'spacetrim';
 import { ParsingError } from '../../errors/ParsingError';
+import { PipelineUrlError } from '../../errors/PipelineUrlError';
 import type { string_javascript, string_javascript_name } from '../../types/typeAliases';
 /**
  * Parses the given script and returns the list of all used variables that are not defined in the script

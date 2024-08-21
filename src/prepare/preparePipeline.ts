@@ -8,7 +8,7 @@ import { preparePersona } from '../personas/preparePersona';
 import type { PersonaPreparedJson } from '../types/PipelineJson/PersonaJson';
 import type { PipelineJson } from '../types/PipelineJson/PipelineJson';
 import type { PreparationJson } from '../types/PipelineJson/PreparationJson';
-import { $asDeeplyFrozenSerializableJson } from '../utils/serialization/asDeeplyFrozenSerializableJson';
+import { $asDeeplyFrozenSerializableJson } from '../utils/serialization/$asDeeplyFrozenSerializableJson';
 import { clonePipeline } from '../utils/serialization/clonePipeline';
 import { PROMPTBOOK_VERSION } from '../version';
 import { isPipelinePrepared } from './isPipelinePrepared';

@@ -26,7 +26,7 @@ import { removeContentComments } from '../utils/markdown/removeContentComments';
 import { splitMarkdownIntoSections } from '../utils/markdown/splitMarkdownIntoSections';
 import type { TODO_any } from '../utils/organization/TODO_any';
 import type { really_any } from '../utils/organization/really_any';
-import { $asDeeplyFrozenSerializableJson } from '../utils/serialization/asDeeplyFrozenSerializableJson';
+import { $asDeeplyFrozenSerializableJson } from '../utils/serialization/$asDeeplyFrozenSerializableJson';
 import { PROMPTBOOK_VERSION } from '../version';
 import { extractParameterNamesFromPromptTemplate } from './utils/extractParameterNamesFromPromptTemplate';
 import { titleToName } from './utils/titleToName';

@@ -28,7 +28,6 @@ import { pipelineStringToJson } from '../conversion/pipelineStringToJson';
 import { pipelineStringToJsonSync } from '../conversion/pipelineStringToJsonSync';
 import { prettifyPipelineString } from '../conversion/prettify/prettifyPipelineString';
 import { stringifyPipelineJson } from '../conversion/utils/stringifyPipelineJson';
-import { validatePipeline } from '../conversion/validation/validatePipeline';
 import { CollectionError } from '../errors/CollectionError';
 import { EnvironmentMismatchError } from '../errors/EnvironmentMismatchError';
 import { LimitReachedError } from '../errors/LimitReachedError';
@@ -37,16 +36,11 @@ import { NotYetImplementedError } from '../errors/NotYetImplementedError';
 import { ParsingError } from '../errors/ParsingError';
 import { PipelineExecutionError } from '../errors/PipelineExecutionError';
 import { PipelineLogicError } from '../errors/PipelineLogicError';
-import { PipelineUrlError } from '../errors/PipelineUrlError';
-import { UnexpectedError } from '../errors/UnexpectedError';
-import { VersionMismatchError } from '../errors/VersionMismatchError.ts.todo';
 import { assertsExecutionSuccessful } from '../execution/assertsExecutionSuccessful';
 import { createPipelineExecutor } from '../execution/createPipelineExecutor';
 import { embeddingVectorToString } from '../execution/embeddingVectorToString';
 import { addUsage, ZERO_USAGE } from '../execution/utils/addUsage';
 import { isPassingExpectations } from '../execution/utils/checkExpectations';
-import { usageToHuman } from '../execution/utils/usageToHuman';
-import { usageToWorktime } from '../execution/utils/usageToWorktime';
 import { CallbackInterfaceTools } from '../knowledge/dialogs/callback/CallbackInterfaceTools';
 import type { CallbackInterfaceToolsOptions } from '../knowledge/dialogs/callback/CallbackInterfaceToolsOptions';
 import { prepareKnowledgePieces } from '../knowledge/prepare-knowledge/_common/prepareKnowledgePieces';
@@ -65,7 +59,6 @@ import { preparePersona } from '../personas/preparePersona';
 import { isPipelinePrepared } from '../prepare/isPipelinePrepared';
 import { preparePipeline } from '../prepare/preparePipeline';
 import { prepareTemplates } from '../prepare/prepareTemplates';
-import { unpreparePipeline } from '../prepare/unpreparePipeline';
 import { MemoryStorage } from '../storage/memory/MemoryStorage';
 import { PrefixStorage } from '../storage/utils/PrefixStorage';
 import { executionReportJsonToString } from '../types/execution-report/executionReportJsonToString';
@@ -130,7 +123,6 @@ export {
     PipelineLogicError,
     pipelineStringToJson,
     pipelineStringToJsonSync,
-    PipelineUrlError,
     PrefixStorage,
     prepareKnowledgeFromMarkdown,
     prepareKnowledgePieces,
@@ -140,12 +132,6 @@ export {
     prettifyPipelineString,
     RESERVED_PARAMETER_NAMES,
     stringifyPipelineJson,
-    UnexpectedError,
-    unpreparePipeline,
-    usageToHuman,
-    usageToWorktime,
-    validatePipeline,
-    VersionMismatchError,
     ZERO_USAGE,
 };
 export type { BlockType, CallbackInterfaceToolsOptions, ExecutionReportStringOptions, PipelineStringToJsonOptions };

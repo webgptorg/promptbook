@@ -50,7 +50,6 @@ import { removeQuotes } from '../utils/removeQuotes';
 import { replaceParameters } from '../utils/replaceParameters';
 import { clonePipeline } from '../utils/serialization/clonePipeline';
 import { deepClone } from '../utils/serialization/deepClone';
-import { $deepFreeze } from '../utils/serialization/deepFreeze';
 import { difference } from '../utils/sets/difference';
 import { intersection } from '../utils/sets/intersection';
 import { union } from '../utils/sets/union';
@@ -75,7 +74,6 @@ export { PROMPTBOOK_VERSION };
 // Note: Entities of the `@promptbook/utils`
 export {
     $currentDate,
-    $deepFreeze,
     $getGlobalScope,
     $isRunningInBrowser,
     $isRunningInNode,
