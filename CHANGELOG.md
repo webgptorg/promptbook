@@ -468,6 +468,7 @@ Was accidentally released skipped
 -   Rename `ReferenceError` to `PipelineUrlError`
 -   Make index of all errors and export from `@promptbook/core`
 -   Mark all entities that are fully serializable as JSON by `[🚉]`
+-   When running in browser, auto add `dangerouslyAllowBrowser` from `createOpenAiExecutionTools`
 
 ## In prepare
 
