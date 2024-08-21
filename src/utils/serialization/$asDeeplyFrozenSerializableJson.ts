@@ -1,4 +1,4 @@
-import { string_name } from '../../types/typeAliases';
+import type { string_name } from '../../types/typeAliases';
 import { $deepFreeze } from './$deepFreeze';
 import { checkSerializableAsJson } from './checkSerializableAsJson';
 

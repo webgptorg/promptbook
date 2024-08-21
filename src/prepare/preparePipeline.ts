@@ -1,5 +1,6 @@
 import type { Writable } from 'type-fest';
-import { IS_VERBOSE, MAX_PARALLEL_COUNT } from '../config';
+import { IS_VERBOSE } from '../config';
+import { MAX_PARALLEL_COUNT } from '../config';
 import { ZERO_USAGE } from '../execution/utils/addUsage';
 import { forEachAsync } from '../execution/utils/forEachAsync';
 import { prepareKnowledgePieces } from '../knowledge/prepare-knowledge/_common/prepareKnowledgePieces';
@@ -135,7 +136,7 @@ export async function preparePipeline(pipeline: PipelineJson, options: PrepareOp
     // Note: Count total usage
     currentPreparation.usage = llmToolsWithUsage.getTotalUsage();
 
-    return $asDeeplyFrozenSerializableJson('Prepared PipelineJson',{
+    return $asDeeplyFrozenSerializableJson('Prepared PipelineJson', {
         ...clonePipeline(pipeline),
         promptTemplates: promptTemplatesPrepared,
         knowledgeSources: knowledgeSourcesPrepared,

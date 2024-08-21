@@ -1,4 +1,4 @@
-import { ErrorJson } from '../../../errors/utils/ErrorJson';
+import type { ErrorJson } from '../../../errors/utils/ErrorJson';
 
 /**
  * Socket.io error for remote text generation

@@ -1,5 +1,5 @@
 import { describe, it } from '@jest/globals';
-import { really_any } from '../organization/really_any';
+import type { really_any } from '../organization/really_any';
 import { isSerializableAsJson } from './isSerializableAsJson';
 
 describe('how `isSerializableAsJson` works', () => {

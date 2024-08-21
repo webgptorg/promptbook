@@ -1,5 +1,7 @@
-import type { ExecutionReportJson, Parameters, PipelineJson } from '../_packages/types.index';
-import { ErrorJson } from '../errors/utils/ErrorJson';
+import type { ExecutionReportJson } from '../types/execution-report/ExecutionReportJson';
+import type { Parameters } from '../types/typeAliases';
+import type { PipelineJson } from '../types/PipelineJson/PipelineJson';
+import type { ErrorJson } from '../errors/utils/ErrorJson';
 import type { PromptResultUsage } from './PromptResultUsage';
 
 /**

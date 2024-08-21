@@ -1,4 +1,4 @@
-import { ErrorJson } from '../../errors/utils/ErrorJson';
+import type { ErrorJson } from '../../errors/utils/ErrorJson';
 import type { PromptResult } from '../../execution/PromptResult';
 import type { Prompt } from '../Prompt';
 

@@ -2,10 +2,13 @@ import { spaceTrim } from 'spacetrim';
 import type { AvailableModel } from '../../execution/AvailableModel';
 import type { CommonExecutionToolsOptions } from '../../execution/CommonExecutionToolsOptions';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { ChatPromptResult, CompletionPromptResult } from '../../execution/PromptResult';
+import type { ChatPromptResult } from '../../execution/PromptResult';
+import type { CompletionPromptResult } from '../../execution/PromptResult';
 import { ZERO_USAGE } from '../../execution/utils/addUsage';
 import type { Prompt } from '../../types/Prompt';
-import type { string_markdown, string_markdown_text, string_title } from '../../types/typeAliases';
+import type { string_markdown } from '../../types/typeAliases';
+import type { string_markdown_text } from '../../types/typeAliases';
+import type { string_title } from '../../types/typeAliases';
 import { getCurrentIsoDate } from '../../utils/getCurrentIsoDate';
 import { replaceParameters } from '../../utils/replaceParameters';
 import { $asDeeplyFrozenSerializableJson } from '../../utils/serialization/$asDeeplyFrozenSerializableJson';
@@ -66,7 +69,7 @@ export class MockedEchoLlmExecutionTools implements LlmExecutionTools {
         const usage = ZERO_USAGE;
         //      <- TODO: [🧠] Compute here at least words, characters,... etc
 
-        return $asDeeplyFrozenSerializableJson('MockedEchoLlmExecutionTools ChatPromptResult',{
+        return $asDeeplyFrozenSerializableJson('MockedEchoLlmExecutionTools ChatPromptResult', {
             content: spaceTrim(
                 (block) => `
                     You said:
@@ -104,7 +107,7 @@ export class MockedEchoLlmExecutionTools implements LlmExecutionTools {
         const usage = ZERO_USAGE;
         //      <- TODO: [🧠] Compute here at least words, characters,... etc
 
-        return $asDeeplyFrozenSerializableJson('MockedEchoLlmExecutionTools CompletionPromptResult',{
+        return $asDeeplyFrozenSerializableJson('MockedEchoLlmExecutionTools CompletionPromptResult', {
             content: spaceTrim(
                 (block) => `
                     ${block(rawPromptContent)}

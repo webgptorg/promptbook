@@ -1,12 +1,12 @@
 import { LoremIpsum } from 'lorem-ipsum';
 import { spaceTrim } from 'spacetrim';
-import { JavascriptExecutionTools } from '../../_packages/execute-javascript.index';
+import { JavascriptExecutionTools } from '../../scripting/javascript/JavascriptExecutionTools';
 import { CHARACTER_LOOP_LIMIT } from '../../config';
 import { LimitReachedError } from '../../errors/LimitReachedError';
-import { ScriptExecutionTools } from '../../execution/ScriptExecutionTools';
+import type { ScriptExecutionTools } from '../../execution/ScriptExecutionTools';
 import { isPassingExpectations } from '../../execution/utils/checkExpectations';
 import type { Expectations } from '../../types/PipelineJson/Expectations';
-import { string_postprocessing_function_name } from '../../types/typeAliases';
+import type { string_postprocessing_function_name } from '../../types/typeAliases';
 
 /**
  * Gets the expectations and creates a fake text that meets the expectations

@@ -1,6 +1,6 @@
 import spaceTrim from 'spacetrim';
 import { UnexpectedError } from '../../errors/UnexpectedError';
-import { string_name } from '../../types/typeAliases';
+import type { string_name } from '../../types/typeAliases';
 
 /**
  * Checks if the value is [🚉] serializable as JSON
