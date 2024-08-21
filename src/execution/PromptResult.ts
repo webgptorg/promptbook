@@ -1,6 +1,4 @@
-import type { string_date_iso8601 } from '../types/typeAliases';
-import type { string_model_name } from '../types/typeAliases';
-import type { string_prompt } from '../types/typeAliases';
+import type { string_date_iso8601, string_model_name, string_prompt } from '../types/typeAliases';
 import type { TODO_object } from '../utils/organization/TODO_object';
 import type { EmbeddingVector } from './EmbeddingVector';
 import type { PromptResultUsage } from './PromptResultUsage';
@@ -108,7 +106,6 @@ export type CommonPromptResult = {
 };
 
 /**
- * TODO: !!!!!! [🚉] Check each provider that rawResponse is fully serializable as JSON
  * TODO: [🧠] Maybe timing more accurate then seconds?
  * TODO: [🧠] Should here be link to the prompt?
  * TODO: [🧠] Maybe type `rawResponse` properly - not onject but OpenAI.result.whatever
