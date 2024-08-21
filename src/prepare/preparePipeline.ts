@@ -1,6 +1,5 @@
 import type { Writable } from 'type-fest';
-import { IS_VERBOSE } from '../config';
-import { MAX_PARALLEL_COUNT } from '../config';
+import { IS_VERBOSE, MAX_PARALLEL_COUNT } from '../config';
 import { ZERO_USAGE } from '../execution/utils/addUsage';
 import { forEachAsync } from '../execution/utils/forEachAsync';
 import { prepareKnowledgePieces } from '../knowledge/prepare-knowledge/_common/prepareKnowledgePieces';
@@ -45,11 +44,13 @@ export async function preparePipeline(pipeline: PipelineJson, options: PrepareOp
     //    <- TODO: [🌯]
 
     /*
-    TODO: [🧠][🪑] Should this be done or not
+    TODO: [🧠][🪑][🔃] Should this be done or not
     if (promptbookVersion !== PROMPTBOOK_VERSION) {
         throw new VersionMismatchError(`Can not prepare the pipeline`, promptbookVersion);
     }
     */
+
+    // TODO: [🔃] !!!!! If the pipeline was prepared with different version or different set of models, prepare it once again
 
     // ----- ID -----
     const currentPreparation: Writable<PreparationJson> = {
