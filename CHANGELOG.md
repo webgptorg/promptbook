@@ -456,7 +456,7 @@ Was accidentally released skipped
 -   Add `$llmToolsRegister`
 -   Rename `Openai` ->`OpenAi`
 
-### `0.67.0` _(2024-08-)_
+### `0.67.0` _(2024-08-21)_
 
 [🚉] Types and interfaces, JSON serialization
 
