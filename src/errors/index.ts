@@ -6,7 +6,7 @@ import { NotYetImplementedError } from './NotYetImplementedError';
 import { ParsingError } from './ParsingError';
 import { PipelineExecutionError } from './PipelineExecutionError';
 import { PipelineLogicError } from './PipelineLogicError';
-import { ReferenceError } from './ReferenceError';
+import { PipelineUrlError } from './PipelineUrlError';
 import { UnexpectedError } from './UnexpectedError';
 
 /**
@@ -23,7 +23,7 @@ export const ERRORS = {
     ParsingError,
     PipelineExecutionError,
     PipelineLogicError,
-    ReferenceError,
+    PipelineUrlError,
     UnexpectedError,
     // TODO: [🪑]> VersionMismatchError,
 } as const;

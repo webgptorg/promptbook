@@ -37,7 +37,7 @@ import { NotYetImplementedError } from '../errors/NotYetImplementedError';
 import { ParsingError } from '../errors/ParsingError';
 import { PipelineExecutionError } from '../errors/PipelineExecutionError';
 import { PipelineLogicError } from '../errors/PipelineLogicError';
-import { ReferenceError } from '../errors/ReferenceError';
+import { PipelineUrlError } from '../errors/PipelineUrlError';
 import { UnexpectedError } from '../errors/UnexpectedError';
 import { VersionMismatchError } from '../errors/VersionMismatchError.ts.todo';
 import { assertsExecutionSuccessful } from '../execution/assertsExecutionSuccessful';
@@ -130,6 +130,7 @@ export {
     PipelineLogicError,
     pipelineStringToJson,
     pipelineStringToJsonSync,
+    PipelineUrlError,
     PrefixStorage,
     prepareKnowledgeFromMarkdown,
     prepareKnowledgePieces,
@@ -137,7 +138,6 @@ export {
     preparePipeline,
     prepareTemplates,
     prettifyPipelineString,
-    ReferenceError,
     RESERVED_PARAMETER_NAMES,
     stringifyPipelineJson,
     UnexpectedError,

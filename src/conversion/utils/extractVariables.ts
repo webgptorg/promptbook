@@ -1,7 +1,6 @@
 import { spaceTrim } from 'spacetrim';
 import { ParsingError } from '../../errors/ParsingError';
-import type { string_javascript } from '../../types/typeAliases';
-import type { string_javascript_name } from '../../types/typeAliases';
+import type { string_javascript, string_javascript_name } from '../../types/typeAliases';
 /**
  * Parses the given script and returns the list of all used variables that are not defined in the script
  *
@@ -20,13 +19,13 @@ export function extractVariables(script: string_javascript): Set<string_javascri
             try {
                 eval(script);
             } catch (error) {
-                if (!(error instanceof ReferenceError)) {
+                if (!(error instanceof PipelineUrlError)) {
                     throw error;
                 }
                 const undefinedName = error.message.split(' ')[0];
                 /*
                 Note: Parsing the error
-                      [ReferenceError: thing is not defined]
+                      [PipelineUrlError: thing is not defined]
                 */
 
                 if (!undefinedName) {

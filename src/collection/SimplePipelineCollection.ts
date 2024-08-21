@@ -2,7 +2,7 @@ import { spaceTrim } from 'spacetrim';
 import { pipelineJsonToString } from '../conversion/pipelineJsonToString';
 import { validatePipeline } from '../conversion/validation/validatePipeline';
 import { NotFoundError } from '../errors/NotFoundError';
-import { ReferenceError } from '../errors/ReferenceError';
+import { PipelineUrlError } from '../errors/PipelineUrlError';
 import { unpreparePipeline } from '../prepare/unpreparePipeline';
 import type { PipelineJson } from '../types/PipelineJson/PipelineJson';
 import type { Prompt } from '../types/Prompt';
@@ -32,7 +32,7 @@ export class SimplePipelineCollection implements PipelineCollection {
         for (const pipeline of pipelines) {
             // TODO: [👠] DRY
             if (pipeline.pipelineUrl === undefined) {
-                throw new ReferenceError(
+                throw new PipelineUrlError(
                     spaceTrim(`
                         Pipeline with name "${pipeline.title}" does not have defined URL
 
@@ -60,7 +60,7 @@ export class SimplePipelineCollection implements PipelineCollection {
             ) {
                 const existing = this.collection.get(pipeline.pipelineUrl)!;
 
-                throw new ReferenceError(
+                throw new PipelineUrlError(
                     spaceTrim(`
                         Pipeline with URL "${pipeline.pipelineUrl}" is already in the collection 🍎
 
