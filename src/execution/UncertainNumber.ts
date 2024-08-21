@@ -1,5 +1,4 @@
-import type { number_positive } from '../types/typeAliases';
-import type { number_usd } from '../types/typeAliases';
+import type { number_positive, number_usd } from '../types/typeAliases';
 
 /**
  * Number which can be uncertain

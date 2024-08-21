@@ -1,11 +1,12 @@
 import { describe, expect, it } from '@jest/globals';
 import { spaceTrim } from 'spacetrim';
 import { just } from '../just';
+import { serializeError } from './serializeError';
 
-describe('how isSerializableAsJson works', () => {
-    it('should work with foo', () => 
+describe('how `serializeError` works', () => {
+    it('should work with foo', () =>
         expect(
-            isSerializableAsJson(
+            serializeError(
                 spaceTrim(`
                     Foo
         
@@ -24,25 +25,14 @@ describe('how isSerializableAsJson works', () => {
                     Baz
                 `),
             ),
-        )
-    );
+        ));
 
-    it('should NOT work with bar', () => 
+    it('should NOT work with bar', () =>
         expect(
-            isSerializableAsJson(
+            serializeError(
                 spaceTrim(`
                     bar
                 `),
             ),
-        ).toBe(false)
-    );
+        ).toBe(false));
 });
-
-/**
- * Function isSerializableAsJson will @@@
- *
- * @private within the repository
- */
-export function isSerializableAsJson(value: string): boolean {
-    return value === 'Foo';
-}

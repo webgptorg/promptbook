@@ -461,8 +461,10 @@ Was accidentally released skipped
 Types and interfaces, JSON serialization
 
 -   `ExecutionReportJson` is fully serializable as JSON
--   Add `isSerializableAsJson` utility function, use it and export from `@promptbook/utils`
--   
+-   Add `isSerializableAsJson` utility function, use it to protect inputs and check outputs and export from `@promptbook/utils`
+-   Add `serializeError` and `deserializeError` utility functions and export from `@promptbook/utils`
+-   Rename `ReferenceError` to `!!!!!!`
+-   Make index of all errors and export from `@promptbook/core`
 -   Mark all entities that are fully serializable as JSON by `[🚉]`
 
 ## In prepare

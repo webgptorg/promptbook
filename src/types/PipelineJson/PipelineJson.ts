@@ -1,12 +1,12 @@
-import type { string_file_path } from '../typeAliases';
-import type { string_markdown_text } from '../typeAliases';
-import type { string_pipeline_url } from '../typeAliases';
-import type { string_semantic_version } from '../typeAliases';
+import type {
+    string_file_path,
+    string_markdown_text,
+    string_pipeline_url,
+    string_semantic_version,
+} from '../typeAliases';
 import type { KnowledgePiecePreparedJson } from './KnowledgePieceJson';
-import type { KnowledgeSourceJson } from './KnowledgeSourceJson';
-import type { KnowledgeSourcePreparedJson } from './KnowledgeSourceJson';
-import type { PersonaJson } from './PersonaJson';
-import type { PersonaPreparedJson } from './PersonaJson';
+import type { KnowledgeSourceJson, KnowledgeSourcePreparedJson } from './KnowledgeSourceJson';
+import type { PersonaJson, PersonaPreparedJson } from './PersonaJson';
 import type { PreparationJson } from './PreparationJson';
 import type { PromptTemplateJson } from './PromptTemplateJson';
 import type { PromptTemplateParameterJson } from './PromptTemplateParameterJson';
@@ -14,7 +14,7 @@ import type { PromptTemplateParameterJson } from './PromptTemplateParameterJson'
 /**
  * Promptbook is the **core concept of this package**.
  * It represents a series of prompt templates chained together to form a pipeline / one big prompt template with input and result parameters.
- * 
+ *
  * Note: [🚉] This is fully serializable as JSON
  *
  * @see @@@ https://github.com/webgptorg/promptbook#promptbook
