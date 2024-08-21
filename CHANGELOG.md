@@ -458,9 +458,11 @@ Was accidentally released skipped
 
 ### `0.67.0` _(2024-08-)_
 
-Types and interfaces, JSON serialization
+[🚉] Types and interfaces, JSON serialization
 
 -   `ExecutionReportJson` is fully serializable as JSON
+-   [🛫] `Prompt` is fully serializable as JSON
+-   Postprocessing functions are listed as names not as functions
 -   Add `isSerializableAsJson` utility function, use it to protect inputs and check outputs and export from `@promptbook/utils`
 -   Add `serializeError` and `deserializeError` utility functions and export from `@promptbook/utils`
 -   Rename `ReferenceError` to `PipelineUrlError`

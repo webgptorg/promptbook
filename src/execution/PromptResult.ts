@@ -106,6 +106,7 @@ export type CommonPromptResult = {
 };
 
 /**
+ * TODO: !!!!!! [🚉] Check each provider that rawResponse is fully serializable as JSON
  * TODO: [🧠] Maybe timing more accurate then seconds?
  * TODO: [🧠] Should here be link to the prompt?
  * TODO: [🧠] Maybe type `rawResponse` properly - not onject but OpenAI.result.whatever

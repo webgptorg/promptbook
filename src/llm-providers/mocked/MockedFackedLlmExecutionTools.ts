@@ -59,7 +59,7 @@ export class MockedFackedLlmExecutionTools implements LlmExecutionTools {
      * Fakes chat model
      */
     public async callChatModel(
-        prompt: Pick<Prompt, 'content' | 'parameters' | 'modelRequirements' | 'expectations' | 'postprocessing'>,
+        prompt: Pick<Prompt, 'content' | 'parameters' | 'modelRequirements' | 'expectations' | 'postprocessingFunctionNames'>,
     ): Promise<ChatPromptResult & CompletionPromptResult> {
         if (this.options.isVerbose) {
             console.info('💬 Mocked faked prompt', prompt);
@@ -75,7 +75,7 @@ export class MockedFackedLlmExecutionTools implements LlmExecutionTools {
             prompt.expectations || {
                 sentences: { min: 1, max: 1 },
             },
-            prompt.postprocessing,
+            prompt.postprocessingFunctionNames,
         );
 
         const result = ({
@@ -105,7 +105,7 @@ export class MockedFackedLlmExecutionTools implements LlmExecutionTools {
      * Fakes completion model
      */
     public async callCompletionModel(
-        prompt: Pick<Prompt, 'content' | 'parameters' | 'modelRequirements' | 'expectations' | 'postprocessing'>,
+        prompt: Pick<Prompt, 'content' | 'parameters' | 'modelRequirements' | 'expectations' | 'postprocessingFunctionNames'>,
     ): Promise<CompletionPromptResult> {
         return this.callChatModel(prompt);
     }
@@ -114,7 +114,7 @@ export class MockedFackedLlmExecutionTools implements LlmExecutionTools {
      * Fakes embedding model
      */
     public async callEmbeddingModel(
-        prompt: Pick<Prompt, 'content' | 'parameters' | 'modelRequirements' | 'expectations' | 'postprocessing'>,
+        prompt: Pick<Prompt, 'content' | 'parameters' | 'modelRequirements' | 'expectations' | 'postprocessingFunctionNames'>,
     ): Promise<EmbeddingPromptResult> {
         const modelName = 'mocked-facked';
         const rawPromptContent = replaceParameters(prompt.content, { ...prompt.parameters, modelName });

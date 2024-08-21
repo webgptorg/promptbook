@@ -164,7 +164,6 @@ export class RemoteLlmExecutionTools implements LlmExecutionTools {
                     isAnonymous: true,
                     llmToolsConfiguration: this.options.llmToolsConfiguration,
                     prompt,
-                    // <- TODO: [🛫] `prompt` is NOT fully [🚉] serializable as JSON, it contains functions which are not serializable
                 } satisfies PromptbookServer_Prompt_Request /* <- TODO: [🤛] */,
             );
         } else {
@@ -174,7 +173,6 @@ export class RemoteLlmExecutionTools implements LlmExecutionTools {
                     isAnonymous: false,
                     clientId: this.options.clientId,
                     prompt,
-                    // <- TODO: [🛫] `prompt` is NOT fully [🚉] serializable as JSON, it contains functions which are not serializable
                 } satisfies PromptbookServer_Prompt_Request /* <- TODO: [🤛] */,
             );
         }

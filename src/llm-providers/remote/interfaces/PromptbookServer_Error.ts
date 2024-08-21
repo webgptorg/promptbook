@@ -7,5 +7,5 @@ export type PromptbookServer_Error = {
     /**
      * The error message which caused the error
      */
-    readonly errorMessage: string;
+    readonly errorMessage: string; // <- !!!!!!
 };

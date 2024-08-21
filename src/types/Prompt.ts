@@ -1,13 +1,24 @@
 import type { ExpectFormatCommand } from '../commands/EXPECT/ExpectFormatCommand';
-import type { PostprocessingFunction } from '../scripting/javascript/JavascriptExecutionToolsOptions';
-import type { ChatModelRequirements, CompletionModelRequirements, EmbeddingModelRequirements, ModelRequirements } from './ModelRequirements';
+import { TODO_string } from '../utils/organization/TODO_string';
+import type {
+    ChatModelRequirements,
+    CompletionModelRequirements,
+    EmbeddingModelRequirements,
+    ModelRequirements,
+} from './ModelRequirements';
 import type { Expectations } from './PipelineJson/Expectations';
-import type { Parameters, string_pipeline_url_with_hashtemplate, string_prompt, string_template, string_title } from './typeAliases';
+import type {
+    Parameters,
+    string_pipeline_url_with_hashtemplate,
+    string_prompt,
+    string_template,
+    string_title,
+} from './typeAliases';
 
 /**
  * Prompt in a text along with model requirements, but without any execution or templating logic.
  *
- * Note: [🛫] This is NOT fully serializable as JSON, it contains functions which are not serializable
+ * Note: [🚉] This is fully serializable as JSON
  * @see https://github.com/webgptorg/promptbook#prompt
  */
 export type Prompt = CompletionPrompt | ChatPrompt | EmbeddingPrompt /* <- [🤖] */;
@@ -15,7 +26,7 @@ export type Prompt = CompletionPrompt | ChatPrompt | EmbeddingPrompt /* <- [🤖
 /**
  * Completion prompt
  *
- * Note: [🛫] This is NOT fully serializable as JSON, it contains functions which are not serializable
+ * Note: [🚉] This is fully serializable as JSON
  */
 export type CompletionPrompt = CommonPrompt & {
     /**
@@ -27,7 +38,7 @@ export type CompletionPrompt = CommonPrompt & {
 /**
  * Chat prompt
  *
- * Note: [🛫] This is NOT fully serializable as JSON, it contains functions which are not serializable
+ * Note: [🚉] This is fully serializable as JSON
  */
 export type ChatPrompt = CommonPrompt & {
     /**
@@ -41,7 +52,7 @@ export type ChatPrompt = CommonPrompt & {
 /**
  * Embedding prompt
  *
- * Note: [🛫] This is NOT fully serializable as JSON, it contains functions which are not serializable
+ * Note: [🚉] This is fully serializable as JSON
  */
 export type EmbeddingPrompt = CommonPrompt & {
     /**
@@ -82,7 +93,7 @@ export type CommonPrompt = {
     /**
      * List of postprocessing steps that are executed after the prompt
      */
-    readonly postprocessing?: Array<PostprocessingFunction>;
+    readonly postprocessingFunctionNames?: Array<TODO_string /* <- !!!!!! */>;
 
     /**
      * Expectations for the answer

@@ -9,8 +9,6 @@ import type { Prompt } from '../Prompt';
 export type ExecutionPromptReportJson = {
     /**
      * The prompt wich was executed
-     *
-     * Note: !!!!!! [🚉] This is fully serializable as JSON
      */
     readonly prompt: Omit<Prompt, 'pipelineUrl'>;
 

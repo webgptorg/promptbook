@@ -16,7 +16,7 @@ export type JavascriptExecutionToolsOptions = CommonExecutionToolsOptions & {
      * Note: There are also some built-in functions available:
      *      @see ./JavascriptEvalExecutionTools.ts
      */
-    functions?: Record<string_javascript_name, PostprocessingFunction>;
+    functions?: Record<string_javascript_name, PostprocessingFunction>; // <- !!!!!! Where it is used
 };
 
 /**
