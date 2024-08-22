@@ -18,7 +18,7 @@ Supercharge your use of large language models
 
 ## 🤍 The Promptbook Whitepaper
 
-When you have a simple, single prompt for ChatGPT, GPT-4, Anthropic Claude, Google Gemini, Llama 2, or whatever, it doesn't matter how it is integrated. Whether it's the direct calling of a REST API, using the SDK, hardcoding the prompt in the source code, or importing a text file, the process remains the same.
+When you have a simple, single prompt for ChatGPT, GPT-4, Anthropic Claude, Google Gemini, Llama, or whatever, it doesn't matter how it is integrated. Whether it's the direct calling of a REST API, using the SDK, hardcoding the prompt in the source code, or importing a text file, the process remains the same.
 
 If you need something more advanced or want to extend the capabilities of LLMs, you generally have three ways to proceed:
 
@@ -47,8 +47,6 @@ In any of these situations, but especially in (3), the Promptbook library can ma
 -   _(Not ready yet)_ Extend one prompt book from another one.
 -   _(Not ready yet)_ Leverage the **streaming** to make super cool UI/UX.
 -   _(Not ready yet)_ **A/B testing** to determine which prompt works best for the job.
-
-
 
 ## 🧔 Promptbook _(for prompt-engeneers)_
 
@@ -383,7 +381,6 @@ The following glossary is used to clarify certain concepts:
 -   [⤵️ Imports not working yet](https://github.com/webgptorg/promptbook/discussions/34)
 
 ## 🧼 Intentionally not implemented features
-
 
 -   [➿ No recursion](https://github.com/webgptorg/promptbook/discussions/38)
 -   [🏳 There are no types, just strings](https://github.com/webgptorg/promptbook/discussions/52)
