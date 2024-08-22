@@ -4,6 +4,7 @@ import type { number_usd } from '../types/typeAliases';
 /**
  * Number which can be uncertain
  *
+ * Note: [🚉] This is fully serializable as JSON
  * Note: If the value is completelly unknown, the value 0 and isUncertain is true
  * Note: Not using NaN or null because it looses the value which is better to be uncertain then not to be at all
  */

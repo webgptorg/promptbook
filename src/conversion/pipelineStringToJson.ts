@@ -47,6 +47,7 @@ export async function pipelineStringToJson(
         pipelineJson = await preparePipeline(pipelineJson, { llmTools });
     }
 
+    // Note: No need to use `$asDeeplyFrozenSerializableJson` because `pipelineStringToJsonSync` and `preparePipeline` already do that
     return pipelineJson;
 }
 

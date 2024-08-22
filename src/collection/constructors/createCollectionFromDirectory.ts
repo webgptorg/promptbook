@@ -9,6 +9,7 @@ import type { PipelineStringToJsonOptions } from '../../conversion/pipelineStrin
 import { pipelineStringToJson } from '../../conversion/pipelineStringToJson';
 import { validatePipeline } from '../../conversion/validation/validatePipeline';
 import { CollectionError } from '../../errors/CollectionError';
+import { PipelineUrlError } from '../../errors/PipelineUrlError';
 import { unpreparePipeline } from '../../prepare/unpreparePipeline';
 import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import type { PipelineString } from '../../types/PipelineString';
@@ -186,19 +187,19 @@ export async function createCollectionFromDirectory(
                         } else {
                             const existing = collection.get(pipeline.pipelineUrl)!;
 
-                            throw new ReferenceError(
+                            throw new PipelineUrlError(
                                 spaceTrim(`
-                                  Pipeline with URL "${pipeline.pipelineUrl}" is already in the collection 🍏
+                                    Pipeline with URL "${pipeline.pipelineUrl}" is already in the collection 🍏
 
-                                  Conflicting files:
-                                  ${existing.sourceFile || 'Unknown'}
-                                  ${pipeline.sourceFile || 'Unknown'}
+                                    Conflicting files:
+                                    ${existing.sourceFile || 'Unknown'}
+                                    ${pipeline.sourceFile || 'Unknown'}
 
-                                  Note: You have probably forgotten to run "ptbk make" to update the collection
-                                  Note: Pipelines with the same URL are not allowed
-                                        Only exepction is when the pipelines are identical
+                                    Note: You have probably forgotten to run "ptbk make" to update the collection
+                                    Note: Pipelines with the same URL are not allowed
+                                          Only exepction is when the pipelines are identical
 
-                              `),
+                                `),
                             );
                         }
                     }

@@ -11,6 +11,7 @@ import type { string_markdown_text } from '../../types/typeAliases';
 import type { string_title } from '../../types/typeAliases';
 import { getCurrentIsoDate } from '../../utils/getCurrentIsoDate';
 import { replaceParameters } from '../../utils/replaceParameters';
+import { $asDeeplyFrozenSerializableJson } from '../../utils/serialization/$asDeeplyFrozenSerializableJson';
 
 /**
  * Mocked execution Tools for just echoing the requests for testing purposes.
@@ -68,7 +69,7 @@ export class MockedEchoLlmExecutionTools implements LlmExecutionTools {
         const usage = ZERO_USAGE;
         //      <- TODO: [🧠] Compute here at least words, characters,... etc
 
-        return {
+        return $asDeeplyFrozenSerializableJson('MockedEchoLlmExecutionTools ChatPromptResult', {
             content: spaceTrim(
                 (block) => `
                     You said:
@@ -87,7 +88,7 @@ export class MockedEchoLlmExecutionTools implements LlmExecutionTools {
                 note: 'This is mocked echo',
             },
             // <- [🗯]
-        };
+        });
     }
 
     /**
@@ -106,7 +107,7 @@ export class MockedEchoLlmExecutionTools implements LlmExecutionTools {
         const usage = ZERO_USAGE;
         //      <- TODO: [🧠] Compute here at least words, characters,... etc
 
-        return {
+        return $asDeeplyFrozenSerializableJson('MockedEchoLlmExecutionTools CompletionPromptResult', {
             content: spaceTrim(
                 (block) => `
                     ${block(rawPromptContent)}
@@ -125,7 +126,7 @@ export class MockedEchoLlmExecutionTools implements LlmExecutionTools {
                 note: 'This is mocked echo',
             },
             // <- [🗯]
-        };
+        });
     }
 
     // <- Note: [🤖] callXxxModel

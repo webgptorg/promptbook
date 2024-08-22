@@ -1,9 +1,10 @@
 import type { PipelineJson } from '../types/PipelineJson/PipelineJson';
 import { extractParameterNames } from '../utils/extractParameterNames';
+import { $asDeeplyFrozenSerializableJson } from '../utils/serialization/$asDeeplyFrozenSerializableJson';
 
 /**
  * Unprepare just strips the preparation data of the pipeline
- * 
+ *
  * @public exported from `@promptbook/core`
  */
 export function unpreparePipeline(pipeline: PipelineJson): PipelineJson {
@@ -27,14 +28,14 @@ export function unpreparePipeline(pipeline: PipelineJson): PipelineJson {
         return promptTemplateUnprepared;
     });
 
-    return {
+    return $asDeeplyFrozenSerializableJson('Unprepared PipelineJson', {
         ...pipeline,
         promptTemplates,
         knowledgeSources,
         knowledgePieces: [],
         personas,
         preparations: [],
-    };
+    });
 }
 
 /**

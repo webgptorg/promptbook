@@ -1,5 +1,6 @@
 import type { AvailableModel } from '../../execution/AvailableModel';
 import type { number_usd } from '../../types/typeAliases';
+import { $asDeeplyFrozenSerializableJson } from '../../utils/serialization/$asDeeplyFrozenSerializableJson';
 import { computeUsage } from './computeUsage';
 
 /**
@@ -18,7 +19,7 @@ export const OPENAI_MODELS: Array<
             readonly output: number_usd;
         };
     }
-> = [
+> = $asDeeplyFrozenSerializableJson('OPENAI_MODELS',[
     /*/
       {
           modelTitle: 'dall-e-3',
@@ -378,7 +379,7 @@ export const OPENAI_MODELS: Array<
         },
     },
     /**/
-];
+]);
 
 /**
  * Note: [🤖] Add models of new variant

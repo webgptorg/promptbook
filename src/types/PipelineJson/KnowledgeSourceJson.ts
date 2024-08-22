@@ -6,6 +6,8 @@ import type { string_name } from '../typeAliases';
  * Defines one source of knowledge in the pipeline
  * For example, a source of information, a fact, a quote, a definition, website, etc.
  *
+ * Note: [🚉] This is fully serializable as JSON
+ *
  * @see https://github.com/webgptorg/promptbook/discussions/41
  */
 export type KnowledgeSourceJson = {
@@ -22,6 +24,8 @@ export type KnowledgeSourceJson = {
 
 /**
  * Defines one source of knowledge in the pipeline after it has been prepared
+ *
+ * Note: [🚉] This is fully serializable as JSON
  *
  * @see https://github.com/webgptorg/promptbook/discussions/41
  */

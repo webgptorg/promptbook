@@ -2,6 +2,8 @@ import type { TupleToUnion } from 'type-fest';
 
 /**
  * Script language
+ *
+ * Note: [🚉] This is fully serializable as JSON
  */
 export type ScriptLanguage = TupleToUnion<typeof SUPPORTED_SCRIPT_LANGUAGES>;
 

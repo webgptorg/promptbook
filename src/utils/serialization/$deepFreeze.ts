@@ -1,5 +1,5 @@
 import type { ReadonlyDeep } from 'type-fest';
-import type { really_any } from './organization/really_any';
+import type { really_any } from '../organization/really_any';
 
 /**
  * @@@
@@ -19,19 +19,6 @@ export function $deepFreeze<TObject>(objectValue: TObject): ReadonlyDeep<TObject
         }
     }
     return Object.freeze(objectValue) as ReadonlyDeep<TObject>;
-}
-
-/**
- * @@@
- * @@@
- *
- * Note: This function mutates the object and returns the original (but mutated-deep-freezed) object
- *
- * @returns The same object as the input, but deeply frozen
- * @private this is in comparison to `deepFreeze` a more specific utility and maybe not very good practice to use without specific reason and considerations
- */
-export function deepFreezeWithSameType<TObject>(objectValue: TObject): TObject {
-    return $deepFreeze(objectValue) as TObject;
 }
 
 /**

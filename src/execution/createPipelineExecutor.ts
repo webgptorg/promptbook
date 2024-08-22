@@ -12,6 +12,7 @@ import { validatePipeline } from '../conversion/validation/validatePipeline';
 import { ExpectError } from '../errors/_ExpectError';
 import { PipelineExecutionError } from '../errors/PipelineExecutionError';
 import { UnexpectedError } from '../errors/UnexpectedError';
+import { serializeError } from '../errors/utils/serializeError';
 import { isValidJsonString } from '../formats/json/utils/isValidJsonString';
 import { joinLlmExecutionTools } from '../llm-providers/multiple/joinLlmExecutionTools';
 import { isPipelinePrepared } from '../prepare/isPipelinePrepared';
@@ -30,18 +31,18 @@ import type { string_markdown } from '../types/typeAliases';
 import type { string_name } from '../types/typeAliases';
 import type { string_parameter_value } from '../types/typeAliases';
 import { arrayableToArray } from '../utils/arrayableToArray';
-import { $deepFreeze } from '../utils/deepFreeze';
-import { deepFreezeWithSameType } from '../utils/deepFreeze';
 import type { really_any } from '../utils/organization/really_any';
 import type { TODO_any } from '../utils/organization/TODO_any';
 import { TODO_USE } from '../utils/organization/TODO_USE';
 import { replaceParameters } from '../utils/replaceParameters';
+import { $asDeeplyFrozenSerializableJson } from '../utils/serialization/$asDeeplyFrozenSerializableJson';
+import { $deepFreeze } from '../utils/serialization/$deepFreeze';
 import { difference } from '../utils/sets/difference';
 import { union } from '../utils/sets/union';
 import { PROMPTBOOK_VERSION } from '../version';
 import type { ExecutionTools } from './ExecutionTools';
 import type { PipelineExecutor } from './PipelineExecutor';
-import type { PipelineExecutorResult } from './PipelineExecutor';
+import type { PipelineExecutorResult } from './PipelineExecutorResult';
 import type { ChatPromptResult } from './PromptResult';
 import type { CompletionPromptResult } from './PromptResult';
 import type { EmbeddingPromptResult } from './PromptResult';
@@ -146,7 +147,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
     const pipelineExecutor: PipelineExecutor = async (
         inputParameters: Parameters,
         onProgress?: (taskProgress: TaskProgress) => Promisable<void>,
-    ) => {
+    ): Promise<PipelineExecutorResult> => {
         if (preparedPipeline === undefined) {
             preparedPipeline = await preparePipeline(pipeline, {
                 llmTools,
@@ -171,18 +172,23 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
         // Note: Check that all input input parameters are defined
         for (const parameter of preparedPipeline.parameters.filter(({ isInput }) => isInput)) {
             if (inputParameters[parameter.name] === undefined) {
-                return deepFreezeWithSameType({
-                    isSuccessful: false,
-                    errors: [
-                        new PipelineExecutionError(`Parameter {${parameter.name}} is required as an input parameter`),
-                        ...errors,
-                    ],
-                    warnings: [],
-                    executionReport,
-                    outputParameters: {},
-                    usage: ZERO_USAGE,
-                    preparedPipeline,
-                }) satisfies PipelineExecutorResult;
+                return $asDeeplyFrozenSerializableJson(
+                    `Unuccessful PipelineExecutorResult (with missing parameter {${parameter.name}}) PipelineExecutorResult`,
+                    {
+                        isSuccessful: false,
+                        errors: [
+                            new PipelineExecutionError(
+                                `Parameter {${parameter.name}} is required as an input parameter`,
+                            ),
+                            ...errors,
+                        ].map(serializeError),
+                        warnings: [],
+                        executionReport,
+                        outputParameters: {},
+                        usage: ZERO_USAGE,
+                        preparedPipeline,
+                    },
+                ) satisfies PipelineExecutorResult;
             }
         }
 
@@ -198,20 +204,23 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                 );
             } else if (parameter.isInput === false) {
                 // TODO: [🧠] This should be also non-critical error
-                return deepFreezeWithSameType({
-                    isSuccessful: false,
-                    errors: [
-                        new PipelineExecutionError(
-                            `Parameter {${parameter.name}} is passed as input parameter but it is not input`,
-                        ),
-                        ...errors,
-                    ],
-                    warnings,
-                    executionReport,
-                    outputParameters: {},
-                    usage: ZERO_USAGE,
-                    preparedPipeline,
-                }) satisfies PipelineExecutorResult;
+                return $asDeeplyFrozenSerializableJson(
+                    `Unuccessful PipelineExecutorResult (with extra parameter {${parameter.name}}) PipelineExecutorResult`,
+                    {
+                        isSuccessful: false,
+                        errors: [
+                            new PipelineExecutionError(
+                                `Parameter {${parameter.name}} is passed as input parameter but it is not input`,
+                            ),
+                            ...errors,
+                        ].map(serializeError),
+                        warnings: warnings.map(serializeError),
+                        executionReport,
+                        outputParameters: {},
+                        usage: ZERO_USAGE,
+                        preparedPipeline,
+                    },
+                ) satisfies PipelineExecutorResult;
             }
         }
 
@@ -233,7 +242,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
 
             TODO_USE(template);
             return preparedPipeline.knowledgePieces.map(({ content }) => `- ${content}`).join('\n');
-            //                                                      <- TODO: [🧠] !!!!! Some smart aggregation of knowledge pieces, single-line vs multi-line vs mixed
+            //                                                      <- TODO: [🧠] Some smart aggregation of knowledge pieces, single-line vs multi-line vs mixed
         }
 
         async function getSamplesForTemplate( // <- TODO: [🧠][🥜]
@@ -417,58 +426,8 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                                         ...currentTemplate.expectations,
                                     },
                                     expectFormat: currentTemplate.expectFormat,
-                                    postprocessing: (currentTemplate.postprocessingFunctionNames || []).map(
-                                        (functionName) => async (result: string) => {
-                                            // TODO: DRY [☯]
-                                            const errors: Array<Error> = [];
-                                            for (const scriptTools of arrayableToArray(
-                                                tools.script,
-                                                // <- TODO: !!!!! Default value of `ExecutionTools.script` as all registered aviable tools `[new JavascriptExecutionTools()]`
-                                            )) {
-                                                try {
-                                                    return await scriptTools.execute({
-                                                        scriptLanguage: `javascript` /* <- TODO: Try it in each languages; In future allow postprocessing with arbitrary combination of languages to combine */,
-                                                        script: `${functionName}(result)`,
-                                                        parameters: {
-                                                            result: result || '',
-                                                            // Note: No ...parametersForTemplate, because working with result only
-                                                        },
-                                                    });
-                                                } catch (error) {
-                                                    if (!(error instanceof Error)) {
-                                                        throw error;
-                                                    }
-
-                                                    if (error instanceof UnexpectedError) {
-                                                        throw error;
-                                                    }
-
-                                                    errors.push(error);
-                                                }
-                                            }
-
-                                            if (errors.length === 0) {
-                                                throw new PipelineExecutionError(
-                                                    'Postprocessing in LlmExecutionTools failed because no ScriptExecutionTools were provided',
-                                                );
-                                            } else if (errors.length === 1) {
-                                                throw errors[0];
-                                            } else {
-                                                throw new PipelineExecutionError(
-                                                    spaceTrim(
-                                                        (block) => `
-                                                        Postprocessing in LlmExecutionTools failed ${errors.length}x
-
-                                                        ${block(
-                                                            errors.map((error) => '- ' + error.message).join('\n\n'),
-                                                        )}
-                                                      `,
-                                                    ),
-                                                );
-                                            }
-                                        },
-                                    ),
-                                } as Prompt;
+                                    postprocessingFunctionNames: currentTemplate.postprocessingFunctionNames,
+                                } as Prompt; // <- TODO: Not very good type guard
 
                                 variant: switch (currentTemplate.modelRequirements!.modelVariant) {
                                     case 'CHAT':
@@ -516,7 +475,6 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                                 }
 
                                 // TODO: DRY [1]
-
                                 scriptPipelineExecutionErrors = [];
 
                                 // TODO: DRY [☯]
@@ -678,7 +636,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                                 // <- TODO: [🧠] How to pick everyhing except `pipelineUrl`
                             } as really_any,
                             result: result || undefined,
-                            error: expectError || undefined,
+                            error: expectError === null ? undefined : serializeError(expectError),
                         });
                     }
                 }
@@ -828,15 +786,18 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
             // Note: Making this on separate line before `return` to grab errors [4]
             const outputParameters = filterJustOutputParameters();
 
-            return deepFreezeWithSameType({
-                isSuccessful: false,
-                errors: [error, ...errors],
-                warnings,
-                usage,
-                executionReport,
-                outputParameters,
-                preparedPipeline,
-            }) satisfies PipelineExecutorResult;
+            return $asDeeplyFrozenSerializableJson(
+                'Unuccessful PipelineExecutorResult (with misc errors) PipelineExecutorResult',
+                {
+                    isSuccessful: false,
+                    errors: [error, ...errors].map(serializeError),
+                    warnings: warnings.map(serializeError),
+                    usage,
+                    executionReport,
+                    outputParameters,
+                    preparedPipeline,
+                },
+            ) satisfies PipelineExecutorResult;
         }
 
         // Note: Count usage, [🧠] Maybe put to separate function executionReportJsonToUsage + DRY [5]
@@ -845,10 +806,10 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
         // Note:  Making this on separate line before `return` to grab errors [4]
         const outputParameters = filterJustOutputParameters();
 
-        return deepFreezeWithSameType({
+        return $asDeeplyFrozenSerializableJson('Successful PipelineExecutorResult', {
             isSuccessful: true,
-            errors,
-            warnings,
+            errors: errors.map(serializeError),
+            warnings: warnings.map(serializeError),
             usage,
             executionReport,
             outputParameters,

@@ -29,3 +29,7 @@ export class VersionMismatchError extends Error {
         Object.setPrototypeOf(this, VersionMismatchError.prototype);
     }
 }
+
+/**
+ * TODO: [🪑] Uncomment and solve problem with serialization
+ */

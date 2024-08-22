@@ -12,6 +12,8 @@ import type { string_name } from '../typeAliases';
  *
  * Note: Knowledge piece is by definition prepared
  *
+ * Note: [🚉] This is fully serializable as JSON
+ *
  * @see https://github.com/webgptorg/promptbook/discussions/41
  */
 export type KnowledgePiecePreparedJson = {

@@ -4,6 +4,7 @@ import type { PromptTemplateJsonCommon } from './PromptTemplateJsonCommon';
 /**
  * Template for script execution
  *
+ * Note: [🚉] This is fully serializable as JSON
  * @see https://github.com/webgptorg/promptbook/discussions/77
  */
 export type ScriptJson = PromptTemplateJsonCommon & {

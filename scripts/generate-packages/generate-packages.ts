@@ -1,4 +1,5 @@
 #!/usr/bin/env ts-node
+// generate-packages.ts
 
 import colors from 'colors';
 import commander from 'commander';

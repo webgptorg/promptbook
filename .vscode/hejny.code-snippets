@@ -32,7 +32,7 @@
             "import { spaceTrim } from 'spacetrim';",
             "import { just } from '../just';",
             "",
-            "describe('how $1 works', () => {",
+            "describe('how `$1` works', () => {",
             "    it('should work with foo', () => ",
             "        expect(",
             "            $1(",
@@ -69,14 +69,20 @@
             "});",
             "",
             "/**",
-            " * Function $1 will @@@",
+            " * Function `$1` will @@@",
             " *",
-            " * @private within the repository",
+            " * @private within the repository <- TODO: !!! Take just one of",
+            " * @public exported from @@@",
             " */",
             "export function $1(value: string): boolean {",
+            "    // TODO: !!! Implement the function",
             "    return value === 'Foo';",
             "}",
-            ""
+            "",
+            "",
+            "/**",
+            " * TODO: !!! Extract `$1` to separate file",
+            " */"
         ]
     }
 }

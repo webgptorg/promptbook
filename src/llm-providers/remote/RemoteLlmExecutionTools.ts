@@ -1,6 +1,6 @@
 import type { Socket } from 'socket.io-client';
 import { io } from 'socket.io-client';
-import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
+import { deserializeError } from '../../errors/utils/deserializeError';
 import type { AvailableModel } from '../../execution/AvailableModel';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import type { ChatPromptResult } from '../../execution/PromptResult';
@@ -61,15 +61,21 @@ export class RemoteLlmExecutionTools implements LlmExecutionTools {
         const socket = await this.makeConnection();
 
         if (this.options.isAnonymous) {
-            socket.emit('listModels-request', {
-                isAnonymous: true,
-                llmToolsConfiguration: this.options.llmToolsConfiguration,
-            } satisfies PromptbookServer_ListModels_Request);
+            socket.emit(
+                'listModels-request',
+                {
+                    isAnonymous: true,
+                    llmToolsConfiguration: this.options.llmToolsConfiguration,
+                } satisfies PromptbookServer_ListModels_Request /* <- TODO: [🤛] */,
+            );
         } else {
-            socket.emit('listModels-request', {
-                isAnonymous: false,
-                clientId: this.options.clientId,
-            } satisfies PromptbookServer_ListModels_Request);
+            socket.emit(
+                'listModels-request',
+                {
+                    isAnonymous: false,
+                    clientId: this.options.clientId,
+                } satisfies PromptbookServer_ListModels_Request /* <- TODO: [🤛] */,
+            );
         }
 
         const promptResult = await new Promise<Array<AvailableModel>>((resolve, reject) => {
@@ -78,7 +84,7 @@ export class RemoteLlmExecutionTools implements LlmExecutionTools {
                 socket.disconnect();
             });
             socket.on('error', (error: PromptbookServer_Error) => {
-                reject(new Error(error.errorMessage));
+                reject(deserializeError(error));
                 socket.disconnect();
             });
         });
@@ -111,7 +117,7 @@ export class RemoteLlmExecutionTools implements LlmExecutionTools {
 
                 setTimeout(() => {
                     reject(new Error(`Timeout while connecting to ${this.options.remoteUrl}`));
-                }, 1000 /* <- TODO: Timeout to config */);
+                }, 60000 /* <- TODO: Timeout to config */);
             },
         );
     }
@@ -155,19 +161,23 @@ export class RemoteLlmExecutionTools implements LlmExecutionTools {
         const socket = await this.makeConnection();
 
         if (this.options.isAnonymous) {
-            socket.emit('prompt-request', {
-                isAnonymous: true,
-                llmToolsConfiguration: this.options.llmToolsConfiguration,
-                prompt,
-                // <- TODO: [🛫] `prompt` is NOT fully serializable as JSON, it contains functions which are not serializable
-            } satisfies PromptbookServer_Prompt_Request);
+            socket.emit(
+                'prompt-request',
+                {
+                    isAnonymous: true,
+                    llmToolsConfiguration: this.options.llmToolsConfiguration,
+                    prompt,
+                } satisfies PromptbookServer_Prompt_Request /* <- TODO: [🤛] */,
+            );
         } else {
-            socket.emit('prompt-request', {
-                isAnonymous: false,
-                clientId: this.options.clientId,
-                prompt,
-                // <- TODO: [🛫] `prompt` is NOT fully serializable as JSON, it contains functions which are not serializable
-            } satisfies PromptbookServer_Prompt_Request);
+            socket.emit(
+                'prompt-request',
+                {
+                    isAnonymous: false,
+                    clientId: this.options.clientId,
+                    prompt,
+                } satisfies PromptbookServer_Prompt_Request /* <- TODO: [🤛] */,
+            );
         }
 
         const promptResult = await new Promise<PromptResult>((resolve, reject) => {
@@ -176,7 +186,7 @@ export class RemoteLlmExecutionTools implements LlmExecutionTools {
                 socket.disconnect();
             });
             socket.on('error', (error: PromptbookServer_Error) => {
-                reject(new PipelineExecutionError(error.errorMessage));
+                reject(deserializeError(error));
                 socket.disconnect();
             });
         });
@@ -188,6 +198,7 @@ export class RemoteLlmExecutionTools implements LlmExecutionTools {
 }
 
 /**
+ * TODO: Maybe use `$asDeeplyFrozenSerializableJson`
  * TODO: [🧠][🛍] Maybe not `isAnonymous: boolean` BUT `mode: 'ANONYMOUS'|'COLLECTION'`
  * TODO: [🍓] Allow to list compatible models with each variant
  * TODO: [🗯] RemoteLlmExecutionTools should extend Destroyable and implement IDestroyable

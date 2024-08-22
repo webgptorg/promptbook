@@ -26,7 +26,7 @@ export function extractVariables(script: string_javascript): Set<string_javascri
                 const undefinedName = error.message.split(' ')[0];
                 /*
                 Note: Parsing the error
-                      [ReferenceError: thing is not defined]
+                      [PipelineUrlError: thing is not defined]
                 */
 
                 if (!undefinedName) {
@@ -50,7 +50,7 @@ export function extractVariables(script: string_javascript): Set<string_javascri
                 (block) => `
                     Can not extract variables from the script
 
-                    ${block((error as Error).name)}: ${block((error as Error).message)}
+                    ${block((error as Error).toString())}}
                 `,
                 // <- TODO: [🚞]
             ),

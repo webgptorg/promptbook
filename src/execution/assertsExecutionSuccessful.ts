@@ -1,11 +1,12 @@
 import { spaceTrim } from 'spacetrim';
 import { PipelineExecutionError } from '../errors/PipelineExecutionError';
+import { deserializeError } from '../errors/utils/deserializeError';
 import type { PipelineExecutor } from './PipelineExecutor';
 
 /**
- * Asserts that the execution of a promptnook is successful
+ * Asserts that the execution of a Promptbook is successful
  *
- * @param executionResult - The partial result of the promptnook execution
+ * @param executionResult - The partial result of the Promptbook execution
  * @throws {PipelineExecutionError} If the execution is not successful or if multiple errors occurred
  * @public exported from `@promptbook/core`
  */
@@ -18,22 +19,22 @@ export function assertsExecutionSuccessful(
         return;
     }
     if (errors.length === 0) {
-        throw new PipelineExecutionError(`Promptnook Execution failed because of unknown reason`);
+        throw new PipelineExecutionError(`Promptbook Execution failed because of unknown reason`);
     } else if (errors.length === 1) {
-        throw errors[0];
+        throw deserializeError(errors[0]!);
     } else {
         throw new PipelineExecutionError(
             spaceTrim(
                 (block) => `
-                    Multiple errors occurred during promptnook execution
+                    Multiple errors occurred during Promptbook execution
 
                     ${block(
                         errors
-                            .map((error, index) =>
+                            .map(({ name, stack, message }, index) =>
                                 spaceTrim(
                                     (block) => `
-                                        Error ${index + 1}:
-                                        ${block(error.stack || error.message)}
+                                        ${name} ${index + 1}:
+                                        ${block(stack || message)}
                                     `,
                                 ),
                             )

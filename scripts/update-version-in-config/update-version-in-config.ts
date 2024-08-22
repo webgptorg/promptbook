@@ -1,4 +1,5 @@
 #!/usr/bin/env ts-node
+// update-version-in-config.ts
 
 import colors from 'colors';
 import commander from 'commander';
@@ -43,7 +44,7 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
         spaceTrim(
             (block) => `
                 // ${block(GENERATOR_WARNING)}
-                
+
                 import type { string_semantic_version } from './types/typeAliases';
 
                 /**
@@ -70,3 +71,7 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
         await commit(['src'], `🆚 Update version in config`);
     }
 }
+
+/**
+ * TODO: !!!!!! The version is lagged one behind the actual version
+ */

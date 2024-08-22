@@ -1,6 +1,7 @@
 import { AzureKeyCredential, OpenAIClient } from '@azure/openai';
 import colors from 'colors';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
+import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { AvailableModel } from '../../execution/AvailableModel';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import type { ChatPromptResult } from '../../execution/PromptResult';
@@ -16,6 +17,7 @@ import type { string_markdown_text } from '../../types/typeAliases';
 import type { string_title } from '../../types/typeAliases';
 import { getCurrentIsoDate } from '../../utils/getCurrentIsoDate';
 import { replaceParameters } from '../../utils/replaceParameters';
+import { $asDeeplyFrozenSerializableJson } from '../../utils/serialization/$asDeeplyFrozenSerializableJson';
 import { OPENAI_MODELS } from '../openai/openai-models';
 import type { AzureOpenAiExecutionToolsOptions } from './AzureOpenAiExecutionToolsOptions';
 
@@ -172,7 +174,7 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools {
                 },
             } satisfies PromptResultUsage; /* <- TODO: [🤛] */
 
-            return {
+            return $asDeeplyFrozenSerializableJson('AzureOpenAiExecutionTools ChatPromptResult', {
                 content: resultContent,
                 modelName,
                 timing: {
@@ -182,9 +184,13 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools {
                 usage,
                 rawPromptContent,
                 rawRequest,
-                rawResponse,
+                rawResponse: {
+                    ...rawResponse,
+                    created: rawResponse.created.toISOString(),
+                    //  <- TODO: Put `created` at begining
+                },
                 // <- [🗯]
-            };
+            });
         } catch (error) {
             throw this.transformAzureError(error as { code: string; message: string });
         }
@@ -234,7 +240,9 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools {
                 [rawPromptContent] as Array<string_completion_prompt>,
                 modelSettings,
             ] as const;
+
             const rawResponse = await client.getCompletions(...rawRequest);
+
             if (this.options.isVerbose) {
                 console.info(colors.bgWhite('rawResponse'), JSON.stringify(rawResponse, null, 4));
             }
@@ -264,7 +272,7 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools {
                 },
             } satisfies PromptResultUsage; /* <- TODO: [🤛] */
 
-            return {
+            return $asDeeplyFrozenSerializableJson('AzureOpenAiExecutionTools CompletionPromptResult', {
                 content: resultContent,
                 modelName,
                 timing: {
@@ -274,9 +282,13 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools {
                 usage,
                 rawPromptContent,
                 rawRequest,
-                rawResponse,
+                rawResponse: {
+                    ...rawResponse,
+                    created: rawResponse.created.toISOString(),
+                    //  <- TODO: Put `created` at begining
+                },
                 // <- [🗯]
-            };
+            });
         } catch (error) {
             throw this.transformAzureError(error as { code: string; message: string });
         }
@@ -288,12 +300,16 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools {
      * Changes Azure error (which is not propper Error but object) to propper Error
      */
     private transformAzureError(azureError: { code: string; message: string }): Error {
+        if (azureError instanceof UnexpectedError) {
+            return azureError;
+        }
+
         if (typeof azureError !== 'object' || azureError === null) {
             return new PipelineExecutionError(`Unknown Azure OpenAI error`);
         }
 
         const { code, message } = azureError;
-        return new PipelineExecutionError(`${code}: ${message}`);
+        return new PipelineExecutionError(`${code || '(No Azure error code)'}: ${message}`);
     }
 }
 

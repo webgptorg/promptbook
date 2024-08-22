@@ -1,7 +1,7 @@
 #!/usr/bin/env ts-node
+// make-promptbook-collection.ts
+
 import * as dotenv from 'dotenv';
-
-
 dotenv.config({ path: '.env' });
 
 import colors from 'colors';

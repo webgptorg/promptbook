@@ -17,6 +17,7 @@ import type { string_title } from '../../types/typeAliases';
 import { getCurrentIsoDate } from '../../utils/getCurrentIsoDate';
 import type { really_any } from '../../utils/organization/really_any';
 import { replaceParameters } from '../../utils/replaceParameters';
+import { $asDeeplyFrozenSerializableJson } from '../../utils/serialization/$asDeeplyFrozenSerializableJson';
 import { ANTHROPIC_CLAUDE_MODELS } from './anthropic-claude-models';
 import type { AnthropicClaudeExecutionToolsDirectOptions } from './AnthropicClaudeExecutionToolsOptions';
 import { computeAnthropicClaudeUsage } from './computeAnthropicClaudeUsage';
@@ -145,7 +146,7 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools {
         complete = getCurrentIsoDate();
         const usage = computeAnthropicClaudeUsage(content, '', rawResponse);
 
-        return {
+        return $asDeeplyFrozenSerializableJson('AnthropicClaudeExecutionTools ChatPromptResult', {
             content: resultContent,
             modelName: rawResponse.model,
             timing: {
@@ -157,14 +158,14 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools {
             rawRequest,
             rawResponse,
             // <- [🗯]
-        };
+        });
     }
 
     /*
     TODO: [👏]
     public async callCompletionModel(
         prompt: Pick<Prompt, 'content' | 'parameters' | 'modelRequirements'>,
-    ): Promise<PromptCompletionResult> {
+    ): Promise<CompletionPromptResult> {
 
         if (this.options.isVerbose) {
             console.info('🖋 Anthropic Claude callCompletionModel call');
@@ -217,7 +218,7 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools {
 
 
 
-        return {
+        return $asDeeplyFrozenSerializableJson('AnthropicClaudeExecutionTools CompletionPromptResult',{
             content: resultContent,
             modelName: rawResponse.model || model,
             timing: {
@@ -227,7 +228,7 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools {
             usage,
             rawResponse,
             // <- [🗯]
-        };
+        });
     }
     */
 

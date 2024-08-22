@@ -12,6 +12,7 @@ import type { string_markdown_text } from '../../types/typeAliases';
 import type { string_title } from '../../types/typeAliases';
 import { getCurrentIsoDate } from '../../utils/getCurrentIsoDate';
 import { replaceParameters } from '../../utils/replaceParameters';
+import { $asDeeplyFrozenSerializableJson } from '../../utils/serialization/$asDeeplyFrozenSerializableJson';
 import { $fakeTextToExpectations } from './$fakeTextToExpectations';
 
 /**
@@ -58,7 +59,10 @@ export class MockedFackedLlmExecutionTools implements LlmExecutionTools {
      * Fakes chat model
      */
     public async callChatModel(
-        prompt: Pick<Prompt, 'content' | 'parameters' | 'modelRequirements' | 'expectations' | 'postprocessing'>,
+        prompt: Pick<
+            Prompt,
+            'content' | 'parameters' | 'modelRequirements' | 'expectations' | 'postprocessingFunctionNames'
+        >,
     ): Promise<ChatPromptResult & CompletionPromptResult> {
         if (this.options.isVerbose) {
             console.info('💬 Mocked faked prompt', prompt);
@@ -74,7 +78,7 @@ export class MockedFackedLlmExecutionTools implements LlmExecutionTools {
             prompt.expectations || {
                 sentences: { min: 1, max: 1 },
             },
-            prompt.postprocessing,
+            prompt.postprocessingFunctionNames,
         );
 
         const result = {
@@ -97,14 +101,20 @@ export class MockedFackedLlmExecutionTools implements LlmExecutionTools {
             console.info('💬 Mocked faked result', result);
         }
 
-        return result;
+        return $asDeeplyFrozenSerializableJson(
+            'MockedFackedLlmExecutionTools (ChatPromptResult or CompletionPromptResult)',
+            result,
+        );
     }
 
     /**
      * Fakes completion model
      */
     public async callCompletionModel(
-        prompt: Pick<Prompt, 'content' | 'parameters' | 'modelRequirements' | 'expectations' | 'postprocessing'>,
+        prompt: Pick<
+            Prompt,
+            'content' | 'parameters' | 'modelRequirements' | 'expectations' | 'postprocessingFunctionNames'
+        >,
     ): Promise<CompletionPromptResult> {
         return this.callChatModel(prompt);
     }
@@ -113,7 +123,10 @@ export class MockedFackedLlmExecutionTools implements LlmExecutionTools {
      * Fakes embedding model
      */
     public async callEmbeddingModel(
-        prompt: Pick<Prompt, 'content' | 'parameters' | 'modelRequirements' | 'expectations' | 'postprocessing'>,
+        prompt: Pick<
+            Prompt,
+            'content' | 'parameters' | 'modelRequirements' | 'expectations' | 'postprocessingFunctionNames'
+        >,
     ): Promise<EmbeddingPromptResult> {
         const modelName = 'mocked-facked';
         const rawPromptContent = replaceParameters(prompt.content, { ...prompt.parameters, modelName });
@@ -149,7 +162,7 @@ export class MockedFackedLlmExecutionTools implements LlmExecutionTools {
             console.info('💬 Mocked faked result', result);
         }
 
-        return result;
+        return $asDeeplyFrozenSerializableJson('MockedFackedLlmExecutionTools EmbeddingPromptResult', result);
     }
 
     // <- Note: [🤖] callXxxModel

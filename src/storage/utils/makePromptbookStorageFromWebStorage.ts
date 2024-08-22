@@ -1,4 +1,6 @@
 import { stringifyPipelineJson } from '../../conversion/utils/stringifyPipelineJson';
+import { UnexpectedError } from '../../errors/UnexpectedError';
+import { isSerializableAsJson } from '../../utils/serialization/isSerializableAsJson';
 import type { PromptbookStorage } from '../_common/PromptbookStorage';
 
 /**
@@ -23,6 +25,10 @@ export function makePromptbookStorageFromWebStorage<TValue>(webStorage: Storage)
         },
 
         setItem(key: string, value: TValue): void {
+            if (!isSerializableAsJson(value)) {
+                throw new UnexpectedError(`The "${key}" you want to store in web storage is not serializable as JSON`);
+            }
+
             const stringValue = stringifyPipelineJson(value);
             webStorage.setItem(key, stringValue);
         },

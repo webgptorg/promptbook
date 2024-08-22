@@ -8,7 +8,7 @@ import type { string_system_message } from './typeAliases';
  * Abstract way to specify the LLM.
  * It does not specify the LLM with concrete version itself, only the requirements for the LLM.
  *
- * Note: This is fully serializable as JSON
+ * Note: [🚉] This is fully serializable as JSON
  * @see https://github.com/webgptorg/promptbook#model-requirements
  */
 export type ModelRequirements =
@@ -19,7 +19,7 @@ export type ModelRequirements =
 /**
  * Model requirements for the completion variant
  *
- * Note: This is fully serializable as JSON
+ * Note: [🚉] This is fully serializable as JSON
  */
 export type CompletionModelRequirements = CommonModelRequirements & {
     /**
@@ -31,7 +31,7 @@ export type CompletionModelRequirements = CommonModelRequirements & {
 /**
  * Model requirements for the chat variant
  *
- * Note: This is fully serializable as JSON
+ * Note: [🚉] This is fully serializable as JSON
  */
 export type ChatModelRequirements = CommonModelRequirements & {
     /**
@@ -48,7 +48,7 @@ export type ChatModelRequirements = CommonModelRequirements & {
 /**
  * Model requirements for the embedding variant
  *
- * Note: This is fully serializable as JSON
+ * Note: [🚉] This is fully serializable as JSON
  */
 export type EmbeddingModelRequirements = CommonModelRequirements & {
     /**
@@ -62,7 +62,7 @@ export type EmbeddingModelRequirements = CommonModelRequirements & {
 /**
  * Common properties for all model requirements variants
  *
- * Note: This is fully serializable as JSON
+ * Note: [🚉] This is fully serializable as JSON
  */
 export type CommonModelRequirements = {
     /**

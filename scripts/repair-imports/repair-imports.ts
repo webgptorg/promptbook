@@ -1,14 +1,15 @@
 #!/usr/bin/env ts-node
+// repair-imports.ts
 
 import colors from 'colors';
 import commander from 'commander';
 import { dirname, join, relative } from 'path';
 import spaceTrim from 'spacetrim';
 import { commit } from '../utils/autocommit/commit';
+import { isWorkingTreeClean } from '../utils/autocommit/isWorkingTreeClean';
 import { findAllProjectEntities } from '../utils/findAllProjectEntities';
 import { readAllProjectFiles } from '../utils/readAllProjectFiles';
 import { writeAllProjectFiles } from '../utils/writeAllProjectFiles';
-import { isWorkingTreeClean } from '../utils/autocommit/isWorkingTreeClean';
 /*
 import { findAllProjectFiles } from '../utils/findAllProjectFiles';
 import { execCommands } from '../utils/execCommand/execCommands';

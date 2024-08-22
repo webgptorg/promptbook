@@ -6,6 +6,8 @@ import type { SimpleTemplateJson } from './SimpleTemplateJson';
 
 /**
  * Describes one prompt template in the promptbook
+ *
+ * Note: [🚉] This is fully serializable as JSON
  */
 export type PromptTemplateJson =
     | LlmTemplateJson

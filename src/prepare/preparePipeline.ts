@@ -9,7 +9,8 @@ import { preparePersona } from '../personas/preparePersona';
 import type { PersonaPreparedJson } from '../types/PipelineJson/PersonaJson';
 import type { PipelineJson } from '../types/PipelineJson/PipelineJson';
 import type { PreparationJson } from '../types/PipelineJson/PreparationJson';
-import { clonePipeline } from '../utils/clonePipeline';
+import { $asDeeplyFrozenSerializableJson } from '../utils/serialization/$asDeeplyFrozenSerializableJson';
+import { clonePipeline } from '../utils/serialization/clonePipeline';
 import { PROMPTBOOK_VERSION } from '../version';
 import { isPipelinePrepared } from './isPipelinePrepared';
 import type { PrepareOptions } from './PrepareOptions';
@@ -33,7 +34,7 @@ export async function preparePipeline(pipeline: PipelineJson, options: PrepareOp
         parameters,
         promptTemplates,
         /*
-        <- TODO: [🧠][0] `promptbookVersion` */
+        <- TODO: [🧠][🪑] `promptbookVersion` */
         knowledgeSources /*
         <- TODO: [🧊] `knowledgePieces` */,
         personas /*
@@ -44,11 +45,13 @@ export async function preparePipeline(pipeline: PipelineJson, options: PrepareOp
     //    <- TODO: [🌯]
 
     /*
-    TODO: [🧠][0] Should this be done or not
+    TODO: [🧠][🪑][🔃] Should this be done or not
     if (promptbookVersion !== PROMPTBOOK_VERSION) {
         throw new VersionMismatchError(`Can not prepare the pipeline`, promptbookVersion);
     }
     */
+
+    // TODO: [🔃] !!!!! If the pipeline was prepared with different version or different set of models, prepare it once again
 
     // ----- ID -----
     const currentPreparation: Writable<PreparationJson> = {
@@ -135,14 +138,14 @@ export async function preparePipeline(pipeline: PipelineJson, options: PrepareOp
     // Note: Count total usage
     currentPreparation.usage = llmToolsWithUsage.getTotalUsage();
 
-    return {
+    return $asDeeplyFrozenSerializableJson('Prepared PipelineJson', {
         ...clonePipeline(pipeline),
         promptTemplates: promptTemplatesPrepared,
         knowledgeSources: knowledgeSourcesPrepared,
         knowledgePieces: knowledgePiecesPrepared,
         personas: preparedPersonas,
         preparations,
-    };
+    });
 }
 
 /**

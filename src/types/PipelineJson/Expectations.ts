@@ -8,7 +8,7 @@ import type { number_positive } from '../typeAliases';
  * For example 5 words, 3 sentences, 2 paragraphs, ...
  *
  * Note: Expectations are performed after all postprocessing steps
- *
+ * Note: [🚉] This is fully serializable as JSON
  * @see https://github.com/webgptorg/promptbook/discussions/30
  */
 export type Expectations = Partial<
@@ -18,6 +18,7 @@ export type Expectations = Partial<
 /**
  * Unit of text measurement
  *
+ * Note: [🚉] This is fully serializable as JSON
  * @see https://github.com/webgptorg/promptbook/discussions/30
  */
 export type ExpectationUnit = TupleToUnion<typeof EXPECTATION_UNITS>;
@@ -33,6 +34,7 @@ export const EXPECTATION_UNITS = ['CHARACTERS', 'WORDS', 'SENTENCES', 'LINES', '
 /**
  * Amount of text measurement
  *
+ * Note: [🚉] This is fully serializable as JSON
  * @see https://github.com/webgptorg/promptbook/discussions/30
  */
 export type ExpectationAmount = number_integer & (number_positive | 0);

@@ -1,4 +1,5 @@
 #!/usr/bin/env ts-node
+// generate-samples-jsons.ts
 
 import * as dotenv from 'dotenv';
 dotenv.config({ path: '.env' });

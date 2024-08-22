@@ -456,6 +456,20 @@ Was accidentally released skipped
 -   Add `$llmToolsRegister`
 -   Rename `Openai` ->`OpenAi`
 
+### `0.67.0` _(2024-08-21)_
+
+[🚉] Types and interfaces, JSON serialization
+
+-   `ExecutionReportJson` is fully serializable as JSON
+-   [🛫] `Prompt` is fully serializable as JSON
+-   Add type `string_postprocessing_function_name`
+-   Add `isSerializableAsJson` utility function, use it to protect inputs and check outputs and export from `@promptbook/utils`
+-   Add `serializeError` and `deserializeError` utility functions and export from `@promptbook/utils`
+-   Rename `ReferenceError` to `PipelineUrlError`
+-   Make index of all errors and export from `@promptbook/core`
+-   Mark all entities that are fully serializable as JSON by `[🚉]`
+-   When running in browser, auto add `dangerouslyAllowBrowser` from `createOpenAiExecutionTools`
+
 ## In prepare
 
 ### `0..0` _(2024-0-)_

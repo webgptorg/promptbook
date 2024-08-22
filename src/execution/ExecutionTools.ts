@@ -12,7 +12,7 @@ export type ExecutionTools = {
     /**
      * Tools for executing prompts to large language models like GPT-4
      *
-     * Tip: Combine multiple LLM execution tools - use array of LlmExecutionTools instead of single LlmExecutionTools
+     * Tip: Use `createLlmToolsFromEnv()` to use all available LLM providers you configured
      * @see https://github.com/webgptorg/promptbook/?tab=readme-ov-file#llm-execution-tools
      */
     llm?: Arrayable<LlmExecutionTools>;
@@ -22,9 +22,12 @@ export type ExecutionTools = {
      *
      * Note: You can pass multiple ScriptExecutionTools, they will be tried one by one until one of them supports the script
      *       If none of them supports the script, an error is thrown
+     * Tip: Use here `new JavascriptExecutionTools()`
+     *
      * @see https://github.com/webgptorg/promptbook/?tab=readme-ov-file#script-execution-tools
+     * @default [] - If not provided, no script execution will be possible
      */
-    script?: Arrayable<ScriptExecutionTools>; // <- TODO: [🧠] Maybe not Array but Arrayable
+    script?: Arrayable<ScriptExecutionTools>;
 
     /**
      * Tools for interacting with the user

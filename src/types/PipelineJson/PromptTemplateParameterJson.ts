@@ -4,6 +4,8 @@ import type { string_parameter_value } from '../typeAliases';
 
 /**
  * Describes one parameter of the promptbook
+ *
+ * Note: [🚉] This is fully serializable as JSON
  */
 export type PromptTemplateParameterJson = {
     /**

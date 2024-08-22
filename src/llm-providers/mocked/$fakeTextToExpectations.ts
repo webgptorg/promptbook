@@ -1,10 +1,12 @@
 import { LoremIpsum } from 'lorem-ipsum';
 import { spaceTrim } from 'spacetrim';
+import { JavascriptExecutionTools } from '../../scripting/javascript/JavascriptExecutionTools';
 import { CHARACTER_LOOP_LIMIT } from '../../config';
 import { LimitReachedError } from '../../errors/LimitReachedError';
+import type { ScriptExecutionTools } from '../../execution/ScriptExecutionTools';
 import { isPassingExpectations } from '../../execution/utils/checkExpectations';
-import type { PostprocessingFunction } from '../../scripting/javascript/JavascriptExecutionToolsOptions';
 import type { Expectations } from '../../types/PipelineJson/Expectations';
+import type { string_postprocessing_function_name } from '../../types/typeAliases';
 
 /**
  * Gets the expectations and creates a fake text that meets the expectations
@@ -17,7 +19,7 @@ import type { Expectations } from '../../types/PipelineJson/Expectations';
  */
 export async function $fakeTextToExpectations(
     expectations: Expectations,
-    postprocessing?: Array<PostprocessingFunction>,
+    postprocessingFunctionNames?: Array<string_postprocessing_function_name>,
 ): Promise<string> {
     const lorem = new LoremIpsum(
         //            <- TODO: [🧱] Implement in a functional (not new Class) way
@@ -31,8 +33,21 @@ export async function $fakeTextToExpectations(
 
     for (let loopLimit = CHARACTER_LOOP_LIMIT; loopLimit-- > 0; ) {
         let textToCheck = text;
-        for (const func of postprocessing || []) {
-            textToCheck = await func(textToCheck);
+
+        // TODO: DRY [☯]
+        let scriptTools: ScriptExecutionTools | null = null;
+        for (const postprocessingFunctionName of postprocessingFunctionNames || []) {
+            if (scriptTools === null) {
+                scriptTools = new JavascriptExecutionTools();
+            }
+            textToCheck = await scriptTools.execute({
+                scriptLanguage: `javascript` /* <- TODO: Try it in each languages; In future allow postprocessing with arbitrary combination of languages to combine */,
+                script: `${postprocessingFunctionName}(result)`,
+                parameters: {
+                    result: textToCheck || '',
+                    // Note: No ...parametersForTemplate, because working with result only
+                },
+            });
         }
 
         if (isPassingExpectations(expectations, textToCheck)) {

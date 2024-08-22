@@ -213,7 +213,7 @@ export class JavascriptEvalExecutionTools implements ScriptExecutionTools {
                 const undefinedName = error.message.split(' ')[0];
                 /*
                 Note: Remapping error
-                      From: [ReferenceError: thing is not defined],
+                      From: [PipelineUrlError: thing is not defined],
                       To:   [PipelineExecutionError: Parameter {thing} is not defined],
                 */
 

@@ -15,6 +15,8 @@ import type { PromptTemplateParameterJson } from './PromptTemplateParameterJson'
  * Promptbook is the **core concept of this package**.
  * It represents a series of prompt templates chained together to form a pipeline / one big prompt template with input and result parameters.
  *
+ * Note: [🚉] This is fully serializable as JSON
+ *
  * @see @@@ https://github.com/webgptorg/promptbook#promptbook
  */
 export type PipelineJson = {
