@@ -24,12 +24,13 @@ If you need something more advanced or want to extend the capabilities of LLMs, 
 
 1. **Fine-tune** the model to your specifications or even train your own.
 2. **Prompt-engineer** the prompt to the best shape you can achieve.
-3. Use **multiple prompts** in a pipeline to get the best result.
+3. Use **multiple prompts** in a [pipeline](https://github.com/webgptorg/promptbook/discussions/64) to get the best result.
 
-In any of these situations, but especially in (3), the Promptbook library can make your life easier and make **orchestraror for your prompts**.
+In any of these situations, but especially in 3., the Promptbook library can make your life easier.
 
 -   **Separation of concerns** between prompt engineer and programmer; between code files and prompt files; and between prompts and their execution logic.
--   Set up a **common format** for prompts that is interchangeable between projects and language/technology stacks.
+-   Establishes a **common format** for prompts that is interchangeable between projects and language/technology stacks.
+-   Has built-in **orchestration** of pipeline execution and lot of tools to make the process easier, more reliable, more efficient like Just-in-time fine-tuning, Expectation-aware generation, Anomaly detection, Agent adversary expectations, and more.
 -   **Preprocessing** and cleaning the input data from the user.
 -   Use default values - **Jokers** to bypass some parts of the pipeline.
 -   **Expect** some specific output from the model.
