@@ -1,19 +1,17 @@
 import type { Socket } from 'socket.io-client';
 import { io } from 'socket.io-client';
+import { CONNECTION_RETRIES_LIMIT, CONNECTION_TIMEOUT_MS } from '../../config';
 import { deserializeError } from '../../errors/utils/deserializeError';
 import type { AvailableModel } from '../../execution/AvailableModel';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { ChatPromptResult } from '../../execution/PromptResult';
-import type { CompletionPromptResult } from '../../execution/PromptResult';
-import type { EmbeddingPromptResult } from '../../execution/PromptResult';
-import type { PromptResult } from '../../execution/PromptResult';
-import type { ChatPrompt } from '../../types/Prompt';
-import type { CompletionPrompt } from '../../types/Prompt';
-import type { EmbeddingPrompt } from '../../types/Prompt';
-import type { Prompt } from '../../types/Prompt';
-import type { string_markdown } from '../../types/typeAliases';
-import type { string_markdown_text } from '../../types/typeAliases';
-import type { string_title } from '../../types/typeAliases';
+import type {
+    ChatPromptResult,
+    CompletionPromptResult,
+    EmbeddingPromptResult,
+    PromptResult,
+} from '../../execution/PromptResult';
+import type { ChatPrompt, CompletionPrompt, EmbeddingPrompt, Prompt } from '../../types/Prompt';
+import type { string_markdown, string_markdown_text, string_title } from '../../types/typeAliases';
 import type { PromptbookServer_Error } from './interfaces/PromptbookServer_Error';
 import type { PromptbookServer_ListModels_Request } from './interfaces/PromptbookServer_ListModels_Request';
 import type { PromptbookServer_ListModels_Response } from './interfaces/PromptbookServer_ListModels_Response';
@@ -46,7 +44,7 @@ export class RemoteLlmExecutionTools implements LlmExecutionTools {
      * Check the configuration of all execution tools
      */
     public async checkConfiguration(): Promise<void> {
-        const socket = await this.makeConnection();
+        const socket = await this.makeConnectionWithRetry();
         socket.disconnect();
 
         // TODO: !!! Check version of the remote server and compatibility
@@ -58,7 +56,7 @@ export class RemoteLlmExecutionTools implements LlmExecutionTools {
      */
     public async listModels(): Promise<Array<AvailableModel>> {
         // TODO: [👒] Listing models (and checking configuration) probbably should go through REST API not Socket.io
-        const socket = await this.makeConnection();
+        const socket = await this.makeConnectionWithRetry();
 
         if (this.options.isAnonymous) {
             socket.emit(
@@ -102,6 +100,8 @@ export class RemoteLlmExecutionTools implements LlmExecutionTools {
             //            <- TODO: [🧱] Implement in a functional (not new Class) way
             (resolve, reject) => {
                 const socket = io(this.options.remoteUrl, {
+                    retries: CONNECTION_RETRIES_LIMIT,
+                    timeout: CONNECTION_TIMEOUT_MS,
                     path: this.options.path,
                     // path: `${this.remoteUrl.pathname}/socket.io`,
                     transports: [/*'websocket', <- TODO: [🌬] Make websocket transport work */ 'polling'],
@@ -117,9 +117,16 @@ export class RemoteLlmExecutionTools implements LlmExecutionTools {
 
                 setTimeout(() => {
                     reject(new Error(`Timeout while connecting to ${this.options.remoteUrl}`));
-                }, 60000 /* <- TODO: Timeout to config */);
+                }, CONNECTION_TIMEOUT_MS);
             },
         );
+    }
+
+    /**
+     * Creates a connection to the remote proxy server.
+     */
+    private makeConnectionWithRetry(tries: number = 0): Promise<Socket> {
+        return await makeConnectionWithRetry(tries);
     }
 
     /**
@@ -158,7 +165,7 @@ export class RemoteLlmExecutionTools implements LlmExecutionTools {
      * Calls remote proxy server to use both completion or chat model
      */
     private async callCommonModel(prompt: Prompt): Promise<PromptResult> {
-        const socket = await this.makeConnection();
+        const socket = await this.makeConnectionWithRetry();
 
         if (this.options.isAnonymous) {
             socket.emit(

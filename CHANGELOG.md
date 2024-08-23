@@ -460,6 +460,8 @@ Was accidentally released skipped
 
 [🚉] Types and interfaces, JSON serialization
 
+-   Enhance 🤍 The Promptbook Whitepaper
+-   Enhance the `README.md`
 -   `ExecutionReportJson` is fully serializable as JSON
 -   [🛫] `Prompt` is fully serializable as JSON
 -   Add type `string_postprocessing_function_name`
@@ -469,6 +471,7 @@ Was accidentally released skipped
 -   Make index of all errors and export from `@promptbook/core`
 -   Mark all entities that are fully serializable as JSON by `[🚉]`
 -   When running in browser, auto add `dangerouslyAllowBrowser` from `createOpenAiExecutionTools`
+-   `RemoteLlmExecutionTools` automatically retries on error
 
 ## In prepare
 

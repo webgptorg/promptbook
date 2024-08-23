@@ -41,6 +41,20 @@ export const LOOP_LIMIT = 1000;
 export const CHARACTER_LOOP_LIMIT = 100000;
 
 /**
+ * Timeout for the connections in milliseconds
+ *
+ * @private within the repository - too low-level in comparison with other `MAX_...`
+ */
+export const CONNECTION_TIMEOUT_MS = 7 * 1000;
+
+/**
+ * How many times to retry the connections
+ *
+ * @private within the repository - too low-level in comparison with other `MAX_...`
+ */
+export const CONNECTION_RETRIES_LIMIT = 5;
+
+/**
  * The maximum number of (LLM) tasks running in parallel
  *
  * @public exported from `@promptbook/core`
