@@ -60,37 +60,23 @@ Rest of the documentation is common for **entire promptbook ecosystem**:
 
 ## 🤍 The Promptbook Whitepaper
 
-When you have a simple, single prompt for ChatGPT, GPT-4, Anthropic Claude, Google Gemini, Llama 2, or whatever, it doesn't matter how it is integrated. Whether it's the direct calling of a REST API, using the SDK, hardcoding the prompt in the source code, or importing a text file, the process remains the same.
+If you have a simple, single prompt for ChatGPT, GPT-4, Anthropic Claude, Google Gemini, Llama 2, or whatever, it doesn't matter how you integrate it. Whether it's calling a REST API directly, using the SDK, hardcoding the prompt into the source code, or importing a text file, the process remains the same.
 
-If you need something more advanced or want to extend the capabilities of LLMs, you generally have three ways to proceed:
+But often you will struggle with the limitations of LLMs, such as hallucinations, off-topic responses, poor quality output, language drift, word repetition repetition repetition repetition or misuse, lack of context, or just plain w𝒆𝐢rd responses. When this happens, you generally have three options:
 
 1. **Fine-tune** the model to your specifications or even train your own.
 2. **Prompt-engineer** the prompt to the best shape you can achieve.
-3. Use **multiple prompts** in a pipeline to get the best result.
+3. Use **multiple prompts** in a [pipeline](https://github.com/webgptorg/promptbook/discussions/64) to get the best result.
 
-In any of these situations, but especially in (3), the Promptbook library can make your life easier and make **orchestraror for your prompts**.
+In all of these situations, but especially in 3., the Promptbook library can make your life easier.
 
--   **Separation of concerns** between prompt engineer and programmer; between code files and prompt files; and between prompts and their execution logic.
--   Set up a **common format** for prompts that is interchangeable between projects and language/technology stacks.
--   **Preprocessing** and cleaning the input data from the user.
--   Use default values - **Jokers** to bypass some parts of the pipeline.
--   **Expect** some specific output from the model.
--   **Retry** mismatched outputs.
--   **Combine** multiple models together.
--   Interactive **User interaction** with the model and the user.
--   Leverage **external** sources (like ChatGPT plugins or OpenAI's GPTs).
--   Simplify your code to be **DRY** and not repeat all the boilerplate code for each prompt.
--   **Versioning** of promptbooks
--   **Reuse** parts of promptbooks in/between projects.
--   Run the LLM **optimally** in parallel, with the best _cost/quality_ ratio or _speed/quality_ ratio.
--   **Execution report** to see what happened during the execution.
--   **Logging** the results of the promptbooks.
--   _(Not ready yet)_ **Caching** calls to LLMs to save money and time.
--   _(Not ready yet)_ Extend one prompt book from another one.
--   _(Not ready yet)_ Leverage the **streaming** to make super cool UI/UX.
--   _(Not ready yet)_ **A/B testing** to determine which prompt works best for the job.
-
-
+-   [**Separates concerns**](https://github.com/webgptorg/promptbook/discussions/32) between prompt-engineer and programmer, between code files and prompt files, and between prompts and their execution logic.
+-   Establishes a [**common format `.ptbk.md`**](https://github.com/webgptorg/promptbook/discussions/85) that can be used to describe your prompt business logic without having to write code or deal with the technicalities of LLMs.
+-   **Forget** about **low-level details** like choosing the right model, tokens, context size, temperature, top-k, top-p, or kernel sampling. **Just write your intent** and [**persona**](https://github.com/webgptorg/promptbook/discussions/22) who should be responsible for the task and let the library do the rest.
+-   Has built-in **orchestration** of [pipeline](https://github.com/webgptorg/promptbook/discussions/64) execution and many tools to make the process easier, more reliable, and more efficient, such as caching, [compilation+preparation](https://github.com/webgptorg/promptbook/discussions/78), [just-in-time fine-tuning](https://github.com/webgptorg/promptbook/discussions/33), [expectation-aware generation](https://github.com/webgptorg/promptbook/discussions/37), [agent adversary expectations](https://github.com/webgptorg/promptbook/discussions/39), and more.
+-   Sometimes even the best prompts with the best framework like Promptbook `:)` can't avoid the problems. In this case, the library has built-in **[anomaly detection](https://github.com/webgptorg/promptbook/discussions/40) and logging** to help you find and fix the problems.
+-   Promptbook has built in versioning. You can test multiple **A/B versions** of pipelines and see which one works best.
+-   Promptbook is designed to do [**RAG** (Retrieval-Augmented Generation)](https://github.com/webgptorg/promptbook/discussions/41) and other advanced techniques. You can use **knowledge** to improve the quality of the output.
 
 ## 🧔 Promptbook _(for prompt-engeneers)_
 
@@ -134,9 +120,7 @@ File `write-website-content.ptbk.md`:
 >
 > ## ✨ Improving the title
 >
-> -   MODEL VARIANT Chat
-> -   MODEL NAME `gpt-4`
-> -   POSTPROCESSING `unwrapResult`
+> -   PERSONA Jane, Copywriter and Marketing Specialist.
 >
 > ```
 > As an experienced marketing specialist, you have been entrusted with improving the name of your client's business.
@@ -170,9 +154,7 @@ File `write-website-content.ptbk.md`:
 >
 > ## 🐰 Cunning subtitle
 >
-> -   MODEL VARIANT Chat
-> -   MODEL NAME `gpt-4`
-> -   POSTPROCESSING `unwrapResult`
+> -   PERSONA Josh, a copywriter, tasked with creating a claim for the website.
 >
 > ```
 > As an experienced copywriter, you have been entrusted with creating a claim for the "{title}" web page.
@@ -192,8 +174,7 @@ File `write-website-content.ptbk.md`:
 >
 > ## 🚦 Keyword analysis
 >
-> -   MODEL VARIANT Chat
-> -   MODEL NAME `gpt-4`
+> -   PERSONA Paul, extremely creative SEO specialist.
 >
 > ```
 > As an experienced SEO specialist, you have been entrusted with creating keywords for the website "{title}".
@@ -237,8 +218,7 @@ File `write-website-content.ptbk.md`:
 >
 > ## 🖋 Write the content
 >
-> -   MODEL VARIANT Completion
-> -   MODEL NAME `gpt-3.5-turbo-instruct`
+> -   PERSONA Jane
 >
 > ```
 > As an experienced copywriter and web designer, you have been entrusted with creating text for a new website {title}.
@@ -417,7 +397,12 @@ The following glossary is used to clarify certain concepts:
 
 ### ➖ When not to use
 
--   When you are writing just a simple chatbot without any extra logic, just system messages
+-   When you have already implemented single simple prompt and it works fine for your job
+-   When [OpenAI Assistant (GPTs)](https://help.openai.com/en/articles/8673914-gpts-vs-assistants) is enough for you
+-   When you need streaming _(this may be implemented in the future, [see discussion](https://github.com/webgptorg/promptbook/discussions/102))_.
+-   When you need to use something other than JavaScript or TypeScript _(other languages are on the way, [see the discussion](https://github.com/webgptorg/promptbook/discussions/101))_
+-   When your main focus is on something other than text - like images, audio, video, spreadsheets _(other media types may be added in the future, [see discussion](https://github.com/webgptorg/promptbook/discussions/103))_
+-   When you need to use recursion _([see the discussion](https://github.com/webgptorg/promptbook/discussions/38))_
 
 ## 🐜 Known issues
 
@@ -425,7 +410,6 @@ The following glossary is used to clarify certain concepts:
 -   [⤵️ Imports not working yet](https://github.com/webgptorg/promptbook/discussions/34)
 
 ## 🧼 Intentionally not implemented features
-
 
 -   [➿ No recursion](https://github.com/webgptorg/promptbook/discussions/38)
 -   [🏳 There are no types, just strings](https://github.com/webgptorg/promptbook/discussions/52)
