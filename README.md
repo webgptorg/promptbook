@@ -28,13 +28,13 @@ But often you will struggle with the limitations of LLMs, such as hallucinations
 
 In all of these situations, but especially in 3., the Promptbook library can make your life easier.
 
--   Separates **concerns** between prompt-engineer and programmer, between code files and prompt files, and between prompts and their execution logic.
--   Establishes a **common format `.ptbk.md`** that can be used to describe your prompt business logic without having to write code or deal with the technicalities of LLMs.
--   **Forget** about **low-level details** like choosing the right model, tokens, context size, temperature, top-k, top-p, or kernel sampling. **Just write your intent** and **persona** who should be responsible for the task and let the library do the rest.
--   Has built-in **orchestration** of pipeline execution and many tools to make the process easier, more reliable, and more efficient, such as caching, compilation+preparation, just-in-time fine-tuning, expectation-aware generation, anomaly detection, agent adversary expectations, and more.
--   Sometimes even the best prompts with the best framework like Promptbook `:)` can't avoid the problems. In this case, the library has built-in **anomaly detection and logging** to help you find and fix the problems.
+-   [**Separates concerns**](https://github.com/webgptorg/promptbook/discussions/32) between prompt-engineer and programmer, between code files and prompt files, and between prompts and their execution logic.
+-   Establishes a [**common format `.ptbk.md`**](https://github.com/webgptorg/promptbook/discussions/85) that can be used to describe your prompt business logic without having to write code or deal with the technicalities of LLMs.
+-   **Forget** about **low-level details** like choosing the right model, tokens, context size, temperature, top-k, top-p, or kernel sampling. **Just write your intent** and [**persona**](https://github.com/webgptorg/promptbook/discussions/22) who should be responsible for the task and let the library do the rest.
+-   Has built-in **orchestration** of [pipeline](https://github.com/webgptorg/promptbook/discussions/64) execution and many tools to make the process easier, more reliable, and more efficient, such as caching, [compilation+preparation](https://github.com/webgptorg/promptbook/discussions/78), [just-in-time fine-tuning](https://github.com/webgptorg/promptbook/discussions/33), [expectation-aware generation](https://github.com/webgptorg/promptbook/discussions/37), [agent adversary expectations](https://github.com/webgptorg/promptbook/discussions/39), and more.
+-   Sometimes even the best prompts with the best framework like Promptbook `:)` can't avoid the problems. In this case, the library has built-in **[anomaly detection](https://github.com/webgptorg/promptbook/discussions/40) and logging** to help you find and fix the problems.
 -   Promptbook has built in versioning. You can test multiple **A/B versions** of pipelines and see which one works best.
--   Promptbook is designed to do **RAG** (Retrieval-Augmented Generation) and other advanced techniques. You can use **knowledge** to improve the quality of the output.
+-   Promptbook is designed to do [**RAG** (Retrieval-Augmented Generation)](https://github.com/webgptorg/promptbook/discussions/41) and other advanced techniques. You can use **knowledge** to improve the quality of the output.
 
 ## 🧔 Promptbook _(for prompt-engeneers)_
 
