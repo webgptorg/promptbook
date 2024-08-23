@@ -84,7 +84,7 @@ export class SupabaseLoggerWrapperOfLlmExecutionTools implements LlmExecutionToo
             .from('PromptExecution')
             .insert(
                 {
-                    clientId: this.options.clientId,// <- TODO: [🧠][🤺] clientId should be property of each prompt
+                    userId: this.options.userId,// <- TODO: [🧠][🤺] userId should be property of each prompt
                     pipelineUrl: prompt.pipelineUrl,
                     promptAt,
                     promptContent: prompt.content,

@@ -38,15 +38,15 @@ async function main() {
         collection,
         isAnonymousModeAllowed: true,
         isCollectionModeAllowed: true,
-        createLlmExecutionTools(clientId) {
+        createLlmExecutionTools(userId) {
             // <- TODO: [🧠][🤺] Remove `createLlmExecutionTools`, pass just `llmExecutionTools`
-            console.log('clientId', clientId);
+            console.log('userId', userId);
             return new OpenAiExecutionTools(
                 //            <- TODO: [🧱] Implement in a functional (not new Class) way
                 {
                     isVerbose: true,
                     apiKey: process.env.OPENAI_API_KEY!,
-                    user: clientId,
+                    user: userId,
                 },
             );
         },

@@ -12,10 +12,12 @@ export type SupabaseLoggerWrapperOfLlmExecutionToolsOptions = CommonExecutionToo
     readonly llmExecutionTools: LlmExecutionTools;
 
     /**
-     * Client responsible for the requests
+     * Identifier of the end user
+     *
+     * Note: this is passed to the certain model providers to identify misuse
      */
-    readonly clientId: client_id;
-    // <- TODO: [🧠][🤺] clientId should be property of each prompt
+    readonly userId: string_user_id;
+    // <- TODO: [🧠][🤺] userId should be property of each prompt
 }
 
 /**

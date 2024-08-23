@@ -1,5 +1,5 @@
 import type { Prompt } from '../../../types/Prompt';
-import type { client_id } from '../../../types/typeAliases';
+import type { string_user_id } from '../../../types/typeAliases';
 import type { LlmToolsConfiguration } from '../../_common/LlmToolsConfiguration';
 
 /**
@@ -15,12 +15,15 @@ export type PromptbookServer_Prompt_CollectionRequest = {
     /**
      * Collection mode
      */
-    isAnonymous: false;
+    readonly isAnonymous: false;
 
     /**
-     * Client responsible for the requests
+     * Identifier of the end user
+     *
+     * Note: this is passed to the certain model providers to identify misuse
+     * Note: In anonymous mode it is not required to identify
      */
-    readonly clientId: client_id;
+    readonly userId: string_user_id;
 
     /**
      * The Prompt to execute
@@ -32,7 +35,15 @@ export type PromptbookServer_Prompt_AnonymousRequest = {
     /**
      * Anonymous mode
      */
-    isAnonymous: true;
+    readonly isAnonymous: true;
+
+    /**
+     * Identifier of the end user
+     *
+     * Note: this is passed to the certain model providers to identify misuse
+     * Note: In anonymous mode it is not required to identify
+     */
+    readonly userId?: string_user_id;
 
     /**
      * Configuration for the LLM tools
@@ -44,7 +55,6 @@ export type PromptbookServer_Prompt_AnonymousRequest = {
      */
     readonly prompt: Prompt;
 };
-
 
 /**
  * TODO: [👡] DRY `PromptbookServer_Prompt_Request` and `PromptbookServer_ListModels_Request`

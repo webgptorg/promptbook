@@ -1,21 +1,17 @@
 import type { Socket } from 'socket.io-client';
 import { io } from 'socket.io-client';
-import { CONNECTION_RETRIES_LIMIT } from '../../config';
-import { CONNECTION_TIMEOUT_MS } from '../../config';
+import { CONNECTION_RETRIES_LIMIT, CONNECTION_TIMEOUT_MS } from '../../config';
 import { deserializeError } from '../../errors/utils/deserializeError';
 import type { AvailableModel } from '../../execution/AvailableModel';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { ChatPromptResult } from '../../execution/PromptResult';
-import type { CompletionPromptResult } from '../../execution/PromptResult';
-import type { EmbeddingPromptResult } from '../../execution/PromptResult';
-import type { PromptResult } from '../../execution/PromptResult';
-import type { ChatPrompt } from '../../types/Prompt';
-import type { CompletionPrompt } from '../../types/Prompt';
-import type { EmbeddingPrompt } from '../../types/Prompt';
-import type { Prompt } from '../../types/Prompt';
-import type { string_markdown } from '../../types/typeAliases';
-import type { string_markdown_text } from '../../types/typeAliases';
-import type { string_title } from '../../types/typeAliases';
+import type {
+    ChatPromptResult,
+    CompletionPromptResult,
+    EmbeddingPromptResult,
+    PromptResult,
+} from '../../execution/PromptResult';
+import type { ChatPrompt, CompletionPrompt, EmbeddingPrompt, Prompt } from '../../types/Prompt';
+import type { string_markdown, string_markdown_text, string_title } from '../../types/typeAliases';
 import type { PromptbookServer_Error } from './interfaces/PromptbookServer_Error';
 import type { PromptbookServer_ListModels_Request } from './interfaces/PromptbookServer_ListModels_Request';
 import type { PromptbookServer_ListModels_Response } from './interfaces/PromptbookServer_ListModels_Response';
@@ -75,7 +71,6 @@ export class RemoteLlmExecutionTools implements LlmExecutionTools {
                 'listModels-request',
                 {
                     isAnonymous: false,
-                    clientId: this.options.clientId,
                 } satisfies PromptbookServer_ListModels_Request /* <- TODO: [🤛] */,
             );
         }
@@ -169,6 +164,7 @@ export class RemoteLlmExecutionTools implements LlmExecutionTools {
                 'prompt-request',
                 {
                     isAnonymous: true,
+                    userId: this.options.userId,
                     llmToolsConfiguration: this.options.llmToolsConfiguration,
                     prompt,
                 } satisfies PromptbookServer_Prompt_Request /* <- TODO: [🤛] */,
@@ -178,7 +174,7 @@ export class RemoteLlmExecutionTools implements LlmExecutionTools {
                 'prompt-request',
                 {
                     isAnonymous: false,
-                    clientId: this.options.clientId,
+                    userId: this.options.userId,
                     prompt,
                 } satisfies PromptbookServer_Prompt_Request /* <- TODO: [🤛] */,
             );

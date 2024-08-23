@@ -1,4 +1,3 @@
-import type { client_id } from '../../../types/typeAliases';
 import type { LlmToolsConfiguration } from '../../_common/LlmToolsConfiguration';
 
 /**
@@ -15,11 +14,6 @@ export type PromptbookServer_ListModels_CollectionRequest = {
      * Collection mode
      */
     isAnonymous: false;
-
-    /**
-     * Client responsible for the requests
-     */
-    readonly clientId: client_id;
 };
 
 export type PromptbookServer_ListModels_AnonymousRequest = {
@@ -37,6 +31,6 @@ export type PromptbookServer_ListModels_AnonymousRequest = {
 /**
  * TODO: [👡] DRY `PromptbookServer_Prompt_Request` and `PromptbookServer_ListModels_Request`
  * TODO: [🧠][🛍] Maybe not `isAnonymous: boolean` BUT `mode: 'ANONYMOUS'|'COLLECTION'`
- * TODO: [🧠][🤺] Pass `clientId` in `PromptbookServer_ListModels_Request`
+ * TODO: [🧠][🤺] Pass `userId` in `PromptbookServer_ListModels_Request`
  * TODO: [👒] Listing models (and checking configuration) probbably should go through REST API not Socket.io
  */

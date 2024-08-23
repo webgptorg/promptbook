@@ -50,6 +50,10 @@ export function $registeredLlmToolsMessage(): string_markdown {
         return { ...metadata, isMetadataAviailable, isInstalled };
     });
 
+    if (metadata.length === 0) {
+        return `No LLM providers are available.`;
+    }
+
     return spaceTrim(
         (block) => `
             Available LLM providers are:

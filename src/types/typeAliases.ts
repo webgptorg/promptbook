@@ -466,11 +466,9 @@ export type string_uuid = string & {
 };
 
 /**
- * Branded type client id
+ * End user identifier;
  */
-export type client_id = string & {
-    readonly _type: 'client_id' /* <- TODO: [🏟] What is the best shape of the additional object in branded types */;
-};
+export type string_user_id = string;
 
 /**
  * Semantic helper

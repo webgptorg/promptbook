@@ -472,6 +472,7 @@ Was accidentally released skipped
 -   Mark all entities that are fully serializable as JSON by `[🚉]`
 -   When running in browser, auto add `dangerouslyAllowBrowser` from `createOpenAiExecutionTools`
 -   `RemoteLlmExecutionTools` automatically retries on error
+-   Rename `client_id` -> `string_user_id` and `clientId` -> `userId`
 
 ## In prepare
 

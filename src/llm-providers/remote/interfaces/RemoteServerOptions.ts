@@ -1,8 +1,7 @@
 import type { PipelineCollection } from '../../../collection/PipelineCollection';
 import type { CommonExecutionToolsOptions } from '../../../execution/CommonExecutionToolsOptions';
 import type { LlmExecutionTools } from '../../../execution/LlmExecutionTools';
-import type { client_id } from '../../../types/typeAliases';
-import type { string_uri } from '../../../types/typeAliases';
+import type { string_uri, string_user_id } from '../../../types/typeAliases';
 
 /**
  * @@@
@@ -69,7 +68,7 @@ export type CollectionRemoteServerOptions = {
     /**
      * Creates llm execution tools for each client
      */
-    createLlmExecutionTools(clientId: client_id): LlmExecutionTools /* <- TODO: &({}|IDestroyable) */;
+    createLlmExecutionTools(userId: string_user_id | undefined): LlmExecutionTools /* <- TODO: &({}|IDestroyable) */;
 };
 
 /**

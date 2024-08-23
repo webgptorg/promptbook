@@ -1,7 +1,5 @@
 import type { CommonExecutionToolsOptions } from '../../../execution/CommonExecutionToolsOptions';
-import type { client_id } from '../../../types/typeAliases';
-import type { string_base_url } from '../../../types/typeAliases';
-import type { string_uri } from '../../../types/typeAliases';
+import type { string_base_url, string_uri, string_user_id } from '../../../types/typeAliases';
 import type { LlmToolsConfiguration } from '../../_common/LlmToolsConfiguration';
 
 /**
@@ -39,6 +37,14 @@ export type RemoteLlmExecutionToolsOptions = CommonExecutionToolsOptions & {
                * Configuration for the LLM tools
                */
               readonly llmToolsConfiguration: LlmToolsConfiguration;
+
+              /**
+               * Identifier of the end user
+               *
+               * Note: this is passed to the certain model providers to identify misuse
+               * Note: In anonymous mode it is not required to identify
+               */
+              readonly userId?: string_user_id;
           }
         | {
               /**
@@ -47,9 +53,11 @@ export type RemoteLlmExecutionToolsOptions = CommonExecutionToolsOptions & {
               isAnonymous: false;
 
               /**
-               * Your client ID
+               * Identifier of the end user
+               *
+               * Note: this is passed to the certain model providers to identify misuse
                */
-              readonly clientId: client_id;
+              readonly userId: string_user_id;
           }
     );
 

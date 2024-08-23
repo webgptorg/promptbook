@@ -1,0 +1,2 @@
+Anonymous mode
+Collection mode

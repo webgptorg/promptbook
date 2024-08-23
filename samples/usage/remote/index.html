@@ -9,7 +9,7 @@
         <h1>esting remote server of PromptBook</h1>
 
         <form id="input">
-            <input type="text" name="clientId" value="my-client-id" />
+            <input type="text" name="userId" value="my-client-id" />
             <input type="text" name="word" value="Cat" />
             <input type="submit" value="Pun pipeline" />
         </form>
@@ -35,7 +35,7 @@
 //            <- TODO: [🧱] Implement in a functional (not new Class) way
 event.target);
                 const word = formData.get('word');
-                const clientId = formData.get('clientId');
+                const userId = formData.get('userId');
 
 
 
@@ -51,7 +51,7 @@ event.target);
                                 {
                                     path: '/promptbook',
                                     remoteUrl: `http://localhost:4460/`,
-                                    clientId,
+                                    userId,
                                     // <- [🧜‍♂️]
                                 }),
                     script: [

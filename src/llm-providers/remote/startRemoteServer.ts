@@ -94,8 +94,8 @@ export function startRemoteServer(options: RemoteServerOptions): IDestroyable {
         console.info(colors.gray(`Client connected`), socket.id);
 
         socket.on('prompt-request', async (request: PromptbookServer_Prompt_Request) => {
-            const { isAnonymous, prompt, clientId, llmToolsConfiguration } = {
-                clientId: null,
+            const { isAnonymous, prompt, userId, llmToolsConfiguration } = {
+                userId: null,
                 llmToolsConfiguration: null,
                 ...request,
             };
@@ -114,7 +114,7 @@ export function startRemoteServer(options: RemoteServerOptions): IDestroyable {
                     throw new PipelineExecutionError(`Collection mode is not allowed`); // <- TODO: !!! Test
                 }
 
-                // TODO: !!!! Validate here clientId (pass validator as dependency)
+                // TODO: !!!! Validate here userId (pass validator as dependency)
 
                 let llmExecutionTools: LlmExecutionTools;
 
@@ -125,8 +125,8 @@ export function startRemoteServer(options: RemoteServerOptions): IDestroyable {
                 } else if (isAnonymous === false && createLlmExecutionTools !== null) {
                     // Note: Collection mode
                     llmExecutionTools = createLlmExecutionTools(
-                        clientId,
-                        // <- TODO: [🧠][🤺] clientId should be property of each prompt
+                        userId,
+                        // <- TODO: [🧠][🤺] userId should be property of each prompt
                     );
 
                     if (!(await collection.isResponsibleForPrompt(prompt))) {
@@ -190,8 +190,7 @@ export function startRemoteServer(options: RemoteServerOptions): IDestroyable {
 
         // TODO: [👒] Listing models (and checking configuration) probbably should go through REST API not Socket.io
         socket.on('listModels-request', async (request: PromptbookServer_ListModels_Request) => {
-            const { isAnonymous, clientId, llmToolsConfiguration } = {
-                clientId: null,
+            const { isAnonymous, llmToolsConfiguration } = {
                 llmToolsConfiguration: null,
                 ...request,
             };
@@ -210,7 +209,7 @@ export function startRemoteServer(options: RemoteServerOptions): IDestroyable {
                     throw new PipelineExecutionError(`Collection mode is not allowed`); // <- TODO: !!! Test
                 }
 
-                // TODO: !!!! Validate here clientId (pass validator as dependency)
+                // TODO: !!!! Validate here userId (pass validator as dependency)
 
                 let llmExecutionTools: LlmExecutionTools;
 
@@ -221,8 +220,8 @@ export function startRemoteServer(options: RemoteServerOptions): IDestroyable {
                 } else {
                     // Note: Collection mode
                     llmExecutionTools = createLlmExecutionTools!(
-                        clientId,
-                        // <- TODO: [🧠][🤺] `clientId` should be property of each prompt
+                        /* userId: */ undefined,
+                        // <- TODO: [🧠][🤺] `userId` should be property of each prompt
                     );
                 }
 
