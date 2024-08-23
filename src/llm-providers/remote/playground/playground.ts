@@ -28,7 +28,7 @@ async function playground() {
     // Do here stuff you want to test
     //========================================>
 
-    console.info(colors.bgWhite(`Starting remote server`));
+    console.info(colors.bgCyan('Playground:'), colors.bgWhite(`Starting remote server`));
     startRemoteServer({
         path: '/promptbook',
         port: 4460,
@@ -38,7 +38,7 @@ async function playground() {
         collection: await createCollectionFromDirectory('./samples/templates/', { llmTools: null, isRecursive: false }),
         createLlmExecutionTools(userId) {
             // <- TODO: [🧠][🤺] Remove `createLlmExecutionTools`, pass just `llmExecutionTools`
-            console.log('userId', userId);
+            console.info(colors.bgCyan('Playground:'), 'userId', userId);
             return new OpenAiExecutionTools(
                 //            <- TODO: [🧱] Implement in a functional (not new Class) way
                 {
@@ -52,7 +52,7 @@ async function playground() {
 
     for (const mode of ['anonymous', 'collection'] as const) {
         await forTime(500);
-        console.info(colors.bgWhite(`Creating RemoteLlmExecutionTools (${mode} mode) `));
+        console.info(colors.bgCyan('Playground:'), colors.bgWhite(`Creating RemoteLlmExecutionTools (${mode} mode) `));
 
         const remoteUrl = 'http://localhost:4460';
         const path = '/promptbook';
@@ -83,15 +83,15 @@ async function playground() {
         );
 
         await forTime(500);
-        console.info(colors.bgWhite(`Checking configuration....`));
+        console.info(colors.bgCyan('Playground:'), colors.bgWhite(`Checking configuration...`));
         await tools.checkConfiguration();
-        console.info(colors.bgGreen(`Configuration checked!`));
+        console.info(colors.bgCyan('Playground:'), colors.bgGreen(`Configuration checked!`));
 
         await forTime(500);
-        console.info(colors.bgWhite(`Listing models....`));
+        console.info(colors.bgCyan('Playground:'), colors.bgWhite(`Listing models...`));
         const models = await tools.listModels();
-        console.info(colors.bgGreen(`Models listed!`));
         console.info({ models });
+        console.info(colors.bgCyan('Playground:'), colors.bgGreen(`Models listed!`));
     }
 
     await forEver();

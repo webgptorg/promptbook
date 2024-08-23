@@ -91,7 +91,9 @@ export function startRemoteServer(options: RemoteServerOptions): IDestroyable {
     );
 
     server.on('connection', (socket: Socket) => {
-        console.info(colors.gray(`Client connected`), socket.id);
+        if (isVerbose) {
+            console.info(colors.gray(`Client connected`), socket.id);
+        }
 
         socket.on('prompt-request', async (request: PromptbookServer_Prompt_Request) => {
             const { isAnonymous, prompt, userId, llmToolsConfiguration } = {
@@ -227,7 +229,7 @@ export function startRemoteServer(options: RemoteServerOptions): IDestroyable {
 
                 const models = await llmExecutionTools.listModels();
 
-                socket.emit('prompt-response', { models } satisfies PromptbookServer_ListModels_Response);
+                socket.emit('listModels-response', { models } satisfies PromptbookServer_ListModels_Response);
             } catch (error) {
                 if (!(error instanceof Error)) {
                     throw error;
@@ -252,7 +254,7 @@ export function startRemoteServer(options: RemoteServerOptions): IDestroyable {
     // Note: We want to log this also in non-verbose mode
     console.info(colors.bgGreen(`PROMPTBOOK server listening on port ${port}`));
     if (isVerbose) {
-        console.info(colors.green(`Verbose mode is enabled`));
+        console.info(colors.gray(`Verbose mode is enabled`));
     }
 
     let isDestroyed = false;
