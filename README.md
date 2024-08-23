@@ -18,23 +18,23 @@ Supercharge your use of large language models
 
 ## 🤍 The Promptbook Whitepaper
 
-When you have a simple, single prompt for ChatGPT, GPT-4, Anthropic Claude, Google Gemini, Llama 2, or whatever, it doesn't matter how it is integrated. Whether it's the direct calling of a REST API, using the SDK, hardcoding the prompt in the source code, or importing a text file, the process remains the same.
+If you have a simple, single prompt for ChatGPT, GPT-4, Anthropic Claude, Google Gemini, Llama 2, or whatever, it doesn't matter how you integrate it. Whether it's calling a REST API directly, using the SDK, hardcoding the prompt into the source code, or importing a text file, the process remains the same.
 
-But often you will struggle with the limitations of the LLMs like hallucinations, off-topic responses, low-quality outputs, language drift, word repetition repetition repetition or missuse, missing context or just weird responses. When this happen, you generally have three ways to proceed:
+But often you will struggle with the limitations of LLMs, such as hallucinations, off-topic responses, poor quality output, language drift, word repetition repetition repetition repetition or misuse, lack of context, or just plain w𝒆𝐢rd responses. When this happens, you generally have three options:
 
 1. **Fine-tune** the model to your specifications or even train your own.
 2. **Prompt-engineer** the prompt to the best shape you can achieve.
 3. Use **multiple prompts** in a [pipeline](https://github.com/webgptorg/promptbook/discussions/64) to get the best result.
 
-In any of these situations, but especially in 3., the Promptbook library can make your life easier.
+In all of these situations, but especially in 3., the Promptbook library can make your life easier.
 
--   **Separation of concerns** between prompt engineer and programmer; between code files and prompt files; and between prompts and their execution logic.
--   Establishes a **common format `.ptbk.md`** which can be used to describe your prompt business logic without the need to write code or struggle with technicalities of the LLMs.
--   Forgot about low-level details like picking the right model, tokens, context size, temperature, top-k, top-p, or nucleus sampling. **Just write your intent** and **persona** who should be responsuible for the task and let the library handle the rest.
--   Has built-in **orchestration** of pipeline execution and lot of tools to make the process easier, more reliable, more efficient like caching, compilation+preparation, just-in-time fine-tuning, expectation-aware generation, anomaly detection, agent adversary expectations, and more.
--   Sometimes even the top-notch prompts with the best framework like Promptbook `:)` can't avoid the problems. In this case, the library has built-in **anomaly detection** and **logging** to help you find the issues and fix them.
--   Test, test, test. **Versioning** of promptbooks is built-in. You can test multiple **A/B** versions of the promptbooks and see which one works best.
--   Promptbook is designed to do RAG (Retrieval-Augmented Generation) and other advanced techniques. You can use **knowledge** to improve the quality of the outputs.
+-   Separates **concerns** between prompt engineer and programmer, between code files and prompt files, and between prompts and their execution logic.
+-   Establishes a **common format `.ptbk.md`** that can be used to describe your prompt business logic without having to write code or deal with the technicalities of LLMs.
+-   **Forget** about **low-level details** like choosing the right model, tokens, context size, temperature, top-k, top-p, or kernel sampling. **Just write your intent** and **persona** who should be responsible for the task and let the library do the rest.
+-   Has built-in **orchestration** of pipeline execution and many tools to make the process easier, more reliable, and more efficient, such as caching, compilation+preparation, just-in-time fine-tuning, expectation-aware generation, anomaly detection, agent adversary expectations, and more.
+-   Sometimes even the best prompts with the best framework like Promptbook `:)` can't avoid the problems. In this case, the library has built-in **anomaly detection and logging** to help you find and fix the problems.
+-   Promptbook has built in versioning. You can test multiple **A/B versions** of pipelines and see which one works best.
+-   Promptbook is designed to do **RAG** (Retrieval-Augmented Generation) and other advanced techniques. You can use **knowledge** to improve the quality of the output.
 
 ## 🧔 Promptbook _(for prompt-engeneers)_
 
