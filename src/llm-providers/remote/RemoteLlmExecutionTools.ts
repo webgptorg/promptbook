@@ -44,7 +44,7 @@ export class RemoteLlmExecutionTools implements LlmExecutionTools {
      * Check the configuration of all execution tools
      */
     public async checkConfiguration(): Promise<void> {
-        const socket = await this.makeConnectionWithRetry();
+        const socket = await this.makeConnection();
         socket.disconnect();
 
         // TODO: !!! Check version of the remote server and compatibility
@@ -56,7 +56,7 @@ export class RemoteLlmExecutionTools implements LlmExecutionTools {
      */
     public async listModels(): Promise<Array<AvailableModel>> {
         // TODO: [👒] Listing models (and checking configuration) probbably should go through REST API not Socket.io
-        const socket = await this.makeConnectionWithRetry();
+        const socket = await this.makeConnection();
 
         if (this.options.isAnonymous) {
             socket.emit(
@@ -123,13 +123,6 @@ export class RemoteLlmExecutionTools implements LlmExecutionTools {
     }
 
     /**
-     * Creates a connection to the remote proxy server.
-     */
-    private makeConnectionWithRetry(tries: number = 0): Promise<Socket> {
-        return await makeConnectionWithRetry(tries);
-    }
-
-    /**
      * Calls remote proxy server to use a chat model
      */
     public callChatModel(prompt: ChatPrompt): Promise<ChatPromptResult> {
@@ -165,7 +158,7 @@ export class RemoteLlmExecutionTools implements LlmExecutionTools {
      * Calls remote proxy server to use both completion or chat model
      */
     private async callCommonModel(prompt: Prompt): Promise<PromptResult> {
-        const socket = await this.makeConnectionWithRetry();
+        const socket = await this.makeConnection();
 
         if (this.options.isAnonymous) {
             socket.emit(
