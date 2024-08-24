@@ -73,5 +73,5 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
 }
 
 /**
- * TODO: !!!!!! The version is lagged one behind the actual version
+ * TODO: !!! The version is lagged one behind the actual version
  */
