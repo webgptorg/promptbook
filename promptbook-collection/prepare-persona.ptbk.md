@@ -8,7 +8,6 @@
 ## Make modelRequirements
 
 -   MODEL VARIANT Chat
--   MODEL NAME `gpt-4-turbo`
 -   EXPECT JSON
 
 ```markdown
