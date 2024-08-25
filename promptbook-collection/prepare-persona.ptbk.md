@@ -7,7 +7,6 @@
 
 ## Make modelRequirements
 
--   MODEL VARIANT Chat
 -   EXPECT JSON
 
 ```markdown

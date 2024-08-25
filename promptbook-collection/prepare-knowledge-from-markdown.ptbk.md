@@ -6,8 +6,6 @@
 
 ## Knowledge
 
--   MODEL VARIANT Chat
--   MODEL NAME `claude-3-opus-20240229`
 <!-- TODO: [🍆] -EXPECT JSON -->
 
 ```markdown
