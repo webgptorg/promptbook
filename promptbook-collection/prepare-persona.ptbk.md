@@ -26,13 +26,19 @@ Write
 
 ## Instructions
 
-### Option `modelName`
+-   Your output format is JSON object
+-   It contains the following keys:
+    -   `modelName`: The name of the model to use
+    -   `systemMessage`: The system message to provide context to the model
+    -   `temperature`: The sampling temperature to use
+
+### Key `modelName`
 
 Pick from the following models:
 
 -   {availableModelNames}
 
-### Option `systemMessage`
+### Key `systemMessage`
 
 The system message is used to communicate instructions or provide context to the model at the beginning of a conversation. It is displayed in a different format compared to user messages, helping the model understand its role in the conversation. The system message typically guides the model's behavior, sets the tone, or specifies desired output from the model. By utilizing the system message effectively, users can steer the model towards generating more accurate and relevant responses.
 
@@ -42,7 +48,7 @@ For example:
 
 > You are a friendly and knowledgeable chatbot.
 
-### Option `temperature`
+### Key `temperature`
 
 The sampling temperature, between 0 and 1. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic. If set to 0, the model will use log probability to automatically increase the temperature until certain thresholds are hit.
 

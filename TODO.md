@@ -39,3 +39,4 @@
 -   [ ] [🍛] Use shortcuts or not "Config" vs "configuration", "Env" vs "Environment"
 -   [ ] [🎶] Naming "constructor" vs "creator" vs "factory"
 -   [ ] [🧠][🔛] Auto-translate of entire pipelines
+-   [ ] [♏] Maybe auto-add expectations as text of the prompt content

@@ -9,11 +9,13 @@ import type { AvailableModel } from '../../execution/AvailableModel';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import type { ChatPromptResult } from '../../execution/PromptResult';
 import type { Prompt } from '../../types/Prompt';
-import type { string_date_iso8601 } from '../../types/typeAliases';
-import type { string_markdown } from '../../types/typeAliases';
-import type { string_markdown_text } from '../../types/typeAliases';
-import type { string_model_name } from '../../types/typeAliases';
-import type { string_title } from '../../types/typeAliases';
+import type {
+    string_date_iso8601,
+    string_markdown,
+    string_markdown_text,
+    string_model_name,
+    string_title,
+} from '../../types/typeAliases';
 import { getCurrentIsoDate } from '../../utils/getCurrentIsoDate';
 import type { really_any } from '../../utils/organization/really_any';
 import { replaceParameters } from '../../utils/replaceParameters';
@@ -111,6 +113,8 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools {
                 {
                     role: 'user',
                     content: rawPromptContent,
+                    // <- TODO: [🧠][♏] Maybe if expecting JSON and its not specified in prompt content, append the instructions
+                    //    @see https://docs.anthropic.com/en/docs/test-and-evaluate/strengthen-guardrails/increase-consistency#specify-the-desired-output-format
                 },
             ],
             // TODO: Is here some equivalent of user identification?> user: this.options.user,

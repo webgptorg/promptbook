@@ -153,4 +153,6 @@ export async function preparePipeline(pipeline: PipelineJson, options: PrepareOp
  * TODO: [🏏] Leverage the batch API and build queues @see https://platform.openai.com/docs/guides/batch
  * TODO: [🧊] In future one preparation can take data from previous preparation and save tokens and time
  * TODO: [🛠] Actions, instruments (and maybe knowledge) => Functions and tools
+ * TODO: [🧠][♏] Maybe if expecting JSON (In Anthropic Claude and other models without non-json) and its not specified in prompt content, append the instructions
+ *       @see https://docs.anthropic.com/en/docs/test-and-evaluate/strengthen-guardrails/increase-consistency#specify-the-desired-output-format
  */
