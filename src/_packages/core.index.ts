@@ -30,6 +30,7 @@ import { stringifyPipelineJson } from '../conversion/utils/stringifyPipelineJson
 import { validatePipeline } from '../conversion/validation/validatePipeline';
 import { CollectionError } from '../errors/CollectionError';
 import { EnvironmentMismatchError } from '../errors/EnvironmentMismatchError';
+import { ExpectError } from '../errors/ExpectError';
 import { ERRORS } from '../errors/index';
 import { LimitReachedError } from '../errors/LimitReachedError';
 import { NotFoundError } from '../errors/NotFoundError';
@@ -108,6 +109,7 @@ export { stringifyPipelineJson };
 export { validatePipeline };
 export { CollectionError };
 export { EnvironmentMismatchError };
+export { ExpectError };
 export { ERRORS };
 export { LimitReachedError };
 export { NotFoundError };
