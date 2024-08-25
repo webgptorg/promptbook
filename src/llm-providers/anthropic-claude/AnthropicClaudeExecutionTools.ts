@@ -260,7 +260,7 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools {
      * Default model for chat variant.
      */
     private getDefaultChatModel(): AvailableModel {
-        return this.getDefaultModel('claude-3-opus');
+        return this.getDefaultModel('claude-3-5-sonnet');
     }
 
     // <- Note: [🤖] getDefaultXxxModel
