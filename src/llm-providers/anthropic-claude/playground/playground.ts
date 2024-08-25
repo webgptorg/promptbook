@@ -69,6 +69,7 @@ async function playground() {
             systemMessage: 'You are an assistant who only speaks in rhymes.',
             temperature: 1,
         },
+        expectFormat: 'JSON',
     } as const satisfies Prompt;
     const chatPromptResult = await anthropicClaudeExecutionTools.callChatModel(chatPrompt);
     console.info({ chatPromptResult });

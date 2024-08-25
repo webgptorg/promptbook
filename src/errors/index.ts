@@ -1,5 +1,6 @@
 import { CollectionError } from './CollectionError';
 import { EnvironmentMismatchError } from './EnvironmentMismatchError';
+import { ExpectError } from './ExpectError';
 import { LimitReachedError } from './LimitReachedError';
 import { NotFoundError } from './NotFoundError';
 import { NotYetImplementedError } from './NotYetImplementedError';
@@ -15,6 +16,7 @@ import { UnexpectedError } from './UnexpectedError';
  * @public exported from `@promptbook/core`
  */
 export const ERRORS = {
+    ExpectError,
     CollectionError,
     EnvironmentMismatchError,
     LimitReachedError,
