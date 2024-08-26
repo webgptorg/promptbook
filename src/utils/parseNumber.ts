@@ -55,7 +55,7 @@ export function parseNumber(value: string | number): number {
         if (denominator === 0) {
             throw new ParsingError(
                 `Unable to parse number from "${originalValue}" because denominator is zero`,
-                // <- TODO: [🚞]
+                // <- TODO: [🚞] Pass from consumer(s) of `parseNumber`
             );
         }
 
@@ -74,7 +74,7 @@ export function parseNumber(value: string | number): number {
     if (!/^[0-9.]+$/.test(value) || value.split('.').length > 2) {
         throw new ParsingError(
             `Unable to parse number from "${originalValue}"`,
-            // <- TODO: [🚞]
+            // <- TODO: [🚞] Pass from consumer(s) of `parseNumber`
         );
     }
 
@@ -83,7 +83,7 @@ export function parseNumber(value: string | number): number {
     if (isNaN(num)) {
         throw new ParsingError(
             `Unexpected NaN when parsing number from "${originalValue}"`,
-            // <- TODO: [🚞]
+            // <- TODO: [🚞] Pass from consumer(s) of `parseNumber`
         );
     }
 

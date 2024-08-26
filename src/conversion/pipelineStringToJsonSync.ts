@@ -61,6 +61,21 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
         preparations: [],
     };
 
+    const pipelineIdentification = (() => {
+        // Note: This is a 😐 implementation of [🚞]
+        const _: Array<string> = [];
+
+        if (pipelineJson.sourceFile !== undefined) {
+            _.push(`File: ${pipelineJson.sourceFile}`);
+        }
+
+        if (pipelineJson.pipelineUrl !== undefined) {
+            _.push(`Url: ${pipelineJson.pipelineUrl}`);
+        }
+
+        return _.join('\n');
+    })();
+
     // =============================================================
     // Note: 1️⃣ Parsing of the markdown into object
     pipelineString = removeContentComments(pipelineString);
@@ -78,29 +93,41 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
 
     if (pipelineHead === undefined) {
         throw new UnexpectedError(
-            spaceTrim(`
-                Pipeline head is not defined
+            spaceTrim(
+                (block) => `
+                    Pipeline head is not defined
 
-                This should never happen, because the pipeline already flattened
-            `), // <- TODO: [🚞]
+                    ${block(pipelineIdentification)}
+
+                    This should never happen, because the pipeline already flattened
+                `,
+            ), // <- TODO: [🚞]
         );
     }
     if (pipelineHead.level !== 1) {
         throw new UnexpectedError(
-            spaceTrim(`
-                Pipeline head is not h1
+            spaceTrim(
+                (block) => `
+                    Pipeline head is not h1
 
-                This should never happen, because the pipeline already flattened
-            `), // <- TODO: [🚞]
+                    ${block(pipelineIdentification)}
+
+                    This should never happen, because the pipeline already flattened
+                `,
+            ), // <- TODO: [🚞]
         );
     }
     if (!pipelineSections.every((section) => section.level === 2)) {
         throw new UnexpectedError(
-            spaceTrim(`
-                Not every pipeline section is h2
+            spaceTrim(
+                (block) => `
+                    Not every pipeline section is h2
 
-                This should never happen, because the pipeline already flattened
-            `), // <- TODO: [🚞]
+                    ${block(pipelineIdentification)}
+
+                    This should never happen, because the pipeline already flattened
+                `,
+            ), // <- TODO: [🚞]
         );
     }
 
@@ -111,7 +138,13 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
 
         if (RESERVED_PARAMETER_NAMES.includes(parameterName as really_any)) {
             throw new ParsingError(
-                `Parameter name {${parameterName}} is reserved and cannot be used as resulting parameter name` /* <- TODO: [🚞] */,
+                spaceTrim(
+                    (block) => `
+                        Parameter name {${parameterName}} is reserved and cannot be used as resulting parameter name
+
+                        ${block(pipelineIdentification)}
+                    `,
+                ) /* <- TODO: [🚞] */,
             );
         }
 
@@ -128,6 +161,8 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
                 spaceTrim(
                     (block) => `
                         Parameter {${parameterName}} is defined multiple times with different description:
+
+                        ${block(pipelineIdentification)}
 
                         First definition:
                         ${block(existingParameter.description || '[undefined]')}
@@ -209,7 +244,13 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
                 break;
             case 'BOILERPLATE':
                 throw new ParsingError(
-                    'BOILERPLATE command is only for testing purposes and should not be used in the .ptbk.md file',
+                    spaceTrim(
+                        (block) => `
+                            BOILERPLATE command is only for testing purposes and should not be used in the .ptbk.md file
+
+                            ${block(pipelineIdentification)}
+                        `,
+                    ),
                 ); // <- TODO: [🚞]
                 break;
 
@@ -217,7 +258,15 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
 
             default:
                 throw new ParsingError(
-                    `Command ${command.type} is not allowed in the head of the promptbook ONLY at the pipeline template`,
+                    spaceTrim(
+                        (block) => `
+                            Command ${
+                                command.type
+                            } is not allowed in the head of the promptbook ONLY at the pipeline template
+
+                            ${block(pipelineIdentification)}
+                        `,
+                    ),
                 ); // <- TODO: [🚞]
         }
     }
@@ -254,6 +303,8 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
                 spaceTrim(
                     (block) => `
                     Template section must end with -> {parameterName}
+
+                    ${block(pipelineIdentification)}
 
                     Invalid section:
                     ${block(
@@ -314,7 +365,13 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
                 case 'BLOCK':
                     if (isBlockTypeSet) {
                         throw new ParsingError(
-                            'Block type is already defined in the prompt template. It can be defined only once.',
+                            spaceTrim(
+                                (block) => `
+                                    Block type is already defined in the prompt template. It can be defined only once.
+
+                                    ${block(pipelineIdentification)}
+                                `,
+                            ),
                             // <- TODO: [🚞]
                         );
                     }
@@ -327,7 +384,13 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
                         );
                         if (parameter === undefined) {
                             throw new ParsingError(
-                                `Can not find parameter {${resultingParameterName}} to assign sample value`,
+                                spaceTrim(
+                                    (block) => `
+                                        Can not find parameter {${resultingParameterName}} to assign sample value
+
+                                        ${block(pipelineIdentification)}
+                                    `,
+                                ),
                                 // <- TODO: [🚞]
                             );
                         }
@@ -375,9 +438,15 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
                     if (command.sign === 'MINIMUM' || command.sign === 'EXACTLY') {
                         if (templateJson.expectations[unit]!.min !== undefined) {
                             throw new ParsingError(
-                                `Already defined minumum ${
-                                    templateJson.expectations[unit]!.min
-                                } ${command.unit.toLowerCase()}, now trying to redefine it to ${command.amount}`,
+                                spaceTrim(
+                                    (block) => `
+                                        Already defined minumum ${
+                                            templateJson.expectations![unit]!.min
+                                        } ${command.unit.toLowerCase()}, now trying to redefine it to ${command.amount}
+
+                                        ${block(pipelineIdentification)}
+                                    `,
+                                ),
                                 // <- TODO: [🚞]
                             );
                         }
@@ -386,9 +455,15 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
                     if (command.sign === 'MAXIMUM' || command.sign === 'EXACTLY') {
                         if (templateJson.expectations[unit]!.max !== undefined) {
                             throw new ParsingError(
-                                `Already defined maximum ${
-                                    templateJson.expectations[unit]!.max
-                                } ${command.unit.toLowerCase()}, now trying to redefine it to ${command.amount}`,
+                                spaceTrim(
+                                    (block) => `
+                                        Already defined maximum ${
+                                            templateJson.expectations![unit]!.max
+                                        } ${command.unit.toLowerCase()}, now trying to redefine it to ${command.amount}
+
+                                        ${block(pipelineIdentification)}
+                                    `,
+                                ),
                                 // <- TODO: [🚞]
                             );
                         }
@@ -399,10 +474,14 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
                 case 'EXPECT_FORMAT':
                     if (templateJson.expectFormat !== undefined && command.format !== templateJson.expectFormat) {
                         throw new ParsingError(
-                            spaceTrim(`
-                                Expect format is already defined to "${templateJson.expectFormat}".
-                                Now you try to redefine it by "${command.format}".
-                            `),
+                            spaceTrim(
+                                (block) => `
+                                    Expect format is already defined to "${templateJson.expectFormat}".
+                                    Now you try to redefine it by "${command.format}".
+
+                                    ${block(pipelineIdentification)}
+                                `,
+                            ),
                             // <- TODO: [🚞]
                         );
                     }
@@ -447,7 +526,13 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
                 case 'BOILERPLATE':
                     console.error(
                         new ParsingError(
-                            'BOILERPLATE command is only for testing purposes and should not be used in the .ptbk.md file',
+                            spaceTrim(
+                                (block) => `
+                                    BOILERPLATE command is only for testing purposes and should not be used in the .ptbk.md file
+
+                                    ${block(pipelineIdentification)}
+                                `,
+                            ),
                         ),
                     );
                     break;
@@ -456,7 +541,16 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
 
                 default:
                     throw new ParsingError(
-                        `Command ${command.type} is not allowed in the block of the prompt template ONLY at the head of the pipeline`,
+                        spaceTrim(
+                            (block) => `
+                                Command ${
+                                    command.type
+                                } is not allowed in the block of the prompt template ONLY at the head of the pipeline
+
+                                ${block(pipelineIdentification)}
+
+                            `,
+                        ),
                         // <- TODO: [🚞]
                     );
             }
@@ -466,7 +560,13 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
         if ((templateJson as WritableDeep<PromptTemplateJson>).blockType === 'SCRIPT') {
             if (!language) {
                 throw new ParsingError(
-                    'You must specify the language of the script in the prompt template',
+                    spaceTrim(
+                        (block) => `
+                            You must specify the language of the script in the prompt template
+
+                            ${block(pipelineIdentification)}
+                        `,
+                    ),
                     // <- TODO: [🚞]
                 );
             }

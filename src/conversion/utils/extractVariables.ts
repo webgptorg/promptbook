@@ -52,7 +52,7 @@ export function extractVariables(script: string_javascript): Set<string_javascri
 
                     ${block((error as Error).toString())}}
                 `,
-                // <- TODO: [🚞]
+                // <- TODO: [🚞] Pass from consumer(s) of `extractVariables`
             ),
         );
     }
