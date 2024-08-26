@@ -26,6 +26,7 @@ Write
 ## Instructions
 
 -   Your output format is JSON object
+-   Write just the JSON object, no other text should be present
 -   It contains the following keys:
     -   `modelName`: The name of the model to use
     -   `systemMessage`: The system message to provide context to the model
