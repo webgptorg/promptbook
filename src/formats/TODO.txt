@@ -1,1 +1,2 @@
+TODO: [♏] Add some prepare hook to modify prompt according to the format
 TODO: [🏢] Allow to expect something inside structures in formats

@@ -1,5 +1,4 @@
-import type { string_mime_type } from '../../types/typeAliases';
-import type { string_name } from '../../types/typeAliases';
+import type { string_mime_type, string_name } from '../../types/typeAliases';
 
 /**
  * A format definition is a set of functions that define how to validate, heal and convert response from LLM
@@ -70,6 +69,7 @@ export type FormatDefinition<TValue extends TPartialValue, TPartialValue extends
 };
 
 /**
+ * TODO: [♏] Add some prepare hook to modify prompt according to the format
  * TODO: [🍓]`name` and `aliases` should be UPPERCASE only and interpreted as case-insensitive (via normalization)
  * TODO: [🍓][👨‍⚖️] Compute TPartialValue dynamically - PartialString<TValue>
  * TODO: [🍓][🧠] Should execution tools be aviable to heal, canBeValid and isValid?

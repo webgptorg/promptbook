@@ -17,6 +17,7 @@ import { UnexpectedError } from '../errors/UnexpectedError';
 import { serializeError } from '../errors/utils/serializeError';
 import { isValidJsonString } from '../formats/json/utils/isValidJsonString';
 import { joinLlmExecutionTools } from '../llm-providers/multiple/joinLlmExecutionTools';
+import { extractJsonBlock } from '../postprocessing/utils/extractJsonBlock';
 import { isPipelinePrepared } from '../prepare/isPipelinePrepared';
 import { preparePipeline } from '../prepare/preparePipeline';
 import type { ExecutionReportJson } from '../types/execution-report/ExecutionReportJson';
@@ -32,6 +33,7 @@ import type {
     string_parameter_value,
 } from '../types/typeAliases';
 import { arrayableToArray } from '../utils/arrayableToArray';
+import { keepUnused } from '../utils/organization/keepUnused';
 import type { really_any } from '../utils/organization/really_any';
 import type { TODO_any } from '../utils/organization/TODO_any';
 import { TODO_USE } from '../utils/organization/TODO_USE';
@@ -708,20 +710,40 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                     if (currentTemplate.expectFormat) {
                         if (currentTemplate.expectFormat === 'JSON') {
                             if (!isValidJsonString(resultString || '')) {
-                                throw new ExpectError(
-                                    spaceTrim(
-                                        (block) => `
-                                            Expected valid JSON string
+                                // TODO: [🏢] Do more universally via `FormatDefinition`
 
-                                            ${block(
-                                                /*<- Note: No need for `pipelineIdentification`, it will be catched and added later */ '',
-                                            )}
-                                        `,
-                                    ),
-                                );
+                                try {
+                                    resultString = extractJsonBlock(resultString || '');
+                                } catch (error) {
+                                    keepUnused(
+                                        error,
+                                        // <- Note: This error is not important
+                                        //          ONLY imporant thing is the information that `resultString` not contain valid JSON block
+                                    );
+
+                                    throw new ExpectError(
+                                        spaceTrim(
+                                            (block) => `
+                                                Expected valid JSON string
+
+                                                ${block(
+                                                    /*<- Note: No need for `pipelineIdentification`, it will be catched and added later */ '',
+                                                )}
+                                            `,
+                                        ),
+                                    );
+                                }
                             }
                         } else {
-                            // TODO: Here should be fatal errror which breaks through the retry loop
+                            throw new UnexpectedError(
+                                spaceTrim(
+                                    (block) => `
+                                        Unknown expectFormat "${currentTemplate.expectFormat}"
+
+                                        ${block(pipelineIdentification)}
+                                    `,
+                                ),
+                            );
                         }
                     }
 
