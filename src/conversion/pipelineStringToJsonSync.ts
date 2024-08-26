@@ -326,7 +326,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
                             (param) => param.name === resultingParameterName,
                         );
                         if (parameter === undefined) {
-                            throw new UnexpectedError(
+                            throw new ParsingError(
                                 `Can not find parameter {${resultingParameterName}} to assign sample value`,
                                 // <- TODO: [🚞]
                             );
