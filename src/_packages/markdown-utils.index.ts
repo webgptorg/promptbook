@@ -2,6 +2,8 @@
 // `@promptbook/markdown-utils`
 
 import { PROMPTBOOK_VERSION } from '../version';
+import { extractBlock } from '../postprocessing/utils/extractBlock';
+import { extractJsonBlock } from '../postprocessing/utils/extractJsonBlock';
 import type { string_markdown } from '../types/typeAliases';
 import type { string_markdown_section } from '../types/typeAliases';
 import type { string_markdown_section_content } from '../types/typeAliases';
@@ -26,6 +28,8 @@ export { PROMPTBOOK_VERSION };
 
 
 // Note: Entities of the `@promptbook/markdown-utils`
+export { extractBlock };
+export { extractJsonBlock };
 export type { string_markdown };
 export type { string_markdown_section };
 export type { string_markdown_section_content };
