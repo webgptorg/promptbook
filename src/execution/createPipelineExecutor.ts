@@ -709,7 +709,9 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                                         (block) => `
                                             Expected valid JSON string
 
-                                            ${block(pipelineIdentification)}
+                                            ${block(
+                                                /*<- Note: No need for `pipelineIdentification`, it will be catched and added later */ '',
+                                            )}
                                         `,
                                     ),
                                 );
@@ -757,7 +759,12 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                             (block) => `
                               LLM execution failed ${maxExecutionAttempts}x
 
+                              ${block(pipelineIdentification)}
+
                               ---
+                              The Prompt:
+                              ${block(prompt.content)}
+
                               Last error ${expectError?.name || ''}:
                               ${block(expectError?.message || '')}
 
