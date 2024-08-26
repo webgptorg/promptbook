@@ -61,7 +61,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
         preparations: [],
     };
 
-    const pipelineIdentification = (() => {
+    function getPipelineIdentification() {
         // Note: This is a 😐 implementation of [🚞]
         const _: Array<string> = [];
 
@@ -74,7 +74,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
         }
 
         return _.join('\n');
-    })();
+    }
 
     // =============================================================
     // Note: 1️⃣ Parsing of the markdown into object
@@ -97,7 +97,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
                 (block) => `
                     Pipeline head is not defined
 
-                    ${block(pipelineIdentification)}
+                    ${block(getPipelineIdentification())}
 
                     This should never happen, because the pipeline already flattened
                 `,
@@ -110,7 +110,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
                 (block) => `
                     Pipeline head is not h1
 
-                    ${block(pipelineIdentification)}
+                    ${block(getPipelineIdentification())}
 
                     This should never happen, because the pipeline already flattened
                 `,
@@ -123,7 +123,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
                 (block) => `
                     Not every pipeline section is h2
 
-                    ${block(pipelineIdentification)}
+                    ${block(getPipelineIdentification())}
 
                     This should never happen, because the pipeline already flattened
                 `,
@@ -142,7 +142,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
                     (block) => `
                         Parameter name {${parameterName}} is reserved and cannot be used as resulting parameter name
 
-                        ${block(pipelineIdentification)}
+                        ${block(getPipelineIdentification())}
                     `,
                 ) /* <- TODO: [🚞] */,
             );
@@ -162,7 +162,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
                     (block) => `
                         Parameter {${parameterName}} is defined multiple times with different description:
 
-                        ${block(pipelineIdentification)}
+                        ${block(getPipelineIdentification())}
 
                         First definition:
                         ${block(existingParameter.description || '[undefined]')}
@@ -248,7 +248,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
                         (block) => `
                             BOILERPLATE command is only for testing purposes and should not be used in the .ptbk.md file
 
-                            ${block(pipelineIdentification)}
+                            ${block(getPipelineIdentification())}
                         `,
                     ),
                 ); // <- TODO: [🚞]
@@ -264,7 +264,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
                                 command.type
                             } is not allowed in the head of the promptbook ONLY at the pipeline template
 
-                            ${block(pipelineIdentification)}
+                            ${block(getPipelineIdentification())}
                         `,
                     ),
                 ); // <- TODO: [🚞]
@@ -304,7 +304,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
                     (block) => `
                     Template section must end with -> {parameterName}
 
-                    ${block(pipelineIdentification)}
+                    ${block(getPipelineIdentification())}
 
                     Invalid section:
                     ${block(
@@ -369,7 +369,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
                                 (block) => `
                                     Block type is already defined in the prompt template. It can be defined only once.
 
-                                    ${block(pipelineIdentification)}
+                                    ${block(getPipelineIdentification())}
                                 `,
                             ),
                             // <- TODO: [🚞]
@@ -388,7 +388,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
                                     (block) => `
                                         Can not find parameter {${resultingParameterName}} to assign sample value
 
-                                        ${block(pipelineIdentification)}
+                                        ${block(getPipelineIdentification())}
                                     `,
                                 ),
                                 // <- TODO: [🚞]
@@ -444,7 +444,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
                                             templateJson.expectations![unit]!.min
                                         } ${command.unit.toLowerCase()}, now trying to redefine it to ${command.amount}
 
-                                        ${block(pipelineIdentification)}
+                                        ${block(getPipelineIdentification())}
                                     `,
                                 ),
                                 // <- TODO: [🚞]
@@ -461,7 +461,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
                                             templateJson.expectations![unit]!.max
                                         } ${command.unit.toLowerCase()}, now trying to redefine it to ${command.amount}
 
-                                        ${block(pipelineIdentification)}
+                                        ${block(getPipelineIdentification())}
                                     `,
                                 ),
                                 // <- TODO: [🚞]
@@ -479,7 +479,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
                                     Expect format is already defined to "${templateJson.expectFormat}".
                                     Now you try to redefine it by "${command.format}".
 
-                                    ${block(pipelineIdentification)}
+                                    ${block(getPipelineIdentification())}
                                 `,
                             ),
                             // <- TODO: [🚞]
@@ -530,7 +530,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
                                 (block) => `
                                     BOILERPLATE command is only for testing purposes and should not be used in the .ptbk.md file
 
-                                    ${block(pipelineIdentification)}
+                                    ${block(getPipelineIdentification())}
                                 `,
                             ),
                         ),
@@ -547,7 +547,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
                                     command.type
                                 } is not allowed in the block of the prompt template ONLY at the head of the pipeline
 
-                                ${block(pipelineIdentification)}
+                                ${block(getPipelineIdentification())}
 
                             `,
                         ),
@@ -564,7 +564,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
                         (block) => `
                             You must specify the language of the script in the prompt template
 
-                            ${block(pipelineIdentification)}
+                            ${block(getPipelineIdentification())}
                         `,
                     ),
                     // <- TODO: [🚞]
