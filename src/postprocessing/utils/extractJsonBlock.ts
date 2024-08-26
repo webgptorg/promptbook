@@ -1,7 +1,8 @@
-import { extractAllBlocksFromMarkdown } from '../../_packages/markdown-utils.index';
-import { isValidJsonString } from '../../_packages/utils.index';
-import type { string_json, string_markdown } from '../../types/typeAliases';
-import { really_unknown } from '../../utils/organization/really_unknown';
+import { extractAllBlocksFromMarkdown } from '../../utils/markdown/extractAllBlocksFromMarkdown';
+import { isValidJsonString } from '../../formats/json/utils/isValidJsonString';
+import type { string_json } from '../../types/typeAliases';
+import type { string_markdown } from '../../types/typeAliases';
+import type { really_unknown } from '../../utils/organization/really_unknown';
 
 /**
  * Extracts  extracts exactly one valid JSON code block
