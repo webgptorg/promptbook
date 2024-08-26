@@ -1,12 +1,14 @@
 import { spaceTrim } from 'spacetrim';
 import type { Promisable } from 'type-fest';
-import { IS_VERBOSE } from '../config';
-import { LOOP_LIMIT } from '../config';
-import { MAX_EXECUTION_ATTEMPTS } from '../config';
-import { MAX_PARALLEL_COUNT } from '../config';
-import { RESERVED_PARAMETER_MISSING_VALUE } from '../config';
-import { RESERVED_PARAMETER_NAMES } from '../config';
-import { RESERVED_PARAMETER_RESTRICTED } from '../config';
+import {
+    IS_VERBOSE,
+    LOOP_LIMIT,
+    MAX_EXECUTION_ATTEMPTS,
+    MAX_PARALLEL_COUNT,
+    RESERVED_PARAMETER_MISSING_VALUE,
+    RESERVED_PARAMETER_NAMES,
+    RESERVED_PARAMETER_RESTRICTED,
+} from '../config';
 import { extractParameterNamesFromPromptTemplate } from '../conversion/utils/extractParameterNamesFromPromptTemplate';
 import { validatePipeline } from '../conversion/validation/validatePipeline';
 import { ExpectError } from '../errors/ExpectError';
@@ -20,16 +22,15 @@ import { preparePipeline } from '../prepare/preparePipeline';
 import type { ExecutionReportJson } from '../types/execution-report/ExecutionReportJson';
 import type { PipelineJson } from '../types/PipelineJson/PipelineJson';
 import type { PromptTemplateJson } from '../types/PipelineJson/PromptTemplateJson';
-import type { ChatPrompt } from '../types/Prompt';
-import type { CompletionPrompt } from '../types/Prompt';
-import type { EmbeddingPrompt } from '../types/Prompt';
-import type { Prompt } from '../types/Prompt';
+import type { ChatPrompt, CompletionPrompt, EmbeddingPrompt, Prompt } from '../types/Prompt';
 import type { TaskProgress } from '../types/TaskProgress';
-import type { Parameters } from '../types/typeAliases';
-import type { ReservedParameters } from '../types/typeAliases';
-import type { string_markdown } from '../types/typeAliases';
-import type { string_name } from '../types/typeAliases';
-import type { string_parameter_value } from '../types/typeAliases';
+import type {
+    Parameters,
+    ReservedParameters,
+    string_markdown,
+    string_name,
+    string_parameter_value,
+} from '../types/typeAliases';
 import { arrayableToArray } from '../utils/arrayableToArray';
 import type { really_any } from '../utils/organization/really_any';
 import type { TODO_any } from '../utils/organization/TODO_any';
@@ -43,12 +44,8 @@ import { PROMPTBOOK_VERSION } from '../version';
 import type { ExecutionTools } from './ExecutionTools';
 import type { PipelineExecutor } from './PipelineExecutor';
 import type { PipelineExecutorResult } from './PipelineExecutorResult';
-import type { ChatPromptResult } from './PromptResult';
-import type { CompletionPromptResult } from './PromptResult';
-import type { EmbeddingPromptResult } from './PromptResult';
-import type { PromptResult } from './PromptResult';
-import { addUsage } from './utils/addUsage';
-import { ZERO_USAGE } from './utils/addUsage';
+import type { ChatPromptResult, CompletionPromptResult, EmbeddingPromptResult, PromptResult } from './PromptResult';
+import { addUsage, ZERO_USAGE } from './utils/addUsage';
 import { checkExpectations } from './utils/checkExpectations';
 
 type CreatePipelineExecutorSettings = {
@@ -123,6 +120,21 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
 
     validatePipeline(pipeline);
 
+    const pipelineIdentification = (() => {
+        // Note: This is a 😐 implementation of [🚞]
+        const _: Array<string> = [];
+
+        if (pipeline.sourceFile !== undefined) {
+            _.push(`File: ${pipeline.sourceFile}`);
+        }
+
+        if (pipeline.pipelineUrl !== undefined) {
+            _.push(`Url: ${pipeline.pipelineUrl}`);
+        }
+
+        return _.join('\n');
+    })();
+
     const llmTools = joinLlmExecutionTools(...arrayableToArray(tools.llm));
 
     let preparedPipeline: PipelineJson;
@@ -131,16 +143,18 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
         preparedPipeline = pipeline;
     } else if (isNotPreparedWarningSupressed !== true) {
         console.warn(
-            spaceTrim(`
-                Pipeline ${pipeline.pipelineUrl || pipeline.sourceFile || pipeline.title} is not prepared
+            spaceTrim(
+                (block) => `
+                    Pipeline is not prepared
 
-                ${pipeline.sourceFile}
+                    ${block(pipelineIdentification)}
 
-                It will be prepared ad-hoc before the first execution and **returned as \`preparedPipeline\` in \`PipelineExecutorResult\`**
-                But it is recommended to prepare the pipeline during collection preparation
+                    It will be prepared ad-hoc before the first execution and **returned as \`preparedPipeline\` in \`PipelineExecutorResult\`**
+                    But it is recommended to prepare the pipeline during collection preparation
 
-                @see more at https://ptbk.io/prepare-pipeline
-            `),
+                    @see more at https://ptbk.io/prepare-pipeline
+                `,
+            ),
         );
     }
 
@@ -199,18 +213,38 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
             if (parameter === undefined) {
                 warnings.push(
                     new PipelineExecutionError(
-                        `Extra parameter {${parameterName}} is being passed which is not part of the pipeline.`,
+                        spaceTrim(
+                            (block) => `
+                                Extra parameter {${parameterName}} is being passed which is not part of the pipeline.
+
+                                ${block(pipelineIdentification)}
+                            `,
+                        ),
                     ),
                 );
             } else if (parameter.isInput === false) {
                 // TODO: [🧠] This should be also non-critical error
                 return $asDeeplyFrozenSerializableJson(
-                    `Unuccessful PipelineExecutorResult (with extra parameter {${parameter.name}}) PipelineExecutorResult`,
+                    spaceTrim(
+                        (block) => `
+                            Unuccessful PipelineExecutorResult (with extra parameter {${
+                                parameter.name
+                            }}) PipelineExecutorResult
+
+                            ${block(pipelineIdentification)}
+                        `,
+                    ),
                     {
                         isSuccessful: false,
                         errors: [
                             new PipelineExecutionError(
-                                `Parameter {${parameter.name}} is passed as input parameter but it is not input`,
+                                spaceTrim(
+                                    (block) => `
+                                        Parameter {${parameter.name}} is passed as input parameter but it is not input
+
+                                        ${block(pipelineIdentification)}
+                                    `,
+                                ),
                             ),
                             ...errors,
                         ].map(serializeError),
@@ -273,7 +307,15 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
             // Note: Doublecheck that ALL reserved parameters are defined:
             for (const parameterName of RESERVED_PARAMETER_NAMES) {
                 if (reservedParameters[parameterName] === undefined) {
-                    throw new UnexpectedError(`Reserved parameter {${parameterName}} is not defined`);
+                    throw new UnexpectedError(
+                        spaceTrim(
+                            (block) => `
+                                Reserved parameter {${parameterName}} is not defined
+
+                                ${block(pipelineIdentification)}
+                            `,
+                        ),
+                    );
                 }
             }
 
@@ -311,16 +353,20 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                 ).size !== 0
             ) {
                 throw new UnexpectedError(
-                    spaceTrim(`
-                        Dependent parameters are not consistent used parameters:
+                    spaceTrim(
+                        (block) => `
+                            Dependent parameters are not consistent used parameters:
 
-                        Dependent parameters:
-                        ${Array.from(dependentParameterNames).join(', ')}
+                            ${block(pipelineIdentification)}
 
-                        Used parameters:
-                        ${Array.from(usedParameterNames).join(', ')}
+                            Dependent parameters:
+                            ${Array.from(dependentParameterNames).join(', ')}
 
-                    `),
+                            Used parameters:
+                            ${Array.from(usedParameterNames).join(', ')}
+
+                        `,
+                    ),
                 );
             }
 
@@ -349,13 +395,17 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                     // Houston, we have a problem
                     // Note: Checking part is also done in `validatePipeline`, but it’s good to doublecheck
                     throw new UnexpectedError(
-                        spaceTrim(`
-                            Parameter {${parameterName}} is NOT defined
-                            BUT used in template "${currentTemplate.title || currentTemplate.name}"
+                        spaceTrim(
+                            (block) => `
+                                Parameter {${parameterName}} is NOT defined
+                                BUT used in template "${currentTemplate.title || currentTemplate.name}"
 
-                            This should be catched in \`validatePipeline\`
+                                This should be catched in \`validatePipeline\`
 
-                        `),
+                                ${block(pipelineIdentification)}
+
+                            `,
+                        ),
                     );
                 }
             }
@@ -385,7 +435,15 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                 const jokerParameterName = jokerParameterNames[jokerParameterNames.length + attempt];
 
                 if (isJokerAttempt && !jokerParameterName) {
-                    throw new UnexpectedError(`Joker not found in attempt ${attempt}`);
+                    throw new UnexpectedError(
+                        spaceTrim(
+                            (block) => `
+                                Joker not found in attempt ${attempt}
+
+                                ${block(pipelineIdentification)}
+                            `,
+                        ),
+                    );
                 }
 
                 result = null;
@@ -394,7 +452,15 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
 
                 if (isJokerAttempt) {
                     if (parameters[jokerParameterName!] === undefined) {
-                        throw new PipelineExecutionError(`Joker parameter {${jokerParameterName}} not defined`);
+                        throw new PipelineExecutionError(
+                            spaceTrim(
+                                (block) => `
+                                    Joker parameter {${jokerParameterName}} not defined
+
+                                    ${block(pipelineIdentification)}
+                                `,
+                            ),
+                        );
                         // <- TODO: This is maybe `PipelineLogicError` which should be detected in `validatePipeline` and here just thrown as `UnexpectedError`
                     } else {
                         resultString = parameters[jokerParameterName!]!;
@@ -456,9 +522,17 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
 
                                     default:
                                         throw new PipelineExecutionError(
-                                            `Unknown model variant "${
-                                                (currentTemplate as really_any).modelRequirements.modelVariant
-                                            }"`,
+                                            spaceTrim(
+                                                (block) => `
+                                                    Unknown model variant "${
+                                                        (currentTemplate as really_any).modelRequirements.modelVariant
+                                                    }"
+
+                                                    ${block(pipelineIdentification)}
+
+
+                                                `,
+                                            ),
                                         );
                                 }
 
@@ -466,11 +540,27 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
 
                             case 'SCRIPT':
                                 if (arrayableToArray(tools.script).length === 0) {
-                                    throw new PipelineExecutionError('No script execution tools are available');
+                                    throw new PipelineExecutionError(
+                                        spaceTrim(
+                                            (block) => `
+                                                No script execution tools are available
+
+                                                ${block(pipelineIdentification)}
+                                            `,
+                                        ),
+                                    );
                                 }
                                 if (!currentTemplate.contentLanguage) {
                                     throw new PipelineExecutionError(
-                                        `Script language is not defined for prompt template "${currentTemplate.name}"`,
+                                        spaceTrim(
+                                            (block) => `
+                                                Script language is not defined for prompt template "${
+                                                    currentTemplate.name
+                                                }"
+
+                                                ${block(pipelineIdentification)}
+                                            `,
+                                        ),
                                     );
                                 }
 
@@ -514,6 +604,8 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                                             (block) => `
                                               Script execution failed ${scriptPipelineExecutionErrors.length} times
 
+                                              ${block(pipelineIdentification)}
+
                                               ${block(
                                                   scriptPipelineExecutionErrors
                                                       .map((error) => '- ' + error.message)
@@ -529,7 +621,15 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
 
                             case 'PROMPT_DIALOG':
                                 if (tools.userInterface === undefined) {
-                                    throw new PipelineExecutionError('User interface tools are not available');
+                                    throw new PipelineExecutionError(
+                                        spaceTrim(
+                                            (block) => `
+                                                User interface tools are not available
+
+                                                ${block(pipelineIdentification)}
+                                            `,
+                                        ),
+                                    );
                                 }
 
                                 // TODO: [🌹] When making next attempt for `PROMPT DIALOG`, preserve the previous user input
@@ -550,7 +650,13 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
 
                             default:
                                 throw new PipelineExecutionError(
-                                    `Unknown execution type "${(currentTemplate as TODO_any).blockType}"`,
+                                    spaceTrim(
+                                        (block) => `
+                                            Unknown execution type "${(currentTemplate as TODO_any).blockType}"
+
+                                            ${block(pipelineIdentification)}
+                                        `,
+                                    ),
                                 );
                         }
                     }
@@ -598,7 +704,15 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                     if (currentTemplate.expectFormat) {
                         if (currentTemplate.expectFormat === 'JSON') {
                             if (!isValidJsonString(resultString || '')) {
-                                throw new ExpectError('Expected valid JSON string');
+                                throw new ExpectError(
+                                    spaceTrim(
+                                        (block) => `
+                                            Expected valid JSON string
+
+                                            ${block(pipelineIdentification)}
+                                        `,
+                                    ),
+                                );
                             }
                         } else {
                             // TODO: Here should be fatal errror which breaks through the retry loop
@@ -657,7 +771,15 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
             }
 
             if (resultString === null) {
-                throw new UnexpectedError('Something went wrong and prompt result is null');
+                throw new UnexpectedError(
+                    spaceTrim(
+                        (block) => `
+                            Something went wrong and prompt result is null
+
+                            ${block(pipelineIdentification)}
+                        `,
+                    ),
+                );
             }
 
             if (onProgress /* <- [3] */) {
@@ -689,7 +811,15 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                     // [4]
                     warnings.push(
                         new PipelineExecutionError(
-                            `Parameter {${parameter.name}} should be an output parameter, but it was not generated during pipeline execution`,
+                            spaceTrim(
+                                (block) => `
+                                    Parameter {${
+                                        parameter.name
+                                    }} should be an output parameter, but it was not generated during pipeline execution
+
+                                    ${block(pipelineIdentification)}
+                                `,
+                            ),
                         ),
                         // <- TODO: This should be maybe `UnexpectedError` because it should be catched during `validatePipeline`
                     );
@@ -713,7 +843,15 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
             while (unresovedTemplates.length > 0) {
                 if (loopLimit-- < 0) {
                     // Note: Really UnexpectedError not LimitReachedError - this should be catched during validatePipeline
-                    throw new UnexpectedError('Loop limit reached during resolving parameters pipeline execution');
+                    throw new UnexpectedError(
+                        spaceTrim(
+                            (block) => `
+                                Loop limit reached during resolving parameters pipeline execution
+
+                                ${block(pipelineIdentification)}
+                            `,
+                        ),
+                    );
                 }
 
                 const currentTemplate = unresovedTemplates.find((template) =>
@@ -728,6 +866,8 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                         spaceTrim(
                             (block) => `
                                 Can not resolve some parameters:
+
+                                ${block(pipelineIdentification)}
 
                                 Can not resolve:
                                 ${block(
@@ -817,6 +957,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
 }
 
 /**
+ * TODO: !!! Identify not only pipeline BUT exact template ${block(pipelineIdentification)}
  * TODO: Use isVerbose here (not only pass to `preparePipeline`)
  * TODO: [🧠][🌳] Use here `countTotalUsage` and put preparation and prepared pipiline to report
  * TODO: [🪂] Use maxParallelCount here (not only pass to `preparePipeline`)
