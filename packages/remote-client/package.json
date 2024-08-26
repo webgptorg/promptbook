@@ -1,6 +1,6 @@
 {
     "name": "@promptbook/remote-client",
-    "version": "0.67.2",
+    "version": "0.67.3",
     "description": "Supercharge your use of large language models",
     "private": false,
     "sideEffects": false,
@@ -47,7 +47,7 @@
     "module": "./esm/index.es.js",
     "typings": "./esm/typings/src/_packages/remote-client.index.d.ts",
     "peerDependencies": {
-        "@promptbook/core": "0.67.2"
+        "@promptbook/core": "0.67.3"
     },
     "dependencies": {
         "socket.io-client": "4.7.2",
