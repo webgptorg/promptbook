@@ -1,12 +1,14 @@
 import { spaceTrim } from 'spacetrim';
 import type { Promisable } from 'type-fest';
-import { IS_VERBOSE } from '../config';
-import { LOOP_LIMIT } from '../config';
-import { MAX_EXECUTION_ATTEMPTS } from '../config';
-import { MAX_PARALLEL_COUNT } from '../config';
-import { RESERVED_PARAMETER_MISSING_VALUE } from '../config';
-import { RESERVED_PARAMETER_NAMES } from '../config';
-import { RESERVED_PARAMETER_RESTRICTED } from '../config';
+import {
+    IS_VERBOSE,
+    LOOP_LIMIT,
+    MAX_EXECUTION_ATTEMPTS,
+    MAX_PARALLEL_COUNT,
+    RESERVED_PARAMETER_MISSING_VALUE,
+    RESERVED_PARAMETER_NAMES,
+    RESERVED_PARAMETER_RESTRICTED,
+} from '../config';
 import { extractParameterNamesFromPromptTemplate } from '../conversion/utils/extractParameterNamesFromPromptTemplate';
 import { validatePipeline } from '../conversion/validation/validatePipeline';
 import { ExpectError } from '../errors/ExpectError';
@@ -21,16 +23,15 @@ import { preparePipeline } from '../prepare/preparePipeline';
 import type { ExecutionReportJson } from '../types/execution-report/ExecutionReportJson';
 import type { PipelineJson } from '../types/PipelineJson/PipelineJson';
 import type { PromptTemplateJson } from '../types/PipelineJson/PromptTemplateJson';
-import type { ChatPrompt } from '../types/Prompt';
-import type { CompletionPrompt } from '../types/Prompt';
-import type { EmbeddingPrompt } from '../types/Prompt';
-import type { Prompt } from '../types/Prompt';
+import type { ChatPrompt, CompletionPrompt, EmbeddingPrompt, Prompt } from '../types/Prompt';
 import type { TaskProgress } from '../types/TaskProgress';
-import type { Parameters } from '../types/typeAliases';
-import type { ReservedParameters } from '../types/typeAliases';
-import type { string_markdown } from '../types/typeAliases';
-import type { string_name } from '../types/typeAliases';
-import type { string_parameter_value } from '../types/typeAliases';
+import type {
+    Parameters,
+    ReservedParameters,
+    string_markdown,
+    string_name,
+    string_parameter_value,
+} from '../types/typeAliases';
 import { arrayableToArray } from '../utils/arrayableToArray';
 import { keepUnused } from '../utils/organization/keepUnused';
 import type { really_any } from '../utils/organization/really_any';
@@ -45,12 +46,8 @@ import { PROMPTBOOK_VERSION } from '../version';
 import type { ExecutionTools } from './ExecutionTools';
 import type { PipelineExecutor } from './PipelineExecutor';
 import type { PipelineExecutorResult } from './PipelineExecutorResult';
-import type { ChatPromptResult } from './PromptResult';
-import type { CompletionPromptResult } from './PromptResult';
-import type { EmbeddingPromptResult } from './PromptResult';
-import type { PromptResult } from './PromptResult';
-import { addUsage } from './utils/addUsage';
-import { ZERO_USAGE } from './utils/addUsage';
+import type { ChatPromptResult, CompletionPromptResult, EmbeddingPromptResult, PromptResult } from './PromptResult';
+import { addUsage, ZERO_USAGE } from './utils/addUsage';
 import { checkExpectations } from './utils/checkExpectations';
 
 type CreatePipelineExecutorSettings = {
@@ -188,9 +185,16 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
             promptExecutions: [],
         };
 
+        /**
+         * Note: This is a flag to prevent `onProgress` call after the pipeline execution is finished
+         */
+        let isReturned = false;
+
         // Note: Check that all input input parameters are defined
         for (const parameter of preparedPipeline.parameters.filter(({ isInput }) => isInput)) {
             if (inputParameters[parameter.name] === undefined) {
+                isReturned = true;
+
                 return $asDeeplyFrozenSerializableJson(
                     `Unuccessful PipelineExecutorResult (with missing parameter {${parameter.name}}) PipelineExecutorResult`,
                     {
@@ -228,6 +232,8 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                     ),
                 );
             } else if (parameter.isInput === false) {
+                isReturned = true;
+
                 // TODO: [🧠] This should be also non-critical error
                 return $asDeeplyFrozenSerializableJson(
                     spaceTrim(
@@ -335,7 +341,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                 preparedPipeline.promptTemplates.length - preparedPipeline.promptTemplates.indexOf(currentTemplate);
 
             if (onProgress /* <- [3] */) {
-                await onProgress({
+                const progress: TaskProgress = {
                     name,
                     title,
                     isStarted: false,
@@ -344,7 +350,28 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                     parameterName: currentTemplate.resultingParameterName,
                     parameterValue: null,
                     // <- [3]
-                });
+                };
+
+                if (isReturned) {
+                    throw new UnexpectedError(
+                        spaceTrim(
+                            (block) => `
+                                Can not call \`onProgress\` after pipeline execution is finished 🍏
+
+                                ${block(pipelineIdentification)}
+
+                                ${block(
+                                    JSON.stringify(progress, null, 4)
+                                        .split('\n')
+                                        .map((line) => `> ${line}`)
+                                        .join('\n'),
+                                )}
+                            `,
+                        ),
+                    );
+                }
+
+                await onProgress(progress);
             }
 
             // Note: Check consistency of used and dependent parameters which was also done in `validatePipeline`, but it’s good to doublecheck
@@ -836,7 +863,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
             }
 
             if (onProgress /* <- [3] */) {
-                onProgress({
+                const progress: TaskProgress = {
                     name,
                     title,
                     isStarted: true,
@@ -845,7 +872,29 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                     parameterName: currentTemplate.resultingParameterName,
                     parameterValue: resultString,
                     // <- [3]
-                });
+                };
+
+                if (isReturned) {
+                    throw new UnexpectedError(
+                        spaceTrim(
+                            (block) => `
+                                Can not call \`onProgress\` after pipeline execution is finished 🍎
+
+                                ${block(pipelineIdentification)}
+
+                                ${block(
+                                    JSON.stringify(progress, null, 4)
+                                        .split('\n')
+                                        .map((line) => `> ${line}`)
+                                        .join('\n'),
+                                )}
+
+                            `,
+                        ),
+                    );
+                }
+
+                await onProgress(progress);
             }
 
             parametersToPass = Object.freeze({
@@ -975,6 +1024,8 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
             // Note: Making this on separate line before `return` to grab errors [4]
             const outputParameters = filterJustOutputParameters();
 
+            isReturned = true;
+
             return $asDeeplyFrozenSerializableJson(
                 'Unuccessful PipelineExecutorResult (with misc errors) PipelineExecutorResult',
                 {
@@ -994,6 +1045,8 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
 
         // Note:  Making this on separate line before `return` to grab errors [4]
         const outputParameters = filterJustOutputParameters();
+
+        isReturned = true;
 
         return $asDeeplyFrozenSerializableJson('Successful PipelineExecutorResult', {
             isSuccessful: true,
