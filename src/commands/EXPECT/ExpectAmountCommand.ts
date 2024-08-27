@@ -13,3 +13,8 @@ export type ExpectAmountCommand = {
     readonly unit: ExpectationUnit;
     readonly amount: ExpectationAmount;
 };
+
+
+/**
+ * TODO: [🍋] Allow to `EXPECT` relative amounts like `EXPECT MAX 130% {foo} Words`
+ */

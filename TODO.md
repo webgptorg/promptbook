@@ -38,5 +38,7 @@
 -   [ ] [🍍] !!!!! Link from here -> ptbk.io -> discussions concepts (with labels)
 -   [ ] [🍛] Use shortcuts or not "Config" vs "configuration", "Env" vs "Environment"
 -   [ ] [🎶] Naming "constructor" vs "creator" vs "factory"
--   [ ] [🧠][🔛] Auto-translate of entire pipelines
--   [ ] [♏] Maybe auto-add expectations as text of the prompt content
+-   [ ] [🍓][🧠][🔛] Auto-translate of entire pipelines
+-   [ ] [🍓][♏] Maybe auto-add expectations as text of the prompt content
+-   [ ] [🍓] Add system for auto-quoting - for some models its better \`\`\` for some >, but writer of `.ptbk.md` should not struggle with this
+-   [ ] [🍓][🍋] Allow to `EXPECT` relative amounts like `EXPECT MAX 130% {foo} Words`
