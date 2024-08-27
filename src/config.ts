@@ -55,6 +55,13 @@ export const CONNECTION_TIMEOUT_MS = 7 * 1000;
 export const CONNECTION_RETRIES_LIMIT = 5;
 
 /**
+ * Short time interval to prevent race conditions in milliseconds
+ *
+ * @private within the repository - too low-level in comparison with other `MAX_...`
+ */
+export const IMMEDIATE_TIME = 10;
+
+/**
  * The maximum number of (LLM) tasks running in parallel
  *
  * @public exported from `@promptbook/core`
