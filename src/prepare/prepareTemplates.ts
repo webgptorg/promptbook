@@ -69,7 +69,7 @@ export async function prepareTemplates(
                 ...template,
                 dependentParameterNames,
                 preparedContent,
-                // <- TODO: [🍙] Make some standart order of json properties
+                // <- TODO: [🍙] Make some standard order of json properties
             };
 
             promptTemplatesPrepared[index] = preparedTemplate;

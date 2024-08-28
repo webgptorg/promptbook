@@ -1,12 +1,13 @@
-import type { string_file_path } from '../typeAliases';
-import type { string_markdown_text } from '../typeAliases';
-import type { string_pipeline_url } from '../typeAliases';
-import type { string_semantic_version } from '../typeAliases';
+import { ModelRequirements } from '../ModelRequirements';
+import type {
+    string_file_path,
+    string_markdown_text,
+    string_pipeline_url,
+    string_semantic_version,
+} from '../typeAliases';
 import type { KnowledgePiecePreparedJson } from './KnowledgePieceJson';
-import type { KnowledgeSourceJson } from './KnowledgeSourceJson';
-import type { KnowledgeSourcePreparedJson } from './KnowledgeSourceJson';
-import type { PersonaJson } from './PersonaJson';
-import type { PersonaPreparedJson } from './PersonaJson';
+import type { KnowledgeSourceJson, KnowledgeSourcePreparedJson } from './KnowledgeSourceJson';
+import type { PersonaJson, PersonaPreparedJson } from './PersonaJson';
 import type { PreparationJson } from './PreparationJson';
 import type { PromptTemplateJson } from './PromptTemplateJson';
 import type { PromptTemplateParameterJson } from './PromptTemplateParameterJson';
@@ -66,6 +67,11 @@ export type PipelineJson = {
     readonly parameters: Array<PromptTemplateParameterJson>;
 
     /**
+     * Default model requirements for the model for all `promptTemplates`
+     */
+    readonly defaultModelRequirements?: Partial<ModelRequirements>;
+
+    /**
      * Sequence of prompt templates that are chained together to form a pipeline
      */
     readonly promptTemplates: Array<PromptTemplateJson>;
@@ -101,7 +107,7 @@ export type PipelineJson = {
 };
 
 /**
- * TODO: [🍙] Make some standart order of json properties
+ * TODO: [🍙] Make some standard order of json properties
  * TODO: [🧠] Maybe wrap all {parameterNames} in brackets for example { "resultingParameterName": "{foo}" }
  * Note: [💼] There was a proposal for multiple types of promptbook objects 78816ff33e2705ee1a187aa2eb8affd976d4ea1a
  *       But then immediately reverted back to the single type

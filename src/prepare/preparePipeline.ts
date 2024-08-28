@@ -1,6 +1,5 @@
 import type { Writable } from 'type-fest';
-import { IS_VERBOSE } from '../config';
-import { MAX_PARALLEL_COUNT } from '../config';
+import { IS_VERBOSE, MAX_PARALLEL_COUNT } from '../config';
 import { ZERO_USAGE } from '../execution/utils/addUsage';
 import { forEachAsync } from '../execution/utils/forEachAsync';
 import { prepareKnowledgePieces } from '../knowledge/prepare-knowledge/_common/prepareKnowledgePieces';
@@ -89,7 +88,7 @@ export async function preparePipeline(pipeline: PipelineJson, options: PrepareOp
                 ...persona,
                 modelRequirements,
                 preparationIds: [/* TODO: [🧊] -> */ currentPreparation.id],
-                // <- TODO: [🍙] Make some standart order of json properties
+                // <- TODO: [🍙] Make some standard order of json properties
             };
 
             preparedPersonas[index] = preparedPersona;
@@ -116,7 +115,7 @@ export async function preparePipeline(pipeline: PipelineJson, options: PrepareOp
     const knowledgePiecesPrepared = partialknowledgePiecesPrepared.map((piece) => ({
         ...piece,
         preparationIds: [/* TODO: [🧊] -> */ currentPreparation.id],
-        // <- TODO: [🍙] Make some standart order of json properties
+        // <- TODO: [🍙] Make some standard order of json properties
     }));
     // ----- /Knowledge preparation -----
 

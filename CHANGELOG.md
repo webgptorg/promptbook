@@ -481,6 +481,7 @@ Was accidentally released skipped
 -   !!!!!!
 -   Change `usagePlaces` -> `isUsedInPipelineHead` + `isUsedInPipelineTemplate`
 -   All parsers have functions `$applyToPipelineJson`, `$applyToTemplateJson`, `stringify`, `takeFromPipelineJson` and `takeFromTemplateJson`
+-   `PipelineJson` has `defaultModelRequirements`
 
 ## In prepare
 

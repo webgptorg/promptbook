@@ -41,5 +41,5 @@ export function unpreparePipeline(pipeline: PipelineJson): PipelineJson {
 /**
  * TODO: [🧿] Maybe do same process with same granularity and subfinctions as `preparePipeline`
  * TODO: Write tests for `preparePipeline`
- * TODO: [🍙] Make some standart order of json properties
+ * TODO: [🍙] Make some standard order of json properties
  */

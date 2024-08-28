@@ -57,11 +57,13 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
         promptbookVersion: PROMPTBOOK_VERSION,
         description: undefined /* <- Note: Putting here placeholder to keep `description` on top at final JSON */,
         parameters: [],
+        defaultModelRequirements: {},
         promptTemplates: [],
         knowledgeSources: [],
         knowledgePieces: [],
         personas: [],
         preparations: [],
+        // <- TODO: [🍙] Some standard order of properties
     };
 
     function getPipelineIdentification() {
@@ -213,7 +215,6 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
     }
     pipelineJson.description = description;
 
-    const defaultModelRequirements: Partial<Writable<ModelRequirements>> = {};
     const listItems = extractAllListItemsFromMarkdown(pipelineHead.content);
     for (const listItem of listItems) {
         const command = parseCommand(listItem, 'PIPELINE_HEAD');
@@ -250,9 +251,6 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
 
         switch (command.type) {
             // TODO: [🍧] !!!!!! Use here applyToPipelineJson and remove switch statement
-            case 'MODEL':
-                defaultModelRequirements[command.key] = command.value;
-                break;
             case 'PARAMETER':
                 defineParam(command);
                 break;
@@ -281,11 +279,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
     templates: for (const section of pipelineSections) {
         // TODO: Parse prompt template description (the content out of the codeblock and lists)
 
-        const templateModelRequirements: Partial<Writable<ModelRequirements>> = {
-            ...defaultModelRequirements,
-
-            // <- TODO: [🧠][❔] Should there be possibility to set MODEL for entire pipeline?
-        };
+        const templateModelRequirements: Partial<Writable<ModelRequirements>> = {};
         const listItems = extractAllListItemsFromMarkdown(section.content);
 
         const lastLine = section.content.split('\n').pop()!;
@@ -605,9 +599,24 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
             ),
         );
 
-        // TODO: [🍧][❔] Remove this condition - modelRequirements should be put here via BLOCK command not removed when PROMPT_TEMPLATE
-        if (templateJson.blockType !== 'PROMPT_TEMPLATE') {
+        if (Object.keys(templateJson?.modelRequirements || {}).length === 0) {
             delete (templateJson as TODO_any).modelRequirements;
+        }
+
+        if (templateJson.blockType !== 'PROMPT_TEMPLATE' && templateJson.modelRequirements !== undefined) {
+            throw new UnexpectedError(
+                spaceTrim(
+                    (block) => `
+                        Model requirements are defined for the block type ${
+                            templateJson.blockType
+                        } which is not a prompt template
+
+                        This should be avoided by the \`modelCommandParser\`
+
+                        ${block(getPipelineIdentification())}
+                  `,
+                ),
+            );
         }
 
         // TODO: [🍧] Make this better - for example each command parser can call and apply this
@@ -648,5 +657,5 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
  * TODO: [🥞] Not optimal parsing because `splitMarkdownIntoSections` is executed twice with same string, once through `flattenMarkdown` and second directly here
  * TODO: [♈] Probbably move expectations from templates to parameters
  * TODO: [🛠] Actions, instruments (and maybe knowledge) => Functions and tools
- * TODO: [🍙] Make some standart order of json properties
+ * TODO: [🍙] Make some standard order of json properties
  */

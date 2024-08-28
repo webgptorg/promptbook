@@ -1,6 +1,4 @@
-import type { number_id } from '../typeAliases';
-import type { string_knowledge_source_content } from '../typeAliases';
-import type { string_name } from '../typeAliases';
+import type { number_id, string_knowledge_source_content, string_name } from '../typeAliases';
 
 /**
  * Defines one source of knowledge in the pipeline
@@ -37,5 +35,5 @@ export type KnowledgeSourcePreparedJson = KnowledgeSourceJson & {
 };
 
 /**
- * TODO: [🍙] Make some standart order of json properties
+ * TODO: [🍙] Make some standard order of json properties
  */
