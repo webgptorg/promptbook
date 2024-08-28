@@ -18,11 +18,15 @@ describe('fail of parseCommand', () => {
                 continue;
             }
 
-            it(`should work with ${name} command in ${usagePlace}`, () => {
+            it(`should parse command ${name} in ${usagePlace}`, () => {
                 for (const example of examples) {
                     expect(() => parseCommand(example, usagePlace)).not.toThrowError();
                 }
             });
+
+            // TODO: !!!!!! Test each command stringify
+            // TODO: !!!!!! Test each command on $applyToPipelineJson + $takeFromPipelineJson
+            // TODO: !!!!!! Test each command on $applyToTemplateJson + $takeFromTemplateJson
         }
     }
 
