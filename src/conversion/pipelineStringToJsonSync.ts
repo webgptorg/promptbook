@@ -12,7 +12,6 @@ import { NotYetImplementedError } from '../errors/NotYetImplementedError';
 import { ParsingError } from '../errors/ParsingError';
 import { UnexpectedError } from '../errors/UnexpectedError';
 import type { ModelRequirements } from '../types/ModelRequirements';
-import type { ExpectationUnit } from '../types/PipelineJson/Expectations';
 import type { PipelineJson } from '../types/PipelineJson/PipelineJson';
 import type { PromptTemplateJson } from '../types/PipelineJson/PromptTemplateJson';
 import type { PromptTemplateParameterJson } from '../types/PipelineJson/PromptTemplateParameterJson';
@@ -379,67 +378,6 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
 
             // TODO: !!!!!! Remove
             switch (command.type) {
-                case 'EXPECT_AMOUNT':
-                    // eslint-disable-next-line no-case-declarations
-                    const unit = command.unit.toLowerCase() as Lowercase<ExpectationUnit>;
-
-                    templateJson.expectations = templateJson.expectations || {};
-                    templateJson.expectations[unit] = templateJson.expectations[unit] || {};
-
-                    if (command.sign === 'MINIMUM' || command.sign === 'EXACTLY') {
-                        if (templateJson.expectations[unit]!.min !== undefined) {
-                            throw new ParsingError(
-                                spaceTrim(
-                                    (block) => `
-                                        Already defined minumum ${
-                                            templateJson.expectations![unit]!.min
-                                        } ${command.unit.toLowerCase()}, now trying to redefine it to ${command.amount}
-
-                                        ${block(getPipelineIdentification())}
-                                    `,
-                                ),
-                                // <- TODO: [🚞]
-                            );
-                        }
-                        templateJson.expectations[unit]!.min = command.amount;
-                    } /* not else */
-                    if (command.sign === 'MAXIMUM' || command.sign === 'EXACTLY') {
-                        if (templateJson.expectations[unit]!.max !== undefined) {
-                            throw new ParsingError(
-                                spaceTrim(
-                                    (block) => `
-                                        Already defined maximum ${
-                                            templateJson.expectations![unit]!.max
-                                        } ${command.unit.toLowerCase()}, now trying to redefine it to ${command.amount}
-
-                                        ${block(getPipelineIdentification())}
-                                    `,
-                                ),
-                                // <- TODO: [🚞]
-                            );
-                        }
-                        templateJson.expectations[unit]!.max = command.amount;
-                    }
-                    break;
-
-                case 'EXPECT_FORMAT':
-                    if (templateJson.expectFormat !== undefined && command.format !== templateJson.expectFormat) {
-                        throw new ParsingError(
-                            spaceTrim(
-                                (block) => `
-                                    Expect format is already defined to "${templateJson.expectFormat}".
-                                    Now you try to redefine it by "${command.format}".
-
-                                    ${block(getPipelineIdentification())}
-                                `,
-                            ),
-                            // <- TODO: [🚞]
-                        );
-                    }
-                    templateJson.expectFormat = command.format;
-
-                    break;
-
                 case 'JOKER':
                     templateJson.jokerParameterNames = templateJson.jokerParameterNames || [];
                     templateJson.jokerParameterNames.push(command.parameterName);

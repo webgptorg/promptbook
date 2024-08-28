@@ -2,8 +2,7 @@ import spaceTrim from 'spacetrim';
 import type { WritableDeep } from 'type-fest';
 import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
 import { ParsingError } from '../../errors/ParsingError';
-import { EXPECTATION_UNITS } from '../../types/PipelineJson/Expectations';
-import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
+import { EXPECTATION_UNITS, ExpectationUnit } from '../../types/PipelineJson/Expectations';
 import type { PromptTemplateJson } from '../../types/PipelineJson/PromptTemplateJson';
 import { string_markdown_text } from '../../types/typeAliases';
 import { keepUnused } from '../../utils/organization/keepUnused';
@@ -146,13 +145,46 @@ export const expectCommandParser: CommandParser<ExpectCommand> = {
      *
      * Note: `$` is used to indicate that this function mutates given `templateJson`
      */
-    $applyToTemplateJson(
-        command: ExpectCommand,
-        templateJson: WritableDeep<PromptTemplateJson>,
-        pipelineJson: WritableDeep<PipelineJson>,
-    ): void {
-        keepUnused(command, templateJson, pipelineJson);
-        throw new NotYetImplementedError(`Not implemented yet !!!!!!`);
+    $applyToTemplateJson(command: ExpectCommand, templateJson: WritableDeep<PromptTemplateJson>): void {
+        switch (command.type) {
+            case 'EXPECT_AMOUNT':
+                // eslint-disable-next-line no-case-declarations
+                const unit = command.unit.toLowerCase() as Lowercase<ExpectationUnit>;
+
+                templateJson.expectations = templateJson.expectations || {};
+                templateJson.expectations[unit] = templateJson.expectations[unit] || {};
+
+                if (command.sign === 'MINIMUM' || command.sign === 'EXACTLY') {
+                    if (templateJson.expectations[unit]!.min !== undefined) {
+                        throw new ParsingError(
+                            `Already defined minumum ${
+                                templateJson.expectations![unit]!.min
+                            } ${command.unit.toLowerCase()}, now trying to redefine it to ${command.amount}`,
+                        );
+                    }
+                    templateJson.expectations[unit]!.min = command.amount;
+                } /* not else */
+                if (command.sign === 'MAXIMUM' || command.sign === 'EXACTLY') {
+                    if (templateJson.expectations[unit]!.max !== undefined) {
+                        throw new ParsingError(
+                            `Already defined maximum ${
+                                templateJson.expectations![unit]!.max
+                            } ${command.unit.toLowerCase()}, now trying to redefine it to ${command.amount}`,
+                        );
+                    }
+                    templateJson.expectations[unit]!.max = command.amount;
+                }
+                break;
+
+            case 'EXPECT_FORMAT':
+                if (templateJson.expectFormat !== undefined && command.format !== templateJson.expectFormat) {
+                    throw new ParsingError(`Expect format is already defined to "${templateJson.expectFormat}".
+                            Now you try to redefine it by "${command.format}"`);
+                }
+                templateJson.expectFormat = command.format;
+
+                break;
+        }
     },
 
     /**
