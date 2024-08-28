@@ -261,7 +261,6 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
     templates: for (const section of pipelineSections) {
         // TODO: Parse prompt template description (the content out of the codeblock and lists)
 
-        const templateModelRequirements: Partial<Writable<ModelRequirements>> = {};
         const listItems = extractAllListItemsFromMarkdown(section.content);
 
         const lastLine = section.content.split('\n').pop()!;
@@ -378,9 +377,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
 
             // TODO: !!!!!! Remove
             switch (command.type) {
-                case 'MODEL':
-                    templateModelRequirements[command.key] = command.value;
-                    break;
+
                 case 'PARAMETER':
                     // Note: This is just for detecting resulitng parameter name
 
