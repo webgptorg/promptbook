@@ -1,8 +1,10 @@
 import { ParsingError } from '../../errors/ParsingError';
 import type { TODO_any } from '../../utils/organization/TODO_any';
-import type { CommandParser } from '../_common/types/CommandParser';
-import type { CommandParserInput } from '../_common/types/CommandParser';
+import type { CommandParser, CommandParserInput } from '../_common/types/CommandParser';
 import type { JokerCommand } from './JokerCommand';
+import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
+import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
+import type { PromptTemplateJson } from '../../types/PipelineJson/PromptTemplateJson';
 
 /**
  * Parses the joker command
@@ -54,5 +56,54 @@ export const jokerCommandParser: CommandParser<JokerCommand> = {
             type: 'JOKER',
             parameterName,
         } satisfies JokerCommand;
+    },
+
+    /**
+     * Apply the JOKER command to the `pipelineJson`
+     *
+     * Note: `$` is used to indicate that this function mutates given `pipelineJson`
+     */
+    $applyToPipelineJson(command: JokerCommand, pipelineJson: PipelineJson): void {
+        keepUnused(command, pipelineJson);
+        throw new NotYetImplementedError(`Not implemented yet !!!!!!`);
+    },
+
+    /**
+     * Apply the JOKER command to the `pipelineJson`
+     *
+     * Note: `$` is used to indicate that this function mutates given `templateJson`
+     */
+    $applyToTemplateJson(command: JokerCommand, templateJson: PromptTemplateJson, pipelineJson: PipelineJson): void {
+        keepUnused(command, templateJson, pipelineJson);
+        throw new NotYetImplementedError(`Not implemented yet !!!!!!`);
+    },
+
+    /**
+     * Converts the JOKER command back to string
+     *
+     * Note: This is used in `pipelineJsonToString` utility
+     */
+    stringify(command: JokerCommand): string_markdown_text {
+        return `- !!!!!!`;
+    },
+
+    /**
+     * Reads the JOKER command from the `PipelineJson`
+     *
+     * Note: This is used in `pipelineJsonToString` utility
+     */
+    takeFromPipelineJson(pipelineJson: PipelineJson): Array<JokerCommand> {
+        keepUnused(pipelineJson);
+        throw new NotYetImplementedError(`Not implemented yet !!!!!!`);
+    },
+
+    /**
+     * Reads the JOKER command from the `PromptTemplateJson`
+     *
+     * Note: This is used in `pipelineJsonToString` utility
+     */
+    takeFromTemplateJson(templateJson: PromptTemplateJson): Array<JokerCommand> {
+        keepUnused(templateJson);
+        throw new NotYetImplementedError(`Not implemented yet !!!!!!`);
     },
 };

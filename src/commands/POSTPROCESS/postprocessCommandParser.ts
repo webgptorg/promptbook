@@ -1,8 +1,10 @@
 import { ParsingError } from '../../errors/ParsingError';
 import { isValidJavascriptName } from '../../utils/validators/javascriptName/isValidJavascriptName';
-import type { CommandParser } from '../_common/types/CommandParser';
-import type { CommandParserInput } from '../_common/types/CommandParser';
+import type { CommandParser, CommandParserInput } from '../_common/types/CommandParser';
 import type { PostprocessCommand } from './PostprocessCommand';
+import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
+import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
+import type { PromptTemplateJson } from '../../types/PipelineJson/PromptTemplateJson';
 
 /**
  * Parses the postprocess command
@@ -64,5 +66,58 @@ export const postprocessCommandParser: CommandParser<PostprocessCommand> = {
             type: 'POSTPROCESS',
             functionName,
         } satisfies PostprocessCommand;
+    },
+
+    /**
+     * Apply the POSTPROCESS command to the `pipelineJson`
+     *
+     * Note: `$` is used to indicate that this function mutates given `pipelineJson`
+     */
+    $applyToPipelineJson(command: PostprocessCommand, pipelineJson: PipelineJson): void {
+        keepUnused(command, pipelineJson);
+        throw new NotYetImplementedError(`Not implemented yet !!!!!!`);
+    },
+
+    /**
+     * Apply the POSTPROCESS command to the `pipelineJson`
+     *
+     * Note: `$` is used to indicate that this function mutates given `templateJson`
+     */
+    $applyToTemplateJson(
+        command: PostprocessCommand,
+        templateJson: PromptTemplateJson,
+        pipelineJson: PipelineJson,
+    ): void {
+        keepUnused(command, templateJson, pipelineJson);
+        throw new NotYetImplementedError(`Not implemented yet !!!!!!`);
+    },
+
+    /**
+     * Converts the POSTPROCESS command back to string
+     *
+     * Note: This is used in `pipelineJsonToString` utility
+     */
+    stringify(command: PostprocessCommand): string_markdown_text {
+        return `- !!!!!!`;
+    },
+
+    /**
+     * Reads the POSTPROCESS command from the `PipelineJson`
+     *
+     * Note: This is used in `pipelineJsonToString` utility
+     */
+    takeFromPipelineJson(pipelineJson: PipelineJson): Array<PostprocessCommand> {
+        keepUnused(pipelineJson);
+        throw new NotYetImplementedError(`Not implemented yet !!!!!!`);
+    },
+
+    /**
+     * Reads the POSTPROCESS command from the `PromptTemplateJson`
+     *
+     * Note: This is used in `pipelineJsonToString` utility
+     */
+    takeFromTemplateJson(templateJson: PromptTemplateJson): Array<PostprocessCommand> {
+        keepUnused(templateJson);
+        throw new NotYetImplementedError(`Not implemented yet !!!!!!`);
     },
 };

@@ -1,9 +1,11 @@
 import spaceTrim from 'spacetrim';
 import { ParsingError } from '../../errors/ParsingError';
 import { MODEL_VARIANTS } from '../../types/ModelVariant';
-import type { CommandParser } from '../_common/types/CommandParser';
-import type { CommandParserInput } from '../_common/types/CommandParser';
+import type { CommandParser, CommandParserInput } from '../_common/types/CommandParser';
 import type { ModelCommand } from './ModelCommand';
+import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
+import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
+import type { PromptTemplateJson } from '../../types/PipelineJson/PromptTemplateJson';
 
 /**
  * Parses the model command
@@ -104,5 +106,54 @@ export const modelCommandParser: CommandParser<ModelCommand> = {
                 ),
             );
         }
+    },
+
+    /**
+     * Apply the MODEL command to the `pipelineJson`
+     *
+     * Note: `$` is used to indicate that this function mutates given `pipelineJson`
+     */
+    $applyToPipelineJson(command: ModelCommand, pipelineJson: PipelineJson): void {
+        keepUnused(command, pipelineJson);
+        throw new NotYetImplementedError(`Not implemented yet !!!!!!`);
+    },
+
+    /**
+     * Apply the MODEL command to the `pipelineJson`
+     *
+     * Note: `$` is used to indicate that this function mutates given `templateJson`
+     */
+    $applyToTemplateJson(command: ModelCommand, templateJson: PromptTemplateJson, pipelineJson: PipelineJson): void {
+        keepUnused(command, templateJson, pipelineJson);
+        throw new NotYetImplementedError(`Not implemented yet !!!!!!`);
+    },
+
+    /**
+     * Converts the MODEL command back to string
+     *
+     * Note: This is used in `pipelineJsonToString` utility
+     */
+    stringify(command: ModelCommand): string_markdown_text {
+        return `- !!!!!!`;
+    },
+
+    /**
+     * Reads the MODEL command from the `PipelineJson`
+     *
+     * Note: This is used in `pipelineJsonToString` utility
+     */
+    takeFromPipelineJson(pipelineJson: PipelineJson): Array<ModelCommand> {
+        keepUnused(pipelineJson);
+        throw new NotYetImplementedError(`Not implemented yet !!!!!!`);
+    },
+
+    /**
+     * Reads the MODEL command from the `PromptTemplateJson`
+     *
+     * Note: This is used in `pipelineJsonToString` utility
+     */
+    takeFromTemplateJson(templateJson: PromptTemplateJson): Array<ModelCommand> {
+        keepUnused(templateJson);
+        throw new NotYetImplementedError(`Not implemented yet !!!!!!`);
     },
 };

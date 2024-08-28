@@ -2,11 +2,13 @@ import spaceTrim from 'spacetrim';
 import { ParsingError } from '../../errors/ParsingError';
 import { EXPECTATION_UNITS } from '../../types/PipelineJson/Expectations';
 import { parseNumber } from '../../utils/parseNumber';
-import type { CommandParser } from '../_common/types/CommandParser';
-import type { CommandParserInput } from '../_common/types/CommandParser';
+import type { CommandParser, CommandParserInput } from '../_common/types/CommandParser';
 import type { ExpectAmountCommand } from './ExpectAmountCommand';
 import type { ExpectCommand } from './ExpectCommand';
 import type { ExpectFormatCommand } from './ExpectFormatCommand';
+import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
+import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
+import type { PromptTemplateJson } from '../../types/PipelineJson/PromptTemplateJson';
 
 /**
  * Parses the expect command
@@ -133,5 +135,54 @@ export const expectCommandParser: CommandParser<ExpectCommand> = {
                 ),
             );
         }
+    },
+
+    /**
+     * Apply the EXPECT command to the `pipelineJson`
+     *
+     * Note: `$` is used to indicate that this function mutates given `pipelineJson`
+     */
+    $applyToPipelineJson(command: ExpectCommand, pipelineJson: PipelineJson): void {
+        keepUnused(command, pipelineJson);
+        throw new NotYetImplementedError(`Not implemented yet !!!!!!`);
+    },
+
+    /**
+     * Apply the EXPECT command to the `pipelineJson`
+     *
+     * Note: `$` is used to indicate that this function mutates given `templateJson`
+     */
+    $applyToTemplateJson(command: ExpectCommand, templateJson: PromptTemplateJson, pipelineJson: PipelineJson): void {
+        keepUnused(command, templateJson, pipelineJson);
+        throw new NotYetImplementedError(`Not implemented yet !!!!!!`);
+    },
+
+    /**
+     * Converts the EXPECT command back to string
+     *
+     * Note: This is used in `pipelineJsonToString` utility
+     */
+    stringify(command: ExpectCommand): string_markdown_text {
+        return `- !!!!!!`;
+    },
+
+    /**
+     * Reads the EXPECT command from the `PipelineJson`
+     *
+     * Note: This is used in `pipelineJsonToString` utility
+     */
+    takeFromPipelineJson(pipelineJson: PipelineJson): Array<ExpectCommand> {
+        keepUnused(pipelineJson);
+        throw new NotYetImplementedError(`Not implemented yet !!!!!!`);
+    },
+
+    /**
+     * Reads the EXPECT command from the `PromptTemplateJson`
+     *
+     * Note: This is used in `pipelineJsonToString` utility
+     */
+    takeFromTemplateJson(templateJson: PromptTemplateJson): Array<ExpectCommand> {
+        keepUnused(templateJson);
+        throw new NotYetImplementedError(`Not implemented yet !!!!!!`);
     },
 };

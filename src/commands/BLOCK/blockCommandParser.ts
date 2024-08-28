@@ -1,7 +1,11 @@
+import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
+import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
+import type { PromptTemplateJson } from '../../types/PipelineJson/PromptTemplateJson';
 import spaceTrim from 'spacetrim';
 import { ParsingError } from '../../errors/ParsingError';
-import type { CommandParser } from '../_common/types/CommandParser';
-import type { CommandParserInput } from '../_common/types/CommandParser';
+import { string_markdown_text } from '../../types/typeAliases';
+import { keepUnused } from '../../utils/organization/keepUnused';
+import type { CommandParser, CommandParserInput } from '../_common/types/CommandParser';
 import type { BlockCommand } from './BlockCommand';
 import { BlockTypes } from './BlockTypes';
 
@@ -112,5 +116,54 @@ export const blockCommandParser: CommandParser<BlockCommand> = {
             type: 'BLOCK',
             blockType,
         } satisfies BlockCommand;
+    },
+
+    /**
+     * Apply the BLOCK command to the `pipelineJson`
+     *
+     * Note: `$` is used to indicate that this function mutates given `pipelineJson`
+     */
+    $applyToPipelineJson(command: BlockCommand, pipelineJson: PipelineJson): void {
+        keepUnused(command, pipelineJson);
+        throw new NotYetImplementedError(`Not implemented yet !!!!!!`);
+    },
+
+    /**
+     * Apply the BLOCK command to the `pipelineJson`
+     *
+     * Note: `$` is used to indicate that this function mutates given `templateJson`
+     */
+    $applyToTemplateJson(command: BlockCommand, templateJson: PromptTemplateJson, pipelineJson: PipelineJson): void {
+        keepUnused(command, templateJson, pipelineJson);
+        throw new NotYetImplementedError(`Not implemented yet !!!!!!`);
+    },
+
+    /**
+     * Converts the BLOCK command back to string
+     *
+     * Note: This is used in `pipelineJsonToString` utility
+     */
+    stringify(command: BlockCommand): string_markdown_text {
+        return `- !!!!!!`;
+    },
+
+    /**
+     * Reads the BLOCK command from the `PipelineJson`
+     *
+     * Note: This is used in `pipelineJsonToString` utility
+     */
+    takeFromPipelineJson(pipelineJson: PipelineJson): Array<BlockCommand> {
+        keepUnused(pipelineJson);
+        throw new NotYetImplementedError(`Not implemented yet !!!!!!`);
+    },
+
+    /**
+     * Reads the BLOCK command from the `PromptTemplateJson`
+     *
+     * Note: This is used in `pipelineJsonToString` utility
+     */
+    takeFromTemplateJson(templateJson: PromptTemplateJson): Array<BlockCommand> {
+        keepUnused(templateJson);
+        throw new NotYetImplementedError(`Not implemented yet !!!!!!`);
     },
 };

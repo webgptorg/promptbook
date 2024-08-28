@@ -4,10 +4,11 @@ import spaceTrim from 'spacetrim';
 import { ParsingError } from '../../errors/ParsingError';
 import { isValidFilePath } from '../../utils/validators/filePath/isValidFilePath';
 import { isValidUrl } from '../../utils/validators/url/isValidUrl';
-import type { ApplyToPipelineJsonSubjects } from '../_common/types/CommandParser';
-import type { CommandParser } from '../_common/types/CommandParser';
-import type { CommandParserInput } from '../_common/types/CommandParser';
+import type { CommandParser, CommandParserInput } from '../_common/types/CommandParser';
 import type { KnowledgeCommand } from './KnowledgeCommand';
+import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
+import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
+import type { PromptTemplateJson } from '../../types/PipelineJson/PromptTemplateJson';
 
 /**
  * Parses the knowledge command
@@ -80,11 +81,12 @@ export const knowledgeCommandParser: CommandParser<KnowledgeCommand> = {
     },
 
     /**
-     * Note: Prototype of [🍧] (remove this comment after full implementation)
+     * Apply the KNOWLEDGE command to the `pipelineJson`
+     *
+     * Note: `$` is used to indicate that this function mutates given `pipelineJson`
      */
-    applyToPipelineJson(personaCommand: KnowledgeCommand, subjects: ApplyToPipelineJsonSubjects): void {
-        const { sourceContent } = personaCommand;
-        const { pipelineJson } = subjects;
+    $applyToPipelineJson(command: KnowledgeCommand, pipelineJson: PipelineJson): void {
+        const { sourceContent } = command;
 
         const name = 'source-' + sha256(hexEncoder.parse(JSON.stringify(sourceContent))).toString(/* hex */);
         //    <- TODO: [🥬] Encapsulate sha256 to some private utility function
@@ -94,5 +96,24 @@ export const knowledgeCommandParser: CommandParser<KnowledgeCommand> = {
             name,
             sourceContent,
         });
+    },
+
+    /**
+     * Converts the KNOWLEDGE command back to string
+     *
+     * Note: This is used in `pipelineJsonToString` utility
+     */
+    stringify(command: KnowledgeCommand): string_markdown_text {
+        return `- !!!!!!`;
+    },
+
+    /**
+     * Reads the KNOWLEDGE command from the `PipelineJson`
+     *
+     * Note: This is used in `pipelineJsonToString` utility
+     */
+    takeFromPipelineJson(pipelineJson: PipelineJson): Array<KnowledgeCommand> {
+        keepUnused(pipelineJson);
+        throw new NotYetImplementedError(`Not implemented yet !!!!!!`);
     },
 };

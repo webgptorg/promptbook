@@ -1,9 +1,10 @@
 import spaceTrim from 'spacetrim';
 import { ParsingError } from '../../errors/ParsingError';
-import type { ApplyToPipelineJsonSubjects } from '../_common/types/CommandParser';
-import type { CommandParser } from '../_common/types/CommandParser';
-import type { CommandParserInput } from '../_common/types/CommandParser';
+import type { CommandParser, CommandParserInput } from '../_common/types/CommandParser';
 import type { PersonaCommand } from './PersonaCommand';
+import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
+import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
+import type { PromptTemplateJson } from '../../types/PipelineJson/PromptTemplateJson';
 
 /**
  * Parses the persona command
@@ -70,16 +71,33 @@ export const personaCommandParser: CommandParser<PersonaCommand> = {
     },
 
     /**
-     * Note: Prototype of [🍧] (remove this comment after full implementation)
+     * Apply the PERSONA command to the `pipelineJson`
+     *
+     * Note: `$` is used to indicate that this function mutates given `pipelineJson`
      */
-    applyToPipelineJson(personaCommand: PersonaCommand, subjects: ApplyToPipelineJsonSubjects): void {
-        const { personaName, personaDescription } = personaCommand;
-        const { pipelineJson, templateJson } = subjects;
+    $applyToPipelineJson(command: PersonaCommand, pipelineJson: PipelineJson): void {
+        $applyToTemplateJson(command, null, pipelineJson);
+    },
+
+    /**
+     * Apply the PERSONA command to the `pipelineJson`
+     *
+     * Note: `$` is used to indicate that this function mutates given `templateJson`
+     */
+    $applyToTemplateJson(
+        command: PersonaCommand,
+        templateJson: PromptTemplateJson | null,
+        pipelineJson: PipelineJson,
+    ): void {
+        const { personaName, personaDescription } = command;
 
         if (templateJson !== null) {
-            if (templateJson.blockType !== 'PROMPT_TEMPLATE') {
-                throw new ParsingError(`PERSONA command can be used only in PROMPT_TEMPLATE block`);
-            }
+            /*
+          TODO: !!! Just remove
+          if (templateJson.blockType !== 'PROMPT_TEMPLATE') {
+              throw new ParsingError(`PERSONA command can be used only in PROMPT_TEMPLATE block`);
+          }
+          */
 
             templateJson.personaName = personaName;
         }
@@ -110,19 +128,48 @@ export const personaCommandParser: CommandParser<PersonaCommand> = {
         console.warn(
             spaceTrim(`
 
-                Persona "${personaName}" is defined multiple times with different description:
+              Persona "${personaName}" is defined multiple times with different description:
 
-                First definition:
-                ${persona.description}
+              First definition:
+              ${persona.description}
 
-                Second definition:
-                ${personaDescription}
+              Second definition:
+              ${personaDescription}
 
-            `),
+          `),
             // <- TODO: [🚞]
             // <- TODO: [🧠] What is the propper way of theese `pipelineStringToJson` warnings
         );
 
         persona.description += spaceTrim('\n\n' + personaDescription);
+    },
+
+    /**
+     * Converts the PERSONA command back to string
+     *
+     * Note: This is used in `pipelineJsonToString` utility
+     */
+    stringify(command: PersonaCommand): string_markdown_text {
+        return `- !!!!!!`;
+    },
+
+    /**
+     * Reads the PERSONA command from the `PipelineJson`
+     *
+     * Note: This is used in `pipelineJsonToString` utility
+     */
+    takeFromPipelineJson(pipelineJson: PipelineJson): Array<PersonaCommand> {
+        keepUnused(pipelineJson);
+        throw new NotYetImplementedError(`Not implemented yet !!!!!!`);
+    },
+
+    /**
+     * Reads the PERSONA command from the `PromptTemplateJson`
+     *
+     * Note: This is used in `pipelineJsonToString` utility
+     */
+    takeFromTemplateJson(templateJson: PromptTemplateJson): Array<PersonaCommand> {
+        keepUnused(templateJson);
+        throw new NotYetImplementedError(`Not implemented yet !!!!!!`);
     },
 };
