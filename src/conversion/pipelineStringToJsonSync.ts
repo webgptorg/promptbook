@@ -6,7 +6,7 @@ import { knowledgeCommandParser } from '../commands/KNOWLEDGE/knowledgeCommandPa
 import type { ParameterCommand } from '../commands/PARAMETER/ParameterCommand';
 import { personaCommandParser } from '../commands/PERSONA/personaCommandParser';
 import { parseCommand } from '../commands/_common/parseCommand';
-import { PipelineHeadCommandParser, PipelineTemplateCommandParser } from '../commands/_common/types/CommandParser';
+import { PipelineHeadCommandParser } from '../commands/_common/types/CommandParser';
 import { RESERVED_PARAMETER_NAMES } from '../config';
 import { NotYetImplementedError } from '../errors/NotYetImplementedError';
 import { ParsingError } from '../errors/ParsingError';
@@ -328,6 +328,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
         };
 
         /**
+         * TODO: !!!!!! Remove
          * This is nessesary because block type can be
          * - Set zero times, so anticipate 'PROMPT_TEMPLATE'
          * - Set one time
@@ -335,7 +336,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
          *
          * Note: [2]
          */
-        let isBlockTypeSet = false;
+        // let isBlockTypeSet = false;
 
         // TODO: !!!!!! $ apply the commands here
 
@@ -378,7 +379,6 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
 
             // TODO: !!!!!! Remove
             switch (command.type) {
-        
                 case 'EXPECT_AMOUNT':
                     // eslint-disable-next-line no-case-declarations
                     const unit = command.unit.toLowerCase() as Lowercase<ExpectationUnit>;
@@ -497,7 +497,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
             }
         }
 
-        // TODO: [🍧] Should be done in BLOCK command
+        // TODO: [🍧] !!!!!! Should be done in BLOCK command
         if ((templateJson as WritableDeep<PromptTemplateJson>).blockType === 'SCRIPT') {
             if (!language) {
                 throw new ParsingError(
@@ -530,7 +530,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
             (templateJson as TODO_any as Writable<ScriptJson>).contentLanguage = language as TODO_any;
         }
 
-        // TODO: [🍧][❔] Should be done in BLOCK command
+        // TODO: [🍧][❔] !!!!!! Should be done in BLOCK command
         if (templateModelRequirements.modelVariant === undefined) {
             templateModelRequirements.modelVariant = 'CHAT';
         }
@@ -562,13 +562,12 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
             );
         }
 
-        // TODO: [🍧] Make this better - for example each command parser can call and apply this
+        // TODO: [🍧] !!!!!! Make this better - for example each command parser can call and apply this
         templateJson.resultingParameterName = expectResultingParameterName(/* <- Note: This is once more redundant */);
 
-        // TODO: [🍧] What actually about preparation and pushing the block into `promptTemplates`
         pipelineJson.promptTemplates.push(
             templateJson as PromptTemplateJson,
-            // <- TODO: [3] Do not do `as PromptTemplateJson` BUT make 100% sure that nothing is missing
+            // <- TODO: [3] !!!!!! Do not do `as PromptTemplateJson` BUT make 100% sure that nothing is missing
         );
     }
 
