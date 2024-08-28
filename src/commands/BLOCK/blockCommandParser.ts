@@ -202,6 +202,13 @@ export const blockCommandParser: CommandParser<BlockCommand> = {
         // expectResultingParameterName();
         (templateJson as WritableDeep<PromptTemplateJson>).blockType = command.blockType;
 
+        /*
+        TODO: !!!!!! Chat model variant should be applied in `createPipelineExecutor`
+        if (command.blockType ==='PROMPT_TEMPLATE' && templateModelRequirements.modelVariant === undefined) {
+          templateModelRequirements.modelVariant = 'CHAT';
+        }
+        */
+
         // !!!!!!
         // isBlockTypeSet = true; //<- Note: [2]
     },

@@ -8,7 +8,6 @@ import { PipelineHeadCommandParser } from '../commands/_common/types/CommandPars
 import { RESERVED_PARAMETER_NAMES } from '../config';
 import { ParsingError } from '../errors/ParsingError';
 import { UnexpectedError } from '../errors/UnexpectedError';
-import type { ModelRequirements } from '../types/ModelRequirements';
 import type { PipelineJson } from '../types/PipelineJson/PipelineJson';
 import type { PromptTemplateJson } from '../types/PipelineJson/PromptTemplateJson';
 import type { PromptTemplateParameterJson } from '../types/PipelineJson/PromptTemplateParameterJson';
@@ -318,7 +317,6 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
             name: titleToName(section.title),
             title: section.title,
             description,
-            modelRequirements: templateModelRequirements as ModelRequirements,
             content,
         };
 
@@ -411,10 +409,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
             (templateJson as TODO_any as Writable<ScriptJson>).contentLanguage = language as TODO_any;
         }
 
-        // TODO: [🍧][❔] !!!!!! Should be done in BLOCK command
-        if (templateModelRequirements.modelVariant === undefined) {
-            templateModelRequirements.modelVariant = 'CHAT';
-        }
+
 
         templateJson.dependentParameterNames = Array.from(
             extractParameterNamesFromPromptTemplate(

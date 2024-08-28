@@ -482,6 +482,7 @@ Was accidentally released skipped
 -   Change `usagePlaces` -> `isUsedInPipelineHead` + `isUsedInPipelineTemplate`
 -   All parsers have functions `$applyToPipelineJson`, `$applyToTemplateJson`, `stringify`, `takeFromPipelineJson` and `takeFromTemplateJson`
 -   `PipelineJson` has `defaultModelRequirements`
+-   `PipelineJson` has Chat model variant as default without need to specify it explicitly
 
 ## In prepare
 
