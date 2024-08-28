@@ -4,6 +4,7 @@ import { ParsingError } from '../../errors/ParsingError';
 import { EXPECTATION_UNITS } from '../../types/PipelineJson/Expectations';
 import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import type { PromptTemplateJson } from '../../types/PipelineJson/PromptTemplateJson';
+import { string_markdown_text } from '../../types/typeAliases';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import { parseNumber } from '../../utils/parseNumber';
 import type { CommandParser, CommandParserInput } from '../_common/types/CommandParser';
