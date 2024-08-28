@@ -3,7 +3,6 @@ import type { Writable, WritableDeep } from 'type-fest';
 import { Command } from '../_packages/types.index';
 import { COMMANDS } from '../commands';
 import type { ParameterCommand } from '../commands/PARAMETER/ParameterCommand';
-import { personaCommandParser } from '../commands/PERSONA/personaCommandParser';
 import { parseCommand } from '../commands/_common/parseCommand';
 import { PipelineHeadCommandParser } from '../commands/_common/types/CommandParser';
 import { RESERVED_PARAMETER_NAMES } from '../config';
@@ -372,29 +371,6 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
             (commandParser as PipelineHeadCommandParser<Command>).$applyToPipelineJson(command, pipelineJson);
 
             // TODO: !!!!!! Multiple problematic things in blockCommandParser.$applyToTemplateJson
-
-            // TODO: !!!!!! Remove
-            switch (command.type) {
-                case 'PERSONA':
-                    personaCommandParser.applyToPipelineJson!(command, { pipelineJson, templateJson });
-                    //                    <- Note: Prototype of [🍧] (remove this comment after full implementation)
-                    break;
-
-                default:
-                    throw new ParsingError(
-                        spaceTrim(
-                            (block) => `
-                                Command ${
-                                    command.type
-                                } is not allowed in the block of the prompt template ONLY at the head of the pipeline
-
-                                ${block(getPipelineIdentification())}
-
-                            `,
-                        ),
-                        // <- TODO: [🚞]
-                    );
-            }
 
             if (command.type === 'PARAMETER') {
                 defineParam(command);
