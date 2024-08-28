@@ -1,6 +1,6 @@
 import { ParsingError } from '../../errors/ParsingError';
-import type { CommandParser } from '../_common/types/CommandParser';
-import type { CommandParserInput } from '../_common/types/CommandParser';
+import { keepUnused } from '../../utils/organization/keepUnused';
+import type { ApplyToPipelineJsonSubjects, CommandParser, CommandParserInput } from '../_common/types/CommandParser';
 import type { BoilerplateCommand } from './BoilerplateCommand';
 
 /**
@@ -61,8 +61,16 @@ export const boilerplateCommandParser: CommandParser<BoilerplateCommand> = {
             value,
         } satisfies BoilerplateCommand;
     },
+
+    applyToPipelineJson(command: BoilerplateCommand, subjects: ApplyToPipelineJsonSubjects): void {
+        keepUnused(command, subjects);
+        throw new ParsingError(
+            `BOILERPLATE command is only for testing purposes and should not be used in the .ptbk.md file`,
+        );
+    },
 };
 
 /**
+ * TODO: !!!!!! What is this command for? Make more descriptive annotation above each command
  * TODO: [💐] Implement BOILERPLATE command into `pipelineStringToJsonSync` function
  */

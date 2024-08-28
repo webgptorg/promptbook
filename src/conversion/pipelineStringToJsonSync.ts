@@ -1,5 +1,6 @@
 import { spaceTrim } from 'spacetrim';
 import type { Writable, WritableDeep } from 'type-fest';
+import { COMMANDS } from '../commands';
 import { knowledgeCommandParser } from '../commands/KNOWLEDGE/knowledgeCommandParser';
 import type { ParameterCommand } from '../commands/PARAMETER/ParameterCommand';
 import { personaCommandParser } from '../commands/PERSONA/personaCommandParser';
@@ -215,6 +216,36 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
     for (const listItem of listItems) {
         const command = parseCommand(listItem, 'PIPELINE_HEAD');
 
+        const commandParser = COMMANDS.find((commandParser) => commandParser.name === command.type);
+
+        if (commandParser === undefined) {
+            throw new UnexpectedError(
+                spaceTrim(
+                    (block) => `
+                          Command ${command.type} parser is not found
+
+                          ${block(getPipelineIdentification())}
+                      `,
+                ),
+            );
+        }
+
+        if (!commandParser.usagePlaces.includes('PIPELINE_HEAD')) {
+            throw new ParsingError(
+                spaceTrim(
+                    (block) => `
+                        Command ${
+                            command.type
+                        } is not allowed in the head of the promptbook ONLY at the pipeline template
+
+                        ${block(getPipelineIdentification())}
+                    `,
+                ),
+            ); // <- TODO: [🚞]
+        }
+
+        commandParser.applyToPipelineJson(command as TODO_any, { pipelineJson, templateJson: null });
+
         switch (command.type) {
             // TODO: [🍧] Use here applyToPipelineJson and remove switch statement
             case 'MODEL':
@@ -230,7 +261,6 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
                 pipelineJson.pipelineUrl = command.pipelineUrl.href;
                 break;
             case 'KNOWLEDGE':
-                knowledgeCommandParser.applyToPipelineJson!(command, { pipelineJson, templateJson: null });
                 break;
             case 'ACTION':
                 console.error(new NotYetImplementedError('Actions are not implemented yet'));
@@ -238,36 +268,8 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
             case 'INSTRUMENT':
                 console.error(new NotYetImplementedError('Instruments are not implemented yet'));
                 break;
-            case 'PERSONA':
-                personaCommandParser.applyToPipelineJson!(command, { pipelineJson, templateJson: null });
-                //                    <- Note: Prototype of [🍧] (remove this comment after full implementation)
-                break;
-            case 'BOILERPLATE':
-                throw new ParsingError(
-                    spaceTrim(
-                        (block) => `
-                            BOILERPLATE command is only for testing purposes and should not be used in the .ptbk.md file
-
-                            ${block(getPipelineIdentification())}
-                        `,
-                    ),
-                ); // <- TODO: [🚞]
-                break;
-
-            // <- [💐]
 
             default:
-                throw new ParsingError(
-                    spaceTrim(
-                        (block) => `
-                            Command ${
-                                command.type
-                            } is not allowed in the head of the promptbook ONLY at the pipeline template
-
-                            ${block(getPipelineIdentification())}
-                        `,
-                    ),
-                ); // <- TODO: [🚞]
         }
     }
 
