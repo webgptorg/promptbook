@@ -2,7 +2,6 @@ import type { WritableDeep } from 'type-fest';
 import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
 import { ParsingError } from '../../errors/ParsingError';
 import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
-import type { PromptTemplateJson } from '../../types/PipelineJson/PromptTemplateJson';
 import { string_markdown_text } from '../../types/typeAliases';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import { isValidPromptbookVersion } from '../../utils/validators/semanticVersion/isValidPromptbookVersion';
@@ -80,7 +79,6 @@ export const promptbookVersionCommandParser: CommandParser<PromptbookVersionComm
         pipelineJson.promptbookVersion = command.promptbookVersion;
     },
 
-
     /**
      * Converts the PROMPTBOOK_VERSION command back to string
      *
@@ -100,5 +98,4 @@ export const promptbookVersionCommandParser: CommandParser<PromptbookVersionComm
         keepUnused(pipelineJson);
         throw new NotYetImplementedError(`Not implemented yet !!!!!!`);
     },
-
 };

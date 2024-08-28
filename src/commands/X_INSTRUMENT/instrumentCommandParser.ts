@@ -1,7 +1,6 @@
 import type { WritableDeep } from 'type-fest';
 import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
 import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
-import type { PromptTemplateJson } from '../../types/PipelineJson/PromptTemplateJson';
 import { string_markdown_text } from '../../types/typeAliases';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import { TODO_USE } from '../../utils/organization/TODO_USE';
@@ -64,8 +63,6 @@ export const instrumentCommandParser: CommandParser<InstrumentCommand> = {
         console.error(new NotYetImplementedError('Instruments are not implemented yet'));
     },
 
-
-
     /**
      * Converts the INSTRUMENT command back to string
      *
@@ -85,6 +82,4 @@ export const instrumentCommandParser: CommandParser<InstrumentCommand> = {
         keepUnused(pipelineJson);
         throw new NotYetImplementedError(`Not implemented yet !!!!!!`);
     },
-
-
 };

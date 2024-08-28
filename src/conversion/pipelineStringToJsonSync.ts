@@ -254,7 +254,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
     // =============================================================
     // Note: 4️⃣ Process each template of the pipeline
 
-    templates: for (const section of pipelineSections) {
+    /* TODO: !!!!!! Remove `templates:` */ for (const section of pipelineSections) {
         // TODO: Parse prompt template description (the content out of the codeblock and lists)
 
         const listItems = extractAllListItemsFromMarkdown(section.content);
