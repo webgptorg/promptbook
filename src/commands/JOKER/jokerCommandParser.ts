@@ -1,7 +1,6 @@
 import type { WritableDeep } from 'type-fest';
 import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
 import { ParsingError } from '../../errors/ParsingError';
-import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import type { PromptTemplateJson } from '../../types/PipelineJson/PromptTemplateJson';
 import { string_markdown_text } from '../../types/typeAliases';
 import { keepUnused } from '../../utils/organization/keepUnused';
@@ -67,13 +66,9 @@ export const jokerCommandParser: CommandParser<JokerCommand> = {
      *
      * Note: `$` is used to indicate that this function mutates given `templateJson`
      */
-    $applyToTemplateJson(
-        command: JokerCommand,
-        templateJson: WritableDeep<PromptTemplateJson>,
-        pipelineJson: WritableDeep<PipelineJson>,
-    ): void {
-        keepUnused(command, templateJson, pipelineJson);
-        throw new NotYetImplementedError(`Not implemented yet !!!!!!`);
+    $applyToTemplateJson(command: JokerCommand, templateJson: WritableDeep<PromptTemplateJson>): void {
+        templateJson.jokerParameterNames = templateJson.jokerParameterNames || [];
+        templateJson.jokerParameterNames.push(command.parameterName);
     },
 
     /**

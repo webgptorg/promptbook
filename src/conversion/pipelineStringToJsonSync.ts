@@ -378,12 +378,6 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
 
             // TODO: !!!!!! Remove
             switch (command.type) {
-                case 'JOKER':
-                    templateJson.jokerParameterNames = templateJson.jokerParameterNames || [];
-                    templateJson.jokerParameterNames.push(command.parameterName);
-
-                    break;
-
                 case 'MODEL':
                     templateModelRequirements[command.key] = command.value;
                     break;
