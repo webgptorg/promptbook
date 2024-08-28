@@ -169,14 +169,43 @@
             "focus": true
         },
         {
-            "name": "🔼👑 Release major version (💸)",
-            "command": "npm version major",
+            "name": "🍴🔍 Git list unmerged changes",
+            "commands": ["git branch --no-merged main"],
+            "onlySingle": true,
+            "focus": true
+        },
+        {
+            "name": "🍴🗑️ Git delete merged branches",
+            "commands": [
+                "./scripts/is-main-checked.sh && git branch --merged | egrep -v '(^\\*|main)' | xargs git branch -d",
+                "git remote prune origin",
+                "git gc"
+            ],
+            "onlySingle": true,
+            "focus": true
+        },
+        {
+            "name": "🍴⏫ Git push all branches",
+            "command": "git diff --exit-code && ./scripts/push-all-branches.sh",
+            "onlySingle": true,
+            "focus": true
+        },
+        {
+            "name": "🍴⏬ Git pull all branches",
+            "command": "git diff --exit-code && ./scripts/pull-all-branches.sh",
             "onlySingle": true,
             "focus": true
         },
         {
             "name": "🔼🚀 Release minor version (💸)",
             "command": "npm version minor",
+            "onlySingle": true,
+            "focus": true
+        },
+        {
+            "name": "🔼🧪 Release pre-minor version (💸)",
+            "commands": ["npm version preminor", "npm version prerelease"],
+            "execute": false,
             "onlySingle": true,
             "focus": true
         },

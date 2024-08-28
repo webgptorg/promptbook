@@ -474,6 +474,14 @@ Was accidentally released skipped
 -   `RemoteLlmExecutionTools` automatically retries on error
 -   Rename `client_id` -> `string_user_id` and `clientId` -> `userId`
 
+### `0.68.0` _(2024--)_
+
+[🍧] Commands and command parser
+
+-   !!!!!!
+-   Change `usagePlaces` -> `isUsedInPipelineHead` + `isUsedInPipelineTemplate`
+-   All parsers have functions `$applyToPipelineJson`, `$applyToTemplateJson`, `stringify`, `takeFromPipelineJson` and `takeFromTemplateJson`
+
 ## In prepare
 
 ### `0..0` _(2024-0-)_
