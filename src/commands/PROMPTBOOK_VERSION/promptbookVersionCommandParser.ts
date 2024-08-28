@@ -1,11 +1,12 @@
+import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
 import { ParsingError } from '../../errors/ParsingError';
+import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
+import type { PromptTemplateJson } from '../../types/PipelineJson/PromptTemplateJson';
+import { keepUnused } from '../../utils/organization/keepUnused';
 import { isValidPromptbookVersion } from '../../utils/validators/semanticVersion/isValidPromptbookVersion';
 import { PROMPTBOOK_VERSION } from '../../version';
 import type { CommandParser, CommandParserInput } from '../_common/types/CommandParser';
 import type { PromptbookVersionCommand } from './PromptbookVersionCommand';
-import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
-import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
-import type { PromptTemplateJson } from '../../types/PipelineJson/PromptTemplateJson';
 
 /**
  * Parses the PROMPTBOOK_VERSION command
@@ -24,7 +25,7 @@ export const promptbookVersionCommandParser: CommandParser<PromptbookVersionComm
     /**
      * BOILERPLATE command can be used in:
      */
-    usagePlaces: ['PIPELINE_HEAD'],
+    isUsedInPipelineHead: true,
 
     /**
      * Description of the PROMPTBOOK_VERSION command
@@ -97,6 +98,7 @@ export const promptbookVersionCommandParser: CommandParser<PromptbookVersionComm
      * Note: This is used in `pipelineJsonToString` utility
      */
     stringify(command: PromptbookVersionCommand): string_markdown_text {
+        keepUnused(command);
         return `- !!!!!!`;
     },
 

@@ -1,10 +1,11 @@
+import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
 import { ParsingError } from '../../errors/ParsingError';
+import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
+import type { PromptTemplateJson } from '../../types/PipelineJson/PromptTemplateJson';
+import { keepUnused } from '../../utils/organization/keepUnused';
 import { isValidJavascriptName } from '../../utils/validators/javascriptName/isValidJavascriptName';
 import type { CommandParser, CommandParserInput } from '../_common/types/CommandParser';
 import type { PostprocessCommand } from './PostprocessCommand';
-import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
-import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
-import type { PromptTemplateJson } from '../../types/PipelineJson/PromptTemplateJson';
 
 /**
  * Parses the postprocess command
@@ -23,7 +24,7 @@ export const postprocessCommandParser: CommandParser<PostprocessCommand> = {
     /**
      * BOILERPLATE command can be used in:
      */
-    usagePlaces: ['PIPELINE_TEMPLATE'],
+    isUsedInPipelineTemplate: true,
 
     /**
      * Description of the POSTPROCESS command
@@ -98,6 +99,7 @@ export const postprocessCommandParser: CommandParser<PostprocessCommand> = {
      * Note: This is used in `pipelineJsonToString` utility
      */
     stringify(command: PostprocessCommand): string_markdown_text {
+        keepUnused(command);
         return `- !!!!!!`;
     },
 

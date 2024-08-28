@@ -1,3 +1,8 @@
+/**
+ * @@@
+ *
+ * @private just abstract the common properties for the execution tools
+ */
 export type CommonExecutionToolsOptions = {
     /**
      * If true, the internal executions will be logged

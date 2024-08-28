@@ -1,14 +1,15 @@
 import spaceTrim from 'spacetrim';
+import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
 import { ParsingError } from '../../errors/ParsingError';
 import { EXPECTATION_UNITS } from '../../types/PipelineJson/Expectations';
+import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
+import type { PromptTemplateJson } from '../../types/PipelineJson/PromptTemplateJson';
+import { keepUnused } from '../../utils/organization/keepUnused';
 import { parseNumber } from '../../utils/parseNumber';
 import type { CommandParser, CommandParserInput } from '../_common/types/CommandParser';
 import type { ExpectAmountCommand } from './ExpectAmountCommand';
 import type { ExpectCommand } from './ExpectCommand';
 import type { ExpectFormatCommand } from './ExpectFormatCommand';
-import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
-import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
-import type { PromptTemplateJson } from '../../types/PipelineJson/PromptTemplateJson';
 
 /**
  * Parses the expect command
@@ -25,7 +26,7 @@ export const expectCommandParser: CommandParser<ExpectCommand> = {
     /**
      * BOILERPLATE command can be used in:
      */
-    usagePlaces: ['PIPELINE_TEMPLATE'],
+    isUsedInPipelineTemplate: true,
 
     /**
      * Description of the EXPECT command
@@ -163,6 +164,7 @@ export const expectCommandParser: CommandParser<ExpectCommand> = {
      * Note: This is used in `pipelineJsonToString` utility
      */
     stringify(command: ExpectCommand): string_markdown_text {
+        keepUnused(command);
         return `- !!!!!!`;
     },
 

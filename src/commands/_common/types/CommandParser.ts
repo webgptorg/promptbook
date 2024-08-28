@@ -2,20 +2,34 @@ import type { WritableDeep } from 'type-fest';
 import type { PipelineJson } from '../../../types/PipelineJson/PipelineJson';
 import type { PromptTemplateJson } from '../../../types/PipelineJson/PromptTemplateJson';
 import type {
-    string_markdown_text,
-    string_name,
-    string_promptbook_documentation_url,
+  string_markdown_text,
+  string_name,
+  string_promptbook_documentation_url,
 } from '../../../types/typeAliases';
 import type { string_SCREAMING_CASE } from '../../../utils/normalization/normalizeTo_SCREAMING_CASE';
 import type { CommandUsagePlace } from './CommandUsagePlaces';
-import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
-import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
-import type { PromptTemplateJson } from '../../types/PipelineJson/PromptTemplateJson';
+
+/**
+ * @@@
+ *
+ * @private just abstract helper for command parsers
+ */
+export type CommandBase = { type: string_name & string_SCREAMING_CASE };
 
 /**
  * @@@
  */
-export type CommandParser<TCommand extends { type: string_name & string_SCREAMING_CASE }> = {
+export type CommandParser<TCommand extends CommandBase> =
+    | PipelineHeadCommandParser<TCommand>
+    | PipelineTemplateCommandParser<TCommand>
+    | (PipelineHeadCommandParser<TCommand> & PipelineTemplateCommandParser<TCommand>);
+
+/**
+ * @@@
+ *
+ * @private just abstract the common properties of the command parsers
+ */
+export type CommonCommandParser<TCommand extends CommandBase> = {
     /**
      * @@@
      */
@@ -30,11 +44,6 @@ export type CommandParser<TCommand extends { type: string_name & string_SCREAMIN
      * @@@
      */
     readonly deprecatedNames?: Array<string_name & string_SCREAMING_CASE>;
-
-    /**
-     * @@@
-     */
-    readonly usagePlaces: Array<CommandUsagePlace>; // <- TODO: [😃]
 
     /**
      * @@@
@@ -57,11 +66,45 @@ export type CommandParser<TCommand extends { type: string_name & string_SCREAMIN
     parse(input: CommandParserInput): TCommand;
 
     /**
+     * Converts the command back to string
+     *
+     * Note: This is used in `pipelineJsonToString` utility
+     */
+    stringify(command: TCommand): string_markdown_text;
+};
+
+/**
+ * @@@
+ */
+export type PipelineHeadCommandParser<TCommand extends CommandBase> = CommonCommandParser<TCommand> & {
+    /**
+     * @@@
+     */
+    readonly isUsedInPipelineHead: true;
+
+    /**
      * Apply the command to the `pipelineJson`
      *
      * Note: `$` is used to indicate that this function mutates given `pipelineJson`
      */
     $applyToPipelineJson(command: TCommand, pipelineJson: WritableDeep<PipelineJson>): void;
+
+    /**
+     * Reads the command from the `PipelineJson`
+     *
+     * Note: This is used in `pipelineJsonToString` utility
+     */
+    takeFromPipelineJson(pipelineJson: PipelineJson): Array<TCommand>;
+};
+
+/**
+ * @@@
+ */
+export type PipelineTemplateCommandParser<TCommand extends CommandBase> = CommonCommandParser<TCommand> & {
+    /**
+     * @@@
+     */
+    readonly isUsedInPipelineTemplate: true;
 
     /**
      * Apply the command to the `pipelineJson`
@@ -70,23 +113,9 @@ export type CommandParser<TCommand extends { type: string_name & string_SCREAMIN
      */
     $applyToTemplateJson(
         command: TCommand,
-        templateJson: WritableDeep<PipelineJson>,
+        templateJson: WritableDeep<PromptTemplateJson>,
         pipelineJson: WritableDeep<PipelineJson>,
     ): void;
-
-    /**
-     * Converts the command back to string
-     *
-     * Note: This is used in `pipelineJsonToString` utility
-     */
-    stringify(command: TCommand): string_markdown_text;
-
-    /**
-     * Reads the command from the `PipelineJson`
-     *
-     * Note: This is used in `pipelineJsonToString` utility
-     */
-    takeFromPipelineJson(pipelineJson: PipelineJson): Array<TCommand>;
 
     /**
      * Reads the command from the `PromptTemplateJson`

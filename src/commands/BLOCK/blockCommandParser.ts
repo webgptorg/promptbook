@@ -1,8 +1,8 @@
+import spaceTrim from 'spacetrim';
 import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
+import { ParsingError } from '../../errors/ParsingError';
 import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import type { PromptTemplateJson } from '../../types/PipelineJson/PromptTemplateJson';
-import spaceTrim from 'spacetrim';
-import { ParsingError } from '../../errors/ParsingError';
 import { string_markdown_text } from '../../types/typeAliases';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import type { CommandParser, CommandParserInput } from '../_common/types/CommandParser';
@@ -45,7 +45,7 @@ export const blockCommandParser: CommandParser<BlockCommand> = {
     /**
      * BOILERPLATE command can be used in:
      */
-    usagePlaces: ['PIPELINE_TEMPLATE'],
+    isUsedInPipelineTemplate: true,
 
     /**
      * Description of the BLOCK command
@@ -144,6 +144,7 @@ export const blockCommandParser: CommandParser<BlockCommand> = {
      * Note: This is used in `pipelineJsonToString` utility
      */
     stringify(command: BlockCommand): string_markdown_text {
+        keepUnused(command);
         return `- !!!!!!`;
     },
 

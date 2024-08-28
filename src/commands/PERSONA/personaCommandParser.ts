@@ -1,10 +1,11 @@
 import spaceTrim from 'spacetrim';
-import { ParsingError } from '../../errors/ParsingError';
-import type { CommandParser, CommandParserInput } from '../_common/types/CommandParser';
-import type { PersonaCommand } from './PersonaCommand';
 import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
+import { ParsingError } from '../../errors/ParsingError';
 import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import type { PromptTemplateJson } from '../../types/PipelineJson/PromptTemplateJson';
+import { keepUnused } from '../../utils/organization/keepUnused';
+import type { CommandParser, CommandParserInput } from '../_common/types/CommandParser';
+import type { PersonaCommand } from './PersonaCommand';
 
 /**
  * Parses the persona command
@@ -26,7 +27,8 @@ export const personaCommandParser: CommandParser<PersonaCommand> = {
     /**
      * PERSONA command can be used in:
      */
-    usagePlaces: ['PIPELINE_HEAD', 'PIPELINE_TEMPLATE'],
+    isUsedInPipelineHead: true,
+    isUsedInPipelineTemplate: true,
 
     /**
      * Description of the PERSONA command
@@ -150,6 +152,7 @@ export const personaCommandParser: CommandParser<PersonaCommand> = {
      * Note: This is used in `pipelineJsonToString` utility
      */
     stringify(command: PersonaCommand): string_markdown_text {
+        keepUnused(command);
         return `- !!!!!!`;
     },
 

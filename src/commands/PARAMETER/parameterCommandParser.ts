@@ -1,10 +1,11 @@
+import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
 import { ParsingError } from '../../errors/ParsingError';
+import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
+import type { PromptTemplateJson } from '../../types/PipelineJson/PromptTemplateJson';
+import { keepUnused } from '../../utils/organization/keepUnused';
 import type { TODO_any } from '../../utils/organization/TODO_any';
 import type { CommandParser, CommandParserInput } from '../_common/types/CommandParser';
 import type { ParameterCommand } from './ParameterCommand';
-import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
-import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
-import type { PromptTemplateJson } from '../../types/PipelineJson/PromptTemplateJson';
 
 /**
  * Parses the parameter command
@@ -30,7 +31,8 @@ export const parameterCommandParser: CommandParser<ParameterCommand> = {
     /**
      * BOILERPLATE command can be used in:
      */
-    usagePlaces: ['PIPELINE_HEAD', 'PIPELINE_TEMPLATE'],
+    isUsedInPipelineHead: true,
+    isUsedInPipelineTemplate: true,
 
     /**
      * Description of the PARAMETER command
@@ -112,6 +114,7 @@ export const parameterCommandParser: CommandParser<ParameterCommand> = {
      * Note: This is used in `pipelineJsonToString` utility
      */
     stringify(command: ParameterCommand): string_markdown_text {
+        keepUnused(command);
         return `- !!!!!!`;
     },
 

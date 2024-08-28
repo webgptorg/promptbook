@@ -1,10 +1,11 @@
+import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
 import { ParsingError } from '../../errors/ParsingError';
+import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
+import type { PromptTemplateJson } from '../../types/PipelineJson/PromptTemplateJson';
+import { keepUnused } from '../../utils/organization/keepUnused';
 import { isValidPipelineUrl } from '../../utils/validators/url/isValidPipelineUrl';
 import type { CommandParser, CommandParserInput } from '../_common/types/CommandParser';
 import type { UrlCommand } from './UrlCommand';
-import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
-import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
-import type { PromptTemplateJson } from '../../types/PipelineJson/PromptTemplateJson';
 
 /**
  * Parses the url command
@@ -28,7 +29,7 @@ export const urlCommandParser: CommandParser<UrlCommand> = {
     /**
      * BOILERPLATE command can be used in:
      */
-    usagePlaces: ['PIPELINE_HEAD'],
+    isUsedInPipelineHead: true,
 
     /**
      * Description of the URL command
@@ -120,6 +121,7 @@ export const urlCommandParser: CommandParser<UrlCommand> = {
      * Note: This is used in `pipelineJsonToString` utility
      */
     stringify(command: UrlCommand): string_markdown_text {
+        keepUnused(command);
         return `- !!!!!!`;
     },
 

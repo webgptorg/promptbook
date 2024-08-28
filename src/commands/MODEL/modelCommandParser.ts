@@ -1,11 +1,12 @@
 import spaceTrim from 'spacetrim';
+import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
 import { ParsingError } from '../../errors/ParsingError';
 import { MODEL_VARIANTS } from '../../types/ModelVariant';
-import type { CommandParser, CommandParserInput } from '../_common/types/CommandParser';
-import type { ModelCommand } from './ModelCommand';
-import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
 import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import type { PromptTemplateJson } from '../../types/PipelineJson/PromptTemplateJson';
+import { keepUnused } from '../../utils/organization/keepUnused';
+import type { CommandParser, CommandParserInput } from '../_common/types/CommandParser';
+import type { ModelCommand } from './ModelCommand';
 
 /**
  * Parses the model command
@@ -134,6 +135,7 @@ export const modelCommandParser: CommandParser<ModelCommand> = {
      * Note: This is used in `pipelineJsonToString` utility
      */
     stringify(command: ModelCommand): string_markdown_text {
+        keepUnused(command);
         return `- !!!!!!`;
     },
 

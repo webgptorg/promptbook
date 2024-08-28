@@ -1,1 +1,0 @@
-TODO: [😃][🧠] Flags<'A'|'B'> to allow [], ['A'], ['B'], ['A','B'] but not ['A','A']

@@ -1,14 +1,14 @@
 import hexEncoder from 'crypto-js/enc-hex';
 import sha256 from 'crypto-js/sha256';
 import spaceTrim from 'spacetrim';
+import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
 import { ParsingError } from '../../errors/ParsingError';
+import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
+import { keepUnused } from '../../utils/organization/keepUnused';
 import { isValidFilePath } from '../../utils/validators/filePath/isValidFilePath';
 import { isValidUrl } from '../../utils/validators/url/isValidUrl';
 import type { CommandParser, CommandParserInput } from '../_common/types/CommandParser';
 import type { KnowledgeCommand } from './KnowledgeCommand';
-import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
-import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
-import type { PromptTemplateJson } from '../../types/PipelineJson/PromptTemplateJson';
 
 /**
  * Parses the knowledge command
@@ -25,7 +25,7 @@ export const knowledgeCommandParser: CommandParser<KnowledgeCommand> = {
     /**
      * BOILERPLATE command can be used in:
      */
-    usagePlaces: ['PIPELINE_HEAD'],
+    isUsedInPipelineHead: true,
 
     /**
      * Description of the KNOWLEDGE command
@@ -104,6 +104,7 @@ export const knowledgeCommandParser: CommandParser<KnowledgeCommand> = {
      * Note: This is used in `pipelineJsonToString` utility
      */
     stringify(command: KnowledgeCommand): string_markdown_text {
+        keepUnused(command);
         return `- !!!!!!`;
     },
 

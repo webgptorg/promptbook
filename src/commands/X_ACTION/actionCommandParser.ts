@@ -1,9 +1,10 @@
-import { TODO_USE } from '../../utils/organization/TODO_USE';
-import type { CommandParser, CommandParserInput } from '../_common/types/CommandParser';
-import type { ActionCommand } from './ActionCommand';
 import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
 import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import type { PromptTemplateJson } from '../../types/PipelineJson/PromptTemplateJson';
+import { keepUnused } from '../../utils/organization/keepUnused';
+import { TODO_USE } from '../../utils/organization/TODO_USE';
+import type { CommandParser, CommandParserInput } from '../_common/types/CommandParser';
+import type { ActionCommand } from './ActionCommand';
 
 /**
  * Parses the action command
@@ -20,7 +21,8 @@ export const actionCommandParser: CommandParser<ActionCommand> = {
     /**
      * ACTION command can be used in:
      */
-    usagePlaces: ['PIPELINE_HEAD', 'PIPELINE_TEMPLATE'],
+    isUsedInPipelineHead: true,
+    isUsedInPipelineTemplate: true,
 
     /**
      * Description of the ACTION command
@@ -76,6 +78,7 @@ export const actionCommandParser: CommandParser<ActionCommand> = {
      * Note: This is used in `pipelineJsonToString` utility
      */
     stringify(command: ActionCommand): string_markdown_text {
+        keepUnused(command);
         return `- !!!!!!`;
     },
 

@@ -1,6 +1,4 @@
-import type { string_date_iso8601 } from '../types/typeAliases';
-import type { string_model_name } from '../types/typeAliases';
-import type { string_prompt } from '../types/typeAliases';
+import type { string_date_iso8601, string_model_name, string_prompt } from '../types/typeAliases';
 import type { TODO_object } from '../utils/organization/TODO_object';
 import type { EmbeddingVector } from './EmbeddingVector';
 import type { PromptResultUsage } from './PromptResultUsage';
@@ -48,6 +46,8 @@ export type EmbeddingPromptResult = Omit<CommonPromptResult, 'content'> & {
  * Common properties for all prompt results
  *
  * Note: [🚉] This is fully serializable as JSON
+ *
+ * @private just abstract the common properties of the prompt results
  */
 export type CommonPromptResult = {
     /**

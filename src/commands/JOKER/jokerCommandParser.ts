@@ -1,10 +1,11 @@
+import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
 import { ParsingError } from '../../errors/ParsingError';
+import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
+import type { PromptTemplateJson } from '../../types/PipelineJson/PromptTemplateJson';
+import { keepUnused } from '../../utils/organization/keepUnused';
 import type { TODO_any } from '../../utils/organization/TODO_any';
 import type { CommandParser, CommandParserInput } from '../_common/types/CommandParser';
 import type { JokerCommand } from './JokerCommand';
-import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
-import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
-import type { PromptTemplateJson } from '../../types/PipelineJson/PromptTemplateJson';
 
 /**
  * Parses the joker command
@@ -21,7 +22,7 @@ export const jokerCommandParser: CommandParser<JokerCommand> = {
     /**
      * BOILERPLATE command can be used in:
      */
-    usagePlaces: ['PIPELINE_TEMPLATE'],
+    isUsedInPipelineTemplate: true,
 
     /**
      * Description of the JOKER command
@@ -84,6 +85,7 @@ export const jokerCommandParser: CommandParser<JokerCommand> = {
      * Note: This is used in `pipelineJsonToString` utility
      */
     stringify(command: JokerCommand): string_markdown_text {
+        keepUnused(command);
         return `- !!!!!!`;
     },
 

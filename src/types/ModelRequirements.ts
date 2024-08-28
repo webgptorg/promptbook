@@ -1,8 +1,5 @@
 import type { ModelVariant } from './ModelVariant';
-import type { number_model_temperature } from './typeAliases';
-import type { number_seed } from './typeAliases';
-import type { string_model_name } from './typeAliases';
-import type { string_system_message } from './typeAliases';
+import type { number_model_temperature, number_seed, string_model_name, string_system_message } from './typeAliases';
 
 /**
  * Abstract way to specify the LLM.
@@ -63,6 +60,8 @@ export type EmbeddingModelRequirements = CommonModelRequirements & {
  * Common properties for all model requirements variants
  *
  * Note: [🚉] This is fully serializable as JSON
+ *
+ * @private just abstract the common properties of the model requirements
  */
 export type CommonModelRequirements = {
     /**

@@ -1,6 +1,7 @@
 import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
 import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import type { PromptTemplateJson } from '../../types/PipelineJson/PromptTemplateJson';
+import { keepUnused } from '../../utils/organization/keepUnused';
 import { TODO_USE } from '../../utils/organization/TODO_USE';
 import type { CommandParser, CommandParserInput } from '../_common/types/CommandParser';
 import type { InstrumentCommand } from './InstrumentCommand';
@@ -20,7 +21,8 @@ export const instrumentCommandParser: CommandParser<InstrumentCommand> = {
     /**
      * INSTRUMENT command can be used in:
      */
-    usagePlaces: ['PIPELINE_HEAD', 'PIPELINE_TEMPLATE'],
+    isUsedInPipelineHead: true,
+    isUsedInPipelineTemplate: true,
 
     /**
      * Description of the INSTRUMENT command
@@ -80,6 +82,7 @@ export const instrumentCommandParser: CommandParser<InstrumentCommand> = {
      * Note: This is used in `pipelineJsonToString` utility
      */
     stringify(command: InstrumentCommand): string_markdown_text {
+        keepUnused(command);
         return `- !!!!!!`;
     },
 
