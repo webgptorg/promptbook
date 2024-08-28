@@ -24,7 +24,7 @@ export const instrumentCommandParser: CommandParser<InstrumentCommand> = {
      * INSTRUMENT command can be used in:
      */
     isUsedInPipelineHead: true,
-    isUsedInPipelineTemplate: true,
+    isUsedInPipelineTemplate: false, // <- [👙] Maybe allow to use here and make relevant for just this template
 
     /**
      * Description of the INSTRUMENT command
@@ -64,19 +64,7 @@ export const instrumentCommandParser: CommandParser<InstrumentCommand> = {
         console.error(new NotYetImplementedError('Instruments are not implemented yet'));
     },
 
-    /**
-     * Apply the INSTRUMENT command to the `pipelineJson`
-     *
-     * Note: `$` is used to indicate that this function mutates given `templateJson`
-     */
-    $applyToTemplateJson(
-        command: InstrumentCommand,
-        templateJson: WritableDeep<PromptTemplateJson>,
-        pipelineJson: WritableDeep<PipelineJson>,
-    ): void {
-        keepUnused(command, templateJson, pipelineJson);
-        console.error(new NotYetImplementedError('Instruments are not implemented yet'));
-    },
+
 
     /**
      * Converts the INSTRUMENT command back to string
@@ -98,13 +86,5 @@ export const instrumentCommandParser: CommandParser<InstrumentCommand> = {
         throw new NotYetImplementedError(`Not implemented yet !!!!!!`);
     },
 
-    /**
-     * Reads the INSTRUMENT command from the `PromptTemplateJson`
-     *
-     * Note: This is used in `pipelineJsonToString` utility
-     */
-    takeFromTemplateJson(templateJson: WritableDeep<PromptTemplateJson>): Array<InstrumentCommand> {
-        keepUnused(templateJson);
-        throw new NotYetImplementedError(`Not implemented yet !!!!!!`);
-    },
+
 };

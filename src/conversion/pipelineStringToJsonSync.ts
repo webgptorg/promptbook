@@ -2,13 +2,11 @@ import { spaceTrim } from 'spacetrim';
 import type { Writable, WritableDeep } from 'type-fest';
 import { Command } from '../_packages/types.index';
 import { COMMANDS } from '../commands';
-import { knowledgeCommandParser } from '../commands/KNOWLEDGE/knowledgeCommandParser';
 import type { ParameterCommand } from '../commands/PARAMETER/ParameterCommand';
 import { personaCommandParser } from '../commands/PERSONA/personaCommandParser';
 import { parseCommand } from '../commands/_common/parseCommand';
 import { PipelineHeadCommandParser } from '../commands/_common/types/CommandParser';
 import { RESERVED_PARAMETER_NAMES } from '../config';
-import { NotYetImplementedError } from '../errors/NotYetImplementedError';
 import { ParsingError } from '../errors/ParsingError';
 import { UnexpectedError } from '../errors/UnexpectedError';
 import type { ModelRequirements } from '../types/ModelRequirements';
@@ -377,19 +375,6 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
 
             // TODO: !!!!!! Remove
             switch (command.type) {
-
-                case 'KNOWLEDGE':
-                    // TODO: [👙] The knowledge is maybe relevant for just this template
-                    knowledgeCommandParser.applyToPipelineJson!(command, { pipelineJson, templateJson });
-                    break;
-                case 'ACTION':
-                    // TODO: [👙] The action is maybe relevant for just this template
-                    console.error(new NotYetImplementedError('Actions are not implemented yet'));
-                    break;
-                case 'INSTRUMENT':
-                    // TODO: [👙] The instrument is maybe relevant for just this template
-                    console.error(new NotYetImplementedError('Instruments are not implemented yet'));
-                    break;
                 case 'PERSONA':
                     personaCommandParser.applyToPipelineJson!(command, { pipelineJson, templateJson });
                     //                    <- Note: Prototype of [🍧] (remove this comment after full implementation)

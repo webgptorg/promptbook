@@ -1,7 +1,6 @@
 import type { WritableDeep } from 'type-fest';
 import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
 import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
-import type { PromptTemplateJson } from '../../types/PipelineJson/PromptTemplateJson';
 import { string_markdown_text } from '../../types/typeAliases';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import { TODO_USE } from '../../utils/organization/TODO_USE';
@@ -24,7 +23,7 @@ export const actionCommandParser: CommandParser<ActionCommand> = {
      * ACTION command can be used in:
      */
     isUsedInPipelineHead: true,
-    isUsedInPipelineTemplate: true,
+    isUsedInPipelineTemplate: false, // <- [👙] Maybe allow to use here and make relevant for just this template
 
     /**
      * Description of the ACTION command
@@ -65,20 +64,6 @@ export const actionCommandParser: CommandParser<ActionCommand> = {
     },
 
     /**
-     * Apply the ACTION command to the `pipelineJson`
-     *
-     * Note: `$` is used to indicate that this function mutates given `templateJson`
-     */
-    $applyToTemplateJson(
-        command: ActionCommand,
-        templateJson: WritableDeep<PromptTemplateJson>,
-        pipelineJson: WritableDeep<PipelineJson>,
-    ): void {
-        keepUnused(command, templateJson, pipelineJson);
-        console.error(new NotYetImplementedError('Actions are not implemented yet'));
-    },
-
-    /**
      * Converts the ACTION command back to string
      *
      * Note: This is used in `pipelineJsonToString` utility
@@ -95,16 +80,6 @@ export const actionCommandParser: CommandParser<ActionCommand> = {
      */
     takeFromPipelineJson(pipelineJson: PipelineJson): Array<ActionCommand> {
         keepUnused(pipelineJson);
-        throw new NotYetImplementedError(`Not implemented yet !!!!!!`);
-    },
-
-    /**
-     * Reads the ACTION command from the `PromptTemplateJson`
-     *
-     * Note: This is used in `pipelineJsonToString` utility
-     */
-    takeFromTemplateJson(templateJson: WritableDeep<PromptTemplateJson>): Array<ActionCommand> {
-        keepUnused(templateJson);
         throw new NotYetImplementedError(`Not implemented yet !!!!!!`);
     },
 };
