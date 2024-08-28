@@ -378,15 +378,6 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
             // TODO: !!!!!! Remove
             switch (command.type) {
 
-                case 'PARAMETER':
-                    // Note: This is just for detecting resulitng parameter name
-
-                    defineParam(command);
-                    break;
-                case 'POSTPROCESS':
-                    templateJson.postprocessingFunctionNames = templateJson.postprocessingFunctionNames || [];
-                    templateJson.postprocessingFunctionNames.push(command.functionName);
-                    break;
                 case 'KNOWLEDGE':
                     // TODO: [👙] The knowledge is maybe relevant for just this template
                     knowledgeCommandParser.applyToPipelineJson!(command, { pipelineJson, templateJson });
