@@ -1,4 +1,5 @@
 import spaceTrim from 'spacetrim';
+import type { WritableDeep } from 'type-fest';
 import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
 import { ParsingError } from '../../errors/ParsingError';
 import { EXPECTATION_UNITS } from '../../types/PipelineJson/Expectations';
@@ -144,7 +145,7 @@ export const expectCommandParser: CommandParser<ExpectCommand> = {
      *
      * Note: `$` is used to indicate that this function mutates given `pipelineJson`
      */
-    $applyToPipelineJson(command: ExpectCommand, pipelineJson: PipelineJson): void {
+    $applyToPipelineJson(command: ExpectCommand, pipelineJson: WritableDeep<PipelineJson>): void {
         keepUnused(command, pipelineJson);
         throw new NotYetImplementedError(`Not implemented yet !!!!!!`);
     },
@@ -154,7 +155,11 @@ export const expectCommandParser: CommandParser<ExpectCommand> = {
      *
      * Note: `$` is used to indicate that this function mutates given `templateJson`
      */
-    $applyToTemplateJson(command: ExpectCommand, templateJson: PromptTemplateJson, pipelineJson: PipelineJson): void {
+    $applyToTemplateJson(
+        command: ExpectCommand,
+        templateJson: PromptTemplateJson,
+        pipelineJson: WritableDeep<PipelineJson>,
+    ): void {
         keepUnused(command, templateJson, pipelineJson);
         throw new NotYetImplementedError(`Not implemented yet !!!!!!`);
     },

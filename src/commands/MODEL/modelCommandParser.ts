@@ -1,4 +1,5 @@
 import spaceTrim from 'spacetrim';
+import type { WritableDeep } from 'type-fest';
 import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
 import { ParsingError } from '../../errors/ParsingError';
 import { MODEL_VARIANTS } from '../../types/ModelVariant';
@@ -24,11 +25,8 @@ export const modelCommandParser: CommandParser<ModelCommand> = {
     /**
      * BOILERPLATE command can be used in:
      */
-    usagePlaces: [
-        'PIPELINE_HEAD',
-        //  <- TODO: [🧠][❔] Should there be possibility to set MODEL for entire pipeline?
-        'PIPELINE_TEMPLATE',
-    ],
+    isUsedInPipelineHead: true, //  <- TODO: [🧠][❔] Should there be possibility to set MODEL for entire pipeline?
+    isUsedInPipelineTemplate: true,
 
     /**
      * Description of the MODEL command
@@ -115,7 +113,7 @@ export const modelCommandParser: CommandParser<ModelCommand> = {
      *
      * Note: `$` is used to indicate that this function mutates given `pipelineJson`
      */
-    $applyToPipelineJson(command: ModelCommand, pipelineJson: PipelineJson): void {
+    $applyToPipelineJson(command: ModelCommand, pipelineJson: WritableDeep<PipelineJson>): void {
         keepUnused(command, pipelineJson);
         throw new NotYetImplementedError(`Not implemented yet !!!!!!`);
     },
@@ -125,7 +123,11 @@ export const modelCommandParser: CommandParser<ModelCommand> = {
      *
      * Note: `$` is used to indicate that this function mutates given `templateJson`
      */
-    $applyToTemplateJson(command: ModelCommand, templateJson: PromptTemplateJson, pipelineJson: PipelineJson): void {
+    $applyToTemplateJson(
+        command: ModelCommand,
+        templateJson: PromptTemplateJson,
+        pipelineJson: WritableDeep<PipelineJson>,
+    ): void {
         keepUnused(command, templateJson, pipelineJson);
         throw new NotYetImplementedError(`Not implemented yet !!!!!!`);
     },

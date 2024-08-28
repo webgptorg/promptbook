@@ -1,10 +1,12 @@
 import { spaceTrim } from 'spacetrim';
 import type { Writable, WritableDeep } from 'type-fest';
+import { Command } from '../_packages/types.index';
 import { COMMANDS } from '../commands';
 import { knowledgeCommandParser } from '../commands/KNOWLEDGE/knowledgeCommandParser';
 import type { ParameterCommand } from '../commands/PARAMETER/ParameterCommand';
 import { personaCommandParser } from '../commands/PERSONA/personaCommandParser';
 import { parseCommand } from '../commands/_common/parseCommand';
+import { PipelineHeadCommandParser, PipelineTemplateCommandParser } from '../commands/_common/types/CommandParser';
 import { RESERVED_PARAMETER_NAMES } from '../config';
 import { NotYetImplementedError } from '../errors/NotYetImplementedError';
 import { ParsingError } from '../errors/ParsingError';
@@ -230,7 +232,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
             );
         }
 
-        if (!commandParser.usagePlaces.includes('PIPELINE_HEAD')) {
+        if (!commandParser.isUsedInPipelineHead) {
             throw new ParsingError(
                 spaceTrim(
                     (block) => `
@@ -244,10 +246,10 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
             ); // <- TODO: [🚞]
         }
 
-        commandParser.applyToPipelineJson(command as TODO_any, { pipelineJson, templateJson: null });
+        (commandParser as PipelineHeadCommandParser<Command>).$applyToPipelineJson(command, pipelineJson);
 
         switch (command.type) {
-            // TODO: [🍧] Use here applyToPipelineJson and remove switch statement
+            // TODO: [🍧] !!!!!! Use here applyToPipelineJson and remove switch statement
             case 'MODEL':
                 defaultModelRequirements[command.key] = command.value;
                 break;
@@ -358,6 +360,8 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
          */
         let isBlockTypeSet = false;
 
+        // TODO: !!!!!! $ apply the commands here
+
         for (const listItem of listItems) {
             const command = parseCommand(listItem, 'PIPELINE_TEMPLATE');
             // TODO [🍧][♓️] List commands and before apply order them
@@ -403,15 +407,13 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
                     }
 
                     if (command.blockType === 'KNOWLEDGE') {
-                        knowledgeCommandParser.applyToPipelineJson!(
+                        (knowledgeCommandParser as PipelineTemplateCommandParser<Command>).$applyToTemplateJson(
                             {
                                 type: 'KNOWLEDGE',
                                 sourceContent: content, // <- TODO: [🐝] !!! Work with KNOWLEDGE which not referring to the source file or website, but its content itself
                             },
-                            {
-                                pipelineJson,
-                                templateJson,
-                            },
+                            templateJson,
+                            pipelineJson,
                         );
                         continue templates;
                     }

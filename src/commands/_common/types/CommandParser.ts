@@ -2,9 +2,9 @@ import type { WritableDeep } from 'type-fest';
 import type { PipelineJson } from '../../../types/PipelineJson/PipelineJson';
 import type { PromptTemplateJson } from '../../../types/PipelineJson/PromptTemplateJson';
 import type {
-  string_markdown_text,
-  string_name,
-  string_promptbook_documentation_url,
+    string_markdown_text,
+    string_name,
+    string_promptbook_documentation_url,
 } from '../../../types/typeAliases';
 import type { string_SCREAMING_CASE } from '../../../utils/normalization/normalizeTo_SCREAMING_CASE';
 import type { CommandUsagePlace } from './CommandUsagePlaces';
@@ -34,6 +34,16 @@ export type CommonCommandParser<TCommand extends CommandBase> = {
      * @@@
      */
     readonly name: string_name & string_SCREAMING_CASE;
+
+    /**
+     * @@@
+     */
+    readonly isUsedInPipelineHead?: boolean;
+
+    /**
+     * @@@
+     */
+    readonly isUsedInPipelineTemplate?: boolean;
 
     /**
      * @@@

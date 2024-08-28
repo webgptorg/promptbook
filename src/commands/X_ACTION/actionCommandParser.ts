@@ -1,3 +1,4 @@
+import type { WritableDeep } from 'type-fest';
 import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
 import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import type { PromptTemplateJson } from '../../types/PipelineJson/PromptTemplateJson';
@@ -58,7 +59,7 @@ export const actionCommandParser: CommandParser<ActionCommand> = {
      *
      * Note: `$` is used to indicate that this function mutates given `pipelineJson`
      */
-    $applyToPipelineJson(command: ActionCommand, pipelineJson: PipelineJson): void {
+    $applyToPipelineJson(command: ActionCommand, pipelineJson: WritableDeep<PipelineJson>): void {
         keepUnused(command, pipelineJson);
         throw new NotYetImplementedError(`Not implemented yet !!!!!!`);
     },
@@ -68,7 +69,11 @@ export const actionCommandParser: CommandParser<ActionCommand> = {
      *
      * Note: `$` is used to indicate that this function mutates given `templateJson`
      */
-    $applyToTemplateJson(command: ActionCommand, templateJson: PromptTemplateJson, pipelineJson: PipelineJson): void {
+    $applyToTemplateJson(
+        command: ActionCommand,
+        templateJson: PromptTemplateJson,
+        pipelineJson: WritableDeep<PipelineJson>,
+    ): void {
         keepUnused(command, templateJson, pipelineJson);
         throw new NotYetImplementedError(`Not implemented yet !!!!!!`);
     },

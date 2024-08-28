@@ -1,9 +1,10 @@
 import { spaceTrim } from 'spacetrim';
 import { ParsingError } from '../../errors/ParsingError';
-import type { string_markdown } from '../../types/typeAliases';
-import type { string_markdown_text } from '../../types/typeAliases';
+import type { string_markdown, string_markdown_text } from '../../types/typeAliases';
 import { removeMarkdownFormatting } from '../../utils/markdown/removeMarkdownFormatting';
 import { normalizeTo_SCREAMING_CASE } from '../../utils/normalization/normalizeTo_SCREAMING_CASE';
+import { just } from '../../utils/organization/just';
+import { keepUnused } from '../../utils/organization/keepUnused';
 import { COMMANDS } from '../index';
 import type { Command } from './types/Command';
 import type { CommandParserInput } from './types/CommandParser';
@@ -144,8 +145,18 @@ function parseCommandVariant(input: CommandParserInput & { commandNameRaw: strin
 
     const commandName = normalizeTo_SCREAMING_CASE(commandNameRaw);
 
-    for (const commandParser of COMMANDS.filter(({ usagePlaces: places }) => places.includes(usagePlace))) {
-        const { name, aliasNames, deprecatedNames, parse } = commandParser;
+    for (const commandParser of COMMANDS) {
+        const { name, isUsedInPipelineHead, isUsedInPipelineTemplate, aliasNames, deprecatedNames, parse } =
+            commandParser;
+
+        if (just(false)) {
+            keepUnused(/* for better indentation */);
+        } else if (usagePlace === 'PIPELINE_HEAD' && !isUsedInPipelineHead) {
+            continue;
+        } else if (usagePlace === 'PIPELINE_TEMPLATE' && !isUsedInPipelineTemplate) {
+            continue;
+        }
+
         const names = [name, ...(aliasNames || []), ...(deprecatedNames || [])];
         if (names.includes(commandName)) {
             try {

@@ -1,6 +1,7 @@
 import hexEncoder from 'crypto-js/enc-hex';
 import sha256 from 'crypto-js/sha256';
 import spaceTrim from 'spacetrim';
+import type { WritableDeep } from 'type-fest';
 import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
 import { ParsingError } from '../../errors/ParsingError';
 import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
@@ -86,7 +87,7 @@ export const knowledgeCommandParser: CommandParser<KnowledgeCommand> = {
      *
      * Note: `$` is used to indicate that this function mutates given `pipelineJson`
      */
-    $applyToPipelineJson(command: KnowledgeCommand, pipelineJson: PipelineJson): void {
+    $applyToPipelineJson(command: KnowledgeCommand, pipelineJson: WritableDeep<PipelineJson>): void {
         const { sourceContent } = command;
 
         const name = 'source-' + sha256(hexEncoder.parse(JSON.stringify(sourceContent))).toString(/* hex */);

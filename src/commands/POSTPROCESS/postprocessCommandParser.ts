@@ -1,3 +1,4 @@
+import type { WritableDeep } from 'type-fest';
 import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
 import { ParsingError } from '../../errors/ParsingError';
 import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
@@ -75,7 +76,7 @@ export const postprocessCommandParser: CommandParser<PostprocessCommand> = {
      *
      * Note: `$` is used to indicate that this function mutates given `pipelineJson`
      */
-    $applyToPipelineJson(command: PostprocessCommand, pipelineJson: PipelineJson): void {
+    $applyToPipelineJson(command: PostprocessCommand, pipelineJson: WritableDeep<PipelineJson>): void {
         keepUnused(command, pipelineJson);
         throw new NotYetImplementedError(`Not implemented yet !!!!!!`);
     },
@@ -87,8 +88,8 @@ export const postprocessCommandParser: CommandParser<PostprocessCommand> = {
      */
     $applyToTemplateJson(
         command: PostprocessCommand,
-        templateJson: PromptTemplateJson,
-        pipelineJson: PipelineJson,
+        templateJson: WritableDeep<PromptTemplateJson>,
+        pipelineJson: WritableDeep<PipelineJson>,
     ): void {
         keepUnused(command, templateJson, pipelineJson);
         throw new NotYetImplementedError(`Not implemented yet !!!!!!`);
