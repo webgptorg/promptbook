@@ -110,7 +110,7 @@ export const personaCommandParser: CommandParser<PersonaCommand> = {
      *
      * Note: This is used in `pipelineJsonToString` utility
      */
-    takeFromTemplateJson(templateJson: PromptTemplateJson): Array<PersonaCommand> {
+    takeFromTemplateJson(templateJson: WritableDeep<PromptTemplateJson>): Array<PersonaCommand> {
         keepUnused(templateJson);
         throw new NotYetImplementedError(`Not implemented yet !!!!!!`);
     },

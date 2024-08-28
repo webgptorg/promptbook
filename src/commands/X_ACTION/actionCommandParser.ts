@@ -71,7 +71,7 @@ export const actionCommandParser: CommandParser<ActionCommand> = {
      */
     $applyToTemplateJson(
         command: ActionCommand,
-        templateJson: PromptTemplateJson,
+        templateJson: WritableDeep<PromptTemplateJson>,
         pipelineJson: WritableDeep<PipelineJson>,
     ): void {
         keepUnused(command, templateJson, pipelineJson);
@@ -103,7 +103,7 @@ export const actionCommandParser: CommandParser<ActionCommand> = {
      *
      * Note: This is used in `pipelineJsonToString` utility
      */
-    takeFromTemplateJson(templateJson: PromptTemplateJson): Array<ActionCommand> {
+    takeFromTemplateJson(templateJson: WritableDeep<PromptTemplateJson>): Array<ActionCommand> {
         keepUnused(templateJson);
         throw new NotYetImplementedError(`Not implemented yet !!!!!!`);
     },

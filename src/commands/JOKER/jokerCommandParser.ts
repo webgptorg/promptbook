@@ -69,7 +69,7 @@ export const jokerCommandParser: CommandParser<JokerCommand> = {
      */
     $applyToTemplateJson(
         command: JokerCommand,
-        templateJson: PromptTemplateJson,
+        templateJson: WritableDeep<PromptTemplateJson>,
         pipelineJson: WritableDeep<PipelineJson>,
     ): void {
         keepUnused(command, templateJson, pipelineJson);
@@ -91,7 +91,7 @@ export const jokerCommandParser: CommandParser<JokerCommand> = {
      *
      * Note: This is used in `pipelineJsonToString` utility
      */
-    takeFromTemplateJson(templateJson: PromptTemplateJson): Array<JokerCommand> {
+    takeFromTemplateJson(templateJson: WritableDeep<PromptTemplateJson>): Array<JokerCommand> {
         keepUnused(templateJson);
         throw new NotYetImplementedError(`Not implemented yet !!!!!!`);
     },

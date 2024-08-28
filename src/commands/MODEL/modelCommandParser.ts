@@ -114,7 +114,7 @@ export const modelCommandParser: CommandParser<ModelCommand> = {
      * Note: `$` is used to indicate that this function mutates given `pipelineJson`
      */
     $applyToPipelineJson(command: ModelCommand, pipelineJson: WritableDeep<PipelineJson>): void {
-      defaultModelRequirements[command.key] = command.value;
+        defaultModelRequirements[command.key] = command.value;
     },
 
     /**
@@ -124,12 +124,11 @@ export const modelCommandParser: CommandParser<ModelCommand> = {
      */
     $applyToTemplateJson(
         command: ModelCommand,
-        templateJson: PromptTemplateJson,
+        templateJson: WritableDeep<PromptTemplateJson>,
         pipelineJson: WritableDeep<PipelineJson>,
     ): void {
         keepUnused(command, templateJson, pipelineJson);
         throw new NotYetImplementedError(`Not implemented yet !!!!!!`);
-
 
         // !!!!!! if(templateJson.blockType!==)
     },
@@ -159,7 +158,7 @@ export const modelCommandParser: CommandParser<ModelCommand> = {
      *
      * Note: This is used in `pipelineJsonToString` utility
      */
-    takeFromTemplateJson(templateJson: PromptTemplateJson): Array<ModelCommand> {
+    takeFromTemplateJson(templateJson: WritableDeep<PromptTemplateJson>): Array<ModelCommand> {
         keepUnused(templateJson);
         throw new NotYetImplementedError(`Not implemented yet !!!!!!`);
     },

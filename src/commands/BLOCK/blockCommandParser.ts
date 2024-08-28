@@ -6,7 +6,9 @@ import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import type { PromptTemplateJson } from '../../types/PipelineJson/PromptTemplateJson';
 import { string_markdown_text } from '../../types/typeAliases';
 import { keepUnused } from '../../utils/organization/keepUnused';
-import type { CommandParser, CommandParserInput } from '../_common/types/CommandParser';
+import { knowledgeCommandParser } from '../KNOWLEDGE/knowledgeCommandParser';
+import { Command } from '../_common/types/Command';
+import type { CommandParser, CommandParserInput, PipelineTemplateCommandParser } from '../_common/types/CommandParser';
 import type { BlockCommand } from './BlockCommand';
 import { BlockTypes } from './BlockTypes';
 
@@ -127,11 +129,81 @@ export const blockCommandParser: CommandParser<BlockCommand> = {
      */
     $applyToTemplateJson(
         command: BlockCommand,
-        templateJson: PromptTemplateJson,
+        templateJson: WritableDeep<PromptTemplateJson>,
         pipelineJson: WritableDeep<PipelineJson>,
     ): void {
-        keepUnused(command, templateJson, pipelineJson);
-        throw new NotYetImplementedError(`Not implemented yet !!!!!!`);
+        /*
+        TODO: !!!!!! Test multiple / no block type
+        if (isBlockTypeSet) {
+            throw new ParsingError(
+                spaceTrim(
+                    (block) => `
+                    Block type is already defined in the prompt template. It can be defined only once.
+
+                    ${block(getPipelineIdentification())}
+                `,
+                ),
+                // <- TODO: [🚞]
+            );
+        }
+        */
+
+        if (command.blockType === 'SAMPLE') {
+            // TODO: !!!!!! Test missing/extra resultingParameterName
+            // expectResultingParameterName();
+
+            const parameter = pipelineJson.parameters.find(
+                (param) => param.name === templateJson.resultingParameterName,
+            );
+            if (parameter === undefined) {
+                throw new ParsingError(
+                    `Can not find parameter {${templateJson.resultingParameterName}} to assign sample value`,
+                );
+            }
+            parameter.sampleValues = parameter.sampleValues || [];
+            parameter.sampleValues.push(templateJson.content);
+
+            // TODO: !!!!!! How to implement this?
+            // continue templates;
+            return;
+        }
+
+        if (command.blockType === 'KNOWLEDGE') {
+            (knowledgeCommandParser as PipelineTemplateCommandParser<Command>).$applyToTemplateJson(
+                {
+                    type: 'KNOWLEDGE',
+                    sourceContent: templateJson.content, // <- TODO: [🐝] !!! Work with KNOWLEDGE which not referring to the source file or website, but its content itself
+                },
+                templateJson,
+                pipelineJson,
+            );
+            // TODO: !!!!!! How to implement this?
+            // continue templates;
+            return;
+        }
+
+        if (command.blockType === 'ACTION') {
+            console.error(new NotYetImplementedError('Actions are not implemented yet'));
+
+            // TODO: !!!!!! How to implement this?
+            // continue templates;
+            return;
+        }
+
+        if (command.blockType === 'INSTRUMENT') {
+            console.error(new NotYetImplementedError('Instruments are not implemented yet'));
+
+            // TODO: !!!!!! How to implement this?
+            // continue templates;
+            return;
+        }
+
+        // !!!!!!
+        // expectResultingParameterName();
+        (templateJson as WritableDeep<PromptTemplateJson>).blockType = command.blockType;
+
+        // !!!!!!
+        // isBlockTypeSet = true; //<- Note: [2]
     },
 
     /**
@@ -149,7 +221,7 @@ export const blockCommandParser: CommandParser<BlockCommand> = {
      *
      * Note: This is used in `pipelineJsonToString` utility
      */
-    takeFromTemplateJson(templateJson: PromptTemplateJson): Array<BlockCommand> {
+    takeFromTemplateJson(templateJson: WritableDeep<PromptTemplateJson>): Array<BlockCommand> {
         keepUnused(templateJson);
         throw new NotYetImplementedError(`Not implemented yet !!!!!!`);
     },

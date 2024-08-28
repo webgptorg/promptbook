@@ -1,5 +1,4 @@
 import type { WritableDeep } from 'type-fest';
-import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
 import { ParsingError } from '../../errors/ParsingError';
 import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import type { PromptTemplateJson } from '../../types/PipelineJson/PromptTemplateJson';
@@ -77,7 +76,9 @@ export const boilerplateCommandParser: CommandParser<BoilerplateCommand> = {
      */
     $applyToPipelineJson(command: BoilerplateCommand, pipelineJson: WritableDeep<PipelineJson>): void {
         keepUnused(command, pipelineJson);
-        throw new NotYetImplementedError(`Not implemented yet !!!!!!`);
+        throw new ParsingError(
+            `BOILERPLATE command is only for testing purposes and should not be used in the .ptbk.md file`,
+        );
     },
 
     /**
@@ -91,7 +92,9 @@ export const boilerplateCommandParser: CommandParser<BoilerplateCommand> = {
         pipelineJson: WritableDeep<PipelineJson>,
     ): void {
         keepUnused(command, templateJson, pipelineJson);
-        throw new NotYetImplementedError(`Not implemented yet !!!!!!`);
+        throw new ParsingError(
+            `BOILERPLATE command is only for testing purposes and should not be used in the .ptbk.md file`,
+        );
     },
 
     /**
@@ -111,7 +114,9 @@ export const boilerplateCommandParser: CommandParser<BoilerplateCommand> = {
      */
     takeFromPipelineJson(pipelineJson: PipelineJson): Array<BoilerplateCommand> {
         keepUnused(pipelineJson);
-        throw new NotYetImplementedError(`Not implemented yet !!!!!!`);
+        throw new ParsingError(
+            `BOILERPLATE command is only for testing purposes and should not be used in the .ptbk.md file`,
+        );
     },
 
     /**
@@ -119,13 +124,14 @@ export const boilerplateCommandParser: CommandParser<BoilerplateCommand> = {
      *
      * Note: This is used in `pipelineJsonToString` utility
      */
-    takeFromTemplateJson(templateJson: PromptTemplateJson): Array<BoilerplateCommand> {
+    takeFromTemplateJson(templateJson: WritableDeep<PromptTemplateJson>): Array<BoilerplateCommand> {
         keepUnused(templateJson);
-        throw new NotYetImplementedError(`Not implemented yet !!!!!!`);
+        throw new ParsingError(
+            `BOILERPLATE command is only for testing purposes and should not be used in the .ptbk.md file`,
+        );
     },
 };
 
 /**
  * TODO: !!!!!! Make .ptbk.md file with examples of the BOILERPLATE command and fail
- * TODO: [💐] Implement BOILERPLATE command into `pipelineStringToJsonSync` function
  */

@@ -141,7 +141,6 @@ export const expectCommandParser: CommandParser<ExpectCommand> = {
         }
     },
 
-
     /**
      * Apply the EXPECT command to the `pipelineJson`
      *
@@ -149,7 +148,7 @@ export const expectCommandParser: CommandParser<ExpectCommand> = {
      */
     $applyToTemplateJson(
         command: ExpectCommand,
-        templateJson: PromptTemplateJson,
+        templateJson: WritableDeep<PromptTemplateJson>,
         pipelineJson: WritableDeep<PipelineJson>,
     ): void {
         keepUnused(command, templateJson, pipelineJson);
@@ -166,14 +165,12 @@ export const expectCommandParser: CommandParser<ExpectCommand> = {
         return `- !!!!!!`;
     },
 
-
-
     /**
      * Reads the EXPECT command from the `PromptTemplateJson`
      *
      * Note: This is used in `pipelineJsonToString` utility
      */
-    takeFromTemplateJson(templateJson: PromptTemplateJson): Array<ExpectCommand> {
+    takeFromTemplateJson(templateJson: WritableDeep<PromptTemplateJson>): Array<ExpectCommand> {
         keepUnused(templateJson);
         throw new NotYetImplementedError(`Not implemented yet !!!!!!`);
     },

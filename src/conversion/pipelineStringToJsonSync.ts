@@ -247,6 +247,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
             ); // <- TODO: [🚞]
         }
 
+        // TODO: !!!!!! Wrap and ientify ParsingError
         (commandParser as PipelineHeadCommandParser<Command>).$applyToPipelineJson(command, pipelineJson);
 
         if (command.type === 'PARAMETER') {
@@ -342,72 +343,42 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
             const command = parseCommand(listItem, 'PIPELINE_TEMPLATE');
             // TODO [🍧][♓️] List commands and before apply order them
 
+            const commandParser = COMMANDS.find((commandParser) => commandParser.name === command.type);
+
+            if (commandParser === undefined) {
+                throw new UnexpectedError(
+                    spaceTrim(
+                        (block) => `
+                              Command ${command.type} parser is not found
+
+                              ${block(getPipelineIdentification())}
+                          `,
+                    ),
+                );
+            }
+
+            if (!commandParser.isUsedInPipelineTemplate) {
+                throw new ParsingError(
+                    spaceTrim(
+                        (block) => `
+                            Command ${
+                                command.type
+                            } is not allowed in the template of the promptbook ONLY at the pipeline head
+
+                            ${block(getPipelineIdentification())}
+                        `,
+                    ),
+                ); // <- TODO: [🚞]
+            }
+
+            // TODO: !!!!!! Wrap and ientify ParsingError
+            (commandParser as PipelineHeadCommandParser<Command>).$applyToPipelineJson(command, pipelineJson);
+
+            // TODO: !!!!!! Multiple problematic things in blockCommandParser.$applyToTemplateJson
+
+            // TODO: !!!!!! Remove
             switch (command.type) {
-                // TODO: [🍧] Use here applyToPipelineJson and remove switch statement
-                case 'BLOCK':
-                    if (isBlockTypeSet) {
-                        throw new ParsingError(
-                            spaceTrim(
-                                (block) => `
-                                    Block type is already defined in the prompt template. It can be defined only once.
-
-                                    ${block(getPipelineIdentification())}
-                                `,
-                            ),
-                            // <- TODO: [🚞]
-                        );
-                    }
-
-                    if (command.blockType === 'SAMPLE') {
-                        expectResultingParameterName();
-
-                        const parameter = pipelineJson.parameters.find(
-                            (param) => param.name === resultingParameterName,
-                        );
-                        if (parameter === undefined) {
-                            throw new ParsingError(
-                                spaceTrim(
-                                    (block) => `
-                                        Can not find parameter {${resultingParameterName}} to assign sample value
-
-                                        ${block(getPipelineIdentification())}
-                                    `,
-                                ),
-                                // <- TODO: [🚞]
-                            );
-                        }
-                        parameter.sampleValues = parameter.sampleValues || [];
-                        parameter.sampleValues.push(content);
-
-                        continue templates;
-                    }
-
-                    if (command.blockType === 'KNOWLEDGE') {
-                        (knowledgeCommandParser as PipelineTemplateCommandParser<Command>).$applyToTemplateJson(
-                            {
-                                type: 'KNOWLEDGE',
-                                sourceContent: content, // <- TODO: [🐝] !!! Work with KNOWLEDGE which not referring to the source file or website, but its content itself
-                            },
-                            templateJson,
-                            pipelineJson,
-                        );
-                        continue templates;
-                    }
-
-                    if (command.blockType === 'ACTION') {
-                        console.error(new NotYetImplementedError('Actions are not implemented yet'));
-                        continue templates;
-                    }
-
-                    if (command.blockType === 'INSTRUMENT') {
-                        console.error(new NotYetImplementedError('Instruments are not implemented yet'));
-                        continue templates;
-                    }
-
-                    expectResultingParameterName();
-                    (templateJson as WritableDeep<PromptTemplateJson>).blockType = command.blockType;
-                    isBlockTypeSet = true; //<- Note: [2]
-                    break;
+        
                 case 'EXPECT_AMOUNT':
                     // eslint-disable-next-line no-case-declarations
                     const unit = command.unit.toLowerCase() as Lowercase<ExpectationUnit>;
@@ -503,21 +474,6 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
                     personaCommandParser.applyToPipelineJson!(command, { pipelineJson, templateJson });
                     //                    <- Note: Prototype of [🍧] (remove this comment after full implementation)
                     break;
-                case 'BOILERPLATE':
-                    console.error(
-                        new ParsingError(
-                            spaceTrim(
-                                (block) => `
-                                    BOILERPLATE command is only for testing purposes and should not be used in the .ptbk.md file
-
-                                    ${block(getPipelineIdentification())}
-                                `,
-                            ),
-                        ),
-                    );
-                    break;
-
-                // <- [💐]
 
                 default:
                     throw new ParsingError(

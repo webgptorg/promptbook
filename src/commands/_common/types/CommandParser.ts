@@ -132,7 +132,7 @@ export type PipelineTemplateCommandParser<TCommand extends CommandBase> = Common
      *
      * Note: This is used in `pipelineJsonToString` utility
      */
-    takeFromTemplateJson(templateJson: PromptTemplateJson): Array<TCommand>;
+    takeFromTemplateJson(templateJson: WritableDeep<PromptTemplateJson>): Array<TCommand>;
 };
 
 /**
