@@ -409,8 +409,6 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
             (templateJson as TODO_any as Writable<ScriptJson>).contentLanguage = language as TODO_any;
         }
 
-
-
         templateJson.dependentParameterNames = Array.from(
             extractParameterNamesFromPromptTemplate(
                 templateJson as PromptTemplateJson,
