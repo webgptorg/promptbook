@@ -38,12 +38,12 @@ export type CommonCommandParser<TCommand extends CommandBase> = {
     /**
      * @@@
      */
-    readonly isUsedInPipelineHead?: boolean;
+    readonly isUsedInPipelineHead: boolean;
 
     /**
      * @@@
      */
-    readonly isUsedInPipelineTemplate?: boolean;
+    readonly isUsedInPipelineTemplate: boolean;
 
     /**
      * @@@

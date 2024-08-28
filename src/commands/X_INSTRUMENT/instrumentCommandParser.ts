@@ -61,7 +61,7 @@ export const instrumentCommandParser: CommandParser<InstrumentCommand> = {
      */
     $applyToPipelineJson(command: InstrumentCommand, pipelineJson: WritableDeep<PipelineJson>): void {
         keepUnused(command, pipelineJson);
-        throw new NotYetImplementedError(`Not implemented yet !!!!!!`);
+        console.error(new NotYetImplementedError('Instruments are not implemented yet'));
     },
 
     /**
@@ -75,7 +75,7 @@ export const instrumentCommandParser: CommandParser<InstrumentCommand> = {
         pipelineJson: WritableDeep<PipelineJson>,
     ): void {
         keepUnused(command, templateJson, pipelineJson);
-        throw new NotYetImplementedError(`Not implemented yet !!!!!!`);
+        console.error(new NotYetImplementedError('Instruments are not implemented yet'));
     },
 
     /**

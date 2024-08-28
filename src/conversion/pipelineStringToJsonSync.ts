@@ -249,27 +249,9 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
 
         (commandParser as PipelineHeadCommandParser<Command>).$applyToPipelineJson(command, pipelineJson);
 
-        switch (command.type) {
-            // TODO: [🍧] !!!!!! Use here applyToPipelineJson and remove switch statement
-            case 'PARAMETER':
-                defineParam(command);
-                break;
-            case 'PROMPTBOOK_VERSION':
-                pipelineJson.promptbookVersion = command.promptbookVersion;
-                break;
-            case 'URL':
-                pipelineJson.pipelineUrl = command.pipelineUrl.href;
-                break;
-            case 'KNOWLEDGE':
-                break;
-            case 'ACTION':
-                console.error(new NotYetImplementedError('Actions are not implemented yet'));
-                break;
-            case 'INSTRUMENT':
-                console.error(new NotYetImplementedError('Instruments are not implemented yet'));
-                break;
-
-            default:
+        if (command.type === 'PARAMETER') {
+            defineParam(command);
+            // <- Note: [🍣]
         }
     }
 
@@ -551,6 +533,11 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
                         ),
                         // <- TODO: [🚞]
                     );
+            }
+
+            if (command.type === 'PARAMETER') {
+                defineParam(command);
+                // <- Note: [🍣]
             }
         }
 

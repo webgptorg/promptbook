@@ -28,6 +28,7 @@ export const knowledgeCommandParser: CommandParser<KnowledgeCommand> = {
      * BOILERPLATE command can be used in:
      */
     isUsedInPipelineHead: true,
+    isUsedInPipelineTemplate: false,
 
     /**
      * Description of the KNOWLEDGE command

@@ -24,6 +24,7 @@ export const jokerCommandParser: CommandParser<JokerCommand> = {
     /**
      * BOILERPLATE command can be used in:
      */
+    isUsedInPipelineHead: false,
     isUsedInPipelineTemplate: true,
 
     /**
@@ -64,16 +65,6 @@ export const jokerCommandParser: CommandParser<JokerCommand> = {
     /**
      * Apply the JOKER command to the `pipelineJson`
      *
-     * Note: `$` is used to indicate that this function mutates given `pipelineJson`
-     */
-    $applyToPipelineJson(command: JokerCommand, pipelineJson: WritableDeep<PipelineJson>): void {
-        keepUnused(command, pipelineJson);
-        throw new NotYetImplementedError(`Not implemented yet !!!!!!`);
-    },
-
-    /**
-     * Apply the JOKER command to the `pipelineJson`
-     *
      * Note: `$` is used to indicate that this function mutates given `templateJson`
      */
     $applyToTemplateJson(
@@ -93,16 +84,6 @@ export const jokerCommandParser: CommandParser<JokerCommand> = {
     stringify(command: JokerCommand): string_markdown_text {
         keepUnused(command);
         return `- !!!!!!`;
-    },
-
-    /**
-     * Reads the JOKER command from the `PipelineJson`
-     *
-     * Note: This is used in `pipelineJsonToString` utility
-     */
-    takeFromPipelineJson(pipelineJson: PipelineJson): Array<JokerCommand> {
-        keepUnused(pipelineJson);
-        throw new NotYetImplementedError(`Not implemented yet !!!!!!`);
     },
 
     /**

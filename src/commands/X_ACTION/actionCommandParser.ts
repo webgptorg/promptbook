@@ -61,7 +61,7 @@ export const actionCommandParser: CommandParser<ActionCommand> = {
      */
     $applyToPipelineJson(command: ActionCommand, pipelineJson: WritableDeep<PipelineJson>): void {
         keepUnused(command, pipelineJson);
-        throw new NotYetImplementedError(`Not implemented yet !!!!!!`);
+        console.error(new NotYetImplementedError('Actions are not implemented yet'));
     },
 
     /**
@@ -75,7 +75,7 @@ export const actionCommandParser: CommandParser<ActionCommand> = {
         pipelineJson: WritableDeep<PipelineJson>,
     ): void {
         keepUnused(command, templateJson, pipelineJson);
-        throw new NotYetImplementedError(`Not implemented yet !!!!!!`);
+        console.error(new NotYetImplementedError('Actions are not implemented yet'));
     },
 
     /**

@@ -93,7 +93,7 @@ export const parameterCommandParser: CommandParser<ParameterCommand> = {
      */
     $applyToPipelineJson(command: ParameterCommand, pipelineJson: WritableDeep<PipelineJson>): void {
         keepUnused(command, pipelineJson);
-        throw new NotYetImplementedError(`Not implemented yet !!!!!!`);
+        // Note: [🍣] Do nothing, its application is implemented separately in `pipelineStringToJsonSync`
     },
 
     /**
@@ -107,7 +107,7 @@ export const parameterCommandParser: CommandParser<ParameterCommand> = {
         pipelineJson: WritableDeep<PipelineJson>,
     ): void {
         keepUnused(command, templateJson, pipelineJson);
-        throw new NotYetImplementedError(`Not implemented yet !!!!!!`);
+        // Note: [🍣] Do nothing, its application is implemented separately in `pipelineStringToJsonSync`
     },
 
     /**

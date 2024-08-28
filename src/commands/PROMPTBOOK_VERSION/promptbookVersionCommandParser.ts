@@ -28,6 +28,7 @@ export const promptbookVersionCommandParser: CommandParser<PromptbookVersionComm
      * BOILERPLATE command can be used in:
      */
     isUsedInPipelineHead: true,
+    isUsedInPipelineTemplate: false,
 
     /**
      * Description of the PROMPTBOOK_VERSION command
@@ -76,23 +77,9 @@ export const promptbookVersionCommandParser: CommandParser<PromptbookVersionComm
      * Note: `$` is used to indicate that this function mutates given `pipelineJson`
      */
     $applyToPipelineJson(command: PromptbookVersionCommand, pipelineJson: WritableDeep<PipelineJson>): void {
-        keepUnused(command, pipelineJson);
-        throw new NotYetImplementedError(`Not implemented yet !!!!!!`);
+        pipelineJson.promptbookVersion = command.promptbookVersion;
     },
 
-    /**
-     * Apply the PROMPTBOOK_VERSION command to the `pipelineJson`
-     *
-     * Note: `$` is used to indicate that this function mutates given `templateJson`
-     */
-    $applyToTemplateJson(
-        command: PromptbookVersionCommand,
-        templateJson: WritableDeep<PromptTemplateJson>,
-        pipelineJson: WritableDeep<PipelineJson>,
-    ): void {
-        keepUnused(command, templateJson, pipelineJson);
-        throw new NotYetImplementedError(`Not implemented yet !!!!!!`);
-    },
 
     /**
      * Converts the PROMPTBOOK_VERSION command back to string
@@ -114,13 +101,4 @@ export const promptbookVersionCommandParser: CommandParser<PromptbookVersionComm
         throw new NotYetImplementedError(`Not implemented yet !!!!!!`);
     },
 
-    /**
-     * Reads the PROMPTBOOK_VERSION command from the `PromptTemplateJson`
-     *
-     * Note: This is used in `pipelineJsonToString` utility
-     */
-    takeFromTemplateJson(templateJson: PromptTemplateJson): Array<PromptbookVersionCommand> {
-        keepUnused(templateJson);
-        throw new NotYetImplementedError(`Not implemented yet !!!!!!`);
-    },
 };

@@ -46,6 +46,7 @@ export const blockCommandParser: CommandParser<BlockCommand> = {
     /**
      * BOILERPLATE command can be used in:
      */
+    isUsedInPipelineHead: false,
     isUsedInPipelineTemplate: true,
 
     /**
@@ -122,16 +123,6 @@ export const blockCommandParser: CommandParser<BlockCommand> = {
     /**
      * Apply the BLOCK command to the `pipelineJson`
      *
-     * Note: `$` is used to indicate that this function mutates given `pipelineJson`
-     */
-    $applyToPipelineJson(command: BlockCommand, pipelineJson: WritableDeep<PipelineJson>): void {
-        keepUnused(command, pipelineJson);
-        throw new NotYetImplementedError(`Not implemented yet !!!!!!`);
-    },
-
-    /**
-     * Apply the BLOCK command to the `pipelineJson`
-     *
      * Note: `$` is used to indicate that this function mutates given `templateJson`
      */
     $applyToTemplateJson(
@@ -151,16 +142,6 @@ export const blockCommandParser: CommandParser<BlockCommand> = {
     stringify(command: BlockCommand): string_markdown_text {
         keepUnused(command);
         return `- !!!!!!`;
-    },
-
-    /**
-     * Reads the BLOCK command from the `PipelineJson`
-     *
-     * Note: This is used in `pipelineJsonToString` utility
-     */
-    takeFromPipelineJson(pipelineJson: PipelineJson): Array<BlockCommand> {
-        keepUnused(pipelineJson);
-        throw new NotYetImplementedError(`Not implemented yet !!!!!!`);
     },
 
     /**

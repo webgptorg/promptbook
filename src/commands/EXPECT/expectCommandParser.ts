@@ -28,6 +28,7 @@ export const expectCommandParser: CommandParser<ExpectCommand> = {
     /**
      * BOILERPLATE command can be used in:
      */
+    isUsedInPipelineHead: false,
     isUsedInPipelineTemplate: true,
 
     /**
@@ -140,15 +141,6 @@ export const expectCommandParser: CommandParser<ExpectCommand> = {
         }
     },
 
-    /**
-     * Apply the EXPECT command to the `pipelineJson`
-     *
-     * Note: `$` is used to indicate that this function mutates given `pipelineJson`
-     */
-    $applyToPipelineJson(command: ExpectCommand, pipelineJson: WritableDeep<PipelineJson>): void {
-        keepUnused(command, pipelineJson);
-        throw new NotYetImplementedError(`Not implemented yet !!!!!!`);
-    },
 
     /**
      * Apply the EXPECT command to the `pipelineJson`
@@ -174,15 +166,7 @@ export const expectCommandParser: CommandParser<ExpectCommand> = {
         return `- !!!!!!`;
     },
 
-    /**
-     * Reads the EXPECT command from the `PipelineJson`
-     *
-     * Note: This is used in `pipelineJsonToString` utility
-     */
-    takeFromPipelineJson(pipelineJson: PipelineJson): Array<ExpectCommand> {
-        keepUnused(pipelineJson);
-        throw new NotYetImplementedError(`Not implemented yet !!!!!!`);
-    },
+
 
     /**
      * Reads the EXPECT command from the `PromptTemplateJson`

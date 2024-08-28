@@ -2,7 +2,6 @@ import type { WritableDeep } from 'type-fest';
 import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
 import { ParsingError } from '../../errors/ParsingError';
 import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
-import type { PromptTemplateJson } from '../../types/PipelineJson/PromptTemplateJson';
 import { string_markdown_text } from '../../types/typeAliases';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import { isValidPipelineUrl } from '../../utils/validators/url/isValidPipelineUrl';
@@ -32,6 +31,7 @@ export const urlCommandParser: CommandParser<UrlCommand> = {
      * BOILERPLATE command can be used in:
      */
     isUsedInPipelineHead: true,
+    isUsedInPipelineTemplate: false,
 
     /**
      * Description of the URL command
@@ -103,22 +103,7 @@ export const urlCommandParser: CommandParser<UrlCommand> = {
      * Note: `$` is used to indicate that this function mutates given `pipelineJson`
      */
     $applyToPipelineJson(command: UrlCommand, pipelineJson: WritableDeep<PipelineJson>): void {
-        keepUnused(command, pipelineJson);
-        throw new NotYetImplementedError(`Not implemented yet !!!!!!`);
-    },
-
-    /**
-     * Apply the URL command to the `pipelineJson`
-     *
-     * Note: `$` is used to indicate that this function mutates given `templateJson`
-     */
-    $applyToTemplateJson(
-        command: UrlCommand,
-        templateJson: PromptTemplateJson,
-        pipelineJson: WritableDeep<PipelineJson>,
-    ): void {
-        keepUnused(command, templateJson, pipelineJson);
-        throw new NotYetImplementedError(`Not implemented yet !!!!!!`);
+        pipelineJson.pipelineUrl = command.pipelineUrl.href;
     },
 
     /**
@@ -138,16 +123,6 @@ export const urlCommandParser: CommandParser<UrlCommand> = {
      */
     takeFromPipelineJson(pipelineJson: PipelineJson): Array<UrlCommand> {
         keepUnused(pipelineJson);
-        throw new NotYetImplementedError(`Not implemented yet !!!!!!`);
-    },
-
-    /**
-     * Reads the URL command from the `PromptTemplateJson`
-     *
-     * Note: This is used in `pipelineJsonToString` utility
-     */
-    takeFromTemplateJson(templateJson: PromptTemplateJson): Array<UrlCommand> {
-        keepUnused(templateJson);
         throw new NotYetImplementedError(`Not implemented yet !!!!!!`);
     },
 };
