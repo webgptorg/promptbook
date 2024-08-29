@@ -1,12 +1,14 @@
 import spaceTrim from 'spacetrim';
 import { ParsingError } from '../../errors/ParsingError';
-import type { string_markdown_section } from '../../types/typeAliases';
-import type { string_markdown_section_content } from '../../types/typeAliases';
-import type { string_markdown_text } from '../../types/typeAliases';
+import type {
+    string_markdown_section,
+    string_markdown_section_content,
+    string_markdown_text,
+} from '../../types/typeAliases';
 
 /**
  * Parsed markdown section
- * 
+ *
  * @public exported from `@promptbook/markdown-utils`
  */
 export type MarkdownSection = {
@@ -28,7 +30,7 @@ export type MarkdownSection = {
 
 /**
  * Parses markdown section to title its level and content
- * 
+ *
  * @public exported from `@promptbook/markdown-utils`
  */
 export function parseMarkdownSection(value: string_markdown_section): MarkdownSection {

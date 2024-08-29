@@ -4,6 +4,8 @@ import { COMMANDS } from '../commands';
 import type { ParameterCommand } from '../commands/PARAMETER/ParameterCommand';
 import { parseCommand } from '../commands/_common/parseCommand';
 import {
+  $PipelineJson,
+    $TemplateJson,
     CommandBase,
     PipelineHeadCommandParser,
     PipelineTemplateCommandParser,
@@ -48,7 +50,7 @@ import { titleToName } from './utils/titleToName';
  * @public exported from `@promptbook/core`
  */
 export function pipelineStringToJsonSync(pipelineString: PipelineString): PipelineJson {
-    const pipelineJson: WritableDeep<PipelineJson> = {
+    const pipelineJson: $PipelineJson = {
         title: undefined as TODO_any /* <- Note: Putting here placeholder to keep `title` on top at final JSON */,
         pipelineUrl: undefined /* <- Note: Putting here placeholder to keep `pipelineUrl` on top at final JSON */,
         promptbookVersion: PROMPTBOOK_VERSION,
@@ -305,7 +307,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
             description = undefined;
         }
 
-        const templateJson: Partial<WritableDeep<TemplateJson>> = {
+        const templateJson: $TemplateJson = {
             blockType: 'PROMPT_TEMPLATE', // <- Note: [2]
             name: titleToName(section.title),
             title: section.title,

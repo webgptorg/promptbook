@@ -103,7 +103,7 @@ export type PipelineHeadCommandParser<TCommand extends CommandBase> = CommonComm
      *
      * Note: `$` is used to indicate that this function mutates given `pipelineJson`
      */
-    $applyToPipelineJson(command: TCommand, pipelineJson: WritableDeep<PipelineJson>): void;
+    $applyToPipelineJson(command: TCommand, pipelineJson: $PipelineJson): void;
 
     /**
      * Reads the command from the `PipelineJson`
@@ -127,11 +127,7 @@ export type PipelineTemplateCommandParser<TCommand extends CommandBase> = Common
      *
      * Note: `$` is used to indicate that this function mutates given `templateJson` and/or `pipelineJson`
      */
-    $applyToTemplateJson(
-        command: TCommand,
-        templateJson: Partial<WritableDeep<TemplateJson>>, // <- TODO: [🧠] `Partial<WritableDeep<...` vs `WritableDeep<Partial<...` - change ACRY
-        pipelineJson: WritableDeep<PipelineJson>,
-    ): void;
+    $applyToTemplateJson(command: TCommand, templateJson: $TemplateJson, pipelineJson: $PipelineJson): void;
 
     /**
      * Reads the command from the `TemplateJson`
@@ -140,6 +136,25 @@ export type PipelineTemplateCommandParser<TCommand extends CommandBase> = Common
      */
     takeFromTemplateJson(templateJson: WritableDeep<TemplateJson>): Array<TCommand>;
 };
+
+/**
+ * @@@
+ *
+ * Note: `$` is used to indicate that purpose of this type is to mutate the given object
+ *
+ * @private internal helper for command parsers
+ */
+export type $TemplateJson = Partial<WritableDeep<TemplateJson>>;
+//                         <- TODO: [🧠] `Partial<WritableDeep<...` vs `WritableDeep<Partial<...` - change ACRY
+
+/**
+ * @@@
+ *
+ *  Note: `$` is used to indicate that purpose of this type is to mutate the given object
+ *
+ * @private internal helper for command parsers
+ */
+export type $PipelineJson = WritableDeep<PipelineJson>;
 
 /**
  * @@@

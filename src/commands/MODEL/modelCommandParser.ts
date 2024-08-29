@@ -7,7 +7,12 @@ import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import type { TemplateJson } from '../../types/PipelineJson/TemplateJson';
 import { string_markdown_text } from '../../types/typeAliases';
 import { keepUnused } from '../../utils/organization/keepUnused';
-import type { CommandParserInput, PipelineBothCommandParser } from '../_common/types/CommandParser';
+import type {
+    $PipelineJson,
+    $TemplateJson,
+    CommandParserInput,
+    PipelineBothCommandParser,
+} from '../_common/types/CommandParser';
 import type { ModelCommand } from './ModelCommand';
 
 /**
@@ -113,7 +118,7 @@ export const modelCommandParser: PipelineBothCommandParser<ModelCommand> = {
      *
      * Note: `$` is used to indicate that this function mutates given `pipelineJson`
      */
-    $applyToPipelineJson(command: ModelCommand, pipelineJson: WritableDeep<PipelineJson>): void {
+    $applyToPipelineJson(command: ModelCommand, pipelineJson: $PipelineJson): void {
         // TODO: !!!!!! Error on redefine
         pipelineJson.defaultModelRequirements = pipelineJson.defaultModelRequirements || {};
         pipelineJson.defaultModelRequirements[command.key] = command.value;
@@ -126,8 +131,8 @@ export const modelCommandParser: PipelineBothCommandParser<ModelCommand> = {
      */
     $applyToTemplateJson(
         command: ModelCommand,
-        templateJson: Partial<WritableDeep<TemplateJson>>,
-        // pipelineJson: WritableDeep<PipelineJson>,
+        templateJson: $TemplateJson,
+        // pipelineJson: $PipelineJson,
     ): void {
         if (templateJson.blockType !== 'PROMPT_TEMPLATE') {
             throw new ParsingError(`MODEL command can only be used in PROMPT_TEMPLATE block`);

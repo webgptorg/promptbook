@@ -6,7 +6,12 @@ import type { TemplateJson } from '../../types/PipelineJson/TemplateJson';
 import { string_markdown_text } from '../../types/typeAliases';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import type { TODO_any } from '../../utils/organization/TODO_any';
-import type { CommandParserInput, PipelineBothCommandParser } from '../_common/types/CommandParser';
+import type {
+    $PipelineJson,
+    $TemplateJson,
+    CommandParserInput,
+    PipelineBothCommandParser,
+} from '../_common/types/CommandParser';
 import type { ParameterCommand } from './ParameterCommand';
 
 /**
@@ -91,7 +96,7 @@ export const parameterCommandParser: PipelineBothCommandParser<ParameterCommand>
      *
      * Note: `$` is used to indicate that this function mutates given `pipelineJson`
      */
-    $applyToPipelineJson(command: ParameterCommand, pipelineJson: WritableDeep<PipelineJson>): void {
+    $applyToPipelineJson(command: ParameterCommand, pipelineJson: $PipelineJson): void {
         keepUnused(command, pipelineJson);
         // Note: [🍣] Do nothing, its application is implemented separately in `pipelineStringToJsonSync`
     },
@@ -101,11 +106,7 @@ export const parameterCommandParser: PipelineBothCommandParser<ParameterCommand>
      *
      * Note: `$` is used to indicate that this function mutates given `templateJson`
      */
-    $applyToTemplateJson(
-        command: ParameterCommand,
-        templateJson: Partial<WritableDeep<TemplateJson>>,
-        pipelineJson: WritableDeep<PipelineJson>,
-    ): void {
+    $applyToTemplateJson(command: ParameterCommand, templateJson: $TemplateJson, pipelineJson: $PipelineJson): void {
         keepUnused(command, templateJson, pipelineJson);
         // Note: [🍣] Do nothing, its application is implemented separately in `pipelineStringToJsonSync`
     },

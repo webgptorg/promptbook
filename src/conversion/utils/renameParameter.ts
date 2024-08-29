@@ -1,4 +1,4 @@
-import type { WritableDeep } from 'type-fest';
+import { $PipelineJson } from '../../commands/_common/types/CommandParser';
 import { PipelineLogicError } from '../../errors/PipelineLogicError';
 import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import type { string_name } from '../../types/typeAliases';
@@ -37,7 +37,7 @@ export function renameParameter(options: RenameParameterOptions): PipelineJson {
         );
     }
 
-    const renamedPipeline: WritableDeep<PipelineJson> = {
+    const renamedPipeline: $PipelineJson = {
         ...pipeline,
         parameters: [...pipeline.parameters],
         templates: [...pipeline.templates],
@@ -58,15 +58,9 @@ export function renameParameter(options: RenameParameterOptions): PipelineJson {
             dependentParameterName === oldParameterName ? newParameterName : dependentParameterName,
         );
 
-        template.content = template.content.replace(
-            new RegExp(`{${oldParameterName}}`, 'g'),
-            `{${newParameterName}}`,
-        );
+        template.content = template.content.replace(new RegExp(`{${oldParameterName}}`, 'g'), `{${newParameterName}}`);
 
-        template.title = template.title.replace(
-            new RegExp(`{${oldParameterName}}`, 'g'),
-            `{${newParameterName}}`,
-        );
+        template.title = template.title.replace(new RegExp(`{${oldParameterName}}`, 'g'), `{${newParameterName}}`);
 
         template.description =
             template.description === undefined

@@ -1,4 +1,3 @@
-import type { WritableDeep } from 'type-fest';
 import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
 import { ParsingError } from '../../errors/ParsingError';
 import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
@@ -6,7 +5,7 @@ import { string_markdown_text } from '../../types/typeAliases';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import { isValidPromptbookVersion } from '../../utils/validators/semanticVersion/isValidPromptbookVersion';
 import { PROMPTBOOK_VERSION } from '../../version';
-import type { CommandParserInput, PipelineHeadCommandParser } from '../_common/types/CommandParser';
+import type { $PipelineJson, CommandParserInput, PipelineHeadCommandParser } from '../_common/types/CommandParser';
 import type { PromptbookVersionCommand } from './PromptbookVersionCommand';
 
 /**
@@ -75,7 +74,7 @@ export const promptbookVersionCommandParser: PipelineHeadCommandParser<Promptboo
      *
      * Note: `$` is used to indicate that this function mutates given `pipelineJson`
      */
-    $applyToPipelineJson(command: PromptbookVersionCommand, pipelineJson: WritableDeep<PipelineJson>): void {
+    $applyToPipelineJson(command: PromptbookVersionCommand, pipelineJson: $PipelineJson): void {
         pipelineJson.promptbookVersion = command.promptbookVersion;
     },
 

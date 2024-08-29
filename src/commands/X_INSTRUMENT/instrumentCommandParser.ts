@@ -1,10 +1,9 @@
-import type { WritableDeep } from 'type-fest';
 import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
 import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import { string_markdown_text } from '../../types/typeAliases';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import { TODO_USE } from '../../utils/organization/TODO_USE';
-import type { CommandParserInput, PipelineHeadCommandParser } from '../_common/types/CommandParser';
+import type { $PipelineJson, CommandParserInput, PipelineHeadCommandParser } from '../_common/types/CommandParser';
 import type { InstrumentCommand } from './InstrumentCommand';
 
 /**
@@ -58,7 +57,7 @@ export const instrumentCommandParser: PipelineHeadCommandParser<InstrumentComman
      *
      * Note: `$` is used to indicate that this function mutates given `pipelineJson`
      */
-    $applyToPipelineJson(command: InstrumentCommand, pipelineJson: WritableDeep<PipelineJson>): void {
+    $applyToPipelineJson(command: InstrumentCommand, pipelineJson: $PipelineJson): void {
         keepUnused(command, pipelineJson);
         console.error(new NotYetImplementedError('Instruments are not implemented yet'));
     },

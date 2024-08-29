@@ -6,7 +6,12 @@ import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import type { TemplateJson } from '../../types/PipelineJson/TemplateJson';
 import { string_markdown_text } from '../../types/typeAliases';
 import { keepUnused } from '../../utils/organization/keepUnused';
-import type { CommandParserInput, PipelineBothCommandParser } from '../_common/types/CommandParser';
+import type {
+    $PipelineJson,
+    $TemplateJson,
+    CommandParserInput,
+    PipelineBothCommandParser,
+} from '../_common/types/CommandParser';
 import type { PersonaCommand } from './PersonaCommand';
 
 /**
@@ -79,7 +84,7 @@ export const personaCommandParser: PipelineBothCommandParser<PersonaCommand> = {
      *
      * Note: `$` is used to indicate that this function mutates given `pipelineJson`
      */
-    $applyToPipelineJson(command: PersonaCommand, pipelineJson: WritableDeep<PipelineJson>): void {
+    $applyToPipelineJson(command: PersonaCommand, pipelineJson: $PipelineJson): void {
         $applyToTemplateJson(command, null, pipelineJson);
     },
 
@@ -123,8 +128,8 @@ export const personaCommandParser: PipelineBothCommandParser<PersonaCommand> = {
  */
 function $applyToTemplateJson(
     command: PersonaCommand,
-    templateJson: Partial<WritableDeep<TemplateJson>> | null,
-    pipelineJson: WritableDeep<PipelineJson>,
+    templateJson: $TemplateJson | null,
+    pipelineJson: $PipelineJson,
 ): void {
     const { personaName, personaDescription } = command;
 

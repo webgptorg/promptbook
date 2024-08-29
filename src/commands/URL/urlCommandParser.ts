@@ -1,11 +1,10 @@
-import type { WritableDeep } from 'type-fest';
 import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
 import { ParsingError } from '../../errors/ParsingError';
 import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import { string_markdown_text } from '../../types/typeAliases';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import { isValidPipelineUrl } from '../../utils/validators/url/isValidPipelineUrl';
-import type { CommandParserInput, PipelineHeadCommandParser } from '../_common/types/CommandParser';
+import type { $PipelineJson, CommandParserInput, PipelineHeadCommandParser } from '../_common/types/CommandParser';
 import type { UrlCommand } from './UrlCommand';
 
 /**
@@ -102,7 +101,7 @@ export const urlCommandParser: PipelineHeadCommandParser<UrlCommand> = {
      *
      * Note: `$` is used to indicate that this function mutates given `pipelineJson`
      */
-    $applyToPipelineJson(command: UrlCommand, pipelineJson: WritableDeep<PipelineJson>): void {
+    $applyToPipelineJson(command: UrlCommand, pipelineJson: $PipelineJson): void {
         pipelineJson.pipelineUrl = command.pipelineUrl.href;
     },
 

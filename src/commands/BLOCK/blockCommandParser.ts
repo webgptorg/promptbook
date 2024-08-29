@@ -3,12 +3,16 @@ import type { WritableDeep } from 'type-fest';
 import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
 import { ParsingError } from '../../errors/ParsingError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
-import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import type { TemplateJson } from '../../types/PipelineJson/TemplateJson';
 import { string_markdown_text } from '../../types/typeAliases';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import { knowledgeCommandParser } from '../KNOWLEDGE/knowledgeCommandParser';
-import type { CommandParserInput, PipelineTemplateCommandParser } from '../_common/types/CommandParser';
+import type {
+    $PipelineJson,
+    $TemplateJson,
+    CommandParserInput,
+    PipelineTemplateCommandParser,
+} from '../_common/types/CommandParser';
 import type { BlockCommand } from './BlockCommand';
 import { BlockTypes } from './BlockTypes';
 
@@ -127,11 +131,7 @@ export const blockCommandParser: PipelineTemplateCommandParser<BlockCommand> = {
      *
      * Note: `$` is used to indicate that this function mutates given `templateJson`
      */
-    $applyToTemplateJson(
-        command: BlockCommand,
-        templateJson: Partial<WritableDeep<TemplateJson>>,
-        pipelineJson: WritableDeep<PipelineJson>,
-    ): void {
+    $applyToTemplateJson(command: BlockCommand, templateJson: $TemplateJson, pipelineJson: $PipelineJson): void {
         /*
         TODO: !!!!!! Test multiple / no block type
         if (isBlockTypeSet) {
