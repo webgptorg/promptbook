@@ -1,3 +1,4 @@
+import { CommandParser, really_any } from '../_packages/types.index';
 import { blockCommandParser } from './BLOCK/blockCommandParser';
 import { expectCommandParser } from './EXPECT/expectCommandParser';
 import { jokerCommandParser } from './JOKER/jokerCommandParser';
@@ -31,4 +32,4 @@ export const COMMANDS = [
     instrumentCommandParser,
     personaCommandParser,
     boilerplateCommandParser, // <- TODO: !! Only in development, remove in production
-] as const;
+] satisfies Array<CommandParser<really_any>>;

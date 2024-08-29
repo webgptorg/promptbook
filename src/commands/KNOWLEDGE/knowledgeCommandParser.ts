@@ -18,7 +18,7 @@ import type { KnowledgeCommand } from './KnowledgeCommand';
  * @see ./KNOWLEDGE-README.md for more details
  * @private within the commands folder
  */
-export const knowledgeCommandParser: CommandParser<KnowledgeCommand> = {
+export const knowledgeCommandParser = {
     /**
      * Name of the command
      */
@@ -120,4 +120,4 @@ export const knowledgeCommandParser: CommandParser<KnowledgeCommand> = {
         keepUnused(pipelineJson);
         throw new NotYetImplementedError(`Not implemented yet !!!!!!`);
     },
-};
+} satisfies CommandParser<KnowledgeCommand>;

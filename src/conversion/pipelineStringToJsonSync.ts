@@ -1,10 +1,8 @@
 import { spaceTrim } from 'spacetrim';
 import type { Writable, WritableDeep } from 'type-fest';
-import { Command } from '../_packages/types.index';
 import { COMMANDS } from '../commands';
 import type { ParameterCommand } from '../commands/PARAMETER/ParameterCommand';
 import { parseCommand } from '../commands/_common/parseCommand';
-import { PipelineHeadCommandParser } from '../commands/_common/types/CommandParser';
 import { RESERVED_PARAMETER_NAMES } from '../config';
 import { ParsingError } from '../errors/ParsingError';
 import { UnexpectedError } from '../errors/UnexpectedError';
@@ -243,7 +241,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
         }
 
         // TODO: !!!!!! Wrap and ientify ParsingError
-        (commandParser as PipelineHeadCommandParser<Command>).$applyToPipelineJson(command, pipelineJson);
+        commandParser.$applyToPipelineJson(command, pipelineJson);
 
         if (command.type === 'PARAMETER') {
             defineParam(command);
@@ -366,7 +364,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
             }
 
             // TODO: !!!!!! Wrap and ientify ParsingError
-            (commandParser as PipelineHeadCommandParser<Command>).$applyToPipelineJson(command, pipelineJson);
+            commandParser.$applyToPipelineJson(command, pipelineJson);
 
             // TODO: !!!!!! Multiple problematic things in blockCommandParser.$applyToTemplateJson
 

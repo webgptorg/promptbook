@@ -14,7 +14,7 @@ import type { JokerCommand } from './JokerCommand';
  * @see ./JOKER-README.md for more details
  * @private within the commands folder
  */
-export const jokerCommandParser: CommandParser<JokerCommand> = {
+export const jokerCommandParser = {
     /**
      * Name of the command
      */
@@ -90,4 +90,4 @@ export const jokerCommandParser: CommandParser<JokerCommand> = {
         keepUnused(templateJson);
         throw new NotYetImplementedError(`Not implemented yet !!!!!!`);
     },
-};
+} satisfies CommandParser<JokerCommand>;

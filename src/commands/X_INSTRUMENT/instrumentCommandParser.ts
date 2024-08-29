@@ -13,7 +13,7 @@ import type { InstrumentCommand } from './InstrumentCommand';
  * @see ./INSTRUMENT-README.md for more details
  * @private within the commands folder
  */
-export const instrumentCommandParser: CommandParser<InstrumentCommand> = {
+export const instrumentCommandParser = {
     /**
      * Name of the command
      */
@@ -82,4 +82,4 @@ export const instrumentCommandParser: CommandParser<InstrumentCommand> = {
         keepUnused(pipelineJson);
         throw new NotYetImplementedError(`Not implemented yet !!!!!!`);
     },
-};
+} satisfies CommandParser<InstrumentCommand>;

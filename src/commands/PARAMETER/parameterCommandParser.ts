@@ -15,7 +15,7 @@ import type { ParameterCommand } from './ParameterCommand';
  * @see ./PARAMETER-README.md for more details
  * @private within the commands folder
  */
-export const parameterCommandParser: CommandParser<ParameterCommand> = {
+export const parameterCommandParser = {
     /**
      * Name of the command
      */
@@ -139,4 +139,4 @@ export const parameterCommandParser: CommandParser<ParameterCommand> = {
         keepUnused(templateJson);
         throw new NotYetImplementedError(`Not implemented yet !!!!!!`);
     },
-};
+} satisfies CommandParser<ParameterCommand>;

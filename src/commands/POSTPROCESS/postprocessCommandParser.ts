@@ -14,7 +14,7 @@ import type { PostprocessCommand } from './PostprocessCommand';
  * @see ./POSTPROCESS-README.md for more details
  * @private within the commands folder
  */
-export const postprocessCommandParser: CommandParser<PostprocessCommand> = {
+export const postprocessCommandParser = {
     /**
      * Name of the command
      */
@@ -100,4 +100,4 @@ export const postprocessCommandParser: CommandParser<PostprocessCommand> = {
         keepUnused(templateJson);
         throw new NotYetImplementedError(`Not implemented yet !!!!!!`);
     },
-};
+} satisfies CommandParser<PostprocessCommand>;

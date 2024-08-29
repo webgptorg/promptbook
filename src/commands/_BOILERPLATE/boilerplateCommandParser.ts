@@ -15,7 +15,7 @@ import type { BoilerplateCommand } from './BoilerplateCommand';
  * @see ./BOILERPLATE-README.md for more details <- TODO: @@@ Write theese README files OR remove this link + add annotation here (to all commands)
  * @private within the commands folder
  */
-export const boilerplateCommandParser: CommandParser<BoilerplateCommand> = {
+export const boilerplateCommandParser = {
     /**
      * Name of the command
      */
@@ -130,7 +130,7 @@ export const boilerplateCommandParser: CommandParser<BoilerplateCommand> = {
             `BOILERPLATE command is only for testing purposes and should not be used in the .ptbk.md file`,
         );
     },
-};
+} satisfies CommandParser<BoilerplateCommand>;
 
 /**
  * TODO: !!!!!! Make .ptbk.md file with examples of the BOILERPLATE command and fail
