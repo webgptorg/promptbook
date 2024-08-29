@@ -31,4 +31,4 @@ export const COMMANDS = [
     instrumentCommandParser,
     personaCommandParser,
     boilerplateCommandParser, // <- TODO: !! Only in development, remove in production
-];
+] as const;

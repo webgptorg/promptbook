@@ -3,6 +3,11 @@ import type { Writable, WritableDeep } from 'type-fest';
 import { COMMANDS } from '../commands';
 import type { ParameterCommand } from '../commands/PARAMETER/ParameterCommand';
 import { parseCommand } from '../commands/_common/parseCommand';
+import {
+    CommandBase,
+    PipelineHeadCommandParser,
+    PipelineTemplateCommandParser,
+} from '../commands/_common/types/CommandParser';
 import { RESERVED_PARAMETER_NAMES } from '../config';
 import { ParsingError } from '../errors/ParsingError';
 import { UnexpectedError } from '../errors/UnexpectedError';
@@ -226,7 +231,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
             );
         }
 
-        if (!commandParser.isUsedInPipelineHead) {
+        if (commandParser.isUsedInPipelineHead !== true /* <- Note: [🦦][4] */) {
             throw new ParsingError(
                 spaceTrim(
                     (block) => `
@@ -241,7 +246,8 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
         }
 
         // TODO: !!!!!! Wrap and ientify ParsingError
-        commandParser.$applyToPipelineJson(command, pipelineJson);
+        (commandParser as PipelineHeadCommandParser<CommandBase>).$applyToPipelineJson(command, pipelineJson);
+        //             <- Note: [🦦] Its strange that this assertion must be here, [🦦][4] should do this assertion implicitelly
 
         if (command.type === 'PARAMETER') {
             defineParam(command);
@@ -349,7 +355,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
                 );
             }
 
-            if (!commandParser.isUsedInPipelineTemplate) {
+            if (commandParser.isUsedInPipelineTemplate !== true /* <- Note: [🦦][4] */) {
                 throw new ParsingError(
                     spaceTrim(
                         (block) => `
@@ -364,9 +370,14 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
             }
 
             // TODO: !!!!!! Wrap and ientify ParsingError
-            commandParser.$applyToPipelineJson(command, pipelineJson);
+            (commandParser as PipelineTemplateCommandParser<CommandBase>).$applyToTemplateJson(
+                //            <- Note: [🦦] Its strange that this assertion must be here, [🦦][4] should do this assertion implicitelly
+                command,
+                templateJson,
+                pipelineJson,
+            );
 
-            // TODO: !!!!!! Multiple problematic things in blockCommandParser.$applyToTemplateJson
+            // TODO: !!!!!! Multiple problematic things in BLOCK command - blockCommandParser.$applyToTemplateJson
 
             if (command.type === 'PARAMETER') {
                 defineParam(command);

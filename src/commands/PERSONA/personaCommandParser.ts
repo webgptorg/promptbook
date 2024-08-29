@@ -123,7 +123,7 @@ export const personaCommandParser: PipelineBothCommandParser<PersonaCommand> = {
  */
 function $applyToTemplateJson(
     command: PersonaCommand,
-    templateJson: WritableDeep<PromptTemplateJson> | null,
+    templateJson: Partial<WritableDeep<PromptTemplateJson>> | null,
     pipelineJson: WritableDeep<PipelineJson>,
 ): void {
     const { personaName, personaDescription } = command;

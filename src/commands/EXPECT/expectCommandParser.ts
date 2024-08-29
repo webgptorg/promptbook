@@ -7,7 +7,7 @@ import type { PromptTemplateJson } from '../../types/PipelineJson/PromptTemplate
 import { string_markdown_text } from '../../types/typeAliases';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import { parseNumber } from '../../utils/parseNumber';
-import type { CommandParser, CommandParserInput } from '../_common/types/CommandParser';
+import type { CommandParserInput, PipelineTemplateCommandParser } from '../_common/types/CommandParser';
 import type { ExpectAmountCommand } from './ExpectAmountCommand';
 import type { ExpectCommand } from './ExpectCommand';
 import type { ExpectFormatCommand } from './ExpectFormatCommand';
@@ -18,7 +18,7 @@ import type { ExpectFormatCommand } from './ExpectFormatCommand';
  * @see ./EXPECT-README.md for more details
  * @private within the commands folder
  */
-export const expectCommandParser: PipelineBothCommandParser<ExpectCommand> = {
+export const expectCommandParser: PipelineTemplateCommandParser<ExpectCommand> = {
     /**
      * Name of the command
      */

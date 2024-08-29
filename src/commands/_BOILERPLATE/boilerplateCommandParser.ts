@@ -88,7 +88,7 @@ export const boilerplateCommandParser: PipelineBothCommandParser<BoilerplateComm
      */
     $applyToTemplateJson(
         command: BoilerplateCommand,
-        templateJson: WritableDeep<PromptTemplateJson>,
+        templateJson: Partial<WritableDeep<PromptTemplateJson>>,
         pipelineJson: WritableDeep<PipelineJson>,
     ): void {
         keepUnused(command, templateJson, pipelineJson);

@@ -2,6 +2,7 @@ import spaceTrim from 'spacetrim';
 import type { WritableDeep } from 'type-fest';
 import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
 import { ParsingError } from '../../errors/ParsingError';
+import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import type { PromptTemplateJson } from '../../types/PipelineJson/PromptTemplateJson';
 import { string_markdown_text } from '../../types/typeAliases';
@@ -128,7 +129,7 @@ export const blockCommandParser: PipelineTemplateCommandParser<BlockCommand> = {
      */
     $applyToTemplateJson(
         command: BlockCommand,
-        templateJson: WritableDeep<PromptTemplateJson>,
+        templateJson: Partial<WritableDeep<PromptTemplateJson>>,
         pipelineJson: WritableDeep<PipelineJson>,
     ): void {
         /*
@@ -146,6 +147,13 @@ export const blockCommandParser: PipelineTemplateCommandParser<BlockCommand> = {
             );
         }
         */
+
+        if (templateJson.content === undefined) {
+            throw new UnexpectedError(
+                `Content is missing in the templateJson - probbably commands are applied in wrong order`,
+                //     <- TODO: !!!!!! Make sample pipeline that have commands in wrong order
+            );
+        }
 
         if (command.blockType === 'SAMPLE') {
             // TODO: !!!!!! Test missing/extra resultingParameterName
@@ -168,12 +176,11 @@ export const blockCommandParser: PipelineTemplateCommandParser<BlockCommand> = {
         }
 
         if (command.blockType === 'KNOWLEDGE') {
-            knowledgeCommandParser.$applyToTemplateJson(
+            knowledgeCommandParser.$applyToPipelineJson(
                 {
                     type: 'KNOWLEDGE',
                     sourceContent: templateJson.content, // <- TODO: [🐝] !!! Work with KNOWLEDGE which not referring to the source file or website, but its content itself
                 },
-                templateJson,
                 pipelineJson,
             );
             // TODO: !!!!!! How to implement this?

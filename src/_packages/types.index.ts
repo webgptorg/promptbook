@@ -249,7 +249,6 @@ export type {
     CollectionRemoteServerOptions,
     Command,
     CommandParser,
-    CommandParserInput,
     CommandUsagePlace,
     CommonExecutionToolsOptions,
     CommonModelRequirements,

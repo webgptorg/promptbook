@@ -103,7 +103,7 @@ export const parameterCommandParser: PipelineBothCommandParser<ParameterCommand>
      */
     $applyToTemplateJson(
         command: ParameterCommand,
-        templateJson: WritableDeep<PromptTemplateJson>,
+        templateJson: Partial<WritableDeep<PromptTemplateJson>>,
         pipelineJson: WritableDeep<PipelineJson>,
     ): void {
         keepUnused(command, templateJson, pipelineJson);

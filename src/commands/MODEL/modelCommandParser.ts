@@ -126,7 +126,7 @@ export const modelCommandParser: PipelineBothCommandParser<ModelCommand> = {
      */
     $applyToTemplateJson(
         command: ModelCommand,
-        templateJson: WritableDeep<PromptTemplateJson>,
+        templateJson: Partial<WritableDeep<PromptTemplateJson>>,
         // pipelineJson: WritableDeep<PipelineJson>,
     ): void {
         if (templateJson.blockType !== 'PROMPT_TEMPLATE') {

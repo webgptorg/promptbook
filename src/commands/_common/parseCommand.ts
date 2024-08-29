@@ -5,8 +5,10 @@ import { removeMarkdownFormatting } from '../../utils/markdown/removeMarkdownFor
 import { normalizeTo_SCREAMING_CASE } from '../../utils/normalization/normalizeTo_SCREAMING_CASE';
 import { just } from '../../utils/organization/just';
 import { keepUnused } from '../../utils/organization/keepUnused';
+import { really_unknown } from '../../utils/organization/really_unknown';
 import { COMMANDS } from '../index';
 import type { Command } from './types/Command';
+import { CommandBase, CommandParser, CommandParserInput } from './types/CommandParser';
 import type { CommandUsagePlace } from './types/CommandUsagePlaces';
 
 /**
@@ -130,10 +132,13 @@ export function parseCommand(raw: string_markdown_text, usagePlace: CommandUsage
  * @@@
  */
 function getSupportedCommandsMessage(): string_markdown {
-    return COMMANDS.flatMap(({ name, aliasNames, description, documentationUrl }) => [
-        `- **${name}** ${description}, see [discussion](${documentationUrl})`,
-        ...(aliasNames || []).map((aliasName) => `    - **${aliasName}** Alias for **${name}**`),
-    ]).join('\n');
+    return COMMANDS.flatMap(({ name, aliasNames, description, documentationUrl }: CommandParser<CommandBase>) =>
+        //                                                                        <- Note: [🦦] Its strange that this type assertion is needed
+        [
+            `- **${name}** ${description}, see [discussion](${documentationUrl})`,
+            ...(aliasNames || []).map((aliasName) => `    - **${aliasName}** Alias for **${name}**`),
+        ],
+    ).join('\n');
 }
 
 /**
@@ -144,7 +149,8 @@ function parseCommandVariant(input: CommandParserInput & { commandNameRaw: strin
 
     const commandName = normalizeTo_SCREAMING_CASE(commandNameRaw);
 
-    for (const commandParser of COMMANDS) {
+    for (const commandParser of COMMANDS as really_unknown as Array<CommandParser<CommandBase>>) {
+        //                               <- Note: [🦦] Its strange that this type assertion is needed
         const { name, isUsedInPipelineHead, isUsedInPipelineTemplate, aliasNames, deprecatedNames, parse } =
             commandParser;
 
@@ -159,7 +165,7 @@ function parseCommandVariant(input: CommandParserInput & { commandNameRaw: strin
         const names = [name, ...(aliasNames || []), ...(deprecatedNames || [])];
         if (names.includes(commandName)) {
             try {
-                return parse({ usagePlace, raw, rawArgs, normalized, args });
+                return parse({ usagePlace, raw, rawArgs, normalized, args }) as Command; // <- Note: [🦦]
             } catch (error) {
                 if (!(error instanceof ParsingError)) {
                     throw error;

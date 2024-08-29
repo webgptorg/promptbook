@@ -129,7 +129,7 @@ export type PipelineTemplateCommandParser<TCommand extends CommandBase> = Common
      */
     $applyToTemplateJson(
         command: TCommand,
-        templateJson: WritableDeep<PromptTemplateJson>,
+        templateJson: Partial<WritableDeep<PromptTemplateJson>>, // <- TODO: [🧠] `Partial<WritableDeep<...` vs `WritableDeep<Partial<...` - change ACRY
         pipelineJson: WritableDeep<PipelineJson>,
     ): void;
 
