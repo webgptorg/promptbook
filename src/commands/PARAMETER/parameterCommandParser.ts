@@ -1,8 +1,6 @@
-import type { WritableDeep } from 'type-fest';
 import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
 import { ParsingError } from '../../errors/ParsingError';
 import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
-import type { TemplateJson } from '../../types/PipelineJson/TemplateJson';
 import { string_markdown_text } from '../../types/typeAliases';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import type { TODO_any } from '../../utils/organization/TODO_any';
@@ -136,8 +134,8 @@ export const parameterCommandParser: PipelineBothCommandParser<ParameterCommand>
      *
      * Note: This is used in `pipelineJsonToString` utility
      */
-    takeFromTemplateJson(templateJson: WritableDeep<TemplateJson>): Array<ParameterCommand> {
-        keepUnused(templateJson);
+    takeFromTemplateJson($templateJson: $TemplateJson): Array<ParameterCommand> {
+        keepUnused($templateJson);
         throw new NotYetImplementedError(`Not implemented yet !!!!!!`);
     },
 };

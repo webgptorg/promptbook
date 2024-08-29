@@ -1,7 +1,5 @@
-import type { WritableDeep } from 'type-fest';
 import { ParsingError } from '../../errors/ParsingError';
 import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
-import type { TemplateJson } from '../../types/PipelineJson/TemplateJson';
 import { string_markdown_text } from '../../types/typeAliases';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import type {
@@ -91,7 +89,11 @@ export const boilerplateCommandParser: PipelineBothCommandParser<BoilerplateComm
      *
      * Note: `$` is used to indicate that this function mutates given `templateJson`
      */
-    $applyToTemplateJson(command: BoilerplateCommand, $templateJson: $TemplateJson, $pipelineJson: $PipelineJson): void {
+    $applyToTemplateJson(
+        command: BoilerplateCommand,
+        $templateJson: $TemplateJson,
+        $pipelineJson: $PipelineJson,
+    ): void {
         keepUnused(command, $templateJson, $pipelineJson);
         throw new ParsingError(
             `BOILERPLATE command is only for testing purposes and should not be used in the .ptbk.md file`,
@@ -125,8 +127,8 @@ export const boilerplateCommandParser: PipelineBothCommandParser<BoilerplateComm
      *
      * Note: This is used in `pipelineJsonToString` utility
      */
-    takeFromTemplateJson(templateJson: WritableDeep<TemplateJson>): Array<BoilerplateCommand> {
-        keepUnused(templateJson);
+    takeFromTemplateJson($templateJson: $TemplateJson): Array<BoilerplateCommand> {
+        keepUnused($templateJson);
         throw new ParsingError(
             `BOILERPLATE command is only for testing purposes and should not be used in the .ptbk.md file`,
         );

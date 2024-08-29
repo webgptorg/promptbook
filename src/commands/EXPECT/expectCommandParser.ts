@@ -1,13 +1,11 @@
 import spaceTrim from 'spacetrim';
-import type { WritableDeep } from 'type-fest';
 import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
 import { ParsingError } from '../../errors/ParsingError';
 import { EXPECTATION_UNITS, ExpectationUnit } from '../../types/PipelineJson/Expectations';
-import type { TemplateJson } from '../../types/PipelineJson/TemplateJson';
 import { string_markdown_text } from '../../types/typeAliases';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import { parseNumber } from '../../utils/parseNumber';
-import type { CommandParserInput, PipelineTemplateCommandParser } from '../_common/types/CommandParser';
+import type { $TemplateJson, CommandParserInput, PipelineTemplateCommandParser } from '../_common/types/CommandParser';
 import type { ExpectCommand } from './ExpectCommand';
 
 /**
@@ -132,32 +130,32 @@ export const expectCommandParser: PipelineTemplateCommandParser<ExpectCommand> =
      *
      * Note: `$` is used to indicate that this function mutates given `templateJson`
      */
-    $applyToTemplateJson(command: ExpectCommand, templateJson: WritableDeep<TemplateJson>): void {
+    $applyToTemplateJson(command: ExpectCommand, $templateJson: $TemplateJson): void {
         // eslint-disable-next-line no-case-declarations
         const unit = command.unit.toLowerCase() as Lowercase<ExpectationUnit>;
 
-        templateJson.expectations = templateJson.expectations || {};
-        templateJson.expectations[unit] = templateJson.expectations[unit] || {};
+        $templateJson.expectations = $templateJson.expectations || {};
+        $templateJson.expectations[unit] = $templateJson.expectations[unit] || {};
 
         if (command.sign === 'MINIMUM' || command.sign === 'EXACTLY') {
-            if (templateJson.expectations[unit]!.min !== undefined) {
+            if ($templateJson.expectations[unit]!.min !== undefined) {
                 throw new ParsingError(
                     `Already defined minumum ${
-                        templateJson.expectations![unit]!.min
+                        $templateJson.expectations![unit]!.min
                     } ${command.unit.toLowerCase()}, now trying to redefine it to ${command.amount}`,
                 );
             }
-            templateJson.expectations[unit]!.min = command.amount;
+            $templateJson.expectations[unit]!.min = command.amount;
         } /* not else */
         if (command.sign === 'MAXIMUM' || command.sign === 'EXACTLY') {
-            if (templateJson.expectations[unit]!.max !== undefined) {
+            if ($templateJson.expectations[unit]!.max !== undefined) {
                 throw new ParsingError(
                     `Already defined maximum ${
-                        templateJson.expectations![unit]!.max
+                        $templateJson.expectations![unit]!.max
                     } ${command.unit.toLowerCase()}, now trying to redefine it to ${command.amount}`,
                 );
             }
-            templateJson.expectations[unit]!.max = command.amount;
+            $templateJson.expectations[unit]!.max = command.amount;
         }
     },
 
@@ -176,8 +174,8 @@ export const expectCommandParser: PipelineTemplateCommandParser<ExpectCommand> =
      *
      * Note: This is used in `pipelineJsonToString` utility
      */
-    takeFromTemplateJson(templateJson: WritableDeep<TemplateJson>): Array<ExpectCommand> {
-        keepUnused(templateJson);
+    takeFromTemplateJson($templateJson: $TemplateJson): Array<ExpectCommand> {
+        keepUnused($templateJson);
         throw new NotYetImplementedError(`Not implemented yet !!!!!!`);
     },
 };

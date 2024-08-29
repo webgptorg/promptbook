@@ -244,8 +244,8 @@ export const blockCommandParser: PipelineTemplateCommandParser<BlockCommand> = {
      *
      * Note: This is used in `pipelineJsonToString` utility
      */
-    takeFromTemplateJson(templateJson: WritableDeep<TemplateJson>): Array<BlockCommand> {
-        keepUnused(templateJson);
+    takeFromTemplateJson($templateJson: $TemplateJson): Array<BlockCommand> {
+        keepUnused($templateJson);
         throw new NotYetImplementedError(`Not implemented yet !!!!!!`);
     },
 };

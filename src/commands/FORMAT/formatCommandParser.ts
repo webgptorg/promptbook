@@ -1,11 +1,9 @@
 import spaceTrim from 'spacetrim';
-import type { WritableDeep } from 'type-fest';
 import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
 import { ParsingError } from '../../errors/ParsingError';
-import type { TemplateJson } from '../../types/PipelineJson/TemplateJson';
 import { string_markdown_text } from '../../types/typeAliases';
 import { keepUnused } from '../../utils/organization/keepUnused';
-import type { CommandParserInput, PipelineTemplateCommandParser } from '../_common/types/CommandParser';
+import type { $TemplateJson, CommandParserInput, PipelineTemplateCommandParser } from '../_common/types/CommandParser';
 import type { FormatCommand } from './FormatCommand';
 
 /**
@@ -68,12 +66,12 @@ export const formatCommandParser: PipelineTemplateCommandParser<FormatCommand> =
      *
      * Note: `$` is used to indicate that this function mutates given `templateJson`
      */
-    $applyToTemplateJson(command: FormatCommand, templateJson: WritableDeep<TemplateJson>): void {
-        if (templateJson.format !== undefined && command.format !== templateJson.format) {
-            throw new ParsingError(`Format format is already defined to "${templateJson.format}".
+    $applyToTemplateJson(command: FormatCommand, $templateJson: $TemplateJson): void {
+        if ($templateJson.format !== undefined && command.format !== $templateJson.format) {
+            throw new ParsingError(`Format format is already defined to "${$templateJson.format}".
                 Now you try to redefine it by "${command.format}"`);
         }
-        templateJson.format = command.format;
+        $templateJson.format = command.format;
     },
 
     /**
@@ -91,8 +89,8 @@ export const formatCommandParser: PipelineTemplateCommandParser<FormatCommand> =
      *
      * Note: This is used in `pipelineJsonToString` utility
      */
-    takeFromTemplateJson(templateJson: WritableDeep<TemplateJson>): Array<FormatCommand> {
-        keepUnused(templateJson);
+    takeFromTemplateJson($templateJson: $TemplateJson): Array<FormatCommand> {
+        keepUnused($templateJson);
         throw new NotYetImplementedError(`Not implemented yet !!!!!!`);
     },
 };

@@ -1,11 +1,9 @@
-import type { WritableDeep } from 'type-fest';
 import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
 import { ParsingError } from '../../errors/ParsingError';
-import type { TemplateJson } from '../../types/PipelineJson/TemplateJson';
 import { string_markdown_text } from '../../types/typeAliases';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import { isValidJavascriptName } from '../../utils/validators/javascriptName/isValidJavascriptName';
-import type { CommandParserInput, PipelineTemplateCommandParser } from '../_common/types/CommandParser';
+import type { $TemplateJson, CommandParserInput, PipelineTemplateCommandParser } from '../_common/types/CommandParser';
 import type { PostprocessCommand } from './PostprocessCommand';
 
 /**
@@ -76,9 +74,9 @@ export const postprocessCommandParser: PipelineTemplateCommandParser<Postprocess
      *
      * Note: `$` is used to indicate that this function mutates given `templateJson`
      */
-    $applyToTemplateJson(command: PostprocessCommand, templateJson: WritableDeep<TemplateJson>): void {
-        templateJson.postprocessingFunctionNames = templateJson.postprocessingFunctionNames || [];
-        templateJson.postprocessingFunctionNames.push(command.functionName);
+    $applyToTemplateJson(command: PostprocessCommand, $templateJson: $TemplateJson): void {
+        $templateJson.postprocessingFunctionNames = $templateJson.postprocessingFunctionNames || [];
+        $templateJson.postprocessingFunctionNames.push(command.functionName);
     },
 
     /**
@@ -96,8 +94,8 @@ export const postprocessCommandParser: PipelineTemplateCommandParser<Postprocess
      *
      * Note: This is used in `pipelineJsonToString` utility
      */
-    takeFromTemplateJson(templateJson: WritableDeep<TemplateJson>): Array<PostprocessCommand> {
-        keepUnused(templateJson);
+    takeFromTemplateJson($templateJson: $TemplateJson): Array<PostprocessCommand> {
+        keepUnused($templateJson);
         throw new NotYetImplementedError(`Not implemented yet !!!!!!`);
     },
 };

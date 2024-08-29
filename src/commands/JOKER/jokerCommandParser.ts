@@ -1,11 +1,9 @@
-import type { WritableDeep } from 'type-fest';
 import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
 import { ParsingError } from '../../errors/ParsingError';
-import type { TemplateJson } from '../../types/PipelineJson/TemplateJson';
 import { string_markdown_text } from '../../types/typeAliases';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import type { TODO_any } from '../../utils/organization/TODO_any';
-import type { CommandParserInput, PipelineTemplateCommandParser } from '../_common/types/CommandParser';
+import type { $TemplateJson, CommandParserInput, PipelineTemplateCommandParser } from '../_common/types/CommandParser';
 import type { JokerCommand } from './JokerCommand';
 
 /**
@@ -66,9 +64,9 @@ export const jokerCommandParser: PipelineTemplateCommandParser<JokerCommand> = {
      *
      * Note: `$` is used to indicate that this function mutates given `templateJson`
      */
-    $applyToTemplateJson(command: JokerCommand, templateJson: WritableDeep<TemplateJson>): void {
-        templateJson.jokerParameterNames = templateJson.jokerParameterNames || [];
-        templateJson.jokerParameterNames.push(command.parameterName);
+    $applyToTemplateJson(command: JokerCommand, $templateJson: $TemplateJson): void {
+        $templateJson.jokerParameterNames = $templateJson.jokerParameterNames || [];
+        $templateJson.jokerParameterNames.push(command.parameterName);
     },
 
     /**
@@ -86,8 +84,8 @@ export const jokerCommandParser: PipelineTemplateCommandParser<JokerCommand> = {
      *
      * Note: This is used in `pipelineJsonToString` utility
      */
-    takeFromTemplateJson(templateJson: WritableDeep<TemplateJson>): Array<JokerCommand> {
-        keepUnused(templateJson);
+    takeFromTemplateJson($templateJson: $TemplateJson): Array<JokerCommand> {
+        keepUnused($templateJson);
         throw new NotYetImplementedError(`Not implemented yet !!!!!!`);
     },
 };
