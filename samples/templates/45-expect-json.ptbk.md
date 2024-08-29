@@ -38,7 +38,7 @@ flowchart LR
 -   MODEL VARIANT Completion
 -   MODEL NAME `gpt-3.5-turbo-instruct`
 -   POSTPROCESSING `trimEndOfCodeBlock`
--   Expect JSON
+-   FORMAT JSON
 
 ```
 Dark horse hopping over the fence.

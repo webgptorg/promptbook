@@ -1,6 +1,5 @@
 import type { TupleToUnion } from 'type-fest';
-import type { number_integer } from '../typeAliases';
-import type { number_positive } from '../typeAliases';
+import type { number_integer, number_positive } from '../typeAliases';
 
 /**
  * Expect this amount of each unit in the answer
@@ -40,5 +39,5 @@ export const EXPECTATION_UNITS = ['CHARACTERS', 'WORDS', 'SENTENCES', 'LINES', '
 export type ExpectationAmount = number_integer & (number_positive | 0);
 
 /**
- * TODO: [💝] Unite object for expecting amount and format - remove expectFormat
+ * TODO: [💝] Unite object for expecting amount and format - remove format
  */

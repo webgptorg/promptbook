@@ -1,4 +1,4 @@
-import type { ExpectFormatCommand } from '../commands/EXPECT_AMOUNT/ExpectFormatCommand';
+import type { FormatCommand } from '../commands/EXPECT/FormatCommand';
 import type {
     ChatModelRequirements,
     CompletionModelRequirements,
@@ -111,7 +111,7 @@ export type CommonPrompt = {
      * Note: Expectations are performed after all postprocessing steps
      * @deprecated [💝]
      */
-    readonly expectFormat?: ExpectFormatCommand['format'];
+    readonly format?: FormatCommand['format'];
 
     /**
      * Unique identifier of the pipeline with specific template name as hash

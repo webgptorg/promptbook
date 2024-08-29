@@ -551,13 +551,13 @@ There are two types of expectations which are not strictly symmetrical:
 #### Minimal expectations
 
 -   `EXPECT MIN 0 ...` is not valid minimal expectation. It makes no sense.
--   `EXPECT JSON` is both minimal and maximal expectation
+-   `FORMAT JSON` is both minimal and maximal expectation
 -   When you are using `JOKER` in same prompt template, you need to have at least one minimal expectation
 
 #### Maximal expectations
 
 -   `EXPECT MAX 0 ...` is valid maximal expectation. For example, you can expect 0 pages and 2 sentences.
--   `EXPECT JSON` is both minimal and maximal expectation
+-   `FORMAT JSON` is both minimal and maximal expectation
 
 Look at [expectations.ptbk.md](samples/templates/45-expectations.ptbk.md) and [expect-json.ptbk.md](samples/templates/45-expect-json.ptbk.md) samples for more.
 

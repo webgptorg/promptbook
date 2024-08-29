@@ -57,7 +57,7 @@ export function pipelineJsonToString(pipelineJson: PipelineJson): PipelineString
             content,
             postprocessingFunctionNames: postprocessing,
             expectations,
-            expectFormat,
+            format,
             resultingParameterName,
         } = promptTemplate;
 
@@ -125,10 +125,10 @@ export function pipelineJsonToString(pipelineJson: PipelineJson): PipelineString
                 }
             }
         } /* not else */
-        if (expectFormat) {
-            if (expectFormat === 'JSON') {
+        if (format) {
+            if (format === 'JSON') {
                 // TODO: @deprecated remove
-                commands.push(`EXPECT JSON`);
+                commands.push(`FORMAT JSON`);
             }
         } /* not else */
 

@@ -40,7 +40,7 @@ flowchart LR
 -   MODEL VARIANT Completion
 -   MODEL NAME `gpt-3.5-turbo-instruct`
 -   POSTPROCESSING `trimEndOfCodeBlock`
--   EXPECT JSON
+-   FORMAT JSON
 
 ```
 Extrahuj kontaktní data z nestrukturovaného seznamu kontaktních údajů

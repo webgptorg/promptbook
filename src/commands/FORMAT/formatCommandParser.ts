@@ -6,20 +6,19 @@ import type { PromptTemplateJson } from '../../types/PipelineJson/PromptTemplate
 import { string_markdown_text } from '../../types/typeAliases';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import type { CommandParserInput, PipelineTemplateCommandParser } from '../_common/types/CommandParser';
-import type { ExpectCommand } from './ExpectCommand';
-import type { ExpectFormatCommand } from './ExpectFormatCommand';
+import type { FormatCommand } from './FormatCommand';
 
 /**
- * Parses the expect command
+ * Parses the format command
  *
- * @see ./EXPECT-README.md for more details
+ * @see ./FORMAT-README.md for more details
  * @private within the commands folder
  */
-export const expectCommandParser: PipelineTemplateCommandParser<ExpectCommand> = {
+export const formatCommandParser: PipelineTemplateCommandParser<FormatCommand> = {
     /**
      * Name of the command
      */
-    name: 'EXPECT_AMOUNT',
+    name: 'FORMAT',
 
     /**
      * BOILERPLATE command can be used in:
@@ -28,10 +27,10 @@ export const expectCommandParser: PipelineTemplateCommandParser<ExpectCommand> =
     isUsedInPipelineTemplate: true,
 
     /**
-     * Description of the EXPECT_AMOUNT command
+     * Description of the FORMAT command
      */
     description: spaceTrim(`
-        Expect command describes the desired output of the prompt template (after post-processing)
+        Format command describes the desired output of the prompt template (after post-processing)
         It can set limits for the maximum/minimum length of the output, measured in characters, words, sentences, paragraphs or some other shape of the output.
     `),
 
@@ -41,65 +40,60 @@ export const expectCommandParser: PipelineTemplateCommandParser<ExpectCommand> =
     documentationUrl: 'https://github.com/webgptorg/promptbook/discussions/30',
 
     /**
-     * Example usages of the EXPECT_AMOUNT command
+     * Example usages of the FORMAT command
      */
     examples: [
-        'EXPECT MIN 100 Characters',
-        'EXPECT MAX 10 Words',
-        'EXPECT EXACTLY 3 Sentences',
-        'EXPECT EXACTLY 1 Paragraph',
-        // <- TODO: 'EXPECT 1 Paragraph',
-        'Expect JSON',
+        'FORMAT JSON',
     ],
 
     /**
-     * Parses the EXPECT_AMOUNT command
+     * Parses the FORMAT command
      */
-    parse(input: CommandParserInput): ExpectCommand {
+    parse(input: CommandParserInput): FormatCommand {
         const { normalized } = input;
 
-        if (!normalized.startsWith('EXPECT_JSON')) {
+        if (!normalized.startsWith('FORMAT_JSON')) {
             throw new ParsingError(`For now only JSON format is supported, in future we will support more formats`);
         }
 
         return {
-            type: 'EXPECT_FORMAT',
+            type: 'FORMAT',
             format: 'JSON',
-        } satisfies ExpectFormatCommand;
+        } satisfies FormatCommand;
         // <- TODO: [🦽] Why this is constantly removed by repair-imports.ts
 
         // [🥤]
     },
 
     /**
-     * Apply the EXPECT_AMOUNT command to the `pipelineJson`
+     * Apply the FORMAT command to the `pipelineJson`
      *
      * Note: `$` is used to indicate that this function mutates given `templateJson`
      */
-    $applyToTemplateJson(command: ExpectCommand, templateJson: WritableDeep<PromptTemplateJson>): void {
-        if (templateJson.expectFormat !== undefined && command.format !== templateJson.expectFormat) {
-            throw new ParsingError(`Expect format is already defined to "${templateJson.expectFormat}".
+    $applyToTemplateJson(command: FormatCommand, templateJson: WritableDeep<PromptTemplateJson>): void {
+        if (templateJson.format !== undefined && command.format !== templateJson.format) {
+            throw new ParsingError(`Format format is already defined to "${templateJson.format}".
                 Now you try to redefine it by "${command.format}"`);
         }
-        templateJson.expectFormat = command.format;
+        templateJson.format = command.format;
     },
 
     /**
-     * Converts the EXPECT_AMOUNT command back to string
+     * Converts the FORMAT command back to string
      *
      * Note: This is used in `pipelineJsonToString` utility
      */
-    stringify(command: ExpectCommand): string_markdown_text {
+    stringify(command: FormatCommand): string_markdown_text {
         keepUnused(command);
         return `- !!!!!!`;
     },
 
     /**
-     * Reads the EXPECT_AMOUNT command from the `PromptTemplateJson`
+     * Reads the FORMAT command from the `PromptTemplateJson`
      *
      * Note: This is used in `pipelineJsonToString` utility
      */
-    takeFromTemplateJson(templateJson: WritableDeep<PromptTemplateJson>): Array<ExpectCommand> {
+    takeFromTemplateJson(templateJson: WritableDeep<PromptTemplateJson>): Array<FormatCommand> {
         keepUnused(templateJson);
         throw new NotYetImplementedError(`Not implemented yet !!!!!!`);
     },

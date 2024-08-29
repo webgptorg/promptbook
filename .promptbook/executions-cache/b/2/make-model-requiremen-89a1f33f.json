@@ -15,7 +15,7 @@
             "modelVariant": "CHAT",
             "modelName": "gpt-4-turbo"
         },
-        "expectFormat": "JSON",
+        "format": "JSON",
         "postprocessing": []
     },
     "promptResult": {

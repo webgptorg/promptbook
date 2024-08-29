@@ -3,8 +3,8 @@
  *
  * Note: [🚉] This is fully serializable as JSON
  */
-export type ExpectFormatCommand = {
-    readonly type: 'EXPECT_FORMAT';
+export type FormatCommand = {
+    readonly type: 'FORMAT';
     readonly format: 'JSON';
 };
 

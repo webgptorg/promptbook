@@ -8,7 +8,6 @@ import { string_markdown_text } from '../../types/typeAliases';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import { parseNumber } from '../../utils/parseNumber';
 import type { CommandParserInput, PipelineTemplateCommandParser } from '../_common/types/CommandParser';
-import type { ExpectAmountCommand } from './ExpectAmountCommand';
 import type { ExpectCommand } from './ExpectCommand';
 
 /**
@@ -30,7 +29,7 @@ export const expectCommandParser: PipelineTemplateCommandParser<ExpectCommand> =
     isUsedInPipelineTemplate: true,
 
     /**
-     * Description of the EXPECT_FORMAT command
+     * Description of the FORMAT command
      */
     description: spaceTrim(`
         Expect command describes the desired output of the prompt template (after post-processing)
@@ -43,7 +42,7 @@ export const expectCommandParser: PipelineTemplateCommandParser<ExpectCommand> =
     documentationUrl: 'https://github.com/webgptorg/promptbook/discussions/30',
 
     /**
-     * Example usages of the EXPECT_FORMAT command
+     * Example usages of the FORMAT command
      */
     examples: [
         'EXPECT MIN 100 Characters',
@@ -51,17 +50,16 @@ export const expectCommandParser: PipelineTemplateCommandParser<ExpectCommand> =
         'EXPECT EXACTLY 3 Sentences',
         'EXPECT EXACTLY 1 Paragraph',
         // <- TODO: 'EXPECT 1 Paragraph',
-        'Expect JSON',
     ],
 
     /**
-     * Parses the EXPECT_FORMAT command
+     * Parses the FORMAT command
      */
     parse(input: CommandParserInput): ExpectCommand {
         const { args } = input;
 
         try {
-            let sign: ExpectAmountCommand['sign'];
+            let sign: ExpectCommand['sign'];
             const signRaw = args.shift()!;
             if (/^exact/i.test(signRaw)) {
                 sign = 'EXACTLY';
@@ -83,7 +81,7 @@ export const expectCommandParser: PipelineTemplateCommandParser<ExpectCommand> =
             }
 
             const unitRaw = args.shift()!;
-            let unit: ExpectAmountCommand['unit'] | undefined = undefined;
+            let unit: ExpectCommand['unit'] | undefined = undefined;
             for (const existingUnit of EXPECTATION_UNITS) {
                 let existingUnitText: string = existingUnit;
 
@@ -107,7 +105,7 @@ export const expectCommandParser: PipelineTemplateCommandParser<ExpectCommand> =
             }
 
             return {
-                type: 'EXPECT_AMOUNT',
+                type: 'EXPECT',
                 sign,
                 unit,
                 amount,
@@ -121,7 +119,7 @@ export const expectCommandParser: PipelineTemplateCommandParser<ExpectCommand> =
                 spaceTrim(
                     (block) =>
                         `
-                            Invalid EXPECT_FORMAT command
+                            Invalid FORMAT command
                             ${block((error as Error).message)}:
                         `,
                 ),
@@ -130,7 +128,7 @@ export const expectCommandParser: PipelineTemplateCommandParser<ExpectCommand> =
     },
 
     /**
-     * Apply the EXPECT_FORMAT command to the `pipelineJson`
+     * Apply the FORMAT command to the `pipelineJson`
      *
      * Note: `$` is used to indicate that this function mutates given `templateJson`
      */
@@ -164,7 +162,7 @@ export const expectCommandParser: PipelineTemplateCommandParser<ExpectCommand> =
     },
 
     /**
-     * Converts the EXPECT_FORMAT command back to string
+     * Converts the FORMAT command back to string
      *
      * Note: This is used in `pipelineJsonToString` utility
      */
@@ -174,7 +172,7 @@ export const expectCommandParser: PipelineTemplateCommandParser<ExpectCommand> =
     },
 
     /**
-     * Reads the EXPECT_FORMAT command from the `PromptTemplateJson`
+     * Reads the FORMAT command from the `PromptTemplateJson`
      *
      * Note: This is used in `pipelineJsonToString` utility
      */

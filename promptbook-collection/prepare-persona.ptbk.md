@@ -7,7 +7,7 @@
 
 ## Make modelRequirements
 
--   EXPECT JSON
+-   FORMAT JSON
 
 ```markdown
 You are experienced AI engineer, you need to create virtual assistant.

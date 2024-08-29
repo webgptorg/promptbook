@@ -1,5 +1,6 @@
 import { blockCommandParser } from './BLOCK/blockCommandParser';
-import { expectCommandParser } from './EXPECT_AMOUNT/expectAmountCommandParser';
+import { expectCommandParser } from './EXPECT/expectCommandParser';
+import { formatCommandParser } from './FORMAT/formatCommandParser';
 import { jokerCommandParser } from './JOKER/jokerCommandParser';
 import { knowledgeCommandParser } from './KNOWLEDGE/knowledgeCommandParser';
 import { modelCommandParser } from './MODEL/modelCommandParser';
@@ -20,6 +21,7 @@ import { boilerplateCommandParser } from './_BOILERPLATE/boilerplateCommandParse
 export const COMMANDS = [
     blockCommandParser,
     expectCommandParser,
+    formatCommandParser,
     jokerCommandParser,
     modelCommandParser,
     parameterCommandParser,

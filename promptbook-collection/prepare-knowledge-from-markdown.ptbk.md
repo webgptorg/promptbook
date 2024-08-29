@@ -6,7 +6,7 @@
 
 ## Knowledge
 
-<!-- TODO: [🍆] -EXPECT JSON -->
+<!-- TODO: [🍆] -FORMAT JSON -->
 
 ```markdown
 You are experienced data researcher, extract the important knowledge from the document.

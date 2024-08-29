@@ -1,5 +1,4 @@
-import type { ExpectationAmount } from '../../types/PipelineJson/Expectations';
-import type { ExpectationUnit } from '../../types/PipelineJson/Expectations';
+import type { ExpectationAmount, ExpectationUnit } from '../../types/PipelineJson/Expectations';
 
 /**
  * Expect amount command describes the desired output of the prompt template (after post-processing)
@@ -7,13 +6,12 @@ import type { ExpectationUnit } from '../../types/PipelineJson/Expectations';
  *
  * Note: LLMs work with tokens, not characters, but in Promptbooks we want to use some human-recognisable and cross-model interoperable units.
  */
-export type ExpectAmountCommand = {
-    readonly type: 'EXPECT_AMOUNT';
+export type ExpectCommand = {
+    readonly type: 'EXPECT';
     readonly sign: 'EXACTLY' | 'MINIMUM' | 'MAXIMUM';
     readonly unit: ExpectationUnit;
     readonly amount: ExpectationAmount;
 };
-
 
 /**
  * TODO: [🍋] Allow to `EXPECT` relative amounts like `EXPECT MAX 130% {foo} Words`

@@ -6,8 +6,7 @@ import type { Command } from '../commands/_common/types/Command';
 import type { CommandParser } from '../commands/_common/types/CommandParser';
 import type { CommandUsagePlace } from '../commands/_common/types/CommandUsagePlaces';
 import type { BlockType } from '../commands/BLOCK/BlockTypes';
-import type { ExpectAmountCommand } from '../commands/EXPECT_AMOUNT/ExpectAmountCommand';
-import type { ExpectFormatCommand } from '../commands/EXPECT_AMOUNT/ExpectFormatCommand';
+
 import type { PipelineStringToJsonOptions } from '../conversion/pipelineStringToJson';
 import type { PrettifyOptions } from '../conversion/prettify/PrettifyOptions';
 import type { renderPipelineMermaidOptions } from '../conversion/prettify/renderPipelineMermaidOptions';
@@ -266,12 +265,6 @@ export type {
     ExecutionReportJson,
     ExecutionReportString,
     ExecutionReportStringOptions,
-    ExecutionTools,
-    ExpectAmountCommand,
-    ExpectationAmount,
-    Expectations,
-    ExpectationUnit,
-    ExpectFormatCommand,
     FilesStorageOptions,
     FromtoItems,
     IKeywords,

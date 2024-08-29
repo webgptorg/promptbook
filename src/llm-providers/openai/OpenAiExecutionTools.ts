@@ -5,21 +5,21 @@ import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { AvailableModel } from '../../execution/AvailableModel';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { ChatPromptResult } from '../../execution/PromptResult';
-import type { CompletionPromptResult } from '../../execution/PromptResult';
-import type { EmbeddingPromptResult } from '../../execution/PromptResult';
+import type { ChatPromptResult, CompletionPromptResult, EmbeddingPromptResult } from '../../execution/PromptResult';
 import type { Prompt } from '../../types/Prompt';
-import type { string_date_iso8601 } from '../../types/typeAliases';
-import type { string_markdown } from '../../types/typeAliases';
-import type { string_markdown_text } from '../../types/typeAliases';
-import type { string_model_name } from '../../types/typeAliases';
-import type { string_title } from '../../types/typeAliases';
+import type {
+    string_date_iso8601,
+    string_markdown,
+    string_markdown_text,
+    string_model_name,
+    string_title,
+} from '../../types/typeAliases';
 import { getCurrentIsoDate } from '../../utils/getCurrentIsoDate';
 import { replaceParameters } from '../../utils/replaceParameters';
+import { $asDeeplyFrozenSerializableJson } from '../../utils/serialization/$asDeeplyFrozenSerializableJson';
 import { computeOpenAiUsage } from './computeOpenAiUsage';
 import { OPENAI_MODELS } from './openai-models';
 import type { OpenAiExecutionToolsOptions } from './OpenAiExecutionToolsOptions';
-import { $asDeeplyFrozenSerializableJson } from '../../utils/serialization/$asDeeplyFrozenSerializableJson';
 
 /**
  * Execution Tools for calling OpenAI API
@@ -88,13 +88,13 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
      * Calls OpenAI API to use a chat model.
      */
     public async callChatModel(
-        prompt: Pick<Prompt, 'content' | 'parameters' | 'modelRequirements' | 'expectFormat'>,
+        prompt: Pick<Prompt, 'content' | 'parameters' | 'modelRequirements' | 'format'>,
     ): Promise<ChatPromptResult> {
         if (this.options.isVerbose) {
             console.info('💬 OpenAI callChatModel call', { prompt });
         }
 
-        const { content, parameters, modelRequirements, expectFormat } = prompt;
+        const { content, parameters, modelRequirements, format } = prompt;
 
         const client = await this.getClient();
 
@@ -115,7 +115,7 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
             // <- Note: [🧆]
         } as OpenAI.Chat.Completions.CompletionCreateParamsNonStreaming; // <- TODO: Guard here types better
 
-        if (expectFormat === 'JSON') {
+        if (format === 'JSON') {
             modelSettings.response_format = {
                 type: 'json_object',
             };
@@ -172,7 +172,7 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
             throw new PipelineExecutionError('No response message from OpenAI');
         }
 
-        return $asDeeplyFrozenSerializableJson('OpenAiExecutionTools ChatPromptResult',{
+        return $asDeeplyFrozenSerializableJson('OpenAiExecutionTools ChatPromptResult', {
             content: resultContent,
             modelName: rawResponse.model || modelName,
             timing: {
@@ -248,7 +248,7 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
         complete = getCurrentIsoDate();
         const usage = computeOpenAiUsage(content, resultContent || '', rawResponse);
 
-        return $asDeeplyFrozenSerializableJson('OpenAiExecutionTools CompletionPromptResult',{
+        return $asDeeplyFrozenSerializableJson('OpenAiExecutionTools CompletionPromptResult', {
             content: resultContent,
             modelName: rawResponse.model || modelName,
             timing: {
@@ -315,7 +315,7 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
         complete = getCurrentIsoDate();
         const usage = computeOpenAiUsage(content, '', rawResponse);
 
-        return $asDeeplyFrozenSerializableJson('OpenAiExecutionTools EmbeddingPromptResult',{
+        return $asDeeplyFrozenSerializableJson('OpenAiExecutionTools EmbeddingPromptResult', {
             content: resultContent,
             modelName: rawResponse.model || modelName,
             timing: {

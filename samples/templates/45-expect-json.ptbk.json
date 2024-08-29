@@ -13,9 +13,7 @@
             "name": "parsedSentence",
             "isInput": false,
             "isOutput": true,
-            "sampleValues": [
-                "{\n    \"subject\": \"dog\",\n    \"action\": \"running\",\n    \"object\": \"park\"\n}"
-            ]
+            "sampleValues": ["{\n    \"subject\": \"dog\",\n    \"action\": \"running\",\n    \"object\": \"park\"\n}"]
         }
     ],
     "promptTemplates": [
@@ -28,13 +26,9 @@
                 "modelName": "gpt-3.5-turbo-instruct"
             },
             "content": "Dark horse hopping over the fence.\n\n```json\n{\n  \"subject\": \"horse\",\n  \"action\": \"hopping\",\n  \"object\": \"fence\"\n}\n```\n\n---\n\n{sentence}\n\n```json",
-            "postprocessingFunctionNames": [
-                "trimEndOfCodeBlock"
-            ],
-            "expectFormat": "JSON",
-            "dependentParameterNames": [
-                "sentence"
-            ],
+            "postprocessingFunctionNames": ["trimEndOfCodeBlock"],
+            "format": "JSON",
+            "dependentParameterNames": ["sentence"],
             "resultingParameterName": "parsedSentence"
         }
     ],

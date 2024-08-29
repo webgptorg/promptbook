@@ -1,5 +1,5 @@
 import type { BlockType } from '../../commands/BLOCK/BlockTypes';
-import type { ExpectFormatCommand } from '../../commands/EXPECT_AMOUNT/ExpectFormatCommand';
+import type { FormatCommand } from '../../commands/EXPECT/FormatCommand';
 import type {
     string_javascript,
     string_markdown,
@@ -96,7 +96,7 @@ export interface PromptTemplateJsonCommon {
      * @see https://github.com/webgptorg/promptbook/discussions/30
      * @deprecated [💝]
      */
-    readonly expectFormat?: ExpectFormatCommand['format'];
+    readonly format?: FormatCommand['format'];
 
     /**
      * Name of the parameter that is the result of the prompt template
