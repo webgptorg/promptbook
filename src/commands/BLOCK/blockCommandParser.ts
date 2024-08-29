@@ -132,21 +132,14 @@ export const blockCommandParser: PipelineTemplateCommandParser<BlockCommand> = {
      * Note: `$` is used to indicate that this function mutates given `templateJson`
      */
     $applyToTemplateJson(command: BlockCommand, templateJson: $TemplateJson, pipelineJson: $PipelineJson): void {
-        /*
-        TODO: !!!!!! Test multiple / no block type
-        if (isBlockTypeSet) {
+        // TODO: !!!!!! Test multiple / no block type
+        if (templateJson.isBlockTypeSet === true) {
             throw new ParsingError(
-                spaceTrim(
-                    (block) => `
-                    Block type is already defined in the prompt template. It can be defined only once.
-
-                    ${block(getPipelineIdentification())}
-                `,
-                ),
-                // <- TODO: [🚞]
+                `Block type is already defined in the prompt template. It can be defined only once.`,
             );
         }
-        */
+
+        templateJson.isBlockTypeSet = true;
 
         // TODO: !!!!!! Rearrange better - but at bottom and unwrao from function
         const expectResultingParameterName = () => {
@@ -180,6 +173,8 @@ export const blockCommandParser: PipelineTemplateCommandParser<BlockCommand> = {
 
             // TODO: !!!!!! How to implement this?
             // continue templates;
+
+            templateJson.isTemplateBlock = false;
             return;
         }
 
@@ -193,6 +188,8 @@ export const blockCommandParser: PipelineTemplateCommandParser<BlockCommand> = {
             );
             // TODO: !!!!!! How to implement this?
             // continue templates;
+
+            templateJson.isTemplateBlock = false;
             return;
         }
 
@@ -201,6 +198,8 @@ export const blockCommandParser: PipelineTemplateCommandParser<BlockCommand> = {
 
             // TODO: !!!!!! How to implement this?
             // continue templates;
+
+            templateJson.isTemplateBlock = false;
             return;
         }
 
@@ -209,6 +208,8 @@ export const blockCommandParser: PipelineTemplateCommandParser<BlockCommand> = {
 
             // TODO: !!!!!! How to implement this?
             // continue templates;
+
+            templateJson.isTemplateBlock = false;
             return;
         }
 
@@ -224,6 +225,8 @@ export const blockCommandParser: PipelineTemplateCommandParser<BlockCommand> = {
 
         // !!!!!!
         // isBlockTypeSet = true; //<- Note: [2]
+
+        templateJson.isTemplateBlock = true;
     },
 
     /**

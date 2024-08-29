@@ -4,7 +4,7 @@ import { COMMANDS } from '../commands';
 import type { ParameterCommand } from '../commands/PARAMETER/ParameterCommand';
 import { parseCommand } from '../commands/_common/parseCommand';
 import {
-  $PipelineJson,
+    $PipelineJson,
     $TemplateJson,
     CommandBase,
     PipelineHeadCommandParser,
@@ -308,6 +308,8 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
         }
 
         const templateJson: $TemplateJson = {
+            isBlockTypeSet: false,
+            isTemplateBlock: true,
             blockType: 'PROMPT_TEMPLATE', // <- Note: [2]
             name: titleToName(section.title),
             title: section.title,
@@ -475,10 +477,12 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
             );
         }
 
-        pipelineJson.templates.push(
-            templateJson as TemplateJson,
-            // <- TODO: [3] !!!!!! Do not do `as TemplateJson` BUT make 100% sure that nothing is missing
-        );
+        if (templateJson.isTemplateBlock) {
+            pipelineJson.templates.push(
+                templateJson as TemplateJson,
+                // <- TODO: [3] !!!!!! Do not do `as TemplateJson` BUT make 100% sure that nothing is missing
+            );
+        }
     }
 
     // =============================================================

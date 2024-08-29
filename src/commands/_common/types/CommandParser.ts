@@ -144,7 +144,10 @@ export type PipelineTemplateCommandParser<TCommand extends CommandBase> = Common
  *
  * @private internal helper for command parsers
  */
-export type $TemplateJson = Partial<WritableDeep<TemplateJson>>;
+export type $TemplateJson = {
+    isBlockTypeSet: boolean;
+    isTemplateBlock: boolean;
+} & Partial<WritableDeep<TemplateJson>>;
 //                         <- TODO: [🧠] `Partial<WritableDeep<...` vs `WritableDeep<Partial<...` - change ACRY
 
 /**
