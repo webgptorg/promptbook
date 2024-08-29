@@ -1,5 +1,6 @@
 import { spaceTrim } from 'spacetrim';
 import type { Writable, WritableDeep } from 'type-fest';
+import { PromptTemplateJson } from '../_packages/types.index';
 import { COMMANDS } from '../commands';
 import type { ParameterCommand } from '../commands/PARAMETER/ParameterCommand';
 import { parseCommand } from '../commands/_common/parseCommand';
@@ -51,10 +52,10 @@ import { titleToName } from './utils/titleToName';
  */
 export function pipelineStringToJsonSync(pipelineString: PipelineString): PipelineJson {
     const $pipelineJson: $PipelineJson = {
-        title: undefined as TODO_any /* <- Note: Putting here placeholder to keep `title` on top at final JSON */,
+        title: undefined as TODO_any /* <- Note: [🍙] Putting here placeholder to keep `title` on top at final JSON */,
         pipelineUrl: undefined /* <- Note: Putting here placeholder to keep `pipelineUrl` on top at final JSON */,
         promptbookVersion: PROMPTBOOK_VERSION,
-        description: undefined /* <- Note: Putting here placeholder to keep `description` on top at final JSON */,
+        description: undefined /* <- Note: [🍙] Putting here placeholder to keep `description` on top at final JSON */,
         parameters: [],
         defaultModelRequirements: {},
         templates: [],
@@ -445,7 +446,8 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
                 );
             }
 
-            ($templateJson as TODO_any as Writable<ScriptTemplateJson>).contentLanguage = language as TODO_any;
+            ($templateJson as Partial<$TemplateJson> as Writable<ScriptTemplateJson>).contentLanguage =
+                language as ScriptLanguage;
         }
 
         $templateJson.dependentParameterNames = Array.from(
@@ -457,7 +459,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
 
         // TODO: [🍧] !!!!!! Probbably this should not be needed
         if (Object.keys($templateJson?.modelRequirements || {}).length === 0) {
-            delete ($templateJson as TODO_any).modelRequirements;
+            delete ($templateJson as Partial<$TemplateJson & Writable<PromptTemplateJson>>).modelRequirements;
         }
 
         // TODO: [🍧] !!!!!! This should be checked in MODEL command
@@ -478,6 +480,11 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
         }
 
         if ($templateJson.isTemplateBlock) {
+            delete ($templateJson as Partial<$TemplateJson>).isBlockTypeSet;
+            delete ($templateJson as Partial<$TemplateJson>).isTemplateBlock;
+
+            // TODO: [🍙] Maybe do reorder of `$templateJson` here
+
             $pipelineJson.templates.push(
                 $templateJson as TemplateJson,
                 // <- TODO: [3] !!!!!! Do not do `as TemplateJson` BUT make 100% sure that nothing is missing
@@ -502,6 +509,8 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
         }
     });
     // =============================================================
+
+    // TODO: [🍙] Maybe do reorder of `$pipelineJson` here
     return $asDeeplyFrozenSerializableJson('pipelineJson', $pipelineJson);
 }
 
