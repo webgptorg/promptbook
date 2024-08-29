@@ -69,7 +69,7 @@ export type PipelineJson = {
     /**
      * Default model requirements for the model for all `templates`
      */
-    readonly defaultModelRequirements?: Partial<ModelRequirements>;
+    readonly defaultModelRequirements?: Partial<ModelRequirements>; // <- TODO: !!!!!! Use in executor
 
     /**
      * Sequence of prompt templates that are chained together to form a pipeline

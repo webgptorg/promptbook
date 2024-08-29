@@ -57,7 +57,6 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
         promptbookVersion: PROMPTBOOK_VERSION,
         description: undefined /* <- Note: [🍙] Putting here placeholder to keep `description` on top at final JSON */,
         parameters: [],
-        defaultModelRequirements: {},
         templates: [],
         knowledgeSources: [],
         knowledgePieces: [],
@@ -457,10 +456,6 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
             ),
         );
 
-        // TODO: [🍧] !!!!!! Probbably this should not be needed
-        if (Object.keys($templateJson?.modelRequirements || {}).length === 0) {
-            delete ($templateJson as Partial<$TemplateJson & Writable<PromptTemplateJson>>).modelRequirements;
-        }
 
         // TODO: [🍧] !!!!!! This should be checked in MODEL command
         if ($templateJson.blockType !== 'PROMPT_TEMPLATE' && $templateJson.modelRequirements !== undefined) {

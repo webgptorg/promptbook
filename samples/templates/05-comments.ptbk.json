@@ -10,7 +10,6 @@
             "isOutput": true
         }
     ],
-    "defaultModelRequirements": {},
     "templates": [
         {
             "blockType": "PROMPT_TEMPLATE",

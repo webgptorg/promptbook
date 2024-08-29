@@ -26,7 +26,6 @@
             "isOutput": false
         }
     ],
-    "defaultModelRequirements": {},
     "templates": [
         {
             "blockType": "PROMPT_TEMPLATE",

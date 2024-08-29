@@ -15,7 +15,6 @@
             ]
         }
     ],
-    "defaultModelRequirements": {},
     "templates": [
         {
             "blockType": "PROMPT_TEMPLATE",
