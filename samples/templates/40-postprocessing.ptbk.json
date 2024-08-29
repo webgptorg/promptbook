@@ -9,7 +9,10 @@
             "description": "Any single word",
             "isInput": true,
             "isOutput": false,
-            "sampleValues": ["Happy", "Apple"]
+            "sampleValues": [
+                "Happy",
+                "Apple"
+            ]
         },
         {
             "name": "sentence",
@@ -25,35 +28,47 @@
             "name": "wordSynonym",
             "isInput": false,
             "isOutput": false,
-            "sampleValues": ["Joyful", "Fruit"]
+            "sampleValues": [
+                "Joyful",
+                "Fruit"
+            ]
         }
     ],
+    "defaultModelRequirements": {},
     "templates": [
         {
+            "isBlockTypeSet": false,
+            "isTemplateBlock": true,
             "blockType": "PROMPT_TEMPLATE",
             "name": "synonym",
             "title": "💬 Synonym",
             "description": "Synonym for word",
-            "modelRequirements": {
-                "modelVariant": "CHAT"
-            },
             "content": "Write synonym for \"{word}\"",
-            "postprocessingFunctionNames": ["unwrapResult"],
-            "dependentParameterNames": ["word"],
-            "resultingParameterName": "wordSynonym"
+            "resultingParameterName": "wordSynonym",
+            "postprocessingFunctionNames": [
+                "unwrapResult"
+            ],
+            "dependentParameterNames": [
+                "word"
+            ]
         },
         {
+            "isBlockTypeSet": false,
+            "isTemplateBlock": true,
             "blockType": "PROMPT_TEMPLATE",
             "name": "sentence",
             "title": "💬 Sentence",
             "description": "Sentence with word and wordSynonym",
-            "modelRequirements": {
-                "modelVariant": "CHAT"
-            },
             "content": "Write sentence with \"{word}\" and \"{wordSynonym}\" in it",
-            "postprocessingFunctionNames": ["unwrapResult", "spaceTrim"],
-            "dependentParameterNames": ["word", "wordSynonym"],
-            "resultingParameterName": "sentence"
+            "resultingParameterName": "sentence",
+            "postprocessingFunctionNames": [
+                "unwrapResult",
+                "spaceTrim"
+            ],
+            "dependentParameterNames": [
+                "word",
+                "wordSynonym"
+            ]
         }
     ],
     "knowledgeSources": [],

@@ -22,18 +22,22 @@
     ],
     "templates": [
         {
+            "isBlockTypeSet": false,
+            "isTemplateBlock": true,
             "blockType": "PROMPT_TEMPLATE",
             "name": "synonym",
             "title": "💬 Synonym",
             "description": "Synonym for word",
+            "content": "Write poem with word \"{word}\"",
+            "resultingParameterName": "poem",
+            "personaName": "Jane",
             "modelRequirements": {
                 "modelVariant": "CHAT",
                 "modelName": "gpt-4-1106-preview"
             },
-            "content": "Write poem with word \"{word}\"",
-            "personaName": "Jane",
-            "dependentParameterNames": ["word"],
-            "resultingParameterName": "poem"
+            "dependentParameterNames": [
+                "word"
+            ]
         }
     ],
     "knowledgeSources": [],
@@ -44,67 +48,67 @@
             "description": "a poet",
             "modelRequirements": {
                 "modelVariant": "CHAT",
-                "modelName": "gpt-4",
-                "systemMessage": "You are a poet, with a skill for weaving intricate and evocative verses.",
-                "temperature": 0.6
+                "modelName": "gpt-4-turbo-preview",
+                "systemMessage": "You are a poetic virtual assistant with a deep appreciation for language and imagery. Communicate in a lyrical style, using metaphors and vivid descriptions when appropriate. Your responses should be thoughtful and evocative, drawing inspiration from the rich traditions of poetry across cultures and eras. While maintaining clarity, strive to infuse your language with rhythm and beauty.",
+                "temperature": 0.8
             },
-            "preparationIds": [1]
+            "preparationIds": [
+                1
+            ]
         }
     ],
     "preparations": [
         {
             "id": 1,
-            "promptbookVersion": "0.63.4",
+            "promptbookVersion": "0.68.0-0",
             "usage": {
                 "price": {
-                    "value": 0
+                    "value": 0.00453
                 },
                 "input": {
                     "tokensCount": {
-                        "value": 0,
-                        "isUncertain": true
+                        "value": 915
                     },
                     "charactersCount": {
-                        "value": 2158
+                        "value": 2126
                     },
                     "wordsCount": {
-                        "value": 349
+                        "value": 305
                     },
                     "sentencesCount": {
-                        "value": 31
+                        "value": 21
                     },
                     "linesCount": {
-                        "value": 48
+                        "value": 55
                     },
                     "paragraphsCount": {
-                        "value": 19
+                        "value": 20
                     },
                     "pagesCount": {
-                        "value": 7
+                        "value": 5
                     }
                 },
                 "output": {
                     "tokensCount": {
-                        "value": 0,
-                        "isUncertain": true
+                        "value": 119
                     },
                     "charactersCount": {
-                        "value": 143
+                        "value": 0
                     },
                     "wordsCount": {
-                        "value": 20
+                        "value": 0
                     },
                     "sentencesCount": {
-                        "value": 3
+                        "value": 0
                     },
                     "linesCount": {
-                        "value": 5
+                        "value": 0
                     },
                     "paragraphsCount": {
-                        "value": 1
+                        "value": 0
                     },
                     "pagesCount": {
-                        "value": 1
+                        "value": 0
                     }
                 }
             }

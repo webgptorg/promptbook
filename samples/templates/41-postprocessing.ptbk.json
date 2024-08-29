@@ -13,21 +13,30 @@
             "name": "greeting",
             "isInput": false,
             "isOutput": true,
-            "sampleValues": ["NHOJ OLLEH", "HSOJ IH"]
+            "sampleValues": [
+                "NHOJ OLLEH",
+                "HSOJ IH"
+            ]
         }
     ],
+    "defaultModelRequirements": {},
     "templates": [
         {
+            "isBlockTypeSet": false,
+            "isTemplateBlock": true,
             "blockType": "PROMPT_TEMPLATE",
             "name": "question",
             "title": "💬 Question",
-            "modelRequirements": {
-                "modelVariant": "CHAT"
-            },
             "content": "Hello {yourName}!",
-            "postprocessingFunctionNames": ["reverse", "removeDiacritics", "normalizeTo_SCREAMING_CASE"],
-            "dependentParameterNames": ["yourName"],
-            "resultingParameterName": "greeting"
+            "resultingParameterName": "greeting",
+            "postprocessingFunctionNames": [
+                "reverse",
+                "removeDiacritics",
+                "normalizeTo_SCREAMING_CASE"
+            ],
+            "dependentParameterNames": [
+                "yourName"
+            ]
         }
     ],
     "knowledgeSources": [],

@@ -10,17 +10,17 @@
             "isOutput": true
         }
     ],
+    "defaultModelRequirements": {},
     "templates": [
         {
+            "isBlockTypeSet": false,
+            "isTemplateBlock": true,
             "blockType": "PROMPT_TEMPLATE",
             "name": "prompt",
             "title": "💬 Prompt",
-            "modelRequirements": {
-                "modelVariant": "CHAT"
-            },
             "content": "Hello",
-            "dependentParameterNames": [],
-            "resultingParameterName": "greeting"
+            "resultingParameterName": "greeting",
+            "dependentParameterNames": []
         }
     ],
     "knowledgeSources": [],

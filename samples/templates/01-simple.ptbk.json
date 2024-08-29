@@ -8,20 +8,24 @@
             "name": "greetingResponse",
             "isInput": false,
             "isOutput": true,
-            "sampleValues": ["Hello, how are you?", "Dear Sir, how may I help you?", "Hey, what's up?"]
+            "sampleValues": [
+                "Hello, how are you?",
+                "Dear Sir, how may I help you?",
+                "Hey, what's up?"
+            ]
         }
     ],
+    "defaultModelRequirements": {},
     "templates": [
         {
+            "isBlockTypeSet": false,
+            "isTemplateBlock": true,
             "blockType": "PROMPT_TEMPLATE",
             "name": "prompt",
             "title": "💬 Prompt",
-            "modelRequirements": {
-                "modelVariant": "CHAT"
-            },
             "content": "Hello",
-            "dependentParameterNames": [],
-            "resultingParameterName": "greetingResponse"
+            "resultingParameterName": "greetingResponse",
+            "dependentParameterNames": []
         }
     ],
     "knowledgeSources": [],

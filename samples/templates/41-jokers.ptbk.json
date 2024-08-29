@@ -21,23 +21,29 @@
             "isOutput": true
         }
     ],
+    "defaultModelRequirements": {},
     "templates": [
         {
+            "isBlockTypeSet": false,
+            "isTemplateBlock": true,
             "blockType": "PROMPT_TEMPLATE",
             "name": "question",
             "title": "💬 Question",
-            "modelRequirements": {
-                "modelVariant": "CHAT"
-            },
             "content": "Write some name for hero",
-            "jokerParameterNames": ["name1", "name2"],
+            "resultingParameterName": "name",
+            "jokerParameterNames": [
+                "name1",
+                "name2"
+            ],
             "expectations": {
                 "words": {
                     "min": 2
                 }
             },
-            "dependentParameterNames": ["name1", "name2"],
-            "resultingParameterName": "name"
+            "dependentParameterNames": [
+                "name1",
+                "name2"
+            ]
         }
     ],
     "knowledgeSources": [],

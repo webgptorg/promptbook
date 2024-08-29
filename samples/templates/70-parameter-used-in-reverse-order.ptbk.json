@@ -21,30 +21,34 @@
             "isOutput": false
         }
     ],
+    "defaultModelRequirements": {},
     "templates": [
         {
+            "isBlockTypeSet": false,
+            "isTemplateBlock": true,
             "blockType": "PROMPT_TEMPLATE",
             "name": "sentence",
             "title": "Sentence",
             "description": "Sentence with word and wordSynonym",
-            "modelRequirements": {
-                "modelVariant": "CHAT"
-            },
             "content": "Write sentence with \"{word}\" and \"{wordSynonym}\" in it",
-            "dependentParameterNames": ["word", "wordSynonym"],
-            "resultingParameterName": "sentenceWithTwoSynonyms"
+            "resultingParameterName": "sentenceWithTwoSynonyms",
+            "dependentParameterNames": [
+                "word",
+                "wordSynonym"
+            ]
         },
         {
+            "isBlockTypeSet": false,
+            "isTemplateBlock": true,
             "blockType": "PROMPT_TEMPLATE",
             "name": "synonym",
             "title": "Synonym",
             "description": "Synonym for word",
-            "modelRequirements": {
-                "modelVariant": "CHAT"
-            },
             "content": "Write synonym for \"{word}\"",
-            "dependentParameterNames": ["word"],
-            "resultingParameterName": "wordSynonym"
+            "resultingParameterName": "wordSynonym",
+            "dependentParameterNames": [
+                "word"
+            ]
         }
     ],
     "knowledgeSources": [],

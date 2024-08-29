@@ -13,23 +13,32 @@
             "name": "parsedSentence",
             "isInput": false,
             "isOutput": true,
-            "sampleValues": ["{\n    \"subject\": \"dog\",\n    \"action\": \"running\",\n    \"object\": \"park\"\n}"]
+            "sampleValues": [
+                "{\n    \"subject\": \"dog\",\n    \"action\": \"running\",\n    \"object\": \"park\"\n}"
+            ]
         }
     ],
+    "defaultModelRequirements": {},
     "templates": [
         {
+            "isBlockTypeSet": false,
+            "isTemplateBlock": true,
             "blockType": "PROMPT_TEMPLATE",
             "name": "question",
             "title": "💬 Question",
+            "content": "Dark horse hopping over the fence.\n\n```json\n{\n  \"subject\": \"horse\",\n  \"action\": \"hopping\",\n  \"object\": \"fence\"\n}\n```\n\n---\n\n{sentence}\n\n```json",
+            "resultingParameterName": "parsedSentence",
             "modelRequirements": {
                 "modelVariant": "COMPLETION",
                 "modelName": "gpt-3.5-turbo-instruct"
             },
-            "content": "Dark horse hopping over the fence.\n\n```json\n{\n  \"subject\": \"horse\",\n  \"action\": \"hopping\",\n  \"object\": \"fence\"\n}\n```\n\n---\n\n{sentence}\n\n```json",
-            "postprocessingFunctionNames": ["trimEndOfCodeBlock"],
+            "postprocessingFunctionNames": [
+                "trimEndOfCodeBlock"
+            ],
             "format": "JSON",
-            "dependentParameterNames": ["sentence"],
-            "resultingParameterName": "parsedSentence"
+            "dependentParameterNames": [
+                "sentence"
+            ]
         }
     ],
     "knowledgeSources": [],

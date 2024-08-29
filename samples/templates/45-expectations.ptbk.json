@@ -13,19 +13,25 @@
             "name": "greeting",
             "isInput": false,
             "isOutput": true,
-            "sampleValues": ["Hello John!"]
+            "sampleValues": [
+                "Hello John!"
+            ]
         }
     ],
+    "defaultModelRequirements": {},
     "templates": [
         {
+            "isBlockTypeSet": false,
+            "isTemplateBlock": true,
             "blockType": "PROMPT_TEMPLATE",
             "name": "question",
             "title": "💬 Question",
+            "content": "Hello {yourName}!",
+            "resultingParameterName": "greeting",
             "modelRequirements": {
                 "modelVariant": "CHAT",
                 "modelName": "gpt-3.5-turbo"
             },
-            "content": "Hello {yourName}!",
             "expectations": {
                 "characters": {
                     "max": 30,
@@ -43,8 +49,9 @@
                     "max": 1
                 }
             },
-            "dependentParameterNames": ["yourName"],
-            "resultingParameterName": "greeting"
+            "dependentParameterNames": [
+                "yourName"
+            ]
         }
     ],
     "knowledgeSources": [],
