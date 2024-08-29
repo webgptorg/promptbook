@@ -5,7 +5,7 @@ import { COMMANDS } from '../index';
 import { parseCommand } from './parseCommand';
 import { CommandUsagePlaces } from './types/CommandUsagePlaces';
 
-describe('fail of parseCommand', () => {
+describe('parsing the commands', () => {
     // Note: Other working cases and better tests for each command is in the corresponding command test file
 
     for (const { name, isUsedInPipelineHead, isUsedInPipelineTemplate, examples } of COMMANDS) {
@@ -18,13 +18,18 @@ describe('fail of parseCommand', () => {
                 continue;
             }
 
-            it(`should parse command ${name} in ${usagePlace}`, () => {
+            it(`should parse command ${name} in ${usagePlace} without errors`, () => {
                 for (const example of examples) {
                     expect(() => parseCommand(example, usagePlace)).not.toThrowError();
                 }
             });
 
-            // TODO: !!!!!! Test that parsed command has same type with parser in index.ts - Expect command not passing this test
+            it(`should parse command ${name} in ${usagePlace} and return parsed command \`{"type": "${name}"}\``, () => {
+                for (const example of examples) {
+                    expect(parseCommand(example, usagePlace).type).toBe(name);
+                }
+            });
+
             // TODO: !!!!!! Test each command stringify
             // TODO: !!!!!! Test each command on $applyToPipelineJson + $takeFromPipelineJson
             // TODO: !!!!!! Test each command on $applyToTemplateJson + $takeFromTemplateJson
