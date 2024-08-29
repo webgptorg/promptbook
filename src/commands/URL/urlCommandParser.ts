@@ -14,7 +14,7 @@ import type { UrlCommand } from './UrlCommand';
  * @see ./URL-README.md for more details
  * @private within the commands folder
  */
-export const urlCommandParser = {
+export const urlCommandParser: CommandParser<UrlCommand> = {
     /**
      * Name of the command
      */
@@ -125,4 +125,4 @@ export const urlCommandParser = {
         keepUnused(pipelineJson);
         throw new NotYetImplementedError(`Not implemented yet !!!!!!`);
     },
-} satisfies CommandParser<UrlCommand>;
+};

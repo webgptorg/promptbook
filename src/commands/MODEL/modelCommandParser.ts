@@ -16,7 +16,7 @@ import type { ModelCommand } from './ModelCommand';
  * @see ./MODEL-README.md for more details
  * @private within the commands folder
  */
-export const modelCommandParser = {
+export const modelCommandParser: CommandParser<ModelCommand> = {
     /**
      * Name of the command
      */
@@ -169,4 +169,4 @@ export const modelCommandParser = {
         keepUnused(templateJson);
         throw new NotYetImplementedError(`Not implemented yet !!!!!!`);
     },
-} satisfies CommandParser<ModelCommand>;
+};

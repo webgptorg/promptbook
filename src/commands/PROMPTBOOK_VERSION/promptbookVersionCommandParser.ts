@@ -15,7 +15,7 @@ import type { PromptbookVersionCommand } from './PromptbookVersionCommand';
  * @see ./PROMPTBOOK_VERSION-README.md for more details
  * @private within the commands folder
  */
-export const promptbookVersionCommandParser = {
+export const promptbookVersionCommandParser: CommandParser<PromptbookVersionCommand> = {
     /**
      * Name of the command
      */
@@ -98,4 +98,4 @@ export const promptbookVersionCommandParser = {
         keepUnused(pipelineJson);
         throw new NotYetImplementedError(`Not implemented yet !!!!!!`);
     },
-} satisfies CommandParser<PromptbookVersionCommand>;
+};

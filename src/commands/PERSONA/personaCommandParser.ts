@@ -15,7 +15,7 @@ import type { PersonaCommand } from './PersonaCommand';
  * @see ./PERSONA-README.md for more details
  * @private within the commands folder
  */
-export const personaCommandParser = {
+export const personaCommandParser: CommandParser<PersonaCommand> = {
     /**
      * Name of the command
      */
@@ -114,7 +114,7 @@ export const personaCommandParser = {
         keepUnused(templateJson);
         throw new NotYetImplementedError(`Not implemented yet !!!!!!`);
     },
-} satisfies CommandParser<PersonaCommand>;
+};
 
 /**
  * Apply the PERSONA command to the `pipelineJson`

@@ -18,7 +18,7 @@ import type { ExpectFormatCommand } from './ExpectFormatCommand';
  * @see ./EXPECT-README.md for more details
  * @private within the commands folder
  */
-export const expectCommandParser = {
+export const expectCommandParser: CommandParser<ExpectCommand> = {
     /**
      * Name of the command
      */
@@ -206,4 +206,4 @@ export const expectCommandParser = {
         keepUnused(templateJson);
         throw new NotYetImplementedError(`Not implemented yet !!!!!!`);
     },
-} satisfies CommandParser<ExpectCommand>;
+};
