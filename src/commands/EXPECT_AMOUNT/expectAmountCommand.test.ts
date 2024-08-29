@@ -1,9 +1,9 @@
 import { describe, expect, it } from '@jest/globals';
 import { parseCommand } from '../_common/parseCommand';
-import { expectCommandParser } from './expectCommandParser';
+import { expectCommandParser } from './expectAmountCommandParser';
 
-describe('how EXPECT command in .ptbk.md files works', () => {
-    it('should parse EXPECT command', () => {
+describe('how EXPECT_AMOUNT command in .ptbk.md files works', () => {
+    it('should parse EXPECT_AMOUNT command', () => {
         expect(parseCommand('Expect exactly 1 character', 'PIPELINE_TEMPLATE')).toEqual({
             type: 'EXPECT_AMOUNT',
             sign: 'EXACTLY',
@@ -145,24 +145,24 @@ describe('how EXPECT command in .ptbk.md files works', () => {
         });
 
         // TODO: Add page test
-
-        expect(parseCommand('Expect JSON', 'PIPELINE_TEMPLATE')).toEqual({
-            type: 'EXPECT_FORMAT',
-            format: 'JSON',
-        });
-
-        // [🥤] - Test here relative and absolute schema reference
     });
 
     it('should fail parsing expect command', () => {
-        expect(() => parseCommand('Expect foo 1 char', 'PIPELINE_TEMPLATE')).toThrowError(/Invalid EXPECT command/i);
-        expect(() => parseCommand('Expect min 1 vars', 'PIPELINE_TEMPLATE')).toThrowError(/Invalid EXPECT command/i);
-        expect(() => parseCommand('Expect min chars', 'PIPELINE_TEMPLATE')).toThrowError(/Invalid EXPECT command/i);
-        expect(() => parseCommand('Expect min xx chars', 'PIPELINE_TEMPLATE')).toThrowError(/Invalid EXPECT command/i);
+        expect(() => parseCommand('Expect foo 1 char', 'PIPELINE_TEMPLATE')).toThrowError(
+            /Invalid EXPECT_AMOUNT command/i,
+        );
+        expect(() => parseCommand('Expect min 1 vars', 'PIPELINE_TEMPLATE')).toThrowError(
+            /Invalid EXPECT_AMOUNT command/i,
+        );
+        expect(() => parseCommand('Expect min chars', 'PIPELINE_TEMPLATE')).toThrowError(
+            /Invalid EXPECT_AMOUNT command/i,
+        );
+        expect(() => parseCommand('Expect min xx chars', 'PIPELINE_TEMPLATE')).toThrowError(
+            /Invalid EXPECT_AMOUNT command/i,
+        );
         expect(() => parseCommand('Expect exactly 2 p', 'PIPELINE_TEMPLATE')).toThrowError(/Ambiguous unit "p"/i);
-        expect(() => parseCommand('Expect PNG', 'PIPELINE_TEMPLATE')).toThrowError(/Invalid EXPECT command/i);
-        expect(() => parseCommand('EXPECT', 'PIPELINE_TEMPLATE')).toThrowError(/Invalid EXPECT command/i);
-        expect(() => parseCommand('EXPECT brr', 'PIPELINE_TEMPLATE')).toThrowError(/Invalid EXPECT command/i);
+        expect(() => parseCommand('EXPECT', 'PIPELINE_TEMPLATE')).toThrowError(/Invalid EXPECT_AMOUNT command/i);
+        expect(() => parseCommand('EXPECT brr', 'PIPELINE_TEMPLATE')).toThrowError(/Invalid EXPECT_AMOUNT command/i);
     });
 
     it(`should work with all samples`, () => {

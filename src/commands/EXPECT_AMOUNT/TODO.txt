@@ -1,2 +1,1 @@
-TODO: [🏢] Allow to expect something inside JSON objects and other formats
 TODO: [🍋] Allow to `EXPECT` relative amounts like `EXPECT MAX 130% {foo} Words`

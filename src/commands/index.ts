@@ -1,5 +1,5 @@
 import { blockCommandParser } from './BLOCK/blockCommandParser';
-import { expectCommandParser } from './EXPECT/expectCommandParser';
+import { expectCommandParser } from './EXPECT_AMOUNT/expectAmountCommandParser';
 import { jokerCommandParser } from './JOKER/jokerCommandParser';
 import { knowledgeCommandParser } from './KNOWLEDGE/knowledgeCommandParser';
 import { modelCommandParser } from './MODEL/modelCommandParser';

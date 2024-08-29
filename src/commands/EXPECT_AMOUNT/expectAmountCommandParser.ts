@@ -10,7 +10,6 @@ import { parseNumber } from '../../utils/parseNumber';
 import type { CommandParserInput, PipelineTemplateCommandParser } from '../_common/types/CommandParser';
 import type { ExpectAmountCommand } from './ExpectAmountCommand';
 import type { ExpectCommand } from './ExpectCommand';
-import type { ExpectFormatCommand } from './ExpectFormatCommand';
 
 /**
  * Parses the expect command
@@ -31,7 +30,7 @@ export const expectCommandParser: PipelineTemplateCommandParser<ExpectCommand> =
     isUsedInPipelineTemplate: true,
 
     /**
-     * Description of the EXPECT command
+     * Description of the EXPECT_FORMAT command
      */
     description: spaceTrim(`
         Expect command describes the desired output of the prompt template (after post-processing)
@@ -44,7 +43,7 @@ export const expectCommandParser: PipelineTemplateCommandParser<ExpectCommand> =
     documentationUrl: 'https://github.com/webgptorg/promptbook/discussions/30',
 
     /**
-     * Example usages of the EXPECT command
+     * Example usages of the EXPECT_FORMAT command
      */
     examples: [
         'EXPECT MIN 100 Characters',
@@ -56,20 +55,10 @@ export const expectCommandParser: PipelineTemplateCommandParser<ExpectCommand> =
     ],
 
     /**
-     * Parses the EXPECT command
+     * Parses the EXPECT_FORMAT command
      */
     parse(input: CommandParserInput): ExpectCommand {
-        const { args, normalized } = input;
-
-        if (normalized.startsWith('EXPECT_JSON')) {
-            return {
-                type: 'EXPECT_FORMAT',
-                format: 'JSON',
-            } satisfies ExpectFormatCommand;
-            // <- TODO: [🦽] Why this is constantly removed by repair-imports.ts
-
-            // [🥤]
-        }
+        const { args } = input;
 
         try {
             let sign: ExpectAmountCommand['sign'];
@@ -132,7 +121,7 @@ export const expectCommandParser: PipelineTemplateCommandParser<ExpectCommand> =
                 spaceTrim(
                     (block) =>
                         `
-                            Invalid EXPECT command
+                            Invalid EXPECT_FORMAT command
                             ${block((error as Error).message)}:
                         `,
                 ),
@@ -141,54 +130,41 @@ export const expectCommandParser: PipelineTemplateCommandParser<ExpectCommand> =
     },
 
     /**
-     * Apply the EXPECT command to the `pipelineJson`
+     * Apply the EXPECT_FORMAT command to the `pipelineJson`
      *
      * Note: `$` is used to indicate that this function mutates given `templateJson`
      */
     $applyToTemplateJson(command: ExpectCommand, templateJson: WritableDeep<PromptTemplateJson>): void {
-        switch (command.type) {
-            case 'EXPECT_AMOUNT':
-                // eslint-disable-next-line no-case-declarations
-                const unit = command.unit.toLowerCase() as Lowercase<ExpectationUnit>;
+        // eslint-disable-next-line no-case-declarations
+        const unit = command.unit.toLowerCase() as Lowercase<ExpectationUnit>;
 
-                templateJson.expectations = templateJson.expectations || {};
-                templateJson.expectations[unit] = templateJson.expectations[unit] || {};
+        templateJson.expectations = templateJson.expectations || {};
+        templateJson.expectations[unit] = templateJson.expectations[unit] || {};
 
-                if (command.sign === 'MINIMUM' || command.sign === 'EXACTLY') {
-                    if (templateJson.expectations[unit]!.min !== undefined) {
-                        throw new ParsingError(
-                            `Already defined minumum ${
-                                templateJson.expectations![unit]!.min
-                            } ${command.unit.toLowerCase()}, now trying to redefine it to ${command.amount}`,
-                        );
-                    }
-                    templateJson.expectations[unit]!.min = command.amount;
-                } /* not else */
-                if (command.sign === 'MAXIMUM' || command.sign === 'EXACTLY') {
-                    if (templateJson.expectations[unit]!.max !== undefined) {
-                        throw new ParsingError(
-                            `Already defined maximum ${
-                                templateJson.expectations![unit]!.max
-                            } ${command.unit.toLowerCase()}, now trying to redefine it to ${command.amount}`,
-                        );
-                    }
-                    templateJson.expectations[unit]!.max = command.amount;
-                }
-                break;
-
-            case 'EXPECT_FORMAT':
-                if (templateJson.expectFormat !== undefined && command.format !== templateJson.expectFormat) {
-                    throw new ParsingError(`Expect format is already defined to "${templateJson.expectFormat}".
-                            Now you try to redefine it by "${command.format}"`);
-                }
-                templateJson.expectFormat = command.format;
-
-                break;
+        if (command.sign === 'MINIMUM' || command.sign === 'EXACTLY') {
+            if (templateJson.expectations[unit]!.min !== undefined) {
+                throw new ParsingError(
+                    `Already defined minumum ${
+                        templateJson.expectations![unit]!.min
+                    } ${command.unit.toLowerCase()}, now trying to redefine it to ${command.amount}`,
+                );
+            }
+            templateJson.expectations[unit]!.min = command.amount;
+        } /* not else */
+        if (command.sign === 'MAXIMUM' || command.sign === 'EXACTLY') {
+            if (templateJson.expectations[unit]!.max !== undefined) {
+                throw new ParsingError(
+                    `Already defined maximum ${
+                        templateJson.expectations![unit]!.max
+                    } ${command.unit.toLowerCase()}, now trying to redefine it to ${command.amount}`,
+                );
+            }
+            templateJson.expectations[unit]!.max = command.amount;
         }
     },
 
     /**
-     * Converts the EXPECT command back to string
+     * Converts the EXPECT_FORMAT command back to string
      *
      * Note: This is used in `pipelineJsonToString` utility
      */
@@ -198,7 +174,7 @@ export const expectCommandParser: PipelineTemplateCommandParser<ExpectCommand> =
     },
 
     /**
-     * Reads the EXPECT command from the `PromptTemplateJson`
+     * Reads the EXPECT_FORMAT command from the `PromptTemplateJson`
      *
      * Note: This is used in `pipelineJsonToString` utility
      */
