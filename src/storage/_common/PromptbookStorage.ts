@@ -1,4 +1,4 @@
-import { Promisable } from 'type-fest';
+import type { Promisable } from 'type-fest';
 
 /**
  * Storage of objects with asynchronous API
