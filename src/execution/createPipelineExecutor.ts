@@ -285,14 +285,14 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
 
         // TODO: !!! Extract to separate functions and files - ALL FUNCTIONS BELOW
 
-        async function getContextForTemplate( 
+        async function getContextForTemplate(
             template: TemplateJson,
         ): Promise<string_parameter_value & string_markdown> {
             TODO_USE(template);
             return RESERVED_PARAMETER_MISSING_VALUE /* <- TODO: [🏍] Implement */;
         }
 
-        async function getKnowledgeForTemplate( 
+        async function getKnowledgeForTemplate(
             template: TemplateJson,
         ): Promise<string_parameter_value & string_markdown> {
             // TODO: [♨] Implement Better - use real index and keyword search from `template` and {samples}
@@ -468,7 +468,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
             let resultString: string | null = null;
             let expectError: ExpectError | null = null;
             let scriptPipelineExecutionErrors: Array<Error>;
-            const maxAttempts = currentTemplate.blockType === 'PROMPT_DIALOG' ? Infinity : maxExecutionAttempts;
+            const maxAttempts = currentTemplate.blockType === 'DIALOG_TEMPLATE' ? Infinity : maxExecutionAttempts;
             const jokerParameterNames = currentTemplate.jokerParameterNames || [];
 
             const preparedContent = (currentTemplate.preparedContent || '{content}')
@@ -584,7 +584,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
 
                                 break;
 
-                            case 'SCRIPT':
+                            case 'SCRIPT_TEMPLATE':
                                 if (arrayableToArray(tools.script).length === 0) {
                                     throw new PipelineExecutionError(
                                         spaceTrim(
@@ -665,7 +665,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                                 // Note: This line is unreachable because of the break blockType above
                                 break blockType;
 
-                            case 'PROMPT_DIALOG':
+                            case 'DIALOG_TEMPLATE':
                                 if (tools.userInterface === undefined) {
                                     throw new PipelineExecutionError(
                                         spaceTrim(
@@ -1087,7 +1087,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
  * TODO: [🧠][🌳] Use here `countTotalUsage` and put preparation and prepared pipiline to report
  * TODO: [🪂] Use maxParallelCount here (not only pass to `preparePipeline`)
  * TODO: [♈] Probbably move expectations from templates to parameters
- * TODO: [🧠] When not meet expectations in PROMPT_DIALOG, make some way to tell the user
+ * TODO: [🧠] When not meet expectations in DIALOG_TEMPLATE, make some way to tell the user
  * TODO: [👧] Strongly type the executors to avoid need of remove nullables whtn noUncheckedIndexedAccess in tsconfig.json
  * Note: CreatePipelineExecutorOptions are just connected to PipelineExecutor so do not extract to types folder
  * TODO: [🧠][3] transparent = (report intermediate parameters) / opaque execution = (report only output parameters) progress reporting mode

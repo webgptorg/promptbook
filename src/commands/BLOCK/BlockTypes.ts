@@ -17,8 +17,8 @@ export type BlockType = TupleToUnion<typeof BlockTypes>;
 export const BlockTypes = [
     'PROMPT_TEMPLATE',
     'SIMPLE_TEMPLATE',
-    'SCRIPT',
-    'PROMPT_DIALOG',
+    'SCRIPT_TEMPLATE',
+    'DIALOG_TEMPLATE',
     'SAMPLE',
     'KNOWLEDGE',
     'INSTRUMENT',

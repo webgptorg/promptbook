@@ -1,7 +1,7 @@
 import type { ___ } from '../../utils/organization/___';
-import type { LlmTemplateJson } from './LlmTemplateJson';
-import type { PromptDialogJson } from './PromptDialogJson';
-import type { ScriptJson } from './ScriptJson';
+import type { DialogTemplateJson } from './DialogTemplateJson';
+import type { PromptTemplateJson } from './PromptTemplateJson';
+import type { ScriptTemplateJson } from './ScriptTemplateJson';
 import type { SimpleTemplateJson } from './SimpleTemplateJson';
 
 /**
@@ -10,13 +10,10 @@ import type { SimpleTemplateJson } from './SimpleTemplateJson';
  * Note: [🚉] This is fully serializable as JSON
  */
 export type TemplateJson =
-    | LlmTemplateJson
+    | PromptTemplateJson
     | SimpleTemplateJson
-    | ScriptJson
-    | PromptDialogJson
-    | ___
-    | ___
+    | ScriptTemplateJson
+    | DialogTemplateJson
     | ___
     | ___;
 //  <- | [🅱] + Add the file with this (execution) block type
-

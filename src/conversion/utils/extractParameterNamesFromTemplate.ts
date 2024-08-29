@@ -29,7 +29,7 @@ export function extractParameterNamesFromTemplate(
         parameterNames.add(parameterName);
     }
 
-    if (blockType === 'SCRIPT') {
+    if (blockType === 'SCRIPT_TEMPLATE') {
         for (const parameterName of extractVariables(content)) {
             parameterNames.add(parameterName);
         }

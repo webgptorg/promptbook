@@ -72,7 +72,7 @@
             "resultingParameterName": "wordSynonym"
         },
         {
-            "blockType": "SCRIPT",
+            "blockType": "SCRIPT_TEMPLATE",
             "name": "test-that-word-is-not-original-word",
             "title": "⚙ Test that word is not original word",
             "content": "if (word !== '' && wordSynonym === word) {\n    throw new Error(`Synonym returned from LLM is same as original word \"${word}\"`);\n}\n\nreturn wordSynonym;",

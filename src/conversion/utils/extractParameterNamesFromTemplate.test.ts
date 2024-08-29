@@ -19,7 +19,7 @@ describe('extractParameterNamesFromTemplate', () => {
         expect(
             extractParameterNamesFromTemplate({
                 title: 'Script',
-                blockType: 'SCRIPT',
+                blockType: 'SCRIPT_TEMPLATE',
                 content: 'const greeting = hello;',
             }),
         ).toContain('hello');

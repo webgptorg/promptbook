@@ -84,15 +84,15 @@ import type {
     ModelRequirements,
 } from '../types/ModelRequirements';
 import type { ModelVariant } from '../types/ModelVariant';
+import type { DialogTemplateJson } from '../types/PipelineJson/DialogTemplateJson';
 import type { KnowledgePiecePreparedJson } from '../types/PipelineJson/KnowledgePieceJson';
 import type { KnowledgeSourceJson, KnowledgeSourcePreparedJson } from '../types/PipelineJson/KnowledgeSourceJson';
-import type { LlmTemplateJson } from '../types/PipelineJson/LlmTemplateJson';
 import type { ParameterJson } from '../types/PipelineJson/ParameterJson';
 import type { PersonaJson, PersonaPreparedJson } from '../types/PipelineJson/PersonaJson';
 import type { PipelineJson } from '../types/PipelineJson/PipelineJson';
 import type { PreparationJson } from '../types/PipelineJson/PreparationJson';
-import type { PromptDialogJson } from '../types/PipelineJson/PromptDialogJson';
-import type { ScriptJson } from '../types/PipelineJson/ScriptJson';
+import type { PromptTemplateJson } from '../types/PipelineJson/PromptTemplateJson';
+import type { ScriptTemplateJson } from '../types/PipelineJson/ScriptTemplateJson';
 import type { SimpleTemplateJson } from '../types/PipelineJson/SimpleTemplateJson';
 import type { TemplateJson } from '../types/PipelineJson/TemplateJson';
 import type { TemplateJsonCommon } from '../types/PipelineJson/TemplateJsonCommon';
@@ -254,6 +254,7 @@ export type {
     CompletionModelRequirements,
     CompletionPrompt,
     CompletionPromptResult,
+    DialogTemplateJson,
     EmbeddingModelRequirements,
     EmbeddingPrompt,
     EmbeddingPromptResult,
@@ -274,7 +275,6 @@ export type {
     LlmExecutionTools,
     LlmExecutionToolsConstructor,
     LlmExecutionToolsWithTotalUsage,
-    LlmTemplateJson,
     LlmToolsConfiguration,
     LlmToolsMetadata,
     LlmToolsOptions,
@@ -307,6 +307,7 @@ export type {
     number_weeks,
     number_years,
     OpenAiExecutionToolsOptions,
+    ParameterJson,
     Parameters,
     PersonaJson,
     PersonaPreparedJson,
@@ -332,12 +333,10 @@ export type {
     PromptbookServer_Prompt_Request,
     PromptbookServer_Prompt_Response,
     PromptbookStorage,
-    PromptDialogJson,
     PromptResult,
     PromptResultUsage,
     PromptResultUsageCounts,
-    TemplateJsonCommon,
-    ParameterJson ,
+    PromptTemplateJson,
     really_any,
     Registered,
     RemoteLlmExecutionToolsOptions,
@@ -346,8 +345,8 @@ export type {
     ReservedParameters,
     ScriptExecutionTools,
     ScriptExecutionToolsExecuteOptions,
-    ScriptJson,
     ScriptLanguage,
+    ScriptTemplateJson,
     SimpleTemplateJson,
     string_attribute,
     string_attribute_value_scope,
@@ -443,6 +442,7 @@ export type {
     string_xml,
     TaskProgress,
     TemplateJson,
+    TemplateJsonCommon,
     TODO_any,
     UncertainNumber,
     UserInterfaceTools,

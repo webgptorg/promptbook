@@ -491,6 +491,11 @@ Was accidentally released skipped
 -   Rename `PromptTemplateJsonCommon` -> `TemplateJsonCommon`
 -   Rename `PromptTemplateParameterJson` -> `ParameterJson`
 -   Rename `PipelineJson.promptTemplates` -> `PipelineJson.templates`
+-   Rename `PromptDialogJson` -> `DialogTemplateJson`
+-   Rename `PROMPT_DIALOG` -> `DIALOG_TEMPLATE`
+-   Rename `ScriptJson` -> `ScriptTemplateJson`
+-   Rename `SCRIPT` -> `SCRIPT_TEMPLATE`
+-   Rename `LlmTemplateJson` -> `PromptTemplateJson`
 
 ## In prepare
 

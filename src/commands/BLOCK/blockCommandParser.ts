@@ -30,8 +30,8 @@ export const blockCommandParser: PipelineTemplateCommandParser<BlockCommand> = {
     aliasNames: [
         'PROMPT_TEMPLATE',
         'SIMPLE_TEMPLATE',
-        'SCRIPT',
-        'PROMPT_DIALOG',
+        'SCRIPT_TEMPLATE',
+        'DIALOG_TEMPLATE',
         'SAMPLE',
         'EXAMPLE',
         'KNOWLEDGE',

@@ -13,7 +13,7 @@ import { ParsingError } from '../errors/ParsingError';
 import { UnexpectedError } from '../errors/UnexpectedError';
 import type { ParameterJson } from '../types/PipelineJson/ParameterJson';
 import type { PipelineJson } from '../types/PipelineJson/PipelineJson';
-import type { ScriptJson } from '../types/PipelineJson/ScriptJson';
+import type { ScriptTemplateJson } from '../types/PipelineJson/ScriptTemplateJson';
 import type { TemplateJson } from '../types/PipelineJson/TemplateJson';
 import type { PipelineString } from '../types/PipelineString';
 import type { ScriptLanguage } from '../types/ScriptLanguage';
@@ -412,7 +412,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
         }
 
         // TODO: [🍧] !!!!!! Should be done in BLOCK command
-        if ((templateJson as WritableDeep<TemplateJson>).blockType === 'SCRIPT') {
+        if ((templateJson as WritableDeep<TemplateJson>).blockType === 'SCRIPT_TEMPLATE') {
             if (!language) {
                 throw new ParsingError(
                     spaceTrim(
@@ -441,7 +441,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
                 );
             }
 
-            (templateJson as TODO_any as Writable<ScriptJson>).contentLanguage = language as TODO_any;
+            (templateJson as TODO_any as Writable<ScriptTemplateJson>).contentLanguage = language as TODO_any;
         }
 
         templateJson.dependentParameterNames = Array.from(

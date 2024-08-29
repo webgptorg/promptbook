@@ -6,8 +6,8 @@ import type { TemplateJsonCommon } from './TemplateJsonCommon';
  * Note: [🚉] This is fully serializable as JSON
  * @see https://github.com/webgptorg/promptbook/discussions/76
  */
-export type PromptDialogJson = TemplateJsonCommon & {
-    readonly blockType: 'PROMPT_DIALOG';
+export type DialogTemplateJson = TemplateJsonCommon & {
+    readonly blockType: 'DIALOG_TEMPLATE';
 };
 
 /**

@@ -89,14 +89,14 @@ export function pipelineJsonToString(pipelineJson: PipelineJson): PipelineString
         } else if (blockType === 'SIMPLE_TEMPLATE') {
             commands.push(`SIMPLE TEMPLATE`);
             // Note: Nothing special here
-        } else if (blockType === 'SCRIPT') {
+        } else if (blockType === 'SCRIPT_TEMPLATE') {
             commands.push(`EXECUTE SCRIPT`);
             if (template.contentLanguage) {
                 contentLanguage = template.contentLanguage;
             } else {
                 contentLanguage = '';
             }
-        } else if (blockType === 'PROMPT_DIALOG') {
+        } else if (blockType === 'DIALOG_TEMPLATE') {
             commands.push(`PROMPT DIALOG`);
             // Note: Nothing special here
         } // <- }else if([🅱]

@@ -14,11 +14,11 @@ describe('how BLOCK command in .ptbk.md files works', () => {
         });
         expect(parseCommand('block script', 'PIPELINE_TEMPLATE')).toEqual({
             type: 'BLOCK',
-            blockType: 'SCRIPT',
+            blockType: 'SCRIPT_TEMPLATE',
         });
         expect(parseCommand('block prompt dialog', 'PIPELINE_TEMPLATE')).toEqual({
             type: 'BLOCK',
-            blockType: 'PROMPT_DIALOG',
+            blockType: 'DIALOG_TEMPLATE',
         });
         expect(parseCommand('  block    prompt         template', 'PIPELINE_TEMPLATE')).toEqual({
             type: 'BLOCK',
@@ -47,11 +47,11 @@ describe('how BLOCK command in .ptbk.md files works', () => {
         });
         expect(parseCommand('EXECUTE script', 'PIPELINE_TEMPLATE')).toEqual({
             type: 'BLOCK',
-            blockType: 'SCRIPT',
+            blockType: 'SCRIPT_TEMPLATE',
         });
         expect(parseCommand('EXECUTE prompt dialog', 'PIPELINE_TEMPLATE')).toEqual({
             type: 'BLOCK',
-            blockType: 'PROMPT_DIALOG',
+            blockType: 'DIALOG_TEMPLATE',
         });
     });
 

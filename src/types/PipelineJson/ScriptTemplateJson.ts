@@ -7,8 +7,8 @@ import type { TemplateJsonCommon } from './TemplateJsonCommon';
  * Note: [🚉] This is fully serializable as JSON
  * @see https://github.com/webgptorg/promptbook/discussions/77
  */
-export type ScriptJson = TemplateJsonCommon & {
-    readonly blockType: 'SCRIPT';
+export type ScriptTemplateJson = TemplateJsonCommon & {
+    readonly blockType: 'SCRIPT_TEMPLATE';
 
     /**
      * Language of the script

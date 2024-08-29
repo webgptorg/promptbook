@@ -7,7 +7,7 @@ import type { TemplateJsonCommon } from './TemplateJsonCommon';
  *
  * Note: [🚉] This is fully serializable as JSON
  */
-export type LlmTemplateJson = TemplateJsonCommon & {
+export type PromptTemplateJson = TemplateJsonCommon & {
     readonly blockType: 'PROMPT_TEMPLATE';
 
     /**
