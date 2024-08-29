@@ -148,6 +148,15 @@ export const blockCommandParser: PipelineTemplateCommandParser<BlockCommand> = {
         }
         */
 
+        // TODO: !!!!!! Rearrange better - but at bottom and unwrao from function
+        const expectResultingParameterName = () => {
+            if (templateJson.resultingParameterName) {
+                return;
+            }
+
+            throw new ParsingError(` Template section must end with -> {parameterName}`);
+        };
+
         if (templateJson.content === undefined) {
             throw new UnexpectedError(
                 `Content is missing in the templateJson - probbably commands are applied in wrong order`,
@@ -156,15 +165,14 @@ export const blockCommandParser: PipelineTemplateCommandParser<BlockCommand> = {
         }
 
         if (command.blockType === 'SAMPLE') {
-            // TODO: !!!!!! Test missing/extra resultingParameterName
-            // expectResultingParameterName();
+            expectResultingParameterName();
 
             const parameter = pipelineJson.parameters.find(
                 (param) => param.name === templateJson.resultingParameterName,
             );
             if (parameter === undefined) {
                 throw new ParsingError(
-                    `Can not find parameter {${templateJson.resultingParameterName}} to assign sample value`,
+                    `Can not find parameter {${templateJson.resultingParameterName}} to assign sample value on it`,
                 );
             }
             parameter.sampleValues = parameter.sampleValues || [];
@@ -204,8 +212,7 @@ export const blockCommandParser: PipelineTemplateCommandParser<BlockCommand> = {
             return;
         }
 
-        // !!!!!!
-        // expectResultingParameterName();
+        expectResultingParameterName();
         (templateJson as WritableDeep<PromptTemplateJson>).blockType = command.blockType;
 
         /*

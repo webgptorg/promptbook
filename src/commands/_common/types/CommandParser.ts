@@ -125,7 +125,7 @@ export type PipelineTemplateCommandParser<TCommand extends CommandBase> = Common
     /**
      * Apply the command to the `pipelineJson`
      *
-     * Note: `$` is used to indicate that this function mutates given `templateJson`
+     * Note: `$` is used to indicate that this function mutates given `templateJson` and/or `pipelineJson`
      */
     $applyToTemplateJson(
         command: TCommand,

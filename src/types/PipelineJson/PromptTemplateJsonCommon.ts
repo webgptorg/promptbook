@@ -1,5 +1,5 @@
 import type { BlockType } from '../../commands/BLOCK/BlockTypes';
-import type { FormatCommand } from '../../commands/EXPECT/FormatCommand';
+import { FormatCommand } from '../../commands/FORMAT/FormatCommand';
 import type {
     string_javascript,
     string_markdown,

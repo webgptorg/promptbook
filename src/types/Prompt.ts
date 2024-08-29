@@ -1,4 +1,5 @@
-import type { FormatCommand } from '../commands/EXPECT/FormatCommand';
+
+import { FormatCommand } from '../commands/FORMAT/FormatCommand';
 import type {
     ChatModelRequirements,
     CompletionModelRequirements,

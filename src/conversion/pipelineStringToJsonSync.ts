@@ -18,7 +18,6 @@ import type { ScriptJson } from '../types/PipelineJson/ScriptJson';
 import type { PipelineString } from '../types/PipelineString';
 import type { ScriptLanguage } from '../types/ScriptLanguage';
 import { SUPPORTED_SCRIPT_LANGUAGES } from '../types/ScriptLanguage';
-import type { string_parameter_name } from '../types/typeAliases';
 import { extractAllListItemsFromMarkdown } from '../utils/markdown/extractAllListItemsFromMarkdown';
 import { extractOneBlockFromMarkdown } from '../utils/markdown/extractOneBlockFromMarkdown';
 import { flattenMarkdown } from '../utils/markdown/flattenMarkdown';
@@ -215,6 +214,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
 
     const listItems = extractAllListItemsFromMarkdown(pipelineHead.content);
     for (const listItem of listItems) {
+        // TODO: [🥥] Maybe move this logic to `$parseAndApplyPipelineHeadCommand`
         const command = parseCommand(listItem, 'PIPELINE_HEAD');
 
         const commandParser = COMMANDS.find((commandParser) => commandParser.name === command.type);
@@ -245,9 +245,33 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
             ); // <- TODO: [🚞]
         }
 
-        // TODO: !!!!!! Wrap and ientify ParsingError
-        (commandParser as PipelineHeadCommandParser<CommandBase>).$applyToPipelineJson(command, pipelineJson);
-        //             <- Note: [🦦] Its strange that this assertion must be here, [🦦][4] should do this assertion implicitelly
+        try {
+            (commandParser as PipelineHeadCommandParser<CommandBase>).$applyToPipelineJson(command, pipelineJson);
+            //             <- Note: [🦦] Its strange that this assertion must be here, [🦦][4] should do this assertion implicitelly
+        } catch (error) {
+            if (!(error instanceof ParsingError)) {
+                throw error;
+            }
+
+            throw new ParsingError(
+                spaceTrim(
+                    (block) => `
+                        Command ${command.type} failed to apply to the pipeline
+
+                        The error:
+                        ${block((error as ParsingError).message)}
+
+                        Raw command:
+                        - ${listItem}
+
+                        Usage of ${command.type}:
+                        ${block(commandParser.examples.map((example) => `- ${example}`).join('\n'))}
+
+                        ${block(getPipelineIdentification())}
+                  `,
+                ),
+            ); // <- TODO: [🚞]
+        }
 
         if (command.type === 'PARAMETER') {
             defineParam(command);
@@ -262,41 +286,6 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
         // TODO: Parse prompt template description (the content out of the codeblock and lists)
 
         const listItems = extractAllListItemsFromMarkdown(section.content);
-
-        const lastLine = section.content.split('\n').pop()!;
-        const resultingParameterNameMatch = /^->\s*\{(?<resultingParamName>[a-z0-9_]+)\}/im.exec(lastLine);
-        let resultingParameterName: string_parameter_name | null = null;
-        if (
-            resultingParameterNameMatch &&
-            resultingParameterNameMatch.groups !== undefined &&
-            resultingParameterNameMatch.groups.resultingParamName !== undefined
-        ) {
-            resultingParameterName = resultingParameterNameMatch.groups.resultingParamName;
-        }
-
-        const expectResultingParameterName = () => {
-            if (resultingParameterName !== null) {
-                return resultingParameterName;
-            }
-            throw new ParsingError(
-                spaceTrim(
-                    (block) => `
-                    Template section must end with -> {parameterName}
-
-                    ${block(getPipelineIdentification())}
-
-                    Invalid section:
-                    ${block(
-                        // TODO: Show code of invalid sections each time + DRY
-                        section.content
-                            .split('\n')
-                            .map((line) => `  | ${line}` /* <- TODO: [🚞] */)
-                            .join('\n'),
-                    )}
-                  `,
-                ),
-            );
-        };
 
         const { language, content } = extractOneBlockFromMarkdown(section.content);
 
@@ -324,6 +313,16 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
             content,
         };
 
+        const lastLine = section.content.split('\n').pop()!;
+        const resultingParameterNameMatch = /^->\s*\{(?<resultingParamName>[a-z0-9_]+)\}/im.exec(lastLine);
+        if (
+            resultingParameterNameMatch &&
+            resultingParameterNameMatch.groups !== undefined &&
+            resultingParameterNameMatch.groups.resultingParamName !== undefined
+        ) {
+            templateJson.resultingParameterName = resultingParameterNameMatch.groups.resultingParamName;
+        }
+
         /**
          * TODO: !!!!!! Remove
          * This is nessesary because block type can be
@@ -335,9 +334,8 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
          */
         // let isBlockTypeSet = false;
 
-        // TODO: !!!!!! $ apply the commands here
-
         for (const listItem of listItems) {
+            // TODO: [🥥] Maybe move this logic to `$parseAndApplyPipelineTemplateCommand`
             const command = parseCommand(listItem, 'PIPELINE_TEMPLATE');
             // TODO [🍧][♓️] List commands and before apply order them
 
@@ -369,13 +367,41 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
                 ); // <- TODO: [🚞]
             }
 
-            // TODO: !!!!!! Wrap and ientify ParsingError
-            (commandParser as PipelineTemplateCommandParser<CommandBase>).$applyToTemplateJson(
-                //            <- Note: [🦦] Its strange that this assertion must be here, [🦦][4] should do this assertion implicitelly
-                command,
-                templateJson,
-                pipelineJson,
-            );
+            try {
+                (commandParser as PipelineTemplateCommandParser<CommandBase>).$applyToTemplateJson(
+                    //            <- Note: [🦦] Its strange that this assertion must be here, [🦦][4] should do this assertion implicitelly
+                    command,
+                    templateJson,
+                    pipelineJson,
+                );
+            } catch (error) {
+                if (!(error instanceof ParsingError)) {
+                    throw error;
+                }
+
+                throw new ParsingError(
+                    spaceTrim(
+                        (block) => `
+                            Command ${command.type} failed to apply to the template
+
+                            The error:
+                            ${block((error as ParsingError).message)}
+
+                            Current state of the template:
+                            ${block(JSON.stringify(templateJson, null, 4))}
+                               <- Maybe wrong order of commands?
+
+                            Raw command:
+                            - ${listItem}
+
+                            Usage of ${command.type}:
+                            ${block(commandParser.examples.map((example) => `- ${example}`).join('\n'))}
+
+                            ${block(getPipelineIdentification())}
+                      `,
+                    ),
+                ); // <- TODO: [🚞]
+            }
 
             // TODO: !!!!!! Multiple problematic things in BLOCK command - blockCommandParser.$applyToTemplateJson
 
@@ -444,9 +470,6 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
                 ),
             );
         }
-
-        // TODO: [🍧] !!!!!! Make this better - for example each command parser can call and apply this
-        templateJson.resultingParameterName = expectResultingParameterName(/* <- Note: This is once more redundant */);
 
         pipelineJson.promptTemplates.push(
             templateJson as PromptTemplateJson,
