@@ -451,10 +451,13 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
             ),
         );
 
+
+        // TODO: [🍧] !!!!!! Probbably this should not be needed
         if (Object.keys(templateJson?.modelRequirements || {}).length === 0) {
             delete (templateJson as TODO_any).modelRequirements;
         }
 
+         // TODO: [🍧] !!!!!! This should be checked in MODEL command
         if (templateJson.blockType !== 'PROMPT_TEMPLATE' && templateJson.modelRequirements !== undefined) {
             throw new UnexpectedError(
                 spaceTrim(
@@ -471,6 +474,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
             );
         }
 
+        
         pipelineJson.promptTemplates.push(
             templateJson as PromptTemplateJson,
             // <- TODO: [3] !!!!!! Do not do `as PromptTemplateJson` BUT make 100% sure that nothing is missing
