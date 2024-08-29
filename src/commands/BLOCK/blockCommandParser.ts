@@ -7,8 +7,7 @@ import type { PromptTemplateJson } from '../../types/PipelineJson/PromptTemplate
 import { string_markdown_text } from '../../types/typeAliases';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import { knowledgeCommandParser } from '../KNOWLEDGE/knowledgeCommandParser';
-import { Command } from '../_common/types/Command';
-import type { CommandParser, CommandParserInput, PipelineTemplateCommandParser } from '../_common/types/CommandParser';
+import type { CommandParser, CommandParserInput } from '../_common/types/CommandParser';
 import type { BlockCommand } from './BlockCommand';
 import { BlockTypes } from './BlockTypes';
 
@@ -169,7 +168,7 @@ export const blockCommandParser: CommandParser<BlockCommand> = {
         }
 
         if (command.blockType === 'KNOWLEDGE') {
-            (knowledgeCommandParser as PipelineTemplateCommandParser<Command>).$applyToTemplateJson(
+            knowledgeCommandParser.$applyToTemplateJson(
                 {
                     type: 'KNOWLEDGE',
                     sourceContent: templateJson.content, // <- TODO: [🐝] !!! Work with KNOWLEDGE which not referring to the source file or website, but its content itself
