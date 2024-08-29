@@ -24,6 +24,7 @@ describe('fail of parseCommand', () => {
                 }
             });
 
+            // TODO: !!!!!! Test that parsed command has same type with parser in index.ts - Expect command not passing this test
             // TODO: !!!!!! Test each command stringify
             // TODO: !!!!!! Test each command on $applyToPipelineJson + $takeFromPipelineJson
             // TODO: !!!!!! Test each command on $applyToTemplateJson + $takeFromTemplateJson

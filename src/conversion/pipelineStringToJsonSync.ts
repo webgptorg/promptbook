@@ -223,7 +223,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
             throw new UnexpectedError(
                 spaceTrim(
                     (block) => `
-                          Command ${command.type} parser is not found
+                          Command ${command.type} parser is not found 🍎
 
                           ${block(getPipelineIdentification())}
                       `,
@@ -347,7 +347,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
                 throw new UnexpectedError(
                     spaceTrim(
                         (block) => `
-                              Command ${command.type} parser is not found
+                              Command ${command.type} parser is not found 🍏
 
                               ${block(getPipelineIdentification())}
                           `,
