@@ -37,8 +37,6 @@
     ],
     "templates": [
         {
-            "isBlockTypeSet": false,
-            "isTemplateBlock": true,
             "blockType": "PROMPT_TEMPLATE",
             "name": "writing-bio",
             "title": "Writing bio",

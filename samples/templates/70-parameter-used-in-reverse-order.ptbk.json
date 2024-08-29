@@ -24,8 +24,6 @@
     "defaultModelRequirements": {},
     "templates": [
         {
-            "isBlockTypeSet": false,
-            "isTemplateBlock": true,
             "blockType": "PROMPT_TEMPLATE",
             "name": "sentence",
             "title": "Sentence",
@@ -38,8 +36,6 @@
             ]
         },
         {
-            "isBlockTypeSet": false,
-            "isTemplateBlock": true,
             "blockType": "PROMPT_TEMPLATE",
             "name": "synonym",
             "title": "Synonym",

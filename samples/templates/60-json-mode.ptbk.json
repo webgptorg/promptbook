@@ -20,8 +20,6 @@
     "defaultModelRequirements": {},
     "templates": [
         {
-            "isBlockTypeSet": false,
-            "isTemplateBlock": true,
             "blockType": "PROMPT_TEMPLATE",
             "name": "extrakce-kontaktnich-udaju",
             "title": "🖋 Extrakce kontaktních údajů",

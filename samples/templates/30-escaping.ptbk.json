@@ -18,8 +18,6 @@
     "defaultModelRequirements": {},
     "templates": [
         {
-            "isBlockTypeSet": false,
-            "isTemplateBlock": true,
             "blockType": "PROMPT_TEMPLATE",
             "name": "greeting-1",
             "title": "Greeting 1",
@@ -29,8 +27,6 @@
             "dependentParameterNames": []
         },
         {
-            "isBlockTypeSet": false,
-            "isTemplateBlock": true,
             "blockType": "PROMPT_TEMPLATE",
             "name": "greeting-2",
             "title": "Greeting 2",

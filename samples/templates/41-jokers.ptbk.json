@@ -24,8 +24,6 @@
     "defaultModelRequirements": {},
     "templates": [
         {
-            "isBlockTypeSet": false,
-            "isTemplateBlock": true,
             "blockType": "PROMPT_TEMPLATE",
             "name": "question",
             "title": "💬 Question",
