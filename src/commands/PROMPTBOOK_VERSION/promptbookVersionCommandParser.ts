@@ -74,8 +74,8 @@ export const promptbookVersionCommandParser: PipelineHeadCommandParser<Promptboo
      *
      * Note: `$` is used to indicate that this function mutates given `pipelineJson`
      */
-    $applyToPipelineJson(command: PromptbookVersionCommand, pipelineJson: $PipelineJson): void {
-        pipelineJson.promptbookVersion = command.promptbookVersion;
+    $applyToPipelineJson(command: PromptbookVersionCommand, $pipelineJson: $PipelineJson): void {
+        $pipelineJson.promptbookVersion = command.promptbookVersion;
     },
 
     /**

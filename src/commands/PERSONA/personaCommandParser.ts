@@ -84,8 +84,8 @@ export const personaCommandParser: PipelineBothCommandParser<PersonaCommand> = {
      *
      * Note: `$` is used to indicate that this function mutates given `pipelineJson`
      */
-    $applyToPipelineJson(command: PersonaCommand, pipelineJson: $PipelineJson): void {
-        $applyToTemplateJson(command, null, pipelineJson);
+    $applyToPipelineJson(command: PersonaCommand, $pipelineJson: $PipelineJson): void {
+        $applyToTemplateJson(command, null, $pipelineJson);
     },
 
     $applyToTemplateJson,
@@ -128,23 +128,23 @@ export const personaCommandParser: PipelineBothCommandParser<PersonaCommand> = {
  */
 function $applyToTemplateJson(
     command: PersonaCommand,
-    templateJson: $TemplateJson | null,
-    pipelineJson: $PipelineJson,
+    $templateJson: $TemplateJson | null,
+    $pipelineJson: $PipelineJson,
 ): void {
     const { personaName, personaDescription } = command;
 
-    if (templateJson !== null) {
-        if (templateJson.blockType !== 'PROMPT_TEMPLATE') {
+    if ($templateJson !== null) {
+        if ($templateJson.blockType !== 'PROMPT_TEMPLATE') {
             throw new ParsingError(`PERSONA command can be used only in PROMPT_TEMPLATE block`);
         }
 
-        templateJson.personaName = personaName;
+        $templateJson.personaName = personaName;
     }
 
-    const persona = pipelineJson.personas.find((persona) => persona.name === personaName);
+    const persona = $pipelineJson.personas.find((persona) => persona.name === personaName);
 
     if (persona === undefined) {
-        pipelineJson.personas.push({
+        $pipelineJson.personas.push({
             name: personaName,
             description: personaDescription || '',
         });

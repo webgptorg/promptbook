@@ -50,7 +50,7 @@ import { titleToName } from './utils/titleToName';
  * @public exported from `@promptbook/core`
  */
 export function pipelineStringToJsonSync(pipelineString: PipelineString): PipelineJson {
-    const pipelineJson: $PipelineJson = {
+    const $pipelineJson: $PipelineJson = {
         title: undefined as TODO_any /* <- Note: Putting here placeholder to keep `title` on top at final JSON */,
         pipelineUrl: undefined /* <- Note: Putting here placeholder to keep `pipelineUrl` on top at final JSON */,
         promptbookVersion: PROMPTBOOK_VERSION,
@@ -69,12 +69,12 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
         // Note: This is a 😐 implementation of [🚞]
         const _: Array<string> = [];
 
-        if (pipelineJson.sourceFile !== undefined) {
-            _.push(`File: ${pipelineJson.sourceFile}`);
+        if ($pipelineJson.sourceFile !== undefined) {
+            _.push(`File: ${$pipelineJson.sourceFile}`);
         }
 
-        if (pipelineJson.pipelineUrl !== undefined) {
-            _.push(`Url: ${pipelineJson.pipelineUrl}`);
+        if ($pipelineJson.pipelineUrl !== undefined) {
+            _.push(`Url: ${$pipelineJson.pipelineUrl}`);
         }
 
         return _.join('\n');
@@ -152,7 +152,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
             );
         }
 
-        const existingParameter = pipelineJson.parameters.find(
+        const existingParameter = $pipelineJson.parameters.find(
             (parameter: ParameterJson) => parameter.name === parameterName,
         );
         if (
@@ -183,7 +183,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
                 existingParameter.description = parameterDescription;
             }
         } else {
-            pipelineJson.parameters.push({
+            $pipelineJson.parameters.push({
                 name: parameterName,
                 description: parameterDescription || undefined,
                 isInput,
@@ -195,7 +195,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
     // =============================================================
     // Note: 3️⃣ Process pipeline head
 
-    pipelineJson.title = pipelineHead.title;
+    $pipelineJson.title = pipelineHead.title;
 
     // TODO: [🎾][1] DRY description
     let description: string | undefined = pipelineHead.content;
@@ -212,7 +212,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
     if (description === '') {
         description = undefined;
     }
-    pipelineJson.description = description;
+    $pipelineJson.description = description;
 
     const listItems = extractAllListItemsFromMarkdown(pipelineHead.content);
     for (const listItem of listItems) {
@@ -248,7 +248,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
         }
 
         try {
-            (commandParser as PipelineHeadCommandParser<CommandBase>).$applyToPipelineJson(command, pipelineJson);
+            (commandParser as PipelineHeadCommandParser<CommandBase>).$applyToPipelineJson(command, $pipelineJson);
             //             <- Note: [🦦] Its strange that this assertion must be here, [🦦][4] should do this assertion implicitelly
         } catch (error) {
             if (!(error instanceof ParsingError)) {
@@ -307,7 +307,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
             description = undefined;
         }
 
-        const templateJson: $TemplateJson = {
+        const $templateJson: $TemplateJson = {
             isBlockTypeSet: false,
             isTemplateBlock: true,
             blockType: 'PROMPT_TEMPLATE', // <- Note: [2]
@@ -324,7 +324,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
             resultingParameterNameMatch.groups !== undefined &&
             resultingParameterNameMatch.groups.resultingParamName !== undefined
         ) {
-            templateJson.resultingParameterName = resultingParameterNameMatch.groups.resultingParamName;
+            $templateJson.resultingParameterName = resultingParameterNameMatch.groups.resultingParamName;
         }
 
         /**
@@ -375,8 +375,8 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
                 (commandParser as PipelineTemplateCommandParser<CommandBase>).$applyToTemplateJson(
                     //            <- Note: [🦦] Its strange that this assertion must be here, [🦦][4] should do this assertion implicitelly
                     command,
-                    templateJson,
-                    pipelineJson,
+                    $templateJson,
+                    $pipelineJson,
                 );
             } catch (error) {
                 if (!(error instanceof ParsingError)) {
@@ -392,7 +392,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
                             ${block((error as ParsingError).message)}
 
                             Current state of the template:
-                            ${block(JSON.stringify(templateJson, null, 4))}
+                            ${block(JSON.stringify($templateJson, null, 4))}
                                <- Maybe wrong order of commands?
 
                             Raw command:
@@ -416,7 +416,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
         }
 
         // TODO: [🍧] !!!!!! Should be done in BLOCK command
-        if ((templateJson as WritableDeep<TemplateJson>).blockType === 'SCRIPT_TEMPLATE') {
+        if (($templateJson as WritableDeep<TemplateJson>).blockType === 'SCRIPT_TEMPLATE') {
             if (!language) {
                 throw new ParsingError(
                     spaceTrim(
@@ -445,28 +445,28 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
                 );
             }
 
-            (templateJson as TODO_any as Writable<ScriptTemplateJson>).contentLanguage = language as TODO_any;
+            ($templateJson as TODO_any as Writable<ScriptTemplateJson>).contentLanguage = language as TODO_any;
         }
 
-        templateJson.dependentParameterNames = Array.from(
+        $templateJson.dependentParameterNames = Array.from(
             extractParameterNamesFromTemplate(
-                templateJson as TemplateJson,
+                $templateJson as TemplateJson,
                 // <- TODO: [3]
             ),
         );
 
         // TODO: [🍧] !!!!!! Probbably this should not be needed
-        if (Object.keys(templateJson?.modelRequirements || {}).length === 0) {
-            delete (templateJson as TODO_any).modelRequirements;
+        if (Object.keys($templateJson?.modelRequirements || {}).length === 0) {
+            delete ($templateJson as TODO_any).modelRequirements;
         }
 
         // TODO: [🍧] !!!!!! This should be checked in MODEL command
-        if (templateJson.blockType !== 'PROMPT_TEMPLATE' && templateJson.modelRequirements !== undefined) {
+        if ($templateJson.blockType !== 'PROMPT_TEMPLATE' && $templateJson.modelRequirements !== undefined) {
             throw new UnexpectedError(
                 spaceTrim(
                     (block) => `
                         Model requirements are defined for the block type ${
-                            templateJson.blockType
+                            $templateJson.blockType
                         } which is not a prompt template
 
                         This should be avoided by the \`modelCommandParser\`
@@ -477,9 +477,9 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
             );
         }
 
-        if (templateJson.isTemplateBlock) {
-            pipelineJson.templates.push(
-                templateJson as TemplateJson,
+        if ($templateJson.isTemplateBlock) {
+            $pipelineJson.templates.push(
+                $templateJson as TemplateJson,
                 // <- TODO: [3] !!!!!! Do not do `as TemplateJson` BUT make 100% sure that nothing is missing
             );
         }
@@ -487,14 +487,14 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
 
     // =============================================================
     // Note: 5️⃣ Cleanup of undefined values
-    pipelineJson.templates.forEach((templates) => {
+    $pipelineJson.templates.forEach((templates) => {
         for (const [key, value] of Object.entries(templates)) {
             if (value === undefined) {
                 delete (templates as really_any)[key];
             }
         }
     });
-    pipelineJson.parameters.forEach((parameter) => {
+    $pipelineJson.parameters.forEach((parameter) => {
         for (const [key, value] of Object.entries(parameter)) {
             if (value === undefined) {
                 delete (parameter as really_any)[key];
@@ -502,7 +502,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
         }
     });
     // =============================================================
-    return $asDeeplyFrozenSerializableJson('pipelineJson', pipelineJson);
+    return $asDeeplyFrozenSerializableJson('pipelineJson', $pipelineJson);
 }
 
 /**

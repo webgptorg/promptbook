@@ -57,8 +57,8 @@ export const actionCommandParser: PipelineHeadCommandParser<ActionCommand> = {
      *
      * Note: `$` is used to indicate that this function mutates given `pipelineJson`
      */
-    $applyToPipelineJson(command: ActionCommand, pipelineJson: $PipelineJson): void {
-        keepUnused(command, pipelineJson);
+    $applyToPipelineJson(command: ActionCommand, $pipelineJson: $PipelineJson): void {
+        keepUnused(command, $pipelineJson);
         console.error(new NotYetImplementedError('Actions are not implemented yet'));
     },
 

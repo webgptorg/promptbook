@@ -131,26 +131,26 @@ export const blockCommandParser: PipelineTemplateCommandParser<BlockCommand> = {
      *
      * Note: `$` is used to indicate that this function mutates given `templateJson`
      */
-    $applyToTemplateJson(command: BlockCommand, templateJson: $TemplateJson, pipelineJson: $PipelineJson): void {
+    $applyToTemplateJson(command: BlockCommand, $templateJson: $TemplateJson, $pipelineJson: $PipelineJson): void {
         // TODO: !!!!!! Test multiple / no block type
-        if (templateJson.isBlockTypeSet === true) {
+        if ($templateJson.isBlockTypeSet === true) {
             throw new ParsingError(
                 `Block type is already defined in the prompt template. It can be defined only once.`,
             );
         }
 
-        templateJson.isBlockTypeSet = true;
+        $templateJson.isBlockTypeSet = true;
 
         // TODO: !!!!!! Rearrange better - but at bottom and unwrao from function
         const expectResultingParameterName = () => {
-            if (templateJson.resultingParameterName) {
+            if ($templateJson.resultingParameterName) {
                 return;
             }
 
             throw new ParsingError(` Template section must end with -> {parameterName}`);
         };
 
-        if (templateJson.content === undefined) {
+        if ($templateJson.content === undefined) {
             throw new UnexpectedError(
                 `Content is missing in the templateJson - probbably commands are applied in wrong order`,
                 //     <- TODO: !!!!!! Make sample pipeline that have commands in wrong order
@@ -160,21 +160,21 @@ export const blockCommandParser: PipelineTemplateCommandParser<BlockCommand> = {
         if (command.blockType === 'SAMPLE') {
             expectResultingParameterName();
 
-            const parameter = pipelineJson.parameters.find(
-                (param) => param.name === templateJson.resultingParameterName,
+            const parameter = $pipelineJson.parameters.find(
+                (param) => param.name === $templateJson.resultingParameterName,
             );
             if (parameter === undefined) {
                 throw new ParsingError(
-                    `Can not find parameter {${templateJson.resultingParameterName}} to assign sample value on it`,
+                    `Can not find parameter {${$templateJson.resultingParameterName}} to assign sample value on it`,
                 );
             }
             parameter.sampleValues = parameter.sampleValues || [];
-            parameter.sampleValues.push(templateJson.content);
+            parameter.sampleValues.push($templateJson.content);
 
             // TODO: !!!!!! How to implement this?
             // continue templates;
 
-            templateJson.isTemplateBlock = false;
+            $templateJson.isTemplateBlock = false;
             return;
         }
 
@@ -182,14 +182,14 @@ export const blockCommandParser: PipelineTemplateCommandParser<BlockCommand> = {
             knowledgeCommandParser.$applyToPipelineJson(
                 {
                     type: 'KNOWLEDGE',
-                    sourceContent: templateJson.content, // <- TODO: [🐝] !!! Work with KNOWLEDGE which not referring to the source file or website, but its content itself
+                    sourceContent: $templateJson.content, // <- TODO: [🐝] !!! Work with KNOWLEDGE which not referring to the source file or website, but its content itself
                 },
-                pipelineJson,
+                $pipelineJson,
             );
             // TODO: !!!!!! How to implement this?
             // continue templates;
 
-            templateJson.isTemplateBlock = false;
+            $templateJson.isTemplateBlock = false;
             return;
         }
 
@@ -199,7 +199,7 @@ export const blockCommandParser: PipelineTemplateCommandParser<BlockCommand> = {
             // TODO: !!!!!! How to implement this?
             // continue templates;
 
-            templateJson.isTemplateBlock = false;
+            $templateJson.isTemplateBlock = false;
             return;
         }
 
@@ -209,12 +209,12 @@ export const blockCommandParser: PipelineTemplateCommandParser<BlockCommand> = {
             // TODO: !!!!!! How to implement this?
             // continue templates;
 
-            templateJson.isTemplateBlock = false;
+            $templateJson.isTemplateBlock = false;
             return;
         }
 
         expectResultingParameterName();
-        (templateJson as WritableDeep<TemplateJson>).blockType = command.blockType;
+        ($templateJson as WritableDeep<TemplateJson>).blockType = command.blockType;
 
         /*
         TODO: !!!!!! Chat model variant should be applied in `createPipelineExecutor`
@@ -226,7 +226,7 @@ export const blockCommandParser: PipelineTemplateCommandParser<BlockCommand> = {
         // !!!!!!
         // isBlockTypeSet = true; //<- Note: [2]
 
-        templateJson.isTemplateBlock = true;
+        $templateJson.isTemplateBlock = true;
     },
 
     /**

@@ -87,14 +87,14 @@ export const knowledgeCommandParser: PipelineHeadCommandParser<KnowledgeCommand>
      *
      * Note: `$` is used to indicate that this function mutates given `pipelineJson`
      */
-    $applyToPipelineJson(command: KnowledgeCommand, pipelineJson: $PipelineJson): void {
+    $applyToPipelineJson(command: KnowledgeCommand, $pipelineJson: $PipelineJson): void {
         const { sourceContent } = command;
 
         const name = 'source-' + sha256(hexEncoder.parse(JSON.stringify(sourceContent))).toString(/* hex */);
         //    <- TODO: [🥬] Encapsulate sha256 to some private utility function
         //    <- TODO: This should be replaced with a better name later in preparation (done with some propper LLM summarization)
 
-        pipelineJson.knowledgeSources.push({
+        $pipelineJson.knowledgeSources.push({
             name,
             sourceContent,
         });

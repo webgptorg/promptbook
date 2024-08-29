@@ -79,8 +79,8 @@ export const boilerplateCommandParser: PipelineBothCommandParser<BoilerplateComm
      *
      * Note: `$` is used to indicate that this function mutates given `pipelineJson`
      */
-    $applyToPipelineJson(command: BoilerplateCommand, pipelineJson: $PipelineJson): void {
-        keepUnused(command, pipelineJson);
+    $applyToPipelineJson(command: BoilerplateCommand, $pipelineJson: $PipelineJson): void {
+        keepUnused(command, $pipelineJson);
         throw new ParsingError(
             `BOILERPLATE command is only for testing purposes and should not be used in the .ptbk.md file`,
         );
@@ -91,8 +91,8 @@ export const boilerplateCommandParser: PipelineBothCommandParser<BoilerplateComm
      *
      * Note: `$` is used to indicate that this function mutates given `templateJson`
      */
-    $applyToTemplateJson(command: BoilerplateCommand, templateJson: $TemplateJson, pipelineJson: $PipelineJson): void {
-        keepUnused(command, templateJson, pipelineJson);
+    $applyToTemplateJson(command: BoilerplateCommand, $templateJson: $TemplateJson, $pipelineJson: $PipelineJson): void {
+        keepUnused(command, $templateJson, $pipelineJson);
         throw new ParsingError(
             `BOILERPLATE command is only for testing purposes and should not be used in the .ptbk.md file`,
         );

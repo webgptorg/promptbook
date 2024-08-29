@@ -101,8 +101,8 @@ export const urlCommandParser: PipelineHeadCommandParser<UrlCommand> = {
      *
      * Note: `$` is used to indicate that this function mutates given `pipelineJson`
      */
-    $applyToPipelineJson(command: UrlCommand, pipelineJson: $PipelineJson): void {
-        pipelineJson.pipelineUrl = command.pipelineUrl.href;
+    $applyToPipelineJson(command: UrlCommand, $pipelineJson: $PipelineJson): void {
+        $pipelineJson.pipelineUrl = command.pipelineUrl.href;
     },
 
     /**

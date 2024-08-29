@@ -103,7 +103,7 @@ export type PipelineHeadCommandParser<TCommand extends CommandBase> = CommonComm
      *
      * Note: `$` is used to indicate that this function mutates given `pipelineJson`
      */
-    $applyToPipelineJson(command: TCommand, pipelineJson: $PipelineJson): void;
+    $applyToPipelineJson(command: TCommand, $pipelineJson: $PipelineJson): void;
 
     /**
      * Reads the command from the `PipelineJson`
@@ -127,7 +127,7 @@ export type PipelineTemplateCommandParser<TCommand extends CommandBase> = Common
      *
      * Note: `$` is used to indicate that this function mutates given `templateJson` and/or `pipelineJson`
      */
-    $applyToTemplateJson(command: TCommand, templateJson: $TemplateJson, pipelineJson: $PipelineJson): void;
+    $applyToTemplateJson(command: TCommand, $templateJson: $TemplateJson, $pipelineJson: $PipelineJson): void;
 
     /**
      * Reads the command from the `TemplateJson`

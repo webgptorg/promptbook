@@ -118,10 +118,10 @@ export const modelCommandParser: PipelineBothCommandParser<ModelCommand> = {
      *
      * Note: `$` is used to indicate that this function mutates given `pipelineJson`
      */
-    $applyToPipelineJson(command: ModelCommand, pipelineJson: $PipelineJson): void {
+    $applyToPipelineJson(command: ModelCommand, $pipelineJson: $PipelineJson): void {
         // TODO: !!!!!! Error on redefine
-        pipelineJson.defaultModelRequirements = pipelineJson.defaultModelRequirements || {};
-        pipelineJson.defaultModelRequirements[command.key] = command.value;
+        $pipelineJson.defaultModelRequirements = $pipelineJson.defaultModelRequirements || {};
+        $pipelineJson.defaultModelRequirements[command.key] = command.value;
     },
 
     /**
@@ -131,18 +131,18 @@ export const modelCommandParser: PipelineBothCommandParser<ModelCommand> = {
      */
     $applyToTemplateJson(
         command: ModelCommand,
-        templateJson: $TemplateJson,
-        // pipelineJson: $PipelineJson,
+        $templateJson: $TemplateJson,
+        // $pipelineJson: $PipelineJson,
     ): void {
-        if (templateJson.blockType !== 'PROMPT_TEMPLATE') {
+        if ($templateJson.blockType !== 'PROMPT_TEMPLATE') {
             throw new ParsingError(`MODEL command can only be used in PROMPT_TEMPLATE block`);
         }
 
         // TODO: !!!!!! Error on redefine
-        // TODO: Warn if setting same as default in `pipelineJson`
+        // TODO: Warn if setting same as default in `$pipelineJson`
 
-        templateJson.modelRequirements = templateJson.modelRequirements || {};
-        templateJson.modelRequirements[command.key] = command.value;
+        $templateJson.modelRequirements = $templateJson.modelRequirements || {};
+        $templateJson.modelRequirements[command.key] = command.value;
     },
 
     /**

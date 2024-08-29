@@ -96,8 +96,8 @@ export const parameterCommandParser: PipelineBothCommandParser<ParameterCommand>
      *
      * Note: `$` is used to indicate that this function mutates given `pipelineJson`
      */
-    $applyToPipelineJson(command: ParameterCommand, pipelineJson: $PipelineJson): void {
-        keepUnused(command, pipelineJson);
+    $applyToPipelineJson(command: ParameterCommand, $pipelineJson: $PipelineJson): void {
+        keepUnused(command, $pipelineJson);
         // Note: [🍣] Do nothing, its application is implemented separately in `pipelineStringToJsonSync`
     },
 
@@ -106,8 +106,8 @@ export const parameterCommandParser: PipelineBothCommandParser<ParameterCommand>
      *
      * Note: `$` is used to indicate that this function mutates given `templateJson`
      */
-    $applyToTemplateJson(command: ParameterCommand, templateJson: $TemplateJson, pipelineJson: $PipelineJson): void {
-        keepUnused(command, templateJson, pipelineJson);
+    $applyToTemplateJson(command: ParameterCommand, $templateJson: $TemplateJson, $pipelineJson: $PipelineJson): void {
+        keepUnused(command, $templateJson, $pipelineJson);
         // Note: [🍣] Do nothing, its application is implemented separately in `pipelineStringToJsonSync`
     },
 
