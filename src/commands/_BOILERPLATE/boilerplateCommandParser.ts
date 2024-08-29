@@ -4,7 +4,7 @@ import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import type { PromptTemplateJson } from '../../types/PipelineJson/PromptTemplateJson';
 import { string_markdown_text } from '../../types/typeAliases';
 import { keepUnused } from '../../utils/organization/keepUnused';
-import type { CommandParser, CommandParserInput } from '../_common/types/CommandParser';
+import type { CommandParserInput, PipelineBothCommandParser } from '../_common/types/CommandParser';
 import type { BoilerplateCommand } from './BoilerplateCommand';
 
 /**
@@ -15,7 +15,7 @@ import type { BoilerplateCommand } from './BoilerplateCommand';
  * @see ./BOILERPLATE-README.md for more details <- TODO: @@@ Write theese README files OR remove this link + add annotation here (to all commands)
  * @private within the commands folder
  */
-export const boilerplateCommandParser: CommandParser<BoilerplateCommand> = {
+export const boilerplateCommandParser: PipelineBothCommandParser<BoilerplateCommand> = {
     /**
      * Name of the command
      */

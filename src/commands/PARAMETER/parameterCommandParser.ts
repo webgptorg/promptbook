@@ -6,7 +6,7 @@ import type { PromptTemplateJson } from '../../types/PipelineJson/PromptTemplate
 import { string_markdown_text } from '../../types/typeAliases';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import type { TODO_any } from '../../utils/organization/TODO_any';
-import type { CommandParser, CommandParserInput } from '../_common/types/CommandParser';
+import type { CommandParserInput, PipelineBothCommandParser } from '../_common/types/CommandParser';
 import type { ParameterCommand } from './ParameterCommand';
 
 /**
@@ -15,7 +15,7 @@ import type { ParameterCommand } from './ParameterCommand';
  * @see ./PARAMETER-README.md for more details
  * @private within the commands folder
  */
-export const parameterCommandParser: CommandParser<ParameterCommand> = {
+export const parameterCommandParser: PipelineBothCommandParser<ParameterCommand> = {
     /**
      * Name of the command
      */

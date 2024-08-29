@@ -6,7 +6,7 @@ import { string_markdown_text } from '../../types/typeAliases';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import { isValidPromptbookVersion } from '../../utils/validators/semanticVersion/isValidPromptbookVersion';
 import { PROMPTBOOK_VERSION } from '../../version';
-import type { CommandParser, CommandParserInput } from '../_common/types/CommandParser';
+import type { CommandParserInput, PipelineHeadCommandParser } from '../_common/types/CommandParser';
 import type { PromptbookVersionCommand } from './PromptbookVersionCommand';
 
 /**
@@ -15,7 +15,7 @@ import type { PromptbookVersionCommand } from './PromptbookVersionCommand';
  * @see ./PROMPTBOOK_VERSION-README.md for more details
  * @private within the commands folder
  */
-export const promptbookVersionCommandParser: CommandParser<PromptbookVersionCommand> = {
+export const promptbookVersionCommandParser: PipelineHeadCommandParser<PromptbookVersionCommand> = {
     /**
      * Name of the command
      */

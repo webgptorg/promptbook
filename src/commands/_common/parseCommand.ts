@@ -7,7 +7,6 @@ import { just } from '../../utils/organization/just';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import { COMMANDS } from '../index';
 import type { Command } from './types/Command';
-import type { CommandParserInput } from './types/CommandParser';
 import type { CommandUsagePlace } from './types/CommandUsagePlaces';
 
 /**

@@ -9,7 +9,7 @@ import { string_markdown_text } from '../../types/typeAliases';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import { isValidFilePath } from '../../utils/validators/filePath/isValidFilePath';
 import { isValidUrl } from '../../utils/validators/url/isValidUrl';
-import type { CommandParser, CommandParserInput } from '../_common/types/CommandParser';
+import type { CommandParserInput, PipelineHeadCommandParser } from '../_common/types/CommandParser';
 import type { KnowledgeCommand } from './KnowledgeCommand';
 
 /**
@@ -18,7 +18,7 @@ import type { KnowledgeCommand } from './KnowledgeCommand';
  * @see ./KNOWLEDGE-README.md for more details
  * @private within the commands folder
  */
-export const knowledgeCommandParser: CommandParser<KnowledgeCommand> = {
+export const knowledgeCommandParser: PipelineHeadCommandParser<KnowledgeCommand> = {
     /**
      * Name of the command
      */

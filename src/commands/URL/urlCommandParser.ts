@@ -5,7 +5,7 @@ import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import { string_markdown_text } from '../../types/typeAliases';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import { isValidPipelineUrl } from '../../utils/validators/url/isValidPipelineUrl';
-import type { CommandParser, CommandParserInput } from '../_common/types/CommandParser';
+import type { CommandParserInput, PipelineHeadCommandParser } from '../_common/types/CommandParser';
 import type { UrlCommand } from './UrlCommand';
 
 /**
@@ -14,7 +14,7 @@ import type { UrlCommand } from './UrlCommand';
  * @see ./URL-README.md for more details
  * @private within the commands folder
  */
-export const urlCommandParser: CommandParser<UrlCommand> = {
+export const urlCommandParser: PipelineHeadCommandParser<UrlCommand> = {
     /**
      * Name of the command
      */

@@ -5,7 +5,7 @@ import type { PromptTemplateJson } from '../../types/PipelineJson/PromptTemplate
 import { string_markdown_text } from '../../types/typeAliases';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import { isValidJavascriptName } from '../../utils/validators/javascriptName/isValidJavascriptName';
-import type { CommandParser, CommandParserInput } from '../_common/types/CommandParser';
+import type { CommandParserInput, PipelineTemplateCommandParser } from '../_common/types/CommandParser';
 import type { PostprocessCommand } from './PostprocessCommand';
 
 /**
@@ -14,7 +14,7 @@ import type { PostprocessCommand } from './PostprocessCommand';
  * @see ./POSTPROCESS-README.md for more details
  * @private within the commands folder
  */
-export const postprocessCommandParser: CommandParser<PostprocessCommand> = {
+export const postprocessCommandParser: PipelineTemplateCommandParser<PostprocessCommand> = {
     /**
      * Name of the command
      */

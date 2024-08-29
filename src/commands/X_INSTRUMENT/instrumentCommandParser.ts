@@ -4,7 +4,7 @@ import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import { string_markdown_text } from '../../types/typeAliases';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import { TODO_USE } from '../../utils/organization/TODO_USE';
-import type { CommandParser, CommandParserInput } from '../_common/types/CommandParser';
+import type { CommandParserInput, PipelineHeadCommandParser } from '../_common/types/CommandParser';
 import type { InstrumentCommand } from './InstrumentCommand';
 
 /**
@@ -13,7 +13,7 @@ import type { InstrumentCommand } from './InstrumentCommand';
  * @see ./INSTRUMENT-README.md for more details
  * @private within the commands folder
  */
-export const instrumentCommandParser: CommandParser<InstrumentCommand> = {
+export const instrumentCommandParser: PipelineHeadCommandParser<InstrumentCommand> = {
     /**
      * Name of the command
      */

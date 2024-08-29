@@ -5,7 +5,7 @@ import type { PromptTemplateJson } from '../../types/PipelineJson/PromptTemplate
 import { string_markdown_text } from '../../types/typeAliases';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import type { TODO_any } from '../../utils/organization/TODO_any';
-import type { CommandParser, CommandParserInput } from '../_common/types/CommandParser';
+import type { CommandParserInput, PipelineTemplateCommandParser } from '../_common/types/CommandParser';
 import type { JokerCommand } from './JokerCommand';
 
 /**
@@ -14,7 +14,7 @@ import type { JokerCommand } from './JokerCommand';
  * @see ./JOKER-README.md for more details
  * @private within the commands folder
  */
-export const jokerCommandParser: CommandParser<JokerCommand> = {
+export const jokerCommandParser: PipelineTemplateCommandParser<JokerCommand> = {
     /**
      * Name of the command
      */

@@ -7,7 +7,7 @@ import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import type { PromptTemplateJson } from '../../types/PipelineJson/PromptTemplateJson';
 import { string_markdown_text } from '../../types/typeAliases';
 import { keepUnused } from '../../utils/organization/keepUnused';
-import type { CommandParser, CommandParserInput } from '../_common/types/CommandParser';
+import type { CommandParserInput, PipelineBothCommandParser } from '../_common/types/CommandParser';
 import type { ModelCommand } from './ModelCommand';
 
 /**
@@ -16,7 +16,7 @@ import type { ModelCommand } from './ModelCommand';
  * @see ./MODEL-README.md for more details
  * @private within the commands folder
  */
-export const modelCommandParser: CommandParser<ModelCommand> = {
+export const modelCommandParser: PipelineBothCommandParser<ModelCommand> = {
     /**
      * Name of the command
      */

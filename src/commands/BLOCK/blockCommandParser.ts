@@ -7,7 +7,7 @@ import type { PromptTemplateJson } from '../../types/PipelineJson/PromptTemplate
 import { string_markdown_text } from '../../types/typeAliases';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import { knowledgeCommandParser } from '../KNOWLEDGE/knowledgeCommandParser';
-import type { CommandParser, CommandParserInput } from '../_common/types/CommandParser';
+import type { CommandParserInput, PipelineTemplateCommandParser } from '../_common/types/CommandParser';
 import type { BlockCommand } from './BlockCommand';
 import { BlockTypes } from './BlockTypes';
 
@@ -17,7 +17,7 @@ import { BlockTypes } from './BlockTypes';
  * @see ./BLOCK-README.md for more details
  * @private within the commands folder
  */
-export const blockCommandParser: CommandParser<BlockCommand> = {
+export const blockCommandParser: PipelineTemplateCommandParser<BlockCommand> = {
     /**
      * Name of the command
      */

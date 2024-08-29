@@ -18,7 +18,7 @@ import type { ExpectFormatCommand } from './ExpectFormatCommand';
  * @see ./EXPECT-README.md for more details
  * @private within the commands folder
  */
-export const expectCommandParser: CommandParser<ExpectCommand> = {
+export const expectCommandParser: PipelineBothCommandParser<ExpectCommand> = {
     /**
      * Name of the command
      */

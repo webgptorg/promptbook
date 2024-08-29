@@ -6,7 +6,7 @@ import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import type { PromptTemplateJson } from '../../types/PipelineJson/PromptTemplateJson';
 import { string_markdown_text } from '../../types/typeAliases';
 import { keepUnused } from '../../utils/organization/keepUnused';
-import type { CommandParser, CommandParserInput } from '../_common/types/CommandParser';
+import type { CommandParserInput, PipelineBothCommandParser } from '../_common/types/CommandParser';
 import type { PersonaCommand } from './PersonaCommand';
 
 /**
@@ -15,7 +15,7 @@ import type { PersonaCommand } from './PersonaCommand';
  * @see ./PERSONA-README.md for more details
  * @private within the commands folder
  */
-export const personaCommandParser: CommandParser<PersonaCommand> = {
+export const personaCommandParser: PipelineBothCommandParser<PersonaCommand> = {
     /**
      * Name of the command
      */

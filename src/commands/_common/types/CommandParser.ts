@@ -22,7 +22,7 @@ export type CommandBase = { type: string_name & string_SCREAMING_CASE };
 export type CommandParser<TCommand extends CommandBase> =
     | PipelineHeadCommandParser<TCommand>
     | PipelineTemplateCommandParser<TCommand>
-    | (PipelineHeadCommandParser<TCommand> & PipelineTemplateCommandParser<TCommand>);
+    | PipelineBothCommandParser<TCommand>;
 
 /**
  * @@@
@@ -82,6 +82,12 @@ export type CommonCommandParser<TCommand extends CommandBase> = {
      */
     stringify(command: TCommand): string_markdown_text;
 };
+
+/**
+ * @@@
+ */
+export type PipelineBothCommandParser<TCommand extends CommandBase> = PipelineHeadCommandParser<TCommand> &
+    PipelineTemplateCommandParser<TCommand>;
 
 /**
  * @@@
