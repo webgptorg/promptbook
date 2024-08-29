@@ -10,7 +10,7 @@
             "isOutput": true
         }
     ],
-    "promptTemplates": [
+    "templates": [
         {
             "blockType": "PROMPT_TEMPLATE",
             "name": "prompt",

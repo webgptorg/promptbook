@@ -25,7 +25,7 @@
             "isOutput": false
         }
     ],
-    "promptTemplates": [
+    "templates": [
         {
             "blockType": "PROMPT_TEMPLATE",
             "name": "synonym",
@@ -36,9 +36,7 @@
             },
             "content": "Write synonym for \"{word}\"",
             "personaName": "Joe",
-            "dependentParameterNames": [
-                "word"
-            ],
+            "dependentParameterNames": ["word"],
             "resultingParameterName": "wordSynonym"
         },
         {
@@ -51,10 +49,7 @@
             },
             "content": "Write sentence with \"{word}\" and \"{wordSynonym}\" in it",
             "personaName": "Joe",
-            "dependentParameterNames": [
-                "word",
-                "wordSynonym"
-            ],
+            "dependentParameterNames": ["word", "wordSynonym"],
             "resultingParameterName": "sentenceWithTwoSynonyms"
         }
     ],
@@ -70,9 +65,7 @@
                 "systemMessage": "You are a linguist and a knowledgeable assistant.",
                 "temperature": 0.5
             },
-            "preparationIds": [
-                1
-            ]
+            "preparationIds": [1]
         }
     ],
     "preparations": [

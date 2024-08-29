@@ -8,29 +8,29 @@ import { $asDeeplyFrozenSerializableJson } from '../utils/serialization/$asDeepl
  * @public exported from `@promptbook/core`
  */
 export function unpreparePipeline(pipeline: PipelineJson): PipelineJson {
-    let { personas, knowledgeSources, promptTemplates } = pipeline;
+    let { personas, knowledgeSources, templates } = pipeline;
 
     personas = personas.map((persona) => ({ ...persona, modelRequirements: undefined, preparationIds: undefined }));
     knowledgeSources = knowledgeSources.map((knowledgeSource) => ({ ...knowledgeSource, preparationIds: undefined }));
-    promptTemplates = promptTemplates.map((promptTemplate) => {
-        let { dependentParameterNames } = promptTemplate;
+    templates = templates.map((template) => {
+        let { dependentParameterNames } = template;
 
-        const parameterNames = extractParameterNames(promptTemplate.preparedContent || '');
+        const parameterNames = extractParameterNames(template.preparedContent || '');
 
         dependentParameterNames = dependentParameterNames.filter(
             (dependentParameterName) => !parameterNames.has(dependentParameterName),
             // <- [🏷] This is the reverse process to remove {knowledge} from `dependentParameterNames`
         );
 
-        const promptTemplateUnprepared = { ...promptTemplate, dependentParameterNames };
-        delete promptTemplateUnprepared.preparedContent;
+        const templateUnprepared = { ...template, dependentParameterNames };
+        delete templateUnprepared.preparedContent;
 
-        return promptTemplateUnprepared;
+        return templateUnprepared;
     });
 
     return $asDeeplyFrozenSerializableJson('Unprepared PipelineJson', {
         ...pipeline,
-        promptTemplates,
+        templates,
         knowledgeSources,
         knowledgePieces: [],
         personas,

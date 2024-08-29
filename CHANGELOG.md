@@ -485,6 +485,12 @@ Was accidentally released skipped
 -   All parsers have functions `$applyToPipelineJson`, `$applyToTemplateJson`, `stringify`, `takeFromPipelineJson` and `takeFromTemplateJson`
 -   `PipelineJson` has `defaultModelRequirements`
 -   `PipelineJson` has Chat model variant as default without need to specify it explicitly
+-   [🥜] Rename "Prompt template" -> "Template"
+-   Rename `PromptTemplateJson` -> `TemplateJson`
+-   Rename `extractParameterNamesFromPromptTemplate` -> `extractParameterNamesFromTemplate`
+-   Rename `PromptTemplateJsonCommon` -> `TemplateJsonCommon`
+-   Rename `PromptTemplateParameterJson` -> `ParameterJson`
+-   Rename `PipelineJson.promptTemplates` -> `PipelineJson.templates`
 
 ## In prepare
 

@@ -4,7 +4,7 @@ import { ParsingError } from '../../errors/ParsingError';
 import { PipelineLogicError } from '../../errors/PipelineLogicError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
-import type { PromptTemplateJson } from '../../types/PipelineJson/PromptTemplateJson';
+import type { TemplateJson } from '../../types/PipelineJson/TemplateJson';
 import type { string_name, string_reserved_parameter_name } from '../../types/typeAliases';
 import { isValidPromptbookVersion } from '../../utils/validators/semanticVersion/isValidPromptbookVersion';
 import { isValidPipelineUrl } from '../../utils/validators/url/isValidPipelineUrl';
@@ -89,14 +89,14 @@ export function validatePipeline(pipeline: PipelineJson): PipelineJson {
     }
 
     // TODO: [🧠] Maybe do here some propper JSON-schema / ZOD checking
-    if (!Array.isArray(pipeline.promptTemplates)) {
+    if (!Array.isArray(pipeline.templates)) {
         // TODO: [🧠] what is the correct error tp throw - maybe PromptbookSchemaError
         throw new ParsingError(
             spaceTrim(
                 (block) => `
                     Promptbook is valid JSON but with wrong structure
 
-                    \`promptbook.promptTemplates\` expected to be an array, but got ${typeof pipeline.promptTemplates}
+                    \`promptbook.templates\` expected to be an array, but got ${typeof pipeline.templates}
 
                     ${block(pipelineIdentification)}
                 `,
@@ -125,7 +125,7 @@ export function validatePipeline(pipeline: PipelineJson): PipelineJson {
         if (
             !parameter.isInput &&
             !parameter.isOutput &&
-            !pipeline.promptTemplates.some((template) => template.dependentParameterNames.includes(parameter.name))
+            !pipeline.templates.some((template) => template.dependentParameterNames.includes(parameter.name))
         ) {
             throw new PipelineLogicError(
                 spaceTrim(
@@ -146,7 +146,7 @@ export function validatePipeline(pipeline: PipelineJson): PipelineJson {
         // Note: Testing that parameter is either input or result of some template
         if (
             !parameter.isInput &&
-            !pipeline.promptTemplates.some((template) => template.resultingParameterName === parameter.name)
+            !pipeline.templates.some((template) => template.resultingParameterName === parameter.name)
         ) {
             throw new PipelineLogicError(
                 spaceTrim(
@@ -171,7 +171,7 @@ export function validatePipeline(pipeline: PipelineJson): PipelineJson {
     );
 
     // Note: Checking each template individually
-    for (const template of pipeline.promptTemplates) {
+    for (const template of pipeline.templates) {
         if (definedParameters.has(template.resultingParameterName)) {
             throw new PipelineLogicError(
                 spaceTrim(
@@ -292,8 +292,7 @@ export function validatePipeline(pipeline: PipelineJson): PipelineJson {
         resovedParameters = [...resovedParameters, reservedParameterName];
     }
 
-    let unresovedTemplates: Array<PromptTemplateJson> = [...pipeline.promptTemplates];
-    //            <- TODO: [🧠][🥜]
+    let unresovedTemplates: Array<TemplateJson> = [...pipeline.templates];
 
     let loopLimit = LOOP_LIMIT;
     while (unresovedTemplates.length > 0) {

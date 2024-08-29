@@ -7,10 +7,10 @@ import type {
 } from '../typeAliases';
 import type { KnowledgePiecePreparedJson } from './KnowledgePieceJson';
 import type { KnowledgeSourceJson, KnowledgeSourcePreparedJson } from './KnowledgeSourceJson';
+import type { ParameterJson } from './ParameterJson';
 import type { PersonaJson, PersonaPreparedJson } from './PersonaJson';
 import type { PreparationJson } from './PreparationJson';
-import type { PromptTemplateJson } from './PromptTemplateJson';
-import type { PromptTemplateParameterJson } from './PromptTemplateParameterJson';
+import type { TemplateJson } from './TemplateJson';
 
 /**
  * Promptbook is the **core concept of this package**.
@@ -64,18 +64,17 @@ export type PipelineJson = {
     /**
      * Set of variables that are used across the pipeline
      */
-    readonly parameters: Array<PromptTemplateParameterJson>;
+    readonly parameters: Array<ParameterJson>;
 
     /**
-     * Default model requirements for the model for all `promptTemplates`
+     * Default model requirements for the model for all `templates`
      */
     readonly defaultModelRequirements?: Partial<ModelRequirements>;
 
     /**
      * Sequence of prompt templates that are chained together to form a pipeline
      */
-    readonly promptTemplates: Array<PromptTemplateJson>;
-    // <- TODO: [🧠][🥜]
+    readonly templates: Array<TemplateJson>;
 
     /**
      * Set of information that are used as external knowledge in the pipeline

@@ -2,11 +2,11 @@ import { spaceTrim } from 'spacetrim';
 import { MAX_PARALLEL_COUNT } from '../config';
 import { forEachAsync } from '../execution/utils/forEachAsync';
 import type { PipelineJson } from '../types/PipelineJson/PipelineJson';
-import type { PromptTemplateJson } from '../types/PipelineJson/PromptTemplateJson';
+import type { TemplateJson } from '../types/PipelineJson/TemplateJson';
 import { TODO_USE } from '../utils/organization/TODO_USE';
 import type { PrepareOptions } from './PrepareOptions';
 
-type PrepareTemplateInput = Pick<PipelineJson, 'promptTemplates' | 'parameters'> & {
+type PrepareTemplateInput = Pick<PipelineJson, 'templates' | 'parameters'> & {
     /**
      * @@@
      */
@@ -17,8 +17,7 @@ type PreparedTemplates = {
     /**
      * @@@ Sequence of prompt templates that are chained together to form a pipeline
      */
-    readonly promptTemplatesPrepared: Array<PromptTemplateJson>;
-    // <- TODO: [🧠][🥜]
+    readonly templatesPrepared: Array<TemplateJson>;
 };
 
 /**
@@ -31,18 +30,18 @@ export async function prepareTemplates(
     options: PrepareOptions,
 ): Promise<PreparedTemplates> {
     const { maxParallelCount = MAX_PARALLEL_COUNT } = options;
-    const { promptTemplates, parameters, knowledgePiecesCount } = pipeline;
+    const { templates, parameters, knowledgePiecesCount } = pipeline;
 
     // TODO: !!!!! Apply samples to each template (if missing and is for the template defined)
     TODO_USE(parameters);
 
     // TODO: [🖌][🧠] Implement some `mapAsync` function
-    const promptTemplatesPrepared: Array<PromptTemplateJson> = new Array(
+    const templatesPrepared: Array<TemplateJson> = new Array(
         //            <- TODO: [🧱] Implement in a functional (not new Class) way
-        promptTemplates.length,
+        templates.length,
     );
     await forEachAsync(
-        promptTemplates,
+        templates,
         { maxParallelCount /* <- TODO: [🪂] When there are subtasks, this maximul limit can be broken */ },
         async (template, index) => {
             let { /* preparedContent <- TODO: Maybe use [🧊] */ dependentParameterNames } = template;
@@ -65,18 +64,18 @@ export async function prepareTemplates(
                 ];
             }
 
-            const preparedTemplate: PromptTemplateJson = {
+            const preparedTemplate: TemplateJson = {
                 ...template,
                 dependentParameterNames,
                 preparedContent,
                 // <- TODO: [🍙] Make some standard order of json properties
             };
 
-            promptTemplatesPrepared[index] = preparedTemplate;
+            templatesPrepared[index] = preparedTemplate;
         },
     );
 
-    return { promptTemplatesPrepared };
+    return { templatesPrepared };
 }
 
 /**
@@ -87,5 +86,4 @@ export async function prepareTemplates(
  * TODO: [🏏] Leverage the batch API and build queues @see https://platform.openai.com/docs/guides/batch
  * TODO: [🧊] In future one preparation can take data from previous preparation and save tokens and time
  * TODO: [🛠] Actions, instruments (and maybe knowledge) => Functions and tools
- * TODO: [🧠][🥜]
  */

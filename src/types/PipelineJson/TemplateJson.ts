@@ -5,11 +5,11 @@ import type { ScriptJson } from './ScriptJson';
 import type { SimpleTemplateJson } from './SimpleTemplateJson';
 
 /**
- * Describes one prompt template in the promptbook
+ * Describes one (prompt) template in the promptbook
  *
  * Note: [🚉] This is fully serializable as JSON
  */
-export type PromptTemplateJson =
+export type TemplateJson =
     | LlmTemplateJson
     | SimpleTemplateJson
     | ScriptJson
@@ -20,7 +20,3 @@ export type PromptTemplateJson =
     | ___;
 //  <- | [🅱] + Add the file with this (execution) block type
 
-/**
- * TODO: [🧠][🥜] What is propper name for this - "Template", "Prompt template",...
- * TODO: [🧠][🥜] Reduce confusion of `PromptTemplateJson` vs (`LlmTemplateJson` which is 'PROMPT_TEMPLATE')
- */

@@ -14,7 +14,6 @@ import type { ErrorJson } from '../errors/utils/ErrorJson';
 import type { AvailableModel } from '../execution/AvailableModel';
 import type { CommonExecutionToolsOptions } from '../execution/CommonExecutionToolsOptions';
 import type { EmbeddingVector } from '../execution/EmbeddingVector';
-import type { ExecutionTools } from '../execution/ExecutionTools';
 import type { LlmExecutionTools } from '../execution/LlmExecutionTools';
 import type { LlmExecutionToolsConstructor } from '../execution/LlmExecutionToolsConstructor';
 import type { PipelineExecutor } from '../execution/PipelineExecutor';
@@ -85,19 +84,18 @@ import type {
     ModelRequirements,
 } from '../types/ModelRequirements';
 import type { ModelVariant } from '../types/ModelVariant';
-import type { ExpectationAmount, Expectations, ExpectationUnit } from '../types/PipelineJson/Expectations';
 import type { KnowledgePiecePreparedJson } from '../types/PipelineJson/KnowledgePieceJson';
 import type { KnowledgeSourceJson, KnowledgeSourcePreparedJson } from '../types/PipelineJson/KnowledgeSourceJson';
 import type { LlmTemplateJson } from '../types/PipelineJson/LlmTemplateJson';
+import type { ParameterJson } from '../types/PipelineJson/ParameterJson';
 import type { PersonaJson, PersonaPreparedJson } from '../types/PipelineJson/PersonaJson';
 import type { PipelineJson } from '../types/PipelineJson/PipelineJson';
 import type { PreparationJson } from '../types/PipelineJson/PreparationJson';
 import type { PromptDialogJson } from '../types/PipelineJson/PromptDialogJson';
-import type { PromptTemplateJson } from '../types/PipelineJson/PromptTemplateJson';
-import type { PromptTemplateJsonCommon } from '../types/PipelineJson/PromptTemplateJsonCommon';
-import type { PromptTemplateParameterJson } from '../types/PipelineJson/PromptTemplateParameterJson';
 import type { ScriptJson } from '../types/PipelineJson/ScriptJson';
 import type { SimpleTemplateJson } from '../types/PipelineJson/SimpleTemplateJson';
+import type { TemplateJson } from '../types/PipelineJson/TemplateJson';
+import type { TemplateJsonCommon } from '../types/PipelineJson/TemplateJsonCommon';
 import type { PipelineString } from '../types/PipelineString';
 import type { ChatPrompt, CommonPrompt, CompletionPrompt, EmbeddingPrompt, Prompt } from '../types/Prompt';
 import type { ScriptLanguage } from '../types/ScriptLanguage';
@@ -338,9 +336,8 @@ export type {
     PromptResult,
     PromptResultUsage,
     PromptResultUsageCounts,
-    PromptTemplateJson,
-    PromptTemplateJsonCommon,
-    PromptTemplateParameterJson,
+    TemplateJsonCommon,
+    ParameterJson ,
     really_any,
     Registered,
     RemoteLlmExecutionToolsOptions,
@@ -445,6 +442,7 @@ export type {
     string_version_dependency,
     string_xml,
     TaskProgress,
+    TemplateJson,
     TODO_any,
     UncertainNumber,
     UserInterfaceTools,

@@ -11,7 +11,7 @@ import {
     RESERVED_PARAMETER_NAMES,
     RESERVED_PARAMETER_RESTRICTED,
 } from '../config';
-import { extractParameterNamesFromPromptTemplate } from '../conversion/utils/extractParameterNamesFromPromptTemplate';
+import { extractParameterNamesFromTemplate } from '../conversion/utils/extractParameterNamesFromTemplate';
 import { validatePipeline } from '../conversion/validation/validatePipeline';
 import { ExpectError } from '../errors/ExpectError';
 import { PipelineExecutionError } from '../errors/PipelineExecutionError';
@@ -24,7 +24,7 @@ import { isPipelinePrepared } from '../prepare/isPipelinePrepared';
 import { preparePipeline } from '../prepare/preparePipeline';
 import type { ExecutionReportJson } from '../types/execution-report/ExecutionReportJson';
 import type { PipelineJson } from '../types/PipelineJson/PipelineJson';
-import type { PromptTemplateJson } from '../types/PipelineJson/PromptTemplateJson';
+import type { TemplateJson } from '../types/PipelineJson/TemplateJson';
 import type { ChatPrompt, CompletionPrompt, EmbeddingPrompt, Prompt } from '../types/Prompt';
 import type { TaskProgress } from '../types/TaskProgress';
 import type {
@@ -285,15 +285,15 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
 
         // TODO: !!! Extract to separate functions and files - ALL FUNCTIONS BELOW
 
-        async function getContextForTemplate( // <- TODO: [🧠][🥜]
-            template: PromptTemplateJson,
+        async function getContextForTemplate( 
+            template: TemplateJson,
         ): Promise<string_parameter_value & string_markdown> {
             TODO_USE(template);
             return RESERVED_PARAMETER_MISSING_VALUE /* <- TODO: [🏍] Implement */;
         }
 
-        async function getKnowledgeForTemplate( // <- TODO: [🧠][🥜]
-            template: PromptTemplateJson,
+        async function getKnowledgeForTemplate( 
+            template: TemplateJson,
         ): Promise<string_parameter_value & string_markdown> {
             // TODO: [♨] Implement Better - use real index and keyword search from `template` and {samples}
 
@@ -302,8 +302,8 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
             //                                                      <- TODO: [🧠] Some smart aggregation of knowledge pieces, single-line vs multi-line vs mixed
         }
 
-        async function getSamplesForTemplate( // <- TODO: [🧠][🥜]
-            template: PromptTemplateJson,
+        async function getSamplesForTemplate(
+            template: TemplateJson,
         ): Promise<string_parameter_value & string_markdown> {
             // TODO: [♨] Implement Better - use real index and keyword search
 
@@ -311,7 +311,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
             return RESERVED_PARAMETER_MISSING_VALUE /* <- TODO: [♨] Implement */;
         }
 
-        async function getReservedParametersForTemplate(template: PromptTemplateJson): Promise<ReservedParameters> {
+        async function getReservedParametersForTemplate(template: TemplateJson): Promise<ReservedParameters> {
             const context = await getContextForTemplate(template); // <- [🏍]
             const knowledge = await getKnowledgeForTemplate(template);
             const samples = await getSamplesForTemplate(template);
@@ -345,12 +345,10 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
             return reservedParameters;
         }
 
-        async function executeSingleTemplate(currentTemplate: PromptTemplateJson) {
-            // <- TODO: [🧠][🥜]
+        async function executeSingleTemplate(currentTemplate: TemplateJson) {
             const name = `pipeline-executor-frame-${currentTemplate.name}`;
             const title = currentTemplate.title;
-            const priority =
-                preparedPipeline.promptTemplates.length - preparedPipeline.promptTemplates.indexOf(currentTemplate);
+            const priority = preparedPipeline.templates.length - preparedPipeline.templates.indexOf(currentTemplate);
 
             if (onProgress !== undefined /* <- [3] */) {
                 const progress: TaskProgress = {
@@ -387,7 +385,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
             }
 
             // Note: Check consistency of used and dependent parameters which was also done in `validatePipeline`, but it’s good to doublecheck
-            const usedParameterNames = extractParameterNamesFromPromptTemplate(currentTemplate);
+            const usedParameterNames = extractParameterNamesFromTemplate(currentTemplate);
             const dependentParameterNames = new Set(currentTemplate.dependentParameterNames);
             if (
                 union(
@@ -949,8 +947,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
             let resovedParameterNames: Array<string_name> = preparedPipeline.parameters
                 .filter(({ isInput }) => isInput)
                 .map(({ name }) => name);
-            let unresovedTemplates: Array<PromptTemplateJson> = [...preparedPipeline.promptTemplates];
-            //            <- TODO: [🧠][🥜]
+            let unresovedTemplates: Array<TemplateJson> = [...preparedPipeline.templates];
             let resolving: Array<Promise<void>> = [];
 
             let loopLimit = LOOP_LIMIT;

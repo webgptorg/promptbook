@@ -1,7 +1,7 @@
 import type { WritableDeep } from 'type-fest';
 import { ParsingError } from '../../errors/ParsingError';
 import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
-import type { PromptTemplateJson } from '../../types/PipelineJson/PromptTemplateJson';
+import type { TemplateJson } from '../../types/PipelineJson/TemplateJson';
 import { string_markdown_text } from '../../types/typeAliases';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import type { CommandParserInput, PipelineBothCommandParser } from '../_common/types/CommandParser';
@@ -88,7 +88,7 @@ export const boilerplateCommandParser: PipelineBothCommandParser<BoilerplateComm
      */
     $applyToTemplateJson(
         command: BoilerplateCommand,
-        templateJson: Partial<WritableDeep<PromptTemplateJson>>,
+        templateJson: Partial<WritableDeep<TemplateJson>>,
         pipelineJson: WritableDeep<PipelineJson>,
     ): void {
         keepUnused(command, templateJson, pipelineJson);
@@ -120,11 +120,11 @@ export const boilerplateCommandParser: PipelineBothCommandParser<BoilerplateComm
     },
 
     /**
-     * Reads the BOILERPLATE command from the `PromptTemplateJson`
+     * Reads the BOILERPLATE command from the `TemplateJson`
      *
      * Note: This is used in `pipelineJsonToString` utility
      */
-    takeFromTemplateJson(templateJson: WritableDeep<PromptTemplateJson>): Array<BoilerplateCommand> {
+    takeFromTemplateJson(templateJson: WritableDeep<TemplateJson>): Array<BoilerplateCommand> {
         keepUnused(templateJson);
         throw new ParsingError(
             `BOILERPLATE command is only for testing purposes and should not be used in the .ptbk.md file`,

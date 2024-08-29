@@ -31,7 +31,7 @@ export async function preparePipeline(pipeline: PipelineJson, options: PrepareOp
     const { llmTools, maxParallelCount = MAX_PARALLEL_COUNT, isVerbose = IS_VERBOSE } = options;
     const {
         parameters,
-        promptTemplates,
+        templates,
         /*
         <- TODO: [🧠][🪑] `promptbookVersion` */
         knowledgeSources /*
@@ -120,10 +120,10 @@ export async function preparePipeline(pipeline: PipelineJson, options: PrepareOp
     // ----- /Knowledge preparation -----
 
     // ----- Templates preparation -----
-    const { promptTemplatesPrepared /* TODO: parameters: parametersPrepared*/ } = await prepareTemplates(
+    const { templatesPrepared /* TODO: parameters: parametersPrepared*/ } = await prepareTemplates(
         {
             parameters,
-            promptTemplates,
+            templates,
             knowledgePiecesCount: knowledgePiecesPrepared.length,
         },
         {
@@ -139,7 +139,7 @@ export async function preparePipeline(pipeline: PipelineJson, options: PrepareOp
 
     return $asDeeplyFrozenSerializableJson('Prepared PipelineJson', {
         ...clonePipeline(pipeline),
-        promptTemplates: promptTemplatesPrepared,
+        templates: templatesPrepared,
         knowledgeSources: knowledgeSourcesPrepared,
         knowledgePieces: knowledgePiecesPrepared,
         personas: preparedPersonas,

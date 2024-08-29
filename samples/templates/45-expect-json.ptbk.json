@@ -16,7 +16,7 @@
             "sampleValues": ["{\n    \"subject\": \"dog\",\n    \"action\": \"running\",\n    \"object\": \"park\"\n}"]
         }
     ],
-    "promptTemplates": [
+    "templates": [
         {
             "blockType": "PROMPT_TEMPLATE",
             "name": "question",

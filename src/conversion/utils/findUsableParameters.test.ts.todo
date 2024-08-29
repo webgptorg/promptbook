@@ -1,18 +1,18 @@
 
-// TODO: [👜] This probbably does not make sence because in PromptTemplateJson already are listed dependencies
+// TODO: [👜] This probbably does not make sence because in TemplateJson already are listed dependencies
 
 import { describe, expect, it } from '@jest/globals';
 import { importPipeline } from '../validation/_importPipeline';
 import { PipelineJson } from '../../types/PipelineJson/PipelineJson';
-import { PromptTemplateJson } from '../../types/PipelineJson/PromptTemplateJson';
-import { PromptTemplateParameterJson } from '../../types/PipelineJson/PromptTemplateParameterJson';
+import { TemplateJson } from '../../types/PipelineJson/TemplateJson';
+import { TemplateParameterJson } from '../../types/PipelineJson/TemplateParameterJson';
 
 describe('how findUsableParameters works', () => {
     it('should find no usable parameter', () => {
         const promptbook = importPipeline(`50-advanced.ptbk.json`);
-        const promptTemplate = promptbook.promptTemplates[0];
+        const template = promptbook.templates[0];
 
-        expect(findUsableParameters({ promptbook, promptTemplate })).toBe([]);
+        expect(findUsableParameters({ promptbook, template })).toBe([]);
     });
 });
 
@@ -25,18 +25,17 @@ type FindUsableParametersOptions = {
     /**
      * Prompt template which potential usable parameters are searched for
      */
-    promptTemplate: PromptTemplateJson;
-    // <- TODO: [🧠][🥜]
+    template: TemplateJson;
 };
 
 /**
  * Function findUsableParameters will find all usable parameters for given prompt template
  * In other words, it will find all parameters that are not used in the prompt template itseld and all its dependencies
  */
-export function findUsableParameters(options: FindUsableParametersOptions): Array<PromptTemplateParameterJson> {
-    const { promptbook, promptTemplate } = options;
+export function findUsableParameters(options: FindUsableParametersOptions): Array<TemplateParameterJson> {
+    const { promptbook, template } = options;
 
-    const usableParameters: Array<PromptTemplateParameterJson> = [];
+    const usableParameters: Array<TemplateParameterJson> = [];
 
     return usableParameters;
 }

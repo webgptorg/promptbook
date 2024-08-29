@@ -11,10 +11,10 @@ import {
 import { RESERVED_PARAMETER_NAMES } from '../config';
 import { ParsingError } from '../errors/ParsingError';
 import { UnexpectedError } from '../errors/UnexpectedError';
+import type { ParameterJson } from '../types/PipelineJson/ParameterJson';
 import type { PipelineJson } from '../types/PipelineJson/PipelineJson';
-import type { PromptTemplateJson } from '../types/PipelineJson/PromptTemplateJson';
-import type { PromptTemplateParameterJson } from '../types/PipelineJson/PromptTemplateParameterJson';
 import type { ScriptJson } from '../types/PipelineJson/ScriptJson';
+import type { TemplateJson } from '../types/PipelineJson/TemplateJson';
 import type { PipelineString } from '../types/PipelineString';
 import type { ScriptLanguage } from '../types/ScriptLanguage';
 import { SUPPORTED_SCRIPT_LANGUAGES } from '../types/ScriptLanguage';
@@ -28,7 +28,7 @@ import type { TODO_any } from '../utils/organization/TODO_any';
 import type { really_any } from '../utils/organization/really_any';
 import { $asDeeplyFrozenSerializableJson } from '../utils/serialization/$asDeeplyFrozenSerializableJson';
 import { PROMPTBOOK_VERSION } from '../version';
-import { extractParameterNamesFromPromptTemplate } from './utils/extractParameterNamesFromPromptTemplate';
+import { extractParameterNamesFromTemplate } from './utils/extractParameterNamesFromTemplate';
 import { titleToName } from './utils/titleToName';
 
 /**
@@ -55,7 +55,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
         description: undefined /* <- Note: Putting here placeholder to keep `description` on top at final JSON */,
         parameters: [],
         defaultModelRequirements: {},
-        promptTemplates: [],
+        templates: [],
         knowledgeSources: [],
         knowledgePieces: [],
         personas: [],
@@ -151,7 +151,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
         }
 
         const existingParameter = pipelineJson.parameters.find(
-            (parameter: PromptTemplateParameterJson) => parameter.name === parameterName,
+            (parameter: ParameterJson) => parameter.name === parameterName,
         );
         if (
             existingParameter &&
@@ -305,7 +305,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
             description = undefined;
         }
 
-        const templateJson: Partial<WritableDeep<PromptTemplateJson>> = {
+        const templateJson: Partial<WritableDeep<TemplateJson>> = {
             blockType: 'PROMPT_TEMPLATE', // <- Note: [2]
             name: titleToName(section.title),
             title: section.title,
@@ -412,7 +412,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
         }
 
         // TODO: [🍧] !!!!!! Should be done in BLOCK command
-        if ((templateJson as WritableDeep<PromptTemplateJson>).blockType === 'SCRIPT') {
+        if ((templateJson as WritableDeep<TemplateJson>).blockType === 'SCRIPT') {
             if (!language) {
                 throw new ParsingError(
                     spaceTrim(
@@ -445,19 +445,18 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
         }
 
         templateJson.dependentParameterNames = Array.from(
-            extractParameterNamesFromPromptTemplate(
-                templateJson as PromptTemplateJson,
+            extractParameterNamesFromTemplate(
+                templateJson as TemplateJson,
                 // <- TODO: [3]
             ),
         );
-
 
         // TODO: [🍧] !!!!!! Probbably this should not be needed
         if (Object.keys(templateJson?.modelRequirements || {}).length === 0) {
             delete (templateJson as TODO_any).modelRequirements;
         }
 
-         // TODO: [🍧] !!!!!! This should be checked in MODEL command
+        // TODO: [🍧] !!!!!! This should be checked in MODEL command
         if (templateJson.blockType !== 'PROMPT_TEMPLATE' && templateJson.modelRequirements !== undefined) {
             throw new UnexpectedError(
                 spaceTrim(
@@ -474,19 +473,18 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
             );
         }
 
-        
-        pipelineJson.promptTemplates.push(
-            templateJson as PromptTemplateJson,
-            // <- TODO: [3] !!!!!! Do not do `as PromptTemplateJson` BUT make 100% sure that nothing is missing
+        pipelineJson.templates.push(
+            templateJson as TemplateJson,
+            // <- TODO: [3] !!!!!! Do not do `as TemplateJson` BUT make 100% sure that nothing is missing
         );
     }
 
     // =============================================================
     // Note: 5️⃣ Cleanup of undefined values
-    pipelineJson.promptTemplates.forEach((promptTemplates) => {
-        for (const [key, value] of Object.entries(promptTemplates)) {
+    pipelineJson.templates.forEach((templates) => {
+        for (const [key, value] of Object.entries(templates)) {
             if (value === undefined) {
-                delete (promptTemplates as really_any)[key];
+                delete (templates as really_any)[key];
             }
         }
     });

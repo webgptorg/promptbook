@@ -2,7 +2,7 @@ import spaceTrim from 'spacetrim';
 import type { WritableDeep } from 'type-fest';
 import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
 import { ParsingError } from '../../errors/ParsingError';
-import type { PromptTemplateJson } from '../../types/PipelineJson/PromptTemplateJson';
+import type { TemplateJson } from '../../types/PipelineJson/TemplateJson';
 import { string_markdown_text } from '../../types/typeAliases';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import type { CommandParserInput, PipelineTemplateCommandParser } from '../_common/types/CommandParser';
@@ -42,9 +42,7 @@ export const formatCommandParser: PipelineTemplateCommandParser<FormatCommand> =
     /**
      * Example usages of the FORMAT command
      */
-    examples: [
-        'FORMAT JSON',
-    ],
+    examples: ['FORMAT JSON'],
 
     /**
      * Parses the FORMAT command
@@ -70,7 +68,7 @@ export const formatCommandParser: PipelineTemplateCommandParser<FormatCommand> =
      *
      * Note: `$` is used to indicate that this function mutates given `templateJson`
      */
-    $applyToTemplateJson(command: FormatCommand, templateJson: WritableDeep<PromptTemplateJson>): void {
+    $applyToTemplateJson(command: FormatCommand, templateJson: WritableDeep<TemplateJson>): void {
         if (templateJson.format !== undefined && command.format !== templateJson.format) {
             throw new ParsingError(`Format format is already defined to "${templateJson.format}".
                 Now you try to redefine it by "${command.format}"`);
@@ -89,11 +87,11 @@ export const formatCommandParser: PipelineTemplateCommandParser<FormatCommand> =
     },
 
     /**
-     * Reads the FORMAT command from the `PromptTemplateJson`
+     * Reads the FORMAT command from the `TemplateJson`
      *
      * Note: This is used in `pipelineJsonToString` utility
      */
-    takeFromTemplateJson(templateJson: WritableDeep<PromptTemplateJson>): Array<FormatCommand> {
+    takeFromTemplateJson(templateJson: WritableDeep<TemplateJson>): Array<FormatCommand> {
         keepUnused(templateJson);
         throw new NotYetImplementedError(`Not implemented yet !!!!!!`);
     },

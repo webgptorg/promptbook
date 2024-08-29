@@ -1,4 +1,4 @@
-import type { PromptTemplateJson } from '../../types/PipelineJson/PromptTemplateJson';
+import type { TemplateJson } from '../../types/PipelineJson/TemplateJson';
 import type { string_parameter_name } from '../../types/typeAliases';
 import { extractParameterNames } from '../../utils/extractParameterNames';
 import { extractVariables } from './extractVariables';
@@ -6,19 +6,18 @@ import { extractVariables } from './extractVariables';
 /**
  * Parses the prompt template and returns the set of all used parameters
  *
- * @param promptTemplate the template with used parameters
+ * @param template the template with used parameters
  * @returns the set of parameter names
  * @throws {ParsingError} if the script is invalid
  * @public exported from `@promptbook/utils`
  */
-export function extractParameterNamesFromPromptTemplate(
-    promptTemplate: Pick<
-        PromptTemplateJson,
+export function extractParameterNamesFromTemplate(
+    template: Pick<
+        TemplateJson,
         'title' | 'description' | 'blockType' | 'content' | 'preparedContent' | 'jokerParameterNames'
     >,
-    // <- TODO: [🧠][🥜]
 ): Set<string_parameter_name> {
-    const { title, description, blockType, content, preparedContent, jokerParameterNames } = promptTemplate;
+    const { title, description, blockType, content, preparedContent, jokerParameterNames } = template;
     const parameterNames = new Set<string_parameter_name>();
 
     for (const parameterName of [

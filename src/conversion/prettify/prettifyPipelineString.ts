@@ -8,7 +8,7 @@ import { renderPromptbookMermaid } from './renderPipelineMermaidOptions';
 
 /**
  * Prettyfies Promptbook string and adds Mermaid graph
- * 
+ *
  * @public exported from `@promptbook/core`
  */
 export async function prettifyPipelineString(
@@ -21,8 +21,8 @@ export async function prettifyPipelineString(
         const pipelineJson = await pipelineStringToJson(pipelineString);
 
         const promptbookMermaid = renderPromptbookMermaid(pipelineJson, {
-            linkPromptTemplate(promptTemplate) {
-                return { href: `#${promptTemplate.name}`, title: promptTemplate.title };
+            linkTemplate(template) {
+                return { href: `#${template.name}`, title: template.title };
             },
         });
 

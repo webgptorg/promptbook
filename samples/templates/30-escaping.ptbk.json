@@ -15,7 +15,7 @@
             "isOutput": true
         }
     ],
-    "promptTemplates": [
+    "templates": [
         {
             "blockType": "PROMPT_TEMPLATE",
             "name": "greeting-1",

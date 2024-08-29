@@ -7,7 +7,7 @@ export default [
             { name: 'knowledgeContent', description: 'Markdown document content', isInput: true, isOutput: false },
             { name: 'knowledgePieces', description: 'The knowledge JSON object', isInput: false, isOutput: true },
         ],
-        promptTemplates: [
+        templates: [
             {
                 blockType: 'PROMPT_TEMPLATE',
                 name: 'knowledge',
@@ -33,7 +33,7 @@ export default [
             { name: 'knowledgePieceContent', description: 'The content', isInput: true, isOutput: false },
             { name: 'keywords', description: 'Keywords separated by comma', isInput: false, isOutput: true },
         ],
-        promptTemplates: [
+        templates: [
             {
                 blockType: 'PROMPT_TEMPLATE',
                 name: 'knowledge',
@@ -59,7 +59,7 @@ export default [
             { name: 'knowledgePieceContent', description: 'The content', isInput: true, isOutput: false },
             { name: 'title', description: 'The title of the document', isInput: false, isOutput: true },
         ],
-        promptTemplates: [
+        templates: [
             {
                 blockType: 'PROMPT_TEMPLATE',
                 name: 'knowledge',
@@ -97,7 +97,7 @@ export default [
                 isOutput: true,
             },
         ],
-        promptTemplates: [
+        templates: [
             {
                 blockType: 'PROMPT_TEMPLATE',
                 name: 'make-model-requirements',

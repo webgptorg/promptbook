@@ -40,7 +40,7 @@ export function renameParameter(options: RenameParameterOptions): PipelineJson {
     const renamedPipeline: WritableDeep<PipelineJson> = {
         ...pipeline,
         parameters: [...pipeline.parameters],
-        promptTemplates: [...pipeline.promptTemplates],
+        templates: [...pipeline.templates],
     };
 
     for (const parameter of renamedPipeline.parameters) {
@@ -50,28 +50,28 @@ export function renameParameter(options: RenameParameterOptions): PipelineJson {
         parameter.name = newParameterName;
     }
 
-    for (const promptTemplate of renamedPipeline.promptTemplates) {
-        if (promptTemplate.resultingParameterName === oldParameterName) {
-            promptTemplate.resultingParameterName = newParameterName;
+    for (const template of renamedPipeline.templates) {
+        if (template.resultingParameterName === oldParameterName) {
+            template.resultingParameterName = newParameterName;
         }
-        promptTemplate.dependentParameterNames = promptTemplate.dependentParameterNames.map((dependentParameterName) =>
+        template.dependentParameterNames = template.dependentParameterNames.map((dependentParameterName) =>
             dependentParameterName === oldParameterName ? newParameterName : dependentParameterName,
         );
 
-        promptTemplate.content = promptTemplate.content.replace(
+        template.content = template.content.replace(
             new RegExp(`{${oldParameterName}}`, 'g'),
             `{${newParameterName}}`,
         );
 
-        promptTemplate.title = promptTemplate.title.replace(
+        template.title = template.title.replace(
             new RegExp(`{${oldParameterName}}`, 'g'),
             `{${newParameterName}}`,
         );
 
-        promptTemplate.description =
-            promptTemplate.description === undefined
+        template.description =
+            template.description === undefined
                 ? undefined
-                : promptTemplate.description.replace(new RegExp(`{${oldParameterName}}`, 'g'), `{${newParameterName}}`);
+                : template.description.replace(new RegExp(`{${oldParameterName}}`, 'g'), `{${newParameterName}}`);
     }
 
     return renamedPipeline;

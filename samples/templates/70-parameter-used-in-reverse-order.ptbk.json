@@ -21,7 +21,7 @@
             "isOutput": false
         }
     ],
-    "promptTemplates": [
+    "templates": [
         {
             "blockType": "PROMPT_TEMPLATE",
             "name": "sentence",
@@ -31,10 +31,7 @@
                 "modelVariant": "CHAT"
             },
             "content": "Write sentence with \"{word}\" and \"{wordSynonym}\" in it",
-            "dependentParameterNames": [
-                "word",
-                "wordSynonym"
-            ],
+            "dependentParameterNames": ["word", "wordSynonym"],
             "resultingParameterName": "sentenceWithTwoSynonyms"
         },
         {
@@ -46,9 +43,7 @@
                 "modelVariant": "CHAT"
             },
             "content": "Write synonym for \"{word}\"",
-            "dependentParameterNames": [
-                "word"
-            ],
+            "dependentParameterNames": ["word"],
             "resultingParameterName": "wordSynonym"
         }
     ],

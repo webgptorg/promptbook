@@ -1,6 +1,6 @@
 import type { WritableDeep } from 'type-fest';
 import type { PipelineJson } from '../../../types/PipelineJson/PipelineJson';
-import type { PromptTemplateJson } from '../../../types/PipelineJson/PromptTemplateJson';
+import type { TemplateJson } from '../../../types/PipelineJson/TemplateJson';
 import type {
     string_markdown_text,
     string_name,
@@ -129,16 +129,16 @@ export type PipelineTemplateCommandParser<TCommand extends CommandBase> = Common
      */
     $applyToTemplateJson(
         command: TCommand,
-        templateJson: Partial<WritableDeep<PromptTemplateJson>>, // <- TODO: [🧠] `Partial<WritableDeep<...` vs `WritableDeep<Partial<...` - change ACRY
+        templateJson: Partial<WritableDeep<TemplateJson>>, // <- TODO: [🧠] `Partial<WritableDeep<...` vs `WritableDeep<Partial<...` - change ACRY
         pipelineJson: WritableDeep<PipelineJson>,
     ): void;
 
     /**
-     * Reads the command from the `PromptTemplateJson`
+     * Reads the command from the `TemplateJson`
      *
      * Note: This is used in `pipelineJsonToString` utility
      */
-    takeFromTemplateJson(templateJson: WritableDeep<PromptTemplateJson>): Array<TCommand>;
+    takeFromTemplateJson(templateJson: WritableDeep<TemplateJson>): Array<TCommand>;
 };
 
 /**

@@ -20,7 +20,7 @@
             ]
         }
     ],
-    "promptTemplates": [
+    "templates": [
         {
             "blockType": "PROMPT_TEMPLATE",
             "name": "synonym",
@@ -32,9 +32,7 @@
             },
             "content": "Write poem with word \"{word}\"",
             "personaName": "Jane",
-            "dependentParameterNames": [
-                "word"
-            ],
+            "dependentParameterNames": ["word"],
             "resultingParameterName": "poem"
         }
     ],
@@ -50,9 +48,7 @@
                 "systemMessage": "You are a poet, with a skill for weaving intricate and evocative verses.",
                 "temperature": 0.6
             },
-            "preparationIds": [
-                1
-            ]
+            "preparationIds": [1]
         }
     ],
     "preparations": [

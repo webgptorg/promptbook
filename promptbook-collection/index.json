@@ -17,7 +17,7 @@
                 "isOutput": true
             }
         ],
-        "promptTemplates": [
+        "templates": [
             {
                 "blockType": "PROMPT_TEMPLATE",
                 "name": "knowledge",
@@ -42,7 +42,7 @@
             { "name": "knowledgePieceContent", "description": "The content", "isInput": true, "isOutput": false },
             { "name": "keywords", "description": "Keywords separated by comma", "isInput": false, "isOutput": true }
         ],
-        "promptTemplates": [
+        "templates": [
             {
                 "blockType": "PROMPT_TEMPLATE",
                 "name": "knowledge",
@@ -67,7 +67,7 @@
             { "name": "knowledgePieceContent", "description": "The content", "isInput": true, "isOutput": false },
             { "name": "title", "description": "The title of the document", "isInput": false, "isOutput": true }
         ],
-        "promptTemplates": [
+        "templates": [
             {
                 "blockType": "PROMPT_TEMPLATE",
                 "name": "knowledge",
@@ -109,7 +109,7 @@
                 "isOutput": true
             }
         ],
-        "promptTemplates": [
+        "templates": [
             {
                 "blockType": "PROMPT_TEMPLATE",
                 "name": "make-model-requirements",

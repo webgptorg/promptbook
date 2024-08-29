@@ -1,4 +1,4 @@
-import type { PromptTemplateJsonCommon } from './PromptTemplateJsonCommon';
+import type { TemplateJsonCommon } from './TemplateJsonCommon';
 
 /**
  * Template for prompt to user
@@ -6,11 +6,10 @@ import type { PromptTemplateJsonCommon } from './PromptTemplateJsonCommon';
  * Note: [🚉] This is fully serializable as JSON
  * @see https://github.com/webgptorg/promptbook/discussions/76
  */
-export type PromptDialogJson = PromptTemplateJsonCommon & {
+export type PromptDialogJson = TemplateJsonCommon & {
     readonly blockType: 'PROMPT_DIALOG';
 };
 
 /**
- * TODO: [🧠][🥜]
  * TODO: [🍙] Make some standard order of json properties
  */

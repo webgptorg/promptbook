@@ -16,7 +16,7 @@
             "isOutput": true
         }
     ],
-    "promptTemplates": [
+    "templates": [
         {
             "blockType": "PROMPT_TEMPLATE",
             "name": "synonym",
@@ -33,9 +33,7 @@
                     "max": 5
                 }
             },
-            "dependentParameterNames": [
-                "word"
-            ],
+            "dependentParameterNames": ["word"],
             "resultingParameterName": "wordSynonym"
         }
     ],
@@ -51,9 +49,7 @@
                 "systemMessage": "You are a linguist and a knowledgeable assistant.",
                 "temperature": 0.5
             },
-            "preparationIds": [
-                1
-            ]
+            "preparationIds": [1]
         }
     ],
     "preparations": [

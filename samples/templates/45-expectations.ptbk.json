@@ -13,12 +13,10 @@
             "name": "greeting",
             "isInput": false,
             "isOutput": true,
-            "sampleValues": [
-                "Hello John!"
-            ]
+            "sampleValues": ["Hello John!"]
         }
     ],
-    "promptTemplates": [
+    "templates": [
         {
             "blockType": "PROMPT_TEMPLATE",
             "name": "question",
@@ -45,9 +43,7 @@
                     "max": 1
                 }
             },
-            "dependentParameterNames": [
-                "yourName"
-            ],
+            "dependentParameterNames": ["yourName"],
             "resultingParameterName": "greeting"
         }
     ],

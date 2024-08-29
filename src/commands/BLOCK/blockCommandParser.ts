@@ -4,7 +4,7 @@ import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
 import { ParsingError } from '../../errors/ParsingError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
-import type { PromptTemplateJson } from '../../types/PipelineJson/PromptTemplateJson';
+import type { TemplateJson } from '../../types/PipelineJson/TemplateJson';
 import { string_markdown_text } from '../../types/typeAliases';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import { knowledgeCommandParser } from '../KNOWLEDGE/knowledgeCommandParser';
@@ -129,7 +129,7 @@ export const blockCommandParser: PipelineTemplateCommandParser<BlockCommand> = {
      */
     $applyToTemplateJson(
         command: BlockCommand,
-        templateJson: Partial<WritableDeep<PromptTemplateJson>>,
+        templateJson: Partial<WritableDeep<TemplateJson>>,
         pipelineJson: WritableDeep<PipelineJson>,
     ): void {
         /*
@@ -213,7 +213,7 @@ export const blockCommandParser: PipelineTemplateCommandParser<BlockCommand> = {
         }
 
         expectResultingParameterName();
-        (templateJson as WritableDeep<PromptTemplateJson>).blockType = command.blockType;
+        (templateJson as WritableDeep<TemplateJson>).blockType = command.blockType;
 
         /*
         TODO: !!!!!! Chat model variant should be applied in `createPipelineExecutor`
@@ -237,11 +237,11 @@ export const blockCommandParser: PipelineTemplateCommandParser<BlockCommand> = {
     },
 
     /**
-     * Reads the BLOCK command from the `PromptTemplateJson`
+     * Reads the BLOCK command from the `TemplateJson`
      *
      * Note: This is used in `pipelineJsonToString` utility
      */
-    takeFromTemplateJson(templateJson: WritableDeep<PromptTemplateJson>): Array<BlockCommand> {
+    takeFromTemplateJson(templateJson: WritableDeep<TemplateJson>): Array<BlockCommand> {
         keepUnused(templateJson);
         throw new NotYetImplementedError(`Not implemented yet !!!!!!`);
     },

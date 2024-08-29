@@ -3,7 +3,7 @@ import type { WritableDeep } from 'type-fest';
 import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
 import { ParsingError } from '../../errors/ParsingError';
 import { EXPECTATION_UNITS, ExpectationUnit } from '../../types/PipelineJson/Expectations';
-import type { PromptTemplateJson } from '../../types/PipelineJson/PromptTemplateJson';
+import type { TemplateJson } from '../../types/PipelineJson/TemplateJson';
 import { string_markdown_text } from '../../types/typeAliases';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import { parseNumber } from '../../utils/parseNumber';
@@ -132,7 +132,7 @@ export const expectCommandParser: PipelineTemplateCommandParser<ExpectCommand> =
      *
      * Note: `$` is used to indicate that this function mutates given `templateJson`
      */
-    $applyToTemplateJson(command: ExpectCommand, templateJson: WritableDeep<PromptTemplateJson>): void {
+    $applyToTemplateJson(command: ExpectCommand, templateJson: WritableDeep<TemplateJson>): void {
         // eslint-disable-next-line no-case-declarations
         const unit = command.unit.toLowerCase() as Lowercase<ExpectationUnit>;
 
@@ -172,11 +172,11 @@ export const expectCommandParser: PipelineTemplateCommandParser<ExpectCommand> =
     },
 
     /**
-     * Reads the FORMAT command from the `PromptTemplateJson`
+     * Reads the FORMAT command from the `TemplateJson`
      *
      * Note: This is used in `pipelineJsonToString` utility
      */
-    takeFromTemplateJson(templateJson: WritableDeep<PromptTemplateJson>): Array<ExpectCommand> {
+    takeFromTemplateJson(templateJson: WritableDeep<TemplateJson>): Array<ExpectCommand> {
         keepUnused(templateJson);
         throw new NotYetImplementedError(`Not implemented yet !!!!!!`);
     },

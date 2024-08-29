@@ -1,6 +1,6 @@
 import spaceTrim from 'spacetrim';
+import type { ParameterJson } from '../types/PipelineJson/ParameterJson';
 import type { PipelineJson } from '../types/PipelineJson/PipelineJson';
-import type { PromptTemplateParameterJson } from '../types/PipelineJson/PromptTemplateParameterJson';
 import type { PipelineString } from '../types/PipelineString';
 import type { string_markdown } from '../types/typeAliases';
 import { prettifyMarkdown } from '../utils/markdown/prettifyMarkdown';
@@ -14,7 +14,7 @@ import { capitalize } from '../utils/normalization/capitalize';
  * @public exported from `@promptbook/core`
  */
 export function pipelineJsonToString(pipelineJson: PipelineJson): PipelineString {
-    const { title, pipelineUrl, promptbookVersion, description, parameters, promptTemplates } = pipelineJson;
+    const { title, pipelineUrl, promptbookVersion, description, parameters, templates } = pipelineJson;
 
     let pipelineString: string_markdown = `# ${title}`;
 
@@ -36,17 +36,17 @@ export function pipelineJsonToString(pipelineJson: PipelineJson): PipelineString
     pipelineString = prettifyMarkdown(pipelineString);
 
     for (const parameter of parameters.filter(({ isInput }) => isInput)) {
-        commands.push(`INPUT PARAMETER ${promptTemplateParameterJsonToString(parameter)}`);
+        commands.push(`INPUT PARAMETER ${templateParameterJsonToString(parameter)}`);
     }
 
     for (const parameter of parameters.filter(({ isOutput }) => isOutput)) {
-        commands.push(`OUTPUT PARAMETER ${promptTemplateParameterJsonToString(parameter)}`);
+        commands.push(`OUTPUT PARAMETER ${templateParameterJsonToString(parameter)}`);
     }
 
     pipelineString += '\n\n';
     pipelineString += commands.map((command) => `- ${command}`).join('\n');
 
-    for (const promptTemplate of promptTemplates) {
+    for (const template of templates) {
         const {
             /* Note: Not using:> name, */
             title,
@@ -59,7 +59,7 @@ export function pipelineJsonToString(pipelineJson: PipelineJson): PipelineString
             expectations,
             format,
             resultingParameterName,
-        } = promptTemplate;
+        } = template;
 
         pipelineString += '\n\n';
         pipelineString += `## ${title}`;
@@ -74,7 +74,7 @@ export function pipelineJsonToString(pipelineJson: PipelineJson): PipelineString
         let contentLanguage: 'markdown' | 'text' | 'javascript' | 'typescript' | 'python' | '' = 'text';
 
         if (blockType === 'PROMPT_TEMPLATE') {
-            const { modelRequirements } = promptTemplate;
+            const { modelRequirements } = template;
             const { modelName, modelVariant } = modelRequirements || {};
 
             commands.push(`EXECUTE PROMPT TEMPLATE`);
@@ -91,8 +91,8 @@ export function pipelineJsonToString(pipelineJson: PipelineJson): PipelineString
             // Note: Nothing special here
         } else if (blockType === 'SCRIPT') {
             commands.push(`EXECUTE SCRIPT`);
-            if (promptTemplate.contentLanguage) {
-                contentLanguage = promptTemplate.contentLanguage;
+            if (template.contentLanguage) {
+                contentLanguage = template.contentLanguage;
             } else {
                 contentLanguage = '';
             }
@@ -145,7 +145,7 @@ export function pipelineJsonToString(pipelineJson: PipelineJson): PipelineString
         pipelineString += '```';
 
         pipelineString += '\n\n';
-        pipelineString += `\`-> {${resultingParameterName}}\``; // <- TODO: !!! If the parameter here has description, add it and use promptTemplateParameterJsonToString
+        pipelineString += `\`-> {${resultingParameterName}}\``; // <- TODO: !!! If the parameter here has description, add it and use templateParameterJsonToString
     }
 
     return pipelineString as PipelineString;
@@ -154,8 +154,8 @@ export function pipelineJsonToString(pipelineJson: PipelineJson): PipelineString
 /**
  * @private internal utility of `pipelineJsonToString`
  */
-function promptTemplateParameterJsonToString(promptTemplateParameterJson: PromptTemplateParameterJson): string {
-    const { name, description } = promptTemplateParameterJson;
+function templateParameterJsonToString(templateParameterJson: ParameterJson): string {
+    const { name, description } = templateParameterJson;
 
     let parameterString = `{${name}}`;
 
@@ -166,7 +166,7 @@ function promptTemplateParameterJsonToString(promptTemplateParameterJson: Prompt
 }
 
 /**
- * TODO: !!!!!! Implement new features and commands into `promptTemplateParameterJsonToString`
+ * TODO: !!!!!! Implement new features and commands into `templateParameterJsonToString`
  * TODO: [🧠] Is there a way to auto-detect missing features in pipelineJsonToString
  * TODO: [🏛] Maybe make some markdown builder
  * TODO: [🏛] Escape all

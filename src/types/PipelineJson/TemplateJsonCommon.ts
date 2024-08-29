@@ -15,7 +15,7 @@ import type { Expectations } from './Expectations';
 /**
  * Common properties of all prompt templates
  */
-export interface PromptTemplateJsonCommon {
+export interface TemplateJsonCommon {
     /**
      * Name of the template
      * - It must be unique across the pipeline
@@ -105,7 +105,6 @@ export interface PromptTemplateJsonCommon {
 }
 
 /**
- * TODO: [🧠][🥜]
  * TODO: use one helper type> (string_prompt | string_javascript | string_markdown) & string_template
  * TODO: [♈] Probbably move expectations from templates to parameters
  */

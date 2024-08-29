@@ -1,13 +1,13 @@
 import type { ModelRequirements } from '../ModelRequirements';
 import type { string_name } from '../typeAliases';
-import type { PromptTemplateJsonCommon } from './PromptTemplateJsonCommon';
+import type { TemplateJsonCommon } from './TemplateJsonCommon';
 
 /**
  * Template for prompt to LLM
  *
  * Note: [🚉] This is fully serializable as JSON
  */
-export type LlmTemplateJson = PromptTemplateJsonCommon & {
+export type LlmTemplateJson = TemplateJsonCommon & {
     readonly blockType: 'PROMPT_TEMPLATE';
 
     /**
@@ -23,7 +23,6 @@ export type LlmTemplateJson = PromptTemplateJsonCommon & {
 };
 
 /**
- * TODO: [🧠][🥜]
  * TODO: [👙][🧠] Maybe add `knowledge`, `actions` and `instruments` to be available granularly for each template
  *       @see https://github.com/webgptorg/promptbook/discussions/79
  * TODO: [💕][🧠] Just selecting gpt3 or gpt4 level of model

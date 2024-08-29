@@ -5,7 +5,7 @@ import type { string_markdown_text, string_parameter_name, string_parameter_valu
  *
  * Note: [🚉] This is fully serializable as JSON
  */
-export type PromptTemplateParameterJson = {
+export type ParameterJson = {
     /**
      * Name of the parameter
      * - It must be unique across the pipeline
