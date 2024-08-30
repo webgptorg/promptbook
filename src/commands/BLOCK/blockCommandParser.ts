@@ -103,7 +103,7 @@ export const blockCommandParser: PipelineTemplateCommandParser<BlockCommand> = {
         let { normalized } = input;
 
         normalized = normalized.split('EXAMPLE').join('SAMPLE');
-        const blockTypes = BlockTypes.filter((blockType) => normalized.includes(blockType));
+        const blockTypes = BlockTypes.filter((blockType) => normalized.includes(blockType.split('_TEMPLATE').join('')));
 
         if (blockTypes.length !== 1) {
             throw new ParseError(
