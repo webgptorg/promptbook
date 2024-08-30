@@ -542,7 +542,11 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                                 } as Prompt; // <- TODO: Not very good type guard
 
                                 variant: switch (
-                                    { modelVariant: 'CHAT', ...(currentTemplate.modelRequirements || {}) }.modelVariant
+                                    {
+                                        modelVariant: 'CHAT',
+                                        ...(pipeline.defaultModelRequirements || {}),
+                                        ...(currentTemplate.modelRequirements || {}),
+                                    }.modelVariant
                                 ) {
                                     case 'CHAT':
                                         chatResult = await llmTools.callChatModel($deepFreeze(prompt) as ChatPrompt);
