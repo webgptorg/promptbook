@@ -1,16 +1,14 @@
 import { spaceTrim } from 'spacetrim';
 import type { Writable, WritableDeep } from 'type-fest';
-import { COMMANDS } from '../commands';
+import { COMMANDS } from '../commands/index';
 import { blockCommandParser } from '../commands/BLOCK/blockCommandParser';
 import type { ParameterCommand } from '../commands/PARAMETER/ParameterCommand';
 import { parseCommand } from '../commands/_common/parseCommand';
-import {
-    $PipelineJson,
-    $TemplateJson,
-    CommandBase,
-    PipelineHeadCommandParser,
-    PipelineTemplateCommandParser,
-} from '../commands/_common/types/CommandParser';
+import type { $PipelineJson } from '../commands/_common/types/CommandParser';
+import type { $TemplateJson } from '../commands/_common/types/CommandParser';
+import type { CommandBase } from '../commands/_common/types/CommandParser';
+import type { PipelineHeadCommandParser } from '../commands/_common/types/CommandParser';
+import type { PipelineTemplateCommandParser } from '../commands/_common/types/CommandParser';
 import { RESERVED_PARAMETER_NAMES } from '../config';
 import { ParseError } from '../errors/ParseError';
 import { UnexpectedError } from '../errors/UnexpectedError';

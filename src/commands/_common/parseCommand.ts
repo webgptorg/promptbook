@@ -1,14 +1,17 @@
 import { spaceTrim } from 'spacetrim';
 import { ParseError } from '../../errors/ParseError';
-import type { string_markdown, string_markdown_text } from '../../types/typeAliases';
+import type { string_markdown } from '../../types/typeAliases';
+import type { string_markdown_text } from '../../types/typeAliases';
 import { removeMarkdownFormatting } from '../../utils/markdown/removeMarkdownFormatting';
 import { normalizeTo_SCREAMING_CASE } from '../../utils/normalization/normalizeTo_SCREAMING_CASE';
 import { just } from '../../utils/organization/just';
 import { keepUnused } from '../../utils/organization/keepUnused';
-import { really_unknown } from '../../utils/organization/really_unknown';
+import type { really_unknown } from '../../utils/organization/really_unknown';
 import { COMMANDS } from '../index';
 import type { Command } from './types/Command';
-import { CommandBase, CommandParser, CommandParserInput } from './types/CommandParser';
+import type { CommandBase } from './types/CommandParser';
+import type { CommandParser } from './types/CommandParser';
+import type { CommandParserInput } from './types/CommandParser';
 import type { CommandUsagePlace } from './types/CommandUsagePlaces';
 
 /**

@@ -1,10 +1,8 @@
 import spaceTrim from 'spacetrim';
 import { ParseError } from '../../errors/ParseError';
-import type {
-    string_markdown_section,
-    string_markdown_section_content,
-    string_markdown_text,
-} from '../../types/typeAliases';
+import type { string_markdown_section } from '../../types/typeAliases';
+import type { string_markdown_section_content } from '../../types/typeAliases';
+import type { string_markdown_text } from '../../types/typeAliases';
 
 /**
  * Parsed markdown section

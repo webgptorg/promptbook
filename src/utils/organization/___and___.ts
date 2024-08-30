@@ -1,4 +1,4 @@
-import { really_unknown } from './really_unknown';
+import type { really_unknown } from './really_unknown';
 
 /**
  * Formatting helper to put void to keep longer version of prettier

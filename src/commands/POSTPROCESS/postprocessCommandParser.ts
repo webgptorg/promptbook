@@ -1,9 +1,11 @@
 import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
 import { ParseError } from '../../errors/ParseError';
-import { string_markdown_text } from '../../types/typeAliases';
+import type { string_markdown_text } from '../../types/typeAliases';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import { isValidJavascriptName } from '../../utils/validators/javascriptName/isValidJavascriptName';
-import type { $TemplateJson, CommandParserInput, PipelineTemplateCommandParser } from '../_common/types/CommandParser';
+import type { $TemplateJson } from '../_common/types/CommandParser';
+import type { CommandParserInput } from '../_common/types/CommandParser';
+import type { PipelineTemplateCommandParser } from '../_common/types/CommandParser';
 import type { PostprocessCommand } from './PostprocessCommand';
 
 /**

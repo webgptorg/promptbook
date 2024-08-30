@@ -1,5 +1,6 @@
 import { isValidJsonString } from '../../formats/json/utils/isValidJsonString';
-import type { string_json, string_markdown } from '../../types/typeAliases';
+import type { string_json } from '../../types/typeAliases';
+import type { string_markdown } from '../../types/typeAliases';
 import { extractAllBlocksFromMarkdown } from '../../utils/markdown/extractAllBlocksFromMarkdown';
 import type { really_unknown } from '../../utils/organization/really_unknown';
 
