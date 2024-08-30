@@ -147,7 +147,7 @@ export const blockCommandParser: PipelineTemplateCommandParser<BlockCommand> = {
 
         $templateJson.isBlockTypeSet = true;
 
-        // TODO: !!!!!! Rearrange better - but at bottom and unwrao from function
+        // TODO: !!!!!! Rearrange better - but at bottom and unwrap from function
         const expectResultingParameterName = () => {
             if ($templateJson.resultingParameterName) {
                 return;

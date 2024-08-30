@@ -1,6 +1,7 @@
 import { spaceTrim } from 'spacetrim';
 import type { Writable, WritableDeep } from 'type-fest';
 import { COMMANDS } from '../commands';
+import { blockCommandParser } from '../commands/BLOCK/blockCommandParser';
 import type { ParameterCommand } from '../commands/PARAMETER/ParameterCommand';
 import { parseCommand } from '../commands/_common/parseCommand';
 import {
@@ -309,11 +310,12 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
         const $templateJson: $TemplateJson = {
             isBlockTypeSet: false,
             isTemplateBlock: true,
-            blockType: 'PROMPT_TEMPLATE', // <- Note: [2]
+            blockType: undefined /* <- Note: [🍙] Putting here placeholder to keep `blockType` on top at final JSON */,
             name: titleToName(section.title),
             title: section.title,
             description,
             content,
+            // <- TODO: [🍙] Some standard order of properties
         };
 
         const lastLine = section.content.split('\n').pop()!;
@@ -332,8 +334,6 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
          * - Set zero times, so anticipate 'PROMPT_TEMPLATE'
          * - Set one time
          * - Set more times - throw error
-         *
-         * Note: [2]
          */
         // let isBlockTypeSet = false;
 
@@ -414,6 +414,16 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
             }
         }
 
+        // Note: If block type is not set, set it to 'PROMPT_TEMPLATE'
+        // TODO: !!!!!! Maybe need to set this before applying commands because `BLOCK` command should be first
+        if ($templateJson.isBlockTypeSet === false) {
+            blockCommandParser.$applyToTemplateJson(
+                { type: 'BLOCK', blockType: 'PROMPT_TEMPLATE' },
+                $templateJson,
+                $pipelineJson,
+            );
+        }
+
         // TODO: [🍧] !!!!!! Should be done in BLOCK command
         if (($templateJson as WritableDeep<TemplateJson>).blockType === 'SCRIPT_TEMPLATE') {
             if (!language) {
@@ -455,7 +465,10 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
             ),
         );
 
-        // TODO: [🍧] !!!!!! This should be checked in MODEL command
+        /*
+        // TODO: [🍧] !!!!!! This should be checked in `MODEL` command + better error message
+        // TODO: [🍧] !!!!!! Write error `.ptbk.md` file for `MODEL` and `PERSONA` command used in non-prompt template
+        // TODO: [🍧] !!!!!! `PERSONA` command should behave same as `MODEL` command - only usable in prompt template
         if ($templateJson.blockType !== 'PROMPT_TEMPLATE' && $templateJson.modelRequirements !== undefined) {
             throw new UnexpectedError(
                 spaceTrim(
@@ -471,6 +484,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
                 ),
             );
         }
+        */
 
         if ($templateJson.isTemplateBlock) {
             delete ($templateJson as Partial<$TemplateJson>).isBlockTypeSet;
