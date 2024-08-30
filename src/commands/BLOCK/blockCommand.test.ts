@@ -3,37 +3,13 @@ import { parseCommand } from '../_common/parseCommand';
 import { blockCommandParser } from './blockCommandParser';
 
 describe('how BLOCK command in .ptbk.md files works', () => {
-    it('should parse BLOCK command', () => {
-        expect(parseCommand('block prompt template', 'PIPELINE_TEMPLATE')).toEqual({
-            type: 'BLOCK',
-            blockType: 'PROMPT_TEMPLATE',
-        });
-        expect(parseCommand('block simple template', 'PIPELINE_TEMPLATE')).toEqual({
-            type: 'BLOCK',
-            blockType: 'SIMPLE_TEMPLATE',
-        });
-        expect(parseCommand('block script', 'PIPELINE_TEMPLATE')).toEqual({
-            type: 'BLOCK',
-            blockType: 'SCRIPT_TEMPLATE',
-        });
-        expect(parseCommand('block prompt dialog', 'PIPELINE_TEMPLATE')).toEqual({
-            type: 'BLOCK',
-            blockType: 'DIALOG_TEMPLATE',
-        });
-        expect(parseCommand('  block    prompt         template', 'PIPELINE_TEMPLATE')).toEqual({
-            type: 'BLOCK',
-            blockType: 'PROMPT_TEMPLATE',
-        });
-        expect(parseCommand('block PROMPT_TEMPLATE', 'PIPELINE_TEMPLATE')).toEqual({
-            type: 'BLOCK',
-            blockType: 'PROMPT_TEMPLATE',
-        });
-        expect(parseCommand('block `prompt template`', 'PIPELINE_TEMPLATE')).toEqual({
+    it('should parse BLOCK command in recommended form', () => {
+        expect(parseCommand('PROMPT BLOCK', 'PIPELINE_TEMPLATE')).toEqual({
             type: 'BLOCK',
             blockType: 'PROMPT_TEMPLATE',
         });
 
-        // <- [🅱]
+        // Note: No need to test all types, because it is tested from `blockCommandParser.examples`
     });
 
     it('should work with deprecated EXECUTE command', () => {
@@ -49,7 +25,7 @@ describe('how BLOCK command in .ptbk.md files works', () => {
             type: 'BLOCK',
             blockType: 'SCRIPT_TEMPLATE',
         });
-        expect(parseCommand('EXECUTE prompt dialog', 'PIPELINE_TEMPLATE')).toEqual({
+        expect(parseCommand('EXECUTE dialog', 'PIPELINE_TEMPLATE')).toEqual({
             type: 'BLOCK',
             blockType: 'DIALOG_TEMPLATE',
         });

@@ -69,19 +69,27 @@ export const blockCommandParser: PipelineTemplateCommandParser<BlockCommand> = {
      * Example usages of the BLOCK command
      */
     examples: [
-        'Prompt template BLOCK',
-        'Prompt template',
-        'Simple template BLOCK',
-        'Simple template',
-        'Script BLOCK',
-        'Script',
-        'Prompt dialog BLOCK',
-        'Prompt dialog',
-        'Sample BLOCK',
-        'Sample',
-        'Example BLOCK',
-        'Example',
-        'Knowledge BLOCK',
+        // Recommended form:
+        'PROMPT BLOCK',
+        'SIMPLE BLOCK',
+        'SCRIPT BLOCK',
+        'DIALOG BLOCK',
+        // <- [🅱]
+
+        // Long form:
+        'PROMPT TEMPLATE BLOCK',
+        'SIMPLE TEMPLATE BLOCK',
+        'SCRIPT TEMPLATE BLOCK',
+        'DIALOG TEMPLATE BLOCK',
+        // <- [🅱]
+
+        // Reversed form:
+        'BLOCK PROMPT TEMPLATE',
+        'BLOCK SIMPLE TEMPLATE',
+        'BLOCK SCRIPT TEMPLATE',
+        'BLOCK DIALOG TEMPLATE',
+        // <- [🅱]
+
         // 'Knowledge', // <- Note: [⛱] For execution blocks which are also separate commands shortcut does not work
 
         //---
