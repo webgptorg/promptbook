@@ -216,7 +216,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
 
     const listItems = extractAllListItemsFromMarkdown(pipelineHead.content);
     for (const listItem of listItems) {
-        // TODO: [🥥] Maybe move this logic to `$parseAndApplyPipelineHeadCommand`
+        // TODO: [🥥] Maybe move this logic to `$parseAndApplyPipelineHeadCommands`
         const command = parseCommand(listItem, 'PIPELINE_HEAD');
 
         const commandParser = COMMANDS.find((commandParser) => commandParser.name === command.type);
@@ -328,20 +328,26 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
             $templateJson.resultingParameterName = resultingParameterNameMatch.groups.resultingParamName;
         }
 
-        /**
-         * TODO: !!!!!! Remove
-         * This is nessesary because block type can be
-         * - Set zero times, so anticipate 'PROMPT_TEMPLATE'
-         * - Set one time
-         * - Set more times - throw error
-         */
-        // let isBlockTypeSet = false;
+        // TODO: [🥥] Maybe move this logic to `$parseAndApplyPipelineTemplateCommands`
+        const commands = listItems.map((listItem) => ({
+            listItem,
+            command: parseCommand(listItem, 'PIPELINE_TEMPLATE'),
+        }));
 
-        for (const listItem of listItems) {
-            // TODO: [🥥] Maybe move this logic to `$parseAndApplyPipelineTemplateCommand`
-            const command = parseCommand(listItem, 'PIPELINE_TEMPLATE');
-            // TODO [♓️] List commands and before apply order them
+        // Note: If block type is not set, set it to 'PROMPT_TEMPLATE'
+        if (commands.some(({ command }) => command.type === 'BLOCK') === false) {
+            blockCommandParser.$applyToTemplateJson(
+                { type: 'BLOCK', blockType: 'PROMPT_TEMPLATE' },
+                $templateJson,
+                $pipelineJson,
+            );
+        }
 
+        // TODO: !!!!!! Test error situation when `PERSONA` is used before `SIMPLE BLOCK`
+        // TODO: !!!!!! Test error situation when `MODEL` is used before `SIMPLE BLOCK`
+        // TODO [♓️] List commands and before apply order them
+
+        for (const { listItem, command } of commands) {
             const commandParser = COMMANDS.find((commandParser) => commandParser.name === command.type);
 
             if (commandParser === undefined) {
@@ -412,16 +418,6 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
                 defineParam(command);
                 // <- Note: [🍣]
             }
-        }
-
-        // Note: If block type is not set, set it to 'PROMPT_TEMPLATE'
-        // TODO: !!!!!! Maybe need to set this before applying commands because `BLOCK` command should be first
-        if ($templateJson.isBlockTypeSet === false) {
-            blockCommandParser.$applyToTemplateJson(
-                { type: 'BLOCK', blockType: 'PROMPT_TEMPLATE' },
-                $templateJson,
-                $pipelineJson,
-            );
         }
 
         // TODO: [🍧] !!!!!! Should be done in BLOCK command

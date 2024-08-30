@@ -15,9 +15,9 @@ import type { CommandUsagePlace } from './types/CommandUsagePlaces';
  *
  * @private within the pipelineStringToJson
  */
-export function $parseAndApplyPipelineHeadCommand(raw: string_markdown_text, $pipelineJson: $PipelineJson ): void {}
+export function $parseAndApplyPipelineHeadCommands(raw: string_markdown_text, $pipelineJson: $PipelineJson ): void {}
 
 /**
  * TODO: [🥥] Maybe implement this function
- * TODO: [🥥] DRY `$parseAndApplyPipelineHeadCommand` and `$parseAndApplyPipelineTemplateCommand`
+ * TODO: [🥥] DRY `$parseAndApplyPipelineHeadCommands` and `$parseAndApplyPipelineTemplateCommands`
  */
