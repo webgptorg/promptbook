@@ -1,14 +1,16 @@
 import { spaceTrim } from 'spacetrim';
 import type { Promisable } from 'type-fest';
 import { forTime } from 'waitasecond';
-import { IMMEDIATE_TIME } from '../config';
-import { IS_VERBOSE } from '../config';
-import { LOOP_LIMIT } from '../config';
-import { MAX_EXECUTION_ATTEMPTS } from '../config';
-import { MAX_PARALLEL_COUNT } from '../config';
-import { RESERVED_PARAMETER_MISSING_VALUE } from '../config';
-import { RESERVED_PARAMETER_NAMES } from '../config';
-import { RESERVED_PARAMETER_RESTRICTED } from '../config';
+import {
+    IMMEDIATE_TIME,
+    IS_VERBOSE,
+    LOOP_LIMIT,
+    MAX_EXECUTION_ATTEMPTS,
+    MAX_PARALLEL_COUNT,
+    RESERVED_PARAMETER_MISSING_VALUE,
+    RESERVED_PARAMETER_NAMES,
+    RESERVED_PARAMETER_RESTRICTED,
+} from '../config';
 import { extractParameterNamesFromTemplate } from '../conversion/utils/extractParameterNamesFromTemplate';
 import { validatePipeline } from '../conversion/validation/validatePipeline';
 import { ExpectError } from '../errors/ExpectError';
@@ -21,18 +23,18 @@ import { extractJsonBlock } from '../postprocessing/utils/extractJsonBlock';
 import { isPipelinePrepared } from '../prepare/isPipelinePrepared';
 import { preparePipeline } from '../prepare/preparePipeline';
 import type { ExecutionReportJson } from '../types/execution-report/ExecutionReportJson';
+import { ModelRequirements } from '../types/ModelRequirements';
 import type { PipelineJson } from '../types/PipelineJson/PipelineJson';
 import type { TemplateJson } from '../types/PipelineJson/TemplateJson';
-import type { ChatPrompt } from '../types/Prompt';
-import type { CompletionPrompt } from '../types/Prompt';
-import type { EmbeddingPrompt } from '../types/Prompt';
-import type { Prompt } from '../types/Prompt';
+import type { ChatPrompt, CompletionPrompt, EmbeddingPrompt, Prompt } from '../types/Prompt';
 import type { TaskProgress } from '../types/TaskProgress';
-import type { Parameters } from '../types/typeAliases';
-import type { ReservedParameters } from '../types/typeAliases';
-import type { string_markdown } from '../types/typeAliases';
-import type { string_name } from '../types/typeAliases';
-import type { string_parameter_value } from '../types/typeAliases';
+import type {
+    Parameters,
+    ReservedParameters,
+    string_markdown,
+    string_name,
+    string_parameter_value,
+} from '../types/typeAliases';
 import { arrayableToArray } from '../utils/arrayableToArray';
 import { keepUnused } from '../utils/organization/keepUnused';
 import type { really_any } from '../utils/organization/really_any';
@@ -47,12 +49,8 @@ import { PROMPTBOOK_VERSION } from '../version';
 import type { ExecutionTools } from './ExecutionTools';
 import type { PipelineExecutor } from './PipelineExecutor';
 import type { PipelineExecutorResult } from './PipelineExecutorResult';
-import type { ChatPromptResult } from './PromptResult';
-import type { CompletionPromptResult } from './PromptResult';
-import type { EmbeddingPromptResult } from './PromptResult';
-import type { PromptResult } from './PromptResult';
-import { addUsage } from './utils/addUsage';
-import { ZERO_USAGE } from './utils/addUsage';
+import type { ChatPromptResult, CompletionPromptResult, EmbeddingPromptResult, PromptResult } from './PromptResult';
+import { addUsage, ZERO_USAGE } from './utils/addUsage';
 import { checkExpectations } from './utils/checkExpectations';
 
 type CreatePipelineExecutorSettings = {
@@ -524,73 +522,76 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                                 break blockType;
 
                             case 'PROMPT_TEMPLATE':
-                                prompt = {
-                                    title: currentTemplate.title,
-                                    pipelineUrl: `${
-                                        preparedPipeline.pipelineUrl
-                                            ? preparedPipeline.pipelineUrl
-                                            : 'anonymous' /* <- TODO: [🧠] How to deal with anonymous pipelines, do here some auto-url like SHA-256 based ad-hoc identifier? */
-                                    }#${currentTemplate.name}`,
-                                    parameters,
-                                    content: preparedContent, // <- Note: For LLM execution, parameters are replaced in the content
-                                    modelRequirements: currentTemplate.modelRequirements,
-                                    expectations: {
-                                        ...(preparedPipeline.personas.find(
-                                            ({ name }) => name === currentTemplate.personaName,
-                                        ) || {}),
-                                        ...currentTemplate.expectations,
-                                    },
-                                    format: currentTemplate.format,
-                                    postprocessingFunctionNames: currentTemplate.postprocessingFunctionNames,
-                                } as Prompt; // <- TODO: Not very good type guard
-
-                                variant: switch (
-                                    {
+                                {
+                                    const modelRequirements = {
                                         modelVariant: 'CHAT',
                                         ...(pipeline.defaultModelRequirements || {}),
                                         ...(currentTemplate.modelRequirements || {}),
-                                    }.modelVariant
-                                ) {
-                                    case 'CHAT':
-                                        chatResult = await llmTools.callChatModel($deepFreeze(prompt) as ChatPrompt);
-                                        // TODO: [🍬] Destroy chatThread
-                                        result = chatResult;
-                                        resultString = chatResult.content;
-                                        break variant;
-                                    case 'COMPLETION':
-                                        completionResult = await llmTools.callCompletionModel(
-                                            $deepFreeze(prompt) as CompletionPrompt,
-                                        );
-                                        result = completionResult;
-                                        resultString = completionResult.content;
-                                        break variant;
+                                    } satisfies ModelRequirements;
 
-                                    case 'EMBEDDING':
-                                        embeddingResult = await llmTools.callEmbeddingModel(
-                                            $deepFreeze(prompt) as EmbeddingPrompt,
-                                        );
-                                        result = embeddingResult;
-                                        resultString = embeddingResult.content.join(',');
-                                        break variant;
+                                    prompt = {
+                                        title: currentTemplate.title,
+                                        pipelineUrl: `${
+                                            preparedPipeline.pipelineUrl
+                                                ? preparedPipeline.pipelineUrl
+                                                : 'anonymous' /* <- TODO: [🧠] How to deal with anonymous pipelines, do here some auto-url like SHA-256 based ad-hoc identifier? */
+                                        }#${currentTemplate.name}`,
+                                        parameters,
+                                        content: preparedContent, // <- Note: For LLM execution, parameters are replaced in the content
+                                        modelRequirements,
+                                        expectations: {
+                                            ...(preparedPipeline.personas.find(
+                                                ({ name }) => name === currentTemplate.personaName,
+                                            ) || {}),
+                                            ...currentTemplate.expectations,
+                                        },
+                                        format: currentTemplate.format,
+                                        postprocessingFunctionNames: currentTemplate.postprocessingFunctionNames,
+                                    } as Prompt; // <- TODO: Not very good type guard
 
-                                    // <- case [🤖]:
+                                    variant: switch (modelRequirements.modelVariant) {
+                                        case 'CHAT':
+                                            chatResult = await llmTools.callChatModel(
+                                                $deepFreeze(prompt) as ChatPrompt,
+                                            );
+                                            // TODO: [🍬] Destroy chatThread
+                                            result = chatResult;
+                                            resultString = chatResult.content;
+                                            break variant;
+                                        case 'COMPLETION':
+                                            completionResult = await llmTools.callCompletionModel(
+                                                $deepFreeze(prompt) as CompletionPrompt,
+                                            );
+                                            result = completionResult;
+                                            resultString = completionResult.content;
+                                            break variant;
 
-                                    default:
-                                        throw new PipelineExecutionError(
-                                            spaceTrim(
-                                                (block) => `
-                                                    Unknown model variant "${
-                                                        (currentTemplate as really_any).modelRequirements.modelVariant
-                                                    }"
+                                        case 'EMBEDDING':
+                                            embeddingResult = await llmTools.callEmbeddingModel(
+                                                $deepFreeze(prompt) as EmbeddingPrompt,
+                                            );
+                                            result = embeddingResult;
+                                            resultString = embeddingResult.content.join(',');
+                                            break variant;
 
-                                                    ${block(pipelineIdentification)}
+                                        // <- case [🤖]:
 
+                                        default:
+                                            throw new PipelineExecutionError(
+                                                spaceTrim(
+                                                    (block) => `
+                                                        Unknown model variant "${
+                                                            (currentTemplate as really_any).modelRequirements
+                                                                .modelVariant
+                                                        }"
 
-                                                `,
-                                            ),
-                                        );
+                                                        ${block(pipelineIdentification)}
+
+                                                    `,
+                                                ),
+                                            );
+                                    }
                                 }
-
                                 break;
 
                             case 'SCRIPT_TEMPLATE':
