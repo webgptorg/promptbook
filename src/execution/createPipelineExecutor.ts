@@ -678,7 +678,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                                     );
                                 }
 
-                                // TODO: [🌹] When making next attempt for `PROMPT DIALOG`, preserve the previous user input
+                                // TODO: [🌹] When making next attempt for `DIALOG BLOCK`, preserve the previous user input
                                 resultString = await tools.userInterface.promptDialog(
                                     $deepFreeze({
                                         promptTitle: currentTemplate.title,

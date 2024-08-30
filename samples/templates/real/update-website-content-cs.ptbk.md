@@ -30,7 +30,7 @@ Udělejte si z toho profesionální a strukturované zadání.
 
 ## 👤 Schválení vylepšeného zadání
 
--   PROMPT DIALOG
+-   DIALOG BLOCK
 
 Je to změna, kterou chcete provést?
 

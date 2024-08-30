@@ -568,7 +568,7 @@ More expect variations
 ## Upcomming features
 
 -   When postprocessing fails, retry in same way as failed expectations
--   When making next attempt for `PROMPT DIALOG`, preserve the previous user input <- [🌹]
+-   When making next attempt for `DIALOG BLOCK`, preserve the previous user input <- [🌹]
 
 ## `1.0.0` Release
 

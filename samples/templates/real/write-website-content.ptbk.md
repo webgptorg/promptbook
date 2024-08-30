@@ -69,7 +69,7 @@ flowchart LR
 
 What is your web about?
 
--   PROMPT DIALOG
+-   DIALOG BLOCK
 
 ```
 {rawAssigment}
@@ -105,7 +105,7 @@ Assignment from customer:
 
 Is the title for your website okay?
 
--   PROMPT DIALOG
+-   DIALOG BLOCK
 
 ```
 {enhancedTitle}

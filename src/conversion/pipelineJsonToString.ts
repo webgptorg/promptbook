@@ -97,7 +97,7 @@ export function pipelineJsonToString(pipelineJson: PipelineJson): PipelineString
                 contentLanguage = '';
             }
         } else if (blockType === 'DIALOG_TEMPLATE') {
-            commands.push(`PROMPT DIALOG`);
+            commands.push(`DIALOG BLOCK`);
             // Note: Nothing special here
         } // <- }else if([🅱]
 
