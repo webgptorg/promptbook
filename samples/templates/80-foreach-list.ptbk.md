@@ -2,7 +2,7 @@
 
 Show how to use a simple prompt with no parameters.
 
--   PIPELINE URL https://promptbook.studio/samples/simple.ptbk.md
+-   PIPELINE URL https://promptbook.studio/samples/foreach-list.ptbk.md
 -   PROMPTBOOK VERSION 1.0.0
 -   INPUT PARAMETER `{customers}` Customer names each customer on each row
 -   OUTPUT PARAMETER `{greetings}` Greeting to each customer on each row

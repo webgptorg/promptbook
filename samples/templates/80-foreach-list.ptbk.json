@@ -1,5 +1,5 @@
 {
-    "pipelineUrl": "https://promptbook.studio/samples/simple.ptbk.md",
+    "pipelineUrl": "https://promptbook.studio/samples/foreach-list.ptbk.md",
     "title": "✨ Write greeting for each customer",
     "promptbookVersion": "1.0.0",
     "description": "Show how to use a simple prompt with no parameters.",
