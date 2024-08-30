@@ -166,7 +166,7 @@ export const expectCommandParser: PipelineTemplateCommandParser<ExpectCommand> =
      */
     stringify(command: ExpectCommand): string_markdown_text {
         keepUnused(command);
-        return `- !!!!!!`;
+        return `!!!!!!`;
     },
 
     /**

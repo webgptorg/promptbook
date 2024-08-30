@@ -150,7 +150,7 @@ export const modelCommandParser: PipelineBothCommandParser<ModelCommand> = {
      */
     stringify(command: ModelCommand): string_markdown_text {
         keepUnused(command);
-        return `- !!!!!!`;
+        return `!!!!!!`;
     },
 
     /**

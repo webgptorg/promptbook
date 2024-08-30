@@ -234,7 +234,7 @@ export const blockCommandParser: PipelineTemplateCommandParser<BlockCommand> = {
      */
     stringify(command: BlockCommand): string_markdown_text {
         keepUnused(command);
-        return `- !!!!!!`;
+        return `!!!!!!`;
     },
 
     /**

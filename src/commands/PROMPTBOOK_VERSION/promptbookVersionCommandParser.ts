@@ -85,7 +85,7 @@ export const promptbookVersionCommandParser: PipelineHeadCommandParser<Promptboo
      */
     stringify(command: PromptbookVersionCommand): string_markdown_text {
         keepUnused(command);
-        return `- !!!!!!`;
+        return `!!!!!!`;
     },
 
     /**

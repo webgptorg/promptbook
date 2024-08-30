@@ -86,7 +86,7 @@ export const postprocessCommandParser: PipelineTemplateCommandParser<Postprocess
      */
     stringify(command: PostprocessCommand): string_markdown_text {
         keepUnused(command);
-        return `- !!!!!!`;
+        return `!!!!!!`;
     },
 
     /**

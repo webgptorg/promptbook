@@ -69,7 +69,7 @@ export const instrumentCommandParser: PipelineHeadCommandParser<InstrumentComman
      */
     stringify(command: InstrumentCommand): string_markdown_text {
         keepUnused(command);
-        return `- !!!!!!`;
+        return `!!!!!!`;
     },
 
     /**

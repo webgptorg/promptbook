@@ -81,7 +81,7 @@ export const formatCommandParser: PipelineTemplateCommandParser<FormatCommand> =
      */
     stringify(command: FormatCommand): string_markdown_text {
         keepUnused(command);
-        return `- !!!!!!`;
+        return `!!!!!!`;
     },
 
     /**

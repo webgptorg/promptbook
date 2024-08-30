@@ -107,7 +107,7 @@ export const boilerplateCommandParser: PipelineBothCommandParser<BoilerplateComm
      */
     stringify(command: BoilerplateCommand): string_markdown_text {
         keepUnused(command);
-        return `- !!!!!!`;
+        return `!!!!!!`;
     },
 
     /**

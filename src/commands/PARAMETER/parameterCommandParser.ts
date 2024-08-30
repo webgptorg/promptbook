@@ -116,7 +116,7 @@ export const parameterCommandParser: PipelineBothCommandParser<ParameterCommand>
      */
     stringify(command: ParameterCommand): string_markdown_text {
         keepUnused(command);
-        return `- !!!!!!`;
+        return `!!!!!!`;
     },
 
     /**

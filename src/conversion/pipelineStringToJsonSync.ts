@@ -340,7 +340,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
         for (const listItem of listItems) {
             // TODO: [🥥] Maybe move this logic to `$parseAndApplyPipelineTemplateCommand`
             const command = parseCommand(listItem, 'PIPELINE_TEMPLATE');
-            // TODO [🍧][♓️] List commands and before apply order them
+            // TODO [♓️] List commands and before apply order them
 
             const commandParser = COMMANDS.find((commandParser) => commandParser.name === command.type);
 

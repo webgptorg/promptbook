@@ -76,7 +76,7 @@ export const jokerCommandParser: PipelineTemplateCommandParser<JokerCommand> = {
      */
     stringify(command: JokerCommand): string_markdown_text {
         keepUnused(command);
-        return `- !!!!!!`;
+        return `!!!!!!`;
     },
 
     /**

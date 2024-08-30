@@ -69,7 +69,7 @@ export const actionCommandParser: PipelineHeadCommandParser<ActionCommand> = {
      */
     stringify(command: ActionCommand): string_markdown_text {
         keepUnused(command);
-        return `- !!!!!!`;
+        return `!!!!!!`;
     },
 
     /**
