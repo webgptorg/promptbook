@@ -32,7 +32,7 @@ export type PipelineStringToJsonOptions = {
  * @param pipelineString {Promptbook} in string markdown format (.ptbk.md)
  * @param options - Options and tools for the compilation
  * @returns {Promptbook} compiled in JSON format (.ptbk.json)
- * @throws {ParsingError} if the promptbook string is not valid
+ * @throws {ParseError} if the promptbook string is not valid
  * @public exported from `@promptbook/core`
  */
 export async function pipelineStringToJson(

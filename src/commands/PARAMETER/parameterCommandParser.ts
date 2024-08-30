@@ -1,5 +1,5 @@
 import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
-import { ParsingError } from '../../errors/ParsingError';
+import { ParseError } from '../../errors/ParseError';
 import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import { string_markdown_text } from '../../types/typeAliases';
 import { keepUnused } from '../../utils/organization/keepUnused';
@@ -63,13 +63,13 @@ export const parameterCommandParser: PipelineBothCommandParser<ParameterCommand>
         const parametersMatch = raw.match(/\{(?<parameterName>[a-z0-9_]+)\}[^\S\r\n]*(?<parameterDescription>.*)$/im);
 
         if (!parametersMatch || !parametersMatch.groups || !parametersMatch.groups.parameterName) {
-            throw new ParsingError(`Invalid parameter`);
+            throw new ParseError(`Invalid parameter`);
         }
 
         const { parameterName, parameterDescription } = parametersMatch.groups as TODO_any;
 
         if (parameterDescription && parameterDescription.match(/\{(?<parameterName>[a-z0-9_]+)\}/im)) {
-            throw new ParsingError(`Parameter {${parameterName}} can not contain another parameter in description`);
+            throw new ParseError(`Parameter {${parameterName}} can not contain another parameter in description`);
         }
 
         let isInput = normalized.startsWith('INPUT');

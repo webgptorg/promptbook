@@ -1,6 +1,6 @@
 import spaceTrim from 'spacetrim';
 import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
-import { ParsingError } from '../../errors/ParsingError';
+import { ParseError } from '../../errors/ParseError';
 import { string_markdown_text } from '../../types/typeAliases';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import type { $TemplateJson, CommandParserInput, PipelineTemplateCommandParser } from '../_common/types/CommandParser';
@@ -49,7 +49,7 @@ export const formatCommandParser: PipelineTemplateCommandParser<FormatCommand> =
         const { normalized } = input;
 
         if (!normalized.startsWith('FORMAT_JSON')) {
-            throw new ParsingError(`For now only JSON format is supported, in future we will support more formats`);
+            throw new ParseError(`For now only JSON format is supported, in future we will support more formats`);
         }
 
         return {
@@ -68,7 +68,7 @@ export const formatCommandParser: PipelineTemplateCommandParser<FormatCommand> =
      */
     $applyToTemplateJson(command: FormatCommand, $templateJson: $TemplateJson): void {
         if ($templateJson.format !== undefined && command.format !== $templateJson.format) {
-            throw new ParsingError(`Format format is already defined to "${$templateJson.format}".
+            throw new ParseError(`Format format is already defined to "${$templateJson.format}".
                 Now you try to redefine it by "${command.format}"`);
         }
         $templateJson.format = command.format;

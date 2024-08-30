@@ -3,14 +3,14 @@
  *
  * @public exported from `@promptbook/core`
  */
-export class ParsingError extends Error {
-    public readonly name = 'ParsingError';
+export class ParseError extends Error {
+    public readonly name = 'ParseError';
     public constructor(message: string) {
         super(message);
-        Object.setPrototypeOf(this, ParsingError.prototype);
+        Object.setPrototypeOf(this, ParseError.prototype);
     }
 }
 
 /**
- * TODO: Maybe split `ParsingError` and `ApplyError`
+ * TODO: Maybe split `ParseError` and `ApplyError`
  */

@@ -1,5 +1,5 @@
 import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
-import { ParsingError } from '../../errors/ParsingError';
+import { ParseError } from '../../errors/ParseError';
 import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import { string_markdown_text } from '../../types/typeAliases';
 import { keepUnused } from '../../utils/organization/keepUnused';
@@ -52,15 +52,15 @@ export const promptbookVersionCommandParser: PipelineHeadCommandParser<Promptboo
         const promptbookVersion = args.pop()!;
 
         if (promptbookVersion === undefined) {
-            throw new ParsingError(`Version is required`);
+            throw new ParseError(`Version is required`);
         }
 
         if (!isValidPromptbookVersion(promptbookVersion)) {
-            throw new ParsingError(`Invalid Promptbook version "${promptbookVersion}"`);
+            throw new ParseError(`Invalid Promptbook version "${promptbookVersion}"`);
         }
 
         if (args.length > 0) {
-            throw new ParsingError(`Can not have more than one Promptbook version`);
+            throw new ParseError(`Can not have more than one Promptbook version`);
         }
 
         return {

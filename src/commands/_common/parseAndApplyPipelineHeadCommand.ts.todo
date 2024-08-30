@@ -1,4 +1,4 @@
-import { ParsingError } from '../../errors/ParsingError';
+import { ParseError } from '../../errors/ParseError';
 import type { $PipelineJson,$TemplateJson } from '../_common/types/CommandParser';
 import type { $PipelineJson,$TemplateJson } from '../_common/types/CommandParser';
 import type { string_markdown_text } from '../../types/typeAliases';
@@ -11,7 +11,7 @@ import type { CommandUsagePlace } from './types/CommandUsagePlaces';
  * Note: `$` is used to indicate that this function mutates given `pipelineJson`
  *
  * @returns parsed command object
- * @throws {ParsingError} if the command is invalid or something went wrong during applying the command
+ * @throws {ParseError} if the command is invalid or something went wrong during applying the command
  *
  * @private within the pipelineStringToJson
  */

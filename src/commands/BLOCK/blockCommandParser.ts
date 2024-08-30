@@ -1,7 +1,7 @@
 import spaceTrim from 'spacetrim';
 import type { WritableDeep } from 'type-fest';
 import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
-import { ParsingError } from '../../errors/ParsingError';
+import { ParseError } from '../../errors/ParseError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { TemplateJson } from '../../types/PipelineJson/TemplateJson';
 import { string_markdown_text } from '../../types/typeAliases';
@@ -106,7 +106,7 @@ export const blockCommandParser: PipelineTemplateCommandParser<BlockCommand> = {
         const blockTypes = BlockTypes.filter((blockType) => normalized.includes(blockType));
 
         if (blockTypes.length !== 1) {
-            throw new ParsingError(
+            throw new ParseError(
                 spaceTrim(
                     (block) => `
                         Unknown block type in BLOCK command
@@ -134,9 +134,7 @@ export const blockCommandParser: PipelineTemplateCommandParser<BlockCommand> = {
     $applyToTemplateJson(command: BlockCommand, $templateJson: $TemplateJson, $pipelineJson: $PipelineJson): void {
         // TODO: !!!!!! Test multiple / no block type
         if ($templateJson.isBlockTypeSet === true) {
-            throw new ParsingError(
-                `Block type is already defined in the prompt template. It can be defined only once.`,
-            );
+            throw new ParseError(`Block type is already defined in the prompt template. It can be defined only once.`);
         }
 
         $templateJson.isBlockTypeSet = true;
@@ -147,7 +145,7 @@ export const blockCommandParser: PipelineTemplateCommandParser<BlockCommand> = {
                 return;
             }
 
-            throw new ParsingError(` Template section must end with -> {parameterName}`);
+            throw new ParseError(` Template section must end with -> {parameterName}`);
         };
 
         if ($templateJson.content === undefined) {
@@ -164,7 +162,7 @@ export const blockCommandParser: PipelineTemplateCommandParser<BlockCommand> = {
                 (param) => param.name === $templateJson.resultingParameterName,
             );
             if (parameter === undefined) {
-                throw new ParsingError(
+                throw new ParseError(
                     `Can not find parameter {${$templateJson.resultingParameterName}} to assign sample value on it`,
                 );
             }

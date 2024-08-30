@@ -2,7 +2,7 @@ import hexEncoder from 'crypto-js/enc-hex';
 import sha256 from 'crypto-js/sha256';
 import spaceTrim from 'spacetrim';
 import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
-import { ParsingError } from '../../errors/ParsingError';
+import { ParseError } from '../../errors/ParseError';
 import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import { string_markdown_text } from '../../types/typeAliases';
 import { keepUnused } from '../../utils/organization/keepUnused';
@@ -59,21 +59,21 @@ export const knowledgeCommandParser: PipelineHeadCommandParser<KnowledgeCommand>
         const sourceContent = spaceTrim(args[0] || '');
 
         if (sourceContent === '') {
-            throw new ParsingError(`Source is not defined`);
+            throw new ParseError(`Source is not defined`);
         }
 
         // TODO: !!!! Following checks should be applied every link in the `sourceContent`
 
         if (sourceContent.startsWith('http://')) {
-            throw new ParsingError(`Source is not secure`);
+            throw new ParseError(`Source is not secure`);
         }
 
         if (!(isValidFilePath(sourceContent) || isValidUrl(sourceContent))) {
-            throw new ParsingError(`Source not valid`);
+            throw new ParseError(`Source not valid`);
         }
 
         if (sourceContent.startsWith('../') || sourceContent.startsWith('/') || /^[A-Z]:[\\/]+/i.test(sourceContent)) {
-            throw new ParsingError(`Source cannot be outside of the .ptbk.md folder`);
+            throw new ParseError(`Source cannot be outside of the .ptbk.md folder`);
         }
 
         return {

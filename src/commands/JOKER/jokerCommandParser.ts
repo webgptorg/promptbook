@@ -1,5 +1,5 @@
 import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
-import { ParsingError } from '../../errors/ParsingError';
+import { ParseError } from '../../errors/ParseError';
 import { string_markdown_text } from '../../types/typeAliases';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import type { TODO_any } from '../../utils/organization/TODO_any';
@@ -48,7 +48,7 @@ export const jokerCommandParser: PipelineTemplateCommandParser<JokerCommand> = {
         const parametersMatch = (args.pop() || '').match(/^\{(?<parameterName>[a-z0-9_]+)\}$/im);
 
         if (!parametersMatch || !parametersMatch.groups || !parametersMatch.groups.parameterName) {
-            throw new ParsingError(`Invalid joker`);
+            throw new ParseError(`Invalid joker`);
         }
 
         const { parameterName } = parametersMatch.groups as TODO_any;

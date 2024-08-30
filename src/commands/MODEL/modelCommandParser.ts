@@ -1,6 +1,6 @@
 import spaceTrim from 'spacetrim';
 import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
-import { ParsingError } from '../../errors/ParsingError';
+import { ParseError } from '../../errors/ParseError';
 import { MODEL_VARIANTS } from '../../types/ModelVariant';
 import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import { string_markdown_text } from '../../types/typeAliases';
@@ -74,7 +74,7 @@ export const modelCommandParser: PipelineBothCommandParser<ModelCommand> = {
                 } satisfies ModelCommand;
                 // <- Note: [🤖]
             } else {
-                throw new ParsingError(
+                throw new ParseError(
                     spaceTrim(
                         (block) => `
                             Unknown model variant in command:
@@ -93,7 +93,7 @@ export const modelCommandParser: PipelineBothCommandParser<ModelCommand> = {
                 value: args.pop()!,
             } satisfies ModelCommand;
         } else {
-            throw new ParsingError(
+            throw new ParseError(
                 spaceTrim(
                     (block) => `
                     Unknown model key in command.
@@ -133,7 +133,7 @@ export const modelCommandParser: PipelineBothCommandParser<ModelCommand> = {
         // $pipelineJson: $PipelineJson,
     ): void {
         if ($templateJson.blockType !== 'PROMPT_TEMPLATE') {
-            throw new ParsingError(`MODEL command can only be used in PROMPT_TEMPLATE block`);
+            throw new ParseError(`MODEL command can only be used in PROMPT_TEMPLATE block`);
         }
 
         // TODO: !!!!!! Error on redefine

@@ -72,7 +72,7 @@ export type CommonCommandParser<TCommand extends CommandBase> = {
     readonly examples: Array<string_markdown_text>;
 
     /**
-     * @throws {ParsingError} if the parsing fails
+     * @throws {ParseError} if the parsing fails
      */
     parse(input: CommandParserInput): TCommand;
 

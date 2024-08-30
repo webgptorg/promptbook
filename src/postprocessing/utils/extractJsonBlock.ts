@@ -1,15 +1,14 @@
-import { extractAllBlocksFromMarkdown } from '../../utils/markdown/extractAllBlocksFromMarkdown';
 import { isValidJsonString } from '../../formats/json/utils/isValidJsonString';
-import type { string_json } from '../../types/typeAliases';
-import type { string_markdown } from '../../types/typeAliases';
+import type { string_json, string_markdown } from '../../types/typeAliases';
+import { extractAllBlocksFromMarkdown } from '../../utils/markdown/extractAllBlocksFromMarkdown';
 import type { really_unknown } from '../../utils/organization/really_unknown';
 
 /**
  * Extracts  extracts exactly one valid JSON code block
  *
  * - When given string is a valid JSON as it is, it just returns it
- * - When there is no JSON code block the function throws a `ParsingError`
- * - When there are multiple JSON code blocks the function throws a `ParsingError`
+ * - When there is no JSON code block the function throws a `ParseError`
+ * - When there are multiple JSON code blocks the function throws a `ParseError`
  *
  * Note: It is not important if marked as ```json BUT if it is VALID JSON
  * Note: There are multiple simmilar function:
@@ -19,7 +18,7 @@ import type { really_unknown } from '../../utils/organization/really_unknown';
  * - `extractAllBlocksFromMarkdown` extracts all code blocks with language of the code block
  *
  * @public exported from `@promptbook/markdown-utils`
- * @throws {ParsingError} if there is no valid JSON block in the markdown
+ * @throws {ParseError} if there is no valid JSON block in the markdown
  */
 export function extractJsonBlock(markdown: string_markdown): string_json<really_unknown> {
     if (isValidJsonString(markdown)) {

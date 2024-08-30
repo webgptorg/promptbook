@@ -8,7 +8,7 @@ import { extractVariables } from './extractVariables';
  *
  * @param template the template with used parameters
  * @returns the set of parameter names
- * @throws {ParsingError} if the script is invalid
+ * @throws {ParseError} if the script is invalid
  * @public exported from `@promptbook/utils`
  */
 export function extractParameterNamesFromTemplate(

@@ -1,6 +1,5 @@
 import { spaceTrim } from 'spacetrim';
 import type { Writable, WritableDeep } from 'type-fest';
-import { PromptTemplateJson } from '../_packages/types.index';
 import { COMMANDS } from '../commands';
 import type { ParameterCommand } from '../commands/PARAMETER/ParameterCommand';
 import { parseCommand } from '../commands/_common/parseCommand';
@@ -12,7 +11,7 @@ import {
     PipelineTemplateCommandParser,
 } from '../commands/_common/types/CommandParser';
 import { RESERVED_PARAMETER_NAMES } from '../config';
-import { ParsingError } from '../errors/ParsingError';
+import { ParseError } from '../errors/ParseError';
 import { UnexpectedError } from '../errors/UnexpectedError';
 import type { ParameterJson } from '../types/PipelineJson/ParameterJson';
 import type { PipelineJson } from '../types/PipelineJson/PipelineJson';
@@ -47,7 +46,7 @@ import { titleToName } from './utils/titleToName';
  *
  * @param pipelineString {Promptbook} in string markdown format (.ptbk.md)
  * @returns {Promptbook} compiled in JSON format (.ptbk.json)
- * @throws {ParsingError} if the promptbook string is not valid
+ * @throws {ParseError} if the promptbook string is not valid
  * @public exported from `@promptbook/core`
  */
 export function pipelineStringToJsonSync(pipelineString: PipelineString): PipelineJson {
@@ -141,7 +140,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
         const { parameterName, parameterDescription, isInput, isOutput } = parameterCommand;
 
         if (RESERVED_PARAMETER_NAMES.includes(parameterName as really_any)) {
-            throw new ParsingError(
+            throw new ParseError(
                 spaceTrim(
                     (block) => `
                         Parameter name {${parameterName}} is reserved and cannot be used as resulting parameter name
@@ -161,7 +160,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
             existingParameter.description !== parameterDescription &&
             parameterDescription
         ) {
-            throw new ParsingError(
+            throw new ParseError(
                 spaceTrim(
                     (block) => `
                         Parameter {${parameterName}} is defined multiple times with different description:
@@ -234,7 +233,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
         }
 
         if (commandParser.isUsedInPipelineHead !== true /* <- Note: [🦦][4] */) {
-            throw new ParsingError(
+            throw new ParseError(
                 spaceTrim(
                     (block) => `
                         Command ${
@@ -251,17 +250,17 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
             (commandParser as PipelineHeadCommandParser<CommandBase>).$applyToPipelineJson(command, $pipelineJson);
             //             <- Note: [🦦] Its strange that this assertion must be here, [🦦][4] should do this assertion implicitelly
         } catch (error) {
-            if (!(error instanceof ParsingError)) {
+            if (!(error instanceof ParseError)) {
                 throw error;
             }
 
-            throw new ParsingError(
+            throw new ParseError(
                 spaceTrim(
                     (block) => `
                         Command ${command.type} failed to apply to the pipeline
 
                         The error:
-                        ${block((error as ParsingError).message)}
+                        ${block((error as ParseError).message)}
 
                         Raw command:
                         - ${listItem}
@@ -358,7 +357,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
             }
 
             if (commandParser.isUsedInPipelineTemplate !== true /* <- Note: [🦦][4] */) {
-                throw new ParsingError(
+                throw new ParseError(
                     spaceTrim(
                         (block) => `
                             Command ${
@@ -379,17 +378,17 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
                     $pipelineJson,
                 );
             } catch (error) {
-                if (!(error instanceof ParsingError)) {
+                if (!(error instanceof ParseError)) {
                     throw error;
                 }
 
-                throw new ParsingError(
+                throw new ParseError(
                     spaceTrim(
                         (block) => `
                             Command ${command.type} failed to apply to the template
 
                             The error:
-                            ${block((error as ParsingError).message)}
+                            ${block((error as ParseError).message)}
 
                             Current state of the template:
                             ${block(JSON.stringify($templateJson, null, 4))}
@@ -418,7 +417,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
         // TODO: [🍧] !!!!!! Should be done in BLOCK command
         if (($templateJson as WritableDeep<TemplateJson>).blockType === 'SCRIPT_TEMPLATE') {
             if (!language) {
-                throw new ParsingError(
+                throw new ParseError(
                     spaceTrim(
                         (block) => `
                             You must specify the language of the script in the prompt template
@@ -431,7 +430,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
             }
 
             if (!SUPPORTED_SCRIPT_LANGUAGES.includes(language as ScriptLanguage)) {
-                throw new ParsingError(
+                throw new ParseError(
                     spaceTrim(
                         (block) => `
                             Script language ${language} is not supported.
@@ -455,7 +454,6 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
                 // <- TODO: [3]
             ),
         );
-
 
         // TODO: [🍧] !!!!!! This should be checked in MODEL command
         if ($templateJson.blockType !== 'PROMPT_TEMPLATE' && $templateJson.modelRequirements !== undefined) {

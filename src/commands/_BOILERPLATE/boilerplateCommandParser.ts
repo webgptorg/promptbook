@@ -1,4 +1,4 @@
-import { ParsingError } from '../../errors/ParsingError';
+import { ParseError } from '../../errors/ParseError';
 import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import { string_markdown_text } from '../../types/typeAliases';
 import { keepUnused } from '../../utils/organization/keepUnused';
@@ -57,13 +57,13 @@ export const boilerplateCommandParser: PipelineBothCommandParser<BoilerplateComm
         const { args } = input;
 
         if (args.length !== 1) {
-            throw new ParsingError(`BOILERPLATE command requires exactly one argument`);
+            throw new ParseError(`BOILERPLATE command requires exactly one argument`);
         }
 
         const value = args[0]!.toLowerCase();
 
         if (value.includes('brr')) {
-            throw new ParsingError(`BOILERPLATE value can not contain brr`);
+            throw new ParseError(`BOILERPLATE value can not contain brr`);
         }
 
         return {
@@ -79,7 +79,7 @@ export const boilerplateCommandParser: PipelineBothCommandParser<BoilerplateComm
      */
     $applyToPipelineJson(command: BoilerplateCommand, $pipelineJson: $PipelineJson): void {
         keepUnused(command, $pipelineJson);
-        throw new ParsingError(
+        throw new ParseError(
             `BOILERPLATE command is only for testing purposes and should not be used in the .ptbk.md file`,
         );
     },
@@ -95,7 +95,7 @@ export const boilerplateCommandParser: PipelineBothCommandParser<BoilerplateComm
         $pipelineJson: $PipelineJson,
     ): void {
         keepUnused(command, $templateJson, $pipelineJson);
-        throw new ParsingError(
+        throw new ParseError(
             `BOILERPLATE command is only for testing purposes and should not be used in the .ptbk.md file`,
         );
     },
@@ -117,7 +117,7 @@ export const boilerplateCommandParser: PipelineBothCommandParser<BoilerplateComm
      */
     takeFromPipelineJson(pipelineJson: PipelineJson): Array<BoilerplateCommand> {
         keepUnused(pipelineJson);
-        throw new ParsingError(
+        throw new ParseError(
             `BOILERPLATE command is only for testing purposes and should not be used in the .ptbk.md file`,
         );
     },
@@ -129,7 +129,7 @@ export const boilerplateCommandParser: PipelineBothCommandParser<BoilerplateComm
      */
     takeFromTemplateJson($templateJson: $TemplateJson): Array<BoilerplateCommand> {
         keepUnused($templateJson);
-        throw new ParsingError(
+        throw new ParseError(
             `BOILERPLATE command is only for testing purposes and should not be used in the .ptbk.md file`,
         );
     },

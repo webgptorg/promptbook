@@ -1,5 +1,5 @@
 import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
-import { ParsingError } from '../../errors/ParsingError';
+import { ParseError } from '../../errors/ParseError';
 import { string_markdown_text } from '../../types/typeAliases';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import { isValidJavascriptName } from '../../utils/validators/javascriptName/isValidJavascriptName';
@@ -52,15 +52,15 @@ export const postprocessCommandParser: PipelineTemplateCommandParser<Postprocess
         const functionName = args.pop()!;
 
         if (functionName === undefined) {
-            throw new ParsingError(`Postprocess function name is required`);
+            throw new ParseError(`Postprocess function name is required`);
         }
 
         if (!isValidJavascriptName(functionName)) {
-            throw new ParsingError(`Invalid postprocess function name "${functionName}"`);
+            throw new ParseError(`Invalid postprocess function name "${functionName}"`);
         }
 
         if (args.length > 0) {
-            throw new ParsingError(`Can not have more than one postprocess function`);
+            throw new ParseError(`Can not have more than one postprocess function`);
         }
 
         return {

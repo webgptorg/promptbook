@@ -1,6 +1,6 @@
 import spaceTrim from 'spacetrim';
 import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
-import { ParsingError } from '../../errors/ParsingError';
+import { ParseError } from '../../errors/ParseError';
 import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import { string_markdown_text } from '../../types/typeAliases';
 import { keepUnused } from '../../utils/organization/keepUnused';
@@ -61,7 +61,7 @@ export const personaCommandParser: PipelineBothCommandParser<PersonaCommand> = {
         const personaName = (personaNameRaw || '').trim();
 
         if (personaName === '') {
-            throw new ParsingError(`You must set name for the persona`);
+            throw new ParseError(`You must set name for the persona`);
         }
 
         let personaDescription: string | null = (personaDescriptionRaw || '').trim();
@@ -133,7 +133,7 @@ function $applyToTemplateJson(
 
     if ($templateJson !== null) {
         if ($templateJson.blockType !== 'PROMPT_TEMPLATE') {
-            throw new ParsingError(`PERSONA command can be used only in PROMPT_TEMPLATE block`);
+            throw new ParseError(`PERSONA command can be used only in PROMPT_TEMPLATE block`);
         }
 
         $templateJson.personaName = personaName;

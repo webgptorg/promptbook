@@ -1,5 +1,5 @@
 import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
-import { ParsingError } from '../../errors/ParsingError';
+import { ParseError } from '../../errors/ParseError';
 import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import { string_markdown_text } from '../../types/typeAliases';
 import { keepUnused } from '../../utils/organization/keepUnused';
@@ -60,26 +60,26 @@ export const urlCommandParser: PipelineHeadCommandParser<UrlCommand> = {
         const pipelineUrl = args.pop()!;
 
         if (pipelineUrl === undefined) {
-            throw new ParsingError(`URL is required`);
+            throw new ParseError(`URL is required`);
         }
 
         // TODO: [🧠][🚲] This should be maybe tested as logic not syntax
         if (!isValidPipelineUrl(pipelineUrl)) {
-            throw new ParsingError(`Invalid pipeline URL "${pipelineUrl}"`);
+            throw new ParseError(`Invalid pipeline URL "${pipelineUrl}"`);
         }
 
         if (args.length > 0) {
-            throw new ParsingError(`Can not have more than one pipeline URL`);
+            throw new ParseError(`Can not have more than one pipeline URL`);
         }
 
         /*
         TODO: [🐠 Maybe more info from `isValidPipelineUrl`:
         if (pipelineUrl.protocol !== 'https:') {
-            throw new ParsingError(`Protocol must be HTTPS`);
+            throw new ParseError(`Protocol must be HTTPS`);
         }
 
         if (pipelineUrl.hash !== '') {
-            throw new ParsingError(
+            throw new ParseError(
                 spaceTrim(
                     `
                         URL must not contain hash

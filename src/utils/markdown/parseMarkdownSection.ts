@@ -1,5 +1,5 @@
 import spaceTrim from 'spacetrim';
-import { ParsingError } from '../../errors/ParsingError';
+import { ParseError } from '../../errors/ParseError';
 import type {
     string_markdown_section,
     string_markdown_section_content,
@@ -37,7 +37,7 @@ export function parseMarkdownSection(value: string_markdown_section): MarkdownSe
     const lines = value.split('\n');
 
     if (!lines[0]!.startsWith('#')) {
-        throw new ParsingError(
+        throw new ParseError(
             'Markdown section must start with heading',
             // <- [🚞]
         );
@@ -48,7 +48,7 @@ export function parseMarkdownSection(value: string_markdown_section): MarkdownSe
     const content = spaceTrim(lines.slice(1).join('\n'));
 
     if (level < 1 || level > 6) {
-        throw new ParsingError(
+        throw new ParseError(
             'Markdown section must have heading level between 1 and 6',
             // <- [🚞]
         );

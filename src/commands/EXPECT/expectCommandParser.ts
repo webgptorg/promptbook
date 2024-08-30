@@ -1,6 +1,6 @@
 import spaceTrim from 'spacetrim';
 import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
-import { ParsingError } from '../../errors/ParsingError';
+import { ParseError } from '../../errors/ParseError';
 import { EXPECTATION_UNITS, ExpectationUnit } from '../../types/PipelineJson/Expectations';
 import { string_markdown_text } from '../../types/typeAliases';
 import { keepUnused } from '../../utils/organization/keepUnused';
@@ -66,16 +66,16 @@ export const expectCommandParser: PipelineTemplateCommandParser<ExpectCommand> =
             } else if (/^max/i.test(signRaw)) {
                 sign = 'MAXIMUM';
             } else {
-                throw new ParsingError(`Invalid sign "${signRaw}", expected EXACTLY, MIN or MAX`);
+                throw new ParseError(`Invalid sign "${signRaw}", expected EXACTLY, MIN or MAX`);
             }
 
             const amountRaw = args.shift()!;
             const amount = parseNumber(amountRaw);
             if (amount < 0) {
-                throw new ParsingError('Amount must be positive number or zero');
+                throw new ParseError('Amount must be positive number or zero');
             }
             if (amount !== Math.floor(amount)) {
-                throw new ParsingError('Amount must be whole number');
+                throw new ParseError('Amount must be whole number');
             }
 
             const unitRaw = args.shift()!;
@@ -93,13 +93,13 @@ export const expectCommandParser: PipelineTemplateCommandParser<ExpectCommand> =
                     new RegExp(`^${unitRaw.toLowerCase()}`).test(existingUnitText.toLowerCase())
                 ) {
                     if (unit !== undefined) {
-                        throw new ParsingError(`Ambiguous unit "${unitRaw}"`);
+                        throw new ParseError(`Ambiguous unit "${unitRaw}"`);
                     }
                     unit = existingUnit;
                 }
             }
             if (unit === undefined) {
-                throw new ParsingError(`Invalid unit "${unitRaw}"`);
+                throw new ParseError(`Invalid unit "${unitRaw}"`);
             }
 
             return {
@@ -113,7 +113,7 @@ export const expectCommandParser: PipelineTemplateCommandParser<ExpectCommand> =
                 throw error;
             }
 
-            throw new ParsingError(
+            throw new ParseError(
                 spaceTrim(
                     (block) =>
                         `
@@ -139,7 +139,7 @@ export const expectCommandParser: PipelineTemplateCommandParser<ExpectCommand> =
 
         if (command.sign === 'MINIMUM' || command.sign === 'EXACTLY') {
             if ($templateJson.expectations[unit]!.min !== undefined) {
-                throw new ParsingError(
+                throw new ParseError(
                     `Already defined minumum ${
                         $templateJson.expectations![unit]!.min
                     } ${command.unit.toLowerCase()}, now trying to redefine it to ${command.amount}`,
@@ -149,7 +149,7 @@ export const expectCommandParser: PipelineTemplateCommandParser<ExpectCommand> =
         } /* not else */
         if (command.sign === 'MAXIMUM' || command.sign === 'EXACTLY') {
             if ($templateJson.expectations[unit]!.max !== undefined) {
-                throw new ParsingError(
+                throw new ParseError(
                     `Already defined maximum ${
                         $templateJson.expectations![unit]!.max
                     } ${command.unit.toLowerCase()}, now trying to redefine it to ${command.amount}`,

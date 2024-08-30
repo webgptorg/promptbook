@@ -496,6 +496,7 @@ Was accidentally released skipped
 -   Rename `ScriptJson` -> `ScriptTemplateJson`
 -   Rename `SCRIPT` -> `SCRIPT_TEMPLATE`
 -   Rename `LlmTemplateJson` -> `PromptTemplateJson`
+-   Rename `ParsingError` -> `ParseError`
 
 ## In prepare
 
