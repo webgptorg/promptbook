@@ -478,7 +478,6 @@ Was accidentally released skipped
 
 [🍧] Commands and command parser
 
--   !!!!!!
 -   There are 2 different commands, `EXPECT` and `FORMAT`
 -   `EXPECT JSON` changed to `FORMAT JSON`
 -   Change `usagePlaces` -> `isUsedInPipelineHead` + `isUsedInPipelineTemplate`
