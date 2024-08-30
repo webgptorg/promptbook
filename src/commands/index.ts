@@ -1,5 +1,6 @@
 import { blockCommandParser } from './BLOCK/blockCommandParser';
 import { expectCommandParser } from './EXPECT/expectCommandParser';
+import { foreachCommandParser } from './FOREACH/foreachCommandParser';
 import { formatCommandParser } from './FORMAT/formatCommandParser';
 import { jokerCommandParser } from './JOKER/jokerCommandParser';
 import { knowledgeCommandParser } from './KNOWLEDGE/knowledgeCommandParser';
@@ -32,5 +33,6 @@ export const COMMANDS = [
     actionCommandParser,
     instrumentCommandParser,
     personaCommandParser,
+    foreachCommandParser,
     boilerplateCommandParser, // <- TODO: !! Only in development, remove in production
 ] as const;

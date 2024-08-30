@@ -1,4 +1,4 @@
-import type { ___ } from '../../utils/organization/___';
+import type { ___or___ } from '../../utils/organization/___or___';
 import type { DialogTemplateJson } from './DialogTemplateJson';
 import type { PromptTemplateJson } from './PromptTemplateJson';
 import type { ScriptTemplateJson } from './ScriptTemplateJson';
@@ -14,6 +14,6 @@ export type TemplateJson =
     | SimpleTemplateJson
     | ScriptTemplateJson
     | DialogTemplateJson
-    | ___
-    | ___;
+    | ___or___
+    | ___or___;
 //  <- | [🅱] + Add the file with this (execution) block type

@@ -7,6 +7,7 @@ import type {
     string_promptbook_documentation_url,
 } from '../../../types/typeAliases';
 import type { string_SCREAMING_CASE } from '../../../utils/normalization/normalizeTo_SCREAMING_CASE';
+import { ___and___ } from '../../../utils/organization/___and___';
 import type { CommandUsagePlace } from './CommandUsagePlaces';
 
 /**
@@ -86,8 +87,9 @@ export type CommonCommandParser<TCommand extends CommandBase> = {
 /**
  * @@@
  */
-export type PipelineBothCommandParser<TCommand extends CommandBase> = PipelineHeadCommandParser<TCommand> &
-    PipelineTemplateCommandParser<TCommand>;
+export type PipelineBothCommandParser<TCommand extends CommandBase> = ___and___ &
+    Omit<PipelineHeadCommandParser<TCommand>, 'isUsedInPipelineTemplate'> &
+    Omit<PipelineTemplateCommandParser<TCommand>, 'isUsedInPipelineHead'>;
 
 /**
  * @@@
@@ -97,6 +99,11 @@ export type PipelineHeadCommandParser<TCommand extends CommandBase> = CommonComm
      * @@@
      */
     readonly isUsedInPipelineHead: true;
+
+    /**
+     * @@@
+     */
+    readonly isUsedInPipelineTemplate: false;
 
     /**
      * Apply the command to the `pipelineJson`
@@ -117,6 +124,11 @@ export type PipelineHeadCommandParser<TCommand extends CommandBase> = CommonComm
  * @@@
  */
 export type PipelineTemplateCommandParser<TCommand extends CommandBase> = CommonCommandParser<TCommand> & {
+    /**
+     * @@@
+     */
+    readonly isUsedInPipelineHead: false;
+
     /**
      * @@@
      */

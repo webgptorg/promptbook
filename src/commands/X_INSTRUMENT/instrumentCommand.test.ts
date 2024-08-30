@@ -12,7 +12,6 @@ describe('how INSTRUMENT command in .ptbk.md files works', () => {
     it(`should work with all samples`, () => {
         // Note: This is tested also in the common test file parseCommand.test.ts
         for (const example of instrumentCommandParser.examples) {
-            // @@
             expect(() => parseCommand(example, 'PIPELINE_HEAD')).not.toThrowError();
             expect(() => parseCommand(example, 'PIPELINE_TEMPLATE')).not.toThrowError();
         }
