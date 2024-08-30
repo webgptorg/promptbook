@@ -12,8 +12,8 @@ Show how to use a simple prompt with no parameters.
 <!--FOR EACH , FOREACH, EACH, FOR -->
 
 -   EACH List Line -> `{customer}`
--   PERSONA Jane, !!!!!! <!-- <- TODO: Allow to import persona-->
--   EXPECT !!!!!!
+-   PERSONA Jane, [🍭] <!-- <- TODO: Allow to import persona-->
+<!-- -   EXPECT [🍭] -->
 
 ```text
 Write an email greeting for "{customer}"
