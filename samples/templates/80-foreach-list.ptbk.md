@@ -16,8 +16,14 @@ Show how to use a simple prompt with no parameters.
 <!-- -   EXPECT [🍭] -->
 
 ```text
-Write an email greeting for "{customer}"
+Write an email greeting for "{customers}"
 ```
+
+<!--
+TODO: [🍭] Change "{customers}" to "{customer}" after solving
+> Can not resolve:
+> - Parameter {greetings} which depends on {customer}
+-->
 
 `-> {greetings}`
 

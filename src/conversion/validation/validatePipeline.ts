@@ -323,6 +323,8 @@ export function validatePipeline(pipeline: PipelineJson): PipelineJson {
                         Can not resolve some parameters:
                         Either you are using a parameter that is not defined, or there are some circular dependencies.
 
+                        ${block(pipelineIdentification)}
+
                         Can not resolve:
                         ${block(
                             unresovedTemplates
@@ -338,7 +340,7 @@ export function validatePipeline(pipeline: PipelineJson): PipelineJson {
                         Resolved:
                         ${block(resovedParameters.map((name) => `- Parameter {${name}}`).join('\n'))}
 
-                        ${block(pipelineIdentification)}
+
                     `,
                     // <- TODO: [🚞]
                 ),

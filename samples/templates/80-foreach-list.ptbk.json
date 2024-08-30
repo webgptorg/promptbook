@@ -26,11 +26,11 @@
             "blockType": "PROMPT_TEMPLATE",
             "name": "write-a-greeting",
             "title": "Write a greeting",
-            "content": "Write an email greeting for \"{customer}\"",
+            "content": "Write an email greeting for \"{customers}\"",
             "resultingParameterName": "greetings",
             "personaName": "Jane",
             "dependentParameterNames": [
-                "customer"
+                "customers"
             ]
         }
     ],
