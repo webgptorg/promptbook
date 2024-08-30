@@ -30,7 +30,7 @@ Paul
 John
 ```
 
-`-> {greetingResponse}`
+`-> {greetings}`
 
 ### Samples of greetings
 
@@ -41,4 +41,4 @@ Hello Paul
 Hi John
 ```
 
-`-> {greetingResponse}`
+`-> {greetings}`
