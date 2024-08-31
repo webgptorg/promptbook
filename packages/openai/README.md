@@ -4,22 +4,15 @@
 
 Supercharge your use of large language models
 
-
-
-
 [![NPM Version of ![Promptbook logo - cube with letters P and B](./other/design/logo-h1.png) Promptbook](https://badge.fury.io/js/promptbook.svg)](https://www.npmjs.com/package/promptbook)
 [![Quality of package ![Promptbook logo - cube with letters P and B](./other/design/logo-h1.png) Promptbook](https://packagequality.com/shield/promptbook.svg)](https://packagequality.com/#?package=promptbook)
 [![Known Vulnerabilities](https://snyk.io/test/github/webgptorg/promptbook/badge.svg)](https://snyk.io/test/github/webgptorg/promptbook)
 [![Issues](https://img.shields.io/github/issues/webgptorg/promptbook.svg?style=flat)](https://github.com/webgptorg/promptbook/issues)
 
-
-
-
-
 ## 📦 Package `@promptbook/openai`
 
-- Promptbooks are [divided into several](#-packages) packages, all are published from [single monorepo](https://github.com/webgptorg/promptbook).
-- This package `@promptbook/openai` is one part of the promptbook ecosystem.
+-   Promptbooks are [divided into several](#-packages) packages, all are published from [single monorepo](https://github.com/webgptorg/promptbook).
+-   This package `@promptbook/openai` is one part of the promptbook ecosystem.
 
 To install this package, run:
 
@@ -195,9 +188,6 @@ See the other models available in the Promptbook package:
 -   [Azure OpenAI](https://www.npmjs.com/package/@promptbook/azure-openai)
 -   [Anthropic Claude](https://www.npmjs.com/package/@promptbook/anthropic-claude)
 
-
-
-
 ---
 
 Rest of the documentation is common for **entire promptbook ecosystem**:
@@ -229,15 +219,9 @@ In all of these situations, but especially in 3., the Promptbook library can mak
 -   Multiple pipelines forms a **collection** which will handle core **know-how of your LLM application**.
 -   Theese pipelines are designed such as they **can be written by non-programmers**.
 
-
-
 ### Sample:
 
 File `write-website-content.ptbk.md`:
-
-
-
-
 
 > # 🌍 Create website content
 >
@@ -402,8 +386,6 @@ File `write-website-content.ptbk.md`:
 >
 > `-> {websiteContent}`
 
-
-
 Following is the scheme how the promptbook above is executed:
 
 ```mermaid
@@ -449,7 +431,7 @@ flowchart LR
   end;
 ```
 
--   [More template samples](./samples/templates/)
+-   [More template samples](./samples/pipelines/)
 -   [Read more about `.ptbk.md` file format here](https://github.com/webgptorg/promptbook/discussions/categories/concepts?discussions_q=is%3Aopen+label%3A.ptbk.md+category%3AConcepts)
 
 _Note: We are using [postprocessing functions](#postprocessing-functions) like `unwrapResult` that can be used to postprocess the result._
@@ -477,7 +459,7 @@ Or you can install them separately:
 -   _(Not finished)_ **[@promptbook/wizzard](https://www.npmjs.com/package/@promptbook/wizzard)** - Wizard for creating+running promptbooks in single line
 -   **[@promptbook/execute-javascript](https://www.npmjs.com/package/@promptbook/execute-javascript)** - Execution tools for javascript inside promptbooks
 -   **[@promptbook/openai](https://www.npmjs.com/package/@promptbook/openai)** - Execution tools for OpenAI API, wrapper around OpenAI SDK
--   **[@promptbook/anthropic-claude](https://www.npmjs.com/package/@promptbook/anthropic-claude)** - Execution tools for Anthropic Claude API, wrapper around Anthropic Claude SDK 
+-   **[@promptbook/anthropic-claude](https://www.npmjs.com/package/@promptbook/anthropic-claude)** - Execution tools for Anthropic Claude API, wrapper around Anthropic Claude SDK
 -   **[@promptbook/azure-openai](https://www.npmjs.com/package/@promptbook/azure-openai)** - Execution tools for Azure OpenAI API
 -   **[@promptbook/langtail](https://www.npmjs.com/package/@promptbook/langtail)** - Execution tools for Langtail API, wrapper around Langtail SDK
 -   **[@promptbook/fake-llm](https://www.npmjs.com/package/@promptbook/fake-llm)** - Mocked execution tools for testing the library and saving the tokens
@@ -486,13 +468,9 @@ Or you can install them separately:
 -   **[@promptbook/types](https://www.npmjs.com/package/@promptbook/types)** - Just typescript types used in the library
 -   **[@promptbook/cli](https://www.npmjs.com/package/@promptbook/cli)** - Command line interface utilities for promptbooks
 
-
-
 ## 📚 Dictionary
 
 The following glossary is used to clarify certain concepts:
-
-
 
 ### Core concepts
 
@@ -560,8 +538,6 @@ The following glossary is used to clarify certain concepts:
 
 ## ❔ FAQ
 
-
-
 If you have a question [start a discussion](https://github.com/webgptorg/promptbook/discussions/), [open an issue](https://github.com/webgptorg/promptbook/issues) or [write me an email](https://www.pavolhejny.com/contact).
 
 ### Why not just use the OpenAI SDK / Anthropic Claude SDK / ...?
@@ -574,25 +550,9 @@ Langchain is primarily aimed at ML developers working in Python. This library is
 
 We are considering creating a bridge/converter between these two libraries.
 
-
-
 ### Promptbooks vs. OpenAI`s GPTs
 
 GPTs are chat assistants that can be assigned to specific tasks and materials. But they are still chat assistants. Promptbooks are a way to orchestrate many more predefined tasks to have much tighter control over the process. Promptbooks are not a good technology for creating human-like chatbots, GPTs are not a good technology for creating outputs with specific requirements.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 ### Where should I store my promptbooks?
 
@@ -614,10 +574,6 @@ In large language models, you will get better results if you have prompts in the
 
 The best way to manage this is to have suffixed promptbooks like `write-website-content.en.ptbk.md` and `write-website-content.cs.ptbk.md` for each supported language.
 
-
-
-
-
 ## ⌚ Changelog
 
 See [CHANGELOG.md](./CHANGELOG.md)
@@ -629,9 +585,6 @@ See [CHANGELOG.md](./CHANGELOG.md)
 ## 🎯 Todos
 
 See [TODO.md](./TODO.md)
-
-
-
 
 ## 🖋️ Contributing
 

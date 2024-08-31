@@ -263,7 +263,7 @@ flowchart LR
   end;
 ```
 
--   [More template samples](./samples/templates/)
+-   [More template samples](./samples/pipelines/)
 -   [Read more about `.ptbk.md` file format here](https://github.com/webgptorg/promptbook/discussions/categories/concepts?discussions_q=is%3Aopen+label%3A.ptbk.md+category%3AConcepts)
 
 _Note: We are using [postprocessing functions](#postprocessing-functions) like `unwrapResult` that can be used to postprocess the result._

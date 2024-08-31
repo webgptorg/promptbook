@@ -25,7 +25,7 @@ if (process.cwd() !== join(__dirname, '../..')) {
     process.exit(1);
 }
 
-const PROMPTBOOK_SAMPLES_DIR = join(process.cwd(), 'samples/templates');
+const PROMPTBOOK_SAMPLES_DIR = join(process.cwd(), 'samples/pipelines');
 
 const program = new commander.Command();
 program.option('--commit', `Autocommit changes`, false);

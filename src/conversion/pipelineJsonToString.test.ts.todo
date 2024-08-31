@@ -6,7 +6,7 @@ import { pipelineStringToJson } from './pipelineStringToJson';
 import { importPipeline } from './validation/_importPipeline';
 
 describe('pipelineJsonToString', () => {
-    const samplesDir = '../../samples/templates';
+    const samplesDir = '../../samples/pipelines';
 
     const samples = readdirSync(join(__dirname, samplesDir), { withFileTypes: true, recursive: false })
         //                         <- Note: In production it is not good practice to use synchronous functions

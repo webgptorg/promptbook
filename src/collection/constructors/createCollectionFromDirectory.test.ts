@@ -55,7 +55,7 @@ describe('createCollectionFromDirectory', () => {
 
     it('should get pipeline by url from collection', async () => {
         expect.assertions(1);
-        const collection = await createCollectionFromDirectory('./samples/templates', {
+        const collection = await createCollectionFromDirectory('./samples/pipelines', {
             llmTools: null,
             isVerbose: true,
             isRecursive: false,
@@ -74,7 +74,7 @@ describe('createCollectionFromDirectory', () => {
     it('should get lazy-loaded pipeline by url from collection', async () => {
         expect.assertions(1);
 
-        const collection = await createCollectionFromDirectory('./samples/templates', {
+        const collection = await createCollectionFromDirectory('./samples/pipelines', {
             llmTools: null,
             isVerbose: true,
             isRecursive: false,
@@ -93,7 +93,7 @@ describe('createCollectionFromDirectory', () => {
     it('should get different pipeline by url from collection', async () => {
         expect.assertions(1);
 
-        const collection = await createCollectionFromDirectory('./samples/templates', {
+        const collection = await createCollectionFromDirectory('./samples/pipelines', {
             llmTools: null,
             isVerbose: true,
             isRecursive: false,
@@ -111,7 +111,7 @@ describe('createCollectionFromDirectory', () => {
     it('should NOT crash when include error pipelines but lazy-loaded', () =>
         expect(
             (async () => {
-                const collection = await createCollectionFromDirectory('./samples/templates', {
+                const collection = await createCollectionFromDirectory('./samples/pipelines', {
                     llmTools: null,
                     isVerbose: true,
                     // Note: Including subdirectories BUT lazy-loaded so it should not crash even if there are errors
@@ -125,7 +125,7 @@ describe('createCollectionFromDirectory', () => {
     it('should crash when include error pipelines', () =>
         expect(
             (async () => {
-                const collection = await createCollectionFromDirectory('./samples/templates', {
+                const collection = await createCollectionFromDirectory('./samples/pipelines', {
                     llmTools: null,
                     isVerbose: true,
                     // Note: Including subdirectories BUT lazy-loaded so it should not crash even if there are errors
@@ -141,7 +141,7 @@ describe('createCollectionFromDirectory', () => {
     it('should find pipeline in subdirectory', () =>
         expect(
             (async () => {
-              const collection = await   createCollectionFromDirectory('./samples/templates', {
+              const collection = await   createCollectionFromDirectory('./samples/pipelines', {
                     isVerbose: true,
                     isRecursive: false,
                 });

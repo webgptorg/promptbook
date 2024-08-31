@@ -35,7 +35,7 @@ async function playground() {
     // Do here stuff you want to test
     //========================================>
 
-    const collection = await createCollectionFromDirectory('./samples/templates/', {
+    const collection = await createCollectionFromDirectory('./samples/pipelines/', {
         llmTools: null,
         isVerbose: true,
         isRecursive: false,

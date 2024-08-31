@@ -7,7 +7,7 @@ import { importPipelineWithoutPreparation } from './_importPipeline';
 import { validatePipeline } from './validatePipeline';
 
 describe('validatePipeline', () => {
-    const samplesDir = '../../../samples/templates';
+    const samplesDir = '../../../samples/pipelines';
     const samples = readdirSync(join(__dirname, samplesDir), { withFileTypes: true, recursive: false })
         //                         <- Note: In production it is not good practice to use synchronous functions
         //                                  But this is only a test before the build, so it is okay
