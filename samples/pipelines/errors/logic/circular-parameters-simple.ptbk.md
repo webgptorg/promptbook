@@ -2,8 +2,6 @@
 
 Sample of wrong pipeline with circular parameters dependencies
 
--   MODEL VARIANT Chat
--   MODEL NAME `gpt-3.5-turbo`
 -   OUTPUT PARAMETER `{word2}`
 
 ## Word1

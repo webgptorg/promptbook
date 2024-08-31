@@ -2,8 +2,6 @@
 
 Sample of wrong pipeline with parameter {word} that is not defined
 
--   MODEL VARIANT Chat
--   MODEL NAME `gpt-3.5-turbo`
 -   OUTPUT PARAMETER `{sentenceWithTwoSynonyms}`
 -   OUTPUT PARAMETER `{wordAntonym}`
 

@@ -2,9 +2,6 @@
 
 Sample of wrong pipeline with undefined parameter
 
--   MODEL VARIANT Chat
--   MODEL NAME `gpt-3.5-turbo`
-
 ## 💬 Synonym
 
 Synonym for word
