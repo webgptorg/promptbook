@@ -180,8 +180,6 @@ export const blockCommandParser: PipelineTemplateCommandParser<BlockCommand> = {
             parameter.sampleValues = parameter.sampleValues || [];
             parameter.sampleValues.push($templateJson.content);
 
-            // TODO: !!!!!! How to implement this?
-            // continue templates;
 
             $templateJson.isTemplateBlock = false;
             return;
@@ -195,8 +193,6 @@ export const blockCommandParser: PipelineTemplateCommandParser<BlockCommand> = {
                 },
                 $pipelineJson,
             );
-            // TODO: !!!!!! How to implement this?
-            // continue templates;
 
             $templateJson.isTemplateBlock = false;
             return;
@@ -205,9 +201,6 @@ export const blockCommandParser: PipelineTemplateCommandParser<BlockCommand> = {
         if (command.blockType === 'ACTION') {
             console.error(new NotYetImplementedError('Actions are not implemented yet'));
 
-            // TODO: !!!!!! How to implement this?
-            // continue templates;
-
             $templateJson.isTemplateBlock = false;
             return;
         }
@@ -215,8 +208,6 @@ export const blockCommandParser: PipelineTemplateCommandParser<BlockCommand> = {
         if (command.blockType === 'INSTRUMENT') {
             console.error(new NotYetImplementedError('Instruments are not implemented yet'));
 
-            // TODO: !!!!!! How to implement this?
-            // continue templates;
 
             $templateJson.isTemplateBlock = false;
             return;
@@ -232,8 +223,6 @@ export const blockCommandParser: PipelineTemplateCommandParser<BlockCommand> = {
         }
         */
 
-        // !!!!!!
-        // isBlockTypeSet = true; //<- Note: [2]
 
         $templateJson.isTemplateBlock = true;
     },

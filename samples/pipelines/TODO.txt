@@ -1,4 +1,3 @@
-TODO: !!!!!! Rename folder to pipelines + Search ACRY for templates
 TODO: [🍓] Standardize emojis above titles and subtitles in sample pipelines
 TODO: [🍓] Standardize block types ``` vs ```text vs ```markdown in sample pipelines
 TODO: [Ж] Test personas with weird non-latin names
