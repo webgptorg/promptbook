@@ -1,6 +1,6 @@
 # 🟡 Sample of logic error
 
-Sample of wrong pipeline with parameter {word} that is not defined
+Sample of wrong pipeline with parameter `{word}` that is not defined
 
 -   OUTPUT PARAMETER `{sentenceWithTwoSynonyms}`
 -   OUTPUT PARAMETER `{wordAntonym}`

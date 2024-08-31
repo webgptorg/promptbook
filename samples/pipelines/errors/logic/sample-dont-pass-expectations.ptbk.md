@@ -1,5 +1,7 @@
 # 🟡 Sample: Sample don't pass expectations
 
+Sample of wrong pipeline that has a sample that doesn't pass the expectations
+
 -   PIPELINE URL https://promptbook.studio/samples/sample-dont-pass-expectations.ptbk.md
 -   PROMPTBOOK VERSION 1.0.0
 -   OUTPUT PARAMETER `{name}`

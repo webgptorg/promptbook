@@ -1,5 +1,7 @@
 # 🟡 Sample: Knowledge is present but empty
 
+Sample of pipeline that has knowledge but it is empty
+
 -   PIPELINE URL https://promptbook.studio/samples/void-knowledge.ptbk.md
 -   PROMPTBOOK VERSION 1.0.0
 -   OUTPUT PARAMETER `{name}`
