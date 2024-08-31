@@ -1,4 +1,4 @@
-# ✨ Sample: Sample don't pass expectations
+# 🟡 Sample: Sample don't pass expectations
 
 -   PIPELINE URL https://promptbook.studio/samples/sample-dont-pass-expectations.ptbk.md
 -   PROMPTBOOK VERSION 1.0.0

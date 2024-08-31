@@ -1,4 +1,4 @@
-# ✨ Sample: Unused parameter
+# 🟡 Sample: Unused parameter
 
 -   PIPELINE URL https://promptbook.studio/samples/unused-parameter.ptbk.md
 -   PROMPTBOOK VERSION 1.0.0

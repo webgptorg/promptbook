@@ -1,4 +1,4 @@
-# ✨ Sample: Wrong expectations
+# 🟡 Sample: Wrong expectations
 
 -   PIPELINE URL https://promptbook.studio/samples/jokers.ptbk.md
 -   PROMPTBOOK VERSION 1.0.0

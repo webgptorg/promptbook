@@ -1,4 +1,4 @@
-# ✨ Sample: Knowledge is present but empty
+# 🟡 Sample: Knowledge is present but empty
 
 -   PIPELINE URL https://promptbook.studio/samples/void-knowledge.ptbk.md
 -   PROMPTBOOK VERSION 1.0.0

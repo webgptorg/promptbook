@@ -1,4 +1,4 @@
-# ✨ Sample
+# 🔴 Sample
 
 Sample of wrong promptbookthat has multiple blocks.
 

@@ -1,4 +1,4 @@
-# ✨ Sample of logic error
+# 🟡 Sample of logic error
 
 Sample of wrong promptbook with parameter {word} that is not defined
 

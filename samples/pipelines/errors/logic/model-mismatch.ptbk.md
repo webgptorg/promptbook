@@ -1,4 +1,4 @@
-# ✨ Pick the incompativble combination of model variant and name
+# 🟡 Pick the incompativble combination of model variant and name
 
 Show how to pick exact model
 
