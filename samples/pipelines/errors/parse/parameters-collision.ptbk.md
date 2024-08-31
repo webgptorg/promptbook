@@ -1,6 +1,6 @@
 # 🔴 Sample of parsing error
 
-Sample of wrong promptbook with undefined parameter
+Sample of wrong pipeline with undefined parameter
 
 -   MODEL VARIANT Chat
 -   MODEL NAME `gpt-3.5-turbo`
@@ -24,3 +24,7 @@ Write synonym for "{word}"
 ```
 
 `-> {word}` another word with different description
+
+<!--
+TODO: [🧠] This is maybe 🟡 logic error NOT 🔴 syntax error?
+-->

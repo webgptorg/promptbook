@@ -1,15 +1,13 @@
 # 🔴 Sample of parsing error
 
-Sample of wrong promptbook
-
--   MODEL VARIANT Chat
--   MODEL NAME `gpt-3.5-turbo`
+Sample of wrong pipeline that has a non-prompt template with a model command
 
 ## 💬 Prompt
 
 This prompt is invalid because it is declared in a language that is not supported by the model.
 
--   EXECUTE SCRIPT
+-   SIMPLE TEMPLATE BLOCK
+-   MODEL NAME `gpt-3.5-turbo`
 
 ```coffeescript
 Hello;
@@ -18,5 +16,5 @@ Hello;
 `-> {greeting}`
 
 <!--
-TODO: [🧠] This is maybe logic error NOT syntax error?
+TODO: [🧠] This is maybe 🟡 logic error NOT 🔴 syntax error?
 -->

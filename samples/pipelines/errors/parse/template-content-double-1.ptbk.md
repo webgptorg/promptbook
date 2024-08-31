@@ -1,6 +1,6 @@
 # 🔴 Sample
 
-Sample of wrong promptbookthat has multiple blocks.
+Sample of wrong pipeline that has multiple content in template
 
 -   MODEL VARIANT Chat
 -   MODEL NAME `gpt-3.5-turbo`
