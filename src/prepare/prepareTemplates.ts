@@ -15,7 +15,7 @@ type PrepareTemplateInput = Pick<PipelineJson, 'templates' | 'parameters'> & {
 
 type PreparedTemplates = {
     /**
-     * @@@ Sequence of prompt templates that are chained together to form a pipeline
+     * @@@ Sequence of templates that are chained together to form a pipeline
      */
     readonly templatesPrepared: Array<TemplateJson>;
 };

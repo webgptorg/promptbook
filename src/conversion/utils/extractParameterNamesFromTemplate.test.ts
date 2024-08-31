@@ -2,7 +2,7 @@ import { describe, expect, it } from '@jest/globals';
 import { extractParameterNamesFromTemplate } from './extractParameterNamesFromTemplate';
 
 describe('extractParameterNamesFromTemplate', () => {
-    it('should parse parameters from prompt template', () => {
+    it('should parse parameters from template', () => {
         const template = {
             title: 'name of {foo}',
             description: 'description of {foo} and {bar}',

@@ -10,7 +10,7 @@ describe('pipelineStringToJson', () => {
         ).rejects.toThrowError(/coffeescript is not supported/i);
     });
 
-    it('should fail on missing block on prompt template', () => {
+    it('should fail on missing block on template', () => {
         expect(
             async () =>
                 await pipelineStringToJson(importPipelineWithoutPreparation('errors/syntax/missing-block.ptbk.md')),
@@ -31,7 +31,7 @@ describe('pipelineStringToJson', () => {
         ).rejects.toThrowError(/Template section must end with -> \{parameterName\}/i);
     });
 
-    it('should fail on multiple prompts in one prompt template', () => {
+    it('should fail on multiple prompts in one template', () => {
         expect(
             async () =>
                 await pipelineStringToJson(importPipelineWithoutPreparation('errors/syntax/multiple-blocks.ptbk.md')),

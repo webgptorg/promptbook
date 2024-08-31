@@ -14,7 +14,7 @@ import type { TemplateJson } from './TemplateJson';
 
 /**
  * Promptbook is the **core concept of this package**.
- * It represents a series of prompt templates chained together to form a pipeline / one big prompt template with input and result parameters.
+ * It represents a series of templates chained together to form a pipeline / one big template with input and result parameters.
  *
  * Note: [🚉] This is fully serializable as JSON
  *
@@ -35,7 +35,7 @@ export type PipelineJson = {
      * Note: It must use HTTPs URL
      * Tip: You can do versioning in the URL
      *      For example: https://promptbook.studio/webgpt/write-website-content-cs.ptbk.md@1.0.0
-     * Warning: Do not hash part of the URL, hash part is used for identification of the prompt template in the pipeline
+     * Warning: Do not hash part of the URL, hash part is used for identification of the template in the pipeline
      */
     readonly pipelineUrl?: string_pipeline_url;
 
@@ -72,7 +72,7 @@ export type PipelineJson = {
     readonly defaultModelRequirements?: Partial<ModelRequirements>;
 
     /**
-     * Sequence of prompt templates that are chained together to form a pipeline
+     * Sequence of templates that are chained together to form a pipeline
      */
     readonly templates: Array<TemplateJson>;
 

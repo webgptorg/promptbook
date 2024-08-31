@@ -1,6 +1,6 @@
 /**
  * Promptbook is the **core concept of this package**.
- * It represents a series of prompt templates chained together to form a pipeline / one big prompt template with input and result parameters.
+ * It represents a series of templates chained together to form a pipeline / one big template with input and result parameters.
  *
  * @see @@@ https://github.com/webgptorg/promptbook#promptbook
  */

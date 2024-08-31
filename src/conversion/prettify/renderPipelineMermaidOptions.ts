@@ -12,7 +12,7 @@ import { titleToName } from '../utils/titleToName';
  */
 export type renderPipelineMermaidOptions = {
     /**
-     * Callback for creating from prompt template graph node
+     * Callback for creating from template graph node
      */
     linkTemplate?(template: TemplateJson): { href: string_href; title: string } | null;
 };

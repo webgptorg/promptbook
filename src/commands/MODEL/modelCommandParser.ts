@@ -32,7 +32,7 @@ export const modelCommandParser: PipelineBothCommandParser<ModelCommand> = {
     /**
      * Description of the MODEL command
      */
-    description: `Tells which model and modelRequirements to use for the prompt template execution`,
+    description: `Tells which \`modelRequirements\` (for example which model) to use for the prompt template execution`,
 
     /**
      * Link to discussion

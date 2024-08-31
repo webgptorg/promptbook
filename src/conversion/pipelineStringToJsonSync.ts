@@ -283,7 +283,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
     // Note: 4️⃣ Process each template of the pipeline
 
     /* TODO: !!!!!! Remove `templates:` */ for (const section of pipelineSections) {
-        // TODO: Parse prompt template description (the content out of the codeblock and lists)
+        // TODO: Parse template description (the content out of the codeblock and lists)
 
         const listItems = extractAllListItemsFromMarkdown(section.content);
 
@@ -424,7 +424,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
                 throw new ParseError(
                     spaceTrim(
                         (block) => `
-                            You must specify the language of the script in the prompt template
+                            You must specify the language of the script in the SCRIPT TEMPLATE
 
                             ${block(getPipelineIdentification())}
                         `,
@@ -469,7 +469,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
                     (block) => `
                         Model requirements are defined for the block type ${
                             $templateJson.blockType
-                        } which is not a prompt template
+                        } which is not a PROMPT TEMPLATE
 
                         This should be avoided by the \`modelCommandParser\`
 

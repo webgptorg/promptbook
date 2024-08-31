@@ -33,7 +33,7 @@ export const expectCommandParser: PipelineTemplateCommandParser<ExpectCommand> =
      * Description of the FORMAT command
      */
     description: spaceTrim(`
-        Expect command describes the desired output of the prompt template (after post-processing)
+        Expect command describes the desired output of the template (after post-processing)
         It can set limits for the maximum/minimum length of the output, measured in characters, words, sentences, paragraphs or some other shape of the output.
     `),
 

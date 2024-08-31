@@ -85,7 +85,7 @@ export const urlCommandParser: PipelineHeadCommandParser<UrlCommand> = {
                 spaceTrim(
                     `
                         URL must not contain hash
-                        Hash is used for identification of the prompt template in the pipeline
+                        Hash is used for identification of the template in the pipeline
                     `,
                 ),
             );

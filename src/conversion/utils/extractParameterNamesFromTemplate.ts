@@ -4,7 +4,7 @@ import { extractParameterNames } from '../../utils/extractParameterNames';
 import { extractVariables } from './extractVariables';
 
 /**
- * Parses the prompt template and returns the set of all used parameters
+ * Parses the template and returns the set of all used parameters
  *
  * @param template the template with used parameters
  * @returns the set of parameter names

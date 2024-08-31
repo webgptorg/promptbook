@@ -29,7 +29,7 @@ export const jokerCommandParser: PipelineTemplateCommandParser<JokerCommand> = {
     /**
      * Description of the JOKER command
      */
-    description: `Joker parameter is used instead of executing the prompt template if it meet the expectations requirements`,
+    description: `Joker parameter is used instead of executing the template result if jokers value meets the expectations requirements`,
 
     /**
      * Link to discussion

@@ -40,7 +40,7 @@ export const parameterCommandParser: PipelineBothCommandParser<ParameterCommand>
     /**
      * Description of the PARAMETER command
      */
-    description: `Describes one parameter of the prompt template`,
+    description: `Describes one parameter of the template`,
 
     /**
      * Link to discussion

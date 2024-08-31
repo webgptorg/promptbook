@@ -11,38 +11,38 @@ import type { string_template } from '../typeAliases';
 import type { Expectations } from './Expectations';
 
 /**
- * Common properties of all prompt templates
+ * Common properties of all templates
  */
 export interface TemplateJsonCommon {
     /**
      * Name of the template
      * - It must be unique across the pipeline
      * - It should start uppercase and can contain letters and numbers
-     * - The pipelineUrl together with hash and name are used to identify the prompt template in the pipeline
+     * - The pipelineUrl together with hash and name are used to identify the template in the pipeline
      */
     readonly name: string_name;
 
     /**
-     * Title of the prompt template
+     * Title of the template
      * It can use simple markdown formatting like **bold**, *italic*, [link](https://example.com), ... BUT not code blocks and structure
      */
     readonly title: string;
 
     /**
-     * Description of the prompt template
+     * Description of the template
      * It can use multiple paragraphs of simple markdown formatting like **bold**, *italic*, [link](https://example.com), ... BUT not code blocks and structure
      */
     readonly description?: string_markdown_text;
 
     /**
-     * List of parameter names that are used in the prompt template and must be defined before the prompt template is executed
+     * List of parameter names that are used in the template and must be defined before the template is executed
      *
      * Note: Joker is one of the dependent parameters
      */
     readonly dependentParameterNames: Array<string_parameter_name>;
 
     /**
-     * If theese parameters meet the expectations requirements, they are used instead of executing this prompt template
+     * If theese parameters meet the expectations requirements, they are used instead of executing this template
      *
      * @see https://github.com/webgptorg/promptbook/discussions/66
      */
@@ -50,7 +50,7 @@ export interface TemplateJsonCommon {
 
     /**
      * Type of the execution
-     * This determines if the prompt template is send to LLM, user or some scripting evaluation
+     * This determines if the template is send to LLM, user or some scripting evaluation
      */
     readonly blockType: BlockType;
 
@@ -71,7 +71,7 @@ export interface TemplateJsonCommon {
     readonly preparedContent?: (string_prompt | string_javascript | string_markdown) & string_template;
 
     /**
-     * List of postprocessing steps that are executed after the prompt template
+     * List of postprocessing steps that are executed after the template
      *
      * @see https://github.com/webgptorg/promptbook/discussions/31
      */
@@ -97,7 +97,7 @@ export interface TemplateJsonCommon {
     readonly format?: FormatCommand['format'];
 
     /**
-     * Name of the parameter that is the result of the prompt template
+     * Name of the parameter that is the result of the template
      */
     readonly resultingParameterName: string_name;
 }

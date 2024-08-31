@@ -23,14 +23,14 @@ type FindUsableParametersOptions = {
     promptbook: PipelineJson;
 
     /**
-     * Prompt template which potential usable parameters are searched for
+     * Template that searches for potentially usable parameters
      */
     template: TemplateJson;
 };
 
 /**
- * Function findUsableParameters will find all usable parameters for given prompt template
- * In other words, it will find all parameters that are not used in the prompt template itseld and all its dependencies
+ * Function `findUsableParameters` will find all usable parameters for given template
+ * In other words, it will find all parameters that are not used in the template itseld and all its dependencies
  */
 export function findUsableParameters(options: FindUsableParametersOptions): Array<TemplateParameterJson> {
     const { promptbook, template } = options;

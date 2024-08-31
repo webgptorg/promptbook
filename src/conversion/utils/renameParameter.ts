@@ -22,8 +22,8 @@ type RenameParameterOptions = {
 };
 
 /**
- * Function renameParameter will find all usable parameters for given prompt template
- * In other words, it will find all parameters that are not used in the prompt template itseld and all its dependencies
+ * Function `renameParameter` will find all usable parameters for given template
+ * In other words, it will find all parameters that are not used in the template itseld and all its dependencies
  *
  * @throws {PipelineLogicError} If the new parameter name is already used in the pipeline
  * @public exported from `@promptbook/utils`

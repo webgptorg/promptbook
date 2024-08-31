@@ -7,10 +7,12 @@ import type { TemplateJson } from '../../types/PipelineJson/TemplateJson';
 import type { string_markdown_text } from '../../types/typeAliases';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import { knowledgeCommandParser } from '../KNOWLEDGE/knowledgeCommandParser';
-import type { $PipelineJson } from '../_common/types/CommandParser';
-import type { $TemplateJson } from '../_common/types/CommandParser';
-import type { CommandParserInput } from '../_common/types/CommandParser';
-import type { PipelineTemplateCommandParser } from '../_common/types/CommandParser';
+import type {
+    $PipelineJson,
+    $TemplateJson,
+    CommandParserInput,
+    PipelineTemplateCommandParser,
+} from '../_common/types/CommandParser';
 import type { BlockCommand } from './BlockCommand';
 import { BlockTypes } from './BlockTypes';
 
@@ -140,7 +142,12 @@ export const blockCommandParser: PipelineTemplateCommandParser<BlockCommand> = {
     $applyToTemplateJson(command: BlockCommand, $templateJson: $TemplateJson, $pipelineJson: $PipelineJson): void {
         // TODO: !!!!!! Test multiple / no block type
         if ($templateJson.isBlockTypeSet === true) {
-            throw new ParseError(`Block type is already defined in the prompt template. It can be defined only once.`);
+            throw new ParseError(
+                spaceTrim(`
+                    Block type is already defined in the template.
+                    It can be defined only once.
+                `),
+            );
         }
 
         $templateJson.isBlockTypeSet = true;
