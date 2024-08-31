@@ -476,7 +476,7 @@ Internally it calls OpenAI, Azure, GPU, proxy, cache, logging,...
 
 #### Script Execution Tools
 
-`ScriptExecutionTools` is an abstract container that represents all the tools needed to EXECUTE SCRIPTs. It is implemented by concrete execution tools:
+`ScriptExecutionTools` is an abstract container that represents all the tools needed to `SCRIPT TEMPLATE`. It is implemented by concrete execution tools:
 
 -   `JavascriptExecutionTools` is a wrapper around `vm2` module that executes javascript code in a sandbox.
 -   `JavascriptEvalExecutionTools` is wrapper around `eval` function that executes javascript. It is used for testing and mocking **NOT intended to use in the production** due to its unsafe nature, use `JavascriptExecutionTools` instead.

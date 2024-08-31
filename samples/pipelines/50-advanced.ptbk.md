@@ -79,7 +79,7 @@ Write synonym for "{word}"
 
 ## ⚙ Test that word is not original word
 
--   EXECUTE SCRIPT
+-   SCRIPT TEMPLATE
 
 ```javascript
 if (word !== '' && wordSynonym === word) {

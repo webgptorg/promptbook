@@ -90,7 +90,7 @@ export function pipelineJsonToString(pipelineJson: PipelineJson): PipelineString
             commands.push(`SIMPLE TEMPLATE`);
             // Note: Nothing special here
         } else if (blockType === 'SCRIPT_TEMPLATE') {
-            commands.push(`EXECUTE SCRIPT`);
+            commands.push(`SCRIPT TEMPLATE`);
             if (template.contentLanguage) {
                 contentLanguage = template.contentLanguage;
             } else {

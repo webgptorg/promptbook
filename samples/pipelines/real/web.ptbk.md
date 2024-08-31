@@ -131,7 +131,7 @@ Tak to vypadá zadání webu, Řiď se primárně názvem webu "{title}", avšak
 
 ## Domény
 
--   EXECUTE SCRIPT
+-   SCRIPT TEMPLATE
 
 ```javascript
 domainsCommaSeparated.split(',').join('\n');
