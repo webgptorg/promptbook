@@ -247,7 +247,7 @@ export const templateCommandParser: PipelineTemplateCommandParser<TemplateComman
      */
     takeFromTemplateJson($templateJson: $TemplateJson): Array<TemplateCommand> {
         keepUnused($templateJson);
-        throw new NotYetImplementedError(`Not implemented yet !!!!!!`);
+        throw new NotYetImplementedError(`[🛋] Not implemented yet`); // <- TODO: [🛋] Implement
     },
 };
 

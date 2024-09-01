@@ -96,6 +96,6 @@ export const postprocessCommandParser: PipelineTemplateCommandParser<Postprocess
      */
     takeFromTemplateJson($templateJson: $TemplateJson): Array<PostprocessCommand> {
         keepUnused($templateJson);
-        throw new NotYetImplementedError(`Not implemented yet !!!!!!`);
+        throw new NotYetImplementedError(`[🛋] Not implemented yet`); // <- TODO: [🛋] Implement
     },
 };

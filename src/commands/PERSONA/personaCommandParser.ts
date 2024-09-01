@@ -105,7 +105,7 @@ export const personaCommandParser: PipelineBothCommandParser<PersonaCommand> = {
      */
     takeFromPipelineJson(pipelineJson: PipelineJson): Array<PersonaCommand> {
         keepUnused(pipelineJson);
-        throw new NotYetImplementedError(`Not implemented yet !!!!!!`);
+        throw new NotYetImplementedError(`[🛋] Not implemented yet`); // <- TODO: [🛋] Implement
     },
 
     /**
@@ -115,7 +115,7 @@ export const personaCommandParser: PipelineBothCommandParser<PersonaCommand> = {
      */
     takeFromTemplateJson($templateJson: $TemplateJson): Array<PersonaCommand> {
         keepUnused($templateJson);
-        throw new NotYetImplementedError(`Not implemented yet !!!!!!`);
+        throw new NotYetImplementedError(`[🛋] Not implemented yet`); // <- TODO: [🛋] Implement
     },
 };
 

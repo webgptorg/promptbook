@@ -95,6 +95,6 @@ export const promptbookVersionCommandParser: PipelineHeadCommandParser<Promptboo
      */
     takeFromPipelineJson(pipelineJson: PipelineJson): Array<PromptbookVersionCommand> {
         keepUnused(pipelineJson);
-        throw new NotYetImplementedError(`Not implemented yet !!!!!!`);
+        throw new NotYetImplementedError(`[🛋] Not implemented yet`); // <- TODO: [🛋] Implement
     },
 };

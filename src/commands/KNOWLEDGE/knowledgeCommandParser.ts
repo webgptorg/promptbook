@@ -117,7 +117,7 @@ export const knowledgeCommandParser: PipelineHeadCommandParser<KnowledgeCommand>
      */
     takeFromPipelineJson(pipelineJson: PipelineJson): Array<KnowledgeCommand> {
         keepUnused(pipelineJson);
-        throw new NotYetImplementedError(`Not implemented yet !!!!!!`);
+        throw new NotYetImplementedError(`[🛋] Not implemented yet`); // <- TODO: [🛋] Implement
     },
 };
 

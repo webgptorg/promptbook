@@ -159,7 +159,7 @@ export const modelCommandParser: PipelineBothCommandParser<ModelCommand> = {
      */
     takeFromPipelineJson(pipelineJson: PipelineJson): Array<ModelCommand> {
         keepUnused(pipelineJson);
-        throw new NotYetImplementedError(`Not implemented yet !!!!!!`);
+        throw new NotYetImplementedError(`[🛋] Not implemented yet`); // <- TODO: [🛋] Implement
     },
 
     /**
@@ -169,6 +169,6 @@ export const modelCommandParser: PipelineBothCommandParser<ModelCommand> = {
      */
     takeFromTemplateJson($templateJson: $TemplateJson): Array<ModelCommand> {
         keepUnused($templateJson);
-        throw new NotYetImplementedError(`Not implemented yet !!!!!!`);
+        throw new NotYetImplementedError(`[🛋] Not implemented yet`); // <- TODO: [🛋] Implement
     },
 };

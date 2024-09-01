@@ -122,6 +122,6 @@ export const urlCommandParser: PipelineHeadCommandParser<UrlCommand> = {
      */
     takeFromPipelineJson(pipelineJson: PipelineJson): Array<UrlCommand> {
         keepUnused(pipelineJson);
-        throw new NotYetImplementedError(`Not implemented yet !!!!!!`);
+        throw new NotYetImplementedError(`[🛋] Not implemented yet`); // <- TODO: [🛋] Implement
     },
 };

@@ -86,6 +86,6 @@ export const jokerCommandParser: PipelineTemplateCommandParser<JokerCommand> = {
      */
     takeFromTemplateJson($templateJson: $TemplateJson): Array<JokerCommand> {
         keepUnused($templateJson);
-        throw new NotYetImplementedError(`Not implemented yet !!!!!!`);
+        throw new NotYetImplementedError(`[🛋] Not implemented yet`); // <- TODO: [🛋] Implement
     },
 };

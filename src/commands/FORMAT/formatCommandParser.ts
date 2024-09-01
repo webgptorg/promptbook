@@ -91,6 +91,6 @@ export const formatCommandParser: PipelineTemplateCommandParser<FormatCommand> =
      */
     takeFromTemplateJson($templateJson: $TemplateJson): Array<FormatCommand> {
         keepUnused($templateJson);
-        throw new NotYetImplementedError(`Not implemented yet !!!!!!`);
+        throw new NotYetImplementedError(`[🛋] Not implemented yet`); // <- TODO: [🛋] Implement
     },
 };
