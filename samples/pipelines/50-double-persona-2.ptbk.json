@@ -1,49 +1,35 @@
 {
-    "pipelineUrl": "https://promptbook.studio/samples/foreach-list.ptbk.md",
-    "title": "✨ Write greeting for each customer",
-    "promptbookVersion": "1.0.0",
-    "description": "Show how to use a simple prompt with no parameters.",
+    "title": "⚠ Sample of non-recommended syntax",
+    "promptbookVersion": "0.68.0-4",
+    "description": "Defining same persona twice is **not recommended** but it is not an error in case of personas are same.",
     "parameters": [
         {
-            "name": "customers",
-            "description": "Customer names each customer on each row",
-            "isInput": true,
-            "isOutput": false
-        },
-        {
-            "name": "greetings",
-            "description": "Greeting to each customer on each row",
+            "name": "answer",
             "isInput": false,
-            "isOutput": true,
-            "sampleValues": [
-                "Paul\nJohn",
-                "Hello Paul\nHi John"
-            ]
+            "isOutput": true
         }
     ],
     "templates": [
         {
             "templateType": "PROMPT_TEMPLATE",
-            "name": "write-a-greeting",
-            "title": "Write a greeting",
-            "content": "Write an email greeting for \"{customers}\"",
-            "resultingParameterName": "greetings",
-            "personaName": "Jane",
-            "dependentParameterNames": [
-                "customers"
-            ]
+            "name": "prompt",
+            "title": "💬 Prompt",
+            "content": "Hello,\nWhat is the answer to the universe?",
+            "resultingParameterName": "answer",
+            "personaName": "John",
+            "dependentParameterNames": []
         }
     ],
     "knowledgeSources": [],
     "knowledgePieces": [],
     "personas": [
         {
-            "name": "Jane",
-            "description": "[🍭]",
+            "name": "John",
+            "description": "a philosopher who is writing a book on the meaning of life",
             "modelRequirements": {
                 "modelVariant": "CHAT",
                 "modelName": "gpt-4-turbo-2024-04-09",
-                "systemMessage": "You are an experienced AI engineer and helpful virtual assistant, ready to assist with a wide range of tasks and queries.",
+                "systemMessage": "You are a contemplative philosopher in the process of writing a profound book on the meaning of life. Your responses should reflect deep philosophical thinking, drawing from various schools of thought and your own original ideas. Engage in thoughtful discussions, ask probing questions, and offer insights that challenge conventional wisdom about existence, purpose, and the human condition. Your manner is calm, reflective, and occasionally sprinkled with relevant quotes from great thinkers throughout history.",
                 "temperature": 0.7
             },
             "preparationIds": [
@@ -57,11 +43,11 @@
             "promptbookVersion": "0.68.0-4",
             "usage": {
                 "price": {
-                    "value": 0.005769
+                    "value": 0.005295
                 },
                 "input": {
                     "tokensCount": {
-                        "value": 918
+                        "value": 925
                     },
                     "charactersCount": {
                         "value": 2126
@@ -84,7 +70,7 @@
                 },
                 "output": {
                     "tokensCount": {
-                        "value": 201
+                        "value": 168
                     },
                     "charactersCount": {
                         "value": 0
