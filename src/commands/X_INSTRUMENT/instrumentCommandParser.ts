@@ -3,9 +3,7 @@ import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import type { string_markdown_text } from '../../types/typeAliases';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import { TODO_USE } from '../../utils/organization/TODO_USE';
-import type { $PipelineJson } from '../_common/types/CommandParser';
-import type { CommandParserInput } from '../_common/types/CommandParser';
-import type { PipelineHeadCommandParser } from '../_common/types/CommandParser';
+import type { $PipelineJson, CommandParserInput, PipelineHeadCommandParser } from '../_common/types/CommandParser';
 import type { InstrumentCommand } from './InstrumentCommand';
 
 /**
@@ -47,6 +45,7 @@ export const instrumentCommandParser: PipelineHeadCommandParser<InstrumentComman
     parse(input: CommandParserInput): InstrumentCommand {
         const { args } = input;
 
+        // TODO: [🛠] Implement
         TODO_USE(args);
 
         return {
@@ -61,7 +60,7 @@ export const instrumentCommandParser: PipelineHeadCommandParser<InstrumentComman
      */
     $applyToPipelineJson(command: InstrumentCommand, $pipelineJson: $PipelineJson): void {
         keepUnused(command, $pipelineJson);
-        console.error(new NotYetImplementedError('Instruments are not implemented yet'));
+        console.error(new NotYetImplementedError('[🛠] Instruments are not implemented yet'));
     },
 
     /**
@@ -71,7 +70,7 @@ export const instrumentCommandParser: PipelineHeadCommandParser<InstrumentComman
      */
     stringify(command: InstrumentCommand): string_markdown_text {
         keepUnused(command);
-        return `!!!!!!`;
+        throw new NotYetImplementedError('[🛠] Instruments are not implemented yet');
     },
 
     /**
@@ -81,6 +80,10 @@ export const instrumentCommandParser: PipelineHeadCommandParser<InstrumentComman
      */
     takeFromPipelineJson(pipelineJson: PipelineJson): Array<InstrumentCommand> {
         keepUnused(pipelineJson);
-        throw new NotYetImplementedError(`Not implemented yet !!!!!!`);
+        throw new NotYetImplementedError('[🛠] Instruments are not implemented yet');
     },
 };
+
+/**
+ * Note: [⛱] There are two types of INSTRUMENT commands *...(read more in [⛱])*
+ */

@@ -38,9 +38,9 @@ export const templateCommandParser: PipelineTemplateCommandParser<TemplateComman
         'DIALOG',
         'SAMPLE',
         'EXAMPLE',
-        // 'KNOWLEDGE', <- Note: [⛱]
-        // 'INSTRUMENT', <- Note: [⛱]
-        // 'ACTION', <- Note: [⛱]
+        'KNOWLEDGE', // <- Note: [⛱]
+        'INSTRUMENT', // <- Note: [⛱]
+        'ACTION', // <- Note: [⛱]
     ],
 
     /**
@@ -75,9 +75,9 @@ export const templateCommandParser: PipelineTemplateCommandParser<TemplateComman
         'DIALOG',
         // <- [🅱]
         'SAMPLE',
-        // 'KNOWLEDGE', // <- Note: [⛱] For TEMPLATE this shortcut does not work because it can not be distinguished from KNOWLEDGE command
-        // 'INSTRUMENT', // <- Note: [⛱] For TEMPLATE this shortcut does not work because it can not be distinguished from INSTRUMENT command
-        // 'ACTION', // <- Note: [⛱] For TEMPLATE this shortcut does not work because it can not be distinguished from ACTION command
+        'KNOWLEDGE', // <- Note:  [⛱] Thare can not be confusion with KNOWLEDGE command because KNOWLEDGE command is not used in templates but in pipeline head
+        'INSTRUMENT', // <- Note: [⛱] -- || --
+        'ACTION', // <- Note:     [⛱] -- || --
 
         // -----------------
         // Recommended (reversed) form:
@@ -250,3 +250,7 @@ export const templateCommandParser: PipelineTemplateCommandParser<TemplateComman
         throw new NotYetImplementedError(`Not implemented yet !!!!!!`);
     },
 };
+
+/**
+ * Note: [⛱] There are two types of KNOWLEDGE, ACTION and INSTRUMENT commands @@@!!!!!!
+ */
