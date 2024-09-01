@@ -1,2 +1,3 @@
+TODO: [🍧] In `pipelineStringToJsonSync` there are some hardcoded things that should be moved here to command TEMPLATE
 TODO: [👙][🧠] Maybe add `knowledge`, `actions` and `instruments` to be available granularly for each persona
       @see https://github.com/webgptorg/promptbook/discussions/79

@@ -142,7 +142,6 @@ export const templateCommandParser: PipelineTemplateCommandParser<TemplateComman
      * Note: `$` is used to indicate that this function mutates given `templateJson`
      */
     $applyToTemplateJson(command: TemplateCommand, $templateJson: $TemplateJson, $pipelineJson: $PipelineJson): void {
-        // TODO: !!!!!! Test multiple / no template type
         if ($templateJson.isTemplateTypeSet === true) {
             throw new ParseError(
                 spaceTrim(`
@@ -154,7 +153,7 @@ export const templateCommandParser: PipelineTemplateCommandParser<TemplateComman
 
         $templateJson.isTemplateTypeSet = true;
 
-        // TODO: !!!!!! Rearrange better - but at bottom and unwrap from function
+        // TODO: [🍧] Rearrange better - but at bottom and unwrap from function
         const expectResultingParameterName = () => {
             if ($templateJson.resultingParameterName) {
                 return;
@@ -218,12 +217,6 @@ export const templateCommandParser: PipelineTemplateCommandParser<TemplateComman
         expectResultingParameterName();
         ($templateJson as WritableDeep<TemplateJson>).templateType = command.templateType;
 
-        /*
-        TODO: !!!!!! Chat model variant should be applied in `createPipelineExecutor`
-        if (command.templateType ==='PROMPT_TEMPLATE' && templateModelRequirements.modelVariant === undefined) {
-          templateModelRequirements.modelVariant = 'CHAT';
-        }
-        */
 
         $templateJson.isTemplate = true;
     },

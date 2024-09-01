@@ -5,10 +5,12 @@ import { MODEL_VARIANTS } from '../../types/ModelVariant';
 import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import type { string_markdown_text } from '../../types/typeAliases';
 import { keepUnused } from '../../utils/organization/keepUnused';
-import type { $PipelineJson } from '../_common/types/CommandParser';
-import type { $TemplateJson } from '../_common/types/CommandParser';
-import type { CommandParserInput } from '../_common/types/CommandParser';
-import type { PipelineBothCommandParser } from '../_common/types/CommandParser';
+import type {
+    $PipelineJson,
+    $TemplateJson,
+    CommandParserInput,
+    PipelineBothCommandParser,
+} from '../_common/types/CommandParser';
 import type { ModelCommand } from './ModelCommand';
 
 /**
@@ -114,8 +116,25 @@ export const modelCommandParser: PipelineBothCommandParser<ModelCommand> = {
      * Note: `$` is used to indicate that this function mutates given `pipelineJson`
      */
     $applyToPipelineJson(command: ModelCommand, $pipelineJson: $PipelineJson): void {
-        // TODO: !!!!!! Error on redefine
         $pipelineJson.defaultModelRequirements = $pipelineJson.defaultModelRequirements || {};
+
+        // TODO: [0] DRY
+        if ($pipelineJson.defaultModelRequirements[command.key] !== undefined) {
+            if ($pipelineJson.defaultModelRequirements[command.key] === command.value) {
+                console.warn(`Multiple commands \`MODEL ${command.key} ${command.value}\` in the pipeline head`);
+            } else {
+                throw new ParseError(
+                    spaceTrim(`
+                        Redefinition of MODEL \`${command.key}\` in the pipeline head
+
+                        You have used:
+                        - MODEL ${command.key} ${$pipelineJson.defaultModelRequirements[command.key]}
+                        - MODEL ${command.key} ${command.value}
+                    `),
+                );
+            }
+        }
+
         $pipelineJson.defaultModelRequirements[command.key] = command.value;
     },
 
@@ -124,19 +143,52 @@ export const modelCommandParser: PipelineBothCommandParser<ModelCommand> = {
      *
      * Note: `$` is used to indicate that this function mutates given `templateJson`
      */
-    $applyToTemplateJson(
-        command: ModelCommand,
-        $templateJson: $TemplateJson,
-        // $pipelineJson: $PipelineJson,
-    ): void {
+    $applyToTemplateJson(command: ModelCommand, $templateJson: $TemplateJson, $pipelineJson: $PipelineJson): void {
         if ($templateJson.templateType !== 'PROMPT_TEMPLATE') {
             throw new ParseError(`MODEL command can only be used in PROMPT_TEMPLATE block`);
         }
 
-        // TODO: !!!!!! Error on redefine
-        // TODO: Warn if setting same as default in `$pipelineJson`
-
         $templateJson.modelRequirements = $templateJson.modelRequirements || {};
+
+        // TODO: [0] DRY
+        if ($templateJson.modelRequirements[command.key] !== undefined) {
+            if ($templateJson.modelRequirements[command.key] === command.value) {
+                console.warn(
+                    `Multiple commands \`MODEL ${command.key} ${command.value}\` in the template "${
+                        $templateJson.title || $templateJson.name
+                    }"`,
+                );
+            } else {
+                throw new ParseError(
+                    spaceTrim(`
+                              Redefinition of MODEL \`${command.key}\` in the template "${
+                        $templateJson.title || $templateJson.name
+                    }"
+
+                              You have used:
+                              - MODEL ${command.key} ${$templateJson.modelRequirements[command.key]}
+                              - MODEL ${command.key} ${command.value}
+                          `),
+                );
+            }
+        }
+
+        if (command.value === ($pipelineJson.defaultModelRequirements || {})[command.key]) {
+            console.log(
+                spaceTrim(`
+                    Setting MODEL \`${command.key}\` in the template "${
+                    $templateJson.title || $templateJson.name
+                }" to the same value as in the pipeline head
+
+                    In pipeline head:
+                    - MODEL ${command.key} ${($pipelineJson.defaultModelRequirements || {})[command.key]}
+
+                    But same value is used in the template:
+                    - MODEL ${command.key} ${command.value}
+                `),
+            );
+        }
+
         $templateJson.modelRequirements[command.key] = command.value;
     },
 

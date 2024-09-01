@@ -4,11 +4,13 @@ import type { ParameterCommand } from '../commands/PARAMETER/ParameterCommand';
 import { templateCommandParser } from '../commands/TEMPLATE/templateCommandParser';
 import { getParserForCommand } from '../commands/_common/getParserForCommand';
 import { parseCommand } from '../commands/_common/parseCommand';
-import type { $PipelineJson } from '../commands/_common/types/CommandParser';
-import type { $TemplateJson } from '../commands/_common/types/CommandParser';
-import type { CommandBase } from '../commands/_common/types/CommandParser';
-import type { PipelineHeadCommandParser } from '../commands/_common/types/CommandParser';
-import type { PipelineTemplateCommandParser } from '../commands/_common/types/CommandParser';
+import type {
+    $PipelineJson,
+    $TemplateJson,
+    CommandBase,
+    PipelineHeadCommandParser,
+    PipelineTemplateCommandParser,
+} from '../commands/_common/types/CommandParser';
 import { RESERVED_PARAMETER_NAMES } from '../config';
 import { ParseError } from '../errors/ParseError';
 import { UnexpectedError } from '../errors/UnexpectedError';
@@ -393,7 +395,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
             }
         }
 
-        // TODO: [🍧] !!!!!! Should be done in TEMPLATE command
+        // TODO: [🍧] Should be done in TEMPLATE command
         if (($templateJson as WritableDeep<TemplateJson>).templateType === 'SCRIPT_TEMPLATE') {
             if (!language) {
                 throw new ParseError(
@@ -435,9 +437,9 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
         );
 
         /*
-        // TODO: [🍧] !!!!!! This should be checked in `MODEL` command + better error message
-        // TODO: [🍧] !!!!!! Write error `.ptbk.md` file for `MODEL` and `PERSONA` command used in non-prompt template
-        // TODO: [🍧] !!!!!! `PERSONA` command should behave same as `MODEL` command - only usable in prompt template
+        // TODO: [🍧] This should be checked in `MODEL` command + better error message
+        // TODO: !!!!!! Write error `.ptbk.md` file for `MODEL` and `PERSONA` command used in non-prompt template
+        // TODO: !!!!!! `PERSONA` command should behave same as `MODEL` command - only usable in prompt template
         if ($templateJson.templateType !== 'PROMPT_TEMPLATE' && $templateJson.modelRequirements !== undefined) {
             throw new UnexpectedError(
                 spaceTrim(
