@@ -1,0 +1,19 @@
+# ⚠ Sample of non-recommended syntax
+
+Non-standard order of commands is **not recommended** but it is not an error because the order of commands does not matter.
+
+## 💬 Prompt
+
+-   PERSONA John, a philosopher who is writing a book on the meaning of life
+-   PROMPT TEMPLATE
+
+```
+Hello,
+What is the answer to the universe?
+```
+
+`-> {answer}`
+
+<!--
+TODO: Make more permutations of wrong order of commands
+-->
