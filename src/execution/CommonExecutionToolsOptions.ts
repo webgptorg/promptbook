@@ -1,7 +1,7 @@
 /**
  * @@@
  *
- * @private just abstract the common properties for the execution tools
+ * Note: Keep it public to allow people to make their own execution tools
  */
 export type CommonExecutionToolsOptions = {
     /**
