@@ -42,7 +42,7 @@ import { titleToName } from './utils/titleToName';
  * - `pipelineStringToJsonSync` - use only if you need to compile promptbook synchronously and it contains NO external knowledge
  * - `preparePipeline` - just one step in the compilation process
  *
- * Note: This function does not validate logic of the pipeline only the syntax
+ * Note: This function does not validate logic of the pipeline only the parsing
  * Note: This function acts as compilation process
  *
  * @param pipelineString {Promptbook} in string markdown format (.ptbk.md)

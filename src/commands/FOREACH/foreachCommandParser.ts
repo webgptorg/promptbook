@@ -1,9 +1,11 @@
 import type { string_markdown_text } from '../../types/typeAliases';
 import { keepUnused } from '../../utils/organization/keepUnused';
-import type { $PipelineJson } from '../_common/types/CommandParser';
-import type { $TemplateJson } from '../_common/types/CommandParser';
-import type { CommandParserInput } from '../_common/types/CommandParser';
-import type { PipelineTemplateCommandParser } from '../_common/types/CommandParser';
+import type {
+    $PipelineJson,
+    $TemplateJson,
+    CommandParserInput,
+    PipelineTemplateCommandParser,
+} from '../_common/types/CommandParser';
 import type { ForeachCommand } from './ForeachCommand';
 
 /**
@@ -99,5 +101,5 @@ export const foreachCommandParser: PipelineTemplateCommandParser<ForeachCommand>
 };
 
 /**
- * TODO: [🍭] Make .ptbk.md file with examples of the FOREACH command and also with wrong syntax and logic
+ * TODO: [🍭] Make .ptbk.md file with examples of the FOREACH command and also with wrong parsing and logic
  */

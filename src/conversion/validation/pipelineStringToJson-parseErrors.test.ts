@@ -6,7 +6,7 @@ import { pipelineStringToJson } from '../pipelineStringToJson';
 import { importPipelineWithoutPreparation } from './_importPipeline';
 import { validatePipeline } from './validatePipeline';
 
-describe('validatePipeline with syntax errors', () => {
+describe('validatePipeline with parse errors', () => {
     const samplesDir = '../../../samples/pipelines/'; // <- TODO: [🚏] DRY, to config
     const samples = readdirSync(join(__dirname, samplesDir, 'errors/parse'), { withFileTypes: true, recursive: false })
         //                         <- Note: In production it is not good practice to use synchronous functions
@@ -15,7 +15,7 @@ describe('validatePipeline with syntax errors', () => {
         .filter(({ name }) => name.endsWith('.ptbk.md'));
 
     for (const { name } of samples) {
-        it(`should parse ${name} syntax`, () => {
+        it(`should parse ${name} parse`, () => {
             expect(async () => {
                 const pipelineString = importPipelineWithoutPreparation(
                     ('errors/parse/' + name) as `${string}.ptbk.md`,
@@ -24,13 +24,13 @@ describe('validatePipeline with syntax errors', () => {
 
                 try {
                     validatePipeline(pipelineJson);
-                    console.error('Pipeline should have syntax error BUT it does not have any error:\n', name);
+                    console.error('Pipeline should have ParseError error BUT it does not have any error:\n', name);
                 } catch (error) {
                     if (!(error instanceof Error)) {
                         throw error;
                     }
 
-                    console.error(`Pipeline should have syntax error BUT it has ${error.name}:\n`, name);
+                    console.error(`Pipeline should have ParseError error BUT it has ${error.name}:\n`, name);
                 }
             }).rejects.toThrowError(ParseError);
         });
@@ -39,5 +39,4 @@ describe('validatePipeline with syntax errors', () => {
 
 /**
  * TODO: [🚏] DRY
- * TODO: !!!!!! Rename ACRY syntax -> parse
  */

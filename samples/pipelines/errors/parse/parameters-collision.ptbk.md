@@ -23,5 +23,5 @@ Write synonym for "{word}"
 `-> {word}` another word with different description
 
 <!--
-TODO: [🧠] This is maybe 🟡 logic error NOT 🔴 syntax error?
+TODO: [🧠] This is maybe 🟡 logic error NOT 🔴 parse error?
 -->

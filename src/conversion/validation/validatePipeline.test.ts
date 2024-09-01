@@ -15,7 +15,7 @@ describe('validatePipeline with valid examples', () => {
         .filter(({ name }) => name.endsWith('.ptbk.md'));
 
     for (const { name } of samples) {
-        it(`should validate ${name} syntax and logic`, () => {
+        it(`should validate ${name} syntax, parsing and logic`, () => {
             expect(
                 (async () => {
                     try {

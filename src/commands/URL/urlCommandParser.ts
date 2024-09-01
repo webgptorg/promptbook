@@ -4,9 +4,7 @@ import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import type { string_markdown_text } from '../../types/typeAliases';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import { isValidPipelineUrl } from '../../utils/validators/url/isValidPipelineUrl';
-import type { $PipelineJson } from '../_common/types/CommandParser';
-import type { CommandParserInput } from '../_common/types/CommandParser';
-import type { PipelineHeadCommandParser } from '../_common/types/CommandParser';
+import type { $PipelineJson, CommandParserInput, PipelineHeadCommandParser } from '../_common/types/CommandParser';
 import type { UrlCommand } from './UrlCommand';
 
 /**
@@ -65,7 +63,7 @@ export const urlCommandParser: PipelineHeadCommandParser<UrlCommand> = {
             throw new ParseError(`URL is required`);
         }
 
-        // TODO: [🧠][🚲] This should be maybe tested as logic not syntax
+        // TODO: [🧠][🚲] This should be maybe tested as logic not parse
         if (!isValidPipelineUrl(pipelineUrl)) {
             throw new ParseError(`Invalid pipeline URL "${pipelineUrl}"`);
         }
