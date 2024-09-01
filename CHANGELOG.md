@@ -474,7 +474,7 @@ Was accidentally released skipped
 -   `RemoteLlmExecutionTools` automatically retries on error
 -   Rename `client_id` -> `string_user_id` and `clientId` -> `userId`
 
-### `0.68.0` _(2024--)_
+### `0.68.0` _(2024-09-)_
 
 [🍧] Commands and command parser
 
@@ -497,6 +497,12 @@ Was accidentally released skipped
 -   Rename `SCRIPT` -> `SCRIPT_TEMPLATE`
 -   Rename `LlmTemplateJson` -> `PromptTemplateJson`
 -   Rename `ParsingError` -> `ParseError`
+
+### `0.69.0` _(2024-09-)_
+
+Command `FOREACH`
+
+-   Allow iterations with `FOREACH` command
 
 ## In prepare
 
