@@ -1,14 +1,16 @@
 import { spaceTrim } from 'spacetrim';
 import type { Writable, WritableDeep } from 'type-fest';
-import { COMMANDS } from '../commands/index';
-import { blockCommandParser } from '../commands/BLOCK/blockCommandParser';
 import type { ParameterCommand } from '../commands/PARAMETER/ParameterCommand';
+import { blockCommandParser } from '../commands/TEMPLATE/blockCommandParser';
 import { parseCommand } from '../commands/_common/parseCommand';
-import type { $PipelineJson } from '../commands/_common/types/CommandParser';
-import type { $TemplateJson } from '../commands/_common/types/CommandParser';
-import type { CommandBase } from '../commands/_common/types/CommandParser';
-import type { PipelineHeadCommandParser } from '../commands/_common/types/CommandParser';
-import type { PipelineTemplateCommandParser } from '../commands/_common/types/CommandParser';
+import type {
+    $PipelineJson,
+    $TemplateJson,
+    CommandBase,
+    PipelineHeadCommandParser,
+    PipelineTemplateCommandParser,
+} from '../commands/_common/types/CommandParser';
+import { COMMANDS } from '../commands/index';
 import { RESERVED_PARAMETER_NAMES } from '../config';
 import { ParseError } from '../errors/ParseError';
 import { UnexpectedError } from '../errors/UnexpectedError';
@@ -306,8 +308,8 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
         }
 
         const $templateJson: $TemplateJson = {
-            isBlockTypeSet: false,
-            isTemplateBlock: true,
+            isTemplateTypeSet: false,
+            isTemplate: true,
             blockType: undefined /* <- Note: [🍙] Putting here placeholder to keep `blockType` on top at final JSON */,
             name: titleToName(section.title),
             title: section.title,
@@ -333,16 +335,16 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
         }));
 
         // Note: If block type is not set, set it to 'PROMPT_TEMPLATE'
-        if (commands.some(({ command }) => command.type === 'BLOCK') === false) {
+        if (commands.some(({ command }) => command.type === 'TEMPLATE') === false) {
             blockCommandParser.$applyToTemplateJson(
-                { type: 'BLOCK', blockType: 'PROMPT_TEMPLATE' },
+                { type: 'TEMPLATE', blockType: 'PROMPT_TEMPLATE' },
                 $templateJson,
                 $pipelineJson,
             );
         }
 
-        // TODO: !!!!!! Test error situation when `PERSONA` is used before `SIMPLE BLOCK`
-        // TODO: !!!!!! Test error situation when `MODEL` is used before `SIMPLE BLOCK`
+        // TODO: !!!!!! Test error situation when `PERSONA` is used before `SIMPLE TEMPLATE`
+        // TODO: !!!!!! Test error situation when `MODEL` is used before `SIMPLE TEMPLATE`
         // TODO [♓️] List commands and before apply order them
 
         for (const { listItem, command } of commands) {
@@ -410,7 +412,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
                 ); // <- TODO: [🚞]
             }
 
-            // TODO: !!!!!! Multiple problematic things in BLOCK command - blockCommandParser.$applyToTemplateJson
+            // TODO: !!!!!! Multiple problematic things in TEMPLATE command - blockCommandParser.$applyToTemplateJson
 
             if (command.type === 'PARAMETER') {
                 defineParam(command);
@@ -418,7 +420,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
             }
         }
 
-        // TODO: [🍧] !!!!!! Should be done in BLOCK command
+        // TODO: [🍧] !!!!!! Should be done in TEMPLATE command
         if (($templateJson as WritableDeep<TemplateJson>).blockType === 'SCRIPT_TEMPLATE') {
             if (!language) {
                 throw new ParseError(
@@ -480,9 +482,9 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
         }
         */
 
-        if ($templateJson.isTemplateBlock) {
-            delete ($templateJson as Partial<$TemplateJson>).isBlockTypeSet;
-            delete ($templateJson as Partial<$TemplateJson>).isTemplateBlock;
+        if ($templateJson.isTemplate) {
+            delete ($templateJson as Partial<$TemplateJson>).isTemplateTypeSet;
+            delete ($templateJson as Partial<$TemplateJson>).isTemplate;
 
             // TODO: [🍙] Maybe do reorder of `$templateJson` here
 

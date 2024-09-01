@@ -92,7 +92,7 @@ File `write-website-content.ptbk.md`:
 >
 > What is your web about?
 >
-> -   DIALOG BLOCK
+> -   DIALOG TEMPLATE
 >
 > ```
 > {rawAssigment}
@@ -128,7 +128,7 @@ File `write-website-content.ptbk.md`:
 >
 > Is the title for your website okay?
 >
-> -   DIALOG BLOCK
+> -   DIALOG TEMPLATE
 >
 > ```
 > {enhancedTitle}
@@ -392,7 +392,7 @@ By default, it is `Prompt template`
 -   _(default)_ `Prompt template` The block is a prompt template and is executed by LLM (OpenAI, Azure,...)
 -   `SIMPLE TEMPLATE` The block is a simple text template which is just filled with parameters
 -   `Script` The block is a script that is executed by some script runtime, the runtime is determined by block type, currently only `javascript` is supported but we plan to add `python` and `typescript` in the future.
--   `DIALOG BLOCK` Ask user for input
+-   `DIALOG TEMPLATE` Ask user for input
 
 ### Parameters
 

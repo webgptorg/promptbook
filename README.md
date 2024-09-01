@@ -68,7 +68,7 @@ File `write-website-content.ptbk.md`:
 >
 > What is your web about?
 >
-> -   DIALOG BLOCK
+> -   DIALOG TEMPLATE
 >
 > ```
 > {rawAssigment}
@@ -102,7 +102,7 @@ File `write-website-content.ptbk.md`:
 >
 > Is the title for your website okay?
 >
-> -   DIALOG BLOCK
+> -   DIALOG TEMPLATE
 >
 > ```
 > {enhancedTitle}

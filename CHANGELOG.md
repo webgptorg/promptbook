@@ -479,6 +479,7 @@ Was accidentally released skipped
 [🍧] Commands and command parser
 
 -   There are 2 different commands, `EXPECT` and `FORMAT`
+-   Rename `BLOCK` command -> `TEMPLATE`
 -   `EXPECT JSON` changed to `FORMAT JSON`
 -   Change `usagePlaces` -> `isUsedInPipelineHead` + `isUsedInPipelineTemplate`
 -   All parsers have functions `$applyToPipelineJson`, `$applyToTemplateJson`, `stringify`, `takeFromPipelineJson` and `takeFromTemplateJson`

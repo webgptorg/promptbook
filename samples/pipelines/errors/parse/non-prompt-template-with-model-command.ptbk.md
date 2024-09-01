@@ -6,7 +6,7 @@ Sample of wrong pipeline that has a non-prompt template with a model command
 
 This prompt is invalid because it is declared in a language that is not supported by the model.
 
--   SIMPLE TEMPLATE BLOCK
+-   SIMPLE TEMPLATE
 -   MODEL NAME `gpt-3.5-turbo`
 
 ```coffeescript

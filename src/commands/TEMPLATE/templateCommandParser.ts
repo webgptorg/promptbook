@@ -7,45 +7,36 @@ import type { TemplateJson } from '../../types/PipelineJson/TemplateJson';
 import type { string_markdown_text } from '../../types/typeAliases';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import { knowledgeCommandParser } from '../KNOWLEDGE/knowledgeCommandParser';
-import type { $PipelineJson } from '../_common/types/CommandParser';
-import type { $TemplateJson } from '../_common/types/CommandParser';
-import type { CommandParserInput } from '../_common/types/CommandParser';
-import type { PipelineTemplateCommandParser } from '../_common/types/CommandParser';
-import type { BlockCommand } from './BlockCommand';
-import { BlockTypes } from './BlockTypes';
+import type {
+    $PipelineJson,
+    $TemplateJson,
+    CommandParserInput,
+    PipelineTemplateCommandParser,
+} from '../_common/types/CommandParser';
+import type { TemplateCommand } from './TemplateCommand';
+import { TemplateTypes } from './TemplateTypes';
 
 /**
- * Parses the block command
+ * Parses the template command
  *
- * @see ./BLOCK-README.md for more details
+ * @see ./TEMPLATE-README.md for more details
  * @private within the commands folder
  */
-export const blockCommandParser: PipelineTemplateCommandParser<BlockCommand> = {
+export const templateCommandParser: PipelineTemplateCommandParser<TemplateCommand> = {
     /**
      * Name of the command
      */
-    name: 'BLOCK',
+    name: 'TEMPLATE',
 
     /**
-     * Aliases for the BLOCK command
+     * Aliases for the TEMPLATE command
      */
-    aliasNames: [
-        'PROMPT_TEMPLATE',
-        'SIMPLE_TEMPLATE',
-        'SCRIPT_TEMPLATE',
-        'DIALOG_TEMPLATE',
-        'SAMPLE',
-        'EXAMPLE',
-        'KNOWLEDGE',
-        'INSTRUMENT',
-        'ACTION',
-        // <- [🅱]
-    ],
+    aliasNames: ['SAMPLE', 'EXAMPLE', 'KNOWLEDGE', 'INSTRUMENT', 'ACTION'],
 
     /**
-     * Aliases for the BLOCK command
+     * Aliases for the TEMPLATE command
      */
-    deprecatedNames: ['EXECUTE'],
+    deprecatedNames: ['BLOCK', 'EXECUTE'],
 
     /**
      * BOILERPLATE command can be used in:
@@ -54,9 +45,9 @@ export const blockCommandParser: PipelineTemplateCommandParser<BlockCommand> = {
     isUsedInPipelineTemplate: true,
 
     /**
-     * Description of the BLOCK command
+     * Description of the TEMPLATE command
      */
-    description: `What should the code block template do`,
+    description: `What should the code template template do`,
 
     /**
      * Link to discussion
@@ -64,91 +55,96 @@ export const blockCommandParser: PipelineTemplateCommandParser<BlockCommand> = {
     documentationUrl: 'https://github.com/webgptorg/promptbook/discussions/64',
 
     /**
-     * Example usages of the BLOCK command
+     * Example usages of the TEMPLATE command
      */
     examples: [
-        // Recommended form:
-        'PROMPT BLOCK',
-        'SIMPLE BLOCK',
-        'SCRIPT BLOCK',
-        'DIALOG BLOCK',
+        // Short form:
+        'PROMPT',
+        'SIMPLE',
+        'SCRIPT',
+        'DIALOG',
         // <- [🅱]
+        'SAMPLE',
+        // 'KNOWLEDGE', // <- Note: [⛱] For TEMPLATE this shortcut does not work because it can not be distinguished from KNOWLEDGE command
+        // 'INSTRUMENT', // <- Note: [⛱] For TEMPLATE this shortcut does not work because it can not be distinguished from INSTRUMENT command
+        // 'ACTION', // <- Note: [⛱] For TEMPLATE this shortcut does not work because it can not be distinguished from ACTION command
 
-        // Long form:
-        'PROMPT TEMPLATE BLOCK',
-        'SIMPLE TEMPLATE BLOCK',
-        'SCRIPT TEMPLATE BLOCK',
-        'DIALOG TEMPLATE BLOCK',
+        // -----------------
+        // Recommended (reversed) form:
+        'PROMPT TEMPLATE',
+        'SIMPLE TEMPLATE',
+        'SCRIPT TEMPLATE',
+        'DIALOG TEMPLATE',
         // <- [🅱]
+        'SAMPLE TEMPLATE',
+        'KNOWLEDGE TEMPLATE',
+        'INSTRUMENT TEMPLATE',
+        'ACTION TEMPLATE',
 
-        // Reversed form:
-        'BLOCK PROMPT TEMPLATE',
-        'BLOCK SIMPLE TEMPLATE',
-        'BLOCK SCRIPT TEMPLATE',
-        'BLOCK DIALOG TEMPLATE',
+        // -----------------
+        // Standard form:
+        'TEMPLATE PROMPT',
+        'TEMPLATE SIMPLE',
+        'TEMPLATE SCRIPT',
+        'TEMPLATE DIALOG',
         // <- [🅱]
-
-        // 'Knowledge', // <- Note: [⛱] For execution blocks which are also separate commands shortcut does not work
-
-        //---
-        /* Note: Not implemented block types will be in examples in future -> */
-        'Instrument BLOCK',
-        // 'Instrument', // <- Note: [⛱]
-        'Action BLOCK',
-        // 'Action', // <- Note: [⛱]
-        //---
-        /* <- TODO: [🧠] Maybe dynamic */
+        'SAMPLE TEMPLATE',
+        'KNOWLEDGE TEMPLATE',
+        'INSTRUMENT TEMPLATE',
+        'ACTION TEMPLATE',
     ],
 
     // TODO: [♓️] order: -10 /* <- Note: Putting before other commands */
 
     /**
-     * Parses the BLOCK command
+     * Parses the TEMPLATE command
      */
-    parse(input: CommandParserInput): BlockCommand {
+    parse(input: CommandParserInput): TemplateCommand {
         let { normalized } = input;
 
         normalized = normalized.split('EXAMPLE').join('SAMPLE');
-        const blockTypes = BlockTypes.filter((blockType) => normalized.includes(blockType.split('_TEMPLATE').join('')));
+        const templateTypes = TemplateTypes.filter((templateType) =>
+            normalized.includes(templateType.split('_TEMPLATE').join('')),
+        );
 
-        if (blockTypes.length !== 1) {
+        if (templateTypes.length !== 1) {
             throw new ParseError(
                 spaceTrim(
-                    (block) => `
-                        Unknown block type in BLOCK command
+                    (template) => `
+                        Unknown template type in TEMPLATE command
 
-                        Supported block types are:
-                        ${block(BlockTypes.join(', '))}
+                        Supported template types are:
+                        ${template(TemplateTypes.join(', '))}
                     `, // <- TODO: [🚞]
                 ),
             );
         }
 
-        const blockType = blockTypes[0]!;
+        const templateType = templateTypes[0]!;
 
         return {
-            type: 'BLOCK',
-            blockType,
-        } satisfies BlockCommand;
+            type: 'TEMPLATE',
+            templateType,
+        } satisfies TemplateCommand;
     },
 
     /**
-     * Apply the BLOCK command to the `pipelineJson`
+     * Apply the TEMPLATE command to the `pipelineJson`
      *
      * Note: `$` is used to indicate that this function mutates given `templateJson`
      */
-    $applyToTemplateJson(command: BlockCommand, $templateJson: $TemplateJson, $pipelineJson: $PipelineJson): void {
-        // TODO: !!!!!! Test multiple / no block type
-        if ($templateJson.isBlockTypeSet === true) {
+    $applyToTemplateJson(command: TemplateCommand, $templateJson: $TemplateJson, $pipelineJson: $PipelineJson): void {
+        // TODO: !!!!!! Test multiple / no template type
+        if ($templateJson.isTemplateTypeSet === true) {
             throw new ParseError(
                 spaceTrim(`
-                    Block type is already defined in the template.
+                    Template type is already defined in the template.
                     It can be defined only once.
                 `),
             );
         }
 
-        $templateJson.isBlockTypeSet = true;
+        $templateJson.isTemplateTypeSet = true;
 
         // TODO: !!!!!! Rearrange better - but at bottom and unwrap from function
         const expectResultingParameterName = () => {
@@ -166,7 +162,7 @@ export const blockCommandParser: PipelineTemplateCommandParser<BlockCommand> = {
             );
         }
 
-        if (command.blockType === 'SAMPLE') {
+        if (command.templateType === 'SAMPLE') {
             expectResultingParameterName();
 
             const parameter = $pipelineJson.parameters.find(
@@ -180,12 +176,11 @@ export const blockCommandParser: PipelineTemplateCommandParser<BlockCommand> = {
             parameter.sampleValues = parameter.sampleValues || [];
             parameter.sampleValues.push($templateJson.content);
 
-
-            $templateJson.isTemplateBlock = false;
+            $templateJson.isTemplate = false;
             return;
         }
 
-        if (command.blockType === 'KNOWLEDGE') {
+        if (command.templateType === 'KNOWLEDGE') {
             knowledgeCommandParser.$applyToPipelineJson(
                 {
                     type: 'KNOWLEDGE',
@@ -194,55 +189,53 @@ export const blockCommandParser: PipelineTemplateCommandParser<BlockCommand> = {
                 $pipelineJson,
             );
 
-            $templateJson.isTemplateBlock = false;
+            $templateJson.isTemplate = false;
             return;
         }
 
-        if (command.blockType === 'ACTION') {
+        if (command.templateType === 'ACTION') {
             console.error(new NotYetImplementedError('Actions are not implemented yet'));
 
-            $templateJson.isTemplateBlock = false;
+            $templateJson.isTemplate = false;
             return;
         }
 
-        if (command.blockType === 'INSTRUMENT') {
+        if (command.templateType === 'INSTRUMENT') {
             console.error(new NotYetImplementedError('Instruments are not implemented yet'));
 
-
-            $templateJson.isTemplateBlock = false;
+            $templateJson.isTemplate = false;
             return;
         }
 
         expectResultingParameterName();
-        ($templateJson as WritableDeep<TemplateJson>).blockType = command.blockType;
+        ($templateJson as WritableDeep<TemplateJson>).templateType = command.templateType;
 
         /*
         TODO: !!!!!! Chat model variant should be applied in `createPipelineExecutor`
-        if (command.blockType ==='PROMPT_TEMPLATE' && templateModelRequirements.modelVariant === undefined) {
+        if (command.templateType ==='PROMPT_TEMPLATE' && templateModelRequirements.modelVariant === undefined) {
           templateModelRequirements.modelVariant = 'CHAT';
         }
         */
 
-
-        $templateJson.isTemplateBlock = true;
+        $templateJson.isTemplate = true;
     },
 
     /**
-     * Converts the BLOCK command back to string
+     * Converts the TEMPLATE command back to string
      *
      * Note: This is used in `pipelineJsonToString` utility
      */
-    stringify(command: BlockCommand): string_markdown_text {
+    stringify(command: TemplateCommand): string_markdown_text {
         keepUnused(command);
         return `!!!!!!`;
     },
 
     /**
-     * Reads the BLOCK command from the `TemplateJson`
+     * Reads the TEMPLATE command from the `TemplateJson`
      *
      * Note: This is used in `pipelineJsonToString` utility
      */
-    takeFromTemplateJson($templateJson: $TemplateJson): Array<BlockCommand> {
+    takeFromTemplateJson($templateJson: $TemplateJson): Array<TemplateCommand> {
         keepUnused($templateJson);
         throw new NotYetImplementedError(`Not implemented yet !!!!!!`);
     },

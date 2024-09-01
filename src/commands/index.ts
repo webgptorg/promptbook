@@ -1,4 +1,3 @@
-import { blockCommandParser } from './BLOCK/blockCommandParser';
 import { expectCommandParser } from './EXPECT/expectCommandParser';
 import { foreachCommandParser } from './FOREACH/foreachCommandParser';
 import { formatCommandParser } from './FORMAT/formatCommandParser';
@@ -9,6 +8,7 @@ import { parameterCommandParser } from './PARAMETER/parameterCommandParser';
 import { personaCommandParser } from './PERSONA/personaCommandParser';
 import { postprocessCommandParser } from './POSTPROCESS/postprocessCommandParser';
 import { promptbookVersionCommandParser } from './PROMPTBOOK_VERSION/promptbookVersionCommandParser';
+import { blockCommandParser } from './TEMPLATE/blockCommandParser';
 import { urlCommandParser } from './URL/urlCommandParser';
 import { actionCommandParser } from './X_ACTION/actionCommandParser';
 import { instrumentCommandParser } from './X_INSTRUMENT/instrumentCommandParser';

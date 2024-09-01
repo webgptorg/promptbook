@@ -6,8 +6,8 @@ Sample of wrong pipeline with multiple block commands
 
 This prompt is invalid because it is declared in a language that is not supported by the model.
 
--   SIMPLE TEMPLATE BLOCK
--   PROMPT TEMPLATE BLOCK
+-   SIMPLE TEMPLATE
+-   PROMPT TEMPLATE
 
 ```coffeescript
 Hello;
