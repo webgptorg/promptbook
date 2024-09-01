@@ -31,7 +31,17 @@ export const templateCommandParser: PipelineTemplateCommandParser<TemplateComman
     /**
      * Aliases for the TEMPLATE command
      */
-    aliasNames: ['SAMPLE', 'EXAMPLE', 'KNOWLEDGE', 'INSTRUMENT', 'ACTION'],
+    aliasNames: [
+        'PROMPT',
+        'SIMPLE',
+        'SCRIPT',
+        'DIALOG',
+        'SAMPLE',
+        'EXAMPLE',
+        // 'KNOWLEDGE', <- Note: [⛱]
+        // 'INSTRUMENT', <- Note: [⛱]
+        // 'ACTION', <- Note: [⛱]
+    ],
 
     /**
      * Aliases for the TEMPLATE command
