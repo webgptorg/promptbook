@@ -2,6 +2,7 @@ import { spaceTrim } from 'spacetrim';
 import type { Writable, WritableDeep } from 'type-fest';
 import type { ParameterCommand } from '../commands/PARAMETER/ParameterCommand';
 import { templateCommandParser } from '../commands/TEMPLATE/templateCommandParser';
+import { getParserForCommand } from '../commands/_common/getParserForCommand';
 import { parseCommand } from '../commands/_common/parseCommand';
 import type {
     $PipelineJson,
@@ -10,7 +11,6 @@ import type {
     PipelineHeadCommandParser,
     PipelineTemplateCommandParser,
 } from '../commands/_common/types/CommandParser';
-import { COMMANDS } from '../commands/index';
 import { RESERVED_PARAMETER_NAMES } from '../config';
 import { ParseError } from '../errors/ParseError';
 import { UnexpectedError } from '../errors/UnexpectedError';
@@ -219,19 +219,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
         // TODO: [🥥] Maybe move this logic to `$parseAndApplyPipelineHeadCommands`
         const command = parseCommand(listItem, 'PIPELINE_HEAD');
 
-        const commandParser = COMMANDS.find((commandParser) => commandParser.name === command.type);
-
-        if (commandParser === undefined) {
-            throw new UnexpectedError(
-                spaceTrim(
-                    (block) => `
-                          Command ${command.type} parser is not found 🍎
-
-                          ${block(getPipelineIdentification())}
-                      `,
-                ),
-            );
-        }
+        const commandParser = getParserForCommand(command);
 
         if (commandParser.isUsedInPipelineHead !== true /* <- Note: [🦦][4] */) {
             throw new ParseError(
@@ -349,19 +337,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
         // TODO [♓️] List commands and before apply order them
 
         for (const { listItem, command } of commands) {
-            const commandParser = COMMANDS.find((commandParser) => commandParser.name === command.type);
-
-            if (commandParser === undefined) {
-                throw new UnexpectedError(
-                    spaceTrim(
-                        (block) => `
-                              Command ${command.type} parser is not found 🍏
-
-                              ${block(getPipelineIdentification())}
-                          `,
-                    ),
-                );
-            }
+            const commandParser = getParserForCommand(command);
 
             if (commandParser.isUsedInPipelineTemplate !== true /* <- Note: [🦦][4] */) {
                 throw new ParseError(

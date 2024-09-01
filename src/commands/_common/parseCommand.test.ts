@@ -29,10 +29,6 @@ describe('parsing the commands', () => {
                     expect(parseCommand(example, usagePlace).type).toBe(name);
                 }
             });
-
-            // TODO: !!!!!! Test each command stringify
-            // TODO: !!!!!! Test each command on $applyToPipelineJson + $takeFromPipelineJson
-            // TODO: !!!!!! Test each command on $applyToTemplateJson + $takeFromTemplateJson
         }
     }
 
