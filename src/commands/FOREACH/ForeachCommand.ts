@@ -1,5 +1,5 @@
-import { string_parameter_name } from '../../types/typeAliases';
-import { TODO_string } from '../../utils/organization/TODO_string';
+import type { string_parameter_name } from '../../types/typeAliases';
+import type { TODO_string } from '../../utils/organization/TODO_string';
 
 /**
  * Parsed FOREACH command <- Write [🍭] !!!!!!
