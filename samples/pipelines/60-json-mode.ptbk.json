@@ -28,9 +28,13 @@
                 "modelVariant": "COMPLETION",
                 "modelName": "gpt-3.5-turbo-instruct"
             },
-            "postprocessingFunctionNames": ["trimEndOfCodeBlock"],
+            "postprocessingFunctionNames": [
+                "trimEndOfCodeBlock"
+            ],
             "format": "JSON",
-            "dependentParameterNames": ["unstructuredContacts"]
+            "dependentParameterNames": [
+                "unstructuredContacts"
+            ]
         }
     ],
     "knowledgeSources": [],

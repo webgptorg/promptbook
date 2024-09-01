@@ -29,7 +29,10 @@
             "description": "Sentence with word and wordSynonym",
             "content": "Write sentence with \"{word}\" and \"{wordSynonym}\" in it",
             "resultingParameterName": "sentenceWithTwoSynonyms",
-            "dependentParameterNames": ["word", "wordSynonym"]
+            "dependentParameterNames": [
+                "word",
+                "wordSynonym"
+            ]
         },
         {
             "templateType": "PROMPT_TEMPLATE",
@@ -38,7 +41,9 @@
             "description": "Synonym for word",
             "content": "Write synonym for \"{word}\"",
             "resultingParameterName": "wordSynonym",
-            "dependentParameterNames": ["word"]
+            "dependentParameterNames": [
+                "word"
+            ]
         }
     ],
     "knowledgeSources": [],

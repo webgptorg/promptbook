@@ -13,7 +13,10 @@
             "name": "greeting",
             "isInput": false,
             "isOutput": true,
-            "sampleValues": ["NHOJ OLLEH", "HSOJ IH"]
+            "sampleValues": [
+                "NHOJ OLLEH",
+                "HSOJ IH"
+            ]
         }
     ],
     "templates": [
@@ -23,8 +26,14 @@
             "title": "💬 Question",
             "content": "Hello {yourName}!",
             "resultingParameterName": "greeting",
-            "postprocessingFunctionNames": ["reverse", "removeDiacritics", "normalizeTo_SCREAMING_CASE"],
-            "dependentParameterNames": ["yourName"]
+            "postprocessingFunctionNames": [
+                "reverse",
+                "removeDiacritics",
+                "normalizeTo_SCREAMING_CASE"
+            ],
+            "dependentParameterNames": [
+                "yourName"
+            ]
         }
     ],
     "knowledgeSources": [],

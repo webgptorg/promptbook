@@ -34,7 +34,9 @@
             "content": "Write synonym for \"{word}\"",
             "resultingParameterName": "wordSynonym",
             "personaName": "Joe",
-            "dependentParameterNames": ["word"]
+            "dependentParameterNames": [
+                "word"
+            ]
         },
         {
             "templateType": "PROMPT_TEMPLATE",
@@ -44,7 +46,10 @@
             "content": "Write sentence with \"{word}\" and \"{wordSynonym}\" in it",
             "resultingParameterName": "sentenceWithTwoSynonyms",
             "personaName": "Joe",
-            "dependentParameterNames": ["word", "wordSynonym"]
+            "dependentParameterNames": [
+                "word",
+                "wordSynonym"
+            ]
         }
     ],
     "knowledgeSources": [],
@@ -59,13 +64,15 @@
                 "systemMessage": "You are an experienced AI engineer and helpful assistant.",
                 "temperature": 0.5
             },
-            "preparationIds": [1]
+            "preparationIds": [
+                1
+            ]
         }
     ],
     "preparations": [
         {
             "id": 1,
-            "promptbookVersion": "0.68.0-0",
+            "promptbookVersion": "0.68.0-3",
             "usage": {
                 "price": {
                     "value": 0.008790000000000001

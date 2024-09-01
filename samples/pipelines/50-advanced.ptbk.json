@@ -40,7 +40,9 @@
             "description": "Sentence with word and wordSynonym",
             "isInput": false,
             "isOutput": false,
-            "sampleValues": ["I was happy and you were joyful!"]
+            "sampleValues": [
+                "I was happy and you were joyful!"
+            ]
         },
         {
             "name": "sentenceWithOriginalWordRemoved",
@@ -61,14 +63,18 @@
             "modelRequirements": {
                 "modelName": "gpt-3.5-turbo"
             },
-            "postprocessingFunctionNames": ["unwrapResult"],
+            "postprocessingFunctionNames": [
+                "unwrapResult"
+            ],
             "expectations": {
                 "words": {
                     "min": 1,
                     "max": 1
                 }
             },
-            "dependentParameterNames": ["word"]
+            "dependentParameterNames": [
+                "word"
+            ]
         },
         {
             "templateType": "SCRIPT_TEMPLATE",
@@ -77,7 +83,10 @@
             "content": "if (word !== '' && wordSynonym === word) {\n    throw new Error(`Synonym returned from LLM is same as original word \"${word}\"`);\n}\n\nreturn wordSynonym;",
             "resultingParameterName": "wordSynonymTested",
             "contentLanguage": "javascript",
-            "dependentParameterNames": ["word", "wordSynonym"]
+            "dependentParameterNames": [
+                "word",
+                "wordSynonym"
+            ]
         },
         {
             "templateType": "PROMPT_TEMPLATE",
@@ -99,7 +108,10 @@
                     "max": 1
                 }
             },
-            "dependentParameterNames": ["word", "wordSynonym"]
+            "dependentParameterNames": [
+                "word",
+                "wordSynonym"
+            ]
         },
         {
             "templateType": "PROMPT_TEMPLATE",
@@ -118,7 +130,10 @@
                     "max": 1
                 }
             },
-            "dependentParameterNames": ["sentenceWithTwoSynonyms", "word"]
+            "dependentParameterNames": [
+                "sentenceWithTwoSynonyms",
+                "word"
+            ]
         },
         {
             "templateType": "PROMPT_TEMPLATE",
@@ -138,7 +153,10 @@
                     "max": 5
                 }
             },
-            "dependentParameterNames": ["sentenceWithTwoSynonyms", "sentenceWithOriginalWordRemoved"]
+            "dependentParameterNames": [
+                "sentenceWithTwoSynonyms",
+                "sentenceWithOriginalWordRemoved"
+            ]
         },
         {
             "templateType": "SIMPLE_TEMPLATE",
@@ -167,7 +185,9 @@
                 "systemMessage": "You are an experienced AI engineer and helpful assistant.",
                 "temperature": 0.5
             },
-            "preparationIds": [1]
+            "preparationIds": [
+                1
+            ]
         },
         {
             "name": "Jane",
@@ -178,7 +198,9 @@
                 "systemMessage": "You are an experienced AI engineer and helpful assistant.",
                 "temperature": 0.5
             },
-            "preparationIds": [1]
+            "preparationIds": [
+                1
+            ]
         },
         {
             "name": "Josh",
@@ -189,7 +211,9 @@
                 "systemMessage": "You are an experienced AI engineer and helpful assistant.",
                 "temperature": 0.5
             },
-            "preparationIds": [1]
+            "preparationIds": [
+                1
+            ]
         },
         {
             "name": "Alice",
@@ -200,13 +224,15 @@
                 "systemMessage": "You are an experienced AI engineer and helpful assistant.",
                 "temperature": 0.5
             },
-            "preparationIds": [1]
+            "preparationIds": [
+                1
+            ]
         }
     ],
     "preparations": [
         {
             "id": 1,
-            "promptbookVersion": "0.68.0-0",
+            "promptbookVersion": "0.68.0-3",
             "usage": {
                 "price": {
                     "value": 0.035160000000000004

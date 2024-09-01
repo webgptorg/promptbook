@@ -31,7 +31,9 @@
                     "max": 5
                 }
             },
-            "dependentParameterNames": ["word"]
+            "dependentParameterNames": [
+                "word"
+            ]
         }
     ],
     "knowledgeSources": [],
@@ -46,13 +48,15 @@
                 "systemMessage": "You are an experienced AI engineer and helpful assistant.",
                 "temperature": 0.5
             },
-            "preparationIds": [1]
+            "preparationIds": [
+                1
+            ]
         }
     ],
     "preparations": [
         {
             "id": 1,
-            "promptbookVersion": "0.68.0-0",
+            "promptbookVersion": "0.68.0-3",
             "usage": {
                 "price": {
                     "value": 0.008790000000000001
