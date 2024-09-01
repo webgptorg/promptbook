@@ -1,4 +1,2 @@
 TODO: [👙][🧠] Maybe add `knowledge`, `actions` and `instruments` to be available granularly for each persona
       @see https://github.com/webgptorg/promptbook/discussions/79
-
-TODO: !!!!!! Change to TEMPLATE command

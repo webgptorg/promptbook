@@ -168,7 +168,7 @@ export const templateCommandParser: PipelineTemplateCommandParser<TemplateComman
         if ($templateJson.content === undefined) {
             throw new UnexpectedError(
                 `Content is missing in the templateJson - probbably commands are applied in wrong order`,
-                //     <- TODO: !!!!!! Make sample pipeline that have commands in wrong order
+                //     <- TODO: !!!!!! Make sample pipeline that have commands in wrong order but works correctly
             );
         }
 

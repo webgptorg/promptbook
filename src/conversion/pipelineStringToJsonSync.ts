@@ -272,7 +272,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
     // =============================================================
     // Note: 4️⃣ Process each template of the pipeline
 
-    /* TODO: !!!!!! Remove `templates:` */ for (const section of pipelineSections) {
+    for (const section of pipelineSections) {
         // TODO: Parse template description (the content out of the codeblock and lists)
 
         const listItems = extractAllListItemsFromMarkdown(section.content);
@@ -389,7 +389,6 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
                 ); // <- TODO: [🚞]
             }
 
-            // TODO: !!!!!! Multiple problematic things in TEMPLATE command - templateCommandParser.$applyToTemplateJson
 
             if (command.type === 'PARAMETER') {
                 defineParam(command);
