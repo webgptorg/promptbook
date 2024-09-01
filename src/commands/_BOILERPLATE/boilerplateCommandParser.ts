@@ -132,7 +132,3 @@ export const boilerplateCommandParser: PipelineBothCommandParser<BoilerplateComm
         );
     },
 };
-
-/**
- * TODO: !!!!!! Make .ptbk.md file with examples of the BOILERPLATE command and fail
- */
