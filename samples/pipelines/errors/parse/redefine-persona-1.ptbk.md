@@ -1,0 +1,16 @@
+# 🔴 Sample of parsing error
+
+Redefined model name
+
+## 💬 Prompt
+
+-   PERSONA Jane, a scientist who works at NASA
+-   PERSONA John, a philosopher who is writing a book on the meaning of life
+-   PERSONA Josh, average Joe who "knows everything"
+
+```
+Hello,
+What is the answer to the universe?
+```
+
+`-> {answer}`
