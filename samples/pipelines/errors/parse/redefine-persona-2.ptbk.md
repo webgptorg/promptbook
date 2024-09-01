@@ -2,6 +2,8 @@
 
 Redefined model name
 
+-   OUTPUT PARAMETER `{answer}`
+
 ## 💬 Prompt
 
 -   PERSONA Jane, a scientist who works at NASA

@@ -2,6 +2,8 @@
 
 Redefined model name
 
+-   OUTPUT PARAMETER `{answer}`
+
 ## 💬 Prompt
 
 -   MODEL VARIANT Chat
