@@ -15,10 +15,7 @@
             "description": "Greeting to each customer on each row",
             "isInput": false,
             "isOutput": true,
-            "sampleValues": [
-                "Paul\nJohn",
-                "Hello Paul\nHi John"
-            ]
+            "sampleValues": ["Paul\nJohn", "Hello Paul\nHi John"]
         }
     ],
     "templates": [
@@ -29,9 +26,7 @@
             "content": "Write an email greeting for \"{customers}\"",
             "resultingParameterName": "greetings",
             "personaName": "Jane",
-            "dependentParameterNames": [
-                "customers"
-            ]
+            "dependentParameterNames": ["customers"]
         }
     ],
     "knowledgeSources": [],
@@ -39,16 +34,14 @@
     "personas": [
         {
             "name": "Jane",
-            "description": "[🍭]",
+            "description": "[🍭] !!!!!!",
             "modelRequirements": {
                 "modelVariant": "CHAT",
                 "modelName": "gpt-4-turbo-2024-04-09",
                 "systemMessage": "You are an experienced AI engineer and helpful virtual assistant, ready to assist with a wide range of tasks and queries.",
                 "temperature": 0.7
             },
-            "preparationIds": [
-                1
-            ]
+            "preparationIds": [1]
         }
     ],
     "preparations": [

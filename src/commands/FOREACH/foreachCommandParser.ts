@@ -1,9 +1,11 @@
 import type { string_markdown_text } from '../../types/typeAliases';
 import { keepUnused } from '../../utils/organization/keepUnused';
-import type { $PipelineJson } from '../_common/types/CommandParser';
-import type { $TemplateJson } from '../_common/types/CommandParser';
-import type { CommandParserInput } from '../_common/types/CommandParser';
-import type { PipelineTemplateCommandParser } from '../_common/types/CommandParser';
+import type {
+    $PipelineJson,
+    $TemplateJson,
+    CommandParserInput,
+    PipelineTemplateCommandParser,
+} from '../_common/types/CommandParser';
 import type { ForeachCommand } from './ForeachCommand';
 
 /**
@@ -34,12 +36,12 @@ export const foreachCommandParser: PipelineTemplateCommandParser<ForeachCommand>
     /**
      * Description of the FOREACH command
      */
-    description: `@@`, // <- TODO: [🍭]
+    description: `@@`, // <- TODO: [🍭] !!!!!!
 
     /**
      * Link to discussion
      */
-    documentationUrl: 'https://github.com/webgptorg/promptbook/discussions/@@', // <- TODO: [🍭]
+    documentationUrl: 'https://github.com/webgptorg/promptbook/discussions/@@', // <- TODO: [🍭] !!!!!!
 
     /**
      * Example usages of the FOREACH command
@@ -48,7 +50,7 @@ export const foreachCommandParser: PipelineTemplateCommandParser<ForeachCommand>
         'FOREACH List Line -> `{customer}`',
         'FOR List Line -> `{customer}`',
         'EACH List Line -> `{customer}`',
-        // <- TODO: [🍭] More
+        // <- TODO: [🍭] !!!!!! More
     ],
 
     /**
@@ -57,11 +59,22 @@ export const foreachCommandParser: PipelineTemplateCommandParser<ForeachCommand>
     parse(input: CommandParserInput): ForeachCommand {
         const { args } = input;
 
-        keepUnused(args);
-        // <- TODO: [🍭] Implement
+        const formatName = args[0];
+        const cellName = args[1];
+        const assignSign = args[2];
+        const parameterName = args[3];
+
+        if (assignSign !== '->') {
+            throw new Error(`FOREACH command must have '->' to assign the value to the parameter`);
+        }
+
+        // TODO: !!!!!! Add parameter name validation
 
         return {
             type: 'FOREACH',
+            formatName,
+            cellName,
+            parameterName,
         } satisfies ForeachCommand;
     },
 
@@ -72,7 +85,7 @@ export const foreachCommandParser: PipelineTemplateCommandParser<ForeachCommand>
      */
     $applyToTemplateJson(command: ForeachCommand, $templateJson: $TemplateJson, $pipelineJson: $PipelineJson): void {
         keepUnused(command, $templateJson, $pipelineJson);
-        // <- TODO: [🍭] Implement
+        // <- TODO: [🍭] !!!!!! Implement
     },
 
     /**
@@ -83,7 +96,7 @@ export const foreachCommandParser: PipelineTemplateCommandParser<ForeachCommand>
     stringify(command: ForeachCommand): string_markdown_text {
         keepUnused(command);
         return ``;
-        // <- TODO: [🍭] Implement
+        // <- TODO: [🍭] !!!!!! Implement
     },
 
     /**
@@ -94,10 +107,10 @@ export const foreachCommandParser: PipelineTemplateCommandParser<ForeachCommand>
     takeFromTemplateJson($templateJson: $TemplateJson): Array<ForeachCommand> {
         keepUnused($templateJson);
         return [];
-        // <- TODO: [🍭] Implement
+        // <- TODO: [🍭] !!!!!! Implement
     },
 };
 
 /**
- * TODO: [🍭] Make .ptbk.md file with examples of the FOREACH command and also with wrong parsing and logic
+ * TODO: [🍭] !!!!!! Make .ptbk.md file with examples of the FOREACH command and also with wrong parsing and logic
  */

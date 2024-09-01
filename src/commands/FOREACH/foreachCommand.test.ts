@@ -4,25 +4,47 @@ import { foreachCommandParser } from './foreachCommandParser';
 
 describe('how FOREACH command in .ptbk.md files works', () => {
     it('should parse FOREACH command in PIPELINE_TEMPLATE', () => {
-        expect(parseCommand('FOREACH foo', 'PIPELINE_TEMPLATE')).toEqual({
+        expect(parseCommand('FOREACH List Line -> `{customer}`', 'PIPELINE_TEMPLATE')).toEqual({
             type: 'FOREACH',
-            // <- TODO: [🍭]
+            // <- TODO: [🍭] !!!!!!
         });
-        expect(parseCommand('FOREACH bar', 'PIPELINE_TEMPLATE')).toEqual({
+    });
+
+    it('should parse FOREACH command in multiple formats', () => {
+        expect(parseCommand('FOREACH List Line -> `{customer}`', 'PIPELINE_TEMPLATE')).toEqual({
             type: 'FOREACH',
-            // <- TODO: [🍭]
+            // <- TODO: [🍭] !!!!!!
+        });
+        expect(parseCommand('FOREACH List Line -> {customer}', 'PIPELINE_TEMPLATE')).toEqual({
+            type: 'FOREACH',
+            // <- TODO: [🍭] !!!!!!
+        });
+
+        expect(parseCommand('FOREACH List Line `-> {customer}`', 'PIPELINE_TEMPLATE')).toEqual({
+            type: 'FOREACH',
+            // <- TODO: [🍭] !!!!!!
+        });
+
+        expect(parseCommand('EACH   List   Line ->   {customer}   ', 'PIPELINE_TEMPLATE')).toEqual({
+            type: 'FOREACH',
+            // <- TODO: [🍭] !!!!!!
+        });
+
+        expect(parseCommand('FOREACH CSV CELL ->`{customer}`', 'PIPELINE_TEMPLATE')).toEqual({
+            type: 'FOREACH',
+            // <- TODO: [🍭] !!!!!!
         });
     });
 
     it('should parse FOREACH command in shortcut form', () => {
         expect(parseCommand('EACH bar', 'PIPELINE_TEMPLATE')).toEqual({
             type: 'FOREACH',
-            // <- TODO: [🍭]
+            // <- TODO: [🍭] !!!!!!
         });
     });
 
     it('should fail parsing FOREACH command', () => {
-        // TODO: [🍭] expect(() => parseCommand('FOREACH brr', 'PIPELINE_TEMPLATE')).toThrowError(/FOREACH value can not contain brr/i);
+        expect(() => parseCommand('FOREACH brr', 'PIPELINE_TEMPLATE')).toThrowError(/FOREACH command !!!!!!/i);
     });
 
     it(`should work with all samples`, () => {
