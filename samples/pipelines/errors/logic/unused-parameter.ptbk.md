@@ -2,8 +2,6 @@
 
 Sample of wrong pipeline that has unused parameter
 
--   PIPELINE URL https://promptbook.studio/samples/unused-parameter.ptbk.md
--   PROMPTBOOK VERSION 1.0.0
 -   INPUT  PARAMETER {yourName} Name of the hero or nothing
 <!-- Note: Missing declaration of OUTPUT parameter -->
 

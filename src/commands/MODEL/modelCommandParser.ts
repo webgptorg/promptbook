@@ -102,7 +102,6 @@ export const modelCommandParser: PipelineBothCommandParser<ModelCommand> = {
                     ${block(['variant', 'name'].join(', '))}
 
                     Example:
-
                     - MODEL VARIANT Chat
                     - MODEL NAME gpt-4
               `,

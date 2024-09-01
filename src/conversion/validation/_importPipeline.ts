@@ -18,7 +18,7 @@ import type { string_json } from '../../types/typeAliases';
 export function importPipelineWithoutPreparation(path: `${string}.ptbk.md`): PipelineString;
 export function importPipelineWithoutPreparation(path: `${string}.ptbk.json`): PipelineJson;
 export function importPipelineWithoutPreparation(path: string_file_path): PipelineString | PipelineJson {
-    const samplesDir = '../../../samples/pipelines';
+    const samplesDir = '../../../samples/pipelines';// <- TODO: [🚏] DRY, to config
     const content = readFileSync(join(__dirname, samplesDir, path), 'utf-8');
     //                         <- Note: In production it is not good practice to use synchronous functions
     //                                  But this is only a test before the build, so it is okay
@@ -50,7 +50,7 @@ export function importPipelineJson(path: `${string}.ptbk.json`): PipelineJson {
  * @private internal function of tests
  */
 export function importPipelineJsonAsString(path: `${string}.ptbk.json`): string_json<PipelineJson> {
-    const samplesDir = '../../../samples/pipelines';
+    const samplesDir = '../../../samples/pipelines';// <- TODO: [🚏] DRY, to config
     const content = readFileSync(join(__dirname, samplesDir, path), 'utf-8');
     //                         <- Note: In production it is not good practice to use synchronous functions
     //                                  But this is only a test before the build, so it is okay

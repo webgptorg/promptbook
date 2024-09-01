@@ -1,7 +1,6 @@
 import { spaceTrim } from 'spacetrim';
 import { ParseError } from '../../errors/ParseError';
-import type { string_markdown } from '../../types/typeAliases';
-import type { string_markdown_text } from '../../types/typeAliases';
+import type { string_markdown, string_markdown_text } from '../../types/typeAliases';
 import { removeMarkdownFormatting } from '../../utils/markdown/removeMarkdownFormatting';
 import { normalizeTo_SCREAMING_CASE } from '../../utils/normalization/normalizeTo_SCREAMING_CASE';
 import { just } from '../../utils/organization/just';
@@ -9,9 +8,7 @@ import { keepUnused } from '../../utils/organization/keepUnused';
 import type { really_unknown } from '../../utils/organization/really_unknown';
 import { COMMANDS } from '../index';
 import type { Command } from './types/Command';
-import type { CommandBase } from './types/CommandParser';
-import type { CommandParser } from './types/CommandParser';
-import type { CommandParserInput } from './types/CommandParser';
+import type { CommandBase, CommandParser, CommandParserInput } from './types/CommandParser';
 import type { CommandUsagePlace } from './types/CommandUsagePlaces';
 
 /**
@@ -71,7 +68,6 @@ export function parseCommand(raw: string_markdown_text, usagePlace: CommandUsage
                 (block) =>
                     `
                         Malformed command:
-
                         - ${raw}
 
                         Supported commands are:
@@ -120,7 +116,6 @@ export function parseCommand(raw: string_markdown_text, usagePlace: CommandUsage
             (block) =>
                 `
                   Malformed or unknown command:
-
                   - ${raw}
 
                   Supported commands are:
@@ -179,9 +174,12 @@ function parseCommandVariant(input: CommandParserInput & { commandNameRaw: strin
                         (block) =>
                             `
                               Invalid ${commandName} command:
-                              ${block((error as ParseError).message)}
 
+                              Your command:
                               - ${raw}
+
+                              The detailed error:
+                              ${block((error as ParseError).message)}
 
                               Usage of ${commandName}:
                               ${block(commandParser.examples.map((example) => `- ${example}`).join('\n'))}

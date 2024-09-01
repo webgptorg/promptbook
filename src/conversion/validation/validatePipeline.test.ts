@@ -6,8 +6,8 @@ import { pipelineStringToJson } from '../pipelineStringToJson';
 import { importPipelineWithoutPreparation } from './_importPipeline';
 import { validatePipeline } from './validatePipeline';
 
-describe('validatePipeline', () => {
-    const samplesDir = '../../../samples/pipelines';
+describe('validatePipeline with valid examples', () => {
+    const samplesDir = '../../../samples/pipelines';// <- TODO: [🚏] DRY, to config
     const samples = readdirSync(join(__dirname, samplesDir), { withFileTypes: true, recursive: false })
         //                         <- Note: In production it is not good practice to use synchronous functions
         //                                  But this is only a test before the build, so it is okay
@@ -15,7 +15,7 @@ describe('validatePipeline', () => {
         .filter(({ name }) => name.endsWith('.ptbk.md'));
 
     for (const { name } of samples) {
-        it(`should validate ${name} logic`, () => {
+        it(`should validate ${name} syntax and logic`, () => {
             expect(
                 (async () => {
                     try {
@@ -44,3 +44,7 @@ describe('validatePipeline', () => {
         });
     }
 });
+
+/**
+ * TODO: [🚏] DRY
+ */

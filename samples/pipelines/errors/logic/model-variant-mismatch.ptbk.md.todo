@@ -2,15 +2,13 @@
 
 Show how to pick exact model
 
--   PIPELINE URL https://promptbook.studio/samples/model-mismatch.ptbk.md
--   PROMPTBOOK VERSION 1.0.0
 -   INPUT  PARAMETER `{word}` Any single word
 -   OUTPUT PARAMETER `{poem}`
 
 ## 💬 Synonym
 
--   MODEL VARIANT Chat
--   MODEL `gpt-4-1106-preview`
+-   MODEL VARIANT Completion
+-   MODEL NAME `gpt-4-1106-preview`
 
 Synonym for word
 
