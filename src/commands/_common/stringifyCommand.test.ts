@@ -1,5 +1,5 @@
 import { describe, expect, it } from '@jest/globals';
-import { really_any } from '../../_packages/types.index';
+import type { really_any } from '../../utils/organization/really_any';
 import { stringifyCommand } from './stringifyCommand';
 
 describe('stringify the commands', () => {

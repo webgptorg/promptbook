@@ -1,8 +1,8 @@
 import { spaceTrim } from 'spacetrim';
-import { COMMANDS } from '..';
+import { COMMANDS } from '../index';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { Command } from './types/Command';
-import { CommandParser } from './types/CommandParser';
+import type { CommandParser } from './types/CommandParser';
 
 /**
  * Gets the parser for the command
