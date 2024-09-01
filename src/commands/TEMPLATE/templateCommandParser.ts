@@ -7,10 +7,12 @@ import type { TemplateJson } from '../../types/PipelineJson/TemplateJson';
 import type { string_markdown_text } from '../../types/typeAliases';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import { knowledgeCommandParser } from '../KNOWLEDGE/knowledgeCommandParser';
-import type { $PipelineJson } from '../_common/types/CommandParser';
-import type { $TemplateJson } from '../_common/types/CommandParser';
-import type { CommandParserInput } from '../_common/types/CommandParser';
-import type { PipelineTemplateCommandParser } from '../_common/types/CommandParser';
+import type {
+    $PipelineJson,
+    $TemplateJson,
+    CommandParserInput,
+    PipelineTemplateCommandParser,
+} from '../_common/types/CommandParser';
 import type { TemplateCommand } from './TemplateCommand';
 import { TemplateTypes } from './TemplateTypes';
 
@@ -216,7 +218,6 @@ export const templateCommandParser: PipelineTemplateCommandParser<TemplateComman
         expectResultingParameterName();
         ($templateJson as WritableDeep<TemplateJson>).templateType = command.templateType;
 
-
         $templateJson.isTemplate = true;
     },
 
@@ -242,5 +243,13 @@ export const templateCommandParser: PipelineTemplateCommandParser<TemplateComman
 };
 
 /**
- * Note: [⛱] There are two types of KNOWLEDGE, ACTION and INSTRUMENT commands @@@!!!!!!
+ * Note: [⛱] There are two types of KNOWLEDGE, ACTION and INSTRUMENT commands:
+ * 1) There are commands `KNOWLEDGE`, `ACTION` and `INSTRUMENT` used in the pipeline head, they just define the knowledge, action or instrument as single line after the command
+ *    - KNOWLEDGE Look at https://en.wikipedia.org/wiki/Artificial_intelligence
+ * 2) `KNOWLEDGE TEMPLATE` which has short form `KNOWLEDGE` is used in the template, does not refer the line itself, but the content of the template
+ *   - KNOWLEDGE TEMPLATE
+ *
+ *   ```
+ *   Look at https://en.wikipedia.org/wiki/Artificial_intelligence
+ *   ```
  */
