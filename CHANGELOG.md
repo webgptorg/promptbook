@@ -504,6 +504,13 @@ Command `FOREACH`
 
 -   Allow iterations with `FOREACH` command
 
+### `0.70.0` _(2024-09-)_
+
+Support for local models - integrate [Ollama](https://ollama.com/)
+
+-   !!!!!! Make new package `@promptbook/ollama`
+-   !!!!!! Add `OllamaExecutionTools` exported from `@promptbook/ollama`
+
 ## In prepare
 
 ### `0..0` _(2024-0-)_
