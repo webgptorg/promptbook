@@ -112,7 +112,7 @@ export const urlCommandParser: PipelineHeadCommandParser<UrlCommand> = {
      */
     stringify(command: UrlCommand): string_markdown_text {
         keepUnused(command);
-        return `!!!!!!`;
+        return `---`; // <- TODO: [🛋] Implement
     },
 
     /**

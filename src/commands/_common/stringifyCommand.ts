@@ -14,7 +14,3 @@ export function stringifyCommand(command: Command): string_markdown_text {
     const commandParser = getParserForCommand(command);
     return commandParser.stringify(command);
 }
-
-/**
- * TODO: !!!!!! Use in the pipelineJsonToString
- */

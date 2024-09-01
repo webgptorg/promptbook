@@ -95,7 +95,7 @@ export const personaCommandParser: PipelineBothCommandParser<PersonaCommand> = {
      */
     stringify(command: PersonaCommand): string_markdown_text {
         keepUnused(command);
-        return `!!!!!!`;
+        return `---`; // <- TODO: [🛋] Implement
     },
 
     /**

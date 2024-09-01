@@ -237,7 +237,7 @@ export const templateCommandParser: PipelineTemplateCommandParser<TemplateComman
      */
     stringify(command: TemplateCommand): string_markdown_text {
         keepUnused(command);
-        return `!!!!!!`;
+        return `---`; // <- TODO: [🛋] Implement
     },
 
     /**

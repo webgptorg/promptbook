@@ -34,7 +34,3 @@ export function getParserForCommand<TCommand extends Command>(command: TCommand)
 
     return commandParser as CommandParser<TCommand>;
 }
-
-/**
- * TODO: !!!!!! Use
- */

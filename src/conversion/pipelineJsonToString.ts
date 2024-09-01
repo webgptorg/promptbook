@@ -166,7 +166,7 @@ function templateParameterJsonToString(templateParameterJson: ParameterJson): st
 }
 
 /**
- * TODO: !!!!!! Implement new features and commands into `templateParameterJsonToString`
+ * TODO: [🛋] Implement new features and commands into `pipelineJsonToString` + `templateParameterJsonToString` , use `stringifyCommand`
  * TODO: [🧠] Is there a way to auto-detect missing features in pipelineJsonToString
  * TODO: [🏛] Maybe make some markdown builder
  * TODO: [🏛] Escape all

@@ -3,9 +3,7 @@ import { ParseError } from '../../errors/ParseError';
 import type { string_markdown_text } from '../../types/typeAliases';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import type { TODO_any } from '../../utils/organization/TODO_any';
-import type { $TemplateJson } from '../_common/types/CommandParser';
-import type { CommandParserInput } from '../_common/types/CommandParser';
-import type { PipelineTemplateCommandParser } from '../_common/types/CommandParser';
+import type { $TemplateJson, CommandParserInput, PipelineTemplateCommandParser } from '../_common/types/CommandParser';
 import type { JokerCommand } from './JokerCommand';
 
 /**
@@ -78,7 +76,7 @@ export const jokerCommandParser: PipelineTemplateCommandParser<JokerCommand> = {
      */
     stringify(command: JokerCommand): string_markdown_text {
         keepUnused(command);
-        return `!!!!!!`;
+        return `---`; // <- TODO: [🛋] Implement
     },
 
     /**

@@ -107,7 +107,7 @@ export const knowledgeCommandParser: PipelineHeadCommandParser<KnowledgeCommand>
      */
     stringify(command: KnowledgeCommand): string_markdown_text {
         keepUnused(command);
-        return `!!!!!!`;
+        return `---`; // <- TODO: [🛋] Implement
     },
 
     /**
