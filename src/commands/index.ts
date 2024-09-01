@@ -35,4 +35,6 @@ export const COMMANDS = [
     personaCommandParser,
     foreachCommandParser,
     boilerplateCommandParser, // <- TODO: !! Only in development, remove in production
+
+    // <- Note: [♓️] This is the order of the commands in the pipeline, BUT maybe it should be done better
 ] as const;

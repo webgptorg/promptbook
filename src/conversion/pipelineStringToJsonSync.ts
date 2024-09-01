@@ -332,8 +332,6 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
             );
         }
 
-        // TODO: !!!!!! Test error situation when `PERSONA` is used before `SIMPLE TEMPLATE`
-        // TODO: !!!!!! Test error situation when `MODEL` is used before `SIMPLE TEMPLATE`
         // TODO [♓️] List commands and before apply order them
 
         for (const { listItem, command } of commands) {
@@ -438,8 +436,6 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
 
         /*
         // TODO: [🍧] This should be checked in `MODEL` command + better error message
-        // TODO: !!!!!! Write error `.ptbk.md` file for `MODEL` and `PERSONA` command used in non-prompt template
-        // TODO: !!!!!! `PERSONA` command should behave same as `MODEL` command - only usable in prompt template
         if ($templateJson.templateType !== 'PROMPT_TEMPLATE' && $templateJson.modelRequirements !== undefined) {
             throw new UnexpectedError(
                 spaceTrim(

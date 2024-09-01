@@ -9,7 +9,7 @@ This prompt is invalid because it is declared in a language that is not supporte
 -   SIMPLE TEMPLATE
 -   MODEL NAME `gpt-3.5-turbo`
 
-```coffeescript
+```
 Hello;
 ```
 
