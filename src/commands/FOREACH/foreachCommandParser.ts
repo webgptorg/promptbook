@@ -1,9 +1,11 @@
 import type { string_markdown_text } from '../../types/typeAliases';
 import { keepUnused } from '../../utils/organization/keepUnused';
-import type { $PipelineJson } from '../_common/types/CommandParser';
-import type { $TemplateJson } from '../_common/types/CommandParser';
-import type { CommandParserInput } from '../_common/types/CommandParser';
-import type { PipelineTemplateCommandParser } from '../_common/types/CommandParser';
+import type {
+    $PipelineJson,
+    $TemplateJson,
+    CommandParserInput,
+    PipelineTemplateCommandParser,
+} from '../_common/types/CommandParser';
 import type { ForeachCommand } from './ForeachCommand';
 
 /**
@@ -62,11 +64,43 @@ export const foreachCommandParser: PipelineTemplateCommandParser<ForeachCommand>
         const assignSign = args[2];
         const parameterName = args[3];
 
+        if (
+            typeof formatName !== 'string' ||
+            ![
+                'LIST',
+                'CSV',
+                // <- TODO: [🏢] Unhardcode formats
+            ].includes(formatName!)
+        ) {
+            throw new Error(`FOREACH command must have 'LIST' or 'CSV' as the first argument`);
+            // <- TODO: [🏢] List all supported format names
+        }
+
+        if (
+            typeof cellName !== 'string' ||
+            ![
+                'LINE',
+                'ROW',
+                'COLUMN',
+                'CELL',
+                // <- TODO: [🏢] Unhardcode format cekks
+            ].includes(cellName!)
+        ) {
+            throw new Error(`Format ${formatName} does not support cell "${cellName}"`);
+            // <- TODO: [🏢] List all supported cell names for the format
+        }
+
         if (assignSign !== '->') {
             throw new Error(`FOREACH command must have '->' to assign the value to the parameter`);
         }
 
-        // TODO: !!!!!! Add parameter name validation
+        if (
+            typeof parameterName !== 'string'
+            // <- TODO: !!!!!! Replace with propper parameter name validation
+        ) {
+            throw new Error(`Invalid parameter name`);
+            // <- TODO: !!!!!! Better error (with rules and precise error) from validateParameterName
+        }
 
         return {
             type: 'FOREACH',
