@@ -466,7 +466,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
 
             $pipelineJson.templates.push(
                 $templateJson as TemplateJson,
-                // <- TODO: [3] !!!!!! Do not do `as TemplateJson` BUT make 100% sure that nothing is missing
+                // <- TODO: [3] Do not do `as TemplateJson` BUT make 100% sure that nothing is missing
             );
         }
     }
