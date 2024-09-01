@@ -4,10 +4,12 @@ import { ParseError } from '../../errors/ParseError';
 import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import type { string_markdown_text } from '../../types/typeAliases';
 import { keepUnused } from '../../utils/organization/keepUnused';
-import type { $PipelineJson } from '../_common/types/CommandParser';
-import type { $TemplateJson } from '../_common/types/CommandParser';
-import type { CommandParserInput } from '../_common/types/CommandParser';
-import type { PipelineBothCommandParser } from '../_common/types/CommandParser';
+import type {
+    $PipelineJson,
+    $TemplateJson,
+    CommandParserInput,
+    PipelineBothCommandParser,
+} from '../_common/types/CommandParser';
 import type { PersonaCommand } from './PersonaCommand';
 
 /**
@@ -135,6 +137,8 @@ function $applyToTemplateJson(
         }
 
         $templateJson.personaName = personaName;
+    } else {
+        // TODO: [🛳] Default PERSONA for the pipeline `defaultPersonaName` (same as `defaultModelRequirements`)
     }
 
     const persona = $pipelineJson.personas.find((persona) => persona.name === personaName);

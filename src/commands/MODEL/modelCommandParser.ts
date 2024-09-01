@@ -118,7 +118,7 @@ export const modelCommandParser: PipelineBothCommandParser<ModelCommand> = {
     $applyToPipelineJson(command: ModelCommand, $pipelineJson: $PipelineJson): void {
         $pipelineJson.defaultModelRequirements = $pipelineJson.defaultModelRequirements || {};
 
-        // TODO: [0] DRY
+        // TODO: [🚜] DRY
         if ($pipelineJson.defaultModelRequirements[command.key] !== undefined) {
             if ($pipelineJson.defaultModelRequirements[command.key] === command.value) {
                 console.warn(`Multiple commands \`MODEL ${command.key} ${command.value}\` in the pipeline head`);
@@ -150,7 +150,7 @@ export const modelCommandParser: PipelineBothCommandParser<ModelCommand> = {
 
         $templateJson.modelRequirements = $templateJson.modelRequirements || {};
 
-        // TODO: [0] DRY
+        // TODO: [🚜] DRY
         if ($templateJson.modelRequirements[command.key] !== undefined) {
             if ($templateJson.modelRequirements[command.key] === command.value) {
                 console.warn(
