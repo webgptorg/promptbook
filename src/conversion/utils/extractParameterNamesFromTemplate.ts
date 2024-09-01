@@ -14,10 +14,10 @@ import { extractVariables } from './extractVariables';
 export function extractParameterNamesFromTemplate(
     template: Pick<
         TemplateJson,
-        'title' | 'description' | 'blockType' | 'content' | 'preparedContent' | 'jokerParameterNames'
+        'title' | 'description' | 'templateType' | 'content' | 'preparedContent' | 'jokerParameterNames'
     >,
 ): Set<string_parameter_name> {
-    const { title, description, blockType, content, preparedContent, jokerParameterNames } = template;
+    const { title, description, templateType, content, preparedContent, jokerParameterNames } = template;
     const parameterNames = new Set<string_parameter_name>();
 
     for (const parameterName of [
@@ -29,7 +29,7 @@ export function extractParameterNamesFromTemplate(
         parameterNames.add(parameterName);
     }
 
-    if (blockType === 'SCRIPT_TEMPLATE') {
+    if (templateType === 'SCRIPT_TEMPLATE') {
         for (const parameterName of extractVariables(content)) {
             parameterNames.add(parameterName);
         }

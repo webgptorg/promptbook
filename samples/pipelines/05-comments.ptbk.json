@@ -12,7 +12,7 @@
     ],
     "templates": [
         {
-            "blockType": "PROMPT_TEMPLATE",
+            "templateType": "PROMPT_TEMPLATE",
             "name": "prompt",
             "title": "💬 Prompt",
             "content": "Hello",

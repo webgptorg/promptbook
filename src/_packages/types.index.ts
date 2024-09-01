@@ -13,7 +13,7 @@ import type {
 import type { CommandUsagePlace } from '../commands/_common/types/CommandUsagePlaces';
 import type { ExpectCommand } from '../commands/EXPECT/ExpectCommand';
 import type { FormatCommand } from '../commands/FORMAT/FormatCommand';
-import type { BlockType } from '../commands/TEMPLATE/BlockTypes';
+import type { TemplateType } from '../commands/TEMPLATE/TemplateTypes';
 import type { PipelineStringToJsonOptions } from '../conversion/pipelineStringToJson';
 import type { PrettifyOptions } from '../conversion/prettify/PrettifyOptions';
 import type { renderPipelineMermaidOptions } from '../conversion/prettify/renderPipelineMermaidOptions';
@@ -241,7 +241,6 @@ export type {
     AnthropicClaudeExecutionToolsProxiedOptions,
     AvailableModel,
     AzureOpenAiExecutionToolsOptions,
-    BlockType,
     CacheItem,
     CacheLlmToolsOptions,
     CallbackInterfaceToolsOptions,
@@ -455,6 +454,7 @@ export type {
     TaskProgress,
     TemplateJson,
     TemplateJsonCommon,
+    TemplateType,
     TODO_any,
     UncertainNumber,
     UserInterfaceTools,

@@ -8,11 +8,11 @@ import type { TemplateJsonCommon } from './TemplateJsonCommon';
  * @see https://github.com/webgptorg/promptbook/discussions/77
  */
 export type ScriptTemplateJson = TemplateJsonCommon & {
-    readonly blockType: 'SCRIPT_TEMPLATE';
+    readonly templateType: 'SCRIPT_TEMPLATE';
 
     /**
      * Language of the script
-     * - This is required only for blockType SCRIPT
+     * - This is required only for templateType SCRIPT
      *
      */
     readonly contentLanguage?: ScriptLanguage;

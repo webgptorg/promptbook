@@ -13,14 +13,12 @@
             "name": "parsedSentence",
             "isInput": false,
             "isOutput": true,
-            "sampleValues": [
-                "{\n    \"subject\": \"dog\",\n    \"action\": \"running\",\n    \"object\": \"park\"\n}"
-            ]
+            "sampleValues": ["{\n    \"subject\": \"dog\",\n    \"action\": \"running\",\n    \"object\": \"park\"\n}"]
         }
     ],
     "templates": [
         {
-            "blockType": "PROMPT_TEMPLATE",
+            "templateType": "PROMPT_TEMPLATE",
             "name": "question",
             "title": "💬 Question",
             "content": "Dark horse hopping over the fence.\n\n```json\n{\n  \"subject\": \"horse\",\n  \"action\": \"hopping\",\n  \"object\": \"fence\"\n}\n```\n\n---\n\n{sentence}\n\n```json",
@@ -29,13 +27,9 @@
                 "modelVariant": "COMPLETION",
                 "modelName": "gpt-3.5-turbo-instruct"
             },
-            "postprocessingFunctionNames": [
-                "trimEndOfCodeBlock"
-            ],
+            "postprocessingFunctionNames": ["trimEndOfCodeBlock"],
             "format": "JSON",
-            "dependentParameterNames": [
-                "sentence"
-            ]
+            "dependentParameterNames": ["sentence"]
         }
     ],
     "knowledgeSources": [],

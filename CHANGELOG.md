@@ -383,7 +383,7 @@ Working external knowledge, personas, preparation for instruments and actions
 -   Add `SAMPLE` command with notation for parameter samples to `.ptbk.md` files
 -   Add `KNOWLEDGE` command to `.ptbk.md` files
 -   Change `EXECUTE` command to `BLOCK` command
--   Change `executionType` -> `blockType`
+-   Change `executionType` -> `templateType`
 -   Rename `SynraxError` to `ParsingError`
 -   Rename `extractParameters` to `extractParameterNames`
 -   Rename `ExecutionError` to `PipelineExecutionError`

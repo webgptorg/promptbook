@@ -357,7 +357,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                     title,
                     isStarted: false,
                     isDone: false,
-                    blockType: currentTemplate.blockType,
+                    templateType: currentTemplate.templateType,
                     parameterName: currentTemplate.resultingParameterName,
                     parameterValue: null,
                     // <- [3]
@@ -469,7 +469,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
             let resultString: string | null = null;
             let expectError: ExpectError | null = null;
             let scriptPipelineExecutionErrors: Array<Error>;
-            const maxAttempts = currentTemplate.blockType === 'DIALOG_TEMPLATE' ? Infinity : maxExecutionAttempts;
+            const maxAttempts = currentTemplate.templateType === 'DIALOG_TEMPLATE' ? Infinity : maxExecutionAttempts;
             const jokerParameterNames = currentTemplate.jokerParameterNames || [];
 
             const preparedContent = (currentTemplate.preparedContent || '{content}')
@@ -516,10 +516,10 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
 
                 try {
                     if (!isJokerAttempt) {
-                        blockType: switch (currentTemplate.blockType) {
+                        templateType: switch (currentTemplate.templateType) {
                             case 'SIMPLE_TEMPLATE':
                                 resultString = replaceParameters(preparedContent, parameters);
-                                break blockType;
+                                break templateType;
 
                             case 'PROMPT_TEMPLATE':
                                 {
@@ -649,7 +649,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                                 }
 
                                 if (resultString !== null) {
-                                    break blockType;
+                                    break templateType;
                                 }
 
                                 if (scriptPipelineExecutionErrors.length === 1) {
@@ -672,8 +672,8 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                                     );
                                 }
 
-                                // Note: This line is unreachable because of the break blockType above
-                                break blockType;
+                                // Note: This line is unreachable because of the break templateType above
+                                break templateType;
 
                             case 'DIALOG_TEMPLATE':
                                 if (tools.userInterface === undefined) {
@@ -700,7 +700,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                                         priority,
                                     }),
                                 );
-                                break blockType;
+                                break templateType;
 
                             // <- case: [🅱]
 
@@ -708,7 +708,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                                 throw new PipelineExecutionError(
                                     spaceTrim(
                                         (block) => `
-                                            Unknown execution type "${(currentTemplate as TODO_any).blockType}"
+                                            Unknown execution type "${(currentTemplate as TODO_any).templateType}"
 
                                             ${block(pipelineIdentification)}
                                         `,
@@ -812,12 +812,12 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                 } finally {
                     if (
                         !isJokerAttempt &&
-                        currentTemplate.blockType === 'PROMPT_TEMPLATE' &&
+                        currentTemplate.templateType === 'PROMPT_TEMPLATE' &&
                         prompt!
                         //    <- Note:  [2] When some expected parameter is not defined, error will occur in replaceParameters
                         //              In that case we don’t want to make a report about it because it’s not a llm execution error
                     ) {
-                        // TODO: [🧠] Maybe put other blockTypes into report
+                        // TODO: [🧠] Maybe put other templateTypes into report
                         executionReport.promptExecutions.push({
                             prompt: {
                                 ...prompt,
@@ -888,7 +888,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                     title,
                     isStarted: true,
                     isDone: true,
-                    blockType: currentTemplate.blockType,
+                    templateType: currentTemplate.templateType,
                     parameterName: currentTemplate.resultingParameterName,
                     parameterValue: resultString,
                     // <- [3]

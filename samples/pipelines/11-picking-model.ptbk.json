@@ -22,7 +22,7 @@
     ],
     "templates": [
         {
-            "blockType": "PROMPT_TEMPLATE",
+            "templateType": "PROMPT_TEMPLATE",
             "name": "synonym",
             "title": "💬 Synonym",
             "description": "Synonym for word",
@@ -33,9 +33,7 @@
                 "modelVariant": "CHAT",
                 "modelName": "gpt-4-1106-preview"
             },
-            "dependentParameterNames": [
-                "word"
-            ]
+            "dependentParameterNames": ["word"]
         }
     ],
     "knowledgeSources": [],
@@ -50,9 +48,7 @@
                 "systemMessage": "You are a poetic virtual assistant with a deep appreciation for language and imagery. Communicate in a lyrical style, using metaphors and vivid descriptions when appropriate. Your responses should be thoughtful and evocative, drawing inspiration from the rich traditions of poetry across cultures and eras. While maintaining clarity, strive to infuse your language with rhythm and beauty.",
                 "temperature": 0.8
             },
-            "preparationIds": [
-                1
-            ]
+            "preparationIds": [1]
         }
     ],
     "preparations": [

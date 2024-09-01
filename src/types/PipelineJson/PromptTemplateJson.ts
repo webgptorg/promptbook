@@ -8,7 +8,7 @@ import type { TemplateJsonCommon } from './TemplateJsonCommon';
  * Note: [🚉] This is fully serializable as JSON
  */
 export type PromptTemplateJson = TemplateJsonCommon & {
-    readonly blockType: 'PROMPT_TEMPLATE';
+    readonly templateType: 'PROMPT_TEMPLATE';
 
     /**
      * Name of the persona who will be responding to this prompt
@@ -17,7 +17,7 @@ export type PromptTemplateJson = TemplateJsonCommon & {
 
     /**
      * Requirements for the model
-     * - This is required only for blockType PROMPT_TEMPLATE
+     * - This is required only for templateType PROMPT_TEMPLATE
      */
     readonly modelRequirements?: Partial<ModelRequirements>;
 };

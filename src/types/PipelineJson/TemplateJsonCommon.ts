@@ -1,5 +1,5 @@
 import type { FormatCommand } from '../../commands/FORMAT/FormatCommand';
-import type { BlockType } from '../../commands/TEMPLATE/BlockTypes';
+import type { TemplateType } from '../../commands/TEMPLATE/TemplateTypes';
 import type {
     string_javascript,
     string_markdown,
@@ -54,7 +54,7 @@ export interface TemplateJsonCommon {
      * Type of the execution
      * This determines if the template is send to LLM, user or some scripting evaluation
      */
-    readonly blockType: BlockType;
+    readonly templateType: TemplateType;
 
     /**
      * Content of the template with {placeholders} for parameters

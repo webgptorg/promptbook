@@ -6,7 +6,7 @@ describe('extractParameterNamesFromTemplate', () => {
         const template = {
             title: 'name of {foo}',
             description: 'description of {foo} and {bar}',
-            blockType: 'PROMPT_TEMPLATE',
+            templateType: 'PROMPT_TEMPLATE',
             content: 'hello {name}',
         } as const;
 
@@ -19,7 +19,7 @@ describe('extractParameterNamesFromTemplate', () => {
         expect(
             extractParameterNamesFromTemplate({
                 title: 'Script',
-                blockType: 'SCRIPT_TEMPLATE',
+                templateType: 'SCRIPT_TEMPLATE',
                 content: 'const greeting = hello;',
             }),
         ).toContain('hello');

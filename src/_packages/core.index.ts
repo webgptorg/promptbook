@@ -6,8 +6,8 @@ import { createCollectionFromJson } from '../collection/constructors/createColle
 import { createCollectionFromPromise } from '../collection/constructors/createCollectionFromPromise';
 import { createCollectionFromUrl } from '../collection/constructors/createCollectionFromUrl';
 import { createSubcollection } from '../collection/constructors/createSubcollection';
-import type { BlockType } from '../commands/TEMPLATE/BlockTypes';
-import { BlockTypes } from '../commands/TEMPLATE/BlockTypes';
+import type { TemplateType } from '../commands/TEMPLATE/TemplateTypes';
+import { TemplateTypes } from '../commands/TEMPLATE/TemplateTypes';
 import {
     CLAIM,
     DEFAULT_REMOTE_URL,
@@ -88,7 +88,6 @@ export {
     _OpenAiMetadataRegistration,
     addUsage,
     assertsExecutionSuccessful,
-    BlockTypes,
     cacheLlmTools,
     CallbackInterfaceTools,
     CLAIM,
@@ -143,6 +142,7 @@ export {
     prettifyPipelineString,
     RESERVED_PARAMETER_NAMES,
     stringifyPipelineJson,
+    TemplateTypes,
     UnexpectedError,
     unpreparePipeline,
     usageToHuman,
@@ -150,4 +150,4 @@ export {
     validatePipeline,
     ZERO_USAGE,
 };
-export type { BlockType, CallbackInterfaceToolsOptions, ExecutionReportStringOptions, PipelineStringToJsonOptions };
+export type { CallbackInterfaceToolsOptions, ExecutionReportStringOptions, PipelineStringToJsonOptions, TemplateType };

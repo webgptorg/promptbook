@@ -8,7 +8,7 @@ import { parameterCommandParser } from './PARAMETER/parameterCommandParser';
 import { personaCommandParser } from './PERSONA/personaCommandParser';
 import { postprocessCommandParser } from './POSTPROCESS/postprocessCommandParser';
 import { promptbookVersionCommandParser } from './PROMPTBOOK_VERSION/promptbookVersionCommandParser';
-import { blockCommandParser } from './TEMPLATE/blockCommandParser';
+import { templateCommandParser } from './TEMPLATE/templateCommandParser';
 import { urlCommandParser } from './URL/urlCommandParser';
 import { actionCommandParser } from './X_ACTION/actionCommandParser';
 import { instrumentCommandParser } from './X_INSTRUMENT/instrumentCommandParser';
@@ -20,7 +20,7 @@ import { boilerplateCommandParser } from './_BOILERPLATE/boilerplateCommandParse
  * @private internal index of `parseCommand`
  */
 export const COMMANDS = [
-    blockCommandParser,
+    templateCommandParser,
     expectCommandParser,
     formatCommandParser,
     jokerCommandParser,

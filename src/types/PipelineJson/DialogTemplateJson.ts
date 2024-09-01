@@ -7,7 +7,7 @@ import type { TemplateJsonCommon } from './TemplateJsonCommon';
  * @see https://github.com/webgptorg/promptbook/discussions/76
  */
 export type DialogTemplateJson = TemplateJsonCommon & {
-    readonly blockType: 'DIALOG_TEMPLATE';
+    readonly templateType: 'DIALOG_TEMPLATE';
 };
 
 /**

@@ -9,10 +9,7 @@
             "description": "Any single word",
             "isInput": true,
             "isOutput": false,
-            "sampleValues": [
-                "Happy",
-                "Apple"
-            ]
+            "sampleValues": ["Happy", "Apple"]
         },
         {
             "name": "sentence",
@@ -28,42 +25,29 @@
             "name": "wordSynonym",
             "isInput": false,
             "isOutput": false,
-            "sampleValues": [
-                "Joyful",
-                "Fruit"
-            ]
+            "sampleValues": ["Joyful", "Fruit"]
         }
     ],
     "templates": [
         {
-            "blockType": "PROMPT_TEMPLATE",
+            "templateType": "PROMPT_TEMPLATE",
             "name": "synonym",
             "title": "💬 Synonym",
             "description": "Synonym for word",
             "content": "Write synonym for \"{word}\"",
             "resultingParameterName": "wordSynonym",
-            "postprocessingFunctionNames": [
-                "unwrapResult"
-            ],
-            "dependentParameterNames": [
-                "word"
-            ]
+            "postprocessingFunctionNames": ["unwrapResult"],
+            "dependentParameterNames": ["word"]
         },
         {
-            "blockType": "PROMPT_TEMPLATE",
+            "templateType": "PROMPT_TEMPLATE",
             "name": "sentence",
             "title": "💬 Sentence",
             "description": "Sentence with word and wordSynonym",
             "content": "Write sentence with \"{word}\" and \"{wordSynonym}\" in it",
             "resultingParameterName": "sentence",
-            "postprocessingFunctionNames": [
-                "unwrapResult",
-                "spaceTrim"
-            ],
-            "dependentParameterNames": [
-                "word",
-                "wordSynonym"
-            ]
+            "postprocessingFunctionNames": ["unwrapResult", "spaceTrim"],
+            "dependentParameterNames": ["word", "wordSynonym"]
         }
     ],
     "knowledgeSources": [],

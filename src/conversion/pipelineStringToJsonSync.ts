@@ -1,7 +1,7 @@
 import { spaceTrim } from 'spacetrim';
 import type { Writable, WritableDeep } from 'type-fest';
 import type { ParameterCommand } from '../commands/PARAMETER/ParameterCommand';
-import { blockCommandParser } from '../commands/TEMPLATE/blockCommandParser';
+import { templateCommandParser } from '../commands/TEMPLATE/templateCommandParser';
 import { parseCommand } from '../commands/_common/parseCommand';
 import type {
     $PipelineJson,
@@ -310,7 +310,8 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
         const $templateJson: $TemplateJson = {
             isTemplateTypeSet: false,
             isTemplate: true,
-            blockType: undefined /* <- Note: [🍙] Putting here placeholder to keep `blockType` on top at final JSON */,
+            templateType:
+                undefined /* <- Note: [🍙] Putting here placeholder to keep `templateType` on top at final JSON */,
             name: titleToName(section.title),
             title: section.title,
             description,
@@ -336,8 +337,8 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
 
         // Note: If block type is not set, set it to 'PROMPT_TEMPLATE'
         if (commands.some(({ command }) => command.type === 'TEMPLATE') === false) {
-            blockCommandParser.$applyToTemplateJson(
-                { type: 'TEMPLATE', blockType: 'PROMPT_TEMPLATE' },
+            templateCommandParser.$applyToTemplateJson(
+                { type: 'TEMPLATE', templateType: 'PROMPT_TEMPLATE' },
                 $templateJson,
                 $pipelineJson,
             );
@@ -412,7 +413,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
                 ); // <- TODO: [🚞]
             }
 
-            // TODO: !!!!!! Multiple problematic things in TEMPLATE command - blockCommandParser.$applyToTemplateJson
+            // TODO: !!!!!! Multiple problematic things in TEMPLATE command - templateCommandParser.$applyToTemplateJson
 
             if (command.type === 'PARAMETER') {
                 defineParam(command);
@@ -421,7 +422,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
         }
 
         // TODO: [🍧] !!!!!! Should be done in TEMPLATE command
-        if (($templateJson as WritableDeep<TemplateJson>).blockType === 'SCRIPT_TEMPLATE') {
+        if (($templateJson as WritableDeep<TemplateJson>).templateType === 'SCRIPT_TEMPLATE') {
             if (!language) {
                 throw new ParseError(
                     spaceTrim(
@@ -465,12 +466,12 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
         // TODO: [🍧] !!!!!! This should be checked in `MODEL` command + better error message
         // TODO: [🍧] !!!!!! Write error `.ptbk.md` file for `MODEL` and `PERSONA` command used in non-prompt template
         // TODO: [🍧] !!!!!! `PERSONA` command should behave same as `MODEL` command - only usable in prompt template
-        if ($templateJson.blockType !== 'PROMPT_TEMPLATE' && $templateJson.modelRequirements !== undefined) {
+        if ($templateJson.templateType !== 'PROMPT_TEMPLATE' && $templateJson.modelRequirements !== undefined) {
             throw new UnexpectedError(
                 spaceTrim(
                     (block) => `
                         Model requirements are defined for the block type ${
-                            $templateJson.blockType
+                            $templateJson.templateType
                         } which is not a PROMPT TEMPLATE
 
                         This should be avoided by the \`modelCommandParser\`

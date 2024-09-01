@@ -17,7 +17,7 @@
     ],
     "templates": [
         {
-            "blockType": "PROMPT_TEMPLATE",
+            "templateType": "PROMPT_TEMPLATE",
             "name": "greeting-1",
             "title": "Greeting 1",
             "description": "Show how to put codeblocks in codeblocks",
@@ -26,7 +26,7 @@
             "dependentParameterNames": []
         },
         {
-            "blockType": "PROMPT_TEMPLATE",
+            "templateType": "PROMPT_TEMPLATE",
             "name": "greeting-2",
             "title": "Greeting 2",
             "description": "Show how to put codeblocks in codeblocks in different way",

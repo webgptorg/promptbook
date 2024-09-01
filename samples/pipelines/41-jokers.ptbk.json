@@ -23,24 +23,18 @@
     ],
     "templates": [
         {
-            "blockType": "PROMPT_TEMPLATE",
+            "templateType": "PROMPT_TEMPLATE",
             "name": "question",
             "title": "💬 Question",
             "content": "Write some name for hero",
             "resultingParameterName": "name",
-            "jokerParameterNames": [
-                "name1",
-                "name2"
-            ],
+            "jokerParameterNames": ["name1", "name2"],
             "expectations": {
                 "words": {
                     "min": 2
                 }
             },
-            "dependentParameterNames": [
-                "name1",
-                "name2"
-            ]
+            "dependentParameterNames": ["name1", "name2"]
         }
     ],
     "knowledgeSources": [],

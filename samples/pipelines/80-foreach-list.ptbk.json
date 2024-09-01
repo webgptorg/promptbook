@@ -15,23 +15,18 @@
             "description": "Greeting to each customer on each row",
             "isInput": false,
             "isOutput": true,
-            "sampleValues": [
-                "Paul\nJohn",
-                "Hello Paul\nHi John"
-            ]
+            "sampleValues": ["Paul\nJohn", "Hello Paul\nHi John"]
         }
     ],
     "templates": [
         {
-            "blockType": "PROMPT_TEMPLATE",
+            "templateType": "PROMPT_TEMPLATE",
             "name": "write-a-greeting",
             "title": "Write a greeting",
             "content": "Write an email greeting for \"{customers}\"",
             "resultingParameterName": "greetings",
             "personaName": "Jane",
-            "dependentParameterNames": [
-                "customers"
-            ]
+            "dependentParameterNames": ["customers"]
         }
     ],
     "knowledgeSources": [],
@@ -46,9 +41,7 @@
                 "systemMessage": "You are an experienced AI engineer and helpful virtual assistant, ready to assist with a wide range of tasks and queries.",
                 "temperature": 0.7
             },
-            "preparationIds": [
-                1
-            ]
+            "preparationIds": [1]
         }
     ],
     "preparations": [
