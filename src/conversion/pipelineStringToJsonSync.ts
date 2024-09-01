@@ -332,7 +332,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
             );
         }
 
-        // TODO [♓️] List commands and before apply order them
+        // TODO [♓️] List commands and before apply order them to achieve order-agnostic commands
 
         for (const { listItem, command } of commands) {
             const commandParser = getParserForCommand(command);

@@ -15,5 +15,6 @@ What is the answer to the universe?
 `-> {answer}`
 
 <!--
+TODO: [♓️] Uncomment the pipeline after propper implementation of order-agnostic commands
 TODO: Make more permutations of wrong order of commands
 -->
