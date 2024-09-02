@@ -46,6 +46,10 @@ type executeSingleTemplateOptions = {
     pipelineIdentification: string;
 };
 
+
+/**
+ * @private @@@
+ */
 export async function executeSingleTemplate(options: executeSingleTemplateOptions): Promise<Readonly<Parameters>> {
     const {
         currentTemplate,

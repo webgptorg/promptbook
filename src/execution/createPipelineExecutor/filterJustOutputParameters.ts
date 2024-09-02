@@ -1,9 +1,12 @@
 import { spaceTrim } from 'spacetrim';
 import type { ReadonlyDeep } from 'type-fest';
-import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
+import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import type { Parameters } from '../../types/typeAliases';
 
+/**
+ * @private @@@
+ */
 export function filterJustOutputParameters(
     preparedPipeline: ReadonlyDeep<PipelineJson>,
     parametersToPass: Readonly<Parameters>,
