@@ -78,6 +78,8 @@ export const parameterCommandParser: PipelineBothCommandParser<ParameterCommand>
             isOutput = false;
         }
 
+        // TODO: !!!!!! Add parameter name validation
+
         return {
             type: 'PARAMETER',
             parameterName,

@@ -175,28 +175,43 @@ export type $PipelineJson = WritableDeep<PipelineJson>;
 export type CommandParserInput = {
     /**
      * @@@
+     *
+     * @example 'PIPELINE_HEAD'
+     * @example 'PIPELINE_TEMPLATE'
      */
     readonly usagePlace: CommandUsagePlace;
 
     /**
      * @@@
+     *
+     * @example 'promptbook version 0.62.0'
+     * @example 'FOREACH List Line -> `{customer}`'
      */
     readonly raw: string_markdown_text;
 
     /**
      * @@@
+     *
+     * @example '0.62.0'
+     * @example 'List Line -> `{customer}`'
      */
     readonly rawArgs: string_markdown_text;
 
     /**
      * @@@
+     *
+     * @example 'PROMPTBOOK_VERSION_0_62_0'
+     * @example 'FOREACH_LIST_LINE_CUSTOMER'
      */
     readonly normalized: string_name & string_SCREAMING_CASE;
 
     /**
      * @@@
+     *
+     * @example [ '0.62.0' ]
+     * @example [ 'List', 'Line', '', '{customer}' ]
      */
-    readonly args: Array<string_name & string_SCREAMING_CASE>;
+    readonly args: Array<string_name>;
 };
 
 /**

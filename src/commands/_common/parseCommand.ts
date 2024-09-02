@@ -27,6 +27,7 @@ export function parseCommand(raw: string_markdown_text, usagePlace: CommandUsage
         throw new ParseError('Command can not contain new line characters' /* <- TODO: [🚞] */);
     }
 
+    // TODO: Unit test all this processing and parsing
     let normalized = raw.trim();
     normalized = normalized.split('`').join('');
     normalized = normalized.split('"').join('');
@@ -104,7 +105,7 @@ export function parseCommand(raw: string_markdown_text, usagePlace: CommandUsage
     //        Arg1   Arg2   Arg3 | FOO
     {
         const commandNameRaw = items.slice(-1).join('_');
-        const args = items.slice(0, -1);
+        const args = items.slice(0, -1); // <- Note: This is probbably not correct
 
         const rawArgs = raw.substring(0, raw.length - commandNameRaw.length).trim();
         const command = parseCommandVariant({ usagePlace, raw, rawArgs, normalized, args, commandNameRaw });

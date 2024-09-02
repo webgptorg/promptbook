@@ -12,15 +12,15 @@ Show how to use a simple prompt with no parameters.
 <!--FOR EACH , FOREACH, EACH, FOR -->
 
 -   EACH List Line -> `{customer}`
--   PERSONA Jane, [🍭] <!-- <- TODO: Allow to import persona-->
-<!-- -   EXPECT [🍭] -->
+-   PERSONA Jane, [🍭] !!!!!! <!-- <- TODO: Allow to import persona-->
+<!-- -   EXPECT [🍭] !!!!!! -->
 
 ```text
 Write an email greeting for "{customers}"
 ```
 
 <!--
-TODO: [🍭] Change "{customers}" to "{customer}" after solving
+TODO: [🍭] !!!!!! Change "{customers}" to "{customer}" after solving
 > Can not resolve:
 > - Parameter {greetings} which depends on {customer}
 -->
