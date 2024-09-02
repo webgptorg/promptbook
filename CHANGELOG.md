@@ -503,6 +503,7 @@ Was accidentally released skipped
 Command `FOREACH`
 
 -   Allow iterations with `FOREACH` command
+-   Big refactoring of `createPipelineExecutor`
 
 ## In prepare
 
