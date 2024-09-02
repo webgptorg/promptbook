@@ -1,5 +1,4 @@
-import type { string_parameter_name } from '../../types/typeAliases';
-import type { TODO_string } from '../../utils/organization/TODO_string';
+import { ForeachJson } from './ForeachJson';
 
 /**
  * Parsed FOREACH command <- Write [🍭] !!!!!!
@@ -9,8 +8,4 @@ import type { TODO_string } from '../../utils/organization/TODO_string';
  */
 export type ForeachCommand = {
     readonly type: 'FOREACH';
-    formatName: TODO_string; // <- !!!!!!
-    cellName: TODO_string; // <- !!!!!!
-    parameterName: string_parameter_name;
-    // <- TODO: [🍭] !!!!!!
-};
+} & ForeachJson;

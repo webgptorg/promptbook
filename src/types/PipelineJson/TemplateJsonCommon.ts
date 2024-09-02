@@ -1,13 +1,16 @@
+import { ForeachJson } from '../../commands/FOREACH/ForeachJson';
 import type { FormatCommand } from '../../commands/FORMAT/FormatCommand';
 import type { TemplateType } from '../../commands/TEMPLATE/TemplateTypes';
-import type { string_javascript } from '../typeAliases';
-import type { string_markdown } from '../typeAliases';
-import type { string_markdown_text } from '../typeAliases';
-import type { string_name } from '../typeAliases';
-import type { string_parameter_name } from '../typeAliases';
-import type { string_postprocessing_function_name } from '../typeAliases';
-import type { string_prompt } from '../typeAliases';
-import type { string_template } from '../typeAliases';
+import type {
+    string_javascript,
+    string_markdown,
+    string_markdown_text,
+    string_name,
+    string_parameter_name,
+    string_postprocessing_function_name,
+    string_prompt,
+    string_template,
+} from '../typeAliases';
 import type { Expectations } from './Expectations';
 
 /**
@@ -47,6 +50,11 @@ export interface TemplateJsonCommon {
      * @see https://github.com/webgptorg/promptbook/discussions/66
      */
     readonly jokerParameterNames?: Array<string_parameter_name>;
+
+    /**
+     * @@@
+     */
+    readonly foreach?: ForeachJson;
 
     /**
      * Type of the execution
