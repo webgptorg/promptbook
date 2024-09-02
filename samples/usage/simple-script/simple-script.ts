@@ -13,6 +13,10 @@ import * as dotenv from 'dotenv';
 import { writeFile } from 'fs/promises';
 import { forTime } from 'waitasecond';
 
+import '@promptbook/anthropic-claude';
+import '@promptbook/azure-openai';
+import '@promptbook/openai';
+
 if (process.cwd().split(/[\\/]/).pop() !== 'promptbook') {
     console.error(colors.red(`CWD must be root of the project`));
     process.exit(1);
@@ -45,7 +49,7 @@ async function main() {
     // @see https://nodejs.org/en/learn/command-line/accept-input-from-the-command-line-in-nodejs
 
     const pipeline = await collection.getPipelineByUrl(
-      `https://promptbook.studio/samples/foreach-list.ptbk.md`
+        `https://promptbook.studio/samples/foreach-list.ptbk.md`,
         // `https://promptbook.studio/samples/simple-knowledge.ptbk.md`,
         // `https://promptbook.studio/samples/simple.ptbk.md`,
         // `https://promptbook.studio/samples/language-capabilities.ptbk.md`,

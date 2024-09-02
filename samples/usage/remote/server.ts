@@ -7,6 +7,10 @@ import colors from 'colors';
 import * as dotenv from 'dotenv';
 import { forEver } from 'waitasecond';
 
+import '@promptbook/anthropic-claude';
+import '@promptbook/azure-openai';
+import '@promptbook/openai';
+
 if (process.cwd().split(/[\\/]/).pop() !== 'promptbook') {
     console.error(colors.red(`CWD must be root of the project`));
     process.exit(1);
