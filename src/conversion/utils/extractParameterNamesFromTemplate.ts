@@ -47,7 +47,7 @@ export function extractParameterNamesFromTemplate(
         if (parameterNames.has(foreach.subparameterName)) {
             parameterNames.delete(foreach.subparameterName);
             parameterNames.add(foreach.parameterName);
-            // <- TODO: !!!!!! Warn/logic error when `subparameterName` not used
+            // <- TODO: [🚎] Warn/logic error when `subparameterName` not used
         }
     }
 

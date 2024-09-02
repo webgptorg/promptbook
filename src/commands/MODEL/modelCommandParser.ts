@@ -120,6 +120,7 @@ export const modelCommandParser: PipelineBothCommandParser<ModelCommand> = {
         if ($pipelineJson.defaultModelRequirements[command.key] !== undefined) {
             if ($pipelineJson.defaultModelRequirements[command.key] === command.value) {
                 console.warn(`Multiple commands \`MODEL ${command.key} ${command.value}\` in the pipeline head`);
+                // <- TODO: [🚎] Some better way how to get warnings from pipeline parsing / logic
             } else {
                 throw new ParseError(
                     spaceTrim(`
