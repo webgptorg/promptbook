@@ -52,3 +52,8 @@ export type ExecutionReportJson = {
      */
     readonly promptExecutions: Array<ExecutionPromptReportJson>;
 };
+
+
+/**
+ * TODO: !!!!!! FOREACH in report
+ */
