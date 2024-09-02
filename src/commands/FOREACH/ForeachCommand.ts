@@ -1,4 +1,4 @@
-import { ForeachJson } from './ForeachJson';
+import type { ForeachJson } from './ForeachJson';
 
 /**
  * Parsed FOREACH command <- Write [🍭] !!!!!!

@@ -2,12 +2,10 @@ import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
 import type { string_markdown_text } from '../../types/typeAliases';
 import { normalizeTo_SCREAMING_CASE } from '../../utils/normalization/normalizeTo_SCREAMING_CASE';
 import { keepUnused } from '../../utils/organization/keepUnused';
-import type {
-    $PipelineJson,
-    $TemplateJson,
-    CommandParserInput,
-    PipelineTemplateCommandParser,
-} from '../_common/types/CommandParser';
+import type { $PipelineJson } from '../_common/types/CommandParser';
+import type { $TemplateJson } from '../_common/types/CommandParser';
+import type { CommandParserInput } from '../_common/types/CommandParser';
+import type { PipelineTemplateCommandParser } from '../_common/types/CommandParser';
 import type { ForeachCommand } from './ForeachCommand';
 
 /**
