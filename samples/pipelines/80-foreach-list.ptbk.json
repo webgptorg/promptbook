@@ -28,9 +28,15 @@
             "title": "Write a greeting",
             "content": "Write an email greeting for \"{customer}\"",
             "resultingParameterName": "greetings",
+            "foreach": {
+                "formatName": "LIST",
+                "cellName": "LINE",
+                "parameterName": "customers",
+                "subparameterName": "customer"
+            },
             "personaName": "Jane",
             "dependentParameterNames": [
-                "customer"
+                "customers"
             ]
         }
     ],

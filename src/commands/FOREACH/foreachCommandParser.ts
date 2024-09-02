@@ -1,3 +1,4 @@
+import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
 import type { string_markdown_text } from '../../types/typeAliases';
 import { normalizeTo_SCREAMING_CASE } from '../../utils/normalization/normalizeTo_SCREAMING_CASE';
 import { keepUnused } from '../../utils/organization/keepUnused';
@@ -84,7 +85,7 @@ export const foreachCommandParser: PipelineTemplateCommandParser<ForeachCommand>
                 'ROW',
                 'COLUMN',
                 'CELL',
-                // <- TODO: [🏢] Unhardcode format cekks
+                // <- TODO: [🏢] Unhardcode format cells
             ].includes(cellName!)
         ) {
             console.info({ args, cellName });
@@ -137,8 +138,9 @@ export const foreachCommandParser: PipelineTemplateCommandParser<ForeachCommand>
      * Note: `$` is used to indicate that this function mutates given `templateJson`
      */
     $applyToTemplateJson(command: ForeachCommand, $templateJson: $TemplateJson, $pipelineJson: $PipelineJson): void {
-        keepUnused(command, $templateJson, $pipelineJson);
-        // <- TODO: [🍭] !!!!!! Implement
+        const { formatName, cellName, parameterName, subparameterName } = command;
+        $templateJson.foreach = { formatName, cellName, parameterName, subparameterName };
+        // Note: [🍭] FOREACH apply has some sideeffects on different places in codebase
     },
 
     /**
@@ -148,8 +150,7 @@ export const foreachCommandParser: PipelineTemplateCommandParser<ForeachCommand>
      */
     stringify(command: ForeachCommand): string_markdown_text {
         keepUnused(command);
-        return ``;
-        // <- TODO: [🍭] !!!!!! Implement
+        return `---`; // <- TODO: [🛋] Implement
     },
 
     /**
@@ -159,8 +160,7 @@ export const foreachCommandParser: PipelineTemplateCommandParser<ForeachCommand>
      */
     takeFromTemplateJson($templateJson: $TemplateJson): Array<ForeachCommand> {
         keepUnused($templateJson);
-        return [];
-        // <- TODO: [🍭] !!!!!! Implement
+        throw new NotYetImplementedError(`[🛋] Not implemented yet`); // <- TODO: [🛋] Implement
     },
 };
 

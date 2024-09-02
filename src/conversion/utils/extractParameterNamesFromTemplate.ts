@@ -14,10 +14,10 @@ import { extractVariables } from './extractVariables';
 export function extractParameterNamesFromTemplate(
     template: Pick<
         TemplateJson,
-        'title' | 'description' | 'templateType' | 'content' | 'preparedContent' | 'jokerParameterNames'
+        'title' | 'description' | 'templateType' | 'content' | 'preparedContent' | 'jokerParameterNames' | 'foreach'
     >,
 ): Set<string_parameter_name> {
-    const { title, description, templateType, content, preparedContent, jokerParameterNames } = template;
+    const { title, description, templateType, content, preparedContent, jokerParameterNames, foreach } = template;
     const parameterNames = new Set<string_parameter_name>();
 
     for (const parameterName of [
@@ -41,6 +41,15 @@ export function extractParameterNamesFromTemplate(
 
     parameterNames.delete('content');
     //                      <- Note {websiteContent} is used in `preparedContent`
+
+    // Note: [🍭] Fixing dependent subparameterName from FOREACH command
+    if (foreach !== undefined) {
+        if (parameterNames.has(foreach.subparameterName)) {
+            parameterNames.delete(foreach.subparameterName);
+            parameterNames.add(foreach.parameterName);
+            // <- TODO: !!!!!! Warn/logic error when `subparameterName` not used
+        }
+    }
 
     return parameterNames;
 }
