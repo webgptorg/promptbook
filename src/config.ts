@@ -199,8 +199,29 @@ export const IS_COST_PREVENTED: boolean = just(
     /**/
 
     // Commit message:
-    // [🔑] Disable cost-prevention
-    // [🔒] Enable cost-prevention
+    // [🔑] Temporarily **disable** cost-prevention
+    // [🔒] **Enable** cost-prevention
+);
+
+/**
+ * @@@
+ *
+ * @private within the repository
+ */
+export const IS_PIPELINE_LOGIC_VALIDATED: boolean = just(
+    /*/
+  // Note: In normal situations, we check the pipeline logic:
+  true,
+  /**/
+
+    /**/
+    // When working on some new features, you can temporarily turn off the validation:
+    false,
+    /**/
+
+    // Commit message:
+    // [🔑] Temporarily **disable** pipeline validation
+    // [🔒] **Enable** pipeline validation
 );
 
 /**
