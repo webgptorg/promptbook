@@ -1,8 +1,8 @@
-import { Promisable } from 'type-fest';
+import type { Promisable } from 'type-fest';
 import type { PromptbookStorage } from '../_common/PromptbookStorage';
 /**
  * This class behaves like LocalStorage but separates keys by prefix
- * 
+ *
  * @public exported from `@promptbook/core`
  */
 export class PrefixStorage<TItem> implements PromptbookStorage<TItem> {

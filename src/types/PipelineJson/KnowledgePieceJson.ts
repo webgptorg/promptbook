@@ -79,5 +79,5 @@ export type KnowledgePiecePreparedJson = {
 };
 
 /**
- * TODO: [🍙] Make some standart order of json properties
+ * TODO: [🍙] Make some standard order of json properties
  */

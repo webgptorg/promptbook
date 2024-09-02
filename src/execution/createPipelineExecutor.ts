@@ -9,7 +9,7 @@ import { MAX_PARALLEL_COUNT } from '../config';
 import { RESERVED_PARAMETER_MISSING_VALUE } from '../config';
 import { RESERVED_PARAMETER_NAMES } from '../config';
 import { RESERVED_PARAMETER_RESTRICTED } from '../config';
-import { extractParameterNamesFromPromptTemplate } from '../conversion/utils/extractParameterNamesFromPromptTemplate';
+import { extractParameterNamesFromTemplate } from '../conversion/utils/extractParameterNamesFromTemplate';
 import { validatePipeline } from '../conversion/validation/validatePipeline';
 import { ExpectError } from '../errors/ExpectError';
 import { PipelineExecutionError } from '../errors/PipelineExecutionError';
@@ -21,8 +21,9 @@ import { extractJsonBlock } from '../postprocessing/utils/extractJsonBlock';
 import { isPipelinePrepared } from '../prepare/isPipelinePrepared';
 import { preparePipeline } from '../prepare/preparePipeline';
 import type { ExecutionReportJson } from '../types/execution-report/ExecutionReportJson';
+import type { ModelRequirements } from '../types/ModelRequirements';
 import type { PipelineJson } from '../types/PipelineJson/PipelineJson';
-import type { PromptTemplateJson } from '../types/PipelineJson/PromptTemplateJson';
+import type { TemplateJson } from '../types/PipelineJson/TemplateJson';
 import type { ChatPrompt } from '../types/Prompt';
 import type { CompletionPrompt } from '../types/Prompt';
 import type { EmbeddingPrompt } from '../types/Prompt';
@@ -288,15 +289,15 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
 
         // TODO: !!! Extract to separate functions and files - ALL FUNCTIONS BELOW
 
-        async function getContextForTemplate( // <- TODO: [🧠][🥜]
-            template: PromptTemplateJson,
+        async function getContextForTemplate(
+            template: TemplateJson,
         ): Promise<string_parameter_value & string_markdown> {
             TODO_USE(template);
             return RESERVED_PARAMETER_MISSING_VALUE /* <- TODO: [🏍] Implement */;
         }
 
-        async function getKnowledgeForTemplate( // <- TODO: [🧠][🥜]
-            template: PromptTemplateJson,
+        async function getKnowledgeForTemplate(
+            template: TemplateJson,
         ): Promise<string_parameter_value & string_markdown> {
             // TODO: [♨] Implement Better - use real index and keyword search from `template` and {samples}
 
@@ -305,8 +306,8 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
             //                                                      <- TODO: [🧠] Some smart aggregation of knowledge pieces, single-line vs multi-line vs mixed
         }
 
-        async function getSamplesForTemplate( // <- TODO: [🧠][🥜]
-            template: PromptTemplateJson,
+        async function getSamplesForTemplate(
+            template: TemplateJson,
         ): Promise<string_parameter_value & string_markdown> {
             // TODO: [♨] Implement Better - use real index and keyword search
 
@@ -314,7 +315,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
             return RESERVED_PARAMETER_MISSING_VALUE /* <- TODO: [♨] Implement */;
         }
 
-        async function getReservedParametersForTemplate(template: PromptTemplateJson): Promise<ReservedParameters> {
+        async function getReservedParametersForTemplate(template: TemplateJson): Promise<ReservedParameters> {
             const context = await getContextForTemplate(template); // <- [🏍]
             const knowledge = await getKnowledgeForTemplate(template);
             const samples = await getSamplesForTemplate(template);
@@ -348,12 +349,10 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
             return reservedParameters;
         }
 
-        async function executeSingleTemplate(currentTemplate: PromptTemplateJson) {
-            // <- TODO: [🧠][🥜]
+        async function executeSingleTemplate(currentTemplate: TemplateJson) {
             const name = `pipeline-executor-frame-${currentTemplate.name}`;
             const title = currentTemplate.title;
-            const priority =
-                preparedPipeline.promptTemplates.length - preparedPipeline.promptTemplates.indexOf(currentTemplate);
+            const priority = preparedPipeline.templates.length - preparedPipeline.templates.indexOf(currentTemplate);
 
             if (onProgress !== undefined /* <- [3] */) {
                 const progress: TaskProgress = {
@@ -361,7 +360,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                     title,
                     isStarted: false,
                     isDone: false,
-                    blockType: currentTemplate.blockType,
+                    templateType: currentTemplate.templateType,
                     parameterName: currentTemplate.resultingParameterName,
                     parameterValue: null,
                     // <- [3]
@@ -390,7 +389,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
             }
 
             // Note: Check consistency of used and dependent parameters which was also done in `validatePipeline`, but it’s good to doublecheck
-            const usedParameterNames = extractParameterNamesFromPromptTemplate(currentTemplate);
+            const usedParameterNames = extractParameterNamesFromTemplate(currentTemplate);
             const dependentParameterNames = new Set(currentTemplate.dependentParameterNames);
             if (
                 union(
@@ -473,7 +472,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
             let resultString: string | null = null;
             let expectError: ExpectError | null = null;
             let scriptPipelineExecutionErrors: Array<Error>;
-            const maxAttempts = currentTemplate.blockType === 'PROMPT_DIALOG' ? Infinity : maxExecutionAttempts;
+            const maxAttempts = currentTemplate.templateType === 'DIALOG_TEMPLATE' ? Infinity : maxExecutionAttempts;
             const jokerParameterNames = currentTemplate.jokerParameterNames || [];
 
             const preparedContent = (currentTemplate.preparedContent || '{content}')
@@ -520,76 +519,85 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
 
                 try {
                     if (!isJokerAttempt) {
-                        blockType: switch (currentTemplate.blockType) {
+                        templateType: switch (currentTemplate.templateType) {
                             case 'SIMPLE_TEMPLATE':
                                 resultString = replaceParameters(preparedContent, parameters);
-                                break blockType;
+                                break templateType;
 
                             case 'PROMPT_TEMPLATE':
-                                prompt = {
-                                    title: currentTemplate.title,
-                                    pipelineUrl: `${
-                                        preparedPipeline.pipelineUrl
-                                            ? preparedPipeline.pipelineUrl
-                                            : 'anonymous' /* <- TODO: [🧠] How to deal with anonymous pipelines, do here some auto-url like SHA-256 based ad-hoc identifier? */
-                                    }#${currentTemplate.name}`,
-                                    parameters,
-                                    content: preparedContent, // <- Note: For LLM execution, parameters are replaced in the content
-                                    modelRequirements: currentTemplate.modelRequirements!,
-                                    expectations: {
-                                        ...(preparedPipeline.personas.find(
-                                            ({ name }) => name === currentTemplate.personaName,
-                                        ) || {}),
-                                        ...currentTemplate.expectations,
-                                    },
-                                    expectFormat: currentTemplate.expectFormat,
-                                    postprocessingFunctionNames: currentTemplate.postprocessingFunctionNames,
-                                } as Prompt; // <- TODO: Not very good type guard
+                                {
+                                    const modelRequirements = {
+                                        modelVariant: 'CHAT',
+                                        ...(pipeline.defaultModelRequirements || {}),
+                                        ...(currentTemplate.modelRequirements || {}),
+                                    } satisfies ModelRequirements;
 
-                                variant: switch (currentTemplate.modelRequirements!.modelVariant) {
-                                    case 'CHAT':
-                                        chatResult = await llmTools.callChatModel($deepFreeze(prompt) as ChatPrompt);
-                                        // TODO: [🍬] Destroy chatThread
-                                        result = chatResult;
-                                        resultString = chatResult.content;
-                                        break variant;
-                                    case 'COMPLETION':
-                                        completionResult = await llmTools.callCompletionModel(
-                                            $deepFreeze(prompt) as CompletionPrompt,
-                                        );
-                                        result = completionResult;
-                                        resultString = completionResult.content;
-                                        break variant;
+                                    prompt = {
+                                        title: currentTemplate.title,
+                                        pipelineUrl: `${
+                                            preparedPipeline.pipelineUrl
+                                                ? preparedPipeline.pipelineUrl
+                                                : 'anonymous' /* <- TODO: [🧠] How to deal with anonymous pipelines, do here some auto-url like SHA-256 based ad-hoc identifier? */
+                                        }#${currentTemplate.name}`,
+                                        parameters,
+                                        content: preparedContent, // <- Note: For LLM execution, parameters are replaced in the content
+                                        modelRequirements,
+                                        expectations: {
+                                            ...(preparedPipeline.personas.find(
+                                                ({ name }) => name === currentTemplate.personaName,
+                                            ) || {}),
+                                            ...currentTemplate.expectations,
+                                        },
+                                        format: currentTemplate.format,
+                                        postprocessingFunctionNames: currentTemplate.postprocessingFunctionNames,
+                                    } as Prompt; // <- TODO: Not very good type guard
 
-                                    case 'EMBEDDING':
-                                        embeddingResult = await llmTools.callEmbeddingModel(
-                                            $deepFreeze(prompt) as EmbeddingPrompt,
-                                        );
-                                        result = embeddingResult;
-                                        resultString = embeddingResult.content.join(',');
-                                        break variant;
+                                    variant: switch (modelRequirements.modelVariant) {
+                                        case 'CHAT':
+                                            chatResult = await llmTools.callChatModel(
+                                                $deepFreeze(prompt) as ChatPrompt,
+                                            );
+                                            // TODO: [🍬] Destroy chatThread
+                                            result = chatResult;
+                                            resultString = chatResult.content;
+                                            break variant;
+                                        case 'COMPLETION':
+                                            completionResult = await llmTools.callCompletionModel(
+                                                $deepFreeze(prompt) as CompletionPrompt,
+                                            );
+                                            result = completionResult;
+                                            resultString = completionResult.content;
+                                            break variant;
 
-                                    // <- case [🤖]:
+                                        case 'EMBEDDING':
+                                            embeddingResult = await llmTools.callEmbeddingModel(
+                                                $deepFreeze(prompt) as EmbeddingPrompt,
+                                            );
+                                            result = embeddingResult;
+                                            resultString = embeddingResult.content.join(',');
+                                            break variant;
 
-                                    default:
-                                        throw new PipelineExecutionError(
-                                            spaceTrim(
-                                                (block) => `
-                                                    Unknown model variant "${
-                                                        (currentTemplate as really_any).modelRequirements.modelVariant
-                                                    }"
+                                        // <- case [🤖]:
 
-                                                    ${block(pipelineIdentification)}
+                                        default:
+                                            throw new PipelineExecutionError(
+                                                spaceTrim(
+                                                    (block) => `
+                                                        Unknown model variant "${
+                                                            (currentTemplate as really_any).modelRequirements
+                                                                .modelVariant
+                                                        }"
 
+                                                        ${block(pipelineIdentification)}
 
-                                                `,
-                                            ),
-                                        );
+                                                    `,
+                                                ),
+                                            );
+                                    }
                                 }
-
                                 break;
 
-                            case 'SCRIPT':
+                            case 'SCRIPT_TEMPLATE':
                                 if (arrayableToArray(tools.script).length === 0) {
                                     throw new PipelineExecutionError(
                                         spaceTrim(
@@ -605,7 +613,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                                     throw new PipelineExecutionError(
                                         spaceTrim(
                                             (block) => `
-                                                Script language is not defined for prompt template "${
+                                                Script language is not defined for SCRIPT TEMPLATE "${
                                                     currentTemplate.name
                                                 }"
 
@@ -644,7 +652,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                                 }
 
                                 if (resultString !== null) {
-                                    break blockType;
+                                    break templateType;
                                 }
 
                                 if (scriptPipelineExecutionErrors.length === 1) {
@@ -667,10 +675,10 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                                     );
                                 }
 
-                                // Note: This line is unreachable because of the break blockType above
-                                break blockType;
+                                // Note: This line is unreachable because of the break templateType above
+                                break templateType;
 
-                            case 'PROMPT_DIALOG':
+                            case 'DIALOG_TEMPLATE':
                                 if (tools.userInterface === undefined) {
                                     throw new PipelineExecutionError(
                                         spaceTrim(
@@ -683,7 +691,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                                     );
                                 }
 
-                                // TODO: [🌹] When making next attempt for `PROMPT DIALOG`, preserve the previous user input
+                                // TODO: [🌹] When making next attempt for `DIALOG TEMPLATE`, preserve the previous user input
                                 resultString = await tools.userInterface.promptDialog(
                                     $deepFreeze({
                                         promptTitle: currentTemplate.title,
@@ -695,7 +703,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                                         priority,
                                     }),
                                 );
-                                break blockType;
+                                break templateType;
 
                             // <- case: [🅱]
 
@@ -703,7 +711,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                                 throw new PipelineExecutionError(
                                     spaceTrim(
                                         (block) => `
-                                            Unknown execution type "${(currentTemplate as TODO_any).blockType}"
+                                            Unknown execution type "${(currentTemplate as TODO_any).templateType}"
 
                                             ${block(pipelineIdentification)}
                                         `,
@@ -752,8 +760,8 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                     }
 
                     // TODO: [💝] Unite object for expecting amount and format
-                    if (currentTemplate.expectFormat) {
-                        if (currentTemplate.expectFormat === 'JSON') {
+                    if (currentTemplate.format) {
+                        if (currentTemplate.format === 'JSON') {
                             if (!isValidJsonString(resultString || '')) {
                                 // TODO: [🏢] Do more universally via `FormatDefinition`
 
@@ -783,7 +791,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                             throw new UnexpectedError(
                                 spaceTrim(
                                     (block) => `
-                                        Unknown expectFormat "${currentTemplate.expectFormat}"
+                                        Unknown format "${currentTemplate.format}"
 
                                         ${block(pipelineIdentification)}
                                     `,
@@ -807,12 +815,12 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                 } finally {
                     if (
                         !isJokerAttempt &&
-                        currentTemplate.blockType === 'PROMPT_TEMPLATE' &&
+                        currentTemplate.templateType === 'PROMPT_TEMPLATE' &&
                         prompt!
                         //    <- Note:  [2] When some expected parameter is not defined, error will occur in replaceParameters
                         //              In that case we don’t want to make a report about it because it’s not a llm execution error
                     ) {
-                        // TODO: [🧠] Maybe put other blockTypes into report
+                        // TODO: [🧠] Maybe put other templateTypes into report
                         executionReport.promptExecutions.push({
                             prompt: {
                                 ...prompt,
@@ -883,7 +891,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                     title,
                     isStarted: true,
                     isDone: true,
-                    blockType: currentTemplate.blockType,
+                    templateType: currentTemplate.templateType,
                     parameterName: currentTemplate.resultingParameterName,
                     parameterValue: resultString,
                     // <- [3]
@@ -952,8 +960,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
             let resovedParameterNames: Array<string_name> = preparedPipeline.parameters
                 .filter(({ isInput }) => isInput)
                 .map(({ name }) => name);
-            let unresovedTemplates: Array<PromptTemplateJson> = [...preparedPipeline.promptTemplates];
-            //            <- TODO: [🧠][🥜]
+            let unresovedTemplates: Array<TemplateJson> = [...preparedPipeline.templates];
             let resolving: Array<Promise<void>> = [];
 
             let loopLimit = LOOP_LIMIT;
@@ -1093,7 +1100,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
  * TODO: [🧠][🌳] Use here `countTotalUsage` and put preparation and prepared pipiline to report
  * TODO: [🪂] Use maxParallelCount here (not only pass to `preparePipeline`)
  * TODO: [♈] Probbably move expectations from templates to parameters
- * TODO: [🧠] When not meet expectations in PROMPT_DIALOG, make some way to tell the user
+ * TODO: [🧠] When not meet expectations in DIALOG_TEMPLATE, make some way to tell the user
  * TODO: [👧] Strongly type the executors to avoid need of remove nullables whtn noUncheckedIndexedAccess in tsconfig.json
  * Note: CreatePipelineExecutorOptions are just connected to PipelineExecutor so do not extract to types folder
  * TODO: [🧠][3] transparent = (report intermediate parameters) / opaque execution = (report only output parameters) progress reporting mode

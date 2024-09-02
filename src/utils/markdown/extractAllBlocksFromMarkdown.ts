@@ -1,5 +1,5 @@
 import type { Writable } from 'type-fest';
-import { ParsingError } from '../../errors/ParsingError';
+import { ParseError } from '../../errors/ParseError';
 import type { string_markdown } from '../../types/typeAliases';
 import { capitalize } from '../normalization/capitalize';
 
@@ -34,7 +34,7 @@ export type CodeBlock = {
  *
  * @param markdown any valid markdown
  * @returns code blocks with language and content
- * @throws {ParsingError} if block is not closed properly
+ * @throws {ParseError} if block is not closed properly
  * @public exported from `@promptbook/markdown-utils`
  */
 export function extractAllBlocksFromMarkdown(markdown: string_markdown): Array<CodeBlock> {
@@ -73,7 +73,7 @@ export function extractAllBlocksFromMarkdown(markdown: string_markdown): Array<C
                 currentCodeBlock = { blockNotation: '```', language, content: '' };
             } else {
                 if (language !== null) {
-                    throw new ParsingError(
+                    throw new ParseError(
                         `${capitalize(
                             currentCodeBlock.language || 'the',
                         )} code block was not closed and already opening new ${language} code block`,
@@ -93,7 +93,7 @@ export function extractAllBlocksFromMarkdown(markdown: string_markdown): Array<C
     }
 
     if (currentCodeBlock !== null) {
-        throw new ParsingError(
+        throw new ParseError(
             `${capitalize(currentCodeBlock.language || 'the')} code block was not closed at the end of the markdown`,
             // <- [🚞]
         );

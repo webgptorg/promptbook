@@ -1,0 +1,29 @@
+{
+    "title": "⚠ Sample of non-recommended syntax",
+    "promptbookVersion": "0.68.0-5",
+    "description": "Defining same model variant twice is **not recommended** but it is not an error in case of model variants are same.",
+    "parameters": [
+        {
+            "name": "answer",
+            "isInput": false,
+            "isOutput": true
+        }
+    ],
+    "templates": [
+        {
+            "templateType": "PROMPT_TEMPLATE",
+            "name": "prompt",
+            "title": "💬 Prompt",
+            "content": "Hello,\nWhat is the answer to the universe?",
+            "resultingParameterName": "answer",
+            "modelRequirements": {
+                "modelName": "gpt-4o"
+            },
+            "dependentParameterNames": []
+        }
+    ],
+    "knowledgeSources": [],
+    "knowledgePieces": [],
+    "personas": [],
+    "preparations": []
+}

@@ -1,0 +1,3 @@
+TODO:      Make logic/parse error sample: "Provided sample dont passes the expectations"
+TODO:      Make logic/parse error sample: "reserved name is used as parameter"
+TODO: [🧠] Make logic/parse error sample: "persona is used on COMPLETION variant"

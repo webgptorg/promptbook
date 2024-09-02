@@ -1,26 +1,30 @@
-import type { ___ } from '../../utils/organization/___';
-import type { LlmTemplateJson } from './LlmTemplateJson';
-import type { PromptDialogJson } from './PromptDialogJson';
-import type { ScriptJson } from './ScriptJson';
-import type { SimpleTemplateJson } from './SimpleTemplateJson';
+import type { ModelRequirements } from '../ModelRequirements';
+import type { string_name } from '../typeAliases';
+import type { TemplateJsonCommon } from './TemplateJsonCommon';
 
 /**
- * Describes one prompt template in the promptbook
+ * Template for prompt to LLM
  *
  * Note: [🚉] This is fully serializable as JSON
  */
-export type PromptTemplateJson =
-    | LlmTemplateJson
-    | SimpleTemplateJson
-    | ScriptJson
-    | PromptDialogJson
-    | ___
-    | ___
-    | ___
-    | ___;
-//  <- | [🅱] + Add the file with this (execution) block type
+export type PromptTemplateJson = TemplateJsonCommon & {
+    readonly templateType: 'PROMPT_TEMPLATE';
+
+    /**
+     * Name of the persona who will be responding to this prompt
+     */
+    readonly personaName?: string_name;
+
+    /**
+     * Requirements for the model
+     * - This is required only for templateType PROMPT_TEMPLATE
+     */
+    readonly modelRequirements?: Partial<ModelRequirements>;
+};
 
 /**
- * TODO: [🧠][🥜] What is propper name for this - "Template", "Prompt template",...
- * TODO: [🧠][🥜] Reduce confusion of `PromptTemplateJson` vs (`LlmTemplateJson` which is 'PROMPT_TEMPLATE')
+ * TODO: [👙][🧠] Maybe add `knowledge`, `actions` and `instruments` to be available granularly for each template
+ *       @see https://github.com/webgptorg/promptbook/discussions/79
+ * TODO: [💕][🧠] Just selecting gpt3 or gpt4 level of model
+ * TODO: [🍙] Make some standard order of json properties
  */

@@ -3,7 +3,7 @@
 
 import { PROMPTBOOK_VERSION } from '../version';
 import { renderPromptbookMermaid } from '../conversion/prettify/renderPipelineMermaidOptions';
-import { extractParameterNamesFromPromptTemplate } from '../conversion/utils/extractParameterNamesFromPromptTemplate';
+import { extractParameterNamesFromTemplate } from '../conversion/utils/extractParameterNamesFromTemplate';
 import { extractVariables } from '../conversion/utils/extractVariables';
 import { renameParameter } from '../conversion/utils/renameParameter';
 import { titleToName } from '../conversion/utils/titleToName';
@@ -80,7 +80,7 @@ export { PROMPTBOOK_VERSION };
 
 // Note: Entities of the `@promptbook/utils`
 export { renderPromptbookMermaid };
-export { extractParameterNamesFromPromptTemplate };
+export { extractParameterNamesFromTemplate };
 export { extractVariables };
 export { renameParameter };
 export { titleToName };

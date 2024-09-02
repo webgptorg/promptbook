@@ -1,4 +1,4 @@
-import { ParsingError } from '../errors/ParsingError';
+import { ParseError } from '../errors/ParseError';
 
 /**
  * Function parseNumber will parse number from string
@@ -7,7 +7,7 @@ import { ParsingError } from '../errors/ParsingError';
  * Note: it also works only with decimal numbers
  *
  * @returns parsed number
- * @throws {ParsingError} if the value is not a number
+ * @throws {ParseError} if the value is not a number
  *
  * @public exported from `@promptbook/utils`
  */
@@ -53,7 +53,7 @@ export function parseNumber(value: string | number): number {
         const denominator = parseNumber(denominator_!);
 
         if (denominator === 0) {
-            throw new ParsingError(
+            throw new ParseError(
                 `Unable to parse number from "${originalValue}" because denominator is zero`,
                 // <- TODO: [🚞] Pass from consumer(s) of `parseNumber`
             );
@@ -72,7 +72,7 @@ export function parseNumber(value: string | number): number {
     }
 
     if (!/^[0-9.]+$/.test(value) || value.split('.').length > 2) {
-        throw new ParsingError(
+        throw new ParseError(
             `Unable to parse number from "${originalValue}"`,
             // <- TODO: [🚞] Pass from consumer(s) of `parseNumber`
         );
@@ -81,7 +81,7 @@ export function parseNumber(value: string | number): number {
     const num = parseFloat(value);
 
     if (isNaN(num)) {
-        throw new ParsingError(
+        throw new ParseError(
             `Unexpected NaN when parsing number from "${originalValue}"`,
             // <- TODO: [🚞] Pass from consumer(s) of `parseNumber`
         );

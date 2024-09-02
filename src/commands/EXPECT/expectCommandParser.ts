@@ -1,12 +1,15 @@
 import spaceTrim from 'spacetrim';
-import { ParsingError } from '../../errors/ParsingError';
+import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
+import { ParseError } from '../../errors/ParseError';
+import type { ExpectationUnit } from '../../types/PipelineJson/Expectations';
 import { EXPECTATION_UNITS } from '../../types/PipelineJson/Expectations';
+import type { string_markdown_text } from '../../types/typeAliases';
+import { keepUnused } from '../../utils/organization/keepUnused';
 import { parseNumber } from '../../utils/parseNumber';
-import type { CommandParser } from '../_common/types/CommandParser';
+import type { $TemplateJson } from '../_common/types/CommandParser';
 import type { CommandParserInput } from '../_common/types/CommandParser';
-import type { ExpectAmountCommand } from './ExpectAmountCommand';
+import type { PipelineTemplateCommandParser } from '../_common/types/CommandParser';
 import type { ExpectCommand } from './ExpectCommand';
-import type { ExpectFormatCommand } from './ExpectFormatCommand';
 
 /**
  * Parses the expect command
@@ -14,7 +17,7 @@ import type { ExpectFormatCommand } from './ExpectFormatCommand';
  * @see ./EXPECT-README.md for more details
  * @private within the commands folder
  */
-export const expectCommandParser: CommandParser<ExpectCommand> = {
+export const expectCommandParser: PipelineTemplateCommandParser<ExpectCommand> = {
     /**
      * Name of the command
      */
@@ -23,13 +26,14 @@ export const expectCommandParser: CommandParser<ExpectCommand> = {
     /**
      * BOILERPLATE command can be used in:
      */
-    usagePlaces: ['PIPELINE_TEMPLATE'],
+    isUsedInPipelineHead: false,
+    isUsedInPipelineTemplate: true,
 
     /**
-     * Description of the EXPECT command
+     * Description of the FORMAT command
      */
     description: spaceTrim(`
-        Expect command describes the desired output of the prompt template (after post-processing)
+        Expect command describes the desired output of the template (after post-processing)
         It can set limits for the maximum/minimum length of the output, measured in characters, words, sentences, paragraphs or some other shape of the output.
     `),
 
@@ -39,7 +43,7 @@ export const expectCommandParser: CommandParser<ExpectCommand> = {
     documentationUrl: 'https://github.com/webgptorg/promptbook/discussions/30',
 
     /**
-     * Example usages of the EXPECT command
+     * Example usages of the FORMAT command
      */
     examples: [
         'EXPECT MIN 100 Characters',
@@ -47,27 +51,16 @@ export const expectCommandParser: CommandParser<ExpectCommand> = {
         'EXPECT EXACTLY 3 Sentences',
         'EXPECT EXACTLY 1 Paragraph',
         // <- TODO: 'EXPECT 1 Paragraph',
-        'Expect JSON',
     ],
 
     /**
-     * Parses the EXPECT command
+     * Parses the FORMAT command
      */
     parse(input: CommandParserInput): ExpectCommand {
-        const { args, normalized } = input;
-
-        if (normalized.startsWith('EXPECT_JSON')) {
-            return {
-                type: 'EXPECT_FORMAT',
-                format: 'JSON',
-            } satisfies ExpectFormatCommand;
-            // <- TODO: [🦽] Why this is constantly removed by repair-imports.ts
-
-            // [🥤]
-        }
+        const { args } = input;
 
         try {
-            let sign: ExpectAmountCommand['sign'];
+            let sign: ExpectCommand['sign'];
             const signRaw = args.shift()!;
             if (/^exact/i.test(signRaw)) {
                 sign = 'EXACTLY';
@@ -76,20 +69,20 @@ export const expectCommandParser: CommandParser<ExpectCommand> = {
             } else if (/^max/i.test(signRaw)) {
                 sign = 'MAXIMUM';
             } else {
-                throw new ParsingError(`Invalid sign "${signRaw}", expected EXACTLY, MIN or MAX`);
+                throw new ParseError(`Invalid sign "${signRaw}", expected EXACTLY, MIN or MAX`);
             }
 
             const amountRaw = args.shift()!;
             const amount = parseNumber(amountRaw);
             if (amount < 0) {
-                throw new ParsingError('Amount must be positive number or zero');
+                throw new ParseError('Amount must be positive number or zero');
             }
             if (amount !== Math.floor(amount)) {
-                throw new ParsingError('Amount must be whole number');
+                throw new ParseError('Amount must be whole number');
             }
 
             const unitRaw = args.shift()!;
-            let unit: ExpectAmountCommand['unit'] | undefined = undefined;
+            let unit: ExpectCommand['unit'] | undefined = undefined;
             for (const existingUnit of EXPECTATION_UNITS) {
                 let existingUnitText: string = existingUnit;
 
@@ -103,17 +96,17 @@ export const expectCommandParser: CommandParser<ExpectCommand> = {
                     new RegExp(`^${unitRaw.toLowerCase()}`).test(existingUnitText.toLowerCase())
                 ) {
                     if (unit !== undefined) {
-                        throw new ParsingError(`Ambiguous unit "${unitRaw}"`);
+                        throw new ParseError(`Ambiguous unit "${unitRaw}"`);
                     }
                     unit = existingUnit;
                 }
             }
             if (unit === undefined) {
-                throw new ParsingError(`Invalid unit "${unitRaw}"`);
+                throw new ParseError(`Invalid unit "${unitRaw}"`);
             }
 
             return {
-                type: 'EXPECT_AMOUNT',
+                type: 'EXPECT',
                 sign,
                 unit,
                 amount,
@@ -123,15 +116,69 @@ export const expectCommandParser: CommandParser<ExpectCommand> = {
                 throw error;
             }
 
-            throw new ParsingError(
+            throw new ParseError(
                 spaceTrim(
                     (block) =>
                         `
-                            Invalid EXPECT command
+                            Invalid FORMAT command
                             ${block((error as Error).message)}:
                         `,
                 ),
             );
         }
+    },
+
+    /**
+     * Apply the FORMAT command to the `pipelineJson`
+     *
+     * Note: `$` is used to indicate that this function mutates given `templateJson`
+     */
+    $applyToTemplateJson(command: ExpectCommand, $templateJson: $TemplateJson): void {
+        // eslint-disable-next-line no-case-declarations
+        const unit = command.unit.toLowerCase() as Lowercase<ExpectationUnit>;
+
+        $templateJson.expectations = $templateJson.expectations || {};
+        $templateJson.expectations[unit] = $templateJson.expectations[unit] || {};
+
+        if (command.sign === 'MINIMUM' || command.sign === 'EXACTLY') {
+            if ($templateJson.expectations[unit]!.min !== undefined) {
+                throw new ParseError(
+                    `Already defined minumum ${
+                        $templateJson.expectations![unit]!.min
+                    } ${command.unit.toLowerCase()}, now trying to redefine it to ${command.amount}`,
+                );
+            }
+            $templateJson.expectations[unit]!.min = command.amount;
+        } /* not else */
+        if (command.sign === 'MAXIMUM' || command.sign === 'EXACTLY') {
+            if ($templateJson.expectations[unit]!.max !== undefined) {
+                throw new ParseError(
+                    `Already defined maximum ${
+                        $templateJson.expectations![unit]!.max
+                    } ${command.unit.toLowerCase()}, now trying to redefine it to ${command.amount}`,
+                );
+            }
+            $templateJson.expectations[unit]!.max = command.amount;
+        }
+    },
+
+    /**
+     * Converts the FORMAT command back to string
+     *
+     * Note: This is used in `pipelineJsonToString` utility
+     */
+    stringify(command: ExpectCommand): string_markdown_text {
+        keepUnused(command);
+        return `---`; // <- TODO: [🛋] Implement
+    },
+
+    /**
+     * Reads the FORMAT command from the `TemplateJson`
+     *
+     * Note: This is used in `pipelineJsonToString` utility
+     */
+    takeFromTemplateJson($templateJson: $TemplateJson): Array<ExpectCommand> {
+        keepUnused($templateJson);
+        throw new NotYetImplementedError(`[🛋] Not implemented yet`); // <- TODO: [🛋] Implement
     },
 };

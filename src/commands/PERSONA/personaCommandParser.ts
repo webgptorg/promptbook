@@ -1,8 +1,13 @@
 import spaceTrim from 'spacetrim';
-import { ParsingError } from '../../errors/ParsingError';
-import type { ApplyToPipelineJsonSubjects } from '../_common/types/CommandParser';
-import type { CommandParser } from '../_common/types/CommandParser';
+import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
+import { ParseError } from '../../errors/ParseError';
+import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
+import type { string_markdown_text } from '../../types/typeAliases';
+import { keepUnused } from '../../utils/organization/keepUnused';
+import type { $PipelineJson } from '../_common/types/CommandParser';
+import type { $TemplateJson } from '../_common/types/CommandParser';
 import type { CommandParserInput } from '../_common/types/CommandParser';
+import type { PipelineBothCommandParser } from '../_common/types/CommandParser';
 import type { PersonaCommand } from './PersonaCommand';
 
 /**
@@ -11,7 +16,7 @@ import type { PersonaCommand } from './PersonaCommand';
  * @see ./PERSONA-README.md for more details
  * @private within the commands folder
  */
-export const personaCommandParser: CommandParser<PersonaCommand> = {
+export const personaCommandParser: PipelineBothCommandParser<PersonaCommand> = {
     /**
      * Name of the command
      */
@@ -25,7 +30,8 @@ export const personaCommandParser: CommandParser<PersonaCommand> = {
     /**
      * PERSONA command can be used in:
      */
-    usagePlaces: ['PIPELINE_HEAD', 'PIPELINE_TEMPLATE'],
+    isUsedInPipelineHead: true,
+    isUsedInPipelineTemplate: true,
 
     /**
      * Description of the PERSONA command
@@ -53,7 +59,7 @@ export const personaCommandParser: CommandParser<PersonaCommand> = {
         const personaName = (personaNameRaw || '').trim();
 
         if (personaName === '') {
-            throw new ParsingError(`You must set name for the persona`);
+            throw new ParseError(`You must set name for the persona`);
         }
 
         let personaDescription: string | null = (personaDescriptionRaw || '').trim();
@@ -70,59 +76,107 @@ export const personaCommandParser: CommandParser<PersonaCommand> = {
     },
 
     /**
-     * Note: Prototype of [🍧] (remove this comment after full implementation)
+     * Apply the PERSONA command to the `pipelineJson`
+     *
+     * Note: `$` is used to indicate that this function mutates given `pipelineJson`
      */
-    applyToPipelineJson(personaCommand: PersonaCommand, subjects: ApplyToPipelineJsonSubjects): void {
-        const { personaName, personaDescription } = personaCommand;
-        const { pipelineJson, templateJson } = subjects;
+    $applyToPipelineJson(command: PersonaCommand, $pipelineJson: $PipelineJson): void {
+        $applyToTemplateJson(command, null, $pipelineJson);
+    },
 
-        if (templateJson !== null) {
-            if (templateJson.blockType !== 'PROMPT_TEMPLATE') {
-                throw new ParsingError(`PERSONA command can be used only in PROMPT_TEMPLATE block`);
-            }
+    $applyToTemplateJson,
 
-            templateJson.personaName = personaName;
-        }
+    /**
+     * Converts the PERSONA command back to string
+     *
+     * Note: This is used in `pipelineJsonToString` utility
+     */
+    stringify(command: PersonaCommand): string_markdown_text {
+        keepUnused(command);
+        return `---`; // <- TODO: [🛋] Implement
+    },
 
-        const persona = pipelineJson.personas.find((persona) => persona.name === personaName);
+    /**
+     * Reads the PERSONA command from the `PipelineJson`
+     *
+     * Note: This is used in `pipelineJsonToString` utility
+     */
+    takeFromPipelineJson(pipelineJson: PipelineJson): Array<PersonaCommand> {
+        keepUnused(pipelineJson);
+        throw new NotYetImplementedError(`[🛋] Not implemented yet`); // <- TODO: [🛋] Implement
+    },
 
-        if (persona === undefined) {
-            pipelineJson.personas.push({
-                name: personaName,
-                description: personaDescription || '',
-            });
-            return;
-        }
-
-        if (persona.description === personaDescription) {
-            return;
-        }
-
-        if (personaDescription === null) {
-            return;
-        }
-
-        if (persona.description === '') {
-            persona.description = personaDescription;
-            return;
-        }
-
-        console.warn(
-            spaceTrim(`
-
-                Persona "${personaName}" is defined multiple times with different description:
-
-                First definition:
-                ${persona.description}
-
-                Second definition:
-                ${personaDescription}
-
-            `),
-            // <- TODO: [🚞]
-            // <- TODO: [🧠] What is the propper way of theese `pipelineStringToJson` warnings
-        );
-
-        persona.description += spaceTrim('\n\n' + personaDescription);
+    /**
+     * Reads the PERSONA command from the `TemplateJson`
+     *
+     * Note: This is used in `pipelineJsonToString` utility
+     */
+    takeFromTemplateJson($templateJson: $TemplateJson): Array<PersonaCommand> {
+        keepUnused($templateJson);
+        throw new NotYetImplementedError(`[🛋] Not implemented yet`); // <- TODO: [🛋] Implement
     },
 };
+
+/**
+ * Apply the PERSONA command to the `pipelineJson`
+ *
+ * Note: `$` is used to indicate that this function mutates given `templateJson`
+ */
+function $applyToTemplateJson(
+    command: PersonaCommand,
+    $templateJson: $TemplateJson | null,
+    $pipelineJson: $PipelineJson,
+): void {
+    const { personaName, personaDescription } = command;
+
+    if ($templateJson !== null) {
+        if ($templateJson.templateType !== 'PROMPT_TEMPLATE') {
+            throw new ParseError(`PERSONA command can be used only in PROMPT_TEMPLATE block`);
+        }
+
+        $templateJson.personaName = personaName;
+    } else {
+        // TODO: [🛳] Default PERSONA for the pipeline `defaultPersonaName` (same as `defaultModelRequirements`)
+    }
+
+    const persona = $pipelineJson.personas.find((persona) => persona.name === personaName);
+
+    if (persona === undefined) {
+        $pipelineJson.personas.push({
+            name: personaName,
+            description: personaDescription || '',
+        });
+        return;
+    }
+
+    if (persona.description === personaDescription) {
+        return;
+    }
+
+    if (personaDescription === null) {
+        return;
+    }
+
+    if (persona.description === '') {
+        persona.description = personaDescription;
+        return;
+    }
+
+    console.warn(
+        spaceTrim(`
+
+         Persona "${personaName}" is defined multiple times with different description:
+
+         First definition:
+         ${persona.description}
+
+         Second definition:
+         ${personaDescription}
+
+     `),
+        // <- TODO: [🚞]
+        // <- TODO: [🧠] What is the propper way of theese `pipelineStringToJson` warnings
+    );
+
+    persona.description += spaceTrim('\n\n' + personaDescription);
+}

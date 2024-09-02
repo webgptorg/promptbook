@@ -63,6 +63,8 @@ export type EmbeddingModelRequirements = CommonModelRequirements & {
  * Common properties for all model requirements variants
  *
  * Note: [🚉] This is fully serializable as JSON
+ *
+ * @private just abstract the common properties of the model requirements
  */
 export type CommonModelRequirements = {
     /**

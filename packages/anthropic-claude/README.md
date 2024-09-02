@@ -251,7 +251,7 @@ File `write-website-content.ptbk.md`:
 >
 > What is your web about?
 >
-> -   PROMPT DIALOG
+> -   DIALOG TEMPLATE
 >
 > ```
 > {rawAssigment}
@@ -285,7 +285,7 @@ File `write-website-content.ptbk.md`:
 >
 > Is the title for your website okay?
 >
-> -   PROMPT DIALOG
+> -   DIALOG TEMPLATE
 >
 > ```
 > {enhancedTitle}
@@ -446,7 +446,7 @@ flowchart LR
   end;
 ```
 
--   [More template samples](./samples/templates/)
+-   [More template samples](./samples/pipelines/)
 -   [Read more about `.ptbk.md` file format here](https://github.com/webgptorg/promptbook/discussions/categories/concepts?discussions_q=is%3Aopen+label%3A.ptbk.md+category%3AConcepts)
 
 _Note: We are using [postprocessing functions](#postprocessing-functions) like `unwrapResult` that can be used to postprocess the result._
@@ -563,7 +563,7 @@ If you have a question [start a discussion](https://github.com/webgptorg/promptb
 
 ### Why not just use the OpenAI SDK / Anthropic Claude SDK / ...?
 
-Different levels of abstraction. OpenAI library is for direct use of OpenAI API. This library is for a higher level of abstraction. It is for creating prompt templates and promptbooks that are independent of the underlying library, LLM model, or even LLM provider.
+Different levels of abstraction. OpenAI library is for direct use of OpenAI API. This library is for a higher level of abstraction. It define pipelines that are independent of the underlying library, LLM model, or even LLM provider.
 
 ### How is it different from the Langchain library?
 

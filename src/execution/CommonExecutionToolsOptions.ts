@@ -1,3 +1,8 @@
+/**
+ * @@@
+ *
+ * Note: Keep it public to allow people to make their own execution tools
+ */
 export type CommonExecutionToolsOptions = {
     /**
      * If true, the internal executions will be logged

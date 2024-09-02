@@ -383,7 +383,7 @@ Working external knowledge, personas, preparation for instruments and actions
 -   Add `SAMPLE` command with notation for parameter samples to `.ptbk.md` files
 -   Add `KNOWLEDGE` command to `.ptbk.md` files
 -   Change `EXECUTE` command to `BLOCK` command
--   Change `executionType` -> `blockType`
+-   Change `executionType` -> `templateType`
 -   Rename `SynraxError` to `ParsingError`
 -   Rename `extractParameters` to `extractParameterNames`
 -   Rename `ExecutionError` to `PipelineExecutionError`
@@ -478,9 +478,25 @@ Was accidentally released skipped
 
 [🍧] Commands and command parser
 
--   !!!!!!
+-   There are 2 different commands, `EXPECT` and `FORMAT`
+-   Rename `BLOCK` command -> `TEMPLATE`
+-   `EXPECT JSON` changed to `FORMAT JSON`
 -   Change `usagePlaces` -> `isUsedInPipelineHead` + `isUsedInPipelineTemplate`
 -   All parsers have functions `$applyToPipelineJson`, `$applyToTemplateJson`, `stringify`, `takeFromPipelineJson` and `takeFromTemplateJson`
+-   `PipelineJson` has `defaultModelRequirements`
+-   `PipelineJson` has Chat model variant as default without need to specify it explicitly
+-   [🥜] Rename "Prompt template" -> "Template"
+-   Rename `PromptTemplateJson` -> `TemplateJson`
+-   Rename `extractParameterNamesFromPromptTemplate` -> `extractParameterNamesFromTemplate`
+-   Rename `PromptTemplateJsonCommon` -> `TemplateJsonCommon`
+-   Rename `PromptTemplateParameterJson` -> `ParameterJson`
+-   Rename `PipelineJson.promptTemplates` -> `PipelineJson.templates`
+-   Rename `PromptDialogJson` -> `DialogTemplateJson`
+-   Rename `PROMPT_DIALOG` -> `DIALOG_TEMPLATE`
+-   Rename `ScriptJson` -> `ScriptTemplateJson`
+-   Rename `SCRIPT` -> `SCRIPT_TEMPLATE`
+-   Rename `LlmTemplateJson` -> `PromptTemplateJson`
+-   Rename `ParsingError` -> `ParseError`
 
 ## In prepare
 
@@ -553,7 +569,7 @@ More expect variations
 ## Upcomming features
 
 -   When postprocessing fails, retry in same way as failed expectations
--   When making next attempt for `PROMPT DIALOG`, preserve the previous user input <- [🌹]
+-   When making next attempt for `DIALOG BLOCK`, preserve the previous user input <- [🌹]
 
 ## `1.0.0` Release
 

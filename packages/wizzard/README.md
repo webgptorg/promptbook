@@ -92,7 +92,7 @@ File `write-website-content.ptbk.md`:
 >
 > What is your web about?
 >
-> -   PROMPT DIALOG
+> -   DIALOG TEMPLATE
 >
 > ```
 > {rawAssigment}
@@ -128,7 +128,7 @@ File `write-website-content.ptbk.md`:
 >
 > Is the title for your website okay?
 >
-> -   PROMPT DIALOG
+> -   DIALOG TEMPLATE
 >
 > ```
 > {enhancedTitle}
@@ -291,7 +291,7 @@ flowchart LR
   end;
 ```
 
-[More template samples](./samples/templates/)
+[More template samples](./samples/pipelines/)
 
 _Note: We are using [postprocessing functions](#postprocessing-functions) like `unwrapResult` that can be used to postprocess the result._
 
@@ -392,7 +392,7 @@ By default, it is `Prompt template`
 -   _(default)_ `Prompt template` The block is a prompt template and is executed by LLM (OpenAI, Azure,...)
 -   `SIMPLE TEMPLATE` The block is a simple text template which is just filled with parameters
 -   `Script` The block is a script that is executed by some script runtime, the runtime is determined by block type, currently only `javascript` is supported but we plan to add `python` and `typescript` in the future.
--   `PROMPT DIALOG` Ask user for input
+-   `DIALOG TEMPLATE` Ask user for input
 
 ### Parameters
 
@@ -476,7 +476,7 @@ Internally it calls OpenAI, Azure, GPU, proxy, cache, logging,...
 
 #### Script Execution Tools
 
-`ScriptExecutionTools` is an abstract container that represents all the tools needed to EXECUTE SCRIPTs. It is implemented by concrete execution tools:
+`ScriptExecutionTools` is an abstract container that represents all the tools needed to `SCRIPT TEMPLATE`. It is implemented by concrete execution tools:
 
 -   `JavascriptExecutionTools` is a wrapper around `vm2` module that executes javascript code in a sandbox.
 -   `JavascriptEvalExecutionTools` is wrapper around `eval` function that executes javascript. It is used for testing and mocking **NOT intended to use in the production** due to its unsafe nature, use `JavascriptExecutionTools` instead.
@@ -509,7 +509,7 @@ This can be useful, for example, if you want to use some predefined data, or if 
 
 When using wildcards, you must have at least one minimum expectation. If you do not have a minimum expectation, the joker will always fulfil the expectation because it has none, so it makes no logical sense.
 
-Look at [jokers.ptbk.md](samples/templates/41-jokers.ptbk.md) sample.
+Look at [jokers.ptbk.md](samples/pipelines/41-jokers.ptbk.md) sample.
 
 ### Postprocessing functions
 
@@ -551,21 +551,21 @@ There are two types of expectations which are not strictly symmetrical:
 #### Minimal expectations
 
 -   `EXPECT MIN 0 ...` is not valid minimal expectation. It makes no sense.
--   `EXPECT JSON` is both minimal and maximal expectation
+-   `FORMAT JSON` is both minimal and maximal expectation
 -   When you are using `JOKER` in same prompt template, you need to have at least one minimal expectation
 
 #### Maximal expectations
 
 -   `EXPECT MAX 0 ...` is valid maximal expectation. For example, you can expect 0 pages and 2 sentences.
--   `EXPECT JSON` is both minimal and maximal expectation
+-   `FORMAT JSON` is both minimal and maximal expectation
 
-Look at [expectations.ptbk.md](samples/templates/45-expectations.ptbk.md) and [expect-json.ptbk.md](samples/templates/45-expect-json.ptbk.md) samples for more.
+Look at [expectations.ptbk.md](samples/pipelines/45-expectations.ptbk.md) and [expect-json.ptbk.md](samples/pipelines/45-expect-json.ptbk.md) samples for more.
 
 ### Execution report
 
 Execution report is a simple object or markdown that contains information about the execution of the pipeline.
 
-[See the example of such a report](/samples/templates/50-advanced.report.md)
+[See the example of such a report](/samples/pipelines/50-advanced.report.md)
 
 ### Remote server
 

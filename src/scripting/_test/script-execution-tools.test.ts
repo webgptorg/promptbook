@@ -78,7 +78,7 @@ async function getPipelineExecutor() {
 
           ## Execution
 
-          -   EXECUTE SCRIPT
+          -   SCRIPT TEMPLATE
 
           \`\`\`javascript
           thing.split('a').join('b')

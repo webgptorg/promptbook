@@ -1,5 +1,5 @@
 import { spaceTrim } from 'spacetrim';
-import { ParsingError } from '../../errors/ParsingError';
+import { ParseError } from '../../errors/ParseError';
 import type { string_javascript } from '../../types/typeAliases';
 import type { string_javascript_name } from '../../types/typeAliases';
 /**
@@ -7,7 +7,7 @@ import type { string_javascript_name } from '../../types/typeAliases';
  *
  * @param script from which to extract the variables
  * @returns the list of variable names
- * @throws {ParsingError} if the script is invalid
+ * @throws {ParseError} if the script is invalid
  * @public exported from `@promptbook/utils`
  */
 export function extractVariables(script: string_javascript): Set<string_javascript_name> {
@@ -45,7 +45,7 @@ export function extractVariables(script: string_javascript): Set<string_javascri
             throw error;
         }
 
-        throw new ParsingError(
+        throw new ParseError(
             spaceTrim(
                 (block) => `
                     Can not extract variables from the script

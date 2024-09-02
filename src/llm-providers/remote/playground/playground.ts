@@ -35,7 +35,7 @@ async function playground() {
         isVerbose: true,
         isAnonymousModeAllowed: true,
         isCollectionModeAllowed: true,
-        collection: await createCollectionFromDirectory('./samples/templates/', { llmTools: null, isRecursive: false }),
+        collection: await createCollectionFromDirectory('./samples/pipelines/', { llmTools: null, isRecursive: false }),
         createLlmExecutionTools(userId) {
             // <- TODO: [🧠][🤺] Remove `createLlmExecutionTools`, pass just `llmExecutionTools`
             console.info(colors.bgCyan('Playground:'), 'userId', userId);

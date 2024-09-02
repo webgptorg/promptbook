@@ -1,0 +1,106 @@
+{
+    "date": "2024-09-01T15:49:29.599Z",
+    "promptbookVersion": "0.68.0-4",
+    "prompt": {
+        "title": "Make modelRequirements",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-persona.ptbk.md#make-model-requirements",
+        "parameters": {
+            "availableModelNames": "claude-3-5-sonnet-20240620,claude-3-opus-20240229,claude-3-sonnet-20240229,\tclaude-3-haiku-20240307,claude-2.1,claude-2.0,claude-instant-1.2,gpt-3.5-turbo-16k,gpt-4,gpt-4-32k,gpt-4-turbo-2024-04-09,gpt-3.5-turbo-1106,gpt-4-turbo,gpt-3.5-turbo,gpt-3.5-turbo-0301,gpt-4-1106-preview,gpt-4-0125-preview,gpt-3.5-turbo-0125,gpt-4-turbo-preview,gpt-3.5-turbo-0613,gpt-4o-2024-05-13,gpt-4o,gpt-3.5-turbo-16k-0613,gpt-3.5-turbo-16k,gpt-4,gpt-4-32k,gpt-4-turbo-2024-04-09,gpt-3.5-turbo-1106,gpt-4-turbo,gpt-3.5-turbo,gpt-3.5-turbo-0301,gpt-4-1106-preview,gpt-4-0125-preview,gpt-3.5-turbo-0125,gpt-4-turbo-preview,gpt-3.5-turbo-0613,gpt-4o-2024-05-13,gpt-4o,gpt-3.5-turbo-16k-0613",
+            "personaDescription": "a philosopher who is writing a book on the meaning of life"
+        },
+        "content": "You are experienced AI engineer, you need to create virtual assistant.\nWrite\n\n## Sample\n\n```json\n{\n\"modelName\": \"gpt-4o\",\n\"systemMessage\": \"You are experienced AI engineer and helpfull assistant.\",\n\"temperature\": 0.7\n}\n```\n\n## Instructions\n\n-   Your output format is JSON object\n-   Write just the JSON object, no other text should be present\n-   It contains the following keys:\n    -   `modelName`: The name of the model to use\n    -   `systemMessage`: The system message to provide context to the model\n    -   `temperature`: The sampling temperature to use\n\n### Key `modelName`\n\nPick from the following models:\n\n-   {availableModelNames}\n\n### Key `systemMessage`\n\nThe system message is used to communicate instructions or provide context to the model at the beginning of a conversation. It is displayed in a different format compared to user messages, helping the model understand its role in the conversation. The system message typically guides the model's behavior, sets the tone, or specifies desired output from the model. By utilizing the system message effectively, users can steer the model towards generating more accurate and relevant responses.\n\nFor example:\n\n> You are an experienced AI engineer and helpful assistant.\n\n> You are a friendly and knowledgeable chatbot.\n\n### Key `temperature`\n\nThe sampling temperature, between 0 and 1. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic. If set to 0, the model will use log probability to automatically increase the temperature until certain thresholds are hit.\n\nYou can pick a value between 0 and 2. For example:\n\n-   `0.1`: Low temperature, extremely conservative and deterministic\n-   `0.5`: Medium temperature, balanced between conservative and creative\n-   `1.0`: High temperature, creative and bit random\n-   `1.5`: Very high temperature, extremely creative and often chaotic and unpredictable\n-   `2.0`: Maximum temperature, completely random and unpredictable, for some extreme creative use cases\n\n# The assistant\n\nTake this description of the persona:\n\n> {personaDescription}",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {},
+        "format": "JSON"
+    },
+    "promptResult": {
+        "content": "Here's a JSON object for a virtual assistant based on the persona of a philosopher writing a book on the meaning of life:\n\n```json\n{\n  \"modelName\": \"gpt-4-turbo-2024-04-09\",\n  \"systemMessage\": \"You are a contemplative philosopher in the process of writing a profound book on the meaning of life. Your responses should reflect deep philosophical thinking, drawing from various schools of thought and your own original ideas. Engage in thoughtful discussions, ask probing questions, and offer insights that challenge conventional wisdom about existence, purpose, and the human condition. Your manner is calm, reflective, and occasionally sprinkled with relevant quotes from great thinkers throughout history.\",\n  \"temperature\": 0.7\n}\n```",
+        "modelName": "claude-3-5-sonnet-20240620",
+        "timing": {
+            "start": "2024-09-01T15:49:25.791Z",
+            "complete": "2024-09-01T15:49:29.598Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0.005295
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 925
+                },
+                "charactersCount": {
+                    "value": 2126
+                },
+                "wordsCount": {
+                    "value": 305
+                },
+                "sentencesCount": {
+                    "value": 21
+                },
+                "linesCount": {
+                    "value": 55
+                },
+                "paragraphsCount": {
+                    "value": 20
+                },
+                "pagesCount": {
+                    "value": 5
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 168
+                },
+                "charactersCount": {
+                    "value": 0
+                },
+                "wordsCount": {
+                    "value": 0
+                },
+                "sentencesCount": {
+                    "value": 0
+                },
+                "linesCount": {
+                    "value": 0
+                },
+                "paragraphsCount": {
+                    "value": 0
+                },
+                "pagesCount": {
+                    "value": 0
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced AI engineer, you need to create virtual assistant.\nWrite\n\n## Sample\n\n```json\n{\n\"modelName\": \"gpt-4o\",\n\"systemMessage\": \"You are experienced AI engineer and helpfull assistant.\",\n\"temperature\": 0.7\n}\n```\n\n## Instructions\n\n-   Your output format is JSON object\n-   Write just the JSON object, no other text should be present\n-   It contains the following keys:\n    -   `modelName`: The name of the model to use\n    -   `systemMessage`: The system message to provide context to the model\n    -   `temperature`: The sampling temperature to use\n\n### Key `modelName`\n\nPick from the following models:\n\n-   claude-3-5-sonnet-20240620,claude-3-opus-20240229,claude-3-sonnet-20240229,\tclaude-3-haiku-20240307,claude-2.1,claude-2.0,claude-instant-1.2,gpt-3.5-turbo-16k,gpt-4,gpt-4-32k,gpt-4-turbo-2024-04-09,gpt-3.5-turbo-1106,gpt-4-turbo,gpt-3.5-turbo,gpt-3.5-turbo-0301,gpt-4-1106-preview,gpt-4-0125-preview,gpt-3.5-turbo-0125,gpt-4-turbo-preview,gpt-3.5-turbo-0613,gpt-4o-2024-05-13,gpt-4o,gpt-3.5-turbo-16k-0613,gpt-3.5-turbo-16k,gpt-4,gpt-4-32k,gpt-4-turbo-2024-04-09,gpt-3.5-turbo-1106,gpt-4-turbo,gpt-3.5-turbo,gpt-3.5-turbo-0301,gpt-4-1106-preview,gpt-4-0125-preview,gpt-3.5-turbo-0125,gpt-4-turbo-preview,gpt-3.5-turbo-0613,gpt-4o-2024-05-13,gpt-4o,gpt-3.5-turbo-16k-0613\n\n### Key `systemMessage`\n\nThe system message is used to communicate instructions or provide context to the model at the beginning of a conversation. It is displayed in a different format compared to user messages, helping the model understand its role in the conversation. The system message typically guides the model's behavior, sets the tone, or specifies desired output from the model. By utilizing the system message effectively, users can steer the model towards generating more accurate and relevant responses.\n\nFor example:\n\n> You are an experienced AI engineer and helpful assistant.\n\n> You are a friendly and knowledgeable chatbot.\n\n### Key `temperature`\n\nThe sampling temperature, between 0 and 1. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic. If set to 0, the model will use log probability to automatically increase the temperature until certain thresholds are hit.\n\nYou can pick a value between 0 and 2. For example:\n\n-   `0.1`: Low temperature, extremely conservative and deterministic\n-   `0.5`: Medium temperature, balanced between conservative and creative\n-   `1.0`: High temperature, creative and bit random\n-   `1.5`: Very high temperature, extremely creative and often chaotic and unpredictable\n-   `2.0`: Maximum temperature, completely random and unpredictable, for some extreme creative use cases\n\n# The assistant\n\nTake this description of the persona:\n\n> a philosopher who is writing a book on the meaning of life",
+        "rawRequest": {
+            "model": "claude-3-5-sonnet-20240620",
+            "max_tokens": 4096,
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "You are experienced AI engineer, you need to create virtual assistant.\nWrite\n\n## Sample\n\n```json\n{\n\"modelName\": \"gpt-4o\",\n\"systemMessage\": \"You are experienced AI engineer and helpfull assistant.\",\n\"temperature\": 0.7\n}\n```\n\n## Instructions\n\n-   Your output format is JSON object\n-   Write just the JSON object, no other text should be present\n-   It contains the following keys:\n    -   `modelName`: The name of the model to use\n    -   `systemMessage`: The system message to provide context to the model\n    -   `temperature`: The sampling temperature to use\n\n### Key `modelName`\n\nPick from the following models:\n\n-   claude-3-5-sonnet-20240620,claude-3-opus-20240229,claude-3-sonnet-20240229,\tclaude-3-haiku-20240307,claude-2.1,claude-2.0,claude-instant-1.2,gpt-3.5-turbo-16k,gpt-4,gpt-4-32k,gpt-4-turbo-2024-04-09,gpt-3.5-turbo-1106,gpt-4-turbo,gpt-3.5-turbo,gpt-3.5-turbo-0301,gpt-4-1106-preview,gpt-4-0125-preview,gpt-3.5-turbo-0125,gpt-4-turbo-preview,gpt-3.5-turbo-0613,gpt-4o-2024-05-13,gpt-4o,gpt-3.5-turbo-16k-0613,gpt-3.5-turbo-16k,gpt-4,gpt-4-32k,gpt-4-turbo-2024-04-09,gpt-3.5-turbo-1106,gpt-4-turbo,gpt-3.5-turbo,gpt-3.5-turbo-0301,gpt-4-1106-preview,gpt-4-0125-preview,gpt-3.5-turbo-0125,gpt-4-turbo-preview,gpt-3.5-turbo-0613,gpt-4o-2024-05-13,gpt-4o,gpt-3.5-turbo-16k-0613\n\n### Key `systemMessage`\n\nThe system message is used to communicate instructions or provide context to the model at the beginning of a conversation. It is displayed in a different format compared to user messages, helping the model understand its role in the conversation. The system message typically guides the model's behavior, sets the tone, or specifies desired output from the model. By utilizing the system message effectively, users can steer the model towards generating more accurate and relevant responses.\n\nFor example:\n\n> You are an experienced AI engineer and helpful assistant.\n\n> You are a friendly and knowledgeable chatbot.\n\n### Key `temperature`\n\nThe sampling temperature, between 0 and 1. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic. If set to 0, the model will use log probability to automatically increase the temperature until certain thresholds are hit.\n\nYou can pick a value between 0 and 2. For example:\n\n-   `0.1`: Low temperature, extremely conservative and deterministic\n-   `0.5`: Medium temperature, balanced between conservative and creative\n-   `1.0`: High temperature, creative and bit random\n-   `1.5`: Very high temperature, extremely creative and often chaotic and unpredictable\n-   `2.0`: Maximum temperature, completely random and unpredictable, for some extreme creative use cases\n\n# The assistant\n\nTake this description of the persona:\n\n> a philosopher who is writing a book on the meaning of life"
+                }
+            ]
+        },
+        "rawResponse": {
+            "id": "msg_018CwmSPxaprnTsV2v6wDLPy",
+            "type": "message",
+            "role": "assistant",
+            "model": "claude-3-5-sonnet-20240620",
+            "content": [
+                {
+                    "type": "text",
+                    "text": "Here's a JSON object for a virtual assistant based on the persona of a philosopher writing a book on the meaning of life:\n\n```json\n{\n  \"modelName\": \"gpt-4-turbo-2024-04-09\",\n  \"systemMessage\": \"You are a contemplative philosopher in the process of writing a profound book on the meaning of life. Your responses should reflect deep philosophical thinking, drawing from various schools of thought and your own original ideas. Engage in thoughtful discussions, ask probing questions, and offer insights that challenge conventional wisdom about existence, purpose, and the human condition. Your manner is calm, reflective, and occasionally sprinkled with relevant quotes from great thinkers throughout history.\",\n  \"temperature\": 0.7\n}\n```"
+                }
+            ],
+            "stop_reason": "end_turn",
+            "stop_sequence": null,
+            "usage": {
+                "input_tokens": 925,
+                "output_tokens": 168
+            }
+        }
+    }
+}

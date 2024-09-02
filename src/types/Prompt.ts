@@ -1,4 +1,4 @@
-import type { ExpectFormatCommand } from '../commands/EXPECT/ExpectFormatCommand';
+import type { FormatCommand } from '../commands/FORMAT/FormatCommand';
 import type { ChatModelRequirements } from './ModelRequirements';
 import type { CompletionModelRequirements } from './ModelRequirements';
 import type { EmbeddingModelRequirements } from './ModelRequirements';
@@ -65,6 +65,8 @@ export type EmbeddingPrompt = CommonPrompt & {
  * Common properties for all prompt results
  *
  * Note: [🚉] This is fully serializable as JSON
+ *
+ * @private just abstract the common properties of the prompts
  */
 export type CommonPrompt = {
     /**
@@ -105,7 +107,7 @@ export type CommonPrompt = {
      * Note: Expectations are performed after all postprocessing steps
      * @deprecated [💝]
      */
-    readonly expectFormat?: ExpectFormatCommand['format'];
+    readonly format?: FormatCommand['format'];
 
     /**
      * Unique identifier of the pipeline with specific template name as hash

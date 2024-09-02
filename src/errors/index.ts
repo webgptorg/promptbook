@@ -4,7 +4,7 @@ import { ExpectError } from './ExpectError';
 import { LimitReachedError } from './LimitReachedError';
 import { NotFoundError } from './NotFoundError';
 import { NotYetImplementedError } from './NotYetImplementedError';
-import { ParsingError } from './ParsingError';
+import { ParseError } from './ParseError';
 import { PipelineExecutionError } from './PipelineExecutionError';
 import { PipelineLogicError } from './PipelineLogicError';
 import { PipelineUrlError } from './PipelineUrlError';
@@ -22,7 +22,7 @@ export const ERRORS = {
     LimitReachedError,
     NotFoundError,
     NotYetImplementedError,
-    ParsingError,
+    ParseError,
     PipelineExecutionError,
     PipelineLogicError,
     PipelineUrlError,

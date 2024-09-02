@@ -1,80 +1,204 @@
 import type { WritableDeep } from 'type-fest';
-import type { PromptTemplateJson } from '../../../types/PipelineJson/PromptTemplateJson';
 import type { PipelineJson } from '../../../types/PipelineJson/PipelineJson';
+import type { TemplateJson } from '../../../types/PipelineJson/TemplateJson';
 import type { string_markdown_text } from '../../../types/typeAliases';
 import type { string_name } from '../../../types/typeAliases';
 import type { string_promptbook_documentation_url } from '../../../types/typeAliases';
 import type { string_SCREAMING_CASE } from '../../../utils/normalization/normalizeTo_SCREAMING_CASE';
+import type { ___and___ } from '../../../utils/organization/___and___';
 import type { CommandUsagePlace } from './CommandUsagePlaces';
 
-export type CommandParser<TCommand extends { type: string_name & string_SCREAMING_CASE }> = {
+/**
+ * @@@
+ *
+ * @private just abstract helper for command parsers
+ */
+export type CommandBase = { type: string_name & string_SCREAMING_CASE };
+
+/**
+ * @@@
+ */
+export type CommandParser<TCommand extends CommandBase> =
+    | PipelineHeadCommandParser<TCommand>
+    | PipelineTemplateCommandParser<TCommand>
+    | PipelineBothCommandParser<TCommand>;
+
+/**
+ * @@@
+ *
+ * @private just abstract the common properties of the command parsers
+ */
+export type CommonCommandParser<TCommand extends CommandBase> = {
+    /**
+     * @@@
+     */
     readonly name: string_name & string_SCREAMING_CASE;
 
+    /**
+     * @@@
+     */
+    readonly isUsedInPipelineHead: boolean;
+
+    /**
+     * @@@
+     */
+    readonly isUsedInPipelineTemplate: boolean;
+
+    /**
+     * @@@
+     */
     readonly aliasNames?: Array<string_name & string_SCREAMING_CASE>;
 
+    /**
+     * @@@
+     */
     readonly deprecatedNames?: Array<string_name & string_SCREAMING_CASE>;
 
-    readonly usagePlaces: Array<CommandUsagePlace>; // <- TODO: [😃]
-
+    /**
+     * @@@
+     */
     readonly description: string_markdown_text;
 
+    /**
+     * @@@
+     */
     readonly documentationUrl: string_promptbook_documentation_url;
 
+    /**
+     * @@@
+     */
     readonly examples: Array<string_markdown_text>;
 
     /**
-     * @throws {ParsingError} if the parsing fails
+     * @throws {ParseError} if the parsing fails
      */
     parse(input: CommandParserInput): TCommand;
 
     /**
-     * @@@ Mutated by the command
+     * Converts the command back to string
+     *
+     * Note: This is used in `pipelineJsonToString` utility
      */
-    applyToPipelineJson?(command: TCommand, subjects: ApplyToPipelineJsonSubjects): void;
+    stringify(command: TCommand): string_markdown_text;
 };
 
+/**
+ * @@@
+ */
+export type PipelineBothCommandParser<TCommand extends CommandBase> = ___and___ &
+    Omit<PipelineHeadCommandParser<TCommand>, 'isUsedInPipelineTemplate'> &
+    Omit<PipelineTemplateCommandParser<TCommand>, 'isUsedInPipelineHead'>;
+
+/**
+ * @@@
+ */
+export type PipelineHeadCommandParser<TCommand extends CommandBase> = CommonCommandParser<TCommand> & {
+    /**
+     * @@@
+     */
+    readonly isUsedInPipelineHead: true;
+
+    /**
+     * @@@
+     */
+    readonly isUsedInPipelineTemplate: false;
+
+    /**
+     * Apply the command to the `pipelineJson`
+     *
+     * Note: `$` is used to indicate that this function mutates given `pipelineJson`
+     */
+    $applyToPipelineJson(command: TCommand, $pipelineJson: $PipelineJson): void;
+
+    /**
+     * Reads the command from the `PipelineJson`
+     *
+     * Note: This is used in `pipelineJsonToString` utility
+     */
+    takeFromPipelineJson(pipelineJson: PipelineJson): Array<TCommand>;
+};
+
+/**
+ * @@@
+ */
+export type PipelineTemplateCommandParser<TCommand extends CommandBase> = CommonCommandParser<TCommand> & {
+    /**
+     * @@@
+     */
+    readonly isUsedInPipelineHead: false;
+
+    /**
+     * @@@
+     */
+    readonly isUsedInPipelineTemplate: true;
+
+    /**
+     * Apply the command to the `pipelineJson`
+     *
+     * Note: `$` is used to indicate that this function mutates given `templateJson` and/or `pipelineJson`
+     */
+    $applyToTemplateJson(command: TCommand, $templateJson: $TemplateJson, $pipelineJson: $PipelineJson): void;
+
+    /**
+     * Reads the command from the `TemplateJson`
+     *
+     * Note: This is used in `pipelineJsonToString` utility
+     */
+    takeFromTemplateJson($templateJson: $TemplateJson): Array<TCommand>;
+};
+
+/**
+ * @@@
+ *
+ * Note: `$` is used to indicate that purpose of this type is to mutate the given object
+ *
+ * @private internal helper for command parsers
+ */
+export type $TemplateJson = {
+    isTemplateTypeSet: boolean;
+    isTemplate: boolean;
+} & Partial<WritableDeep<TemplateJson>>;
+//                         <- TODO: [🧠] `Partial<WritableDeep<...` vs `WritableDeep<Partial<...` - change ACRY
+
+/**
+ * @@@
+ *
+ *  Note: `$` is used to indicate that purpose of this type is to mutate the given object
+ *
+ * @private internal helper for command parsers
+ */
+export type $PipelineJson = WritableDeep<PipelineJson>;
+
+/**
+ * @@@
+ */
 export type CommandParserInput = {
+    /**
+     * @@@
+     */
     readonly usagePlace: CommandUsagePlace;
 
+    /**
+     * @@@
+     */
     readonly raw: string_markdown_text;
 
+    /**
+     * @@@
+     */
     readonly rawArgs: string_markdown_text;
 
+    /**
+     * @@@
+     */
     readonly normalized: string_name & string_SCREAMING_CASE;
 
+    /**
+     * @@@
+     */
     readonly args: Array<string_name & string_SCREAMING_CASE>;
 };
 
 /**
- * @@@ Mutated by the command
- */
-export type ApplyToPipelineJsonSubjects = {
-    /**
-     * @@@ Mutated by the command
-     */
-    readonly pipelineJson: WritableDeep<PipelineJson>;
-
-    /**
-     * @@@
-     *
-     * @@@ Mutated by the command
-     *
-     * When used in
-     * - `PIPELINE_HEAD` it is `null`
-     * - `PIPELINE_TEMPLATE` it is the prompt template
-     */
-    readonly templateJson: null | Partial<WritableDeep<PromptTemplateJson>>;
-    //         <- TODO: [🧠][🥜]
-};
-
-/**
- * TODO: @@@ Annotate all
- * TODO: [🍧][♓️] Add order here
- * TODO: [🧠] Maybe put flag if it is for whole `.ptbk.md` file of just one section
- * TODO: [🍧] All commands must implement `applyToPipelineJson` method
- *       which will apply parsed command to the pipeline JSON
- *       it will be called from `pipelineStringToJsonSync`
- *       and replace hardcoded switch statement and [💐]
- *       and throw ParsingError
- *
+ * TODO: [♓️] Add order here
  */

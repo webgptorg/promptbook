@@ -1,11 +1,16 @@
 import { spaceTrim } from 'spacetrim';
-import { ParsingError } from '../../errors/ParsingError';
+import { ParseError } from '../../errors/ParseError';
 import type { string_markdown } from '../../types/typeAliases';
 import type { string_markdown_text } from '../../types/typeAliases';
 import { removeMarkdownFormatting } from '../../utils/markdown/removeMarkdownFormatting';
 import { normalizeTo_SCREAMING_CASE } from '../../utils/normalization/normalizeTo_SCREAMING_CASE';
+import { just } from '../../utils/organization/just';
+import { keepUnused } from '../../utils/organization/keepUnused';
+import type { really_unknown } from '../../utils/organization/really_unknown';
 import { COMMANDS } from '../index';
 import type { Command } from './types/Command';
+import type { CommandBase } from './types/CommandParser';
+import type { CommandParser } from './types/CommandParser';
 import type { CommandParserInput } from './types/CommandParser';
 import type { CommandUsagePlace } from './types/CommandUsagePlaces';
 
@@ -13,13 +18,13 @@ import type { CommandUsagePlace } from './types/CommandUsagePlaces';
  * Parses one line of ul/ol to command
  *
  * @returns parsed command object
- * @throws {ParsingError} if the command is invalid
+ * @throws {ParseError} if the command is invalid
  *
  * @private within the pipelineStringToJson
  */
 export function parseCommand(raw: string_markdown_text, usagePlace: CommandUsagePlace): Command {
     if (raw.includes('\n') || raw.includes('\r')) {
-        throw new ParsingError('Command can not contain new line characters' /* <- TODO: [🚞] */);
+        throw new ParseError('Command can not contain new line characters' /* <- TODO: [🚞] */);
     }
 
     let normalized = raw.trim();
@@ -61,12 +66,11 @@ export function parseCommand(raw: string_markdown_text, usagePlace: CommandUsage
         .map((item) => item.trim());
 
     if (items.length === 0 || items[0] === '') {
-        throw new ParsingError(
+        throw new ParseError(
             spaceTrim(
                 (block) =>
                     `
                         Malformed command:
-
                         - ${raw}
 
                         Supported commands are:
@@ -110,12 +114,11 @@ export function parseCommand(raw: string_markdown_text, usagePlace: CommandUsage
         }
     }
 
-    throw new ParsingError(
+    throw new ParseError(
         spaceTrim(
             (block) =>
                 `
                   Malformed or unknown command:
-
                   - ${raw}
 
                   Supported commands are:
@@ -130,10 +133,13 @@ export function parseCommand(raw: string_markdown_text, usagePlace: CommandUsage
  * @@@
  */
 function getSupportedCommandsMessage(): string_markdown {
-    return COMMANDS.flatMap(({ name, aliasNames, description, documentationUrl }) => [
-        `- **${name}** ${description}, see [discussion](${documentationUrl})`,
-        ...(aliasNames || []).map((aliasName) => `    - **${aliasName}** Alias for **${name}**`),
-    ]).join('\n');
+    return COMMANDS.flatMap(({ name, aliasNames, description, documentationUrl }: CommandParser<CommandBase>) =>
+        //                                                                        <- Note: [🦦] Its strange that this type assertion is needed
+        [
+            `- **${name}** ${description}, see [discussion](${documentationUrl})`,
+            ...(aliasNames || []).map((aliasName) => `    - **${aliasName}** Alias for **${name}**`),
+        ],
+    ).join('\n');
 }
 
 /**
@@ -144,25 +150,39 @@ function parseCommandVariant(input: CommandParserInput & { commandNameRaw: strin
 
     const commandName = normalizeTo_SCREAMING_CASE(commandNameRaw);
 
-    for (const commandParser of COMMANDS.filter(({ usagePlaces: places }) => places.includes(usagePlace))) {
-        const { name, aliasNames, deprecatedNames, parse } = commandParser;
+    for (const commandParser of COMMANDS as really_unknown as Array<CommandParser<CommandBase>>) {
+        //                               <- Note: [🦦] Its strange that this type assertion is needed
+        const { name, isUsedInPipelineHead, isUsedInPipelineTemplate, aliasNames, deprecatedNames, parse } =
+            commandParser;
+
+        if (just(false)) {
+            keepUnused(/* for better indentation */);
+        } else if (usagePlace === 'PIPELINE_HEAD' && !isUsedInPipelineHead) {
+            continue;
+        } else if (usagePlace === 'PIPELINE_TEMPLATE' && !isUsedInPipelineTemplate) {
+            continue;
+        }
+
         const names = [name, ...(aliasNames || []), ...(deprecatedNames || [])];
         if (names.includes(commandName)) {
             try {
-                return parse({ usagePlace, raw, rawArgs, normalized, args });
+                return parse({ usagePlace, raw, rawArgs, normalized, args }) as Command; // <- Note: [🦦]
             } catch (error) {
-                if (!(error instanceof ParsingError)) {
+                if (!(error instanceof ParseError)) {
                     throw error;
                 }
 
-                throw new ParsingError(
+                throw new ParseError(
                     spaceTrim(
                         (block) =>
                             `
                               Invalid ${commandName} command:
-                              ${block((error as ParsingError).message)}
 
+                              Your command:
                               - ${raw}
+
+                              The detailed error:
+                              ${block((error as ParseError).message)}
 
                               Usage of ${commandName}:
                               ${block(commandParser.examples.map((example) => `- ${example}`).join('\n'))}

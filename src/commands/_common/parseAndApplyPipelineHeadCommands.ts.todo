@@ -1,0 +1,23 @@
+import { ParseError } from '../../errors/ParseError';
+import type { $PipelineJson,$TemplateJson } from '../_common/types/CommandParser';
+import type { $PipelineJson,$TemplateJson } from '../_common/types/CommandParser';
+import type { string_markdown_text } from '../../types/typeAliases';
+import type { Command } from './types/Command';
+import type { CommandUsagePlace } from './types/CommandUsagePlaces';
+
+/**
+ * Parses one line of ul/ol to command and applies it to given `pipelineJson`
+ *
+ * Note: `$` is used to indicate that this function mutates given `pipelineJson`
+ *
+ * @returns parsed command object
+ * @throws {ParseError} if the command is invalid or something went wrong during applying the command
+ *
+ * @private within the pipelineStringToJson
+ */
+export function $parseAndApplyPipelineHeadCommands(raw: string_markdown_text, $pipelineJson: $PipelineJson ): void {}
+
+/**
+ * TODO: [🥥] Maybe implement this function
+ * TODO: [🥥] DRY `$parseAndApplyPipelineHeadCommands` and `$parseAndApplyPipelineTemplateCommands`
+ */

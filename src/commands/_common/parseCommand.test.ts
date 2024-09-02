@@ -1,15 +1,32 @@
 import { describe, expect, it } from '@jest/globals';
+import { just } from '../../utils/organization/just';
+import { keepUnused } from '../../utils/organization/keepUnused';
 import { COMMANDS } from '../index';
 import { parseCommand } from './parseCommand';
+import { CommandUsagePlaces } from './types/CommandUsagePlaces';
 
-describe('fail of parseCommand', () => {
+describe('parsing the commands', () => {
     // Note: Other working cases and better tests for each command is in the corresponding command test file
 
-    for (const { name, usagePlaces, examples } of COMMANDS) {
-        for (const usagePlace of usagePlaces) {
-            it(`should work with ${name} command in ${usagePlace}`, () => {
+    for (const { name, isUsedInPipelineHead, isUsedInPipelineTemplate, examples } of COMMANDS) {
+        for (const usagePlace of CommandUsagePlaces) {
+            if (just(false)) {
+                keepUnused(/* for better indentation */);
+            } else if (usagePlace === 'PIPELINE_HEAD' && !isUsedInPipelineHead) {
+                continue;
+            } else if (usagePlace === 'PIPELINE_TEMPLATE' && !isUsedInPipelineTemplate) {
+                continue;
+            }
+
+            it(`should parse command ${name} in ${usagePlace} without errors`, () => {
                 for (const example of examples) {
                     expect(() => parseCommand(example, usagePlace)).not.toThrowError();
+                }
+            });
+
+            it(`should parse command ${name} in ${usagePlace} and return parsed command \`{"type": "${name}"}\``, () => {
+                for (const example of examples) {
+                    expect(parseCommand(example, usagePlace).type).toBe(name);
                 }
             });
         }

@@ -51,7 +51,7 @@ async function getPipelineExecutor() {
 
             ## Thing
 
-            -   PROMPT DIALOG
+            -   DIALOG TEMPLATE
 
             What is your favorite {thing} to buy?
 

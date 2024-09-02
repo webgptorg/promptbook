@@ -24,8 +24,8 @@ export function isPipelinePrepared(pipeline: PipelineJson): boolean {
     }
 
     /*
-    TODO: [🧠][🍫] `promptTemplates` can not be determined if they are fully prepared SO ignoring them
-    > if (!pipeline.promptTemplates.every(({ preparedContent }) => preparedContent === undefined)) {
+    TODO: [🧠][🍫] `templates` can not be determined if they are fully prepared SO ignoring them
+    > if (!pipeline.templates.every(({ preparedContent }) => preparedContent === undefined)) {
     >     return false;
     > }
     */

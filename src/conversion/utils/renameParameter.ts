@@ -1,4 +1,4 @@
-import type { WritableDeep } from 'type-fest';
+import type { $PipelineJson } from '../../commands/_common/types/CommandParser';
 import { PipelineLogicError } from '../../errors/PipelineLogicError';
 import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import type { string_name } from '../../types/typeAliases';
@@ -22,8 +22,8 @@ type RenameParameterOptions = {
 };
 
 /**
- * Function renameParameter will find all usable parameters for given prompt template
- * In other words, it will find all parameters that are not used in the prompt template itseld and all its dependencies
+ * Function `renameParameter` will find all usable parameters for given template
+ * In other words, it will find all parameters that are not used in the template itseld and all its dependencies
  *
  * @throws {PipelineLogicError} If the new parameter name is already used in the pipeline
  * @public exported from `@promptbook/utils`
@@ -37,10 +37,10 @@ export function renameParameter(options: RenameParameterOptions): PipelineJson {
         );
     }
 
-    const renamedPipeline: WritableDeep<PipelineJson> = {
+    const renamedPipeline: $PipelineJson = {
         ...pipeline,
         parameters: [...pipeline.parameters],
-        promptTemplates: [...pipeline.promptTemplates],
+        templates: [...pipeline.templates],
     };
 
     for (const parameter of renamedPipeline.parameters) {
@@ -50,28 +50,22 @@ export function renameParameter(options: RenameParameterOptions): PipelineJson {
         parameter.name = newParameterName;
     }
 
-    for (const promptTemplate of renamedPipeline.promptTemplates) {
-        if (promptTemplate.resultingParameterName === oldParameterName) {
-            promptTemplate.resultingParameterName = newParameterName;
+    for (const template of renamedPipeline.templates) {
+        if (template.resultingParameterName === oldParameterName) {
+            template.resultingParameterName = newParameterName;
         }
-        promptTemplate.dependentParameterNames = promptTemplate.dependentParameterNames.map((dependentParameterName) =>
+        template.dependentParameterNames = template.dependentParameterNames.map((dependentParameterName) =>
             dependentParameterName === oldParameterName ? newParameterName : dependentParameterName,
         );
 
-        promptTemplate.content = promptTemplate.content.replace(
-            new RegExp(`{${oldParameterName}}`, 'g'),
-            `{${newParameterName}}`,
-        );
+        template.content = template.content.replace(new RegExp(`{${oldParameterName}}`, 'g'), `{${newParameterName}}`);
 
-        promptTemplate.title = promptTemplate.title.replace(
-            new RegExp(`{${oldParameterName}}`, 'g'),
-            `{${newParameterName}}`,
-        );
+        template.title = template.title.replace(new RegExp(`{${oldParameterName}}`, 'g'), `{${newParameterName}}`);
 
-        promptTemplate.description =
-            promptTemplate.description === undefined
+        template.description =
+            template.description === undefined
                 ? undefined
-                : promptTemplate.description.replace(new RegExp(`{${oldParameterName}}`, 'g'), `{${newParameterName}}`);
+                : template.description.replace(new RegExp(`{${oldParameterName}}`, 'g'), `{${newParameterName}}`);
     }
 
     return renamedPipeline;

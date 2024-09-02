@@ -1,7 +1,13 @@
-import { ParsingError } from '../../errors/ParsingError';
+import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
+import { ParseError } from '../../errors/ParseError';
+import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
+import type { string_markdown_text } from '../../types/typeAliases';
+import { keepUnused } from '../../utils/organization/keepUnused';
 import type { TODO_any } from '../../utils/organization/TODO_any';
-import type { CommandParser } from '../_common/types/CommandParser';
+import type { $PipelineJson } from '../_common/types/CommandParser';
+import type { $TemplateJson } from '../_common/types/CommandParser';
 import type { CommandParserInput } from '../_common/types/CommandParser';
+import type { PipelineBothCommandParser } from '../_common/types/CommandParser';
 import type { ParameterCommand } from './ParameterCommand';
 
 /**
@@ -10,7 +16,7 @@ import type { ParameterCommand } from './ParameterCommand';
  * @see ./PARAMETER-README.md for more details
  * @private within the commands folder
  */
-export const parameterCommandParser: CommandParser<ParameterCommand> = {
+export const parameterCommandParser: PipelineBothCommandParser<ParameterCommand> = {
     /**
      * Name of the command
      */
@@ -28,12 +34,13 @@ export const parameterCommandParser: CommandParser<ParameterCommand> = {
     /**
      * BOILERPLATE command can be used in:
      */
-    usagePlaces: ['PIPELINE_HEAD', 'PIPELINE_TEMPLATE'],
+    isUsedInPipelineHead: true,
+    isUsedInPipelineTemplate: true,
 
     /**
      * Description of the PARAMETER command
      */
-    description: `Describes one parameter of the prompt template`,
+    description: `Describes one parameter of the template`,
 
     /**
      * Link to discussion
@@ -54,13 +61,13 @@ export const parameterCommandParser: CommandParser<ParameterCommand> = {
         const parametersMatch = raw.match(/\{(?<parameterName>[a-z0-9_]+)\}[^\S\r\n]*(?<parameterDescription>.*)$/im);
 
         if (!parametersMatch || !parametersMatch.groups || !parametersMatch.groups.parameterName) {
-            throw new ParsingError(`Invalid parameter`);
+            throw new ParseError(`Invalid parameter`);
         }
 
         const { parameterName, parameterDescription } = parametersMatch.groups as TODO_any;
 
         if (parameterDescription && parameterDescription.match(/\{(?<parameterName>[a-z0-9_]+)\}/im)) {
-            throw new ParsingError(`Parameter {${parameterName}} can not contain another parameter in description`);
+            throw new ParseError(`Parameter {${parameterName}} can not contain another parameter in description`);
         }
 
         let isInput = normalized.startsWith('INPUT');
@@ -78,5 +85,55 @@ export const parameterCommandParser: CommandParser<ParameterCommand> = {
             isInput,
             isOutput,
         } satisfies ParameterCommand;
+    },
+
+    /**
+     * Apply the PARAMETER command to the `pipelineJson`
+     *
+     * Note: `$` is used to indicate that this function mutates given `pipelineJson`
+     */
+    $applyToPipelineJson(command: ParameterCommand, $pipelineJson: $PipelineJson): void {
+        keepUnused(command, $pipelineJson);
+        // Note: [🍣] Do nothing, its application is implemented separately in `pipelineStringToJsonSync`
+    },
+
+    /**
+     * Apply the PARAMETER command to the `pipelineJson`
+     *
+     * Note: `$` is used to indicate that this function mutates given `templateJson`
+     */
+    $applyToTemplateJson(command: ParameterCommand, $templateJson: $TemplateJson, $pipelineJson: $PipelineJson): void {
+        keepUnused(command, $templateJson, $pipelineJson);
+        // Note: [🍣] Do nothing, its application is implemented separately in `pipelineStringToJsonSync`
+    },
+
+    /**
+     * Converts the PARAMETER command back to string
+     *
+     * Note: This is used in `pipelineJsonToString` utility
+     */
+    stringify(command: ParameterCommand): string_markdown_text {
+        keepUnused(command);
+        return `---`; // <- TODO: [🛋] Implement
+    },
+
+    /**
+     * Reads the PARAMETER command from the `PipelineJson`
+     *
+     * Note: This is used in `pipelineJsonToString` utility
+     */
+    takeFromPipelineJson(pipelineJson: PipelineJson): Array<ParameterCommand> {
+        keepUnused(pipelineJson);
+        throw new NotYetImplementedError(`[🛋] Not implemented yet`); // <- TODO: [🛋] Implement
+    },
+
+    /**
+     * Reads the PARAMETER command from the `TemplateJson`
+     *
+     * Note: This is used in `pipelineJsonToString` utility
+     */
+    takeFromTemplateJson($templateJson: $TemplateJson): Array<ParameterCommand> {
+        keepUnused($templateJson);
+        throw new NotYetImplementedError(`[🛋] Not implemented yet`); // <- TODO: [🛋] Implement
     },
 };

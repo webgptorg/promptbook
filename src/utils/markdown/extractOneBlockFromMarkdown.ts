@@ -1,5 +1,5 @@
 import spaceTrim from 'spacetrim';
-import { ParsingError } from '../../errors/ParsingError';
+import { ParseError } from '../../errors/ParseError';
 import type { string_markdown } from '../../types/typeAliases';
 import type { CodeBlock } from './extractAllBlocksFromMarkdown';
 import { extractAllBlocksFromMarkdown } from './extractAllBlocksFromMarkdown';
@@ -7,7 +7,7 @@ import { extractAllBlocksFromMarkdown } from './extractAllBlocksFromMarkdown';
 /**
  * Extracts exactly ONE code block from markdown.
  *
- * - When there are multiple or no code blocks the function throws a `ParsingError`
+ * - When there are multiple or no code blocks the function throws a `ParseError`
  *
  * Note: There are multiple simmilar function:
  * - `extractBlock` just extracts the content of the code block which is also used as build-in function for postprocessing
@@ -18,13 +18,13 @@ import { extractAllBlocksFromMarkdown } from './extractAllBlocksFromMarkdown';
  * @param markdown any valid markdown
  * @returns code block with language and content
  * @public exported from `@promptbook/markdown-utils`
- * @throws {ParsingError} if there is not exactly one code block in the markdown
+ * @throws {ParseError} if there is not exactly one code block in the markdown
  */
 export function extractOneBlockFromMarkdown(markdown: string_markdown): CodeBlock {
     const codeBlocks = extractAllBlocksFromMarkdown(markdown);
 
     if (codeBlocks.length !== 1) {
-        throw new ParsingError(
+        throw new ParseError(
             spaceTrim(
                 (block) => `
                     There should be exactly 1 code block, found ${codeBlocks.length} code blocks

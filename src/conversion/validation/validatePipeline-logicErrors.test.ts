@@ -1,132 +1,34 @@
 import { describe, expect, it } from '@jest/globals';
+import { readdirSync } from 'fs';
+import { join } from 'path';
+import { PipelineLogicError } from '../../errors/PipelineLogicError';
 import { pipelineStringToJson } from '../pipelineStringToJson';
 import { importPipelineWithoutPreparation } from './_importPipeline';
 import { validatePipeline } from './validatePipeline';
 
-describe('validatePipeline', () => {
-    it('should fail on using parameter that is not defined', () => {
-        expect(async () => {
-            const pipelineString = importPipelineWithoutPreparation('errors/logic/undefined-parameter.ptbk.md');
-            const pipelineJson = await pipelineStringToJson(pipelineString);
-            validatePipeline(pipelineJson);
-        }).rejects.toThrowError(/Can not resolve some parameters/i);
-    });
+describe('validatePipeline with logic errors', () => {
+    const samplesDir = '../../../samples/pipelines/'; // <- TODO: [🚏] DRY, to config
+    const samples = readdirSync(join(__dirname, samplesDir, 'errors/logic'), { withFileTypes: true, recursive: false })
+        //                         <- Note: In production it is not good practice to use synchronous functions
+        //                                  But this is only a test before the build, so it is okay
+        .filter((dirent) => dirent.isFile())
+        .filter(({ name }) => name.endsWith('.ptbk.md'));
 
-    it('should fail on creating parameter that is then not used', () => {
-        expect(async () => {
-            const pipelineString = importPipelineWithoutPreparation('errors/logic/unused-parameter.ptbk.md');
-            const pipelineJson = await pipelineStringToJson(pipelineString);
-            validatePipeline(pipelineJson);
-        }).rejects.toThrowError(/Parameter \{name\} is created but not used/i);
-    });
+    for (const { name } of samples) {
+        it(`should validate ${name} logic`, () => {
+            expect(async () => {
+                const pipelineString = importPipelineWithoutPreparation(
+                    ('errors/logic/' + name) as `${string}.ptbk.md`,
+                );
+                const pipelineJson = await pipelineStringToJson(pipelineString);
+                validatePipeline(pipelineJson);
 
-    it('should fail when picked the incompativble combination of model variant and name', () => {
-        expect(async () => {
-            const pipelineString = importPipelineWithoutPreparation('errors/logic/model-mismatch.ptbk.md');
-            const pipelineJson = await pipelineStringToJson(pipelineString);
-            validatePipeline(pipelineJson);
-        }).rejects.toThrowError(/Unknown model key/i);
-    });
-
-    it('should fail when expecting maximally 0 words', () => {
-        expect(async () => {
-            const pipelineString = importPipelineWithoutPreparation('errors/logic/wrong-expectations.ptbk.md');
-            const pipelineJson = await pipelineStringToJson(pipelineString);
-            validatePipeline(pipelineJson);
-        }).rejects.toThrowError(/Max expectation of words must be positive/i);
-    });
-
-    it('should fail when there is joker but no expectations', () => {
-        expect(async () => {
-            const pipelineString = importPipelineWithoutPreparation('errors/logic/joker-without-expectations.ptbk.md');
-            const pipelineJson = await pipelineStringToJson(pipelineString);
-            validatePipeline(pipelineJson);
-        }).rejects.toThrowError(/Joker parameters are used for \{name\} but no expectations are defined/i);
-    });
-
-    it('should fail on circular dependencies', () => {
-        expect(async () => {
-            const pipelineString = importPipelineWithoutPreparation('errors/logic/circular-parameters-simple.ptbk.md');
-            const pipelineJson = await pipelineStringToJson(pipelineString);
-            validatePipeline(pipelineJson);
-        }).rejects.toThrowError(/circular dependencies/i);
-
-        expect(async () => {
-            const pipelineString = importPipelineWithoutPreparation(
-                'errors/logic/circular-parameters-advanced.ptbk.md',
-            );
-            const pipelineJson = await pipelineStringToJson(pipelineString);
-            validatePipeline(pipelineJson);
-        }).rejects.toThrowError(/circular dependencies/i);
-    });
-
-    /*
-    TODO: [🐣] !!!
-    it('should fail when provided sample dont passes the expectations', () => {
-        expect(async () => {
-            const pipelineString = importPipeline('errors/logic/sample-dont-pass-expectations.ptbk.md');
-            const pipelineJson = await pipelineStringToJson(pipelineString);
-            validatePipeline(pipelineJson);
-        }).rejects.toThrowError(/xxxxxx/i);
-    });
-    */
-
-    /*
-    TODO: [🐣] !!!
-    it('should fail when there is unused parameter', () => {
-        expect(async () => {
-            const pipelineString = importPipeline('errors/logic/unused-parameter.ptbk.md');
-            const pipelineJson = await pipelineStringToJson(pipelineString);
-            validatePipeline(pipelineJson);
-        }).rejects.toThrowError(/xxxxxx/i);
-    });
-    */
-
-    /*
-    TODO: [🐣] !!!
-    it('should fail when there is void knowledge', () => {
-        expect(async () => {
-            const pipelineString = importPipeline('errors/logic/void-knowledge.ptbk.md');
-            const pipelineJson = await pipelineStringToJson(pipelineString);
-            validatePipeline(pipelineJson);
-        }).rejects.toThrowError(/xxxxxx/i);
-    });
-    */
-
-    /*
-    TODO: [🐣] !!!
-    it('should fail when there are wrong expectations', () => {
-        expect(async () => {
-            const pipelineString = importPipeline('errors/logic/wrong-expectations.ptbk.md');
-            const pipelineJson = await pipelineStringToJson(pipelineString);
-            validatePipeline(pipelineJson);
-        }).rejects.toThrowError(/xxxxxx/i);
-    });
-    */
-
-    /*
-    TODO: [🐣] !!!
-    it('should fail when reserved name is used as parameter', () => {
-        expect(async () => {
-            const pipelineString = importPipeline('errors/logic/---.ptbk.md');
-            const pipelineJson = await pipelineStringToJson(pipelineString);
-            validatePipeline(pipelineJson);
-        }).rejects.toThrowError(/xxxxxx/i);
-    });
-    */
-
-    /*
-    TODO: [🐣] !!!
-    it('should fail when persona is used on COMPLETION variant', () => {
-        expect(async () => {
-            const pipelineString = importPipeline('errors/logic/---.ptbk.md');
-            const pipelineJson = await pipelineStringToJson(pipelineString);
-            validatePipeline(pipelineJson);
-        }).rejects.toThrowError(/xxxxxx/i);
-    });
-    */
+                console.error('Pipeline should have logic error BUT it does not:\n', name);
+            }).rejects.toThrowError(PipelineLogicError);
+        });
+    }
 });
 
 /**
- * TODO: Include automatically all samples from logic errors folder (same with syntax errors)
+ * TODO: [🚏] DRY
  */

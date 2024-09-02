@@ -14,7 +14,7 @@
             "modelName": "gpt-4-turbo"
         },
         "expectations": {},
-        "expectFormat": "JSON",
+        "format": "JSON",
         "postprocessing": []
     },
     "promptResult": {

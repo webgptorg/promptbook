@@ -67,7 +67,7 @@ async function getPipelineExecutor() {
 
             ## Execution
 
-            -   EXECUTE SCRIPT
+            -   SCRIPT TEMPLATE
 
             \`\`\`javascript
             if(/Apple/i.test(thing)){

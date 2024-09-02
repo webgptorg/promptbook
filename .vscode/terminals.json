@@ -91,7 +91,7 @@
         {
             "name": "🏭📖 Prettify samples and add mermaid graphs -> .ptbk.md",
             "commands": [
-                "npx ts-node ./scripts/promptbook-cli/promptbook-cli.ts prettify samples/templates/**/*.ptbk.md --ignore \"samples/templates/errors/**/*.ptbk.md\""
+                "npx ts-node ./scripts/promptbook-cli/promptbook-cli.ts prettify samples/pipelines/**/*.ptbk.md --ignore \"samples/pipelines/errors/**/*.ptbk.md\""
             ],
             "execute": false,
             "onlySingle": false,

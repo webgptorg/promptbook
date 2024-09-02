@@ -1,12 +1,16 @@
 import hexEncoder from 'crypto-js/enc-hex';
 import sha256 from 'crypto-js/sha256';
 import spaceTrim from 'spacetrim';
-import { ParsingError } from '../../errors/ParsingError';
+import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
+import { ParseError } from '../../errors/ParseError';
+import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
+import type { string_markdown_text } from '../../types/typeAliases';
+import { keepUnused } from '../../utils/organization/keepUnused';
 import { isValidFilePath } from '../../utils/validators/filePath/isValidFilePath';
 import { isValidUrl } from '../../utils/validators/url/isValidUrl';
-import type { ApplyToPipelineJsonSubjects } from '../_common/types/CommandParser';
-import type { CommandParser } from '../_common/types/CommandParser';
+import type { $PipelineJson } from '../_common/types/CommandParser';
 import type { CommandParserInput } from '../_common/types/CommandParser';
+import type { PipelineHeadCommandParser } from '../_common/types/CommandParser';
 import type { KnowledgeCommand } from './KnowledgeCommand';
 
 /**
@@ -15,7 +19,7 @@ import type { KnowledgeCommand } from './KnowledgeCommand';
  * @see ./KNOWLEDGE-README.md for more details
  * @private within the commands folder
  */
-export const knowledgeCommandParser: CommandParser<KnowledgeCommand> = {
+export const knowledgeCommandParser: PipelineHeadCommandParser<KnowledgeCommand> = {
     /**
      * Name of the command
      */
@@ -24,7 +28,8 @@ export const knowledgeCommandParser: CommandParser<KnowledgeCommand> = {
     /**
      * BOILERPLATE command can be used in:
      */
-    usagePlaces: ['PIPELINE_HEAD'],
+    isUsedInPipelineHead: true,
+    isUsedInPipelineTemplate: false, // <- [👙] Maybe allow to use here and make relevant for just this template
 
     /**
      * Description of the KNOWLEDGE command
@@ -56,21 +61,21 @@ export const knowledgeCommandParser: CommandParser<KnowledgeCommand> = {
         const sourceContent = spaceTrim(args[0] || '');
 
         if (sourceContent === '') {
-            throw new ParsingError(`Source is not defined`);
+            throw new ParseError(`Source is not defined`);
         }
 
         // TODO: !!!! Following checks should be applied every link in the `sourceContent`
 
         if (sourceContent.startsWith('http://')) {
-            throw new ParsingError(`Source is not secure`);
+            throw new ParseError(`Source is not secure`);
         }
 
         if (!(isValidFilePath(sourceContent) || isValidUrl(sourceContent))) {
-            throw new ParsingError(`Source not valid`);
+            throw new ParseError(`Source not valid`);
         }
 
         if (sourceContent.startsWith('../') || sourceContent.startsWith('/') || /^[A-Z]:[\\/]+/i.test(sourceContent)) {
-            throw new ParsingError(`Source cannot be outside of the .ptbk.md folder`);
+            throw new ParseError(`Source cannot be outside of the .ptbk.md folder`);
         }
 
         return {
@@ -80,19 +85,44 @@ export const knowledgeCommandParser: CommandParser<KnowledgeCommand> = {
     },
 
     /**
-     * Note: Prototype of [🍧] (remove this comment after full implementation)
+     * Apply the KNOWLEDGE command to the `pipelineJson`
+     *
+     * Note: `$` is used to indicate that this function mutates given `pipelineJson`
      */
-    applyToPipelineJson(personaCommand: KnowledgeCommand, subjects: ApplyToPipelineJsonSubjects): void {
-        const { sourceContent } = personaCommand;
-        const { pipelineJson } = subjects;
+    $applyToPipelineJson(command: KnowledgeCommand, $pipelineJson: $PipelineJson): void {
+        const { sourceContent } = command;
 
         const name = 'source-' + sha256(hexEncoder.parse(JSON.stringify(sourceContent))).toString(/* hex */);
         //    <- TODO: [🥬] Encapsulate sha256 to some private utility function
         //    <- TODO: This should be replaced with a better name later in preparation (done with some propper LLM summarization)
 
-        pipelineJson.knowledgeSources.push({
+        $pipelineJson.knowledgeSources.push({
             name,
             sourceContent,
         });
     },
+
+    /**
+     * Converts the KNOWLEDGE command back to string
+     *
+     * Note: This is used in `pipelineJsonToString` utility
+     */
+    stringify(command: KnowledgeCommand): string_markdown_text {
+        keepUnused(command);
+        return `---`; // <- TODO: [🛋] Implement
+    },
+
+    /**
+     * Reads the KNOWLEDGE command from the `PipelineJson`
+     *
+     * Note: This is used in `pipelineJsonToString` utility
+     */
+    takeFromPipelineJson(pipelineJson: PipelineJson): Array<KnowledgeCommand> {
+        keepUnused(pipelineJson);
+        throw new NotYetImplementedError(`[🛋] Not implemented yet`); // <- TODO: [🛋] Implement
+    },
 };
+
+/**
+ * Note: [⛱] There are two types of KNOWLEDGE commands *...(read more in [⛱])*
+ */

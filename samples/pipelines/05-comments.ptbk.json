@@ -1,0 +1,27 @@
+{
+    "title": "✨ Sample prompt with comments",
+    "pipelineUrl": "https://promptbook.studio/samples/comments.ptbk.md",
+    "promptbookVersion": "1.0.0",
+    "description": "Show how to use a simple prompt with no parameters and comments that should be ignored.",
+    "parameters": [
+        {
+            "name": "greeting",
+            "isInput": false,
+            "isOutput": true
+        }
+    ],
+    "templates": [
+        {
+            "templateType": "PROMPT_TEMPLATE",
+            "name": "prompt",
+            "title": "💬 Prompt",
+            "content": "Hello",
+            "resultingParameterName": "greeting",
+            "dependentParameterNames": []
+        }
+    ],
+    "knowledgeSources": [],
+    "knowledgePieces": [],
+    "personas": [],
+    "preparations": []
+}

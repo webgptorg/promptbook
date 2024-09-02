@@ -18,7 +18,7 @@ export function clonePipeline(pipeline: PipelineJson): PipelineJson {
         promptbookVersion,
         description,
         parameters,
-        promptTemplates,
+        templates,
         knowledgeSources,
         knowledgePieces,
         personas,
@@ -32,7 +32,7 @@ export function clonePipeline(pipeline: PipelineJson): PipelineJson {
         promptbookVersion,
         description,
         parameters,
-        promptTemplates,
+        templates,
         knowledgeSources,
         knowledgePieces,
         personas,
@@ -41,5 +41,5 @@ export function clonePipeline(pipeline: PipelineJson): PipelineJson {
 }
 
 /**
- * TODO: [🍙] Make some standart order of json properties
+ * TODO: [🍙] Make some standard order of json properties
  */

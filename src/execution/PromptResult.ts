@@ -48,6 +48,8 @@ export type EmbeddingPromptResult = Omit<CommonPromptResult, 'content'> & {
  * Common properties for all prompt results
  *
  * Note: [🚉] This is fully serializable as JSON
+ *
+ * @private just abstract the common properties of the prompt results
  */
 export type CommonPromptResult = {
     /**

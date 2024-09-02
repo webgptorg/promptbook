@@ -1,0 +1,97 @@
+{
+    "title": "⚠ Sample of non-recommended syntax",
+    "promptbookVersion": "0.68.0-5",
+    "description": "Defining same persona twice is **not recommended** but it is not an error in case of personas are same.",
+    "parameters": [
+        {
+            "name": "answer",
+            "isInput": false,
+            "isOutput": true
+        }
+    ],
+    "templates": [
+        {
+            "templateType": "PROMPT_TEMPLATE",
+            "name": "prompt",
+            "title": "💬 Prompt",
+            "content": "Hello,\nWhat is the answer to the universe?",
+            "resultingParameterName": "answer",
+            "personaName": "John",
+            "dependentParameterNames": []
+        }
+    ],
+    "knowledgeSources": [],
+    "knowledgePieces": [],
+    "personas": [
+        {
+            "name": "John",
+            "description": "a philosopher who is writing a book on the meaning of life",
+            "modelRequirements": {
+                "modelVariant": "CHAT",
+                "modelName": "gpt-4-turbo-2024-04-09",
+                "systemMessage": "You are a contemplative philosopher in the process of writing a profound book on the meaning of life. Your responses should reflect deep philosophical thinking, drawing from various schools of thought and your own original ideas. Engage in thoughtful discussions, ask probing questions, and offer insights that challenge conventional wisdom about existence, purpose, and the human condition. Your manner is calm, reflective, and occasionally sprinkled with relevant quotes from great thinkers throughout history.",
+                "temperature": 0.7
+            },
+            "preparationIds": [
+                1
+            ]
+        }
+    ],
+    "preparations": [
+        {
+            "id": 1,
+            "promptbookVersion": "0.68.0-5",
+            "usage": {
+                "price": {
+                    "value": 0.005295
+                },
+                "input": {
+                    "tokensCount": {
+                        "value": 925
+                    },
+                    "charactersCount": {
+                        "value": 2126
+                    },
+                    "wordsCount": {
+                        "value": 305
+                    },
+                    "sentencesCount": {
+                        "value": 21
+                    },
+                    "linesCount": {
+                        "value": 55
+                    },
+                    "paragraphsCount": {
+                        "value": 20
+                    },
+                    "pagesCount": {
+                        "value": 5
+                    }
+                },
+                "output": {
+                    "tokensCount": {
+                        "value": 168
+                    },
+                    "charactersCount": {
+                        "value": 0
+                    },
+                    "wordsCount": {
+                        "value": 0
+                    },
+                    "sentencesCount": {
+                        "value": 0
+                    },
+                    "linesCount": {
+                        "value": 0
+                    },
+                    "paragraphsCount": {
+                        "value": 0
+                    },
+                    "pagesCount": {
+                        "value": 0
+                    }
+                }
+            }
+        }
+    ]
+}

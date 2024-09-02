@@ -1,3 +1,4 @@
+import type { ModelRequirements } from '../ModelRequirements';
 import type { string_file_path } from '../typeAliases';
 import type { string_markdown_text } from '../typeAliases';
 import type { string_pipeline_url } from '../typeAliases';
@@ -5,15 +6,15 @@ import type { string_semantic_version } from '../typeAliases';
 import type { KnowledgePiecePreparedJson } from './KnowledgePieceJson';
 import type { KnowledgeSourceJson } from './KnowledgeSourceJson';
 import type { KnowledgeSourcePreparedJson } from './KnowledgeSourceJson';
+import type { ParameterJson } from './ParameterJson';
 import type { PersonaJson } from './PersonaJson';
 import type { PersonaPreparedJson } from './PersonaJson';
 import type { PreparationJson } from './PreparationJson';
-import type { PromptTemplateJson } from './PromptTemplateJson';
-import type { PromptTemplateParameterJson } from './PromptTemplateParameterJson';
+import type { TemplateJson } from './TemplateJson';
 
 /**
  * Promptbook is the **core concept of this package**.
- * It represents a series of prompt templates chained together to form a pipeline / one big prompt template with input and result parameters.
+ * It represents a series of templates chained together to form a pipeline / one big template with input and result parameters.
  *
  * Note: [🚉] This is fully serializable as JSON
  *
@@ -34,7 +35,7 @@ export type PipelineJson = {
      * Note: It must use HTTPs URL
      * Tip: You can do versioning in the URL
      *      For example: https://promptbook.studio/webgpt/write-website-content-cs.ptbk.md@1.0.0
-     * Warning: Do not hash part of the URL, hash part is used for identification of the prompt template in the pipeline
+     * Warning: Do not hash part of the URL, hash part is used for identification of the template in the pipeline
      */
     readonly pipelineUrl?: string_pipeline_url;
 
@@ -63,13 +64,17 @@ export type PipelineJson = {
     /**
      * Set of variables that are used across the pipeline
      */
-    readonly parameters: Array<PromptTemplateParameterJson>;
+    readonly parameters: Array<ParameterJson>;
 
     /**
-     * Sequence of prompt templates that are chained together to form a pipeline
+     * Default model requirements for the model for all `templates`
      */
-    readonly promptTemplates: Array<PromptTemplateJson>;
-    // <- TODO: [🧠][🥜]
+    readonly defaultModelRequirements?: Partial<ModelRequirements>;
+
+    /**
+     * Sequence of templates that are chained together to form a pipeline
+     */
+    readonly templates: Array<TemplateJson>;
 
     /**
      * Set of information that are used as external knowledge in the pipeline
@@ -101,7 +106,8 @@ export type PipelineJson = {
 };
 
 /**
- * TODO: [🍙] Make some standart order of json properties
+ * TODO: [🛳] Default PERSONA for the pipeline `defaultPersonaName` (same as `defaultModelRequirements`)
+ * TODO: [🍙] Make some standard order of json properties
  * TODO: [🧠] Maybe wrap all {parameterNames} in brackets for example { "resultingParameterName": "{foo}" }
  * Note: [💼] There was a proposal for multiple types of promptbook objects 78816ff33e2705ee1a187aa2eb8affd976d4ea1a
  *       But then immediately reverted back to the single type

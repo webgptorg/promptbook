@@ -1,7 +1,12 @@
-import { ParsingError } from '../../errors/ParsingError';
+import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
+import { ParseError } from '../../errors/ParseError';
+import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
+import type { string_markdown_text } from '../../types/typeAliases';
+import { keepUnused } from '../../utils/organization/keepUnused';
 import { isValidPipelineUrl } from '../../utils/validators/url/isValidPipelineUrl';
-import type { CommandParser } from '../_common/types/CommandParser';
+import type { $PipelineJson } from '../_common/types/CommandParser';
 import type { CommandParserInput } from '../_common/types/CommandParser';
+import type { PipelineHeadCommandParser } from '../_common/types/CommandParser';
 import type { UrlCommand } from './UrlCommand';
 
 /**
@@ -10,7 +15,7 @@ import type { UrlCommand } from './UrlCommand';
  * @see ./URL-README.md for more details
  * @private within the commands folder
  */
-export const urlCommandParser: CommandParser<UrlCommand> = {
+export const urlCommandParser: PipelineHeadCommandParser<UrlCommand> = {
     /**
      * Name of the command
      */
@@ -26,7 +31,8 @@ export const urlCommandParser: CommandParser<UrlCommand> = {
     /**
      * BOILERPLATE command can be used in:
      */
-    usagePlaces: ['PIPELINE_HEAD'],
+    isUsedInPipelineHead: true,
+    isUsedInPipelineTemplate: false,
 
     /**
      * Description of the URL command
@@ -56,30 +62,30 @@ export const urlCommandParser: CommandParser<UrlCommand> = {
         const pipelineUrl = args.pop()!;
 
         if (pipelineUrl === undefined) {
-            throw new ParsingError(`URL is required`);
+            throw new ParseError(`URL is required`);
         }
 
-        // TODO: [🧠][🚲] This should be maybe tested as logic not syntax
+        // TODO: [🧠][🚲] This should be maybe tested as logic not parse
         if (!isValidPipelineUrl(pipelineUrl)) {
-            throw new ParsingError(`Invalid pipeline URL "${pipelineUrl}"`);
+            throw new ParseError(`Invalid pipeline URL "${pipelineUrl}"`);
         }
 
         if (args.length > 0) {
-            throw new ParsingError(`Can not have more than one pipeline URL`);
+            throw new ParseError(`Can not have more than one pipeline URL`);
         }
 
         /*
         TODO: [🐠 Maybe more info from `isValidPipelineUrl`:
         if (pipelineUrl.protocol !== 'https:') {
-            throw new ParsingError(`Protocol must be HTTPS`);
+            throw new ParseError(`Protocol must be HTTPS`);
         }
 
         if (pipelineUrl.hash !== '') {
-            throw new ParsingError(
+            throw new ParseError(
                 spaceTrim(
                     `
                         URL must not contain hash
-                        Hash is used for identification of the prompt template in the pipeline
+                        Hash is used for identification of the template in the pipeline
                     `,
                 ),
             );
@@ -90,5 +96,34 @@ export const urlCommandParser: CommandParser<UrlCommand> = {
             type: 'URL',
             pipelineUrl: new URL(pipelineUrl),
         } satisfies UrlCommand;
+    },
+
+    /**
+     * Apply the URL command to the `pipelineJson`
+     *
+     * Note: `$` is used to indicate that this function mutates given `pipelineJson`
+     */
+    $applyToPipelineJson(command: UrlCommand, $pipelineJson: $PipelineJson): void {
+        $pipelineJson.pipelineUrl = command.pipelineUrl.href;
+    },
+
+    /**
+     * Converts the URL command back to string
+     *
+     * Note: This is used in `pipelineJsonToString` utility
+     */
+    stringify(command: UrlCommand): string_markdown_text {
+        keepUnused(command);
+        return `---`; // <- TODO: [🛋] Implement
+    },
+
+    /**
+     * Reads the URL command from the `PipelineJson`
+     *
+     * Note: This is used in `pipelineJsonToString` utility
+     */
+    takeFromPipelineJson(pipelineJson: PipelineJson): Array<UrlCommand> {
+        keepUnused(pipelineJson);
+        throw new NotYetImplementedError(`[🛋] Not implemented yet`); // <- TODO: [🛋] Implement
     },
 };

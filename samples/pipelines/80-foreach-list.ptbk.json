@@ -1,0 +1,111 @@
+{
+    "pipelineUrl": "https://promptbook.studio/samples/foreach-list.ptbk.md",
+    "title": "✨ Write greeting for each customer",
+    "promptbookVersion": "1.0.0",
+    "description": "Show how to use a simple prompt with no parameters.",
+    "parameters": [
+        {
+            "name": "customers",
+            "description": "Customer names each customer on each row",
+            "isInput": true,
+            "isOutput": false
+        },
+        {
+            "name": "greetings",
+            "description": "Greeting to each customer on each row",
+            "isInput": false,
+            "isOutput": true,
+            "sampleValues": [
+                "Paul\nJohn",
+                "Hello Paul\nHi John"
+            ]
+        }
+    ],
+    "templates": [
+        {
+            "templateType": "PROMPT_TEMPLATE",
+            "name": "write-a-greeting",
+            "title": "Write a greeting",
+            "content": "Write an email greeting for \"{customers}\"",
+            "resultingParameterName": "greetings",
+            "personaName": "Jane",
+            "dependentParameterNames": [
+                "customers"
+            ]
+        }
+    ],
+    "knowledgeSources": [],
+    "knowledgePieces": [],
+    "personas": [
+        {
+            "name": "Jane",
+            "description": "[🍭]",
+            "modelRequirements": {
+                "modelVariant": "CHAT",
+                "modelName": "gpt-4-turbo-2024-04-09",
+                "systemMessage": "You are an experienced AI engineer and helpful virtual assistant, ready to assist with a wide range of tasks and queries.",
+                "temperature": 0.7
+            },
+            "preparationIds": [
+                1
+            ]
+        }
+    ],
+    "preparations": [
+        {
+            "id": 1,
+            "promptbookVersion": "0.68.0-5",
+            "usage": {
+                "price": {
+                    "value": 0.005769
+                },
+                "input": {
+                    "tokensCount": {
+                        "value": 918
+                    },
+                    "charactersCount": {
+                        "value": 2126
+                    },
+                    "wordsCount": {
+                        "value": 305
+                    },
+                    "sentencesCount": {
+                        "value": 21
+                    },
+                    "linesCount": {
+                        "value": 55
+                    },
+                    "paragraphsCount": {
+                        "value": 20
+                    },
+                    "pagesCount": {
+                        "value": 5
+                    }
+                },
+                "output": {
+                    "tokensCount": {
+                        "value": 201
+                    },
+                    "charactersCount": {
+                        "value": 0
+                    },
+                    "wordsCount": {
+                        "value": 0
+                    },
+                    "sentencesCount": {
+                        "value": 0
+                    },
+                    "linesCount": {
+                        "value": 0
+                    },
+                    "paragraphsCount": {
+                        "value": 0
+                    },
+                    "pagesCount": {
+                        "value": 0
+                    }
+                }
+            }
+        }
+    ]
+}

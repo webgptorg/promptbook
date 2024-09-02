@@ -1,6 +1,6 @@
 import spaceTrim from 'spacetrim';
+import type { ParameterJson } from '../types/PipelineJson/ParameterJson';
 import type { PipelineJson } from '../types/PipelineJson/PipelineJson';
-import type { PromptTemplateParameterJson } from '../types/PipelineJson/PromptTemplateParameterJson';
 import type { PipelineString } from '../types/PipelineString';
 import type { string_markdown } from '../types/typeAliases';
 import { prettifyMarkdown } from '../utils/markdown/prettifyMarkdown';
@@ -14,7 +14,7 @@ import { capitalize } from '../utils/normalization/capitalize';
  * @public exported from `@promptbook/core`
  */
 export function pipelineJsonToString(pipelineJson: PipelineJson): PipelineString {
-    const { title, pipelineUrl, promptbookVersion, description, parameters, promptTemplates } = pipelineJson;
+    const { title, pipelineUrl, promptbookVersion, description, parameters, templates } = pipelineJson;
 
     let pipelineString: string_markdown = `# ${title}`;
 
@@ -36,30 +36,30 @@ export function pipelineJsonToString(pipelineJson: PipelineJson): PipelineString
     pipelineString = prettifyMarkdown(pipelineString);
 
     for (const parameter of parameters.filter(({ isInput }) => isInput)) {
-        commands.push(`INPUT PARAMETER ${promptTemplateParameterJsonToString(parameter)}`);
+        commands.push(`INPUT PARAMETER ${templateParameterJsonToString(parameter)}`);
     }
 
     for (const parameter of parameters.filter(({ isOutput }) => isOutput)) {
-        commands.push(`OUTPUT PARAMETER ${promptTemplateParameterJsonToString(parameter)}`);
+        commands.push(`OUTPUT PARAMETER ${templateParameterJsonToString(parameter)}`);
     }
 
     pipelineString += '\n\n';
     pipelineString += commands.map((command) => `- ${command}`).join('\n');
 
-    for (const promptTemplate of promptTemplates) {
+    for (const template of templates) {
         const {
             /* Note: Not using:> name, */
             title,
             description,
             /* Note: dependentParameterNames, */
             jokerParameterNames: jokers,
-            blockType,
+            templateType,
             content,
             postprocessingFunctionNames: postprocessing,
             expectations,
-            expectFormat,
+            format,
             resultingParameterName,
-        } = promptTemplate;
+        } = template;
 
         pipelineString += '\n\n';
         pipelineString += `## ${title}`;
@@ -73,8 +73,8 @@ export function pipelineJsonToString(pipelineJson: PipelineJson): PipelineString
         const commands: Array<string> = [];
         let contentLanguage: 'markdown' | 'text' | 'javascript' | 'typescript' | 'python' | '' = 'text';
 
-        if (blockType === 'PROMPT_TEMPLATE') {
-            const { modelRequirements } = promptTemplate;
+        if (templateType === 'PROMPT_TEMPLATE') {
+            const { modelRequirements } = template;
             const { modelName, modelVariant } = modelRequirements || {};
 
             commands.push(`EXECUTE PROMPT TEMPLATE`);
@@ -86,18 +86,18 @@ export function pipelineJsonToString(pipelineJson: PipelineJson): PipelineString
             if (modelName) {
                 commands.push(`MODEL NAME \`${modelName}\``);
             }
-        } else if (blockType === 'SIMPLE_TEMPLATE') {
+        } else if (templateType === 'SIMPLE_TEMPLATE') {
             commands.push(`SIMPLE TEMPLATE`);
             // Note: Nothing special here
-        } else if (blockType === 'SCRIPT') {
-            commands.push(`EXECUTE SCRIPT`);
-            if (promptTemplate.contentLanguage) {
-                contentLanguage = promptTemplate.contentLanguage;
+        } else if (templateType === 'SCRIPT_TEMPLATE') {
+            commands.push(`SCRIPT TEMPLATE`);
+            if (template.contentLanguage) {
+                contentLanguage = template.contentLanguage;
             } else {
                 contentLanguage = '';
             }
-        } else if (blockType === 'PROMPT_DIALOG') {
-            commands.push(`PROMPT DIALOG`);
+        } else if (templateType === 'DIALOG_TEMPLATE') {
+            commands.push(`DIALOG TEMPLATE`);
             // Note: Nothing special here
         } // <- }else if([🅱]
 
@@ -125,10 +125,10 @@ export function pipelineJsonToString(pipelineJson: PipelineJson): PipelineString
                 }
             }
         } /* not else */
-        if (expectFormat) {
-            if (expectFormat === 'JSON') {
+        if (format) {
+            if (format === 'JSON') {
                 // TODO: @deprecated remove
-                commands.push(`EXPECT JSON`);
+                commands.push(`FORMAT JSON`);
             }
         } /* not else */
 
@@ -145,7 +145,7 @@ export function pipelineJsonToString(pipelineJson: PipelineJson): PipelineString
         pipelineString += '```';
 
         pipelineString += '\n\n';
-        pipelineString += `\`-> {${resultingParameterName}}\``; // <- TODO: !!! If the parameter here has description, add it and use promptTemplateParameterJsonToString
+        pipelineString += `\`-> {${resultingParameterName}}\``; // <- TODO: !!! If the parameter here has description, add it and use templateParameterJsonToString
     }
 
     return pipelineString as PipelineString;
@@ -154,8 +154,8 @@ export function pipelineJsonToString(pipelineJson: PipelineJson): PipelineString
 /**
  * @private internal utility of `pipelineJsonToString`
  */
-function promptTemplateParameterJsonToString(promptTemplateParameterJson: PromptTemplateParameterJson): string {
-    const { name, description } = promptTemplateParameterJson;
+function templateParameterJsonToString(templateParameterJson: ParameterJson): string {
+    const { name, description } = templateParameterJson;
 
     let parameterString = `{${name}}`;
 
@@ -166,7 +166,7 @@ function promptTemplateParameterJsonToString(promptTemplateParameterJson: Prompt
 }
 
 /**
- * TODO: !!!! Implement new features and commands into `promptTemplateParameterJsonToString`
+ * TODO: [🛋] Implement new features and commands into `pipelineJsonToString` + `templateParameterJsonToString` , use `stringifyCommand`
  * TODO: [🧠] Is there a way to auto-detect missing features in pipelineJsonToString
  * TODO: [🏛] Maybe make some markdown builder
  * TODO: [🏛] Escape all

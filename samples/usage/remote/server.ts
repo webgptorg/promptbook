@@ -29,7 +29,7 @@ main()
 async function main() {
     console.info(colors.bgWhite('🔵 Testing remote server of PromptBook'));
 
-    const collection = await createCollectionFromDirectory('./samples/templates/');
+    const collection = await createCollectionFromDirectory('./samples/pipelines/');
 
     // [⚖]
     startRemoteServer({

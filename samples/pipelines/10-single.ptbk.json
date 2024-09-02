@@ -1,0 +1,113 @@
+{
+    "pipelineUrl": "https://promptbook.studio/samples/single.ptbk.md",
+    "title": "✨ Sample prompt",
+    "promptbookVersion": "1.0.0",
+    "description": "Show how to use a simple prompt with one parameter.",
+    "parameters": [
+        {
+            "name": "word",
+            "description": "Any single word",
+            "isInput": true,
+            "isOutput": false
+        },
+        {
+            "name": "wordSynonym",
+            "isInput": false,
+            "isOutput": true
+        }
+    ],
+    "templates": [
+        {
+            "templateType": "PROMPT_TEMPLATE",
+            "name": "synonym",
+            "title": "💬 Synonym",
+            "description": "Synonym for word",
+            "content": "Write synonym for \"{word}\"",
+            "resultingParameterName": "wordSynonym",
+            "personaName": "Joe",
+            "expectations": {
+                "words": {
+                    "min": 1,
+                    "max": 5
+                }
+            },
+            "dependentParameterNames": [
+                "word"
+            ]
+        }
+    ],
+    "knowledgeSources": [],
+    "knowledgePieces": [],
+    "personas": [
+        {
+            "name": "Joe",
+            "description": "a linguist",
+            "modelRequirements": {
+                "modelVariant": "CHAT",
+                "modelName": "gpt-4",
+                "systemMessage": "You are an experienced AI engineer and helpful assistant.",
+                "temperature": 0.5
+            },
+            "preparationIds": [
+                1
+            ]
+        }
+    ],
+    "preparations": [
+        {
+            "id": 1,
+            "promptbookVersion": "0.68.0-5",
+            "usage": {
+                "price": {
+                    "value": 0.008790000000000001
+                },
+                "input": {
+                    "tokensCount": {
+                        "value": 768
+                    },
+                    "charactersCount": {
+                        "value": 1815
+                    },
+                    "wordsCount": {
+                        "value": 259
+                    },
+                    "sentencesCount": {
+                        "value": 21
+                    },
+                    "linesCount": {
+                        "value": 48
+                    },
+                    "paragraphsCount": {
+                        "value": 19
+                    },
+                    "pagesCount": {
+                        "value": 5
+                    }
+                },
+                "output": {
+                    "tokensCount": {
+                        "value": 37
+                    },
+                    "charactersCount": {
+                        "value": 128
+                    },
+                    "wordsCount": {
+                        "value": 16
+                    },
+                    "sentencesCount": {
+                        "value": 3
+                    },
+                    "linesCount": {
+                        "value": 5
+                    },
+                    "paragraphsCount": {
+                        "value": 1
+                    },
+                    "pagesCount": {
+                        "value": 1
+                    }
+                }
+            }
+        }
+    ]
+}

@@ -26,13 +26,13 @@ export type PipelineStringToJsonOptions = {
  * - `pipelineStringToJsonSync` - use only if you need to compile promptbook synchronously and it contains NO external knowledge
  * - `preparePipeline` - just one step in the compilation process
  *
- * Note: This function does not validate logic of the pipeline only the syntax
+ * Note: This function does not validate logic of the pipeline only the parsing
  * Note: This function acts as compilation process
  *
  * @param pipelineString {Promptbook} in string markdown format (.ptbk.md)
  * @param options - Options and tools for the compilation
  * @returns {Promptbook} compiled in JSON format (.ptbk.json)
- * @throws {ParsingError} if the promptbook string is not valid
+ * @throws {ParseError} if the promptbook string is not valid
  * @public exported from `@promptbook/core`
  */
 export async function pipelineStringToJson(

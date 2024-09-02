@@ -11,10 +11,10 @@ import glob from 'glob-promise';
 import { join } from 'path';
 import { pipelineStringToJson } from '../../src/conversion/pipelineStringToJson';
 import { stringifyPipelineJson } from '../../src/conversion/utils/stringifyPipelineJson';
-import { validatePipeline } from '../../src/conversion/validation/validatePipeline';
 import { usageToHuman } from '../../src/execution/utils/usageToHuman';
 //import { MockedFackedLlmExecutionTools } from '../../src/llm-providers/mocked/MockedFackedLlmExecutionTools';
 import { forTime } from 'waitasecond';
+import { validatePipeline } from '../../src/conversion/validation/validatePipeline';
 import { getLlmToolsForTestingAndScriptsAndPlayground } from '../../src/llm-providers/_common/getLlmToolsForTestingAndScriptsAndPlayground';
 import { PipelineString } from '../../src/types/PipelineString';
 import { commit } from '../utils/autocommit/commit';
@@ -25,7 +25,7 @@ if (process.cwd() !== join(__dirname, '../..')) {
     process.exit(1);
 }
 
-const PROMPTBOOK_SAMPLES_DIR = join(process.cwd(), 'samples/templates');
+const PROMPTBOOK_SAMPLES_DIR = join(process.cwd(), 'samples/pipelines');
 
 const program = new commander.Command();
 program.option('--commit', `Autocommit changes`, false);
@@ -90,6 +90,7 @@ async function generateSampleJsons({
 
             // Note: We want to ensure that the generated JSONs are logically correct
             validatePipeline(pipelineJson);
+            // <- TODO: Maybe make configuration value simmilar to `DEBUG_ALLOW_PAYED_TESTING` for this
 
             await writeFile(pipelineJsonFilePath, stringifyPipelineJson(pipelineJson));
 

@@ -199,7 +199,8 @@ export const DEBUG_ALLOW_PAYED_TESTING: boolean = just(
     /**/
 
     // Commit message:
-    // [🔑] Turn off ability to use real API keys in tests
+    // [🔑] Turn on ability to use real API keys in tests
+    // [🔒] Turn off ability to use real API keys in tests
 );
 
 /**
