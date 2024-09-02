@@ -131,6 +131,10 @@ export const RESERVED_PARAMETER_NAMES = $asDeeplyFrozenSerializableJson('RESERVE
     'samples',
     'modelName',
     'currentDate',
+
+list here all command names 
+
+
     // <- TODO: Add more like 'date', 'modelName',...
     // <- TODO: Add [emoji] + instructions ACRY when adding new reserved parameter
 ] as const);
