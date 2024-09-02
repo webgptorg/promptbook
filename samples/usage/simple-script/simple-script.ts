@@ -16,6 +16,7 @@ import { forTime } from 'waitasecond';
 import '@promptbook/anthropic-claude';
 import '@promptbook/azure-openai';
 import '@promptbook/openai';
+import spaceTrim from 'spacetrim';
 
 if (process.cwd().split(/[\\/]/).pop() !== 'promptbook') {
     console.error(colors.red(`CWD must be root of the project`));
@@ -76,7 +77,12 @@ async function main() {
     const pipelineExecutor = createPipelineExecutor({ pipeline, tools });
 
     const inputParameters = {
-        eventTitle: 'TypeScript developers summit 2025',
+        customers: spaceTrim(`
+            Paul
+            George
+            Kate
+        `),
+        //eventTitle: 'TypeScript developers summit 2025',
     };
     const { isSuccessful, errors, warnings, outputParameters, executionReport, usage } = await pipelineExecutor(
         inputParameters,
