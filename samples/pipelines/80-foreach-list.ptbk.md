@@ -9,21 +9,13 @@ Show how to use a simple prompt with no parameters.
 
 ## Write a greeting
 
-<!--FOR EACH , FOREACH, EACH, FOR -->
-
--   EACH List Line -> `{customer}`
--   PERSONA Jane, [🍭] !!!!!! <!-- <- TODO: Allow to import persona-->
-<!-- -   EXPECT [🍭] !!!!!! -->
+-   FOREACH List Line -> `{customer}`
+-   PERSONA Jane, customer service representative
+<!--- TODO: Add EXPECT -->
 
 ```text
-Write an email greeting for "{customers}"
+Write an email greeting for "{customer}"
 ```
-
-<!--
-TODO: [🍭] !!!!!! Change "{customers}" to "{customer}" after solving
-> Can not resolve:
-> - Parameter {greetings} which depends on {customer}
--->
 
 `-> {greetings}`
 
