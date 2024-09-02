@@ -46,66 +46,12 @@ import { $deepFreeze } from '../utils/serialization/$deepFreeze';
 import { difference } from '../utils/sets/difference';
 import { union } from '../utils/sets/union';
 import { PROMPTBOOK_VERSION } from '../version';
-import type { ExecutionTools } from './ExecutionTools';
+import { CreatePipelineExecutorOptions } from './CreatePipelineExecutorOptions';
 import type { PipelineExecutor } from './PipelineExecutor';
 import type { PipelineExecutorResult } from './PipelineExecutorResult';
 import type { ChatPromptResult, CompletionPromptResult, EmbeddingPromptResult, PromptResult } from './PromptResult';
 import { addUsage, ZERO_USAGE } from './utils/addUsage';
 import { checkExpectations } from './utils/checkExpectations';
-
-type CreatePipelineExecutorSettings = {
-    /**
-     * When executor does not satisfy expectations it will be retried this amount of times
-     *
-     * @default MAX_EXECUTION_ATTEMPTS
-     */
-    readonly maxExecutionAttempts?: number;
-
-    /**
-     * Maximum number of tasks running in parallel
-     *
-     * @default MAX_PARALLEL_COUNT
-     */
-    readonly maxParallelCount?: number;
-
-    /**
-     * If true, the preparation logs additional information
-     *
-     * @default false
-     */
-    readonly isVerbose?: boolean;
-
-    /**
-     * If you pass fully prepared pipeline, this does not matter
-     *
-     * Otherwise:
-     * If false or not set, warning is shown when pipeline is not prepared
-     * If true, warning is suppressed
-     *
-     * @default false
-     */
-    readonly isNotPreparedWarningSupressed?: boolean;
-};
-
-/**
- * Options for `createPipelineExecutor`
- */
-interface CreatePipelineExecutorOptions {
-    /**
-     * The pipeline to be executed
-     */
-    readonly pipeline: PipelineJson;
-
-    /**
-     * The execution tools to be used during the execution of the pipeline
-     */
-    readonly tools: ExecutionTools;
-
-    /**
-     * Optional settings for the pipeline executor
-     */
-    readonly settings?: Partial<CreatePipelineExecutorSettings>;
-}
 
 /**
  * Creates executor function from pipeline and execution tools.
