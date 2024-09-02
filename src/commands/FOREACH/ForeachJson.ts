@@ -19,4 +19,13 @@ export type ForeachJson = {
      * @@@
      */
     readonly parameterName: string_parameter_name;
+
+    /**
+     * @@@
+     */
+    readonly subparameterName: string_parameter_name;
 };
+
+/**
+ * TODO: [🧠] Betetr name for `parameterName` and `subparameterName`
+ */

@@ -9,7 +9,7 @@ Show how to use a simple prompt with no parameters.
 
 ## Write a greeting
 
--   FOREACH List Line -> `{customer}`
+-   FOREACH List Line `{customers}` -> `{customer}`
 -   PERSONA Jane, customer service representative
 <!--- TODO: Add EXPECT -->
 
