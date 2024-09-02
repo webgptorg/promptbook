@@ -41,7 +41,7 @@
         "update-version-in-config": "ts-node ./scripts/update-version-in-config/update-version-in-config.ts --commit",
         "use-packages": "ts-node ./scripts/use-packages/use-packages.ts",
         "preversion": "git pull && ts-node ./scripts/make-promptbook-collection/make-promptbook-collection.ts --commit && ts-node ./scripts/repair-imports/repair-imports.ts --commit && npm run lint && npm test && tsc",
-        "postversion": "npm run update-version-in-config && npm run generate-packages && git push && git push --tags && npm run use-packages"
+        "postversion": "npm run update-version-in-config && ts-node ./scripts/generate-samples-jsons/generate-samples-jsons.ts --commit && npm run generate-packages && git push && git push --tags && npm run use-packages"
     },
     "devDependencies": {
         "@rollup/plugin-json": "^6.1.0",
