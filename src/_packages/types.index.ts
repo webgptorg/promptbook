@@ -10,6 +10,7 @@ import type { PipelineTemplateCommandParser } from '../commands/_common/types/Co
 import type { CommandParserInput } from '../commands/_common/types/CommandParser';
 import type { CommandUsagePlace } from '../commands/_common/types/CommandUsagePlaces';
 import type { ExpectCommand } from '../commands/EXPECT/ExpectCommand';
+import type { ForeachJson } from '../commands/FOREACH/ForeachJson';
 import type { FormatCommand } from '../commands/FORMAT/FormatCommand';
 import type { TemplateType } from '../commands/TEMPLATE/TemplateTypes';
 import type { PipelineStringToJsonOptions } from '../conversion/pipelineStringToJson';
@@ -237,6 +238,7 @@ export type { PipelineTemplateCommandParser };
 export type { CommandParserInput };
 export type { CommandUsagePlace };
 export type { ExpectCommand };
+export type { ForeachJson };
 export type { FormatCommand };
 export type { TemplateType };
 export type { PipelineStringToJsonOptions };
