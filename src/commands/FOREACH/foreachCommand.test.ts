@@ -6,45 +6,59 @@ describe('how FOREACH command in .ptbk.md files works', () => {
     it('should parse FOREACH command in PIPELINE_TEMPLATE', () => {
         expect(parseCommand('FOREACH List Line -> `{customer}`', 'PIPELINE_TEMPLATE')).toEqual({
             type: 'FOREACH',
-            // <- TODO: [🍭] !!!!!!
+            formatName: 'LIST',
+            cellName: 'LINE',
+            parameterName: 'customer',
         });
     });
 
     it('should parse FOREACH command in multiple formats', () => {
         expect(parseCommand('FOREACH List Line -> `{customer}`', 'PIPELINE_TEMPLATE')).toEqual({
             type: 'FOREACH',
-            // <- TODO: [🍭] !!!!!!
+            formatName: 'LIST',
+            cellName: 'LINE',
+            parameterName: 'customer',
         });
         expect(parseCommand('FOREACH List Line -> {customer}', 'PIPELINE_TEMPLATE')).toEqual({
             type: 'FOREACH',
-            // <- TODO: [🍭] !!!!!!
+            formatName: 'LIST',
+            cellName: 'LINE',
+            parameterName: 'customer',
         });
 
         expect(parseCommand('FOREACH List Line `-> {customer}`', 'PIPELINE_TEMPLATE')).toEqual({
             type: 'FOREACH',
-            // <- TODO: [🍭] !!!!!!
+            formatName: 'LIST',
+            cellName: 'LINE',
+            parameterName: 'customer',
         });
 
         expect(parseCommand('EACH   List   Line ->   {customer}   ', 'PIPELINE_TEMPLATE')).toEqual({
             type: 'FOREACH',
-            // <- TODO: [🍭] !!!!!!
+            formatName: 'LIST',
+            cellName: 'LINE',
+            parameterName: 'customer',
         });
 
         expect(parseCommand('FOREACH CSV CELL ->`{customer}`', 'PIPELINE_TEMPLATE')).toEqual({
             type: 'FOREACH',
-            // <- TODO: [🍭] !!!!!!
+            formatName: 'CSV',
+            cellName: 'CELL',
+            parameterName: 'customer',
         });
     });
 
     it('should parse FOREACH command in shortcut form', () => {
-        expect(parseCommand('EACH bar', 'PIPELINE_TEMPLATE')).toEqual({
+        expect(parseCommand('EACH CSV CELL ->`{customer}`', 'PIPELINE_TEMPLATE')).toEqual({
             type: 'FOREACH',
-            // <- TODO: [🍭] !!!!!!
+            formatName: 'CSV',
+            cellName: 'CELL',
+            parameterName: 'customer',
         });
     });
 
     it('should fail parsing FOREACH command', () => {
-        expect(() => parseCommand('FOREACH brr', 'PIPELINE_TEMPLATE')).toThrowError(/FOREACH command !!!!!!/i);
+        expect(() => parseCommand('FOREACH brr', 'PIPELINE_TEMPLATE')).toThrowError(/Unsupported format "BRR"/i);
     });
 
     it(`should work with all samples`, () => {

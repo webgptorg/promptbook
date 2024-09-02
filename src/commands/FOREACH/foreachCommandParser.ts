@@ -1,4 +1,5 @@
 import type { string_markdown_text } from '../../types/typeAliases';
+import { extractParameterNames } from '../../utils/extractParameterNames';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import type {
     $PipelineJson,
@@ -57,12 +58,10 @@ export const foreachCommandParser: PipelineTemplateCommandParser<ForeachCommand>
      * Parses the FOREACH command
      */
     parse(input: CommandParserInput): ForeachCommand {
-        const { args } = input;
+        const { args, rawArgs } = input;
 
         const formatName = args[0];
         const cellName = args[1];
-        const assignSign = args[2];
-        const parameterName = args[3];
 
         if (
             typeof formatName !== 'string' ||
@@ -72,7 +71,8 @@ export const foreachCommandParser: PipelineTemplateCommandParser<ForeachCommand>
                 // <- TODO: [🏢] Unhardcode formats
             ].includes(formatName!)
         ) {
-            throw new Error(`FOREACH command must have 'LIST' or 'CSV' as the first argument`);
+            console.info({ args, formatName });
+            throw new Error(`Unsupported format "${formatName}"`);
             // <- TODO: [🏢] List all supported format names
         }
 
@@ -86,18 +86,35 @@ export const foreachCommandParser: PipelineTemplateCommandParser<ForeachCommand>
                 // <- TODO: [🏢] Unhardcode format cekks
             ].includes(cellName!)
         ) {
+            console.info({ args, cellName });
             throw new Error(`Format ${formatName} does not support cell "${cellName}"`);
             // <- TODO: [🏢] List all supported cell names for the format
         }
 
+        /*
+        TODO: Is there some way how to validate this?
+        const assignSign = args[2];
+
         if (assignSign !== '->') {
+            console.info({ args, assignSign });
             throw new Error(`FOREACH command must have '->' to assign the value to the parameter`);
         }
+        */
+
+        const parameterNames = extractParameterNames(rawArgs);
+
+        if (parameterNames.size !== 1) {
+            console.info({ args, rawArgs });
+            throw new Error(`FOREACH command contain exactly one parameter, but found ${parameterNames.size}`);
+        }
+
+        const parameterName = parameterNames.values().next().value!;
 
         if (
             typeof parameterName !== 'string'
             // <- TODO: !!!!!! Replace with propper parameter name validation
         ) {
+            console.info({ args, parameterName });
             throw new Error(`Invalid parameter name`);
             // <- TODO: !!!!!! Better error (with rules and precise error) from validateParameterName
         }
