@@ -1,6 +1,6 @@
 {
     "title": "⚠ Sample of non-recommended syntax",
-    "promptbookVersion": "0.69.0-0",
+    "promptbookVersion": "0.70.0-0",
     "description": "Defining same persona twice is **not recommended** but it is not an error in case of personas are same.",
     "parameters": [
         {
@@ -40,7 +40,7 @@
     "preparations": [
         {
             "id": 1,
-            "promptbookVersion": "0.69.0-0",
+            "promptbookVersion": "0.70.0-0",
             "usage": {
                 "price": {
                     "value": 0.005295
