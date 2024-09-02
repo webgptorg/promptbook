@@ -88,7 +88,7 @@ export function parseCommand(raw: string_markdown_text, usagePlace: CommandUsage
         commandNameSegmentsCount++
     ) {
         const commandNameRaw = items.slice(0, commandNameSegmentsCount + 1).join('_');
-        const args = items.slice(commandNameSegmentsCount + 1).map(normalizeTo_SCREAMING_CASE);
+        const args = items.slice(commandNameSegmentsCount + 1);
 
         const rawArgs = raw.substring(commandNameRaw.length).trim();
         const command = parseCommandVariant({ usagePlace, raw, rawArgs, normalized, args, commandNameRaw });
