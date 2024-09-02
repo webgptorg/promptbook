@@ -137,6 +137,11 @@ export const foreachCommandParser: PipelineTemplateCommandParser<ForeachCommand>
      */
     $applyToTemplateJson(command: ForeachCommand, $templateJson: $TemplateJson, $pipelineJson: $PipelineJson): void {
         const { formatName, cellName, parameterName, subparameterName } = command;
+
+Detect double use
+
+
+
         $templateJson.foreach = { formatName, cellName, parameterName, subparameterName };
 
         keepUnused($pipelineJson); // <- TODO: !!!!!! BUT Maybe register subparameter from foreach into parameters of the pipeline
