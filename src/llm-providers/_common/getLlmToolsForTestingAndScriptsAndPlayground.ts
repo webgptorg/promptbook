@@ -1,7 +1,6 @@
 import { join } from 'path';
 import '../../_packages/cli.index'; // <- Note: Really importing core index to register all the LLM providers
-import { DEBUG_ALLOW_PAYED_TESTING } from '../../config';
-import { EXECUTIONS_CACHE_DIRNAME } from '../../config';
+import { EXECUTIONS_CACHE_DIRNAME, IS_COST_PREVENTED } from '../../config';
 import { EnvironmentMismatchError } from '../../errors/EnvironmentMismatchError';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import { FilesStorage } from '../../storage/files-storage/FilesStorage';
@@ -39,7 +38,7 @@ export function getLlmToolsForTestingAndScriptsAndPlayground(
     const { isCacheReloaded = false, ...restOptions } = options ?? {};
 
     const llmTools: LlmExecutionTools = createLlmToolsFromEnv(restOptions);
-    const llmToolsWithUsage = DEBUG_ALLOW_PAYED_TESTING
+    const llmToolsWithUsage = !IS_COST_PREVENTED
         ? countTotalUsage(llmTools)
         : //    <- Note: for example here we don`t want the [🌯]
           limitTotalUsage(llmTools);

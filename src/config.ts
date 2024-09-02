@@ -187,20 +187,20 @@ export const IS_VERBOSE = false;
  *
  * @private within the repository
  */
-export const DEBUG_ALLOW_PAYED_TESTING: boolean = just(
+export const IS_COST_PREVENTED: boolean = just(
     /*/
-    // Note: In normal situations, we "turn off" ability to use real API keys in tests:
-    false,
-    /**/
-
-    /**/
-    // When working on preparations, you can use:
+    // Note: In normal situations, we prevent ability to use real API keys in tests:
     true,
     /**/
 
+    /**/
+    // When working on preparations, you can temporarily turn off the prevention:
+    false,
+    /**/
+
     // Commit message:
-    // [🔑] Turn on ability to use real API keys in tests
-    // [🔒] Turn off ability to use real API keys in tests
+    // [🔑] Disable cost-prevention
+    // [🔒] Enable cost-prevention
 );
 
 /**
