@@ -1,7 +1,7 @@
 import { describe, expect, it } from '@jest/globals';
 import { spaceTrim } from 'spacetrim';
 import { pipelineStringToJson } from '../../../conversion/pipelineStringToJson';
-import { createPipelineExecutor } from '../../../execution/createPipelineExecutor';
+import { createPipelineExecutor } from '../../../execution/createPipelineExecutor/createPipelineExecutor';
 import { CallbackInterfaceTools } from '../../../knowledge/dialogs/callback/CallbackInterfaceTools';
 import type { PipelineString } from '../../../types/PipelineString';
 import { MockedEchoLlmExecutionTools } from '../MockedEchoLlmExecutionTools';
