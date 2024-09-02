@@ -19,6 +19,8 @@ import type { renderPipelineMermaidOptions } from '../conversion/prettify/render
 import type { ErrorJson } from '../errors/utils/ErrorJson';
 import type { AvailableModel } from '../execution/AvailableModel';
 import type { CommonExecutionToolsOptions } from '../execution/CommonExecutionToolsOptions';
+import type { CreatePipelineExecutorOptions } from '../execution/createPipelineExecutor/CreatePipelineExecutorOptions';
+import type { CreatePipelineExecutorSettings } from '../execution/createPipelineExecutor/CreatePipelineExecutorSettings';
 import type { EmbeddingVector } from '../execution/EmbeddingVector';
 import type { ExecutionTools } from '../execution/ExecutionTools';
 import type { LlmExecutionTools } from '../execution/LlmExecutionTools';
@@ -247,6 +249,8 @@ export type { renderPipelineMermaidOptions };
 export type { ErrorJson };
 export type { AvailableModel };
 export type { CommonExecutionToolsOptions };
+export type { CreatePipelineExecutorOptions };
+export type { CreatePipelineExecutorSettings };
 export type { EmbeddingVector };
 export type { ExecutionTools };
 export type { LlmExecutionTools };
