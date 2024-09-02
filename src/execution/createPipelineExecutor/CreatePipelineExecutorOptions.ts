@@ -1,6 +1,6 @@
-import type { PipelineJson } from '../../_packages/types.index';
+import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import type { ExecutionTools } from '../ExecutionTools';
-import { CreatePipelineExecutorSettings } from './CreatePipelineExecutorSettings';
+import type { CreatePipelineExecutorSettings } from './CreatePipelineExecutorSettings';
 
 /**
  * Options for `createPipelineExecutor`

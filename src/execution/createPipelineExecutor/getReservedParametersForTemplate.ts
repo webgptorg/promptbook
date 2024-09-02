@@ -1,14 +1,12 @@
 import { spaceTrim } from 'spacetrim';
 import type { ReadonlyDeep } from 'type-fest';
-import { PipelineJson } from '../../_packages/types.index';
-import {
-    RESERVED_PARAMETER_MISSING_VALUE,
-    RESERVED_PARAMETER_NAMES,
-    RESERVED_PARAMETER_RESTRICTED,
-} from '../../config';
+import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
+import { RESERVED_PARAMETER_MISSING_VALUE } from '../../config';
+import { RESERVED_PARAMETER_NAMES } from '../../config';
+import { RESERVED_PARAMETER_RESTRICTED } from '../../config';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { TemplateJson } from '../../types/PipelineJson/TemplateJson';
-import { ReservedParameters } from '../../types/typeAliases';
+import type { ReservedParameters } from '../../types/typeAliases';
 import { getContextForTemplate } from './getContextForTemplate';
 import { getKnowledgeForTemplate } from './getKnowledgeForTemplate';
 import { getSamplesForTemplate } from './getSamplesForTemplate';

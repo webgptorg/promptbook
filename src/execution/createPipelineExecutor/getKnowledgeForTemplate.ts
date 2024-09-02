@@ -1,7 +1,8 @@
 import type { ReadonlyDeep } from 'type-fest';
-import { PipelineJson } from '../../_packages/types.index';
+import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import type { TemplateJson } from '../../types/PipelineJson/TemplateJson';
-import { string_markdown, string_parameter_value } from '../../types/typeAliases';
+import type { string_markdown } from '../../types/typeAliases';
+import type { string_parameter_value } from '../../types/typeAliases';
 import { TODO_USE } from '../../utils/organization/TODO_USE';
 
 export async function getKnowledgeForTemplate(

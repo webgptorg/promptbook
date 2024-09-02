@@ -1,11 +1,9 @@
 import { spaceTrim } from 'spacetrim';
 import { Promisable, ReadonlyDeep } from 'type-fest';
-import {
-    ExecutionReportJson,
-    ExecutionTools,
-    MultipleLlmExecutionTools,
-    PipelineJson,
-} from '../../_packages/types.index';
+import type { ExecutionReportJson } from '../../types/execution-report/ExecutionReportJson';
+import type { ExecutionTools } from '../ExecutionTools';
+import { MultipleLlmExecutionTools } from '../../llm-providers/multiple/MultipleLlmExecutionTools';
+import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import { extractParameterNamesFromTemplate } from '../../conversion/utils/extractParameterNamesFromTemplate';
 import { ExpectError } from '../../errors/ExpectError';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
@@ -15,7 +13,10 @@ import { isValidJsonString } from '../../formats/json/utils/isValidJsonString';
 import { extractJsonBlock } from '../../postprocessing/utils/extractJsonBlock';
 import type { ModelRequirements } from '../../types/ModelRequirements';
 import type { TemplateJson } from '../../types/PipelineJson/TemplateJson';
-import type { ChatPrompt, CompletionPrompt, EmbeddingPrompt, Prompt } from '../../types/Prompt';
+import type { ChatPrompt } from '../../types/Prompt';
+import type { CompletionPrompt } from '../../types/Prompt';
+import type { EmbeddingPrompt } from '../../types/Prompt';
+import type { Prompt } from '../../types/Prompt';
 import type { TaskProgress } from '../../types/TaskProgress';
 import type { Parameters } from '../../types/typeAliases';
 import { arrayableToArray } from '../../utils/arrayableToArray';
@@ -26,7 +27,10 @@ import { replaceParameters } from '../../utils/replaceParameters';
 import { $deepFreeze } from '../../utils/serialization/$deepFreeze';
 import { difference } from '../../utils/sets/difference';
 import { union } from '../../utils/sets/union';
-import type { ChatPromptResult, CompletionPromptResult, EmbeddingPromptResult, PromptResult } from '../PromptResult';
+import type { ChatPromptResult } from '../PromptResult';
+import type { CompletionPromptResult } from '../PromptResult';
+import type { EmbeddingPromptResult } from '../PromptResult';
+import type { PromptResult } from '../PromptResult';
 import { checkExpectations } from '../utils/checkExpectations';
 import { getReservedParametersForTemplate } from './getReservedParametersForTemplate';
 

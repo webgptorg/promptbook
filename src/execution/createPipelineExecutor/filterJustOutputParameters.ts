@@ -1,6 +1,6 @@
 import { spaceTrim } from 'spacetrim';
 import type { ReadonlyDeep } from 'type-fest';
-import { PipelineJson } from '../../_packages/types.index';
+import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import type { Parameters } from '../../types/typeAliases';
 
