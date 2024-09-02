@@ -211,7 +211,7 @@ export type CommandParserInput = {
      * @@@
      *
      * @example [ '0.62.0' ]
-     * @example [ 'LIST', 'LINE', '', 'CUSTOMER' ]
+     * @example [ 'List', 'Line', '', '{customer}' ]
      */
     readonly args: Array<string_name>;
 };

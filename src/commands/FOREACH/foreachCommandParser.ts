@@ -1,3 +1,4 @@
+import { normalizeTo_SCREAMING_CASE } from '../../_packages/utils.index';
 import type { string_markdown_text } from '../../types/typeAliases';
 import { extractParameterNames } from '../../utils/extractParameterNames';
 import { keepUnused } from '../../utils/organization/keepUnused';
@@ -60,11 +61,12 @@ export const foreachCommandParser: PipelineTemplateCommandParser<ForeachCommand>
     parse(input: CommandParserInput): ForeachCommand {
         const { args, rawArgs } = input;
 
-        const formatName = args[0];
-        const cellName = args[1];
+        const formatName = normalizeTo_SCREAMING_CASE(args[0] || '');
+        const cellName = normalizeTo_SCREAMING_CASE(args[1] || '');
+        const assignSign = args[2];
+        const parameter = args[3];
 
         if (
-            typeof formatName !== 'string' ||
             ![
                 'LIST',
                 'CSV',
@@ -77,7 +79,6 @@ export const foreachCommandParser: PipelineTemplateCommandParser<ForeachCommand>
         }
 
         if (
-            typeof cellName !== 'string' ||
             ![
                 'LINE',
                 'ROW',
@@ -91,20 +92,15 @@ export const foreachCommandParser: PipelineTemplateCommandParser<ForeachCommand>
             // <- TODO: [🏢] List all supported cell names for the format
         }
 
-        /*
-        TODO: Is there some way how to validate this?
-        const assignSign = args[2];
-
         if (assignSign !== '->') {
             console.info({ args, assignSign });
             throw new Error(`FOREACH command must have '->' to assign the value to the parameter`);
         }
-        */
 
-        const parameterNames = extractParameterNames(rawArgs);
+        const parameterNames = extractParameterNames(parameter || rawArgs);
 
         if (parameterNames.size !== 1) {
-            console.info({ args, rawArgs });
+            console.info({ args, parameter, rawArgs });
             throw new Error(`FOREACH command contain exactly one parameter, but found ${parameterNames.size}`);
         }
 
@@ -161,5 +157,6 @@ export const foreachCommandParser: PipelineTemplateCommandParser<ForeachCommand>
 };
 
 /**
+ * TODO: !!!!!! Comment console logs
  * TODO: [🍭] !!!!!! Make .ptbk.md file with examples of the FOREACH command and also with wrong parsing and logic
  */
