@@ -49,7 +49,7 @@ export const promptbookVersionCommandParser: PipelineHeadCommandParser<Promptboo
     parse(input: CommandParserInput): PromptbookVersionCommand {
         const { args } = input;
 
-        const promptbookVersion = args.pop()!.split('_').join('.');
+        const promptbookVersion = args.pop();
 
         if (promptbookVersion === undefined) {
             throw new ParseError(`Version is required`);
