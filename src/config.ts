@@ -188,12 +188,12 @@ export const IS_VERBOSE = false;
  * @private within the repository
  */
 export const IS_COST_PREVENTED: boolean = just(
-    /*/
+    /**/
     // Note: In normal situations, we prevent ability to use real API keys in tests:
     true,
     /**/
 
-    /**/
+    /*/
     // When working on preparations, you can temporarily turn off the prevention:
     false,
     /**/
