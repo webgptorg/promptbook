@@ -1,6 +1,6 @@
 {
     "title": "⚠ Sample of non-recommended syntax",
-    "promptbookVersion": "0.69.0-1",
+    "promptbookVersion": "0.69.0-2",
     "description": "Defining same model variant twice is **not recommended** but it is not an error in case of model variants are same.",
     "parameters": [
         {
