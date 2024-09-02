@@ -28,10 +28,10 @@ To install this package, run:
 npm i ptbk
 
 # Install as dev dependency
-npm i -D @promptbook/cli
+npm install --save-dev @promptbook/cli
 
 # Or install globally
-npm i -g @promptbook/cli
+npm install --global @promptbook/cli
 ```
 
 CLI utils for Promptbook. After install you can use `promptbook` command in terminal:

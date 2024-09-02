@@ -28,7 +28,7 @@ To install this package, run:
 npm i ptbk
 
 # Install just this package to save space
-npm i @promptbook/browser
+npm install @promptbook/browser
 ```
 
 Core of the library for Browser runtime, it contains the main logic for promptbooks which uses browser-specific things like `localStorage`.

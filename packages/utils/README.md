@@ -28,7 +28,7 @@ To install this package, run:
 npm i ptbk
 
 # Install just this package to save space
-npm i @promptbook/utils
+npm install @promptbook/utils
 ```
 
 Utility functions used in the library but also useful for individual use in preprocessing and postprocessing LLM inputs and outputs

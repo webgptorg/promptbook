@@ -28,7 +28,7 @@ To install this package, run:
 npm i ptbk
 
 # Install just this package to save space
-npm i @promptbook/azure-openai
+npm install @promptbook/azure-openai
 ```
 
 `@promptbook/azure-openai` integrates [Azure OpenAI API](https://oai.azure.com/portal/) with [Promptbook](https://github.com/webgptorg/promptbook). It allows to execute Promptbooks with Azure OpenAI GPT models.

@@ -28,7 +28,7 @@ To install this package, run:
 npm i ptbk
 
 # Install just this package to save space
-npm i @promptbook/remote-client
+npm install @promptbook/remote-client
 ```
 
 

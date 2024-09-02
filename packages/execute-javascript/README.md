@@ -28,7 +28,7 @@ To install this package, run:
 npm i ptbk
 
 # Install just this package to save space
-npm i @promptbook/execute-javascript
+npm install @promptbook/execute-javascript
 ```
 
 Engine for executing JavaScript code inside a promptbook.

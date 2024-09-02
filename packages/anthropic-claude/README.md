@@ -28,7 +28,7 @@ To install this package, run:
 npm i ptbk
 
 # Install just this package to save space
-npm i @promptbook/anthropic-claude
+npm install @promptbook/anthropic-claude
 ```
 
 `@promptbook/anthropic-claude` integrates [Anthropic's Claude API](https://console.anthropic.com/) with [Promptbook](https://github.com/webgptorg/promptbook). It allows to execute Promptbooks with OpenAI Claude 2 and 3 models.

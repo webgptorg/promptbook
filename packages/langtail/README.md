@@ -28,7 +28,7 @@ To install this package, run:
 npm i ptbk
 
 # Install just this package to save space
-npm i @promptbook/langtail
+npm install @promptbook/langtail
 ```
 
 Use [Langtail](https://langtail.com/) to **ship AI apps with fewer surprises**.

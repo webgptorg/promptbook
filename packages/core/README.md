@@ -28,7 +28,7 @@ To install this package, run:
 npm i ptbk
 
 # Install just this package to save space
-npm i @promptbook/core
+npm install @promptbook/core
 ```
 
 Core of the library, it contains the main logic for promptbooks.

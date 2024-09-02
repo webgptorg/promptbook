@@ -28,7 +28,7 @@ To install this package, run:
 npm i ptbk
 
 # Install just this package to save space
-npm i @promptbook/fake-llm
+npm install @promptbook/fake-llm
 ```
 
 Mock objects for testing the execution tools without token usage.

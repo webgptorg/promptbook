@@ -28,7 +28,7 @@ To install this package, run:
 npm i ptbk
 
 # Install just this package to save space
-npm i @promptbook/markdown-utils
+npm install @promptbook/markdown-utils
 ```
 
 Utility functions used for processing markdown. Its part of the larger [`@promptbook/utils`](https://www.npmjs.com/package/@promptbook/utils) ecosystem.
