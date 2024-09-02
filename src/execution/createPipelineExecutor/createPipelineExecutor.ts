@@ -7,9 +7,7 @@ import {
     LOOP_LIMIT,
     MAX_EXECUTION_ATTEMPTS,
     MAX_PARALLEL_COUNT,
-    RESERVED_PARAMETER_MISSING_VALUE,
     RESERVED_PARAMETER_NAMES,
-    RESERVED_PARAMETER_RESTRICTED,
 } from '../../config';
 import { extractParameterNamesFromTemplate } from '../../conversion/utils/extractParameterNamesFromTemplate';
 import { validatePipeline } from '../../conversion/validation/validatePipeline';
@@ -28,18 +26,11 @@ import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import type { TemplateJson } from '../../types/PipelineJson/TemplateJson';
 import type { ChatPrompt, CompletionPrompt, EmbeddingPrompt, Prompt } from '../../types/Prompt';
 import type { TaskProgress } from '../../types/TaskProgress';
-import type {
-    Parameters,
-    ReservedParameters,
-    string_markdown,
-    string_name,
-    string_parameter_value,
-} from '../../types/typeAliases';
+import type { Parameters, string_name } from '../../types/typeAliases';
 import { arrayableToArray } from '../../utils/arrayableToArray';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import type { really_any } from '../../utils/organization/really_any';
 import type { TODO_any } from '../../utils/organization/TODO_any';
-import { TODO_USE } from '../../utils/organization/TODO_USE';
 import { replaceParameters } from '../../utils/replaceParameters';
 import { $asDeeplyFrozenSerializableJson } from '../../utils/serialization/$asDeeplyFrozenSerializableJson';
 import { $deepFreeze } from '../../utils/serialization/$deepFreeze';
@@ -52,6 +43,8 @@ import type { ChatPromptResult, CompletionPromptResult, EmbeddingPromptResult, P
 import { addUsage, ZERO_USAGE } from '../utils/addUsage';
 import { checkExpectations } from '../utils/checkExpectations';
 import { CreatePipelineExecutorOptions } from './CreatePipelineExecutorOptions';
+import { filterJustOutputParameters } from './filterJustOutputParameters';
+import { getReservedParametersForTemplate } from './getReservedParametersForTemplate';
 
 /**
  * Creates executor function from pipeline and execution tools.
@@ -232,66 +225,6 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
 
         // TODO: !!! Extract to separate functions and files - ALL FUNCTIONS BELOW
 
-        async function getContextForTemplate(
-            template: TemplateJson,
-        ): Promise<string_parameter_value & string_markdown> {
-            TODO_USE(template);
-            return RESERVED_PARAMETER_MISSING_VALUE /* <- TODO: [🏍] Implement */;
-        }
-
-        async function getKnowledgeForTemplate(
-            template: TemplateJson,
-        ): Promise<string_parameter_value & string_markdown> {
-            // TODO: [♨] Implement Better - use real index and keyword search from `template` and {samples}
-
-            TODO_USE(template);
-            return preparedPipeline.knowledgePieces.map(({ content }) => `- ${content}`).join('\n');
-            //                                                      <- TODO: [🧠] Some smart aggregation of knowledge pieces, single-line vs multi-line vs mixed
-        }
-
-        async function getSamplesForTemplate(
-            template: TemplateJson,
-        ): Promise<string_parameter_value & string_markdown> {
-            // TODO: [♨] Implement Better - use real index and keyword search
-
-            TODO_USE(template);
-            return RESERVED_PARAMETER_MISSING_VALUE /* <- TODO: [♨] Implement */;
-        }
-
-        async function getReservedParametersForTemplate(template: TemplateJson): Promise<ReservedParameters> {
-            const context = await getContextForTemplate(template); // <- [🏍]
-            const knowledge = await getKnowledgeForTemplate(template);
-            const samples = await getSamplesForTemplate(template);
-            const currentDate = new Date().toISOString(); // <- TODO: [🧠] Better
-            const modelName = RESERVED_PARAMETER_MISSING_VALUE;
-
-            const reservedParameters: ReservedParameters = {
-                content: RESERVED_PARAMETER_RESTRICTED,
-                context, // <- [🏍]
-                knowledge,
-                samples,
-                currentDate,
-                modelName,
-            };
-
-            // Note: Doublecheck that ALL reserved parameters are defined:
-            for (const parameterName of RESERVED_PARAMETER_NAMES) {
-                if (reservedParameters[parameterName] === undefined) {
-                    throw new UnexpectedError(
-                        spaceTrim(
-                            (block) => `
-                                Reserved parameter {${parameterName}} is not defined
-
-                                ${block(pipelineIdentification)}
-                            `,
-                        ),
-                    );
-                }
-            }
-
-            return reservedParameters;
-        }
-
         async function executeSingleTemplate(currentTemplate: TemplateJson) {
             const name = `pipeline-executor-frame-${currentTemplate.name}`;
             const title = currentTemplate.title;
@@ -364,7 +297,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
             }
 
             const definedParameters: Parameters = Object.freeze({
-                ...(await getReservedParametersForTemplate(currentTemplate)),
+                ...(await getReservedParametersForTemplate(preparedPipeline, currentTemplate, pipelineIdentification)),
                 ...parametersToPass,
             });
 
@@ -900,35 +833,6 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
             });
         }
 
-        function filterJustOutputParameters(): Parameters {
-            const outputParameters: Parameters = {};
-
-            // Note: Filter ONLY output parameters
-            for (const parameter of preparedPipeline.parameters.filter(({ isOutput }) => isOutput)) {
-                if (parametersToPass[parameter.name] === undefined) {
-                    // [4]
-                    warnings.push(
-                        new PipelineExecutionError(
-                            spaceTrim(
-                                (block) => `
-                                    Parameter {${
-                                        parameter.name
-                                    }} should be an output parameter, but it was not generated during pipeline execution
-
-                                    ${block(pipelineIdentification)}
-                                `,
-                            ),
-                        ),
-                        // <- TODO: This should be maybe `UnexpectedError` because it should be catched during `validatePipeline`
-                    );
-                    continue;
-                }
-                outputParameters[parameter.name] = parametersToPass[parameter.name] || '';
-            }
-
-            return outputParameters;
-        }
-
         try {
             let resovedParameterNames: Array<string_name> = preparedPipeline.parameters
                 .filter(({ isInput }) => isInput)
@@ -1017,7 +921,12 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
             );
 
             // Note: Making this on separate line before `return` to grab errors [4]
-            const outputParameters = filterJustOutputParameters();
+            const outputParameters = filterJustOutputParameters(
+                preparedPipeline,
+                parametersToPass,
+                warnings,
+                pipelineIdentification,
+            );
 
             isReturned = true;
 
@@ -1044,7 +953,12 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
         const usage = addUsage(...executionReport.promptExecutions.map(({ result }) => result?.usage || ZERO_USAGE));
 
         // Note:  Making this on separate line before `return` to grab errors [4]
-        const outputParameters = filterJustOutputParameters();
+        const outputParameters = filterJustOutputParameters(
+            preparedPipeline,
+            parametersToPass,
+            warnings,
+            pipelineIdentification,
+        );
 
         isReturned = true;
 
