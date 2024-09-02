@@ -2,10 +2,12 @@ import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
 import type { string_markdown_text } from '../../types/typeAliases';
 import { normalizeTo_SCREAMING_CASE } from '../../utils/normalization/normalizeTo_SCREAMING_CASE';
 import { keepUnused } from '../../utils/organization/keepUnused';
-import type { $PipelineJson } from '../_common/types/CommandParser';
-import type { $TemplateJson } from '../_common/types/CommandParser';
-import type { CommandParserInput } from '../_common/types/CommandParser';
-import type { PipelineTemplateCommandParser } from '../_common/types/CommandParser';
+import type {
+    $PipelineJson,
+    $TemplateJson,
+    CommandParserInput,
+    PipelineTemplateCommandParser,
+} from '../_common/types/CommandParser';
 import type { ForeachCommand } from './ForeachCommand';
 
 /**
@@ -138,6 +140,9 @@ export const foreachCommandParser: PipelineTemplateCommandParser<ForeachCommand>
     $applyToTemplateJson(command: ForeachCommand, $templateJson: $TemplateJson, $pipelineJson: $PipelineJson): void {
         const { formatName, cellName, parameterName, subparameterName } = command;
         $templateJson.foreach = { formatName, cellName, parameterName, subparameterName };
+
+        keepUnused($pipelineJson); // <- TODO: !!!!!! BUT Maybe register subparameter from foreach into parameters of the pipeline
+
         // Note: [🍭] FOREACH apply has some sideeffects on different places in codebase
     },
 
