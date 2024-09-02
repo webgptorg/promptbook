@@ -1,11 +1,12 @@
 import { spaceTrim } from 'spacetrim';
+import type { ReadonlyDeep } from 'type-fest';
 import { PipelineJson } from '../../_packages/types.index';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import type { Parameters } from '../../types/typeAliases';
 
 export function filterJustOutputParameters(
-    preparedPipeline: PipelineJson,
-    parametersToPass: Parameters,
+    preparedPipeline: ReadonlyDeep<PipelineJson>,
+    parametersToPass: Readonly<Parameters>,
     $warnings: PipelineExecutionError[],
     pipelineIdentification: string,
 ): Parameters {

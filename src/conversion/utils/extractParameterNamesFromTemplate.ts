@@ -1,3 +1,4 @@
+import type { ReadonlyDeep } from 'type-fest';
 import type { TemplateJson } from '../../types/PipelineJson/TemplateJson';
 import type { string_parameter_name } from '../../types/typeAliases';
 import { extractParameterNames } from '../../utils/extractParameterNames';
@@ -12,9 +13,11 @@ import { extractVariables } from './extractVariables';
  * @public exported from `@promptbook/utils`
  */
 export function extractParameterNamesFromTemplate(
-    template: Pick<
-        TemplateJson,
-        'title' | 'description' | 'templateType' | 'content' | 'preparedContent' | 'jokerParameterNames' | 'foreach'
+    template: ReadonlyDeep<
+        Pick<
+            TemplateJson,
+            'title' | 'description' | 'templateType' | 'content' | 'preparedContent' | 'jokerParameterNames' | 'foreach'
+        >
     >,
 ): Set<string_parameter_name> {
     const { title, description, templateType, content, preparedContent, jokerParameterNames, foreach } = template;

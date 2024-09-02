@@ -1,4 +1,5 @@
 import { spaceTrim } from 'spacetrim';
+import type { ReadonlyDeep } from 'type-fest';
 import { PipelineJson } from '../../_packages/types.index';
 import {
     RESERVED_PARAMETER_MISSING_VALUE,
@@ -13,10 +14,10 @@ import { getKnowledgeForTemplate } from './getKnowledgeForTemplate';
 import { getSamplesForTemplate } from './getSamplesForTemplate';
 
 export async function getReservedParametersForTemplate(
-    preparedPipeline: PipelineJson,
-    template: TemplateJson,
+    preparedPipeline: ReadonlyDeep<PipelineJson>,
+    template: ReadonlyDeep<TemplateJson>,
     pipelineIdentification: string,
-): Promise<ReservedParameters> {
+): Promise<Readonly<ReservedParameters>> {
     const context = await getContextForTemplate(template); // <- [🏍]
     const knowledge = await getKnowledgeForTemplate(preparedPipeline, template);
     const samples = await getSamplesForTemplate(template);
