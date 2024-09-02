@@ -160,7 +160,7 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
         let installCommand = spaceTrim(`
 
             # Install just this package to save space
-            npm i ${packageFullname}
+            npm install ${packageFullname}
 
         `);
 
@@ -168,10 +168,10 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
             installCommand = spaceTrim(`
 
                 # Install as dev dependency
-                npm i -D ${packageFullname}
+                npm install --save-dev ${packageFullname}
 
                 # Or install globally
-                npm i -g ${packageFullname}
+                npm install --global ${packageFullname}
 
             `);
         } else if (packageFullname === '@promptbook/types') {
