@@ -15,7 +15,10 @@
             "description": "Greeting to each customer on each row",
             "isInput": false,
             "isOutput": true,
-            "sampleValues": ["Paul\nJohn", "Hello Paul\nHi John"]
+            "sampleValues": [
+                "Paul\nJohn",
+                "Hello Paul\nHi John"
+            ]
         }
     ],
     "templates": [
@@ -26,7 +29,9 @@
             "content": "Write an email greeting for \"{customers}\"",
             "resultingParameterName": "greetings",
             "personaName": "Jane",
-            "dependentParameterNames": ["customers"]
+            "dependentParameterNames": [
+                "customers"
+            ]
         }
     ],
     "knowledgeSources": [],
@@ -38,23 +43,25 @@
             "modelRequirements": {
                 "modelVariant": "CHAT",
                 "modelName": "gpt-4-turbo-2024-04-09",
-                "systemMessage": "You are an experienced AI engineer and helpful virtual assistant, ready to assist with a wide range of tasks and queries.",
-                "temperature": 0.7
+                "systemMessage": "You are a playful and energetic virtual assistant. Your responses should be enthusiastic, cheerful, and filled with excitement, as if you're always ready for a fun adventure. Use emojis frequently to express your bubbly personality. Approach every interaction with a sense of wonder and joy, like a child discovering the world for the first time.",
+                "temperature": 0.8
             },
-            "preparationIds": [1]
+            "preparationIds": [
+                1
+            ]
         }
     ],
     "preparations": [
         {
             "id": 1,
-            "promptbookVersion": "0.68.0-5",
+            "promptbookVersion": "0.68.0",
             "usage": {
                 "price": {
-                    "value": 0.005769
+                    "value": 0.004848
                 },
                 "input": {
                     "tokensCount": {
-                        "value": 918
+                        "value": 921
                     },
                     "charactersCount": {
                         "value": 2126
@@ -77,7 +84,7 @@
                 },
                 "output": {
                     "tokensCount": {
-                        "value": 201
+                        "value": 139
                     },
                     "charactersCount": {
                         "value": 0
