@@ -1,12 +1,14 @@
 import { spaceTrim } from 'spacetrim';
 import type { Promisable } from 'type-fest';
 import { forTime } from 'waitasecond';
-import { IMMEDIATE_TIME } from '../../config';
-import { IS_VERBOSE } from '../../config';
-import { LOOP_LIMIT } from '../../config';
-import { MAX_EXECUTION_ATTEMPTS } from '../../config';
-import { MAX_PARALLEL_COUNT } from '../../config';
-import { RESERVED_PARAMETER_NAMES } from '../../config';
+import {
+    IMMEDIATE_TIME,
+    IS_VERBOSE,
+    LOOP_LIMIT,
+    MAX_EXECUTION_ATTEMPTS,
+    MAX_PARALLEL_COUNT,
+    RESERVED_PARAMETER_NAMES,
+} from '../../config';
 import { validatePipeline } from '../../conversion/validation/validatePipeline';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
@@ -18,17 +20,15 @@ import type { ExecutionReportJson } from '../../types/execution-report/Execution
 import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import type { TemplateJson } from '../../types/PipelineJson/TemplateJson';
 import type { TaskProgress } from '../../types/TaskProgress';
-import type { Parameters } from '../../types/typeAliases';
-import type { string_name } from '../../types/typeAliases';
+import type { Parameters, string_name } from '../../types/typeAliases';
 import { arrayableToArray } from '../../utils/arrayableToArray';
 import { $asDeeplyFrozenSerializableJson } from '../../utils/serialization/$asDeeplyFrozenSerializableJson';
 import { PROMPTBOOK_VERSION } from '../../version';
 import type { PipelineExecutor } from '../PipelineExecutor';
 import type { PipelineExecutorResult } from '../PipelineExecutorResult';
-import { addUsage } from '../utils/addUsage';
-import { ZERO_USAGE } from '../utils/addUsage';
+import { addUsage, ZERO_USAGE } from '../utils/addUsage';
 import type { CreatePipelineExecutorOptions } from './CreatePipelineExecutorOptions';
-import { executeSingleTemplate } from './executeSingleTemplate';
+import { executeTemplate } from './executeTemplate';
 import { filterJustOutputParameters } from './filterJustOutputParameters';
 
 /**
@@ -269,7 +269,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                 } else {
                     unresovedTemplates = unresovedTemplates.filter((template) => template !== currentTemplate);
 
-                    const work = /* [🤹‍♂️] not await */ executeSingleTemplate({
+                    const work = /* [🤹‍♂️] not await */ executeTemplate({
                         currentTemplate,
                         preparedPipeline,
                         parametersToPass,

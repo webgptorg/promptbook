@@ -1,22 +1,18 @@
 import { spaceTrim } from 'spacetrim';
 import { Promisable, ReadonlyDeep } from 'type-fest';
-import type { ExecutionReportJson } from '../../types/execution-report/ExecutionReportJson';
-import type { ExecutionTools } from '../ExecutionTools';
-import { MultipleLlmExecutionTools } from '../../llm-providers/multiple/MultipleLlmExecutionTools';
-import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import { extractParameterNamesFromTemplate } from '../../conversion/utils/extractParameterNamesFromTemplate';
 import { ExpectError } from '../../errors/ExpectError';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import { serializeError } from '../../errors/utils/serializeError';
 import { isValidJsonString } from '../../formats/json/utils/isValidJsonString';
+import { MultipleLlmExecutionTools } from '../../llm-providers/multiple/MultipleLlmExecutionTools';
 import { extractJsonBlock } from '../../postprocessing/utils/extractJsonBlock';
+import type { ExecutionReportJson } from '../../types/execution-report/ExecutionReportJson';
 import type { ModelRequirements } from '../../types/ModelRequirements';
+import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import type { TemplateJson } from '../../types/PipelineJson/TemplateJson';
-import type { ChatPrompt } from '../../types/Prompt';
-import type { CompletionPrompt } from '../../types/Prompt';
-import type { EmbeddingPrompt } from '../../types/Prompt';
-import type { Prompt } from '../../types/Prompt';
+import type { ChatPrompt, CompletionPrompt, EmbeddingPrompt, Prompt } from '../../types/Prompt';
 import type { TaskProgress } from '../../types/TaskProgress';
 import type { Parameters } from '../../types/typeAliases';
 import { arrayableToArray } from '../../utils/arrayableToArray';
@@ -27,30 +23,65 @@ import { replaceParameters } from '../../utils/replaceParameters';
 import { $deepFreeze } from '../../utils/serialization/$deepFreeze';
 import { difference } from '../../utils/sets/difference';
 import { union } from '../../utils/sets/union';
-import type { ChatPromptResult } from '../PromptResult';
-import type { CompletionPromptResult } from '../PromptResult';
-import type { EmbeddingPromptResult } from '../PromptResult';
-import type { PromptResult } from '../PromptResult';
+import type { ExecutionTools } from '../ExecutionTools';
+import type { ChatPromptResult, CompletionPromptResult, EmbeddingPromptResult, PromptResult } from '../PromptResult';
 import { checkExpectations } from '../utils/checkExpectations';
 import { getReservedParametersForTemplate } from './getReservedParametersForTemplate';
 
+/**
+ * @@@
+ */
 type executeSingleTemplateOptions = {
+    /**
+     * @@@
+     */
     currentTemplate: ReadonlyDeep<TemplateJson>;
+
+    /**
+     * @@@
+     */
     preparedPipeline: ReadonlyDeep<PipelineJson>;
+
+    /**
+     * @@@
+     */
     parametersToPass: Readonly<Parameters>;
+
+    /**
+     * @@@
+     */
     tools: Omit<ExecutionTools, 'llm'>;
+
+    /**
+     * @@@
+     */
     llmTools: MultipleLlmExecutionTools;
+
+    /**
+     * @@@
+     */
     onProgress: (taskProgress: TaskProgress) => Promisable<void>;
+
+    /**
+     * @@@
+     */
     maxExecutionAttempts: number;
+
+    /**
+     * @@@
+     */
     $executionReport: ExecutionReportJson;
+
+    /**
+     * @@@
+     */
     pipelineIdentification: string;
 };
-
 
 /**
  * @private @@@
  */
-export async function executeSingleTemplate(options: executeSingleTemplateOptions): Promise<Readonly<Parameters>> {
+export async function executeTemplate(options: executeSingleTemplateOptions): Promise<Readonly<Parameters>> {
     const {
         currentTemplate,
         preparedPipeline,
