@@ -80,7 +80,7 @@ type ExecutePipelineOptions = {
 export async function executePipeline(options: ExecutePipelineOptions): Promise<PipelineExecutorResult> {
     const { inputParameters, tools, onProgress, pipeline, setPreparedPipeline, pipelineIdentification, settings } =
         options;
-    const { maxExecutionAttempts, maxParallelCount, isVerbose } = settings;
+    const { maxParallelCount, isVerbose } = settings;
     let { preparedPipeline } = options;
 
     const llmTools = joinLlmExecutionTools(...arrayableToArray(tools.llm));
