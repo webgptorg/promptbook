@@ -37,15 +37,15 @@
                 }
             },
             "result": {
-                "content": "Pavol Hejný, the AI whisperer and TypeScript wizard, is set to dazzle attendees at the TypeScript developers summit 2025. When he's not busy teaching birds to code in TypeScript, Pavol spends his days crafting mind-bending user applications that make AI models question their own existence. As a proud member of the Ainautes consulting group, he travels the world, leaving a trail of awestruck developers and slightly confused AI assistants in his wake. Pavol's latest brainchild, WebGPT, is rumored to be so advanced that it can generate entire websites faster than you can say \"npm install.\" Before embracing the AI revolution, he created Collboard and H-edu, proving that even Czech children could outsmart virtual whiteboards. When he's not busy saving the world one line of TypeScript at a time, Pavol can be found judging coding competitions with an iron fist and a twinkle in his eye. His GitHub is a treasure trove of open-source wonders, each project more perplexing than the last. At the summit, Pavol plans to unveil his latest creation: a TypeScript-powered AI that can predict the future of JavaScript frameworks, much to the chagrin of framework developers everywhere.",
+                "content": "Pavol Hejný, the AI whisperer and TypeScript sorcerer, graces the TypeScript Developers Summit 2025 with his enigmatic presence. By day, he conjures fully functional user applications using cutting-edge AI models; by night, he communes with digital birds for the Czech Ornithological Society. As a proud member of the Ainautes, Pavol traverses the globe, sprinkling generative AI fairy dust wherever he goes. His brainchild, WebGPT, turns mere mortals into web development demigods. In a past life, he birthed Collboard and H-edu, virtual marvels that educated countless Czech younglings. When not channeling the spirits of open-source, Pavol moonlights as a conference sage, competition jury mystic, and mentor to aspiring code wizards. Rumor has it, his GitHub repository is actually a portal to another dimension. At the TypeScript Developers Summit 2025, Pavol will reveal the secrets of the universe, or at least how to use TypeScript with the latest AI models - whichever comes first.",
                 "modelName": "claude-3-5-sonnet-20240620",
                 "timing": {
-                    "start": "2024-09-03T15:14:19.902Z",
-                    "complete": "2024-09-03T15:14:28.247Z"
+                    "start": "2024-09-03T16:38:22.403Z",
+                    "complete": "2024-09-03T16:38:27.346Z"
                 },
                 "usage": {
                     "price": {
-                        "value": 0.005856
+                        "value": 0.005301
                     },
                     "input": {
                         "tokensCount": {
@@ -72,7 +72,7 @@
                     },
                     "output": {
                         "tokensCount": {
-                            "value": 285
+                            "value": 248
                         },
                         "charactersCount": {
                             "value": 0
@@ -106,21 +106,21 @@
                     ]
                 },
                 "rawResponse": {
-                    "id": "msg_01DFusHxjSC2C71np7yBht8F",
+                    "id": "msg_01XGSRT9rnDzZ6Wg18YYxzo4",
                     "type": "message",
                     "role": "assistant",
                     "model": "claude-3-5-sonnet-20240620",
                     "content": [
                         {
                             "type": "text",
-                            "text": "Pavol Hejný, the AI whisperer and TypeScript wizard, is set to dazzle attendees at the TypeScript developers summit 2025. When he's not busy teaching birds to code in TypeScript, Pavol spends his days crafting mind-bending user applications that make AI models question their own existence. As a proud member of the Ainautes consulting group, he travels the world, leaving a trail of awestruck developers and slightly confused AI assistants in his wake. Pavol's latest brainchild, WebGPT, is rumored to be so advanced that it can generate entire websites faster than you can say \"npm install.\" Before embracing the AI revolution, he created Collboard and H-edu, proving that even Czech children could outsmart virtual whiteboards. When he's not busy saving the world one line of TypeScript at a time, Pavol can be found judging coding competitions with an iron fist and a twinkle in his eye. His GitHub is a treasure trove of open-source wonders, each project more perplexing than the last. At the summit, Pavol plans to unveil his latest creation: a TypeScript-powered AI that can predict the future of JavaScript frameworks, much to the chagrin of framework developers everywhere."
+                            "text": "Pavol Hejný, the AI whisperer and TypeScript sorcerer, graces the TypeScript Developers Summit 2025 with his enigmatic presence. By day, he conjures fully functional user applications using cutting-edge AI models; by night, he communes with digital birds for the Czech Ornithological Society. As a proud member of the Ainautes, Pavol traverses the globe, sprinkling generative AI fairy dust wherever he goes. His brainchild, WebGPT, turns mere mortals into web development demigods. In a past life, he birthed Collboard and H-edu, virtual marvels that educated countless Czech younglings. When not channeling the spirits of open-source, Pavol moonlights as a conference sage, competition jury mystic, and mentor to aspiring code wizards. Rumor has it, his GitHub repository is actually a portal to another dimension. At the TypeScript Developers Summit 2025, Pavol will reveal the secrets of the universe, or at least how to use TypeScript with the latest AI models - whichever comes first."
                         }
                     ],
                     "stop_reason": "end_turn",
                     "stop_sequence": null,
                     "usage": {
                         "input_tokens": 527,
-                        "output_tokens": 285
+                        "output_tokens": 248
                     }
                 }
             }

@@ -4,11 +4,11 @@ Show how to use knowledge
 
 -   PIPELINE URL https://promptbook.studio/samples/simple-knowledge.ptbk.md
 -   PROMPTBOOK VERSION 0.69.0-4 _(requested 1.0.0)_
--   STARTED AT 2024-09-03 17:14:19
--   COMPLETED AT 2024-09-03 17:14:28
--   TOTAL DURATION 8 seconds
--   TOTAL LLM DURATION 8 seconds
--   TOTAL COST $0.00586
+-   STARTED AT 2024-09-03 18:38:22
+-   COMPLETED AT 2024-09-03 18:38:27
+-   TOTAL DURATION 5 seconds
+-   TOTAL LLM DURATION 5 seconds
+-   TOTAL COST $0.0053
 
 ## 🗃 Index
 
@@ -20,7 +20,7 @@ Show how to use knowledge
 | ----------- | ------------------------------------ |
 | Writing bio | ████████████████████████████████████ |
 
-_Note: Each █ represents 0.232 seconds, width of timeline is 8.35 seconds = 36 squares_
+_Note: Each █ represents 0.1373 seconds, width of timeline is 4.94 seconds = 36 squares_
 
 ## 💸 Cost chart
 
@@ -31,7 +31,7 @@ _Note: Each █ represents -Infinity USD, width of cost is -Infinity USD = 36 sq
 
 ## Writing bio
 
--   DURATION 8 seconds
+-   DURATION 5 seconds
 -   COST UNKNOWN
 
 ### Prompt
@@ -74,5 +74,5 @@ Pavol is a developer who is passionate about using new tools and technologies, s
 ### Result
 
 ```
-Pavol Hejný, the AI whisperer and TypeScript wizard, is set to dazzle attendees at the TypeScript developers summit 2025. When he's not busy teaching birds to code in TypeScript, Pavol spends his days crafting mind-bending user applications that make AI models question their own existence. As a proud member of the Ainautes consulting group, he travels the world, leaving a trail of awestruck developers and slightly confused AI assistants in his wake. Pavol's latest brainchild, WebGPT, is rumored to be so advanced that it can generate entire websites faster than you can say "npm install." Before embracing the AI revolution, he created Collboard and H-edu, proving that even Czech children could outsmart virtual whiteboards. When he's not busy saving the world one line of TypeScript at a time, Pavol can be found judging coding competitions with an iron fist and a twinkle in his eye. His GitHub is a treasure trove of open-source wonders, each project more perplexing than the last. At the summit, Pavol plans to unveil his latest creation: a TypeScript-powered AI that can predict the future of JavaScript frameworks, much to the chagrin of framework developers everywhere.
+Pavol Hejný, the AI whisperer and TypeScript sorcerer, graces the TypeScript Developers Summit 2025 with his enigmatic presence. By day, he conjures fully functional user applications using cutting-edge AI models; by night, he communes with digital birds for the Czech Ornithological Society. As a proud member of the Ainautes, Pavol traverses the globe, sprinkling generative AI fairy dust wherever he goes. His brainchild, WebGPT, turns mere mortals into web development demigods. In a past life, he birthed Collboard and H-edu, virtual marvels that educated countless Czech younglings. When not channeling the spirits of open-source, Pavol moonlights as a conference sage, competition jury mystic, and mentor to aspiring code wizards. Rumor has it, his GitHub repository is actually a portal to another dimension. At the TypeScript Developers Summit 2025, Pavol will reveal the secrets of the universe, or at least how to use TypeScript with the latest AI models - whichever comes first.
 ```

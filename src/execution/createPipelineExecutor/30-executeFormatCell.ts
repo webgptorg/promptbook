@@ -30,6 +30,6 @@ type ExecuteFormatCellOptions = {
  *
  * @private internal utility of `createPipelineExecutor`
  */
-export function executeFormatCell(options: ExecuteFormatCellOptions): TODO_any {
+export async function executeFormatCell(options: ExecuteFormatCellOptions): TODO_any {
     const { preparedPipeline, template, pipelineIdentification } = options;
 }

@@ -30,6 +30,6 @@ type ExecuteAttemptOptions = {
  *
  * @private internal utility of `createPipelineExecutor`
  */
-export function executeAttempt(options: ExecuteAttemptOptions): TODO_any {
+export async function executeAttempt(options: ExecuteAttemptOptions): TODO_any {
     const { preparedPipeline, template, pipelineIdentification } = options;
 }

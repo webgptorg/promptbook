@@ -1,1 +1,12 @@
-TODO: !!!!!! Annotate all subfunctions and add> @private internal function of `createPipelineExecutor`
+TODO: [🤹‍♂️] Make some smarter system for limiting concurrent executions MAX_PARALLEL_TOTAL, MAX_PARALLEL_PER_LLM
+TODO: !!! Identify not only pipeline BUT exact template ${block(pipelineIdentification)}
+TODO: Use isVerbose here (not only pass to `preparePipeline`)
+TODO: [🧠][🌳] Use here `countTotalUsage` and put preparation and prepared pipiline to report
+TODO: [🪂] Use maxParallelCount here (not only pass to `preparePipeline`)
+TODO: [♈] Probbably move expectations from templates to parameters
+TODO: [🧠] When not meet expectations in DIALOG_TEMPLATE, make some way to tell the user
+TODO: [👧] Strongly type the executors to avoid need of remove nullables whtn noUncheckedIndexedAccess in tsconfig.json
+Note: CreatePipelineExecutorOptions are just connected to PipelineExecutor so do not extract to types folder
+TODO: [🧠][🍸] transparent = (report intermediate parameters) / opaque execution = (report only output parameters) progress reporting mode
+TODO: [🛠] Actions, instruments (and maybe knowledge) => Functions and tools
+TODO: [🧠][💷] `assertsExecutionSuccessful` should be the method of `PipelineExecutor` result BUT maybe NOT to preserve pure JSON object

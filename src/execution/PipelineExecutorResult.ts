@@ -1,7 +1,8 @@
-import type { ExecutionReportJson } from '../types/execution-report/ExecutionReportJson';
-import type { Parameters } from '../types/typeAliases';
-import type { PipelineJson } from '../types/PipelineJson/PipelineJson';
+import { ReadonlyDeep } from 'type-fest';
 import type { ErrorJson } from '../errors/utils/ErrorJson';
+import type { ExecutionReportJson } from '../types/execution-report/ExecutionReportJson';
+import type { PipelineJson } from '../types/PipelineJson/PipelineJson';
+import type { Parameters } from '../types/typeAliases';
 import type { PromptResultUsage } from './PromptResultUsage';
 
 /**
@@ -48,10 +49,11 @@ export type PipelineExecutorResult = {
      * Note: If you called `createPipelineExecutor` with fully prepared pipeline, this is the same object as this pipeline
      *       If you passed not fully prepared pipeline, this is same pipeline but fully prepared
      */
-    readonly preparedPipeline: PipelineJson;
+    readonly preparedPipeline: ReadonlyDeep<PipelineJson>;
 };
 
 /**
+ * TODO: !!!!!! Maybe add ReadonlyDeep< to all
  * TODO: [🧠] Should this file be in /execution or /types folder?
  * TODO: [🧠] Maybe constrain `ErrorJson` -> `ErrorJson & { name: 'PipelineExecutionError' | 'Error' }`
  */
