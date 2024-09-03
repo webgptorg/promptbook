@@ -16,18 +16,29 @@ import { getSamplesForTemplate } from './getSamplesForTemplate';
 /**
  * @@@
  *
- * @private @@@
+ * @private internal type of `getReservedParametersForTemplate`
  */
 type GetReservedParametersForTemplateOptions = {
+    /**
+     * @@@
+     */
     preparedPipeline: ReadonlyDeep<PipelineJson>;
+
+    /**
+     * @@@
+     */
     template: ReadonlyDeep<TemplateJson>;
+
+    /**
+     * @@@
+     */
     pipelineIdentification: string;
 };
 
 /**
  * @@@
  *
- * @private @@@
+ * @private internal utility of `createPipelineExecutor`
  */
 export async function getReservedParametersForTemplate(
     options: GetReservedParametersForTemplateOptions,

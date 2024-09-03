@@ -30,6 +30,8 @@ import { getReservedParametersForTemplate } from './getReservedParametersForTemp
 
 /**
  * @@@
+ *
+ * @private internal type of `executeTemplate`
  */
 type executeSingleTemplateOptions = {
     /**
@@ -81,7 +83,7 @@ type executeSingleTemplateOptions = {
 /**
  * @@@
  *
- * @private @@@
+ * @private internal utility of `createPipelineExecutor`
  */
 export async function executeTemplate(options: executeSingleTemplateOptions): Promise<Readonly<Parameters>> {
     const {

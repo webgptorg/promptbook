@@ -7,17 +7,24 @@ import { TODO_USE } from '../../utils/organization/TODO_USE';
 /**
  * @@@
  *
- * @private @@@
+ * @private internal type of `getKnowledgeForTemplate`
  */
 type GetKnowledgeForTemplateOptions = {
+    /**
+     * @@@
+     */
     preparedPipeline: ReadonlyDeep<PipelineJson>;
+
+    /**
+     * @@@
+     */
     template: ReadonlyDeep<TemplateJson>;
 };
 
 /**
  * @@@
  *
- * @private @@@
+ * @private internal utility of `createPipelineExecutor`
  */
 export async function getKnowledgeForTemplate(
     options: GetKnowledgeForTemplateOptions,

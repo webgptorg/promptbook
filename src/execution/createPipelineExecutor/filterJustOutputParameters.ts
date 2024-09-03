@@ -7,24 +7,36 @@ import type { Parameters } from '../../types/typeAliases';
 /**
  * @@@
  *
- * @private @@@
+ * @private internal type of `createPipelineExecutor`
  */
 type FilterJustOutputParametersOptions = {
+    /**
+     * @@@
+     */
+    preparedPipeline: ReadonlyDeep<PipelineJson>;
 
-  preparedPipeline: ReadonlyDeep<PipelineJson>,
-  parametersToPass: Readonly<Parameters>,
-  $warnings: PipelineExecutionError[],
-  pipelineIdentification: string,
+    /**
+     * @@@
+     */
+    parametersToPass: Readonly<Parameters>;
+
+    /**
+     * @@@
+     */
+    $warnings: PipelineExecutionError[];
+
+    /**
+     * @@@
+     */
+    pipelineIdentification: string;
 };
 
 /**
  * @@@
  *
- * @private @@@
+ * @private internal utility of `createPipelineExecutor`
  */
-export function filterJustOutputParameters(
-  options:FilterJustOutputParametersOptions
-): Parameters {
+export function filterJustOutputParameters(options: FilterJustOutputParametersOptions): Parameters {
     const { preparedPipeline, parametersToPass, $warnings, pipelineIdentification } = options;
 
     const outputParameters: Parameters = {};

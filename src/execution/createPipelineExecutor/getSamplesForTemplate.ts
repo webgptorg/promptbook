@@ -7,7 +7,7 @@ import { TODO_USE } from '../../utils/organization/TODO_USE';
 /**
  * @@@
  *
- * @private @@@
+ * @private internal utility of `createPipelineExecutor`
  */
 export async function getSamplesForTemplate(
     template: ReadonlyDeep<TemplateJson>,
