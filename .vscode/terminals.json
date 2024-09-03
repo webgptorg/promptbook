@@ -118,12 +118,6 @@
             "focus": true
         },
         {
-            "name": "🧸 Playground for createPipelineExecutor (💸)",
-            "command": "npx ts-node ./src/execution/createPipelineExecutor/playground/playground.ts",
-            "onlySingle": true,
-            "focus": true
-        },
-        {
             "name": "🧸 OpenAI playground (💸)",
             "command": "npx ts-node ./src/llm-providers/openai/playground/playground.ts",
             "onlySingle": true,
