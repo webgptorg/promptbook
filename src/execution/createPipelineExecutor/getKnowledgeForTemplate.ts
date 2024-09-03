@@ -13,12 +13,12 @@ type GetKnowledgeForTemplateOptions = {
     /**
      * @@@
      */
-    preparedPipeline: ReadonlyDeep<PipelineJson>;
+    readonly preparedPipeline: ReadonlyDeep<PipelineJson>;
 
     /**
      * @@@
      */
-    template: ReadonlyDeep<TemplateJson>;
+    readonly template: ReadonlyDeep<TemplateJson>;
 };
 
 /**

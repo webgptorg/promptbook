@@ -31,37 +31,38 @@ type ExecutePipelineOptions = {
     /**
      * @@@
      */
-    inputParameters: Readonly<Parameters>;
+    readonly inputParameters: Readonly<Parameters>;
 
     /**
      * @@@
      */
-    tools: ExecutionTools;
+    readonly tools: ExecutionTools;
 
     /**
      * @@@
      */
-    onProgress?: (taskProgress: TaskProgress) => Promisable<void>;
+    readonly onProgress?: (taskProgress: TaskProgress) => Promisable<void>;
+    // <- TODO: !!!!!! ACRY notation of onProgress - function or value
 
     /**
      * @@@
      */
-    pipeline: PipelineJson;
+    readonly pipeline: PipelineJson;
 
     /**
      * @@@
      */
-    preparedPipeline: ReadonlyDeep<PipelineJson>;
+    readonly preparedPipeline: ReadonlyDeep<PipelineJson>;
 
     /**
      * @@@
      */
-    setPreparedPipeline: (preparedPipeline: ReadonlyDeep<PipelineJson>) => void;
+    readonly setPreparedPipeline: (preparedPipeline: ReadonlyDeep<PipelineJson>) => void;
 
     /**
      * @@@
      */
-    pipelineIdentification: string;
+    readonly pipelineIdentification: string;
 
     /**
      * Settings for the pipeline executor

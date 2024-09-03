@@ -13,22 +13,22 @@ type FilterJustOutputParametersOptions = {
     /**
      * @@@
      */
-    preparedPipeline: ReadonlyDeep<PipelineJson>;
+    readonly preparedPipeline: ReadonlyDeep<PipelineJson>;
 
     /**
      * @@@
      */
-    parametersToPass: Readonly<Parameters>;
+    readonly parametersToPass: Readonly<Parameters>;
 
     /**
      * @@@
      */
-    $warnings: PipelineExecutionError[];
+    readonly $warnings: PipelineExecutionError[];
 
     /**
      * @@@
      */
-    pipelineIdentification: string;
+    readonly pipelineIdentification: string;
 };
 
 /**

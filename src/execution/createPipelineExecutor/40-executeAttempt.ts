@@ -12,17 +12,17 @@ type ExecuteAttemptOptions = {
     /**
      * @@@
      */
-    preparedPipeline: ReadonlyDeep<PipelineJson>;
+    readonly preparedPipeline: ReadonlyDeep<PipelineJson>;
 
     /**
      * @@@
      */
-    template: ReadonlyDeep<TemplateJson>;
+    readonly template: ReadonlyDeep<TemplateJson>;
 
     /**
      * @@@
      */
-    pipelineIdentification: string;
+    readonly pipelineIdentification: string;
 };
 
 /**

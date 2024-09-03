@@ -38,32 +38,32 @@ type executeSingleTemplateOptions = {
     /**
      * @@@
      */
-    currentTemplate: ReadonlyDeep<TemplateJson>;
+    readonly currentTemplate: ReadonlyDeep<TemplateJson>;
 
     /**
      * @@@
      */
-    preparedPipeline: ReadonlyDeep<PipelineJson>;
+    readonly preparedPipeline: ReadonlyDeep<PipelineJson>;
 
     /**
      * @@@
      */
-    parametersToPass: Readonly<Parameters>;
+    readonly parametersToPass: Readonly<Parameters>;
 
     /**
      * @@@
      */
-    tools: Omit<ExecutionTools, 'llm'>;
+    readonly tools: Omit<ExecutionTools, 'llm'>;
 
     /**
      * @@@
      */
-    llmTools: MultipleLlmExecutionTools;
+    readonly llmTools: MultipleLlmExecutionTools;
 
     /**
      * @@@
      */
-    onProgress: (taskProgress: TaskProgress) => Promisable<void>;
+    readonly onProgress: (taskProgress: TaskProgress) => Promisable<void>;
 
     /**
      * Settings for the pipeline executor
@@ -72,12 +72,12 @@ type executeSingleTemplateOptions = {
     /**
      * @@@
      */
-    $executionReport: ExecutionReportJson;
+    readonly $executionReport: ExecutionReportJson;
 
     /**
      * @@@
      */
-    pipelineIdentification: string;
+    readonly pipelineIdentification: string;
 };
 
 /**
