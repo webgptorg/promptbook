@@ -2,7 +2,7 @@ import PipelineCollection from '../../promptbook-collection/index.json';
 import { createCollectionFromJson } from '../collection/constructors/createCollectionFromJson';
 import { IS_VERBOSE } from '../config';
 import { assertsExecutionSuccessful } from '../execution/assertsExecutionSuccessful';
-import { createPipelineExecutor } from '../execution/createPipelineExecutor/createPipelineExecutor';
+import { createPipelineExecutor } from '../execution/createPipelineExecutor/00-createPipelineExecutor';
 import type { PrepareOptions } from '../prepare/PrepareOptions';
 import type { PersonaPreparedJson } from '../types/PipelineJson/PersonaJson';
 import type { PipelineJson } from '../types/PipelineJson/PipelineJson';

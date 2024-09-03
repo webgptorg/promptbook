@@ -9,7 +9,7 @@ import { join } from 'path';
 import spaceTrim from 'spacetrim';
 import { forTime } from 'waitasecond';
 import { createCollectionFromDirectory } from '../../src/collection/constructors/createCollectionFromDirectory';
-import { createPipelineExecutor } from '../../src/execution/createPipelineExecutor';
+import { createPipelineExecutor } from '../../src/execution/00-createPipelineExecutor';
 import { usageToHuman } from '../../src/execution/utils/usageToHuman';
 import { createLlmToolsFromEnv } from '../../src/llm-providers/_common/createLlmToolsFromEnv';
 import { JavascriptExecutionTools } from '../../src/scripting/javascript/JavascriptExecutionTools';

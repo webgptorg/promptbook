@@ -1,22 +1,26 @@
 #!/usr/bin/env ts-node
 
+/*
+Note: [🔁] In your app you will be importing '../../../src/_packages/core' instead of '../../../src/_packages/core.index.index',...
+*/
+
+import colors from 'colors';
+import * as dotenv from 'dotenv';
+import { writeFile } from 'fs/promises';
+import { forTime } from 'waitasecond';
 import {
     createPipelineExecutor,
     executionReportJsonToString,
     stringifyPipelineJson,
     usageToHuman,
-} from '@promptbook/core';
-import { JavascriptExecutionTools } from '@promptbook/execute-javascript';
-import { createCollectionFromDirectory, createLlmToolsFromEnv } from '@promptbook/node';
-import colors from 'colors';
-import * as dotenv from 'dotenv';
-import { writeFile } from 'fs/promises';
-import { forTime } from 'waitasecond';
+} from '../../../src/_packages/core.index';
+import { JavascriptExecutionTools } from '../../../src/_packages/execute-javascript.index';
+import { createCollectionFromDirectory, createLlmToolsFromEnv } from '../../../src/_packages/node.index';
 
-import '@promptbook/anthropic-claude';
-import '@promptbook/azure-openai';
-import '@promptbook/openai';
 import spaceTrim from 'spacetrim';
+import '../../../src/_packages/anthropic-claude.index';
+import '../../../src/_packages/azure-openai.index';
+import '../../../src/_packages/openai.index';
 
 if (process.cwd().split(/[\\/]/).pop() !== 'promptbook') {
     console.error(colors.red(`CWD must be root of the project`));

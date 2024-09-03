@@ -3,9 +3,9 @@
 import colors from 'colors';
 import * as dotenv from 'dotenv';
 
-import '@promptbook/anthropic-claude';
-import '@promptbook/openai';
-import '@promptbook/azure-openai';
+import '../../../src/_packages/anthropic-claude.index';
+import '../../../src/_packages/azure-openai.index';
+import '../../../src/_packages/openai.index';
 
 if (process.cwd().split(/[\\/]/).pop() !== 'promptbook') {
     console.error(colors.red(`CWD must be root of the project`));
