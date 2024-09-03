@@ -9,12 +9,24 @@ import type { Parameters } from '../../types/typeAliases';
  *
  * @private @@@
  */
+type FilterJustOutputParametersOptions = {
+
+  preparedPipeline: ReadonlyDeep<PipelineJson>,
+  parametersToPass: Readonly<Parameters>,
+  $warnings: PipelineExecutionError[],
+  pipelineIdentification: string,
+};
+
+/**
+ * @@@
+ *
+ * @private @@@
+ */
 export function filterJustOutputParameters(
-    preparedPipeline: ReadonlyDeep<PipelineJson>,
-    parametersToPass: Readonly<Parameters>,
-    $warnings: PipelineExecutionError[],
-    pipelineIdentification: string,
+  options:FilterJustOutputParametersOptions
 ): Parameters {
+    const { preparedPipeline, parametersToPass, $warnings, pipelineIdentification } = options;
+
     const outputParameters: Parameters = {};
 
     // Note: Filter ONLY output parameters

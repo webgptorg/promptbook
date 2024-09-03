@@ -144,7 +144,11 @@ export async function executeTemplate(options: executeSingleTemplateOptions): Pr
     }
 
     const definedParameters: Parameters = Object.freeze({
-        ...(await getReservedParametersForTemplate(preparedPipeline, currentTemplate, pipelineIdentification)),
+        ...(await getReservedParametersForTemplate({
+            preparedPipeline,
+            template: currentTemplate,
+            pipelineIdentification,
+        })),
         ...parametersToPass,
     });
 

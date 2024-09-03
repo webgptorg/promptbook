@@ -330,12 +330,12 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
             );
 
             // Note: Making this on separate line before `return` to grab errors [4]
-            const outputParameters = filterJustOutputParameters(
+            const outputParameters = filterJustOutputParameters({
                 preparedPipeline,
                 parametersToPass,
-                warnings,
+                $warnings: warnings,
                 pipelineIdentification,
-            );
+            });
 
             isReturned = true;
 
@@ -362,12 +362,12 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
         const usage = addUsage(...executionReport.promptExecutions.map(({ result }) => result?.usage || ZERO_USAGE));
 
         // Note:  Making this on separate line before `return` to grab errors [4]
-        const outputParameters = filterJustOutputParameters(
+        const outputParameters = filterJustOutputParameters({
             preparedPipeline,
             parametersToPass,
-            warnings,
+            $warnings: warnings,
             pipelineIdentification,
-        );
+        });
 
         isReturned = true;
 

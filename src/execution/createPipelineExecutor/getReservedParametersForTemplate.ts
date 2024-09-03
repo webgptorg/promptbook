@@ -18,13 +18,24 @@ import { getSamplesForTemplate } from './getSamplesForTemplate';
  *
  * @private @@@
  */
+type GetReservedParametersForTemplateOptions = {
+    preparedPipeline: ReadonlyDeep<PipelineJson>;
+    template: ReadonlyDeep<TemplateJson>;
+    pipelineIdentification: string;
+};
+
+/**
+ * @@@
+ *
+ * @private @@@
+ */
 export async function getReservedParametersForTemplate(
-    preparedPipeline: ReadonlyDeep<PipelineJson>,
-    template: ReadonlyDeep<TemplateJson>,
-    pipelineIdentification: string,
+    options: GetReservedParametersForTemplateOptions,
 ): Promise<Readonly<ReservedParameters>> {
+    const { preparedPipeline, template, pipelineIdentification } = options;
+
     const context = await getContextForTemplate(template); // <- [🏍]
-    const knowledge = await getKnowledgeForTemplate(preparedPipeline, template);
+    const knowledge = await getKnowledgeForTemplate({ preparedPipeline, template });
     const samples = await getSamplesForTemplate(template);
     const currentDate = new Date().toISOString(); // <- TODO: [🧠] Better
     const modelName = RESERVED_PARAMETER_MISSING_VALUE;

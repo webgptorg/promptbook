@@ -9,10 +9,21 @@ import { TODO_USE } from '../../utils/organization/TODO_USE';
  *
  * @private @@@
  */
+type GetKnowledgeForTemplateOptions = {
+    preparedPipeline: ReadonlyDeep<PipelineJson>;
+    template: ReadonlyDeep<TemplateJson>;
+};
+
+/**
+ * @@@
+ *
+ * @private @@@
+ */
 export async function getKnowledgeForTemplate(
-    preparedPipeline: ReadonlyDeep<PipelineJson>,
-    template: ReadonlyDeep<TemplateJson>,
+    options: GetKnowledgeForTemplateOptions,
 ): Promise<string_parameter_value & string_markdown> {
+    const { preparedPipeline, template } = options;
+
     // TODO: [♨] Implement Better - use real index and keyword search from `template` and {samples}
 
     TODO_USE(template);
