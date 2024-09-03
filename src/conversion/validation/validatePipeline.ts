@@ -1,14 +1,11 @@
 import { spaceTrim } from 'spacetrim';
-import { IS_PIPELINE_LOGIC_VALIDATED } from '../../config';
-import { LOOP_LIMIT } from '../../config';
-import { RESERVED_PARAMETER_NAMES } from '../../config';
+import { IS_PIPELINE_LOGIC_VALIDATED, LOOP_LIMIT, RESERVED_PARAMETER_NAMES } from '../../config';
 import { ParseError } from '../../errors/ParseError';
 import { PipelineLogicError } from '../../errors/PipelineLogicError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import type { TemplateJson } from '../../types/PipelineJson/TemplateJson';
-import type { string_name } from '../../types/typeAliases';
-import type { string_reserved_parameter_name } from '../../types/typeAliases';
+import type { string_name, string_reserved_parameter_name } from '../../types/typeAliases';
 import { isValidPromptbookVersion } from '../../utils/validators/semanticVersion/isValidPromptbookVersion';
 import { isValidPipelineUrl } from '../../utils/validators/url/isValidPipelineUrl';
 
@@ -109,9 +106,9 @@ export function validatePipelineCore(pipeline: PipelineJson): void {
         throw new ParseError(
             spaceTrim(
                 (block) => `
-                    Promptbook is valid JSON but with wrong structure
+                    Pipeline is valid JSON but with wrong structure
 
-                    \`promptbook.parameters\` expected to be an array, but got ${typeof pipeline.parameters}
+                    \`PipelineJson.parameters\` expected to be an array, but got ${typeof pipeline.parameters}
 
                     ${block(pipelineIdentification)}
                 `,
@@ -126,9 +123,9 @@ export function validatePipelineCore(pipeline: PipelineJson): void {
         throw new ParseError(
             spaceTrim(
                 (block) => `
-                    Promptbook is valid JSON but with wrong structure
+                    Pipeline is valid JSON but with wrong structure
 
-                    \`promptbook.templates\` expected to be an array, but got ${typeof pipeline.templates}
+                    \`PipelineJson.templates\` expected to be an array, but got ${typeof pipeline.templates}
 
                     ${block(pipelineIdentification)}
                 `,
