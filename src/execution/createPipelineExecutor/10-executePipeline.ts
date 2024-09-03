@@ -1,5 +1,7 @@
 import type { ReadonlyDeep } from 'type-fest';
-import type { PipelineJson, TemplateJson, TODO_any } from '../../_packages/types.index';
+import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
+import type { TemplateJson } from '../../types/PipelineJson/TemplateJson';
+import type { TODO_any } from '../../utils/organization/TODO_any';
 
 /**
  * @@@

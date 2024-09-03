@@ -9,7 +9,6 @@ import { isValidJsonString } from '../../formats/json/utils/isValidJsonString';
 import { MultipleLlmExecutionTools } from '../../llm-providers/multiple/MultipleLlmExecutionTools';
 import { extractJsonBlock } from '../../postprocessing/utils/extractJsonBlock';
 import type { ExecutionReportJson } from '../../types/execution-report/ExecutionReportJson';
-import type { ModelRequirements } from '../../types/ModelRequirements';
 import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import type { TemplateJson } from '../../types/PipelineJson/TemplateJson';
 import type { ChatPrompt, CompletionPrompt, EmbeddingPrompt, Prompt } from '../../types/Prompt';

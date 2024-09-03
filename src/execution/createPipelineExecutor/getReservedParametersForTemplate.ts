@@ -1,10 +1,6 @@
 import { spaceTrim } from 'spacetrim';
 import type { ReadonlyDeep } from 'type-fest';
-import {
-    RESERVED_PARAMETER_MISSING_VALUE,
-    RESERVED_PARAMETER_NAMES,
-    RESERVED_PARAMETER_RESTRICTED,
-} from '../../config';
+import { RESERVED_PARAMETER_MISSING_VALUE, RESERVED_PARAMETER_NAMES, RESERVED_PARAMETER_RESTRICTED } from '../../config';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import type { TemplateJson } from '../../types/PipelineJson/TemplateJson';

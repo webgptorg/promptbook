@@ -1,14 +1,7 @@
 import { spaceTrim } from 'spacetrim';
 import type { Promisable } from 'type-fest';
 import { forTime } from 'waitasecond';
-import {
-    IMMEDIATE_TIME,
-    IS_VERBOSE,
-    LOOP_LIMIT,
-    MAX_EXECUTION_ATTEMPTS,
-    MAX_PARALLEL_COUNT,
-    RESERVED_PARAMETER_NAMES,
-} from '../../config';
+import { IMMEDIATE_TIME, IS_VERBOSE, LOOP_LIMIT, MAX_EXECUTION_ATTEMPTS, MAX_PARALLEL_COUNT, RESERVED_PARAMETER_NAMES } from '../../config';
 import { validatePipeline } from '../../conversion/validation/validatePipeline';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
