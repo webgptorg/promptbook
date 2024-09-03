@@ -1,5 +1,9 @@
 #!/usr/bin/env ts-node
 
+/*
+Note: [🔁] In your app you will be importing '../../../src/_packages/core' instead of '../../../src/_packages/core.index.index',...
+*/
+
 import colors from 'colors';
 import * as dotenv from 'dotenv';
 

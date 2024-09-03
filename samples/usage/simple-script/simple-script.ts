@@ -17,7 +17,6 @@ import {
 import { JavascriptExecutionTools } from '../../../src/_packages/execute-javascript.index';
 import { createCollectionFromDirectory, createLlmToolsFromEnv } from '../../../src/_packages/node.index';
 
-import spaceTrim from 'spacetrim';
 import '../../../src/_packages/anthropic-claude.index';
 import '../../../src/_packages/azure-openai.index';
 import '../../../src/_packages/openai.index';
@@ -54,8 +53,8 @@ async function main() {
     // @see https://nodejs.org/en/learn/command-line/accept-input-from-the-command-line-in-nodejs
 
     const pipeline = await collection.getPipelineByUrl(
-        `https://promptbook.studio/samples/foreach-list.ptbk.md`,
-        // `https://promptbook.studio/samples/simple-knowledge.ptbk.md`,
+        // `https://promptbook.studio/samples/foreach-list.ptbk.md`,
+        `https://promptbook.studio/samples/simple-knowledge.ptbk.md`,
         // `https://promptbook.studio/samples/simple.ptbk.md`,
         // `https://promptbook.studio/samples/language-capabilities.ptbk.md`,
     );
@@ -81,12 +80,20 @@ async function main() {
     const pipelineExecutor = createPipelineExecutor({ pipeline, tools });
 
     const inputParameters = {
+        /*/
+        // https://promptbook.studio/samples/foreach-list.ptbk.md
         customers: spaceTrim(`
             Paul
             George
             Kate
         `),
-        //eventTitle: 'TypeScript developers summit 2025',
+        /**/
+        /**/
+        // https://promptbook.studio/samples/simple-knowledge.ptbk.md
+        eventTitle: 'TypeScript developers summit 2025',
+        eventDescription: 'The best event for TypeScript developers in 2025',
+        rules: 'No rules, be extra creative',
+        /**/
     };
     const { isSuccessful, errors, warnings, outputParameters, executionReport, usage } = await pipelineExecutor(
         inputParameters,
@@ -105,7 +112,6 @@ async function main() {
     );
 
     const executionReportString = executionReportJsonToString(executionReport);
-    // TODO: !!! Unhardcode 50-advanced
     await writeFile(
         pipeline.sourceFile.split('.ptbk.md').join('.report.md').split('.ptbk.json').join('.report.md'),
         //                  <- TODO: [0] More elegant way to replace extension
@@ -125,9 +131,10 @@ async function main() {
 
     console.info(colors.cyan(usageToHuman(usage /* <- TODO: [🌳] Compare with `llmTools.getTotalUsage()` */)));
 
-    const { bio } = outputParameters;
+    for (const [key, value] of Object.entries(outputParameters)) {
+        console.info(colors.bgGreen(key), colors.green(value));
+    }
 
-    console.info(colors.green(bio));
     process.exit(isSuccessful ? 0 : 1);
 }
 
