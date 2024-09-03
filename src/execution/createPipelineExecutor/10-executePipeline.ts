@@ -6,9 +6,9 @@ import type { TODO_any } from '../../utils/organization/TODO_any';
 /**
  * @@@
  *
- * @private internal type of `Xxxxx`
+ * @private internal type of `executePipelinex`
  */
-type XxxxOptions = {
+type ExecutePipelineOptions = {
     /**
      * @@@
      */
@@ -30,6 +30,6 @@ type XxxxOptions = {
  *
  * @private internal utility of `createPipelineExecutor`
  */
-export function Xxxxx(options: XxxxOptions): TODO_any {
+export function executePipeline(options: ExecutePipelineOptions): TODO_any {
     const { preparedPipeline, template, pipelineIdentification } = options;
 }

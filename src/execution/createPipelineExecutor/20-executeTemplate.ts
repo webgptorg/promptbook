@@ -26,6 +26,7 @@ import type { ExecutionTools } from '../ExecutionTools';
 import type { ChatPromptResult, CompletionPromptResult, EmbeddingPromptResult, PromptResult } from '../PromptResult';
 import { checkExpectations } from '../utils/checkExpectations';
 import { getReservedParametersForTemplate } from './getReservedParametersForTemplate';
+import { ModelRequirements } from '../../types/ModelRequirements';
 
 /**
  * @@@
