@@ -27,8 +27,8 @@ import { PROMPTBOOK_VERSION } from '../../version';
 import type { PipelineExecutor } from '../PipelineExecutor';
 import type { PipelineExecutorResult } from '../PipelineExecutorResult';
 import { addUsage, ZERO_USAGE } from '../utils/addUsage';
-import type { CreatePipelineExecutorOptions } from './CreatePipelineExecutorOptions';
-import { executeTemplate } from './executeTemplate';
+import type { CreatePipelineExecutorOptions } from './00-CreatePipelineExecutorOptions';
+import { executeTemplate } from './20-executeTemplate';
 import { filterJustOutputParameters } from './filterJustOutputParameters';
 
 /**
