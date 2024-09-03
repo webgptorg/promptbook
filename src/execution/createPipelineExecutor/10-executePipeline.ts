@@ -291,7 +291,7 @@ export async function executePipeline(options: ExecutePipelineOptions): Promise<
                             onProgress(progress);
                         }
                     },
-                    maxExecutionAttempts,
+                    settings,
                     $executionReport: executionReport,
                     pipelineIdentification,
                 })
