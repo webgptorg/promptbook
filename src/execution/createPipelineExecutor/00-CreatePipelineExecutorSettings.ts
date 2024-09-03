@@ -4,21 +4,21 @@ export type CreatePipelineExecutorSettings = {
      *
      * @default MAX_EXECUTION_ATTEMPTS
      */
-    readonly maxExecutionAttempts?: number;
+    readonly maxExecutionAttempts: number;
 
     /**
      * Maximum number of tasks running in parallel
      *
      * @default MAX_PARALLEL_COUNT
      */
-    readonly maxParallelCount?: number;
+    readonly maxParallelCount: number;
 
     /**
      * If true, the preparation logs additional information
      *
      * @default false
      */
-    readonly isVerbose?: boolean;
+    readonly isVerbose: boolean;
 
     /**
      * If you pass fully prepared pipeline, this does not matter
@@ -29,5 +29,5 @@ export type CreatePipelineExecutorSettings = {
      *
      * @default false
      */
-    readonly isNotPreparedWarningSupressed?: boolean;
+    readonly isNotPreparedWarningSupressed: boolean;
 };

@@ -3,14 +3,7 @@ import type { Promisable, ReadonlyDeep } from 'type-fest';
 import { forTime } from 'waitasecond';
 import { joinLlmExecutionTools } from '../../_packages/core.index';
 import { CreatePipelineExecutorSettings } from '../../_packages/types.index';
-import {
-    IMMEDIATE_TIME,
-    IS_VERBOSE,
-    LOOP_LIMIT,
-    MAX_EXECUTION_ATTEMPTS,
-    MAX_PARALLEL_COUNT,
-    RESERVED_PARAMETER_NAMES,
-} from '../../config';
+import { IMMEDIATE_TIME, LOOP_LIMIT, RESERVED_PARAMETER_NAMES } from '../../config';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import { serializeError } from '../../errors/utils/serializeError';
@@ -71,9 +64,9 @@ type ExecutePipelineOptions = {
     pipelineIdentification: string;
 
     /**
-     * Optional settings for the pipeline executor
+     * Settings for the pipeline executor
      */
-    readonly settings?: Partial<CreatePipelineExecutorSettings>;
+    readonly settings: CreatePipelineExecutorSettings;
 };
 
 /**
@@ -84,20 +77,9 @@ type ExecutePipelineOptions = {
  * @private internal utility of `createPipelineExecutor`
  */
 export async function executePipeline(options: ExecutePipelineOptions): Promise<PipelineExecutorResult> {
-    const {
-        inputParameters,
-        tools,
-        onProgress,
-        pipeline,
-        setPreparedPipeline,
-        pipelineIdentification,
-        settings = {},
-    } = options;
-    const {
-        maxExecutionAttempts = MAX_EXECUTION_ATTEMPTS,
-        maxParallelCount = MAX_PARALLEL_COUNT,
-        isVerbose = IS_VERBOSE,
-    } = settings;
+    const { inputParameters, tools, onProgress, pipeline, setPreparedPipeline, pipelineIdentification, settings } =
+        options;
+    const { maxExecutionAttempts, maxParallelCount, isVerbose } = settings;
     let { preparedPipeline } = options;
 
     const llmTools = joinLlmExecutionTools(...arrayableToArray(tools.llm));

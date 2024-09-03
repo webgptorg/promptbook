@@ -9,6 +9,7 @@ import { isValidJsonString } from '../../formats/json/utils/isValidJsonString';
 import { MultipleLlmExecutionTools } from '../../llm-providers/multiple/MultipleLlmExecutionTools';
 import { extractJsonBlock } from '../../postprocessing/utils/extractJsonBlock';
 import type { ExecutionReportJson } from '../../types/execution-report/ExecutionReportJson';
+import { ModelRequirements } from '../../types/ModelRequirements';
 import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import type { TemplateJson } from '../../types/PipelineJson/TemplateJson';
 import type { ChatPrompt, CompletionPrompt, EmbeddingPrompt, Prompt } from '../../types/Prompt';
@@ -25,8 +26,8 @@ import { union } from '../../utils/sets/union';
 import type { ExecutionTools } from '../ExecutionTools';
 import type { ChatPromptResult, CompletionPromptResult, EmbeddingPromptResult, PromptResult } from '../PromptResult';
 import { checkExpectations } from '../utils/checkExpectations';
+import { CreatePipelineExecutorSettings } from './00-CreatePipelineExecutorSettings';
 import { getReservedParametersForTemplate } from './getReservedParametersForTemplate';
-import { ModelRequirements } from '../../types/ModelRequirements';
 
 /**
  * @@@
@@ -65,10 +66,9 @@ type executeSingleTemplateOptions = {
     onProgress: (taskProgress: TaskProgress) => Promisable<void>;
 
     /**
-     * @@@
+     * Settings for the pipeline executor
      */
-    maxExecutionAttempts: number;
-
+    readonly settings: CreatePipelineExecutorSettings;
     /**
      * @@@
      */
@@ -93,10 +93,11 @@ export async function executeTemplate(options: executeSingleTemplateOptions): Pr
         tools,
         llmTools,
         onProgress,
-        maxExecutionAttempts,
+        settings,
         $executionReport,
         pipelineIdentification,
     } = options;
+    const { maxExecutionAttempts } = settings;
 
     const name = `pipeline-executor-frame-${currentTemplate.name}`;
     const title = currentTemplate.title;

@@ -1,5 +1,6 @@
 import { spaceTrim } from 'spacetrim';
 import type { Promisable, ReadonlyDeep } from 'type-fest';
+import { IS_VERBOSE, MAX_EXECUTION_ATTEMPTS, MAX_PARALLEL_COUNT } from '../../config';
 import { validatePipeline } from '../../conversion/validation/validatePipeline';
 import { isPipelinePrepared } from '../../prepare/isPipelinePrepared';
 import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
@@ -19,7 +20,12 @@ import { executePipeline } from './10-executePipeline';
  */
 export function createPipelineExecutor(options: CreatePipelineExecutorOptions): PipelineExecutor {
     const { pipeline, tools, settings = {} } = options;
-    const { isNotPreparedWarningSupressed = false } = settings;
+    const {
+        maxExecutionAttempts = MAX_EXECUTION_ATTEMPTS,
+        maxParallelCount = MAX_PARALLEL_COUNT,
+        isVerbose = IS_VERBOSE,
+        isNotPreparedWarningSupressed = false,
+    } = settings;
 
     validatePipeline(pipeline);
 
@@ -73,10 +79,14 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
             tools,
             onProgress,
             pipelineIdentification,
-            settings,
+            settings: {
+                maxExecutionAttempts,
+                maxParallelCount,
+                isVerbose,
+                isNotPreparedWarningSupressed,
+            },
         });
     };
 
     return pipelineExecutor;
 }
-
