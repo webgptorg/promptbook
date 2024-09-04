@@ -24,7 +24,7 @@ But often you will struggle with the limitations of LLMs, such as hallucinations
 
 1. **Fine-tune** the model to your specifications or even train your own.
 2. **Prompt-engineer** the prompt to the best shape you can achieve.
-3. Use **multiple prompts** in a [pipeline](https://github.com/webgptorg/promptbook/discussions/64) to get the best result.
+3. Orchestrate **multiple prompts** in a [pipeline](https://github.com/webgptorg/promptbook/discussions/64) to get the best result.
 
 In all of these situations, but especially in 3., the Promptbook library can make your life easier.
 
