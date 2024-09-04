@@ -353,6 +353,8 @@ The following glossary is used to clarify certain concepts:
 -   When you want to **version** your prompts and **test multiple versions**
 -   When you want to **log** the execution of prompts and backtrace the issues
 
+[See more](https://github.com/webgptorg/promptbook/discussions/111)
+
 ### ➖ When not to use
 
 -   When you have already implemented single simple prompt and it works fine for your job
@@ -361,6 +363,8 @@ The following glossary is used to clarify certain concepts:
 -   When you need to use something other than JavaScript or TypeScript _(other languages are on the way, [see the discussion](https://github.com/webgptorg/promptbook/discussions/101))_
 -   When your main focus is on something other than text - like images, audio, video, spreadsheets _(other media types may be added in the future, [see discussion](https://github.com/webgptorg/promptbook/discussions/103))_
 -   When you need to use recursion _([see the discussion](https://github.com/webgptorg/promptbook/discussions/38))_
+
+[See more](https://github.com/webgptorg/promptbook/discussions/112)
 
 ## 🐜 Known issues
 
