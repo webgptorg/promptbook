@@ -11,7 +11,7 @@ import type { Parameters } from '../../types/typeAliases';
 import { difference } from '../../utils/sets/difference';
 import { union } from '../../utils/sets/union';
 import type { ExecutionTools } from '../ExecutionTools';
-import { $OngoingTemplateResult } from './$OngoingTemplateResult';
+import type { $OngoingTemplateResult } from './$OngoingTemplateResult';
 import type { CreatePipelineExecutorSettings } from './00-CreatePipelineExecutorSettings';
 import { executeFormatCells } from './30-executeFormatCells';
 import { getReservedParametersForTemplate } from './getReservedParametersForTemplate';

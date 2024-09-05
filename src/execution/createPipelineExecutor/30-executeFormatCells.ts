@@ -1,6 +1,7 @@
 import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
 import type { TODO_any } from '../../utils/organization/TODO_any';
-import { executeAttempts, ExecuteAttemptsOptions } from './40-executeAttempts';
+import { executeAttempts } from './40-executeAttempts';
+import type { ExecuteAttemptsOptions } from './40-executeAttempts';
 
 /**
  * @@@
