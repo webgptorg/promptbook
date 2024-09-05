@@ -34,6 +34,7 @@ import type { PromptResult } from '../PromptResult';
 import { checkExpectations } from '../utils/checkExpectations';
 import type { CreatePipelineExecutorSettings } from './00-CreatePipelineExecutorSettings';
 import { getReservedParametersForTemplate } from './getReservedParametersForTemplate';
+import { $OngoingTemplateResult } from './$OngoingTemplateResult';
 
 /**
  * @@@
@@ -197,18 +198,7 @@ export async function executeTemplate(options: executeSingleTemplateOptions): Pr
     // Note: Now we can freeze `parameters` because we are sure that all and only used parameters are defined and are not going to be changed
     Object.freeze(parameters);
 
-    const $ongoingResult: {
-        $prompt?: Prompt;
-        $chatResult?: ChatPromptResult;
-        $completionResult?: CompletionPromptResult;
-        $embeddingResult?: EmbeddingPromptResult;
-        //  <- Note: [🤖]
-
-        $result: PromptResult | null;
-        $resultString: string | null;
-        $expectError: ExpectError | null;
-        $scriptPipelineExecutionErrors: Array<Error>;
-    } = {
+    const $ongoingResult: $OngoingTemplateResult = {
         $result: null,
         $resultString: null,
         $expectError: null,
