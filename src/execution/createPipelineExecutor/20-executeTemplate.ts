@@ -12,10 +12,7 @@ import type { ExecutionReportJson } from '../../types/execution-report/Execution
 import type { ModelRequirements } from '../../types/ModelRequirements';
 import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import type { TemplateJson } from '../../types/PipelineJson/TemplateJson';
-import type { ChatPrompt } from '../../types/Prompt';
-import type { CompletionPrompt } from '../../types/Prompt';
-import type { EmbeddingPrompt } from '../../types/Prompt';
-import type { Prompt } from '../../types/Prompt';
+import type { ChatPrompt, CompletionPrompt, EmbeddingPrompt, Prompt } from '../../types/Prompt';
 import type { TaskProgress } from '../../types/TaskProgress';
 import type { Parameters } from '../../types/typeAliases';
 import { arrayableToArray } from '../../utils/arrayableToArray';
@@ -27,10 +24,7 @@ import { $deepFreeze } from '../../utils/serialization/$deepFreeze';
 import { difference } from '../../utils/sets/difference';
 import { union } from '../../utils/sets/union';
 import type { ExecutionTools } from '../ExecutionTools';
-import type { ChatPromptResult } from '../PromptResult';
-import type { CompletionPromptResult } from '../PromptResult';
-import type { EmbeddingPromptResult } from '../PromptResult';
-import type { PromptResult } from '../PromptResult';
+import type { ChatPromptResult, CompletionPromptResult, EmbeddingPromptResult, PromptResult } from '../PromptResult';
 import { checkExpectations } from '../utils/checkExpectations';
 import type { CreatePipelineExecutorSettings } from './00-CreatePipelineExecutorSettings';
 import { getReservedParametersForTemplate } from './getReservedParametersForTemplate';
@@ -194,18 +188,27 @@ export async function executeTemplate(options: executeSingleTemplateOptions): Pr
         }
     }
 
-    // Note: Now we can freeze `parameters` because we are sure that all and only used parameters are defined
+    // Note: Now we can freeze `parameters` because we are sure that all and only used parameters are defined and are not going to be changed
     Object.freeze(parameters);
 
-    let prompt: Prompt;
-    let chatResult: ChatPromptResult;
-    let completionResult: CompletionPromptResult;
-    let embeddingResult: EmbeddingPromptResult;
-    // Note: [🤖]
-    let result: PromptResult | null = null;
-    let resultString: string | null = null;
-    let expectError: ExpectError | null = null;
-    let scriptPipelineExecutionErrors: Array<Error>;
+    const $ongoingResult: {
+        $prompt?: Prompt;
+        $chatResult?: ChatPromptResult;
+        $completionResult?: CompletionPromptResult;
+        $embeddingResult?: EmbeddingPromptResult;
+        //  <- Note: [🤖]
+
+        $result: PromptResult | null;
+        $resultString: string | null;
+        $expectError: ExpectError | null;
+        $scriptPipelineExecutionErrors: Array<Error>;
+    } = {
+        $result: null,
+        $resultString: null,
+        $expectError: null,
+        $scriptPipelineExecutionErrors: [],
+    };
+
     const maxAttempts = currentTemplate.templateType === 'DIALOG_TEMPLATE' ? Infinity : maxExecutionAttempts;
     const jokerParameterNames = currentTemplate.jokerParameterNames || [];
 
@@ -245,9 +248,9 @@ export async function executeTemplate(options: executeSingleTemplateOptions): Pr
             );
         }
 
-        result = null;
-        resultString = null;
-        expectError = null;
+        $ongoingResult.$result = null;
+        $ongoingResult.$resultString = null;
+        $ongoingResult.$expectError = null;
 
         if (isJokerAttempt) {
             if (parameters[jokerParameterName!] === undefined) {
@@ -262,7 +265,7 @@ export async function executeTemplate(options: executeSingleTemplateOptions): Pr
                 );
                 // <- TODO: This is maybe `PipelineLogicError` which should be detected in `validatePipeline` and here just thrown as `UnexpectedError`
             } else {
-                resultString = parameters[jokerParameterName!]!;
+                $ongoingResult.$resultString = parameters[jokerParameterName!]!;
             }
         }
 
@@ -270,7 +273,7 @@ export async function executeTemplate(options: executeSingleTemplateOptions): Pr
             if (!isJokerAttempt) {
                 templateType: switch (currentTemplate.templateType) {
                     case 'SIMPLE_TEMPLATE':
-                        resultString = replaceParameters(preparedContent, parameters);
+                        $ongoingResult.$resultString = replaceParameters(preparedContent, parameters);
                         break templateType;
 
                     case 'PROMPT_TEMPLATE':
@@ -281,7 +284,7 @@ export async function executeTemplate(options: executeSingleTemplateOptions): Pr
                                 ...(currentTemplate.modelRequirements || {}),
                             } satisfies ModelRequirements;
 
-                            prompt = {
+                            $ongoingResult.$prompt = {
                                 title: currentTemplate.title,
                                 pipelineUrl: `${
                                     preparedPipeline.pipelineUrl
@@ -303,26 +306,28 @@ export async function executeTemplate(options: executeSingleTemplateOptions): Pr
 
                             variant: switch (modelRequirements.modelVariant) {
                                 case 'CHAT':
-                                    chatResult = await llmTools.callChatModel($deepFreeze(prompt) as ChatPrompt);
+                                    $ongoingResult.$chatResult = await llmTools.callChatModel(
+                                        $deepFreeze($ongoingResult.$prompt) as ChatPrompt,
+                                    );
                                     // TODO: [🍬] Destroy chatThread
-                                    result = chatResult;
-                                    resultString = chatResult.content;
+                                    $ongoingResult.$result = $ongoingResult.$chatResult;
+                                    $ongoingResult.$resultString = $ongoingResult.$chatResult.content;
                                     break variant;
                                 case 'COMPLETION':
-                                    completionResult = await llmTools.callCompletionModel(
-                                        $deepFreeze(prompt) as CompletionPrompt,
+                                    $ongoingResult.$completionResult = await llmTools.callCompletionModel(
+                                        $deepFreeze($ongoingResult.$prompt) as CompletionPrompt,
                                     );
-                                    result = completionResult;
-                                    resultString = completionResult.content;
+                                    $ongoingResult.$result = $ongoingResult.$completionResult;
+                                    $ongoingResult.$resultString = $ongoingResult.$completionResult.content;
                                     break variant;
 
                                 case 'EMBEDDING':
                                     // TODO: [🧠] This is weird, embedding model can not be used such a way in the pipeline
-                                    embeddingResult = await llmTools.callEmbeddingModel(
-                                        $deepFreeze(prompt) as EmbeddingPrompt,
+                                    $ongoingResult.$embeddingResult = await llmTools.callEmbeddingModel(
+                                        $deepFreeze($ongoingResult.$prompt) as EmbeddingPrompt,
                                     );
-                                    result = embeddingResult;
-                                    resultString = embeddingResult.content.join(',');
+                                    $ongoingResult.$result = $ongoingResult.$embeddingResult;
+                                    $ongoingResult.$resultString = $ongoingResult.$embeddingResult.content.join(',');
                                     break variant;
 
                                 // <- case [🤖]:
@@ -368,13 +373,10 @@ export async function executeTemplate(options: executeSingleTemplateOptions): Pr
                             );
                         }
 
-                        // TODO: DRY [1]
-                        scriptPipelineExecutionErrors = [];
-
                         // TODO: DRY [☯]
                         scripts: for (const scriptTools of arrayableToArray(tools.script)) {
                             try {
-                                resultString = await scriptTools.execute(
+                                $ongoingResult.$resultString = await scriptTools.execute(
                                     $deepFreeze({
                                         scriptLanguage: currentTemplate.contentLanguage,
                                         script: preparedContent, // <- Note: For Script execution, parameters are used as variables
@@ -392,26 +394,26 @@ export async function executeTemplate(options: executeSingleTemplateOptions): Pr
                                     throw error;
                                 }
 
-                                scriptPipelineExecutionErrors.push(error);
+                                $ongoingResult.$scriptPipelineExecutionErrors.push(error);
                             }
                         }
 
-                        if (resultString !== null) {
+                        if ($ongoingResult.$resultString !== null) {
                             break templateType;
                         }
 
-                        if (scriptPipelineExecutionErrors.length === 1) {
-                            throw scriptPipelineExecutionErrors[0];
+                        if ($ongoingResult.$scriptPipelineExecutionErrors.length === 1) {
+                            throw $ongoingResult.$scriptPipelineExecutionErrors[0];
                         } else {
                             throw new PipelineExecutionError(
                                 spaceTrim(
                                     (block) => `
-                                        Script execution failed ${scriptPipelineExecutionErrors.length} times
+                                        Script execution failed ${$ongoingResult.$scriptPipelineExecutionErrors.length}x
 
                                         ${block(pipelineIdentification)}
 
                                         ${block(
-                                            scriptPipelineExecutionErrors
+                                            $ongoingResult.$scriptPipelineExecutionErrors
                                                 .map((error) => '- ' + error.message)
                                                 .join('\n\n'),
                                         )}
@@ -437,7 +439,7 @@ export async function executeTemplate(options: executeSingleTemplateOptions): Pr
                         }
 
                         // TODO: [🌹] When making next attempt for `DIALOG TEMPLATE`, preserve the previous user input
-                        resultString = await tools.userInterface.promptDialog(
+                        $ongoingResult.$resultString = await tools.userInterface.promptDialog(
                             $deepFreeze({
                                 promptTitle: currentTemplate.title,
                                 promptMessage: replaceParameters(currentTemplate.description || '', parameters),
@@ -467,17 +469,15 @@ export async function executeTemplate(options: executeSingleTemplateOptions): Pr
 
             if (!isJokerAttempt && currentTemplate.postprocessingFunctionNames) {
                 for (const functionName of currentTemplate.postprocessingFunctionNames) {
-                    // TODO: DRY [1]
-                    scriptPipelineExecutionErrors = [];
                     let postprocessingError = null;
 
                     scripts: for (const scriptTools of arrayableToArray(tools.script)) {
                         try {
-                            resultString = await scriptTools.execute({
+                            $ongoingResult.$resultString = await scriptTools.execute({
                                 scriptLanguage: `javascript` /* <- TODO: Try it in each languages; In future allow postprocessing with arbitrary combination of languages to combine */,
                                 script: `${functionName}(resultString)`,
                                 parameters: {
-                                    resultString: resultString || '',
+                                    resultString: $ongoingResult.$resultString || '',
                                     // Note: No ...parametersForTemplate, because working with result only
                                 },
                             });
@@ -494,7 +494,7 @@ export async function executeTemplate(options: executeSingleTemplateOptions): Pr
                             }
 
                             postprocessingError = error;
-                            scriptPipelineExecutionErrors.push(error);
+                            $ongoingResult.$scriptPipelineExecutionErrors.push(error);
                         }
                     }
 
@@ -507,11 +507,11 @@ export async function executeTemplate(options: executeSingleTemplateOptions): Pr
             // TODO: [💝] Unite object for expecting amount and format
             if (currentTemplate.format) {
                 if (currentTemplate.format === 'JSON') {
-                    if (!isValidJsonString(resultString || '')) {
+                    if (!isValidJsonString($ongoingResult.$resultString || '')) {
                         // TODO: [🏢] Do more universally via `FormatDefinition`
 
                         try {
-                            resultString = extractJsonBlock(resultString || '');
+                            $ongoingResult.$resultString = extractJsonBlock($ongoingResult.$resultString || '');
                         } catch (error) {
                             keepUnused(
                                 error,
@@ -547,7 +547,7 @@ export async function executeTemplate(options: executeSingleTemplateOptions): Pr
 
             // TODO: [💝] Unite object for expecting amount and format
             if (currentTemplate.expectations) {
-                checkExpectations(currentTemplate.expectations, resultString || '');
+                checkExpectations(currentTemplate.expectations, $ongoingResult.$resultString || '');
             }
 
             break attempts;
@@ -556,28 +556,29 @@ export async function executeTemplate(options: executeSingleTemplateOptions): Pr
                 throw error;
             }
 
-            expectError = error;
+            $ongoingResult.$expectError = error;
         } finally {
             if (
                 !isJokerAttempt &&
                 currentTemplate.templateType === 'PROMPT_TEMPLATE' &&
-                prompt!
+                $ongoingResult.$prompt!
                 //    <- Note:  [2] When some expected parameter is not defined, error will occur in replaceParameters
                 //              In that case we don’t want to make a report about it because it’s not a llm execution error
             ) {
                 // TODO: [🧠] Maybe put other templateTypes into report
                 $executionReport.promptExecutions.push({
                     prompt: {
-                        ...prompt,
+                        ...$ongoingResult.$prompt,
                         // <- TODO: [🧠] How to pick everyhing except `pipelineUrl`
                     } as really_any,
-                    result: result || undefined,
-                    error: expectError === null ? undefined : serializeError(expectError),
+                    result: $ongoingResult.$result || undefined,
+                    error:
+                        $ongoingResult.$expectError === null ? undefined : serializeError($ongoingResult.$expectError),
                 });
             }
         }
 
-        if (expectError !== null && attempt === maxAttempts - 1) {
+        if ($ongoingResult.$expectError !== null && attempt === maxAttempts - 1) {
             throw new PipelineExecutionError(
                 spaceTrim(
                     (block) => `
@@ -588,15 +589,15 @@ export async function executeTemplate(options: executeSingleTemplateOptions): Pr
                         ---
                         The Prompt:
                         ${block(
-                            prompt.content
+                            ($ongoingResult.$prompt?.content || '')
                                 .split('\n')
                                 .map((line) => `> ${line}`)
                                 .join('\n'),
                         )}
 
-                        Last error ${expectError?.name || ''}:
+                        Last error ${$ongoingResult.$expectError?.name || ''}:
                         ${block(
-                            (expectError?.message || '')
+                            ($ongoingResult.$expectError?.message || '')
                                 .split('\n')
                                 .map((line) => `> ${line}`)
                                 .join('\n'),
@@ -604,9 +605,9 @@ export async function executeTemplate(options: executeSingleTemplateOptions): Pr
 
                         Last result:
                         ${block(
-                            resultString === null
+                            $ongoingResult.$resultString === null
                                 ? 'null'
-                                : resultString
+                                : $ongoingResult.$resultString
                                       .split('\n')
                                       .map((line) => `> ${line}`)
                                       .join('\n'),
@@ -632,7 +633,7 @@ export async function executeTemplate(options: executeSingleTemplateOptions): Pr
   */
     //------------------------------------
 
-    if (resultString === null) {
+    if ($ongoingResult.$resultString === null) {
         throw new UnexpectedError(
             spaceTrim(
                 (block) => `
@@ -651,13 +652,13 @@ export async function executeTemplate(options: executeSingleTemplateOptions): Pr
         isDone: true,
         templateType: currentTemplate.templateType,
         parameterName: currentTemplate.resultingParameterName,
-        parameterValue: resultString,
+        parameterValue: $ongoingResult.$resultString,
         // <- [🍸]
     });
 
     return Object.freeze({
         [currentTemplate.resultingParameterName]:
-            resultString /* <- Note: Not need to detect parameter collision here because pipeline checks logic consistency during construction */,
+            $ongoingResult.$resultString /* <- Note: Not need to detect parameter collision here because pipeline checks logic consistency during construction */,
     });
 }
 
