@@ -28,9 +28,9 @@ import type { CreatePipelineExecutorSettings } from './00-CreatePipelineExecutor
 /**
  * @@@
  *
- * @private internal type of `executeAttempt`
+ * @private internal type of `executeAttempts`
  */
-type ExecuteAttemptsOptions = {
+export type ExecuteAttemptsOptions = {
     /**
      * @@@
      */
@@ -517,5 +517,5 @@ export async function executeAttempts(options: ExecuteAttemptsOptions): Promise<
 }
 
 /**
- * TODO: !!!!!! Break into smaller functions
+ * TODO: Break into smaller functions
  */

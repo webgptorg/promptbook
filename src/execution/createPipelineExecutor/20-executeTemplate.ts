@@ -13,7 +13,7 @@ import { union } from '../../utils/sets/union';
 import type { ExecutionTools } from '../ExecutionTools';
 import { $OngoingTemplateResult } from './$OngoingTemplateResult';
 import type { CreatePipelineExecutorSettings } from './00-CreatePipelineExecutorSettings';
-import { executeAttempts } from './40-executeAttempts';
+import { executeFormatCells } from './30-executeFormatCells';
 import { getReservedParametersForTemplate } from './getReservedParametersForTemplate';
 
 /**
@@ -194,8 +194,7 @@ export async function executeTemplate(options: executeSingleTemplateOptions): Pr
         .join(currentTemplate.content);
     //    <- TODO: [🍵] Use here `replaceParameters` to replace {websiteContent} with option to ignore missing parameters
 
-    // TODO: !!!!!! Somewhere here should be `FOREACH` logic
-    await executeAttempts({
+    await executeFormatCells({
         $ongoingTemplateResult,
         jokerParameterNames,
         priority,
