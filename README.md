@@ -18,6 +18,8 @@ Supercharge your use of large language models
 
 ## 🤍 The Promptbook Whitepaper
 
+<!-- TODO: !!! Better -->
+
 If you have a simple, single prompt for ChatGPT, GPT-4, Anthropic Claude, Google Gemini, Llama 2, or whatever, it doesn't matter how you integrate it. Whether it's calling a REST API directly, using the SDK, hardcoding the prompt into the source code, or importing a text file, the process remains the same.
 
 But often you will struggle with the limitations of LLMs, such as hallucinations, off-topic responses, poor quality output, language drift, word repetition repetition repetition repetition or misuse, lack of context, or just plain w𝒆𝐢rd responses. When this happens, you generally have three options:
@@ -36,7 +38,13 @@ In all of these situations, but especially in 3., the Promptbook library can mak
 -   Promptbook has built in versioning. You can test multiple **A/B versions** of pipelines and see which one works best.
 -   Promptbook is designed to do [**RAG** (Retrieval-Augmented Generation)](https://github.com/webgptorg/promptbook/discussions/41) and other advanced techniques. You can use **knowledge** to improve the quality of the output.
 
-## 🧔 Promptbook _(for prompt-engeneers)_
+<!--
+TODO: !!!
+## 🚀 Get started
+
+-->
+
+## 🧔 Pipeline _(for prompt-engeneers)_
 
 **P**romp**t** **b**oo**k** markdown file (or `.ptbk.md` file) is document that describes a **pipeline** - a series of prompts that are chained together to form somewhat reciepe for transforming natural language input.
 
