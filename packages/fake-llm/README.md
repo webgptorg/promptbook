@@ -43,6 +43,8 @@ Rest of the documentation is common for **entire promptbook ecosystem**:
 
 ## 🤍 The Promptbook Whitepaper
 
+
+
 If you have a simple, single prompt for ChatGPT, GPT-4, Anthropic Claude, Google Gemini, Llama 2, or whatever, it doesn't matter how you integrate it. Whether it's calling a REST API directly, using the SDK, hardcoding the prompt into the source code, or importing a text file, the process remains the same.
 
 But often you will struggle with the limitations of LLMs, such as hallucinations, off-topic responses, poor quality output, language drift, word repetition repetition repetition repetition or misuse, lack of context, or just plain w𝒆𝐢rd responses. When this happens, you generally have three options:
@@ -61,7 +63,9 @@ In all of these situations, but especially in 3., the Promptbook library can mak
 -   Promptbook has built in versioning. You can test multiple **A/B versions** of pipelines and see which one works best.
 -   Promptbook is designed to do [**RAG** (Retrieval-Augmented Generation)](https://github.com/webgptorg/promptbook/discussions/41) and other advanced techniques. You can use **knowledge** to improve the quality of the output.
 
-## 🧔 Promptbook _(for prompt-engeneers)_
+
+
+## 🧔 Pipeline _(for prompt-engeneers)_
 
 **P**romp**t** **b**oo**k** markdown file (or `.ptbk.md` file) is document that describes a **pipeline** - a series of prompts that are chained together to form somewhat reciepe for transforming natural language input.
 
@@ -403,63 +407,15 @@ The following glossary is used to clarify certain concepts:
 
 ## ❔ FAQ
 
-
-
 If you have a question [start a discussion](https://github.com/webgptorg/promptbook/discussions/), [open an issue](https://github.com/webgptorg/promptbook/issues) or [write me an email](https://www.pavolhejny.com/contact).
 
-### Why not just use the OpenAI SDK / Anthropic Claude SDK / ...?
-
-Different levels of abstraction. OpenAI library is for direct use of OpenAI API. This library is for a higher level of abstraction. It define pipelines that are independent of the underlying library, LLM model, or even LLM provider.
-
-### How is it different from the Langchain library?
-
-Langchain is primarily aimed at ML developers working in Python. This library is for developers working in javascript/typescript and creating applications for end users.
-
-We are considering creating a bridge/converter between these two libraries.
-
-
-
-### Promptbooks vs. OpenAI`s GPTs
-
-GPTs are chat assistants that can be assigned to specific tasks and materials. But they are still chat assistants. Promptbooks are a way to orchestrate many more predefined tasks to have much tighter control over the process. Promptbooks are not a good technology for creating human-like chatbots, GPTs are not a good technology for creating outputs with specific requirements.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-### Where should I store my promptbooks?
-
-If you use raw SDKs, you just put prompts in the sourcecode, mixed in with typescript, javascript, python or whatever programming language you use.
-
-If you use promptbooks, you can store them in several places, each with its own advantages and disadvantages:
-
-1. As **source code**, typically git-committed. In this case you can use the versioning system and the promptbooks will be tightly coupled with the version of the application. You still get the power of promptbooks, as you separate the concerns of the prompt-engineer and the programmer.
-
-2. As data in a **database** In this case, promptbooks are like posts / articles on the blog. They can be modified independently of the application. You don't need to redeploy the application to change the promptbooks. You can have multiple versions of promptbooks for each user. You can have a web interface for non-programmers to create and modify promptbooks. But you lose the versioning system and you still have to consider the interface between the promptbooks and the application _(= input and output parameters)_.
-
-3. In a **configuration** in environment variables. This is a good way to store promptbooks if you have an application with multiple deployments and you want to have different but simple promptbooks for each deployment and you don't need to change them often.
-
-### What should I do when I need same promptbook in multiple human languages?
-
-A single promptbook can be written for several _(human)_ languages at once. However, we recommend that you have separate promptbooks for each language.
-
-In large language models, you will get better results if you have prompts in the same language as the user input.
-
-The best way to manage this is to have suffixed promptbooks like `write-website-content.en.ptbk.md` and `write-website-content.cs.ptbk.md` for each supported language.
-
-
-
-
+-   [❔ Why not just use the OpenAI SDK / Anthropic Claude SDK / ...?](https://github.com/webgptorg/promptbook/discussions/114)
+-   [❔ How is it different from the OpenAI`s GPTs?](https://github.com/webgptorg/promptbook/discussions/118)
+-   [❔ How is it different from the Langchain?](https://github.com/webgptorg/promptbook/discussions/115)
+-   [❔ How is it different from the DSPy?](https://github.com/webgptorg/promptbook/discussions/117)
+-   [❔ How is it different from _anything_?](https://github.com/webgptorg/promptbook/discussions?discussions_q=is%3Aopen+label%3A%22Promptbook+vs%22)
+-   [❔ Is Promptbook using RAG _(Retrieval-Augmented Generation)_?](https://github.com/webgptorg/promptbook/discussions/123)
+-   [❔ Is Promptbook using function calling?](https://github.com/webgptorg/promptbook/discussions/124)
 
 ## ⌚ Changelog
 
