@@ -170,7 +170,7 @@ But often you will struggle with the limitations of LLMs, such as hallucinations
 
 1. **Fine-tune** the model to your specifications or even train your own.
 2. **Prompt-engineer** the prompt to the best shape you can achieve.
-3. Use **multiple prompts** in a [pipeline](https://github.com/webgptorg/promptbook/discussions/64) to get the best result.
+3. Orchestrate **multiple prompts** in a [pipeline](https://github.com/webgptorg/promptbook/discussions/64) to get the best result.
 
 In all of these situations, but especially in 3., the Promptbook library can make your life easier.
 
@@ -499,6 +499,8 @@ The following glossary is used to clarify certain concepts:
 -   When you want to **version** your prompts and **test multiple versions**
 -   When you want to **log** the execution of prompts and backtrace the issues
 
+[See more](https://github.com/webgptorg/promptbook/discussions/111)
+
 ### ➖ When not to use
 
 -   When you have already implemented single simple prompt and it works fine for your job
@@ -507,6 +509,8 @@ The following glossary is used to clarify certain concepts:
 -   When you need to use something other than JavaScript or TypeScript _(other languages are on the way, [see the discussion](https://github.com/webgptorg/promptbook/discussions/101))_
 -   When your main focus is on something other than text - like images, audio, video, spreadsheets _(other media types may be added in the future, [see discussion](https://github.com/webgptorg/promptbook/discussions/103))_
 -   When you need to use recursion _([see the discussion](https://github.com/webgptorg/promptbook/discussions/38))_
+
+[See more](https://github.com/webgptorg/promptbook/discussions/112)
 
 ## 🐜 Known issues
 
