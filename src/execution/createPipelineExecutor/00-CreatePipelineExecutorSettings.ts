@@ -31,3 +31,7 @@ export type CreatePipelineExecutorSettings = {
      */
     readonly isNotPreparedWarningSupressed: boolean;
 };
+
+/**
+ * TODO: [🤹‍♂️] More granular setting for limits of execution + better waiting for queue
+ */

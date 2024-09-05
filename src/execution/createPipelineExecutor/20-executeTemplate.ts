@@ -186,7 +186,7 @@ export async function executeTemplate(options: executeSingleTemplateOptions): Pr
         $scriptPipelineExecutionErrors: [],
     };
 
-    const maxAttempts = currentTemplate.templateType === 'DIALOG_TEMPLATE' ? Infinity : maxExecutionAttempts;
+    const maxAttempts = currentTemplate.templateType === 'DIALOG_TEMPLATE' ? Infinity : maxExecutionAttempts; // <- TODO: [🤹‍♂️]
     const jokerParameterNames = currentTemplate.jokerParameterNames || [];
 
     const preparedContent = (currentTemplate.preparedContent || '{content}')

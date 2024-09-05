@@ -66,14 +66,14 @@ export const IMMEDIATE_TIME = 10;
  *
  * @public exported from `@promptbook/core`
  */
-export const MAX_PARALLEL_COUNT = 5;
+export const MAX_PARALLEL_COUNT = 5; // <- TODO: [🤹‍♂️]
 
 /**
  * The maximum number of attempts to execute LLM task before giving up
  *
  * @public exported from `@promptbook/core`
  */
-export const MAX_EXECUTION_ATTEMPTS = 3;
+export const MAX_EXECUTION_ATTEMPTS = 3; // <- TODO: [🤹‍♂️]
 
 /**
  * The maximum length of the (generated) filename
