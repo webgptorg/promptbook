@@ -378,8 +378,6 @@ The following glossary is used to clarify certain concepts:
 
 ## ❔ FAQ
 
-<!-- TODO: !!! Move to Discussions -->
-
 If you have a question [start a discussion](https://github.com/webgptorg/promptbook/discussions/), [open an issue](https://github.com/webgptorg/promptbook/issues) or [write me an email](https://www.pavolhejny.com/contact).
 
 -   [❔ Why not just use the OpenAI SDK / Anthropic Claude SDK / ...?](https://github.com/webgptorg/promptbook/discussions/114)
