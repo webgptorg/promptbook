@@ -1,28 +1,24 @@
 import { spaceTrim } from 'spacetrim';
 import type { Promisable, ReadonlyDeep } from 'type-fest';
 import { forTime } from 'waitasecond';
-import { joinLlmExecutionTools } from '../../llm-providers/multiple/joinLlmExecutionTools';
-import type { CreatePipelineExecutorSettings } from './00-CreatePipelineExecutorSettings';
-import { IMMEDIATE_TIME } from '../../config';
-import { LOOP_LIMIT } from '../../config';
-import { RESERVED_PARAMETER_NAMES } from '../../config';
+import { IMMEDIATE_TIME, LOOP_LIMIT, RESERVED_PARAMETER_NAMES } from '../../config';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import { serializeError } from '../../errors/utils/serializeError';
+import { joinLlmExecutionTools } from '../../llm-providers/multiple/joinLlmExecutionTools';
 import { preparePipeline } from '../../prepare/preparePipeline';
 import type { ExecutionReportJson } from '../../types/execution-report/ExecutionReportJson';
 import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import type { TemplateJson } from '../../types/PipelineJson/TemplateJson';
 import type { TaskProgress } from '../../types/TaskProgress';
-import type { Parameters } from '../../types/typeAliases';
-import type { string_name } from '../../types/typeAliases';
+import type { Parameters, string_name } from '../../types/typeAliases';
 import { arrayableToArray } from '../../utils/arrayableToArray';
 import { $asDeeplyFrozenSerializableJson } from '../../utils/serialization/$asDeeplyFrozenSerializableJson';
 import { PROMPTBOOK_VERSION } from '../../version';
 import type { ExecutionTools } from '../ExecutionTools';
 import type { PipelineExecutorResult } from '../PipelineExecutorResult';
-import { addUsage } from '../utils/addUsage';
-import { ZERO_USAGE } from '../utils/addUsage';
+import { addUsage, ZERO_USAGE } from '../utils/addUsage';
+import type { CreatePipelineExecutorSettings } from './00-CreatePipelineExecutorSettings';
 import { executeTemplate } from './20-executeTemplate';
 import { filterJustOutputParameters } from './filterJustOutputParameters';
 
@@ -306,13 +302,15 @@ export async function executePipeline(options: ExecutePipelineOptions): Promise<
                     .then(() => {
                         resolving = resolving.filter((w) => w !== work);
                     });
+                // <- Note: Errors are catched here [3]
+                //    TODO: BUT if in multiple templates are errors, only the first one is catched so maybe we should catch errors here and save them to errors array here
 
                 resolving.push(work);
             }
         }
 
         await Promise.all(resolving);
-    } catch (error) {
+    } catch (error /* <- Note: [3] */) {
         if (!(error instanceof Error)) {
             throw error;
         }

@@ -1,7 +1,7 @@
 #!/usr/bin/env ts-node
 
 /*
-Note: [🔁] In your app you will be importing '../../../src/_packages/core' instead of '../../../src/_packages/core.index.index',...
+Note: [🔁] In your app you will be importing '@promptbook/core' instead of '../../../src/_packages/core.index.index',...
 */
 
 import colors from 'colors';
@@ -17,6 +17,7 @@ import {
 import { JavascriptExecutionTools } from '../../../src/_packages/execute-javascript.index';
 import { createCollectionFromDirectory, createLlmToolsFromEnv } from '../../../src/_packages/node.index';
 
+import spaceTrim from 'spacetrim';
 import '../../../src/_packages/anthropic-claude.index';
 import '../../../src/_packages/azure-openai.index';
 import '../../../src/_packages/openai.index';
@@ -53,8 +54,8 @@ async function main() {
     // @see https://nodejs.org/en/learn/command-line/accept-input-from-the-command-line-in-nodejs
 
     const pipeline = await collection.getPipelineByUrl(
-        // `https://promptbook.studio/samples/foreach-list.ptbk.md`,
-        `https://promptbook.studio/samples/simple-knowledge.ptbk.md`,
+        `https://promptbook.studio/samples/foreach-list.ptbk.md`,
+        //`https://promptbook.studio/samples/simple-knowledge.ptbk.md`,
         // `https://promptbook.studio/samples/simple.ptbk.md`,
         // `https://promptbook.studio/samples/language-capabilities.ptbk.md`,
     );
@@ -80,7 +81,7 @@ async function main() {
     const pipelineExecutor = createPipelineExecutor({ pipeline, tools });
 
     const inputParameters = {
-        /*/
+        /**/
         // https://promptbook.studio/samples/foreach-list.ptbk.md
         customers: spaceTrim(`
             Paul
@@ -88,7 +89,7 @@ async function main() {
             Kate
         `),
         /**/
-        /**/
+        /*/
         // https://promptbook.studio/samples/simple-knowledge.ptbk.md
         eventTitle: 'TypeScript developers summit 2025',
         eventDescription: 'The best event for TypeScript developers in 2025',
@@ -119,14 +120,14 @@ async function main() {
         'utf-8',
     );
 
-    for (const error of errors) {
-        console.error(colors.bgRed(error.name /* <- 11:11 */));
-        console.error(colors.red(error.stack || error.message));
-    }
-
     for (const warning of warnings) {
         console.error(colors.bgYellow(warning.name /* <- 11:11 */));
         console.error(colors.yellow(warning.stack || warning.message));
+    }
+
+    for (const error of errors) {
+        console.error(colors.bgRed(error.name /* <- 11:11 */));
+        console.error(colors.red(error.stack || error.message));
     }
 
     console.info(colors.cyan(usageToHuman(usage /* <- TODO: [🌳] Compare with `llmTools.getTotalUsage()` */)));

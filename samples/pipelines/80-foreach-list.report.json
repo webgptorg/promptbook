@@ -1,35 +1,8 @@
 {
     "pipelineUrl": "https://promptbook.studio/samples/foreach-list.ptbk.md",
     "title": "✨ Write greeting for each customer",
-    "promptbookUsedVersion": "0.69.0-4",
+    "promptbookUsedVersion": "0.69.0-7",
     "promptbookRequestedVersion": "1.0.0",
     "description": "Show how to use a simple prompt with no parameters.",
-    "promptExecutions": [
-        {
-            "prompt": {
-                "title": "Write a greeting",
-                "pipelineUrl": "https://promptbook.studio/samples/foreach-list.ptbk.md#write-a-greeting",
-                "parameters": {
-                    "customers": "Paul\nGeorge\nKate"
-                },
-                "content": "Write an email greeting for \"{customer}\"",
-                "modelRequirements": {
-                    "modelVariant": "CHAT"
-                },
-                "expectations": {
-                    "name": "Jane",
-                    "description": "customer service representative",
-                    "modelRequirements": {
-                        "modelVariant": "CHAT",
-                        "modelName": "gpt-4-turbo-2024-04-09",
-                        "systemMessage": "You are a friendly and professional customer service representative. Your goal is to assist customers with their inquiries, resolve issues efficiently, and ensure a positive customer experience. Provide accurate information, offer solutions, and maintain a helpful and courteous demeanor throughout the interaction.",
-                        "temperature": 0.7
-                    },
-                    "preparationIds": [
-                        1
-                    ]
-                }
-            }
-        }
-    ]
+    "promptExecutions": []
 }

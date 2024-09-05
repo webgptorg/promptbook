@@ -107,14 +107,14 @@ async function playground() {
         },
     );
 
-    for (const error of errors) {
-        console.error(colors.bgRed(error.name /* <- 11:11 */));
-        console.error(colors.red(error.stack || error.message));
-    }
-
     for (const warning of warnings) {
         console.error(colors.bgYellow(warning.name /* <- 11:11 */));
         console.error(colors.yellow(warning.stack || warning.message));
+    }
+
+    for (const error of errors) {
+        console.error(colors.bgRed(error.name /* <- 11:11 */));
+        console.error(colors.red(error.stack || error.message));
     }
 
     console.info(colors.cyan(usageToHuman(usage /* <- TODO: [🌳] Compare with `llmTools.getTotalUsage()` */)));
