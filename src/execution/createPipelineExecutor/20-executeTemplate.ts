@@ -11,7 +11,6 @@ import type { Parameters } from '../../types/typeAliases';
 import { difference } from '../../utils/sets/difference';
 import { union } from '../../utils/sets/union';
 import type { ExecutionTools } from '../ExecutionTools';
-import type { $OngoingTemplateResult } from './$OngoingTemplateResult';
 import type { CreatePipelineExecutorSettings } from './00-CreatePipelineExecutorSettings';
 import { executeFormatCells } from './30-executeFormatCells';
 import { getReservedParametersForTemplate } from './getReservedParametersForTemplate';
@@ -179,13 +178,6 @@ export async function executeTemplate(options: executeSingleTemplateOptions): Pr
     // Note: Now we can freeze `parameters` because we are sure that all and only used parameters are defined and are not going to be changed
     Object.freeze(parameters);
 
-    const $ongoingTemplateResult: $OngoingTemplateResult = {
-        $result: null,
-        $resultString: null,
-        $expectError: null,
-        $scriptPipelineExecutionErrors: [],
-    };
-
     const maxAttempts = currentTemplate.templateType === 'DIALOG_TEMPLATE' ? Infinity : maxExecutionAttempts; // <- TODO: [🤹‍♂️]
     const jokerParameterNames = currentTemplate.jokerParameterNames || [];
 
@@ -194,9 +186,7 @@ export async function executeTemplate(options: executeSingleTemplateOptions): Pr
         .join(currentTemplate.content);
     //    <- TODO: [🍵] Use here `replaceParameters` to replace {websiteContent} with option to ignore missing parameters
 
-    // TODO: !!!!!! Return here `resultString` DO not internaly modify `$ongoingTemplateResult`
-    await executeFormatCells({
-        $ongoingTemplateResult,
+    const resultString = await executeFormatCells({
         jokerParameterNames,
         priority,
         maxAttempts,
@@ -211,18 +201,6 @@ export async function executeTemplate(options: executeSingleTemplateOptions): Pr
         pipelineIdentification,
     });
 
-    if ($ongoingTemplateResult.$resultString === null) {
-        throw new UnexpectedError(
-            spaceTrim(
-                (block) => `
-                    Something went wrong and prompt result is null
-
-                    ${block(pipelineIdentification)}
-                `,
-            ),
-        );
-    }
-
     await onProgress({
         name,
         title,
@@ -230,13 +208,14 @@ export async function executeTemplate(options: executeSingleTemplateOptions): Pr
         isDone: true,
         templateType: currentTemplate.templateType,
         parameterName: currentTemplate.resultingParameterName,
-        parameterValue: $ongoingTemplateResult.$resultString,
+        parameterValue: resultString,
         // <- [🍸]
     });
 
     return Object.freeze({
         [currentTemplate.resultingParameterName]:
-            $ongoingTemplateResult.$resultString /* <- Note: Not need to detect parameter collision here because pipeline checks logic consistency during construction */,
+            // <- Note: Not need to detect parameter collision here because pipeline checks logic consistency during construction
+            resultString,
     });
 }
 

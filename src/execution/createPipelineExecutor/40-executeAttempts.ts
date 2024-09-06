@@ -34,11 +34,6 @@ export type ExecuteAttemptsOptions = {
     /**
      * @@@
      */
-    readonly $ongoingTemplateResult: $OngoingTemplateResult;
-
-    /**
-     * @@@
-     */
     readonly jokerParameterNames: Readonly<Array<string_parameter_name>>;
 
     /**
@@ -102,9 +97,8 @@ export type ExecuteAttemptsOptions = {
  *
  * @private internal utility of `createPipelineExecutor`
  */
-export async function executeAttempts(options: ExecuteAttemptsOptions): Promise<TODO_any> {
+export async function executeAttempts(options: ExecuteAttemptsOptions): Promise<TODO_string> {
     const {
-        $ongoingTemplateResult,
         jokerParameterNames,
         priority,
         maxAttempts,
@@ -119,6 +113,13 @@ export async function executeAttempts(options: ExecuteAttemptsOptions): Promise<
         pipelineIdentification,
     } = options;
     const { maxExecutionAttempts } = settings;
+
+    const $ongoingTemplateResult: $OngoingTemplateResult = {
+        $result: null,
+        $resultString: null,
+        $expectError: null,
+        $scriptPipelineExecutionErrors: [],
+    };
 
     attempts: for (let attempt = -jokerParameterNames.length; attempt < maxAttempts; attempt++) {
         const isJokerAttempt = attempt < 0;
@@ -514,6 +515,20 @@ export async function executeAttempts(options: ExecuteAttemptsOptions): Promise<
             );
         }
     }
+
+    if ($ongoingTemplateResult.$resultString === null) {
+        throw new UnexpectedError(
+            spaceTrim(
+                (block) => `
+                  Something went wrong and prompt result is null
+
+                  ${block(pipelineIdentification)}
+              `,
+            ),
+        );
+    }
+
+    return $ongoingTemplateResult.$resultString;
 }
 
 /**

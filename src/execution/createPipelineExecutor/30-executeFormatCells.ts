@@ -18,7 +18,7 @@ type ExecuteFormatCellsOptions = ExecuteAttemptsOptions;
  * @private internal utility of `createPipelineExecutor`
  */
 export async function executeFormatCells(options: ExecuteFormatCellsOptions): Promise<TODO_any> {
-    const { template, jokerParameterNames, priority, $ongoingTemplateResult } = options;
+    const { template, jokerParameterNames /*, priority*/ } = options;
 
     if (template.foreach === undefined) {
         return /* not await */ executeAttempts(options);
@@ -33,6 +33,9 @@ export async function executeFormatCells(options: ExecuteFormatCellsOptions): Pr
             `),
         );
     }
+
+    // TODO: !!!!!!
+    //priority + length;
 
     throw new NotYetImplementedError('FOREACH execution not implemented yet');
 }
