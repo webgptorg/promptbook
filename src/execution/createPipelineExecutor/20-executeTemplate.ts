@@ -175,7 +175,7 @@ export async function executeTemplate(options: executeSingleTemplateOptions): Pr
         }
     }
 
-    // Note: Now we can freeze `parameters` because we are sure that all and only used parameters are defined and are not going to be changed
+    // Note: [👨‍👨‍👧] Now we can freeze `parameters` because we are sure that all and only used parameters are defined and are not going to be changed
     Object.freeze(parameters);
 
     const maxAttempts = currentTemplate.templateType === 'DIALOG_TEMPLATE' ? Infinity : maxExecutionAttempts; // <- TODO: [🤹‍♂️]
@@ -214,7 +214,7 @@ export async function executeTemplate(options: executeSingleTemplateOptions): Pr
 
     return Object.freeze({
         [currentTemplate.resultingParameterName]:
-            // <- Note: Not need to detect parameter collision here because pipeline checks logic consistency during construction
+            // <- Note: [👩‍👩‍👧] No need to detect parameter collision here because pipeline checks logic consistency during construction
             resultString,
     });
 }
