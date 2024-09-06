@@ -38,7 +38,7 @@ export const CsvFormatDefinition: FormatDefinition<string /* <- [0] */, string /
             subvalueName: 'ROW',
             async mapValues(value, mapCallback) {
                 // TODO: [👨🏾‍🤝‍👨🏼] DRY csv parsing
-                const csv = parse(value, {
+                const csv = parse<Parameters>(value, {
                     header: true,
                     delimiter: ',',
                     quoteChar: '"',
@@ -62,7 +62,57 @@ export const CsvFormatDefinition: FormatDefinition<string /* <- [0] */, string /
                 }
 
                 const mappedData = await Promise.all(
-                    csv.data.map((row, index) => /*not await */ mapCallback(row as Parameters, index)),
+                    csv.data.map((row, index) => /*not await */ mapCallback(row, index)),
+                );
+
+                return unparse(mappedData, {
+                    header: true,
+                    delimiter: ',',
+                    quoteChar: '"',
+                    newline: '\r\n',
+                    skipEmptyLines: true,
+                    // encoding: 'utf8',
+                    // <- TODO: !!!!!! DEFAULT_CSV_OPTIONS
+                    // <- TODO: [🧠] How to define parsing options for formats, its different concept than schema
+                });
+            },
+        },
+        {
+            subvalueName: 'CELL',
+            async mapValues(value, mapCallback) {
+                // TODO: [👨🏾‍🤝‍👨🏼] DRY csv parsing
+                const csv = parse<Parameters>(value, {
+                    header: true,
+                    delimiter: ',',
+                    quoteChar: '"',
+                    newline: '\r\n',
+                    skipEmptyLines: true,
+                    // encoding: 'utf8',
+                    // <- TODO: !!!!!! DEFAULT_CSV_OPTIONS
+                    // <- TODO: [🧠] How to define parsing options for formats, its different concept than schema
+                });
+
+                if (csv.errors.length !== 0) {
+                    throw new ParseError( // <- TODO: !!!!!! Split PipelineParseError and FormatParseError -> CsvParseError
+                        spaceTrim(
+                            (block) => `
+                                CSV parsing error
+
+                                ${block(csv.errors.map((error) => error.message).join('\n\n'))}
+                            `,
+                        ),
+                    );
+                }
+
+                const mappedData = await Promise.all(
+                    csv.data.map(async (row, rowIndex) => {
+                        return /* not await */ Promise.all(
+                            Object.entries(row).map(async ([key, value], columnIndex) => {
+                                const index = rowIndex * Object.keys(row).length + columnIndex;
+                                return /* not await */ mapCallback({ [key]: value }, index);
+                            }),
+                        );
+                    }),
                 );
 
                 return unparse(mappedData, {
