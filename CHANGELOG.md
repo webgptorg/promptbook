@@ -506,6 +506,7 @@ Command `FOREACH`
 -   Big refactoring of `createPipelineExecutor`
 -   Enhance and implement formats `FormatDefinition`
 -   Allow to parse CSVs via `CsvFormatDefinition`
+-   Change `ListFormatDefinition` -> `TextFormatDefinition`
 
 ## In prepare
 

@@ -8,7 +8,8 @@ import type { FormatDefinition } from '../_common/FormatDefinition';
 /**
  * Definition for CSV spreadsheet
  *
- * @private still in development [🏢]
+ * @public exported from `@promptbook/core`
+ *                          <- TODO: [🏢] Export from package `@promptbook/csv`
  */
 export const CsvFormatDefinition: FormatDefinition<string /* <- [0] */, string /* <- [👨‍⚖️] */, object /* <- [1] */> = {
     formatName: 'CSV',

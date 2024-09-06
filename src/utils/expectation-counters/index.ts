@@ -21,5 +21,5 @@ export const CountUtils: Record<ExpectationUnit, (text: string) => ExpectationAm
 };
 
 /**
- * TODO: [🧠][🤠] This should be probbably as part of `TextFormatDefinition` / `ListFormatDefinition`
+ * TODO: [🧠][🤠] This should be probbably as part of `TextFormatDefinition`
  */
