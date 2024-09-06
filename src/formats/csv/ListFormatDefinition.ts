@@ -7,7 +7,7 @@ import type { FormatDefinition } from '../_common/FormatDefinition';
  * @private still in development [🏢]
  */
 export const CsvFormatDefinition: FormatDefinition<string /* <- [0] */, string /* <- [👨‍⚖️] */, object /* <- [1] */> = {
-    name: 'CSV',
+    formatName: 'CSV',
 
     aliases: ['SPREADSHEET', 'TABLE'],
 

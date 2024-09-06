@@ -27,5 +27,5 @@ export type ForeachJson = {
 };
 
 /**
- * TODO: [🧠] Betetr name for `parameterName` and `subparameterName`
+ * TODO: [🧠][🦥] Better (less confusing) name for "cell" / "subvalue" / "subparameter"
  */

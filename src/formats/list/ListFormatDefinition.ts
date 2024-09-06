@@ -9,7 +9,7 @@ import type { FormatDefinition } from '../_common/FormatDefinition';
  * @private still in development [🏢]
  */
 export const ListFormatDefinition: FormatDefinition<string /* <- [0] */, string /* <- [👨‍⚖️] */, object /* <- [1] */> = {
-    name: 'LIST',
+    formatName: 'LIST',
 
     aliases: ['ARRAY', 'BULLETS'],
 
@@ -39,6 +39,7 @@ export const ListFormatDefinition: FormatDefinition<string /* <- [0] */, string 
 };
 
 /**
+ * TODO: [🧠][🤠] Here should be all words, characters, lines, paragraphs, pages aviable as cells [🦥] - probbably change this to `TextFormatDefinition`
  * TODO: [🍓] In `ListFormatDefinition` implement simple `isValid`
  * TODO: [🍓] In `ListFormatDefinition` implement partial `canBeValid`
  * TODO: [🍓] In `ListFormatDefinition` implement `heal

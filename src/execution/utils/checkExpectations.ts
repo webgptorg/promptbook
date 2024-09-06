@@ -1,6 +1,5 @@
 import { ExpectError } from '../../errors/ExpectError';
-import type { Expectations } from '../../types/PipelineJson/Expectations';
-import type { ExpectationUnit } from '../../types/PipelineJson/Expectations';
+import type { Expectations, ExpectationUnit } from '../../types/PipelineJson/Expectations';
 import { CountUtils } from '../../utils/expectation-counters/index';
 
 /**
@@ -52,4 +51,6 @@ export function isPassingExpectations(expectations: Expectations, value: string)
 
 /**
  * TODO: [💝] Unite object for expecting amount and format
+ * TODO: [🧠][🤠] This should be part of `TextFormatDefinition`
+ * Note: [💝] and [🤠] are interconnected together
  */

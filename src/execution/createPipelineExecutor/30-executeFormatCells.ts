@@ -42,6 +42,7 @@ export async function executeFormatCells(options: ExecuteFormatCellsOptions): Pr
             ...parameters,
             [template.foreach!.subparameterName]:
                 // <- Note: [👩‍👩‍👧] Maybe detect parameter collision here?
+                // <- TODO: [🦥]
                 subparameterValue,
         };
 
@@ -76,4 +77,5 @@ const textLinesFormat = {
 /**
  * TODO: !!!!!! Make pipelineIdentification more precise
  * TODO: !!!!!! How FOREACH execution looks in the report
+ * TODO: [🧠][🦥] Better (less confusing) name for "cell" / "subvalue" / "subparameter"
  */

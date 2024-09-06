@@ -1,5 +1,6 @@
-import type { string_mime_type } from '../../types/typeAliases';
-import type { string_name } from '../../types/typeAliases';
+import { string_SCREAMING_CASE } from '../../_packages/types.index';
+import type { string_mime_type, string_name } from '../../types/typeAliases';
+import { FormatSubvalueDefinition } from './FormatSubvalueDefinition';
 
 /**
  * A format definition is a set of functions that define how to validate, heal and convert response from LLM
@@ -7,18 +8,18 @@ import type { string_name } from '../../types/typeAliases';
  * @see https://github.com/webgptorg/promptbook/discussions/36
  * @private still in development [🏢]
  */
-export type FormatDefinition<TValue extends TPartialValue, TPartialValue extends string, TSchema extends object> = {
+export type FormatDefinition<TValue extends TPartialValue, TPartialValue extends string, TSchema> = {
     /**
      * The name of the format used in .ptbk.md files
      *
      * @sample "JSON"
      */
-    readonly name: string_name;
+    readonly formatName: string_name & string_SCREAMING_CASE;
 
     /**
-     * Aliases for the name
+     * Aliases for the `formatName`
      */
-    readonly aliases?: Array<string_name>;
+    readonly aliases?: Array<string_name & string_SCREAMING_CASE>;
 
     /**
      * The mime type of the format (if any)
@@ -58,18 +59,13 @@ export type FormatDefinition<TValue extends TPartialValue, TPartialValue extends
     heal(value: string, scheme?: TSchema): TValue;
 
     /**
-     * Parses just the values and removes structural information
-     *
-     * Note: This is useful when you want to combine format expectations with counting words, characters,...
-     *
-     * @param value The value to check, for example "{\"name\": "John Smith"}"
-     * @param schema Optional schema
-     * @example "{\"name\": "John Smith"}" -> ["John Smith"]
+     * @@@
      */
-    extractValues(value: string, schema?: TSchema): Array<string>;
+    readonly subvalueDefinitions: Array<FormatSubvalueDefinition<TValue>>;
 };
 
 /**
+ * TODO: [🧠][🦥] Better (less confusing) name for "cell" / "subvalue" / "subparameter"
  * TODO: [♏] Add some prepare hook to modify prompt according to the format
  * TODO: [🍓]`name` and `aliases` should be UPPERCASE only and interpreted as case-insensitive (via normalization)
  * TODO: [🍓][👨‍⚖️] Compute TPartialValue dynamically - PartialString<TValue>

@@ -7,7 +7,7 @@ import type { FormatDefinition } from '../_common/FormatDefinition';
  * @private still in development [🏢]
  */
 export const XmlFormatDefinition: FormatDefinition<string /* <- [0] */, string /* <- [👨‍⚖️] */, object /* <- [1] */> = {
-    name: 'XML',
+    formatName: 'XML',
 
     mimeType: 'application/xml',
 

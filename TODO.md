@@ -42,3 +42,4 @@
 -   [ ] [🍓][♏] Maybe auto-add expectations as text of the prompt content
 -   [ ] [🍓] Add system for auto-quoting - for some models its better \`\`\` for some >, but writer of `.ptbk.md` should not struggle with this
 -   [ ] [🍓][🍋] Allow to `EXPECT` relative amounts like `EXPECT MAX 130% {foo} Words`
+-   [ ] [🧠][🦥] Better (less confusing) name for "cell" / "subvalue" / "subparameter"

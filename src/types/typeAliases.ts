@@ -142,6 +142,8 @@ export type string_parameter_value = string;
  */
 export type Parameters = Exclude<Record<string_parameter_name, string_parameter_value>, ReservedParameters>;
 
+// <- TODO: [🧠] Maybe rename `Parameters` because it is already defined in global scope and also it is used more generally [👩🏾‍🤝‍🧑🏽]
+
 /**
  * Semantic helper
  * Unique identifier of reserved parameter

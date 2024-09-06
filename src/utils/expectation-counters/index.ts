@@ -1,5 +1,4 @@
-import type { ExpectationAmount } from '../../types/PipelineJson/Expectations';
-import type { ExpectationUnit } from '../../types/PipelineJson/Expectations';
+import type { ExpectationAmount, ExpectationUnit } from '../../types/PipelineJson/Expectations';
 import { countCharacters } from './countCharacters';
 import { countLines } from './countLines';
 import { countPages } from './countPages';
@@ -9,7 +8,7 @@ import { countWords } from './countWords';
 
 /**
  * Index of all counter functions
- * 
+ *
  * @public exported from `@promptbook/utils`
  */
 export const CountUtils: Record<ExpectationUnit, (text: string) => ExpectationAmount> = {
@@ -20,3 +19,7 @@ export const CountUtils: Record<ExpectationUnit, (text: string) => ExpectationAm
     LINES: countLines,
     PAGES: countPages,
 };
+
+/**
+ * TODO: [🧠][🤠] This should be probbably as part of `TextFormatDefinition` / `ListFormatDefinition`
+ */

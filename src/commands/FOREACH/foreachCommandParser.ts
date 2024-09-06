@@ -170,6 +170,7 @@ export const foreachCommandParser: PipelineTemplateCommandParser<ForeachCommand>
 };
 
 /**
- * TODO: !!!!!! Comment console logs
+ * TODO: !!!!!! Remove console logs
+ * TODO: [🧠][🦥] Better (less confusing) name for "cell" / "subvalue" / "subparameter"
  * TODO: [🍭] !!!!!! Make .ptbk.md file with examples of the FOREACH command and also with wrong parsing and logic
  */

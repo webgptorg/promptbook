@@ -8,7 +8,7 @@ import { isValidJsonString } from './utils/isValidJsonString';
  * @private still in development [🏢]
  */
 export const JsonFormatDefinition: FormatDefinition<string /* <- [0] */, string /* <- [👨‍⚖️] */, object /* <- [1] */> = {
-    name: 'JSON',
+    formatName: 'JSON',
 
     mimeType: 'application/json',
 

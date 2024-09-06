@@ -92,3 +92,7 @@ describe('how FOREACH command in .ptbk.md files works', () => {
         }
     });
 });
+
+/**
+ * TODO: [🧠][🦥] Better (less confusing) name for "cell" / "subvalue" / "subparameter"
+ */
