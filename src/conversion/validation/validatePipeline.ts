@@ -389,6 +389,7 @@ export function validatePipelineCore(pipeline: PipelineJson): void {
 }
 
 /**
+ * TODO: !!!!!! [🧞‍♀️] Do not allow joker + foreach
  * TODO: [🧠] Work with promptbookVersion
  * TODO: Use here some json-schema, Zod or something similar and change it to:
  *     > /**
