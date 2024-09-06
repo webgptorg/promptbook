@@ -29,11 +29,7 @@ export const XmlFormatDefinition: FormatDefinition<string /* <- [0] */, string /
         throw new Error('Not implemented');
     },
 
-    extractValues(value, schema) {
-        TODO_USE(value /* <- TODO: Use value here */);
-        TODO_USE(schema /* <- TODO: Use schema here */);
-        throw new Error('Not implemented');
-    },
+    subvalueDefinitions: [],
 };
 
 /**
