@@ -26,7 +26,7 @@
             "templateType": "PROMPT_TEMPLATE",
             "name": "write-a-greeting",
             "title": "Write a greeting",
-            "content": "Write an email greeting for \"{customer}\"",
+            "content": "Write an email greeting for \"{customer}\"\n\n## Rules\n\n-   Write just a greeting, nothing else",
             "resultingParameterName": "greetings",
             "foreach": {
                 "formatName": "LIST",

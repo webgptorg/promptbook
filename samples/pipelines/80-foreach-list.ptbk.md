@@ -13,8 +13,12 @@ Show how to use a simple prompt with no parameters.
 -   PERSONA Jane, customer service representative
 <!--- TODO: Add EXPECT -->
 
-```text
+```markdown
 Write an email greeting for "{customer}"
+
+## Rules
+
+-   Write just a greeting, nothing else
 ```
 
 `-> {greetings}`
