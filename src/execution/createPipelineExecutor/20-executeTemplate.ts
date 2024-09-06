@@ -104,6 +104,7 @@ export async function executeTemplate(options: executeSingleTemplateOptions): Pr
     // Note: Check consistency of used and dependent parameters which was also done in `validatePipeline`, but it’s good to doublecheck
     const usedParameterNames = extractParameterNamesFromTemplate(currentTemplate);
     const dependentParameterNames = new Set(currentTemplate.dependentParameterNames);
+    // TODO: [👩🏾‍🤝‍👩🏻] Some more elegant way how to compare expected and defined parameters
     if (
         union(
             difference(usedParameterNames, dependentParameterNames),
@@ -146,6 +147,7 @@ export async function executeTemplate(options: executeSingleTemplateOptions): Pr
     const parameters: Parameters = {};
 
     // Note: [2] Check that all used parameters are defined and removing unused parameters for this template
+    // TODO: [👩🏾‍🤝‍👩🏻] Some more elegant way how to compare expected and defined parameters
     for (const parameterName of Array.from(union(definedParameterNames, usedParameterNames, dependentParameterNames))) {
         // Situation: Parameter is defined and used
         if (definedParameterNames.has(parameterName) && usedParameterNames.has(parameterName)) {

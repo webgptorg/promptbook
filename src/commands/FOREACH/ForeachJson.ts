@@ -8,12 +8,12 @@ export type ForeachJson = {
     /**
      * @@@
      */
-    readonly formatName: TODO_string; // <- !!!!!!
+    readonly formatName: TODO_string; // <-  !!!!!!  type
 
     /**
      * @@@
      */
-    readonly cellName: TODO_string; // <- !!!!!!
+    readonly cellName: TODO_string; // <-  !!!!!! [🦥] + type
 
     /**
      * @@@
@@ -23,7 +23,7 @@ export type ForeachJson = {
     /**
      * @@@
      */
-    readonly subparameterName: string_parameter_name;
+    readonly subparameterNames: Array<string_parameter_name>;
 };
 
 /**

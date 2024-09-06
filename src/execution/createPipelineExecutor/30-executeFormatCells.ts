@@ -1,8 +1,9 @@
 import spaceTrim from 'spacetrim';
-import type { Promisable } from 'type-fest';
+import { union } from '../../_packages/utils.index';
+import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
+import { FORMAT_DEFINITIONS } from '../../formats';
 import type { TODO_any } from '../../utils/organization/TODO_any';
-import type { TODO_string } from '../../utils/organization/TODO_string';
 import type { ExecuteAttemptsOptions } from './40-executeAttempts';
 import { executeAttempts } from './40-executeAttempts';
 
@@ -19,7 +20,7 @@ type ExecuteFormatCellsOptions = ExecuteAttemptsOptions;
  * @private internal utility of `createPipelineExecutor`
  */
 export async function executeFormatCells(options: ExecuteFormatCellsOptions): Promise<TODO_any> {
-    const { template, jokerParameterNames, parameters, priority } = options;
+    const { template, jokerParameterNames, parameters, priority, pipelineIdentification } = options;
 
     if (template.foreach === undefined) {
         return /* not await */ executeAttempts(options);
@@ -37,22 +38,100 @@ export async function executeFormatCells(options: ExecuteFormatCellsOptions): Pr
 
     const parameterValue = parameters[template.foreach.parameterName] || '';
 
-    const resultString = await textLinesFormat.forEachCell(parameterValue, async (subparameterValue, index) => {
-        const subparameters = {
+    const formatDefinition = FORMAT_DEFINITIONS.find(
+        (formatDefinition) =>
+            [formatDefinition.formatName, ...(formatDefinition.aliases || [])].includes(template.foreach!.formatName),
+        // <- Note: All names here are already normalized
+    );
+
+    if (formatDefinition === undefined) {
+        throw new UnexpectedError(
+            // <- TODO: [🧠][🧐] Should be formats fixed per promptbook version or behave as plugins (=> change UnexpectedError)
+            spaceTrim(`
+                Unsupported format "${template.foreach!.formatName}"
+
+                [⛷] This should never happen because format name should be validated during parsing
+            `),
+        );
+    }
+
+    const subvalueDefinition = formatDefinition.subvalueDefinitions.find(
+        (subvalueDefinition) =>
+            [subvalueDefinition.subvalueName, ...(subvalueDefinition.aliases || [])].includes(
+                template.foreach!.formatName,
+            ),
+        // <- Note: All names here are already normalized
+    );
+
+    if (subvalueDefinition === undefined) {
+        throw new UnexpectedError(
+            // <- TODO: [🧠][🧐] Should be formats fixed per promptbook version or behave as plugins (=> change UnexpectedError)
+            spaceTrim(`
+                Unsupported cell name "${template.foreach!.cellName}" for format "${template.foreach!.formatName}"
+
+                [⛷] This should never happen because cell name should be validated during parsing
+            `),
+            // <- TODO: [🦥]
+        );
+    }
+
+    const resultString = await subvalueDefinition.mapValues(parameterValue, async (subparameters, index) => {
+        const definedSubparametersNames = new Set(Object.keys(subparameters));
+        const expectedSubparameterNames = new Set(template.foreach!.subparameterNames);
+
+        const allSubparameters = {
             ...parameters,
-            [template.foreach!.subparameterName]:
-                // <- Note: [👩‍👩‍👧] Maybe detect parameter collision here?
-                // <- TODO: [🦥]
-                subparameterValue,
         };
 
+        // TODO: !!!!!! Special situation 1:1 with arbitrary parameter names
+
+        // TODO: [👩🏾‍🤝‍👩🏻] Some more elegant way how to compare expected and defined parameters
+        for (const subparameterName of Array.from(union(definedSubparametersNames, expectedSubparameterNames))) {
+            // Situation: Parameter is defined and expected
+            if (definedSubparametersNames.has(subparameterName) && expectedSubparameterNames.has(subparameterName)) {
+                allSubparameters[subparameterName] = subparameters[subparameterName]!;
+                // <- Note: [👩‍👩‍👧] Maybe detect parameter collision here?
+                // <- TODO: [🦥]
+            }
+
+            // Situation: Parameter is defined but NOT expected
+            else if (
+                definedSubparametersNames.has(subparameterName) &&
+                !expectedSubparameterNames.has(subparameterName)
+            ) {
+                // Do not pass this parameter to prompt
+            }
+
+            // Situation: Parameter is NOT defined BUT expected
+            else if (
+                !definedSubparametersNames.has(subparameterName) &&
+                expectedSubparameterNames.has(subparameterName)
+            ) {
+                throw new PipelineExecutionError(
+                    spaceTrim(
+                        (block) => `
+                            Parameter {${subparameterName}} is NOT defined
+                            BUT used in template "${template.title || template.name}" for FOREACH command
+
+                            - You have probbably passed wrong data to pipeline
+
+                            ${block(
+                                pipelineIdentification /* <- TODO: Should it be used here, if not remove, if yes put in all other places in this folder */,
+                            )}
+
+                        `,
+                    ),
+                );
+            }
+        }
+
         // Note: [👨‍👨‍👧] Now we can freeze `subparameters` because we are sure that all and only used parameters are defined and are not going to be changed
-        Object.freeze(subparameters);
+        Object.freeze(allSubparameters);
 
         const subresultString = await executeAttempts({
             ...options,
             priority: priority + index,
-            parameters: subparameters,
+            parameters: allSubparameters,
         });
 
         return subresultString;
@@ -61,21 +140,9 @@ export async function executeFormatCells(options: ExecuteFormatCellsOptions): Pr
     return resultString;
 }
 
-const textLinesFormat = {
-    async forEachCell(
-        value: TODO_string,
-        mapCallback: (cellValue: string, index: number) => Promisable<TODO_string>,
-    ): Promise<string> {
-        const lines = value.split('\n');
-
-        const mappedLines = await Promise.all(lines.map((line, index) => /* not await */ mapCallback(line, index)));
-
-        return mappedLines.join('\n');
-    },
-};
-
 /**
  * TODO: !!!!!! Make pipelineIdentification more precise
  * TODO: !!!!!! How FOREACH execution looks in the report
  * TODO: [🧠][🦥] Better (less confusing) name for "cell" / "subvalue" / "subparameter"
+ * TODO: []
  */

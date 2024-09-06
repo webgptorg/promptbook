@@ -2,10 +2,12 @@ import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
 import type { string_markdown_text } from '../../types/typeAliases';
 import { normalizeTo_SCREAMING_CASE } from '../../utils/normalization/normalizeTo_SCREAMING_CASE';
 import { keepUnused } from '../../utils/organization/keepUnused';
-import type { $PipelineJson } from '../_common/types/CommandParser';
-import type { $TemplateJson } from '../_common/types/CommandParser';
-import type { CommandParserInput } from '../_common/types/CommandParser';
-import type { PipelineTemplateCommandParser } from '../_common/types/CommandParser';
+import type {
+    $PipelineJson,
+    $TemplateJson,
+    CommandParserInput,
+    PipelineTemplateCommandParser,
+} from '../_common/types/CommandParser';
 import type { ForeachCommand } from './ForeachCommand';
 
 /**
@@ -67,9 +69,11 @@ export const foreachCommandParser: PipelineTemplateCommandParser<ForeachCommand>
 
         if (
             ![
-                'LIST',
+                'LIST', // <- TODO: !!!!!! Test `formatNames` and `cellNames` "not_in_uppercase"
                 'CSV',
-                // <- TODO: [🏢] Unhardcode formats
+                // <- TODO: !!!!!! [🏢] Unhardcode formats
+                // <- Note: [⛷]
+                // <- TODO: [🧠][🧐] Should be formats fixed per promptbook version or behave as dynamic plugins
             ].includes(formatName!)
         ) {
             console.info({ args, formatName });
@@ -83,7 +87,9 @@ export const foreachCommandParser: PipelineTemplateCommandParser<ForeachCommand>
                 'ROW',
                 'COLUMN',
                 'CELL',
-                // <- TODO: [🏢] Unhardcode format cells
+                // <- TODO: !!!!!! [🏢] Unhardcode format cells
+                // <- Note: [⛷]
+                // <- TODO: [🧠][🧐] Should be formats fixed per promptbook version or behave as dynamic plugins
             ].includes(cellName!)
         ) {
             console.info({ args, cellName });
