@@ -43,6 +43,6 @@ export const ListFormatDefinition: FormatDefinition<string /* <- [0] */, string 
  * TODO: [🍓] In `ListFormatDefinition` implement simple `isValid`
  * TODO: [🍓] In `ListFormatDefinition` implement partial `canBeValid`
  * TODO: [🍓] In `ListFormatDefinition` implement `heal
- * TODO: [🍓] In `ListFormatDefinition` implement `extractValues`
+ * TODO: [🍓] In `ListFormatDefinition` implement `subvalueDefinitions`
  * TODO: [🏢] Allow to expect something inside each item of list and other formats
  */

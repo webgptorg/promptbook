@@ -1,4 +1,4 @@
-import { CsvFormatDefinition } from './csv/ListFormatDefinition';
+import { CsvFormatDefinition } from './csv/CsvFormatDefinition';
 import { JsonFormatDefinition } from './json/JsonFormatDefinition';
 import { ListFormatDefinition } from './list/ListFormatDefinition';
 import { XmlFormatDefinition } from './xml/XmlFormatDefinition';

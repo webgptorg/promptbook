@@ -504,6 +504,8 @@ Command `FOREACH`
 
 -   Allow iterations with `FOREACH` command
 -   Big refactoring of `createPipelineExecutor`
+-   Enhance and implement formats `FormatDefinition`
+-   Allow to parse CSVs via `CsvFormatDefinition`
 
 ## In prepare
 
