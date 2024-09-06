@@ -2,6 +2,7 @@ import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
 import type { string_markdown_text } from '../../types/typeAliases';
 import { normalizeTo_SCREAMING_CASE } from '../../utils/normalization/normalizeTo_SCREAMING_CASE';
 import { keepUnused } from '../../utils/organization/keepUnused';
+import { validateParameterName } from '../../utils/validators/parameterName/validateParameterName.test';
 import type {
     $PipelineJson,
     $TemplateJson,
@@ -49,7 +50,7 @@ export const foreachCommandParser: PipelineTemplateCommandParser<ForeachCommand>
      * Example usages of the FOREACH command
      */
     examples: [
-        'FOREACH List Line `{customers}` -> `{customer}`',
+        'FOREACH Text Line `{customers}` -> `{customer}`',
         'FOR List Line `{customers}` -> `{customer}`',
         'EACH List Line `{customers}` -> `{customer}`',
         // <- TODO: [🍭] !!!!!! More
@@ -65,7 +66,6 @@ export const foreachCommandParser: PipelineTemplateCommandParser<ForeachCommand>
         const cellName = normalizeTo_SCREAMING_CASE(args[1] || '');
         const parameterNameWrapped = args[2];
         const assignSign = args[3];
-        const subparameterNameWrapped = args[4];
 
         if (
             ![
@@ -102,7 +102,7 @@ export const foreachCommandParser: PipelineTemplateCommandParser<ForeachCommand>
             throw new Error(`FOREACH command must have '->' to assign the value to the parameter`);
         }
 
-        // TODO: !!!!!! Replace with propper parameter name validation
+        // TODO: !!!!!! Replace with propper parameter name validation `validateParameterName`
         if (
             parameterNameWrapped?.substring(0, 1) !== '{' ||
             parameterNameWrapped?.substring(parameterNameWrapped.length - 1, parameterNameWrapped.length) !== '}'
@@ -116,23 +116,14 @@ export const foreachCommandParser: PipelineTemplateCommandParser<ForeachCommand>
         }
         const parameterName = parameterNameWrapped.substring(1, parameterNameWrapped.length - 1);
 
-        // TODO: !!!!!! Replace with propper parameter name validation
-        if (
-            subparameterNameWrapped?.substring(0, 1) !== '{' ||
-            subparameterNameWrapped?.substring(subparameterNameWrapped.length - 1, subparameterNameWrapped.length) !==
-                '}'
-        ) {
-            console.info({ args, subparameterNameWrapped });
-            throw new Error(`!!!!!! 2 Here will be error (with rules and precise error) from validateParameterName`);
-        }
-        const subparameterName = subparameterNameWrapped.substring(1, subparameterNameWrapped.length - 1);
+        const subparameterNames = args.slice(4).map(validateParameterName);
 
         return {
             type: 'FOREACH',
             formatName,
             cellName,
             parameterName,
-            subparameterName,
+            subparameterNames,
         } satisfies ForeachCommand;
     },
 
@@ -142,12 +133,12 @@ export const foreachCommandParser: PipelineTemplateCommandParser<ForeachCommand>
      * Note: `$` is used to indicate that this function mutates given `templateJson`
      */
     $applyToTemplateJson(command: ForeachCommand, $templateJson: $TemplateJson, $pipelineJson: $PipelineJson): void {
-        const { formatName, cellName, parameterName, subparameterName } = command;
+        const { formatName, cellName, parameterName, subparameterNames } = command;
 
         // TODO: !!!!!! Detect double use
         // TODO: !!!!!! Detect usage with JOKER and don't allow it
 
-        $templateJson.foreach = { formatName, cellName, parameterName, subparameterName };
+        $templateJson.foreach = { formatName, cellName, parameterName, subparameterNames };
 
         keepUnused($pipelineJson); // <- TODO: !!!!!! BUT Maybe register subparameter from foreach into parameters of the pipeline
 
