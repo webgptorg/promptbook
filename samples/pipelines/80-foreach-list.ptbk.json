@@ -29,10 +29,12 @@
             "content": "Write an email greeting for \"{customer}\"\n\n## Rules\n\n-   Write just a greeting, nothing else",
             "resultingParameterName": "greetings",
             "foreach": {
-                "formatName": "LIST",
+                "formatName": "TEXT",
                 "cellName": "LINE",
                 "parameterName": "customers",
-                "subparameterName": "customer"
+                "subparameterNames": [
+                    "customer"
+                ]
             },
             "personaName": "Jane",
             "dependentParameterNames": [
