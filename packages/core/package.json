@@ -1,6 +1,6 @@
 {
     "name": "@promptbook/core",
-    "version": "0.69.0-8",
+    "version": "0.69.0-10",
     "description": "Supercharge your use of large language models",
     "private": false,
     "sideEffects": false,
@@ -48,6 +48,7 @@
     "typings": "./esm/typings/src/_packages/core.index.d.ts",
     "dependencies": {
         "moment": "2.30.1",
+        "papaparse": "5.4.1",
         "prettier": "2.8.1",
         "spacetrim": "0.11.39",
         "waitasecond": "1.11.83"

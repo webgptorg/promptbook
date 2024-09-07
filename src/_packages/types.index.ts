@@ -38,6 +38,7 @@ import type { ScriptExecutionToolsExecuteOptions } from '../execution/ScriptExec
 import type { UncertainNumber } from '../execution/UncertainNumber';
 import type { UserInterfaceTools } from '../execution/UserInterfaceTools';
 import type { UserInterfaceToolsPromptDialogOptions } from '../execution/UserInterfaceTools';
+import type { FormatSubvalueDefinition } from '../formats/_common/FormatSubvalueDefinition';
 import type { CallbackInterfaceToolsOptions } from '../knowledge/dialogs/callback/CallbackInterfaceToolsOptions';
 import type { LlmToolsConfiguration } from '../llm-providers/_common/LlmToolsConfiguration';
 import type { LlmToolsMetadata } from '../llm-providers/_common/LlmToolsMetadata';
@@ -268,6 +269,7 @@ export type { ScriptExecutionToolsExecuteOptions };
 export type { UncertainNumber };
 export type { UserInterfaceTools };
 export type { UserInterfaceToolsPromptDialogOptions };
+export type { FormatSubvalueDefinition };
 export type { CallbackInterfaceToolsOptions };
 export type { LlmToolsConfiguration };
 export type { LlmToolsMetadata };
