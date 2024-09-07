@@ -1,6 +1,7 @@
-import { string_SCREAMING_CASE } from '../../_packages/types.index';
-import type { string_mime_type, string_name } from '../../types/typeAliases';
-import { FormatSubvalueDefinition } from './FormatSubvalueDefinition';
+import type { string_SCREAMING_CASE } from '../../utils/normalization/normalizeTo_SCREAMING_CASE';
+import type { string_mime_type } from '../../types/typeAliases';
+import type { string_name } from '../../types/typeAliases';
+import type { FormatSubvalueDefinition } from './FormatSubvalueDefinition';
 
 /**
  * A format definition is a set of functions that define how to validate, heal and convert response from LLM

@@ -1,8 +1,9 @@
 import spaceTrim from 'spacetrim';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
-import { FORMAT_DEFINITIONS } from '../../formats';
-import { string_parameter_name, string_parameter_value } from '../../types/typeAliases';
+import { FORMAT_DEFINITIONS } from '../../formats/index';
+import type { string_parameter_name } from '../../types/typeAliases';
+import type { string_parameter_value } from '../../types/typeAliases';
 import type { TODO_any } from '../../utils/organization/TODO_any';
 import { mapAvailableToExpectedParameters } from '../../utils/parameters/mapAvailableToExpectedParameters';
 import type { ExecuteAttemptsOptions } from './40-executeAttempts';

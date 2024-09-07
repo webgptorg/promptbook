@@ -1,6 +1,6 @@
 import { parse, unparse } from 'papaparse';
 import spaceTrim from 'spacetrim';
-import { Parameters } from '../../_packages/types.index';
+import type { Parameters } from '../../types/typeAliases';
 import { ParseError } from '../../errors/ParseError';
 import { TODO_USE } from '../../utils/organization/TODO_USE';
 import type { FormatDefinition } from '../_common/FormatDefinition';
