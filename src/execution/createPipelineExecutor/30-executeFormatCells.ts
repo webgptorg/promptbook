@@ -122,7 +122,7 @@ export async function executeFormatCells(options: ExecuteFormatCellsOptions): Pr
             throw new PipelineExecutionError(
                 spaceTrim(
                     (block) => `
-                        ${error.message}
+                        ${(error as PipelineExecutionError).message}
 
                         This is error in FOREACH command
                         You have probbably passed wrong data to pipeline or wrong data was generated which are processed by FOREACH command
