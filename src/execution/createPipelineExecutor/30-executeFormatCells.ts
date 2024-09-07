@@ -47,11 +47,20 @@ export async function executeFormatCells(options: ExecuteFormatCellsOptions): Pr
     if (formatDefinition === undefined) {
         throw new UnexpectedError(
             // <- TODO: [🧠][🧐] Should be formats fixed per promptbook version or behave as plugins (=> change UnexpectedError)
-            spaceTrim(`
-                Unsupported format "${template.foreach!.formatName}"
+            spaceTrim(
+                (block) => `
+                    Unsupported format "${template.foreach!.formatName}"
 
-                [⛷] This should never happen because format name should be validated during parsing
-            `),
+                    Available formats:
+                    ${block(
+                        FORMAT_DEFINITIONS.map((formatDefinition) => formatDefinition.formatName)
+                            .map((formatName) => `- ${formatName}`)
+                            .join('\n'),
+                    )}
+
+                    [⛷] This should never happen because format name should be validated during parsing
+                `,
+            ),
         );
     }
 
@@ -66,11 +75,21 @@ export async function executeFormatCells(options: ExecuteFormatCellsOptions): Pr
     if (subvalueDefinition === undefined) {
         throw new UnexpectedError(
             // <- TODO: [🧠][🧐] Should be formats fixed per promptbook version or behave as plugins (=> change UnexpectedError)
-            spaceTrim(`
-                Unsupported cell name "${template.foreach!.cellName}" for format "${template.foreach!.formatName}"
+            spaceTrim(
+                (block) => `
+                    Unsupported cell name "${template.foreach!.cellName}" for format "${template.foreach!.formatName}"
 
-                [⛷] This should never happen because cell name should be validated during parsing
-            `),
+                    Available cell names for format "${formatDefinition.formatName}":
+                    ${block(
+                        formatDefinition.subvalueDefinitions
+                            .map((subvalueDefinition) => subvalueDefinition.subvalueName)
+                            .map((subvalueName) => `- ${subvalueName}`)
+                            .join('\n'),
+                    )}
+
+                    [⛷] This should never happen because cell name should be validated during parsing
+                `,
+            ),
             // <- TODO: [🦥]
         );
     }

@@ -1,3 +1,4 @@
+import spaceTrim from 'spacetrim';
 import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
 import { ParseError } from '../../errors/ParseError';
 import { FORMAT_DEFINITIONS } from '../../formats';
@@ -79,7 +80,20 @@ export const foreachCommandParser: PipelineTemplateCommandParser<ForeachCommand>
 
         if (formatDefinition === undefined) {
             console.info({ args, formatName });
-            throw new ParseError(`Unsupported format "${formatName}"`);
+            throw new ParseError(
+                spaceTrim(
+                    (block) => `
+                        Unsupported format "${formatName}"
+
+                        Available formats:
+                        ${block(
+                            FORMAT_DEFINITIONS.map((formatDefinition) => formatDefinition.formatName)
+                                .map((formatName) => `- ${formatName}`)
+                                .join('\n'),
+                        )}
+                    `,
+                ),
+            );
             // <- TODO: [🏢] List all supported format names
         }
 
@@ -92,7 +106,21 @@ export const foreachCommandParser: PipelineTemplateCommandParser<ForeachCommand>
 
         if (subvalueDefinition === undefined) {
             console.info({ args, cellName });
-            throw new ParseError(`Format ${formatName} does not support cell "${cellName}"`);
+            throw new ParseError(
+                spaceTrim(
+                    (block) => `
+                        Unsupported cell name "${cellName}" for format "${formatName}"
+
+                        Available cell names for format "${formatDefinition.formatName}":
+                        ${block(
+                            formatDefinition.subvalueDefinitions
+                                .map((subvalueDefinition) => subvalueDefinition.subvalueName)
+                                .map((subvalueName) => `- ${subvalueName}`)
+                                .join('\n'),
+                        )}
+                    `,
+                ),
+            );
             // <- TODO: [🏢] List all supported cell names for the format
         }
 
