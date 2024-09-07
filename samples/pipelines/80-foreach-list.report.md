@@ -4,8 +4,8 @@ Show how to use a simple prompt with no parameters.
 
 -   PIPELINE URL https://promptbook.studio/samples/foreach-list.ptbk.md
 -   PROMPTBOOK VERSION 0.69.0-8 _(requested 1.0.0)_
--   STARTED AT 2024-09-07 16:45:39
--   COMPLETED AT 2024-09-07 16:45:40
+-   STARTED AT 2024-09-07 17:09:05
+-   COMPLETED AT 2024-09-07 17:09:06
 -   TOTAL DURATION a few seconds
 -   TOTAL LLM DURATION a few seconds
 -   TOTAL COST $0.000522
@@ -21,10 +21,10 @@ Show how to use a simple prompt with no parameters.
 | Template         | Timeline                             |
 | ---------------- | ------------------------------------ |
 | Write a greeting | ██████████████████████████████░░░░░░ |
-| Write a greeting | █████████████████████████████████░░░ |
+| Write a greeting | ██████████████████████████████░░░░░░ |
 | Write a greeting | ████████████████████████████████████ |
 
-_Note: Each █ represents 0.02836 seconds, width of timeline is 1.02 seconds = 36 squares_
+_Note: Each █ represents 0.0255 seconds, width of timeline is 0.918 seconds = 36 squares_
 
 ## 💸 Cost chart
 
@@ -62,27 +62,6 @@ Hi George,
 ### Prompt
 
 ```
-Write an email greeting for "Kate"
-
-## Rules
-
--   Write just a greeting, nothing else
-```
-
-### Result
-
-```
-Hi Kate,
-```
-
-## Write a greeting
-
--   DURATION a few seconds
--   COST UNKNOWN
-
-### Prompt
-
-```
 Write an email greeting for "Paul"
 
 ## Rules
@@ -94,4 +73,25 @@ Write an email greeting for "Paul"
 
 ```
 Hi Paul,
+```
+
+## Write a greeting
+
+-   DURATION a few seconds
+-   COST UNKNOWN
+
+### Prompt
+
+```
+Write an email greeting for "Kate"
+
+## Rules
+
+-   Write just a greeting, nothing else
+```
+
+### Result
+
+```
+Hi Kate,
 ```

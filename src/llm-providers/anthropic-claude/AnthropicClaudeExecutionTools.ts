@@ -148,7 +148,7 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools {
 
         // eslint-disable-next-line prefer-const
         complete = getCurrentIsoDate();
-        const usage = computeAnthropicClaudeUsage(content, '', rawResponse);
+        const usage = computeAnthropicClaudeUsage(rawPromptContent || '', resultContent || '', rawResponse);
 
         return $asDeeplyFrozenSerializableJson('AnthropicClaudeExecutionTools ChatPromptResult', {
             content: resultContent,

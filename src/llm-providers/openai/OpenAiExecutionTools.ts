@@ -166,7 +166,7 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
         const resultContent = rawResponse.choices[0].message.content;
         // eslint-disable-next-line prefer-const
         complete = getCurrentIsoDate();
-        const usage = computeOpenAiUsage(content, resultContent || '', rawResponse);
+        const usage = computeOpenAiUsage(content || '', resultContent || '', rawResponse);
 
         if (resultContent === null) {
             throw new PipelineExecutionError('No response message from OpenAI');
@@ -246,7 +246,7 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
         const resultContent = rawResponse.choices[0].text;
         // eslint-disable-next-line prefer-const
         complete = getCurrentIsoDate();
-        const usage = computeOpenAiUsage(content, resultContent || '', rawResponse);
+        const usage = computeOpenAiUsage(content || '', resultContent || '', rawResponse);
 
         return $asDeeplyFrozenSerializableJson('OpenAiExecutionTools CompletionPromptResult', {
             content: resultContent,
@@ -313,7 +313,12 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
 
         // eslint-disable-next-line prefer-const
         complete = getCurrentIsoDate();
-        const usage = computeOpenAiUsage(content, '', rawResponse);
+        const usage = computeOpenAiUsage(
+            content || '',
+            '',
+            // <- Note: Embedding does not have result content
+            rawResponse,
+        );
 
         return $asDeeplyFrozenSerializableJson('OpenAiExecutionTools EmbeddingPromptResult', {
             content: resultContent,

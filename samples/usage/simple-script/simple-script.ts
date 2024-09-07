@@ -130,6 +130,7 @@ async function main() {
         console.error(colors.red(error.stack || error.message));
     }
 
+    // console.info(usage);
     console.info(colors.cyan(usageToHuman(usage /* <- TODO: [🌳] Compare with `llmTools.getTotalUsage()` */)));
 
     for (const [key, value] of Object.entries(outputParameters)) {

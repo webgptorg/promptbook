@@ -6,28 +6,50 @@ import { usageToWorktime } from './usageToWorktime';
 
 /**
  * Function `usageToHuman` will take usage and convert it to human readable report
- * 
+ *
  * @public exported from `@promptbook/core`
  */
 export function usageToHuman(usage: PromptResultUsage): string_markdown {
- 
-    let report = 'Usage:';
+    const reportItems: Array<string> = [];
 
     const uncertainNumberToHuman = ({ value, isUncertain }: UncertainNumber) =>
         `${isUncertain ? 'approximately ' : ''}${Math.round(value * 100) / 100}`;
 
-    report += '\n' + `- Cost ${uncertainNumberToHuman(usage.price)} USD`;
-    report += '\n' + `- Saved ${uncertainNumberToHuman(usageToWorktime(usage))} hours of human time`;
+    if (
+        usage.price.value > 0.1
+        // <- TODO: [🍓][🧞‍♂️][👩🏽‍🤝‍🧑🏻] Configure negligible value - default value to config + value to `UsageToHumanSettings`
+    ) {
+        reportItems.push(`Cost ${uncertainNumberToHuman(usage.price)} USD`);
+    }
 
-    return spaceTrim(report);
+    const worktime = usageToWorktime(usage);
+    if (
+        worktime.value > 0.5
+        // <- TODO: [🍓][🧞‍♂️][👩🏽‍🤝‍🧑🏻]
+    ) {
+        reportItems.push(`Saved ${uncertainNumberToHuman(usageToWorktime(usage))} hours of human time`);
+        // TODO: [🍓][🧞‍♂️] Show minutes, seconds, days NOT 0.1 hours
+    }
+
+    if (reportItems.length === 0) {
+        // Note: For negligible usage, we report at least something
+        reportItems.push(`Written ${uncertainNumberToHuman(usage.output.charactersCount)} characters`);
+    }
+
+    return spaceTrim(
+        (block) => `
+            Usage:
+            ${block(reportItems.map((item) => `- ${item}`).join('\n'))}
+        `,
+    );
 }
 
 /**
- * TODO: Use "$1" not "1 USD"
- * TODO: Use markdown formatting like "Cost approximately **$1**"
- * TODO: Report in minutes, seconds, days NOT 0.1 hours
+ * TODO: [🍓][🧞‍♂️] Use "$1" not "1 USD"
+ * TODO: [🍓][🧞‍♂️] Use markdown formatting like "Cost approximately **$1**"
+ * TODO: [🍓][🧞‍♂️] Report in minutes, seconds, days NOT 0.1 hours
+ * TODO: [🍓][🧞‍♂️] Do not report "Written 0 characters" when negligible usage - report "Negligible"
  * TODO: [🧠] Maybe make from `uncertainNumberToHuman` separate exported utility
- * TODO: When negligible usage, report "Negligible" or just don't report it
  * TODO: [🧠] Maybe use "~" instead of "approximately"
  * TODO: [🏛] Maybe make some markdown builder
  */
