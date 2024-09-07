@@ -6,7 +6,7 @@ describe('how FOREACH command in .ptbk.md files works', () => {
     it('should parse FOREACH command in PIPELINE_TEMPLATE', () => {
         expect(parseCommand('FOREACH Text Line `{customers}` -> `{customer}`', 'PIPELINE_TEMPLATE')).toEqual({
             type: 'FOREACH',
-            formatName: 'LIST',
+            formatName: 'TEXT',
             cellName: 'LINE',
             parameterName: 'customers',
             subparameterNames: ['customer'],
@@ -18,7 +18,7 @@ describe('how FOREACH command in .ptbk.md files works', () => {
             parseCommand('FOREACH Text Line `{customers}` -> `{firstName}`, `{lastName}`', 'PIPELINE_TEMPLATE'),
         ).toEqual({
             type: 'FOREACH',
-            formatName: 'LIST',
+            formatName: 'TEXT',
             cellName: 'LINE',
             parameterName: 'customers',
             subparameterNames: ['firstName', 'lastName'],
@@ -28,14 +28,14 @@ describe('how FOREACH command in .ptbk.md files works', () => {
     it('should parse FOREACH command in multiple formats', () => {
         expect(parseCommand('FOREACH Text Line `{customers}` -> `{customer}`', 'PIPELINE_TEMPLATE')).toEqual({
             type: 'FOREACH',
-            formatName: 'LIST',
+            formatName: 'TEXT',
             cellName: 'LINE',
             parameterName: 'customers',
             subparameterNames: ['customer'],
         });
         expect(parseCommand('FOREACH Text Line {customers} -> {customer}', 'PIPELINE_TEMPLATE')).toEqual({
             type: 'FOREACH',
-            formatName: 'LIST',
+            formatName: 'TEXT',
             cellName: 'LINE',
             parameterName: 'customers',
             subparameterNames: ['customer'],
@@ -43,15 +43,15 @@ describe('how FOREACH command in .ptbk.md files works', () => {
 
         expect(parseCommand('FOREACH Text Line `{customers} -> {customer}`', 'PIPELINE_TEMPLATE')).toEqual({
             type: 'FOREACH',
-            formatName: 'LIST',
+            formatName: 'TEXT',
             cellName: 'LINE',
             parameterName: 'customers',
             subparameterNames: ['customer'],
         });
 
-        expect(parseCommand('EACH   List   Line {customers}     ->   {customer}   ', 'PIPELINE_TEMPLATE')).toEqual({
+        expect(parseCommand('EACH   Text   Line {customers}     ->   {customer}   ', 'PIPELINE_TEMPLATE')).toEqual({
             type: 'FOREACH',
-            formatName: 'LIST',
+            formatName: 'TEXT',
             cellName: 'LINE',
             parameterName: 'customers',
             subparameterNames: ['customer'],
@@ -59,31 +59,23 @@ describe('how FOREACH command in .ptbk.md files works', () => {
 
         /*
         TODO: This should work
-        expect(parseCommand('FOREACH CSV CELL `{customers}` ->`{customer}`', 'PIPELINE_TEMPLATE')).toEqual({
+        expect(parseCommand('FOREACH TEXT LINE `{customers}` ->`{customer}`', 'PIPELINE_TEMPLATE')).toEqual({
             type: 'FOREACH',
-            formatName: 'CSV',
-            cellName: 'CELL',
+            formatName: 'TEXT',
+            cellName: 'LINE',
             parameterName: 'customers',
             subparameterNames: ['customer'],
         });
         */
 
-        expect(parseCommand('FOREACH Csv Row `{customers}` -> `{customer}`', 'PIPELINE_TEMPLATE')).toEqual({
+        expect(parseCommand('FOREACH Csv Row `{customers}` -> {firstName}` `{lastName}', 'PIPELINE_TEMPLATE')).toEqual({
             type: 'FOREACH',
             formatName: 'CSV',
             cellName: 'ROW',
             parameterName: 'customers',
             subparameterNames: ['firstName', 'lastName'],
         });
-        expect(parseCommand('FOREACH Csv Row {customers} -> {customer}', 'PIPELINE_TEMPLATE')).toEqual({
-            type: 'FOREACH',
-            formatName: 'CSV',
-            cellName: 'ROW',
-            parameterName: 'customers',
-            subparameterNames: ['firstName', 'lastName'],
-        });
-
-        expect(parseCommand('FOREACH Csv Row `{customers} -> {customer}`', 'PIPELINE_TEMPLATE')).toEqual({
+        expect(parseCommand('FOREACH Csv Row {customers} -> {firstName} {lastName}', 'PIPELINE_TEMPLATE')).toEqual({
             type: 'FOREACH',
             formatName: 'CSV',
             cellName: 'ROW',
@@ -91,7 +83,30 @@ describe('how FOREACH command in .ptbk.md files works', () => {
             subparameterNames: ['firstName', 'lastName'],
         });
 
-        expect(parseCommand('EACH   Csv      Row {customers}     ->   {customer}   ', 'PIPELINE_TEMPLATE')).toEqual({
+        expect(parseCommand('FOREACH Csv Row `{customers} -> {firstName}, {lastName}`', 'PIPELINE_TEMPLATE')).toEqual({
+            type: 'FOREACH',
+            formatName: 'CSV',
+            cellName: 'ROW',
+            parameterName: 'customers',
+            subparameterNames: ['firstName', 'lastName'],
+        });
+
+        expect(
+            parseCommand('FOREACH Csv Row `{customers} -> {firstName}     , {lastName}`', 'PIPELINE_TEMPLATE'),
+        ).toEqual({
+            type: 'FOREACH',
+            formatName: 'CSV',
+            cellName: 'ROW',
+            parameterName: 'customers',
+            subparameterNames: ['firstName', 'lastName'],
+        });
+
+        expect(
+            parseCommand(
+                'EACH   Csv      Row {customers}     ->   {firstName}              {lastName}   ',
+                'PIPELINE_TEMPLATE',
+            ),
+        ).toEqual({
             type: 'FOREACH',
             formatName: 'CSV',
             cellName: 'ROW',
@@ -133,10 +148,9 @@ describe('how FOREACH command in .ptbk.md files works', () => {
             .toThrowError
             /* TODO: !!!!!! */
             ();
-        expect(() => parseCommand('FOREACH Csv Row `{customer}` ->', 'PIPELINE_TEMPLATE'))
-            .toThrowError
-            /* TODO: !!!!!! */
-            ();
+        expect(() => parseCommand('FOREACH Csv Row `{customer}` ->', 'PIPELINE_TEMPLATE')).toThrowError(
+            /FOREACH command must have at least one subparameter/i,
+        );
         expect(() => parseCommand('FOREACH Text Line customers -> customer', 'PIPELINE_TEMPLATE'))
             .toThrowError
             /* TODO: !!!!!! */

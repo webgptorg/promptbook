@@ -1,3 +1,4 @@
+import spaceTrim from 'spacetrim';
 import { RESERVED_PARAMETER_NAMES } from '../../../config';
 import { ParseError } from '../../../errors/ParseError';
 import { string_parameter_name, string_reserved_parameter_name } from '../../../types/typeAliases';
@@ -17,6 +18,8 @@ import { normalizeTo_camelCase } from '../../normalization/normalizeTo_camelCase
  */
 
 export function validateParameterName(parameterName: string): string_parameter_name {
+    const rawParameterName = parameterName;
+
     for (const [start, end] of [
         ['`', '`'],
         ['{', '}'],
@@ -34,39 +37,58 @@ export function validateParameterName(parameterName: string): string_parameter_n
         }
     }
 
-    /*
-  Note: We don't need to check for spaces because we are going to normalize the parameter name to camelCase
-  if (parameterName.includes(' ')) {
-      throw new ParseError(`Parameter name cannot contain spaces`);
-  }
-  */
-    if (parameterName.includes('.')) {
-        throw new ParseError(`Parameter name cannot contain dots`);
-    }
+    // TODO: [🐠] Following try-catch block should be part of common validators logic
+    try {
+        /*
+        Note: We don't need to check for spaces because we are going to normalize the parameter name to camelCase
+        if (parameterName.includes(' ')) {
+            throw new ParseError(`Parameter name cannot contain spaces`);
+        }
+        */
 
-    if (parameterName.includes('/') || parameterName.includes('\\')) {
-        throw new ParseError(`Parameter name cannot contain slashes`);
-    }
+        if (parameterName.includes('.')) {
+            throw new ParseError(`Parameter name cannot contain dots`);
+        }
 
-    if (
-        parameterName.includes('(') ||
-        parameterName.includes(')') ||
-        parameterName.includes('{') ||
-        parameterName.includes('}') ||
-        parameterName.includes('[') ||
-        parameterName.includes(']')
-    ) {
-        throw new ParseError(`Parameter name cannot contain braces`);
-    }
+        if (parameterName.includes('/') || parameterName.includes('\\')) {
+            throw new ParseError(`Parameter name cannot contain slashes`);
+        }
 
-    parameterName = normalizeTo_camelCase(parameterName);
+        if (
+            parameterName.includes('(') ||
+            parameterName.includes(')') ||
+            parameterName.includes('{') ||
+            parameterName.includes('}') ||
+            parameterName.includes('[') ||
+            parameterName.includes(']')
+        ) {
+            throw new ParseError(`Parameter name cannot contain braces`);
+        }
 
-    if (parameterName === '') {
-        throw new ParseError(`Parameter name cannot be empty`);
-    }
+        parameterName = normalizeTo_camelCase(parameterName);
 
-    if (RESERVED_PARAMETER_NAMES.includes(parameterName as string_reserved_parameter_name)) {
-        throw new ParseError(`{${parameterName}} is a reserved parameter name`);
+        if (parameterName === '') {
+            throw new ParseError(`Parameter name cannot be empty`);
+        }
+
+        if (RESERVED_PARAMETER_NAMES.includes(parameterName as string_reserved_parameter_name)) {
+            throw new ParseError(`{${parameterName}} is a reserved parameter name`);
+        }
+    } catch (error) {
+        if (!(error instanceof ParseError)) {
+            throw error;
+        }
+
+        throw new ParseError(
+            spaceTrim(
+                (block) => `
+                    ${block((error as ParseError).message)}
+
+                    Tried to validate parameter name:
+                    ${block(rawParameterName)}
+                `,
+            ),
+        );
     }
 
     return parameterName;

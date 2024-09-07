@@ -1,8 +1,10 @@
 import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
+import { ParseError } from '../../errors/ParseError';
+import { FORMAT_DEFINITIONS } from '../../formats';
 import type { string_markdown_text } from '../../types/typeAliases';
 import { normalizeTo_SCREAMING_CASE } from '../../utils/normalization/normalizeTo_SCREAMING_CASE';
 import { keepUnused } from '../../utils/organization/keepUnused';
-import { validateParameterName } from '../../utils/validators/parameterName/validateParameterName.test';
+import { validateParameterName } from '../../utils/validators/parameterName/validateParameterName';
 import type {
     $PipelineJson,
     $TemplateJson,
@@ -51,8 +53,8 @@ export const foreachCommandParser: PipelineTemplateCommandParser<ForeachCommand>
      */
     examples: [
         'FOREACH Text Line `{customers}` -> `{customer}`',
-        'FOR List Line `{customers}` -> `{customer}`',
-        'EACH List Line `{customers}` -> `{customer}`',
+        'FOR Csv Row `{customers}` -> `{firstName}`, `{lastName}`',
+        'EACH Csv Cell `{customers}` -> `{cell}`',
         // <- TODO: [🍭] !!!!!! More
     ],
 
@@ -67,39 +69,36 @@ export const foreachCommandParser: PipelineTemplateCommandParser<ForeachCommand>
         const parameterNameWrapped = args[2];
         const assignSign = args[3];
 
-        if (
-            ![
-                'LIST', // <- TODO: !!!!!! Test `formatNames` and `cellNames` "not_in_uppercase"
-                'CSV',
-                // <- TODO: !!!!!! [🏢] Unhardcode formats
-                // <- Note: [⛷]
-                // <- TODO: [🧠][🧐] Should be formats fixed per promptbook version or behave as dynamic plugins
-            ].includes(formatName!)
-        ) {
+        const formatDefinition = FORMAT_DEFINITIONS.find(
+            (formatDefinition) =>
+                [formatDefinition.formatName, ...(formatDefinition.aliases || [])].includes(formatName),
+
+            // <- Note: [⛷]
+            // <- TODO: [🧠][🧐] Should be formats fixed per promptbook version or behave as dynamic plugins
+        );
+
+        if (formatDefinition === undefined) {
             console.info({ args, formatName });
-            throw new Error(`Unsupported format "${formatName}"`);
+            throw new ParseError(`Unsupported format "${formatName}"`);
             // <- TODO: [🏢] List all supported format names
         }
 
-        if (
-            ![
-                'LINE',
-                'ROW',
-                'COLUMN',
-                'CELL',
-                // <- TODO: !!!!!! [🏢] Unhardcode format cells
-                // <- Note: [⛷]
-                // <- TODO: [🧠][🧐] Should be formats fixed per promptbook version or behave as dynamic plugins
-            ].includes(cellName!)
-        ) {
+        const subvalueDefinition = formatDefinition.subvalueDefinitions.find(
+            (subvalueDefinition) =>
+                [subvalueDefinition.subvalueName, ...(subvalueDefinition.aliases || [])].includes(cellName),
+            // <- Note: [⛷]
+            // <- TODO: [🧠][🧐] Should be formats fixed per promptbook version or behave as dynamic plugins
+        );
+
+        if (subvalueDefinition === undefined) {
             console.info({ args, cellName });
-            throw new Error(`Format ${formatName} does not support cell "${cellName}"`);
+            throw new ParseError(`Format ${formatName} does not support cell "${cellName}"`);
             // <- TODO: [🏢] List all supported cell names for the format
         }
 
         if (assignSign !== '->') {
             console.info({ args, assignSign });
-            throw new Error(`FOREACH command must have '->' to assign the value to the parameter`);
+            throw new ParseError(`FOREACH command must have '->' to assign the value to the parameter`);
         }
 
         // TODO: !!!!!! Replace with propper parameter name validation `validateParameterName`
@@ -112,11 +111,21 @@ export const foreachCommandParser: PipelineTemplateCommandParser<ForeachCommand>
                 parameterNameWrapped?.substring(0, 1),
                 parameterNameWrapped?.substring(parameterNameWrapped.length - 1, parameterNameWrapped.length),
             );
-            throw new Error(`!!!!!! 1 Here will be error (with rules and precise error) from validateParameterName`);
+            throw new ParseError(
+                `!!!!!! 1 Here will be error (with rules and precise error) from validateParameterName`,
+            );
         }
         const parameterName = parameterNameWrapped.substring(1, parameterNameWrapped.length - 1);
 
-        const subparameterNames = args.slice(4).map(validateParameterName);
+        const subparameterNames = args
+            .slice(4)
+            .map((parameterName) => parameterName.split(',').join(' ').trim())
+            .filter((parameterName) => parameterName !== '')
+            .map(validateParameterName);
+
+        if (subparameterNames.length === 0) {
+            throw new ParseError(`FOREACH command must have at least one subparameter`);
+        }
 
         return {
             type: 'FOREACH',

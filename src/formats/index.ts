@@ -13,4 +13,4 @@ export const FORMAT_DEFINITIONS = [
     XmlFormatDefinition,
     TextFormatDefinition,
     CsvFormatDefinition,
-];
+] as const;
