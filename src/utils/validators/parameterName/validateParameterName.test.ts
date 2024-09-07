@@ -1,12 +1,11 @@
 import { describe, expect, it } from '@jest/globals';
-import { string_parameter_name } from '../../../types/typeAliases';
+import { validateParameterName } from './validateParameterName';
 
 describe('how `validateParameterName` works', () => {
     it('should work with simple valid parameter names', () => {
         expect(validateParameterName(`name`)).toBe('name');
         expect(validateParameterName(`name1`)).toBe('name1');
         expect(validateParameterName(`firstName`)).toBe('firstName');
-        expect(validateParameterName(`name_1`)).toBe('name_1');
     });
 
     it('should unwrap names', () => {
@@ -14,28 +13,28 @@ describe('how `validateParameterName` works', () => {
         expect(validateParameterName('`{name}`')).toBe('name');
     });
 
+    it('should normalize parameter names', () => {
+        expect(validateParameterName(`name_1`)).toBe('name1');
+        expect(validateParameterName(`name 1`)).toBe('name1');
+        expect(validateParameterName(`NAME_FOO_BAR`)).toBe('nameFooBar');
+        expect(validateParameterName(`NAME FOO BAR`)).toBe('nameFooBar');
+        expect(validateParameterName(`NameFooBar`)).toBe('nameFooBar');
+    });
+
+    // TODO: !!!!! Test different notations /name/ -> {name}, [name] -> {name},... etc
+
     it('should NOT work with reserved parameter name', () => {
-        expect(validateParameterName(`{content}`)).toThrowError(/* !!!!!! */);
-        // <- TODO: !!!!!! Test dynamic
+        expect(() => validateParameterName(`{content}`)).toThrowError(/{content} is a reserved parameter name/);
+        // <- TODO: !!!!!! Test more
     });
 
     it('should NOT work with invalid parameter name', () => {
-        expect(validateParameterName(``)).toThrowError(/* !!!!!! */);
-        expect(validateParameterName(`-`)).toThrowError(/* !!!!!! */);
-        expect(validateParameterName(`{}`)).toThrowError(/* !!!!!! */);
-        expect(validateParameterName(`name}`)).toThrowError(/* !!!!!! */);
-        expect(validateParameterName(`{{name}}`)).toThrowError(/* !!!!!! */);
+        expect(() => validateParameterName(``)).toThrowError(/Parameter name cannot be empty/i);
+        expect(() => validateParameterName(`-`)).toThrowError(/Parameter name cannot be empty/i);
+        expect(() => validateParameterName(`{}`)).toThrowError(/Parameter name cannot be empty/i);
+        expect(() => validateParameterName(`name}`)).toThrowError(/Parameter name cannot contain braces/i);
+        expect(() => validateParameterName(`{{name}}`)).toThrowError(/Parameter name cannot contain braces/i);
+        expect(() => validateParameterName(`name]`)).toThrowError(/Parameter name cannot contain braces/i);
+        expect(() => validateParameterName(`{(name}}`)).toThrowError(/Parameter name cannot contain braces/i);
     });
 });
-
-/**
- * Function `validateParameterName` will @@@
- *
- * @private within the repository <- TODO: !!! Take just one of
- * @public exported from @@@
- */
-export function validateParameterName(parameterName: string): string_parameter_name {}
-
-/**
- * TODO: !!! Extract `validateParameterName` to separate file
- */
