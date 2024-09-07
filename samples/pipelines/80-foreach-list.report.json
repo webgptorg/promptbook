@@ -4,5 +4,351 @@
     "promptbookUsedVersion": "0.69.0-8",
     "promptbookRequestedVersion": "1.0.0",
     "description": "Show how to use a simple prompt with no parameters.",
-    "promptExecutions": []
+    "promptExecutions": [
+        {
+            "prompt": {
+                "title": "Write a greeting",
+                "pipelineUrl": "https://promptbook.studio/samples/foreach-list.ptbk.md#write-a-greeting",
+                "parameters": {
+                    "customers": "Paul\nGeorge\nKate",
+                    "customer": "George"
+                },
+                "content": "Write an email greeting for \"{customer}\"\n\n## Rules\n\n-   Write just a greeting, nothing else",
+                "modelRequirements": {
+                    "modelVariant": "CHAT"
+                },
+                "expectations": {
+                    "name": "Jane",
+                    "description": "customer service representative",
+                    "modelRequirements": {
+                        "modelVariant": "CHAT",
+                        "modelName": "gpt-4-turbo-2024-04-09",
+                        "systemMessage": "You are a friendly and professional customer service representative. Your goal is to assist customers with their inquiries, resolve issues efficiently, and ensure a positive customer experience. Provide accurate information, offer solutions, and maintain a helpful and courteous demeanor throughout the interaction.",
+                        "temperature": 0.7
+                    },
+                    "preparationIds": [
+                        1
+                    ]
+                }
+            },
+            "result": {
+                "content": "Hi George,",
+                "modelName": "claude-3-5-sonnet-20240620",
+                "timing": {
+                    "start": "2024-09-07T14:45:39.220Z",
+                    "complete": "2024-09-07T14:45:40.065Z"
+                },
+                "usage": {
+                    "price": {
+                        "value": 0.000174
+                    },
+                    "input": {
+                        "tokensCount": {
+                            "value": 28
+                        },
+                        "charactersCount": {
+                            "value": 91
+                        },
+                        "wordsCount": {
+                            "value": 13
+                        },
+                        "sentencesCount": {
+                            "value": 1
+                        },
+                        "linesCount": {
+                            "value": 5
+                        },
+                        "paragraphsCount": {
+                            "value": 3
+                        },
+                        "pagesCount": {
+                            "value": 1
+                        }
+                    },
+                    "output": {
+                        "tokensCount": {
+                            "value": 6
+                        },
+                        "charactersCount": {
+                            "value": 0
+                        },
+                        "wordsCount": {
+                            "value": 0
+                        },
+                        "sentencesCount": {
+                            "value": 0
+                        },
+                        "linesCount": {
+                            "value": 0
+                        },
+                        "paragraphsCount": {
+                            "value": 0
+                        },
+                        "pagesCount": {
+                            "value": 0
+                        }
+                    }
+                },
+                "rawPromptContent": "Write an email greeting for \"George\"\n\n## Rules\n\n-   Write just a greeting, nothing else",
+                "rawRequest": {
+                    "model": "claude-3-5-sonnet-20240620",
+                    "max_tokens": 4096,
+                    "messages": [
+                        {
+                            "role": "user",
+                            "content": "Write an email greeting for \"George\"\n\n## Rules\n\n-   Write just a greeting, nothing else"
+                        }
+                    ]
+                },
+                "rawResponse": {
+                    "id": "msg_012mcNJyU7KwKHsEuhautNMm",
+                    "type": "message",
+                    "role": "assistant",
+                    "model": "claude-3-5-sonnet-20240620",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "Hi George,"
+                        }
+                    ],
+                    "stop_reason": "end_turn",
+                    "stop_sequence": null,
+                    "usage": {
+                        "input_tokens": 28,
+                        "output_tokens": 6
+                    }
+                }
+            }
+        },
+        {
+            "prompt": {
+                "title": "Write a greeting",
+                "pipelineUrl": "https://promptbook.studio/samples/foreach-list.ptbk.md#write-a-greeting",
+                "parameters": {
+                    "customers": "Paul\nGeorge\nKate",
+                    "customer": "Kate"
+                },
+                "content": "Write an email greeting for \"{customer}\"\n\n## Rules\n\n-   Write just a greeting, nothing else",
+                "modelRequirements": {
+                    "modelVariant": "CHAT"
+                },
+                "expectations": {
+                    "name": "Jane",
+                    "description": "customer service representative",
+                    "modelRequirements": {
+                        "modelVariant": "CHAT",
+                        "modelName": "gpt-4-turbo-2024-04-09",
+                        "systemMessage": "You are a friendly and professional customer service representative. Your goal is to assist customers with their inquiries, resolve issues efficiently, and ensure a positive customer experience. Provide accurate information, offer solutions, and maintain a helpful and courteous demeanor throughout the interaction.",
+                        "temperature": 0.7
+                    },
+                    "preparationIds": [
+                        1
+                    ]
+                }
+            },
+            "result": {
+                "content": "Hi Kate,",
+                "modelName": "claude-3-5-sonnet-20240620",
+                "timing": {
+                    "start": "2024-09-07T14:45:39.220Z",
+                    "complete": "2024-09-07T14:45:40.163Z"
+                },
+                "usage": {
+                    "price": {
+                        "value": 0.000174
+                    },
+                    "input": {
+                        "tokensCount": {
+                            "value": 28
+                        },
+                        "charactersCount": {
+                            "value": 91
+                        },
+                        "wordsCount": {
+                            "value": 13
+                        },
+                        "sentencesCount": {
+                            "value": 1
+                        },
+                        "linesCount": {
+                            "value": 5
+                        },
+                        "paragraphsCount": {
+                            "value": 3
+                        },
+                        "pagesCount": {
+                            "value": 1
+                        }
+                    },
+                    "output": {
+                        "tokensCount": {
+                            "value": 6
+                        },
+                        "charactersCount": {
+                            "value": 0
+                        },
+                        "wordsCount": {
+                            "value": 0
+                        },
+                        "sentencesCount": {
+                            "value": 0
+                        },
+                        "linesCount": {
+                            "value": 0
+                        },
+                        "paragraphsCount": {
+                            "value": 0
+                        },
+                        "pagesCount": {
+                            "value": 0
+                        }
+                    }
+                },
+                "rawPromptContent": "Write an email greeting for \"Kate\"\n\n## Rules\n\n-   Write just a greeting, nothing else",
+                "rawRequest": {
+                    "model": "claude-3-5-sonnet-20240620",
+                    "max_tokens": 4096,
+                    "messages": [
+                        {
+                            "role": "user",
+                            "content": "Write an email greeting for \"Kate\"\n\n## Rules\n\n-   Write just a greeting, nothing else"
+                        }
+                    ]
+                },
+                "rawResponse": {
+                    "id": "msg_01RY7iHfXc7sZjDfu7nkKNkB",
+                    "type": "message",
+                    "role": "assistant",
+                    "model": "claude-3-5-sonnet-20240620",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "Hi Kate,"
+                        }
+                    ],
+                    "stop_reason": "end_turn",
+                    "stop_sequence": null,
+                    "usage": {
+                        "input_tokens": 28,
+                        "output_tokens": 6
+                    }
+                }
+            }
+        },
+        {
+            "prompt": {
+                "title": "Write a greeting",
+                "pipelineUrl": "https://promptbook.studio/samples/foreach-list.ptbk.md#write-a-greeting",
+                "parameters": {
+                    "customers": "Paul\nGeorge\nKate",
+                    "customer": "Paul"
+                },
+                "content": "Write an email greeting for \"{customer}\"\n\n## Rules\n\n-   Write just a greeting, nothing else",
+                "modelRequirements": {
+                    "modelVariant": "CHAT"
+                },
+                "expectations": {
+                    "name": "Jane",
+                    "description": "customer service representative",
+                    "modelRequirements": {
+                        "modelVariant": "CHAT",
+                        "modelName": "gpt-4-turbo-2024-04-09",
+                        "systemMessage": "You are a friendly and professional customer service representative. Your goal is to assist customers with their inquiries, resolve issues efficiently, and ensure a positive customer experience. Provide accurate information, offer solutions, and maintain a helpful and courteous demeanor throughout the interaction.",
+                        "temperature": 0.7
+                    },
+                    "preparationIds": [
+                        1
+                    ]
+                }
+            },
+            "result": {
+                "content": "Hi Paul,",
+                "modelName": "claude-3-5-sonnet-20240620",
+                "timing": {
+                    "start": "2024-09-07T14:45:39.219Z",
+                    "complete": "2024-09-07T14:45:40.240Z"
+                },
+                "usage": {
+                    "price": {
+                        "value": 0.000174
+                    },
+                    "input": {
+                        "tokensCount": {
+                            "value": 28
+                        },
+                        "charactersCount": {
+                            "value": 91
+                        },
+                        "wordsCount": {
+                            "value": 13
+                        },
+                        "sentencesCount": {
+                            "value": 1
+                        },
+                        "linesCount": {
+                            "value": 5
+                        },
+                        "paragraphsCount": {
+                            "value": 3
+                        },
+                        "pagesCount": {
+                            "value": 1
+                        }
+                    },
+                    "output": {
+                        "tokensCount": {
+                            "value": 6
+                        },
+                        "charactersCount": {
+                            "value": 0
+                        },
+                        "wordsCount": {
+                            "value": 0
+                        },
+                        "sentencesCount": {
+                            "value": 0
+                        },
+                        "linesCount": {
+                            "value": 0
+                        },
+                        "paragraphsCount": {
+                            "value": 0
+                        },
+                        "pagesCount": {
+                            "value": 0
+                        }
+                    }
+                },
+                "rawPromptContent": "Write an email greeting for \"Paul\"\n\n## Rules\n\n-   Write just a greeting, nothing else",
+                "rawRequest": {
+                    "model": "claude-3-5-sonnet-20240620",
+                    "max_tokens": 4096,
+                    "messages": [
+                        {
+                            "role": "user",
+                            "content": "Write an email greeting for \"Paul\"\n\n## Rules\n\n-   Write just a greeting, nothing else"
+                        }
+                    ]
+                },
+                "rawResponse": {
+                    "id": "msg_01QKWugRw4GjSerRjB7e9Ke5",
+                    "type": "message",
+                    "role": "assistant",
+                    "model": "claude-3-5-sonnet-20240620",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "Hi Paul,"
+                        }
+                    ],
+                    "stop_reason": "end_turn",
+                    "stop_sequence": null,
+                    "usage": {
+                        "input_tokens": 28,
+                        "output_tokens": 6
+                    }
+                }
+            }
+        }
+    ]
 }

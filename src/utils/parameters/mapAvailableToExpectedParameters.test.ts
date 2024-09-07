@@ -83,4 +83,20 @@ describe('how `mapAvailableToExpectedParameters` works', () => {
             }),
         ).toEqual({ a: 'aa', b: 'b', c: 'cc' });
     });
+
+    it('should throw error when parameters are not matching and also count is not matching', () => {
+        expect(() =>
+            mapAvailableToExpectedParameters({
+                expectedParameters: { foo: null, baz: null },
+                availableParameters: { foox: 'foo', barx: 'bar', bazx: 'baz' },
+            }),
+        ).toThrowError(/* !!!!!! */);
+
+        expect(() =>
+            mapAvailableToExpectedParameters({
+                expectedParameters: { foo: null, bar: null, baz: null },
+                availableParameters: { foox: 'foo', bazx: 'baz' },
+            }),
+        ).toThrowError(/* !!!!!! */);
+    });
 });

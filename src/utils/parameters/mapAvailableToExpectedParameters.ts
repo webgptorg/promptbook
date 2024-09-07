@@ -38,48 +38,71 @@ export function mapAvailableToExpectedParameters(
 
     const mappedParameters: Record<string_parameter_name, string_parameter_value> = {};
 
-    // TODO: !!!!!! Special situation 1:1 with arbitrary parameter names
-
-    // TODO: [👩🏾‍🤝‍👩🏻] Use here `mapAvailableToExpectedParameters`
+    // Phase 1️⃣: Matching mapping
     for (const parameterName of Array.from(union(availableParametersNames, expectedParameterNames))) {
         // Situation: Parameter is available and expected
         if (availableParametersNames.has(parameterName) && expectedParameterNames.has(parameterName)) {
             mappedParameters[parameterName] = availableParameters[parameterName]!;
             // <- Note: [👩‍👩‍👧] Maybe detect parameter collision here?
+            availableParametersNames.delete(parameterName);
+            expectedParameterNames.delete(parameterName);
         }
 
         // Situation: Parameter is available but NOT expected
         else if (availableParametersNames.has(parameterName) && !expectedParameterNames.has(parameterName)) {
-            // [🐱‍👤] Do not pass this parameter to prompt
+            // [🐱‍👤] Do not pass this parameter to prompt - Maybe use it non-matching mapping
         }
 
         // Situation: Parameter is NOT available BUT expected
         else if (!availableParametersNames.has(parameterName) && expectedParameterNames.has(parameterName)) {
-            throw new PipelineExecutionError(
-                spaceTrim(
-                    (block) => `
-                        Parameter {${parameterName}} is NOT available
-
-                        - You have probbably passed wrong data to pipeline
-
-                        Expected parameters:
-                        ${block(
-                            Array.from(expectedParameterNames)
-                                .map((parameterName) => `- {${parameterName}}`)
-                                .join('\n'),
-                        )}
-
-                        Available parameters:
-                        ${block(
-                            Array.from(availableParametersNames)
-                                .map((parameterName) => `- {${parameterName}}`)
-                                .join('\n'),
-                        )}
-
-                    `,
-                ),
-            );
+            //  Do nothing here - this will be maybe fixed in the non-matching mapping
         }
+    }
+
+    if (expectedParameterNames.size === 0) {
+        // Note: [👨‍👨‍👧] Now we can freeze `mappedParameters` to prevent @@@
+        Object.freeze(mappedParameters);
+        return mappedParameters;
+    }
+
+    // Phase 2️⃣: Non-matching mapping
+    if (expectedParameterNames.size !== availableParametersNames.size) {
+        throw new PipelineExecutionError(
+            spaceTrim(
+                (block) => `
+                    Can not map available parameters to expected parameters
+
+                    Mapped parameters:
+                    ${block(
+                        Object.keys(mappedParameters)
+                            .map((parameterName) => `- {${parameterName}}`)
+                            .join('\n'),
+                    )}
+
+                    Expected parameters which can not be mapped:
+                    ${block(
+                        Array.from(expectedParameterNames)
+                            .map((parameterName) => `- {${parameterName}}`)
+                            .join('\n'),
+                    )}
+
+                    Remaining available parameters:
+                    ${block(
+                        Array.from(availableParametersNames)
+                            .map((parameterName) => `- {${parameterName}}`)
+                            .join('\n'),
+                    )}
+
+                `,
+            ),
+        );
+    }
+
+    const expectedParameterNamesArray = Array.from(expectedParameterNames);
+    const availableParametersNamesArray = Array.from(availableParametersNames);
+
+    for (let i = 0; i < expectedParameterNames.size; i++) {
+        mappedParameters[expectedParameterNamesArray[i]!] = availableParameters[availableParametersNamesArray[i]!]!;
     }
 
     // Note: [👨‍👨‍👧] Now we can freeze `mappedParameters` to prevent @@@
