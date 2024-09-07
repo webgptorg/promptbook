@@ -1,8 +1,7 @@
 import spaceTrim from 'spacetrim';
 import { RESERVED_PARAMETER_NAMES } from '../../../config';
 import { ParseError } from '../../../errors/ParseError';
-import type { string_parameter_name } from '../../../types/typeAliases';
-import type { string_reserved_parameter_name } from '../../../types/typeAliases';
+import type { string_parameter_name, string_reserved_parameter_name } from '../../../types/typeAliases';
 import { normalizeTo_camelCase } from '../../normalization/normalizeTo_camelCase';
 
 /**
@@ -13,11 +12,6 @@ import { normalizeTo_camelCase } from '../../normalization/normalizeTo_camelCase
  * @throws {ParseError} @@@
  * @private within the repository
  */
-/**
- *
- * @param parameterName
- */
-
 export function validateParameterName(parameterName: string): string_parameter_name {
     const rawParameterName = parameterName;
 
