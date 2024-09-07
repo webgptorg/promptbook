@@ -67,7 +67,7 @@ export async function executeFormatCells(options: ExecuteFormatCellsOptions): Pr
     const subvalueDefinition = formatDefinition.subvalueDefinitions.find(
         (subvalueDefinition) =>
             [subvalueDefinition.subvalueName, ...(subvalueDefinition.aliases || [])].includes(
-                template.foreach!.formatName,
+                template.foreach!.cellName,
             ),
         // <- Note: All names here are already normalized
     );
