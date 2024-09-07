@@ -1,9 +1,10 @@
 import spaceTrim from 'spacetrim';
-import { union } from '../../_packages/utils.index';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import { FORMAT_DEFINITIONS } from '../../formats';
+import { string_parameter_name, string_parameter_value } from '../../types/typeAliases';
 import type { TODO_any } from '../../utils/organization/TODO_any';
+import { mapAvailableToExpectedParameters } from '../../utils/parameters/mapAvailableToExpectedParameters';
 import type { ExecuteAttemptsOptions } from './40-executeAttempts';
 import { executeAttempts } from './40-executeAttempts';
 
@@ -28,11 +29,15 @@ export async function executeFormatCells(options: ExecuteFormatCellsOptions): Pr
 
     if (jokerParameterNames.length !== 0) {
         throw new UnexpectedError(
-            spaceTrim(`
-                JOKER parameters are not supported together with FOREACH command
+            spaceTrim(
+                (block) => `
+                    JOKER parameters are not supported together with FOREACH command
 
-                [🧞‍♀️] This should be prevented in \`validatePipeline\`
-            `),
+                    [🧞‍♀️] This should be prevented in \`validatePipeline\`
+
+                    ${block(pipelineIdentification)}
+                `,
+            ),
         );
     }
 
@@ -59,6 +64,8 @@ export async function executeFormatCells(options: ExecuteFormatCellsOptions): Pr
                     )}
 
                     [⛷] This should never happen because format name should be validated during parsing
+
+                    ${block(pipelineIdentification)}
                 `,
             ),
         );
@@ -88,6 +95,8 @@ export async function executeFormatCells(options: ExecuteFormatCellsOptions): Pr
                     )}
 
                     [⛷] This should never happen because cell name should be validated during parsing
+
+                    ${block(pipelineIdentification)}
                 `,
             ),
             // <- TODO: [🦥]
@@ -95,68 +104,38 @@ export async function executeFormatCells(options: ExecuteFormatCellsOptions): Pr
     }
 
     const resultString = await subvalueDefinition.mapValues(parameterValue, async (subparameters, index) => {
-        const definedSubparametersNames = new Set(Object.keys(subparameters));
-        const expectedSubparameterNames = new Set(template.foreach!.subparameterNames);
+        let mappedParameters: Record<string_parameter_name, string_parameter_value>;
+
+        try {
+            mappedParameters = mapAvailableToExpectedParameters({
+                expectedParameters: Object.fromEntries(
+                    template.foreach!.subparameterNames.map((subparameterName) => [subparameterName, null]),
+                    // <- [🦥]
+                ),
+                availableParameters: subparameters,
+            });
+        } catch (error) {
+            if (!(error instanceof PipelineExecutionError)) {
+                throw error;
+            }
+
+            throw new PipelineExecutionError(
+                spaceTrim(
+                    (block) => `
+                        ${error.message}
+
+                        This is error of FOREACH command
+
+                        ${block(pipelineIdentification)}
+                    `,
+                ),
+            );
+        }
 
         const allSubparameters = {
             ...parameters,
+            ...mappedParameters,
         };
-
-        // TODO: !!!!!! Special situation 1:1 with arbitrary parameter names
-
-        // TODO: [👩🏾‍🤝‍👩🏻] Some more elegant way how to compare expected and defined parameters
-        for (const subparameterName of Array.from(union(definedSubparametersNames, expectedSubparameterNames))) {
-            // Situation: Parameter is defined and expected
-            if (definedSubparametersNames.has(subparameterName) && expectedSubparameterNames.has(subparameterName)) {
-                allSubparameters[subparameterName] = subparameters[subparameterName]!;
-                // <- Note: [👩‍👩‍👧] Maybe detect parameter collision here?
-                // <- TODO: [🦥]
-            }
-
-            // Situation: Parameter is defined but NOT expected
-            else if (
-                definedSubparametersNames.has(subparameterName) &&
-                !expectedSubparameterNames.has(subparameterName)
-            ) {
-                // Do not pass this parameter to prompt
-            }
-
-            // Situation: Parameter is NOT defined BUT expected
-            else if (
-                !definedSubparametersNames.has(subparameterName) &&
-                expectedSubparameterNames.has(subparameterName)
-            ) {
-                throw new PipelineExecutionError(
-                    spaceTrim(
-                        (block) => `
-                            Parameter {${subparameterName}} is NOT defined
-                            BUT used in template "${template.title || template.name}" for FOREACH command
-
-                            - You have probbably passed wrong data to pipeline
-
-                            Expected subparameters:
-                            ${block(
-                                Array.from(expectedSubparameterNames)
-                                    .map((parameterName) => `- {${parameterName}}`)
-                                    .join('\n'),
-                            )}
-
-                            Defined subparameters:
-                            ${block(
-                                Array.from(definedSubparametersNames)
-                                    .map((parameterName) => `- {${parameterName}}`)
-                                    .join('\n'),
-                            )}
-
-                            ${block(
-                                pipelineIdentification /* <- TODO: Should it be used here, if not remove, if yes put in all other places in this folder */,
-                            )}
-
-                        `,
-                    ),
-                );
-            }
-        }
 
         // Note: [👨‍👨‍👧] Now we can freeze `subparameters` because we are sure that all and only used parameters are defined and are not going to be changed
         Object.freeze(allSubparameters);
@@ -165,6 +144,7 @@ export async function executeFormatCells(options: ExecuteFormatCellsOptions): Pr
             ...options,
             priority: priority + index,
             parameters: allSubparameters,
+            pipelineIdentification, // <- TODO: [🦡] !!!!!! make identification more granular
         });
 
         return subresultString;

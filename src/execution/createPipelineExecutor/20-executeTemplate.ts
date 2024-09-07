@@ -104,7 +104,7 @@ export async function executeTemplate(options: executeSingleTemplateOptions): Pr
     // Note: Check consistency of used and dependent parameters which was also done in `validatePipeline`, but it’s good to doublecheck
     const usedParameterNames = extractParameterNamesFromTemplate(currentTemplate);
     const dependentParameterNames = new Set(currentTemplate.dependentParameterNames);
-    // TODO: [👩🏾‍🤝‍👩🏻] Some more elegant way how to compare expected and defined parameters
+    // TODO: [👩🏾‍🤝‍👩🏻] Use here `mapAvailableToExpectedParameters`
     if (
         union(
             difference(usedParameterNames, dependentParameterNames),
@@ -117,8 +117,6 @@ export async function executeTemplate(options: executeSingleTemplateOptions): Pr
                 (block) => `
                     Dependent parameters are not consistent with used parameters:
 
-                    ${block(pipelineIdentification)}
-
                     Dependent parameters:
                     ${Array.from(dependentParameterNames)
                         .map((name) => `{${name}}`)
@@ -128,6 +126,8 @@ export async function executeTemplate(options: executeSingleTemplateOptions): Pr
                     ${Array.from(usedParameterNames)
                         .map((name) => `{${name}}`)
                         .join(', ')}
+
+                    ${block(pipelineIdentification)}
 
                 `,
             ),
@@ -147,7 +147,7 @@ export async function executeTemplate(options: executeSingleTemplateOptions): Pr
     const parameters: Parameters = {};
 
     // Note: [2] Check that all used parameters are defined and removing unused parameters for this template
-    // TODO: [👩🏾‍🤝‍👩🏻] Some more elegant way how to compare expected and defined parameters
+    // TODO: [👩🏾‍🤝‍👩🏻] Use here `mapAvailableToExpectedParameters`
     for (const parameterName of Array.from(union(definedParameterNames, usedParameterNames, dependentParameterNames))) {
         // Situation: Parameter is defined and used
         if (definedParameterNames.has(parameterName) && usedParameterNames.has(parameterName)) {

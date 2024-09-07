@@ -42,6 +42,7 @@ export function filterJustOutputParameters(options: FilterJustOutputParametersOp
     const outputParameters: Parameters = {};
 
     // Note: Filter ONLY output parameters
+    // TODO: [👩🏾‍🤝‍👩🏻] Maybe use here `mapAvailableToExpectedParameters`
     for (const parameter of preparedPipeline.parameters.filter(({ isOutput }) => isOutput)) {
         if (parametersToPass[parameter.name] === undefined) {
             // [4]

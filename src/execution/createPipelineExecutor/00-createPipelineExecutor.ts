@@ -80,7 +80,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
             inputParameters,
             tools,
             onProgress,
-            pipelineIdentification,
+            pipelineIdentification, // <- TODO: [🦡] !!!!!! make identification more granular
             settings: {
                 maxExecutionAttempts,
                 maxParallelCount,
