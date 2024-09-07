@@ -134,6 +134,20 @@ export async function executeFormatCells(options: ExecuteFormatCellsOptions): Pr
 
                             - You have probbably passed wrong data to pipeline
 
+                            Expected subparameters:
+                            ${block(
+                                Array.from(expectedSubparameterNames)
+                                    .map((parameterName) => `- {${parameterName}}`)
+                                    .join('\n'),
+                            )}
+
+                            Defined subparameters:
+                            ${block(
+                                Array.from(definedSubparametersNames)
+                                    .map((parameterName) => `- {${parameterName}}`)
+                                    .join('\n'),
+                            )}
+
                             ${block(
                                 pipelineIdentification /* <- TODO: Should it be used here, if not remove, if yes put in all other places in this folder */,
                             )}
