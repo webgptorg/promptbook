@@ -1,7 +1,6 @@
 # ✨ Sample: Jokers
 
 -   PIPELINE URL https://promptbook.studio/samples/jokers.ptbk.md
--   PROMPTBOOK VERSION 1.0.0
 -   INPUT  PARAMETER {name1} First name or nothing
 -   INPUT  PARAMETER {name2} Second name or nothing
 -   OUTPUT PARAMETER `{name}`
