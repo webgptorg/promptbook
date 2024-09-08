@@ -6,6 +6,8 @@ import type { PipelineString } from '../../types/PipelineString';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import { createCollectionFromDirectory } from './createCollectionFromDirectory';
 
+// TODO: !!!!!! Uncomment the test
+
 describe('createCollectionFromDirectory', () => {
     // Note: It doesn't matter if the code block is ``` or >
     const pipeline = spaceTrim(`
