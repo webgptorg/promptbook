@@ -1,6 +1,6 @@
 # ✨ Write greeting for each customer
 
-Show how to use a simple prompt with no parameters.
+Show how to iterate over a list of customers and write a greeting for each.
 
 -   PIPELINE URL https://promptbook.studio/samples/foreach-list.ptbk.md
 -   INPUT PARAMETER `{customers}` Customer names each customer on each row

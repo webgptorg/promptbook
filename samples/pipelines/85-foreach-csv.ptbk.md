@@ -1,10 +1,10 @@
 # ✨ Write email for each customer
 
-Show how to use a simple prompt with no parameters.
+Show how to iterate over a table of customers and write an email for each.
 
--   PIPELINE URL https://promptbook.studio/samples/foreach-list.ptbk.md
+-   PIPELINE URL https://promptbook.studio/samples/foreach-csv.ptbk.md
 -   INPUT PARAMETER `{customers}` Customer names each customer on each row
--   OUTPUT PARAMETER `{greetings}` Greeting to each customer on each row
+-   OUTPUT PARAMETER `{emails}` Greeting to each customer on each row
 
 ## About eshop
 
@@ -45,7 +45,7 @@ Write an email from Coolstore shop to customer "{firstName} {lastName}". Inform 
 -   {note}
 ```
 
-`-> {greetings}`
+`-> {emails}`
 
 ### Samples of customers
 
@@ -61,7 +61,7 @@ Lives in and loves the Prague, please mention it every communication"
 
 <!-- TODO: [🧩] Allow to import from 85-foreach.csv -->
 
-`-> {customers}`
+`-> {emails}`
 
 <!--
 

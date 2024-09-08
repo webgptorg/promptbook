@@ -17,7 +17,7 @@ import {
 import { JavascriptExecutionTools } from '../../../src/_packages/execute-javascript.index';
 import { createCollectionFromDirectory, createLlmToolsFromEnv } from '../../../src/_packages/node.index';
 
-import spaceTrim from 'spacetrim';
+import { readFile } from 'fs/promises';
 import '../../../src/_packages/anthropic-claude.index';
 import '../../../src/_packages/azure-openai.index';
 import '../../../src/_packages/openai.index';
@@ -54,7 +54,8 @@ async function main() {
     // @see https://nodejs.org/en/learn/command-line/accept-input-from-the-command-line-in-nodejs
 
     const pipeline = await collection.getPipelineByUrl(
-        `https://promptbook.studio/samples/foreach-list.ptbk.md`,
+        //`https://promptbook.studio/samples/foreach-list.ptbk.md`,
+        `https://promptbook.studio/samples/foreach-csv.ptbk.md`,
         //`https://promptbook.studio/samples/simple-knowledge.ptbk.md`,
         // `https://promptbook.studio/samples/simple.ptbk.md`,
         // `https://promptbook.studio/samples/language-capabilities.ptbk.md`,
@@ -81,13 +82,17 @@ async function main() {
     const pipelineExecutor = createPipelineExecutor({ pipeline, tools });
 
     const inputParameters = {
-        /**/
+        /*/
         // https://promptbook.studio/samples/foreach-list.ptbk.md
         customers: spaceTrim(`
             Paul
             George
             Kate
         `),
+        /**/
+        /**/
+        // https://promptbook.studio/samples/foreach-csv.ptbk.md
+        customers: await readFile('./samples/pipelines/85-foreach.csv', 'utf-8'),
         /**/
         /*/
         // https://promptbook.studio/samples/simple-knowledge.ptbk.md

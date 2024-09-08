@@ -1,7 +1,7 @@
 import { parse, unparse } from 'papaparse';
 import spaceTrim from 'spacetrim';
-import type { Parameters } from '../../types/typeAliases';
 import { ParseError } from '../../errors/ParseError';
+import type { Parameters } from '../../types/typeAliases';
 import { TODO_USE } from '../../utils/organization/TODO_USE';
 import type { FormatDefinition } from '../_common/FormatDefinition';
 
@@ -65,6 +65,8 @@ export const CsvFormatDefinition: FormatDefinition<string /* <- [0] */, string /
                 const mappedData = await Promise.all(
                     csv.data.map((row, index) => /*not await */ mapCallback(row, index)),
                 );
+
+                console.log('!!!!!! mappedData', mappedData);
 
                 return unparse(mappedData, {
                     header: true,
