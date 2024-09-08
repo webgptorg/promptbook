@@ -1,7 +1,7 @@
 {
     "title": "✨ Sample: Nesting",
     "pipelineUrl": "https://promptbook.studio/samples/nesting.ptbk.md",
-    "promptbookVersion": "0.69.0-10",
+    "promptbookVersion": "0.69.0-11",
     "description": "How block are nested in the promptbook",
     "parameters": [
         {

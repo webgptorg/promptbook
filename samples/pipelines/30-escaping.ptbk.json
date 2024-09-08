@@ -1,7 +1,7 @@
 {
     "title": "✨ Sample of escaping",
     "pipelineUrl": "https://promptbook.studio/samples/escaping.ptbk.md",
-    "promptbookVersion": "0.69.0-10",
+    "promptbookVersion": "0.69.0-11",
     "description": "Show how to put codeblocks in the prompt _(which is already in the codeblock)_",
     "parameters": [
         {
