@@ -189,27 +189,6 @@ export const IS_VERBOSE = false;
  *
  * @private within the repository
  */
-export const IS_COST_PREVENTED: boolean = just(
-    /**/
-    // Note: In normal situations, we prevent ability to use real API keys in tests:
-    true,
-    /**/
-
-    /*/
-    // When working on preparations, you can temporarily turn off the prevention:
-    false,
-    /**/
-
-    // Commit message:
-    // [🔑] Temporarily **disable** cost-prevention
-    // [🔒] **Enable** cost-prevention
-);
-
-/**
- * @@@
- *
- * @private within the repository
- */
 export const IS_PIPELINE_LOGIC_VALIDATED: boolean = just(
     /**/
     // Note: In normal situations, we check the pipeline logic:
@@ -224,6 +203,27 @@ export const IS_PIPELINE_LOGIC_VALIDATED: boolean = just(
     // Commit message:
     // [🔑] Temporarily **disable** pipeline validation
     // [🔒] **Enable** pipeline validation
+);
+
+/**
+ * @@@
+ *
+ * @private within the repository
+ */
+export const IS_COST_PREVENTED: boolean = just(
+    /*/
+    // Note: In normal situations, we prevent ability to use real API keys in tests:
+    true,
+    /**/
+
+    /**/
+    // When working on preparations, you can temporarily turn off the prevention:
+    false,
+    /**/
+
+    // Commit message:
+    // [🔑] Temporarily **disable** cost-prevention
+    // [🔒] **Enable** cost-prevention
 );
 
 /**

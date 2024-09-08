@@ -1,7 +1,7 @@
 {
     "title": "✨ Sample of logic error",
     "pipelineUrl": "https://promptbook.studio/samples/parameter-used-in-reverse-order.ptbk.md",
-    "promptbookVersion": "1.0.0",
+    "promptbookVersion": "0.69.0-10",
     "description": "Sample of using parameter in reverse order\n\n_Note: This is not recommended but it should work_",
     "parameters": [
         {

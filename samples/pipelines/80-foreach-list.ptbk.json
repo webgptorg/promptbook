@@ -1,14 +1,17 @@
 {
     "pipelineUrl": "https://promptbook.studio/samples/foreach-list.ptbk.md",
     "title": "✨ Write greeting for each customer",
-    "promptbookVersion": "1.0.0",
+    "promptbookVersion": "0.69.0-10",
     "description": "Show how to use a simple prompt with no parameters.",
     "parameters": [
         {
             "name": "customers",
             "description": "Customer names each customer on each row",
             "isInput": true,
-            "isOutput": false
+            "isOutput": false,
+            "sampleValues": [
+                "Paul\nJohn"
+            ]
         },
         {
             "name": "greetings",
@@ -16,7 +19,6 @@
             "isInput": false,
             "isOutput": true,
             "sampleValues": [
-                "Paul\nJohn",
                 "Hello Paul\nHi John"
             ]
         }

@@ -31,7 +31,7 @@ Paul
 John
 ```
 
-`-> {greetings}`
+`-> {customers}`
 
 ### Samples of greetings
 

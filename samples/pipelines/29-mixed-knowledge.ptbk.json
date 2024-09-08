@@ -1,7 +1,7 @@
 {
     "pipelineUrl": "https://promptbook.studio/samples/mixed-knowledge.ptbk.md",
     "title": "✨ Sample: Markdown knowledge with external links",
-    "promptbookVersion": "1.0.0",
+    "promptbookVersion": "0.69.0-10",
     "description": "Show how to use knowledge",
     "parameters": [
         {

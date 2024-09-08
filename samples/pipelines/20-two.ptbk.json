@@ -1,7 +1,7 @@
 {
     "pipelineUrl": "https://promptbook.studio/samples/two.ptbk.md",
     "title": "✨ Sample prompt with two consecutive prompts",
-    "promptbookVersion": "1.0.0",
+    "promptbookVersion": "0.69.0-10",
     "description": "Show how to use two consecutive prompts with one parameter each.",
     "parameters": [
         {

@@ -1,7 +1,7 @@
 {
     "pipelineUrl": "https://promptbook.studio/samples/advanced.ptbk.md",
     "title": "✨ Sample: Language Capabilities",
-    "promptbookVersion": "1.0.0",
+    "promptbookVersion": "0.69.0-10",
     "description": "Trying the language capabilities of GPT models.",
     "parameters": [
         {
