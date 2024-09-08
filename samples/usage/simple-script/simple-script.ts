@@ -17,7 +17,6 @@ import {
 import { JavascriptExecutionTools } from '../../../src/_packages/execute-javascript.index';
 import { createCollectionFromDirectory, createLlmToolsFromEnv } from '../../../src/_packages/node.index';
 
-import { readFile } from 'fs/promises';
 import '../../../src/_packages/anthropic-claude.index';
 import '../../../src/_packages/azure-openai.index';
 import '../../../src/_packages/openai.index';
@@ -55,8 +54,8 @@ async function main() {
 
     const pipeline = await collection.getPipelineByUrl(
         //`https://promptbook.studio/samples/foreach-list.ptbk.md`,
-        `https://promptbook.studio/samples/foreach-csv.ptbk.md`,
-        //`https://promptbook.studio/samples/simple-knowledge.ptbk.md`,
+        //`https://promptbook.studio/samples/foreach-csv.ptbk.md`,
+        `https://promptbook.studio/samples/simple-knowledge.ptbk.md`,
         // `https://promptbook.studio/samples/simple.ptbk.md`,
         // `https://promptbook.studio/samples/language-capabilities.ptbk.md`,
     );
@@ -90,15 +89,15 @@ async function main() {
             Kate
         `),
         /**/
-        /**/
+        /*/
         // https://promptbook.studio/samples/foreach-csv.ptbk.md
         customers: await readFile('./samples/pipelines/85-foreach.csv', 'utf-8'),
         /**/
-        /*/
+        /**/
         // https://promptbook.studio/samples/simple-knowledge.ptbk.md
-        eventTitle: 'TypeScript developers summit 2025',
-        eventDescription: 'The best event for TypeScript developers in 2025',
-        rules: 'No rules, be extra creative',
+        eventTitle: 'LinkedIn',
+        eventDescription: 'Professional LinkedIn profile',
+        rules: 'Write best text for LinkedIn in first person',
         /**/
     };
     const { isSuccessful, errors, warnings, outputParameters, executionReport, usage } = await pipelineExecutor(

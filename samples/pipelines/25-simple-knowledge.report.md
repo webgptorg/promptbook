@@ -3,12 +3,12 @@
 Show how to use knowledge
 
 -   PIPELINE URL https://promptbook.studio/samples/simple-knowledge.ptbk.md
--   PROMPTBOOK VERSION 0.69.0-7 _(requested 1.0.0)_
--   STARTED AT 2024-09-05 19:03:46
--   COMPLETED AT 2024-09-05 19:03:53
--   TOTAL DURATION 7 seconds
--   TOTAL LLM DURATION 7 seconds
--   TOTAL COST $0.00617
+-   PROMPTBOOK VERSION 0.69.0-10 _(requested 0.69.0-10)_
+-   STARTED AT 2024-09-08 21:26:43
+-   COMPLETED AT 2024-09-08 21:26:47
+-   TOTAL DURATION a few seconds
+-   TOTAL LLM DURATION a few seconds
+-   TOTAL COST $0.00428
 
 ## 🗃 Index
 
@@ -20,7 +20,7 @@ Show how to use knowledge
 | ----------- | ------------------------------------ |
 | Writing bio | ████████████████████████████████████ |
 
-_Note: Each █ represents 0.1897 seconds, width of timeline is 6.83 seconds = 36 squares_
+_Note: Each █ represents 0.093 seconds, width of timeline is 3.35 seconds = 36 squares_
 
 ## 💸 Cost chart
 
@@ -31,29 +31,35 @@ _Note: Each █ represents -Infinity USD, width of cost is -Infinity USD = 36 sq
 
 ## Writing bio
 
--   DURATION 7 seconds
+-   DURATION a few seconds
 -   COST UNKNOWN
 
 ### Prompt
 
 ```
-You are writing a bio for Pavol Hejný for the event TypeScript developers summit 2025.
+You are writing a bio for Pavol Hejný for the event LinkedIn.
 
 ## Rules
 
 -   Write just the bio, nothing else
 -   Write in the third person
 -   Bio is written in the present tense
--   Bio should be written for event named "TypeScript developers summit 2025", mention the event name in the bio and how Pavol is related to it
+-   Bio should be written for event named "LinkedIn", mention the event name in the bio and how Pavol is related to it
 -   Write plain text without any formatting (like markdown)
--   No rules, be extra creative
+-   Write best text for LinkedIn in first person
 
-## TypeScript developers summit 2025
+## LinkedIn
 
-> The best event for TypeScript developers in 2025
+> Professional LinkedIn profile
 
 ## Knowledge
 
+- ---
+Pavol is a developer who is passionate about using new tools and technologies, specializing in creating fully functional user applications using the latest AI models.
+- Pavol is a member of the Ainautes consulting group, which supports the deployment of generative AI around the world.
+- Pavol develops the WebGPT web page generation service.
+- Before the emergence of generative AI, Pavol created the first Czech virtual whiteboard, Collboard, and electronic textbooks, H-edu, which were used by tens of thousands of children.
+- Pavol has worked on many scientific projects for the Czech Ornithological Society, gives lectures at conferences, sits on juries, and acts as a mentor in Czech and international competitions. He has a special heart for this and loves open source, with many of his projects available on GitHub.
 - ---
 Pavol is a developer passionate about using new tools and technologies, specializing in creating fully functional user applications using the latest artificial intelligence models.
 - Pavol is a member of the Ainautes consulting group, which supports the deployment of generative AI around the world.
@@ -63,16 +69,10 @@ Pavol is a developer passionate about using new tools and technologies, speciali
 - Pavol regularly gives lectures at conferences, sits on juries, and acts as a mentor in many Czech and international competitions.
 - Pavol has a special heart for open-source and many of his projects can be found on his GitHub.
 ---
-- ---
-Pavol is a developer who is passionate about using new tools and technologies, specializing in creating fully functional user applications using the latest AI models.
-- Pavol is a member of the Ainautes consulting group, which supports the deployment of generative AI around the world.
-- Pavol develops the WebGPT web page generation service.
-- Before the emergence of generative AI, Pavol created the first Czech virtual whiteboard, Collboard, and electronic textbooks, H-edu, which were used by tens of thousands of children.
-- Pavol has worked on many scientific projects for the Czech Ornithological Society, gives lectures at conferences, sits on juries, and acts as a mentor in Czech and international competitions. He has a special heart for this and loves open source, with many of his projects available on GitHub.
 ```
 
 ### Result
 
 ```
-Pavol Hejný, the AI whisperer and TypeScript tamer, graces the TypeScript Developers Summit 2025 with his presence as a keynote speaker. This code-conjuring wizard specializes in weaving fully functional user applications from the threads of cutting-edge AI models. As a proud member of the Ainautes consulting group, Pavol spreads the gospel of generative AI across the globe like a digital Johnny Appleseed. His brainchild, WebGPT, is revolutionizing web page generation, making HTML cry tears of obsolescence. Before AI took over the world, Pavol birthed Collboard, the first Czech virtual whiteboard, and H-edu, electronic textbooks that educated tens of thousands of children (and probably a few adults pretending to be children). When he's not communing with artificial intelligences, Pavol moonlights as an ornithological code-whisperer for the Czech Ornithological Society. A true Renaissance developer, he juggles roles as lecturer, jury member, and mentor in countless competitions, leaving a trail of inspired coders in his wake. With a heart that beats in open-source rhythm, Pavol's GitHub is a treasure trove of digital wonders. At the TypeScript Developers Summit 2025, prepare to have your mind expanded, your code elevated, and your TypeScript transformed into pure magic.
+I'm a developer passionate about leveraging cutting-edge tools and technologies, specializing in creating fully functional user applications using the latest AI models. As a member of the Ainautes consulting group, I support the global deployment of generative AI. I'm currently developing WebGPT, a web page generation service. Prior to the rise of generative AI, I created Collboard, the first Czech virtual whiteboard, and H-edu, electronic textbooks used by tens of thousands of children. I've contributed to scientific projects for the Czech Ornithological Society and regularly give lectures at conferences, serve on juries, and mentor in various competitions. I'm passionate about open source, with many of my projects available on GitHub. I'm excited to be part of the LinkedIn event, where I'll be sharing insights on AI-driven application development and the future of tech innovation.
 ```
