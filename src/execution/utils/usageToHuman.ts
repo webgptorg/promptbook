@@ -16,7 +16,7 @@ export function usageToHuman(usage: PromptResultUsage): string_markdown {
         `${isUncertain ? 'approximately ' : ''}${Math.round(value * 100) / 100}`;
 
     if (
-        usage.price.value > 0.1
+        usage.price.value > 0.01
         // <- TODO: [🍓][🧞‍♂️][👩🏽‍🤝‍🧑🏻] Configure negligible value - default value to config + value to `UsageToHumanSettings`
     ) {
         reportItems.push(`Cost ${uncertainNumberToHuman(usage.price)} USD`);
@@ -26,7 +26,8 @@ export function usageToHuman(usage: PromptResultUsage): string_markdown {
 
     const worktime = usageToWorktime(usage);
     if (
-        worktime.value > 0.5
+        worktime.value >
+        1 / 60
         // <- TODO: [🍓][🧞‍♂️][👩🏽‍🤝‍🧑🏻]
     ) {
         reportItems.push(`Saved ${uncertainNumberToHuman(usageToWorktime(usage))} hours of human time`);

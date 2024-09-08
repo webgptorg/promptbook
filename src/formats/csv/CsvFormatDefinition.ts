@@ -63,10 +63,13 @@ export const CsvFormatDefinition: FormatDefinition<string /* <- [0] */, string /
                 }
 
                 const mappedData = await Promise.all(
-                    csv.data.map((row, index) => /*not await */ mapCallback(row, index)),
+                    csv.data.map(async (row, index) => ({
+                        ...row,
+                        newColumn:
+                            // <- TODO: !!!!!! Dynamic new column name and position
+                            await mapCallback(row, index),
+                    })),
                 );
-
-                console.log('!!!!!! mappedData', mappedData);
 
                 return unparse(mappedData, {
                     header: true,
