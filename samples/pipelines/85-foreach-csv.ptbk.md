@@ -61,7 +61,7 @@ Lives in and loves the Prague, please mention it every communication"
 
 <!-- TODO: [🧩] Allow to import from 85-foreach.csv -->
 
-`-> {emails}`
+`-> {customers}`
 
 <!--
 
