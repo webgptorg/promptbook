@@ -67,6 +67,7 @@ export const CsvFormatDefinition: FormatDefinition<string /* <- [0] */, string /
                         ...row,
                         newColumn:
                             // <- TODO: !!!!!! Dynamic new column name and position
+                            // <- TODO: !!!!!! Check name collisions
                             await mapCallback(row, index),
                     })),
                 );
