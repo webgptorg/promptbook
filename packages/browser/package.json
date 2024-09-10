@@ -1,6 +1,6 @@
 {
     "name": "@promptbook/browser",
-    "version": "0.69.0-11",
+    "version": "0.69.0-12",
     "description": "Supercharge your use of large language models",
     "private": false,
     "sideEffects": false,
@@ -47,7 +47,7 @@
     "module": "./esm/index.es.js",
     "typings": "./esm/typings/src/_packages/browser.index.d.ts",
     "peerDependencies": {
-        "@promptbook/core": "0.69.0-11"
+        "@promptbook/core": "0.69.0-12"
     },
     "dependencies": {
         "spacetrim": "0.11.39"
