@@ -1,3 +1,4 @@
+import { TODO_any } from '../../_packages/types.index';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { FormatDefinition } from '../_common/FormatDefinition';
 
@@ -8,7 +9,7 @@ import type { FormatDefinition } from '../_common/FormatDefinition';
  *
  * @public exported from `@promptbook/core`
  */
-export const TextFormatDefinition: FormatDefinition<string, string, never> = {
+export const TextFormatDefinition: FormatDefinition<string, string, TODO_any /* <- [1] */, TODO_any /* <- [1] */> = {
     formatName: 'TEXT',
 
     isValid(value: string): value is string {
@@ -26,7 +27,7 @@ export const TextFormatDefinition: FormatDefinition<string, string, never> = {
     subvalueDefinitions: [
         {
             subvalueName: 'LINE',
-            async mapValues(value, mapCallback) {
+            async mapValues(value, settings, mapCallback) {
                 const lines = value.split('\n');
                 const mappedLines = await Promise.all(
                     lines.map((lineContent, lineNumber) =>
@@ -49,6 +50,7 @@ export const TextFormatDefinition: FormatDefinition<string, string, never> = {
 };
 
 /**
+ * TODO: [1] Make type for XML Text and Schema
  * TODO: [🧠][🤠] Here should be all words, characters, lines, paragraphs, pages aviable as subvalues
  * TODO: [🍓] In `TextFormatDefinition` implement simple `isValid`
  * TODO: [🍓] In `TextFormatDefinition` implement partial `canBeValid`

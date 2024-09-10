@@ -2,8 +2,7 @@ import spaceTrim from 'spacetrim';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import { FORMAT_DEFINITIONS } from '../../formats/index';
-import type { string_parameter_name } from '../../types/typeAliases';
-import type { string_parameter_value } from '../../types/typeAliases';
+import type { string_parameter_name, string_parameter_value } from '../../types/typeAliases';
 import type { TODO_any } from '../../utils/organization/TODO_any';
 import { mapAvailableToExpectedParameters } from '../../utils/parameters/mapAvailableToExpectedParameters';
 import type { ExecuteAttemptsOptions } from './40-executeAttempts';
@@ -22,7 +21,7 @@ type ExecuteFormatCellsOptions = ExecuteAttemptsOptions;
  * @private internal utility of `createPipelineExecutor`
  */
 export async function executeFormatCells(options: ExecuteFormatCellsOptions): Promise<TODO_any> {
-    const { template, jokerParameterNames, parameters, priority, pipelineIdentification } = options;
+    const { template, jokerParameterNames, parameters, priority, pipelineIdentification, settings } = options;
 
     if (template.foreach === undefined) {
         return /* not await */ executeAttempts(options);
@@ -104,25 +103,35 @@ export async function executeFormatCells(options: ExecuteFormatCellsOptions): Pr
         );
     }
 
-    const resultString = await subvalueDefinition.mapValues(parameterValue, async (subparameters, index) => {
-        let mappedParameters: Record<string_parameter_name, string_parameter_value>;
+    let formatSettings: TODO_any;
 
-        try {
-            mappedParameters = mapAvailableToExpectedParameters({
-                expectedParameters: Object.fromEntries(
-                    template.foreach!.subparameterNames.map((subparameterName) => [subparameterName, null]),
-                    // <- [🦥]
-                ),
-                availableParameters: subparameters,
-            });
-        } catch (error) {
-            if (!(error instanceof PipelineExecutionError)) {
-                throw error;
-            }
+    if (formatDefinition.formatName === 'CSV') {
+        formatSettings = settings.csvSettings;
+        // <- TODO: !!!!!! More universal, make simmilar pattern for other formats for example \n vs \r\n in text
+    }
 
-            throw new PipelineExecutionError(
-                spaceTrim(
-                    (block) => `
+    const resultString = await subvalueDefinition.mapValues(
+        parameterValue,
+        formatSettings,
+        async (subparameters, index) => {
+            let mappedParameters: Record<string_parameter_name, string_parameter_value>;
+
+            try {
+                mappedParameters = mapAvailableToExpectedParameters({
+                    expectedParameters: Object.fromEntries(
+                        template.foreach!.subparameterNames.map((subparameterName) => [subparameterName, null]),
+                        // <- [🦥]
+                    ),
+                    availableParameters: subparameters,
+                });
+            } catch (error) {
+                if (!(error instanceof PipelineExecutionError)) {
+                    throw error;
+                }
+
+                throw new PipelineExecutionError(
+                    spaceTrim(
+                        (block) => `
                         ${(error as PipelineExecutionError).message}
 
                         This is error in FOREACH command
@@ -130,27 +139,28 @@ export async function executeFormatCells(options: ExecuteFormatCellsOptions): Pr
 
                         ${block(pipelineIdentification)}
                     `,
-                ),
-            );
-        }
+                    ),
+                );
+            }
 
-        const allSubparameters = {
-            ...parameters,
-            ...mappedParameters,
-        };
+            const allSubparameters = {
+                ...parameters,
+                ...mappedParameters,
+            };
 
-        // Note: [👨‍👨‍👧] Now we can freeze `subparameters` because we are sure that all and only used parameters are defined and are not going to be changed
-        Object.freeze(allSubparameters);
+            // Note: [👨‍👨‍👧] Now we can freeze `subparameters` because we are sure that all and only used parameters are defined and are not going to be changed
+            Object.freeze(allSubparameters);
 
-        const subresultString = await executeAttempts({
-            ...options,
-            priority: priority + index,
-            parameters: allSubparameters,
-            pipelineIdentification, // <- TODO: [🦡] !!!!!! make identification more granular
-        });
+            const subresultString = await executeAttempts({
+                ...options,
+                priority: priority + index,
+                parameters: allSubparameters,
+                pipelineIdentification, // <- TODO: [🦡] !!!!!! make identification more granular
+            });
 
-        return subresultString;
-    });
+            return subresultString;
+        },
+    );
 
     return resultString;
 }

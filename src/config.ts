@@ -1,3 +1,4 @@
+import { CsvSettings } from './formats/csv/CsvSettings';
 import { just } from './utils/organization/just';
 import { $asDeeplyFrozenSerializableJson } from './utils/serialization/$asDeeplyFrozenSerializableJson';
 
@@ -176,6 +177,20 @@ export const DEFAULT_REMOTE_URL = 'https://api.pavolhejny.com/';
 export const DEFAULT_REMOTE_URL_PATH = '/promptbook/socket.io';
 
 // <- TODO: [🧜‍♂️]
+
+/**
+ * @@@
+ *
+ * @public exported from `@promptbook/core`
+ */
+export const DEFAULT_CSV_SETTINGS: CsvSettings = {
+    header: true,
+    delimiter: ',',
+    quoteChar: '"',
+    newline: '\n',
+    skipEmptyLines: true,
+    // encoding: 'utf8'
+};
 
 /**
  * @@@

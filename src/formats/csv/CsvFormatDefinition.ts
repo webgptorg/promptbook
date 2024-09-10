@@ -1,9 +1,11 @@
 import { parse, unparse } from 'papaparse';
 import spaceTrim from 'spacetrim';
+import { TODO_any } from '../../_packages/types.index';
 import { ParseError } from '../../errors/ParseError';
 import type { Parameters } from '../../types/typeAliases';
 import { TODO_USE } from '../../utils/organization/TODO_USE';
 import type { FormatDefinition } from '../_common/FormatDefinition';
+import { CsvSettings } from './CsvSettings';
 
 /**
  * Definition for CSV spreadsheet
@@ -11,25 +13,34 @@ import type { FormatDefinition } from '../_common/FormatDefinition';
  * @public exported from `@promptbook/core`
  *                          <- TODO: [🏢] Export from package `@promptbook/csv`
  */
-export const CsvFormatDefinition: FormatDefinition<string /* <- [0] */, string /* <- [👨‍⚖️] */, object /* <- [1] */> = {
+export const CsvFormatDefinition: FormatDefinition<
+    string /* <- [0] */,
+    string /* <- [👨‍⚖️] */,
+    CsvSettings,
+    TODO_any /* <- TODO: Make CSV Schemas */
+> = {
     formatName: 'CSV',
 
     aliases: ['SPREADSHEET', 'TABLE'],
 
-    isValid(value, schema): value is string /* <- [0] */ {
+    isValid(value, settings, schema): value is string /* <- [0] */ {
+        // TODO: !!!!!! Implement CSV validation
         TODO_USE(value /* <- TODO: Use value here */);
+        TODO_USE(settings /* <- TODO: Use settings here */);
         TODO_USE(schema /* <- TODO: Use schema here */);
         return true;
     },
 
-    canBeValid(partialValue, schema): partialValue is string /* <- [0] */ {
+    canBeValid(partialValue, settings, schema): partialValue is string /* <- [0] */ {
         TODO_USE(partialValue /* <- TODO: Use partialValue here */);
+        TODO_USE(settings /* <- TODO: Use settings here */);
         TODO_USE(schema /* <- TODO: Use schema here */);
         return true;
     },
 
-    heal(value, schema) {
+    heal(value, settings, schema) {
         TODO_USE(value /* <- TODO: Use partialValue here */);
+        TODO_USE(settings /* <- TODO: Use settings here */);
         TODO_USE(schema /* <- TODO: Use schema here */);
         throw new Error('Not implemented');
     },
@@ -37,18 +48,9 @@ export const CsvFormatDefinition: FormatDefinition<string /* <- [0] */, string /
     subvalueDefinitions: [
         {
             subvalueName: 'ROW',
-            async mapValues(value, mapCallback) {
+            async mapValues(value, settings, mapCallback) {
                 // TODO: [👨🏾‍🤝‍👨🏼] DRY csv parsing
-                const csv = parse<Parameters>(value, {
-                    header: true,
-                    delimiter: ',',
-                    quoteChar: '"',
-                    newline: '\r\n',
-                    skipEmptyLines: true,
-                    // encoding: 'utf8',
-                    // <- TODO: !!!!!! DEFAULT_CSV_OPTIONS
-                    // <- TODO: [🧠] How to define parsing options for formats, its different concept than schema
-                });
+                const csv = parse<Parameters>(value, settings);
 
                 if (csv.errors.length !== 0) {
                     throw new ParseError( // <- TODO: !!!!!! Split PipelineParseError and FormatParseError -> CsvParseError
@@ -72,32 +74,14 @@ export const CsvFormatDefinition: FormatDefinition<string /* <- [0] */, string /
                     })),
                 );
 
-                return unparse(mappedData, {
-                    header: true,
-                    delimiter: ',',
-                    quoteChar: '"',
-                    newline: '\r\n',
-                    skipEmptyLines: true,
-                    // encoding: 'utf8',
-                    // <- TODO: !!!!!! DEFAULT_CSV_OPTIONS
-                    // <- TODO: [🧠] How to define parsing options for formats, its different concept than schema
-                });
+                return unparse(mappedData, settings);
             },
         },
         {
             subvalueName: 'CELL',
-            async mapValues(value, mapCallback) {
+            async mapValues(value, settings, mapCallback) {
                 // TODO: [👨🏾‍🤝‍👨🏼] DRY csv parsing
-                const csv = parse<Parameters>(value, {
-                    header: true,
-                    delimiter: ',',
-                    quoteChar: '"',
-                    newline: '\r\n',
-                    skipEmptyLines: true,
-                    // encoding: 'utf8',
-                    // <- TODO: !!!!!! DEFAULT_CSV_OPTIONS
-                    // <- TODO: [🧠] How to define parsing options for formats, its different concept than schema
-                });
+                const csv = parse<Parameters>(value, settings);
 
                 if (csv.errors.length !== 0) {
                     throw new ParseError( // <- TODO: !!!!!! Split PipelineParseError and FormatParseError -> CsvParseError
@@ -122,16 +106,7 @@ export const CsvFormatDefinition: FormatDefinition<string /* <- [0] */, string /
                     }),
                 );
 
-                return unparse(mappedData, {
-                    header: true,
-                    delimiter: ',',
-                    quoteChar: '"',
-                    newline: '\r\n',
-                    skipEmptyLines: true,
-                    // encoding: 'utf8',
-                    // <- TODO: !!!!!! DEFAULT_CSV_OPTIONS
-                    // <- TODO: [🧠] How to define parsing options for formats, its different concept than schema
-                });
+                return unparse(mappedData, settings);
             },
         },
     ],
