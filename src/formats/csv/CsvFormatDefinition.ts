@@ -5,7 +5,8 @@ import type { Parameters } from '../../types/typeAliases';
 import type { TODO_any } from '../../utils/organization/TODO_any';
 import { TODO_USE } from '../../utils/organization/TODO_USE';
 import type { FormatDefinition } from '../_common/FormatDefinition';
-import { MANDATORY_CSV_SETTINGS, type CsvSettings } from './CsvSettings';
+import type { CsvSettings } from './CsvSettings';
+import { MANDATORY_CSV_SETTINGS } from './CsvSettings';
 
 /**
  * Definition for CSV spreadsheet
