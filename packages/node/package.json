@@ -1,6 +1,6 @@
 {
     "name": "@promptbook/node",
-    "version": "0.69.0-13",
+    "version": "0.69.0-14",
     "description": "Supercharge your use of large language models",
     "private": false,
     "sideEffects": false,
@@ -47,7 +47,7 @@
     "module": "./esm/index.es.js",
     "typings": "./esm/typings/src/_packages/node.index.d.ts",
     "peerDependencies": {
-        "@promptbook/core": "0.69.0-13"
+        "@promptbook/core": "0.69.0-14"
     },
     "dependencies": {
         "colors": "1.4.0",
