@@ -3,9 +3,9 @@ import spaceTrim from 'spacetrim';
 import PipelineCollection from '../../../../promptbook-collection/index.json';
 // import PipelineCollection from '../../../../promptbook-collection/promptbook-collection';
 import { createCollectionFromJson } from '../../../collection/constructors/createCollectionFromJson';
-import { IS_VERBOSE } from '../../../config';
-import { MAX_PARALLEL_COUNT } from '../../../config';
+import { IS_VERBOSE, MAX_PARALLEL_COUNT } from '../../../config';
 import { titleToName } from '../../../conversion/utils/titleToName';
+import { PipelineExecutionError } from '../../../errors/PipelineExecutionError';
 import { assertsExecutionSuccessful } from '../../../execution/assertsExecutionSuccessful';
 import { createPipelineExecutor } from '../../../execution/createPipelineExecutor/00-createPipelineExecutor';
 import type { PrepareOptions } from '../../../prepare/PrepareOptions';
@@ -129,8 +129,17 @@ export async function prepareKnowledgeFromMarkdown(
                     });
                 }
             } catch (error) {
+                // Note: Here is expected error:
+                //     > PipelineExecutionError: You have not provided any `LlmExecutionTools` that support model variant "EMBEDDING
+                if (!(error instanceof PipelineExecutionError)) {
+                    throw error;
+                }
+
                 // TODO: [🟥] Detect browser / node and make it colorfull
-                console.error(error);
+                console.error(
+                    error,
+                    "<- Note: This error is not critical to prepare the pipeline, just knowledge pieces won't have embeddings",
+                );
             }
 
             return {
