@@ -1,7 +1,7 @@
 {
     "pipelineUrl": "https://promptbook.studio/samples/foreach-csv.ptbk.md",
     "title": "✨ Write email for each customer",
-    "promptbookVersion": "0.69.0-13",
+    "promptbookVersion": "0.69.0-14",
     "description": "Show how to iterate over a table of customers and write an email for each.",
     "parameters": [
         {
@@ -228,7 +228,7 @@
     "preparations": [
         {
             "id": 1,
-            "promptbookVersion": "0.69.0-13",
+            "promptbookVersion": "0.69.0-14",
             "usage": {
                 "price": {
                     "value": 0.014841179999999997
