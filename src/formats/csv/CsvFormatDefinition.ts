@@ -1,11 +1,11 @@
 import { parse, unparse } from 'papaparse';
 import spaceTrim from 'spacetrim';
-import type { TODO_any } from '../../utils/organization/TODO_any';
 import { ParseError } from '../../errors/ParseError';
 import type { Parameters } from '../../types/typeAliases';
+import type { TODO_any } from '../../utils/organization/TODO_any';
 import { TODO_USE } from '../../utils/organization/TODO_USE';
 import type { FormatDefinition } from '../_common/FormatDefinition';
-import type { CsvSettings } from './CsvSettings';
+import { MANDATORY_CSV_SETTINGS, type CsvSettings } from './CsvSettings';
 
 /**
  * Definition for CSV spreadsheet
@@ -50,7 +50,7 @@ export const CsvFormatDefinition: FormatDefinition<
             subvalueName: 'ROW',
             async mapValues(value, settings, mapCallback) {
                 // TODO: [👨🏾‍🤝‍👨🏼] DRY csv parsing
-                const csv = parse<Parameters>(value, settings);
+                const csv = parse<Parameters>(value, { ...settings, ...MANDATORY_CSV_SETTINGS });
 
                 if (csv.errors.length !== 0) {
                     throw new ParseError( // <- TODO: !!!!!! Split PipelineParseError and FormatParseError -> CsvParseError
@@ -74,14 +74,14 @@ export const CsvFormatDefinition: FormatDefinition<
                     })),
                 );
 
-                return unparse(mappedData, settings);
+                return unparse(mappedData, { ...settings, ...MANDATORY_CSV_SETTINGS });
             },
         },
         {
             subvalueName: 'CELL',
             async mapValues(value, settings, mapCallback) {
                 // TODO: [👨🏾‍🤝‍👨🏼] DRY csv parsing
-                const csv = parse<Parameters>(value, settings);
+                const csv = parse<Parameters>(value, { ...settings, ...MANDATORY_CSV_SETTINGS });
 
                 if (csv.errors.length !== 0) {
                     throw new ParseError( // <- TODO: !!!!!! Split PipelineParseError and FormatParseError -> CsvParseError
@@ -106,7 +106,7 @@ export const CsvFormatDefinition: FormatDefinition<
                     }),
                 );
 
-                return unparse(mappedData, settings);
+                return unparse(mappedData, { ...settings, ...MANDATORY_CSV_SETTINGS });
             },
         },
     ],

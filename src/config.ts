@@ -184,12 +184,10 @@ export const DEFAULT_REMOTE_URL_PATH = '/promptbook/socket.io';
  * @public exported from `@promptbook/core`
  */
 export const DEFAULT_CSV_SETTINGS: CsvSettings = {
-    header: true,
     delimiter: ',',
     quoteChar: '"',
     newline: '\n',
     skipEmptyLines: true,
-    // encoding: 'utf8'
 };
 
 /**
