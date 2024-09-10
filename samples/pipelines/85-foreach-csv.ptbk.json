@@ -8,16 +8,16 @@
             "name": "customers",
             "description": "Customer names each customer on each row",
             "isInput": true,
-            "isOutput": false
+            "isOutput": false,
+            "sampleValues": [
+                "First name,Last name,Note\nAlice,Springfield,Extremely important customer\nJohn,Snow,More informally in Scottish English\nPavol,Hejný,\"Writes in Czech language\nLives in and loves the Prague, please mention it every communication\""
+            ]
         },
         {
             "name": "emails",
             "description": "Greeting to each customer on each row",
             "isInput": false,
-            "isOutput": true,
-            "sampleValues": [
-                "First name,Last name,Note\nAlice,Springfield,Extremely important customer\nJohn,Snow,More informally in Scottish English\nPavol,Hejný,\"Writes in Czech language\nLives in and loves the Prague, please mention it every communication\""
-            ]
+            "isOutput": true
         }
     ],
     "templates": [
