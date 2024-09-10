@@ -1,11 +1,11 @@
 import { parse, unparse } from 'papaparse';
 import spaceTrim from 'spacetrim';
-import { TODO_any } from '../../_packages/types.index';
+import type { TODO_any } from '../../utils/organization/TODO_any';
 import { ParseError } from '../../errors/ParseError';
 import type { Parameters } from '../../types/typeAliases';
 import { TODO_USE } from '../../utils/organization/TODO_USE';
 import type { FormatDefinition } from '../_common/FormatDefinition';
-import { CsvSettings } from './CsvSettings';
+import type { CsvSettings } from './CsvSettings';
 
 /**
  * Definition for CSV spreadsheet

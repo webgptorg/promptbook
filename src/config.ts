@@ -1,4 +1,4 @@
-import { CsvSettings } from './formats/csv/CsvSettings';
+import type { CsvSettings } from './formats/csv/CsvSettings';
 import { just } from './utils/organization/just';
 import { $asDeeplyFrozenSerializableJson } from './utils/serialization/$asDeeplyFrozenSerializableJson';
 

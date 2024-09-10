@@ -1,4 +1,4 @@
-import { CsvSettings } from '../../formats/csv/CsvSettings';
+import type { CsvSettings } from '../../formats/csv/CsvSettings';
 
 export type CreatePipelineExecutorSettings = {
     /**

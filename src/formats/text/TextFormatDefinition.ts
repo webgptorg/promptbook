@@ -1,4 +1,4 @@
-import { TODO_any } from '../../_packages/types.index';
+import type { TODO_any } from '../../utils/organization/TODO_any';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { FormatDefinition } from '../_common/FormatDefinition';
 
