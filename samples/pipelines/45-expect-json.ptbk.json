@@ -1,7 +1,7 @@
 {
     "title": "✨ Sample: Parsing data to JSON",
     "pipelineUrl": "https://promptbook.studio/samples/expect-json.ptbk.md",
-    "promptbookVersion": "0.69.0-12",
+    "promptbookVersion": "0.69.0-13",
     "parameters": [
         {
             "name": "sentence",
