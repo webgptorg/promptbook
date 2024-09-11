@@ -16,7 +16,6 @@ describe('createCollectionFromDirectory', () => {
           Show how to use a simple prompt with no parameters.
 
           -   PIPELINE URL https://promptbook.studio/samples/simple.ptbk.md
-          -   PROMPTBOOK VERSION 1.0.0
           -   OUTPUT PARAMETER \`{greetingResponse}\`
 
 

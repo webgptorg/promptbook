@@ -48,7 +48,7 @@ describe('how `mapAvailableToExpectedParameters` works', () => {
                 expectedParameters: { foo: null, bar: null },
                 availableParameters: { foo: 'foo' },
             }),
-        ).toThrowError(/xxx/i));
+        ).toThrowError(/Can not map available parameters to expected parameters/i));
 
     it('should match 1:1 parameters which are not matching by name BUT matching by count', () =>
         // TODO: [🧠][👩🏾‍🤝‍👩🏻] There should be option for turning on/off to match non-matching parameters by its name
@@ -90,13 +90,13 @@ describe('how `mapAvailableToExpectedParameters` works', () => {
                 expectedParameters: { foo: null, baz: null },
                 availableParameters: { foox: 'foo', barx: 'bar', bazx: 'baz' },
             }),
-        ).toThrowError(/xxx/i);
+        ).toThrowError(/Can not map available parameters to expected parameters/i);
 
         expect(() =>
             mapAvailableToExpectedParameters({
                 expectedParameters: { foo: null, bar: null, baz: null },
                 availableParameters: { foox: 'foo', bazx: 'baz' },
             }),
-        ).toThrowError(/xxx/i);
+        ).toThrowError(/Can not map available parameters to expected parameters/i);
     });
 });

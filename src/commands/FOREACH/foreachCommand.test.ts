@@ -138,16 +138,20 @@ describe('how FOREACH command in .ptbk.md files works', () => {
 
     it('should fail parsing FOREACH command', () => {
         expect(() => parseCommand('FOREACH brr', 'PIPELINE_TEMPLATE')).toThrowError(/Unsupported format "BRR"/i);
-        expect(() => parseCommand('FOREACH Text', 'PIPELINE_TEMPLATE')).toThrowError(/xxx/i);
-        expect(() => parseCommand('FOREACH Text Line', 'PIPELINE_TEMPLATE')).toThrowError(/xxx/i);
-        expect(() => parseCommand('FOREACH Text Line `{customer}`', 'PIPELINE_TEMPLATE')).toThrowError / xxx / i();
-        expect(() => parseCommand('FOREACH Text Line -> `{customer}`', 'PIPELINE_TEMPLATE')).toThrowError / xxx / i();
+        expect(() => parseCommand('FOREACH Text', 'PIPELINE_TEMPLATE')).toThrowError(/Invalid FOREACH command/i);
+        expect(() => parseCommand('FOREACH Text Line', 'PIPELINE_TEMPLATE')).toThrowError(/Invalid FOREACH command/i);
+        expect(() => parseCommand('FOREACH Text Line `{customer}`', 'PIPELINE_TEMPLATE')).toThrowError(
+            /Invalid FOREACH command/i,
+        );
+        expect(() => parseCommand('FOREACH Text Line -> `{customer}`', 'PIPELINE_TEMPLATE')).toThrowError(
+            /Invalid FOREACH command/i,
+        );
         expect(() => parseCommand('FOREACH Csv Row `{customer}` ->', 'PIPELINE_TEMPLATE')).toThrowError(
             /FOREACH command must have at least one subparameter/i,
         );
-        expect(() => parseCommand('FOREACH Text Line customers -> customer', 'PIPELINE_TEMPLATE')).toThrowError /
-            xxx /
-            i();
+        expect(() => parseCommand('FOREACH Text Line customers -> customer', 'PIPELINE_TEMPLATE')).toThrowError(
+            /Invalid FOREACH command/i,
+        );
     });
 
     it(`should work with all samples`, () => {
