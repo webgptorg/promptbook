@@ -1,7 +1,7 @@
 {
     "pipelineUrl": "https://promptbook.studio/samples/markdown-knowledge.ptbk.md",
     "title": "✨ Sample: Markdown Knowledge",
-    "promptbookVersion": "0.69.0-14",
+    "promptbookVersion": "0.69.0-15",
     "description": "Show how to use knowledge",
     "parameters": [
         {
@@ -166,7 +166,7 @@
     "preparations": [
         {
             "id": 1,
-            "promptbookVersion": "0.69.0-14",
+            "promptbookVersion": "0.69.0-15",
             "usage": {
                 "price": {
                     "value": 0.004821000000000001
