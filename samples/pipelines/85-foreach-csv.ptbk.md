@@ -28,7 +28,7 @@ Uranium Glass Garden Gnomes are the newest product in the eshop. They are made o
 ## Write a email
 
 <!--
-TODO: !!!!!! Allow and test:
+TODO: Allow this syntax and unit test:
 -   FOREACH Csv row `{customers}` -> `{firstName},{lastName},{note}`
 -->
 

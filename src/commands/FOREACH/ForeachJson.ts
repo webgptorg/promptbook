@@ -8,12 +8,12 @@ export type ForeachJson = {
     /**
      * @@@
      */
-    readonly formatName: TODO_string; // <-  !!!!!!  type
+    readonly formatName: TODO_string;
 
     /**
      * @@@
      */
-    readonly cellName: TODO_string; // <-  !!!!!! [🦥] + type
+    readonly cellName: TODO_string; // <-  !!!!!! [🦥]
 
     /**
      * @@@

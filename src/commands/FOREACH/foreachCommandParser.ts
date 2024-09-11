@@ -6,10 +6,12 @@ import type { string_markdown_text } from '../../types/typeAliases';
 import { normalizeTo_SCREAMING_CASE } from '../../utils/normalization/normalizeTo_SCREAMING_CASE';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import { validateParameterName } from '../../utils/validators/parameterName/validateParameterName';
-import type { $PipelineJson } from '../_common/types/CommandParser';
-import type { $TemplateJson } from '../_common/types/CommandParser';
-import type { CommandParserInput } from '../_common/types/CommandParser';
-import type { PipelineTemplateCommandParser } from '../_common/types/CommandParser';
+import type {
+    $PipelineJson,
+    $TemplateJson,
+    CommandParserInput,
+    PipelineTemplateCommandParser,
+} from '../_common/types/CommandParser';
 import type { ForeachCommand } from './ForeachCommand';
 
 /**
@@ -40,12 +42,12 @@ export const foreachCommandParser: PipelineTemplateCommandParser<ForeachCommand>
     /**
      * Description of the FOREACH command
      */
-    description: `@@`, // <- TODO: [🍭] !!!!!!
+    description: `@@`,
 
     /**
      * Link to discussion
      */
-    documentationUrl: 'https://github.com/webgptorg/promptbook/discussions/@@', // <- TODO: [🍭] !!!!!!
+    documentationUrl: 'https://github.com/webgptorg/promptbook/discussions/148',
 
     /**
      * Example usages of the FOREACH command
@@ -54,7 +56,6 @@ export const foreachCommandParser: PipelineTemplateCommandParser<ForeachCommand>
         'FOREACH Text Line `{customers}` -> `{customer}`',
         'FOR Csv Row `{customers}` -> `{firstName}`, `{lastName}`',
         'EACH Csv Cell `{customers}` -> `{cell}`',
-        // <- TODO: [🍭] !!!!!! More
     ],
 
     /**
@@ -77,7 +78,6 @@ export const foreachCommandParser: PipelineTemplateCommandParser<ForeachCommand>
         );
 
         if (formatDefinition === undefined) {
-            console.info({ args, formatName });
             throw new ParseError(
                 spaceTrim(
                     (block) => `
@@ -103,7 +103,6 @@ export const foreachCommandParser: PipelineTemplateCommandParser<ForeachCommand>
         );
 
         if (subvalueDefinition === undefined) {
-            console.info({ args, cellName });
             throw new ParseError(
                 spaceTrim(
                     (block) => `
@@ -123,22 +122,17 @@ export const foreachCommandParser: PipelineTemplateCommandParser<ForeachCommand>
         }
 
         if (assignSign !== '->') {
-            console.info({ args, assignSign });
             throw new ParseError(`FOREACH command must have '->' to assign the value to the parameter`);
         }
 
-        // TODO: !!!!!! Replace with propper parameter name validation `validateParameterName`
+        // TODO: !!! Replace with propper parameter name validation `validateParameterName`
         if (
             parameterNameWrapped?.substring(0, 1) !== '{' ||
             parameterNameWrapped?.substring(parameterNameWrapped.length - 1, parameterNameWrapped.length) !== '}'
         ) {
-            console.info(
-                { args, parameterNameWrapped },
-                parameterNameWrapped?.substring(0, 1),
-                parameterNameWrapped?.substring(parameterNameWrapped.length - 1, parameterNameWrapped.length),
-            );
             throw new ParseError(
-                `!!!!!! 1 Here will be error (with rules and precise error) from validateParameterName`,
+                `Invalid parameter name "${parameterNameWrapped}" - must be wrapped in curly brackets: {parameterName}`,
+                // <- Note: Here will be error (with rules and precise error) from validateParameterName
             );
         }
         const parameterName = parameterNameWrapped.substring(1, parameterNameWrapped.length - 1);
@@ -175,7 +169,7 @@ export const foreachCommandParser: PipelineTemplateCommandParser<ForeachCommand>
 
         $templateJson.foreach = { formatName, cellName, parameterName, subparameterNames };
 
-        keepUnused($pipelineJson); // <- TODO: !!!!!! BUT Maybe register subparameter from foreach into parameters of the pipeline
+        keepUnused($pipelineJson); // <- TODO: [🧠] Maybe register subparameter from foreach into parameters of the pipeline
 
         // Note: [🍭] FOREACH apply has some sideeffects on different places in codebase
     },
@@ -202,7 +196,6 @@ export const foreachCommandParser: PipelineTemplateCommandParser<ForeachCommand>
 };
 
 /**
- * TODO: !!!!!! Remove console logs
  * TODO: [🧠][🦥] Better (less confusing) name for "cell" / "subvalue" / "subparameter"
  * TODO: [🍭] !!!!!! Make .ptbk.md file with examples of the FOREACH command and also with wrong parsing and logic
  */
