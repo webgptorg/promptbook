@@ -1,6 +1,5 @@
 {
     "title": "⚠ Sample of non-recommended syntax",
-    "promptbookVersion": "0.68.2",
     "description": "Defining same persona twice is **not recommended** but it is not an error in case of personas are same.",
     "parameters": [
         {
