@@ -42,6 +42,10 @@ Core of the library, it contains the main logic for promptbooks.
 
 Rest of the documentation is common for **entire promptbook ecosystem**:
 
+# ✨ New Features
+
+-   ✨ **Support [OpenAI o1 model](https://openai.com/o1/)**
+
 ## 🤍 The Promptbook Whitepaper
 
 
