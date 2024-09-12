@@ -3,8 +3,8 @@ import { join } from 'path';
 import { unpreparePipeline } from '../../prepare/unpreparePipeline';
 import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import type { PipelineString } from '../../types/PipelineString';
-import type { string_file_path, string_json } from '../../types/typeAliases';
-import { PROMPTBOOK_VERSION } from '../../version';
+import type { string_file_path } from '../../types/typeAliases';
+import type { string_json } from '../../types/typeAliases';
 
 /**
  * Import the pipeline.ptbk.md or pipeline.ptbk.json file
@@ -18,18 +18,13 @@ import { PROMPTBOOK_VERSION } from '../../version';
 export function importPipelineWithoutPreparation(path: `${string}.ptbk.md`): PipelineString;
 export function importPipelineWithoutPreparation(path: `${string}.ptbk.json`): PipelineJson;
 export function importPipelineWithoutPreparation(path: string_file_path): PipelineString | PipelineJson {
-    const samplesDir = '../../../samples/pipelines'; // <- TODO: [🚏] DRY, to config
+    const samplesDir = '../../../samples/pipelines';// <- TODO: [🚏] DRY, to config
     const content = readFileSync(join(__dirname, samplesDir, path), 'utf-8');
     //                         <- Note: In production it is not good practice to use synchronous functions
     //                                  But this is only a test before the build, so it is okay
     if (path.endsWith('.ptbk.json')) {
         let pipeline = JSON.parse(content) as PipelineJson;
         pipeline = unpreparePipeline(pipeline);
-        pipeline = {
-            ...pipeline,
-            promptbookVersion: PROMPTBOOK_VERSION,
-            // <- Note: This is a hack to avoid annoying version mismatch each time the promptbook released
-        };
         return pipeline;
     } else if (path.endsWith('.ptbk.md')) {
         return content as PipelineString;
@@ -55,7 +50,7 @@ export function importPipelineJson(path: `${string}.ptbk.json`): PipelineJson {
  * @private internal function of tests
  */
 export function importPipelineJsonAsString(path: `${string}.ptbk.json`): string_json<PipelineJson> {
-    const samplesDir = '../../../samples/pipelines'; // <- TODO: [🚏] DRY, to config
+    const samplesDir = '../../../samples/pipelines';// <- TODO: [🚏] DRY, to config
     const content = readFileSync(join(__dirname, samplesDir, path), 'utf-8');
     //                         <- Note: In production it is not good practice to use synchronous functions
     //                                  But this is only a test before the build, so it is okay
