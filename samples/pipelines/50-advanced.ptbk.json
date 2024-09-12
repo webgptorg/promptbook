@@ -181,9 +181,9 @@
             "description": "a linguist",
             "modelRequirements": {
                 "modelVariant": "CHAT",
-                "modelName": "gpt-4",
-                "systemMessage": "You are an experienced AI engineer and helpful assistant.",
-                "temperature": 0.5
+                "modelName": "gpt-4-turbo-2024-04-09",
+                "systemMessage": "You are a highly knowledgeable linguist and helpful assistant. Your expertise spans various languages, linguistic theories, phonetics, syntax, semantics, and language evolution. Provide accurate and insightful information about languages, their structures, and linguistic phenomena. Assist with translations, etymology, and language learning inquiries.",
+                "temperature": 0.6
             },
             "preparationIds": [
                 1
@@ -194,9 +194,9 @@
             "description": "a linguist",
             "modelRequirements": {
                 "modelVariant": "CHAT",
-                "modelName": "gpt-4",
-                "systemMessage": "You are an experienced AI engineer and helpful assistant.",
-                "temperature": 0.5
+                "modelName": "gpt-4-turbo-2024-04-09",
+                "systemMessage": "You are a highly knowledgeable linguist and helpful assistant. Your expertise spans various languages, linguistic theories, phonetics, syntax, semantics, and language evolution. Provide accurate and insightful information about languages, their structures, and linguistic phenomena. Assist with translations, etymology, and language learning inquiries.",
+                "temperature": 0.6
             },
             "preparationIds": [
                 1
@@ -207,9 +207,9 @@
             "description": "a linguist",
             "modelRequirements": {
                 "modelVariant": "CHAT",
-                "modelName": "gpt-4",
-                "systemMessage": "You are an experienced AI engineer and helpful assistant.",
-                "temperature": 0.5
+                "modelName": "gpt-4-turbo-2024-04-09",
+                "systemMessage": "You are a highly knowledgeable linguist and helpful assistant. Your expertise spans various languages, linguistic theories, phonetics, syntax, semantics, and language evolution. Provide accurate and insightful information about languages, their structures, and linguistic phenomena. Assist with translations, etymology, and language learning inquiries.",
+                "temperature": 0.6
             },
             "preparationIds": [
                 1
@@ -220,9 +220,9 @@
             "description": "a linguist",
             "modelRequirements": {
                 "modelVariant": "CHAT",
-                "modelName": "gpt-4",
-                "systemMessage": "You are an experienced AI engineer and helpful assistant.",
-                "temperature": 0.5
+                "modelName": "gpt-4-turbo-2024-04-09",
+                "systemMessage": "You are a highly knowledgeable linguist and helpful assistant. Your expertise spans various languages, linguistic theories, phonetics, syntax, semantics, and language evolution. Provide accurate and insightful information about languages, their structures, and linguistic phenomena. Assist with translations, etymology, and language learning inquiries.",
+                "temperature": 0.6
             },
             "preparationIds": [
                 1
@@ -232,29 +232,29 @@
     "preparations": [
         {
             "id": 1,
-            "promptbookVersion": "0.68.2",
+            "promptbookVersion": "0.68.3",
             "usage": {
                 "price": {
-                    "value": 0.035160000000000004
+                    "value": 0.019848
                 },
                 "input": {
                     "tokensCount": {
-                        "value": 3072
+                        "value": 3936
                     },
                     "charactersCount": {
-                        "value": 7260
+                        "value": 8504
                     },
                     "wordsCount": {
-                        "value": 1036
+                        "value": 1220
                     },
                     "sentencesCount": {
                         "value": 84
                     },
                     "linesCount": {
-                        "value": 192
+                        "value": 220
                     },
                     "paragraphsCount": {
-                        "value": 76
+                        "value": 80
                     },
                     "pagesCount": {
                         "value": 20
@@ -262,25 +262,25 @@
                 },
                 "output": {
                     "tokensCount": {
-                        "value": 148
+                        "value": 536
                     },
                     "charactersCount": {
-                        "value": 512
+                        "value": 0
                     },
                     "wordsCount": {
-                        "value": 64
+                        "value": 0
                     },
                     "sentencesCount": {
-                        "value": 12
+                        "value": 0
                     },
                     "linesCount": {
-                        "value": 20
+                        "value": 0
                     },
                     "paragraphsCount": {
-                        "value": 4
+                        "value": 0
                     },
                     "pagesCount": {
-                        "value": 4
+                        "value": 0
                     }
                 }
             }
