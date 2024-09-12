@@ -19,7 +19,7 @@ export const OPENAI_MODELS: Array<
             readonly output: number_usd;
         };
     }
-> = $asDeeplyFrozenSerializableJson('OPENAI_MODELS',[
+> = $asDeeplyFrozenSerializableJson('OPENAI_MODELS', [
     /*/
       {
           modelTitle: 'dall-e-3',
@@ -353,6 +353,7 @@ export const OPENAI_MODELS: Array<
             prompt: computeUsage(`$5.00 / 1M tokens`),
             output: computeUsage(`$15.00 / 1M tokens`),
         },
+        //TODO: !!!!!! Add gpt-4o-mini-2024-07-18 and all others to be up to date
     },
     /**/
 
@@ -364,6 +365,55 @@ export const OPENAI_MODELS: Array<
         pricing: {
             prompt: computeUsage(`$5.00 / 1M tokens`),
             output: computeUsage(`$15.00 / 1M tokens`),
+        },
+    },
+    /**/
+
+    /**/
+    {
+        modelVariant: 'CHAT',
+        modelTitle: 'o1-preview',
+        modelName: 'o1-preview',
+        pricing: {
+            prompt: computeUsage(`$15.00 / 1M tokens`),
+            output: computeUsage(`$60.00 / 1M tokens`),
+        },
+    },
+    /**/
+
+    /**/
+    {
+        modelVariant: 'CHAT',
+        modelTitle: 'o1-preview-2024-09-12',
+        modelName: 'o1-preview-2024-09-12',
+        //             <- TODO: !!!!!! Some better system to organize theese date suffixes and versions
+        pricing: {
+            prompt: computeUsage(`$15.00 / 1M tokens`),
+            output: computeUsage(`$60.00 / 1M tokens`),
+        },
+    },
+    /**/
+
+    /**/
+    {
+        modelVariant: 'CHAT',
+        modelTitle: 'o1-mini',
+        modelName: 'o1-mini',
+        pricing: {
+            prompt: computeUsage(`$3.00 / 1M tokens`),
+            output: computeUsage(`$12.00 / 1M tokens`),
+        },
+    },
+    /**/
+
+    /**/
+    {
+        modelVariant: 'CHAT',
+        modelTitle: 'o1-mini-2024-09-12',
+        modelName: 'o1-mini-2024-09-12',
+        pricing: {
+            prompt: computeUsage(`$3.00 / 1M tokens`),
+            output: computeUsage(`$12.00 / 1M tokens`),
         },
     },
     /**/

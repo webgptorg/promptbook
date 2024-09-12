@@ -16,6 +16,10 @@ Supercharge your use of large language models
 
 <!--/Here will be placed specific package info-->
 
+# ✨ New Features
+
+-   ✨ **Support [OpenAI o1 model](https://openai.com/o1/)**
+
 ## 🤍 The Promptbook Whitepaper
 
 <!-- TODO: !!! Better -->
