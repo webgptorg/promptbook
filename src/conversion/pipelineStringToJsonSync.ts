@@ -4,11 +4,13 @@ import type { ParameterCommand } from '../commands/PARAMETER/ParameterCommand';
 import { templateCommandParser } from '../commands/TEMPLATE/templateCommandParser';
 import { getParserForCommand } from '../commands/_common/getParserForCommand';
 import { parseCommand } from '../commands/_common/parseCommand';
-import type { $PipelineJson } from '../commands/_common/types/CommandParser';
-import type { $TemplateJson } from '../commands/_common/types/CommandParser';
-import type { CommandBase } from '../commands/_common/types/CommandParser';
-import type { PipelineHeadCommandParser } from '../commands/_common/types/CommandParser';
-import type { PipelineTemplateCommandParser } from '../commands/_common/types/CommandParser';
+import type {
+    $PipelineJson,
+    $TemplateJson,
+    CommandBase,
+    PipelineHeadCommandParser,
+    PipelineTemplateCommandParser,
+} from '../commands/_common/types/CommandParser';
 import { RESERVED_PARAMETER_NAMES } from '../config';
 import { ParseError } from '../errors/ParseError';
 import { UnexpectedError } from '../errors/UnexpectedError';
@@ -28,7 +30,6 @@ import { splitMarkdownIntoSections } from '../utils/markdown/splitMarkdownIntoSe
 import type { TODO_any } from '../utils/organization/TODO_any';
 import type { really_any } from '../utils/organization/really_any';
 import { $asDeeplyFrozenSerializableJson } from '../utils/serialization/$asDeeplyFrozenSerializableJson';
-import { PROMPTBOOK_VERSION } from '../version';
 import { extractParameterNamesFromTemplate } from './utils/extractParameterNamesFromTemplate';
 import { titleToName } from './utils/titleToName';
 
