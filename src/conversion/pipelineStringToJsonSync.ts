@@ -52,7 +52,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
     const $pipelineJson: $PipelineJson = {
         title: undefined as TODO_any /* <- Note: [🍙] Putting here placeholder to keep `title` on top at final JSON */,
         pipelineUrl: undefined /* <- Note: Putting here placeholder to keep `pipelineUrl` on top at final JSON */,
-        promptbookVersion: PROMPTBOOK_VERSION,
+        promptbookVersion: undefined /* <- Note: By default no explicit version */,
         description: undefined /* <- Note: [🍙] Putting here placeholder to keep `description` on top at final JSON */,
         parameters: [],
         templates: [],

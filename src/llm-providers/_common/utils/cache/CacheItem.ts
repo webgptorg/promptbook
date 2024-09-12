@@ -15,7 +15,7 @@ export type CacheItem = {
     /**
      * @@@
      */
-    promptbookVersion: string_promptbook_version;
+    promptbookVersion?: string_promptbook_version;
 
     /**
      * @@@
