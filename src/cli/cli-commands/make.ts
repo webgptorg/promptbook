@@ -5,8 +5,7 @@ import { dirname, join } from 'path';
 import spaceTrim from 'spacetrim';
 import { collectionToJson } from '../../collection/collectionToJson';
 import { createCollectionFromDirectory } from '../../collection/constructors/createCollectionFromDirectory';
-import { GENERATOR_WARNING_BY_PROMPTBOOK_CLI } from '../../config';
-import { PIPELINE_COLLECTION_BASE_FILENAME } from '../../config';
+import { GENERATOR_WARNING_BY_PROMPTBOOK_CLI, PIPELINE_COLLECTION_BASE_FILENAME } from '../../config';
 import { stringifyPipelineJson } from '../../conversion/utils/stringifyPipelineJson';
 import { validatePipeline } from '../../conversion/validation/validatePipeline';
 import { UnexpectedError } from '../../errors/UnexpectedError';
@@ -254,7 +253,7 @@ export function initializeMakeCommand(program: Program) {
 }
 
 /**
- * TODO: [🥃] !!! Allow `ptbk make` without configuring any llm tools
+ * TODO: [🥃][main] !!! Allow `ptbk make` without configuring any llm tools
  * TODO: Maybe remove this command - "about" command should be enough?
  * TODO: [0] DRY Javascript and typescript - Maybe make ONLY typescript and for javascript just remove types
  * Note: [🟡] This code should never be published outside of `@promptbook/cli`

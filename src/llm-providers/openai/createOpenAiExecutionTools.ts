@@ -1,6 +1,6 @@
+import type { LlmExecutionToolsConstructor } from '../../execution/LlmExecutionToolsConstructor';
 import { $isRunningInBrowser } from '../../utils/environment/$isRunningInBrowser';
 import { $isRunningInWebWorker } from '../../utils/environment/$isRunningInWebWorker';
-import type { LlmExecutionToolsConstructor } from '../../execution/LlmExecutionToolsConstructor';
 import { OpenAiExecutionTools } from './OpenAiExecutionTools';
 import type { OpenAiExecutionToolsOptions } from './OpenAiExecutionToolsOptions';
 
@@ -11,7 +11,7 @@ import type { OpenAiExecutionToolsOptions } from './OpenAiExecutionToolsOptions'
  */
 export const createOpenAiExecutionTools = Object.assign(
     (options: OpenAiExecutionToolsOptions): OpenAiExecutionTools => {
-        // TODO: [🧠] !!!! If browser, auto add `dangerouslyAllowBrowser`
+        // TODO: [🧠][main] !!!! If browser, auto add `dangerouslyAllowBrowser`
 
         if (($isRunningInBrowser() || $isRunningInWebWorker()) && !options.dangerouslyAllowBrowser) {
             options = { ...options, dangerouslyAllowBrowser: true };

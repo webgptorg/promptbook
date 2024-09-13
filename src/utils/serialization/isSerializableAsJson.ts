@@ -29,6 +29,6 @@ export function isSerializableAsJson(value: unknown): boolean {
 }
 
 /**
- * TODO: [🧠] !!! In-memory cache of same values to prevent multiple checks
+ * TODO: [🧠][main] !!! In-memory cache of same values to prevent multiple checks
  * TODO: [🧠][💺] Can be done this on type-level?
  */
