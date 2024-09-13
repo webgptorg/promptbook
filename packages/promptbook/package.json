@@ -1,6 +1,6 @@
 {
     "name": "promptbook",
-    "version": "0.69.0-17",
+    "version": "0.69.0-18",
     "description": "Supercharge your use of large language models",
     "private": false,
     "sideEffects": false,
@@ -12,21 +12,25 @@
         "Pavol Hejný <me@pavolhejny.com> (https://www.pavolhejny.com/)"
     ],
     "keywords": [
-        "autogpt",
-        "openai",
-        "gpt-3",
-        "gpt-4",
-        "chatgpt",
         "ai",
+        "llm",
+        "prompt",
+        "template",
+        "language-model",
+        "chatgpt",
+        "autogpt",
         "machine-learning",
         "natural-language-processing",
         "nlp",
-        "prompt",
-        "template",
-        "pipeline",
-        "automation",
-        "text-generation",
-        "language-model"
+        "openai",
+        "gpt-3",
+        "gpt-4",
+        "gpt-4o",
+        "gpt-4o-mini",
+        "o1",
+        "o1-mini",
+        "o1-preview",
+        "anthropic"
     ],
     "license": "CC-BY-4.0",
     "bugs": {
@@ -44,23 +48,23 @@
         }
     ],
     "peerDependencies": {
-        "@promptbook/core": "0.69.0-17"
+        "@promptbook/core": "0.69.0-18"
     },
     "dependencies": {
-        "@promptbook/anthropic-claude": "0.69.0-17",
-        "@promptbook/azure-openai": "0.69.0-17",
-        "@promptbook/browser": "0.69.0-17",
-        "@promptbook/cli": "0.69.0-17",
-        "@promptbook/core": "0.69.0-17",
-        "@promptbook/execute-javascript": "0.69.0-17",
-        "@promptbook/fake-llm": "0.69.0-17",
-        "@promptbook/langtail": "0.69.0-17",
-        "@promptbook/markdown-utils": "0.69.0-17",
-        "@promptbook/node": "0.69.0-17",
-        "@promptbook/openai": "0.69.0-17",
-        "@promptbook/remote-client": "0.69.0-17",
-        "@promptbook/remote-server": "0.69.0-17",
-        "@promptbook/types": "0.69.0-17",
-        "@promptbook/utils": "0.69.0-17"
+        "@promptbook/anthropic-claude": "0.69.0-18",
+        "@promptbook/azure-openai": "0.69.0-18",
+        "@promptbook/browser": "0.69.0-18",
+        "@promptbook/cli": "0.69.0-18",
+        "@promptbook/core": "0.69.0-18",
+        "@promptbook/execute-javascript": "0.69.0-18",
+        "@promptbook/fake-llm": "0.69.0-18",
+        "@promptbook/langtail": "0.69.0-18",
+        "@promptbook/markdown-utils": "0.69.0-18",
+        "@promptbook/node": "0.69.0-18",
+        "@promptbook/openai": "0.69.0-18",
+        "@promptbook/remote-client": "0.69.0-18",
+        "@promptbook/remote-server": "0.69.0-18",
+        "@promptbook/types": "0.69.0-18",
+        "@promptbook/utils": "0.69.0-18"
     }
 }

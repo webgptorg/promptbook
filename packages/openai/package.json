@@ -1,6 +1,6 @@
 {
     "name": "@promptbook/openai",
-    "version": "0.69.0-17",
+    "version": "0.69.0-18",
     "description": "Supercharge your use of large language models",
     "private": false,
     "sideEffects": false,
@@ -12,21 +12,25 @@
         "Pavol Hejný <me@pavolhejny.com> (https://www.pavolhejny.com/)"
     ],
     "keywords": [
-        "autogpt",
-        "openai",
-        "gpt-3",
-        "gpt-4",
-        "chatgpt",
         "ai",
+        "llm",
+        "prompt",
+        "template",
+        "language-model",
+        "chatgpt",
+        "autogpt",
         "machine-learning",
         "natural-language-processing",
         "nlp",
-        "prompt",
-        "template",
-        "pipeline",
-        "automation",
-        "text-generation",
-        "language-model"
+        "openai",
+        "gpt-3",
+        "gpt-4",
+        "gpt-4o",
+        "gpt-4o-mini",
+        "o1",
+        "o1-mini",
+        "o1-preview",
+        "anthropic"
     ],
     "license": "CC-BY-4.0",
     "bugs": {
@@ -47,7 +51,7 @@
     "module": "./esm/index.es.js",
     "typings": "./esm/typings/src/_packages/openai.index.d.ts",
     "peerDependencies": {
-        "@promptbook/core": "0.69.0-17"
+        "@promptbook/core": "0.69.0-18"
     },
     "dependencies": {
         "colors": "1.4.0",
