@@ -85,7 +85,7 @@ export const MAX_FILENAME_LENGTH = 30;
 
 /**
  * @@@
- * TODO: [🐝] !!! Use
+ * TODO: [🐝][main] !!! Use
  *
  * @public exported from `@promptbook/core`
  */
@@ -93,7 +93,7 @@ export const MAX_KNOWLEDGE_SOURCES_SCRAPING_DEPTH = 3;
 
 /**
  * @@@
- * TODO: [🐝] !!! Use
+ * TODO: [🐝][main] !!! Use
  *
  * @public exported from `@promptbook/core`
  */

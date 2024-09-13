@@ -3,8 +3,7 @@ import spaceTrim from 'spacetrim';
 import PipelineCollection from '../../../../promptbook-collection/index.json';
 // import PipelineCollection from '../../../../promptbook-collection/promptbook-collection';
 import { createCollectionFromJson } from '../../../collection/constructors/createCollectionFromJson';
-import { IS_VERBOSE } from '../../../config';
-import { MAX_PARALLEL_COUNT } from '../../../config';
+import { IS_VERBOSE, MAX_PARALLEL_COUNT } from '../../../config';
 import { titleToName } from '../../../conversion/utils/titleToName';
 import { PipelineExecutionError } from '../../../errors/PipelineExecutionError';
 import { assertsExecutionSuccessful } from '../../../execution/assertsExecutionSuccessful';
@@ -67,7 +66,7 @@ export async function prepareKnowledgeFromMarkdown(
     const { knowledgePieces: knowledgePiecesRaw } = outputParameters;
 
     const knowledgeTextPieces = (knowledgePiecesRaw || '').split('\n---\n');
-    //                                                               <- TODO: !!!!! Smarter split and filter out empty pieces
+    //                                                               <- TODO:[main] !!!!! Smarter split and filter out empty pieces
 
     if (isVerbose) {
         console.info('knowledgeTextPieces:', knowledgeTextPieces);
@@ -158,7 +157,7 @@ export async function prepareKnowledgeFromMarkdown(
 }
 
 /**
- * TODO: [🐝][🔼] !!! Export via `@promptbook/markdown`
+ * TODO: [🐝][🔼][main] !!! Export via `@promptbook/markdown`
  * TODO: [🪂] Do it in parallel 11:11
  * Note: No need to aggregate usage here, it is done by intercepting the llmTools
  */

@@ -7,10 +7,12 @@ import type { TemplateJson } from '../../types/PipelineJson/TemplateJson';
 import type { string_markdown_text } from '../../types/typeAliases';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import { knowledgeCommandParser } from '../KNOWLEDGE/knowledgeCommandParser';
-import type { $PipelineJson } from '../_common/types/CommandParser';
-import type { $TemplateJson } from '../_common/types/CommandParser';
-import type { CommandParserInput } from '../_common/types/CommandParser';
-import type { PipelineTemplateCommandParser } from '../_common/types/CommandParser';
+import type {
+    $PipelineJson,
+    $TemplateJson,
+    CommandParserInput,
+    PipelineTemplateCommandParser,
+} from '../_common/types/CommandParser';
 import type { TemplateCommand } from './TemplateCommand';
 import { TemplateTypes } from './TemplateTypes';
 
@@ -190,7 +192,7 @@ export const templateCommandParser: PipelineTemplateCommandParser<TemplateComman
             knowledgeCommandParser.$applyToPipelineJson(
                 {
                     type: 'KNOWLEDGE',
-                    sourceContent: $templateJson.content, // <- TODO: [🐝] !!! Work with KNOWLEDGE which not referring to the source file or website, but its content itself
+                    sourceContent: $templateJson.content, // <- TODO: [🐝][main] !!! Work with KNOWLEDGE which not referring to the source file or website, but its content itself
                 },
                 $pipelineJson,
             );

@@ -32,7 +32,7 @@ export function pipelineJsonToString(pipelineJson: PipelineJson): PipelineString
 
     commands.push(`PROMPTBOOK VERSION ${promptbookVersion}`);
 
-    // TODO: !!! This increase size of the bundle and is probbably not necessary
+    // TODO:[main] !!! This increase size of the bundle and is probbably not necessary
     pipelineString = prettifyMarkdown(pipelineString);
 
     for (const parameter of parameters.filter(({ isInput }) => isInput)) {
@@ -139,13 +139,13 @@ export function pipelineJsonToString(pipelineJson: PipelineJson): PipelineString
         pipelineString += '```' + contentLanguage;
         pipelineString += '\n';
         pipelineString += spaceTrim(content);
-        //                   <- TODO: !!! Escape
+        //                   <- TODO:[main] !!! Escape
         //                   <- TODO: [🧠] Some clear strategy how to spaceTrim the blocks
         pipelineString += '\n';
         pipelineString += '```';
 
         pipelineString += '\n\n';
-        pipelineString += `\`-> {${resultingParameterName}}\``; // <- TODO: !!! If the parameter here has description, add it and use templateParameterJsonToString
+        pipelineString += `\`-> {${resultingParameterName}}\``; // <- TODO:[main] !!! If the parameter here has description, add it and use templateParameterJsonToString
     }
 
     return pipelineString as PipelineString;

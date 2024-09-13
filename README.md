@@ -16,9 +16,13 @@ Supercharge your use of large language models
 
 <!--/Here will be placed specific package info-->
 
+# ✨ New Features
+
+-   ✨ **Support [OpenAI o1 model](https://openai.com/o1/)**
+
 ## 🤍 The Promptbook Whitepaper
 
-<!-- TODO: !!! Better -->
+<!-- TODO:[main] !!! Better -->
 
 If you have a simple, single prompt for ChatGPT, GPT-4, Anthropic Claude, Google Gemini, Llama 2, or whatever, it doesn't matter how you integrate it. Whether it's calling a REST API directly, using the SDK, hardcoding the prompt into the source code, or importing a text file, the process remains the same.
 
@@ -39,7 +43,7 @@ In all of these situations, but especially in 3., the Promptbook library can mak
 -   Promptbook is designed to do [**RAG** (Retrieval-Augmented Generation)](https://github.com/webgptorg/promptbook/discussions/41) and other advanced techniques. You can use **knowledge** to improve the quality of the output.
 
 <!--
-TODO: !!!
+TODO:[main] !!!
 ## 🚀 Get started
 
 -->
@@ -59,7 +63,7 @@ File `write-website-content.ptbk.md`:
 
 <!------------------------[ Sample: ]------------------------>
 
-<!-- !!! Update with persona and knowledge -->
+<!--[main] !!! Update with persona and knowledge -->
 
 > # 🌍 Create website content
 >

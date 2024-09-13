@@ -8,7 +8,7 @@ Show how to use knowledge
 -   INPUT  PARAMETER `{rules}` Extra rules for writing the bio
 -   OUTPUT PARAMETER `{bio}` Bio of Pavol Hejný - speaker at the event
 
-<!-- TODO: !!!! Make every knowledge with identical interface as `simple-knowledge.ptbk.md` -->
+<!-- TODO:[main] !!!! Make every knowledge with identical interface as `simple-knowledge.ptbk.md` -->
 
 ## Pavol Hejný (Website)
 

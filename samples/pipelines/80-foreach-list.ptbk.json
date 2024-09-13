@@ -1,7 +1,6 @@
 {
     "pipelineUrl": "https://promptbook.studio/samples/foreach-list.ptbk.md",
     "title": "✨ Write greeting for each customer",
-    "promptbookVersion": "0.69.0-15",
     "description": "Show how to iterate over a list of customers and write a greeting for each.",
     "parameters": [
         {
@@ -53,7 +52,7 @@
             "modelRequirements": {
                 "modelVariant": "CHAT",
                 "modelName": "gpt-4-turbo-2024-04-09",
-                "systemMessage": "You are a friendly and professional customer service representative. Your goal is to assist customers with their inquiries, resolve issues efficiently, and ensure a positive customer experience. Provide accurate information, offer solutions, and maintain a helpful and courteous demeanor throughout the interaction.",
+                "systemMessage": "You are a friendly and professional customer service representative. Your goal is to assist customers with their inquiries, resolve issues, and ensure customer satisfaction. You have extensive knowledge of company policies, products, and services. Always maintain a polite and helpful demeanor, even in challenging situations.",
                 "temperature": 0.7
             },
             "preparationIds": [
@@ -67,20 +66,20 @@
             "promptbookVersion": "0.69.0-15",
             "usage": {
                 "price": {
-                    "value": 0.0045780000000000005
+                    "value": 0.004842
                 },
                 "input": {
                     "tokensCount": {
-                        "value": 916
+                        "value": 984
                     },
                     "charactersCount": {
-                        "value": 2126
+                        "value": 2906
                     },
                     "wordsCount": {
-                        "value": 305
+                        "value": 497
                     },
                     "sentencesCount": {
-                        "value": 21
+                        "value": 38
                     },
                     "linesCount": {
                         "value": 55
@@ -89,30 +88,30 @@
                         "value": 20
                     },
                     "pagesCount": {
-                        "value": 5
+                        "value": 8
                     }
                 },
                 "output": {
                     "tokensCount": {
-                        "value": 122
+                        "value": 126
                     },
                     "charactersCount": {
-                        "value": 0
+                        "value": 533
                     },
                     "wordsCount": {
-                        "value": 0
+                        "value": 75
                     },
                     "sentencesCount": {
-                        "value": 0
+                        "value": 6
                     },
                     "linesCount": {
-                        "value": 0
+                        "value": 9
                     },
                     "paragraphsCount": {
-                        "value": 0
+                        "value": 2
                     },
                     "pagesCount": {
-                        "value": 0
+                        "value": 2
                     }
                 }
             }

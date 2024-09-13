@@ -53,7 +53,7 @@ export type PipelineJson = {
     /**
      * Version of the .ptbk.json file
      */
-    readonly promptbookVersion: string_semantic_version;
+    readonly promptbookVersion?: string_semantic_version;
 
     /**
      * Description of the promptbook

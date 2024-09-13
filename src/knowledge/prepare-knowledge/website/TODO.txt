@@ -1,2 +1,2 @@
-TODO: [🐝][🔼] !!! Export via `@promptbook/node`
+TODO: [🐝][🔼][main] !!! Export via `@promptbook/node`
 TODO: Implement function which will make knowledge index from scraped website

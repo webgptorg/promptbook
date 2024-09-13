@@ -120,6 +120,6 @@ export function checkSerializableAsJson(name: string_name, value: unknown): void
 
 /**
  * TODO: [🧠][🛣] More elegant way to tracking than passing `name`
- * TODO: [🧠] !!! In-memory cache of same values to prevent multiple checks
+ * TODO: [🧠][main] !!! In-memory cache of same values to prevent multiple checks
  * Note: [🐠] This is how `checkSerializableAsJson` + `isSerializableAsJson` together can just retun true/false or rich error message
  */

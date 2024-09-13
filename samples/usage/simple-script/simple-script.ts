@@ -117,6 +117,7 @@ async function main() {
     );
 
     const executionReportString = executionReportJsonToString(executionReport);
+
     await writeFile(
         pipeline.sourceFile.split('.ptbk.md').join('.report.md').split('.ptbk.json').join('.report.md'),
         //                  <- TODO: [0] More elegant way to replace extension
