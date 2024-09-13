@@ -16,11 +16,11 @@ Supercharge your use of large language models
 
 
 
+## ✨ New Features
+
+-   ✨ **Support of [OpenAI o1 model](https://openai.com/o1/)**
 
 
-# ✨ New Features
-
--   ✨ **Support [OpenAI o1 model](https://openai.com/o1/)**
 
 ## 🤍 The Promptbook Whitepaper
 

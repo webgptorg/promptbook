@@ -16,6 +16,10 @@ Supercharge your use of large language models
 
 
 
+## ✨ New Features
+
+-   ✨ **Support of [OpenAI o1 model](https://openai.com/o1/)**
+
 ## 📦 Package `@promptbook/node`
 
 - Promptbooks are [divided into several](#-packages) packages, all are published from [single monorepo](https://github.com/webgptorg/promptbook).
@@ -41,10 +45,6 @@ Core of the library for Node.js runtime, it contains the main logic for promptbo
 ---
 
 Rest of the documentation is common for **entire promptbook ecosystem**:
-
-# ✨ New Features
-
--   ✨ **Support [OpenAI o1 model](https://openai.com/o1/)**
 
 ## 🤍 The Promptbook Whitepaper
 

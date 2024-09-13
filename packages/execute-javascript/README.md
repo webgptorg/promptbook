@@ -16,6 +16,10 @@ Supercharge your use of large language models
 
 
 
+## ✨ New Features
+
+-   ✨ **Support of [OpenAI o1 model](https://openai.com/o1/)**
+
 ## 📦 Package `@promptbook/execute-javascript`
 
 - Promptbooks are [divided into several](#-packages) packages, all are published from [single monorepo](https://github.com/webgptorg/promptbook).
@@ -38,10 +42,6 @@ It is used for executing scripts in `SCRIPT TEMPLATE` statements.
 ---
 
 Rest of the documentation is common for **entire promptbook ecosystem**:
-
-# ✨ New Features
-
--   ✨ **Support [OpenAI o1 model](https://openai.com/o1/)**
 
 ## 🤍 The Promptbook Whitepaper
 
