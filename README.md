@@ -14,11 +14,11 @@ Supercharge your use of large language models
 
 <!--/Badges-->
 
-<!--/Here will be placed specific package info-->
+## ✨ New Features
 
-# ✨ New Features
+-   ✨ **Support of [OpenAI o1 model](https://openai.com/o1/)**
 
--   ✨ **Support [OpenAI o1 model](https://openai.com/o1/)**
+<!--/ Here will be placed specific package info -->
 
 ## 🤍 The Promptbook Whitepaper
 

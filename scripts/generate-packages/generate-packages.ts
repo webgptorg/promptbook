@@ -204,7 +204,7 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
 
         if (isBuilded /* [🚘] */) {
             packageReadme = packageReadme
-                .split(`<!--/Here will be placed specific package info-->`)
+                .split(`<!--/ Here will be placed specific package info -->`)
                 .join(packageReadmeFullextra);
         }
 
