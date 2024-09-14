@@ -19,6 +19,8 @@ describe('how `validateParameterName` works', () => {
         expect(validateParameterName(`NAME_FOO_BAR`)).toBe('nameFooBar');
         expect(validateParameterName(`NAME FOO BAR`)).toBe('nameFooBar');
         expect(validateParameterName(`NameFooBar`)).toBe('nameFooBar');
+        expect(validateParameterName(`jméno`)).toBe('jmeno');
+        expect(validateParameterName(`JMÉNO`)).toBe('jmeno');
     });
 
     // TODO: !!!!! Test different notations /name/ -> {name}, [name] -> {name},... etc

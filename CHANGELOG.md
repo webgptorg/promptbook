@@ -503,6 +503,7 @@ Was accidentally released skipped
 Command `FOREACH`
 
 -   Allow iterations with `FOREACH` command
+-   Paremeter names are case insensitive and normalized
 -   Big refactoring of `createPipelineExecutor`
 -   Enhance and implement formats `FormatDefinition`
 -   Allow to parse CSVs via `CsvFormatDefinition`

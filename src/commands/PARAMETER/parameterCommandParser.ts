@@ -3,7 +3,6 @@ import { ParseError } from '../../errors/ParseError';
 import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import type { string_markdown_text } from '../../types/typeAliases';
 import { keepUnused } from '../../utils/organization/keepUnused';
-import type { TODO_any } from '../../utils/organization/TODO_any';
 import { validateParameterName } from '../../utils/validators/parameterName/validateParameterName';
 import type {
     $PipelineJson,
@@ -59,19 +58,12 @@ export const parameterCommandParser: PipelineBothCommandParser<ParameterCommand>
      * Parses the PARAMETER command
      */
     parse(input: CommandParserInput): ParameterCommand {
-        const { normalized, raw } = input;
+        const { normalized, args, raw } = input;
 
-        const parametersMatch = raw.match(
-            /\{(?<parameterNameRaw>[a-z0-9_]+)\}[^\S\r\n]*(?<parameterDescription>.*)$/im,
-        );
+        const parameterNameRaw = args.pop() || '';
+        const parameterDescriptionRaw = raw.substring(parameterNameRaw.length).trim();
 
-        if (!parametersMatch || !parametersMatch.groups || !parametersMatch.groups.parameterName) {
-            throw new ParseError(`Invalid parameter`);
-        }
-
-        const { parameterNameRaw, parameterDescription } = parametersMatch.groups as TODO_any;
-
-        if (parameterDescription && parameterDescription.match(/\{(?<parameterName>[a-z0-9_]+)\}/im)) {
+        if (parameterDescriptionRaw && parameterDescriptionRaw.match(/\{(?<embeddedParameterName>[a-z0-9_]+)\}/im)) {
             throw new ParseError(`Parameter {${parameterNameRaw}} can not contain another parameter in description`);
         }
 
@@ -88,7 +80,7 @@ export const parameterCommandParser: PipelineBothCommandParser<ParameterCommand>
         return {
             type: 'PARAMETER',
             parameterName,
-            parameterDescription: parameterDescription.trim() || null,
+            parameterDescription: parameterDescriptionRaw.trim() || null,
             isInput,
             isOutput,
         } satisfies ParameterCommand;
