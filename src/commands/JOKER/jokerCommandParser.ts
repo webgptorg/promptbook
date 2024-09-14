@@ -47,7 +47,7 @@ export const jokerCommandParser: PipelineTemplateCommandParser<JokerCommand> = {
     parse(input: CommandParserInput): JokerCommand {
         const { args } = input;
 
-        // TODO: !!!!!! Replace with propper parameter name validation `validateParameterName`
+        // TODO: !!! Replace with propper parameter name validation `validateParameterName`
         const parametersMatch = (args.pop() || '').match(/^\{(?<parameterName>[a-z0-9_]+)\}$/im);
 
         if (!parametersMatch || !parametersMatch.groups || !parametersMatch.groups.parameterName) {

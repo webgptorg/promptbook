@@ -162,8 +162,8 @@ export const foreachCommandParser: PipelineTemplateCommandParser<ForeachCommand>
     $applyToTemplateJson(command: ForeachCommand, $templateJson: $TemplateJson, $pipelineJson: $PipelineJson): void {
         const { formatName, cellName, parameterName, subparameterNames } = command;
 
-        // TODO: !!!!!! Detect double use
-        // TODO: !!!!!! Detect usage with JOKER and don't allow it
+        // TODO: [🍭] Detect double use
+        // TODO: [🍭] Detect usage with JOKER and don't allow it
 
         $templateJson.foreach = { formatName, cellName, parameterName, subparameterNames };
 
@@ -195,5 +195,5 @@ export const foreachCommandParser: PipelineTemplateCommandParser<ForeachCommand>
 
 /**
  * TODO: [🧠][🦥] Better (less confusing) name for "cell" / "subvalue" / "subparameter"
- * TODO: [🍭] !!!!!! Make .ptbk.md file with examples of the FOREACH command and also with wrong parsing and logic
+ * TODO: [🍭] Make .ptbk.md file with examples of the FOREACH with wrong parsing and logic
  */
