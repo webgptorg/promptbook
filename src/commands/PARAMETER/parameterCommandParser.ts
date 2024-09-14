@@ -1,3 +1,4 @@
+import spaceTrim from 'spacetrim';
 import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
 import { ParseError } from '../../errors/ParseError';
 import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
@@ -58,13 +59,27 @@ export const parameterCommandParser: PipelineBothCommandParser<ParameterCommand>
      * Parses the PARAMETER command
      */
     parse(input: CommandParserInput): ParameterCommand {
-        const { normalized, args, raw } = input;
+        const { normalized, args, raw, rawArgs } = input;
 
-        const parameterNameRaw = args.pop() || '';
-        const parameterDescriptionRaw = raw.substring(parameterNameRaw.length).trim();
+        const parameterNameRaw = args.shift() || '';
+        const parameterDescriptionRaw = args.join(' ');
+        // <- TODO: When [🥶] fixed, change to:
+        //        >   const parameterDescriptionRaw = rawArgs.split(parameterNameRaw).join('').trim();
+
+        // !!!!!! Remove
+        console.log({ parameterNameRaw, parameterDescriptionRaw, rawArgs, raw });
 
         if (parameterDescriptionRaw && parameterDescriptionRaw.match(/\{(?<embeddedParameterName>[a-z0-9_]+)\}/im)) {
-            throw new ParseError(`Parameter {${parameterNameRaw}} can not contain another parameter in description`);
+            throw new ParseError(
+                spaceTrim(
+                    (block) => `
+                        Parameter {${parameterNameRaw}} can not contain another parameter in description
+
+                        The description:
+                        ${block(parameterDescriptionRaw)}
+                    `,
+                ),
+            );
         }
 
         let isInput = normalized.startsWith('INPUT');
@@ -76,11 +91,12 @@ export const parameterCommandParser: PipelineBothCommandParser<ParameterCommand>
         }
 
         const parameterName = validateParameterName(parameterNameRaw);
+        const parameterDescription = parameterDescriptionRaw.trim() || null;
 
         return {
             type: 'PARAMETER',
             parameterName,
-            parameterDescription: parameterDescriptionRaw.trim() || null,
+            parameterDescription,
             isInput,
             isOutput,
         } satisfies ParameterCommand;

@@ -57,6 +57,14 @@ describe('how FOREACH command in .ptbk.md files works', () => {
             subparameterNames: ['customer'],
         });
 
+        expect(parseCommand('EACH   Text   Line customers    ->   customer   ', 'PIPELINE_TEMPLATE')).toEqual({
+            type: 'FOREACH',
+            formatName: 'TEXT',
+            cellName: 'LINE',
+            parameterName: 'customers',
+            subparameterNames: ['customer'],
+        });
+
         /*
         TODO: This should work
         expect(parseCommand('FOREACH TEXT LINE `{customers}` ->`{customer}`', 'PIPELINE_TEMPLATE')).toEqual({
@@ -148,9 +156,6 @@ describe('how FOREACH command in .ptbk.md files works', () => {
         );
         expect(() => parseCommand('FOREACH Csv Row `{customer}` ->', 'PIPELINE_TEMPLATE')).toThrowError(
             /FOREACH command must have at least one subparameter/i,
-        );
-        expect(() => parseCommand('FOREACH Text Line customers -> customer', 'PIPELINE_TEMPLATE')).toThrowError(
-            /Invalid FOREACH command/i,
         );
     });
 

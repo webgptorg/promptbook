@@ -1,9 +1,11 @@
 import spaceTrim from 'spacetrim';
 import { RESERVED_PARAMETER_NAMES } from '../../../config';
 import { ParseError } from '../../../errors/ParseError';
-import type { string_parameter_name } from '../../../types/typeAliases';
-import type { string_reserved_parameter_name } from '../../../types/typeAliases';
+import type { string_parameter_name, string_reserved_parameter_name } from '../../../types/typeAliases';
 import { normalizeTo_camelCase } from '../../normalization/normalizeTo_camelCase';
+import { removeDiacritics } from '../../normalization/removeDiacritics';
+import { removeEmojis } from '../../removeEmojis';
+import { removeQuotes } from '../../removeQuotes';
 
 /**
  * Function `validateParameterName` will @@@
@@ -61,6 +63,9 @@ export function validateParameterName(parameterName: string): string_parameter_n
             throw new ParseError(`Parameter name cannot contain braces`);
         }
 
+        parameterName = removeDiacritics(parameterName);
+        parameterName = removeEmojis(parameterName);
+        parameterName = removeQuotes(parameterName);
         parameterName = normalizeTo_camelCase(parameterName);
 
         if (parameterName === '') {

@@ -49,7 +49,7 @@ export const jokerCommandParser: PipelineTemplateCommandParser<JokerCommand> = {
             throw new ParseError(`JOKE command expects exactly one parameter name`);
         }
 
-        const parameterNameArg = args.pop() || '';
+        const parameterNameArg = args[0] || '';
 
         const parameterName = validateParameterName(parameterNameArg);
 
