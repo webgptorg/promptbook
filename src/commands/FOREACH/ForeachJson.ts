@@ -13,7 +13,7 @@ export type ForeachJson = {
     /**
      * @@@
      */
-    readonly cellName: TODO_string; // <-  !!!!!! [🦥]
+    readonly subformatName: TODO_string;
 
     /**
      * @@@
@@ -23,9 +23,5 @@ export type ForeachJson = {
     /**
      * @@@
      */
-    readonly subparameterNames: Array<string_parameter_name>;
+    readonly subparameterNames: Array<string_parameter_name>; // <- TODO: !!!!!! Use ParameterJson and split into input/output
 };
-
-/**
- * TODO: [🧠][🦥] Better (less confusing) name for "cell" / "subvalue" / "subparameter"
- */

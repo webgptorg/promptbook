@@ -1,5 +1,4 @@
-import type { string_mime_type } from '../../types/typeAliases';
-import type { string_name } from '../../types/typeAliases';
+import type { string_mime_type, string_name } from '../../types/typeAliases';
 import type { string_SCREAMING_CASE } from '../../utils/normalization/normalizeTo_SCREAMING_CASE';
 import type { empty_object } from '../../utils/organization/empty_object';
 import type { FormatSubvalueDefinition } from './FormatSubvalueDefinition';
@@ -74,7 +73,6 @@ export type FormatDefinition<
 };
 
 /**
- * TODO: [🧠][🦥] Better (less confusing) name for "cell" / "subvalue" / "subparameter"
  * TODO: [♏] Add some prepare hook to modify prompt according to the format
  * TODO: [🍓]`name` and `aliases` should be UPPERCASE only and interpreted as case-insensitive (via normalization)
  * TODO: [🍓][👨‍⚖️] Compute TPartialValue dynamically - PartialString<TValue>

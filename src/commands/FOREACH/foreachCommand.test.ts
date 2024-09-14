@@ -7,7 +7,7 @@ describe('how FOREACH command in .ptbk.md files works', () => {
         expect(parseCommand('FOREACH Text Line `{customers}` -> `{customer}`', 'PIPELINE_TEMPLATE')).toEqual({
             type: 'FOREACH',
             formatName: 'TEXT',
-            cellName: 'LINE',
+            subformatName: 'LINE',
             parameterName: 'customers',
             subparameterNames: ['customer'],
         });
@@ -19,7 +19,7 @@ describe('how FOREACH command in .ptbk.md files works', () => {
         ).toEqual({
             type: 'FOREACH',
             formatName: 'TEXT',
-            cellName: 'LINE',
+            subformatName: 'LINE',
             parameterName: 'customers',
             subparameterNames: ['firstName', 'lastName'],
         });
@@ -29,14 +29,14 @@ describe('how FOREACH command in .ptbk.md files works', () => {
         expect(parseCommand('FOREACH Text Line `{customers}` -> `{customer}`', 'PIPELINE_TEMPLATE')).toEqual({
             type: 'FOREACH',
             formatName: 'TEXT',
-            cellName: 'LINE',
+            subformatName: 'LINE',
             parameterName: 'customers',
             subparameterNames: ['customer'],
         });
         expect(parseCommand('FOREACH Text Line {customers} -> {customer}', 'PIPELINE_TEMPLATE')).toEqual({
             type: 'FOREACH',
             formatName: 'TEXT',
-            cellName: 'LINE',
+            subformatName: 'LINE',
             parameterName: 'customers',
             subparameterNames: ['customer'],
         });
@@ -44,7 +44,7 @@ describe('how FOREACH command in .ptbk.md files works', () => {
         expect(parseCommand('FOREACH Text Line `{customers} -> {customer}`', 'PIPELINE_TEMPLATE')).toEqual({
             type: 'FOREACH',
             formatName: 'TEXT',
-            cellName: 'LINE',
+            subformatName: 'LINE',
             parameterName: 'customers',
             subparameterNames: ['customer'],
         });
@@ -52,7 +52,7 @@ describe('how FOREACH command in .ptbk.md files works', () => {
         expect(parseCommand('EACH   Text   Line {customers}     ->   {customer}   ', 'PIPELINE_TEMPLATE')).toEqual({
             type: 'FOREACH',
             formatName: 'TEXT',
-            cellName: 'LINE',
+            subformatName: 'LINE',
             parameterName: 'customers',
             subparameterNames: ['customer'],
         });
@@ -60,7 +60,7 @@ describe('how FOREACH command in .ptbk.md files works', () => {
         expect(parseCommand('EACH   Text   Line customers    ->   customer   ', 'PIPELINE_TEMPLATE')).toEqual({
             type: 'FOREACH',
             formatName: 'TEXT',
-            cellName: 'LINE',
+            subformatName: 'LINE',
             parameterName: 'customers',
             subparameterNames: ['customer'],
         });
@@ -70,7 +70,7 @@ describe('how FOREACH command in .ptbk.md files works', () => {
         expect(parseCommand('FOREACH TEXT LINE `{customers}` ->`{customer}`', 'PIPELINE_TEMPLATE')).toEqual({
             type: 'FOREACH',
             formatName: 'TEXT',
-            cellName: 'LINE',
+            subformatName: 'LINE',
             parameterName: 'customers',
             subparameterNames: ['customer'],
         });
@@ -79,14 +79,14 @@ describe('how FOREACH command in .ptbk.md files works', () => {
         expect(parseCommand('FOREACH Csv Row `{customers}` -> {firstName}` `{lastName}', 'PIPELINE_TEMPLATE')).toEqual({
             type: 'FOREACH',
             formatName: 'CSV',
-            cellName: 'ROW',
+            subformatName: 'ROW',
             parameterName: 'customers',
             subparameterNames: ['firstName', 'lastName'],
         });
         expect(parseCommand('FOREACH Csv Row {customers} -> {firstName} {lastName}', 'PIPELINE_TEMPLATE')).toEqual({
             type: 'FOREACH',
             formatName: 'CSV',
-            cellName: 'ROW',
+            subformatName: 'ROW',
             parameterName: 'customers',
             subparameterNames: ['firstName', 'lastName'],
         });
@@ -94,7 +94,7 @@ describe('how FOREACH command in .ptbk.md files works', () => {
         expect(parseCommand('FOREACH Csv Row `{customers} -> {firstName}, {lastName}`', 'PIPELINE_TEMPLATE')).toEqual({
             type: 'FOREACH',
             formatName: 'CSV',
-            cellName: 'ROW',
+            subformatName: 'ROW',
             parameterName: 'customers',
             subparameterNames: ['firstName', 'lastName'],
         });
@@ -104,7 +104,7 @@ describe('how FOREACH command in .ptbk.md files works', () => {
         ).toEqual({
             type: 'FOREACH',
             formatName: 'CSV',
-            cellName: 'ROW',
+            subformatName: 'ROW',
             parameterName: 'customers',
             subparameterNames: ['firstName', 'lastName'],
         });
@@ -117,7 +117,7 @@ describe('how FOREACH command in .ptbk.md files works', () => {
         ).toEqual({
             type: 'FOREACH',
             formatName: 'CSV',
-            cellName: 'ROW',
+            subformatName: 'ROW',
             parameterName: 'customers',
             subparameterNames: ['firstName', 'lastName'],
         });
@@ -127,7 +127,7 @@ describe('how FOREACH command in .ptbk.md files works', () => {
         expect(parseCommand('FOREACH CSV ROW `{customers}` ->`{firstName}``{lastName}`', 'PIPELINE_TEMPLATE')).toEqual({
             type: 'FOREACH',
             formatName: 'CSV',
-            cellName: 'CELL',
+            subformatName: 'CELL',
             parameterName: 'customers',
           subparameterNames: ['firstName', 'lastName'],
         });
@@ -138,7 +138,7 @@ describe('how FOREACH command in .ptbk.md files works', () => {
         expect(parseCommand('EACH CSV CELL `{customers} -> `{customer}`', 'PIPELINE_TEMPLATE')).toEqual({
             type: 'FOREACH',
             formatName: 'CSV',
-            cellName: 'CELL',
+            subformatName: 'CELL',
             parameterName: 'customers',
             subparameterNames: ['customer'],
         });
@@ -166,7 +166,3 @@ describe('how FOREACH command in .ptbk.md files works', () => {
         }
     });
 });
-
-/**
- * TODO: [🧠][🦥] Better (less confusing) name for "cell" / "subvalue" / "subparameter"
- */

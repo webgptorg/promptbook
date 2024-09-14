@@ -2,8 +2,7 @@ import spaceTrim from 'spacetrim';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import { FORMAT_DEFINITIONS } from '../../formats/index';
-import type { string_parameter_name } from '../../types/typeAliases';
-import type { string_parameter_value } from '../../types/typeAliases';
+import type { string_parameter_name, string_parameter_value } from '../../types/typeAliases';
 import type { TODO_any } from '../../utils/organization/TODO_any';
 import { mapAvailableToExpectedParameters } from '../../utils/parameters/mapAvailableToExpectedParameters';
 import type { ExecuteAttemptsOptions } from './40-executeAttempts';
@@ -75,7 +74,7 @@ export async function executeFormatCells(options: ExecuteFormatCellsOptions): Pr
     const subvalueDefinition = formatDefinition.subvalueDefinitions.find(
         (subvalueDefinition) =>
             [subvalueDefinition.subvalueName, ...(subvalueDefinition.aliases || [])].includes(
-                template.foreach!.cellName,
+                template.foreach!.subformatName,
             ),
         // <- Note: All names here are already normalized
     );
@@ -85,9 +84,11 @@ export async function executeFormatCells(options: ExecuteFormatCellsOptions): Pr
             // <- TODO: [🧠][🧐] Should be formats fixed per promptbook version or behave as plugins (=> change UnexpectedError)
             spaceTrim(
                 (block) => `
-                    Unsupported cell name "${template.foreach!.cellName}" for format "${template.foreach!.formatName}"
+                    Unsupported subformat name "${template.foreach!.subformatName}" for format "${
+                    template.foreach!.formatName
+                }"
 
-                    Available cell names for format "${formatDefinition.formatName}":
+                    Available subformat names for format "${formatDefinition.formatName}":
                     ${block(
                         formatDefinition.subvalueDefinitions
                             .map((subvalueDefinition) => subvalueDefinition.subvalueName)
@@ -95,12 +96,11 @@ export async function executeFormatCells(options: ExecuteFormatCellsOptions): Pr
                             .join('\n'),
                     )}
 
-                    [⛷] This should never happen because cell name should be validated during parsing
+                    [⛷] This should never happen because subformat name should be validated during parsing
 
                     ${block(pipelineIdentification)}
                 `,
             ),
-            // <- TODO: [🦥]
         );
     }
 
@@ -124,7 +124,6 @@ export async function executeFormatCells(options: ExecuteFormatCellsOptions): Pr
                 mappedParameters = mapAvailableToExpectedParameters({
                     expectedParameters: Object.fromEntries(
                         template.foreach!.subparameterNames.map((subparameterName) => [subparameterName, null]),
-                        // <- [🦥]
                     ),
                     availableParameters: subparameters,
                 });
@@ -172,6 +171,4 @@ export async function executeFormatCells(options: ExecuteFormatCellsOptions): Pr
 /**
  * TODO: !!!!!! Make pipelineIdentification more precise
  * TODO: !!!!!! How FOREACH execution looks in the report
- * TODO: [🧠][🦥] Better (less confusing) name for "cell" / "subvalue" / "subparameter"
- * TODO: []
  */

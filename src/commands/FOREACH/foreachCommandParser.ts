@@ -55,7 +55,7 @@ export const foreachCommandParser: PipelineTemplateCommandParser<ForeachCommand>
     examples: [
         'FOREACH Text Line `{customers}` -> `{customer}`',
         'FOR Csv Row `{customers}` -> `{firstName}`, `{lastName}`',
-        'EACH Csv Cell `{customers}` -> `{cell}`',
+        'EACH Csv Cell `{customers}` -> `{subformat}`',
     ],
 
     /**
@@ -65,7 +65,7 @@ export const foreachCommandParser: PipelineTemplateCommandParser<ForeachCommand>
         const { args } = input;
 
         const formatName = normalizeTo_SCREAMING_CASE(args[0] || '');
-        const cellName = normalizeTo_SCREAMING_CASE(args[1] || '');
+        const subformatName = normalizeTo_SCREAMING_CASE(args[1] || '');
         const parameterNameArg = args[2] || '';
         const assignSign = args[3];
 
@@ -97,7 +97,7 @@ export const foreachCommandParser: PipelineTemplateCommandParser<ForeachCommand>
 
         const subvalueDefinition = formatDefinition.subvalueDefinitions.find(
             (subvalueDefinition) =>
-                [subvalueDefinition.subvalueName, ...(subvalueDefinition.aliases || [])].includes(cellName),
+                [subvalueDefinition.subvalueName, ...(subvalueDefinition.aliases || [])].includes(subformatName),
             // <- Note: [⛷]
             // <- TODO: [🧠][🧐] Should be formats fixed per promptbook version or behave as dynamic plugins
         );
@@ -106,9 +106,9 @@ export const foreachCommandParser: PipelineTemplateCommandParser<ForeachCommand>
             throw new ParseError(
                 spaceTrim(
                     (block) => `
-                        Unsupported cell name "${cellName}" for format "${formatName}"
+                        Unsupported subformat name "${subformatName}" for format "${formatName}"
 
-                        Available cell names for format "${formatDefinition.formatName}":
+                        Available subformat names for format "${formatDefinition.formatName}":
                         ${block(
                             formatDefinition.subvalueDefinitions
                                 .map((subvalueDefinition) => subvalueDefinition.subvalueName)
@@ -118,7 +118,7 @@ export const foreachCommandParser: PipelineTemplateCommandParser<ForeachCommand>
                     `,
                 ),
             );
-            // <- TODO: [🏢] List all supported cell names for the format
+            // <- TODO: [🏢] List all supported subformat names for the format
         }
 
         if (assignSign !== '->') {
@@ -140,7 +140,7 @@ export const foreachCommandParser: PipelineTemplateCommandParser<ForeachCommand>
         return {
             type: 'FOREACH',
             formatName,
-            cellName,
+            subformatName,
             parameterName,
             subparameterNames,
         } satisfies ForeachCommand;
@@ -152,12 +152,12 @@ export const foreachCommandParser: PipelineTemplateCommandParser<ForeachCommand>
      * Note: `$` is used to indicate that this function mutates given `templateJson`
      */
     $applyToTemplateJson(command: ForeachCommand, $templateJson: $TemplateJson, $pipelineJson: $PipelineJson): void {
-        const { formatName, cellName, parameterName, subparameterNames } = command;
+        const { formatName, subformatName, parameterName, subparameterNames } = command;
 
         // TODO: [🍭] Detect double use
         // TODO: [🍭] Detect usage with JOKER and don't allow it
 
-        $templateJson.foreach = { formatName, cellName, parameterName, subparameterNames };
+        $templateJson.foreach = { formatName, subformatName, parameterName, subparameterNames };
 
         keepUnused($pipelineJson); // <- TODO: [🧠] Maybe register subparameter from foreach into parameters of the pipeline
 
@@ -186,6 +186,5 @@ export const foreachCommandParser: PipelineTemplateCommandParser<ForeachCommand>
 };
 
 /**
- * TODO: [🧠][🦥] Better (less confusing) name for "cell" / "subvalue" / "subparameter"
  * TODO: [🍭] Make .ptbk.md file with examples of the FOREACH with wrong parsing and logic
  */

@@ -8,18 +8,14 @@
             "description": "Customer names each customer on each row",
             "isInput": true,
             "isOutput": false,
-            "sampleValues": [
-                "Paul\nJohn"
-            ]
+            "sampleValues": ["Paul\nJohn"]
         },
         {
             "name": "greetings",
             "description": "Greeting to each customer on each row",
             "isInput": false,
             "isOutput": true,
-            "sampleValues": [
-                "Hello Paul\nHi John"
-            ]
+            "sampleValues": ["Hello Paul\nHi John"]
         }
     ],
     "templates": [
@@ -31,16 +27,12 @@
             "resultingParameterName": "greetings",
             "foreach": {
                 "formatName": "TEXT",
-                "cellName": "LINE",
+                "subformatName": "LINE",
                 "parameterName": "customers",
-                "subparameterNames": [
-                    "customer"
-                ]
+                "subparameterNames": ["customer"]
             },
             "personaName": "Jane",
-            "dependentParameterNames": [
-                "customers"
-            ]
+            "dependentParameterNames": ["customers"]
         }
     ],
     "knowledgeSources": [],
@@ -55,9 +47,7 @@
                 "systemMessage": "You are a friendly and professional customer service representative. Your goal is to assist customers with their inquiries, resolve issues, and ensure customer satisfaction. You have extensive knowledge of company policies, products, and services. Always maintain a polite and helpful demeanor, even in challenging situations.",
                 "temperature": 0.7
             },
-            "preparationIds": [
-                1
-            ]
+            "preparationIds": [1]
         }
     ],
     "preparations": [
