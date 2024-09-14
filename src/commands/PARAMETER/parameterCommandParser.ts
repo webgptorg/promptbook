@@ -4,6 +4,7 @@ import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import type { string_markdown_text } from '../../types/typeAliases';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import type { TODO_any } from '../../utils/organization/TODO_any';
+import { validateParameterName } from '../../utils/validators/parameterName/validateParameterName';
 import type {
     $PipelineJson,
     $TemplateJson,
@@ -60,16 +61,18 @@ export const parameterCommandParser: PipelineBothCommandParser<ParameterCommand>
     parse(input: CommandParserInput): ParameterCommand {
         const { normalized, raw } = input;
 
-        const parametersMatch = raw.match(/\{(?<parameterName>[a-z0-9_]+)\}[^\S\r\n]*(?<parameterDescription>.*)$/im);
+        const parametersMatch = raw.match(
+            /\{(?<parameterNameRaw>[a-z0-9_]+)\}[^\S\r\n]*(?<parameterDescription>.*)$/im,
+        );
 
         if (!parametersMatch || !parametersMatch.groups || !parametersMatch.groups.parameterName) {
             throw new ParseError(`Invalid parameter`);
         }
 
-        const { parameterName, parameterDescription } = parametersMatch.groups as TODO_any;
+        const { parameterNameRaw, parameterDescription } = parametersMatch.groups as TODO_any;
 
         if (parameterDescription && parameterDescription.match(/\{(?<parameterName>[a-z0-9_]+)\}/im)) {
-            throw new ParseError(`Parameter {${parameterName}} can not contain another parameter in description`);
+            throw new ParseError(`Parameter {${parameterNameRaw}} can not contain another parameter in description`);
         }
 
         let isInput = normalized.startsWith('INPUT');
@@ -80,7 +83,7 @@ export const parameterCommandParser: PipelineBothCommandParser<ParameterCommand>
             isOutput = false;
         }
 
-        // TODO: !!!!!! Add parameter name validation with `validateParameterName`
+        const parameterName = validateParameterName(parameterNameRaw);
 
         return {
             type: 'PARAMETER',

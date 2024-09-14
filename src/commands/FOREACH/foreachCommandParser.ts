@@ -6,10 +6,12 @@ import type { string_markdown_text } from '../../types/typeAliases';
 import { normalizeTo_SCREAMING_CASE } from '../../utils/normalization/normalizeTo_SCREAMING_CASE';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import { validateParameterName } from '../../utils/validators/parameterName/validateParameterName';
-import type { $PipelineJson } from '../_common/types/CommandParser';
-import type { $TemplateJson } from '../_common/types/CommandParser';
-import type { CommandParserInput } from '../_common/types/CommandParser';
-import type { PipelineTemplateCommandParser } from '../_common/types/CommandParser';
+import type {
+    $PipelineJson,
+    $TemplateJson,
+    CommandParserInput,
+    PipelineTemplateCommandParser,
+} from '../_common/types/CommandParser';
 import type { ForeachCommand } from './ForeachCommand';
 
 /**
@@ -64,7 +66,7 @@ export const foreachCommandParser: PipelineTemplateCommandParser<ForeachCommand>
 
         const formatName = normalizeTo_SCREAMING_CASE(args[0] || '');
         const cellName = normalizeTo_SCREAMING_CASE(args[1] || '');
-        const parameterNameWrapped = args[2];
+        const parameterNameArg = args[2] || '';
         const assignSign = args[3];
 
         const formatDefinition = FORMAT_DEFINITIONS.find(
@@ -123,17 +125,7 @@ export const foreachCommandParser: PipelineTemplateCommandParser<ForeachCommand>
             throw new ParseError(`FOREACH command must have '->' to assign the value to the parameter`);
         }
 
-        // TODO: !!! Replace with propper parameter name validation `validateParameterName`
-        if (
-            parameterNameWrapped?.substring(0, 1) !== '{' ||
-            parameterNameWrapped?.substring(parameterNameWrapped.length - 1, parameterNameWrapped.length) !== '}'
-        ) {
-            throw new ParseError(
-                `Invalid parameter name "${parameterNameWrapped}" - must be wrapped in curly brackets: {parameterName}`,
-                // <- Note: Here will be error (with rules and precise error) from validateParameterName
-            );
-        }
-        const parameterName = parameterNameWrapped.substring(1, parameterNameWrapped.length - 1);
+        const parameterName = validateParameterName(parameterNameArg);
 
         const subparameterNames = args
             .slice(4)
