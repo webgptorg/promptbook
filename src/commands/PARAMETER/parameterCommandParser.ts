@@ -66,9 +66,6 @@ export const parameterCommandParser: PipelineBothCommandParser<ParameterCommand>
         // <- TODO: When [🥶] fixed, change to:
         //        >   const parameterDescriptionRaw = rawArgs.split(parameterNameRaw).join('').trim();
 
-        // !!!!!! Remove
-        console.log({ parameterNameRaw, parameterDescriptionRaw, rawArgs, raw });
-
         if (parameterDescriptionRaw && parameterDescriptionRaw.match(/\{(?<embeddedParameterName>[a-z0-9_]+)\}/im)) {
             throw new ParseError(
                 spaceTrim(
