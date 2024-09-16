@@ -54,7 +54,7 @@ export type ExecuteAttemptsOptions = {
     /**
      * @@@
      */
-    readonly parameters: ReadonlyDeep<Parameters>;
+    readonly parameters: Readonly<Parameters>;
 
     /**
      * @@@

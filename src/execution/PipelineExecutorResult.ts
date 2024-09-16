@@ -16,7 +16,7 @@ export type PipelineExecutorResult = {
      *
      * Note: If the execution was not successful, there are only some of the result parameters
      */
-    readonly outputParameters: Parameters;
+    readonly outputParameters: Readonly<Parameters>;
 
     /**
      * Whether the execution was successful, details are aviable in `executionReport`
@@ -26,22 +26,22 @@ export type PipelineExecutorResult = {
     /**
      * Added usage of whole execution, detailed usage is aviable in `executionReport`
      */
-    readonly usage: PromptResultUsage;
+    readonly usage: ReadonlyDeep<PromptResultUsage>;
 
     /**
      * Errors that occured during the execution, details are aviable in `executionReport`
      */
-    readonly errors: Array<ErrorJson>;
+    readonly errors: ReadonlyDeep<Array<ErrorJson>>;
 
     /**
      * Warnings that occured during the execution, details are aviable in `executionReport`
      */
-    readonly warnings: Array<ErrorJson>;
+    readonly warnings: ReadonlyDeep<Array<ErrorJson>>;
 
     /**
      * The report of the execution with all details
      */
-    readonly executionReport: ExecutionReportJson;
+    readonly executionReport: ReadonlyDeep<ExecutionReportJson>;
 
     /**
      * The prepared pipeline that was used for the execution
