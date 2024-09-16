@@ -130,10 +130,10 @@ export async function executeAttempts(options: ExecuteAttemptsOptions): Promise<
             throw new UnexpectedError(
                 spaceTrim(
                     (block) => `
-                      Joker not found in attempt ${attempt}
+                        Joker not found in attempt ${attempt}
 
-                      ${block(pipelineIdentification)}
-                  `,
+                        ${block(pipelineIdentification)}
+                    `,
                 ),
             );
         }
@@ -147,10 +147,10 @@ export async function executeAttempts(options: ExecuteAttemptsOptions): Promise<
                 throw new PipelineExecutionError(
                     spaceTrim(
                         (block) => `
-                          Joker parameter {${jokerParameterName}} not defined
+                            Joker parameter {${jokerParameterName}} not defined
 
-                          ${block(pipelineIdentification)}
-                      `,
+                            ${block(pipelineIdentification)}
+                        `,
                     ),
                 );
                 // <- TODO: This is maybe `PipelineLogicError` which should be detected in `validatePipeline` and here just thrown as `UnexpectedError`
@@ -232,13 +232,13 @@ export async function executeAttempts(options: ExecuteAttemptsOptions): Promise<
                                     throw new PipelineExecutionError(
                                         spaceTrim(
                                             (block) => `
-                                              Unknown model variant "${
-                                                  (template as really_any).modelRequirements.modelVariant
-                                              }"
+                                                Unknown model variant "${
+                                                    (template as really_any).modelRequirements.modelVariant
+                                                }"
 
-                                              ${block(pipelineIdentification)}
+                                                ${block(pipelineIdentification)}
 
-                                          `,
+                                            `,
                                         ),
                                     );
                             }
@@ -250,10 +250,10 @@ export async function executeAttempts(options: ExecuteAttemptsOptions): Promise<
                             throw new PipelineExecutionError(
                                 spaceTrim(
                                     (block) => `
-                                      No script execution tools are available
+                                        No script execution tools are available
 
-                                      ${block(pipelineIdentification)}
-                                  `,
+                                        ${block(pipelineIdentification)}
+                                    `,
                                 ),
                             );
                         }
@@ -261,10 +261,10 @@ export async function executeAttempts(options: ExecuteAttemptsOptions): Promise<
                             throw new PipelineExecutionError(
                                 spaceTrim(
                                     (block) => `
-                                      Script language is not defined for SCRIPT TEMPLATE "${template.name}"
+                                        Script language is not defined for SCRIPT TEMPLATE "${template.name}"
 
-                                      ${block(pipelineIdentification)}
-                                  `,
+                                        ${block(pipelineIdentification)}
+                                    `,
                                 ),
                             );
                         }
@@ -304,18 +304,18 @@ export async function executeAttempts(options: ExecuteAttemptsOptions): Promise<
                             throw new PipelineExecutionError(
                                 spaceTrim(
                                     (block) => `
-                                      Script execution failed ${
-                                          $ongoingTemplateResult.$scriptPipelineExecutionErrors.length
-                                      }x
+                                        Script execution failed ${
+                                            $ongoingTemplateResult.$scriptPipelineExecutionErrors.length
+                                        }x
 
-                                      ${block(pipelineIdentification)}
+                                        ${block(pipelineIdentification)}
 
-                                      ${block(
-                                          $ongoingTemplateResult.$scriptPipelineExecutionErrors
-                                              .map((error) => '- ' + error.message)
-                                              .join('\n\n'),
-                                      )}
-                                  `,
+                                        ${block(
+                                            $ongoingTemplateResult.$scriptPipelineExecutionErrors
+                                                .map((error) => '- ' + error.message)
+                                                .join('\n\n'),
+                                        )}
+                                    `,
                                 ),
                             );
                         }
@@ -328,10 +328,10 @@ export async function executeAttempts(options: ExecuteAttemptsOptions): Promise<
                             throw new PipelineExecutionError(
                                 spaceTrim(
                                     (block) => `
-                                      User interface tools are not available
+                                        User interface tools are not available
 
-                                      ${block(pipelineIdentification)}
-                                  `,
+                                        ${block(pipelineIdentification)}
+                                    `,
                                 ),
                             );
                         }
@@ -356,10 +356,10 @@ export async function executeAttempts(options: ExecuteAttemptsOptions): Promise<
                         throw new PipelineExecutionError(
                             spaceTrim(
                                 (block) => `
-                                  Unknown execution type "${(template as TODO_any).templateType}"
+                                    Unknown execution type "${(template as TODO_any).templateType}"
 
-                                  ${block(pipelineIdentification)}
-                              `,
+                                    ${block(pipelineIdentification)}
+                                `,
                             ),
                         );
                 }
@@ -422,12 +422,12 @@ export async function executeAttempts(options: ExecuteAttemptsOptions): Promise<
                             throw new ExpectError(
                                 spaceTrim(
                                     (block) => `
-                                      Expected valid JSON string
+                                        Expected valid JSON string
 
-                                      ${block(
-                                          /*<- Note: No need for `pipelineIdentification`, it will be catched and added later */ '',
-                                      )}
-                                  `,
+                                        ${block(
+                                            /*<- Note: No need for `pipelineIdentification`, it will be catched and added later */ '',
+                                        )}
+                                    `,
                                 ),
                             );
                         }
@@ -436,10 +436,10 @@ export async function executeAttempts(options: ExecuteAttemptsOptions): Promise<
                     throw new UnexpectedError(
                         spaceTrim(
                             (block) => `
-                              Unknown format "${template.format}"
+                                Unknown format "${template.format}"
 
-                              ${block(pipelineIdentification)}
-                          `,
+                                ${block(pipelineIdentification)}
+                            `,
                         ),
                     );
                 }
@@ -484,38 +484,38 @@ export async function executeAttempts(options: ExecuteAttemptsOptions): Promise<
             throw new PipelineExecutionError(
                 spaceTrim(
                     (block) => `
-                      LLM execution failed ${maxExecutionAttempts}x
+                        LLM execution failed ${maxExecutionAttempts}x
 
-                      ${block(pipelineIdentification)}
+                        ${block(pipelineIdentification)}
 
-                      ---
-                      The Prompt:
-                      ${block(
-                          ($ongoingTemplateResult.$prompt?.content || '')
-                              .split('\n')
-                              .map((line) => `> ${line}`)
-                              .join('\n'),
-                      )}
+                        ---
+                        The Prompt:
+                        ${block(
+                            ($ongoingTemplateResult.$prompt?.content || '')
+                                .split('\n')
+                                .map((line) => `> ${line}`)
+                                .join('\n'),
+                        )}
 
-                      Last error ${$ongoingTemplateResult.$expectError?.name || ''}:
-                      ${block(
-                          ($ongoingTemplateResult.$expectError?.message || '')
-                              .split('\n')
-                              .map((line) => `> ${line}`)
-                              .join('\n'),
-                      )}
+                        Last error ${$ongoingTemplateResult.$expectError?.name || ''}:
+                        ${block(
+                            ($ongoingTemplateResult.$expectError?.message || '')
+                                .split('\n')
+                                .map((line) => `> ${line}`)
+                                .join('\n'),
+                        )}
 
-                      Last result:
-                      ${block(
-                          $ongoingTemplateResult.$resultString === null
-                              ? 'null'
-                              : $ongoingTemplateResult.$resultString
-                                    .split('\n')
-                                    .map((line) => `> ${line}`)
-                                    .join('\n'),
-                      )}
-                      ---
-                  `,
+                        Last result:
+                        ${block(
+                            $ongoingTemplateResult.$resultString === null
+                                ? 'null'
+                                : $ongoingTemplateResult.$resultString
+                                      .split('\n')
+                                      .map((line) => `> ${line}`)
+                                      .join('\n'),
+                        )}
+                        ---
+                    `,
                 ),
             );
         }
@@ -525,10 +525,10 @@ export async function executeAttempts(options: ExecuteAttemptsOptions): Promise<
         throw new UnexpectedError(
             spaceTrim(
                 (block) => `
-                  Something went wrong and prompt result is null
+                    Something went wrong and prompt result is null
 
-                  ${block(pipelineIdentification)}
-              `,
+                    ${block(pipelineIdentification)}
+                `,
             ),
         );
     }

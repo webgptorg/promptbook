@@ -152,10 +152,10 @@ export async function executePipeline(options: ExecutePipelineOptions): Promise<
                 new PipelineExecutionError(
                     spaceTrim(
                         (block) => `
-                              Extra parameter {${parameterName}} is being passed which is not part of the pipeline.
+                            Extra parameter {${parameterName}} is being passed which is not part of the pipeline.
 
-                              ${block(pipelineIdentification)}
-                          `,
+                            ${block(pipelineIdentification)}
+                        `,
                     ),
                 ),
             );
@@ -171,12 +171,12 @@ export async function executePipeline(options: ExecutePipelineOptions): Promise<
             return $asDeeplyFrozenSerializableJson(
                 spaceTrim(
                     (block) => `
-                          Unuccessful PipelineExecutorResult (with extra parameter {${
-                              parameter.name
-                          }}) PipelineExecutorResult
+                        Unuccessful PipelineExecutorResult (with extra parameter {${
+                            parameter.name
+                        }}) PipelineExecutorResult
 
-                          ${block(pipelineIdentification)}
-                      `,
+                        ${block(pipelineIdentification)}
+                    `,
                 ),
                 {
                     isSuccessful: false,
@@ -184,10 +184,10 @@ export async function executePipeline(options: ExecutePipelineOptions): Promise<
                         new PipelineExecutionError(
                             spaceTrim(
                                 (block) => `
-                                      Parameter {${parameter.name}} is passed as input parameter but it is not input
+                                    Parameter {${parameter.name}} is passed as input parameter but it is not input
 
-                                      ${block(pipelineIdentification)}
-                                  `,
+                                    ${block(pipelineIdentification)}
+                                `,
                             ),
                         ),
                         ...errors,
@@ -218,10 +218,10 @@ export async function executePipeline(options: ExecutePipelineOptions): Promise<
                 throw new UnexpectedError(
                     spaceTrim(
                         (block) => `
-                              Loop limit reached during resolving parameters pipeline execution
+                            Loop limit reached during resolving parameters pipeline execution
 
-                              ${block(pipelineIdentification)}
-                          `,
+                            ${block(pipelineIdentification)}
+                        `,
                     ),
                 );
             }
@@ -237,27 +237,27 @@ export async function executePipeline(options: ExecutePipelineOptions): Promise<
                     // TODO: [🐎] DRY
                     spaceTrim(
                         (block) => `
-                              Can not resolve some parameters:
+                            Can not resolve some parameters:
 
-                              ${block(pipelineIdentification)}
+                            ${block(pipelineIdentification)}
 
-                              Can not resolve:
-                              ${block(
-                                  unresovedTemplates
-                                      .map(
-                                          ({ resultingParameterName, dependentParameterNames }) =>
-                                              `- Parameter {${resultingParameterName}} which depends on ${dependentParameterNames
-                                                  .map((dependentParameterName) => `{${dependentParameterName}}`)
-                                                  .join(' and ')}`,
-                                      )
-                                      .join('\n'),
-                              )}
+                            Can not resolve:
+                            ${block(
+                                unresovedTemplates
+                                    .map(
+                                        ({ resultingParameterName, dependentParameterNames }) =>
+                                            `- Parameter {${resultingParameterName}} which depends on ${dependentParameterNames
+                                                .map((dependentParameterName) => `{${dependentParameterName}}`)
+                                                .join(' and ')}`,
+                                    )
+                                    .join('\n'),
+                            )}
 
-                              Resolved:
-                              ${block(resovedParameterNames.map((name) => `- Parameter {${name}}`).join('\n'))}
+                            Resolved:
+                            ${block(resovedParameterNames.map((name) => `- Parameter {${name}}`).join('\n'))}
 
-                              Note: This should be catched in \`validatePipeline\`
-                          `,
+                            Note: This should be catched in \`validatePipeline\`
+                        `,
                     ),
                 );
             } else if (!currentTemplate) {
@@ -276,17 +276,17 @@ export async function executePipeline(options: ExecutePipelineOptions): Promise<
                             throw new UnexpectedError(
                                 spaceTrim(
                                     (block) => `
-                                          Can not call \`onProgress\` after pipeline execution is finished
+                                        Can not call \`onProgress\` after pipeline execution is finished
 
-                                          ${block(pipelineIdentification)}
+                                        ${block(pipelineIdentification)}
 
-                                          ${block(
-                                              JSON.stringify(progress, null, 4)
-                                                  .split('\n')
-                                                  .map((line) => `> ${line}`)
-                                                  .join('\n'),
-                                          )}
-                                      `,
+                                        ${block(
+                                            JSON.stringify(progress, null, 4)
+                                                .split('\n')
+                                                .map((line) => `> ${line}`)
+                                                .join('\n'),
+                                        )}
+                                    `,
                                 ),
                             );
                         }
