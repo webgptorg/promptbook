@@ -53,7 +53,6 @@ export type PipelineExecutorResult = {
 };
 
 /**
- * TODO: !!!!!! Maybe add ReadonlyDeep< to all
  * TODO: [🧠] Should this file be in /execution or /types folder?
  * TODO: [🧠] Maybe constrain `ErrorJson` -> `ErrorJson & { name: 'PipelineExecutionError' | 'Error' }`
  */
