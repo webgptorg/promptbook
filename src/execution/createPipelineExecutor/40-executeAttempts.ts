@@ -11,11 +11,8 @@ import type { ExecutionReportJson } from '../../types/execution-report/Execution
 import type { ModelRequirements } from '../../types/ModelRequirements';
 import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import type { TemplateJson } from '../../types/PipelineJson/TemplateJson';
-import type { ChatPrompt } from '../../types/Prompt';
-import type { CompletionPrompt } from '../../types/Prompt';
-import type { Prompt } from '../../types/Prompt';
-import type { Parameters } from '../../types/typeAliases';
-import type { string_parameter_name } from '../../types/typeAliases';
+import type { ChatPrompt, CompletionPrompt, Prompt } from '../../types/Prompt';
+import type { Parameters, string_parameter_name } from '../../types/typeAliases';
 import { arrayableToArray } from '../../utils/arrayableToArray';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import type { really_any } from '../../utils/organization/really_any';
@@ -128,7 +125,7 @@ export async function executeAttempts(options: ExecuteAttemptsOptions): Promise<
         const isJokerAttempt = attempt < 0;
         const jokerParameterName = jokerParameterNames[jokerParameterNames.length + attempt];
 
-        // TODO: [🧠] !!!!!! JOKERS, EXPECTATIONS, POSTPROCESSING and FOREACH
+        // TODO: [🧠][🍭] JOKERS, EXPECTATIONS, POSTPROCESSING and FOREACH
         if (isJokerAttempt && !jokerParameterName) {
             throw new UnexpectedError(
                 spaceTrim(
