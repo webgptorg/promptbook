@@ -2,7 +2,7 @@ import PipelineCollection from '../../promptbook-collection/index.json';
 import { createCollectionFromJson } from '../collection/constructors/createCollectionFromJson';
 import { IS_VERBOSE } from '../config';
 import { assertsExecutionSuccessful } from '../execution/assertsExecutionSuccessful';
-import { createPipelineExecutor } from '../execution/createPipelineExecutor';
+import { createPipelineExecutor } from '../execution/createPipelineExecutor/00-createPipelineExecutor';
 import type { PrepareOptions } from '../prepare/PrepareOptions';
 import type { PersonaPreparedJson } from '../types/PipelineJson/PersonaJson';
 import type { PipelineJson } from '../types/PipelineJson/PipelineJson';
@@ -61,7 +61,7 @@ export async function preparePersona(
 }
 
 /**
- * TODO: [🔃] !!!!! If the persona was prepared with different version or different set of models, prepare it once again
+ * TODO: [🔃][main] !!!!! If the persona was prepared with different version or different set of models, prepare it once again
  * TODO: [🏢] !! Check validity of `modelName` in pipeline
  * TODO: [🏢] !! Check validity of `systemMessage` in pipeline
  * TODO: [🏢] !! Check validity of `temperature` in pipeline

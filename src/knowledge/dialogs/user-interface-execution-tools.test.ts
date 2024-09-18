@@ -2,7 +2,7 @@ import { describe, expect, it } from '@jest/globals';
 import { spaceTrim } from 'spacetrim';
 import { pipelineStringToJson } from '../../conversion/pipelineStringToJson';
 import { assertsExecutionSuccessful } from '../../execution/assertsExecutionSuccessful';
-import { createPipelineExecutor } from '../../execution/createPipelineExecutor';
+import { createPipelineExecutor } from '../../execution/createPipelineExecutor/00-createPipelineExecutor';
 import { MockedEchoLlmExecutionTools } from '../../llm-providers/mocked/MockedEchoLlmExecutionTools';
 import type { PipelineString } from '../../types/PipelineString';
 import { CallbackInterfaceTools } from './callback/CallbackInterfaceTools';

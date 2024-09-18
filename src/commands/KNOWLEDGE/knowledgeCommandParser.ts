@@ -64,7 +64,7 @@ export const knowledgeCommandParser: PipelineHeadCommandParser<KnowledgeCommand>
             throw new ParseError(`Source is not defined`);
         }
 
-        // TODO: !!!! Following checks should be applied every link in the `sourceContent`
+        // TODO:[main] !!!! Following checks should be applied every link in the `sourceContent`
 
         if (sourceContent.startsWith('http://')) {
             throw new ParseError(`Source is not secure`);

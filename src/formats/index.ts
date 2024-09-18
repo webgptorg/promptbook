@@ -1,6 +1,6 @@
-import { CsvFormatDefinition } from './csv/ListFormatDefinition';
+import { CsvFormatDefinition } from './csv/CsvFormatDefinition';
 import { JsonFormatDefinition } from './json/JsonFormatDefinition';
-import { ListFormatDefinition } from './list/ListFormatDefinition';
+import { TextFormatDefinition } from './text/TextFormatDefinition';
 import { XmlFormatDefinition } from './xml/XmlFormatDefinition';
 
 /**
@@ -11,6 +11,6 @@ import { XmlFormatDefinition } from './xml/XmlFormatDefinition';
 export const FORMAT_DEFINITIONS = [
     JsonFormatDefinition,
     XmlFormatDefinition,
-    ListFormatDefinition,
+    TextFormatDefinition,
     CsvFormatDefinition,
-];
+] as const;

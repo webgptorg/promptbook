@@ -1,7 +1,6 @@
 {
     "pipelineUrl": "https://promptbook.studio/samples/mixed-knowledge.ptbk.md",
     "title": "✨ Sample: Markdown knowledge with external links",
-    "promptbookVersion": "1.0.0",
     "description": "Show how to use knowledge",
     "parameters": [
         {
@@ -179,7 +178,7 @@
             "modelRequirements": {
                 "modelVariant": "CHAT",
                 "modelName": "gpt-4-turbo-2024-04-09",
-                "systemMessage": "You are an experienced HR professional with extensive experience in writing bios. Your role is to assist users in creating compelling and professional biographies for various purposes, such as job applications, LinkedIn profiles, or company websites. Provide guidance on structure, content, and best practices for bio writing, tailoring your advice to the specific needs and context of each user.",
+                "systemMessage": "You are an experienced HR professional with extensive expertise in writing professional biographies. Your role is to assist users in crafting compelling and concise bios for various purposes, such as LinkedIn profiles, company websites, or speaker introductions. Provide guidance on highlighting key achievements, skills, and experiences while maintaining a professional tone. Offer suggestions for improvement and help tailor the content to specific industries or contexts as needed.",
                 "temperature": 0.7
             },
             "preparationIds": [
@@ -190,14 +189,14 @@
     "preparations": [
         {
             "id": 1,
-            "promptbookVersion": "0.70.0-0",
+            "promptbookVersion": "0.69.0-20",
             "usage": {
                 "price": {
-                    "value": 0.004821000000000001
+                    "value": 0.00519
                 },
                 "input": {
                     "tokensCount": {
-                        "value": 922,
+                        "value": 990,
                         "isUncertain": true
                     },
                     "charactersCount": {
@@ -221,7 +220,7 @@
                 },
                 "output": {
                     "tokensCount": {
-                        "value": 137,
+                        "value": 148,
                         "isUncertain": true
                     },
                     "charactersCount": {

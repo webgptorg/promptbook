@@ -3,7 +3,6 @@
 Show how to use a simple prompt with one parameter.
 
 -   PIPELINE URL https://promptbook.studio/samples/single.ptbk.md
--   PROMPTBOOK VERSION 1.0.0
 -   INPUT  PARAMETER `{word}` Any single word
 -   OUTPUT PARAMETER `{wordSynonym}`
 

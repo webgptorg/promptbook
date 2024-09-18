@@ -1,7 +1,11 @@
-import { normalizeTo_SCREAMING_CASE } from '../../utils/normalization/normalizeTo_SCREAMING_CASE';
+import spaceTrim from 'spacetrim';
+import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
+import { ParseError } from '../../errors/ParseError';
+import { FORMAT_DEFINITIONS } from '../../formats/index';
 import type { string_markdown_text } from '../../types/typeAliases';
-import { extractParameterNames } from '../../utils/extractParameterNames';
+import { normalizeTo_SCREAMING_CASE } from '../../utils/normalization/normalizeTo_SCREAMING_CASE';
 import { keepUnused } from '../../utils/organization/keepUnused';
+import { validateParameterName } from '../../utils/validators/parameterName/validateParameterName';
 import type { $PipelineJson } from '../_common/types/CommandParser';
 import type { $TemplateJson } from '../_common/types/CommandParser';
 import type { CommandParserInput } from '../_common/types/CommandParser';
@@ -36,88 +40,107 @@ export const foreachCommandParser: PipelineTemplateCommandParser<ForeachCommand>
     /**
      * Description of the FOREACH command
      */
-    description: `@@`, // <- TODO: [🍭] !!!!!!
+    description: `@@`,
 
     /**
      * Link to discussion
      */
-    documentationUrl: 'https://github.com/webgptorg/promptbook/discussions/@@', // <- TODO: [🍭] !!!!!!
+    documentationUrl: 'https://github.com/webgptorg/promptbook/discussions/148',
 
     /**
      * Example usages of the FOREACH command
      */
     examples: [
-        'FOREACH List Line -> `{customer}`',
-        'FOR List Line -> `{customer}`',
-        'EACH List Line -> `{customer}`',
-        // <- TODO: [🍭] !!!!!! More
+        'FOREACH Text Line `{customers}` -> `{customer}`',
+        'FOR Csv Row `{customers}` -> `{firstName}`, `{lastName}`',
+        'EACH Csv Cell `{customers}` -> `{subformat}`',
     ],
 
     /**
      * Parses the FOREACH command
      */
     parse(input: CommandParserInput): ForeachCommand {
-        const { args, rawArgs } = input;
+        const { args } = input;
 
         const formatName = normalizeTo_SCREAMING_CASE(args[0] || '');
-        const cellName = normalizeTo_SCREAMING_CASE(args[1] || '');
-        const assignSign = args[2];
-        const parameter = args[3];
+        const subformatName = normalizeTo_SCREAMING_CASE(args[1] || '');
+        const parameterNameArg = args[2] || '';
+        const assignSign = args[3];
 
-        if (
-            ![
-                'LIST',
-                'CSV',
-                // <- TODO: [🏢] Unhardcode formats
-            ].includes(formatName!)
-        ) {
-            console.info({ args, formatName });
-            throw new Error(`Unsupported format "${formatName}"`);
+        const formatDefinition = FORMAT_DEFINITIONS.find(
+            (formatDefinition) =>
+                [formatDefinition.formatName, ...(formatDefinition.aliases || [])].includes(formatName),
+
+            // <- Note: [⛷]
+            // <- TODO: [🧠][🧐] Should be formats fixed per promptbook version or behave as dynamic plugins
+        );
+
+        if (formatDefinition === undefined) {
+            throw new ParseError(
+                spaceTrim(
+                    (block) => `
+                        Unsupported format "${formatName}"
+
+                        Available formats:
+                        ${block(
+                            FORMAT_DEFINITIONS.map((formatDefinition) => formatDefinition.formatName)
+                                .map((formatName) => `- ${formatName}`)
+                                .join('\n'),
+                        )}
+                    `,
+                ),
+            );
             // <- TODO: [🏢] List all supported format names
         }
 
-        if (
-            ![
-                'LINE',
-                'ROW',
-                'COLUMN',
-                'CELL',
-                // <- TODO: [🏢] Unhardcode format cekks
-            ].includes(cellName!)
-        ) {
-            console.info({ args, cellName });
-            throw new Error(`Format ${formatName} does not support cell "${cellName}"`);
-            // <- TODO: [🏢] List all supported cell names for the format
+        const subvalueDefinition = formatDefinition.subvalueDefinitions.find(
+            (subvalueDefinition) =>
+                [subvalueDefinition.subvalueName, ...(subvalueDefinition.aliases || [])].includes(subformatName),
+            // <- Note: [⛷]
+            // <- TODO: [🧠][🧐] Should be formats fixed per promptbook version or behave as dynamic plugins
+        );
+
+        if (subvalueDefinition === undefined) {
+            throw new ParseError(
+                spaceTrim(
+                    (block) => `
+                        Unsupported subformat name "${subformatName}" for format "${formatName}"
+
+                        Available subformat names for format "${formatDefinition.formatName}":
+                        ${block(
+                            formatDefinition.subvalueDefinitions
+                                .map((subvalueDefinition) => subvalueDefinition.subvalueName)
+                                .map((subvalueName) => `- ${subvalueName}`)
+                                .join('\n'),
+                        )}
+                    `,
+                ),
+            );
+            // <- TODO: [🏢] List all supported subformat names for the format
         }
 
         if (assignSign !== '->') {
-            console.info({ args, assignSign });
-            throw new Error(`FOREACH command must have '->' to assign the value to the parameter`);
+            throw new ParseError(`FOREACH command must have '->' to assign the value to the parameter`);
         }
 
-        const parameterNames = extractParameterNames(parameter || rawArgs);
+        const parameterName = validateParameterName(parameterNameArg);
 
-        if (parameterNames.size !== 1) {
-            console.info({ args, parameter, rawArgs });
-            throw new Error(`FOREACH command contain exactly one parameter, but found ${parameterNames.size}`);
-        }
+        const subparameterNames = args
+            .slice(4)
+            .map((parameterName) => parameterName.split(',').join(' ').trim())
+            .filter((parameterName) => parameterName !== '')
+            .map(validateParameterName);
 
-        const parameterName = parameterNames.values().next().value!;
-
-        if (
-            typeof parameterName !== 'string'
-            // <- TODO: !!!!!! Replace with propper parameter name validation
-        ) {
-            console.info({ args, parameterName });
-            throw new Error(`Invalid parameter name`);
-            // <- TODO: !!!!!! Better error (with rules and precise error) from validateParameterName
+        if (subparameterNames.length === 0) {
+            throw new ParseError(`FOREACH command must have at least one subparameter`);
         }
 
         return {
             type: 'FOREACH',
             formatName,
-            cellName,
+            subformatName,
             parameterName,
+            subparameterNames,
         } satisfies ForeachCommand;
     },
 
@@ -127,8 +150,16 @@ export const foreachCommandParser: PipelineTemplateCommandParser<ForeachCommand>
      * Note: `$` is used to indicate that this function mutates given `templateJson`
      */
     $applyToTemplateJson(command: ForeachCommand, $templateJson: $TemplateJson, $pipelineJson: $PipelineJson): void {
-        keepUnused(command, $templateJson, $pipelineJson);
-        // <- TODO: [🍭] !!!!!! Implement
+        const { formatName, subformatName, parameterName, subparameterNames } = command;
+
+        // TODO: [🍭] Detect double use
+        // TODO: [🍭] Detect usage with JOKER and don't allow it
+
+        $templateJson.foreach = { formatName, subformatName, parameterName, subparameterNames };
+
+        keepUnused($pipelineJson); // <- TODO: [🧠] Maybe register subparameter from foreach into parameters of the pipeline
+
+        // Note: [🍭] FOREACH apply has some sideeffects on different places in codebase
     },
 
     /**
@@ -138,8 +169,7 @@ export const foreachCommandParser: PipelineTemplateCommandParser<ForeachCommand>
      */
     stringify(command: ForeachCommand): string_markdown_text {
         keepUnused(command);
-        return ``;
-        // <- TODO: [🍭] !!!!!! Implement
+        return `---`; // <- TODO: [🛋] Implement
     },
 
     /**
@@ -149,12 +179,10 @@ export const foreachCommandParser: PipelineTemplateCommandParser<ForeachCommand>
      */
     takeFromTemplateJson($templateJson: $TemplateJson): Array<ForeachCommand> {
         keepUnused($templateJson);
-        return [];
-        // <- TODO: [🍭] !!!!!! Implement
+        throw new NotYetImplementedError(`[🛋] Not implemented yet`); // <- TODO: [🛋] Implement
     },
 };
 
 /**
- * TODO: !!!!!! Comment console logs
- * TODO: [🍭] !!!!!! Make .ptbk.md file with examples of the FOREACH command and also with wrong parsing and logic
+ * TODO: [🍭] Make .ptbk.md file with examples of the FOREACH with wrong parsing and logic
  */

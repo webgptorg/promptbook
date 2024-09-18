@@ -3,13 +3,12 @@
 Show how to use knowledge
 
 -   PIPELINE URL https://promptbook.studio/samples/simple-knowledge.ptbk.md
--   PROMPTBOOK VERSION 1.0.0
 -   INPUT  PARAMETER `{eventTitle}` The event name
 -   INPUT  PARAMETER `{eventDescription}` The event description
 -   INPUT  PARAMETER `{rules}` Extra rules for writing the bio
 -   OUTPUT PARAMETER `{bio}` Bio of Pavol Hejný - speaker at the event
 
-<!-- TODO: !!!! Make every knowledge with identical interface as `simple-knowledge.ptbk.md` -->
+<!-- TODO:[main] !!!! Make every knowledge with identical interface as `simple-knowledge.ptbk.md` -->
 
 ## Pavol Hejný (Website)
 

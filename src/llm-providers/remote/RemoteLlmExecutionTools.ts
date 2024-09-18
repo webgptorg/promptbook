@@ -51,7 +51,7 @@ export class RemoteLlmExecutionTools implements LlmExecutionTools {
         const socket = await this.makeConnection();
         socket.disconnect();
 
-        // TODO: !!! Check version of the remote server and compatibility
+        // TODO:[main] !!! Check version of the remote server and compatibility
         // TODO: [🎍] Send checkConfiguration
     }
 
@@ -116,7 +116,7 @@ export class RemoteLlmExecutionTools implements LlmExecutionTools {
                     resolve(socket);
                 });
 
-                // TODO: !!!! Better timeout handling
+                // TODO:[main] !!!! Better timeout handling
 
                 setTimeout(() => {
                     reject(new Error(`Timeout while connecting to ${this.options.remoteUrl}`));

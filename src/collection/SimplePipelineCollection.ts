@@ -131,7 +131,7 @@ export class SimplePipelineCollection implements PipelineCollection {
      * Checks whether given prompt was defined in any pipeline in the collection
      */
     public isResponsibleForPrompt(prompt: Prompt): boolean {
-        // TODO: [🍓] !!!  DO not hardcode this, really validate whether the prompt is in the collection
+        // TODO: [🍓][main] !!!  DO not hardcode this, really validate whether the prompt is in the collection
         prompt;
         return true;
     }

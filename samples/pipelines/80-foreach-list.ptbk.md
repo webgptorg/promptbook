@@ -1,29 +1,24 @@
 # ✨ Write greeting for each customer
 
-Show how to use a simple prompt with no parameters.
+Show how to iterate over a list of customers and write a greeting for each.
 
 -   PIPELINE URL https://promptbook.studio/samples/foreach-list.ptbk.md
--   PROMPTBOOK VERSION 1.0.0
 -   INPUT PARAMETER `{customers}` Customer names each customer on each row
 -   OUTPUT PARAMETER `{greetings}` Greeting to each customer on each row
 
 ## Write a greeting
 
-<!--FOR EACH , FOREACH, EACH, FOR -->
+-   FOREACH Text Line `{customers}` -> `{customer}`
+-   PERSONA Jane, customer service representative
+<!--- TODO: Add EXPECT -->
 
--   EACH List Line -> `{customer}`
--   PERSONA Jane, [🍭] !!!!!! <!-- <- TODO: Allow to import persona-->
-<!-- -   EXPECT [🍭] !!!!!! -->
+```markdown
+Write an email greeting for "{customer}"
 
-```text
-Write an email greeting for "{customers}"
+## Rules
+
+-   Write just a greeting, nothing else
 ```
-
-<!--
-TODO: [🍭] !!!!!! Change "{customers}" to "{customer}" after solving
-> Can not resolve:
-> - Parameter {greetings} which depends on {customer}
--->
 
 `-> {greetings}`
 
@@ -36,7 +31,7 @@ Paul
 John
 ```
 
-`-> {greetings}`
+`-> {customers}`
 
 ### Samples of greetings
 

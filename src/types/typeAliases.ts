@@ -142,6 +142,8 @@ export type string_parameter_value = string;
  */
 export type Parameters = Exclude<Record<string_parameter_name, string_parameter_value>, ReservedParameters>;
 
+// <- TODO: [🧠] Maybe rename `Parameters` because it is already defined in global scope and also it is used more generally [👩🏾‍🤝‍🧑🏽]
+
 /**
  * Semantic helper
  * Unique identifier of reserved parameter
@@ -707,7 +709,7 @@ export type number_gigabytes = number_positive;
 export type number_terabytes = number_positive;
 
 /**.
- * TODO: !!! Change "For example" to @example
+ * TODO:[main] !!! Change "For example" to @example
  * TODO: !! Change to branded types
  * TODO: Delete type aliases that are not exported or used internally
  */

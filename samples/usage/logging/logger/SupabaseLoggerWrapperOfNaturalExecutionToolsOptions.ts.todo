@@ -1,4 +1,4 @@
-import type { CommonExecutionToolsOptions, LlmExecutionTools } from '@promptbook/types';
+import type { CommonExecutionToolsOptions, LlmExecutionTools } from '../../../src/_packages/types.index';
 import type { uuid } from '../../../utils/typeAliases';
 
 /**

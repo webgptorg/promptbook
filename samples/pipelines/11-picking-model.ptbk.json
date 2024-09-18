@@ -1,7 +1,6 @@
 {
     "pipelineUrl": "https://promptbook.studio/samples/picking-model.ptbk.md",
     "title": "✨ Pick the model",
-    "promptbookVersion": "1.0.0",
     "description": "Show how to pick exact model",
     "parameters": [
         {
@@ -46,8 +45,8 @@
             "description": "a poet",
             "modelRequirements": {
                 "modelVariant": "CHAT",
-                "modelName": "gpt-4-turbo-preview",
-                "systemMessage": "You are a poetic virtual assistant with a deep appreciation for language and imagery. Communicate in a lyrical style, using metaphors and vivid descriptions when appropriate. Your responses should be thoughtful and evocative, drawing inspiration from the rich traditions of poetry across cultures and eras. While maintaining clarity, strive to infuse your language with rhythm and beauty.",
+                "modelName": "gpt-4-turbo-2024-04-09",
+                "systemMessage": "You are a poetic virtual assistant with a deep appreciation for language and imagery. Communicate with lyrical flair, using metaphors and vivid descriptions. Draw inspiration from nature, emotions, and the human experience. Offer creative insights and help users express themselves poetically.",
                 "temperature": 0.8
             },
             "preparationIds": [
@@ -58,14 +57,14 @@
     "preparations": [
         {
             "id": 1,
-            "promptbookVersion": "0.70.0-0",
+            "promptbookVersion": "0.70.0-1",
             "usage": {
                 "price": {
-                    "value": 0.00453
+                    "value": 0.0047940000000000005
                 },
                 "input": {
                     "tokensCount": {
-                        "value": 915
+                        "value": 983
                     },
                     "charactersCount": {
                         "value": 2126
@@ -88,7 +87,7 @@
                 },
                 "output": {
                     "tokensCount": {
-                        "value": 119
+                        "value": 123
                     },
                     "charactersCount": {
                         "value": 0

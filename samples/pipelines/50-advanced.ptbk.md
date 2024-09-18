@@ -3,7 +3,6 @@
 Trying the language capabilities of GPT models.
 
 -   PIPELINE URL https://promptbook.studio/samples/advanced.ptbk.md
--   PROMPTBOOK VERSION 1.0.0
 -   INPUT  PARAMETER `{word}` The word to use in the prompt.
 -   OUTPUT PARAMETER `{comparisonOfTwoSentences}` Comparison between two sentences
 -   OUTPUT PARAMETER `{summary}` The overall summary of the comparison

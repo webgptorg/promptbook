@@ -10,7 +10,7 @@ import type { string_markdown } from '../../types/typeAliases';
 import type { string_markdown_text } from '../../types/typeAliases';
 import type { string_title } from '../../types/typeAliases';
 import { getCurrentIsoDate } from '../../utils/getCurrentIsoDate';
-import { replaceParameters } from '../../utils/replaceParameters';
+import { replaceParameters } from '../../utils/parameters/replaceParameters';
 import { $asDeeplyFrozenSerializableJson } from '../../utils/serialization/$asDeeplyFrozenSerializableJson';
 
 /**

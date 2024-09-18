@@ -28,7 +28,6 @@ import { splitMarkdownIntoSections } from '../utils/markdown/splitMarkdownIntoSe
 import type { TODO_any } from '../utils/organization/TODO_any';
 import type { really_any } from '../utils/organization/really_any';
 import { $asDeeplyFrozenSerializableJson } from '../utils/serialization/$asDeeplyFrozenSerializableJson';
-import { PROMPTBOOK_VERSION } from '../version';
 import { extractParameterNamesFromTemplate } from './utils/extractParameterNamesFromTemplate';
 import { titleToName } from './utils/titleToName';
 
@@ -52,7 +51,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
     const $pipelineJson: $PipelineJson = {
         title: undefined as TODO_any /* <- Note: [🍙] Putting here placeholder to keep `title` on top at final JSON */,
         pipelineUrl: undefined /* <- Note: Putting here placeholder to keep `pipelineUrl` on top at final JSON */,
-        promptbookVersion: PROMPTBOOK_VERSION,
+        promptbookVersion: undefined /* <- Note: By default no explicit version */,
         description: undefined /* <- Note: [🍙] Putting here placeholder to keep `description` on top at final JSON */,
         parameters: [],
         templates: [],
@@ -487,7 +486,7 @@ export function pipelineStringToJsonSync(pipelineString: PipelineString): Pipeli
 }
 
 /**
- * TODO: !!!! Warn if used only sync version
+ * TODO:[main] !!!! Warn if used only sync version
  * TODO: [🚞] Report here line/column of error
  * TODO: Use spaceTrim more effectively
  * TODO: [🧠] Parameter flags - isInput, isOutput, isInternal

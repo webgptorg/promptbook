@@ -11,7 +11,7 @@ import { isValidSemanticVersion } from './isValidSemanticVersion';
  * Note: There are two simmilar functions:
  * - `isValidSemanticVersion` which tests any semantic version
  * - `isValidPromptbookVersion` *(this one)* which tests just Promptbook versions
- * 
+ *
  * @public exported from `@promptbook/utils`
  */
 export function isValidPromptbookVersion(version: really_unknown): version is string_promptbook_version {
@@ -22,7 +22,7 @@ export function isValidPromptbookVersion(version: really_unknown): version is st
     if (/* version === '1.0.0' || */ version === '2.0.0' || version === '3.0.0') {
         return false;
     }
-    // <- TODO: !!! Check isValidPromptbookVersion against PROMPTBOOK_VERSIONS
+    // <- TODO:[main] !!! Check isValidPromptbookVersion against PROMPTBOOK_VERSIONS
 
     return true;
 }

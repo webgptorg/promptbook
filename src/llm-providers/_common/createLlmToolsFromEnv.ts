@@ -41,7 +41,7 @@ export function createLlmToolsFromEnv(options: CreateLlmToolsFromConfigurationOp
 
                     ${block($registeredLlmToolsMessage())}}
                 `,
-                // <- TODO: !!! List environment keys dynamically
+                // <- TODO:[main] !!! List environment keys dynamically
             ),
         );
     }

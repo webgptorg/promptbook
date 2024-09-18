@@ -1,7 +1,6 @@
 {
     "pipelineUrl": "https://promptbook.studio/samples/single.ptbk.md",
     "title": "✨ Sample prompt",
-    "promptbookVersion": "1.0.0",
     "description": "Show how to use a simple prompt with one parameter.",
     "parameters": [
         {
@@ -44,9 +43,9 @@
             "description": "a linguist",
             "modelRequirements": {
                 "modelVariant": "CHAT",
-                "modelName": "gpt-4",
-                "systemMessage": "You are an experienced AI engineer and helpful assistant.",
-                "temperature": 0.5
+                "modelName": "gpt-4-turbo-2024-04-09",
+                "systemMessage": "You are a highly knowledgeable linguist and helpful assistant. Your expertise spans various languages, linguistic theories, phonetics, syntax, semantics, and language evolution. Provide accurate and insightful information about languages, their structures, and linguistic phenomena. Assist with translations, etymology, and language learning inquiries.",
+                "temperature": 0.6
             },
             "preparationIds": [
                 1
@@ -56,29 +55,29 @@
     "preparations": [
         {
             "id": 1,
-            "promptbookVersion": "0.70.0-0",
+            "promptbookVersion": "0.70.0-1",
             "usage": {
                 "price": {
-                    "value": 0.008790000000000001
+                    "value": 0.004962
                 },
                 "input": {
                     "tokensCount": {
-                        "value": 768
+                        "value": 984
                     },
                     "charactersCount": {
-                        "value": 1815
+                        "value": 2126
                     },
                     "wordsCount": {
-                        "value": 259
+                        "value": 305
                     },
                     "sentencesCount": {
                         "value": 21
                     },
                     "linesCount": {
-                        "value": 48
+                        "value": 55
                     },
                     "paragraphsCount": {
-                        "value": 19
+                        "value": 20
                     },
                     "pagesCount": {
                         "value": 5
@@ -86,25 +85,25 @@
                 },
                 "output": {
                     "tokensCount": {
-                        "value": 37
+                        "value": 134
                     },
                     "charactersCount": {
-                        "value": 128
+                        "value": 0
                     },
                     "wordsCount": {
-                        "value": 16
+                        "value": 0
                     },
                     "sentencesCount": {
-                        "value": 3
+                        "value": 0
                     },
                     "linesCount": {
-                        "value": 5
+                        "value": 0
                     },
                     "paragraphsCount": {
-                        "value": 1
+                        "value": 0
                     },
                     "pagesCount": {
-                        "value": 1
+                        "value": 0
                     }
                 }
             }

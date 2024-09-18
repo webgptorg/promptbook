@@ -3,7 +3,6 @@
 Instructions for creating web page content.
 
 -   PIPELINE URL https://promptbook.studio/webgpt/write-website-content.ptbk.md
--   PROMPTBOOK VERSION 1.0.0
 -   INPUT  PARAM `{rawTitle}` Automatically suggested a site name or empty text
 -   INPUT  PARAM `{rawAssigment}` Automatically generated site entry from image recognition
 -   OUTPUT PARAM `{websiteContent}` Web content

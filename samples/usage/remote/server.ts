@@ -1,11 +1,19 @@
 #!/usr/bin/env ts-node
 
-import { createCollectionFromDirectory } from '@promptbook/node';
-import { OpenAiExecutionTools } from '@promptbook/openai';
-import { startRemoteServer } from '@promptbook/remote-server';
+/*
+Note: [🔁] In your app you will be importing '../../../src/_packages/core' instead of '../../../src/_packages/core.index.index',...
+*/
+
 import colors from 'colors';
 import * as dotenv from 'dotenv';
 import { forEver } from 'waitasecond';
+import { createCollectionFromDirectory } from '../../../src/_packages/node.index';
+import { OpenAiExecutionTools } from '../../../src/_packages/openai.index';
+import { startRemoteServer } from '../../../src/_packages/remote-server.index';
+
+import '../../../src/_packages/anthropic-claude.index';
+import '../../../src/_packages/azure-openai.index';
+import '../../../src/_packages/openai.index';
 
 if (process.cwd().split(/[\\/]/).pop() !== 'promptbook') {
     console.error(colors.red(`CWD must be root of the project`));

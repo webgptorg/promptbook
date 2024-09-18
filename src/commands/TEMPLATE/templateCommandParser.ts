@@ -190,7 +190,7 @@ export const templateCommandParser: PipelineTemplateCommandParser<TemplateComman
             knowledgeCommandParser.$applyToPipelineJson(
                 {
                     type: 'KNOWLEDGE',
-                    sourceContent: $templateJson.content, // <- TODO: [🐝] !!! Work with KNOWLEDGE which not referring to the source file or website, but its content itself
+                    sourceContent: $templateJson.content, // <- TODO: [🐝][main] !!! Work with KNOWLEDGE which not referring to the source file or website, but its content itself
                 },
                 $pipelineJson,
             );

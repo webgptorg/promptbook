@@ -34,7 +34,7 @@ export function isPipelinePrepared(pipeline: PipelineJson): boolean {
 }
 
 /**
- * TODO: [🔃] !!!!! If the pipeline was prepared with different version or different set of models, prepare it once again
+ * TODO: [🔃][main] !!!!! If the pipeline was prepared with different version or different set of models, prepare it once again
  * TODO: [🐠] Maybe base this on `makeValidator`
  * TODO: [🧊] Pipeline can be partially prepared, this should return true ONLY if fully prepared
  * TODO: [🧿] Maybe do same process with same granularity and subfinctions as `preparePipeline`

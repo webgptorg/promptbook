@@ -93,7 +93,12 @@ export function parseCommand(raw: string_markdown_text, usagePlace: CommandUsage
         const commandNameRaw = items.slice(0, commandNameSegmentsCount + 1).join('_');
         const args = items.slice(commandNameSegmentsCount + 1);
 
-        const rawArgs = raw.substring(commandNameRaw.length).trim();
+        const rawArgs = raw
+            .substring(
+                commandNameRaw.length,
+                // <- TODO: [🥶] This is not correct in case [🐡] and [🦈]
+            )
+            .trim();
         const command = parseCommandVariant({ usagePlace, raw, rawArgs, normalized, args, commandNameRaw });
 
         if (command !== null) {
@@ -107,7 +112,13 @@ export function parseCommand(raw: string_markdown_text, usagePlace: CommandUsage
         const commandNameRaw = items.slice(-1).join('_');
         const args = items.slice(0, -1); // <- Note: This is probbably not correct
 
-        const rawArgs = raw.substring(0, raw.length - commandNameRaw.length).trim();
+        const rawArgs = raw
+            .substring(
+                0,
+                raw.length - commandNameRaw.length,
+                // <- TODO: [🥶] This is MAYBE not correct in case [🐡] and [🦈]
+            )
+            .trim();
         const command = parseCommandVariant({ usagePlace, raw, rawArgs, normalized, args, commandNameRaw });
 
         if (command !== null) {
