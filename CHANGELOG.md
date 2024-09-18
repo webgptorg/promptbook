@@ -474,7 +474,7 @@ Was accidentally released skipped
 -   `RemoteLlmExecutionTools` automatically retries on error
 -   Rename `client_id` -> `string_user_id` and `clientId` -> `userId`
 
-### `0.68.0` _(2024-09-)_
+### `0.68.0` _(2024-09-08)_
 
 [🍧] Commands and command parser
 
@@ -498,6 +498,8 @@ Was accidentally released skipped
 -   Rename `LlmTemplateJson` -> `PromptTemplateJson`
 -   Rename `ParsingError` -> `ParseError`
 
+## In prepare
+
 ### `0.69.0` _(2024-09-)_
 
 Command `FOREACH`
@@ -509,11 +511,23 @@ Command `FOREACH`
 -   Allow to parse CSVs via `CsvFormatDefinition`
 -   Change `ListFormatDefinition` -> `TextFormatDefinition`
 
-## In prepare
+### `0.70.0` _(2024-09-)_
 
-### `0..0` _(2024-0-)_
+Support for local models - integrate [Ollama](https://ollama.com/)
+
+-   Make new package `@promptbook/ollama`
+-   Add `OllamaExecutionTools` exported from `@promptbook/ollama`
+
+### `0.71.0` _(2024-09-)_
 
 Knowledge scrapers [🐝]
+
+-   Allow to import markdown files with knowledge
+-   Allow to import `.docx` files with knowledge `.docx` -(Pandoc)-> `.md`
+-   Allow to import `.doc` files with knowledge `.doc` -(LibreOffice)-> `.docx` -(Pandoc)-> `.md`
+-   Allow to import `.rtf` files with knowledge `.rtf` -(LibreOffice)-> `.docx` -(Pandoc)-> `.md`
+
+## Drafts
 
 ### `0..0` _(2024-0-)_
 
