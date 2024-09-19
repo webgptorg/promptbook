@@ -2,6 +2,7 @@ import { readFile } from 'fs/promises';
 import { SCRAPERS } from '..';
 import { isValidFilePath, isValidUrl } from '../../../_packages/utils.index';
 import { MAX_PARALLEL_COUNT } from '../../../config';
+import { KnowledgeScrapeError } from '../../../errors/KnowledgeScrapeError';
 import { NotYetImplementedError } from '../../../errors/NotYetImplementedError';
 import { UnexpectedError } from '../../../errors/UnexpectedError';
 import { forEachAsync } from '../../../execution/utils/forEachAsync';
@@ -72,7 +73,7 @@ export async function prepareKnowledgePieces(
                 }
             }
 
-            throw new ScrapeError(`Can not find scraper the file "${knowledgeSource.sourceContent}"`);
+            throw new KnowledgeScrapeError(`Can not find scraper the file "${knowledgeSource.sourceContent}"`);
         } else {
             // 1️⃣ `knowledgeSource` is just inlined (markdown content) information
             const partialPiecesUnchecked = await markdownScraper.scrape(

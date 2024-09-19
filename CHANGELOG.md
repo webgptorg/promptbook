@@ -526,6 +526,7 @@ Knowledge scrapers [🐝]
 -   Allow to import `.docx` files with knowledge `.docx` -(Pandoc)-> `.md` <!-- <- TODO: [🐝] !!!!!! Implement -->
 -   Allow to import `.doc` files with knowledge `.doc` -(LibreOffice)-> `.docx` -(Pandoc)-> `.md` <!-- <- TODO: [🐝] !!!!!! Implement -->
 -   Allow to import `.rtf` files with knowledge `.rtf` -(LibreOffice)-> `.docx` -(Pandoc)-> `.md` <!-- <- TODO: [🐝] !!!!!! Implement -->
+-   Add new error `KnowledgeScrapeError`
 
 ## Drafts
 
