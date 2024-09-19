@@ -1,9 +1,12 @@
+import { isValidFilePath, isValidUrl } from '../../../_packages/utils.index';
 import { MAX_PARALLEL_COUNT } from '../../../config';
+import { NotYetImplementedError } from '../../../errors/NotYetImplementedError';
+import { UnexpectedError } from '../../../errors/UnexpectedError';
 import { forEachAsync } from '../../../execution/utils/forEachAsync';
 import type { PrepareOptions } from '../../../prepare/PrepareOptions';
 import type { KnowledgePiecePreparedJson } from '../../../types/PipelineJson/KnowledgePieceJson';
 import type { KnowledgeSourceJson } from '../../../types/PipelineJson/KnowledgeSourceJson';
-import { prepareKnowledgeFromMarkdown } from '../markdown/prepareKnowledgeFromMarkdown';
+import { markdownScraper } from '../markdown/markdownScraper';
 
 /**
  * Prepares the knowle
@@ -20,10 +23,43 @@ export async function prepareKnowledgePieces(
     const knowledgePrepared: Array<Omit<KnowledgePiecePreparedJson, 'preparationIds'>> = [];
 
     await forEachAsync(knowledgeSources, { maxParallelCount }, async (knowledgeSource) => {
-        const partialPieces = await prepareKnowledgeFromMarkdown(
-            knowledgeSource.sourceContent, // <- TODO: [🐝] !!!!!! Unhardcode markdown, detect which type it is - BE AWARE of big package size
-            options,
-        );
+        let partialPieces: Omit<KnowledgePiecePreparedJson, 'preparationIds' | 'sources'>[];
+
+        if (isValidUrl(knowledgeSource.sourceContent)) {
+            // 1️⃣ `knowledgeSource` is URL
+            throw new NotYetImplementedError('URL knowledge source is not yet implemented !!!!!!');
+        } else if (isValidFilePath(knowledgeSource.sourceContent)) {
+            // 2️⃣ `knowledgeSource` is local file path
+            throw new NotYetImplementedError('File knowledge source is not yet implemented !!!!!!');
+        } else {
+            // 1️⃣ `knowledgeSource` is just inlined (markdown content) information
+            const partialPiecesUnchecked = await markdownScraper.scrape(
+                {
+                    source: knowledgeSource.name,
+                    mimeType: 'text/markdown',
+                    asText: async () => {
+                        return knowledgeSource.sourceContent;
+                    },
+                    asJson: async () => {
+                        throw new UnexpectedError(
+                            'Did not expect that `markdownScraper` would need to get the content `asJson`',
+                        );
+                    },
+                    asBlob() {
+                        throw new UnexpectedError(
+                            'Did not expect that `markdownScraper` would need to get the content `asBlob`',
+                        );
+                    },
+                },
+                options,
+            );
+
+            if (partialPiecesUnchecked === null) {
+                throw new UnexpectedError('Did not expect that `markdownScraper` would return `null`');
+            }
+
+            partialPieces = partialPiecesUnchecked;
+        }
 
         const pieces = partialPieces.map((partialPiece) => ({
             ...partialPiece,

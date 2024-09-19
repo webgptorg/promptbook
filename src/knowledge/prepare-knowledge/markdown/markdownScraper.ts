@@ -3,7 +3,6 @@ import type { KnowledgePiecePreparedJson } from '../../../_packages/types.index'
 import { PrepareOptions } from '../../../_packages/types.index';
 import { TODO_USE } from '../../../utils/organization/TODO_USE';
 import type { AbstractScraper, ScraperSourceOptions } from '../_common/AbstractScraper';
-import simpleSample from './samples/10-simple.md'; // <- TODO: !!!!!! Is this working, if not make it via URL
 // TODO: [🏳‍🌈] Finally take pick of .json vs .ts
 import PipelineCollection from '../../../../promptbook-collection/index.json';
 // import PipelineCollection from '../../../../promptbook-collection/promptbook-collection';
@@ -32,7 +31,6 @@ export const markdownScraper = {
      * Link to documentation
      */
     documentationUrl: 'https://github.com/webgptorg/promptbook/discussions/@@',
-
 
     /**
      * Scrapes the markdown file and returns the knowledge pieces or `null` if it can't scrape it
@@ -74,6 +72,8 @@ export const markdownScraper = {
                 llm: llmTools,
             },
         });
+
+        const knowledgeContent = await source.asText();
 
         const result = await prepareKnowledgeFromMarkdownExecutor({ knowledgeContent });
 
@@ -172,11 +172,12 @@ export const markdownScraper = {
 
         return knowledge;
     },
-} as const satisfies AbstractScraper;
+} /* TODO: [🦷] as const */ satisfies AbstractScraper;
 
 /**
  * TODO: !!!!!!  Same pattern for commands> as const satisfies AbstractScraper
  * TODO: [🦖] Make some system for putting scrapers to separete packages
  * TODO: [🪂] Do it in parallel 11:11
+ * TODO: [🦷] Ideally use `as const satisfies AbstractScraper` BUT this combination throws errors
  * Note: No need to aggregate usage here, it is done by intercepting the llmTools
  */

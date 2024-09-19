@@ -5,12 +5,13 @@ import * as dotenv from 'dotenv';
 dotenv.config({ path: '.env' });
 
 import colors from 'colors';
-import { readFile, writeFile } from 'fs/promises';
+import { writeFile } from 'fs/promises';
 import { join } from 'path';
 import { stringifyPipelineJson } from '../../../../conversion/utils/stringifyPipelineJson';
 import { usageToHuman } from '../../../../execution/utils/usageToHuman';
 import { getLlmToolsForTestingAndScriptsAndPlayground } from '../../../../llm-providers/_common/getLlmToolsForTestingAndScriptsAndPlayground';
-import { prepareKnowledgeFromMarkdown } from '../prepareKnowledgeFromMarkdown';
+import { emulateScraperSourceOptions } from '../../_common/utils/emulateScraperSourceOptions';
+import { markdownScraper } from '../markdownScraper';
 
 const isVerbose = true;
 
@@ -30,17 +31,14 @@ async function playground() {
     // Do here stuff you want to test
     //========================================>
 
-    const content = await readFile(
-        join(
-            __dirname,
-            '../samples/10-simple.md' /* <- TODO: !! Read here the samples directory and itterate through all of them */,
-        ),
-        'utf-8',
+    const samplePath = join(
+        __dirname,
+        '../samples/10-simple.md' /* <- TODO: !! Read here the samples directory and itterate through all of them */,
     );
 
     const llmTools = getLlmToolsForTestingAndScriptsAndPlayground({ isCacheReloaded: true });
 
-    const knowledge = await prepareKnowledgeFromMarkdown(content, {
+    const knowledge = await markdownScraper.scrape(emulateScraperSourceOptions(samplePath), {
         llmTools,
         isVerbose,
     });

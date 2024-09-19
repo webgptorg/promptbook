@@ -1,8 +1,11 @@
-import { markdownScraper } from "./markdown/markdownScraper";
+import { markdownScraper } from './markdown/markdownScraper';
 
 /**
  * @@@
  *
  * @public exported from `@promptbook/core`
  */
-export const SCRAPERS = [markdownScraper] as const;
+export const SCRAPERS = [
+    markdownScraper,
+    // <- Note: [♓️] This is the order of the scrapers for knowledge, BUT consider some better (more explicit) way to do this
+] as const;

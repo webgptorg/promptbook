@@ -1,19 +1,13 @@
 import { describe, expect, it } from '@jest/globals';
-import { readFileSync } from 'fs';
 import { join } from 'path';
 import { getLlmToolsForTestingAndScriptsAndPlayground } from '../../../llm-providers/_common/getLlmToolsForTestingAndScriptsAndPlayground';
-import { emulateScraperSourceOptions } from '../_common/utils/test/emulateScraperSourceOptions.ts';
+import { emulateScraperSourceOptions } from '../_common/utils/emulateScraperSourceOptions';
 import { markdownScraper } from './markdownScraper';
 
 describe('how creating knowledge from markdown works', () => {
-    const simpleSampleMarkdown = readFileSync(
-        join(__dirname, 'samples/10-simple.md'),
-        'utf-8',
-    ); /* <- Note: Its OK to use sync in tooling */
-
     it('should work with simple piece of information', async () =>
         expect(
-            markdownScraper.scrape(emulateScraperSourceOptions(simpleSampleMarkdown), {
+            markdownScraper.scrape(emulateScraperSourceOptions(join(__dirname, 'samples/10-simple.md')), {
                 llmTools: getLlmToolsForTestingAndScriptsAndPlayground(),
             }),
 

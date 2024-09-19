@@ -6,7 +6,6 @@ import type {
     string_mime_type_with_wildcard,
     string_promptbook_documentation_url,
 } from '../../../types/typeAliases';
-import type { really_unknown } from '../../../utils/organization/really_unknown';
 
 /**
  * @@@
@@ -37,15 +36,30 @@ export type AbstractScraper = {
  * @@@
  */
 export type ScraperSourceOptions = {
+    /**
+     * The source of the knowledge
+     */
     readonly source: string_knowledge_source_link;
 
+    /**
+     * Mime type of the source
+     */
     readonly mimeType: string_mime_type;
 
-    asJson(): Promise<really_unknown>;
+    /**
+     * Get the content as parsed JSON
+     */
+    asJson(): Promise<unknown>;
 
-    asText(): Promise<really_unknown>;
+    /**
+     * Get the content as a utf-8 string
+     */
+    asText(): Promise<string>;
 
-    asBlob(): Promise<really_unknown>;
+    /**
+     * Get the content as a blob
+     */
+    asBlob(): Promise<Blob>;
 };
 
 /**
