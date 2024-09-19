@@ -4,15 +4,13 @@ import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import type { string_markdown_text } from '../../types/typeAliases';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import { isValidPipelineUrl } from '../../utils/validators/url/isValidPipelineUrl';
-import type { $PipelineJson } from '../_common/types/CommandParser';
-import type { CommandParserInput } from '../_common/types/CommandParser';
-import type { PipelineHeadCommandParser } from '../_common/types/CommandParser';
+import type { $PipelineJson, CommandParserInput, PipelineHeadCommandParser } from '../_common/types/CommandParser';
 import type { UrlCommand } from './UrlCommand';
 
 /**
  * Parses the url command
  *
- * @see ./URL-README.md for more details
+ * @see `documentationUrl` for more details
  * @private within the commands folder
  */
 export const urlCommandParser: PipelineHeadCommandParser<UrlCommand> = {
@@ -40,7 +38,7 @@ export const urlCommandParser: PipelineHeadCommandParser<UrlCommand> = {
     description: `Declares unique URL for the pipeline`,
 
     /**
-     * Link to discussion
+     * Link to documentation
      */
     documentationUrl: 'https://github.com/webgptorg/promptbook/discussions/70',
 

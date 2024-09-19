@@ -5,16 +5,18 @@ import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import type { string_markdown_text } from '../../types/typeAliases';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import { validateParameterName } from '../../utils/validators/parameterName/validateParameterName';
-import type { $PipelineJson } from '../_common/types/CommandParser';
-import type { $TemplateJson } from '../_common/types/CommandParser';
-import type { CommandParserInput } from '../_common/types/CommandParser';
-import type { PipelineBothCommandParser } from '../_common/types/CommandParser';
+import type {
+    $PipelineJson,
+    $TemplateJson,
+    CommandParserInput,
+    PipelineBothCommandParser,
+} from '../_common/types/CommandParser';
 import type { ParameterCommand } from './ParameterCommand';
 
 /**
  * Parses the parameter command
  *
- * @see ./PARAMETER-README.md for more details
+ * @see `documentationUrl` for more details
  * @private within the commands folder
  */
 export const parameterCommandParser: PipelineBothCommandParser<ParameterCommand> = {
@@ -44,7 +46,7 @@ export const parameterCommandParser: PipelineBothCommandParser<ParameterCommand>
     description: `Describes one parameter of the template`,
 
     /**
-     * Link to discussion
+     * Link to documentation
      */
     documentationUrl: 'https://github.com/webgptorg/promptbook/discussions/68',
 

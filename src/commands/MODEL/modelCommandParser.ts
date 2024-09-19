@@ -5,16 +5,18 @@ import { MODEL_VARIANTS } from '../../types/ModelVariant';
 import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import type { string_markdown_text } from '../../types/typeAliases';
 import { keepUnused } from '../../utils/organization/keepUnused';
-import type { $PipelineJson } from '../_common/types/CommandParser';
-import type { $TemplateJson } from '../_common/types/CommandParser';
-import type { CommandParserInput } from '../_common/types/CommandParser';
-import type { PipelineBothCommandParser } from '../_common/types/CommandParser';
+import type {
+    $PipelineJson,
+    $TemplateJson,
+    CommandParserInput,
+    PipelineBothCommandParser,
+} from '../_common/types/CommandParser';
 import type { ModelCommand } from './ModelCommand';
 
 /**
  * Parses the model command
  *
- * @see ./MODEL-README.md for more details
+ * @see `documentationUrl` for more details
  * @private within the commands folder
  */
 export const modelCommandParser: PipelineBothCommandParser<ModelCommand> = {
@@ -35,7 +37,7 @@ export const modelCommandParser: PipelineBothCommandParser<ModelCommand> = {
     description: `Tells which \`modelRequirements\` (for example which model) to use for the prompt template execution`,
 
     /**
-     * Link to discussion
+     * Link to documentation
      */
     documentationUrl: 'https://github.com/webgptorg/promptbook/discussions/67',
 

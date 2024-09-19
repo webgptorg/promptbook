@@ -13,7 +13,7 @@ import { TODO_USE } from '../../../utils/organization/TODO_USE';
 export async function prepareKnowledgeFromPdf(
     content: string_base64 /* <- TODO: [🖖] Always the file, allow base64+filename+identification+mime or blob+filename+identification or file+identification */,
     options: PrepareOptions,
-): Promise<Array<Omit<KnowledgePiecePreparedJson, 'sources' | 'preparationIds'> /* <- [🕡] */>> {
+): Promise<Array<Omit<KnowledgePiecePreparedJson, 'sources' | 'preparationIds'> /* <- [🕡] !!!!!! Change to scraper */>> {
     const { llmTools, maxParallelCount = MAX_PARALLEL_COUNT, isVerbose = IS_VERBOSE } = options;
 
     TODO_USE(llmTools, maxParallelCount, isVerbose);

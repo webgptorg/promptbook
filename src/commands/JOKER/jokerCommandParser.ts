@@ -3,15 +3,13 @@ import { ParseError } from '../../errors/ParseError';
 import type { string_markdown_text } from '../../types/typeAliases';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import { validateParameterName } from '../../utils/validators/parameterName/validateParameterName';
-import type { $TemplateJson } from '../_common/types/CommandParser';
-import type { CommandParserInput } from '../_common/types/CommandParser';
-import type { PipelineTemplateCommandParser } from '../_common/types/CommandParser';
+import type { $TemplateJson, CommandParserInput, PipelineTemplateCommandParser } from '../_common/types/CommandParser';
 import type { JokerCommand } from './JokerCommand';
 
 /**
  * Parses the joker command
  *
- * @see ./JOKER-README.md for more details
+ * @see `documentationUrl` for more details
  * @private within the commands folder
  */
 export const jokerCommandParser: PipelineTemplateCommandParser<JokerCommand> = {
@@ -32,7 +30,7 @@ export const jokerCommandParser: PipelineTemplateCommandParser<JokerCommand> = {
     description: `Joker parameter is used instead of executing the template result if jokers value meets the expectations requirements`,
 
     /**
-     * Link to discussion
+     * Link to documentation
      */
     documentationUrl: 'https://github.com/webgptorg/promptbook/discussions/66',
 

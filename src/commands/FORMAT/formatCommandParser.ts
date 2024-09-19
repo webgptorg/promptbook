@@ -3,15 +3,13 @@ import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
 import { ParseError } from '../../errors/ParseError';
 import type { string_markdown_text } from '../../types/typeAliases';
 import { keepUnused } from '../../utils/organization/keepUnused';
-import type { $TemplateJson } from '../_common/types/CommandParser';
-import type { CommandParserInput } from '../_common/types/CommandParser';
-import type { PipelineTemplateCommandParser } from '../_common/types/CommandParser';
+import type { $TemplateJson, CommandParserInput, PipelineTemplateCommandParser } from '../_common/types/CommandParser';
 import type { FormatCommand } from './FormatCommand';
 
 /**
  * Parses the format command
  *
- * @see ./FORMAT-README.md for more details
+ * @see `documentationUrl` for more details
  * @private within the commands folder
  */
 export const formatCommandParser: PipelineTemplateCommandParser<FormatCommand> = {
@@ -35,7 +33,7 @@ export const formatCommandParser: PipelineTemplateCommandParser<FormatCommand> =
     `),
 
     /**
-     * Link to discussion
+     * Link to documentation
      */
     documentationUrl: 'https://github.com/webgptorg/promptbook/discussions/30',
 

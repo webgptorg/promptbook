@@ -3,15 +3,13 @@ import { ParseError } from '../../errors/ParseError';
 import type { string_markdown_text } from '../../types/typeAliases';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import { isValidJavascriptName } from '../../utils/validators/javascriptName/isValidJavascriptName';
-import type { $TemplateJson } from '../_common/types/CommandParser';
-import type { CommandParserInput } from '../_common/types/CommandParser';
-import type { PipelineTemplateCommandParser } from '../_common/types/CommandParser';
+import type { $TemplateJson, CommandParserInput, PipelineTemplateCommandParser } from '../_common/types/CommandParser';
 import type { PostprocessCommand } from './PostprocessCommand';
 
 /**
  * Parses the postprocess command
  *
- * @see ./POSTPROCESS-README.md for more details
+ * @see `documentationUrl` for more details
  * @private within the commands folder
  */
 export const postprocessCommandParser: PipelineTemplateCommandParser<PostprocessCommand> = {
@@ -34,7 +32,7 @@ export const postprocessCommandParser: PipelineTemplateCommandParser<Postprocess
     description: `Defines the postprocess function to be used on the result from LLM and before the result is validated`,
 
     /**
-     * Link to discussion
+     * Link to documentation
      */
     documentationUrl: 'https://github.com/webgptorg/promptbook/discussions/31',
 
