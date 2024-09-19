@@ -1,7 +1,6 @@
 import type { Promisable } from 'type-fest';
 import { KnowledgePiecePreparedJson, PrepareOptions } from '../../../_packages/types.index';
 import type {
-    string_file_path,
     string_knowledge_source_link,
     string_mime_type,
     string_mime_type_with_wildcard,
@@ -26,15 +25,12 @@ export type AbstractScraper = {
     readonly documentationUrl: string_promptbook_documentation_url;
 
     /**
-     * Examples what this scraper can scrape
-     */
-    readonly examples: Array<string_file_path>;
-
-    /**
      * Scrapes the markdown file and returns the knowledge pieces or `null` if it can't scrape it
      */
-    scrape(source: ScraperSourceOptions,options: PrepareOptions): Promisable<Array<Omit<KnowledgePiecePreparedJson, 'sources' | 'preparationIds'>> | null>;
-
+    scrape(
+        source: ScraperSourceOptions,
+        options: PrepareOptions,
+    ): Promisable<Array<Omit<KnowledgePiecePreparedJson, 'sources' | 'preparationIds'>> | null>;
 };
 
 /**
@@ -55,4 +51,9 @@ export type ScraperSourceOptions = {
 /**
  * TODO: [🐝] @@@ Annotate all
  * TODO: [🔼] Export via types
+ */
+
+/**
+ * TODO: !!!!!! Test that this is catched
+ * Note: [⚫] Code in this file should never be published in any package
  */

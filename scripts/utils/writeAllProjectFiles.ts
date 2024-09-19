@@ -35,3 +35,7 @@ export async function writeAllProjectFiles(
         }
     }
 }
+
+/**
+ * Note: [⚫] Code in this file should never be published in any package
+ */

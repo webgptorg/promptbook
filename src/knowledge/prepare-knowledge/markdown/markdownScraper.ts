@@ -33,10 +33,6 @@ export const markdownScraper = {
      */
     documentationUrl: 'https://github.com/webgptorg/promptbook/discussions/@@',
 
-    /**
-     * Examples what this scraper can scrape
-     */
-    examples: [simpleSample],
 
     /**
      * Scrapes the markdown file and returns the knowledge pieces or `null` if it can't scrape it

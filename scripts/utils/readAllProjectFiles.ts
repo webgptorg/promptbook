@@ -18,4 +18,5 @@ export async function readAllProjectFiles(): Promise<
 
 /**
  * TODO: !! Use fs/promises instead of fs
+ * Note: [⚫] Code in this file should never be published in any package
  */

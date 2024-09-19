@@ -4,7 +4,7 @@ import { execCommand } from './execCommand/execCommand';
 
 /**
  * Organizes the imports of a typescript file
- * 
+ *
  * @param fileContents contents of the typescript file
  * @returns the file contents with organized imports
  */
@@ -23,3 +23,8 @@ export async function organizeImports(fileContents: string): Promise<string> {
 
     return await readFile(tmpFilePath, 'utf8');
 }
+
+
+/**
+ * Note: [⚫] Code in this file should never be published in any package
+ */

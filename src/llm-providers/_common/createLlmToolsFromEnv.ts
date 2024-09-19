@@ -53,7 +53,7 @@ export function createLlmToolsFromEnv(options: CreateLlmToolsFromConfigurationOp
  * TODO: @@@ write `createLlmToolsFromEnv` vs `createLlmToolsFromConfigurationFromEnv` vs `createLlmToolsFromConfiguration`
  * TODO: [🧠][🍛] Which name is better `createLlmToolsFromEnv` or `createLlmToolsFromEnvironment`?
  * TODO: [🧠] Is there some meaningfull way how to test this util
- * Note: [🟢] This code should never be published outside of `@promptbook/node` and `@promptbook/cli` and `@promptbook/cli`
+ * Note: [🟢] Code in this file should never be published outside of `@promptbook/node` and `@promptbook/cli`
  * TODO: [🥃] Allow `ptbk make` without llm tools
  * TODO: This should be maybe not under `_common` but under `utils`
  */

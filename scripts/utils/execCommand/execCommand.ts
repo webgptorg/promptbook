@@ -95,5 +95,5 @@ export function execCommand(options: IExecCommandOptions): Promise<string> {
 }
 
 /**
- * TODO: [🥯] This should be part of scripting + testing utilities set which are not builded into packages
+ * Note: [⚫] Code in this file should never be published in any package
  */

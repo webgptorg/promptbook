@@ -1,7 +1,6 @@
 import { readdir } from 'fs/promises';
 import { join } from 'path/posix';
-import type { string_file_path } from '../../types/typeAliases';
-import type { string_folder_path } from '../../types/typeAliases';
+import type { string_file_path, string_folder_path } from '../../types/typeAliases';
 import { $isDirectoryExisting } from './$isDirectoryExisting';
 
 /**
@@ -37,6 +36,6 @@ export async function $listAllFiles(path: string_folder_path, isRecursive: boole
 }
 
 /**
- * Note: [🟢] This code should never be published outside of `@promptbook/node` and `@promptbook/cli` and `@promptbook/cli`
+ * Note: [🟢] Code in this file should never be published outside of `@promptbook/node` and `@promptbook/cli`
  * TODO: [🖇] What about symlinks?
  */

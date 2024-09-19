@@ -8,3 +8,8 @@ export async function isWorkingTreeClean(path: string): Promise<boolean> {
 
     return gitStatus.includes(`working tree clean`);
 }
+
+
+/**
+ * Note: [⚫] Code in this file should never be published in any package
+ */

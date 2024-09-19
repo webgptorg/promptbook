@@ -2,7 +2,7 @@ import { describe, expect, it } from '@jest/globals';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 import { getLlmToolsForTestingAndScriptsAndPlayground } from '../../../llm-providers/_common/getLlmToolsForTestingAndScriptsAndPlayground';
-import { emulateScraperSourceOptions } from '../_common/utils/test/emulateScraperSourceOptions';
+import { emulateScraperSourceOptions } from '../_common/utils/test/emulateScraperSourceOptions.ts';
 import { markdownScraper } from './markdownScraper';
 
 describe('how creating knowledge from markdown works', () => {

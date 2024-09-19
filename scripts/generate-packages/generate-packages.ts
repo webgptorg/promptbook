@@ -321,6 +321,16 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
 
             const bundleFileContent = await readFile(bundleFileName, 'utf-8');
 
+            if (bundleFileContent.includes('[⚫]')) {
+                throw new Error(
+                    spaceTrim(`
+                        Things marked with [⚫] should never be never released in the bundle
+
+                        ${bundleFileName}
+                    `),
+                );
+            }
+
             if (bundleFileContent.includes('[⚪]')) {
                 throw new Error(
                     spaceTrim(`
@@ -510,4 +520,5 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
  * TODO: !! Add warning to the copy/generated files
  * TODO: !! Use prettier to format the generated files
  * TODO: !! Normalize order of keys in package.json
+ * Note: [⚫] Code in this file should never be published in any package
  */

@@ -13,3 +13,7 @@ export function splitArrayIntoChunks<TItem>(array: Array<TItem>, length: number)
     }
     return chunks;
 }
+
+/**
+ * Note: [⚫] Code in this file should never be published in any package
+ */

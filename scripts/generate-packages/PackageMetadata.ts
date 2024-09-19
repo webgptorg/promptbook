@@ -63,4 +63,5 @@ export type PackageMetadata = {
 
 /**
  * TODO: Maybe make `PackageMetadata` as discriminated union - isBuilded+entryIndexFilePath
+ * Note: [⚫] Code in this file should never be published in any package
  */

@@ -28,5 +28,5 @@ export function initializeHelloCommand(program: Program) {
 }
 
 /**
- * Note: [🟡] This code should never be published outside of `@promptbook/cli`
+ * Note: [🟡] Code in this file should never be published outside of `@promptbook/cli`
  */

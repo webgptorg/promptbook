@@ -67,3 +67,8 @@ async function findFreshEmojiTag() {
 
     // console.info(`[ Done 🤪  Find fresh emoji tag ]`);
 }
+
+
+/**
+ * Note: [⚫] Code in this file should never be published in any package
+ */

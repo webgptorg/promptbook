@@ -52,3 +52,8 @@ export async function commit(addPaths: Array<string>, message: string): Promise<
         await unlink(commitMessageFilePath);
     }
 }
+
+
+/**
+ * Note: [⚫] Code in this file should never be published in any package
+ */

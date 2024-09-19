@@ -114,4 +114,5 @@ export async function getPackagesMetadata(): Promise<Array<PackageMetadata>> {
  * TODO: Maybe use here `EntityMetadata.tags` instead of parsing raw anotation
  * TODO: [🧠] Maybe entities checking and matching packages with entities should be done in `findAllProjectEntities`
  * Note: [🧃] Packages `@promptbook/cli` and `@promptbook/types` are marked as dependencies (not devDependencies) to ensure that they are always installed
+ * Note: [⚫] Code in this file should never be published in any package
  */

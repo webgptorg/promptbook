@@ -1,8 +1,7 @@
 import { spaceTrim } from 'spacetrim';
 import { PipelineExecutionError } from '../../../errors/PipelineExecutionError';
 import type { CommonExecutionToolsOptions } from '../../../execution/CommonExecutionToolsOptions';
-import type { UserInterfaceTools } from '../../../execution/UserInterfaceTools';
-import type { UserInterfaceToolsPromptDialogOptions } from '../../../execution/UserInterfaceTools';
+import type { UserInterfaceTools, UserInterfaceToolsPromptDialogOptions } from '../../../execution/UserInterfaceTools';
 
 /**
  * Wrapper around `window.prompt` synchronous function that interacts with the user via browser prompt
@@ -49,5 +48,5 @@ export class SimplePromptInterfaceTools implements UserInterfaceTools {
 }
 
 /**
- * Note: [🔵] This code should never be published outside of `@promptbook/browser`
+ * Note: [🔵] Code in this file should never be published outside of `@promptbook/browser`
  */

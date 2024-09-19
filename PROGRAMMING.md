@@ -15,3 +15,8 @@ See [TODO.md](./TODO.md)
 -   `!!!` Marks a place that needs to be fixed before releasing a pre-release version.
 -   `!!!!` (and more) Marks a place that needs to be fixed as soon as possible.
 -   `@@@` Marks a place where text / documentation / ... must be written.
+
+-   [⚫] Code in this file should never be published in any package
+-   [🟢] Code in this file should never be published outside of `@promptbook/node` and `@promptbook/cli`
+-   [🔵] Code in this file should never be published outside of `@promptbook/browser`
+-   [🟡] Code in this file should never be published outside of `@promptbook/cli`

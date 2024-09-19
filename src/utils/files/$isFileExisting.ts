@@ -25,7 +25,7 @@ export async function $isFileExisting(filePath: string_file_path): Promise<boole
 }
 
 /**
- * Note: [🟢] This code should never be published outside of `@promptbook/node` and `@promptbook/cli` and `@promptbook/cli`
+ * Note: [🟢] Code in this file should never be published outside of `@promptbook/node` and `@promptbook/cli`
  * TODO: [🐠] This can be a validator - with variants that return true/false and variants that throw errors with meaningless messages
  * TODO: [🖇] What about symlinks?
  */
