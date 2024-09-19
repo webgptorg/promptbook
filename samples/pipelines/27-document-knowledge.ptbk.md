@@ -1,6 +1,5 @@
 # ✨ Sample: Knowledge in external document
 
-!!!!!!
 
 Show how to use knowledge
 
