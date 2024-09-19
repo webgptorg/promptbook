@@ -1,3 +1,4 @@
+import { FilesystemTools } from '../execution/FilesystemTools';
 import type { LlmExecutionTools } from '../execution/LlmExecutionTools';
 
 /**
@@ -8,6 +9,11 @@ export type PrepareOptions = {
      * LLM tools
      */
     readonly llmTools: LlmExecutionTools;
+
+    /**
+     * Tools for retrieving files
+     */
+    readonly filesystemTools: FilesystemTools | null;
 
     /**
      * Maximum number of tasks running in parallel

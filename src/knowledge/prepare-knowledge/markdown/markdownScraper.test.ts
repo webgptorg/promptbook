@@ -9,6 +9,7 @@ describe('how creating knowledge from markdown works', () => {
         expect(
             markdownScraper.scrape(emulateScraperSourceOptions(join(__dirname, 'samples/10-simple.md')), {
                 llmTools: getLlmToolsForTestingAndScriptsAndPlayground(),
+                filesystemTools: null,
             }),
 
             // Note: [0] Not comparing with .toEqual because of index is looooonnnngggg list of numbers

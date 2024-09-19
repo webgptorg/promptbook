@@ -1,3 +1,4 @@
+import { FilesystemTools } from '../execution/FilesystemTools';
 import type { LlmExecutionTools } from '../execution/LlmExecutionTools';
 import { preparePipeline } from '../prepare/preparePipeline';
 import type { PipelineJson } from '../types/PipelineJson/PipelineJson';
@@ -16,6 +17,11 @@ export type PipelineStringToJsonOptions = {
      * Note: If you provide `null`, the knowledge will not be prepared
      */
     readonly llmTools: LlmExecutionTools | null;
+
+    /**
+     * Tools for retrieving files
+     */
+    readonly filesystemTools: FilesystemTools | null;
 };
 
 /**
@@ -37,14 +43,14 @@ export type PipelineStringToJsonOptions = {
  */
 export async function pipelineStringToJson(
     pipelineString: PipelineString,
-    options: PipelineStringToJsonOptions = { llmTools: null },
+    options: PipelineStringToJsonOptions = { llmTools: null, filesystemTools: null },
 ): Promise<PipelineJson> {
-    const { llmTools } = options;
+    const { llmTools, filesystemTools } = options;
 
     let pipelineJson = pipelineStringToJsonSync(pipelineString);
 
     if (llmTools !== null) {
-        pipelineJson = await preparePipeline(pipelineJson, { llmTools });
+        pipelineJson = await preparePipeline(pipelineJson, { llmTools, filesystemTools });
     }
 
     // Note: No need to use `$asDeeplyFrozenSerializableJson` because `pipelineStringToJsonSync` and `preparePipeline` already do that

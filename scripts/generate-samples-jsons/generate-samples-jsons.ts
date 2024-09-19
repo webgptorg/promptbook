@@ -76,6 +76,7 @@ async function generateSampleJsons({
         try {
             const pipelineJson = await pipelineStringToJson(pipelineMarkdown as PipelineString, {
                 llmTools,
+                filesystemTools: null, // <- TODO: !!!!!! getFilesystemToolsForCli
             });
 
             await forTime(0);

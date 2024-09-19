@@ -23,6 +23,7 @@ describe('how prepareKnowledge works', () => {
         expect(
             prepareKnowledgePieces([], {
                 llmTools: getLlmToolsForTestingAndScriptsAndPlayground(),
+                filesystemTools: null,
             }),
         ).resolves.toEqual([]));
 });

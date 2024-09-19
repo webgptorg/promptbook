@@ -56,6 +56,7 @@ describe('createCollectionFromDirectory', () => {
         expect.assertions(1);
         const collection = await createCollectionFromDirectory('./samples/pipelines', {
             llmTools: null,
+            filesystemTools: null,
             isVerbose: true,
             isRecursive: false,
             isLazyLoaded: false,
@@ -75,6 +76,7 @@ describe('createCollectionFromDirectory', () => {
 
         const collection = await createCollectionFromDirectory('./samples/pipelines', {
             llmTools: null,
+            filesystemTools: null,
             isVerbose: true,
             isRecursive: false,
             isLazyLoaded: true,
@@ -94,6 +96,7 @@ describe('createCollectionFromDirectory', () => {
 
         const collection = await createCollectionFromDirectory('./samples/pipelines', {
             llmTools: null,
+            filesystemTools: null,
             isVerbose: true,
             isRecursive: false,
         });
@@ -112,6 +115,7 @@ describe('createCollectionFromDirectory', () => {
             (async () => {
                 const collection = await createCollectionFromDirectory('./samples/pipelines', {
                     llmTools: null,
+                    filesystemTools: null,
                     isVerbose: true,
                     // Note: Including subdirectories BUT lazy-loaded so it should not crash even if there are errors
                     isRecursive: true,
@@ -126,6 +130,7 @@ describe('createCollectionFromDirectory', () => {
             (async () => {
                 const collection = await createCollectionFromDirectory('./samples/pipelines', {
                     llmTools: null,
+                    filesystemTools: null,
                     isVerbose: true,
                     // Note: Including subdirectories BUT lazy-loaded so it should not crash even if there are errors
                     isRecursive: true,

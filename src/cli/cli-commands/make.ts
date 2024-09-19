@@ -87,6 +87,7 @@ export function initializeMakeCommand(program: Program) {
 
         const collection = await createCollectionFromDirectory(path, {
             llmTools,
+            filesystemTools: null, // <- TODO: !!!!!! getFilesystemToolsForCli
             isVerbose,
             isRecursive: true,
             // <- TODO: [🍖] isCacheReloaded

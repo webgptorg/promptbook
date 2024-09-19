@@ -1,6 +1,5 @@
 import type { Writable } from 'type-fest';
-import { IS_VERBOSE } from '../config';
-import { MAX_PARALLEL_COUNT } from '../config';
+import { IS_VERBOSE, MAX_PARALLEL_COUNT } from '../config';
 import { ZERO_USAGE } from '../execution/utils/addUsage';
 import { forEachAsync } from '../execution/utils/forEachAsync';
 import { prepareKnowledgePieces } from '../knowledge/prepare-knowledge/_common/prepareKnowledgePieces';
@@ -29,7 +28,7 @@ export async function preparePipeline(pipeline: PipelineJson, options: PrepareOp
         return pipeline;
     }
 
-    const { llmTools, maxParallelCount = MAX_PARALLEL_COUNT, isVerbose = IS_VERBOSE } = options;
+    const { llmTools, filesystemTools, maxParallelCount = MAX_PARALLEL_COUNT, isVerbose = IS_VERBOSE } = options;
     const {
         parameters,
         templates,
@@ -81,6 +80,7 @@ export async function preparePipeline(pipeline: PipelineJson, options: PrepareOp
         async (persona, index) => {
             const modelRequirements = await preparePersona(persona.description, {
                 llmTools: llmToolsWithUsage,
+                filesystemTools,
                 maxParallelCount /* <- TODO:  [🪂] */,
                 isVerbose,
             });
@@ -108,6 +108,7 @@ export async function preparePipeline(pipeline: PipelineJson, options: PrepareOp
         knowledgeSources /* <- TODO: [🧊] {knowledgeSources, knowledgePieces} */,
         {
             llmTools: llmToolsWithUsage,
+            filesystemTools,
             maxParallelCount /* <- TODO:  [🪂] */,
             isVerbose,
         },
@@ -129,6 +130,7 @@ export async function preparePipeline(pipeline: PipelineJson, options: PrepareOp
         },
         {
             llmTools: llmToolsWithUsage,
+            filesystemTools: null,
             maxParallelCount /* <- TODO:  [🪂] */,
             isVerbose,
         },

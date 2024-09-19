@@ -1,4 +1,3 @@
-import { readFile } from 'fs/promises';
 import { SCRAPERS } from '..';
 import { isValidFilePath, isValidUrl } from '../../../_packages/utils.index';
 import { MAX_PARALLEL_COUNT } from '../../../config';
@@ -22,7 +21,7 @@ export async function prepareKnowledgePieces(
     knowledgeSources: Array<KnowledgeSourceJson>,
     options: PrepareOptions,
 ): Promise<Array<Omit<KnowledgePiecePreparedJson, 'preparationIds'>>> {
-    const { maxParallelCount = MAX_PARALLEL_COUNT } = options;
+    const { maxParallelCount = MAX_PARALLEL_COUNT, filesystemTools } = options;
 
     const knowledgePrepared: Array<Omit<KnowledgePiecePreparedJson, 'preparationIds'>> = [];
 
@@ -38,6 +37,10 @@ export async function prepareKnowledgePieces(
             // 2️⃣ `knowledgeSource` is local file path
             // [3] DRY 1️⃣ and 2️⃣
 
+            if (filesystemTools === null) {
+                throw new KnowledgeScrapeError('Filesystem tools are required for scraping local files');
+            }
+
             // TODO: !!!!!! Test security file
 
             const mimeType = 'text/markdown';
@@ -47,7 +50,7 @@ export async function prepareKnowledgePieces(
                 source: knowledgeSource.name, // <- TODO: !!!!!! What should be here `knowledgeSource.name` or `knowledgeSource.sourceContent`
                 mimeType,
                 async asText() {
-                    return await readFile(knowledgeSource.sourceContent, 'utf-8');
+                    return await filesystemTools.getFile(knowledgeSource.sourceContent);
                 },
                 async asJson() {
                     throw new NotYetImplementedError('!!!!!!');
