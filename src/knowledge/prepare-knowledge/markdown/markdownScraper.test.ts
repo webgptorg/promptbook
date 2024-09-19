@@ -2,7 +2,8 @@ import { describe, expect, it } from '@jest/globals';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 import { getLlmToolsForTestingAndScriptsAndPlayground } from '../../../llm-providers/_common/getLlmToolsForTestingAndScriptsAndPlayground';
-import { prepareKnowledgeFromMarkdown } from './prepareKnowledgeFromMarkdown';
+import { emulateScraperSourceOptions } from '../_common/utils/test/emulateScraperSourceOptions';
+import { markdownScraper } from './markdownScraper';
 
 describe('how creating knowledge from markdown works', () => {
     const simpleSampleMarkdown = readFileSync(
@@ -12,7 +13,7 @@ describe('how creating knowledge from markdown works', () => {
 
     it('should work with simple piece of information', async () =>
         expect(
-            prepareKnowledgeFromMarkdown(simpleSampleMarkdown, {
+            markdownScraper.scrape(emulateScraperSourceOptions(simpleSampleMarkdown), {
                 llmTools: getLlmToolsForTestingAndScriptsAndPlayground(),
             }),
 

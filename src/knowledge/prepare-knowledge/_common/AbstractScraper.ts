@@ -1,5 +1,5 @@
 import type { Promisable } from 'type-fest';
-import { KnowledgePiecePreparedJson } from '../../../_packages/types.index';
+import { KnowledgePiecePreparedJson, PrepareOptions } from '../../../_packages/types.index';
 import type {
     string_file_path,
     string_knowledge_source_link,
@@ -33,7 +33,7 @@ export type AbstractScraper = {
     /**
      * Scrapes the markdown file and returns the knowledge pieces or `null` if it can't scrape it
      */
-    scrape(source: ScraperSourceOptions): Promisable<Array<KnowledgePiecePreparedJson> | null>;
+    scrape(source: ScraperSourceOptions,options: PrepareOptions): Promisable<Array<Omit<KnowledgePiecePreparedJson, 'sources' | 'preparationIds'>> | null>;
 
 };
 
