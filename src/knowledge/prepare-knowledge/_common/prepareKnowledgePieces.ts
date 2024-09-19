@@ -1,3 +1,5 @@
+import { readFile } from 'fs/promises';
+import { SCRAPERS } from '..';
 import { isValidFilePath, isValidUrl } from '../../../_packages/utils.index';
 import { MAX_PARALLEL_COUNT } from '../../../config';
 import { NotYetImplementedError } from '../../../errors/NotYetImplementedError';
@@ -7,6 +9,7 @@ import type { PrepareOptions } from '../../../prepare/PrepareOptions';
 import type { KnowledgePiecePreparedJson } from '../../../types/PipelineJson/KnowledgePieceJson';
 import type { KnowledgeSourceJson } from '../../../types/PipelineJson/KnowledgeSourceJson';
 import { markdownScraper } from '../markdown/markdownScraper';
+import { ScraperSourceOptions } from './AbstractScraper';
 
 /**
  * Prepares the knowle
@@ -27,25 +30,64 @@ export async function prepareKnowledgePieces(
 
         if (isValidUrl(knowledgeSource.sourceContent)) {
             // 1️⃣ `knowledgeSource` is URL
+            // [3] DRY 1️⃣ and 2️⃣
+
             throw new NotYetImplementedError('URL knowledge source is not yet implemented !!!!!!');
         } else if (isValidFilePath(knowledgeSource.sourceContent)) {
             // 2️⃣ `knowledgeSource` is local file path
-            throw new NotYetImplementedError('File knowledge source is not yet implemented !!!!!!');
+            // [3] DRY 1️⃣ and 2️⃣
+
+            // TODO: !!!!!! Test security file
+
+            const mimeType = 'text/markdown';
+            //                 <- !!!!!! Unhardcode this
+
+            const scraperSourceOptions = {
+                source: knowledgeSource.name, // <- TODO: !!!!!! What should be here `knowledgeSource.name` or `knowledgeSource.sourceContent`
+                mimeType,
+                async asText() {
+                    return await readFile(knowledgeSource.sourceContent, 'utf-8');
+                },
+                async asJson() {
+                    throw new NotYetImplementedError('!!!!!!');
+                },
+                async asBlob() {
+                    throw new NotYetImplementedError('!!!!!!');
+                },
+            } satisfies ScraperSourceOptions;
+
+            for (const scraper of SCRAPERS) {
+                if (
+                    !scraper.mimeTypes.includes(mimeType)
+                    // <- TODO: !!!!!! Implement wildcards
+                ) {
+                    continue;
+                }
+
+                const partialPiecesUnchecked = await scraper.scrape(scraperSourceOptions, options);
+
+                if (partialPiecesUnchecked !== null) {
+                    partialPieces = partialPiecesUnchecked;
+                    break;
+                }
+            }
+
+            throw new ScrapeError(`Can not find scraper the file "${knowledgeSource.sourceContent}"`);
         } else {
             // 1️⃣ `knowledgeSource` is just inlined (markdown content) information
             const partialPiecesUnchecked = await markdownScraper.scrape(
                 {
                     source: knowledgeSource.name,
                     mimeType: 'text/markdown',
-                    asText: async () => {
+                    async asText() {
                         return knowledgeSource.sourceContent;
                     },
-                    asJson: async () => {
+                    async asJson() {
                         throw new UnexpectedError(
                             'Did not expect that `markdownScraper` would need to get the content `asJson`',
                         );
                     },
-                    asBlob() {
+                    async asBlob() {
                         throw new UnexpectedError(
                             'Did not expect that `markdownScraper` would need to get the content `asBlob`',
                         );

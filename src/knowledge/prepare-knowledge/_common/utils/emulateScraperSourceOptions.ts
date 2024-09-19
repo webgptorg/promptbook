@@ -8,7 +8,8 @@ import { ScraperSourceOptions } from '../AbstractScraper';
  * @@@
  */
 export function emulateScraperSourceOptions(sampleFilePath: string_file_path): ScraperSourceOptions {
-    const mimeType = '!!!!!!';
+    const mimeType = 'text/markdown';
+    //                 <- !!!!!! Unhardcode this
 
     return {
         source: sampleFilePath,
