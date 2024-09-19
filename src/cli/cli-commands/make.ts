@@ -10,6 +10,7 @@ import { stringifyPipelineJson } from '../../conversion/utils/stringifyPipelineJ
 import { validatePipeline } from '../../conversion/validation/validatePipeline';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import { usageToHuman } from '../../execution/utils/usageToHuman';
+import { getFilesystemToolsForNode } from '../../llm-providers/_common/getFilesystemToolsForNode';
 import { getLlmToolsForCli } from '../../llm-providers/_common/getLlmToolsForCli';
 import type { string_file_extension } from '../../types/typeAliases';
 
@@ -87,7 +88,7 @@ export function initializeMakeCommand(program: Program) {
 
         const collection = await createCollectionFromDirectory(path, {
             llmTools,
-            filesystemTools: null, // <- TODO: !!!!!! getFilesystemToolsForCli
+            filesystemTools: getFilesystemToolsForNode(),
             isVerbose,
             isRecursive: true,
             // <- TODO: [🍖] isCacheReloaded
