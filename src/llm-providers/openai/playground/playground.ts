@@ -87,7 +87,7 @@ async function playground() {
     console.info({ chatPromptResult });
     console.info(colors.cyan(usageToHuman(chatPromptResult.usage)));
     console.info(colors.bgBlue(' User: ') + colors.blue(chatPrompt.content));
-    console.info(colors.bgGreen(' Completion: ') + colors.green(chatPromptResult.content));
+    console.info(colors.bgGreen(' Chat: ') + colors.green(chatPromptResult.content));
     /**/
 
     /*/
@@ -118,18 +118,18 @@ async function playground() {
         content: `Write me speech about Promptbook and how it can help me to build the most beautiful chatbot and change the world`,
         modelRequirements: {
             modelVariant: 'CHAT',
-            systemMessage: 'You are an assistant who only speaks in rhymes.',
-            temperature: 1.5,
+            // TODO: [👨‍👨‍👧‍👧] systemMessage: 'You are an assistant who only speaks in rhymes.',
+            // TODO: [👨‍👨‍👧‍👧] temperature: 1.5,
         },
     } as const satisfies Prompt;
     const chatPromptResult = await openAiAssistantExecutionTools.callChatModel(chatPrompt);
     console.info({ chatPromptResult });
     console.info(colors.cyan(usageToHuman(chatPromptResult.usage)));
     console.info(colors.bgBlue(' User: ') + colors.blue(chatPrompt.content));
-    console.info(colors.bgGreen(' Completion: ') + colors.green(chatPromptResult.content));
+    console.info(colors.bgGreen(' Assistant: ') + colors.green(chatPromptResult.content));
     /**/
 
-    /**/
+    /*/
     const openai = await openAiExecutionTools.getClient();
     const stream = openai.beta.threads.createAndRunStream({
         stream: true,
@@ -159,7 +159,7 @@ async function playground() {
     });
 
     const finalMessages = await stream.finalMessages();
-    console.log('finalMessages', finalMessages, finalMessages[0].content[0]);
+    console.log('finalMessages', finalMessages, finalMessages[0]!.content[0]!);
 
     /**/
 

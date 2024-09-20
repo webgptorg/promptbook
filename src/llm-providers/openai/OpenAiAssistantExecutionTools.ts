@@ -1,9 +1,11 @@
 import colors from 'colors';
 import OpenAI from 'openai';
+import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import type { ChatPromptResult } from '../../execution/PromptResult';
 import { UNCERTAIN_USAGE } from '../../execution/utils/usage-constants';
+import { ModelRequirements } from '../../types/ModelRequirements';
 import type { Prompt } from '../../types/Prompt';
 import type {
     string_date_iso8601,
@@ -64,8 +66,15 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
             throw new PipelineExecutionError('Use callChatModel only for CHAT variant');
         }
 
+        // TODO: [👨‍👨‍👧‍👧] Remove:
+        for (const key of ['maxTokens', 'modelName', 'seed', 'temperature'] as Array<keyof ModelRequirements>) {
+            if (modelRequirements[key] !== undefined) {
+                throw new NotYetImplementedError(`In \`OpenAiAssistantExecutionTools\` you cannot specify \`${key}\``);
+            }
+        }
+
         /*
-        TODO: Implement all of this for Assistants
+        TODO: [👨‍👨‍👧‍👧] Implement all of this for Assistants
         const modelName = modelRequirements.modelName || this.getDefaultChatModel().modelName;
         const modelSettings = {
             model: modelName,
@@ -94,7 +103,7 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
             //          <- [🧠] What is the best value here
         });
         const rawRequest: OpenAI.Beta.ThreadCreateAndRunStreamParams = {
-            // ...modelSettings,
+            // [👨‍👨‍👧‍👧] ...modelSettings,
 
             assistant_id: 'asst_CJCZzFCbBL0f2D4OWMXVTdBB',
             //             <- Note: This is not a private information, just ID of the assistant which is accessible only with correct API key
