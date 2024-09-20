@@ -11,7 +11,6 @@ import type { Prompt } from '../../../types/Prompt';
 import { keepUnused } from '../../../utils/organization/keepUnused';
 import { OpenAiAssistantExecutionTools } from '../OpenAiAssistantExecutionTools';
 import { OpenAiExecutionTools } from '../OpenAiExecutionTools';
-import spaceTrim from 'spacetrim';
 
 playground()
     .catch((error) => {
@@ -129,9 +128,6 @@ async function playground() {
 
         }
         */
-
-
-
     } as const satisfies Prompt;
     const chatPromptResult = await openAiAssistantExecutionTools.callChatModel(chatPrompt);
     console.info({ chatPromptResult });
