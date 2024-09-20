@@ -11,6 +11,7 @@ import type { Prompt } from '../../../types/Prompt';
 import { keepUnused } from '../../../utils/organization/keepUnused';
 import { OpenAiAssistantExecutionTools } from '../OpenAiAssistantExecutionTools';
 import { OpenAiExecutionTools } from '../OpenAiExecutionTools';
+import spaceTrim from 'spacetrim';
 
 playground()
     .catch((error) => {
@@ -121,6 +122,16 @@ async function playground() {
             // TODO: [👨‍👨‍👧‍👧] systemMessage: 'You are an assistant who only speaks in rhymes.',
             // TODO: [👨‍👨‍👧‍👧] temperature: 1.5,
         },
+
+        /*
+        !!!!!!
+        replyingTo: {
+
+        }
+        */
+
+
+
     } as const satisfies Prompt;
     const chatPromptResult = await openAiAssistantExecutionTools.callChatModel(chatPrompt);
     console.info({ chatPromptResult });
