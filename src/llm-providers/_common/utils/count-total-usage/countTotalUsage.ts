@@ -1,15 +1,15 @@
 import type { Promisable } from 'type-fest';
 import type { AvailableModel } from '../../../../execution/AvailableModel';
 import type { LlmExecutionTools } from '../../../../execution/LlmExecutionTools';
-import type {
-    ChatPromptResult,
-    CompletionPromptResult,
-    EmbeddingPromptResult,
-} from '../../../../execution/PromptResult';
+import type { ChatPromptResult } from '../../../../execution/PromptResult';
+import type { CompletionPromptResult } from '../../../../execution/PromptResult';
+import type { EmbeddingPromptResult } from '../../../../execution/PromptResult';
 import type { PromptResultUsage } from '../../../../execution/PromptResultUsage';
 import { addUsage } from '../../../../execution/utils/addUsage';
 import { ZERO_USAGE } from '../../../../execution/utils/usage-constants';
-import type { ChatPrompt, CompletionPrompt, EmbeddingPrompt } from '../../../../types/Prompt';
+import type { ChatPrompt } from '../../../../types/Prompt';
+import type { CompletionPrompt } from '../../../../types/Prompt';
+import type { EmbeddingPrompt } from '../../../../types/Prompt';
 import type { LlmExecutionToolsWithTotalUsage } from './LlmExecutionToolsWithTotalUsage';
 
 /**

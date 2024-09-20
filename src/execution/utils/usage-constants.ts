@@ -1,4 +1,4 @@
-import { $deepFreeze } from '../../_packages/utils.index';
+import { $deepFreeze } from '../../utils/serialization/$deepFreeze';
 import type { PromptResultUsage } from '../PromptResultUsage';
 
 /**

@@ -1,7 +1,8 @@
 import { spaceTrim } from 'spacetrim';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import type { CommonExecutionToolsOptions } from '../../execution/CommonExecutionToolsOptions';
-import type { ScriptExecutionTools, ScriptExecutionToolsExecuteOptions } from '../../execution/ScriptExecutionTools';
+import type { ScriptExecutionTools } from '../../execution/ScriptExecutionTools';
+import type { ScriptExecutionToolsExecuteOptions } from '../../execution/ScriptExecutionTools';
 
 /**
  * ScriptExecutionTools for Python

@@ -1,6 +1,6 @@
 import type { ClientOptions } from 'openai';
 import type { string_token } from '../../types/typeAliases';
-import { OpenAiExecutionToolsOptions } from './OpenAiExecutionToolsOptions';
+import type { OpenAiExecutionToolsOptions } from './OpenAiExecutionToolsOptions';
 
 /**
  * Options for `OpenAiAssistantExecutionTools`
