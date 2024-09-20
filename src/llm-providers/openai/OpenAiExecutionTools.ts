@@ -121,18 +121,21 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
             };
         }
 
+
+
         // <- TODO: [🚸] Not all models are compatible with JSON mode
         //        > 'response_format' of type 'json_object' is not supported with this model.
 
         const rawPromptContent = replaceParameters(content, { ...parameters, modelName });
-        const rawRequest: OpenAI.Chat.Completions.CompletionCreateParamsNonStreaming = {
-            ...modelSettings,
+        const rawRequest: OpenAI.Beta.Threads.ThreadCreateParams = {
+          assistant_id: 'assistant-1',
+            // ...modelSettings,
             messages: [
                 ...(modelRequirements.systemMessage === undefined
                     ? []
                     : ([
                           {
-                              role: 'system',
+                              role: 'assistant',
                               content: modelRequirements.systemMessage,
                           },
                       ] as const)),
@@ -149,12 +152,12 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
         if (this.options.isVerbose) {
             console.info(colors.bgWhite('rawRequest'), JSON.stringify(rawRequest, null, 4));
         }
-        const rawResponse = await client.chat.completions.create(rawRequest);
+        const rawResponse = await client.beta.threads.create(rawRequest);
         if (this.options.isVerbose) {
             console.info(colors.bgWhite('rawResponse'), JSON.stringify(rawResponse, null, 4));
         }
 
-        if (!rawResponse.choices[0]) {
+        if (!rawResponse.) {
             throw new PipelineExecutionError('No choises from OpenAI');
         }
 
