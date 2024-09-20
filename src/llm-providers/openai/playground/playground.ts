@@ -9,6 +9,7 @@ import { embeddingVectorToString } from '../../../execution/embeddingVectorToStr
 import { usageToHuman } from '../../../execution/utils/usageToHuman';
 import type { Prompt } from '../../../types/Prompt';
 import { keepUnused } from '../../../utils/organization/keepUnused';
+import { OpenAiAssistantExecutionTools } from '../OpenAiAssistantExecutionTools';
 import { OpenAiExecutionTools } from '../OpenAiExecutionTools';
 
 playground()
@@ -35,7 +36,18 @@ async function playground() {
         },
     );
 
+    const openAiAssistantExecutionTools = new OpenAiAssistantExecutionTools(
+        //            <- TODO: [🧱] Implement in a functional (not new Class) way
+        {
+            isVerbose: true,
+            apiKey: process.env.OPENAI_API_KEY!,
+            assistantId: 'asst_CJCZzFCbBL0f2D4OWMXVTdBB',
+            //            <- Note: This is not a private information, just ID of the assistant which is accessible only with correct API key
+        },
+    );
+
     keepUnused(openAiExecutionTools);
+    keepUnused(openAiAssistantExecutionTools);
     keepUnused(embeddingVectorToString);
     keepUnused(usageToHuman);
     keepUnused<Prompt>();
@@ -100,10 +112,29 @@ async function playground() {
     /**/
 
     /**/
+    const chatPrompt = {
+        title: 'Promptbook speech',
+        parameters: {},
+        content: `Write me speech about Promptbook and how it can help me to build the most beautiful chatbot and change the world`,
+        modelRequirements: {
+            modelVariant: 'CHAT',
+            systemMessage: 'You are an assistant who only speaks in rhymes.',
+            temperature: 1.5,
+        },
+    } as const satisfies Prompt;
+    const chatPromptResult = await openAiAssistantExecutionTools.callChatModel(chatPrompt);
+    console.info({ chatPromptResult });
+    console.info(colors.cyan(usageToHuman(chatPromptResult.usage)));
+    console.info(colors.bgBlue(' User: ') + colors.blue(chatPrompt.content));
+    console.info(colors.bgGreen(' Completion: ') + colors.green(chatPromptResult.content));
+    /**/
+
+    /**/
     const openai = await openAiExecutionTools.getClient();
     const stream = openai.beta.threads.createAndRunStream({
         stream: true,
         assistant_id: 'asst_CJCZzFCbBL0f2D4OWMXVTdBB',
+        //             <- Note: This is not a private information, just ID of the assistant which is accessible only with correct API key
         thread: {
             messages: [{ role: 'user', content: 'What is the meaning of life? I want breathtaking speech.' }],
         },

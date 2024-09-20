@@ -531,7 +531,8 @@ Knowledge scrapers [🐝]
 
 Support for [Assistants API (GPTs)](https://platform.openai.com/docs/assistants/overview) from OpenAI
 
-- `getClient` methods are public
+-   Add `OpenAiAssistantExecutionTools`
+-   `getClient` methods are public
 
 ## Drafts
 
