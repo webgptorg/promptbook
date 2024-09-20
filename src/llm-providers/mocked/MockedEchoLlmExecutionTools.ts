@@ -16,7 +16,7 @@ import { $asDeeplyFrozenSerializableJson } from '../../utils/serialization/$asDe
  * @public exported from `@promptbook/fake-llm`
  */
 export class MockedEchoLlmExecutionTools implements LlmExecutionTools {
-    public constructor(private readonly options: CommonExecutionToolsOptions = {}) {}
+    public constructor(protected readonly options: CommonExecutionToolsOptions = {}) {}
 
     public get title(): string_title & string_markdown_text {
         return 'Mocked echo';

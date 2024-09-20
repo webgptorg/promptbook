@@ -1,16 +1,15 @@
 import { spaceTrim } from 'spacetrim';
-import type { UserInterfaceTools } from '../../../execution/UserInterfaceTools';
-import type { UserInterfaceToolsPromptDialogOptions } from '../../../execution/UserInterfaceTools';
+import type { UserInterfaceTools, UserInterfaceToolsPromptDialogOptions } from '../../../execution/UserInterfaceTools';
 import type { CallbackInterfaceToolsOptions } from './CallbackInterfaceToolsOptions';
 
 /**
  * Delagates the user interaction to a async callback function
  * You need to provide your own implementation of this callback function and its bind to UI.
- * 
+ *
  * @public exported from `@promptbook/core`
  */
 export class CallbackInterfaceTools implements UserInterfaceTools {
-    public constructor(private readonly options: CallbackInterfaceToolsOptions) {}
+    public constructor(protected readonly options: CallbackInterfaceToolsOptions) {}
 
     /**
      * Trigger the custom callback function

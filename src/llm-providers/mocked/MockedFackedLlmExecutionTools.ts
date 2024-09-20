@@ -17,7 +17,7 @@ import { $fakeTextToExpectations } from './$fakeTextToExpectations';
  * @public exported from `@promptbook/fake-llm`
  */
 export class MockedFackedLlmExecutionTools implements LlmExecutionTools {
-    public constructor(private readonly options: CommonExecutionToolsOptions = {}) {}
+    public constructor(protected readonly options: CommonExecutionToolsOptions = {}) {}
 
     public get title(): string_title & string_markdown_text {
         return 'Mocked facked';

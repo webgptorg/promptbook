@@ -1,8 +1,7 @@
 import { spaceTrim } from 'spacetrim';
 import { PipelineExecutionError } from '../../../errors/PipelineExecutionError';
 import type { CommonExecutionToolsOptions } from '../../../execution/CommonExecutionToolsOptions';
-import type { UserInterfaceTools } from '../../../execution/UserInterfaceTools';
-import type { UserInterfaceToolsPromptDialogOptions } from '../../../execution/UserInterfaceTools';
+import type { UserInterfaceTools, UserInterfaceToolsPromptDialogOptions } from '../../../execution/UserInterfaceTools';
 
 /**
  * Wrapper around `window.prompt` synchronous function that interacts with the user via browser prompt
@@ -13,7 +12,7 @@ import type { UserInterfaceToolsPromptDialogOptions } from '../../../execution/U
  * @public exported from `@promptbook/browser`
  */
 export class SimplePromptInterfaceTools implements UserInterfaceTools {
-    public constructor(private readonly options: CommonExecutionToolsOptions = {}) {}
+    public constructor(protected readonly options: CommonExecutionToolsOptions = {}) {}
 
     /**
      * Trigger window.DIALOG TEMPLATE
