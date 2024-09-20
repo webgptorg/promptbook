@@ -1,9 +1,6 @@
 import { spaceTrim } from 'spacetrim';
 import type { Promisable, ReadonlyDeep } from 'type-fest';
-import { DEFAULT_CSV_SETTINGS } from '../../config';
-import { IS_VERBOSE } from '../../config';
-import { MAX_EXECUTION_ATTEMPTS } from '../../config';
-import { MAX_PARALLEL_COUNT } from '../../config';
+import { DEFAULT_CSV_SETTINGS, IS_VERBOSE, MAX_EXECUTION_ATTEMPTS, MAX_PARALLEL_COUNT } from '../../config';
 import { validatePipeline } from '../../conversion/validation/validatePipeline';
 import { isPipelinePrepared } from '../../prepare/isPipelinePrepared';
 import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
@@ -69,11 +66,15 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
         );
     }
 
+    let runCount = 0;
+
     const pipelineExecutor: PipelineExecutor = async (
         inputParameters: Parameters,
         onProgress?: (taskProgress: TaskProgress) => Promisable<void>,
     ): Promise<PipelineExecutorResult> => {
-        return executePipeline({
+        runCount++;
+
+        return /* not await */ executePipeline({
             pipeline,
             preparedPipeline,
             setPreparedPipeline: (newPreparedPipeline) => {
@@ -82,7 +83,12 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
             inputParameters,
             tools,
             onProgress,
-            pipelineIdentification, // <- TODO: [🦡] !!!!!! make identification more granular
+            pipelineIdentification: spaceTrim(
+                (block) => `
+                    ${block(pipelineIdentification)}
+                    ${runCount === 1 ? '' : `Run #${runCount}`}
+                `,
+            ),
             settings: {
                 maxExecutionAttempts,
                 maxParallelCount,
