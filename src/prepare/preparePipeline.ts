@@ -1,8 +1,7 @@
 import type { Writable } from 'type-fest';
-import { IS_VERBOSE } from '../config';
-import { MAX_PARALLEL_COUNT } from '../config';
-import { ZERO_USAGE } from '../execution/utils/addUsage';
+import { IS_VERBOSE, MAX_PARALLEL_COUNT } from '../config';
 import { forEachAsync } from '../execution/utils/forEachAsync';
+import { ZERO_USAGE } from '../execution/utils/usage-constants';
 import { prepareKnowledgePieces } from '../knowledge/prepare-knowledge/_common/prepareKnowledgePieces';
 import { countTotalUsage } from '../llm-providers/_common/utils/count-total-usage/countTotalUsage';
 import { preparePersona } from '../personas/preparePersona';

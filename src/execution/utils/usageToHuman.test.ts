@@ -1,6 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
 import spaceTrim from 'spacetrim';
-import { ZERO_USAGE } from './addUsage';
+import { ZERO_USAGE } from './usage-constants';
 import { usageToHuman } from './usageToHuman';
 
 describe('how usageToHuman works', () => {
@@ -72,7 +72,7 @@ describe('how usageToHuman works', () => {
                 Usage:
                 - Cost approximately 1 USD
                 - Saved approximately 33.58 hours of human time
-          
+
             `),
         ));
 });
