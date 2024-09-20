@@ -101,8 +101,35 @@ async function playground() {
 
     /**/
     const openai = await openAiExecutionTools.getClient();
-    const result = await openai.beta.assistants.list();
-    console.log(result);
+    const stream = openai.beta.threads.createAndRunStream({
+        stream: true,
+        assistant_id: 'asst_CJCZzFCbBL0f2D4OWMXVTdBB',
+        thread: {
+            messages: [{ role: 'user', content: 'What is the meaning of life? I want breathtaking speech.' }],
+        },
+    });
+
+    console.log(stream);
+
+    stream.on('connect', () => {
+        console.log('connect', stream.currentEvent);
+    });
+
+    stream.on('messageDelta', (messageDelta) => {
+        console.log('messageDelta', (messageDelta as any).content[0].text);
+    });
+
+    stream.on('messageCreated', (message) => {
+        console.log('messageCreated', message);
+    });
+
+    stream.on('messageDone', (message) => {
+        console.log('messageDone', message);
+    });
+
+    const finalMessages = await stream.finalMessages();
+    console.log('finalMessages', finalMessages, finalMessages[0].content[0]);
+
     /**/
 
     /*/
