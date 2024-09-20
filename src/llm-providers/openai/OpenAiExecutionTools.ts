@@ -47,7 +47,7 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
         return 'Use all models provided by OpenAI';
     }
 
-    private async getClient(): Promise<OpenAI> {
+    public async getClient(): Promise<OpenAI> {
         if (this.client === null) {
             // Note: Passing only OpenAI relevant options to OpenAI constructor
             const openAiOptions = { ...this.options };
