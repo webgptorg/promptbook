@@ -1,4 +1,5 @@
-import { IS_VERBOSE, MAX_PARALLEL_COUNT } from '../../../config';
+import { IS_VERBOSE } from '../../../config';
+import { MAX_PARALLEL_COUNT } from '../../../config';
 import type { PrepareOptions } from '../../../prepare/PrepareOptions';
 import type { KnowledgePiecePreparedJson } from '../../../types/PipelineJson/KnowledgePieceJson';
 import type { string_base64 } from '../../../types/typeAliases';
