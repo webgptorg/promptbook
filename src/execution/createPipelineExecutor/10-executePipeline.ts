@@ -41,8 +41,7 @@ type ExecutePipelineOptions = {
     /**
      * @@@
      */
-    readonly onProgress?: (taskProgress: TaskProgress) => Promisable<void>;
-    // <- TODO: !!!!!! ACRY notation of onProgress - function or value
+    onProgress?(taskProgress: TaskProgress): Promisable<void>;
 
     /**
      * @@@
