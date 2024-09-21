@@ -52,4 +52,6 @@ export function isPassingExpectations(expectations: Expectations, value: string)
 
 /**
  * TODO: [💝] Unite object for expecting amount and format
+ * TODO: [🧠][🤠] This should be part of `TextFormatDefinition`
+ * Note: [💝] and [🤠] are interconnected together
  */

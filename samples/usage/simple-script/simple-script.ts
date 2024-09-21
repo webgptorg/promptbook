@@ -1,17 +1,25 @@
 #!/usr/bin/env ts-node
 
+/*
+Note: [🔁] In your app you will be importing '@promptbook/core' instead of '../../../src/_packages/core.index.index',...
+*/
+
+import colors from 'colors';
+import * as dotenv from 'dotenv';
+import { writeFile } from 'fs/promises';
+import { forTime } from 'waitasecond';
 import {
     createPipelineExecutor,
     executionReportJsonToString,
     stringifyPipelineJson,
     usageToHuman,
-} from '@promptbook/core';
-import { JavascriptExecutionTools } from '@promptbook/execute-javascript';
-import { createCollectionFromDirectory, createLlmToolsFromEnv } from '@promptbook/node';
-import colors from 'colors';
-import * as dotenv from 'dotenv';
-import { writeFile } from 'fs/promises';
-import { forTime } from 'waitasecond';
+} from '../../../src/_packages/core.index';
+import { JavascriptExecutionTools } from '../../../src/_packages/execute-javascript.index';
+import { createCollectionFromDirectory, createLlmToolsFromEnv } from '../../../src/_packages/node.index';
+
+import '../../../src/_packages/anthropic-claude.index';
+import '../../../src/_packages/azure-openai.index';
+import '../../../src/_packages/openai.index';
 
 if (process.cwd().split(/[\\/]/).pop() !== 'promptbook') {
     console.error(colors.red(`CWD must be root of the project`));
@@ -45,7 +53,9 @@ async function main() {
     // @see https://nodejs.org/en/learn/command-line/accept-input-from-the-command-line-in-nodejs
 
     const pipeline = await collection.getPipelineByUrl(
-        'https://promptbook.studio/samples/simple-knowledge.ptbk.md',
+        //`https://promptbook.studio/samples/foreach-list.ptbk.md`,
+        //`https://promptbook.studio/samples/foreach-csv.ptbk.md`,
+        `https://promptbook.studio/samples/simple-knowledge.ptbk.md`,
         // `https://promptbook.studio/samples/simple.ptbk.md`,
         // `https://promptbook.studio/samples/language-capabilities.ptbk.md`,
     );
@@ -71,7 +81,24 @@ async function main() {
     const pipelineExecutor = createPipelineExecutor({ pipeline, tools });
 
     const inputParameters = {
-        eventTitle: 'TypeScript developers summit 2025',
+        /*/
+        // https://promptbook.studio/samples/foreach-list.ptbk.md
+        customers: spaceTrim(`
+            Paul
+            George
+            Kate
+        `),
+        /**/
+        /*/
+        // https://promptbook.studio/samples/foreach-csv.ptbk.md
+        customers: await readFile('./samples/pipelines/85-foreach.csv', 'utf-8'),
+        /**/
+        /**/
+        // https://promptbook.studio/samples/simple-knowledge.ptbk.md
+        eventTitle: 'LinkedIn',
+        eventDescription: 'Professional LinkedIn profile',
+        rules: 'Write best text for LinkedIn in first person',
+        /**/
     };
     const { isSuccessful, errors, warnings, outputParameters, executionReport, usage } = await pipelineExecutor(
         inputParameters,
@@ -90,7 +117,7 @@ async function main() {
     );
 
     const executionReportString = executionReportJsonToString(executionReport);
-    // TODO:[main] !!! Unhardcode 50-advanced
+
     await writeFile(
         pipeline.sourceFile.split('.ptbk.md').join('.report.md').split('.ptbk.json').join('.report.md'),
         //                  <- TODO: [0] More elegant way to replace extension
@@ -98,21 +125,23 @@ async function main() {
         'utf-8',
     );
 
-    for (const error of errors) {
-        console.error(colors.bgRed(error.name /* <- 11:11 */));
-        console.error(colors.red(error.stack || error.message));
-    }
-
     for (const warning of warnings) {
         console.error(colors.bgYellow(warning.name /* <- 11:11 */));
         console.error(colors.yellow(warning.stack || warning.message));
     }
 
+    for (const error of errors) {
+        console.error(colors.bgRed(error.name /* <- 11:11 */));
+        console.error(colors.red(error.stack || error.message));
+    }
+
+    // console.info(usage);
     console.info(colors.cyan(usageToHuman(usage /* <- TODO: [🌳] Compare with `llmTools.getTotalUsage()` */)));
 
-    const { bio } = outputParameters;
+    for (const [key, value] of Object.entries(outputParameters)) {
+        console.info(colors.bgGreen(key), colors.green(value));
+    }
 
-    console.info(colors.green(bio));
     process.exit(isSuccessful ? 0 : 1);
 }
 

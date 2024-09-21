@@ -2,7 +2,7 @@ import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
 import { ParseError } from '../../errors/ParseError';
 import type { string_markdown_text } from '../../types/typeAliases';
 import { keepUnused } from '../../utils/organization/keepUnused';
-import type { TODO_any } from '../../utils/organization/TODO_any';
+import { validateParameterName } from '../../utils/validators/parameterName/validateParameterName';
 import type { $TemplateJson } from '../_common/types/CommandParser';
 import type { CommandParserInput } from '../_common/types/CommandParser';
 import type { PipelineTemplateCommandParser } from '../_common/types/CommandParser';
@@ -47,13 +47,13 @@ export const jokerCommandParser: PipelineTemplateCommandParser<JokerCommand> = {
     parse(input: CommandParserInput): JokerCommand {
         const { args } = input;
 
-        const parametersMatch = (args.pop() || '').match(/^\{(?<parameterName>[a-z0-9_]+)\}$/im);
-
-        if (!parametersMatch || !parametersMatch.groups || !parametersMatch.groups.parameterName) {
-            throw new ParseError(`Invalid joker`);
+        if (args.length !== 1) {
+            throw new ParseError(`JOKE command expects exactly one parameter name`);
         }
 
-        const { parameterName } = parametersMatch.groups as TODO_any;
+        const parameterNameArg = args[0] || '';
+
+        const parameterName = validateParameterName(parameterNameArg);
 
         return {
             type: 'JOKER',

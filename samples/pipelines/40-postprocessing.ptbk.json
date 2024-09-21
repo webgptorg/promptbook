@@ -1,7 +1,6 @@
 {
     "title": "✨ Sample: Postprocessing 1",
     "pipelineUrl": "https://promptbook.studio/samples/postprocessing-1.ptbk.md",
-    "promptbookVersion": "1.0.0",
     "description": "Show how to use two consecutive prompts with one parameter each.",
     "parameters": [
         {

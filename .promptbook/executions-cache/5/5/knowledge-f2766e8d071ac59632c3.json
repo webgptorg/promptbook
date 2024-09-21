@@ -1,0 +1,104 @@
+{
+    "date": "2024-09-08T07:10:23.265Z",
+    "promptbookVersion": "0.69.0-10",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-from-markdown.ptbk.md#knowledge",
+        "parameters": {
+            "knowledgeContent": "Uranium Glass Garden Gnomes are the newest product in the eshop. They are made of glass with a fluorescent uranium oxide added to the glass mixture. The gnomes are equipped with a UV LED light that makes them glow in the dark. They are great for scaring away birds and snakes."
+        },
+        "content": "You are experienced data researcher, extract the important knowledge from the document.\n\n# Rules\n\n-   Make pieces of information concise, clear, and easy to understand\n-   One piece of information should be approximately 1 paragraph\n-   Divide the paragraphs by markdown horizontal lines ---\n-   Omit irrelevant information\n-   Group redundant information\n-   Write just extracted information, nothing else\n\n# The document\n\nTake information from this document:\n\n> {knowledgeContent}",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {}
+    },
+    "promptResult": {
+        "content": "---\n\nUranium Glass Garden Gnomes are a new product available in an online shop. These decorative items are made from glass that contains fluorescent uranium oxide, giving them unique visual properties.\n\n---\n\nThe gnomes are equipped with a UV LED light, which causes them to glow in the dark when activated. This feature enhances their visual appeal and functionality in low-light conditions.\n\n---\n\nThese garden gnomes serve a dual purpose: they are decorative items and also function as a deterrent for birds and snakes in outdoor spaces.",
+        "modelName": "claude-3-5-sonnet-20240620",
+        "timing": {
+            "start": "2024-09-08T07:10:20.734Z",
+            "complete": "2024-09-08T07:10:23.265Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0.002274
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 173
+                },
+                "charactersCount": {
+                    "value": 740
+                },
+                "wordsCount": {
+                    "value": 109
+                },
+                "sentencesCount": {
+                    "value": 5
+                },
+                "linesCount": {
+                    "value": 16
+                },
+                "paragraphsCount": {
+                    "value": 6
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 117
+                },
+                "charactersCount": {
+                    "value": 538
+                },
+                "wordsCount": {
+                    "value": 85
+                },
+                "sentencesCount": {
+                    "value": 5
+                },
+                "linesCount": {
+                    "value": 11
+                },
+                "paragraphsCount": {
+                    "value": 6
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced data researcher, extract the important knowledge from the document.\n\n# Rules\n\n-   Make pieces of information concise, clear, and easy to understand\n-   One piece of information should be approximately 1 paragraph\n-   Divide the paragraphs by markdown horizontal lines ---\n-   Omit irrelevant information\n-   Group redundant information\n-   Write just extracted information, nothing else\n\n# The document\n\nTake information from this document:\n\n> Uranium Glass Garden Gnomes are the newest product in the eshop. They are made of glass with a fluorescent uranium oxide added to the glass mixture. The gnomes are equipped with a UV LED light that makes them glow in the dark. They are great for scaring away birds and snakes.",
+        "rawRequest": {
+            "model": "claude-3-5-sonnet-20240620",
+            "max_tokens": 4096,
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "You are experienced data researcher, extract the important knowledge from the document.\n\n# Rules\n\n-   Make pieces of information concise, clear, and easy to understand\n-   One piece of information should be approximately 1 paragraph\n-   Divide the paragraphs by markdown horizontal lines ---\n-   Omit irrelevant information\n-   Group redundant information\n-   Write just extracted information, nothing else\n\n# The document\n\nTake information from this document:\n\n> Uranium Glass Garden Gnomes are the newest product in the eshop. They are made of glass with a fluorescent uranium oxide added to the glass mixture. The gnomes are equipped with a UV LED light that makes them glow in the dark. They are great for scaring away birds and snakes."
+                }
+            ]
+        },
+        "rawResponse": {
+            "id": "msg_01J4QQgpKJr2EycVRft95XPr",
+            "type": "message",
+            "role": "assistant",
+            "model": "claude-3-5-sonnet-20240620",
+            "content": [
+                {
+                    "type": "text",
+                    "text": "---\n\nUranium Glass Garden Gnomes are a new product available in an online shop. These decorative items are made from glass that contains fluorescent uranium oxide, giving them unique visual properties.\n\n---\n\nThe gnomes are equipped with a UV LED light, which causes them to glow in the dark when activated. This feature enhances their visual appeal and functionality in low-light conditions.\n\n---\n\nThese garden gnomes serve a dual purpose: they are decorative items and also function as a deterrent for birds and snakes in outdoor spaces."
+                }
+            ],
+            "stop_reason": "end_turn",
+            "stop_sequence": null,
+            "usage": {
+                "input_tokens": 173,
+                "output_tokens": 117
+            }
+        }
+    }
+}

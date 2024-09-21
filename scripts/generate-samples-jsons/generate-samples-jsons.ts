@@ -90,7 +90,6 @@ async function generateSampleJsons({
 
             // Note: We want to ensure that the generated JSONs are logically correct
             validatePipeline(pipelineJson);
-            // <- TODO: Maybe make configuration value simmilar to `DEBUG_ALLOW_PAYED_TESTING` for this
 
             await writeFile(pipelineJsonFilePath, stringifyPipelineJson(pipelineJson));
 

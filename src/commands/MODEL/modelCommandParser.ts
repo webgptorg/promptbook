@@ -50,6 +50,18 @@ export const modelCommandParser: PipelineBothCommandParser<ModelCommand> = {
     parse(input: CommandParserInput): ModelCommand {
         const { args, normalized } = input;
 
+        const availableVariantsMessage = spaceTrim(
+            (block) => `
+              Available variants are:
+              ${block(
+                  MODEL_VARIANTS.map(
+                      (variantName) =>
+                          `- ${variantName}${variantName !== 'EMBEDDING' ? '' : ' (Not available in pipeline)'}`,
+                  ).join('\n'),
+              )}
+          `,
+        );
+
         // TODO: Make this more elegant and dynamically
         if (normalized.startsWith('MODEL_VARIANT')) {
             if (normalized === 'MODEL_VARIANT_CHAT') {
@@ -64,21 +76,22 @@ export const modelCommandParser: PipelineBothCommandParser<ModelCommand> = {
                     key: 'modelVariant',
                     value: 'COMPLETION',
                 } satisfies ModelCommand;
-            } else if (normalized.startsWith('MODEL_VARIANT_EMBED')) {
-                return {
-                    type: 'MODEL',
-                    key: 'modelVariant',
-                    value: 'EMBEDDING',
-                } satisfies ModelCommand;
                 // <- Note: [🤖]
+            } else if (normalized.startsWith('MODEL_VARIANT_EMBED')) {
+                spaceTrim(
+                    (block) => `
+                        Embedding model can not be used in pipeline
+
+                        ${block(availableVariantsMessage)}
+                    `,
+                );
             } else {
                 throw new ParseError(
                     spaceTrim(
                         (block) => `
                             Unknown model variant in command:
 
-                            Supported variants are:
-                            ${block(MODEL_VARIANTS.map((variantName) => `- ${variantName}`).join('\n'))}
+                            ${block(availableVariantsMessage)}
                         `,
                     ),
                 );
@@ -120,6 +133,7 @@ export const modelCommandParser: PipelineBothCommandParser<ModelCommand> = {
         if ($pipelineJson.defaultModelRequirements[command.key] !== undefined) {
             if ($pipelineJson.defaultModelRequirements[command.key] === command.value) {
                 console.warn(`Multiple commands \`MODEL ${command.key} ${command.value}\` in the pipeline head`);
+                // <- TODO: [🚎] Some better way how to get warnings from pipeline parsing / logic
             } else {
                 throw new ParseError(
                     spaceTrim(`

@@ -1,0 +1,109 @@
+{
+    "date": "2024-09-08T07:10:23.486Z",
+    "promptbookVersion": "0.69.0-10",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-title.ptbk.md#knowledge",
+        "parameters": {
+            "knowledgePieceContent": "The company operates three physical stores in the UK, as well as a large online store. Their online presence serves customers in the UK, EU, and Switzerland."
+        },
+        "content": "You are experienced content creator, write best title for the document.\n\n# Rules\n\n-   Write just title, nothing else\n-   Title should be concise and clear\n-   Write maximum 5 words for the title\n\n# The document\n\n> {knowledgePieceContent}",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {
+            "words": {
+                "min": 1,
+                "max": 8
+            }
+        }
+    },
+    "promptResult": {
+        "content": "UK Retailer: Stores and Online Presence",
+        "modelName": "claude-3-5-sonnet-20240620",
+        "timing": {
+            "start": "2024-09-08T07:10:22.658Z",
+            "complete": "2024-09-08T07:10:23.486Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0.00047099999999999996
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 92
+                },
+                "charactersCount": {
+                    "value": 371
+                },
+                "wordsCount": {
+                    "value": 59
+                },
+                "sentencesCount": {
+                    "value": 3
+                },
+                "linesCount": {
+                    "value": 11
+                },
+                "paragraphsCount": {
+                    "value": 5
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 13
+                },
+                "charactersCount": {
+                    "value": 39
+                },
+                "wordsCount": {
+                    "value": 6
+                },
+                "sentencesCount": {
+                    "value": 1
+                },
+                "linesCount": {
+                    "value": 1
+                },
+                "paragraphsCount": {
+                    "value": 1
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced content creator, write best title for the document.\n\n# Rules\n\n-   Write just title, nothing else\n-   Title should be concise and clear\n-   Write maximum 5 words for the title\n\n# The document\n\n> The company operates three physical stores in the UK, as well as a large online store. Their online presence serves customers in the UK, EU, and Switzerland.",
+        "rawRequest": {
+            "model": "claude-3-5-sonnet-20240620",
+            "max_tokens": 4096,
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "You are experienced content creator, write best title for the document.\n\n# Rules\n\n-   Write just title, nothing else\n-   Title should be concise and clear\n-   Write maximum 5 words for the title\n\n# The document\n\n> The company operates three physical stores in the UK, as well as a large online store. Their online presence serves customers in the UK, EU, and Switzerland."
+                }
+            ]
+        },
+        "rawResponse": {
+            "id": "msg_015indDT2NhDvEVKk5i8Q118",
+            "type": "message",
+            "role": "assistant",
+            "model": "claude-3-5-sonnet-20240620",
+            "content": [
+                {
+                    "type": "text",
+                    "text": "UK Retailer: Stores and Online Presence"
+                }
+            ],
+            "stop_reason": "end_turn",
+            "stop_sequence": null,
+            "usage": {
+                "input_tokens": 92,
+                "output_tokens": 13
+            }
+        }
+    }
+}

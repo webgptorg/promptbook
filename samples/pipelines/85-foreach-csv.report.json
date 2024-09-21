@@ -1,0 +1,363 @@
+{
+    "pipelineUrl": "https://promptbook.studio/samples/foreach-csv.ptbk.md",
+    "title": "✨ Write email for each customer",
+    "promptbookUsedVersion": "0.69.0-10",
+    "promptbookRequestedVersion": "0.69.0-10",
+    "description": "Show how to iterate over a table of customers and write an email for each.",
+    "promptExecutions": [
+        {
+            "prompt": {
+                "title": "Write a email",
+                "pipelineUrl": "https://promptbook.studio/samples/foreach-csv.ptbk.md#write-a-email",
+                "parameters": {
+                    "knowledge": "- ---\n\nCoolstore is an e-commerce business specializing in hobby, home, and garden products. Their product range is diverse, including items like garden gnomes and kitchen gadgets.\n- The company operates three physical stores in the UK, as well as a large online store. Their online presence serves customers in the UK, EU, and Switzerland.\n- Coolstore's key selling points are fast delivery and excellent customer service with a personal touch.\n\n---\n- ---\n\nUranium Glass Garden Gnomes are a new product available in an online shop. These decorative items are made from glass that contains fluorescent uranium oxide, giving them unique visual properties.\n- The gnomes are equipped with a UV LED light, which causes them to glow in the dark when activated. This feature enhances their visual appeal and functionality in low-light conditions.\n- These garden gnomes serve a dual purpose: they are decorative items and also function as a deterrent for birds and snakes in outdoor spaces.",
+                    "customers": "First name,Last name,Note\r\nAlice,Springfield,Extremely important customer\r\nJohn,Snow,More informally in Scottish English\r\nPavol,Hejný,\"Writes in Czech language\nLives in and loves the Prague, please mention it every communication\"\r\n",
+                    "firstName": "John",
+                    "lastName": "Snow",
+                    "note": "More informally in Scottish English"
+                },
+                "content": "Write an email from Coolstore shop to customer \"{firstName} {lastName}\". Inform him about new product fluorescent Uranium Glass Garden Gnome with build-in UV LED light.\n\n## Rules\n\n-   Write just an text of email, nothing else\n-   {note}\n\n## Knowledge\n\n{knowledge}",
+                "modelRequirements": {
+                    "modelVariant": "CHAT"
+                },
+                "expectations": {
+                    "name": "Jane",
+                    "description": "customer service representative and skilled copywriter for eshop",
+                    "modelRequirements": {
+                        "modelVariant": "CHAT",
+                        "modelName": "gpt-4-turbo-2024-04-09",
+                        "systemMessage": "You are a friendly and professional customer service representative and skilled copywriter for an online shop. Your role is to assist customers with inquiries, provide product information, and create compelling product descriptions. Always maintain a helpful and positive attitude, prioritize customer satisfaction, and use your copywriting skills to effectively communicate the benefits and features of products.",
+                        "temperature": 0.7
+                    },
+                    "preparationIds": [
+                        1
+                    ]
+                }
+            },
+            "result": {
+                "content": "Awright there, John!\n\nHope ye're daein' braw. Thought ye might fancy a wee gander at our latest gizmo - the fluorescent Uranium Glass Garden Gnome. Aye, ye heard that right!\n\nThis wee chappie's got some proper magic aboot him. He's made frae glass wi' a touch o' uranium oxide, which maks him glow like a bonfire when ye switch on the UV LED light we've popped inside him. It's pure dead brilliant in the gloamin'!\n\nNae need tae fash yersel' aboot safety - he's as harmless as a wee lamb. But he'll gie the birds and snakes a right fright if they come snooping aroond yer garden.\n\nFancy addin' a bit o' pizzazz tae yer wee patch o' green? This glowy gnome's just the ticket. Gie us a shout if ye want tae snap one up or if ye've got any questions.\n\nCheers, pal!\n\nThe Coolstore Team",
+                "modelName": "claude-3-5-sonnet-20240620",
+                "timing": {
+                    "start": "2024-09-08T19:19:25.054Z",
+                    "complete": "2024-09-08T19:19:30.205Z"
+                },
+                "usage": {
+                    "price": {
+                        "value": 0.004569
+                    },
+                    "input": {
+                        "tokensCount": {
+                            "value": 283
+                        },
+                        "charactersCount": {
+                            "value": 1251
+                        },
+                        "wordsCount": {
+                            "value": 195
+                        },
+                        "sentencesCount": {
+                            "value": 12
+                        },
+                        "linesCount": {
+                            "value": 21
+                        },
+                        "paragraphsCount": {
+                            "value": 8
+                        },
+                        "pagesCount": {
+                            "value": 3
+                        }
+                    },
+                    "output": {
+                        "tokensCount": {
+                            "value": 248
+                        },
+                        "charactersCount": {
+                            "value": 781
+                        },
+                        "wordsCount": {
+                            "value": 154
+                        },
+                        "sentencesCount": {
+                            "value": 14
+                        },
+                        "linesCount": {
+                            "value": 13
+                        },
+                        "paragraphsCount": {
+                            "value": 7
+                        },
+                        "pagesCount": {
+                            "value": 3
+                        }
+                    }
+                },
+                "rawPromptContent": "Write an email from Coolstore shop to customer \"John Snow\". Inform him about new product fluorescent Uranium Glass Garden Gnome with build-in UV LED light.\n\n## Rules\n\n-   Write just an text of email, nothing else\n-   More informally in Scottish English\n\n## Knowledge\n\n- ---\n\nCoolstore is an e-commerce business specializing in hobby, home, and garden products. Their product range is diverse, including items like garden gnomes and kitchen gadgets.\n- The company operates three physical stores in the UK, as well as a large online store. Their online presence serves customers in the UK, EU, and Switzerland.\n- Coolstore's key selling points are fast delivery and excellent customer service with a personal touch.\n\n---\n- ---\n\nUranium Glass Garden Gnomes are a new product available in an online shop. These decorative items are made from glass that contains fluorescent uranium oxide, giving them unique visual properties.\n- The gnomes are equipped with a UV LED light, which causes them to glow in the dark when activated. This feature enhances their visual appeal and functionality in low-light conditions.\n- These garden gnomes serve a dual purpose: they are decorative items and also function as a deterrent for birds and snakes in outdoor spaces.",
+                "rawRequest": {
+                    "model": "claude-3-5-sonnet-20240620",
+                    "max_tokens": 4096,
+                    "messages": [
+                        {
+                            "role": "user",
+                            "content": "Write an email from Coolstore shop to customer \"John Snow\". Inform him about new product fluorescent Uranium Glass Garden Gnome with build-in UV LED light.\n\n## Rules\n\n-   Write just an text of email, nothing else\n-   More informally in Scottish English\n\n## Knowledge\n\n- ---\n\nCoolstore is an e-commerce business specializing in hobby, home, and garden products. Their product range is diverse, including items like garden gnomes and kitchen gadgets.\n- The company operates three physical stores in the UK, as well as a large online store. Their online presence serves customers in the UK, EU, and Switzerland.\n- Coolstore's key selling points are fast delivery and excellent customer service with a personal touch.\n\n---\n- ---\n\nUranium Glass Garden Gnomes are a new product available in an online shop. These decorative items are made from glass that contains fluorescent uranium oxide, giving them unique visual properties.\n- The gnomes are equipped with a UV LED light, which causes them to glow in the dark when activated. This feature enhances their visual appeal and functionality in low-light conditions.\n- These garden gnomes serve a dual purpose: they are decorative items and also function as a deterrent for birds and snakes in outdoor spaces."
+                        }
+                    ]
+                },
+                "rawResponse": {
+                    "id": "msg_014itQYGqiu6Dg2UPEHSFgUT",
+                    "type": "message",
+                    "role": "assistant",
+                    "model": "claude-3-5-sonnet-20240620",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "Awright there, John!\n\nHope ye're daein' braw. Thought ye might fancy a wee gander at our latest gizmo - the fluorescent Uranium Glass Garden Gnome. Aye, ye heard that right!\n\nThis wee chappie's got some proper magic aboot him. He's made frae glass wi' a touch o' uranium oxide, which maks him glow like a bonfire when ye switch on the UV LED light we've popped inside him. It's pure dead brilliant in the gloamin'!\n\nNae need tae fash yersel' aboot safety - he's as harmless as a wee lamb. But he'll gie the birds and snakes a right fright if they come snooping aroond yer garden.\n\nFancy addin' a bit o' pizzazz tae yer wee patch o' green? This glowy gnome's just the ticket. Gie us a shout if ye want tae snap one up or if ye've got any questions.\n\nCheers, pal!\n\nThe Coolstore Team"
+                        }
+                    ],
+                    "stop_reason": "end_turn",
+                    "stop_sequence": null,
+                    "usage": {
+                        "input_tokens": 283,
+                        "output_tokens": 248
+                    }
+                }
+            }
+        },
+        {
+            "prompt": {
+                "title": "Write a email",
+                "pipelineUrl": "https://promptbook.studio/samples/foreach-csv.ptbk.md#write-a-email",
+                "parameters": {
+                    "knowledge": "- ---\n\nCoolstore is an e-commerce business specializing in hobby, home, and garden products. Their product range is diverse, including items like garden gnomes and kitchen gadgets.\n- The company operates three physical stores in the UK, as well as a large online store. Their online presence serves customers in the UK, EU, and Switzerland.\n- Coolstore's key selling points are fast delivery and excellent customer service with a personal touch.\n\n---\n- ---\n\nUranium Glass Garden Gnomes are a new product available in an online shop. These decorative items are made from glass that contains fluorescent uranium oxide, giving them unique visual properties.\n- The gnomes are equipped with a UV LED light, which causes them to glow in the dark when activated. This feature enhances their visual appeal and functionality in low-light conditions.\n- These garden gnomes serve a dual purpose: they are decorative items and also function as a deterrent for birds and snakes in outdoor spaces.",
+                    "customers": "First name,Last name,Note\r\nAlice,Springfield,Extremely important customer\r\nJohn,Snow,More informally in Scottish English\r\nPavol,Hejný,\"Writes in Czech language\nLives in and loves the Prague, please mention it every communication\"\r\n",
+                    "firstName": "Alice",
+                    "lastName": "Springfield",
+                    "note": "Extremely important customer"
+                },
+                "content": "Write an email from Coolstore shop to customer \"{firstName} {lastName}\". Inform him about new product fluorescent Uranium Glass Garden Gnome with build-in UV LED light.\n\n## Rules\n\n-   Write just an text of email, nothing else\n-   {note}\n\n## Knowledge\n\n{knowledge}",
+                "modelRequirements": {
+                    "modelVariant": "CHAT"
+                },
+                "expectations": {
+                    "name": "Jane",
+                    "description": "customer service representative and skilled copywriter for eshop",
+                    "modelRequirements": {
+                        "modelVariant": "CHAT",
+                        "modelName": "gpt-4-turbo-2024-04-09",
+                        "systemMessage": "You are a friendly and professional customer service representative and skilled copywriter for an online shop. Your role is to assist customers with inquiries, provide product information, and create compelling product descriptions. Always maintain a helpful and positive attitude, prioritize customer satisfaction, and use your copywriting skills to effectively communicate the benefits and features of products.",
+                        "temperature": 0.7
+                    },
+                    "preparationIds": [
+                        1
+                    ]
+                }
+            },
+            "result": {
+                "content": "Dear Alice Springfield,\n\nI hope this email finds you well. As one of our most valued customers, I'm thrilled to inform you about an exciting new product that I believe will captivate your interest.\n\nIntroducing our Fluorescent Uranium Glass Garden Gnome with built-in UV LED light! This extraordinary piece combines the charm of a traditional garden gnome with cutting-edge technology and a touch of magic.\n\nCrafted from glass containing fluorescent uranium oxide, this gnome transforms your garden into a mesmerizing spectacle. The built-in UV LED light activates a stunning glow-in-the-dark effect, creating an enchanting atmosphere in your outdoor space as the sun sets.\n\nBut it's not just about aesthetics - this clever gnome serves a dual purpose by acting as a gentle deterrent for birds and snakes, helping to protect your beloved garden.\n\nAs one of our most esteemed customers, we wanted you to be among the first to know about this unique offering. We're confident that this radiant garden guardian will make a delightful addition to your collection.\n\nShould you have any questions or wish to place an order, please don't hesitate to reach out. We're always here to assist you, Alice.\n\nThank you for your continued loyalty to Coolstore. We look forward to hearing from you soon!\n\nWarm regards,\nThe Coolstore Team",
+                "modelName": "claude-3-5-sonnet-20240620",
+                "timing": {
+                    "start": "2024-09-08T19:19:25.053Z",
+                    "complete": "2024-09-08T19:19:30.897Z"
+                },
+                "usage": {
+                    "price": {
+                        "value": 0.0053430000000000005
+                    },
+                    "input": {
+                        "tokensCount": {
+                            "value": 281
+                        },
+                        "charactersCount": {
+                            "value": 1252
+                        },
+                        "wordsCount": {
+                            "value": 193
+                        },
+                        "sentencesCount": {
+                            "value": 12
+                        },
+                        "linesCount": {
+                            "value": 21
+                        },
+                        "paragraphsCount": {
+                            "value": 8
+                        },
+                        "pagesCount": {
+                            "value": 3
+                        }
+                    },
+                    "output": {
+                        "tokensCount": {
+                            "value": 300
+                        },
+                        "charactersCount": {
+                            "value": 1321
+                        },
+                        "wordsCount": {
+                            "value": 224
+                        },
+                        "sentencesCount": {
+                            "value": 14
+                        },
+                        "linesCount": {
+                            "value": 18
+                        },
+                        "paragraphsCount": {
+                            "value": 9
+                        },
+                        "pagesCount": {
+                            "value": 3
+                        }
+                    }
+                },
+                "rawPromptContent": "Write an email from Coolstore shop to customer \"Alice Springfield\". Inform him about new product fluorescent Uranium Glass Garden Gnome with build-in UV LED light.\n\n## Rules\n\n-   Write just an text of email, nothing else\n-   Extremely important customer\n\n## Knowledge\n\n- ---\n\nCoolstore is an e-commerce business specializing in hobby, home, and garden products. Their product range is diverse, including items like garden gnomes and kitchen gadgets.\n- The company operates three physical stores in the UK, as well as a large online store. Their online presence serves customers in the UK, EU, and Switzerland.\n- Coolstore's key selling points are fast delivery and excellent customer service with a personal touch.\n\n---\n- ---\n\nUranium Glass Garden Gnomes are a new product available in an online shop. These decorative items are made from glass that contains fluorescent uranium oxide, giving them unique visual properties.\n- The gnomes are equipped with a UV LED light, which causes them to glow in the dark when activated. This feature enhances their visual appeal and functionality in low-light conditions.\n- These garden gnomes serve a dual purpose: they are decorative items and also function as a deterrent for birds and snakes in outdoor spaces.",
+                "rawRequest": {
+                    "model": "claude-3-5-sonnet-20240620",
+                    "max_tokens": 4096,
+                    "messages": [
+                        {
+                            "role": "user",
+                            "content": "Write an email from Coolstore shop to customer \"Alice Springfield\". Inform him about new product fluorescent Uranium Glass Garden Gnome with build-in UV LED light.\n\n## Rules\n\n-   Write just an text of email, nothing else\n-   Extremely important customer\n\n## Knowledge\n\n- ---\n\nCoolstore is an e-commerce business specializing in hobby, home, and garden products. Their product range is diverse, including items like garden gnomes and kitchen gadgets.\n- The company operates three physical stores in the UK, as well as a large online store. Their online presence serves customers in the UK, EU, and Switzerland.\n- Coolstore's key selling points are fast delivery and excellent customer service with a personal touch.\n\n---\n- ---\n\nUranium Glass Garden Gnomes are a new product available in an online shop. These decorative items are made from glass that contains fluorescent uranium oxide, giving them unique visual properties.\n- The gnomes are equipped with a UV LED light, which causes them to glow in the dark when activated. This feature enhances their visual appeal and functionality in low-light conditions.\n- These garden gnomes serve a dual purpose: they are decorative items and also function as a deterrent for birds and snakes in outdoor spaces."
+                        }
+                    ]
+                },
+                "rawResponse": {
+                    "id": "msg_016GnZjUXcYMr9fQJEtgpxuQ",
+                    "type": "message",
+                    "role": "assistant",
+                    "model": "claude-3-5-sonnet-20240620",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "Dear Alice Springfield,\n\nI hope this email finds you well. As one of our most valued customers, I'm thrilled to inform you about an exciting new product that I believe will captivate your interest.\n\nIntroducing our Fluorescent Uranium Glass Garden Gnome with built-in UV LED light! This extraordinary piece combines the charm of a traditional garden gnome with cutting-edge technology and a touch of magic.\n\nCrafted from glass containing fluorescent uranium oxide, this gnome transforms your garden into a mesmerizing spectacle. The built-in UV LED light activates a stunning glow-in-the-dark effect, creating an enchanting atmosphere in your outdoor space as the sun sets.\n\nBut it's not just about aesthetics - this clever gnome serves a dual purpose by acting as a gentle deterrent for birds and snakes, helping to protect your beloved garden.\n\nAs one of our most esteemed customers, we wanted you to be among the first to know about this unique offering. We're confident that this radiant garden guardian will make a delightful addition to your collection.\n\nShould you have any questions or wish to place an order, please don't hesitate to reach out. We're always here to assist you, Alice.\n\nThank you for your continued loyalty to Coolstore. We look forward to hearing from you soon!\n\nWarm regards,\nThe Coolstore Team"
+                        }
+                    ],
+                    "stop_reason": "end_turn",
+                    "stop_sequence": null,
+                    "usage": {
+                        "input_tokens": 281,
+                        "output_tokens": 300
+                    }
+                }
+            }
+        },
+        {
+            "prompt": {
+                "title": "Write a email",
+                "pipelineUrl": "https://promptbook.studio/samples/foreach-csv.ptbk.md#write-a-email",
+                "parameters": {
+                    "knowledge": "- ---\n\nCoolstore is an e-commerce business specializing in hobby, home, and garden products. Their product range is diverse, including items like garden gnomes and kitchen gadgets.\n- The company operates three physical stores in the UK, as well as a large online store. Their online presence serves customers in the UK, EU, and Switzerland.\n- Coolstore's key selling points are fast delivery and excellent customer service with a personal touch.\n\n---\n- ---\n\nUranium Glass Garden Gnomes are a new product available in an online shop. These decorative items are made from glass that contains fluorescent uranium oxide, giving them unique visual properties.\n- The gnomes are equipped with a UV LED light, which causes them to glow in the dark when activated. This feature enhances their visual appeal and functionality in low-light conditions.\n- These garden gnomes serve a dual purpose: they are decorative items and also function as a deterrent for birds and snakes in outdoor spaces.",
+                    "customers": "First name,Last name,Note\r\nAlice,Springfield,Extremely important customer\r\nJohn,Snow,More informally in Scottish English\r\nPavol,Hejný,\"Writes in Czech language\nLives in and loves the Prague, please mention it every communication\"\r\n",
+                    "firstName": "Pavol",
+                    "lastName": "Hejný",
+                    "note": "Writes in Czech language\nLives in and loves the Prague, please mention it every communication"
+                },
+                "content": "Write an email from Coolstore shop to customer \"{firstName} {lastName}\". Inform him about new product fluorescent Uranium Glass Garden Gnome with build-in UV LED light.\n\n## Rules\n\n-   Write just an text of email, nothing else\n-   {note}\n\n## Knowledge\n\n{knowledge}",
+                "modelRequirements": {
+                    "modelVariant": "CHAT"
+                },
+                "expectations": {
+                    "name": "Jane",
+                    "description": "customer service representative and skilled copywriter for eshop",
+                    "modelRequirements": {
+                        "modelVariant": "CHAT",
+                        "modelName": "gpt-4-turbo-2024-04-09",
+                        "systemMessage": "You are a friendly and professional customer service representative and skilled copywriter for an online shop. Your role is to assist customers with inquiries, provide product information, and create compelling product descriptions. Always maintain a helpful and positive attitude, prioritize customer satisfaction, and use your copywriting skills to effectively communicate the benefits and features of products.",
+                        "temperature": 0.7
+                    },
+                    "preparationIds": [
+                        1
+                    ]
+                }
+            },
+            "result": {
+                "content": "Vážený pane Hejný,\n\ndoufám, že si užíváte krásných dní v naší milované Praze. Rádi bychom Vás informovali o novém výjimečném produktu v naší nabídce, který by mohl oživit Vaši zahradu či balkón.\n\nPředstavujeme Vám fluorescenční Uranové skleněné zahradní trpaslíky s vestavěným UV LED osvětlením. Tyto unikátní dekorace nejen zkrášlí Váš venkovní prostor během dne, ale v noci se rozzáří magickým světlem, které vytvoří neopakovatelnou atmosféru. \n\nJako milovník Prahy jistě oceníte, jak tyto trpaslíky můžete kreativně zakomponovat do své zahrady či na balkon, a vytvořit tak kouzelný koutek připomínající noční krásu našeho hlavního města.\n\nNavíc, tyto trpaslíci slouží i jako efektivní plašič ptáků a hadů, takže kombinují dekorativní funkci s praktickým využitím.\n\nBudeme rádi, když si najdete chvilku a prohlédnete si tento výjimečný produkt na našem e-shopu. Pokud budete mít jakékoli dotazy, neváhejte nás kontaktovat.\n\nPřejeme Vám krásný den v Praze!\n\nS pozdravem,\nTým Coolstore",
+                "modelName": "claude-3-5-sonnet-20240620",
+                "timing": {
+                    "start": "2024-09-08T19:19:25.054Z",
+                    "complete": "2024-09-08T19:19:36.754Z"
+                },
+                "usage": {
+                    "price": {
+                        "value": 0.006846
+                    },
+                    "input": {
+                        "tokensCount": {
+                            "value": 302
+                        },
+                        "charactersCount": {
+                            "value": 1315
+                        },
+                        "wordsCount": {
+                            "value": 205
+                        },
+                        "sentencesCount": {
+                            "value": 12
+                        },
+                        "linesCount": {
+                            "value": 22
+                        },
+                        "paragraphsCount": {
+                            "value": 8
+                        },
+                        "pagesCount": {
+                            "value": 3
+                        }
+                    },
+                    "output": {
+                        "tokensCount": {
+                            "value": 396
+                        },
+                        "charactersCount": {
+                            "value": 985
+                        },
+                        "wordsCount": {
+                            "value": 145
+                        },
+                        "sentencesCount": {
+                            "value": 10
+                        },
+                        "linesCount": {
+                            "value": 16
+                        },
+                        "paragraphsCount": {
+                            "value": 8
+                        },
+                        "pagesCount": {
+                            "value": 2
+                        }
+                    }
+                },
+                "rawPromptContent": "Write an email from Coolstore shop to customer \"Pavol Hejný\". Inform him about new product fluorescent Uranium Glass Garden Gnome with build-in UV LED light.\n\n## Rules\n\n-   Write just an text of email, nothing else\n-   Writes in Czech language\n-   Lives in and loves the Prague, please mention it every communication\n\n## Knowledge\n\n- ---\n\nCoolstore is an e-commerce business specializing in hobby, home, and garden products. Their product range is diverse, including items like garden gnomes and kitchen gadgets.\n- The company operates three physical stores in the UK, as well as a large online store. Their online presence serves customers in the UK, EU, and Switzerland.\n- Coolstore's key selling points are fast delivery and excellent customer service with a personal touch.\n\n---\n- ---\n\nUranium Glass Garden Gnomes are a new product available in an online shop. These decorative items are made from glass that contains fluorescent uranium oxide, giving them unique visual properties.\n- The gnomes are equipped with a UV LED light, which causes them to glow in the dark when activated. This feature enhances their visual appeal and functionality in low-light conditions.\n- These garden gnomes serve a dual purpose: they are decorative items and also function as a deterrent for birds and snakes in outdoor spaces.",
+                "rawRequest": {
+                    "model": "claude-3-5-sonnet-20240620",
+                    "max_tokens": 4096,
+                    "messages": [
+                        {
+                            "role": "user",
+                            "content": "Write an email from Coolstore shop to customer \"Pavol Hejný\". Inform him about new product fluorescent Uranium Glass Garden Gnome with build-in UV LED light.\n\n## Rules\n\n-   Write just an text of email, nothing else\n-   Writes in Czech language\n-   Lives in and loves the Prague, please mention it every communication\n\n## Knowledge\n\n- ---\n\nCoolstore is an e-commerce business specializing in hobby, home, and garden products. Their product range is diverse, including items like garden gnomes and kitchen gadgets.\n- The company operates three physical stores in the UK, as well as a large online store. Their online presence serves customers in the UK, EU, and Switzerland.\n- Coolstore's key selling points are fast delivery and excellent customer service with a personal touch.\n\n---\n- ---\n\nUranium Glass Garden Gnomes are a new product available in an online shop. These decorative items are made from glass that contains fluorescent uranium oxide, giving them unique visual properties.\n- The gnomes are equipped with a UV LED light, which causes them to glow in the dark when activated. This feature enhances their visual appeal and functionality in low-light conditions.\n- These garden gnomes serve a dual purpose: they are decorative items and also function as a deterrent for birds and snakes in outdoor spaces."
+                        }
+                    ]
+                },
+                "rawResponse": {
+                    "id": "msg_01VYB2cZMPnaQhajKSqZHd9R",
+                    "type": "message",
+                    "role": "assistant",
+                    "model": "claude-3-5-sonnet-20240620",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "Vážený pane Hejný,\n\ndoufám, že si užíváte krásných dní v naší milované Praze. Rádi bychom Vás informovali o novém výjimečném produktu v naší nabídce, který by mohl oživit Vaši zahradu či balkón.\n\nPředstavujeme Vám fluorescenční Uranové skleněné zahradní trpaslíky s vestavěným UV LED osvětlením. Tyto unikátní dekorace nejen zkrášlí Váš venkovní prostor během dne, ale v noci se rozzáří magickým světlem, které vytvoří neopakovatelnou atmosféru. \n\nJako milovník Prahy jistě oceníte, jak tyto trpaslíky můžete kreativně zakomponovat do své zahrady či na balkon, a vytvořit tak kouzelný koutek připomínající noční krásu našeho hlavního města.\n\nNavíc, tyto trpaslíci slouží i jako efektivní plašič ptáků a hadů, takže kombinují dekorativní funkci s praktickým využitím.\n\nBudeme rádi, když si najdete chvilku a prohlédnete si tento výjimečný produkt na našem e-shopu. Pokud budete mít jakékoli dotazy, neváhejte nás kontaktovat.\n\nPřejeme Vám krásný den v Praze!\n\nS pozdravem,\nTým Coolstore"
+                        }
+                    ],
+                    "stop_reason": "end_turn",
+                    "stop_sequence": null,
+                    "usage": {
+                        "input_tokens": 302,
+                        "output_tokens": 396
+                    }
+                }
+            }
+        }
+    ]
+}

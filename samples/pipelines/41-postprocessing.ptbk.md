@@ -1,7 +1,6 @@
 # ✨ Sample: Postprocessing 2
 
 -   PIPELINE URL https://promptbook.studio/samples/postprocessing-2.ptbk.md
--   PROMPTBOOK VERSION 1.0.0
 -   INPUT  PARAMETER {yourName} Name of the hero
 -   OUTPUT PARAMETER `{greeting}`
 

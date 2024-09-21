@@ -41,9 +41,7 @@ export class MultipleLlmExecutionTools implements LlmExecutionTools {
     }
 
     public get description(): string_markdown {
-        return this.llmExecutionTools
-            .map((tools, index) => `${index + 1}) ${tools.title} ${tools.description || ''}`)
-            .join('\n');
+        return this.llmExecutionTools.map(({ title }, index) => `${index + 1}) \`${title}\``).join('\n');
     }
 
     /**
@@ -174,14 +172,10 @@ export class MultipleLlmExecutionTools implements LlmExecutionTools {
                     (block) => `
                           You have not provided any \`LlmExecutionTools\` that support model variant "${
                               prompt.modelRequirements.modelVariant
-                          }
+                          }"
 
                           Available \`LlmExecutionTools\`:
-                          ${block(
-                              this.llmExecutionTools
-                                  .map((tools) => `- ${tools.title} ${tools.description || ''}`)
-                                  .join('\n'),
-                          )}
+                          ${block(this.description)}
 
                     `,
                 ),

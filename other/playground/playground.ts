@@ -9,7 +9,7 @@ import { join } from 'path';
 import spaceTrim from 'spacetrim';
 import { forTime } from 'waitasecond';
 import { createCollectionFromDirectory } from '../../src/collection/constructors/createCollectionFromDirectory';
-import { createPipelineExecutor } from '../../src/execution/createPipelineExecutor';
+import { createPipelineExecutor } from '../../src/execution/00-createPipelineExecutor';
 import { usageToHuman } from '../../src/execution/utils/usageToHuman';
 import { createLlmToolsFromEnv } from '../../src/llm-providers/_common/createLlmToolsFromEnv';
 import { JavascriptExecutionTools } from '../../src/scripting/javascript/JavascriptExecutionTools';
@@ -107,14 +107,14 @@ async function playground() {
         },
     );
 
-    for (const error of errors) {
-        console.error(colors.bgRed(error.name /* <- 11:11 */));
-        console.error(colors.red(error.stack || error.message));
-    }
-
     for (const warning of warnings) {
         console.error(colors.bgYellow(warning.name /* <- 11:11 */));
         console.error(colors.yellow(warning.stack || warning.message));
+    }
+
+    for (const error of errors) {
+        console.error(colors.bgRed(error.name /* <- 11:11 */));
+        console.error(colors.red(error.stack || error.message));
     }
 
     console.info(colors.cyan(usageToHuman(usage /* <- TODO: [🌳] Compare with `llmTools.getTotalUsage()` */)));

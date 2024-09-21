@@ -1,3 +1,4 @@
+import type { CsvSettings } from './formats/csv/CsvSettings';
 import { just } from './utils/organization/just';
 import { $asDeeplyFrozenSerializableJson } from './utils/serialization/$asDeeplyFrozenSerializableJson';
 
@@ -66,14 +67,14 @@ export const IMMEDIATE_TIME = 10;
  *
  * @public exported from `@promptbook/core`
  */
-export const MAX_PARALLEL_COUNT = 5;
+export const MAX_PARALLEL_COUNT = 5; // <- TODO: [🤹‍♂️]
 
 /**
  * The maximum number of attempts to execute LLM task before giving up
  *
  * @public exported from `@promptbook/core`
  */
-export const MAX_EXECUTION_ATTEMPTS = 3;
+export const MAX_EXECUTION_ATTEMPTS = 3; // <- TODO: [🤹‍♂️]
 
 /**
  * The maximum length of the (generated) filename
@@ -131,6 +132,8 @@ export const RESERVED_PARAMETER_NAMES = $asDeeplyFrozenSerializableJson('RESERVE
     'samples',
     'modelName',
     'currentDate',
+
+    // <- TODO: !!!!! list here all command names
     // <- TODO: Add more like 'date', 'modelName',...
     // <- TODO: Add [emoji] + instructions ACRY when adding new reserved parameter
 ] as const);
@@ -180,6 +183,18 @@ export const DEFAULT_REMOTE_URL_PATH = '/promptbook/socket.io';
  *
  * @public exported from `@promptbook/core`
  */
+export const DEFAULT_CSV_SETTINGS: CsvSettings = Object.freeze({
+    delimiter: ',',
+    quoteChar: '"',
+    newline: '\n',
+    skipEmptyLines: true,
+});
+
+/**
+ * @@@
+ *
+ * @public exported from `@promptbook/core`
+ */
 export const IS_VERBOSE = false;
 
 /**
@@ -187,20 +202,41 @@ export const IS_VERBOSE = false;
  *
  * @private within the repository
  */
-export const DEBUG_ALLOW_PAYED_TESTING: boolean = just(
+export const IS_PIPELINE_LOGIC_VALIDATED: boolean = just(
     /**/
-    // Note: In normal situations, we "turn off" ability to use real API keys in tests:
-    false,
-    /**/
-
-    /*/
-    // When working on preparations, you can use:
+    // Note: In normal situations, we check the pipeline logic:
     true,
     /**/
 
+    /*/
+    // When working on some new features, you can temporarily turn off the validation:
+    false,
+    /**/
+
     // Commit message:
-    // [🔑] Turn on ability to use real API keys in tests
-    // [🔒] Turn off ability to use real API keys in tests
+    // [🔑] Temporarily **disable** pipeline validation
+    // [🔒] **Enable** pipeline validation
+);
+
+/**
+ * @@@
+ *
+ * @private within the repository
+ */
+export const IS_COST_PREVENTED: boolean = just(
+    /**/
+    // Note: In normal situations, we prevent ability to use real API keys in tests:
+    true,
+    /**/
+
+    /*/
+    // When working on preparations, you can temporarily turn off the prevention:
+    false,
+    /**/
+
+    // Commit message:
+    // [🔑] Temporarily **disable** cost-prevention
+    // [🔒] **Enable** cost-prevention
 );
 
 /**

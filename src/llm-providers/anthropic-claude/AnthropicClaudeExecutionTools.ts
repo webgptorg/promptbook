@@ -16,7 +16,7 @@ import type { string_model_name } from '../../types/typeAliases';
 import type { string_title } from '../../types/typeAliases';
 import { getCurrentIsoDate } from '../../utils/getCurrentIsoDate';
 import type { really_any } from '../../utils/organization/really_any';
-import { replaceParameters } from '../../utils/replaceParameters';
+import { replaceParameters } from '../../utils/parameters/replaceParameters';
 import { $asDeeplyFrozenSerializableJson } from '../../utils/serialization/$asDeeplyFrozenSerializableJson';
 import { ANTHROPIC_CLAUDE_MODELS } from './anthropic-claude-models';
 import type { AnthropicClaudeExecutionToolsDirectOptions } from './AnthropicClaudeExecutionToolsOptions';
@@ -146,7 +146,7 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools {
 
         // eslint-disable-next-line prefer-const
         complete = getCurrentIsoDate();
-        const usage = computeAnthropicClaudeUsage(content, '', rawResponse);
+        const usage = computeAnthropicClaudeUsage(rawPromptContent || '', resultContent || '', rawResponse);
 
         return $asDeeplyFrozenSerializableJson('AnthropicClaudeExecutionTools ChatPromptResult', {
             content: resultContent,

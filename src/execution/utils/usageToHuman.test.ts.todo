@@ -1,3 +1,5 @@
+// TODO: [🍓][🧞‍♂️] Uncomment this test after `usageToHuman` is working
+
 import { describe, expect, it } from '@jest/globals';
 import spaceTrim from 'spacetrim';
 import { ZERO_USAGE } from './usage-constants';

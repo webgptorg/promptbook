@@ -4,7 +4,7 @@ import type {
     PromptChatResult,
     CompletionPromptResult,
     PromptResult,
-} from '@promptbook/types';
+} from '../../../src/_packages/types.index';
 import { spaceTrim } from 'spacetrim';
 import { isRunningInNode } from '../../../utils/isRunningInWhatever';
 import { getSupabaseForServer } from '../../../utils/supabase/getSupabaseForServer';

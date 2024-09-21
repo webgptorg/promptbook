@@ -1,3 +1,4 @@
+import type { ForeachJson } from '../../commands/FOREACH/ForeachJson';
 import type { FormatCommand } from '../../commands/FORMAT/FormatCommand';
 import type { TemplateType } from '../../commands/TEMPLATE/TemplateTypes';
 import type { string_javascript } from '../typeAliases';
@@ -47,6 +48,11 @@ export interface TemplateJsonCommon {
      * @see https://github.com/webgptorg/promptbook/discussions/66
      */
     readonly jokerParameterNames?: Array<string_parameter_name>;
+
+    /**
+     * @@@
+     */
+    readonly foreach?: ForeachJson;
 
     /**
      * Type of the execution

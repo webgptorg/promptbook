@@ -201,7 +201,7 @@ describe('how extractOneBlockFromMarkdown works', () => {
                     Hello World
                 `),
             ),
-        ).toThrowError(/There should be exactly 1 code block, found 0 code blocks/i);
+        ).toThrowError(/There should be exactly 1 code block in template, found 0 code blocks/i);
 
         expect(() =>
             extractOneBlockFromMarkdown(
@@ -210,7 +210,7 @@ describe('how extractOneBlockFromMarkdown works', () => {
                     Hello World
                 `),
             ),
-        ).toThrowError(/There should be exactly 1 code block, found 0 code blocks/i);
+        ).toThrowError(/There should be exactly 1 code block in template, found 0 code blocks/i);
 
         expect(() =>
             extractOneBlockFromMarkdown(
@@ -220,7 +220,7 @@ describe('how extractOneBlockFromMarkdown works', () => {
                     Content with **bold** and *italic* text
                 `),
             ),
-        ).toThrowError(/There should be exactly 1 code block, found 0 code blocks/i);
+        ).toThrowError(/There should be exactly 1 code block in template, found 0 code blocks/i);
 
         expect(() =>
             extractOneBlockFromMarkdown(
@@ -244,7 +244,7 @@ describe('how extractOneBlockFromMarkdown works', () => {
                     \`Lennon Wall\` is a wall in Prague. It is located in the center of Prague. On this wall, you can see many graffiti like %#2/*\`\`\`7#^
                 `),
             ),
-        ).toThrowError(/There should be exactly 1 code block, found 0 code blocks/i);
+        ).toThrowError(/There should be exactly 1 code block in template, found 0 code blocks/i);
     });
 
     it('should fail with sample with multiple code blocks of one line', () => {
@@ -272,6 +272,6 @@ describe('how extractOneBlockFromMarkdown works', () => {
                     \`\`\`
                 `),
             ),
-        ).toThrowError(/There should be exactly 1 code block, found 2 code blocks/i);
+        ).toThrowError(/There should be exactly 1 code block in template, found 2 code blocks/i);
     });
 });

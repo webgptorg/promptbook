@@ -15,7 +15,7 @@ describe('how JOKER command in .ptbk.md files works', () => {
     });
     it('should fail parsing JOKER command', () => {
         expect(() => parseCommand('JOKER', 'PIPELINE_TEMPLATE')).toThrowError(/Invalid joker/i);
-        expect(() => parseCommand('JOKER name', 'PIPELINE_TEMPLATE')).toThrowError(
+        expect(() => parseCommand('JOKER {foo} {bar}', 'PIPELINE_TEMPLATE')).toThrowError(
             /Invalid joker/i /* <- TODO: /JOKER must reference a parameter/i */,
         );
     });

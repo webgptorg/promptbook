@@ -16,11 +16,11 @@ Supercharge your use of large language models
 
 
 
+## ✨ New Features
+
+-   ✨ **Support of [OpenAI o1 model](https://openai.com/o1/)**
 
 
-# ✨ New Features
-
--   ✨ **Support [OpenAI o1 model](https://openai.com/o1/)**
 
 ## 🤍 The Promptbook Whitepaper
 
@@ -68,7 +68,6 @@ File `write-website-content.ptbk.md`:
 > Instructions for creating web page content.
 >
 > -   PIPELINE URL https://promptbook.studio/webgpt/write-website-content.ptbk.md
-> -   PROMPTBOOK VERSION 0.0.1
 > -   INPUT  PARAM `{rawTitle}` Automatically suggested a site name or empty text
 > -   INPUT  PARAM `{rawAssigment}` Automatically generated site entry from image recognition
 > -   OUTPUT PARAM `{websiteContent}` Web content

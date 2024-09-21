@@ -27,7 +27,7 @@ export function extractOneBlockFromMarkdown(markdown: string_markdown): CodeBloc
         throw new ParseError(
             spaceTrim(
                 (block) => `
-                    There should be exactly 1 code block, found ${codeBlocks.length} code blocks
+                    There should be exactly 1 code block in template, found ${codeBlocks.length} code blocks
 
                     ${block(codeBlocks.map((block, i) => `Block ${i + 1}:\n${block.content}`).join('\n\n\n'))}
                 `,
