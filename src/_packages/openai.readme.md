@@ -49,6 +49,7 @@ console.info(outputParameters);
 ## 🤺 Usage with OpenAI`s Assistants (GPTs)
 
 !!!!!!
+OpenAiExecutionTools.createAssistantSubtools
 
 ## 🧙‍♂️ Connect to LLM providers automatically
 

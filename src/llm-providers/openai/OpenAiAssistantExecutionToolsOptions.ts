@@ -12,6 +12,6 @@ export type OpenAiAssistantExecutionToolsOptions = OpenAiExecutionToolsOptions &
         /**
          * Which assistant to use
          */
-        assistantId?: string_token;
+        assistantId: string_token;
         // <- TODO: [🧠] This should be maybe more like model for each prompt?
     };

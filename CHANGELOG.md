@@ -532,6 +532,7 @@ Knowledge scrapers [🐝]
 Support for [Assistants API (GPTs)](https://platform.openai.com/docs/assistants/overview) from OpenAI
 
 -   Add `OpenAiAssistantExecutionTools`
+-   `OpenAiExecutionTools.createAssistantSubtools`
 -   Add `UNCERTAIN_USAGE`
 -   LLM Tools `getClient` method are public
 -   LLM Tools `options` are not `private` anymore but `protected`

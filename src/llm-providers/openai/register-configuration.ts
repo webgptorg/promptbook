@@ -41,3 +41,43 @@ export const _OpenAiMetadataRegistration = $llmToolsMetadataRegister.register({
         return null;
     },
 });
+
+/**
+ * @@@ registration1 of default configuration for Open AI
+ *
+ * Note: [🏐] Configurations registrations are done in @@@ BUT constructor @@@
+ *
+ * @public exported from `@promptbook/core`
+ * @public exported from `@promptbook/cli`
+ */
+export const _OpenAiAssistantMetadataRegistration = $llmToolsMetadataRegister.register({
+    title: 'Open AI Assistant',
+    packageName: '@promptbook/openai',
+    className: 'OpenAiAssistantExecutionTools',
+
+    getBoilerplateConfiguration(): LlmToolsConfiguration[number] {
+        return {
+            title: 'Open AI Assistant (boilerplate)',
+            packageName: '@promptbook/openai',
+            className: 'OpenAiAssistantExecutionTools',
+            options: {
+                apiKey: 'sk-',
+            },
+        };
+    },
+
+    createConfigurationFromEnv(env: Record<string_name, string>): LlmToolsConfiguration[number] | null {
+        if (typeof env.OPENAI_API_KEY === 'string') {
+            return {
+                title: 'Open AI Assistant (from env)',
+                packageName: '@promptbook/openai',
+                className: 'OpenAiAssistantExecutionTools',
+                options: {
+                    apiKey: process.env.OPENAI_API_KEY!,
+                },
+            };
+        }
+
+        return null;
+    },
+});
