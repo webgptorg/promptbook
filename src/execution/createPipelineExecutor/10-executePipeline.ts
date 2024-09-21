@@ -17,7 +17,8 @@ import { $asDeeplyFrozenSerializableJson } from '../../utils/serialization/$asDe
 import { PROMPTBOOK_VERSION } from '../../version';
 import type { ExecutionTools } from '../ExecutionTools';
 import type { PipelineExecutorResult } from '../PipelineExecutorResult';
-import { addUsage, ZERO_USAGE } from '../utils/addUsage';
+import { addUsage } from '../utils/addUsage';
+import { ZERO_USAGE } from '../utils/usage-constants';
 import type { CreatePipelineExecutorSettings } from './00-CreatePipelineExecutorSettings';
 import { executeTemplate } from './20-executeTemplate';
 import { filterJustOutputParameters } from './filterJustOutputParameters';
