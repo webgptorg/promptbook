@@ -1,6 +1,9 @@
 import { spaceTrim } from 'spacetrim';
 import type { Promisable, ReadonlyDeep } from 'type-fest';
-import { DEFAULT_CSV_SETTINGS, IS_VERBOSE, MAX_EXECUTION_ATTEMPTS, MAX_PARALLEL_COUNT } from '../../config';
+import { DEFAULT_CSV_SETTINGS } from '../../config';
+import { IS_VERBOSE } from '../../config';
+import { MAX_EXECUTION_ATTEMPTS } from '../../config';
+import { MAX_PARALLEL_COUNT } from '../../config';
 import { validatePipeline } from '../../conversion/validation/validatePipeline';
 import { isPipelinePrepared } from '../../prepare/isPipelinePrepared';
 import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';

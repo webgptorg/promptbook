@@ -2,7 +2,7 @@ import type { LlmExecutionToolsConstructor } from '../../execution/LlmExecutionT
 import { $isRunningInBrowser } from '../../utils/environment/$isRunningInBrowser';
 import { $isRunningInWebWorker } from '../../utils/environment/$isRunningInWebWorker';
 import { OpenAiAssistantExecutionTools } from './OpenAiAssistantExecutionTools';
-import { OpenAiAssistantExecutionToolsOptions } from './OpenAiAssistantExecutionToolsOptions';
+import type { OpenAiAssistantExecutionToolsOptions } from './OpenAiAssistantExecutionToolsOptions';
 
 /**
  * Execution Tools for calling OpenAI API
