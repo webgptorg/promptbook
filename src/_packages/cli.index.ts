@@ -8,7 +8,9 @@ import { _AnthropicClaudeRegistration } from '../llm-providers/anthropic-claude/
 import { _AzureOpenAiMetadataRegistration } from '../llm-providers/azure-openai/register-configuration';
 import { _AzureOpenAiRegistration } from '../llm-providers/azure-openai/register-constructor';
 import { _OpenAiMetadataRegistration } from '../llm-providers/openai/register-configuration';
+import { _OpenAiAssistantMetadataRegistration } from '../llm-providers/openai/register-configuration';
 import { _OpenAiRegistration } from '../llm-providers/openai/register-constructor';
+import { _OpenAiAssistantRegistration } from '../llm-providers/openai/register-constructor';
 
 
 // Note: Exporting version from each package
@@ -22,4 +24,6 @@ export { _AnthropicClaudeRegistration };
 export { _AzureOpenAiMetadataRegistration };
 export { _AzureOpenAiRegistration };
 export { _OpenAiMetadataRegistration };
+export { _OpenAiAssistantMetadataRegistration };
 export { _OpenAiRegistration };
+export { _OpenAiAssistantRegistration };

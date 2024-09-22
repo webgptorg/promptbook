@@ -67,6 +67,7 @@ import { _AnthropicClaudeMetadataRegistration } from '../llm-providers/anthropic
 import { _AzureOpenAiMetadataRegistration } from '../llm-providers/azure-openai/register-configuration';
 import { joinLlmExecutionTools } from '../llm-providers/multiple/joinLlmExecutionTools';
 import { _OpenAiMetadataRegistration } from '../llm-providers/openai/register-configuration';
+import { _OpenAiAssistantMetadataRegistration } from '../llm-providers/openai/register-configuration';
 import { preparePersona } from '../personas/preparePersona';
 import { isPipelinePrepared } from '../prepare/isPipelinePrepared';
 import { preparePipeline } from '../prepare/preparePipeline';
@@ -151,6 +152,7 @@ export { _AnthropicClaudeMetadataRegistration };
 export { _AzureOpenAiMetadataRegistration };
 export { joinLlmExecutionTools };
 export { _OpenAiMetadataRegistration };
+export { _OpenAiAssistantMetadataRegistration };
 export { preparePersona };
 export { isPipelinePrepared };
 export { preparePipeline };
