@@ -28,6 +28,7 @@ export const _AzureOpenAiMetadataRegistration = $llmToolsMetadataRegister.regist
     },
 
     createConfigurationFromEnv(env: Record<string_name, string>): LlmToolsConfiguration[number] | null {
+         // Note: Note using `process.env` BUT `env` to pass in the environment variables dynamically
         if (
             typeof env.AZUREOPENAI_RESOURCE_NAME === 'string' &&
             typeof env.AZUREOPENAI_DEPLOYMENT_NAME === 'string' &&
@@ -51,7 +52,7 @@ export const _AzureOpenAiMetadataRegistration = $llmToolsMetadataRegister.regist
             throw new Error(
                 spaceTrim(`
                     You must provide all of the following environment variables:
-                    
+
                     - AZUREOPENAI_RESOURCE_NAME (${
                         typeof env.AZUREOPENAI_RESOURCE_NAME === 'string' ? 'defined' : 'not defined'
                     })
@@ -60,7 +61,7 @@ export const _AzureOpenAiMetadataRegistration = $llmToolsMetadataRegister.regist
                     })
                     - AZUREOPENAI_API_KEY (${
                         typeof env.AZUREOPENAI_API_KEY === 'string' ? 'defined' : 'not defined'
-                    })        
+                    })
                 `),
             );
         }

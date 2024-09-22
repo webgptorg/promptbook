@@ -1,4 +1,5 @@
 import type { string_name } from '../../types/typeAliases';
+import { keepUnused } from '../../utils/organization/keepUnused';
 import { $llmToolsMetadataRegister } from '../_common/$llmToolsMetadataRegister';
 import type { LlmToolsConfiguration } from '../_common/LlmToolsConfiguration';
 
@@ -27,13 +28,14 @@ export const _OpenAiMetadataRegistration = $llmToolsMetadataRegister.register({
     },
 
     createConfigurationFromEnv(env: Record<string_name, string>): LlmToolsConfiguration[number] | null {
+        // Note: Note using `process.env` BUT `env` to pass in the environment variables dynamically
         if (typeof env.OPENAI_API_KEY === 'string') {
             return {
                 title: 'Open AI (from env)',
                 packageName: '@promptbook/openai',
                 className: 'OpenAiExecutionTools',
                 options: {
-                    apiKey: process.env.OPENAI_API_KEY!,
+                    apiKey: env.OPENAI_API_KEY!,
                 },
             };
         }
@@ -62,22 +64,29 @@ export const _OpenAiAssistantMetadataRegistration = $llmToolsMetadataRegister.re
             className: 'OpenAiAssistantExecutionTools',
             options: {
                 apiKey: 'sk-',
+                assistantId: 'asst_',
             },
         };
     },
 
     createConfigurationFromEnv(env: Record<string_name, string>): LlmToolsConfiguration[number] | null {
-        if (typeof env.OPENAI_API_KEY === 'string') {
+        // TODO: Maybe auto-configure (multiple) assistants from env variables
+        keepUnused(env);
+        return null;
+        /*
+        if (typeof env.OPENAI_API_KEY === 'string' || typeof env.OPENAI_XXX === 'string') {
             return {
                 title: 'Open AI Assistant (from env)',
                 packageName: '@promptbook/openai',
                 className: 'OpenAiAssistantExecutionTools',
                 options: {
-                    apiKey: process.env.OPENAI_API_KEY!,
+                    apiKey: env.OPENAI_API_KEY!,
+                    assistantId: env.OPENAI_XXX!
                 },
             };
         }
 
         return null;
+        */
     },
 });

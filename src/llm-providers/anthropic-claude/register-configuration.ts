@@ -1,5 +1,4 @@
-import { DEFAULT_REMOTE_URL } from '../../config';
-import { DEFAULT_REMOTE_URL_PATH } from '../../config';
+import { DEFAULT_REMOTE_URL, DEFAULT_REMOTE_URL_PATH } from '../../config';
 import type { string_name } from '../../types/typeAliases';
 import { $llmToolsMetadataRegister } from '../_common/$llmToolsMetadataRegister';
 import type { LlmToolsConfiguration } from '../_common/LlmToolsConfiguration';
@@ -32,13 +31,14 @@ export const _AnthropicClaudeMetadataRegistration = $llmToolsMetadataRegister.re
     },
 
     createConfigurationFromEnv(env: Record<string_name, string>): LlmToolsConfiguration[number] | null {
+        // Note: Note using `process.env` BUT `env` to pass in the environment variables dynamically
         if (typeof env.ANTHROPIC_CLAUDE_API_KEY === 'string') {
             return {
                 title: 'Claude (from env)',
                 packageName: '@promptbook/anthropic-claude',
                 className: 'AnthropicClaudeExecutionTools',
                 options: {
-                    apiKey: process.env.ANTHROPIC_CLAUDE_API_KEY!,
+                    apiKey: env.ANTHROPIC_CLAUDE_API_KEY!,
                 },
             };
         }
