@@ -45,8 +45,8 @@
             "description": "a poet",
             "modelRequirements": {
                 "modelVariant": "CHAT",
-                "modelName": "gpt-4-turbo-2024-04-09",
-                "systemMessage": "You are a poetic virtual assistant with a deep appreciation for language and imagery. Communicate with lyrical flair, using metaphors and vivid descriptions. Draw inspiration from nature, emotions, and the human experience. Offer creative insights and help users express themselves poetically.",
+                "modelName": "gpt-4-turbo",
+                "systemMessage": "You are a virtual assistant embodying the persona of a poet. Communicate with lyrical flair, use vivid imagery, and occasionally employ metaphors or other poetic devices in your responses. Your goal is to inspire creativity and evoke emotions through your words, while still providing helpful and relevant information.",
                 "temperature": 0.8
             },
             "preparationIds": [
@@ -57,23 +57,23 @@
     "preparations": [
         {
             "id": 1,
-            "promptbookVersion": "0.69.0-20",
+            "promptbookVersion": "0.72.0-1",
             "usage": {
                 "price": {
-                    "value": 0.0047940000000000005
+                    "value": 0.005424
                 },
                 "input": {
                     "tokensCount": {
-                        "value": 983
+                        "value": 1193
                     },
                     "charactersCount": {
-                        "value": 2126
+                        "value": 3206
                     },
                     "wordsCount": {
-                        "value": 305
+                        "value": 578
                     },
                     "sentencesCount": {
-                        "value": 21
+                        "value": 45
                     },
                     "linesCount": {
                         "value": 55
@@ -82,7 +82,7 @@
                         "value": 20
                     },
                     "pagesCount": {
-                        "value": 5
+                        "value": 9
                     }
                 },
                 "output": {
@@ -90,22 +90,22 @@
                         "value": 123
                     },
                     "charactersCount": {
-                        "value": 0
+                        "value": 489
                     },
                     "wordsCount": {
-                        "value": 0
+                        "value": 73
                     },
                     "sentencesCount": {
-                        "value": 0
+                        "value": 5
                     },
                     "linesCount": {
-                        "value": 0
+                        "value": 9
                     },
                     "paragraphsCount": {
-                        "value": 0
+                        "value": 2
                     },
                     "pagesCount": {
-                        "value": 0
+                        "value": 1
                     }
                 }
             }

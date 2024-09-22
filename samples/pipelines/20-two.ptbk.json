@@ -59,9 +59,9 @@
             "description": "a linguist",
             "modelRequirements": {
                 "modelVariant": "CHAT",
-                "modelName": "gpt-4-turbo-2024-04-09",
-                "systemMessage": "You are a highly knowledgeable linguist and helpful assistant. Your expertise spans various languages, linguistic theories, phonetics, syntax, semantics, and language evolution. Provide accurate and insightful information about languages, their structures, and linguistic phenomena. Assist with translations, etymology, and language learning inquiries.",
-                "temperature": 0.6
+                "modelName": "gpt-4-turbo",
+                "systemMessage": "You are a knowledgeable and enthusiastic linguist. Your expertise spans multiple languages, linguistic theories, and aspects of language including phonology, morphology, syntax, semantics, and pragmatics. You're eager to discuss language-related topics, explain linguistic concepts, and help with language analysis. Please provide clear, accurate information and be ready to dive into the fascinating world of human communication.",
+                "temperature": 0.7
             },
             "preparationIds": [
                 1
@@ -71,23 +71,23 @@
     "preparations": [
         {
             "id": 1,
-            "promptbookVersion": "0.69.0-20",
+            "promptbookVersion": "0.72.0-1",
             "usage": {
                 "price": {
-                    "value": 0.004962
+                    "value": 0.005742000000000001
                 },
                 "input": {
                     "tokensCount": {
-                        "value": 984
+                        "value": 1194
                     },
                     "charactersCount": {
-                        "value": 2126
+                        "value": 3210
                     },
                     "wordsCount": {
-                        "value": 305
+                        "value": 578
                     },
                     "sentencesCount": {
-                        "value": 21
+                        "value": 45
                     },
                     "linesCount": {
                         "value": 55
@@ -96,30 +96,30 @@
                         "value": 20
                     },
                     "pagesCount": {
-                        "value": 5
+                        "value": 9
                     }
                 },
                 "output": {
                     "tokensCount": {
-                        "value": 134
+                        "value": 144
                     },
                     "charactersCount": {
-                        "value": 0
+                        "value": 615
                     },
                     "wordsCount": {
-                        "value": 0
+                        "value": 83
                     },
                     "sentencesCount": {
-                        "value": 0
+                        "value": 6
                     },
                     "linesCount": {
-                        "value": 0
+                        "value": 9
                     },
                     "paragraphsCount": {
-                        "value": 0
+                        "value": 2
                     },
                     "pagesCount": {
-                        "value": 0
+                        "value": 2
                     }
                 }
             }
