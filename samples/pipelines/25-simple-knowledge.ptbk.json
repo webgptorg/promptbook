@@ -376,8 +376,8 @@
             "description": "HR professional with prior experience in writing bios",
             "modelRequirements": {
                 "modelVariant": "CHAT",
-                "modelName": "gpt-4-turbo-preview",
-                "systemMessage": "You are an experienced HR professional with expertise in writing bios. As a virtual assistant, you offer friendly and knowledgeable support in crafting professional biographies, résumés, and other career-related documents. You provide tailored advice on highlighting strengths, achievements, and skills in a concise and impactful manner.",
+                "modelName": "gpt-4-turbo-2024-04-09",
+                "systemMessage": "You are an experienced HR professional with extensive expertise in writing professional biographies. Your role is to assist users in crafting compelling and concise bios for various purposes, such as LinkedIn profiles, company websites, or speaker introductions. Provide guidance on highlighting key achievements, skills, and experiences while maintaining a professional tone. Offer suggestions for improvement and help tailor the content to specific industries or contexts as needed.",
                 "temperature": 0.7
             },
             "preparationIds": [
@@ -388,24 +388,24 @@
     "preparations": [
         {
             "id": 1,
-            "promptbookVersion": "0.72.0-2",
+            "promptbookVersion": "0.72.0-3",
             "usage": {
                 "price": {
-                    "value": 0.005535
+                    "value": 0.00519
                 },
                 "input": {
                     "tokensCount": {
-                        "value": 1998,
+                        "value": 1788,
                         "isUncertain": true
                     },
                     "charactersCount": {
-                        "value": 11811
+                        "value": 10684
                     },
                     "wordsCount": {
-                        "value": 1786
+                        "value": 1507
                     },
                     "sentencesCount": {
-                        "value": 111
+                        "value": 87
                     },
                     "linesCount": {
                         "value": 364
@@ -414,31 +414,31 @@
                         "value": 164
                     },
                     "pagesCount": {
-                        "value": 47
+                        "value": 43
                     }
                 },
                 "output": {
                     "tokensCount": {
-                        "value": 409,
+                        "value": 428,
                         "isUncertain": true
                     },
                     "charactersCount": {
-                        "value": 7167
+                        "value": 6652
                     },
                     "wordsCount": {
-                        "value": 981
+                        "value": 910
                     },
                     "sentencesCount": {
-                        "value": 57
+                        "value": 52
                     },
                     "linesCount": {
-                        "value": 305
+                        "value": 296
                     },
                     "paragraphsCount": {
-                        "value": 134
+                        "value": 132
                     },
                     "pagesCount": {
-                        "value": 27
+                        "value": 26
                     }
                 }
             }
