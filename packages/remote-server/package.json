@@ -1,6 +1,6 @@
 {
     "name": "@promptbook/remote-server",
-    "version": "0.72.0-2",
+    "version": "0.72.0-3",
     "description": "Supercharge your use of large language models",
     "private": false,
     "sideEffects": false,
@@ -51,7 +51,7 @@
     "module": "./esm/index.es.js",
     "typings": "./esm/typings/src/_packages/remote-server.index.d.ts",
     "peerDependencies": {
-        "@promptbook/core": "0.72.0-2"
+        "@promptbook/core": "0.72.0-3"
     },
     "dependencies": {
         "colors": "1.4.0",
