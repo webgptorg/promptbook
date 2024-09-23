@@ -1,6 +1,4 @@
-import type { string_markdown_text } from '../typeAliases';
-import type { string_parameter_name } from '../typeAliases';
-import type { string_parameter_value } from '../typeAliases';
+import type { string_markdown_text, string_parameter_name, string_parameter_value } from '../typeAliases';
 
 /**
  * Describes one parameter of the promptbook
@@ -39,7 +37,7 @@ export type ParameterJson = {
 };
 
 /**
- * TODO: [🧠] !!!!!! Should be here registered subparameter from foreach or not?
+ * TODO: [🧠] Should be here registered subparameters from foreach or not?
  * TODO: [♈] Probbably move expectations from templates to parameters
  * TODO: [🍙] Make some standard order of json properties
  */
