@@ -1,4 +1,3 @@
-import { ParameterJson } from '../../_packages/types.index';
 import type { string_parameter_name } from '../../types/typeAliases';
 import type { TODO_string } from '../../utils/organization/TODO_string';
 
@@ -24,5 +23,5 @@ export type ForeachJson = {
     /**
      * @@@
      */
-    readonly subparameterNames: Array<Pick<ParameterJson, 'name' | 'isInput' | 'isOutput'>>;
+    readonly subparameterNames: Array<string_parameter_name>; // <- TODO: !!!!!! Use ParameterJson and split into input/output
 };
