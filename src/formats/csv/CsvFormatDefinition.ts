@@ -65,6 +65,8 @@ export const CsvFormatDefinition: FormatDefinition<
                     );
                 }
 
+                
+
                 const mappedData = await Promise.all(
                     csv.data.map(async (row, index) => ({
                         ...row,

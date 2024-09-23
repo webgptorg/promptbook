@@ -123,7 +123,7 @@ export async function executeFormatCells(options: ExecuteFormatCellsOptions): Pr
             try {
                 mappedParameters = mapAvailableToExpectedParameters({
                     expectedParameters: Object.fromEntries(
-                        template.foreach!.subparameterNames.map((subparameterName) => [subparameterName, null]),
+                        template.foreach!.inputSubparameterNames.map((subparameterName) => [subparameterName, null]),
                     ),
                     availableParameters: subparameters,
                 });
