@@ -1,5 +1,5 @@
 import type { Promisable } from 'type-fest';
-import type { Parameters } from '../../types/typeAliases';
+import type { Parameters, string_parameter_name } from '../../types/typeAliases';
 import type { string_name } from '../../types/typeAliases';
 import type { string_SCREAMING_CASE } from '../../utils/normalization/normalizeTo_SCREAMING_CASE';
 import type { empty_object } from '../../utils/organization/empty_object';
@@ -28,6 +28,7 @@ export type FormatSubvalueDefinition<TValue extends string, TSettings extends em
      */
     mapValues(
         value: TValue,
+        outputParameterName: string_parameter_name,
         settings: TSettings,
         mapCallback: (subvalues: Parameters, index: number) => Promisable<string>,
     ): Promise<string>;

@@ -113,6 +113,7 @@ export async function executeFormatCells(options: ExecuteFormatCellsOptions): Pr
 
     const resultString = await subvalueDefinition.mapValues(
         parameterValue,
+        template.foreach.outputSubparameterName,
         formatSettings,
         async (subparameters, index) => {
             let mappedParameters: Record<string_parameter_name, string_parameter_value>;

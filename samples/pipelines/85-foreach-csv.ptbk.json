@@ -30,11 +30,12 @@
                 "formatName": "CSV",
                 "subformatName": "ROW",
                 "parameterName": "customers",
-                "subparameterNames": [
+                "inputSubparameterNames": [
                     "firstName",
                     "lastName",
                     "note"
-                ]
+                ],
+                "outputSubparameterName": "email"
             },
             "personaName": "Jane",
             "dependentParameterNames": [

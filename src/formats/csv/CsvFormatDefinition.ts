@@ -49,7 +49,7 @@ export const CsvFormatDefinition: FormatDefinition<
     subvalueDefinitions: [
         {
             subvalueName: 'ROW',
-            async mapValues(value, settings, mapCallback) {
+            async mapValues(value, outputParameterName, settings, mapCallback) {
                 // TODO: [👨🏾‍🤝‍👨🏼] DRY csv parsing
                 const csv = parse<Parameters>(value, { ...settings, ...MANDATORY_CSV_SETTINGS });
 
@@ -65,16 +65,19 @@ export const CsvFormatDefinition: FormatDefinition<
                     );
                 }
 
-                
-
                 const mappedData = await Promise.all(
-                    csv.data.map(async (row, index) => ({
-                        ...row,
-                        newColumn:
-                            // <- TODO: !!!!!! Dynamic new column name and position
-                            // <- TODO: !!!!!! Check name collisions
-                            await mapCallback(row, index),
-                    })),
+                    csv.data.map(async (row, index) => {
+                        if (row[outputParameterName]) {
+                            throw new ParseError( // <- TODO: !!!!!! Split PipelineParseError and FormatParseError -> CsvParseError
+                                `Can not overwrite existing column "${outputParameterName}" in CSV row`,
+                            );
+                        }
+
+                        return {
+                            ...row,
+                            [outputParameterName]: await mapCallback(row, index),
+                        };
+                    }),
                 );
 
                 return unparse(mappedData, { ...settings, ...MANDATORY_CSV_SETTINGS });
@@ -82,7 +85,7 @@ export const CsvFormatDefinition: FormatDefinition<
         },
         {
             subvalueName: 'CELL',
-            async mapValues(value, settings, mapCallback) {
+            async mapValues(value, outputParameterName, settings, mapCallback) {
                 // TODO: [👨🏾‍🤝‍👨🏼] DRY csv parsing
                 const csv = parse<Parameters>(value, { ...settings, ...MANDATORY_CSV_SETTINGS });
 
