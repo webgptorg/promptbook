@@ -9,7 +9,7 @@ describe('how FOREACH command in .ptbk.md files works', () => {
             formatName: 'TEXT',
             subformatName: 'LINE',
             parameterName: 'customers',
-            subparameterNames: ['customer'],
+            subparameterNames: [{ name: 'customer', isInput: true, isOutput: true }],
         });
     });
 
@@ -21,7 +21,10 @@ describe('how FOREACH command in .ptbk.md files works', () => {
             formatName: 'TEXT',
             subformatName: 'LINE',
             parameterName: 'customers',
-            subparameterNames: ['firstName', 'lastName'],
+            subparameterNames: [
+                { name: 'firstName', isInput: true, isOutput: true },
+                { name: 'lastName', isInput: true, isOutput: true },
+            ],
         });
     });
 
@@ -31,14 +34,14 @@ describe('how FOREACH command in .ptbk.md files works', () => {
             formatName: 'TEXT',
             subformatName: 'LINE',
             parameterName: 'customers',
-            subparameterNames: ['customer'],
+            subparameterNames: [{ name: 'customer', isInput: true, isOutput: true }],
         });
         expect(parseCommand('FOREACH Text Line {customers} -> {customer}', 'PIPELINE_TEMPLATE')).toEqual({
             type: 'FOREACH',
             formatName: 'TEXT',
             subformatName: 'LINE',
             parameterName: 'customers',
-            subparameterNames: ['customer'],
+            subparameterNames: [{ name: 'customer', isInput: true, isOutput: true }],
         });
 
         expect(parseCommand('FOREACH Text Line `{customers} -> {customer}`', 'PIPELINE_TEMPLATE')).toEqual({
@@ -46,7 +49,7 @@ describe('how FOREACH command in .ptbk.md files works', () => {
             formatName: 'TEXT',
             subformatName: 'LINE',
             parameterName: 'customers',
-            subparameterNames: ['customer'],
+            subparameterNames: [{ name: 'customer', isInput: true, isOutput: true }],
         });
 
         expect(parseCommand('EACH   Text   Line {customers}     ->   {customer}   ', 'PIPELINE_TEMPLATE')).toEqual({
@@ -54,7 +57,7 @@ describe('how FOREACH command in .ptbk.md files works', () => {
             formatName: 'TEXT',
             subformatName: 'LINE',
             parameterName: 'customers',
-            subparameterNames: ['customer'],
+            subparameterNames: [{ name: 'customer', isInput: true, isOutput: true }],
         });
 
         expect(parseCommand('EACH   Text   Line customers    ->   customer   ', 'PIPELINE_TEMPLATE')).toEqual({
@@ -62,7 +65,7 @@ describe('how FOREACH command in .ptbk.md files works', () => {
             formatName: 'TEXT',
             subformatName: 'LINE',
             parameterName: 'customers',
-            subparameterNames: ['customer'],
+            subparameterNames: [{ name: 'customer', isInput: true, isOutput: true }],
         });
 
         /*
@@ -72,7 +75,7 @@ describe('how FOREACH command in .ptbk.md files works', () => {
             formatName: 'TEXT',
             subformatName: 'LINE',
             parameterName: 'customers',
-            subparameterNames: ['customer'],
+            subparameterNames: [{name: 'customer', isInput: true, isOutput: true}],
         });
         */
 
@@ -81,14 +84,20 @@ describe('how FOREACH command in .ptbk.md files works', () => {
             formatName: 'CSV',
             subformatName: 'ROW',
             parameterName: 'customers',
-            subparameterNames: ['firstName', 'lastName'],
+            subparameterNames: [
+                { name: 'firstName', isInput: true, isOutput: true },
+                { name: 'lastName', isInput: true, isOutput: true },
+            ],
         });
         expect(parseCommand('FOREACH Csv Row {customers} -> {firstName} {lastName}', 'PIPELINE_TEMPLATE')).toEqual({
             type: 'FOREACH',
             formatName: 'CSV',
             subformatName: 'ROW',
             parameterName: 'customers',
-            subparameterNames: ['firstName', 'lastName'],
+            subparameterNames: [
+                { name: 'firstName', isInput: true, isOutput: true },
+                { name: 'lastName', isInput: true, isOutput: true },
+            ],
         });
 
         expect(parseCommand('FOREACH Csv Row `{customers} -> {firstName}, {lastName}`', 'PIPELINE_TEMPLATE')).toEqual({
@@ -96,7 +105,10 @@ describe('how FOREACH command in .ptbk.md files works', () => {
             formatName: 'CSV',
             subformatName: 'ROW',
             parameterName: 'customers',
-            subparameterNames: ['firstName', 'lastName'],
+            subparameterNames: [
+                { name: 'firstName', isInput: true, isOutput: true },
+                { name: 'lastName', isInput: true, isOutput: true },
+            ],
         });
 
         expect(
@@ -106,7 +118,10 @@ describe('how FOREACH command in .ptbk.md files works', () => {
             formatName: 'CSV',
             subformatName: 'ROW',
             parameterName: 'customers',
-            subparameterNames: ['firstName', 'lastName'],
+            subparameterNames: [
+                { name: 'firstName', isInput: true, isOutput: true },
+                { name: 'lastName', isInput: true, isOutput: true },
+            ],
         });
 
         expect(
@@ -119,7 +134,10 @@ describe('how FOREACH command in .ptbk.md files works', () => {
             formatName: 'CSV',
             subformatName: 'ROW',
             parameterName: 'customers',
-            subparameterNames: ['firstName', 'lastName'],
+            subparameterNames: [
+                { name: 'firstName', isInput: true, isOutput: true },
+                { name: 'lastName', isInput: true, isOutput: true },
+            ],
         });
 
         /*
@@ -129,7 +147,7 @@ describe('how FOREACH command in .ptbk.md files works', () => {
             formatName: 'CSV',
             subformatName: 'CELL',
             parameterName: 'customers',
-          subparameterNames: ['firstName', 'lastName'],
+          subparameterNames: [{name: 'firstName', isInput: true, isOutput: true}, {name: 'lastName', isInput: true, isOutput: true}],
         });
         */
     });
@@ -140,7 +158,7 @@ describe('how FOREACH command in .ptbk.md files works', () => {
             formatName: 'CSV',
             subformatName: 'CELL',
             parameterName: 'customers',
-            subparameterNames: ['customer'],
+            subparameterNames: [{ name: 'customer', isInput: true, isOutput: true }],
         });
     });
 
