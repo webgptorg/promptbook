@@ -386,7 +386,7 @@ export const OPENAI_MODELS: Array<
         modelVariant: 'CHAT',
         modelTitle: 'o1-preview-2024-09-12',
         modelName: 'o1-preview-2024-09-12',
-        //             <- TODO:[main] !!!!!! Some better system to organize theese date suffixes and versions
+        //             <- TODO: [main] !!! Some better system to organize theese date suffixes and versions
         pricing: {
             prompt: computeUsage(`$15.00 / 1M tokens`),
             output: computeUsage(`$60.00 / 1M tokens`),

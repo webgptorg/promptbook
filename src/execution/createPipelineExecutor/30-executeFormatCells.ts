@@ -2,8 +2,7 @@ import spaceTrim from 'spacetrim';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import { FORMAT_DEFINITIONS } from '../../formats/index';
-import type { string_parameter_name } from '../../types/typeAliases';
-import type { string_parameter_value } from '../../types/typeAliases';
+import type { string_parameter_name, string_parameter_value } from '../../types/typeAliases';
 import type { TODO_any } from '../../utils/organization/TODO_any';
 import { mapAvailableToExpectedParameters } from '../../utils/parameters/mapAvailableToExpectedParameters';
 import type { ExecuteAttemptsOptions } from './40-executeAttempts';
@@ -119,8 +118,8 @@ export async function executeFormatCells(options: ExecuteFormatCellsOptions): Pr
         async (subparameters, index) => {
             let mappedParameters: Record<string_parameter_name, string_parameter_value>;
 
-            // TODO: !!!!!!! Limit to N concurrent executions
-            // TODO: !!!!!!! Report progress
+            // TODO: [🤹‍♂️][🪂] Limit to N concurrent executions
+            // TODO: When done [🐚] Report progress also for each cell here
 
             try {
                 mappedParameters = mapAvailableToExpectedParameters({
@@ -177,5 +176,6 @@ export async function executeFormatCells(options: ExecuteFormatCellsOptions): Pr
 }
 
 /**
+ * TODO: !!!!!! Rename cell to subformat or subvalue
  * TODO: !!!!!! How FOREACH execution looks in the report
  */
