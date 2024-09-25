@@ -11,7 +11,7 @@ import { executeAttempts } from './40-executeAttempts';
 /**
  * @@@
  *
- * @private internal type of `executeFormatCells`
+ * @private internal type of `executeFormatSubvalues`
  */
 type ExecuteFormatCellsOptions = ExecuteAttemptsOptions;
 
@@ -20,7 +20,7 @@ type ExecuteFormatCellsOptions = ExecuteAttemptsOptions;
  *
  * @private internal utility of `createPipelineExecutor`
  */
-export async function executeFormatCells(options: ExecuteFormatCellsOptions): Promise<TODO_any> {
+export async function executeFormatSubvalues(options: ExecuteFormatCellsOptions): Promise<TODO_any> {
     const { template, jokerParameterNames, parameters, priority, pipelineIdentification, settings } = options;
 
     if (template.foreach === undefined) {
@@ -119,7 +119,7 @@ export async function executeFormatCells(options: ExecuteFormatCellsOptions): Pr
             let mappedParameters: Record<string_parameter_name, string_parameter_value>;
 
             // TODO: [🤹‍♂️][🪂] Limit to N concurrent executions
-            // TODO: When done [🐚] Report progress also for each cell here
+            // TODO: When done [🐚] Report progress also for each subvalue here
 
             try {
                 mappedParameters = mapAvailableToExpectedParameters({
@@ -175,6 +175,3 @@ export async function executeFormatCells(options: ExecuteFormatCellsOptions): Pr
     return resultString;
 }
 
-/**
- * TODO: !!!!!! Rename cell to subformat or subvalue
- */
