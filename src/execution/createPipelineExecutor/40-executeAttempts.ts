@@ -11,11 +11,8 @@ import type { ExecutionReportJson } from '../../types/execution-report/Execution
 import type { ModelRequirements } from '../../types/ModelRequirements';
 import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import type { TemplateJson } from '../../types/PipelineJson/TemplateJson';
-import type { ChatPrompt } from '../../types/Prompt';
-import type { CompletionPrompt } from '../../types/Prompt';
-import type { Prompt } from '../../types/Prompt';
-import type { Parameters } from '../../types/typeAliases';
-import type { string_parameter_name } from '../../types/typeAliases';
+import type { ChatPrompt, CompletionPrompt, Prompt } from '../../types/Prompt';
+import type { Parameters, string_parameter_name } from '../../types/typeAliases';
 import { arrayableToArray } from '../../utils/arrayableToArray';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import type { really_any } from '../../utils/organization/really_any';
@@ -183,7 +180,10 @@ export async function executeAttempts(options: ExecuteAttemptsOptions): Promise<
                                     preparedPipeline.pipelineUrl
                                         ? preparedPipeline.pipelineUrl
                                         : 'anonymous' /* <- TODO: [🧠] How to deal with anonymous pipelines, do here some auto-url like SHA-256 based ad-hoc identifier? */
-                                }#${template.name}`,
+                                }#${
+                                    template.name
+                                    // <- TODO: Here should be maybe also subformat index to distinguish between same template with different subformat values
+                                }`,
                                 parameters,
                                 content: preparedContent, // <- Note: For LLM execution, parameters are replaced in the content
                                 modelRequirements,

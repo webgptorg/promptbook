@@ -177,5 +177,4 @@ export async function executeFormatCells(options: ExecuteFormatCellsOptions): Pr
 
 /**
  * TODO: !!!!!! Rename cell to subformat or subvalue
- * TODO: !!!!!! How FOREACH execution looks in the report
  */

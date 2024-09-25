@@ -1,6 +1,4 @@
-import type { string_markdown_text } from '../typeAliases';
-import type { string_pipeline_url } from '../typeAliases';
-import type { string_semantic_version } from '../typeAliases';
+import type { string_markdown_text, string_pipeline_url, string_semantic_version } from '../typeAliases';
 import type { ExecutionPromptReportJson } from './ExecutionPromptReportJson';
 
 /**
@@ -52,8 +50,3 @@ export type ExecutionReportJson = {
      */
     readonly promptExecutions: Array<ExecutionPromptReportJson>;
 };
-
-
-/**
- * TODO: !!!!!! FOREACH in report
- */
