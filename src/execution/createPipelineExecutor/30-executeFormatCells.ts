@@ -109,7 +109,7 @@ export async function executeFormatCells(options: ExecuteFormatCellsOptions): Pr
 
     if (formatDefinition.formatName === 'CSV') {
         formatSettings = settings.csvSettings;
-        // <- TODO: !!!!!! More universal, make simmilar pattern for other formats for example \n vs \r\n in text
+        // <- TODO: [🤹‍♂️] More universal, make simmilar pattern for other formats for example \n vs \r\n in text
     }
 
     const resultString = await subvalueDefinition.mapValues(
@@ -177,6 +177,5 @@ export async function executeFormatCells(options: ExecuteFormatCellsOptions): Pr
 }
 
 /**
- * TODO: !!!!!! Make pipelineIdentification more precise
  * TODO: !!!!!! How FOREACH execution looks in the report
  */

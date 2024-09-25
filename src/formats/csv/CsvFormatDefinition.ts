@@ -25,7 +25,7 @@ export const CsvFormatDefinition: FormatDefinition<
     aliases: ['SPREADSHEET', 'TABLE'],
 
     isValid(value, settings, schema): value is string /* <- [0] */ {
-        // TODO: !!!!!! Implement CSV validation
+        // TODO: Implement CSV validation
         TODO_USE(value /* <- TODO: Use value here */);
         TODO_USE(settings /* <- TODO: Use settings here */);
         TODO_USE(schema /* <- TODO: Use schema here */);

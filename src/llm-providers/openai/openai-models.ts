@@ -353,7 +353,7 @@ export const OPENAI_MODELS: Array<
             prompt: computeUsage(`$5.00 / 1M tokens`),
             output: computeUsage(`$15.00 / 1M tokens`),
         },
-        //TODO:[main] !!!!!! Add gpt-4o-mini-2024-07-18 and all others to be up to date
+        //TODO: [main] !!! Add gpt-4o-mini-2024-07-18 and all others to be up to date
     },
     /**/
 
