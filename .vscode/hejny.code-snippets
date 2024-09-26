@@ -71,17 +71,17 @@
             "/**",
             " * Function `$1` will @@@",
             " *",
-            " * @private within the repository <- TODO:[main] !!! Take just one of",
+            " * @private within the repository <- TODO: [main] !!! Take just one of",
             " * @public exported from @@@",
             " */",
             "export function $1(value: string): boolean {",
-            "    // TODO:[main] !!! Implement the function",
+            "    // TODO: [main] !!! Implement the function",
             "    return value === 'Foo';",
             "}",
             "",
             "",
             "/**",
-            " * TODO:[main] !!! Extract `$1` to separate file",
+            " * TODO: [main] !!! Extract `$1` to separate file",
             " */"
         ]
     }

@@ -93,5 +93,5 @@ async function makePipelineCollection({
 /**
  * Note: [🍠] @@@ Sample pipelines vs Pipelines used internally in Promptbook
  * TODO: [🌼] Maybe use `ptbk make` cli command instead of this script (but figure out what to do with nessesity to have library commited here)
- * TODO:[main] !!! Use `ptbk make` cli command this in WebGPT and Promptbook
+ * TODO: [main] !!! Use `ptbk make` cli command this in WebGPT and Promptbook
  */

@@ -83,7 +83,7 @@ export const ANTHROPIC_CLAUDE_MODELS: Array<
         },
     },
 
-    // TODO:[main] !!! Claude 1 and 2 has also completion versions - ask Hoagy
+    // TODO: [main] !!! Claude 1 and 2 has also completion versions - ask Hoagy
 ]);
 
 /**

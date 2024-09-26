@@ -3,6 +3,7 @@ import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
 import { ParseError } from '../../errors/ParseError';
 import { FORMAT_DEFINITIONS } from '../../formats/index';
 import type { string_markdown_text } from '../../types/typeAliases';
+import type { string_parameter_name } from '../../types/typeAliases';
 import { normalizeTo_SCREAMING_CASE } from '../../utils/normalization/normalizeTo_SCREAMING_CASE';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import { validateParameterName } from '../../utils/validators/parameterName/validateParameterName';
@@ -52,8 +53,10 @@ export const foreachCommandParser: PipelineTemplateCommandParser<ForeachCommand>
      */
     examples: [
         'FOREACH Text Line `{customers}` -> `{customer}`',
-        'FOR Csv Row `{customers}` -> `{firstName}`, `{lastName}`',
-        'EACH Csv Cell `{customers}` -> `{subformat}`',
+        'FOREACH Csv Cell `{customers}` -> `{cell}`',
+        'FOREACH Csv Row `{customers}` -> `{firstName}`, `{lastName}`, `+{email}`',
+        'FOR Text Line `{customers}` -> `{customer}`',
+        'EACH Text Line `{customers}` -> `{customer}`',
     ],
 
     /**
@@ -125,14 +128,51 @@ export const foreachCommandParser: PipelineTemplateCommandParser<ForeachCommand>
 
         const parameterName = validateParameterName(parameterNameArg);
 
-        const subparameterNames = args
+        let outputSubparameterName: string_parameter_name | null = null;
+
+        // TODO: [4] DRY
+        const inputSubparameterNames = args
             .slice(4)
             .map((parameterName) => parameterName.split(',').join(' ').trim())
+            .filter((parameterName) => !parameterName.includes('+'))
             .filter((parameterName) => parameterName !== '')
             .map(validateParameterName);
 
-        if (subparameterNames.length === 0) {
-            throw new ParseError(`FOREACH command must have at least one subparameter`);
+        // TODO: [4] DRY
+        const outputSubparameterNames = args
+            .slice(4)
+            .map((parameterName) => parameterName.split(',').join(' ').trim())
+            .filter((parameterName) => parameterName.includes('+'))
+            .map((parameterName) => parameterName.split('+').join(''))
+            .map(validateParameterName);
+
+        if (outputSubparameterNames.length === 1) {
+            outputSubparameterName = outputSubparameterNames[0]!;
+        } else if (outputSubparameterNames.length > 1) {
+            throw new ParseError(`FOREACH command can not have more than one output subparameter`);
+        }
+
+        if (inputSubparameterNames.length === 0) {
+            throw new ParseError(`FOREACH command must have at least one input subparameter`);
+        }
+
+        if (outputSubparameterName === null) {
+            // TODO: Following code should be unhardcoded from here and moved to the format definition
+            if (formatName === 'CSV' && subformatName === 'CELL') {
+                outputSubparameterName = 'newCell';
+            } else if (formatName === 'TEXT' && subformatName === 'LINE') {
+                outputSubparameterName = 'newLine';
+            } else {
+                throw new ParseError(
+                    spaceTrim(`
+                        FOREACH ${formatName} ${subformatName} must specify output subparameter
+
+                        Correct example:
+                        - FOREACH ${formatName} ${subformatName} {${parameterName}} -> {inputSubparameterName1}, {inputSubparameterName2}, +{outputSubparameterName}
+
+                    `),
+                );
+            }
         }
 
         return {
@@ -140,7 +180,8 @@ export const foreachCommandParser: PipelineTemplateCommandParser<ForeachCommand>
             formatName,
             subformatName,
             parameterName,
-            subparameterNames,
+            inputSubparameterNames,
+            outputSubparameterName,
         } satisfies ForeachCommand;
     },
 
@@ -150,12 +191,18 @@ export const foreachCommandParser: PipelineTemplateCommandParser<ForeachCommand>
      * Note: `$` is used to indicate that this function mutates given `templateJson`
      */
     $applyToTemplateJson(command: ForeachCommand, $templateJson: $TemplateJson, $pipelineJson: $PipelineJson): void {
-        const { formatName, subformatName, parameterName, subparameterNames } = command;
+        const { formatName, subformatName, parameterName, inputSubparameterNames, outputSubparameterName } = command;
 
         // TODO: [🍭] Detect double use
         // TODO: [🍭] Detect usage with JOKER and don't allow it
 
-        $templateJson.foreach = { formatName, subformatName, parameterName, subparameterNames };
+        $templateJson.foreach = {
+            formatName,
+            subformatName,
+            parameterName,
+            inputSubparameterNames,
+            outputSubparameterName,
+        };
 
         keepUnused($pipelineJson); // <- TODO: [🧠] Maybe register subparameter from foreach into parameters of the pipeline
 

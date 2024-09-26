@@ -33,9 +33,10 @@
                 "formatName": "TEXT",
                 "subformatName": "LINE",
                 "parameterName": "customers",
-                "subparameterNames": [
+                "inputSubparameterNames": [
                     "customer"
-                ]
+                ],
+                "outputSubparameterName": "newLine"
             },
             "personaName": "Jane",
             "dependentParameterNames": [
