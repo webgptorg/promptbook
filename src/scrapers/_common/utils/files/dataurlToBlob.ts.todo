@@ -1,0 +1,56 @@
+import spaceTrim from 'spacetrim';
+import { string_data_url } from '../../../../types/typeAliases';
+import { isValidDataurl } from './isValidDataurl';
+import { shorten } from './shorten';
+
+/**
+ * Convert string dataurl to blob
+ */
+export async function dataurlToBlob(dataurl: string_data_url): Promise<Blob> {
+    if (!isValidDataurl(dataurl)) {
+        throw new Error(
+            spaceTrim(`
+                Can not convert invalid dataurl to blob
+
+                Invalid dataurl:
+                ${shorten(dataurl, 100)}
+            `),
+        );
+    }
+
+    // TODO: Fix
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const { headRaw, data } = dataurl.match(/^(?<headRaw>.*?),(?<data>.*)$/)?.groups!;
+    const head = headRaw! /* <- TODO: Remove `!` */
+        .split(';');
+    const type = head[0]! /* <- TODO: Remove `!` */
+        .split(':')[1]!;
+    const isBase64Encoded = head.some((headPart) => headPart === 'base64');
+
+    if (!isBase64Encoded) {
+        return new Blob(
+//            <- TODO: [🧱] Implement in a functional (not new Class) way
+[decodeURIComponent(data! /* <- TODO: Remove `!` */)], { type });
+    }
+
+    const byteString = atob(data! /* <- TODO: Remove `!` */);
+
+    const arrayBuffer = new ArrayBuffer(
+//            <- TODO: [🧱] Implement in a functional (not new Class) way
+byteString.length);
+    const intBuffer = new Uint8Array(arrayBuffer);
+
+    for (let i = 0; i < byteString.length; i++) {
+        intBuffer[i] = byteString.charCodeAt(i);
+    }
+
+    return new Blob(
+//            <- TODO: [🧱] Implement in a functional (not new Class) way
+[arrayBuffer], { type });
+}
+
+/**
+ * TODO: [🧺] Is this working both in browser and node?
+ * TODO: [🧺] In future uncomment
+ * TODO: [🧺] Export via `@promptbook/pdf` and `@promptbook/docx`
+ */

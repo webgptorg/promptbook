@@ -157,7 +157,7 @@
             "name": "🧸💡 Scrape knowledge from Markdown (playground) (💸) [🍠]",
             "commands": [
                 "npx ts-node ./scripts/make-promptbook-collection/make-promptbook-collection.ts --verbose",
-                "npx ts-node ./src/knowledge/prepare-knowledge/markdown/playground/markdown-scraper-playground.ts"
+                "npx ts-node ./src/scrapers/markdown/playground/markdown-scraper-playground.ts"
             ],
             "onlySingle": true,
             "focus": true
@@ -166,7 +166,7 @@
             "name": "🧸💡 Scrape knowledge from .docx (playground) (💸) [🍠]",
             "commands": [
                 "npx ts-node ./scripts/make-promptbook-collection/make-promptbook-collection.ts --verbose",
-                "npx ts-node ./src/knowledge/prepare-knowledge/docx/playground/docx-scraper-playground.ts"
+                "npx ts-node ./src/scrapers/docx/playground/docx-scraper-playground.ts"
             ],
             "onlySingle": true,
             "focus": true
