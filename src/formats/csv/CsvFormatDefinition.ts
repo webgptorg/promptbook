@@ -1,10 +1,10 @@
 import { parse, unparse } from 'papaparse';
 import spaceTrim from 'spacetrim';
-import { ParseError } from '../../errors/ParseError';
 import type { Parameters } from '../../types/typeAliases';
 import type { TODO_any } from '../../utils/organization/TODO_any';
 import { TODO_USE } from '../../utils/organization/TODO_USE';
 import type { FormatDefinition } from '../_common/FormatDefinition';
+import { CsvFormatError } from './CsvFormatError';
 import type { CsvSettings } from './CsvSettings';
 import { MANDATORY_CSV_SETTINGS } from './CsvSettings';
 
@@ -54,7 +54,7 @@ export const CsvFormatDefinition: FormatDefinition<
                 const csv = parse<Parameters>(value, { ...settings, ...MANDATORY_CSV_SETTINGS });
 
                 if (csv.errors.length !== 0) {
-                    throw new ParseError( // <- TODO: !!!!!! Split PipelineParseError and FormatParseError -> CsvParseError
+                    throw new CsvFormatError(
                         spaceTrim(
                             (block) => `
                                 CSV parsing error
@@ -68,7 +68,7 @@ export const CsvFormatDefinition: FormatDefinition<
                 const mappedData = await Promise.all(
                     csv.data.map(async (row, index) => {
                         if (row[outputParameterName]) {
-                            throw new ParseError( // <- TODO: !!!!!! Split PipelineParseError and FormatParseError -> CsvParseError
+                            throw new CsvFormatError(
                                 `Can not overwrite existing column "${outputParameterName}" in CSV row`,
                             );
                         }
@@ -90,7 +90,7 @@ export const CsvFormatDefinition: FormatDefinition<
                 const csv = parse<Parameters>(value, { ...settings, ...MANDATORY_CSV_SETTINGS });
 
                 if (csv.errors.length !== 0) {
-                    throw new ParseError( // <- TODO: !!!!!! Split PipelineParseError and FormatParseError -> CsvParseError
+                    throw new CsvFormatError(
                         spaceTrim(
                             (block) => `
                                 CSV parsing error
