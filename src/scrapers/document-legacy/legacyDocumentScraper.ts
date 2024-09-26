@@ -18,7 +18,7 @@ import { markdownScraper } from '../markdown/markdownScraper';
  * @see `documentationUrl` for more details
  * @public exported from `@promptbook/core`
  */
-export const docxScraper = {
+export const legacyDocumentScraper = {
     /**
      * Mime types that this scraper can handle
      */
@@ -65,7 +65,7 @@ export const docxScraper = {
         await mkdir(dirname(markdownSourceFilePath), { recursive: true });
 
         if (isVerbose) {
-            console.info('docxScraper: Converting .docx -> .md');
+            console.info('legacyDocumentScraper: Converting .docx -> .md');
         }
 
         // TODO: !!!!!! [🕊] Make execCommand standard (?node-)util of the promptbook
@@ -97,7 +97,7 @@ export const docxScraper = {
 
         if (isCacheCleaned) {
             if (isVerbose) {
-                console.info('docxScraper: Clening cache');
+                console.info('legacyDocumentScraper: Clening cache');
             }
             await rm(markdownSourceFilePath);
         }

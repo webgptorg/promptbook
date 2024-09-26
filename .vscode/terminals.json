@@ -166,7 +166,16 @@
             "name": "🧸💡 Scrape knowledge from .docx (playground) (💸) [🍠]",
             "commands": [
                 "npx ts-node ./scripts/make-promptbook-collection/make-promptbook-collection.ts --verbose",
-                "npx ts-node ./src/scrapers/docx/playground/docx-scraper-playground.ts"
+                "npx ts-node ./src/scrapers/document/playground/document-scraper-playground.ts"
+            ],
+            "onlySingle": true,
+            "focus": true
+        },
+        {
+            "name": "🧸💡 Scrape knowledge from .doc (playground) (💸) [🍠]",
+            "commands": [
+                "npx ts-node ./scripts/make-promptbook-collection/make-promptbook-collection.ts --verbose",
+                "npx ts-node ./src/scrapers/document-legacy/playground/legacy-document-scraper-playground.ts"
             ],
             "onlySingle": true,
             "focus": true

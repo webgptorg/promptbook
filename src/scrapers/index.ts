@@ -1,4 +1,5 @@
-import { docxScraper } from './docx/docxScraper';
+import { legacyDocumentScraper } from './document-legacy/legacyDocumentScraper';
+import { documentScraper } from './document/documentScraper';
 import { markdownScraper } from './markdown/markdownScraper';
 
 /**
@@ -8,6 +9,7 @@ import { markdownScraper } from './markdown/markdownScraper';
  */
 export const SCRAPERS = [
     markdownScraper,
-    docxScraper,
+    documentScraper,
+    legacyDocumentScraper,
     // <- Note: [♓️] This is the order of the scrapers for knowledge, BUT consider some better (more explicit) way to do this
 ] as const;

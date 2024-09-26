@@ -11,7 +11,7 @@ import { stringifyPipelineJson } from '../../../conversion/utils/stringifyPipeli
 import { usageToHuman } from '../../../execution/utils/usageToHuman';
 import { getLlmToolsForTestingAndScriptsAndPlayground } from '../../../llm-providers/_common/getLlmToolsForTestingAndScriptsAndPlayground';
 import { emulateScraperSourceOptions } from '../../_common/utils/emulateScraperSourceOptions';
-import { markdownScraper } from '../markdownScraper';
+import { docxScraper } from '../docxScraper';
 
 const isVerbose = true;
 
@@ -33,15 +33,19 @@ async function playground() {
 
     const samplePath = join(
         __dirname,
-        '../samples/10-simple.md' /* <- TODO: [👩🏿‍🤝‍👩🏼] Read here the samples directory and itterate through all of them */,
+        '../samples/10-simple.doc' /* <- TODO: [👩🏿‍🤝‍👩🏼] Read here the samples directory and itterate through all of them */,
     );
 
     const llmTools = getLlmToolsForTestingAndScriptsAndPlayground({ isCacheReloaded: true });
 
-    const knowledge = await markdownScraper.scrape(emulateScraperSourceOptions(samplePath), {
+    const knowledge = await docxScraper.scrape(emulateScraperSourceOptions(samplePath), {
         llmTools,
         isVerbose,
         filesystemTools: null,
+        externalProgramsPaths: {
+            // TODO: !!!!!! use `locate-app` library here
+            pandocPath: 'C:/Users/me/AppData/Local/Pandoc/pandoc.exe',
+        },
     });
 
     console.info(colors.cyan(usageToHuman(llmTools.getTotalUsage())));
@@ -51,7 +55,7 @@ async function playground() {
     await writeFile(
         join(
             __dirname,
-            '../samples/10-simple.md.knowledge.json' /* <- TODO: [👩🏿‍🤝‍👩🏼] Read here the samples directory and itterate through all of them */,
+            '../samples/10-simple.doc.knowledge.json' /* <- TODO: [👩🏿‍🤝‍👩🏼] Read here the samples directory and itterate through all of them */,
         ),
         stringifyPipelineJson(knowledge),
         'utf-8',

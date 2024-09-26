@@ -2,12 +2,12 @@ import { describe, expect, it } from '@jest/globals';
 import { join } from 'path';
 import { getLlmToolsForTestingAndScriptsAndPlayground } from '../../llm-providers/_common/getLlmToolsForTestingAndScriptsAndPlayground';
 import { emulateScraperSourceOptions } from '../_common/utils/emulateScraperSourceOptions';
-import { docxScraper } from './docxScraper';
+import { documentScraper } from './documentScraper';
 
 describe('how creating knowledge from docx works', () => {
     it('should work with simple piece of information', async () =>
         expect(
-            docxScraper.scrape(emulateScraperSourceOptions(join(__dirname, 'samples/10-simple.md')), {
+            documentScraper.scrape(emulateScraperSourceOptions(join(__dirname, 'samples/10-simple.docx')), {
                 llmTools: getLlmToolsForTestingAndScriptsAndPlayground(),
                 filesystemTools: null,
             }),
@@ -40,5 +40,5 @@ describe('how creating knowledge from docx works', () => {
 });
 
 /**
- * TODO: [📓] Maybe test all file in samples (not just 10-simple.md)
+ * TODO: [📓] Maybe test all file in samples (not just 10-simple.docx)
  */
