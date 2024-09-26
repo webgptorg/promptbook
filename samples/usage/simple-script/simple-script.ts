@@ -6,7 +6,7 @@ Note: [🔁] In your app you will be importing '@promptbook/core' instead of '..
 
 import colors from 'colors';
 import * as dotenv from 'dotenv';
-import { writeFile } from 'fs/promises';
+import { readFile, writeFile } from 'fs/promises';
 import { forTime } from 'waitasecond';
 import {
     createPipelineExecutor,
@@ -54,8 +54,8 @@ async function main() {
 
     const pipeline = await collection.getPipelineByUrl(
         //`https://promptbook.studio/samples/foreach-list.ptbk.md`,
-        //`https://promptbook.studio/samples/foreach-csv.ptbk.md`,
-        `https://promptbook.studio/samples/simple-knowledge.ptbk.md`,
+        `https://promptbook.studio/samples/foreach-csv.ptbk.md`,
+        //`https://promptbook.studio/samples/simple-knowledge.ptbk.md`,
         // `https://promptbook.studio/samples/simple.ptbk.md`,
         // `https://promptbook.studio/samples/language-capabilities.ptbk.md`,
     );
@@ -89,11 +89,11 @@ async function main() {
             Kate
         `),
         /**/
-        /*/
+        /**/
         // https://promptbook.studio/samples/foreach-csv.ptbk.md
         customers: await readFile('./samples/pipelines/85-foreach.csv', 'utf-8'),
         /**/
-        /**/
+        /*/
         // https://promptbook.studio/samples/simple-knowledge.ptbk.md
         eventTitle: 'LinkedIn',
         eventDescription: 'Professional LinkedIn profile',

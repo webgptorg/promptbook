@@ -1,5 +1,5 @@
-import type { TODO_any } from '../../utils/organization/TODO_any';
 import { UnexpectedError } from '../../errors/UnexpectedError';
+import type { TODO_any } from '../../utils/organization/TODO_any';
 import type { FormatDefinition } from '../_common/FormatDefinition';
 
 /**
@@ -27,7 +27,7 @@ export const TextFormatDefinition: FormatDefinition<string, string, TODO_any /* 
     subvalueDefinitions: [
         {
             subvalueName: 'LINE',
-            async mapValues(value, settings, mapCallback) {
+            async mapValues(value, outputParameterName, settings, mapCallback) {
                 const lines = value.split('\n');
                 const mappedLines = await Promise.all(
                     lines.map((lineContent, lineNumber) =>

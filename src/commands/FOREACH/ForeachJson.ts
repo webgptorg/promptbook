@@ -23,5 +23,10 @@ export type ForeachJson = {
     /**
      * @@@
      */
-    readonly subparameterNames: Array<string_parameter_name>; // <- TODO: !!!!!! Use ParameterJson and split into input/output
+    readonly inputSubparameterNames: Array<string_parameter_name>;
+
+    /**
+     * @@@
+     */
+    readonly outputSubparameterName: string_parameter_name;
 };

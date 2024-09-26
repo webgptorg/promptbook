@@ -53,7 +53,7 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
                 export const PROMPTBOOK_VERSION: string_promptbook_version = '${version}';
 
                 export type string_promptbook_version = string_semantic_version;
-                // TODO:[main] !!!! List here all the versions and annotate + put into script
+                // TODO: [main] !!!! List here all the versions and annotate + put into script
 
             `,
         ),
@@ -73,6 +73,6 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
 }
 
 /**
- * TODO:[main] !!! The version is lagged one behind the actual version
+ * TODO: [main] !!! The version is lagged one behind the actual version
  * Note: [⚫] Code in this file should never be published in any package
  */

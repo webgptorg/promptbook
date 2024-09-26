@@ -183,7 +183,10 @@ export async function executeAttempts(options: ExecuteAttemptsOptions): Promise<
                                     preparedPipeline.pipelineUrl
                                         ? preparedPipeline.pipelineUrl
                                         : 'anonymous' /* <- TODO: [🧠] How to deal with anonymous pipelines, do here some auto-url like SHA-256 based ad-hoc identifier? */
-                                }#${template.name}`,
+                                }#${
+                                    template.name
+                                    // <- TODO: Here should be maybe also subformat index to distinguish between same template with different subformat values
+                                }`,
                                 parameters,
                                 content: preparedContent, // <- Note: For LLM execution, parameters are replaced in the content
                                 modelRequirements,

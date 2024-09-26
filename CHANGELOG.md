@@ -474,7 +474,7 @@ Was accidentally released skipped
 -   `RemoteLlmExecutionTools` automatically retries on error
 -   Rename `client_id` -> `string_user_id` and `clientId` -> `userId`
 
-### `0.68.0` _(2024-09-)_
+### `0.68.0` _(2024-09-08)_
 
 [🍧] Commands and command parser
 
@@ -515,8 +515,8 @@ Command `FOREACH`
 
 Support for local models - integrate [Ollama](https://ollama.com/)
 
--   !!!!!! Make new package `@promptbook/ollama`
--   !!!!!! Add `OllamaExecutionTools` exported from `@promptbook/ollama`
+-   Make new package `@promptbook/ollama`
+-   Add `OllamaExecutionTools` exported from `@promptbook/ollama`
 
 ### `0.71.0` _(2024-09-)_
 
@@ -528,6 +528,12 @@ Knowledge scrapers [🐝]
 -   Allow to import `.rtf` files with knowledge `.rtf` -(LibreOffice)-> `.docx` -(Pandoc)-> `.md` <!-- <- TODO: [🐝] !!!!!! Implement -->
 -   Add new error `KnowledgeScrapeError`
 -   Add `FilesystemTools`
+
+### `0.72.0` _(2024-09-)_
+
+Support for [Assistants API (GPTs)](https://platform.openai.com/docs/assistants/overview) from OpenAI
+
+- `getClient` methods are public
 
 ## Drafts
 

@@ -32,7 +32,7 @@ TODO: Allow this syntax and unit test:
 -   FOREACH Csv row `{customers}` -> `{firstName},{lastName},{note}`
 -->
 
--   FOREACH Csv row `{customers}` -> `{firstName}` `{lastName}` `{note}`
+-   FOREACH Csv row `{customers}` -> `{firstName}` `{lastName}` `{note}` `+{email}`
 -   PERSONA Jane, customer service representative and skilled copywriter for eshop
 <!--- TODO: Add EXPECT -->
 

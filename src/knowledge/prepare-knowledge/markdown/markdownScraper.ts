@@ -83,7 +83,7 @@ export const markdownScraper = {
         const { knowledgePieces: knowledgePiecesRaw } = outputParameters;
 
         const knowledgeTextPieces = (knowledgePiecesRaw || '').split('\n---\n');
-        //                                                               <- TODO:[main] !!!!! Smarter split and filter out empty pieces
+        //                                                               <- TODO: [main] !!!!! Smarter split and filter out empty pieces
 
         if (isVerbose) {
             console.info('knowledgeTextPieces:', knowledgeTextPieces);
