@@ -3,7 +3,6 @@
 Instrukce pro úpravu obsahu webové stránky za pomocí [📖 Promptbook](https://github.com/webgptorg/promptbook).
 
 -   PIPELINE URL https://webgpt.cz/promptbook-collection/update-website-content-cs.ptbk.md
--   PROMPTBOOK VERSION `1.0.0`
 -   INPUT  PARAM `{oldContent}` Původní obsah webu
 -   INPUT  PARAM `{suggestedAssignment}` Požadavek od uživatele na změnu
 -   OUTPUT PARAM `{newContent}` Nový obsah webu

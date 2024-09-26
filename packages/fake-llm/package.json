@@ -1,6 +1,6 @@
 {
     "name": "@promptbook/fake-llm",
-    "version": "0.68.5",
+    "version": "0.69.0",
     "description": "Supercharge your use of large language models",
     "private": false,
     "sideEffects": false,
@@ -12,21 +12,25 @@
         "Pavol Hejný <me@pavolhejny.com> (https://www.pavolhejny.com/)"
     ],
     "keywords": [
-        "autogpt",
-        "openai",
-        "gpt-3",
-        "gpt-4",
-        "chatgpt",
         "ai",
+        "llm",
+        "prompt",
+        "template",
+        "language-model",
+        "chatgpt",
+        "autogpt",
         "machine-learning",
         "natural-language-processing",
         "nlp",
-        "prompt",
-        "template",
-        "pipeline",
-        "automation",
-        "text-generation",
-        "language-model"
+        "openai",
+        "gpt-3",
+        "gpt-4",
+        "gpt-4o",
+        "gpt-4o-mini",
+        "o1",
+        "o1-mini",
+        "o1-preview",
+        "anthropic"
     ],
     "license": "CC-BY-4.0",
     "bugs": {
@@ -47,7 +51,7 @@
     "module": "./esm/index.es.js",
     "typings": "./esm/typings/src/_packages/fake-llm.index.d.ts",
     "peerDependencies": {
-        "@promptbook/core": "0.68.5"
+        "@promptbook/core": "0.69.0"
     },
     "dependencies": {
         "lorem-ipsum": "2.0.8",

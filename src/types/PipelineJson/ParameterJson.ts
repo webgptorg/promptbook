@@ -39,6 +39,7 @@ export type ParameterJson = {
 };
 
 /**
+ * TODO: [🧠] Should be here registered subparameters from foreach or not?
  * TODO: [♈] Probbably move expectations from templates to parameters
  * TODO: [🍙] Make some standard order of json properties
  */

@@ -14,15 +14,15 @@ Supercharge your use of large language models
 
 <!--/Badges-->
 
-<!--/Here will be placed specific package info-->
+## ✨ New Features
 
-# ✨ New Features
+-   ✨ **Support of [OpenAI o1 model](https://openai.com/o1/)**
 
--   ✨ **Support [OpenAI o1 model](https://openai.com/o1/)**
+<!--/ Here will be placed specific package info -->
 
 ## 🤍 The Promptbook Whitepaper
 
-<!-- TODO:[main] !!! Better -->
+<!-- TODO: [main] !!! Better -->
 
 If you have a simple, single prompt for ChatGPT, GPT-4, Anthropic Claude, Google Gemini, Llama 2, or whatever, it doesn't matter how you integrate it. Whether it's calling a REST API directly, using the SDK, hardcoding the prompt into the source code, or importing a text file, the process remains the same.
 
@@ -43,7 +43,7 @@ In all of these situations, but especially in 3., the Promptbook library can mak
 -   Promptbook is designed to do [**RAG** (Retrieval-Augmented Generation)](https://github.com/webgptorg/promptbook/discussions/41) and other advanced techniques. You can use **knowledge** to improve the quality of the output.
 
 <!--
-TODO:[main] !!!
+TODO: [main] !!!
 ## 🚀 Get started
 
 -->
@@ -70,7 +70,6 @@ File `write-website-content.ptbk.md`:
 > Instructions for creating web page content.
 >
 > -   PIPELINE URL https://promptbook.studio/webgpt/write-website-content.ptbk.md
-> -   PROMPTBOOK VERSION 0.0.1
 > -   INPUT  PARAM `{rawTitle}` Automatically suggested a site name or empty text
 > -   INPUT  PARAM `{rawAssigment}` Automatically generated site entry from image recognition
 > -   OUTPUT PARAM `{websiteContent}` Web content

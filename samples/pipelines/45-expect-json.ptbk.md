@@ -1,7 +1,6 @@
 # ✨ Sample: Parsing data to JSON
 
 -   PIPELINE URL https://promptbook.studio/samples/expect-json.ptbk.md
--   PROMPTBOOK VERSION 1.0.0
 -   INPUT  PARAMETER {sentence} Sentence to be processed
 -   OUTPUT PARAMETER `{parsedSentence}`
 

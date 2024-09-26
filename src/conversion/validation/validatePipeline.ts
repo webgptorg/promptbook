@@ -1,4 +1,5 @@
 import { spaceTrim } from 'spacetrim';
+import { IS_PIPELINE_LOGIC_VALIDATED } from '../../config';
 import { LOOP_LIMIT } from '../../config';
 import { RESERVED_PARAMETER_NAMES } from '../../config';
 import { ParseError } from '../../errors/ParseError';
@@ -27,6 +28,35 @@ import { isValidPipelineUrl } from '../../utils/validators/url/isValidPipelineUr
  * @public exported from `@promptbook/core`
  */
 export function validatePipeline(pipeline: PipelineJson): PipelineJson {
+    if (IS_PIPELINE_LOGIC_VALIDATED) {
+        validatePipelineCore(pipeline);
+    } else {
+        try {
+            validatePipelineCore(pipeline);
+        } catch (error) {
+            if (!(error instanceof PipelineLogicError)) {
+                throw error;
+            }
+
+            console.error(
+                spaceTrim(
+                    (block) => `
+                        Pipeline is not valid but logic errors are temporarily disabled via \`IS_PIPELINE_LOGIC_VALIDATED\`
+
+                        ${block((error as PipelineLogicError).message)}
+                    `,
+                ),
+            );
+        }
+    }
+
+    return pipeline;
+}
+
+/**
+ * @private internal function for `validatePipeline`
+ */
+export function validatePipelineCore(pipeline: PipelineJson): void {
     // TODO: [🧠] Maybe test if promptbook is a promise and make specific error case for that
 
     const pipelineIdentification = (() => {
@@ -79,9 +109,9 @@ export function validatePipeline(pipeline: PipelineJson): PipelineJson {
         throw new ParseError(
             spaceTrim(
                 (block) => `
-                    Promptbook is valid JSON but with wrong structure
+                    Pipeline is valid JSON but with wrong structure
 
-                    \`promptbook.parameters\` expected to be an array, but got ${typeof pipeline.parameters}
+                    \`PipelineJson.parameters\` expected to be an array, but got ${typeof pipeline.parameters}
 
                     ${block(pipelineIdentification)}
                 `,
@@ -96,9 +126,9 @@ export function validatePipeline(pipeline: PipelineJson): PipelineJson {
         throw new ParseError(
             spaceTrim(
                 (block) => `
-                    Promptbook is valid JSON but with wrong structure
+                    Pipeline is valid JSON but with wrong structure
 
-                    \`promptbook.templates\` expected to be an array, but got ${typeof pipeline.templates}
+                    \`PipelineJson.templates\` expected to be an array, but got ${typeof pipeline.templates}
 
                     ${block(pipelineIdentification)}
                 `,
@@ -356,10 +386,10 @@ export function validatePipeline(pipeline: PipelineJson): PipelineJson {
 
         unresovedTemplates = unresovedTemplates.filter((template) => !currentlyResovedTemplates.includes(template));
     }
-    return pipeline;
 }
 
 /**
+ * TODO: !!!!! [🧞‍♀️] Do not allow joker + foreach
  * TODO: [🧠] Work with promptbookVersion
  * TODO: Use here some json-schema, Zod or something similar and change it to:
  *     > /**

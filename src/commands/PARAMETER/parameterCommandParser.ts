@@ -1,9 +1,10 @@
+import spaceTrim from 'spacetrim';
 import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
 import { ParseError } from '../../errors/ParseError';
 import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import type { string_markdown_text } from '../../types/typeAliases';
 import { keepUnused } from '../../utils/organization/keepUnused';
-import type { TODO_any } from '../../utils/organization/TODO_any';
+import { validateParameterName } from '../../utils/validators/parameterName/validateParameterName';
 import type { $PipelineJson } from '../_common/types/CommandParser';
 import type { $TemplateJson } from '../_common/types/CommandParser';
 import type { CommandParserInput } from '../_common/types/CommandParser';
@@ -56,18 +57,24 @@ export const parameterCommandParser: PipelineBothCommandParser<ParameterCommand>
      * Parses the PARAMETER command
      */
     parse(input: CommandParserInput): ParameterCommand {
-        const { normalized, raw } = input;
+        const { normalized, args, raw } = input;
 
-        const parametersMatch = raw.match(/\{(?<parameterName>[a-z0-9_]+)\}[^\S\r\n]*(?<parameterDescription>.*)$/im);
+        const parameterNameRaw = args.shift() || '';
+        const parameterDescriptionRaw = args.join(' ');
+        // <- TODO: When [🥶] fixed, change to:
+        //        >   const parameterDescriptionRaw = rawArgs.split(parameterNameRaw).join('').trim();
 
-        if (!parametersMatch || !parametersMatch.groups || !parametersMatch.groups.parameterName) {
-            throw new ParseError(`Invalid parameter`);
-        }
+        if (parameterDescriptionRaw && parameterDescriptionRaw.match(/\{(?<embeddedParameterName>[a-z0-9_]+)\}/im)) {
+            throw new ParseError(
+                spaceTrim(
+                    (block) => `
+                        Parameter {${parameterNameRaw}} can not contain another parameter in description
 
-        const { parameterName, parameterDescription } = parametersMatch.groups as TODO_any;
-
-        if (parameterDescription && parameterDescription.match(/\{(?<parameterName>[a-z0-9_]+)\}/im)) {
-            throw new ParseError(`Parameter {${parameterName}} can not contain another parameter in description`);
+                        The description:
+                        ${block(parameterDescriptionRaw)}
+                    `,
+                ),
+            );
         }
 
         let isInput = normalized.startsWith('INPUT');
@@ -78,10 +85,13 @@ export const parameterCommandParser: PipelineBothCommandParser<ParameterCommand>
             isOutput = false;
         }
 
+        const parameterName = validateParameterName(parameterNameRaw);
+        const parameterDescription = parameterDescriptionRaw.trim() || null;
+
         return {
             type: 'PARAMETER',
             parameterName,
-            parameterDescription: parameterDescription.trim() || null,
+            parameterDescription,
             isInput,
             isOutput,
         } satisfies ParameterCommand;

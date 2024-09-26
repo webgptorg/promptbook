@@ -6,8 +6,9 @@ import { createCollectionFromJson } from '../../../collection/constructors/creat
 import { IS_VERBOSE } from '../../../config';
 import { MAX_PARALLEL_COUNT } from '../../../config';
 import { titleToName } from '../../../conversion/utils/titleToName';
+import { PipelineExecutionError } from '../../../errors/PipelineExecutionError';
 import { assertsExecutionSuccessful } from '../../../execution/assertsExecutionSuccessful';
-import { createPipelineExecutor } from '../../../execution/createPipelineExecutor';
+import { createPipelineExecutor } from '../../../execution/createPipelineExecutor/00-createPipelineExecutor';
 import type { PrepareOptions } from '../../../prepare/PrepareOptions';
 import type { KnowledgePiecePreparedJson } from '../../../types/PipelineJson/KnowledgePieceJson';
 import type { PipelineJson } from '../../../types/PipelineJson/PipelineJson';
@@ -66,7 +67,7 @@ export async function prepareKnowledgeFromMarkdown(
     const { knowledgePieces: knowledgePiecesRaw } = outputParameters;
 
     const knowledgeTextPieces = (knowledgePiecesRaw || '').split('\n---\n');
-    //                                                               <- TODO:[main] !!!!! Smarter split and filter out empty pieces
+    //                                                               <- TODO: [main] !!!!! Smarter split and filter out empty pieces
 
     if (isVerbose) {
         console.info('knowledgeTextPieces:', knowledgeTextPieces);
@@ -129,8 +130,17 @@ export async function prepareKnowledgeFromMarkdown(
                     });
                 }
             } catch (error) {
+                // Note: Here is expected error:
+                //     > PipelineExecutionError: You have not provided any `LlmExecutionTools` that support model variant "EMBEDDING
+                if (!(error instanceof PipelineExecutionError)) {
+                    throw error;
+                }
+
                 // TODO: [🟥] Detect browser / node and make it colorfull
-                console.error(error);
+                console.error(
+                    error,
+                    "<- Note: This error is not critical to prepare the pipeline, just knowledge pieces won't have embeddings",
+                );
             }
 
             return {

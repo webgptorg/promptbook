@@ -1,6 +1,7 @@
+import type { ReadonlyDeep } from 'type-fest';
 import type { TemplateJson } from '../../types/PipelineJson/TemplateJson';
 import type { string_parameter_name } from '../../types/typeAliases';
-import { extractParameterNames } from '../../utils/extractParameterNames';
+import { extractParameterNames } from '../../utils/parameters/extractParameterNames';
 import { extractVariables } from './extractVariables';
 
 /**
@@ -12,12 +13,14 @@ import { extractVariables } from './extractVariables';
  * @public exported from `@promptbook/utils`
  */
 export function extractParameterNamesFromTemplate(
-    template: Pick<
-        TemplateJson,
-        'title' | 'description' | 'templateType' | 'content' | 'preparedContent' | 'jokerParameterNames'
+    template: ReadonlyDeep<
+        Pick<
+            TemplateJson,
+            'title' | 'description' | 'templateType' | 'content' | 'preparedContent' | 'jokerParameterNames' | 'foreach'
+        >
     >,
 ): Set<string_parameter_name> {
-    const { title, description, templateType, content, preparedContent, jokerParameterNames } = template;
+    const { title, description, templateType, content, preparedContent, jokerParameterNames, foreach } = template;
     const parameterNames = new Set<string_parameter_name>();
 
     for (const parameterName of [
@@ -41,6 +44,17 @@ export function extractParameterNamesFromTemplate(
 
     parameterNames.delete('content');
     //                      <- Note {websiteContent} is used in `preparedContent`
+
+    // Note: [🍭] Fixing dependent subparameterName from FOREACH command
+    if (foreach !== undefined) {
+        for (const subparameterName of foreach.inputSubparameterNames) {
+            if (parameterNames.has(subparameterName)) {
+                parameterNames.delete(subparameterName);
+                parameterNames.add(foreach.parameterName);
+                // <- TODO: [🚎] Warn/logic error when `subparameterName` not used
+            }
+        }
+    }
 
     return parameterNames;
 }

@@ -1,24 +1,34 @@
 import type { string_mime_type } from '../../types/typeAliases';
 import type { string_name } from '../../types/typeAliases';
+import type { string_SCREAMING_CASE } from '../../utils/normalization/normalizeTo_SCREAMING_CASE';
+import type { empty_object } from '../../utils/organization/empty_object';
+import type { FormatSubvalueDefinition } from './FormatSubvalueDefinition';
 
 /**
  * A format definition is a set of functions that define how to validate, heal and convert response from LLM
  *
+ * @@@ Describe setting vs schema
+ *
  * @see https://github.com/webgptorg/promptbook/discussions/36
  * @private still in development [🏢]
  */
-export type FormatDefinition<TValue extends TPartialValue, TPartialValue extends string, TSchema extends object> = {
+export type FormatDefinition<
+    TValue extends TPartialValue,
+    TPartialValue extends string,
+    TSettings extends empty_object,
+    TSchema extends empty_object,
+> = {
     /**
      * The name of the format used in .ptbk.md files
      *
      * @sample "JSON"
      */
-    readonly name: string_name;
+    readonly formatName: string_name & string_SCREAMING_CASE;
 
     /**
-     * Aliases for the name
+     * Aliases for the `formatName`
      */
-    readonly aliases?: Array<string_name>;
+    readonly aliases?: Array<string_name & string_SCREAMING_CASE>;
 
     /**
      * The mime type of the format (if any)
@@ -33,7 +43,7 @@ export type FormatDefinition<TValue extends TPartialValue, TPartialValue extends
      * @param value The value to check, for example "{\"foo\": true}"
      * @param schema Optional schema to do extra validation
      */
-    isValid(value: string, schema?: TSchema): value is TValue;
+    isValid(value: string, settings?: TSettings, schema?: TSchema): value is TValue;
 
     /**
      * Check if a first part of a value is valid
@@ -43,7 +53,7 @@ export type FormatDefinition<TValue extends TPartialValue, TPartialValue extends
      * @param partialValue Partial value to check, for example "{\"foo\": t"
      * @param schema Optional schema to do extra validation
      */
-    canBeValid(partialValue: string, schema?: TSchema): partialValue is TPartialValue;
+    canBeValid(partialValue: string, settings?: TSettings, schema?: TSchema): partialValue is TPartialValue;
 
     /**
      * Heal a value to make it valid if possible
@@ -55,18 +65,12 @@ export type FormatDefinition<TValue extends TPartialValue, TPartialValue extends
      * @param scheme
      * @throws {Error} If the value cannot be healed
      */
-    heal(value: string, scheme?: TSchema): TValue;
+    heal(value: string, settings?: TSettings, scheme?: TSchema): TValue;
 
     /**
-     * Parses just the values and removes structural information
-     *
-     * Note: This is useful when you want to combine format expectations with counting words, characters,...
-     *
-     * @param value The value to check, for example "{\"name\": "John Smith"}"
-     * @param schema Optional schema
-     * @example "{\"name\": "John Smith"}" -> ["John Smith"]
+     * @@@
      */
-    extractValues(value: string, schema?: TSchema): Array<string>;
+    readonly subvalueDefinitions: Array<FormatSubvalueDefinition<TValue, TSettings>>;
 };
 
 /**

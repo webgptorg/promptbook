@@ -1,7 +1,6 @@
 {
     "title": "✨ Sample: Postprocessing 2",
     "pipelineUrl": "https://promptbook.studio/samples/postprocessing-2.ptbk.md",
-    "promptbookVersion": "1.0.0",
     "parameters": [
         {
             "name": "yourName",

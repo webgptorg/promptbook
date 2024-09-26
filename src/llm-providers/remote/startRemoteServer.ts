@@ -109,14 +109,14 @@ export function startRemoteServer(options: RemoteServerOptions): IDestroyable {
 
             try {
                 if (isAnonymous === true && !isAnonymousModeAllowed) {
-                    throw new PipelineExecutionError(`Anonymous mode is not allowed`); // <- TODO:[main] !!! Test
+                    throw new PipelineExecutionError(`Anonymous mode is not allowed`); // <- TODO: [main] !!! Test
                 }
 
                 if (isAnonymous === false && !isCollectionModeAllowed) {
-                    throw new PipelineExecutionError(`Collection mode is not allowed`); // <- TODO:[main] !!! Test
+                    throw new PipelineExecutionError(`Collection mode is not allowed`); // <- TODO: [main] !!! Test
                 }
 
-                // TODO:[main] !!!! Validate here userId (pass validator as dependency)
+                // TODO: [main] !!!! Validate here userId (pass validator as dependency)
 
                 let llmExecutionTools: LlmExecutionTools;
 
@@ -204,14 +204,14 @@ export function startRemoteServer(options: RemoteServerOptions): IDestroyable {
 
             try {
                 if (isAnonymous === true && !isAnonymousModeAllowed) {
-                    throw new PipelineExecutionError(`Anonymous mode is not allowed`); // <- TODO:[main] !!! Test
+                    throw new PipelineExecutionError(`Anonymous mode is not allowed`); // <- TODO: [main] !!! Test
                 }
 
                 if (isAnonymous === false && !isCollectionModeAllowed) {
-                    throw new PipelineExecutionError(`Collection mode is not allowed`); // <- TODO:[main] !!! Test
+                    throw new PipelineExecutionError(`Collection mode is not allowed`); // <- TODO: [main] !!! Test
                 }
 
-                // TODO:[main] !!!! Validate here userId (pass validator as dependency)
+                // TODO: [main] !!!! Validate here userId (pass validator as dependency)
 
                 let llmExecutionTools: LlmExecutionTools;
 

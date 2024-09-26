@@ -1,5 +1,5 @@
 import type { PipelineJson } from '../types/PipelineJson/PipelineJson';
-import { extractParameterNames } from '../utils/extractParameterNames';
+import { extractParameterNames } from '../utils/parameters/extractParameterNames';
 import { $asDeeplyFrozenSerializableJson } from '../utils/serialization/$asDeeplyFrozenSerializableJson';
 
 /**

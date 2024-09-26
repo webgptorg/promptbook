@@ -16,6 +16,10 @@ Supercharge your use of large language models
 
 
 
+## ✨ New Features
+
+-   ✨ **Support of [OpenAI o1 model](https://openai.com/o1/)**
+
 ## 📦 Package `@promptbook/remote-client`
 
 - Promptbooks are [divided into several](#-packages) packages, all are published from [single monorepo](https://github.com/webgptorg/promptbook).
@@ -28,7 +32,7 @@ To install this package, run:
 npm i ptbk
 
 # Install just this package to save space
-npm i @promptbook/remote-client
+npm install @promptbook/remote-client
 ```
 
 
@@ -37,10 +41,6 @@ npm i @promptbook/remote-client
 ---
 
 Rest of the documentation is common for **entire promptbook ecosystem**:
-
-# ✨ New Features
-
--   ✨ **Support [OpenAI o1 model](https://openai.com/o1/)**
 
 ## 🤍 The Promptbook Whitepaper
 
@@ -88,7 +88,6 @@ File `write-website-content.ptbk.md`:
 > Instructions for creating web page content.
 >
 > -   PIPELINE URL https://promptbook.studio/webgpt/write-website-content.ptbk.md
-> -   PROMPTBOOK VERSION 0.0.1
 > -   INPUT  PARAM `{rawTitle}` Automatically suggested a site name or empty text
 > -   INPUT  PARAM `{rawAssigment}` Automatically generated site entry from image recognition
 > -   OUTPUT PARAM `{websiteContent}` Web content

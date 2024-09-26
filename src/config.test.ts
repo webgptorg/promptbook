@@ -1,9 +1,14 @@
 import { describe, expect, it } from '@jest/globals';
-import { DEBUG_ALLOW_PAYED_TESTING } from './config';
+import { IS_COST_PREVENTED } from './config';
+import { IS_PIPELINE_LOGIC_VALIDATED } from './config';
 
 describe('configuration', () => {
     it('prevents accidental costs', () => {
-        expect(DEBUG_ALLOW_PAYED_TESTING).toBe(false);
+        expect(IS_COST_PREVENTED).toBe(true);
+    });
+
+    it('checks samples logic', () => {
+        expect(IS_PIPELINE_LOGIC_VALIDATED).toBe(true);
     });
 });
 

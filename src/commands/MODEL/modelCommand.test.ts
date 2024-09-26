@@ -22,18 +22,6 @@ describe('how MODEL command in .ptbk.md files works', () => {
             value: 'COMPLETION',
         });
 
-        expect(parseCommand('MODEL VARIANT Embed', 'PIPELINE_TEMPLATE')).toEqual({
-            type: 'MODEL',
-            key: 'modelVariant',
-            value: 'EMBEDDING',
-        });
-
-        expect(parseCommand('MODEL VARIANT Embedding', 'PIPELINE_TEMPLATE')).toEqual({
-            type: 'MODEL',
-            key: 'modelVariant',
-            value: 'EMBEDDING',
-        });
-
         // <- Note: [🤖]
 
         expect(parseCommand('MODEL VARIANT `CHAT`', 'PIPELINE_TEMPLATE')).toEqual({

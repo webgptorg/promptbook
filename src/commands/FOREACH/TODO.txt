@@ -1,2 +1,1 @@
-TODO: [🧠][🍭] Foreach and postprocessing + expectations
-TODO: [🍭] Write discussion about FOREACH Command
+TODO: [🧠][🍭] How should foreach behave together with postprocessing + expectations

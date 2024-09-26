@@ -3,7 +3,6 @@
 How block are nested in the promptbook
 
 -   PIPELINE URL https://promptbook.studio/samples/nesting.ptbk.md
--   PROMPTBOOK VERSION 1.0.0
 -   INPUT  PARAMETER `{word}` The word to use in the prompt.
 -   OUTPUT PARAMETER `{poem}`
 

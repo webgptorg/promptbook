@@ -16,7 +16,7 @@ import type { string_markdown } from '../../types/typeAliases';
 import type { string_markdown_text } from '../../types/typeAliases';
 import type { string_title } from '../../types/typeAliases';
 import { getCurrentIsoDate } from '../../utils/getCurrentIsoDate';
-import { replaceParameters } from '../../utils/replaceParameters';
+import { replaceParameters } from '../../utils/parameters/replaceParameters';
 import { $asDeeplyFrozenSerializableJson } from '../../utils/serialization/$asDeeplyFrozenSerializableJson';
 import { OPENAI_MODELS } from '../openai/openai-models';
 import type { AzureOpenAiExecutionToolsOptions } from './AzureOpenAiExecutionToolsOptions';
@@ -70,7 +70,7 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools {
      * List all available Azure OpenAI models that can be used
      */
     public async listModels(): Promise<Array<AvailableModel>> {
-        // TODO:[main] !!! Do here some filtering which models are really available as deployment
+        // TODO: [main] !!! Do here some filtering which models are really available as deployment
         //       @see https://management.azure.com/subscriptions/subscriptionId/resourceGroups/resourceGroupName/providers/Microsoft.CognitiveServices/accounts/accountName/deployments?api-version=2023-05-01
         return OPENAI_MODELS.map(
             ({

@@ -1,7 +1,6 @@
 {
     "title": "✨ Sample: Jokers",
     "pipelineUrl": "https://promptbook.studio/samples/jokers.ptbk.md",
-    "promptbookVersion": "1.0.0",
     "parameters": [
         {
             "name": "name1",
