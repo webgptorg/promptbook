@@ -11,7 +11,7 @@ import { stringifyPipelineJson } from '../../../conversion/utils/stringifyPipeli
 import { usageToHuman } from '../../../execution/utils/usageToHuman';
 import { getLlmToolsForTestingAndScriptsAndPlayground } from '../../../llm-providers/_common/getLlmToolsForTestingAndScriptsAndPlayground';
 import { emulateScraperSourceOptions } from '../../_common/utils/emulateScraperSourceOptions';
-import { docxScraper } from '../docxScraper';
+import { documentScraper } from '../documentScraper';
 
 const isVerbose = true;
 
@@ -38,7 +38,7 @@ async function playground() {
 
     const llmTools = getLlmToolsForTestingAndScriptsAndPlayground({ isCacheReloaded: true });
 
-    const knowledge = await docxScraper.scrape(emulateScraperSourceOptions(samplePath), {
+    const knowledge = await documentScraper.scrape(emulateScraperSourceOptions(samplePath), {
         llmTools,
         isVerbose,
         filesystemTools: null,
