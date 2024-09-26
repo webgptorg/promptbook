@@ -16,7 +16,7 @@ export type AbstractScraper = {
     /**
      * Mime types that this scraper can handle
      */
-    readonly mimeTypes: Array<string_mime_type_with_wildcard>;
+    readonly mimeTypes: Array<string_mime_type /* <- TODO: [🦔] `string_mime_type_with_wildcard` */>;
 
     /**
      * Link to documentation

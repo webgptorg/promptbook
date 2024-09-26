@@ -8,6 +8,8 @@ import { forEachAsync } from '../../../execution/utils/forEachAsync';
 import type { PrepareOptions } from '../../../prepare/PrepareOptions';
 import type { KnowledgePiecePreparedJson } from '../../../types/PipelineJson/KnowledgePieceJson';
 import type { KnowledgeSourceJson } from '../../../types/PipelineJson/KnowledgeSourceJson';
+import { extensionToMimeType } from '../../../utils/files/extensionToMimeType';
+import { getFileExtension } from '../../../utils/files/getFileExtension';
 import { markdownScraper } from '../markdown/markdownScraper';
 import { ScraperSourceOptions } from './AbstractScraper';
 
@@ -32,7 +34,7 @@ export async function prepareKnowledgePieces(
             // 1️⃣ `knowledgeSource` is URL
             // [3] DRY 1️⃣ and 2️⃣
 
-            throw new NotYetImplementedError('URL knowledge source is not yet implemented !!!!!!');
+            throw new NotYetImplementedError('TODO: !!!!!! Implement knowledgeSource URL scraping');
         } else if (isValidFilePath(knowledgeSource.sourceContent)) {
             // 2️⃣ `knowledgeSource` is local file path
             // [3] DRY 1️⃣ and 2️⃣
@@ -41,16 +43,16 @@ export async function prepareKnowledgePieces(
                 throw new KnowledgeScrapeError('Filesystem tools are required for scraping local files');
             }
 
-            // TODO: !!!!!! Test security file
+            const filePath = knowledgeSource.sourceContent;
+            const mimeType = extensionToMimeType(getFileExtension(filePath) || '');
 
-            const mimeType = 'text/markdown';
-            //                 <- !!!!!! Unhardcode this
+            // TODO: !!!!!! Test security file - file is scoped to the project (maybe do this in `filesystemTools`)
 
             const scraperSourceOptions = {
-                source: knowledgeSource.name, // <- TODO: !!!!!! What should be here `knowledgeSource.name` or `knowledgeSource.sourceContent`
+                source: knowledgeSource.name, // <- TODO: !!!!!! What should be here `knowledgeSource.name` or `filePath`
                 mimeType,
                 async asText() {
-                    return await filesystemTools.getFile(knowledgeSource.sourceContent);
+                    return await filesystemTools.getFile(filePath);
                 },
                 async asJson() {
                     throw new NotYetImplementedError('!!!!!!');
@@ -63,7 +65,7 @@ export async function prepareKnowledgePieces(
             for (const scraper of SCRAPERS) {
                 if (
                     !scraper.mimeTypes.includes(mimeType)
-                    // <- TODO: !!!!!! Implement wildcards
+                    // <- TODO: [🦔] Implement mime-type wildcards
                 ) {
                     continue;
                 }
@@ -76,7 +78,7 @@ export async function prepareKnowledgePieces(
                 }
             }
 
-            throw new KnowledgeScrapeError(`Can not find scraper the file "${knowledgeSource.sourceContent}"`);
+            throw new KnowledgeScrapeError(`Can not find scraper the file "${filePath}"`);
         } else {
             // 1️⃣ `knowledgeSource` is just inlined (markdown content) information
             const partialPiecesUnchecked = await markdownScraper.scrape(
