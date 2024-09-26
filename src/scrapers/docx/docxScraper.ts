@@ -3,14 +3,13 @@ import { PrepareAndScrapeOptions } from '../../_packages/types.index';
 import type { AbstractScraper, ScraperSourceOptions } from '../_common/AbstractScraper';
 // TODO: [🏳‍🌈] Finally take pick of .json vs .ts
 // import PipelineCollection from '../../../promptbook-collection/promptbook-collection';
-import { mkdir, readFile } from 'fs/promises';
+import { mkdir, readFile, rm } from 'fs/promises';
 import { basename, dirname, join } from 'path';
 import { execCommand } from '../../../scripts/utils/execCommand/execCommand';
 import { $isRunningInNode } from '../../_packages/utils.index';
-import { SCRAPE_CACHE_DIRNAME } from '../../config';
+import { IS_VERBOSE, SCRAPE_CACHE_DIRNAME } from '../../config';
 import { KnowledgeScrapeError } from '../../errors/KnowledgeScrapeError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
-import { TODO_USE } from '../../utils/organization/TODO_USE';
 import { markdownScraper } from '../markdown/markdownScraper';
 
 /**
@@ -37,10 +36,12 @@ export const docxScraper = {
         source: ScraperSourceOptions,
         options: PrepareAndScrapeOptions,
     ): Promise<Array<Omit<KnowledgePiecePreparedJson, 'sources' | 'preparationIds'>> | null> {
-        // TODO: Use or remove> const { llmTools, maxParallelCount = MAX_PARALLEL_COUNT, isVerbose = IS_VERBOSE } = options;
-        // TODO: Use or remove> TODO_USE(maxParallelCount); // <- [🪂]
-
-        const { externalProgramsPaths = {}, cacheDirname = SCRAPE_CACHE_DIRNAME, isCacheCleaned = false } = options;
+        const {
+            externalProgramsPaths = {},
+            cacheDirname = SCRAPE_CACHE_DIRNAME,
+            isCacheCleaned = false,
+            isVerbose = IS_VERBOSE,
+        } = options;
 
         if (!$isRunningInNode()) {
             throw new KnowledgeScrapeError('Scraping .docx files is only supported in Node environment');
@@ -57,12 +58,17 @@ export const docxScraper = {
 
         const markdownSourceFilePath =
             // TODO: [🦧] Maybe use here FilesystemTools
+            // TODO: [🦧] Do here same subfolder paths /a/b/... like executions-cache
             join(process.cwd(), cacheDirname, basename(source.filePath)).split('\\').join('/') + '.md';
 
         // TODO: [🦧] Maybe use here FilesystemTools
         await mkdir(dirname(markdownSourceFilePath), { recursive: true });
 
-        // TODO: !!!!!! Make execCommand standard (?node-)util of the promptbook
+        if (isVerbose) {
+            console.info('docxScraper: Converting .docx -> .md');
+        }
+
+        // TODO: !!!!!! [🕊] Make execCommand standard (?node-)util of the promptbook
         await execCommand(
             `"${externalProgramsPaths.pandocPath}" -f docx -t markdown "${source.filePath}" -o "${markdownSourceFilePath}"`,
         );
@@ -87,9 +93,16 @@ export const docxScraper = {
             },
         } satisfies ScraperSourceOptions;
 
-        TODO_USE(isCacheCleaned);
+        const knowledge = markdownScraper.scrape(markdownSource, options);
 
-        return markdownScraper.scrape(markdownSource, options);
+        if (isCacheCleaned) {
+            if (isVerbose) {
+                console.info('docxScraper: Clening cache');
+            }
+            await rm(markdownSourceFilePath);
+        }
+
+        return knowledge;
     },
 } /* TODO: [🦷] as const */ satisfies AbstractScraper;
 
