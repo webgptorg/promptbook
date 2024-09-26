@@ -26,7 +26,7 @@ playground()
     });
 
 async function playground() {
-    console.info(`🧸  Prepare knowledge from Markdown (playground)`);
+    console.info(`🧸  Scrape knowledge from Markdown (playground)`);
 
     // Do here stuff you want to test
     //========================================>

@@ -1,6 +1,6 @@
 {
-    "date": "2024-08-05T07:27:37.881Z",
-    "promptbookVersion": "0.61.0-24",
+    "date": "2024-09-26T12:11:35.725Z",
+    "promptbookVersion": "0.71.0-0",
     "prompt": {
         "title": "Knowledge",
         "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-from-markdown.ptbk.md#knowledge",
@@ -9,37 +9,33 @@
         },
         "content": "You are experienced data researcher, extract the important knowledge from the document.\n\n# Rules\n\n-   Make pieces of information concise, clear, and easy to understand\n-   One piece of information should be approximately 1 paragraph\n-   Divide the paragraphs by markdown horizontal lines ---\n-   Omit irrelevant information\n-   Group redundant information\n-   Write just extracted information, nothing else\n\n# The document\n\nTake information from this document:\n\n> {knowledgeContent}",
         "modelRequirements": {
-            "modelVariant": "CHAT",
-            "modelName": "claude-3-opus-20240229"
+            "modelVariant": "CHAT"
         },
-        "expectations": {},
-        "postprocessing": []
+        "expectations": {}
     },
     "promptResult": {
-        "content": "Springfield is a city located in Illinois, United States.\n---\nSpringfield is the county seat of Sangamon County.\n---\nAs of 2019, Springfield had a population of 10,566, making it the sixth most populous city in Illinois.",
-        "modelName": "claude-3-opus-20240229",
+        "content": "---\n\nSpringfield is the county seat of Sangamon County in the U.S. state of Illinois.\n\n---\n\nAs of 2019, Springfield had a population of 10,566, making it the sixth most populous city in Illinois.",
+        "modelName": "claude-3-5-sonnet-20240620",
         "timing": {
-            "start": "2024-08-05T07:27:34.653Z",
-            "complete": "2024-08-05T07:27:37.880Z"
+            "start": "2024-09-26T12:11:34.630Z",
+            "complete": "2024-09-26T12:11:35.724Z"
         },
         "usage": {
             "price": {
-                "value": 0,
-                "isUncertain": true
+                "value": 0.001287
             },
             "input": {
                 "tokensCount": {
-                    "value": 0,
-                    "isUncertain": true
+                    "value": 159
                 },
                 "charactersCount": {
-                    "value": 482
+                    "value": 652
                 },
                 "wordsCount": {
-                    "value": 59
+                    "value": 96
                 },
                 "sentencesCount": {
-                    "value": 2
+                    "value": 6
                 },
                 "linesCount": {
                     "value": 16
@@ -48,50 +44,60 @@
                     "value": 6
                 },
                 "pagesCount": {
-                    "value": 1
+                    "value": 2
                 }
             },
             "output": {
                 "tokensCount": {
-                    "value": 0,
-                    "isUncertain": true
+                    "value": 54
                 },
                 "charactersCount": {
-                    "value": 482
+                    "value": 195
                 },
                 "wordsCount": {
-                    "value": 59
+                    "value": 34
                 },
                 "sentencesCount": {
-                    "value": 2
+                    "value": 4
                 },
                 "linesCount": {
-                    "value": 16
+                    "value": 7
                 },
                 "paragraphsCount": {
-                    "value": 6
+                    "value": 4
                 },
                 "pagesCount": {
                     "value": 1
                 }
             }
         },
+        "rawPromptContent": "You are experienced data researcher, extract the important knowledge from the document.\n\n# Rules\n\n-   Make pieces of information concise, clear, and easy to understand\n-   One piece of information should be approximately 1 paragraph\n-   Divide the paragraphs by markdown horizontal lines ---\n-   Omit irrelevant information\n-   Group redundant information\n-   Write just extracted information, nothing else\n\n# The document\n\nTake information from this document:\n\n> Springfield is a city in the U.S. state of Illinois. It is the county seat of Sangamon County. The city's population of 10566 as of 2019 makes it the sixth most populous city in the state.",
+        "rawRequest": {
+            "model": "claude-3-5-sonnet-20240620",
+            "max_tokens": 4096,
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "You are experienced data researcher, extract the important knowledge from the document.\n\n# Rules\n\n-   Make pieces of information concise, clear, and easy to understand\n-   One piece of information should be approximately 1 paragraph\n-   Divide the paragraphs by markdown horizontal lines ---\n-   Omit irrelevant information\n-   Group redundant information\n-   Write just extracted information, nothing else\n\n# The document\n\nTake information from this document:\n\n> Springfield is a city in the U.S. state of Illinois. It is the county seat of Sangamon County. The city's population of 10566 as of 2019 makes it the sixth most populous city in the state."
+                }
+            ]
+        },
         "rawResponse": {
-            "id": "msg_01QUtzmn3MZ7RzsbJjJBRg1W",
+            "id": "msg_01Trc5qPn3dJ3sGyRZr9FHYw",
             "type": "message",
             "role": "assistant",
-            "model": "claude-3-opus-20240229",
+            "model": "claude-3-5-sonnet-20240620",
             "content": [
                 {
                     "type": "text",
-                    "text": "Springfield is a city located in Illinois, United States.\n---\nSpringfield is the county seat of Sangamon County.\n---\nAs of 2019, Springfield had a population of 10,566, making it the sixth most populous city in Illinois."
+                    "text": "---\n\nSpringfield is the county seat of Sangamon County in the U.S. state of Illinois.\n\n---\n\nAs of 2019, Springfield had a population of 10,566, making it the sixth most populous city in Illinois."
                 }
             ],
             "stop_reason": "end_turn",
             "stop_sequence": null,
             "usage": {
                 "input_tokens": 159,
-                "output_tokens": 57
+                "output_tokens": 54
             }
         }
     }

@@ -1,3 +1,4 @@
+import { docxScraper } from './docx/docxScraper';
 import { markdownScraper } from './markdown/markdownScraper';
 
 /**
@@ -7,5 +8,6 @@ import { markdownScraper } from './markdown/markdownScraper';
  */
 export const SCRAPERS = [
     markdownScraper,
+    docxScraper,
     // <- Note: [♓️] This is the order of the scrapers for knowledge, BUT consider some better (more explicit) way to do this
 ] as const;
