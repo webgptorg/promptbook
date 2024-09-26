@@ -60,11 +60,11 @@ async function playground() {
     console.info(chalk.green(completionPrompt.content + completionPromptResult.content));
     /**/
 
-    /**/
+    /*/
     const chatPrompt = {
-        title: 'Poem about Prague',
+        title: 'Promptbook speech',
         parameters: {},
-        content: `Write me something about Prague`,
+        content: `Write me speech about Promptbook and how it can help me to build the most beautiful chatbot and change the world`,
         modelRequirements: {
             modelVariant: 'CHAT',
             systemMessage: 'You are an assistant who only speaks in rhymes.',
@@ -97,6 +97,12 @@ async function playground() {
     console.info(colors.cyan(usageToHuman(chatPromptResult.usage)));
     console.info(chalk.bgBlue(' User: ') + chalk.blue(prompt.content));
     console.info(chalk.bgGreen(' Embedding: ') + chalk.green(embeddingVectorToString(promptResult.content)));
+    /**/
+
+    /**/
+    const openai = await openAiExecutionTools.getClient();
+    const result = await openai.beta.assistants.list();
+    console.log(result);
     /**/
 
     /*/

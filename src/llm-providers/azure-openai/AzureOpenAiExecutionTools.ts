@@ -47,7 +47,7 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools {
         return 'Use all models trained by OpenAI provided by Azure';
     }
 
-    private async getClient(): Promise<OpenAIClient> {
+    public async getClient(): Promise<OpenAIClient> {
         if (this.client === null) {
             this.client = new OpenAIClient(
                 `https://${this.options.resourceName}.openai.azure.com/`,
