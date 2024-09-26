@@ -1,13 +1,11 @@
 # ✨ Sample: Knowledge in external document
 
-
 Show how to use knowledge
 
 -   PIPELINE URL https://promptbook.studio/samples/document-knowledge.ptbk.md
 -   INPUT  PARAMETER `{eventTitle}` The event name
 -   OUTPUT PARAMETER `{bio}` Bio of Pavol Hejný - speaker at the event
--   KNOWLEDGE ./27-document-knowledge.pdf
-
+-   KNOWLEDGE ./27-document-knowledge.docx <!-- <- TODO: Test also `./27-document-knowledge.pdf` -->
 
 ## Writing bio
 

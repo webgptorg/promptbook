@@ -1,3 +1,4 @@
+import spaceTrim from 'spacetrim';
 import { SCRAPERS } from '..';
 import { isValidFilePath, isValidUrl } from '../../../_packages/utils.index';
 import { MAX_PARALLEL_COUNT } from '../../../config';
@@ -44,7 +45,8 @@ export async function prepareKnowledgePieces(
             }
 
             const filePath = knowledgeSource.sourceContent;
-            const mimeType = extensionToMimeType(getFileExtension(filePath) || '');
+            const fileExtension = getFileExtension(filePath);
+            const mimeType = extensionToMimeType(fileExtension || '');
 
             // TODO: !!!!!! Test security file - file is scoped to the project (maybe do this in `filesystemTools`)
 
@@ -78,7 +80,20 @@ export async function prepareKnowledgePieces(
                 }
             }
 
-            throw new KnowledgeScrapeError(`Can not find scraper the file "${filePath}"`);
+            throw new KnowledgeScrapeError(
+                spaceTrim(
+                    (block) => `
+                        Can not find scraper the "${mimeType}" file
+
+                        File Extension:
+                        ${block(fileExtension || 'null')}
+
+                        File path:
+                        ${block(filePath)}
+
+                    `,
+                ),
+            );
         } else {
             // 1️⃣ `knowledgeSource` is just inlined (markdown content) information
             const partialPiecesUnchecked = await markdownScraper.scrape(

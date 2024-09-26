@@ -1,4 +1,4 @@
-import { readFile } from 'fs';
+import { readFile } from 'fs/promises';
 import { EnvironmentMismatchError } from '../../errors/EnvironmentMismatchError';
 import { FilesystemTools } from '../../execution/FilesystemTools';
 import { $isRunningInNode } from '../../utils/environment/$isRunningInNode';
@@ -15,7 +15,8 @@ export function getFilesystemToolsForNode(): FilesystemTools {
 
     return {
         getFile(filePath: string): Promise<string> {
-            readFile();
+            // TODO: !!!!!! Probbably here should be scope security check if the file is in the project scope
+            return /* not await */ readFile(filePath, 'utf-8');
         },
     } satisfies FilesystemTools;
 }
