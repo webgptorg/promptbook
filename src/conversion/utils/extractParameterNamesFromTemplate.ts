@@ -47,7 +47,7 @@ export function extractParameterNamesFromTemplate(
 
     // Note: [🍭] Fixing dependent subparameterName from FOREACH command
     if (foreach !== undefined) {
-        for (const subparameterName of foreach.subparameterNames) {
+        for (const subparameterName of foreach.inputSubparameterNames) {
             if (parameterNames.has(subparameterName)) {
                 parameterNames.delete(subparameterName);
                 parameterNames.add(foreach.parameterName);

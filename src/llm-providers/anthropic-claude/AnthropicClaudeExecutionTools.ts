@@ -49,7 +49,7 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools {
         return 'Use all models provided by Anthropic Claude';
     }
 
-    private async getClient(): Promise<Anthropic> {
+    public async getClient(): Promise<Anthropic> {
         if (this.client === null) {
             // Note: Passing only Anthropic Claude relevant options to Anthropic constructor
             const anthropicOptions: ClientOptions = { ...this.options };

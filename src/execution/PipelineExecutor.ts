@@ -19,5 +19,6 @@ export type PipelineExecutor = {
 };
 
 /**
+ * TODO: [🐚] Change onProgress to object that represents the running execution, can be subscribed via RxJS to and also awaited
  * TODO: [🧠] Should this file be in /execution or /types folder?
  */

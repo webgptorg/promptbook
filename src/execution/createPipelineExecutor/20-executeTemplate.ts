@@ -12,7 +12,7 @@ import { difference } from '../../utils/sets/difference';
 import { union } from '../../utils/sets/union';
 import type { ExecutionTools } from '../ExecutionTools';
 import type { CreatePipelineExecutorSettings } from './00-CreatePipelineExecutorSettings';
-import { executeFormatCells } from './30-executeFormatCells';
+import { executeFormatSubvalues } from './30-executeFormatSubvalues';
 import { getReservedParametersForTemplate } from './getReservedParametersForTemplate';
 
 /**
@@ -188,7 +188,7 @@ export async function executeTemplate(options: executeSingleTemplateOptions): Pr
         .join(currentTemplate.content);
     //    <- TODO: [🍵] Use here `replaceParameters` to replace {websiteContent} with option to ignore missing parameters
 
-    const resultString = await executeFormatCells({
+    const resultString = await executeFormatSubvalues({
         jokerParameterNames,
         priority,
         maxAttempts,
@@ -223,4 +223,8 @@ export async function executeTemplate(options: executeSingleTemplateOptions): Pr
 
 /**
  * TODO: [🤹‍♂️]
+ */
+
+/**
+ * TODO: [🐚] Change onProgress to object that represents the running execution, can be subscribed via RxJS to and also awaited
  */

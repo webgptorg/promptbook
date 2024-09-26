@@ -1,10 +1,10 @@
 import { parse, unparse } from 'papaparse';
 import spaceTrim from 'spacetrim';
-import { ParseError } from '../../errors/ParseError';
 import type { Parameters } from '../../types/typeAliases';
 import type { TODO_any } from '../../utils/organization/TODO_any';
 import { TODO_USE } from '../../utils/organization/TODO_USE';
 import type { FormatDefinition } from '../_common/FormatDefinition';
+import { CsvFormatError } from './CsvFormatError';
 import type { CsvSettings } from './CsvSettings';
 import { MANDATORY_CSV_SETTINGS } from './CsvSettings';
 
@@ -25,7 +25,7 @@ export const CsvFormatDefinition: FormatDefinition<
     aliases: ['SPREADSHEET', 'TABLE'],
 
     isValid(value, settings, schema): value is string /* <- [0] */ {
-        // TODO: !!!!!! Implement CSV validation
+        // TODO: Implement CSV validation
         TODO_USE(value /* <- TODO: Use value here */);
         TODO_USE(settings /* <- TODO: Use settings here */);
         TODO_USE(schema /* <- TODO: Use schema here */);
@@ -49,12 +49,12 @@ export const CsvFormatDefinition: FormatDefinition<
     subvalueDefinitions: [
         {
             subvalueName: 'ROW',
-            async mapValues(value, settings, mapCallback) {
+            async mapValues(value, outputParameterName, settings, mapCallback) {
                 // TODO: [👨🏾‍🤝‍👨🏼] DRY csv parsing
                 const csv = parse<Parameters>(value, { ...settings, ...MANDATORY_CSV_SETTINGS });
 
                 if (csv.errors.length !== 0) {
-                    throw new ParseError( // <- TODO: !!!!!! Split PipelineParseError and FormatParseError -> CsvParseError
+                    throw new CsvFormatError(
                         spaceTrim(
                             (block) => `
                                 CSV parsing error
@@ -66,13 +66,18 @@ export const CsvFormatDefinition: FormatDefinition<
                 }
 
                 const mappedData = await Promise.all(
-                    csv.data.map(async (row, index) => ({
-                        ...row,
-                        newColumn:
-                            // <- TODO: !!!!!! Dynamic new column name and position
-                            // <- TODO: !!!!!! Check name collisions
-                            await mapCallback(row, index),
-                    })),
+                    csv.data.map(async (row, index) => {
+                        if (row[outputParameterName]) {
+                            throw new CsvFormatError(
+                                `Can not overwrite existing column "${outputParameterName}" in CSV row`,
+                            );
+                        }
+
+                        return {
+                            ...row,
+                            [outputParameterName]: await mapCallback(row, index),
+                        };
+                    }),
                 );
 
                 return unparse(mappedData, { ...settings, ...MANDATORY_CSV_SETTINGS });
@@ -80,12 +85,12 @@ export const CsvFormatDefinition: FormatDefinition<
         },
         {
             subvalueName: 'CELL',
-            async mapValues(value, settings, mapCallback) {
+            async mapValues(value, outputParameterName, settings, mapCallback) {
                 // TODO: [👨🏾‍🤝‍👨🏼] DRY csv parsing
                 const csv = parse<Parameters>(value, { ...settings, ...MANDATORY_CSV_SETTINGS });
 
                 if (csv.errors.length !== 0) {
-                    throw new ParseError( // <- TODO: !!!!!! Split PipelineParseError and FormatParseError -> CsvParseError
+                    throw new CsvFormatError(
                         spaceTrim(
                             (block) => `
                                 CSV parsing error

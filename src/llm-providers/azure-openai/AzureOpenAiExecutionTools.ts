@@ -47,7 +47,7 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools {
         return 'Use all models trained by OpenAI provided by Azure';
     }
 
-    private async getClient(): Promise<OpenAIClient> {
+    public async getClient(): Promise<OpenAIClient> {
         if (this.client === null) {
             this.client = new OpenAIClient(
                 `https://${this.options.resourceName}.openai.azure.com/`,
@@ -70,7 +70,7 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools {
      * List all available Azure OpenAI models that can be used
      */
     public async listModels(): Promise<Array<AvailableModel>> {
-        // TODO:[main] !!! Do here some filtering which models are really available as deployment
+        // TODO: [main] !!! Do here some filtering which models are really available as deployment
         //       @see https://management.azure.com/subscriptions/subscriptionId/resourceGroups/resourceGroupName/providers/Microsoft.CognitiveServices/accounts/accountName/deployments?api-version=2023-05-01
         return OPENAI_MODELS.map(
             ({

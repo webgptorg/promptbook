@@ -1,5 +1,6 @@
 import moment from 'moment';
 import { spaceTrim } from 'spacetrim';
+import type { ReadonlyDeep } from 'type-fest';
 import { MOMENT_ARG_THRESHOLDS } from '../../config';
 import { embeddingVectorToString } from '../../execution/embeddingVectorToString';
 import type { FromtoItems } from '../../utils/FromtoItems';
@@ -22,7 +23,7 @@ import { countWorkingDuration } from './countWorkingDuration';
  * @public exported from `@promptbook/core`
  */
 export function executionReportJsonToString(
-    executionReportJson: ExecutionReportJson,
+    executionReportJson: ReadonlyDeep<ExecutionReportJson>,
     options?: Partial<ExecutionReportStringOptions>,
 ): ExecutionReportString {
     const { taxRate, chartsWidth } = { ...ExecutionReportStringOptionsDefaults, ...(options || {}) };

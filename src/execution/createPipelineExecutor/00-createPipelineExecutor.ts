@@ -69,11 +69,15 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
         );
     }
 
+    let runCount = 0;
+
     const pipelineExecutor: PipelineExecutor = async (
         inputParameters: Parameters,
         onProgress?: (taskProgress: TaskProgress) => Promisable<void>,
     ): Promise<PipelineExecutorResult> => {
-        return executePipeline({
+        runCount++;
+
+        return /* not await */ executePipeline({
             pipeline,
             preparedPipeline,
             setPreparedPipeline: (newPreparedPipeline) => {
@@ -82,7 +86,12 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
             inputParameters,
             tools,
             onProgress,
-            pipelineIdentification, // <- TODO: [🦡] !!!!!! make identification more granular
+            pipelineIdentification: spaceTrim(
+                (block) => `
+                    ${block(pipelineIdentification)}
+                    ${runCount === 1 ? '' : `Run #${runCount}`}
+                `,
+            ),
             settings: {
                 maxExecutionAttempts,
                 maxParallelCount,
@@ -95,3 +104,8 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
 
     return pipelineExecutor;
 }
+
+
+/**
+ * TODO: [🐚] Change onProgress to object that represents the running execution, can be subscribed via RxJS to and also awaited
+ */

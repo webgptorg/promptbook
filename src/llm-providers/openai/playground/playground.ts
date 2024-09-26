@@ -60,11 +60,11 @@ async function playground() {
     console.info(chalk.green(completionPrompt.content + completionPromptResult.content));
     /**/
 
-    /**/
+    /*/
     const chatPrompt = {
-        title: 'Poem about Prague',
+        title: 'Promptbook speech',
         parameters: {},
-        content: `Write me something about Prague`,
+        content: `Write me speech about Promptbook and how it can help me to build the most beautiful chatbot and change the world`,
         modelRequirements: {
             modelVariant: 'CHAT',
             systemMessage: 'You are an assistant who only speaks in rhymes.',
@@ -99,6 +99,12 @@ async function playground() {
     console.info(chalk.bgGreen(' Embedding: ') + chalk.green(embeddingVectorToString(promptResult.content)));
     /**/
 
+    /**/
+    const openai = await openAiExecutionTools.getClient();
+    const result = await openai.beta.assistants.list();
+    console.log(result);
+    /**/
+
     /*/
     // <- Note: [🤖] Test here new model variant if needed
     /**/
@@ -107,5 +113,5 @@ async function playground() {
 }
 
 /**
- * TODO:[main] !!! Test here that `systemMessage`, `temperature` and `seed` are working correctly
+ * TODO: [main] !!! Test here that `systemMessage`, `temperature` and `seed` are working correctly
  */

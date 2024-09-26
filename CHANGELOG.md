@@ -527,6 +527,12 @@ Knowledge scrapers [🐝]
 -   Allow to import `.doc` files with knowledge `.doc` -(LibreOffice)-> `.docx` -(Pandoc)-> `.md`
 -   Allow to import `.rtf` files with knowledge `.rtf` -(LibreOffice)-> `.docx` -(Pandoc)-> `.md`
 
+### `0.72.0` _(2024-09-)_
+
+Support for [Assistants API (GPTs)](https://platform.openai.com/docs/assistants/overview) from OpenAI
+
+- `getClient` methods are public
+
 ## Drafts
 
 ### `0..0` _(2024-0-)_

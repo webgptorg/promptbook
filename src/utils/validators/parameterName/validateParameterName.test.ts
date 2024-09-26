@@ -1,4 +1,5 @@
 import { describe, expect, it } from '@jest/globals';
+import { RESERVED_PARAMETER_NAMES } from '../../../config';
 import { validateParameterName } from './validateParameterName';
 
 describe('how `validateParameterName` works', () => {
@@ -23,11 +24,16 @@ describe('how `validateParameterName` works', () => {
         expect(validateParameterName(`JMÉNO`)).toBe('jmeno');
     });
 
-    // TODO: !!!!! Test different notations /name/ -> {name}, [name] -> {name},... etc
+    // TODO: Test different notations /name/ -> {name}, [name] -> {name},... etc
 
     it('should NOT work with reserved parameter name', () => {
         expect(() => validateParameterName(`{content}`)).toThrowError(/{content} is a reserved parameter name/);
-        // <- TODO: !!!!!! Test more
+
+        for (const parameterName of RESERVED_PARAMETER_NAMES) {
+            expect(() => validateParameterName(`{${parameterName}}`)).toThrowError(
+                new RegExp(`{${parameterName}} is a reserved parameter name`),
+            );
+        }
     });
 
     it('should NOT work with invalid parameter name', () => {

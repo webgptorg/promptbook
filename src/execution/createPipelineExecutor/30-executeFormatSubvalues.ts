@@ -12,7 +12,7 @@ import { executeAttempts } from './40-executeAttempts';
 /**
  * @@@
  *
- * @private internal type of `executeFormatCells`
+ * @private internal type of `executeFormatSubvalues`
  */
 type ExecuteFormatCellsOptions = ExecuteAttemptsOptions;
 
@@ -21,7 +21,7 @@ type ExecuteFormatCellsOptions = ExecuteAttemptsOptions;
  *
  * @private internal utility of `createPipelineExecutor`
  */
-export async function executeFormatCells(options: ExecuteFormatCellsOptions): Promise<TODO_any> {
+export async function executeFormatSubvalues(options: ExecuteFormatCellsOptions): Promise<TODO_any> {
     const { template, jokerParameterNames, parameters, priority, pipelineIdentification, settings } = options;
 
     if (template.foreach === undefined) {
@@ -109,22 +109,23 @@ export async function executeFormatCells(options: ExecuteFormatCellsOptions): Pr
 
     if (formatDefinition.formatName === 'CSV') {
         formatSettings = settings.csvSettings;
-        // <- TODO: !!!!!! More universal, make simmilar pattern for other formats for example \n vs \r\n in text
+        // <- TODO: [🤹‍♂️] More universal, make simmilar pattern for other formats for example \n vs \r\n in text
     }
 
     const resultString = await subvalueDefinition.mapValues(
         parameterValue,
+        template.foreach.outputSubparameterName,
         formatSettings,
         async (subparameters, index) => {
             let mappedParameters: Record<string_parameter_name, string_parameter_value>;
 
-            // TODO: !!!!!!! Limit to N concurrent executions
-            // TODO: !!!!!!! Report progress
+            // TODO: [🤹‍♂️][🪂] Limit to N concurrent executions
+            // TODO: When done [🐚] Report progress also for each subvalue here
 
             try {
                 mappedParameters = mapAvailableToExpectedParameters({
                     expectedParameters: Object.fromEntries(
-                        template.foreach!.subparameterNames.map((subparameterName) => [subparameterName, null]),
+                        template.foreach!.inputSubparameterNames.map((subparameterName) => [subparameterName, null]),
                     ),
                     availableParameters: subparameters,
                 });
@@ -142,6 +143,7 @@ export async function executeFormatCells(options: ExecuteFormatCellsOptions): Pr
                         You have probbably passed wrong data to pipeline or wrong data was generated which are processed by FOREACH command
 
                         ${block(pipelineIdentification)}
+                        Subparameter index: ${index}
                     `,
                     ),
                 );
@@ -159,7 +161,12 @@ export async function executeFormatCells(options: ExecuteFormatCellsOptions): Pr
                 ...options,
                 priority: priority + index,
                 parameters: allSubparameters,
-                pipelineIdentification, // <- TODO: [🦡] !!!!!! make identification more granular
+                pipelineIdentification: spaceTrim(
+                    (block) => `
+                        ${block(pipelineIdentification)}
+                        Subparameter index: ${index}
+                    `,
+                ),
             });
 
             return subresultString;
@@ -168,8 +175,3 @@ export async function executeFormatCells(options: ExecuteFormatCellsOptions): Pr
 
     return resultString;
 }
-
-/**
- * TODO: !!!!!! Make pipelineIdentification more precise
- * TODO: !!!!!! How FOREACH execution looks in the report
- */

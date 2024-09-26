@@ -45,8 +45,7 @@ type ExecutePipelineOptions = {
     /**
      * @@@
      */
-    readonly onProgress?: (taskProgress: TaskProgress) => Promisable<void>;
-    // <- TODO: !!!!!! ACRY notation of onProgress - function or value
+    onProgress?(taskProgress: TaskProgress): Promisable<void>;
 
     /**
      * @@@
@@ -297,7 +296,13 @@ export async function executePipeline(options: ExecutePipelineOptions): Promise<
                     },
                     settings,
                     $executionReport: executionReport,
-                    pipelineIdentification, // <- TODO: [🦡] !!!!!! make identification more granular
+                    pipelineIdentification: spaceTrim(
+                        (block) => `
+                            ${block(pipelineIdentification)}
+                            Template name: ${currentTemplate.name}
+                            Template title: ${currentTemplate.title}
+                        `,
+                    ),
                 })
                     .then((newParametersToPass) => {
                         parametersToPass = { ...newParametersToPass, ...parametersToPass };
@@ -382,3 +387,8 @@ export async function executePipeline(options: ExecutePipelineOptions): Promise<
         preparedPipeline,
     }) satisfies PipelineExecutorResult;
 }
+
+
+/**
+ * TODO: [🐚] Change onProgress to object that represents the running execution, can be subscribed via RxJS to and also awaited
+ */
