@@ -515,8 +515,8 @@ Command `FOREACH`
 
 Support for local models - integrate [Ollama](https://ollama.com/)
 
--   Make new package `@promptbook/ollama`
--   Add `OllamaExecutionTools` exported from `@promptbook/ollama`
+-   !!!!!! Make new package `@promptbook/ollama`
+-   !!!!!! Add `OllamaExecutionTools` exported from `@promptbook/ollama`
 
 ### `0.71.0` _(2024-09-)_
 
