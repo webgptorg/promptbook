@@ -3,7 +3,7 @@ import { createCollectionFromJson } from '../collection/constructors/createColle
 import { IS_VERBOSE } from '../config';
 import { assertsExecutionSuccessful } from '../execution/assertsExecutionSuccessful';
 import { createPipelineExecutor } from '../execution/createPipelineExecutor/00-createPipelineExecutor';
-import type { PrepareOptions } from '../prepare/PrepareOptions';
+import type { PrepareAndScrapeOptions } from '../prepare/PrepareAndScrapeOptions';
 import type { PersonaPreparedJson } from '../types/PipelineJson/PersonaJson';
 import type { PipelineJson } from '../types/PipelineJson/PipelineJson';
 import type { string_persona_description } from '../types/typeAliases';
@@ -17,7 +17,7 @@ import type { TODO_any } from '../utils/organization/TODO_any';
  */
 export async function preparePersona(
     personaDescription: string_persona_description,
-    options: PrepareOptions,
+    options: PrepareAndScrapeOptions,
 ): Promise<PersonaPreparedJson['modelRequirements']> {
     const { llmTools, isVerbose = IS_VERBOSE } = options;
 

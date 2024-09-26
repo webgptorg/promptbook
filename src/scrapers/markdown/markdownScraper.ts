@@ -1,6 +1,6 @@
 import spaceTrim from 'spacetrim';
 import type { KnowledgePiecePreparedJson } from '../../_packages/types.index';
-import { PrepareOptions } from '../../_packages/types.index';
+import { PrepareAndScrapeOptions } from '../../_packages/types.index';
 import { TODO_USE } from '../../utils/organization/TODO_USE';
 import type { AbstractScraper, ScraperSourceOptions } from '../_common/AbstractScraper';
 // TODO: [🏳‍🌈] Finally take pick of .json vs .ts
@@ -37,7 +37,7 @@ export const markdownScraper = {
      */
     async scrape(
         source: ScraperSourceOptions,
-        options: PrepareOptions,
+        options: PrepareAndScrapeOptions,
     ): Promise<Array<Omit<KnowledgePiecePreparedJson, 'sources' | 'preparationIds'>> | null> {
         const { llmTools, maxParallelCount = MAX_PARALLEL_COUNT, isVerbose = IS_VERBOSE } = options;
 

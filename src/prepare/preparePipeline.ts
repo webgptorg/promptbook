@@ -12,7 +12,7 @@ import { $asDeeplyFrozenSerializableJson } from '../utils/serialization/$asDeepl
 import { clonePipeline } from '../utils/serialization/clonePipeline';
 import { PROMPTBOOK_VERSION } from '../version';
 import { isPipelinePrepared } from './isPipelinePrepared';
-import type { PrepareOptions } from './PrepareOptions';
+import type { PrepareAndScrapeOptions } from './PrepareAndScrapeOptions';
 import { prepareTemplates } from './prepareTemplates';
 
 /**
@@ -23,7 +23,7 @@ import { prepareTemplates } from './prepareTemplates';
  * Note: When the pipeline is already prepared, it returns the same pipeline
  * @public exported from `@promptbook/core`
  */
-export async function preparePipeline(pipeline: PipelineJson, options: PrepareOptions): Promise<PipelineJson> {
+export async function preparePipeline(pipeline: PipelineJson, options: PrepareAndScrapeOptions): Promise<PipelineJson> {
     if (isPipelinePrepared(pipeline)) {
         return pipeline;
     }

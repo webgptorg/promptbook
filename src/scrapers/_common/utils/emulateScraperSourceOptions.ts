@@ -13,6 +13,7 @@ export function emulateScraperSourceOptions(sampleFilePath: string_file_path): S
 
     return {
         source: sampleFilePath,
+        filePath: sampleFilePath,
         mimeType,
         async asBlob() {
             const content = readFileSync(sampleFilePath);

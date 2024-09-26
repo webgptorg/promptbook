@@ -1,6 +1,7 @@
 import type { Promisable } from 'type-fest';
-import { KnowledgePiecePreparedJson, PrepareOptions } from '../../_packages/types.index';
+import { KnowledgePiecePreparedJson, PrepareAndScrapeOptions } from '../../_packages/types.index';
 import type {
+    string_file_path,
     string_knowledge_source_link,
     string_mime_type,
     string_promptbook_documentation_url,
@@ -27,7 +28,7 @@ export type AbstractScraper = {
      */
     scrape(
         source: ScraperSourceOptions,
-        options: PrepareOptions,
+        options: PrepareAndScrapeOptions,
     ): Promisable<Array<Omit<KnowledgePiecePreparedJson, 'sources' | 'preparationIds'>> | null>;
 };
 
@@ -39,6 +40,11 @@ export type ScraperSourceOptions = {
      * The source of the knowledge
      */
     readonly source: string_knowledge_source_link;
+
+    /**
+     * The path to the file, if it is a file
+     */
+    readonly filePath: string_file_path | null;
 
     /**
      * Mime type of the source

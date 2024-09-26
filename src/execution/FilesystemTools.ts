@@ -9,3 +9,7 @@ export type FilesystemTools = {
      */
     getFile(filePath: string_file_relative_path): Promise<string>;
 };
+
+/**
+ * TODO: !!!!!! Unite with `PromptbookStorage` / `FilesStorage`
+ */

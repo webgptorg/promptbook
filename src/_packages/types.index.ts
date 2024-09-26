@@ -77,7 +77,7 @@ import type {
     CollectionRemoteServerOptions,
     RemoteServerOptions,
 } from '../llm-providers/remote/interfaces/RemoteServerOptions';
-import type { PrepareOptions } from '../prepare/PrepareOptions';
+import type { PrepareAndScrapeOptions } from '../prepare/PrepareAndScrapeOptions';
 import type {
     JavascriptExecutionToolsOptions,
     PostprocessingFunction,
@@ -344,7 +344,7 @@ export type {
     PipelineTemplateCommandParser,
     PostprocessingFunction,
     PreparationJson,
-    PrepareOptions,
+    PrepareAndScrapeOptions as PrepareAndScrapeOptions,
     PrettifyOptions,
     Prompt,
     PromptbookServer_Error,

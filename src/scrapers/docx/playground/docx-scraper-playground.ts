@@ -42,6 +42,10 @@ async function playground() {
         llmTools,
         isVerbose,
         filesystemTools: null,
+        externalProgramsPaths: {
+            // TODO: !!!!!! use `locate-app` library here
+            pandocPath: 'C:/Users/me/AppData/Local/Pandoc/pandoc.exe',
+        },
     });
 
     console.info(colors.cyan(usageToHuman(llmTools.getTotalUsage())));

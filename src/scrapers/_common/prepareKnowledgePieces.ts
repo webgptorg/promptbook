@@ -6,7 +6,7 @@ import { KnowledgeScrapeError } from '../../errors/KnowledgeScrapeError';
 import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import { forEachAsync } from '../../execution/utils/forEachAsync';
-import type { PrepareOptions } from '../../prepare/PrepareOptions';
+import type { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';
 import type { KnowledgePiecePreparedJson } from '../../types/PipelineJson/KnowledgePieceJson';
 import type { KnowledgeSourceJson } from '../../types/PipelineJson/KnowledgeSourceJson';
 import { extensionToMimeType } from '../../utils/files/extensionToMimeType';
@@ -22,7 +22,7 @@ import { ScraperSourceOptions } from './AbstractScraper';
  */
 export async function prepareKnowledgePieces(
     knowledgeSources: Array<KnowledgeSourceJson>,
-    options: PrepareOptions,
+    options: PrepareAndScrapeOptions,
 ): Promise<Array<Omit<KnowledgePiecePreparedJson, 'preparationIds'>>> {
     const { maxParallelCount = MAX_PARALLEL_COUNT, filesystemTools } = options;
 
@@ -52,6 +52,7 @@ export async function prepareKnowledgePieces(
 
             const scraperSourceOptions = {
                 source: knowledgeSource.name, // <- TODO: !!!!!! What should be here `knowledgeSource.name` or `filePath`
+                filePath,
                 mimeType,
                 async asText() {
                     return await filesystemTools.getFile(filePath);
@@ -99,6 +100,7 @@ export async function prepareKnowledgePieces(
             const partialPiecesUnchecked = await markdownScraper.scrape(
                 {
                     source: knowledgeSource.name,
+                    filePath: null,
                     mimeType: 'text/markdown',
                     async asText() {
                         return knowledgeSource.sourceContent;
@@ -152,7 +154,7 @@ TODO: [🧊] This is how it can look in future
 >
 > export async function prepareKnowledgePieces(
 >   knowledge: PrepareKnowledgeKnowledge,
->   options: PrepareOptions,
+>   options: PrepareAndScrapeOptions,
 > ):
 */
 
