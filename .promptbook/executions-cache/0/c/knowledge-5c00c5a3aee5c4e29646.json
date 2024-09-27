@@ -1,0 +1,104 @@
+{
+    "date": "2024-09-27T15:53:08.734Z",
+    "promptbookVersion": "0.71.0-0",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.ptbk.md#knowledge",
+        "parameters": {
+            "knowledgePieceContent": "Here are the key points extracted from the document:"
+        },
+        "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> {knowledgePieceContent}",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {}
+    },
+    "promptResult": {
+        "content": "I apologize, but there is no actual document content provided in your message for me to analyze and extract keywords from. You've only included instructions and a placeholder line that says \"Here are the key points extracted from the document:\" without any actual document text following it. \n\nTo detect important keywords, I would need the full text of the document you want analyzed. If you can provide the complete document content, I'd be happy to identify and list the key keywords for you.",
+        "modelName": "claude-3-5-sonnet-20240620",
+        "timing": {
+            "start": "2024-09-27T15:53:06.368Z",
+            "complete": "2024-09-27T15:53:08.734Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0.001668
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 56
+                },
+                "charactersCount": {
+                    "value": 246
+                },
+                "wordsCount": {
+                    "value": 35
+                },
+                "sentencesCount": {
+                    "value": 2
+                },
+                "linesCount": {
+                    "value": 11
+                },
+                "paragraphsCount": {
+                    "value": 6
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 100
+                },
+                "charactersCount": {
+                    "value": 495
+                },
+                "wordsCount": {
+                    "value": 85
+                },
+                "sentencesCount": {
+                    "value": 4
+                },
+                "linesCount": {
+                    "value": 3
+                },
+                "paragraphsCount": {
+                    "value": 2
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> Here are the key points extracted from the document:",
+        "rawRequest": {
+            "model": "claude-3-5-sonnet-20240620",
+            "max_tokens": 4096,
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> Here are the key points extracted from the document:"
+                }
+            ]
+        },
+        "rawResponse": {
+            "id": "msg_01ARogTD7hEnoSWfkbtNbDr5",
+            "type": "message",
+            "role": "assistant",
+            "model": "claude-3-5-sonnet-20240620",
+            "content": [
+                {
+                    "type": "text",
+                    "text": "I apologize, but there is no actual document content provided in your message for me to analyze and extract keywords from. You've only included instructions and a placeholder line that says \"Here are the key points extracted from the document:\" without any actual document text following it. \n\nTo detect important keywords, I would need the full text of the document you want analyzed. If you can provide the complete document content, I'd be happy to identify and list the key keywords for you."
+                }
+            ],
+            "stop_reason": "end_turn",
+            "stop_sequence": null,
+            "usage": {
+                "input_tokens": 56,
+                "output_tokens": 100
+            }
+        }
+    }
+}

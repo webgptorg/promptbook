@@ -79,6 +79,7 @@ export const documentScraper = {
         const markdownSource = {
             source: source.source,
             filePath: markdownSourceFilePath,
+            url: null,
             mimeType: 'text/markdown',
             async asText() {
                 // TODO: [🦧] Maybe use here FilesystemTools

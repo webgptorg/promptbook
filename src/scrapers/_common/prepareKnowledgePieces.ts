@@ -53,6 +53,7 @@ export async function prepareKnowledgePieces(
             const scraperSourceOptions = {
                 source: knowledgeSource.name, // <- TODO: !!!!!! What should be here `knowledgeSource.name` or `filePath`
                 filePath,
+                url: null,
                 mimeType,
                 async asText() {
                     return await filesystemTools.getFile(filePath);
@@ -101,6 +102,7 @@ export async function prepareKnowledgePieces(
                 {
                     source: knowledgeSource.name,
                     filePath: null,
+                    url: null,
                     mimeType: 'text/markdown',
                     async asText() {
                         return knowledgeSource.sourceContent;

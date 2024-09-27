@@ -101,6 +101,7 @@ export const pdfScraper = {
         const markdownSource = {
             source: source.source,
             filePath: documentSourceFilePath,
+            url: null,
             mimeType: 'text/markdown',
             async asText() {
                 throw new UnexpectedError(
