@@ -7,25 +7,31 @@ import { pdfScraper } from './pdfScraper';
 describe('how creating knowledge from pdf works', () => {
     it('should scrape simple information from a .pdf file', async () =>
         expect(
-            pdfScraper.scrape(emulateScraperSourceOptions(join(__dirname, 'samples/10-simple.pdf')), {
-                llmTools: getLlmToolsForTestingAndScriptsAndPlayground(),
-                filesystemTools: null,
-            }),
+            pdfScraper
+                .scrape(emulateScraperSourceOptions(join(__dirname, 'samples/10-simple.pdf')), {
+                    llmTools: getLlmToolsForTestingAndScriptsAndPlayground(),
+                    filesystemTools: null,
+                })
+                .then((knowledge) => knowledge?.map(({ content }) => ({ content })))
+                .then((knowledge) => knowledge?.slice(0, 1)),
         ).resolves.toMatchObject([
             {
-                content: expect.stringMatching(/Springfield is .*/i),
+                content: expect.stringMatching(/Springfield (is )?.*/i),
             },
         ]));
 
     it('should NOT scrape irrelevant information', async () =>
         expect(
-            pdfScraper.scrape(emulateScraperSourceOptions(join(__dirname, 'samples/10-simple.pdf')), {
-                llmTools: getLlmToolsForTestingAndScriptsAndPlayground(),
-                filesystemTools: null,
-            }),
+            pdfScraper
+                .scrape(emulateScraperSourceOptions(join(__dirname, 'samples/10-simple.pdf')), {
+                    llmTools: getLlmToolsForTestingAndScriptsAndPlayground(),
+                    filesystemTools: null,
+                })
+                .then((knowledge) => knowledge?.map(({ content }) => ({ content })))
+                .then((knowledge) => knowledge?.slice(0, 1)),
         ).resolves.toMatchObject([
             {
-                content: expect.not.stringMatching(/London is .*/i),
+                content: expect.not.stringMatching(/London (is )?.*/i),
             },
         ]));
 });

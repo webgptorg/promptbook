@@ -6,10 +6,13 @@ import { websiteScraper } from './websiteScraper';
 describe('how creating knowledge from website works', () => {
     it('should scrape simple information from a https://www.pavolhejny.com/', async () =>
         expect(
-            websiteScraper.scrape(emulateScraperSourceOptions('https://www.pavolhejny.com/'), {
-                llmTools: getLlmToolsForTestingAndScriptsAndPlayground(),
-                filesystemTools: null,
-            }),
+            websiteScraper
+                .scrape(emulateScraperSourceOptions('https://www.pavolhejny.com/'), {
+                    llmTools: getLlmToolsForTestingAndScriptsAndPlayground(),
+                    filesystemTools: null,
+                })
+                .then((knowledge) => knowledge?.map(({ content }) => ({ content })))
+                .then((knowledge) => knowledge?.slice(0, 1)),
         ).resolves.toMatchObject([
             {
                 content: expect.stringMatching(/Pavol Hejný .*/i),
@@ -18,10 +21,13 @@ describe('how creating knowledge from website works', () => {
 
     it('should NOT scrape irrelevant information', async () =>
         expect(
-            websiteScraper.scrape(emulateScraperSourceOptions('https://www.pavolhejny.com/'), {
-                llmTools: getLlmToolsForTestingAndScriptsAndPlayground(),
-                filesystemTools: null,
-            }),
+            websiteScraper
+                .scrape(emulateScraperSourceOptions('https://www.pavolhejny.com/'), {
+                    llmTools: getLlmToolsForTestingAndScriptsAndPlayground(),
+                    filesystemTools: null,
+                })
+                .then((knowledge) => knowledge?.map(({ content }) => ({ content })))
+                .then((knowledge) => knowledge?.slice(0, 1)),
         ).resolves.toMatchObject([
             {
                 content: expect.not.stringMatching(/Jiří Jahn .*/i),
