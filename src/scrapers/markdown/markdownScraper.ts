@@ -175,7 +175,6 @@ export const markdownScraper = {
 } /* TODO: [🦷] as const */ satisfies AbstractScraper;
 
 /**
- * TODO: !!!!!!  Same pattern for commands> as const satisfies AbstractScraper
  * TODO: [🦖] Make some system for putting scrapers to separete packages
  * TODO: [🪂] Do it in parallel 11:11
  * TODO: [🦷] Ideally use `as const satisfies AbstractScraper` BUT this combination throws errors

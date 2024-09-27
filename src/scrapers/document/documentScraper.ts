@@ -10,6 +10,7 @@ import { $isRunningInNode } from '../../_packages/utils.index';
 import { IS_VERBOSE, SCRAPE_CACHE_DIRNAME } from '../../config';
 import { KnowledgeScrapeError } from '../../errors/KnowledgeScrapeError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
+import { getFileExtension } from '../../utils/files/getFileExtension';
 import { markdownScraper } from '../markdown/markdownScraper';
 
 /**
@@ -56,6 +57,8 @@ export const documentScraper = {
             throw new KnowledgeScrapeError('When parsing .docx file, it must be real file in the file system');
         }
 
+        const extension = getFileExtension(source.filePath);
+
         const markdownSourceFilePath =
             // TODO: [🦧] Maybe use here FilesystemTools
             // TODO: [🦧] Do here same subfolder paths /a/b/... like executions-cache
@@ -65,12 +68,12 @@ export const documentScraper = {
         await mkdir(dirname(markdownSourceFilePath), { recursive: true });
 
         if (isVerbose) {
-            console.info('documentScraper: Converting .docx -> .md');
+            console.info(`documentScraper: Converting .${extension} -> .md`);
         }
 
         // TODO: !!!!!! [🕊] Make execCommand standard (?node-)util of the promptbook
         await execCommand(
-            `"${externalProgramsPaths.pandocPath}" -f docx -t markdown "${source.filePath}" -o "${markdownSourceFilePath}"`,
+            `"${externalProgramsPaths.pandocPath}" -f ${extension} -t markdown "${source.filePath}" -o "${markdownSourceFilePath}"`,
         );
 
         const markdownSource = {
@@ -107,7 +110,6 @@ export const documentScraper = {
 } /* TODO: [🦷] as const */ satisfies AbstractScraper;
 
 /**
- * TODO: !!!!!!  Same pattern for commands> as const satisfies AbstractScraper
  * TODO: [🦖] Make some system for putting scrapers to separete packages
  * TODO: [🪂] Do it in parallel 11:11
  * TODO: [🦷] Ideally use `as const satisfies AbstractScraper` BUT this combination throws errors

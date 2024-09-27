@@ -43,8 +43,9 @@ async function playground() {
         isVerbose,
         filesystemTools: null,
         externalProgramsPaths: {
-            // TODO: !!!!!! use `locate-app` library here
+            // TODO: !!!!!! use `locate-app` library here + do auto-installation of the programs
             pandocPath: 'C:/Users/me/AppData/Local/Pandoc/pandoc.exe',
+            libreOfficePath: 'C:/Program Files/LibreOffice/program/swriter.exe'
         },
     });
 

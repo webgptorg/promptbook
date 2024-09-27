@@ -47,11 +47,15 @@ export type PrepareAndScrapeOptions = {
     readonly externalProgramsPaths?: {
         /**
          * Path to the `pandoc` executable
+         *
+         * @example 'C:/Users/me/AppData/Local/Pandoc/pandoc.exe'
          */
         readonly pandocPath?: string;
 
         /**
          * Path to the LibreOffice executable
+         *
+         * @example 'C:/Program Files/LibreOffice/program/swriter.exe'
          */
         readonly libreOfficePath?: string;
     };
