@@ -4,6 +4,8 @@ import { getLlmToolsForTestingAndScriptsAndPlayground } from '../../llm-provider
 import { emulateScraperSourceOptions } from '../_common/utils/emulateScraperSourceOptions';
 import { pdfScraper } from './pdfScraper';
 
+// TODO: !!!!!! Uncomment this test
+
 describe('how creating knowledge from pdf works', () => {
     it('should scrape simple information from a .pdf file', async () =>
         expect(
