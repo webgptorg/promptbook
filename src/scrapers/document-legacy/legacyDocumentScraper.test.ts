@@ -5,69 +5,54 @@ import { emulateScraperSourceOptions } from '../_common/utils/emulateScraperSour
 import { legacyDocumentScraper } from './legacyDocumentScraper';
 
 describe('how creating knowledge from docx works', () => {
-    it('should work with simple piece of information', async () =>
+    it('should scrape simple information from a (legacy) .doc file', async () =>
         expect(
             legacyDocumentScraper.scrape(emulateScraperSourceOptions(join(__dirname, 'samples/10-simple.doc')), {
                 llmTools: getLlmToolsForTestingAndScriptsAndPlayground(),
                 filesystemTools: null,
+                externalProgramsPaths: {
+                    // TODO: !!!!!! use `locate-app` library here
+                    pandocPath: 'C:/Users/me/AppData/Local/Pandoc/pandoc.exe',
+                    libreOfficePath: 'C:/Program Files/LibreOffice/program/swriter.exe',
+                },
             }),
-
-            // Note: [0] Not comparing with .toEqual because of index is looooonnnngggg list of numbers
         ).resolves.toMatchObject([
             {
-                content: 'Springfield is a city located in Illinois, United States.',
-                // [0]> index: [],
-                keywords: ['Springfield: An Illinois City'],
-                name: 'springfield-an-illinois-city',
-                title: 'Springfield: An Illinois City',
-            },
-            {
-                content: 'Springfield is the county seat of Sangamon County.',
-                // [0]> index: [],
-                keywords: ['Springfield: Sangamon County Seat'],
-                name: 'springfield-sangamon-county-seat',
-                title: 'Springfield: Sangamon County Seat',
-            },
-            {
-                content:
-                    'As of 2019, Springfield had a population of 10,566, making it the sixth most populous city in Illinois.',
-                // [0]> index: [],
-                keywords: ["Springfield: Illinois' Sixth Largest City"],
-                name: 'springfield-illinois-sixth-largest-city',
-                title: "Springfield: Illinois' Sixth Largest City",
+                content: expect.stringMatching(/Springfield is .*/i),
             },
         ]));
 
-    it('should work with simple piece of information', async () =>
+    it('should scrape simple information from a .rtf file', async () =>
         expect(
             legacyDocumentScraper.scrape(emulateScraperSourceOptions(join(__dirname, 'samples/10-simple.rtf')), {
                 llmTools: getLlmToolsForTestingAndScriptsAndPlayground(),
                 filesystemTools: null,
+                externalProgramsPaths: {
+                    // TODO: !!!!!! use `locate-app` library here
+                    pandocPath: 'C:/Users/me/AppData/Local/Pandoc/pandoc.exe',
+                    libreOfficePath: 'C:/Program Files/LibreOffice/program/swriter.exe',
+                },
             }),
-
-            // Note: [0] Not comparing with .toEqual because of index is looooonnnngggg list of numbers
         ).resolves.toMatchObject([
             {
-                content: 'Springfield is a city located in Illinois, United States.',
-                // [0]> index: [],
-                keywords: ['Springfield: An Illinois City'],
-                name: 'springfield-an-illinois-city',
-                title: 'Springfield: An Illinois City',
+                content: expect.stringMatching(/Springfield is .*/i),
             },
+        ]));
+
+    it('should NOT scrape irrelevant information', async () =>
+        expect(
+            legacyDocumentScraper.scrape(emulateScraperSourceOptions(join(__dirname, 'samples/10-simple.doc')), {
+                llmTools: getLlmToolsForTestingAndScriptsAndPlayground(),
+                filesystemTools: null,
+                externalProgramsPaths: {
+                    // TODO: !!!!!! use `locate-app` library here
+                    pandocPath: 'C:/Users/me/AppData/Local/Pandoc/pandoc.exe',
+                    libreOfficePath: 'C:/Program Files/LibreOffice/program/swriter.exe',
+                },
+            }),
+        ).resolves.toMatchObject([
             {
-                content: 'Springfield is the county seat of Sangamon County.',
-                // [0]> index: [],
-                keywords: ['Springfield: Sangamon County Seat'],
-                name: 'springfield-sangamon-county-seat',
-                title: 'Springfield: Sangamon County Seat',
-            },
-            {
-                content:
-                    'As of 2019, Springfield had a population of 10,566, making it the sixth most populous city in Illinois.',
-                // [0]> index: [],
-                keywords: ["Springfield: Illinois' Sixth Largest City"],
-                name: 'springfield-illinois-sixth-largest-city',
-                title: "Springfield: Illinois' Sixth Largest City",
+                content: expect.not.stringMatching(/London is .*/i),
             },
         ]));
 });

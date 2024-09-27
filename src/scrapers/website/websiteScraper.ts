@@ -133,6 +133,7 @@ export const websiteScraper = {
 } /* TODO: [🦷] as const */ satisfies AbstractScraper;
 
 /**
+ * TODO: [👣] Scraped website in .md can act as cache item - there is no need to run conversion each time
  * TODO: [🦖] Make some system for putting scrapers to separete packages
  * TODO: [🪂] Do it in parallel 11:11
  * TODO: [🦷] Ideally use `as const satisfies AbstractScraper` BUT this combination throws errors
