@@ -1,5 +1,5 @@
 {
-    "date": "2024-09-27T08:08:14.959Z",
+    "date": "2024-09-27T13:23:31.013Z",
     "promptbookVersion": "0.71.0-0",
     "prompt": {
         "title": "Knowledge",
@@ -14,15 +14,15 @@
         "expectations": {}
     },
     "promptResult": {
-        "content": "Springfield, Illinois, population, sixth most populous, 2019",
+        "content": "Springfield, Illinois, sixth most populous city, population, 10,566, 2019",
         "modelName": "claude-3-5-sonnet-20240620",
         "timing": {
-            "start": "2024-09-27T08:08:14.349Z",
-            "complete": "2024-09-27T08:08:14.959Z"
+            "start": "2024-09-27T13:23:30.466Z",
+            "complete": "2024-09-27T13:23:31.013Z"
         },
         "usage": {
             "price": {
-                "value": 0.000471
+                "value": 0.000561
             },
             "input": {
                 "tokensCount": {
@@ -49,13 +49,13 @@
             },
             "output": {
                 "tokensCount": {
-                    "value": 16
+                    "value": 22
                 },
                 "charactersCount": {
-                    "value": 60
+                    "value": 73
                 },
                 "wordsCount": {
-                    "value": 7
+                    "value": 10
                 },
                 "sentencesCount": {
                     "value": 1
@@ -83,21 +83,21 @@
             ]
         },
         "rawResponse": {
-            "id": "msg_01HJUHFUQVPhHXvjydktusgw",
+            "id": "msg_01TpPFMD5RF8H7QZ8ePfXqKn",
             "type": "message",
             "role": "assistant",
             "model": "claude-3-5-sonnet-20240620",
             "content": [
                 {
                     "type": "text",
-                    "text": "Springfield, Illinois, population, sixth most populous, 2019"
+                    "text": "Springfield, Illinois, sixth most populous city, population, 10,566, 2019"
                 }
             ],
             "stop_reason": "end_turn",
             "stop_sequence": null,
             "usage": {
                 "input_tokens": 77,
-                "output_tokens": 16
+                "output_tokens": 22
             }
         }
     }
