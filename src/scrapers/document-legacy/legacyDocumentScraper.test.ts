@@ -5,7 +5,7 @@ import { emulateScraperSourceOptions } from '../_common/utils/emulateScraperSour
 import { legacyDocumentScraper } from './legacyDocumentScraper';
 
 describe('how creating knowledge from docx works', () => {
-    it('should scrape simple information from a (legacy) .doc file', async () =>
+    it('should scrape simple information from a (legacy) .doc file', () =>
         expect(
             legacyDocumentScraper.scrape(emulateScraperSourceOptions(join(__dirname, 'samples/10-simple.doc')), {
                 llmTools: getLlmToolsForTestingAndScriptsAndPlayground(),
@@ -22,7 +22,7 @@ describe('how creating knowledge from docx works', () => {
             },
         ]));
 
-    it('should scrape simple information from a .rtf file', async () =>
+    it('should scrape simple information from a .rtf file', () =>
         expect(
             legacyDocumentScraper
                 .scrape(emulateScraperSourceOptions(join(__dirname, 'samples/10-simple.rtf')), {
@@ -42,7 +42,7 @@ describe('how creating knowledge from docx works', () => {
             },
         ]));
 
-    it('should NOT scrape irrelevant information', async () =>
+    it('should NOT scrape irrelevant information', () =>
         expect(
             legacyDocumentScraper
                 .scrape(emulateScraperSourceOptions(join(__dirname, 'samples/10-simple.doc')), {

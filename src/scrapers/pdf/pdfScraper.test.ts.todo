@@ -7,7 +7,7 @@ import { pdfScraper } from './pdfScraper';
 // TODO: !!!!!! Uncomment this test
 
 describe('how creating knowledge from pdf works', () => {
-    it('should scrape simple information from a .pdf file', async () =>
+    it('should scrape simple information from a .pdf file', () =>
         expect(
             pdfScraper
                 .scrape(emulateScraperSourceOptions(join(__dirname, 'samples/10-simple.pdf')), {
@@ -22,7 +22,7 @@ describe('how creating knowledge from pdf works', () => {
             },
         ]));
 
-    it('should NOT scrape irrelevant information', async () =>
+    it('should NOT scrape irrelevant information', () =>
         expect(
             pdfScraper
                 .scrape(emulateScraperSourceOptions(join(__dirname, 'samples/10-simple.pdf')), {

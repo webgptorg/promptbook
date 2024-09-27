@@ -5,6 +5,7 @@ import type {
     string_knowledge_source_link,
     string_mime_type,
     string_promptbook_documentation_url,
+    string_url,
 } from '../../types/typeAliases';
 
 /**
@@ -43,8 +44,17 @@ export type ScraperSourceOptions = {
 
     /**
      * The path to the file, if it is a file
+     *
+     * Note: Typically one of the `filePath` or `url` is set and the other is `null`
      */
     readonly filePath: string_file_path | null;
+
+    /**
+     * The URL, if it is online
+     *
+     * Note: Typically one of the `filePath` or `url` is set and the other is `null`
+     */
+    readonly url: string_url | null;
 
     /**
      * Mime type of the source

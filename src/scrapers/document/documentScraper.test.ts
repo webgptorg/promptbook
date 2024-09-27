@@ -5,7 +5,7 @@ import { emulateScraperSourceOptions } from '../_common/utils/emulateScraperSour
 import { documentScraper } from './documentScraper';
 
 describe('how creating knowledge from docx works', () => {
-    it('should scrape simple information from a .docx file', async () =>
+    it('should scrape simple information from a .docx file', () =>
         expect(
             documentScraper.scrape(emulateScraperSourceOptions(join(__dirname, 'samples/10-simple.docx')), {
                 llmTools: getLlmToolsForTestingAndScriptsAndPlayground(),
@@ -21,7 +21,7 @@ describe('how creating knowledge from docx works', () => {
             },
         ]));
 
-    it('should scrape simple information from a .odt file', async () =>
+    it('should scrape simple information from a .odt file', () =>
         expect(
             documentScraper
                 .scrape(emulateScraperSourceOptions(join(__dirname, 'samples/10-simple.odt')), {
@@ -40,7 +40,7 @@ describe('how creating knowledge from docx works', () => {
             },
         ]));
 
-    it('should NOT scrape irrelevant information', async () =>
+    it('should NOT scrape irrelevant information', () =>
         expect(
             documentScraper
                 .scrape(emulateScraperSourceOptions(join(__dirname, 'samples/10-simple.docx')), {

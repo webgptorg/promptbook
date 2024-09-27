@@ -5,7 +5,7 @@ import { emulateScraperSourceOptions } from '../_common/utils/emulateScraperSour
 import { markdownScraper } from './markdownScraper';
 
 describe('how creating knowledge from markdown works', () => {
-    it('should scrape simple information from a markdown', async () =>
+    it('should scrape simple information from a markdown', () =>
         expect(
             markdownScraper
                 .scrape(emulateScraperSourceOptions(join(__dirname, 'samples/10-simple.md')), {
@@ -20,7 +20,7 @@ describe('how creating knowledge from markdown works', () => {
             },
         ]));
 
-    it('should NOT scrape irrelevant information', async () =>
+    it('should NOT scrape irrelevant information', () =>
         expect(
             markdownScraper
                 .scrape(emulateScraperSourceOptions(join(__dirname, 'samples/10-simple.md')), {

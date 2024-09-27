@@ -4,7 +4,7 @@ import { emulateScraperSourceOptions } from '../_common/utils/emulateScraperSour
 import { websiteScraper } from './websiteScraper';
 
 describe('how creating knowledge from website works', () => {
-    it('should scrape simple information from a https://www.pavolhejny.com/', async () =>
+    it('should scrape simple information from a https://www.pavolhejny.com/', () =>
         expect(
             websiteScraper
                 .scrape(emulateScraperSourceOptions('https://www.pavolhejny.com/'), {
@@ -19,7 +19,7 @@ describe('how creating knowledge from website works', () => {
             },
         ]));
 
-    it('should NOT scrape irrelevant information', async () =>
+    it('should NOT scrape irrelevant information', () =>
         expect(
             websiteScraper
                 .scrape(emulateScraperSourceOptions('https://www.pavolhejny.com/'), {

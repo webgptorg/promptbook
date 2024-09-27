@@ -1,41 +1,77 @@
 import { readFileSync } from 'fs';
-import { string_file_path } from '../../../types/typeAliases';
+import { isValidFilePath, isValidUrl } from '../../../_packages/utils.index';
+import { string_file_path, string_url } from '../../../types/typeAliases';
+import { extensionToMimeType } from '../../../utils/files/extensionToMimeType';
+import { getFileExtension } from '../../../utils/files/getFileExtension';
 import { ScraperSourceOptions } from '../AbstractScraper';
-
-// TODO: !!!!!! Write this test OR remove it with whole folder
 
 /**
  * @@@
+ *
+ *
+ * Note: This is synchronous - its OK to use sync in tooling for test tooling
+ *       For URL, there is not fetched real mime type but hardcoded to `text/html`
  */
-export function emulateScraperSourceOptions(sampleFilePath: string_file_path): ScraperSourceOptions {
-    const mimeType = 'text/markdown';
-    //                 <- !!!!!! Unhardcode this
+export function emulateScraperSourceOptions(sampleFilePathOrUrl: string_file_path | string_url): ScraperSourceOptions {
+    if (isValidFilePath(sampleFilePathOrUrl)) {
+        const filePath = sampleFilePathOrUrl;
+        const fileExtension = getFileExtension(filePath);
+        const mimeType = extensionToMimeType(fileExtension || '');
 
-    return {
-        source: sampleFilePath,
-        filePath: sampleFilePath,
-        mimeType,
-        async asBlob() {
-            const content = readFileSync(sampleFilePath);
-            //  <- Note: Its OK to use sync in tooling for tests
-            return new Blob(
-                [
-                    content,
+        return {
+            source: filePath,
+            filePath,
+            url: null,
+            mimeType,
+            async asBlob() {
+                const content = readFileSync(filePath);
+                //  <- Note: Its OK to use sync in tooling for tests
+                return new Blob(
+                    [
+                        content,
 
-                    // <- TODO: !!!!!! Maybe not working
-                ],
-                { type: mimeType },
-            );
-        },
-        async asJson() {
-            return JSON.parse(readFileSync(sampleFilePath, 'utf-8'));
-            //  <- Note: Its OK to use sync in tooling for tests
-        },
-        async asText() {
-            return readFileSync(sampleFilePath, 'utf-8');
-            //  <- Note: Its OK to use sync in tooling for tests
-        },
-    };
+                        // <- TODO: !!!!!! Maybe not working
+                    ],
+                    { type: mimeType },
+                );
+            },
+            async asJson() {
+                return JSON.parse(readFileSync(filePath, 'utf-8'));
+                //  <- Note: Its OK to use sync in tooling for tests
+            },
+            async asText() {
+                return readFileSync(filePath, 'utf-8');
+                //  <- Note: Its OK to use sync in tooling for tests
+            },
+        };
+    } else if (isValidUrl(sampleFilePathOrUrl)) {
+        const url = sampleFilePathOrUrl;
+        const mimeType = 'text/html';
+
+        return {
+            source: url,
+            filePath: null,
+            url,
+            mimeType,
+            async asBlob() {
+                const response = await fetch(url);
+                const content = await response.blob();
+                return content;
+            },
+            async asJson() {
+                const response = await fetch(url);
+                const content = await response.json();
+                return content;
+            },
+            async asText() {
+                const response = await fetch(url);
+                const content = await response.text();
+                return content;
+            },
+        };
+    } else {
+        throw new Error('Invalid file path or url');
+    }
 }
 
 /**
