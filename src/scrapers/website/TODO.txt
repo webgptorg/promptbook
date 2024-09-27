@@ -1,2 +1,2 @@
-TODO: [🐝][🔼][main] !!! Export via `@promptbook/node`
-TODO: Implement function which will make knowledge index from scraped website
+TODO: [🧠] !!! Not it does not scrape entire website, just single page - maybe implement entire page scraping or allow to specify the scope in `.ptbk.md`
+TODO: [🧠] !!! Multiple methods of scraping - simple fetch sourcecode vs headless browser + playwright

@@ -25,7 +25,7 @@ export const markdownScraper = {
     /**
      * Mime types that this scraper can handle
      */
-    mimeTypes: ['text/markdown'],
+    mimeTypes: ['text/markdown', 'text/plain'],
 
     /**
      * Link to documentation

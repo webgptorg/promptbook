@@ -154,7 +154,7 @@
             "focus": true
         },
         {
-            "name": "🧸💡 Scrape knowledge from Markdown (playground) (💸) [🍠]",
+            "name": "🧸📄💡 Scrape knowledge from Markdown (playground) (💸) [🍠]",
             "commands": [
                 "npx ts-node ./scripts/make-promptbook-collection/make-promptbook-collection.ts --verbose",
                 "npx ts-node ./src/scrapers/markdown/playground/markdown-scraper-playground.ts"
@@ -163,7 +163,7 @@
             "focus": true
         },
         {
-            "name": "🧸💡 Scrape knowledge from .docx (playground) (💸) [🍠]",
+            "name": "🧸📃💡 Scrape knowledge from .docx (playground) (💸) [🍠]",
             "commands": [
                 "npx ts-node ./scripts/make-promptbook-collection/make-promptbook-collection.ts --verbose",
                 "npx ts-node ./src/scrapers/document/playground/document-scraper-playground.ts"
@@ -171,8 +171,9 @@
             "onlySingle": true,
             "focus": true
         },
+
         {
-            "name": "🧸💡 Scrape knowledge from (legacy) .doc (playground) (💸) [🍠]",
+            "name": "🧸📃💡 Scrape knowledge from (legacy) .doc (playground) (💸) [🍠]",
             "commands": [
                 "npx ts-node ./scripts/make-promptbook-collection/make-promptbook-collection.ts --verbose",
                 "npx ts-node ./src/scrapers/document-legacy/playground/legacy-document-scraper-playground.ts"
@@ -180,6 +181,27 @@
             "onlySingle": true,
             "focus": true
         },
+
+        {
+            "name": "🧸📃💡 Scrape knowledge from .pdf (playground) (💸) [🍠]",
+            "commands": [
+                "npx ts-node ./scripts/make-promptbook-collection/make-promptbook-collection.ts --verbose",
+                "npx ts-node ./src/scrapers/pdf/playground/pdf-scraper-playground.ts"
+            ],
+            "onlySingle": true,
+            "focus": true
+        },
+
+        {
+            "name": "🧸🌍💡 Scrape knowledge from website (playground) (💸) [🍠]",
+            "commands": [
+                "npx ts-node ./scripts/make-promptbook-collection/make-promptbook-collection.ts --verbose",
+                "npx ts-node ./src/scrapers/website/playground/website-scraper-playground.ts"
+            ],
+            "onlySingle": true,
+            "focus": true
+        },
+
         {
             "name": "📖 Make Promptbook collection (💸) [🍠]",
             "command": "npx ts-node ./scripts/make-promptbook-collection/make-promptbook-collection.ts --verbose --commit",
