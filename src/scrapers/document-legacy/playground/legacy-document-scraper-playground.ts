@@ -31,9 +31,13 @@ async function playground() {
     // Do here stuff you want to test
     //========================================>
 
+
+    //const sample = '10-simple.doc';
+    const sample = '10-simple.rtf';
+
     const samplePath = join(
         __dirname,
-        '../samples/10-simple.doc' /* <- TODO: [👩🏿‍🤝‍👩🏼] Read here the samples directory and itterate through all of them */,
+        `../samples/${sample}` /* <- TODO: [👩🏿‍🤝‍👩🏼] Read here the samples directory and itterate through all of them */,
     );
 
     const llmTools = getLlmToolsForTestingAndScriptsAndPlayground({ isCacheReloaded: true });
@@ -45,7 +49,7 @@ async function playground() {
         externalProgramsPaths: {
             // TODO: !!!!!! use `locate-app` library here + do auto-installation of the programs
             pandocPath: 'C:/Users/me/AppData/Local/Pandoc/pandoc.exe',
-            libreOfficePath: 'C:/Program Files/LibreOffice/program/swriter.exe'
+            libreOfficePath: 'C:/Program Files/LibreOffice/program/swriter.exe',
         },
     });
 
@@ -56,7 +60,7 @@ async function playground() {
     await writeFile(
         join(
             __dirname,
-            '../samples/10-simple.doc.knowledge.json' /* <- TODO: [👩🏿‍🤝‍👩🏼] Read here the samples directory and itterate through all of them */,
+            `../samples/${sample}.knowledge.json` /* <- TODO: [👩🏿‍🤝‍👩🏼] Read here the samples directory and itterate through all of them */,
         ),
         stringifyPipelineJson(knowledge),
         'utf-8',

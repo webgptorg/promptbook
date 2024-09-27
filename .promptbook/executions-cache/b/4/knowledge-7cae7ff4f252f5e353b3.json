@@ -1,5 +1,5 @@
 {
-    "date": "2024-09-26T14:11:31.431Z",
+    "date": "2024-09-27T08:08:49.941Z",
     "promptbookVersion": "0.71.0-0",
     "prompt": {
         "title": "Knowledge",
@@ -14,15 +14,15 @@
         "expectations": {}
     },
     "promptResult": {
-        "content": "Springfield, Illinois, sixth most populous city, population, 10,566, 2019, county seat, Sangamon County",
+        "content": "Springfield, Illinois, populous city, population, county seat, Sangamon County",
         "modelName": "claude-3-5-sonnet-20240620",
         "timing": {
-            "start": "2024-09-26T14:11:30.627Z",
-            "complete": "2024-09-26T14:11:31.431Z"
+            "start": "2024-09-27T08:08:49.328Z",
+            "complete": "2024-09-27T08:08:49.941Z"
         },
         "usage": {
             "price": {
-                "value": 0.000735
+                "value": 0.00057
             },
             "input": {
                 "tokensCount": {
@@ -49,13 +49,13 @@
             },
             "output": {
                 "tokensCount": {
-                    "value": 30
+                    "value": 19
                 },
                 "charactersCount": {
-                    "value": 103
+                    "value": 78
                 },
                 "wordsCount": {
-                    "value": 14
+                    "value": 9
                 },
                 "sentencesCount": {
                     "value": 1
@@ -83,21 +83,21 @@
             ]
         },
         "rawResponse": {
-            "id": "msg_01MhCkGJj8y6Q9TDyRf4trcv",
+            "id": "msg_01KgrQZFEWpinHJ5AkgiSzBM",
             "type": "message",
             "role": "assistant",
             "model": "claude-3-5-sonnet-20240620",
             "content": [
                 {
                     "type": "text",
-                    "text": "Springfield, Illinois, sixth most populous city, population, 10,566, 2019, county seat, Sangamon County"
+                    "text": "Springfield, Illinois, populous city, population, county seat, Sangamon County"
                 }
             ],
             "stop_reason": "end_turn",
             "stop_sequence": null,
             "usage": {
                 "input_tokens": 95,
-                "output_tokens": 30
+                "output_tokens": 19
             }
         }
     }

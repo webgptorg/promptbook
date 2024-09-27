@@ -31,9 +31,12 @@ async function playground() {
     // Do here stuff you want to test
     //========================================>
 
+    //const sample = '10-simple.docx';
+    const sample = '10-simple.odt';
+
     const samplePath = join(
         __dirname,
-        '../samples/10-simple.docx' /* <- TODO: [👩🏿‍🤝‍👩🏼] Read here the samples directory and itterate through all of them */,
+        `../samples/${sample}` /* <- TODO: [👩🏿‍🤝‍👩🏼] Read here the samples directory and itterate through all of them */,
     );
 
     const llmTools = getLlmToolsForTestingAndScriptsAndPlayground({ isCacheReloaded: true });
@@ -55,7 +58,7 @@ async function playground() {
     await writeFile(
         join(
             __dirname,
-            '../samples/10-simple.docx.knowledge.json' /* <- TODO: [👩🏿‍🤝‍👩🏼] Read here the samples directory and itterate through all of them */,
+            `../samples/${sample}.knowledge.json` /* <- TODO: [👩🏿‍🤝‍👩🏼] Read here the samples directory and itterate through all of them */,
         ),
         stringifyPipelineJson(knowledge),
         'utf-8',
