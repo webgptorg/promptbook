@@ -23,7 +23,7 @@ export function emulateScraperSourceOptions(sampleFilePathOrUrl: string_file_pat
             filePath,
             url: null,
             mimeType,
-            async asBlob() {
+            asBlob() {
                 const content = readFileSync(filePath);
                 //  <- Note: Its OK to use sync in tooling for tests
                 return new Blob(
@@ -35,11 +35,11 @@ export function emulateScraperSourceOptions(sampleFilePathOrUrl: string_file_pat
                     { type: mimeType },
                 );
             },
-            async asJson() {
+            asJson() {
                 return JSON.parse(readFileSync(filePath, 'utf-8'));
                 //  <- Note: Its OK to use sync in tooling for tests
             },
-            async asText() {
+            asText() {
                 return readFileSync(filePath, 'utf-8');
                 //  <- Note: Its OK to use sync in tooling for tests
             },

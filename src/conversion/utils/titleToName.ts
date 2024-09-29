@@ -11,14 +11,15 @@ import { removeEmojis } from '../../utils/removeEmojis';
  */
 export function titleToName(value: string): string {
     if (value.startsWith('http://') || value.startsWith('https://')) {
-        // TODO: Maybe check against some list unallowed characters
-        return value;
+        value = value.replace(/^https?:\/\//, '');
+        value = value.replace(/\.html$/, '');
     }
 
     if (value.startsWith('./') || value.startsWith('../')) {
-        // TODO: Maybe check against some list unallowed characters
-        return value;
+        value = value.replace(/^\.\//, '');
     }
+
+    value = value.split('/').join('-');
 
     value = removeEmojis(value);
     value = normalizeToKebabCase(value);

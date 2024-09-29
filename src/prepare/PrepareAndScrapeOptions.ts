@@ -30,7 +30,7 @@ export type PrepareAndScrapeOptions = {
     /**
      * If true, the cache is cleaned after the scraping
      *
-     * @default false
+     * @default false // <- TODO: !!!!!! Put to global config, change to `true` and explicitly set to `false` in all playgrounds
      */
     readonly isCacheCleaned?: boolean;
 

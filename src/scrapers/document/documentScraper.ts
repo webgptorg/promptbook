@@ -85,12 +85,12 @@ export const documentScraper = {
                 // TODO: [🦧] Maybe use here FilesystemTools
                 return await readFile(markdownSourceFilePath, 'utf-8');
             },
-            async asJson() {
+            asJson() {
                 throw new UnexpectedError(
                     'Did not expect that `markdownScraper` would need to get the content `asJson`',
                 );
             },
-            async asBlob() {
+            asBlob() {
                 throw new UnexpectedError(
                     'Did not expect that `markdownScraper` would need to get the content `asBlob`',
                 );

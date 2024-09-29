@@ -1,0 +1,104 @@
+{
+    "date": "2024-09-29T07:32:49.974Z",
+    "promptbookVersion": "0.71.0-0",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-from-markdown.ptbk.md#knowledge",
+        "parameters": {
+            "knowledgeContent": "<div id=\"readability-page-1\" class=\"page\">Look at this cat: <img src=\"https://www.example.com/cat.jpg\"></div>\n\n"
+        },
+        "content": "You are experienced data researcher, extract the important knowledge from the document.\n\n# Rules\n\n-   Make pieces of information concise, clear, and easy to understand\n-   One piece of information should be approximately 1 paragraph\n-   Divide the paragraphs by markdown horizontal lines ---\n-   Omit irrelevant information\n-   Group redundant information\n-   Write just extracted information, nothing else\n\n# The document\n\nTake information from this document:\n\n> {knowledgeContent}",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {}
+    },
+    "promptResult": {
+        "content": "There is no substantial information to extract from the provided document. The content consists only of a brief instruction to look at a cat image, along with an HTML image tag. The image itself is not accessible, and there is no other text or data to analyze or summarize.",
+        "modelName": "claude-3-5-sonnet-20240620",
+        "timing": {
+            "start": "2024-09-29T07:32:48.342Z",
+            "complete": "2024-09-29T07:32:49.973Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0.001326
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 152
+                },
+                "charactersCount": {
+                    "value": 579
+                },
+                "wordsCount": {
+                    "value": 78
+                },
+                "sentencesCount": {
+                    "value": 5
+                },
+                "linesCount": {
+                    "value": 18
+                },
+                "paragraphsCount": {
+                    "value": 6
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 58
+                },
+                "charactersCount": {
+                    "value": 273
+                },
+                "wordsCount": {
+                    "value": 49
+                },
+                "sentencesCount": {
+                    "value": 3
+                },
+                "linesCount": {
+                    "value": 1
+                },
+                "paragraphsCount": {
+                    "value": 1
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced data researcher, extract the important knowledge from the document.\n\n# Rules\n\n-   Make pieces of information concise, clear, and easy to understand\n-   One piece of information should be approximately 1 paragraph\n-   Divide the paragraphs by markdown horizontal lines ---\n-   Omit irrelevant information\n-   Group redundant information\n-   Write just extracted information, nothing else\n\n# The document\n\nTake information from this document:\n\n> <div id=\"readability-page-1\" class=\"page\">Look at this cat: <img src=\"https://www.example.com/cat.jpg\"></div>\n> \n> ",
+        "rawRequest": {
+            "model": "claude-3-5-sonnet-20240620",
+            "max_tokens": 4096,
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "You are experienced data researcher, extract the important knowledge from the document.\n\n# Rules\n\n-   Make pieces of information concise, clear, and easy to understand\n-   One piece of information should be approximately 1 paragraph\n-   Divide the paragraphs by markdown horizontal lines ---\n-   Omit irrelevant information\n-   Group redundant information\n-   Write just extracted information, nothing else\n\n# The document\n\nTake information from this document:\n\n> <div id=\"readability-page-1\" class=\"page\">Look at this cat: <img src=\"https://www.example.com/cat.jpg\"></div>\n> \n> "
+                }
+            ]
+        },
+        "rawResponse": {
+            "id": "msg_018NK4ixJi2bKTrn5yRN3LYv",
+            "type": "message",
+            "role": "assistant",
+            "model": "claude-3-5-sonnet-20240620",
+            "content": [
+                {
+                    "type": "text",
+                    "text": "There is no substantial information to extract from the provided document. The content consists only of a brief instruction to look at a cat image, along with an HTML image tag. The image itself is not accessible, and there is no other text or data to analyze or summarize."
+                }
+            ],
+            "stop_reason": "end_turn",
+            "stop_sequence": null,
+            "usage": {
+                "input_tokens": 152,
+                "output_tokens": 58
+            }
+        }
+    }
+}

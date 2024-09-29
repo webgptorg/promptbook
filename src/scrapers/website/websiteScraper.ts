@@ -1,16 +1,18 @@
-import type { KnowledgePiecePreparedJson } from '../../_packages/types.index';
+import type { KnowledgePiecePreparedJson, string_file_path } from '../../_packages/types.index';
 import { PrepareAndScrapeOptions } from '../../_packages/types.index';
 import type { AbstractScraper, ScraperSourceOptions } from '../_common/AbstractScraper';
 // TODO: [🏳‍🌈] Finally take pick of .json vs .ts
 // import PipelineCollection from '../../../promptbook-collection/promptbook-collection';
-import { mkdir, readFile, rm } from 'fs/promises';
+import { Readability } from '@mozilla/readability';
+import { mkdir, rm, writeFile } from 'fs/promises';
+import { JSDOM } from 'jsdom';
 import { basename, dirname, join } from 'path';
-import { execCommand } from '../../../scripts/utils/execCommand/execCommand';
+import { $isRunningInNode, titleToName } from '../../_packages/utils.index';
 import { IS_VERBOSE, SCRAPE_CACHE_DIRNAME } from '../../config';
 import { KnowledgeScrapeError } from '../../errors/KnowledgeScrapeError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
-import { getFileExtension } from '../../utils/files/getFileExtension';
 import { markdownScraper } from '../markdown/markdownScraper';
+import { markdownConverter } from './utils/markdownConverter';
 
 /**
  * Scraper for .docx files
@@ -37,76 +39,52 @@ export const websiteScraper = {
         options: PrepareAndScrapeOptions,
     ): Promise<Array<Omit<KnowledgePiecePreparedJson, 'sources' | 'preparationIds'>> | null> {
         const {
-            externalProgramsPaths = {},
+            // TODO: [🧠] Maybe in node use headless browser not just JSDOM
+            // externalProgramsPaths = {},
             cacheDirname = SCRAPE_CACHE_DIRNAME,
             isCacheCleaned = false,
             isVerbose = IS_VERBOSE,
         } = options;
 
-        /*
-    !!!!!!
-    if (!$isRunningInNode()) {
-        throw new KnowledgeScrapeError('Scraping .do cxfiles is only supported in Node environment');
-    }
-    */
+        // TODO: !!!!!! Does this work in browser? Make it work.
 
-        if (!externalProgramsPaths.pandocPath) {
-            throw new KnowledgeScrapeError('Pandoc is required for scraping .docx files');
+        if (source.url === null) {
+            throw new KnowledgeScrapeError('Website scraper requires URL');
         }
 
-        /*
-        if (source.filePath === null) {
-            // TODO: [🧠] !!!!!! Maybe save file as temporary
-            throw new KnowledgeScrapeError('When parsing .docx file, it must be real file in the file system');
+        const jsdom = new JSDOM(await source.asText(), {
+            url: source.url,
+        });
+
+        const reader = new Readability(jsdom.window.document);
+        const article = reader.parse();
+
+        const html = article?.content || jsdom.window.document.body.innerHTML;
+        const markdown = markdownConverter.makeMarkdown(html, jsdom.window.document);
+        let markdownSourceFilePath: string_file_path | null = null;
+
+        if ($isRunningInNode()) {
+            markdownSourceFilePath = join(cacheDirname, `${basename(titleToName(source.source))}.md`);
+
+            // TODO: !!!!!! Make cache dir recursively in every scraper
+            await mkdir(dirname(markdownSourceFilePath), { recursive: true });
+            await writeFile(markdownSourceFilePath, markdown);
         }
-        */
-
-        const extension = getFileExtension(
-            /* !!!!!! source.filePath*/ 'src/scrapers/website/samples/koralkykatlas-cz-cs-blog-prispevek-rijna-zhorseni-kvality-kovove-bizuterie.html',
-        );
-
-        const markdownSourceFilePath =
-            // TODO: [🦧] Maybe use here FilesystemTools
-            // TODO: [🦧] Do here same subfolder paths /a/b/... like executions-cache
-            join(
-                process.cwd(),
-                cacheDirname,
-                basename(
-                    /* !!!!!! source.filePath*/ 'src/scrapers/website/samples/koralkykatlas-cz-cs-blog-prispevek-rijna-zhorseni-kvality-kovove-bizuterie.html',
-                ),
-            )
-                .split('\\')
-                .join('/') + '.md';
-
-        // TODO: [🦧] Maybe use here FilesystemTools
-        await mkdir(dirname(markdownSourceFilePath), { recursive: true });
-
-        if (isVerbose) {
-            console.info(`documentScraper: Converting .${extension} -> .md`);
-        }
-
-        // TODO: !!!!!! [🕊] Make execCommand standard (?node-)util of the promptbook
-        await execCommand(
-            `"${externalProgramsPaths.pandocPath}" -f ${extension} -t markdown "${
-                /* !!!!!! source.filePath*/ 'src/scrapers/website/samples/koralkykatlas-cz-cs-blog-prispevek-rijna-zhorseni-kvality-kovove-bizuterie.html'
-            }" -o "${markdownSourceFilePath}"`,
-        );
 
         const markdownSource = {
             source: source.source,
             filePath: markdownSourceFilePath,
             url: null,
             mimeType: 'text/markdown',
-            async asText() {
-                // TODO: [🦧] Maybe use here FilesystemTools
-                return await readFile(markdownSourceFilePath, 'utf-8');
+            asText() {
+                return markdown;
             },
-            async asJson() {
+            asJson() {
                 throw new UnexpectedError(
                     'Did not expect that `markdownScraper` would need to get the content `asJson`',
                 );
             },
-            async asBlob() {
+            asBlob() {
                 throw new UnexpectedError(
                     'Did not expect that `markdownScraper` would need to get the content `asBlob`',
                 );
@@ -115,7 +93,7 @@ export const websiteScraper = {
 
         const knowledge = markdownScraper.scrape(markdownSource, options);
 
-        if (isCacheCleaned) {
+        if (markdownSourceFilePath !== null && isCacheCleaned) {
             if (isVerbose) {
                 console.info('documentScraper: Clening cache');
             }
@@ -127,6 +105,7 @@ export const websiteScraper = {
 } /* TODO: [🦷] as const */ satisfies AbstractScraper;
 
 /**
+ * TODO: !!!!!! Put into separate package
  * TODO: [👣] Scraped website in .md can act as cache item - there is no need to run conversion each time
  * TODO: [🦖] Make some system for putting scrapers to separete packages
  * TODO: [🪂] Do it in parallel 11:11

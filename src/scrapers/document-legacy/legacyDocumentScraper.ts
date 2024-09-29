@@ -103,17 +103,17 @@ export const legacyDocumentScraper = {
             filePath: documentSourceFilePath,
             url: null,
             mimeType: 'text/markdown',
-            async asText() {
+            asText() {
                 throw new UnexpectedError(
                     'Did not expect that `documentScraper` would need to get the content `asText`',
                 );
             },
-            async asJson() {
+            asJson() {
                 throw new UnexpectedError(
                     'Did not expect that `documentScraper` would need to get the content `asJson`',
                 );
             },
-            async asBlob() {
+            asBlob() {
                 throw new UnexpectedError(
                     'Did not expect that `documentScraper` would need to get the content `asBlob`',
                 );

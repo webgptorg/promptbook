@@ -58,10 +58,10 @@ export async function prepareKnowledgePieces(
                 async asText() {
                     return await filesystemTools.getFile(filePath);
                 },
-                async asJson() {
+                asJson() {
                     throw new NotYetImplementedError('!!!!!!');
                 },
-                async asBlob() {
+                asBlob() {
                     throw new NotYetImplementedError('!!!!!!');
                 },
             } satisfies ScraperSourceOptions;
@@ -104,15 +104,15 @@ export async function prepareKnowledgePieces(
                     filePath: null,
                     url: null,
                     mimeType: 'text/markdown',
-                    async asText() {
+                    asText() {
                         return knowledgeSource.sourceContent;
                     },
-                    async asJson() {
+                    asJson() {
                         throw new UnexpectedError(
                             'Did not expect that `markdownScraper` would need to get the content `asJson`',
                         );
                     },
-                    async asBlob() {
+                    asBlob() {
                         throw new UnexpectedError(
                             'Did not expect that `markdownScraper` would need to get the content `asBlob`',
                         );

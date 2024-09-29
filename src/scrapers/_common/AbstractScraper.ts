@@ -64,17 +64,17 @@ export type ScraperSourceOptions = {
     /**
      * Get the content as parsed JSON
      */
-    asJson(): Promise<unknown>;
+    asJson(): Promisable<unknown>;
 
     /**
      * Get the content as a utf-8 string
      */
-    asText(): Promise<string>;
+    asText(): Promisable<string>;
 
     /**
      * Get the content as a blob
      */
-    asBlob(): Promise<Blob>;
+    asBlob(): Promisable<Blob>;
 };
 
 /**

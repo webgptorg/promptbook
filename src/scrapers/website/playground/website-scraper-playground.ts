@@ -7,6 +7,7 @@ dotenv.config({ path: '.env' });
 import colors from 'colors';
 import { writeFile } from 'fs/promises';
 import { join } from 'path';
+import { titleToName } from '../../../_packages/utils.index';
 import { stringifyPipelineJson } from '../../../conversion/utils/stringifyPipelineJson';
 import { usageToHuman } from '../../../execution/utils/usageToHuman';
 import { getLlmToolsForTestingAndScriptsAndPlayground } from '../../../llm-providers/_common/getLlmToolsForTestingAndScriptsAndPlayground';
@@ -31,18 +32,17 @@ async function playground() {
     // Do here stuff you want to test
     //========================================>
 
-    //const sample = '10-simple.doc';
-    const sample = 'www.pavolhejny.com';
+    // const sample = 'https://www.pavolhejny.com/';
+    const sample = 'https://koralkykatlas.cz/cs/blog/prispevek/-rijna-zhorseni-kvality-kovove-bizuterie.html';
     //               <- TODO: [👩🏿‍🤝‍👩🏼] Read here website-scraper-playground.ts and itterate
-
-    const samplePath = `https://${sample}/`;
 
     const llmTools = getLlmToolsForTestingAndScriptsAndPlayground({ isCacheReloaded: true });
 
-    const knowledge = await websiteScraper.scrape(emulateScraperSourceOptions(samplePath), {
+    const knowledge = await websiteScraper.scrape(emulateScraperSourceOptions(sample), {
         llmTools,
         isVerbose,
         filesystemTools: null,
+        isCacheCleaned: false,
         // TODO: !!!!!! Maybe remove or modify
         externalProgramsPaths: {
             // TODO: !!!!!! use `locate-app` library here
@@ -57,7 +57,9 @@ async function playground() {
     await writeFile(
         join(
             __dirname,
-            `../samples/${sample}.knowledge.json` /* <- TODO: [👩🏿‍🤝‍👩🏼] Read here the samples directory and itterate through all of them */,
+            `../samples/${titleToName(
+                sample,
+            )}.knowledge.json` /* <- TODO: [👩🏿‍🤝‍👩🏼] Read here the samples directory and itterate through all of them */,
         ),
         stringifyPipelineJson(knowledge),
         'utf-8',
