@@ -37,7 +37,6 @@ async function playground() {
         isCollectionModeAllowed: true,
         collection: await createCollectionFromDirectory('./samples/pipelines/', {
             llmTools: null,
-            filesystemTools: null,
             isRecursive: false,
         }),
         createLlmExecutionTools(userId) {

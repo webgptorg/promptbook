@@ -11,7 +11,6 @@ import { join } from 'path';
 import { collectionToJson } from '../../src/collection/collectionToJson';
 import { createCollectionFromDirectory } from '../../src/collection/constructors/createCollectionFromDirectory';
 import { usageToHuman } from '../../src/execution/utils/usageToHuman';
-import { getFilesystemToolsForNode } from '../../src/llm-providers/_common/getFilesystemToolsForNode';
 import { getLlmToolsForTestingAndScriptsAndPlayground } from '../../src/llm-providers/_common/getLlmToolsForTestingAndScriptsAndPlayground';
 import { commit } from '../utils/autocommit/commit';
 import { isWorkingTreeClean } from '../utils/autocommit/isWorkingTreeClean';
@@ -64,7 +63,6 @@ async function makePipelineCollection({
         llmTools,
         isVerbose,
         isRecursive: true,
-        filesystemTools: getFilesystemToolsForNode(),
         // <- TODO: [🍖] isCacheReloaded
     });
 

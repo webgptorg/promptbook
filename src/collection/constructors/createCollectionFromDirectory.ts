@@ -9,6 +9,7 @@ import { pipelineStringToJson } from '../../conversion/pipelineStringToJson';
 import { validatePipeline } from '../../conversion/validation/validatePipeline';
 import { CollectionError } from '../../errors/CollectionError';
 import { PipelineUrlError } from '../../errors/PipelineUrlError';
+import { getFilesystemToolsForNode } from '../../llm-providers/_common/getFilesystemToolsForNode';
 import { unpreparePipeline } from '../../prepare/unpreparePipeline';
 import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import type { PipelineString } from '../../types/PipelineString';
@@ -21,8 +22,11 @@ import { createCollectionFromPromise } from './createCollectionFromPromise';
 
 /**
  * Options for `createCollectionFromDirectory` function
+ *
+ * Note: `filesystemTools` are not needed because this function by definition reads the file system and works only in Node.js environment
+ *       So `getFilesystemToolsForNode` is used
  */
-type CreatePipelineCollectionFromDirectoryOptions = PipelineStringToJsonOptions & {
+type CreatePipelineCollectionFromDirectoryOptions = Omit<PipelineStringToJsonOptions, 'filesystemTools'> & {
     /**
      * If true, the directory is searched recursively for pipelines
      *
@@ -51,6 +55,9 @@ type CreatePipelineCollectionFromDirectoryOptions = PipelineStringToJsonOptions 
      * @default true
      */
     isCrashedOnError?: boolean;
+
+    // [🍖] Add `isCacheReloaded`
+    //                <- TODO: !!!!!! Replace by `cacheStrategy`
 };
 
 /**
@@ -90,7 +97,13 @@ export async function createCollectionFromDirectory(
         // TODO: [🌗]
     }
 
-    const { isRecursive = true, isVerbose = IS_VERBOSE, isLazyLoaded = false, isCrashedOnError = true } = options || {};
+    const {
+        llmTools = null,
+        isRecursive = true,
+        isVerbose = IS_VERBOSE,
+        isLazyLoaded = false,
+        isCrashedOnError = true,
+    } = options || {};
 
     const collection = createCollectionFromPromise(async () => {
         if (isVerbose) {
@@ -113,6 +126,8 @@ export async function createCollectionFromDirectory(
 
         const collection = new Map<string_pipeline_url, PipelineJson>();
 
+        const filesystemTools = getFilesystemToolsForNode();
+
         for (const fileName of fileNames) {
             const sourceFile = './' + fileName.split('\\').join('/');
 
@@ -121,7 +136,10 @@ export async function createCollectionFromDirectory(
 
                 if (fileName.endsWith('.ptbk.md')) {
                     const pipelineString = (await readFile(fileName, 'utf8')) as PipelineString;
-                    pipeline = await pipelineStringToJson(pipelineString, options);
+                    pipeline = await pipelineStringToJson(pipelineString, {
+                        llmTools,
+                        filesystemTools,
+                    });
                     pipeline = { ...pipeline, sourceFile };
                 } else if (fileName.endsWith('.ptbk.json')) {
                     // TODO: Handle non-valid JSON files

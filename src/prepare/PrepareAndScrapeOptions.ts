@@ -30,9 +30,10 @@ export type PrepareAndScrapeOptions = {
     /**
      * If true, the cache is cleaned after the scraping
      *
-     * @default false // <- TODO: !!!!!! Put to global config, change to `true` and explicitly set to `false` in all playgrounds
+     *
+     * @default false // <- TODO: !!!!!! Change to `cacheStrategy`/`intermediateFiles`, Put to global config, change to `true` and explicitly set to `false` in all playgrounds
      */
-    readonly isCacheCleaned?: boolean;
+    readonly isCacheCleaned?: boolean; // <-  `cacheStrategy`/`intermediateFiles`: 'HIDE_AND_CLEAN' | 'HIDE_AND_KEEP' | 'VISIBLE' (default)
 
     /**
      * Maximum number of tasks running in parallel

@@ -528,6 +528,7 @@ Knowledge scrapers [🐝]
 -   Allow to import `.rtf` files with knowledge `.rtf` -(LibreOffice)-> `.docx` -(Pandoc)-> `.md` <!-- <- TODO: [🐝] !!!!!! Implement -->
 -   Allow to import websites with knowledge
 -   Add new error `KnowledgeScrapeError`
+-   Add new error `getFilesystemToolsForNode`
 -   Add `FilesystemTools`
 -   Changed behavior of `titleToName` when passing URLs or file paths
 

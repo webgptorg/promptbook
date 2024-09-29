@@ -6,7 +6,7 @@ import { $isRunningInNode } from '../../utils/environment/$isRunningInNode';
 /**
  * Returns Filesystem tools for CLI
  *
- * @private within the repository - for CLI utils
+ * @public exported from `@promptbook/node`
  */
 export function getFilesystemToolsForNode(): FilesystemTools {
     if (!$isRunningInNode()) {
