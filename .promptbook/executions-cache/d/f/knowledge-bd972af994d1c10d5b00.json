@@ -1,5 +1,5 @@
 {
-    "date": "2024-09-29T07:52:58.737Z",
+    "date": "2024-09-29T08:05:44.487Z",
     "promptbookVersion": "0.71.0-0",
     "prompt": {
         "title": "Knowledge",
@@ -14,15 +14,15 @@
         "expectations": {}
     },
     "promptResult": {
-        "content": "Here is the extracted important information from the document:\n\n---\n\nIn the current period of economic crisis, fraudulent and harmful costume jewelry is appearing more frequently on the market as people try to save money. Customers have been reporting problems and scams encountered both in the Czech Republic and abroad when purchasing finished jewelry and jewelry components.\n\n---\n\nKorálky Katlas has prepared a summary of things to watch out for when buying costume jewelry and jewelry-making supplies, in response to increasing customer reports of issues.\n\n---\n\nA shortened video recording of the most important points from an online meeting on this topic is available on YouTube.\n\n---\n\nThe information is presented by Standa, who is responsible for online activities at Korálky Katlas. More information about him can be found at stanislavvavrik.cz.",
+        "content": "Here is the key information extracted from the document:\n\n---\n\nThere has been an increase in fraudulent and harmful costume jewelry appearing on the market during the current economic crisis, as people try to save money. Korálky Katlas has prepared a summary of things to watch out for when purchasing finished costume jewelry and jewelry-making components, based on reports from customers about problems and scams they've encountered both in the Czech Republic and abroad.\n\n---\n\nThe document mentions a video recording of an online meeting that covers the most important information on this topic. However, the actual content of that video is not provided in the text.\n\n---\n\nThe author introducing the information is named Standa, who is responsible for online activities at Korálky Katlas. More information about him can be found at stanislavvavrik.cz.",
         "modelName": "claude-3-5-sonnet-20240620",
         "timing": {
-            "start": "2024-09-29T07:52:53.549Z",
-            "complete": "2024-09-29T07:52:58.734Z"
+            "start": "2024-09-29T08:05:39.704Z",
+            "complete": "2024-09-29T08:05:44.484Z"
         },
         "usage": {
             "price": {
-                "value": 0.029829
+                "value": 0.029844000000000002
             },
             "input": {
                 "tokensCount": {
@@ -49,22 +49,22 @@
             },
             "output": {
                 "tokensCount": {
-                    "value": 176
+                    "value": 177
                 },
                 "charactersCount": {
-                    "value": 853
+                    "value": 854
                 },
                 "wordsCount": {
-                    "value": 129
+                    "value": 134
                 },
                 "sentencesCount": {
                     "value": 7
                 },
                 "linesCount": {
-                    "value": 17
+                    "value": 13
                 },
                 "paragraphsCount": {
-                    "value": 9
+                    "value": 7
                 },
                 "pagesCount": {
                     "value": 2
@@ -83,21 +83,21 @@
             ]
         },
         "rawResponse": {
-            "id": "msg_015dPmeeoutvhJzzgPMww9xa",
+            "id": "msg_01RtkazAQsTqfBxBTVZewaKw",
             "type": "message",
             "role": "assistant",
             "model": "claude-3-5-sonnet-20240620",
             "content": [
                 {
                     "type": "text",
-                    "text": "Here is the extracted important information from the document:\n\n---\n\nIn the current period of economic crisis, fraudulent and harmful costume jewelry is appearing more frequently on the market as people try to save money. Customers have been reporting problems and scams encountered both in the Czech Republic and abroad when purchasing finished jewelry and jewelry components.\n\n---\n\nKorálky Katlas has prepared a summary of things to watch out for when buying costume jewelry and jewelry-making supplies, in response to increasing customer reports of issues.\n\n---\n\nA shortened video recording of the most important points from an online meeting on this topic is available on YouTube.\n\n---\n\nThe information is presented by Standa, who is responsible for online activities at Korálky Katlas. More information about him can be found at stanislavvavrik.cz."
+                    "text": "Here is the key information extracted from the document:\n\n---\n\nThere has been an increase in fraudulent and harmful costume jewelry appearing on the market during the current economic crisis, as people try to save money. Korálky Katlas has prepared a summary of things to watch out for when purchasing finished costume jewelry and jewelry-making components, based on reports from customers about problems and scams they've encountered both in the Czech Republic and abroad.\n\n---\n\nThe document mentions a video recording of an online meeting that covers the most important information on this topic. However, the actual content of that video is not provided in the text.\n\n---\n\nThe author introducing the information is named Standa, who is responsible for online activities at Korálky Katlas. More information about him can be found at stanislavvavrik.cz."
                 }
             ],
             "stop_reason": "end_turn",
             "stop_sequence": null,
             "usage": {
                 "input_tokens": 9063,
-                "output_tokens": 176
+                "output_tokens": 177
             }
         }
     }

@@ -6,11 +6,12 @@ import type { AbstractScraper, ScraperSourceOptions } from '../_common/AbstractS
 import { Readability } from '@mozilla/readability';
 import { mkdir, rm, writeFile } from 'fs/promises';
 import { JSDOM } from 'jsdom';
-import { basename, dirname, join } from 'path';
+import { dirname, join } from 'path';
 import { $isRunningInNode, titleToName } from '../../_packages/utils.index';
 import { IS_VERBOSE, SCRAPE_CACHE_DIRNAME } from '../../config';
 import { KnowledgeScrapeError } from '../../errors/KnowledgeScrapeError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
+import { just } from '../../utils/organization/just';
 import { markdownScraper } from '../markdown/markdownScraper';
 import { markdownConverter } from './utils/markdownConverter';
 
@@ -60,15 +61,23 @@ export const websiteScraper = {
         const article = reader.parse();
 
         const html = article?.content || jsdom.window.document.body.innerHTML;
+        // <- TODO: !!!!!! Extract / postprocess html such as it is convertable by `markdownConverter`
+
+        if (just(true)) {
+            const htmlSourceFilePath = join(process.cwd(), cacheDirname, `${titleToName(source.source)}.html`);
+            await mkdir(dirname(htmlSourceFilePath), { recursive: true });
+            await writeFile(htmlSourceFilePath, html, 'utf-8');
+        }
+
         const markdown = markdownConverter.makeMarkdown(html, jsdom.window.document);
         let markdownSourceFilePath: string_file_path | null = null;
 
         if ($isRunningInNode()) {
-            markdownSourceFilePath = join(cacheDirname, `${basename(titleToName(source.source))}.md`);
+            markdownSourceFilePath = join(process.cwd(), cacheDirname, `${titleToName(source.source)}.md`);
 
             // TODO: !!!!!! Make cache dir recursively in every scraper
             await mkdir(dirname(markdownSourceFilePath), { recursive: true });
-            await writeFile(markdownSourceFilePath, markdown);
+            await writeFile(markdownSourceFilePath, markdown, 'utf-8');
         }
 
         const markdownSource = {

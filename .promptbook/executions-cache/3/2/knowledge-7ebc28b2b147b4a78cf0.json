@@ -1,5 +1,5 @@
 {
-    "date": "2024-09-29T07:41:52.675Z",
+    "date": "2024-09-29T08:04:56.503Z",
     "promptbookVersion": "0.71.0-0",
     "prompt": {
         "title": "Knowledge",
@@ -17,8 +17,8 @@
         "content": "Standa, author, online activities, Korálky Katlas, stanislavvavrik.cz",
         "modelName": "claude-3-5-sonnet-20240620",
         "timing": {
-            "start": "2024-09-29T07:41:51.988Z",
-            "complete": "2024-09-29T07:41:52.675Z"
+            "start": "2024-09-29T08:04:55.864Z",
+            "complete": "2024-09-29T08:04:56.503Z"
         },
         "usage": {
             "price": {
@@ -83,7 +83,7 @@
             ]
         },
         "rawResponse": {
-            "id": "msg_01HoHsjjnRtiB6sWoSrUuZ4P",
+            "id": "msg_01XzPjtQTHLfGFgn7jkVtzPW",
             "type": "message",
             "role": "assistant",
             "model": "claude-3-5-sonnet-20240620",

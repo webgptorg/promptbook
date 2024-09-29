@@ -1,5 +1,5 @@
 {
-    "date": "2024-09-29T07:42:39.846Z",
+    "date": "2024-09-29T08:03:16.530Z",
     "promptbookVersion": "0.71.0-0",
     "prompt": {
         "title": "Knowledge",
@@ -14,15 +14,15 @@
         "expectations": {}
     },
     "promptResult": {
-        "content": "Standa, online activities, Korálky Katlas, stanislavvavrik.cz",
+        "content": "Standa, online activities, Korálky Katlas, stanislavvavrik.cz, author",
         "modelName": "claude-3-5-sonnet-20240620",
         "timing": {
-            "start": "2024-09-29T07:42:39.295Z",
-            "complete": "2024-09-29T07:42:39.845Z"
+            "start": "2024-09-29T08:03:15.907Z",
+            "complete": "2024-09-29T08:03:16.530Z"
         },
         "usage": {
             "price": {
-                "value": 0.000627
+                "value": 0.000657
             },
             "input": {
                 "tokensCount": {
@@ -49,13 +49,13 @@
             },
             "output": {
                 "tokensCount": {
-                    "value": 25
+                    "value": 27
                 },
                 "charactersCount": {
-                    "value": 61
+                    "value": 69
                 },
                 "wordsCount": {
-                    "value": 7
+                    "value": 8
                 },
                 "sentencesCount": {
                     "value": 2
@@ -83,21 +83,21 @@
             ]
         },
         "rawResponse": {
-            "id": "msg_018a8BtTiUxvG7g4aP14Wgw4",
+            "id": "msg_01LEhQtX3tocTYUgg6K1tCB9",
             "type": "message",
             "role": "assistant",
             "model": "claude-3-5-sonnet-20240620",
             "content": [
                 {
                     "type": "text",
-                    "text": "Standa, online activities, Korálky Katlas, stanislavvavrik.cz"
+                    "text": "Standa, online activities, Korálky Katlas, stanislavvavrik.cz, author"
                 }
             ],
             "stop_reason": "end_turn",
             "stop_sequence": null,
             "usage": {
                 "input_tokens": 84,
-                "output_tokens": 25
+                "output_tokens": 27
             }
         }
     }

@@ -32,7 +32,7 @@ async function playground() {
     // Do here stuff you want to test
     //========================================>
 
-    // const sample = 'https://www.pavolhejny.com/';
+    //const sample = 'https://www.pavolhejny.com/';
     const sample = 'https://koralkykatlas.cz/cs/blog/prispevek/-rijna-zhorseni-kvality-kovove-bizuterie.html';
     //               <- TODO: [👩🏿‍🤝‍👩🏼] Read here website-scraper-playground.ts and itterate
 

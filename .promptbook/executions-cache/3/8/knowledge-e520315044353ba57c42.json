@@ -1,11 +1,11 @@
 {
-    "date": "2024-09-29T08:03:16.698Z",
+    "date": "2024-09-29T08:03:16.578Z",
     "promptbookVersion": "0.71.0-0",
     "prompt": {
         "title": "Knowledge",
         "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.ptbk.md#knowledge",
         "parameters": {
-            "knowledgePieceContent": "Based on the provided document, here are the key pieces of information extracted:"
+            "knowledgePieceContent": "Korálky Katlas has prepared a summary of things to watch out for when buying finished costume jewelry and jewelry-making materials."
         },
         "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> {knowledgePieceContent}",
         "modelRequirements": {
@@ -14,25 +14,25 @@
         "expectations": {}
     },
     "promptResult": {
-        "content": "Based on the provided instructions, here are the important keywords from the document:\n\ninformation, document, key, extracted",
+        "content": "Korálky Katlas, summary, costume jewelry, jewelry-making materials, buying",
         "modelName": "claude-3-5-sonnet-20240620",
         "timing": {
-            "start": "2024-09-29T08:03:16.000Z",
-            "complete": "2024-09-29T08:03:16.698Z"
+            "start": "2024-09-29T08:03:15.983Z",
+            "complete": "2024-09-29T08:03:16.577Z"
         },
         "usage": {
             "price": {
-                "value": 0.0005729999999999999
+                "value": 0.000537
             },
             "input": {
                 "tokensCount": {
-                    "value": 61
+                    "value": 74
                 },
                 "charactersCount": {
-                    "value": 275
+                    "value": 325
                 },
                 "wordsCount": {
-                    "value": 39
+                    "value": 47
                 },
                 "sentencesCount": {
                     "value": 2
@@ -49,55 +49,55 @@
             },
             "output": {
                 "tokensCount": {
-                    "value": 26
+                    "value": 21
                 },
                 "charactersCount": {
-                    "value": 125
+                    "value": 74
                 },
                 "wordsCount": {
-                    "value": 17
+                    "value": 9
                 },
                 "sentencesCount": {
                     "value": 1
                 },
                 "linesCount": {
-                    "value": 3
+                    "value": 1
                 },
                 "paragraphsCount": {
-                    "value": 2
+                    "value": 1
                 },
                 "pagesCount": {
                     "value": 1
                 }
             }
         },
-        "rawPromptContent": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> Based on the provided document, here are the key pieces of information extracted:",
+        "rawPromptContent": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> Korálky Katlas has prepared a summary of things to watch out for when buying finished costume jewelry and jewelry-making materials.",
         "rawRequest": {
             "model": "claude-3-5-sonnet-20240620",
             "max_tokens": 4096,
             "messages": [
                 {
                     "role": "user",
-                    "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> Based on the provided document, here are the key pieces of information extracted:"
+                    "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> Korálky Katlas has prepared a summary of things to watch out for when buying finished costume jewelry and jewelry-making materials."
                 }
             ]
         },
         "rawResponse": {
-            "id": "msg_01LHze87Z5J4esMxSoYLD7sG",
+            "id": "msg_017iGVhxk52PD4BZkHkFKhXi",
             "type": "message",
             "role": "assistant",
             "model": "claude-3-5-sonnet-20240620",
             "content": [
                 {
                     "type": "text",
-                    "text": "Based on the provided instructions, here are the important keywords from the document:\n\ninformation, document, key, extracted"
+                    "text": "Korálky Katlas, summary, costume jewelry, jewelry-making materials, buying"
                 }
             ],
             "stop_reason": "end_turn",
             "stop_sequence": null,
             "usage": {
-                "input_tokens": 61,
-                "output_tokens": 26
+                "input_tokens": 74,
+                "output_tokens": 21
             }
         }
     }

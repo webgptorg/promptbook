@@ -1,8 +1,8 @@
 {
-    "date": "2024-09-29T08:04:58.814Z",
+    "date": "2024-09-29T08:05:47.769Z",
     "promptbookVersion": "0.71.0-0",
     "prompt": {
-        "title": "Embedding for Mastering Content Creation Essentials",
+        "title": "Embedding for Effective Content Creation Strategies",
         "parameters": {},
         "content": "Here is the key information extracted from the document:",
         "modelRequirements": {
@@ -15,8 +15,8 @@
         ],
         "modelName": "text-embedding-3-large",
         "timing": {
-            "start": "2024-09-29T08:04:57.372Z",
-            "complete": "2024-09-29T08:04:58.811Z"
+            "start": "2024-09-29T08:05:46.559Z",
+            "complete": "2024-09-29T08:05:47.766Z"
         },
         "usage": {
             "price": {
