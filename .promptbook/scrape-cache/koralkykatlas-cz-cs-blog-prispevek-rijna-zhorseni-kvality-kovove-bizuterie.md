@@ -1,4 +1,34 @@
-<div id="readability-page-1" class="page"><!-- Start PP head code --><meta name="google-site-verification" content="ZEUz-XWJxVvXihSjTGJfe6hhnLvauf9I8q-Q1sS_xS0"><meta name="p:domain_verify" content="2f301cda325a77c29baa0402540b6a8e"><!-- Pinterest Tag --><!-- end Pinterest Tag --><meta name="google-site-verification" content="jfHqzZPZ1zllHsO1Jk_QICDyp5pvEaZ7FIAH4pBhmfE"><!-- Tanganica pixel --><!-- End Tanganica pixel --><!-- Google tag (gtag.js) --><meta name="google-site-verification" content="ZEUz-XWJxVvXihSjTGJfe6hhnLvauf9I8q-Q1sS_xS0"><!-- Google tag (gtag.js) --><!-- End PP head code --><!-- Start PP body code --><!--Moznost vkladani kodu do body - TESTOVACI KOD --><!-- End PP body code --><main id="page"><section id="wrapper"><nav><div><ol data-depth="4" itemscope="" itemtype="http://schema.org/BreadcrumbList"><li itemprop="itemListElement" itemscope="" itemtype="http://schema.org/ListItem"><a itemprop="item" href="https://koralkykatlas.cz/cs/"><span itemprop="name">Domovská stránka</span></a><meta itemprop="position" content="1"></li><li itemprop="itemListElement" itemscope="" itemtype="http://schema.org/ListItem"><span>chevron_right</span><a itemprop="item" href="https://koralkykatlas.cz/cs/blog"><span itemprop="name">Blog</span></a><meta itemprop="position" content="2"></li><li itemprop="itemListElement" itemscope="" itemtype="http://schema.org/ListItem"><span>chevron_right</span><a itemprop="item" href="https://koralkykatlas.cz/cs/blog/kategorie/koralovka-online-povidani.html"><span itemprop="name">Korálovka - online povídání</span></a><meta itemprop="position" content="3"></li><li itemprop="itemListElement" itemscope="" itemtype="http://schema.org/ListItem"><span>chevron_right</span><a itemprop="item" href="https://koralkykatlas.cz/cs/blog/prispevek/-rijna-zhorseni-kvality-kovove-bizuterie.html"><span itemprop="name">KORÁLOVKA: 27. října 2023 - Zhoršení kvality kovové bižuterie</span></a><meta itemprop="position" content="4"></li></ol></div></nav><div itemscope="" itemtype="http://schema.org/newsarticle" id="center-column"><div itemprop="image" itemscope="" itemtype="http://schema.org/ImageObject"><a href="https://koralkykatlas.cz/img/ybc_blog/post/zhorsenikvality.jpg">¨NBSP;<p><img title="KORÁLOVKA: 27. října 2023 - Zhoršení kvality kovové bižuterie" src="https://koralkykatlas.cz/img/ybc_blog/post/zhorsenikvality.jpg" alt="KORÁLOVKA: 27. října 2023 - Zhoršení kvality kovové bižuterie" itemprop="url" data-original="https://koralkykatlas.cz/img/ybc_blog/post/zhorsenikvality.jpg"></p><meta itemprop="width" content="600px"><meta itemprop="height" content="300px"></a> </div><div><div><p>V aktuálním období krize, kdy lidé šetří, kde se dá, se opět na trhu stále častěji objevuje podvodná&nbsp;a zdraví škodlivá bižuterie.&nbsp;Jelikož nám stále častěji píší i naši zákazníci a oznamují nám problémy a podvody, se kterými se v&nbsp;ČR i&nbsp;zahraničí setkali, Korálky Katlas si pro Vás připravili sumář všech věcí, na které je dobré si dát při nákupu hotové bižuterie i bižuterních polotovarů pozor.</p><p>Zkrácený záznam toho nejdůležitějšího z online setkání:&nbsp;</p><p><iframe width="720" height="405" src="https://www.youtube.com/embed/bj1QYerTHC8?si=idkX7Giexi2IBamV" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen="allowfullscreen"></iframe></p></div><div><p><img src="https://koralkykatlas.cz/img/ybc_blog/avata/Autor---Standa-Vav%C5%99%C3%ADk.png"></p><div><!-- [if gte mso 9]><xml>
+<!-- Start PP head code -->
+
+<meta name="google-site-verification" content="ZEUz-XWJxVvXihSjTGJfe6hhnLvauf9I8q-Q1sS_xS0">
+
+<meta name="p:domain_verify" content="2f301cda325a77c29baa0402540b6a8e">
+
+<!-- Pinterest Tag -->
+
+<!-- end Pinterest Tag -->
+
+<meta name="google-site-verification" content="jfHqzZPZ1zllHsO1Jk_QICDyp5pvEaZ7FIAH4pBhmfE">
+
+<!-- Tanganica pixel -->
+
+<!-- End Tanganica pixel -->
+
+<!-- Google tag (gtag.js) -->
+
+<meta name="google-site-verification" content="ZEUz-XWJxVvXihSjTGJfe6hhnLvauf9I8q-Q1sS_xS0">
+
+<!-- Google tag (gtag.js) -->
+
+<!-- End PP head code -->
+
+<!-- Start PP body code -->
+
+<!--Moznost vkladani kodu do body - TESTOVACI KOD -->
+
+<!-- End PP body code -->
+
+<main id="page"><section id="wrapper"><nav><ol data-depth="4" itemscope="" itemtype="http://schema.org/BreadcrumbList"><li itemprop="itemListElement" itemscope="" itemtype="http://schema.org/ListItem"><a itemprop="item" href="https://koralkykatlas.cz/cs/"><span itemprop="name">Domovská stránka</span></a><meta itemprop="position" content="1"></li><li itemprop="itemListElement" itemscope="" itemtype="http://schema.org/ListItem"><span>chevron_right</span><a itemprop="item" href="https://koralkykatlas.cz/cs/blog"><span itemprop="name">Blog</span></a><meta itemprop="position" content="2"></li><li itemprop="itemListElement" itemscope="" itemtype="http://schema.org/ListItem"><span>chevron_right</span><a itemprop="item" href="https://koralkykatlas.cz/cs/blog/kategorie/koralovka-online-povidani.html"><span itemprop="name">Korálovka - online povídání</span></a><meta itemprop="position" content="3"></li><li itemprop="itemListElement" itemscope="" itemtype="http://schema.org/ListItem"><span>chevron_right</span><a itemprop="item" href="https://koralkykatlas.cz/cs/blog/prispevek/-rijna-zhorseni-kvality-kovove-bizuterie.html"><span itemprop="name">KORÁLOVKA: 27. října 2023 - Zhoršení kvality kovové bižuterie</span></a><meta itemprop="position" content="4"></li></ol></nav><div itemscope="" itemtype="http://schema.org/newsarticle" id="center-column"><div itemprop="image" itemscope="" itemtype="http://schema.org/ImageObject"><a href="https://koralkykatlas.cz/img/ybc_blog/post/zhorsenikvality.jpg">¨NBSP;<p><img title="KORÁLOVKA: 27. října 2023 - Zhoršení kvality kovové bižuterie" src="https://koralkykatlas.cz/img/ybc_blog/post/zhorsenikvality.jpg" alt="KORÁLOVKA: 27. října 2023 - Zhoršení kvality kovové bižuterie" itemprop="url" data-original="https://koralkykatlas.cz/img/ybc_blog/post/zhorsenikvality.jpg"></p><meta itemprop="width" content="600px"><meta itemprop="height" content="300px"></a> </div><div><div><p>V aktuálním období krize, kdy lidé šetří, kde se dá, se opět na trhu stále častěji objevuje podvodná&nbsp;a zdraví škodlivá bižuterie.&nbsp;Jelikož nám stále častěji píší i naši zákazníci a oznamují nám problémy a podvody, se kterými se v&nbsp;ČR i&nbsp;zahraničí setkali, Korálky Katlas si pro Vás připravili sumář všech věcí, na které je dobré si dát při nákupu hotové bižuterie i bižuterních polotovarů pozor.</p><p>Zkrácený záznam toho nejdůležitějšího z online setkání:&nbsp;</p><p><iframe width="720" height="405" src="https://www.youtube.com/embed/bj1QYerTHC8?si=idkX7Giexi2IBamV" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen="allowfullscreen"></iframe></p></div><div><p><img src="https://koralkykatlas.cz/img/ybc_blog/avata/Autor---Standa-Vav%C5%99%C3%ADk.png"></p><div><!-- [if gte mso 9]><xml>
  <w:WordDocument>
   <w:View>Normal</w:View>
   <w:Zoom>0</w:Zoom>
@@ -326,5 +356,11 @@
 	mso-bidi-font-family:"Times New Roman";
 	mso-bidi-theme-font:minor-bidi;}
 </style>
-<![endif]--><p>Jmenuji se Standa a v&nbsp;Korálkách Katlas mám na starosti vše okolo on-line aktivit. Více se o mne dozvíte zde: <a href="https://stanislavvavrik.cz/" target="_blank" rel="noreferrer noopener">stanislavvavrik.cz</a></p></div></div></div></div><!-- /main-content --></section></main><!-- Start PP footer code --><!--Moznost vkladani kodu do footer - TESTOVACI KOD --><!-- End PP footer code --></div>
+<![endif]--><p>Jmenuji se Standa a v&nbsp;Korálkách Katlas mám na starosti vše okolo on-line aktivit. Více se o mne dozvíte zde: <a href="https://stanislavvavrik.cz/" target="_blank" rel="noreferrer noopener">stanislavvavrik.cz</a></p></div></div></div><!-- /main-content --></div></section></main>
+
+<!-- Start PP footer code -->
+
+<!--Moznost vkladani kodu do footer - TESTOVACI KOD -->
+
+<!-- End PP footer code -->
 

@@ -1,0 +1,112 @@
+{
+    "date": "2024-09-29T15:57:07.561Z",
+    "promptbookVersion": "0.71.0-0",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.ptbk.md#knowledge",
+        "parameters": {
+            "knowledgePieceContent": "The main online article \"KORÁLOVKA: 27. října 2023 - Zhoršení kvality kovové bižuterie\" focuses on the decline in the quality of metallic jewelry, providing important insights and advice for consumers to avoid counterfeit and hazardous products. This information is accessible through an embedded YouTube video."
+        },
+        "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> {knowledgePieceContent}",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {}
+    },
+    "promptResult": {
+        "content": "KORÁLOVKA, 27. října 2023, decline, quality, metallic jewelry, insights, advice, consumers, avoid, counterfeit, hazardous products, YouTube video",
+        "modelName": "gpt-4o-2024-05-13",
+        "timing": {
+            "start": "2024-09-29T15:57:06.852Z",
+            "complete": "2024-09-29T15:57:07.561Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0.00115
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 113
+                },
+                "charactersCount": {
+                    "value": 217
+                },
+                "wordsCount": {
+                    "value": 27
+                },
+                "sentencesCount": {
+                    "value": 2
+                },
+                "linesCount": {
+                    "value": 11
+                },
+                "paragraphsCount": {
+                    "value": 6
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 39
+                },
+                "charactersCount": {
+                    "value": 145
+                },
+                "wordsCount": {
+                    "value": 17
+                },
+                "sentencesCount": {
+                    "value": 2
+                },
+                "linesCount": {
+                    "value": 1
+                },
+                "paragraphsCount": {
+                    "value": 1
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> The main online article \"KORÁLOVKA: 27. října 2023 - Zhoršení kvality kovové bižuterie\" focuses on the decline in the quality of metallic jewelry, providing important insights and advice for consumers to avoid counterfeit and hazardous products. This information is accessible through an embedded YouTube video.",
+        "rawRequest": {
+            "model": "gpt-4o",
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> The main online article \"KORÁLOVKA: 27. října 2023 - Zhoršení kvality kovové bižuterie\" focuses on the decline in the quality of metallic jewelry, providing important insights and advice for consumers to avoid counterfeit and hazardous products. This information is accessible through an embedded YouTube video."
+                }
+            ]
+        },
+        "rawResponse": {
+            "id": "chatcmpl-ACqaADq1aCP95V2DqPvdmwYrN9UIm",
+            "object": "chat.completion",
+            "created": 1727625426,
+            "model": "gpt-4o-2024-05-13",
+            "choices": [
+                {
+                    "index": 0,
+                    "message": {
+                        "role": "assistant",
+                        "content": "KORÁLOVKA, 27. října 2023, decline, quality, metallic jewelry, insights, advice, consumers, avoid, counterfeit, hazardous products, YouTube video",
+                        "refusal": null
+                    },
+                    "logprobs": null,
+                    "finish_reason": "stop"
+                }
+            ],
+            "usage": {
+                "prompt_tokens": 113,
+                "completion_tokens": 39,
+                "total_tokens": 152,
+                "completion_tokens_details": {
+                    "reasoning_tokens": 0
+                }
+            },
+            "system_fingerprint": "fp_5796ac6771"
+        }
+    }
+}

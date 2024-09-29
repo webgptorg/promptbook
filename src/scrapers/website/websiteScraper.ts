@@ -60,8 +60,12 @@ export const websiteScraper = {
         const reader = new Readability(jsdom.window.document);
         const article = reader.parse();
 
-        const html = article?.content || jsdom.window.document.body.innerHTML;
-        // <- TODO: !!!!!! Extract / postprocess html such as it is convertable by `markdownConverter`
+        let html = article?.content || article?.textContent || jsdom.window.document.body.innerHTML;
+
+        // Note: Unwrap html such as it is convertable by `markdownConverter`
+        for (let i = 0; i < 2; i++) {
+            html = html.replace(/<div\s*(?:id="readability-page-\d+"\s+class="page")?>(.*)<\/div>/is, '$1');
+        }
 
         if (just(true)) {
             const htmlSourceFilePath = join(process.cwd(), cacheDirname, `${titleToName(source.source)}.html`);
