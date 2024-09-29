@@ -1,20 +1,22 @@
 import { AzureKeyCredential, OpenAIClient } from '@azure/openai';
 import colors from 'colors';
+import { CONNECTION_TIMEOUT_MS } from '../../config';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { AvailableModel } from '../../execution/AvailableModel';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { ChatPromptResult } from '../../execution/PromptResult';
-import type { CompletionPromptResult } from '../../execution/PromptResult';
+import type { ChatPromptResult, CompletionPromptResult } from '../../execution/PromptResult';
 import type { PromptResultUsage } from '../../execution/PromptResultUsage';
 import { computeUsageCounts } from '../../execution/utils/computeUsageCounts';
 import { uncertainNumber } from '../../execution/utils/uncertainNumber';
 import type { Prompt } from '../../types/Prompt';
-import type { string_completion_prompt } from '../../types/typeAliases';
-import type { string_date_iso8601 } from '../../types/typeAliases';
-import type { string_markdown } from '../../types/typeAliases';
-import type { string_markdown_text } from '../../types/typeAliases';
-import type { string_title } from '../../types/typeAliases';
+import type {
+    string_completion_prompt,
+    string_date_iso8601,
+    string_markdown,
+    string_markdown_text,
+    string_title,
+} from '../../types/typeAliases';
 import { getCurrentIsoDate } from '../../utils/getCurrentIsoDate';
 import { replaceParameters } from '../../utils/parameters/replaceParameters';
 import { $asDeeplyFrozenSerializableJson } from '../../utils/serialization/$asDeeplyFrozenSerializableJson';
@@ -140,7 +142,12 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools {
             }
 
             const rawRequest = [modelName, messages, modelSettings] as const;
-            const rawResponse = await client.getChatCompletions(...rawRequest);
+            const rawResponse = await this.withTimeout(client.getChatCompletions(...rawRequest)).catch((error) => {
+                if (this.options.isVerbose) {
+                    console.info(colors.bgRed('error'), error);
+                }
+                throw error;
+            });
 
             if (this.options.isVerbose) {
                 console.info(colors.bgWhite('rawResponse'), JSON.stringify(rawResponse, null, 4));
@@ -241,7 +248,12 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools {
                 modelSettings,
             ] as const;
 
-            const rawResponse = await client.getCompletions(...rawRequest);
+            const rawResponse = await this.withTimeout(client.getCompletions(...rawRequest)).catch((error) => {
+                if (this.options.isVerbose) {
+                    console.info(colors.bgRed('error'), error);
+                }
+                throw error;
+            });
 
             if (this.options.isVerbose) {
                 console.info(colors.bgWhite('rawResponse'), JSON.stringify(rawResponse, null, 4));
@@ -295,6 +307,24 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools {
     }
 
     // <- Note: [🤖] callXxxModel
+
+    /**
+     * Library `@azure/openai` has bug/weird behavior that it does not throw error but hangs forever
+     *
+     * This method wraps the promise with timeout
+     */
+    private withTimeout<T>(promise: Promise<T>): Promise<T> {
+        return new Promise((resolve, reject) => {
+            const timeout = setTimeout(() => {
+                reject(new PipelineExecutionError('Timeout'));
+            }, CONNECTION_TIMEOUT_MS);
+
+            promise.then((result) => {
+                clearTimeout(timeout);
+                resolve(result);
+            }, reject);
+        });
+    }
 
     /**
      * Changes Azure error (which is not propper Error but object) to propper Error

@@ -5,15 +5,15 @@ import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { AvailableModel } from '../../execution/AvailableModel';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { ChatPromptResult } from '../../execution/PromptResult';
-import type { CompletionPromptResult } from '../../execution/PromptResult';
-import type { EmbeddingPromptResult } from '../../execution/PromptResult';
+import type { ChatPromptResult, CompletionPromptResult, EmbeddingPromptResult } from '../../execution/PromptResult';
 import type { Prompt } from '../../types/Prompt';
-import type { string_date_iso8601 } from '../../types/typeAliases';
-import type { string_markdown } from '../../types/typeAliases';
-import type { string_markdown_text } from '../../types/typeAliases';
-import type { string_model_name } from '../../types/typeAliases';
-import type { string_title } from '../../types/typeAliases';
+import type {
+    string_date_iso8601,
+    string_markdown,
+    string_markdown_text,
+    string_model_name,
+    string_title,
+} from '../../types/typeAliases';
 import { getCurrentIsoDate } from '../../utils/getCurrentIsoDate';
 import { replaceParameters } from '../../utils/parameters/replaceParameters';
 import { $asDeeplyFrozenSerializableJson } from '../../utils/serialization/$asDeeplyFrozenSerializableJson';
@@ -149,7 +149,13 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
         if (this.options.isVerbose) {
             console.info(colors.bgWhite('rawRequest'), JSON.stringify(rawRequest, null, 4));
         }
-        const rawResponse = await client.chat.completions.create(rawRequest);
+        const rawResponse = await client.chat.completions.create(rawRequest).catch((error) => {
+            if (this.options.isVerbose) {
+                console.info(colors.bgRed('error'), error);
+            }
+            throw error;
+        });
+
         if (this.options.isVerbose) {
             console.info(colors.bgWhite('rawResponse'), JSON.stringify(rawResponse, null, 4));
         }
@@ -229,7 +235,13 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
         if (this.options.isVerbose) {
             console.info(colors.bgWhite('rawRequest'), JSON.stringify(rawRequest, null, 4));
         }
-        const rawResponse = await client.completions.create(rawRequest);
+        const rawResponse = await client.completions.create(rawRequest).catch((error) => {
+            if (this.options.isVerbose) {
+                console.info(colors.bgRed('error'), error);
+            }
+            throw error;
+        });
+
         if (this.options.isVerbose) {
             console.info(colors.bgWhite('rawResponse'), JSON.stringify(rawResponse, null, 4));
         }
@@ -297,7 +309,12 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
             console.info(colors.bgWhite('rawRequest'), JSON.stringify(rawRequest, null, 4));
         }
 
-        const rawResponse = await client.embeddings.create(rawRequest);
+        const rawResponse = await client.embeddings.create(rawRequest).catch((error) => {
+            if (this.options.isVerbose) {
+                console.info(colors.bgRed('error'), error);
+            }
+            throw error;
+        });
 
         if (this.options.isVerbose) {
             console.info(colors.bgWhite('rawResponse'), JSON.stringify(rawResponse, null, 4));
