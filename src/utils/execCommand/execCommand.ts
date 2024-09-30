@@ -5,6 +5,15 @@ import { forTime } from 'waitasecond';
 import { IExecCommandOptions } from './IExecCommandOptions';
 import { execCommandNormalizeOptions } from './execCommandNormalizeOptions';
 
+/**
+ * Run one command in a shell
+ *
+ * Note: There are 2 similar functions in the codebase:
+ * - `execCommand` which runs a single command
+ * - `execCommands` which runs multiple commands
+ *
+ * @public exported from `@promptbook/node`
+ */
 export function execCommand(options: IExecCommandOptions): Promise<string> {
     return new Promise(
         //            <- TODO: [🧱] Implement in a functional (not new Class) way

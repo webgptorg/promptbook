@@ -1,5 +1,5 @@
 import { describe, expect, it } from '@jest/globals';
-import { execCommand } from '../../../scripts/utils/execCommand/execCommand';
+import { execCommand } from '../../utils/execCommand/execCommand';
 import { PROMPTBOOK_VERSION } from '../../version';
 
 describe('how promptbookCli works', () => {

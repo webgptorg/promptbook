@@ -5,11 +5,11 @@ import type { AbstractScraper, ScraperSourceOptions } from '../_common/AbstractS
 // import PipelineCollection from '../../../promptbook-collection/promptbook-collection';
 import { mkdir, readdir, rename, rm, rmdir } from 'fs/promises';
 import { basename, dirname, join } from 'path';
-import { execCommand } from '../../../scripts/utils/execCommand/execCommand';
 import { $isRunningInNode } from '../../_packages/utils.index';
 import { IS_VERBOSE, SCRAPE_CACHE_DIRNAME } from '../../config';
 import { KnowledgeScrapeError } from '../../errors/KnowledgeScrapeError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
+import { execCommand } from '../../utils/execCommand/execCommand';
 import { getFileExtension } from '../../utils/files/getFileExtension';
 import { documentScraper } from '../document/documentScraper';
 

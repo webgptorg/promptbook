@@ -11,11 +11,11 @@ import type { PackageJson } from 'type-fest';
 import { forTime } from 'waitasecond';
 import YAML from 'yaml';
 import { GENERATOR_WARNING } from '../../src/config';
+import { execCommand } from '../../src/utils/execCommand/execCommand';
 import { prettifyMarkdown } from '../../src/utils/markdown/prettifyMarkdown';
 import { removeContentComments } from '../../src/utils/markdown/removeContentComments';
 import { commit } from '../utils/autocommit/commit';
 import { isWorkingTreeClean } from '../utils/autocommit/isWorkingTreeClean';
-import { execCommand } from '../utils/execCommand/execCommand';
 import { getPackagesMetadata } from './getPackagesMetadata';
 
 if (process.cwd() !== join(__dirname, '../..')) {

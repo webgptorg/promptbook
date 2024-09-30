@@ -1,5 +1,10 @@
 import { IExecCommandOptions, IExecCommandOptionsAdvanced } from './IExecCommandOptions';
 
+/**
+ * Normalize options for `execCommand` and `execCommands`
+ *
+ * @private internal utility of `execCommand` and `execCommands`
+ */
 export function execCommandNormalizeOptions(options: IExecCommandOptions): Pick<
     IExecCommandOptionsAdvanced,
     'command' | 'args' | 'cwd' | 'crashOnError' | 'timeout'

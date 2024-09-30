@@ -1,7 +1,13 @@
 import { execCommand } from './execCommand';
 
 /**
- * TODO: Use this OR make commands available in execCommand options
+ * Run multiple commands in a shell in sequence
+ *
+ * Note: There are 2 similar functions in the codebase:
+ * - `execCommand` which runs a single command
+ * - `execCommands` which runs multiple commands
+ *
+ * @public exported from `@promptbook/node`
  */
 export async function execCommands({
     commands,
