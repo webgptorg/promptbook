@@ -101,7 +101,7 @@ export const MAX_KNOWLEDGE_SOURCES_SCRAPING_TOTAL = 200;
 
 /**
  * Where to store the cache of executions for promptbook CLI
- * 
+ *
  * Note: When the folder does not exist, it is created recursively
  *
  * @public exported from `@promptbook/core`
@@ -110,7 +110,7 @@ export const EXECUTIONS_CACHE_DIRNAME = '/.promptbook/executions-cache';
 
 /**
  * Where to store the scrape cache
- * 
+ *
  * Note: When the folder does not exist, it is created recursively
  *
  * @public exported from `@promptbook/core`
@@ -235,12 +235,12 @@ export const IS_PIPELINE_LOGIC_VALIDATED: boolean = just(
  * @private within the repository
  */
 export const IS_COST_PREVENTED: boolean = just(
-    /*/
+    /**/
     // Note: In normal situations, we prevent ability to use real API keys in tests:
     true,
     /**/
 
-    /**/
+    /*/
     // When working on preparations, you can temporarily turn off the prevention:
     false,
     /**/
