@@ -2,7 +2,7 @@ import colors from 'colors';
 import { readFile, writeFile } from 'fs/promises';
 import { join } from 'path';
 import { splitArrayIntoChunks } from '../repair-imports/utils/splitArrayIntoChunks';
-import { execCommand } from './execCommand/execCommand';
+import { execCommand } from '../../src/utils/execCommand/execCommand';
 import { prettify } from './prettify';
 
 export async function writeAllProjectFiles(

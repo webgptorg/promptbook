@@ -1,6 +1,6 @@
 import { mkdir, readFile, writeFile } from 'fs/promises';
 import { dirname, join } from 'path';
-import { execCommand } from './execCommand/execCommand';
+import { execCommand } from '../../src/utils/execCommand/execCommand';
 
 /**
  * Organizes the imports of a typescript file
@@ -23,7 +23,6 @@ export async function organizeImports(fileContents: string): Promise<string> {
 
     return await readFile(tmpFilePath, 'utf8');
 }
-
 
 /**
  * Note: [⚫] Code in this file should never be published in any package
