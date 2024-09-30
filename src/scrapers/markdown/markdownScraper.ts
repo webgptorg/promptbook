@@ -1,13 +1,15 @@
 import spaceTrim from 'spacetrim';
-import type { KnowledgePiecePreparedJson } from '../../_packages/types.index';
-import { PrepareAndScrapeOptions } from '../../_packages/types.index';
+import type { KnowledgePiecePreparedJson } from '../../types/PipelineJson/KnowledgePieceJson';
+import type { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';
 import { TODO_USE } from '../../utils/organization/TODO_USE';
-import type { AbstractScraper, ScraperSourceOptions } from '../_common/AbstractScraper';
+import type { AbstractScraper } from '../_common/AbstractScraper';
+import type { ScraperSourceOptions } from '../_common/AbstractScraper';
 // TODO: [🏳‍🌈] Finally take pick of .json vs .ts
 import PipelineCollection from '../../../promptbook-collection/index.json';
 // import PipelineCollection from '../../../promptbook-collection/promptbook-collection';
 import { createCollectionFromJson } from '../../collection/constructors/createCollectionFromJson';
-import { IS_VERBOSE, MAX_PARALLEL_COUNT } from '../../config';
+import { IS_VERBOSE } from '../../config';
+import { MAX_PARALLEL_COUNT } from '../../config';
 import { titleToName } from '../../conversion/utils/titleToName';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import { assertsExecutionSuccessful } from '../../execution/assertsExecutionSuccessful';

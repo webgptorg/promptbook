@@ -1,4 +1,5 @@
-import { IExecCommandOptions, IExecCommandOptionsAdvanced } from './IExecCommandOptions';
+import type { IExecCommandOptions } from './IExecCommandOptions';
+import type { IExecCommandOptionsAdvanced } from './IExecCommandOptions';
 
 /**
  * Normalize options for `execCommand` and `execCommands`

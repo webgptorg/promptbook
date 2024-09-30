@@ -1,4 +1,5 @@
-import type { string_file_path, string_mime_type } from '../../types/typeAliases';
+import type { string_file_path } from '../../types/typeAliases';
+import type { string_mime_type } from '../../types/typeAliases';
 
 /**
  * Get the file extension from a file name

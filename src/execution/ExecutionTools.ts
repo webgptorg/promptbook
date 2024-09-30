@@ -1,5 +1,5 @@
 import type { Arrayable } from '../types/Arrayable';
-import { FilesystemTools } from './FilesystemTools';
+import type { FilesystemTools } from './FilesystemTools';
 import type { LlmExecutionTools } from './LlmExecutionTools';
 import type { ScriptExecutionTools } from './ScriptExecutionTools';
 import type { UserInterfaceTools } from './UserInterfaceTools';

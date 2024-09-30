@@ -1,6 +1,7 @@
 import spaceTrim from 'spacetrim';
-import { SCRAPERS } from '..';
-import { isValidFilePath, isValidUrl } from '../../_packages/utils.index';
+import { SCRAPERS } from '../index';
+import { isValidFilePath } from '../../utils/validators/filePath/isValidFilePath';
+import { isValidUrl } from '../../utils/validators/url/isValidUrl';
 import { MAX_PARALLEL_COUNT } from '../../config';
 import { KnowledgeScrapeError } from '../../errors/KnowledgeScrapeError';
 import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
@@ -12,7 +13,7 @@ import type { KnowledgeSourceJson } from '../../types/PipelineJson/KnowledgeSour
 import { extensionToMimeType } from '../../utils/files/extensionToMimeType';
 import { getFileExtension } from '../../utils/files/getFileExtension';
 import { markdownScraper } from '../markdown/markdownScraper';
-import { ScraperSourceOptions } from './AbstractScraper';
+import type { ScraperSourceOptions } from './AbstractScraper';
 
 /**
  * Prepares the knowle

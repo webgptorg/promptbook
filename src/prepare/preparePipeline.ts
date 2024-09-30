@@ -1,5 +1,6 @@
 import type { Writable } from 'type-fest';
-import { IS_VERBOSE, MAX_PARALLEL_COUNT } from '../config';
+import { IS_VERBOSE } from '../config';
+import { MAX_PARALLEL_COUNT } from '../config';
 import { ZERO_USAGE } from '../execution/utils/addUsage';
 import { forEachAsync } from '../execution/utils/forEachAsync';
 import { countTotalUsage } from '../llm-providers/_common/utils/count-total-usage/countTotalUsage';

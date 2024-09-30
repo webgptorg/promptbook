@@ -1,5 +1,6 @@
 import { spaceTrim } from 'spacetrim';
-import type { UserInterfaceTools, UserInterfaceToolsPromptDialogOptions } from '../../execution/UserInterfaceTools';
+import type { UserInterfaceTools } from '../../execution/UserInterfaceTools';
+import type { UserInterfaceToolsPromptDialogOptions } from '../../execution/UserInterfaceTools';
 import type { CallbackInterfaceToolsOptions } from './CallbackInterfaceToolsOptions';
 
 /**

@@ -1,6 +1,6 @@
 import { readFile } from 'fs/promises';
 import { EnvironmentMismatchError } from '../../errors/EnvironmentMismatchError';
-import { FilesystemTools } from '../../execution/FilesystemTools';
+import type { FilesystemTools } from '../../execution/FilesystemTools';
 import { $isRunningInNode } from '../../utils/environment/$isRunningInNode';
 
 /**

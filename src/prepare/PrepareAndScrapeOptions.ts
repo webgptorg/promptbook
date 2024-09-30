@@ -1,6 +1,6 @@
-import { FilesystemTools } from '../execution/FilesystemTools';
+import type { FilesystemTools } from '../execution/FilesystemTools';
 import type { LlmExecutionTools } from '../execution/LlmExecutionTools';
-import { string_folder_path } from '../types/typeAliases';
+import type { string_folder_path } from '../types/typeAliases';
 
 /**
  * Options for preparation of the pipeline

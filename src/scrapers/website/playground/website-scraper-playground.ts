@@ -7,7 +7,7 @@ dotenv.config({ path: '.env' });
 import colors from 'colors';
 import { writeFile } from 'fs/promises';
 import { join } from 'path';
-import { titleToName } from '../../../_packages/utils.index';
+import { titleToName } from '../../../conversion/utils/titleToName';
 import { stringifyPipelineJson } from '../../../conversion/utils/stringifyPipelineJson';
 import { usageToHuman } from '../../../execution/utils/usageToHuman';
 import { getLlmToolsForTestingAndScriptsAndPlayground } from '../../../llm-providers/_common/getLlmToolsForTestingAndScriptsAndPlayground';

@@ -1,4 +1,4 @@
-import { FilesystemTools } from '../execution/FilesystemTools';
+import type { FilesystemTools } from '../execution/FilesystemTools';
 import type { LlmExecutionTools } from '../execution/LlmExecutionTools';
 import { preparePipeline } from '../prepare/preparePipeline';
 import type { PipelineJson } from '../types/PipelineJson/PipelineJson';

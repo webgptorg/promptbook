@@ -1,12 +1,14 @@
-import type { KnowledgePiecePreparedJson } from '../../_packages/types.index';
-import { PrepareAndScrapeOptions } from '../../_packages/types.index';
-import type { AbstractScraper, ScraperSourceOptions } from '../_common/AbstractScraper';
+import type { KnowledgePiecePreparedJson } from '../../types/PipelineJson/KnowledgePieceJson';
+import type { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';
+import type { AbstractScraper } from '../_common/AbstractScraper';
+import type { ScraperSourceOptions } from '../_common/AbstractScraper';
 // TODO: [🏳‍🌈] Finally take pick of .json vs .ts
 // import PipelineCollection from '../../../promptbook-collection/promptbook-collection';
 import { mkdir, readFile, rm } from 'fs/promises';
 import { basename, dirname, join } from 'path';
-import { $isRunningInNode } from '../../_packages/utils.index';
-import { IS_VERBOSE, SCRAPE_CACHE_DIRNAME } from '../../config';
+import { $isRunningInNode } from '../../utils/environment/$isRunningInNode';
+import { IS_VERBOSE } from '../../config';
+import { SCRAPE_CACHE_DIRNAME } from '../../config';
 import { KnowledgeScrapeError } from '../../errors/KnowledgeScrapeError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import { execCommand } from '../../utils/execCommand/execCommand';

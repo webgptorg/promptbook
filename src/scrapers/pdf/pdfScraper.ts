@@ -1,6 +1,7 @@
-import type { KnowledgePiecePreparedJson } from '../../_packages/types.index';
-import { PrepareAndScrapeOptions } from '../../_packages/types.index';
-import type { AbstractScraper, ScraperSourceOptions } from '../_common/AbstractScraper';
+import type { KnowledgePiecePreparedJson } from '../../types/PipelineJson/KnowledgePieceJson';
+import type { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';
+import type { AbstractScraper } from '../_common/AbstractScraper';
+import type { ScraperSourceOptions } from '../_common/AbstractScraper';
 // TODO: [🏳‍🌈] Finally take pick of .json vs .ts
 // import PipelineCollection from '../../../promptbook-collection/promptbook-collection';
 import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
