@@ -9,14 +9,14 @@ export type PrepareAndScrapeOptions = {
     /**
      * LLM tools
      */
-    readonly llmTools: LlmExecutionTools;
+    readonly llmTools?: LlmExecutionTools;
 
     /**
      * Tools for retrieving files
      *
      * Note: This is not used in cache *([🦧] But maybe change this and do all operations (including cache) through filesystemTools)
      */
-    readonly filesystemTools: FilesystemTools | null;
+    readonly filesystemTools?: FilesystemTools ;
 
     /**
      * Path to the cache folder

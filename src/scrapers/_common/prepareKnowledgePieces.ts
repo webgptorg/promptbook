@@ -1,9 +1,7 @@
 import spaceTrim from 'spacetrim';
-import { SCRAPERS } from '../index';
-import { isValidFilePath } from '../../utils/validators/filePath/isValidFilePath';
-import { isValidUrl } from '../../utils/validators/url/isValidUrl';
 import { MAX_PARALLEL_COUNT } from '../../config';
 import { KnowledgeScrapeError } from '../../errors/KnowledgeScrapeError';
+import { MissingToolsError } from '../../errors/MissingToolsError';
 import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import { forEachAsync } from '../../execution/utils/forEachAsync';
@@ -12,6 +10,9 @@ import type { KnowledgePiecePreparedJson } from '../../types/PipelineJson/Knowle
 import type { KnowledgeSourceJson } from '../../types/PipelineJson/KnowledgeSourceJson';
 import { extensionToMimeType } from '../../utils/files/extensionToMimeType';
 import { getFileExtension } from '../../utils/files/getFileExtension';
+import { isValidFilePath } from '../../utils/validators/filePath/isValidFilePath';
+import { isValidUrl } from '../../utils/validators/url/isValidUrl';
+import { SCRAPERS } from '../index';
 import { markdownScraper } from '../markdown/markdownScraper';
 import type { ScraperSourceOptions } from './AbstractScraper';
 
@@ -41,8 +42,8 @@ export async function prepareKnowledgePieces(
             // 2️⃣ `knowledgeSource` is local file path
             // [3] DRY 1️⃣ and 2️⃣
 
-            if (filesystemTools === null) {
-                throw new KnowledgeScrapeError('Filesystem tools are required for scraping local files');
+            if (filesystemTools === undefined) {
+                throw new MissingToolsError('Filesystem tools are required for scraping local files');
             }
 
             const filePath = knowledgeSource.sourceContent;

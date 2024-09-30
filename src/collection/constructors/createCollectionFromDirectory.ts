@@ -2,20 +2,18 @@ import colors from 'colors';
 import { readFile } from 'fs/promises';
 import { join } from 'path';
 import spaceTrim from 'spacetrim';
-import { IS_VERBOSE } from '../../config';
-import { PIPELINE_COLLECTION_BASE_FILENAME } from '../../config';
+import { IS_VERBOSE, PIPELINE_COLLECTION_BASE_FILENAME } from '../../config';
 import { pipelineJsonToString } from '../../conversion/pipelineJsonToString';
-import type { PipelineStringToJsonOptions } from '../../conversion/pipelineStringToJson';
 import { pipelineStringToJson } from '../../conversion/pipelineStringToJson';
 import { validatePipeline } from '../../conversion/validation/validatePipeline';
 import { CollectionError } from '../../errors/CollectionError';
 import { PipelineUrlError } from '../../errors/PipelineUrlError';
 import { getFilesystemToolsForNode } from '../../llm-providers/_common/getFilesystemToolsForNode';
+import { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';
 import { unpreparePipeline } from '../../prepare/unpreparePipeline';
 import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import type { PipelineString } from '../../types/PipelineString';
-import type { string_folder_path } from '../../types/typeAliases';
-import type { string_pipeline_url } from '../../types/typeAliases';
+import type { string_folder_path, string_pipeline_url } from '../../types/typeAliases';
 import { $isRunningInNode } from '../../utils/environment/$isRunningInNode';
 import { $isFileExisting } from '../../utils/files/$isFileExisting';
 import { $listAllFiles } from '../../utils/files/$listAllFiles';
@@ -28,7 +26,7 @@ import { createCollectionFromPromise } from './createCollectionFromPromise';
  * Note: `filesystemTools` are not needed because this function by definition reads the file system and works only in Node.js environment
  *       So `getFilesystemToolsForNode` is used
  */
-type CreatePipelineCollectionFromDirectoryOptions = Omit<PipelineStringToJsonOptions, 'filesystemTools'> & {
+type CreatePipelineCollectionFromDirectoryOptions = Omit<PrepareAndScrapeOptions, 'filesystemTools'> & {
     /**
      * If true, the directory is searched recursively for pipelines
      *
@@ -100,7 +98,7 @@ export async function createCollectionFromDirectory(
     }
 
     const {
-        llmTools = null,
+        llmTools,
         isRecursive = true,
         isVerbose = IS_VERBOSE,
         isLazyLoaded = false,

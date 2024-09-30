@@ -31,7 +31,6 @@ async function playground() {
     // Do here stuff you want to test
     //========================================>
 
-
     //const sample = '10-simple.doc';
     const sample = '10-simple.rtf';
 
@@ -45,7 +44,7 @@ async function playground() {
     const knowledge = await legacyDocumentScraper.scrape(emulateScraperSourceOptions(samplePath), {
         llmTools,
         isVerbose,
-        filesystemTools: null,
+        filesystemTools: undefined,
         externalProgramsPaths: {
             // TODO: !!!!!! use `locate-app` library here + do auto-installation of the programs
             pandocPath: 'C:/Users/me/AppData/Local/Pandoc/pandoc.exe',

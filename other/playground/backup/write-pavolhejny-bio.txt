@@ -36,7 +36,7 @@ async function playground() {
     //========================================>
 
     const collection = await createCollectionFromDirectory('./samples/pipelines/', {
-        llmTools: null,
+        llmTools: undefined,
         isVerbose: true,
         isRecursive: false,
         isCrashedOnError: true,

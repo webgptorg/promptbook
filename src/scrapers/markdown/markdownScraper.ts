@@ -1,16 +1,15 @@
 import spaceTrim from 'spacetrim';
-import type { KnowledgePiecePreparedJson } from '../../types/PipelineJson/KnowledgePieceJson';
 import type { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';
+import type { KnowledgePiecePreparedJson } from '../../types/PipelineJson/KnowledgePieceJson';
 import { TODO_USE } from '../../utils/organization/TODO_USE';
-import type { AbstractScraper } from '../_common/AbstractScraper';
-import type { ScraperSourceOptions } from '../_common/AbstractScraper';
+import type { AbstractScraper, ScraperSourceOptions } from '../_common/AbstractScraper';
 // TODO: [🏳‍🌈] Finally take pick of .json vs .ts
 import PipelineCollection from '../../../promptbook-collection/index.json';
 // import PipelineCollection from '../../../promptbook-collection/promptbook-collection';
 import { createCollectionFromJson } from '../../collection/constructors/createCollectionFromJson';
-import { IS_VERBOSE } from '../../config';
-import { MAX_PARALLEL_COUNT } from '../../config';
+import { IS_VERBOSE, MAX_PARALLEL_COUNT } from '../../config';
 import { titleToName } from '../../conversion/utils/titleToName';
+import { MissingToolsError } from '../../errors/MissingToolsError';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import { assertsExecutionSuccessful } from '../../execution/assertsExecutionSuccessful';
 import { createPipelineExecutor } from '../../execution/createPipelineExecutor/00-createPipelineExecutor';
@@ -42,6 +41,11 @@ export const markdownScraper = {
         options: PrepareAndScrapeOptions,
     ): Promise<Array<Omit<KnowledgePiecePreparedJson, 'sources' | 'preparationIds'>> | null> {
         const { llmTools, maxParallelCount = MAX_PARALLEL_COUNT, isVerbose = IS_VERBOSE } = options;
+
+        if (llmTools === undefined) {
+            throw new MissingToolsError('LLM tools are required for scraping external files');
+            // <- Note: This scraper is used in all other scrapers, so saying "external files" not "markdown files"
+        }
 
         TODO_USE(maxParallelCount); // <- [🪂]
 

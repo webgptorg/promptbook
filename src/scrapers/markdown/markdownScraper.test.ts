@@ -10,7 +10,7 @@ describe('how creating knowledge from markdown works', () => {
             markdownScraper
                 .scrape(emulateScraperSourceOptions(join(__dirname, 'samples/10-simple.md')), {
                     llmTools: getLlmToolsForTestingAndScriptsAndPlayground(),
-                    filesystemTools: null,
+                    filesystemTools: undefined,
                 })
                 .then((knowledge) => knowledge?.map(({ content }) => ({ content })))
                 .then((knowledge) => knowledge?.slice(0, 1)),
@@ -25,7 +25,7 @@ describe('how creating knowledge from markdown works', () => {
             markdownScraper
                 .scrape(emulateScraperSourceOptions(join(__dirname, 'samples/10-simple.md')), {
                     llmTools: getLlmToolsForTestingAndScriptsAndPlayground(),
-                    filesystemTools: null,
+                    filesystemTools: undefined,
                 })
                 .then((knowledge) => knowledge?.map(({ content }) => ({ content })))
                 .then((knowledge) => knowledge?.slice(0, 1)),

@@ -15,7 +15,6 @@ import type { ExpectCommand } from '../commands/EXPECT/ExpectCommand';
 import type { ForeachJson } from '../commands/FOREACH/ForeachJson';
 import type { FormatCommand } from '../commands/FORMAT/FormatCommand';
 import type { TemplateType } from '../commands/TEMPLATE/TemplateTypes';
-import type { PipelineStringToJsonOptions } from '../conversion/pipelineStringToJson';
 import type { PrettifyOptions } from '../conversion/prettify/PrettifyOptions';
 import type { renderPipelineMermaidOptions } from '../conversion/prettify/renderPipelineMermaidOptions';
 import type { CallbackInterfaceToolsOptions } from '../dialogs/callback/CallbackInterfaceToolsOptions';
@@ -340,7 +339,6 @@ export type {
     PipelineHeadCommandParser,
     PipelineJson,
     PipelineString,
-    PipelineStringToJsonOptions,
     PipelineTemplateCommandParser,
     PostprocessingFunction,
     PreparationJson,

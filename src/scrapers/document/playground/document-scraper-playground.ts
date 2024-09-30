@@ -44,7 +44,7 @@ async function playground() {
     const knowledge = await documentScraper.scrape(emulateScraperSourceOptions(samplePath), {
         llmTools,
         isVerbose,
-        filesystemTools: null,
+        filesystemTools: undefined,
         externalProgramsPaths: {
             // TODO: !!!!!! use `locate-app` library here
             pandocPath: 'C:/Users/me/AppData/Local/Pandoc/pandoc.exe',

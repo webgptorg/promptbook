@@ -1,6 +1,6 @@
 import type { Writable } from 'type-fest';
-import { IS_VERBOSE } from '../config';
-import { MAX_PARALLEL_COUNT } from '../config';
+import { IS_VERBOSE, MAX_PARALLEL_COUNT } from '../config';
+import { MissingToolsError } from '../errors/MissingToolsError';
 import { ZERO_USAGE } from '../execution/utils/addUsage';
 import { forEachAsync } from '../execution/utils/forEachAsync';
 import { countTotalUsage } from '../llm-providers/_common/utils/count-total-usage/countTotalUsage';
@@ -40,6 +40,10 @@ export async function preparePipeline(pipeline: PipelineJson, options: PrepareAn
         personas /*
         <- TODO: [🧊] `preparations` */,
     } = pipeline;
+
+    if (llmTools === undefined) {
+        throw new MissingToolsError('LLM tools are required for preparing the pipeline');
+    }
 
     const llmToolsWithUsage = countTotalUsage(llmTools);
     //    <- TODO: [🌯]
@@ -131,7 +135,7 @@ export async function preparePipeline(pipeline: PipelineJson, options: PrepareAn
         },
         {
             llmTools: llmToolsWithUsage,
-            filesystemTools: null,
+            filesystemTools,
             maxParallelCount /* <- TODO:  [🪂] */,
             isVerbose,
         },

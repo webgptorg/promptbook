@@ -1,28 +1,8 @@
-import type { FilesystemTools } from '../execution/FilesystemTools';
-import type { LlmExecutionTools } from '../execution/LlmExecutionTools';
+import { PrepareAndScrapeOptions } from '../prepare/PrepareAndScrapeOptions';
 import { preparePipeline } from '../prepare/preparePipeline';
 import type { PipelineJson } from '../types/PipelineJson/PipelineJson';
 import type { PipelineString } from '../types/PipelineString';
 import { pipelineStringToJsonSync } from './pipelineStringToJsonSync';
-
-/**
- * Options for `pipelineStringToJson`
- *
- * @public exported from `@promptbook/core`
- */
-export type PipelineStringToJsonOptions = {
-    /**
-     * Tools for processing required for preparation of knowledge *(not for actual execution)*
-     *
-     * Note: If you provide `null`, the knowledge will not be prepared
-     */
-    readonly llmTools: LlmExecutionTools | null;
-
-    /**
-     * Tools for retrieving files
-     */
-    readonly filesystemTools: FilesystemTools | null;
-};
 
 /**
  * Compile pipeline from string (markdown) format to JSON format
@@ -43,14 +23,14 @@ export type PipelineStringToJsonOptions = {
  */
 export async function pipelineStringToJson(
     pipelineString: PipelineString,
-    options: PipelineStringToJsonOptions = { llmTools: null, filesystemTools: null },
+    options?: PrepareAndScrapeOptions,
 ): Promise<PipelineJson> {
-    const { llmTools, filesystemTools } = options;
+    const { llmTools } = options || {};
 
     let pipelineJson = pipelineStringToJsonSync(pipelineString);
 
     if (llmTools !== null) {
-        pipelineJson = await preparePipeline(pipelineJson, { llmTools, filesystemTools });
+        pipelineJson = await preparePipeline(pipelineJson, options || {});
     }
 
     // Note: No need to use `$asDeeplyFrozenSerializableJson` because `pipelineStringToJsonSync` and `preparePipeline` already do that

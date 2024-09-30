@@ -24,7 +24,6 @@ import {
     RESERVED_PARAMETER_NAMES,
 } from '../config';
 import { pipelineJsonToString } from '../conversion/pipelineJsonToString';
-import type { PipelineStringToJsonOptions } from '../conversion/pipelineStringToJson';
 import { pipelineStringToJson } from '../conversion/pipelineStringToJson';
 import { pipelineStringToJsonSync } from '../conversion/pipelineStringToJsonSync';
 import { prettifyPipelineString } from '../conversion/prettify/prettifyPipelineString';
@@ -156,4 +155,4 @@ export {
     validatePipeline,
     ZERO_USAGE,
 };
-export type { CallbackInterfaceToolsOptions, ExecutionReportStringOptions, PipelineStringToJsonOptions, TemplateType };
+export type { CallbackInterfaceToolsOptions, ExecutionReportStringOptions, TemplateType };

@@ -42,7 +42,7 @@ async function main() {
     console.info(colors.bgWhite('⚪ Testing basic capabilities of Promptbook'));
 
     const collection = await createCollectionFromDirectory('./samples/pipelines/', {
-        llmTools: null,
+        llmTools: undefined,
         isVerbose: true,
         isRecursive: false,
         isCrashedOnError: true,

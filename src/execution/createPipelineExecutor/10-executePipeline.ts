@@ -91,7 +91,7 @@ export async function executePipeline(options: ExecutePipelineOptions): Promise<
     if (preparedPipeline === undefined) {
         preparedPipeline = await preparePipeline(pipeline, {
             llmTools,
-            filesystemTools: tools.filesystem || null,
+            filesystemTools: tools.filesystem ,
             isVerbose,
             maxParallelCount,
         });

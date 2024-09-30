@@ -43,7 +43,7 @@ async function playground() {
     const knowledge = await markdownScraper.scrape(emulateScraperSourceOptions(samplePath), {
         llmTools,
         isVerbose,
-        filesystemTools: null,
+        filesystemTools: undefined,
     });
 
     console.info(colors.cyan(usageToHuman(llmTools.getTotalUsage())));

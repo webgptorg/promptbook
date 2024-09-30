@@ -7,8 +7,8 @@ dotenv.config({ path: '.env' });
 import colors from 'colors';
 import { writeFile } from 'fs/promises';
 import { join } from 'path';
-import { titleToName } from '../../../conversion/utils/titleToName';
 import { stringifyPipelineJson } from '../../../conversion/utils/stringifyPipelineJson';
+import { titleToName } from '../../../conversion/utils/titleToName';
 import { usageToHuman } from '../../../execution/utils/usageToHuman';
 import { getLlmToolsForTestingAndScriptsAndPlayground } from '../../../llm-providers/_common/getLlmToolsForTestingAndScriptsAndPlayground';
 import { emulateScraperSourceOptions } from '../../_common/utils/emulateScraperSourceOptions';
@@ -41,7 +41,7 @@ async function playground() {
     const knowledge = await websiteScraper.scrape(emulateScraperSourceOptions(sample), {
         llmTools,
         isVerbose,
-        filesystemTools: null,
+        filesystemTools: undefined,
         isCacheCleaned: false,
         // TODO: !!!!!! Maybe remove or modify
         externalProgramsPaths: {
