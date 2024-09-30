@@ -112,6 +112,7 @@ export async function preparePipeline(pipeline: PipelineJson, options: PrepareAn
     const partialknowledgePiecesPrepared = await prepareKnowledgePieces(
         knowledgeSources /* <- TODO: [🧊] {knowledgeSources, knowledgePieces} */,
         {
+            ...options,
             llmTools: llmToolsWithUsage,
             filesystemTools,
             maxParallelCount /* <- TODO:  [🪂] */,
