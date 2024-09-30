@@ -78,6 +78,11 @@ async function generateSampleJsons({
             const pipelineJson = await pipelineStringToJson(pipelineMarkdown as PipelineString, {
                 llmTools,
                 filesystemTools: getFilesystemToolsForNode(),
+                externalProgramsPaths: {
+                    // TODO: !!!!!! use `locate-app` library here
+                    pandocPath: 'C:/Users/me/AppData/Local/Pandoc/pandoc.exe',
+                    libreOfficePath: 'C:/Program Files/LibreOffice/program/swriter.exe',
+                },
             });
 
             await forTime(0);
