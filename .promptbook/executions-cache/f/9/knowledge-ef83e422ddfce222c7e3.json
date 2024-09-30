@@ -1,5 +1,5 @@
 {
-    "date": "2024-09-29T16:00:39.908Z",
+    "date": "2024-09-29T16:04:53.731Z",
     "promptbookVersion": "0.71.0-0",
     "prompt": {
         "title": "Knowledge",
@@ -14,15 +14,15 @@
         "expectations": {}
     },
     "promptResult": {
-        "content": "---\n\nIn the current economic crisis, there is an increasing presence of fraudulent and harmful jewelry in the market. Customers have frequently reported issues and scams related to jewelry products in both the Czech Republic and abroad. To address these concerns, Korálky Katlas has prepared a summary of the most critical points to watch for when purchasing jewelry and semi-finished jewelry products.\n\n---\n\nStanda Vavřík oversees online activities for Korálky Katlas. More information about him can be found on his personal website: [stanislavvavrik.cz](https://stanislavvavrik.cz/).",
+        "content": "---\n\nDuring the current economic crisis, there has been an increase in fraudulent and health-damaging jewelry on the market. Customers of Korálky Katlas have reported issues and scams both in the Czech Republic and internationally. In response, Korálky Katlas has compiled a summary of key things to watch out for when purchasing ready-made jewelry and jewelry components.\n\n---\n\nA YouTube video summarizing important points from an online meeting regarding the issue of declining jewelry quality is available. The video can be accessed [here](https://www.youtube.com/embed/bj1QYerTHC8?si=idkX7Giexi2IBamV).\n\n---\n\nStanda Vavřík handles all online activities at Korálky Katlas. More information about him can be found [here](https://stanislavvavrik.cz/).",
         "modelName": "gpt-4o-2024-05-13",
         "timing": {
-            "start": "2024-09-29T16:00:38.224Z",
-            "complete": "2024-09-29T16:00:39.906Z"
+            "start": "2024-09-29T16:04:51.704Z",
+            "complete": "2024-09-29T16:04:53.729Z"
         },
         "usage": {
             "price": {
-                "value": 0.038115
+                "value": 0.038865000000000004
             },
             "input": {
                 "tokensCount": {
@@ -49,25 +49,25 @@
             },
             "output": {
                 "tokensCount": {
-                    "value": 119
+                    "value": 169
                 },
                 "charactersCount": {
-                    "value": 585
+                    "value": 752
                 },
                 "wordsCount": {
-                    "value": 86
+                    "value": 111
                 },
                 "sentencesCount": {
-                    "value": 7
+                    "value": 11
                 },
                 "linesCount": {
-                    "value": 7
+                    "value": 11
                 },
                 "paragraphsCount": {
-                    "value": 4
+                    "value": 6
                 },
                 "pagesCount": {
-                    "value": 2
+                    "value": 3
                 }
             }
         },
@@ -82,16 +82,16 @@
             ]
         },
         "rawResponse": {
-            "id": "chatcmpl-ACqda2zjXziB6SblqctpVjE1jzPsj",
+            "id": "chatcmpl-ACqhf3WJ4nmnZ0cJXMJNqFxtkZJWO",
             "object": "chat.completion",
-            "created": 1727625638,
+            "created": 1727625891,
             "model": "gpt-4o-2024-05-13",
             "choices": [
                 {
                     "index": 0,
                     "message": {
                         "role": "assistant",
-                        "content": "---\n\nIn the current economic crisis, there is an increasing presence of fraudulent and harmful jewelry in the market. Customers have frequently reported issues and scams related to jewelry products in both the Czech Republic and abroad. To address these concerns, Korálky Katlas has prepared a summary of the most critical points to watch for when purchasing jewelry and semi-finished jewelry products.\n\n---\n\nStanda Vavřík oversees online activities for Korálky Katlas. More information about him can be found on his personal website: [stanislavvavrik.cz](https://stanislavvavrik.cz/).",
+                        "content": "---\n\nDuring the current economic crisis, there has been an increase in fraudulent and health-damaging jewelry on the market. Customers of Korálky Katlas have reported issues and scams both in the Czech Republic and internationally. In response, Korálky Katlas has compiled a summary of key things to watch out for when purchasing ready-made jewelry and jewelry components.\n\n---\n\nA YouTube video summarizing important points from an online meeting regarding the issue of declining jewelry quality is available. The video can be accessed [here](https://www.youtube.com/embed/bj1QYerTHC8?si=idkX7Giexi2IBamV).\n\n---\n\nStanda Vavřík handles all online activities at Korálky Katlas. More information about him can be found [here](https://stanislavvavrik.cz/).",
                         "refusal": null
                     },
                     "logprobs": null,
@@ -100,8 +100,8 @@
             ],
             "usage": {
                 "prompt_tokens": 7266,
-                "completion_tokens": 119,
-                "total_tokens": 7385,
+                "completion_tokens": 169,
+                "total_tokens": 7435,
                 "completion_tokens_details": {
                     "reasoning_tokens": 0
                 }

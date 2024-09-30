@@ -1,0 +1,151 @@
+{
+    "date": "2024-09-30T06:44:41.232Z",
+    "promptbookVersion": "0.71.0-0",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-from-markdown.ptbk.md#knowledge",
+        "parameters": {
+            "knowledgeContent": " Domovská stránka chevron\\_right Blog chevron\\_right Korálovka - online povídání chevron\\_right KORÁLOVKA: 27. října 2023 - Zhoršení kvality kovové bižuterie V aktuálním období krize, kdy lidé šetří, kde se dá, se opět na trhu stále častěji objevuje podvodná a zdraví škodlivá bižuterie. Jelikož nám stále častěji píší i naši zákazníci a oznamují nám problémy a podvody, se kterými se v ČR i zahraničí setkali, Korálky Katlas si pro Vás připravili sumář všech věcí, na které je dobré si dát při nákupu hotové bižuterie i bižuterních polotovarů pozor. Zkrácený záznam toho nejdůležitějšího z online setkání: Jmenuji se Standa a v Korálkách Katlas mám na starosti vše okolo on-line aktivit. Více se o mne dozvíte zde: stanislavvavrik.cz "
+        },
+        "content": "You are experienced data researcher, extract the important knowledge from the document.\n\n# Rules\n\n-   Make pieces of information concise, clear, and easy to understand\n-   One piece of information should be approximately 1 paragraph\n-   Divide the paragraphs by markdown horizontal lines ---\n-   Omit irrelevant information\n-   Group redundant information\n-   Write just extracted information, nothing else\n\n# The document\n\nTake information from this document:\n\n> {knowledgeContent}",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {}
+    },
+    "promptResult": {
+        "content": "---\n\nV důsledku aktuální krize, kdy lidé hledají úspory, se na trhu stále častěji objevuje podvodná a zdraví škodlivá bižuterie.\n\n---\n\nZákazníci Korálky Katlas často hlásí problémy a podvody, s nimiž se setkávají při nákupu bižuterie v ČR i zahraničí.\n\n---\n\nKorálky Katlas připravily sumář věcí, na které je dobré si dát při nákupu hotové bižuterie a bižuterních polotovarů pozor.",
+        "modelName": "gpt4o",
+        "timing": {
+            "start": "2024-09-30T06:44:37.337Z",
+            "complete": "2024-09-30T06:44:41.231Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0,
+                "isUncertain": true
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 361
+                },
+                "charactersCount": {
+                    "value": 482
+                },
+                "wordsCount": {
+                    "value": 59
+                },
+                "sentencesCount": {
+                    "value": 2
+                },
+                "linesCount": {
+                    "value": 16
+                },
+                "paragraphsCount": {
+                    "value": 6
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 135
+                },
+                "charactersCount": {
+                    "value": 482
+                },
+                "wordsCount": {
+                    "value": 59
+                },
+                "sentencesCount": {
+                    "value": 2
+                },
+                "linesCount": {
+                    "value": 16
+                },
+                "paragraphsCount": {
+                    "value": 6
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced data researcher, extract the important knowledge from the document.\n\n# Rules\n\n-   Make pieces of information concise, clear, and easy to understand\n-   One piece of information should be approximately 1 paragraph\n-   Divide the paragraphs by markdown horizontal lines ---\n-   Omit irrelevant information\n-   Group redundant information\n-   Write just extracted information, nothing else\n\n# The document\n\nTake information from this document:\n\n>  Domovská stránka chevron\\_right Blog chevron\\_right Korálovka - online povídání chevron\\_right KORÁLOVKA: 27. října 2023 - Zhoršení kvality kovové bižuterie V aktuálním období krize, kdy lidé šetří, kde se dá, se opět na trhu stále častěji objevuje podvodná a zdraví škodlivá bižuterie. Jelikož nám stále častěji píší i naši zákazníci a oznamují nám problémy a podvody, se kterými se v ČR i zahraničí setkali, Korálky Katlas si pro Vás připravili sumář všech věcí, na které je dobré si dát při nákupu hotové bižuterie i bižuterních polotovarů pozor. Zkrácený záznam toho nejdůležitějšího z online setkání: Jmenuji se Standa a v Korálkách Katlas mám na starosti vše okolo on-line aktivit. Více se o mne dozvíte zde: stanislavvavrik.cz ",
+        "rawRequest": [
+            "gpt4o",
+            [
+                {
+                    "role": "user",
+                    "content": "You are experienced data researcher, extract the important knowledge from the document.\n\n# Rules\n\n-   Make pieces of information concise, clear, and easy to understand\n-   One piece of information should be approximately 1 paragraph\n-   Divide the paragraphs by markdown horizontal lines ---\n-   Omit irrelevant information\n-   Group redundant information\n-   Write just extracted information, nothing else\n\n# The document\n\nTake information from this document:\n\n>  Domovská stránka chevron\\_right Blog chevron\\_right Korálovka - online povídání chevron\\_right KORÁLOVKA: 27. října 2023 - Zhoršení kvality kovové bižuterie V aktuálním období krize, kdy lidé šetří, kde se dá, se opět na trhu stále častěji objevuje podvodná a zdraví škodlivá bižuterie. Jelikož nám stále častěji píší i naši zákazníci a oznamují nám problémy a podvody, se kterými se v ČR i zahraničí setkali, Korálky Katlas si pro Vás připravili sumář všech věcí, na které je dobré si dát při nákupu hotové bižuterie i bižuterních polotovarů pozor. Zkrácený záznam toho nejdůležitějšího z online setkání: Jmenuji se Standa a v Korálkách Katlas mám na starosti vše okolo on-line aktivit. Více se o mne dozvíte zde: stanislavvavrik.cz "
+                }
+            ],
+            {}
+        ],
+        "rawResponse": {
+            "id": "chatcmpl-AD4R1BmRJ22SMeCy4sr3ZdEnSbmRD",
+            "model": "gpt-4o-2024-05-13",
+            "object": "chat.completion",
+            "systemFingerprint": "fp_67802d9a6d",
+            "created": "1970-01-20T23:54:38.675Z",
+            "promptFilterResults": [
+                {
+                    "promptIndex": 0,
+                    "contentFilterResults": {
+                        "hate": {
+                            "filtered": false,
+                            "severity": "safe"
+                        },
+                        "sexual": {
+                            "filtered": false,
+                            "severity": "safe"
+                        },
+                        "violence": {
+                            "filtered": false,
+                            "severity": "safe"
+                        },
+                        "selfHarm": {
+                            "filtered": false,
+                            "severity": "safe"
+                        }
+                    }
+                }
+            ],
+            "usage": {
+                "completionTokens": 135,
+                "promptTokens": 361,
+                "totalTokens": 496
+            },
+            "choices": [
+                {
+                    "index": 0,
+                    "logprobs": null,
+                    "message": {
+                        "content": "---\n\nV důsledku aktuální krize, kdy lidé hledají úspory, se na trhu stále častěji objevuje podvodná a zdraví škodlivá bižuterie.\n\n---\n\nZákazníci Korálky Katlas často hlásí problémy a podvody, s nimiž se setkávají při nákupu bižuterie v ČR i zahraničí.\n\n---\n\nKorálky Katlas připravily sumář věcí, na které je dobré si dát při nákupu hotové bižuterie a bižuterních polotovarů pozor.",
+                        "role": "assistant"
+                    },
+                    "finishReason": "stop",
+                    "contentFilterResults": {
+                        "hate": {
+                            "filtered": false,
+                            "severity": "safe"
+                        },
+                        "sexual": {
+                            "filtered": false,
+                            "severity": "safe"
+                        },
+                        "violence": {
+                            "filtered": false,
+                            "severity": "safe"
+                        },
+                        "selfHarm": {
+                            "filtered": false,
+                            "severity": "safe"
+                        }
+                    }
+                }
+            ]
+        }
+    }
+}

@@ -7,6 +7,7 @@ import { Readability } from '@mozilla/readability';
 import { mkdir, rm, writeFile } from 'fs/promises';
 import { JSDOM } from 'jsdom';
 import { dirname, join } from 'path';
+import { forTime } from 'waitasecond';
 import { $isRunningInNode, titleToName } from '../../_packages/utils.index';
 import { IS_VERBOSE, SCRAPE_CACHE_DIRNAME } from '../../config';
 import { KnowledgeScrapeError } from '../../errors/KnowledgeScrapeError';
@@ -60,11 +61,18 @@ export const websiteScraper = {
         const reader = new Readability(jsdom.window.document);
         const article = reader.parse();
 
+        console.log(article);
+        await forTime(10000);
+
         let html = article?.content || article?.textContent || jsdom.window.document.body.innerHTML;
 
         // Note: Unwrap html such as it is convertable by `markdownConverter`
         for (let i = 0; i < 2; i++) {
             html = html.replace(/<div\s*(?:id="readability-page-\d+"\s+class="page")?>(.*)<\/div>/is, '$1');
+        }
+
+        if (html.includes('<div')) {
+            html = article?.textContent || '';
         }
 
         if (just(true)) {
