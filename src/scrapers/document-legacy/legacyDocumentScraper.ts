@@ -1,16 +1,15 @@
-import type { KnowledgePiecePreparedJson } from '../../types/PipelineJson/KnowledgePieceJson';
 import type { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';
-import type { AbstractScraper } from '../_common/AbstractScraper';
-import type { ScraperSourceOptions } from '../_common/AbstractScraper';
+import type { KnowledgePiecePreparedJson } from '../../types/PipelineJson/KnowledgePieceJson';
+import type { AbstractScraper, ScraperSourceOptions } from '../_common/AbstractScraper';
 // TODO: [🏳‍🌈] Finally take pick of .json vs .ts
 // import PipelineCollection from '../../../promptbook-collection/promptbook-collection';
 import { mkdir, readdir, rename, rm, rmdir } from 'fs/promises';
 import { basename, dirname, join } from 'path';
-import { $isRunningInNode } from '../../utils/environment/$isRunningInNode';
-import { IS_VERBOSE } from '../../config';
-import { SCRAPE_CACHE_DIRNAME } from '../../config';
+import { IS_VERBOSE, SCRAPE_CACHE_DIRNAME } from '../../config';
 import { KnowledgeScrapeError } from '../../errors/KnowledgeScrapeError';
+import { MissingToolsError } from '../../errors/MissingToolsError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
+import { $isRunningInNode } from '../../utils/environment/$isRunningInNode';
 import { execCommand } from '../../utils/execCommand/execCommand';
 import { getFileExtension } from '../../utils/files/getFileExtension';
 import { documentScraper } from '../document/documentScraper';
@@ -50,8 +49,8 @@ export const legacyDocumentScraper = {
             throw new KnowledgeScrapeError('Scraping .doc files is only supported in Node environment');
         }
 
-        if (!externalProgramsPaths.libreOfficePath) {
-            throw new KnowledgeScrapeError('LibreOffice is required for scraping .doc and .rtf files');
+        if (externalProgramsPaths.libreOfficePath === undefined) {
+            throw new MissingToolsError('LibreOffice is required for scraping .doc and .rtf files');
         }
 
         if (source.filePath === null) {

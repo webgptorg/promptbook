@@ -14,6 +14,7 @@ import { UnexpectedError } from '../../errors/UnexpectedError';
 import { execCommand } from '../../utils/execCommand/execCommand';
 import { getFileExtension } from '../../utils/files/getFileExtension';
 import { markdownScraper } from '../markdown/markdownScraper';
+import { MissingToolsError } from '../../errors/MissingToolsError';
 
 /**
  * Scraper of .docx and .odt files
@@ -50,8 +51,8 @@ export const documentScraper = {
             throw new KnowledgeScrapeError('Scraping .docx files is only supported in Node environment');
         }
 
-        if (!externalProgramsPaths.pandocPath) {
-            throw new KnowledgeScrapeError('Pandoc is required for scraping .docx files');
+        if (externalProgramsPaths.pandocPath === undefined) {
+            throw new MissingToolsError('Pandoc is required for scraping .docx files');
         }
 
         if (source.filePath === null) {
