@@ -52,6 +52,7 @@ export async function prepareKnowledgePieces(
             const fileExtension = getFileExtension(filePath);
             const mimeType = extensionToMimeType(fileExtension || '');
 
+            // TODO: !!!!!! Test that file exists and is accessible
             // TODO: !!!!!! Test security file - file is scoped to the project (maybe do this in `filesystemTools`)
 
             const scraperSourceOptions = {
