@@ -30,15 +30,15 @@ export function initializePrettifyCommand(program: Program) {
     prettifyCommand.option('-i, --ignore <glob>', `Ignore as glob pattern`);
 
     prettifyCommand.action(async (filesGlob, { ignore }) => {
-        const filePaths = await glob(filesGlob!, { ignore });
+        const filenames = await glob(filesGlob!, { ignore });
 
-        for (const filePath of filePaths) {
-            if (!filePath.endsWith('.ptbk.md')) {
-                console.warn(colors.yellow(`Skipping prettify of non-promptbook ${filePath}`));
+        for (const filename of filenames) {
+            if (!filename.endsWith('.ptbk.md')) {
+                console.warn(colors.yellow(`Skipping prettify of non-promptbook ${filename}`));
                 continue;
             }
 
-            let pipelineMarkdown = (await readFile(filePath, 'utf-8')) as PipelineString;
+            let pipelineMarkdown = (await readFile(filename, 'utf-8')) as PipelineString;
 
             try {
                 pipelineMarkdown = await prettifyPipelineString(pipelineMarkdown, {
@@ -47,15 +47,15 @@ export function initializePrettifyCommand(program: Program) {
                     // <- [🕌]
                 });
 
-                await writeFile(filePath, pipelineMarkdown);
+                await writeFile(filename, pipelineMarkdown);
 
-                console.info(colors.green(`Prettify ${filePath}`));
+                console.info(colors.green(`Prettify ${filename}`));
             } catch (error) {
                 if (!(error instanceof Error)) {
                     throw error;
                 }
 
-                console.info(colors.red(`Prettify ${error.name} ${filePath}`));
+                console.info(colors.red(`Prettify ${error.name} ${filename}`));
                 console.error(colors.bgRed(error.name /* <- 11:11 */));
                 console.error(colors.red(error.stack || error.message));
 

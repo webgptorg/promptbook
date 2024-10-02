@@ -46,14 +46,14 @@ export type ScraperSourceOptions = {
     /**
      * The path to the file, if it is a file
      *
-     * Note: Typically one of the `filePath` or `url` is set and the other is `null`
+     * Note: Typically one of the `filename` or `url` is set and the other is `null`
      */
-    readonly filePath: string_filename | null;
+    readonly filename: string_filename | null;
 
     /**
      * The URL, if it is online
      *
-     * Note: Typically one of the `filePath` or `url` is set and the other is `null`
+     * Note: Typically one of the `filename` or `url` is set and the other is `null`
      */
     readonly url: string_url | null;
 

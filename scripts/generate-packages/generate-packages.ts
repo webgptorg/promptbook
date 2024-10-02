@@ -82,7 +82,7 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
         const entryIndexFilePathContentExports: Array<string> = [];
 
         for (const entity of entities) {
-            const { filePath, name } = entity;
+            const { filename, name } = entity;
             let { isType } = entity;
 
             if (packageFullname === '@promptbook/types') {
@@ -90,7 +90,7 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
                 isType = true;
             }
 
-            let importPath = `${relative(dirname(entryIndexFilePath), filePath).split('\\').join('/')}`;
+            let importPath = `${relative(dirname(entryIndexFilePath), filename).split('\\').join('/')}`;
             if (!importPath.startsWith('.')) {
                 importPath = './' + importPath;
             }

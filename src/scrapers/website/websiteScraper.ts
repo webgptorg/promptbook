@@ -96,7 +96,7 @@ export const websiteScraper = {
 
         const markdownSource = {
             source: source.source,
-            filePath: markdownSourceFilePath,
+            filename: markdownSourceFilePath,
             url: null,
             mimeType: 'text/markdown',
             asText() {

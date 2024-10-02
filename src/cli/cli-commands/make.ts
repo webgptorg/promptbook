@@ -5,8 +5,7 @@ import { dirname, join } from 'path';
 import spaceTrim from 'spacetrim';
 import { collectionToJson } from '../../collection/collectionToJson';
 import { createCollectionFromDirectory } from '../../collection/constructors/createCollectionFromDirectory';
-import { GENERATOR_WARNING_BY_PROMPTBOOK_CLI } from '../../config';
-import { PIPELINE_COLLECTION_BASE_FILENAME } from '../../config';
+import { GENERATOR_WARNING_BY_PROMPTBOOK_CLI, PIPELINE_COLLECTION_BASE_FILENAME } from '../../config';
 import { stringifyPipelineJson } from '../../conversion/utils/stringifyPipelineJson';
 import { validatePipeline } from '../../conversion/validation/validatePipeline';
 import { UnexpectedError } from '../../errors/UnexpectedError';
@@ -127,7 +126,7 @@ export function initializeMakeCommand(program: Program) {
         })();
 
         const saveFile = async (extension: string_file_extension, content: string) => {
-            const filePath =
+            const filename =
                 outFile !== PIPELINE_COLLECTION_BASE_FILENAME
                     ? outFile
                     : join(path, `${PIPELINE_COLLECTION_BASE_FILENAME}.${extension}`);
@@ -136,11 +135,11 @@ export function initializeMakeCommand(program: Program) {
                 console.warn(colors.yellow(`Warning: Extension of output file should be "${extension}"`));
             }
 
-            await mkdir(dirname(filePath), { recursive: true });
-            await writeFile(filePath, content, 'utf-8');
+            await mkdir(dirname(filename), { recursive: true });
+            await writeFile(filename, content, 'utf-8');
 
             // Note: Log despite of verbose mode
-            console.info(colors.green(`Maked ${filePath.split('\\').join('/')}`));
+            console.info(colors.green(`Maked ${filename.split('\\').join('/')}`));
         };
 
         if (formats.includes('json')) {

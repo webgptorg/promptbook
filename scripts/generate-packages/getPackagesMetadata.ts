@@ -92,13 +92,13 @@ export async function getPackagesMetadata(): Promise<Array<PackageMetadata>> {
 
     if (errors.length > 0) {
         for (const { message, entity } of errors) {
-            const { anotation, filePath } = entity;
+            const { anotation, filename } = entity;
             console.error(
                 colors.red(
                     spaceTrim(
                         (block) => `
                             ${block(message)}
-                            ${filePath} -> ${entity.name}
+                            ${filename} -> ${entity.name}
                         `,
                     ),
                 ),

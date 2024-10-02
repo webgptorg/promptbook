@@ -1,7 +1,7 @@
 const fs = require('fs');
 
 function getFileAndFolderPaths(folderPath) {
-    var filePaths = [];
+    var filenames = [];
     var folderPaths = [];
     var directoryItems = fs.readdirSync(folderPath);
     directoryItems.forEach((directoryItem) => {
@@ -11,27 +11,27 @@ function getFileAndFolderPaths(folderPath) {
         }
         const fileExtension = directoryItem.split('.').pop().toLowerCase();
         if (fileExtension === 'pdf') {
-            filePaths.push(folderPath + '/' + directoryItem);
+            filenames.push(folderPath + '/' + directoryItem);
         }
     });
-    return [filePaths, folderPaths];
+    return [filenames, folderPaths];
 }
 
-function getAllFileAndFolderPaths(filePaths, folderPaths, recursive) {
+function getAllFileAndFolderPaths(filenames, folderPaths, recursive) {
     var allFolderPaths = folderPaths;
     if (recursive) {
         while (allFolderPaths.length !== 0) {
             var nextFolderPaths = [];
             allFolderPaths.forEach((folderPath) => {
                 const outputArray = getFileAndFolderPaths(folderPath);
-                filePaths = filePaths.concat(outputArray[0]);
+                filenames = filenames.concat(outputArray[0]);
                 nextFolderPaths = nextFolderPaths.concat(outputArray[1]);
                 folderPaths = folderPaths.concat(outputArray[1]);
             });
             allFolderPaths = nextFolderPaths;
         }
     }
-    return [filePaths, folderPaths];
+    return [filenames, folderPaths];
 }
 
 module.exports = {

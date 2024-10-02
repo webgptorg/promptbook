@@ -53,15 +53,15 @@ export const legacyDocumentScraper = {
             throw new MissingToolsError('LibreOffice is required for scraping .doc and .rtf files');
         }
 
-        if (source.filePath === null) {
+        if (source.filename === null) {
             // TODO: [🧠] Maybe save file as temporary
             throw new KnowledgeScrapeError('When parsing .doc or .rtf file, it must be real file in the file system');
         }
 
-        const extension = getFileExtension(source.filePath);
+        const extension = getFileExtension(source.filename);
 
         const documentSourceFilePath =
-            join(process.cwd(), cacheDirname, basename(source.filePath)).split('\\').join('/') + '.docx';
+            join(process.cwd(), cacheDirname, basename(source.filename)).split('\\').join('/') + '.docx';
 
         await mkdir(dirname(documentSourceFilePath), { recursive: true });
 
@@ -80,7 +80,7 @@ export const legacyDocumentScraper = {
 
         // TODO: !!!!!! [🕊] Make execCommand standard (?node-)util of the promptbook - this should trigger build polution error
         await execCommand(
-            `"${externalProgramsPaths.libreOfficePath}" --headless --convert-to docx "${source.filePath}"  --outdir "${documentSourceOutdirPathForLibreOffice}"`,
+            `"${externalProgramsPaths.libreOfficePath}" --headless --convert-to docx "${source.filename}"  --outdir "${documentSourceOutdirPathForLibreOffice}"`,
         );
 
         const files = await readdir(documentSourceOutdirPathForLibreOffice);
@@ -98,7 +98,7 @@ export const legacyDocumentScraper = {
 
         const markdownSource = {
             source: source.source,
-            filePath: documentSourceFilePath,
+            filename: documentSourceFilePath,
             url: null,
             mimeType: 'text/markdown',
             asText() {

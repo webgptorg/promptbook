@@ -2,7 +2,7 @@ import { readFileSync } from 'fs';
 import type { string_filename, string_url } from '../../../types/typeAliases';
 import { extensionToMimeType } from '../../../utils/files/extensionToMimeType';
 import { getFileExtension } from '../../../utils/files/getFileExtension';
-import { isValidFilePath } from '../../../utils/validators/filePath/isValidFilePath';
+import { isValidFilePath } from '../../../utils/validators/filename/isValidFilePath';
 import { isValidUrl } from '../../../utils/validators/url/isValidUrl';
 import type { ScraperSourceOptions } from '../Scraper';
 
@@ -15,17 +15,17 @@ import type { ScraperSourceOptions } from '../Scraper';
  */
 export function emulateScraperSourceOptions(sampleFilePathOrUrl: string_filename | string_url): ScraperSourceOptions {
     if (isValidFilePath(sampleFilePathOrUrl)) {
-        const filePath = sampleFilePathOrUrl;
-        const fileExtension = getFileExtension(filePath);
+        const filename = sampleFilePathOrUrl;
+        const fileExtension = getFileExtension(filename);
         const mimeType = extensionToMimeType(fileExtension || '');
 
         return {
-            source: filePath,
-            filePath,
+            source: filename,
+            filename,
             url: null,
             mimeType,
             asBlob() {
-                const content = readFileSync(filePath);
+                const content = readFileSync(filename);
                 //  <- Note: Its OK to use sync in tooling for tests
                 return new Blob(
                     [
@@ -37,11 +37,11 @@ export function emulateScraperSourceOptions(sampleFilePathOrUrl: string_filename
                 );
             },
             asJson() {
-                return JSON.parse(readFileSync(filePath, 'utf-8'));
+                return JSON.parse(readFileSync(filename, 'utf-8'));
                 //  <- Note: Its OK to use sync in tooling for tests
             },
             asText() {
-                return readFileSync(filePath, 'utf-8');
+                return readFileSync(filename, 'utf-8');
                 //  <- Note: Its OK to use sync in tooling for tests
             },
         };
@@ -51,7 +51,7 @@ export function emulateScraperSourceOptions(sampleFilePathOrUrl: string_filename
 
         return {
             source: url,
-            filePath: null,
+            filename: null,
             url,
             mimeType,
             async asBlob() {

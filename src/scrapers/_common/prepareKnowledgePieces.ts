@@ -12,7 +12,7 @@ import type { KnowledgePiecePreparedJson } from '../../types/PipelineJson/Knowle
 import type { KnowledgeSourceJson } from '../../types/PipelineJson/KnowledgeSourceJson';
 import { extensionToMimeType } from '../../utils/files/extensionToMimeType';
 import { getFileExtension } from '../../utils/files/getFileExtension';
-import { isValidFilePath } from '../../utils/validators/filePath/isValidFilePath';
+import { isValidFilePath } from '../../utils/validators/filename/isValidFilePath';
 import { isValidUrl } from '../../utils/validators/url/isValidUrl';
 import { SCRAPERS } from '../index';
 import { markdownScraper } from '../markdown/markdownScraper';
@@ -48,23 +48,23 @@ export async function prepareKnowledgePieces(
                 throw new EnvironmentMismatchError('Importing knowledge source file works only in Node.js environment');
             }
 
-            const filePath = knowledgeSource.sourceContent;
-            const fileExtension = getFileExtension(filePath);
+            const filename = knowledgeSource.sourceContent;
+            const fileExtension = getFileExtension(filename);
             const mimeType = extensionToMimeType(fileExtension || '');
 
             // TODO: !!!!!! Test that file exists and is accessible
             // TODO: !!!!!! Test security file - file is scoped to the project (maybe do this in `filesystemTools`)
 
             const scraperSourceOptions = {
-                source: knowledgeSource.name, // <- TODO: !!!!!! What should be here `knowledgeSource.name` or `filePath`
-                filePath,
+                source: knowledgeSource.name, // <- TODO: !!!!!! What should be here `knowledgeSource.name` or `filename`
+                filename,
                 url: null,
                 mimeType,
                 async asText() {
-                    return await readFile(filePath, 'utf-8');
+                    return await readFile(filename, 'utf-8');
                 },
                 async asJson() {
-                    return JSON.parse(await readFile(filePath, 'utf-8'));
+                    return JSON.parse(await readFile(filename, 'utf-8'));
                 },
                 async asBlob() {
                     throw new NotYetImplementedError('!!!!!!');
@@ -96,7 +96,7 @@ export async function prepareKnowledgePieces(
                         ${block(fileExtension || 'null')}
 
                         File path:
-                        ${block(filePath)}
+                        ${block(filename)}
 
                     `,
                 ),
@@ -106,7 +106,7 @@ export async function prepareKnowledgePieces(
             const partialPiecesUnchecked = await markdownScraper.scrape(
                 {
                     source: knowledgeSource.name,
-                    filePath: null,
+                    filename: null,
                     url: null,
                     mimeType: 'text/markdown',
                     asText() {

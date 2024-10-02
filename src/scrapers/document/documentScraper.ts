@@ -53,15 +53,15 @@ export const documentScraper = {
             throw new MissingToolsError('Pandoc is required for scraping .docx files');
         }
 
-        if (source.filePath === null) {
+        if (source.filename === null) {
             // TODO: [🧠] Maybe save file as temporary
             throw new KnowledgeScrapeError('When parsing .docx file, it must be real file in the file system');
         }
 
-        const extension = getFileExtension(source.filePath);
+        const extension = getFileExtension(source.filename);
 
         const markdownSourceFilePath =
-            join(process.cwd(), cacheDirname, basename(source.filePath)).split('\\').join('/') + '.md';
+            join(process.cwd(), cacheDirname, basename(source.filename)).split('\\').join('/') + '.md';
 
         await mkdir(dirname(markdownSourceFilePath), { recursive: true });
 
@@ -71,12 +71,12 @@ export const documentScraper = {
 
         // TODO: !!!!!! [🕊] Make execCommand standard (?node-)util of the promptbook
         await execCommand(
-            `"${externalProgramsPaths.pandocPath}" -f ${extension} -t markdown "${source.filePath}" -o "${markdownSourceFilePath}"`,
+            `"${externalProgramsPaths.pandocPath}" -f ${extension} -t markdown "${source.filename}" -o "${markdownSourceFilePath}"`,
         );
 
         const markdownSource = {
             source: source.source,
-            filePath: markdownSourceFilePath,
+            filename: markdownSourceFilePath,
             url: null,
             mimeType: 'text/markdown',
             async asText() {

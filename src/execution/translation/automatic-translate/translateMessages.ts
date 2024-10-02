@@ -17,8 +17,8 @@ export async function translateMessages({
     from,
     to,
 }: { automaticTranslator: AutomaticTranslator } & TranslatorOptions) {
-    for (const filePath of await glob(join(__dirname, '../../translations/', from || 'en', '/**/*.json5'))) {
-        const fileData = JSON5.parse(await promisify(readFile)(filePath, 'utf-8'));
+    for (const filename of await glob(join(__dirname, '../../translations/', from || 'en', '/**/*.json5'))) {
+        const fileData = JSON5.parse(await promisify(readFile)(filename, 'utf-8'));
 
         for (const row of fileData) {
             if (row.language !== from) {
@@ -26,7 +26,7 @@ export async function translateMessages({
                     spaceTrim(`
                           Language ${row.language} is not ${from}
                           Check the file:
-                          ${filePath}
+                          ${filename}
                     `),
                 );
             }
@@ -41,7 +41,7 @@ export async function translateMessages({
 
         // TODO: [🏳] Use here `FileCacheStorage`
         await promisify(writeFile)(
-            filePath.split(`/${from}/`).join(`/${to}/`),
+            filename.split(`/${from}/`).join(`/${to}/`),
             JSON5.stringify(fileData, null, 4) + '\n',
             'utf-8',
         );

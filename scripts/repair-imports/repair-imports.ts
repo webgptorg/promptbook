@@ -127,7 +127,7 @@ async function repairImports({
                             );
                         }
 
-                        let importFrom = relative(dirname(file.path), entity.filePath)
+                        let importFrom = relative(dirname(file.path), entity.filename)
                             // Note: Changing Windows path to Unix path (\ to /)
                             .split('\\')
                             .join('/')
@@ -190,7 +190,6 @@ async function repairImports({
     }
     */
 }
-
 
 /**
  * Note: [⚫] Code in this file should never be published in any package

@@ -24,8 +24,8 @@ if (!argv['inputFolderPath']) {
 }
 
 function run(folderPath, outputPath, recursive = true) {
-    var [filePaths, folderPaths] = getFileAndFolderPaths(folderPath);
-    var [allFilePaths] = getAllFileAndFolderPaths(filePaths, folderPaths, recursive);
+    var [filenames, folderPaths] = getFileAndFolderPaths(folderPath);
+    var [allFilePaths] = getAllFileAndFolderPaths(filenames, folderPaths, recursive);
     var allOutputPaths = allFilePaths.map((x) => {
         const fileNameWithExtension = x.split(folderPath)[1];
         const fileNameWithoutExtension = fileNameWithExtension.slice(0, fileNameWithExtension.indexOf('.pdf'));
@@ -44,12 +44,12 @@ function makeOutputDirs(allOutputPaths) {
     });
 }
 
-async function createMarkdownFiles(filePaths, allOutputPaths) {
+async function createMarkdownFiles(filenames, allOutputPaths) {
     // If outputPath specified, supply callbacks to log progress
-    for (let i = 0; i < filePaths.length; ++i) {
-        const filePath = filePaths[i];
+    for (let i = 0; i < filenames.length; ++i) {
+        const filename = filenames[i];
         const callbacks = allOutputPaths[i] && {};
-        const pdfBuffer = fs.readFileSync(filePath);
+        const pdfBuffer = fs.readFileSync(filename);
         try {
             const text = await pdf2md(new Uint8Array(pdfBuffer), callbacks);
             const outputFile = allOutputPaths[i] + '.md';

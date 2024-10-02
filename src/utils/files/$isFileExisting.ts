@@ -8,8 +8,8 @@ import type { string_filename } from '../../types/typeAliases';
  *
  * @private within the repository
  */
-export async function $isFileExisting(filePath: string_filename): Promise<boolean> {
-    const isReadAccessAllowed = await access(filePath, constants.R_OK)
+export async function $isFileExisting(filename: string_filename): Promise<boolean> {
+    const isReadAccessAllowed = await access(filename, constants.R_OK)
         .then(() => true)
         .catch(() => false);
 
@@ -17,7 +17,7 @@ export async function $isFileExisting(filePath: string_filename): Promise<boolea
         return false;
     }
 
-    const isFile = await stat(filePath)
+    const isFile = await stat(filename)
         .then((fileStat) => fileStat.isFile())
         .catch(() => false);
 
