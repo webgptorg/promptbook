@@ -1,10 +1,8 @@
 import type { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';
 import type { KnowledgePiecePreparedJson } from '../../types/PipelineJson/KnowledgePieceJson';
-import type { Scraper, ScraperSourceOptions } from '../_common/Scraper';
 // TODO: [🏳‍🌈] Finally take pick of .json vs .ts
 // import PipelineCollection from '../../../promptbook-collection/promptbook-collection';
-import { mkdir, readFile, rm } from 'fs/promises';
-import { basename, dirname, join } from 'path';
+import { readFile } from 'fs/promises';
 import { IS_VERBOSE, SCRAPE_CACHE_DIRNAME } from '../../config';
 import { KnowledgeScrapeError } from '../../errors/KnowledgeScrapeError';
 import { MissingToolsError } from '../../errors/MissingToolsError';
@@ -12,6 +10,8 @@ import { UnexpectedError } from '../../errors/UnexpectedError';
 import { $isRunningInNode } from '../../utils/environment/$isRunningInNode';
 import { execCommand } from '../../utils/execCommand/execCommand';
 import { getFileExtension } from '../../utils/files/getFileExtension';
+import { Scraper, ScraperSourceOptions } from '../_common/Scraper';
+import { getScraperSourceCacheFilehandler } from '../_common/utils/getScraperSourceCacheFileHandler';
 import { markdownScraper } from '../markdown/markdownScraper';
 
 /**
@@ -40,6 +40,7 @@ export const documentScraper = {
     ): Promise<Array<Omit<KnowledgePiecePreparedJson, 'sources' | 'preparationIds'>> | null> {
         const {
             externalProgramsPaths = {},
+            rootDirname,
             cacheDirname = SCRAPE_CACHE_DIRNAME,
             isCacheCleaned = false,
             isVerbose = IS_VERBOSE,
@@ -60,27 +61,26 @@ export const documentScraper = {
 
         const extension = getFileExtension(source.filename);
 
-        const markdownSourceFilePath =
-            join(process.cwd(), cacheDirname, basename(source.filename)).split('\\').join('/') + '.md';
-
-        await mkdir(dirname(markdownSourceFilePath), { recursive: true });
-
-        if (isVerbose) {
-            console.info(`documentScraper: Converting .${extension} -> .md`);
-        }
+        const cacheFilehandler = await getScraperSourceCacheFilehandler(source, {
+            rootDirname,
+            cacheDirname,
+            isCacheCleaned,
+            extension: 'md',
+            isVerbose,
+        });
 
         // TODO: !!!!!! [🕊] Make execCommand standard (?node-)util of the promptbook
         await execCommand(
-            `"${externalProgramsPaths.pandocPath}" -f ${extension} -t markdown "${source.filename}" -o "${markdownSourceFilePath}"`,
+            `"${externalProgramsPaths.pandocPath}" -f ${extension} -t markdown "${source.filename}" -o "${cacheFilehandler.filename}"`,
         );
 
         const markdownSource = {
             source: source.source,
-            filename: markdownSourceFilePath,
+            filename: cacheFilehandler.filename,
             url: null,
             mimeType: 'text/markdown',
             async asText() {
-                return await readFile(markdownSourceFilePath, 'utf-8');
+                return await readFile(cacheFilehandler.filename, 'utf-8');
             },
             asJson() {
                 throw new UnexpectedError(
@@ -96,12 +96,7 @@ export const documentScraper = {
 
         const knowledge = markdownScraper.scrape(markdownSource, options);
 
-        if (isCacheCleaned) {
-            if (isVerbose) {
-                console.info('documentScraper: Clening cache');
-            }
-            await rm(markdownSourceFilePath);
-        }
+        await cacheFilehandler.destroy();
 
         return knowledge;
     },

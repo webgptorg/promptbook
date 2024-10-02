@@ -12,7 +12,7 @@ import type { KnowledgePiecePreparedJson } from '../../types/PipelineJson/Knowle
 import type { KnowledgeSourceJson } from '../../types/PipelineJson/KnowledgeSourceJson';
 import { extensionToMimeType } from '../../utils/files/extensionToMimeType';
 import { getFileExtension } from '../../utils/files/getFileExtension';
-import { isValidFilePath } from '../../utils/validators/filename/isValidFilePath';
+import { isValidFilePath } from '../../utils/validators/filePath/isValidFilePath';
 import { isValidUrl } from '../../utils/validators/url/isValidUrl';
 import { SCRAPERS } from '../index';
 import { markdownScraper } from '../markdown/markdownScraper';

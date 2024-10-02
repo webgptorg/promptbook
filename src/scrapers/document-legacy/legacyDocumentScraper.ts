@@ -1,10 +1,9 @@
 import type { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';
 import type { KnowledgePiecePreparedJson } from '../../types/PipelineJson/KnowledgePieceJson';
-import type { Scraper, ScraperSourceOptions } from '../_common/Scraper';
 // TODO: [🏳‍🌈] Finally take pick of .json vs .ts
 // import PipelineCollection from '../../../promptbook-collection/promptbook-collection';
-import { mkdir, readdir, rename, rm, rmdir } from 'fs/promises';
-import { basename, dirname, join } from 'path';
+import { readdir, rename, rmdir } from 'fs/promises';
+import { dirname, join } from 'path';
 import { IS_VERBOSE, SCRAPE_CACHE_DIRNAME } from '../../config';
 import { KnowledgeScrapeError } from '../../errors/KnowledgeScrapeError';
 import { MissingToolsError } from '../../errors/MissingToolsError';
@@ -12,6 +11,8 @@ import { UnexpectedError } from '../../errors/UnexpectedError';
 import { $isRunningInNode } from '../../utils/environment/$isRunningInNode';
 import { execCommand } from '../../utils/execCommand/execCommand';
 import { getFileExtension } from '../../utils/files/getFileExtension';
+import { Scraper, ScraperSourceOptions } from '../_common/Scraper';
+import { getScraperSourceCacheFileHandler } from '../_common/utils/getScraperSourceCacheFileHandler';
 import { documentScraper } from '../document/documentScraper';
 
 /**
@@ -40,6 +41,7 @@ export const legacyDocumentScraper = {
     ): Promise<Array<Omit<KnowledgePiecePreparedJson, 'sources' | 'preparationIds'>> | null> {
         const {
             externalProgramsPaths = {},
+            rootDirname,
             cacheDirname = SCRAPE_CACHE_DIRNAME,
             isCacheCleaned = false,
             isVerbose = IS_VERBOSE,
@@ -60,10 +62,13 @@ export const legacyDocumentScraper = {
 
         const extension = getFileExtension(source.filename);
 
-        const documentSourceFilePath =
-            join(process.cwd(), cacheDirname, basename(source.filename)).split('\\').join('/') + '.docx';
-
-        await mkdir(dirname(documentSourceFilePath), { recursive: true });
+        const cacheFilehandler = await getScraperSourceCacheFileHandler(source, {
+            rootDirname,
+            cacheDirname,
+            isCacheCleaned,
+            extension: 'docx',
+            isVerbose,
+        });
 
         if (isVerbose) {
             console.info(`documentScraper: Converting .${extension} -> .docx`);
@@ -74,7 +79,7 @@ export const legacyDocumentScraper = {
          *       so we create a subfolder `libreoffice` in the same folder as the source file
          *       and then move the file to the desired location
          */
-        const documentSourceOutdirPathForLibreOffice = join(dirname(documentSourceFilePath), 'libreoffice')
+        const documentSourceOutdirPathForLibreOffice = join(dirname(cacheFilehandler.filename), 'libreoffice')
             .split('\\')
             .join('/');
 
@@ -93,12 +98,12 @@ export const legacyDocumentScraper = {
 
         const file = files[0]!;
 
-        await rename(join(documentSourceOutdirPathForLibreOffice, file), documentSourceFilePath);
+        await rename(join(documentSourceOutdirPathForLibreOffice, file), cacheFilehandler.filename);
         await rmdir(documentSourceOutdirPathForLibreOffice);
 
         const markdownSource = {
             source: source.source,
-            filename: documentSourceFilePath,
+            filename: cacheFilehandler.filename,
             url: null,
             mimeType: 'text/markdown',
             asText() {
@@ -120,12 +125,7 @@ export const legacyDocumentScraper = {
 
         const knowledge = documentScraper.scrape(markdownSource, options);
 
-        if (isCacheCleaned) {
-            if (isVerbose) {
-                console.info('legacyDocumentScraper: Clening cache');
-            }
-            await rm(documentSourceFilePath);
-        }
+        await cacheFilehandler.destroy();
 
         return knowledge;
     },

@@ -60,7 +60,6 @@ import { trimCodeBlock } from '../utils/trimCodeBlock';
 import { trimEndOfCodeBlock } from '../utils/trimEndOfCodeBlock';
 import { unwrapResult } from '../utils/unwrapResult';
 import { isValidEmail } from '../utils/validators/email/isValidEmail';
-import { isValidFilePath } from '../utils/validators/filename/isValidFilePath';
 import { isValidJavascriptName } from '../utils/validators/javascriptName/isValidJavascriptName';
 import { isValidPromptbookVersion } from '../utils/validators/semanticVersion/isValidPromptbookVersion';
 import { isValidSemanticVersion } from '../utils/validators/semanticVersion/isValidSemanticVersion';
@@ -106,7 +105,6 @@ export {
     isSerializableAsJson,
     isUrlOnPrivateNetwork,
     isValidEmail,
-    isValidFilePath,
     isValidJavascriptName,
     isValidJsonString,
     isValidKeyword,

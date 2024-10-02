@@ -396,7 +396,6 @@ export type {
     string_emails,
     string_file_extension,
     string_filename,
-    string_filename,
     string_host,
     string_hostname,
     string_href,

@@ -2,9 +2,9 @@ import { readFileSync } from 'fs';
 import type { string_filename, string_url } from '../../../types/typeAliases';
 import { extensionToMimeType } from '../../../utils/files/extensionToMimeType';
 import { getFileExtension } from '../../../utils/files/getFileExtension';
-import { isValidFilePath } from '../../../utils/validators/filename/isValidFilePath';
 import { isValidUrl } from '../../../utils/validators/url/isValidUrl';
 import type { ScraperSourceOptions } from '../Scraper';
+import { isValidFilePath } from '../../../utils/validators/filePath/isValidFilePath';
 
 /**
  * @@@

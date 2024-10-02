@@ -1,11 +1,11 @@
 import type { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';
 import type { KnowledgePiecePreparedJson } from '../../types/PipelineJson/KnowledgePieceJson';
 import type { string_filename } from '../../types/typeAliases';
-import type { Scraper, ScraperSourceOptions } from '../_common/Scraper';
+import { Scraper, ScraperSourceOptions } from '../_common/Scraper';
 // TODO: [🏳‍🌈] Finally take pick of .json vs .ts
 // import PipelineCollection from '../../../promptbook-collection/promptbook-collection';
 import { Readability } from '@mozilla/readability';
-import { mkdir, rm, writeFile } from 'fs/promises';
+import { mkdir, writeFile } from 'fs/promises';
 import { JSDOM } from 'jsdom';
 import { dirname, join } from 'path';
 import { forTime } from 'waitasecond';
@@ -14,7 +14,7 @@ import { titleToName } from '../../conversion/utils/titleToName';
 import { KnowledgeScrapeError } from '../../errors/KnowledgeScrapeError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import { $isRunningInNode } from '../../utils/environment/$isRunningInNode';
-import { just } from '../../utils/organization/just';
+import { getScraperSourceCacheFilehandler } from '../_common/utils/getScraperSourceCacheFileHandler';
 import { markdownScraper } from '../markdown/markdownScraper';
 import { markdownConverter } from './utils/markdownConverter';
 
@@ -45,6 +45,7 @@ export const websiteScraper = {
         const {
             // TODO: [🧠] Maybe in node use headless browser not just JSDOM
             // externalProgramsPaths = {},
+            rootDirname,
             cacheDirname = SCRAPE_CACHE_DIRNAME,
             isCacheCleaned = false,
             isVerbose = IS_VERBOSE,
@@ -77,11 +78,15 @@ export const websiteScraper = {
             html = article?.textContent || '';
         }
 
-        if (just(true)) {
-            const htmlSourceFilePath = join(process.cwd(), cacheDirname, `${titleToName(source.source)}.html`);
-            await mkdir(dirname(htmlSourceFilePath), { recursive: true });
-            await writeFile(htmlSourceFilePath, html, 'utf-8');
-        }
+        const cacheFilehandler = await getScraperSourceCacheFilehandler(source, {
+            rootDirname,
+            cacheDirname,
+            isCacheCleaned,
+            extension: 'html',
+            isVerbose,
+        });
+
+        await writeFile(cacheFilehandler.filename, html, 'utf-8');
 
         const markdown = markdownConverter.makeMarkdown(html, jsdom.window.document);
         let markdownSourceFilePath: string_filename | null = null;
@@ -116,12 +121,7 @@ export const websiteScraper = {
 
         const knowledge = markdownScraper.scrape(markdownSource, options);
 
-        if (markdownSourceFilePath !== null && isCacheCleaned) {
-            if (isVerbose) {
-                console.info('documentScraper: Clening cache');
-            }
-            await rm(markdownSourceFilePath);
-        }
+        await cacheFilehandler.destroy();
 
         return knowledge;
     },

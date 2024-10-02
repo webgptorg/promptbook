@@ -31,6 +31,7 @@ export class FileCacheStorage<TItem> implements PromptbookStorage<TItem> {
      * @@@
      */
     private getFilenameForKey(key: string): string_filename {
+        // TODO: [👬] DRY
         const name = titleToName(key);
         const hash = sha256(hexEncoder.parse(name)).toString(/* hex */);
         //    <- TODO: [🥬] Encapsulate sha256 to some private utility function
@@ -85,7 +86,7 @@ export class FileCacheStorage<TItem> implements PromptbookStorage<TItem> {
         // TODO: [🧠] What to use `unlink` or `rm`
         await unlink(filename);
 
-        // <- TODO: [🧠] Maybe remove empty folders
+        // <- TODO: [🐿][🧠] Maybe remove empty folders
         //          [0] When `setItem` and `removeItem` called, the state of the file system should be the same
     }
 }
