@@ -3,10 +3,9 @@ import type { string_folder_path } from '../../types/typeAliases';
 /**
  * @@@
  */
-export type FilesStorageOptions = {
+export type FileCacheStorageOptions = {
     /**
      * @@@
      */
-    cacheFolderPath: string_folder_path;
+    rootFolderPath: string_folder_path;
 };
-

@@ -11,5 +11,5 @@ export type FilesystemTools = {
 };
 
 /**
- * TODO: !!!!!! Unite with `PromptbookStorage` / `FilesStorage`
+ * TODO: !!!!!! Unite with `PromptbookStorage` / `FileCacheStorage`
  */

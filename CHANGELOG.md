@@ -531,6 +531,7 @@ Knowledge scrapers [🐝]
 -   Add new error `getFilesystemToolsForNode`
 -   Remove `PipelineStringToJsonOptions` in favour of `PrepareAndScrapeOptions`
 -   Add `MissingToolsError`
+-   Change `FileStorage` -> `FileCacheStorage`
 -   Add `FilesystemTools`
 -   Changed behavior of `titleToName` when passing URLs or file paths
 

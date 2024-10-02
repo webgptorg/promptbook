@@ -82,7 +82,7 @@ import type {
     PostprocessingFunction,
 } from '../scripting/javascript/JavascriptExecutionToolsOptions';
 import type { PromptbookStorage } from '../storage/_common/PromptbookStorage';
-import type { FilesStorageOptions } from '../storage/files-storage/FilesStorageOptions';
+import type { FileCacheStorageOptions } from '../storage/file-cache-storage/FileCacheStorageOptions';
 import type { ExecutionPromptReportJson } from '../types/execution-report/ExecutionPromptReportJson';
 import type { ExecutionReportJson } from '../types/execution-report/ExecutionReportJson';
 import type { ExecutionReportString } from '../types/execution-report/ExecutionReportString';
@@ -282,7 +282,7 @@ export type {
     Expectations,
     ExpectationUnit,
     ExpectCommand,
-    FilesStorageOptions,
+    FileCacheStorageOptions,
     ForeachJson,
     FormatCommand,
     FormatSubvalueDefinition,

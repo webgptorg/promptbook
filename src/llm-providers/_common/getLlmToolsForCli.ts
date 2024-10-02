@@ -1,7 +1,7 @@
 import { join } from 'path';
 import { EXECUTIONS_CACHE_DIRNAME } from '../../config';
 import { EnvironmentMismatchError } from '../../errors/EnvironmentMismatchError';
-import { FilesStorage } from '../../storage/files-storage/FilesStorage';
+import { FileCacheStorage } from '../../storage/file-cache-storage/FileCacheStorage';
 import { $isRunningInNode } from '../../utils/environment/$isRunningInNode';
 import { createLlmToolsFromEnv } from './createLlmToolsFromEnv';
 import { cacheLlmTools } from './utils/cache/cacheLlmTools';
@@ -37,9 +37,9 @@ export function getLlmToolsForCli(options?: GetLlmToolsForCliOptions): LlmExecut
             createLlmToolsFromEnv(),
         ),
         {
-            storage: new FilesStorage(
+            storage: new FileCacheStorage(
                 //            <- TODO: [🧱] Implement in a functional (not new Class) way
-                { cacheFolderPath: join(process.cwd(), EXECUTIONS_CACHE_DIRNAME) },
+                { rootFolderPath: join(process.cwd(), EXECUTIONS_CACHE_DIRNAME) },
             ),
             isReloaded: isCacheReloaded,
         },

@@ -12,7 +12,7 @@ import { $isRunningInNode } from '../../utils/environment/$isRunningInNode';
 import { $isFileExisting } from '../../utils/files/$isFileExisting';
 import { isSerializableAsJson } from '../../utils/serialization/isSerializableAsJson';
 import type { PromptbookStorage } from '../_common/PromptbookStorage';
-import type { FilesStorageOptions } from './FilesStorageOptions';
+import type { FileCacheStorageOptions } from './FileCacheStorageOptions';
 import { nameToSubfolderPath } from './utils/nameToSubfolderPath';
 
 /**
@@ -20,10 +20,10 @@ import { nameToSubfolderPath } from './utils/nameToSubfolderPath';
  *
  * @public exported from `@promptbook/node`
  */
-export class FilesStorage<TItem> implements PromptbookStorage<TItem> {
-    constructor(private readonly options: FilesStorageOptions) {
+export class FileCacheStorage<TItem> implements PromptbookStorage<TItem> {
+    constructor(private readonly options: FileCacheStorageOptions) {
         if (!$isRunningInNode()) {
-            throw new EnvironmentMismatchError(`FilesStorage works only in Node.js environment`);
+            throw new EnvironmentMismatchError(`FileCacheStorage works only in Node.js environment`);
         }
     }
 
@@ -36,7 +36,7 @@ export class FilesStorage<TItem> implements PromptbookStorage<TItem> {
         //    <- TODO: [🥬] Encapsulate sha256 to some private utility function
 
         return join(
-            this.options.cacheFolderPath,
+            this.options.rootFolderPath,
             ...nameToSubfolderPath(hash /* <- TODO: [🎎] Maybe add some SHA256 prefix */),
             `${name.substring(0, MAX_FILENAME_LENGTH)}.json`,
         );
