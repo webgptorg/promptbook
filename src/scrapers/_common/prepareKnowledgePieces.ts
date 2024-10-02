@@ -1,4 +1,4 @@
-import { readFile } from 'fs/promises';
+import { readFile } from 'fs/promises'; // <- TODO: !!!!!! is it OK to import from `fs/promises` in browser environment?
 import spaceTrim from 'spacetrim';
 import { $isRunningInNode } from '../../_packages/utils.index';
 import { MAX_PARALLEL_COUNT } from '../../config';

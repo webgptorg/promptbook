@@ -39,7 +39,7 @@ export async function translateMessages({
             row.isAutomaticTranslation = true;
         }
 
-        // TODO: Probbably also make the folder
+        // TODO: [🏳] Use here `FileCacheStorage`
         await promisify(writeFile)(
             filePath.split(`/${from}/`).join(`/${to}/`),
             JSON5.stringify(fileData, null, 4) + '\n',
