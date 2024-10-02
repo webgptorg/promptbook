@@ -538,7 +538,7 @@ export type string_folder_relative_path = string;
 /**
  * Semantic helper
  */
-export type string_folder_path = string_file_absolute_path | string_file_relative_path;
+export type string_folder_path = string_folder_absolute_path | string_folder_relative_path;
 
 /**
  * Semantic helper
