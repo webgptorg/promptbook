@@ -15,7 +15,6 @@ import { usageToHuman } from '../../src/execution/utils/usageToHuman';
 //import { MockedFackedLlmExecutionTools } from '../../src/llm-providers/mocked/MockedFackedLlmExecutionTools';
 import { forTime } from 'waitasecond';
 import { validatePipeline } from '../../src/conversion/validation/validatePipeline';
-import { getFilesystemToolsForNode } from '../../src/llm-providers/_common/getFilesystemToolsForNode';
 import { getLlmToolsForTestingAndScriptsAndPlayground } from '../../src/llm-providers/_common/getLlmToolsForTestingAndScriptsAndPlayground';
 import { PipelineString } from '../../src/types/PipelineString';
 import { commit } from '../utils/autocommit/commit';
@@ -77,7 +76,6 @@ async function generateSampleJsons({
         try {
             const pipelineJson = await pipelineStringToJson(pipelineMarkdown as PipelineString, {
                 llmTools,
-                filesystemTools: getFilesystemToolsForNode(),
                 externalProgramsPaths: {
                     // TODO: !!!!!! use `locate-app` library here
                     pandocPath: 'C:/Users/me/AppData/Local/Pandoc/pandoc.exe',

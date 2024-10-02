@@ -8,7 +8,6 @@ import { pipelineStringToJson } from '../../conversion/pipelineStringToJson';
 import { validatePipeline } from '../../conversion/validation/validatePipeline';
 import { CollectionError } from '../../errors/CollectionError';
 import { PipelineUrlError } from '../../errors/PipelineUrlError';
-import { getFilesystemToolsForNode } from '../../llm-providers/_common/getFilesystemToolsForNode';
 import { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';
 import { unpreparePipeline } from '../../prepare/unpreparePipeline';
 import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
@@ -23,7 +22,7 @@ import { createCollectionFromPromise } from './createCollectionFromPromise';
 /**
  * Options for `createCollectionFromDirectory` function
  *
- * Note: `filesystemTools` are not needed because this function by definition reads the file system and works only in Node.js environment
+ * Note: !!!!!! rootDirname  -> `filesystemTools` are not needed because this function by definition reads the file system and works only in Node.js environment
  *       So `getFilesystemToolsForNode` is used
  */
 type CreatePipelineCollectionFromDirectoryOptions = Omit<PrepareAndScrapeOptions, 'filesystemTools'> & {
@@ -126,7 +125,7 @@ export async function createCollectionFromDirectory(
 
         const collection = new Map<string_pipeline_url, PipelineJson>();
 
-        const filesystemTools = getFilesystemToolsForNode();
+        // const rootDirname  = !!!!!!
 
         for (const fileName of fileNames) {
             const sourceFile = './' + fileName.split('\\').join('/');

@@ -9,7 +9,7 @@ describe('how creating knowledge from docx works', () => {
         expect(
             legacyDocumentScraper.scrape(emulateScraperSourceOptions(join(__dirname, 'samples/10-simple.doc')), {
                 llmTools: getLlmToolsForTestingAndScriptsAndPlayground(),
-                filesystemTools: undefined,
+                // rootDirname: join(__dirname, 'samples')
                 externalProgramsPaths: {
                     // TODO: !!!!!! use `locate-app` library here
                     pandocPath: 'C:/Users/me/AppData/Local/Pandoc/pandoc.exe',
@@ -27,7 +27,7 @@ describe('how creating knowledge from docx works', () => {
             legacyDocumentScraper
                 .scrape(emulateScraperSourceOptions(join(__dirname, 'samples/10-simple.rtf')), {
                     llmTools: getLlmToolsForTestingAndScriptsAndPlayground(),
-                    filesystemTools: undefined,
+                    // rootDirname: join(__dirname, 'samples')
                     externalProgramsPaths: {
                         // TODO: !!!!!! use `locate-app` library here
                         pandocPath: 'C:/Users/me/AppData/Local/Pandoc/pandoc.exe',
@@ -47,7 +47,7 @@ describe('how creating knowledge from docx works', () => {
             legacyDocumentScraper
                 .scrape(emulateScraperSourceOptions(join(__dirname, 'samples/10-simple.doc')), {
                     llmTools: getLlmToolsForTestingAndScriptsAndPlayground(),
-                    filesystemTools: undefined,
+                    // rootDirname: join(__dirname, 'samples')
                     externalProgramsPaths: {
                         // TODO: !!!!!! use `locate-app` library here
                         pandocPath: 'C:/Users/me/AppData/Local/Pandoc/pandoc.exe',

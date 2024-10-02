@@ -61,11 +61,9 @@ export const legacyDocumentScraper = {
         const extension = getFileExtension(source.filePath);
 
         const documentSourceFilePath =
-            // TODO: [🦧] Maybe use here FilesystemTools
-            // TODO: [🦧] Do here same subfolder paths /a/b/... like executions-cache
             join(process.cwd(), cacheDirname, basename(source.filePath)).split('\\').join('/') + '.docx';
 
-        // TODO: [🦧] Maybe use here FilesystemTools
+  
         await mkdir(dirname(documentSourceFilePath), { recursive: true });
 
         if (isVerbose) {

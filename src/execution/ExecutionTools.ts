@@ -1,5 +1,4 @@
 import type { Arrayable } from '../types/Arrayable';
-import type { FilesystemTools } from './FilesystemTools';
 import type { LlmExecutionTools } from './LlmExecutionTools';
 import type { ScriptExecutionTools } from './ScriptExecutionTools';
 import type { UserInterfaceTools } from './UserInterfaceTools';
@@ -17,11 +16,6 @@ export type ExecutionTools = {
      * @see https://github.com/webgptorg/promptbook/?tab=readme-ov-file#llm-execution-tools
      */
     readonly llm?: Arrayable<LlmExecutionTools>;
-
-    /**
-     * Tools for retrieving files
-     */
-    readonly filesystem?: FilesystemTools;
 
     /**
      * Tools for executing scripts

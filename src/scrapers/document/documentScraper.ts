@@ -63,11 +63,9 @@ export const documentScraper = {
         const extension = getFileExtension(source.filePath);
 
         const markdownSourceFilePath =
-            // TODO: [🦧] Maybe use here FilesystemTools
-            // TODO: [🦧] Do here same subfolder paths /a/b/... like executions-cache
             join(process.cwd(), cacheDirname, basename(source.filePath)).split('\\').join('/') + '.md';
 
-        // TODO: [🦧] Maybe use here FilesystemTools
+
         await mkdir(dirname(markdownSourceFilePath), { recursive: true });
 
         if (isVerbose) {
@@ -85,7 +83,6 @@ export const documentScraper = {
             url: null,
             mimeType: 'text/markdown',
             async asText() {
-                // TODO: [🦧] Maybe use here FilesystemTools
                 return await readFile(markdownSourceFilePath, 'utf-8');
             },
             asJson() {

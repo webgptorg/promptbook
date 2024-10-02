@@ -23,7 +23,7 @@ describe('how prepareKnowledge works', () => {
         expect(
             prepareKnowledgePieces([], {
                 llmTools: getLlmToolsForTestingAndScriptsAndPlayground(),
-                filesystemTools: undefined,
+                // rootDirname: join(__dirname, 'samples')
             }),
         ).resolves.toEqual([]));
 });

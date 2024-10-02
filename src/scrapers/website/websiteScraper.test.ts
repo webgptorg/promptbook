@@ -9,7 +9,7 @@ describe('how creating knowledge from website works', () => {
             websiteScraper
                 .scrape(emulateScraperSourceOptions('https://www.pavolhejny.com/'), {
                     llmTools: getLlmToolsForTestingAndScriptsAndPlayground(),
-                    filesystemTools: undefined,
+                    // rootDirname: join(__dirname, 'samples')
                 })
                 .then((knowledge) => knowledge?.map(({ content }) => ({ content })))
                 .then((knowledge) => knowledge?.slice(0, 1)),
@@ -24,7 +24,7 @@ describe('how creating knowledge from website works', () => {
             websiteScraper
                 .scrape(emulateScraperSourceOptions('https://www.pavolhejny.com/'), {
                     llmTools: getLlmToolsForTestingAndScriptsAndPlayground(),
-                    filesystemTools: undefined,
+                    // rootDirname: join(__dirname, 'samples')
                 })
                 .then((knowledge) => knowledge?.map(({ content }) => ({ content })))
                 .then((knowledge) => knowledge?.slice(0, 1)),
