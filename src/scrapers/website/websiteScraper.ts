@@ -1,6 +1,6 @@
 import type { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';
 import type { KnowledgePiecePreparedJson } from '../../types/PipelineJson/KnowledgePieceJson';
-import type { string_file_path } from '../../types/typeAliases';
+import type { string_filename } from '../../types/typeAliases';
 import type { Scraper, ScraperSourceOptions } from '../_common/Scraper';
 // TODO: [🏳‍🌈] Finally take pick of .json vs .ts
 // import PipelineCollection from '../../../promptbook-collection/promptbook-collection';
@@ -84,7 +84,7 @@ export const websiteScraper = {
         }
 
         const markdown = markdownConverter.makeMarkdown(html, jsdom.window.document);
-        let markdownSourceFilePath: string_file_path | null = null;
+        let markdownSourceFilePath: string_filename | null = null;
 
         if ($isRunningInNode()) {
             markdownSourceFilePath = join(process.cwd(), cacheDirname, `${titleToName(source.source)}.md`);

@@ -1,7 +1,6 @@
 import { readdir } from 'fs/promises';
 import { join } from 'path/posix';
-import type { string_file_path } from '../../types/typeAliases';
-import type { string_folder_path } from '../../types/typeAliases';
+import type { string_dirname, string_filename } from '../../types/typeAliases';
 import { $isDirectoryExisting } from './$isDirectoryExisting';
 
 /**
@@ -14,7 +13,7 @@ import { $isDirectoryExisting } from './$isDirectoryExisting';
  * @returns List of all files in the directory
  * @private internal function of `createCollectionFromDirectory`
  */
-export async function $listAllFiles(path: string_folder_path, isRecursive: boolean): Promise<Array<string_file_path>> {
+export async function $listAllFiles(path: string_dirname, isRecursive: boolean): Promise<Array<string_filename>> {
     if (!(await $isDirectoryExisting(path))) {
         throw new Error(`Directory "${path}" does not exist or is not readable`);
         //           <- TODO: Use some custom error class

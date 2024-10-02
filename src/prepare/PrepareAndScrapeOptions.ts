@@ -1,5 +1,5 @@
 import type { LlmExecutionTools } from '../execution/LlmExecutionTools';
-import type { string_folder_path } from '../types/typeAliases';
+import type { string_dirname } from '../types/typeAliases';
 
 /**
  * Options for preparation of the pipeline
@@ -16,7 +16,7 @@ export type PrepareAndScrapeOptions = {
      * Note: When the pipeline is not created from files, it is `null`
      * Note: This folder must exist
      */
-    readonly rootDirname: string_folder_path | null;
+    readonly rootDirname: string_dirname | null;
 
     /**
      * Path to the cache folder
@@ -25,7 +25,7 @@ export type PrepareAndScrapeOptions = {
      *
      * @default SCRAPE_CACHE_DIRNAME
      */
-    readonly cacheDirname?: string_folder_path;
+    readonly cacheDirname?: string_dirname;
 
     /**
      * If true, the cache is cleaned after the scraping

@@ -7,7 +7,7 @@ import { stringifyPipelineJson } from '../../conversion/utils/stringifyPipelineJ
 import { titleToName } from '../../conversion/utils/titleToName';
 import { EnvironmentMismatchError } from '../../errors/EnvironmentMismatchError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
-import type { string_file_path } from '../../types/typeAliases';
+import type { string_filename } from '../../types/typeAliases';
 import { $isRunningInNode } from '../../utils/environment/$isRunningInNode';
 import { $isFileExisting } from '../../utils/files/$isFileExisting';
 import { isSerializableAsJson } from '../../utils/serialization/isSerializableAsJson';
@@ -30,7 +30,7 @@ export class FileCacheStorage<TItem> implements PromptbookStorage<TItem> {
     /**
      * @@@
      */
-    private getFilenameForKey(key: string): string_file_path {
+    private getFilenameForKey(key: string): string_filename {
         const name = titleToName(key);
         const hash = sha256(hexEncoder.parse(name)).toString(/* hex */);
         //    <- TODO: [🥬] Encapsulate sha256 to some private utility function

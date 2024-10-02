@@ -1,5 +1,5 @@
 import { access, constants, stat } from 'fs/promises';
-import type { string_folder_path } from '../../types/typeAliases';
+import type { string_dirname } from '../../types/typeAliases';
 
 /**
  * Checks if the directory exists
@@ -8,7 +8,7 @@ import type { string_folder_path } from '../../types/typeAliases';
  *
  * @private within the repository
  */
-export async function $isDirectoryExisting(directoryPath: string_folder_path): Promise<boolean> {
+export async function $isDirectoryExisting(directoryPath: string_dirname): Promise<boolean> {
     const isReadAccessAllowed = await access(directoryPath, constants.R_OK)
         .then(() => true)
         .catch(() => false);

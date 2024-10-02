@@ -3,8 +3,7 @@ import { join } from 'path';
 import { unpreparePipeline } from '../../prepare/unpreparePipeline';
 import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import type { PipelineString } from '../../types/PipelineString';
-import type { string_file_path } from '../../types/typeAliases';
-import type { string_json } from '../../types/typeAliases';
+import type { string_filename, string_json } from '../../types/typeAliases';
 
 /**
  * Import the pipeline.ptbk.md or pipeline.ptbk.json file
@@ -17,7 +16,7 @@ import type { string_json } from '../../types/typeAliases';
  */
 export function importPipelineWithoutPreparation(path: `${string}.ptbk.md`): PipelineString;
 export function importPipelineWithoutPreparation(path: `${string}.ptbk.json`): PipelineJson;
-export function importPipelineWithoutPreparation(path: string_file_path): PipelineString | PipelineJson {
+export function importPipelineWithoutPreparation(path: string_filename): PipelineString | PipelineJson {
     const samplesDir = '../../../samples/pipelines'; // <- TODO: [🚏] DRY, to config
     const content = readFileSync(join(__dirname, samplesDir, path), 'utf-8');
     //                         <- Note: In production it is not good practice to use synchronous functions

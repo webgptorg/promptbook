@@ -1,4 +1,4 @@
-import type { string_folder_path } from '../../types/typeAliases';
+import type { string_dirname } from '../../types/typeAliases';
 
 /**
  * @@@
@@ -7,5 +7,5 @@ export type FileCacheStorageOptions = {
     /**
      * @@@
      */
-    rootFolderPath: string_folder_path;
+    rootFolderPath: string_dirname;
 };

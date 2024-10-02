@@ -12,7 +12,7 @@ import { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';
 import { unpreparePipeline } from '../../prepare/unpreparePipeline';
 import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import type { PipelineString } from '../../types/PipelineString';
-import type { string_folder_path, string_pipeline_url } from '../../types/typeAliases';
+import type { string_dirname, string_pipeline_url } from '../../types/typeAliases';
 import { $isRunningInNode } from '../../utils/environment/$isRunningInNode';
 import { $isFileExisting } from '../../utils/files/$isFileExisting';
 import { $listAllFiles } from '../../utils/files/$listAllFiles';
@@ -70,7 +70,7 @@ type CreatePipelineCollectionFromDirectoryOptions = Omit<PrepareAndScrapeOptions
  * @public exported from `@promptbook/node`
  */
 export async function createCollectionFromDirectory(
-    path: string_folder_path,
+    path: string_dirname,
     options?: CreatePipelineCollectionFromDirectoryOptions,
 ): Promise<PipelineCollection> {
     if (!$isRunningInNode()) {

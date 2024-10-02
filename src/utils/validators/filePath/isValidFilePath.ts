@@ -1,4 +1,4 @@
-import type { string_file_path } from '../../../types/typeAliases';
+import type { string_filename } from '../../../types/typeAliases';
 import type { really_unknown } from '../../organization/really_unknown';
 
 /**
@@ -7,7 +7,7 @@ import type { really_unknown } from '../../organization/really_unknown';
  * Note: This does not check if the file exists only if the path is valid
  * @public exported from `@promptbook/utils`
  */
-export function isValidFilePath(filePath: really_unknown): filePath is string_file_path {
+export function isValidFilePath(filePath: really_unknown): filePath is string_filename {
     if (typeof filePath !== 'string') {
         return false;
     }

@@ -2,7 +2,7 @@ import type { Promisable } from 'type-fest';
 import type { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';
 import type { KnowledgePiecePreparedJson } from '../../types/PipelineJson/KnowledgePieceJson';
 import type {
-    string_file_path,
+    string_filename,
     string_knowledge_source_link,
     string_mime_type,
     string_promptbook_documentation_url,
@@ -48,7 +48,7 @@ export type ScraperSourceOptions = {
      *
      * Note: Typically one of the `filePath` or `url` is set and the other is `null`
      */
-    readonly filePath: string_file_path | null;
+    readonly filePath: string_filename | null;
 
     /**
      * The URL, if it is online
