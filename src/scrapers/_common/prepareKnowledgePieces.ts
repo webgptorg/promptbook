@@ -16,7 +16,7 @@ import { isValidFilePath } from '../../utils/validators/filePath/isValidFilePath
 import { isValidUrl } from '../../utils/validators/url/isValidUrl';
 import { SCRAPERS } from '../index';
 import { markdownScraper } from '../markdown/markdownScraper';
-import type { ScraperSourceOptions } from './AbstractScraper';
+import type { ScraperSourceOptions } from './Scraper';
 
 /**
  * Prepares the knowle

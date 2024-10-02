@@ -1,7 +1,6 @@
-import type { KnowledgePiecePreparedJson } from '../../types/PipelineJson/KnowledgePieceJson';
 import type { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';
-import type { AbstractScraper } from '../_common/AbstractScraper';
-import type { ScraperSourceOptions } from '../_common/AbstractScraper';
+import type { KnowledgePiecePreparedJson } from '../../types/PipelineJson/KnowledgePieceJson';
+import type { Scraper, ScraperSourceOptions } from '../_common/Scraper';
 // TODO: [🏳‍🌈] Finally take pick of .json vs .ts
 // import PipelineCollection from '../../../promptbook-collection/promptbook-collection';
 import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
@@ -45,12 +44,12 @@ export const pdfScraper = {
 
         throw new NotYetImplementedError('PDF scraping not yet implemented');
     },
-} /* TODO: [🦷] as const */ satisfies AbstractScraper;
+} /* TODO: [🦷] as const */ satisfies Scraper;
 
 /**
  * TODO: [👣] Converted documents can act as cached items - there is no need to run conversion each time
  * TODO: [🦖] Make some system for putting scrapers to separete packages
  * TODO: [🪂] Do it in parallel 11:11
- * TODO: [🦷] Ideally use `as const satisfies AbstractScraper` BUT this combination throws errors
+ * TODO: [🦷] Ideally use `as const satisfies Scraper` BUT this combination throws errors
  * Note: No need to aggregate usage here, it is done by intercepting the llmTools
  */

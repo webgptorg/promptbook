@@ -1,20 +1,18 @@
-import type { KnowledgePiecePreparedJson } from '../../types/PipelineJson/KnowledgePieceJson';
 import type { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';
-import type { AbstractScraper } from '../_common/AbstractScraper';
-import type { ScraperSourceOptions } from '../_common/AbstractScraper';
+import type { KnowledgePiecePreparedJson } from '../../types/PipelineJson/KnowledgePieceJson';
+import type { Scraper, ScraperSourceOptions } from '../_common/Scraper';
 // TODO: [🏳‍🌈] Finally take pick of .json vs .ts
 // import PipelineCollection from '../../../promptbook-collection/promptbook-collection';
 import { mkdir, readFile, rm } from 'fs/promises';
 import { basename, dirname, join } from 'path';
-import { $isRunningInNode } from '../../utils/environment/$isRunningInNode';
-import { IS_VERBOSE } from '../../config';
-import { SCRAPE_CACHE_DIRNAME } from '../../config';
+import { IS_VERBOSE, SCRAPE_CACHE_DIRNAME } from '../../config';
 import { KnowledgeScrapeError } from '../../errors/KnowledgeScrapeError';
+import { MissingToolsError } from '../../errors/MissingToolsError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
+import { $isRunningInNode } from '../../utils/environment/$isRunningInNode';
 import { execCommand } from '../../utils/execCommand/execCommand';
 import { getFileExtension } from '../../utils/files/getFileExtension';
 import { markdownScraper } from '../markdown/markdownScraper';
-import { MissingToolsError } from '../../errors/MissingToolsError';
 
 /**
  * Scraper of .docx and .odt files
@@ -65,7 +63,6 @@ export const documentScraper = {
         const markdownSourceFilePath =
             join(process.cwd(), cacheDirname, basename(source.filePath)).split('\\').join('/') + '.md';
 
-
         await mkdir(dirname(markdownSourceFilePath), { recursive: true });
 
         if (isVerbose) {
@@ -108,12 +105,12 @@ export const documentScraper = {
 
         return knowledge;
     },
-} /* TODO: [🦷] as const */ satisfies AbstractScraper;
+} /* TODO: [🦷] as const */ satisfies Scraper;
 
 /**
  * TODO: [👣] Converted documents can act as cached items - there is no need to run conversion each time
  * TODO: [🦖] Make some system for putting scrapers to separete packages
  * TODO: [🪂] Do it in parallel 11:11
- * TODO: [🦷] Ideally use `as const satisfies AbstractScraper` BUT this combination throws errors
+ * TODO: [🦷] Ideally use `as const satisfies Scraper` BUT this combination throws errors
  * Note: No need to aggregate usage here, it is done by intercepting the llmTools
  */

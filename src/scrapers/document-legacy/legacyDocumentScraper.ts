@@ -1,6 +1,6 @@
 import type { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';
 import type { KnowledgePiecePreparedJson } from '../../types/PipelineJson/KnowledgePieceJson';
-import type { AbstractScraper, ScraperSourceOptions } from '../_common/AbstractScraper';
+import type { Scraper, ScraperSourceOptions } from '../_common/Scraper';
 // TODO: [🏳‍🌈] Finally take pick of .json vs .ts
 // import PipelineCollection from '../../../promptbook-collection/promptbook-collection';
 import { mkdir, readdir, rename, rm, rmdir } from 'fs/promises';
@@ -63,7 +63,6 @@ export const legacyDocumentScraper = {
         const documentSourceFilePath =
             join(process.cwd(), cacheDirname, basename(source.filePath)).split('\\').join('/') + '.docx';
 
-  
         await mkdir(dirname(documentSourceFilePath), { recursive: true });
 
         if (isVerbose) {
@@ -130,12 +129,12 @@ export const legacyDocumentScraper = {
 
         return knowledge;
     },
-} /* TODO: [🦷] as const */ satisfies AbstractScraper;
+} /* TODO: [🦷] as const */ satisfies Scraper;
 
 /**
  * TODO: [👣] Converted documents can act as cached items - there is no need to run conversion each time
  * TODO: [🦖] Make some system for putting scrapers to separete packages
  * TODO: [🪂] Do it in parallel 11:11
- * TODO: [🦷] Ideally use `as const satisfies AbstractScraper` BUT this combination throws errors
+ * TODO: [🦷] Ideally use `as const satisfies Scraper` BUT this combination throws errors
  * Note: No need to aggregate usage here, it is done by intercepting the llmTools
  */

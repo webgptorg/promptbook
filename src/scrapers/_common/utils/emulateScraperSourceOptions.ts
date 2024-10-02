@@ -1,11 +1,10 @@
 import { readFileSync } from 'fs';
-import { isValidFilePath } from '../../../utils/validators/filePath/isValidFilePath';
-import { isValidUrl } from '../../../utils/validators/url/isValidUrl';
-import type { string_file_path } from '../../../types/typeAliases';
-import type { string_url } from '../../../types/typeAliases';
+import type { string_file_path, string_url } from '../../../types/typeAliases';
 import { extensionToMimeType } from '../../../utils/files/extensionToMimeType';
 import { getFileExtension } from '../../../utils/files/getFileExtension';
-import type { ScraperSourceOptions } from '../AbstractScraper';
+import { isValidFilePath } from '../../../utils/validators/filePath/isValidFilePath';
+import { isValidUrl } from '../../../utils/validators/url/isValidUrl';
+import type { ScraperSourceOptions } from '../Scraper';
 
 /**
  * @@@
