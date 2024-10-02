@@ -1,9 +1,6 @@
 import { spaceTrim } from 'spacetrim';
 import type { Promisable, ReadonlyDeep } from 'type-fest';
-import { DEFAULT_CSV_SETTINGS } from '../../config';
-import { IS_VERBOSE } from '../../config';
-import { MAX_EXECUTION_ATTEMPTS } from '../../config';
-import { MAX_PARALLEL_COUNT } from '../../config';
+import { DEFAULT_CSV_SETTINGS, IS_VERBOSE, MAX_EXECUTION_ATTEMPTS, MAX_PARALLEL_COUNT } from '../../config';
 import { validatePipeline } from '../../conversion/validation/validatePipeline';
 import { isPipelinePrepared } from '../../prepare/isPipelinePrepared';
 import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
@@ -29,6 +26,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
         csvSettings = DEFAULT_CSV_SETTINGS,
         isVerbose = IS_VERBOSE,
         isNotPreparedWarningSupressed = false,
+        rootDirname = null,
     } = settings;
 
     validatePipeline(pipeline);
@@ -98,13 +96,13 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                 csvSettings,
                 isVerbose,
                 isNotPreparedWarningSupressed,
+                rootDirname,
             },
         });
     };
 
     return pipelineExecutor;
 }
-
 
 /**
  * TODO: [🐚] Change onProgress to object that represents the running execution, can be subscribed via RxJS to and also awaited

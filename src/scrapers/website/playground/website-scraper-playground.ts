@@ -41,7 +41,7 @@ async function playground() {
     const knowledge = await websiteScraper.scrape(emulateScraperSourceOptions(sample), {
         llmTools,
         isVerbose,
-        // rootDirname: join(__dirname, 'samples')
+        rootDirname: join(__dirname, 'samples'),
         isCacheCleaned: false,
         // TODO: !!!!!! Maybe remove or modify
         externalProgramsPaths: {

@@ -29,7 +29,7 @@ export async function preparePipeline(pipeline: PipelineJson, options: PrepareAn
         return pipeline;
     }
 
-    const { llmTools, filesystemTools, maxParallelCount = MAX_PARALLEL_COUNT, isVerbose = IS_VERBOSE } = options;
+    const { llmTools, rootDirname, maxParallelCount = MAX_PARALLEL_COUNT, isVerbose = IS_VERBOSE } = options;
     const {
         parameters,
         templates,
@@ -85,7 +85,7 @@ export async function preparePipeline(pipeline: PipelineJson, options: PrepareAn
         async (persona, index) => {
             const modelRequirements = await preparePersona(persona.description, {
                 llmTools: llmToolsWithUsage,
-                filesystemTools,
+                rootDirname,
                 maxParallelCount /* <- TODO:  [🪂] */,
                 isVerbose,
             });
@@ -114,7 +114,7 @@ export async function preparePipeline(pipeline: PipelineJson, options: PrepareAn
         {
             ...options,
             llmTools: llmToolsWithUsage,
-            filesystemTools,
+            rootDirname,
             maxParallelCount /* <- TODO:  [🪂] */,
             isVerbose,
         },
@@ -136,7 +136,7 @@ export async function preparePipeline(pipeline: PipelineJson, options: PrepareAn
         },
         {
             llmTools: llmToolsWithUsage,
-            filesystemTools,
+            rootDirname,
             maxParallelCount /* <- TODO:  [🪂] */,
             isVerbose,
         },

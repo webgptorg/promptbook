@@ -11,6 +11,14 @@ export type PrepareAndScrapeOptions = {
     readonly llmTools?: LlmExecutionTools;
 
     /**
+     * Path to the root folder of the pipeline
+     *
+     * Note: When the pipeline is not created from files, it is `null`
+     * Note: This folder must exist
+     */
+    readonly rootDirname: string_folder_path | null;
+
+    /**
      * Path to the cache folder
      *
      * Note: When the folder does not exist, it is created recursively

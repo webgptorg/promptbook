@@ -1,7 +1,9 @@
+import { readFile } from 'fs/promises';
 import spaceTrim from 'spacetrim';
+import { $isRunningInNode } from '../../_packages/utils.index';
 import { MAX_PARALLEL_COUNT } from '../../config';
+import { EnvironmentMismatchError } from '../../errors/EnvironmentMismatchError';
 import { KnowledgeScrapeError } from '../../errors/KnowledgeScrapeError';
-import { MissingToolsError } from '../../errors/MissingToolsError';
 import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import { forEachAsync } from '../../execution/utils/forEachAsync';
@@ -26,7 +28,7 @@ export async function prepareKnowledgePieces(
     knowledgeSources: Array<KnowledgeSourceJson>,
     options: PrepareAndScrapeOptions,
 ): Promise<Array<Omit<KnowledgePiecePreparedJson, 'preparationIds'>>> {
-    const { maxParallelCount = MAX_PARALLEL_COUNT, filesystemTools } = options;
+    const { maxParallelCount = MAX_PARALLEL_COUNT, rootDirname } = options;
 
     const knowledgePrepared: Array<Omit<KnowledgePiecePreparedJson, 'preparationIds'>> = [];
 
@@ -42,8 +44,8 @@ export async function prepareKnowledgePieces(
             // 2️⃣ `knowledgeSource` is local file path
             // [3] DRY 1️⃣ and 2️⃣
 
-            if (filesystemTools === undefined) {
-                throw new MissingToolsError('Filesystem tools are required for scraping local files');
+            if (!$isRunningInNode()) {
+                throw new EnvironmentMismatchError('Importing knowledge source file works only in Node.js environment');
             }
 
             const filePath = knowledgeSource.sourceContent;
@@ -58,12 +60,12 @@ export async function prepareKnowledgePieces(
                 url: null,
                 mimeType,
                 async asText() {
-                    return await filesystemTools.getFile(filePath);
+                    return await readFile(filePath, 'utf-8');
                 },
-                asJson() {
-                    throw new NotYetImplementedError('!!!!!!');
+                async asJson() {
+                    return JSON.parse(await readFile(filePath, 'utf-8'));
                 },
-                asBlob() {
+                async asBlob() {
                     throw new NotYetImplementedError('!!!!!!');
                 },
             } satisfies ScraperSourceOptions;

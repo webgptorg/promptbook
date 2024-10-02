@@ -12,7 +12,7 @@ describe('how creating knowledge from pdf works', () => {
             pdfScraper
                 .scrape(emulateScraperSourceOptions(join(__dirname, 'samples/10-simple.pdf')), {
                     llmTools: getLlmToolsForTestingAndScriptsAndPlayground(),
-                    // rootDirname: join(__dirname, 'samples')
+                    rootDirname: join(__dirname, 'samples'),
                 })
                 .then((knowledge) => knowledge?.map(({ content }) => ({ content })))
                 .then((knowledge) => knowledge?.slice(0, 1)),
@@ -27,7 +27,7 @@ describe('how creating knowledge from pdf works', () => {
             pdfScraper
                 .scrape(emulateScraperSourceOptions(join(__dirname, 'samples/10-simple.pdf')), {
                     llmTools: getLlmToolsForTestingAndScriptsAndPlayground(),
-                    // rootDirname: join(__dirname, 'samples')
+                    rootDirname: join(__dirname, 'samples'),
                 })
                 .then((knowledge) => knowledge?.map(({ content }) => ({ content })))
                 .then((knowledge) => knowledge?.slice(0, 1)),

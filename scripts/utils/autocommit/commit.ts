@@ -33,7 +33,7 @@ export async function commit(addPaths: Array<string>, message: string): Promise<
         }
 
         await mkdir(dirname(commitMessageFilePath), { recursive: true });
-        await writeFile(commitMessageFilePath, commitMessage, 'utf8');
+        await writeFile(commitMessageFilePath, commitMessage, 'utf-8');
 
         await execCommand({
             cwd: projectPath,

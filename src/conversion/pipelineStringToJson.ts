@@ -30,7 +30,12 @@ export async function pipelineStringToJson(
     let pipelineJson = pipelineStringToJsonSync(pipelineString);
 
     if (llmTools !== null) {
-        pipelineJson = await preparePipeline(pipelineJson, options || {});
+        pipelineJson = await preparePipeline(
+            pipelineJson,
+            options || {
+                rootDirname: null,
+            },
+        );
     }
 
     // Note: No need to use `$asDeeplyFrozenSerializableJson` because `pipelineStringToJsonSync` and `preparePipeline` already do that

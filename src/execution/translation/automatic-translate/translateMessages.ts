@@ -18,7 +18,7 @@ export async function translateMessages({
     to,
 }: { automaticTranslator: AutomaticTranslator } & TranslatorOptions) {
     for (const filePath of await glob(join(__dirname, '../../translations/', from || 'en', '/**/*.json5'))) {
-        const fileData = JSON5.parse(await promisify(readFile)(filePath, 'utf8'));
+        const fileData = JSON5.parse(await promisify(readFile)(filePath, 'utf-8'));
 
         for (const row of fileData) {
             if (row.language !== from) {
@@ -43,7 +43,7 @@ export async function translateMessages({
         await promisify(writeFile)(
             filePath.split(`/${from}/`).join(`/${to}/`),
             JSON5.stringify(fileData, null, 4) + '\n',
-            'utf8',
+            'utf-8',
         );
     }
 }

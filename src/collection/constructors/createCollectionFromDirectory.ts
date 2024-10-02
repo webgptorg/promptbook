@@ -1,6 +1,6 @@
 import colors from 'colors';
 import { readFile } from 'fs/promises';
-import { join } from 'path';
+import { dirname, join } from 'path';
 import spaceTrim from 'spacetrim';
 import { IS_VERBOSE, PIPELINE_COLLECTION_BASE_FILENAME } from '../../config';
 import { pipelineJsonToString } from '../../conversion/pipelineJsonToString';
@@ -22,10 +22,10 @@ import { createCollectionFromPromise } from './createCollectionFromPromise';
 /**
  * Options for `createCollectionFromDirectory` function
  *
- * Note: !!!!!! rootDirname  -> `filesystemTools` are not needed because this function by definition reads the file system and works only in Node.js environment
- *       So `getFilesystemToolsForNode` is used
+ * Note: `rootDirname` is not needed because it is the folder in which `.ptbk.md` file is located
+ *       This is not same as `path` which is the first argument of `createCollectionFromDirectory` - it can be a subfolder
  */
-type CreatePipelineCollectionFromDirectoryOptions = Omit<PrepareAndScrapeOptions, 'filesystemTools'> & {
+type CreatePipelineCollectionFromDirectoryOptions = Omit<PrepareAndScrapeOptions, 'rootDirname'> & {
     /**
      * If true, the directory is searched recursively for pipelines
      *
@@ -125,24 +125,23 @@ export async function createCollectionFromDirectory(
 
         const collection = new Map<string_pipeline_url, PipelineJson>();
 
-        // const rootDirname  = !!!!!!
-
         for (const fileName of fileNames) {
             const sourceFile = './' + fileName.split('\\').join('/');
+            const rootDirname = dirname(sourceFile).split('\\').join('/');
 
             try {
                 let pipeline: PipelineJson | null = null;
 
                 if (fileName.endsWith('.ptbk.md')) {
-                    const pipelineString = (await readFile(fileName, 'utf8')) as PipelineString;
+                    const pipelineString = (await readFile(fileName, 'utf-8')) as PipelineString;
                     pipeline = await pipelineStringToJson(pipelineString, {
                         llmTools,
-                        filesystemTools,
+                        rootDirname,
                     });
                     pipeline = { ...pipeline, sourceFile };
                 } else if (fileName.endsWith('.ptbk.json')) {
                     // TODO: Handle non-valid JSON files
-                    pipeline = JSON.parse(await readFile(fileName, 'utf8')) as PipelineJson;
+                    pipeline = JSON.parse(await readFile(fileName, 'utf-8')) as PipelineJson;
                     // TODO: [🌗]
                     pipeline = { ...pipeline, sourceFile };
                 } else {

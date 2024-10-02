@@ -1,8 +1,8 @@
 import colors from 'colors';
 import { readFile, writeFile } from 'fs/promises';
 import { join } from 'path';
-import { splitArrayIntoChunks } from '../repair-imports/utils/splitArrayIntoChunks';
 import { execCommand } from '../../src/utils/execCommand/execCommand';
+import { splitArrayIntoChunks } from '../repair-imports/utils/splitArrayIntoChunks';
 import { prettify } from './prettify';
 
 export async function writeAllProjectFiles(
@@ -12,7 +12,7 @@ export async function writeAllProjectFiles(
     const changedFilesPaths: string[] = [];
 
     for (const file of files) {
-        const oldContent = await readFile(file.path, 'utf8');
+        const oldContent = await readFile(file.path, 'utf-8');
         if (file.content !== oldContent) {
             console.info(colors.gray(`Writing file ${file.path}`));
             // console.log({ file });
