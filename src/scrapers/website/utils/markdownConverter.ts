@@ -21,5 +21,6 @@ export const markdownConverter = new Converter({
 });
 
 /**
+ * TODO: !!!!!! Figure out better name not to confuse with `Converter`
  * TODO: !!!!!! Lazy-make converter
  */
