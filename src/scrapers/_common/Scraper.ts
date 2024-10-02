@@ -12,7 +12,6 @@ import type {
 /**
  * @@@
  *
- * @private Internal utility type
  */
 export type Scraper = {
     /**

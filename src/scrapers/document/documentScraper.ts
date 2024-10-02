@@ -10,8 +10,9 @@ import { UnexpectedError } from '../../errors/UnexpectedError';
 import { $isRunningInNode } from '../../utils/environment/$isRunningInNode';
 import { execCommand } from '../../utils/execCommand/execCommand';
 import { getFileExtension } from '../../utils/files/getFileExtension';
+import { Converter } from '../_common/Converter';
 import { Scraper, ScraperSourceOptions } from '../_common/Scraper';
-import { getScraperSourceCacheFilehandler } from '../_common/utils/getScraperSourceCacheFileHandler';
+import { getScraperIntermediateSource } from '../_common/utils/getScraperIntermediateSource';
 import { markdownScraper } from '../markdown/markdownScraper';
 
 /**
@@ -61,7 +62,7 @@ export const documentScraper = {
 
         const extension = getFileExtension(source.filename);
 
-        const cacheFilehandler = await getScraperSourceCacheFilehandler(source, {
+        const cacheFilehandler = await getScraperIntermediateSource(source, {
             rootDirname,
             cacheDirname,
             isCacheCleaned,
@@ -100,12 +101,12 @@ export const documentScraper = {
 
         return knowledge;
     },
-} /* TODO: [🦷] as const */ satisfies Scraper;
+} /* TODO: [🦷] as const */ satisfies Converter & Scraper;
 
 /**
  * TODO: [👣] Converted documents can act as cached items - there is no need to run conversion each time
  * TODO: [🦖] Make some system for putting scrapers to separete packages
  * TODO: [🪂] Do it in parallel 11:11
- * TODO: [🦷] Ideally use `as const satisfies Scraper` BUT this combination throws errors
+ * TODO: [🦷] Ideally use `as const satisfies Converter & Scraper` BUT this combination throws errors
  * Note: No need to aggregate usage here, it is done by intercepting the llmTools
  */

@@ -178,11 +178,11 @@ export const markdownScraper = {
 
         return knowledge;
     },
-} /* TODO: [🦷] as const */ satisfies Scraper;
+} /* TODO: [🦷] as const */ satisfies Converter & Scraper;
 
 /**
  * TODO: [🦖] Make some system for putting scrapers to separete packages
  * TODO: [🪂] Do it in parallel 11:11
- * TODO: [🦷] Ideally use `as const satisfies Scraper` BUT this combination throws errors
+ * TODO: [🦷] Ideally use `as const satisfies Converter & Scraper` BUT this combination throws errors
  * Note: No need to aggregate usage here, it is done by intercepting the llmTools
  */

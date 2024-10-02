@@ -11,8 +11,10 @@ import { UnexpectedError } from '../../errors/UnexpectedError';
 import { $isRunningInNode } from '../../utils/environment/$isRunningInNode';
 import { execCommand } from '../../utils/execCommand/execCommand';
 import { getFileExtension } from '../../utils/files/getFileExtension';
+import { Converter } from '../_common/Converter';
 import { Scraper, ScraperSourceOptions } from '../_common/Scraper';
-import { getScraperSourceCacheFileHandler } from '../_common/utils/getScraperSourceCacheFileHandler';
+import { ScraperIntermediateSource } from '../_common/ScraperIntermediateSource';
+import { getScraperIntermediateSource } from '../_common/utils/getScraperIntermediateSource';
 import { documentScraper } from '../document/documentScraper';
 
 /**
@@ -33,12 +35,11 @@ export const legacyDocumentScraper = {
     documentationUrl: 'https://github.com/webgptorg/promptbook/discussions/@@',
 
     /**
-     * Scrapes the docx file and returns the knowledge pieces or `null` if it can't scrape it
+     * Convert the docx to doc file and returns intermediate source or `null` if it can't convert it
+     *
+     * Note: `$` is used to indicate that this function is not a pure function - it leaves files on the disk and you are responsible for cleaning them by calling `destroy` method of returned object
      */
-    async scrape(
-        source: ScraperSourceOptions,
-        options: PrepareAndScrapeOptions,
-    ): Promise<Array<Omit<KnowledgePiecePreparedJson, 'sources' | 'preparationIds'>> | null> {
+    async $convert(source: ScraperSourceOptions, options: PrepareAndScrapeOptions): Promise<ScraperIntermediateSource> {
         const {
             externalProgramsPaths = {},
             rootDirname,
@@ -62,7 +63,7 @@ export const legacyDocumentScraper = {
 
         const extension = getFileExtension(source.filename);
 
-        const cacheFilehandler = await getScraperSourceCacheFileHandler(source, {
+        const cacheFilehandler = await getScraperIntermediateSource(source, {
             rootDirname,
             cacheDirname,
             isCacheCleaned,
@@ -101,6 +102,18 @@ export const legacyDocumentScraper = {
         await rename(join(documentSourceOutdirPathForLibreOffice, file), cacheFilehandler.filename);
         await rmdir(documentSourceOutdirPathForLibreOffice);
 
+        return cacheFilehandler;
+    },
+
+    /**
+     * Scrapes the docx file and returns the knowledge pieces or `null` if it can't scrape it
+     */
+    async scrape(
+        source: ScraperSourceOptions,
+        options: PrepareAndScrapeOptions,
+    ): Promise<Array<Omit<KnowledgePiecePreparedJson, 'sources' | 'preparationIds'>> | null> {
+        const cacheFilehandler = await this.$convert(source, options);
+
         const markdownSource = {
             source: source.source,
             filename: cacheFilehandler.filename,
@@ -129,12 +142,12 @@ export const legacyDocumentScraper = {
 
         return knowledge;
     },
-} /* TODO: [🦷] as const */ satisfies Scraper;
+} /* TODO: [🦷] as const */ satisfies Converter & Scraper;
 
 /**
  * TODO: [👣] Converted documents can act as cached items - there is no need to run conversion each time
  * TODO: [🦖] Make some system for putting scrapers to separete packages
  * TODO: [🪂] Do it in parallel 11:11
- * TODO: [🦷] Ideally use `as const satisfies Scraper` BUT this combination throws errors
+ * TODO: [🦷] Ideally use `as const satisfies Converter & Scraper` BUT this combination throws errors
  * Note: No need to aggregate usage here, it is done by intercepting the llmTools
  */

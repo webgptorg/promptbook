@@ -1,40 +1,30 @@
 import { SHA256 as sha256 } from 'crypto-js';
 import hexEncoder from 'crypto-js/enc-hex';
-import type { IDestroyable } from 'destroyable';
 import { mkdir, rm } from 'fs/promises';
 import { basename, dirname } from 'path';
 import { join } from 'path/posix';
 import type { PrepareAndScrapeOptions } from '../../../prepare/PrepareAndScrapeOptions';
 import { nameToSubfolderPath } from '../../../storage/file-cache-storage/utils/nameToSubfolderPath';
-import { string_file_extension, string_filename } from '../../../types/typeAliases';
+import { string_file_extension } from '../../../types/typeAliases';
 import { TODO_USE } from '../../../utils/organization/TODO_USE';
 import { ScraperSourceOptions } from '../Scraper';
 
 /**
  * @@@
  *
- * @private internal utility of `getScraperSourceCacheFileHandler`
+ * @private internal utility of `getScraperIntermediateSource`
  */
-type GetScraperSourceCacheFileHandlerSource = Pick<ScraperSourceOptions, 'filename' | 'url'>;
+type GetScraperIntermediateSourceSource = Pick<ScraperSourceOptions, 'filename' | 'url'>;
 
 /**
  * @@@
  *
- * @private internal utility of `getScraperSourceCacheFileHandler`
+ * @private internal utility of `getScraperIntermediateSource`
  */
-type GetScraperSourceCacheFileHandlerOptions = Required<
+type GetScraperIntermediateSourceOptions = Required<
     Pick<PrepareAndScrapeOptions, 'rootDirname' | 'cacheDirname' | 'isCacheCleaned' | 'isVerbose'>
 > & {
     readonly extension: string_file_extension;
-};
-
-/**
- * @@@
- *
- * @private as internal utility for scrapers
- */
-type ScraperSourceCacheFileHandler = IDestroyable & {
-    readonly filename: string_filename;
 };
 
 /**
@@ -44,10 +34,10 @@ type ScraperSourceCacheFileHandler = IDestroyable & {
  *
  * @private as internal utility for scrapers
  */
-export async function getScraperSourceCacheFileHandler(
-    source: GetScraperSourceCacheFileHandlerSource,
-    options: GetScraperSourceCacheFileHandlerOptions,
-): Promise<ScraperSourceCacheFileHandler> {
+export async function getScraperIntermediateSource(
+    source: GetScraperIntermediateSourceSource,
+    options: GetScraperIntermediateSourceOptions,
+): Promise<ScraperIntermediateSource> {
     const { filename: sourceFilename, url } = source;
     const { rootDirname, cacheDirname, isCacheCleaned, extension, isVerbose } = options;
 
@@ -96,7 +86,7 @@ export async function getScraperSourceCacheFileHandler(
 
             isDestroyed = true;
         },
-    } satisfies ScraperSourceCacheFileHandler;
+    } satisfies Converter & ScraperIntermediateSource;
 
     return fileHandler;
 }

@@ -1,10 +1,10 @@
 import { describe, expect, it } from '@jest/globals';
-import { getScraperSourceCacheFileHandler } from './getScraperSourceCacheFileHandler';
+import { getScraperIntermediateSource } from './getScraperIntermediateSource';
 
-describe('how `getScraperSourceCacheFileHandler` works', () => {
+describe('how `getScraperIntermediateSource` works', () => {
     it('should create filename for file source', () =>
         expect(
-            getScraperSourceCacheFileHandler(
+            getScraperIntermediateSource(
                 {
                     filename: 'prague.pdf',
                     url: null,
@@ -22,6 +22,6 @@ describe('how `getScraperSourceCacheFileHandler` works', () => {
     /*
     !!!!!!
     it('should create filename for url source', () =>
-        expect(getScraperSourceCacheFileHandler({ filename: null, url: 'https://praha.eu/' }, {})).resolves.toBe('/'));
+        expect(getScraperIntermediateSource({ filename: null, url: 'https://praha.eu/' }, {})).resolves.toBe('/'));
     */
 });

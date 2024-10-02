@@ -44,12 +44,12 @@ export const pdfScraper = {
 
         throw new NotYetImplementedError('PDF scraping not yet implemented');
     },
-} /* TODO: [🦷] as const */ satisfies Scraper;
+} /* TODO: [🦷] as const */ satisfies Converter & Scraper;
 
 /**
  * TODO: [👣] Converted documents can act as cached items - there is no need to run conversion each time
  * TODO: [🦖] Make some system for putting scrapers to separete packages
  * TODO: [🪂] Do it in parallel 11:11
- * TODO: [🦷] Ideally use `as const satisfies Scraper` BUT this combination throws errors
+ * TODO: [🦷] Ideally use `as const satisfies Converter & Scraper` BUT this combination throws errors
  * Note: No need to aggregate usage here, it is done by intercepting the llmTools
  */

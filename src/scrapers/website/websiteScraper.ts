@@ -1,6 +1,7 @@
 import type { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';
 import type { KnowledgePiecePreparedJson } from '../../types/PipelineJson/KnowledgePieceJson';
 import type { string_filename } from '../../types/typeAliases';
+import { Converter } from '../_common/Converter';
 import { Scraper, ScraperSourceOptions } from '../_common/Scraper';
 // TODO: [🏳‍🌈] Finally take pick of .json vs .ts
 // import PipelineCollection from '../../../promptbook-collection/promptbook-collection';
@@ -14,7 +15,7 @@ import { titleToName } from '../../conversion/utils/titleToName';
 import { KnowledgeScrapeError } from '../../errors/KnowledgeScrapeError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import { $isRunningInNode } from '../../utils/environment/$isRunningInNode';
-import { getScraperSourceCacheFilehandler } from '../_common/utils/getScraperSourceCacheFileHandler';
+import { getScraperIntermediateSource } from '../_common/utils/getScraperIntermediateSource';
 import { markdownScraper } from '../markdown/markdownScraper';
 import { markdownConverter } from './utils/markdownConverter';
 
@@ -78,7 +79,7 @@ export const websiteScraper = {
             html = article?.textContent || '';
         }
 
-        const cacheFilehandler = await getScraperSourceCacheFilehandler(source, {
+        const cacheFilehandler = await getScraperIntermediateSource(source, {
             rootDirname,
             cacheDirname,
             isCacheCleaned,
@@ -125,13 +126,13 @@ export const websiteScraper = {
 
         return knowledge;
     },
-} /* TODO: [🦷] as const */ satisfies Scraper;
+} /* TODO: [🦷] as const */ satisfies Converter & Scraper;
 
 /**
  * TODO: !!!!!! Put into separate package
  * TODO: [👣] Scraped website in .md can act as cache item - there is no need to run conversion each time
  * TODO: [🦖] Make some system for putting scrapers to separete packages
  * TODO: [🪂] Do it in parallel 11:11
- * TODO: [🦷] Ideally use `as const satisfies Scraper` BUT this combination throws errors
+ * TODO: [🦷] Ideally use `as const satisfies Converter & Scraper` BUT this combination throws errors
  * Note: No need to aggregate usage here, it is done by intercepting the llmTools
  */
