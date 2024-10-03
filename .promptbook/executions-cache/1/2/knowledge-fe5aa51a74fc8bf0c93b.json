@@ -1,5 +1,5 @@
 {
-    "date": "2024-09-30T06:44:41.232Z",
+    "date": "2024-10-03T10:28:19.649Z",
     "promptbookVersion": "0.71.0-0",
     "prompt": {
         "title": "Knowledge",
@@ -14,11 +14,11 @@
         "expectations": {}
     },
     "promptResult": {
-        "content": "---\n\nV důsledku aktuální krize, kdy lidé hledají úspory, se na trhu stále častěji objevuje podvodná a zdraví škodlivá bižuterie.\n\n---\n\nZákazníci Korálky Katlas často hlásí problémy a podvody, s nimiž se setkávají při nákupu bižuterie v ČR i zahraničí.\n\n---\n\nKorálky Katlas připravily sumář věcí, na které je dobré si dát při nákupu hotové bižuterie a bižuterních polotovarů pozor.",
+        "content": "---\n\nZ důvodu aktuální ekonomické krize se na trhu opět často objevuje podvodná a zdraví škodlivá bižuterie.\n\n---\n\nZákazníci ze zahraničí i ČR hlásí problémy a podvody spojené s kvalitou kovové bižuterie.\n\n---\n\nKorálky Katlas připravily souhrn upozornění na věci, na které si dát pozor při nákupu hotové bižuterie a bižuterních polotovarů.\n\n---",
         "modelName": "gpt4o",
         "timing": {
-            "start": "2024-09-30T06:44:37.337Z",
-            "complete": "2024-09-30T06:44:41.231Z"
+            "start": "2024-10-03T10:28:17.232Z",
+            "complete": "2024-10-03T10:28:19.648Z"
         },
         "usage": {
             "price": {
@@ -50,7 +50,7 @@
             },
             "output": {
                 "tokensCount": {
-                    "value": 135
+                    "value": 116
                 },
                 "charactersCount": {
                     "value": 482
@@ -84,11 +84,11 @@
             {}
         ],
         "rawResponse": {
-            "id": "chatcmpl-AD4R1BmRJ22SMeCy4sr3ZdEnSbmRD",
+            "id": "chatcmpl-AEDMAQkAA5n2DiMsP9vnrZwR7Wc8l",
             "model": "gpt-4o-2024-05-13",
             "object": "chat.completion",
-            "systemFingerprint": "fp_67802d9a6d",
-            "created": "1970-01-20T23:54:38.675Z",
+            "systemFingerprint": "fp_80a1bad4c7",
+            "created": "1970-01-20T23:59:11.298Z",
             "promptFilterResults": [
                 {
                     "promptIndex": 0,
@@ -113,16 +113,16 @@
                 }
             ],
             "usage": {
-                "completionTokens": 135,
+                "completionTokens": 116,
                 "promptTokens": 361,
-                "totalTokens": 496
+                "totalTokens": 477
             },
             "choices": [
                 {
                     "index": 0,
                     "logprobs": null,
                     "message": {
-                        "content": "---\n\nV důsledku aktuální krize, kdy lidé hledají úspory, se na trhu stále častěji objevuje podvodná a zdraví škodlivá bižuterie.\n\n---\n\nZákazníci Korálky Katlas často hlásí problémy a podvody, s nimiž se setkávají při nákupu bižuterie v ČR i zahraničí.\n\n---\n\nKorálky Katlas připravily sumář věcí, na které je dobré si dát při nákupu hotové bižuterie a bižuterních polotovarů pozor.",
+                        "content": "---\n\nZ důvodu aktuální ekonomické krize se na trhu opět často objevuje podvodná a zdraví škodlivá bižuterie.\n\n---\n\nZákazníci ze zahraničí i ČR hlásí problémy a podvody spojené s kvalitou kovové bižuterie.\n\n---\n\nKorálky Katlas připravily souhrn upozornění na věci, na které si dát pozor při nákupu hotové bižuterie a bižuterních polotovarů.\n\n---",
                         "role": "assistant"
                     },
                     "finishReason": "stop",

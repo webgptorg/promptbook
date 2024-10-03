@@ -1,11 +1,11 @@
 {
-    "date": "2024-10-03T10:30:36.626Z",
+    "date": "2024-10-03T10:30:36.598Z",
     "promptbookVersion": "0.71.0-0",
     "prompt": {
         "title": "Knowledge",
         "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.ptbk.md#knowledge",
         "parameters": {
-            "knowledgePieceContent": "As of 2019, Springfield had a population of 10,566, making it the sixth most populous city in Illinois."
+            "knowledgePieceContent": "---\n\nSpringfield is a city in the state of Illinois, USA, and serves as the county seat of Sangamon County."
         },
         "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> {knowledgePieceContent}",
         "modelRequirements": {
@@ -14,11 +14,11 @@
         "expectations": {}
     },
     "promptResult": {
-        "content": "Springfield, population, 10,566, sixth, most populous, city, Illinois, 2019",
+        "content": "Springfield, city, Illinois, USA, county seat, Sangamon County",
         "modelName": "gpt-4o-2024-08-06",
         "timing": {
-            "start": "2024-10-03T10:30:36.031Z",
-            "complete": "2024-10-03T10:30:36.625Z"
+            "start": "2024-10-03T10:30:36.025Z",
+            "complete": "2024-10-03T10:30:36.597Z"
         },
         "usage": {
             "price": {
@@ -27,7 +27,7 @@
             },
             "input": {
                 "tokensCount": {
-                    "value": 70
+                    "value": 71
                 },
                 "charactersCount": {
                     "value": 217
@@ -50,13 +50,13 @@
             },
             "output": {
                 "tokensCount": {
-                    "value": 22
+                    "value": 15
                 },
                 "charactersCount": {
-                    "value": 75
+                    "value": 62
                 },
                 "wordsCount": {
-                    "value": 10
+                    "value": 8
                 },
                 "sentencesCount": {
                     "value": 1
@@ -72,18 +72,18 @@
                 }
             }
         },
-        "rawPromptContent": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> As of 2019, Springfield had a population of 10,566, making it the sixth most populous city in Illinois.",
+        "rawPromptContent": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> ---\n> \n> Springfield is a city in the state of Illinois, USA, and serves as the county seat of Sangamon County.",
         "rawRequest": {
             "model": "gpt-4o",
             "messages": [
                 {
                     "role": "user",
-                    "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> As of 2019, Springfield had a population of 10,566, making it the sixth most populous city in Illinois."
+                    "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> ---\n> \n> Springfield is a city in the state of Illinois, USA, and serves as the county seat of Sangamon County."
                 }
             ]
         },
         "rawResponse": {
-            "id": "chatcmpl-AEDOOxC82iXHN5o3M1C6ysNQx5cue",
+            "id": "chatcmpl-AEDOOkS08AmpqG5jj9ZAi6N9XOgBi",
             "object": "chat.completion",
             "created": 1727951436,
             "model": "gpt-4o-2024-08-06",
@@ -92,7 +92,7 @@
                     "index": 0,
                     "message": {
                         "role": "assistant",
-                        "content": "Springfield, population, 10,566, sixth, most populous, city, Illinois, 2019",
+                        "content": "Springfield, city, Illinois, USA, county seat, Sangamon County",
                         "refusal": null
                     },
                     "logprobs": null,
@@ -100,9 +100,9 @@
                 }
             ],
             "usage": {
-                "prompt_tokens": 70,
-                "completion_tokens": 22,
-                "total_tokens": 92,
+                "prompt_tokens": 71,
+                "completion_tokens": 15,
+                "total_tokens": 86,
                 "prompt_tokens_details": {
                     "cached_tokens": 0
                 },
@@ -110,7 +110,7 @@
                     "reasoning_tokens": 0
                 }
             },
-            "system_fingerprint": "fp_e5e4913e83"
+            "system_fingerprint": "fp_2f406b9113"
         }
     }
 }
