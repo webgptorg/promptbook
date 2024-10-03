@@ -116,7 +116,7 @@ async function generateSampleJsons({
     console.info(colors.cyan(usageToHuman(llmTools.getTotalUsage())));
 
     if (isCommited) {
-        await commit([PROMPTBOOK_SAMPLES_DIR], `📖 Convert samples .ptbk.md -> .ptbk.json`);
+        await commit([PROMPTBOOK_SAMPLES_DIR], `📖 Convert samples \`.ptbk.md\` -> \`.ptbk.json\``);
     }
 
     console.info(`[ Done 📖  Convert samples .ptbk.md -> .ptbk.json]`);
