@@ -5,6 +5,8 @@ import type { Scraper, ScraperSourceOptions } from '../_common/Scraper';
 // import PipelineCollection from '../../../promptbook-collection/promptbook-collection';
 import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
 import { TODO_USE } from '../../utils/organization/TODO_USE';
+import { Converter } from '../_common/Converter';
+import { ScraperIntermediateSource } from '../_common/ScraperIntermediateSource';
 
 /**
  * Scraper for .docx files
@@ -24,7 +26,16 @@ export const pdfScraper = {
     documentationUrl: 'https://github.com/webgptorg/promptbook/discussions/@@',
 
     /**
-     * Scrapes the docx file and returns the knowledge pieces or `null` if it can't scrape it
+     * Converts the `.pdf` file to `.md` file and returns intermediate source
+     */
+    async $convert(source: ScraperSourceOptions, options: PrepareAndScrapeOptions): Promise<ScraperIntermediateSource> {
+        TODO_USE(source);
+        TODO_USE(options);
+        throw new NotYetImplementedError('PDF conversion not yet implemented');
+    },
+
+    /**
+     * Scrapes the `.pdf` file and returns the knowledge pieces or `null` if it can't scrape it
      */
     async scrape(
         source: ScraperSourceOptions,

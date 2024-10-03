@@ -112,7 +112,7 @@ export const legacyDocumentScraper = {
         source: ScraperSourceOptions,
         options: PrepareAndScrapeOptions,
     ): Promise<Array<Omit<KnowledgePiecePreparedJson, 'sources' | 'preparationIds'>> | null> {
-        const cacheFilehandler = await this.$convert(source, options);
+        const cacheFilehandler = await legacyDocumentScraper.$convert(source, options);
 
         const markdownSource = {
             source: source.source,

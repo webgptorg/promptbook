@@ -8,6 +8,7 @@ import { nameToSubfolderPath } from '../../../storage/file-cache-storage/utils/n
 import { string_file_extension } from '../../../types/typeAliases';
 import { TODO_USE } from '../../../utils/organization/TODO_USE';
 import { ScraperSourceOptions } from '../Scraper';
+import { ScraperIntermediateSource } from '../ScraperIntermediateSource';
 
 /**
  * @@@
@@ -86,7 +87,7 @@ export async function getScraperIntermediateSource(
 
             isDestroyed = true;
         },
-    } satisfies Converter & ScraperIntermediateSource;
+    } satisfies ScraperIntermediateSource;
 
     return fileHandler;
 }

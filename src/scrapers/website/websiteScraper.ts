@@ -1,6 +1,6 @@
 import type { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';
 import type { KnowledgePiecePreparedJson } from '../../types/PipelineJson/KnowledgePieceJson';
-import type { string_filename } from '../../types/typeAliases';
+import type { string_filename, string_markdown } from '../../types/typeAliases';
 import { Converter } from '../_common/Converter';
 import { Scraper, ScraperSourceOptions } from '../_common/Scraper';
 // TODO: [🏳‍🌈] Finally take pick of .json vs .ts
@@ -15,6 +15,7 @@ import { titleToName } from '../../conversion/utils/titleToName';
 import { KnowledgeScrapeError } from '../../errors/KnowledgeScrapeError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import { $isRunningInNode } from '../../utils/environment/$isRunningInNode';
+import { ScraperIntermediateSource } from '../_common/ScraperIntermediateSource';
 import { getScraperIntermediateSource } from '../_common/utils/getScraperIntermediateSource';
 import { markdownScraper } from '../markdown/markdownScraper';
 import { markdownConverter } from './utils/markdownConverter';
@@ -44,7 +45,7 @@ export const websiteScraper = {
     async $convert(
         source: ScraperSourceOptions,
         options: PrepareAndScrapeOptions,
-    ): Promise<Array<Omit<KnowledgePiecePreparedJson, 'sources' | 'preparationIds'>> | null> {
+    ): Promise<ScraperIntermediateSource & { markdown: string_markdown }> {
         const {
             // TODO: [🧠] Maybe in node use headless browser not just JSDOM
             // externalProgramsPaths = {},
@@ -102,7 +103,7 @@ export const websiteScraper = {
             await writeFile(markdownSourceFilePath, markdown, 'utf-8');
         }
 
-        return cacheFilehandler;
+        return { ...cacheFilehandler, markdown };
     },
 
     /**
@@ -112,7 +113,7 @@ export const websiteScraper = {
         source: ScraperSourceOptions,
         options: PrepareAndScrapeOptions,
     ): Promise<Array<Omit<KnowledgePiecePreparedJson, 'sources' | 'preparationIds'>> | null> {
-        const cacheFilehandler = await this.$convert(source, options);
+        const cacheFilehandler = await websiteScraper.$convert(source, options);
 
         const markdownSource = {
             source: source.source,
@@ -120,7 +121,7 @@ export const websiteScraper = {
             url: null,
             mimeType: 'text/markdown',
             asText() {
-                return markdown;
+                return cacheFilehandler.markdown;
             },
             asJson() {
                 throw new UnexpectedError(
