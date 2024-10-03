@@ -35,7 +35,7 @@ export const legacyDocumentScraper = {
     documentationUrl: 'https://github.com/webgptorg/promptbook/discussions/@@',
 
     /**
-     * Convert the docx to doc file and returns intermediate source or `null` if it can't convert it
+     * Convert the `.doc` or `.rtf`  to `.doc` file and returns intermediate source
      *
      * Note: `$` is used to indicate that this function is not a pure function - it leaves files on the disk and you are responsible for cleaning them by calling `destroy` method of returned object
      */
@@ -106,7 +106,7 @@ export const legacyDocumentScraper = {
     },
 
     /**
-     * Scrapes the docx file and returns the knowledge pieces or `null` if it can't scrape it
+     * Scrapes the `.doc` or `.rtf` file and returns the knowledge pieces or `null` if it can't scrape it
      */
     async scrape(
         source: ScraperSourceOptions,

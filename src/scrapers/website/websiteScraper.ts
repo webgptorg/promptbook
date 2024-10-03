@@ -37,9 +37,11 @@ export const websiteScraper = {
     documentationUrl: 'https://github.com/webgptorg/promptbook/discussions/@@',
 
     /**
-     * Scrapes the docx file and returns the knowledge pieces or `null` if it can't scrape it
+     * Convert the website  to `.md` file and returns intermediate source
+     *
+     * Note: `$` is used to indicate that this function is not a pure function - it leaves files on the disk and you are responsible for cleaning them by calling `destroy` method of returned object
      */
-    async scrape(
+    async $convert(
         source: ScraperSourceOptions,
         options: PrepareAndScrapeOptions,
     ): Promise<Array<Omit<KnowledgePiecePreparedJson, 'sources' | 'preparationIds'>> | null> {
@@ -100,9 +102,21 @@ export const websiteScraper = {
             await writeFile(markdownSourceFilePath, markdown, 'utf-8');
         }
 
+        return cacheFilehandler;
+    },
+
+    /**
+     * Scrapes the website and returns the knowledge pieces or `null` if it can't scrape it
+     */
+    async scrape(
+        source: ScraperSourceOptions,
+        options: PrepareAndScrapeOptions,
+    ): Promise<Array<Omit<KnowledgePiecePreparedJson, 'sources' | 'preparationIds'>> | null> {
+        const cacheFilehandler = await this.$convert(source, options);
+
         const markdownSource = {
             source: source.source,
-            filename: markdownSourceFilePath,
+            filename: cacheFilehandler.filename,
             url: null,
             mimeType: 'text/markdown',
             asText() {
