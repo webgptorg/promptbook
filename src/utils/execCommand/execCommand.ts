@@ -15,6 +15,8 @@ import { execCommandNormalizeOptions } from './execCommandNormalizeOptions';
  * @public exported from `@promptbook/node`
  */
 export function execCommand(options: IExecCommandOptions): Promise<string> {
+    // TODO: !!!!!! Check the environment and throw an error if it is not Node.js
+
     return new Promise(
         //            <- TODO: [🧱] Implement in a functional (not new Class) way
         (resolve, reject) => {
@@ -40,6 +42,7 @@ export function execCommand(options: IExecCommandOptions): Promise<string> {
                 command = `${command}.cmd`;
             }
 
+            // !!!!!! Verbose mode - to all consoles
             console.info(colors.yellow(cwd) + ' ' + colors.green(command) + ' ' + colors.blue(args.join(' ')));
 
             try {
@@ -104,5 +107,5 @@ export function execCommand(options: IExecCommandOptions): Promise<string> {
 }
 
 /**
- * Note: [⚫] Code in this file should never be published in any package
+ * Note: [⚫] Code in this file should never be published in any package <- !!!!!! Change
  */
