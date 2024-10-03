@@ -34,7 +34,7 @@ export async function prepareKnowledgePieces(
     const knowledgePrepared: Array<Omit<KnowledgePiecePreparedJson, 'preparationIds'>> = [];
 
     await forEachAsync(knowledgeSources, { maxParallelCount }, async (knowledgeSource) => {
-        let partialPieces: Omit<KnowledgePiecePreparedJson, 'preparationIds' | 'sources'>[];
+        let partialPieces: Omit<KnowledgePiecePreparedJson, 'preparationIds' | 'sources'>[] | null = null;
 
         if (isValidUrl(knowledgeSource.sourceContent)) {
             // 1️⃣ `knowledgeSource` is URL
@@ -50,9 +50,9 @@ export async function prepareKnowledgePieces(
             }
 
             if (rootDirname === null) {
-              throw new EnvironmentMismatchError('Can not import knowledge in non-file pipeline');
-              //          <- TODO: [🧠] What is the best error type here`
-          }
+                throw new EnvironmentMismatchError('Can not import knowledge in non-file pipeline');
+                //          <- TODO: [🧠] What is the best error type here`
+            }
 
             const filename = join(rootDirname, knowledgeSource.sourceContent).split('\\').join('/');
             const fileExtension = getFileExtension(filename);
@@ -93,20 +93,29 @@ export async function prepareKnowledgePieces(
                 }
             }
 
-            throw new KnowledgeScrapeError(
-                spaceTrim(
-                    (block) => `
-                        Can not find scraper the "${mimeType}" file
+            if (partialPieces === null) {
+                throw new KnowledgeScrapeError(
+                    spaceTrim(
+                        (block) => `
+                            Can not find scraper the "${mimeType}" file
 
-                        File Extension:
-                        ${block(fileExtension || 'null')}
+                            File Extension:
+                            ${block(fileExtension || 'null')}
 
-                        File path:
-                        ${block(filename)}
+                            File path:
+                            ${block(filename)}
 
-                    `,
-                ),
-            );
+                            Available scrapers:
+                            ${block(
+                                SCRAPERS.flatMap(({ mimeTypes }) => mimeTypes)
+                                    .map((mimeType) => `- ${mimeType}`)
+                                    .join('\n'),
+                            )}
+
+                        `,
+                    ),
+                );
+            }
         } else {
             // 1️⃣ `knowledgeSource` is just inlined (markdown content) information
             const partialPiecesUnchecked = await markdownScraper.scrape(
