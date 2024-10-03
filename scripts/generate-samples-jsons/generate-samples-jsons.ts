@@ -8,7 +8,7 @@ import colors from 'colors';
 import commander from 'commander';
 import { readFile, writeFile } from 'fs/promises';
 import glob from 'glob-promise';
-import { join } from 'path';
+import { dirname, join } from 'path';
 import { pipelineStringToJson } from '../../src/conversion/pipelineStringToJson';
 import { stringifyPipelineJson } from '../../src/conversion/utils/stringifyPipelineJson';
 import { usageToHuman } from '../../src/execution/utils/usageToHuman';
@@ -76,6 +76,7 @@ async function generateSampleJsons({
         try {
             const pipelineJson = await pipelineStringToJson(pipelineMarkdown as PipelineString, {
                 llmTools,
+                rootDirname: dirname(pipelineMarkdownFilePath),
                 externalProgramsPaths: {
                     // TODO: !!!!!! use `locate-app` library here
                     pandocPath: 'C:/Users/me/AppData/Local/Pandoc/pandoc.exe',

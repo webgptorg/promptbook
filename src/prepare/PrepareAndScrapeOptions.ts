@@ -44,6 +44,8 @@ export type PrepareAndScrapeOptions = {
 
     /**
      * Path to the external programs executables
+     *
+     * TODO: !!!!!! Transform to scrapers and make them Classy
      */
     readonly externalProgramsPaths?: {
         /**
