@@ -1,4 +1,5 @@
 import { readFile } from 'fs/promises'; // <- TODO: !!!!!! is it OK to import from `fs/promises` in browser environment?
+import { join } from 'path';
 import spaceTrim from 'spacetrim';
 import { $isRunningInNode } from '../../_packages/utils.index';
 import { MAX_PARALLEL_COUNT } from '../../config';
@@ -48,7 +49,12 @@ export async function prepareKnowledgePieces(
                 throw new EnvironmentMismatchError('Importing knowledge source file works only in Node.js environment');
             }
 
-            const filename = knowledgeSource.sourceContent;
+            if (rootDirname === null) {
+              throw new EnvironmentMismatchError('Can not import knowledge in non-file pipeline');
+              //          <- TODO: [🧠] What is the best error type here`
+          }
+
+            const filename = join(rootDirname, knowledgeSource.sourceContent).split('\\').join('/');
             const fileExtension = getFileExtension(filename);
             const mimeType = extensionToMimeType(fileExtension || '');
 
