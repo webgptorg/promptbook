@@ -7,11 +7,13 @@ import type { ChatPromptResult } from '../../execution/PromptResult';
 import { UNCERTAIN_USAGE } from '../../execution/utils/usage-constants';
 import type { ModelRequirements } from '../../types/ModelRequirements';
 import type { Prompt } from '../../types/Prompt';
-import type { string_date_iso8601 } from '../../types/typeAliases';
-import type { string_markdown } from '../../types/typeAliases';
-import type { string_markdown_text } from '../../types/typeAliases';
-import type { string_title } from '../../types/typeAliases';
-import type { string_token } from '../../types/typeAliases';
+import type {
+    string_date_iso8601,
+    string_markdown,
+    string_markdown_text,
+    string_title,
+    string_token,
+} from '../../types/typeAliases';
 import { getCurrentIsoDate } from '../../utils/getCurrentIsoDate';
 import { replaceParameters } from '../../utils/parameters/replaceParameters';
 import { $asDeeplyFrozenSerializableJson } from '../../utils/serialization/$asDeeplyFrozenSerializableJson';
@@ -102,14 +104,14 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
             //          <- [🧠] What is the best value here
         });
         const rawRequest: OpenAI.Beta.ThreadCreateAndRunStreamParams = {
-            // [👨‍👨‍👧‍👧] ...modelSettings,
+            // TODO: [👨‍👨‍👧‍👧] ...modelSettings,
+            // TODO: [👨‍👨‍👧‍👧][🧠] What about system message for assistants, does it make sence - combination of OpenAI assistants with Promptbook Personas
 
             assistant_id: this.assistantId,
             thread: {
                 messages: [
-                    // TODO: !!!!!! Unhardcode
                     // TODO: !!!!!! Allow threads to be passed
-                    { role: 'user', content: 'What is the meaning of life? I want breathtaking speech.' },
+                    { role: 'user', content: rawPromptContent },
                 ],
             },
 
