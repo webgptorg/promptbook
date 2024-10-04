@@ -1,5 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
 import { getScraperIntermediateSource } from './getScraperIntermediateSource';
+import { join } from 'path';
 
 describe('how `getScraperIntermediateSource` works', () => {
     it('should create filename for file source', () =>
@@ -17,7 +18,14 @@ describe('how `getScraperIntermediateSource` works', () => {
                     extension: 'md',
                 },
             ).then(({ filename }) => filename),
-        ).resolves.toBe('/'));
+        ).resolves.toBe(
+            join(
+                process.cwd(),
+                '/home/user/coolproject/.promptbook/8/0/prague.pdf-80efa46cc0147c9b65fd46cbf90638196e6540197b655ddb6eb704c38a2bdd23.md',
+            )
+                .split('\\')
+                .join('/'),
+        ));
 
     /*
     !!!!!!

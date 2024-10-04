@@ -1,14 +1,17 @@
 import { describe, expect, it } from '@jest/globals';
+import { JSDOM } from 'jsdom';
 import { spaceTrim } from 'spacetrim';
 import { markdownConverter } from './markdownConverter';
 
 describe(`markdownConverter`, () => {
+    const jsdom = new JSDOM();
+
     it(`preserves supersimple markdown to html`, () => {
         expect(markdownConverter.makeHtml('hello')).toEqual('<p>hello</p>');
     });
 
     it(`preserves supersimple html to markdown`, () => {
-        expect(spaceTrim(markdownConverter.makeMarkdown('<p>hello</p>'))).toEqual('hello');
+        expect(spaceTrim(markdownConverter.makeMarkdown('<p>hello</p>', jsdom.window.document))).toEqual('hello');
     });
 
     it(`converts simple markdown to html`, () => {
@@ -16,11 +19,11 @@ describe(`markdownConverter`, () => {
             spaceTrim(
                 markdownConverter.makeHtml(
                     spaceTrim(`
-                
+
                     # Hello World!
 
                     This is a **markdown** text.
-                
+
                 `),
                 ),
             ),
@@ -44,15 +47,16 @@ describe(`markdownConverter`, () => {
                     <p>This is a <strong>markdown</strong> text.</p>
 
                 `),
+                    jsdom.window.document,
                 ),
             ),
         ).toEqual(
             spaceTrim(`
-                
+
                     # Hello World!
 
                     This is a **markdown** text.
-            
+
             `),
         );
     });
@@ -62,7 +66,7 @@ describe(`markdownConverter`, () => {
 
     it(`preserves advanced markdown when converted to html and back `, () => {
         const markdown = spaceTrim(`
-                
+
             # Hello World!
 
             This is a **markdown** text.
@@ -95,10 +99,10 @@ describe(`markdownConverter`, () => {
             const c = a + b;
             \`\`\`
 
-        
+
         `);
 
-        expect(markdownConverter.makeMarkdown(markdownConverter.makeHtml(markdown))).toEqual(markdown);
+        expect(markdownConverter.makeMarkdown(markdownConverter.makeHtml(markdown), jsdom.window.document)).toEqual(markdown);
     });
 
     /**/

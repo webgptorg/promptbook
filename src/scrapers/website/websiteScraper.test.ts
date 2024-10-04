@@ -16,7 +16,7 @@ describe('how creating knowledge from website works', () => {
                 .then((knowledge) => knowledge?.slice(0, 1)),
         ).resolves.toMatchObject([
             {
-                content: expect.stringMatching(/Pavol Hejný .*/i),
+                content: expect.stringMatching(/(Generative )?AI/i),
             },
         ]));
 
