@@ -154,3 +154,8 @@ https://koralkykatlas.cz/cs/blog/prispevek/workshop-na-tvorbu-svatebnich-ozdob-p
 https://koralkykatlas.cz/cs/blog/prispevek/zahadne-svetlo-z-koralku-tajemstvi-fluorescence-odhaleno.html
 https://koralkykatlas.cz/cs/blog/prispevek/zalozka-do-knih-za-vysvedceni.html
 https://koralkykatlas.cz/cs/blog/prispevek/zalozky-do-knih-pro-chvile-pohody.html
+
+
+---
+
+https://koralkykatlas.cz/xml/heureka_cz.xml
