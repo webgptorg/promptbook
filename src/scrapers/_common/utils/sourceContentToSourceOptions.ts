@@ -1,7 +1,9 @@
 import { readFile } from 'fs/promises';
 import { join } from 'path';
 import { KnowledgeSourceJson, PrepareAndScrapeOptions } from '../../../_packages/types.index';
+import { $isRunningInNode } from '../../../_packages/utils.index';
 import { IS_VERBOSE } from '../../../config';
+import { EnvironmentMismatchError } from '../../../errors/EnvironmentMismatchError';
 import { UnexpectedError } from '../../../errors/UnexpectedError';
 import { extensionToMimeType } from '../../../utils/files/extensionToMimeType';
 import { getFileExtension } from '../../../utils/files/getFileExtension';
@@ -18,14 +20,26 @@ export async function sourceContentToSourceOptions(
     options?: Pick<PrepareAndScrapeOptions, 'rootDirname' | 'isVerbose'>,
 ): Promise<ScraperSourceOptions> {
     const { name, sourceContent } = knowledgeSource;
-    const { rootDirname, isVerbose = IS_VERBOSE } = options || {};
+    const { rootDirname = null, isVerbose = IS_VERBOSE } = options || {};
 
     TODO_USE(isVerbose);
 
     if (isValidFilePath(sourceContent)) {
-        const filename = join(rootDirname, sourceContent).split('/').join('\\');
+        if (!$isRunningInNode()) {
+            throw new EnvironmentMismatchError('Importing knowledge source file works only in Node.js environment');
+        }
+
+        if (rootDirname === null) {
+            throw new EnvironmentMismatchError('Can not import file knowledge in non-file pipeline');
+            //          <- TODO: [🧠] What is the best error type here`
+        }
+
+        const filename = join(rootDirname, sourceContent).split('\\').join('/');
         const fileExtension = getFileExtension(filename);
         const mimeType = extensionToMimeType(fileExtension || '');
+
+        // TODO: !!!!!! Test that file exists and is accessible
+        // TODO: !!!!!! Test security file - file is scoped to the project (maybe do this in `filesystemTools`)
 
         return {
             source: name,
@@ -103,5 +117,6 @@ export async function sourceContentToSourceOptions(
 }
 
 /**
+ * TODO: !!!!!! Rename to knowledgeSourceToSourceOptions
  * TODO !!!!!! SourceOptions -> SourceHandler
  */
