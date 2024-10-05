@@ -69,8 +69,8 @@ export async function makeKnowledgeSourceHandler(
         };
     } else if (isValidUrl(sourceContent)) {
         const url = sourceContent;
-        const response = await fetch(url);
-        const mimeType = response.type;
+        const response = await fetch(url); // <- TODO: [🧠] Scraping and fetch proxy
+        const mimeType = response.headers.get('content-type')?.split(';')[0] || 'text/html';
 
         return {
             source: name,

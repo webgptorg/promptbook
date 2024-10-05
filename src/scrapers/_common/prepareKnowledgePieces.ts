@@ -48,7 +48,7 @@ export async function prepareKnowledgePieces(
                     (block) => `
                         Cannot scrape knowledge from source: ${knowledgeSource.sourceContent}
 
-                        No scraper found for the ${sourceHandler.mimeType}
+                        No scraper found for the mime type "${sourceHandler.mimeType}"
 
                         Available scrapers:
                         ${block(
