@@ -10,7 +10,7 @@ import { join } from 'path';
 import { stringifyPipelineJson } from '../../../conversion/utils/stringifyPipelineJson';
 import { usageToHuman } from '../../../execution/utils/usageToHuman';
 import { getLlmToolsForTestingAndScriptsAndPlayground } from '../../../llm-providers/_common/getLlmToolsForTestingAndScriptsAndPlayground';
-import { emulateScraperSourceOptions } from '../../_common/utils/emulateScraperSourceOptions';
+import { sourceContentToSourceOptions } from '../../_common/utils/sourceContentToSourceOptions';
 import { markdownScraper } from '../markdownScraper';
 
 const isVerbose = true;
@@ -40,11 +40,14 @@ async function playground() {
 
     const llmTools = getLlmToolsForTestingAndScriptsAndPlayground({ isCacheReloaded: true });
 
-    const knowledge = await markdownScraper.scrape(await emulateScraperSourceOptions(samplePath), {
-        llmTools,
-        isVerbose,
-        rootDirname: join(__dirname, 'samples'),
-    });
+    const knowledge = await markdownScraper.scrape(
+        await sourceContentToSourceOptions({ name: 'test-source', sourceContent: samplePath }),
+        {
+            llmTools,
+            isVerbose,
+            rootDirname: join(__dirname, 'samples'),
+        },
+    );
 
     console.info(colors.cyan(usageToHuman(llmTools.getTotalUsage())));
     console.info(colors.bgGreen(' Knowledge: '));

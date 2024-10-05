@@ -1,14 +1,19 @@
 import { describe, expect, it } from '@jest/globals';
 import { join } from 'path';
 import { getLlmToolsForTestingAndScriptsAndPlayground } from '../../llm-providers/_common/getLlmToolsForTestingAndScriptsAndPlayground';
-import { emulateScraperSourceOptions } from '../_common/utils/emulateScraperSourceOptions';
+import { sourceContentToSourceOptions } from '../_common/utils/sourceContentToSourceOptions';
 import { markdownScraper } from './markdownScraper';
 
 describe('how creating knowledge from markdown works', () => {
     it('should scrape simple information from a markdown', () =>
         expect(
             Promise.resolve()
-                .then(() => emulateScraperSourceOptions(join(__dirname, 'samples/10-simple.md')))
+                .then(() =>
+                    sourceContentToSourceOptions({
+                        name: 'test-source',
+                        sourceContent: join(__dirname, 'samples/10-simple.md'),
+                    }),
+                )
                 .then((options) =>
                     markdownScraper.scrape(options, {
                         llmTools: getLlmToolsForTestingAndScriptsAndPlayground(),
@@ -26,7 +31,12 @@ describe('how creating knowledge from markdown works', () => {
     it('should NOT scrape irrelevant information', () =>
         expect(
             Promise.resolve()
-                .then(() => emulateScraperSourceOptions(join(__dirname, 'samples/10-simple.md')))
+                .then(() =>
+                    sourceContentToSourceOptions({
+                        name: 'test-source',
+                        sourceContent: join(__dirname, 'samples/10-simple.md'),
+                    }),
+                )
                 .then((options) =>
                     markdownScraper.scrape(options, {
                         llmTools: getLlmToolsForTestingAndScriptsAndPlayground(),

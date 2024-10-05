@@ -11,7 +11,7 @@ import { stringifyPipelineJson } from '../../../conversion/utils/stringifyPipeli
 import { titleToName } from '../../../conversion/utils/titleToName';
 import { usageToHuman } from '../../../execution/utils/usageToHuman';
 import { getLlmToolsForTestingAndScriptsAndPlayground } from '../../../llm-providers/_common/getLlmToolsForTestingAndScriptsAndPlayground';
-import { emulateScraperSourceOptions } from '../../_common/utils/emulateScraperSourceOptions';
+import { sourceContentToSourceOptions } from '../../_common/utils/sourceContentToSourceOptions';
 import { websiteScraper } from '../websiteScraper';
 
 const isVerbose = true;
@@ -38,17 +38,20 @@ async function playground() {
 
     const llmTools = getLlmToolsForTestingAndScriptsAndPlayground({ isCacheReloaded: true });
 
-    const knowledge = await websiteScraper.scrape(await emulateScraperSourceOptions(sample), {
-        llmTools,
-        isVerbose,
-        rootDirname: join(__dirname, 'samples'),
-        isCacheCleaned: false,
-        // TODO: !!!!!! Maybe remove or modify
-        externalProgramsPaths: {
-            // TODO: !!!!!! use `locate-app` library here
-            pandocPath: 'C:/Users/me/AppData/Local/Pandoc/pandoc.exe',
+    const knowledge = await websiteScraper.scrape(
+        await sourceContentToSourceOptions({ name: 'test-source', sourceContent: sample }),
+        {
+            llmTools,
+            isVerbose,
+            rootDirname: join(__dirname, 'samples'),
+            isCacheCleaned: false,
+            // TODO: !!!!!! Maybe remove or modify
+            externalProgramsPaths: {
+                // TODO: !!!!!! use `locate-app` library here
+                pandocPath: 'C:/Users/me/AppData/Local/Pandoc/pandoc.exe',
+            },
         },
-    });
+    );
 
     console.info(colors.cyan(usageToHuman(llmTools.getTotalUsage())));
     console.info(colors.bgGreen(' Knowledge: '));

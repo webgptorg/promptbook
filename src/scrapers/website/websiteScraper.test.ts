@@ -1,14 +1,16 @@
 import { describe, expect, it } from '@jest/globals';
 import { join } from 'path';
 import { getLlmToolsForTestingAndScriptsAndPlayground } from '../../llm-providers/_common/getLlmToolsForTestingAndScriptsAndPlayground';
-import { emulateScraperSourceOptions } from '../_common/utils/emulateScraperSourceOptions';
+import { sourceContentToSourceOptions } from '../_common/utils/sourceContentToSourceOptions';
 import { websiteScraper } from './websiteScraper';
 
 describe('how creating knowledge from website works', () => {
     it('should scrape simple information from a https://www.pavolhejny.com/', () =>
         expect(
             Promise.resolve()
-                .then(() => emulateScraperSourceOptions('https://www.pavolhejny.com/'))
+                .then(() =>
+                    sourceContentToSourceOptions({ name: 'test-source', sourceContent: 'https://www.pavolhejny.com/' }),
+                )
                 .then((options) =>
                     websiteScraper.scrape(options, {
                         llmTools: getLlmToolsForTestingAndScriptsAndPlayground(),
@@ -26,7 +28,9 @@ describe('how creating knowledge from website works', () => {
     it('should NOT scrape irrelevant information', () =>
         expect(
             Promise.resolve()
-                .then(() => emulateScraperSourceOptions('https://www.pavolhejny.com/'))
+                .then(() =>
+                    sourceContentToSourceOptions({ name: 'test-source', sourceContent: 'https://www.pavolhejny.com/' }),
+                )
                 .then((options) =>
                     websiteScraper.scrape(options, {
                         llmTools: getLlmToolsForTestingAndScriptsAndPlayground(),

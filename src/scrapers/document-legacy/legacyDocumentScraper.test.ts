@@ -1,14 +1,19 @@
 import { describe, expect, it } from '@jest/globals';
 import { join } from 'path';
 import { getLlmToolsForTestingAndScriptsAndPlayground } from '../../llm-providers/_common/getLlmToolsForTestingAndScriptsAndPlayground';
-import { emulateScraperSourceOptions } from '../_common/utils/emulateScraperSourceOptions';
+import { sourceContentToSourceOptions } from '../_common/utils/sourceContentToSourceOptions';
 import { legacyDocumentScraper } from './legacyDocumentScraper';
 
 describe('how creating knowledge from docx works', () => {
     it('should scrape simple information from a (legacy) .doc file', () =>
         expect(
             Promise.resolve()
-                .then(() => emulateScraperSourceOptions(join(__dirname, 'samples/10-simple.doc')))
+                .then(() =>
+                    sourceContentToSourceOptions({
+                        name: 'test-source',
+                        sourceContent: join(__dirname, 'samples/10-simple.doc'),
+                    }),
+                )
                 .then((options) =>
                     legacyDocumentScraper.scrape(options, {
                         llmTools: getLlmToolsForTestingAndScriptsAndPlayground(),
@@ -31,7 +36,12 @@ describe('how creating knowledge from docx works', () => {
     it('should scrape simple information from a .rtf file', () =>
         expect(
             Promise.resolve()
-                .then(() => emulateScraperSourceOptions(join(__dirname, 'samples/10-simple.rtf')))
+                .then(() =>
+                    sourceContentToSourceOptions({
+                        name: 'test-source',
+                        sourceContent: join(__dirname, 'samples/10-simple.rtf'),
+                    }),
+                )
                 .then((options) =>
                     legacyDocumentScraper.scrape(options, {
                         llmTools: getLlmToolsForTestingAndScriptsAndPlayground(),
@@ -54,7 +64,12 @@ describe('how creating knowledge from docx works', () => {
     it('should NOT scrape irrelevant information', () =>
         expect(
             Promise.resolve()
-                .then(() => emulateScraperSourceOptions(join(__dirname, 'samples/10-simple.doc')))
+                .then(() =>
+                    sourceContentToSourceOptions({
+                        name: 'test-source',
+                        sourceContent: join(__dirname, 'samples/10-simple.doc'),
+                    }),
+                )
                 .then((options) =>
                     legacyDocumentScraper.scrape(options, {
                         llmTools: getLlmToolsForTestingAndScriptsAndPlayground(),

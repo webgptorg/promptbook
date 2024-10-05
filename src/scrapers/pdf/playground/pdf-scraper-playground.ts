@@ -10,7 +10,7 @@ import { join } from 'path';
 import { stringifyPipelineJson } from '../../../conversion/utils/stringifyPipelineJson';
 import { usageToHuman } from '../../../execution/utils/usageToHuman';
 import { getLlmToolsForTestingAndScriptsAndPlayground } from '../../../llm-providers/_common/getLlmToolsForTestingAndScriptsAndPlayground';
-import { emulateScraperSourceOptions } from '../../_common/utils/emulateScraperSourceOptions';
+import { sourceContentToSourceOptions } from '../../_common/utils/sourceContentToSourceOptions';
 import { pdfScraper } from '../pdfScraper';
 
 const isVerbose = true;
@@ -41,16 +41,19 @@ async function playground() {
 
     const llmTools = getLlmToolsForTestingAndScriptsAndPlayground({ isCacheReloaded: true });
 
-    const knowledge = await pdfScraper.scrape(await emulateScraperSourceOptions(samplePath), {
-        llmTools,
-        isVerbose,
-        rootDirname: join(__dirname, 'samples'),
-        externalProgramsPaths: {
-            // TODO: !!!!!! use `locate-app` library here + do auto-installation of the programs
-            pandocPath: 'C:/Users/me/AppData/Local/Pandoc/pandoc.exe',
-            libreOfficePath: 'C:/Program Files/LibreOffice/program/swriter.exe',
+    const knowledge = await pdfScraper.scrape(
+        await sourceContentToSourceOptions({ name: 'test-source', sourceContent: samplePath }),
+        {
+            llmTools,
+            isVerbose,
+            rootDirname: join(__dirname, 'samples'),
+            externalProgramsPaths: {
+                // TODO: !!!!!! use `locate-app` library here + do auto-installation of the programs
+                pandocPath: 'C:/Users/me/AppData/Local/Pandoc/pandoc.exe',
+                libreOfficePath: 'C:/Program Files/LibreOffice/program/swriter.exe',
+            },
         },
-    });
+    );
 
     console.info(colors.cyan(usageToHuman(llmTools.getTotalUsage())));
     console.info(colors.bgGreen(' Knowledge: '));
