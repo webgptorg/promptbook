@@ -1,8 +1,11 @@
 import { readFile } from 'fs/promises';
-import { KnowledgeSourceJson } from '../../../_packages/types.index';
+import { join } from 'path';
+import { KnowledgeSourceJson, PrepareAndScrapeOptions } from '../../../_packages/types.index';
+import { IS_VERBOSE } from '../../../config';
 import { UnexpectedError } from '../../../errors/UnexpectedError';
 import { extensionToMimeType } from '../../../utils/files/extensionToMimeType';
 import { getFileExtension } from '../../../utils/files/getFileExtension';
+import { TODO_USE } from '../../../utils/organization/TODO_USE';
 import { isValidFilePath } from '../../../utils/validators/filePath/isValidFilePath';
 import { isValidUrl } from '../../../utils/validators/url/isValidUrl';
 import type { ScraperSourceOptions } from '../Scraper';
@@ -12,11 +15,15 @@ import type { ScraperSourceOptions } from '../Scraper';
  */
 export async function sourceContentToSourceOptions(
     knowledgeSource: KnowledgeSourceJson,
+    options?: Pick<PrepareAndScrapeOptions, 'rootDirname' | 'isVerbose'>,
 ): Promise<ScraperSourceOptions> {
     const { name, sourceContent } = knowledgeSource;
+    const { rootDirname, isVerbose = IS_VERBOSE } = options || {};
+
+    TODO_USE(isVerbose);
 
     if (isValidFilePath(sourceContent)) {
-        const filename = sourceContent;
+        const filename = join(rootDirname, sourceContent).split('/').join('\\');
         const fileExtension = getFileExtension(filename);
         const mimeType = extensionToMimeType(fileExtension || '');
 

@@ -1,7 +1,7 @@
 import { spaceTrim } from 'spacetrim';
 import type { Promisable, ReadonlyDeep } from 'type-fest';
 import { forTime } from 'waitasecond';
-import { IMMEDIATE_TIME, LOOP_LIMIT, RESERVED_PARAMETER_NAMES } from '../../config';
+import { IMMEDIATE_TIME, IS_VERBOSE, LOOP_LIMIT, RESERVED_PARAMETER_NAMES } from '../../config';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import { serializeError } from '../../errors/utils/serializeError';
@@ -79,7 +79,7 @@ type ExecutePipelineOptions = {
 export async function executePipeline(options: ExecutePipelineOptions): Promise<PipelineExecutorResult> {
     const { inputParameters, tools, onProgress, pipeline, setPreparedPipeline, pipelineIdentification, settings } =
         options;
-    const { maxParallelCount, rootDirname, isVerbose } = settings;
+    const { maxParallelCount, rootDirname, isVerbose = IS_VERBOSE } = settings;
     let { preparedPipeline } = options;
 
     const llmTools = joinLlmExecutionTools(...arrayableToArray(tools.llm));

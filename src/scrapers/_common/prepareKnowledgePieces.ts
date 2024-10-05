@@ -1,5 +1,5 @@
 import spaceTrim from 'spacetrim';
-import { MAX_PARALLEL_COUNT } from '../../config';
+import { IS_VERBOSE, MAX_PARALLEL_COUNT } from '../../config';
 import { KnowledgeScrapeError } from '../../errors/KnowledgeScrapeError';
 import { forEachAsync } from '../../execution/utils/forEachAsync';
 import type { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';
@@ -18,13 +18,13 @@ export async function prepareKnowledgePieces(
     knowledgeSources: Array<KnowledgeSourceJson>,
     options: PrepareAndScrapeOptions,
 ): Promise<Array<Omit<KnowledgePiecePreparedJson, 'preparationIds'>>> {
-    const { maxParallelCount = MAX_PARALLEL_COUNT, rootDirname } = options;
+    const { maxParallelCount = MAX_PARALLEL_COUNT, rootDirname, isVerbose = IS_VERBOSE } = options;
 
     const knowledgePrepared: Array<Omit<KnowledgePiecePreparedJson, 'preparationIds'>> = [];
 
     await forEachAsync(knowledgeSources, { maxParallelCount }, async (knowledgeSource) => {
         let partialPieces: Omit<KnowledgePiecePreparedJson, 'preparationIds' | 'sources'>[] | null = null;
-        const sourceOptions = await sourceContentToSourceOptions(knowledgeSource);
+        const sourceOptions = await sourceContentToSourceOptions(knowledgeSource,{ rootDirname, isVerbose });
 
         for (const scraper of SCRAPERS) {
             if (
