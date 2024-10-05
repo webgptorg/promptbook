@@ -7,11 +7,14 @@ import { websiteScraper } from './websiteScraper';
 describe('how creating knowledge from website works', () => {
     it('should scrape simple information from a https://www.pavolhejny.com/', () =>
         expect(
-            websiteScraper
-                .scrape(emulateScraperSourceOptions('https://www.pavolhejny.com/'), {
-                    llmTools: getLlmToolsForTestingAndScriptsAndPlayground(),
-                    rootDirname: join(__dirname, 'samples'),
-                })
+            Promise.resolve()
+                .then(() => emulateScraperSourceOptions('https://www.pavolhejny.com/'))
+                .then((options) =>
+                    websiteScraper.scrape(options, {
+                        llmTools: getLlmToolsForTestingAndScriptsAndPlayground(),
+                        rootDirname: join(__dirname, 'samples'),
+                    }),
+                )
                 .then((knowledge) => knowledge?.map(({ content }) => ({ content })))
                 .then((knowledge) => knowledge?.slice(0, 1)),
         ).resolves.toMatchObject([
@@ -22,11 +25,14 @@ describe('how creating knowledge from website works', () => {
 
     it('should NOT scrape irrelevant information', () =>
         expect(
-            websiteScraper
-                .scrape(emulateScraperSourceOptions('https://www.pavolhejny.com/'), {
-                    llmTools: getLlmToolsForTestingAndScriptsAndPlayground(),
-                    rootDirname: join(__dirname, 'samples'),
-                })
+            Promise.resolve()
+                .then(() => emulateScraperSourceOptions('https://www.pavolhejny.com/'))
+                .then((options) =>
+                    websiteScraper.scrape(options, {
+                        llmTools: getLlmToolsForTestingAndScriptsAndPlayground(),
+                        rootDirname: join(__dirname, 'samples'),
+                    }),
+                )
                 .then((knowledge) => knowledge?.map(({ content }) => ({ content })))
                 .then((knowledge) => knowledge?.slice(0, 1)),
         ).resolves.toMatchObject([

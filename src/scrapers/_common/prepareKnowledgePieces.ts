@@ -36,6 +36,9 @@ export async function prepareKnowledgePieces(
     await forEachAsync(knowledgeSources, { maxParallelCount }, async (knowledgeSource) => {
         let partialPieces: Omit<KnowledgePiecePreparedJson, 'preparationIds' | 'sources'>[] | null = null;
 
+      // sourceContentToSourceOptions
+      // SourceOptions -> SourceHandler
+
         if (isValidUrl(knowledgeSource.sourceContent)) {
             // 1️⃣ `knowledgeSource` is URL
             // [3] DRY 1️⃣ and 2️⃣

@@ -41,7 +41,7 @@ async function playground() {
 
     const llmTools = getLlmToolsForTestingAndScriptsAndPlayground({ isCacheReloaded: true });
 
-    const knowledge = await pdfScraper.scrape(emulateScraperSourceOptions(samplePath), {
+    const knowledge = await pdfScraper.scrape(await emulateScraperSourceOptions(samplePath), {
         llmTools,
         isVerbose,
         rootDirname: join(__dirname, 'samples'),

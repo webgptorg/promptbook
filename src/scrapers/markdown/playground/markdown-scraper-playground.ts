@@ -40,7 +40,7 @@ async function playground() {
 
     const llmTools = getLlmToolsForTestingAndScriptsAndPlayground({ isCacheReloaded: true });
 
-    const knowledge = await markdownScraper.scrape(emulateScraperSourceOptions(samplePath), {
+    const knowledge = await markdownScraper.scrape(await emulateScraperSourceOptions(samplePath), {
         llmTools,
         isVerbose,
         rootDirname: join(__dirname, 'samples'),

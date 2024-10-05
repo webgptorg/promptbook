@@ -7,11 +7,14 @@ import { markdownScraper } from './markdownScraper';
 describe('how creating knowledge from markdown works', () => {
     it('should scrape simple information from a markdown', () =>
         expect(
-            markdownScraper
-                .scrape(emulateScraperSourceOptions(join(__dirname, 'samples/10-simple.md')), {
-                    llmTools: getLlmToolsForTestingAndScriptsAndPlayground(),
-                    rootDirname: join(__dirname, 'samples'),
-                })
+            Promise.resolve()
+                .then(() => emulateScraperSourceOptions(join(__dirname, 'samples/10-simple.md')))
+                .then((options) =>
+                    markdownScraper.scrape(options, {
+                        llmTools: getLlmToolsForTestingAndScriptsAndPlayground(),
+                        rootDirname: join(__dirname, 'samples'),
+                    }),
+                )
                 .then((knowledge) => knowledge?.map(({ content }) => ({ content })))
                 .then((knowledge) => knowledge?.slice(0, 1)),
         ).resolves.toMatchObject([
@@ -22,11 +25,14 @@ describe('how creating knowledge from markdown works', () => {
 
     it('should NOT scrape irrelevant information', () =>
         expect(
-            markdownScraper
-                .scrape(emulateScraperSourceOptions(join(__dirname, 'samples/10-simple.md')), {
-                    llmTools: getLlmToolsForTestingAndScriptsAndPlayground(),
-                    rootDirname: join(__dirname, 'samples'),
-                })
+            Promise.resolve()
+                .then(() => emulateScraperSourceOptions(join(__dirname, 'samples/10-simple.md')))
+                .then((options) =>
+                    markdownScraper.scrape(options, {
+                        llmTools: getLlmToolsForTestingAndScriptsAndPlayground(),
+                        rootDirname: join(__dirname, 'samples'),
+                    }),
+                )
                 .then((knowledge) => knowledge?.map(({ content }) => ({ content })))
                 .then((knowledge) => knowledge?.slice(0, 1)),
         ).resolves.toMatchObject([

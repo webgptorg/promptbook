@@ -7,15 +7,18 @@ import { documentScraper } from './documentScraper';
 describe('how creating knowledge from docx works', () => {
     it('should scrape simple information from a .docx file', () =>
         expect(
-            documentScraper
-                .scrape(emulateScraperSourceOptions(join(__dirname, 'samples/10-simple.docx')), {
-                    llmTools: getLlmToolsForTestingAndScriptsAndPlayground(),
-                    rootDirname: join(__dirname, 'samples'),
-                    externalProgramsPaths: {
-                        // TODO: !!!!!! use `locate-app` library here
-                        pandocPath: 'C:/Users/me/AppData/Local/Pandoc/pandoc.exe',
-                    },
-                })
+            Promise.resolve()
+                .then(() => emulateScraperSourceOptions(join(__dirname, 'samples/10-simple.docx')))
+                .then((options) =>
+                    documentScraper.scrape(options, {
+                        llmTools: getLlmToolsForTestingAndScriptsAndPlayground(),
+                        rootDirname: join(__dirname, 'samples'),
+                        externalProgramsPaths: {
+                            // TODO: !!!!!! use `locate-app` library here
+                            pandocPath: 'C:/Users/me/AppData/Local/Pandoc/pandoc.exe',
+                        },
+                    }),
+                )
                 .then((knowledge) => knowledge?.map(({ content }) => ({ content })))
                 .then((knowledge) => knowledge?.slice(0, 1)),
         ).resolves.toMatchObject([
@@ -26,15 +29,18 @@ describe('how creating knowledge from docx works', () => {
 
     it('should scrape simple information from a .odt file', () =>
         expect(
-            documentScraper
-                .scrape(emulateScraperSourceOptions(join(__dirname, 'samples/10-simple.odt')), {
-                    llmTools: getLlmToolsForTestingAndScriptsAndPlayground(),
-                    rootDirname: join(__dirname, 'samples'),
-                    externalProgramsPaths: {
-                        // TODO: !!!!!! use `locate-app` library here
-                        pandocPath: 'C:/Users/me/AppData/Local/Pandoc/pandoc.exe',
-                    },
-                })
+            Promise.resolve()
+                .then(() => emulateScraperSourceOptions(join(__dirname, 'samples/10-simple.odt')))
+                .then((options) =>
+                    documentScraper.scrape(options, {
+                        llmTools: getLlmToolsForTestingAndScriptsAndPlayground(),
+                        rootDirname: join(__dirname, 'samples'),
+                        externalProgramsPaths: {
+                            // TODO: !!!!!! use `locate-app` library here
+                            pandocPath: 'C:/Users/me/AppData/Local/Pandoc/pandoc.exe',
+                        },
+                    }),
+                )
                 .then((knowledge) => knowledge?.map(({ content }) => ({ content })))
                 .then((knowledge) => knowledge?.slice(0, 1)),
         ).resolves.toMatchObject([
@@ -45,15 +51,18 @@ describe('how creating knowledge from docx works', () => {
 
     it('should NOT scrape irrelevant information', () =>
         expect(
-            documentScraper
-                .scrape(emulateScraperSourceOptions(join(__dirname, 'samples/10-simple.docx')), {
-                    llmTools: getLlmToolsForTestingAndScriptsAndPlayground(),
-                    rootDirname: join(__dirname, 'samples'),
-                    externalProgramsPaths: {
-                        // TODO: !!!!!! use `locate-app` library here
-                        pandocPath: 'C:/Users/me/AppData/Local/Pandoc/pandoc.exe',
-                    },
-                })
+            Promise.resolve()
+                .then(() => emulateScraperSourceOptions(join(__dirname, 'samples/10-simple.docx')))
+                .then((options) =>
+                    documentScraper.scrape(options, {
+                        llmTools: getLlmToolsForTestingAndScriptsAndPlayground(),
+                        rootDirname: join(__dirname, 'samples'),
+                        externalProgramsPaths: {
+                            // TODO: !!!!!! use `locate-app` library here
+                            pandocPath: 'C:/Users/me/AppData/Local/Pandoc/pandoc.exe',
+                        },
+                    }),
+                )
                 .then((knowledge) => knowledge?.map(({ content }) => ({ content })))
                 .then((knowledge) => knowledge?.slice(0, 1)),
         ).resolves.toMatchObject([

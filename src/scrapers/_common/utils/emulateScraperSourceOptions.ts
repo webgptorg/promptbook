@@ -2,9 +2,9 @@ import { readFileSync } from 'fs';
 import type { string_filename, string_url } from '../../../types/typeAliases';
 import { extensionToMimeType } from '../../../utils/files/extensionToMimeType';
 import { getFileExtension } from '../../../utils/files/getFileExtension';
+import { isValidFilePath } from '../../../utils/validators/filePath/isValidFilePath';
 import { isValidUrl } from '../../../utils/validators/url/isValidUrl';
 import type { ScraperSourceOptions } from '../Scraper';
-import { isValidFilePath } from '../../../utils/validators/filePath/isValidFilePath';
 
 /**
  * @@@
@@ -13,7 +13,9 @@ import { isValidFilePath } from '../../../utils/validators/filePath/isValidFileP
  * Note: This is synchronous - its OK to use sync in tooling for test tooling
  *       For URL, there is not fetched real mime type but hardcoded to `text/html`
  */
-export function emulateScraperSourceOptions(sampleFilePathOrUrl: string_filename | string_url): ScraperSourceOptions {
+export async function emulateScraperSourceOptions(
+    sampleFilePathOrUrl: string_filename | string_url,
+): Promise<ScraperSourceOptions> {
     if (isValidFilePath(sampleFilePathOrUrl)) {
         const filename = sampleFilePathOrUrl;
         const fileExtension = getFileExtension(filename);
