@@ -90,6 +90,7 @@ export const knowledgeCommandParser: PipelineHeadCommandParser<KnowledgeCommand>
     $applyToPipelineJson(command: KnowledgeCommand, $pipelineJson: $PipelineJson): void {
         const { sourceContent } = command;
 
+        // TODO: !!!!!! Better name for source than gibberish hash
         const name = 'source-' + sha256(hexEncoder.parse(JSON.stringify(sourceContent))).toString(/* hex */);
         //    <- TODO: [🥬] Encapsulate sha256 to some private utility function
         //    <- TODO: This should be replaced with a better name later in preparation (done with some propper LLM summarization)
