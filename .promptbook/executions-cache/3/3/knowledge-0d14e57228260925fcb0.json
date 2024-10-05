@@ -1,0 +1,104 @@
+{
+    "date": "2024-10-05T16:10:20.697Z",
+    "promptbookVersion": "0.71.0-0",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-from-markdown.ptbk.md#knowledge",
+        "parameters": {
+            "knowledgeContent": " Domovská stránka chevron\\_right Blog chevron\\_right Ze zákulisí firmy chevron\\_right Adoptuj si svou poličku Prodáváte své produkty a máte zájem se více prosadit? Adoptujte si svou poličku v naší prodejně. Na prodejně jsme pro kreativní prodejce připravili VIP prostor, kde si lze pronajmout vybranou/vybrané poličky a nabízet a prodávat zboží prostřednictvím komisního prodeje. Na této stránce získáte bližší informace, co všechno to obnáší. Jak si poličku adoptovat? Stačí dole v článku vyplnit formulář, kde si definujete jakou poličku chcete, počty a dobu objednání poliček. Po vyplnění a odeslání se s Vámi spojíme a doladíme podrobnosti. Ceny jednotlivých poliček zjistíte kliknutím zde: AKTUÁLNÍ CENÍK POLIČEK PRO ROK 2024 . Nabízíme slevu z ceny nájmu poliček při dlouhodobějším pronájmu: K nájmu v trvání 3-5 měsíců je nabízena sleva 7 % z uvedených cen v ceníku K nájmu v trvání 6-11 měsíců je nabízena sleva 15 % z uvedených cen v ceníku K nájmu v trvání 12 a více měsíců je nabízena sleva 30 % z uvedených cen v ceníku . Nájemní smlouvu pro pronájem poličky najdete zde: SMLOUVA O PRONÁJMU POLIČEK Smlouvu pro komisní prodej si stáhnete zde: KOMISIONÁŘSKÁ SMLOUVA Protokol o převzetí zboží do komisního prodeje si stáhnete zde: PŘEDÁVACÍ PROTOKOL Tabulka s aktuální obsazenosti jednotlivých poliček: OBSAZENOST POLIČEK . V případě nejasností nám zavolejte na 722 941 618 nebo na email: prodejna@koralkykatlas.cz Pro větší detail poliček klikněte na obrázek. Automaticky se zvětší. Jmenuji se Standa a v Korálkách Katlas mám na starosti vše okolo on-line aktivit. Více se o mne dozvíte zde: stanislavvavrik.cz "
+        },
+        "content": "You are experienced data researcher, extract the important knowledge from the document.\n\n# Rules\n\n-   Make pieces of information concise, clear, and easy to understand\n-   One piece of information should be approximately 1 paragraph\n-   Divide the paragraphs by markdown horizontal lines ---\n-   Omit irrelevant information\n-   Group redundant information\n-   Write just extracted information, nothing else\n\n# The document\n\nTake information from this document:\n\n> {knowledgeContent}",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {}
+    },
+    "promptResult": {
+        "content": "---\n\nKorálky Katlas offers a VIP space in their store where creative sellers can rent shelves to display and sell their products through commission sales.\n\n---\n\nTo adopt a shelf, fill out a form at the bottom of the article specifying the desired shelf, quantity, and rental period. The company will then contact you to finalize details.\n\n---\n\nCurrent shelf pricing for 2024 is available through a provided link. Discounts are offered for longer rental periods: 7% for 3-5 months, 15% for 6-11 months, and 30% for 12 or more months.\n\n---\n\nDownloadable documents include a shelf rental agreement, commission sales agreement, and a protocol for transferring goods for commission sales.\n\n---\n\nA table showing the current occupancy of individual shelves is available.\n\n---\n\nFor inquiries, contact the store at 722 941 618 or email prodejna@koralkykatlas.cz.\n\n---",
+        "modelName": "claude-3-5-sonnet-20240620",
+        "timing": {
+            "start": "2024-10-05T16:10:16.290Z",
+            "complete": "2024-10-05T16:10:20.696Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0.005556
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 747
+                },
+                "charactersCount": {
+                    "value": 2086
+                },
+                "wordsCount": {
+                    "value": 314
+                },
+                "sentencesCount": {
+                    "value": 17
+                },
+                "linesCount": {
+                    "value": 16
+                },
+                "paragraphsCount": {
+                    "value": 6
+                },
+                "pagesCount": {
+                    "value": 4
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 221
+                },
+                "charactersCount": {
+                    "value": 858
+                },
+                "wordsCount": {
+                    "value": 134
+                },
+                "sentencesCount": {
+                    "value": 10
+                },
+                "linesCount": {
+                    "value": 25
+                },
+                "paragraphsCount": {
+                    "value": 13
+                },
+                "pagesCount": {
+                    "value": 2
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced data researcher, extract the important knowledge from the document.\n\n# Rules\n\n-   Make pieces of information concise, clear, and easy to understand\n-   One piece of information should be approximately 1 paragraph\n-   Divide the paragraphs by markdown horizontal lines ---\n-   Omit irrelevant information\n-   Group redundant information\n-   Write just extracted information, nothing else\n\n# The document\n\nTake information from this document:\n\n>  Domovská stránka chevron\\_right Blog chevron\\_right Ze zákulisí firmy chevron\\_right Adoptuj si svou poličku Prodáváte své produkty a máte zájem se více prosadit? Adoptujte si svou poličku v naší prodejně. Na prodejně jsme pro kreativní prodejce připravili VIP prostor, kde si lze pronajmout vybranou/vybrané poličky a nabízet a prodávat zboží prostřednictvím komisního prodeje. Na této stránce získáte bližší informace, co všechno to obnáší. Jak si poličku adoptovat? Stačí dole v článku vyplnit formulář, kde si definujete jakou poličku chcete, počty a dobu objednání poliček. Po vyplnění a odeslání se s Vámi spojíme a doladíme podrobnosti. Ceny jednotlivých poliček zjistíte kliknutím zde: AKTUÁLNÍ CENÍK POLIČEK PRO ROK 2024 . Nabízíme slevu z ceny nájmu poliček při dlouhodobějším pronájmu: K nájmu v trvání 3-5 měsíců je nabízena sleva 7 % z uvedených cen v ceníku K nájmu v trvání 6-11 měsíců je nabízena sleva 15 % z uvedených cen v ceníku K nájmu v trvání 12 a více měsíců je nabízena sleva 30 % z uvedených cen v ceníku . Nájemní smlouvu pro pronájem poličky najdete zde: SMLOUVA O PRONÁJMU POLIČEK Smlouvu pro komisní prodej si stáhnete zde: KOMISIONÁŘSKÁ SMLOUVA Protokol o převzetí zboží do komisního prodeje si stáhnete zde: PŘEDÁVACÍ PROTOKOL Tabulka s aktuální obsazenosti jednotlivých poliček: OBSAZENOST POLIČEK . V případě nejasností nám zavolejte na 722 941 618 nebo na email: prodejna@koralkykatlas.cz Pro větší detail poliček klikněte na obrázek. Automaticky se zvětší. Jmenuji se Standa a v Korálkách Katlas mám na starosti vše okolo on-line aktivit. Více se o mne dozvíte zde: stanislavvavrik.cz ",
+        "rawRequest": {
+            "model": "claude-3-5-sonnet-20240620",
+            "max_tokens": 4096,
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "You are experienced data researcher, extract the important knowledge from the document.\n\n# Rules\n\n-   Make pieces of information concise, clear, and easy to understand\n-   One piece of information should be approximately 1 paragraph\n-   Divide the paragraphs by markdown horizontal lines ---\n-   Omit irrelevant information\n-   Group redundant information\n-   Write just extracted information, nothing else\n\n# The document\n\nTake information from this document:\n\n>  Domovská stránka chevron\\_right Blog chevron\\_right Ze zákulisí firmy chevron\\_right Adoptuj si svou poličku Prodáváte své produkty a máte zájem se více prosadit? Adoptujte si svou poličku v naší prodejně. Na prodejně jsme pro kreativní prodejce připravili VIP prostor, kde si lze pronajmout vybranou/vybrané poličky a nabízet a prodávat zboží prostřednictvím komisního prodeje. Na této stránce získáte bližší informace, co všechno to obnáší. Jak si poličku adoptovat? Stačí dole v článku vyplnit formulář, kde si definujete jakou poličku chcete, počty a dobu objednání poliček. Po vyplnění a odeslání se s Vámi spojíme a doladíme podrobnosti. Ceny jednotlivých poliček zjistíte kliknutím zde: AKTUÁLNÍ CENÍK POLIČEK PRO ROK 2024 . Nabízíme slevu z ceny nájmu poliček při dlouhodobějším pronájmu: K nájmu v trvání 3-5 měsíců je nabízena sleva 7 % z uvedených cen v ceníku K nájmu v trvání 6-11 měsíců je nabízena sleva 15 % z uvedených cen v ceníku K nájmu v trvání 12 a více měsíců je nabízena sleva 30 % z uvedených cen v ceníku . Nájemní smlouvu pro pronájem poličky najdete zde: SMLOUVA O PRONÁJMU POLIČEK Smlouvu pro komisní prodej si stáhnete zde: KOMISIONÁŘSKÁ SMLOUVA Protokol o převzetí zboží do komisního prodeje si stáhnete zde: PŘEDÁVACÍ PROTOKOL Tabulka s aktuální obsazenosti jednotlivých poliček: OBSAZENOST POLIČEK . V případě nejasností nám zavolejte na 722 941 618 nebo na email: prodejna@koralkykatlas.cz Pro větší detail poliček klikněte na obrázek. Automaticky se zvětší. Jmenuji se Standa a v Korálkách Katlas mám na starosti vše okolo on-line aktivit. Více se o mne dozvíte zde: stanislavvavrik.cz "
+                }
+            ]
+        },
+        "rawResponse": {
+            "id": "msg_01DAZ1YwUMPYC7CbDdhA3bcD",
+            "type": "message",
+            "role": "assistant",
+            "model": "claude-3-5-sonnet-20240620",
+            "content": [
+                {
+                    "type": "text",
+                    "text": "---\n\nKorálky Katlas offers a VIP space in their store where creative sellers can rent shelves to display and sell their products through commission sales.\n\n---\n\nTo adopt a shelf, fill out a form at the bottom of the article specifying the desired shelf, quantity, and rental period. The company will then contact you to finalize details.\n\n---\n\nCurrent shelf pricing for 2024 is available through a provided link. Discounts are offered for longer rental periods: 7% for 3-5 months, 15% for 6-11 months, and 30% for 12 or more months.\n\n---\n\nDownloadable documents include a shelf rental agreement, commission sales agreement, and a protocol for transferring goods for commission sales.\n\n---\n\nA table showing the current occupancy of individual shelves is available.\n\n---\n\nFor inquiries, contact the store at 722 941 618 or email prodejna@koralkykatlas.cz.\n\n---"
+                }
+            ],
+            "stop_reason": "end_turn",
+            "stop_sequence": null,
+            "usage": {
+                "input_tokens": 747,
+                "output_tokens": 221
+            }
+        }
+    }
+}
