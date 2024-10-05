@@ -2,7 +2,7 @@ import type { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOpti
 import type { KnowledgePiecePreparedJson } from '../../types/PipelineJson/KnowledgePieceJson';
 import type { string_filename, string_markdown } from '../../types/typeAliases';
 import { Converter } from '../_common/Converter';
-import { Scraper, ScraperSourceOptions } from '../_common/Scraper';
+import { Scraper, ScraperSourceHandler } from '../_common/Scraper';
 // TODO: [🏳‍🌈] Finally take pick of .json vs .ts
 // import PipelineCollection from '../../../promptbook-collection/promptbook-collection';
 import { Readability } from '@mozilla/readability';
@@ -43,7 +43,7 @@ export const websiteScraper = {
      * Note: `$` is used to indicate that this function is not a pure function - it leaves files on the disk and you are responsible for cleaning them by calling `destroy` method of returned object
      */
     async $convert(
-        source: ScraperSourceOptions,
+        source: ScraperSourceHandler,
         options: PrepareAndScrapeOptions,
     ): Promise<ScraperIntermediateSource & { markdown: string_markdown }> {
         const {
@@ -110,7 +110,7 @@ export const websiteScraper = {
      * Scrapes the website and returns the knowledge pieces or `null` if it can't scrape it
      */
     async scrape(
-        source: ScraperSourceOptions,
+        source: ScraperSourceHandler,
         options: PrepareAndScrapeOptions,
     ): Promise<Array<Omit<KnowledgePiecePreparedJson, 'sources' | 'preparationIds'>> | null> {
         const cacheFilehandler = await websiteScraper.$convert(source, options);
@@ -133,7 +133,7 @@ export const websiteScraper = {
                     'Did not expect that `markdownScraper` would need to get the content `asBlob`',
                 );
             },
-        } satisfies ScraperSourceOptions;
+        } satisfies ScraperSourceHandler;
 
         const knowledge = markdownScraper.scrape(markdownSource, options);
 

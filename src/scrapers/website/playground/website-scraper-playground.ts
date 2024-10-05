@@ -11,7 +11,7 @@ import { stringifyPipelineJson } from '../../../conversion/utils/stringifyPipeli
 import { titleToName } from '../../../conversion/utils/titleToName';
 import { usageToHuman } from '../../../execution/utils/usageToHuman';
 import { getLlmToolsForTestingAndScriptsAndPlayground } from '../../../llm-providers/_common/getLlmToolsForTestingAndScriptsAndPlayground';
-import { sourceContentToSourceOptions } from '../../_common/utils/sourceContentToSourceOptions';
+import { makeKnowledgeSourceHandler } from '../../_common/utils/makeKnowledgeSourceHandler';
 import { websiteScraper } from '../websiteScraper';
 
 const isVerbose = true;
@@ -39,7 +39,7 @@ async function playground() {
     const llmTools = getLlmToolsForTestingAndScriptsAndPlayground({ isCacheReloaded: true });
 
     const knowledge = await websiteScraper.scrape(
-        await sourceContentToSourceOptions({ name: 'test-source', sourceContent: sample }),
+        await makeKnowledgeSourceHandler({ name: 'test-source', sourceContent: sample }),
         {
             llmTools,
             isVerbose,

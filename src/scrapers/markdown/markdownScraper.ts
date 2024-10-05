@@ -2,7 +2,7 @@ import spaceTrim from 'spacetrim';
 import type { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';
 import type { KnowledgePiecePreparedJson } from '../../types/PipelineJson/KnowledgePieceJson';
 import { TODO_USE } from '../../utils/organization/TODO_USE';
-import type { Scraper, ScraperSourceOptions } from '../_common/Scraper';
+import type { Scraper, ScraperSourceHandler } from '../_common/Scraper';
 // TODO: [🏳‍🌈] Finally take pick of .json vs .ts
 import PipelineCollection from '../../../promptbook-collection/index.json';
 // import PipelineCollection from '../../../promptbook-collection/promptbook-collection';
@@ -37,7 +37,7 @@ export const markdownScraper = {
      * Scrapes the markdown file and returns the knowledge pieces or `null` if it can't scrape it
      */
     async scrape(
-        source: ScraperSourceOptions,
+        source: ScraperSourceHandler,
         options: PrepareAndScrapeOptions,
     ): Promise<Array<Omit<KnowledgePiecePreparedJson, 'sources' | 'preparationIds'>> | null> {
         const { llmTools, maxParallelCount = MAX_PARALLEL_COUNT, isVerbose = IS_VERBOSE } = options;

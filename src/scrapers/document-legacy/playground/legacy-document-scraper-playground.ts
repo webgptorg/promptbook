@@ -10,7 +10,7 @@ import { join } from 'path';
 import { stringifyPipelineJson } from '../../../conversion/utils/stringifyPipelineJson';
 import { usageToHuman } from '../../../execution/utils/usageToHuman';
 import { getLlmToolsForTestingAndScriptsAndPlayground } from '../../../llm-providers/_common/getLlmToolsForTestingAndScriptsAndPlayground';
-import { sourceContentToSourceOptions } from '../../_common/utils/sourceContentToSourceOptions';
+import { makeKnowledgeSourceHandler } from '../../_common/utils/makeKnowledgeSourceHandler';
 import { legacyDocumentScraper } from '../legacyDocumentScraper';
 
 const isVerbose = true;
@@ -42,7 +42,7 @@ async function playground() {
     const llmTools = getLlmToolsForTestingAndScriptsAndPlayground({ isCacheReloaded: true });
 
     const knowledge = await legacyDocumentScraper.scrape(
-        await sourceContentToSourceOptions({ name: 'test-source', sourceContent: samplePath }),
+        await makeKnowledgeSourceHandler({ name: 'test-source', sourceContent: samplePath }),
         {
             llmTools,
             isVerbose,

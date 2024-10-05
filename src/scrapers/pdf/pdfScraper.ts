@@ -1,6 +1,6 @@
 import type { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';
 import type { KnowledgePiecePreparedJson } from '../../types/PipelineJson/KnowledgePieceJson';
-import type { Scraper, ScraperSourceOptions } from '../_common/Scraper';
+import type { Scraper, ScraperSourceHandler } from '../_common/Scraper';
 // TODO: [🏳‍🌈] Finally take pick of .json vs .ts
 // import PipelineCollection from '../../../promptbook-collection/promptbook-collection';
 import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
@@ -28,7 +28,7 @@ export const pdfScraper = {
     /**
      * Converts the `.pdf` file to `.md` file and returns intermediate source
      */
-    async $convert(source: ScraperSourceOptions, options: PrepareAndScrapeOptions): Promise<ScraperIntermediateSource> {
+    async $convert(source: ScraperSourceHandler, options: PrepareAndScrapeOptions): Promise<ScraperIntermediateSource> {
         TODO_USE(source);
         TODO_USE(options);
         throw new NotYetImplementedError('PDF conversion not yet implemented');
@@ -38,7 +38,7 @@ export const pdfScraper = {
      * Scrapes the `.pdf` file and returns the knowledge pieces or `null` if it can't scrape it
      */
     async scrape(
-        source: ScraperSourceOptions,
+        source: ScraperSourceHandler,
         options: PrepareAndScrapeOptions,
     ): Promise<Array<Omit<KnowledgePiecePreparedJson, 'sources' | 'preparationIds'>> | null> {
         TODO_USE(source);

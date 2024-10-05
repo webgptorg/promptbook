@@ -11,7 +11,7 @@ describe('all the scrapers', () => {
 
     for (const { examples, scrape } of SCRAPERS) {
         for (const example of examples) {
-            expect(scrape(emulateScraperSourceOptions(example), {})).resolves.not.toThrowError();
+            expect(scrape(makeKnowledgeSourceHandler(example), {})).resolves.not.toThrowError();
         }
     }
 });

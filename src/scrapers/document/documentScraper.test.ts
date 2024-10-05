@@ -1,7 +1,7 @@
 import { describe, expect, it } from '@jest/globals';
 import { join } from 'path';
 import { getLlmToolsForTestingAndScriptsAndPlayground } from '../../llm-providers/_common/getLlmToolsForTestingAndScriptsAndPlayground';
-import { sourceContentToSourceOptions } from '../_common/utils/sourceContentToSourceOptions';
+import { makeKnowledgeSourceHandler } from '../_common/utils/makeKnowledgeSourceHandler';
 import { documentScraper } from './documentScraper';
 
 describe('how creating knowledge from docx works', () => {
@@ -9,7 +9,7 @@ describe('how creating knowledge from docx works', () => {
         expect(
             Promise.resolve()
                 .then(() =>
-                    sourceContentToSourceOptions({
+                    makeKnowledgeSourceHandler({
                         name: 'test-source',
                         sourceContent: join(__dirname, 'samples/10-simple.docx'),
                     }),
@@ -36,7 +36,7 @@ describe('how creating knowledge from docx works', () => {
         expect(
             Promise.resolve()
                 .then(() =>
-                    sourceContentToSourceOptions({
+                    makeKnowledgeSourceHandler({
                         name: 'test-source',
                         sourceContent: join(__dirname, 'samples/10-simple.odt'),
                     }),
@@ -63,7 +63,7 @@ describe('how creating knowledge from docx works', () => {
         expect(
             Promise.resolve()
                 .then(() =>
-                    sourceContentToSourceOptions({
+                    makeKnowledgeSourceHandler({
                         name: 'test-source',
                         sourceContent: join(__dirname, 'samples/10-simple.docx'),
                     }),

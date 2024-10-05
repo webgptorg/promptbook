@@ -11,10 +11,10 @@ import { $isRunningInNode } from '../../utils/environment/$isRunningInNode';
 import { execCommand } from '../../utils/execCommand/execCommand';
 import { getFileExtension } from '../../utils/files/getFileExtension';
 import { Converter } from '../_common/Converter';
-import { Scraper, ScraperSourceOptions } from '../_common/Scraper';
+import { Scraper, ScraperSourceHandler } from '../_common/Scraper';
+import { ScraperIntermediateSource } from '../_common/ScraperIntermediateSource';
 import { getScraperIntermediateSource } from '../_common/utils/getScraperIntermediateSource';
 import { markdownScraper } from '../markdown/markdownScraper';
-import { ScraperIntermediateSource } from '../_common/ScraperIntermediateSource';
 
 /**
  * Scraper of .docx and .odt files
@@ -38,7 +38,7 @@ export const documentScraper = {
      *
      * Note: `$` is used to indicate that this function is not a pure function - it leaves files on the disk and you are responsible for cleaning them by calling `destroy` method of returned object
      */
-    async $convert(source: ScraperSourceOptions, options: PrepareAndScrapeOptions): Promise<ScraperIntermediateSource> {
+    async $convert(source: ScraperSourceHandler, options: PrepareAndScrapeOptions): Promise<ScraperIntermediateSource> {
         const {
             externalProgramsPaths = {},
             rootDirname,
@@ -82,7 +82,7 @@ export const documentScraper = {
      * Scrapes the docx file and returns the knowledge pieces or `null` if it can't scrape it
      */
     async scrape(
-        source: ScraperSourceOptions,
+        source: ScraperSourceHandler,
         options: PrepareAndScrapeOptions,
     ): Promise<Array<Omit<KnowledgePiecePreparedJson, 'sources' | 'preparationIds'>> | null> {
         const cacheFilehandler = await documentScraper.$convert(source, options);
@@ -105,7 +105,7 @@ export const documentScraper = {
                     'Did not expect that `markdownScraper` would need to get the content `asBlob`',
                 );
             },
-        } satisfies ScraperSourceOptions;
+        } satisfies ScraperSourceHandler;
 
         const knowledge = markdownScraper.scrape(markdownSource, options);
 

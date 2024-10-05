@@ -1,7 +1,7 @@
 import { describe, expect, it } from '@jest/globals';
 import { join } from 'path';
 import { getLlmToolsForTestingAndScriptsAndPlayground } from '../../llm-providers/_common/getLlmToolsForTestingAndScriptsAndPlayground';
-import { emulateScraperSourceOptions } from '../_common/utils/emulateScraperSourceOptions';
+import { makeKnowledgeSourceHandler } from '../_common/utils/makeKnowledgeSourceHandler';
 import { pdfScraper } from './pdfScraper';
 
 // TODO: !!!!!! Uncomment this test
@@ -10,7 +10,7 @@ describe('how creating knowledge from pdf works', () => {
   it('should scrape simple information from a .pdf file', () =>
     expect(
       Promise.resolve()
-        .then(() => emulateScraperSourceOptions(join(__dirname, 'samples/10-simple.pdf')))
+        .then(() => makeKnowledgeSourceHandler(join(__dirname, 'samples/10-simple.pdf')))
         .then((options) =>
           pdfScraper.scrape(options, {
             llmTools: getLlmToolsForTestingAndScriptsAndPlayground(),
@@ -28,7 +28,7 @@ describe('how creating knowledge from pdf works', () => {
   it('should NOT scrape irrelevant information', () =>
     expect(
       Promise.resolve()
-        .then(() => emulateScraperSourceOptions(join(__dirname, 'samples/10-simple.pdf')))
+        .then(() => makeKnowledgeSourceHandler(join(__dirname, 'samples/10-simple.pdf')))
         .then((options) =>
           pdfScraper.scrape(options, {
             llmTools: getLlmToolsForTestingAndScriptsAndPlayground(),

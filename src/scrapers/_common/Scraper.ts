@@ -28,7 +28,7 @@ export type Scraper = {
      * Scrapes the markdown file and returns the knowledge pieces or `null` if it can't scrape it
      */
     scrape(
-        source: ScraperSourceOptions,
+        source: ScraperSourceHandler,
         options: PrepareAndScrapeOptions,
     ): Promisable<Array<Omit<KnowledgePiecePreparedJson, 'sources' | 'preparationIds'>> | null>;
 };
@@ -36,7 +36,7 @@ export type Scraper = {
 /**
  * @@@
  */
-export type ScraperSourceOptions = {
+export type ScraperSourceHandler = {
     /**
      * The source of the knowledge
      */

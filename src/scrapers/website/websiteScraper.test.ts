@@ -1,7 +1,7 @@
 import { describe, expect, it } from '@jest/globals';
 import { join } from 'path';
 import { getLlmToolsForTestingAndScriptsAndPlayground } from '../../llm-providers/_common/getLlmToolsForTestingAndScriptsAndPlayground';
-import { sourceContentToSourceOptions } from '../_common/utils/sourceContentToSourceOptions';
+import { makeKnowledgeSourceHandler } from '../_common/utils/makeKnowledgeSourceHandler';
 import { websiteScraper } from './websiteScraper';
 
 describe('how creating knowledge from website works', () => {
@@ -9,7 +9,7 @@ describe('how creating knowledge from website works', () => {
         expect(
             Promise.resolve()
                 .then(() =>
-                    sourceContentToSourceOptions({ name: 'test-source', sourceContent: 'https://www.pavolhejny.com/' }),
+                    makeKnowledgeSourceHandler({ name: 'test-source', sourceContent: 'https://www.pavolhejny.com/' }),
                 )
                 .then((options) =>
                     websiteScraper.scrape(options, {
@@ -29,7 +29,7 @@ describe('how creating knowledge from website works', () => {
         expect(
             Promise.resolve()
                 .then(() =>
-                    sourceContentToSourceOptions({ name: 'test-source', sourceContent: 'https://www.pavolhejny.com/' }),
+                    makeKnowledgeSourceHandler({ name: 'test-source', sourceContent: 'https://www.pavolhejny.com/' }),
                 )
                 .then((options) =>
                     websiteScraper.scrape(options, {

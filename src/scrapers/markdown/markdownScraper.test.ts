@@ -1,7 +1,7 @@
 import { describe, expect, it } from '@jest/globals';
 import { join } from 'path';
 import { getLlmToolsForTestingAndScriptsAndPlayground } from '../../llm-providers/_common/getLlmToolsForTestingAndScriptsAndPlayground';
-import { sourceContentToSourceOptions } from '../_common/utils/sourceContentToSourceOptions';
+import { makeKnowledgeSourceHandler } from '../_common/utils/makeKnowledgeSourceHandler';
 import { markdownScraper } from './markdownScraper';
 
 describe('how creating knowledge from markdown works', () => {
@@ -9,7 +9,7 @@ describe('how creating knowledge from markdown works', () => {
         expect(
             Promise.resolve()
                 .then(() =>
-                    sourceContentToSourceOptions({
+                    makeKnowledgeSourceHandler({
                         name: 'test-source',
                         sourceContent: join(__dirname, 'samples/10-simple.md'),
                     }),
@@ -32,7 +32,7 @@ describe('how creating knowledge from markdown works', () => {
         expect(
             Promise.resolve()
                 .then(() =>
-                    sourceContentToSourceOptions({
+                    makeKnowledgeSourceHandler({
                         name: 'test-source',
                         sourceContent: join(__dirname, 'samples/10-simple.md'),
                     }),

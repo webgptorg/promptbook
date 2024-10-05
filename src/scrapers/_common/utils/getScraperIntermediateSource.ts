@@ -1,13 +1,12 @@
 import { SHA256 as sha256 } from 'crypto-js';
 import hexEncoder from 'crypto-js/enc-hex';
 import { mkdir, rm } from 'fs/promises';
-import { basename, dirname } from 'path';
-import { join } from 'path';
+import { basename, dirname, join } from 'path';
 import type { PrepareAndScrapeOptions } from '../../../prepare/PrepareAndScrapeOptions';
 import { nameToSubfolderPath } from '../../../storage/file-cache-storage/utils/nameToSubfolderPath';
 import { string_file_extension } from '../../../types/typeAliases';
 import { TODO_USE } from '../../../utils/organization/TODO_USE';
-import { ScraperSourceOptions } from '../Scraper';
+import { ScraperSourceHandler } from '../Scraper';
 import { ScraperIntermediateSource } from '../ScraperIntermediateSource';
 
 /**
@@ -15,14 +14,14 @@ import { ScraperIntermediateSource } from '../ScraperIntermediateSource';
  *
  * @private internal utility of `getScraperIntermediateSource`
  */
-type GetScraperIntermediateSourceSource = Pick<ScraperSourceOptions, 'filename' | 'url'>;
+type GetScraperIntermediateSourceSource = Pick<ScraperSourceHandler, 'filename' | 'url'>;
 
 /**
  * @@@
  *
  * @private internal utility of `getScraperIntermediateSource`
  */
-type GetScraperIntermediateSourceOptions = Required<
+type GetScraperIntermediateSourceHandler = Required<
     Pick<PrepareAndScrapeOptions, 'rootDirname' | 'cacheDirname' | 'isCacheCleaned' | 'isVerbose'>
 > & {
     readonly extension: string_file_extension;
@@ -37,7 +36,7 @@ type GetScraperIntermediateSourceOptions = Required<
  */
 export async function getScraperIntermediateSource(
     source: GetScraperIntermediateSourceSource,
-    options: GetScraperIntermediateSourceOptions,
+    options: GetScraperIntermediateSourceHandler,
 ): Promise<ScraperIntermediateSource> {
     const { filename: sourceFilename, url } = source;
     const { rootDirname, cacheDirname, isCacheCleaned, extension, isVerbose } = options;

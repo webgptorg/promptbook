@@ -6,7 +6,7 @@ import type { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOpti
 import type { KnowledgePiecePreparedJson } from '../../types/PipelineJson/KnowledgePieceJson';
 import type { KnowledgeSourceJson } from '../../types/PipelineJson/KnowledgeSourceJson';
 import { SCRAPERS } from '../index';
-import { sourceContentToSourceOptions } from './utils/sourceContentToSourceOptions';
+import { makeKnowledgeSourceHandler } from './utils/makeKnowledgeSourceHandler';
 
 /**
  * Prepares the knowle
@@ -24,17 +24,17 @@ export async function prepareKnowledgePieces(
 
     await forEachAsync(knowledgeSources, { maxParallelCount }, async (knowledgeSource) => {
         let partialPieces: Omit<KnowledgePiecePreparedJson, 'preparationIds' | 'sources'>[] | null = null;
-        const sourceOptions = await sourceContentToSourceOptions(knowledgeSource,{ rootDirname, isVerbose });
+        const sourceHandler = await makeKnowledgeSourceHandler(knowledgeSource, { rootDirname, isVerbose });
 
         for (const scraper of SCRAPERS) {
             if (
-                !scraper.mimeTypes.includes(sourceOptions.mimeType)
+                !scraper.mimeTypes.includes(sourceHandler.mimeType)
                 // <- TODO: [🦔] Implement mime-type wildcards
             ) {
                 continue;
             }
 
-            const partialPiecesUnchecked = await scraper.scrape(sourceOptions, options);
+            const partialPiecesUnchecked = await scraper.scrape(sourceHandler, options);
 
             if (partialPiecesUnchecked !== null) {
                 partialPieces = partialPiecesUnchecked;
@@ -48,7 +48,7 @@ export async function prepareKnowledgePieces(
                     (block) => `
                         Cannot scrape knowledge from source: ${knowledgeSource.sourceContent}
 
-                        No scraper found for the ${sourceOptions.mimeType}
+                        No scraper found for the ${sourceHandler.mimeType}
 
                         Available scrapers:
                         ${block(

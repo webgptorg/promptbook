@@ -10,15 +10,15 @@ import { getFileExtension } from '../../../utils/files/getFileExtension';
 import { TODO_USE } from '../../../utils/organization/TODO_USE';
 import { isValidFilePath } from '../../../utils/validators/filePath/isValidFilePath';
 import { isValidUrl } from '../../../utils/validators/url/isValidUrl';
-import type { ScraperSourceOptions } from '../Scraper';
+import type { ScraperSourceHandler } from '../Scraper';
 
 /**
  * @@@
  */
-export async function sourceContentToSourceOptions(
+export async function makeKnowledgeSourceHandler(
     knowledgeSource: KnowledgeSourceJson,
     options?: Pick<PrepareAndScrapeOptions, 'rootDirname' | 'isVerbose'>,
-): Promise<ScraperSourceOptions> {
+): Promise<ScraperSourceHandler> {
     const { name, sourceContent } = knowledgeSource;
     const { rootDirname = null, isVerbose = IS_VERBOSE } = options || {};
 
@@ -115,8 +115,3 @@ export async function sourceContentToSourceOptions(
         };
     }
 }
-
-/**
- * TODO: !!!!!! Rename to knowledgeSourceToSourceOptions
- * TODO !!!!!! SourceOptions -> SourceHandler
- */
