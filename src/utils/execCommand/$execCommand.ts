@@ -9,12 +9,12 @@ import { execCommandNormalizeOptions } from './execCommandNormalizeOptions';
  * Run one command in a shell
  *
  * Note: There are 2 similar functions in the codebase:
- * - `execCommand` which runs a single command
- * - `execCommands` which runs multiple commands
+ * - `$execCommand` which runs a single command
+ * - `$execCommands` which runs multiple commands
  *
  * @public exported from `@promptbook/node`
  */
-export function execCommand(options: IExecCommandOptions): Promise<string> {
+export function $execCommand(options: IExecCommandOptions): Promise<string> {
     // TODO: !!!!!! Check the environment and throw an error if it is not Node.js
 
     return new Promise(

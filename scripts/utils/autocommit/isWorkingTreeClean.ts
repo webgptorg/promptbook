@@ -1,7 +1,7 @@
-import { execCommand } from '../../../src/utils/execCommand/execCommand';
+import { $execCommand } from '../../../src/utils/execCommand/$execCommand';
 
 export async function isWorkingTreeClean(path: string): Promise<boolean> {
-    const gitStatus = await execCommand({
+    const gitStatus = await $execCommand({
         cwd: path,
         command: `git status`,
     });

@@ -1,7 +1,7 @@
 import colors from 'colors';
 import { readFile, writeFile } from 'fs/promises';
 import { join } from 'path';
-import { execCommand } from '../../src/utils/execCommand/execCommand';
+import { $execCommand } from '../../src/utils/execCommand/$execCommand';
 import { splitArrayIntoChunks } from '../repair-imports/utils/splitArrayIntoChunks';
 import { prettify } from './prettify';
 
@@ -26,7 +26,7 @@ export async function writeAllProjectFiles(
         const changedFilesPathsChunks = splitArrayIntoChunks(changedFilesPaths, 30);
         for (const pachangedFilesPathsChunk of changedFilesPathsChunks) {
             // Note: [🤛] Organizing brakes multiline imports (or does sth. which brakes the code where shouldn’t be)
-            await execCommand({
+            await $execCommand({
                 cwd: join(__dirname, '../../'),
                 command: `npx organize-imports-cli ${pachangedFilesPathsChunk
                     .map((path) => path.split('\\').join('/'))

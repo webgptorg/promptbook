@@ -11,7 +11,7 @@ import { join } from 'path';
 import type { PackageJson } from 'type-fest';
 import { forTime } from 'waitasecond';
 import { LOOP_LIMIT } from '../../src/config';
-import { execCommand } from '../../src/utils/execCommand/execCommand';
+import { $execCommand } from '../../src/utils/execCommand/$execCommand';
 import { commit } from '../utils/autocommit/commit';
 
 if (process.cwd() !== join(__dirname, '../..')) {
@@ -45,7 +45,7 @@ async function usePackages() {
 
     // Note: Wait for the new version to be available in NPM
     for (let i = 0; i < LOOP_LIMIT; i++) {
-        const result = await execCommand({
+        const result = await $execCommand({
             crashOnError: false,
             command: `npm show ptbk`,
         });
@@ -79,7 +79,7 @@ async function usePackages() {
         await writeFile(remotePackageJsonPath, JSON.stringify(remotePackageJson, null, 4) + '\n');
         console.info(colors.blue(`Update version of @promptbook/* to ${currentVersion} in ${remotePackageJsonPath}`));
 
-        await execCommand({
+        await $execCommand({
             cwd: remoteFolder,
             crashOnError: false,
             command: `npm i`,

@@ -11,7 +11,7 @@ import type { PackageJson } from 'type-fest';
 import { forTime } from 'waitasecond';
 import YAML from 'yaml';
 import { GENERATOR_WARNING } from '../../src/config';
-import { execCommand } from '../../src/utils/execCommand/execCommand';
+import { $execCommand } from '../../src/utils/execCommand/$execCommand';
 import { prettifyMarkdown } from '../../src/utils/markdown/prettifyMarkdown';
 import { removeContentComments } from '../../src/utils/markdown/removeContentComments';
 import { commit } from '../utils/autocommit/commit';
@@ -276,8 +276,8 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
             if (!isBuilded) {
                 continue;
             }
-            await execCommand(`rm -rf ./packages/${packageBasename}/umd`);
-            await execCommand(`rm -rf ./packages/${packageBasename}/esm`);
+            await $execCommand(`rm -rf ./packages/${packageBasename}/umd`);
+            await $execCommand(`rm -rf ./packages/${packageBasename}/esm`);
         }
     }
 
@@ -288,7 +288,7 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
         console.info(colors.yellow(`Skipping the bundler`));
     } else {
         await forTime(1000 * 60 * 60 * 0);
-        await execCommand(`npx rollup --config rollup.config.js`);
+        await $execCommand(`npx rollup --config rollup.config.js`);
     }
 
     // ==============================
@@ -300,7 +300,7 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
         // Note: Keep `typings` only from `esm` (and remove `umd`)
         for (const packageMetadata of packagesMetadata) {
             const { packageBasename } = packageMetadata;
-            await execCommand(`rm -rf ./packages/${packageBasename}/umd/typings`);
+            await $execCommand(`rm -rf ./packages/${packageBasename}/umd/typings`);
         }
     }
 

@@ -1,11 +1,11 @@
 import { describe, expect, it } from '@jest/globals';
-import { execCommand } from '../../utils/execCommand/execCommand';
+import { $execCommand } from '../../utils/execCommand/$execCommand';
 import { PROMPTBOOK_VERSION } from '../../version';
 
 describe('how promptbookCli works', () => {
     it('should initiate without errors', () =>
         expect(
-            execCommand({
+            $execCommand({
                 command: 'ts-node src/cli/test/ptbk.ts',
                 crashOnError: false,
                 cwd: process.cwd(),
@@ -14,7 +14,7 @@ describe('how promptbookCli works', () => {
 
     it('should report version', () =>
         expect(
-            execCommand({
+            $execCommand({
                 command: 'ts-node src/cli/test/ptbk.ts about',
                 crashOnError: false,
                 cwd: process.cwd(),
