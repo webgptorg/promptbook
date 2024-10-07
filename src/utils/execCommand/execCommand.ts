@@ -107,5 +107,5 @@ export function execCommand(options: IExecCommandOptions): Promise<string> {
 }
 
 /**
- * Note: [⚫] Code in this file should never be published in any package <- !!!!!! Change
+ * Note: [🟢] Code in this file should never be published outside of `@promptbook/node` and `@promptbook/cli`
  */

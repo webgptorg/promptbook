@@ -22,3 +22,7 @@ export async function execCommands({
         await execCommand({ command, cwd, crashOnError });
     }
 }
+
+/**
+ * Note: [🟢] Code in this file should never be published outside of `@promptbook/node` and `@promptbook/cli`
+ */
