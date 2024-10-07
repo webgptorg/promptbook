@@ -1,11 +1,11 @@
 {
-    "date": "2024-10-07T13:44:56.738Z",
+    "date": "2024-10-07T13:42:00.875Z",
     "promptbookVersion": "0.71.0-0",
     "prompt": {
         "title": "Knowledge",
         "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.ptbk.md#knowledge",
         "parameters": {
-            "knowledgePieceContent": "---\n\nSpringfield is the sixth most populous city in Illinois, with a population of 10,566 as of 2019. It serves as the county seat of Sangamon County.\n\n---"
+            "knowledgePieceContent": "---\n\nV období ekonomické krize se na trhu častěji objevuje podvodná a zdraví škodlivá bižuterie. Zákazníci hlásí problémy a podvody s bižuterií v ČR i zahraničí."
         },
         "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> {knowledgePieceContent}",
         "modelRequirements": {
@@ -14,31 +14,31 @@
         "expectations": {}
     },
     "promptResult": {
-        "content": "Springfield, Illinois, population, county seat, Sangamon County",
+        "content": "bižuterie, ekonomická krize, podvodná, zdraví škodlivá, zákazníci, problémy, podvody, ČR, zahraničí",
         "modelName": "claude-3-5-sonnet-20240620",
         "timing": {
-            "start": "2024-10-07T13:44:55.178Z",
-            "complete": "2024-10-07T13:44:56.737Z"
+            "start": "2024-10-07T13:41:53.124Z",
+            "complete": "2024-10-07T13:42:00.875Z"
         },
         "usage": {
             "price": {
-                "value": 0.000525
+                "value": 0.0010140000000000001
             },
             "input": {
                 "tokensCount": {
-                    "value": 95
+                    "value": 113
                 },
                 "charactersCount": {
-                    "value": 357
+                    "value": 359
                 },
                 "wordsCount": {
-                    "value": 53
+                    "value": 51
                 },
                 "sentencesCount": {
-                    "value": 4
+                    "value": 3
                 },
                 "linesCount": {
-                    "value": 15
+                    "value": 13
                 },
                 "paragraphsCount": {
                     "value": 6
@@ -49,13 +49,13 @@
             },
             "output": {
                 "tokensCount": {
-                    "value": 16
+                    "value": 45
                 },
                 "charactersCount": {
-                    "value": 63
+                    "value": 99
                 },
                 "wordsCount": {
-                    "value": 7
+                    "value": 11
                 },
                 "sentencesCount": {
                     "value": 1
@@ -71,33 +71,33 @@
                 }
             }
         },
-        "rawPromptContent": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> ---\n> \n> Springfield is the sixth most populous city in Illinois, with a population of 10,566 as of 2019. It serves as the county seat of Sangamon County.\n> \n> ---",
+        "rawPromptContent": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> ---\n> \n> V období ekonomické krize se na trhu častěji objevuje podvodná a zdraví škodlivá bižuterie. Zákazníci hlásí problémy a podvody s bižuterií v ČR i zahraničí.",
         "rawRequest": {
             "model": "claude-3-5-sonnet-20240620",
             "max_tokens": 4096,
             "messages": [
                 {
                     "role": "user",
-                    "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> ---\n> \n> Springfield is the sixth most populous city in Illinois, with a population of 10,566 as of 2019. It serves as the county seat of Sangamon County.\n> \n> ---"
+                    "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> ---\n> \n> V období ekonomické krize se na trhu častěji objevuje podvodná a zdraví škodlivá bižuterie. Zákazníci hlásí problémy a podvody s bižuterií v ČR i zahraničí."
                 }
             ]
         },
         "rawResponse": {
-            "id": "msg_014syxGgKiKWtUfRKDXuHzfa",
+            "id": "msg_0127pGaCukJQ8jqThAyY6f7M",
             "type": "message",
             "role": "assistant",
             "model": "claude-3-5-sonnet-20240620",
             "content": [
                 {
                     "type": "text",
-                    "text": "Springfield, Illinois, population, county seat, Sangamon County"
+                    "text": "bižuterie, ekonomická krize, podvodná, zdraví škodlivá, zákazníci, problémy, podvody, ČR, zahraničí"
                 }
             ],
             "stop_reason": "end_turn",
             "stop_sequence": null,
             "usage": {
-                "input_tokens": 95,
-                "output_tokens": 16
+                "input_tokens": 113,
+                "output_tokens": 45
             }
         }
     }

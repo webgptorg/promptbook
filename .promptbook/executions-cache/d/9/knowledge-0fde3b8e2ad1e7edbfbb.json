@@ -1,11 +1,11 @@
 {
-    "date": "2024-10-07T13:44:56.738Z",
+    "date": "2024-10-07T13:41:53.844Z",
     "promptbookVersion": "0.71.0-0",
     "prompt": {
         "title": "Knowledge",
         "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.ptbk.md#knowledge",
         "parameters": {
-            "knowledgePieceContent": "---\n\nSpringfield is the sixth most populous city in Illinois, with a population of 10,566 as of 2019. It serves as the county seat of Sangamon County.\n\n---"
+            "knowledgePieceContent": "Korálky Katlas připravily souhrn informací o tom, na co si dát pozor při nákupu hotové bižuterie a bižuterních polotovarů."
         },
         "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> {knowledgePieceContent}",
         "modelRequirements": {
@@ -14,31 +14,31 @@
         "expectations": {}
     },
     "promptResult": {
-        "content": "Springfield, Illinois, population, county seat, Sangamon County",
+        "content": "Korálky, Katlas, bižuterie, bižuterní polotovary, nákup, informace",
         "modelName": "claude-3-5-sonnet-20240620",
         "timing": {
-            "start": "2024-10-07T13:44:55.178Z",
-            "complete": "2024-10-07T13:44:56.737Z"
+            "start": "2024-10-07T13:41:52.782Z",
+            "complete": "2024-10-07T13:41:53.843Z"
         },
         "usage": {
             "price": {
-                "value": 0.000525
+                "value": 0.000774
             },
             "input": {
                 "tokensCount": {
-                    "value": 95
+                    "value": 93
                 },
                 "charactersCount": {
-                    "value": 357
+                    "value": 316
                 },
                 "wordsCount": {
-                    "value": 53
+                    "value": 45
                 },
                 "sentencesCount": {
-                    "value": 4
+                    "value": 2
                 },
                 "linesCount": {
-                    "value": 15
+                    "value": 11
                 },
                 "paragraphsCount": {
                     "value": 6
@@ -49,10 +49,10 @@
             },
             "output": {
                 "tokensCount": {
-                    "value": 16
+                    "value": 33
                 },
                 "charactersCount": {
-                    "value": 63
+                    "value": 66
                 },
                 "wordsCount": {
                     "value": 7
@@ -71,33 +71,33 @@
                 }
             }
         },
-        "rawPromptContent": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> ---\n> \n> Springfield is the sixth most populous city in Illinois, with a population of 10,566 as of 2019. It serves as the county seat of Sangamon County.\n> \n> ---",
+        "rawPromptContent": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> Korálky Katlas připravily souhrn informací o tom, na co si dát pozor při nákupu hotové bižuterie a bižuterních polotovarů.",
         "rawRequest": {
             "model": "claude-3-5-sonnet-20240620",
             "max_tokens": 4096,
             "messages": [
                 {
                     "role": "user",
-                    "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> ---\n> \n> Springfield is the sixth most populous city in Illinois, with a population of 10,566 as of 2019. It serves as the county seat of Sangamon County.\n> \n> ---"
+                    "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> Korálky Katlas připravily souhrn informací o tom, na co si dát pozor při nákupu hotové bižuterie a bižuterních polotovarů."
                 }
             ]
         },
         "rawResponse": {
-            "id": "msg_014syxGgKiKWtUfRKDXuHzfa",
+            "id": "msg_01XxSUDRjKcN41BZjJ9PGVqY",
             "type": "message",
             "role": "assistant",
             "model": "claude-3-5-sonnet-20240620",
             "content": [
                 {
                     "type": "text",
-                    "text": "Springfield, Illinois, population, county seat, Sangamon County"
+                    "text": "Korálky, Katlas, bižuterie, bižuterní polotovary, nákup, informace"
                 }
             ],
             "stop_reason": "end_turn",
             "stop_sequence": null,
             "usage": {
-                "input_tokens": 95,
-                "output_tokens": 16
+                "input_tokens": 93,
+                "output_tokens": 33
             }
         }
     }
