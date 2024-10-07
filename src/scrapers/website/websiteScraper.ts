@@ -2,14 +2,16 @@ import type { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOpti
 import type { KnowledgePiecePreparedJson } from '../../types/PipelineJson/KnowledgePieceJson';
 import type { string_markdown } from '../../types/typeAliases';
 import type { Converter } from '../_common/Converter';
-import type { Scraper, ScraperSourceHandler } from '../_common/Scraper';
+import type { Scraper } from '../_common/Scraper';
+import type { ScraperSourceHandler } from '../_common/Scraper';
 // TODO: [🏳‍🌈] Finally take pick of .json vs .ts
 // import PipelineCollection from '../../../promptbook-collection/promptbook-collection';
 import { Readability } from '@mozilla/readability';
 import { writeFile } from 'fs/promises';
 import { JSDOM } from 'jsdom';
 import { forTime } from 'waitasecond';
-import { IS_VERBOSE, SCRAPE_CACHE_DIRNAME } from '../../config';
+import { IS_VERBOSE } from '../../config';
+import { SCRAPE_CACHE_DIRNAME } from '../../config';
 import { KnowledgeScrapeError } from '../../errors/KnowledgeScrapeError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { ScraperIntermediateSource } from '../_common/ScraperIntermediateSource';

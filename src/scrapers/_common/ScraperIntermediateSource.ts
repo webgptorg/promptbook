@@ -1,5 +1,5 @@
 import type { IDestroyable } from 'destroyable';
-import { string_absolute_filename } from '../../types/typeAliases';
+import type { string_absolute_filename } from '../../types/typeAliases';
 
 /**
  * @@@
