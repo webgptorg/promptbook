@@ -23,12 +23,14 @@ export async function $listAllFiles(path: string_dirname, isRecursive: boolean):
         withFileTypes: true /* Note: This is not working: recursive: isRecursive */,
     });
 
-    const fileNames = dirents.filter((dirent) => dirent.isFile()).map(({ name }) => join(path, name));
+    const fileNames = dirents
+        .filter((dirent) => dirent.isFile())
+        .map(({ name }) => join(path, name).split('\\').join('/'));
 
     if (isRecursive) {
         for (const dirent of dirents.filter((dirent) => dirent.isDirectory())) {
             const subPath = join(path, dirent.name);
-            fileNames.push(...(await $listAllFiles(subPath, isRecursive)));
+            fileNames.push(...(await $listAllFiles(subPath, isRecursive)).map((filename) => filename));
         }
     }
 
