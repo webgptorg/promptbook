@@ -1,14 +1,17 @@
 import spaceTrim from 'spacetrim';
 import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
 import { ParseError } from '../../errors/ParseError';
+import { ModelRequirements } from '../../types/ModelRequirements';
 import { MODEL_VARIANTS } from '../../types/ModelVariant';
 import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import type { string_markdown_text } from '../../types/typeAliases';
 import { keepUnused } from '../../utils/organization/keepUnused';
-import type { $PipelineJson } from '../_common/types/CommandParser';
-import type { $TemplateJson } from '../_common/types/CommandParser';
-import type { CommandParserInput } from '../_common/types/CommandParser';
-import type { PipelineBothCommandParser } from '../_common/types/CommandParser';
+import type {
+    $PipelineJson,
+    $TemplateJson,
+    CommandParserInput,
+    PipelineBothCommandParser,
+} from '../_common/types/CommandParser';
 import type { ModelCommand } from './ModelCommand';
 
 /**
@@ -166,9 +169,15 @@ export const modelCommandParser: PipelineBothCommandParser<ModelCommand> = {
         if ($templateJson.modelRequirements[command.key] !== undefined) {
             if ($templateJson.modelRequirements[command.key] === command.value) {
                 console.warn(
-                    `Multiple commands \`MODEL ${command.key} ${command.value}\` in the template "${
-                        $templateJson.title || $templateJson.name
-                    }"`,
+                    `Multiple commands \`MODEL ${
+                        (
+                            {
+                                modelName: 'NAME',
+                                modelVariant: 'VARIANT',
+                                maxTokens: '???',
+                            } as Record<keyof ModelRequirements, string>
+                        )[command.key]
+                    } ${command.value}\` in the template "${$templateJson.title || $templateJson.name}"`,
                 );
             } else {
                 throw new ParseError(
