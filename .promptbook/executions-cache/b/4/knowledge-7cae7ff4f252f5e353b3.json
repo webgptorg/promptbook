@@ -1,5 +1,5 @@
 {
-    "date": "2024-10-07T13:44:56.738Z",
+    "date": "2024-10-07T13:47:30.652Z",
     "promptbookVersion": "0.71.0-0",
     "prompt": {
         "title": "Knowledge",
@@ -14,15 +14,15 @@
         "expectations": {}
     },
     "promptResult": {
-        "content": "Springfield, Illinois, population, county seat, Sangamon County",
+        "content": "Springfield, Illinois, sixth most populous city, population, 10,566, 2019, county seat, Sangamon County",
         "modelName": "claude-3-5-sonnet-20240620",
         "timing": {
-            "start": "2024-10-07T13:44:55.178Z",
-            "complete": "2024-10-07T13:44:56.737Z"
+            "start": "2024-10-07T13:47:26.326Z",
+            "complete": "2024-10-07T13:47:30.651Z"
         },
         "usage": {
             "price": {
-                "value": 0.000525
+                "value": 0.000735
             },
             "input": {
                 "tokensCount": {
@@ -49,13 +49,13 @@
             },
             "output": {
                 "tokensCount": {
-                    "value": 16
+                    "value": 30
                 },
                 "charactersCount": {
-                    "value": 63
+                    "value": 103
                 },
                 "wordsCount": {
-                    "value": 7
+                    "value": 14
                 },
                 "sentencesCount": {
                     "value": 1
@@ -83,21 +83,21 @@
             ]
         },
         "rawResponse": {
-            "id": "msg_014syxGgKiKWtUfRKDXuHzfa",
+            "id": "msg_01WWrX6zzsuQGp7osR76zJsR",
             "type": "message",
             "role": "assistant",
             "model": "claude-3-5-sonnet-20240620",
             "content": [
                 {
                     "type": "text",
-                    "text": "Springfield, Illinois, population, county seat, Sangamon County"
+                    "text": "Springfield, Illinois, sixth most populous city, population, 10,566, 2019, county seat, Sangamon County"
                 }
             ],
             "stop_reason": "end_turn",
             "stop_sequence": null,
             "usage": {
                 "input_tokens": 95,
-                "output_tokens": 16
+                "output_tokens": 30
             }
         }
     }
