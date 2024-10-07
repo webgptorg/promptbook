@@ -4,8 +4,8 @@ import type { KnowledgePiecePreparedJson } from '../../types/PipelineJson/Knowle
 // import PipelineCollection from '../../../promptbook-collection/promptbook-collection';
 import { readdir, rename, rmdir } from 'fs/promises';
 import { dirname, join } from 'path';
-import { IS_VERBOSE } from '../../config';
-import { SCRAPE_CACHE_DIRNAME } from '../../config';
+import spaceTrim from 'spacetrim';
+import { IS_VERBOSE, SCRAPE_CACHE_DIRNAME } from '../../config';
 import { KnowledgeScrapeError } from '../../errors/KnowledgeScrapeError';
 import { MissingToolsError } from '../../errors/MissingToolsError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
@@ -13,8 +13,7 @@ import { $isRunningInNode } from '../../utils/environment/$isRunningInNode';
 import { execCommand } from '../../utils/execCommand/execCommand';
 import { getFileExtension } from '../../utils/files/getFileExtension';
 import type { Converter } from '../_common/Converter';
-import type { Scraper } from '../_common/Scraper';
-import type { ScraperSourceHandler } from '../_common/Scraper';
+import type { Scraper, ScraperSourceHandler } from '../_common/Scraper';
 import type { ScraperIntermediateSource } from '../_common/ScraperIntermediateSource';
 import { getScraperIntermediateSource } from '../_common/utils/getScraperIntermediateSource';
 import { documentScraper } from '../document/documentScraper';
@@ -86,16 +85,26 @@ export const legacyDocumentScraper = {
             .split('\\')
             .join('/');
 
+        const command = `"${externalProgramsPaths.libreOfficePath}" --headless --convert-to docx "${source.filename}"  --outdir "${documentSourceOutdirPathForLibreOffice}"`;
+
         // TODO: !!!!!! [🕊] Make execCommand standard (?node-)util of the promptbook - this should trigger build polution error
-        await execCommand(
-            `"${externalProgramsPaths.libreOfficePath}" --headless --convert-to docx "${source.filename}"  --outdir "${documentSourceOutdirPathForLibreOffice}"`,
-        );
+        await execCommand(command);
 
         const files = await readdir(documentSourceOutdirPathForLibreOffice);
 
         if (files.length !== 1) {
             throw new UnexpectedError(
-                `Expected exactly 1 file in the LibreOffice output directory, got ${files.length}`,
+                spaceTrim(
+                    (block) => `
+                        Expected exactly 1 file in the LibreOffice output directory, got ${files.length}
+
+                        The temporary folder:
+                        ${block(documentSourceOutdirPathForLibreOffice)}
+
+                        Command:
+                        > ${block(command)}
+                    `,
+                ),
             );
         }
 
