@@ -5,18 +5,21 @@ import { makeKnowledgeSourceHandler } from '../_common/utils/makeKnowledgeSource
 import { documentScraper } from './documentScraper';
 
 describe('how creating knowledge from docx works', () => {
+    const rootDirname = join(__dirname, 'samples');
+
     it('should scrape simple information from a .docx file', () =>
         expect(
             Promise.resolve()
                 .then(() =>
                     makeKnowledgeSourceHandler({
                         sourceContent: join(__dirname, 'samples/10-simple.docx'),
-                    }),
+
+                    },{rootDirname}),
                 )
                 .then((options) =>
                     documentScraper.scrape(options, {
                         llmTools: getLlmToolsForTestingAndScriptsAndPlayground(),
-                        rootDirname: join(__dirname, 'samples'),
+                        rootDirname,
                         externalProgramsPaths: {
                             // TODO: !!!!!! use `locate-app` library here
                             pandocPath: 'C:/Users/me/AppData/Local/Pandoc/pandoc.exe',
@@ -37,12 +40,12 @@ describe('how creating knowledge from docx works', () => {
                 .then(() =>
                     makeKnowledgeSourceHandler({
                         sourceContent: join(__dirname, 'samples/10-simple.odt'),
-                    }),
+                    },{rootDirname}),
                 )
                 .then((options) =>
                     documentScraper.scrape(options, {
                         llmTools: getLlmToolsForTestingAndScriptsAndPlayground(),
-                        rootDirname: join(__dirname, 'samples'),
+                        rootDirname,
                         externalProgramsPaths: {
                             // TODO: !!!!!! use `locate-app` library here
                             pandocPath: 'C:/Users/me/AppData/Local/Pandoc/pandoc.exe',
@@ -63,12 +66,12 @@ describe('how creating knowledge from docx works', () => {
                 .then(() =>
                     makeKnowledgeSourceHandler({
                         sourceContent: join(__dirname, 'samples/10-simple.docx'),
-                    }),
+                    },{rootDirname}),
                 )
                 .then((options) =>
                     documentScraper.scrape(options, {
                         llmTools: getLlmToolsForTestingAndScriptsAndPlayground(),
-                        rootDirname: join(__dirname, 'samples'),
+                        rootDirname,
                         externalProgramsPaths: {
                             // TODO: !!!!!! use `locate-app` library here
                             pandocPath: 'C:/Users/me/AppData/Local/Pandoc/pandoc.exe',

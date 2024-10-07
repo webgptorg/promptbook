@@ -5,19 +5,20 @@ import { makeKnowledgeSourceHandler } from '../_common/utils/makeKnowledgeSource
 import { legacyDocumentScraper } from './legacyDocumentScraper';
 
 describe('how creating knowledge from docx works', () => {
+    const rootDirname = join(__dirname, 'samples');
+
     it('should scrape simple information from a (legacy) .doc file', () =>
         expect(
             Promise.resolve()
                 .then(() =>
                     makeKnowledgeSourceHandler({
-
                         sourceContent: join(__dirname, 'samples/10-simple.doc'),
-                    }),
+                    },{rootDirname}),
                 )
                 .then((options) =>
                     legacyDocumentScraper.scrape(options, {
                         llmTools: getLlmToolsForTestingAndScriptsAndPlayground(),
-                        rootDirname: join(__dirname, 'samples'),
+                        rootDirname,
                         externalProgramsPaths: {
                             // TODO: !!!!!! use `locate-app` library here
                             pandocPath: 'C:/Users/me/AppData/Local/Pandoc/pandoc.exe',
@@ -38,14 +39,13 @@ describe('how creating knowledge from docx works', () => {
             Promise.resolve()
                 .then(() =>
                     makeKnowledgeSourceHandler({
-
                         sourceContent: join(__dirname, 'samples/10-simple.rtf'),
-                    }),
+                    },{rootDirname}),
                 )
                 .then((options) =>
                     legacyDocumentScraper.scrape(options, {
                         llmTools: getLlmToolsForTestingAndScriptsAndPlayground(),
-                        rootDirname: join(__dirname, 'samples'),
+                        rootDirname,
                         externalProgramsPaths: {
                             // TODO: !!!!!! use `locate-app` library here
                             pandocPath: 'C:/Users/me/AppData/Local/Pandoc/pandoc.exe',
@@ -66,14 +66,13 @@ describe('how creating knowledge from docx works', () => {
             Promise.resolve()
                 .then(() =>
                     makeKnowledgeSourceHandler({
-
                         sourceContent: join(__dirname, 'samples/10-simple.doc'),
-                    }),
+                    },{rootDirname}),
                 )
                 .then((options) =>
                     legacyDocumentScraper.scrape(options, {
                         llmTools: getLlmToolsForTestingAndScriptsAndPlayground(),
-                        rootDirname: join(__dirname, 'samples'),
+                        rootDirname,
                         externalProgramsPaths: {
                             // TODO: !!!!!! use `locate-app` library here
                             pandocPath: 'C:/Users/me/AppData/Local/Pandoc/pandoc.exe',

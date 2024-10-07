@@ -25,7 +25,7 @@ export function sourceContentToName(sourceContent: string_knowledge_source_conte
     return name;
 
     /*
-    TODO: !!!!!!
+    TODO: !!!!!! Remove or use
     if (isValidFilePath(sourceContent)) {
       if (!$isRunningInNode()) {
           throw new EnvironmentMismatchError('Importing knowledge source file works only in Node.js environment');

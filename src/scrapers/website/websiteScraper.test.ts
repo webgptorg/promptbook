@@ -5,16 +5,18 @@ import { makeKnowledgeSourceHandler } from '../_common/utils/makeKnowledgeSource
 import { websiteScraper } from './websiteScraper';
 
 describe('how creating knowledge from website works', () => {
+    const rootDirname = join(__dirname, 'samples');
+
     it('should scrape simple information from a https://www.pavolhejny.com/', () =>
         expect(
             Promise.resolve()
                 .then(() =>
-                    makeKnowledgeSourceHandler({  sourceContent: 'https://www.pavolhejny.com/' }),
+                    makeKnowledgeSourceHandler({ sourceContent: 'https://www.pavolhejny.com/' }, { rootDirname }),
                 )
                 .then((options) =>
                     websiteScraper.scrape(options, {
                         llmTools: getLlmToolsForTestingAndScriptsAndPlayground(),
-                        rootDirname: join(__dirname, 'samples'),
+                        rootDirname
                     }),
                 )
                 .then((knowledge) => knowledge?.map(({ content }) => ({ content })))
@@ -29,12 +31,12 @@ describe('how creating knowledge from website works', () => {
         expect(
             Promise.resolve()
                 .then(() =>
-                    makeKnowledgeSourceHandler({ sourceContent: 'https://www.pavolhejny.com/' }),
+                    makeKnowledgeSourceHandler({ sourceContent: 'https://www.pavolhejny.com/' }, { rootDirname }),
                 )
                 .then((options) =>
                     websiteScraper.scrape(options, {
                         llmTools: getLlmToolsForTestingAndScriptsAndPlayground(),
-                        rootDirname: join(__dirname, 'samples'),
+                        rootDirname,
                     }),
                 )
                 .then((knowledge) => knowledge?.map(({ content }) => ({ content })))

@@ -40,13 +40,14 @@ async function playground() {
     );
 
     const llmTools = getLlmToolsForTestingAndScriptsAndPlayground({ isCacheReloaded: true });
+    const rootDirname =  join(__dirname, 'samples');
 
     const knowledge = await documentScraper.scrape(
-        await makeKnowledgeSourceHandler({ sourceContent: samplePath }),
+        await makeKnowledgeSourceHandler({ sourceContent: samplePath },{rootDirname}),
         {
             llmTools,
             isVerbose,
-            rootDirname: join(__dirname, 'samples'),
+            rootDirname,
             externalProgramsPaths: {
                 // TODO: !!!!!! use `locate-app` library here
                 pandocPath: 'C:/Users/me/AppData/Local/Pandoc/pandoc.exe',
