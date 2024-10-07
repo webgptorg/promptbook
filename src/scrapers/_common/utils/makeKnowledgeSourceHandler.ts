@@ -2,14 +2,14 @@ import { readFile } from 'fs/promises';
 import { join } from 'path';
 import spaceTrim from 'spacetrim';
 import type { SetOptional } from 'type-fest';
-import type { KnowledgeSourceJson } from '../../../types/PipelineJson/KnowledgeSourceJson';
-import type { PrepareAndScrapeOptions } from '../../../prepare/PrepareAndScrapeOptions';
-import { $isRunningInNode } from '../../../utils/environment/$isRunningInNode';
 import { sourceContentToName } from '../../../commands/KNOWLEDGE/utils/sourceContentToName';
 import { IS_VERBOSE } from '../../../config';
 import { EnvironmentMismatchError } from '../../../errors/EnvironmentMismatchError';
 import { NotFoundError } from '../../../errors/NotFoundError';
 import { UnexpectedError } from '../../../errors/UnexpectedError';
+import type { PrepareAndScrapeOptions } from '../../../prepare/PrepareAndScrapeOptions';
+import type { KnowledgeSourceJson } from '../../../types/PipelineJson/KnowledgeSourceJson';
+import { $isRunningInNode } from '../../../utils/environment/$isRunningInNode';
 import { $isFileExisting } from '../../../utils/files/$isFileExisting';
 import { extensionToMimeType } from '../../../utils/files/extensionToMimeType';
 import { getFileExtension } from '../../../utils/files/getFileExtension';
@@ -20,6 +20,8 @@ import type { ScraperSourceHandler } from '../Scraper';
 
 /**
  * @@@
+ *
+ * @private for scraper utilities
  */
 export async function makeKnowledgeSourceHandler(
     knowledgeSource: SetOptional<KnowledgeSourceJson, 'name'>,

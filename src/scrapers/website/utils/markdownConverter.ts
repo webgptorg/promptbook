@@ -4,6 +4,7 @@ import { Converter } from 'showdown';
  * A converter instance that uses showdown and highlight extensions
  *
  * @type {Converter}
+ * @private for markdown and html knowledge scrapers
  */
 export const markdownConverter = new Converter({
     flavor: 'github', // <- TODO: !!!!!! Explicitly specify the flavor of promptbook markdown
