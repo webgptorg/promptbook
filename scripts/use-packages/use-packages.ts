@@ -11,8 +11,8 @@ import { join } from 'path';
 import type { PackageJson } from 'type-fest';
 import { forTime } from 'waitasecond';
 import { LOOP_LIMIT } from '../../src/config';
+import { execCommand } from '../../src/utils/execCommand/execCommand';
 import { commit } from '../utils/autocommit/commit';
-import { execCommand } from '../utils/execCommand/execCommand';
 
 if (process.cwd() !== join(__dirname, '../..')) {
     console.error(colors.red(`CWD must be root of the project`));
