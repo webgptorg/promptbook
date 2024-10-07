@@ -7,7 +7,9 @@ describe('how `sourceContentToName` works', () => {
     });
 
     it('should work url source', () => {
-        expect(sourceContentToName('https://promptbook.studio/file.doc')).toBe('source-https-promptbook-s-9d4e414fe118421d73b1');
+        expect(sourceContentToName('https://promptbook.studio/file.doc')).toBe(
+            'source-https-promptbook-s-9d4e414fe118421d73b1',
+        );
     });
 
     it('should work explicit source', () => {
@@ -18,3 +20,7 @@ describe('how `sourceContentToName` works', () => {
         expect(sourceContentToName('-')).toBe('source-c465d6811e5a78386e88');
     });
 });
+
+/**
+ * TODO: [🧠] Make some smart crop NOT source-i-m-pavol-a-develop-... BUT source-i-m-pavol-a-developer-...
+ */
