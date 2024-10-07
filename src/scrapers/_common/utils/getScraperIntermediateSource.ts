@@ -58,7 +58,9 @@ export async function getScraperIntermediateSource(
         );
     //    <- TODO: [🥬] Make some system for hashes and ids of promptbook
 
-    const semanticName = normalizeToKebabCase(titleToName(sourceFilename || url || '')).substring(
+    const semanticName = normalizeToKebabCase(
+        titleToName((sourceFilename || url || '').split('intermediate').join('')),
+    ).substring(
         0,
         20,
         // <- TODO: Use MAX_FILENAME_LENGTH
