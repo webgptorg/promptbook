@@ -34,7 +34,33 @@ export async function makeKnowledgeSourceHandler(
         name = sourceContentToName(sourceContent);
     }
 
-    if (isValidFilePath(sourceContent)) {
+    if (isValidUrl(sourceContent)) {
+        const url = sourceContent;
+        const response = await fetch(url); // <- TODO: [🧠] Scraping and fetch proxy
+        const mimeType = response.headers.get('content-type')?.split(';')[0] || 'text/html';
+
+        return {
+            source: name,
+            filename: null,
+            url,
+            mimeType,
+            async asBlob() {
+                // TODO: [👨🏻‍🤝‍👨🏻] This can be called multiple times BUT when called second time, response in already consumed
+                const content = await response.blob();
+                return content;
+            },
+            async asJson() {
+                // TODO: [👨🏻‍🤝‍👨🏻]
+                const content = await response.json();
+                return content;
+            },
+            async asText() {
+                // TODO: [👨🏻‍🤝‍👨🏻]
+                const content = await response.text();
+                return content;
+            },
+        };
+    } else if (isValidFilePath(sourceContent) || /\.[a-z]{1,10}$/i.exec(sourceContent as string)) {
         if (!$isRunningInNode()) {
             throw new EnvironmentMismatchError('Importing knowledge source file works only in Node.js environment');
         }
@@ -87,32 +113,6 @@ export async function makeKnowledgeSourceHandler(
             async asText() {
                 return await readFile(filename, 'utf-8');
                 //  <- Note: Its OK to use sync in tooling for tests
-            },
-        };
-    } else if (isValidUrl(sourceContent)) {
-        const url = sourceContent;
-        const response = await fetch(url); // <- TODO: [🧠] Scraping and fetch proxy
-        const mimeType = response.headers.get('content-type')?.split(';')[0] || 'text/html';
-
-        return {
-            source: name,
-            filename: null,
-            url,
-            mimeType,
-            async asBlob() {
-                // TODO: [👨🏻‍🤝‍👨🏻] This can be called multiple times BUT when called second time, response in already consumed
-                const content = await response.blob();
-                return content;
-            },
-            async asJson() {
-                // TODO: [👨🏻‍🤝‍👨🏻]
-                const content = await response.json();
-                return content;
-            },
-            async asText() {
-                // TODO: [👨🏻‍🤝‍👨🏻]
-                const content = await response.text();
-                return content;
             },
         };
     } else {
