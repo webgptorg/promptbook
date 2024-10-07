@@ -1,7 +1,8 @@
 import { readdir } from 'fs/promises';
 import { join } from 'path';
 import { EnvironmentMismatchError } from '../../errors/EnvironmentMismatchError';
-import type { string_dirname, string_filename } from '../../types/typeAliases';
+import type { string_dirname } from '../../types/typeAliases';
+import type { string_filename } from '../../types/typeAliases';
 import { $isRunningInNode } from '../environment/$isRunningInNode';
 import { $isDirectoryExisting } from './$isDirectoryExisting';
 
