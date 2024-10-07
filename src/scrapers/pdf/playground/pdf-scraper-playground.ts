@@ -33,17 +33,13 @@ async function playground() {
 
     //const sample = '10-simple.doc';
     const sample = '10-simple.pdf';
-
-    const samplePath = join(
-        __dirname,
-        `../samples/${sample}` /* <- TODO: [👩🏿‍🤝‍👩🏼] Read here the samples directory and itterate through all of them */,
-    );
+    //               <- TODO: [👩🏿‍🤝‍👩🏼] Read here the samples directory and itterate through all of them
 
     const llmTools = getLlmToolsForTestingAndScriptsAndPlayground({ isCacheReloaded: true });
-    const rootDirname = join(__dirname, 'samples');
+    const rootDirname = join(__dirname, '..', 'samples');
 
     const knowledge = await pdfScraper.scrape(
-        await makeKnowledgeSourceHandler({ sourceContent: samplePath }, { rootDirname }),
+        await makeKnowledgeSourceHandler({ sourceContent: sample }, { rootDirname }),
         {
             llmTools,
             isVerbose,
