@@ -1,7 +1,9 @@
 import { readFile } from 'fs/promises';
 import { join } from 'path';
+import type { SetOptional } from 'type-fest';
 import { KnowledgeSourceJson, PrepareAndScrapeOptions } from '../../../_packages/types.index';
 import { $isRunningInNode } from '../../../_packages/utils.index';
+import { sourceContentToName } from '../../../commands/KNOWLEDGE/utils/sourceContentToName';
 import { IS_VERBOSE } from '../../../config';
 import { EnvironmentMismatchError } from '../../../errors/EnvironmentMismatchError';
 import { UnexpectedError } from '../../../errors/UnexpectedError';
@@ -16,13 +18,18 @@ import type { ScraperSourceHandler } from '../Scraper';
  * @@@
  */
 export async function makeKnowledgeSourceHandler(
-    knowledgeSource: KnowledgeSourceJson,
+    knowledgeSource: SetOptional<KnowledgeSourceJson, 'name'>,
     options?: Pick<PrepareAndScrapeOptions, 'rootDirname' | 'isVerbose'>,
 ): Promise<ScraperSourceHandler> {
-    const { name, sourceContent } = knowledgeSource;
+    const { sourceContent } = knowledgeSource;
+    let { name } = knowledgeSource;
     const { rootDirname = null, isVerbose = IS_VERBOSE } = options || {};
 
     TODO_USE(isVerbose);
+
+    if (!name) {
+        name = sourceContentToName(sourceContent);
+    }
 
     if (isValidFilePath(sourceContent)) {
         if (!$isRunningInNode()) {

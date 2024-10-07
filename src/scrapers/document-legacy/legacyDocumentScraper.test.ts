@@ -10,7 +10,7 @@ describe('how creating knowledge from docx works', () => {
             Promise.resolve()
                 .then(() =>
                     makeKnowledgeSourceHandler({
-                        name: 'test-source',
+
                         sourceContent: join(__dirname, 'samples/10-simple.doc'),
                     }),
                 )
@@ -38,7 +38,7 @@ describe('how creating knowledge from docx works', () => {
             Promise.resolve()
                 .then(() =>
                     makeKnowledgeSourceHandler({
-                        name: 'test-source',
+
                         sourceContent: join(__dirname, 'samples/10-simple.rtf'),
                     }),
                 )
@@ -66,7 +66,7 @@ describe('how creating knowledge from docx works', () => {
             Promise.resolve()
                 .then(() =>
                     makeKnowledgeSourceHandler({
-                        name: 'test-source',
+
                         sourceContent: join(__dirname, 'samples/10-simple.doc'),
                     }),
                 )

@@ -38,20 +38,17 @@ async function playground() {
 
     const llmTools = getLlmToolsForTestingAndScriptsAndPlayground({ isCacheReloaded: true });
 
-    const knowledge = await websiteScraper.scrape(
-        await makeKnowledgeSourceHandler({ name: 'test-source', sourceContent: sample }),
-        {
-            llmTools,
-            isVerbose,
-            rootDirname: join(__dirname, 'samples'),
-            isCacheCleaned: false,
-            // TODO: !!!!!! Maybe remove or modify
-            externalProgramsPaths: {
-                // TODO: !!!!!! use `locate-app` library here
-                pandocPath: 'C:/Users/me/AppData/Local/Pandoc/pandoc.exe',
-            },
+    const knowledge = await websiteScraper.scrape(await makeKnowledgeSourceHandler({ sourceContent: sample }), {
+        llmTools,
+        isVerbose,
+        rootDirname: join(__dirname, 'samples'),
+        isCacheCleaned: false,
+        // TODO: !!!!!! Maybe remove or modify
+        externalProgramsPaths: {
+            // TODO: !!!!!! use `locate-app` library here
+            pandocPath: 'C:/Users/me/AppData/Local/Pandoc/pandoc.exe',
         },
-    );
+    });
 
     console.info(colors.cyan(usageToHuman(llmTools.getTotalUsage())));
     console.info(colors.bgGreen(' Knowledge: '));

@@ -462,6 +462,7 @@ export type string_emails = string;
  *   - `isValidUuid  to check validity
  *
  * For example `"5a0a153d-7be9-4018-9eda-e0e2e2b89bd9"`
+ * TODO: [🥬] Make some system for hashes and ids of promptbook
  */
 export type string_uuid = string & {
     readonly _type: 'uuid' /* <- TODO: [🏟] What is the best shape of the additional object in branded types */;

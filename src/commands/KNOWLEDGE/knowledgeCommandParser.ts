@@ -1,5 +1,3 @@
-import hexEncoder from 'crypto-js/enc-hex';
-import sha256 from 'crypto-js/sha256';
 import spaceTrim from 'spacetrim';
 import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
 import { ParseError } from '../../errors/ParseError';
@@ -10,6 +8,7 @@ import { isValidFilePath } from '../../utils/validators/filePath/isValidFilePath
 import { isValidUrl } from '../../utils/validators/url/isValidUrl';
 import type { $PipelineJson, CommandParserInput, PipelineHeadCommandParser } from '../_common/types/CommandParser';
 import type { KnowledgeCommand } from './KnowledgeCommand';
+import { sourceContentToName } from './utils/sourceContentToName';
 
 /**
  * Parses the knowledge command
@@ -90,13 +89,8 @@ export const knowledgeCommandParser: PipelineHeadCommandParser<KnowledgeCommand>
     $applyToPipelineJson(command: KnowledgeCommand, $pipelineJson: $PipelineJson): void {
         const { sourceContent } = command;
 
-        // TODO: !!!!!! Better name for source than gibberish hash
-        const name = 'source-' + sha256(hexEncoder.parse(JSON.stringify(sourceContent))).toString(/* hex */);
-        //    <- TODO: [🥬] Encapsulate sha256 to some private utility function
-        //    <- TODO: This should be replaced with a better name later in preparation (done with some propper LLM summarization)
-
         $pipelineJson.knowledgeSources.push({
-            name,
+            name: sourceContentToName(sourceContent),
             sourceContent,
         });
     },

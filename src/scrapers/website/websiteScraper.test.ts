@@ -9,7 +9,7 @@ describe('how creating knowledge from website works', () => {
         expect(
             Promise.resolve()
                 .then(() =>
-                    makeKnowledgeSourceHandler({ name: 'test-source', sourceContent: 'https://www.pavolhejny.com/' }),
+                    makeKnowledgeSourceHandler({  sourceContent: 'https://www.pavolhejny.com/' }),
                 )
                 .then((options) =>
                     websiteScraper.scrape(options, {
@@ -29,7 +29,7 @@ describe('how creating knowledge from website works', () => {
         expect(
             Promise.resolve()
                 .then(() =>
-                    makeKnowledgeSourceHandler({ name: 'test-source', sourceContent: 'https://www.pavolhejny.com/' }),
+                    makeKnowledgeSourceHandler({ sourceContent: 'https://www.pavolhejny.com/' }),
                 )
                 .then((options) =>
                     websiteScraper.scrape(options, {

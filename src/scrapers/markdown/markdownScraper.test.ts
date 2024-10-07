@@ -10,7 +10,7 @@ describe('how creating knowledge from markdown works', () => {
             Promise.resolve()
                 .then(() =>
                     makeKnowledgeSourceHandler({
-                        name: 'test-source',
+
                         sourceContent: join(__dirname, 'samples/10-simple.md'),
                     }),
                 )
@@ -33,7 +33,7 @@ describe('how creating knowledge from markdown works', () => {
             Promise.resolve()
                 .then(() =>
                     makeKnowledgeSourceHandler({
-                        name: 'test-source',
+
                         sourceContent: join(__dirname, 'samples/10-simple.md'),
                     }),
                 )

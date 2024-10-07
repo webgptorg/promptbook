@@ -41,7 +41,7 @@ async function playground() {
     const llmTools = getLlmToolsForTestingAndScriptsAndPlayground({ isCacheReloaded: true });
 
     const knowledge = await markdownScraper.scrape(
-        await makeKnowledgeSourceHandler({ name: 'test-source', sourceContent: samplePath }),
+        await makeKnowledgeSourceHandler({sourceContent: samplePath }),
         {
             llmTools,
             isVerbose,
