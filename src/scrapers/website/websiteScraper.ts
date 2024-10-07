@@ -1,20 +1,17 @@
 import type { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';
 import type { KnowledgePiecePreparedJson } from '../../types/PipelineJson/KnowledgePieceJson';
-import type { string_filename, string_markdown } from '../../types/typeAliases';
+import type { string_markdown } from '../../types/typeAliases';
 import { Converter } from '../_common/Converter';
 import { Scraper, ScraperSourceHandler } from '../_common/Scraper';
 // TODO: [🏳‍🌈] Finally take pick of .json vs .ts
 // import PipelineCollection from '../../../promptbook-collection/promptbook-collection';
 import { Readability } from '@mozilla/readability';
-import { mkdir, writeFile } from 'fs/promises';
+import { writeFile } from 'fs/promises';
 import { JSDOM } from 'jsdom';
-import { dirname, join } from 'path';
 import { forTime } from 'waitasecond';
 import { IS_VERBOSE, SCRAPE_CACHE_DIRNAME } from '../../config';
-import { titleToName } from '../../conversion/utils/titleToName';
 import { KnowledgeScrapeError } from '../../errors/KnowledgeScrapeError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
-import { $isRunningInNode } from '../../utils/environment/$isRunningInNode';
 import { ScraperIntermediateSource } from '../_common/ScraperIntermediateSource';
 import { getScraperIntermediateSource } from '../_common/utils/getScraperIntermediateSource';
 import { markdownScraper } from '../markdown/markdownScraper';
@@ -93,15 +90,6 @@ export const websiteScraper = {
         await writeFile(cacheFilehandler.filename, html, 'utf-8');
 
         const markdown = markdownConverter.makeMarkdown(html, jsdom.window.document);
-        let markdownSourceFilePath: string_filename | null = null;
-
-        if ($isRunningInNode()) {
-            markdownSourceFilePath = join(process.cwd(), cacheDirname, `${titleToName(source.source)}.md`);
-
-            // TODO: !!!!!! Make cache dir recursively in every scraper
-            await mkdir(dirname(markdownSourceFilePath), { recursive: true });
-            await writeFile(markdownSourceFilePath, markdown, 'utf-8');
-        }
 
         return { ...cacheFilehandler, markdown };
     },
