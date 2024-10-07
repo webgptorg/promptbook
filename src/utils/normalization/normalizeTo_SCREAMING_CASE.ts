@@ -12,10 +12,9 @@ export type string_SCREAMING_CASE = string;
  */
 type char_type = 'LOWERCASE' | 'UPPERCASE' | 'NUMBER' | 'SLASH' | 'OTHER';
 
-
 /**
  * @@@
- * 
+ *
  * @param text @@@
  * @returns @@@
  * @example 'HELLO_WORLD'
@@ -39,9 +38,6 @@ export function normalizeTo_SCREAMING_CASE(text: string): string_SCREAMING_CASE 
             normalizedChar = char;
         } else if (/^[0-9]$/.test(char)) {
             charType = 'NUMBER';
-            normalizedChar = char;
-        } else if (/^\/$/.test(char)) {
-            charType = 'SLASH';
             normalizedChar = char;
         } else {
             charType = 'OTHER';

@@ -532,6 +532,7 @@ Knowledge scrapers [🐝]
 -   Add `MissingToolsError`
 -   Change `FileStorage` -> `FileCacheStorage`
 -   Changed behavior of `titleToName` when passing URLs or file paths
+-   Fix normalize functions when normalizing string containing slash char "/", "\"
 
 ### `0.72.0` _(2024-09-)_
 
