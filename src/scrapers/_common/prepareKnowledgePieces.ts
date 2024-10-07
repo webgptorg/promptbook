@@ -20,9 +20,11 @@ export async function prepareKnowledgePieces(
 ): Promise<Array<Omit<KnowledgePiecePreparedJson, 'preparationIds'>>> {
     const { maxParallelCount = MAX_PARALLEL_COUNT, rootDirname, isVerbose = IS_VERBOSE } = options;
 
-    const knowledgePrepared: Array<Omit<KnowledgePiecePreparedJson, 'preparationIds'>> = [];
+    const knowledgePreparedUnflatten: Array<Array<Omit<KnowledgePiecePreparedJson, 'preparationIds'>>> = new Array(
+        knowledgeSources.length,
+    );
 
-    await forEachAsync(knowledgeSources, { maxParallelCount }, async (knowledgeSource) => {
+    await forEachAsync(knowledgeSources, { maxParallelCount }, async (knowledgeSource, index) => {
         let partialPieces: Omit<KnowledgePiecePreparedJson, 'preparationIds' | 'sources'>[] | null = null;
         const sourceHandler = await makeKnowledgeSourceHandler(knowledgeSource, { rootDirname, isVerbose });
 
@@ -74,8 +76,11 @@ export async function prepareKnowledgePieces(
             ],
         }));
 
-        knowledgePrepared.push(...pieces);
+        knowledgePreparedUnflatten[index] = pieces;
     });
+
+    const knowledgePrepared: Array<Omit<KnowledgePiecePreparedJson, 'preparationIds'>> =
+        knowledgePreparedUnflatten.flat();
 
     return knowledgePrepared;
 }

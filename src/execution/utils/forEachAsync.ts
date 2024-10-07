@@ -16,6 +16,7 @@ type ForEachAsyncOptions = {
  * @param options - Options for the function
  * @param callbackfunction - Function to call for each item
  * @public exported from `@promptbook/utils`
+ * @deprecated [🪂] Use queues instead
  */
 export async function forEachAsync<TItem>(
     array: Array<TItem>,
