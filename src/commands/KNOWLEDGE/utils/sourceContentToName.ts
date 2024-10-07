@@ -20,6 +20,7 @@ export function sourceContentToName(sourceContent: string_knowledge_source_conte
     const pieces = ['source', semanticName, hash].filter((piece) => piece !== '');
 
     const name = pieces.join('-');
+    // <- TODO: Use MAX_FILENAME_LENGTH
 
     return name;
 
@@ -117,3 +118,8 @@ export function sourceContentToName(sourceContent: string_knowledge_source_conte
   }
   */
 }
+
+
+/**
+ * TODO: [🐱‍🐉][🧠] Make some smart crop NOT source-i-m-pavol-a-develop-... BUT source-i-m-pavol-a-developer-...
+ */

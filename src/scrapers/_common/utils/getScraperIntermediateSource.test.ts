@@ -33,3 +33,8 @@ describe('how `getScraperIntermediateSource` works', () => {
         expect(getScraperIntermediateSource({ filename: null, url: 'https://praha.eu/' }, {})).resolves.toBe('/'));
     */
 });
+
+
+/**
+ * TODO: [🐱‍🐉][🧠] Make some smart crop
+ */

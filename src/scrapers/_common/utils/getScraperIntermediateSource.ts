@@ -1,7 +1,8 @@
 import { SHA256 as sha256 } from 'crypto-js';
 import hexEncoder from 'crypto-js/enc-hex';
 import { mkdir, rm } from 'fs/promises';
-import { basename, dirname, join } from 'path';
+import { dirname, join } from 'path';
+import { normalizeToKebabCase } from '../../../_packages/utils.index';
 import type { PrepareAndScrapeOptions } from '../../../prepare/PrepareAndScrapeOptions';
 import { nameToSubfolderPath } from '../../../storage/file-cache-storage/utils/nameToSubfolderPath';
 import { string_file_extension } from '../../../types/typeAliases';
@@ -44,14 +45,25 @@ export async function getScraperIntermediateSource(
     // TODO: [👬] DRY
 
     const hash = sha256(
+        //    <- TODO: [🥬] Encapsulate sha256 to some private utility function
         hexEncoder.parse(
             sourceFilename || url || 'untitled',
             // <- TODO: !!!!!! Probbably hash file content instead of filename
         ),
-    ).toString(/* hex */);
-    //    <- TODO: [🥬] Encapsulate sha256 to some private utility function
+    )
+        .toString(/* hex */)
+        .substring(0, 20);
+    //    <- TODO: [🥬] Make some system for hashes and ids of promptbook
 
-    const name = basename(sourceFilename || url || 'untitled') + '-' + hash;
+    const semanticName = normalizeToKebabCase(
+        sourceFilename || url || 'untitled'.substring(0, 20),
+        // <- TODO: [🐱‍🐉]
+    );
+
+    const pieces = ['intermediate', semanticName, hash].filter((piece) => piece !== '');
+
+    const name = pieces.join('-');
+    // <- TODO: Use MAX_FILENAME_LENGTH
 
     TODO_USE(rootDirname); // <- TODO: !!!!!!
 
@@ -95,4 +107,5 @@ export async function getScraperIntermediateSource(
  * Note: Not using `FileCacheStorage` for two reasons:
  * 1) Need to store more than serialized JSONs
  * 2) Need to switch between a `rootDirname` and `cacheDirname` <- TODO: !!!!
+ * TODO: [🐱‍🐉][🧠] Make some smart crop
  */

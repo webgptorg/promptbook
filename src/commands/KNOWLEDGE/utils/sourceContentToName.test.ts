@@ -22,5 +22,5 @@ describe('how `sourceContentToName` works', () => {
 });
 
 /**
- * TODO: [🧠] Make some smart crop NOT source-i-m-pavol-a-develop-... BUT source-i-m-pavol-a-developer-...
+ * TODO: [🐱‍🐉][🧠] Make some smart crop NOT source-i-m-pavol-a-develop-... BUT source-i-m-pavol-a-developer-...
  */
