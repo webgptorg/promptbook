@@ -11,10 +11,12 @@ describe('how creating knowledge from docx works', () => {
         expect(
             Promise.resolve()
                 .then(() =>
-                    makeKnowledgeSourceHandler({
-                        sourceContent: join(__dirname, 'samples/10-simple.docx'),
-
-                    },{rootDirname}),
+                    makeKnowledgeSourceHandler(
+                        {
+                            sourceContent: '10-simple.docx',
+                        },
+                        { rootDirname },
+                    ),
                 )
                 .then((options) =>
                     documentScraper.scrape(options, {
@@ -38,9 +40,12 @@ describe('how creating knowledge from docx works', () => {
         expect(
             Promise.resolve()
                 .then(() =>
-                    makeKnowledgeSourceHandler({
-                        sourceContent: join(__dirname, 'samples/10-simple.odt'),
-                    },{rootDirname}),
+                    makeKnowledgeSourceHandler(
+                        {
+                            sourceContent: '10-simple.odt',
+                        },
+                        { rootDirname },
+                    ),
                 )
                 .then((options) =>
                     documentScraper.scrape(options, {
@@ -64,9 +69,12 @@ describe('how creating knowledge from docx works', () => {
         expect(
             Promise.resolve()
                 .then(() =>
-                    makeKnowledgeSourceHandler({
-                        sourceContent: join(__dirname, 'samples/10-simple.docx'),
-                    },{rootDirname}),
+                    makeKnowledgeSourceHandler(
+                        {
+                            sourceContent: '10-simple.docx',
+                        },
+                        { rootDirname },
+                    ),
                 )
                 .then((options) =>
                     documentScraper.scrape(options, {

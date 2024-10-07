@@ -1,6 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
-import { getScraperIntermediateSource } from './getScraperIntermediateSource';
 import { join } from 'path';
+import { getScraperIntermediateSource } from './getScraperIntermediateSource';
 
 describe('how `getScraperIntermediateSource` works', () => {
     it('should create filename for file source', () =>
@@ -21,7 +21,7 @@ describe('how `getScraperIntermediateSource` works', () => {
         ).resolves.toBe(
             join(
                 process.cwd(),
-                '/home/user/coolproject/.promptbook/8/0/prague.pdf-80efa46cc0147c9b65fd46cbf90638196e6540197b655ddb6eb704c38a2bdd23.md',
+                'C:/Users/me/work/ai/promptbook/home/user/coolproject/.promptbook/8/0/intermediate-prague-pdf-80efa46cc0147c9b65fd.md',
             )
                 .split('\\')
                 .join('/'),
@@ -33,7 +33,6 @@ describe('how `getScraperIntermediateSource` works', () => {
         expect(getScraperIntermediateSource({ filename: null, url: 'https://praha.eu/' }, {})).resolves.toBe('/'));
     */
 });
-
 
 /**
  * TODO: [🐱‍🐉][🧠] Make some smart crop

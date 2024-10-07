@@ -11,9 +11,12 @@ describe('how creating knowledge from docx works', () => {
         expect(
             Promise.resolve()
                 .then(() =>
-                    makeKnowledgeSourceHandler({
-                        sourceContent: join(__dirname, 'samples/10-simple.doc'),
-                    },{rootDirname}),
+                    makeKnowledgeSourceHandler(
+                        {
+                            sourceContent: '10-simple.doc',
+                        },
+                        { rootDirname },
+                    ),
                 )
                 .then((options) =>
                     legacyDocumentScraper.scrape(options, {
@@ -38,9 +41,12 @@ describe('how creating knowledge from docx works', () => {
         expect(
             Promise.resolve()
                 .then(() =>
-                    makeKnowledgeSourceHandler({
-                        sourceContent: join(__dirname, 'samples/10-simple.rtf'),
-                    },{rootDirname}),
+                    makeKnowledgeSourceHandler(
+                        {
+                            sourceContent: '10-simple.rtf',
+                        },
+                        { rootDirname },
+                    ),
                 )
                 .then((options) =>
                     legacyDocumentScraper.scrape(options, {
@@ -65,9 +71,12 @@ describe('how creating knowledge from docx works', () => {
         expect(
             Promise.resolve()
                 .then(() =>
-                    makeKnowledgeSourceHandler({
-                        sourceContent: join(__dirname, 'samples/10-simple.doc'),
-                    },{rootDirname}),
+                    makeKnowledgeSourceHandler(
+                        {
+                            sourceContent: '10-simple.doc',
+                        },
+                        { rootDirname },
+                    ),
                 )
                 .then((options) =>
                     legacyDocumentScraper.scrape(options, {

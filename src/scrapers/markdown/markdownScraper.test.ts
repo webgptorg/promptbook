@@ -5,17 +5,18 @@ import { makeKnowledgeSourceHandler } from '../_common/utils/makeKnowledgeSource
 import { markdownScraper } from './markdownScraper';
 
 describe('how creating knowledge from markdown works', () => {
-
-  const rootDirname =  join(__dirname, 'samples');
-
+    const rootDirname = join(__dirname, 'samples');
 
     it('should scrape simple information from a markdown', () =>
         expect(
             Promise.resolve()
                 .then(() =>
-                    makeKnowledgeSourceHandler({
-                        sourceContent: join(__dirname, 'samples/10-simple.md'),
-                    },{rootDirname}),
+                    makeKnowledgeSourceHandler(
+                        {
+                            sourceContent: '10-simple.md',
+                        },
+                        { rootDirname },
+                    ),
                 )
                 .then((options) =>
                     markdownScraper.scrape(options, {
@@ -35,9 +36,12 @@ describe('how creating knowledge from markdown works', () => {
         expect(
             Promise.resolve()
                 .then(() =>
-                    makeKnowledgeSourceHandler({
-                        sourceContent: join(__dirname, 'samples/10-simple.md'),
-                    },{rootDirname}),
+                    makeKnowledgeSourceHandler(
+                        {
+                            sourceContent: '10-simple.md',
+                        },
+                        { rootDirname },
+                    ),
                 )
                 .then((options) =>
                     markdownScraper.scrape(options, {
