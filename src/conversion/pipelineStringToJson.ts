@@ -1,4 +1,4 @@
-import { PrepareAndScrapeOptions } from '../prepare/PrepareAndScrapeOptions';
+import type { PrepareAndScrapeOptions } from '../prepare/PrepareAndScrapeOptions';
 import { preparePipeline } from '../prepare/preparePipeline';
 import type { PipelineJson } from '../types/PipelineJson/PipelineJson';
 import type { PipelineString } from '../types/PipelineString';

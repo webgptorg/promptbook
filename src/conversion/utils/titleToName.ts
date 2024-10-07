@@ -1,5 +1,5 @@
 import { basename } from 'path';
-import { isValidUrl } from '../../_packages/utils.index';
+import { isValidUrl } from '../../utils/validators/url/isValidUrl';
 import { normalizeToKebabCase } from '../../utils/normalization/normalize-to-kebab-case';
 import { removeEmojis } from '../../utils/removeEmojis';
 import { isValidFilePath } from '../../utils/validators/filePath/isValidFilePath';

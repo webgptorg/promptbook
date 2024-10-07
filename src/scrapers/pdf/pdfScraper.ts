@@ -1,12 +1,13 @@
 import type { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';
 import type { KnowledgePiecePreparedJson } from '../../types/PipelineJson/KnowledgePieceJson';
-import type { Scraper, ScraperSourceHandler } from '../_common/Scraper';
+import type { Scraper } from '../_common/Scraper';
+import type { ScraperSourceHandler } from '../_common/Scraper';
 // TODO: [🏳‍🌈] Finally take pick of .json vs .ts
 // import PipelineCollection from '../../../promptbook-collection/promptbook-collection';
 import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
 import { TODO_USE } from '../../utils/organization/TODO_USE';
-import { Converter } from '../_common/Converter';
-import { ScraperIntermediateSource } from '../_common/ScraperIntermediateSource';
+import type { Converter } from '../_common/Converter';
+import type { ScraperIntermediateSource } from '../_common/ScraperIntermediateSource';
 
 /**
  * Scraper for .docx files

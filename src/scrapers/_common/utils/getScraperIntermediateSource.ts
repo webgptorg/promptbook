@@ -2,13 +2,14 @@ import { SHA256 as sha256 } from 'crypto-js';
 import hexEncoder from 'crypto-js/enc-hex';
 import { mkdir, rm } from 'fs/promises';
 import { dirname, join } from 'path';
-import { normalizeToKebabCase, titleToName } from '../../../_packages/utils.index';
+import { normalizeToKebabCase } from '../../../utils/normalization/normalize-to-kebab-case';
+import { titleToName } from '../../../conversion/utils/titleToName';
 import type { PrepareAndScrapeOptions } from '../../../prepare/PrepareAndScrapeOptions';
 import { nameToSubfolderPath } from '../../../storage/file-cache-storage/utils/nameToSubfolderPath';
-import { string_file_extension } from '../../../types/typeAliases';
+import type { string_file_extension } from '../../../types/typeAliases';
 import { TODO_USE } from '../../../utils/organization/TODO_USE';
-import { ScraperSourceHandler } from '../Scraper';
-import { ScraperIntermediateSource } from '../ScraperIntermediateSource';
+import type { ScraperSourceHandler } from '../Scraper';
+import type { ScraperIntermediateSource } from '../ScraperIntermediateSource';
 
 /**
  * @@@

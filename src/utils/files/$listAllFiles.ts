@@ -1,6 +1,7 @@
 import { readdir } from 'fs/promises';
 import { join } from 'path';
-import type { string_dirname, string_filename } from '../../types/typeAliases';
+import type { string_dirname } from '../../types/typeAliases';
+import type { string_filename } from '../../types/typeAliases';
 import { $isDirectoryExisting } from './$isDirectoryExisting';
 
 /**

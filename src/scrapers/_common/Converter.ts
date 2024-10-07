@@ -1,7 +1,8 @@
 import type { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';
-import type { string_mime_type, string_promptbook_documentation_url } from '../../types/typeAliases';
-import { ScraperSourceHandler } from './Scraper';
-import { ScraperIntermediateSource } from './ScraperIntermediateSource';
+import type { string_mime_type } from '../../types/typeAliases';
+import type { string_promptbook_documentation_url } from '../../types/typeAliases';
+import type { ScraperSourceHandler } from './Scraper';
+import type { ScraperIntermediateSource } from './ScraperIntermediateSource';
 
 /**
  * @@@

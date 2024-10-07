@@ -1,4 +1,4 @@
-import { Scraper } from './_common/Scraper';
+import type { Scraper } from './_common/Scraper';
 import { legacyDocumentScraper } from './document-legacy/legacyDocumentScraper';
 import { documentScraper } from './document/documentScraper';
 import { markdownScraper } from './markdown/markdownScraper';

@@ -1,5 +1,5 @@
 import type { CsvSettings } from '../../formats/csv/CsvSettings';
-import { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';
+import type { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';
 
 export type CreatePipelineExecutorSettings = Omit<
     PrepareAndScrapeOptions,
