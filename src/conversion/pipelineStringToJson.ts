@@ -29,7 +29,7 @@ export async function pipelineStringToJson(
 
     let pipelineJson = pipelineStringToJsonSync(pipelineString);
 
-    if (llmTools !== null) {
+    if (llmTools !== undefined) {
         pipelineJson = await preparePipeline(
             pipelineJson,
             options || {
