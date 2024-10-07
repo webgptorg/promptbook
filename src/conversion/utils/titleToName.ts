@@ -1,5 +1,8 @@
+import { basename } from 'path';
+import { isValidUrl } from '../../_packages/utils.index';
 import { normalizeToKebabCase } from '../../utils/normalization/normalize-to-kebab-case';
 import { removeEmojis } from '../../utils/removeEmojis';
+import { isValidFilePath } from '../../utils/validators/filePath/isValidFilePath';
 
 /**
  * @@@
@@ -10,13 +13,12 @@ import { removeEmojis } from '../../utils/removeEmojis';
  * @public exported from `@promptbook/utils`
  */
 export function titleToName(value: string): string {
-    if (value.startsWith('http://') || value.startsWith('https://')) {
+    if (isValidUrl(value)) {
         value = value.replace(/^https?:\/\//, '');
         value = value.replace(/\.html$/, '');
-    }
-
-    if (value.startsWith('./') || value.startsWith('../')) {
-        value = value.replace(/^\.\//, '');
+    } else if (isValidFilePath(value)) {
+        value = basename(value);
+        // Note: Keeping extension in the name
     }
 
     value = value.split('/').join('-');

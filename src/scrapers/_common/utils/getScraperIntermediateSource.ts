@@ -1,8 +1,8 @@
 import { SHA256 as sha256 } from 'crypto-js';
 import hexEncoder from 'crypto-js/enc-hex';
 import { mkdir, rm } from 'fs/promises';
-import { basename, dirname, join } from 'path';
-import { normalizeToKebabCase } from '../../../_packages/utils.index';
+import { dirname, join } from 'path';
+import { normalizeToKebabCase, titleToName } from '../../../_packages/utils.index';
 import type { PrepareAndScrapeOptions } from '../../../prepare/PrepareAndScrapeOptions';
 import { nameToSubfolderPath } from '../../../storage/file-cache-storage/utils/nameToSubfolderPath';
 import { string_file_extension } from '../../../types/typeAliases';
@@ -51,25 +51,24 @@ export async function getScraperIntermediateSource(
         ),
     )
         .toString(/* hex */)
-        .substring(0, 20);
+        .substring(
+            0,
+            20,
+            // <- TODO: Use MAX_FILENAME_LENGTH
+        );
     //    <- TODO: [🥬] Make some system for hashes and ids of promptbook
 
-    let semanticNameRaw: string;
-
-    if (sourceFilename !== null) {
-        semanticNameRaw = basename(sourceFilename);
-    } else if (url !== null) {
-        semanticNameRaw = url.split(/^https?:\/\//).join('');
-    } else {
-        semanticNameRaw = '';
-    }
-
-    const semanticName = normalizeToKebabCase(semanticNameRaw).substring(0, 20);
+    const semanticName = normalizeToKebabCase(titleToName(sourceFilename || url || '')).substring(
+        0,
+        20,
+        // <- TODO: Use MAX_FILENAME_LENGTH
+        // <- TODO: [🐱‍🐉]
+    );
     // <- TODO: [🐱‍🐉]
 
     const pieces = ['intermediate', semanticName, hash].filter((piece) => piece !== '');
 
-    const name = pieces.join('-');
+    const name = pieces.join('-').split('--').join('-');
     // <- TODO: Use MAX_FILENAME_LENGTH
 
     TODO_USE(rootDirname); // <- TODO: !!!!!!
