@@ -266,10 +266,10 @@
     "preparations": [
         {
             "id": 1,
-            "promptbookVersion": "0.71.0-3",
+            "promptbookVersion": "0.71.0-4",
             "usage": {
                 "price": {
-                    "value": 0.02162842999999999
+                    "value": 0.021628429999999994
                 },
                 "input": {
                     "tokensCount": {
