@@ -1,7 +1,7 @@
 import { SHA256 as sha256 } from 'crypto-js';
 import hexEncoder from 'crypto-js/enc-hex';
 import { mkdir, rm } from 'fs/promises';
-import { dirname, join } from 'path';
+import { basename, dirname, join } from 'path';
 import { normalizeToKebabCase } from '../../../_packages/utils.index';
 import type { PrepareAndScrapeOptions } from '../../../prepare/PrepareAndScrapeOptions';
 import { nameToSubfolderPath } from '../../../storage/file-cache-storage/utils/nameToSubfolderPath';
@@ -43,22 +43,29 @@ export async function getScraperIntermediateSource(
     const { rootDirname, cacheDirname, isCacheCleaned, extension, isVerbose } = options;
 
     // TODO: [👬] DRY
-
     const hash = sha256(
         //    <- TODO: [🥬] Encapsulate sha256 to some private utility function
         hexEncoder.parse(
             sourceFilename || url || 'untitled',
-            // <- TODO: !!!!!! Probbably hash file content instead of filename
+            // <- TODO: [🧠] Probbably hash file content instead of filename - now hash does not provide any extra value
         ),
     )
         .toString(/* hex */)
         .substring(0, 20);
     //    <- TODO: [🥬] Make some system for hashes and ids of promptbook
 
-    const semanticName = normalizeToKebabCase(
-        sourceFilename || url || 'untitled'.substring(0, 20),
-        // <- TODO: [🐱‍🐉]
-    );
+    let semanticNameRaw: string;
+
+    if (sourceFilename !== null) {
+        semanticNameRaw = basename(sourceFilename);
+    } else if (url !== null) {
+        semanticNameRaw = url.split(/^https?:\/\//).join('');
+    } else {
+        semanticNameRaw = '';
+    }
+
+    const semanticName = normalizeToKebabCase(semanticNameRaw).substring(0, 20);
+    // <- TODO: [🐱‍🐉]
 
     const pieces = ['intermediate', semanticName, hash].filter((piece) => piece !== '');
 
