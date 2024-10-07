@@ -11,6 +11,7 @@ import { MissingToolsError } from '../../errors/MissingToolsError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import { $isRunningInNode } from '../../utils/environment/$isRunningInNode';
 import { execCommand } from '../../utils/execCommand/execCommand';
+import { $isFileExisting } from '../../utils/files/$isFileExisting';
 import { getFileExtension } from '../../utils/files/getFileExtension';
 import type { Converter } from '../_common/Converter';
 import type { Scraper, ScraperSourceHandler } from '../_common/Scraper';
@@ -76,26 +77,28 @@ export const legacyDocumentScraper = {
             console.info(`documentScraper: Converting .${extension} -> .docx`);
         }
 
-        /**
-         * Note: Unfortunately, LibreOffice does not support to specify the output file path,
-         *       so we create a subfolder `libreoffice` in the same folder as the source file
-         *       and then move the file to the desired location
-         */
-        const documentSourceOutdirPathForLibreOffice = join(dirname(cacheFilehandler.filename), 'libreoffice')
-            .split('\\')
-            .join('/');
+        // Note: Running Libreoffice ONLY if the file in the cache does not exist
+        if (!(await $isFileExisting(cacheFilehandler.filename))) {
+            /**
+             * Note: Unfortunately, LibreOffice does not support to specify the output file path,
+             *       so we create a subfolder `libreoffice` in the same folder as the source file
+             *       and then move the file to the desired location
+             */
+            const documentSourceOutdirPathForLibreOffice = join(dirname(cacheFilehandler.filename), 'libreoffice')
+                .split('\\')
+                .join('/');
 
-        const command = `"${externalProgramsPaths.libreOfficePath}" --headless --convert-to docx "${source.filename}"  --outdir "${documentSourceOutdirPathForLibreOffice}"`;
+            const command = `"${externalProgramsPaths.libreOfficePath}" --headless --convert-to docx "${source.filename}"  --outdir "${documentSourceOutdirPathForLibreOffice}"`;
 
-        // TODO: !!!!!! [🕊] Make execCommand standard (?node-)util of the promptbook - this should trigger build polution error
-        await execCommand(command);
+            // TODO: !!!!!! [🕊] Make execCommand standard (?node-)util of the promptbook - this should trigger build polution error
+            await execCommand(command);
 
-        const files = await readdir(documentSourceOutdirPathForLibreOffice);
+            const files = await readdir(documentSourceOutdirPathForLibreOffice);
 
-        if (files.length !== 1) {
-            throw new UnexpectedError(
-                spaceTrim(
-                    (block) => `
+            if (files.length !== 1) {
+                throw new UnexpectedError(
+                    spaceTrim(
+                        (block) => `
                         Expected exactly 1 file in the LibreOffice output directory, got ${files.length}
 
                         The temporary folder:
@@ -104,14 +107,35 @@ export const legacyDocumentScraper = {
                         Command:
                         > ${block(command)}
                     `,
-                ),
-            );
+                    ),
+                );
+            }
+
+            const file = files[0]!;
+
+            await rename(join(documentSourceOutdirPathForLibreOffice, file), cacheFilehandler.filename);
+            await rmdir(documentSourceOutdirPathForLibreOffice);
+
+            if (!(await $isFileExisting(cacheFilehandler.filename))) {
+                throw new UnexpectedError(
+                    spaceTrim(
+                        (block) => `
+                            File that was supposed to be created by LibreOffice does not exist for unknown reason
+
+                            Expected file:
+                            ${block(cacheFilehandler.filename)}
+
+                            The temporary folder:
+                            ${block(documentSourceOutdirPathForLibreOffice)}
+
+                            Command:
+                            > ${block(command)}
+
+                        `,
+                    ),
+                );
+            }
         }
-
-        const file = files[0]!;
-
-        await rename(join(documentSourceOutdirPathForLibreOffice, file), cacheFilehandler.filename);
-        await rmdir(documentSourceOutdirPathForLibreOffice);
 
         return cacheFilehandler;
     },
