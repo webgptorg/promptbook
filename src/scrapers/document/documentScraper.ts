@@ -3,12 +3,14 @@ import type { KnowledgePiecePreparedJson } from '../../types/PipelineJson/Knowle
 // TODO: [🏳‍🌈] Finally take pick of .json vs .ts
 // import PipelineCollection from '../../../promptbook-collection/promptbook-collection';
 import { readFile } from 'fs/promises';
+import spaceTrim from 'spacetrim';
 import { IS_VERBOSE, SCRAPE_CACHE_DIRNAME } from '../../config';
 import { KnowledgeScrapeError } from '../../errors/KnowledgeScrapeError';
 import { MissingToolsError } from '../../errors/MissingToolsError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import { $isRunningInNode } from '../../utils/environment/$isRunningInNode';
 import { execCommand } from '../../utils/execCommand/execCommand';
+import { $isFileExisting } from '../../utils/files/$isFileExisting';
 import { getFileExtension } from '../../utils/files/getFileExtension';
 import { Converter } from '../_common/Converter';
 import { Scraper, ScraperSourceHandler } from '../_common/Scraper';
@@ -70,10 +72,28 @@ export const documentScraper = {
             isVerbose,
         });
 
+        const command = `"${externalProgramsPaths.pandocPath}" -f ${extension} -t markdown "${source.filename}" -o "${cacheFilehandler.filename}"`;
+
         // TODO: !!!!!! [🕊] Make execCommand standard (?node-)util of the promptbook
-        await execCommand(
-            `"${externalProgramsPaths.pandocPath}" -f ${extension} -t markdown "${source.filename}" -o "${cacheFilehandler.filename}"`,
-        );
+        await execCommand(command);
+
+        // Note: [0]
+        if (!(await $isFileExisting(cacheFilehandler.filename))) {
+            throw new UnexpectedError(
+                spaceTrim(
+                    (block) => `
+                      File that was supposed to be created by Pandoc does not exist for unknown reason
+
+                      Expected file:
+                      ${block(cacheFilehandler.filename)}
+
+                      Command:
+                      > ${block(command)}
+
+                  `,
+                ),
+            );
+        }
 
         return cacheFilehandler;
     },
@@ -93,6 +113,7 @@ export const documentScraper = {
             url: null,
             mimeType: 'text/markdown',
             async asText() {
+                // Note: [0] In $convert we check that the file exists
                 return await readFile(cacheFilehandler.filename, 'utf-8');
             },
             asJson() {

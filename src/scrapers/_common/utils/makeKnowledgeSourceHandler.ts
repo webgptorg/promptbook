@@ -1,12 +1,15 @@
 import { readFile } from 'fs/promises';
 import { join } from 'path';
+import spaceTrim from 'spacetrim';
 import type { SetOptional } from 'type-fest';
 import { KnowledgeSourceJson, PrepareAndScrapeOptions } from '../../../_packages/types.index';
 import { $isRunningInNode } from '../../../_packages/utils.index';
 import { sourceContentToName } from '../../../commands/KNOWLEDGE/utils/sourceContentToName';
 import { IS_VERBOSE } from '../../../config';
 import { EnvironmentMismatchError } from '../../../errors/EnvironmentMismatchError';
+import { NotFoundError } from '../../../errors/NotFoundError';
 import { UnexpectedError } from '../../../errors/UnexpectedError';
+import { $isFileExisting } from '../../../utils/files/$isFileExisting';
 import { extensionToMimeType } from '../../../utils/files/extensionToMimeType';
 import { getFileExtension } from '../../../utils/files/getFileExtension';
 import { TODO_USE } from '../../../utils/organization/TODO_USE';
@@ -45,7 +48,19 @@ export async function makeKnowledgeSourceHandler(
         const fileExtension = getFileExtension(filename);
         const mimeType = extensionToMimeType(fileExtension || '');
 
-        // TODO: !!!!!! Test that file exists and is accessible
+        if (!(await $isFileExisting(filename))) {
+            throw new NotFoundError(
+                spaceTrim(
+                    (block) => `
+                          Can not make source handler for file which does not exist:
+
+                          File:
+                          ${block(filename)}
+                      `,
+                ),
+            );
+        }
+
         // TODO: !!!!!! Test security file - file is scoped to the project (maybe do this in `filesystemTools`)
 
         return {
