@@ -1,7 +1,8 @@
 import { readdir } from 'fs/promises';
 import { join } from 'path';
-import type { string_dirname } from '../../types/typeAliases';
-import type { string_filename } from '../../types/typeAliases';
+import { EnvironmentMismatchError } from '../../errors/EnvironmentMismatchError';
+import type { string_dirname, string_filename } from '../../types/typeAliases';
+import { $isRunningInNode } from '../environment/$isRunningInNode';
 import { $isDirectoryExisting } from './$isDirectoryExisting';
 
 /**
@@ -15,6 +16,10 @@ import { $isDirectoryExisting } from './$isDirectoryExisting';
  * @private internal function of `createCollectionFromDirectory`
  */
 export async function $listAllFiles(path: string_dirname, isRecursive: boolean): Promise<Array<string_filename>> {
+    if (!$isRunningInNode()) {
+        throw new EnvironmentMismatchError('Function `$listAllFiles` works only in Node environment.js');
+    }
+
     if (!(await $isDirectoryExisting(path))) {
         throw new Error(`Directory "${path}" does not exist or is not readable`);
         //           <- TODO: Use some custom error class
@@ -39,6 +44,6 @@ export async function $listAllFiles(path: string_dirname, isRecursive: boolean):
 }
 
 /**
- * Note: [🟢] Code in this file should never be published outside of `@promptbook/node` and `@promptbook/cli`
+ * Note: [🟢 <- TODO: [🦖] !!!!!! Split scrapers into packages and enable] Code in this file should never be published outside of `@promptbook/node` and `@promptbook/cli`
  * TODO: [🖇] What about symlinks?
  */
