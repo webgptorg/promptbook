@@ -1,0 +1,104 @@
+{
+    "date": "2024-10-08T12:30:13.080Z",
+    "promptbookVersion": "0.72.0-6",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.ptbk.md#knowledge",
+        "parameters": {
+            "knowledgePieceContent": "Standa, zodpovědný za online aktivity v Korálkách Katlas, vedl prezentaci. Více informací o něm lze najít na stanislavvavrik.cz.\n\n---"
+        },
+        "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> {knowledgePieceContent}",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {}
+    },
+    "promptResult": {
+        "content": "Standa, Korálky Katlas, online aktivity, prezentace, stanislavvavrik.cz",
+        "modelName": "claude-3-5-sonnet-20240620",
+        "timing": {
+            "start": "2024-10-08T12:30:12.200Z",
+            "complete": "2024-10-08T12:30:13.080Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0.000768
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 101
+                },
+                "charactersCount": {
+                    "value": 331
+                },
+                "wordsCount": {
+                    "value": 45
+                },
+                "sentencesCount": {
+                    "value": 5
+                },
+                "linesCount": {
+                    "value": 13
+                },
+                "paragraphsCount": {
+                    "value": 6
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 31
+                },
+                "charactersCount": {
+                    "value": 71
+                },
+                "wordsCount": {
+                    "value": 8
+                },
+                "sentencesCount": {
+                    "value": 2
+                },
+                "linesCount": {
+                    "value": 1
+                },
+                "paragraphsCount": {
+                    "value": 1
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> Standa, zodpovědný za online aktivity v Korálkách Katlas, vedl prezentaci. Více informací o něm lze najít na stanislavvavrik.cz.\n> \n> ---",
+        "rawRequest": {
+            "model": "claude-3-5-sonnet-20240620",
+            "max_tokens": 4096,
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> Standa, zodpovědný za online aktivity v Korálkách Katlas, vedl prezentaci. Více informací o něm lze najít na stanislavvavrik.cz.\n> \n> ---"
+                }
+            ]
+        },
+        "rawResponse": {
+            "id": "msg_01BFA6qD7sCCJNX5RCHHdSyR",
+            "type": "message",
+            "role": "assistant",
+            "model": "claude-3-5-sonnet-20240620",
+            "content": [
+                {
+                    "type": "text",
+                    "text": "Standa, Korálky Katlas, online aktivity, prezentace, stanislavvavrik.cz"
+                }
+            ],
+            "stop_reason": "end_turn",
+            "stop_sequence": null,
+            "usage": {
+                "input_tokens": 101,
+                "output_tokens": 31
+            }
+        }
+    }
+}

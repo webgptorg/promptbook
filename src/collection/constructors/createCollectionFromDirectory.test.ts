@@ -55,7 +55,7 @@ describe('createCollectionFromDirectory', () => {
     it('should get pipeline by url from collection', async () => {
         expect.assertions(1);
         const collection = await createCollectionFromDirectory('./samples/pipelines', {
-            llmTools: null,
+            llmTools: undefined,
             isVerbose: true,
             isRecursive: false,
             isLazyLoaded: false,
@@ -74,7 +74,7 @@ describe('createCollectionFromDirectory', () => {
         expect.assertions(1);
 
         const collection = await createCollectionFromDirectory('./samples/pipelines', {
-            llmTools: null,
+            llmTools: undefined,
             isVerbose: true,
             isRecursive: false,
             isLazyLoaded: true,
@@ -93,7 +93,7 @@ describe('createCollectionFromDirectory', () => {
         expect.assertions(1);
 
         const collection = await createCollectionFromDirectory('./samples/pipelines', {
-            llmTools: null,
+            llmTools: undefined,
             isVerbose: true,
             isRecursive: false,
         });
@@ -111,7 +111,7 @@ describe('createCollectionFromDirectory', () => {
         expect(
             (async () => {
                 const collection = await createCollectionFromDirectory('./samples/pipelines', {
-                    llmTools: null,
+                    llmTools: undefined,
                     isVerbose: true,
                     // Note: Including subdirectories BUT lazy-loaded so it should not crash even if there are errors
                     isRecursive: true,
@@ -125,7 +125,7 @@ describe('createCollectionFromDirectory', () => {
         expect(
             (async () => {
                 const collection = await createCollectionFromDirectory('./samples/pipelines', {
-                    llmTools: null,
+                    llmTools: undefined,
                     isVerbose: true,
                     // Note: Including subdirectories BUT lazy-loaded so it should not crash even if there are errors
                     isRecursive: true,

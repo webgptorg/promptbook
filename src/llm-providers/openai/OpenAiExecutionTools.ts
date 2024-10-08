@@ -5,20 +5,22 @@ import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { AvailableModel } from '../../execution/AvailableModel';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { ChatPromptResult, CompletionPromptResult, EmbeddingPromptResult } from '../../execution/PromptResult';
+import type { ChatPromptResult } from '../../execution/PromptResult';
+import type { CompletionPromptResult } from '../../execution/PromptResult';
+import type { EmbeddingPromptResult } from '../../execution/PromptResult';
 import type { Prompt } from '../../types/Prompt';
-import type {
-    string_date_iso8601,
-    string_markdown,
-    string_markdown_text,
-    string_model_name,
-    string_title,
-} from '../../types/typeAliases';
+import type { string_date_iso8601 } from '../../types/typeAliases';
+import type { string_markdown } from '../../types/typeAliases';
+import type { string_markdown_text } from '../../types/typeAliases';
+import type { string_model_name } from '../../types/typeAliases';
+import type { string_title } from '../../types/typeAliases';
+import type { string_token } from '../../types/typeAliases';
 import { getCurrentIsoDate } from '../../utils/getCurrentIsoDate';
 import { replaceParameters } from '../../utils/parameters/replaceParameters';
 import { $asDeeplyFrozenSerializableJson } from '../../utils/serialization/$asDeeplyFrozenSerializableJson';
 import { computeOpenAiUsage } from './computeOpenAiUsage';
 import { OPENAI_MODELS } from './openai-models';
+import { OpenAiAssistantExecutionTools } from './OpenAiAssistantExecutionTools';
 import type { OpenAiExecutionToolsOptions } from './OpenAiExecutionToolsOptions';
 
 /**
@@ -37,7 +39,7 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
      *
      * @param options which are relevant are directly passed to the OpenAI client
      */
-    public constructor(private readonly options: OpenAiExecutionToolsOptions = {}) {}
+    public constructor(protected readonly options: OpenAiExecutionToolsOptions = {}) {}
 
     public get title(): string_title & string_markdown_text {
         return 'OpenAI';
@@ -59,6 +61,16 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
         }
 
         return this.client;
+    }
+
+    /**
+     * Create (sub)tools for calling OpenAI API Assistants
+     *
+     * @param assistantId Which assistant to use
+     * @returns Tools for calling OpenAI API Assistants with same token
+     */
+    public createAssistantSubtools(assistantId: string_token): OpenAiAssistantExecutionTools {
+        return new OpenAiAssistantExecutionTools({ ...this.options, assistantId });
     }
 
     /**

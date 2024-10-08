@@ -1,0 +1,112 @@
+{
+    "date": "2024-09-29T15:56:00.937Z",
+    "promptbookVersion": "0.71.0-0",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-from-markdown.ptbk.md#knowledge",
+        "parameters": {
+            "knowledgeContent": "ChatGPT, GPT–4, Anthropic Claude, Gemini, AI, ML, (Chat)GPT, LLM, DALL–E, Midjourney,<br>\n\n Stable Diffusion, Sora, VR/AR/XR, TypeScript, blockchain, Web3, PWA… ![🤯](<https://www.pavolhejny.com/_next/static/media/1F92F.4be977be.svg>)\n\nAre you leveraging the **full potential of technology** and generative AI in your business?\n\nTechnology is constantly evolving and we are currently experiencing a massive wave of the emergence of **generative AI**,<br>\n\n which is becoming more and more like the massive rise of the personal computer or the early days of the internet.\n\nIt is almost certain that virtually every sector of human activity will be affected by this revolution,<br>\n\n and there will be winners and losers from this massive change.\n\nIt is virtually impossible to maintain an awareness of all that is happening in the field of technology and to filter out the key technologies from the daily noise.<br>\n\n**I'd be happy to help you with all of that.**\n\n"
+        },
+        "content": "You are experienced data researcher, extract the important knowledge from the document.\n\n# Rules\n\n-   Make pieces of information concise, clear, and easy to understand\n-   One piece of information should be approximately 1 paragraph\n-   Divide the paragraphs by markdown horizontal lines ---\n-   Omit irrelevant information\n-   Group redundant information\n-   Write just extracted information, nothing else\n\n# The document\n\nTake information from this document:\n\n> {knowledgeContent}",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {}
+    },
+    "promptResult": {
+        "content": "---\n\n**Generative AI** is emerging as a transformative technology, comparable to the rise of personal computers and the early days of the internet.\n\n---\n\nTechnological advances, particularly in generative AI, are expected to impact almost every sector of human activity, creating both opportunities and challenges.\n\n---\n\nStaying up-to-date and discerning key technological trends amidst constant advancements can be overwhelming. Assistance in navigating these changes can be beneficial.",
+        "modelName": "gpt-4o-2024-05-13",
+        "timing": {
+            "start": "2024-09-29T15:55:59.834Z",
+            "complete": "2024-09-29T15:56:00.935Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0.00304
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 359
+                },
+                "charactersCount": {
+                    "value": 482
+                },
+                "wordsCount": {
+                    "value": 59
+                },
+                "sentencesCount": {
+                    "value": 2
+                },
+                "linesCount": {
+                    "value": 16
+                },
+                "paragraphsCount": {
+                    "value": 6
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 83
+                },
+                "charactersCount": {
+                    "value": 487
+                },
+                "wordsCount": {
+                    "value": 66
+                },
+                "sentencesCount": {
+                    "value": 4
+                },
+                "linesCount": {
+                    "value": 11
+                },
+                "paragraphsCount": {
+                    "value": 6
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced data researcher, extract the important knowledge from the document.\n\n# Rules\n\n-   Make pieces of information concise, clear, and easy to understand\n-   One piece of information should be approximately 1 paragraph\n-   Divide the paragraphs by markdown horizontal lines ---\n-   Omit irrelevant information\n-   Group redundant information\n-   Write just extracted information, nothing else\n\n# The document\n\nTake information from this document:\n\n> ChatGPT, GPT–4, Anthropic Claude, Gemini, AI, ML, (Chat)GPT, LLM, DALL–E, Midjourney,<br>\n> \n>  Stable Diffusion, Sora, VR/AR/XR, TypeScript, blockchain, Web3, PWA… ![🤯](<https://www.pavolhejny.com/_next/static/media/1F92F.4be977be.svg>)\n> \n> Are you leveraging the **full potential of technology** and generative AI in your business?\n> \n> Technology is constantly evolving and we are currently experiencing a massive wave of the emergence of **generative AI**,<br>\n> \n>  which is becoming more and more like the massive rise of the personal computer or the early days of the internet.\n> \n> It is almost certain that virtually every sector of human activity will be affected by this revolution,<br>\n> \n>  and there will be winners and losers from this massive change.\n> \n> It is virtually impossible to maintain an awareness of all that is happening in the field of technology and to filter out the key technologies from the daily noise.<br>\n> \n> **I'd be happy to help you with all of that.**\n> \n> ",
+        "rawRequest": {
+            "model": "gpt-4o",
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "You are experienced data researcher, extract the important knowledge from the document.\n\n# Rules\n\n-   Make pieces of information concise, clear, and easy to understand\n-   One piece of information should be approximately 1 paragraph\n-   Divide the paragraphs by markdown horizontal lines ---\n-   Omit irrelevant information\n-   Group redundant information\n-   Write just extracted information, nothing else\n\n# The document\n\nTake information from this document:\n\n> ChatGPT, GPT–4, Anthropic Claude, Gemini, AI, ML, (Chat)GPT, LLM, DALL–E, Midjourney,<br>\n> \n>  Stable Diffusion, Sora, VR/AR/XR, TypeScript, blockchain, Web3, PWA… ![🤯](<https://www.pavolhejny.com/_next/static/media/1F92F.4be977be.svg>)\n> \n> Are you leveraging the **full potential of technology** and generative AI in your business?\n> \n> Technology is constantly evolving and we are currently experiencing a massive wave of the emergence of **generative AI**,<br>\n> \n>  which is becoming more and more like the massive rise of the personal computer or the early days of the internet.\n> \n> It is almost certain that virtually every sector of human activity will be affected by this revolution,<br>\n> \n>  and there will be winners and losers from this massive change.\n> \n> It is virtually impossible to maintain an awareness of all that is happening in the field of technology and to filter out the key technologies from the daily noise.<br>\n> \n> **I'd be happy to help you with all of that.**\n> \n> "
+                }
+            ]
+        },
+        "rawResponse": {
+            "id": "chatcmpl-ACqZ5wkESTGOJgRzpX91L0K0lZJn3",
+            "object": "chat.completion",
+            "created": 1727625359,
+            "model": "gpt-4o-2024-05-13",
+            "choices": [
+                {
+                    "index": 0,
+                    "message": {
+                        "role": "assistant",
+                        "content": "---\n\n**Generative AI** is emerging as a transformative technology, comparable to the rise of personal computers and the early days of the internet.\n\n---\n\nTechnological advances, particularly in generative AI, are expected to impact almost every sector of human activity, creating both opportunities and challenges.\n\n---\n\nStaying up-to-date and discerning key technological trends amidst constant advancements can be overwhelming. Assistance in navigating these changes can be beneficial.",
+                        "refusal": null
+                    },
+                    "logprobs": null,
+                    "finish_reason": "stop"
+                }
+            ],
+            "usage": {
+                "prompt_tokens": 359,
+                "completion_tokens": 83,
+                "total_tokens": 442,
+                "completion_tokens_details": {
+                    "reasoning_tokens": 0
+                }
+            },
+            "system_fingerprint": "fp_5796ac6771"
+        }
+    }
+}

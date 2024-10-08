@@ -20,6 +20,12 @@ Supercharge your use of large language models
 
 -   ✨ **Support of [OpenAI o1 model](https://openai.com/o1/)**
 
+<blockquote style="color: #ff8811">
+<b>⚠ Warning:</b> This is a pre-release version of the library. It is not yet ready for production use. Please look at <a href="https://www.npmjs.com/package/@promptbook/core?activeTab=versions">latest stable release</a>.
+</blockquote>
+
+
+
 ## 📦 Package `@promptbook/openai`
 
 - Promptbooks are [divided into several](#-packages) packages, all are published from [single monorepo](https://github.com/webgptorg/promptbook).
@@ -82,6 +88,11 @@ assertsExecutionSuccessful(result);
 const { isSuccessful, errors, outputParameters, executionReport } = result;
 console.info(outputParameters);
 ```
+
+## 🤺 Usage with OpenAI`s Assistants (GPTs)
+
+!!!!!!
+OpenAiExecutionTools.createAssistantSubtools
 
 ## 🧙‍♂️ Connect to LLM providers automatically
 

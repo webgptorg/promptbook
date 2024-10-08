@@ -11,6 +11,8 @@ describe('how normalizing to snake_case works', () => {
         expect(normalizeTo_snake_case('hello world')).toEqual('hello_world');
         expect(normalizeTo_snake_case('helloWorld')).toEqual('hello_world');
         expect(normalizeTo_snake_case('hello___world')).toEqual('hello_world');
+        expect(normalizeTo_snake_case('hello_/_world')).toEqual('hello_world');
+        expect(normalizeTo_snake_case('hello_\\_world')).toEqual('hello_world');
         expect(normalizeTo_snake_case('hello.world')).toEqual('hello_world');
         expect(normalizeTo_snake_case('hello\nworld')).toEqual('hello_world');
     });

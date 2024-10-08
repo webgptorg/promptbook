@@ -75,7 +75,7 @@ async function playground() {
     console.info({ chatPromptResult });
     console.info(colors.cyan(usageToHuman(chatPromptResult.usage)));
     console.info(colors.bgBlue(' User: ') + colors.blue(chatPrompt.content));
-    console.info(colors.bgGreen(' Completion: ') + colors.green(chatPromptResult.content));
+    console.info(colors.bgGreen(' Chat: ') + colors.green(chatPromptResult.content));
     /**/
 
     /*/
@@ -95,4 +95,5 @@ async function playground() {
 
 /**
  * TODO: Test here that `systemMessage`, `temperature` and `seed` are working correctly
+ * Note: [⚫] Code in this file should never be published in any package
  */

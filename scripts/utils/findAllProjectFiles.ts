@@ -6,3 +6,8 @@ export async function findAllProjectFiles(): Promise<Array<string>> {
         join(__dirname, '../../src/**/*.{ts,tsx}').split('\\').join('/'),
     );
 }
+
+
+/**
+ * Note: [⚫] Code in this file should never be published in any package
+ */

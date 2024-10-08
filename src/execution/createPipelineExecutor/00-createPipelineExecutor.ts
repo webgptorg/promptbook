@@ -29,6 +29,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
         csvSettings = DEFAULT_CSV_SETTINGS,
         isVerbose = IS_VERBOSE,
         isNotPreparedWarningSupressed = false,
+        rootDirname = null,
     } = settings;
 
     validatePipeline(pipeline);
@@ -98,13 +99,13 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                 csvSettings,
                 isVerbose,
                 isNotPreparedWarningSupressed,
+                rootDirname,
             },
         });
     };
 
     return pipelineExecutor;
 }
-
 
 /**
  * TODO: [🐚] Change onProgress to object that represents the running execution, can be subscribed via RxJS to and also awaited

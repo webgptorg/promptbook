@@ -33,7 +33,7 @@ import type { RemoteLlmExecutionToolsOptions } from './interfaces/RemoteLlmExecu
  * @public exported from `@promptbook/remote-client`
  */
 export class RemoteLlmExecutionTools implements LlmExecutionTools {
-    public constructor(private readonly options: RemoteLlmExecutionToolsOptions) {}
+    public constructor(protected readonly options: RemoteLlmExecutionToolsOptions) {}
 
     public get title(): string_title & string_markdown_text {
         // TODO: [🧠] Maybe fetch title+description from the remote server (as well as if model methods are defined)

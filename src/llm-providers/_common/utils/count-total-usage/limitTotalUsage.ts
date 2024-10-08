@@ -5,7 +5,7 @@ import type { ChatPromptResult } from '../../../../execution/PromptResult';
 import type { CompletionPromptResult } from '../../../../execution/PromptResult';
 import type { EmbeddingPromptResult } from '../../../../execution/PromptResult';
 import type { PromptResultUsage } from '../../../../execution/PromptResultUsage';
-import { ZERO_USAGE } from '../../../../execution/utils/addUsage';
+import { ZERO_USAGE } from '../../../../execution/utils/usage-constants';
 import type { PromptbookStorage } from '../../../../storage/_common/PromptbookStorage';
 import { MemoryStorage } from '../../../../storage/memory/MemoryStorage';
 import type { ChatPrompt } from '../../../../types/Prompt';

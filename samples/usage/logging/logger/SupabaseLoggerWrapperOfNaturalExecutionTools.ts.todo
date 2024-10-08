@@ -14,7 +14,7 @@ import { SupabaseLoggerWrapperOfLlmExecutionToolsOptions } from './SupabaseLogge
  * Wrapper for any PromptbookExecutionTools which logs every request+result to Supabase.
  */
 export class SupabaseLoggerWrapperOfLlmExecutionTools implements LlmExecutionTools {
-    public constructor(private readonly options: SupabaseLoggerWrapperOfLlmExecutionToolsOptions = {}) {
+    public constructor(protected readonly options: SupabaseLoggerWrapperOfLlmExecutionToolsOptions = {}) {
         if (!isRunningInNode()) {
             throw new EnvironmentMismatchError('SupabaseLoggerWrapperOfExecutionTools can be used only on server');
         }
@@ -116,5 +116,5 @@ export class SupabaseLoggerWrapperOfLlmExecutionTools implements LlmExecutionToo
  * TODO: [⚾️] Log also failed results
  * TODO: [⚾️][🧠] Maybe do equivalent for UserInterfaceTools OR make this for whole ExecutionTools
  * TODO: [⚾️] Create abstract LoggerWrapperOfLlmExecutionTools which can be extended to implement more loggers
- * Note: [🟢] This code should never be published outside of `@promptbook/node` and `@promptbook/cli` and `@promptbook/cli`
+ * Note: [🟢] Code in this file should never be published outside of `@promptbook/node` and `@promptbook/cli`
  */

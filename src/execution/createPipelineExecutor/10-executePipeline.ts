@@ -2,6 +2,7 @@ import { spaceTrim } from 'spacetrim';
 import type { Promisable, ReadonlyDeep } from 'type-fest';
 import { forTime } from 'waitasecond';
 import { IMMEDIATE_TIME } from '../../config';
+import { IS_VERBOSE } from '../../config';
 import { LOOP_LIMIT } from '../../config';
 import { RESERVED_PARAMETER_NAMES } from '../../config';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
@@ -21,7 +22,7 @@ import { PROMPTBOOK_VERSION } from '../../version';
 import type { ExecutionTools } from '../ExecutionTools';
 import type { PipelineExecutorResult } from '../PipelineExecutorResult';
 import { addUsage } from '../utils/addUsage';
-import { ZERO_USAGE } from '../utils/addUsage';
+import { ZERO_USAGE } from '../utils/usage-constants';
 import type { CreatePipelineExecutorSettings } from './00-CreatePipelineExecutorSettings';
 import { executeTemplate } from './20-executeTemplate';
 import { filterJustOutputParameters } from './filterJustOutputParameters';
@@ -83,7 +84,7 @@ type ExecutePipelineOptions = {
 export async function executePipeline(options: ExecutePipelineOptions): Promise<PipelineExecutorResult> {
     const { inputParameters, tools, onProgress, pipeline, setPreparedPipeline, pipelineIdentification, settings } =
         options;
-    const { maxParallelCount, isVerbose } = settings;
+    const { maxParallelCount, rootDirname, isVerbose = IS_VERBOSE } = settings;
     let { preparedPipeline } = options;
 
     const llmTools = joinLlmExecutionTools(...arrayableToArray(tools.llm));
@@ -91,6 +92,7 @@ export async function executePipeline(options: ExecutePipelineOptions): Promise<
     if (preparedPipeline === undefined) {
         preparedPipeline = await preparePipeline(pipeline, {
             llmTools,
+            rootDirname,
             isVerbose,
             maxParallelCount,
         });
@@ -387,7 +389,6 @@ export async function executePipeline(options: ExecutePipelineOptions): Promise<
         preparedPipeline,
     }) satisfies PipelineExecutorResult;
 }
-
 
 /**
  * TODO: [🐚] Change onProgress to object that represents the running execution, can be subscribed via RxJS to and also awaited

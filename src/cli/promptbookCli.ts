@@ -7,6 +7,7 @@ import { initializeAboutCommand } from './cli-commands/about';
 import { initializeHelloCommand } from './cli-commands/hello';
 import { initializeMakeCommand } from './cli-commands/make';
 import { initializePrettifyCommand } from './cli-commands/prettify';
+import { initializeTestCommand } from './cli-commands/test-command';
 
 /**
  * Runs CLI utilities of Promptbook package
@@ -40,6 +41,7 @@ export async function promptbookCli(): Promise<void> {
     initializeHelloCommand(program);
     initializeMakeCommand(program);
     initializePrettifyCommand(program);
+    initializeTestCommand(program);
 
     program.parse(process.argv);
 }
@@ -48,5 +50,5 @@ export async function promptbookCli(): Promise<void> {
  * TODO: [🥠] Do not export, its just for CLI script
  * TODO: [🕌] When more functionalities, rename
  * Note: 11:11
- * Note: [🟡] This code should never be published outside of `@promptbook/cli`
+ * Note: [🟡] Code in this file should never be published outside of `@promptbook/cli`
  */

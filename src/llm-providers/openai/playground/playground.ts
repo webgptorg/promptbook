@@ -9,6 +9,7 @@ import { embeddingVectorToString } from '../../../execution/embeddingVectorToStr
 import { usageToHuman } from '../../../execution/utils/usageToHuman';
 import type { Prompt } from '../../../types/Prompt';
 import { keepUnused } from '../../../utils/organization/keepUnused';
+import { OpenAiAssistantExecutionTools } from '../OpenAiAssistantExecutionTools';
 import { OpenAiExecutionTools } from '../OpenAiExecutionTools';
 
 playground()
@@ -35,7 +36,18 @@ async function playground() {
         },
     );
 
+    const openAiAssistantExecutionTools = new OpenAiAssistantExecutionTools(
+        //            <- TODO: [🧱] Implement in a functional (not new Class) way
+        {
+            isVerbose: true,
+            apiKey: process.env.OPENAI_API_KEY!,
+            assistantId: 'asst_CJCZzFCbBL0f2D4OWMXVTdBB',
+            //            <- Note: This is not a private information, just ID of the assistant which is accessible only with correct API key
+        },
+    );
+
     keepUnused(openAiExecutionTools);
+    keepUnused(openAiAssistantExecutionTools);
     keepUnused(embeddingVectorToString);
     keepUnused(usageToHuman);
     keepUnused<Prompt>();
@@ -75,7 +87,7 @@ async function playground() {
     console.info({ chatPromptResult });
     console.info(colors.cyan(usageToHuman(chatPromptResult.usage)));
     console.info(colors.bgBlue(' User: ') + colors.blue(chatPrompt.content));
-    console.info(colors.bgGreen(' Completion: ') + colors.green(chatPromptResult.content));
+    console.info(colors.bgGreen(' Chat: ') + colors.green(chatPromptResult.content));
     /**/
 
     /*/
@@ -100,9 +112,62 @@ async function playground() {
     /**/
 
     /**/
+    const chatPrompt = {
+        title: 'Promptbook speech',
+        parameters: {},
+        content: `Write me speech about Promptbook and how it can help me to build the most beautiful chatbot and change the world`,
+        modelRequirements: {
+            modelVariant: 'CHAT',
+            // TODO: [👨‍👨‍👧‍👧] systemMessage: 'You are an assistant who only speaks in rhymes.',
+            // TODO: [👨‍👨‍👧‍👧] temperature: 1.5,
+        },
+
+        /*
+        !!!!!!
+        replyingTo: {
+
+        }
+        */
+    } as const satisfies Prompt;
+    const chatPromptResult = await openAiAssistantExecutionTools.callChatModel(chatPrompt);
+    console.info({ chatPromptResult });
+    console.info(colors.cyan(usageToHuman(chatPromptResult.usage)));
+    console.info(colors.bgBlue(' User: ') + colors.blue(chatPrompt.content));
+    console.info(colors.bgGreen(' Assistant: ') + colors.green(chatPromptResult.content));
+    /**/
+
+    /*/
     const openai = await openAiExecutionTools.getClient();
-    const result = await openai.beta.assistants.list();
-    console.log(result);
+    const stream = openai.beta.threads.createAndRunStream({
+        stream: true,
+        assistant_id: 'asst_CJCZzFCbBL0f2D4OWMXVTdBB',
+        //             <- Note: This is not a private information, just ID of the assistant which is accessible only with correct API key
+        thread: {
+            messages: [{ role: 'user', content: 'What is the meaning of life? I want breathtaking speech.' }],
+        },
+    });
+
+    console.log(stream);
+
+    stream.on('connect', () => {
+        console.log('connect', stream.currentEvent);
+    });
+
+    stream.on('messageDelta', (messageDelta) => {
+        console.log('messageDelta', (messageDelta as any).content[0].text);
+    });
+
+    stream.on('messageCreated', (message) => {
+        console.log('messageCreated', message);
+    });
+
+    stream.on('messageDone', (message) => {
+        console.log('messageDone', message);
+    });
+
+    const finalMessages = await stream.finalMessages();
+    console.log('finalMessages', finalMessages, finalMessages[0]!.content[0]!);
+
     /**/
 
     /*/
@@ -114,4 +179,5 @@ async function playground() {
 
 /**
  * TODO: [main] !!! Test here that `systemMessage`, `temperature` and `seed` are working correctly
+ * Note: [⚫] Code in this file should never be published in any package
  */

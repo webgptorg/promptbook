@@ -5,7 +5,7 @@ import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import type { ChatPromptResult } from '../../execution/PromptResult';
 import type { CompletionPromptResult } from '../../execution/PromptResult';
 import type { EmbeddingPromptResult } from '../../execution/PromptResult';
-import { ZERO_USAGE } from '../../execution/utils/addUsage';
+import { ZERO_USAGE } from '../../execution/utils/usage-constants';
 import type { Prompt } from '../../types/Prompt';
 import type { string_markdown } from '../../types/typeAliases';
 import type { string_markdown_text } from '../../types/typeAliases';
@@ -21,7 +21,7 @@ import { $fakeTextToExpectations } from './$fakeTextToExpectations';
  * @public exported from `@promptbook/fake-llm`
  */
 export class MockedFackedLlmExecutionTools implements LlmExecutionTools {
-    public constructor(private readonly options: CommonExecutionToolsOptions = {}) {}
+    public constructor(protected readonly options: CommonExecutionToolsOptions = {}) {}
 
     public get title(): string_title & string_markdown_text {
         return 'Mocked facked';

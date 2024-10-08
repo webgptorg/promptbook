@@ -1,5 +1,5 @@
 import { describe, expect, it } from '@jest/globals';
-import { ZERO_USAGE } from './addUsage';
+import { ZERO_USAGE } from './usage-constants';
 import { usageToWorktime } from './usageToWorktime';
 
 describe('how usageToWorktime works', () => {
