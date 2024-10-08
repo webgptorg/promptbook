@@ -10,7 +10,8 @@ import { websiteScraper } from './website/websiteScraper';
 /**
  * @@@
  *
- * @public exported from `@promptbook/core`
+ * @private because this will be replaced by a system of one scraper per package [🦖]
+ * TODO: [🦖] System for scrapers NOT public exported from `@promptbook/core`
  */
 export const SCRAPERS: Array<Scraper> = [
     markdownScraper,
