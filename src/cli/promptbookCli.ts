@@ -7,7 +7,7 @@ import { initializeAboutCommand } from './cli-commands/about';
 import { initializeHelloCommand } from './cli-commands/hello';
 import { initializeMakeCommand } from './cli-commands/make';
 import { initializePrettifyCommand } from './cli-commands/prettify';
-import { initializeTestCommand } from './cli-commands/test';
+import { initializeTestCommand } from './cli-commands/test-command';
 
 /**
  * Runs CLI utilities of Promptbook package

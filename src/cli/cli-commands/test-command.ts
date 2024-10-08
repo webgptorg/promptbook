@@ -3,9 +3,9 @@ import type { Command as Program /* <- Note: Using Program because Command is mi
 import { readFile } from 'fs/promises';
 import glob from 'glob-promise';
 import spaceTrim from 'spacetrim';
+import { pipelineStringToJson } from '../../conversion/pipelineStringToJson';
 import { validatePipeline } from '../../conversion/validation/validatePipeline';
 import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
-import { pipelineStringToJson } from '../../conversion/pipelineStringToJson';
 import type { PipelineString } from '../../types/PipelineString';
 
 /**
@@ -78,4 +78,5 @@ export function initializeTestCommand(program: Program) {
  * TODO: [😶] Unite floder listing
  * Note: [🟡] Code in this file should never be published outside of `@promptbook/cli`
  * TODO: [🖇] What about symlinks? Maybe flag --follow-symlinks
+ * Note: This is named "test-command.ts" to avoid name collision with jest unit test files
  */
