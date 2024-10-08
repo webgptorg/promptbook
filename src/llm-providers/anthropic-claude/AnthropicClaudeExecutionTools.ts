@@ -123,7 +123,13 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools {
         if (this.options.isVerbose) {
             console.info(colors.bgWhite('rawRequest'), JSON.stringify(rawRequest, null, 4));
         }
-        const rawResponse = await client.messages.create(rawRequest);
+        const rawResponse = await client.messages.create(rawRequest).catch((error) => {
+            if (this.options.isVerbose) {
+                console.info(colors.bgRed('error'), error);
+            }
+            throw error;
+        });
+
         if (this.options.isVerbose) {
             console.info(colors.bgWhite('rawResponse'), JSON.stringify(rawResponse, null, 4));
         }
@@ -199,7 +205,14 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools {
         if (this.options.isVerbose) {
             console.info(colors.bgWhite('rawRequest'), JSON.stringify(rawRequest, null, 4));
         }
-        const rawResponse = await this.client.completions.create(rawRequest);
+        const rawResponse = await this.client.completions.create(rawRequest).catch((error) => {
+                if (this.options.isVerbose) {
+                    console.info(colors.bgRed('error'), error);
+                }
+                throw error;
+            });
+
+
         if (this.options.isVerbose) {
             console.info(colors.bgWhite('rawResponse'), JSON.stringify(rawResponse, null, 4));
         }

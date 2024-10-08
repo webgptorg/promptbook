@@ -14,7 +14,7 @@ import type { ExpectCommand } from './ExpectCommand';
 /**
  * Parses the expect command
  *
- * @see ./EXPECT-README.md for more details
+ * @see `documentationUrl` for more details
  * @private within the commands folder
  */
 export const expectCommandParser: PipelineTemplateCommandParser<ExpectCommand> = {
@@ -38,7 +38,7 @@ export const expectCommandParser: PipelineTemplateCommandParser<ExpectCommand> =
     `),
 
     /**
-     * Link to discussion
+     * Link to documentation
      */
     documentationUrl: 'https://github.com/webgptorg/promptbook/discussions/30',
 

@@ -4,7 +4,7 @@ import { forEachAsync } from '../execution/utils/forEachAsync';
 import type { PipelineJson } from '../types/PipelineJson/PipelineJson';
 import type { TemplateJson } from '../types/PipelineJson/TemplateJson';
 import { TODO_USE } from '../utils/organization/TODO_USE';
-import type { PrepareOptions } from './PrepareOptions';
+import type { PrepareAndScrapeOptions } from './PrepareAndScrapeOptions';
 
 type PrepareTemplateInput = Pick<PipelineJson, 'templates' | 'parameters'> & {
     /**
@@ -27,7 +27,7 @@ type PreparedTemplates = {
  */
 export async function prepareTemplates(
     pipeline: PrepareTemplateInput,
-    options: PrepareOptions,
+    options: PrepareAndScrapeOptions,
 ): Promise<PreparedTemplates> {
     const { maxParallelCount = MAX_PARALLEL_COUNT } = options;
     const { templates, parameters, knowledgePiecesCount } = pipeline;

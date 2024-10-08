@@ -1,0 +1,3 @@
+TODO: !!!!!! Make package @promptbook/document
+TODO: !!!!!! Export this scraper as standalone package with standalone samples from document to markdown
+TODO: !!!!!! Separate tag `doc` `docx` to package

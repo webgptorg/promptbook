@@ -7,7 +7,7 @@ describe('how extractAllBlocksFromMarkdown works in real sample', () => {
     it('should work with sample with no code blocks', () => {
         expect(
             extractAllBlocksFromMarkdown(
-                readFileSync('samples/pipelines/30-escaping.ptbk.md', 'utf8'),
+                readFileSync('samples/pipelines/30-escaping.ptbk.md', 'utf-8'),
                 // <- Note: Its OK to use sync in tests
             ),
         ).toContainEqual({

@@ -1,5 +1,5 @@
 import type { ModelRequirements } from '../ModelRequirements';
-import type { string_file_path } from '../typeAliases';
+import type { string_filename } from '../typeAliases';
 import type { string_markdown_text } from '../typeAliases';
 import type { string_pipeline_url } from '../typeAliases';
 import type { string_semantic_version } from '../typeAliases';
@@ -42,7 +42,7 @@ export type PipelineJson = {
     /**
      * Internal helper for tracking the source `.ptbk.md` file of the pipeline
      */
-    readonly sourceFile?: string_file_path;
+    readonly sourceFile?: string_filename;
 
     /**
      * Title of the promptbook

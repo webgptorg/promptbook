@@ -47,14 +47,14 @@
     ],
     "knowledgeSources": [
         {
-            "name": "source-54af0da6e247e295bb29352ab54c51eaded719c60cf068d28145eaddb2dfab72",
+            "name": "source-coolstore-is-an-esho-54af0da6e247e295bb29",
             "sourceContent": "Coolstore is an eshop that sells various hobby, home and garden products. It has a wide range of products from garden gnomes to kitchen gadgets.\nIt has 3 physical stores in the UK and a large online store that operates in the UK + EU + Switzerland. Key benefits are fast delivery and excellent customer service with a personal touch.",
             "preparationIds": [
                 1
             ]
         },
         {
-            "name": "source-77d2bea40f9d5065b9ff0af8c3fd04abce928e0854680afc45e49c1283f4918d",
+            "name": "source-uranium-glass-garden-77d2bea40f9d5065b9ff",
             "sourceContent": "Uranium Glass Garden Gnomes are the newest product in the eshop. They are made of glass with a fluorescent uranium oxide added to the glass mixture. The gnomes are equipped with a UV LED light that makes them glow in the dark. They are great for scaring away birds and snakes.",
             "preparationIds": [
                 1
@@ -79,7 +79,7 @@
             ],
             "sources": [
                 {
-                    "name": "source-54af0da6e247e295bb29352ab54c51eaded719c60cf068d28145eaddb2dfab72"
+                    "name": "source-coolstore-is-an-esho-54af0da6e247e295bb29"
                 }
             ],
             "preparationIds": [
@@ -105,7 +105,7 @@
             ],
             "sources": [
                 {
-                    "name": "source-54af0da6e247e295bb29352ab54c51eaded719c60cf068d28145eaddb2dfab72"
+                    "name": "source-coolstore-is-an-esho-54af0da6e247e295bb29"
                 }
             ],
             "preparationIds": [
@@ -130,7 +130,7 @@
             ],
             "sources": [
                 {
-                    "name": "source-54af0da6e247e295bb29352ab54c51eaded719c60cf068d28145eaddb2dfab72"
+                    "name": "source-coolstore-is-an-esho-54af0da6e247e295bb29"
                 }
             ],
             "preparationIds": [
@@ -154,7 +154,7 @@
             ],
             "sources": [
                 {
-                    "name": "source-77d2bea40f9d5065b9ff0af8c3fd04abce928e0854680afc45e49c1283f4918d"
+                    "name": "source-uranium-glass-garden-77d2bea40f9d5065b9ff"
                 }
             ],
             "preparationIds": [
@@ -178,7 +178,7 @@
             ],
             "sources": [
                 {
-                    "name": "source-77d2bea40f9d5065b9ff0af8c3fd04abce928e0854680afc45e49c1283f4918d"
+                    "name": "source-uranium-glass-garden-77d2bea40f9d5065b9ff"
                 }
             ],
             "preparationIds": [
@@ -202,7 +202,7 @@
             ],
             "sources": [
                 {
-                    "name": "source-77d2bea40f9d5065b9ff0af8c3fd04abce928e0854680afc45e49c1283f4918d"
+                    "name": "source-uranium-glass-garden-77d2bea40f9d5065b9ff"
                 }
             ],
             "preparationIds": [

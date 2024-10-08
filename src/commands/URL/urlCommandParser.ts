@@ -12,7 +12,7 @@ import type { UrlCommand } from './UrlCommand';
 /**
  * Parses the url command
  *
- * @see ./URL-README.md for more details
+ * @see `documentationUrl` for more details
  * @private within the commands folder
  */
 export const urlCommandParser: PipelineHeadCommandParser<UrlCommand> = {
@@ -40,7 +40,7 @@ export const urlCommandParser: PipelineHeadCommandParser<UrlCommand> = {
     description: `Declares unique URL for the pipeline`,
 
     /**
-     * Link to discussion
+     * Link to documentation
      */
     documentationUrl: 'https://github.com/webgptorg/promptbook/discussions/70',
 

@@ -1,0 +1,116 @@
+{
+    "date": "2024-10-03T10:30:36.598Z",
+    "promptbookVersion": "0.71.0-0",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.ptbk.md#knowledge",
+        "parameters": {
+            "knowledgePieceContent": "---\n\nSpringfield is a city in the state of Illinois, USA, and serves as the county seat of Sangamon County."
+        },
+        "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> {knowledgePieceContent}",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {}
+    },
+    "promptResult": {
+        "content": "Springfield, city, Illinois, USA, county seat, Sangamon County",
+        "modelName": "gpt-4o-2024-08-06",
+        "timing": {
+            "start": "2024-10-03T10:30:36.025Z",
+            "complete": "2024-10-03T10:30:36.597Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0,
+                "isUncertain": true
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 71
+                },
+                "charactersCount": {
+                    "value": 217
+                },
+                "wordsCount": {
+                    "value": 27
+                },
+                "sentencesCount": {
+                    "value": 2
+                },
+                "linesCount": {
+                    "value": 11
+                },
+                "paragraphsCount": {
+                    "value": 6
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 15
+                },
+                "charactersCount": {
+                    "value": 62
+                },
+                "wordsCount": {
+                    "value": 8
+                },
+                "sentencesCount": {
+                    "value": 1
+                },
+                "linesCount": {
+                    "value": 1
+                },
+                "paragraphsCount": {
+                    "value": 1
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> ---\n> \n> Springfield is a city in the state of Illinois, USA, and serves as the county seat of Sangamon County.",
+        "rawRequest": {
+            "model": "gpt-4o",
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> ---\n> \n> Springfield is a city in the state of Illinois, USA, and serves as the county seat of Sangamon County."
+                }
+            ]
+        },
+        "rawResponse": {
+            "id": "chatcmpl-AEDOOkS08AmpqG5jj9ZAi6N9XOgBi",
+            "object": "chat.completion",
+            "created": 1727951436,
+            "model": "gpt-4o-2024-08-06",
+            "choices": [
+                {
+                    "index": 0,
+                    "message": {
+                        "role": "assistant",
+                        "content": "Springfield, city, Illinois, USA, county seat, Sangamon County",
+                        "refusal": null
+                    },
+                    "logprobs": null,
+                    "finish_reason": "stop"
+                }
+            ],
+            "usage": {
+                "prompt_tokens": 71,
+                "completion_tokens": 15,
+                "total_tokens": 86,
+                "prompt_tokens_details": {
+                    "cached_tokens": 0
+                },
+                "completion_tokens_details": {
+                    "reasoning_tokens": 0
+                }
+            },
+            "system_fingerprint": "fp_2f406b9113"
+        }
+    }
+}

@@ -1,8 +1,7 @@
 {
     "pipelineUrl": "https://promptbook.studio/samples/simple-knowledge.ptbk.md",
     "title": "✨ Sample: Simple Knowledge",
-    "promptbookUsedVersion": "0.69.0-10",
-    "promptbookRequestedVersion": "0.69.0-10",
+    "promptbookUsedVersion": "0.69.0",
     "description": "Show how to use knowledge",
     "promptExecutions": [
         {
@@ -12,8 +11,8 @@
                 "parameters": {
                     "knowledge": "- ---\nPavol is a developer who is passionate about using new tools and technologies, specializing in creating fully functional user applications using the latest AI models.\n- Pavol is a member of the Ainautes consulting group, which supports the deployment of generative AI around the world.\n- Pavol develops the WebGPT web page generation service.\n- Before the emergence of generative AI, Pavol created the first Czech virtual whiteboard, Collboard, and electronic textbooks, H-edu, which were used by tens of thousands of children.\n- Pavol has worked on many scientific projects for the Czech Ornithological Society, gives lectures at conferences, sits on juries, and acts as a mentor in Czech and international competitions. He has a special heart for this and loves open source, with many of his projects available on GitHub.\n- ---\nPavol is a developer passionate about using new tools and technologies, specializing in creating fully functional user applications using the latest artificial intelligence models.\n- Pavol is a member of the Ainautes consulting group, which supports the deployment of generative AI around the world.\n- Pavol develops the WebGPT web page generation service.\n- Before the emergence of generative AI, Pavol created the first Czech virtual whiteboard, Collboard, and electronic textbooks, H-edu, which were used by tens of thousands of children.\n- Pavol has worked on many scientific projects for the Czech Ornithological Society.\n- Pavol regularly gives lectures at conferences, sits on juries, and acts as a mentor in many Czech and international competitions.\n- Pavol has a special heart for open-source and many of his projects can be found on his GitHub.\n---",
                     "eventTitle": "LinkedIn",
-                    "eventDescription": "Professional LinkedIn profile",
-                    "rules": "Write best text for LinkedIn in first person"
+                    "eventDescription": "Professional CV",
+                    "rules": "Write best text for corporate CV"
                 },
                 "content": "You are writing a bio for Pavol Hejný for the event {eventTitle}.\n\n## Rules\n\n-   Write just the bio, nothing else\n-   Write in the third person\n-   Bio is written in the present tense\n-   Bio should be written for event named \"{eventTitle}\", mention the event name in the bio and how Pavol is related to it\n-   Write plain text without any formatting (like markdown)\n-   {rules}\n\n## {eventTitle}\n\n> {eventDescription}\n\n## Knowledge\n\n{knowledge}",
                 "modelRequirements": {
@@ -25,7 +24,7 @@
                     "modelRequirements": {
                         "modelVariant": "CHAT",
                         "modelName": "gpt-4-turbo-2024-04-09",
-                        "systemMessage": "You are an experienced HR professional with extensive experience in writing bios. Your role is to assist users in creating compelling and professional biographies for various purposes, such as job applications, LinkedIn profiles, or company websites. Provide guidance on structure, content, and best practices for bio writing, tailoring your advice to the specific needs and context of each user.",
+                        "systemMessage": "You are an experienced HR professional with extensive expertise in writing professional biographies. Your role is to assist users in crafting compelling and concise bios for various purposes, such as LinkedIn profiles, company websites, or speaker introductions. Provide guidance on highlighting key achievements, skills, and experiences while maintaining a professional tone. Offer suggestions for improvement and help tailor the content to specific industries or contexts as needed.",
                         "temperature": 0.7
                     },
                     "preparationIds": [
@@ -37,51 +36,51 @@
                 }
             },
             "result": {
-                "content": "I'm a developer passionate about leveraging cutting-edge tools and technologies, specializing in creating fully functional user applications using the latest AI models. As a member of the Ainautes consulting group, I support the global deployment of generative AI. I'm currently developing WebGPT, a web page generation service. Prior to the rise of generative AI, I created Collboard, the first Czech virtual whiteboard, and H-edu, electronic textbooks used by tens of thousands of children. I've contributed to scientific projects for the Czech Ornithological Society and regularly give lectures at conferences, serve on juries, and mentor in various competitions. I'm passionate about open source, with many of my projects available on GitHub. I'm excited to be part of the LinkedIn event, where I'll be sharing insights on AI-driven application development and the future of tech innovation.",
-                "modelName": "claude-3-5-sonnet-20240620",
+                "content": "Pavol Hejný is a developer passionate about using new tools and technologies, specializing in creating fully functional user applications using the latest artificial intelligence models. He is a member of the Ainautes consulting group, which supports the deployment of generative AI around the world. Currently, Pavol develops the WebGPT web page generation service. Prior to the emergence of generative AI, Pavol created the first Czech virtual whiteboard, Collboard, and electronic textbooks, H-edu, which were used by tens of thousands of children. He has also contributed to numerous scientific projects for the Czech Ornithological Society. Pavol regularly gives lectures at conferences, serves on juries, and mentors participants in both Czech and international competitions. He has a special heart for open-source software, with many of his projects available on GitHub. At the LinkedIn event, Pavol will share his insights and experiences related to the deployment and use of generative AI technologies.",
+                "modelName": "gpt-4o-2024-05-13",
                 "timing": {
-                    "start": "2024-09-08T19:26:43.892Z",
-                    "complete": "2024-09-08T19:26:47.241Z"
+                    "start": "2024-09-29T15:15:41.287Z",
+                    "complete": "2024-09-29T15:15:44.395Z"
                 },
                 "usage": {
                     "price": {
-                        "value": 0.0042840000000000005
+                        "value": 0.005195
                     },
                     "input": {
                         "tokensCount": {
-                            "value": 503
+                            "value": 460
                         },
                         "charactersCount": {
-                            "value": 2164
+                            "value": 444
                         },
                         "wordsCount": {
-                            "value": 332
+                            "value": 66
                         },
                         "sentencesCount": {
-                            "value": 15
+                            "value": 2
                         },
                         "linesCount": {
-                            "value": 32
+                            "value": 18
                         },
                         "paragraphsCount": {
                             "value": 7
                         },
                         "pagesCount": {
-                            "value": 3
+                            "value": 1
                         }
                     },
                     "output": {
                         "tokensCount": {
-                            "value": 185
+                            "value": 193
                         },
                         "charactersCount": {
-                            "value": 895
+                            "value": 1011
                         },
                         "wordsCount": {
-                            "value": 143
+                            "value": 151
                         },
                         "sentencesCount": {
-                            "value": 7
+                            "value": 8
                         },
                         "linesCount": {
                             "value": 1
@@ -94,34 +93,42 @@
                         }
                     }
                 },
-                "rawPromptContent": "You are writing a bio for Pavol Hejný for the event LinkedIn.\n\n## Rules\n\n-   Write just the bio, nothing else\n-   Write in the third person\n-   Bio is written in the present tense\n-   Bio should be written for event named \"LinkedIn\", mention the event name in the bio and how Pavol is related to it\n-   Write plain text without any formatting (like markdown)\n-   Write best text for LinkedIn in first person\n\n## LinkedIn\n\n> Professional LinkedIn profile\n\n## Knowledge\n\n- ---\nPavol is a developer who is passionate about using new tools and technologies, specializing in creating fully functional user applications using the latest AI models.\n- Pavol is a member of the Ainautes consulting group, which supports the deployment of generative AI around the world.\n- Pavol develops the WebGPT web page generation service.\n- Before the emergence of generative AI, Pavol created the first Czech virtual whiteboard, Collboard, and electronic textbooks, H-edu, which were used by tens of thousands of children.\n- Pavol has worked on many scientific projects for the Czech Ornithological Society, gives lectures at conferences, sits on juries, and acts as a mentor in Czech and international competitions. He has a special heart for this and loves open source, with many of his projects available on GitHub.\n- ---\nPavol is a developer passionate about using new tools and technologies, specializing in creating fully functional user applications using the latest artificial intelligence models.\n- Pavol is a member of the Ainautes consulting group, which supports the deployment of generative AI around the world.\n- Pavol develops the WebGPT web page generation service.\n- Before the emergence of generative AI, Pavol created the first Czech virtual whiteboard, Collboard, and electronic textbooks, H-edu, which were used by tens of thousands of children.\n- Pavol has worked on many scientific projects for the Czech Ornithological Society.\n- Pavol regularly gives lectures at conferences, sits on juries, and acts as a mentor in many Czech and international competitions.\n- Pavol has a special heart for open-source and many of his projects can be found on his GitHub.\n---",
+                "rawPromptContent": "You are writing a bio for Pavol Hejný for the event LinkedIn.\n\n## Rules\n\n-   Write just the bio, nothing else\n-   Write in the third person\n-   Bio is written in the present tense\n-   Bio should be written for event named \"LinkedIn\", mention the event name in the bio and how Pavol is related to it\n-   Write plain text without any formatting (like markdown)\n-   Write best text for corporate CV\n\n## LinkedIn\n\n> Professional CV\n\n## Knowledge\n\n- ---\nPavol is a developer who is passionate about using new tools and technologies, specializing in creating fully functional user applications using the latest AI models.\n- Pavol is a member of the Ainautes consulting group, which supports the deployment of generative AI around the world.\n- Pavol develops the WebGPT web page generation service.\n- Before the emergence of generative AI, Pavol created the first Czech virtual whiteboard, Collboard, and electronic textbooks, H-edu, which were used by tens of thousands of children.\n- Pavol has worked on many scientific projects for the Czech Ornithological Society, gives lectures at conferences, sits on juries, and acts as a mentor in Czech and international competitions. He has a special heart for this and loves open source, with many of his projects available on GitHub.\n- ---\nPavol is a developer passionate about using new tools and technologies, specializing in creating fully functional user applications using the latest artificial intelligence models.\n- Pavol is a member of the Ainautes consulting group, which supports the deployment of generative AI around the world.\n- Pavol develops the WebGPT web page generation service.\n- Before the emergence of generative AI, Pavol created the first Czech virtual whiteboard, Collboard, and electronic textbooks, H-edu, which were used by tens of thousands of children.\n- Pavol has worked on many scientific projects for the Czech Ornithological Society.\n- Pavol regularly gives lectures at conferences, sits on juries, and acts as a mentor in many Czech and international competitions.\n- Pavol has a special heart for open-source and many of his projects can be found on his GitHub.\n---",
                 "rawRequest": {
-                    "model": "claude-3-5-sonnet-20240620",
-                    "max_tokens": 4096,
+                    "model": "gpt-4o",
                     "messages": [
                         {
                             "role": "user",
-                            "content": "You are writing a bio for Pavol Hejný for the event LinkedIn.\n\n## Rules\n\n-   Write just the bio, nothing else\n-   Write in the third person\n-   Bio is written in the present tense\n-   Bio should be written for event named \"LinkedIn\", mention the event name in the bio and how Pavol is related to it\n-   Write plain text without any formatting (like markdown)\n-   Write best text for LinkedIn in first person\n\n## LinkedIn\n\n> Professional LinkedIn profile\n\n## Knowledge\n\n- ---\nPavol is a developer who is passionate about using new tools and technologies, specializing in creating fully functional user applications using the latest AI models.\n- Pavol is a member of the Ainautes consulting group, which supports the deployment of generative AI around the world.\n- Pavol develops the WebGPT web page generation service.\n- Before the emergence of generative AI, Pavol created the first Czech virtual whiteboard, Collboard, and electronic textbooks, H-edu, which were used by tens of thousands of children.\n- Pavol has worked on many scientific projects for the Czech Ornithological Society, gives lectures at conferences, sits on juries, and acts as a mentor in Czech and international competitions. He has a special heart for this and loves open source, with many of his projects available on GitHub.\n- ---\nPavol is a developer passionate about using new tools and technologies, specializing in creating fully functional user applications using the latest artificial intelligence models.\n- Pavol is a member of the Ainautes consulting group, which supports the deployment of generative AI around the world.\n- Pavol develops the WebGPT web page generation service.\n- Before the emergence of generative AI, Pavol created the first Czech virtual whiteboard, Collboard, and electronic textbooks, H-edu, which were used by tens of thousands of children.\n- Pavol has worked on many scientific projects for the Czech Ornithological Society.\n- Pavol regularly gives lectures at conferences, sits on juries, and acts as a mentor in many Czech and international competitions.\n- Pavol has a special heart for open-source and many of his projects can be found on his GitHub.\n---"
+                            "content": "You are writing a bio for Pavol Hejný for the event LinkedIn.\n\n## Rules\n\n-   Write just the bio, nothing else\n-   Write in the third person\n-   Bio is written in the present tense\n-   Bio should be written for event named \"LinkedIn\", mention the event name in the bio and how Pavol is related to it\n-   Write plain text without any formatting (like markdown)\n-   Write best text for corporate CV\n\n## LinkedIn\n\n> Professional CV\n\n## Knowledge\n\n- ---\nPavol is a developer who is passionate about using new tools and technologies, specializing in creating fully functional user applications using the latest AI models.\n- Pavol is a member of the Ainautes consulting group, which supports the deployment of generative AI around the world.\n- Pavol develops the WebGPT web page generation service.\n- Before the emergence of generative AI, Pavol created the first Czech virtual whiteboard, Collboard, and electronic textbooks, H-edu, which were used by tens of thousands of children.\n- Pavol has worked on many scientific projects for the Czech Ornithological Society, gives lectures at conferences, sits on juries, and acts as a mentor in Czech and international competitions. He has a special heart for this and loves open source, with many of his projects available on GitHub.\n- ---\nPavol is a developer passionate about using new tools and technologies, specializing in creating fully functional user applications using the latest artificial intelligence models.\n- Pavol is a member of the Ainautes consulting group, which supports the deployment of generative AI around the world.\n- Pavol develops the WebGPT web page generation service.\n- Before the emergence of generative AI, Pavol created the first Czech virtual whiteboard, Collboard, and electronic textbooks, H-edu, which were used by tens of thousands of children.\n- Pavol has worked on many scientific projects for the Czech Ornithological Society.\n- Pavol regularly gives lectures at conferences, sits on juries, and acts as a mentor in many Czech and international competitions.\n- Pavol has a special heart for open-source and many of his projects can be found on his GitHub.\n---"
                         }
                     ]
                 },
                 "rawResponse": {
-                    "id": "msg_01Eyd4ntCTrDYiArYcby8nyx",
-                    "type": "message",
-                    "role": "assistant",
-                    "model": "claude-3-5-sonnet-20240620",
-                    "content": [
+                    "id": "chatcmpl-ACpw5IDKW3M44qXL4nfWMKSElTwqs",
+                    "object": "chat.completion",
+                    "created": 1727622941,
+                    "model": "gpt-4o-2024-05-13",
+                    "choices": [
                         {
-                            "type": "text",
-                            "text": "I'm a developer passionate about leveraging cutting-edge tools and technologies, specializing in creating fully functional user applications using the latest AI models. As a member of the Ainautes consulting group, I support the global deployment of generative AI. I'm currently developing WebGPT, a web page generation service. Prior to the rise of generative AI, I created Collboard, the first Czech virtual whiteboard, and H-edu, electronic textbooks used by tens of thousands of children. I've contributed to scientific projects for the Czech Ornithological Society and regularly give lectures at conferences, serve on juries, and mentor in various competitions. I'm passionate about open source, with many of my projects available on GitHub. I'm excited to be part of the LinkedIn event, where I'll be sharing insights on AI-driven application development and the future of tech innovation."
+                            "index": 0,
+                            "message": {
+                                "role": "assistant",
+                                "content": "Pavol Hejný is a developer passionate about using new tools and technologies, specializing in creating fully functional user applications using the latest artificial intelligence models. He is a member of the Ainautes consulting group, which supports the deployment of generative AI around the world. Currently, Pavol develops the WebGPT web page generation service. Prior to the emergence of generative AI, Pavol created the first Czech virtual whiteboard, Collboard, and electronic textbooks, H-edu, which were used by tens of thousands of children. He has also contributed to numerous scientific projects for the Czech Ornithological Society. Pavol regularly gives lectures at conferences, serves on juries, and mentors participants in both Czech and international competitions. He has a special heart for open-source software, with many of his projects available on GitHub. At the LinkedIn event, Pavol will share his insights and experiences related to the deployment and use of generative AI technologies.",
+                                "refusal": null
+                            },
+                            "logprobs": null,
+                            "finish_reason": "stop"
                         }
                     ],
-                    "stop_reason": "end_turn",
-                    "stop_sequence": null,
                     "usage": {
-                        "input_tokens": 503,
-                        "output_tokens": 185
-                    }
+                        "prompt_tokens": 460,
+                        "completion_tokens": 193,
+                        "total_tokens": 653,
+                        "completion_tokens_details": {
+                            "reasoning_tokens": 0
+                        }
+                    },
+                    "system_fingerprint": "fp_5796ac6771"
                 }
             }
         }

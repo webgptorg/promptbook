@@ -1,7 +1,9 @@
 import { readdir } from 'fs/promises';
-import { join } from 'path/posix';
-import type { string_file_path } from '../../types/typeAliases';
-import type { string_folder_path } from '../../types/typeAliases';
+import { join } from 'path';
+import { EnvironmentMismatchError } from '../../errors/EnvironmentMismatchError';
+import type { string_dirname } from '../../types/typeAliases';
+import type { string_filename } from '../../types/typeAliases';
+import { $isRunningInNode } from '../environment/$isRunningInNode';
 import { $isDirectoryExisting } from './$isDirectoryExisting';
 
 /**
@@ -14,7 +16,11 @@ import { $isDirectoryExisting } from './$isDirectoryExisting';
  * @returns List of all files in the directory
  * @private internal function of `createCollectionFromDirectory`
  */
-export async function $listAllFiles(path: string_folder_path, isRecursive: boolean): Promise<Array<string_file_path>> {
+export async function $listAllFiles(path: string_dirname, isRecursive: boolean): Promise<Array<string_filename>> {
+    if (!$isRunningInNode()) {
+        throw new EnvironmentMismatchError('Function `$listAllFiles` works only in Node environment.js');
+    }
+
     if (!(await $isDirectoryExisting(path))) {
         throw new Error(`Directory "${path}" does not exist or is not readable`);
         //           <- TODO: Use some custom error class
@@ -24,12 +30,14 @@ export async function $listAllFiles(path: string_folder_path, isRecursive: boole
         withFileTypes: true /* Note: This is not working: recursive: isRecursive */,
     });
 
-    const fileNames = dirents.filter((dirent) => dirent.isFile()).map(({ name }) => join(path, name));
+    const fileNames = dirents
+        .filter((dirent) => dirent.isFile())
+        .map(({ name }) => join(path, name).split('\\').join('/'));
 
     if (isRecursive) {
         for (const dirent of dirents.filter((dirent) => dirent.isDirectory())) {
             const subPath = join(path, dirent.name);
-            fileNames.push(...(await $listAllFiles(subPath, isRecursive)));
+            fileNames.push(...(await $listAllFiles(subPath, isRecursive)).map((filename) => filename));
         }
     }
 
@@ -37,6 +45,7 @@ export async function $listAllFiles(path: string_folder_path, isRecursive: boole
 }
 
 /**
- * Note: [🟢] This code should never be published outside of `@promptbook/node` and `@promptbook/cli` and `@promptbook/cli`
+ * TODO: [😶] Unite floder listing
+ * Note: [🟢 <- TODO: [🦖] !!!!!! Split scrapers into packages and enable] Code in this file should never be published outside of `@promptbook/node` and `@promptbook/cli`
  * TODO: [🖇] What about symlinks?
  */

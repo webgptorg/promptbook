@@ -11,7 +11,7 @@ import type { FormatCommand } from './FormatCommand';
 /**
  * Parses the format command
  *
- * @see ./FORMAT-README.md for more details
+ * @see `documentationUrl` for more details
  * @private within the commands folder
  */
 export const formatCommandParser: PipelineTemplateCommandParser<FormatCommand> = {
@@ -35,7 +35,7 @@ export const formatCommandParser: PipelineTemplateCommandParser<FormatCommand> =
     `),
 
     /**
-     * Link to discussion
+     * Link to documentation
      */
     documentationUrl: 'https://github.com/webgptorg/promptbook/discussions/30',
 

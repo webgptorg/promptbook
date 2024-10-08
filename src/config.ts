@@ -102,9 +102,20 @@ export const MAX_KNOWLEDGE_SOURCES_SCRAPING_TOTAL = 200;
 /**
  * Where to store the cache of executions for promptbook CLI
  *
+ * Note: When the folder does not exist, it is created recursively
+ *
  * @public exported from `@promptbook/core`
  */
 export const EXECUTIONS_CACHE_DIRNAME = '/.promptbook/executions-cache';
+
+/**
+ * Where to store the scrape cache
+ *
+ * Note: When the folder does not exist, it is created recursively
+ *
+ * @public exported from `@promptbook/core`
+ */
+export const SCRAPE_CACHE_DIRNAME = '/.promptbook/scrape-cache';
 
 /**
  * The name of the builded pipeline collection made by CLI `ptbk make` and for lookup in `createCollectionFromDirectory`

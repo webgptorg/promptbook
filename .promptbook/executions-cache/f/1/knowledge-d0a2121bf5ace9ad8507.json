@@ -1,0 +1,104 @@
+{
+    "date": "2024-09-29T08:04:56.290Z",
+    "promptbookVersion": "0.71.0-0",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.ptbk.md#knowledge",
+        "parameters": {
+            "knowledgePieceContent": "In the current period of economic crisis, fraudulent and health-damaging costume jewelry is increasingly appearing on the market as people try to save money. Korálky Katlas has prepared a summary of things to watch out for when buying finished costume jewelry and jewelry components, based on problems and scams reported by their customers in the Czech Republic and abroad."
+        },
+        "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> {knowledgePieceContent}",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {}
+    },
+    "promptResult": {
+        "content": "Economic crisis, fraudulent jewelry, health-damaging jewelry, costume jewelry, jewelry components, scams, customer reports, Czech Republic",
+        "modelName": "claude-3-5-sonnet-20240620",
+        "timing": {
+            "start": "2024-09-29T08:04:55.499Z",
+            "complete": "2024-09-29T08:04:56.290Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0.000807
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 119
+                },
+                "charactersCount": {
+                    "value": 567
+                },
+                "wordsCount": {
+                    "value": 86
+                },
+                "sentencesCount": {
+                    "value": 3
+                },
+                "linesCount": {
+                    "value": 11
+                },
+                "paragraphsCount": {
+                    "value": 6
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 30
+                },
+                "charactersCount": {
+                    "value": 138
+                },
+                "wordsCount": {
+                    "value": 16
+                },
+                "sentencesCount": {
+                    "value": 1
+                },
+                "linesCount": {
+                    "value": 1
+                },
+                "paragraphsCount": {
+                    "value": 1
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> In the current period of economic crisis, fraudulent and health-damaging costume jewelry is increasingly appearing on the market as people try to save money. Korálky Katlas has prepared a summary of things to watch out for when buying finished costume jewelry and jewelry components, based on problems and scams reported by their customers in the Czech Republic and abroad.",
+        "rawRequest": {
+            "model": "claude-3-5-sonnet-20240620",
+            "max_tokens": 4096,
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> In the current period of economic crisis, fraudulent and health-damaging costume jewelry is increasingly appearing on the market as people try to save money. Korálky Katlas has prepared a summary of things to watch out for when buying finished costume jewelry and jewelry components, based on problems and scams reported by their customers in the Czech Republic and abroad."
+                }
+            ]
+        },
+        "rawResponse": {
+            "id": "msg_01Q78gvfQiFmcMArsdCWnSGD",
+            "type": "message",
+            "role": "assistant",
+            "model": "claude-3-5-sonnet-20240620",
+            "content": [
+                {
+                    "type": "text",
+                    "text": "Economic crisis, fraudulent jewelry, health-damaging jewelry, costume jewelry, jewelry components, scams, customer reports, Czech Republic"
+                }
+            ],
+            "stop_reason": "end_turn",
+            "stop_sequence": null,
+            "usage": {
+                "input_tokens": 119,
+                "output_tokens": 30
+            }
+        }
+    }
+}

@@ -1,0 +1,1 @@
+TODO: [🧠] Maybe two versions `FileCacheStorage` (=All in one JSON file) vs `FileCacheStorage` / `DirectoryStorage` (=multiple files)

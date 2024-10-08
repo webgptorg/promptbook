@@ -1,0 +1,104 @@
+{
+    "date": "2024-10-05T15:45:50.891Z",
+    "promptbookVersion": "0.71.0-0",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.ptbk.md#knowledge",
+        "parameters": {
+            "knowledgePieceContent": "---\n\nV současné ekonomické krizi se na trhu znovu objevuje více podvodné a zdraví škodlivé bižuterie. Zákazníci Korálků Katlas hlásí zvýšený výskyt problémů a podvodů při nákupu bižuterie v České republice i v zahraničí."
+        },
+        "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> {knowledgePieceContent}",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {}
+    },
+    "promptResult": {
+        "content": "ekonomická krize, trh, podvodná bižuterie, zdraví škodlivá bižuterie, Korálky Katlas, zákazníci, problémy, podvody, nákup bižuterie, Česká republika, zahraničí",
+        "modelName": "claude-3-5-sonnet-20240620",
+        "timing": {
+            "start": "2024-10-05T15:45:49.579Z",
+            "complete": "2024-10-05T15:45:50.891Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0.0014160000000000002
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 132
+                },
+                "charactersCount": {
+                    "value": 418
+                },
+                "wordsCount": {
+                    "value": 59
+                },
+                "sentencesCount": {
+                    "value": 3
+                },
+                "linesCount": {
+                    "value": 13
+                },
+                "paragraphsCount": {
+                    "value": 6
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 68
+                },
+                "charactersCount": {
+                    "value": 159
+                },
+                "wordsCount": {
+                    "value": 18
+                },
+                "sentencesCount": {
+                    "value": 1
+                },
+                "linesCount": {
+                    "value": 1
+                },
+                "paragraphsCount": {
+                    "value": 1
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> ---\n> \n> V současné ekonomické krizi se na trhu znovu objevuje více podvodné a zdraví škodlivé bižuterie. Zákazníci Korálků Katlas hlásí zvýšený výskyt problémů a podvodů při nákupu bižuterie v České republice i v zahraničí.",
+        "rawRequest": {
+            "model": "claude-3-5-sonnet-20240620",
+            "max_tokens": 4096,
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> ---\n> \n> V současné ekonomické krizi se na trhu znovu objevuje více podvodné a zdraví škodlivé bižuterie. Zákazníci Korálků Katlas hlásí zvýšený výskyt problémů a podvodů při nákupu bižuterie v České republice i v zahraničí."
+                }
+            ]
+        },
+        "rawResponse": {
+            "id": "msg_01WUZUzZUnpQ6Ubp8GQaxinV",
+            "type": "message",
+            "role": "assistant",
+            "model": "claude-3-5-sonnet-20240620",
+            "content": [
+                {
+                    "type": "text",
+                    "text": "ekonomická krize, trh, podvodná bižuterie, zdraví škodlivá bižuterie, Korálky Katlas, zákazníci, problémy, podvody, nákup bižuterie, Česká republika, zahraničí"
+                }
+            ],
+            "stop_reason": "end_turn",
+            "stop_sequence": null,
+            "usage": {
+                "input_tokens": 132,
+                "output_tokens": 68
+            }
+        }
+    }
+}

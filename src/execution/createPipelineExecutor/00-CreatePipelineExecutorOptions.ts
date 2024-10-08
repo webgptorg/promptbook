@@ -5,7 +5,7 @@ import type { CreatePipelineExecutorSettings } from './00-CreatePipelineExecutor
 /**
  * Options for `createPipelineExecutor`
  */
-export interface CreatePipelineExecutorOptions {
+export type CreatePipelineExecutorOptions = {
     /**
      * The pipeline to be executed
      */
@@ -20,4 +20,9 @@ export interface CreatePipelineExecutorOptions {
      * Optional settings for the pipeline executor
      */
     readonly settings?: Partial<CreatePipelineExecutorSettings>;
-}
+};
+
+
+/**
+ * TODO: !!!!!! Unite `CreatePipelineExecutorOptions` and `CreatePipelineExecutorSettings` OR describe the difference
+ */

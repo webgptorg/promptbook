@@ -11,7 +11,7 @@ import type { JokerCommand } from './JokerCommand';
 /**
  * Parses the joker command
  *
- * @see ./JOKER-README.md for more details
+ * @see `documentationUrl` for more details
  * @private within the commands folder
  */
 export const jokerCommandParser: PipelineTemplateCommandParser<JokerCommand> = {
@@ -32,7 +32,7 @@ export const jokerCommandParser: PipelineTemplateCommandParser<JokerCommand> = {
     description: `Joker parameter is used instead of executing the template result if jokers value meets the expectations requirements`,
 
     /**
-     * Link to discussion
+     * Link to documentation
      */
     documentationUrl: 'https://github.com/webgptorg/promptbook/discussions/66',
 

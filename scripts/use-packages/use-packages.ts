@@ -11,8 +11,8 @@ import { join } from 'path';
 import type { PackageJson } from 'type-fest';
 import { forTime } from 'waitasecond';
 import { LOOP_LIMIT } from '../../src/config';
+import { $execCommand } from '../../src/utils/execCommand/$execCommand';
 import { commit } from '../utils/autocommit/commit';
-import { execCommand } from '../utils/execCommand/execCommand';
 
 if (process.cwd() !== join(__dirname, '../..')) {
     console.error(colors.red(`CWD must be root of the project`));
@@ -45,7 +45,7 @@ async function usePackages() {
 
     // Note: Wait for the new version to be available in NPM
     for (let i = 0; i < LOOP_LIMIT; i++) {
-        const result = await execCommand({
+        const result = await $execCommand({
             crashOnError: false,
             command: `npm show ptbk`,
         });
@@ -79,7 +79,7 @@ async function usePackages() {
         await writeFile(remotePackageJsonPath, JSON.stringify(remotePackageJson, null, 4) + '\n');
         console.info(colors.blue(`Update version of @promptbook/* to ${currentVersion} in ${remotePackageJsonPath}`));
 
-        await execCommand({
+        await $execCommand({
             cwd: remoteFolder,
             crashOnError: false,
             command: `npm i`,
@@ -100,5 +100,5 @@ async function usePackages() {
  * TODO: !! Add warning to the copy/used files
  * TODO: !! Use prettier to format the used files
  * TODO: !! Normalize order of keys in package.json
- *
+ * Note: [⚫] Code in this file should never be published in any package
  */

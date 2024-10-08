@@ -16,5 +16,5 @@ export type CsvSettings = Pick<
  */
 export const MANDATORY_CSV_SETTINGS = Object.freeze({
     header: true,
-    // encoding: 'utf8',
+    // encoding: 'utf-8',
 } as const) satisfies Omit<ParseConfig & UnparseConfig, keyof CsvSettings>;

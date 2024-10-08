@@ -6,7 +6,7 @@ Note: [🔁] In your app you will be importing '@promptbook/core' instead of '..
 
 import colors from 'colors';
 import * as dotenv from 'dotenv';
-import { readFile, writeFile } from 'fs/promises';
+import { writeFile } from 'fs/promises';
 import { forTime } from 'waitasecond';
 import {
     createPipelineExecutor,
@@ -42,7 +42,7 @@ async function main() {
     console.info(colors.bgWhite('⚪ Testing basic capabilities of Promptbook'));
 
     const collection = await createCollectionFromDirectory('./samples/pipelines/', {
-        llmTools: null,
+        llmTools: undefined,
         isVerbose: true,
         isRecursive: false,
         isCrashedOnError: true,
@@ -53,9 +53,9 @@ async function main() {
     // @see https://nodejs.org/en/learn/command-line/accept-input-from-the-command-line-in-nodejs
 
     const pipeline = await collection.getPipelineByUrl(
-        //`https://promptbook.studio/samples/foreach-list.ptbk.md`,
-        `https://promptbook.studio/samples/foreach-csv.ptbk.md`,
-        //`https://promptbook.studio/samples/simple-knowledge.ptbk.md`,
+        // `https://promptbook.studio/samples/foreach-list.ptbk.md`,
+        // `https://promptbook.studio/samples/foreach-csv.ptbk.md`,
+        `https://promptbook.studio/samples/simple-knowledge.ptbk.md`,
         // `https://promptbook.studio/samples/simple.ptbk.md`,
         // `https://promptbook.studio/samples/language-capabilities.ptbk.md`,
     );
@@ -89,15 +89,15 @@ async function main() {
             Kate
         `),
         /**/
-        /**/
+        /*/
         // https://promptbook.studio/samples/foreach-csv.ptbk.md
         customers: await readFile('./samples/pipelines/85-foreach.csv', 'utf-8'),
         /**/
-        /*/
+        /**/
         // https://promptbook.studio/samples/simple-knowledge.ptbk.md
         eventTitle: 'LinkedIn',
-        eventDescription: 'Professional LinkedIn profile',
-        rules: 'Write best text for LinkedIn in first person',
+        eventDescription: 'Professional CV',
+        rules: 'Write best text for corporate CV',
         /**/
     };
     const { isSuccessful, errors, warnings, outputParameters, executionReport, usage } = await pipelineExecutor(

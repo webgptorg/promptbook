@@ -14,7 +14,7 @@ import type { ParameterCommand } from './ParameterCommand';
 /**
  * Parses the parameter command
  *
- * @see ./PARAMETER-README.md for more details
+ * @see `documentationUrl` for more details
  * @private within the commands folder
  */
 export const parameterCommandParser: PipelineBothCommandParser<ParameterCommand> = {
@@ -44,7 +44,7 @@ export const parameterCommandParser: PipelineBothCommandParser<ParameterCommand>
     description: `Describes one parameter of the template`,
 
     /**
-     * Link to discussion
+     * Link to documentation
      */
     documentationUrl: 'https://github.com/webgptorg/promptbook/discussions/68',
 

@@ -1,0 +1,104 @@
+{
+    "date": "2024-10-05T16:04:09.483Z",
+    "promptbookVersion": "0.71.0-0",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.ptbk.md#knowledge",
+        "parameters": {
+            "knowledgePieceContent": "As people are cutting costs, there's an increase in fraudulent and harmful jewelry on the market. Customers have been reporting problems and scams encountered both in the Czech Republic and abroad."
+        },
+        "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> {knowledgePieceContent}",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {}
+    },
+    "promptResult": {
+        "content": "Keywords:\n\ncutting costs, fraudulent jewelry, harmful jewelry, market increase, customer reports, problems, scams, Czech Republic, abroad",
+        "modelName": "claude-3-5-sonnet-20240620",
+        "timing": {
+            "start": "2024-10-05T16:04:08.535Z",
+            "complete": "2024-10-05T16:04:09.482Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0.000717
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 84
+                },
+                "charactersCount": {
+                    "value": 391
+                },
+                "wordsCount": {
+                    "value": 58
+                },
+                "sentencesCount": {
+                    "value": 3
+                },
+                "linesCount": {
+                    "value": 11
+                },
+                "paragraphsCount": {
+                    "value": 6
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 31
+                },
+                "charactersCount": {
+                    "value": 137
+                },
+                "wordsCount": {
+                    "value": 16
+                },
+                "sentencesCount": {
+                    "value": 1
+                },
+                "linesCount": {
+                    "value": 3
+                },
+                "paragraphsCount": {
+                    "value": 2
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> As people are cutting costs, there's an increase in fraudulent and harmful jewelry on the market. Customers have been reporting problems and scams encountered both in the Czech Republic and abroad.",
+        "rawRequest": {
+            "model": "claude-3-5-sonnet-20240620",
+            "max_tokens": 4096,
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> As people are cutting costs, there's an increase in fraudulent and harmful jewelry on the market. Customers have been reporting problems and scams encountered both in the Czech Republic and abroad."
+                }
+            ]
+        },
+        "rawResponse": {
+            "id": "msg_01JPdYzaBV6d2iJojQRNLjxp",
+            "type": "message",
+            "role": "assistant",
+            "model": "claude-3-5-sonnet-20240620",
+            "content": [
+                {
+                    "type": "text",
+                    "text": "Keywords:\n\ncutting costs, fraudulent jewelry, harmful jewelry, market increase, customer reports, problems, scams, Czech Republic, abroad"
+                }
+            ],
+            "stop_reason": "end_turn",
+            "stop_sequence": null,
+            "usage": {
+                "input_tokens": 84,
+                "output_tokens": 31
+            }
+        }
+    }
+}
