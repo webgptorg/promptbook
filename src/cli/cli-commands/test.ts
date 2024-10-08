@@ -3,8 +3,8 @@ import type { Command as Program /* <- Note: Using Program because Command is mi
 import { readFile } from 'fs/promises';
 import glob from 'glob-promise';
 import spaceTrim from 'spacetrim';
-import { validatePipeline } from '../../_packages/core.index';
-import { PipelineJson } from '../../_packages/types.index';
+import { validatePipeline } from '../../conversion/validation/validatePipeline';
+import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import { pipelineStringToJson } from '../../conversion/pipelineStringToJson';
 import type { PipelineString } from '../../types/PipelineString';
 

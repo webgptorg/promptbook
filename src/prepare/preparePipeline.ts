@@ -1,6 +1,7 @@
 import type { Writable } from 'type-fest';
-import { prepareKnowledgePieces } from '../_packages/core.index';
-import { IS_VERBOSE, MAX_PARALLEL_COUNT } from '../config';
+import { prepareKnowledgePieces } from '../scrapers/_common/prepareKnowledgePieces';
+import { IS_VERBOSE } from '../config';
+import { MAX_PARALLEL_COUNT } from '../config';
 import { MissingToolsError } from '../errors/MissingToolsError';
 import { forEachAsync } from '../execution/utils/forEachAsync';
 import { ZERO_USAGE } from '../execution/utils/usage-constants';
