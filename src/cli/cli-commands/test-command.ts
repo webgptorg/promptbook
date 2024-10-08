@@ -14,22 +14,22 @@ import type { PipelineString } from '../../types/PipelineString';
  * @private internal function of `promptbookCli`
  */
 export function initializeTestCommand(program: Program) {
-    const prettifyCommand = program.command('prettify');
-    prettifyCommand.description(
+    const testCommand = program.command('test');
+    testCommand.description(
         spaceTrim(`
             Iterates over \`.ptbk.md\` and \`.ptbk.json\` and checks if they are parsable and logically valid
       `),
     );
 
-    prettifyCommand.argument(
+    testCommand.argument(
         '<filesGlob>',
         // <- TODO: [🧟‍♂️] Unite path to promptbook collection argument
-        'Promptbooks to prettify as glob pattern',
+        'Pipelines to test as glob pattern',
     );
-    prettifyCommand.option('-i, --ignore <glob>', `Ignore as glob pattern`);
-    prettifyCommand.option('-v, --verbose', `Is output verbose`, false);
+    testCommand.option('-i, --ignore <glob>', `Ignore as glob pattern`);
+    testCommand.option('-v, --verbose', `Is output verbose`, false);
 
-    prettifyCommand.action(async (filesGlob, { ignore, verbose: isVerbose }) => {
+    testCommand.action(async (filesGlob, { ignore, verbose: isVerbose }) => {
         const filenames = await glob(filesGlob!, { ignore });
         //                       <- TODO: [😶]
 
