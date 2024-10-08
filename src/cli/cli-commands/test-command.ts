@@ -78,4 +78,5 @@ export function initializeTestCommand(program: Program) {
  * TODO: [😶] Unite floder listing
  * Note: [🟡] Code in this file should never be published outside of `@promptbook/cli`
  * TODO: [🖇] What about symlinks? Maybe flag --follow-symlinks
+ * Note: This is named "test-command.ts" to avoid name collision with jest unit test files
  */
