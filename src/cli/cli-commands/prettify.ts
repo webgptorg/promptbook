@@ -15,7 +15,7 @@ export function initializePrettifyCommand(program: Program) {
     const prettifyCommand = program.command('prettify');
     prettifyCommand.description(
         spaceTrim(`
-            Iterates over promptbooks and does multiple enhancing operations on them:
+            Iterates over \`.ptbk.md\` files and does multiple enhancing operations on them:
 
             1) Adds Mermaid graph
             2) Prettifies the markdown
@@ -25,16 +25,18 @@ export function initializePrettifyCommand(program: Program) {
     prettifyCommand.argument(
         '<filesGlob>',
         // <- TODO: [🧟‍♂️] Unite path to promptbook collection argument
-        'Promptbooks to prettify as glob pattern',
+        'Pipelines to prettify as glob pattern',
     );
     prettifyCommand.option('-i, --ignore <glob>', `Ignore as glob pattern`);
+    prettifyCommand.option('-v, --verbose', `Is output verbose`, false);
 
-    prettifyCommand.action(async (filesGlob, { ignore }) => {
+    prettifyCommand.action(async (filesGlob, { ignore, verbose: isVerbose }) => {
         const filenames = await glob(filesGlob!, { ignore });
+        //                       <- TODO: [😶]
 
         for (const filename of filenames) {
-            if (!filename.endsWith('.ptbk.md')) {
-                console.warn(colors.yellow(`Skipping prettify of non-promptbook ${filename}`));
+            if (!filename.endsWith('.ptbk.md') && isVerbose) {
+                console.info(colors.gray(`Skipping ${filename}`));
                 continue;
             }
 
@@ -49,7 +51,9 @@ export function initializePrettifyCommand(program: Program) {
 
                 await writeFile(filename, pipelineMarkdown);
 
-                console.info(colors.green(`Prettify ${filename}`));
+                if (isVerbose) {
+                    console.info(colors.green(`Prettify ${filename}`));
+                }
             } catch (error) {
                 if (!(error instanceof Error)) {
                     throw error;
@@ -62,11 +66,14 @@ export function initializePrettifyCommand(program: Program) {
                 process.exit(1);
             }
         }
+
+        console.info(colors.green(`All pipelines are prettified`));
         process.exit(0);
     });
 }
 
 /**
+ * TODO: [😶] Unite floder listing
  * Note: [🟡] Code in this file should never be published outside of `@promptbook/cli`
  * TODO: [🖇] What about symlinks? Maybe flag --follow-symlinks
  */

@@ -18,6 +18,7 @@ export async function translateMessages({
     to,
 }: { automaticTranslator: AutomaticTranslator } & TranslatorOptions) {
     for (const filename of await glob(join(__dirname, '../../translations/', from || 'en', '/**/*.json5'))) {
+        //                       <- TODO: [😶]
         const fileData = JSON5.parse(await promisify(readFile)(filename, 'utf-8'));
 
         for (const row of fileData) {
@@ -47,3 +48,7 @@ export async function translateMessages({
         );
     }
 }
+
+/**
+ * TODO: [😶] Unite floder listing
+ */

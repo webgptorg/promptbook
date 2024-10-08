@@ -28,5 +28,6 @@ export function initializeHelloCommand(program: Program) {
 }
 
 /**
+ * TODO: [🧠][🐣] Make here some easter egg with generated hello greeting via LLM models
  * Note: [🟡] Code in this file should never be published outside of `@promptbook/cli`
  */
