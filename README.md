@@ -18,6 +18,12 @@ Supercharge your use of large language models
 
 -   ✨ **Support of [OpenAI o1 model](https://openai.com/o1/)**
 
+<blockquote style="color: #ff8811">
+<b>⚠ Warning:</b> This is a pre-release version of the library. It is not yet ready for production use. Please look at <a href="https://www.npmjs.com/package/@promptbook/core?activeTab=versions">latest stable release</a>.
+</blockquote>
+
+<!-- <- TODO: !!! Make this warning dynamic + link latest stable release automatically -->
+
 <!--/ Here will be placed specific package info -->
 
 ## 🤍 The Promptbook Whitepaper

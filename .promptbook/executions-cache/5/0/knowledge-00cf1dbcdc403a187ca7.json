@@ -1,0 +1,121 @@
+{
+    "date": "2024-10-03T23:32:03.607Z",
+    "promptbookVersion": "0.71.0-0",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-title.ptbk.md#knowledge",
+        "parameters": {
+            "knowledgePieceContent": "Pavol is a developer with a keen interest in utilizing new tools and technologies, specializing in creating user applications using the latest artificial intelligence models. He is a member of the Ainautes consulting group, which focuses on the global deployment of generative AI technologies."
+        },
+        "content": "You are experienced content creator, write best title for the document.\n\n# Rules\n\n-   Write just title, nothing else\n-   Title should be concise and clear\n-   Write maximum 5 words for the title\n\n# The document\n\n> {knowledgePieceContent}",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {
+            "words": {
+                "min": 1,
+                "max": 8
+            }
+        }
+    },
+    "promptResult": {
+        "content": "Generative AI Developer Profile",
+        "modelName": "gpt-4o-2024-08-06",
+        "timing": {
+            "start": "2024-10-03T23:32:03.183Z",
+            "complete": "2024-10-03T23:32:03.607Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0,
+                "isUncertain": true
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 109
+                },
+                "charactersCount": {
+                    "value": 237
+                },
+                "wordsCount": {
+                    "value": 33
+                },
+                "sentencesCount": {
+                    "value": 2
+                },
+                "linesCount": {
+                    "value": 11
+                },
+                "paragraphsCount": {
+                    "value": 5
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 5
+                },
+                "charactersCount": {
+                    "value": 31
+                },
+                "wordsCount": {
+                    "value": 4
+                },
+                "sentencesCount": {
+                    "value": 1
+                },
+                "linesCount": {
+                    "value": 1
+                },
+                "paragraphsCount": {
+                    "value": 1
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced content creator, write best title for the document.\n\n# Rules\n\n-   Write just title, nothing else\n-   Title should be concise and clear\n-   Write maximum 5 words for the title\n\n# The document\n\n> Pavol is a developer with a keen interest in utilizing new tools and technologies, specializing in creating user applications using the latest artificial intelligence models. He is a member of the Ainautes consulting group, which focuses on the global deployment of generative AI technologies.",
+        "rawRequest": {
+            "model": "gpt-4o",
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "You are experienced content creator, write best title for the document.\n\n# Rules\n\n-   Write just title, nothing else\n-   Title should be concise and clear\n-   Write maximum 5 words for the title\n\n# The document\n\n> Pavol is a developer with a keen interest in utilizing new tools and technologies, specializing in creating user applications using the latest artificial intelligence models. He is a member of the Ainautes consulting group, which focuses on the global deployment of generative AI technologies."
+                }
+            ]
+        },
+        "rawResponse": {
+            "id": "chatcmpl-AEPadPVAXUDAK0yJs14HDQaIfMJ3U",
+            "object": "chat.completion",
+            "created": 1727998323,
+            "model": "gpt-4o-2024-08-06",
+            "choices": [
+                {
+                    "index": 0,
+                    "message": {
+                        "role": "assistant",
+                        "content": "Generative AI Developer Profile",
+                        "refusal": null
+                    },
+                    "logprobs": null,
+                    "finish_reason": "stop"
+                }
+            ],
+            "usage": {
+                "prompt_tokens": 109,
+                "completion_tokens": 5,
+                "total_tokens": 114,
+                "prompt_tokens_details": {
+                    "cached_tokens": 0
+                },
+                "completion_tokens_details": {
+                    "reasoning_tokens": 0
+                }
+            },
+            "system_fingerprint": "fp_2f406b9113"
+        }
+    }
+}

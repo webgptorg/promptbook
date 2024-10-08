@@ -15,7 +15,7 @@ export type ExecutionTools = {
      * Tip: Use `createLlmToolsFromEnv()` to use all available LLM providers you configured
      * @see https://github.com/webgptorg/promptbook/?tab=readme-ov-file#llm-execution-tools
      */
-    llm?: Arrayable<LlmExecutionTools>;
+    readonly llm?: Arrayable<LlmExecutionTools>;
 
     /**
      * Tools for executing scripts
@@ -27,7 +27,7 @@ export type ExecutionTools = {
      * @see https://github.com/webgptorg/promptbook/?tab=readme-ov-file#script-execution-tools
      * @default [] - If not provided, no script execution will be possible
      */
-    script?: Arrayable<ScriptExecutionTools>;
+    readonly script?: Arrayable<ScriptExecutionTools>;
 
     /**
      * Tools for interacting with the user
@@ -35,5 +35,5 @@ export type ExecutionTools = {
      * Note: When undefined, the user interface is disabled and promptbook which requires user interaction will fail
      * @see https://github.com/webgptorg/promptbook/?tab=readme-ov-file#user-interface-tools
      */
-    userInterface?: UserInterfaceTools;
+    readonly userInterface?: UserInterfaceTools;
 };

@@ -1,31 +1,24 @@
 {
-    "date": "2024-08-05T07:27:40.512Z",
-    "promptbookVersion": "0.61.0-24",
+    "date": "2024-10-03T10:30:36.626Z",
+    "promptbookVersion": "0.71.0-0",
     "prompt": {
         "title": "Knowledge",
-        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-title.ptbk.md#knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.ptbk.md#knowledge",
         "parameters": {
             "knowledgePieceContent": "As of 2019, Springfield had a population of 10,566, making it the sixth most populous city in Illinois."
         },
-        "content": "You are experienced content creator, write best title for the document.\n\n# Rules\n\n-   Write just title, nothing else\n-   Title should be concise and clear\n-   Write maximum 5 words for the title\n\n# The document\n\n> {knowledgePieceContent}",
+        "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> {knowledgePieceContent}",
         "modelRequirements": {
-            "modelVariant": "CHAT",
-            "modelName": "claude-3-opus-20240229"
+            "modelVariant": "CHAT"
         },
-        "expectations": {
-            "words": {
-                "min": 1,
-                "max": 8
-            }
-        },
-        "postprocessing": []
+        "expectations": {}
     },
     "promptResult": {
-        "content": "Springfield: Illinois' Sixth Largest City",
-        "modelName": "claude-3-opus-20240229",
+        "content": "Springfield, population, 10,566, sixth, most populous, city, Illinois, 2019",
+        "modelName": "gpt-4o-2024-08-06",
         "timing": {
-            "start": "2024-08-05T07:27:38.109Z",
-            "complete": "2024-08-05T07:27:40.511Z"
+            "start": "2024-10-03T10:30:36.031Z",
+            "complete": "2024-10-03T10:30:36.625Z"
         },
         "usage": {
             "price": {
@@ -34,14 +27,13 @@
             },
             "input": {
                 "tokensCount": {
-                    "value": 0,
-                    "isUncertain": true
+                    "value": 70
                 },
                 "charactersCount": {
-                    "value": 237
+                    "value": 217
                 },
                 "wordsCount": {
-                    "value": 33
+                    "value": 27
                 },
                 "sentencesCount": {
                     "value": 2
@@ -50,7 +42,7 @@
                     "value": 11
                 },
                 "paragraphsCount": {
-                    "value": 5
+                    "value": 6
                 },
                 "pagesCount": {
                     "value": 1
@@ -58,46 +50,67 @@
             },
             "output": {
                 "tokensCount": {
-                    "value": 0,
-                    "isUncertain": true
+                    "value": 22
                 },
                 "charactersCount": {
-                    "value": 237
+                    "value": 75
                 },
                 "wordsCount": {
-                    "value": 33
+                    "value": 10
                 },
                 "sentencesCount": {
-                    "value": 2
+                    "value": 1
                 },
                 "linesCount": {
-                    "value": 11
+                    "value": 1
                 },
                 "paragraphsCount": {
-                    "value": 5
+                    "value": 1
                 },
                 "pagesCount": {
                     "value": 1
                 }
             }
         },
-        "rawResponse": {
-            "id": "msg_01BpENFm9DupjPK7g6KifTrC",
-            "type": "message",
-            "role": "assistant",
-            "model": "claude-3-opus-20240229",
-            "content": [
+        "rawPromptContent": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> As of 2019, Springfield had a population of 10,566, making it the sixth most populous city in Illinois.",
+        "rawRequest": {
+            "model": "gpt-4o",
+            "messages": [
                 {
-                    "type": "text",
-                    "text": "Springfield: Illinois' Sixth Largest City"
+                    "role": "user",
+                    "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> As of 2019, Springfield had a population of 10,566, making it the sixth most populous city in Illinois."
+                }
+            ]
+        },
+        "rawResponse": {
+            "id": "chatcmpl-AEDOOxC82iXHN5o3M1C6ysNQx5cue",
+            "object": "chat.completion",
+            "created": 1727951436,
+            "model": "gpt-4o-2024-08-06",
+            "choices": [
+                {
+                    "index": 0,
+                    "message": {
+                        "role": "assistant",
+                        "content": "Springfield, population, 10,566, sixth, most populous, city, Illinois, 2019",
+                        "refusal": null
+                    },
+                    "logprobs": null,
+                    "finish_reason": "stop"
                 }
             ],
-            "stop_reason": "end_turn",
-            "stop_sequence": null,
             "usage": {
-                "input_tokens": 86,
-                "output_tokens": 11
-            }
+                "prompt_tokens": 70,
+                "completion_tokens": 22,
+                "total_tokens": 92,
+                "prompt_tokens_details": {
+                    "cached_tokens": 0
+                },
+                "completion_tokens_details": {
+                    "reasoning_tokens": 0
+                }
+            },
+            "system_fingerprint": "fp_e5e4913e83"
         }
     }
 }

@@ -1,19 +1,19 @@
 import colors from 'colors';
 import { readFile } from 'fs/promises';
-import { join } from 'path';
+import { dirname, join } from 'path';
 import spaceTrim from 'spacetrim';
 import { IS_VERBOSE } from '../../config';
 import { PIPELINE_COLLECTION_BASE_FILENAME } from '../../config';
 import { pipelineJsonToString } from '../../conversion/pipelineJsonToString';
-import type { PipelineStringToJsonOptions } from '../../conversion/pipelineStringToJson';
 import { pipelineStringToJson } from '../../conversion/pipelineStringToJson';
 import { validatePipeline } from '../../conversion/validation/validatePipeline';
 import { CollectionError } from '../../errors/CollectionError';
 import { PipelineUrlError } from '../../errors/PipelineUrlError';
+import type { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';
 import { unpreparePipeline } from '../../prepare/unpreparePipeline';
 import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import type { PipelineString } from '../../types/PipelineString';
-import type { string_folder_path } from '../../types/typeAliases';
+import type { string_dirname } from '../../types/typeAliases';
 import type { string_pipeline_url } from '../../types/typeAliases';
 import { $isRunningInNode } from '../../utils/environment/$isRunningInNode';
 import { $isFileExisting } from '../../utils/files/$isFileExisting';
@@ -23,8 +23,11 @@ import { createCollectionFromPromise } from './createCollectionFromPromise';
 
 /**
  * Options for `createCollectionFromDirectory` function
+ *
+ * Note: `rootDirname` is not needed because it is the folder in which `.ptbk.md` file is located
+ *       This is not same as `path` which is the first argument of `createCollectionFromDirectory` - it can be a subfolder
  */
-type CreatePipelineCollectionFromDirectoryOptions = PipelineStringToJsonOptions & {
+type CreatePipelineCollectionFromDirectoryOptions = Omit<PrepareAndScrapeOptions, 'rootDirname'> & {
     /**
      * If true, the directory is searched recursively for pipelines
      *
@@ -53,6 +56,9 @@ type CreatePipelineCollectionFromDirectoryOptions = PipelineStringToJsonOptions 
      * @default true
      */
     isCrashedOnError?: boolean;
+
+    // [🍖] Add `isCacheReloaded`
+    //                <- TODO: !!!!!! Replace by `cacheStrategy`
 };
 
 /**
@@ -66,7 +72,7 @@ type CreatePipelineCollectionFromDirectoryOptions = PipelineStringToJsonOptions 
  * @public exported from `@promptbook/node`
  */
 export async function createCollectionFromDirectory(
-    path: string_folder_path,
+    path: string_dirname,
     options?: CreatePipelineCollectionFromDirectoryOptions,
 ): Promise<PipelineCollection> {
     if (!$isRunningInNode()) {
@@ -92,7 +98,13 @@ export async function createCollectionFromDirectory(
         // TODO: [🌗]
     }
 
-    const { isRecursive = true, isVerbose = IS_VERBOSE, isLazyLoaded = false, isCrashedOnError = true } = options || {};
+    const {
+        llmTools,
+        isRecursive = true,
+        isVerbose = IS_VERBOSE,
+        isLazyLoaded = false,
+        isCrashedOnError = true,
+    } = options || {};
 
     const collection = createCollectionFromPromise(async () => {
         if (isVerbose) {
@@ -117,17 +129,21 @@ export async function createCollectionFromDirectory(
 
         for (const fileName of fileNames) {
             const sourceFile = './' + fileName.split('\\').join('/');
+            const rootDirname = dirname(sourceFile).split('\\').join('/');
 
             try {
                 let pipeline: PipelineJson | null = null;
 
                 if (fileName.endsWith('.ptbk.md')) {
-                    const pipelineString = (await readFile(fileName, 'utf8')) as PipelineString;
-                    pipeline = await pipelineStringToJson(pipelineString, options);
+                    const pipelineString = (await readFile(fileName, 'utf-8')) as PipelineString;
+                    pipeline = await pipelineStringToJson(pipelineString, {
+                        llmTools,
+                        rootDirname,
+                    });
                     pipeline = { ...pipeline, sourceFile };
                 } else if (fileName.endsWith('.ptbk.json')) {
                     // TODO: Handle non-valid JSON files
-                    pipeline = JSON.parse(await readFile(fileName, 'utf8')) as PipelineJson;
+                    pipeline = JSON.parse(await readFile(fileName, 'utf-8')) as PipelineJson;
                     // TODO: [🌗]
                     pipeline = { ...pipeline, sourceFile };
                 } else {
@@ -238,6 +254,6 @@ export async function createCollectionFromDirectory(
 }
 
 /**
- * Note: [🟢] This code should never be published outside of `@promptbook/node` and `@promptbook/cli` and `@promptbook/cli`
+ * Note: [🟢] Code in this file should never be published outside of `@promptbook/node` and `@promptbook/cli`
  * TODO: [🖇] What about symlinks? Maybe option isSymlinksFollowed
  */

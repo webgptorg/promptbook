@@ -1,0 +1,104 @@
+{
+    "date": "2024-09-29T07:42:40.076Z",
+    "promptbookVersion": "0.71.0-0",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.ptbk.md#knowledge",
+        "parameters": {
+            "knowledgePieceContent": "Korálky Katlas has prepared a summary of things to watch out for when purchasing finished costume jewelry and jewelry-making components, based on problems and scams reported by customers in the Czech Republic and abroad."
+        },
+        "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> {knowledgePieceContent}",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {}
+    },
+    "promptResult": {
+        "content": "Korálky Katlas, costume jewelry, jewelry-making components, problems, scams, customers, Czech Republic",
+        "modelName": "claude-3-5-sonnet-20240620",
+        "timing": {
+            "start": "2024-09-29T07:42:39.419Z",
+            "complete": "2024-09-29T07:42:40.076Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0.000675
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 90
+                },
+                "charactersCount": {
+                    "value": 414
+                },
+                "wordsCount": {
+                    "value": 61
+                },
+                "sentencesCount": {
+                    "value": 2
+                },
+                "linesCount": {
+                    "value": 11
+                },
+                "paragraphsCount": {
+                    "value": 6
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 27
+                },
+                "charactersCount": {
+                    "value": 102
+                },
+                "wordsCount": {
+                    "value": 12
+                },
+                "sentencesCount": {
+                    "value": 1
+                },
+                "linesCount": {
+                    "value": 1
+                },
+                "paragraphsCount": {
+                    "value": 1
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> Korálky Katlas has prepared a summary of things to watch out for when purchasing finished costume jewelry and jewelry-making components, based on problems and scams reported by customers in the Czech Republic and abroad.",
+        "rawRequest": {
+            "model": "claude-3-5-sonnet-20240620",
+            "max_tokens": 4096,
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> Korálky Katlas has prepared a summary of things to watch out for when purchasing finished costume jewelry and jewelry-making components, based on problems and scams reported by customers in the Czech Republic and abroad."
+                }
+            ]
+        },
+        "rawResponse": {
+            "id": "msg_0137XLj8cnfWSh54g7cHKnkA",
+            "type": "message",
+            "role": "assistant",
+            "model": "claude-3-5-sonnet-20240620",
+            "content": [
+                {
+                    "type": "text",
+                    "text": "Korálky Katlas, costume jewelry, jewelry-making components, problems, scams, customers, Czech Republic"
+                }
+            ],
+            "stop_reason": "end_turn",
+            "stop_sequence": null,
+            "usage": {
+                "input_tokens": 90,
+                "output_tokens": 27
+            }
+        }
+    }
+}

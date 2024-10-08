@@ -125,4 +125,5 @@ export const EMOJIS_OF_SINGLE_PICTOGRAM: Set<string_char_emoji> = new Set(
 /**
  * TODO: [💴] DRY - just one version of emojis.ts
  * TODO: Mirror from Collboard or some common library
+ * Note: [⚫] Code in this file should never be published in any package
  */

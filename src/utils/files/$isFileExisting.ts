@@ -1,5 +1,7 @@
 import { access, constants, stat } from 'fs/promises';
-import type { string_file_path } from '../../types/typeAliases';
+import { EnvironmentMismatchError } from '../../errors/EnvironmentMismatchError';
+import type { string_filename } from '../../types/typeAliases';
+import { $isRunningInNode } from '../environment/$isRunningInNode';
 
 /**
  * Checks if the file exists
@@ -8,8 +10,12 @@ import type { string_file_path } from '../../types/typeAliases';
  *
  * @private within the repository
  */
-export async function $isFileExisting(filePath: string_file_path): Promise<boolean> {
-    const isReadAccessAllowed = await access(filePath, constants.R_OK)
+export async function $isFileExisting(filename: string_filename): Promise<boolean> {
+    if (!$isRunningInNode()) {
+        throw new EnvironmentMismatchError('Function `$isFileExisting` works only in Node environment.js');
+    }
+
+    const isReadAccessAllowed = await access(filename, constants.R_OK)
         .then(() => true)
         .catch(() => false);
 
@@ -17,7 +23,7 @@ export async function $isFileExisting(filePath: string_file_path): Promise<boole
         return false;
     }
 
-    const isFile = await stat(filePath)
+    const isFile = await stat(filename)
         .then((fileStat) => fileStat.isFile())
         .catch(() => false);
 
@@ -25,7 +31,7 @@ export async function $isFileExisting(filePath: string_file_path): Promise<boole
 }
 
 /**
- * Note: [🟢] This code should never be published outside of `@promptbook/node` and `@promptbook/cli` and `@promptbook/cli`
+ * Note: [🟢 <- TODO: [🦖] !!!!!! Split scrapers into packages and enable] Code in this file should never be published outside of `@promptbook/node` and `@promptbook/cli`
  * TODO: [🐠] This can be a validator - with variants that return true/false and variants that throw errors with meaningless messages
  * TODO: [🖇] What about symlinks?
  */

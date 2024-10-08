@@ -4,7 +4,7 @@ import { EXECUTIONS_CACHE_DIRNAME } from '../../config';
 import { IS_COST_PREVENTED } from '../../config';
 import { EnvironmentMismatchError } from '../../errors/EnvironmentMismatchError';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import { FilesStorage } from '../../storage/files-storage/FilesStorage';
+import { FileCacheStorage } from '../../storage/file-cache-storage/FileCacheStorage';
 import { $isRunningInNode } from '../../utils/environment/$isRunningInNode';
 import type { CreateLlmToolsFromConfigurationOptions } from './createLlmToolsFromConfiguration';
 import { createLlmToolsFromEnv } from './createLlmToolsFromEnv';
@@ -47,9 +47,9 @@ export function getLlmToolsForTestingAndScriptsAndPlayground(
     //          <- Note: for example here we don`t want the [🌯]
 
     return cacheLlmTools(llmToolsWithUsage, {
-        storage: new FilesStorage(
+        storage: new FileCacheStorage(
             //            <- TODO: [🧱] Implement in a functional (not new Class) way
-            { cacheFolderPath: join(process.cwd(), EXECUTIONS_CACHE_DIRNAME) },
+            { rootFolderPath: join(process.cwd(), EXECUTIONS_CACHE_DIRNAME) },
         ),
         isReloaded: isCacheReloaded,
     });

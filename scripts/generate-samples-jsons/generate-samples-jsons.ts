@@ -8,7 +8,7 @@ import colors from 'colors';
 import commander from 'commander';
 import { readFile, writeFile } from 'fs/promises';
 import glob from 'glob-promise';
-import { join } from 'path';
+import { dirname, join } from 'path';
 import { pipelineStringToJson } from '../../src/conversion/pipelineStringToJson';
 import { stringifyPipelineJson } from '../../src/conversion/utils/stringifyPipelineJson';
 import { usageToHuman } from '../../src/execution/utils/usageToHuman';
@@ -76,6 +76,12 @@ async function generateSampleJsons({
         try {
             const pipelineJson = await pipelineStringToJson(pipelineMarkdown as PipelineString, {
                 llmTools,
+                rootDirname: dirname(pipelineMarkdownFilePath),
+                externalProgramsPaths: {
+                    // TODO: !!!!!! use `locate-app` library here
+                    pandocPath: 'C:/Users/me/AppData/Local/Pandoc/pandoc.exe',
+                    libreOfficePath: 'C:/Program Files/LibreOffice/program/swriter.exe',
+                },
             });
 
             await forTime(0);
@@ -110,7 +116,7 @@ async function generateSampleJsons({
     console.info(colors.cyan(usageToHuman(llmTools.getTotalUsage())));
 
     if (isCommited) {
-        await commit([PROMPTBOOK_SAMPLES_DIR], `📖 Convert samples .ptbk.md -> .ptbk.json`);
+        await commit([PROMPTBOOK_SAMPLES_DIR], `📖 Convert samples \`.ptbk.md\` -> \`.ptbk.json\``);
     }
 
     console.info(`[ Done 📖  Convert samples .ptbk.md -> .ptbk.json]`);
@@ -119,4 +125,5 @@ async function generateSampleJsons({
 /**
  * Note: [🍠] @@@ Sample pipelines vs Pipelines used internally in Promptbook
  * TODO: [🍥] When using current time in `preparations` it changes all .ptbk.json files each time so until some more elegant solution omit the time from prepared pipeline
+ * Note: [⚫] Code in this file should never be published in any package
  */

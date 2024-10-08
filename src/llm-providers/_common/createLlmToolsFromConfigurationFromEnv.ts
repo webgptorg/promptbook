@@ -37,7 +37,7 @@ export function createLlmToolsFromConfigurationFromEnv(): LlmToolsConfiguration 
  * TODO: Add Azure OpenAI
  * TODO: [🧠][🍛]
  * TODO: [🧠] Is there some meaningfull way how to test this util
- * Note: [🟢] This code should never be published outside of `@promptbook/node` and `@promptbook/cli` and `@promptbook/cli`
+ * Note: [🟢] Code in this file should never be published outside of `@promptbook/node` and `@promptbook/cli`
  * TODO: [👷‍♂️] @@@ Manual about construction of llmTools
  * TODO: This should be maybe not under `_common` but under `utils`
  * TODO: [🧠] Maybe pass env as argument

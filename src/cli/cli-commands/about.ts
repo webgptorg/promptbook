@@ -28,5 +28,5 @@ export function initializeAboutCommand(program: Program) {
 
 /**
  * TODO: [🗽] Unite branding and make single place for it
- * Note: [🟡] This code should never be published outside of `@promptbook/cli`
+ * Note: [🟡] Code in this file should never be published outside of `@promptbook/cli`
  */

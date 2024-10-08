@@ -1,0 +1,42 @@
+import { lookup } from 'mime-types';
+import { string_mime_type } from '../typeAliases';
+
+/**
+ * Find propper file type to given file or blob
+ *
+ * Note: For unknown types there will be returned 'application/octet-stream'
+ * Note: Charset will be stripped from file type
+ *
+ * @param file File or Blob which will be analyzed
+ * @returns string with propper type like 'text/plain'
+ *
+ * @collboard-modules-sdk
+ */
+export async function findPropperFileType(file: File | Blob): Promise<string_mime_type> {
+    // Note: making this function artificially async to not change its signature in the future
+
+    if (file.type) {
+        // TODO: Probbably try to verify file type by its content
+
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const [type, charset] = file.type.split(';').map((part) => part.trim());
+        // TODO: Probbably some flag if charset is preserved or not
+        return type;
+    }
+
+    if ((file as File).name) {
+        const fileExtension = (file as File).name.split('.').pop();
+
+        if (!fileExtension) {
+            return 'application/octet-stream';
+        }
+
+        const fileTypeLookedup = lookup(fileExtension);
+
+        return fileTypeLookedup || 'application/octet-stream';
+    }
+
+    // TODO: Probbably try to analyze file type by its content
+
+    return 'application/octet-stream';
+}

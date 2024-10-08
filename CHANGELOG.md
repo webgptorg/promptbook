@@ -522,16 +522,23 @@ Support for local models - integrate [Ollama](https://ollama.com/)
 
 Knowledge scrapers [🐝]
 
--   Allow to import markdown files with knowledge
--   Allow to import `.docx` files with knowledge `.docx` -(Pandoc)-> `.md`
--   Allow to import `.doc` files with knowledge `.doc` -(LibreOffice)-> `.docx` -(Pandoc)-> `.md`
--   Allow to import `.rtf` files with knowledge `.rtf` -(LibreOffice)-> `.docx` -(Pandoc)-> `.md`
+-   Allow to import markdown files with knowledge <!-- <- TODO: [🐝] !!!!!! Implement -->
+-   Allow to import `.docx` files with knowledge `.docx` -(Pandoc)-> `.md` <!-- <- TODO: [🐝] !!!!!! Implement -->
+-   Allow to import `.doc` files with knowledge `.doc` -(LibreOffice)-> `.docx` -(Pandoc)-> `.md` <!-- <- TODO: [🐝] !!!!!! Implement -->
+-   Allow to import `.rtf` files with knowledge `.rtf` -(LibreOffice)-> `.docx` -(Pandoc)-> `.md` <!-- <- TODO: [🐝] !!!!!! Implement -->
+-   Allow to import websites with knowledge
+-   Add new error `KnowledgeScrapeError`
+-   Remove `PipelineStringToJsonOptions` in favour of `PrepareAndScrapeOptions`
+-   Add `MissingToolsError`
+-   Change `FileStorage` -> `FileCacheStorage`
+-   Changed behavior of `titleToName` when passing URLs or file paths
+-   Fix normalize functions when normalizing string containing slash char "/", "\"
 
 ### `0.72.0` _(2024-09-)_
 
 Support for [Assistants API (GPTs)](https://platform.openai.com/docs/assistants/overview) from OpenAI
 
-- `getClient` methods are public
+-   `getClient` methods are public
 
 ## Drafts
 

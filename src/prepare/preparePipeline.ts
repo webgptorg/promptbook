@@ -1,11 +1,12 @@
 import type { Writable } from 'type-fest';
 import { IS_VERBOSE } from '../config';
 import { MAX_PARALLEL_COUNT } from '../config';
+import { MissingToolsError } from '../errors/MissingToolsError';
 import { ZERO_USAGE } from '../execution/utils/addUsage';
 import { forEachAsync } from '../execution/utils/forEachAsync';
-import { prepareKnowledgePieces } from '../knowledge/prepare-knowledge/_common/prepareKnowledgePieces';
 import { countTotalUsage } from '../llm-providers/_common/utils/count-total-usage/countTotalUsage';
 import { preparePersona } from '../personas/preparePersona';
+import { prepareKnowledgePieces } from '../scrapers/_common/prepareKnowledgePieces';
 import type { PersonaPreparedJson } from '../types/PipelineJson/PersonaJson';
 import type { PipelineJson } from '../types/PipelineJson/PipelineJson';
 import type { PreparationJson } from '../types/PipelineJson/PreparationJson';
@@ -13,7 +14,7 @@ import { $asDeeplyFrozenSerializableJson } from '../utils/serialization/$asDeepl
 import { clonePipeline } from '../utils/serialization/clonePipeline';
 import { PROMPTBOOK_VERSION } from '../version';
 import { isPipelinePrepared } from './isPipelinePrepared';
-import type { PrepareOptions } from './PrepareOptions';
+import type { PrepareAndScrapeOptions } from './PrepareAndScrapeOptions';
 import { prepareTemplates } from './prepareTemplates';
 
 /**
@@ -24,12 +25,12 @@ import { prepareTemplates } from './prepareTemplates';
  * Note: When the pipeline is already prepared, it returns the same pipeline
  * @public exported from `@promptbook/core`
  */
-export async function preparePipeline(pipeline: PipelineJson, options: PrepareOptions): Promise<PipelineJson> {
+export async function preparePipeline(pipeline: PipelineJson, options: PrepareAndScrapeOptions): Promise<PipelineJson> {
     if (isPipelinePrepared(pipeline)) {
         return pipeline;
     }
 
-    const { llmTools, maxParallelCount = MAX_PARALLEL_COUNT, isVerbose = IS_VERBOSE } = options;
+    const { llmTools, rootDirname, maxParallelCount = MAX_PARALLEL_COUNT, isVerbose = IS_VERBOSE } = options;
     const {
         parameters,
         templates,
@@ -40,6 +41,10 @@ export async function preparePipeline(pipeline: PipelineJson, options: PrepareOp
         personas /*
         <- TODO: [🧊] `preparations` */,
     } = pipeline;
+
+    if (llmTools === undefined) {
+        throw new MissingToolsError('LLM tools are required for preparing the pipeline');
+    }
 
     const llmToolsWithUsage = countTotalUsage(llmTools);
     //    <- TODO: [🌯]
@@ -81,6 +86,7 @@ export async function preparePipeline(pipeline: PipelineJson, options: PrepareOp
         async (persona, index) => {
             const modelRequirements = await preparePersona(persona.description, {
                 llmTools: llmToolsWithUsage,
+                rootDirname,
                 maxParallelCount /* <- TODO:  [🪂] */,
                 isVerbose,
             });
@@ -107,7 +113,9 @@ export async function preparePipeline(pipeline: PipelineJson, options: PrepareOp
     const partialknowledgePiecesPrepared = await prepareKnowledgePieces(
         knowledgeSources /* <- TODO: [🧊] {knowledgeSources, knowledgePieces} */,
         {
+            ...options,
             llmTools: llmToolsWithUsage,
+            rootDirname,
             maxParallelCount /* <- TODO:  [🪂] */,
             isVerbose,
         },
@@ -129,6 +137,7 @@ export async function preparePipeline(pipeline: PipelineJson, options: PrepareOp
         },
         {
             llmTools: llmToolsWithUsage,
+            rootDirname,
             maxParallelCount /* <- TODO:  [🪂] */,
             isVerbose,
         },

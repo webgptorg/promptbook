@@ -1,0 +1,5 @@
+TODO: [🧠] !!! Not it does not scrape entire website, just single page - maybe implement entire page scraping or allow to specify the scope in `.ptbk.md`
+TODO: [🧠] !!! Multiple methods of scraping - simple fetch sourcecode vs headless browser + playwright
+
+
+TODO: !!!!!! Export this scraper as standalone package with standalone samples from website to markdown
