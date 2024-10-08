@@ -1,6 +1,6 @@
 {
     "name": "@promptbook/markdown-utils",
-    "version": "0.69.0",
+    "version": "0.69.1",
     "description": "Supercharge your use of large language models",
     "private": false,
     "sideEffects": false,
