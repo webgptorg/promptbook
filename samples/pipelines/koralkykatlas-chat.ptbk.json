@@ -269,7 +269,7 @@
             "promptbookVersion": "0.72.0-6",
             "usage": {
                 "price": {
-                    "value": 0.021628430000000008
+                    "value": 0.021628429999999994
                 },
                 "input": {
                     "tokensCount": {
