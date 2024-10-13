@@ -1,12 +1,12 @@
 import spaceTrim from 'spacetrim';
-import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { TODO_any } from '../../utils/organization/TODO_any';
-import { joinLlmExecutionTools } from '../multiple/joinLlmExecutionTools';
-import { MultipleLlmExecutionTools } from '../multiple/MultipleLlmExecutionTools';
+import { IS_VERBOSE } from '../../../config';
+import type { LlmExecutionTools } from '../../../execution/LlmExecutionTools';
+import type { TODO_any } from '../../../utils/organization/TODO_any';
+import { joinLlmExecutionTools } from '../../multiple/joinLlmExecutionTools';
+import { MultipleLlmExecutionTools } from '../../multiple/MultipleLlmExecutionTools';
 import { $llmToolsRegister } from './$llmToolsRegister';
 import { $registeredLlmToolsMessage } from './$registeredLlmToolsMessage';
 import type { LlmToolsConfiguration } from './LlmToolsConfiguration';
-import { IS_VERBOSE } from '../../config';
 
 /**
  * Options for `createLlmToolsFromEnv`

@@ -1,5 +1,5 @@
-import type { LlmExecutionToolsConstructor } from '../../execution/LlmExecutionToolsConstructor';
-import { $Register } from '../../utils/$Register';
+import type { LlmExecutionToolsConstructor } from '../../../execution/LlmExecutionToolsConstructor';
+import { $Register } from '../../../utils/$Register';
 
 /**
  * @@@

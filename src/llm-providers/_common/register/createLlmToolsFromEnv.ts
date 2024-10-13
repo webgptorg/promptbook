@@ -1,7 +1,7 @@
 import spaceTrim from 'spacetrim';
-import { EnvironmentMismatchError } from '../../errors/EnvironmentMismatchError';
-import { $isRunningInNode } from '../../utils/environment/$isRunningInNode';
-import { MultipleLlmExecutionTools } from '../multiple/MultipleLlmExecutionTools';
+import { EnvironmentMismatchError } from '../../../errors/EnvironmentMismatchError';
+import { $isRunningInNode } from '../../../utils/environment/$isRunningInNode';
+import { MultipleLlmExecutionTools } from '../../multiple/MultipleLlmExecutionTools';
 import { $registeredLlmToolsMessage } from './$registeredLlmToolsMessage';
 import type { CreateLlmToolsFromConfigurationOptions } from './createLlmToolsFromConfiguration';
 import { createLlmToolsFromConfiguration } from './createLlmToolsFromConfiguration';

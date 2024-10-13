@@ -1,7 +1,7 @@
 import spaceTrim from 'spacetrim';
-import type { string_markdown } from '../../types/typeAliases';
-import type { Registered } from '../../utils/$Register';
-import { just } from '../../utils/organization/just';
+import type { string_markdown } from '../../../types/typeAliases';
+import type { Registered } from '../../../utils/$Register';
+import { just } from '../../../utils/organization/just';
 import { $llmToolsMetadataRegister } from './$llmToolsMetadataRegister';
 import { $llmToolsRegister } from './$llmToolsRegister';
 

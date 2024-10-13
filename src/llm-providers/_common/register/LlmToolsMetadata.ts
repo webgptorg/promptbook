@@ -1,6 +1,5 @@
-import type { string_name } from '../../types/typeAliases';
-import type { string_title } from '../../types/typeAliases';
-import type { Registered } from '../../utils/$Register';
+import type { string_name, string_title } from '../../../types/typeAliases';
+import type { Registered } from '../../../utils/$Register';
 import type { LlmToolsConfiguration } from './LlmToolsConfiguration';
 
 /**
