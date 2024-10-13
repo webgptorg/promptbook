@@ -1,3 +1,4 @@
+import { $scrapersRegister } from './_common/$scrapersRegister';
 import type { Scraper } from './_common/Scraper';
 import { legacyDocumentScraper } from './document-legacy/legacyDocumentScraper';
 import { documentScraper } from './document/documentScraper';
@@ -21,3 +22,6 @@ export const SCRAPERS: Array<Scraper> = [
     websiteScraper,
     // <- Note: [♓️] This is the order of the scrapers for knowledge, BUT consider some better (more explicit) way to do this
 ];
+
+
+$scrapersRegister.register(markdownScraper);
