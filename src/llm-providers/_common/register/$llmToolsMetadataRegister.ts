@@ -9,3 +9,9 @@ import type { LlmToolsMetadata } from './LlmToolsMetadata';
  * @public exported from `@promptbook/core`
  */
 export const $llmToolsMetadataRegister = new $Register<LlmToolsMetadata>('llm_tools_metadata');
+
+
+
+/**
+ * TODO: [®] DRY Register logic
+ */

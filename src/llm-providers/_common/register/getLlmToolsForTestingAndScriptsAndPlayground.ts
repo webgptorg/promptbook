@@ -58,4 +58,5 @@ export function getLlmToolsForTestingAndScriptsAndPlayground(
  * Note: [⚪] This should never be in any released package
  * TODO: [👷‍♂️] @@@ Manual about construction of llmTools
  * TODO: This should be maybe not under `_common` but under `utils-internal` / `utils/internal`
+ * TODO: [®] DRY Register logic
  */

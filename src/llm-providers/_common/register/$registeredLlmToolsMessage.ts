@@ -85,3 +85,8 @@ export function $registeredLlmToolsMessage(): string_markdown {
         `,
     );
 }
+
+
+/**
+ * TODO: [®] DRY Register logic
+ */

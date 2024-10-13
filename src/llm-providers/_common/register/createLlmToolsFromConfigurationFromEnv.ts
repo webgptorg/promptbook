@@ -41,4 +41,4 @@ export function createLlmToolsFromConfigurationFromEnv(): LlmToolsConfiguration 
  * TODO: [👷‍♂️] @@@ Manual about construction of llmTools
  * TODO: This should be maybe not under `_common` but under `utils`
  * TODO: [🧠] Maybe pass env as argument
- */
+ * TODO: [®] DRY Register logic */

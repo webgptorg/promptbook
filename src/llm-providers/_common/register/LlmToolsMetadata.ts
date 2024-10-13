@@ -27,4 +27,5 @@ export type LlmToolsMetadata = Registered & {
 /**
  * TODO: Add configuration schema and maybe some documentation link
  * TODO: Maybe constrain LlmToolsConfiguration[number] by generic to ensure that `createConfigurationFromEnv` and `getBoilerplateConfiguration` always create same `packageName` and `className`
+ * TODO: [®] DRY Register logic
  */

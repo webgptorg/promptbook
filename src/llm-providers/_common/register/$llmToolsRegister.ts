@@ -9,3 +9,8 @@ import { $Register } from '../../../utils/$Register';
  * @public exported from `@promptbook/core`
  */
 export const $llmToolsRegister = new $Register<LlmExecutionToolsConstructor>('llm_execution_tools_constructors');
+
+
+/**
+ * TODO: [®] DRY Register logic
+ */

@@ -56,4 +56,5 @@ export function createLlmToolsFromEnv(options: CreateLlmToolsFromConfigurationOp
  * Note: [🟢] Code in this file should never be published outside of `@promptbook/node` and `@promptbook/cli`
  * TODO: [🥃] Allow `ptbk make` without llm tools
  * TODO: This should be maybe not under `_common` but under `utils`
+ * TODO: [®] DRY Register logic
  */

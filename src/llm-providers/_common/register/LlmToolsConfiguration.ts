@@ -24,4 +24,5 @@ export type LlmToolsConfiguration = Array<
 /**
  * TODO: [🧠][🌰] `title` is redundant BUT maybe allow each provider pass it's own title for tracking purposes
  * TODO: Maybe instead of `LlmToolsConfiguration[number]` make `LlmToolsConfigurationItem`
+ * TODO: [®] DRY Register logic
  */

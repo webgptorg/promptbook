@@ -80,10 +80,11 @@ export function createLlmToolsFromConfiguration(
 }
 
 /**
- * TODO: [🎌] Togethere with `createLlmToolsFromConfiguration` + 'EXECUTION_TOOLS_CLASSES' gets to `@promptbook/core` ALL model providers, make this more efficient
+ * TODO: [🎌] Together with `createLlmToolsFromConfiguration` + 'EXECUTION_TOOLS_CLASSES' gets to `@promptbook/core` ALL model providers, make this more efficient
  * TODO: [🧠][🎌] Dynamically install required providers
  * TODO: @@@ write discussion about this - wizzard
  * TODO: [🧠][🍛] Which name is better `createLlmToolsFromConfig` or `createLlmToolsFromConfiguration`?
  * TODO: [🧠] Is there some meaningfull way how to test this util
  * TODO: This should be maybe not under `_common` but under `utils`
+ * TODO: [®] DRY Register logic
  */
