@@ -1,7 +1,7 @@
 {
     "name": "@promptbook/core",
-    "version": "0.69.1",
-    "description": "Supercharge your use of large language models",
+    "version": "0.69.2",
+    "description": "Build responsible, controlled and transparent applications on top of LLM models!",
     "private": false,
     "sideEffects": false,
     "repository": {

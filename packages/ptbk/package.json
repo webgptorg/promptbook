@@ -1,7 +1,7 @@
 {
     "name": "ptbk",
-    "version": "0.69.1",
-    "description": "Supercharge your use of large language models",
+    "version": "0.69.2",
+    "description": "Build responsible, controlled and transparent applications on top of LLM models!",
     "private": false,
     "sideEffects": false,
     "repository": {
@@ -48,9 +48,9 @@
         }
     ],
     "peerDependencies": {
-        "@promptbook/core": "0.69.1"
+        "@promptbook/core": "0.69.2"
     },
     "dependencies": {
-        "promptbook": "0.69.1"
+        "promptbook": "0.69.2"
     }
 }
