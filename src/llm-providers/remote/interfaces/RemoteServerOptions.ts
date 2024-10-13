@@ -1,8 +1,7 @@
 import type { PipelineCollection } from '../../../collection/PipelineCollection';
-import type { CommonExecutionToolsOptions } from '../../../execution/CommonExecutionToolsOptions';
+import type { CommonToolsOptions } from '../../../execution/CommonToolsOptions';
 import type { LlmExecutionTools } from '../../../execution/LlmExecutionTools';
-import type { string_uri } from '../../../types/typeAliases';
-import type { string_user_id } from '../../../types/typeAliases';
+import type { string_uri, string_user_id } from '../../../types/typeAliases';
 
 /**
  * @@@
@@ -18,7 +17,7 @@ import type { string_user_id } from '../../../types/typeAliases';
  * @public exported from `@promptbook/remote-client`
  * @public exported from `@promptbook/remote-server`
  */
-export type RemoteServerOptions = CommonExecutionToolsOptions & {
+export type RemoteServerOptions = CommonToolsOptions & {
     /**
      * Port on which the server will listen
      */

@@ -1,8 +1,7 @@
 import { spaceTrim } from 'spacetrim';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
-import type { CommonExecutionToolsOptions } from '../../execution/CommonExecutionToolsOptions';
-import type { ScriptExecutionTools } from '../../execution/ScriptExecutionTools';
-import type { ScriptExecutionToolsExecuteOptions } from '../../execution/ScriptExecutionTools';
+import type { CommonToolsOptions } from '../../execution/CommonToolsOptions';
+import type { ScriptExecutionTools, ScriptExecutionToolsExecuteOptions } from '../../execution/ScriptExecutionTools';
 
 /**
  * ScriptExecutionTools for TypeScript
@@ -12,7 +11,7 @@ import type { ScriptExecutionToolsExecuteOptions } from '../../execution/ScriptE
  * @private still in development
  */
 export class TypescriptExecutionTools implements ScriptExecutionTools {
-    public constructor(private readonly options: CommonExecutionToolsOptions = {}) {}
+    public constructor(private readonly options: CommonToolsOptions = {}) {}
 
     /**
      * Executes a TypeScript

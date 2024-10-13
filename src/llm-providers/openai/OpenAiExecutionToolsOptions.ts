@@ -1,5 +1,5 @@
 import type { ClientOptions } from 'openai';
-import type { CommonExecutionToolsOptions } from '../../execution/CommonExecutionToolsOptions';
+import type { CommonToolsOptions } from '../../execution/CommonToolsOptions';
 import type { string_token } from '../../types/typeAliases';
 
 /**
@@ -10,7 +10,7 @@ import type { string_token } from '../../types/typeAliases';
  *
  * @public exported from `@promptbook/openai`
  */
-export type OpenAiExecutionToolsOptions = CommonExecutionToolsOptions &
+export type OpenAiExecutionToolsOptions = CommonToolsOptions &
     ClientOptions & {
         /**
          * A unique identifier representing your end-user, which can help OpenAI to monitor

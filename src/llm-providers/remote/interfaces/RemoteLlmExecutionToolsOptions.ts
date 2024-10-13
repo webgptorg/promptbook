@@ -1,7 +1,5 @@
-import type { CommonExecutionToolsOptions } from '../../../execution/CommonExecutionToolsOptions';
-import type { string_base_url } from '../../../types/typeAliases';
-import type { string_uri } from '../../../types/typeAliases';
-import type { string_user_id } from '../../../types/typeAliases';
+import type { CommonToolsOptions } from '../../../execution/CommonToolsOptions';
+import type { string_base_url, string_uri, string_user_id } from '../../../types/typeAliases';
 import type { LlmToolsConfiguration } from '../../_common/LlmToolsConfiguration';
 
 /**
@@ -9,7 +7,7 @@ import type { LlmToolsConfiguration } from '../../_common/LlmToolsConfiguration'
  *
  * @public exported from `@promptbook/remote-client`
  */
-export type RemoteLlmExecutionToolsOptions = CommonExecutionToolsOptions & {
+export type RemoteLlmExecutionToolsOptions = CommonToolsOptions & {
     /**
      * URL of the remote PROMPTBOOK server
      * On this server will be connected to the socket.io server

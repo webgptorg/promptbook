@@ -3,7 +3,7 @@
  *
  * Note: Keep it public to allow people to make their own execution tools
  */
-export type CommonExecutionToolsOptions = {
+export type CommonToolsOptions = {
     /**
      * If true, the internal executions will be logged
      */

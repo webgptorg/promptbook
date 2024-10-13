@@ -1,5 +1,5 @@
 import type { Promisable } from 'type-fest';
-import type { CommonExecutionToolsOptions } from '../../execution/CommonExecutionToolsOptions';
+import type { CommonToolsOptions } from '../../execution/CommonToolsOptions';
 import type { UserInterfaceToolsPromptDialogOptions } from '../../execution/UserInterfaceTools';
 
 /**
@@ -7,7 +7,7 @@ import type { UserInterfaceToolsPromptDialogOptions } from '../../execution/User
  *
  * @public exported from `@promptbook/core`
  */
-export type CallbackInterfaceToolsOptions = CommonExecutionToolsOptions & {
+export type CallbackInterfaceToolsOptions = CommonToolsOptions & {
     /**
      * The callback function to be called when promptDialog is called
      */
