@@ -1,7 +1,8 @@
 import spaceTrim from 'spacetrim';
 import type { string_name } from '../../types/typeAliases';
-import { $llmToolsMetadataRegister } from '../_common/$llmToolsMetadataRegister';
-import type { LlmToolsConfiguration } from '../_common/LlmToolsConfiguration';
+import { $llmToolsMetadataRegister } from '../_common/register/$llmToolsMetadataRegister';
+import { LlmToolsConfiguration } from '../_common/register/LlmToolsConfiguration';
+import { Registration } from '../../utils/$Register';
 
 /**
  * @@@ registration1 of default configuration for Azure Open AI
@@ -11,7 +12,7 @@ import type { LlmToolsConfiguration } from '../_common/LlmToolsConfiguration';
  * @public exported from `@promptbook/core`
  * @public exported from `@promptbook/cli`
  */
-export const _AzureOpenAiMetadataRegistration = $llmToolsMetadataRegister.register({
+export const _AzureOpenAiMetadataRegistration: Registration = $llmToolsMetadataRegister.register({
     title: 'Azure Open AI',
     packageName: '@promptbook/azure-openai',
     className: 'AzureOpenAiExecutionTools',
@@ -51,16 +52,14 @@ export const _AzureOpenAiMetadataRegistration = $llmToolsMetadataRegister.regist
             throw new Error(
                 spaceTrim(`
                     You must provide all of the following environment variables:
-                    
+
                     - AZUREOPENAI_RESOURCE_NAME (${
                         typeof env.AZUREOPENAI_RESOURCE_NAME === 'string' ? 'defined' : 'not defined'
                     })
                     - AZUREOPENAI_DEPLOYMENT_NAME (${
                         typeof env.AZUREOPENAI_DEPLOYMENT_NAME === 'string' ? 'defined' : 'not defined'
                     })
-                    - AZUREOPENAI_API_KEY (${
-                        typeof env.AZUREOPENAI_API_KEY === 'string' ? 'defined' : 'not defined'
-                    })        
+                    - AZUREOPENAI_API_KEY (${typeof env.AZUREOPENAI_API_KEY === 'string' ? 'defined' : 'not defined'})
                 `),
             );
         }

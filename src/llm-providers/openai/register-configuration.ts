@@ -1,6 +1,7 @@
 import type { string_name } from '../../types/typeAliases';
-import { $llmToolsMetadataRegister } from '../_common/$llmToolsMetadataRegister';
-import type { LlmToolsConfiguration } from '../_common/LlmToolsConfiguration';
+import { Registration } from '../../utils/$Register';
+import { $llmToolsMetadataRegister } from '../_common/register/$llmToolsMetadataRegister';
+import { LlmToolsConfiguration } from '../_common/register/LlmToolsConfiguration';
 
 /**
  * @@@ registration1 of default configuration for Open AI
@@ -10,7 +11,7 @@ import type { LlmToolsConfiguration } from '../_common/LlmToolsConfiguration';
  * @public exported from `@promptbook/core`
  * @public exported from `@promptbook/cli`
  */
-export const _OpenAiMetadataRegistration = $llmToolsMetadataRegister.register({
+export const _OpenAiMetadataRegistration: Registration = $llmToolsMetadataRegister.register({
     title: 'Open AI',
     packageName: '@promptbook/openai',
     className: 'OpenAiExecutionTools',

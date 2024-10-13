@@ -1,8 +1,9 @@
-import { DEFAULT_REMOTE_URL } from '../../config';
-import { DEFAULT_REMOTE_URL_PATH } from '../../config';
+import { DEFAULT_REMOTE_URL, DEFAULT_REMOTE_URL_PATH } from '../../config';
 import type { string_name } from '../../types/typeAliases';
-import { $llmToolsMetadataRegister } from '../_common/$llmToolsMetadataRegister';
-import type { LlmToolsConfiguration } from '../_common/LlmToolsConfiguration';
+import { Registration } from '../../utils/$Register';
+import { $llmToolsMetadataRegister } from '../_common/register/$llmToolsMetadataRegister';
+import { LlmToolsConfiguration } from '../_common/register/LlmToolsConfiguration';
+
 
 /**
  * @@@ registration1 of default configuration for Anthropic Claude
@@ -12,7 +13,7 @@ import type { LlmToolsConfiguration } from '../_common/LlmToolsConfiguration';
  * @public exported from `@promptbook/core`
  * @public exported from `@promptbook/cli`
  */
-export const _AnthropicClaudeMetadataRegistration = $llmToolsMetadataRegister.register({
+export const _AnthropicClaudeMetadataRegistration: Registration = $llmToolsMetadataRegister.register({
     title: 'Anthropic Claude',
     packageName: '@promptbook/anthropic-claude',
     className: 'AnthropicClaudeExecutionTools',
