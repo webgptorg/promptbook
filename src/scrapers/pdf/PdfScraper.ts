@@ -12,7 +12,7 @@ import { PdfScraperOptions } from './PdfScraperOptions';
  * Scraper for .docx files
  *
  * @see `documentationUrl` for more details
- * @public exported from `@promptbook/documents`
+ * @public exported from `@promptbook/pdf`
  */
 export class PdfScraper implements Converter, Scraper {
     /**
@@ -59,7 +59,7 @@ export class PdfScraper implements Converter, Scraper {
 }
 
 /**
- * TODO: [👣] Converted documents can act as cached items - there is no need to run conversion each time
+ * TODO: [👣] Converted pdf documents can act as cached items - there is no need to run conversion each time
  * TODO: [🦖] Make some system for putting scrapers to separete packages
  * TODO: [🪂] Do it in parallel 11:11
  * Note: No need to aggregate usage here, it is done by intercepting the llmTools
