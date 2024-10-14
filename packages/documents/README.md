@@ -26,10 +26,10 @@ Supercharge your use of large language models
 
 
 
-## 📦 Package `@promptbook/node`
+## 📦 Package `@promptbook/documents`
 
 - Promptbooks are [divided into several](#-packages) packages, all are published from [single monorepo](https://github.com/webgptorg/promptbook).
-- This package `@promptbook/node` is one part of the promptbook ecosystem.
+- This package `@promptbook/documents` is one part of the promptbook ecosystem.
 
 To install this package, run:
 
@@ -38,14 +38,13 @@ To install this package, run:
 npm i ptbk
 
 # Install just this package to save space
-npm install @promptbook/node
+npm install @promptbook/documents
 ```
 
-Core of the library for Node.js runtime, it contains the main logic for promptbooks which uses filesystem.
+Read knowledge from documents like `.docx`, `.odt`,…
 
-
-
-> 💡 This package does not make sense on its own, look at [all promptbook packages](#-packages) or just install all by `npm i ptbk`
+-   _Note: `.pdf` documents are not supported by this package. Use the [`@promptbook/pdf`](https://www.npmjs.com/package/@promptbook/pdf) package instead._
+-   _Note: For legacy documents use [`@promptbook/legacy-documents`](https://www.npmjs.com/package/@promptbook/legacy-documents)_
 
 
 ---

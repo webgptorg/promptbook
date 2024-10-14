@@ -46,16 +46,5 @@
             "type": "github",
             "url": "https://github.com/webgptorg/promptbook/blob/main/README.md#%EF%B8%8F-contributing"
         }
-    ],
-    "main": "./umd/index.umd.js",
-    "module": "./esm/index.es.js",
-    "typings": "./esm/typings/src/_packages/langtail.index.d.ts",
-    "peerDependencies": {
-        "@promptbook/core": "0.71.0-7"
-    },
-    "dependencies": {
-        "colors": "1.4.0",
-        "openai": "4.55.9",
-        "spacetrim": "0.11.39"
-    }
+    ]
 }
