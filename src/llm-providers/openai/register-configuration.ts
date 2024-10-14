@@ -4,9 +4,9 @@ import { $llmToolsMetadataRegister } from '../_common/register/$llmToolsMetadata
 import { LlmToolsConfiguration } from '../_common/register/LlmToolsConfiguration';
 
 /**
- * @@@ registration1 of default configuration for Open AI
+ * Registration of LLM provider metadata
  *
- * Note: [🏐] Configurations registrations are done in @@@ BUT constructor @@@
+ * Warning: This is not useful for the end user, it is just a side effect of the mechanism that handles all available LLM tools
  *
  * @public exported from `@promptbook/core`
  * @public exported from `@promptbook/cli`
