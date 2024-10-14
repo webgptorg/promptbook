@@ -182,7 +182,6 @@ export class MarkdownScraper implements Scraper {
 }
 
 /**
- * TODO: [🦖] Make some system for putting scrapers to separete packages
  * TODO: [🪂] Do it in parallel 11:11
  * Note: No need to aggregate usage here, it is done by intercepting the llmTools
  */

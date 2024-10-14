@@ -6,15 +6,15 @@ import { $scrapersMetadataRegister } from './$scrapersMetadataRegister';
 import { $scrapersRegister } from './$scrapersRegister';
 
 /**
- * Creates a message with all registered LLM tools
+ * Creates a message with all registered scrapers
  *
- * Note: This function is used to create a (error) message when there is no constructor for some LLM provider
+ * Note: This function is used to create a (error) message when there is no scraper for particular mime type
  *
  * @private internal function of `createScrapersFromConfiguration` and `createScrapersFromEnv`
  */
 export function $registeredScrapersMessage(): string_markdown {
     /**
-     * Mixes registered LLM tools from $scrapersMetadataRegister and $scrapersRegister
+     * Mixes registered scrapers from $scrapersMetadataRegister and $scrapersRegister
      */
     const all: Array<Registered> = [];
 
@@ -51,12 +51,12 @@ export function $registeredScrapersMessage(): string_markdown {
     });
 
     if (metadata.length === 0) {
-        return `No LLM providers are available.`;
+        return `No scrapers are available`;
     }
 
     return spaceTrim(
         (block) => `
-            Available LLM providers are:
+            Available scrapers are:
             ${block(
                 metadata
                     .map(({ packageName, className, isMetadataAviailable, isInstalled }, i) => {

@@ -9,7 +9,7 @@ import { prepareKnowledgePieces } from './prepareKnowledgePieces';
 describe('all the scrapers', () => {
     // Note: Other working cases and better tests for each command is in the corresponding scraper test file
 
-    for (const { examples, scrape } of SCRAPERS) {
+    for (const { examples, scrape } of $scrapersRegister.list()) {
         for (const example of examples) {
             expect(scrape(makeKnowledgeSourceHandler(example), {})).resolves.not.toThrowError();
         }

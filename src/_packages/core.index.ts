@@ -79,7 +79,6 @@ import { $scrapersRegister } from '../scrapers/_common/register/$scrapersRegiste
 import { createScrapersFromConfiguration } from '../scrapers/_common/register/createScrapersFromConfiguration';
 import { _LegacyDocumentScraperMetadataRegistration } from '../scrapers/document-legacy/register-configuration';
 import { _DocumentScraperMetadataRegistration } from '../scrapers/document/register-configuration';
-import { SCRAPERS } from '../scrapers/index';
 import { _MarkdownScraperMetadataRegistration } from '../scrapers/markdown/register-configuration';
 import { _PdfScraperMetadataRegistration } from '../scrapers/pdf/register-configuration';
 import { _WebsiteScraperMetadataRegistration } from '../scrapers/website/register-configuration';
@@ -174,7 +173,6 @@ export { $scrapersRegister };
 export { createScrapersFromConfiguration };
 export { _LegacyDocumentScraperMetadataRegistration };
 export { _DocumentScraperMetadataRegistration };
-export { SCRAPERS };
 export { _MarkdownScraperMetadataRegistration };
 export { _PdfScraperMetadataRegistration };
 export { _WebsiteScraperMetadataRegistration };

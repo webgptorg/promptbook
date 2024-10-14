@@ -1,12 +1,13 @@
 import spaceTrim from 'spacetrim';
-import { IS_VERBOSE } from '../../config';
-import { MAX_PARALLEL_COUNT } from '../../config';
+import { IS_VERBOSE, MAX_PARALLEL_COUNT } from '../../config';
 import { KnowledgeScrapeError } from '../../errors/KnowledgeScrapeError';
 import { forEachAsync } from '../../execution/utils/forEachAsync';
 import type { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';
 import type { KnowledgePiecePreparedJson } from '../../types/PipelineJson/KnowledgePieceJson';
 import type { KnowledgeSourceJson } from '../../types/PipelineJson/KnowledgeSourceJson';
-import { SCRAPERS } from '../index';
+
+import { $registeredScrapersMessage } from './register/$registeredScrapersMessage';
+import { $scrapersRegister } from './register/$scrapersRegister';
 import { makeKnowledgeSourceHandler } from './utils/makeKnowledgeSourceHandler';
 
 /**
@@ -29,7 +30,7 @@ export async function prepareKnowledgePieces(
         let partialPieces: Omit<KnowledgePiecePreparedJson, 'preparationIds' | 'sources'>[] | null = null;
         const sourceHandler = await makeKnowledgeSourceHandler(knowledgeSource, { rootDirname, isVerbose });
 
-        for (const scraper of SCRAPERS) {
+        for (const scraper of $scrapersRegister.list()) {
             if (
                 !scraper.mimeTypes.includes(sourceHandler.mimeType)
                 // <- TODO: [🦔] Implement mime-type wildcards
@@ -53,12 +54,7 @@ export async function prepareKnowledgePieces(
 
                         No scraper found for the mime type "${sourceHandler.mimeType}"
 
-                        Available scrapers:
-                        ${block(
-                            SCRAPERS.flatMap((scraper) => scraper.mimeTypes)
-                                .map((mimeType) => `- ${mimeType}`)
-                                .join('\n'),
-                        )}
+                        ${block($registeredScrapersMessage())}
 
 
                     `,
