@@ -1,18 +1,19 @@
 import { ScraperConstructor } from '../_common/ScraperConstructor';
-import { XxxxScraperOptions } from './XxxxScraperOptions';
+import { DocumentScraper } from './DocumentScraper';
+import { DocumentScraperOptions } from './DocumentScraperOptions';
 
 /**
  * @@@
  *
- * @public exported from `@promptbook/xxxx`
+ * @public exported from `@promptbook/documents`
  */
-export const createXxxxScraper = Object.assign(
-    (options: XxxxScraperOptions): XxxxScraper => {
-        return new XxxxScraper(options);
+export const createDocumentScraper = Object.assign(
+    (options: DocumentScraperOptions): DocumentScraper => {
+        return new DocumentScraper(options);
     },
     {
-        packageName: '@promptbook/xxxx',
-        className: 'XxxxScraper',
+        packageName: '@promptbook/documents',
+        className: 'DocumentScraper',
     },
 ) satisfies ScraperConstructor;
 
