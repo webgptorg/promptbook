@@ -6,6 +6,10 @@ import { websiteScraper } from './websiteScraper';
 
 describe('how creating knowledge from website works', () => {
     const rootDirname = join(__dirname, 'samples');
+    const markdownScraper = new MarkdownScraper({
+      llmTools: getLlmToolsForTestingAndScriptsAndPlayground(),
+      rootDirname,
+  });
 
     it('should scrape simple information from a https://www.pavolhejny.com/', () =>
         expect(

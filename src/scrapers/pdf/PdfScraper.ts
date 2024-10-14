@@ -1,7 +1,6 @@
 import type { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';
 import type { KnowledgePiecePreparedJson } from '../../types/PipelineJson/KnowledgePieceJson';
-import type { Scraper } from '../_common/Scraper';
-import type { ScraperSourceHandler } from '../_common/Scraper';
+import type { Scraper, ScraperSourceHandler } from '../_common/Scraper';
 // TODO: [🏳‍🌈] Finally take pick of .json vs .ts
 // import PipelineCollection from '../../../promptbook-collection/promptbook-collection';
 import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
@@ -15,30 +14,35 @@ import type { ScraperIntermediateSource } from '../_common/ScraperIntermediateSo
  * @see `documentationUrl` for more details
  * @public exported from `@promptbook/documents`
  */
-export const pdfScraper = {
+export class PdfScraper implements Converter, Scraper {
     /**
      * Mime types that this scraper can handle
      */
-    mimeTypes: ['application/pdf'],
+    public readonly mimeTypes = ['application/pdf'];
 
     /**
      * Link to documentation
      */
-    documentationUrl: 'https://github.com/webgptorg/promptbook/discussions/@@',
+    public readonly documentationUrl = 'https://github.com/webgptorg/promptbook/discussions/@@';
+
+    public constructor(private readonly options: PrepareAndScrapeOptions) {}
 
     /**
      * Converts the `.pdf` file to `.md` file and returns intermediate source
      */
-    async $convert(source: ScraperSourceHandler, options: PrepareAndScrapeOptions): Promise<ScraperIntermediateSource> {
+    public async $convert(
+        source: ScraperSourceHandler,
+        options: PrepareAndScrapeOptions,
+    ): Promise<ScraperIntermediateSource> {
         TODO_USE(source);
         TODO_USE(options);
         throw new NotYetImplementedError('PDF conversion not yet implemented');
-    },
+    }
 
     /**
      * Scrapes the `.pdf` file and returns the knowledge pieces or `null` if it can't scrape it
      */
-    async scrape(
+    public async scrape(
         source: ScraperSourceHandler,
         options: PrepareAndScrapeOptions,
     ): Promise<Array<Omit<KnowledgePiecePreparedJson, 'sources' | 'preparationIds'>> | null> {
@@ -55,13 +59,12 @@ export const pdfScraper = {
         */
 
         throw new NotYetImplementedError('PDF scraping not yet implemented');
-    },
-} /* TODO: [🦷] as const */ satisfies Converter & Scraper;
+    }
+}
 
 /**
  * TODO: [👣] Converted documents can act as cached items - there is no need to run conversion each time
  * TODO: [🦖] Make some system for putting scrapers to separete packages
  * TODO: [🪂] Do it in parallel 11:11
- * TODO: [🦷] Ideally use `as const satisfies Converter & Scraper` BUT this combination throws errors
  * Note: No need to aggregate usage here, it is done by intercepting the llmTools
  */

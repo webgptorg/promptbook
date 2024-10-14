@@ -5,8 +5,7 @@ import type { KnowledgePiecePreparedJson } from '../../types/PipelineJson/Knowle
 import { readdir, rename, rmdir } from 'fs/promises';
 import { dirname, join } from 'path';
 import spaceTrim from 'spacetrim';
-import { IS_VERBOSE } from '../../config';
-import { SCRAPE_CACHE_DIRNAME } from '../../config';
+import { IS_VERBOSE, SCRAPE_CACHE_DIRNAME } from '../../config';
 import { KnowledgeScrapeError } from '../../errors/KnowledgeScrapeError';
 import { MissingToolsError } from '../../errors/MissingToolsError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
@@ -15,11 +14,10 @@ import { $execCommand } from '../../utils/execCommand/$execCommand';
 import { $isFileExisting } from '../../utils/files/$isFileExisting';
 import { getFileExtension } from '../../utils/files/getFileExtension';
 import type { Converter } from '../_common/Converter';
-import type { Scraper } from '../_common/Scraper';
-import type { ScraperSourceHandler } from '../_common/Scraper';
+import type { Scraper, ScraperSourceHandler } from '../_common/Scraper';
 import type { ScraperIntermediateSource } from '../_common/ScraperIntermediateSource';
 import { getScraperIntermediateSource } from '../_common/utils/getScraperIntermediateSource';
-import { documentScraper } from '../document/documentScraper';
+import { LegacyDocumentScraperOptions } from './LegacyDocumentScraperOptions';
 
 /**
  * Scraper for .docx files
@@ -27,23 +25,28 @@ import { documentScraper } from '../document/documentScraper';
  * @see `documentationUrl` for more details
  * @public exported from `@promptbook/legacy-documents`
  */
-export const legacyDocumentScraper = {
+export class LegacyDocumentScraper implements Converter, Scraper {
     /**
      * Mime types that this scraper can handle
      */
-    mimeTypes: ['application/msword', 'text/rtf'],
+    public readonly mimeTypes = ['application/msword', 'text/rtf'];
 
     /**
      * Link to documentation
      */
-    documentationUrl: 'https://github.com/webgptorg/promptbook/discussions/@@',
+    public readonly documentationUrl = 'https://github.com/webgptorg/promptbook/discussions/@@';
+
+    public constructor(private readonly options: LegacyDocumentScraperOptions) {}
 
     /**
      * Convert the `.doc` or `.rtf`  to `.doc` file and returns intermediate source
      *
      * Note: `$` is used to indicate that this function is not a pure function - it leaves files on the disk and you are responsible for cleaning them by calling `destroy` method of returned object
      */
-    async $convert(source: ScraperSourceHandler, options: PrepareAndScrapeOptions): Promise<ScraperIntermediateSource> {
+    public async $convert(
+        source: ScraperSourceHandler,
+        options: PrepareAndScrapeOptions,
+    ): Promise<ScraperIntermediateSource> {
         const {
             externalProgramsPaths = {},
             rootDirname,
@@ -140,16 +143,16 @@ export const legacyDocumentScraper = {
         }
 
         return cacheFilehandler;
-    },
+    }
 
     /**
      * Scrapes the `.doc` or `.rtf` file and returns the knowledge pieces or `null` if it can't scrape it
      */
-    async scrape(
+    public async scrape(
         source: ScraperSourceHandler,
         options: PrepareAndScrapeOptions,
     ): Promise<Array<Omit<KnowledgePiecePreparedJson, 'sources' | 'preparationIds'>> | null> {
-        const cacheFilehandler = await legacyDocumentScraper.$convert(source, options);
+        const cacheFilehandler = await this.$convert(source, options);
 
         const markdownSource = {
             source: source.source,
@@ -173,18 +176,17 @@ export const legacyDocumentScraper = {
             },
         } satisfies ScraperSourceHandler;
 
-        const knowledge = documentScraper.scrape(markdownSource, options);
+        const knowledge = this.options.documentScraper.scrape(markdownSource, options);
 
         await cacheFilehandler.destroy();
 
         return knowledge;
-    },
-} /* TODO: [🦷] as const */ satisfies Converter & Scraper;
+    }
+}
 
 /**
  * TODO: [👣] Converted documents can act as cached items - there is no need to run conversion each time
  * TODO: [🦖] Make some system for putting scrapers to separete packages
  * TODO: [🪂] Do it in parallel 11:11
- * TODO: [🦷] Ideally use `as const satisfies Converter & Scraper` BUT this combination throws errors
  * Note: No need to aggregate usage here, it is done by intercepting the llmTools
  */

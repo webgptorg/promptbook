@@ -6,6 +6,10 @@ import { documentScraper } from './documentScraper';
 
 describe('how creating knowledge from docx works', () => {
     const rootDirname = join(__dirname, 'samples');
+    const markdownScraper = new MarkdownScraper({
+      llmTools: getLlmToolsForTestingAndScriptsAndPlayground(),
+      rootDirname,
+  });
 
     it('should scrape simple information from a .docx file', () =>
         expect(

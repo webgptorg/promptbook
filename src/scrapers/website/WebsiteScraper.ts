@@ -14,8 +14,8 @@ import { KnowledgeScrapeError } from '../../errors/KnowledgeScrapeError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { ScraperIntermediateSource } from '../_common/ScraperIntermediateSource';
 import { getScraperIntermediateSource } from '../_common/utils/getScraperIntermediateSource';
-import { markdownScraper } from '../markdown/markdownScraper';
 import { markdownConverter } from './utils/markdownConverter';
+import { WebsiteScraperOptions } from './WebsiteScraperOptions';
 
 /**
  * Scraper for .docx files
@@ -23,23 +23,25 @@ import { markdownConverter } from './utils/markdownConverter';
  * @see `documentationUrl` for more details
  * @public exported from `@promptbook/crawler`
  */
-export const websiteScraper = {
+export class WebsiteScraper implements Converter, Scraper {
     /**
      * Mime types that this scraper can handle
      */
-    mimeTypes: ['text/html'],
+    public readonly mimeTypes = ['text/html'];
 
     /**
      * Link to documentation
      */
-    documentationUrl: 'https://github.com/webgptorg/promptbook/discussions/@@',
+    public readonly documentationUrl = 'https://github.com/webgptorg/promptbook/discussions/@@';
+
+    public constructor(private readonly options: WebsiteScraperOptions) {}
 
     /**
      * Convert the website  to `.md` file and returns intermediate source
      *
      * Note: `$` is used to indicate that this function is not a pure function - it leaves files on the disk and you are responsible for cleaning them by calling `destroy` method of returned object
      */
-    async $convert(
+    public async $convert(
         source: ScraperSourceHandler,
         options: PrepareAndScrapeOptions,
     ): Promise<ScraperIntermediateSource & { markdown: string_markdown }> {
@@ -92,16 +94,16 @@ export const websiteScraper = {
         const markdown = markdownConverter.makeMarkdown(html, jsdom.window.document);
 
         return { ...cacheFilehandler, markdown };
-    },
+    }
 
     /**
      * Scrapes the website and returns the knowledge pieces or `null` if it can't scrape it
      */
-    async scrape(
+    public async scrape(
         source: ScraperSourceHandler,
         options: PrepareAndScrapeOptions,
     ): Promise<Array<Omit<KnowledgePiecePreparedJson, 'sources' | 'preparationIds'>> | null> {
-        const cacheFilehandler = await websiteScraper.$convert(source, options);
+        const cacheFilehandler = await this.$convert(source, options);
 
         const markdownSource = {
             source: source.source,
@@ -123,19 +125,18 @@ export const websiteScraper = {
             },
         } satisfies ScraperSourceHandler;
 
-        const knowledge = markdownScraper.scrape(markdownSource, options);
+        const knowledge = this.options.markdownScraper.scrape(markdownSource);
 
         await cacheFilehandler.destroy();
 
         return knowledge;
-    },
-} /* TODO: [🦷] as const */ satisfies Converter & Scraper;
+    }
+}
 
 /**
  * TODO: !!!!!! Put into separate package
  * TODO: [👣] Scraped website in .md can act as cache item - there is no need to run conversion each time
  * TODO: [🦖] Make some system for putting scrapers to separete packages
  * TODO: [🪂] Do it in parallel 11:11
- * TODO: [🦷] Ideally use `as const satisfies Converter & Scraper` BUT this combination throws errors
  * Note: No need to aggregate usage here, it is done by intercepting the llmTools
  */

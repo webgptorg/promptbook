@@ -9,6 +9,10 @@ import { pdfScraper } from './pdfScraper';
 describe('how creating knowledge from pdf works', () => {
 
 const rootDirname =  join(__dirname, 'samples');
+  const xxxxScraper = new MarkdownScraper({
+        llmTools: getLlmToolsForTestingAndScriptsAndPlayground(),
+        rootDirname,
+    });
 
   it('should scrape simple information from a .pdf file', () =>
     expect(
