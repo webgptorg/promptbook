@@ -522,6 +522,10 @@ Support for local models - integrate [Ollama](https://ollama.com/)
 
 Knowledge scrapers [🐝]
 
+-   Make new package [`@promptbook/pdf`](https://www.npmjs.com/package/@promptbook/pdf)
+-   Make new package [`@promptbook/documents`](https://www.npmjs.com/package/@promptbook/documents)
+-   Make new package [`@promptbook/legacy-documents`](https://www.npmjs.com/package/@promptbook/legacy-documents)
+-   Make new package [`@promptbook/website-crawler`](https://www.npmjs.com/package/@promptbook/website-crawler)
 -   Allow to import markdown files with knowledge <!-- <- TODO: [🐝] !!!!!! Implement -->
 -   Allow to import `.docx` files with knowledge `.docx` -(Pandoc)-> `.md` <!-- <- TODO: [🐝] !!!!!! Implement -->
 -   Allow to import `.doc` files with knowledge `.doc` -(LibreOffice)-> `.docx` -(Pandoc)-> `.md` <!-- <- TODO: [🐝] !!!!!! Implement -->
