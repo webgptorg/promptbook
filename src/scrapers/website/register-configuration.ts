@@ -14,13 +14,13 @@ import { ScraperConfiguration } from '../_common/register/ScraperConfiguration';
  */
 export const _WebsiteScraperMetadataRegistration: Registration = $scrapersMetadataRegister.register({
     title: 'Website scraper',
-    packageName: '@promptbook/crawler',
+    packageName: '@promptbook/website-crawler',
     className: 'WebsiteScraper',
 
     getBoilerplateConfiguration(): ScraperConfiguration[number] {
         return {
             title: 'Website scraper (boilerplate)',
-            packageName: '@promptbook/crawler',
+            packageName: '@promptbook/website-crawler',
             className: 'WebsiteScraper',
             options: {
                 // TODO: [☂️] Filter not needed options
@@ -38,7 +38,7 @@ export const _WebsiteScraperMetadataRegistration: Registration = $scrapersMetada
         if (typeof env.ANTHROPIC_CLAUDE_API_KEY === 'string') {
             return {
                 title: 'Website scraper (from env)',
-                packageName: '@promptbook/crawler',
+                packageName: '@promptbook/website-crawler',
                 className: 'WebsiteScraper',
                 options: {
                     // TODO: [☂️] Filter not needed options

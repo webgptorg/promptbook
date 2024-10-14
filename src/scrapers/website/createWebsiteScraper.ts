@@ -4,14 +4,14 @@ import { WebsiteScraperOptions } from './WebsiteScraperOptions';
 /**
  * @@@
  *
- * @public exported from `@promptbook/crawler`
+ * @public exported from `@promptbook/website-crawler`
  */
 export const createWebsiteScraper = Object.assign(
     (options: WebsiteScraperOptions): WebsiteScraper => {
         return new WebsiteScraper(options);
     },
     {
-        packageName: '@promptbook/crawler',
+        packageName: '@promptbook/website-crawler',
         className: 'WebsiteScraper',
     },
 ) satisfies ScraperConstructor;

@@ -20,7 +20,7 @@ import { WebsiteScraperOptions } from './WebsiteScraperOptions';
  * Scraper for .docx files
  *
  * @see `documentationUrl` for more details
- * @public exported from `@promptbook/crawler`
+ * @public exported from `@promptbook/website-crawler`
  */
 export class WebsiteScraper implements Converter, Scraper {
     /**
