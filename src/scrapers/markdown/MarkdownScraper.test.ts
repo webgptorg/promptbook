@@ -9,6 +9,7 @@ describe('how creating knowledge from markdown works', () => {
     const markdownScraper = new MarkdownScraper({
         llmTools: getLlmToolsForTestingAndScriptsAndPlayground(),
         rootDirname,
+        // <- TODO: [🍇]
     });
 
     it('should scrape simple information from a markdown', () =>

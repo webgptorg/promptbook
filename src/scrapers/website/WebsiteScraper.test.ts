@@ -1,15 +1,21 @@
 import { describe, expect, it } from '@jest/globals';
 import { join } from 'path';
-import { getLlmToolsForTestingAndScriptsAndPlayground } from '../../llm-providers/_common/getLlmToolsForTestingAndScriptsAndPlayground';
+import { getLlmToolsForTestingAndScriptsAndPlayground } from '../../llm-providers/_common/register/getLlmToolsForTestingAndScriptsAndPlayground';
 import { makeKnowledgeSourceHandler } from '../_common/utils/makeKnowledgeSourceHandler';
-import { websiteScraper } from './websiteScraper';
+import { MarkdownScraper } from '../markdown/MarkdownScraper';
+import { WebsiteScraper } from './websiteScraper';
 
 describe('how creating knowledge from website works', () => {
     const rootDirname = join(__dirname, 'samples');
-    const markdownScraper = new MarkdownScraper({
-      llmTools: getLlmToolsForTestingAndScriptsAndPlayground(),
-      rootDirname,
-  });
+    const websiteScraper = new WebsiteScraper({
+        markdownScraper: new MarkdownScraper({
+            llmTools: getLlmToolsForTestingAndScriptsAndPlayground(),
+            rootDirname,
+        }),
+        llmTools: getLlmToolsForTestingAndScriptsAndPlayground(),
+        rootDirname,
+        // <- TODO: [🍇]
+    });
 
     it('should scrape simple information from a https://www.pavolhejny.com/', () =>
         expect(
@@ -17,12 +23,7 @@ describe('how creating knowledge from website works', () => {
                 .then(() =>
                     makeKnowledgeSourceHandler({ sourceContent: 'https://www.pavolhejny.com/' }, { rootDirname }),
                 )
-                .then((options) =>
-                    websiteScraper.scrape(options, {
-                        llmTools: getLlmToolsForTestingAndScriptsAndPlayground(),
-                        rootDirname
-                    }),
-                )
+                .then((sourceHandler) => websiteScraper.scrape(sourceHandler))
                 .then((knowledge) => knowledge?.map(({ content }) => ({ content })))
                 .then((knowledge) => knowledge?.slice(0, 1)),
         ).resolves.toMatchObject([
@@ -37,12 +38,7 @@ describe('how creating knowledge from website works', () => {
                 .then(() =>
                     makeKnowledgeSourceHandler({ sourceContent: 'https://www.pavolhejny.com/' }, { rootDirname }),
                 )
-                .then((options) =>
-                    websiteScraper.scrape(options, {
-                        llmTools: getLlmToolsForTestingAndScriptsAndPlayground(),
-                        rootDirname,
-                    }),
-                )
+                .then((sourceHandler) => websiteScraper.scrape(sourceHandler))
                 .then((knowledge) => knowledge?.map(({ content }) => ({ content })))
                 .then((knowledge) => knowledge?.slice(0, 1)),
         ).resolves.toMatchObject([

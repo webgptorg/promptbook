@@ -9,20 +9,18 @@ import { pdfScraper } from './pdfScraper';
 describe('how creating knowledge from pdf works', () => {
 
 const rootDirname =  join(__dirname, 'samples');
-  const xxxxScraper = new MarkdownScraper({
+  const pdfScraper = new MarkdownScraper({
         llmTools: getLlmToolsForTestingAndScriptsAndPlayground(),
         rootDirname,
+        // <- TODO: [🍇]
     });
 
   it('should scrape simple information from a .pdf file', () =>
     expect(
       Promise.resolve()
         .then(() => makeKnowledgeSourceHandler(join(__dirname, 'samples/10-simple.pdf'),{rootDirname}))
-        .then((options) =>
-          pdfScraper.scrape(options, {
-            llmTools: getLlmToolsForTestingAndScriptsAndPlayground(),
-             rootDirname,
-          }),
+        .then((sourceHandler) =>
+          pdfScraper.scrape(sourceHandler),
         )
         .then((knowledge) => knowledge?.map(({ content }) => ({ content })))
         .then((knowledge) => knowledge?.slice(0, 1)),
@@ -36,11 +34,8 @@ const rootDirname =  join(__dirname, 'samples');
     expect(
       Promise.resolve()
         .then(() => makeKnowledgeSourceHandler(join(__dirname, 'samples/10-simple.pdf'),{rootDirname}))
-        .then((options) =>
-          pdfScraper.scrape(options, {
-            llmTools: getLlmToolsForTestingAndScriptsAndPlayground(),
-             rootDirname,
-          }),
+        .then((sourceHandler) =>
+          pdfScraper.scrape(sourceHandler),
         )
         .then((knowledge) => knowledge?.map(({ content }) => ({ content })))
         .then((knowledge) => knowledge?.slice(0, 1)),

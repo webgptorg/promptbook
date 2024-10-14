@@ -12,16 +12,16 @@ import { ScraperConfiguration } from '../_common/register/ScraperConfiguration';
  * @public exported from `@promptbook/core`
  * @public exported from `@promptbook/cli`
  */
-export const _XxxxScraperMetadataRegistration: Registration = $scrapersMetadataRegister.register({
-    title: 'Xxxx scraper',
-    packageName: '@promptbook/xxxx',
-    className: 'XxxxScraper',
+export const _MarkdownScraperMetadataRegistration: Registration = $scrapersMetadataRegister.register({
+    title: 'Markdown scraper',
+    packageName: '@promptbook/markdown',
+    className: 'MarkdownScraper',
 
     getBoilerplateConfiguration(): ScraperConfiguration[number] {
         return {
-            title: 'Xxxx scraper (boilerplate)',
-            packageName: '@promptbook/xxxx',
-            className: 'XxxxScraper',
+            title: 'Markdown scraper (boilerplate)',
+            packageName: '@promptbook/markdown',
+            className: 'MarkdownScraper',
             options: {
                 // TODO: [☂️] Filter not needed options
                 pandocPath: 'C:/Users/me/AppData/Local/Pandoc/pandoc.exe',
@@ -37,9 +37,9 @@ export const _XxxxScraperMetadataRegistration: Registration = $scrapersMetadataR
         TODO: [💀] !!!!!!
         if (typeof env.ANTHROPIC_CLAUDE_API_KEY === 'string') {
             return {
-                title: 'Xxxx scraper (from env)',
-                packageName: '@promptbook/xxxx',
-                className: 'XxxxScraper',
+                title: 'Markdown scraper (from env)',
+                packageName: '@promptbook/markdown',
+                className: 'MarkdownScraper',
                 options: {
                     // TODO: [☂️] Filter not needed options
                     apiKey: process.env.ANTHROPIC_CLAUDE_API_KEY!,
