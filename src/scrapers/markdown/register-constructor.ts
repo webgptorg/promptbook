@@ -7,7 +7,7 @@ import { createMarkdownScraper } from './createMarkdownScraper';
  *
  * Warning: This is not useful for the end user, it is just a side effect of the mechanism that handles all available known scrapers
  *
- * @public exported from `@promptbook/markdown`
+ * @public exported from `@promptbook/markdown-utils`
  * @public exported from `@promptbook/cli`
  */
 export const _MarkdownScraperRegistration: Registration = $scrapersRegister.register(createMarkdownScraper);

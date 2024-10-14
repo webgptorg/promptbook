@@ -5,14 +5,14 @@ import { MarkdownScraperOptions } from './MarkdownScraperOptions';
 /**
  * @@@
  *
- * @public exported from `@promptbook/markdown`
+ * @public exported from `@promptbook/markdown-utils`
  */
 export const createMarkdownScraper = Object.assign(
     (options: MarkdownScraperOptions): MarkdownScraper => {
         return new MarkdownScraper(options);
     },
     {
-        packageName: '@promptbook/markdown',
+        packageName: '@promptbook/markdown-utils',
         className: 'MarkdownScraper',
     },
 ) satisfies ScraperConstructor;

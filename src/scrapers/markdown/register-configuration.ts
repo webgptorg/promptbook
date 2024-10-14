@@ -14,13 +14,13 @@ import { ScraperConfiguration } from '../_common/register/ScraperConfiguration';
  */
 export const _MarkdownScraperMetadataRegistration: Registration = $scrapersMetadataRegister.register({
     title: 'Markdown scraper',
-    packageName: '@promptbook/markdown',
+    packageName: '@promptbook/markdown-utils',
     className: 'MarkdownScraper',
 
     getBoilerplateConfiguration(): ScraperConfiguration[number] {
         return {
             title: 'Markdown scraper (boilerplate)',
-            packageName: '@promptbook/markdown',
+            packageName: '@promptbook/markdown-utils',
             className: 'MarkdownScraper',
             options: {
                 // TODO: [☂️] Filter not needed options
@@ -38,7 +38,7 @@ export const _MarkdownScraperMetadataRegistration: Registration = $scrapersMetad
         if (typeof env.ANTHROPIC_CLAUDE_API_KEY === 'string') {
             return {
                 title: 'Markdown scraper (from env)',
-                packageName: '@promptbook/markdown',
+                packageName: '@promptbook/markdown-utils',
                 className: 'MarkdownScraper',
                 options: {
                     // TODO: [☂️] Filter not needed options
