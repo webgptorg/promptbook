@@ -22,25 +22,26 @@ import type { TODO_any } from '../../utils/organization/TODO_any';
  * @see `documentationUrl` for more details
  * @public exported from `@promptbook/markdown-utils`
  */
-export const markdownScraper = {
+export class MarkdownScraper implements Scraper {
     /**
      * Mime types that this scraper can handle
      */
-    mimeTypes: ['text/markdown', 'text/plain'],
+    public readonly mimeTypes = ['text/markdown', 'text/plain'];
 
     /**
      * Link to documentation
      */
-    documentationUrl: 'https://github.com/webgptorg/promptbook/discussions/@@',
+    public readonly documentationUrl = 'https://github.com/webgptorg/promptbook/discussions/@@';
+
+    public constructor(private readonly options: PrepareAndScrapeOptions) {}
 
     /**
      * Scrapes the markdown file and returns the knowledge pieces or `null` if it can't scrape it
      */
-    async scrape(
+    public async scrape(
         source: ScraperSourceHandler,
-        options: PrepareAndScrapeOptions,
     ): Promise<Array<Omit<KnowledgePiecePreparedJson, 'sources' | 'preparationIds'>> | null> {
-        const { llmTools, maxParallelCount = MAX_PARALLEL_COUNT, isVerbose = IS_VERBOSE } = options;
+        const { llmTools, maxParallelCount = MAX_PARALLEL_COUNT, isVerbose = IS_VERBOSE } = this.options;
 
         if (llmTools === undefined) {
             throw new MissingToolsError('LLM tools are required for scraping external files');
@@ -177,12 +178,11 @@ export const markdownScraper = {
         );
 
         return knowledge;
-    },
-} /* TODO: [🦷] as const */ satisfies Scraper;
+    }
+}
 
 /**
  * TODO: [🦖] Make some system for putting scrapers to separete packages
  * TODO: [🪂] Do it in parallel 11:11
- * TODO: [🦷] Ideally use `as const satisfies Scraper` BUT this combination throws errors
  * Note: No need to aggregate usage here, it is done by intercepting the llmTools
  */

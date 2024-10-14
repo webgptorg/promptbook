@@ -1,8 +1,8 @@
 import { describe, expect, it } from '@jest/globals';
 import { join } from 'path';
-import { getLlmToolsForTestingAndScriptsAndPlayground } from '../../llm-providers/_common/register/getLlmToolsForTestingAndScriptsAndPlayground';
+import { getLlmToolsForTestingAndScriptsAndPlayground } from '../../llm-providers/_common/getLlmToolsForTestingAndScriptsAndPlayground';
 import { makeKnowledgeSourceHandler } from '../_common/utils/makeKnowledgeSourceHandler';
-import { MarkdownScraper } from './MarkdownScraper-';
+import { MarkdownScraper } from './MarkdownScraper';
 
 describe('how creating knowledge from markdown works', () => {
     const rootDirname = join(__dirname, 'samples');
