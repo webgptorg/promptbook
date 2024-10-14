@@ -1,5 +1,4 @@
 import spaceTrim from 'spacetrim';
-import type { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';
 import type { KnowledgePiecePreparedJson } from '../../types/PipelineJson/KnowledgePieceJson';
 import { TODO_USE } from '../../utils/organization/TODO_USE';
 import type { Scraper, ScraperSourceHandler } from '../_common/Scraper';
@@ -15,6 +14,7 @@ import { assertsExecutionSuccessful } from '../../execution/assertsExecutionSucc
 import { createPipelineExecutor } from '../../execution/createPipelineExecutor/00-createPipelineExecutor';
 import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import type { TODO_any } from '../../utils/organization/TODO_any';
+import { MarkdownScraperOptions } from './MarkdownScraperOptions';
 
 /**
  * Scraper for markdown files
@@ -33,7 +33,7 @@ export class MarkdownScraper implements Scraper {
      */
     public readonly documentationUrl = 'https://github.com/webgptorg/promptbook/discussions/@@';
 
-    public constructor(private readonly options: PrepareAndScrapeOptions) {}
+    public constructor(private readonly options: MarkdownScraperOptions) {}
 
     /**
      * Scrapes the markdown file and returns the knowledge pieces or `null` if it can't scrape it
