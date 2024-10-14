@@ -25,7 +25,7 @@ import { documentScraper } from '../document/documentScraper';
  * Scraper for .docx files
  *
  * @see `documentationUrl` for more details
- * @public exported from `@promptbook/core`
+ * @public exported from `@promptbook/legacy-documents`
  */
 export const legacyDocumentScraper = {
     /**
