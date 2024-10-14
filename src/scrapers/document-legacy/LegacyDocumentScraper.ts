@@ -1,4 +1,3 @@
-import type { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';
 import type { KnowledgePiecePreparedJson } from '../../types/PipelineJson/KnowledgePieceJson';
 // TODO: [🏳‍🌈] Finally take pick of .json vs .ts
 // import PipelineCollection from '../../../promptbook-collection/promptbook-collection';
@@ -43,17 +42,14 @@ export class LegacyDocumentScraper implements Converter, Scraper {
      *
      * Note: `$` is used to indicate that this function is not a pure function - it leaves files on the disk and you are responsible for cleaning them by calling `destroy` method of returned object
      */
-    public async $convert(
-        source: ScraperSourceHandler,
-        options: PrepareAndScrapeOptions,
-    ): Promise<ScraperIntermediateSource> {
+    public async $convert(source: ScraperSourceHandler): Promise<ScraperIntermediateSource> {
         const {
             externalProgramsPaths = {},
             rootDirname,
             cacheDirname = SCRAPE_CACHE_DIRNAME,
             isCacheCleaned = false,
             isVerbose = IS_VERBOSE,
-        } = options;
+        } = this.options;
 
         if (!$isRunningInNode()) {
             throw new KnowledgeScrapeError('Scraping .doc files is only supported in Node environment');
@@ -150,9 +146,8 @@ export class LegacyDocumentScraper implements Converter, Scraper {
      */
     public async scrape(
         source: ScraperSourceHandler,
-        options: PrepareAndScrapeOptions,
     ): Promise<Array<Omit<KnowledgePiecePreparedJson, 'sources' | 'preparationIds'>> | null> {
-        const cacheFilehandler = await this.$convert(source, options);
+        const cacheFilehandler = await this.$convert(source);
 
         const markdownSource = {
             source: source.source,
@@ -176,7 +171,7 @@ export class LegacyDocumentScraper implements Converter, Scraper {
             },
         } satisfies ScraperSourceHandler;
 
-        const knowledge = this.options.documentScraper.scrape(markdownSource, options);
+        const knowledge = this.options.documentScraper.scrape(markdownSource);
 
         await cacheFilehandler.destroy();
 

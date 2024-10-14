@@ -1,4 +1,3 @@
-import type { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';
 import type { KnowledgePiecePreparedJson } from '../../types/PipelineJson/KnowledgePieceJson';
 import type { Scraper, ScraperSourceHandler } from '../_common/Scraper';
 // TODO: [🏳‍🌈] Finally take pick of .json vs .ts
@@ -31,12 +30,9 @@ export class PdfScraper implements Converter, Scraper {
     /**
      * Converts the `.pdf` file to `.md` file and returns intermediate source
      */
-    public async $convert(
-        source: ScraperSourceHandler,
-        options: PrepareAndScrapeOptions,
-    ): Promise<ScraperIntermediateSource> {
+    public async $convert(source: ScraperSourceHandler): Promise<ScraperIntermediateSource> {
         TODO_USE(source);
-        TODO_USE(options);
+        TODO_USE(this.options);
         throw new NotYetImplementedError('PDF conversion not yet implemented');
     }
 
@@ -45,10 +41,9 @@ export class PdfScraper implements Converter, Scraper {
      */
     public async scrape(
         source: ScraperSourceHandler,
-        options: PrepareAndScrapeOptions,
     ): Promise<Array<Omit<KnowledgePiecePreparedJson, 'sources' | 'preparationIds'>> | null> {
         TODO_USE(source);
-        TODO_USE(options);
+        TODO_USE(this.options);
 
         /*
         const {

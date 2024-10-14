@@ -1,4 +1,3 @@
-import type { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';
 import type { KnowledgePiecePreparedJson } from '../../types/PipelineJson/KnowledgePieceJson';
 import type { string_markdown } from '../../types/typeAliases';
 import type { Converter } from '../_common/Converter';
@@ -43,7 +42,6 @@ export class WebsiteScraper implements Converter, Scraper {
      */
     public async $convert(
         source: ScraperSourceHandler,
-        options: PrepareAndScrapeOptions,
     ): Promise<ScraperIntermediateSource & { markdown: string_markdown }> {
         const {
             // TODO: [🧠] Maybe in node use headless browser not just JSDOM
@@ -52,7 +50,7 @@ export class WebsiteScraper implements Converter, Scraper {
             cacheDirname = SCRAPE_CACHE_DIRNAME,
             isCacheCleaned = false,
             isVerbose = IS_VERBOSE,
-        } = options;
+        } = this.options;
 
         // TODO: !!!!!! Does this work in browser? Make it work.
 
@@ -101,9 +99,8 @@ export class WebsiteScraper implements Converter, Scraper {
      */
     public async scrape(
         source: ScraperSourceHandler,
-        options: PrepareAndScrapeOptions,
     ): Promise<Array<Omit<KnowledgePiecePreparedJson, 'sources' | 'preparationIds'>> | null> {
-        const cacheFilehandler = await this.$convert(source, options);
+        const cacheFilehandler = await this.$convert(source);
 
         const markdownSource = {
             source: source.source,

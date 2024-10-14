@@ -1,6 +1,4 @@
-import type { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';
-import type { string_mime_type } from '../../types/typeAliases';
-import type { string_promptbook_documentation_url } from '../../types/typeAliases';
+import type { string_mime_type, string_promptbook_documentation_url } from '../../types/typeAliases';
 import type { ScraperSourceHandler } from './Scraper';
 import type { ScraperIntermediateSource } from './ScraperIntermediateSource';
 
@@ -27,5 +25,5 @@ export type Converter = {
      *
      * Note: `$` is used to indicate that this function is not a pure function - it leaves files on the disk and you are responsible for cleaning them by calling `destroy` method of returned object
      */
-    $convert(source: ScraperSourceHandler, options: PrepareAndScrapeOptions): Promise<ScraperIntermediateSource>;
+    $convert(source: ScraperSourceHandler): Promise<ScraperIntermediateSource>;
 };

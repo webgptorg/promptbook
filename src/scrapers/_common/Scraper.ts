@@ -1,11 +1,12 @@
 import type { Promisable } from 'type-fest';
-import type { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';
 import type { KnowledgePiecePreparedJson } from '../../types/PipelineJson/KnowledgePieceJson';
-import type { string_filename } from '../../types/typeAliases';
-import type { string_knowledge_source_link } from '../../types/typeAliases';
-import type { string_mime_type } from '../../types/typeAliases';
-import type { string_promptbook_documentation_url } from '../../types/typeAliases';
-import type { string_url } from '../../types/typeAliases';
+import type {
+    string_filename,
+    string_knowledge_source_link,
+    string_mime_type,
+    string_promptbook_documentation_url,
+    string_url,
+} from '../../types/typeAliases';
 
 /**
  * @@@
@@ -27,7 +28,6 @@ export type Scraper = {
      */
     scrape(
         source: ScraperSourceHandler,
-        options: PrepareAndScrapeOptions,
     ): Promisable<Array<Omit<KnowledgePiecePreparedJson, 'sources' | 'preparationIds'>> | null>;
 };
 
