@@ -6,9 +6,9 @@ import { Scraper } from '../Scraper';
 import { ProvideScrapersOptions } from './$provideScrapers';
 
 /**
- * Returns LLM tools for CLI
+ * !!!!!!
  *
- * @public expor
+ * @public exported from `@promptbook/node`
  */
 export async function $provideScrapersForNode(options: ProvideScrapersOptions): Promise<Array<Scraper>> {
     if (!$isRunningInNode()) {

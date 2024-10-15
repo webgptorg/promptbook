@@ -22,13 +22,17 @@ export type ProvideScrapersOptions = PrepareAndScrapeOptions & {
 };
 
 /**
- * Returns LLM tools for CLI
+ * @@@!!!!!!
  *
- * @private within the repository - for CLI utils
+ * 1) @@@
+ * 2) @@@
+ * 3) @@@
+ *
+ * @public exported from `@promptbook/core`
  */
 export async function $provideScrapers(options: ProvideScrapersOptions): Promise<Array<Scraper>> {
     if ($isRunningInNode()) {
-        return /* not await */ $provideScrapersForNode(options);
+        return /* not await */ $provideScrapersForNode(options); // <- TODO: !!!!!! How to use without impott
     } else if ($isRunningInBrowser() || $isRunningInWebWorker()) {
         return /* not await */ $provideScrapersForBrowser(options);
     } else {

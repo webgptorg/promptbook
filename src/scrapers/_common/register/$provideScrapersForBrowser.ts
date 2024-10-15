@@ -5,9 +5,9 @@ import { Scraper } from '../Scraper';
 import { ProvideScrapersOptions } from './$provideScrapers';
 
 /**
- * Returns LLM tools for CLI
+ * !!!!!!
  *
- * @private within the repository - for CLI utils
+ * @public exported from `@promptbook/core`
  */
 export async function $provideScrapersForBrowser(options: ProvideScrapersOptions): Promise<Array<Scraper>> {
     if (!$isRunningInBrowser() || $isRunningInWebWorker()) {
