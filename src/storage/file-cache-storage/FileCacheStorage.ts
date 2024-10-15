@@ -2,6 +2,7 @@ import hexEncoder from 'crypto-js/enc-hex';
 import sha256 from 'crypto-js/sha256';
 import { mkdir, readFile, unlink, writeFile } from 'fs/promises';
 import { dirname, join } from 'path';
+import type { PromptbookStorage } from '../../_common/PromptbookStorage';
 import { MAX_FILENAME_LENGTH } from '../../config';
 import { stringifyPipelineJson } from '../../conversion/utils/stringifyPipelineJson';
 import { titleToName } from '../../conversion/utils/titleToName';
@@ -11,7 +12,6 @@ import type { string_filename } from '../../types/typeAliases';
 import { $isRunningInNode } from '../../utils/environment/$isRunningInNode';
 import { $isFileExisting } from '../../utils/files/$isFileExisting';
 import { isSerializableAsJson } from '../../utils/serialization/isSerializableAsJson';
-import type { PromptbookStorage } from '../_common/PromptbookStorage';
 import type { FileCacheStorageOptions } from './FileCacheStorageOptions';
 import { nameToSubfolderPath } from './utils/nameToSubfolderPath';
 

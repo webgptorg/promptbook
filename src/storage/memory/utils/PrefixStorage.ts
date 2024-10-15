@@ -1,5 +1,5 @@
 import type { Promisable } from 'type-fest';
-import type { PromptbookStorage } from '../_common/PromptbookStorage';
+import type { PromptbookStorage } from '../../_common/PromptbookStorage';
 /**
  * This class behaves like LocalStorage but separates keys by prefix
  *
@@ -33,4 +33,3 @@ export class PrefixStorage<TItem> implements PromptbookStorage<TItem> {
         this.baseStorage.removeItem(this.keyPrefix + this.separator + key);
     }
 }
-

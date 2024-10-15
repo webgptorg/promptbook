@@ -1,7 +1,7 @@
+import type { PromptbookStorage } from '../../_common/PromptbookStorage';
 import { stringifyPipelineJson } from '../../conversion/utils/stringifyPipelineJson';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import { isSerializableAsJson } from '../../utils/serialization/isSerializableAsJson';
-import type { PromptbookStorage } from '../_common/PromptbookStorage';
 
 /**
  * @@@

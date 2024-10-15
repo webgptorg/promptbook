@@ -1,7 +1,8 @@
 import { isRunningInBrowser } from 'openai/core';
 import { EnvironmentMismatchError } from '../../errors/EnvironmentMismatchError';
-import type { PromptbookStorage } from '../_common/PromptbookStorage';
-import { makePromptbookStorageFromWebStorage } from '../utils/makePromptbookStorageFromWebStorage';
+import { PromptbookStorage } from '../_common/PromptbookStorage';
+import { makePromptbookStorageFromWebStorage } from '../memory/utils/makePromptbookStorageFromWebStorage';
+
 
 /**
  * Gets wrapper around `localStorage` object which can be used as `PromptbookStorage`
