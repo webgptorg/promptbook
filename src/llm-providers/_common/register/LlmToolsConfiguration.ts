@@ -12,12 +12,12 @@ export type LlmToolsConfiguration = Array<
         /**
          * @@@
          */
-        title: string_title;
+        readonly title: string_title;
 
         /**
          * @@@
          */
-        options: LlmToolsOptions;
+        readonly options: LlmToolsOptions;
     }
 >;
 
