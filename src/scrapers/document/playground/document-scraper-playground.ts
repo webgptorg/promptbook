@@ -11,7 +11,7 @@ import { stringifyPipelineJson } from '../../../conversion/utils/stringifyPipeli
 import { usageToHuman } from '../../../execution/utils/usageToHuman';
 import { getLlmToolsForTestingAndScriptsAndPlayground } from '../../../llm-providers/_common/getLlmToolsForTestingAndScriptsAndPlayground';
 import { makeKnowledgeSourceHandler } from '../../_common/utils/makeKnowledgeSourceHandler';
-import { documentScraper } from '../documentScraper';
+import { documentScraper } from '../DocumentScraper';
 
 const isVerbose = true;
 

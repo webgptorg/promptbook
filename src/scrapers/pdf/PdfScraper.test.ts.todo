@@ -2,7 +2,7 @@ import { describe, expect, it } from '@jest/globals';
 import { join } from 'path';
 import { getLlmToolsForTestingAndScriptsAndPlayground } from '../../llm-providers/_common/getLlmToolsForTestingAndScriptsAndPlayground';
 import { makeKnowledgeSourceHandler } from '../_common/utils/makeKnowledgeSourceHandler';
-import { pdfScraper } from './pdfScraper';
+import { pdfScraper } from './PdfScraper';
 
 // TODO: !!!!!! Uncomment this test
 
