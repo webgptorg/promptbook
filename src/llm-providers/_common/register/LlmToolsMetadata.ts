@@ -11,7 +11,7 @@ export type LlmToolsMetadata = Registered & {
     /**
      * @@@
      */
-    title: string_title;
+    readonly title: string_title;
 
     /**
      * @@@

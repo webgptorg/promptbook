@@ -14,12 +14,12 @@ export type Registered = {
     /**
      * @@@
      */
-    packageName: TODO_string;
+    readonly packageName: TODO_string;
 
     /**
      * @@@
      */
-    className: TODO_string;
+    readonly className: TODO_string;
 };
 
 /**
@@ -30,7 +30,7 @@ export type Registration = Registered &
         /**
          * @@@
          */
-        registerName: string_name;
+        readonly registerName: string_name;
     };
 
 /**
