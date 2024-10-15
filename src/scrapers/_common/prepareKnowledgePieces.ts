@@ -6,8 +6,8 @@ import type { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOpti
 import type { KnowledgePiecePreparedJson } from '../../types/PipelineJson/KnowledgePieceJson';
 import type { KnowledgeSourceJson } from '../../types/PipelineJson/KnowledgeSourceJson';
 
+import { $provideScrapers } from './register/$provideScrapers';
 import { $registeredScrapersMessage } from './register/$registeredScrapersMessage';
-import { $scrapersRegister } from './register/$scrapersRegister';
 import { makeKnowledgeSourceHandler } from './utils/makeKnowledgeSourceHandler';
 
 /**
@@ -30,7 +30,12 @@ export async function prepareKnowledgePieces(
         let partialPieces: Omit<KnowledgePiecePreparedJson, 'preparationIds' | 'sources'>[] | null = null;
         const sourceHandler = await makeKnowledgeSourceHandler(knowledgeSource, { rootDirname, isVerbose });
 
-        for (const scraper of $scrapersRegister.list()) {
+        for (const scraper of await $provideScrapers({
+            ...options,
+            mimeType: sourceHandler.mimeType,
+            //           <- TODO: [🦔]
+        })) {
+            // Note: Checking mime type here is probably redundant, because we already filtered scrapers by mime type in `$getScraper`
             if (
                 !scraper.mimeTypes.includes(sourceHandler.mimeType)
                 // <- TODO: [🦔] Implement mime-type wildcards
@@ -38,7 +43,7 @@ export async function prepareKnowledgePieces(
                 continue;
             }
 
-            const partialPiecesUnchecked = await scraper.scrape(sourceHandler, options);
+            const partialPiecesUnchecked = await scraper.scrape(sourceHandler);
 
             if (partialPiecesUnchecked !== null) {
                 partialPieces = partialPiecesUnchecked;

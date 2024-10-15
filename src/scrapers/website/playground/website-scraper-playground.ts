@@ -12,7 +12,7 @@ import { titleToName } from '../../../conversion/utils/titleToName';
 import { usageToHuman } from '../../../execution/utils/usageToHuman';
 import { getLlmToolsForTestingAndScriptsAndPlayground } from '../../../llm-providers/_common/getLlmToolsForTestingAndScriptsAndPlayground';
 import { makeKnowledgeSourceHandler } from '../../_common/utils/makeKnowledgeSourceHandler';
-import { websiteScraper } from '../websiteScraper';
+import { websiteScraper } from '../WebsiteScraper';
 
 const isVerbose = true;
 
