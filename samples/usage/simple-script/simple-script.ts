@@ -14,8 +14,7 @@ import {
     stringifyPipelineJson,
     usageToHuman,
 } from '../../../src/_packages/core.index';
-import { JavascriptExecutionTools } from '../../../src/_packages/execute-javascript.index';
-import { createCollectionFromDirectory, createLlmToolsFromEnv } from '../../../src/_packages/node.index';
+import { createCollectionFromDirectory } from '../../../src/_packages/node.index';
 
 import '../../../src/_packages/anthropic-claude.index';
 import '../../../src/_packages/azure-openai.index';

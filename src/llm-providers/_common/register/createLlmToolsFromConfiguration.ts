@@ -9,9 +9,9 @@ import { $registeredLlmToolsMessage } from './$registeredLlmToolsMessage';
 import type { LlmToolsConfiguration } from './LlmToolsConfiguration';
 
 /**
- * Options for `createLlmToolsFromEnv`
+ * Options for `$provideLlmToolsFromEnv`
  *
- * @private internal type for `createLlmToolsFromEnv` and `getLlmToolsForTestingAndScriptsAndPlayground`
+ * @private internal type for `$provideLlmToolsFromEnv` and `getLlmToolsForTestingAndScriptsAndPlayground`
  */
 export type CreateLlmToolsFromConfigurationOptions = {
     /**

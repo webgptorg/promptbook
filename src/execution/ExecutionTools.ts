@@ -13,7 +13,7 @@ export type ExecutionTools = {
     /**
      * Tools for executing prompts in large language models
      *
-     * Tip: Use `createLlmToolsFromEnv()` to use all available LLM providers you configured
+     * Tip: Use `$provideLlmToolsFromEnv()` to use all available LLM providers you configured
      *
      * @default [] - If not provided, no LLM execution will be possible - it does not make sense in most cases
      */
@@ -48,6 +48,6 @@ export type ExecutionTools = {
 };
 
 /**
- * TODO: [🍂] Maybe make llm = createLlmToolsFromEnv() without problem with bundle contaminated by only `@promptbook/node` and `@promptbook/cli` stuff
+ * TODO: [🍂] Maybe make llm = $provideLlmToolsFromEnv() without problem with bundle contaminated by only `@promptbook/node` and `@promptbook/cli` stuff
  * TODO: [🍂] Same with scrapers
  */

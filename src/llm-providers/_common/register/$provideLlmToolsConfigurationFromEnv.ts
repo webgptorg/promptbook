@@ -17,9 +17,9 @@ import type { LlmToolsConfiguration } from './LlmToolsConfiguration';
  * @returns @@@
  * @public exported from `@promptbook/node`
  */
-export function createLlmToolsFromConfigurationFromEnv(): LlmToolsConfiguration {
+export function $provideLlmToolsConfigurationFromEnv(): LlmToolsConfiguration {
     if (!$isRunningInNode()) {
-        throw new EnvironmentMismatchError('Function `createLlmToolsFromEnv` works only in Node.js environment');
+        throw new EnvironmentMismatchError('Function `$provideLlmToolsFromEnv` works only in Node.js environment');
     }
 
     dotenv.config();

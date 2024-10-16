@@ -5,8 +5,8 @@ import type { LlmExecutionTools } from '../../../execution/LlmExecutionTools';
 import { FileCacheStorage } from '../../../storage/file-cache-storage/FileCacheStorage';
 import { $isRunningInNode } from '../../../utils/environment/$isRunningInNode';
 import '../../_packages/cli.index'; // <- Note: Really importing core index to register all the LLM providers
+import { $provideLlmToolsFromEnv } from './$provideLlmToolsFromEnv';
 import type { CreateLlmToolsFromConfigurationOptions } from './createLlmToolsFromConfiguration';
-import { createLlmToolsFromEnv } from './createLlmToolsFromEnv';
 import { cacheLlmTools } from './utils/cache/cacheLlmTools';
 import { countTotalUsage } from './utils/count-total-usage/countTotalUsage';
 import { limitTotalUsage } from './utils/count-total-usage/limitTotalUsage';
@@ -37,7 +37,7 @@ export function getLlmToolsForTestingAndScriptsAndPlayground(
 
     const { isCacheReloaded = false, ...restOptions } = options ?? {};
 
-    const llmTools: LlmExecutionTools = createLlmToolsFromEnv(restOptions);
+    const llmTools: LlmExecutionTools = $provideLlmToolsFromEnv(restOptions);
     const llmToolsWithUsage = !IS_COST_PREVENTED
         ? countTotalUsage(llmTools)
         : //    <- Note: for example here we don`t want the [🌯]

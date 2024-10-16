@@ -2,7 +2,7 @@ import { EnvironmentMismatchError } from '../../../errors/EnvironmentMismatchErr
 import { PrepareAndScrapeOptions } from '../../../prepare/PrepareAndScrapeOptions';
 import { $isRunningInNode } from '../../../utils/environment/$isRunningInNode';
 import { JavascriptExecutionTools } from '../../_packages/execute-javascript.index';
-import { createLlmToolsFromEnv } from '../../_packages/node.index';
+import { $provideLlmToolsFromEnv } from '../../_packages/node.index';
 import { $provideScrapersForNode } from '../../scrapers/_common/register/$provideScrapersForNode';
 import { ExecutionTools } from '../ExecutionTools';
 
@@ -19,7 +19,7 @@ export async function $provideExecutionToolsForNode(options?: PrepareAndScrapeOp
     }
 
     const tools = {
-        llm: createLlmToolsFromEnv(options),
+        llm: $provideLlmToolsFromEnv(options),
         scrapers: await $provideScrapersForNode(options),
         script: [
             new JavascriptExecutionTools(

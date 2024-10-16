@@ -10,7 +10,7 @@ import { $llmToolsRegister } from './$llmToolsRegister';
  *
  * Note: This function is used to create a (error) message when there is no constructor for some LLM provider
  *
- * @private internal function of `createLlmToolsFromConfiguration` and `createLlmToolsFromEnv`
+ * @private internal function of `createLlmToolsFromConfiguration` and `$provideLlmToolsFromEnv`
  */
 export function $registeredLlmToolsMessage(): string_markdown {
     /**
@@ -85,7 +85,6 @@ export function $registeredLlmToolsMessage(): string_markdown {
         `,
     );
 }
-
 
 /**
  * TODO: [®] DRY Register logic

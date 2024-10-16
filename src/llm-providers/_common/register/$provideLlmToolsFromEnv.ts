@@ -2,10 +2,10 @@ import spaceTrim from 'spacetrim';
 import { EnvironmentMismatchError } from '../../../errors/EnvironmentMismatchError';
 import { $isRunningInNode } from '../../../utils/environment/$isRunningInNode';
 import { MultipleLlmExecutionTools } from '../../multiple/MultipleLlmExecutionTools';
+import { $provideLlmToolsConfigurationFromEnv } from './$provideLlmToolsConfigurationFromEnv';
 import { $registeredLlmToolsMessage } from './$registeredLlmToolsMessage';
 import type { CreateLlmToolsFromConfigurationOptions } from './createLlmToolsFromConfiguration';
 import { createLlmToolsFromConfiguration } from './createLlmToolsFromConfiguration';
-import { createLlmToolsFromConfigurationFromEnv } from './createLlmToolsFromConfigurationFromEnv';
 
 /**
  * @@@
@@ -21,12 +21,14 @@ import { createLlmToolsFromConfigurationFromEnv } from './createLlmToolsFromConf
  * @returns @@@
  * @public exported from `@promptbook/node`
  */
-export function createLlmToolsFromEnv(options: CreateLlmToolsFromConfigurationOptions = {}): MultipleLlmExecutionTools {
+export function $provideLlmToolsFromEnv(
+    options: CreateLlmToolsFromConfigurationOptions = {},
+): MultipleLlmExecutionTools {
     if (!$isRunningInNode()) {
-        throw new EnvironmentMismatchError('Function `createLlmToolsFromEnv` works only in Node.js environment');
+        throw new EnvironmentMismatchError('Function `$provideLlmToolsFromEnv` works only in Node.js environment');
     }
 
-    const configuration = createLlmToolsFromConfigurationFromEnv();
+    const configuration = $provideLlmToolsConfigurationFromEnv();
 
     if (configuration.length === 0) {
         // TODO: [🥃]
@@ -50,12 +52,12 @@ export function createLlmToolsFromEnv(options: CreateLlmToolsFromConfigurationOp
 }
 
 /**
- * TODO: @@@ write `createLlmToolsFromEnv` vs `createLlmToolsFromConfigurationFromEnv` vs `createLlmToolsFromConfiguration`
- * TODO: [🧠][🍛] Which name is better `createLlmToolsFromEnv` or `createLlmToolsFromEnvironment`?
+ * TODO: @@@ write `$provideLlmToolsFromEnv` vs `$provideLlmToolsConfigurationFromEnv` vs `createLlmToolsFromConfiguration`
+ * TODO: [🧠][🍛] Which name is better `$provideLlmToolsFromEnv` or `$provideLlmToolsFromEnvironment`?
  * TODO: [🧠] Is there some meaningfull way how to test this util
  * Note: [🟢] Code in this file should never be published outside of `@promptbook/node` and `@promptbook/cli`
  * TODO: [🥃] Allow `ptbk make` without llm tools
  * TODO: This should be maybe not under `_common` but under `utils`
  * TODO: [®] DRY Register logic
- * TODO: [🍂] Maybe make llm = createLlmToolsFromEnv() without problem with bundle contaminated by only `@promptbook/node` and `@promptbook/cli` stuff
+ * TODO: [🍂] Maybe make llm = $provideLlmToolsFromEnv() without problem with bundle contaminated by only `@promptbook/node` and `@promptbook/cli` stuff
  */

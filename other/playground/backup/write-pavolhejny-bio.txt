@@ -11,7 +11,7 @@ import { forTime } from 'waitasecond';
 import { createCollectionFromDirectory } from '../../src/collection/constructors/createCollectionFromDirectory';
 import { createPipelineExecutor } from '../../src/execution/00-createPipelineExecutor';
 import { usageToHuman } from '../../src/execution/utils/usageToHuman';
-import { createLlmToolsFromEnv } from '../../src/llm-providers/_common/createLlmToolsFromEnv';
+import { $provideLlmToolsFromEnv } from '../../src/llm-providers/_common/$provideLlmToolsFromEnv';
 import { JavascriptExecutionTools } from '../../src/scripting/javascript/JavascriptExecutionTools';
 
 if (process.cwd() !== join(__dirname, '../..')) {

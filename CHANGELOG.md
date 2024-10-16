@@ -540,6 +540,7 @@ Knowledge scrapers [🐝]
 -   Fix normalize functions when normalizing string containing slash char "/", "\"
 -   Add utilities `$provideExecutionToolsForBrowser` and `$provideExecutionToolsForNode` and use them in samples
 -   Add utilities `$provideScrapersForBrowser` and `$provideScrapersForNode`
+-   Rename `createLlmToolsFromConfigurationFromEnv` -> `$provideLlmToolsConfigurationFromEnv` and `createLlmToolsFromEnv` -> `$provideLlmToolsFromEnv`
 
 ### `0.72.0` _(2024-09-)_
 
