@@ -82,7 +82,7 @@ console.info(outputParameters);
 
 ## 🧙‍♂️ Connect to LLM providers automatically
 
-You can just use `$provideLlmToolsFromEnv` function to create LLM tools from environment variables like `ANTHROPIC_CLAUDE_API_KEY` and `OPENAI_API_KEY` automatically.
+You can just use `$provideExecutionToolsForNode` function to create all required tools from environment variables like `ANTHROPIC_CLAUDE_API_KEY` and `OPENAI_API_KEY` automatically.
 
 ```typescript
 import { createPipelineExecutor, createCollectionFromDirectory, assertsExecutionSuccessful } from '@promptbook/core';
