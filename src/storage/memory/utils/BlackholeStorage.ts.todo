@@ -41,5 +41,4 @@ export class BlackholeStorage implements PromptbookStorage<any> {
 }
 
 export const blackholeStorage = new BlackholeStorage(
-//            <- TODO: [🧱] Implement in a functional (not new Class) way
 );

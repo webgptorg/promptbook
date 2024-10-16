@@ -46,10 +46,7 @@ export function getLlmToolsForTestingAndScriptsAndPlayground(
     //          <- Note: for example here we don`t want the [🌯]
 
     return cacheLlmTools(llmToolsWithUsage, {
-        storage: new FileCacheStorage(
-            //            <- TODO: [🧱] Implement in a functional (not new Class) way
-            { rootFolderPath: join(process.cwd(), EXECUTIONS_CACHE_DIRNAME) },
-        ),
+        storage: new FileCacheStorage({ rootFolderPath: join(process.cwd(), EXECUTIONS_CACHE_DIRNAME) }),
         isReloaded: isCacheReloaded,
     });
 }

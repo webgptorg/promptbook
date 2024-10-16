@@ -23,10 +23,7 @@ const tools = {
             apiKey: process.env.OPENAI_API_KEY,
         },
     ),
-    script: [
-        new JavascriptExecutionTools(),
-        //            <- TODO: [🧱] Implement in a functional (not new Class) way
-    ],
+    script: [new JavascriptExecutionTools()],
 };
 
 // ▶ Create executor - the function that will execute the Pipeline
@@ -122,10 +119,7 @@ const tools = {
             },
         ),
     ],
-    script: [
-        new JavascriptExecutionTools(),
-        //            <- TODO: [🧱] Implement in a functional (not new Class) way
-    ],
+    script: [new JavascriptExecutionTools()],
 };
 
 // ▶ Create executor - the function that will execute the Pipeline

@@ -1,16 +1,16 @@
 import { LimitReachedError } from '../../../../errors/LimitReachedError';
 import { NotYetImplementedError } from '../../../../errors/NotYetImplementedError';
 import type { LlmExecutionTools } from '../../../../execution/LlmExecutionTools';
-import type { ChatPromptResult } from '../../../../execution/PromptResult';
-import type { CompletionPromptResult } from '../../../../execution/PromptResult';
-import type { EmbeddingPromptResult } from '../../../../execution/PromptResult';
+import type {
+    ChatPromptResult,
+    CompletionPromptResult,
+    EmbeddingPromptResult,
+} from '../../../../execution/PromptResult';
 import type { PromptResultUsage } from '../../../../execution/PromptResultUsage';
 import { ZERO_USAGE } from '../../../../execution/utils/addUsage';
 import type { PromptbookStorage } from '../../../../storage/_common/PromptbookStorage';
 import { MemoryStorage } from '../../../../storage/memory/MemoryStorage';
-import type { ChatPrompt } from '../../../../types/Prompt';
-import type { CompletionPrompt } from '../../../../types/Prompt';
-import type { EmbeddingPrompt } from '../../../../types/Prompt';
+import type { ChatPrompt, CompletionPrompt, EmbeddingPrompt } from '../../../../types/Prompt';
 import type { TODO_any } from '../../../../utils/organization/TODO_any';
 import { TODO_USE } from '../../../../utils/organization/TODO_USE';
 import { countTotalUsage } from './countTotalUsage';
@@ -44,11 +44,7 @@ export function limitTotalUsage(
     llmTools: LlmExecutionTools,
     options: Partial<LimitTotalUsageOptions> = {},
 ): LlmExecutionToolsWithTotalUsage {
-    const {
-        maxTotalUsage = ZERO_USAGE,
-        storage = new MemoryStorage(),
-        //            <- TODO: [🧱] Implement in a functional (not new Class) way
-    } = options;
+    const { maxTotalUsage = ZERO_USAGE, storage = new MemoryStorage() } = options;
 
     TODO_USE(storage);
 

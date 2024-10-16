@@ -3,10 +3,8 @@
  */
 export function blobToBinaryString(source: Blob | File): Promise<string> {
     return new Promise(
-//            <- TODO: [🧱] Implement in a functional (not new Class) way
 (resolve) => {
         const reader = new FileReader(
-//            <- TODO: [🧱] Implement in a functional (not new Class) way
 );
         reader.addEventListener('load', async (event) => {
             const binary = reader.result as string;

@@ -23,7 +23,6 @@ export async function $provideExecutionToolsForNode(options?: PrepareAndScrapeOp
         scrapers: await $provideScrapersForNode(options),
         script: [
             new JavascriptExecutionTools(
-                //            <- TODO: [🧱] Implement in a functional (not new Class) way
                 options,
             ),
         ],

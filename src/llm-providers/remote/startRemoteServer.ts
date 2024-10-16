@@ -77,18 +77,14 @@ export function startRemoteServer(options: RemoteServerOptions): IDestroyable {
         response.end();
     });
 
-    const server: Server = new Server(
-        //            <- TODO: [🧱] Implement in a functional (not new Class) way
-        httpServer,
-        {
-            path,
-            transports: [/*'websocket', <- TODO: [🌬] Make websocket transport work */ 'polling'],
-            cors: {
-                origin: '*',
-                methods: ['GET', 'POST'],
-            },
+    const server: Server = new Server(httpServer, {
+        path,
+        transports: [/*'websocket', <- TODO: [🌬] Make websocket transport work */ 'polling'],
+        cors: {
+            origin: '*',
+            methods: ['GET', 'POST'],
         },
-    );
+    });
 
     server.on('connection', (socket: Socket) => {
         if (isVerbose) {

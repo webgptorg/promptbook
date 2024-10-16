@@ -36,34 +36,25 @@ describe('createPipelineExecutor + missing custom function', () => {
         const pipelineExecutor = createPipelineExecutor({
             pipeline,
             tools: {
-                llm: new MockedEchoLlmExecutionTools(
-                    //            <- TODO: [🧱] Implement in a functional (not new Class) way
-                    { isVerbose: true },
-                ),
+                llm: new MockedEchoLlmExecutionTools({ isVerbose: true }),
                 script: [
-                    new JavascriptExecutionTools(
-                        //            <- TODO: [🧱] Implement in a functional (not new Class) way
-                        {
-                            isVerbose: true,
+                    new JavascriptExecutionTools({
+                        isVerbose: true,
 
-                            // Note: [🕎]
-                            functions: {
-                                addHelloWithTypo(value) {
-                                    return `Hello ${value}`;
-                                },
+                        // Note: [🕎]
+                        functions: {
+                            addHelloWithTypo(value) {
+                                return `Hello ${value}`;
                             },
                         },
-                    ),
+                    }),
                 ],
-                userInterface: new CallbackInterfaceTools(
-                    //            <- TODO: [🧱] Implement in a functional (not new Class) way
-                    {
-                        isVerbose: true,
-                        async callback() {
-                            return 'Hello';
-                        },
+                userInterface: new CallbackInterfaceTools({
+                    isVerbose: true,
+                    async callback() {
+                        return 'Hello';
                     },
-                ),
+                }),
             },
         });
 

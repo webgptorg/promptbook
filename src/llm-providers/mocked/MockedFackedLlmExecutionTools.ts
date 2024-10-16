@@ -126,10 +126,7 @@ export class MockedFackedLlmExecutionTools implements LlmExecutionTools {
     ): Promise<EmbeddingPromptResult> {
         const modelName = 'mocked-facked';
         const rawPromptContent = replaceParameters(prompt.content, { ...prompt.parameters, modelName });
-        const content = new Array(
-            //            <- TODO: [🧱] Implement in a functional (not new Class) way
-            1024,
-        )
+        const content = new Array(1024)
             .fill(0)
             .map(() => Math.random() * 2 - 1) satisfies EmbeddingVector; /* <- TODO: [🤛] */
 
