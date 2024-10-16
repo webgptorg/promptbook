@@ -4,7 +4,6 @@
 import { PROMPTBOOK_VERSION } from '../version';
 import { extractBlock } from '../postprocessing/utils/extractBlock';
 import { extractJsonBlock } from '../postprocessing/utils/extractJsonBlock';
-import { createMarkdownScraper } from '../scrapers/markdown/createMarkdownScraper';
 import { MarkdownScraper } from '../scrapers/markdown/MarkdownScraper';
 import { _MarkdownScraperRegistration } from '../scrapers/markdown/register-constructor';
 import type { string_markdown } from '../types/typeAliases';
@@ -33,7 +32,6 @@ export { PROMPTBOOK_VERSION };
 // Note: Entities of the `@promptbook/markdown-utils`
 export { extractBlock };
 export { extractJsonBlock };
-export { createMarkdownScraper };
 export { MarkdownScraper };
 export { _MarkdownScraperRegistration };
 export type { string_markdown };
