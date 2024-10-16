@@ -8,6 +8,7 @@ import type { Converter } from '../_common/Converter';
 import type { ScraperIntermediateSource } from '../_common/ScraperIntermediateSource';
 import { PdfScraperOptions } from './PdfScraperOptions';
 import { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';
+import { ExecutionTools } from '../../execution/ExecutionTools';
 
 /**
  * Scraper for .docx files
@@ -26,7 +27,7 @@ export class PdfScraper implements Converter, Scraper {
      */
     public readonly documentationUrl = 'https://github.com/webgptorg/promptbook/discussions/@@';
 
-    public constructor(private readonly options: PrepareAndScrapeOptions) {}
+    public constructor(    private readonly tools: Pick<ExecutionTools, 'llm'>,private readonly options: PrepareAndScrapeOptions) {}
 
     /**
      * Converts the `.pdf` file to `.md` file and returns intermediate source

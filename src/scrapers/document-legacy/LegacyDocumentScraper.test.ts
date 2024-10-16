@@ -2,34 +2,22 @@ import { describe, expect, it } from '@jest/globals';
 import { join } from 'path';
 import { getLlmToolsForTestingAndScriptsAndPlayground } from '../../llm-providers/_common/register/getLlmToolsForTestingAndScriptsAndPlayground';
 import { makeKnowledgeSourceHandler } from '../_common/utils/makeKnowledgeSourceHandler';
-import { DocumentScraper } from '../document/DocumentScraper';
-import { MarkdownScraper } from '../markdown/MarkdownScraper';
 import { LegacyDocumentScraper } from './legacyDocumentScraper';
 
 describe('how creating knowledge from docx works', () => {
     const rootDirname = join(__dirname, 'samples');
-    const legacyDocumentScraper = new LegacyDocumentScraper({
-        documentScraper: new DocumentScraper({
-            markdownScraper: new MarkdownScraper({
-                llmTools: getLlmToolsForTestingAndScriptsAndPlayground(),
-                rootDirname,
-            }),
-            llmTools: getLlmToolsForTestingAndScriptsAndPlayground(),
+    const legacyDocumentScraper = new LegacyDocumentScraper(
+        { llm: getLlmToolsForTestingAndScriptsAndPlayground() },
+        {
             rootDirname,
             externalProgramsPaths: {
                 // TODO: !!!!!! use `locate-app` library here
                 pandocPath: 'C:/Users/me/AppData/Local/Pandoc/pandoc.exe',
+                libreOfficePath: 'C:/Program Files/LibreOffice/program/swriter.exe',
             },
-        }),
-        llmTools: getLlmToolsForTestingAndScriptsAndPlayground(),
-        rootDirname,
-        externalProgramsPaths: {
-            // TODO: !!!!!! use `locate-app` library here
-            pandocPath: 'C:/Users/me/AppData/Local/Pandoc/pandoc.exe',
-            libreOfficePath: 'C:/Program Files/LibreOffice/program/swriter.exe',
+            // <- TODO: [🍇]
         },
-        // <- TODO: [🍇]
-    });
+    );
 
     it('should scrape simple information from a (legacy) .doc file', () =>
         expect(

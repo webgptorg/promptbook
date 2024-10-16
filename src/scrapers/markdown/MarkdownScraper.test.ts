@@ -6,11 +6,13 @@ import { MarkdownScraper } from './MarkdownScraper';
 
 describe('how creating knowledge from markdown works', () => {
     const rootDirname = join(__dirname, 'samples');
-    const markdownScraper = new MarkdownScraper({
-        llmTools: getLlmToolsForTestingAndScriptsAndPlayground(),
-        rootDirname,
-        // <- TODO: [🍇]
-    });
+    const markdownScraper = new MarkdownScraper(
+        { llm: getLlmToolsForTestingAndScriptsAndPlayground() },
+        {
+            rootDirname,
+            // <- TODO: [🍇]
+        },
+    );
 
     it('should scrape simple information from a markdown', () =>
         expect(

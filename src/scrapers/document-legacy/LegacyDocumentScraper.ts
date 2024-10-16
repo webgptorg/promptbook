@@ -8,6 +8,8 @@ import { IS_VERBOSE, SCRAPE_CACHE_DIRNAME } from '../../config';
 import { KnowledgeScrapeError } from '../../errors/KnowledgeScrapeError';
 import { MissingToolsError } from '../../errors/MissingToolsError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
+import { ExecutionTools } from '../../execution/ExecutionTools';
+import { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';
 import { $isRunningInNode } from '../../utils/environment/$isRunningInNode';
 import { $execCommand } from '../../utils/execCommand/$execCommand';
 import { $isFileExisting } from '../../utils/files/$isFileExisting';
@@ -16,8 +18,6 @@ import type { Converter } from '../_common/Converter';
 import type { Scraper, ScraperSourceHandler } from '../_common/Scraper';
 import type { ScraperIntermediateSource } from '../_common/ScraperIntermediateSource';
 import { getScraperIntermediateSource } from '../_common/utils/getScraperIntermediateSource';
-import { LegacyDocumentScraperOptions } from './LegacyDocumentScraperOptions';
-import { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';
 
 /**
  * Scraper for .docx files
@@ -36,7 +36,10 @@ export class LegacyDocumentScraper implements Converter, Scraper {
      */
     public readonly documentationUrl = 'https://github.com/webgptorg/promptbook/discussions/@@';
 
-    public constructor(private readonly options: PrepareAndScrapeOptions) {}
+    public constructor(
+        private readonly tools: Pick<ExecutionTools, 'llm'>,
+        private readonly options: PrepareAndScrapeOptions,
+    ) {}
 
     /**
      * Convert the `.doc` or `.rtf`  to `.doc` file and returns intermediate source

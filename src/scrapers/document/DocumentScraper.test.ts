@@ -2,24 +2,21 @@ import { describe, expect, it } from '@jest/globals';
 import { join } from 'path';
 import { getLlmToolsForTestingAndScriptsAndPlayground } from '../../llm-providers/_common/register/getLlmToolsForTestingAndScriptsAndPlayground';
 import { makeKnowledgeSourceHandler } from '../_common/utils/makeKnowledgeSourceHandler';
-import { MarkdownScraper } from '../markdown/MarkdownScraper';
 import { DocumentScraper } from './DocumentScraper';
 
 describe('how creating knowledge from docx works', () => {
     const rootDirname = join(__dirname, 'samples');
-    const documentScraper = new DocumentScraper({
-        markdownScraper: new MarkdownScraper({
-            llmTools: getLlmToolsForTestingAndScriptsAndPlayground(),
+    const documentScraper = new DocumentScraper(
+        { llm: getLlmToolsForTestingAndScriptsAndPlayground() },
+        {
             rootDirname,
-        }),
-        llmTools: getLlmToolsForTestingAndScriptsAndPlayground(),
-        rootDirname,
-        externalProgramsPaths: {
-            // TODO: !!!!!! use `locate-app` library here
-            pandocPath: 'C:/Users/me/AppData/Local/Pandoc/pandoc.exe',
+            externalProgramsPaths: {
+                // TODO: !!!!!! use `locate-app` library here
+                pandocPath: 'C:/Users/me/AppData/Local/Pandoc/pandoc.exe',
+            },
+            // <- TODO: [🍇]
         },
-        // <- TODO: [🍇]
-    });
+    );
 
     it('should scrape simple information from a .docx file', () =>
         expect(

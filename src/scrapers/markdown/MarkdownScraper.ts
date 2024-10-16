@@ -12,6 +12,7 @@ import { MissingToolsError } from '../../errors/MissingToolsError';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import { assertsExecutionSuccessful } from '../../execution/assertsExecutionSuccessful';
 import { createPipelineExecutor } from '../../execution/createPipelineExecutor/00-createPipelineExecutor';
+import { ExecutionTools } from '../../execution/ExecutionTools';
 import { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';
 import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import type { TODO_any } from '../../utils/organization/TODO_any';
@@ -33,7 +34,10 @@ export class MarkdownScraper implements Scraper {
      */
     public readonly documentationUrl = 'https://github.com/webgptorg/promptbook/discussions/@@';
 
-    public constructor(private readonly options: PrepareAndScrapeOptions) {}
+    public constructor(
+        private readonly tools: Pick<ExecutionTools, 'llm'>,
+        private readonly options: PrepareAndScrapeOptions,
+    ) {}
 
     /**
      * Scrapes the markdown file and returns the knowledge pieces or `null` if it can't scrape it

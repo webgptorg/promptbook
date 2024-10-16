@@ -11,6 +11,7 @@ import { forTime } from 'waitasecond';
 import { IS_VERBOSE, SCRAPE_CACHE_DIRNAME } from '../../config';
 import { KnowledgeScrapeError } from '../../errors/KnowledgeScrapeError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
+import { ExecutionTools } from '../../execution/ExecutionTools';
 import { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';
 import type { ScraperIntermediateSource } from '../_common/ScraperIntermediateSource';
 import { getScraperIntermediateSource } from '../_common/utils/getScraperIntermediateSource';
@@ -33,7 +34,10 @@ export class WebsiteScraper implements Converter, Scraper {
      */
     public readonly documentationUrl = 'https://github.com/webgptorg/promptbook/discussions/@@';
 
-    public constructor(private readonly options: PrepareAndScrapeOptions) {}
+    public constructor(
+        private readonly tools: Pick<ExecutionTools, 'llm'>,
+        private readonly options: PrepareAndScrapeOptions,
+    ) {}
 
     /**
      * Convert the website  to `.md` file and returns intermediate source
