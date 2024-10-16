@@ -10,7 +10,6 @@ describe('how creating knowledge from markdown works', () => {
         { llm: getLlmToolsForTestingAndScriptsAndPlayground() },
         {
             rootDirname,
-            // <- TODO: [🍇]
         },
     );
 

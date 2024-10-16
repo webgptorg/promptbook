@@ -10,7 +10,6 @@ describe('how creating knowledge from website works', () => {
         { llm: getLlmToolsForTestingAndScriptsAndPlayground() },
         {
             rootDirname,
-            // <- TODO: [🍇]
         },
     );
 

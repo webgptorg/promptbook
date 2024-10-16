@@ -14,7 +14,6 @@ describe('how creating knowledge from docx works', () => {
                 // TODO: !!!!!! use `locate-app` library here
                 pandocPath: 'C:/Users/me/AppData/Local/Pandoc/pandoc.exe',
             },
-            // <- TODO: [🍇]
         },
     );
 

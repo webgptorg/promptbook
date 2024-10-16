@@ -15,7 +15,6 @@ describe('how creating knowledge from docx works', () => {
                 pandocPath: 'C:/Users/me/AppData/Local/Pandoc/pandoc.exe',
                 libreOfficePath: 'C:/Program Files/LibreOffice/program/swriter.exe',
             },
-            // <- TODO: [🍇]
         },
     );
 
