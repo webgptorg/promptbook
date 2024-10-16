@@ -53,7 +53,7 @@ You can just use `createLlmToolsFromEnv` function to create LLM tools from envir
 ```typescript
 import { createPipelineExecutor, createCollectionFromDirectory, assertsExecutionSuccessful } from '@promptbook/core';
 import { JavascriptExecutionTools } from '@promptbook/execute-javascript';
-import { createLlmToolsFromEnv } from '@promptbook/node';
+import { $provideExecutionToolsForNode } from '@promptbook/node';
 
 // ▶ Create whole pipeline collection
 const collection = await createCollectionFromDirectory('./promptbook-collection');
@@ -61,18 +61,8 @@ const collection = await createCollectionFromDirectory('./promptbook-collection'
 // ▶ Get single Pipeline
 const pipeline = await collection.getPipelineByUrl(`https://promptbook.studio/my-collection/write-article.ptbk.md`);
 
-// ▶ Prepare multiple tools
-const tools = {
-    // Note: 🧙‍♂️ Just call `createLlmToolsFromEnv` to automatically connect to all configured providers
-    llm: createLlmToolsFromEnv(),
-    script: [
-        new JavascriptExecutionTools(),
-        //            <- TODO: [🧱] Implement in a functional (not new Class) way
-    ],
-};
-
 // ▶ Create executor - the function that will execute the Pipeline
-const pipelineExecutor = createPipelineExecutor({ pipeline, tools });
+const pipelineExecutor = createPipelineExecutor({ pipeline, tools: $provideExecutionToolsForNode() });
 
 // ▶ Prepare input parameters
 const inputParameters = { word: 'dog' };

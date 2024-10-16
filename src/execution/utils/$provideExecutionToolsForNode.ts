@@ -1,11 +1,15 @@
-import { IS_AUTO_INSTALLED, IS_VERBOSE } from '../../../config';
 import { EnvironmentMismatchError } from '../../../errors/EnvironmentMismatchError';
 import { PrepareAndScrapeOptions } from '../../../prepare/PrepareAndScrapeOptions';
 import { $isRunningInNode } from '../../../utils/environment/$isRunningInNode';
-import { TODO_USE } from '../../../utils/organization/TODO_USE';
+import { JavascriptExecutionTools } from '../../_packages/execute-javascript.index';
+import { createLlmToolsFromEnv } from '../../_packages/node.index';
+import { $provideScrapersForNode } from '../../scrapers/_common/register/$provideScrapersForNode';
+import { ExecutionTools } from '../ExecutionTools';
 
 /**
- * !!!!!!
+ * Note: There is unfortunately no equivalent for this function in the browser environment
+ *       because it is not possible automatically detect configured LLM providers
+ *       you need to provide them manually BUT you can help by utilities like `$provideScrapersForBrowser()`
  *
  * @public exported from `@promptbook/node`
  */
@@ -14,19 +18,18 @@ export async function $provideExecutionToolsForNode(options?: PrepareAndScrapeOp
         throw new EnvironmentMismatchError('Function `$getExecutionToolsForNode` works only in Node.js environment');
     }
 
-    const { isAutoInstalled = IS_AUTO_INSTALLED, isVerbose = IS_VERBOSE } = options;
+    const tools = {
+        llm: createLlmToolsFromEnv(options),
+        scrapers: await $provideScrapersForNode(options),
+        script: [
+            new JavascriptExecutionTools(
+                //            <- TODO: [🧱] Implement in a functional (not new Class) way
+                options,
+            ),
+        ],
+    } satisfies ExecutionTools;
 
-    TODO_USE(mimeType);
-    TODO_USE(isAutoInstalled);
-    TODO_USE(isVerbose);
-
-    /*
-    for (const scraper of $scrapersMetadataRegister.list()) {
-
-    }
-    */
-
-    return [];
+    return tools;
 }
 
 /**

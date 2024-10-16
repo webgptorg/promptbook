@@ -11,9 +11,6 @@ import { forTime } from 'waitasecond';
 import { createCollectionFromDirectory } from '../../src/collection/constructors/createCollectionFromDirectory';
 import { createPipelineExecutor } from '../../src/execution/00-createPipelineExecutor';
 import { usageToHuman } from '../../src/execution/utils/usageToHuman';
-import { createLlmToolsFromEnv } from '../../src/llm-providers/_common/createLlmToolsFromEnv';
-import { JavascriptExecutionTools } from '../../src/scripting/javascript/JavascriptExecutionTools';
-import { $provideScrapersForNode } from '../../src/scrapers/_common/register/$provideScrapersForNode';
 
 if (process.cwd() !== join(__dirname, '../..')) {
     console.error(colors.red(`CWD must be root of the project`));
@@ -47,22 +44,10 @@ async function playground() {
 
     await forTime(100);
 
-    const tools = {
-        llm: createLlmToolsFromEnv({
-            isVerbose: true,
-        }),
-        scrapers: await $provideScrapersForNode(),
-        script: [
-            new JavascriptExecutionTools(
-                //            <- TODO: [🧱] Implement in a functional (not new Class) way
-                {
-                    isVerbose: false,
-                },
-            ),
-        ],
-    };
-
-    const pipelineExecutor = createPipelineExecutor({ pipeline, tools });
+    const pipelineExecutor = createPipelineExecutor({
+        pipeline,
+        tools: $provideExecutionToolsForNode({ isVerbose: true }),
+    });
 
     const inputParameters = {
         eventTitle: 'Biennial of Animation Bratislava',

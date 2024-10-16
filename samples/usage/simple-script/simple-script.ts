@@ -66,19 +66,7 @@ async function main() {
 
     await forTime(100);
 
-    const tools = {
-        llm: createLlmToolsFromEnv(),
-        script: [
-            new JavascriptExecutionTools(
-                //            <- TODO: [🧱] Implement in a functional (not new Class) way
-                {
-                    isVerbose: true,
-                },
-            ),
-        ],
-    };
-
-    const pipelineExecutor = createPipelineExecutor({ pipeline, tools });
+    const pipelineExecutor = createPipelineExecutor({ pipeline, tools: $provideExecutionToolsForNode() });
 
     const inputParameters = {
         /*/
