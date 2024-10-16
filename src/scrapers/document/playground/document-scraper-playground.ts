@@ -38,19 +38,19 @@ async function playground() {
     const llmTools = getLlmToolsForTestingAndScriptsAndPlayground({ isCacheReloaded: true });
     const rootDirname = join(__dirname, '..', 'samples');
 
-    const documentScraper = new DocumentScraper();
-
-    const knowledge = await documentScraper.scrape(
-        await makeKnowledgeSourceHandler({ sourceContent: sample }, { rootDirname }),
+    const documentScraper = new DocumentScraper(
+        { llm: getLlmToolsForTestingAndScriptsAndPlayground() },
         {
-            llmTools,
-            isVerbose,
             rootDirname,
             externalProgramsPaths: {
                 // TODO: !!!!!! use `locate-app` library here
                 pandocPath: 'C:/Users/me/AppData/Local/Pandoc/pandoc.exe',
             },
         },
+    );
+
+    const knowledge = await documentScraper.scrape(
+        await makeKnowledgeSourceHandler({ sourceContent: sample }, { rootDirname }),
     );
 
     console.info(colors.cyan(usageToHuman(llmTools.getTotalUsage())));

@@ -37,15 +37,15 @@ async function playground() {
     const llmTools = getLlmToolsForTestingAndScriptsAndPlayground({ isCacheReloaded: true });
     const rootDirname = join(__dirname, '..', 'samples');
 
-    const markdownScraper = new MarkdownScraper();
+    const markdownScraper = new MarkdownScraper(
+        { llm: getLlmToolsForTestingAndScriptsAndPlayground() },
+        {
+            rootDirname,
+        },
+    );
 
     const knowledge = await markdownScraper.scrape(
         await makeKnowledgeSourceHandler({ sourceContent: sample }, { rootDirname }),
-        {
-            llmTools,
-            isVerbose,
-            rootDirname,
-        },
     );
 
     console.info(colors.cyan(usageToHuman(llmTools.getTotalUsage())));

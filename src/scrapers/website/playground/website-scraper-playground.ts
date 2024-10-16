@@ -12,7 +12,7 @@ import { titleToName } from '../../../conversion/utils/titleToName';
 import { usageToHuman } from '../../../execution/utils/usageToHuman';
 import { getLlmToolsForTestingAndScriptsAndPlayground } from '../../../llm-providers/_common/getLlmToolsForTestingAndScriptsAndPlayground';
 import { makeKnowledgeSourceHandler } from '../../_common/utils/makeKnowledgeSourceHandler';
-import { websiteScraper } from '../WebsiteScraper';
+import { WebsiteScraper } from '../WebsiteScraper';
 
 const isVerbose = true;
 
@@ -39,19 +39,15 @@ async function playground() {
     const llmTools = getLlmToolsForTestingAndScriptsAndPlayground({ isCacheReloaded: true });
     const rootDirname = join(__dirname, 'samples');
 
+    const websiteScraper = new WebsiteScraper(
+        { llm: getLlmToolsForTestingAndScriptsAndPlayground() },
+        {
+            rootDirname,
+        },
+    );
+
     const knowledge = await websiteScraper.scrape(
         await makeKnowledgeSourceHandler({ sourceContent: sample }, { rootDirname }),
-        {
-            llmTools,
-            isVerbose,
-            rootDirname,
-            isCacheCleaned: false,
-            // TODO: !!!!!! Maybe remove or modify
-            externalProgramsPaths: {
-                // TODO: !!!!!! use `locate-app` library here
-                pandocPath: 'C:/Users/me/AppData/Local/Pandoc/pandoc.exe',
-            },
-        },
     );
 
     console.info(colors.cyan(usageToHuman(llmTools.getTotalUsage())));

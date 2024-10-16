@@ -11,7 +11,7 @@ import { stringifyPipelineJson } from '../../../conversion/utils/stringifyPipeli
 import { usageToHuman } from '../../../execution/utils/usageToHuman';
 import { getLlmToolsForTestingAndScriptsAndPlayground } from '../../../llm-providers/_common/getLlmToolsForTestingAndScriptsAndPlayground';
 import { makeKnowledgeSourceHandler } from '../../_common/utils/makeKnowledgeSourceHandler';
-import { pdfScraper } from '../PdfScraper';
+import { PdfScraper } from '../PdfScraper';
 
 const isVerbose = true;
 
@@ -38,18 +38,15 @@ async function playground() {
     const llmTools = getLlmToolsForTestingAndScriptsAndPlayground({ isCacheReloaded: true });
     const rootDirname = join(__dirname, '..', 'samples');
 
+    const pdfScraper = new PdfScraper(
+        { llm: getLlmToolsForTestingAndScriptsAndPlayground() },
+        {
+            rootDirname,
+        },
+    );
+
     const knowledge = await pdfScraper.scrape(
         await makeKnowledgeSourceHandler({ sourceContent: sample }, { rootDirname }),
-        {
-            llmTools,
-            isVerbose,
-            rootDirname,
-            externalProgramsPaths: {
-                // TODO: !!!!!! use `locate-app` library here + do auto-installation of the programs
-                pandocPath: 'C:/Users/me/AppData/Local/Pandoc/pandoc.exe',
-                libreOfficePath: 'C:/Program Files/LibreOffice/program/swriter.exe',
-            },
-        },
     );
 
     console.info(colors.cyan(usageToHuman(llmTools.getTotalUsage())));
