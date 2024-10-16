@@ -16,6 +16,7 @@ import type { Scraper, ScraperSourceHandler } from '../_common/Scraper';
 import type { ScraperIntermediateSource } from '../_common/ScraperIntermediateSource';
 import { getScraperIntermediateSource } from '../_common/utils/getScraperIntermediateSource';
 import { DocumentScraperOptions } from './DocumentScraperOptions';
+import { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';
 
 /**
  * Scraper of .docx and .odt files
@@ -34,7 +35,7 @@ export class DocumentScraper implements Converter, Scraper {
      */
     public readonly documentationUrl = 'https://github.com/webgptorg/promptbook/discussions/@@';
 
-    public constructor(private readonly options: DocumentScraperOptions) {}
+    public constructor(private readonly options: PrepareAndScrapeOptions) {}
 
     /**
      * Convert the `.docx` or `.odt`  to `.md` file and returns intermediate source

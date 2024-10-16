@@ -11,7 +11,7 @@ import { stringifyPipelineJson } from '../../../conversion/utils/stringifyPipeli
 import { usageToHuman } from '../../../execution/utils/usageToHuman';
 import { getLlmToolsForTestingAndScriptsAndPlayground } from '../../../llm-providers/_common/getLlmToolsForTestingAndScriptsAndPlayground';
 import { makeKnowledgeSourceHandler } from '../../_common/utils/makeKnowledgeSourceHandler';
-import { markdownScraper } from '../MarkdownScraper';
+import { MarkdownScraper } from '../MarkdownScraper';
 
 const isVerbose = true;
 
@@ -36,6 +36,8 @@ async function playground() {
 
     const llmTools = getLlmToolsForTestingAndScriptsAndPlayground({ isCacheReloaded: true });
     const rootDirname = join(__dirname, '..', 'samples');
+
+    const markdownScraper = new MarkdownScraper();
 
     const knowledge = await markdownScraper.scrape(
         await makeKnowledgeSourceHandler({ sourceContent: sample }, { rootDirname }),
