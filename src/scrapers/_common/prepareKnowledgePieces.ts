@@ -6,7 +6,7 @@ import type { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOpti
 import type { KnowledgePiecePreparedJson } from '../../types/PipelineJson/KnowledgePieceJson';
 import type { KnowledgeSourceJson } from '../../types/PipelineJson/KnowledgeSourceJson';
 
-import { $provideScrapers } from './register/$provideScrapers';
+import { arrayableToArray } from '../../utils/arrayableToArray';
 import { $registeredScrapersMessage } from './register/$registeredScrapersMessage';
 import { makeKnowledgeSourceHandler } from './utils/makeKnowledgeSourceHandler';
 
@@ -18,6 +18,7 @@ import { makeKnowledgeSourceHandler } from './utils/makeKnowledgeSourceHandler';
  */
 export async function prepareKnowledgePieces(
     knowledgeSources: Array<KnowledgeSourceJson>,
+    tools: Pick<ExecutionTools, 'llm' | 'scrapers'>,
     options: PrepareAndScrapeOptions,
 ): Promise<Array<Omit<KnowledgePiecePreparedJson, 'preparationIds'>>> {
     const { maxParallelCount = MAX_PARALLEL_COUNT, rootDirname, isVerbose = IS_VERBOSE } = options;
@@ -30,12 +31,7 @@ export async function prepareKnowledgePieces(
         let partialPieces: Omit<KnowledgePiecePreparedJson, 'preparationIds' | 'sources'>[] | null = null;
         const sourceHandler = await makeKnowledgeSourceHandler(knowledgeSource, { rootDirname, isVerbose });
 
-        for (const scraper of await $provideScrapers({
-            ...options,
-            mimeType: sourceHandler.mimeType,
-            //           <- TODO: [🦔]
-        })) {
-            // Note: Checking mime type here is probably redundant, because we already filtered scrapers by mime type in `$getScraper`
+        for (const scraper of arrayableToArray(tools.scrapers)) {
             if (
                 !scraper.mimeTypes.includes(sourceHandler.mimeType)
                 // <- TODO: [🦔] Implement mime-type wildcards

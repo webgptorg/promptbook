@@ -526,10 +526,11 @@ Knowledge scrapers [🐝]
 -   Make new package [`@promptbook/documents`](https://www.npmjs.com/package/@promptbook/documents)
 -   Make new package [`@promptbook/legacy-documents`](https://www.npmjs.com/package/@promptbook/legacy-documents)
 -   Make new package [`@promptbook/website-crawler`](https://www.npmjs.com/package/@promptbook/website-crawler)
--   Allow to import markdown files with knowledge <!-- <- TODO: [🐝] !!!!!! Implement -->
--   Allow to import `.docx` files with knowledge `.docx` -(Pandoc)-> `.md` <!-- <- TODO: [🐝] !!!!!! Implement -->
--   Allow to import `.doc` files with knowledge `.doc` -(LibreOffice)-> `.docx` -(Pandoc)-> `.md` <!-- <- TODO: [🐝] !!!!!! Implement -->
--   Allow to import `.rtf` files with knowledge `.rtf` -(LibreOffice)-> `.docx` -(Pandoc)-> `.md` <!-- <- TODO: [🐝] !!!!!! Implement -->
+-   Remove llm tools from `PrepareAndScrapeOptions` and add second arcument to misc preparation functions
+-   Allow to import markdown files with knowledge
+-   Allow to import `.docx` files with knowledge `.docx` -(Pandoc)-> `.md`
+-   Allow to import `.doc` files with knowledge `.doc` -(LibreOffice)-> `.docx` -(Pandoc)-> `.md`
+-   Allow to import `.rtf` files with knowledge `.rtf` -(LibreOffice)-> `.docx` -(Pandoc)-> `.md`
 -   Allow to import websites with knowledge
 -   Add new error `KnowledgeScrapeError`
 -   Remove `PipelineStringToJsonOptions` in favour of `PrepareAndScrapeOptions`
@@ -537,6 +538,8 @@ Knowledge scrapers [🐝]
 -   Change `FileStorage` -> `FileCacheStorage`
 -   Changed behavior of `titleToName` when passing URLs or file paths
 -   Fix normalize functions when normalizing string containing slash char "/", "\"
+-   Add utilities `$provideExecutionToolsForBrowser` and `$provideExecutionToolsForNode` and use them in samples
+-   Add utilities `$provideScrapersForBrowser` and `$provideScrapersForNode`
 
 ### `0.72.0` _(2024-09-)_
 

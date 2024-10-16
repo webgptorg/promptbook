@@ -1,3 +1,4 @@
+import { Scraper } from '../_packages/types.index';
 import type { Arrayable } from '../types/Arrayable';
 import type { LlmExecutionTools } from './LlmExecutionTools';
 import type { ScriptExecutionTools } from './ScriptExecutionTools';
@@ -10,12 +11,22 @@ import type { UserInterfaceTools } from './UserInterfaceTools';
  */
 export type ExecutionTools = {
     /**
-     * Tools for executing prompts to large language models like GPT-4
+     * Tools for executing prompts in large language models
      *
      * Tip: Use `createLlmToolsFromEnv()` to use all available LLM providers you configured
-     * @see https://github.com/webgptorg/promptbook/?tab=readme-ov-file#llm-execution-tools
+     *
+     * @default [] - If not provided, no LLM execution will be possible - it does not make sense in most cases
      */
     readonly llm?: Arrayable<LlmExecutionTools>;
+
+    /**
+     * Scrapers for extracting knowledge from external sources
+     *
+     * Tip: Use `$provideScrapersForNode()` OR `$provideScrapersForBrowser()` to use all available scrapers
+     *
+     * @default [] - If not provided, no external knowledge extraction will be possible
+     */
+    readonly scrapers?: Arrayable<Scraper>;
 
     /**
      * Tools for executing scripts
@@ -24,7 +35,6 @@ export type ExecutionTools = {
      *       If none of them supports the script, an error is thrown
      * Tip: Use here `new JavascriptExecutionTools()`
      *
-     * @see https://github.com/webgptorg/promptbook/?tab=readme-ov-file#script-execution-tools
      * @default [] - If not provided, no script execution will be possible
      */
     readonly script?: Arrayable<ScriptExecutionTools>;
@@ -33,7 +43,11 @@ export type ExecutionTools = {
      * Tools for interacting with the user
      *
      * Note: When undefined, the user interface is disabled and promptbook which requires user interaction will fail
-     * @see https://github.com/webgptorg/promptbook/?tab=readme-ov-file#user-interface-tools
      */
     readonly userInterface?: UserInterfaceTools;
 };
+
+/**
+ * TODO: [🍂] Maybe make llm = createLlmToolsFromEnv() without problem with bundle contaminated by only `@promptbook/node` and `@promptbook/cli` stuff
+ * TODO: [🍂] Same with scrapers
+ */

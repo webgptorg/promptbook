@@ -1,3 +1,4 @@
+import { ExecutionTools } from '../_packages/types.index';
 import type { PrepareAndScrapeOptions } from '../prepare/PrepareAndScrapeOptions';
 import { preparePipeline } from '../prepare/preparePipeline';
 import type { PipelineJson } from '../types/PipelineJson/PipelineJson';
@@ -23,6 +24,7 @@ import { pipelineStringToJsonSync } from './pipelineStringToJsonSync';
  */
 export async function pipelineStringToJson(
     pipelineString: PipelineString,
+    tools: Pick<ExecutionTools, 'llm' | 'scrapers'>,
     options?: PrepareAndScrapeOptions,
 ): Promise<PipelineJson> {
     const { llmTools } = options || {};

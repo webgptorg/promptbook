@@ -1,15 +1,9 @@
-import type { LlmExecutionTools } from '../execution/LlmExecutionTools';
 import type { string_dirname } from '../types/typeAliases';
 
 /**
  * Options for preparation of the pipeline
  */
 export type PrepareAndScrapeOptions = {
-    /**
-     * LLM tools
-     */
-    readonly llmTools?: LlmExecutionTools;
-
     /**
      * Path to the root folder of the pipeline
      *
@@ -62,6 +56,11 @@ export type PrepareAndScrapeOptions = {
          */
         readonly libreOfficePath?: string;
     };
+
+    /**
+     * If true, the missing software is automatically installed
+     */
+    readonly isAutoInstalled?: boolean;
 
     /**
      * If true, the preparation logs additional information

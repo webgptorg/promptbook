@@ -3,20 +3,20 @@ import { EnvironmentMismatchError } from '../../../errors/EnvironmentMismatchErr
 import { PrepareAndScrapeOptions } from '../../../prepare/PrepareAndScrapeOptions';
 import { $isRunningInNode } from '../../../utils/environment/$isRunningInNode';
 import { TODO_USE } from '../../../utils/organization/TODO_USE';
-import { Scraper } from '../Scraper';
 
 /**
  * !!!!!!
  *
  * @public exported from `@promptbook/node`
  */
-export async function $provideScrapersForNode(options: PrepareAndScrapeOptions): Promise<Array<Scraper>> {
+export async function $provideExecutionToolsForNode(options?: PrepareAndScrapeOptions): Promise<ExecutionTools> {
     if (!$isRunningInNode()) {
-        throw new EnvironmentMismatchError('Function `$getScrapersForNode` works only in Node.js environment');
+        throw new EnvironmentMismatchError('Function `$getExecutionToolsForNode` works only in Node.js environment');
     }
 
     const { isAutoInstalled = IS_AUTO_INSTALLED, isVerbose = IS_VERBOSE } = options;
 
+    TODO_USE(mimeType);
     TODO_USE(isAutoInstalled);
     TODO_USE(isVerbose);
 
@@ -24,11 +24,11 @@ export async function $provideScrapersForNode(options: PrepareAndScrapeOptions):
     for (const scraper of $scrapersMetadataRegister.list()) {
 
     }
-        */
+    */
 
     return [];
 }
 
 /**
- * Note: [🟡 <- TODO: !!!!!! Included in $provideScrapers] Code in this file should never be published outside of `@promptbook/cli`
+ * Note: [🟡 <- TODO: !!!!!! Included in $provideExecutionTools] Code in this file should never be published outside of `@promptbook/cli`
  */

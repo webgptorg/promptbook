@@ -1,7 +1,7 @@
 import type { Writable } from 'type-fest';
-import { IS_VERBOSE } from '../config';
-import { MAX_PARALLEL_COUNT } from '../config';
+import { IS_VERBOSE, MAX_PARALLEL_COUNT } from '../config';
 import { MissingToolsError } from '../errors/MissingToolsError';
+import { ExecutionTools } from '../execution/ExecutionTools';
 import { ZERO_USAGE } from '../execution/utils/addUsage';
 import { forEachAsync } from '../execution/utils/forEachAsync';
 import { countTotalUsage } from '../llm-providers/_common/utils/count-total-usage/countTotalUsage';
@@ -25,7 +25,11 @@ import { prepareTemplates } from './prepareTemplates';
  * Note: When the pipeline is already prepared, it returns the same pipeline
  * @public exported from `@promptbook/core`
  */
-export async function preparePipeline(pipeline: PipelineJson, options: PrepareAndScrapeOptions): Promise<PipelineJson> {
+export async function preparePipeline(
+    pipeline: PipelineJson,
+    tools: Pick<ExecutionTools, 'llm' | 'scrapers'>,
+    options: PrepareAndScrapeOptions,
+): Promise<PipelineJson> {
     if (isPipelinePrepared(pipeline)) {
         return pipeline;
     }

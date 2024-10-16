@@ -27,6 +27,7 @@ type PreparedTemplates = {
  */
 export async function prepareTemplates(
     pipeline: PrepareTemplateInput,
+    tools: Pick<ExecutionTools, 'llm' | 'scrapers'>,
     options: PrepareAndScrapeOptions,
 ): Promise<PreparedTemplates> {
     const { maxParallelCount = MAX_PARALLEL_COUNT } = options;
