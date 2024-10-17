@@ -1,6 +1,6 @@
 {
     "name": "promptbook",
-    "version": "0.71.0-9",
+    "version": "0.71.0-11",
     "description": "Supercharge your use of large language models",
     "private": false,
     "sideEffects": false,
@@ -46,5 +46,29 @@
             "type": "github",
             "url": "https://github.com/webgptorg/promptbook/blob/main/README.md#%EF%B8%8F-contributing"
         }
-    ]
+    ],
+    "peerDependencies": {
+        "@promptbook/core": "0.71.0-11"
+    },
+    "dependencies": {
+        "@promptbook/anthropic-claude": "0.71.0-11",
+        "@promptbook/azure-openai": "0.71.0-11",
+        "@promptbook/browser": "0.71.0-11",
+        "@promptbook/cli": "0.71.0-11",
+        "@promptbook/core": "0.71.0-11",
+        "@promptbook/documents": "0.71.0-11",
+        "@promptbook/execute-javascript": "0.71.0-11",
+        "@promptbook/fake-llm": "0.71.0-11",
+        "@promptbook/langtail": "0.71.0-11",
+        "@promptbook/legacy-documents": "0.71.0-11",
+        "@promptbook/markdown-utils": "0.71.0-11",
+        "@promptbook/node": "0.71.0-11",
+        "@promptbook/openai": "0.71.0-11",
+        "@promptbook/pdf": "0.71.0-11",
+        "@promptbook/remote-client": "0.71.0-11",
+        "@promptbook/remote-server": "0.71.0-11",
+        "@promptbook/types": "0.71.0-11",
+        "@promptbook/utils": "0.71.0-11",
+        "@promptbook/website-crawler": "0.71.0-11"
+    }
 }

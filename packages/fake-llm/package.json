@@ -1,6 +1,6 @@
 {
     "name": "@promptbook/fake-llm",
-    "version": "0.71.0-9",
+    "version": "0.71.0-11",
     "description": "Supercharge your use of large language models",
     "private": false,
     "sideEffects": false,
@@ -46,5 +46,17 @@
             "type": "github",
             "url": "https://github.com/webgptorg/promptbook/blob/main/README.md#%EF%B8%8F-contributing"
         }
-    ]
+    ],
+    "main": "./umd/index.umd.js",
+    "module": "./esm/index.es.js",
+    "typings": "./esm/typings/src/_packages/fake-llm.index.d.ts",
+    "peerDependencies": {
+        "@promptbook/core": "0.71.0-11"
+    },
+    "dependencies": {
+        "lorem-ipsum": "2.0.8",
+        "prettier": "2.8.1",
+        "spacetrim": "0.11.39",
+        "waitasecond": "1.11.83"
+    }
 }
