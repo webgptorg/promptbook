@@ -1,5 +1,8 @@
+import { ExecutionTools } from '../../execution/ExecutionTools';
+import { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';
 import { ScraperConstructor } from '../_common/ScraperConstructor';
-import { PdfScraperOptions } from './PdfScraperOptions';
+import { PdfScraper } from './PdfScraper';
+import { pdfScraperMetadata } from './register-metadata';
 
 /**
  * @@@
@@ -7,16 +10,12 @@ import { PdfScraperOptions } from './PdfScraperOptions';
  * @public exported from `@promptbook/pdf`
  */
 export const createPdfScraper = Object.assign(
-    (options: PdfScraperOptions): PdfScraper => {
-        return new PdfScraper(options);
+    (tools: Pick<ExecutionTools, 'llm'>, options: PrepareAndScrapeOptions): PdfScraper => {
+        return new PdfScraper(tools, options);
     },
-    {
-        packageName: '@promptbook/pdf',
-        className: 'PdfScraper',
-    },
+    pdfScraperMetadata,
 ) satisfies ScraperConstructor;
 
 /**
- * TODO: [🦺] Is there some way how to put `packageName` and `className` on top and function definition on bottom?
  * TODO: [🎶] Naming "constructor" vs "creator" vs "factory"
  */
