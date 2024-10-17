@@ -31,7 +31,7 @@ export async function $isDirectoryExisting(directoryPath: string_dirname): Promi
 }
 
 /**
- * Note: [🟢] Code in this file should never be published outside of `@promptbook/node` and `@promptbook/cli`
+ * Note: [🟢] Code in this file should never be never released in packages that could be imported into browser environment
  * TODO: [🐠] This can be a validator - with variants that return true/false and variants that throw errors with meaningless messages
  * TODO: [🧠][📂] "directory" vs "folder"
  * TODO: [🖇] What about symlinks?

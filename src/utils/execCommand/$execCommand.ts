@@ -107,5 +107,5 @@ export function $execCommand(options: IExecCommandOptions): Promise<string> {
 }
 
 /**
- * Note: [🟢] Code in this file should never be published outside of `@promptbook/node` and `@promptbook/cli`
+ * Note: [🟢] Code in this file should never be never released in packages that could be imported into browser environment
  */

@@ -1,5 +1,4 @@
-import { IS_AUTO_INSTALLED } from '../../../config';
-import { IS_VERBOSE } from '../../../config';
+import { IS_AUTO_INSTALLED, IS_VERBOSE } from '../../../config';
 import { EnvironmentMismatchError } from '../../../errors/EnvironmentMismatchError';
 import type { ExecutionTools } from '../../../execution/ExecutionTools';
 import type { PrepareAndScrapeOptions } from '../../../prepare/PrepareAndScrapeOptions';
@@ -42,5 +41,5 @@ export async function $provideScrapersForNode(
 }
 
 /**
- * Note: [🟢] Code in this file should never be published outside of `@promptbook/node` and `@promptbook/cli`
+ * Note: [🟢] Code in this file should never be never released in packages that could be imported into browser environment
  */

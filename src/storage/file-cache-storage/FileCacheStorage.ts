@@ -93,5 +93,5 @@ export class FileCacheStorage<TItem> implements PromptbookStorage<TItem> {
 
 /**
  * TODO: [🌗] Maybe some checkers, not all valid JSONs are desired and valid values
- * Note: [🟢] Code in this file should never be published outside of `@promptbook/node` and `@promptbook/cli`
+ * Note: [🟢] Code in this file should never be never released in packages that could be imported into browser environment
  */

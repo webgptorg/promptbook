@@ -196,5 +196,5 @@ export class LegacyDocumentScraper implements Converter, Scraper {
  * TODO: [👣] Converted documents can act as cached items - there is no need to run conversion each time
  * TODO: [🪂] Do it in parallel 11:11
  * Note: No need to aggregate usage here, it is done by intercepting the llmTools
- * Note: [🟢] Code in this file should never be published outside of `@promptbook/node` and `@promptbook/cli`
+ * Note: [🟢] Code in this file should never be never released in packages that could be imported into browser environment
  */

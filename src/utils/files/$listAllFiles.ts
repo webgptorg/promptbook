@@ -1,8 +1,7 @@
 import { readdir } from 'fs/promises';
 import { join } from 'path';
 import { EnvironmentMismatchError } from '../../errors/EnvironmentMismatchError';
-import type { string_dirname } from '../../types/typeAliases';
-import type { string_filename } from '../../types/typeAliases';
+import type { string_dirname, string_filename } from '../../types/typeAliases';
 import { $isRunningInNode } from '../environment/$isRunningInNode';
 import { $isDirectoryExisting } from './$isDirectoryExisting';
 
@@ -46,6 +45,6 @@ export async function $listAllFiles(path: string_dirname, isRecursive: boolean):
 
 /**
  * TODO: [😶] Unite floder listing
- * Note: [🟢] Code in this file should never be published outside of `@promptbook/node` and `@promptbook/cli`
+ * Note: [🟢] Code in this file should never be never released in packages that could be imported into browser environment
  * TODO: [🖇] What about symlinks?
  */

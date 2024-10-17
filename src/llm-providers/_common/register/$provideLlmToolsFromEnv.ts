@@ -55,7 +55,7 @@ export function $provideLlmToolsFromEnv(
  * TODO: @@@ write `$provideLlmToolsFromEnv` vs `$provideLlmToolsConfigurationFromEnv` vs `createLlmToolsFromConfiguration`
  * TODO: [🧠][🍛] Which name is better `$provideLlmToolsFromEnv` or `$provideLlmToolsFromEnvironment`?
  * TODO: [🧠] Is there some meaningfull way how to test this util
- * Note: [🟢] Code in this file should never be published outside of `@promptbook/node` and `@promptbook/cli`
+ * Note: [🟢] Code in this file should never be never released in packages that could be imported into browser environment
  * TODO: [🥃] Allow `ptbk make` without llm tools
  * TODO: This should be maybe not under `_common` but under `utils`
  * TODO: [®] DRY Register logic

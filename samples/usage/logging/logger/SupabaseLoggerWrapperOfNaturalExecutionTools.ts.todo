@@ -116,5 +116,5 @@ export class SupabaseLoggerWrapperOfLlmExecutionTools implements LlmExecutionToo
  * TODO: [⚾️] Log also failed results
  * TODO: [⚾️][🧠] Maybe do equivalent for UserInterfaceTools OR make this for whole ExecutionTools
  * TODO: [⚾️] Create abstract LoggerWrapperOfLlmExecutionTools which can be extended to implement more loggers
- * Note: [🟢] Code in this file should never be published outside of `@promptbook/node` and `@promptbook/cli`
+ * Note: [🟢] Code in this file should never be never released in packages that could be imported into browser environment
  */
