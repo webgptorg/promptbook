@@ -10,12 +10,12 @@ import type { Scraper } from '../Scraper';
  *
  * @public exported from `@promptbook/node`
  */
-export async function $provideScrapersForNode(options: PrepareAndScrapeOptions): Promise<Array<Scraper>> {
+export async function $provideScrapersForNode(options?: PrepareAndScrapeOptions): Promise<Array<Scraper>> {
     if (!$isRunningInNode()) {
         throw new EnvironmentMismatchError('Function `$getScrapersForNode` works only in Node.js environment');
     }
 
-    const { isAutoInstalled = IS_AUTO_INSTALLED, isVerbose = IS_VERBOSE } = options;
+    const { isAutoInstalled = IS_AUTO_INSTALLED, isVerbose = IS_VERBOSE } = options || {};
 
     TODO_USE(isAutoInstalled);
     TODO_USE(isVerbose);

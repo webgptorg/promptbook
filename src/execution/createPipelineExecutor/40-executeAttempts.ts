@@ -1,21 +1,18 @@
 import { spaceTrim } from 'spacetrim';
 import type { ReadonlyDeep } from 'type-fest';
+import { joinLlmExecutionTools } from '../../_packages/core.index';
 import { ExpectError } from '../../errors/ExpectError';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import { serializeError } from '../../errors/utils/serializeError';
 import { isValidJsonString } from '../../formats/json/utils/isValidJsonString';
-import { MultipleLlmExecutionTools } from '../../llm-providers/multiple/MultipleLlmExecutionTools';
 import { extractJsonBlock } from '../../postprocessing/utils/extractJsonBlock';
 import type { ExecutionReportJson } from '../../types/execution-report/ExecutionReportJson';
 import type { ModelRequirements } from '../../types/ModelRequirements';
 import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import type { TemplateJson } from '../../types/PipelineJson/TemplateJson';
-import type { ChatPrompt } from '../../types/Prompt';
-import type { CompletionPrompt } from '../../types/Prompt';
-import type { Prompt } from '../../types/Prompt';
-import type { Parameters } from '../../types/typeAliases';
-import type { string_parameter_name } from '../../types/typeAliases';
+import type { ChatPrompt, CompletionPrompt, Prompt } from '../../types/Prompt';
+import type { Parameters, string_parameter_name } from '../../types/typeAliases';
 import { arrayableToArray } from '../../utils/arrayableToArray';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import type { really_any } from '../../utils/organization/really_any';
@@ -72,12 +69,7 @@ export type ExecuteAttemptsOptions = {
     /**
      * @@@
      */
-    readonly tools: Omit<ExecutionTools, 'llm'>;
-
-    /**
-     * @@@
-     */
-    readonly llmTools: MultipleLlmExecutionTools;
+    readonly tools: ExecutionTools;
 
     /**
      * Settings for the pipeline executor
@@ -110,7 +102,6 @@ export async function executeAttempts(options: ExecuteAttemptsOptions): Promise<
         template,
         preparedPipeline,
         tools,
-        llmTools,
         settings,
         $executionReport,
         pipelineIdentification,
@@ -123,6 +114,9 @@ export async function executeAttempts(options: ExecuteAttemptsOptions): Promise<
         $expectError: null,
         $scriptPipelineExecutionErrors: [],
     };
+
+    const llms = arrayableToArray(tools.llm);
+    const llmTools = llms.length === 1 ? llms[0]! : joinLlmExecutionTools(...llms);
 
     attempts: for (let attempt = -jokerParameterNames.length; attempt < maxAttempts; attempt++) {
         const isJokerAttempt = attempt < 0;
@@ -201,7 +195,8 @@ export async function executeAttempts(options: ExecuteAttemptsOptions): Promise<
 
                             variant: switch (modelRequirements.modelVariant) {
                                 case 'CHAT':
-                                    $ongoingTemplateResult.$chatResult = await llmTools.callChatModel(
+                                    $ongoingTemplateResult.$chatResult = await llmTools.callChatModel!(
+                                        // <- TODO: [🧁] Check that `callChatModel` is defined
                                         $deepFreeze($ongoingTemplateResult.$prompt) as ChatPrompt,
                                     );
                                     // TODO: [🍬] Destroy chatThread
@@ -209,7 +204,8 @@ export async function executeAttempts(options: ExecuteAttemptsOptions): Promise<
                                     $ongoingTemplateResult.$resultString = $ongoingTemplateResult.$chatResult.content;
                                     break variant;
                                 case 'COMPLETION':
-                                    $ongoingTemplateResult.$completionResult = await llmTools.callCompletionModel(
+                                    $ongoingTemplateResult.$completionResult = await llmTools.callCompletionModel!(
+                                        // <- TODO: [🧁] Check that `callCompletionModel` is defined
                                         $deepFreeze($ongoingTemplateResult.$prompt) as CompletionPrompt,
                                     );
                                     $ongoingTemplateResult.$result = $ongoingTemplateResult.$completionResult;
