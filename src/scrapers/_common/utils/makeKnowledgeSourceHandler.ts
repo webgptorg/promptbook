@@ -29,7 +29,11 @@ export async function makeKnowledgeSourceHandler(
 ): Promise<ScraperSourceHandler> {
     const { sourceContent } = knowledgeSource;
     let { name } = knowledgeSource;
-    const { rootDirname = null, isVerbose = IS_VERBOSE } = options || {};
+    const {
+        rootDirname = null,
+        // <- TODO: process.cwd() if running in Node.js
+        isVerbose = IS_VERBOSE,
+    } = options || {};
 
     TODO_USE(isVerbose);
 
@@ -99,7 +103,6 @@ export async function makeKnowledgeSourceHandler(
             mimeType,
             async asBlob() {
                 const content = await readFile(filename);
-                //  <- Note: Its OK to use sync in tooling for tests
                 return new Blob(
                     [
                         content,
@@ -111,11 +114,9 @@ export async function makeKnowledgeSourceHandler(
             },
             async asJson() {
                 return JSON.parse(await readFile(filename, 'utf-8'));
-                //  <- Note: Its OK to use sync in tooling for tests
             },
             async asText() {
                 return await readFile(filename, 'utf-8');
-                //  <- Note: Its OK to use sync in tooling for tests
             },
         };
     } else {
@@ -140,3 +141,7 @@ export async function makeKnowledgeSourceHandler(
         };
     }
 }
+
+/**
+ * TODO: !!!!!!! Maybe constrain to @promptbook/node bundle
+ */
