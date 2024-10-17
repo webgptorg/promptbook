@@ -16,6 +16,7 @@ import { usageToHuman } from '../../src/execution/utils/usageToHuman';
 import { forTime } from 'waitasecond';
 import { validatePipeline } from '../../src/conversion/validation/validatePipeline';
 import { $provideLlmToolsForTestingAndScriptsAndPlayground } from '../../src/llm-providers/_common/register/$provideLlmToolsForTestingAndScriptsAndPlayground';
+import { PrepareAndScrapeOptions } from '../../src/prepare/PrepareAndScrapeOptions';
 import { $provideScrapersForNode } from '../../src/scrapers/_common/register/$provideScrapersForNode';
 import { PipelineString } from '../../src/types/PipelineString';
 import { commit } from '../utils/autocommit/commit';
@@ -75,17 +76,18 @@ async function generateSampleJsons({
         const pipelineMarkdown = await readFile(pipelineMarkdownFilePath, 'utf-8');
 
         try {
+            const options: PrepareAndScrapeOptions = {
+                rootDirname: dirname(pipelineMarkdownFilePath),
+                externalProgramsPaths: {
+                    // TODO: !!!!!! use `locate-app` library here
+                    pandocPath: 'C:/Users/me/AppData/Local/Pandoc/pandoc.exe',
+                    libreOfficePath: 'C:/Program Files/LibreOffice/program/swriter.exe',
+                },
+            };
             const pipelineJson = await pipelineStringToJson(
                 pipelineMarkdown as PipelineString,
-                { llm, scrapers: await $provideScrapersForNode({ llm }) },
-                {
-                    rootDirname: dirname(pipelineMarkdownFilePath),
-                    externalProgramsPaths: {
-                        // TODO: !!!!!! use `locate-app` library here
-                        pandocPath: 'C:/Users/me/AppData/Local/Pandoc/pandoc.exe',
-                        libreOfficePath: 'C:/Program Files/LibreOffice/program/swriter.exe',
-                    },
-                },
+                { llm, scrapers: await $provideScrapersForNode({ llm }, options) },
+                options,
             );
 
             await forTime(0);
