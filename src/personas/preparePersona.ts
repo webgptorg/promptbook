@@ -1,11 +1,11 @@
 import PipelineCollection from '../../promptbook-collection/index.json';
-import { joinLlmExecutionTools } from '../_packages/core.index';
 import { createCollectionFromJson } from '../collection/constructors/createCollectionFromJson';
 import { IS_VERBOSE } from '../config';
 import { MissingToolsError } from '../errors/MissingToolsError';
 import { assertsExecutionSuccessful } from '../execution/assertsExecutionSuccessful';
 import { createPipelineExecutor } from '../execution/createPipelineExecutor/00-createPipelineExecutor';
 import type { ExecutionTools } from '../execution/ExecutionTools';
+import { joinLlmExecutionTools } from '../llm-providers/multiple/joinLlmExecutionTools';
 import type { PrepareAndScrapeOptions } from '../prepare/PrepareAndScrapeOptions';
 import type { PersonaPreparedJson } from '../types/PipelineJson/PersonaJson';
 import type { PipelineJson } from '../types/PipelineJson/PipelineJson';

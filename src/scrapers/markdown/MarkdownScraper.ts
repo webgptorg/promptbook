@@ -13,13 +13,13 @@ import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import { assertsExecutionSuccessful } from '../../execution/assertsExecutionSuccessful';
 import { createPipelineExecutor } from '../../execution/createPipelineExecutor/00-createPipelineExecutor';
 import type { ExecutionTools } from '../../execution/ExecutionTools';
+import { joinLlmExecutionTools } from '../../llm-providers/multiple/joinLlmExecutionTools';
 import type { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';
 import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
+import { arrayableToArray } from '../../utils/arrayableToArray';
 import type { TODO_any } from '../../utils/organization/TODO_any';
 import type { ScraperAndConverterMetadata } from '../_common/register/ScraperAndConverterMetadata';
 import { markdownScraperMetadata } from './register-metadata';
-import { arrayableToArray } from '../../utils/arrayableToArray';
-import { joinLlmExecutionTools } from '../../_packages/core.index';
 
 /**
  * Scraper for markdown files

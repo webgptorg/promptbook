@@ -14,7 +14,7 @@ export const createPdfScraper = Object.assign(
         return new PdfScraper(tools, options);
     },
     pdfScraperMetadata,
-) satisfies ScraperConstructor;
+) satisfies ScraperConstructor; /* <- TODO: [🤛] */
 
 /**
  * TODO: [🎶] Naming "constructor" vs "creator" vs "factory"

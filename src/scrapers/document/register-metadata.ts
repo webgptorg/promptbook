@@ -17,7 +17,7 @@ export const documentScraperMetadata = $deepFreeze({
 
     isAvilableInBrowser: false,
     requiredExecutables: ['!!!!!!'],
-}) satisfies ScraperAndConverterMetadata;
+}) satisfies ScraperAndConverterMetadata/* <- TODO: [🤛] */;
 
 /**
  * Registration of known scraper metadata

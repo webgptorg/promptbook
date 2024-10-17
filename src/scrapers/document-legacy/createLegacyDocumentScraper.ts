@@ -14,7 +14,7 @@ export const createLegacyDocumentScraper = Object.assign(
         return new LegacyDocumentScraper(tools, options);
     },
     legacyDocumentScraperMetadata,
-) satisfies ScraperConstructor;
+) satisfies ScraperConstructor; /* <- TODO: [🤛] */
 
 /**
  * TODO: [🎶] Naming "constructor" vs "creator" vs "factory"

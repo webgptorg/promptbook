@@ -174,13 +174,16 @@ export function startRemoteServer(options: RemoteServerOptions): IDestroyable {
                     console.info(colors.bgGreen(`PromptResult:`), colors.green(JSON.stringify(promptResult, null, 4)));
                 }
 
-                socket.emit('prompt-response', { promptResult } satisfies PromptbookServer_Prompt_Response/* <- TODO: [🤛] */);
+                socket.emit(
+                    'prompt-response',
+                    { promptResult } satisfies PromptbookServer_Prompt_Response /* <- TODO: [🤛] */,
+                );
             } catch (error) {
                 if (!(error instanceof Error)) {
                     throw error;
                 }
 
-                socket.emit('error', serializeError(error) satisfies PromptbookServer_Error/* <- TODO: [🤛] */);
+                socket.emit('error', serializeError(error) satisfies PromptbookServer_Error /* <- TODO: [🤛] */);
             } finally {
                 socket.disconnect();
             }
@@ -225,7 +228,10 @@ export function startRemoteServer(options: RemoteServerOptions): IDestroyable {
 
                 const models = await llmExecutionTools.listModels();
 
-                socket.emit('listModels-response', { models } satisfies PromptbookServer_ListModels_Response/* <- TODO: [🤛] */);
+                socket.emit(
+                    'listModels-response',
+                    { models } satisfies PromptbookServer_ListModels_Response /* <- TODO: [🤛] */,
+                );
             } catch (error) {
                 if (!(error instanceof Error)) {
                     throw error;

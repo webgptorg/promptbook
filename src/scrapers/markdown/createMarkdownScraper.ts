@@ -14,7 +14,7 @@ export const createMarkdownScraper = Object.assign(
         return new MarkdownScraper(tools, options);
     },
     markdownScraperMetadata,
-) satisfies ScraperConstructor;
+) satisfies ScraperConstructor; /* <- TODO: [🤛] */
 
 /**
  * TODO: [🎶] Naming "constructor" vs "creator" vs "factory"

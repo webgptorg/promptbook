@@ -5,9 +5,9 @@ import glob from 'glob-promise';
 import spaceTrim from 'spacetrim';
 import { pipelineStringToJson } from '../../conversion/pipelineStringToJson';
 import { validatePipeline } from '../../conversion/validation/validatePipeline';
+import { $provideExecutionToolsForNode } from '../../execution/utils/$provideExecutionToolsForNode';
 import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import type { PipelineString } from '../../types/PipelineString';
-import { $provideExecutionToolsForNode } from '../../_packages/node.index';
 
 /**
  * Initializes `test` command for Promptbook CLI utilities

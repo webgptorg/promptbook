@@ -15,7 +15,7 @@ export const createDocumentScraper = Object.assign(
         return new DocumentScraper(tools, options);
     },
     documentScraperMetadata,
-) satisfies ScraperConstructor;
+) satisfies ScraperConstructor/* <- TODO: [🤛] */;
 
 /**
  * TODO: [🎶] Naming "constructor" vs "creator" vs "factory"

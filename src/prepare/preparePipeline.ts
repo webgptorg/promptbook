@@ -1,10 +1,10 @@
 import type { Writable } from 'type-fest';
-import { joinLlmExecutionTools } from '../_packages/core.index';
 import { IS_VERBOSE, MAX_PARALLEL_COUNT } from '../config';
 import { MissingToolsError } from '../errors/MissingToolsError';
 import type { ExecutionTools } from '../execution/ExecutionTools';
 import { ZERO_USAGE } from '../execution/utils/addUsage';
 import { forEachAsync } from '../execution/utils/forEachAsync';
+import { joinLlmExecutionTools } from '../llm-providers/multiple/joinLlmExecutionTools';
 import { countTotalUsage } from '../llm-providers/_common/utils/count-total-usage/countTotalUsage';
 import { preparePersona } from '../personas/preparePersona';
 import { prepareKnowledgePieces } from '../scrapers/_common/prepareKnowledgePieces';

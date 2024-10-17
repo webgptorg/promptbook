@@ -1,14 +1,14 @@
 import { spaceTrim } from 'spacetrim';
 import type { ReadonlyDeep } from 'type-fest';
-import { joinLlmExecutionTools } from '../../_packages/core.index';
 import { ExpectError } from '../../errors/ExpectError';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import { serializeError } from '../../errors/utils/serializeError';
 import { isValidJsonString } from '../../formats/json/utils/isValidJsonString';
+import { joinLlmExecutionTools } from '../../llm-providers/multiple/joinLlmExecutionTools';
 import { extractJsonBlock } from '../../postprocessing/utils/extractJsonBlock';
 import type { ExecutionReportJson } from '../../types/execution-report/ExecutionReportJson';
-import type { ModelRequirements } from '../../types/ModelRequirements';
+import { ModelRequirements } from '../../types/ModelRequirements';
 import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import type { TemplateJson } from '../../types/PipelineJson/TemplateJson';
 import type { ChatPrompt, CompletionPrompt, Prompt } from '../../types/Prompt';
@@ -170,7 +170,7 @@ export async function executeAttempts(options: ExecuteAttemptsOptions): Promise<
                                 modelVariant: 'CHAT',
                                 ...(preparedPipeline.defaultModelRequirements || {}),
                                 ...(template.modelRequirements || {}),
-                            } satisfies ModelRequirements;
+                            } satisfies ModelRequirements; /* <- TODO: [🤛] */
 
                             $ongoingTemplateResult.$prompt = {
                                 title: template.title,
