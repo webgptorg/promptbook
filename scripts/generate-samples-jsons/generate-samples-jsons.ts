@@ -60,7 +60,7 @@ async function generateSampleJsons({
         throw new Error(`Working tree is not clean`);
     }
 
-    const llmTools = $provideLlmToolsForTestingAndScriptsAndPlayground({ isCacheReloaded, isVerbose });
+    const llm = $provideLlmToolsForTestingAndScriptsAndPlayground({ isCacheReloaded, isVerbose });
     //                 <- Note: for example here we don`t want the [🌯]
 
     const pipelineMarkdownFilePaths = await glob(join(PROMPTBOOK_SAMPLES_DIR, '*.ptbk.md').split('\\').join('/'));
@@ -74,15 +74,18 @@ async function generateSampleJsons({
         const pipelineMarkdown = await readFile(pipelineMarkdownFilePath, 'utf-8');
 
         try {
-            const pipelineJson = await pipelineStringToJson(pipelineMarkdown as PipelineString, {
-                llmTools,
-                rootDirname: dirname(pipelineMarkdownFilePath),
-                externalProgramsPaths: {
-                    // TODO: !!!!!! use `locate-app` library here
-                    pandocPath: 'C:/Users/me/AppData/Local/Pandoc/pandoc.exe',
-                    libreOfficePath: 'C:/Program Files/LibreOffice/program/swriter.exe',
+            const pipelineJson = await pipelineStringToJson(
+                pipelineMarkdown as PipelineString,
+                { llm, scrapers: await $provideScrapersForNode() },
+                {
+                    rootDirname: dirname(pipelineMarkdownFilePath),
+                    externalProgramsPaths: {
+                        // TODO: !!!!!! use `locate-app` library here
+                        pandocPath: 'C:/Users/me/AppData/Local/Pandoc/pandoc.exe',
+                        libreOfficePath: 'C:/Program Files/LibreOffice/program/swriter.exe',
+                    },
                 },
-            });
+            );
 
             await forTime(0);
 
@@ -113,7 +116,7 @@ async function generateSampleJsons({
         }
     }
 
-    console.info(colors.cyan(usageToHuman(llmTools.getTotalUsage())));
+    console.info(colors.cyan(usageToHuman(llm.getTotalUsage())));
 
     if (isCommited) {
         await commit([PROMPTBOOK_SAMPLES_DIR], `📖 Convert samples \`.ptbk.md\` -> \`.ptbk.json\``);

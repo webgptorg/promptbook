@@ -7,6 +7,7 @@ import { pipelineStringToJson } from '../../conversion/pipelineStringToJson';
 import { validatePipeline } from '../../conversion/validation/validatePipeline';
 import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import type { PipelineString } from '../../types/PipelineString';
+import { $provideExecutionToolsForNode } from '../../_packages/node.index';
 
 /**
  * Initializes `test` command for Promptbook CLI utilities
@@ -39,7 +40,7 @@ export function initializeTestCommand(program: Program) {
 
                 if (filename.endsWith('.ptbk.md')) {
                     const pipelineMarkdown = (await readFile(filename, 'utf-8')) as PipelineString;
-                    pipeline = await pipelineStringToJson(pipelineMarkdown);
+                    pipeline = await pipelineStringToJson(pipelineMarkdown, await $provideExecutionToolsForNode());
 
                     if (isVerbose) {
                         console.info(colors.green(`Parsed ${filename}`));
