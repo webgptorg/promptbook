@@ -13,8 +13,6 @@ import { $provideLlmToolsForTestingAndScriptsAndPlayground } from '../../../llm-
 import { makeKnowledgeSourceHandler } from '../../_common/utils/makeKnowledgeSourceHandler';
 import { DocumentScraper } from '../DocumentScraper';
 
-const isVerbose = true;
-
 playground()
     .catch((error) => {
         console.error(colors.bgRed(error.name || 'NamelessError'));
