@@ -7,18 +7,18 @@ import { IS_VERBOSE, SCRAPE_CACHE_DIRNAME } from '../../config';
 import { KnowledgeScrapeError } from '../../errors/KnowledgeScrapeError';
 import { MissingToolsError } from '../../errors/MissingToolsError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
-import { ExecutionTools } from '../../execution/ExecutionTools';
-import { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';
+import type { ExecutionTools } from '../../execution/ExecutionTools';
+import type { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';
 import { $isRunningInNode } from '../../utils/environment/$isRunningInNode';
 import { $execCommand } from '../../utils/execCommand/$execCommand';
 import { $isFileExisting } from '../../utils/files/$isFileExisting';
 import { getFileExtension } from '../../utils/files/getFileExtension';
+import { MarkdownScraper } from '../markdown/MarkdownScraper';
 import type { Converter } from '../_common/Converter';
-import { ScraperAndConverterMetadata } from '../_common/register/ScraperAndConverterMetadata';
+import type { ScraperAndConverterMetadata } from '../_common/register/ScraperAndConverterMetadata';
 import type { Scraper, ScraperSourceHandler } from '../_common/Scraper';
 import type { ScraperIntermediateSource } from '../_common/ScraperIntermediateSource';
 import { getScraperIntermediateSource } from '../_common/utils/getScraperIntermediateSource';
-import { MarkdownScraper } from '../markdown/MarkdownScraper';
 import { documentScraperMetadata } from './register-metadata';
 
 /**

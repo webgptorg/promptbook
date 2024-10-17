@@ -1,4 +1,4 @@
-import { LlmToolsMetadata } from '../_packages/types.index';
+import type { LlmToolsMetadata } from '../llm-providers/_common/register/LlmToolsMetadata';
 import type { Registered } from '../utils/$Register';
 import type { TODO_any } from '../utils/organization/TODO_any';
 import type { LlmExecutionTools } from './LlmExecutionTools';

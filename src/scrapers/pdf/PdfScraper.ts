@@ -3,13 +3,13 @@ import type { Scraper, ScraperSourceHandler } from '../_common/Scraper';
 // TODO: [🏳‍🌈] Finally take pick of .json vs .ts
 // import PipelineCollection from '../../../promptbook-collection/promptbook-collection';
 import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
-import { ExecutionTools } from '../../execution/ExecutionTools';
-import { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';
+import type { ExecutionTools } from '../../execution/ExecutionTools';
+import type { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';
 import { TODO_USE } from '../../utils/organization/TODO_USE';
-import type { Converter } from '../_common/Converter';
-import { ScraperAndConverterMetadata } from '../_common/register/ScraperAndConverterMetadata';
-import type { ScraperIntermediateSource } from '../_common/ScraperIntermediateSource';
 import { MarkdownScraper } from '../markdown/MarkdownScraper';
+import type { Converter } from '../_common/Converter';
+import type { ScraperAndConverterMetadata } from '../_common/register/ScraperAndConverterMetadata';
+import type { ScraperIntermediateSource } from '../_common/ScraperIntermediateSource';
 import { pdfScraperMetadata } from './register-metadata';
 
 /**

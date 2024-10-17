@@ -1,9 +1,9 @@
 import { IS_AUTO_INSTALLED, IS_VERBOSE } from '../../../config';
 import { EnvironmentMismatchError } from '../../../errors/EnvironmentMismatchError';
-import { PrepareAndScrapeOptions } from '../../../prepare/PrepareAndScrapeOptions';
+import type { PrepareAndScrapeOptions } from '../../../prepare/PrepareAndScrapeOptions';
 import { $isRunningInNode } from '../../../utils/environment/$isRunningInNode';
 import { TODO_USE } from '../../../utils/organization/TODO_USE';
-import { Scraper } from '../Scraper';
+import type { Scraper } from '../Scraper';
 
 /**
  * !!!!!!

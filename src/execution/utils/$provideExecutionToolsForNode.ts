@@ -1,10 +1,10 @@
-import { EnvironmentMismatchError } from '../../../errors/EnvironmentMismatchError';
-import { PrepareAndScrapeOptions } from '../../../prepare/PrepareAndScrapeOptions';
-import { $isRunningInNode } from '../../../utils/environment/$isRunningInNode';
-import { JavascriptExecutionTools } from '../../_packages/execute-javascript.index';
-import { $provideLlmToolsFromEnv } from '../../_packages/node.index';
+import { EnvironmentMismatchError } from '../../errors/EnvironmentMismatchError';
+import { $provideLlmToolsFromEnv } from '../../llm-providers/_common/register/$provideLlmToolsFromEnv';
+import type { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';
 import { $provideScrapersForNode } from '../../scrapers/_common/register/$provideScrapersForNode';
-import { ExecutionTools } from '../ExecutionTools';
+import { JavascriptExecutionTools } from '../../scripting/javascript/JavascriptExecutionTools';
+import { $isRunningInNode } from '../../utils/environment/$isRunningInNode';
+import type { ExecutionTools } from '../ExecutionTools';
 
 /**
  * Note: There is unfortunately no equivalent for this function in the browser environment
@@ -21,11 +21,7 @@ export async function $provideExecutionToolsForNode(options?: PrepareAndScrapeOp
     const tools = {
         llm: $provideLlmToolsFromEnv(options),
         scrapers: await $provideScrapersForNode(options),
-        script: [
-            new JavascriptExecutionTools(
-                options,
-            ),
-        ],
+        script: [new JavascriptExecutionTools(options)],
     } satisfies ExecutionTools;
 
     return tools;

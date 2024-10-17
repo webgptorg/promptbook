@@ -1,4 +1,4 @@
-import { Scraper } from '../_packages/types.index';
+import type { Scraper } from '../scrapers/_common/Scraper';
 import type { Arrayable } from '../types/Arrayable';
 import type { LlmExecutionTools } from './LlmExecutionTools';
 import type { ScriptExecutionTools } from './ScriptExecutionTools';

@@ -1,4 +1,4 @@
-import { ExecutionTools } from '../_packages/types.index';
+import type { ExecutionTools } from '../execution/ExecutionTools';
 import type { PrepareAndScrapeOptions } from '../prepare/PrepareAndScrapeOptions';
 import { preparePipeline } from '../prepare/preparePipeline';
 import type { PipelineJson } from '../types/PipelineJson/PipelineJson';

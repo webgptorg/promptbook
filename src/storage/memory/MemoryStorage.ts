@@ -1,4 +1,4 @@
-import type { PromptbookStorage } from '../../_common/PromptbookStorage';
+import type { PromptbookStorage } from '../_common/PromptbookStorage';
 
 /**
  * Stores

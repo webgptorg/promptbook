@@ -12,11 +12,11 @@ import { MissingToolsError } from '../../errors/MissingToolsError';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import { assertsExecutionSuccessful } from '../../execution/assertsExecutionSuccessful';
 import { createPipelineExecutor } from '../../execution/createPipelineExecutor/00-createPipelineExecutor';
-import { ExecutionTools } from '../../execution/ExecutionTools';
-import { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';
+import type { ExecutionTools } from '../../execution/ExecutionTools';
+import type { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';
 import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import type { TODO_any } from '../../utils/organization/TODO_any';
-import { ScraperAndConverterMetadata } from '../_common/register/ScraperAndConverterMetadata';
+import type { ScraperAndConverterMetadata } from '../_common/register/ScraperAndConverterMetadata';
 import { markdownScraperMetadata } from './register-metadata';
 
 /**

@@ -1,6 +1,5 @@
-import { ExecutionTools } from '../../execution/ExecutionTools';
-import { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';
-import { ScraperConstructor } from '../_common/ScraperConstructor';
+import type { ExecutionTools } from '../../execution/ExecutionTools';
+import type { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';
 import { DocumentScraper } from './DocumentScraper';
 import { documentScraperMetadata } from './register-metadata';
 // <- TODO: !!!!!!! Are theese changed to import type { ... } from ... correctly

@@ -1,7 +1,6 @@
-import { ExecutionTools } from '../../execution/ExecutionTools';
-import { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';
-import { ScraperConstructor } from '../_common/ScraperConstructor';
-import { LegacyDocumentScraper } from './legacyDocumentScraper';
+import type { ExecutionTools } from '../../execution/ExecutionTools';
+import type { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';
+import { LegacyDocumentScraper } from './LegacyDocumentScraper';
 import { legacyDocumentScraperMetadata } from './register-metadata';
 
 /**

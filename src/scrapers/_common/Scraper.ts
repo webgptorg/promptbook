@@ -1,12 +1,7 @@
 import type { Promisable } from 'type-fest';
 import type { KnowledgePiecePreparedJson } from '../../types/PipelineJson/KnowledgePieceJson';
-import type {
-    string_filename,
-    string_knowledge_source_link,
-    string_mime_type,
-    string_url,
-} from '../../types/typeAliases';
-import { ScraperAndConverterMetadata } from './register/ScraperAndConverterMetadata';
+import type { string_filename, string_knowledge_source_link, string_mime_type, string_url } from '../../types/typeAliases';
+import type { ScraperAndConverterMetadata } from './register/ScraperAndConverterMetadata';
 
 /**
  * @@@

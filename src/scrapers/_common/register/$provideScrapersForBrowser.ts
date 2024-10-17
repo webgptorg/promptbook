@@ -1,8 +1,9 @@
-import { $isRunningInBrowser, $isRunningInWebWorker } from '../../../_packages/utils.index';
 import { EnvironmentMismatchError } from '../../../errors/EnvironmentMismatchError';
-import { PrepareAndScrapeOptions } from '../../../prepare/PrepareAndScrapeOptions';
+import type { PrepareAndScrapeOptions } from '../../../prepare/PrepareAndScrapeOptions';
+import { $isRunningInBrowser } from '../../../utils/environment/$isRunningInBrowser';
+import { $isRunningInWebWorker } from '../../../utils/environment/$isRunningInWebWorker';
 import { TODO_USE } from '../../../utils/organization/TODO_USE';
-import { Scraper } from '../Scraper';
+import type { Scraper } from '../Scraper';
 
 /**
  * @@@!!!!!!

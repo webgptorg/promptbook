@@ -4,7 +4,7 @@ import { IS_VERBOSE } from '../config';
 import { MissingToolsError } from '../errors/MissingToolsError';
 import { assertsExecutionSuccessful } from '../execution/assertsExecutionSuccessful';
 import { createPipelineExecutor } from '../execution/createPipelineExecutor/00-createPipelineExecutor';
-import { ExecutionTools } from '../execution/ExecutionTools';
+import type { ExecutionTools } from '../execution/ExecutionTools';
 import type { PrepareAndScrapeOptions } from '../prepare/PrepareAndScrapeOptions';
 import type { PersonaPreparedJson } from '../types/PipelineJson/PersonaJson';
 import type { PipelineJson } from '../types/PipelineJson/PipelineJson';
@@ -19,7 +19,7 @@ import type { TODO_any } from '../utils/organization/TODO_any';
  */
 export async function preparePersona(
     personaDescription: string_persona_description,
-    tools: Pick<ExecutionTools, 'llm' >,
+    tools: Pick<ExecutionTools, 'llm'>,
     options: PrepareAndScrapeOptions,
 ): Promise<PersonaPreparedJson['modelRequirements']> {
     const { llmTools, isVerbose = IS_VERBOSE } = options;

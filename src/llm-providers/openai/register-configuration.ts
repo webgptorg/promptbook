@@ -1,7 +1,7 @@
 import type { string_name } from '../../types/typeAliases';
-import { Registration } from '../../utils/$Register';
+import type { Registration } from '../../utils/$Register';
 import { $llmToolsMetadataRegister } from '../_common/register/$llmToolsMetadataRegister';
-import { LlmToolsConfiguration } from '../_common/register/LlmToolsConfiguration';
+import type { LlmToolsConfiguration } from '../_common/register/LlmToolsConfiguration';
 
 /**
  * Registration of LLM provider metadata

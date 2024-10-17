@@ -1,6 +1,5 @@
-import { ExecutionTools } from '../../execution/ExecutionTools';
-import { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';
-import { ScraperConstructor } from '../_common/ScraperConstructor';
+import type { ExecutionTools } from '../../execution/ExecutionTools';
+import type { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';
 import { PdfScraper } from './PdfScraper';
 import { pdfScraperMetadata } from './register-metadata';
 

@@ -1,7 +1,7 @@
 import type { Writable } from 'type-fest';
 import { IS_VERBOSE, MAX_PARALLEL_COUNT } from '../config';
 import { MissingToolsError } from '../errors/MissingToolsError';
-import { ExecutionTools } from '../execution/ExecutionTools';
+import type { ExecutionTools } from '../execution/ExecutionTools';
 import { ZERO_USAGE } from '../execution/utils/addUsage';
 import { forEachAsync } from '../execution/utils/forEachAsync';
 import { countTotalUsage } from '../llm-providers/_common/utils/count-total-usage/countTotalUsage';

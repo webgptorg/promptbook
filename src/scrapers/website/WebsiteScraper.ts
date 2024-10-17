@@ -11,12 +11,12 @@ import { forTime } from 'waitasecond';
 import { IS_VERBOSE, SCRAPE_CACHE_DIRNAME } from '../../config';
 import { KnowledgeScrapeError } from '../../errors/KnowledgeScrapeError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
-import { ExecutionTools } from '../../execution/ExecutionTools';
-import { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';
-import { ScraperAndConverterMetadata } from '../_common/register/ScraperAndConverterMetadata';
+import type { ExecutionTools } from '../../execution/ExecutionTools';
+import type { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';
+import { MarkdownScraper } from '../markdown/MarkdownScraper';
+import type { ScraperAndConverterMetadata } from '../_common/register/ScraperAndConverterMetadata';
 import type { ScraperIntermediateSource } from '../_common/ScraperIntermediateSource';
 import { getScraperIntermediateSource } from '../_common/utils/getScraperIntermediateSource';
-import { MarkdownScraper } from '../markdown/MarkdownScraper';
 import { websiteScraperMetadata } from './register-metadata';
 import { markdownConverter } from './utils/markdownConverter';
 

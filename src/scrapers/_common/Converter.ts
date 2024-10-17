@@ -1,4 +1,4 @@
-import { ScraperAndConverterMetadata } from './register/ScraperAndConverterMetadata';
+import type { ScraperAndConverterMetadata } from './register/ScraperAndConverterMetadata';
 import type { ScraperSourceHandler } from './Scraper';
 import type { ScraperIntermediateSource } from './ScraperIntermediateSource';
 
