@@ -28,5 +28,5 @@ export async function $provideExecutionToolsForNode(options?: PrepareAndScrapeOp
 }
 
 /**
- * Note: [🟡 <- TODO: !!!!!! Included in $provideExecutionTools] Code in this file should never be published outside of `@promptbook/cli`
+ * Note: [🟡] Code in this file should never be published outside of `@promptbook/cli`
  */

@@ -30,5 +30,5 @@ export async function $provideScrapersForNode(options?: PrepareAndScrapeOptions)
 }
 
 /**
- * Note: [🟡 <- TODO: !!!!!! Included in $provideScrapers] Code in this file should never be published outside of `@promptbook/cli`
+ * Note: [🟡] Code in this file should never be published outside of `@promptbook/cli`
  */
