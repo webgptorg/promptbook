@@ -54,12 +54,15 @@ describe('createCollectionFromDirectory', () => {
 
     it('should get pipeline by url from collection', async () => {
         expect.assertions(1);
-        const collection = await createCollectionFromDirectory('./samples/pipelines', {
-            llmTools: undefined,
-            isVerbose: true,
-            isRecursive: false,
-            isLazyLoaded: false,
-        });
+        const collection = await createCollectionFromDirectory(
+            './samples/pipelines',
+            {},
+            {
+                isVerbose: true,
+                isRecursive: false,
+                isLazyLoaded: false,
+            },
+        );
         let pipelineFromCollection = await collection.getPipelineByUrl(
             'https://promptbook.studio/samples/simple.ptbk.md',
         );
@@ -73,12 +76,15 @@ describe('createCollectionFromDirectory', () => {
     it('should get lazy-loaded pipeline by url from collection', async () => {
         expect.assertions(1);
 
-        const collection = await createCollectionFromDirectory('./samples/pipelines', {
-            llmTools: undefined,
-            isVerbose: true,
-            isRecursive: false,
-            isLazyLoaded: true,
-        });
+        const collection = await createCollectionFromDirectory(
+            './samples/pipelines',
+            {},
+            {
+                isVerbose: true,
+                isRecursive: false,
+                isLazyLoaded: true,
+            },
+        );
         let pipelineFromCollection = await collection.getPipelineByUrl(
             'https://promptbook.studio/samples/simple.ptbk.md',
         );
@@ -92,11 +98,14 @@ describe('createCollectionFromDirectory', () => {
     it('should get different pipeline by url from collection', async () => {
         expect.assertions(1);
 
-        const collection = await createCollectionFromDirectory('./samples/pipelines', {
-            llmTools: undefined,
-            isVerbose: true,
-            isRecursive: false,
-        });
+        const collection = await createCollectionFromDirectory(
+            './samples/pipelines',
+            {},
+            {
+                isVerbose: true,
+                isRecursive: false,
+            },
+        );
         let pipelineFromCollection = await collection.getPipelineByUrl(
             'https://promptbook.studio/samples/jokers.ptbk.md',
         );
@@ -110,13 +119,16 @@ describe('createCollectionFromDirectory', () => {
     it('should NOT crash when include error pipelines but lazy-loaded', () =>
         expect(
             (async () => {
-                const collection = await createCollectionFromDirectory('./samples/pipelines', {
-                    llmTools: undefined,
-                    isVerbose: true,
-                    // Note: Including subdirectories BUT lazy-loaded so it should not crash even if there are errors
-                    isRecursive: true,
-                    isLazyLoaded: true,
-                });
+                const collection = await createCollectionFromDirectory(
+                    './samples/pipelines',
+                    {},
+                    {
+                        isVerbose: true,
+                        // Note: Including subdirectories BUT lazy-loaded so it should not crash even if there are errors
+                        isRecursive: true,
+                        isLazyLoaded: true,
+                    },
+                );
                 keepUnused(collection);
             })(),
         ).resolves.not.toThrow());
@@ -124,13 +136,16 @@ describe('createCollectionFromDirectory', () => {
     it('should crash when include error pipelines', () =>
         expect(
             (async () => {
-                const collection = await createCollectionFromDirectory('./samples/pipelines', {
-                    llmTools: undefined,
-                    isVerbose: true,
-                    // Note: Including subdirectories BUT lazy-loaded so it should not crash even if there are errors
-                    isRecursive: true,
-                    isLazyLoaded: false,
-                });
+                const collection = await createCollectionFromDirectory(
+                    './samples/pipelines',
+                    {},
+                    {
+                        isVerbose: true,
+                        // Note: Including subdirectories BUT lazy-loaded so it should not crash even if there are errors
+                        isRecursive: true,
+                        isLazyLoaded: false,
+                    },
+                );
                 keepUnused(collection);
             })(),
         ).rejects.toThrowError(/^ParseError in pipeline samples.*/i));
@@ -140,7 +155,7 @@ describe('createCollectionFromDirectory', () => {
     it('should find pipeline in subdirectory', () =>
         expect(
             (async () => {
-              const collection = await   createCollectionFromDirectory('./samples/pipelines', {
+              const collection = await   createCollectionFromDirectory('./samples/pipelines',{}, {
                     isVerbose: true,
                     isRecursive: false,
                 });

@@ -2,19 +2,19 @@ import colors from 'colors';
 import { readFile } from 'fs/promises';
 import { dirname, join } from 'path';
 import spaceTrim from 'spacetrim';
-import { IS_VERBOSE } from '../../config';
-import { PIPELINE_COLLECTION_BASE_FILENAME } from '../../config';
+import { $provideExecutionToolsForNode } from '../../_packages/node.index';
+import { IS_VERBOSE, PIPELINE_COLLECTION_BASE_FILENAME } from '../../config';
 import { pipelineJsonToString } from '../../conversion/pipelineJsonToString';
 import { pipelineStringToJson } from '../../conversion/pipelineStringToJson';
 import { validatePipeline } from '../../conversion/validation/validatePipeline';
 import { CollectionError } from '../../errors/CollectionError';
 import { PipelineUrlError } from '../../errors/PipelineUrlError';
+import { ExecutionTools } from '../../execution/ExecutionTools';
 import type { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';
 import { unpreparePipeline } from '../../prepare/unpreparePipeline';
 import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import type { PipelineString } from '../../types/PipelineString';
-import type { string_dirname } from '../../types/typeAliases';
-import type { string_pipeline_url } from '../../types/typeAliases';
+import type { string_dirname, string_pipeline_url } from '../../types/typeAliases';
 import { $isRunningInNode } from '../../utils/environment/$isRunningInNode';
 import { $isFileExisting } from '../../utils/files/$isFileExisting';
 import { $listAllFiles } from '../../utils/files/$listAllFiles';
@@ -67,18 +67,24 @@ type CreatePipelineCollectionFromDirectoryOptions = Omit<PrepareAndScrapeOptions
  * Note: Works only in Node.js environment because it reads the file system
  *
  * @param path - path to the directory with pipelines
- * @param options - Misc options for the collection
+ * @param tools - Execution tools to be used for pipeline preparation if needed - If not provided, `$provideExecutionToolsForNode` will be used
+ * @param options - Options for the collection creation
  * @returns PipelineCollection
  * @public exported from `@promptbook/node`
  */
 export async function createCollectionFromDirectory(
     path: string_dirname,
+    tools?: Pick<ExecutionTools, 'llm' | 'scrapers'>,
     options?: CreatePipelineCollectionFromDirectoryOptions,
 ): Promise<PipelineCollection> {
     if (!$isRunningInNode()) {
         throw new Error(
             'Function `createCollectionFromDirectory` can only be run in Node.js environment because it reads the file system.',
         );
+    }
+
+    if (tools === undefined) {
+        tools = await $provideExecutionToolsForNode();
     }
 
     // TODO: [🍖] Allow to skip
@@ -98,13 +104,7 @@ export async function createCollectionFromDirectory(
         // TODO: [🌗]
     }
 
-    const {
-        llmTools,
-        isRecursive = true,
-        isVerbose = IS_VERBOSE,
-        isLazyLoaded = false,
-        isCrashedOnError = true,
-    } = options || {};
+    const { isRecursive = true, isVerbose = IS_VERBOSE, isLazyLoaded = false, isCrashedOnError = true } = options || {};
 
     const collection = createCollectionFromPromise(async () => {
         if (isVerbose) {
@@ -136,8 +136,7 @@ export async function createCollectionFromDirectory(
 
                 if (fileName.endsWith('.ptbk.md')) {
                     const pipelineString = (await readFile(fileName, 'utf-8')) as PipelineString;
-                    pipeline = await pipelineStringToJson(pipelineString, {
-                        llmTools,
+                    pipeline = await pipelineStringToJson(pipelineString, tools, {
                         rootDirname,
                     });
                     pipeline = { ...pipeline, sourceFile };

@@ -14,7 +14,7 @@ import {
     stringifyPipelineJson,
     usageToHuman,
 } from '../../../src/_packages/core.index';
-import { createCollectionFromDirectory } from '../../../src/_packages/node.index';
+import { $provideExecutionToolsForNode, createCollectionFromDirectory } from '../../../src/_packages/node.index';
 
 import '../../../src/_packages/anthropic-claude.index';
 import '../../../src/_packages/azure-openai.index';
@@ -40,12 +40,15 @@ main()
 async function main() {
     console.info(colors.bgWhite('⚪ Testing basic capabilities of Promptbook'));
 
-    const collection = await createCollectionFromDirectory('./samples/pipelines/', {
-        llmTools: undefined,
-        isVerbose: true,
-        isRecursive: false,
-        isCrashedOnError: true,
-    });
+    const collection = await createCollectionFromDirectory(
+        './samples/pipelines/',
+        {},
+        {
+            isVerbose: true,
+            isRecursive: false,
+            isCrashedOnError: true,
+        },
+    );
 
     // TODO: Allow user to pick pipeline
     // > const pipelineUrls = await collection.listPipelines();
@@ -65,7 +68,7 @@ async function main() {
 
     await forTime(100);
 
-    const pipelineExecutor = createPipelineExecutor({ pipeline, tools: $provideExecutionToolsForNode() });
+    const pipelineExecutor = createPipelineExecutor({ pipeline, tools: await $provideExecutionToolsForNode() });
 
     const inputParameters = {
         /*/

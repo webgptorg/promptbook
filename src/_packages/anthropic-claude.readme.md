@@ -8,12 +8,6 @@ import { createCollectionFromDirectory } from '@promptbook/node';
 import { JavascriptExecutionTools } from '@promptbook/execute-javascript';
 import { AnthropicClaudeExecutionTools } from '@promptbook/anthropic-claude';
 
-// ▶ Create whole pipeline collection
-const collection = await createCollectionFromDirectory('./promptbook-collection');
-
-// ▶ Get single Pipeline
-const pipeline = await collection.getPipelineByUrl(`https://promptbook.studio/my-collection/write-article.ptbk.md`);
-
 // ▶ Prepare tools
 const tools = {
     llm: new AnthropicClaudeExecutionTools(
@@ -25,6 +19,12 @@ const tools = {
     ),
     script: [new JavascriptExecutionTools()],
 };
+
+// ▶ Create whole pipeline collection
+const collection = await createCollectionFromDirectory('./promptbook-collection', tools);
+
+// ▶ Get single Pipeline
+const pipeline = await collection.getPipelineByUrl(`https://promptbook.studio/my-collection/write-article.ptbk.md`);
 
 // ▶ Create executor - the function that will execute the Pipeline
 const pipelineExecutor = createPipelineExecutor({ pipeline, tools });
@@ -52,14 +52,17 @@ import { createPipelineExecutor, createCollectionFromDirectory, assertsExecution
 import { JavascriptExecutionTools } from '@promptbook/execute-javascript';
 import { $provideExecutionToolsForNode } from '@promptbook/node';
 
+// ▶ Prepare tools
+const tools = await $provideExecutionToolsForNode();
+
 // ▶ Create whole pipeline collection
-const collection = await createCollectionFromDirectory('./promptbook-collection');
+const collection = await createCollectionFromDirectory('./promptbook-collection', tools);
 
 // ▶ Get single Pipeline
 const pipeline = await collection.getPipelineByUrl(`https://promptbook.studio/my-collection/write-article.ptbk.md`);
 
 // ▶ Create executor - the function that will execute the Pipeline
-const pipelineExecutor = createPipelineExecutor({ pipeline, tools: $provideExecutionToolsForNode() });
+const pipelineExecutor = createPipelineExecutor({ pipeline, tools });
 
 // ▶ Prepare input parameters
 const inputParameters = { word: 'dog' };
@@ -83,12 +86,6 @@ You can use multiple LLM providers in one Promptbook execution. The best model w
 import { createPipelineExecutor, createCollectionFromDirectory, assertsExecutionSuccessful } from '@promptbook/core';
 import { JavascriptExecutionTools } from '@promptbook/execute-javascript';
 import { OpenAiExecutionTools } from '@promptbook/openai';
-
-// ▶ Create whole pipeline collection
-const collection = await createCollectionFromDirectory('./promptbook-collection');
-
-// ▶ Get single Pipeline
-const pipeline = await collection.getPipelineByUrl(`https://promptbook.studio/my-collection/write-article.ptbk.md`);
 
 // ▶ Prepare multiple tools
 const tools = {
@@ -118,6 +115,12 @@ const tools = {
     ],
     script: [new JavascriptExecutionTools()],
 };
+
+// ▶ Create whole pipeline collection
+const collection = await createCollectionFromDirectory('./promptbook-collection', tools);
+
+// ▶ Get single Pipeline
+const pipeline = await collection.getPipelineByUrl(`https://promptbook.studio/my-collection/write-article.ptbk.md`);
 
 // ▶ Create executor - the function that will execute the Pipeline
 const pipelineExecutor = createPipelineExecutor({ pipeline, tools });

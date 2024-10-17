@@ -8,6 +8,7 @@ import colors from 'colors';
 import commander from 'commander';
 import { writeFile } from 'fs/promises';
 import { join } from 'path';
+import { $provideScrapersForNode } from '../../src/_packages/node.index';
 import { collectionToJson } from '../../src/collection/collectionToJson';
 import { createCollectionFromDirectory } from '../../src/collection/constructors/createCollectionFromDirectory';
 import { usageToHuman } from '../../src/execution/utils/usageToHuman';
@@ -57,14 +58,21 @@ async function makePipelineCollection({
 
     const promptbookSourceDir = 'promptbook-collection';
 
-    const llmTools = getLlmToolsForTestingAndScriptsAndPlayground({ isCacheReloaded });
+    const llm = getLlmToolsForTestingAndScriptsAndPlayground({ isCacheReloaded });
+    const scrapers = await $provideScrapersForNode();
 
-    const collection = await createCollectionFromDirectory(promptbookSourceDir, {
-        llmTools,
-        isVerbose,
-        isRecursive: true,
-        // <- TODO: [🍖] isCacheReloaded
-    });
+    const collection = await createCollectionFromDirectory(
+        promptbookSourceDir,
+        {
+            llm,
+            scrapers,
+        },
+        {
+            isVerbose,
+            isRecursive: true,
+            // <- TODO: [🍖] isCacheReloaded
+        },
+    );
 
     const collectionJson = await collectionToJson(collection);
     const collectionJsonString = JSON.stringify(collectionJson);

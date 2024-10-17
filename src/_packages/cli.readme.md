@@ -25,7 +25,7 @@ const promptbook = await getPipelineCollection().getPipelineByUrl(
 );
 
 // ▶ Create executor - the function that will execute the Pipeline
-const pipelineExecutor = createPipelineExecutor({ pipeline, tools: $provideExecutionToolsForNode() });
+const pipelineExecutor = createPipelineExecutor({ pipeline, tools: await $provideExecutionToolsForNode() });
 
 // ▶ Prepare input parameters
 const inputParameters = { word: 'cat' };

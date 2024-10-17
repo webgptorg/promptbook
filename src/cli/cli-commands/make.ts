@@ -82,16 +82,22 @@ export function initializeMakeCommand(program: Program) {
                 process.exit(1);
             }
 
-            const llmTools = getLlmToolsForCli({
+            const llm = getLlmToolsForCli({
                 isCacheReloaded,
             });
 
-            const collection = await createCollectionFromDirectory(path, {
-                llmTools,
-                isVerbose,
-                isRecursive: true,
-                // <- TODO: [🍖] isCacheReloaded
-            });
+            const collection = await createCollectionFromDirectory(
+                path,
+                {
+                    llm,
+                    // !!!!!! Provide scrapers
+                },
+                {
+                    isVerbose,
+                    isRecursive: true,
+                    // <- TODO: [🍖] isCacheReloaded
+                },
+            );
 
             for (const validation of validations) {
                 for (const pipelineUrl of await collection.listPipelines()) {

@@ -33,12 +33,15 @@ async function playground() {
     // Do here stuff you want to test
     //========================================>
 
-    const collection = await createCollectionFromDirectory('./samples/pipelines/', {
-        llmTools: undefined,
-        isVerbose: true,
-        isRecursive: false,
-        isCrashedOnError: true,
-    });
+    const collection = await createCollectionFromDirectory(
+        './samples/pipelines/',
+        {},
+        {
+            isVerbose: true,
+            isRecursive: false,
+            isCrashedOnError: true,
+        },
+    );
 
     const pipeline = await collection.getPipelineByUrl('https://promptbook.studio/samples/simple-knowledge.ptbk.md');
 
