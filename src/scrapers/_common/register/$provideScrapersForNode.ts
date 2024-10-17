@@ -1,4 +1,5 @@
-import { IS_AUTO_INSTALLED, IS_VERBOSE } from '../../../config';
+import { IS_AUTO_INSTALLED } from '../../../config';
+import { IS_VERBOSE } from '../../../config';
 import { EnvironmentMismatchError } from '../../../errors/EnvironmentMismatchError';
 import type { ExecutionTools } from '../../../execution/ExecutionTools';
 import type { PrepareAndScrapeOptions } from '../../../prepare/PrepareAndScrapeOptions';
