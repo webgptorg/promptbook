@@ -2,6 +2,7 @@
 // `@promptbook/legacy-documents`
 
 import { PROMPTBOOK_VERSION } from '../version';
+import { createLegacyDocumentScraper } from '../scrapers/document-legacy/createLegacyDocumentScraper';
 import { LegacyDocumentScraper } from '../scrapers/document-legacy/LegacyDocumentScraper';
 import { _LegacyDocumentScraperRegistration } from '../scrapers/document-legacy/register-constructor';
 
@@ -11,5 +12,6 @@ export { PROMPTBOOK_VERSION };
 
 
 // Note: Entities of the `@promptbook/legacy-documents`
+export { createLegacyDocumentScraper };
 export { LegacyDocumentScraper };
 export { _LegacyDocumentScraperRegistration };

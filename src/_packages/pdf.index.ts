@@ -2,6 +2,7 @@
 // `@promptbook/pdf`
 
 import { PROMPTBOOK_VERSION } from '../version';
+import { createPdfScraper } from '../scrapers/pdf/createPdfScraper';
 import { PdfScraper } from '../scrapers/pdf/PdfScraper';
 import { _PdfScraperRegistration } from '../scrapers/pdf/register-constructor';
 
@@ -11,5 +12,6 @@ export { PROMPTBOOK_VERSION };
 
 
 // Note: Entities of the `@promptbook/pdf`
+export { createPdfScraper };
 export { PdfScraper };
 export { _PdfScraperRegistration };
