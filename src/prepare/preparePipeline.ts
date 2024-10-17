@@ -1,4 +1,5 @@
 import type { Writable } from 'type-fest';
+import { joinLlmExecutionTools } from '../_packages/core.index';
 import { IS_VERBOSE, MAX_PARALLEL_COUNT } from '../config';
 import { MissingToolsError } from '../errors/MissingToolsError';
 import type { ExecutionTools } from '../execution/ExecutionTools';
@@ -10,6 +11,7 @@ import { prepareKnowledgePieces } from '../scrapers/_common/prepareKnowledgePiec
 import type { PersonaPreparedJson } from '../types/PipelineJson/PersonaJson';
 import type { PipelineJson } from '../types/PipelineJson/PipelineJson';
 import type { PreparationJson } from '../types/PipelineJson/PreparationJson';
+import { arrayableToArray } from '../utils/arrayableToArray';
 import { $asDeeplyFrozenSerializableJson } from '../utils/serialization/$asDeeplyFrozenSerializableJson';
 import { clonePipeline } from '../utils/serialization/clonePipeline';
 import { PROMPTBOOK_VERSION } from '../version';
@@ -34,7 +36,7 @@ export async function preparePipeline(
         return pipeline;
     }
 
-    const { llmTools, rootDirname, maxParallelCount = MAX_PARALLEL_COUNT, isVerbose = IS_VERBOSE } = options;
+    const { rootDirname, maxParallelCount = MAX_PARALLEL_COUNT, isVerbose = IS_VERBOSE } = options;
     const {
         parameters,
         templates,
@@ -46,9 +48,13 @@ export async function preparePipeline(
         <- TODO: [🧊] `preparations` */,
     } = pipeline;
 
-    if (llmTools === undefined) {
+    if (tools === undefined || tools.llm === undefined) {
         throw new MissingToolsError('LLM tools are required for preparing the pipeline');
     }
+
+    // TODO: [🚐] Make arrayable LLMs -> single LLM DRY
+    const _llms = arrayableToArray(tools.llm);
+    const llmTools = _llms.length === 1 ? _llms[0]! : joinLlmExecutionTools(..._llms);
 
     const llmToolsWithUsage = countTotalUsage(llmTools);
     //    <- TODO: [🌯]
@@ -85,12 +91,15 @@ export async function preparePipeline(
         personas,
         { maxParallelCount /* <- TODO: [🪂] When there are subtasks, this maximul limit can be broken */ },
         async (persona, index) => {
-            const modelRequirements = await preparePersona(persona.description, {
-                llmTools: llmToolsWithUsage,
-                rootDirname,
-                maxParallelCount /* <- TODO:  [🪂] */,
-                isVerbose,
-            });
+            const modelRequirements = await preparePersona(
+                persona.description,
+                { ...tools, llm: llmToolsWithUsage },
+                {
+                    rootDirname,
+                    maxParallelCount /* <- TODO:  [🪂] */,
+                    isVerbose,
+                },
+            );
 
             const preparedPersona: PersonaPreparedJson = {
                 ...persona,
@@ -113,9 +122,9 @@ export async function preparePipeline(
 
     const partialknowledgePiecesPrepared = await prepareKnowledgePieces(
         knowledgeSources /* <- TODO: [🧊] {knowledgeSources, knowledgePieces} */,
+        { ...tools, llm: llmToolsWithUsage },
         {
             ...options,
-            llmTools: llmToolsWithUsage,
             rootDirname,
             maxParallelCount /* <- TODO:  [🪂] */,
             isVerbose,
@@ -136,8 +145,8 @@ export async function preparePipeline(
             templates,
             knowledgePiecesCount: knowledgePiecesPrepared.length,
         },
+        { ...tools, llm: llmToolsWithUsage },
         {
-            llmTools: llmToolsWithUsage,
             rootDirname,
             maxParallelCount /* <- TODO:  [🪂] */,
             isVerbose,

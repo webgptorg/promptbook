@@ -6,6 +6,7 @@ import type { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOpti
 import type { KnowledgePiecePreparedJson } from '../../types/PipelineJson/KnowledgePieceJson';
 import type { KnowledgeSourceJson } from '../../types/PipelineJson/KnowledgeSourceJson';
 
+import { ExecutionTools } from '../../execution/ExecutionTools';
 import { arrayableToArray } from '../../utils/arrayableToArray';
 import { $registeredScrapersMessage } from './register/$registeredScrapersMessage';
 import { makeKnowledgeSourceHandler } from './utils/makeKnowledgeSourceHandler';

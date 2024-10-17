@@ -115,8 +115,9 @@ export async function executeAttempts(options: ExecuteAttemptsOptions): Promise<
         $scriptPipelineExecutionErrors: [],
     };
 
-    const llms = arrayableToArray(tools.llm);
-    const llmTools = llms.length === 1 ? llms[0]! : joinLlmExecutionTools(...llms);
+    // TODO: [🚐] Make arrayable LLMs -> single LLM DRY
+    const _llms = arrayableToArray(tools.llm);
+    const llmTools = _llms.length === 1 ? _llms[0]! : joinLlmExecutionTools(..._llms);
 
     attempts: for (let attempt = -jokerParameterNames.length; attempt < maxAttempts; attempt++) {
         const isJokerAttempt = attempt < 0;
