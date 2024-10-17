@@ -9,7 +9,7 @@ import { writeFile } from 'fs/promises';
 import { join } from 'path';
 import { stringifyPipelineJson } from '../../../conversion/utils/stringifyPipelineJson';
 import { usageToHuman } from '../../../execution/utils/usageToHuman';
-import { getLlmToolsForTestingAndScriptsAndPlayground } from '../../../llm-providers/_common/register/getLlmToolsForTestingAndScriptsAndPlayground';
+import { $provideLlmToolsForTestingAndScriptsAndPlayground } from '../../../llm-providers/_common/register/$provideLlmToolsForTestingAndScriptsAndPlayground';
 import { makeKnowledgeSourceHandler } from '../../_common/utils/makeKnowledgeSourceHandler';
 import { MarkdownScraper } from '../MarkdownScraper';
 
@@ -34,11 +34,11 @@ async function playground() {
     const sample = '10-simple.md';
     //               <- TODO: [👩🏿‍🤝‍👩🏼] Read here the samples directory and itterate through all of them
 
-    const llmTools = getLlmToolsForTestingAndScriptsAndPlayground({ isCacheReloaded: true });
+    const llmTools = $provideLlmToolsForTestingAndScriptsAndPlayground({ isCacheReloaded: true });
     const rootDirname = join(__dirname, '..', 'samples');
 
     const markdownScraper = new MarkdownScraper(
-        { llm: getLlmToolsForTestingAndScriptsAndPlayground() },
+        { llm: $provideLlmToolsForTestingAndScriptsAndPlayground() },
         {
             rootDirname,
         },

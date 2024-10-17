@@ -1,6 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
 import { join } from 'path';
-import { getLlmToolsForTestingAndScriptsAndPlayground } from '../../llm-providers/_common/register/getLlmToolsForTestingAndScriptsAndPlayground';
+import { $provideLlmToolsForTestingAndScriptsAndPlayground } from '../../llm-providers/_common/register/$provideLlmToolsForTestingAndScriptsAndPlayground';
 import { prepareKnowledgePieces } from './prepareKnowledgePieces';
 
 /*
@@ -23,7 +23,7 @@ describe('how prepareKnowledge works', () => {
     it('should work with empty knowledge', () =>
         expect(
             prepareKnowledgePieces([], {
-                llmTools: getLlmToolsForTestingAndScriptsAndPlayground(),
+                llmTools: $provideLlmToolsForTestingAndScriptsAndPlayground(),
                 rootDirname: join(__dirname, 'samples'),
             }),
         ).resolves.toEqual([]));

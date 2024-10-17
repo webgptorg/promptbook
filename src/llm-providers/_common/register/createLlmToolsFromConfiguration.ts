@@ -11,7 +11,7 @@ import type { LlmToolsConfiguration } from './LlmToolsConfiguration';
 /**
  * Options for `$provideLlmToolsFromEnv`
  *
- * @private internal type for `$provideLlmToolsFromEnv` and `getLlmToolsForTestingAndScriptsAndPlayground`
+ * @private internal type for `$provideLlmToolsFromEnv` and `$provideLlmToolsForTestingAndScriptsAndPlayground`
  */
 export type CreateLlmToolsFromConfigurationOptions = {
     /**

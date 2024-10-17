@@ -12,7 +12,7 @@ import { $provideScrapersForNode } from '../../src/_packages/node.index';
 import { collectionToJson } from '../../src/collection/collectionToJson';
 import { createCollectionFromDirectory } from '../../src/collection/constructors/createCollectionFromDirectory';
 import { usageToHuman } from '../../src/execution/utils/usageToHuman';
-import { getLlmToolsForTestingAndScriptsAndPlayground } from '../../src/llm-providers/_common/getLlmToolsForTestingAndScriptsAndPlayground';
+import { $provideLlmToolsForTestingAndScriptsAndPlayground } from '../../src/llm-providers/_common/$provideLlmToolsForTestingAndScriptsAndPlayground';
 import { commit } from '../utils/autocommit/commit';
 import { isWorkingTreeClean } from '../utils/autocommit/isWorkingTreeClean';
 
@@ -58,7 +58,7 @@ async function makePipelineCollection({
 
     const promptbookSourceDir = 'promptbook-collection';
 
-    const llm = getLlmToolsForTestingAndScriptsAndPlayground({ isCacheReloaded });
+    const llm = $provideLlmToolsForTestingAndScriptsAndPlayground({ isCacheReloaded });
     const scrapers = await $provideScrapersForNode();
 
     const collection = await createCollectionFromDirectory(

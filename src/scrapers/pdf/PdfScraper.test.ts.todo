@@ -1,6 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
 import { join } from 'path';
-import { getLlmToolsForTestingAndScriptsAndPlayground } from '../../llm-providers/_common/getLlmToolsForTestingAndScriptsAndPlayground';
+import { $provideLlmToolsForTestingAndScriptsAndPlayground } from '../../llm-providers/_common/$provideLlmToolsForTestingAndScriptsAndPlayground';
 import { makeKnowledgeSourceHandler } from '../_common/utils/makeKnowledgeSourceHandler';
 import { pdfScraper } from './PdfScraper';
 
@@ -10,7 +10,7 @@ describe('how creating knowledge from pdf works', () => {
 
 const rootDirname =  join(__dirname, 'samples');
     const pdfScraper = new PdfScraper(
-        { llm: getLlmToolsForTestingAndScriptsAndPlayground() },
+        { llm: $provideLlmToolsForTestingAndScriptsAndPlayground() },
         {
             rootDirname,
         },

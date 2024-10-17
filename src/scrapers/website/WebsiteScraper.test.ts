@@ -1,13 +1,13 @@
 import { describe, expect, it } from '@jest/globals';
 import { join } from 'path';
-import { getLlmToolsForTestingAndScriptsAndPlayground } from '../../llm-providers/_common/register/getLlmToolsForTestingAndScriptsAndPlayground';
+import { $provideLlmToolsForTestingAndScriptsAndPlayground } from '../../llm-providers/_common/register/$provideLlmToolsForTestingAndScriptsAndPlayground';
 import { makeKnowledgeSourceHandler } from '../_common/utils/makeKnowledgeSourceHandler';
 import { WebsiteScraper } from './WebsiteScraper';
 
 describe('how creating knowledge from website works', () => {
     const rootDirname = join(__dirname, 'samples');
     const websiteScraper = new WebsiteScraper(
-        { llm: getLlmToolsForTestingAndScriptsAndPlayground() },
+        { llm: $provideLlmToolsForTestingAndScriptsAndPlayground() },
         {
             rootDirname,
         },

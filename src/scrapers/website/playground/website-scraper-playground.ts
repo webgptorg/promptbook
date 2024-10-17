@@ -10,7 +10,7 @@ import { join } from 'path';
 import { stringifyPipelineJson } from '../../../conversion/utils/stringifyPipelineJson';
 import { titleToName } from '../../../conversion/utils/titleToName';
 import { usageToHuman } from '../../../execution/utils/usageToHuman';
-import { getLlmToolsForTestingAndScriptsAndPlayground } from '../../../llm-providers/_common/register/getLlmToolsForTestingAndScriptsAndPlayground';
+import { $provideLlmToolsForTestingAndScriptsAndPlayground } from '../../../llm-providers/_common/register/$provideLlmToolsForTestingAndScriptsAndPlayground';
 import { makeKnowledgeSourceHandler } from '../../_common/utils/makeKnowledgeSourceHandler';
 import { WebsiteScraper } from '../WebsiteScraper';
 
@@ -36,11 +36,11 @@ async function playground() {
     const sample = 'https://koralkykatlas.cz/cs/blog/prispevek/-rijna-zhorseni-kvality-kovove-bizuterie.html';
     //               <- TODO: [👩🏿‍🤝‍👩🏼] Read here website-scraper-playground.ts and itterate
 
-    const llmTools = getLlmToolsForTestingAndScriptsAndPlayground({ isCacheReloaded: true });
+    const llmTools = $provideLlmToolsForTestingAndScriptsAndPlayground({ isCacheReloaded: true });
     const rootDirname = join(__dirname, 'samples');
 
     const websiteScraper = new WebsiteScraper(
-        { llm: getLlmToolsForTestingAndScriptsAndPlayground() },
+        { llm: $provideLlmToolsForTestingAndScriptsAndPlayground() },
         {
             rootDirname,
         },

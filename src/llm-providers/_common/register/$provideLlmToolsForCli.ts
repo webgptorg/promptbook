@@ -22,10 +22,10 @@ type GetLlmToolsForCliOptions = {
  *
  * @private within the repository - for CLI utils
  */
-export function getLlmToolsForCli(options?: GetLlmToolsForCliOptions): LlmExecutionToolsWithTotalUsage {
+export function $provideLlmToolsForCli(options?: GetLlmToolsForCliOptions): LlmExecutionToolsWithTotalUsage {
     if (!$isRunningInNode()) {
         throw new EnvironmentMismatchError(
-            'Function `getLlmToolsForTestingAndScriptsAndPlayground` works only in Node.js environment',
+            'Function `$provideLlmToolsForTestingAndScriptsAndPlayground` works only in Node.js environment',
         );
     }
 

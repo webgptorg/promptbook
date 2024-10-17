@@ -26,12 +26,12 @@ type GetLlmToolsForTestingAndScriptsAndPlaygroundOptions = CreateLlmToolsFromCon
  *
  * @private within the repository - JUST FOR TESTS, SCRIPTS AND PLAYGROUND
  */
-export function getLlmToolsForTestingAndScriptsAndPlayground(
+export function $provideLlmToolsForTestingAndScriptsAndPlayground(
     options?: GetLlmToolsForTestingAndScriptsAndPlaygroundOptions,
 ): LlmExecutionToolsWithTotalUsage {
     if (!$isRunningInNode()) {
         throw new EnvironmentMismatchError(
-            'Function `getLlmToolsForTestingAndScriptsAndPlayground` works only in Node.js environment',
+            'Function `$provideLlmToolsForTestingAndScriptsAndPlayground` works only in Node.js environment',
         );
     }
 

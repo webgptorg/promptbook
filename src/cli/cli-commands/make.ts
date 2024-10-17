@@ -10,7 +10,7 @@ import { stringifyPipelineJson } from '../../conversion/utils/stringifyPipelineJ
 import { validatePipeline } from '../../conversion/validation/validatePipeline';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import { usageToHuman } from '../../execution/utils/usageToHuman';
-import { getLlmToolsForCli } from '../../llm-providers/_common/register/getLlmToolsForCli';
+import { $provideLlmToolsForCli } from '../../llm-providers/_common/register/$provideLlmToolsForCli';
 import type { string_file_extension } from '../../types/typeAliases';
 
 /**
@@ -82,7 +82,7 @@ export function initializeMakeCommand(program: Program) {
                 process.exit(1);
             }
 
-            const llm = getLlmToolsForCli({
+            const llm = $provideLlmToolsForCli({
                 isCacheReloaded,
             });
 

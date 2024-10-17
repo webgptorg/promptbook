@@ -1,13 +1,13 @@
 import { describe, expect, it } from '@jest/globals';
 import { join } from 'path';
-import { getLlmToolsForTestingAndScriptsAndPlayground } from '../../llm-providers/_common/register/getLlmToolsForTestingAndScriptsAndPlayground';
+import { $provideLlmToolsForTestingAndScriptsAndPlayground } from '../../llm-providers/_common/register/$provideLlmToolsForTestingAndScriptsAndPlayground';
 import { makeKnowledgeSourceHandler } from '../_common/utils/makeKnowledgeSourceHandler';
 import { LegacyDocumentScraper } from './LegacyDocumentScraper';
 
 describe('how creating knowledge from docx works', () => {
     const rootDirname = join(__dirname, 'samples');
     const legacyDocumentScraper = new LegacyDocumentScraper(
-        { llm: getLlmToolsForTestingAndScriptsAndPlayground() },
+        { llm: $provideLlmToolsForTestingAndScriptsAndPlayground() },
         {
             rootDirname,
             externalProgramsPaths: {

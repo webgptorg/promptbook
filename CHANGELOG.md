@@ -541,6 +541,8 @@ Knowledge scrapers [🐝]
 -   Add utilities `$provideExecutionToolsForBrowser` and `$provideExecutionToolsForNode` and use them in samples
 -   Add utilities `$provideScrapersForBrowser` and `$provideScrapersForNode`
 -   Rename `createLlmToolsFromConfigurationFromEnv` -> `$provideLlmToolsConfigurationFromEnv` and `createLlmToolsFromEnv` -> `$provideLlmToolsFromEnv`
+-   Rename `getLlmToolsForTestingAndScriptsAndPlayground` -> `$provideLlmToolsForTestingAndScriptsAndPlayground`
+-   Rename `getLlmToolsForCli` -> `$provideLlmToolsForCli`
 
 ### `0.72.0` _(2024-09-)_
 

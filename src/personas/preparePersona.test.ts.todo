@@ -1,5 +1,5 @@
 import { describe, expect, it } from '@jest/globals';
-import { getLlmToolsForTestingAndScriptsAndPlayground } from '../llm-providers/_common/getLlmToolsForTestingAndScriptsAndPlayground';
+import { $provideLlmToolsForTestingAndScriptsAndPlayground } from '../llm-providers/_common/$provideLlmToolsForTestingAndScriptsAndPlayground';
 import { preparePersona } from './preparePersona';
 
 // Note: Every time there is an update in the model names, the tests need to be updated
@@ -10,7 +10,7 @@ describe('how preparePersona works', () => {
     it('should work with simple persona description', () =>
         expect(
             preparePersona(`Copywriter`, {
-                llmTools: getLlmToolsForTestingAndScriptsAndPlayground(),
+                llmTools: $provideLlmToolsForTestingAndScriptsAndPlayground(),
             }),
         ).resolves.toEqual({
             modelVariant: 'CHAT',
@@ -46,7 +46,7 @@ describe('how preparePersona works', () => {
 
                 `),
                 {
-                    llmTools: getLlmToolsForTestingAndScriptsAndPlayground(),
+                    llmTools: $provideLlmToolsForTestingAndScriptsAndPlayground(),
                 },
             ),
         ).resolves.toEqual({
@@ -59,7 +59,7 @@ describe('how preparePersona works', () => {
     it('should work with creative persona', () =>
         expect(
             preparePersona(`Poem writer with unconventional style of writing in his own language and style`, {
-                llmTools: getLlmToolsForTestingAndScriptsAndPlayground(),
+                llmTools: $provideLlmToolsForTestingAndScriptsAndPlayground(),
             }),
         ).resolves.toEqual({
             modelVariant: 'CHAT',
@@ -74,7 +74,7 @@ describe('how preparePersona works', () => {
             preparePersona(
                 `Technical writer with 5 years of experience in the field. Experience with writing technical documentation, user manuals, and API documentation.`,
                 {
-                    llmTools: getLlmToolsForTestingAndScriptsAndPlayground(),
+                    llmTools: $provideLlmToolsForTestingAndScriptsAndPlayground(),
                 },
             ),
         ).resolves.toEqual({
@@ -90,7 +90,7 @@ describe('how preparePersona works', () => {
             preparePersona(
                 `Locuteur natif français, j'aime écrire et je suis passionné par la langue et la culture française.`,
                 {
-                    llmTools: getLlmToolsForTestingAndScriptsAndPlayground(),
+                    llmTools: $provideLlmToolsForTestingAndScriptsAndPlayground(),
                 },
             ),
         ).resolves.toEqual({
@@ -104,7 +104,7 @@ describe('how preparePersona works', () => {
     it('should work with weird persona description', () =>
         expect(
             preparePersona(`Xyzzy with 5 years of experience in the field. Experience with foo and bar.`, {
-                llmTools: getLlmToolsForTestingAndScriptsAndPlayground(),
+                llmTools: $provideLlmToolsForTestingAndScriptsAndPlayground(),
             }),
         ).resolves.toEqual({
             modelVariant: 'CHAT',
