@@ -12,7 +12,7 @@ import { $provideScrapersForNode } from '../../src/_packages/node.index';
 import { collectionToJson } from '../../src/collection/collectionToJson';
 import { createCollectionFromDirectory } from '../../src/collection/constructors/createCollectionFromDirectory';
 import { usageToHuman } from '../../src/execution/utils/usageToHuman';
-import { $provideLlmToolsForTestingAndScriptsAndPlayground } from '../../src/llm-providers/_common/$provideLlmToolsForTestingAndScriptsAndPlayground';
+import { $provideLlmToolsForTestingAndScriptsAndPlayground } from '../../src/llm-providers/_common/register/$provideLlmToolsForTestingAndScriptsAndPlayground';
 import { commit } from '../utils/autocommit/commit';
 import { isWorkingTreeClean } from '../utils/autocommit/isWorkingTreeClean';
 
@@ -83,7 +83,7 @@ async function makePipelineCollection({
     const libraryTypescriptFilePath = join(promptbookSourceDir, 'index.ts');
     const libraryTypescriptFileContent = 'export default ' + collectionJsonString + ';\n';
 
-    console.info(colors.cyan(usageToHuman(llmTools.getTotalUsage())));
+    console.info(colors.cyan(usageToHuman(llm.getTotalUsage())));
 
     // TODO: [🏳‍🌈] Finally take one of .json vs .ts (using .ts file (not .json) to avoid support of json files in bundle )
     await writeFile(collectionJsonFilePath, collectionJsonFileContent, 'utf-8');

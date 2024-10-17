@@ -1,5 +1,5 @@
 import { describe, expect, it } from '@jest/globals';
-import { $provideLlmToolsForTestingAndScriptsAndPlayground } from '../llm-providers/_common/$provideLlmToolsForTestingAndScriptsAndPlayground';
+import { $provideLlmToolsForTestingAndScriptsAndPlayground } from '../llm-providers/_common/register/$provideLlmToolsForTestingAndScriptsAndPlayground';
 import { preparePersona } from './preparePersona';
 
 // Note: Every time there is an update in the model names, the tests need to be updated
