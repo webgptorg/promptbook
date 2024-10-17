@@ -1,6 +1,6 @@
 import { Registration } from '../../utils/$Register';
 import { $scrapersRegister } from '../_common/register/$scrapersRegister';
-import { DocumentScraper } from './DocumentScraper';
+import { createDocumentScraper } from './createDocumentScraper';
 
 /**
  * Registration of known scraper
@@ -10,7 +10,7 @@ import { DocumentScraper } from './DocumentScraper';
  * @public exported from `@promptbook/documents`
  * @public exported from `@promptbook/cli`
  */
-export const _DocumentScraperRegistration: Registration = $scrapersRegister.register(DocumentScraper);
+export const _DocumentScraperRegistration: Registration = $scrapersRegister.register(createDocumentScraper);
 
 /**
  * TODO: [🎶] Naming "constructor" vs "creator" vs "factory"

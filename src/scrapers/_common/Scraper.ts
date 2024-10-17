@@ -4,9 +4,9 @@ import type {
     string_filename,
     string_knowledge_source_link,
     string_mime_type,
-    string_promptbook_documentation_url,
     string_url,
 } from '../../types/typeAliases';
+import { ScraperAndConverterMetadata } from './register/ScraperAndConverterMetadata';
 
 /**
  * @@@
@@ -14,14 +14,9 @@ import type {
  */
 export type Scraper = {
     /**
-     * Mime types that this scraper can handle
+     * Metadata of the scraper which includes title, mime types, etc.
      */
-    readonly mimeTypes: Array<string_mime_type /* <- TODO: [🦔] `string_mime_type_with_wildcard` */>;
-
-    /**
-     * Link to documentation
-     */
-    readonly documentationUrl: string_promptbook_documentation_url;
+    readonly metadata: ScraperAndConverterMetadata;
 
     /**
      * Scrapes the markdown file and returns the knowledge pieces or `null` if it can't scrape it

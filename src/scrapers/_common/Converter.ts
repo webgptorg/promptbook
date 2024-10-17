@@ -1,4 +1,4 @@
-import type { string_mime_type, string_promptbook_documentation_url } from '../../types/typeAliases';
+import { ScraperAndConverterMetadata } from './register/ScraperAndConverterMetadata';
 import type { ScraperSourceHandler } from './Scraper';
 import type { ScraperIntermediateSource } from './ScraperIntermediateSource';
 
@@ -8,14 +8,9 @@ import type { ScraperIntermediateSource } from './ScraperIntermediateSource';
  */
 export type Converter = {
     /**
-     * Mime types that this scraper can handle
+     * Metadata of the converter which includes title, mime types, etc.
      */
-    readonly mimeTypes: Array<string_mime_type /* <- TODO: [🦔] `string_mime_type_with_wildcard` */>;
-
-    /**
-     * Link to documentation
-     */
-    readonly documentationUrl: string_promptbook_documentation_url;
+    readonly metadata: ScraperAndConverterMetadata;
 
     /**
      * Convert the the file and returns intermediate source or `null` if it can't convert it

@@ -14,9 +14,12 @@ import { $execCommand } from '../../utils/execCommand/$execCommand';
 import { $isFileExisting } from '../../utils/files/$isFileExisting';
 import { getFileExtension } from '../../utils/files/getFileExtension';
 import type { Converter } from '../_common/Converter';
+import { ScraperAndConverterMetadata } from '../_common/register/ScraperAndConverterMetadata';
 import type { Scraper, ScraperSourceHandler } from '../_common/Scraper';
 import type { ScraperIntermediateSource } from '../_common/ScraperIntermediateSource';
 import { getScraperIntermediateSource } from '../_common/utils/getScraperIntermediateSource';
+import { MarkdownScraper } from '../markdown/MarkdownScraper';
+import { documentScraperMetadata } from './register-metadata';
 
 /**
  * Scraper of .docx and .odt files
@@ -26,19 +29,23 @@ import { getScraperIntermediateSource } from '../_common/utils/getScraperInterme
  */
 export class DocumentScraper implements Converter, Scraper {
     /**
-     * Mime types that this scraper can handle
+     * Metadata of the scraper which includes title, mime types, etc.
      */
-    public readonly mimeTypes = ['application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+    public get metadata(): ScraperAndConverterMetadata {
+        return documentScraperMetadata;
+    }
 
     /**
-     * Link to documentation
+     * Markdown scraper used internally
      */
-    public readonly documentationUrl = 'https://github.com/webgptorg/promptbook/discussions/@@';
+    private readonly markdownScraper: MarkdownScraper;
 
     public constructor(
         private readonly tools: Pick<ExecutionTools, 'llm'>,
         private readonly options: PrepareAndScrapeOptions,
-    ) {}
+    ) {
+        this.markdownScraper = new MarkdownScraper(tools, options);
+    }
 
     /**
      * Convert the `.docx` or `.odt`  to `.md` file and returns intermediate source
@@ -135,7 +142,7 @@ export class DocumentScraper implements Converter, Scraper {
             },
         } satisfies ScraperSourceHandler;
 
-        const knowledge = this.options.markdownScraper.scrape(markdownSource);
+        const knowledge = this.markdownScraper.scrape(markdownSource);
 
         await cacheFilehandler.destroy();
 
