@@ -2,7 +2,6 @@ import { EnvironmentMismatchError } from '../../../errors/EnvironmentMismatchErr
 import type { PrepareAndScrapeOptions } from '../../../prepare/PrepareAndScrapeOptions';
 import { $isRunningInBrowser } from '../../../utils/environment/$isRunningInBrowser';
 import { $isRunningInWebWorker } from '../../../utils/environment/$isRunningInWebWorker';
-import { TODO_USE } from '../../../utils/organization/TODO_USE';
 import type { Scraper } from '../Scraper';
 
 /**
@@ -18,18 +17,13 @@ export async function $provideScrapersForBrowser(options: PrepareAndScrapeOption
         throw new EnvironmentMismatchError('Function `$provideScrapersForBrowser` works only in browser environment');
     }
 
-    const {
-        mimeType,
-        isAutoInstalled /* Note: [0] Intentionally not assigning a default value = IS_AUTO_INSTALLED */,
-    } = options;
+    const { isAutoInstalled /* Note: [0] Intentionally not assigning a default value = IS_AUTO_INSTALLED */ } = options;
 
     if (
         isAutoInstalled === true /* <- Note: [0] Ignoring undefined, just checking EXPLICIT requirement for install */
     ) {
         throw new EnvironmentMismatchError('Auto-installing is not supported in browser environment');
     }
-
-    TODO_USE(mimeType);
 
     return [
         // TODO: !!!!!! Implement
