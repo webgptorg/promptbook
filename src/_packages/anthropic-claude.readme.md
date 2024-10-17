@@ -5,6 +5,7 @@
 ```typescript
 import { createPipelineExecutor, createCollectionFromDirectory, assertsExecutionSuccessful } from '@promptbook/core';
 import { createCollectionFromDirectory } from '@promptbook/node';
+import { $provideExecutionToolsForNode } from '@promptbook/node';
 import { JavascriptExecutionTools } from '@promptbook/execute-javascript';
 import { AnthropicClaudeExecutionTools } from '@promptbook/anthropic-claude';
 
@@ -17,6 +18,7 @@ const tools = {
             apiKey: process.env.ANTHROPIC_CLAUDE_API_KEY,
         },
     ),
+    scrapers: await $provideScrapersForNode(),
     script: [new JavascriptExecutionTools()],
 };
 
@@ -84,6 +86,7 @@ You can use multiple LLM providers in one Promptbook execution. The best model w
 
 ```typescript
 import { createPipelineExecutor, createCollectionFromDirectory, assertsExecutionSuccessful } from '@promptbook/core';
+import { $provideExecutionToolsForNode } from '@promptbook/node';
 import { JavascriptExecutionTools } from '@promptbook/execute-javascript';
 import { OpenAiExecutionTools } from '@promptbook/openai';
 
@@ -113,6 +116,7 @@ const tools = {
             },
         ),
     ],
+    scrapers: await $provideScrapersForNode(),
     script: [new JavascriptExecutionTools()],
 };
 
