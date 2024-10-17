@@ -15,9 +15,12 @@ import { $execCommand } from '../../utils/execCommand/$execCommand';
 import { $isFileExisting } from '../../utils/files/$isFileExisting';
 import { getFileExtension } from '../../utils/files/getFileExtension';
 import type { Converter } from '../_common/Converter';
+import { ScraperAndConverterMetadata } from '../_common/register/ScraperAndConverterMetadata';
 import type { Scraper, ScraperSourceHandler } from '../_common/Scraper';
 import type { ScraperIntermediateSource } from '../_common/ScraperIntermediateSource';
 import { getScraperIntermediateSource } from '../_common/utils/getScraperIntermediateSource';
+import { DocumentScraper } from '../document/DocumentScraper';
+import { legacyDocumentScraperMetadata } from './register-metadata';
 
 /**
  * Scraper for .docx files
@@ -27,19 +30,23 @@ import { getScraperIntermediateSource } from '../_common/utils/getScraperInterme
  */
 export class LegacyDocumentScraper implements Converter, Scraper {
     /**
-     * Mime types that this scraper can handle
+     * Metadata of the scraper which includes title, mime types, etc.
      */
-    public readonly mimeTypes = ['application/msword', 'text/rtf'];
+    public get metadata(): ScraperAndConverterMetadata {
+        return legacyDocumentScraperMetadata;
+    }
 
     /**
-     * Link to documentation
+     * Document scraper is used internally
      */
-    public readonly documentationUrl = 'https://github.com/webgptorg/promptbook/discussions/@@';
+    private readonly documentScraper: DocumentScraper;
 
     public constructor(
         private readonly tools: Pick<ExecutionTools, 'llm'>,
         private readonly options: PrepareAndScrapeOptions,
-    ) {}
+    ) {
+        this.documentScraper = new DocumentScraper(tools, options);
+    }
 
     /**
      * Convert the `.doc` or `.rtf`  to `.doc` file and returns intermediate source
@@ -175,7 +182,7 @@ export class LegacyDocumentScraper implements Converter, Scraper {
             },
         } satisfies ScraperSourceHandler;
 
-        const knowledge = this.options.documentScraper.scrape(markdownSource);
+        const knowledge = this.documentScraper.scrape(markdownSource);
 
         await cacheFilehandler.destroy();
 

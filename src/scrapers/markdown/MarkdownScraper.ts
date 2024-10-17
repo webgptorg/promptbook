@@ -16,6 +16,8 @@ import { ExecutionTools } from '../../execution/ExecutionTools';
 import { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';
 import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import type { TODO_any } from '../../utils/organization/TODO_any';
+import { ScraperAndConverterMetadata } from '../_common/register/ScraperAndConverterMetadata';
+import { markdownScraperMetadata } from './register-metadata';
 
 /**
  * Scraper for markdown files
@@ -25,14 +27,11 @@ import type { TODO_any } from '../../utils/organization/TODO_any';
  */
 export class MarkdownScraper implements Scraper {
     /**
-     * Mime types that this scraper can handle
+     * Metadata of the scraper which includes title, mime types, etc.
      */
-    public readonly mimeTypes = ['text/markdown', 'text/plain'];
-
-    /**
-     * Link to documentation
-     */
-    public readonly documentationUrl = 'https://github.com/webgptorg/promptbook/discussions/@@';
+    public get metadata(): ScraperAndConverterMetadata {
+        return markdownScraperMetadata;
+    }
 
     public constructor(
         private readonly tools: Pick<ExecutionTools, 'llm'>,
@@ -45,9 +44,10 @@ export class MarkdownScraper implements Scraper {
     public async scrape(
         source: ScraperSourceHandler,
     ): Promise<Array<Omit<KnowledgePiecePreparedJson, 'sources' | 'preparationIds'>> | null> {
-        const { llmTools, maxParallelCount = MAX_PARALLEL_COUNT, isVerbose = IS_VERBOSE } = this.options;
+        const { maxParallelCount = MAX_PARALLEL_COUNT, isVerbose = IS_VERBOSE } = this.options;
+        const { llm } = this.tools;
 
-        if (llmTools === undefined) {
+        if (llm === undefined) {
             throw new MissingToolsError('LLM tools are required for scraping external files');
             // <- Note: This scraper is used in all other scrapers, so saying "external files" not "markdown files"
         }
@@ -62,7 +62,7 @@ export class MarkdownScraper implements Scraper {
                 'https://promptbook.studio/promptbook/prepare-knowledge-from-markdown.ptbk.md',
             ),
             tools: {
-                llm: llmTools,
+                llm: llm,
             },
         });
 
@@ -71,7 +71,7 @@ export class MarkdownScraper implements Scraper {
                 'https://promptbook.studio/promptbook/prepare-knowledge-title.ptbk.md',
             ),
             tools: {
-                llm: llmTools,
+                llm: llm,
             },
         });
 
@@ -80,7 +80,7 @@ export class MarkdownScraper implements Scraper {
                 'https://promptbook.studio/promptbook/prepare-knowledge-keywords.ptbk.md',
             ),
             tools: {
-                llm: llmTools,
+                llm: llm,
             },
         });
 
@@ -136,13 +136,13 @@ export class MarkdownScraper implements Scraper {
                     }
                     // ---
 
-                    if (!llmTools.callEmbeddingModel) {
+                    if (!llm.callEmbeddingModel) {
                         // TODO: [🟥] Detect browser / node and make it colorfull
                         console.error('No callEmbeddingModel function provided');
                     } else {
                         // TODO: [🧠][🎛] Embedding via multiple models
 
-                        const embeddingResult = await llmTools.callEmbeddingModel({
+                        const embeddingResult = await llm.callEmbeddingModel({
                             title: `Embedding for ${title}` /* <- Note: No impact on embedding result itself, just for logging */,
                             parameters: {},
                             content: knowledgePieceContent,

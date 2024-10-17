@@ -36,7 +36,7 @@ export class DocumentScraper implements Converter, Scraper {
     }
 
     /**
-     * Markdown scraper used internally
+     * Markdown scraper is used internally
      */
     private readonly markdownScraper: MarkdownScraper;
 

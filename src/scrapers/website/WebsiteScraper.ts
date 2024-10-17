@@ -13,8 +13,11 @@ import { KnowledgeScrapeError } from '../../errors/KnowledgeScrapeError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import { ExecutionTools } from '../../execution/ExecutionTools';
 import { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';
+import { ScraperAndConverterMetadata } from '../_common/register/ScraperAndConverterMetadata';
 import type { ScraperIntermediateSource } from '../_common/ScraperIntermediateSource';
 import { getScraperIntermediateSource } from '../_common/utils/getScraperIntermediateSource';
+import { MarkdownScraper } from '../markdown/MarkdownScraper';
+import { websiteScraperMetadata } from './register-metadata';
 import { markdownConverter } from './utils/markdownConverter';
 
 /**
@@ -25,19 +28,23 @@ import { markdownConverter } from './utils/markdownConverter';
  */
 export class WebsiteScraper implements Converter, Scraper {
     /**
-     * Mime types that this scraper can handle
+     * Metadata of the scraper which includes title, mime types, etc.
      */
-    public readonly mimeTypes = ['text/html'];
+    public get metadata(): ScraperAndConverterMetadata {
+        return websiteScraperMetadata;
+    }
 
     /**
-     * Link to documentation
+     * Markdown scraper is used internally
      */
-    public readonly documentationUrl = 'https://github.com/webgptorg/promptbook/discussions/@@';
+    private readonly markdownScraper: MarkdownScraper;
 
     public constructor(
         private readonly tools: Pick<ExecutionTools, 'llm'>,
         private readonly options: PrepareAndScrapeOptions,
-    ) {}
+    ) {
+        this.markdownScraper = new MarkdownScraper(tools, options);
+    }
 
     /**
      * Convert the website  to `.md` file and returns intermediate source
@@ -126,7 +133,7 @@ export class WebsiteScraper implements Converter, Scraper {
             },
         } satisfies ScraperSourceHandler;
 
-        const knowledge = this.options.markdownScraper.scrape(markdownSource);
+        const knowledge = this.markdownScraper.scrape(markdownSource);
 
         await cacheFilehandler.destroy();
 

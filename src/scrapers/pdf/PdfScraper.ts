@@ -3,12 +3,14 @@ import type { Scraper, ScraperSourceHandler } from '../_common/Scraper';
 // TODO: [🏳‍🌈] Finally take pick of .json vs .ts
 // import PipelineCollection from '../../../promptbook-collection/promptbook-collection';
 import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
+import { ExecutionTools } from '../../execution/ExecutionTools';
+import { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';
 import { TODO_USE } from '../../utils/organization/TODO_USE';
 import type { Converter } from '../_common/Converter';
+import { ScraperAndConverterMetadata } from '../_common/register/ScraperAndConverterMetadata';
 import type { ScraperIntermediateSource } from '../_common/ScraperIntermediateSource';
-import { PdfScraperOptions } from './PdfScraperOptions';
-import { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';
-import { ExecutionTools } from '../../execution/ExecutionTools';
+import { MarkdownScraper } from '../markdown/MarkdownScraper';
+import { pdfScraperMetadata } from './register-metadata';
 
 /**
  * Scraper for .docx files
@@ -18,16 +20,23 @@ import { ExecutionTools } from '../../execution/ExecutionTools';
  */
 export class PdfScraper implements Converter, Scraper {
     /**
-     * Mime types that this scraper can handle
+     * Metadata of the scraper which includes title, mime types, etc.
      */
-    public readonly mimeTypes = ['application/pdf'];
+    public get metadata(): ScraperAndConverterMetadata {
+        return pdfScraperMetadata;
+    }
 
     /**
-     * Link to documentation
+     * Markdown scraper is used internally
      */
-    public readonly documentationUrl = 'https://github.com/webgptorg/promptbook/discussions/@@';
+    private readonly markdownScraper: MarkdownScraper;
 
-    public constructor(    private readonly tools: Pick<ExecutionTools, 'llm'>,private readonly options: PrepareAndScrapeOptions) {}
+    public constructor(
+        private readonly tools: Pick<ExecutionTools, 'llm'>,
+        private readonly options: PrepareAndScrapeOptions,
+    ) {
+        this.markdownScraper = new MarkdownScraper(tools, options);
+    }
 
     /**
      * Converts the `.pdf` file to `.md` file and returns intermediate source

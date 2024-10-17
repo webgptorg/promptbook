@@ -1,8 +1,23 @@
-import type { string_name } from '../../types/typeAliases';
+import { $deepFreeze } from '../../_packages/utils.index';
 import { Registration } from '../../utils/$Register';
-import { TODO_USE } from '../../utils/organization/TODO_USE';
 import { $scrapersMetadataRegister } from '../_common/register/$scrapersMetadataRegister';
-import { ScraperConfiguration } from '../_common/register/ScraperConfiguration';
+import { ScraperAndConverterMetadata } from '../_common/register/ScraperAndConverterMetadata';
+
+/**
+ * Metadata of the scraper
+ *
+ * @private within the scraper directory
+ */
+export const websiteScraperMetadata = $deepFreeze({
+    title: 'Website scraper',
+    packageName: '@promptbook/website-crawler',
+    className: 'WebsiteScraper',
+    mimeTypes: ['text/html'],
+    documentationUrl: 'https://github.com/webgptorg/promptbook/discussions/@@',
+
+    isAvilableInBrowser: false,
+    requiredExecutables: ['!!!!!!'],
+}) satisfies ScraperAndConverterMetadata;
 
 /**
  * Registration of known scraper metadata
@@ -12,42 +27,5 @@ import { ScraperConfiguration } from '../_common/register/ScraperConfiguration';
  * @public exported from `@promptbook/core`
  * @public exported from `@promptbook/cli`
  */
-export const _WebsiteScraperMetadataRegistration: Registration = $scrapersMetadataRegister.register({
-    title: 'Website scraper',
-    packageName: '@promptbook/website-crawler',
-    className: 'WebsiteScraper',
-
-    getBoilerplateConfiguration(): ScraperConfiguration[number] {
-        return {
-            title: 'Website scraper (boilerplate)',
-            packageName: '@promptbook/website-crawler',
-            className: 'WebsiteScraper',
-            options: {
-                // TODO: [☂️] Filter not needed options
-                pandocPath: 'C:/Users/me/AppData/Local/Pandoc/pandoc.exe',
-                libreOfficePath: 'C:/Program Files/LibreOffice/program/swriter.exe',
-                // <- TODO: !!!!!! Unhardcode me
-            },
-        };
-    },
-
-    createConfigurationFromEnv(env: Record<string_name, string>): ScraperConfiguration[number] | null {
-        TODO_USE(env);
-        /*
-        TODO: [💀] !!!!!!
-        if (typeof env.ANTHROPIC_CLAUDE_API_KEY === 'string') {
-            return {
-                title: 'Website scraper (from env)',
-                packageName: '@promptbook/website-crawler',
-                className: 'WebsiteScraper',
-                options: {
-                    // TODO: [☂️] Filter not needed options
-                    apiKey: process.env.ANTHROPIC_CLAUDE_API_KEY!,
-                },
-            };
-        }
-        */
-
-        return null;
-    },
-});
+export const _WebsiteScraperMetadataRegistration: Registration =
+    $scrapersMetadataRegister.register(websiteScraperMetadata);
