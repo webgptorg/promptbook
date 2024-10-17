@@ -1,5 +1,5 @@
 import { EnvironmentMismatchError } from '../../../errors/EnvironmentMismatchError';
-import { ExecutionTools } from '../../../execution/ExecutionTools';
+import type { ExecutionTools } from '../../../execution/ExecutionTools';
 import type { PrepareAndScrapeOptions } from '../../../prepare/PrepareAndScrapeOptions';
 import { $isRunningInBrowser } from '../../../utils/environment/$isRunningInBrowser';
 import { $isRunningInWebWorker } from '../../../utils/environment/$isRunningInWebWorker';

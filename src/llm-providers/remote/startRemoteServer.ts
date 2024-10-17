@@ -14,9 +14,9 @@ import { createLlmToolsFromConfiguration } from '../_common/register/createLlmTo
 import type { PromptbookServer_ListModels_Request } from './interfaces/PromptbookServer_ListModels_Request';
 import type { PromptbookServer_Prompt_Request } from './interfaces/PromptbookServer_Prompt_Request';
 import type { RemoteServerOptions } from './interfaces/RemoteServerOptions';
-import { PromptbookServer_Prompt_Response } from './interfaces/PromptbookServer_Prompt_Response';
-import { PromptbookServer_Error } from './interfaces/PromptbookServer_Error';
-import { PromptbookServer_ListModels_Response } from './interfaces/PromptbookServer_ListModels_Response';
+import type { PromptbookServer_Prompt_Response } from './interfaces/PromptbookServer_Prompt_Response';
+import type { PromptbookServer_Error } from './interfaces/PromptbookServer_Error';
+import type { PromptbookServer_ListModels_Response } from './interfaces/PromptbookServer_ListModels_Response';
 
 /**
  * Remote server is a proxy server that uses its execution tools internally and exposes the executor interface externally.

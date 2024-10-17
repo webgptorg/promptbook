@@ -1,6 +1,6 @@
 import type { ExecutionTools } from '../../execution/ExecutionTools';
 import type { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';
-import { ScraperConstructor } from '../_common/register/ScraperConstructor';
+import type { ScraperConstructor } from '../_common/register/ScraperConstructor';
 import { DocumentScraper } from './DocumentScraper';
 import { documentScraperMetadata } from './register-metadata';
 // <- TODO: !!!!!!! Are theese changed to import type { ... } from ... correctly
@@ -15,7 +15,7 @@ export const createDocumentScraper = Object.assign(
         return new DocumentScraper(tools, options);
     },
     documentScraperMetadata,
-) satisfies ScraperConstructor/* <- TODO: [🤛] */;
+) satisfies ScraperConstructor; /* <- TODO: [🤛] */
 
 /**
  * TODO: [🎶] Naming "constructor" vs "creator" vs "factory"

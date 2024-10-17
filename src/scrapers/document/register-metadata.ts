@@ -1,7 +1,7 @@
 import type { Registration } from '../../utils/$Register';
 import { $deepFreeze } from '../../utils/serialization/$deepFreeze';
 import { $scrapersMetadataRegister } from '../_common/register/$scrapersMetadataRegister';
-import { ScraperAndConverterMetadata } from '../_common/register/ScraperAndConverterMetadata';
+import type { ScraperAndConverterMetadata } from '../_common/register/ScraperAndConverterMetadata';
 
 /**
  * Metadata of the scraper
@@ -17,7 +17,7 @@ export const documentScraperMetadata = $deepFreeze({
 
     isAvilableInBrowser: false,
     requiredExecutables: ['!!!!!!'],
-}) satisfies ScraperAndConverterMetadata/* <- TODO: [🤛] */;
+}) satisfies ScraperAndConverterMetadata; /* <- TODO: [🤛] */
 
 /**
  * Registration of known scraper metadata

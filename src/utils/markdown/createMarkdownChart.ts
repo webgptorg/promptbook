@@ -1,4 +1,5 @@
-import type { string_markdown, string_markdown_text } from '../../types/typeAliases';
+import type { string_markdown } from '../../types/typeAliases';
+import type { string_markdown_text } from '../../types/typeAliases';
 import { formatNumber } from '../formatNumber';
 import type { FromtoItems } from '../FromtoItems';
 import { removeEmojis } from '../removeEmojis';
