@@ -46,17 +46,5 @@
             "type": "github",
             "url": "https://github.com/webgptorg/promptbook/blob/main/README.md#%EF%B8%8F-contributing"
         }
-    ],
-    "main": "./umd/index.umd.js",
-    "module": "./esm/index.es.js",
-    "typings": "./esm/typings/src/_packages/anthropic-claude.index.d.ts",
-    "peerDependencies": {
-        "@promptbook/core": "0.71.0-7"
-    },
-    "dependencies": {
-        "@anthropic-ai/sdk": "0.26.1",
-        "colors": "1.4.0",
-        "socket.io-client": "4.7.2",
-        "spacetrim": "0.11.39"
-    }
+    ]
 }
