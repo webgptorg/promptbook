@@ -1,0 +1,109 @@
+{
+    "date": "2024-10-17T16:12:59.850Z",
+    "promptbookVersion": "0.71.0-8",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-title.ptbk.md#knowledge",
+        "parameters": {
+            "knowledgePieceContent": "Pavol develops WebGPT, a web page generation service. Previously, he created Collboard, the first Czech virtual whiteboard, and H-edu, electronic textbooks used by tens of thousands of children."
+        },
+        "content": "You are experienced content creator, write best title for the document.\n\n# Rules\n\n-   Write just title, nothing else\n-   Title should be concise and clear\n-   Write maximum 5 words for the title\n\n# The document\n\n> {knowledgePieceContent}",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {
+            "words": {
+                "min": 1,
+                "max": 8
+            }
+        }
+    },
+    "promptResult": {
+        "content": "Innovator Behind WebGPT and Collboard",
+        "modelName": "claude-3-5-sonnet-20240620",
+        "timing": {
+            "start": "2024-10-17T16:12:58.640Z",
+            "complete": "2024-10-17T16:12:59.850Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0.0005430000000000001
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 106
+                },
+                "charactersCount": {
+                    "value": 408
+                },
+                "wordsCount": {
+                    "value": 61
+                },
+                "sentencesCount": {
+                    "value": 3
+                },
+                "linesCount": {
+                    "value": 11
+                },
+                "paragraphsCount": {
+                    "value": 5
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 15
+                },
+                "charactersCount": {
+                    "value": 37
+                },
+                "wordsCount": {
+                    "value": 5
+                },
+                "sentencesCount": {
+                    "value": 1
+                },
+                "linesCount": {
+                    "value": 1
+                },
+                "paragraphsCount": {
+                    "value": 1
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced content creator, write best title for the document.\n\n# Rules\n\n-   Write just title, nothing else\n-   Title should be concise and clear\n-   Write maximum 5 words for the title\n\n# The document\n\n> Pavol develops WebGPT, a web page generation service. Previously, he created Collboard, the first Czech virtual whiteboard, and H-edu, electronic textbooks used by tens of thousands of children.",
+        "rawRequest": {
+            "model": "claude-3-5-sonnet-20240620",
+            "max_tokens": 4096,
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "You are experienced content creator, write best title for the document.\n\n# Rules\n\n-   Write just title, nothing else\n-   Title should be concise and clear\n-   Write maximum 5 words for the title\n\n# The document\n\n> Pavol develops WebGPT, a web page generation service. Previously, he created Collboard, the first Czech virtual whiteboard, and H-edu, electronic textbooks used by tens of thousands of children."
+                }
+            ]
+        },
+        "rawResponse": {
+            "id": "msg_01LNnjRhve21q9mF3CAw1x5Y",
+            "type": "message",
+            "role": "assistant",
+            "model": "claude-3-5-sonnet-20240620",
+            "content": [
+                {
+                    "type": "text",
+                    "text": "Innovator Behind WebGPT and Collboard"
+                }
+            ],
+            "stop_reason": "end_turn",
+            "stop_sequence": null,
+            "usage": {
+                "input_tokens": 106,
+                "output_tokens": 15
+            }
+        }
+    }
+}
