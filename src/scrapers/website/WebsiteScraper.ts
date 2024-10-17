@@ -13,10 +13,10 @@ import { KnowledgeScrapeError } from '../../errors/KnowledgeScrapeError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { ExecutionTools } from '../../execution/ExecutionTools';
 import type { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';
-import { MarkdownScraper } from '../markdown/MarkdownScraper';
 import type { ScraperAndConverterMetadata } from '../_common/register/ScraperAndConverterMetadata';
 import type { ScraperIntermediateSource } from '../_common/ScraperIntermediateSource';
 import { getScraperIntermediateSource } from '../_common/utils/getScraperIntermediateSource';
+import { MarkdownScraper } from '../markdown/MarkdownScraper';
 import { websiteScraperMetadata } from './register-metadata';
 import { markdownConverter } from './utils/markdownConverter';
 
@@ -57,7 +57,7 @@ export class WebsiteScraper implements Converter, Scraper {
         const {
             // TODO: [🧠] Maybe in node use headless browser not just JSDOM
             // externalProgramsPaths = {},
-            rootDirname,
+            rootDirname = process.cwd(),
             cacheDirname = SCRAPE_CACHE_DIRNAME,
             isCacheCleaned = false,
             isVerbose = IS_VERBOSE,
@@ -146,4 +146,5 @@ export class WebsiteScraper implements Converter, Scraper {
  * TODO: [👣] Scraped website in .md can act as cache item - there is no need to run conversion each time
  * TODO: [🪂] Do it in parallel 11:11
  * Note: No need to aggregate usage here, it is done by intercepting the llmTools
+ * Note: [🟢] Code in this file should never be published outside of `@promptbook/node` and `@promptbook/cli`
  */

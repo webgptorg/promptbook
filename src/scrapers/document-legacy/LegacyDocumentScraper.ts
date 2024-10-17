@@ -14,12 +14,12 @@ import { $isRunningInNode } from '../../utils/environment/$isRunningInNode';
 import { $execCommand } from '../../utils/execCommand/$execCommand';
 import { $isFileExisting } from '../../utils/files/$isFileExisting';
 import { getFileExtension } from '../../utils/files/getFileExtension';
-import { DocumentScraper } from '../document/DocumentScraper';
 import type { Converter } from '../_common/Converter';
 import type { ScraperAndConverterMetadata } from '../_common/register/ScraperAndConverterMetadata';
 import type { Scraper, ScraperSourceHandler } from '../_common/Scraper';
 import type { ScraperIntermediateSource } from '../_common/ScraperIntermediateSource';
 import { getScraperIntermediateSource } from '../_common/utils/getScraperIntermediateSource';
+import { DocumentScraper } from '../document/DocumentScraper';
 import { legacyDocumentScraperMetadata } from './register-metadata';
 
 /**
@@ -56,7 +56,7 @@ export class LegacyDocumentScraper implements Converter, Scraper {
     public async $convert(source: ScraperSourceHandler): Promise<ScraperIntermediateSource> {
         const {
             externalProgramsPaths = {},
-            rootDirname,
+            rootDirname = process.cwd(),
             cacheDirname = SCRAPE_CACHE_DIRNAME,
             isCacheCleaned = false,
             isVerbose = IS_VERBOSE,
@@ -194,4 +194,5 @@ export class LegacyDocumentScraper implements Converter, Scraper {
  * TODO: [👣] Converted documents can act as cached items - there is no need to run conversion each time
  * TODO: [🪂] Do it in parallel 11:11
  * Note: No need to aggregate usage here, it is done by intercepting the llmTools
+ * Note: [🟢] Code in this file should never be published outside of `@promptbook/node` and `@promptbook/cli`
  */

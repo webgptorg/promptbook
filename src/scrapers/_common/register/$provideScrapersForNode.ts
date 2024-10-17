@@ -41,5 +41,5 @@ export async function $provideScrapersForNode(
 }
 
 /**
- * Note: [🟡] Code in this file should never be published outside of `@promptbook/cli`
+ * Note: [🟢] Code in this file should never be published outside of `@promptbook/node` and `@promptbook/cli`
  */

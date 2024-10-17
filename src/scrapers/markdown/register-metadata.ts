@@ -15,9 +15,9 @@ export const markdownScraperMetadata = $deepFreeze({
     mimeTypes: ['text/markdown', 'text/plain'],
     documentationUrl: 'https://github.com/webgptorg/promptbook/discussions/@@',
 
-    isAvilableInBrowser: false,
+    isAvilableInBrowser: true,
     requiredExecutables: ['!!!!!!'],
-}) satisfies ScraperAndConverterMetadata/* <- TODO: [🤛] */;
+}) satisfies ScraperAndConverterMetadata; /* <- TODO: [🤛] */
 
 /**
  * Registration of known scraper metadata
