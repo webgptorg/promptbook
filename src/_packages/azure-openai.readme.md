@@ -12,17 +12,18 @@ import { JavascriptExecutionTools } from '@promptbook/execute-javascript';
 import { AzureOpenAiExecutionTools } from '@promptbook/azure-openai';
 
 // ▶ Prepare tools
+const llm = new AzureOpenAiExecutionTools(
+    //            <- TODO: [🧱] Implement in a functional (not new Class) way
+    {
+        isVerbose: true,
+        resourceName: process.env.AZUREOPENAI_RESOURCE_NAME,
+        deploymentName: process.env.AZUREOPENAI_DEPLOYMENT_NAME,
+        apiKey: process.env.AZUREOPENAI_API_KEY,
+    },
+);
 const tools = {
-    llm: new AzureOpenAiExecutionTools(
-        //            <- TODO: [🧱] Implement in a functional (not new Class) way
-        {
-            isVerbose: true,
-            resourceName: process.env.AZUREOPENAI_RESOURCE_NAME,
-            deploymentName: process.env.AZUREOPENAI_DEPLOYMENT_NAME,
-            apiKey: process.env.AZUREOPENAI_API_KEY,
-        },
-    ),
-    scrapers: await $provideScrapersForNode(),
+    llm,
+    scrapers: await $provideScrapersForNode({ llm }),
     script: [new JavascriptExecutionTools()],
 };
 
@@ -63,32 +64,33 @@ import { OpenAiExecutionTools } from '@promptbook/openai';
 import { AnthropicClaudeExecutionTools } from '@promptbook/anthropic-claude';
 
 // ▶ Prepare multiple tools
+const llm = [
+    // Note: You can use multiple LLM providers in one Promptbook execution.
+    //       The best model will be chosen automatically according to the prompt and the model's capabilities.
+    new AzureOpenAiExecutionTools(
+        //            <- TODO: [🧱] Implement in a functional (not new Class) way
+        {
+            resourceName: process.env.AZUREOPENAI_RESOURCE_NAME,
+            deploymentName: process.env.AZUREOPENAI_DEPLOYMENT_NAME,
+            apiKey: process.env.AZUREOPENAI_API_KEY,
+        },
+    ),
+    new OpenAiExecutionTools(
+        //            <- TODO: [🧱] Implement in a functional (not new Class) way
+        {
+            apiKey: process.env.OPENAI_API_KEY,
+        },
+    ),
+    new AnthropicClaudeExecutionTools(
+        //            <- TODO: [🧱] Implement in a functional (not new Class) way
+        {
+            apiKey: process.env.ANTHROPIC_CLAUDE_API_KEY,
+        },
+    ),
+];
 const tools = {
-    llm: [
-        // Note: You can use multiple LLM providers in one Promptbook execution.
-        //       The best model will be chosen automatically according to the prompt and the model's capabilities.
-        new AzureOpenAiExecutionTools(
-            //            <- TODO: [🧱] Implement in a functional (not new Class) way
-            {
-                resourceName: process.env.AZUREOPENAI_RESOURCE_NAME,
-                deploymentName: process.env.AZUREOPENAI_DEPLOYMENT_NAME,
-                apiKey: process.env.AZUREOPENAI_API_KEY,
-            },
-        ),
-        new OpenAiExecutionTools(
-            //            <- TODO: [🧱] Implement in a functional (not new Class) way
-            {
-                apiKey: process.env.OPENAI_API_KEY,
-            },
-        ),
-        new AnthropicClaudeExecutionTools(
-            //            <- TODO: [🧱] Implement in a functional (not new Class) way
-            {
-                apiKey: process.env.ANTHROPIC_CLAUDE_API_KEY,
-            },
-        ),
-    ],
-    scrapers: await $provideScrapersForNode(),
+    llm,
+    scrapers: await $provideScrapersForNode({ llm }),
     script: [new JavascriptExecutionTools()],
 };
 

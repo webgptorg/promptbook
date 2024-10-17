@@ -22,7 +22,7 @@ export type ExecutionTools = {
     /**
      * Scrapers for extracting knowledge from external sources
      *
-     * Tip: Use `$provideScrapersForNode()` OR `$provideScrapersForBrowser()` to use all available scrapers
+     * Tip: Use `$provideScrapersForNode` OR `$provideScrapersForBrowser` to use all available scrapers
      *
      * @default [] - If not provided, no external knowledge extraction will be possible
      */

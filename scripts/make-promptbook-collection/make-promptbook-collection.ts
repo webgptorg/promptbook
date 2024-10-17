@@ -59,7 +59,7 @@ async function makePipelineCollection({
     const promptbookSourceDir = 'promptbook-collection';
 
     const llm = $provideLlmToolsForTestingAndScriptsAndPlayground({ isCacheReloaded });
-    const scrapers = await $provideScrapersForNode();
+    const scrapers = await $provideScrapersForNode({ llm });
 
     const collection = await createCollectionFromDirectory(
         promptbookSourceDir,

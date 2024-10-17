@@ -9,7 +9,7 @@ import type { ExecutionTools } from '../ExecutionTools';
 /**
  * Note: There is unfortunately no equivalent for this function in the browser environment
  *       because it is not possible automatically detect configured LLM providers
- *       you need to provide them manually BUT you can help by utilities like `$provideScrapersForBrowser()`
+ *       you need to provide them manually BUT you can help by utilities like `$provideScrapersForBrowser`
  *
  * @public exported from `@promptbook/node`
  */
@@ -18,9 +18,11 @@ export async function $provideExecutionToolsForNode(options?: PrepareAndScrapeOp
         throw new EnvironmentMismatchError('Function `$getExecutionToolsForNode` works only in Node.js environment');
     }
 
+    const llm = $provideLlmToolsFromEnv(options);
+
     const tools = {
-        llm: $provideLlmToolsFromEnv(options),
-        scrapers: await $provideScrapersForNode(options),
+        llm,
+        scrapers: await $provideScrapersForNode({ llm }, options),
         script: [new JavascriptExecutionTools(options)],
     } satisfies ExecutionTools;
 

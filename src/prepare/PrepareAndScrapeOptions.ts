@@ -8,9 +8,11 @@ export type PrepareAndScrapeOptions = {
      * Path to the root folder of the pipeline
      *
      * Note: When the pipeline is not created from files, it is `null`
-     * Note: This folder must exist
+     * Note: This folder must exist (=it is not created recursively)
+     *
+     * @default process.cwd()
      */
-    readonly rootDirname: string_dirname | null;
+    readonly rootDirname?: string_dirname | null;
 
     /**
      * Path to the cache folder

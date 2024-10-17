@@ -1,4 +1,5 @@
 import { EnvironmentMismatchError } from '../../../errors/EnvironmentMismatchError';
+import { ExecutionTools } from '../../../execution/ExecutionTools';
 import type { PrepareAndScrapeOptions } from '../../../prepare/PrepareAndScrapeOptions';
 import { $isRunningInBrowser } from '../../../utils/environment/$isRunningInBrowser';
 import { $isRunningInWebWorker } from '../../../utils/environment/$isRunningInWebWorker';
@@ -10,14 +11,18 @@ import type { Scraper } from '../Scraper';
  * 1) @@@
  * 2) @@@
  *
- * @public exported from `@promptbook/core`
+ * @public exported from `@promptbook/browser`
  */
-export async function $provideScrapersForBrowser(options: PrepareAndScrapeOptions): Promise<Array<Scraper>> {
+export async function $provideScrapersForBrowser(
+    tools: Pick<ExecutionTools, 'llm'>,
+    options?: PrepareAndScrapeOptions,
+): Promise<Array<Scraper>> {
     if (!$isRunningInBrowser() || $isRunningInWebWorker()) {
         throw new EnvironmentMismatchError('Function `$provideScrapersForBrowser` works only in browser environment');
     }
 
-    const { isAutoInstalled /* Note: [0] Intentionally not assigning a default value = IS_AUTO_INSTALLED */ } = options;
+    const { isAutoInstalled /* Note: [0] Intentionally not assigning a default value = IS_AUTO_INSTALLED */ } =
+        options || {};
 
     if (
         isAutoInstalled === true /* <- Note: [0] Ignoring undefined, just checking EXPLICIT requirement for install */
@@ -26,6 +31,6 @@ export async function $provideScrapersForBrowser(options: PrepareAndScrapeOption
     }
 
     return [
-        // TODO: !!!!!! Implement
+        // TODO: !!!!!!! Implement
     ];
 }

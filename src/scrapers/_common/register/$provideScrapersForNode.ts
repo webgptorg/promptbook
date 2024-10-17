@@ -1,16 +1,24 @@
 import { IS_AUTO_INSTALLED, IS_VERBOSE } from '../../../config';
 import { EnvironmentMismatchError } from '../../../errors/EnvironmentMismatchError';
+import { ExecutionTools } from '../../../execution/ExecutionTools';
 import type { PrepareAndScrapeOptions } from '../../../prepare/PrepareAndScrapeOptions';
 import { $isRunningInNode } from '../../../utils/environment/$isRunningInNode';
 import { TODO_USE } from '../../../utils/organization/TODO_USE';
 import type { Scraper } from '../Scraper';
+import { $scrapersRegister } from './$scrapersRegister';
 
 /**
  * !!!!!!
  *
+ * 1) @@@
+ * 2) @@@
+ *
  * @public exported from `@promptbook/node`
  */
-export async function $provideScrapersForNode(options?: PrepareAndScrapeOptions): Promise<Array<Scraper>> {
+export async function $provideScrapersForNode(
+    tools: Pick<ExecutionTools, 'llm'>,
+    options?: PrepareAndScrapeOptions,
+): Promise<Array<Scraper>> {
     if (!$isRunningInNode()) {
         throw new EnvironmentMismatchError('Function `$getScrapersForNode` works only in Node.js environment');
     }
@@ -20,13 +28,16 @@ export async function $provideScrapersForNode(options?: PrepareAndScrapeOptions)
     TODO_USE(isAutoInstalled);
     TODO_USE(isVerbose);
 
-    /*
-    for (const scraper of $scrapersMetadataRegister.list()) {
+    // TODO: !!!!!! Do here auto-installation + auto-include of missing scrapers - use all from $scrapersMetadataRegister.list()
+    // TODO: [🧠] What is the best strategy for auto-install - install them all?
 
+    const scrapers: Array<Scraper> = [];
+    for (const scraperFactory of $scrapersRegister.list()) {
+        const scraper = await scraperFactory(tools, options || {});
+        scrapers.push(scraper);
     }
-        */
 
-    return [];
+    return scrapers;
 }
 
 /**

@@ -76,7 +76,7 @@ async function generateSampleJsons({
         try {
             const pipelineJson = await pipelineStringToJson(
                 pipelineMarkdown as PipelineString,
-                { llm, scrapers: await $provideScrapersForNode() },
+                { llm, scrapers: await $provideScrapersForNode({ llm }) },
                 {
                     rootDirname: dirname(pipelineMarkdownFilePath),
                     externalProgramsPaths: {
