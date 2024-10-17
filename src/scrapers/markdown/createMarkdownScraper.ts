@@ -1,5 +1,6 @@
 import type { ExecutionTools } from '../../execution/ExecutionTools';
 import type { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';
+import { ScraperConstructor } from '../_common/register/ScraperConstructor';
 import { MarkdownScraper } from './MarkdownScraper';
 import { markdownScraperMetadata } from './register-metadata';
 

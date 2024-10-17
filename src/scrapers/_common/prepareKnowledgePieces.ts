@@ -34,7 +34,7 @@ export async function prepareKnowledgePieces(
 
         for (const scraper of arrayableToArray(tools.scrapers)) {
             if (
-                !scraper.mimeTypes.includes(sourceHandler.mimeType)
+                !scraper.metadata.mimeTypes.includes(sourceHandler.mimeType)
                 // <- TODO: [🦔] Implement mime-type wildcards
             ) {
                 continue;

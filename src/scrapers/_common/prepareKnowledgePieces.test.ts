@@ -22,9 +22,12 @@ describe('all the scrapers', () => {
 describe('how prepareKnowledge works', () => {
     it('should work with empty knowledge', () =>
         expect(
-            prepareKnowledgePieces([], {
-                llmTools: $provideLlmToolsForTestingAndScriptsAndPlayground(),
-                rootDirname: join(__dirname, 'samples'),
-            }),
+            prepareKnowledgePieces(
+                [],
+                { llm: $provideLlmToolsForTestingAndScriptsAndPlayground() },
+                {
+                    rootDirname: join(__dirname, 'samples'),
+                },
+            ),
         ).resolves.toEqual([]));
 });

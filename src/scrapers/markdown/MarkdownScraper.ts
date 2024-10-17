@@ -18,6 +18,8 @@ import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import type { TODO_any } from '../../utils/organization/TODO_any';
 import type { ScraperAndConverterMetadata } from '../_common/register/ScraperAndConverterMetadata';
 import { markdownScraperMetadata } from './register-metadata';
+import { arrayableToArray } from '../../utils/arrayableToArray';
+import { joinLlmExecutionTools } from '../../_packages/core.index';
 
 /**
  * Scraper for markdown files
@@ -51,6 +53,10 @@ export class MarkdownScraper implements Scraper {
             throw new MissingToolsError('LLM tools are required for scraping external files');
             // <- Note: This scraper is used in all other scrapers, so saying "external files" not "markdown files"
         }
+
+        // TODO: [🚐] Make arrayable LLMs -> single LLM DRY
+        const _llms = arrayableToArray(llm);
+        const llmTools = _llms.length === 1 ? _llms[0]! : joinLlmExecutionTools(..._llms);
 
         TODO_USE(maxParallelCount); // <- [🪂]
 
@@ -136,13 +142,13 @@ export class MarkdownScraper implements Scraper {
                     }
                     // ---
 
-                    if (!llm.callEmbeddingModel) {
+                    if (!llmTools.callEmbeddingModel) {
                         // TODO: [🟥] Detect browser / node and make it colorfull
                         console.error('No callEmbeddingModel function provided');
                     } else {
                         // TODO: [🧠][🎛] Embedding via multiple models
 
-                        const embeddingResult = await llm.callEmbeddingModel({
+                        const embeddingResult = await llmTools.callEmbeddingModel({
                             title: `Embedding for ${title}` /* <- Note: No impact on embedding result itself, just for logging */,
                             parameters: {},
                             content: knowledgePieceContent,
