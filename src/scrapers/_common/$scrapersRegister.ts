@@ -1,5 +1,5 @@
 import { $Register } from '../../utils/$Register';
-import { Scraper } from './Scraper';
+import type { Scraper } from './Scraper';
 
 /**
  * @@@

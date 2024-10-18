@@ -1,5 +1,5 @@
 import type { Registration } from '../../utils/$Register';
-import { $scrapersRegister } from '../_common/register/$scrapersRegister';
+import { $scrapersRegister } from '../_common/$scrapersRegister';
 import { createWebsiteScraper } from './createWebsiteScraper';
 
 /**
