@@ -1,4 +1,3 @@
-import { readFile } from 'fs/promises';
 import { join } from 'path';
 import spaceTrim from 'spacetrim';
 import type { SetOptional } from 'type-fest';
@@ -115,10 +114,10 @@ export async function makeKnowledgeSourceHandler(
                 );
             },
             async asJson() {
-                return JSON.parse(await readFile(filename, 'utf-8'));
+                return JSON.parse(await tools.fs!.readFile(filename, 'utf-8'));
             },
             async asText() {
-                return await readFile(filename, 'utf-8');
+                return await tools.fs!.readFile(filename, 'utf-8');
             },
         };
     } else {
