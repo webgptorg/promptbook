@@ -1,6 +1,6 @@
 {
     "name": "@promptbook/fake-llm",
-    "version": "0.71.0-11",
+    "version": "0.71.0-13",
     "description": "Supercharge your use of large language models",
     "private": false,
     "sideEffects": false,
@@ -51,7 +51,7 @@
     "module": "./esm/index.es.js",
     "typings": "./esm/typings/src/_packages/fake-llm.index.d.ts",
     "peerDependencies": {
-        "@promptbook/core": "0.71.0-11"
+        "@promptbook/core": "0.71.0-13"
     },
     "dependencies": {
         "lorem-ipsum": "2.0.8",
