@@ -1,16 +1,15 @@
 import type { KnowledgePiecePreparedJson } from '../../types/PipelineJson/KnowledgePieceJson';
-import type { Scraper } from '../_common/Scraper';
-import type { ScraperSourceHandler } from '../_common/Scraper';
+import type { Scraper, ScraperSourceHandler } from '../_common/Scraper';
 // TODO: [🏳‍🌈] Finally take pick of .json vs .ts
 // import PipelineCollection from '../../../promptbook-collection/promptbook-collection';
 import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
 import type { ExecutionTools } from '../../execution/ExecutionTools';
 import type { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';
 import { TODO_USE } from '../../utils/organization/TODO_USE';
-import { MarkdownScraper } from '../markdown/MarkdownScraper';
 import type { Converter } from '../_common/Converter';
 import type { ScraperAndConverterMetadata } from '../_common/register/ScraperAndConverterMetadata';
 import type { ScraperIntermediateSource } from '../_common/ScraperIntermediateSource';
+import { MarkdownScraper } from '../markdown/MarkdownScraper';
 import { pdfScraperMetadata } from './register-metadata';
 
 /**
@@ -33,7 +32,7 @@ export class PdfScraper implements Converter, Scraper {
     private readonly markdownScraper: MarkdownScraper;
 
     public constructor(
-        private readonly tools: Pick<ExecutionTools, 'fs'|'llm'>,
+        private readonly tools: Pick<ExecutionTools, 'llm'>,
         private readonly options: PrepareAndScrapeOptions,
     ) {
         this.markdownScraper = new MarkdownScraper(tools, options);

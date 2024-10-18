@@ -2,6 +2,7 @@ import { describe, expect, it } from '@jest/globals';
 import spaceTrim from 'spacetrim';
 import { pipelineStringToJson } from '../../conversion/pipelineStringToJson';
 import { unpreparePipeline } from '../../prepare/unpreparePipeline';
+import { $provideFilesystemForNode } from '../../scrapers/_common/register/$provideFilesystemForNode';
 import type { PipelineString } from '../../types/PipelineString';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import { createCollectionFromDirectory } from './createCollectionFromDirectory';
@@ -56,7 +57,9 @@ describe('createCollectionFromDirectory', () => {
         expect.assertions(1);
         const collection = await createCollectionFromDirectory(
             './samples/pipelines',
-            {},
+            {
+                fs: $provideFilesystemForNode(),
+            },
             {
                 isVerbose: true,
                 isRecursive: false,
@@ -78,7 +81,7 @@ describe('createCollectionFromDirectory', () => {
 
         const collection = await createCollectionFromDirectory(
             './samples/pipelines',
-            {},
+            { fs: $provideFilesystemForNode() },
             {
                 isVerbose: true,
                 isRecursive: false,
@@ -100,7 +103,7 @@ describe('createCollectionFromDirectory', () => {
 
         const collection = await createCollectionFromDirectory(
             './samples/pipelines',
-            {},
+            { fs: $provideFilesystemForNode() },
             {
                 isVerbose: true,
                 isRecursive: false,
@@ -121,7 +124,7 @@ describe('createCollectionFromDirectory', () => {
             (async () => {
                 const collection = await createCollectionFromDirectory(
                     './samples/pipelines',
-                    {},
+                    { fs: $provideFilesystemForNode() },
                     {
                         isVerbose: true,
                         // Note: Including subdirectories BUT lazy-loaded so it should not crash even if there are errors
@@ -138,7 +141,7 @@ describe('createCollectionFromDirectory', () => {
             (async () => {
                 const collection = await createCollectionFromDirectory(
                     './samples/pipelines',
-                    {},
+                    { fs: $provideFilesystemForNode() },
                     {
                         isVerbose: true,
                         // Note: Including subdirectories BUT lazy-loaded so it should not crash even if there are errors

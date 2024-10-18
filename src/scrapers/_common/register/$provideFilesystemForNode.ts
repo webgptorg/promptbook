@@ -1,9 +1,9 @@
 import { access, constants, readdir, readFile, stat } from 'fs/promises';
-import { $isRunningInNode } from '../../../utils/environment/$isRunningInNode';
 import { IS_VERBOSE } from '../../../config';
 import { EnvironmentMismatchError } from '../../../errors/EnvironmentMismatchError';
 import type { FilesystemTools } from '../../../execution/FilesystemTools';
 import type { PrepareAndScrapeOptions } from '../../../prepare/PrepareAndScrapeOptions';
+import { $isRunningInNode } from '../../../utils/environment/$isRunningInNode';
 import { TODO_USE } from '../../../utils/organization/TODO_USE';
 
 /**
