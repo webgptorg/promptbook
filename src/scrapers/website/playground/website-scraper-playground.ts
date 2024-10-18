@@ -10,11 +10,10 @@ import { join } from 'path';
 import { stringifyPipelineJson } from '../../../conversion/utils/stringifyPipelineJson';
 import { titleToName } from '../../../conversion/utils/titleToName';
 import { usageToHuman } from '../../../execution/utils/usageToHuman';
-import { getLlmToolsForTestingAndScriptsAndPlayground } from '../../../llm-providers/_common/getLlmToolsForTestingAndScriptsAndPlayground';
+import { $provideLlmToolsForTestingAndScriptsAndPlayground } from '../../../llm-providers/_common/register/$provideLlmToolsForTestingAndScriptsAndPlayground';
 import { makeKnowledgeSourceHandler } from '../../_common/utils/makeKnowledgeSourceHandler';
-import { websiteScraper } from '../websiteScraper';
-
-const isVerbose = true;
+import { WebsiteScraper } from '../WebsiteScraper';
+import { $provideFilesystemForNode } from '../../_common/register/$provideFilesystemForNode';
 
 playground()
     .catch((error) => {
@@ -36,22 +35,18 @@ async function playground() {
     const sample = 'https://koralkykatlas.cz/cs/blog/prispevek/-rijna-zhorseni-kvality-kovove-bizuterie.html';
     //               <- TODO: [👩🏿‍🤝‍👩🏼] Read here website-scraper-playground.ts and itterate
 
-    const llmTools = getLlmToolsForTestingAndScriptsAndPlayground({ isCacheReloaded: true });
+    const llmTools = $provideLlmToolsForTestingAndScriptsAndPlayground({ isCacheReloaded: true });
     const rootDirname = join(__dirname, 'samples');
 
-    const knowledge = await websiteScraper.scrape(
-        await makeKnowledgeSourceHandler({ sourceContent: sample }, { rootDirname }),
+    const websiteScraper = new WebsiteScraper(
+        { llm: $provideLlmToolsForTestingAndScriptsAndPlayground() },
         {
-            llmTools,
-            isVerbose,
             rootDirname,
-            isCacheCleaned: false,
-            // TODO: !!!!!! Maybe remove or modify
-            externalProgramsPaths: {
-                // TODO: !!!!!! use `locate-app` library here
-                pandocPath: 'C:/Users/me/AppData/Local/Pandoc/pandoc.exe',
-            },
         },
+    );
+
+    const knowledge = await websiteScraper.scrape(
+        await makeKnowledgeSourceHandler({ sourceContent: sample }, { fs: $provideFilesystemForNode() }, { rootDirname }),
     );
 
     console.info(colors.cyan(usageToHuman(llmTools.getTotalUsage())));

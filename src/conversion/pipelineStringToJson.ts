@@ -1,3 +1,4 @@
+import type { ExecutionTools } from '../execution/ExecutionTools';
 import type { PrepareAndScrapeOptions } from '../prepare/PrepareAndScrapeOptions';
 import { preparePipeline } from '../prepare/preparePipeline';
 import type { PipelineJson } from '../types/PipelineJson/PipelineJson';
@@ -16,6 +17,7 @@ import { pipelineStringToJsonSync } from './pipelineStringToJsonSync';
  * Note: This function acts as compilation process
  *
  * @param pipelineString {Promptbook} in string markdown format (.ptbk.md)
+ * @param tools - Tools for the preparation and scraping - if not provided together with `llm`, the preparation will be skipped
  * @param options - Options and tools for the compilation
  * @returns {Promptbook} compiled in JSON format (.ptbk.json)
  * @throws {ParseError} if the promptbook string is not valid
@@ -23,15 +25,15 @@ import { pipelineStringToJsonSync } from './pipelineStringToJsonSync';
  */
 export async function pipelineStringToJson(
     pipelineString: PipelineString,
+    tools?: Pick<ExecutionTools, 'llm'| 'fs' | 'scrapers'>,
     options?: PrepareAndScrapeOptions,
 ): Promise<PipelineJson> {
-    const { llmTools } = options || {};
-
     let pipelineJson = pipelineStringToJsonSync(pipelineString);
 
-    if (llmTools !== undefined) {
+    if (tools !== undefined && tools.llm !== undefined) {
         pipelineJson = await preparePipeline(
             pipelineJson,
+            tools,
             options || {
                 rootDirname: null,
             },

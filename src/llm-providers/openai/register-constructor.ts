@@ -1,16 +1,17 @@
+import type { Registration } from '../../utils/$Register';
 import { $llmToolsRegister } from '../_common/$llmToolsRegister';
 import { createOpenAiAssistantExecutionTools } from './createOpenAiAssistantExecutionTools';
 import { createOpenAiExecutionTools } from './createOpenAiExecutionTools';
 
 /**
- * @@@ registration2
+ * Registration of LLM provider
  *
- * Note: [🏐] Configurations registrations are done in @@@ BUT constructor @@@
+ * Warning: This is not useful for the end user, it is just a side effect of the mechanism that handles all available LLM tools
  *
  * @public exported from `@promptbook/openai`
  * @public exported from `@promptbook/cli`
  */
-export const _OpenAiRegistration = $llmToolsRegister.register(createOpenAiExecutionTools);
+export const _OpenAiRegistration: Registration = $llmToolsRegister.register(createOpenAiExecutionTools);
 
 /**
  * @@@ registration2

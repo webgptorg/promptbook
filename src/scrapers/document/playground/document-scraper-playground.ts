@@ -9,11 +9,10 @@ import { writeFile } from 'fs/promises';
 import { join } from 'path';
 import { stringifyPipelineJson } from '../../../conversion/utils/stringifyPipelineJson';
 import { usageToHuman } from '../../../execution/utils/usageToHuman';
-import { getLlmToolsForTestingAndScriptsAndPlayground } from '../../../llm-providers/_common/getLlmToolsForTestingAndScriptsAndPlayground';
+import { $provideLlmToolsForTestingAndScriptsAndPlayground } from '../../../llm-providers/_common/register/$provideLlmToolsForTestingAndScriptsAndPlayground';
 import { makeKnowledgeSourceHandler } from '../../_common/utils/makeKnowledgeSourceHandler';
-import { documentScraper } from '../documentScraper';
-
-const isVerbose = true;
+import { DocumentScraper } from '../DocumentScraper';
+import { $provideFilesystemForNode } from '../../_common/register/$provideFilesystemForNode';
 
 playground()
     .catch((error) => {
@@ -35,20 +34,22 @@ async function playground() {
     const sample = '10-simple.odt';
     //               <- TODO: [👩🏿‍🤝‍👩🏼] Read here the samples directory and itterate through all of them
 
-    const llmTools = getLlmToolsForTestingAndScriptsAndPlayground({ isCacheReloaded: true });
+    const llmTools = $provideLlmToolsForTestingAndScriptsAndPlayground({ isCacheReloaded: true });
     const rootDirname = join(__dirname, '..', 'samples');
 
-    const knowledge = await documentScraper.scrape(
-        await makeKnowledgeSourceHandler({ sourceContent: sample }, { rootDirname }),
+    const documentScraper = new DocumentScraper(
+        { llm: $provideLlmToolsForTestingAndScriptsAndPlayground() },
         {
-            llmTools,
-            isVerbose,
             rootDirname,
             externalProgramsPaths: {
                 // TODO: !!!!!! use `locate-app` library here
                 pandocPath: 'C:/Users/me/AppData/Local/Pandoc/pandoc.exe',
             },
         },
+    );
+
+    const knowledge = await documentScraper.scrape(
+        await makeKnowledgeSourceHandler({ sourceContent: sample },  { fs: $provideFilesystemForNode() },{ rootDirname }),
     );
 
     console.info(colors.cyan(usageToHuman(llmTools.getTotalUsage())));

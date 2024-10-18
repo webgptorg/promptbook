@@ -7,7 +7,7 @@ Note: [🔁] In your app you will be importing '../../../src/_packages/core' ins
 import colors from 'colors';
 import * as dotenv from 'dotenv';
 import { forEver } from 'waitasecond';
-import { createCollectionFromDirectory } from '../../../src/_packages/node.index';
+import { $provideExecutionToolsForNode, createCollectionFromDirectory } from '../../../src/_packages/node.index';
 import { OpenAiExecutionTools } from '../../../src/_packages/openai.index';
 import { startRemoteServer } from '../../../src/_packages/remote-server.index';
 
@@ -37,7 +37,8 @@ main()
 async function main() {
     console.info(colors.bgWhite('🔵 Testing remote server of PromptBook'));
 
-    const collection = await createCollectionFromDirectory('./samples/pipelines/');
+    const tools = await $provideExecutionToolsForNode();
+    const collection = await createCollectionFromDirectory('./samples/pipelines/', tools);
 
     // [⚖]
     startRemoteServer({

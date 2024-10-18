@@ -9,11 +9,10 @@ import { writeFile } from 'fs/promises';
 import { join } from 'path';
 import { stringifyPipelineJson } from '../../../conversion/utils/stringifyPipelineJson';
 import { usageToHuman } from '../../../execution/utils/usageToHuman';
-import { getLlmToolsForTestingAndScriptsAndPlayground } from '../../../llm-providers/_common/getLlmToolsForTestingAndScriptsAndPlayground';
+import { $provideLlmToolsForTestingAndScriptsAndPlayground } from '../../../llm-providers/_common/register/$provideLlmToolsForTestingAndScriptsAndPlayground';
+import { $provideFilesystemForNode } from '../../_common/register/$provideFilesystemForNode';
 import { makeKnowledgeSourceHandler } from '../../_common/utils/makeKnowledgeSourceHandler';
-import { legacyDocumentScraper } from '../legacyDocumentScraper';
-
-const isVerbose = true;
+import { LegacyDocumentScraper } from '../LegacyDocumentScraper';
 
 playground()
     .catch((error) => {
@@ -35,21 +34,27 @@ async function playground() {
     const sample = '10-simple.rtf';
     //               <- TODO: [👩🏿‍🤝‍👩🏼] Read here the samples directory and itterate through all of them
 
-    const llmTools = getLlmToolsForTestingAndScriptsAndPlayground({ isCacheReloaded: true });
+    const llmTools = $provideLlmToolsForTestingAndScriptsAndPlayground({ isCacheReloaded: true });
     const rootDirname = join(__dirname, '..', 'samples');
 
-    const knowledge = await legacyDocumentScraper.scrape(
-        await makeKnowledgeSourceHandler({ sourceContent: sample }, { rootDirname }),
+    const legacyDocumentScraper = new LegacyDocumentScraper(
+        { llm: $provideLlmToolsForTestingAndScriptsAndPlayground() },
         {
-            llmTools,
-            isVerbose,
             rootDirname,
             externalProgramsPaths: {
-                // TODO: !!!!!! use `locate-app` library here + do auto-installation of the programs
+                // TODO: !!!!!! use `locate-app` library here
                 pandocPath: 'C:/Users/me/AppData/Local/Pandoc/pandoc.exe',
                 libreOfficePath: 'C:/Program Files/LibreOffice/program/swriter.exe',
             },
         },
+    );
+
+    const knowledge = await legacyDocumentScraper.scrape(
+        await makeKnowledgeSourceHandler(
+            { sourceContent: sample },
+            { fs: $provideFilesystemForNode() },
+            { rootDirname },
+        ),
     );
 
     console.info(colors.cyan(usageToHuman(llmTools.getTotalUsage())));

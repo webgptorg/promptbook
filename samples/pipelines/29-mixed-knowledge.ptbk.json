@@ -196,50 +196,48 @@
                 },
                 "input": {
                     "tokensCount": {
-                        "value": 990,
-                        "isUncertain": true
+                        "value": 990
                     },
                     "charactersCount": {
-                        "value": 5802
+                        "value": 2126
                     },
                     "wordsCount": {
-                        "value": 821
+                        "value": 305
                     },
                     "sentencesCount": {
-                        "value": 49
+                        "value": 21
                     },
                     "linesCount": {
-                        "value": 186
+                        "value": 55
                     },
                     "paragraphsCount": {
-                        "value": 81
+                        "value": 20
                     },
                     "pagesCount": {
-                        "value": 21
+                        "value": 5
                     }
                 },
                 "output": {
                     "tokensCount": {
-                        "value": 148,
-                        "isUncertain": true
+                        "value": 148
                     },
                     "charactersCount": {
-                        "value": 2852
+                        "value": 0
                     },
                     "wordsCount": {
-                        "value": 389
+                        "value": 0
                     },
                     "sentencesCount": {
-                        "value": 22
+                        "value": 0
                     },
                     "linesCount": {
-                        "value": 126
+                        "value": 0
                     },
                     "paragraphsCount": {
-                        "value": 56
+                        "value": 0
                     },
                     "pagesCount": {
-                        "value": 11
+                        "value": 0
                     }
                 }
             }

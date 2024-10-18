@@ -1,4 +1,3 @@
-import { readFile } from 'fs/promises';
 import { join } from 'path';
 import spaceTrim from 'spacetrim';
 import type { SetOptional } from 'type-fest';
@@ -7,12 +6,12 @@ import { IS_VERBOSE } from '../../../config';
 import { EnvironmentMismatchError } from '../../../errors/EnvironmentMismatchError';
 import { NotFoundError } from '../../../errors/NotFoundError';
 import { UnexpectedError } from '../../../errors/UnexpectedError';
+import type { ExecutionTools } from '../../../execution/ExecutionTools';
 import type { PrepareAndScrapeOptions } from '../../../prepare/PrepareAndScrapeOptions';
 import type { KnowledgeSourceJson } from '../../../types/PipelineJson/KnowledgeSourceJson';
-import { $isRunningInNode } from '../../../utils/environment/$isRunningInNode';
-import { $isFileExisting } from '../../../utils/files/$isFileExisting';
 import { extensionToMimeType } from '../../../utils/files/extensionToMimeType';
 import { getFileExtension } from '../../../utils/files/getFileExtension';
+import { isFileExisting } from '../../../utils/files/isFileExisting';
 import { TODO_USE } from '../../../utils/organization/TODO_USE';
 import { isValidFilePath } from '../../../utils/validators/filePath/isValidFilePath';
 import { isValidUrl } from '../../../utils/validators/url/isValidUrl';
@@ -25,11 +24,16 @@ import type { ScraperSourceHandler } from '../Scraper';
  */
 export async function makeKnowledgeSourceHandler(
     knowledgeSource: SetOptional<KnowledgeSourceJson, 'name'>,
+    tools: Pick<ExecutionTools, 'fs'>,
     options?: Pick<PrepareAndScrapeOptions, 'rootDirname' | 'isVerbose'>,
 ): Promise<ScraperSourceHandler> {
     const { sourceContent } = knowledgeSource;
     let { name } = knowledgeSource;
-    const { rootDirname = null, isVerbose = IS_VERBOSE } = options || {};
+    const {
+        rootDirname = null,
+        // <- TODO: process.cwd() if running in Node.js
+        isVerbose = IS_VERBOSE,
+    } = options || {};
 
     TODO_USE(isVerbose);
 
@@ -64,8 +68,9 @@ export async function makeKnowledgeSourceHandler(
             },
         };
     } else if (isValidFilePath(sourceContent) || /\.[a-z]{1,10}$/i.exec(sourceContent as string)) {
-        if (!$isRunningInNode()) {
-            throw new EnvironmentMismatchError('Importing knowledge source file works only in Node.js environment');
+        if (tools.fs === undefined) {
+            throw new EnvironmentMismatchError('Can not import file knowledge without filesystem tools');
+            //          <- TODO: [🧠] What is the best error type here`
         }
 
         if (rootDirname === null) {
@@ -77,7 +82,7 @@ export async function makeKnowledgeSourceHandler(
         const fileExtension = getFileExtension(filename);
         const mimeType = extensionToMimeType(fileExtension || '');
 
-        if (!(await $isFileExisting(filename))) {
+        if (!(await isFileExisting(filename, tools.fs))) {
             throw new NotFoundError(
                 spaceTrim(
                     (block) => `
@@ -98,8 +103,7 @@ export async function makeKnowledgeSourceHandler(
             url: null,
             mimeType,
             async asBlob() {
-                const content = await readFile(filename);
-                //  <- Note: Its OK to use sync in tooling for tests
+                const content = await tools.fs!.readFile(filename);
                 return new Blob(
                     [
                         content,
@@ -110,12 +114,10 @@ export async function makeKnowledgeSourceHandler(
                 );
             },
             async asJson() {
-                return JSON.parse(await readFile(filename, 'utf-8'));
-                //  <- Note: Its OK to use sync in tooling for tests
+                return JSON.parse(await tools.fs!.readFile(filename, 'utf-8'));
             },
             async asText() {
-                return await readFile(filename, 'utf-8');
-                //  <- Note: Its OK to use sync in tooling for tests
+                return await tools.fs!.readFile(filename, 'utf-8');
             },
         };
     } else {

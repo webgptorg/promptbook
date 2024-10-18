@@ -58,10 +58,7 @@ async function playground() {
             ),
             // TODO: [🦻] Add langtail
         ],
-        script: [
-            new JavascriptExecutionTools(),
-            //            <- TODO: [🧱] Implement in a functional (not new Class) way
-        ],
+        script: [new JavascriptExecutionTools()],
     };
     const llmTools = joinLlmExecutionTools(...tools.llm);
 

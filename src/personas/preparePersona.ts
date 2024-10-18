@@ -4,10 +4,13 @@ import { IS_VERBOSE } from '../config';
 import { MissingToolsError } from '../errors/MissingToolsError';
 import { assertsExecutionSuccessful } from '../execution/assertsExecutionSuccessful';
 import { createPipelineExecutor } from '../execution/createPipelineExecutor/00-createPipelineExecutor';
+import type { ExecutionTools } from '../execution/ExecutionTools';
+import { joinLlmExecutionTools } from '../llm-providers/multiple/joinLlmExecutionTools';
 import type { PrepareAndScrapeOptions } from '../prepare/PrepareAndScrapeOptions';
 import type { PersonaPreparedJson } from '../types/PipelineJson/PersonaJson';
 import type { PipelineJson } from '../types/PipelineJson/PipelineJson';
 import type { string_persona_description } from '../types/typeAliases';
+import { arrayableToArray } from '../utils/arrayableToArray';
 import type { TODO_any } from '../utils/organization/TODO_any';
 
 /**
@@ -18,11 +21,12 @@ import type { TODO_any } from '../utils/organization/TODO_any';
  */
 export async function preparePersona(
     personaDescription: string_persona_description,
+    tools: Pick<ExecutionTools, 'llm'>,
     options: PrepareAndScrapeOptions,
 ): Promise<PersonaPreparedJson['modelRequirements']> {
-    const { llmTools, isVerbose = IS_VERBOSE } = options;
+    const { isVerbose = IS_VERBOSE } = options;
 
-    if (llmTools === undefined) {
+    if (tools === undefined || tools.llm === undefined) {
         throw new MissingToolsError('LLM tools are required for preparing persona');
     }
 
@@ -31,10 +35,12 @@ export async function preparePersona(
 
     const preparePersonaExecutor = createPipelineExecutor({
         pipeline: await collection.getPipelineByUrl('https://promptbook.studio/promptbook/prepare-persona.ptbk.md'),
-        tools: {
-            llm: llmTools,
-        },
+        tools,
     });
+
+    // TODO: [🚐] Make arrayable LLMs -> single LLM DRY
+    const _llms = arrayableToArray(tools.llm);
+    const llmTools = _llms.length === 1 ? _llms[0]! : joinLlmExecutionTools(..._llms);
 
     const availableModels = await llmTools.listModels();
     const availableModelNames = availableModels

@@ -1,11 +1,10 @@
 import type { Promisable } from 'type-fest';
-import type { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';
 import type { KnowledgePiecePreparedJson } from '../../types/PipelineJson/KnowledgePieceJson';
 import type { string_filename } from '../../types/typeAliases';
 import type { string_knowledge_source_link } from '../../types/typeAliases';
 import type { string_mime_type } from '../../types/typeAliases';
-import type { string_promptbook_documentation_url } from '../../types/typeAliases';
 import type { string_url } from '../../types/typeAliases';
+import type { ScraperAndConverterMetadata } from './register/ScraperAndConverterMetadata';
 
 /**
  * @@@
@@ -13,21 +12,15 @@ import type { string_url } from '../../types/typeAliases';
  */
 export type Scraper = {
     /**
-     * Mime types that this scraper can handle
+     * Metadata of the scraper which includes title, mime types, etc.
      */
-    readonly mimeTypes: Array<string_mime_type /* <- TODO: [🦔] `string_mime_type_with_wildcard` */>;
-
-    /**
-     * Link to documentation
-     */
-    readonly documentationUrl: string_promptbook_documentation_url;
+    readonly metadata: ScraperAndConverterMetadata;
 
     /**
      * Scrapes the markdown file and returns the knowledge pieces or `null` if it can't scrape it
      */
     scrape(
         source: ScraperSourceHandler,
-        options: PrepareAndScrapeOptions,
     ): Promisable<Array<Omit<KnowledgePiecePreparedJson, 'sources' | 'preparationIds'>> | null>;
 };
 

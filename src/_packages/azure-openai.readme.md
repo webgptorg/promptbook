@@ -6,32 +6,37 @@
 
 ```typescript
 import { createPipelineExecutor, assertsExecutionSuccessful } from '@promptbook/core';
-import { createCollectionFromDirectory } from '@promptbook/node';
+import {
+    createCollectionFromDirectory,
+    $provideExecutionToolsForNode,
+    $provideFilesystemForNode,
+} from '@promptbook/node';
 import { JavascriptExecutionTools } from '@promptbook/execute-javascript';
 import { AzureOpenAiExecutionTools } from '@promptbook/azure-openai';
 
+// ▶ Prepare tools
+const fs = $provideFilesystemForNode();
+const llm = new AzureOpenAiExecutionTools(
+    //            <- TODO: [🧱] Implement in a functional (not new Class) way
+    {
+        isVerbose: true,
+        resourceName: process.env.AZUREOPENAI_RESOURCE_NAME,
+        deploymentName: process.env.AZUREOPENAI_DEPLOYMENT_NAME,
+        apiKey: process.env.AZUREOPENAI_API_KEY,
+    },
+);
+const tools = {
+    llm,
+    fs,
+    scrapers: await $provideScrapersForNode({ fs, llm }),
+    script: [new JavascriptExecutionTools()],
+};
+
 // ▶ Create whole pipeline collection
-const collection = await createCollectionFromDirectory('./promptbook-collection');
+const collection = await createCollectionFromDirectory('./promptbook-collection', tools);
 
 // ▶ Get single Pipeline
 const pipeline = await collection.getPipelineByUrl(`https://promptbook.studio/my-collection/write-article.ptbk.md`);
-
-// ▶ Prepare tools
-const tools = {
-    llm: new AzureOpenAiExecutionTools(
-        //            <- TODO: [🧱] Implement in a functional (not new Class) way
-        {
-            isVerbose: true,
-            resourceName: process.env.AZUREOPENAI_RESOURCE_NAME,
-            deploymentName: process.env.AZUREOPENAI_DEPLOYMENT_NAME,
-            apiKey: process.env.AZUREOPENAI_API_KEY,
-        },
-    ),
-    script: [
-        new JavascriptExecutionTools(),
-        //            <- TODO: [🧱] Implement in a functional (not new Class) way
-    ],
-};
 
 // ▶ Create executor - the function that will execute the Pipeline
 const pipelineExecutor = createPipelineExecutor({ pipeline, tools });
@@ -56,49 +61,54 @@ You can use multiple LLM providers in one Promptbook execution. The best model w
 
 ```typescript
 import { createPipelineExecutor, assertsExecutionSuccessful } from '@promptbook/core';
-import { createCollectionFromDirectory } from '@promptbook/node';
+import {
+    createCollectionFromDirectory,
+    $provideExecutionToolsForNode,
+    $provideFilesystemForNode,
+} from '@promptbook/node';
 import { JavascriptExecutionTools } from '@promptbook/execute-javascript';
 import { AzureOpenAiExecutionTools } from '@promptbook/azure-openai';
 import { OpenAiExecutionTools } from '@promptbook/openai';
 import { AnthropicClaudeExecutionTools } from '@promptbook/anthropic-claude';
 
+// ▶ Prepare multiple tools
+const fs = $provideFilesystemForNode();
+const llm = [
+    // Note: You can use multiple LLM providers in one Promptbook execution.
+    //       The best model will be chosen automatically according to the prompt and the model's capabilities.
+    new AzureOpenAiExecutionTools(
+        //            <- TODO: [🧱] Implement in a functional (not new Class) way
+        {
+            resourceName: process.env.AZUREOPENAI_RESOURCE_NAME,
+            deploymentName: process.env.AZUREOPENAI_DEPLOYMENT_NAME,
+            apiKey: process.env.AZUREOPENAI_API_KEY,
+        },
+    ),
+    new OpenAiExecutionTools(
+        //            <- TODO: [🧱] Implement in a functional (not new Class) way
+        {
+            apiKey: process.env.OPENAI_API_KEY,
+        },
+    ),
+    new AnthropicClaudeExecutionTools(
+        //            <- TODO: [🧱] Implement in a functional (not new Class) way
+        {
+            apiKey: process.env.ANTHROPIC_CLAUDE_API_KEY,
+        },
+    ),
+];
+const tools = {
+    llm,
+    fs,
+    scrapers: await $provideScrapersForNode({ fs, llm }),
+    script: [new JavascriptExecutionTools()],
+};
+
 // ▶ Create whole pipeline collection
-const collection = await createCollectionFromDirectory('./promptbook-collection');
+const collection = await createCollectionFromDirectory('./promptbook-collection', tools);
 
 // ▶ Get single Pipeline
 const pipeline = await collection.getPipelineByUrl(`https://promptbook.studio/my-collection/write-article.ptbk.md`);
-
-// ▶ Prepare multiple tools
-const tools = {
-    llm: [
-        // Note: You can use multiple LLM providers in one Promptbook execution.
-        //       The best model will be chosen automatically according to the prompt and the model's capabilities.
-        new AzureOpenAiExecutionTools(
-            //            <- TODO: [🧱] Implement in a functional (not new Class) way
-            {
-                resourceName: process.env.AZUREOPENAI_RESOURCE_NAME,
-                deploymentName: process.env.AZUREOPENAI_DEPLOYMENT_NAME,
-                apiKey: process.env.AZUREOPENAI_API_KEY,
-            },
-        ),
-        new OpenAiExecutionTools(
-            //            <- TODO: [🧱] Implement in a functional (not new Class) way
-            {
-                apiKey: process.env.OPENAI_API_KEY,
-            },
-        ),
-        new AnthropicClaudeExecutionTools(
-            //            <- TODO: [🧱] Implement in a functional (not new Class) way
-            {
-                apiKey: process.env.ANTHROPIC_CLAUDE_API_KEY,
-            },
-        ),
-    ],
-    script: [
-        new JavascriptExecutionTools(),
-        //            <- TODO: [🧱] Implement in a functional (not new Class) way
-    ],
-};
 
 // ▶ Create executor - the function that will execute the Pipeline
 const pipelineExecutor = createPipelineExecutor({ pipeline, tools });

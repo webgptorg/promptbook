@@ -2,11 +2,11 @@ import { SHA256 as sha256 } from 'crypto-js';
 import hexEncoder from 'crypto-js/enc-hex';
 import { mkdir, rm } from 'fs/promises';
 import { dirname, join } from 'path';
-import { normalizeToKebabCase } from '../../../utils/normalization/normalize-to-kebab-case';
 import { titleToName } from '../../../conversion/utils/titleToName';
 import type { PrepareAndScrapeOptions } from '../../../prepare/PrepareAndScrapeOptions';
 import { nameToSubfolderPath } from '../../../storage/file-cache-storage/utils/nameToSubfolderPath';
 import type { string_file_extension } from '../../../types/typeAliases';
+import { normalizeToKebabCase } from '../../../utils/normalization/normalize-to-kebab-case';
 import { TODO_USE } from '../../../utils/organization/TODO_USE';
 import type { ScraperSourceHandler } from '../Scraper';
 import type { ScraperIntermediateSource } from '../ScraperIntermediateSource';
@@ -117,4 +117,5 @@ export async function getScraperIntermediateSource(
  * 1) Need to store more than serialized JSONs
  * 2) Need to switch between a `rootDirname` and `cacheDirname` <- TODO: !!!!
  * TODO: [🐱‍🐉][🧠] Make some smart crop
+ * Note: [🟢] Code in this file should never be never released in packages that could be imported into browser environment
  */

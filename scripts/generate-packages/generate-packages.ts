@@ -354,11 +354,15 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
             if (
                 packageFullname !== '@promptbook/node' &&
                 packageFullname !== '@promptbook/cli' &&
+
+                packageFullname !== '@promptbook/documents' &&
+                packageFullname !== '@promptbook/legacy-documents' &&
+                packageFullname !== '@promptbook/website-crawler' &&
                 bundleFileContent.includes('[🟢]')
             ) {
                 throw new Error(
                     spaceTrim(`
-                        Things marked with [🟢] should never be never released out of @promptbook/node and @promptbook/cli
+                        Things marked with [🟢] should never be never released in packages that could be imported into browser environment
 
                         ${bundleFileName}
                     `),

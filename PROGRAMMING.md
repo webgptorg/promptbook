@@ -18,6 +18,6 @@ See [TODO.md](./TODO.md)
 -   `@@@` Marks a place where text / documentation / ... must be written.
 
 -   [⚫] Code in this file should never be published in any package
--   [🟢] Code in this file should never be published outside of `@promptbook/node` and `@promptbook/cli`
+-   [🟢] Code in this file should never be published into packages that could be imported into browser environment
 -   [🔵] Code in this file should never be published outside of `@promptbook/browser`
 -   [🟡] Code in this file should never be published outside of `@promptbook/cli`

@@ -6,7 +6,10 @@ import { forEachAsync } from '../../execution/utils/forEachAsync';
 import type { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';
 import type { KnowledgePiecePreparedJson } from '../../types/PipelineJson/KnowledgePieceJson';
 import type { KnowledgeSourceJson } from '../../types/PipelineJson/KnowledgeSourceJson';
-import { SCRAPERS } from '../index';
+
+import type { ExecutionTools } from '../../execution/ExecutionTools';
+import { arrayableToArray } from '../../utils/arrayableToArray';
+import { $registeredScrapersMessage } from './register/$registeredScrapersMessage';
 import { makeKnowledgeSourceHandler } from './utils/makeKnowledgeSourceHandler';
 
 /**
@@ -17,6 +20,7 @@ import { makeKnowledgeSourceHandler } from './utils/makeKnowledgeSourceHandler';
  */
 export async function prepareKnowledgePieces(
     knowledgeSources: Array<KnowledgeSourceJson>,
+    tools: Pick<ExecutionTools, 'llm' | 'fs' | 'scrapers'>,
     options: PrepareAndScrapeOptions,
 ): Promise<Array<Omit<KnowledgePiecePreparedJson, 'preparationIds'>>> {
     const { maxParallelCount = MAX_PARALLEL_COUNT, rootDirname, isVerbose = IS_VERBOSE } = options;
@@ -27,17 +31,17 @@ export async function prepareKnowledgePieces(
 
     await forEachAsync(knowledgeSources, { maxParallelCount }, async (knowledgeSource, index) => {
         let partialPieces: Omit<KnowledgePiecePreparedJson, 'preparationIds' | 'sources'>[] | null = null;
-        const sourceHandler = await makeKnowledgeSourceHandler(knowledgeSource, { rootDirname, isVerbose });
+        const sourceHandler = await makeKnowledgeSourceHandler(knowledgeSource, tools, { rootDirname, isVerbose });
 
-        for (const scraper of SCRAPERS) {
+        for (const scraper of arrayableToArray(tools.scrapers)) {
             if (
-                !scraper.mimeTypes.includes(sourceHandler.mimeType)
+                !scraper.metadata.mimeTypes.includes(sourceHandler.mimeType)
                 // <- TODO: [🦔] Implement mime-type wildcards
             ) {
                 continue;
             }
 
-            const partialPiecesUnchecked = await scraper.scrape(sourceHandler, options);
+            const partialPiecesUnchecked = await scraper.scrape(sourceHandler);
 
             if (partialPiecesUnchecked !== null) {
                 partialPieces = partialPiecesUnchecked;
@@ -53,12 +57,7 @@ export async function prepareKnowledgePieces(
 
                         No scraper found for the mime type "${sourceHandler.mimeType}"
 
-                        Available scrapers:
-                        ${block(
-                            SCRAPERS.flatMap((scraper) => scraper.mimeTypes)
-                                .map((mimeType) => `- ${mimeType}`)
-                                .join('\n'),
-                        )}
+                        ${block($registeredScrapersMessage())}
 
 
                     `,

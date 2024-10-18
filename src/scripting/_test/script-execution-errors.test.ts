@@ -82,28 +82,19 @@ async function getPipelineExecutor() {
     const pipelineExecutor = createPipelineExecutor({
         pipeline,
         tools: {
-            llm: new MockedEchoLlmExecutionTools(
-                //            <- TODO: [🧱] Implement in a functional (not new Class) way
-                { isVerbose: true },
-            ),
+            llm: new MockedEchoLlmExecutionTools({ isVerbose: true }),
             script: [
-                new JavascriptExecutionTools(
-                    //            <- TODO: [🧱] Implement in a functional (not new Class) way
-                    {
-                        isVerbose: true,
-                        // Note: [🕎] Custom functions are tested elsewhere
-                    },
-                ),
-            ],
-            userInterface: new CallbackInterfaceTools(
-                //            <- TODO: [🧱] Implement in a functional (not new Class) way
-                {
+                new JavascriptExecutionTools({
                     isVerbose: true,
-                    async callback() {
-                        return 'Hello';
-                    },
+                    // Note: [🕎] Custom functions are tested elsewhere
+                }),
+            ],
+            userInterface: new CallbackInterfaceTools({
+                isVerbose: true,
+                async callback() {
+                    return 'Hello';
                 },
-            ),
+            }),
         },
     });
 

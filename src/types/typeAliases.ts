@@ -402,6 +402,14 @@ export type string_url_image = string;
 /**
  * Semantic helper
  *
+ * For example `"C:/Users/me/AppData/Local/Pandoc/pandoc.exe"`
+ * For example `"C:/Program Files/LibreOffice/program/swriter.exe"`
+ */
+export type string_executable_path = string;
+
+/**
+ * Semantic helper
+ *
  * For example `"/9SeSQTupmQHwuSrLi"`
  */
 export type string_uri = string;

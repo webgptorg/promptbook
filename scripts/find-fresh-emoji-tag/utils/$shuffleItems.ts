@@ -1,9 +1,13 @@
 /**
- * Shuffle items from the recieved array
+ * Shuffles an array of items randomly and returns a new array
  *
  * Note: `$` is used to indicate that this function is not a pure function - it is not deterministic
  * Note: This function does not mutate the original array
  * Warning: This function is not cryptographically secure (it uses Math.random internally)
+ *
+ * @param items - An array of items to be shuffled.
+ * @returns A new array containing the shuffled items.
+ * @throws No exceptions are thrown by this function.
  */
 export function $shuffleItems<TItem>(...items: Array<TItem>): Array<TItem> {
     const newItems = [...items];

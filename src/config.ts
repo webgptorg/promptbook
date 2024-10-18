@@ -211,6 +211,13 @@ export const IS_VERBOSE = false;
 /**
  * @@@
  *
+ * @public exported from `@promptbook/core`
+ */
+export const IS_AUTO_INSTALLED = false;
+
+/**
+ * @@@
+ *
  * @private within the repository
  */
 export const IS_PIPELINE_LOGIC_VALIDATED: boolean = just(

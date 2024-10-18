@@ -8,7 +8,7 @@ import { splitMarkdownIntoSections } from './splitMarkdownIntoSections';
  *
  * - It always have h1 - if there is no h1 in the markdown, it will be added "# Untitled"
  * - All other headings are normalized to h2
- * 
+ *
  * @public exported from `@promptbook/markdown-utils`
  */
 export function flattenMarkdown<TContent extends string_markdown>(markdown: TContent): TContent {

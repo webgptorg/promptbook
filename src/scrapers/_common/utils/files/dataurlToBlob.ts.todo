@@ -29,14 +29,12 @@ export async function dataurlToBlob(dataurl: string_data_url): Promise<Blob> {
 
     if (!isBase64Encoded) {
         return new Blob(
-//            <- TODO: [🧱] Implement in a functional (not new Class) way
 [decodeURIComponent(data! /* <- TODO: Remove `!` */)], { type });
     }
 
     const byteString = atob(data! /* <- TODO: Remove `!` */);
 
     const arrayBuffer = new ArrayBuffer(
-//            <- TODO: [🧱] Implement in a functional (not new Class) way
 byteString.length);
     const intBuffer = new Uint8Array(arrayBuffer);
 
@@ -45,7 +43,6 @@ byteString.length);
     }
 
     return new Blob(
-//            <- TODO: [🧱] Implement in a functional (not new Class) way
 [arrayBuffer], { type });
 }
 

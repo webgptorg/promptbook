@@ -1,17 +1,18 @@
 import type { string_name } from '../../types/typeAliases';
+import type { Registration } from '../../utils/$Register';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import { $llmToolsMetadataRegister } from '../_common/$llmToolsMetadataRegister';
 import type { LlmToolsConfiguration } from '../_common/LlmToolsConfiguration';
 
 /**
- * @@@ registration1 of default configuration for Open AI
+ * Registration of LLM provider metadata
  *
- * Note: [🏐] Configurations registrations are done in @@@ BUT constructor @@@
+ * Warning: This is not useful for the end user, it is just a side effect of the mechanism that handles all available LLM tools
  *
  * @public exported from `@promptbook/core`
  * @public exported from `@promptbook/cli`
  */
-export const _OpenAiMetadataRegistration = $llmToolsMetadataRegister.register({
+export const _OpenAiMetadataRegistration: Registration = $llmToolsMetadataRegister.register({
     title: 'Open AI',
     packageName: '@promptbook/openai',
     className: 'OpenAiExecutionTools',

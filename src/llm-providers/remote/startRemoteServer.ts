@@ -10,13 +10,13 @@ import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import type { PromptResult } from '../../execution/PromptResult';
 import type { really_any } from '../../utils/organization/really_any';
 import { PROMPTBOOK_VERSION } from '../../version';
-import { createLlmToolsFromConfiguration } from '../_common/createLlmToolsFromConfiguration';
-import type { PromptbookServer_Error } from './interfaces/PromptbookServer_Error';
+import { createLlmToolsFromConfiguration } from '../_common/register/createLlmToolsFromConfiguration';
 import type { PromptbookServer_ListModels_Request } from './interfaces/PromptbookServer_ListModels_Request';
-import type { PromptbookServer_ListModels_Response } from './interfaces/PromptbookServer_ListModels_Response';
 import type { PromptbookServer_Prompt_Request } from './interfaces/PromptbookServer_Prompt_Request';
-import type { PromptbookServer_Prompt_Response } from './interfaces/PromptbookServer_Prompt_Response';
 import type { RemoteServerOptions } from './interfaces/RemoteServerOptions';
+import type { PromptbookServer_Prompt_Response } from './interfaces/PromptbookServer_Prompt_Response';
+import type { PromptbookServer_Error } from './interfaces/PromptbookServer_Error';
+import type { PromptbookServer_ListModels_Response } from './interfaces/PromptbookServer_ListModels_Response';
 
 /**
  * Remote server is a proxy server that uses its execution tools internally and exposes the executor interface externally.
@@ -77,18 +77,14 @@ export function startRemoteServer(options: RemoteServerOptions): IDestroyable {
         response.end();
     });
 
-    const server: Server = new Server(
-        //            <- TODO: [🧱] Implement in a functional (not new Class) way
-        httpServer,
-        {
-            path,
-            transports: [/*'websocket', <- TODO: [🌬] Make websocket transport work */ 'polling'],
-            cors: {
-                origin: '*',
-                methods: ['GET', 'POST'],
-            },
+    const server: Server = new Server(httpServer, {
+        path,
+        transports: [/*'websocket', <- TODO: [🌬] Make websocket transport work */ 'polling'],
+        cors: {
+            origin: '*',
+            methods: ['GET', 'POST'],
         },
-    );
+    });
 
     server.on('connection', (socket: Socket) => {
         if (isVerbose) {
@@ -178,13 +174,16 @@ export function startRemoteServer(options: RemoteServerOptions): IDestroyable {
                     console.info(colors.bgGreen(`PromptResult:`), colors.green(JSON.stringify(promptResult, null, 4)));
                 }
 
-                socket.emit('prompt-response', { promptResult } satisfies PromptbookServer_Prompt_Response);
+                socket.emit(
+                    'prompt-response',
+                    { promptResult } satisfies PromptbookServer_Prompt_Response /* <- TODO: [🤛] */,
+                );
             } catch (error) {
                 if (!(error instanceof Error)) {
                     throw error;
                 }
 
-                socket.emit('error', serializeError(error) satisfies PromptbookServer_Error);
+                socket.emit('error', serializeError(error) satisfies PromptbookServer_Error /* <- TODO: [🤛] */);
             } finally {
                 socket.disconnect();
             }
@@ -229,7 +228,10 @@ export function startRemoteServer(options: RemoteServerOptions): IDestroyable {
 
                 const models = await llmExecutionTools.listModels();
 
-                socket.emit('listModels-response', { models } satisfies PromptbookServer_ListModels_Response);
+                socket.emit(
+                    'listModels-response',
+                    { models } satisfies PromptbookServer_ListModels_Response /* <- TODO: [🤛] */,
+                );
             } catch (error) {
                 if (!(error instanceof Error)) {
                     throw error;

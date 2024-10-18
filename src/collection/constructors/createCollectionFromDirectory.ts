@@ -8,16 +8,18 @@ import { pipelineJsonToString } from '../../conversion/pipelineJsonToString';
 import { pipelineStringToJson } from '../../conversion/pipelineStringToJson';
 import { validatePipeline } from '../../conversion/validation/validatePipeline';
 import { CollectionError } from '../../errors/CollectionError';
+import { EnvironmentMismatchError } from '../../errors/EnvironmentMismatchError';
 import { PipelineUrlError } from '../../errors/PipelineUrlError';
+import type { ExecutionTools } from '../../execution/ExecutionTools';
+import { $provideExecutionToolsForNode } from '../../execution/utils/$provideExecutionToolsForNode';
 import type { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';
 import { unpreparePipeline } from '../../prepare/unpreparePipeline';
 import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import type { PipelineString } from '../../types/PipelineString';
 import type { string_dirname } from '../../types/typeAliases';
 import type { string_pipeline_url } from '../../types/typeAliases';
-import { $isRunningInNode } from '../../utils/environment/$isRunningInNode';
-import { $isFileExisting } from '../../utils/files/$isFileExisting';
-import { $listAllFiles } from '../../utils/files/$listAllFiles';
+import { isFileExisting } from '../../utils/files/isFileExisting';
+import { listAllFiles } from '../../utils/files/listAllFiles';
 import type { PipelineCollection } from '../PipelineCollection';
 import { createCollectionFromPromise } from './createCollectionFromPromise';
 
@@ -67,24 +69,29 @@ type CreatePipelineCollectionFromDirectoryOptions = Omit<PrepareAndScrapeOptions
  * Note: Works only in Node.js environment because it reads the file system
  *
  * @param path - path to the directory with pipelines
- * @param options - Misc options for the collection
+ * @param tools - Execution tools to be used for pipeline preparation if needed - If not provided, `$provideExecutionToolsForNode` will be used
+ * @param options - Options for the collection creation
  * @returns PipelineCollection
  * @public exported from `@promptbook/node`
  */
 export async function createCollectionFromDirectory(
     path: string_dirname,
+    tools?: Pick<ExecutionTools, 'llm' | 'fs' | 'scrapers'>,
     options?: CreatePipelineCollectionFromDirectoryOptions,
 ): Promise<PipelineCollection> {
-    if (!$isRunningInNode()) {
-        throw new Error(
-            'Function `createCollectionFromDirectory` can only be run in Node.js environment because it reads the file system.',
-        );
+    if (tools === undefined) {
+        tools = await $provideExecutionToolsForNode();
+    }
+
+    if (tools === undefined || tools.fs === undefined) {
+        throw new EnvironmentMismatchError('Can not create collection without filesystem tools');
+        //          <- TODO: [🧠] What is the best error type here`
     }
 
     // TODO: [🍖] Allow to skip
     const makedLibraryFilePath = join(path, `${PIPELINE_COLLECTION_BASE_FILENAME}.json`);
 
-    if (!(await $isFileExisting(makedLibraryFilePath))) {
+    if (!(await isFileExisting(makedLibraryFilePath, tools.fs))) {
         console.info(
             colors.yellow(
                 `Tip: Prebuild your pipeline collection (file with supposed prebuild ${makedLibraryFilePath} not found) with CLI util "ptbk make" to speed up the collection creation.`,
@@ -98,20 +105,14 @@ export async function createCollectionFromDirectory(
         // TODO: [🌗]
     }
 
-    const {
-        llmTools,
-        isRecursive = true,
-        isVerbose = IS_VERBOSE,
-        isLazyLoaded = false,
-        isCrashedOnError = true,
-    } = options || {};
+    const { isRecursive = true, isVerbose = IS_VERBOSE, isLazyLoaded = false, isCrashedOnError = true } = options || {};
 
     const collection = createCollectionFromPromise(async () => {
         if (isVerbose) {
             console.info(colors.cyan(`Creating pipeline collection from path ${path.split('\\').join('/')}`));
         }
 
-        const fileNames = await $listAllFiles(path, isRecursive);
+        const fileNames = await listAllFiles(path, isRecursive, tools!.fs!);
 
         // Note: First load all .ptbk.json and then .ptbk.md files
         //       .ptbk.json can be prepared so it is faster to load
@@ -136,8 +137,7 @@ export async function createCollectionFromDirectory(
 
                 if (fileName.endsWith('.ptbk.md')) {
                     const pipelineString = (await readFile(fileName, 'utf-8')) as PipelineString;
-                    pipeline = await pipelineStringToJson(pipelineString, {
-                        llmTools,
+                    pipeline = await pipelineStringToJson(pipelineString, tools, {
                         rootDirname,
                     });
                     pipeline = { ...pipeline, sourceFile };
@@ -254,6 +254,6 @@ export async function createCollectionFromDirectory(
 }
 
 /**
- * Note: [🟢] Code in this file should never be published outside of `@promptbook/node` and `@promptbook/cli`
  * TODO: [🖇] What about symlinks? Maybe option isSymlinksFollowed
+ * TODO: Maybe move from `@promptbook/node` to `@promptbook/core` as we removes direct dependency on `fs`
  */

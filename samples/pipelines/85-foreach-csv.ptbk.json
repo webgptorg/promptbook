@@ -231,52 +231,52 @@
             "promptbookVersion": "0.72.0-8",
             "usage": {
                 "price": {
-                    "value": 0.014835179999999996
+                    "value": 0.004761
                 },
                 "input": {
                     "tokensCount": {
-                        "value": 2678
+                        "value": 992
                     },
                     "charactersCount": {
-                        "value": 9950
+                        "value": 2939
                     },
                     "wordsCount": {
-                        "value": 1574
+                        "value": 502
                     },
                     "sentencesCount": {
-                        "value": 93
+                        "value": 38
                     },
                     "linesCount": {
-                        "value": 242
+                        "value": 55
                     },
                     "paragraphsCount": {
-                        "value": 100
+                        "value": 20
                     },
                     "pagesCount": {
-                        "value": 28
+                        "value": 8
                     }
                 },
                 "output": {
                     "tokensCount": {
-                        "value": 489
+                        "value": 119
                     },
                     "charactersCount": {
-                        "value": 1963
+                        "value": 525
                     },
                     "wordsCount": {
-                        "value": 286
+                        "value": 70
                     },
                     "sentencesCount": {
-                        "value": 28
+                        "value": 5
                     },
                     "linesCount": {
-                        "value": 45
+                        "value": 9
                     },
                     "paragraphsCount": {
-                        "value": 27
+                        "value": 2
                     },
                     "pagesCount": {
-                        "value": 16
+                        "value": 1
                     }
                 }
             }

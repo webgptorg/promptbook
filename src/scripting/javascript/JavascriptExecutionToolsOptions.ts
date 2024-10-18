@@ -1,11 +1,11 @@
 import type { Promisable } from 'type-fest';
-import type { CommonExecutionToolsOptions } from '../../execution/CommonExecutionToolsOptions';
+import type { CommonToolsOptions } from '../../execution/CommonToolsOptions';
 import type { string_postprocessing_function_name } from '../../types/typeAliases';
 
 /**
  * Options for `JavascriptExecutionTools`
  */
-export type JavascriptExecutionToolsOptions = CommonExecutionToolsOptions & {
+export type JavascriptExecutionToolsOptions = CommonToolsOptions & {
     /**
      * Functions to be executed in the JavaScript evaluation.
      *

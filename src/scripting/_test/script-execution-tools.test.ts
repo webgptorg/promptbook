@@ -91,12 +91,10 @@ async function getPipelineExecutor() {
         pipeline,
         tools: {
             llm: new MockedEchoLlmExecutionTools(
-                //            <- TODO: [🧱] Implement in a functional (not new Class) way
                 { isVerbose: true },
             ),
             script: [
                 new JavascriptExecutionTools(
-                    //            <- TODO: [🧱] Implement in a functional (not new Class) way
                     {
                         isVerbose: true,
                         // Note: [🕎] Custom functions are tested elsewhere
@@ -104,7 +102,6 @@ async function getPipelineExecutor() {
                 ),
             ],
             userInterface: new CallbackInterfaceTools(
-                //            <- TODO: [🧱] Implement in a functional (not new Class) way
                 {
                     isVerbose: true,
                     async callback() {
