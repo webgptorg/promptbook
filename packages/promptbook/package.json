@@ -1,6 +1,6 @@
 {
     "name": "promptbook",
-    "version": "0.71.0-15",
+    "version": "0.71.0-16",
     "description": "Supercharge your use of large language models",
     "private": false,
     "sideEffects": false,
@@ -48,27 +48,27 @@
         }
     ],
     "peerDependencies": {
-        "@promptbook/core": "0.71.0-15"
+        "@promptbook/core": "0.71.0-16"
     },
     "dependencies": {
-        "@promptbook/anthropic-claude": "0.71.0-15",
-        "@promptbook/azure-openai": "0.71.0-15",
-        "@promptbook/browser": "0.71.0-15",
-        "@promptbook/cli": "0.71.0-15",
-        "@promptbook/core": "0.71.0-15",
-        "@promptbook/documents": "0.71.0-15",
-        "@promptbook/execute-javascript": "0.71.0-15",
-        "@promptbook/fake-llm": "0.71.0-15",
-        "@promptbook/langtail": "0.71.0-15",
-        "@promptbook/legacy-documents": "0.71.0-15",
-        "@promptbook/markdown-utils": "0.71.0-15",
-        "@promptbook/node": "0.71.0-15",
-        "@promptbook/openai": "0.71.0-15",
-        "@promptbook/pdf": "0.71.0-15",
-        "@promptbook/remote-client": "0.71.0-15",
-        "@promptbook/remote-server": "0.71.0-15",
-        "@promptbook/types": "0.71.0-15",
-        "@promptbook/utils": "0.71.0-15",
-        "@promptbook/website-crawler": "0.71.0-15"
+        "@promptbook/anthropic-claude": "0.71.0-16",
+        "@promptbook/azure-openai": "0.71.0-16",
+        "@promptbook/browser": "0.71.0-16",
+        "@promptbook/cli": "0.71.0-16",
+        "@promptbook/core": "0.71.0-16",
+        "@promptbook/documents": "0.71.0-16",
+        "@promptbook/execute-javascript": "0.71.0-16",
+        "@promptbook/fake-llm": "0.71.0-16",
+        "@promptbook/langtail": "0.71.0-16",
+        "@promptbook/legacy-documents": "0.71.0-16",
+        "@promptbook/markdown-utils": "0.71.0-16",
+        "@promptbook/node": "0.71.0-16",
+        "@promptbook/openai": "0.71.0-16",
+        "@promptbook/pdf": "0.71.0-16",
+        "@promptbook/remote-client": "0.71.0-16",
+        "@promptbook/remote-server": "0.71.0-16",
+        "@promptbook/types": "0.71.0-16",
+        "@promptbook/utils": "0.71.0-16",
+        "@promptbook/website-crawler": "0.71.0-16"
     }
 }
