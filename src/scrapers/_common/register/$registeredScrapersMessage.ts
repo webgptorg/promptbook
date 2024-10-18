@@ -1,9 +1,9 @@
 import spaceTrim from 'spacetrim';
-import { $scrapersRegister } from '../$scrapersRegister';
 import type { string_markdown } from '../../../types/typeAliases';
 import type { Registered } from '../../../utils/$Register';
 import { just } from '../../../utils/organization/just';
 import { $scrapersMetadataRegister } from './$scrapersMetadataRegister';
+import { $scrapersRegister } from './$scrapersRegister';
 
 // TODO: !!!!!! Maybe delete this function
 
