@@ -23,6 +23,7 @@ import type { CreatePipelineExecutorOptions } from '../execution/createPipelineE
 import type { CreatePipelineExecutorSettings } from '../execution/createPipelineExecutor/00-CreatePipelineExecutorSettings';
 import type { EmbeddingVector } from '../execution/EmbeddingVector';
 import type { ExecutionTools } from '../execution/ExecutionTools';
+import type { FilesystemTools } from '../execution/FilesystemTools';
 import type { LlmExecutionTools } from '../execution/LlmExecutionTools';
 import type { LlmExecutionToolsConstructor } from '../execution/LlmExecutionToolsConstructor';
 import type { PipelineExecutor } from '../execution/PipelineExecutor';
@@ -264,6 +265,7 @@ export type { CreatePipelineExecutorOptions };
 export type { CreatePipelineExecutorSettings };
 export type { EmbeddingVector };
 export type { ExecutionTools };
+export type { FilesystemTools };
 export type { LlmExecutionTools };
 export type { LlmExecutionToolsConstructor };
 export type { PipelineExecutor };
