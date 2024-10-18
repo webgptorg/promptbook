@@ -3,9 +3,12 @@ import type { Command as Program /* <- Note: Using Program because Command is mi
 import { readFile } from 'fs/promises';
 import glob from 'glob-promise';
 import spaceTrim from 'spacetrim';
+import { $provideFilesystemForNode, $provideScrapersForNode } from '../../_packages/node.index';
 import { pipelineStringToJson } from '../../conversion/pipelineStringToJson';
 import { validatePipeline } from '../../conversion/validation/validatePipeline';
-import { $provideExecutionToolsForNode } from '../../execution/utils/$provideExecutionToolsForNode';
+import { ExecutionTools } from '../../execution/ExecutionTools';
+import { $provideLlmToolsForCli } from '../../llm-providers/_common/register/$provideLlmToolsForCli';
+import { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';
 import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import type { PipelineString } from '../../types/PipelineString';
 
@@ -28,9 +31,26 @@ export function initializeTestCommand(program: Program) {
         'Pipelines to test as glob pattern',
     );
     testCommand.option('-i, --ignore <glob>', `Ignore as glob pattern`);
+    testCommand.option('--reload-cache', `Call LLM models even if same prompt with result is in the cache `, false);
     testCommand.option('-v, --verbose', `Is output verbose`, false);
 
-    testCommand.action(async (filesGlob, { ignore, verbose: isVerbose }) => {
+    testCommand.action(async (filesGlob, { ignore, reloadCache: isCacheCleaned, verbose: isVerbose }) => {
+        // TODO: DRY [◽]
+        const options = {
+            isVerbose,
+            isCacheCleaned,
+        } satisfies PrepareAndScrapeOptions;
+        const fs = $provideFilesystemForNode(options);
+        const llm = $provideLlmToolsForCli(options);
+        const tools = {
+            llm,
+            fs,
+            scrapers: await $provideScrapersForNode({ fs, llm }, options),
+            script: [
+                /*new JavascriptExecutionTools(options)*/
+            ],
+        } satisfies ExecutionTools;
+
         const filenames = await glob(filesGlob!, { ignore });
         //                       <- TODO: [😶]
 
@@ -40,7 +60,7 @@ export function initializeTestCommand(program: Program) {
 
                 if (filename.endsWith('.ptbk.md')) {
                     const pipelineMarkdown = (await readFile(filename, 'utf-8')) as PipelineString;
-                    pipeline = await pipelineStringToJson(pipelineMarkdown, await $provideExecutionToolsForNode());
+                    pipeline = await pipelineStringToJson(pipelineMarkdown, tools);
 
                     if (isVerbose) {
                         console.info(colors.green(`Parsed ${filename}`));

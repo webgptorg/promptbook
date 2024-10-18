@@ -3,15 +3,17 @@ import type { Command as Program /* <- Note: Using Program because Command is mi
 import { mkdir, writeFile } from 'fs/promises';
 import { dirname, join } from 'path';
 import spaceTrim from 'spacetrim';
+import { $provideFilesystemForNode, $provideScrapersForNode } from '../../_packages/node.index';
 import { collectionToJson } from '../../collection/collectionToJson';
 import { createCollectionFromDirectory } from '../../collection/constructors/createCollectionFromDirectory';
-import { GENERATOR_WARNING_BY_PROMPTBOOK_CLI } from '../../config';
-import { PIPELINE_COLLECTION_BASE_FILENAME } from '../../config';
+import { GENERATOR_WARNING_BY_PROMPTBOOK_CLI, PIPELINE_COLLECTION_BASE_FILENAME } from '../../config';
 import { stringifyPipelineJson } from '../../conversion/utils/stringifyPipelineJson';
 import { validatePipeline } from '../../conversion/validation/validatePipeline';
 import { UnexpectedError } from '../../errors/UnexpectedError';
+import { ExecutionTools } from '../../execution/ExecutionTools';
 import { usageToHuman } from '../../execution/utils/usageToHuman';
 import { $provideLlmToolsForCli } from '../../llm-providers/_common/register/$provideLlmToolsForCli';
+import { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';
 import type { string_file_extension } from '../../types/typeAliases';
 
 /**
@@ -50,7 +52,7 @@ export function initializeMakeCommand(program: Program) {
         'logic,imports',
     );
 
-    makeCommand.option('--reload-cache', `Use LLM models even if cached `, false);
+    makeCommand.option('--reload-cache', `Call LLM models even if same prompt with result is in the cache`, false);
     makeCommand.option('--verbose', `Is output verbose`, false);
     makeCommand.option(
         '-o, --out-file <path>',
@@ -65,10 +67,7 @@ export function initializeMakeCommand(program: Program) {
     );
 
     makeCommand.action(
-        async (
-            path,
-            { projectName, format, validation, reloadCache: isCacheReloaded, verbose: isVerbose, outFile },
-        ) => {
+        async (path, { projectName, format, validation, reloadCache: isCacheCleaned, verbose: isVerbose, outFile }) => {
             let formats = ((format as string | false) || '')
                 .split(',')
                 .map((_) => _.trim())
@@ -83,22 +82,27 @@ export function initializeMakeCommand(program: Program) {
                 process.exit(1);
             }
 
-            const llm = $provideLlmToolsForCli({
-                isCacheReloaded,
-            });
+            // TODO: DRY [◽]
+            const options = {
+                isVerbose,
+                isCacheCleaned,
+            } satisfies PrepareAndScrapeOptions;
+            const fs = $provideFilesystemForNode(options);
+            const llm = $provideLlmToolsForCli(options);
+            const tools = {
+                llm,
+                fs,
+                scrapers: await $provideScrapersForNode({ fs, llm }, options),
+                script: [
+                    /*new JavascriptExecutionTools(options)*/
+                ],
+            } satisfies ExecutionTools;
 
-            const collection = await createCollectionFromDirectory(
-                path,
-                {
-                    llm,
-                    // !!!!!! Provide scrapers
-                },
-                {
-                    isVerbose,
-                    isRecursive: true,
-                    // <- TODO: [🍖] isCacheReloaded
-                },
-            );
+            const collection = await createCollectionFromDirectory(path, tools, {
+                isVerbose,
+                isRecursive: true,
+                // <- TODO: [🍖] isCacheReloaded
+            });
 
             for (const validation of validations) {
                 for (const pipelineUrl of await collection.listPipelines()) {

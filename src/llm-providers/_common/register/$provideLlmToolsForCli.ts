@@ -1,6 +1,7 @@
 import { join } from 'path';
 import { EXECUTIONS_CACHE_DIRNAME } from '../../../config';
 import { EnvironmentMismatchError } from '../../../errors/EnvironmentMismatchError';
+import { PrepareAndScrapeOptions } from '../../../prepare/PrepareAndScrapeOptions';
 import { $provideFilesystemForNode } from '../../../scrapers/_common/register/$provideFilesystemForNode';
 import { FileCacheStorage } from '../../../storage/file-cache-storage/FileCacheStorage';
 import { $isRunningInNode } from '../../../utils/environment/$isRunningInNode';
@@ -9,28 +10,21 @@ import { countTotalUsage } from '../utils/count-total-usage/countTotalUsage';
 import type { LlmExecutionToolsWithTotalUsage } from '../utils/count-total-usage/LlmExecutionToolsWithTotalUsage';
 import { $provideLlmToolsFromEnv } from './$provideLlmToolsFromEnv';
 
-type GetLlmToolsForCliOptions = {
-    /**
-     * @@@
-     *
-     * @default false
-     */
-    isCacheReloaded?: boolean;
-};
-
 /**
  * Returns LLM tools for CLI
  *
  * @private within the repository - for CLI utils
  */
-export function $provideLlmToolsForCli(options?: GetLlmToolsForCliOptions): LlmExecutionToolsWithTotalUsage {
+export function $provideLlmToolsForCli(
+    options?: Pick<PrepareAndScrapeOptions, 'isCacheCleaned'>,
+): LlmExecutionToolsWithTotalUsage {
     if (!$isRunningInNode()) {
         throw new EnvironmentMismatchError(
             'Function `$provideLlmToolsForTestingAndScriptsAndPlayground` works only in Node.js environment',
         );
     }
 
-    const { isCacheReloaded = false } = options ?? {};
+    const { isCacheCleaned = false } = options ?? {};
 
     return cacheLlmTools(
         countTotalUsage(
@@ -42,7 +36,7 @@ export function $provideLlmToolsForCli(options?: GetLlmToolsForCliOptions): LlmE
                 { fs: $provideFilesystemForNode() },
                 { rootFolderPath: join(process.cwd(), EXECUTIONS_CACHE_DIRNAME) },
             ),
-            isReloaded: isCacheReloaded,
+            isReloaded: isCacheCleaned,
         },
     );
 }
