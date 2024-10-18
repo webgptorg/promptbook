@@ -17,6 +17,7 @@ import { forTime } from 'waitasecond';
 import { validatePipeline } from '../../src/conversion/validation/validatePipeline';
 import { $provideLlmToolsForTestingAndScriptsAndPlayground } from '../../src/llm-providers/_common/register/$provideLlmToolsForTestingAndScriptsAndPlayground';
 import { PrepareAndScrapeOptions } from '../../src/prepare/PrepareAndScrapeOptions';
+import { $provideFilesystemForNode } from '../../src/scrapers/_common/register/$provideFilesystemForNode';
 import { $provideScrapersForNode } from '../../src/scrapers/_common/register/$provideScrapersForNode';
 import { PipelineString } from '../../src/types/PipelineString';
 import { commit } from '../utils/autocommit/commit';
@@ -62,6 +63,7 @@ async function generateSampleJsons({
         throw new Error(`Working tree is not clean`);
     }
 
+    const fs = $provideFilesystemForNode();
     const llm = $provideLlmToolsForTestingAndScriptsAndPlayground({ isCacheReloaded, isVerbose });
     //                 <- Note: for example here we don`t want the [🌯]
 
@@ -86,7 +88,11 @@ async function generateSampleJsons({
             };
             const pipelineJson = await pipelineStringToJson(
                 pipelineMarkdown as PipelineString,
-                { llm, scrapers: await $provideScrapersForNode({ llm }, options) },
+                {
+                    llm,
+                    fs,
+                    scrapers: await $provideScrapersForNode({ fs, llm }, options),
+                },
                 options,
             );
 

@@ -59,5 +59,4 @@ export function $provideLlmToolsFromEnv(
  * TODO: [🥃] Allow `ptbk make` without llm tools
  * TODO: This should be maybe not under `_common` but under `utils`
  * TODO: [®] DRY Register logic
- * TODO: [🍂] Maybe make llm = $provideLlmToolsFromEnv() without problem with bundle contaminated by only `@promptbook/node` and `@promptbook/cli` stuff
  */

@@ -59,6 +59,4 @@ export type ExecutionTools = {
 
 /**
  * TODO: !!!!!! Move here also the executables and make $provideXxxxForNode
- * TODO: [🍂] Maybe make llm = $provideLlmToolsFromEnv() without problem with bundle contaminated by only `@promptbook/node` and `@promptbook/cli` stuff
- * TODO: [🍂] Same with scrapers
  */

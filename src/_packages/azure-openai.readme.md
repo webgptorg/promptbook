@@ -15,6 +15,7 @@ import { JavascriptExecutionTools } from '@promptbook/execute-javascript';
 import { AzureOpenAiExecutionTools } from '@promptbook/azure-openai';
 
 // ▶ Prepare tools
+const fs = $provideFilesystemForNode();
 const llm = new AzureOpenAiExecutionTools(
     //            <- TODO: [🧱] Implement in a functional (not new Class) way
     {
@@ -26,8 +27,8 @@ const llm = new AzureOpenAiExecutionTools(
 );
 const tools = {
     llm,
-    fs: $provideFilesystemForNode(),
-    scrapers: await $provideScrapersForNode({ llm }),
+    fs,
+    scrapers: await $provideScrapersForNode({ fs, llm }),
     script: [new JavascriptExecutionTools()],
 };
 
@@ -71,6 +72,7 @@ import { OpenAiExecutionTools } from '@promptbook/openai';
 import { AnthropicClaudeExecutionTools } from '@promptbook/anthropic-claude';
 
 // ▶ Prepare multiple tools
+const fs = $provideFilesystemForNode();
 const llm = [
     // Note: You can use multiple LLM providers in one Promptbook execution.
     //       The best model will be chosen automatically according to the prompt and the model's capabilities.
@@ -97,8 +99,8 @@ const llm = [
 ];
 const tools = {
     llm,
-    fs: $provideFilesystemForNode(),
-    scrapers: await $provideScrapersForNode({ llm }),
+    fs,
+    scrapers: await $provideScrapersForNode({ fs, llm }),
     script: [new JavascriptExecutionTools()],
 };
 

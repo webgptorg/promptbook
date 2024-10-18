@@ -19,12 +19,13 @@ export async function $provideExecutionToolsForNode(options?: PrepareAndScrapeOp
         throw new EnvironmentMismatchError('Function `$getExecutionToolsForNode` works only in Node.js environment');
     }
 
+    const fs = $provideFilesystemForNode();
     const llm = $provideLlmToolsFromEnv(options);
 
     const tools = {
         llm,
-        fs: $provideFilesystemForNode(),
-        scrapers: await $provideScrapersForNode({ llm }, options),
+        fs,
+        scrapers: await $provideScrapersForNode({ fs, llm }, options),
         script: [new JavascriptExecutionTools(options)],
     } satisfies ExecutionTools;
 
