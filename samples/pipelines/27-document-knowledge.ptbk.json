@@ -167,52 +167,52 @@
     "preparations": [
         {
             "id": 1,
-            "promptbookVersion": "0.72.0-8",
+            "promptbookVersion": "0.72.0-9",
             "usage": {
                 "price": {
-                    "value": 0.0130768
+                    "value": 0.00519
                 },
                 "input": {
                     "tokensCount": {
-                        "value": 2457
+                        "value": 990
                     },
                     "charactersCount": {
-                        "value": 7920
+                        "value": 2126
                     },
                     "wordsCount": {
-                        "value": 1170
+                        "value": 305
                     },
                     "sentencesCount": {
-                        "value": 71
+                        "value": 21
                     },
                     "linesCount": {
-                        "value": 197
+                        "value": 55
                     },
                     "paragraphsCount": {
                         "value": 20
                     },
                     "pagesCount": {
-                        "value": 22
+                        "value": 5
                     }
                 },
                 "output": {
                     "tokensCount": {
-                        "value": 411
+                        "value": 148
                     },
                     "charactersCount": {
-                        "value": 1085
+                        "value": 0
                     },
                     "wordsCount": {
-                        "value": 162
+                        "value": 0
                     },
                     "sentencesCount": {
-                        "value": 15
+                        "value": 0
                     },
                     "linesCount": {
-                        "value": 23
+                        "value": 0
                     },
                     "paragraphsCount": {
-                        "value": 16
+                        "value": 0
                     },
                     "pagesCount": {
                         "value": 0

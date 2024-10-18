@@ -271,55 +271,55 @@
     "preparations": [
         {
             "id": 1,
-            "promptbookVersion": "0.72.0-8",
+            "promptbookVersion": "0.72.0-9",
             "usage": {
                 "price": {
-                    "value": 0.026741860000000013
+                    "value": 0
                 },
                 "input": {
                     "tokensCount": {
-                        "value": 3832
+                        "value": 0
                     },
                     "charactersCount": {
-                        "value": 12891
+                        "value": 0
                     },
                     "wordsCount": {
-                        "value": 1928
+                        "value": 0
                     },
                     "sentencesCount": {
-                        "value": 109
+                        "value": 0
                     },
                     "linesCount": {
-                        "value": 311
+                        "value": 0
                     },
                     "paragraphsCount": {
-                        "value": 145
+                        "value": 0
                     },
                     "pagesCount": {
-                        "value": 37
+                        "value": 0
                     }
                 },
                 "output": {
                     "tokensCount": {
-                        "value": 1078
+                        "value": 0
                     },
                     "charactersCount": {
-                        "value": 3034
+                        "value": 0
                     },
                     "wordsCount": {
-                        "value": 401
+                        "value": 0
                     },
                     "sentencesCount": {
-                        "value": 42
+                        "value": 0
                     },
                     "linesCount": {
-                        "value": 60
+                        "value": 0
                     },
                     "paragraphsCount": {
-                        "value": 42
+                        "value": 0
                     },
                     "pagesCount": {
-                        "value": 26
+                        "value": 0
                     }
                 }
             }
