@@ -1,4 +1,4 @@
-import { FilesystemTools } from '../../execution/FilesystemTools';
+import type { FilesystemTools } from '../../execution/FilesystemTools';
 import type { string_filename } from '../../types/typeAliases';
 
 /**

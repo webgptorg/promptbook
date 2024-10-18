@@ -7,7 +7,7 @@ import { stringifyPipelineJson } from '../../conversion/utils/stringifyPipelineJ
 import { titleToName } from '../../conversion/utils/titleToName';
 import { EnvironmentMismatchError } from '../../errors/EnvironmentMismatchError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
-import { ExecutionTools } from '../../execution/ExecutionTools';
+import type { ExecutionTools } from '../../execution/ExecutionTools';
 import type { string_filename } from '../../types/typeAliases';
 import { $isRunningInNode } from '../../utils/environment/$isRunningInNode';
 import { isFileExisting } from '../../utils/files/isFileExisting';

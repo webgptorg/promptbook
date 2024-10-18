@@ -1,9 +1,9 @@
 import { access, constants, readdir, readFile, stat } from 'fs/promises';
-import { $isRunningInNode } from '../../../_packages/utils.index';
+import { $isRunningInNode } from '../../../utils/environment/$isRunningInNode';
 import { IS_VERBOSE } from '../../../config';
 import { EnvironmentMismatchError } from '../../../errors/EnvironmentMismatchError';
-import { FilesystemTools } from '../../../execution/FilesystemTools';
-import { PrepareAndScrapeOptions } from '../../../prepare/PrepareAndScrapeOptions';
+import type { FilesystemTools } from '../../../execution/FilesystemTools';
+import type { PrepareAndScrapeOptions } from '../../../prepare/PrepareAndScrapeOptions';
 import { TODO_USE } from '../../../utils/organization/TODO_USE';
 
 /**

@@ -7,7 +7,7 @@ import { IS_VERBOSE } from '../../../config';
 import { EnvironmentMismatchError } from '../../../errors/EnvironmentMismatchError';
 import { NotFoundError } from '../../../errors/NotFoundError';
 import { UnexpectedError } from '../../../errors/UnexpectedError';
-import { ExecutionTools } from '../../../execution/ExecutionTools';
+import type { ExecutionTools } from '../../../execution/ExecutionTools';
 import type { PrepareAndScrapeOptions } from '../../../prepare/PrepareAndScrapeOptions';
 import type { KnowledgeSourceJson } from '../../../types/PipelineJson/KnowledgeSourceJson';
 import { extensionToMimeType } from '../../../utils/files/extensionToMimeType';
