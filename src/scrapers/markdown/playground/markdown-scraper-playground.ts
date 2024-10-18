@@ -10,6 +10,7 @@ import { join } from 'path';
 import { stringifyPipelineJson } from '../../../conversion/utils/stringifyPipelineJson';
 import { usageToHuman } from '../../../execution/utils/usageToHuman';
 import { $provideLlmToolsForTestingAndScriptsAndPlayground } from '../../../llm-providers/_common/register/$provideLlmToolsForTestingAndScriptsAndPlayground';
+import { $provideFilesystemForNode } from '../../_common/register/$provideFilesystemForNode';
 import { makeKnowledgeSourceHandler } from '../../_common/utils/makeKnowledgeSourceHandler';
 import { MarkdownScraper } from '../MarkdownScraper';
 
@@ -43,7 +44,11 @@ async function playground() {
     );
 
     const knowledge = await markdownScraper.scrape(
-        await makeKnowledgeSourceHandler({ sourceContent: sample }, { rootDirname }),
+        await makeKnowledgeSourceHandler(
+            { sourceContent: sample },
+            { fs: $provideFilesystemForNode() },
+            { rootDirname },
+        ),
     );
 
     console.info(colors.cyan(usageToHuman(llmTools.getTotalUsage())));

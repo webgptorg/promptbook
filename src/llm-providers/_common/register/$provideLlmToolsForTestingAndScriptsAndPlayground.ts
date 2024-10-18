@@ -1,9 +1,9 @@
 import { join } from 'path';
 import '../../../_packages/cli.index'; // <- Note: Really importing core index to register all the LLM providers
-import { EXECUTIONS_CACHE_DIRNAME } from '../../../config';
-import { IS_COST_PREVENTED } from '../../../config';
+import { EXECUTIONS_CACHE_DIRNAME, IS_COST_PREVENTED } from '../../../config';
 import { EnvironmentMismatchError } from '../../../errors/EnvironmentMismatchError';
 import type { LlmExecutionTools } from '../../../execution/LlmExecutionTools';
+import { $provideFilesystemForNode } from '../../../scrapers/_common/register/$provideFilesystemForNode';
 import { FileCacheStorage } from '../../../storage/file-cache-storage/FileCacheStorage';
 import { $isRunningInNode } from '../../../utils/environment/$isRunningInNode';
 import { cacheLlmTools } from '../utils/cache/cacheLlmTools';
@@ -47,7 +47,10 @@ export function $provideLlmToolsForTestingAndScriptsAndPlayground(
     //          <- Note: for example here we don`t want the [🌯]
 
     return cacheLlmTools(llmToolsWithUsage, {
-        storage: new FileCacheStorage({ rootFolderPath: join(process.cwd(), EXECUTIONS_CACHE_DIRNAME) }),
+        storage: new FileCacheStorage(
+            { fs: $provideFilesystemForNode() },
+            { rootFolderPath: join(process.cwd(), EXECUTIONS_CACHE_DIRNAME) },
+        ),
         isReloaded: isCacheReloaded,
     });
 }

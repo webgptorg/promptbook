@@ -2,12 +2,12 @@ import colors from 'colors';
 import { readFile } from 'fs/promises';
 import { dirname, join } from 'path';
 import spaceTrim from 'spacetrim';
-import { IS_VERBOSE } from '../../config';
-import { PIPELINE_COLLECTION_BASE_FILENAME } from '../../config';
+import { IS_VERBOSE, PIPELINE_COLLECTION_BASE_FILENAME } from '../../config';
 import { pipelineJsonToString } from '../../conversion/pipelineJsonToString';
 import { pipelineStringToJson } from '../../conversion/pipelineStringToJson';
 import { validatePipeline } from '../../conversion/validation/validatePipeline';
 import { CollectionError } from '../../errors/CollectionError';
+import { EnvironmentMismatchError } from '../../errors/EnvironmentMismatchError';
 import { PipelineUrlError } from '../../errors/PipelineUrlError';
 import type { ExecutionTools } from '../../execution/ExecutionTools';
 import { $provideExecutionToolsForNode } from '../../execution/utils/$provideExecutionToolsForNode';
@@ -15,11 +15,9 @@ import type { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOpti
 import { unpreparePipeline } from '../../prepare/unpreparePipeline';
 import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import type { PipelineString } from '../../types/PipelineString';
-import type { string_dirname } from '../../types/typeAliases';
-import type { string_pipeline_url } from '../../types/typeAliases';
-import { $isRunningInNode } from '../../utils/environment/$isRunningInNode';
-import { $isFileExisting } from '../../utils/files/$isFileExisting';
-import { $listAllFiles } from '../../utils/files/$listAllFiles';
+import type { string_dirname, string_pipeline_url } from '../../types/typeAliases';
+import { isFileExisting } from '../../utils/files/isFileExisting';
+import { listAllFiles } from '../../utils/files/listAllFiles';
 import type { PipelineCollection } from '../PipelineCollection';
 import { createCollectionFromPromise } from './createCollectionFromPromise';
 
@@ -76,23 +74,22 @@ type CreatePipelineCollectionFromDirectoryOptions = Omit<PrepareAndScrapeOptions
  */
 export async function createCollectionFromDirectory(
     path: string_dirname,
-    tools?: Pick<ExecutionTools, 'llm' | 'scrapers'>,
+    tools?: Pick<ExecutionTools, 'llm' | 'fs' | 'scrapers'>,
     options?: CreatePipelineCollectionFromDirectoryOptions,
 ): Promise<PipelineCollection> {
-    if (!$isRunningInNode()) {
-        throw new Error(
-            'Function `createCollectionFromDirectory` can only be run in Node.js environment because it reads the file system.',
-        );
-    }
-
     if (tools === undefined) {
         tools = await $provideExecutionToolsForNode();
+    }
+
+    if (tools === undefined || tools.fs === undefined) {
+        throw new EnvironmentMismatchError('Can not create collection without filesystem tools');
+        //          <- TODO: [🧠] What is the best error type here`
     }
 
     // TODO: [🍖] Allow to skip
     const makedLibraryFilePath = join(path, `${PIPELINE_COLLECTION_BASE_FILENAME}.json`);
 
-    if (!(await $isFileExisting(makedLibraryFilePath))) {
+    if (!(await isFileExisting(makedLibraryFilePath, tools.fs))) {
         console.info(
             colors.yellow(
                 `Tip: Prebuild your pipeline collection (file with supposed prebuild ${makedLibraryFilePath} not found) with CLI util "ptbk make" to speed up the collection creation.`,
@@ -113,7 +110,7 @@ export async function createCollectionFromDirectory(
             console.info(colors.cyan(`Creating pipeline collection from path ${path.split('\\').join('/')}`));
         }
 
-        const fileNames = await $listAllFiles(path, isRecursive);
+        const fileNames = await listAllFiles(path, isRecursive, tools!.fs!);
 
         // Note: First load all .ptbk.json and then .ptbk.md files
         //       .ptbk.json can be prepared so it is faster to load
@@ -255,6 +252,6 @@ export async function createCollectionFromDirectory(
 }
 
 /**
- * Note: [🟢] Code in this file should never be never released in packages that could be imported into browser environment
  * TODO: [🖇] What about symlinks? Maybe option isSymlinksFollowed
+ * TODO: Maybe move from `@promptbook/node` to `@promptbook/core` as we removes direct dependency on `fs`
  */

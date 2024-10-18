@@ -3,8 +3,8 @@ import type { KnowledgePiecePreparedJson } from '../../types/PipelineJson/Knowle
 // import PipelineCollection from '../../../promptbook-collection/promptbook-collection';
 import { readFile } from 'fs/promises';
 import spaceTrim from 'spacetrim';
-import { IS_VERBOSE } from '../../config';
-import { SCRAPE_CACHE_DIRNAME } from '../../config';
+import { IS_VERBOSE, SCRAPE_CACHE_DIRNAME } from '../../config';
+import { EnvironmentMismatchError } from '../../errors/EnvironmentMismatchError';
 import { KnowledgeScrapeError } from '../../errors/KnowledgeScrapeError';
 import { MissingToolsError } from '../../errors/MissingToolsError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
@@ -12,12 +12,11 @@ import type { ExecutionTools } from '../../execution/ExecutionTools';
 import type { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';
 import { $isRunningInNode } from '../../utils/environment/$isRunningInNode';
 import { $execCommand } from '../../utils/execCommand/$execCommand';
-import { $isFileExisting } from '../../utils/files/$isFileExisting';
 import { getFileExtension } from '../../utils/files/getFileExtension';
+import { isFileExisting } from '../../utils/files/isFileExisting';
 import type { Converter } from '../_common/Converter';
 import type { ScraperAndConverterMetadata } from '../_common/register/ScraperAndConverterMetadata';
-import type { Scraper } from '../_common/Scraper';
-import type { ScraperSourceHandler } from '../_common/Scraper';
+import type { Scraper, ScraperSourceHandler } from '../_common/Scraper';
 import type { ScraperIntermediateSource } from '../_common/ScraperIntermediateSource';
 import { getScraperIntermediateSource } from '../_common/utils/getScraperIntermediateSource';
 import { MarkdownScraper } from '../markdown/MarkdownScraper';
@@ -43,7 +42,7 @@ export class DocumentScraper implements Converter, Scraper {
     private readonly markdownScraper: MarkdownScraper;
 
     public constructor(
-        private readonly tools: Pick<ExecutionTools, 'llm'>,
+        private readonly tools: Pick<ExecutionTools, 'fs' | 'llm'>,
         private readonly options: PrepareAndScrapeOptions,
     ) {
         this.markdownScraper = new MarkdownScraper(tools, options);
@@ -67,6 +66,11 @@ export class DocumentScraper implements Converter, Scraper {
             throw new KnowledgeScrapeError('Scraping .docx files is only supported in Node environment');
         }
 
+        if (this.tools.fs === undefined) {
+            throw new EnvironmentMismatchError('Can not scrape documents without filesystem tools');
+            //          <- TODO: [🧠] What is the best error type here`
+        }
+
         if (externalProgramsPaths.pandocPath === undefined) {
             throw new MissingToolsError('Pandoc is required for scraping .docx files');
         }
@@ -87,14 +91,14 @@ export class DocumentScraper implements Converter, Scraper {
         });
 
         // Note: Running Pandoc ONLY if the file in the cache does not exist
-        if (!(await $isFileExisting(cacheFilehandler.filename))) {
+        if (!(await isFileExisting(cacheFilehandler.filename, this.tools.fs))) {
             const command = `"${externalProgramsPaths.pandocPath}" -f ${extension} -t markdown "${source.filename}" -o "${cacheFilehandler.filename}"`;
 
             // TODO: !!!!!! [🕊] Make execCommand standard (?node-)util of the promptbook
             await $execCommand(command);
 
             // Note: [0]
-            if (!(await $isFileExisting(cacheFilehandler.filename))) {
+            if (!(await isFileExisting(cacheFilehandler.filename, this.tools.fs))) {
                 throw new UnexpectedError(
                     spaceTrim(
                         (block) => `

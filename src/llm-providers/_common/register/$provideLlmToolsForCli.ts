@@ -1,6 +1,7 @@
 import { join } from 'path';
 import { EXECUTIONS_CACHE_DIRNAME } from '../../../config';
 import { EnvironmentMismatchError } from '../../../errors/EnvironmentMismatchError';
+import { $provideFilesystemForNode } from '../../../scrapers/_common/register/$provideFilesystemForNode';
 import { FileCacheStorage } from '../../../storage/file-cache-storage/FileCacheStorage';
 import { $isRunningInNode } from '../../../utils/environment/$isRunningInNode';
 import { cacheLlmTools } from '../utils/cache/cacheLlmTools';
@@ -37,7 +38,10 @@ export function $provideLlmToolsForCli(options?: GetLlmToolsForCliOptions): LlmE
             $provideLlmToolsFromEnv(),
         ),
         {
-            storage: new FileCacheStorage({ rootFolderPath: join(process.cwd(), EXECUTIONS_CACHE_DIRNAME) }),
+            storage: new FileCacheStorage(
+                { fs: $provideFilesystemForNode() },
+                { rootFolderPath: join(process.cwd(), EXECUTIONS_CACHE_DIRNAME) },
+            ),
             isReloaded: isCacheReloaded,
         },
     );

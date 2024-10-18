@@ -7,12 +7,12 @@ import { IS_VERBOSE } from '../../../config';
 import { EnvironmentMismatchError } from '../../../errors/EnvironmentMismatchError';
 import { NotFoundError } from '../../../errors/NotFoundError';
 import { UnexpectedError } from '../../../errors/UnexpectedError';
+import { ExecutionTools } from '../../../execution/ExecutionTools';
 import type { PrepareAndScrapeOptions } from '../../../prepare/PrepareAndScrapeOptions';
 import type { KnowledgeSourceJson } from '../../../types/PipelineJson/KnowledgeSourceJson';
-import { $isRunningInNode } from '../../../utils/environment/$isRunningInNode';
-import { $isFileExisting } from '../../../utils/files/$isFileExisting';
 import { extensionToMimeType } from '../../../utils/files/extensionToMimeType';
 import { getFileExtension } from '../../../utils/files/getFileExtension';
+import { isFileExisting } from '../../../utils/files/isFileExisting';
 import { TODO_USE } from '../../../utils/organization/TODO_USE';
 import { isValidFilePath } from '../../../utils/validators/filePath/isValidFilePath';
 import { isValidUrl } from '../../../utils/validators/url/isValidUrl';
@@ -25,6 +25,7 @@ import type { ScraperSourceHandler } from '../Scraper';
  */
 export async function makeKnowledgeSourceHandler(
     knowledgeSource: SetOptional<KnowledgeSourceJson, 'name'>,
+    tools: Pick<ExecutionTools, 'fs'>,
     options?: Pick<PrepareAndScrapeOptions, 'rootDirname' | 'isVerbose'>,
 ): Promise<ScraperSourceHandler> {
     const { sourceContent } = knowledgeSource;
@@ -68,8 +69,9 @@ export async function makeKnowledgeSourceHandler(
             },
         };
     } else if (isValidFilePath(sourceContent) || /\.[a-z]{1,10}$/i.exec(sourceContent as string)) {
-        if (!$isRunningInNode()) {
-            throw new EnvironmentMismatchError('Importing knowledge source file works only in Node.js environment');
+        if (tools.fs === undefined) {
+            throw new EnvironmentMismatchError('Can not import file knowledge without filesystem tools');
+            //          <- TODO: [🧠] What is the best error type here`
         }
 
         if (rootDirname === null) {
@@ -81,7 +83,7 @@ export async function makeKnowledgeSourceHandler(
         const fileExtension = getFileExtension(filename);
         const mimeType = extensionToMimeType(fileExtension || '');
 
-        if (!(await $isFileExisting(filename))) {
+        if (!(await isFileExisting(filename, tools.fs))) {
             throw new NotFoundError(
                 spaceTrim(
                     (block) => `
@@ -102,7 +104,7 @@ export async function makeKnowledgeSourceHandler(
             url: null,
             mimeType,
             async asBlob() {
-                const content = await readFile(filename);
+                const content = await tools.fs!.readFile(filename);
                 return new Blob(
                     [
                         content,
@@ -141,7 +143,3 @@ export async function makeKnowledgeSourceHandler(
         };
     }
 }
-
-/**
- * Note: [🟢] Code in this file should never be never released in packages that could be imported into browser environment
- */

@@ -3,6 +3,7 @@ import { join } from 'path';
 import { $provideLlmToolsForTestingAndScriptsAndPlayground } from '../../llm-providers/_common/register/$provideLlmToolsForTestingAndScriptsAndPlayground';
 import { makeKnowledgeSourceHandler } from '../_common/utils/makeKnowledgeSourceHandler';
 import { DocumentScraper } from './DocumentScraper';
+import { $provideFilesystemForNode } from '../_common/register/$provideFilesystemForNode';
 
 describe('how creating knowledge from docx works', () => {
     const rootDirname = join(__dirname, 'samples');
@@ -25,6 +26,7 @@ describe('how creating knowledge from docx works', () => {
                         {
                             sourceContent: '10-simple.docx',
                         },
+                        { fs: $provideFilesystemForNode() },
                         { rootDirname },
                     ),
                 )
@@ -45,6 +47,7 @@ describe('how creating knowledge from docx works', () => {
                         {
                             sourceContent: '10-simple.odt',
                         },
+                        { fs: $provideFilesystemForNode() },
                         { rootDirname },
                     ),
                 )
@@ -65,6 +68,7 @@ describe('how creating knowledge from docx works', () => {
                         {
                             sourceContent: '10-simple.docx',
                         },
+                        { fs: $provideFilesystemForNode() },
                         { rootDirname },
                     ),
                 )

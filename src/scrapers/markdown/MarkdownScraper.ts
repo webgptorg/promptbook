@@ -38,7 +38,7 @@ export class MarkdownScraper implements Scraper {
     }
 
     public constructor(
-        private readonly tools: Pick<ExecutionTools, 'llm'>,
+        private readonly tools: Pick<ExecutionTools, 'fs'|'llm'>,
         private readonly options: PrepareAndScrapeOptions,
     ) {}
 

@@ -1,6 +1,7 @@
 import { describe, expect, it } from '@jest/globals';
 import { join } from 'path';
 import { $provideLlmToolsForTestingAndScriptsAndPlayground } from '../../llm-providers/_common/register/$provideLlmToolsForTestingAndScriptsAndPlayground';
+import { $provideFilesystemForNode } from '../_common/register/$provideFilesystemForNode';
 import { makeKnowledgeSourceHandler } from '../_common/utils/makeKnowledgeSourceHandler';
 import { WebsiteScraper } from './WebsiteScraper';
 
@@ -17,7 +18,11 @@ describe('how creating knowledge from website works', () => {
         expect(
             Promise.resolve()
                 .then(() =>
-                    makeKnowledgeSourceHandler({ sourceContent: 'https://www.pavolhejny.com/' }, { rootDirname }),
+                    makeKnowledgeSourceHandler(
+                        { sourceContent: 'https://www.pavolhejny.com/' },
+                        { fs: $provideFilesystemForNode() },
+                        { rootDirname },
+                    ),
                 )
                 .then((sourceHandler) => websiteScraper.scrape(sourceHandler))
                 .then((knowledge) => knowledge?.map(({ content }) => ({ content })))
@@ -32,7 +37,11 @@ describe('how creating knowledge from website works', () => {
         expect(
             Promise.resolve()
                 .then(() =>
-                    makeKnowledgeSourceHandler({ sourceContent: 'https://www.pavolhejny.com/' }, { rootDirname }),
+                    makeKnowledgeSourceHandler(
+                        { sourceContent: 'https://www.pavolhejny.com/' },
+                        { fs: $provideFilesystemForNode() },
+                        { rootDirname },
+                    ),
                 )
                 .then((sourceHandler) => websiteScraper.scrape(sourceHandler))
                 .then((knowledge) => knowledge?.map(({ content }) => ({ content })))

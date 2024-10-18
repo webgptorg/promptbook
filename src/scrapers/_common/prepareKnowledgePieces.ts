@@ -1,6 +1,5 @@
 import spaceTrim from 'spacetrim';
-import { IS_VERBOSE } from '../../config';
-import { MAX_PARALLEL_COUNT } from '../../config';
+import { IS_VERBOSE, MAX_PARALLEL_COUNT } from '../../config';
 import { KnowledgeScrapeError } from '../../errors/KnowledgeScrapeError';
 import { forEachAsync } from '../../execution/utils/forEachAsync';
 import type { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';
@@ -20,7 +19,7 @@ import { makeKnowledgeSourceHandler } from './utils/makeKnowledgeSourceHandler';
  */
 export async function prepareKnowledgePieces(
     knowledgeSources: Array<KnowledgeSourceJson>,
-    tools: Pick<ExecutionTools, 'llm' | 'scrapers'>,
+    tools: Pick<ExecutionTools, 'llm' | 'fs' | 'scrapers'>,
     options: PrepareAndScrapeOptions,
 ): Promise<Array<Omit<KnowledgePiecePreparedJson, 'preparationIds'>>> {
     const { maxParallelCount = MAX_PARALLEL_COUNT, rootDirname, isVerbose = IS_VERBOSE } = options;
@@ -31,7 +30,7 @@ export async function prepareKnowledgePieces(
 
     await forEachAsync(knowledgeSources, { maxParallelCount }, async (knowledgeSource, index) => {
         let partialPieces: Omit<KnowledgePiecePreparedJson, 'preparationIds' | 'sources'>[] | null = null;
-        const sourceHandler = await makeKnowledgeSourceHandler(knowledgeSource, { rootDirname, isVerbose });
+        const sourceHandler = await makeKnowledgeSourceHandler(knowledgeSource, tools, { rootDirname, isVerbose });
 
         for (const scraper of arrayableToArray(tools.scrapers)) {
             if (

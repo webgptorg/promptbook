@@ -4,8 +4,11 @@
 
 ```typescript
 import { createPipelineExecutor, createCollectionFromDirectory, assertsExecutionSuccessful } from '@promptbook/core';
-import { createCollectionFromDirectory } from '@promptbook/node';
-import { $provideExecutionToolsForNode } from '@promptbook/node';
+import {
+    createCollectionFromDirectory,
+    $provideExecutionToolsForNode,
+    $provideFilesystemForNode,
+} from '@promptbook/node';
 import { JavascriptExecutionTools } from '@promptbook/execute-javascript';
 import { AnthropicClaudeExecutionTools } from '@promptbook/anthropic-claude';
 
@@ -19,6 +22,7 @@ const llm = new AnthropicClaudeExecutionTools(
 );
 const tools = {
     llm,
+    fs: $provideFilesystemForNode(),
     scrapers: await $provideScrapersForNode({ llm }),
     script: [new JavascriptExecutionTools()],
 };
@@ -54,6 +58,7 @@ You can just use `$provideExecutionToolsForNode` function to create all required
 import { createPipelineExecutor, createCollectionFromDirectory, assertsExecutionSuccessful } from '@promptbook/core';
 import { JavascriptExecutionTools } from '@promptbook/execute-javascript';
 import { $provideExecutionToolsForNode } from '@promptbook/node';
+import { $provideFilesystemForNode } from '@promptbook/node';
 
 // ▶ Prepare tools
 const tools = await $provideExecutionToolsForNode();
@@ -88,6 +93,7 @@ You can use multiple LLM providers in one Promptbook execution. The best model w
 ```typescript
 import { createPipelineExecutor, createCollectionFromDirectory, assertsExecutionSuccessful } from '@promptbook/core';
 import { $provideExecutionToolsForNode } from '@promptbook/node';
+import { $provideFilesystemForNode } from '@promptbook/node';
 import { JavascriptExecutionTools } from '@promptbook/execute-javascript';
 import { OpenAiExecutionTools } from '@promptbook/openai';
 
@@ -118,6 +124,7 @@ const llm = [
 ];
 const tools = {
     llm,
+    fs: $provideFilesystemForNode(),
     scrapers: await $provideScrapersForNode({ llm }),
     script: [new JavascriptExecutionTools()],
 };

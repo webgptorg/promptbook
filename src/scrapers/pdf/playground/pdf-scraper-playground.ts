@@ -12,6 +12,7 @@ import { usageToHuman } from '../../../execution/utils/usageToHuman';
 import { $provideLlmToolsForTestingAndScriptsAndPlayground } from '../../../llm-providers/_common/register/$provideLlmToolsForTestingAndScriptsAndPlayground';
 import { makeKnowledgeSourceHandler } from '../../_common/utils/makeKnowledgeSourceHandler';
 import { PdfScraper } from '../PdfScraper';
+import { $provideFilesystemForNode } from '../../_common/register/$provideFilesystemForNode';
 
 playground()
     .catch((error) => {
@@ -44,7 +45,7 @@ async function playground() {
     );
 
     const knowledge = await pdfScraper.scrape(
-        await makeKnowledgeSourceHandler({ sourceContent: sample }, { rootDirname }),
+        await makeKnowledgeSourceHandler({ sourceContent: sample },  { fs: $provideFilesystemForNode() },{ rootDirname }),
     );
 
     console.info(colors.cyan(usageToHuman(llmTools.getTotalUsage())));

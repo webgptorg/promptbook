@@ -6,8 +6,11 @@
 
 ```typescript
 import { createPipelineExecutor, assertsExecutionSuccessful } from '@promptbook/core';
-import { createCollectionFromDirectory } from '@promptbook/node';
-import { $provideExecutionToolsForNode } from '@promptbook/node';
+import {
+    createCollectionFromDirectory,
+    $provideExecutionToolsForNode,
+    $provideFilesystemForNode,
+} from '@promptbook/node';
 import { JavascriptExecutionTools } from '@promptbook/execute-javascript';
 import { AzureOpenAiExecutionTools } from '@promptbook/azure-openai';
 
@@ -23,6 +26,7 @@ const llm = new AzureOpenAiExecutionTools(
 );
 const tools = {
     llm,
+    fs: $provideFilesystemForNode(),
     scrapers: await $provideScrapersForNode({ llm }),
     script: [new JavascriptExecutionTools()],
 };
@@ -56,8 +60,11 @@ You can use multiple LLM providers in one Promptbook execution. The best model w
 
 ```typescript
 import { createPipelineExecutor, assertsExecutionSuccessful } from '@promptbook/core';
-import { createCollectionFromDirectory } from '@promptbook/node';
-import { $provideExecutionToolsForNode } from '@promptbook/node';
+import {
+    createCollectionFromDirectory,
+    $provideExecutionToolsForNode,
+    $provideFilesystemForNode,
+} from '@promptbook/node';
 import { JavascriptExecutionTools } from '@promptbook/execute-javascript';
 import { AzureOpenAiExecutionTools } from '@promptbook/azure-openai';
 import { OpenAiExecutionTools } from '@promptbook/openai';
@@ -90,6 +97,7 @@ const llm = [
 ];
 const tools = {
     llm,
+    fs: $provideFilesystemForNode(),
     scrapers: await $provideScrapersForNode({ llm }),
     script: [new JavascriptExecutionTools()],
 };

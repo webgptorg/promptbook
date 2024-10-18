@@ -7,9 +7,10 @@ import { stringifyPipelineJson } from '../../conversion/utils/stringifyPipelineJ
 import { titleToName } from '../../conversion/utils/titleToName';
 import { EnvironmentMismatchError } from '../../errors/EnvironmentMismatchError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
+import { ExecutionTools } from '../../execution/ExecutionTools';
 import type { string_filename } from '../../types/typeAliases';
 import { $isRunningInNode } from '../../utils/environment/$isRunningInNode';
-import { $isFileExisting } from '../../utils/files/$isFileExisting';
+import { isFileExisting } from '../../utils/files/isFileExisting';
 import { isSerializableAsJson } from '../../utils/serialization/isSerializableAsJson';
 import type { PromptbookStorage } from '../_common/PromptbookStorage';
 import type { FileCacheStorageOptions } from './FileCacheStorageOptions';
@@ -21,7 +22,10 @@ import { nameToSubfolderPath } from './utils/nameToSubfolderPath';
  * @public exported from `@promptbook/node`
  */
 export class FileCacheStorage<TItem> implements PromptbookStorage<TItem> {
-    constructor(private readonly options: FileCacheStorageOptions) {
+    constructor(
+        private readonly tools: Required<Pick<ExecutionTools, 'fs'>>,
+        private readonly options: FileCacheStorageOptions,
+    ) {
         if (!$isRunningInNode()) {
             throw new EnvironmentMismatchError(`FileCacheStorage works only in Node.js environment`);
         }
@@ -49,7 +53,7 @@ export class FileCacheStorage<TItem> implements PromptbookStorage<TItem> {
     public async getItem(key: string): Promise<TItem | null> {
         const filename = this.getFilenameForKey(key);
 
-        if (!(await $isFileExisting(filename))) {
+        if (!(await isFileExisting(filename, this.tools.fs))) {
             return null;
         }
 

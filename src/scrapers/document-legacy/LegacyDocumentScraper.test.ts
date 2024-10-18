@@ -1,6 +1,7 @@
 import { describe, expect, it } from '@jest/globals';
 import { join } from 'path';
 import { $provideLlmToolsForTestingAndScriptsAndPlayground } from '../../llm-providers/_common/register/$provideLlmToolsForTestingAndScriptsAndPlayground';
+import { $provideFilesystemForNode } from '../_common/register/$provideFilesystemForNode';
 import { makeKnowledgeSourceHandler } from '../_common/utils/makeKnowledgeSourceHandler';
 import { LegacyDocumentScraper } from './LegacyDocumentScraper';
 
@@ -26,6 +27,7 @@ describe('how creating knowledge from docx works', () => {
                         {
                             sourceContent: '10-simple.doc',
                         },
+                        { fs: $provideFilesystemForNode() },
                         { rootDirname },
                     ),
                 )
@@ -46,6 +48,7 @@ describe('how creating knowledge from docx works', () => {
                         {
                             sourceContent: '10-simple.rtf',
                         },
+                        { fs: $provideFilesystemForNode() },
                         { rootDirname },
                     ),
                 )
@@ -66,6 +69,7 @@ describe('how creating knowledge from docx works', () => {
                         {
                             sourceContent: '10-simple.doc',
                         },
+                        { fs: $provideFilesystemForNode() },
                         { rootDirname },
                     ),
                 )

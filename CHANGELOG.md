@@ -533,6 +533,8 @@ Knowledge scrapers [🐝]
 -   Allow to import `.rtf` files with knowledge `.rtf` -(LibreOffice)-> `.docx` -(Pandoc)-> `.md`
 -   Allow to import websites with knowledge
 -   Add new error `KnowledgeScrapeError`
+-   Filesystem is passed as dependency
+-   External programs are passed as dependency
 -   Remove `PipelineStringToJsonOptions` in favour of `PrepareAndScrapeOptions`
 -   Add `MissingToolsError`
 -   Change `FileStorage` -> `FileCacheStorage`

@@ -30,7 +30,7 @@ import { prepareTemplates } from './prepareTemplates';
  */
 export async function preparePipeline(
     pipeline: PipelineJson,
-    tools: Pick<ExecutionTools, 'llm' | 'scrapers'>,
+    tools: Pick<ExecutionTools, 'llm' | 'fs' | 'scrapers'>,
     options: PrepareAndScrapeOptions,
 ): Promise<PipelineJson> {
     if (isPipelinePrepared(pipeline)) {

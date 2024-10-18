@@ -25,7 +25,7 @@ import { pipelineStringToJsonSync } from './pipelineStringToJsonSync';
  */
 export async function pipelineStringToJson(
     pipelineString: PipelineString,
-    tools?: Pick<ExecutionTools, 'llm' | 'scrapers'>,
+    tools?: Pick<ExecutionTools, 'llm'| 'fs' | 'scrapers'>,
     options?: PrepareAndScrapeOptions,
 ): Promise<PipelineJson> {
     let pipelineJson = pipelineStringToJsonSync(pipelineString);

@@ -42,7 +42,7 @@ export class WebsiteScraper implements Converter, Scraper {
     private readonly markdownScraper: MarkdownScraper;
 
     public constructor(
-        private readonly tools: Pick<ExecutionTools, 'llm'>,
+        private readonly tools: Pick<ExecutionTools, 'fs'|'llm'>,
         private readonly options: PrepareAndScrapeOptions,
     ) {
         this.markdownScraper = new MarkdownScraper(tools, options);
