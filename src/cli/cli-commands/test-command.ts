@@ -3,12 +3,13 @@ import type { Command as Program /* <- Note: Using Program because Command is mi
 import { readFile } from 'fs/promises';
 import glob from 'glob-promise';
 import spaceTrim from 'spacetrim';
-import { $provideFilesystemForNode, $provideScrapersForNode } from '../../_packages/node.index';
+import { $provideFilesystemForNode } from '../../scrapers/_common/register/$provideFilesystemForNode';
+import { $provideScrapersForNode } from '../../scrapers/_common/register/$provideScrapersForNode';
 import { pipelineStringToJson } from '../../conversion/pipelineStringToJson';
 import { validatePipeline } from '../../conversion/validation/validatePipeline';
-import { ExecutionTools } from '../../execution/ExecutionTools';
+import type { ExecutionTools } from '../../execution/ExecutionTools';
 import { $provideLlmToolsForCli } from '../../llm-providers/_common/register/$provideLlmToolsForCli';
-import { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';
+import type { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';
 import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import type { PipelineString } from '../../types/PipelineString';
 

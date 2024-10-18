@@ -1,7 +1,7 @@
 import { join } from 'path';
 import { EXECUTIONS_CACHE_DIRNAME } from '../../../config';
 import { EnvironmentMismatchError } from '../../../errors/EnvironmentMismatchError';
-import { PrepareAndScrapeOptions } from '../../../prepare/PrepareAndScrapeOptions';
+import type { PrepareAndScrapeOptions } from '../../../prepare/PrepareAndScrapeOptions';
 import { $provideFilesystemForNode } from '../../../scrapers/_common/register/$provideFilesystemForNode';
 import { FileCacheStorage } from '../../../storage/file-cache-storage/FileCacheStorage';
 import { $isRunningInNode } from '../../../utils/environment/$isRunningInNode';

@@ -3,17 +3,19 @@ import type { Command as Program /* <- Note: Using Program because Command is mi
 import { mkdir, writeFile } from 'fs/promises';
 import { dirname, join } from 'path';
 import spaceTrim from 'spacetrim';
-import { $provideFilesystemForNode, $provideScrapersForNode } from '../../_packages/node.index';
+import { $provideFilesystemForNode } from '../../scrapers/_common/register/$provideFilesystemForNode';
+import { $provideScrapersForNode } from '../../scrapers/_common/register/$provideScrapersForNode';
 import { collectionToJson } from '../../collection/collectionToJson';
 import { createCollectionFromDirectory } from '../../collection/constructors/createCollectionFromDirectory';
-import { GENERATOR_WARNING_BY_PROMPTBOOK_CLI, PIPELINE_COLLECTION_BASE_FILENAME } from '../../config';
+import { GENERATOR_WARNING_BY_PROMPTBOOK_CLI } from '../../config';
+import { PIPELINE_COLLECTION_BASE_FILENAME } from '../../config';
 import { stringifyPipelineJson } from '../../conversion/utils/stringifyPipelineJson';
 import { validatePipeline } from '../../conversion/validation/validatePipeline';
 import { UnexpectedError } from '../../errors/UnexpectedError';
-import { ExecutionTools } from '../../execution/ExecutionTools';
+import type { ExecutionTools } from '../../execution/ExecutionTools';
 import { usageToHuman } from '../../execution/utils/usageToHuman';
 import { $provideLlmToolsForCli } from '../../llm-providers/_common/register/$provideLlmToolsForCli';
-import { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';
+import type { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';
 import type { string_file_extension } from '../../types/typeAliases';
 
 /**
