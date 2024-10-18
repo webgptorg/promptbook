@@ -143,5 +143,5 @@ export async function makeKnowledgeSourceHandler(
 }
 
 /**
- * TODO: !!!!!!! Maybe constrain to @promptbook/node bundle
+ * Note: [🟢] Code in this file should never be never released in packages that could be imported into browser environment
  */

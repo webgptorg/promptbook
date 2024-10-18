@@ -51,4 +51,5 @@ export async function translateMessages({
 
 /**
  * TODO: [😶] Unite floder listing
+ * Note: [🟢] Code in this file should never be never released in packages that could be imported into browser environment
  */
