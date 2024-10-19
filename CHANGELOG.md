@@ -556,6 +556,7 @@ Support for [Assistants API (GPTs)](https://platform.openai.com/docs/assistants/
 -   LLM Tools `getClient` method are public
 -   LLM Tools `options` are not `private` anymore but `protected`
 -   `getClient` methods are public
+-   In remote server allow to pass not only `userId` but also `appId` and `customOptions`
 
 ## Drafts
 

@@ -11,12 +11,12 @@ import type { PromptResult } from '../../execution/PromptResult';
 import type { really_any } from '../../utils/organization/really_any';
 import { PROMPTBOOK_VERSION } from '../../version';
 import { createLlmToolsFromConfiguration } from '../_common/register/createLlmToolsFromConfiguration';
-import type { PromptbookServer_ListModels_Request } from './interfaces/PromptbookServer_ListModels_Request';
-import type { PromptbookServer_Prompt_Request } from './interfaces/PromptbookServer_Prompt_Request';
-import type { RemoteServerOptions } from './interfaces/RemoteServerOptions';
-import type { PromptbookServer_Prompt_Response } from './interfaces/PromptbookServer_Prompt_Response';
 import type { PromptbookServer_Error } from './interfaces/PromptbookServer_Error';
+import type { PromptbookServer_ListModels_Request } from './interfaces/PromptbookServer_ListModels_Request';
 import type { PromptbookServer_ListModels_Response } from './interfaces/PromptbookServer_ListModels_Response';
+import type { PromptbookServer_Prompt_Request } from './interfaces/PromptbookServer_Prompt_Request';
+import type { PromptbookServer_Prompt_Response } from './interfaces/PromptbookServer_Prompt_Response';
+import type { RemoteServerOptions } from './interfaces/RemoteServerOptions';
 
 /**
  * Remote server is a proxy server that uses its execution tools internally and exposes the executor interface externally.
@@ -27,7 +27,9 @@ import type { PromptbookServer_ListModels_Response } from './interfaces/Promptbo
  * @see https://github.com/webgptorg/promptbook#remote-server
  * @public exported from `@promptbook/remote-server`
  */
-export function startRemoteServer(options: RemoteServerOptions): IDestroyable {
+export function startRemoteServer<TCustomOptions = undefined>(
+    options: RemoteServerOptions<TCustomOptions>,
+): IDestroyable {
     const {
         port,
         path,

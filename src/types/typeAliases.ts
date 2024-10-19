@@ -422,13 +422,6 @@ export type string_uri = string;
 export type string_uri_part = string;
 
 /**
- * Semantic helper, ID of the board used in URL and API
- *
- * For example `"9SeSQTupmQHwuSrLi"` <- TODO: !! Update
- */
-export type string_uriid = string_uri_part;
-
-/**
  * Semantic helper
  *
  * For example `"localhost"` or `"collboard.com"`
@@ -477,9 +470,18 @@ export type string_uuid = string & {
 };
 
 /**
- * End user identifier;
+ * Application identifier
+ *
+ * @@@
  */
-export type string_user_id = string;
+export type string_app_id = string | number;
+
+/**
+ * End user identifier
+ *
+ * @@@
+ */
+export type string_user_id = string | number;
 
 /**
  * Semantic helper

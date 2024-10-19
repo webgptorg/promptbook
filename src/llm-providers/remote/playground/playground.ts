@@ -42,7 +42,7 @@ async function playground() {
                 isRecursive: false,
             },
         ),
-        createLlmExecutionTools(userId) {
+        createLlmExecutionTools(options) {
             // <- TODO: [🧠][🤺] Remove `createLlmExecutionTools`, pass just `llmExecutionTools`
             console.info(colors.bgCyan('Playground:'), 'userId', userId);
             return new OpenAiExecutionTools(

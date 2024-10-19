@@ -1,8 +1,7 @@
 import type { PipelineCollection } from '../../../collection/PipelineCollection';
 import type { CommonToolsOptions } from '../../../execution/CommonToolsOptions';
 import type { LlmExecutionTools } from '../../../execution/LlmExecutionTools';
-import type { string_uri } from '../../../types/typeAliases';
-import type { string_user_id } from '../../../types/typeAliases';
+import type { string_uri, string_user_id } from '../../../types/typeAliases';
 
 /**
  * @@@
@@ -18,7 +17,7 @@ import type { string_user_id } from '../../../types/typeAliases';
  * @public exported from `@promptbook/remote-client`
  * @public exported from `@promptbook/remote-server`
  */
-export type RemoteServerOptions = CommonToolsOptions & {
+export type RemoteServerOptions<TCustomOptions> = CommonToolsOptions & {
     /**
      * Port on which the server will listen
      */
@@ -33,8 +32,8 @@ export type RemoteServerOptions = CommonToolsOptions & {
     readonly path: string_uri;
 } & (
         | AnonymousRemoteServerOptions
-        | CollectionRemoteServerOptions
-        | (AnonymousRemoteServerOptions & CollectionRemoteServerOptions)
+        | CollectionRemoteServerOptions<TCustomOptions>
+        | (AnonymousRemoteServerOptions & CollectionRemoteServerOptions<TCustomOptions>)
     );
 //           <- TODO: [🐛] Typescript bug in this discriminated union
 //                    This should throw typescript error but it doesn't
@@ -53,7 +52,7 @@ export type AnonymousRemoteServerOptions = {
     readonly isAnonymousModeAllowed: true;
 };
 
-export type CollectionRemoteServerOptions = {
+export type CollectionRemoteServerOptions<TCustomOptions> = {
     /**
      * Enable collection mode
      */
@@ -69,7 +68,26 @@ export type CollectionRemoteServerOptions = {
     /**
      * Creates llm execution tools for each client
      */
-    createLlmExecutionTools(userId: string_user_id | undefined): LlmExecutionTools /* <- TODO: &({}|IDestroyable) */;
+    createLlmExecutionTools(
+        options: CollectionRemoteServerClientOptions<TCustomOptions>,
+    ): LlmExecutionTools /* <- TODO: &({}|IDestroyable) */;
+};
+
+export type CollectionRemoteServerClientOptions<TCustomOptions> = {
+    /**
+     * @@@
+     */
+    appId: string_user_id | null;
+
+    /**
+     * @@@
+     */
+    userId: string_user_id | null;
+
+    /**
+     * @@@
+     */
+    customOptions: TCustomOptions;
 };
 
 /**
