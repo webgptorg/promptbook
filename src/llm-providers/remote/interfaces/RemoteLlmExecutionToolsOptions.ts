@@ -45,7 +45,7 @@ export type RemoteLlmExecutionToolsOptions<TCustomOptions> = CommonToolsOptions 
                * Note: This is passed to the certain model providers to identify misuse
                * Note: In anonymous mode, there is no need to identify yourself, nor does it change the actual configuration of LLM Tools (unlike in collection mode).
                */
-              readonly userId?: string_user_id;
+              readonly userId: string_user_id | null;
           }
         | ({
               /**
