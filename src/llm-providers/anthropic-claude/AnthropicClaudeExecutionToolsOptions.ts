@@ -32,7 +32,7 @@ export type AnthropicClaudeExecutionToolsDirectOptions = CommonToolsOptions &
 export type AnthropicClaudeExecutionToolsProxiedOptions = CommonToolsOptions &
     ClientOptions & {
         isProxied: true;
-    } & Pick<RemoteLlmExecutionToolsOptions, 'remoteUrl' | 'path'>;
+    } & Pick<RemoteLlmExecutionToolsOptions<undefined>, 'remoteUrl' | 'path'>;
 
 /**
  * TODO: [🧠][🤺] Detecting `user`

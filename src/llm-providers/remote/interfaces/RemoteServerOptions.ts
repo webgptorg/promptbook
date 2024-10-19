@@ -77,17 +77,17 @@ export type CollectionRemoteServerClientOptions<TCustomOptions> = {
     /**
      * @@@
      */
-    appId: string_user_id | null;
+    readonly appId: string_user_id | null;
 
     /**
      * @@@
      */
-    userId: string_user_id | null;
+    readonly userId: string_user_id | null;
 
     /**
      * @@@
      */
-    customOptions: TCustomOptions;
+    readonly customOptions: TCustomOptions;
 };
 
 /**
