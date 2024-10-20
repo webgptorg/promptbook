@@ -45,7 +45,7 @@ async function playground() {
         createLlmExecutionTools(options) {
             const { appId, userId, customOptions } = options;
 
-            console.info(colors.bgCyan('Playground:'), 'userId', userId);
+            console.info(colors.bgCyan('Playground:'), { appId, userId, customOptions });
             return new OpenAiExecutionTools(
                 //            <- TODO: [🧱] Implement in a functional (not new Class) way
                 {
