@@ -1,2 +1,2 @@
 Anonymous mode
-Collection mode
+Application mode

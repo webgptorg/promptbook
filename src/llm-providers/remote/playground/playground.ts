@@ -34,7 +34,7 @@ async function playground() {
         port: 4460,
         isVerbose: true,
         isAnonymousModeAllowed: true,
-        isCollectionModeAllowed: true,
+        isApplicationModeAllowed: true,
         collection: await createCollectionFromDirectory(
             './samples/pipelines/',
             {},

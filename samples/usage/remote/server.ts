@@ -46,7 +46,7 @@ async function main() {
         port: 4460,
         collection,
         isAnonymousModeAllowed: true,
-        isCollectionModeAllowed: true,
+        isApplicationModeAllowed: true,
         createLlmExecutionTools(userId) {
             console.log('userId', userId);
             return new OpenAiExecutionTools(

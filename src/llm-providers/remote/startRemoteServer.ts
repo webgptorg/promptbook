@@ -36,11 +36,11 @@ export function startRemoteServer<TCustomOptions = undefined>(
         collection,
         createLlmExecutionTools,
         isAnonymousModeAllowed,
-        isCollectionModeAllowed,
+        isApplicationModeAllowed,
         isVerbose = IS_VERBOSE,
     } = {
         isAnonymousModeAllowed: false,
-        isCollectionModeAllowed: false,
+        isApplicationModeAllowed: false,
         collection: null,
         createLlmExecutionTools: null,
         ...options,
@@ -60,9 +60,9 @@ export function startRemoteServer<TCustomOptions = undefined>(
                     Version: ${PROMPTBOOK_VERSION}
                     Socket.io path: ${path}/socket.io
                     Anonymouse mode: ${isAnonymousModeAllowed ? 'enabled' : 'disabled'}
-                    Collection mode: ${isCollectionModeAllowed ? 'enabled' : 'disabled'}
+                    Application mode: ${isApplicationModeAllowed ? 'enabled' : 'disabled'}
                     ${block(
-                        !isCollectionModeAllowed
+                        !isApplicationModeAllowed
                             ? ''
                             : 'Pipelines in collection:\n' +
                                   (await collection!.listPipelines())
@@ -110,8 +110,8 @@ export function startRemoteServer<TCustomOptions = undefined>(
                     throw new PipelineExecutionError(`Anonymous mode is not allowed`); // <- TODO: [main] !!! Test
                 }
 
-                if (isAnonymous === false && !isCollectionModeAllowed) {
-                    throw new PipelineExecutionError(`Collection mode is not allowed`); // <- TODO: [main] !!! Test
+                if (isAnonymous === false && !isApplicationModeAllowed) {
+                    throw new PipelineExecutionError(`Application mode is not allowed`); // <- TODO: [main] !!! Test
                 }
 
                 // TODO: [main] !!!! Validate here userId (pass validator as dependency)
@@ -123,7 +123,7 @@ export function startRemoteServer<TCustomOptions = undefined>(
                     // TODO: Maybe check that configuration is not empty
                     llmExecutionTools = createLlmToolsFromConfiguration(llmToolsConfiguration, { isVerbose });
                 } else if (isAnonymous === false && createLlmExecutionTools !== null) {
-                    // Note: Collection mode
+                    // Note: Application mode
                     llmExecutionTools = createLlmExecutionTools({
                         appId,
                         userId,
@@ -211,8 +211,8 @@ export function startRemoteServer<TCustomOptions = undefined>(
                     throw new PipelineExecutionError(`Anonymous mode is not allowed`); // <- TODO: [main] !!! Test
                 }
 
-                if (isAnonymous === false && !isCollectionModeAllowed) {
-                    throw new PipelineExecutionError(`Collection mode is not allowed`); // <- TODO: [main] !!! Test
+                if (isAnonymous === false && !isApplicationModeAllowed) {
+                    throw new PipelineExecutionError(`Application mode is not allowed`); // <- TODO: [main] !!! Test
                 }
 
                 // TODO: [main] !!!! Validate here userId (pass validator as dependency)
@@ -224,7 +224,7 @@ export function startRemoteServer<TCustomOptions = undefined>(
                     // TODO: Maybe check that configuration is not empty
                     llmExecutionTools = createLlmToolsFromConfiguration(llmToolsConfiguration, { isVerbose });
                 } else {
-                    // Note: Collection mode
+                    // Note: Application mode
                     llmExecutionTools = createLlmExecutionTools!({
                         appId,
                         userId,

@@ -15,7 +15,7 @@ export type PromptbookServer_Prompt_Request<TCustomOptions> =
 export type PromptbookServer_Prompt_CollectionRequest<TCustomOptions> =
     CollectionRemoteServerClientOptions<TCustomOptions> & {
         /**
-         * Collection mode
+         * Application mode
          */
         readonly isAnonymous: false;
 
@@ -35,7 +35,7 @@ export type PromptbookServer_Prompt_AnonymousRequest = {
      * Identifier of the end user
      *
      * Note: this is passed to the certain model providers to identify misuse
-     * Note: In anonymous mode, there is no need to identify yourself, nor does it change the actual configuration of LLM Tools (unlike in collection mode)
+     * Note: In anonymous mode, there is no need to identify yourself, nor does it change the actual configuration of LLM Tools (unlike in application mode)
      */
     readonly userId: string_user_id | null;
 

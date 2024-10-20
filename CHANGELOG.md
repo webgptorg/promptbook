@@ -559,6 +559,7 @@ Support for [Assistants API (GPTs)](https://platform.openai.com/docs/assistants/
 -   In remote server allow to pass not only `userId` but also `appId` and `customOptions`
 -   In remote server `userId` can not be `undefined` anymore but `null`
 -   `OpenAiExecutionTools` recieves `userId` (not `user`)
+-   Change Collection mode -> Application mode
 
 ## Drafts
 

@@ -1,16 +1,14 @@
 import type { PipelineCollection } from '../../../collection/PipelineCollection';
 import type { CommonToolsOptions } from '../../../execution/CommonToolsOptions';
 import type { LlmExecutionTools } from '../../../execution/LlmExecutionTools';
-import type { string_app_id } from '../../../types/typeAliases';
-import type { string_uri } from '../../../types/typeAliases';
-import type { string_user_id } from '../../../types/typeAliases';
+import type { string_app_id, string_uri, string_user_id } from '../../../types/typeAliases';
 
 /**
  * @@@
  *
  * There are two modes of remote server:
  *
- * 1) **Collection mode** Server will recieve `collection` and execute prompts only from this collection
+ * 1) **Application mode** Server will recieve `collection` and execute prompts only from this collection
  * 2) **Anonymous mode** Server will recieve full `LlmToolsConfiguration` (with api keys) and just acts as a proxy
  *    In anonymous mode, `collection` will be ignored and any prompt will be executed
  *
@@ -44,7 +42,7 @@ export type RemoteServerOptions<TCustomOptions> = CommonToolsOptions & {
 //                    >     path: '/promptbook',
 //                    >     port: 4460,
 //                    >     isAnonymousModeAllowed: true,
-//                    >     isCollectionModeAllowed: true,
+//                    >     isApplicationModeAllowed: true,
 //                    > });
 
 export type AnonymousRemoteServerOptions = {
@@ -56,9 +54,9 @@ export type AnonymousRemoteServerOptions = {
 
 export type CollectionRemoteServerOptions<TCustomOptions> = {
     /**
-     * Enable collection mode
+     * Enable application mode
      */
-    readonly isCollectionModeAllowed: true;
+    readonly isApplicationModeAllowed: true;
 
     /**
      * Promptbook collection to use
