@@ -48,7 +48,6 @@ async function main() {
         isAnonymousModeAllowed: true,
         isCollectionModeAllowed: true,
         createLlmExecutionTools(userId) {
-            // <- TODO: [🧠][🤺] Remove `createLlmExecutionTools`, pass just `llmExecutionTools`
             console.log('userId', userId);
             return new OpenAiExecutionTools(
                 //            <- TODO: [🧱] Implement in a functional (not new Class) way

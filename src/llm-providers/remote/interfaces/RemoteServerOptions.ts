@@ -1,7 +1,7 @@
 import type { PipelineCollection } from '../../../collection/PipelineCollection';
 import type { CommonToolsOptions } from '../../../execution/CommonToolsOptions';
 import type { LlmExecutionTools } from '../../../execution/LlmExecutionTools';
-import type { string_uri, string_user_id } from '../../../types/typeAliases';
+import type { string_app_id, string_uri, string_user_id } from '../../../types/typeAliases';
 
 /**
  * @@@
@@ -77,7 +77,7 @@ export type CollectionRemoteServerClientOptions<TCustomOptions> = {
     /**
      * @@@
      */
-    readonly appId: string_user_id | null;
+    readonly appId: string_app_id | null;
 
     /**
      * @@@
@@ -92,5 +92,4 @@ export type CollectionRemoteServerClientOptions<TCustomOptions> = {
 
 /**
  * TODO: Constrain anonymous mode for specific models / providers
- * TODO: [🧠][🤺] Remove `createLlmExecutionTools`, pass just `llmExecutionTools`
  */

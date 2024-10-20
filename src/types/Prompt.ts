@@ -1,15 +1,19 @@
 import type { FormatCommand } from '../commands/FORMAT/FormatCommand';
-import type { ChatModelRequirements } from './ModelRequirements';
-import type { CompletionModelRequirements } from './ModelRequirements';
-import type { EmbeddingModelRequirements } from './ModelRequirements';
-import type { ModelRequirements } from './ModelRequirements';
+import type {
+    ChatModelRequirements,
+    CompletionModelRequirements,
+    EmbeddingModelRequirements,
+    ModelRequirements,
+} from './ModelRequirements';
 import type { Expectations } from './PipelineJson/Expectations';
-import type { Parameters } from './typeAliases';
-import type { string_pipeline_url_with_hashtemplate } from './typeAliases';
-import type { string_postprocessing_function_name } from './typeAliases';
-import type { string_prompt } from './typeAliases';
-import type { string_template } from './typeAliases';
-import type { string_title } from './typeAliases';
+import type {
+    Parameters,
+    string_pipeline_url_with_hashtemplate,
+    string_postprocessing_function_name,
+    string_prompt,
+    string_template,
+    string_title,
+} from './typeAliases';
 
 /**
  * Prompt in a text along with model requirements, but without any execution or templating logic.
@@ -128,4 +132,5 @@ export type CommonPrompt = {
  * TODO: [🧄] Replace all "github.com/webgptorg/promptbook#xxx" with "ptbk.io/xxx"
  * TODO: [✔] Check ModelRequirements in runtime
  * TODO: [🏳] Add options for translation - maybe create `TranslationPrompt`
+ * TODO: [🧠][🤺] Maybe allow overriding of `userId` for each prompt
  */

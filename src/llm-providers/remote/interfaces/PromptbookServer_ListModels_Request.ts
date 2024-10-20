@@ -31,6 +31,6 @@ export type PromptbookServer_ListModels_AnonymousRequest = {
 /**
  * TODO: [👡] DRY `PromptbookServer_Prompt_Request` and `PromptbookServer_ListModels_Request`
  * TODO: [🧠][🛍] Maybe not `isAnonymous: boolean` BUT `mode: 'ANONYMOUS'|'COLLECTION'`
- * TODO: [🧠][🤺] Pass `userId` in `PromptbookServer_ListModels_Request`
+ * TODO: [🧠][🤺] Maybe allow overriding of `userId` for each prompt - Pass `userId` in `PromptbookServer_ListModels_Request`
  * TODO: [👒] Listing models (and checking configuration) probbably should go through REST API not Socket.io
  */

@@ -35,7 +35,6 @@ export function startRemoteServer<TCustomOptions = undefined>(
         path,
         collection,
         createLlmExecutionTools,
-        //    <- TODO: [🧠][🤺] Remove `createLlmExecutionTools`, pass just `llmExecutionTools`
         isAnonymousModeAllowed,
         isCollectionModeAllowed,
         isVerbose = IS_VERBOSE,
@@ -124,10 +123,7 @@ export function startRemoteServer<TCustomOptions = undefined>(
                     llmExecutionTools = createLlmToolsFromConfiguration(llmToolsConfiguration, { isVerbose });
                 } else if (isAnonymous === false && createLlmExecutionTools !== null) {
                     // Note: Collection mode
-                    llmExecutionTools = createLlmExecutionTools(
-                        userId,
-                        // <- TODO: [🧠][🤺] userId should be property of each prompt
-                    );
+                    llmExecutionTools = createLlmExecutionTools(userId);
 
                     if (!(await collection.isResponsibleForPrompt(prompt))) {
                         throw new PipelineExecutionError(`Pipeline is not in the collection of this server`);
@@ -222,10 +218,9 @@ export function startRemoteServer<TCustomOptions = undefined>(
                     llmExecutionTools = createLlmToolsFromConfiguration(llmToolsConfiguration, { isVerbose });
                 } else {
                     // Note: Collection mode
-                    llmExecutionTools = createLlmExecutionTools!(
-                        /* userId: */ undefined,
-                        // <- TODO: [🧠][🤺] `userId` should be property of each prompt
-                    );
+                    llmExecutionTools = createLlmExecutionTools!({
+                        userId: undefined,
+                    });
                 }
 
                 const models = await llmExecutionTools.listModels();

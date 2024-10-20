@@ -474,14 +474,14 @@ export type string_uuid = string & {
  *
  * @@@
  */
-export type string_app_id = string | number;
+export type string_app_id = id;
 
 /**
  * End user identifier
  *
  * @@@
  */
-export type string_user_id = string | number;
+export type string_user_id = id;
 
 /**
  * Semantic helper
@@ -627,6 +627,7 @@ export type string_javascript_name = string;
  */
 export type string_postprocessing_function_name = string;
 
+export type id = string | number;
 export type string_token = string;
 export type string_license_token = string_token;
 export type string_password = string;

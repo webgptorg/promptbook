@@ -474,7 +474,6 @@ export type {
     string_translate_name_not_normalized,
     string_uri,
     string_uri_part,
-    string_uriid,
     string_url,
     string_url_image,
     string_user_id,

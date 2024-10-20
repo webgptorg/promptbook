@@ -35,5 +35,5 @@ export type AnthropicClaudeExecutionToolsProxiedOptions = CommonToolsOptions &
     } & Pick<RemoteLlmExecutionToolsOptions<undefined>, 'remoteUrl' | 'path'>;
 
 /**
- * TODO: [🧠][🤺] Detecting `user`
+ * TODO: [🧠][🤺] Pass `userId`
  */

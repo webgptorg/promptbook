@@ -43,14 +43,17 @@ async function playground() {
             },
         ),
         createLlmExecutionTools(options) {
-            // <- TODO: [🧠][🤺] Remove `createLlmExecutionTools`, pass just `llmExecutionTools`
+    
+
+            const { appId, userId, customOptions } = options;
+
             console.info(colors.bgCyan('Playground:'), 'userId', userId);
             return new OpenAiExecutionTools(
                 //            <- TODO: [🧱] Implement in a functional (not new Class) way
                 {
                     isVerbose: true,
                     apiKey: process.env.OPENAI_API_KEY!,
-                    user: userId,
+                    user: userId || undefined,
                 },
             );
         },
