@@ -1,5 +1,7 @@
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { string_markdown, string_markdown_text, string_title } from '../../types/typeAliases';
+import type { string_markdown } from '../../types/typeAliases';
+import type { string_markdown_text } from '../../types/typeAliases';
+import type { string_title } from '../../types/typeAliases';
 import { OpenAiExecutionTools } from '../openai/OpenAiExecutionTools';
 
 /**
@@ -7,10 +9,8 @@ import { OpenAiExecutionTools } from '../openai/OpenAiExecutionTools';
  *
  * @public exported from `@promptbook/langtail`
  */
-export class LangtailExecutionTools
-    extends OpenAiExecutionTools
-    implements LlmExecutionTools /* <- TODO: [🍚] `, Destroyable` */
-{
+export class LangtailExecutionTools extends OpenAiExecutionTools implements LlmExecutionTools {
+    /* <- TODO: [🍚] `, Destroyable` */
     // TODO: [🦻] Implement
 
     public get title(): string_title & string_markdown_text {
