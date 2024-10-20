@@ -18,6 +18,6 @@ export type OpenAiExecutionToolsOptions = CommonToolsOptions &
          *
          * @see https://platform.openai.com/docs/guides/safety-best-practices/end-user-ids
          */
-        userId?: string_user_id;
+        userId: string_user_id | null;
         // <- TODO: [🧠][🤺] Maybe allow overriding of `userId` for each prompt
     };

@@ -5,17 +5,18 @@ import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { AvailableModel } from '../../execution/AvailableModel';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { ChatPromptResult } from '../../execution/PromptResult';
-import type { CompletionPromptResult } from '../../execution/PromptResult';
+import type { ChatPromptResult, CompletionPromptResult } from '../../execution/PromptResult';
 import type { PromptResultUsage } from '../../execution/PromptResultUsage';
 import { computeUsageCounts } from '../../execution/utils/computeUsageCounts';
 import { uncertainNumber } from '../../execution/utils/uncertainNumber';
 import type { Prompt } from '../../types/Prompt';
-import type { string_completion_prompt } from '../../types/typeAliases';
-import type { string_date_iso8601 } from '../../types/typeAliases';
-import type { string_markdown } from '../../types/typeAliases';
-import type { string_markdown_text } from '../../types/typeAliases';
-import type { string_title } from '../../types/typeAliases';
+import type {
+    string_completion_prompt,
+    string_date_iso8601,
+    string_markdown,
+    string_markdown_text,
+    string_title,
+} from '../../types/typeAliases';
 import { getCurrentIsoDate } from '../../utils/getCurrentIsoDate';
 import { replaceParameters } from '../../utils/parameters/replaceParameters';
 import { $asDeeplyFrozenSerializableJson } from '../../utils/serialization/$asDeeplyFrozenSerializableJson';
@@ -112,7 +113,7 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools {
                 maxTokens: modelRequirements.maxTokens,
                 //                                      <- TODO: [🌾] Make some global max cap for maxTokens
                 temperature: modelRequirements.temperature,
-                user: this.options.user,
+                user: this.options.userId?.toString(),
                 // <- TODO: [🈁] Use `seed` here AND/OR use is `isDeterministic` for entire execution tools
                 // <- Note: [🧆]
             }; // <- TODO: Guard here types better
@@ -227,7 +228,7 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools {
                 maxTokens: modelRequirements.maxTokens || 2000, // <- Note: [🌾] 2000 is for lagacy reasons
                 //                                                  <- TODO: [🌾] Make some global max cap for maxTokens
                 temperature: modelRequirements.temperature,
-                user: this.options.user,
+                user: this.options.userId?.toString(),
                 // <- TODO: [🈁] Use `seed` here AND/OR use is `isDeterministic` for entire execution tools
                 // <- Note: [🧆]
             }; // <- TODO: Guard here types better

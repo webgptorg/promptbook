@@ -37,6 +37,7 @@ async function playground() {
                 //            <- TODO: [🧱] Implement in a functional (not new Class) way
                 {
                     isVerbose: true,
+                    userId: 'playground',
                     apiKey: process.env.OPENAI_API_KEY!,
                 },
             ),
@@ -51,6 +52,7 @@ async function playground() {
                 //            <- TODO: [🧱] Implement in a functional (not new Class) way
                 {
                     isVerbose: true,
+                    userId: 'playground',
                     resourceName: process.env.AZUREOPENAI_RESOURCE_NAME!,
                     deploymentName: process.env.AZUREOPENAI_DEPLOYMENT_NAME!,
                     apiKey: process.env.AZUREOPENAI_API_KEY!,

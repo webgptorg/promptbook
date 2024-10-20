@@ -32,6 +32,7 @@ async function playground() {
         //            <- TODO: [🧱] Implement in a functional (not new Class) way
         {
             isVerbose: true,
+            userId: 'playground',
             apiKey: process.env.OPENAI_API_KEY!,
         },
     );
@@ -40,6 +41,7 @@ async function playground() {
         //            <- TODO: [🧱] Implement in a functional (not new Class) way
         {
             isVerbose: true,
+            userId: 'playground',
             apiKey: process.env.OPENAI_API_KEY!,
             assistantId: 'asst_CJCZzFCbBL0f2D4OWMXVTdBB',
             //            <- Note: This is not a private information, just ID of the assistant which is accessible only with correct API key

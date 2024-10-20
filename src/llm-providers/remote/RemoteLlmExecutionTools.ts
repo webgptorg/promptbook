@@ -63,6 +63,7 @@ export class RemoteLlmExecutionTools<TCustomOptions = undefined> implements LlmE
                 'listModels-request',
                 {
                     isAnonymous: true,
+                    userId: this.options.userId,
                     llmToolsConfiguration: this.options.llmToolsConfiguration,
                 } satisfies PromptbookServer_ListModels_Request<TCustomOptions> /* <- TODO: [🤛] */,
             );

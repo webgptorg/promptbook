@@ -43,8 +43,6 @@ async function playground() {
             },
         ),
         createLlmExecutionTools(options) {
-    
-
             const { appId, userId, customOptions } = options;
 
             console.info(colors.bgCyan('Playground:'), 'userId', userId);
@@ -53,7 +51,7 @@ async function playground() {
                 {
                     isVerbose: true,
                     apiKey: process.env.OPENAI_API_KEY!,
-                    user: userId || undefined,
+                    userId: userId,
                 },
             );
         },
@@ -72,6 +70,7 @@ async function playground() {
                       remoteUrl,
                       path,
                       isAnonymous: true,
+                      userId: 'playground',
                       llmToolsConfiguration: [
                           {
                               title: 'OpenAI',
@@ -87,7 +86,8 @@ async function playground() {
                       remoteUrl,
                       path,
                       isAnonymous: false,
-                      userId: 'pavol1234',
+                      appId: 'playground',
+                      userId: 'playground',
                   },
         );
 

@@ -87,7 +87,7 @@ export type CollectionRemoteServerClientOptions<TCustomOptions> = {
     /**
      * @@@
      */
-    readonly customOptions: TCustomOptions;
+    readonly customOptions?: TCustomOptions;
 };
 
 /**

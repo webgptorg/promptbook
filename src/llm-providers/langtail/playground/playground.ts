@@ -30,6 +30,7 @@ async function playground() {
         //            <- TODO: [🧱] Implement in a functional (not new Class) way
         {
             isVerbose: true,
+            userId: 'playground',
             apiKey: process.env.LANGTAIL_API_KEY!,
         },
     );

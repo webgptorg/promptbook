@@ -1,20 +1,22 @@
 import colors from 'colors';
+import type { ClientOptions } from 'openai';
 import OpenAI from 'openai';
 import spaceTrim from 'spacetrim';
+import { really_any } from '../../_packages/types.index';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { AvailableModel } from '../../execution/AvailableModel';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { ChatPromptResult } from '../../execution/PromptResult';
-import type { CompletionPromptResult } from '../../execution/PromptResult';
-import type { EmbeddingPromptResult } from '../../execution/PromptResult';
+import type { ChatPromptResult, CompletionPromptResult, EmbeddingPromptResult } from '../../execution/PromptResult';
 import type { Prompt } from '../../types/Prompt';
-import type { string_date_iso8601 } from '../../types/typeAliases';
-import type { string_markdown } from '../../types/typeAliases';
-import type { string_markdown_text } from '../../types/typeAliases';
-import type { string_model_name } from '../../types/typeAliases';
-import type { string_title } from '../../types/typeAliases';
-import type { string_token } from '../../types/typeAliases';
+import type {
+    string_date_iso8601,
+    string_markdown,
+    string_markdown_text,
+    string_model_name,
+    string_title,
+    string_token,
+} from '../../types/typeAliases';
 import { getCurrentIsoDate } from '../../utils/getCurrentIsoDate';
 import { replaceParameters } from '../../utils/parameters/replaceParameters';
 import { $asDeeplyFrozenSerializableJson } from '../../utils/serialization/$asDeeplyFrozenSerializableJson';
@@ -39,7 +41,7 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
      *
      * @param options which are relevant are directly passed to the OpenAI client
      */
-    public constructor(protected readonly options: OpenAiExecutionToolsOptions = {}) {}
+    public constructor(protected readonly options: OpenAiExecutionToolsOptions) {}
 
     public get title(): string_title & string_markdown_text {
         return 'OpenAI';
@@ -52,12 +54,10 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
     public async getClient(): Promise<OpenAI> {
         if (this.client === null) {
             // Note: Passing only OpenAI relevant options to OpenAI constructor
-            const openAiOptions = { ...this.options };
+            const openAiOptions: really_any = { ...this.options };
             delete openAiOptions.isVerbose;
-            delete openAiOptions.user;
-            this.client = new OpenAI({
-                ...openAiOptions,
-            });
+            delete openAiOptions.userId;
+            this.client = new OpenAI(openAiOptions as ClientOptions);
         }
 
         return this.client;
@@ -153,7 +153,7 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
                     content: rawPromptContent,
                 },
             ],
-            user: this.options.user,
+            user: this.options.userId?.toString(),
         };
         const start: string_date_iso8601 = getCurrentIsoDate();
         let complete: string_date_iso8601;
@@ -239,7 +239,7 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
         const rawRequest: OpenAI.Completions.CompletionCreateParamsNonStreaming = {
             ...modelSettings,
             prompt: rawPromptContent,
-            user: this.options.user,
+            user: this.options.userId?.toString(),
         };
         const start: string_date_iso8601 = getCurrentIsoDate();
         let complete: string_date_iso8601;
