@@ -9,5 +9,5 @@ export interface PromptbookServer_Prompt_Response {
     /**
      * The result of the prompt
      */
-    promptResult: PromptResult;
+    readonly  promptResult: PromptResult;
 }

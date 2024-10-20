@@ -92,9 +92,10 @@ export function startRemoteServer<TCustomOptions = undefined>(
             console.info(colors.gray(`Client connected`), socket.id);
         }
 
-        socket.on('prompt-request', async (request: PromptbookServer_Prompt_Request) => {
-            const { isAnonymous, prompt, userId, llmToolsConfiguration } = {
-                userId: null,
+        socket.on('prompt-request', async (request: PromptbookServer_Prompt_Request<TCustomOptions>) => {
+            const { isAnonymous, prompt, appId, userId, customOptions, llmToolsConfiguration } = {
+                appId: null,
+                customOptions: undefined,
                 llmToolsConfiguration: null,
                 ...request,
             };
@@ -123,7 +124,11 @@ export function startRemoteServer<TCustomOptions = undefined>(
                     llmExecutionTools = createLlmToolsFromConfiguration(llmToolsConfiguration, { isVerbose });
                 } else if (isAnonymous === false && createLlmExecutionTools !== null) {
                     // Note: Collection mode
-                    llmExecutionTools = createLlmExecutionTools(userId);
+                    llmExecutionTools = createLlmExecutionTools({
+                        appId,
+                        userId,
+                        customOptions,
+                    });
 
                     if (!(await collection.isResponsibleForPrompt(prompt))) {
                         throw new PipelineExecutionError(`Pipeline is not in the collection of this server`);
@@ -188,8 +193,10 @@ export function startRemoteServer<TCustomOptions = undefined>(
         });
 
         // TODO: [👒] Listing models (and checking configuration) probbably should go through REST API not Socket.io
-        socket.on('listModels-request', async (request: PromptbookServer_ListModels_Request) => {
-            const { isAnonymous, llmToolsConfiguration } = {
+        socket.on('listModels-request', async (request: PromptbookServer_ListModels_Request<TCustomOptions>) => {
+            const { isAnonymous, appId, userId, customOptions, llmToolsConfiguration } = {
+                appId: null,
+                customOptions: undefined,
                 llmToolsConfiguration: null,
                 ...request,
             };
@@ -219,7 +226,9 @@ export function startRemoteServer<TCustomOptions = undefined>(
                 } else {
                     // Note: Collection mode
                     llmExecutionTools = createLlmExecutionTools!({
-                        userId: undefined,
+                        appId,
+                        userId,
+                        customOptions,
                     });
                 }
 

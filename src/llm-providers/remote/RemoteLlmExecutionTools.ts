@@ -64,14 +64,17 @@ export class RemoteLlmExecutionTools<TCustomOptions = undefined> implements LlmE
                 {
                     isAnonymous: true,
                     llmToolsConfiguration: this.options.llmToolsConfiguration,
-                } satisfies PromptbookServer_ListModels_Request /* <- TODO: [🤛] */,
+                } satisfies PromptbookServer_ListModels_Request<TCustomOptions> /* <- TODO: [🤛] */,
             );
         } else {
             socket.emit(
                 'listModels-request',
                 {
                     isAnonymous: false,
-                } satisfies PromptbookServer_ListModels_Request /* <- TODO: [🤛] */,
+                    appId: this.options.appId,
+                    userId: this.options.userId,
+                    customOptions: this.options.customOptions,
+                } satisfies PromptbookServer_ListModels_Request<TCustomOptions> /* <- TODO: [🤛] */,
             );
         }
 
@@ -164,16 +167,18 @@ export class RemoteLlmExecutionTools<TCustomOptions = undefined> implements LlmE
                     userId: this.options.userId,
                     llmToolsConfiguration: this.options.llmToolsConfiguration,
                     prompt,
-                } satisfies PromptbookServer_Prompt_Request /* <- TODO: [🤛] */,
+                } satisfies PromptbookServer_Prompt_Request<TCustomOptions> /* <- TODO: [🤛] */,
             );
         } else {
             socket.emit(
                 'prompt-request',
                 {
                     isAnonymous: false,
+                    appId: this.options.appId,
                     userId: this.options.userId,
+                    customOptions: this.options.customOptions,
                     prompt,
-                } satisfies PromptbookServer_Prompt_Request /* <- TODO: [🤛] */,
+                } satisfies PromptbookServer_Prompt_Request<TCustomOptions> /* <- TODO: [🤛] */,
             );
         }
 
