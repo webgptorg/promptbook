@@ -20,7 +20,7 @@ import type { ScraperSourceHandler } from '../Scraper';
 /**
  * @@@
  *
- * @private for scraper utilities
+ * @public exported from `@promptbook/core`
  */
 export async function makeKnowledgeSourceHandler(
     knowledgeSource: SetOptional<KnowledgeSourceJson, 'name'>,
