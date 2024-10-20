@@ -189,6 +189,7 @@ export function startRemoteServer<TCustomOptions = undefined>(
                 socket.emit('error', serializeError(error) satisfies PromptbookServer_Error /* <- TODO: [🤛] */);
             } finally {
                 socket.disconnect();
+                // TODO: [🍚]> llmExecutionTools.destroy();
             }
         });
 
@@ -246,6 +247,7 @@ export function startRemoteServer<TCustomOptions = undefined>(
                 socket.emit('error', serializeError(error) satisfies PromptbookServer_Error);
             } finally {
                 socket.disconnect();
+                // TODO: [🍚]> llmExecutionTools.destroy();
             }
         });
 

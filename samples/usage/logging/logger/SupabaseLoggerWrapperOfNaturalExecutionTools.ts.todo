@@ -13,7 +13,8 @@ import { SupabaseLoggerWrapperOfLlmExecutionToolsOptions } from './SupabaseLogge
 /**
  * Wrapper for any PromptbookExecutionTools which logs every request+result to Supabase.
  */
-export class SupabaseLoggerWrapperOfLlmExecutionTools implements LlmExecutionTools {
+export class SupabaseLoggerWrapperOfLlmExecutionTools
+
     public constructor(protected readonly options: SupabaseLoggerWrapperOfLlmExecutionToolsOptions = {}) {
         if (!isRunningInNode()) {
             throw new EnvironmentMismatchError('SupabaseLoggerWrapperOfExecutionTools can be used only on server');
