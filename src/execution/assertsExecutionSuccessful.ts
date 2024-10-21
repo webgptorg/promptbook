@@ -1,7 +1,7 @@
 import { spaceTrim } from 'spacetrim';
 import { PipelineExecutionError } from '../errors/PipelineExecutionError';
 import { deserializeError } from '../errors/utils/deserializeError';
-import { PipelineExecutorResult } from './PipelineExecutorResult';
+import type { PipelineExecutorResult } from './PipelineExecutorResult';
 
 /**
  * Asserts that the execution of a Promptbook is successful
