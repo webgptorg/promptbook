@@ -56,6 +56,6 @@
     "dependencies": {
         "colors": "1.4.0",
         "socket.io": "4.7.2",
-        "spacetrim": "0.11.39"
+        "spacetrim": "0.11.59"
     }
 }
