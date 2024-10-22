@@ -1,6 +1,6 @@
 {
     "name": "@promptbook/browser",
-    "version": "0.69.4",
+    "version": "0.69.5",
     "description": "Build responsible, controlled and transparent applications on top of LLM models!",
     "private": false,
     "sideEffects": false,
@@ -51,7 +51,7 @@
     "module": "./esm/index.es.js",
     "typings": "./esm/typings/src/_packages/browser.index.d.ts",
     "peerDependencies": {
-        "@promptbook/core": "0.69.4"
+        "@promptbook/core": "0.69.5"
     },
     "dependencies": {
         "spacetrim": "0.11.59"
