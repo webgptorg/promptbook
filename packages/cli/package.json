@@ -1,6 +1,6 @@
 {
     "name": "@promptbook/cli",
-    "version": "0.69.2",
+    "version": "0.69.3",
     "description": "Build responsible, controlled and transparent applications on top of LLM models!",
     "private": false,
     "sideEffects": false,
