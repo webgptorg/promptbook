@@ -1,6 +1,6 @@
 {
     "name": "@promptbook/remote-server",
-    "version": "0.69.3",
+    "version": "0.69.4",
     "description": "Build responsible, controlled and transparent applications on top of LLM models!",
     "private": false,
     "sideEffects": false,
@@ -51,11 +51,11 @@
     "module": "./esm/index.es.js",
     "typings": "./esm/typings/src/_packages/remote-server.index.d.ts",
     "peerDependencies": {
-        "@promptbook/core": "0.69.3"
+        "@promptbook/core": "0.69.4"
     },
     "dependencies": {
         "colors": "1.4.0",
         "socket.io": "4.7.2",
-        "spacetrim": "0.11.39"
+        "spacetrim": "0.11.59"
     }
 }

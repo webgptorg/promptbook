@@ -1,6 +1,6 @@
 {
     "name": "@promptbook/core",
-    "version": "0.69.3",
+    "version": "0.69.4",
     "description": "Build responsible, controlled and transparent applications on top of LLM models!",
     "private": false,
     "sideEffects": false,
@@ -54,7 +54,7 @@
         "moment": "2.30.1",
         "papaparse": "5.4.1",
         "prettier": "2.8.1",
-        "spacetrim": "0.11.39",
+        "spacetrim": "0.11.59",
         "waitasecond": "1.11.83"
     }
 }
