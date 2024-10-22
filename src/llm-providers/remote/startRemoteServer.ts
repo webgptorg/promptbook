@@ -124,7 +124,7 @@ export function startRemoteServer<TCustomOptions = undefined>(
                     llmExecutionTools = createLlmToolsFromConfiguration(llmToolsConfiguration, { isVerbose });
                 } else if (isAnonymous === false && createLlmExecutionTools !== null) {
                     // Note: Application mode
-                    llmExecutionTools = createLlmExecutionTools({
+                    llmExecutionTools = await createLlmExecutionTools({
                         appId,
                         userId,
                         customOptions,
@@ -226,7 +226,7 @@ export function startRemoteServer<TCustomOptions = undefined>(
                     llmExecutionTools = createLlmToolsFromConfiguration(llmToolsConfiguration, { isVerbose });
                 } else {
                     // Note: Application mode
-                    llmExecutionTools = createLlmExecutionTools!({
+                    llmExecutionTools = await createLlmExecutionTools!({
                         appId,
                         userId,
                         customOptions,

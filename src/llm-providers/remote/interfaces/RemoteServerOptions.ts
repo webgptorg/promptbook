@@ -1,9 +1,8 @@
+import type { Promisable } from 'type-fest';
 import type { PipelineCollection } from '../../../collection/PipelineCollection';
 import type { CommonToolsOptions } from '../../../execution/CommonToolsOptions';
 import type { LlmExecutionTools } from '../../../execution/LlmExecutionTools';
-import type { string_app_id } from '../../../types/typeAliases';
-import type { string_uri } from '../../../types/typeAliases';
-import type { string_user_id } from '../../../types/typeAliases';
+import type { string_app_id, string_uri, string_user_id } from '../../../types/typeAliases';
 
 /**
  * @@@
@@ -72,7 +71,7 @@ export type CollectionRemoteServerOptions<TCustomOptions> = {
      */
     createLlmExecutionTools(
         options: CollectionRemoteServerClientOptions<TCustomOptions>,
-    ): LlmExecutionTools /* <- TODO: &({}|IDestroyable) */;
+    ): Promisable<LlmExecutionTools> /* <- TODO: [🍚] &({}|IDestroyable) */;
 };
 
 export type CollectionRemoteServerClientOptions<TCustomOptions> = {
