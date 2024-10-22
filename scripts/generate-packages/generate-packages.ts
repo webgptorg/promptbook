@@ -178,8 +178,22 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
             installCommand = `npm i -D ${packageFullname}`;
         }
 
+        let prereleaseWarning = '';
+
+        if (mainPackageJson.version.includes('-')) {
+            // TODO: Link latest stable release automatically
+            prereleaseWarning = spaceTrim(`
+                <blockquote style="color: #ff8811">
+                    <b>⚠ Warning:</b> This is a pre-release version of the library. It is not yet ready for production use. Please look at <a href="https://www.npmjs.com/package/@promptbook/core?activeTab=versions">latest stable release</a>.
+                </blockquote>
+            `);
+        }
+
         const packageReadmeFullextra = spaceTrim(
             (block) => `
+
+                  ${block(prereleaseWarning)}
+
                   ## 📦 Package \`${packageFullname}\`
 
                   - Promptbooks are [divided into several](#-packages) packages, all are published from [single monorepo](https://github.com/webgptorg/promptbook).
@@ -344,6 +358,9 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
             if (
                 packageFullname !== '@promptbook/node' &&
                 packageFullname !== '@promptbook/cli' &&
+                packageFullname !== '@promptbook/documents' &&
+                packageFullname !== '@promptbook/legacy-documents' &&
+                packageFullname !== '@promptbook/website-crawler' &&
                 bundleFileContent.includes('[🟢]')
             ) {
                 throw new Error(
