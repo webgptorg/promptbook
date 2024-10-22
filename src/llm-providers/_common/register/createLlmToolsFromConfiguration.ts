@@ -1,7 +1,7 @@
 import spaceTrim from 'spacetrim';
 import { IS_VERBOSE } from '../../../config';
 import type { LlmExecutionTools } from '../../../execution/LlmExecutionTools';
-import { string_user_id } from '../../../types/typeAliases';
+import type { string_user_id } from '../../../types/typeAliases';
 import type { TODO_any } from '../../../utils/organization/TODO_any';
 import { joinLlmExecutionTools } from '../../multiple/joinLlmExecutionTools';
 import { MultipleLlmExecutionTools } from '../../multiple/MultipleLlmExecutionTools';
