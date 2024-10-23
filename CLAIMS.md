@@ -22,7 +22,7 @@
 
 > Write stories with has power of the code
 
-> ...
+> Truly your chatbot
 
 > ...
 
