@@ -5,7 +5,6 @@ import * as dotenv from 'dotenv';
 dotenv.config({ path: '.env' });
 
 import colors from 'colors';
-import spaceTrim from 'spacetrim';
 import { embeddingVectorToString } from '../../../execution/embeddingVectorToString';
 import { usageToHuman } from '../../../execution/utils/usageToHuman';
 import type { Prompt } from '../../../types/Prompt';
@@ -118,27 +117,16 @@ async function playground() {
     const chatPrompt = {
         title: 'Promptbook speech',
         parameters: {},
-        content: 'Explain it',
+        content: `Write me speech about Promptbook and how it can help me to build the most beautiful chatbot and change the world`,
         modelRequirements: {
             modelVariant: 'CHAT',
-        },
-        parent: {
-            content: spaceTrim(`
-                Why do programmers prefer dark mode?
-
-                Because the light attracts bugs!
-            `),
-            parent: {
-                content: 'Write me a joke about programmers!',
-                modelRequirements: {
-                    modelVariant: 'CHAT',
-                },
-            },
+            // TODO: [👨‍👨‍👧‍👧] systemMessage: 'You are an assistant who only speaks in rhymes.',
+            // TODO: [👨‍👨‍👧‍👧] temperature: 1.5,
         },
 
         /*
         !!!!!!
-        [🗯] replyingTo: {
+        replyingTo: {
 
         }
         */
