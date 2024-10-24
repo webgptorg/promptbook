@@ -18,11 +18,11 @@
 
 > Responsible creativity unleashed 
 
-> ...
+> Between stories and code
 
-> ...
+> Write stories with has power of the code
 
-> ...
+> Truly your chatbot
 
 > ...
 
