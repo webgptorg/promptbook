@@ -1,0 +1,121 @@
+{
+    "date": "2024-10-03T23:32:04.139Z",
+    "promptbookVersion": "0.71.0-0",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-title.ptbk.md#knowledge",
+        "parameters": {
+            "knowledgePieceContent": "He developed the WebGPT web page generation service. Prior to the widespread adoption of generative AI, Pavol created the first Czech virtual whiteboard, Collboard, and electronic textbooks called H-edu, which were used by tens of thousands of children."
+        },
+        "content": "You are experienced content creator, write best title for the document.\n\n# Rules\n\n-   Write just title, nothing else\n-   Title should be concise and clear\n-   Write maximum 5 words for the title\n\n# The document\n\n> {knowledgePieceContent}",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {
+            "words": {
+                "min": 1,
+                "max": 8
+            }
+        }
+    },
+    "promptResult": {
+        "content": "Pioneering Digital Education Tools",
+        "modelName": "gpt-4o-2024-08-06",
+        "timing": {
+            "start": "2024-10-03T23:32:03.552Z",
+            "complete": "2024-10-03T23:32:04.139Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0,
+                "isUncertain": true
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 108
+                },
+                "charactersCount": {
+                    "value": 237
+                },
+                "wordsCount": {
+                    "value": 33
+                },
+                "sentencesCount": {
+                    "value": 2
+                },
+                "linesCount": {
+                    "value": 11
+                },
+                "paragraphsCount": {
+                    "value": 5
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 6
+                },
+                "charactersCount": {
+                    "value": 34
+                },
+                "wordsCount": {
+                    "value": 4
+                },
+                "sentencesCount": {
+                    "value": 1
+                },
+                "linesCount": {
+                    "value": 1
+                },
+                "paragraphsCount": {
+                    "value": 1
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced content creator, write best title for the document.\n\n# Rules\n\n-   Write just title, nothing else\n-   Title should be concise and clear\n-   Write maximum 5 words for the title\n\n# The document\n\n> He developed the WebGPT web page generation service. Prior to the widespread adoption of generative AI, Pavol created the first Czech virtual whiteboard, Collboard, and electronic textbooks called H-edu, which were used by tens of thousands of children.",
+        "rawRequest": {
+            "model": "gpt-4o",
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "You are experienced content creator, write best title for the document.\n\n# Rules\n\n-   Write just title, nothing else\n-   Title should be concise and clear\n-   Write maximum 5 words for the title\n\n# The document\n\n> He developed the WebGPT web page generation service. Prior to the widespread adoption of generative AI, Pavol created the first Czech virtual whiteboard, Collboard, and electronic textbooks called H-edu, which were used by tens of thousands of children."
+                }
+            ]
+        },
+        "rawResponse": {
+            "id": "chatcmpl-AEPaeS8WRtyIiEk4JsqwIjp6PnoGk",
+            "object": "chat.completion",
+            "created": 1727998324,
+            "model": "gpt-4o-2024-08-06",
+            "choices": [
+                {
+                    "index": 0,
+                    "message": {
+                        "role": "assistant",
+                        "content": "Pioneering Digital Education Tools",
+                        "refusal": null
+                    },
+                    "logprobs": null,
+                    "finish_reason": "stop"
+                }
+            ],
+            "usage": {
+                "prompt_tokens": 108,
+                "completion_tokens": 6,
+                "total_tokens": 114,
+                "prompt_tokens_details": {
+                    "cached_tokens": 0
+                },
+                "completion_tokens_details": {
+                    "reasoning_tokens": 0
+                }
+            },
+            "system_fingerprint": "fp_e5e4913e83"
+        }
+    }
+}

@@ -2,7 +2,6 @@ import { spaceTrim } from 'spacetrim';
 import { Promisable, ReadonlyDeep } from 'type-fest';
 import { extractParameterNamesFromTemplate } from '../../conversion/utils/extractParameterNamesFromTemplate';
 import { UnexpectedError } from '../../errors/UnexpectedError';
-import { MultipleLlmExecutionTools } from '../../llm-providers/multiple/MultipleLlmExecutionTools';
 import type { ExecutionReportJson } from '../../types/execution-report/ExecutionReportJson';
 import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import type { TemplateJson } from '../../types/PipelineJson/TemplateJson';
@@ -39,12 +38,7 @@ type executeSingleTemplateOptions = {
     /**
      * @@@
      */
-    readonly tools: Omit<ExecutionTools, 'llm'>;
-
-    /**
-     * @@@
-     */
-    readonly llmTools: MultipleLlmExecutionTools;
+    readonly tools: ExecutionTools;
 
     /**
      * @@@
@@ -78,7 +72,6 @@ export async function executeTemplate(options: executeSingleTemplateOptions): Pr
         preparedPipeline,
         parametersToPass,
         tools,
-        llmTools,
         onProgress,
         settings,
         $executionReport,
@@ -197,7 +190,6 @@ export async function executeTemplate(options: executeSingleTemplateOptions): Pr
         template: currentTemplate,
         preparedPipeline,
         tools,
-        llmTools,
         settings,
         $executionReport,
         pipelineIdentification,

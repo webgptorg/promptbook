@@ -2,7 +2,7 @@ import type { PromptbookStorage } from '../_common/PromptbookStorage';
 
 /**
  * Stores
- * 
+ *
  * @public exported from `@promptbook/core`
  */
 export class MemoryStorage<TItem> implements PromptbookStorage<TItem> {

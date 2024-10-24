@@ -5,7 +5,7 @@ import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import { serializeError } from '../../errors/utils/serializeError';
 import { isValidJsonString } from '../../formats/json/utils/isValidJsonString';
-import { MultipleLlmExecutionTools } from '../../llm-providers/multiple/MultipleLlmExecutionTools';
+import { joinLlmExecutionTools } from '../../llm-providers/multiple/joinLlmExecutionTools';
 import { extractJsonBlock } from '../../postprocessing/utils/extractJsonBlock';
 import type { ExecutionReportJson } from '../../types/execution-report/ExecutionReportJson';
 import type { ModelRequirements } from '../../types/ModelRequirements';
@@ -72,12 +72,7 @@ export type ExecuteAttemptsOptions = {
     /**
      * @@@
      */
-    readonly tools: Omit<ExecutionTools, 'llm'>;
-
-    /**
-     * @@@
-     */
-    readonly llmTools: MultipleLlmExecutionTools;
+    readonly tools: ExecutionTools;
 
     /**
      * Settings for the pipeline executor
@@ -110,7 +105,6 @@ export async function executeAttempts(options: ExecuteAttemptsOptions): Promise<
         template,
         preparedPipeline,
         tools,
-        llmTools,
         settings,
         $executionReport,
         pipelineIdentification,
@@ -123,6 +117,10 @@ export async function executeAttempts(options: ExecuteAttemptsOptions): Promise<
         $expectError: null,
         $scriptPipelineExecutionErrors: [],
     };
+
+    // TODO: [🚐] Make arrayable LLMs -> single LLM DRY
+    const _llms = arrayableToArray(tools.llm);
+    const llmTools = _llms.length === 1 ? _llms[0]! : joinLlmExecutionTools(..._llms);
 
     attempts: for (let attempt = -jokerParameterNames.length; attempt < maxAttempts; attempt++) {
         const isJokerAttempt = attempt < 0;
@@ -175,7 +173,7 @@ export async function executeAttempts(options: ExecuteAttemptsOptions): Promise<
                                 modelVariant: 'CHAT',
                                 ...(preparedPipeline.defaultModelRequirements || {}),
                                 ...(template.modelRequirements || {}),
-                            } satisfies ModelRequirements;
+                            } satisfies ModelRequirements; /* <- TODO: [🤛] */
 
                             $ongoingTemplateResult.$prompt = {
                                 title: template.title,
@@ -201,7 +199,8 @@ export async function executeAttempts(options: ExecuteAttemptsOptions): Promise<
 
                             variant: switch (modelRequirements.modelVariant) {
                                 case 'CHAT':
-                                    $ongoingTemplateResult.$chatResult = await llmTools.callChatModel(
+                                    $ongoingTemplateResult.$chatResult = await llmTools.callChatModel!(
+                                        // <- TODO: [🧁] Check that `callChatModel` is defined
                                         $deepFreeze($ongoingTemplateResult.$prompt) as ChatPrompt,
                                     );
                                     // TODO: [🍬] Destroy chatThread
@@ -209,7 +208,8 @@ export async function executeAttempts(options: ExecuteAttemptsOptions): Promise<
                                     $ongoingTemplateResult.$resultString = $ongoingTemplateResult.$chatResult.content;
                                     break variant;
                                 case 'COMPLETION':
-                                    $ongoingTemplateResult.$completionResult = await llmTools.callCompletionModel(
+                                    $ongoingTemplateResult.$completionResult = await llmTools.callCompletionModel!(
+                                        // <- TODO: [🧁] Check that `callCompletionModel` is defined
                                         $deepFreeze($ongoingTemplateResult.$prompt) as CompletionPrompt,
                                     );
                                     $ongoingTemplateResult.$result = $ongoingTemplateResult.$completionResult;

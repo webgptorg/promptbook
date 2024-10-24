@@ -21,8 +21,8 @@ import type { really_any } from '../../utils/organization/really_any';
  *
  * Note: Internal utility of `joinLlmExecutionTools` but exposed type
  * @public exported from `@promptbook/types`
+ * TODO: !!!!!! Export as runtime class not just type
  */
-
 export class MultipleLlmExecutionTools implements LlmExecutionTools {
     /**
      * Array of execution tools in order of priority

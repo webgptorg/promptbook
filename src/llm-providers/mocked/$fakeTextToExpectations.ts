@@ -1,10 +1,10 @@
 import { LoremIpsum } from 'lorem-ipsum';
 import { spaceTrim } from 'spacetrim';
-import { JavascriptExecutionTools } from '../../scripting/javascript/JavascriptExecutionTools';
 import { CHARACTER_LOOP_LIMIT } from '../../config';
 import { LimitReachedError } from '../../errors/LimitReachedError';
 import type { ScriptExecutionTools } from '../../execution/ScriptExecutionTools';
 import { isPassingExpectations } from '../../execution/utils/checkExpectations';
+import { JavascriptExecutionTools } from '../../scripting/javascript/JavascriptExecutionTools';
 import type { Expectations } from '../../types/PipelineJson/Expectations';
 import type { string_postprocessing_function_name } from '../../types/typeAliases';
 
@@ -21,13 +21,10 @@ export async function $fakeTextToExpectations(
     expectations: Expectations,
     postprocessingFunctionNames?: Array<string_postprocessing_function_name>,
 ): Promise<string> {
-    const lorem = new LoremIpsum(
-        //            <- TODO: [🧱] Implement in a functional (not new Class) way
-        {
-            wordsPerSentence: { min: 5, max: 15 },
-            sentencesPerParagraph: { min: 5, max: 15 },
-        },
-    );
+    const lorem = new LoremIpsum({
+        wordsPerSentence: { min: 5, max: 15 },
+        sentencesPerParagraph: { min: 5, max: 15 },
+    });
     let loremText = '';
     let text = '';
 

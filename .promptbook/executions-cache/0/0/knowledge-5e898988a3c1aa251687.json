@@ -1,0 +1,151 @@
+{
+    "date": "2024-10-07T13:40:28.269Z",
+    "promptbookVersion": "0.71.0-0",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-from-markdown.ptbk.md#knowledge",
+        "parameters": {
+            "knowledgeContent": "10-simple.md"
+        },
+        "content": "You are experienced data researcher, extract the important knowledge from the document.\n\n# Rules\n\n-   Make pieces of information concise, clear, and easy to understand\n-   One piece of information should be approximately 1 paragraph\n-   Divide the paragraphs by markdown horizontal lines ---\n-   Omit irrelevant information\n-   Group redundant information\n-   Write just extracted information, nothing else\n\n# The document\n\nTake information from this document:\n\n> {knowledgeContent}",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {}
+    },
+    "promptResult": {
+        "content": "---\n\n### Title: 10 Simple Productivity Tips\n\n---\n\n### 1. Prioritize Tasks\n\nPrioritize your tasks each day by focusing on the most important and urgent tasks first. This ensures you tackle the highest priority items when your energy levels are highest.\n\n---\n\n### 2. Set Goals\n\nSet clear, specific goals for both the short and long term. This provides direction and motivation, making it easier to stay focused and on track.\n\n---\n\n### 3. Eliminate Distractions\n\nIdentify and minimize distractions in your work environment. This may involve turning off notifications, setting boundaries with others, or creating a dedicated workspace.\n\n---\n\n### 4. Use a Task List\n\nMaintain a task list to organize and keep track of all your tasks. This can help prevent forgetting important tasks and allows you to visually track your progress.\n\n---\n\n### 5. Time Blocking\n\nImplement time blocking by designating specific times for specific tasks or activities. This structure helps manage your time more effectively and reduces wasted time.\n\n---\n\n### 6. Take Breaks\n\nRegularly scheduled breaks are essential for maintaining productivity. Short breaks help refresh your mind and reduce burnout, resulting in higher efficiency when you return to work.\n\n---\n\n### 7. Delegate Tasks\n\nDelegate tasks that others can handle effectively. This frees up your time for more critical tasks and ensures that all responsibilities are managed.\n\n---\n\n### 8. Limit Meetings\n\nLimit the number of meetings and ensure that each one has a clear purpose and agenda. Meetings should be used for essential discussions only, as they can be time-consuming.\n\n---\n\n### 9. Use Productivity Tools\n\nLeverage productivity tools like apps and software to streamline your workflow. These tools can automate repetitive tasks and improve overall efficiency.\n\n---\n\n### 10. Review and Reflect\n\nRegularly review and reflect on your productivity strategies. Assess what works and what doesn’t, and make necessary adjustments to continually improve your efficiency.",
+        "modelName": "gpt4o",
+        "timing": {
+            "start": "2024-10-07T13:40:22.640Z",
+            "complete": "2024-10-07T13:40:28.267Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0,
+                "isUncertain": true
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 100
+                },
+                "charactersCount": {
+                    "value": 482
+                },
+                "wordsCount": {
+                    "value": 59
+                },
+                "sentencesCount": {
+                    "value": 2
+                },
+                "linesCount": {
+                    "value": 16
+                },
+                "paragraphsCount": {
+                    "value": 6
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 383
+                },
+                "charactersCount": {
+                    "value": 482
+                },
+                "wordsCount": {
+                    "value": 59
+                },
+                "sentencesCount": {
+                    "value": 2
+                },
+                "linesCount": {
+                    "value": 16
+                },
+                "paragraphsCount": {
+                    "value": 6
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced data researcher, extract the important knowledge from the document.\n\n# Rules\n\n-   Make pieces of information concise, clear, and easy to understand\n-   One piece of information should be approximately 1 paragraph\n-   Divide the paragraphs by markdown horizontal lines ---\n-   Omit irrelevant information\n-   Group redundant information\n-   Write just extracted information, nothing else\n\n# The document\n\nTake information from this document:\n\n> 10-simple.md",
+        "rawRequest": [
+            "gpt4o",
+            [
+                {
+                    "role": "user",
+                    "content": "You are experienced data researcher, extract the important knowledge from the document.\n\n# Rules\n\n-   Make pieces of information concise, clear, and easy to understand\n-   One piece of information should be approximately 1 paragraph\n-   Divide the paragraphs by markdown horizontal lines ---\n-   Omit irrelevant information\n-   Group redundant information\n-   Write just extracted information, nothing else\n\n# The document\n\nTake information from this document:\n\n> 10-simple.md"
+                }
+            ],
+            {}
+        ],
+        "rawResponse": {
+            "id": "chatcmpl-AFiGEzElIS4l1Hujl0XSHb0JJnFG0",
+            "model": "gpt-4o-2024-05-13",
+            "object": "chat.completion",
+            "systemFingerprint": "fp_67802d9a6d",
+            "created": "1970-01-21T00:05:08.422Z",
+            "promptFilterResults": [
+                {
+                    "promptIndex": 0,
+                    "contentFilterResults": {
+                        "hate": {
+                            "filtered": false,
+                            "severity": "safe"
+                        },
+                        "sexual": {
+                            "filtered": false,
+                            "severity": "safe"
+                        },
+                        "violence": {
+                            "filtered": false,
+                            "severity": "safe"
+                        },
+                        "selfHarm": {
+                            "filtered": false,
+                            "severity": "safe"
+                        }
+                    }
+                }
+            ],
+            "usage": {
+                "completionTokens": 383,
+                "promptTokens": 100,
+                "totalTokens": 483
+            },
+            "choices": [
+                {
+                    "index": 0,
+                    "logprobs": null,
+                    "message": {
+                        "content": "---\n\n### Title: 10 Simple Productivity Tips\n\n---\n\n### 1. Prioritize Tasks\n\nPrioritize your tasks each day by focusing on the most important and urgent tasks first. This ensures you tackle the highest priority items when your energy levels are highest.\n\n---\n\n### 2. Set Goals\n\nSet clear, specific goals for both the short and long term. This provides direction and motivation, making it easier to stay focused and on track.\n\n---\n\n### 3. Eliminate Distractions\n\nIdentify and minimize distractions in your work environment. This may involve turning off notifications, setting boundaries with others, or creating a dedicated workspace.\n\n---\n\n### 4. Use a Task List\n\nMaintain a task list to organize and keep track of all your tasks. This can help prevent forgetting important tasks and allows you to visually track your progress.\n\n---\n\n### 5. Time Blocking\n\nImplement time blocking by designating specific times for specific tasks or activities. This structure helps manage your time more effectively and reduces wasted time.\n\n---\n\n### 6. Take Breaks\n\nRegularly scheduled breaks are essential for maintaining productivity. Short breaks help refresh your mind and reduce burnout, resulting in higher efficiency when you return to work.\n\n---\n\n### 7. Delegate Tasks\n\nDelegate tasks that others can handle effectively. This frees up your time for more critical tasks and ensures that all responsibilities are managed.\n\n---\n\n### 8. Limit Meetings\n\nLimit the number of meetings and ensure that each one has a clear purpose and agenda. Meetings should be used for essential discussions only, as they can be time-consuming.\n\n---\n\n### 9. Use Productivity Tools\n\nLeverage productivity tools like apps and software to streamline your workflow. These tools can automate repetitive tasks and improve overall efficiency.\n\n---\n\n### 10. Review and Reflect\n\nRegularly review and reflect on your productivity strategies. Assess what works and what doesn’t, and make necessary adjustments to continually improve your efficiency.",
+                        "role": "assistant"
+                    },
+                    "finishReason": "stop",
+                    "contentFilterResults": {
+                        "hate": {
+                            "filtered": false,
+                            "severity": "safe"
+                        },
+                        "sexual": {
+                            "filtered": false,
+                            "severity": "safe"
+                        },
+                        "violence": {
+                            "filtered": false,
+                            "severity": "safe"
+                        },
+                        "selfHarm": {
+                            "filtered": false,
+                            "severity": "safe"
+                        }
+                    }
+                }
+            ]
+        }
+    }
+}

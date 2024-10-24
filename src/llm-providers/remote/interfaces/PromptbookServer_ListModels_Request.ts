@@ -1,4 +1,4 @@
-import type { LlmToolsConfiguration } from '../../_common/LlmToolsConfiguration';
+import type { LlmToolsConfiguration } from '../../_common/register/LlmToolsConfiguration';
 
 /**
  * Socket.io progress for remote text generation

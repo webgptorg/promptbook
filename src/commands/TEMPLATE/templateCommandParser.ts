@@ -17,7 +17,7 @@ import { TemplateTypes } from './TemplateTypes';
 /**
  * Parses the template command
  *
- * @see ./TEMPLATE-README.md for more details
+ * @see `documentationUrl` for more details
  * @private within the commands folder
  */
 export const templateCommandParser: PipelineTemplateCommandParser<TemplateCommand> = {
@@ -58,7 +58,7 @@ export const templateCommandParser: PipelineTemplateCommandParser<TemplateComman
     description: `What should the code template template do`,
 
     /**
-     * Link to discussion
+     * Link to documentation
      */
     documentationUrl: 'https://github.com/webgptorg/promptbook/discussions/64',
 

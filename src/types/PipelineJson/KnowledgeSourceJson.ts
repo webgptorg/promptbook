@@ -12,12 +12,19 @@ import type { string_name } from '../typeAliases';
  */
 export type KnowledgeSourceJson = {
     /**
-     * @@@
+     * Unique identifier of the knowledge source
      */
     readonly name: string_name;
 
     /**
-     * @@@
+     * Source of one knowledge
+     *
+     * It can be a link, a relative path to file or direct text or combination of those
+     *
+     * For example `"https://pavolhejny.com/"`
+     * For example `"./pavol-hejny-cv.pdf"`
+     * For example `"Pavol Hejný has web https://pavolhejny.com/"`
+     * For example `"Pavol Hejný is web developer and creator of Promptbook and Collboard"`
      */
     readonly sourceContent: string_knowledge_source_content;
 };

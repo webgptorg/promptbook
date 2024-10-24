@@ -20,6 +20,12 @@ Build responsible, controlled and transparent applications on top of LLM models!
 
 -   ✨ **Support of [OpenAI o1 model](https://openai.com/o1/)**
 
+<blockquote style="color: #ff8811">
+<b>⚠ Warning:</b> This is a pre-release version of the library. It is not yet ready for production use. Please look at <a href="https://www.npmjs.com/package/@promptbook/core?activeTab=versions">latest stable release</a>.
+</blockquote>
+
+
+
 ## 📦 Package `@promptbook/anthropic-claude`
 
 - Promptbooks are [divided into several](#-packages) packages, all are published from [single monorepo](https://github.com/webgptorg/promptbook).
@@ -41,30 +47,35 @@ npm install @promptbook/anthropic-claude
 
 ```typescript
 import { createPipelineExecutor, createCollectionFromDirectory, assertsExecutionSuccessful } from '@promptbook/core';
-import { createCollectionFromDirectory } from '@promptbook/node';
+import {
+    createCollectionFromDirectory,
+    $provideExecutionToolsForNode,
+    $provideFilesystemForNode,
+} from '@promptbook/node';
 import { JavascriptExecutionTools } from '@promptbook/execute-javascript';
 import { AnthropicClaudeExecutionTools } from '@promptbook/anthropic-claude';
 
+// ▶ Prepare tools
+const fs = $provideFilesystemForNode();
+const llm = new AnthropicClaudeExecutionTools(
+    //            <- TODO: [🧱] Implement in a functional (not new Class) way
+    {
+        isVerbose: true,
+        apiKey: process.env.ANTHROPIC_CLAUDE_API_KEY,
+    },
+);
+const tools = {
+    llm,
+    fs,
+    scrapers: await $provideScrapersForNode({ fs, llm }),
+    script: [new JavascriptExecutionTools()],
+};
+
 // ▶ Create whole pipeline collection
-const collection = await createCollectionFromDirectory('./promptbook-collection');
+const collection = await createCollectionFromDirectory('./promptbook-collection', tools);
 
 // ▶ Get single Pipeline
 const pipeline = await collection.getPipelineByUrl(`https://promptbook.studio/my-collection/write-article.ptbk.md`);
-
-// ▶ Prepare tools
-const tools = {
-    llm: new AnthropicClaudeExecutionTools(
-        //            <- TODO: [🧱] Implement in a functional (not new Class) way
-        {
-            isVerbose: true,
-            apiKey: process.env.ANTHROPIC_CLAUDE_API_KEY,
-        },
-    ),
-    script: [
-        new JavascriptExecutionTools(),
-        //            <- TODO: [🧱] Implement in a functional (not new Class) way
-    ],
-};
 
 // ▶ Create executor - the function that will execute the Pipeline
 const pipelineExecutor = createPipelineExecutor({ pipeline, tools });
@@ -85,28 +96,22 @@ console.info(outputParameters);
 
 ## 🧙‍♂️ Connect to LLM providers automatically
 
-You can just use `createLlmToolsFromEnv` function to create LLM tools from environment variables like `ANTHROPIC_CLAUDE_API_KEY` and `OPENAI_API_KEY` automatically.
+You can just use `$provideExecutionToolsForNode` function to create all required tools from environment variables like `ANTHROPIC_CLAUDE_API_KEY` and `OPENAI_API_KEY` automatically.
 
 ```typescript
 import { createPipelineExecutor, createCollectionFromDirectory, assertsExecutionSuccessful } from '@promptbook/core';
 import { JavascriptExecutionTools } from '@promptbook/execute-javascript';
-import { createLlmToolsFromEnv } from '@promptbook/node';
+import { $provideExecutionToolsForNode } from '@promptbook/node';
+import { $provideFilesystemForNode } from '@promptbook/node';
+
+// ▶ Prepare tools
+const tools = await $provideExecutionToolsForNode();
 
 // ▶ Create whole pipeline collection
-const collection = await createCollectionFromDirectory('./promptbook-collection');
+const collection = await createCollectionFromDirectory('./promptbook-collection', tools);
 
 // ▶ Get single Pipeline
 const pipeline = await collection.getPipelineByUrl(`https://promptbook.studio/my-collection/write-article.ptbk.md`);
-
-// ▶ Prepare multiple tools
-const tools = {
-    // Note: 🧙‍♂️ Just call `createLlmToolsFromEnv` to automatically connect to all configured providers
-    llm: createLlmToolsFromEnv(),
-    script: [
-        new JavascriptExecutionTools(),
-        //            <- TODO: [🧱] Implement in a functional (not new Class) way
-    ],
-};
 
 // ▶ Create executor - the function that will execute the Pipeline
 const pipelineExecutor = createPipelineExecutor({ pipeline, tools });
@@ -131,46 +136,49 @@ You can use multiple LLM providers in one Promptbook execution. The best model w
 
 ```typescript
 import { createPipelineExecutor, createCollectionFromDirectory, assertsExecutionSuccessful } from '@promptbook/core';
+import { $provideExecutionToolsForNode } from '@promptbook/node';
+import { $provideFilesystemForNode } from '@promptbook/node';
 import { JavascriptExecutionTools } from '@promptbook/execute-javascript';
 import { OpenAiExecutionTools } from '@promptbook/openai';
 
+// ▶ Prepare multiple tools
+const fs = $provideFilesystemForNode();
+const llm = [
+    // Note: 💕 You can use multiple LLM providers in one Promptbook execution.
+    //       The best model will be chosen automatically according to the prompt and the model's capabilities.
+    new AnthropicClaudeExecutionTools(
+        //            <- TODO: [🧱] Implement in a functional (not new Class) way
+        {
+            apiKey: process.env.ANTHROPIC_CLAUDE_API_KEY,
+        },
+    ),
+    new OpenAiExecutionTools(
+        //            <- TODO: [🧱] Implement in a functional (not new Class) way
+        {
+            apiKey: process.env.OPENAI_API_KEY,
+        },
+    ),
+    new AzureOpenAiExecutionTools(
+        //            <- TODO: [🧱] Implement in a functional (not new Class) way
+        {
+            resourceName: process.env.AZUREOPENAI_RESOURCE_NAME,
+            deploymentName: process.env.AZUREOPENAI_DEPLOYMENT_NAME,
+            apiKey: process.env.AZUREOPENAI_API_KEY,
+        },
+    ),
+];
+const tools = {
+    llm,
+    fs,
+    scrapers: await $provideScrapersForNode({ fs, llm }),
+    script: [new JavascriptExecutionTools()],
+};
+
 // ▶ Create whole pipeline collection
-const collection = await createCollectionFromDirectory('./promptbook-collection');
+const collection = await createCollectionFromDirectory('./promptbook-collection', tools);
 
 // ▶ Get single Pipeline
 const pipeline = await collection.getPipelineByUrl(`https://promptbook.studio/my-collection/write-article.ptbk.md`);
-
-// ▶ Prepare multiple tools
-const tools = {
-    llm: [
-        // Note: 💕 You can use multiple LLM providers in one Promptbook execution.
-        //       The best model will be chosen automatically according to the prompt and the model's capabilities.
-        new AnthropicClaudeExecutionTools(
-            //            <- TODO: [🧱] Implement in a functional (not new Class) way
-            {
-                apiKey: process.env.ANTHROPIC_CLAUDE_API_KEY,
-            },
-        ),
-        new OpenAiExecutionTools(
-            //            <- TODO: [🧱] Implement in a functional (not new Class) way
-            {
-                apiKey: process.env.OPENAI_API_KEY,
-            },
-        ),
-        new AzureOpenAiExecutionTools(
-            //            <- TODO: [🧱] Implement in a functional (not new Class) way
-            {
-                resourceName: process.env.AZUREOPENAI_RESOURCE_NAME,
-                deploymentName: process.env.AZUREOPENAI_DEPLOYMENT_NAME,
-                apiKey: process.env.AZUREOPENAI_API_KEY,
-            },
-        ),
-    ],
-    script: [
-        new JavascriptExecutionTools(),
-        //            <- TODO: [🧱] Implement in a functional (not new Class) way
-    ],
-};
 
 // ▶ Create executor - the function that will execute the Pipeline
 const pipelineExecutor = createPipelineExecutor({ pipeline, tools });
@@ -487,6 +495,10 @@ Or you can install them separately:
 -   **[@promptbook/fake-llm](https://www.npmjs.com/package/@promptbook/fake-llm)** - Mocked execution tools for testing the library and saving the tokens
 -   **[@promptbook/remote-client](https://www.npmjs.com/package/@promptbook/remote-client)** - Remote client for remote execution of promptbooks
 -   **[@promptbook/remote-server](https://www.npmjs.com/package/@promptbook/remote-server)** - Remote server for remote execution of promptbooks
+-   **[@promptbook/pdf](https://www.npmjs.com/package/@promptbook/pdf)** - Read knowledge from `.pdf` documents
+-   **[@promptbook/documents](https://www.npmjs.com/package/@promptbook/documents)** - Read knowledge from documents like `.docx`, `.odt`,…
+-   **[@promptbook/legacy-documents](https://www.npmjs.com/package/@promptbook/legacy-documents)** - Read knowledge from legacy documents like `.doc`, `.rtf`,…
+-   **[@promptbook/website-crawler](https://www.npmjs.com/package/@promptbook/website-crawler)** - Crawl knowledge from the web
 -   **[@promptbook/types](https://www.npmjs.com/package/@promptbook/types)** - Just typescript types used in the library
 -   **[@promptbook/cli](https://www.npmjs.com/package/@promptbook/cli)** - Command line interface utilities for promptbooks
 

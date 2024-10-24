@@ -1,17 +1,18 @@
 import spaceTrim from 'spacetrim';
 import type { string_name } from '../../types/typeAliases';
-import { $llmToolsMetadataRegister } from '../_common/$llmToolsMetadataRegister';
-import type { LlmToolsConfiguration } from '../_common/LlmToolsConfiguration';
+import type { Registration } from '../../utils/$Register';
+import { $llmToolsMetadataRegister } from '../_common/register/$llmToolsMetadataRegister';
+import type { LlmToolsConfiguration } from '../_common/register/LlmToolsConfiguration';
 
 /**
- * @@@ registration1 of default configuration for Azure Open AI
+ * Registration of LLM provider metadata
  *
- * Note: [🏐] Configurations registrations are done in @@@ BUT constructor @@@
+ * Warning: This is not useful for the end user, it is just a side effect of the mechanism that handles all available LLM tools
  *
  * @public exported from `@promptbook/core`
  * @public exported from `@promptbook/cli`
  */
-export const _AzureOpenAiMetadataRegistration = $llmToolsMetadataRegister.register({
+export const _AzureOpenAiMetadataRegistration: Registration = $llmToolsMetadataRegister.register({
     title: 'Azure Open AI',
     packageName: '@promptbook/azure-openai',
     className: 'AzureOpenAiExecutionTools',
@@ -51,16 +52,14 @@ export const _AzureOpenAiMetadataRegistration = $llmToolsMetadataRegister.regist
             throw new Error(
                 spaceTrim(`
                     You must provide all of the following environment variables:
-                    
+
                     - AZUREOPENAI_RESOURCE_NAME (${
                         typeof env.AZUREOPENAI_RESOURCE_NAME === 'string' ? 'defined' : 'not defined'
                     })
                     - AZUREOPENAI_DEPLOYMENT_NAME (${
                         typeof env.AZUREOPENAI_DEPLOYMENT_NAME === 'string' ? 'defined' : 'not defined'
                     })
-                    - AZUREOPENAI_API_KEY (${
-                        typeof env.AZUREOPENAI_API_KEY === 'string' ? 'defined' : 'not defined'
-                    })        
+                    - AZUREOPENAI_API_KEY (${typeof env.AZUREOPENAI_API_KEY === 'string' ? 'defined' : 'not defined'})
                 `),
             );
         }

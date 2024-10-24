@@ -13,7 +13,6 @@ export function createBestTranslator({
     /* [🌐] */
     if (to === 'en') {
         return new LindatAutomaticTranslator(
-//            <- TODO: [🧱] Implement in a functional (not new Class) way
 {
             from,
             to,
@@ -21,11 +20,9 @@ export function createBestTranslator({
         });
     } else if (to === 'sk') {
         return new GoogleAutomaticTranslator(
-//            <- TODO: [🧱] Implement in a functional (not new Class) way
 { from, to, isHeadless });
     } else if (to === 'pl') {
         return new LindatAutomaticTranslator(
-//            <- TODO: [🧱] Implement in a functional (not new Class) way
 {
             from,
             to,
@@ -33,7 +30,6 @@ export function createBestTranslator({
         });
     } else if (to === 'uk') {
         return new LindatAutomaticTranslator(
-//            <- TODO: [🧱] Implement in a functional (not new Class) way
 {
             from,
             to,
@@ -41,7 +37,6 @@ export function createBestTranslator({
         });
     } else {
         return new GoogleAutomaticTranslator(
-//            <- TODO: [🧱] Implement in a functional (not new Class) way
 { from, to });
     }
 }

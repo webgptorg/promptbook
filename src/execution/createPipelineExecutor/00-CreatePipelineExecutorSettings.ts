@@ -1,26 +1,16 @@
 import type { CsvSettings } from '../../formats/csv/CsvSettings';
+import type { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';
 
-export type CreatePipelineExecutorSettings = {
+export type CreatePipelineExecutorSettings = Omit<
+    PrepareAndScrapeOptions,
+    'llmTools' /* <- !!!!!! Do not omit, just unite `CreatePipelineExecutorOptions` and `CreatePipelineExecutorSettings` */
+> & {
     /**
      * When executor does not satisfy expectations it will be retried this amount of times
      *
      * @default MAX_EXECUTION_ATTEMPTS
      */
     readonly maxExecutionAttempts: number;
-
-    /**
-     * Maximum number of tasks running in parallel
-     *
-     * @default MAX_PARALLEL_COUNT
-     */
-    readonly maxParallelCount: number;
-
-    /**
-     * If true, the preparation logs additional information
-     *
-     * @default false
-     */
-    readonly isVerbose: boolean;
 
     /**
      * Settings for CSV format

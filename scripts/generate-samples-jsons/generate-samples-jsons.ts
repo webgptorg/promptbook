@@ -8,14 +8,17 @@ import colors from 'colors';
 import commander from 'commander';
 import { readFile, writeFile } from 'fs/promises';
 import glob from 'glob-promise';
-import { join } from 'path';
+import { dirname, join } from 'path';
 import { pipelineStringToJson } from '../../src/conversion/pipelineStringToJson';
 import { stringifyPipelineJson } from '../../src/conversion/utils/stringifyPipelineJson';
 import { usageToHuman } from '../../src/execution/utils/usageToHuman';
 //import { MockedFackedLlmExecutionTools } from '../../src/llm-providers/mocked/MockedFackedLlmExecutionTools';
 import { forTime } from 'waitasecond';
 import { validatePipeline } from '../../src/conversion/validation/validatePipeline';
-import { getLlmToolsForTestingAndScriptsAndPlayground } from '../../src/llm-providers/_common/getLlmToolsForTestingAndScriptsAndPlayground';
+import { $provideLlmToolsForTestingAndScriptsAndPlayground } from '../../src/llm-providers/_common/register/$provideLlmToolsForTestingAndScriptsAndPlayground';
+import { PrepareAndScrapeOptions } from '../../src/prepare/PrepareAndScrapeOptions';
+import { $provideFilesystemForNode } from '../../src/scrapers/_common/register/$provideFilesystemForNode';
+import { $provideScrapersForNode } from '../../src/scrapers/_common/register/$provideScrapersForNode';
 import { PipelineString } from '../../src/types/PipelineString';
 import { commit } from '../utils/autocommit/commit';
 import { isWorkingTreeClean } from '../utils/autocommit/isWorkingTreeClean';
@@ -60,7 +63,8 @@ async function generateSampleJsons({
         throw new Error(`Working tree is not clean`);
     }
 
-    const llmTools = getLlmToolsForTestingAndScriptsAndPlayground({ isCacheReloaded, isVerbose });
+    const fs = $provideFilesystemForNode();
+    const llm = $provideLlmToolsForTestingAndScriptsAndPlayground({ isCacheReloaded, isVerbose });
     //                 <- Note: for example here we don`t want the [🌯]
 
     const pipelineMarkdownFilePaths = await glob(join(PROMPTBOOK_SAMPLES_DIR, '*.ptbk.md').split('\\').join('/'));
@@ -74,9 +78,23 @@ async function generateSampleJsons({
         const pipelineMarkdown = await readFile(pipelineMarkdownFilePath, 'utf-8');
 
         try {
-            const pipelineJson = await pipelineStringToJson(pipelineMarkdown as PipelineString, {
-                llmTools,
-            });
+            const options: PrepareAndScrapeOptions = {
+                rootDirname: dirname(pipelineMarkdownFilePath),
+                externalProgramsPaths: {
+                    // TODO: !!!!!! use `locate-app` library here
+                    pandocPath: 'C:/Users/me/AppData/Local/Pandoc/pandoc.exe',
+                    libreOfficePath: 'C:/Program Files/LibreOffice/program/swriter.exe',
+                },
+            };
+            const pipelineJson = await pipelineStringToJson(
+                pipelineMarkdown as PipelineString,
+                {
+                    llm,
+                    fs,
+                    scrapers: await $provideScrapersForNode({ fs, llm }, options),
+                },
+                options,
+            );
 
             await forTime(0);
 
@@ -107,10 +125,10 @@ async function generateSampleJsons({
         }
     }
 
-    console.info(colors.cyan(usageToHuman(llmTools.getTotalUsage())));
+    console.info(colors.cyan(usageToHuman(llm.getTotalUsage())));
 
     if (isCommited) {
-        await commit([PROMPTBOOK_SAMPLES_DIR], `📖 Convert samples .ptbk.md -> .ptbk.json`);
+        await commit([PROMPTBOOK_SAMPLES_DIR], `📖 Convert samples \`.ptbk.md\` -> \`.ptbk.json\``);
     }
 
     console.info(`[ Done 📖  Convert samples .ptbk.md -> .ptbk.json]`);
@@ -119,4 +137,5 @@ async function generateSampleJsons({
 /**
  * Note: [🍠] @@@ Sample pipelines vs Pipelines used internally in Promptbook
  * TODO: [🍥] When using current time in `preparations` it changes all .ptbk.json files each time so until some more elegant solution omit the time from prepared pipeline
+ * Note: [⚫] Code in this file should never be published in any package
  */

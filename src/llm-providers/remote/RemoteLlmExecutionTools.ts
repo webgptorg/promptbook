@@ -17,11 +17,11 @@ import type { string_markdown } from '../../types/typeAliases';
 import type { string_markdown_text } from '../../types/typeAliases';
 import type { string_title } from '../../types/typeAliases';
 import type { PromptbookServer_Error } from './interfaces/PromptbookServer_Error';
-import type { PromptbookServer_ListModels_Request } from './interfaces/PromptbookServer_ListModels_Request';
 import type { PromptbookServer_ListModels_Response } from './interfaces/PromptbookServer_ListModels_Response';
-import type { PromptbookServer_Prompt_Request } from './interfaces/PromptbookServer_Prompt_Request';
 import type { PromptbookServer_Prompt_Response } from './interfaces/PromptbookServer_Prompt_Response';
 import type { RemoteLlmExecutionToolsOptions } from './interfaces/RemoteLlmExecutionToolsOptions';
+import type { PromptbookServer_ListModels_Request } from './interfaces/PromptbookServer_ListModels_Request';
+import type { PromptbookServer_Prompt_Request } from './interfaces/PromptbookServer_Prompt_Request';
 
 /**
  * Remote server is a proxy server that uses its execution tools internally and exposes the executor interface externally.
@@ -99,30 +99,27 @@ export class RemoteLlmExecutionTools implements LlmExecutionTools {
      * Creates a connection to the remote proxy server.
      */
     private makeConnection(): Promise<Socket> {
-        return new Promise(
-            //            <- TODO: [🧱] Implement in a functional (not new Class) way
-            (resolve, reject) => {
-                const socket = io(this.options.remoteUrl, {
-                    retries: CONNECTION_RETRIES_LIMIT,
-                    timeout: CONNECTION_TIMEOUT_MS,
-                    path: this.options.path,
-                    // path: `${this.remoteUrl.pathname}/socket.io`,
-                    transports: [/*'websocket', <- TODO: [🌬] Make websocket transport work */ 'polling'],
-                });
+        return new Promise((resolve, reject) => {
+            const socket = io(this.options.remoteUrl, {
+                retries: CONNECTION_RETRIES_LIMIT,
+                timeout: CONNECTION_TIMEOUT_MS,
+                path: this.options.path,
+                // path: `${this.remoteUrl.pathname}/socket.io`,
+                transports: [/*'websocket', <- TODO: [🌬] Make websocket transport work */ 'polling'],
+            });
 
-                // console.log('Connecting to', this.options.remoteUrl.href, { socket });
+            // console.log('Connecting to', this.options.remoteUrl.href, { socket });
 
-                socket.on('connect', () => {
-                    resolve(socket);
-                });
+            socket.on('connect', () => {
+                resolve(socket);
+            });
 
-                // TODO: [main] !!!! Better timeout handling
+            // TODO: [main] !!!! Better timeout handling
 
-                setTimeout(() => {
-                    reject(new Error(`Timeout while connecting to ${this.options.remoteUrl}`));
-                }, CONNECTION_TIMEOUT_MS);
-            },
-        );
+            setTimeout(() => {
+                reject(new Error(`Timeout while connecting to ${this.options.remoteUrl}`));
+            }, CONNECTION_TIMEOUT_MS);
+        });
     }
 
     /**

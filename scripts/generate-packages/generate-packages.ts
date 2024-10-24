@@ -11,11 +11,11 @@ import type { PackageJson } from 'type-fest';
 import { forTime } from 'waitasecond';
 import YAML from 'yaml';
 import { GENERATOR_WARNING } from '../../src/config';
+import { $execCommand } from '../../src/utils/execCommand/$execCommand';
 import { prettifyMarkdown } from '../../src/utils/markdown/prettifyMarkdown';
 import { removeContentComments } from '../../src/utils/markdown/removeContentComments';
 import { commit } from '../utils/autocommit/commit';
 import { isWorkingTreeClean } from '../utils/autocommit/isWorkingTreeClean';
-import { execCommand } from '../utils/execCommand/execCommand';
 import { getPackagesMetadata } from './getPackagesMetadata';
 
 if (process.cwd() !== join(__dirname, '../..')) {
@@ -82,7 +82,7 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
         const entryIndexFilePathContentExports: Array<string> = [];
 
         for (const entity of entities) {
-            const { filePath, name } = entity;
+            const { filename, name } = entity;
             let { isType } = entity;
 
             if (packageFullname === '@promptbook/types') {
@@ -90,7 +90,7 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
                 isType = true;
             }
 
-            let importPath = `${relative(dirname(entryIndexFilePath), filePath).split('\\').join('/')}`;
+            let importPath = `${relative(dirname(entryIndexFilePath), filename).split('\\').join('/')}`;
             if (!importPath.startsWith('.')) {
                 importPath = './' + importPath;
             }
@@ -292,8 +292,8 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
             if (!isBuilded) {
                 continue;
             }
-            await execCommand(`rm -rf ./packages/${packageBasename}/umd`);
-            await execCommand(`rm -rf ./packages/${packageBasename}/esm`);
+            await $execCommand(`rm -rf ./packages/${packageBasename}/umd`);
+            await $execCommand(`rm -rf ./packages/${packageBasename}/esm`);
         }
     }
 
@@ -304,7 +304,7 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
         console.info(colors.yellow(`Skipping the bundler`));
     } else {
         await forTime(1000 * 60 * 60 * 0);
-        await execCommand(`npx rollup --config rollup.config.js`);
+        await $execCommand(`npx rollup --config rollup.config.js`);
     }
 
     // ==============================
@@ -316,7 +316,7 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
         // Note: Keep `typings` only from `esm` (and remove `umd`)
         for (const packageMetadata of packagesMetadata) {
             const { packageBasename } = packageMetadata;
-            await execCommand(`rm -rf ./packages/${packageBasename}/umd/typings`);
+            await $execCommand(`rm -rf ./packages/${packageBasename}/umd/typings`);
         }
     }
 
@@ -336,6 +336,16 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
             }
 
             const bundleFileContent = await readFile(bundleFileName, 'utf-8');
+
+            if (bundleFileContent.includes('[⚫]')) {
+                throw new Error(
+                    spaceTrim(`
+                        Things marked with [⚫] should never be never released in the bundle
+
+                        ${bundleFileName}
+                    `),
+                );
+            }
 
             if (bundleFileContent.includes('[⚪]')) {
                 throw new Error(
@@ -367,7 +377,7 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
             ) {
                 throw new Error(
                     spaceTrim(`
-                        Things marked with [🟢] should never be never released out of @promptbook/node and @promptbook/cli
+                        Things marked with [🟢] should never be never released in packages that could be imported into browser environment
 
                         ${bundleFileName}
                     `),
@@ -529,4 +539,5 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
  * TODO: !! Add warning to the copy/generated files
  * TODO: !! Use prettier to format the generated files
  * TODO: !! Normalize order of keys in package.json
+ * Note: [⚫] Code in this file should never be published in any package
  */

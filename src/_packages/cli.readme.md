@@ -14,7 +14,8 @@ Then just use it:
 
 ```typescript
 import { createPipelineExecutor, assertsExecutionSuccessful } from '@promptbook/core';
-import { createLlmToolsFromEnv } from '@promptbook/node';
+import { $provideExecutionToolsForNode } from '@promptbook/node';
+import { $provideFilesystemForNode } from '@promptbook/node';
 import { getPipelineCollection } from './promptbook-collection'; // <- Importing from pre-built library
 import { JavascriptExecutionTools } from '@promptbook/execute-javascript';
 import { OpenAiExecutionTools } from '@promptbook/openai';
@@ -24,17 +25,8 @@ const promptbook = await getPipelineCollection().getPipelineByUrl(
     `https://promptbook.studio/my-collection/write-article.ptbk.md`,
 );
 
-// ▶ Prepare tools
-const tools = {
-    llm: createLlmToolsFromEnv(),
-    script: [
-        new JavascriptExecutionTools(),
-        //            <- TODO: [🧱] Implement in a functional (not new Class) way
-    ],
-};
-
 // ▶ Create executor - the function that will execute the Pipeline
-const pipelineExecutor = createPipelineExecutor({ pipeline, tools });
+const pipelineExecutor = createPipelineExecutor({ pipeline, tools: await $provideExecutionToolsForNode() });
 
 // ▶ Prepare input parameters
 const inputParameters = { word: 'cat' };

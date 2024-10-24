@@ -1,0 +1,151 @@
+{
+    "date": "2024-09-29T15:57:04.578Z",
+    "promptbookVersion": "0.71.0-0",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.ptbk.md#knowledge",
+        "parameters": {
+            "knowledgePieceContent": "---\n\nIn recent times of crisis, the market is increasingly flooded with fraudulent and harmful jewelry. Korálky Katlas has prepared a summary of key things to watch out for when purchasing ready-made jewelry and jewelry components, based on customer feedback and reported issues from both the Czech Republic and abroad."
+        },
+        "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> {knowledgePieceContent}",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {}
+    },
+    "promptResult": {
+        "content": "crisis, market, fraudulent, harmful jewelry, Korálky Katlas, purchasing, ready-made jewelry, jewelry components, customer feedback, reported issues, Czech Republic, abroad",
+        "modelName": "gpt4o",
+        "timing": {
+            "start": "2024-09-29T15:56:59.781Z",
+            "complete": "2024-09-29T15:57:04.578Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0,
+                "isUncertain": true
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 105
+                },
+                "charactersCount": {
+                    "value": 217
+                },
+                "wordsCount": {
+                    "value": 27
+                },
+                "sentencesCount": {
+                    "value": 2
+                },
+                "linesCount": {
+                    "value": 11
+                },
+                "paragraphsCount": {
+                    "value": 6
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 35
+                },
+                "charactersCount": {
+                    "value": 217
+                },
+                "wordsCount": {
+                    "value": 27
+                },
+                "sentencesCount": {
+                    "value": 2
+                },
+                "linesCount": {
+                    "value": 11
+                },
+                "paragraphsCount": {
+                    "value": 6
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> ---\n> \n> In recent times of crisis, the market is increasingly flooded with fraudulent and harmful jewelry. Korálky Katlas has prepared a summary of key things to watch out for when purchasing ready-made jewelry and jewelry components, based on customer feedback and reported issues from both the Czech Republic and abroad.",
+        "rawRequest": [
+            "gpt4o",
+            [
+                {
+                    "role": "user",
+                    "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> ---\n> \n> In recent times of crisis, the market is increasingly flooded with fraudulent and harmful jewelry. Korálky Katlas has prepared a summary of key things to watch out for when purchasing ready-made jewelry and jewelry components, based on customer feedback and reported issues from both the Czech Republic and abroad."
+                }
+            ],
+            {}
+        ],
+        "rawResponse": {
+            "id": "chatcmpl-ACqa7v4deHzi4806HodskbObK9PN8",
+            "model": "gpt-4o-2024-05-13",
+            "object": "chat.completion",
+            "systemFingerprint": "fp_67802d9a6d",
+            "created": "1970-01-20T23:53:45.423Z",
+            "promptFilterResults": [
+                {
+                    "promptIndex": 0,
+                    "contentFilterResults": {
+                        "hate": {
+                            "filtered": false,
+                            "severity": "safe"
+                        },
+                        "sexual": {
+                            "filtered": false,
+                            "severity": "safe"
+                        },
+                        "violence": {
+                            "filtered": false,
+                            "severity": "safe"
+                        },
+                        "selfHarm": {
+                            "filtered": false,
+                            "severity": "safe"
+                        }
+                    }
+                }
+            ],
+            "usage": {
+                "completionTokens": 35,
+                "promptTokens": 105,
+                "totalTokens": 140
+            },
+            "choices": [
+                {
+                    "index": 0,
+                    "logprobs": null,
+                    "message": {
+                        "content": "crisis, market, fraudulent, harmful jewelry, Korálky Katlas, purchasing, ready-made jewelry, jewelry components, customer feedback, reported issues, Czech Republic, abroad",
+                        "role": "assistant"
+                    },
+                    "finishReason": "stop",
+                    "contentFilterResults": {
+                        "hate": {
+                            "filtered": false,
+                            "severity": "safe"
+                        },
+                        "sexual": {
+                            "filtered": false,
+                            "severity": "safe"
+                        },
+                        "violence": {
+                            "filtered": false,
+                            "severity": "safe"
+                        },
+                        "selfHarm": {
+                            "filtered": false,
+                            "severity": "safe"
+                        }
+                    }
+                }
+            ]
+        }
+    }
+}

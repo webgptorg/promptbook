@@ -1,15 +1,16 @@
-import { $llmToolsRegister } from '../_common/$llmToolsRegister';
+import type { Registration } from '../../utils/$Register';
+import { $llmToolsRegister } from '../_common/register/$llmToolsRegister';
 import { createAzureOpenAiExecutionTools } from './createAzureOpenAiExecutionTools';
 
 /**
- * @@@ registration2
+ * Registration of LLM provider
  *
- * Note: [🏐] Configurations registrations are done in @@@ BUT constructor @@@
+ * Warning: This is not useful for the end user, it is just a side effect of the mechanism that handles all available LLM tools
  *
  * @public exported from `@promptbook/azure-openai`
  * @public exported from `@promptbook/cli`
  */
-export const _AzureOpenAiRegistration = $llmToolsRegister.register(createAzureOpenAiExecutionTools);
+export const _AzureOpenAiRegistration: Registration = $llmToolsRegister.register(createAzureOpenAiExecutionTools);
 
 /**
  * TODO: [🎶] Naming "constructor" vs "creator" vs "factory"

@@ -1,10 +1,11 @@
 import { spaceTrim } from 'spacetrim';
 import { MAX_PARALLEL_COUNT } from '../config';
+import type { ExecutionTools } from '../execution/ExecutionTools';
 import { forEachAsync } from '../execution/utils/forEachAsync';
 import type { PipelineJson } from '../types/PipelineJson/PipelineJson';
 import type { TemplateJson } from '../types/PipelineJson/TemplateJson';
 import { TODO_USE } from '../utils/organization/TODO_USE';
-import type { PrepareOptions } from './PrepareOptions';
+import type { PrepareAndScrapeOptions } from './PrepareAndScrapeOptions';
 
 type PrepareTemplateInput = Pick<PipelineJson, 'templates' | 'parameters'> & {
     /**
@@ -27,7 +28,8 @@ type PreparedTemplates = {
  */
 export async function prepareTemplates(
     pipeline: PrepareTemplateInput,
-    options: PrepareOptions,
+    tools: Pick<ExecutionTools, 'llm'| 'fs'  | 'scrapers'>,
+    options: PrepareAndScrapeOptions,
 ): Promise<PreparedTemplates> {
     const { maxParallelCount = MAX_PARALLEL_COUNT } = options;
     const { templates, parameters, knowledgePiecesCount } = pipeline;
@@ -36,10 +38,7 @@ export async function prepareTemplates(
     TODO_USE(parameters);
 
     // TODO: [🖌][🧠] Implement some `mapAsync` function
-    const templatesPrepared: Array<TemplateJson> = new Array(
-        //            <- TODO: [🧱] Implement in a functional (not new Class) way
-        templates.length,
-    );
+    const templatesPrepared: Array<TemplateJson> = new Array(templates.length);
     await forEachAsync(
         templates,
         { maxParallelCount /* <- TODO: [🪂] When there are subtasks, this maximul limit can be broken */ },

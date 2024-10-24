@@ -2,12 +2,12 @@ import { spaceTrim } from 'spacetrim';
 import type { Promisable, ReadonlyDeep } from 'type-fest';
 import { forTime } from 'waitasecond';
 import { IMMEDIATE_TIME } from '../../config';
+import { IS_VERBOSE } from '../../config';
 import { LOOP_LIMIT } from '../../config';
 import { RESERVED_PARAMETER_NAMES } from '../../config';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import { serializeError } from '../../errors/utils/serializeError';
-import { joinLlmExecutionTools } from '../../llm-providers/multiple/joinLlmExecutionTools';
 import { preparePipeline } from '../../prepare/preparePipeline';
 import type { ExecutionReportJson } from '../../types/execution-report/ExecutionReportJson';
 import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
@@ -15,7 +15,6 @@ import type { TemplateJson } from '../../types/PipelineJson/TemplateJson';
 import type { TaskProgress } from '../../types/TaskProgress';
 import type { Parameters } from '../../types/typeAliases';
 import type { string_name } from '../../types/typeAliases';
-import { arrayableToArray } from '../../utils/arrayableToArray';
 import { $asDeeplyFrozenSerializableJson } from '../../utils/serialization/$asDeeplyFrozenSerializableJson';
 import { PROMPTBOOK_VERSION } from '../../version';
 import type { ExecutionTools } from '../ExecutionTools';
@@ -29,7 +28,7 @@ import { filterJustOutputParameters } from './filterJustOutputParameters';
 /**
  * @@@
  *
- * @private internal type of `executePipelinex`
+ * @private internal type of `executePipeline`
  */
 type ExecutePipelineOptions = {
     /**
@@ -83,14 +82,12 @@ type ExecutePipelineOptions = {
 export async function executePipeline(options: ExecutePipelineOptions): Promise<PipelineExecutorResult> {
     const { inputParameters, tools, onProgress, pipeline, setPreparedPipeline, pipelineIdentification, settings } =
         options;
-    const { maxParallelCount, isVerbose } = settings;
+    const { maxParallelCount, rootDirname, isVerbose = IS_VERBOSE } = settings;
     let { preparedPipeline } = options;
 
-    const llmTools = joinLlmExecutionTools(...arrayableToArray(tools.llm));
-
     if (preparedPipeline === undefined) {
-        preparedPipeline = await preparePipeline(pipeline, {
-            llmTools,
+        preparedPipeline = await preparePipeline(pipeline, tools, {
+            rootDirname,
             isVerbose,
             maxParallelCount,
         });
@@ -269,7 +266,6 @@ export async function executePipeline(options: ExecutePipelineOptions): Promise<
                     preparedPipeline,
                     parametersToPass,
                     tools,
-                    llmTools,
                     onProgress(progress: TaskProgress) {
                         if (isReturned) {
                             throw new UnexpectedError(
@@ -387,7 +383,6 @@ export async function executePipeline(options: ExecutePipelineOptions): Promise<
         preparedPipeline,
     }) satisfies PipelineExecutorResult;
 }
-
 
 /**
  * TODO: [🐚] Change onProgress to object that represents the running execution, can be subscribed via RxJS to and also awaited

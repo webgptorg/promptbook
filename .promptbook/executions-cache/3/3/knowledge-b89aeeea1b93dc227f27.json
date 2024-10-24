@@ -1,0 +1,112 @@
+{
+    "date": "2024-09-29T15:51:57.344Z",
+    "promptbookVersion": "0.71.0-0",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.ptbk.md#knowledge",
+        "parameters": {
+            "knowledgePieceContent": "Staying informed about evolving technologies and filtering out key innovations from the daily noise can be difficult, but leveraging full potential of technology in business can provide significant advantages.\n\n---"
+        },
+        "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> {knowledgePieceContent}",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {}
+    },
+    "promptResult": {
+        "content": "evolving technologies, key innovations, daily noise, leveraging technology, business advantages",
+        "modelName": "gpt-4o-2024-05-13",
+        "timing": {
+            "start": "2024-09-29T15:51:56.918Z",
+            "complete": "2024-09-29T15:51:57.343Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0.00062
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 79
+                },
+                "charactersCount": {
+                    "value": 217
+                },
+                "wordsCount": {
+                    "value": 27
+                },
+                "sentencesCount": {
+                    "value": 2
+                },
+                "linesCount": {
+                    "value": 11
+                },
+                "paragraphsCount": {
+                    "value": 6
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 15
+                },
+                "charactersCount": {
+                    "value": 95
+                },
+                "wordsCount": {
+                    "value": 10
+                },
+                "sentencesCount": {
+                    "value": 1
+                },
+                "linesCount": {
+                    "value": 1
+                },
+                "paragraphsCount": {
+                    "value": 1
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> Staying informed about evolving technologies and filtering out key innovations from the daily noise can be difficult, but leveraging full potential of technology in business can provide significant advantages.\n> \n> ---",
+        "rawRequest": {
+            "model": "gpt-4o",
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> Staying informed about evolving technologies and filtering out key innovations from the daily noise can be difficult, but leveraging full potential of technology in business can provide significant advantages.\n> \n> ---"
+                }
+            ]
+        },
+        "rawResponse": {
+            "id": "chatcmpl-ACqVAmGTSBFOsmpjNT92GdIwtGd7T",
+            "object": "chat.completion",
+            "created": 1727625116,
+            "model": "gpt-4o-2024-05-13",
+            "choices": [
+                {
+                    "index": 0,
+                    "message": {
+                        "role": "assistant",
+                        "content": "evolving technologies, key innovations, daily noise, leveraging technology, business advantages",
+                        "refusal": null
+                    },
+                    "logprobs": null,
+                    "finish_reason": "stop"
+                }
+            ],
+            "usage": {
+                "prompt_tokens": 79,
+                "completion_tokens": 15,
+                "total_tokens": 94,
+                "completion_tokens_details": {
+                    "reasoning_tokens": 0
+                }
+            },
+            "system_fingerprint": "fp_c17d3befe7"
+        }
+    }
+}

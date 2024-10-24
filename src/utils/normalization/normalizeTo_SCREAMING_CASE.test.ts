@@ -12,6 +12,8 @@ describe('how normalizing to SCREAMING_CASE works', () => {
         expect(normalizeTo_SCREAMING_CASE('hello world')).toEqual('HELLO_WORLD');
         expect(normalizeTo_SCREAMING_CASE('helloWorld')).toEqual('HELLO_WORLD');
         expect(normalizeTo_SCREAMING_CASE('hello___world')).toEqual('HELLO_WORLD');
+        expect(normalizeTo_SCREAMING_CASE('hello_/_world')).toEqual('HELLO_WORLD');
+        expect(normalizeTo_SCREAMING_CASE('hello_\\_world')).toEqual('HELLO_WORLD');
         expect(normalizeTo_SCREAMING_CASE('hello.world')).toEqual('HELLO_WORLD');
         expect(normalizeTo_SCREAMING_CASE('hello\nworld')).toEqual('HELLO_WORLD');
     });

@@ -1,0 +1,104 @@
+{
+    "date": "2024-10-07T13:39:52.779Z",
+    "promptbookVersion": "0.71.0-0",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.ptbk.md#knowledge",
+        "parameters": {
+            "knowledgePieceContent": "---\n\nSimplicity in code and design is crucial for maintaining and understanding software over time. It involves writing clear, concise code that is easy to read and modify. This principle helps reduce complexity, making it easier for developers to work with the codebase and minimize errors."
+        },
+        "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> {knowledgePieceContent}",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {}
+    },
+    "promptResult": {
+        "content": "Simplicity, code, design, maintaining, understanding, software, clear, concise, read, modify, reduce complexity, developers, codebase, minimize errors",
+        "modelName": "claude-3-5-sonnet-20240620",
+        "timing": {
+            "start": "2024-10-07T13:39:50.605Z",
+            "complete": "2024-10-07T13:39:52.779Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0.000876
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 107
+                },
+                "charactersCount": {
+                    "value": 489
+                },
+                "wordsCount": {
+                    "value": 71
+                },
+                "sentencesCount": {
+                    "value": 4
+                },
+                "linesCount": {
+                    "value": 13
+                },
+                "paragraphsCount": {
+                    "value": 6
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 37
+                },
+                "charactersCount": {
+                    "value": 150
+                },
+                "wordsCount": {
+                    "value": 16
+                },
+                "sentencesCount": {
+                    "value": 1
+                },
+                "linesCount": {
+                    "value": 1
+                },
+                "paragraphsCount": {
+                    "value": 1
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> ---\n> \n> Simplicity in code and design is crucial for maintaining and understanding software over time. It involves writing clear, concise code that is easy to read and modify. This principle helps reduce complexity, making it easier for developers to work with the codebase and minimize errors.",
+        "rawRequest": {
+            "model": "claude-3-5-sonnet-20240620",
+            "max_tokens": 4096,
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> ---\n> \n> Simplicity in code and design is crucial for maintaining and understanding software over time. It involves writing clear, concise code that is easy to read and modify. This principle helps reduce complexity, making it easier for developers to work with the codebase and minimize errors."
+                }
+            ]
+        },
+        "rawResponse": {
+            "id": "msg_01Qxg6vmVD1GqvAhU3Bo3zVa",
+            "type": "message",
+            "role": "assistant",
+            "model": "claude-3-5-sonnet-20240620",
+            "content": [
+                {
+                    "type": "text",
+                    "text": "Simplicity, code, design, maintaining, understanding, software, clear, concise, read, modify, reduce complexity, developers, codebase, minimize errors"
+                }
+            ],
+            "stop_reason": "end_turn",
+            "stop_sequence": null,
+            "usage": {
+                "input_tokens": 107,
+                "output_tokens": 37
+            }
+        }
+    }
+}

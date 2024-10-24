@@ -8,10 +8,12 @@ import colors from 'colors';
 import commander from 'commander';
 import { writeFile } from 'fs/promises';
 import { join } from 'path';
+import { $provideScrapersForNode } from '../../src/_packages/node.index';
 import { collectionToJson } from '../../src/collection/collectionToJson';
 import { createCollectionFromDirectory } from '../../src/collection/constructors/createCollectionFromDirectory';
 import { usageToHuman } from '../../src/execution/utils/usageToHuman';
-import { getLlmToolsForTestingAndScriptsAndPlayground } from '../../src/llm-providers/_common/getLlmToolsForTestingAndScriptsAndPlayground';
+import { $provideLlmToolsForTestingAndScriptsAndPlayground } from '../../src/llm-providers/_common/register/$provideLlmToolsForTestingAndScriptsAndPlayground';
+import { $provideFilesystemForNode } from '../../src/scrapers/_common/register/$provideFilesystemForNode';
 import { commit } from '../utils/autocommit/commit';
 import { isWorkingTreeClean } from '../utils/autocommit/isWorkingTreeClean';
 
@@ -57,14 +59,23 @@ async function makePipelineCollection({
 
     const promptbookSourceDir = 'promptbook-collection';
 
-    const llmTools = getLlmToolsForTestingAndScriptsAndPlayground({ isCacheReloaded });
+    const fs = $provideFilesystemForNode();
+    const llm = $provideLlmToolsForTestingAndScriptsAndPlayground({ isCacheReloaded });
+    const scrapers = await $provideScrapersForNode({ fs, llm });
 
-    const collection = await createCollectionFromDirectory(promptbookSourceDir, {
-        llmTools,
-        isVerbose,
-        isRecursive: true,
-        // <- TODO: [🍖] isCacheReloaded
-    });
+    const collection = await createCollectionFromDirectory(
+        promptbookSourceDir,
+        {
+            fs,
+            llm,
+            scrapers,
+        },
+        {
+            isVerbose,
+            isRecursive: true,
+            // <- TODO: [🍖] isCacheReloaded
+        },
+    );
 
     const collectionJson = await collectionToJson(collection);
     const collectionJsonString = JSON.stringify(collectionJson);
@@ -75,7 +86,7 @@ async function makePipelineCollection({
     const libraryTypescriptFilePath = join(promptbookSourceDir, 'index.ts');
     const libraryTypescriptFileContent = 'export default ' + collectionJsonString + ';\n';
 
-    console.info(colors.cyan(usageToHuman(llmTools.getTotalUsage())));
+    console.info(colors.cyan(usageToHuman(llm.getTotalUsage())));
 
     // TODO: [🏳‍🌈] Finally take one of .json vs .ts (using .ts file (not .json) to avoid support of json files in bundle )
     await writeFile(collectionJsonFilePath, collectionJsonFileContent, 'utf-8');
@@ -94,4 +105,5 @@ async function makePipelineCollection({
  * Note: [🍠] @@@ Sample pipelines vs Pipelines used internally in Promptbook
  * TODO: [🌼] Maybe use `ptbk make` cli command instead of this script (but figure out what to do with nessesity to have library commited here)
  * TODO: [main] !!! Use `ptbk make` cli command this in WebGPT and Promptbook
+ * Note: [⚫] Code in this file should never be published in any package
  */

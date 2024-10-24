@@ -1,0 +1,36 @@
+import { string_filename } from '../../../../types/typeAliases';
+import type { CrossBlob } from './CrossBlob'; // <- Note: [🍝]
+
+/**
+ * Converts Blob to File
+ * This is usefull for:
+ *   - Preserving Files that actually has a filename
+ *   - Autocomplete the filename for blobs according to its mimetype
+ * Tip: For data conversions @see https://bun.sh/guides/binary
+ */
+export function blobToFile(blob: File | CrossBlob, filename: string_filename): File {
+    // Note: Blob is almost File - it's just missing the two properties below which we will add
+    // @see https://stackoverflow.com/questions/27159179/how-to-convert-blob-to-file-in-javascript
+\
+    const file: TODO = blob;
+    //
+    file.lastModifiedDate = new Date();
+    file.name = filename;
+
+    return file as File;
+
+    /*
+    Note: This is working only in browser:
+        > if (blob instanceof File) {
+        >     return blob;
+        > }
+        >
+        > return new File(
+[blob], filename, { type: blob.type });
+    */
+}
+
+/**
+ * TODO: [🧺] In future uncomment
+ * TODO: [🧺] Export via `@promptbook/pdf` and `@promptbook/docx`
+ */
