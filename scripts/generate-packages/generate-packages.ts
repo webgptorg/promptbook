@@ -247,16 +247,16 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
             `./packages/${packageBasename}/README.md`,
             packageReadme,
             /*
-          spaceTrim(`
+            spaceTrim(`
 
-              # ![Promptbook logo - cube with letters P and B](./other/design/logo-h1.png) Promptbook
+                # ![Promptbook logo - cube with letters P and B](./other/design/logo-h1.png) Promptbook
 
-              Supercharge your use of large language models
+                Supercharge your use of large language models
 
-              [Read the manual](https://github.com/webgptorg/promptbook)
+                [Read the manual](https://github.com/webgptorg/promptbook)
 
-          `),
-          */
+            `),
+            */
         );
 
         const packageJson = JSON.parse(JSON.stringify(mainPackageJson) /* <- Note: Make deep copy */) as PackageJson;
@@ -266,6 +266,8 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
         delete packageJson.peerDependencies;
 
         packageJson.name = packageFullname;
+
+        // TODO: [❇️] Join dynamic and general keywords
 
         await writeFile(`./packages/${packageBasename}/package.json`, JSON.stringify(packageJson, null, 4) + '\n');
         //     <- TODO: Add GENERATOR_WARNING to package.json
