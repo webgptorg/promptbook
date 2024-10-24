@@ -2,7 +2,7 @@
 
 # ![Promptbook logo - cube with letters P and B](./other/design/logo-h1.png) Promptbook
 
-Supercharge your use of large language models
+Build responsible, controlled and transparent applications on top of LLM models!
 
 
 
