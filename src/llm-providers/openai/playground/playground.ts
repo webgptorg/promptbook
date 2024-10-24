@@ -118,18 +118,22 @@ async function playground() {
     const chatPrompt = {
         title: 'Promptbook speech',
         parameters: {},
-        content: [
-            'Write me a joke about programmers!',
-            spaceTrim(`
-
-            Why do programmers prefer dark mode?
-            Because the light attracts bugs!
-
-            `),
-            'Explain it',
-        ],
+        content: 'Explain it',
         modelRequirements: {
             modelVariant: 'CHAT',
+        },
+        parent: {
+            content: spaceTrim(`
+                Why do programmers prefer dark mode?
+
+                Because the light attracts bugs!
+            `),
+            parent: {
+                content: 'Write me a joke about programmers!',
+                modelRequirements: {
+                    modelVariant: 'CHAT',
+                },
+            },
         },
 
         /*
