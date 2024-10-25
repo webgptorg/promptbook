@@ -1,7 +1,7 @@
 {
     "pipelineUrl": "https://promptbook.studio/samples/website-knowledge.ptbk.md",
     "title": "✨ Sample: Knowledge in external website",
-    "description": "!!!!!!\n\nShow how to use knowledge",
+    "description": "Show how to use knowledge",
     "parameters": [
         {
             "name": "eventTitle",
