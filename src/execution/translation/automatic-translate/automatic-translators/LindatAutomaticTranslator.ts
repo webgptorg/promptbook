@@ -5,11 +5,19 @@ import { PipelineExecutionError } from '../../../../errors/PipelineExecutionErro
 import type { AutomaticTranslator } from './AutomaticTranslator';
 import type { TranslatorOptions } from './TranslatorOptions';
 
-interface LindatAutomaticTranslatorOptions extends TranslatorOptions {
-    apiUrl?: URL;
-}
+/**
+ * @@@
+ */
+type LindatAutomaticTranslatorOptions = TranslatorOptions & {
+    /**
+     * @@@
+     */
+    readonly apiUrl?: URL;
+};
 
 /**
+ * @@@
+ *
  * @private still in development [🏳]
  */
 export class LindatAutomaticTranslator implements AutomaticTranslator {

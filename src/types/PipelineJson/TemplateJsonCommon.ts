@@ -1,20 +1,22 @@
 import type { ForeachJson } from '../../commands/FOREACH/ForeachJson';
 import type { FormatCommand } from '../../commands/FORMAT/FormatCommand';
 import type { TemplateType } from '../../commands/TEMPLATE/TemplateTypes';
-import type { string_javascript } from '../typeAliases';
-import type { string_markdown } from '../typeAliases';
-import type { string_markdown_text } from '../typeAliases';
-import type { string_name } from '../typeAliases';
-import type { string_parameter_name } from '../typeAliases';
-import type { string_postprocessing_function_name } from '../typeAliases';
-import type { string_prompt } from '../typeAliases';
-import type { string_template } from '../typeAliases';
+import type {
+    string_javascript,
+    string_markdown,
+    string_markdown_text,
+    string_name,
+    string_parameter_name,
+    string_postprocessing_function_name,
+    string_prompt,
+    string_template,
+} from '../typeAliases';
 import type { Expectations } from './Expectations';
 
 /**
  * Common properties of all templates
  */
-export interface TemplateJsonCommon {
+export type TemplateJsonCommon = {
     /**
      * Name of the template
      * - It must be unique across the pipeline
@@ -106,7 +108,7 @@ export interface TemplateJsonCommon {
      * Name of the parameter that is the result of the template
      */
     readonly resultingParameterName: string_name;
-}
+};
 
 /**
  * TODO: use one helper type> (string_prompt | string_javascript | string_markdown) & string_template

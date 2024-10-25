@@ -3,11 +3,11 @@ import { spaceTrim } from 'spacetrim';
 /**
  * Additional options for `unwrapResult`
  */
-interface UnwrapResultOptions {
+type UnwrapResultOptions = {
     /**
      * If true, the text is trimmed before processing
      */
-    isTrimmed?: boolean;
+    readonly isTrimmed?: boolean;
 
     /**
      * If true, the introduce sentence is removed
@@ -18,8 +18,8 @@ interface UnwrapResultOptions {
      *
      * @default true
      */
-    isIntroduceSentenceRemoved?: boolean;
-}
+    readonly isIntroduceSentenceRemoved?: boolean;
+};
 
 /**
  * Removes quotes and optional introduce text from a string
