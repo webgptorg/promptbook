@@ -21,7 +21,7 @@ import { websiteScraperMetadata } from './register-metadata';
 import { createShowdownConverter } from './utils/createShowdownConverter';
 
 /**
- * Scraper for .docx files
+ * Scraper for websites
  *
  * @see `documentationUrl` for more details
  * @public exported from `@promptbook/website-crawler`

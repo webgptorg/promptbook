@@ -24,7 +24,7 @@ import { DocumentScraper } from '../document/DocumentScraper';
 import { legacyDocumentScraperMetadata } from './register-metadata';
 
 /**
- * Scraper for .docx files
+ * Scraper for old document files (like .doc and .rtf)
  *
  * @see `documentationUrl` for more details
  * @public exported from `@promptbook/legacy-documents`
