@@ -9,9 +9,9 @@ type RequiredAndOptional<TBase, TRequired extends keyof TBase, TOptional extends
  *
  * TODO: !!!!!! Rename - remove I prefix
  */
-export type IExecCommandOptions =
+export type ExecCommandOptions =
     | string
-    | RequiredAndOptional<IExecCommandOptionsAdvanced, 'command', 'args' | 'cwd' | 'crashOnError' | 'timeout'>;
+    | RequiredAndOptional<ExecCommandOptionsAdvanced, 'command', 'args' | 'cwd' | 'crashOnError' | 'timeout'>;
 // TODO: | RequiredAndOptional<IExecCommandOptionsAdvanced, 'commands', 'args' | 'cwd' | 'crashOnError'>;
 
 /**
@@ -19,7 +19,7 @@ export type IExecCommandOptions =
  *
  * TODO:  !!!!!! Rename - remove I prefix
  */
-export type IExecCommandOptionsAdvanced = {
+export type ExecCommandOptionsAdvanced = {
     readonly command: string;
     readonly args: string[];
     // TODO: readonly commands: {command: string, args?: string[]}[];

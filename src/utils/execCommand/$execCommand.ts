@@ -4,7 +4,7 @@ import { spaceTrim } from 'spacetrim';
 import { forTime } from 'waitasecond';
 import { EnvironmentMismatchError } from '../../errors/EnvironmentMismatchError';
 import { $isRunningInNode } from '../environment/$isRunningInNode';
-import type { IExecCommandOptions } from './IExecCommandOptions';
+import type { ExecCommandOptions } from './ExecCommandOptions';
 import { execCommandNormalizeOptions } from './execCommandNormalizeOptions';
 
 /**
@@ -16,7 +16,7 @@ import { execCommandNormalizeOptions } from './execCommandNormalizeOptions';
  *
  * @public exported from `@promptbook/node`
  */
-export function $execCommand(options: IExecCommandOptions): Promise<string> {
+export function $execCommand(options: ExecCommandOptions): Promise<string> {
     if (!$isRunningInNode()) {
         throw new EnvironmentMismatchError('Function `$execCommand` can run only in Node environment.js');
     }

@@ -1,5 +1,5 @@
 import type { really_unknown } from '../organization/really_unknown';
-import type { IKeywords } from './IKeywords';
+import type { Keywords } from './IKeywords';
 import { parseKeywordsFromString } from './parseKeywordsFromString';
 
 /**
@@ -11,7 +11,7 @@ import { parseKeywordsFromString } from './parseKeywordsFromString';
  * @returns {Set} of keywords without diacritics in lowercase
  * @public exported from `@promptbook/utils`
  */
-export function parseKeywords(input: really_unknown): IKeywords {
+export function parseKeywords(input: really_unknown): Keywords {
     if (typeof input === 'string') {
         return parseKeywordsFromString(input);
     } else if (typeof input === 'object') {
