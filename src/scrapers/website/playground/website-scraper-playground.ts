@@ -11,9 +11,9 @@ import { stringifyPipelineJson } from '../../../conversion/utils/stringifyPipeli
 import { titleToName } from '../../../conversion/utils/titleToName';
 import { usageToHuman } from '../../../execution/utils/usageToHuman';
 import { $provideLlmToolsForTestingAndScriptsAndPlayground } from '../../../llm-providers/_common/register/$provideLlmToolsForTestingAndScriptsAndPlayground';
+import { $provideFilesystemForNode } from '../../_common/register/$provideFilesystemForNode';
 import { makeKnowledgeSourceHandler } from '../../_common/utils/makeKnowledgeSourceHandler';
 import { WebsiteScraper } from '../WebsiteScraper';
-import { $provideFilesystemForNode } from '../../_common/register/$provideFilesystemForNode';
 
 playground()
     .catch((error) => {
@@ -31,8 +31,8 @@ async function playground() {
     // Do here stuff you want to test
     //========================================>
 
-    //const sample = 'https://www.pavolhejny.com/';
-    const sample = 'https://koralkykatlas.cz/cs/blog/prispevek/-rijna-zhorseni-kvality-kovove-bizuterie.html';
+    const sample = 'https://www.pavolhejny.com/'; // <- TODO: Not scraping really important information, just one-two paragraph
+    //const sample = 'https://koralkykatlas.cz/cs/blog/prispevek/-rijna-zhorseni-kvality-kovove-bizuterie.html';
     //               <- TODO: [👩🏿‍🤝‍👩🏼] Read here website-scraper-playground.ts and itterate
 
     const llmTools = $provideLlmToolsForTestingAndScriptsAndPlayground({ isCacheReloaded: true });
@@ -45,9 +45,17 @@ async function playground() {
         },
     );
 
-    const knowledge = await websiteScraper.scrape(
-        await makeKnowledgeSourceHandler({ sourceContent: sample }, { fs: $provideFilesystemForNode() }, { rootDirname }),
+    const source = await makeKnowledgeSourceHandler(
+        { sourceContent: sample },
+        { fs: $provideFilesystemForNode() },
+        { rootDirname },
     );
+
+    const converted = await websiteScraper.$convert(source);
+
+    console.info(colors.bgGreen(' Converted: '), converted);
+
+    const knowledge = await websiteScraper.scrape(source);
 
     console.info(colors.cyan(usageToHuman(llmTools.getTotalUsage())));
     console.info(colors.bgGreen(' Knowledge: '));
