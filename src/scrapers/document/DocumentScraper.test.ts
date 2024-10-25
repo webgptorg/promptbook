@@ -6,33 +6,34 @@ import { $provideFilesystemForNode } from '../_common/register/$provideFilesyste
 import { makeKnowledgeSourceHandler } from '../_common/utils/makeKnowledgeSourceHandler';
 import { DocumentScraper } from './DocumentScraper';
 
-describe('how creating knowledge from docx works', async () => {
+describe('how creating knowledge from docx works', () => {
     const rootDirname = join(__dirname, 'samples');
 
-    const documentScraper = new DocumentScraper(
-        {
-            fs: $provideFilesystemForNode(),
-            llm: $provideLlmToolsForTestingAndScriptsAndPlayground(),
-            executables: await $provideExecutablesForNode(),
-        },
-        {
-            rootDirname,
-        },
-    );
+    const documentScraperPromise = (async () =>
+        new DocumentScraper(
+            {
+                fs: $provideFilesystemForNode(),
+                llm: $provideLlmToolsForTestingAndScriptsAndPlayground(),
+                executables: await $provideExecutablesForNode(),
+            },
+            {
+                rootDirname,
+            },
+        ))();
 
     it('should scrape simple information from a .docx file', () =>
         expect(
-            Promise.resolve()
-                .then(() =>
-                    makeKnowledgeSourceHandler(
-                        {
-                            sourceContent: '10-simple.docx',
-                        },
-                        { fs: $provideFilesystemForNode() },
-                        { rootDirname },
-                    ),
-                )
-                .then((sourceHandler) => documentScraper.scrape(sourceHandler))
+            Promise.all([
+                documentScraperPromise,
+                makeKnowledgeSourceHandler(
+                    {
+                        sourceContent: '10-simple.docx',
+                    },
+                    { fs: $provideFilesystemForNode() },
+                    { rootDirname },
+                ),
+            ])
+                .then(([documentScraper, sourceHandler]) => documentScraper.scrape(sourceHandler))
                 .then((knowledge) => knowledge?.map(({ content }) => ({ content })))
                 .then((knowledge) => knowledge?.slice(0, 1)),
         ).resolves.toMatchObject([
@@ -43,17 +44,17 @@ describe('how creating knowledge from docx works', async () => {
 
     it('should scrape simple information from a .odt file', () =>
         expect(
-            Promise.resolve()
-                .then(() =>
-                    makeKnowledgeSourceHandler(
-                        {
-                            sourceContent: '10-simple.odt',
-                        },
-                        { fs: $provideFilesystemForNode() },
-                        { rootDirname },
-                    ),
-                )
-                .then((sourceHandler) => documentScraper.scrape(sourceHandler))
+            Promise.all([
+                documentScraperPromise,
+                makeKnowledgeSourceHandler(
+                    {
+                        sourceContent: '10-simple.odt',
+                    },
+                    { fs: $provideFilesystemForNode() },
+                    { rootDirname },
+                ),
+            ])
+                .then(([documentScraper, sourceHandler]) => documentScraper.scrape(sourceHandler))
                 .then((knowledge) => knowledge?.map(({ content }) => ({ content })))
                 .then((knowledge) => knowledge?.slice(0, 1)),
         ).resolves.toMatchObject([
@@ -64,17 +65,17 @@ describe('how creating knowledge from docx works', async () => {
 
     it('should NOT scrape irrelevant information', () =>
         expect(
-            Promise.resolve()
-                .then(() =>
-                    makeKnowledgeSourceHandler(
-                        {
-                            sourceContent: '10-simple.docx',
-                        },
-                        { fs: $provideFilesystemForNode() },
-                        { rootDirname },
-                    ),
-                )
-                .then((sourceHandler) => documentScraper.scrape(sourceHandler))
+            Promise.all([
+                documentScraperPromise,
+                makeKnowledgeSourceHandler(
+                    {
+                        sourceContent: '10-simple.docx',
+                    },
+                    { fs: $provideFilesystemForNode() },
+                    { rootDirname },
+                ),
+            ])
+                .then(([documentScraper, sourceHandler]) => documentScraper.scrape(sourceHandler))
                 .then((knowledge) => knowledge?.map(({ content }) => ({ content })))
                 .then((knowledge) => knowledge?.slice(0, 1)),
         ).resolves.toMatchObject([
