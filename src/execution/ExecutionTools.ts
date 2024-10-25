@@ -1,6 +1,6 @@
 import type { Scraper } from '../scrapers/_common/Scraper';
 import type { Arrayable } from '../types/Arrayable';
-import { Executables } from './Executables';
+import type { Executables } from './Executables';
 import type { FilesystemTools } from './FilesystemTools';
 import type { LlmExecutionTools } from './LlmExecutionTools';
 import type { ScriptExecutionTools } from './ScriptExecutionTools';

@@ -1,8 +1,9 @@
-import { $isRunningInNode } from '../../../_packages/utils.index';
-import { IS_AUTO_INSTALLED, IS_VERBOSE } from '../../../config';
+import { $isRunningInNode } from '../../../utils/environment/$isRunningInNode';
+import { IS_AUTO_INSTALLED } from '../../../config';
+import { IS_VERBOSE } from '../../../config';
 import { EnvironmentMismatchError } from '../../../errors/EnvironmentMismatchError';
-import { Executables } from '../../../execution/Executables';
-import { PrepareAndScrapeOptions } from '../../../prepare/PrepareAndScrapeOptions';
+import type { Executables } from '../../../execution/Executables';
+import type { PrepareAndScrapeOptions } from '../../../prepare/PrepareAndScrapeOptions';
 import { TODO_USE } from '../../../utils/organization/TODO_USE';
 
 /**
