@@ -59,8 +59,8 @@ export class $Register<TRegistered extends Registered> {
         this.storage = globalScope[storageName];
     }
 
-    public list(): Array<TRegistered> {
-        // <- TODO: ReadonlyDeep<Array<TRegistered>>
+    public list(): ReadonlyArray<TRegistered> {
+        // <- TODO: ReadonlyDeep<ReadonlyArray<TRegistered>>
         return this.storage;
     }
 

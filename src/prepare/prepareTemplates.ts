@@ -18,7 +18,7 @@ type PreparedTemplates = {
     /**
      * @@@ Sequence of templates that are chained together to form a pipeline
      */
-    readonly templatesPrepared: Array<TemplateJson>;
+    readonly templatesPrepared: ReadonlyArray<TemplateJson>;
 };
 
 /**
@@ -28,7 +28,7 @@ type PreparedTemplates = {
  */
 export async function prepareTemplates(
     pipeline: PrepareTemplateInput,
-    tools: Pick<ExecutionTools, 'llm'| 'fs'  | 'scrapers'>,
+    tools: Pick<ExecutionTools, 'llm' | 'fs' | 'scrapers'>,
     options: PrepareAndScrapeOptions,
 ): Promise<PreparedTemplates> {
     const { maxParallelCount = MAX_PARALLEL_COUNT } = options;

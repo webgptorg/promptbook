@@ -6,9 +6,11 @@ import { titleToName } from '../../../../conversion/utils/titleToName';
 import { PipelineExecutionError } from '../../../../errors/PipelineExecutionError';
 import type { AvailableModel } from '../../../../execution/AvailableModel';
 import type { LlmExecutionTools } from '../../../../execution/LlmExecutionTools';
-import type { ChatPromptResult } from '../../../../execution/PromptResult';
-import type { CompletionPromptResult } from '../../../../execution/PromptResult';
-import type { EmbeddingPromptResult } from '../../../../execution/PromptResult';
+import type {
+    ChatPromptResult,
+    CompletionPromptResult,
+    EmbeddingPromptResult,
+} from '../../../../execution/PromptResult';
 import { MemoryStorage } from '../../../../storage/memory/MemoryStorage';
 import type { Prompt } from '../../../../types/Prompt';
 import { $currentDate } from '../../../../utils/$currentDate';
@@ -46,7 +48,7 @@ export function cacheLlmTools<TLlmTools extends LlmExecutionTools>(
             return llmTools.description;
         },
 
-        listModels(): Promisable<Array<AvailableModel>> {
+        listModels(): Promisable<ReadonlyArray<AvailableModel>> {
             // TODO: [🧠] Should be model listing also cached?
             return /* not await */ llmTools.listModels();
         },

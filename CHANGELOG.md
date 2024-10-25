@@ -548,6 +548,7 @@ Knowledge scrapers [🐝]
 -   Rename `createLlmToolsFromConfigurationFromEnv` -> `$provideLlmToolsConfigurationFromEnv` and `createLlmToolsFromEnv` -> `$provideLlmToolsFromEnv`
 -   Rename `getLlmToolsForTestingAndScriptsAndPlayground` -> `$provideLlmToolsForTestingAndScriptsAndPlayground`
 -   Rename `getLlmToolsForCli` -> `$provideLlmToolsForCli`
+-   Change most `Array` -> `ReadonlyArray`
 
 ### `0.72.0` _(2024-09-)_
 

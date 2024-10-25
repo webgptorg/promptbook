@@ -7,7 +7,7 @@ import type { LlmToolsOptions } from './LlmToolsOptions';
  *
  * @@@ `LlmToolsMetadata` vs `LlmToolsConfiguration` vs `LlmToolsOptions` (vs `Registered`)
  */
-export type LlmToolsConfiguration = Array<
+export type LlmToolsConfiguration = ReadonlyArray<
     Registered & {
         /**
          * @@@

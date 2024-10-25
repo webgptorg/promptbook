@@ -1,7 +1,5 @@
 import type { Promisable } from 'type-fest';
-import type { Parameters } from '../../types/typeAliases';
-import type { string_parameter_name } from '../../types/typeAliases';
-import type { string_name } from '../../types/typeAliases';
+import type { Parameters, string_name, string_parameter_name } from '../../types/typeAliases';
 import type { string_SCREAMING_CASE } from '../../utils/normalization/normalizeTo_SCREAMING_CASE';
 import type { empty_object } from '../../utils/organization/empty_object';
 
@@ -19,7 +17,7 @@ export type FormatSubvalueDefinition<TValue extends string, TSettings extends em
     /**
      * Aliases for the `subvalueName`
      */
-    readonly aliases?: Array<string_name & string_SCREAMING_CASE>;
+    readonly aliases?: ReadonlyArray<string_name & string_SCREAMING_CASE>;
 
     /**
      * Maps values

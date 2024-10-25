@@ -2,7 +2,7 @@ import { readFile } from 'fs';
 import { promisify } from 'util';
 import { findAllProjectFiles } from './findAllProjectFiles';
 
-export async function readAllProjectFiles(): Promise<Array<{ path: string; content: string }>> {
+export async function readAllProjectFiles(): Promise<ReadonlyArray<{ path: string; content: string }>> {
     return await Promise.all(
         (
             await findAllProjectFiles()

@@ -6,7 +6,7 @@ import { splitArrayIntoChunks } from '../repair-imports/utils/splitArrayIntoChun
 import { prettify } from './prettify';
 
 export async function writeAllProjectFiles(
-    files: Array<{ path: string; content: string }>,
+    files: ReadonlyArray<{ path: string; content: string }>,
     isOrganized: boolean,
 ): Promise<void> {
     const changedFilesPaths: string[] = [];

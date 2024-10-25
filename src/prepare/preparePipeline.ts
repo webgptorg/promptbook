@@ -1,6 +1,5 @@
 import type { Writable } from 'type-fest';
-import { IS_VERBOSE } from '../config';
-import { MAX_PARALLEL_COUNT } from '../config';
+import { IS_VERBOSE, MAX_PARALLEL_COUNT } from '../config';
 import { MissingToolsError } from '../errors/MissingToolsError';
 import type { ExecutionTools } from '../execution/ExecutionTools';
 import { ZERO_USAGE } from '../execution/utils/addUsage';
@@ -77,7 +76,7 @@ export async function preparePipeline(
         usage: ZERO_USAGE,
     };
 
-    const preparations: Array<PreparationJson> = [
+    const preparations: ReadonlyArray<PreparationJson> = [
         // ...preparations
         // <- TODO: [🧊]
         currentPreparation,
@@ -160,11 +159,13 @@ export async function preparePipeline(
 
     return $asDeeplyFrozenSerializableJson('Prepared PipelineJson', {
         ...clonePipeline(pipeline),
-        templates: templatesPrepared,
+        templates: [...templatesPrepared],
+        // <- TODO: [🪓] Here should be no need for spreading new array, just ` templates: templatesPrepared`
         knowledgeSources: knowledgeSourcesPrepared,
         knowledgePieces: knowledgePiecesPrepared,
         personas: preparedPersonas,
-        preparations,
+        preparations: [...preparations],
+        // <- TODO: [🪓] Here should be no need for spreading new array, just `preparations`
     });
 }
 

@@ -1,14 +1,16 @@
 import type { ForeachJson } from '../../commands/FOREACH/ForeachJson';
 import type { FormatCommand } from '../../commands/FORMAT/FormatCommand';
 import type { TemplateType } from '../../commands/TEMPLATE/TemplateTypes';
-import type { string_javascript } from '../typeAliases';
-import type { string_markdown } from '../typeAliases';
-import type { string_markdown_text } from '../typeAliases';
-import type { string_name } from '../typeAliases';
-import type { string_parameter_name } from '../typeAliases';
-import type { string_postprocessing_function_name } from '../typeAliases';
-import type { string_prompt } from '../typeAliases';
-import type { string_template } from '../typeAliases';
+import type {
+    string_javascript,
+    string_markdown,
+    string_markdown_text,
+    string_name,
+    string_parameter_name,
+    string_postprocessing_function_name,
+    string_prompt,
+    string_template,
+} from '../typeAliases';
 import type { Expectations } from './Expectations';
 
 /**
@@ -41,6 +43,7 @@ export type TemplateJsonCommon = {
      * Note: Joker is one of the dependent parameters
      */
     readonly dependentParameterNames: Array<string_parameter_name>;
+    //                                 <- TODO: [🪓] This should really be `ReadonlyArray`, but it causes problems
 
     /**
      * If theese parameters meet the expectations requirements, they are used instead of executing this template
@@ -48,6 +51,7 @@ export type TemplateJsonCommon = {
      * @see https://github.com/webgptorg/promptbook/discussions/66
      */
     readonly jokerParameterNames?: Array<string_parameter_name>;
+    //                              <- TODO: [🪓] This should really be `ReadonlyArray`, but it causes problems
 
     /**
      * @@@
@@ -82,6 +86,7 @@ export type TemplateJsonCommon = {
      * @see https://github.com/webgptorg/promptbook/discussions/31
      */
     readonly postprocessingFunctionNames?: Array<string_postprocessing_function_name>;
+    //                                      <- TODO: [🪓] This should really be `ReadonlyArray`, but it causes problems
 
     /**
      * Expect this amount of each unit in the answer

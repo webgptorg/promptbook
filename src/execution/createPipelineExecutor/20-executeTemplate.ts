@@ -1,5 +1,5 @@
 import { spaceTrim } from 'spacetrim';
-import { Promisable, ReadonlyDeep } from 'type-fest';
+import type { Promisable, ReadonlyDeep, WritableDeep } from 'type-fest';
 import { extractParameterNamesFromTemplate } from '../../conversion/utils/extractParameterNamesFromTemplate';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { ExecutionReportJson } from '../../types/execution-report/ExecutionReportJson';
@@ -53,7 +53,7 @@ type executeSingleTemplateOptions = {
     /**
      * @@@
      */
-    readonly $executionReport: ExecutionReportJson;
+    readonly $executionReport: WritableDeep<ExecutionReportJson>;
 
     /**
      * @@@

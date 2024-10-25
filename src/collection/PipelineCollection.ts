@@ -12,7 +12,7 @@ export type PipelineCollection = {
     /**
      * Gets all pipelines in the collection
      */
-    listPipelines(): Promisable<Array<string_pipeline_url>>;
+    listPipelines(): Promisable<ReadonlyArray<string_pipeline_url>>;
 
     /**
      * Gets pipeline by its URL

@@ -9,7 +9,7 @@ export type PromptbookServer_ListModels_Response = {
     /**
      * Available models that can be used
      */
-    readonly models: Array<AvailableModel>;
+    readonly models: ReadonlyArray<AvailableModel>;
 };
 
 /**

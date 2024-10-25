@@ -1,5 +1,4 @@
-import type { string_mime_type } from '../../types/typeAliases';
-import type { string_name } from '../../types/typeAliases';
+import type { string_mime_type, string_name } from '../../types/typeAliases';
 import type { string_SCREAMING_CASE } from '../../utils/normalization/normalizeTo_SCREAMING_CASE';
 import type { empty_object } from '../../utils/organization/empty_object';
 import type { FormatSubvalueDefinition } from './FormatSubvalueDefinition';
@@ -28,7 +27,7 @@ export type FormatDefinition<
     /**
      * Aliases for the `formatName`
      */
-    readonly aliases?: Array<string_name & string_SCREAMING_CASE>;
+    readonly aliases?: ReadonlyArray<string_name & string_SCREAMING_CASE>;
 
     /**
      * The mime type of the format (if any)
@@ -70,7 +69,7 @@ export type FormatDefinition<
     /**
      * @@@
      */
-    readonly subvalueDefinitions: Array<FormatSubvalueDefinition<TValue, TSettings>>;
+    readonly subvalueDefinitions: ReadonlyArray<FormatSubvalueDefinition<TValue, TSettings>>;
 };
 
 /**

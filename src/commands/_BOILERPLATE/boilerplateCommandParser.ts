@@ -2,10 +2,12 @@ import { ParseError } from '../../errors/ParseError';
 import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import type { string_markdown_text } from '../../types/typeAliases';
 import { keepUnused } from '../../utils/organization/keepUnused';
-import type { $PipelineJson } from '../_common/types/CommandParser';
-import type { $TemplateJson } from '../_common/types/CommandParser';
-import type { CommandParserInput } from '../_common/types/CommandParser';
-import type { PipelineBothCommandParser } from '../_common/types/CommandParser';
+import type {
+    $PipelineJson,
+    $TemplateJson,
+    CommandParserInput,
+    PipelineBothCommandParser,
+} from '../_common/types/CommandParser';
 import type { BoilerplateCommand } from './BoilerplateCommand';
 
 /**
@@ -113,7 +115,7 @@ export const boilerplateCommandParser: PipelineBothCommandParser<BoilerplateComm
      *
      * Note: This is used in `pipelineJsonToString` utility
      */
-    takeFromPipelineJson(pipelineJson: PipelineJson): Array<BoilerplateCommand> {
+    takeFromPipelineJson(pipelineJson: PipelineJson): ReadonlyArray<BoilerplateCommand> {
         keepUnused(pipelineJson);
         throw new ParseError(
             `BOILERPLATE command is only for testing purposes and should not be used in the .ptbk.md file`,
@@ -125,7 +127,7 @@ export const boilerplateCommandParser: PipelineBothCommandParser<BoilerplateComm
      *
      * Note: This is used in `pipelineJsonToString` utility
      */
-    takeFromTemplateJson($templateJson: $TemplateJson): Array<BoilerplateCommand> {
+    takeFromTemplateJson($templateJson: $TemplateJson): ReadonlyArray<BoilerplateCommand> {
         keepUnused($templateJson);
         throw new ParseError(
             `BOILERPLATE command is only for testing purposes and should not be used in the .ptbk.md file`,

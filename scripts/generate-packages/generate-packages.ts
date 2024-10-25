@@ -78,8 +78,8 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
             throw new Error(`Entities are not defined for ${packageMetadata.packageFullname}`);
         }
 
-        const entryIndexFilePathContentImports: Array<string> = [];
-        const entryIndexFilePathContentExports: Array<string> = [];
+        const entryIndexFilePathContentImports: ReadonlyArray<string> = [];
+        const entryIndexFilePathContentExports: ReadonlyArray<string> = [];
 
         for (const entity of entities) {
             const { filename, name } = entity;

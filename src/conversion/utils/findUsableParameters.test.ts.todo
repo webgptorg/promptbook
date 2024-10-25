@@ -32,10 +32,10 @@ type FindUsableParametersOptions = {
  * Function `findUsableParameters` will find all usable parameters for given template
  * In other words, it will find all parameters that are not used in the template itseld and all its dependencies
  */
-export function findUsableParameters(options: FindUsableParametersOptions): Array<TemplateParameterJson> {
+export function findUsableParameters(options: FindUsableParametersOptions): ReadonlyArray<TemplateParameterJson> {
     const { promptbook, template } = options;
 
-    const usableParameters: Array<TemplateParameterJson> = [];
+    const usableParameters: ReadonlyArray<TemplateParameterJson> = [];
 
     return usableParameters;
 }

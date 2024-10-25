@@ -36,7 +36,7 @@ export function createLlmToolsFromConfiguration(
 ): MultipleLlmExecutionTools {
     const { isVerbose = IS_VERBOSE } = options;
 
-    const llmTools: Array<LlmExecutionTools> = configuration.map((llmConfiguration: TODO_any) => {
+    const llmTools: ReadonlyArray<LlmExecutionTools> = configuration.map((llmConfiguration: TODO_any) => {
         const registeredItem = $llmToolsRegister
             .list()
             .find(

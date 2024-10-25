@@ -1,7 +1,7 @@
 /**
  * Represents a vector in an latent space of the embedding model
  */
-export type EmbeddingVector = Array<number>;
+export type EmbeddingVector = ReadonlyArray<number>;
 
 /**
  * TODO: Figure out how to use NPM package xyzt

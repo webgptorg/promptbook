@@ -1,7 +1,6 @@
 import { spaceTrim } from 'spacetrim';
 import { ParseError } from '../../errors/ParseError';
-import type { string_markdown } from '../../types/typeAliases';
-import type { string_markdown_text } from '../../types/typeAliases';
+import type { string_markdown, string_markdown_text } from '../../types/typeAliases';
 import { removeMarkdownFormatting } from '../../utils/markdown/removeMarkdownFormatting';
 import { normalizeTo_SCREAMING_CASE } from '../../utils/normalization/normalizeTo_SCREAMING_CASE';
 import { just } from '../../utils/organization/just';
@@ -9,9 +8,7 @@ import { keepUnused } from '../../utils/organization/keepUnused';
 import type { really_unknown } from '../../utils/organization/really_unknown';
 import { COMMANDS } from '../index';
 import type { Command } from './types/Command';
-import type { CommandBase } from './types/CommandParser';
-import type { CommandParser } from './types/CommandParser';
-import type { CommandParserInput } from './types/CommandParser';
+import type { CommandBase, CommandParser, CommandParserInput } from './types/CommandParser';
 import type { CommandUsagePlace } from './types/CommandUsagePlaces';
 
 /**
@@ -162,7 +159,7 @@ function parseCommandVariant(input: CommandParserInput & { commandNameRaw: strin
 
     const commandName = normalizeTo_SCREAMING_CASE(commandNameRaw);
 
-    for (const commandParser of COMMANDS as really_unknown as Array<CommandParser<CommandBase>>) {
+    for (const commandParser of COMMANDS as really_unknown as ReadonlyArray<CommandParser<CommandBase>>) {
         //                               <- Note: [🦦] Its strange that this type assertion is needed
         const { name, isUsedInPipelineHead, isUsedInPipelineTemplate, aliasNames, deprecatedNames, parse } =
             commandParser;

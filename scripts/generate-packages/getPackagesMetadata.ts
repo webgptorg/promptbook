@@ -11,11 +11,11 @@ import type { PackageMetadata } from './PackageMetadata';
  * - `getPackagesMetadata` Async version with declared types and extended information, use this in scripts
  * - `getPackagesMetadataForRollup` - Sync version with less information, use this ONLY in rollup config
  */
-export async function getPackagesMetadata(): Promise<Array<PackageMetadata>> {
-    const errors: Array<{ entity: EntityMetadata; message: string }> = [
+export async function getPackagesMetadata(): Promise<ReadonlyArray<PackageMetadata>> {
+    const errors: ReadonlyArray<{ entity: EntityMetadata; message: string }> = [
         /* <- Note: Buffering errors to show all at once */
     ];
-    const packagesMetadata = getPackagesMetadataForRollup() as Array<PackageMetadata>;
+    const packagesMetadata = getPackagesMetadataForRollup() as ReadonlyArray<PackageMetadata>;
     const packageNames = packagesMetadata.map((packageMetadata) => packageMetadata.packageFullname);
     const entities = await findAllProjectEntities();
 

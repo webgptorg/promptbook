@@ -1,5 +1,4 @@
-import { IS_AUTO_INSTALLED } from '../../../config';
-import { IS_VERBOSE } from '../../../config';
+import { IS_AUTO_INSTALLED, IS_VERBOSE } from '../../../config';
 import { EnvironmentMismatchError } from '../../../errors/EnvironmentMismatchError';
 import type { ExecutionTools } from '../../../execution/ExecutionTools';
 import type { PrepareAndScrapeOptions } from '../../../prepare/PrepareAndScrapeOptions';
@@ -19,7 +18,7 @@ import { $scrapersRegister } from './$scrapersRegister';
 export async function $provideScrapersForNode(
     tools: Pick<ExecutionTools, 'fs' | 'llm' | 'executables'>,
     options?: PrepareAndScrapeOptions,
-): Promise<Array<Scraper>> {
+): Promise<ReadonlyArray<Scraper>> {
     if (!$isRunningInNode()) {
         throw new EnvironmentMismatchError('Function `$getScrapersForNode` works only in Node.js environment');
     }

@@ -1,14 +1,11 @@
 import { spaceTrim } from 'spacetrim';
-import { IS_PIPELINE_LOGIC_VALIDATED } from '../../config';
-import { LOOP_LIMIT } from '../../config';
-import { RESERVED_PARAMETER_NAMES } from '../../config';
+import { IS_PIPELINE_LOGIC_VALIDATED, LOOP_LIMIT, RESERVED_PARAMETER_NAMES } from '../../config';
 import { ParseError } from '../../errors/ParseError';
 import { PipelineLogicError } from '../../errors/PipelineLogicError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import type { TemplateJson } from '../../types/PipelineJson/TemplateJson';
-import type { string_name } from '../../types/typeAliases';
-import type { string_reserved_parameter_name } from '../../types/typeAliases';
+import type { string_name, string_reserved_parameter_name } from '../../types/typeAliases';
 import { isValidPromptbookVersion } from '../../utils/validators/semanticVersion/isValidPromptbookVersion';
 import { isValidPipelineUrl } from '../../utils/validators/url/isValidPipelineUrl';
 
@@ -315,7 +312,7 @@ export function validatePipelineCore(pipeline: PipelineJson): void {
     }
 
     // Note: Detect circular dependencies
-    let resovedParameters: Array<string_name> = pipeline.parameters
+    let resovedParameters: ReadonlyArray<string_name> = pipeline.parameters
         .filter(({ isInput }) => isInput)
         .map(({ name }) => name);
 
@@ -324,7 +321,7 @@ export function validatePipelineCore(pipeline: PipelineJson): void {
         resovedParameters = [...resovedParameters, reservedParameterName];
     }
 
-    let unresovedTemplates: Array<TemplateJson> = [...pipeline.templates];
+    let unresovedTemplates: ReadonlyArray<TemplateJson> = [...pipeline.templates];
 
     let loopLimit = LOOP_LIMIT;
     while (unresovedTemplates.length > 0) {

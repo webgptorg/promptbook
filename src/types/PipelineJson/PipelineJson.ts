@@ -1,14 +1,14 @@
 import type { ModelRequirements } from '../ModelRequirements';
-import type { string_filename } from '../typeAliases';
-import type { string_markdown_text } from '../typeAliases';
-import type { string_pipeline_url } from '../typeAliases';
-import type { string_semantic_version } from '../typeAliases';
+import type {
+    string_filename,
+    string_markdown_text,
+    string_pipeline_url,
+    string_semantic_version,
+} from '../typeAliases';
 import type { KnowledgePiecePreparedJson } from './KnowledgePieceJson';
-import type { KnowledgeSourceJson } from './KnowledgeSourceJson';
-import type { KnowledgeSourcePreparedJson } from './KnowledgeSourceJson';
+import type { KnowledgeSourceJson, KnowledgeSourcePreparedJson } from './KnowledgeSourceJson';
 import type { ParameterJson } from './ParameterJson';
-import type { PersonaJson } from './PersonaJson';
-import type { PersonaPreparedJson } from './PersonaJson';
+import type { PersonaJson, PersonaPreparedJson } from './PersonaJson';
 import type { PreparationJson } from './PreparationJson';
 import type { TemplateJson } from './TemplateJson';
 
@@ -65,6 +65,7 @@ export type PipelineJson = {
      * Set of variables that are used across the pipeline
      */
     readonly parameters: Array<ParameterJson>;
+    //                    <- TODO: [🪓] This should really be `ReadonlyArray`, but it causes problems
 
     /**
      * Default model requirements for the model for all `templates`
@@ -75,6 +76,7 @@ export type PipelineJson = {
      * Sequence of templates that are chained together to form a pipeline
      */
     readonly templates: Array<TemplateJson>;
+    //                   <- TODO: [🪓] This should really be `ReadonlyArray`, but it causes problems
 
     /**
      * Set of information that are used as external knowledge in the pipeline
@@ -82,6 +84,7 @@ export type PipelineJson = {
      * @see https://github.com/webgptorg/promptbook/discussions/41
      */
     readonly knowledgeSources: Array<KnowledgeSourceJson | KnowledgeSourcePreparedJson>;
+    //                          <- TODO: [🪓] This should really be `ReadonlyArray`, but it causes problems
 
     /**
      * Set of information that are used as external knowledge in the pipeline
@@ -89,6 +92,7 @@ export type PipelineJson = {
      * @see https://github.com/webgptorg/promptbook/discussions/41
      */
     readonly knowledgePieces: Array<KnowledgePiecePreparedJson>;
+    //                         <- TODO: [🪓] This should really be `ReadonlyArray`, but it causes problems
 
     /**
      * List of prepared virtual personas that are used in the pipeline
@@ -96,6 +100,7 @@ export type PipelineJson = {
      * @see https://github.com/webgptorg/promptbook/discussions/22
      */
     readonly personas: Array<PersonaJson | PersonaPreparedJson>;
+    //                  <- TODO: [🪓] This should really be `ReadonlyArray`, but it causes problems
 
     /**
      * List of prepared virtual personas that are used in the pipeline
@@ -103,6 +108,7 @@ export type PipelineJson = {
      * @see https://github.com/webgptorg/promptbook/discussions/78
      */
     readonly preparations: Array<PreparationJson>;
+    //                      <- TODO: [🪓] This should really be `ReadonlyArray`, but it causes problems
 };
 
 /**

@@ -1,6 +1,4 @@
-import type { number_id } from '../typeAliases';
-import type { string_knowledge_source_content } from '../typeAliases';
-import type { string_name } from '../typeAliases';
+import type { number_id, string_knowledge_source_content, string_name } from '../typeAliases';
 
 /**
  * Defines one source of knowledge in the pipeline
@@ -40,7 +38,7 @@ export type KnowledgeSourcePreparedJson = KnowledgeSourceJson & {
     /**
      * List of preparation ids that were used to prepare this knowledge source to knowledge pieces
      */
-    readonly preparationIds: Array<number_id>;
+    readonly preparationIds: ReadonlyArray<number_id>;
 };
 
 /**

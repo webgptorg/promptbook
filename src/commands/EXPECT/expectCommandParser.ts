@@ -6,9 +6,7 @@ import { EXPECTATION_UNITS } from '../../types/PipelineJson/Expectations';
 import type { string_markdown_text } from '../../types/typeAliases';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import { parseNumber } from '../../utils/parseNumber';
-import type { $TemplateJson } from '../_common/types/CommandParser';
-import type { CommandParserInput } from '../_common/types/CommandParser';
-import type { PipelineTemplateCommandParser } from '../_common/types/CommandParser';
+import type { $TemplateJson, CommandParserInput, PipelineTemplateCommandParser } from '../_common/types/CommandParser';
 import type { ExpectCommand } from './ExpectCommand';
 
 /**
@@ -177,7 +175,7 @@ export const expectCommandParser: PipelineTemplateCommandParser<ExpectCommand> =
      *
      * Note: This is used in `pipelineJsonToString` utility
      */
-    takeFromTemplateJson($templateJson: $TemplateJson): Array<ExpectCommand> {
+    takeFromTemplateJson($templateJson: $TemplateJson): ReadonlyArray<ExpectCommand> {
         keepUnused($templateJson);
         throw new NotYetImplementedError(`[🛋] Not implemented yet`); // <- TODO: [🛋] Implement
     },

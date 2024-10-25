@@ -27,7 +27,7 @@ export class SimplePipelineCollection implements PipelineCollection {
      * Note: During the construction logic of all pipelines are validated
      * Note: It is not recommended to use this constructor directly, use `createCollectionFromJson` *(or other variant)* instead
      */
-    public constructor(...pipelines: Array<PipelineJson>) {
+    public constructor(...pipelines: ReadonlyArray<PipelineJson>) {
         this.collection = new Map<string_pipeline_url, PipelineJson>();
         for (const pipeline of pipelines) {
             // TODO: [👠] DRY
@@ -84,7 +84,7 @@ export class SimplePipelineCollection implements PipelineCollection {
     /**
      * Gets all pipelines in the collection
      */
-    public listPipelines(): Array<string_pipeline_url> {
+    public listPipelines(): ReadonlyArray<string_pipeline_url> {
         return Array.from(this.collection.keys());
     }
 

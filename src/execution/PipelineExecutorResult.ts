@@ -31,12 +31,12 @@ export type PipelineExecutorResult = {
     /**
      * Errors that occured during the execution, details are aviable in `executionReport`
      */
-    readonly errors: ReadonlyDeep<Array<ErrorJson>>;
+    readonly errors: ReadonlyDeep<ReadonlyArray<ErrorJson>>;
 
     /**
      * Warnings that occured during the execution, details are aviable in `executionReport`
      */
-    readonly warnings: ReadonlyDeep<Array<ErrorJson>>;
+    readonly warnings: ReadonlyDeep<ReadonlyArray<ErrorJson>>;
 
     /**
      * The report of the execution with all details

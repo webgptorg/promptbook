@@ -1,5 +1,5 @@
 import { spaceTrim } from 'spacetrim';
-import type { ReadonlyDeep } from 'type-fest';
+import type { ReadonlyDeep, WritableDeep } from 'type-fest';
 import { ExpectError } from '../../errors/ExpectError';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
@@ -11,11 +11,8 @@ import type { ExecutionReportJson } from '../../types/execution-report/Execution
 import type { ModelRequirements } from '../../types/ModelRequirements';
 import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import type { TemplateJson } from '../../types/PipelineJson/TemplateJson';
-import type { ChatPrompt } from '../../types/Prompt';
-import type { CompletionPrompt } from '../../types/Prompt';
-import type { Prompt } from '../../types/Prompt';
-import type { Parameters } from '../../types/typeAliases';
-import type { string_parameter_name } from '../../types/typeAliases';
+import type { ChatPrompt, CompletionPrompt, Prompt } from '../../types/Prompt';
+import type { Parameters, string_parameter_name } from '../../types/typeAliases';
 import { arrayableToArray } from '../../utils/arrayableToArray';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import type { really_any } from '../../utils/organization/really_any';
@@ -37,7 +34,7 @@ export type ExecuteAttemptsOptions = {
     /**
      * @@@
      */
-    readonly jokerParameterNames: Readonly<Array<string_parameter_name>>;
+    readonly jokerParameterNames: Readonly<ReadonlyArray<string_parameter_name>>;
 
     /**
      * @@@
@@ -82,7 +79,7 @@ export type ExecuteAttemptsOptions = {
     /**
      * @@@
      */
-    readonly $executionReport: ExecutionReportJson;
+    readonly $executionReport: WritableDeep<ExecutionReportJson>;
 
     /**
      * @@@

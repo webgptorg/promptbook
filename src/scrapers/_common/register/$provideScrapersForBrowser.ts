@@ -16,7 +16,7 @@ import type { Scraper } from '../Scraper';
 export async function $provideScrapersForBrowser(
     tools: Pick<ExecutionTools, 'llm'>,
     options?: PrepareAndScrapeOptions,
-): Promise<Array<Scraper>> {
+): Promise<ReadonlyArray<Scraper>> {
     if (!$isRunningInBrowser() || $isRunningInWebWorker()) {
         throw new EnvironmentMismatchError('Function `$provideScrapersForBrowser` works only in browser environment');
     }
