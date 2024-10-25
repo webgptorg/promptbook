@@ -14,9 +14,8 @@ export const documentScraperMetadata = $deepFreeze({
     className: 'DocumentScraper',
     mimeTypes: ['application/vnd.openxmlformats-officedocument.wordprocessingml.document'],
     documentationUrl: 'https://github.com/webgptorg/promptbook/discussions/@@',
-
     isAvilableInBrowser: false,
-    requiredExecutables: ['!!!!!!'],
+    requiredExecutables: ['Pandoc'],
 }) satisfies ScraperAndConverterMetadata; /* <- TODO: [🤛] */
 
 /**

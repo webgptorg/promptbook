@@ -1,8 +1,6 @@
-import type { string_mime_type } from '../../../types/typeAliases';
-import type { string_promptbook_documentation_url } from '../../../types/typeAliases';
-import type { string_title } from '../../../types/typeAliases';
+import { Executables } from '../../../execution/Executables';
+import type { string_mime_type, string_promptbook_documentation_url, string_title } from '../../../types/typeAliases';
 import type { Registered } from '../../../utils/$Register';
-import type { TODO_any } from '../../../utils/organization/TODO_any';
 
 /**
  * @@@
@@ -37,7 +35,7 @@ export type ScraperAndConverterMetadata = Registered & {
     /**
      * @@@
      */
-    readonly requiredExecutables: TODO_any;
+    readonly requiredExecutables: ReadonlyArray<Capitalize<keyof Executables extends `${infer N}Path` ? N : never>>;
 
     /**
      * Link to documentation

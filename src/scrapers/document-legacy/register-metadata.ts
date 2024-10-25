@@ -14,9 +14,12 @@ export const legacyDocumentScraperMetadata = $deepFreeze({
     className: 'LegacyDocumentScraper',
     mimeTypes: ['application/msword', 'text/rtf'],
     documentationUrl: 'https://github.com/webgptorg/promptbook/discussions/@@',
-
     isAvilableInBrowser: false,
-    requiredExecutables: ['!!!!!!'],
+    requiredExecutables: [
+        'Pandoc',
+        'LibreOffice',
+        //    <- TODO: [🧠] Should be 'LibreOffice' here, its dependency of dependency
+    ],
 }) satisfies ScraperAndConverterMetadata; /* <- TODO: [🤛] */
 
 /**
