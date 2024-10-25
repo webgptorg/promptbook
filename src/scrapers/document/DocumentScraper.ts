@@ -95,7 +95,6 @@ export class DocumentScraper implements Converter, Scraper {
         if (!(await isFileExisting(cacheFilehandler.filename, this.tools.fs))) {
             const command = `"${this.tools.executables.pandocPath}" -f ${extension} -t markdown "${source.filename}" -o "${cacheFilehandler.filename}"`;
 
-            // TODO: !!!!!! [🕊] Make execCommand standard (?node-)util of the promptbook
             await $execCommand(command);
 
             // Note: [0]
