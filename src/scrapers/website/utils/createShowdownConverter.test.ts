@@ -1,23 +1,24 @@
 import { describe, expect, it } from '@jest/globals';
 import { JSDOM } from 'jsdom';
 import { spaceTrim } from 'spacetrim';
-import { markdownConverter } from './markdownConverter';
+import { createShowdownConverter } from './createShowdownConverter';
 
 describe(`markdownConverter`, () => {
+    const showdownConverter = createShowdownConverter();
     const jsdom = new JSDOM();
 
     it(`preserves supersimple markdown to html`, () => {
-        expect(markdownConverter.makeHtml('hello')).toEqual('<p>hello</p>');
+        expect(showdownConverter.makeHtml('hello')).toEqual('<p>hello</p>');
     });
 
     it(`preserves supersimple html to markdown`, () => {
-        expect(spaceTrim(markdownConverter.makeMarkdown('<p>hello</p>', jsdom.window.document))).toEqual('hello');
+        expect(spaceTrim(showdownConverter.makeMarkdown('<p>hello</p>', jsdom.window.document))).toEqual('hello');
     });
 
     it(`converts simple markdown to html`, () => {
         expect(
             spaceTrim(
-                markdownConverter.makeHtml(
+                showdownConverter.makeHtml(
                     spaceTrim(`
 
                     # Hello World!
@@ -40,7 +41,7 @@ describe(`markdownConverter`, () => {
     it(`converts simple html to markdown`, () => {
         expect(
             spaceTrim(
-                markdownConverter.makeMarkdown(
+                showdownConverter.makeMarkdown(
                     spaceTrim(`
 
                     <h1>Hello World!</h1>

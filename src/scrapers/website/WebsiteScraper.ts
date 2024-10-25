@@ -7,7 +7,7 @@ import type { Scraper, ScraperSourceHandler } from '../_common/Scraper';
 import { Readability } from '@mozilla/readability';
 import { writeFile } from 'fs/promises';
 import { JSDOM } from 'jsdom';
-import { forTime } from 'waitasecond';
+import { Converter as ShowdownConverter } from 'showdown';
 import { IS_VERBOSE, SCRAPE_CACHE_DIRNAME } from '../../config';
 import { KnowledgeScrapeError } from '../../errors/KnowledgeScrapeError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
@@ -18,7 +18,7 @@ import type { ScraperIntermediateSource } from '../_common/ScraperIntermediateSo
 import { getScraperIntermediateSource } from '../_common/utils/getScraperIntermediateSource';
 import { MarkdownScraper } from '../markdown/MarkdownScraper';
 import { websiteScraperMetadata } from './register-metadata';
-import { markdownConverter } from './utils/markdownConverter';
+import { createShowdownConverter } from './utils/createShowdownConverter';
 
 /**
  * Scraper for .docx files
@@ -39,11 +39,17 @@ export class WebsiteScraper implements Converter, Scraper {
      */
     private readonly markdownScraper: MarkdownScraper;
 
+    /**
+     * Showdown converter is used internally
+     */
+    private readonly showdownConverter: ShowdownConverter;
+
     public constructor(
         private readonly tools: Pick<ExecutionTools, 'fs' | 'llm'>,
         private readonly options: PrepareAndScrapeOptions,
     ) {
         this.markdownScraper = new MarkdownScraper(tools, options);
+        this.showdownConverter = createShowdownConverter();
     }
 
     /**
@@ -75,8 +81,8 @@ export class WebsiteScraper implements Converter, Scraper {
         const reader = new Readability(jsdom.window.document);
         const article = reader.parse();
 
-        console.log(article);
-        await forTime(10000);
+        // console.log(article);
+        // await forTime(10000);
 
         let html = article?.content || article?.textContent || jsdom.window.document.body.innerHTML;
 
@@ -99,7 +105,7 @@ export class WebsiteScraper implements Converter, Scraper {
 
         await writeFile(cacheFilehandler.filename, html, 'utf-8');
 
-        const markdown = markdownConverter.makeMarkdown(html, jsdom.window.document);
+        const markdown = this.showdownConverter.makeMarkdown(html, jsdom.window.document);
 
         return { ...cacheFilehandler, markdown };
     }
