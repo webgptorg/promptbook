@@ -6,8 +6,6 @@ type RequiredAndOptional<TBase, TRequired extends keyof TBase, TOptional extends
 
 /**
  * Simple options for `execCommand`
- *
- * TODO: !!!!!! Rename - remove I prefix
  */
 export type ExecCommandOptions =
     | string
@@ -16,8 +14,6 @@ export type ExecCommandOptions =
 
 /**
  * Advanced options for `execCommand`
- *
- * TODO:  !!!!!! Rename - remove I prefix
  */
 export type ExecCommandOptionsAdvanced = {
     readonly command: string;
