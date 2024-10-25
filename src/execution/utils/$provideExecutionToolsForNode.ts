@@ -1,12 +1,12 @@
 import { EnvironmentMismatchError } from '../../errors/EnvironmentMismatchError';
 import { $provideLlmToolsFromEnv } from '../../llm-providers/_common/register/$provideLlmToolsFromEnv';
 import type { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';
+import { $provideExecutablesForNode } from '../../scrapers/_common/register/$provideExecutablesForNode';
 import { $provideFilesystemForNode } from '../../scrapers/_common/register/$provideFilesystemForNode';
 import { $provideScrapersForNode } from '../../scrapers/_common/register/$provideScrapersForNode';
 import { JavascriptExecutionTools } from '../../scripting/javascript/JavascriptExecutionTools';
 import { $isRunningInNode } from '../../utils/environment/$isRunningInNode';
 import type { ExecutionTools } from '../ExecutionTools';
-import { $provideExecutablesForNode } from './$provideExecutablesForNode';
 
 /**
  * Note: There is unfortunately no equivalent for this function in the browser environment

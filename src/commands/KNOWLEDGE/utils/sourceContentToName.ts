@@ -10,7 +10,6 @@ import type { string_name } from '../../../types/typeAliases';
  * @private within the repository
  */
 export function sourceContentToName(sourceContent: string_knowledge_source_content): string_name {
-    // TODO: !!!!!! Better name for source than gibberish hash
     const hash = sha256(hexEncoder.parse(JSON.stringify(sourceContent)))
         //    <- TODO: [🥬] Encapsulate sha256 to some private utility function
         .toString(/* hex */)

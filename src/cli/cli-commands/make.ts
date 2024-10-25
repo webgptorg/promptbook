@@ -10,10 +10,10 @@ import { stringifyPipelineJson } from '../../conversion/utils/stringifyPipelineJ
 import { validatePipeline } from '../../conversion/validation/validatePipeline';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { ExecutionTools } from '../../execution/ExecutionTools';
-import { $provideExecutablesForNode } from '../../execution/utils/$provideExecutablesForNode';
 import { usageToHuman } from '../../execution/utils/usageToHuman';
 import { $provideLlmToolsForCli } from '../../llm-providers/_common/register/$provideLlmToolsForCli';
 import type { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';
+import { $provideExecutablesForNode } from '../../scrapers/_common/register/$provideExecutablesForNode';
 import { $provideFilesystemForNode } from '../../scrapers/_common/register/$provideFilesystemForNode';
 import { $provideScrapersForNode } from '../../scrapers/_common/register/$provideScrapersForNode';
 import type { string_file_extension } from '../../types/typeAliases';

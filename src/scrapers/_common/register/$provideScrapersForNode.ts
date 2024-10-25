@@ -8,7 +8,7 @@ import type { Scraper } from '../Scraper';
 import { $scrapersRegister } from './$scrapersRegister';
 
 /**
- * !!!!!!
+ * @@@
  *
  * 1) @@@
  * 2) @@@

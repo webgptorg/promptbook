@@ -1,6 +1,4 @@
-import type { string_mime_type } from '../../../types/typeAliases';
-import type { string_promptbook_documentation_url } from '../../../types/typeAliases';
-import type { string_title } from '../../../types/typeAliases';
+import type { string_mime_type, string_promptbook_documentation_url, string_title } from '../../../types/typeAliases';
 import type { Registered } from '../../../utils/$Register';
 import type { TODO_any } from '../../../utils/organization/TODO_any';
 

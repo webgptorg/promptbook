@@ -1,9 +1,11 @@
 import type { Promisable } from 'type-fest';
 import type { KnowledgePiecePreparedJson } from '../../types/PipelineJson/KnowledgePieceJson';
-import type { string_filename } from '../../types/typeAliases';
-import type { string_knowledge_source_link } from '../../types/typeAliases';
-import type { string_mime_type } from '../../types/typeAliases';
-import type { string_url } from '../../types/typeAliases';
+import type {
+    string_filename,
+    string_knowledge_source_link,
+    string_mime_type,
+    string_url,
+} from '../../types/typeAliases';
 import type { ScraperAndConverterMetadata } from './register/ScraperAndConverterMetadata';
 
 /**
@@ -74,6 +76,6 @@ export type ScraperSourceHandler = {
  */
 
 /**
- * TODO: !!!!!! Test that this is catched
  * Note: [⚫] Code in this file should never be published in any package
+ *        <- TODO: !!!!!! Test that this is catched
  */

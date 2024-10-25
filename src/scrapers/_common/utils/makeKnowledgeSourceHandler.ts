@@ -107,8 +107,7 @@ export async function makeKnowledgeSourceHandler(
                 return new Blob(
                     [
                         content,
-
-                        // <- TODO: !!!!!! Maybe not working
+                        // <- TODO: !!!!!! Test that this is working
                     ],
                     { type: mimeType },
                 );

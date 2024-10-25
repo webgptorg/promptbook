@@ -6,7 +6,7 @@ import { $isRunningInWebWorker } from '../../../utils/environment/$isRunningInWe
 import type { Scraper } from '../Scraper';
 
 /**
- * @@@!!!!!!
+ * @@@
  *
  * 1) @@@
  * 2) @@@
