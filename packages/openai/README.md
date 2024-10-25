@@ -26,6 +26,10 @@ Build responsible, controlled and transparent applications on top of LLM models!
 
 
 
+<blockquote style="color: #ff8811">
+    <b>⚠ Warning:</b> This is a pre-release version of the library. It is not yet ready for production use. Please look at <a href="https://www.npmjs.com/package/@promptbook/core?activeTab=versions">latest stable release</a>.
+</blockquote>
+
 ## 📦 Package `@promptbook/openai`
 
 - Promptbooks are [divided into several](#-packages) packages, all are published from [single monorepo](https://github.com/webgptorg/promptbook).
@@ -64,10 +68,11 @@ const llm = new OpenAiExecutionTools(
         apiKey: process.env.OPENAI_API_KEY,
     },
 );
+const executables = await $provideExecutablesForNode();
 const tools = {
     llm,
     fs,
-    scrapers: await $provideScrapersForNode({ fs, llm }),
+    scrapers: await $provideScrapersForNode({ fs, llm, executables }),
     script: [new JavascriptExecutionTools()],
 };
 
@@ -172,10 +177,11 @@ const llm = [
         },
     ),
 ];
+const executables = await $provideExecutablesForNode();
 const tools = {
     llm,
     fs,
-    scrapers: await $provideScrapersForNode({ fs, llm }),
+    scrapers: await $provideScrapersForNode({ fs, llm, executables }),
     script: [new JavascriptExecutionTools()],
 };
 

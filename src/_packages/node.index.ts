@@ -6,6 +6,7 @@ import { createCollectionFromDirectory } from '../collection/constructors/create
 import { $provideExecutionToolsForNode } from '../execution/utils/$provideExecutionToolsForNode';
 import { $provideLlmToolsConfigurationFromEnv } from '../llm-providers/_common/register/$provideLlmToolsConfigurationFromEnv';
 import { $provideLlmToolsFromEnv } from '../llm-providers/_common/register/$provideLlmToolsFromEnv';
+import { $provideExecutablesForNode } from '../scrapers/_common/register/$provideExecutablesForNode';
 import { $provideFilesystemForNode } from '../scrapers/_common/register/$provideFilesystemForNode';
 import { $provideScrapersForNode } from '../scrapers/_common/register/$provideScrapersForNode';
 import { FileCacheStorage } from '../storage/file-cache-storage/FileCacheStorage';
@@ -22,6 +23,7 @@ export { createCollectionFromDirectory };
 export { $provideExecutionToolsForNode };
 export { $provideLlmToolsConfigurationFromEnv };
 export { $provideLlmToolsFromEnv };
+export { $provideExecutablesForNode };
 export { $provideFilesystemForNode };
 export { $provideScrapersForNode };
 export { FileCacheStorage };

@@ -2,7 +2,7 @@
 
 # ![Promptbook logo - cube with letters P and B](./other/design/logo-h1.png) Promptbook
 
-Supercharge your use of large language models
+Build responsible, controlled and transparent applications on top of LLM models!
 
 
 
@@ -25,6 +25,10 @@ Supercharge your use of large language models
 </blockquote>
 
 
+
+<blockquote style="color: #ff8811">
+    <b>⚠ Warning:</b> This is a pre-release version of the library. It is not yet ready for production use. Please look at <a href="https://www.npmjs.com/package/@promptbook/core?activeTab=versions">latest stable release</a>.
+</blockquote>
 
 ## 📦 Package `@promptbook/documents`
 

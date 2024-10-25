@@ -1,6 +1,6 @@
 {
     "name": "@promptbook/pdf",
-    "version": "0.71.0-17",
+    "version": "0.71.0-18",
     "description": "Supercharge your use of large language models",
     "private": false,
     "sideEffects": false,
@@ -11,6 +11,7 @@
     "contributors": [
         "Pavol Hejný <me@pavolhejny.com> (https://www.pavolhejny.com/)"
     ],
+    "todo-0": "TODO: [❇️] Make better list of keywords",
     "keywords": [
         "ai",
         "llm",
@@ -51,13 +52,13 @@
     "module": "./esm/index.es.js",
     "typings": "./esm/typings/src/_packages/pdf.index.d.ts",
     "peerDependencies": {
-        "@promptbook/core": "0.71.0-17"
+        "@promptbook/core": "0.71.0-18"
     },
     "dependencies": {
         "crypto-js": "4.2.0",
         "papaparse": "5.4.1",
         "prettier": "2.8.1",
-        "spacetrim": "0.11.39",
+        "spacetrim": "0.11.59",
         "waitasecond": "1.11.83"
     }
 }

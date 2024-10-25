@@ -1,6 +1,6 @@
 {
     "name": "promptbook",
-    "version": "0.71.0-17",
+    "version": "0.71.0-18",
     "description": "Supercharge your use of large language models",
     "private": false,
     "sideEffects": false,
@@ -11,6 +11,7 @@
     "contributors": [
         "Pavol Hejný <me@pavolhejny.com> (https://www.pavolhejny.com/)"
     ],
+    "todo-0": "TODO: [❇️] Make better list of keywords",
     "keywords": [
         "ai",
         "llm",
@@ -48,27 +49,27 @@
         }
     ],
     "peerDependencies": {
-        "@promptbook/core": "0.71.0-17"
+        "@promptbook/core": "0.71.0-18"
     },
     "dependencies": {
-        "@promptbook/anthropic-claude": "0.71.0-17",
-        "@promptbook/azure-openai": "0.71.0-17",
-        "@promptbook/browser": "0.71.0-17",
-        "@promptbook/cli": "0.71.0-17",
-        "@promptbook/core": "0.71.0-17",
-        "@promptbook/documents": "0.71.0-17",
-        "@promptbook/execute-javascript": "0.71.0-17",
-        "@promptbook/fake-llm": "0.71.0-17",
-        "@promptbook/langtail": "0.71.0-17",
-        "@promptbook/legacy-documents": "0.71.0-17",
-        "@promptbook/markdown-utils": "0.71.0-17",
-        "@promptbook/node": "0.71.0-17",
-        "@promptbook/openai": "0.71.0-17",
-        "@promptbook/pdf": "0.71.0-17",
-        "@promptbook/remote-client": "0.71.0-17",
-        "@promptbook/remote-server": "0.71.0-17",
-        "@promptbook/types": "0.71.0-17",
-        "@promptbook/utils": "0.71.0-17",
-        "@promptbook/website-crawler": "0.71.0-17"
+        "@promptbook/anthropic-claude": "0.71.0-18",
+        "@promptbook/azure-openai": "0.71.0-18",
+        "@promptbook/browser": "0.71.0-18",
+        "@promptbook/cli": "0.71.0-18",
+        "@promptbook/core": "0.71.0-18",
+        "@promptbook/documents": "0.71.0-18",
+        "@promptbook/execute-javascript": "0.71.0-18",
+        "@promptbook/fake-llm": "0.71.0-18",
+        "@promptbook/langtail": "0.71.0-18",
+        "@promptbook/legacy-documents": "0.71.0-18",
+        "@promptbook/markdown-utils": "0.71.0-18",
+        "@promptbook/node": "0.71.0-18",
+        "@promptbook/openai": "0.71.0-18",
+        "@promptbook/pdf": "0.71.0-18",
+        "@promptbook/remote-client": "0.71.0-18",
+        "@promptbook/remote-server": "0.71.0-18",
+        "@promptbook/types": "0.71.0-18",
+        "@promptbook/utils": "0.71.0-18",
+        "@promptbook/website-crawler": "0.71.0-18"
     }
 }
