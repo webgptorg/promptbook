@@ -15,6 +15,7 @@ import { usageToHuman } from '../../src/execution/utils/usageToHuman';
 //import { MockedFackedLlmExecutionTools } from '../../src/llm-providers/mocked/MockedFackedLlmExecutionTools';
 import { forTime } from 'waitasecond';
 import { validatePipeline } from '../../src/conversion/validation/validatePipeline';
+import { $provideExecutablesForNode } from '../../src/execution/utils/$provideExecutablesForNode';
 import { $provideLlmToolsForTestingAndScriptsAndPlayground } from '../../src/llm-providers/_common/register/$provideLlmToolsForTestingAndScriptsAndPlayground';
 import { PrepareAndScrapeOptions } from '../../src/prepare/PrepareAndScrapeOptions';
 import { $provideFilesystemForNode } from '../../src/scrapers/_common/register/$provideFilesystemForNode';
@@ -66,6 +67,7 @@ async function generateSampleJsons({
     const fs = $provideFilesystemForNode();
     const llm = $provideLlmToolsForTestingAndScriptsAndPlayground({ isCacheReloaded, isVerbose });
     //                 <- Note: for example here we don`t want the [🌯]
+    const executables = await $provideExecutablesForNode();
 
     const pipelineMarkdownFilePaths = await glob(join(PROMPTBOOK_SAMPLES_DIR, '*.ptbk.md').split('\\').join('/'));
 
@@ -80,18 +82,13 @@ async function generateSampleJsons({
         try {
             const options: PrepareAndScrapeOptions = {
                 rootDirname: dirname(pipelineMarkdownFilePath),
-                externalProgramsPaths: {
-                    // TODO: !!!!!! use `locate-app` library here
-                    pandocPath: 'C:/Users/me/AppData/Local/Pandoc/pandoc.exe',
-                    libreOfficePath: 'C:/Program Files/LibreOffice/program/swriter.exe',
-                },
             };
             const pipelineJson = await pipelineStringToJson(
                 pipelineMarkdown as PipelineString,
                 {
                     llm,
                     fs,
-                    scrapers: await $provideScrapersForNode({ fs, llm }, options),
+                    scrapers: await $provideScrapersForNode({ fs, llm, executables }, options),
                 },
                 options,
             );

@@ -59,7 +59,6 @@ export class PdfScraper implements Converter, Scraper {
 
         /*
         const {
-            externalProgramsPaths = {},
             cacheDirname = SCRAPE_CACHE_DIRNAME,
             isCacheCleaned = false,
             isVerbose = IS_VERBOSE,

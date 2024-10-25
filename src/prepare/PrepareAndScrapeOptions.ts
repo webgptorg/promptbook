@@ -39,27 +39,6 @@ export type PrepareAndScrapeOptions = {
     readonly maxParallelCount?: number;
 
     /**
-     * Path to the external programs executables
-     *
-     * TODO: !!!!!! Transform to scrapers and make them Classy
-     */
-    readonly externalProgramsPaths?: {
-        /**
-         * Path to the `pandoc` executable
-         *
-         * @example 'C:/Users/me/AppData/Local/Pandoc/pandoc.exe'
-         */
-        readonly pandocPath?: string;
-
-        /**
-         * Path to the LibreOffice executable
-         *
-         * @example 'C:/Program Files/LibreOffice/program/swriter.exe'
-         */
-        readonly libreOfficePath?: string;
-    };
-
-    /**
      * If true, the missing software is automatically installed
      */
     readonly isAutoInstalled?: boolean;

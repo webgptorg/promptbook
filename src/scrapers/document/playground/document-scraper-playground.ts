@@ -8,11 +8,12 @@ import colors from 'colors';
 import { writeFile } from 'fs/promises';
 import { join } from 'path';
 import { stringifyPipelineJson } from '../../../conversion/utils/stringifyPipelineJson';
+import { $provideExecutablesForNode } from '../../../execution/utils/$provideExecutablesForNode';
 import { usageToHuman } from '../../../execution/utils/usageToHuman';
 import { $provideLlmToolsForTestingAndScriptsAndPlayground } from '../../../llm-providers/_common/register/$provideLlmToolsForTestingAndScriptsAndPlayground';
+import { $provideFilesystemForNode } from '../../_common/register/$provideFilesystemForNode';
 import { makeKnowledgeSourceHandler } from '../../_common/utils/makeKnowledgeSourceHandler';
 import { DocumentScraper } from '../DocumentScraper';
-import { $provideFilesystemForNode } from '../../_common/register/$provideFilesystemForNode';
 
 playground()
     .catch((error) => {
@@ -38,18 +39,22 @@ async function playground() {
     const rootDirname = join(__dirname, '..', 'samples');
 
     const documentScraper = new DocumentScraper(
-        { llm: $provideLlmToolsForTestingAndScriptsAndPlayground() },
+        {
+            fs: $provideFilesystemForNode(),
+            llm: $provideLlmToolsForTestingAndScriptsAndPlayground(),
+            executables: await $provideExecutablesForNode(),
+        },
         {
             rootDirname,
-            externalProgramsPaths: {
-                // TODO: !!!!!! use `locate-app` library here
-                pandocPath: 'C:/Users/me/AppData/Local/Pandoc/pandoc.exe',
-            },
         },
     );
 
     const knowledge = await documentScraper.scrape(
-        await makeKnowledgeSourceHandler({ sourceContent: sample },  { fs: $provideFilesystemForNode() },{ rootDirname }),
+        await makeKnowledgeSourceHandler(
+            { sourceContent: sample },
+            { fs: $provideFilesystemForNode() },
+            { rootDirname },
+        ),
     );
 
     console.info(colors.cyan(usageToHuman(llmTools.getTotalUsage())));

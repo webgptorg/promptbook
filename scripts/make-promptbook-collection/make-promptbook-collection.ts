@@ -11,6 +11,7 @@ import { join } from 'path';
 import { $provideScrapersForNode } from '../../src/_packages/node.index';
 import { collectionToJson } from '../../src/collection/collectionToJson';
 import { createCollectionFromDirectory } from '../../src/collection/constructors/createCollectionFromDirectory';
+import { $provideExecutablesForNode } from '../../src/execution/utils/$provideExecutablesForNode';
 import { usageToHuman } from '../../src/execution/utils/usageToHuman';
 import { $provideLlmToolsForTestingAndScriptsAndPlayground } from '../../src/llm-providers/_common/register/$provideLlmToolsForTestingAndScriptsAndPlayground';
 import { $provideFilesystemForNode } from '../../src/scrapers/_common/register/$provideFilesystemForNode';
@@ -61,7 +62,8 @@ async function makePipelineCollection({
 
     const fs = $provideFilesystemForNode();
     const llm = $provideLlmToolsForTestingAndScriptsAndPlayground({ isCacheReloaded });
-    const scrapers = await $provideScrapersForNode({ fs, llm });
+    const executables = await $provideExecutablesForNode();
+    const scrapers = await $provideScrapersForNode({ fs, llm, executables });
 
     const collection = await createCollectionFromDirectory(
         promptbookSourceDir,

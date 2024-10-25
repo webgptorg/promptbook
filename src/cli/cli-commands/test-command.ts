@@ -3,13 +3,14 @@ import type { Command as Program /* <- Note: Using Program because Command is mi
 import { readFile } from 'fs/promises';
 import glob from 'glob-promise';
 import spaceTrim from 'spacetrim';
-import { $provideFilesystemForNode } from '../../scrapers/_common/register/$provideFilesystemForNode';
-import { $provideScrapersForNode } from '../../scrapers/_common/register/$provideScrapersForNode';
 import { pipelineStringToJson } from '../../conversion/pipelineStringToJson';
 import { validatePipeline } from '../../conversion/validation/validatePipeline';
 import type { ExecutionTools } from '../../execution/ExecutionTools';
+import { $provideExecutablesForNode } from '../../execution/utils/$provideExecutablesForNode';
 import { $provideLlmToolsForCli } from '../../llm-providers/_common/register/$provideLlmToolsForCli';
 import type { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';
+import { $provideFilesystemForNode } from '../../scrapers/_common/register/$provideFilesystemForNode';
+import { $provideScrapersForNode } from '../../scrapers/_common/register/$provideScrapersForNode';
 import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import type { PipelineString } from '../../types/PipelineString';
 
@@ -43,10 +44,11 @@ export function initializeTestCommand(program: Program) {
         } satisfies PrepareAndScrapeOptions;
         const fs = $provideFilesystemForNode(options);
         const llm = $provideLlmToolsForCli(options);
+        const executables = await $provideExecutablesForNode(options);
         const tools = {
             llm,
             fs,
-            scrapers: await $provideScrapersForNode({ fs, llm }, options),
+            scrapers: await $provideScrapersForNode({ fs, llm, executables }, options),
             script: [
                 /*new JavascriptExecutionTools(options)*/
             ],

@@ -1,5 +1,6 @@
 import type { Scraper } from '../scrapers/_common/Scraper';
 import type { Arrayable } from '../types/Arrayable';
+import { Executables } from './Executables';
 import type { FilesystemTools } from './FilesystemTools';
 import type { LlmExecutionTools } from './LlmExecutionTools';
 import type { ScriptExecutionTools } from './ScriptExecutionTools';
@@ -28,6 +29,15 @@ export type ExecutionTools = {
      * @default undefined - If not provided, no filesystem operations will be possible
      */
     readonly fs?: FilesystemTools;
+
+    /**
+     * Scrapers for extracting knowledge from external sources
+     *
+     * Tip: Use `$provideExecutablesForNode`
+     *
+     * @default [] - If not provided, no external knowledge extraction will be possible
+     */
+    readonly executables?: Executables;
 
     /**
      * Scrapers for extracting knowledge from external sources

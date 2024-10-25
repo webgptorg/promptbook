@@ -21,10 +21,11 @@ const llm = new OpenAiExecutionTools(
         apiKey: process.env.OPENAI_API_KEY,
     },
 );
+const executables = await $provideExecutablesForNode();
 const tools = {
     llm,
     fs,
-    scrapers: await $provideScrapersForNode({ fs, llm }),
+    scrapers: await $provideScrapersForNode({ fs, llm, executables }),
     script: [new JavascriptExecutionTools()],
 };
 
@@ -129,10 +130,11 @@ const llm = [
         },
     ),
 ];
+const executables = await $provideExecutablesForNode();
 const tools = {
     llm,
     fs,
-    scrapers: await $provideScrapersForNode({ fs, llm }),
+    scrapers: await $provideScrapersForNode({ fs, llm, executables }),
     script: [new JavascriptExecutionTools()],
 };
 

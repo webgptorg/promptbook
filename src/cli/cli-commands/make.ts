@@ -3,19 +3,19 @@ import type { Command as Program /* <- Note: Using Program because Command is mi
 import { mkdir, writeFile } from 'fs/promises';
 import { dirname, join } from 'path';
 import spaceTrim from 'spacetrim';
-import { $provideFilesystemForNode } from '../../scrapers/_common/register/$provideFilesystemForNode';
-import { $provideScrapersForNode } from '../../scrapers/_common/register/$provideScrapersForNode';
 import { collectionToJson } from '../../collection/collectionToJson';
 import { createCollectionFromDirectory } from '../../collection/constructors/createCollectionFromDirectory';
-import { GENERATOR_WARNING_BY_PROMPTBOOK_CLI } from '../../config';
-import { PIPELINE_COLLECTION_BASE_FILENAME } from '../../config';
+import { GENERATOR_WARNING_BY_PROMPTBOOK_CLI, PIPELINE_COLLECTION_BASE_FILENAME } from '../../config';
 import { stringifyPipelineJson } from '../../conversion/utils/stringifyPipelineJson';
 import { validatePipeline } from '../../conversion/validation/validatePipeline';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { ExecutionTools } from '../../execution/ExecutionTools';
+import { $provideExecutablesForNode } from '../../execution/utils/$provideExecutablesForNode';
 import { usageToHuman } from '../../execution/utils/usageToHuman';
 import { $provideLlmToolsForCli } from '../../llm-providers/_common/register/$provideLlmToolsForCli';
 import type { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';
+import { $provideFilesystemForNode } from '../../scrapers/_common/register/$provideFilesystemForNode';
+import { $provideScrapersForNode } from '../../scrapers/_common/register/$provideScrapersForNode';
 import type { string_file_extension } from '../../types/typeAliases';
 
 /**
@@ -91,10 +91,11 @@ export function initializeMakeCommand(program: Program) {
             } satisfies PrepareAndScrapeOptions;
             const fs = $provideFilesystemForNode(options);
             const llm = $provideLlmToolsForCli(options);
+            const executables = await $provideExecutablesForNode(options);
             const tools = {
                 llm,
                 fs,
-                scrapers: await $provideScrapersForNode({ fs, llm }, options),
+                scrapers: await $provideScrapersForNode({ fs, llm, executables }, options),
                 script: [
                     /*new JavascriptExecutionTools(options)*/
                 ],

@@ -6,6 +6,7 @@ import { $provideScrapersForNode } from '../../scrapers/_common/register/$provid
 import { JavascriptExecutionTools } from '../../scripting/javascript/JavascriptExecutionTools';
 import { $isRunningInNode } from '../../utils/environment/$isRunningInNode';
 import type { ExecutionTools } from '../ExecutionTools';
+import { $provideExecutablesForNode } from './$provideExecutablesForNode';
 
 /**
  * Note: There is unfortunately no equivalent for this function in the browser environment
@@ -21,11 +22,13 @@ export async function $provideExecutionToolsForNode(options?: PrepareAndScrapeOp
 
     const fs = $provideFilesystemForNode();
     const llm = $provideLlmToolsFromEnv(options);
+    const executables = await $provideExecutablesForNode(options);
 
     const tools = {
         llm,
         fs,
-        scrapers: await $provideScrapersForNode({ fs, llm }, options),
+        executables,
+        scrapers: await $provideScrapersForNode({ fs, llm, executables }, options),
         script: [new JavascriptExecutionTools(options)],
     } satisfies ExecutionTools;
 

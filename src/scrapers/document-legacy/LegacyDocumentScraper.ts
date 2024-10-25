@@ -4,8 +4,7 @@ import type { KnowledgePiecePreparedJson } from '../../types/PipelineJson/Knowle
 import { readdir, rename, rmdir } from 'fs/promises';
 import { dirname, join } from 'path';
 import spaceTrim from 'spacetrim';
-import { IS_VERBOSE } from '../../config';
-import { SCRAPE_CACHE_DIRNAME } from '../../config';
+import { IS_VERBOSE, SCRAPE_CACHE_DIRNAME } from '../../config';
 import { EnvironmentMismatchError } from '../../errors/EnvironmentMismatchError';
 import { KnowledgeScrapeError } from '../../errors/KnowledgeScrapeError';
 import { MissingToolsError } from '../../errors/MissingToolsError';
@@ -18,8 +17,7 @@ import { getFileExtension } from '../../utils/files/getFileExtension';
 import { isFileExisting } from '../../utils/files/isFileExisting';
 import type { Converter } from '../_common/Converter';
 import type { ScraperAndConverterMetadata } from '../_common/register/ScraperAndConverterMetadata';
-import type { Scraper } from '../_common/Scraper';
-import type { ScraperSourceHandler } from '../_common/Scraper';
+import type { Scraper, ScraperSourceHandler } from '../_common/Scraper';
 import type { ScraperIntermediateSource } from '../_common/ScraperIntermediateSource';
 import { getScraperIntermediateSource } from '../_common/utils/getScraperIntermediateSource';
 import { DocumentScraper } from '../document/DocumentScraper';
@@ -45,7 +43,7 @@ export class LegacyDocumentScraper implements Converter, Scraper {
     private readonly documentScraper: DocumentScraper;
 
     public constructor(
-        private readonly tools: Pick<ExecutionTools, 'fs' | 'llm'>,
+        private readonly tools: Pick<ExecutionTools, 'fs' | 'llm' | 'executables'>,
         private readonly options: PrepareAndScrapeOptions,
     ) {
         this.documentScraper = new DocumentScraper(tools, options);
@@ -58,7 +56,6 @@ export class LegacyDocumentScraper implements Converter, Scraper {
      */
     public async $convert(source: ScraperSourceHandler): Promise<ScraperIntermediateSource> {
         const {
-            externalProgramsPaths = {},
             rootDirname = process.cwd(),
             cacheDirname = SCRAPE_CACHE_DIRNAME,
             isCacheCleaned = false,
@@ -74,7 +71,7 @@ export class LegacyDocumentScraper implements Converter, Scraper {
             //          <- TODO: [🧠] What is the best error type here`
         }
 
-        if (externalProgramsPaths.libreOfficePath === undefined) {
+        if (this.tools.executables?.libreOfficePath === undefined) {
             throw new MissingToolsError('LibreOffice is required for scraping .doc and .rtf files');
         }
 
@@ -108,7 +105,7 @@ export class LegacyDocumentScraper implements Converter, Scraper {
                 .split('\\')
                 .join('/');
 
-            const command = `"${externalProgramsPaths.libreOfficePath}" --headless --convert-to docx "${source.filename}"  --outdir "${documentSourceOutdirPathForLibreOffice}"`;
+            const command = `"${this.tools.executables.libreOfficePath}" --headless --convert-to docx "${source.filename}"  --outdir "${documentSourceOutdirPathForLibreOffice}"`;
 
             // TODO: !!!!!! [🕊] Make execCommand standard (?node-)util of the promptbook - this should trigger build polution error
             await $execCommand(command);

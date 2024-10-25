@@ -8,6 +8,7 @@ import colors from 'colors';
 import { writeFile } from 'fs/promises';
 import { join } from 'path';
 import { stringifyPipelineJson } from '../../../conversion/utils/stringifyPipelineJson';
+import { $provideExecutablesForNode } from '../../../execution/utils/$provideExecutablesForNode';
 import { usageToHuman } from '../../../execution/utils/usageToHuman';
 import { $provideLlmToolsForTestingAndScriptsAndPlayground } from '../../../llm-providers/_common/register/$provideLlmToolsForTestingAndScriptsAndPlayground';
 import { $provideFilesystemForNode } from '../../_common/register/$provideFilesystemForNode';
@@ -38,14 +39,13 @@ async function playground() {
     const rootDirname = join(__dirname, '..', 'samples');
 
     const legacyDocumentScraper = new LegacyDocumentScraper(
-        { llm: $provideLlmToolsForTestingAndScriptsAndPlayground() },
+        {
+            fs: $provideFilesystemForNode(),
+            llm: $provideLlmToolsForTestingAndScriptsAndPlayground(),
+            executables: await $provideExecutablesForNode(),
+        },
         {
             rootDirname,
-            externalProgramsPaths: {
-                // TODO: !!!!!! use `locate-app` library here
-                pandocPath: 'C:/Users/me/AppData/Local/Pandoc/pandoc.exe',
-                libreOfficePath: 'C:/Program Files/LibreOffice/program/swriter.exe',
-            },
         },
     );
 
