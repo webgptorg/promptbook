@@ -16,7 +16,7 @@ import { $provideLlmToolsFromEnv } from './$provideLlmToolsFromEnv';
  * @private within the repository - for CLI utils
  */
 export function $provideLlmToolsForCli(
-    options?: Pick<CacheLlmToolsOptions, 'isReloaded'>,
+    options?: Pick<CacheLlmToolsOptions, 'isCacheReloaded'>,
 ): LlmExecutionToolsWithTotalUsage {
     if (!$isRunningInNode()) {
         throw new EnvironmentMismatchError(
@@ -24,7 +24,7 @@ export function $provideLlmToolsForCli(
         );
     }
 
-    const { isReloaded } = options ?? {};
+    const { isCacheReloaded } = options ?? {};
 
     return cacheLlmTools(
         countTotalUsage(
@@ -36,7 +36,7 @@ export function $provideLlmToolsForCli(
                 { fs: $provideFilesystemForNode() },
                 { rootFolderPath: join(process.cwd(), EXECUTIONS_CACHE_DIRNAME) },
             ),
-            isReloaded,
+            isCacheReloaded,
         },
     );
 }

@@ -12,7 +12,6 @@ import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { ExecutionTools } from '../../execution/ExecutionTools';
 import { usageToHuman } from '../../execution/utils/usageToHuman';
 import { $provideLlmToolsForCli } from '../../llm-providers/_common/register/$provideLlmToolsForCli';
-import type { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';
 import { $provideExecutablesForNode } from '../../scrapers/_common/register/$provideExecutablesForNode';
 import { $provideFilesystemForNode } from '../../scrapers/_common/register/$provideFilesystemForNode';
 import { $provideScrapersForNode } from '../../scrapers/_common/register/$provideScrapersForNode';
@@ -69,7 +68,10 @@ export function initializeMakeCommand(program: Program) {
     );
 
     makeCommand.action(
-        async (path, { projectName, format, validation, reloadCache: isReloaded, verbose: isVerbose, outFile }) => {
+        async (
+            path,
+            { projectName, format, validation, reloadCache: isCacheReloaded, verbose: isVerbose, outFile },
+        ) => {
             let formats = ((format as string | false) || '')
                 .split(',')
                 .map((_) => _.trim())
@@ -87,8 +89,8 @@ export function initializeMakeCommand(program: Program) {
             // TODO: DRY [◽]
             const options = {
                 isVerbose,
-                isReloaded,
-            } /* <- TODO: ` satisfies PrepareAndScrapeOptions` */;
+                isCacheReloaded,
+            }; /* <- TODO: ` satisfies PrepareAndScrapeOptions` */
             const fs = $provideFilesystemForNode(options);
             const llm = $provideLlmToolsForCli(options);
             const executables = await $provideExecutablesForNode(options);

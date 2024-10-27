@@ -1,7 +1,6 @@
 import { join } from 'path';
 import '../../../_packages/cli.index'; // <- Note: Really importing core index to register all the LLM providers
-import { EXECUTIONS_CACHE_DIRNAME } from '../../../config';
-import { IS_COST_PREVENTED } from '../../../config';
+import { EXECUTIONS_CACHE_DIRNAME, IS_COST_PREVENTED } from '../../../config';
 import { EnvironmentMismatchError } from '../../../errors/EnvironmentMismatchError';
 import type { LlmExecutionTools } from '../../../execution/LlmExecutionTools';
 import { $provideFilesystemForNode } from '../../../scrapers/_common/register/$provideFilesystemForNode';
@@ -52,7 +51,7 @@ export function $provideLlmToolsForTestingAndScriptsAndPlayground(
             { fs: $provideFilesystemForNode() },
             { rootFolderPath: join(process.cwd(), EXECUTIONS_CACHE_DIRNAME) },
         ),
-        isReloaded: isCacheReloaded,
+        isCacheReloaded: isCacheReloaded,
     });
 }
 

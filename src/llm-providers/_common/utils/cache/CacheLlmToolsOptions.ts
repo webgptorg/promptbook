@@ -17,6 +17,6 @@ export type CacheLlmToolsOptions = {
      *
      * @default false
      */
-    isReloaded?: boolean;
+    isCacheReloaded?: boolean;
     // <- TODO: [🎅] Maybe unite with `intermediateFilesStrategy` and change to `cacheStrategy`
 };

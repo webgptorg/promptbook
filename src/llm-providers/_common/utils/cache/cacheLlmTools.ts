@@ -32,7 +32,7 @@ export function cacheLlmTools<TLlmTools extends LlmExecutionTools>(
     llmTools: TLlmTools,
     options: Partial<CacheLlmToolsOptions> = {},
 ): TLlmTools {
-    const { storage = new MemoryStorage(), isReloaded = false } = options;
+    const { storage = new MemoryStorage(), isCacheReloaded = false } = options;
 
     const proxyTools: TLlmTools = {
         ...llmTools,
@@ -62,7 +62,7 @@ export function cacheLlmTools<TLlmTools extends LlmExecutionTools>(
             //    <- TODO: [🥬] Encapsulate sha256 to some private utility function
         );
 
-        const cacheItem = !isReloaded ? await storage.getItem(key) : null;
+        const cacheItem = !isCacheReloaded ? await storage.getItem(key) : null;
 
         if (cacheItem) {
             return cacheItem.promptResult as ChatPromptResult;
