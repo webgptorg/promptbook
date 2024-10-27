@@ -1,6 +1,6 @@
 {
     "name": "@promptbook/openai",
-    "version": "0.72.0-14",
+    "version": "0.72.0-15",
     "description": "Supercharge your use of large language models",
     "private": false,
     "sideEffects": false,
@@ -52,11 +52,11 @@
     "module": "./esm/index.es.js",
     "typings": "./esm/typings/src/_packages/openai.index.d.ts",
     "peerDependencies": {
-        "@promptbook/core": "0.72.0-14"
+        "@promptbook/core": "0.72.0-15"
     },
     "dependencies": {
         "colors": "1.4.0",
         "openai": "4.63.0",
-        "spacetrim": "0.11.39"
+        "spacetrim": "0.11.59"
     }
 }

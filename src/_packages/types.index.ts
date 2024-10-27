@@ -52,7 +52,6 @@ import type { AnthropicClaudeExecutionToolsDirectOptions } from '../llm-provider
 import type { AnthropicClaudeExecutionToolsProxiedOptions } from '../llm-providers/anthropic-claude/AnthropicClaudeExecutionToolsOptions';
 import type { AzureOpenAiExecutionToolsOptions } from '../llm-providers/azure-openai/AzureOpenAiExecutionToolsOptions';
 import type { LangtailExecutionToolsOptions } from '../llm-providers/langtail/LangtailExecutionToolsOptions';
-import type { MultipleLlmExecutionTools } from '../llm-providers/multiple/MultipleLlmExecutionTools';
 import type { OpenAiAssistantExecutionToolsOptions } from '../llm-providers/openai/OpenAiAssistantExecutionToolsOptions';
 import type { OpenAiExecutionToolsOptions } from '../llm-providers/openai/OpenAiExecutionToolsOptions';
 import type { PromptbookServer_Error } from '../llm-providers/remote/interfaces/PromptbookServer_Error';
@@ -298,7 +297,6 @@ export type { AnthropicClaudeExecutionToolsDirectOptions };
 export type { AnthropicClaudeExecutionToolsProxiedOptions };
 export type { AzureOpenAiExecutionToolsOptions };
 export type { LangtailExecutionToolsOptions };
-export type { MultipleLlmExecutionTools };
 export type { OpenAiAssistantExecutionToolsOptions };
 export type { OpenAiExecutionToolsOptions };
 export type { PromptbookServer_Error };
