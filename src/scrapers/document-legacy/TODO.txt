@@ -1,1 +1,1 @@
-TODO: !!!!!! Separate tag `doc` `rtf` `word` to package
+TODO: [❇️] Make specific tag `doc` `rtf` `word` to package
