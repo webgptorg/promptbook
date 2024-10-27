@@ -75,7 +75,7 @@ async function makePipelineCollection({
         {
             isVerbose,
             isRecursive: true,
-            // <- TODO: [🍖] isCacheReloaded
+          // <- TODO: [🍖] Add `intermediateFilesStrategy`
         },
     );
 

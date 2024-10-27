@@ -57,8 +57,7 @@ type CreatePipelineCollectionFromDirectoryOptions = Omit<PrepareAndScrapeOptions
      */
     isCrashedOnError?: boolean;
 
-    // [🍖] Add `isCacheReloaded`
-    //                <- TODO: !!!!!! Replace by `intermediateFilesStrategy`
+    // <- TODO: [🍖] Add `intermediateFilesStrategy`
 };
 
 /**
@@ -87,6 +86,7 @@ export async function createCollectionFromDirectory(
     }
 
     // TODO: [🍖] Allow to skip
+
     const makedLibraryFilePath = join(
         path,
         `${

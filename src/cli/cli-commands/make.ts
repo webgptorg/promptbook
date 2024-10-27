@@ -106,7 +106,7 @@ export function initializeMakeCommand(program: Program) {
             const collection = await createCollectionFromDirectory(path, tools, {
                 isVerbose,
                 isRecursive: true,
-                // <- TODO: [🍖] isCacheReloaded
+             // <- TODO: [🍖] Add `intermediateFilesStrategy`
             });
 
             for (const validation of validations) {
