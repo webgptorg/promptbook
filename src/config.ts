@@ -72,6 +72,8 @@ export const MAX_FILENAME_LENGTH = 30;
 
 /**
  * Strategy for caching the intermediate results for knowledge sources
+ *
+ * @public exported from `@promptbook/core`
  */
 export const DEFAULT_INTERMEDIATE_FILES_STRATEGY: IntermediateFilesStrategy = 'HIDE_AND_KEEP';
 //                                                     <- TODO: [😡] Change to 'VISIBLE'
