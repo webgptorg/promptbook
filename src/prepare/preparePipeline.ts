@@ -1,5 +1,6 @@
 import type { Writable } from 'type-fest';
-import { DEFAULT_IS_VERBOSE, DEFAULT_MAX_PARALLEL_COUNT } from '../config';
+import { DEFAULT_IS_VERBOSE } from '../config';
+import { DEFAULT_MAX_PARALLEL_COUNT } from '../config';
 import { MissingToolsError } from '../errors/MissingToolsError';
 import type { ExecutionTools } from '../execution/ExecutionTools';
 import { ZERO_USAGE } from '../execution/utils/addUsage';

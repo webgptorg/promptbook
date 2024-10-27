@@ -10,7 +10,7 @@ import type { TaskProgress } from '../../types/TaskProgress';
 import type { Parameters } from '../../types/typeAliases';
 import { difference } from '../../utils/sets/difference';
 import { union } from '../../utils/sets/union';
-import { CreatePipelineExecutorOptions } from './00-CreatePipelineExecutorOptions';
+import type { CreatePipelineExecutorOptions } from './00-CreatePipelineExecutorOptions';
 import { executeFormatSubvalues } from './30-executeFormatSubvalues';
 import { getReservedParametersForTemplate } from './getReservedParametersForTemplate';
 

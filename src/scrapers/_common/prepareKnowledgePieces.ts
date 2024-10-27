@@ -1,5 +1,6 @@
 import spaceTrim from 'spacetrim';
-import { DEFAULT_IS_VERBOSE, DEFAULT_MAX_PARALLEL_COUNT } from '../../config';
+import { DEFAULT_IS_VERBOSE } from '../../config';
+import { DEFAULT_MAX_PARALLEL_COUNT } from '../../config';
 import { KnowledgeScrapeError } from '../../errors/KnowledgeScrapeError';
 import { forEachAsync } from '../../execution/utils/forEachAsync';
 import type { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';

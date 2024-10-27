@@ -1,4 +1,4 @@
-import { IntermediateFilesStrategy } from '../types/IntermediateFilesStrategy';
+import type { IntermediateFilesStrategy } from '../types/IntermediateFilesStrategy';
 import type { string_dirname } from '../types/typeAliases';
 
 /**

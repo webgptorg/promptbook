@@ -1,5 +1,5 @@
-import { CsvSettings } from '../../_packages/types.index';
-import { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';
+import type { CsvSettings } from '../../formats/csv/CsvSettings';
+import type { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';
 import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import type { ExecutionTools } from '../ExecutionTools';
 

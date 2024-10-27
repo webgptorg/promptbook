@@ -1,5 +1,7 @@
 import type { Promisable } from 'type-fest';
-import type { Parameters, string_name, string_parameter_name } from '../../types/typeAliases';
+import type { Parameters } from '../../types/typeAliases';
+import type { string_name } from '../../types/typeAliases';
+import type { string_parameter_name } from '../../types/typeAliases';
 import type { string_SCREAMING_CASE } from '../../utils/normalization/normalizeTo_SCREAMING_CASE';
 import type { empty_object } from '../../utils/organization/empty_object';
 

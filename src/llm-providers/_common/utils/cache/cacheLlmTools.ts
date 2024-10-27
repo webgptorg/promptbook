@@ -6,11 +6,9 @@ import { titleToName } from '../../../../conversion/utils/titleToName';
 import { PipelineExecutionError } from '../../../../errors/PipelineExecutionError';
 import type { AvailableModel } from '../../../../execution/AvailableModel';
 import type { LlmExecutionTools } from '../../../../execution/LlmExecutionTools';
-import type {
-    ChatPromptResult,
-    CompletionPromptResult,
-    EmbeddingPromptResult,
-} from '../../../../execution/PromptResult';
+import type { ChatPromptResult } from '../../../../execution/PromptResult';
+import type { CompletionPromptResult } from '../../../../execution/PromptResult';
+import type { EmbeddingPromptResult } from '../../../../execution/PromptResult';
 import { MemoryStorage } from '../../../../storage/memory/MemoryStorage';
 import type { Prompt } from '../../../../types/Prompt';
 import { $currentDate } from '../../../../utils/$currentDate';

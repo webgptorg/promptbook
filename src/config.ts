@@ -1,5 +1,5 @@
 import type { CsvSettings } from './formats/csv/CsvSettings';
-import { IntermediateFilesStrategy } from './types/IntermediateFilesStrategy';
+import type { IntermediateFilesStrategy } from './types/IntermediateFilesStrategy';
 import { just } from './utils/organization/just';
 import { $asDeeplyFrozenSerializableJson } from './utils/serialization/$asDeeplyFrozenSerializableJson';
 

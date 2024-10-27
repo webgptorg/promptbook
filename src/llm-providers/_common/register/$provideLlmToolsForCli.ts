@@ -5,7 +5,7 @@ import { $provideFilesystemForNode } from '../../../scrapers/_common/register/$p
 import { FileCacheStorage } from '../../../storage/file-cache-storage/FileCacheStorage';
 import { $isRunningInNode } from '../../../utils/environment/$isRunningInNode';
 import { cacheLlmTools } from '../utils/cache/cacheLlmTools';
-import { CacheLlmToolsOptions } from '../utils/cache/CacheLlmToolsOptions';
+import type { CacheLlmToolsOptions } from '../utils/cache/CacheLlmToolsOptions';
 import { countTotalUsage } from '../utils/count-total-usage/countTotalUsage';
 import type { LlmExecutionToolsWithTotalUsage } from '../utils/count-total-usage/LlmExecutionToolsWithTotalUsage';
 import { $provideLlmToolsFromEnv } from './$provideLlmToolsFromEnv';
@@ -34,9 +34,12 @@ export function $provideLlmToolsForCli(
         {
             storage: new FileCacheStorage(
                 { fs: $provideFilesystemForNode() },
-                { rootFolderPath: join(process.cwd(), DEFAULT_EXECUTIONS_CACHE_DIRNAME // <- TODO: [🦒] Allow to override (pass different value into the function)
-
-                ) },
+                {
+                    rootFolderPath: join(
+                        process.cwd(),
+                        DEFAULT_EXECUTIONS_CACHE_DIRNAME, // <- TODO: [🦒] Allow to override (pass different value into the function)
+                    ),
+                },
             ),
             isCacheReloaded,
         },
