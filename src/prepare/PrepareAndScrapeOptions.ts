@@ -1,4 +1,4 @@
-import { CacheStrategy } from '../types/CacheStrategy';
+import { IntermediateFilesStrategy } from '../types/IntermediateFilesStrategy';
 import type { string_dirname } from '../types/typeAliases';
 
 /**
@@ -27,9 +27,9 @@ export type PrepareAndScrapeOptions = {
     /**
      * Strategy for caching the intermediate results for knowledge source
      *
-     * @default DEFAULT_CACHE_STRATEGY
+     * @default DEFAULT_INTERMEDIATE_FILES_STRATEGY
      */
-    readonly cacheStrategy?: CacheStrategy;
+    readonly intermediateFilesStrategy?: IntermediateFilesStrategy;
 
     /**
      * Maximum number of tasks running in parallel

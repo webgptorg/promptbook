@@ -8,7 +8,7 @@ import { Readability } from '@mozilla/readability';
 import { writeFile } from 'fs/promises';
 import { JSDOM } from 'jsdom';
 import { Converter as ShowdownConverter } from 'showdown';
-import { DEFAULT_CACHE_STRATEGY, IS_VERBOSE, SCRAPE_CACHE_DIRNAME } from '../../config';
+import { DEFAULT_INTERMEDIATE_FILES_STRATEGY, IS_VERBOSE, SCRAPE_CACHE_DIRNAME } from '../../config';
 import { KnowledgeScrapeError } from '../../errors/KnowledgeScrapeError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { ExecutionTools } from '../../execution/ExecutionTools';
@@ -64,7 +64,7 @@ export class WebsiteScraper implements Converter, Scraper {
             // TODO: [🧠] Maybe in node use headless browser not just JSDOM
             rootDirname = process.cwd(),
             cacheDirname = SCRAPE_CACHE_DIRNAME,
-            cacheStrategy = DEFAULT_CACHE_STRATEGY,
+            intermediateFilesStrategy = DEFAULT_INTERMEDIATE_FILES_STRATEGY,
             isVerbose = IS_VERBOSE,
         } = this.options;
 
@@ -98,7 +98,7 @@ export class WebsiteScraper implements Converter, Scraper {
         const cacheFilehandler = await getScraperIntermediateSource(source, {
             rootDirname,
             cacheDirname,
-            cacheStrategy,
+            intermediateFilesStrategy,
             extension: 'html',
             isVerbose,
         });

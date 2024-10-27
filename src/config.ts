@@ -1,5 +1,5 @@
 import type { CsvSettings } from './formats/csv/CsvSettings';
-import { CacheStrategy } from './types/CacheStrategy';
+import { IntermediateFilesStrategy } from './types/IntermediateFilesStrategy';
 import { just } from './utils/organization/just';
 import { $asDeeplyFrozenSerializableJson } from './utils/serialization/$asDeeplyFrozenSerializableJson';
 
@@ -31,7 +31,7 @@ export const GENERATOR_WARNING_BY_PROMPTBOOK_CLI = `⚠️ WARNING: This code ha
 /**
  * Strategy for caching the intermediate results for knowledge sources
  */
-export const DEFAULT_CACHE_STRATEGY: CacheStrategy = 'HIDE_AND_KEEP';
+export const DEFAULT_INTERMEDIATE_FILES_STRATEGY: IntermediateFilesStrategy = 'HIDE_AND_KEEP';
 //                                                     <- TODO: [😡] Change to 'VISIBLE'
 
 // TODO: !!!!!! Prefic all by DEFAULT_

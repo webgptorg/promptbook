@@ -2,8 +2,7 @@ import colors from 'colors';
 import { readFile } from 'fs/promises';
 import { dirname, join } from 'path';
 import spaceTrim from 'spacetrim';
-import { IS_VERBOSE } from '../../config';
-import { PIPELINE_COLLECTION_BASE_FILENAME } from '../../config';
+import { IS_VERBOSE, PIPELINE_COLLECTION_BASE_FILENAME } from '../../config';
 import { pipelineJsonToString } from '../../conversion/pipelineJsonToString';
 import { pipelineStringToJson } from '../../conversion/pipelineStringToJson';
 import { validatePipeline } from '../../conversion/validation/validatePipeline';
@@ -16,8 +15,7 @@ import type { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOpti
 import { unpreparePipeline } from '../../prepare/unpreparePipeline';
 import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import type { PipelineString } from '../../types/PipelineString';
-import type { string_dirname } from '../../types/typeAliases';
-import type { string_pipeline_url } from '../../types/typeAliases';
+import type { string_dirname, string_pipeline_url } from '../../types/typeAliases';
 import { isFileExisting } from '../../utils/files/isFileExisting';
 import { listAllFiles } from '../../utils/files/listAllFiles';
 import type { PipelineCollection } from '../PipelineCollection';
@@ -60,7 +58,7 @@ type CreatePipelineCollectionFromDirectoryOptions = Omit<PrepareAndScrapeOptions
     isCrashedOnError?: boolean;
 
     // [🍖] Add `isCacheReloaded`
-    //                <- TODO: !!!!!! Replace by `cacheStrategy`
+    //                <- TODO: !!!!!! Replace by `intermediateFilesStrategy`
 };
 
 /**

@@ -4,7 +4,7 @@ import type { KnowledgePiecePreparedJson } from '../../types/PipelineJson/Knowle
 import { readdir, rename, rmdir } from 'fs/promises';
 import { dirname, join } from 'path';
 import spaceTrim from 'spacetrim';
-import { DEFAULT_CACHE_STRATEGY, IS_VERBOSE, SCRAPE_CACHE_DIRNAME } from '../../config';
+import { DEFAULT_INTERMEDIATE_FILES_STRATEGY, IS_VERBOSE, SCRAPE_CACHE_DIRNAME } from '../../config';
 import { EnvironmentMismatchError } from '../../errors/EnvironmentMismatchError';
 import { KnowledgeScrapeError } from '../../errors/KnowledgeScrapeError';
 import { MissingToolsError } from '../../errors/MissingToolsError';
@@ -58,7 +58,7 @@ export class LegacyDocumentScraper implements Converter, Scraper {
         const {
             rootDirname = process.cwd(),
             cacheDirname = SCRAPE_CACHE_DIRNAME,
-            cacheStrategy = DEFAULT_CACHE_STRATEGY,
+            intermediateFilesStrategy = DEFAULT_INTERMEDIATE_FILES_STRATEGY,
             isVerbose = IS_VERBOSE,
         } = this.options;
 
@@ -85,7 +85,7 @@ export class LegacyDocumentScraper implements Converter, Scraper {
         const cacheFilehandler = await getScraperIntermediateSource(source, {
             rootDirname,
             cacheDirname,
-            cacheStrategy,
+            intermediateFilesStrategy,
             extension: 'docx',
             isVerbose,
         });

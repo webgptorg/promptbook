@@ -59,7 +59,7 @@ export class PdfScraper implements Converter, Scraper {
         /*
         const {
             cacheDirname = SCRAPE_CACHE_DIRNAME,
-             cacheStrategy = DEFAULT_CACHE_STRATEGY,
+             intermediateFilesStrategy = DEFAULT_INTERMEDIATE_FILES_STRATEGY,
             isVerbose = IS_VERBOSE,
         } = options;
         */
