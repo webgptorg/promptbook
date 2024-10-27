@@ -1,6 +1,7 @@
 // ⚠️ WARNING: This code has been generated so that any manual changes will be overwritten
 // `@promptbook/core`
 
+import { PROMPTBOOK_VERSION } from '../version';
 import { collectionToJson } from '../collection/collectionToJson';
 import { createCollectionFromJson } from '../collection/constructors/createCollectionFromJson';
 import { createCollectionFromPromise } from '../collection/constructors/createCollectionFromPromise';
@@ -8,23 +9,22 @@ import { createCollectionFromUrl } from '../collection/constructors/createCollec
 import { createSubcollection } from '../collection/constructors/createSubcollection';
 import type { TemplateType } from '../commands/TEMPLATE/TemplateTypes';
 import { TemplateTypes } from '../commands/TEMPLATE/TemplateTypes';
-import {
-    CLAIM,
-    DEFAULT_CSV_SETTINGS,
-    DEFAULT_EXECUTIONS_CACHE_DIRNAME,
-    DEFAULT_IS_AUTO_INSTALLED,
-    DEFAULT_IS_VERBOSE,
-    DEFAULT_MAX_EXECUTION_ATTEMPTS,
-    DEFAULT_MAX_KNOWLEDGE_SOURCES_SCRAPING_DEPTH,
-    DEFAULT_MAX_KNOWLEDGE_SOURCES_SCRAPING_TOTAL,
-    DEFAULT_MAX_PARALLEL_COUNT,
-    DEFAULT_PIPELINE_COLLECTION_BASE_FILENAME,
-    DEFAULT_REMOTE_URL,
-    DEFAULT_REMOTE_URL_PATH,
-    DEFAULT_SCRAPE_CACHE_DIRNAME,
-    MAX_FILENAME_LENGTH,
-    RESERVED_PARAMETER_NAMES,
-} from '../config';
+import { CLAIM } from '../config';
+import { MAX_FILENAME_LENGTH } from '../config';
+import { DEFAULT_INTERMEDIATE_FILES_STRATEGY } from '../config';
+import { DEFAULT_MAX_PARALLEL_COUNT } from '../config';
+import { DEFAULT_MAX_EXECUTION_ATTEMPTS } from '../config';
+import { DEFAULT_MAX_KNOWLEDGE_SOURCES_SCRAPING_DEPTH } from '../config';
+import { DEFAULT_MAX_KNOWLEDGE_SOURCES_SCRAPING_TOTAL } from '../config';
+import { DEFAULT_EXECUTIONS_CACHE_DIRNAME } from '../config';
+import { DEFAULT_SCRAPE_CACHE_DIRNAME } from '../config';
+import { DEFAULT_PIPELINE_COLLECTION_BASE_FILENAME } from '../config';
+import { RESERVED_PARAMETER_NAMES } from '../config';
+import { DEFAULT_REMOTE_URL } from '../config';
+import { DEFAULT_REMOTE_URL_PATH } from '../config';
+import { DEFAULT_CSV_SETTINGS } from '../config';
+import { DEFAULT_IS_VERBOSE } from '../config';
+import { DEFAULT_IS_AUTO_INSTALLED } from '../config';
 import { pipelineJsonToString } from '../conversion/pipelineJsonToString';
 import { pipelineStringToJson } from '../conversion/pipelineStringToJson';
 import { pipelineStringToJsonSync } from '../conversion/pipelineStringToJsonSync';
@@ -51,7 +51,8 @@ import { UnexpectedError } from '../errors/UnexpectedError';
 import { assertsExecutionSuccessful } from '../execution/assertsExecutionSuccessful';
 import { createPipelineExecutor } from '../execution/createPipelineExecutor/00-createPipelineExecutor';
 import { embeddingVectorToString } from '../execution/embeddingVectorToString';
-import { addUsage, ZERO_USAGE } from '../execution/utils/addUsage';
+import { ZERO_USAGE } from '../execution/utils/addUsage';
+import { addUsage } from '../execution/utils/addUsage';
 import { isPassingExpectations } from '../execution/utils/checkExpectations';
 import { usageToHuman } from '../execution/utils/usageToHuman';
 import { usageToWorktime } from '../execution/utils/usageToWorktime';
@@ -78,6 +79,7 @@ import { unpreparePipeline } from '../prepare/unpreparePipeline';
 import { prepareKnowledgePieces } from '../scrapers/_common/prepareKnowledgePieces';
 import { $scrapersMetadataRegister } from '../scrapers/_common/register/$scrapersMetadataRegister';
 import { $scrapersRegister } from '../scrapers/_common/register/$scrapersRegister';
+import { makeKnowledgeSourceHandler } from '../scrapers/_common/utils/makeKnowledgeSourceHandler';
 import { _LegacyDocumentScraperMetadataRegistration } from '../scrapers/document-legacy/register-metadata';
 import { _DocumentScraperMetadataRegistration } from '../scrapers/document/register-metadata';
 import { _MarkdownScraperMetadataRegistration } from '../scrapers/markdown/register-metadata';
@@ -90,97 +92,100 @@ import type { ExecutionReportStringOptions } from '../types/execution-report/Exe
 import { ExecutionReportStringOptionsDefaults } from '../types/execution-report/ExecutionReportStringOptions';
 import { MODEL_VARIANTS } from '../types/ModelVariant';
 import { EXPECTATION_UNITS } from '../types/PipelineJson/Expectations';
-import { PROMPTBOOK_VERSION } from '../version';
+
 
 // Note: Exporting version from each package
 export { PROMPTBOOK_VERSION };
 
+
 // Note: Entities of the `@promptbook/core`
-export {
-    $llmToolsMetadataRegister,
-    $llmToolsRegister,
-    $scrapersMetadataRegister,
-    $scrapersRegister,
-    _AnthropicClaudeMetadataRegistration,
-    _AzureOpenAiMetadataRegistration,
-    _DocumentScraperMetadataRegistration,
-    _LegacyDocumentScraperMetadataRegistration,
-    _MarkdownScraperMetadataRegistration,
-    _OpenAiMetadataRegistration,
-    _PdfScraperMetadataRegistration,
-    _WebsiteScraperMetadataRegistration,
-    AbstractFormatError,
-    addUsage,
-    assertsExecutionSuccessful,
-    cacheLlmTools,
-    CallbackInterfaceTools,
-    CLAIM,
-    CollectionError,
-    collectionToJson,
-    countTotalUsage,
-    createCollectionFromJson,
-    createCollectionFromPromise,
-    createCollectionFromUrl,
-    createLlmToolsFromConfiguration,
-    createPipelineExecutor,
-    createSubcollection,
-    CsvFormatDefinition,
-    CsvFormatError,
-    DEFAULT_CSV_SETTINGS,
-    DEFAULT_REMOTE_URL,
-    DEFAULT_REMOTE_URL_PATH,
-    embeddingVectorToString,
-    EnvironmentMismatchError,
-    ERRORS,
-    executionReportJsonToString,
-    ExecutionReportStringOptionsDefaults,
-    DEFAULT_EXECUTIONS_CACHE_DIRNAME as EXECUTIONS_CACHE_DIRNAME,
-    EXPECTATION_UNITS,
-    ExpectError,
-    DEFAULT_IS_AUTO_INSTALLED as IS_AUTO_INSTALLED,
-    DEFAULT_IS_VERBOSE as IS_VERBOSE,
-    isPassingExpectations,
-    isPipelinePrepared,
-    joinLlmExecutionTools,
-    KnowledgeScrapeError,
-    LimitReachedError,
-    limitTotalUsage,
-    MANDATORY_CSV_SETTINGS,
-    DEFAULT_MAX_EXECUTION_ATTEMPTS as MAX_EXECUTION_ATTEMPTS,
-    MAX_FILENAME_LENGTH,
-    DEFAULT_MAX_KNOWLEDGE_SOURCES_SCRAPING_DEPTH as MAX_KNOWLEDGE_SOURCES_SCRAPING_DEPTH,
-    DEFAULT_MAX_KNOWLEDGE_SOURCES_SCRAPING_TOTAL as MAX_KNOWLEDGE_SOURCES_SCRAPING_TOTAL,
-    DEFAULT_MAX_PARALLEL_COUNT as MAX_PARALLEL_COUNT,
-    MemoryStorage,
-    MissingToolsError,
-    MODEL_VARIANTS,
-    MultipleLlmExecutionTools,
-    NotFoundError,
-    NotYetImplementedError,
-    ParseError,
-    DEFAULT_PIPELINE_COLLECTION_BASE_FILENAME as PIPELINE_COLLECTION_BASE_FILENAME,
-    PipelineExecutionError,
-    pipelineJsonToString,
-    PipelineLogicError,
-    pipelineStringToJson,
-    pipelineStringToJsonSync,
-    PipelineUrlError,
-    PrefixStorage,
-    prepareKnowledgePieces,
-    preparePersona,
-    preparePipeline,
-    prepareTemplates,
-    prettifyPipelineString,
-    RESERVED_PARAMETER_NAMES,
-    DEFAULT_SCRAPE_CACHE_DIRNAME as SCRAPE_CACHE_DIRNAME,
-    stringifyPipelineJson,
-    TemplateTypes,
-    TextFormatDefinition,
-    UnexpectedError,
-    unpreparePipeline,
-    usageToHuman,
-    usageToWorktime,
-    validatePipeline,
-    ZERO_USAGE,
-};
-export type { CallbackInterfaceToolsOptions, ExecutionReportStringOptions, TemplateType };
+export { collectionToJson };
+export { createCollectionFromJson };
+export { createCollectionFromPromise };
+export { createCollectionFromUrl };
+export { createSubcollection };
+export type { TemplateType };
+export { TemplateTypes };
+export { CLAIM };
+export { MAX_FILENAME_LENGTH };
+export { DEFAULT_INTERMEDIATE_FILES_STRATEGY };
+export { DEFAULT_MAX_PARALLEL_COUNT };
+export { DEFAULT_MAX_EXECUTION_ATTEMPTS };
+export { DEFAULT_MAX_KNOWLEDGE_SOURCES_SCRAPING_DEPTH };
+export { DEFAULT_MAX_KNOWLEDGE_SOURCES_SCRAPING_TOTAL };
+export { DEFAULT_EXECUTIONS_CACHE_DIRNAME };
+export { DEFAULT_SCRAPE_CACHE_DIRNAME };
+export { DEFAULT_PIPELINE_COLLECTION_BASE_FILENAME };
+export { RESERVED_PARAMETER_NAMES };
+export { DEFAULT_REMOTE_URL };
+export { DEFAULT_REMOTE_URL_PATH };
+export { DEFAULT_CSV_SETTINGS };
+export { DEFAULT_IS_VERBOSE };
+export { DEFAULT_IS_AUTO_INSTALLED };
+export { pipelineJsonToString };
+export { pipelineStringToJson };
+export { pipelineStringToJsonSync };
+export { prettifyPipelineString };
+export { stringifyPipelineJson };
+export { validatePipeline };
+export { CallbackInterfaceTools };
+export type { CallbackInterfaceToolsOptions };
+export { AbstractFormatError };
+export { CollectionError };
+export { EnvironmentMismatchError };
+export { ExpectError };
+export { ERRORS };
+export { KnowledgeScrapeError };
+export { LimitReachedError };
+export { MissingToolsError };
+export { NotFoundError };
+export { NotYetImplementedError };
+export { ParseError };
+export { PipelineExecutionError };
+export { PipelineLogicError };
+export { PipelineUrlError };
+export { UnexpectedError };
+export { assertsExecutionSuccessful };
+export { createPipelineExecutor };
+export { embeddingVectorToString };
+export { ZERO_USAGE };
+export { addUsage };
+export { isPassingExpectations };
+export { usageToHuman };
+export { usageToWorktime };
+export { CsvFormatDefinition };
+export { CsvFormatError };
+export { MANDATORY_CSV_SETTINGS };
+export { TextFormatDefinition };
+export { $llmToolsMetadataRegister };
+export { $llmToolsRegister };
+export { createLlmToolsFromConfiguration };
+export { cacheLlmTools };
+export { countTotalUsage };
+export { limitTotalUsage };
+export { _AnthropicClaudeMetadataRegistration };
+export { _AzureOpenAiMetadataRegistration };
+export { joinLlmExecutionTools };
+export { MultipleLlmExecutionTools };
+export { _OpenAiMetadataRegistration };
+export { preparePersona };
+export { isPipelinePrepared };
+export { preparePipeline };
+export { prepareTemplates };
+export { unpreparePipeline };
+export { prepareKnowledgePieces };
+export { $scrapersMetadataRegister };
+export { $scrapersRegister };
+export { makeKnowledgeSourceHandler };
+export { _LegacyDocumentScraperMetadataRegistration };
+export { _DocumentScraperMetadataRegistration };
+export { _MarkdownScraperMetadataRegistration };
+export { _PdfScraperMetadataRegistration };
+export { _WebsiteScraperMetadataRegistration };
+export { MemoryStorage };
+export { PrefixStorage };
+export { executionReportJsonToString };
+export type { ExecutionReportStringOptions };
+export { ExecutionReportStringOptionsDefaults };
+export { MODEL_VARIANTS };
+export { EXPECTATION_UNITS };

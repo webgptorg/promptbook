@@ -82,6 +82,7 @@ import type { ExecutionPromptReportJson } from '../types/execution-report/Execut
 import type { ExecutionReportJson } from '../types/execution-report/ExecutionReportJson';
 import type { ExecutionReportString } from '../types/execution-report/ExecutionReportString';
 import type { ExecutionReportStringOptions } from '../types/execution-report/ExecutionReportStringOptions';
+import type { IntermediateFilesStrategy } from '../types/IntermediateFilesStrategy';
 import type { ModelRequirements } from '../types/ModelRequirements';
 import type { CompletionModelRequirements } from '../types/ModelRequirements';
 import type { ChatModelRequirements } from '../types/ModelRequirements';
@@ -323,6 +324,7 @@ export type { ExecutionPromptReportJson };
 export type { ExecutionReportJson };
 export type { ExecutionReportString };
 export type { ExecutionReportStringOptions };
+export type { IntermediateFilesStrategy };
 export type { ModelRequirements };
 export type { CompletionModelRequirements };
 export type { ChatModelRequirements };
