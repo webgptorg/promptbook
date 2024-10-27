@@ -17,6 +17,7 @@ import { forTime } from 'waitasecond';
 import { validatePipeline } from '../../src/conversion/validation/validatePipeline';
 import { $provideLlmToolsForTestingAndScriptsAndPlayground } from '../../src/llm-providers/_common/register/$provideLlmToolsForTestingAndScriptsAndPlayground';
 import { PrepareAndScrapeOptions } from '../../src/prepare/PrepareAndScrapeOptions';
+import { $provideExecutablesForNode } from '../../src/scrapers/_common/register/$provideExecutablesForNode';
 import { $provideFilesystemForNode } from '../../src/scrapers/_common/register/$provideFilesystemForNode';
 import { $provideScrapersForNode } from '../../src/scrapers/_common/register/$provideScrapersForNode';
 import { PipelineString } from '../../src/types/PipelineString';
@@ -32,7 +33,7 @@ const PROMPTBOOK_SAMPLES_DIR = join(process.cwd(), 'samples/pipelines');
 
 const program = new commander.Command();
 program.option('--commit', `Autocommit changes`, false);
-program.option('--reload-cache', `Use LLM models even if cached `, false);
+program.option('--reload', `Use LLM models even if cached `, false);
 program.option('--verbose', `Is verbose`, false);
 
 program.parse(process.argv);
@@ -66,6 +67,7 @@ async function generateSampleJsons({
     const fs = $provideFilesystemForNode();
     const llm = $provideLlmToolsForTestingAndScriptsAndPlayground({ isCacheReloaded, isVerbose });
     //                 <- Note: for example here we don`t want the [🌯]
+    const executables = await $provideExecutablesForNode();
 
     const pipelineMarkdownFilePaths = await glob(join(PROMPTBOOK_SAMPLES_DIR, '*.ptbk.md').split('\\').join('/'));
 
@@ -80,18 +82,13 @@ async function generateSampleJsons({
         try {
             const options: PrepareAndScrapeOptions = {
                 rootDirname: dirname(pipelineMarkdownFilePath),
-                externalProgramsPaths: {
-                    // TODO: !!!!!! use `locate-app` library here
-                    pandocPath: 'C:/Users/me/AppData/Local/Pandoc/pandoc.exe',
-                    libreOfficePath: 'C:/Program Files/LibreOffice/program/swriter.exe',
-                },
             };
             const pipelineJson = await pipelineStringToJson(
                 pipelineMarkdown as PipelineString,
                 {
                     llm,
                     fs,
-                    scrapers: await $provideScrapersForNode({ fs, llm }, options),
+                    scrapers: await $provideScrapersForNode({ fs, llm, executables }, options),
                 },
                 options,
             );

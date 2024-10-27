@@ -132,7 +132,7 @@ export const parameterCommandParser: PipelineBothCommandParser<ParameterCommand>
      *
      * Note: This is used in `pipelineJsonToString` utility
      */
-    takeFromPipelineJson(pipelineJson: PipelineJson): Array<ParameterCommand> {
+    takeFromPipelineJson(pipelineJson: PipelineJson): ReadonlyArray<ParameterCommand> {
         keepUnused(pipelineJson);
         throw new NotYetImplementedError(`[🛋] Not implemented yet`); // <- TODO: [🛋] Implement
     },
@@ -142,7 +142,7 @@ export const parameterCommandParser: PipelineBothCommandParser<ParameterCommand>
      *
      * Note: This is used in `pipelineJsonToString` utility
      */
-    takeFromTemplateJson($templateJson: $TemplateJson): Array<ParameterCommand> {
+    takeFromTemplateJson($templateJson: $TemplateJson): ReadonlyArray<ParameterCommand> {
         keepUnused($templateJson);
         throw new NotYetImplementedError(`[🛋] Not implemented yet`); // <- TODO: [🛋] Implement
     },

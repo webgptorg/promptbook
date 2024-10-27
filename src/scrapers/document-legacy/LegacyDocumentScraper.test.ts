@@ -1,37 +1,38 @@
 import { describe, expect, it } from '@jest/globals';
 import { join } from 'path';
 import { $provideLlmToolsForTestingAndScriptsAndPlayground } from '../../llm-providers/_common/register/$provideLlmToolsForTestingAndScriptsAndPlayground';
+import { $provideExecutablesForNode } from '../_common/register/$provideExecutablesForNode';
 import { $provideFilesystemForNode } from '../_common/register/$provideFilesystemForNode';
 import { makeKnowledgeSourceHandler } from '../_common/utils/makeKnowledgeSourceHandler';
 import { LegacyDocumentScraper } from './LegacyDocumentScraper';
 
 describe('how creating knowledge from docx works', () => {
     const rootDirname = join(__dirname, 'samples');
-    const legacyDocumentScraper = new LegacyDocumentScraper(
-        { fs: $provideFilesystemForNode(), llm: $provideLlmToolsForTestingAndScriptsAndPlayground() },
-        {
-            rootDirname,
-            externalProgramsPaths: {
-                // TODO: !!!!!! use `locate-app` library here
-                pandocPath: 'C:/Users/me/AppData/Local/Pandoc/pandoc.exe',
-                libreOfficePath: 'C:/Program Files/LibreOffice/program/swriter.exe',
+    const legacyDocumentScraperPromise = (async () =>
+        new LegacyDocumentScraper(
+            {
+                fs: $provideFilesystemForNode(),
+                llm: $provideLlmToolsForTestingAndScriptsAndPlayground(),
+                executables: await $provideExecutablesForNode(),
             },
-        },
-    );
+            {
+                rootDirname,
+            },
+        ))();
 
     it('should scrape simple information from a (legacy) .doc file', () =>
         expect(
-            Promise.resolve()
-                .then(() =>
-                    makeKnowledgeSourceHandler(
-                        {
-                            sourceContent: '10-simple.doc',
-                        },
-                        { fs: $provideFilesystemForNode() },
-                        { rootDirname },
-                    ),
-                )
-                .then((sourceHandler) => legacyDocumentScraper.scrape(sourceHandler))
+            Promise.all([
+                legacyDocumentScraperPromise,
+                makeKnowledgeSourceHandler(
+                    {
+                        sourceContent: '10-simple.doc',
+                    },
+                    { fs: $provideFilesystemForNode() },
+                    { rootDirname },
+                ),
+            ])
+                .then(([legacyDocumentScraper, sourceHandler]) => legacyDocumentScraper.scrape(sourceHandler))
                 .then((knowledge) => knowledge?.map(({ content }) => ({ content })))
                 .then((knowledge) => knowledge?.slice(0, 1)),
         ).resolves.toMatchObject([
@@ -42,17 +43,17 @@ describe('how creating knowledge from docx works', () => {
 
     it('should scrape simple information from a .rtf file', () =>
         expect(
-            Promise.resolve()
-                .then(() =>
-                    makeKnowledgeSourceHandler(
-                        {
-                            sourceContent: '10-simple.rtf',
-                        },
-                        { fs: $provideFilesystemForNode() },
-                        { rootDirname },
-                    ),
-                )
-                .then((sourceHandler) => legacyDocumentScraper.scrape(sourceHandler))
+            Promise.all([
+                legacyDocumentScraperPromise,
+                makeKnowledgeSourceHandler(
+                    {
+                        sourceContent: '10-simple.rtf',
+                    },
+                    { fs: $provideFilesystemForNode() },
+                    { rootDirname },
+                ),
+            ])
+                .then(([legacyDocumentScraper, sourceHandler]) => legacyDocumentScraper.scrape(sourceHandler))
                 .then((knowledge) => knowledge?.map(({ content }) => ({ content })))
                 .then((knowledge) => knowledge?.slice(0, 1)),
         ).resolves.toMatchObject([
@@ -63,17 +64,17 @@ describe('how creating knowledge from docx works', () => {
 
     it('should NOT scrape irrelevant information', () =>
         expect(
-            Promise.resolve()
-                .then(() =>
-                    makeKnowledgeSourceHandler(
-                        {
-                            sourceContent: '10-simple.doc',
-                        },
-                        { fs: $provideFilesystemForNode() },
-                        { rootDirname },
-                    ),
-                )
-                .then((sourceHandler) => legacyDocumentScraper.scrape(sourceHandler))
+            Promise.all([
+                legacyDocumentScraperPromise,
+                makeKnowledgeSourceHandler(
+                    {
+                        sourceContent: '10-simple.doc',
+                    },
+                    { fs: $provideFilesystemForNode() },
+                    { rootDirname },
+                ),
+            ])
+                .then(([legacyDocumentScraper, sourceHandler]) => legacyDocumentScraper.scrape(sourceHandler))
                 .then((knowledge) => knowledge?.map(({ content }) => ({ content })))
                 .then((knowledge) => knowledge?.slice(0, 1)),
         ).resolves.toMatchObject([

@@ -9,7 +9,8 @@ import { join } from 'path';
 import spaceTrim from 'spacetrim';
 import { forTime } from 'waitasecond';
 import { createCollectionFromDirectory } from '../../src/collection/constructors/createCollectionFromDirectory';
-import { createPipelineExecutor } from '../../src/execution/00-createPipelineExecutor';
+import { createPipelineExecutor } from '../../src/execution/createPipelineExecutor/00-createPipelineExecutor';
+import { $provideExecutionToolsForNode } from '../../src/execution/utils/$provideExecutionToolsForNode';
 import { usageToHuman } from '../../src/execution/utils/usageToHuman';
 
 if (process.cwd() !== join(__dirname, '../..')) {
@@ -49,7 +50,7 @@ async function playground() {
 
     const pipelineExecutor = createPipelineExecutor({
         pipeline,
-        tools: $provideExecutionToolsForNode({ isVerbose: true }),
+        tools: await $provideExecutionToolsForNode({ isVerbose: true }),
     });
 
     const inputParameters = {

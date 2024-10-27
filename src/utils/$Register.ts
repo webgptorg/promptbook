@@ -1,5 +1,5 @@
 import { type IDestroyable } from 'destroyable';
-import { IS_VERBOSE } from '../config';
+import { DEFAULT_IS_VERBOSE } from '../config';
 import { NotYetImplementedError } from '../errors/NotYetImplementedError';
 import { UnexpectedError } from '../errors/UnexpectedError';
 import type { string_name } from '../types/typeAliases';
@@ -59,8 +59,8 @@ export class $Register<TRegistered extends Registered> {
         this.storage = globalScope[storageName];
     }
 
-    public list(): Array<TRegistered> {
-        // <- TODO: ReadonlyDeep<Array<TRegistered>>
+    public list(): ReadonlyArray<TRegistered> {
+        // <- TODO: ReadonlyDeep<ReadonlyArray<TRegistered>>
         return this.storage;
     }
 
@@ -73,12 +73,12 @@ export class $Register<TRegistered extends Registered> {
         const existingRegistration = this.storage[existingRegistrationIndex];
 
         if (!existingRegistration) {
-            if (IS_VERBOSE) {
+            if (DEFAULT_IS_VERBOSE) {
                 console.warn(`[📦] Registering \`${packageName}.${className}\` to \`${this.registerName}\``);
             }
             this.storage.push(registered);
         } else {
-            if (IS_VERBOSE) {
+            if (DEFAULT_IS_VERBOSE) {
                 console.warn(`[📦] Re-registering \`${packageName}.${className}\` to \`${this.registerName}\``);
             }
             this.storage[existingRegistrationIndex] = registered;

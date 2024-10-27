@@ -122,7 +122,7 @@ export const urlCommandParser: PipelineHeadCommandParser<UrlCommand> = {
      *
      * Note: This is used in `pipelineJsonToString` utility
      */
-    takeFromPipelineJson(pipelineJson: PipelineJson): Array<UrlCommand> {
+    takeFromPipelineJson(pipelineJson: PipelineJson): ReadonlyArray<UrlCommand> {
         keepUnused(pipelineJson);
         throw new NotYetImplementedError(`[🛋] Not implemented yet`); // <- TODO: [🛋] Implement
     },

@@ -3,19 +3,19 @@ import type { Command as Program /* <- Note: Using Program because Command is mi
 import { mkdir, writeFile } from 'fs/promises';
 import { dirname, join } from 'path';
 import spaceTrim from 'spacetrim';
-import { $provideFilesystemForNode } from '../../scrapers/_common/register/$provideFilesystemForNode';
-import { $provideScrapersForNode } from '../../scrapers/_common/register/$provideScrapersForNode';
 import { collectionToJson } from '../../collection/collectionToJson';
 import { createCollectionFromDirectory } from '../../collection/constructors/createCollectionFromDirectory';
+import { DEFAULT_PIPELINE_COLLECTION_BASE_FILENAME } from '../../config';
 import { GENERATOR_WARNING_BY_PROMPTBOOK_CLI } from '../../config';
-import { PIPELINE_COLLECTION_BASE_FILENAME } from '../../config';
 import { stringifyPipelineJson } from '../../conversion/utils/stringifyPipelineJson';
 import { validatePipeline } from '../../conversion/validation/validatePipeline';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { ExecutionTools } from '../../execution/ExecutionTools';
 import { usageToHuman } from '../../execution/utils/usageToHuman';
 import { $provideLlmToolsForCli } from '../../llm-providers/_common/register/$provideLlmToolsForCli';
-import type { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';
+import { $provideExecutablesForNode } from '../../scrapers/_common/register/$provideExecutablesForNode';
+import { $provideFilesystemForNode } from '../../scrapers/_common/register/$provideFilesystemForNode';
+import { $provideScrapersForNode } from '../../scrapers/_common/register/$provideScrapersForNode';
 import type { string_file_extension } from '../../types/typeAliases';
 
 /**
@@ -54,22 +54,25 @@ export function initializeMakeCommand(program: Program) {
         'logic,imports',
     );
 
-    makeCommand.option('--reload-cache', `Call LLM models even if same prompt with result is in the cache`, false);
+    makeCommand.option('--reload', `Call LLM models even if same prompt with result is in the cache`, false);
     makeCommand.option('--verbose', `Is output verbose`, false);
     makeCommand.option(
         '-o, --out-file <path>',
         spaceTrim(`
             Where to save the builded collection
 
-            Note: If you keep it "${PIPELINE_COLLECTION_BASE_FILENAME}" it will be saved in the root of the promptbook directory
+            Note: If you keep it "${DEFAULT_PIPELINE_COLLECTION_BASE_FILENAME}" it will be saved in the root of the promptbook directory
                   If you set it to a path, it will be saved in that path
                   BUT you can use only one format and set correct extension
         `),
-        PIPELINE_COLLECTION_BASE_FILENAME,
+        DEFAULT_PIPELINE_COLLECTION_BASE_FILENAME,
     );
 
     makeCommand.action(
-        async (path, { projectName, format, validation, reloadCache: isCacheCleaned, verbose: isVerbose, outFile }) => {
+        async (
+            path,
+            { projectName, format, validation, reloadCache: isCacheReloaded, verbose: isVerbose, outFile },
+        ) => {
             let formats = ((format as string | false) || '')
                 .split(',')
                 .map((_) => _.trim())
@@ -79,7 +82,7 @@ export function initializeMakeCommand(program: Program) {
                 .map((_) => _.trim())
                 .filter((_) => _ !== '');
 
-            if (outFile !== PIPELINE_COLLECTION_BASE_FILENAME && formats.length !== 1) {
+            if (outFile !== DEFAULT_PIPELINE_COLLECTION_BASE_FILENAME && formats.length !== 1) {
                 console.error(colors.red(`You can only use one format if you specify --out-file`));
                 process.exit(1);
             }
@@ -87,14 +90,15 @@ export function initializeMakeCommand(program: Program) {
             // TODO: DRY [◽]
             const options = {
                 isVerbose,
-                isCacheCleaned,
-            } satisfies PrepareAndScrapeOptions;
+                isCacheReloaded,
+            }; /* <- TODO: ` satisfies PrepareAndScrapeOptions` */
             const fs = $provideFilesystemForNode(options);
             const llm = $provideLlmToolsForCli(options);
+            const executables = await $provideExecutablesForNode(options);
             const tools = {
                 llm,
                 fs,
-                scrapers: await $provideScrapersForNode({ fs, llm }, options),
+                scrapers: await $provideScrapersForNode({ fs, llm, executables }, options),
                 script: [
                     /*new JavascriptExecutionTools(options)*/
                 ],
@@ -103,7 +107,7 @@ export function initializeMakeCommand(program: Program) {
             const collection = await createCollectionFromDirectory(path, tools, {
                 isVerbose,
                 isRecursive: true,
-                // <- TODO: [🍖] isCacheReloaded
+                // <- TODO: [🍖] Add `intermediateFilesStrategy`
             });
 
             for (const validation of validations) {
@@ -145,9 +149,9 @@ export function initializeMakeCommand(program: Program) {
 
             const saveFile = async (extension: string_file_extension, content: string) => {
                 const filename =
-                    outFile !== PIPELINE_COLLECTION_BASE_FILENAME
+                    outFile !== DEFAULT_PIPELINE_COLLECTION_BASE_FILENAME
                         ? outFile
-                        : join(path, `${PIPELINE_COLLECTION_BASE_FILENAME}.${extension}`);
+                        : join(path, `${DEFAULT_PIPELINE_COLLECTION_BASE_FILENAME}.${extension}`);
 
                 if (!outFile.endsWith(`.${extension}`)) {
                     console.warn(colors.yellow(`Warning: Extension of output file should be "${extension}"`));

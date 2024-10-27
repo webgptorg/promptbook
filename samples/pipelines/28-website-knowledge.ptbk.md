@@ -1,14 +1,11 @@
 # ✨ Sample: Knowledge in external website
 
-!!!!!!
-
 Show how to use knowledge
 
 -   PIPELINE URL https://promptbook.studio/samples/website-knowledge.ptbk.md
 -   INPUT  PARAMETER `{eventTitle}` The event name
 -   OUTPUT PARAMETER `{bio}` Bio of Pavol Hejný - speaker at the event
 -   KNOWLEDGE https://pavolhejny.com/
-
 
 ## Writing bio
 

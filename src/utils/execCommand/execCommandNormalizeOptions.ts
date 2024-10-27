@@ -1,13 +1,13 @@
-import type { IExecCommandOptions } from './IExecCommandOptions';
-import type { IExecCommandOptionsAdvanced } from './IExecCommandOptions';
+import type { ExecCommandOptions } from './ExecCommandOptions';
+import type { ExecCommandOptionsAdvanced } from './ExecCommandOptions';
 
 /**
  * Normalize options for `execCommand` and `execCommands`
  *
  * @private internal utility of `execCommand` and `execCommands`
  */
-export function execCommandNormalizeOptions(options: IExecCommandOptions): Pick<
-    IExecCommandOptionsAdvanced,
+export function execCommandNormalizeOptions(options: ExecCommandOptions): Pick<
+    ExecCommandOptionsAdvanced,
     'command' | 'args' | 'cwd' | 'crashOnError' | 'timeout'
 > & {
     humanReadableCommand: string;

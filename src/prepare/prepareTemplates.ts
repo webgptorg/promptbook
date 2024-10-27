@@ -1,5 +1,5 @@
 import { spaceTrim } from 'spacetrim';
-import { MAX_PARALLEL_COUNT } from '../config';
+import { DEFAULT_MAX_PARALLEL_COUNT } from '../config';
 import type { ExecutionTools } from '../execution/ExecutionTools';
 import { forEachAsync } from '../execution/utils/forEachAsync';
 import type { PipelineJson } from '../types/PipelineJson/PipelineJson';
@@ -18,7 +18,7 @@ type PreparedTemplates = {
     /**
      * @@@ Sequence of templates that are chained together to form a pipeline
      */
-    readonly templatesPrepared: Array<TemplateJson>;
+    readonly templatesPrepared: ReadonlyArray<TemplateJson>;
 };
 
 /**
@@ -28,10 +28,10 @@ type PreparedTemplates = {
  */
 export async function prepareTemplates(
     pipeline: PrepareTemplateInput,
-    tools: Pick<ExecutionTools, 'llm'| 'fs'  | 'scrapers'>,
+    tools: Pick<ExecutionTools, 'llm' | 'fs' | 'scrapers'>,
     options: PrepareAndScrapeOptions,
 ): Promise<PreparedTemplates> {
-    const { maxParallelCount = MAX_PARALLEL_COUNT } = options;
+    const { maxParallelCount = DEFAULT_MAX_PARALLEL_COUNT } = options;
     const { templates, parameters, knowledgePiecesCount } = pipeline;
 
     // TODO: [main] !!!!! Apply samples to each template (if missing and is for the template defined)

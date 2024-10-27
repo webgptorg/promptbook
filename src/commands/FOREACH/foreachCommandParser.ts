@@ -224,7 +224,7 @@ export const foreachCommandParser: PipelineTemplateCommandParser<ForeachCommand>
      *
      * Note: This is used in `pipelineJsonToString` utility
      */
-    takeFromTemplateJson($templateJson: $TemplateJson): Array<ForeachCommand> {
+    takeFromTemplateJson($templateJson: $TemplateJson): ReadonlyArray<ForeachCommand> {
         keepUnused($templateJson);
         throw new NotYetImplementedError(`[🛋] Not implemented yet`); // <- TODO: [🛋] Implement
     },

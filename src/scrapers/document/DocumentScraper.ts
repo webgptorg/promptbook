@@ -3,8 +3,9 @@ import type { KnowledgePiecePreparedJson } from '../../types/PipelineJson/Knowle
 // import PipelineCollection from '../../../promptbook-collection/promptbook-collection';
 import { readFile } from 'fs/promises';
 import spaceTrim from 'spacetrim';
-import { IS_VERBOSE } from '../../config';
-import { SCRAPE_CACHE_DIRNAME } from '../../config';
+import { DEFAULT_INTERMEDIATE_FILES_STRATEGY } from '../../config';
+import { DEFAULT_IS_VERBOSE } from '../../config';
+import { DEFAULT_SCRAPE_CACHE_DIRNAME } from '../../config';
 import { EnvironmentMismatchError } from '../../errors/EnvironmentMismatchError';
 import { KnowledgeScrapeError } from '../../errors/KnowledgeScrapeError';
 import { MissingToolsError } from '../../errors/MissingToolsError';
@@ -44,7 +45,7 @@ export class DocumentScraper implements Converter, Scraper {
     private readonly markdownScraper: MarkdownScraper;
 
     public constructor(
-        private readonly tools: Pick<ExecutionTools, 'fs' | 'llm'>,
+        private readonly tools: Pick<ExecutionTools, 'fs' | 'llm' | 'executables'>,
         private readonly options: PrepareAndScrapeOptions,
     ) {
         this.markdownScraper = new MarkdownScraper(tools, options);
@@ -57,11 +58,10 @@ export class DocumentScraper implements Converter, Scraper {
      */
     public async $convert(source: ScraperSourceHandler): Promise<ScraperIntermediateSource> {
         const {
-            externalProgramsPaths = {},
             rootDirname = process.cwd(),
-            cacheDirname = SCRAPE_CACHE_DIRNAME,
-            isCacheCleaned = false,
-            isVerbose = IS_VERBOSE,
+            cacheDirname = DEFAULT_SCRAPE_CACHE_DIRNAME,
+            intermediateFilesStrategy = DEFAULT_INTERMEDIATE_FILES_STRATEGY,
+            isVerbose = DEFAULT_IS_VERBOSE,
         } = this.options;
 
         if (!$isRunningInNode()) {
@@ -73,7 +73,7 @@ export class DocumentScraper implements Converter, Scraper {
             //          <- TODO: [🧠] What is the best error type here`
         }
 
-        if (externalProgramsPaths.pandocPath === undefined) {
+        if (this.tools.executables?.pandocPath === undefined) {
             throw new MissingToolsError('Pandoc is required for scraping .docx files');
         }
 
@@ -87,16 +87,15 @@ export class DocumentScraper implements Converter, Scraper {
         const cacheFilehandler = await getScraperIntermediateSource(source, {
             rootDirname,
             cacheDirname,
-            isCacheCleaned,
+            intermediateFilesStrategy,
             extension: 'md',
             isVerbose,
         });
 
         // Note: Running Pandoc ONLY if the file in the cache does not exist
         if (!(await isFileExisting(cacheFilehandler.filename, this.tools.fs))) {
-            const command = `"${externalProgramsPaths.pandocPath}" -f ${extension} -t markdown "${source.filename}" -o "${cacheFilehandler.filename}"`;
+            const command = `"${this.tools.executables.pandocPath}" -f ${extension} -t markdown "${source.filename}" -o "${cacheFilehandler.filename}"`;
 
-            // TODO: !!!!!! [🕊] Make execCommand standard (?node-)util of the promptbook
             await $execCommand(command);
 
             // Note: [0]
@@ -126,7 +125,7 @@ export class DocumentScraper implements Converter, Scraper {
      */
     public async scrape(
         source: ScraperSourceHandler,
-    ): Promise<Array<Omit<KnowledgePiecePreparedJson, 'sources' | 'preparationIds'>> | null> {
+    ): Promise<ReadonlyArray<Omit<KnowledgePiecePreparedJson, 'sources' | 'preparationIds'>> | null> {
         const cacheFilehandler = await this.$convert(source);
 
         const markdownSource = {

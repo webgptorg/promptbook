@@ -540,11 +540,18 @@ Knowledge scrapers [🐝]
 -   Change `FileStorage` -> `FileCacheStorage`
 -   Changed behavior of `titleToName` when passing URLs or file paths
 -   Fix normalize functions when normalizing string containing slash char "/", "\"
+-   Pass `fs` through `ExecutionTools`
+-   Pass `executables` through `ExecutionTools`
+-   Pass `scrapers` through `ExecutionTools`
 -   Add utilities `$provideExecutionToolsForBrowser` and `$provideExecutionToolsForNode` and use them in samples
 -   Add utilities `$provideScrapersForBrowser` and `$provideScrapersForNode`
 -   Rename `createLlmToolsFromConfigurationFromEnv` -> `$provideLlmToolsConfigurationFromEnv` and `createLlmToolsFromEnv` -> `$provideLlmToolsFromEnv`
 -   Rename `getLlmToolsForTestingAndScriptsAndPlayground` -> `$provideLlmToolsForTestingAndScriptsAndPlayground`
 -   Rename `getLlmToolsForCli` -> `$provideLlmToolsForCli`
+-   Change most `Array` -> `ReadonlyArray`
+-   Unite `CreatePipelineExecutorOptions` and `CreatePipelineExecutorSettings`
+-   Change `--reload-cache` to `--reload` in CLI
+-   Prefix default values with `DEFAULT_`
 
 ### `0.72.0` _(2024-09-)_
 

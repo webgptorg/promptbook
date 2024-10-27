@@ -1,5 +1,5 @@
 import { spaceTrim } from 'spacetrim';
-import type { ReadonlyDeep } from 'type-fest';
+import type { ReadonlyDeep, WritableDeep } from 'type-fest';
 import { ExpectError } from '../../errors/ExpectError';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
@@ -23,21 +23,20 @@ import type { TODO_any } from '../../utils/organization/TODO_any';
 import type { TODO_string } from '../../utils/organization/TODO_string';
 import { replaceParameters } from '../../utils/parameters/replaceParameters';
 import { $deepFreeze } from '../../utils/serialization/$deepFreeze';
-import type { ExecutionTools } from '../ExecutionTools';
 import { checkExpectations } from '../utils/checkExpectations';
 import type { $OngoingTemplateResult } from './$OngoingTemplateResult';
-import type { CreatePipelineExecutorSettings } from './00-CreatePipelineExecutorSettings';
+import type { CreatePipelineExecutorOptions } from './00-CreatePipelineExecutorOptions';
 
 /**
  * @@@
  *
  * @private internal type of `executeAttempts`
  */
-export type ExecuteAttemptsOptions = {
+export type ExecuteAttemptsOptions = Omit<CreatePipelineExecutorOptions, 'pipeline'> & {
     /**
      * @@@
      */
-    readonly jokerParameterNames: Readonly<Array<string_parameter_name>>;
+    readonly jokerParameterNames: Readonly<ReadonlyArray<string_parameter_name>>;
 
     /**
      * @@@
@@ -46,8 +45,12 @@ export type ExecuteAttemptsOptions = {
 
     /**
      * @@@
+     *
+     * Note: [💂] There are two distinct variabiles
+     * 1) `maxExecutionAttempts` - the amount of attempts LLM model
+     * 2) `maxAttempts` - the amount of attempts for any template - LLM, SCRIPT, DIALOG, etc.
      */
-    readonly maxAttempts: number; // <- [🤹‍♂️] In `ExecuteAttemptsOptions` should be just `setting` or `maxAttempts`
+    readonly maxAttempts: number;
 
     /**
      * @@@
@@ -72,17 +75,7 @@ export type ExecuteAttemptsOptions = {
     /**
      * @@@
      */
-    readonly tools: ExecutionTools;
-
-    /**
-     * Settings for the pipeline executor
-     */
-    readonly settings: CreatePipelineExecutorSettings; // <- [🤹‍♂️] In `ExecuteAttemptsOptions` should be just `setting` or `maxAttempts`
-
-    /**
-     * @@@
-     */
-    readonly $executionReport: ExecutionReportJson;
+    readonly $executionReport: WritableDeep<ExecutionReportJson>;
 
     /**
      * @@@
@@ -99,17 +92,16 @@ export async function executeAttempts(options: ExecuteAttemptsOptions): Promise<
     const {
         jokerParameterNames,
         priority,
-        maxAttempts,
+        maxAttempts, // <- Note: [💂]
         preparedContent,
         parameters,
         template,
         preparedPipeline,
         tools,
-        settings,
         $executionReport,
         pipelineIdentification,
+        maxExecutionAttempts,
     } = options;
-    const { maxExecutionAttempts } = settings;
 
     const $ongoingTemplateResult: $OngoingTemplateResult = {
         $result: null,

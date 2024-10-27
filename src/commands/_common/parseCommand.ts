@@ -162,7 +162,7 @@ function parseCommandVariant(input: CommandParserInput & { commandNameRaw: strin
 
     const commandName = normalizeTo_SCREAMING_CASE(commandNameRaw);
 
-    for (const commandParser of COMMANDS as really_unknown as Array<CommandParser<CommandBase>>) {
+    for (const commandParser of COMMANDS as really_unknown as ReadonlyArray<CommandParser<CommandBase>>) {
         //                               <- Note: [🦦] Its strange that this type assertion is needed
         const { name, isUsedInPipelineHead, isUsedInPipelineTemplate, aliasNames, deprecatedNames, parse } =
             commandParser;

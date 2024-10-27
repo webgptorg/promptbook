@@ -40,7 +40,7 @@ export type KnowledgeSourcePreparedJson = KnowledgeSourceJson & {
     /**
      * List of preparation ids that were used to prepare this knowledge source to knowledge pieces
      */
-    readonly preparationIds: Array<number_id>;
+    readonly preparationIds: ReadonlyArray<number_id>;
 };
 
 /**

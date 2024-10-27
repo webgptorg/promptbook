@@ -8,9 +8,10 @@ import type { ScraperSourceHandler } from '../_common/Scraper';
 import { Readability } from '@mozilla/readability';
 import { writeFile } from 'fs/promises';
 import { JSDOM } from 'jsdom';
-import { forTime } from 'waitasecond';
-import { IS_VERBOSE } from '../../config';
-import { SCRAPE_CACHE_DIRNAME } from '../../config';
+import { Converter as ShowdownConverter } from 'showdown';
+import { DEFAULT_INTERMEDIATE_FILES_STRATEGY } from '../../config';
+import { DEFAULT_IS_VERBOSE } from '../../config';
+import { DEFAULT_SCRAPE_CACHE_DIRNAME } from '../../config';
 import { KnowledgeScrapeError } from '../../errors/KnowledgeScrapeError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { ExecutionTools } from '../../execution/ExecutionTools';
@@ -20,10 +21,10 @@ import type { ScraperIntermediateSource } from '../_common/ScraperIntermediateSo
 import { getScraperIntermediateSource } from '../_common/utils/getScraperIntermediateSource';
 import { MarkdownScraper } from '../markdown/MarkdownScraper';
 import { websiteScraperMetadata } from './register-metadata';
-import { markdownConverter } from './utils/markdownConverter';
+import { createShowdownConverter } from './utils/createShowdownConverter';
 
 /**
- * Scraper for .docx files
+ * Scraper for websites
  *
  * @see `documentationUrl` for more details
  * @public exported from `@promptbook/website-crawler`
@@ -41,11 +42,17 @@ export class WebsiteScraper implements Converter, Scraper {
      */
     private readonly markdownScraper: MarkdownScraper;
 
+    /**
+     * Showdown converter is used internally
+     */
+    private readonly showdownConverter: ShowdownConverter;
+
     public constructor(
-        private readonly tools: Pick<ExecutionTools, 'fs'|'llm'>,
+        private readonly tools: Pick<ExecutionTools, 'fs' | 'llm'>,
         private readonly options: PrepareAndScrapeOptions,
     ) {
         this.markdownScraper = new MarkdownScraper(tools, options);
+        this.showdownConverter = createShowdownConverter();
     }
 
     /**
@@ -58,11 +65,10 @@ export class WebsiteScraper implements Converter, Scraper {
     ): Promise<ScraperIntermediateSource & { markdown: string_markdown }> {
         const {
             // TODO: [🧠] Maybe in node use headless browser not just JSDOM
-            // externalProgramsPaths = {},
             rootDirname = process.cwd(),
-            cacheDirname = SCRAPE_CACHE_DIRNAME,
-            isCacheCleaned = false,
-            isVerbose = IS_VERBOSE,
+            cacheDirname = DEFAULT_SCRAPE_CACHE_DIRNAME,
+            intermediateFilesStrategy = DEFAULT_INTERMEDIATE_FILES_STRATEGY,
+            isVerbose = DEFAULT_IS_VERBOSE,
         } = this.options;
 
         // TODO: !!!!!! Does this work in browser? Make it work.
@@ -78,8 +84,8 @@ export class WebsiteScraper implements Converter, Scraper {
         const reader = new Readability(jsdom.window.document);
         const article = reader.parse();
 
-        console.log(article);
-        await forTime(10000);
+        // console.log(article);
+        // await forTime(10000);
 
         let html = article?.content || article?.textContent || jsdom.window.document.body.innerHTML;
 
@@ -95,14 +101,14 @@ export class WebsiteScraper implements Converter, Scraper {
         const cacheFilehandler = await getScraperIntermediateSource(source, {
             rootDirname,
             cacheDirname,
-            isCacheCleaned,
+            intermediateFilesStrategy,
             extension: 'html',
             isVerbose,
         });
 
         await writeFile(cacheFilehandler.filename, html, 'utf-8');
 
-        const markdown = markdownConverter.makeMarkdown(html, jsdom.window.document);
+        const markdown = this.showdownConverter.makeMarkdown(html, jsdom.window.document);
 
         return { ...cacheFilehandler, markdown };
     }
@@ -112,7 +118,7 @@ export class WebsiteScraper implements Converter, Scraper {
      */
     public async scrape(
         source: ScraperSourceHandler,
-    ): Promise<Array<Omit<KnowledgePiecePreparedJson, 'sources' | 'preparationIds'>> | null> {
+    ): Promise<ReadonlyArray<Omit<KnowledgePiecePreparedJson, 'sources' | 'preparationIds'>> | null> {
         const cacheFilehandler = await this.$convert(source);
 
         const markdownSource = {
@@ -144,7 +150,6 @@ export class WebsiteScraper implements Converter, Scraper {
 }
 
 /**
- * TODO: !!!!!! Put into separate package
  * TODO: [👣] Scraped website in .md can act as cache item - there is no need to run conversion each time
  * TODO: [🪂] Do it in parallel 11:11
  * Note: No need to aggregate usage here, it is done by intercepting the llmTools

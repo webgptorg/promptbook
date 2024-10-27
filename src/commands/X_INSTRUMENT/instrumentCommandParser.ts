@@ -80,7 +80,7 @@ export const instrumentCommandParser: PipelineHeadCommandParser<InstrumentComman
      *
      * Note: This is used in `pipelineJsonToString` utility
      */
-    takeFromPipelineJson(pipelineJson: PipelineJson): Array<InstrumentCommand> {
+    takeFromPipelineJson(pipelineJson: PipelineJson): ReadonlyArray<InstrumentCommand> {
         keepUnused(pipelineJson);
         throw new NotYetImplementedError('[🛠] Instruments are not implemented yet');
     },

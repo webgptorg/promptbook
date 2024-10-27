@@ -39,7 +39,7 @@ export class MockedFackedLlmExecutionTools implements LlmExecutionTools /* <- TO
     /**
      * List all available fake-models that can be used
      */
-    public listModels(): Array<AvailableModel> {
+    public listModels(): ReadonlyArray<AvailableModel> {
         return [
             {
                 modelTitle: 'Fake chat',

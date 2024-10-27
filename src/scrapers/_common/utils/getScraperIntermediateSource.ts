@@ -24,7 +24,7 @@ type GetScraperIntermediateSourceSource = Pick<ScraperSourceHandler, 'filename' 
  * @private internal utility of `getScraperIntermediateSource`
  */
 type GetScraperIntermediateSourceHandler = Required<
-    Pick<PrepareAndScrapeOptions, 'rootDirname' | 'cacheDirname' | 'isCacheCleaned' | 'isVerbose'>
+    Pick<PrepareAndScrapeOptions, 'rootDirname' | 'cacheDirname' | 'intermediateFilesStrategy' | 'isVerbose'>
 > & {
     readonly extension: string_file_extension;
 };
@@ -41,7 +41,7 @@ export async function getScraperIntermediateSource(
     options: GetScraperIntermediateSourceHandler,
 ): Promise<ScraperIntermediateSource> {
     const { filename: sourceFilename, url } = source;
-    const { rootDirname, cacheDirname, isCacheCleaned, extension, isVerbose } = options;
+    const { rootDirname, cacheDirname, intermediateFilesStrategy, extension, isVerbose } = options;
 
     // TODO: [👬] DRY
     const hash = sha256(
@@ -74,7 +74,7 @@ export async function getScraperIntermediateSource(
     const name = pieces.join('-').split('--').join('-');
     // <- TODO: Use MAX_FILENAME_LENGTH
 
-    TODO_USE(rootDirname); // <- TODO: !!!!!!
+    TODO_USE(rootDirname); // <- TODO: [😡]
 
     const cacheFilename =
         join(
@@ -97,7 +97,7 @@ export async function getScraperIntermediateSource(
             return isDestroyed;
         },
         async destroy() {
-            if (isCacheCleaned) {
+            if (intermediateFilesStrategy === 'HIDE_AND_CLEAN') {
                 if (isVerbose) {
                     console.info('legacyDocumentScraper: Clening cache');
                 }
@@ -115,7 +115,7 @@ export async function getScraperIntermediateSource(
 /**
  * Note: Not using `FileCacheStorage` for two reasons:
  * 1) Need to store more than serialized JSONs
- * 2) Need to switch between a `rootDirname` and `cacheDirname` <- TODO: !!!!
+ * 2) Need to switch between a `rootDirname` and `cacheDirname` <- TODO: [😡]
  * TODO: [🐱‍🐉][🧠] Make some smart crop
  * Note: [🟢] Code in this file should never be never released in packages that could be imported into browser environment
  */

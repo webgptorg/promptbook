@@ -12,6 +12,6 @@ import { SimplePipelineCollection } from '../SimplePipelineCollection';
  * @returns PipelineCollection
  * @public exported from `@promptbook/core`
  */
-export function createCollectionFromJson(...promptbooks: Array<PipelineJson>): PipelineCollection {
+export function createCollectionFromJson(...promptbooks: ReadonlyArray<PipelineJson>): PipelineCollection {
     return new SimplePipelineCollection(...promptbooks);
 }

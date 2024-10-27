@@ -14,7 +14,7 @@ import { string_javascript, string_name } from '../types/typeAliases';
  * @private within the repository
  */
 
-export function extractVariables(script: string_javascript): Array<string_name> {
+export function extractVariables(script: string_javascript): ReadonlyArray<string_name> {
     const syntaxTree = parse(script, {
         ecmaVersion: 'latest',
         sourceType: 'script',
@@ -31,9 +31,9 @@ export function extractVariables(script: string_javascript): Array<string_name> 
 ---------------------------------------
 
 
-function extractVariables(code: string_javascript): Array<string_javascript_name> {
+function extractVariables(code: string_javascript): ReadonlyArray<string_javascript_name> {
     // An array to store the variables
-    const variables: Array<string_javascript_name> = [];
+    const variables: ReadonlyArray<string_javascript_name> = [];
 
     // A regular expression to match variable names
     // It assumes that variables start with a letter, underscore, or dollar sign
@@ -71,7 +71,7 @@ function extractVariables(code: string_javascript): Array<string_javascript_name
 // A function to check if a word is a reserved word in JavaScript
 // It uses a hard-coded list of keywords, literals, and built-in objects
 function isReservedWord(word: string) {
-    const reservedWords: Array<string> = [
+    const reservedWords: ReadonlyArray<string> = [
         'abstract',
         'arguments',
         'await',

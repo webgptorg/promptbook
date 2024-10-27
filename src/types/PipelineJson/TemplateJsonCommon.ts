@@ -14,7 +14,7 @@ import type { Expectations } from './Expectations';
 /**
  * Common properties of all templates
  */
-export interface TemplateJsonCommon {
+export type TemplateJsonCommon = {
     /**
      * Name of the template
      * - It must be unique across the pipeline
@@ -41,6 +41,7 @@ export interface TemplateJsonCommon {
      * Note: Joker is one of the dependent parameters
      */
     readonly dependentParameterNames: Array<string_parameter_name>;
+    //                                 <- TODO: [🪓] This should really be `ReadonlyArray`, but it causes problems
 
     /**
      * If theese parameters meet the expectations requirements, they are used instead of executing this template
@@ -48,6 +49,7 @@ export interface TemplateJsonCommon {
      * @see https://github.com/webgptorg/promptbook/discussions/66
      */
     readonly jokerParameterNames?: Array<string_parameter_name>;
+    //                              <- TODO: [🪓] This should really be `ReadonlyArray`, but it causes problems
 
     /**
      * @@@
@@ -82,6 +84,7 @@ export interface TemplateJsonCommon {
      * @see https://github.com/webgptorg/promptbook/discussions/31
      */
     readonly postprocessingFunctionNames?: Array<string_postprocessing_function_name>;
+    //                                      <- TODO: [🪓] This should really be `ReadonlyArray`, but it causes problems
 
     /**
      * Expect this amount of each unit in the answer
@@ -106,7 +109,7 @@ export interface TemplateJsonCommon {
      * Name of the parameter that is the result of the template
      */
     readonly resultingParameterName: string_name;
-}
+};
 
 /**
  * TODO: use one helper type> (string_prompt | string_javascript | string_markdown) & string_template

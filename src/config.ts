@@ -1,4 +1,5 @@
 import type { CsvSettings } from './formats/csv/CsvSettings';
+import type { IntermediateFilesStrategy } from './types/IntermediateFilesStrategy';
 import { just } from './utils/organization/just';
 import { $asDeeplyFrozenSerializableJson } from './utils/serialization/$asDeeplyFrozenSerializableJson';
 
@@ -16,7 +17,8 @@ export const GENERATOR_WARNING = `⚠️ WARNING: This code has been generated s
  *
  * @public exported from `@promptbook/core`
  */
-export const CLAIM = `Supercharge LLM models with Promptbook`;
+export const CLAIM = `Build responsible, controlled and transparent applications on top of LLM models!`;
+//            <- TODO: [🐊] Pick the best claim
 
 /**
  * Warning message for the generated sections and files files
@@ -63,20 +65,6 @@ export const CONNECTION_RETRIES_LIMIT = 5;
 export const IMMEDIATE_TIME = 10;
 
 /**
- * The maximum number of (LLM) tasks running in parallel
- *
- * @public exported from `@promptbook/core`
- */
-export const MAX_PARALLEL_COUNT = 5; // <- TODO: [🤹‍♂️]
-
-/**
- * The maximum number of attempts to execute LLM task before giving up
- *
- * @public exported from `@promptbook/core`
- */
-export const MAX_EXECUTION_ATTEMPTS = 3; // <- TODO: [🤹‍♂️]
-
-/**
  * The maximum length of the (generated) filename
  *
  * @public exported from `@promptbook/core`
@@ -84,12 +72,26 @@ export const MAX_EXECUTION_ATTEMPTS = 3; // <- TODO: [🤹‍♂️]
 export const MAX_FILENAME_LENGTH = 30;
 
 /**
- * @@@
- * TODO: [🐝][main] !!! Use
+ * Strategy for caching the intermediate results for knowledge sources
  *
  * @public exported from `@promptbook/core`
  */
-export const MAX_KNOWLEDGE_SOURCES_SCRAPING_DEPTH = 3;
+export const DEFAULT_INTERMEDIATE_FILES_STRATEGY: IntermediateFilesStrategy = 'HIDE_AND_KEEP';
+//                                                     <- TODO: [😡] Change to 'VISIBLE'
+
+/**
+ * The maximum number of (LLM) tasks running in parallel
+ *
+ * @public exported from `@promptbook/core`
+ */
+export const DEFAULT_MAX_PARALLEL_COUNT = 5; // <- TODO: [🤹‍♂️]
+
+/**
+ * The maximum number of attempts to execute LLM task before giving up
+ *
+ * @public exported from `@promptbook/core`
+ */
+export const DEFAULT_MAX_EXECUTION_ATTEMPTS = 3; // <- TODO: [🤹‍♂️]
 
 /**
  * @@@
@@ -97,7 +99,15 @@ export const MAX_KNOWLEDGE_SOURCES_SCRAPING_DEPTH = 3;
  *
  * @public exported from `@promptbook/core`
  */
-export const MAX_KNOWLEDGE_SOURCES_SCRAPING_TOTAL = 200;
+export const DEFAULT_MAX_KNOWLEDGE_SOURCES_SCRAPING_DEPTH = 3;
+
+/**
+ * @@@
+ * TODO: [🐝][main] !!! Use
+ *
+ * @public exported from `@promptbook/core`
+ */
+export const DEFAULT_MAX_KNOWLEDGE_SOURCES_SCRAPING_TOTAL = 200;
 
 /**
  * Where to store the cache of executions for promptbook CLI
@@ -106,7 +116,7 @@ export const MAX_KNOWLEDGE_SOURCES_SCRAPING_TOTAL = 200;
  *
  * @public exported from `@promptbook/core`
  */
-export const EXECUTIONS_CACHE_DIRNAME = '/.promptbook/executions-cache';
+export const DEFAULT_EXECUTIONS_CACHE_DIRNAME = '/.promptbook/executions-cache';
 
 /**
  * Where to store the scrape cache
@@ -115,14 +125,14 @@ export const EXECUTIONS_CACHE_DIRNAME = '/.promptbook/executions-cache';
  *
  * @public exported from `@promptbook/core`
  */
-export const SCRAPE_CACHE_DIRNAME = '/.promptbook/scrape-cache';
+export const DEFAULT_SCRAPE_CACHE_DIRNAME = '/.promptbook/scrape-cache';
 
 /**
  * The name of the builded pipeline collection made by CLI `ptbk make` and for lookup in `createCollectionFromDirectory`
  *
  * @public exported from `@promptbook/core`
  */
-export const PIPELINE_COLLECTION_BASE_FILENAME = `index`;
+export const DEFAULT_PIPELINE_COLLECTION_BASE_FILENAME = `index`;
 
 /**
  * Nonce which is used for replacing things in strings
@@ -206,14 +216,14 @@ export const DEFAULT_CSV_SETTINGS: CsvSettings = Object.freeze({
  *
  * @public exported from `@promptbook/core`
  */
-export const IS_VERBOSE = false;
+export const DEFAULT_IS_VERBOSE = false;
 
 /**
  * @@@
  *
  * @public exported from `@promptbook/core`
  */
-export const IS_AUTO_INSTALLED = false;
+export const DEFAULT_IS_AUTO_INSTALLED = false;
 
 /**
  * @@@

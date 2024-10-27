@@ -1,5 +1,5 @@
-import { IS_AUTO_INSTALLED } from '../../../config';
-import { IS_VERBOSE } from '../../../config';
+import { DEFAULT_IS_AUTO_INSTALLED } from '../../../config';
+import { DEFAULT_IS_VERBOSE } from '../../../config';
 import { EnvironmentMismatchError } from '../../../errors/EnvironmentMismatchError';
 import type { ExecutionTools } from '../../../execution/ExecutionTools';
 import type { PrepareAndScrapeOptions } from '../../../prepare/PrepareAndScrapeOptions';
@@ -9,7 +9,7 @@ import type { Scraper } from '../Scraper';
 import { $scrapersRegister } from './$scrapersRegister';
 
 /**
- * !!!!!!
+ * @@@
  *
  * 1) @@@
  * 2) @@@
@@ -17,14 +17,14 @@ import { $scrapersRegister } from './$scrapersRegister';
  * @public exported from `@promptbook/node`
  */
 export async function $provideScrapersForNode(
-    tools: Pick<ExecutionTools, 'fs' | 'llm'>,
+    tools: Pick<ExecutionTools, 'fs' | 'llm' | 'executables'>,
     options?: PrepareAndScrapeOptions,
-): Promise<Array<Scraper>> {
+): Promise<ReadonlyArray<Scraper>> {
     if (!$isRunningInNode()) {
         throw new EnvironmentMismatchError('Function `$getScrapersForNode` works only in Node.js environment');
     }
 
-    const { isAutoInstalled = IS_AUTO_INSTALLED, isVerbose = IS_VERBOSE } = options || {};
+    const { isAutoInstalled = DEFAULT_IS_AUTO_INSTALLED, isVerbose = DEFAULT_IS_VERBOSE } = options || {};
 
     TODO_USE(isAutoInstalled);
     TODO_USE(isVerbose);

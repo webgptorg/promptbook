@@ -234,7 +234,7 @@ export const templateCommandParser: PipelineTemplateCommandParser<TemplateComman
      *
      * Note: This is used in `pipelineJsonToString` utility
      */
-    takeFromTemplateJson($templateJson: $TemplateJson): Array<TemplateCommand> {
+    takeFromTemplateJson($templateJson: $TemplateJson): ReadonlyArray<TemplateCommand> {
         keepUnused($templateJson);
         throw new NotYetImplementedError(`[🛋] Not implemented yet`); // <- TODO: [🛋] Implement
     },

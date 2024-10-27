@@ -11,6 +11,7 @@
     "contributors": [
         "Pavol Hejný <me@pavolhejny.com> (https://www.pavolhejny.com/)"
     ],
+    "todo-0": "TODO: [❇️] Make better list of keywords",
     "keywords": [
         "ai",
         "llm",
@@ -57,7 +58,7 @@
         "crypto-js": "4.2.0",
         "papaparse": "5.4.1",
         "prettier": "2.8.1",
-        "spacetrim": "0.11.39",
+        "spacetrim": "0.11.59",
         "waitasecond": "1.11.83"
     }
 }

@@ -19,7 +19,7 @@ import type { string_postprocessing_function_name } from '../../types/typeAliase
  */
 export async function $fakeTextToExpectations(
     expectations: Expectations,
-    postprocessingFunctionNames?: Array<string_postprocessing_function_name>,
+    postprocessingFunctionNames?: ReadonlyArray<string_postprocessing_function_name>,
 ): Promise<string> {
     const lorem = new LoremIpsum({
         wordsPerSentence: { min: 5, max: 15 },

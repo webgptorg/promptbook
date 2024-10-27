@@ -91,7 +91,7 @@ export type CommonPrompt = {
     /**
      * List of postprocessing steps that are executed after the prompt
      */
-    readonly postprocessingFunctionNames?: Array<string_postprocessing_function_name>;
+    readonly postprocessingFunctionNames?: ReadonlyArray<string_postprocessing_function_name>;
 
     /**
      * Expectations for the answer

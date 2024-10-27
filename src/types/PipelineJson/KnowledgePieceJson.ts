@@ -35,7 +35,7 @@ export type KnowledgePiecePreparedJson = {
     /**
      * List of sources where the information comes from
      */
-    readonly sources: Array<{
+    readonly sources: ReadonlyArray<{
         /**
          * Identifier of the source
          */
@@ -55,12 +55,12 @@ export type KnowledgePiecePreparedJson = {
     /**
      * List of keywords that are associated with the knowledge piece
      */
-    readonly keywords: Array<string_keyword>;
+    readonly keywords: ReadonlyArray<string_keyword>;
 
     /**
      * List of models embeddings that are associated with the knowledge piece
      */
-    readonly index: Array<{
+    readonly index: ReadonlyArray<{
         /**
          * Model name which generated the embedding
          */
@@ -75,7 +75,7 @@ export type KnowledgePiecePreparedJson = {
     /**
      * List of preparation ids that were used to prepare this knowledge piece
      */
-    readonly preparationIds: Array<number_id>;
+    readonly preparationIds: ReadonlyArray<number_id>;
 };
 
 /**

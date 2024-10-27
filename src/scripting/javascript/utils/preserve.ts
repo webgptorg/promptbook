@@ -9,7 +9,7 @@ import type { really_any } from '../../../utils/organization/really_any';
  * @returns nothing
  * @private internal function of `JavascriptExecutionTools` and `JavascriptEvalExecutionTools`
  */
-export function preserve(func: (...params: Array<really_any>) => unknown): void {
+export function preserve(func: (...params: ReadonlyArray<really_any>) => unknown): void {
     // Note: NOT calling the function
 
     (async () => {

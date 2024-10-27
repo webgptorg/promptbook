@@ -7,7 +7,7 @@ import { pipelineStringToJson } from '../../conversion/pipelineStringToJson';
 import { validatePipeline } from '../../conversion/validation/validatePipeline';
 import type { ExecutionTools } from '../../execution/ExecutionTools';
 import { $provideLlmToolsForCli } from '../../llm-providers/_common/register/$provideLlmToolsForCli';
-import type { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';
+import { $provideExecutablesForNode } from '../../scrapers/_common/register/$provideExecutablesForNode';
 import { $provideFilesystemForNode } from '../../scrapers/_common/register/$provideFilesystemForNode';
 import { $provideScrapersForNode } from '../../scrapers/_common/register/$provideScrapersForNode';
 import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
@@ -32,21 +32,22 @@ export function initializeTestCommand(program: Program) {
         'Pipelines to test as glob pattern',
     );
     testCommand.option('-i, --ignore <glob>', `Ignore as glob pattern`);
-    testCommand.option('--reload-cache', `Call LLM models even if same prompt with result is in the cache `, false);
+    testCommand.option('--reload', `Call LLM models even if same prompt with result is in the cache `, false);
     testCommand.option('-v, --verbose', `Is output verbose`, false);
 
-    testCommand.action(async (filesGlob, { ignore, reloadCache: isCacheCleaned, verbose: isVerbose }) => {
+    testCommand.action(async (filesGlob, { ignore, reloadCache: isCacheReloaded, verbose: isVerbose }) => {
         // TODO: DRY [◽]
         const options = {
             isVerbose,
-            isCacheCleaned,
-        } satisfies PrepareAndScrapeOptions;
+            isCacheReloaded,
+        }; /* <- TODO: ` satisfies PrepareAndScrapeOptions` */
         const fs = $provideFilesystemForNode(options);
         const llm = $provideLlmToolsForCli(options);
+        const executables = await $provideExecutablesForNode(options);
         const tools = {
             llm,
             fs,
-            scrapers: await $provideScrapersForNode({ fs, llm }, options),
+            scrapers: await $provideScrapersForNode({ fs, llm, executables }, options),
             script: [
                 /*new JavascriptExecutionTools(options)*/
             ],

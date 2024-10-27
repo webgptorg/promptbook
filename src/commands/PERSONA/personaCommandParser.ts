@@ -101,7 +101,7 @@ export const personaCommandParser: PipelineBothCommandParser<PersonaCommand> = {
      *
      * Note: This is used in `pipelineJsonToString` utility
      */
-    takeFromPipelineJson(pipelineJson: PipelineJson): Array<PersonaCommand> {
+    takeFromPipelineJson(pipelineJson: PipelineJson): ReadonlyArray<PersonaCommand> {
         keepUnused(pipelineJson);
         throw new NotYetImplementedError(`[🛋] Not implemented yet`); // <- TODO: [🛋] Implement
     },
@@ -111,7 +111,7 @@ export const personaCommandParser: PipelineBothCommandParser<PersonaCommand> = {
      *
      * Note: This is used in `pipelineJsonToString` utility
      */
-    takeFromTemplateJson($templateJson: $TemplateJson): Array<PersonaCommand> {
+    takeFromTemplateJson($templateJson: $TemplateJson): ReadonlyArray<PersonaCommand> {
         keepUnused($templateJson);
         throw new NotYetImplementedError(`[🛋] Not implemented yet`); // <- TODO: [🛋] Implement
     },

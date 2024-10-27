@@ -41,7 +41,7 @@ async function findFreshEmojiTag() {
     });
 
     const allEmojis = EMOJIS_OF_SINGLE_PICTOGRAM;
-    // const allEmojis = new Set<string_char_emoji>(['🌼' as string_char_emoji,'🥎' as string_char_emoji]);
+    // const allEmojis = new Set<string_char_emoji>(['🧎' as string_char_emoji, '🥎' as string_char_emoji]);
     const usedEmojis = new Set<string_char_emoji>();
 
     for (const file of allFiles) {
@@ -55,10 +55,16 @@ async function findFreshEmojiTag() {
         }
     }
 
+    //console.info({ usedEmojis });
     const freshEmojis = difference(allEmojis, usedEmojis);
 
     console.info(colors.green(`Avialable fresh tags:`));
-    for (const emoji of $shuffleItems(...Array.from(freshEmojis)).splice(0, 10)) {
+
+    const randomEmojis = [...$shuffleItems(...Array.from(freshEmojis))].splice(0, 10);
+    // const randomEmojis = freshEmojis;
+    // const randomEmojis = usedEmojis;
+
+    for (const emoji of randomEmojis) {
         const tag = `[${emoji}]`;
         console.info(colors.bgWhite(tag));
     }

@@ -21,7 +21,7 @@ export type Scraper = {
      */
     scrape(
         source: ScraperSourceHandler,
-    ): Promisable<Array<Omit<KnowledgePiecePreparedJson, 'sources' | 'preparationIds'>> | null>;
+    ): Promisable<ReadonlyArray<Omit<KnowledgePiecePreparedJson, 'sources' | 'preparationIds'>> | null>;
 };
 
 /**
@@ -71,9 +71,4 @@ export type ScraperSourceHandler = {
 /**
  * TODO: [🐝] @@@ Annotate all
  * TODO: [🔼] Export via types
- */
-
-/**
- * TODO: !!!!!! Test that this is catched
- * Note: [⚫] Code in this file should never be published in any package
  */

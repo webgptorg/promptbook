@@ -11,6 +11,7 @@
     "contributors": [
         "Pavol Hejný <me@pavolhejny.com> (https://www.pavolhejny.com/)"
     ],
+    "todo-0": "TODO: [❇️] Make better list of keywords",
     "keywords": [
         "ai",
         "llm",
@@ -56,6 +57,6 @@
     "dependencies": {
         "@azure/openai": "1.0.0-beta.12",
         "colors": "1.4.0",
-        "spacetrim": "0.11.39"
+        "spacetrim": "0.11.59"
     }
 }

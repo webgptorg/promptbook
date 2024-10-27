@@ -1,3 +1,4 @@
+import type { IntermediateFilesStrategy } from '../types/IntermediateFilesStrategy';
 import type { string_dirname } from '../types/typeAliases';
 
 /**
@@ -24,12 +25,11 @@ export type PrepareAndScrapeOptions = {
     readonly cacheDirname?: string_dirname;
 
     /**
-     * If true, the cache is cleaned after the scraping
+     * Strategy for caching the intermediate results for knowledge source
      *
-     *
-     * @default false // <- TODO: !!!!!! Change to `cacheStrategy`/`intermediateFiles`, Put to global config, change to `true` and explicitly set to `false` in all playgrounds
+     * @default DEFAULT_INTERMEDIATE_FILES_STRATEGY
      */
-    readonly isCacheCleaned?: boolean; // <-  `cacheStrategy`/`intermediateFiles`: 'HIDE_AND_CLEAN' | 'HIDE_AND_KEEP' | 'VISIBLE' (default)
+    readonly intermediateFilesStrategy?: IntermediateFilesStrategy;
 
     /**
      * Maximum number of tasks running in parallel
@@ -37,27 +37,6 @@ export type PrepareAndScrapeOptions = {
      * @default MAX_PARALLEL_COUNT
      */
     readonly maxParallelCount?: number;
-
-    /**
-     * Path to the external programs executables
-     *
-     * TODO: !!!!!! Transform to scrapers and make them Classy
-     */
-    readonly externalProgramsPaths?: {
-        /**
-         * Path to the `pandoc` executable
-         *
-         * @example 'C:/Users/me/AppData/Local/Pandoc/pandoc.exe'
-         */
-        readonly pandocPath?: string;
-
-        /**
-         * Path to the LibreOffice executable
-         *
-         * @example 'C:/Program Files/LibreOffice/program/swriter.exe'
-         */
-        readonly libreOfficePath?: string;
-    };
 
     /**
      * If true, the missing software is automatically installed

@@ -13,6 +13,7 @@ import { collectionToJson } from '../../src/collection/collectionToJson';
 import { createCollectionFromDirectory } from '../../src/collection/constructors/createCollectionFromDirectory';
 import { usageToHuman } from '../../src/execution/utils/usageToHuman';
 import { $provideLlmToolsForTestingAndScriptsAndPlayground } from '../../src/llm-providers/_common/register/$provideLlmToolsForTestingAndScriptsAndPlayground';
+import { $provideExecutablesForNode } from '../../src/scrapers/_common/register/$provideExecutablesForNode';
 import { $provideFilesystemForNode } from '../../src/scrapers/_common/register/$provideFilesystemForNode';
 import { commit } from '../utils/autocommit/commit';
 import { isWorkingTreeClean } from '../utils/autocommit/isWorkingTreeClean';
@@ -25,7 +26,7 @@ if (process.cwd() !== join(__dirname, '../..')) {
 const program = new commander.Command();
 
 program.option('--commit', `Auto commit`, false);
-program.option('--reload-cache', `Use LLM models even if cached `, false);
+program.option('--reload', `Use LLM models even if cached `, false);
 program.option('--verbose', `Is verbose`, false);
 
 program.parse(process.argv);
@@ -61,7 +62,8 @@ async function makePipelineCollection({
 
     const fs = $provideFilesystemForNode();
     const llm = $provideLlmToolsForTestingAndScriptsAndPlayground({ isCacheReloaded });
-    const scrapers = await $provideScrapersForNode({ fs, llm });
+    const executables = await $provideExecutablesForNode();
+    const scrapers = await $provideScrapersForNode({ fs, llm, executables });
 
     const collection = await createCollectionFromDirectory(
         promptbookSourceDir,
@@ -73,7 +75,7 @@ async function makePipelineCollection({
         {
             isVerbose,
             isRecursive: true,
-            // <- TODO: [🍖] isCacheReloaded
+          // <- TODO: [🍖] Add `intermediateFilesStrategy`
         },
     );
 

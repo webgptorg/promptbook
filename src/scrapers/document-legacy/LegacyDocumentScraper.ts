@@ -4,8 +4,9 @@ import type { KnowledgePiecePreparedJson } from '../../types/PipelineJson/Knowle
 import { readdir, rename, rmdir } from 'fs/promises';
 import { dirname, join } from 'path';
 import spaceTrim from 'spacetrim';
-import { IS_VERBOSE } from '../../config';
-import { SCRAPE_CACHE_DIRNAME } from '../../config';
+import { DEFAULT_INTERMEDIATE_FILES_STRATEGY } from '../../config';
+import { DEFAULT_IS_VERBOSE } from '../../config';
+import { DEFAULT_SCRAPE_CACHE_DIRNAME } from '../../config';
 import { EnvironmentMismatchError } from '../../errors/EnvironmentMismatchError';
 import { KnowledgeScrapeError } from '../../errors/KnowledgeScrapeError';
 import { MissingToolsError } from '../../errors/MissingToolsError';
@@ -26,7 +27,7 @@ import { DocumentScraper } from '../document/DocumentScraper';
 import { legacyDocumentScraperMetadata } from './register-metadata';
 
 /**
- * Scraper for .docx files
+ * Scraper for old document files (like .doc and .rtf)
  *
  * @see `documentationUrl` for more details
  * @public exported from `@promptbook/legacy-documents`
@@ -45,7 +46,7 @@ export class LegacyDocumentScraper implements Converter, Scraper {
     private readonly documentScraper: DocumentScraper;
 
     public constructor(
-        private readonly tools: Pick<ExecutionTools, 'fs' | 'llm'>,
+        private readonly tools: Pick<ExecutionTools, 'fs' | 'llm' | 'executables'>,
         private readonly options: PrepareAndScrapeOptions,
     ) {
         this.documentScraper = new DocumentScraper(tools, options);
@@ -58,11 +59,10 @@ export class LegacyDocumentScraper implements Converter, Scraper {
      */
     public async $convert(source: ScraperSourceHandler): Promise<ScraperIntermediateSource> {
         const {
-            externalProgramsPaths = {},
             rootDirname = process.cwd(),
-            cacheDirname = SCRAPE_CACHE_DIRNAME,
-            isCacheCleaned = false,
-            isVerbose = IS_VERBOSE,
+            cacheDirname = DEFAULT_SCRAPE_CACHE_DIRNAME,
+            intermediateFilesStrategy = DEFAULT_INTERMEDIATE_FILES_STRATEGY,
+            isVerbose = DEFAULT_IS_VERBOSE,
         } = this.options;
 
         if (!$isRunningInNode()) {
@@ -74,7 +74,7 @@ export class LegacyDocumentScraper implements Converter, Scraper {
             //          <- TODO: [🧠] What is the best error type here`
         }
 
-        if (externalProgramsPaths.libreOfficePath === undefined) {
+        if (this.tools.executables?.libreOfficePath === undefined) {
             throw new MissingToolsError('LibreOffice is required for scraping .doc and .rtf files');
         }
 
@@ -88,7 +88,7 @@ export class LegacyDocumentScraper implements Converter, Scraper {
         const cacheFilehandler = await getScraperIntermediateSource(source, {
             rootDirname,
             cacheDirname,
-            isCacheCleaned,
+            intermediateFilesStrategy,
             extension: 'docx',
             isVerbose,
         });
@@ -108,9 +108,8 @@ export class LegacyDocumentScraper implements Converter, Scraper {
                 .split('\\')
                 .join('/');
 
-            const command = `"${externalProgramsPaths.libreOfficePath}" --headless --convert-to docx "${source.filename}"  --outdir "${documentSourceOutdirPathForLibreOffice}"`;
+            const command = `"${this.tools.executables.libreOfficePath}" --headless --convert-to docx "${source.filename}"  --outdir "${documentSourceOutdirPathForLibreOffice}"`;
 
-            // TODO: !!!!!! [🕊] Make execCommand standard (?node-)util of the promptbook - this should trigger build polution error
             await $execCommand(command);
 
             const files = await readdir(documentSourceOutdirPathForLibreOffice);
@@ -165,7 +164,7 @@ export class LegacyDocumentScraper implements Converter, Scraper {
      */
     public async scrape(
         source: ScraperSourceHandler,
-    ): Promise<Array<Omit<KnowledgePiecePreparedJson, 'sources' | 'preparationIds'>> | null> {
+    ): Promise<ReadonlyArray<Omit<KnowledgePiecePreparedJson, 'sources' | 'preparationIds'>> | null> {
         const cacheFilehandler = await this.$convert(source);
 
         const markdownSource = {

@@ -5,7 +5,7 @@ import type { ExpectationAmount } from '../../types/PipelineJson/Expectations';
  *
  * @public exported from `@promptbook/utils`
  */
-export function splitIntoSentences(text: string): Array<string> {
+export function splitIntoSentences(text: string): ReadonlyArray<string> {
     return text.split(/[.!?]+/).filter((sentence) => sentence.trim() !== '');
 }
 

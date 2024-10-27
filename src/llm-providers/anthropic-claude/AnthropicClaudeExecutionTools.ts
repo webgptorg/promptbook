@@ -72,7 +72,7 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools /* <- TO
     /**
      * List all available Anthropic Claude models that can be used
      */
-    public listModels(): Array<AvailableModel> {
+    public listModels(): ReadonlyArray<AvailableModel> {
         return ANTHROPIC_CLAUDE_MODELS;
     }
 

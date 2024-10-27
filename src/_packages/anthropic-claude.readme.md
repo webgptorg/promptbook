@@ -21,10 +21,11 @@ const llm = new AnthropicClaudeExecutionTools(
         apiKey: process.env.ANTHROPIC_CLAUDE_API_KEY,
     },
 );
+const executables = await $provideExecutablesForNode();
 const tools = {
     llm,
     fs,
-    scrapers: await $provideScrapersForNode({ fs, llm }),
+    scrapers: await $provideScrapersForNode({ fs, llm, executables }),
     script: [new JavascriptExecutionTools()],
 };
 
@@ -124,10 +125,11 @@ const llm = [
         },
     ),
 ];
+const executables = await $provideExecutablesForNode();
 const tools = {
     llm,
     fs,
-    scrapers: await $provideScrapersForNode({ fs, llm }),
+    scrapers: await $provideScrapersForNode({ fs, llm, executables }),
     script: [new JavascriptExecutionTools()],
 };
 

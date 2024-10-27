@@ -5,7 +5,7 @@ import { spaceTrim } from 'spacetrim';
 import { $execCommand } from '../../../src/utils/execCommand/$execCommand';
 import { isWorkingTreeClean } from './isWorkingTreeClean';
 
-export async function commit(addPaths: Array<string>, message: string): Promise<void> {
+export async function commit(addPaths: ReadonlyArray<string>, message: string): Promise<void> {
     const projectPath = process.cwd();
     // const addPath = '.';
 

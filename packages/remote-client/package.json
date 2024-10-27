@@ -11,6 +11,7 @@
     "contributors": [
         "Pavol Hejný <me@pavolhejny.com> (https://www.pavolhejny.com/)"
     ],
+    "todo-0": "TODO: [❇️] Make better list of keywords",
     "keywords": [
         "ai",
         "llm",
@@ -55,6 +56,6 @@
     },
     "dependencies": {
         "socket.io-client": "4.7.2",
-        "spacetrim": "0.11.39"
+        "spacetrim": "0.11.59"
     }
 }

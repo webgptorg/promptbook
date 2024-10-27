@@ -96,7 +96,7 @@ export const postprocessCommandParser: PipelineTemplateCommandParser<Postprocess
      *
      * Note: This is used in `pipelineJsonToString` utility
      */
-    takeFromTemplateJson($templateJson: $TemplateJson): Array<PostprocessCommand> {
+    takeFromTemplateJson($templateJson: $TemplateJson): ReadonlyArray<PostprocessCommand> {
         keepUnused($templateJson);
         throw new NotYetImplementedError(`[🛋] Not implemented yet`); // <- TODO: [🛋] Implement
     },

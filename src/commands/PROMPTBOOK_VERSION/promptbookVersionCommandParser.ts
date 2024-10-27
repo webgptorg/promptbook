@@ -96,7 +96,7 @@ export const promptbookVersionCommandParser: PipelineHeadCommandParser<Promptboo
      *
      * Note: This is used in `pipelineJsonToString` utility
      */
-    takeFromPipelineJson(pipelineJson: PipelineJson): Array<PromptbookVersionCommand> {
+    takeFromPipelineJson(pipelineJson: PipelineJson): ReadonlyArray<PromptbookVersionCommand> {
         keepUnused(pipelineJson);
         throw new NotYetImplementedError(`[🛋] Not implemented yet`); // <- TODO: [🛋] Implement
     },

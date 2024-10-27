@@ -86,7 +86,7 @@ export const jokerCommandParser: PipelineTemplateCommandParser<JokerCommand> = {
      *
      * Note: This is used in `pipelineJsonToString` utility
      */
-    takeFromTemplateJson($templateJson: $TemplateJson): Array<JokerCommand> {
+    takeFromTemplateJson($templateJson: $TemplateJson): ReadonlyArray<JokerCommand> {
         keepUnused($templateJson);
         throw new NotYetImplementedError(`[🛋] Not implemented yet`); // <- TODO: [🛋] Implement
     },

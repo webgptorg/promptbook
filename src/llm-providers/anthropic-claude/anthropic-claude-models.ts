@@ -11,7 +11,7 @@ import { computeUsage } from '../openai/computeUsage';
  * @see https://docs.anthropic.com/en/docs/models-overview
  * @public exported from `@promptbook/anthropic-claude`
  */
-export const ANTHROPIC_CLAUDE_MODELS: Array<
+export const ANTHROPIC_CLAUDE_MODELS: ReadonlyArray<
     AvailableModel & {
         pricing?: {
             readonly prompt: number_usd;

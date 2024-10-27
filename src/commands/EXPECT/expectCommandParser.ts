@@ -177,7 +177,7 @@ export const expectCommandParser: PipelineTemplateCommandParser<ExpectCommand> =
      *
      * Note: This is used in `pipelineJsonToString` utility
      */
-    takeFromTemplateJson($templateJson: $TemplateJson): Array<ExpectCommand> {
+    takeFromTemplateJson($templateJson: $TemplateJson): ReadonlyArray<ExpectCommand> {
         keepUnused($templateJson);
         throw new NotYetImplementedError(`[🛋] Not implemented yet`); // <- TODO: [🛋] Implement
     },

@@ -3,7 +3,6 @@ TODO: Make packages for each index preparer and allow them to be installed and u
 TODO: [🏏] Leverage the batch API and build queues @see https://platform.openai.com/docs/guides/batch
 TODO: Maybe implement adapter to https://www.docupanda.io/
 
-TODO: !!!!!! Scrapers should be constructed ad LlmTools + PrepareAndScrapeOptions should be passed in constructor
 TODO: !!!!!! Put generator warning to all intermediate knowledge sources
-TODO: !!!!!! SAVE .knowledge.json file along the knowledge sources + put warning
 TODO: !!!!!! Put generator warning to all .ptbk.json files and index files
+TODO: !!!!!! SAVE .knowledge.json file along the knowledge sources + put warning

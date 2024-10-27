@@ -79,7 +79,7 @@ export const actionCommandParser: PipelineHeadCommandParser<ActionCommand> = {
      *
      * Note: This is used in `pipelineJsonToString` utility
      */
-    takeFromPipelineJson(pipelineJson: PipelineJson): Array<ActionCommand> {
+    takeFromPipelineJson(pipelineJson: PipelineJson): ReadonlyArray<ActionCommand> {
         keepUnused(pipelineJson);
         throw new NotYetImplementedError('[🛠] Actions are not implemented yet');
     },

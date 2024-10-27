@@ -226,7 +226,7 @@ export const modelCommandParser: PipelineBothCommandParser<ModelCommand> = {
      *
      * Note: This is used in `pipelineJsonToString` utility
      */
-    takeFromPipelineJson(pipelineJson: PipelineJson): Array<ModelCommand> {
+    takeFromPipelineJson(pipelineJson: PipelineJson): ReadonlyArray<ModelCommand> {
         keepUnused(pipelineJson);
         throw new NotYetImplementedError(`[🛋] Not implemented yet`); // <- TODO: [🛋] Implement
     },
@@ -236,7 +236,7 @@ export const modelCommandParser: PipelineBothCommandParser<ModelCommand> = {
      *
      * Note: This is used in `pipelineJsonToString` utility
      */
-    takeFromTemplateJson($templateJson: $TemplateJson): Array<ModelCommand> {
+    takeFromTemplateJson($templateJson: $TemplateJson): ReadonlyArray<ModelCommand> {
         keepUnused($templateJson);
         throw new NotYetImplementedError(`[🛋] Not implemented yet`); // <- TODO: [🛋] Implement
     },

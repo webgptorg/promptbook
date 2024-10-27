@@ -91,7 +91,7 @@ export const formatCommandParser: PipelineTemplateCommandParser<FormatCommand> =
      *
      * Note: This is used in `pipelineJsonToString` utility
      */
-    takeFromTemplateJson($templateJson: $TemplateJson): Array<FormatCommand> {
+    takeFromTemplateJson($templateJson: $TemplateJson): ReadonlyArray<FormatCommand> {
         keepUnused($templateJson);
         throw new NotYetImplementedError(`[🛋] Not implemented yet`); // <- TODO: [🛋] Implement
     },

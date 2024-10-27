@@ -1,10 +1,7 @@
 import { spaceTrim } from 'spacetrim';
-import type { Promisable, ReadonlyDeep } from 'type-fest';
+import type { Promisable, ReadonlyDeep, WritableDeep } from 'type-fest';
 import { forTime } from 'waitasecond';
-import { IMMEDIATE_TIME } from '../../config';
-import { IS_VERBOSE } from '../../config';
-import { LOOP_LIMIT } from '../../config';
-import { RESERVED_PARAMETER_NAMES } from '../../config';
+import { DEFAULT_IS_VERBOSE, IMMEDIATE_TIME, LOOP_LIMIT, RESERVED_PARAMETER_NAMES } from '../../config';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import { serializeError } from '../../errors/utils/serializeError';
@@ -13,15 +10,13 @@ import type { ExecutionReportJson } from '../../types/execution-report/Execution
 import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import type { TemplateJson } from '../../types/PipelineJson/TemplateJson';
 import type { TaskProgress } from '../../types/TaskProgress';
-import type { Parameters } from '../../types/typeAliases';
-import type { string_name } from '../../types/typeAliases';
+import type { Parameters, string_name } from '../../types/typeAliases';
 import { $asDeeplyFrozenSerializableJson } from '../../utils/serialization/$asDeeplyFrozenSerializableJson';
 import { PROMPTBOOK_VERSION } from '../../version';
-import type { ExecutionTools } from '../ExecutionTools';
 import type { PipelineExecutorResult } from '../PipelineExecutorResult';
 import { addUsage } from '../utils/addUsage';
 import { ZERO_USAGE } from '../utils/usage-constants';
-import type { CreatePipelineExecutorSettings } from './00-CreatePipelineExecutorSettings';
+import type { CreatePipelineExecutorOptions } from './00-CreatePipelineExecutorOptions';
 import { executeTemplate } from './20-executeTemplate';
 import { filterJustOutputParameters } from './filterJustOutputParameters';
 
@@ -30,16 +25,11 @@ import { filterJustOutputParameters } from './filterJustOutputParameters';
  *
  * @private internal type of `executePipeline`
  */
-type ExecutePipelineOptions = {
+type ExecutePipelineOptions = CreatePipelineExecutorOptions & {
     /**
      * @@@
      */
     readonly inputParameters: Readonly<Parameters>;
-
-    /**
-     * @@@
-     */
-    readonly tools: ExecutionTools;
 
     /**
      * @@@
@@ -65,11 +55,6 @@ type ExecutePipelineOptions = {
      * @@@
      */
     readonly pipelineIdentification: string;
-
-    /**
-     * Settings for the pipeline executor
-     */
-    readonly settings: CreatePipelineExecutorSettings;
 };
 
 /**
@@ -80,9 +65,17 @@ type ExecutePipelineOptions = {
  * @private internal utility of `createPipelineExecutor`
  */
 export async function executePipeline(options: ExecutePipelineOptions): Promise<PipelineExecutorResult> {
-    const { inputParameters, tools, onProgress, pipeline, setPreparedPipeline, pipelineIdentification, settings } =
-        options;
-    const { maxParallelCount, rootDirname, isVerbose = IS_VERBOSE } = settings;
+    const {
+        inputParameters,
+        tools,
+        onProgress,
+        pipeline,
+        setPreparedPipeline,
+        pipelineIdentification,
+        maxParallelCount,
+        rootDirname,
+        isVerbose = DEFAULT_IS_VERBOSE,
+    } = options;
     let { preparedPipeline } = options;
 
     if (preparedPipeline === undefined) {
@@ -97,7 +90,7 @@ export async function executePipeline(options: ExecutePipelineOptions): Promise<
     const errors: Array<PipelineExecutionError> = [];
     const warnings: Array<PipelineExecutionError /* <- [🧠][⚠] What is propper object type to handle warnings */> = [];
 
-    const executionReport: ExecutionReportJson = {
+    const executionReport: WritableDeep<ExecutionReportJson> = {
         pipelineUrl: preparedPipeline.pipelineUrl,
         title: preparedPipeline.title,
         promptbookUsedVersion: PROMPTBOOK_VERSION,
@@ -201,10 +194,10 @@ export async function executePipeline(options: ExecutePipelineOptions): Promise<
     let parametersToPass: Parameters = inputParameters;
 
     try {
-        let resovedParameterNames: Array<string_name> = preparedPipeline.parameters
+        let resovedParameterNames: ReadonlyArray<string_name> = preparedPipeline.parameters
             .filter(({ isInput }) => isInput)
             .map(({ name }) => name);
-        let unresovedTemplates: Array<ReadonlyDeep<TemplateJson>> = [...preparedPipeline.templates];
+        let unresovedTemplates: ReadonlyArray<ReadonlyDeep<TemplateJson>> = [...preparedPipeline.templates];
         let resolving: Array<Promise<void>> = [];
 
         let loopLimit = LOOP_LIMIT;
@@ -262,6 +255,7 @@ export async function executePipeline(options: ExecutePipelineOptions): Promise<
                 unresovedTemplates = unresovedTemplates.filter((template) => template !== currentTemplate);
 
                 const work = /* [🤹‍♂️] not await */ executeTemplate({
+                    ...options,
                     currentTemplate,
                     preparedPipeline,
                     parametersToPass,
@@ -290,7 +284,6 @@ export async function executePipeline(options: ExecutePipelineOptions): Promise<
                             onProgress(progress);
                         }
                     },
-                    settings,
                     $executionReport: executionReport,
                     pipelineIdentification: spaceTrim(
                         (block) => `

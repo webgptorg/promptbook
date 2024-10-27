@@ -112,7 +112,7 @@ export const knowledgeCommandParser: PipelineHeadCommandParser<KnowledgeCommand>
      *
      * Note: This is used in `pipelineJsonToString` utility
      */
-    takeFromPipelineJson(pipelineJson: PipelineJson): Array<KnowledgeCommand> {
+    takeFromPipelineJson(pipelineJson: PipelineJson): ReadonlyArray<KnowledgeCommand> {
         keepUnused(pipelineJson);
         throw new NotYetImplementedError(`[🛋] Not implemented yet`); // <- TODO: [🛋] Implement
     },

@@ -3,7 +3,7 @@ import type { IDestroyable } from 'destroyable';
 import http from 'http';
 import { Server, Socket } from 'socket.io';
 import { spaceTrim } from 'spacetrim';
-import { IS_VERBOSE } from '../../config';
+import { DEFAULT_IS_VERBOSE } from '../../config';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import { serializeError } from '../../errors/utils/serializeError';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
@@ -37,7 +37,7 @@ export function startRemoteServer<TCustomOptions = undefined>(
         createLlmExecutionTools,
         isAnonymousModeAllowed,
         isApplicationModeAllowed,
-        isVerbose = IS_VERBOSE,
+        isVerbose = DEFAULT_IS_VERBOSE,
     } = {
         isAnonymousModeAllowed: false,
         isApplicationModeAllowed: false,

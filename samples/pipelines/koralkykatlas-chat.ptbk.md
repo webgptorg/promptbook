@@ -1,6 +1,6 @@
 # ✨ Chat for KorarkyKatlas.cz
 
-<!-- TODO: !!!!!! Remove all traces of "KorarkyKatlas.cz" from repo-->
+<!-- TODO: [📿] Remove all traces of "KoralkyKatlas.cz" from repo-->
 
 Show how to use a simple prompt with no parameters.
 

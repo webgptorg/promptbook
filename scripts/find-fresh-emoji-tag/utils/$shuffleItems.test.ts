@@ -10,8 +10,8 @@ describe('$shuffleItems() $shuffleItems method', () => {
         expect(result).toHaveLength(input.length);
     });
 
-    // Test to ensure the function does not mutate the original array
-    it('should not mutate the original array', () => {
+    // Test to ensure the function does NOT mutate the original array
+    it('should NOT mutate the original array', () => {
         const input = [1, 2, 3, 4, 5];
         const inputCopy = [...input];
         $shuffleItems(...input);

@@ -14,7 +14,7 @@ import { MarkdownScraper } from '../markdown/MarkdownScraper';
 import { pdfScraperMetadata } from './register-metadata';
 
 /**
- * Scraper for .docx files
+ * Scraper for .pdf files
  *
  * @see `documentationUrl` for more details
  * @public exported from `@promptbook/pdf`
@@ -53,15 +53,14 @@ export class PdfScraper implements Converter, Scraper {
      */
     public async scrape(
         source: ScraperSourceHandler,
-    ): Promise<Array<Omit<KnowledgePiecePreparedJson, 'sources' | 'preparationIds'>> | null> {
+    ): Promise<ReadonlyArray<Omit<KnowledgePiecePreparedJson, 'sources' | 'preparationIds'>> | null> {
         TODO_USE(source);
         TODO_USE(this.options);
 
         /*
         const {
-            externalProgramsPaths = {},
             cacheDirname = SCRAPE_CACHE_DIRNAME,
-            isCacheCleaned = false,
+             intermediateFilesStrategy = DEFAULT_INTERMEDIATE_FILES_STRATEGY,
             isVerbose = IS_VERBOSE,
         } = options;
         */

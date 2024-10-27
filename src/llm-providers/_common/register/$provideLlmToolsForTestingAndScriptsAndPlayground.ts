@@ -1,6 +1,6 @@
 import { join } from 'path';
 import '../../../_packages/cli.index'; // <- Note: Really importing core index to register all the LLM providers
-import { EXECUTIONS_CACHE_DIRNAME } from '../../../config';
+import { DEFAULT_EXECUTIONS_CACHE_DIRNAME } from '../../../config';
 import { IS_COST_PREVENTED } from '../../../config';
 import { EnvironmentMismatchError } from '../../../errors/EnvironmentMismatchError';
 import type { LlmExecutionTools } from '../../../execution/LlmExecutionTools';
@@ -50,9 +50,15 @@ export function $provideLlmToolsForTestingAndScriptsAndPlayground(
     return cacheLlmTools(llmToolsWithUsage, {
         storage: new FileCacheStorage(
             { fs: $provideFilesystemForNode() },
-            { rootFolderPath: join(process.cwd(), EXECUTIONS_CACHE_DIRNAME) },
+            {
+                rootFolderPath: join(
+                    process.cwd(),
+                    DEFAULT_EXECUTIONS_CACHE_DIRNAME,
+                    // <- TODO: [🦒] Allow to override (pass different value into the function)
+                ),
+            },
         ),
-        isReloaded: isCacheReloaded,
+        isCacheReloaded: isCacheReloaded,
     });
 }
 

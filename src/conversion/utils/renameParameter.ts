@@ -38,7 +38,8 @@ export function renameParameter(options: RenameParameterOptions): PipelineJson {
     }
 
     const renamedPipeline: $PipelineJson = {
-        ...pipeline,
+        ...(pipeline as $PipelineJson),
+        // <- TODO: [🪓] This should be without `as $PipelineJson`
         parameters: [...pipeline.parameters],
         templates: [...pipeline.templates],
     };

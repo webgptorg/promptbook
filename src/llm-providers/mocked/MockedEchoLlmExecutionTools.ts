@@ -37,7 +37,7 @@ export class MockedEchoLlmExecutionTools implements LlmExecutionTools /* <- TODO
     /**
      * List all available mocked-models that can be used
      */
-    public listModels(): Array<AvailableModel> {
+    public listModels(): ReadonlyArray<AvailableModel> {
         return [
             {
                 modelTitle: 'Echo chat',

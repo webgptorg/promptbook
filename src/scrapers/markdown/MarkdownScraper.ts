@@ -6,9 +6,10 @@ import type { ScraperSourceHandler } from '../_common/Scraper';
 // TODO: [🏳‍🌈] Finally take pick of .json vs .ts
 import PipelineCollection from '../../../promptbook-collection/index.json';
 // import PipelineCollection from '../../../promptbook-collection/promptbook-collection';
+import type { WritableDeep } from 'type-fest';
 import { createCollectionFromJson } from '../../collection/constructors/createCollectionFromJson';
-import { IS_VERBOSE } from '../../config';
-import { MAX_PARALLEL_COUNT } from '../../config';
+import { DEFAULT_IS_VERBOSE } from '../../config';
+import { DEFAULT_MAX_PARALLEL_COUNT } from '../../config';
 import { titleToName } from '../../conversion/utils/titleToName';
 import { MissingToolsError } from '../../errors/MissingToolsError';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
@@ -47,8 +48,8 @@ export class MarkdownScraper implements Scraper {
      */
     public async scrape(
         source: ScraperSourceHandler,
-    ): Promise<Array<Omit<KnowledgePiecePreparedJson, 'sources' | 'preparationIds'>> | null> {
-        const { maxParallelCount = MAX_PARALLEL_COUNT, isVerbose = IS_VERBOSE } = this.options;
+    ): Promise<ReadonlyArray<Omit<KnowledgePiecePreparedJson, 'sources' | 'preparationIds'>> | null> {
+        const { maxParallelCount = DEFAULT_MAX_PARALLEL_COUNT, isVerbose = DEFAULT_IS_VERBOSE } = this.options;
         const { llm } = this.tools;
 
         if (llm === undefined) {
@@ -63,7 +64,7 @@ export class MarkdownScraper implements Scraper {
         TODO_USE(maxParallelCount); // <- [🪂]
 
         // TODO: [🌼] In future use `ptbk make` and maked getPipelineCollection
-        const collection = createCollectionFromJson(...(PipelineCollection as TODO_any as Array<PipelineJson>));
+        const collection = createCollectionFromJson(...(PipelineCollection as TODO_any as ReadonlyArray<PipelineJson>));
 
         const prepareKnowledgeFromMarkdownExecutor = createPipelineExecutor({
             pipeline: await collection.getPipelineByUrl(
@@ -118,7 +119,7 @@ export class MarkdownScraper implements Scraper {
                 let title: KnowledgePiecePreparedJson['title'] = spaceTrim(knowledgeTextPiece.substring(0, 100));
                 const knowledgePieceContent: KnowledgePiecePreparedJson['content'] = spaceTrim(knowledgeTextPiece);
                 let keywords: KnowledgePiecePreparedJson['keywords'] = [];
-                const index: KnowledgePiecePreparedJson['index'] = [];
+                const index: WritableDeep<KnowledgePiecePreparedJson['index']> = [];
 
                 /*
               TODO: [☀] Track line and column of the source
@@ -161,7 +162,8 @@ export class MarkdownScraper implements Scraper {
 
                         index.push({
                             modelName: embeddingResult.modelName,
-                            position: embeddingResult.content,
+                            position: [...embeddingResult.content],
+                            // <- TODO: [🪓] Here should be no need for spreading new array, just `position: embeddingResult.content`
                         });
                     }
                 } catch (error) {

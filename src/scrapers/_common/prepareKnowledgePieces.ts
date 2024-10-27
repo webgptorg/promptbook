@@ -1,6 +1,6 @@
 import spaceTrim from 'spacetrim';
-import { IS_VERBOSE } from '../../config';
-import { MAX_PARALLEL_COUNT } from '../../config';
+import { DEFAULT_IS_VERBOSE } from '../../config';
+import { DEFAULT_MAX_PARALLEL_COUNT } from '../../config';
 import { KnowledgeScrapeError } from '../../errors/KnowledgeScrapeError';
 import { forEachAsync } from '../../execution/utils/forEachAsync';
 import type { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';
@@ -19,11 +19,11 @@ import { makeKnowledgeSourceHandler } from './utils/makeKnowledgeSourceHandler';
  * @public exported from `@promptbook/core`
  */
 export async function prepareKnowledgePieces(
-    knowledgeSources: Array<KnowledgeSourceJson>,
+    knowledgeSources: ReadonlyArray<KnowledgeSourceJson>,
     tools: Pick<ExecutionTools, 'llm' | 'fs' | 'scrapers'>,
     options: PrepareAndScrapeOptions,
-): Promise<Array<Omit<KnowledgePiecePreparedJson, 'preparationIds'>>> {
-    const { maxParallelCount = MAX_PARALLEL_COUNT, rootDirname, isVerbose = IS_VERBOSE } = options;
+): Promise<ReadonlyArray<Omit<KnowledgePiecePreparedJson, 'preparationIds'>>> {
+    const { maxParallelCount = DEFAULT_MAX_PARALLEL_COUNT, rootDirname, isVerbose = DEFAULT_IS_VERBOSE } = options;
 
     const knowledgePreparedUnflatten: Array<Array<Omit<KnowledgePiecePreparedJson, 'preparationIds'>>> = new Array(
         knowledgeSources.length,
@@ -44,7 +44,9 @@ export async function prepareKnowledgePieces(
             const partialPiecesUnchecked = await scraper.scrape(sourceHandler);
 
             if (partialPiecesUnchecked !== null) {
-                partialPieces = partialPiecesUnchecked;
+                partialPieces = [...partialPiecesUnchecked];
+                // <- TODO: [🪓] Here should be no need for spreading new array, just `partialPieces = partialPiecesUnchecked`
+
                 break;
             }
         }
@@ -79,7 +81,7 @@ export async function prepareKnowledgePieces(
         knowledgePreparedUnflatten[index] = pieces;
     });
 
-    const knowledgePrepared: Array<Omit<KnowledgePiecePreparedJson, 'preparationIds'>> =
+    const knowledgePrepared: ReadonlyArray<Omit<KnowledgePiecePreparedJson, 'preparationIds'>> =
         knowledgePreparedUnflatten.flat();
 
     return knowledgePrepared;
@@ -91,7 +93,7 @@ TODO: [🧊] This is how it can look in future
 >   /**
 >    * Unprepared knowledge
 >    * /
->   readonly knowledgeSources: Array<KnowledgeSourceJson>;
+>   readonly knowledgeSources: ReadonlyArray<KnowledgeSourceJson>;
 > };
 >
 > export async function prepareKnowledgePieces(

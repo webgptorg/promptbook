@@ -1,5 +1,5 @@
 import { access, constants, readdir, readFile, stat } from 'fs/promises';
-import { IS_VERBOSE } from '../../../config';
+import { DEFAULT_IS_VERBOSE } from '../../../config';
 import { EnvironmentMismatchError } from '../../../errors/EnvironmentMismatchError';
 import type { FilesystemTools } from '../../../execution/FilesystemTools';
 import type { PrepareAndScrapeOptions } from '../../../prepare/PrepareAndScrapeOptions';
@@ -16,7 +16,7 @@ export function $provideFilesystemForNode(options?: Pick<PrepareAndScrapeOptions
         throw new EnvironmentMismatchError('Function `$provideFilesystemForNode` works only in Node.js environment');
     }
 
-    const { isVerbose = IS_VERBOSE } = options || {};
+    const { isVerbose = DEFAULT_IS_VERBOSE } = options || {};
 
     TODO_USE(isVerbose);
 

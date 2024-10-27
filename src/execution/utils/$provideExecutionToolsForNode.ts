@@ -1,6 +1,7 @@
 import { EnvironmentMismatchError } from '../../errors/EnvironmentMismatchError';
 import { $provideLlmToolsFromEnv } from '../../llm-providers/_common/register/$provideLlmToolsFromEnv';
 import type { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';
+import { $provideExecutablesForNode } from '../../scrapers/_common/register/$provideExecutablesForNode';
 import { $provideFilesystemForNode } from '../../scrapers/_common/register/$provideFilesystemForNode';
 import { $provideScrapersForNode } from '../../scrapers/_common/register/$provideScrapersForNode';
 import { JavascriptExecutionTools } from '../../scripting/javascript/JavascriptExecutionTools';
@@ -21,11 +22,13 @@ export async function $provideExecutionToolsForNode(options?: PrepareAndScrapeOp
 
     const fs = $provideFilesystemForNode();
     const llm = $provideLlmToolsFromEnv(options);
+    const executables = await $provideExecutablesForNode(options);
 
     const tools = {
         llm,
         fs,
-        scrapers: await $provideScrapersForNode({ fs, llm }, options),
+        executables,
+        scrapers: await $provideScrapersForNode({ fs, llm, executables }, options),
         script: [new JavascriptExecutionTools(options)],
     } satisfies ExecutionTools;
 

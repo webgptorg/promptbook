@@ -1,0 +1,65 @@
+#!/usr/bin/env ts-node
+
+/// <reference path="../../src/globals.d.ts" />
+
+import * as dotenv from 'dotenv';
+
+dotenv.config({ path: '.env' });
+
+import { AnthropicClaudeExecutionTools } from '@promptbook/anthropic-claude';
+import { makeKnowledgeSourceHandler } from '@promptbook/core';
+import { $provideFilesystemForNode } from '@promptbook/node';
+import { MarkdownScraper } from '@promptbook/markdown-utils';
+import { spaceTrim } from '@promptbook/utils';
+import chalk from 'chalk';
+import { join } from 'path';
+
+if (process.cwd() !== join(__dirname, '../..')) {
+    console.error(chalk.red(`CWD must be root of the project`));
+    process.exit(1);
+}
+
+playground()
+    .catch((error) => {
+        console.error(chalk.bgRed(error.name || 'NamelessError'));
+        console.error(error);
+        process.exit(1);
+    })
+    .then(() => {
+        process.exit(0);
+    });
+
+async function playground() {
+    console.info(`🧸  Playground`);
+
+    // Do here stuff you want to test
+    //========================================>
+    const sourceContent = spaceTrim(`
+        Springfield is a city in the U.S. state of Illinois. It is the county seat of Sangamon County.
+        The city's population of 10566 as of 2019 makes it the sixth most populous city in the state.
+    `);
+
+    const fs = $provideFilesystemForNode();
+    const llm = new AnthropicClaudeExecutionTools({
+        isVerbose: false,
+        apiKey: process.env.ANTHROPIC_CLAUDE_API_KEY!,
+    });
+
+    const markdownScraper = new MarkdownScraper({ llm }, { isVerbose: true });
+
+    const knowledge = await markdownScraper.scrape(
+        await makeKnowledgeSourceHandler(
+            {
+                sourceContent,
+            },
+            { fs },
+        ),
+    );
+
+    console.info(chalk.bgGreen(' Knowledge: '));
+    console.info(knowledge);
+
+    //========================================/
+
+    console.info(`[ Done 🧸  Playground ]`);
+}

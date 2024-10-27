@@ -1,6 +1,6 @@
 import PipelineCollection from '../../promptbook-collection/index.json';
 import { createCollectionFromJson } from '../collection/constructors/createCollectionFromJson';
-import { IS_VERBOSE } from '../config';
+import { DEFAULT_IS_VERBOSE } from '../config';
 import { MissingToolsError } from '../errors/MissingToolsError';
 import { assertsExecutionSuccessful } from '../execution/assertsExecutionSuccessful';
 import { createPipelineExecutor } from '../execution/createPipelineExecutor/00-createPipelineExecutor';
@@ -24,14 +24,14 @@ export async function preparePersona(
     tools: Pick<ExecutionTools, 'llm'>,
     options: PrepareAndScrapeOptions,
 ): Promise<PersonaPreparedJson['modelRequirements']> {
-    const { isVerbose = IS_VERBOSE } = options;
+    const { isVerbose = DEFAULT_IS_VERBOSE } = options;
 
     if (tools === undefined || tools.llm === undefined) {
         throw new MissingToolsError('LLM tools are required for preparing persona');
     }
 
     // TODO: [🌼] In future use `ptbk make` and maked getPipelineCollection
-    const collection = createCollectionFromJson(...(PipelineCollection as TODO_any as Array<PipelineJson>));
+    const collection = createCollectionFromJson(...(PipelineCollection as TODO_any as ReadonlyArray<PipelineJson>));
 
     const preparePersonaExecutor = createPipelineExecutor({
         pipeline: await collection.getPipelineByUrl('https://promptbook.studio/promptbook/prepare-persona.ptbk.md'),

@@ -1,6 +1,6 @@
 import type { Writable } from 'type-fest';
-import { IS_VERBOSE } from '../config';
-import { MAX_PARALLEL_COUNT } from '../config';
+import { DEFAULT_IS_VERBOSE } from '../config';
+import { DEFAULT_MAX_PARALLEL_COUNT } from '../config';
 import { MissingToolsError } from '../errors/MissingToolsError';
 import type { ExecutionTools } from '../execution/ExecutionTools';
 import { forEachAsync } from '../execution/utils/forEachAsync';
@@ -37,7 +37,7 @@ export async function preparePipeline(
         return pipeline;
     }
 
-    const { rootDirname, maxParallelCount = MAX_PARALLEL_COUNT, isVerbose = IS_VERBOSE } = options;
+    const { rootDirname, maxParallelCount = DEFAULT_MAX_PARALLEL_COUNT, isVerbose = DEFAULT_IS_VERBOSE } = options;
     const {
         parameters,
         templates,
@@ -77,7 +77,7 @@ export async function preparePipeline(
         usage: ZERO_USAGE,
     };
 
-    const preparations: Array<PreparationJson> = [
+    const preparations: ReadonlyArray<PreparationJson> = [
         // ...preparations
         // <- TODO: [🧊]
         currentPreparation,
@@ -160,11 +160,13 @@ export async function preparePipeline(
 
     return $asDeeplyFrozenSerializableJson('Prepared PipelineJson', {
         ...clonePipeline(pipeline),
-        templates: templatesPrepared,
+        templates: [...templatesPrepared],
+        // <- TODO: [🪓] Here should be no need for spreading new array, just ` templates: templatesPrepared`
         knowledgeSources: knowledgeSourcesPrepared,
         knowledgePieces: knowledgePiecesPrepared,
         personas: preparedPersonas,
-        preparations,
+        preparations: [...preparations],
+        // <- TODO: [🪓] Here should be no need for spreading new array, just `preparations`
     });
 }
 

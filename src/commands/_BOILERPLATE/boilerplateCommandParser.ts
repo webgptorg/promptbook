@@ -113,7 +113,7 @@ export const boilerplateCommandParser: PipelineBothCommandParser<BoilerplateComm
      *
      * Note: This is used in `pipelineJsonToString` utility
      */
-    takeFromPipelineJson(pipelineJson: PipelineJson): Array<BoilerplateCommand> {
+    takeFromPipelineJson(pipelineJson: PipelineJson): ReadonlyArray<BoilerplateCommand> {
         keepUnused(pipelineJson);
         throw new ParseError(
             `BOILERPLATE command is only for testing purposes and should not be used in the .ptbk.md file`,
@@ -125,7 +125,7 @@ export const boilerplateCommandParser: PipelineBothCommandParser<BoilerplateComm
      *
      * Note: This is used in `pipelineJsonToString` utility
      */
-    takeFromTemplateJson($templateJson: $TemplateJson): Array<BoilerplateCommand> {
+    takeFromTemplateJson($templateJson: $TemplateJson): ReadonlyArray<BoilerplateCommand> {
         keepUnused($templateJson);
         throw new ParseError(
             `BOILERPLATE command is only for testing purposes and should not be used in the .ptbk.md file`,

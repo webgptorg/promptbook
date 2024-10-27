@@ -315,7 +315,7 @@ export function validatePipelineCore(pipeline: PipelineJson): void {
     }
 
     // Note: Detect circular dependencies
-    let resovedParameters: Array<string_name> = pipeline.parameters
+    let resovedParameters: ReadonlyArray<string_name> = pipeline.parameters
         .filter(({ isInput }) => isInput)
         .map(({ name }) => name);
 
@@ -324,7 +324,7 @@ export function validatePipelineCore(pipeline: PipelineJson): void {
         resovedParameters = [...resovedParameters, reservedParameterName];
     }
 
-    let unresovedTemplates: Array<TemplateJson> = [...pipeline.templates];
+    let unresovedTemplates: ReadonlyArray<TemplateJson> = [...pipeline.templates];
 
     let loopLimit = LOOP_LIMIT;
     while (unresovedTemplates.length > 0) {

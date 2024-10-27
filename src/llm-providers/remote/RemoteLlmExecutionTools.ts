@@ -59,7 +59,7 @@ export class RemoteLlmExecutionTools<TCustomOptions = undefined> implements LlmE
     /**
      * List all available models that can be used
      */
-    public async listModels(): Promise<Array<AvailableModel>> {
+    public async listModels(): Promise<ReadonlyArray<AvailableModel>> {
         // TODO: [👒] Listing models (and checking configuration) probbably should go through REST API not Socket.io
         const socket = await this.makeConnection();
 
@@ -84,7 +84,7 @@ export class RemoteLlmExecutionTools<TCustomOptions = undefined> implements LlmE
             );
         }
 
-        const promptResult = await new Promise<Array<AvailableModel>>((resolve, reject) => {
+        const promptResult = await new Promise<ReadonlyArray<AvailableModel>>((resolve, reject) => {
             socket.on('listModels-response', (response: PromptbookServer_ListModels_Response) => {
                 resolve(response.models);
                 socket.disconnect();
