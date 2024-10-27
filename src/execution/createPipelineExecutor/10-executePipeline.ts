@@ -13,10 +13,9 @@ import type { TaskProgress } from '../../types/TaskProgress';
 import type { Parameters, string_name } from '../../types/typeAliases';
 import { $asDeeplyFrozenSerializableJson } from '../../utils/serialization/$asDeeplyFrozenSerializableJson';
 import { PROMPTBOOK_VERSION } from '../../version';
-import type { ExecutionTools } from '../ExecutionTools';
 import type { PipelineExecutorResult } from '../PipelineExecutorResult';
 import { addUsage, ZERO_USAGE } from '../utils/addUsage';
-import type { CreatePipelineExecutorSettings } from './00-CreatePipelineExecutorSettings';
+import { CreatePipelineExecutorOptions } from './00-CreatePipelineExecutorOptions';
 import { executeTemplate } from './20-executeTemplate';
 import { filterJustOutputParameters } from './filterJustOutputParameters';
 
@@ -25,16 +24,11 @@ import { filterJustOutputParameters } from './filterJustOutputParameters';
  *
  * @private internal type of `executePipeline`
  */
-type ExecutePipelineOptions = {
+type ExecutePipelineOptions = CreatePipelineExecutorOptions & {
     /**
      * @@@
      */
     readonly inputParameters: Readonly<Parameters>;
-
-    /**
-     * @@@
-     */
-    readonly tools: ExecutionTools;
 
     /**
      * @@@
@@ -60,11 +54,6 @@ type ExecutePipelineOptions = {
      * @@@
      */
     readonly pipelineIdentification: string;
-
-    /**
-     * Settings for the pipeline executor
-     */
-    readonly settings: CreatePipelineExecutorSettings;
 };
 
 /**
@@ -75,9 +64,17 @@ type ExecutePipelineOptions = {
  * @private internal utility of `createPipelineExecutor`
  */
 export async function executePipeline(options: ExecutePipelineOptions): Promise<PipelineExecutorResult> {
-    const { inputParameters, tools, onProgress, pipeline, setPreparedPipeline, pipelineIdentification, settings } =
-        options;
-    const { maxParallelCount, rootDirname, isVerbose = IS_VERBOSE } = settings;
+    const {
+        inputParameters,
+        tools,
+        onProgress,
+        pipeline,
+        setPreparedPipeline,
+        pipelineIdentification,
+        maxParallelCount,
+        rootDirname,
+        isVerbose = IS_VERBOSE,
+    } = options;
     let { preparedPipeline } = options;
 
     if (preparedPipeline === undefined) {
@@ -257,6 +254,7 @@ export async function executePipeline(options: ExecutePipelineOptions): Promise<
                 unresovedTemplates = unresovedTemplates.filter((template) => template !== currentTemplate);
 
                 const work = /* [🤹‍♂️] not await */ executeTemplate({
+                    ...options,
                     currentTemplate,
                     preparedPipeline,
                     parametersToPass,
@@ -285,7 +283,6 @@ export async function executePipeline(options: ExecutePipelineOptions): Promise<
                             onProgress(progress);
                         }
                     },
-                    settings,
                     $executionReport: executionReport,
                     pipelineIdentification: spaceTrim(
                         (block) => `

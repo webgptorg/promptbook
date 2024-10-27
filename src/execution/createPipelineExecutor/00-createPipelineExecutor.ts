@@ -19,15 +19,16 @@ import { executePipeline } from './10-executePipeline';
  * @public exported from `@promptbook/core`
  */
 export function createPipelineExecutor(options: CreatePipelineExecutorOptions): PipelineExecutor {
-    const { pipeline, tools, settings = {} } = options;
     const {
+        pipeline,
+        tools,
         maxExecutionAttempts = MAX_EXECUTION_ATTEMPTS,
         maxParallelCount = MAX_PARALLEL_COUNT,
         csvSettings = DEFAULT_CSV_SETTINGS,
         isVerbose = IS_VERBOSE,
         isNotPreparedWarningSupressed = false,
         rootDirname = null,
-    } = settings;
+    } = options;
 
     validatePipeline(pipeline);
 
@@ -90,14 +91,12 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                     ${runCount === 1 ? '' : `Run #${runCount}`}
                 `,
             ),
-            settings: {
-                maxExecutionAttempts,
-                maxParallelCount,
-                csvSettings,
-                isVerbose,
-                isNotPreparedWarningSupressed,
-                rootDirname,
-            },
+            maxExecutionAttempts,
+            maxParallelCount,
+            csvSettings,
+            isVerbose,
+            isNotPreparedWarningSupressed,
+            rootDirname,
         });
     };
 

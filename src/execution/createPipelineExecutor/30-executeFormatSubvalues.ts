@@ -2,8 +2,7 @@ import spaceTrim from 'spacetrim';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import { FORMAT_DEFINITIONS } from '../../formats/index';
-import type { string_parameter_name } from '../../types/typeAliases';
-import type { string_parameter_value } from '../../types/typeAliases';
+import type { string_parameter_name, string_parameter_value } from '../../types/typeAliases';
 import type { TODO_any } from '../../utils/organization/TODO_any';
 import { mapAvailableToExpectedParameters } from '../../utils/parameters/mapAvailableToExpectedParameters';
 import type { ExecuteAttemptsOptions } from './40-executeAttempts';
@@ -22,7 +21,7 @@ type ExecuteFormatCellsOptions = ExecuteAttemptsOptions;
  * @private internal utility of `createPipelineExecutor`
  */
 export async function executeFormatSubvalues(options: ExecuteFormatCellsOptions): Promise<TODO_any> {
-    const { template, jokerParameterNames, parameters, priority, pipelineIdentification, settings } = options;
+    const { template, jokerParameterNames, parameters, priority, csvSettings, pipelineIdentification } = options;
 
     if (template.foreach === undefined) {
         return /* not await */ executeAttempts(options);
@@ -108,7 +107,7 @@ export async function executeFormatSubvalues(options: ExecuteFormatCellsOptions)
     let formatSettings: TODO_any;
 
     if (formatDefinition.formatName === 'CSV') {
-        formatSettings = settings.csvSettings;
+        formatSettings = csvSettings;
         // <- TODO: [🤹‍♂️] More universal, make simmilar pattern for other formats for example \n vs \r\n in text
     }
 

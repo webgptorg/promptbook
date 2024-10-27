@@ -58,7 +58,7 @@ async function findFreshEmojiTag() {
     const freshEmojis = difference(allEmojis, usedEmojis);
 
     console.info(colors.green(`Avialable fresh tags:`));
-    for (const emoji of $shuffleItems(...Array.from(freshEmojis)).splice(0, 10)) {
+    for (const emoji of [...$shuffleItems(...Array.from(freshEmojis))].splice(0, 10)) {
         const tag = `[${emoji}]`;
         console.info(colors.bgWhite(tag));
     }

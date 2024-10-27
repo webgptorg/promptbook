@@ -20,17 +20,16 @@ import type { TODO_any } from '../../utils/organization/TODO_any';
 import type { TODO_string } from '../../utils/organization/TODO_string';
 import { replaceParameters } from '../../utils/parameters/replaceParameters';
 import { $deepFreeze } from '../../utils/serialization/$deepFreeze';
-import type { ExecutionTools } from '../ExecutionTools';
 import { checkExpectations } from '../utils/checkExpectations';
 import type { $OngoingTemplateResult } from './$OngoingTemplateResult';
-import type { CreatePipelineExecutorSettings } from './00-CreatePipelineExecutorSettings';
+import { CreatePipelineExecutorOptions } from './00-CreatePipelineExecutorOptions';
 
 /**
  * @@@
  *
  * @private internal type of `executeAttempts`
  */
-export type ExecuteAttemptsOptions = {
+export type ExecuteAttemptsOptions = Omit<CreatePipelineExecutorOptions, 'pipeline'> & {
     /**
      * @@@
      */
@@ -69,16 +68,6 @@ export type ExecuteAttemptsOptions = {
     /**
      * @@@
      */
-    readonly tools: ExecutionTools;
-
-    /**
-     * Settings for the pipeline executor
-     */
-    readonly settings: CreatePipelineExecutorSettings; // <- [🤹‍♂️] In `ExecuteAttemptsOptions` should be just `setting` or `maxAttempts`
-
-    /**
-     * @@@
-     */
     readonly $executionReport: WritableDeep<ExecutionReportJson>;
 
     /**
@@ -102,11 +91,10 @@ export async function executeAttempts(options: ExecuteAttemptsOptions): Promise<
         template,
         preparedPipeline,
         tools,
-        settings,
         $executionReport,
         pipelineIdentification,
+        maxExecutionAttempts,
     } = options;
-    const { maxExecutionAttempts } = settings;
 
     const $ongoingTemplateResult: $OngoingTemplateResult = {
         $result: null,
