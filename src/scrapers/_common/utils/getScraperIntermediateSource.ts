@@ -24,7 +24,7 @@ type GetScraperIntermediateSourceSource = Pick<ScraperSourceHandler, 'filename' 
  * @private internal utility of `getScraperIntermediateSource`
  */
 type GetScraperIntermediateSourceHandler = Required<
-    Pick<PrepareAndScrapeOptions, 'rootDirname' | 'cacheDirname' | 'isCacheCleaned' | 'isVerbose'>
+    Pick<PrepareAndScrapeOptions, 'rootDirname' | 'cacheDirname' | 'cacheStrategy' | 'isVerbose'>
 > & {
     readonly extension: string_file_extension;
 };
@@ -41,7 +41,7 @@ export async function getScraperIntermediateSource(
     options: GetScraperIntermediateSourceHandler,
 ): Promise<ScraperIntermediateSource> {
     const { filename: sourceFilename, url } = source;
-    const { rootDirname, cacheDirname, isCacheCleaned, extension, isVerbose } = options;
+    const { rootDirname, cacheDirname, cacheStrategy, extension, isVerbose } = options;
 
     // TODO: [👬] DRY
     const hash = sha256(
@@ -97,7 +97,7 @@ export async function getScraperIntermediateSource(
             return isDestroyed;
         },
         async destroy() {
-            if (isCacheCleaned) {
+            if (cacheStrategy === 'HIDE_AND_CLEAN') {
                 if (isVerbose) {
                     console.info('legacyDocumentScraper: Clening cache');
                 }

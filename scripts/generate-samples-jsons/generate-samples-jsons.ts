@@ -33,7 +33,7 @@ const PROMPTBOOK_SAMPLES_DIR = join(process.cwd(), 'samples/pipelines');
 
 const program = new commander.Command();
 program.option('--commit', `Autocommit changes`, false);
-program.option('--reload-cache', `Use LLM models even if cached `, false);
+program.option('--reload', `Use LLM models even if cached `, false);
 program.option('--verbose', `Is verbose`, false);
 
 program.parse(process.argv);

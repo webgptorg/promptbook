@@ -13,7 +13,7 @@ describe('how `getScraperIntermediateSource` works', () => {
                 {
                     rootDirname: '/home/user/coolproject/promptbook-collection/',
                     cacheDirname: '/home/user/coolproject/.promptbook/',
-                    isCacheCleaned: false,
+                    cacheStrategy: 'HIDE_AND_KEEP',
                     isVerbose: false,
                     extension: 'md',
                 },
@@ -34,7 +34,7 @@ describe('how `getScraperIntermediateSource` works', () => {
                 {
                     rootDirname: '/home/user/coolproject/promptbook-collection/',
                     cacheDirname: '/home/user/coolproject/.promptbook/',
-                    isCacheCleaned: false,
+                    cacheStrategy: 'HIDE_AND_KEEP',
                     isVerbose: false,
                     extension: 'md',
                 },

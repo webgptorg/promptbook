@@ -26,7 +26,7 @@ if (process.cwd() !== join(__dirname, '../..')) {
 const program = new commander.Command();
 
 program.option('--commit', `Auto commit`, false);
-program.option('--reload-cache', `Use LLM models even if cached `, false);
+program.option('--reload', `Use LLM models even if cached `, false);
 program.option('--verbose', `Is verbose`, false);
 
 program.parse(process.argv);

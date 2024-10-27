@@ -1,11 +1,11 @@
 import { join } from 'path';
 import { EXECUTIONS_CACHE_DIRNAME } from '../../../config';
 import { EnvironmentMismatchError } from '../../../errors/EnvironmentMismatchError';
-import type { PrepareAndScrapeOptions } from '../../../prepare/PrepareAndScrapeOptions';
 import { $provideFilesystemForNode } from '../../../scrapers/_common/register/$provideFilesystemForNode';
 import { FileCacheStorage } from '../../../storage/file-cache-storage/FileCacheStorage';
 import { $isRunningInNode } from '../../../utils/environment/$isRunningInNode';
 import { cacheLlmTools } from '../utils/cache/cacheLlmTools';
+import { CacheLlmToolsOptions } from '../utils/cache/CacheLlmToolsOptions';
 import { countTotalUsage } from '../utils/count-total-usage/countTotalUsage';
 import type { LlmExecutionToolsWithTotalUsage } from '../utils/count-total-usage/LlmExecutionToolsWithTotalUsage';
 import { $provideLlmToolsFromEnv } from './$provideLlmToolsFromEnv';
@@ -16,7 +16,7 @@ import { $provideLlmToolsFromEnv } from './$provideLlmToolsFromEnv';
  * @private within the repository - for CLI utils
  */
 export function $provideLlmToolsForCli(
-    options?: Pick<PrepareAndScrapeOptions, 'isCacheCleaned'>,
+    options?: Pick<CacheLlmToolsOptions, 'isReloaded'>,
 ): LlmExecutionToolsWithTotalUsage {
     if (!$isRunningInNode()) {
         throw new EnvironmentMismatchError(
@@ -24,7 +24,7 @@ export function $provideLlmToolsForCli(
         );
     }
 
-    const { isCacheCleaned = false } = options ?? {};
+    const { isReloaded } = options ?? {};
 
     return cacheLlmTools(
         countTotalUsage(
@@ -36,7 +36,7 @@ export function $provideLlmToolsForCli(
                 { fs: $provideFilesystemForNode() },
                 { rootFolderPath: join(process.cwd(), EXECUTIONS_CACHE_DIRNAME) },
             ),
-            isReloaded: isCacheCleaned,
+            isReloaded,
         },
     );
 }

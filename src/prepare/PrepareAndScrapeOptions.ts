@@ -1,3 +1,4 @@
+import { CacheStrategy } from '../types/CacheStrategy';
 import type { string_dirname } from '../types/typeAliases';
 
 /**
@@ -24,12 +25,11 @@ export type PrepareAndScrapeOptions = {
     readonly cacheDirname?: string_dirname;
 
     /**
-     * If true, the cache is cleaned after the scraping
+     * Strategy for caching the intermediate results for knowledge source
      *
-     *
-     * @default false // <- TODO: !!!!!! Change to `cacheStrategy`/`intermediateFiles`, Put to global config, change to `true` and explicitly set to `false` in all playgrounds
+     * @default DEFAULT_CACHE_STRATEGY
      */
-    readonly isCacheCleaned?: boolean; // <-  `cacheStrategy`/`intermediateFiles`: 'HIDE_AND_CLEAN' | 'HIDE_AND_KEEP' | 'VISIBLE' (default)
+    readonly cacheStrategy?: CacheStrategy;
 
     /**
      * Maximum number of tasks running in parallel
