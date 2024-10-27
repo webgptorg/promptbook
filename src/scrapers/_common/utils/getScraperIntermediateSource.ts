@@ -74,7 +74,7 @@ export async function getScraperIntermediateSource(
     const name = pieces.join('-').split('--').join('-');
     // <- TODO: Use MAX_FILENAME_LENGTH
 
-    TODO_USE(rootDirname); // <- TODO: !!!!!!
+    TODO_USE(rootDirname); // <- TODO: [😡]
 
     const cacheFilename =
         join(
@@ -115,7 +115,7 @@ export async function getScraperIntermediateSource(
 /**
  * Note: Not using `FileCacheStorage` for two reasons:
  * 1) Need to store more than serialized JSONs
- * 2) Need to switch between a `rootDirname` and `cacheDirname` <- TODO: !!!!
+ * 2) Need to switch between a `rootDirname` and `cacheDirname` <- TODO: [😡]
  * TODO: [🐱‍🐉][🧠] Make some smart crop
  * Note: [🟢] Code in this file should never be never released in packages that could be imported into browser environment
  */
