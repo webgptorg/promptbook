@@ -17,7 +17,8 @@ export const GENERATOR_WARNING = `⚠️ WARNING: This code has been generated s
  *
  * @public exported from `@promptbook/core`
  */
-export const CLAIM = `Supercharge LLM models with Promptbook`;
+export const CLAIM = `Build responsible, controlled and transparent applications on top of LLM models!`;
+//            <- TODO: [🐊] Pick the best claim
 
 /**
  * Warning message for the generated sections and files files
