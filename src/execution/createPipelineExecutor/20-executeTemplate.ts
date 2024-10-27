@@ -162,7 +162,7 @@ export async function executeTemplate(options: executeSingleTemplateOptions): Pr
     // Note: [👨‍👨‍👧] Now we can freeze `parameters` because we are sure that all and only used parameters are defined and are not going to be changed
     Object.freeze(parameters);
 
-    const maxAttempts = currentTemplate.templateType === 'DIALOG_TEMPLATE' ? Infinity : maxExecutionAttempts; // <- TODO: [🤹‍♂️]
+    const maxAttempts = currentTemplate.templateType === 'DIALOG_TEMPLATE' ? Infinity : maxExecutionAttempts; // <- Note: [💂]
     const jokerParameterNames = currentTemplate.jokerParameterNames || [];
 
     const preparedContent = (currentTemplate.preparedContent || '{content}')

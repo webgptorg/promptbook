@@ -42,8 +42,12 @@ export type ExecuteAttemptsOptions = Omit<CreatePipelineExecutorOptions, 'pipeli
 
     /**
      * @@@
+     *
+     * Note: [💂] There are two distinct variabiles
+     * 1) `maxExecutionAttempts` - the amount of attempts LLM model
+     * 2) `maxAttempts` - the amount of attempts for any template - LLM, SCRIPT, DIALOG, etc.
      */
-    readonly maxAttempts: number; // <- [🤹‍♂️] In `ExecuteAttemptsOptions` should be just `setting` or `maxAttempts`
+    readonly maxAttempts: number;
 
     /**
      * @@@
@@ -85,7 +89,7 @@ export async function executeAttempts(options: ExecuteAttemptsOptions): Promise<
     const {
         jokerParameterNames,
         priority,
-        maxAttempts,
+        maxAttempts, // <- Note: [💂]
         preparedContent,
         parameters,
         template,
