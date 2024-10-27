@@ -1,7 +1,7 @@
 import { spaceTrim } from 'spacetrim';
 import type { Promisable, ReadonlyDeep, WritableDeep } from 'type-fest';
 import { forTime } from 'waitasecond';
-import { IMMEDIATE_TIME, IS_VERBOSE, LOOP_LIMIT, RESERVED_PARAMETER_NAMES } from '../../config';
+import { DEFAULT_IS_VERBOSE, IMMEDIATE_TIME, LOOP_LIMIT, RESERVED_PARAMETER_NAMES } from '../../config';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import { serializeError } from '../../errors/utils/serializeError';
@@ -73,7 +73,7 @@ export async function executePipeline(options: ExecutePipelineOptions): Promise<
         pipelineIdentification,
         maxParallelCount,
         rootDirname,
-        isVerbose = IS_VERBOSE,
+        isVerbose = DEFAULT_IS_VERBOSE,
     } = options;
     let { preparedPipeline } = options;
 

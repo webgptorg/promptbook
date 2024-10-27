@@ -1,5 +1,5 @@
 import spaceTrim from 'spacetrim';
-import { IS_VERBOSE, MAX_PARALLEL_COUNT } from '../../config';
+import { DEFAULT_IS_VERBOSE, DEFAULT_MAX_PARALLEL_COUNT } from '../../config';
 import { KnowledgeScrapeError } from '../../errors/KnowledgeScrapeError';
 import { forEachAsync } from '../../execution/utils/forEachAsync';
 import type { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';
@@ -22,7 +22,7 @@ export async function prepareKnowledgePieces(
     tools: Pick<ExecutionTools, 'llm' | 'fs' | 'scrapers'>,
     options: PrepareAndScrapeOptions,
 ): Promise<ReadonlyArray<Omit<KnowledgePiecePreparedJson, 'preparationIds'>>> {
-    const { maxParallelCount = MAX_PARALLEL_COUNT, rootDirname, isVerbose = IS_VERBOSE } = options;
+    const { maxParallelCount = DEFAULT_MAX_PARALLEL_COUNT, rootDirname, isVerbose = DEFAULT_IS_VERBOSE } = options;
 
     const knowledgePreparedUnflatten: Array<Array<Omit<KnowledgePiecePreparedJson, 'preparationIds'>>> = new Array(
         knowledgeSources.length,

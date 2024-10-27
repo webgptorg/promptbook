@@ -5,7 +5,7 @@ import { dirname, join } from 'path';
 import spaceTrim from 'spacetrim';
 import { collectionToJson } from '../../collection/collectionToJson';
 import { createCollectionFromDirectory } from '../../collection/constructors/createCollectionFromDirectory';
-import { GENERATOR_WARNING_BY_PROMPTBOOK_CLI, PIPELINE_COLLECTION_BASE_FILENAME } from '../../config';
+import { DEFAULT_PIPELINE_COLLECTION_BASE_FILENAME, GENERATOR_WARNING_BY_PROMPTBOOK_CLI } from '../../config';
 import { stringifyPipelineJson } from '../../conversion/utils/stringifyPipelineJson';
 import { validatePipeline } from '../../conversion/validation/validatePipeline';
 import { UnexpectedError } from '../../errors/UnexpectedError';
@@ -60,11 +60,11 @@ export function initializeMakeCommand(program: Program) {
         spaceTrim(`
             Where to save the builded collection
 
-            Note: If you keep it "${PIPELINE_COLLECTION_BASE_FILENAME}" it will be saved in the root of the promptbook directory
+            Note: If you keep it "${DEFAULT_PIPELINE_COLLECTION_BASE_FILENAME}" it will be saved in the root of the promptbook directory
                   If you set it to a path, it will be saved in that path
                   BUT you can use only one format and set correct extension
         `),
-        PIPELINE_COLLECTION_BASE_FILENAME,
+        DEFAULT_PIPELINE_COLLECTION_BASE_FILENAME,
     );
 
     makeCommand.action(
@@ -81,7 +81,7 @@ export function initializeMakeCommand(program: Program) {
                 .map((_) => _.trim())
                 .filter((_) => _ !== '');
 
-            if (outFile !== PIPELINE_COLLECTION_BASE_FILENAME && formats.length !== 1) {
+            if (outFile !== DEFAULT_PIPELINE_COLLECTION_BASE_FILENAME && formats.length !== 1) {
                 console.error(colors.red(`You can only use one format if you specify --out-file`));
                 process.exit(1);
             }
@@ -148,9 +148,9 @@ export function initializeMakeCommand(program: Program) {
 
             const saveFile = async (extension: string_file_extension, content: string) => {
                 const filename =
-                    outFile !== PIPELINE_COLLECTION_BASE_FILENAME
+                    outFile !== DEFAULT_PIPELINE_COLLECTION_BASE_FILENAME
                         ? outFile
-                        : join(path, `${PIPELINE_COLLECTION_BASE_FILENAME}.${extension}`);
+                        : join(path, `${DEFAULT_PIPELINE_COLLECTION_BASE_FILENAME}.${extension}`);
 
                 if (!outFile.endsWith(`.${extension}`)) {
                     console.warn(colors.yellow(`Warning: Extension of output file should be "${extension}"`));

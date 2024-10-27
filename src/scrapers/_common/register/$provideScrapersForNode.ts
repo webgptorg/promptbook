@@ -1,4 +1,4 @@
-import { IS_AUTO_INSTALLED, IS_VERBOSE } from '../../../config';
+import { DEFAULT_IS_AUTO_INSTALLED, DEFAULT_IS_VERBOSE } from '../../../config';
 import { EnvironmentMismatchError } from '../../../errors/EnvironmentMismatchError';
 import type { ExecutionTools } from '../../../execution/ExecutionTools';
 import type { PrepareAndScrapeOptions } from '../../../prepare/PrepareAndScrapeOptions';
@@ -23,7 +23,7 @@ export async function $provideScrapersForNode(
         throw new EnvironmentMismatchError('Function `$getScrapersForNode` works only in Node.js environment');
     }
 
-    const { isAutoInstalled = IS_AUTO_INSTALLED, isVerbose = IS_VERBOSE } = options || {};
+    const { isAutoInstalled = DEFAULT_IS_AUTO_INSTALLED, isVerbose = DEFAULT_IS_VERBOSE } = options || {};
 
     TODO_USE(isAutoInstalled);
     TODO_USE(isVerbose);

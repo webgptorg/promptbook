@@ -4,7 +4,7 @@ import type { KnowledgePiecePreparedJson } from '../../types/PipelineJson/Knowle
 import { readdir, rename, rmdir } from 'fs/promises';
 import { dirname, join } from 'path';
 import spaceTrim from 'spacetrim';
-import { DEFAULT_INTERMEDIATE_FILES_STRATEGY, IS_VERBOSE, SCRAPE_CACHE_DIRNAME } from '../../config';
+import { DEFAULT_INTERMEDIATE_FILES_STRATEGY, DEFAULT_IS_VERBOSE, DEFAULT_SCRAPE_CACHE_DIRNAME } from '../../config';
 import { EnvironmentMismatchError } from '../../errors/EnvironmentMismatchError';
 import { KnowledgeScrapeError } from '../../errors/KnowledgeScrapeError';
 import { MissingToolsError } from '../../errors/MissingToolsError';
@@ -57,9 +57,9 @@ export class LegacyDocumentScraper implements Converter, Scraper {
     public async $convert(source: ScraperSourceHandler): Promise<ScraperIntermediateSource> {
         const {
             rootDirname = process.cwd(),
-            cacheDirname = SCRAPE_CACHE_DIRNAME,
+            cacheDirname = DEFAULT_SCRAPE_CACHE_DIRNAME,
             intermediateFilesStrategy = DEFAULT_INTERMEDIATE_FILES_STRATEGY,
-            isVerbose = IS_VERBOSE,
+            isVerbose = DEFAULT_IS_VERBOSE,
         } = this.options;
 
         if (!$isRunningInNode()) {

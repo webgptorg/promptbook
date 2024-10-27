@@ -7,7 +7,7 @@ import PipelineCollection from '../../../promptbook-collection/index.json';
 // import PipelineCollection from '../../../promptbook-collection/promptbook-collection';
 import type { WritableDeep } from 'type-fest';
 import { createCollectionFromJson } from '../../collection/constructors/createCollectionFromJson';
-import { IS_VERBOSE, MAX_PARALLEL_COUNT } from '../../config';
+import { DEFAULT_IS_VERBOSE, DEFAULT_MAX_PARALLEL_COUNT } from '../../config';
 import { titleToName } from '../../conversion/utils/titleToName';
 import { MissingToolsError } from '../../errors/MissingToolsError';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
@@ -47,7 +47,7 @@ export class MarkdownScraper implements Scraper {
     public async scrape(
         source: ScraperSourceHandler,
     ): Promise<ReadonlyArray<Omit<KnowledgePiecePreparedJson, 'sources' | 'preparationIds'>> | null> {
-        const { maxParallelCount = MAX_PARALLEL_COUNT, isVerbose = IS_VERBOSE } = this.options;
+        const { maxParallelCount = DEFAULT_MAX_PARALLEL_COUNT, isVerbose = DEFAULT_IS_VERBOSE } = this.options;
         const { llm } = this.tools;
 
         if (llm === undefined) {

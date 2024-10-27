@@ -550,6 +550,8 @@ Knowledge scrapers [🐝]
 -   Rename `getLlmToolsForCli` -> `$provideLlmToolsForCli`
 -   Change most `Array` -> `ReadonlyArray`
 -   Unite `CreatePipelineExecutorOptions` and `CreatePipelineExecutorSettings`
+-   Change `--reload-cache` to `--reload` in CLI
+-   Prefix default values with `DEFAULT_`
 
 ### `0.72.0` _(2024-09-)_
 

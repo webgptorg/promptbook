@@ -1,5 +1,5 @@
 import spaceTrim from 'spacetrim';
-import { IS_VERBOSE } from '../../../config';
+import { DEFAULT_IS_VERBOSE } from '../../../config';
 import type { LlmExecutionTools } from '../../../execution/LlmExecutionTools';
 import type { TODO_any } from '../../../utils/organization/TODO_any';
 import { joinLlmExecutionTools } from '../../multiple/joinLlmExecutionTools';
@@ -34,7 +34,7 @@ export function createLlmToolsFromConfiguration(
     configuration: LlmToolsConfiguration,
     options: CreateLlmToolsFromConfigurationOptions = {},
 ): MultipleLlmExecutionTools {
-    const { isVerbose = IS_VERBOSE } = options;
+    const { isVerbose = DEFAULT_IS_VERBOSE } = options;
 
     const llmTools: ReadonlyArray<LlmExecutionTools> = configuration.map((llmConfiguration: TODO_any) => {
         const registeredItem = $llmToolsRegister

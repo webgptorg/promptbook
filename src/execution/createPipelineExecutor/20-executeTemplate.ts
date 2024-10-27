@@ -1,6 +1,6 @@
 import { spaceTrim } from 'spacetrim';
 import type { Promisable, ReadonlyDeep, WritableDeep } from 'type-fest';
-import { MAX_EXECUTION_ATTEMPTS } from '../../config';
+import { DEFAULT_MAX_EXECUTION_ATTEMPTS } from '../../config';
 import { extractParameterNamesFromTemplate } from '../../conversion/utils/extractParameterNamesFromTemplate';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { ExecutionReportJson } from '../../types/execution-report/ExecutionReportJson';
@@ -65,7 +65,7 @@ export async function executeTemplate(options: executeSingleTemplateOptions): Pr
         onProgress,
         $executionReport,
         pipelineIdentification,
-        maxExecutionAttempts = MAX_EXECUTION_ATTEMPTS,
+        maxExecutionAttempts = DEFAULT_MAX_EXECUTION_ATTEMPTS,
     } = options;
 
     const name = `pipeline-executor-frame-${currentTemplate.name}`;

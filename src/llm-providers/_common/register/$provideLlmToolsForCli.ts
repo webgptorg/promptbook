@@ -1,5 +1,5 @@
 import { join } from 'path';
-import { EXECUTIONS_CACHE_DIRNAME } from '../../../config';
+import { DEFAULT_EXECUTIONS_CACHE_DIRNAME } from '../../../config';
 import { EnvironmentMismatchError } from '../../../errors/EnvironmentMismatchError';
 import { $provideFilesystemForNode } from '../../../scrapers/_common/register/$provideFilesystemForNode';
 import { FileCacheStorage } from '../../../storage/file-cache-storage/FileCacheStorage';
@@ -34,7 +34,9 @@ export function $provideLlmToolsForCli(
         {
             storage: new FileCacheStorage(
                 { fs: $provideFilesystemForNode() },
-                { rootFolderPath: join(process.cwd(), EXECUTIONS_CACHE_DIRNAME) },
+                { rootFolderPath: join(process.cwd(), DEFAULT_EXECUTIONS_CACHE_DIRNAME // <- TODO: [🦒] Allow to override (pass different value into the function)
+
+                ) },
             ),
             isCacheReloaded,
         },

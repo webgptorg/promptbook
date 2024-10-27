@@ -1,9 +1,8 @@
-import { $isRunningInNode } from '../../../utils/environment/$isRunningInNode';
-import { IS_AUTO_INSTALLED } from '../../../config';
-import { IS_VERBOSE } from '../../../config';
+import { DEFAULT_IS_AUTO_INSTALLED, DEFAULT_IS_VERBOSE } from '../../../config';
 import { EnvironmentMismatchError } from '../../../errors/EnvironmentMismatchError';
 import type { Executables } from '../../../execution/Executables';
 import type { PrepareAndScrapeOptions } from '../../../prepare/PrepareAndScrapeOptions';
+import { $isRunningInNode } from '../../../utils/environment/$isRunningInNode';
 import { TODO_USE } from '../../../utils/organization/TODO_USE';
 
 /**
@@ -16,7 +15,7 @@ export async function $provideExecutablesForNode(options?: PrepareAndScrapeOptio
         throw new EnvironmentMismatchError('Function `$getScrapersForNode` works only in Node.js environment');
     }
 
-    const { isAutoInstalled = IS_AUTO_INSTALLED, isVerbose = IS_VERBOSE } = options || {};
+    const { isAutoInstalled = DEFAULT_IS_AUTO_INSTALLED, isVerbose = DEFAULT_IS_VERBOSE } = options || {};
 
     TODO_USE(isAutoInstalled);
     TODO_USE(isVerbose);

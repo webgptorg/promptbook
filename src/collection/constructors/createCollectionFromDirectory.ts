@@ -2,7 +2,7 @@ import colors from 'colors';
 import { readFile } from 'fs/promises';
 import { dirname, join } from 'path';
 import spaceTrim from 'spacetrim';
-import { IS_VERBOSE, PIPELINE_COLLECTION_BASE_FILENAME } from '../../config';
+import { DEFAULT_IS_VERBOSE, DEFAULT_PIPELINE_COLLECTION_BASE_FILENAME } from '../../config';
 import { pipelineJsonToString } from '../../conversion/pipelineJsonToString';
 import { pipelineStringToJson } from '../../conversion/pipelineStringToJson';
 import { validatePipeline } from '../../conversion/validation/validatePipeline';
@@ -87,7 +87,13 @@ export async function createCollectionFromDirectory(
     }
 
     // TODO: [🍖] Allow to skip
-    const makedLibraryFilePath = join(path, `${PIPELINE_COLLECTION_BASE_FILENAME}.json`);
+    const makedLibraryFilePath = join(
+        path,
+        `${
+            DEFAULT_PIPELINE_COLLECTION_BASE_FILENAME
+            // <- TODO: [🦒] Allow to override (pass different value into the function)
+        }.json`,
+    );
 
     if (!(await isFileExisting(makedLibraryFilePath, tools.fs))) {
         console.info(
@@ -103,7 +109,12 @@ export async function createCollectionFromDirectory(
         // TODO: [🌗]
     }
 
-    const { isRecursive = true, isVerbose = IS_VERBOSE, isLazyLoaded = false, isCrashedOnError = true } = options || {};
+    const {
+        isRecursive = true,
+        isVerbose = DEFAULT_IS_VERBOSE,
+        isLazyLoaded = false,
+        isCrashedOnError = true,
+    } = options || {};
 
     const collection = createCollectionFromPromise(async () => {
         if (isVerbose) {

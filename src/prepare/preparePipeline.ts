@@ -1,5 +1,5 @@
 import type { Writable } from 'type-fest';
-import { IS_VERBOSE, MAX_PARALLEL_COUNT } from '../config';
+import { DEFAULT_IS_VERBOSE, DEFAULT_MAX_PARALLEL_COUNT } from '../config';
 import { MissingToolsError } from '../errors/MissingToolsError';
 import type { ExecutionTools } from '../execution/ExecutionTools';
 import { ZERO_USAGE } from '../execution/utils/addUsage';
@@ -36,7 +36,7 @@ export async function preparePipeline(
         return pipeline;
     }
 
-    const { rootDirname, maxParallelCount = MAX_PARALLEL_COUNT, isVerbose = IS_VERBOSE } = options;
+    const { rootDirname, maxParallelCount = DEFAULT_MAX_PARALLEL_COUNT, isVerbose = DEFAULT_IS_VERBOSE } = options;
     const {
         parameters,
         templates,

@@ -2,7 +2,7 @@ import { join } from 'path';
 import spaceTrim from 'spacetrim';
 import type { SetOptional } from 'type-fest';
 import { sourceContentToName } from '../../../commands/KNOWLEDGE/utils/sourceContentToName';
-import { IS_VERBOSE } from '../../../config';
+import { DEFAULT_IS_VERBOSE } from '../../../config';
 import { EnvironmentMismatchError } from '../../../errors/EnvironmentMismatchError';
 import { NotFoundError } from '../../../errors/NotFoundError';
 import { UnexpectedError } from '../../../errors/UnexpectedError';
@@ -32,7 +32,7 @@ export async function makeKnowledgeSourceHandler(
     const {
         rootDirname = null,
         // <- TODO: process.cwd() if running in Node.js
-        isVerbose = IS_VERBOSE,
+        isVerbose = DEFAULT_IS_VERBOSE,
     } = options || {};
 
     TODO_USE(isVerbose);

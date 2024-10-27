@@ -1,6 +1,11 @@
 import { spaceTrim } from 'spacetrim';
 import type { Promisable, ReadonlyDeep } from 'type-fest';
-import { DEFAULT_CSV_SETTINGS, IS_VERBOSE, MAX_EXECUTION_ATTEMPTS, MAX_PARALLEL_COUNT } from '../../config';
+import {
+    DEFAULT_CSV_SETTINGS,
+    DEFAULT_IS_VERBOSE,
+    DEFAULT_MAX_EXECUTION_ATTEMPTS,
+    DEFAULT_MAX_PARALLEL_COUNT,
+} from '../../config';
 import { validatePipeline } from '../../conversion/validation/validatePipeline';
 import { isPipelinePrepared } from '../../prepare/isPipelinePrepared';
 import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
@@ -22,10 +27,10 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
     const {
         pipeline,
         tools,
-        maxExecutionAttempts = MAX_EXECUTION_ATTEMPTS,
-        maxParallelCount = MAX_PARALLEL_COUNT,
+        maxExecutionAttempts = DEFAULT_MAX_EXECUTION_ATTEMPTS,
+        maxParallelCount = DEFAULT_MAX_PARALLEL_COUNT,
         csvSettings = DEFAULT_CSV_SETTINGS,
-        isVerbose = IS_VERBOSE,
+        isVerbose = DEFAULT_IS_VERBOSE,
         isNotPreparedWarningSupressed = false,
         rootDirname = null,
     } = options;
