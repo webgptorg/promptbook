@@ -29,8 +29,8 @@ export async function $provideScrapersForNode(
     TODO_USE(isAutoInstalled);
     TODO_USE(isVerbose);
 
-    // TODO: !!!!!! Do here auto-installation + auto-include of missing scrapers - use all from $scrapersMetadataRegister.list()
-    // TODO: [🧠] What is the best strategy for auto-install - install them all?
+    // TODO: [🔱] Do here auto-installation + auto-include of missing scrapers - use all from $scrapersMetadataRegister.list()
+    // TODO: [🔱][🧠] What is the best strategy for auto-install - install them all?
 
     const scrapers: Array<Scraper> = [];
     for (const scraperFactory of $scrapersRegister.list()) {
