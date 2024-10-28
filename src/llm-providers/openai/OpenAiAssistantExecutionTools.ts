@@ -213,7 +213,6 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
 }
 
 /**
- * TODO: !!!!!! DO not use colors - can be used in browser
  * TODO: [🧠][🧙‍♂️] Maybe there can be some wizzard for thoose who want to use just OpenAI
  * TODO: Maybe make custom OpenAiError
  * TODO: [🧠][🈁] Maybe use `isDeterministic` from options
