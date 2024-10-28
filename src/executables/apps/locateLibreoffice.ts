@@ -1,6 +1,11 @@
 import { string_executable_path } from '../../types/typeAliases';
 import { locateApp } from '../locateApp';
 
+/**
+ * @@@
+ *
+ * @private within the repository
+ */
 export function locateLibreoffice(): Promise<string_executable_path> {
     return locateApp({
         appName: 'Libreoffice',
@@ -11,5 +16,6 @@ export function locateLibreoffice(): Promise<string_executable_path> {
 }
 
 /**
+ * TODO: [🧠][♿] Maybe export through `@promptbook/node` OR `@promptbook/legacy-documents`
  * Note: [🟢] Code in this file should never be never released in packages that could be imported into browser environment
  */

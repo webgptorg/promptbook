@@ -8,6 +8,11 @@ import { LocateAppOptions } from '../locateApp';
 
 const exec = promisify(execLegacy);
 
+/**
+ * @@@
+ *
+ * @private within the repository
+ */
 export async function locateAppOnMacOs({
     appName,
     macOsName,
@@ -34,5 +39,6 @@ export async function locateAppOnMacOs({
 }
 
 /**
+ * TODO: [🧠][♿] Maybe export through `@promptbook/node`
  * Note: [🟢] Code in this file should never be never released in packages that could be imported into browser environment
  */

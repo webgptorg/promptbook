@@ -33,6 +33,8 @@ export interface LocateAppOptions {
 
 /**
  * Locates an application on the system
+ *
+ * @private within the repository
  */
 export function locateApp(
     options: RequireAtLeastOne<LocateAppOptions, 'linuxWhich' | 'windowsSuffix' | 'macOsName'>,
@@ -65,5 +67,6 @@ export function locateApp(
 }
 
 /**
+ * TODO: [🧠][♿] Maybe export through `@promptbook/node`
  * Note: [🟢] Code in this file should never be never released in packages that could be imported into browser environment
  */

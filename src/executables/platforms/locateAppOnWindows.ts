@@ -4,6 +4,11 @@ import { string_executable_path } from '../../types/typeAliases';
 import { isExecutable } from '../../utils/files/isExecutable';
 import { LocateAppOptions } from '../locateApp';
 
+/**
+ * @@@
+ *
+ * @private within the repository
+ */
 export async function locateAppOnWindows({
     appName,
     windowsSuffix,
@@ -27,5 +32,6 @@ export async function locateAppOnWindows({
 }
 
 /**
+ * TODO: [🧠][♿] Maybe export through `@promptbook/node`
  * Note: [🟢] Code in this file should never be never released in packages that could be imported into browser environment
  */

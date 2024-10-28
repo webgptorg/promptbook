@@ -5,6 +5,11 @@ import { string_executable_path } from '../../types/typeAliases';
 
 const exec = promisify(execLegacy);
 
+/**
+ * @@@
+ *
+ * @private within the repository
+ */
 export async function locateAppOnLinux({
     appName,
     linuxWhich,
@@ -19,5 +24,6 @@ export async function locateAppOnLinux({
 }
 
 /**
+ * TODO: [🧠][♿] Maybe export through `@promptbook/node`
  * Note: [🟢] Code in this file should never be never released in packages that could be imported into browser environment
  */
