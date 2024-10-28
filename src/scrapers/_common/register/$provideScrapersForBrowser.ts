@@ -4,6 +4,7 @@ import type { PrepareAndScrapeOptions } from '../../../prepare/PrepareAndScrapeO
 import { $isRunningInBrowser } from '../../../utils/environment/$isRunningInBrowser';
 import { $isRunningInWebWorker } from '../../../utils/environment/$isRunningInWebWorker';
 import type { Scraper } from '../Scraper';
+import { $scrapersRegister } from './$scrapersRegister';
 
 /**
  * @@@
@@ -30,7 +31,11 @@ export async function $provideScrapersForBrowser(
         throw new EnvironmentMismatchError('Auto-installing is not supported in browser environment');
     }
 
-    return [
-        // TODO: !!!!!!! Implement
-    ];
+    const scrapers: Array<Scraper> = [];
+    for (const scraperFactory of $scrapersRegister.list()) {
+        const scraper = await scraperFactory(tools, options || {});
+        scrapers.push(scraper);
+    }
+
+    return scrapers;
 }
