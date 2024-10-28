@@ -4,15 +4,15 @@ import * as dotenv from 'dotenv';
 
 dotenv.config({ path: '.env' });
 
-import colors from 'colors';
+import colors from 'colors'; // <- TODO: [🔶] Make system to put color and style to both node and browser
 import { writeFile } from 'fs/promises';
 import { join } from 'path';
 import { stringifyPipelineJson } from '../../../conversion/utils/stringifyPipelineJson';
 import { usageToHuman } from '../../../execution/utils/usageToHuman';
 import { $provideLlmToolsForTestingAndScriptsAndPlayground } from '../../../llm-providers/_common/register/$provideLlmToolsForTestingAndScriptsAndPlayground';
+import { $provideFilesystemForNode } from '../../_common/register/$provideFilesystemForNode';
 import { makeKnowledgeSourceHandler } from '../../_common/utils/makeKnowledgeSourceHandler';
 import { PdfScraper } from '../PdfScraper';
-import { $provideFilesystemForNode } from '../../_common/register/$provideFilesystemForNode';
 
 playground()
     .catch((error) => {
@@ -45,7 +45,11 @@ async function playground() {
     );
 
     const knowledge = await pdfScraper.scrape(
-        await makeKnowledgeSourceHandler({ sourceContent: sample },  { fs: $provideFilesystemForNode() },{ rootDirname }),
+        await makeKnowledgeSourceHandler(
+            { sourceContent: sample },
+            { fs: $provideFilesystemForNode() },
+            { rootDirname },
+        ),
     );
 
     console.info(colors.cyan(usageToHuman(llmTools.getTotalUsage())));

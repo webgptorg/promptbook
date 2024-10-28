@@ -4,7 +4,7 @@ import * as dotenv from 'dotenv';
 
 dotenv.config({ path: '.env' });
 
-import colors from 'colors';
+import colors from 'colors'; // <- TODO: [🔶] Make system to put color and style to both node and browser
 import { forEver, forTime } from 'waitasecond';
 import { createCollectionFromDirectory } from '../../../collection/constructors/createCollectionFromDirectory';
 import { OpenAiExecutionTools } from '../../openai/OpenAiExecutionTools';

@@ -1,6 +1,6 @@
 #!/usr/bin/env ts-node
 
-import colors from 'colors';
+import colors from 'colors'; // <- TODO: [🔶] Make system to put color and style to both node and browser
 import commander from 'commander';
 import { createBestTranslator } from './automatic-translators/createBestTranslator.ts.todo';
 import { translateMessages } from './translateMessages';
