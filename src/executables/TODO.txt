@@ -1,2 +1,2 @@
-TODO: !!!!!! Co-jsondoc
-TODO: !!!!!! Prefix all by $
+TODO: [🧠] Maybe transfer back to locate-app
+TODO: [🧠] Maybe prefix all by $

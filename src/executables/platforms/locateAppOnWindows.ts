@@ -1,11 +1,13 @@
 import { join } from 'path';
+import { $provideFilesystemForNode } from '../../_packages/node.index';
+import { string_executable_path } from '../../types/typeAliases';
+import { isExecutable } from '../../utils/files/isExecutable';
 import { LocateAppOptions } from '../locateApp';
-import { isExecutable } from '../utils/isExecutable';
 
 export async function locateAppOnWindows({
     appName,
     windowsSuffix,
-}: Pick<Required<LocateAppOptions>, 'appName' | 'windowsSuffix'>): Promise<string> {
+}: Pick<Required<LocateAppOptions>, 'appName' | 'windowsSuffix'>): Promise<string_executable_path> {
     const prefixes = [
         process.env.LOCALAPPDATA,
         join(process.env.LOCALAPPDATA || '', 'Programs'),
@@ -16,7 +18,7 @@ export async function locateAppOnWindows({
     for (const prefix of prefixes) {
         const path = prefix + windowsSuffix;
 
-        if (await isExecutable(path)) {
+        if (await isExecutable(path, $provideFilesystemForNode())) {
             return path;
         }
     }

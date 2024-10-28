@@ -1,4 +1,7 @@
 import type { RequireAtLeastOne } from 'type-fest';
+import { $isRunningInNode } from '../_packages/utils.index';
+import { EnvironmentMismatchError } from '../errors/EnvironmentMismatchError';
+import { string_executable_path } from '../types/typeAliases';
 import { locateAppOnLinux } from './platforms/locateAppOnLinux';
 import { locateAppOnMacOs } from './platforms/locateAppOnMacOs';
 import { locateAppOnWindows } from './platforms/locateAppOnWindows';
@@ -33,7 +36,11 @@ export interface LocateAppOptions {
  */
 export function locateApp(
     options: RequireAtLeastOne<LocateAppOptions, 'linuxWhich' | 'windowsSuffix' | 'macOsName'>,
-): Promise<string> {
+): Promise<string_executable_path> {
+    if (!$isRunningInNode()) {
+        throw new EnvironmentMismatchError('Locating apps works only in Node.js environment');
+    }
+
     const { appName, linuxWhich, windowsSuffix, macOsName } = options;
 
     if (process.platform === 'win32') {

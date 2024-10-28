@@ -1,13 +1,14 @@
 import { exec as execLegacy } from 'child_process';
 import { promisify } from 'util';
 import { LocateAppOptions } from '../locateApp';
+import { string_executable_path } from '../../types/typeAliases';
 
 const exec = promisify(execLegacy);
 
 export async function locateAppOnLinux({
     appName,
     linuxWhich,
-}: Pick<Required<LocateAppOptions>, 'appName' | 'linuxWhich'>): Promise<string> {
+}: Pick<Required<LocateAppOptions>, 'appName' | 'linuxWhich'>): Promise<string_executable_path> {
     const { stderr, stdout } = await exec(`which ${linuxWhich}`);
 
     if (!stderr && stdout) {
