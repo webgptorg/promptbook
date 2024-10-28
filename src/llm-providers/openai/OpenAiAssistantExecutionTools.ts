@@ -7,11 +7,13 @@ import type { ChatPromptResult } from '../../execution/PromptResult';
 import { UNCERTAIN_USAGE } from '../../execution/utils/usage-constants';
 import type { ModelRequirements } from '../../types/ModelRequirements';
 import type { Prompt } from '../../types/Prompt';
-import type { string_date_iso8601 } from '../../types/typeAliases';
-import type { string_markdown } from '../../types/typeAliases';
-import type { string_markdown_text } from '../../types/typeAliases';
-import type { string_title } from '../../types/typeAliases';
-import type { string_token } from '../../types/typeAliases';
+import type {
+    string_date_iso8601,
+    string_markdown,
+    string_markdown_text,
+    string_title,
+    string_token,
+} from '../../types/typeAliases';
 import { getCurrentIsoDate } from '../../utils/getCurrentIsoDate';
 import { replaceParameters } from '../../utils/parameters/replaceParameters';
 import { $asDeeplyFrozenSerializableJson } from '../../utils/serialization/$asDeeplyFrozenSerializableJson';
@@ -109,7 +111,7 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
             assistant_id: this.assistantId,
             thread: {
                 messages: [
-                    // TODO: !!!!!! Allow threads to be passed
+                    // TODO:  [🗯] !!!!!! Allow threads to be passed
                     { role: 'user', content: rawPromptContent },
                 ],
             },
@@ -122,8 +124,6 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
         if (this.options.isVerbose) {
             console.info(colors.bgWhite('rawRequest'), JSON.stringify(rawRequest, null, 4));
         }
-
-        console.log('!!!!!! OpenAI client', client);
 
         const stream = await client.beta.threads.createAndRunStream(rawRequest);
 
@@ -144,7 +144,7 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
                 console.info('messageDelta', messageDelta.content[0].text?.value);
             }
 
-            // TODO: !!!!!! report progress
+            // <- TODO: [🐚] Make streaming and running tasks working
         });
 
         stream.on('messageCreated', (message) => {
@@ -187,7 +187,8 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
         // eslint-disable-next-line prefer-const
         complete = getCurrentIsoDate();
         const usage = UNCERTAIN_USAGE;
-        // TODO: !!!!!!> = computeOpenAiUsage(content, resultContent || '', rawResponse);
+        // <- TODO: [🥘] Compute real usage for assistant
+        //       ?> const usage = computeOpenAiUsage(content, resultContent || '', rawResponse);
 
         if (resultContent === null) {
             throw new PipelineExecutionError('No response message from OpenAI');
@@ -196,7 +197,8 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
         return $asDeeplyFrozenSerializableJson('OpenAiAssistantExecutionTools ChatPromptResult', {
             content: resultContent,
             modelName: 'assistant',
-            //          <- TODO: !!!!!! Can we detect really used model: rawResponse.model || modelName,
+            // <- TODO: [🥘] Detect used model in assistant
+            //       ?> model: rawResponse.model || modelName,
             timing: {
                 start,
                 complete,

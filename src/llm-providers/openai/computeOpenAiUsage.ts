@@ -25,7 +25,7 @@ export function computeOpenAiUsage(
             | OpenAI.Chat.Completions.ChatCompletion
             | OpenAI.Completions.Completion
             | OpenAI.Embeddings.CreateEmbeddingResponse,
-            // !!!!!! | OpenAI.Beta.Threads.Messages.Message,
+            // [🗯] !!!!!! | OpenAI.Beta.Threads.Messages.Message,
             'model' | 'usage'
         >
     >,
