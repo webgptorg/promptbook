@@ -1,9 +1,9 @@
 import { exec as execLegacy } from 'child_process';
 import { promisify } from 'util';
-import { $provideFilesystemForNode } from '../../_packages/node.index';
-import { string_executable_path } from '../../types/typeAliases';
+import { $provideFilesystemForNode } from '../../scrapers/_common/register/$provideFilesystemForNode';
+import type { string_executable_path } from '../../types/typeAliases';
 import { isExecutable } from '../../utils/files/isExecutable';
-import { LocateAppOptions } from '../locateApp';
+import type { LocateAppOptions } from '../locateApp';
 
 // Note: Module `userhome` has no types available, so it is imported using `require`
 //       @see https://stackoverflow.com/questions/37000981/how-to-import-node-module-in-typescript-without-type-definitions

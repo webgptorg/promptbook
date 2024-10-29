@@ -1,4 +1,4 @@
-import { FilesystemTools } from '../../execution/FilesystemTools';
+import type { FilesystemTools } from '../../execution/FilesystemTools';
 
 /**
  * Checks if the file is executable

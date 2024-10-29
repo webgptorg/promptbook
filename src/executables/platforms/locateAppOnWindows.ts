@@ -1,8 +1,8 @@
 import { join } from 'path';
-import { $provideFilesystemForNode } from '../../_packages/node.index';
-import { string_executable_path } from '../../types/typeAliases';
+import { $provideFilesystemForNode } from '../../scrapers/_common/register/$provideFilesystemForNode';
+import type { string_executable_path } from '../../types/typeAliases';
 import { isExecutable } from '../../utils/files/isExecutable';
-import { LocateAppOptions } from '../locateApp';
+import type { LocateAppOptions } from '../locateApp';
 
 /**
  * @@@

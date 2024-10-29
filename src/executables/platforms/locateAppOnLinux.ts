@@ -1,7 +1,7 @@
 import { exec as execLegacy } from 'child_process';
 import { promisify } from 'util';
-import { LocateAppOptions } from '../locateApp';
-import { string_executable_path } from '../../types/typeAliases';
+import type { LocateAppOptions } from '../locateApp';
+import type { string_executable_path } from '../../types/typeAliases';
 
 // Note: We want to use the `exec` as async function
 const exec = promisify(execLegacy);
