@@ -95,7 +95,7 @@ export async function makeKnowledgeSourceHandler(
             );
         }
 
-        // TODO: !!!!!! Test security file - file is scoped to the project (maybe do this in `filesystemTools`)
+        // TODO: [🧠][😿] Test security file - file is scoped to the project (BUT maybe do this in `filesystemTools`)
 
         return {
             source: name,
