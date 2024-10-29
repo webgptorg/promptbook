@@ -71,7 +71,6 @@ export class WebsiteScraper implements Converter, Scraper {
             isVerbose = DEFAULT_IS_VERBOSE,
         } = this.options;
 
-        // TODO: !!!!!! Does this work in browser? Make it work.
 
         if (source.url === null) {
             throw new KnowledgeScrapeError('Website scraper requires URL');
