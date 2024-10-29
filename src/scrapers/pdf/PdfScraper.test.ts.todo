@@ -4,7 +4,7 @@ import { $provideLlmToolsForTestingAndScriptsAndPlayground } from '../../llm-pro
 import { makeKnowledgeSourceHandler } from '../_common/utils/makeKnowledgeSourceHandler';
 import { pdfScraper } from './PdfScraper';
 
-// TODO: !!!!!! Uncomment this test
+// TODO: [📇] Uncomment this test
 
 describe('how creating knowledge from pdf works', () => {
 

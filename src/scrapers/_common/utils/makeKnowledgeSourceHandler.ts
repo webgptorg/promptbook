@@ -95,23 +95,26 @@ export async function makeKnowledgeSourceHandler(
             );
         }
 
-        // TODO: !!!!!! Test security file - file is scoped to the project (maybe do this in `filesystemTools`)
+        // TODO: [🧠][😿] Test security file - file is scoped to the project (BUT maybe do this in `filesystemTools`)
 
         return {
             source: name,
             filename,
             url: null,
             mimeType,
-            async asBlob() {
-                const content = await tools.fs!.readFile(filename);
-                return new Blob(
-                    [
-                        content,
-                        // <- TODO: !!!!!! Test that this is working
-                    ],
-                    { type: mimeType },
-                );
-            },
+            /*
+            TODO: [🥽]
+                > async asBlob() {
+                >     const content = await tools.fs!.readFile(filename);
+                >     return new Blob(
+                >         [
+                >             content,
+                >             // <- TODO: [🥽] This is NOT tested, test it
+                >         ],
+                >         { type: mimeType },
+                >     );
+                > },
+            */
             async asJson() {
                 return JSON.parse(await tools.fs!.readFile(filename, 'utf-8'));
             },

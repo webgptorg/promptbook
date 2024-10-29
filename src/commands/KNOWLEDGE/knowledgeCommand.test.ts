@@ -9,6 +9,7 @@ describe('how KNOWLEDGE command in .ptbk.md files works', () => {
             sourceContent: 'https://www.pavolhejny.com/',
         });
         expect(parseCommand('KNOWLEDGE ./hejny-cv.pdf', 'PIPELINE_HEAD')).toEqual({
+            //                          <- TODO: [😿] Allow ONLY files scoped in the (sub)directory NOT ../ and test it
             type: 'KNOWLEDGE',
             sourceContent: './hejny-cv.pdf',
         });

@@ -1,7 +1,7 @@
 import { describe, expect, it } from '@jest/globals';
 import { join } from 'path';
+import { $provideExecutablesForNode } from '../../executables/$provideExecutablesForNode';
 import { $provideLlmToolsForTestingAndScriptsAndPlayground } from '../../llm-providers/_common/register/$provideLlmToolsForTestingAndScriptsAndPlayground';
-import { $provideExecutablesForNode } from '../_common/register/$provideExecutablesForNode';
 import { $provideFilesystemForNode } from '../_common/register/$provideFilesystemForNode';
 import { makeKnowledgeSourceHandler } from '../_common/utils/makeKnowledgeSourceHandler';
 import { DocumentScraper } from './DocumentScraper';

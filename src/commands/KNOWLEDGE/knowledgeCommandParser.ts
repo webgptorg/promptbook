@@ -6,9 +6,7 @@ import type { string_markdown_text } from '../../types/typeAliases';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import { isValidFilePath } from '../../utils/validators/filePath/isValidFilePath';
 import { isValidUrl } from '../../utils/validators/url/isValidUrl';
-import type { $PipelineJson } from '../_common/types/CommandParser';
-import type { CommandParserInput } from '../_common/types/CommandParser';
-import type { PipelineHeadCommandParser } from '../_common/types/CommandParser';
+import type { $PipelineJson, CommandParserInput, PipelineHeadCommandParser } from '../_common/types/CommandParser';
 import type { KnowledgeCommand } from './KnowledgeCommand';
 import { sourceContentToName } from './utils/sourceContentToName';
 
@@ -49,6 +47,7 @@ export const knowledgeCommandParser: PipelineHeadCommandParser<KnowledgeCommand>
         'KNOWLEDGE ./hejny-cv.md',
         'KNOWLEDGE ./hejny-cv.pdf',
         'KNOWLEDGE ./hejny-cv.docx',
+        //          <- TODO: [😿] Allow ONLY files scoped in the (sub)directory NOT ../ and test it
     ],
 
     /**

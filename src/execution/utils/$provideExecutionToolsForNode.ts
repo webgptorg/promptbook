@@ -1,7 +1,7 @@
 import { EnvironmentMismatchError } from '../../errors/EnvironmentMismatchError';
+import { $provideExecutablesForNode } from '../../executables/$provideExecutablesForNode';
 import { $provideLlmToolsFromEnv } from '../../llm-providers/_common/register/$provideLlmToolsFromEnv';
 import type { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';
-import { $provideExecutablesForNode } from '../../scrapers/_common/register/$provideExecutablesForNode';
 import { $provideFilesystemForNode } from '../../scrapers/_common/register/$provideFilesystemForNode';
 import { $provideScrapersForNode } from '../../scrapers/_common/register/$provideScrapersForNode';
 import { JavascriptExecutionTools } from '../../scripting/javascript/JavascriptExecutionTools';

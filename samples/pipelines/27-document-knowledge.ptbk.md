@@ -6,6 +6,7 @@ Show how to use knowledge
 -   INPUT  PARAMETER `{eventTitle}` The event name
 -   OUTPUT PARAMETER `{bio}` Bio of Pavol Hejný - speaker at the event
 -   KNOWLEDGE ./27-document-knowledge.docx <!-- <- TODO: Test also `./27-document-knowledge.pdf` -->
+<!--            <- TODO: [😿] Allow ONLY files scoped in the (sub)directory NOT ../ -->
 
 ## Writing bio
 
