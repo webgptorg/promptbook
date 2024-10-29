@@ -1,11 +1,16 @@
 import { exec as execLegacy } from 'child_process';
-import userhome from 'userhome';
 import { promisify } from 'util';
 import { $provideFilesystemForNode } from '../../_packages/node.index';
 import { string_executable_path } from '../../types/typeAliases';
 import { isExecutable } from '../../utils/files/isExecutable';
 import { LocateAppOptions } from '../locateApp';
 
+// Note: Module `userhome` has no types available, so it is imported using `require`
+//       @see https://stackoverflow.com/questions/37000981/how-to-import-node-module-in-typescript-without-type-definitions
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const userhome = require('userhome');
+
+// Note: We want to use the `exec` as async function
 const exec = promisify(execLegacy);
 
 /**

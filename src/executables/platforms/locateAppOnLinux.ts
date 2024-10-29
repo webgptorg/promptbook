@@ -3,6 +3,7 @@ import { promisify } from 'util';
 import { LocateAppOptions } from '../locateApp';
 import { string_executable_path } from '../../types/typeAliases';
 
+// Note: We want to use the `exec` as async function
 const exec = promisify(execLegacy);
 
 /**
