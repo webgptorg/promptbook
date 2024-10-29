@@ -102,16 +102,19 @@ export async function makeKnowledgeSourceHandler(
             filename,
             url: null,
             mimeType,
-            async asBlob() {
-                const content = await tools.fs!.readFile(filename);
-                return new Blob(
-                    [
-                        content,
-                        // <- TODO: !!!!!! Test that this is working
-                    ],
-                    { type: mimeType },
-                );
-            },
+            /*
+            TODO: [🥽]
+                > async asBlob() {
+                >     const content = await tools.fs!.readFile(filename);
+                >     return new Blob(
+                >         [
+                >             content,
+                >             // <- TODO: [🥽] This is NOT tested, test it
+                >         ],
+                >         { type: mimeType },
+                >     );
+                > },
+            */
             async asJson() {
                 return JSON.parse(await tools.fs!.readFile(filename, 'utf-8'));
             },

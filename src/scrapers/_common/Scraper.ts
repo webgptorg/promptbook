@@ -1,9 +1,11 @@
 import type { Promisable } from 'type-fest';
 import type { KnowledgePiecePreparedJson } from '../../types/PipelineJson/KnowledgePieceJson';
-import type { string_filename } from '../../types/typeAliases';
-import type { string_knowledge_source_link } from '../../types/typeAliases';
-import type { string_mime_type } from '../../types/typeAliases';
-import type { string_url } from '../../types/typeAliases';
+import type {
+    string_filename,
+    string_knowledge_source_link,
+    string_mime_type,
+    string_url,
+} from '../../types/typeAliases';
 import type { ScraperAndConverterMetadata } from './register/ScraperAndConverterMetadata';
 
 /**
@@ -61,14 +63,10 @@ export type ScraperSourceHandler = {
      * Get the content as a utf-8 string
      */
     asText(): Promisable<string>;
-
-    /**
-     * Get the content as a blob
-     */
-    asBlob(): Promisable<Blob>;
 };
 
 /**
+ * TODO: [🥽] Add ` asBlob(): Promisable<Blob>;` or asFile
  * TODO: [🐝] @@@ Annotate all
  * TODO: [🔼] Export via types
  */
