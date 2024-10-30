@@ -38,6 +38,16 @@
         "url": "https://github.com/webgptorg/promptbook/issues"
     },
     "homepage": "https://www.npmjs.com/package/@promptbook/core",
+    "funding": [
+        {
+            "type": "individual",
+            "url": "https://buymeacoffee.com/hejny"
+        },
+        {
+            "type": "github",
+            "url": "https://github.com/webgptorg/promptbook/blob/main/README.md#%EF%B8%8F-contributing"
+        }
+    ],
     "scripts": {
         "test": "jest",
         "test-types": "tsc",
@@ -47,6 +57,9 @@
         "use-packages": "ts-node ./scripts/use-packages/use-packages.ts",
         "preversion": "git pull && ts-node ./scripts/make-promptbook-collection/make-promptbook-collection.ts --commit && ts-node ./scripts/repair-imports/repair-imports.ts --commit && npm run lint && npm test && tsc",
         "postversion": "npm run update-version-in-config && ts-node ./scripts/generate-samples-jsons/generate-samples-jsons.ts --commit && npm run generate-packages && git push && git push --tags && npm run use-packages"
+    },
+    "browser": {
+        "child_process": false
     },
     "devDependencies": {
         "@rollup/plugin-json": "^6.1.0",
@@ -94,15 +107,5 @@
         "userhome": "1.0.1",
         "waitasecond": "1.11.83",
         "xyzt": "5.4.3"
-    },
-    "funding": [
-        {
-            "type": "individual",
-            "url": "https://buymeacoffee.com/hejny"
-        },
-        {
-            "type": "github",
-            "url": "https://github.com/webgptorg/promptbook/blob/main/README.md#%EF%B8%8F-contributing"
-        }
-    ]
+    }
 }
