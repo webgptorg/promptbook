@@ -22,15 +22,8 @@ export default getPackagesMetadataForRollup()
                 sourcemap: true,
             },
         ],
-        // TODO: !!!!!! Remove
-        browser: {
-            child_process: false,
-        },
+
         plugins: [
-            resolve({
-                browser: true,
-                preferBuiltins: false,
-            }),
             typescriptPlugin({
                 tsconfig: './tsconfig.json',
                 //       <- Note: This is essential propper type declaration generation

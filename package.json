@@ -58,10 +58,6 @@
         "preversion": "git pull && ts-node ./scripts/make-promptbook-collection/make-promptbook-collection.ts --commit && ts-node ./scripts/repair-imports/repair-imports.ts --commit && npm run lint && npm test && tsc",
         "postversion": "npm run update-version-in-config && ts-node ./scripts/generate-samples-jsons/generate-samples-jsons.ts --commit && npm run generate-packages && git push && git push --tags && npm run use-packages"
     },
-    "browser": {
-        "todo": "TODO: !!!!!! Remove",
-        "child_process": false
-    },
     "devDependencies": {
         "@rollup/plugin-json": "^6.1.0",
         "@rollup/plugin-typescript": "8.3.0",
