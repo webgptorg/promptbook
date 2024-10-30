@@ -1,5 +1,4 @@
 import jsonPlugin from '@rollup/plugin-json';
-import resolve from '@rollup/plugin-node-resolve';
 import typescriptPlugin from '@rollup/plugin-typescript';
 import { readdirSync } from 'fs';
 import { join } from 'path';
