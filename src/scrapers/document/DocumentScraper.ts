@@ -3,9 +3,7 @@ import type { KnowledgePiecePreparedJson } from '../../types/PipelineJson/Knowle
 // import PipelineCollection from '../../../promptbook-collection/promptbook-collection';
 import { readFile } from 'fs/promises';
 import spaceTrim from 'spacetrim';
-import { DEFAULT_INTERMEDIATE_FILES_STRATEGY } from '../../config';
-import { DEFAULT_IS_VERBOSE } from '../../config';
-import { DEFAULT_SCRAPE_CACHE_DIRNAME } from '../../config';
+import { DEFAULT_INTERMEDIATE_FILES_STRATEGY, DEFAULT_IS_VERBOSE, DEFAULT_SCRAPE_CACHE_DIRNAME } from '../../config';
 import { EnvironmentMismatchError } from '../../errors/EnvironmentMismatchError';
 import { KnowledgeScrapeError } from '../../errors/KnowledgeScrapeError';
 import { MissingToolsError } from '../../errors/MissingToolsError';
@@ -18,8 +16,7 @@ import { getFileExtension } from '../../utils/files/getFileExtension';
 import { isFileExisting } from '../../utils/files/isFileExisting';
 import type { Converter } from '../_common/Converter';
 import type { ScraperAndConverterMetadata } from '../_common/register/ScraperAndConverterMetadata';
-import type { Scraper } from '../_common/Scraper';
-import type { ScraperSourceHandler } from '../_common/Scraper';
+import type { Scraper, ScraperSourceHandler } from '../_common/Scraper';
 import type { ScraperIntermediateSource } from '../_common/ScraperIntermediateSource';
 import { getScraperIntermediateSource } from '../_common/utils/getScraperIntermediateSource';
 import { MarkdownScraper } from '../markdown/MarkdownScraper';
@@ -142,11 +139,14 @@ export class DocumentScraper implements Converter, Scraper {
                     'Did not expect that `markdownScraper` would need to get the content `asJson`',
                 );
             },
-            asBlob() {
-                throw new UnexpectedError(
-                    'Did not expect that `markdownScraper` would need to get the content `asBlob`',
-                );
-            },
+            /*
+            TODO: [🥽]
+                > asBlob() {
+                >     throw new UnexpectedError(
+                >         'Did not expect that `markdownScraper` would need to get the content `asBlob`',
+                >     );
+                > },
+            */
         } satisfies ScraperSourceHandler;
 
         const knowledge = this.markdownScraper.scrape(markdownSource);
