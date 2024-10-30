@@ -59,6 +59,7 @@
         "postversion": "npm run update-version-in-config && ts-node ./scripts/generate-samples-jsons/generate-samples-jsons.ts --commit && npm run generate-packages && git push && git push --tags && npm run use-packages"
     },
     "browser": {
+        "todo": "TODO: !!!!!! Remove",
         "child_process": false
     },
     "devDependencies": {
