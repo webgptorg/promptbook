@@ -2,6 +2,7 @@ import jsonPlugin from '@rollup/plugin-json';
 import typescriptPlugin from '@rollup/plugin-typescript';
 import { readdirSync } from 'fs';
 import { join } from 'path';
+import polyfillNode from 'rollup-plugin-polyfill-node';
 
 export default getPackagesMetadataForRollup()
     .filter(({ isBuilded }) => isBuilded)
@@ -29,6 +30,7 @@ export default getPackagesMetadataForRollup()
                 preferConst: true,
                 compact: true,
             }),
+            polyfillNode(),
         ],
     }));
 
