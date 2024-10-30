@@ -16,22 +16,19 @@ export default getPackagesMetadataForRollup()
                 preferConst: true,
                 compact: true,
             }),
-            polyfillNode(),
         ];
 
         const packageFullname = `@promptbook/${packageBasename}`;
 
+        console.log({ packageBasename, packageFullname });
+
         if (
-            !(
-                // TODO: [💚] DRY
-                (
-                    packageFullname !== '@promptbook/node' &&
-                    packageFullname !== '@promptbook/cli' &&
-                    packageFullname !== '@promptbook/documents' &&
-                    packageFullname !== '@promptbook/legacy-documents' &&
-                    packageFullname !== '@promptbook/website-crawler'
-                )
-            )
+            // TODO: [💚] DRY
+            packageFullname !== '@promptbook/node' &&
+            packageFullname !== '@promptbook/cli' &&
+            packageFullname !== '@promptbook/documents' &&
+            packageFullname !== '@promptbook/legacy-documents' &&
+            packageFullname !== '@promptbook/website-crawler'
         ) {
             plugins.push(polyfillNode);
         }
