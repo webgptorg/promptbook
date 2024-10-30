@@ -46,12 +46,14 @@ export default getPackagesMetadataForRollup()
             });
             plugins.push(polyfillNode);
         } else {
+            /*
             output.push({
                 file: `./packages/${packageBasename}/umd/index.cjs.js`, // <- !!!!!!!
                 name: `promptbook-${packageBasename}`,
                 format: 'cjs',
                 sourcemap: true,
             });
+            */
         }
 
         return {
