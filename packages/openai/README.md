@@ -97,8 +97,9 @@ console.info(outputParameters);
 
 ## 🤺 Usage with OpenAI`s Assistants (GPTs)
 
-!!!!!!
-OpenAiExecutionTools.createAssistantSubtools
+> TODO: Write a guide how to use OpenAI's Assistants with Promptbook
+
+
 
 ## 🧙‍♂️ Connect to LLM providers automatically
 
