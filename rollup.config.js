@@ -6,23 +6,8 @@ import polyfillNode from 'rollup-plugin-polyfill-node';
 
 export default getPackagesMetadataForRollup()
     .filter(({ isBuilded }) => isBuilded)
-    .map(({ packageBasename, entryIndexFilePath }) => ({
-        input: entryIndexFilePath,
-        output: [
-            {
-                file: `./packages/${packageBasename}/umd/index.umd.js`,
-                name: `promptbook-${packageBasename}`,
-                format: 'umd',
-                sourcemap: true,
-            },
-            {
-                file: `./packages/${packageBasename}/esm/index.es.js`,
-                format: 'es',
-                sourcemap: true,
-            },
-        ],
-
-        plugins: [
+    .map(({ packageBasename, entryIndexFilePath }) => {
+        const plugins = [
             typescriptPlugin({
                 tsconfig: './tsconfig.json',
                 //       <- Note: This is essential propper type declaration generation
@@ -32,8 +17,43 @@ export default getPackagesMetadataForRollup()
                 compact: true,
             }),
             polyfillNode(),
-        ],
-    }));
+        ];
+
+        const packageFullname = `@promptbook/${packageBasename}`;
+
+        if (
+            !(
+                // TODO: [💚] DRY
+                (
+                    packageFullname !== '@promptbook/node' &&
+                    packageFullname !== '@promptbook/cli' &&
+                    packageFullname !== '@promptbook/documents' &&
+                    packageFullname !== '@promptbook/legacy-documents' &&
+                    packageFullname !== '@promptbook/website-crawler'
+                )
+            )
+        ) {
+            plugins.push(polyfillNode);
+        }
+
+        return {
+            input: entryIndexFilePath,
+            output: [
+                {
+                    file: `./packages/${packageBasename}/umd/index.umd.js`,
+                    name: `promptbook-${packageBasename}`,
+                    format: 'umd',
+                    sourcemap: true,
+                },
+                {
+                    file: `./packages/${packageBasename}/esm/index.es.js`,
+                    format: 'es',
+                    sourcemap: true,
+                },
+            ],
+            plugins,
+        };
+    });
 
 /**
  * Gets metadata of all packages of Promptbook ecosystem
