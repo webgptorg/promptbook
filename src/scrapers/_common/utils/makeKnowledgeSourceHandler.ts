@@ -51,11 +51,14 @@ export async function makeKnowledgeSourceHandler(
             filename: null,
             url,
             mimeType,
-            async asBlob() {
-                // TODO: [👨🏻‍🤝‍👨🏻] This can be called multiple times BUT when called second time, response in already consumed
-                const content = await response.blob();
-                return content;
-            },
+            /*
+            TODO: [🥽]
+                > async asBlob() {
+                >     // TODO: [👨🏻‍🤝‍👨🏻] This can be called multiple times BUT when called second time, response in already consumed
+                >     const content = await response.blob();
+                >     return content;
+                > },
+            */
             async asJson() {
                 // TODO: [👨🏻‍🤝‍👨🏻]
                 const content = await response.json();
@@ -136,11 +139,14 @@ export async function makeKnowledgeSourceHandler(
                     'Did not expect that `markdownScraper` would need to get the content `asJson`',
                 );
             },
-            asBlob() {
-                throw new UnexpectedError(
-                    'Did not expect that `markdownScraper` would need to get the content `asBlob`',
-                );
-            },
+            /*
+            TODO: [🥽]
+                > asBlob() {
+                >     throw new UnexpectedError(
+                >         'Did not expect that `markdownScraper` would need to get the content `asBlob`',
+                >     );
+                > },
+            */
         };
     }
 }
