@@ -1,6 +1,6 @@
 {
     "name": "promptbook",
-    "version": "0.72.0-18",
+    "version": "0.72.0-19",
     "description": "Supercharge your use of large language models",
     "private": false,
     "sideEffects": false,
