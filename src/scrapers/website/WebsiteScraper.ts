@@ -1,17 +1,13 @@
 import type { KnowledgePiecePreparedJson } from '../../types/PipelineJson/KnowledgePieceJson';
 import type { string_markdown } from '../../types/typeAliases';
 import type { Converter } from '../_common/Converter';
-import type { Scraper } from '../_common/Scraper';
-import type { ScraperSourceHandler } from '../_common/Scraper';
+import type { Scraper, ScraperSourceHandler } from '../_common/Scraper';
 // TODO: [🏳‍🌈] Finally take pick of .json vs .ts
 // import PipelineCollection from '../../../promptbook-collection/promptbook-collection';
-import { Readability } from '@mozilla/readability';
 import { writeFile } from 'fs/promises';
 import { JSDOM } from 'jsdom';
 import { Converter as ShowdownConverter } from 'showdown';
-import { DEFAULT_INTERMEDIATE_FILES_STRATEGY } from '../../config';
-import { DEFAULT_IS_VERBOSE } from '../../config';
-import { DEFAULT_SCRAPE_CACHE_DIRNAME } from '../../config';
+import { DEFAULT_INTERMEDIATE_FILES_STRATEGY, DEFAULT_IS_VERBOSE, DEFAULT_SCRAPE_CACHE_DIRNAME } from '../../config';
 import { KnowledgeScrapeError } from '../../errors/KnowledgeScrapeError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { ExecutionTools } from '../../execution/ExecutionTools';
@@ -79,21 +75,14 @@ export class WebsiteScraper implements Converter, Scraper {
             url: source.url,
         });
 
-        const reader = new Readability(jsdom.window.document);
-        const article = reader.parse();
-
         // console.log(article);
         // await forTime(10000);
 
-        let html = article?.content || article?.textContent || jsdom.window.document.body.innerHTML;
+        let html = `!!!!!!`;
 
         // Note: Unwrap html such as it is convertable by `markdownConverter`
         for (let i = 0; i < 2; i++) {
             html = html.replace(/<div\s*(?:id="readability-page-\d+"\s+class="page")?>(.*)<\/div>/is, '$1');
-        }
-
-        if (html.includes('<div')) {
-            html = article?.textContent || '';
         }
 
         const cacheFilehandler = await getScraperIntermediateSource(source, {
