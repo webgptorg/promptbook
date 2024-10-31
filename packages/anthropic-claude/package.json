@@ -1,6 +1,6 @@
 {
     "name": "@promptbook/anthropic-claude",
-    "version": "0.72.0-22",
+    "version": "0.72.0-23",
     "description": "Supercharge your use of large language models",
     "private": false,
     "sideEffects": false,
@@ -52,7 +52,7 @@
     "module": "./esm/index.es.js",
     "typings": "./esm/typings/src/_packages/anthropic-claude.index.d.ts",
     "peerDependencies": {
-        "@promptbook/core": "0.72.0-22"
+        "@promptbook/core": "0.72.0-23"
     },
     "dependencies": {
         "@anthropic-ai/sdk": "0.26.1",
