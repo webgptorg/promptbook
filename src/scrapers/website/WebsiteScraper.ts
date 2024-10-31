@@ -4,20 +4,15 @@ import type { Converter } from '../_common/Converter';
 import type { Scraper, ScraperSourceHandler } from '../_common/Scraper';
 // TODO: [🏳‍🌈] Finally take pick of .json vs .ts
 // import PipelineCollection from '../../../promptbook-collection/promptbook-collection';
-import { writeFile } from 'fs/promises';
-import { JSDOM } from 'jsdom';
-import { Converter as ShowdownConverter } from 'showdown';
-import { DEFAULT_INTERMEDIATE_FILES_STRATEGY, DEFAULT_IS_VERBOSE, DEFAULT_SCRAPE_CACHE_DIRNAME } from '../../config';
+import { really_any } from '../../_packages/types.index';
 import { KnowledgeScrapeError } from '../../errors/KnowledgeScrapeError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { ExecutionTools } from '../../execution/ExecutionTools';
 import type { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';
 import type { ScraperAndConverterMetadata } from '../_common/register/ScraperAndConverterMetadata';
 import type { ScraperIntermediateSource } from '../_common/ScraperIntermediateSource';
-import { getScraperIntermediateSource } from '../_common/utils/getScraperIntermediateSource';
 import { MarkdownScraper } from '../markdown/MarkdownScraper';
 import { websiteScraperMetadata } from './register-metadata';
-import { createShowdownConverter } from './utils/createShowdownConverter';
 
 /**
  * Scraper for websites
@@ -38,17 +33,11 @@ export class WebsiteScraper implements Converter, Scraper {
      */
     private readonly markdownScraper: MarkdownScraper;
 
-    /**
-     * Showdown converter is used internally
-     */
-    private readonly showdownConverter: ShowdownConverter;
-
     public constructor(
         private readonly tools: Pick<ExecutionTools, 'fs' | 'llm'>,
         private readonly options: PrepareAndScrapeOptions,
     ) {
         this.markdownScraper = new MarkdownScraper(tools, options);
-        this.showdownConverter = createShowdownConverter();
     }
 
     /**
@@ -59,45 +48,16 @@ export class WebsiteScraper implements Converter, Scraper {
     public async $convert(
         source: ScraperSourceHandler,
     ): Promise<ScraperIntermediateSource & { markdown: string_markdown }> {
-        const {
-            // TODO: [🧠] Maybe in node use headless browser not just JSDOM
-            rootDirname = process.cwd(),
-            cacheDirname = DEFAULT_SCRAPE_CACHE_DIRNAME,
-            intermediateFilesStrategy = DEFAULT_INTERMEDIATE_FILES_STRATEGY,
-            isVerbose = DEFAULT_IS_VERBOSE,
-        } = this.options;
-
         if (source.url === null) {
             throw new KnowledgeScrapeError('Website scraper requires URL');
         }
 
-        const jsdom = new JSDOM(await source.asText(), {
-            url: source.url,
-        });
-
         // console.log(article);
         // await forTime(10000);
 
-        let html = `!!!!!!`;
+        const markdown = `!!!!!!`;
 
-        // Note: Unwrap html such as it is convertable by `markdownConverter`
-        for (let i = 0; i < 2; i++) {
-            html = html.replace(/<div\s*(?:id="readability-page-\d+"\s+class="page")?>(.*)<\/div>/is, '$1');
-        }
-
-        const cacheFilehandler = await getScraperIntermediateSource(source, {
-            rootDirname,
-            cacheDirname,
-            intermediateFilesStrategy,
-            extension: 'html',
-            isVerbose,
-        });
-
-        await writeFile(cacheFilehandler.filename, html, 'utf-8');
-
-        const markdown = this.showdownConverter.makeMarkdown(html, jsdom.window.document);
-
-        return { ...cacheFilehandler, markdown };
+        return { ...source, markdown } as really_any;
     }
 
     /**
