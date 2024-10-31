@@ -1,8 +1,7 @@
 import type { KnowledgePiecePreparedJson } from '../../types/PipelineJson/KnowledgePieceJson';
 import type { string_markdown } from '../../types/typeAliases';
 import type { Converter } from '../_common/Converter';
-import type { Scraper } from '../_common/Scraper';
-import type { ScraperSourceHandler } from '../_common/Scraper';
+import type { Scraper, ScraperSourceHandler } from '../_common/Scraper';
 // TODO: [🏳‍🌈] Finally take pick of .json vs .ts
 // import PipelineCollection from '../../../promptbook-collection/promptbook-collection';
 import { KnowledgeScrapeError } from '../../errors/KnowledgeScrapeError';
@@ -56,7 +55,7 @@ export class WebsiteScraper implements Converter, Scraper {
         // console.log(article);
         // await forTime(10000);
 
-        const markdown = `!!!!!!`;
+        const markdown = ``;
 
         return { ...source, markdown, destroy() {} } as really_any;
     }
