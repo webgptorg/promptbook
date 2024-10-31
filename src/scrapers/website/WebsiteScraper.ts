@@ -5,6 +5,7 @@ import type { Scraper, ScraperSourceHandler } from '../_common/Scraper';
 // TODO: [🏳‍🌈] Finally take pick of .json vs .ts
 // import PipelineCollection from '../../../promptbook-collection/promptbook-collection';
 import { Readability } from '@mozilla/readability';
+import { JSDOM } from 'jsdom';
 import { Converter as ShowdownConverter } from 'showdown';
 import { KnowledgeScrapeError } from '../../errors/KnowledgeScrapeError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
@@ -43,6 +44,7 @@ export class WebsiteScraper implements Converter, Scraper {
         this.markdownScraper = new MarkdownScraper(tools, options);
         TODO_USE(Readability);
         TODO_USE(ShowdownConverter);
+        TODO_USE(JSDOM);
     }
 
     /**
