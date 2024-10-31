@@ -1,15 +1,14 @@
 import type { KnowledgePiecePreparedJson } from '../../types/PipelineJson/KnowledgePieceJson';
 import type { string_markdown } from '../../types/typeAliases';
 import type { Converter } from '../_common/Converter';
-import type { Scraper } from '../_common/Scraper';
-import type { ScraperSourceHandler } from '../_common/Scraper';
+import type { Scraper, ScraperSourceHandler } from '../_common/Scraper';
 // TODO: [🏳‍🌈] Finally take pick of .json vs .ts
 // import PipelineCollection from '../../../promptbook-collection/promptbook-collection';
-import type { really_any } from '../../utils/organization/really_any';
 import { KnowledgeScrapeError } from '../../errors/KnowledgeScrapeError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { ExecutionTools } from '../../execution/ExecutionTools';
 import type { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';
+import type { really_any } from '../../utils/organization/really_any';
 import type { ScraperAndConverterMetadata } from '../_common/register/ScraperAndConverterMetadata';
 import type { ScraperIntermediateSource } from '../_common/ScraperIntermediateSource';
 import { MarkdownScraper } from '../markdown/MarkdownScraper';
@@ -58,7 +57,7 @@ export class WebsiteScraper implements Converter, Scraper {
 
         const markdown = `!!!!!!`;
 
-        return { ...source, markdown } as really_any;
+        return { ...source, markdown, destroy() {} } as really_any;
     }
 
     /**
