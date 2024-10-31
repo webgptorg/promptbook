@@ -28,7 +28,7 @@ export default getPackagesMetadataForRollup()
 
         const packageFullname = `@promptbook/${packageBasename}`;
 
-        console.log({ packageBasename, packageFullname });
+        console.log('!!!!!!',{ packageBasename, packageFullname });
 
         if (
             // TODO: [💚] DRY
