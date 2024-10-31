@@ -7,6 +7,20 @@ import polyfillNode from 'rollup-plugin-polyfill-node';
 export default getPackagesMetadataForRollup()
     .filter(({ isBuilded }) => isBuilded)
     .map(({ packageBasename, entryIndexFilePath }) => {
+        const output = [
+            {
+                file: `./packages/${packageBasename}/esm/index.es.js`,
+                format: 'es',
+                sourcemap: true,
+            },
+            {
+                file: `./packages/${packageBasename}/umd/index.umd.js`,
+                name: `promptbook-${packageBasename}`,
+                format: 'umd',
+                sourcemap: true,
+            },
+        ];
+
         const plugins = [
             typescriptPlugin({
                 tsconfig: './tsconfig.json',
@@ -18,18 +32,7 @@ export default getPackagesMetadataForRollup()
             }),
         ];
 
-        const output = [
-            {
-                file: `./packages/${packageBasename}/esm/index.es.js`,
-                format: 'es',
-                sourcemap: true,
-            },
-        ];
-
         const packageFullname = `@promptbook/${packageBasename}`;
-
-        console.log('!!!!!!',{ packageBasename, packageFullname });
-
         if (
             // TODO: [💚] DRY
             packageFullname !== '@promptbook/node' &&
@@ -38,27 +41,17 @@ export default getPackagesMetadataForRollup()
             packageFullname !== '@promptbook/legacy-documents' &&
             packageFullname !== '@promptbook/website-crawler'
         ) {
-            output.push({
-                file: `./packages/${packageBasename}/umd/index.umd.js`,
-                name: `promptbook-${packageBasename}`,
-                format: 'umd',
-                sourcemap: true,
-            });
             plugins.push(polyfillNode);
         } else {
-            output.push({
-                file: `./packages/${packageBasename}/umd/index.umd.js`,
-                name: `promptbook-${packageBasename}`,
-                format: 'umd',
-                sourcemap: true,
-            });
             /*
-            output.push({
-                file: `./packages/${packageBasename}/umd/index.cjs.js`, // <- !!!!!!!
-                name: `promptbook-${packageBasename}`,
-                format: 'cjs',
-                sourcemap: true,
-            });
+            TODO: [🧠] Maybe node-only packages should use something different than `umd`
+                @see https://rollupjs.org/configuration-options/#output-format
+                > output.push({
+                >     file: `./packages/${packageBasename}/umd/index.cjs.js`, // <- !!!!!!!
+                >     name: `promptbook-${packageBasename}`,
+                >     format: 'cjs',
+                >     sourcemap: true,
+                > });
             */
         }
 
