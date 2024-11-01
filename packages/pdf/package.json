@@ -1,6 +1,6 @@
 {
     "name": "@promptbook/pdf",
-    "version": "0.72.0-27",
+    "version": "0.72.0-28",
     "description": "Supercharge your use of large language models",
     "private": false,
     "sideEffects": false,
@@ -52,7 +52,7 @@
     "module": "./esm/index.es.js",
     "typings": "./esm/typings/src/_packages/pdf.index.d.ts",
     "peerDependencies": {
-        "@promptbook/core": "0.72.0-27"
+        "@promptbook/core": "0.72.0-28"
     },
     "dependencies": {
         "crypto-js": "4.2.0",
