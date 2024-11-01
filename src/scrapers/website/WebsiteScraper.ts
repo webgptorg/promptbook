@@ -6,23 +6,18 @@ import type { ScraperSourceHandler } from '../_common/Scraper';
 // TODO: [🏳‍🌈] Finally take pick of .json vs .ts
 // import PipelineCollection from '../../../promptbook-collection/promptbook-collection';
 import { Readability } from '@mozilla/readability';
-import { writeFile } from 'fs/promises';
 import { JSDOM } from 'jsdom';
 import { Converter as ShowdownConverter } from 'showdown';
-import { DEFAULT_INTERMEDIATE_FILES_STRATEGY } from '../../config';
-import { DEFAULT_IS_VERBOSE } from '../../config';
-import { DEFAULT_SCRAPE_CACHE_DIRNAME } from '../../config';
 import { KnowledgeScrapeError } from '../../errors/KnowledgeScrapeError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { ExecutionTools } from '../../execution/ExecutionTools';
 import type { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';
+import type { really_any } from '../../utils/organization/really_any';
 import { TODO_USE } from '../../utils/organization/TODO_USE';
 import type { ScraperAndConverterMetadata } from '../_common/register/ScraperAndConverterMetadata';
 import type { ScraperIntermediateSource } from '../_common/ScraperIntermediateSource';
-import { getScraperIntermediateSource } from '../_common/utils/getScraperIntermediateSource';
 import { MarkdownScraper } from '../markdown/MarkdownScraper';
 import { websiteScraperMetadata } from './register-metadata';
-import { createShowdownConverter } from './utils/createShowdownConverter';
 
 /**
  * Scraper for websites
@@ -43,22 +38,14 @@ export class WebsiteScraper implements Converter, Scraper {
      */
     private readonly markdownScraper: MarkdownScraper;
 
-    /**
-     * Showdown converter is used internally
-     */
-    private readonly showdownConverter: ShowdownConverter;
-
     public constructor(
         private readonly tools: Pick<ExecutionTools, 'fs' | 'llm'>,
         private readonly options: PrepareAndScrapeOptions,
     ) {
         this.markdownScraper = new MarkdownScraper(tools, options);
-
-        // TODO: !!!!!! Remove
         TODO_USE(Readability);
         TODO_USE(ShowdownConverter);
         TODO_USE(JSDOM);
-        this.showdownConverter = createShowdownConverter();
     }
 
     /**
@@ -69,52 +56,16 @@ export class WebsiteScraper implements Converter, Scraper {
     public async $convert(
         source: ScraperSourceHandler,
     ): Promise<ScraperIntermediateSource & { markdown: string_markdown }> {
-        const {
-            // TODO: [🧠] Maybe in node use headless browser not just JSDOM
-            rootDirname = process.cwd(),
-            cacheDirname = DEFAULT_SCRAPE_CACHE_DIRNAME,
-            intermediateFilesStrategy = DEFAULT_INTERMEDIATE_FILES_STRATEGY,
-            isVerbose = DEFAULT_IS_VERBOSE,
-        } = this.options;
-
         if (source.url === null) {
             throw new KnowledgeScrapeError('Website scraper requires URL');
         }
 
-        const jsdom = new JSDOM(await source.asText(), {
-            url: source.url,
-        });
-
-        const reader = new Readability(jsdom.window.document);
-        const article = reader.parse();
-
         // console.log(article);
         // await forTime(10000);
 
-        let html = article?.content || article?.textContent || jsdom.window.document.body.innerHTML;
+        const markdown = ``;
 
-        // Note: Unwrap html such as it is convertable by `markdownConverter`
-        for (let i = 0; i < 2; i++) {
-            html = html.replace(/<div\s*(?:id="readability-page-\d+"\s+class="page")?>(.*)<\/div>/is, '$1');
-        }
-
-        if (html.includes('<div')) {
-            html = article?.textContent || '';
-        }
-
-        const cacheFilehandler = await getScraperIntermediateSource(source, {
-            rootDirname,
-            cacheDirname,
-            intermediateFilesStrategy,
-            extension: 'html',
-            isVerbose,
-        });
-
-        await writeFile(cacheFilehandler.filename, html, 'utf-8');
-
-        const markdown = this.showdownConverter.makeMarkdown(html, jsdom.window.document);
-
-        return { ...cacheFilehandler, markdown };
+        return { ...source, markdown, destroy() {} } as really_any;
     }
 
     /**
