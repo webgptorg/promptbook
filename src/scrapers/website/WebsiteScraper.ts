@@ -85,7 +85,7 @@ export class WebsiteScraper implements Converter, Scraper {
     public async $convert(
         source: ScraperSourceHandler,
     ): Promise<ScraperIntermediateSource & { markdown: string_markdown }> {
-        /*/
+        /**/
 
         const {
             // TODO: [🧠] Maybe in node use headless browser not just JSDOM
@@ -140,7 +140,7 @@ export class WebsiteScraper implements Converter, Scraper {
         return { ...cacheFilehandler, markdown };
         /**/
 
-        /**/
+        /*/
         // Note: [🏄] !!!!!!!
         const markdown = ``;
 
