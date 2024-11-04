@@ -95,6 +95,9 @@ export class WebsiteScraper implements Converter, Scraper {
             isVerbose = DEFAULT_IS_VERBOSE,
         } = this.options;
 
+        // [🏄] !!!!!!!
+        keepUnused(rootDirname, cacheDirname, intermediateFilesStrategy, isVerbose);
+
         if (source.url === null) {
             throw new KnowledgeScrapeError('Website scraper requires URL');
         }
@@ -103,13 +106,16 @@ export class WebsiteScraper implements Converter, Scraper {
             throw new EnvironmentMismatchError('Can not scrape websites without filesystem tools');
         }
 
+        // [🏄] !!!!!!!
+        /*
+
         const jsdom = new JSDOM(await source.asText(), {
             // <- TODO: !!!!!!! Problem with build is probbably in `new JSDOM();`
             url: source.url,
         });
 
+        // [🏄] !!!!!!!
         keepUnused(jsdom);
-        keepUnused(rootDirname, cacheDirname, intermediateFilesStrategy, isVerbose);
 
         /*
 
