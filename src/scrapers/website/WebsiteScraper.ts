@@ -59,8 +59,13 @@ export class WebsiteScraper implements Converter, Scraper {
         TODO_USE(Readability);
         TODO_USE(ShowdownConverter);
         TODO_USE(JSDOM);
-        TODO_USE(new JSDOM());
         TODO_USE(createShowdownConverter);
+        /**/
+
+        /**/
+        const jsdom = new JSDOM();
+        const reader = new Readability(jsdom.window.document);
+        keepUnused(reader);
         /**/
 
         /**/
