@@ -108,6 +108,11 @@ export class WebsiteScraper implements Converter, Scraper {
             url: source.url,
         });
 
+        keepUnused(jsdom);
+        keepUnused(rootDirname, cacheDirname, intermediateFilesStrategy, isVerbose);
+
+        /*
+
         const reader = new Readability(jsdom.window.document);
         const article = reader.parse();
 
@@ -140,11 +145,9 @@ export class WebsiteScraper implements Converter, Scraper {
         return { ...cacheFilehandler, markdown };
         /**/
 
-        /*/
+        /**/
         // Note: [🏄] !!!!!!!
-        const markdown = ``;
-
-        return { ...source, markdown, destroy() {} } as really_any;
+        return { ...source, markdown: '', destroy() {} } as really_any;
         /**/
     }
 
