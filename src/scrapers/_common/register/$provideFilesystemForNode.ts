@@ -1,4 +1,4 @@
-import { access, constants, readdir, readFile, stat } from 'fs/promises';
+import { access, constants, readdir, readFile, stat, writeFile } from 'fs/promises';
 import { DEFAULT_IS_VERBOSE } from '../../../config';
 import { EnvironmentMismatchError } from '../../../errors/EnvironmentMismatchError';
 import type { FilesystemTools } from '../../../execution/FilesystemTools';
@@ -25,6 +25,7 @@ export function $provideFilesystemForNode(options?: Pick<PrepareAndScrapeOptions
         access,
         constants,
         readFile,
+        writeFile,
         readdir,
     };
 }
