@@ -7,11 +7,13 @@ import type { ChatPromptResult } from '../../execution/PromptResult';
 import { UNCERTAIN_USAGE } from '../../execution/utils/usage-constants';
 import type { ModelRequirements } from '../../types/ModelRequirements';
 import type { Prompt } from '../../types/Prompt';
-import type { string_date_iso8601 } from '../../types/typeAliases';
-import type { string_markdown } from '../../types/typeAliases';
-import type { string_markdown_text } from '../../types/typeAliases';
-import type { string_title } from '../../types/typeAliases';
-import type { string_token } from '../../types/typeAliases';
+import type {
+    string_date_iso8601,
+    string_markdown,
+    string_markdown_text,
+    string_title,
+    string_token,
+} from '../../types/typeAliases';
 import { getCurrentIsoDate } from '../../utils/getCurrentIsoDate';
 import { replaceParameters } from '../../utils/parameters/replaceParameters';
 import { $asDeeplyFrozenSerializableJson } from '../../utils/serialization/$asDeeplyFrozenSerializableJson';
@@ -109,12 +111,12 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
             assistant_id: this.assistantId,
             thread: {
                 messages: [
-                    // TODO:  [🗯] !!!!!! Allow threads to be passed
+                    // TODO:  [🗯] !! Allow threads to be passed
                     { role: 'user', content: rawPromptContent },
                 ],
             },
 
-            // !!!!!! user: this.options.user,
+            // <- TODO: Add user identification here> user: this.options.user,
         };
         const start: string_date_iso8601 = getCurrentIsoDate();
         let complete: string_date_iso8601;
@@ -180,7 +182,7 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
         }
 
         const resultContent = rawResponse[0]!.content[0]?.text.value;
-        //                                                     <- TODO: !!!!!! There are also annotations, maybe use them
+        //                                                     <- TODO: [🧠] There are also annotations, maybe use them
 
         // eslint-disable-next-line prefer-const
         complete = getCurrentIsoDate();
