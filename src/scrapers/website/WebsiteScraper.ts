@@ -106,9 +106,6 @@ export class WebsiteScraper implements Converter, Scraper {
             throw new EnvironmentMismatchError('Can not scrape websites without filesystem tools');
         }
 
-        // [🏄] !!!!!!!
-        /*
-
         const jsdom = new JSDOM(await source.asText(), {
             // <- TODO: !!!!!!! Problem with build is probbably in `new JSDOM();`
             url: source.url,
@@ -116,8 +113,6 @@ export class WebsiteScraper implements Converter, Scraper {
 
         // [🏄] !!!!!!!
         keepUnused(jsdom);
-
-        /*
 
         const reader = new Readability(jsdom.window.document);
         const article = reader.parse();
@@ -151,7 +146,7 @@ export class WebsiteScraper implements Converter, Scraper {
         return { ...cacheFilehandler, markdown };
         /**/
 
-        /**/
+        /*/
         // Note: [🏄] !!!!!!!
         return { ...source, markdown: '', destroy() {} } as really_any;
         /**/
