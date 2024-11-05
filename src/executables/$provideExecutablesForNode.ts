@@ -1,5 +1,4 @@
-import { DEFAULT_IS_AUTO_INSTALLED } from '../config';
-import { DEFAULT_IS_VERBOSE } from '../config';
+import { DEFAULT_IS_AUTO_INSTALLED, DEFAULT_IS_VERBOSE } from '../config';
 import { EnvironmentMismatchError } from '../errors/EnvironmentMismatchError';
 import type { Executables } from '../execution/Executables';
 import type { PrepareAndScrapeOptions } from '../prepare/PrepareAndScrapeOptions';
@@ -24,8 +23,9 @@ export async function $provideExecutablesForNode(options?: PrepareAndScrapeOptio
     TODO_USE(isVerbose);
 
     return {
-        pandocPath: await locatePandoc(),
-        libreOfficePath: await locateLibreoffice(),
+        pandocPath: (await locatePandoc()) || undefined,
+        libreOfficePath: (await locateLibreoffice()) || undefined,
+        //                                              <- TODO: [🧠] `null` vs `undefined`
     };
 }
 

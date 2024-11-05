@@ -21,26 +21,34 @@ const exec = promisify(execLegacy);
 export async function locateAppOnMacOs({
     appName,
     macOsName,
-}: Pick<Required<LocateAppOptions>, 'appName' | 'macOsName'>): Promise<string_executable_path> {
-    const toExec = `/Contents/MacOS/${macOsName}`;
-    const regPath = `/Applications/${macOsName}.app` + toExec;
-    const altPath = userhome(regPath.slice(1));
+}: Pick<Required<LocateAppOptions>, 'appName' | 'macOsName'>): Promise<string_executable_path | null> {
+    try {
+        const toExec = `/Contents/MacOS/${macOsName}`;
+        const regPath = `/Applications/${macOsName}.app` + toExec;
+        const altPath = userhome(regPath.slice(1));
 
-    if (await isExecutable(regPath, $provideFilesystemForNode())) {
-        return regPath;
-    } else if (await isExecutable(altPath, $provideFilesystemForNode())) {
-        return altPath;
+        if (await isExecutable(regPath, $provideFilesystemForNode())) {
+            return regPath;
+        } else if (await isExecutable(altPath, $provideFilesystemForNode())) {
+            return altPath;
+        }
+
+        const { stderr, stdout } = await exec(
+            `mdfind 'kMDItemDisplayName == "${macOsName}" && kMDItemKind == Application'`,
+        );
+
+        if (!stderr && stdout) {
+            return stdout.trim() + toExec;
+        }
+
+        throw new Error(`Can not locate app ${appName} on macOS.\n ${stderr}`);
+    } catch (error) {
+        if (!(error instanceof Error)) {
+            throw error;
+        }
+
+        return null;
     }
-
-    const { stderr, stdout } = await exec(
-        `mdfind 'kMDItemDisplayName == "${macOsName}" && kMDItemKind == Application'`,
-    );
-
-    if (!stderr && stdout) {
-        return stdout.trim() + toExec;
-    }
-
-    throw new Error(`Can not locate app ${appName} on macOS.\n ${stderr}`);
 }
 
 /**

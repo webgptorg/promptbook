@@ -12,23 +12,31 @@ import type { LocateAppOptions } from '../locateApp';
 export async function locateAppOnWindows({
     appName,
     windowsSuffix,
-}: Pick<Required<LocateAppOptions>, 'appName' | 'windowsSuffix'>): Promise<string_executable_path> {
-    const prefixes = [
-        process.env.LOCALAPPDATA,
-        join(process.env.LOCALAPPDATA || '', 'Programs'),
-        process.env.PROGRAMFILES,
-        process.env['PROGRAMFILES(X86)'],
-    ];
+}: Pick<Required<LocateAppOptions>, 'appName' | 'windowsSuffix'>): Promise<string_executable_path | null> {
+    try {
+        const prefixes = [
+            process.env.LOCALAPPDATA,
+            join(process.env.LOCALAPPDATA || '', 'Programs'),
+            process.env.PROGRAMFILES,
+            process.env['PROGRAMFILES(X86)'],
+        ];
 
-    for (const prefix of prefixes) {
-        const path = prefix + windowsSuffix;
+        for (const prefix of prefixes) {
+            const path = prefix + windowsSuffix;
 
-        if (await isExecutable(path, $provideFilesystemForNode())) {
-            return path;
+            if (await isExecutable(path, $provideFilesystemForNode())) {
+                return path;
+            }
         }
-    }
 
-    throw new Error(`Can not locate app ${appName} on Windows.`);
+        throw new Error(`Can not locate app ${appName} on Windows.`);
+    } catch (error) {
+        if (!(error instanceof Error)) {
+            throw error;
+        }
+
+        return null;
+    }
 }
 
 /**
