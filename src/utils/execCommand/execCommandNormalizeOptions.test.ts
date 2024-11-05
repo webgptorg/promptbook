@@ -51,7 +51,7 @@ describe('how normalizing exec options works', () => {
 
     it('can normalize single command and array args', () => {
         expect($execCommandNormalizeOptions({ command: 'npm', args: ['run', 'test'] })).toEqual({
-            command: 'npm',
+            command: 'npm.cmd',
             args: ['run', 'test'],
             cwd: process.cwd(),
             crashOnError: true,
@@ -63,7 +63,7 @@ describe('how normalizing exec options works', () => {
 
     it('can normalize single command and string args', () => {
         expect($execCommandNormalizeOptions({ command: 'npm run test' })).toEqual({
-            command: 'npm',
+            command: 'npm.cmd',
             args: ['run', 'test'],
             cwd: process.cwd(),
             crashOnError: true,
@@ -77,7 +77,7 @@ describe('how normalizing exec options works', () => {
         expect(
             $execCommandNormalizeOptions({ command: ' npm   run ', args: ['test'], timeout: 1000, isVerbose: true }),
         ).toEqual({
-            command: 'npm',
+            command: 'npm.cmd',
             args: ['run', 'test'],
             cwd: process.cwd(),
             crashOnError: true,
