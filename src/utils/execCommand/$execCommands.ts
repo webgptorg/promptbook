@@ -6,6 +6,7 @@ import { $execCommand } from './$execCommand';
  * Note: There are 2 similar functions in the codebase:
  * - `$execCommand` which runs a single command
  * - `$execCommands` which runs multiple commands
+ * Note: `$` is used to indicate that this function is not a pure function - it runs a commands in a shell
  *
  * @public exported from `@promptbook/node`
  */

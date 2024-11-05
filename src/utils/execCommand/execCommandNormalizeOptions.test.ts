@@ -1,9 +1,9 @@
 import { describe, expect, it } from '@jest/globals';
-import { execCommandNormalizeOptions } from './execCommandNormalizeOptions';
+import { $execCommandNormalizeOptions } from './$execCommandNormalizeOptions';
 
 describe('how normalizing exec options works', () => {
     it('can normalize just string command', () => {
-        expect(execCommandNormalizeOptions('ls')).toEqual({
+        expect($execCommandNormalizeOptions('ls')).toEqual({
             command: 'ls',
             args: [],
             cwd: process.cwd(),
@@ -14,7 +14,7 @@ describe('how normalizing exec options works', () => {
     });
 
     it('can normalize single command', () => {
-        expect(execCommandNormalizeOptions({ command: 'ls' })).toEqual({
+        expect($execCommandNormalizeOptions({ command: 'ls' })).toEqual({
             command: 'ls',
             args: [],
             cwd: process.cwd(),
@@ -24,7 +24,7 @@ describe('how normalizing exec options works', () => {
         });
     });
     it('can normalize single command and cwd', () => {
-        expect(execCommandNormalizeOptions({ command: 'ls', cwd: './' })).toEqual({
+        expect($execCommandNormalizeOptions({ command: 'ls', cwd: './' })).toEqual({
             command: 'ls',
             args: [],
             cwd: './',
@@ -34,7 +34,7 @@ describe('how normalizing exec options works', () => {
         });
     });
     it('can normalize single command and crashOnError', () => {
-        expect(execCommandNormalizeOptions({ command: 'ls', crashOnError: false })).toEqual({
+        expect($execCommandNormalizeOptions({ command: 'ls', crashOnError: false })).toEqual({
             command: 'ls',
             args: [],
             cwd: process.cwd(),
@@ -45,7 +45,7 @@ describe('how normalizing exec options works', () => {
     });
 
     it('can normalize single command and array args', () => {
-        expect(execCommandNormalizeOptions({ command: 'npm', args: ['run', 'test'] })).toEqual({
+        expect($execCommandNormalizeOptions({ command: 'npm', args: ['run', 'test'] })).toEqual({
             command: 'npm',
             args: ['run', 'test'],
             cwd: process.cwd(),
@@ -56,7 +56,7 @@ describe('how normalizing exec options works', () => {
     });
 
     it('can normalize single command and string args', () => {
-        expect(execCommandNormalizeOptions({ command: 'npm run test' })).toEqual({
+        expect($execCommandNormalizeOptions({ command: 'npm run test' })).toEqual({
             command: 'npm',
             args: ['run', 'test'],
             cwd: process.cwd(),
@@ -67,7 +67,7 @@ describe('how normalizing exec options works', () => {
     });
 
     it('can normalize single command with args from array and string and also empty args ', () => {
-        expect(execCommandNormalizeOptions({ command: ' npm   run ', args: ['test'] })).toEqual({
+        expect($execCommandNormalizeOptions({ command: ' npm   run ', args: ['test'] })).toEqual({
             command: 'npm',
             args: ['run', 'test'],
             cwd: process.cwd(),
@@ -78,7 +78,7 @@ describe('how normalizing exec options works', () => {
     });
 
     it('can split arg flags', () => {
-        expect(execCommandNormalizeOptions(`git commit -m "Hello World"`)).toEqual({
+        expect($execCommandNormalizeOptions(`git commit -m "Hello World"`)).toEqual({
             command: 'git',
             args: ['commit', '-m', '"Hello World"'],
             cwd: process.cwd(),

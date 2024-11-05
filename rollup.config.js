@@ -47,7 +47,7 @@ export default getPackagesMetadataForRollup()
             TODO: [🧠] Maybe node-only packages should use something different than `umd`
                 @see https://rollupjs.org/configuration-options/#output-format
                 > output.push({
-                >     file: `./packages/${packageBasename}/umd/index.cjs.js`, // <- !!!!!!!
+                >     file: `./packages/${packageBasename}/umd/index.cjs.js`, // <- Do not forget to change link to this file across the project
                 >     name: `promptbook-${packageBasename}`,
                 >     format: 'cjs',
                 >     sourcemap: true,
