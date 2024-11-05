@@ -1,24 +1,18 @@
 import type { KnowledgePiecePreparedJson } from '../../types/PipelineJson/KnowledgePieceJson';
 import type { string_markdown } from '../../types/typeAliases';
 import type { Converter } from '../_common/Converter';
-import type { Scraper } from '../_common/Scraper';
-import type { ScraperSourceHandler } from '../_common/Scraper';
+import type { Scraper, ScraperSourceHandler } from '../_common/Scraper';
 // TODO: [🏳‍🌈] Finally take pick of .json vs .ts
 // import PipelineCollection from '../../../promptbook-collection/promptbook-collection';
 import { Readability } from '@mozilla/readability';
 import { JSDOM } from 'jsdom';
 import { Converter as ShowdownConverter } from 'showdown';
-import type { really_any } from '../../utils/organization/really_any';
-import { DEFAULT_INTERMEDIATE_FILES_STRATEGY } from '../../config';
-import { DEFAULT_IS_VERBOSE } from '../../config';
-import { DEFAULT_SCRAPE_CACHE_DIRNAME } from '../../config';
+import { DEFAULT_INTERMEDIATE_FILES_STRATEGY, DEFAULT_IS_VERBOSE, DEFAULT_SCRAPE_CACHE_DIRNAME } from '../../config';
 import { EnvironmentMismatchError } from '../../errors/EnvironmentMismatchError';
 import { KnowledgeScrapeError } from '../../errors/KnowledgeScrapeError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { ExecutionTools } from '../../execution/ExecutionTools';
 import type { PrepareAndScrapeOptions } from '../../prepare/PrepareAndScrapeOptions';
-import { keepUnused } from '../../utils/organization/keepUnused';
-import { TODO_USE } from '../../utils/organization/TODO_USE';
 import type { ScraperAndConverterMetadata } from '../_common/register/ScraperAndConverterMetadata';
 import type { ScraperIntermediateSource } from '../_common/ScraperIntermediateSource';
 import { getScraperIntermediateSource } from '../_common/utils/getScraperIntermediateSource';
@@ -56,28 +50,6 @@ export class WebsiteScraper implements Converter, Scraper {
     ) {
         this.markdownScraper = new MarkdownScraper(tools, options);
         this.showdownConverter = createShowdownConverter();
-
-        /**/
-        // TODO:  [🏄] !!!!!! Remove or describe why it is here
-        TODO_USE(Readability);
-        TODO_USE(ShowdownConverter);
-        TODO_USE(JSDOM);
-        TODO_USE(createShowdownConverter);
-        /**/
-
-        /**/
-        const jsdom = new JSDOM();
-        const reader = new Readability(jsdom.window.document);
-        keepUnused(reader);
-        /**/
-
-        /**/
-        keepUnused(DEFAULT_INTERMEDIATE_FILES_STRATEGY, DEFAULT_IS_VERBOSE, DEFAULT_SCRAPE_CACHE_DIRNAME);
-        keepUnused(EnvironmentMismatchError);
-        keepUnused(KnowledgeScrapeError);
-        keepUnused(getScraperIntermediateSource);
-        keepUnused<really_any>();
-        /**/
     }
 
     /**
@@ -88,8 +60,6 @@ export class WebsiteScraper implements Converter, Scraper {
     public async $convert(
         source: ScraperSourceHandler,
     ): Promise<ScraperIntermediateSource & { markdown: string_markdown }> {
-        /**/
-
         const {
             // TODO: [🧠] Maybe in node use headless browser not just JSDOM
             rootDirname = process.cwd(),
@@ -97,9 +67,6 @@ export class WebsiteScraper implements Converter, Scraper {
             intermediateFilesStrategy = DEFAULT_INTERMEDIATE_FILES_STRATEGY,
             isVerbose = DEFAULT_IS_VERBOSE,
         } = this.options;
-
-        // [🏄] !!!!!!!
-        keepUnused(rootDirname, cacheDirname, intermediateFilesStrategy, isVerbose);
 
         if (source.url === null) {
             throw new KnowledgeScrapeError('Website scraper requires URL');
@@ -110,12 +77,8 @@ export class WebsiteScraper implements Converter, Scraper {
         }
 
         const jsdom = new JSDOM(await source.asText(), {
-            // <- TODO: !!!!!!! Problem with build is probbably in `new JSDOM();`
             url: source.url,
         });
-
-        // [🏄] !!!!!!!
-        keepUnused(jsdom);
 
         const reader = new Readability(jsdom.window.document);
         const article = reader.parse();
@@ -147,12 +110,6 @@ export class WebsiteScraper implements Converter, Scraper {
         const markdown = this.showdownConverter.makeMarkdown(html, jsdom.window.document);
 
         return { ...cacheFilehandler, markdown };
-        /**/
-
-        /*/
-        // Note: [🏄] !!!!!!!
-        return { ...source, markdown: '', destroy() {} } as really_any;
-        /**/
     }
 
     /**

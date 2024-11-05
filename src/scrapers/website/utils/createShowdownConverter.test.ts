@@ -3,8 +3,6 @@ import { JSDOM } from 'jsdom';
 import { spaceTrim } from 'spacetrim';
 import { createShowdownConverter } from './createShowdownConverter';
 
-// TODO: !!!!!!! Problem with build is probbably in `new JSDOM();`
-
 describe(`markdownConverter`, () => {
     const showdownConverter = createShowdownConverter();
     const jsdom = new JSDOM();
