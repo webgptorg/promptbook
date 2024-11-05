@@ -1,14 +1,17 @@
 import type { KnowledgePiecePreparedJson } from '../../types/PipelineJson/KnowledgePieceJson';
 import type { string_markdown } from '../../types/typeAliases';
 import type { Converter } from '../_common/Converter';
-import type { Scraper, ScraperSourceHandler } from '../_common/Scraper';
+import type { Scraper } from '../_common/Scraper';
+import type { ScraperSourceHandler } from '../_common/Scraper';
 // TODO: [🏳‍🌈] Finally take pick of .json vs .ts
 // import PipelineCollection from '../../../promptbook-collection/promptbook-collection';
 import { Readability } from '@mozilla/readability';
 import { JSDOM } from 'jsdom';
 import { Converter as ShowdownConverter } from 'showdown';
-import { really_any } from '../../_packages/types.index';
-import { DEFAULT_INTERMEDIATE_FILES_STRATEGY, DEFAULT_IS_VERBOSE, DEFAULT_SCRAPE_CACHE_DIRNAME } from '../../config';
+import type { really_any } from '../../utils/organization/really_any';
+import { DEFAULT_INTERMEDIATE_FILES_STRATEGY } from '../../config';
+import { DEFAULT_IS_VERBOSE } from '../../config';
+import { DEFAULT_SCRAPE_CACHE_DIRNAME } from '../../config';
 import { EnvironmentMismatchError } from '../../errors/EnvironmentMismatchError';
 import { KnowledgeScrapeError } from '../../errors/KnowledgeScrapeError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
