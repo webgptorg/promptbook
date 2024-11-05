@@ -1,6 +1,5 @@
 import { DEFAULT_IS_VERBOSE } from '../../config';
-import type { ExecCommandOptions } from './ExecCommandOptions';
-import type { ExecCommandOptionsAdvanced } from './ExecCommandOptions';
+import type { ExecCommandOptions, ExecCommandOptionsAdvanced } from './ExecCommandOptions';
 
 /**
  * Normalize options for `execCommand` and `execCommands`
@@ -27,7 +26,7 @@ export function $execCommandNormalizeOptions(options: ExecCommandOptions): Pick<
         command = options;
         cwd = process.cwd();
         crashOnError = true;
-        timeout = Infinity;
+        timeout = Infinity; // <- TODO: [⏳]
         isVerbose = DEFAULT_IS_VERBOSE;
     } else {
         /*
