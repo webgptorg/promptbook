@@ -1,5 +1,6 @@
 import { DEFAULT_IS_VERBOSE } from '../../config';
-import type { ExecCommandOptions, ExecCommandOptionsAdvanced } from './ExecCommandOptions';
+import type { ExecCommandOptions } from './ExecCommandOptions';
+import type { ExecCommandOptionsAdvanced } from './ExecCommandOptions';
 
 /**
  * Normalize options for `execCommand` and `execCommands`
