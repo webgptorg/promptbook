@@ -1,14 +1,16 @@
-import type { ExecCommandOptions } from './ExecCommandOptions';
-import type { ExecCommandOptionsAdvanced } from './ExecCommandOptions';
+import { DEFAULT_IS_VERBOSE } from '../../config';
+import type { ExecCommandOptions, ExecCommandOptionsAdvanced } from './ExecCommandOptions';
 
 /**
  * Normalize options for `execCommand` and `execCommands`
  *
+ * Note: `$` is used to indicate that this function behaves differently according to `process.platform`
+ *
  * @private internal utility of `execCommand` and `execCommands`
  */
-export function execCommandNormalizeOptions(options: ExecCommandOptions): Pick<
+export function $execCommandNormalizeOptions(options: ExecCommandOptions): Pick<
     ExecCommandOptionsAdvanced,
-    'command' | 'args' | 'cwd' | 'crashOnError' | 'timeout'
+    'command' | 'args' | 'cwd' | 'crashOnError' | 'timeout' | 'isVerbose'
 > & {
     humanReadableCommand: string;
 } {
@@ -17,6 +19,7 @@ export function execCommandNormalizeOptions(options: ExecCommandOptions): Pick<
     let crashOnError: boolean;
     let args: string[] = [];
     let timeout: number;
+    let isVerbose: boolean;
 
     if (typeof options === 'string') {
         // TODO: [1] DRY default values
@@ -24,6 +27,7 @@ export function execCommandNormalizeOptions(options: ExecCommandOptions): Pick<
         cwd = process.cwd();
         crashOnError = true;
         timeout = Infinity;
+        isVerbose = DEFAULT_IS_VERBOSE;
     } else {
         /*
         TODO:
@@ -39,6 +43,7 @@ export function execCommandNormalizeOptions(options: ExecCommandOptions): Pick<
         cwd = options.cwd ?? process.cwd();
         crashOnError = options.crashOnError ?? true;
         timeout = options.timeout ?? Infinity;
+        isVerbose = options.isVerbose ?? DEFAULT_IS_VERBOSE;
     }
 
     // TODO: /(-[a-zA-Z0-9-]+\s+[^\s]*)|[^\s]*/g
@@ -62,7 +67,11 @@ export function execCommandNormalizeOptions(options: ExecCommandOptions): Pick<
         humanReadableCommand += ` ${args[1]}`;
     }
 
-    return { command, humanReadableCommand, args, cwd, crashOnError, timeout };
+    if (/^win/.test(process.platform) && ['npm', 'npx'].includes(command)) {
+        command = `${command}.cmd`;
+    }
+
+    return { command, humanReadableCommand, args, cwd, crashOnError, timeout, isVerbose };
 }
 
 // TODO: This should show type error> execCommandNormalizeOptions({ command: '', commands: [''] });
