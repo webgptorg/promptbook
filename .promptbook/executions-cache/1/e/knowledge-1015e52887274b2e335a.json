@@ -1,0 +1,104 @@
+{
+    "date": "2024-10-05T15:45:50.688Z",
+    "promptbookVersion": "0.71.0-0",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.ptbk.md#knowledge",
+        "parameters": {
+            "knowledgePieceContent": "Korálky Katlas připravily souhrn doporučení, na co si dávat pozor při nákupu hotové bižuterie a bižuterních polotovarů, aby se zákazníci vyhnuli nekvalitním a potenciálně nebezpečným produktům."
+        },
+        "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> {knowledgePieceContent}",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {}
+    },
+    "promptResult": {
+        "content": "Korálky Katlas, doporučení, nákup, bižuterie, bižuterní polotovary, kvalita, bezpečnost, zákazníci",
+        "modelName": "claude-3-5-sonnet-20240620",
+        "timing": {
+            "start": "2024-10-05T15:45:49.634Z",
+            "complete": "2024-10-05T15:45:50.688Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0.001065
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 120
+                },
+                "charactersCount": {
+                    "value": 387
+                },
+                "wordsCount": {
+                    "value": 52
+                },
+                "sentencesCount": {
+                    "value": 2
+                },
+                "linesCount": {
+                    "value": 11
+                },
+                "paragraphsCount": {
+                    "value": 6
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 47
+                },
+                "charactersCount": {
+                    "value": 98
+                },
+                "wordsCount": {
+                    "value": 10
+                },
+                "sentencesCount": {
+                    "value": 1
+                },
+                "linesCount": {
+                    "value": 1
+                },
+                "paragraphsCount": {
+                    "value": 1
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> Korálky Katlas připravily souhrn doporučení, na co si dávat pozor při nákupu hotové bižuterie a bižuterních polotovarů, aby se zákazníci vyhnuli nekvalitním a potenciálně nebezpečným produktům.",
+        "rawRequest": {
+            "model": "claude-3-5-sonnet-20240620",
+            "max_tokens": 4096,
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> Korálky Katlas připravily souhrn doporučení, na co si dávat pozor při nákupu hotové bižuterie a bižuterních polotovarů, aby se zákazníci vyhnuli nekvalitním a potenciálně nebezpečným produktům."
+                }
+            ]
+        },
+        "rawResponse": {
+            "id": "msg_011pVny2rbjTzrfBD8YPKv3P",
+            "type": "message",
+            "role": "assistant",
+            "model": "claude-3-5-sonnet-20240620",
+            "content": [
+                {
+                    "type": "text",
+                    "text": "Korálky Katlas, doporučení, nákup, bižuterie, bižuterní polotovary, kvalita, bezpečnost, zákazníci"
+                }
+            ],
+            "stop_reason": "end_turn",
+            "stop_sequence": null,
+            "usage": {
+                "input_tokens": 120,
+                "output_tokens": 47
+            }
+        }
+    }
+}

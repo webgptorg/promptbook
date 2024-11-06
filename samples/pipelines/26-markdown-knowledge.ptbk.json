@@ -38,7 +38,7 @@
     ],
     "knowledgeSources": [
         {
-            "name": "source-d9e152ffac50247e643fcd904bfe133f86d6437ce07c6f8798d56b3c8f125cd0",
+            "name": "source-i-m-pavol-a-develop-d9e152ffac50247e643f",
             "sourceContent": "I'm Pavol, a developer who is passionate about using new tools and technologies.\n\nI specialise in creating fully functional user applications using the latest artificial intelligence models.\n\nI am a member of the [Ainautes](https://www.ainautes.com/) consulting group, which supports with the deployment of generative AI around the world.\n\nI develop the [WebGPT](https://webgpt.cz/?partner=ph&utm_medium=referral&utm_source=personal%E2%80%93page&utm_content=pavolhejny.com&utm_campaign=partner%E2%80%93ph) web page generation service.\n\nBefore the massive emergence of generative AI, I have created the first Czech virtual whiteboard, [Collboard](https://collboard.com/), and electronic textbooks, [H-edu](https://h-edu.cz/), which were used by tens of thousands of children.\n\nI have also worked on many scientific projects for the [Czech Ornithological Society](https://www.birdlife.cz/en/).\nI regularly give lectures at conferences, sit on juries, and act as a mentor in many Czech and international competitions.\nI have a special heart for this, and I love **open source** – you can find many of my things on my GitHub.",
             "preparationIds": [
                 1
@@ -63,7 +63,7 @@
             ],
             "sources": [
                 {
-                    "name": "source-d9e152ffac50247e643fcd904bfe133f86d6437ce07c6f8798d56b3c8f125cd0"
+                    "name": "source-i-m-pavol-a-develop-d9e152ffac50247e643f"
                 }
             ],
             "preparationIds": [
@@ -87,7 +87,7 @@
             ],
             "sources": [
                 {
-                    "name": "source-d9e152ffac50247e643fcd904bfe133f86d6437ce07c6f8798d56b3c8f125cd0"
+                    "name": "source-i-m-pavol-a-develop-d9e152ffac50247e643f"
                 }
             ],
             "preparationIds": [
@@ -113,7 +113,7 @@
             ],
             "sources": [
                 {
-                    "name": "source-d9e152ffac50247e643fcd904bfe133f86d6437ce07c6f8798d56b3c8f125cd0"
+                    "name": "source-i-m-pavol-a-develop-d9e152ffac50247e643f"
                 }
             ],
             "preparationIds": [
@@ -139,7 +139,7 @@
             ],
             "sources": [
                 {
-                    "name": "source-d9e152ffac50247e643fcd904bfe133f86d6437ce07c6f8798d56b3c8f125cd0"
+                    "name": "source-i-m-pavol-a-develop-d9e152ffac50247e643f"
                 }
             ],
             "preparationIds": [
@@ -165,57 +165,55 @@
     "preparations": [
         {
             "id": 1,
-            "promptbookVersion": "0.69.6",
+            "promptbookVersion": "0.71.0-24",
             "usage": {
                 "price": {
                     "value": 0.00519
                 },
                 "input": {
                     "tokensCount": {
-                        "value": 990,
-                        "isUncertain": true
+                        "value": 990
                     },
                     "charactersCount": {
-                        "value": 5196
+                        "value": 2126
                     },
                     "wordsCount": {
-                        "value": 731
+                        "value": 305
                     },
                     "sentencesCount": {
-                        "value": 44
+                        "value": 21
                     },
                     "linesCount": {
-                        "value": 164
+                        "value": 55
                     },
                     "paragraphsCount": {
-                        "value": 70
+                        "value": 20
                     },
                     "pagesCount": {
-                        "value": 18
+                        "value": 5
                     }
                 },
                 "output": {
                     "tokensCount": {
-                        "value": 148,
-                        "isUncertain": true
+                        "value": 148
                     },
                     "charactersCount": {
-                        "value": 2378
+                        "value": 0
                     },
                     "wordsCount": {
-                        "value": 323
+                        "value": 0
                     },
                     "sentencesCount": {
-                        "value": 18
+                        "value": 0
                     },
                     "linesCount": {
-                        "value": 104
+                        "value": 0
                     },
                     "paragraphsCount": {
-                        "value": 46
+                        "value": 0
                     },
                     "pagesCount": {
-                        "value": 9
+                        "value": 0
                     }
                 }
             }

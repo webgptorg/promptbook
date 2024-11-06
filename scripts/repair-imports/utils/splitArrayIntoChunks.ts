@@ -4,7 +4,10 @@
  * @param array An array that will be splitted in chunks
  * @param length Of each chunk
  */
-export function splitArrayIntoChunks<TItem>(array: Array<TItem>, length: number): Array<Array<TItem>> {
+export function splitArrayIntoChunks<TItem>(
+    array: ReadonlyArray<TItem>,
+    length: number,
+): ReadonlyArray<ReadonlyArray<TItem>> {
     const chunks = [];
     let i = 0;
     const n = array.length;
@@ -13,3 +16,7 @@ export function splitArrayIntoChunks<TItem>(array: Array<TItem>, length: number)
     }
     return chunks;
 }
+
+/**
+ * Note: [⚫] Code in this file should never be published in any package
+ */

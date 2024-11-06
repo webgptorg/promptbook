@@ -9,10 +9,9 @@ import { join } from 'path';
 import spaceTrim from 'spacetrim';
 import { forTime } from 'waitasecond';
 import { createCollectionFromDirectory } from '../../src/collection/constructors/createCollectionFromDirectory';
-import { createPipelineExecutor } from '../../src/execution/00-createPipelineExecutor';
+import { createPipelineExecutor } from '../../src/execution/createPipelineExecutor/00-createPipelineExecutor';
+import { $provideExecutionToolsForNode } from '../../src/execution/utils/$provideExecutionToolsForNode';
 import { usageToHuman } from '../../src/execution/utils/usageToHuman';
-import { createLlmToolsFromEnv } from '../../src/llm-providers/_common/createLlmToolsFromEnv';
-import { JavascriptExecutionTools } from '../../src/scripting/javascript/JavascriptExecutionTools';
 
 if (process.cwd() !== join(__dirname, '../..')) {
     console.error(colors.red(`CWD must be root of the project`));
@@ -35,32 +34,24 @@ async function playground() {
     // Do here stuff you want to test
     //========================================>
 
-    const collection = await createCollectionFromDirectory('./samples/pipelines/', {
-        llmTools: null,
-        isVerbose: true,
-        isRecursive: false,
-        isCrashedOnError: true,
-    });
+    const collection = await createCollectionFromDirectory(
+        './samples/pipelines/',
+        {},
+        {
+            isVerbose: true,
+            isRecursive: false,
+            isCrashedOnError: true,
+        },
+    );
 
     const pipeline = await collection.getPipelineByUrl('https://promptbook.studio/samples/simple-knowledge.ptbk.md');
 
     await forTime(100);
 
-    const tools = {
-        llm: createLlmToolsFromEnv({
-            isVerbose: true,
-        }),
-        script: [
-            new JavascriptExecutionTools(
-                //            <- TODO: [🧱] Implement in a functional (not new Class) way
-                {
-                    isVerbose: false,
-                },
-            ),
-        ],
-    };
-
-    const pipelineExecutor = createPipelineExecutor({ pipeline, tools });
+    const pipelineExecutor = createPipelineExecutor({
+        pipeline,
+        tools: await $provideExecutionToolsForNode({ isVerbose: true }),
+    });
 
     const inputParameters = {
         eventTitle: 'Biennial of Animation Bratislava',
@@ -127,3 +118,7 @@ async function playground() {
 
     //========================================/
 }
+
+/**
+ * Note: [⚫] Code in this file should never be published in any package
+ */

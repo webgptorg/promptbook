@@ -1,0 +1,104 @@
+{
+    "date": "2024-10-05T13:36:20.781Z",
+    "promptbookVersion": "0.71.0-0",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.ptbk.md#knowledge",
+        "parameters": {
+            "knowledgePieceContent": "Informace byly prezentovány během online setkání, z něhož byl pořízen zkrácený záznam nejdůležitějších bodů."
+        },
+        "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> {knowledgePieceContent}",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {}
+    },
+    "promptResult": {
+        "content": "online setkání, záznam, zkrácený, nejdůležitější body, informace, prezentovány",
+        "modelName": "claude-3-5-sonnet-20240620",
+        "timing": {
+            "start": "2024-10-05T13:36:19.654Z",
+            "complete": "2024-10-05T13:36:20.781Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0.000735
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 85
+                },
+                "charactersCount": {
+                    "value": 302
+                },
+                "wordsCount": {
+                    "value": 40
+                },
+                "sentencesCount": {
+                    "value": 2
+                },
+                "linesCount": {
+                    "value": 11
+                },
+                "paragraphsCount": {
+                    "value": 6
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 32
+                },
+                "charactersCount": {
+                    "value": 78
+                },
+                "wordsCount": {
+                    "value": 8
+                },
+                "sentencesCount": {
+                    "value": 1
+                },
+                "linesCount": {
+                    "value": 1
+                },
+                "paragraphsCount": {
+                    "value": 1
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> Informace byly prezentovány během online setkání, z něhož byl pořízen zkrácený záznam nejdůležitějších bodů.",
+        "rawRequest": {
+            "model": "claude-3-5-sonnet-20240620",
+            "max_tokens": 4096,
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> Informace byly prezentovány během online setkání, z něhož byl pořízen zkrácený záznam nejdůležitějších bodů."
+                }
+            ]
+        },
+        "rawResponse": {
+            "id": "msg_01Y2ZF6Hj9bs7jjYVisn1eJf",
+            "type": "message",
+            "role": "assistant",
+            "model": "claude-3-5-sonnet-20240620",
+            "content": [
+                {
+                    "type": "text",
+                    "text": "online setkání, záznam, zkrácený, nejdůležitější body, informace, prezentovány"
+                }
+            ],
+            "stop_reason": "end_turn",
+            "stop_sequence": null,
+            "usage": {
+                "input_tokens": 85,
+                "output_tokens": 32
+            }
+        }
+    }
+}

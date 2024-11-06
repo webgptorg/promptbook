@@ -10,9 +10,9 @@ import { readFileSync } from 'fs';
 import glob from 'glob-promise';
 import { join } from 'path';
 import type { string_char_emoji } from '../../src/types/typeAliasEmoji';
+import { $shuffleItems } from './utils/$shuffleItems';
 import { difference } from './utils/difference';
 import { EMOJIS, EMOJIS_OF_SINGLE_PICTOGRAM } from './utils/emojis';
-import { $shuffleItems } from './utils/$shuffleItems';
 
 if (process.cwd() !== join(__dirname, '../..')) {
     console.error(colors.red(`CWD must be root of the project`));
@@ -41,11 +41,11 @@ async function findFreshEmojiTag() {
     });
 
     const allEmojis = EMOJIS_OF_SINGLE_PICTOGRAM;
-    // const allEmojis = new Set<string_char_emoji>(['🌼' as string_char_emoji,'🥎' as string_char_emoji]);
+    // const allEmojis = new Set<string_char_emoji>(['🧎' as string_char_emoji, '🥎' as string_char_emoji]);
     const usedEmojis = new Set<string_char_emoji>();
 
     for (const file of allFiles) {
-        const content = readFileSync(file, 'utf-8'); /* <- Note: Its OK to use sync in tooling */
+        const content = readFileSync(file, 'utf-8'); /* <- Note: Its OK to use sync in tooling for scripts */
 
         for (const emoji of allEmojis) {
             const tag = `[${emoji}]`;
@@ -55,10 +55,16 @@ async function findFreshEmojiTag() {
         }
     }
 
+    //console.info({ usedEmojis });
     const freshEmojis = difference(allEmojis, usedEmojis);
 
     console.info(colors.green(`Avialable fresh tags:`));
-    for (const emoji of $shuffleItems(...Array.from(freshEmojis)).splice(0, 10)) {
+
+    const randomEmojis = [...$shuffleItems(...Array.from(freshEmojis))].splice(0, 10);
+    // const randomEmojis = freshEmojis;
+    // const randomEmojis = usedEmojis;
+
+    for (const emoji of randomEmojis) {
         const tag = `[${emoji}]`;
         console.info(colors.bgWhite(tag));
     }
@@ -67,3 +73,7 @@ async function findFreshEmojiTag() {
 
     // console.info(`[ Done 🤪  Find fresh emoji tag ]`);
 }
+
+/**
+ * Note: [⚫] Code in this file should never be published in any package
+ */

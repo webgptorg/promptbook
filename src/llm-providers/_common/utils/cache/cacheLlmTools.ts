@@ -30,11 +30,7 @@ export function cacheLlmTools<TLlmTools extends LlmExecutionTools>(
     llmTools: TLlmTools,
     options: Partial<CacheLlmToolsOptions> = {},
 ): TLlmTools {
-    const {
-        storage = new MemoryStorage(),
-        //            <- TODO: [🧱] Implement in a functional (not new Class) way
-        isReloaded = false,
-    } = options;
+    const { storage = new MemoryStorage(), isCacheReloaded = false } = options;
 
     const proxyTools: TLlmTools = {
         ...llmTools,
@@ -50,7 +46,7 @@ export function cacheLlmTools<TLlmTools extends LlmExecutionTools>(
             return llmTools.description;
         },
 
-        listModels(): Promisable<Array<AvailableModel>> {
+        listModels(): Promisable<ReadonlyArray<AvailableModel>> {
             // TODO: [🧠] Should be model listing also cached?
             return /* not await */ llmTools.listModels();
         },
@@ -64,7 +60,7 @@ export function cacheLlmTools<TLlmTools extends LlmExecutionTools>(
             //    <- TODO: [🥬] Encapsulate sha256 to some private utility function
         );
 
-        const cacheItem = !isReloaded ? await storage.getItem(key) : null;
+        const cacheItem = !isCacheReloaded ? await storage.getItem(key) : null;
 
         if (cacheItem) {
             return cacheItem.promptResult as ChatPromptResult;

@@ -1,8 +1,8 @@
 import { describe, expect, it } from '@jest/globals';
 import { spaceTrim } from 'spacetrim';
 import { pipelineStringToJson } from '../../../conversion/pipelineStringToJson';
+import { CallbackInterfaceTools } from '../../../dialogs/callback/CallbackInterfaceTools';
 import { createPipelineExecutor } from '../../../execution/createPipelineExecutor/00-createPipelineExecutor';
-import { CallbackInterfaceTools } from '../../../knowledge/dialogs/callback/CallbackInterfaceTools';
 import type { PipelineString } from '../../../types/PipelineString';
 import { PROMPTBOOK_VERSION } from '../../../version';
 import { MockedFackedLlmExecutionTools } from '../MockedFackedLlmExecutionTools';
@@ -122,15 +122,12 @@ async function getPipelineExecutor() {
                 { isVerbose: true },
             ),
             script: [],
-            userInterface: new CallbackInterfaceTools(
-                //            <- TODO: [🧱] Implement in a functional (not new Class) way
-                {
-                    isVerbose: true,
-                    async callback() {
-                        return 'Hello';
-                    },
+            userInterface: new CallbackInterfaceTools({
+                isVerbose: true,
+                async callback() {
+                    return 'Hello';
                 },
-            ),
+            }),
         },
     });
     return pipelineExecutor;

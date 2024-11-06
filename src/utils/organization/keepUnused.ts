@@ -15,7 +15,7 @@ import type { really_any } from './really_any';
  * @private within the repository
  */
 export function keepUnused<TTypeToKeep1 = really_any, TTypeToKeep2 = really_any, TTypeToKeep3 = really_any>(
-    ...valuesToKeep: Array<really_any>
+    ...valuesToKeep: ReadonlyArray<really_any>
 ): void {
     // Note: Do nothing
     valuesToKeep as TTypeToKeep1;

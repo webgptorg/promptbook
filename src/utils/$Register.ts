@@ -1,20 +1,37 @@
-import { IS_VERBOSE } from '../config';
+import { type IDestroyable } from 'destroyable';
+import { DEFAULT_IS_VERBOSE } from '../config';
+import { NotYetImplementedError } from '../errors/NotYetImplementedError';
 import { UnexpectedError } from '../errors/UnexpectedError';
-import type { string_javascript_name } from '../types/typeAliases';
+import type { string_name } from '../types/typeAliases';
 import { $getGlobalScope } from './environment/$getGlobalScope';
+import { normalizeTo_snake_case } from './normalization/normalizeTo_snake_case';
 import type { TODO_string } from './organization/TODO_string';
 
+/**
+ * @@@
+ */
 export type Registered = {
     /**
      * @@@
      */
-    packageName: TODO_string;
+    readonly packageName: TODO_string;
 
     /**
      * @@@
      */
-    className: TODO_string;
+    readonly className: TODO_string;
 };
+
+/**
+ * @@@
+ */
+export type Registration = Registered &
+    IDestroyable & {
+        /**
+         * @@@
+         */
+        readonly registerName: string_name;
+    };
 
 /**
  * Register is @@@
@@ -26,8 +43,8 @@ export type Registered = {
 export class $Register<TRegistered extends Registered> {
     private readonly storage: Array<TRegistered>;
 
-    constructor(private readonly storageName: string_javascript_name) {
-        storageName = `_promptbook_${storageName}`;
+    constructor(private readonly registerName: string_name) {
+        const storageName = `_promptbook_${normalizeTo_snake_case(registerName)}`;
 
         const globalScope = $getGlobalScope();
 
@@ -42,14 +59,12 @@ export class $Register<TRegistered extends Registered> {
         this.storage = globalScope[storageName];
     }
 
-    public list(): Array<TRegistered> {
-        // <- TODO: ReadonlyDeep<Array<TRegistered>>
+    public list(): ReadonlyArray<TRegistered> {
+        // <- TODO: ReadonlyDeep<ReadonlyArray<TRegistered>>
         return this.storage;
     }
 
-    public register(registered: TRegistered): void {
-        //                                    <- TODO: What to return here
-
+    public register(registered: TRegistered): Registration {
         const { packageName, className } = registered;
 
         const existingRegistrationIndex = this.storage.findIndex(
@@ -57,17 +72,30 @@ export class $Register<TRegistered extends Registered> {
         );
         const existingRegistration = this.storage[existingRegistrationIndex];
 
-   
         if (!existingRegistration) {
-            if (IS_VERBOSE) {
-                console.warn(`[📦] Registering \`${packageName}.${className}\` to \`${this.storageName}\``);
+            if (DEFAULT_IS_VERBOSE) {
+                console.warn(`[📦] Registering \`${packageName}.${className}\` to \`${this.registerName}\``);
             }
             this.storage.push(registered);
         } else {
-            if (IS_VERBOSE) {
-                console.warn(`[📦] Re-registering \`${packageName}.${className}\` to \`${this.storageName}\``);
+            if (DEFAULT_IS_VERBOSE) {
+                console.warn(`[📦] Re-registering \`${packageName}.${className}\` to \`${this.registerName}\``);
             }
             this.storage[existingRegistrationIndex] = registered;
         }
+
+        return {
+            registerName: this.registerName,
+            packageName,
+            className,
+            get isDestroyed() {
+                return false;
+            },
+            destroy() {
+                throw new NotYetImplementedError(
+                    `Registration to ${this.registerName} is permanent in this version of Promptbook`,
+                );
+            },
+        };
     }
 }

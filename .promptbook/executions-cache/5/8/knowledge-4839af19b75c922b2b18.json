@@ -1,0 +1,104 @@
+{
+    "date": "2024-10-07T13:40:33.299Z",
+    "promptbookVersion": "0.71.0-0",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.ptbk.md#knowledge",
+        "parameters": {
+            "knowledgePieceContent": "### 10. Review and Reflect\n\nRegularly review and reflect on your productivity strategies. Assess what works and what doesn’t, and make necessary adjustments to continually improve your efficiency."
+        },
+        "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> {knowledgePieceContent}",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {}
+    },
+    "promptResult": {
+        "content": "Productivity, review, reflect, strategies, assess, adjust, improve, efficiency",
+        "modelName": "claude-3-5-sonnet-20240620",
+        "timing": {
+            "start": "2024-10-07T13:40:30.529Z",
+            "complete": "2024-10-07T13:40:33.299Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0.0005549999999999999
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 90
+                },
+                "charactersCount": {
+                    "value": 394
+                },
+                "wordsCount": {
+                    "value": 54
+                },
+                "sentencesCount": {
+                    "value": 4
+                },
+                "linesCount": {
+                    "value": 13
+                },
+                "paragraphsCount": {
+                    "value": 6
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 19
+                },
+                "charactersCount": {
+                    "value": 78
+                },
+                "wordsCount": {
+                    "value": 8
+                },
+                "sentencesCount": {
+                    "value": 1
+                },
+                "linesCount": {
+                    "value": 1
+                },
+                "paragraphsCount": {
+                    "value": 1
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> ### 10. Review and Reflect\n> \n> Regularly review and reflect on your productivity strategies. Assess what works and what doesn’t, and make necessary adjustments to continually improve your efficiency.",
+        "rawRequest": {
+            "model": "claude-3-5-sonnet-20240620",
+            "max_tokens": 4096,
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> ### 10. Review and Reflect\n> \n> Regularly review and reflect on your productivity strategies. Assess what works and what doesn’t, and make necessary adjustments to continually improve your efficiency."
+                }
+            ]
+        },
+        "rawResponse": {
+            "id": "msg_01Bqxkma5h8KpEPXR11krQmG",
+            "type": "message",
+            "role": "assistant",
+            "model": "claude-3-5-sonnet-20240620",
+            "content": [
+                {
+                    "type": "text",
+                    "text": "Productivity, review, reflect, strategies, assess, adjust, improve, efficiency"
+                }
+            ],
+            "stop_reason": "end_turn",
+            "stop_sequence": null,
+            "usage": {
+                "input_tokens": 90,
+                "output_tokens": 19
+            }
+        }
+    }
+}

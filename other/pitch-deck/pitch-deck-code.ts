@@ -39,18 +39,15 @@ async function playground() {
     const eventTitle = 'Awesome Developer Conference 2025';
     const userId = '168751566';
     const context = spaceTrim(`
-- Awesome Developer Conference 2025 is a conference for developers
-- It will be held in Prague
-- It will have a lot of interesting talks and workshops
-- ...
-`);
+        - Awesome Developer Conference 2025 is a conference for developers
+        - It will be held in Prague
+        - It will have a lot of interesting talks and workshops
+        - ...
+    `);
 
-    const client = new OpenAI(
-        //            <- TODO: [🧱] Implement in a functional (not new Class) way
-        {
-            apiKey: process.env.OPENAI_API_KEY!,
-        },
-    );
+    const client = new OpenAI({
+        apiKey: process.env.OPENAI_API_KEY!,
+    });
 
     const response = await client.chat.completions.create({
         model: 'gpt-4o-2024-05-13',
@@ -94,3 +91,7 @@ async function playground() {
 
     console.info(`[ Done 🧸  Playground ]`);
 }
+
+/**
+ * Note: [⚫] Code in this file should never be published in any package
+ */

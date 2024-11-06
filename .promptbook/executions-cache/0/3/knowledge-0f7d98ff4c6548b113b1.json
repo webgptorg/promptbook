@@ -1,0 +1,104 @@
+{
+    "date": "2024-09-29T07:36:06.724Z",
+    "promptbookVersion": "0.71.0-0",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.ptbk.md#knowledge",
+        "parameters": {
+            "knowledgePieceContent": "---\n\nGenerative AI is emerging as a transformative technology, comparable to the rise of personal computers and the early internet. This wave of innovation is expected to impact virtually every sector of human activity, creating both opportunities and challenges for businesses."
+        },
+        "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> {knowledgePieceContent}",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {}
+    },
+    "promptResult": {
+        "content": "Generative AI, transformative technology, personal computers, internet, innovation, impact, sectors, human activity, opportunities, challenges, businesses",
+        "modelName": "claude-3-5-sonnet-20240620",
+        "timing": {
+            "start": "2024-09-29T07:36:06.010Z",
+            "complete": "2024-09-29T07:36:06.724Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0.000747
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 99
+                },
+                "charactersCount": {
+                    "value": 476
+                },
+                "wordsCount": {
+                    "value": 66
+                },
+                "sentencesCount": {
+                    "value": 3
+                },
+                "linesCount": {
+                    "value": 13
+                },
+                "paragraphsCount": {
+                    "value": 6
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 30
+                },
+                "charactersCount": {
+                    "value": 154
+                },
+                "wordsCount": {
+                    "value": 15
+                },
+                "sentencesCount": {
+                    "value": 1
+                },
+                "linesCount": {
+                    "value": 1
+                },
+                "paragraphsCount": {
+                    "value": 1
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> ---\n> \n> Generative AI is emerging as a transformative technology, comparable to the rise of personal computers and the early internet. This wave of innovation is expected to impact virtually every sector of human activity, creating both opportunities and challenges for businesses.",
+        "rawRequest": {
+            "model": "claude-3-5-sonnet-20240620",
+            "max_tokens": 4096,
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> ---\n> \n> Generative AI is emerging as a transformative technology, comparable to the rise of personal computers and the early internet. This wave of innovation is expected to impact virtually every sector of human activity, creating both opportunities and challenges for businesses."
+                }
+            ]
+        },
+        "rawResponse": {
+            "id": "msg_01P85zk6NrC9Qh7ygLXpUhEt",
+            "type": "message",
+            "role": "assistant",
+            "model": "claude-3-5-sonnet-20240620",
+            "content": [
+                {
+                    "type": "text",
+                    "text": "Generative AI, transformative technology, personal computers, internet, innovation, impact, sectors, human activity, opportunities, challenges, businesses"
+                }
+            ],
+            "stop_reason": "end_turn",
+            "stop_sequence": null,
+            "usage": {
+                "input_tokens": 99,
+                "output_tokens": 30
+            }
+        }
+    }
+}

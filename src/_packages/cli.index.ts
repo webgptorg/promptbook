@@ -9,6 +9,16 @@ import { _AzureOpenAiMetadataRegistration } from '../llm-providers/azure-openai/
 import { _AzureOpenAiRegistration } from '../llm-providers/azure-openai/register-constructor';
 import { _OpenAiMetadataRegistration } from '../llm-providers/openai/register-configuration';
 import { _OpenAiRegistration } from '../llm-providers/openai/register-constructor';
+import { _LegacyDocumentScraperRegistration } from '../scrapers/document-legacy/register-constructor';
+import { _LegacyDocumentScraperMetadataRegistration } from '../scrapers/document-legacy/register-metadata';
+import { _DocumentScraperRegistration } from '../scrapers/document/register-constructor';
+import { _DocumentScraperMetadataRegistration } from '../scrapers/document/register-metadata';
+import { _MarkdownScraperRegistration } from '../scrapers/markdown/register-constructor';
+import { _MarkdownScraperMetadataRegistration } from '../scrapers/markdown/register-metadata';
+import { _PdfScraperRegistration } from '../scrapers/pdf/register-constructor';
+import { _PdfScraperMetadataRegistration } from '../scrapers/pdf/register-metadata';
+import { _WebsiteScraperRegistration } from '../scrapers/website/register-constructor';
+import { _WebsiteScraperMetadataRegistration } from '../scrapers/website/register-metadata';
 
 
 // Note: Exporting version from each package
@@ -23,3 +33,13 @@ export { _AzureOpenAiMetadataRegistration };
 export { _AzureOpenAiRegistration };
 export { _OpenAiMetadataRegistration };
 export { _OpenAiRegistration };
+export { _LegacyDocumentScraperRegistration };
+export { _LegacyDocumentScraperMetadataRegistration };
+export { _DocumentScraperRegistration };
+export { _DocumentScraperMetadataRegistration };
+export { _MarkdownScraperRegistration };
+export { _MarkdownScraperMetadataRegistration };
+export { _PdfScraperRegistration };
+export { _PdfScraperMetadataRegistration };
+export { _WebsiteScraperRegistration };
+export { _WebsiteScraperMetadataRegistration };

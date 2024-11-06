@@ -23,7 +23,6 @@ export function pipelineJsonToString(pipelineJson: PipelineJson): PipelineString
         pipelineString += description;
     }
 
-    // TODO:> const commands: Array<Command>
     const commands: Array<string> = [];
 
     if (pipelineUrl) {
@@ -69,7 +68,6 @@ export function pipelineJsonToString(pipelineJson: PipelineJson): PipelineString
             pipelineString += description;
         }
 
-        // TODO:> const commands: Array<Command>
         const commands: Array<string> = [];
         let contentLanguage: 'markdown' | 'text' | 'javascript' | 'typescript' | 'python' | '' = 'text';
 

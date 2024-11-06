@@ -13,7 +13,7 @@ import type { PromptbookVersionCommand } from './PromptbookVersionCommand';
 /**
  * Parses the PROMPTBOOK_VERSION command
  *
- * @see ./PROMPTBOOK_VERSION-README.md for more details
+ * @see `documentationUrl` for more details
  * @private within the commands folder
  */
 export const promptbookVersionCommandParser: PipelineHeadCommandParser<PromptbookVersionCommand> = {
@@ -36,7 +36,7 @@ export const promptbookVersionCommandParser: PipelineHeadCommandParser<Promptboo
     description: `Which version of the promptbook is the .ptbk.md using`,
 
     /**
-     * Link to discussion
+     * Link to documentation
      */
     documentationUrl: 'https://github.com/webgptorg/promptbook/discussions/69',
 
@@ -96,7 +96,7 @@ export const promptbookVersionCommandParser: PipelineHeadCommandParser<Promptboo
      *
      * Note: This is used in `pipelineJsonToString` utility
      */
-    takeFromPipelineJson(pipelineJson: PipelineJson): Array<PromptbookVersionCommand> {
+    takeFromPipelineJson(pipelineJson: PipelineJson): ReadonlyArray<PromptbookVersionCommand> {
         keepUnused(pipelineJson);
         throw new NotYetImplementedError(`[🛋] Not implemented yet`); // <- TODO: [🛋] Implement
     },

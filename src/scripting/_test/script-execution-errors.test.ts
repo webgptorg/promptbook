@@ -1,9 +1,9 @@
 import { describe, expect, it } from '@jest/globals';
 import { spaceTrim } from 'spacetrim';
 import { pipelineStringToJson } from '../../conversion/pipelineStringToJson';
+import { CallbackInterfaceTools } from '../../dialogs/callback/CallbackInterfaceTools';
 import { assertsExecutionSuccessful } from '../../execution/assertsExecutionSuccessful';
 import { createPipelineExecutor } from '../../execution/createPipelineExecutor/00-createPipelineExecutor';
-import { CallbackInterfaceTools } from '../../knowledge/dialogs/callback/CallbackInterfaceTools';
 import { MockedEchoLlmExecutionTools } from '../../llm-providers/mocked/MockedEchoLlmExecutionTools';
 import type { PipelineString } from '../../types/PipelineString';
 import { JavascriptExecutionTools } from '../javascript/JavascriptExecutionTools';
@@ -82,28 +82,19 @@ async function getPipelineExecutor() {
     const pipelineExecutor = createPipelineExecutor({
         pipeline,
         tools: {
-            llm: new MockedEchoLlmExecutionTools(
-                //            <- TODO: [🧱] Implement in a functional (not new Class) way
-                { isVerbose: true },
-            ),
+            llm: new MockedEchoLlmExecutionTools({ isVerbose: true }),
             script: [
-                new JavascriptExecutionTools(
-                    //            <- TODO: [🧱] Implement in a functional (not new Class) way
-                    {
-                        isVerbose: true,
-                        // Note: [🕎] Custom functions are tested elsewhere
-                    },
-                ),
-            ],
-            userInterface: new CallbackInterfaceTools(
-                //            <- TODO: [🧱] Implement in a functional (not new Class) way
-                {
+                new JavascriptExecutionTools({
                     isVerbose: true,
-                    async callback() {
-                        return 'Hello';
-                    },
+                    // Note: [🕎] Custom functions are tested elsewhere
+                }),
+            ],
+            userInterface: new CallbackInterfaceTools({
+                isVerbose: true,
+                async callback() {
+                    return 'Hello';
                 },
-            ),
+            }),
         },
     });
 

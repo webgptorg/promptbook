@@ -37,7 +37,7 @@ export const ZERO_USAGE = $deepFreeze({
  *
  * @public exported from `@promptbook/core`
  */
-export function addUsage(...usageItems: Array<PromptResultUsage>): PromptResultUsage {
+export function addUsage(...usageItems: ReadonlyArray<PromptResultUsage>): PromptResultUsage {
     return usageItems.reduce<PromptResultUsage>((acc: WritableDeep<PromptResultUsage>, item) => {
         acc.price.value += item.price?.value || 0;
 

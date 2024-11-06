@@ -72,7 +72,7 @@ export class OpenAiExecutionTools implements LlmExecutionTools {
     /**
      * List all available OpenAI models that can be used
      */
-    public listModels(): Array<AvailableModel> {
+    public listModels(): ReadonlyArray<AvailableModel> {
         /*
         Note: Dynamic lising of the models
         const models = await this.openai.models.list({});

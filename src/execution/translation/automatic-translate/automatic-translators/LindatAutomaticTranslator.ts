@@ -5,18 +5,25 @@ import { PipelineExecutionError } from '../../../../errors/PipelineExecutionErro
 import type { AutomaticTranslator } from './AutomaticTranslator';
 import type { TranslatorOptions } from './TranslatorOptions';
 
-interface LindatAutomaticTranslatorOptions extends TranslatorOptions {
-    apiUrl?: URL;
-}
+/**
+ * @@@
+ */
+type LindatAutomaticTranslatorOptions = TranslatorOptions & {
+    /**
+     * @@@
+     */
+    readonly apiUrl?: URL;
+};
 
 /**
+ * @@@
+ *
  * @private still in development [🏳]
  */
 export class LindatAutomaticTranslator implements AutomaticTranslator {
     public constructor(private readonly options: LindatAutomaticTranslatorOptions) {}
     public async translate(message: string): Promise<string> {
         const formData = new FormData();
-        //            <- TODO: [🧱] Implement in a functional (not new Class) way
         formData.append('input_text', message);
         formData.append('src', this.options.from);
         formData.append('tgt', this.options.to);

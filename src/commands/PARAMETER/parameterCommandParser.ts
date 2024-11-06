@@ -14,7 +14,7 @@ import type { ParameterCommand } from './ParameterCommand';
 /**
  * Parses the parameter command
  *
- * @see ./PARAMETER-README.md for more details
+ * @see `documentationUrl` for more details
  * @private within the commands folder
  */
 export const parameterCommandParser: PipelineBothCommandParser<ParameterCommand> = {
@@ -44,7 +44,7 @@ export const parameterCommandParser: PipelineBothCommandParser<ParameterCommand>
     description: `Describes one parameter of the template`,
 
     /**
-     * Link to discussion
+     * Link to documentation
      */
     documentationUrl: 'https://github.com/webgptorg/promptbook/discussions/68',
 
@@ -132,7 +132,7 @@ export const parameterCommandParser: PipelineBothCommandParser<ParameterCommand>
      *
      * Note: This is used in `pipelineJsonToString` utility
      */
-    takeFromPipelineJson(pipelineJson: PipelineJson): Array<ParameterCommand> {
+    takeFromPipelineJson(pipelineJson: PipelineJson): ReadonlyArray<ParameterCommand> {
         keepUnused(pipelineJson);
         throw new NotYetImplementedError(`[🛋] Not implemented yet`); // <- TODO: [🛋] Implement
     },
@@ -142,7 +142,7 @@ export const parameterCommandParser: PipelineBothCommandParser<ParameterCommand>
      *
      * Note: This is used in `pipelineJsonToString` utility
      */
-    takeFromTemplateJson($templateJson: $TemplateJson): Array<ParameterCommand> {
+    takeFromTemplateJson($templateJson: $TemplateJson): ReadonlyArray<ParameterCommand> {
         keepUnused($templateJson);
         throw new NotYetImplementedError(`[🛋] Not implemented yet`); // <- TODO: [🛋] Implement
     },

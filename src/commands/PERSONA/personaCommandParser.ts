@@ -13,7 +13,7 @@ import type { PersonaCommand } from './PersonaCommand';
 /**
  * Parses the persona command
  *
- * @see ./PERSONA-README.md for more details
+ * @see `documentationUrl` for more details
  * @private within the commands folder
  */
 export const personaCommandParser: PipelineBothCommandParser<PersonaCommand> = {
@@ -39,7 +39,7 @@ export const personaCommandParser: PipelineBothCommandParser<PersonaCommand> = {
     description: `Persona command is used to specify who the system is, it will be transformed into system message, top_t,...`,
 
     /**
-     * Link to discussion
+     * Link to documentation
      */
     documentationUrl: 'https://github.com/webgptorg/promptbook/discussions/22',
 
@@ -101,7 +101,7 @@ export const personaCommandParser: PipelineBothCommandParser<PersonaCommand> = {
      *
      * Note: This is used in `pipelineJsonToString` utility
      */
-    takeFromPipelineJson(pipelineJson: PipelineJson): Array<PersonaCommand> {
+    takeFromPipelineJson(pipelineJson: PipelineJson): ReadonlyArray<PersonaCommand> {
         keepUnused(pipelineJson);
         throw new NotYetImplementedError(`[🛋] Not implemented yet`); // <- TODO: [🛋] Implement
     },
@@ -111,7 +111,7 @@ export const personaCommandParser: PipelineBothCommandParser<PersonaCommand> = {
      *
      * Note: This is used in `pipelineJsonToString` utility
      */
-    takeFromTemplateJson($templateJson: $TemplateJson): Array<PersonaCommand> {
+    takeFromTemplateJson($templateJson: $TemplateJson): ReadonlyArray<PersonaCommand> {
         keepUnused($templateJson);
         throw new NotYetImplementedError(`[🛋] Not implemented yet`); // <- TODO: [🛋] Implement
     },

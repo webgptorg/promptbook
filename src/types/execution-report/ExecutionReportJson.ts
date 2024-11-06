@@ -50,5 +50,5 @@ export type ExecutionReportJson = {
     /**
      * Sequence of templates in order which were executed
      */
-    readonly promptExecutions: Array<ExecutionPromptReportJson>;
+    readonly promptExecutions: ReadonlyArray<ExecutionPromptReportJson>;
 };

@@ -1,7 +1,7 @@
 {
     "name": "promptbook",
-    "version": "0.69.6",
-    "description": "Build responsible, controlled and transparent applications on top of LLM models!",
+    "version": "0.71.0-24",
+    "description": "Supercharge your use of large language models",
     "private": false,
     "sideEffects": false,
     "repository": {
@@ -49,23 +49,27 @@
         }
     ],
     "peerDependencies": {
-        "@promptbook/core": "0.69.6"
+        "@promptbook/core": "0.71.0-24"
     },
     "dependencies": {
-        "@promptbook/anthropic-claude": "0.69.6",
-        "@promptbook/azure-openai": "0.69.6",
-        "@promptbook/browser": "0.69.6",
-        "@promptbook/cli": "0.69.6",
-        "@promptbook/core": "0.69.6",
-        "@promptbook/execute-javascript": "0.69.6",
-        "@promptbook/fake-llm": "0.69.6",
-        "@promptbook/langtail": "0.69.6",
-        "@promptbook/markdown-utils": "0.69.6",
-        "@promptbook/node": "0.69.6",
-        "@promptbook/openai": "0.69.6",
-        "@promptbook/remote-client": "0.69.6",
-        "@promptbook/remote-server": "0.69.6",
-        "@promptbook/types": "0.69.6",
-        "@promptbook/utils": "0.69.6"
+        "@promptbook/anthropic-claude": "0.71.0-24",
+        "@promptbook/azure-openai": "0.71.0-24",
+        "@promptbook/browser": "0.71.0-24",
+        "@promptbook/cli": "0.71.0-24",
+        "@promptbook/core": "0.71.0-24",
+        "@promptbook/documents": "0.71.0-24",
+        "@promptbook/execute-javascript": "0.71.0-24",
+        "@promptbook/fake-llm": "0.71.0-24",
+        "@promptbook/langtail": "0.71.0-24",
+        "@promptbook/legacy-documents": "0.71.0-24",
+        "@promptbook/markdown-utils": "0.71.0-24",
+        "@promptbook/node": "0.71.0-24",
+        "@promptbook/openai": "0.71.0-24",
+        "@promptbook/pdf": "0.71.0-24",
+        "@promptbook/remote-client": "0.71.0-24",
+        "@promptbook/remote-server": "0.71.0-24",
+        "@promptbook/types": "0.71.0-24",
+        "@promptbook/utils": "0.71.0-24",
+        "@promptbook/website-crawler": "0.71.0-24"
     }
 }

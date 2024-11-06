@@ -50,7 +50,7 @@ export type PackageMetadata = {
      * Note: If undefined, dependencies are not yet known
      * Note: [🧃] There are only dependencies (not devDependencies) to ensure that everything is always installed
      */
-    additionalDependencies: Array<string /* <- TODO: More specific */>;
+    additionalDependencies:Array<string /* <- TODO: More specific */>;
 
     /**
      * List of entities which package exports at top level from the `entryIndexFilePath`
@@ -63,4 +63,5 @@ export type PackageMetadata = {
 
 /**
  * TODO: Maybe make `PackageMetadata` as discriminated union - isBuilded+entryIndexFilePath
+ * Note: [⚫] Code in this file should never be published in any package
  */

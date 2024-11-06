@@ -1,7 +1,7 @@
 /**
  * Represents items which are compared to each other
  */
-export type FromtoItems = Array<{
+export type FromtoItems = ReadonlyArray<{
     /**
      * The title of the item
      */

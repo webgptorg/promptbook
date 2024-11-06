@@ -19,7 +19,7 @@ export function createSubcollection(
     collection: PipelineCollection,
     predicate: (url: string_pipeline_url) => boolean,
 ): PipelineCollection {
-    async function listPipelines(): Promise<Array<string_pipeline_url>> {
+    async function listPipelines(): Promise<ReadonlyArray<string_pipeline_url>> {
         let promptbooks = await collection.listPipelines();
         promptbooks = promptbooks.filter(predicate);
         return promptbooks;

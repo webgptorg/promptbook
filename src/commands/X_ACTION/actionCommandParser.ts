@@ -11,7 +11,7 @@ import type { ActionCommand } from './ActionCommand';
 /**
  * Parses the action command
  *
- * @see ./ACTION-README.md for more details
+ * @see `documentationUrl` for more details
  * @private within the commands folder
  */
 export const actionCommandParser: PipelineHeadCommandParser<ActionCommand> = {
@@ -32,7 +32,7 @@ export const actionCommandParser: PipelineHeadCommandParser<ActionCommand> = {
     description: `Actions influences from the pipeline or template into external world. Like turning on a light, sending an email, etc.`,
 
     /**
-     * Link to discussion
+     * Link to documentation
      */
     documentationUrl: 'https://github.com/webgptorg/promptbook/discussions/72',
 
@@ -79,7 +79,7 @@ export const actionCommandParser: PipelineHeadCommandParser<ActionCommand> = {
      *
      * Note: This is used in `pipelineJsonToString` utility
      */
-    takeFromPipelineJson(pipelineJson: PipelineJson): Array<ActionCommand> {
+    takeFromPipelineJson(pipelineJson: PipelineJson): ReadonlyArray<ActionCommand> {
         keepUnused(pipelineJson);
         throw new NotYetImplementedError('[🛠] Actions are not implemented yet');
     },

@@ -47,5 +47,6 @@ export function assertsExecutionSuccessful(
 }
 
 /**
+ * TODO: [🐚] This function should be removed OR changed OR be completely rewritten
  * TODO: [🧠] Can this return type be better typed than void
  */

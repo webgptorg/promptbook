@@ -17,3 +17,7 @@ export function difference<TItem>(
 
     return diff;
 }
+
+/**
+ * Note: [⚫] Code in this file should never be published in any package
+ */

@@ -32,7 +32,6 @@
 
 
                 const formData = new FormData(
-//            <- TODO: [🧱] Implement in a functional (not new Class) way
 event.target);
                 const word = formData.get('word');
                 const userId = formData.get('userId');
@@ -47,7 +46,6 @@ event.target);
 
                 const tools = {
                     llm:  new RemoteLlmExecutionTools(
-                                //            <- TODO: [🧱] Implement in a functional (not new Class) way
                                 {
                                     path: '/promptbook',
                                     remoteUrl: `http://localhost:4460/`,
@@ -56,7 +54,6 @@ event.target);
                                 }),
                     script: [
                         new JavascriptExecutionTools(
-                        //            <- TODO: [🧱] Implement in a functional (not new Class) way
                         {
                             isVerbose: true,
                         }),

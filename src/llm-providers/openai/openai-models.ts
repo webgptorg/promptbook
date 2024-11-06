@@ -12,7 +12,7 @@ import { computeUsage } from './computeUsage';
  * @see https://openai.com/api/pricing/
  * @public exported from `@promptbook/openai`
  */
-export const OPENAI_MODELS: Array<
+export const OPENAI_MODELS: ReadonlyArray<
     AvailableModel & {
         pricing?: {
             readonly prompt: number_usd;

@@ -1,5 +1,3 @@
-import hexEncoder from 'crypto-js/enc-hex';
-import sha256 from 'crypto-js/sha256';
 import spaceTrim from 'spacetrim';
 import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
 import { ParseError } from '../../errors/ParseError';
@@ -12,11 +10,12 @@ import type { $PipelineJson } from '../_common/types/CommandParser';
 import type { CommandParserInput } from '../_common/types/CommandParser';
 import type { PipelineHeadCommandParser } from '../_common/types/CommandParser';
 import type { KnowledgeCommand } from './KnowledgeCommand';
+import { sourceContentToName } from './utils/sourceContentToName';
 
 /**
  * Parses the knowledge command
  *
- * @see ./KNOWLEDGE-README.md for more details
+ * @see `documentationUrl` for more details
  * @private within the commands folder
  */
 export const knowledgeCommandParser: PipelineHeadCommandParser<KnowledgeCommand> = {
@@ -37,7 +36,7 @@ export const knowledgeCommandParser: PipelineHeadCommandParser<KnowledgeCommand>
     description: `Tells promptbook which external knowledge to use`,
 
     /**
-     * Link to discussion
+     * Link to documentation
      */
     documentationUrl: 'https://github.com/webgptorg/promptbook/discussions/41',
 
@@ -50,6 +49,7 @@ export const knowledgeCommandParser: PipelineHeadCommandParser<KnowledgeCommand>
         'KNOWLEDGE ./hejny-cv.md',
         'KNOWLEDGE ./hejny-cv.pdf',
         'KNOWLEDGE ./hejny-cv.docx',
+        //          <- TODO: [😿] Allow ONLY files scoped in the (sub)directory NOT ../ and test it
     ],
 
     /**
@@ -92,12 +92,8 @@ export const knowledgeCommandParser: PipelineHeadCommandParser<KnowledgeCommand>
     $applyToPipelineJson(command: KnowledgeCommand, $pipelineJson: $PipelineJson): void {
         const { sourceContent } = command;
 
-        const name = 'source-' + sha256(hexEncoder.parse(JSON.stringify(sourceContent))).toString(/* hex */);
-        //    <- TODO: [🥬] Encapsulate sha256 to some private utility function
-        //    <- TODO: This should be replaced with a better name later in preparation (done with some propper LLM summarization)
-
         $pipelineJson.knowledgeSources.push({
-            name,
+            name: sourceContentToName(sourceContent),
             sourceContent,
         });
     },
@@ -117,7 +113,7 @@ export const knowledgeCommandParser: PipelineHeadCommandParser<KnowledgeCommand>
      *
      * Note: This is used in `pipelineJsonToString` utility
      */
-    takeFromPipelineJson(pipelineJson: PipelineJson): Array<KnowledgeCommand> {
+    takeFromPipelineJson(pipelineJson: PipelineJson): ReadonlyArray<KnowledgeCommand> {
         keepUnused(pipelineJson);
         throw new NotYetImplementedError(`[🛋] Not implemented yet`); // <- TODO: [🛋] Implement
     },

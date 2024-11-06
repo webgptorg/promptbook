@@ -1,7 +1,7 @@
 {
     "name": "@promptbook/node",
-    "version": "0.69.6",
-    "description": "Build responsible, controlled and transparent applications on top of LLM models!",
+    "version": "0.71.0-24",
+    "description": "Supercharge your use of large language models",
     "private": false,
     "sideEffects": false,
     "repository": {
@@ -52,10 +52,11 @@
     "module": "./esm/index.es.js",
     "typings": "./esm/typings/src/_packages/node.index.d.ts",
     "peerDependencies": {
-        "@promptbook/core": "0.69.6"
+        "@promptbook/core": "0.71.0-24"
     },
     "dependencies": {
         "colors": "1.4.0",
+        "crypto-js": "4.2.0",
         "papaparse": "5.4.1",
         "prettier": "2.8.1",
         "spacetrim": "0.11.59",

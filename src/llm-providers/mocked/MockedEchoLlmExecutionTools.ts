@@ -1,6 +1,6 @@
 import { spaceTrim } from 'spacetrim';
 import type { AvailableModel } from '../../execution/AvailableModel';
-import type { CommonExecutionToolsOptions } from '../../execution/CommonExecutionToolsOptions';
+import type { CommonToolsOptions } from '../../execution/CommonToolsOptions';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import type { ChatPromptResult } from '../../execution/PromptResult';
 import type { CompletionPromptResult } from '../../execution/PromptResult';
@@ -19,7 +19,7 @@ import { $asDeeplyFrozenSerializableJson } from '../../utils/serialization/$asDe
  * @public exported from `@promptbook/fake-llm`
  */
 export class MockedEchoLlmExecutionTools implements LlmExecutionTools {
-    public constructor(private readonly options: CommonExecutionToolsOptions = {}) {}
+    public constructor(private readonly options: CommonToolsOptions = {}) {}
 
     public get title(): string_title & string_markdown_text {
         return 'Mocked echo';
@@ -37,7 +37,7 @@ export class MockedEchoLlmExecutionTools implements LlmExecutionTools {
     /**
      * List all available mocked-models that can be used
      */
-    public listModels(): Array<AvailableModel> {
+    public listModels(): ReadonlyArray<AvailableModel> {
         return [
             {
                 modelTitle: 'Echo chat',

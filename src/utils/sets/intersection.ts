@@ -4,7 +4,7 @@
  * @deprecated use new javascript set methods instead @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set
  * @public exported from `@promptbook/utils`
  */
-export function intersection<TItem>(...sets: Array<Set<TItem>>): Set<TItem> {
+export function intersection<TItem>(...sets: ReadonlyArray<Set<TItem>>): Set<TItem> {
     const intersection = new Set<TItem>();
 
     if (sets[0]) {

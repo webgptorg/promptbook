@@ -1,0 +1,3 @@
+TODO: [🧠] Maybe transfer back to locate-app
+TODO: [🧠] Maybe prefix all by $
+TODO: [🧠][♿] Maybe export locate-app utilities through `@promptbook/node`

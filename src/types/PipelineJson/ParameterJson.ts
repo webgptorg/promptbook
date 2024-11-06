@@ -36,6 +36,7 @@ export type ParameterJson = {
      * Note: This values won't be actually used as some default values, but they are just for better understanding of the parameter
      */
     readonly sampleValues?: Array<string_parameter_value>;
+    //                       <- TODO: [🪓] This should really be `ReadonlyArray`, but it causes problems
 };
 
 /**

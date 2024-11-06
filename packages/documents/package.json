@@ -1,0 +1,65 @@
+{
+    "name": "@promptbook/documents",
+    "version": "0.71.0-24",
+    "description": "Supercharge your use of large language models",
+    "private": false,
+    "sideEffects": false,
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/webgptorg/promptbook"
+    },
+    "contributors": [
+        "Pavol Hejný <me@pavolhejny.com> (https://www.pavolhejny.com/)"
+    ],
+    "todo-0": "TODO: [❇️] Make better list of keywords",
+    "keywords": [
+        "ai",
+        "llm",
+        "prompt",
+        "template",
+        "language-model",
+        "chatgpt",
+        "autogpt",
+        "machine-learning",
+        "natural-language-processing",
+        "nlp",
+        "openai",
+        "gpt-3",
+        "gpt-4",
+        "gpt-4o",
+        "gpt-4o-mini",
+        "o1",
+        "o1-mini",
+        "o1-preview",
+        "anthropic"
+    ],
+    "license": "CC-BY-4.0",
+    "bugs": {
+        "url": "https://github.com/webgptorg/promptbook/issues"
+    },
+    "homepage": "https://www.npmjs.com/package/@promptbook/core",
+    "funding": [
+        {
+            "type": "individual",
+            "url": "https://buymeacoffee.com/hejny"
+        },
+        {
+            "type": "github",
+            "url": "https://github.com/webgptorg/promptbook/blob/main/README.md#%EF%B8%8F-contributing"
+        }
+    ],
+    "main": "./umd/index.umd.js",
+    "module": "./esm/index.es.js",
+    "typings": "./esm/typings/src/_packages/documents.index.d.ts",
+    "peerDependencies": {
+        "@promptbook/core": "0.71.0-24"
+    },
+    "dependencies": {
+        "colors": "1.4.0",
+        "crypto-js": "4.2.0",
+        "papaparse": "5.4.1",
+        "prettier": "2.8.1",
+        "spacetrim": "0.11.59",
+        "waitasecond": "1.11.83"
+    }
+}

@@ -42,7 +42,7 @@ export type PersonaPreparedJson = PersonaJson & {
     /**
      * List of preparation ids that were used to prepare this persona
      */
-    readonly preparationIds: Array<number_id>;
+    readonly preparationIds: ReadonlyArray<number_id>;
 };
 
 /**

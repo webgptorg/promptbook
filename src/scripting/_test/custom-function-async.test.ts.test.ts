@@ -2,8 +2,8 @@ import { describe, expect, it } from '@jest/globals';
 import { spaceTrim } from 'spacetrim';
 import { forTime } from 'waitasecond';
 import { pipelineStringToJson } from '../../conversion/pipelineStringToJson';
+import { CallbackInterfaceTools } from '../../dialogs/callback/CallbackInterfaceTools';
 import { createPipelineExecutor } from '../../execution/createPipelineExecutor/00-createPipelineExecutor';
-import { CallbackInterfaceTools } from '../../knowledge/dialogs/callback/CallbackInterfaceTools';
 import { MockedEchoLlmExecutionTools } from '../../llm-providers/mocked/MockedEchoLlmExecutionTools';
 import type { PipelineString } from '../../types/PipelineString';
 import { JavascriptExecutionTools } from '../javascript/JavascriptExecutionTools';
@@ -79,35 +79,26 @@ async function getPipelineExecutor() {
     const pipelineExecutor = createPipelineExecutor({
         pipeline,
         tools: {
-            llm: new MockedEchoLlmExecutionTools(
-                //            <- TODO: [🧱] Implement in a functional (not new Class) way
-                { isVerbose: true },
-            ),
+            llm: new MockedEchoLlmExecutionTools({ isVerbose: true }),
             script: [
-                new JavascriptExecutionTools(
-                    //            <- TODO: [🧱] Implement in a functional (not new Class) way
-                    {
-                        isVerbose: true,
+                new JavascriptExecutionTools({
+                    isVerbose: true,
 
-                        // Note: [🕎]
-                        functions: {
-                            async addHello(value) {
-                                await forTime(1000);
-                                return `Hello ${value}`;
-                            },
+                    // Note: [🕎]
+                    functions: {
+                        async addHello(value) {
+                            await forTime(1000);
+                            return `Hello ${value}`;
                         },
                     },
-                ),
+                }),
             ],
-            userInterface: new CallbackInterfaceTools(
-                //            <- TODO: [🧱] Implement in a functional (not new Class) way
-                {
-                    isVerbose: true,
-                    async callback() {
-                        return 'Hello';
-                    },
+            userInterface: new CallbackInterfaceTools({
+                isVerbose: true,
+                async callback() {
+                    return 'Hello';
                 },
-            ),
+            }),
         },
     });
 

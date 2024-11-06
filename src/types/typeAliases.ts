@@ -198,7 +198,7 @@ export type string_knowledge_source_content = string_knowledge_source_link | str
  *
  * @@@ string_knowledge_source vs string_knowledge_source_link
  */
-export type string_knowledge_source_link = string_url | string_file_path;
+export type string_knowledge_source_link = string_url | string_filename;
 
 /**
  * Semantic helper
@@ -402,6 +402,14 @@ export type string_url_image = string;
 /**
  * Semantic helper
  *
+ * For example `"C:/Users/me/AppData/Local/Pandoc/pandoc.exe"`
+ * For example `"C:/Program Files/LibreOffice/program/swriter.exe"`
+ */
+export type string_executable_path = string;
+
+/**
+ * Semantic helper
+ *
  * For example `"/9SeSQTupmQHwuSrLi"`
  */
 export type string_uri = string;
@@ -462,6 +470,7 @@ export type string_emails = string;
  *   - `isValidUuid  to check validity
  *
  * For example `"5a0a153d-7be9-4018-9eda-e0e2e2b89bd9"`
+ * TODO: [🥬] Make some system for hashes and ids of promptbook
  */
 export type string_uuid = string & {
     readonly _type: 'uuid' /* <- TODO: [🏟] What is the best shape of the additional object in branded types */;
@@ -505,45 +514,40 @@ export type string_file_extension = string;
  *
  * For example `"C:/Users/me/work/collboard/modules-sdk/src/colldev/commands/develop/ColldevDevelop.tsx"`
  */
-export type string_file_absolute_path = string;
+export type string_absolute_filename = string;
 
 /**
  * Semantic helper
  *
  * For example `"./src/colldev/commands/develop/ColldevDevelop.tsx"`
  */
-export type string_file_relative_path = string;
+export type string_relative_filename = string;
 
 /**
  * Semantic helper
  */
-export type string_file_path = string_file_absolute_path | string_file_relative_path;
+export type string_filename = string_absolute_filename | string_relative_filename;
 
-// TODO: Do not use universal string_file_path/string_folder_path but specific ones likestring_file_relative_path
+// TODO: Do not use universal string_filename/string_dirname but specific ones likestring_relative_filename
 
 /**
  * Semantic helper
  *
  * For example `"C:/Users/me/work/collboard/modules-sdk/src/colldev/commands/develop/ColldevDevelop.tsx"`
  */
-export type string_folder_absolute_path = string;
+export type string_absolute_dirname = string;
 
 /**
  * Semantic helper
  *
  * For example `"./src/colldev/commands/develop/ColldevDevelop.tsx"`
  */
-export type string_folder_relative_path = string;
+export type string_relative_dirname = string;
 
 /**
  * Semantic helper
  */
-export type string_folder_path = string_file_absolute_path | string_file_relative_path;
-
-/**
- * Semantic helper
- */
-export type string_filename = string;
+export type string_dirname = string_absolute_dirname | string_relative_dirname;
 
 /**
  * Semantic helper

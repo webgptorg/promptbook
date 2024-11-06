@@ -37,7 +37,7 @@ export function countTotalUsage(llmTools: LlmExecutionTools): LlmExecutionToolsW
             return /* not await */ llmTools.checkConfiguration();
         },
 
-        listModels(): Promisable<Array<AvailableModel>> {
+        listModels(): Promisable<ReadonlyArray<AvailableModel>> {
             return /* not await */ llmTools.listModels();
         },
 

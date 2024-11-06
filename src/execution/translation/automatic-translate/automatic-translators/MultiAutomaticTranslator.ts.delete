@@ -1,7 +1,7 @@
 import type { Promisable } from 'type-fest';
 import type { AutomaticTranslator } from './AutomaticTranslator';
 
-interface IMultiAutomaticTranslatorOptions {
+type IMultiAutomaticTranslatorOptions = {
     createAutomaticTranslator(options: { from: string; to: string }): AutomaticTranslator;
 }
 

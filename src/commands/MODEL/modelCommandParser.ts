@@ -1,6 +1,7 @@
 import spaceTrim from 'spacetrim';
 import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
 import { ParseError } from '../../errors/ParseError';
+import type { ModelRequirements } from '../../types/ModelRequirements';
 import { MODEL_VARIANTS } from '../../types/ModelVariant';
 import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import type { string_markdown_text } from '../../types/typeAliases';
@@ -14,7 +15,7 @@ import type { ModelCommand } from './ModelCommand';
 /**
  * Parses the model command
  *
- * @see ./MODEL-README.md for more details
+ * @see `documentationUrl` for more details
  * @private within the commands folder
  */
 export const modelCommandParser: PipelineBothCommandParser<ModelCommand> = {
@@ -35,7 +36,7 @@ export const modelCommandParser: PipelineBothCommandParser<ModelCommand> = {
     description: `Tells which \`modelRequirements\` (for example which model) to use for the prompt template execution`,
 
     /**
-     * Link to discussion
+     * Link to documentation
      */
     documentationUrl: 'https://github.com/webgptorg/promptbook/discussions/67',
 
@@ -166,9 +167,15 @@ export const modelCommandParser: PipelineBothCommandParser<ModelCommand> = {
         if ($templateJson.modelRequirements[command.key] !== undefined) {
             if ($templateJson.modelRequirements[command.key] === command.value) {
                 console.warn(
-                    `Multiple commands \`MODEL ${command.key} ${command.value}\` in the template "${
-                        $templateJson.title || $templateJson.name
-                    }"`,
+                    `Multiple commands \`MODEL ${
+                        (
+                            {
+                                modelName: 'NAME',
+                                modelVariant: 'VARIANT',
+                                maxTokens: '???',
+                            } as Record<keyof ModelRequirements, string>
+                        )[command.key]
+                    } ${command.value}\` in the template "${$templateJson.title || $templateJson.name}"`,
                 );
             } else {
                 throw new ParseError(
@@ -219,7 +226,7 @@ export const modelCommandParser: PipelineBothCommandParser<ModelCommand> = {
      *
      * Note: This is used in `pipelineJsonToString` utility
      */
-    takeFromPipelineJson(pipelineJson: PipelineJson): Array<ModelCommand> {
+    takeFromPipelineJson(pipelineJson: PipelineJson): ReadonlyArray<ModelCommand> {
         keepUnused(pipelineJson);
         throw new NotYetImplementedError(`[🛋] Not implemented yet`); // <- TODO: [🛋] Implement
     },
@@ -229,7 +236,7 @@ export const modelCommandParser: PipelineBothCommandParser<ModelCommand> = {
      *
      * Note: This is used in `pipelineJsonToString` utility
      */
-    takeFromTemplateJson($templateJson: $TemplateJson): Array<ModelCommand> {
+    takeFromTemplateJson($templateJson: $TemplateJson): ReadonlyArray<ModelCommand> {
         keepUnused($templateJson);
         throw new NotYetImplementedError(`[🛋] Not implemented yet`); // <- TODO: [🛋] Implement
     },

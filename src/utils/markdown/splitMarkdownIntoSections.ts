@@ -7,7 +7,7 @@ import type { string_markdown_section } from '../../types/typeAliases';
  *
  * @public exported from `@promptbook/markdown-utils`
  */
-export function splitMarkdownIntoSections(markdown: string_markdown): Array<string_markdown_section> {
+export function splitMarkdownIntoSections(markdown: string_markdown): ReadonlyArray<string_markdown_section> {
     const lines = markdown.split('\n');
     const sections: Array<string_markdown> = [];
 

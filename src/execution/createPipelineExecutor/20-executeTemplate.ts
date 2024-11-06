@@ -1,8 +1,8 @@
 import { spaceTrim } from 'spacetrim';
-import { Promisable, ReadonlyDeep } from 'type-fest';
+import type { Promisable, ReadonlyDeep, WritableDeep } from 'type-fest';
+import { DEFAULT_MAX_EXECUTION_ATTEMPTS } from '../../config';
 import { extractParameterNamesFromTemplate } from '../../conversion/utils/extractParameterNamesFromTemplate';
 import { UnexpectedError } from '../../errors/UnexpectedError';
-import { MultipleLlmExecutionTools } from '../../llm-providers/multiple/MultipleLlmExecutionTools';
 import type { ExecutionReportJson } from '../../types/execution-report/ExecutionReportJson';
 import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import type { TemplateJson } from '../../types/PipelineJson/TemplateJson';
@@ -10,8 +10,7 @@ import type { TaskProgress } from '../../types/TaskProgress';
 import type { Parameters } from '../../types/typeAliases';
 import { difference } from '../../utils/sets/difference';
 import { union } from '../../utils/sets/union';
-import type { ExecutionTools } from '../ExecutionTools';
-import type { CreatePipelineExecutorSettings } from './00-CreatePipelineExecutorSettings';
+import type { CreatePipelineExecutorOptions } from './00-CreatePipelineExecutorOptions';
 import { executeFormatSubvalues } from './30-executeFormatSubvalues';
 import { getReservedParametersForTemplate } from './getReservedParametersForTemplate';
 
@@ -20,7 +19,7 @@ import { getReservedParametersForTemplate } from './getReservedParametersForTemp
  *
  * @private internal type of `executeTemplate`
  */
-type executeSingleTemplateOptions = {
+type executeSingleTemplateOptions = CreatePipelineExecutorOptions & {
     /**
      * @@@
      */
@@ -39,27 +38,12 @@ type executeSingleTemplateOptions = {
     /**
      * @@@
      */
-    readonly tools: Omit<ExecutionTools, 'llm'>;
-
-    /**
-     * @@@
-     */
-    readonly llmTools: MultipleLlmExecutionTools;
-
-    /**
-     * @@@
-     */
     readonly onProgress: (taskProgress: TaskProgress) => Promisable<void>;
 
     /**
-     * Settings for the pipeline executor
-     */
-    readonly settings: CreatePipelineExecutorSettings;
-
-    /**
      * @@@
      */
-    readonly $executionReport: ExecutionReportJson;
+    readonly $executionReport: WritableDeep<ExecutionReportJson>;
 
     /**
      * @@@
@@ -78,13 +62,11 @@ export async function executeTemplate(options: executeSingleTemplateOptions): Pr
         preparedPipeline,
         parametersToPass,
         tools,
-        llmTools,
         onProgress,
-        settings,
         $executionReport,
         pipelineIdentification,
+        maxExecutionAttempts = DEFAULT_MAX_EXECUTION_ATTEMPTS,
     } = options;
-    const { maxExecutionAttempts } = settings;
 
     const name = `pipeline-executor-frame-${currentTemplate.name}`;
     const title = currentTemplate.title;
@@ -180,7 +162,7 @@ export async function executeTemplate(options: executeSingleTemplateOptions): Pr
     // Note: [👨‍👨‍👧] Now we can freeze `parameters` because we are sure that all and only used parameters are defined and are not going to be changed
     Object.freeze(parameters);
 
-    const maxAttempts = currentTemplate.templateType === 'DIALOG_TEMPLATE' ? Infinity : maxExecutionAttempts; // <- TODO: [🤹‍♂️]
+    const maxAttempts = currentTemplate.templateType === 'DIALOG_TEMPLATE' ? Infinity : maxExecutionAttempts; // <- Note: [💂]
     const jokerParameterNames = currentTemplate.jokerParameterNames || [];
 
     const preparedContent = (currentTemplate.preparedContent || '{content}')
@@ -197,8 +179,6 @@ export async function executeTemplate(options: executeSingleTemplateOptions): Pr
         template: currentTemplate,
         preparedPipeline,
         tools,
-        llmTools,
-        settings,
         $executionReport,
         pipelineIdentification,
     });

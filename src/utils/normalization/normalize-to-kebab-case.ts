@@ -43,9 +43,6 @@ export function normalizeToKebabCase(text: string): string_kebab_case {
         } else if (/^[0-9]$/.test(char)) {
             charType = 'NUMBER';
             normalizedChar = char;
-        } else if (/^\/$/.test(char)) {
-            charType = 'SLASH';
-            normalizedChar = char;
         } else {
             charType = 'OTHER';
             normalizedChar = '-';

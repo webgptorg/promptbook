@@ -14,8 +14,7 @@ import {
     stringifyPipelineJson,
     usageToHuman,
 } from '../../../src/_packages/core.index';
-import { JavascriptExecutionTools } from '../../../src/_packages/execute-javascript.index';
-import { createCollectionFromDirectory, createLlmToolsFromEnv } from '../../../src/_packages/node.index';
+import { $provideExecutionToolsForNode, createCollectionFromDirectory } from '../../../src/_packages/node.index';
 
 import '../../../src/_packages/anthropic-claude.index';
 import '../../../src/_packages/azure-openai.index';
@@ -41,12 +40,15 @@ main()
 async function main() {
     console.info(colors.bgWhite('⚪ Testing basic capabilities of Promptbook'));
 
-    const collection = await createCollectionFromDirectory('./samples/pipelines/', {
-        llmTools: null,
-        isVerbose: true,
-        isRecursive: false,
-        isCrashedOnError: true,
-    });
+    const collection = await createCollectionFromDirectory(
+        './samples/pipelines/',
+        {},
+        {
+            isVerbose: true,
+            isRecursive: false,
+            isCrashedOnError: true,
+        },
+    );
 
     // TODO: Allow user to pick pipeline
     // > const pipelineUrls = await collection.listPipelines();
@@ -66,19 +68,7 @@ async function main() {
 
     await forTime(100);
 
-    const tools = {
-        llm: createLlmToolsFromEnv(),
-        script: [
-            new JavascriptExecutionTools(
-                //            <- TODO: [🧱] Implement in a functional (not new Class) way
-                {
-                    isVerbose: true,
-                },
-            ),
-        ],
-    };
-
-    const pipelineExecutor = createPipelineExecutor({ pipeline, tools });
+    const pipelineExecutor = createPipelineExecutor({ pipeline, tools: await $provideExecutionToolsForNode() });
 
     const inputParameters = {
         /*/

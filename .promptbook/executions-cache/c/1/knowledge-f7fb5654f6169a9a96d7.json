@@ -1,0 +1,112 @@
+{
+    "date": "2024-09-29T16:05:03.703Z",
+    "promptbookVersion": "0.71.0-0",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.ptbk.md#knowledge",
+        "parameters": {
+            "knowledgePieceContent": "---\n\nDuring the current economic crisis, there has been an increase in fraudulent and health-damaging jewelry on the market. Customers of Korálky Katlas have reported issues and scams both in the Czech Republic and internationally. In response, Korálky Katlas has compiled a summary of key things to watch out for when purchasing ready-made jewelry and jewelry components."
+        },
+        "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> {knowledgePieceContent}",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {}
+    },
+    "promptResult": {
+        "content": "economic crisis, fraudulent jewelry, health-damaging jewelry, market, Korálky Katlas, customers, issues, scams, Czech Republic, internationally, summary, ready-made jewelry, jewelry components",
+        "modelName": "gpt-4o-2024-05-13",
+        "timing": {
+            "start": "2024-09-29T16:05:02.950Z",
+            "complete": "2024-09-29T16:05:03.702Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0.00118
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 119
+                },
+                "charactersCount": {
+                    "value": 217
+                },
+                "wordsCount": {
+                    "value": 27
+                },
+                "sentencesCount": {
+                    "value": 2
+                },
+                "linesCount": {
+                    "value": 11
+                },
+                "paragraphsCount": {
+                    "value": 6
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 39
+                },
+                "charactersCount": {
+                    "value": 192
+                },
+                "wordsCount": {
+                    "value": 22
+                },
+                "sentencesCount": {
+                    "value": 1
+                },
+                "linesCount": {
+                    "value": 1
+                },
+                "paragraphsCount": {
+                    "value": 1
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> ---\n> \n> During the current economic crisis, there has been an increase in fraudulent and health-damaging jewelry on the market. Customers of Korálky Katlas have reported issues and scams both in the Czech Republic and internationally. In response, Korálky Katlas has compiled a summary of key things to watch out for when purchasing ready-made jewelry and jewelry components.",
+        "rawRequest": {
+            "model": "gpt-4o",
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "You are experienced data researcher, detect the important keywords in the document.\n\n# Rules\n\n-   Write just keywords separated by comma\n\n# The document\n\nTake information from this document:\n\n> ---\n> \n> During the current economic crisis, there has been an increase in fraudulent and health-damaging jewelry on the market. Customers of Korálky Katlas have reported issues and scams both in the Czech Republic and internationally. In response, Korálky Katlas has compiled a summary of key things to watch out for when purchasing ready-made jewelry and jewelry components."
+                }
+            ]
+        },
+        "rawResponse": {
+            "id": "chatcmpl-ACqhq53FMxKTB3vTylRURS5ehRBuL",
+            "object": "chat.completion",
+            "created": 1727625902,
+            "model": "gpt-4o-2024-05-13",
+            "choices": [
+                {
+                    "index": 0,
+                    "message": {
+                        "role": "assistant",
+                        "content": "economic crisis, fraudulent jewelry, health-damaging jewelry, market, Korálky Katlas, customers, issues, scams, Czech Republic, internationally, summary, ready-made jewelry, jewelry components",
+                        "refusal": null
+                    },
+                    "logprobs": null,
+                    "finish_reason": "stop"
+                }
+            ],
+            "usage": {
+                "prompt_tokens": 119,
+                "completion_tokens": 39,
+                "total_tokens": 158,
+                "completion_tokens_details": {
+                    "reasoning_tokens": 0
+                }
+            },
+            "system_fingerprint": "fp_057232b607"
+        }
+    }
+}

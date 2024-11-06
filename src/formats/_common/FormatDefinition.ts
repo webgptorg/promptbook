@@ -28,7 +28,7 @@ export type FormatDefinition<
     /**
      * Aliases for the `formatName`
      */
-    readonly aliases?: Array<string_name & string_SCREAMING_CASE>;
+    readonly aliases?: ReadonlyArray<string_name & string_SCREAMING_CASE>;
 
     /**
      * The mime type of the format (if any)
@@ -70,7 +70,7 @@ export type FormatDefinition<
     /**
      * @@@
      */
-    readonly subvalueDefinitions: Array<FormatSubvalueDefinition<TValue, TSettings>>;
+    readonly subvalueDefinitions: ReadonlyArray<FormatSubvalueDefinition<TValue, TSettings>>;
 };
 
 /**

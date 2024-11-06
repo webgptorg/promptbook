@@ -7,4 +7,4 @@
  *
  * @private internal type
  */
-export type Arrayable<TItem> = TItem | Array<TItem> | undefined;
+export type Arrayable<TItem> = TItem | ReadonlyArray<TItem> | undefined;

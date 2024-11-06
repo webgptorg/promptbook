@@ -1,2 +1,0 @@
-TODO: Implement function which will make knowledge index from the given docx document
-TODO: !! Package @promptbook/pdf

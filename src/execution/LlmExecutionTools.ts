@@ -41,7 +41,7 @@ export type LlmExecutionTools = {
     /**
      * List all available models that can be used
      */
-    listModels(): Promisable<Array<AvailableModel>>;
+    listModels(): Promisable<ReadonlyArray<AvailableModel>>;
 
     /**
      * Calls a chat model

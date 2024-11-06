@@ -1,0 +1,104 @@
+{
+    "date": "2024-10-07T13:41:51.553Z",
+    "promptbookVersion": "0.71.0-0",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-from-markdown.ptbk.md#knowledge",
+        "parameters": {
+            "knowledgeContent": " Domovská stránka chevron\\_right Blog chevron\\_right Korálovka - online povídání chevron\\_right KORÁLOVKA: 27. října 2023 - Zhoršení kvality kovové bižuterie V aktuálním období krize, kdy lidé šetří, kde se dá, se opět na trhu stále častěji objevuje podvodná a zdraví škodlivá bižuterie. Jelikož nám stále častěji píší i naši zákazníci a oznamují nám problémy a podvody, se kterými se v ČR i zahraničí setkali, Korálky Katlas si pro Vás připravili sumář všech věcí, na které je dobré si dát při nákupu hotové bižuterie i bižuterních polotovarů pozor. Zkrácený záznam toho nejdůležitějšího z online setkání: Jmenuji se Standa a v Korálkách Katlas mám na starosti vše okolo on-line aktivit. Více se o mne dozvíte zde: stanislavvavrik.cz "
+        },
+        "content": "You are experienced data researcher, extract the important knowledge from the document.\n\n# Rules\n\n-   Make pieces of information concise, clear, and easy to understand\n-   One piece of information should be approximately 1 paragraph\n-   Divide the paragraphs by markdown horizontal lines ---\n-   Omit irrelevant information\n-   Group redundant information\n-   Write just extracted information, nothing else\n\n# The document\n\nTake information from this document:\n\n> {knowledgeContent}",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {}
+    },
+    "promptResult": {
+        "content": "---\n\nV období ekonomické krize se na trhu častěji objevuje podvodná a zdraví škodlivá bižuterie. Zákazníci hlásí problémy a podvody s bižuterií v ČR i zahraničí.\n\n---\n\nKorálky Katlas připravily souhrn informací o tom, na co si dát pozor při nákupu hotové bižuterie a bižuterních polotovarů.\n\n---\n\nStanda, zodpovědný za online aktivity v Korálkách Katlas, představil nejdůležitější body z online setkání týkajícího se tohoto tématu.\n\n---",
+        "modelName": "claude-3-5-sonnet-20240620",
+        "timing": {
+            "start": "2024-10-07T13:41:41.396Z",
+            "complete": "2024-10-07T13:41:51.551Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0.003738
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 401
+                },
+                "charactersCount": {
+                    "value": 1199
+                },
+                "wordsCount": {
+                    "value": 175
+                },
+                "sentencesCount": {
+                    "value": 7
+                },
+                "linesCount": {
+                    "value": 16
+                },
+                "paragraphsCount": {
+                    "value": 6
+                },
+                "pagesCount": {
+                    "value": 2
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 169
+                },
+                "charactersCount": {
+                    "value": 436
+                },
+                "wordsCount": {
+                    "value": 62
+                },
+                "sentencesCount": {
+                    "value": 5
+                },
+                "linesCount": {
+                    "value": 13
+                },
+                "paragraphsCount": {
+                    "value": 7
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced data researcher, extract the important knowledge from the document.\n\n# Rules\n\n-   Make pieces of information concise, clear, and easy to understand\n-   One piece of information should be approximately 1 paragraph\n-   Divide the paragraphs by markdown horizontal lines ---\n-   Omit irrelevant information\n-   Group redundant information\n-   Write just extracted information, nothing else\n\n# The document\n\nTake information from this document:\n\n>  Domovská stránka chevron\\_right Blog chevron\\_right Korálovka - online povídání chevron\\_right KORÁLOVKA: 27. října 2023 - Zhoršení kvality kovové bižuterie V aktuálním období krize, kdy lidé šetří, kde se dá, se opět na trhu stále častěji objevuje podvodná a zdraví škodlivá bižuterie. Jelikož nám stále častěji píší i naši zákazníci a oznamují nám problémy a podvody, se kterými se v ČR i zahraničí setkali, Korálky Katlas si pro Vás připravili sumář všech věcí, na které je dobré si dát při nákupu hotové bižuterie i bižuterních polotovarů pozor. Zkrácený záznam toho nejdůležitějšího z online setkání: Jmenuji se Standa a v Korálkách Katlas mám na starosti vše okolo on-line aktivit. Více se o mne dozvíte zde: stanislavvavrik.cz ",
+        "rawRequest": {
+            "model": "claude-3-5-sonnet-20240620",
+            "max_tokens": 4096,
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "You are experienced data researcher, extract the important knowledge from the document.\n\n# Rules\n\n-   Make pieces of information concise, clear, and easy to understand\n-   One piece of information should be approximately 1 paragraph\n-   Divide the paragraphs by markdown horizontal lines ---\n-   Omit irrelevant information\n-   Group redundant information\n-   Write just extracted information, nothing else\n\n# The document\n\nTake information from this document:\n\n>  Domovská stránka chevron\\_right Blog chevron\\_right Korálovka - online povídání chevron\\_right KORÁLOVKA: 27. října 2023 - Zhoršení kvality kovové bižuterie V aktuálním období krize, kdy lidé šetří, kde se dá, se opět na trhu stále častěji objevuje podvodná a zdraví škodlivá bižuterie. Jelikož nám stále častěji píší i naši zákazníci a oznamují nám problémy a podvody, se kterými se v ČR i zahraničí setkali, Korálky Katlas si pro Vás připravili sumář všech věcí, na které je dobré si dát při nákupu hotové bižuterie i bižuterních polotovarů pozor. Zkrácený záznam toho nejdůležitějšího z online setkání: Jmenuji se Standa a v Korálkách Katlas mám na starosti vše okolo on-line aktivit. Více se o mne dozvíte zde: stanislavvavrik.cz "
+                }
+            ]
+        },
+        "rawResponse": {
+            "id": "msg_01Emv5APnojt249ssR8LBLGq",
+            "type": "message",
+            "role": "assistant",
+            "model": "claude-3-5-sonnet-20240620",
+            "content": [
+                {
+                    "type": "text",
+                    "text": "---\n\nV období ekonomické krize se na trhu častěji objevuje podvodná a zdraví škodlivá bižuterie. Zákazníci hlásí problémy a podvody s bižuterií v ČR i zahraničí.\n\n---\n\nKorálky Katlas připravily souhrn informací o tom, na co si dát pozor při nákupu hotové bižuterie a bižuterních polotovarů.\n\n---\n\nStanda, zodpovědný za online aktivity v Korálkách Katlas, představil nejdůležitější body z online setkání týkajícího se tohoto tématu.\n\n---"
+                }
+            ],
+            "stop_reason": "end_turn",
+            "stop_sequence": null,
+            "usage": {
+                "input_tokens": 401,
+                "output_tokens": 169
+            }
+        }
+    }
+}

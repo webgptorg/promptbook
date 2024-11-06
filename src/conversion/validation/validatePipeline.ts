@@ -315,7 +315,7 @@ export function validatePipelineCore(pipeline: PipelineJson): void {
     }
 
     // Note: Detect circular dependencies
-    let resovedParameters: Array<string_name> = pipeline.parameters
+    let resovedParameters: ReadonlyArray<string_name> = pipeline.parameters
         .filter(({ isInput }) => isInput)
         .map(({ name }) => name);
 
@@ -324,7 +324,7 @@ export function validatePipelineCore(pipeline: PipelineJson): void {
         resovedParameters = [...resovedParameters, reservedParameterName];
     }
 
-    let unresovedTemplates: Array<TemplateJson> = [...pipeline.templates];
+    let unresovedTemplates: ReadonlyArray<TemplateJson> = [...pipeline.templates];
 
     let loopLimit = LOOP_LIMIT;
     while (unresovedTemplates.length > 0) {
@@ -402,11 +402,11 @@ export function validatePipelineCore(pipeline: PipelineJson): void {
  */
 
 /**
- * TODO: [🐣][main] !!!! Validate that all samples match expectations
- * TODO: [🐣][🐝][main] !!!! Validate that knowledge is valid (non-void)
- * TODO: [🐣][main] !!!! Validate that persona can be used only with CHAT variant
- * TODO: [🐣][main] !!!! Validate that parameter with reserved name not used RESERVED_PARAMETER_NAMES
- * TODO: [🐣][main] !!!! Validate that reserved parameter is not used as joker
+ * TODO: [🧳][main] !!!! Validate that all samples match expectations
+ * TODO: [🧳][🐝][main] !!!! Validate that knowledge is valid (non-void)
+ * TODO: [🧳][main] !!!! Validate that persona can be used only with CHAT variant
+ * TODO: [🧳][main] !!!! Validate that parameter with reserved name not used RESERVED_PARAMETER_NAMES
+ * TODO: [🧳][main] !!!! Validate that reserved parameter is not used as joker
  * TODO: [🧠] Validation not only logic itself but imports around - files and websites and rerefenced pipelines exists
  * TODO: [🛠] Actions, instruments (and maybe knowledge) => Functions and tools
  */

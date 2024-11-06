@@ -1,0 +1,112 @@
+{
+    "date": "2024-09-29T15:53:15.389Z",
+    "promptbookVersion": "0.71.0-0",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-from-markdown.ptbk.md#knowledge",
+        "parameters": {
+            "knowledgeContent": "<div><p>ChatGPT, GPT–4, Anthropic Claude, Gemini, AI, ML, (Chat)GPT, LLM, DALL–E, Midjourney,<br> Stable Diffusion, Sora, VR/AR/XR, TypeScript, blockchain, Web3, PWA… <img src=\"https://www.pavolhejny.com/_next/static/media/1F92F.4be977be.svg\" alt=\"🤯\"></p><p>Are you leveraging the <strong>full potential of technology</strong> and generative AI in your business?</p><p>Technology is constantly evolving and we are currently experiencing a massive wave of the emergence of <strong>generative AI</strong>,<br> which is becoming more and more like the massive rise of the personal computer or the early days of the internet.</p><p>It is almost certain that virtually every sector of human activity will be affected by this revolution,<br> and there will be winners and losers from this massive change.</p><p>It is virtually impossible to maintain an awareness of all that is happening in the field of technology and to filter out the key technologies from the daily noise.<br><strong>I'd be happy to help you with all of that.</strong></p></div>\n\n"
+        },
+        "content": "You are experienced data researcher, extract the important knowledge from the document.\n\n# Rules\n\n-   Make pieces of information concise, clear, and easy to understand\n-   One piece of information should be approximately 1 paragraph\n-   Divide the paragraphs by markdown horizontal lines ---\n-   Omit irrelevant information\n-   Group redundant information\n-   Write just extracted information, nothing else\n\n# The document\n\nTake information from this document:\n\n> {knowledgeContent}",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {}
+    },
+    "promptResult": {
+        "content": "---\n\nThe rapid evolution of technology, especially generative AI, is comparable to the rise of personal computers and the early internet.\n\n---\n\nGenerative AI is poised to impact virtually every sector, leading to significant changes and the emergence of clear winners and losers.\n\n---\n\nStaying updated on all technological advancements and distinguishing key technologies from everyday noise is challenging but essential.\n\n---",
+        "modelName": "gpt-4o-2024-05-13",
+        "timing": {
+            "start": "2024-09-29T15:53:14.049Z",
+            "complete": "2024-09-29T15:53:15.388Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0.002915
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 370
+                },
+                "charactersCount": {
+                    "value": 482
+                },
+                "wordsCount": {
+                    "value": 59
+                },
+                "sentencesCount": {
+                    "value": 2
+                },
+                "linesCount": {
+                    "value": 16
+                },
+                "paragraphsCount": {
+                    "value": 6
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 71
+                },
+                "charactersCount": {
+                    "value": 426
+                },
+                "wordsCount": {
+                    "value": 58
+                },
+                "sentencesCount": {
+                    "value": 4
+                },
+                "linesCount": {
+                    "value": 13
+                },
+                "paragraphsCount": {
+                    "value": 7
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced data researcher, extract the important knowledge from the document.\n\n# Rules\n\n-   Make pieces of information concise, clear, and easy to understand\n-   One piece of information should be approximately 1 paragraph\n-   Divide the paragraphs by markdown horizontal lines ---\n-   Omit irrelevant information\n-   Group redundant information\n-   Write just extracted information, nothing else\n\n# The document\n\nTake information from this document:\n\n> <div><p>ChatGPT, GPT–4, Anthropic Claude, Gemini, AI, ML, (Chat)GPT, LLM, DALL–E, Midjourney,<br> Stable Diffusion, Sora, VR/AR/XR, TypeScript, blockchain, Web3, PWA… <img src=\"https://www.pavolhejny.com/_next/static/media/1F92F.4be977be.svg\" alt=\"🤯\"></p><p>Are you leveraging the <strong>full potential of technology</strong> and generative AI in your business?</p><p>Technology is constantly evolving and we are currently experiencing a massive wave of the emergence of <strong>generative AI</strong>,<br> which is becoming more and more like the massive rise of the personal computer or the early days of the internet.</p><p>It is almost certain that virtually every sector of human activity will be affected by this revolution,<br> and there will be winners and losers from this massive change.</p><p>It is virtually impossible to maintain an awareness of all that is happening in the field of technology and to filter out the key technologies from the daily noise.<br><strong>I'd be happy to help you with all of that.</strong></p></div>\n> \n> ",
+        "rawRequest": {
+            "model": "gpt-4o",
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "You are experienced data researcher, extract the important knowledge from the document.\n\n# Rules\n\n-   Make pieces of information concise, clear, and easy to understand\n-   One piece of information should be approximately 1 paragraph\n-   Divide the paragraphs by markdown horizontal lines ---\n-   Omit irrelevant information\n-   Group redundant information\n-   Write just extracted information, nothing else\n\n# The document\n\nTake information from this document:\n\n> <div><p>ChatGPT, GPT–4, Anthropic Claude, Gemini, AI, ML, (Chat)GPT, LLM, DALL–E, Midjourney,<br> Stable Diffusion, Sora, VR/AR/XR, TypeScript, blockchain, Web3, PWA… <img src=\"https://www.pavolhejny.com/_next/static/media/1F92F.4be977be.svg\" alt=\"🤯\"></p><p>Are you leveraging the <strong>full potential of technology</strong> and generative AI in your business?</p><p>Technology is constantly evolving and we are currently experiencing a massive wave of the emergence of <strong>generative AI</strong>,<br> which is becoming more and more like the massive rise of the personal computer or the early days of the internet.</p><p>It is almost certain that virtually every sector of human activity will be affected by this revolution,<br> and there will be winners and losers from this massive change.</p><p>It is virtually impossible to maintain an awareness of all that is happening in the field of technology and to filter out the key technologies from the daily noise.<br><strong>I'd be happy to help you with all of that.</strong></p></div>\n> \n> "
+                }
+            ]
+        },
+        "rawResponse": {
+            "id": "chatcmpl-ACqWPID1UN5QgDy8mBS78fxeKta0G",
+            "object": "chat.completion",
+            "created": 1727625193,
+            "model": "gpt-4o-2024-05-13",
+            "choices": [
+                {
+                    "index": 0,
+                    "message": {
+                        "role": "assistant",
+                        "content": "---\n\nThe rapid evolution of technology, especially generative AI, is comparable to the rise of personal computers and the early internet.\n\n---\n\nGenerative AI is poised to impact virtually every sector, leading to significant changes and the emergence of clear winners and losers.\n\n---\n\nStaying updated on all technological advancements and distinguishing key technologies from everyday noise is challenging but essential.\n\n---",
+                        "refusal": null
+                    },
+                    "logprobs": null,
+                    "finish_reason": "stop"
+                }
+            ],
+            "usage": {
+                "prompt_tokens": 370,
+                "completion_tokens": 71,
+                "total_tokens": 441,
+                "completion_tokens_details": {
+                    "reasoning_tokens": 0
+                }
+            },
+            "system_fingerprint": "fp_3537616b13"
+        }
+    }
+}

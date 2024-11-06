@@ -1,0 +1,151 @@
+{
+    "date": "2024-09-29T15:47:56.628Z",
+    "promptbookVersion": "0.71.0-0",
+    "prompt": {
+        "title": "Knowledge",
+        "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-from-markdown.ptbk.md#knowledge",
+        "parameters": {
+            "knowledgeContent": "ChatGPT, GPT–4, Anthropic Claude, Gemini, AI, ML, (Chat)GPT, LLM, DALL–E, Midjourney, Stable Diffusion, Sora, VR/AR/XR, TypeScript, blockchain, Web3, PWA… Are you leveraging the full potential of technology and generative AI in your business? Technology is constantly evolving and we are currently experiencing a massive wave of the emergence of generative AI, which is becoming more and more like the massive rise of the personal computer or the early days of the internet. It is almost certain that virtually every sector of human activity will be affected by this revolution, and there will be winners and losers from this massive change. It is virtually impossible to maintain an awareness of all that is happening in the field of technology and to filter out the key technologies from the daily noise. I'd be happy to help you with all of that."
+        },
+        "content": "You are experienced data researcher, extract the important knowledge from the document.\n\n# Rules\n\n-   Make pieces of information concise, clear, and easy to understand\n-   One piece of information should be approximately 1 paragraph\n-   Divide the paragraphs by markdown horizontal lines ---\n-   Omit irrelevant information\n-   Group redundant information\n-   Write just extracted information, nothing else\n\n# The document\n\nTake information from this document:\n\n> {knowledgeContent}",
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        },
+        "expectations": {}
+    },
+    "promptResult": {
+        "content": "---\n\nTechnology is constantly evolving, with current significant advancements in generative AI, akin to the rise of personal computers and the early internet.\n\n---\n\nGenerative AI is expected to have a widespread impact across nearly every sector of human activity, resulting in both significant opportunities and challenges.\n\n---\n\nKey technologies currently shaping the landscape include: ChatGPT, GPT-4, Anthropic Claude, Gemini, AI, ML, LLM, DALL-E, Midjourney, Stable Diffusion, VR/AR/XR, TypeScript, blockchain, Web3, and PWA.\n\n---\n\nStaying informed about these technologies and filtering out key developments from daily noise can be challenging.\n\n---",
+        "modelName": "gpt4o",
+        "timing": {
+            "start": "2024-09-29T15:47:54.713Z",
+            "complete": "2024-09-29T15:47:56.627Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0,
+                "isUncertain": true
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 283
+                },
+                "charactersCount": {
+                    "value": 482
+                },
+                "wordsCount": {
+                    "value": 59
+                },
+                "sentencesCount": {
+                    "value": 2
+                },
+                "linesCount": {
+                    "value": 16
+                },
+                "paragraphsCount": {
+                    "value": 6
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 133
+                },
+                "charactersCount": {
+                    "value": 482
+                },
+                "wordsCount": {
+                    "value": 59
+                },
+                "sentencesCount": {
+                    "value": 2
+                },
+                "linesCount": {
+                    "value": 16
+                },
+                "paragraphsCount": {
+                    "value": 6
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            }
+        },
+        "rawPromptContent": "You are experienced data researcher, extract the important knowledge from the document.\n\n# Rules\n\n-   Make pieces of information concise, clear, and easy to understand\n-   One piece of information should be approximately 1 paragraph\n-   Divide the paragraphs by markdown horizontal lines ---\n-   Omit irrelevant information\n-   Group redundant information\n-   Write just extracted information, nothing else\n\n# The document\n\nTake information from this document:\n\n> ChatGPT, GPT–4, Anthropic Claude, Gemini, AI, ML, (Chat)GPT, LLM, DALL–E, Midjourney, Stable Diffusion, Sora, VR/AR/XR, TypeScript, blockchain, Web3, PWA… Are you leveraging the full potential of technology and generative AI in your business? Technology is constantly evolving and we are currently experiencing a massive wave of the emergence of generative AI, which is becoming more and more like the massive rise of the personal computer or the early days of the internet. It is almost certain that virtually every sector of human activity will be affected by this revolution, and there will be winners and losers from this massive change. It is virtually impossible to maintain an awareness of all that is happening in the field of technology and to filter out the key technologies from the daily noise. I'd be happy to help you with all of that.",
+        "rawRequest": [
+            "gpt4o",
+            [
+                {
+                    "role": "user",
+                    "content": "You are experienced data researcher, extract the important knowledge from the document.\n\n# Rules\n\n-   Make pieces of information concise, clear, and easy to understand\n-   One piece of information should be approximately 1 paragraph\n-   Divide the paragraphs by markdown horizontal lines ---\n-   Omit irrelevant information\n-   Group redundant information\n-   Write just extracted information, nothing else\n\n# The document\n\nTake information from this document:\n\n> ChatGPT, GPT–4, Anthropic Claude, Gemini, AI, ML, (Chat)GPT, LLM, DALL–E, Midjourney, Stable Diffusion, Sora, VR/AR/XR, TypeScript, blockchain, Web3, PWA… Are you leveraging the full potential of technology and generative AI in your business? Technology is constantly evolving and we are currently experiencing a massive wave of the emergence of generative AI, which is becoming more and more like the massive rise of the personal computer or the early days of the internet. It is almost certain that virtually every sector of human activity will be affected by this revolution, and there will be winners and losers from this massive change. It is virtually impossible to maintain an awareness of all that is happening in the field of technology and to filter out the key technologies from the daily noise. I'd be happy to help you with all of that."
+                }
+            ],
+            {}
+        ],
+        "rawResponse": {
+            "id": "chatcmpl-ACqRGQyZLR60d61UgCIlhT5181TO1",
+            "model": "gpt-4o-2024-05-13",
+            "object": "chat.completion",
+            "systemFingerprint": "fp_67802d9a6d",
+            "created": "1970-01-20T23:53:44.874Z",
+            "promptFilterResults": [
+                {
+                    "promptIndex": 0,
+                    "contentFilterResults": {
+                        "hate": {
+                            "filtered": false,
+                            "severity": "safe"
+                        },
+                        "sexual": {
+                            "filtered": false,
+                            "severity": "safe"
+                        },
+                        "violence": {
+                            "filtered": false,
+                            "severity": "safe"
+                        },
+                        "selfHarm": {
+                            "filtered": false,
+                            "severity": "safe"
+                        }
+                    }
+                }
+            ],
+            "usage": {
+                "completionTokens": 133,
+                "promptTokens": 283,
+                "totalTokens": 416
+            },
+            "choices": [
+                {
+                    "index": 0,
+                    "logprobs": null,
+                    "message": {
+                        "content": "---\n\nTechnology is constantly evolving, with current significant advancements in generative AI, akin to the rise of personal computers and the early internet.\n\n---\n\nGenerative AI is expected to have a widespread impact across nearly every sector of human activity, resulting in both significant opportunities and challenges.\n\n---\n\nKey technologies currently shaping the landscape include: ChatGPT, GPT-4, Anthropic Claude, Gemini, AI, ML, LLM, DALL-E, Midjourney, Stable Diffusion, VR/AR/XR, TypeScript, blockchain, Web3, and PWA.\n\n---\n\nStaying informed about these technologies and filtering out key developments from daily noise can be challenging.\n\n---",
+                        "role": "assistant"
+                    },
+                    "finishReason": "stop",
+                    "contentFilterResults": {
+                        "hate": {
+                            "filtered": false,
+                            "severity": "safe"
+                        },
+                        "sexual": {
+                            "filtered": false,
+                            "severity": "safe"
+                        },
+                        "violence": {
+                            "filtered": false,
+                            "severity": "safe"
+                        },
+                        "selfHarm": {
+                            "filtered": false,
+                            "severity": "safe"
+                        }
+                    }
+                }
+            ]
+        }
+    }
+}

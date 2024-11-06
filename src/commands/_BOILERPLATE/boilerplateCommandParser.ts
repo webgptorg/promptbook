@@ -13,7 +13,7 @@ import type { BoilerplateCommand } from './BoilerplateCommand';
  *
  * Note: @@@ This command is used as boilerplate for new commands - it should NOT be used in any `.ptbk.md` file
  *
- * @see ./BOILERPLATE-README.md for more details <- TODO: @@@ Write theese README files OR remove this link + add annotation here (to all commands)
+ * @see `documentationUrl` for more details
  * @private within the commands folder
  */
 export const boilerplateCommandParser: PipelineBothCommandParser<BoilerplateCommand> = {
@@ -39,7 +39,7 @@ export const boilerplateCommandParser: PipelineBothCommandParser<BoilerplateComm
     description: `@@`,
 
     /**
-     * Link to discussion
+     * Link to documentation
      */
     documentationUrl: 'https://github.com/webgptorg/promptbook/discussions/@@',
 
@@ -113,7 +113,7 @@ export const boilerplateCommandParser: PipelineBothCommandParser<BoilerplateComm
      *
      * Note: This is used in `pipelineJsonToString` utility
      */
-    takeFromPipelineJson(pipelineJson: PipelineJson): Array<BoilerplateCommand> {
+    takeFromPipelineJson(pipelineJson: PipelineJson): ReadonlyArray<BoilerplateCommand> {
         keepUnused(pipelineJson);
         throw new ParseError(
             `BOILERPLATE command is only for testing purposes and should not be used in the .ptbk.md file`,
@@ -125,7 +125,7 @@ export const boilerplateCommandParser: PipelineBothCommandParser<BoilerplateComm
      *
      * Note: This is used in `pipelineJsonToString` utility
      */
-    takeFromTemplateJson($templateJson: $TemplateJson): Array<BoilerplateCommand> {
+    takeFromTemplateJson($templateJson: $TemplateJson): ReadonlyArray<BoilerplateCommand> {
         keepUnused($templateJson);
         throw new ParseError(
             `BOILERPLATE command is only for testing purposes and should not be used in the .ptbk.md file`,
