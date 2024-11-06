@@ -13,8 +13,9 @@ import { SupabaseLoggerWrapperOfLlmExecutionToolsOptions } from './SupabaseLogge
 /**
  * Wrapper for any PromptbookExecutionTools which logs every request+result to Supabase.
  */
-export class SupabaseLoggerWrapperOfLlmExecutionTools implements LlmExecutionTools {
-    public constructor(private readonly options: SupabaseLoggerWrapperOfLlmExecutionToolsOptions = {}) {
+export class SupabaseLoggerWrapperOfLlmExecutionTools
+
+    public constructor(protected readonly options: SupabaseLoggerWrapperOfLlmExecutionToolsOptions = {}) {
         if (!isRunningInNode()) {
             throw new EnvironmentMismatchError('SupabaseLoggerWrapperOfExecutionTools can be used only on server');
         }
@@ -84,7 +85,7 @@ export class SupabaseLoggerWrapperOfLlmExecutionTools implements LlmExecutionToo
             .from('PromptExecution')
             .insert(
                 {
-                    userId: this.options.userId,// <- TODO: [🧠][🤺] userId should be property of each prompt
+                    userId: this.options.userId,// <- TODO: [🧠][🤺] Maybe allow overriding of `userId` for each prompt
                     pipelineUrl: prompt.pipelineUrl,
                     promptAt,
                     promptContent: prompt.content,

@@ -557,7 +557,16 @@ Knowledge scrapers [🐝]
 
 Support for [Assistants API (GPTs)](https://platform.openai.com/docs/assistants/overview) from OpenAI
 
+-   Add `OpenAiAssistantExecutionTools`
+-   `OpenAiExecutionTools.createAssistantSubtools`
+-   Add `UNCERTAIN_USAGE`
+-   LLM Tools `getClient` method are public
+-   LLM Tools `options` are not `private` anymore but `protected`
 -   `getClient` methods are public
+-   In remote server allow to pass not only `userId` but also `appId` and `customOptions`
+-   In remote server `userId` can not be `undefined` anymore but `null`
+-   `OpenAiExecutionTools` recieves `userId` (not `user`)
+-   Change Collection mode -> Application mode
 
 ## Drafts
 

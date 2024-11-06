@@ -1,6 +1,6 @@
 {
-    "date": "2024-10-17T15:15:41.599Z",
-    "promptbookVersion": "0.71.0-7",
+    "date": "2024-10-08T12:29:43.931Z",
+    "promptbookVersion": "0.72.0-6",
     "prompt": {
         "title": "Knowledge",
         "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-from-markdown.ptbk.md#knowledge",
@@ -14,15 +14,15 @@
         "expectations": {}
     },
     "promptResult": {
-        "content": "---\n\nSpringfield is the sixth most populous city in Illinois, with a population of 10,566 as of 2019. It serves as the county seat of Sangamon County and is located in the U.S. state of Illinois.\n\n---",
+        "content": "---\n\nSpringfield is the county seat of Sangamon County in Illinois, United States. As of 2019, it had a population of 10,566, ranking it as the sixth most populous city in the state.",
         "modelName": "claude-3-5-sonnet-20240620",
         "timing": {
-            "start": "2024-10-17T15:15:40.069Z",
-            "complete": "2024-10-17T15:15:41.598Z"
+            "start": "2024-10-08T12:29:42.410Z",
+            "complete": "2024-10-08T12:29:43.930Z"
         },
         "usage": {
             "price": {
-                "value": 0.001338
+                "value": 0.001233
             },
             "input": {
                 "tokensCount": {
@@ -49,22 +49,22 @@
             },
             "output": {
                 "tokensCount": {
-                    "value": 56
+                    "value": 49
                 },
                 "charactersCount": {
-                    "value": 200
+                    "value": 182
                 },
                 "wordsCount": {
-                    "value": 37
+                    "value": 33
                 },
                 "sentencesCount": {
-                    "value": 5
+                    "value": 2
                 },
                 "linesCount": {
-                    "value": 5
+                    "value": 3
                 },
                 "paragraphsCount": {
-                    "value": 3
+                    "value": 2
                 },
                 "pagesCount": {
                     "value": 1
@@ -83,21 +83,21 @@
             ]
         },
         "rawResponse": {
-            "id": "msg_01Qk9FBvXnF4dPPN9CvcufDr",
+            "id": "msg_01Tco1PFdppjs45nbfjjz84r",
             "type": "message",
             "role": "assistant",
             "model": "claude-3-5-sonnet-20240620",
             "content": [
                 {
                     "type": "text",
-                    "text": "---\n\nSpringfield is the sixth most populous city in Illinois, with a population of 10,566 as of 2019. It serves as the county seat of Sangamon County and is located in the U.S. state of Illinois.\n\n---"
+                    "text": "---\n\nSpringfield is the county seat of Sangamon County in Illinois, United States. As of 2019, it had a population of 10,566, ranking it as the sixth most populous city in the state."
                 }
             ],
             "stop_reason": "end_turn",
             "stop_sequence": null,
             "usage": {
                 "input_tokens": 166,
-                "output_tokens": 56
+                "output_tokens": 49
             }
         }
     }

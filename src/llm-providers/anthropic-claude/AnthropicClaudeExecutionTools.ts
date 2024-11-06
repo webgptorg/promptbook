@@ -1,7 +1,7 @@
 import type { ClientOptions } from '@anthropic-ai/sdk';
 import Anthropic from '@anthropic-ai/sdk';
 import type { MessageCreateParamsNonStreaming } from '@anthropic-ai/sdk/resources';
-import colors from 'colors';
+import colors from 'colors'; // <- TODO: [🔶] Make system to put color and style to both node and browser
 import spaceTrim from 'spacetrim';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
@@ -28,7 +28,7 @@ import { computeAnthropicClaudeUsage } from './computeAnthropicClaudeUsage';
  * @public exported from `@promptbook/anthropic-claude`
  * @deprecated use `createAnthropicClaudeExecutionTools` instead
  */
-export class AnthropicClaudeExecutionTools implements LlmExecutionTools {
+export class AnthropicClaudeExecutionTools implements LlmExecutionTools /* <- TODO: [🍚] `, Destroyable` */ {
     /**
      * Anthropic Claude API client.
      */
@@ -39,7 +39,7 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools {
      *
      * @param options which are relevant are directly passed to the Anthropic Claude client
      */
-    public constructor(private readonly options: AnthropicClaudeExecutionToolsDirectOptions = { isProxied: false }) {}
+    public constructor(protected readonly options: AnthropicClaudeExecutionToolsDirectOptions = { isProxied: false }) {}
 
     public get title(): string_title & string_markdown_text {
         return 'Anthropic Claude';

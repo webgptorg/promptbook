@@ -1,34 +1,7 @@
 import type { WritableDeep } from 'type-fest';
-import { $deepFreeze } from '../../utils/serialization/$deepFreeze';
 import { deepClone } from '../../utils/serialization/deepClone';
 import type { PromptResultUsage } from '../PromptResultUsage';
-
-/**
- * @@@
- *
- * @public exported from `@promptbook/core`
- */
-export const ZERO_USAGE = $deepFreeze({
-    price: { value: 0 },
-    input: {
-        tokensCount: { value: 0 },
-        charactersCount: { value: 0 },
-        wordsCount: { value: 0 },
-        sentencesCount: { value: 0 },
-        linesCount: { value: 0 },
-        paragraphsCount: { value: 0 },
-        pagesCount: { value: 0 },
-    },
-    output: {
-        tokensCount: { value: 0 },
-        charactersCount: { value: 0 },
-        wordsCount: { value: 0 },
-        sentencesCount: { value: 0 },
-        linesCount: { value: 0 },
-        paragraphsCount: { value: 0 },
-        pagesCount: { value: 0 },
-    },
-} as const satisfies PromptResultUsage);
+import { ZERO_USAGE } from './usage-constants';
 
 /**
  * Function `addUsage` will add multiple usages into one

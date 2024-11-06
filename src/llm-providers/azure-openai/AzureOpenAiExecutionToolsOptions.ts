@@ -1,6 +1,7 @@
 import type { CommonToolsOptions } from '../../execution/CommonToolsOptions';
 import type { string_name } from '../../types/typeAliases';
 import type { string_token } from '../../types/typeAliases';
+import type { string_user_id } from '../../types/typeAliases';
 
 /**
  * Options for `AzureOpenAiExecutionTools`
@@ -36,6 +37,6 @@ export type AzureOpenAiExecutionToolsOptions = CommonToolsOptions & {
      *
      * @see https://platform.openai.com/docs/guides/safety-best-practices/end-user-ids (document from OpenAI not Azure, but same concept)
      */
-    readonly user?: string_token;
-    // <- TODO: [🧠][🤺] `user` should be property of each prompt
+    readonly userId: string_user_id | null;
+    // <- TODO: [🧠][🤺] Maybe allow overriding of `userId` for each prompt
 };

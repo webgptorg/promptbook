@@ -20,6 +20,8 @@ Build responsible, controlled and transparent applications on top of LLM models!
 
 -   ✨ **Support of [OpenAI o1 model](https://openai.com/o1/)**
 
+
+
 <blockquote style="color: #ff8811">
     <b>⚠ Warning:</b> This is a pre-release version of the library. It is not yet ready for production use. Please look at <a href="https://www.npmjs.com/package/@promptbook/core?activeTab=versions">latest stable release</a>.
 </blockquote>
@@ -92,6 +94,12 @@ assertsExecutionSuccessful(result);
 const { isSuccessful, errors, outputParameters, executionReport } = result;
 console.info(outputParameters);
 ```
+
+## 🤺 Usage with OpenAI`s Assistants (GPTs)
+
+> TODO: Write a guide how to use OpenAI's Assistants with Promptbook
+
+
 
 ## 🧙‍♂️ Connect to LLM providers automatically
 

@@ -13,7 +13,7 @@ import type { UserInterfaceToolsPromptDialogOptions } from '../../execution/User
  * @public exported from `@promptbook/browser`
  */
 export class SimplePromptInterfaceTools implements UserInterfaceTools {
-    public constructor(private readonly options: CommonToolsOptions = {}) {}
+    public constructor(protected readonly options: CommonToolsOptions = {}) {}
 
     /**
      * Trigger window.DIALOG TEMPLATE

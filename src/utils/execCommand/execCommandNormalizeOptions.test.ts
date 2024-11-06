@@ -1,4 +1,5 @@
 import { describe, expect, it } from '@jest/globals';
+import { DEFAULT_IS_VERBOSE } from '../../config';
 import { $execCommandNormalizeOptions } from './$execCommandNormalizeOptions';
 
 describe('how normalizing exec options works', () => {
@@ -9,7 +10,8 @@ describe('how normalizing exec options works', () => {
             cwd: process.cwd(),
             crashOnError: true,
             humanReadableCommand: 'ls',
-            timeout: Infinity,
+            isVerbose: DEFAULT_IS_VERBOSE,
+            timeout: Infinity, // <- TODO: [⏳]
         });
     });
 
@@ -20,7 +22,8 @@ describe('how normalizing exec options works', () => {
             cwd: process.cwd(),
             crashOnError: true,
             humanReadableCommand: 'ls',
-            timeout: Infinity,
+            isVerbose: DEFAULT_IS_VERBOSE,
+            timeout: Infinity, // <- TODO: [⏳]
         });
     });
     it('can normalize single command and cwd', () => {
@@ -30,7 +33,8 @@ describe('how normalizing exec options works', () => {
             cwd: './',
             crashOnError: true,
             humanReadableCommand: 'ls',
-            timeout: Infinity,
+            isVerbose: DEFAULT_IS_VERBOSE,
+            timeout: Infinity, // <- TODO: [⏳]
         });
     });
     it('can normalize single command and crashOnError', () => {
@@ -40,40 +44,46 @@ describe('how normalizing exec options works', () => {
             cwd: process.cwd(),
             crashOnError: false,
             humanReadableCommand: 'ls',
-            timeout: Infinity,
+            isVerbose: DEFAULT_IS_VERBOSE,
+            timeout: Infinity, // <- TODO: [⏳]
         });
     });
 
     it('can normalize single command and array args', () => {
         expect($execCommandNormalizeOptions({ command: 'npm', args: ['run', 'test'] })).toEqual({
-            command: 'npm',
+            command: 'npm.cmd',
             args: ['run', 'test'],
             cwd: process.cwd(),
             crashOnError: true,
             humanReadableCommand: 'run',
-            timeout: Infinity,
+            isVerbose: DEFAULT_IS_VERBOSE,
+            timeout: Infinity, // <- TODO: [⏳]
         });
     });
 
     it('can normalize single command and string args', () => {
         expect($execCommandNormalizeOptions({ command: 'npm run test' })).toEqual({
-            command: 'npm',
+            command: 'npm.cmd',
             args: ['run', 'test'],
             cwd: process.cwd(),
             crashOnError: true,
             humanReadableCommand: 'run',
-            timeout: Infinity,
+            isVerbose: DEFAULT_IS_VERBOSE,
+            timeout: Infinity, // <- TODO: [⏳]
         });
     });
 
     it('can normalize single command with args from array and string and also empty args ', () => {
-        expect($execCommandNormalizeOptions({ command: ' npm   run ', args: ['test'] })).toEqual({
-            command: 'npm',
+        expect(
+            $execCommandNormalizeOptions({ command: ' npm   run ', args: ['test'], timeout: 1000, isVerbose: true }),
+        ).toEqual({
+            command: 'npm.cmd',
             args: ['run', 'test'],
             cwd: process.cwd(),
             crashOnError: true,
             humanReadableCommand: 'run',
-            timeout: Infinity,
+            isVerbose: true,
+            timeout: 1000,
         });
     });
 
@@ -84,7 +94,8 @@ describe('how normalizing exec options works', () => {
             cwd: process.cwd(),
             crashOnError: true,
             humanReadableCommand: 'git',
-            timeout: Infinity,
+            isVerbose: DEFAULT_IS_VERBOSE,
+            timeout: Infinity, // <- TODO: [⏳]
         });
     });
 

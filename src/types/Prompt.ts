@@ -128,4 +128,5 @@ export type CommonPrompt = {
  * TODO: [🧄] Replace all "github.com/webgptorg/promptbook#xxx" with "ptbk.io/xxx"
  * TODO: [✔] Check ModelRequirements in runtime
  * TODO: [🏳] Add options for translation - maybe create `TranslationPrompt`
+ * TODO: [🧠][🤺] Maybe allow overriding of `userId` for each prompt
  */

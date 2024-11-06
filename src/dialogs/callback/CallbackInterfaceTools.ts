@@ -10,7 +10,7 @@ import type { CallbackInterfaceToolsOptions } from './CallbackInterfaceToolsOpti
  * @public exported from `@promptbook/core`
  */
 export class CallbackInterfaceTools implements UserInterfaceTools {
-    public constructor(private readonly options: CallbackInterfaceToolsOptions) {}
+    public constructor(protected readonly options: CallbackInterfaceToolsOptions) {}
 
     /**
      * Trigger the custom callback function

@@ -1,6 +1,8 @@
+import type { Promisable } from 'type-fest';
 import type { PipelineCollection } from '../../../collection/PipelineCollection';
 import type { CommonToolsOptions } from '../../../execution/CommonToolsOptions';
 import type { LlmExecutionTools } from '../../../execution/LlmExecutionTools';
+import type { string_app_id } from '../../../types/typeAliases';
 import type { string_uri } from '../../../types/typeAliases';
 import type { string_user_id } from '../../../types/typeAliases';
 
@@ -9,7 +11,7 @@ import type { string_user_id } from '../../../types/typeAliases';
  *
  * There are two modes of remote server:
  *
- * 1) **Collection mode** Server will recieve `collection` and execute prompts only from this collection
+ * 1) **Application mode** Server will recieve `collection` and execute prompts only from this collection
  * 2) **Anonymous mode** Server will recieve full `LlmToolsConfiguration` (with api keys) and just acts as a proxy
  *    In anonymous mode, `collection` will be ignored and any prompt will be executed
  *
@@ -18,7 +20,7 @@ import type { string_user_id } from '../../../types/typeAliases';
  * @public exported from `@promptbook/remote-client`
  * @public exported from `@promptbook/remote-server`
  */
-export type RemoteServerOptions = CommonToolsOptions & {
+export type RemoteServerOptions<TCustomOptions> = CommonToolsOptions & {
     /**
      * Port on which the server will listen
      */
@@ -33,8 +35,8 @@ export type RemoteServerOptions = CommonToolsOptions & {
     readonly path: string_uri;
 } & (
         | AnonymousRemoteServerOptions
-        | CollectionRemoteServerOptions
-        | (AnonymousRemoteServerOptions & CollectionRemoteServerOptions)
+        | CollectionRemoteServerOptions<TCustomOptions>
+        | (AnonymousRemoteServerOptions & CollectionRemoteServerOptions<TCustomOptions>)
     );
 //           <- TODO: [🐛] Typescript bug in this discriminated union
 //                    This should throw typescript error but it doesn't
@@ -43,7 +45,7 @@ export type RemoteServerOptions = CommonToolsOptions & {
 //                    >     path: '/promptbook',
 //                    >     port: 4460,
 //                    >     isAnonymousModeAllowed: true,
-//                    >     isCollectionModeAllowed: true,
+//                    >     isApplicationModeAllowed: true,
 //                    > });
 
 export type AnonymousRemoteServerOptions = {
@@ -53,11 +55,11 @@ export type AnonymousRemoteServerOptions = {
     readonly isAnonymousModeAllowed: true;
 };
 
-export type CollectionRemoteServerOptions = {
+export type CollectionRemoteServerOptions<TCustomOptions> = {
     /**
-     * Enable collection mode
+     * Enable application mode
      */
-    readonly isCollectionModeAllowed: true;
+    readonly isApplicationModeAllowed: true;
 
     /**
      * Promptbook collection to use
@@ -69,10 +71,28 @@ export type CollectionRemoteServerOptions = {
     /**
      * Creates llm execution tools for each client
      */
-    createLlmExecutionTools(userId: string_user_id | undefined): LlmExecutionTools /* <- TODO: &({}|IDestroyable) */;
+    createLlmExecutionTools(
+        options: CollectionRemoteServerClientOptions<TCustomOptions>,
+    ): Promisable<LlmExecutionTools> /* <- TODO: [🍚] &({}|IDestroyable) */;
+};
+
+export type CollectionRemoteServerClientOptions<TCustomOptions> = {
+    /**
+     * @@@
+     */
+    readonly appId: string_app_id | null;
+
+    /**
+     * @@@
+     */
+    readonly userId: string_user_id | null;
+
+    /**
+     * @@@
+     */
+    readonly customOptions?: TCustomOptions;
 };
 
 /**
  * TODO: Constrain anonymous mode for specific models / providers
- * TODO: [🧠][🤺] Remove `createLlmExecutionTools`, pass just `llmExecutionTools`
  */

@@ -1,6 +1,7 @@
 import spaceTrim from 'spacetrim';
 import { DEFAULT_IS_VERBOSE } from '../../../config';
 import type { LlmExecutionTools } from '../../../execution/LlmExecutionTools';
+import type { string_user_id } from '../../../types/typeAliases';
 import type { TODO_any } from '../../../utils/organization/TODO_any';
 import { joinLlmExecutionTools } from '../../multiple/joinLlmExecutionTools';
 import { MultipleLlmExecutionTools } from '../../multiple/MultipleLlmExecutionTools';
@@ -20,6 +21,13 @@ export type CreateLlmToolsFromConfigurationOptions = {
      * @default false
      */
     isVerbose?: boolean;
+
+    /**
+     * Identifier of the end user
+     *
+     * Note: This is passed to the LLM tools providers to identify misuse
+     */
+    readonly userId?: string_user_id | null;
 };
 
 /**
@@ -34,7 +42,7 @@ export function createLlmToolsFromConfiguration(
     configuration: LlmToolsConfiguration,
     options: CreateLlmToolsFromConfigurationOptions = {},
 ): MultipleLlmExecutionTools {
-    const { isVerbose = DEFAULT_IS_VERBOSE } = options;
+    const { isVerbose = DEFAULT_IS_VERBOSE, userId } = options;
 
     const llmTools: ReadonlyArray<LlmExecutionTools> = configuration.map((llmConfiguration: TODO_any) => {
         const registeredItem = $llmToolsRegister
@@ -72,6 +80,7 @@ export function createLlmToolsFromConfiguration(
 
         return registeredItem({
             isVerbose,
+            userId,
             ...llmConfiguration.options,
         });
     });

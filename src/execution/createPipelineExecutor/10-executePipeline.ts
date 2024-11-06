@@ -19,7 +19,7 @@ import { $asDeeplyFrozenSerializableJson } from '../../utils/serialization/$asDe
 import { PROMPTBOOK_VERSION } from '../../version';
 import type { PipelineExecutorResult } from '../PipelineExecutorResult';
 import { addUsage } from '../utils/addUsage';
-import { ZERO_USAGE } from '../utils/addUsage';
+import { ZERO_USAGE } from '../utils/usage-constants';
 import type { CreatePipelineExecutorOptions } from './00-CreatePipelineExecutorOptions';
 import { executeTemplate } from './20-executeTemplate';
 import { filterJustOutputParameters } from './filterJustOutputParameters';

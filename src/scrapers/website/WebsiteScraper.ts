@@ -6,12 +6,12 @@ import type { ScraperSourceHandler } from '../_common/Scraper';
 // TODO: [🏳‍🌈] Finally take pick of .json vs .ts
 // import PipelineCollection from '../../../promptbook-collection/promptbook-collection';
 import { Readability } from '@mozilla/readability';
-import { writeFile } from 'fs/promises';
 import { JSDOM } from 'jsdom';
 import { Converter as ShowdownConverter } from 'showdown';
 import { DEFAULT_INTERMEDIATE_FILES_STRATEGY } from '../../config';
 import { DEFAULT_IS_VERBOSE } from '../../config';
 import { DEFAULT_SCRAPE_CACHE_DIRNAME } from '../../config';
+import { EnvironmentMismatchError } from '../../errors/EnvironmentMismatchError';
 import { KnowledgeScrapeError } from '../../errors/KnowledgeScrapeError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { ExecutionTools } from '../../execution/ExecutionTools';
@@ -75,6 +75,10 @@ export class WebsiteScraper implements Converter, Scraper {
             throw new KnowledgeScrapeError('Website scraper requires URL');
         }
 
+        if (this.tools.fs === undefined) {
+            throw new EnvironmentMismatchError('Can not scrape websites without filesystem tools');
+        }
+
         const jsdom = new JSDOM(await source.asText(), {
             url: source.url,
         });
@@ -104,7 +108,7 @@ export class WebsiteScraper implements Converter, Scraper {
             isVerbose,
         });
 
-        await writeFile(cacheFilehandler.filename, html, 'utf-8');
+        await this.tools.fs.writeFile(cacheFilehandler.filename, html, 'utf-8');
 
         const markdown = this.showdownConverter.makeMarkdown(html, jsdom.window.document);
 

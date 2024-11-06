@@ -52,6 +52,14 @@ const { isSuccessful, errors, outputParameters, executionReport } = result;
 console.info(outputParameters);
 ```
 
+## 🤺 Usage with OpenAI`s Assistants (GPTs)
+
+> TODO: Write a guide how to use OpenAI's Assistants with Promptbook
+
+<!--
+OpenAiExecutionTools.createAssistantSubtools
+-->
+
 ## 🧙‍♂️ Connect to LLM providers automatically
 
 You can just use `$provideExecutionToolsForNode` function to create all required tools from environment variables like `OPENAI_API_KEY` and `ANTHROPIC_CLAUDE_API_KEY` automatically.

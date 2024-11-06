@@ -29,6 +29,7 @@ export const _AzureOpenAiMetadataRegistration: Registration = $llmToolsMetadataR
     },
 
     createConfigurationFromEnv(env: Record<string_name, string>): LlmToolsConfiguration[number] | null {
+        // Note: Note using `process.env` BUT `env` to pass in the environment variables dynamically
         if (
             typeof env.AZUREOPENAI_RESOURCE_NAME === 'string' &&
             typeof env.AZUREOPENAI_DEPLOYMENT_NAME === 'string' &&

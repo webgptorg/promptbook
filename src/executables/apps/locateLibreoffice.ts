@@ -6,7 +6,7 @@ import { locateApp } from '../locateApp';
  *
  * @private within the repository
  */
-export function locateLibreoffice(): Promise<string_executable_path> {
+export function locateLibreoffice(): Promise<string_executable_path | null> {
     return locateApp({
         appName: 'Libreoffice',
         linuxWhich: 'libreoffice',

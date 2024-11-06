@@ -12,7 +12,7 @@ import type { ScriptExecutionToolsExecuteOptions } from '../../execution/ScriptE
  * @private still in development
  */
 export class TypescriptExecutionTools implements ScriptExecutionTools {
-    public constructor(private readonly options: CommonToolsOptions = {}) {}
+    public constructor(protected readonly options: CommonToolsOptions = {}) {}
 
     /**
      * Executes a TypeScript

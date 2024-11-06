@@ -3,13 +3,14 @@ import type { string_base_url } from '../../../types/typeAliases';
 import type { string_uri } from '../../../types/typeAliases';
 import type { string_user_id } from '../../../types/typeAliases';
 import type { LlmToolsConfiguration } from '../../_common/register/LlmToolsConfiguration';
+import type { CollectionRemoteServerClientOptions } from './RemoteServerOptions';
 
 /**
  * Options for `RemoteLlmExecutionTools`
  *
  * @public exported from `@promptbook/remote-client`
  */
-export type RemoteLlmExecutionToolsOptions = CommonToolsOptions & {
+export type RemoteLlmExecutionToolsOptions<TCustomOptions> = CommonToolsOptions & {
     /**
      * URL of the remote PROMPTBOOK server
      * On this server will be connected to the socket.io server
@@ -33,7 +34,7 @@ export type RemoteLlmExecutionToolsOptions = CommonToolsOptions & {
               /**
                * Use anonymous server with anonymous mode
                */
-              isAnonymous: true;
+              readonly isAnonymous: true;
 
               /**
                * Configuration for the LLM tools
@@ -43,24 +44,17 @@ export type RemoteLlmExecutionToolsOptions = CommonToolsOptions & {
               /**
                * Identifier of the end user
                *
-               * Note: this is passed to the certain model providers to identify misuse
-               * Note: In anonymous mode it is not required to identify
+               * Note: This is passed to the certain model providers to identify misuse
+               * Note: In anonymous mode, there is no need to identify yourself, nor does it change the actual configuration of LLM Tools (unlike in application mode).
                */
-              readonly userId?: string_user_id;
+              readonly userId: string_user_id | null;
           }
-        | {
+        | ({
               /**
                * Use anonymous server with client identification and fixed collection
                */
-              isAnonymous: false;
-
-              /**
-               * Identifier of the end user
-               *
-               * Note: this is passed to the certain model providers to identify misuse
-               */
-              readonly userId: string_user_id;
-          }
+              readonly isAnonymous: false;
+          } & CollectionRemoteServerClientOptions<TCustomOptions>)
     );
 
 /**

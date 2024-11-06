@@ -56,5 +56,5 @@ export type ExecCommandOptionsAdvanced = {
 };
 
 /**
- * TODO: Make DEFAULT_TIMEOUT_MS as global constant
+ * TODO: [⏳] Make DEFAULT_TIMEOUT_MS as global constant
  */

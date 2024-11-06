@@ -32,8 +32,9 @@ import type { RemoteLlmExecutionToolsOptions } from './interfaces/RemoteLlmExecu
  * @see https://github.com/webgptorg/promptbook#remote-server
  * @public exported from `@promptbook/remote-client`
  */
-export class RemoteLlmExecutionTools implements LlmExecutionTools {
-    public constructor(private readonly options: RemoteLlmExecutionToolsOptions) {}
+export class RemoteLlmExecutionTools<TCustomOptions = undefined> implements LlmExecutionTools {
+    /* <- TODO: [🍚] `, Destroyable` */
+    public constructor(protected readonly options: RemoteLlmExecutionToolsOptions<TCustomOptions>) {}
 
     public get title(): string_title & string_markdown_text {
         // TODO: [🧠] Maybe fetch title+description from the remote server (as well as if model methods are defined)
@@ -67,15 +68,19 @@ export class RemoteLlmExecutionTools implements LlmExecutionTools {
                 'listModels-request',
                 {
                     isAnonymous: true,
+                    userId: this.options.userId,
                     llmToolsConfiguration: this.options.llmToolsConfiguration,
-                } satisfies PromptbookServer_ListModels_Request /* <- TODO: [🤛] */,
+                } satisfies PromptbookServer_ListModels_Request<TCustomOptions> /* <- TODO: [🤛] */,
             );
         } else {
             socket.emit(
                 'listModels-request',
                 {
                     isAnonymous: false,
-                } satisfies PromptbookServer_ListModels_Request /* <- TODO: [🤛] */,
+                    appId: this.options.appId,
+                    userId: this.options.userId,
+                    customOptions: this.options.customOptions,
+                } satisfies PromptbookServer_ListModels_Request<TCustomOptions> /* <- TODO: [🤛] */,
             );
         }
 
@@ -168,16 +173,18 @@ export class RemoteLlmExecutionTools implements LlmExecutionTools {
                     userId: this.options.userId,
                     llmToolsConfiguration: this.options.llmToolsConfiguration,
                     prompt,
-                } satisfies PromptbookServer_Prompt_Request /* <- TODO: [🤛] */,
+                } satisfies PromptbookServer_Prompt_Request<TCustomOptions> /* <- TODO: [🤛] */,
             );
         } else {
             socket.emit(
                 'prompt-request',
                 {
                     isAnonymous: false,
+                    appId: this.options.appId,
                     userId: this.options.userId,
+                    customOptions: this.options.customOptions,
                     prompt,
-                } satisfies PromptbookServer_Prompt_Request /* <- TODO: [🤛] */,
+                } satisfies PromptbookServer_Prompt_Request<TCustomOptions> /* <- TODO: [🤛] */,
             );
         }
 

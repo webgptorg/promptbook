@@ -1,5 +1,5 @@
 import { AzureKeyCredential, OpenAIClient } from '@azure/openai';
-import colors from 'colors';
+import colors from 'colors'; // <- TODO: [🔶] Make system to put color and style to both node and browser
 import { CONNECTION_TIMEOUT_MS } from '../../config';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
@@ -27,7 +27,7 @@ import type { AzureOpenAiExecutionToolsOptions } from './AzureOpenAiExecutionToo
  *
  * @public exported from `@promptbook/azure-openai`
  */
-export class AzureOpenAiExecutionTools implements LlmExecutionTools {
+export class AzureOpenAiExecutionTools implements LlmExecutionTools /* <- TODO: [🍚] `, Destroyable` */ {
     /**
      * OpenAI Azure API client.
      */
@@ -38,7 +38,7 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools {
      *
      * @param options which are relevant are directly passed to the OpenAI client
      */
-    public constructor(private readonly options: AzureOpenAiExecutionToolsOptions) {}
+    public constructor(protected readonly options: AzureOpenAiExecutionToolsOptions) {}
 
     public get title(): string_title & string_markdown_text {
         return 'Azure OpenAI';
@@ -112,7 +112,7 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools {
                 maxTokens: modelRequirements.maxTokens,
                 //                                      <- TODO: [🌾] Make some global max cap for maxTokens
                 temperature: modelRequirements.temperature,
-                user: this.options.user,
+                user: this.options.userId?.toString(),
                 // <- TODO: [🈁] Use `seed` here AND/OR use is `isDeterministic` for entire execution tools
                 // <- Note: [🧆]
             }; // <- TODO: Guard here types better
@@ -227,7 +227,7 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools {
                 maxTokens: modelRequirements.maxTokens || 2000, // <- Note: [🌾] 2000 is for lagacy reasons
                 //                                                  <- TODO: [🌾] Make some global max cap for maxTokens
                 temperature: modelRequirements.temperature,
-                user: this.options.user,
+                user: this.options.userId?.toString(),
                 // <- TODO: [🈁] Use `seed` here AND/OR use is `isDeterministic` for entire execution tools
                 // <- Note: [🧆]
             }; // <- TODO: Guard here types better

@@ -35,7 +35,7 @@ import { unknownToString } from './utils/unknownToString';
  * @public exported from `@promptbook/execute-javascript`
  */
 export class JavascriptEvalExecutionTools implements ScriptExecutionTools {
-    private readonly options: JavascriptExecutionToolsOptions;
+    protected readonly options: JavascriptExecutionToolsOptions;
 
     public constructor(options?: JavascriptExecutionToolsOptions) {
         this.options = options || {};

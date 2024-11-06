@@ -52,6 +52,9 @@ export type EmbeddingPromptResult = Omit<CommonPromptResult, 'content'> & {
  * @private just abstract the common properties of the prompt results
  */
 export type CommonPromptResult = {
+    // TODO: [🗯] !! Unique messageId + threadId + remoteId
+    // TODO: [🗯] !! prompt
+
     /**
      * Exact text response from the model
      */

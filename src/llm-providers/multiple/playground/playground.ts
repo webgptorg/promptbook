@@ -4,7 +4,7 @@ import * as dotenv from 'dotenv';
 
 dotenv.config({ path: '.env' });
 
-import colors from 'colors';
+import colors from 'colors'; // <- TODO: [🔶] Make system to put color and style to both node and browser
 import { embeddingVectorToString } from '../../../execution/embeddingVectorToString';
 import { usageToHuman } from '../../../execution/utils/usageToHuman';
 import { JavascriptExecutionTools } from '../../../scripting/javascript/JavascriptExecutionTools';
@@ -37,6 +37,7 @@ async function playground() {
                 //            <- TODO: [🧱] Implement in a functional (not new Class) way
                 {
                     isVerbose: true,
+                    userId: 'playground',
                     apiKey: process.env.OPENAI_API_KEY!,
                 },
             ),
@@ -51,6 +52,7 @@ async function playground() {
                 //            <- TODO: [🧱] Implement in a functional (not new Class) way
                 {
                     isVerbose: true,
+                    userId: 'playground',
                     resourceName: process.env.AZUREOPENAI_RESOURCE_NAME!,
                     deploymentName: process.env.AZUREOPENAI_DEPLOYMENT_NAME!,
                     apiKey: process.env.AZUREOPENAI_API_KEY!,

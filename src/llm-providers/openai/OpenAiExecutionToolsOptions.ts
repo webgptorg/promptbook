@@ -1,6 +1,6 @@
 import type { ClientOptions } from 'openai';
 import type { CommonToolsOptions } from '../../execution/CommonToolsOptions';
-import type { string_token } from '../../types/typeAliases';
+import type { string_user_id } from '../../types/typeAliases';
 
 /**
  * Options for `OpenAiExecutionTools`
@@ -18,6 +18,6 @@ export type OpenAiExecutionToolsOptions = CommonToolsOptions &
          *
          * @see https://platform.openai.com/docs/guides/safety-best-practices/end-user-ids
          */
-        user?: string_token;
-        // <- TODO: [🧠][🤺] `user` should be property of each prompt
+        userId: string_user_id | null;
+        // <- TODO: [🧠][🤺] Maybe allow overriding of `userId` for each prompt
     };

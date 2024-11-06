@@ -6,10 +6,11 @@ import { OpenAiExecutionTools } from '../openai/OpenAiExecutionTools';
 
 /**
  * Execution Tools for calling OpenAI API.
- * 
+ *
  * @public exported from `@promptbook/langtail`
  */
 export class LangtailExecutionTools extends OpenAiExecutionTools implements LlmExecutionTools {
+    /* <- TODO: [🍚] `, Destroyable` */
     // TODO: [🦻] Implement
 
     public get title(): string_title & string_markdown_text {
@@ -20,7 +21,6 @@ export class LangtailExecutionTools extends OpenAiExecutionTools implements LlmE
         return 'Use Langtail API';
     }
 }
-
 
 /**
  * TODO: [🧠][🈁] Maybe use `isDeterministic` from options

@@ -123,7 +123,17 @@ export function getPackagesMetadataForRollup() {
         additionalDependencies: ['promptbook' /* <- Note: [🧃] */],
     });
 
+    /*/
+    // <- Note: Keep for testing single package
+    //    Run:> npx rollup --config rollup.config.js
+    //          or
+    //        > node --max-old-space-size=8000 ./node_modules/rollup/dist/bin/rollup  --config rollup.config.js
+    return packagesMetadata.filter(({ packageFullname }) => packageFullname === '@promptbook/website-crawler');
+    /**/
+
+    /**/
     return packagesMetadata;
+    /**/
 }
 
 /**

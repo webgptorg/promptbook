@@ -1,4 +1,4 @@
-import colors from 'colors';
+import colors from 'colors'; // <- TODO: [🔶] Make system to put color and style to both node and browser
 import { readFile, writeFile } from 'fs';
 import glob from 'glob-promise';
 import JSON5 from 'json5';

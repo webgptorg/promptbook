@@ -38,7 +38,7 @@ export interface LocateAppOptions {
  */
 export function locateApp(
     options: RequireAtLeastOne<LocateAppOptions, 'linuxWhich' | 'windowsSuffix' | 'macOsName'>,
-): Promise<string_executable_path> {
+): Promise<string_executable_path|null> {
     if (!$isRunningInNode()) {
         throw new EnvironmentMismatchError('Locating apps works only in Node.js environment');
     }

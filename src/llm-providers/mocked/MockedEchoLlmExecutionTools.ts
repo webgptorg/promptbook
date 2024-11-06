@@ -4,7 +4,7 @@ import type { CommonToolsOptions } from '../../execution/CommonToolsOptions';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import type { ChatPromptResult } from '../../execution/PromptResult';
 import type { CompletionPromptResult } from '../../execution/PromptResult';
-import { ZERO_USAGE } from '../../execution/utils/addUsage';
+import { ZERO_USAGE } from '../../execution/utils/usage-constants';
 import type { Prompt } from '../../types/Prompt';
 import type { string_markdown } from '../../types/typeAliases';
 import type { string_markdown_text } from '../../types/typeAliases';
@@ -18,8 +18,8 @@ import { $asDeeplyFrozenSerializableJson } from '../../utils/serialization/$asDe
  *
  * @public exported from `@promptbook/fake-llm`
  */
-export class MockedEchoLlmExecutionTools implements LlmExecutionTools {
-    public constructor(private readonly options: CommonToolsOptions = {}) {}
+export class MockedEchoLlmExecutionTools implements LlmExecutionTools /* <- TODO: [🍚] `, Destroyable` */ {
+    public constructor(protected readonly options: CommonToolsOptions = {}) {}
 
     public get title(): string_title & string_markdown_text {
         return 'Mocked echo';

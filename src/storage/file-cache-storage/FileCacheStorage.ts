@@ -23,7 +23,7 @@ import { nameToSubfolderPath } from './utils/nameToSubfolderPath';
  */
 export class FileCacheStorage<TItem> implements PromptbookStorage<TItem> {
     constructor(
-        private readonly tools: Required<Pick<ExecutionTools, 'fs'>>,
+        protected readonly tools: Required<Pick<ExecutionTools, 'fs'>>,
         private readonly options: FileCacheStorageOptions,
     ) {
         if (!$isRunningInNode()) {

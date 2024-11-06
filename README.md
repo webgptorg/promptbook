@@ -18,6 +18,8 @@ Build responsible, controlled and transparent applications on top of LLM models!
 
 -   ✨ **Support of [OpenAI o1 model](https://openai.com/o1/)**
 
+<!-- <- TODO: !!! Make this warning dynamic + link latest stable release automatically -->
+
 <!--/ Here will be placed specific package info -->
 
 ## 🤍 The Promptbook Whitepaper

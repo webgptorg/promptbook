@@ -6,7 +6,7 @@ import { locateApp } from '../locateApp';
  *
  * @private within the repository
  */
-export function locatePandoc(): Promise<string_executable_path> {
+export function locatePandoc(): Promise<string_executable_path | null> {
     return locateApp({
         appName: 'Pandoc',
         linuxWhich: 'pandoc',

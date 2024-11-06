@@ -1,6 +1,6 @@
 {
     "name": "@promptbook/cli",
-    "version": "0.71.0-24",
+    "version": "0.72.0-34",
     "description": "Supercharge your use of large language models",
     "private": false,
     "sideEffects": false,
@@ -57,7 +57,7 @@
         "crypto-js": "4.2.0",
         "glob-promise": "6.0.5",
         "jsdom": "^25.0.1",
-        "openai": "4.55.9",
+        "openai": "4.63.0",
         "papaparse": "5.4.1",
         "prettier": "2.8.1",
         "showdown": "^2.1.0",

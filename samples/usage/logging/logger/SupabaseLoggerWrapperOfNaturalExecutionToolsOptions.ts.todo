@@ -4,20 +4,13 @@ import type { uuid } from '../../../utils/typeAliases';
 /**
  * Options for `SupabaseLoggerWrapperOfLlmExecutionTools`
  */
-export type SupabaseLoggerWrapperOfLlmExecutionToolsOptions = CommonExecutionToolsOptions & {
+export type SupabaseLoggerWrapperOfLlmExecutionToolsOptions = CommonExecutionToolsOptions & CollectionRemoteServerClientOptions<TCustomOptions> & {
     /**
      * Execution tools to use
      * Theese tools will be wrapped in a logger for each client to log all requests
      */
     readonly llmExecutionTools: LlmExecutionTools;
 
-    /**
-     * Identifier of the end user
-     *
-     * Note: this is passed to the certain model providers to identify misuse
-     */
-    readonly userId: string_user_id;
-    // <- TODO: [🧠][🤺] userId should be property of each prompt
 }
 
 /**

@@ -22,6 +22,8 @@ Build responsible, controlled and transparent applications on top of LLM models!
 
 
 
+
+
 ## 🤍 The Promptbook Whitepaper
 
 

@@ -22,7 +22,7 @@ import type { really_any } from '../../utils/organization/really_any';
  * Note: Internal utility of `joinLlmExecutionTools` but exposed type
  * @public exported from `@promptbook/core`
  */
-export class MultipleLlmExecutionTools implements LlmExecutionTools {
+export class MultipleLlmExecutionTools implements LlmExecutionTools /* <- TODO: [🍚] `, Destroyable` */ {
     /**
      * Array of execution tools in order of priority
      */

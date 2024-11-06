@@ -1,6 +1,6 @@
 {
-    "date": "2024-10-07T13:47:30.652Z",
-    "promptbookVersion": "0.71.0-0",
+    "date": "2024-10-08T12:29:41.730Z",
+    "promptbookVersion": "0.72.0-6",
     "prompt": {
         "title": "Knowledge",
         "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-keywords.ptbk.md#knowledge",
@@ -17,8 +17,8 @@
         "content": "Springfield, Illinois, sixth most populous city, population, 10,566, 2019, county seat, Sangamon County",
         "modelName": "claude-3-5-sonnet-20240620",
         "timing": {
-            "start": "2024-10-07T13:47:26.326Z",
-            "complete": "2024-10-07T13:47:30.651Z"
+            "start": "2024-10-08T12:29:40.781Z",
+            "complete": "2024-10-08T12:29:41.730Z"
         },
         "usage": {
             "price": {
@@ -83,7 +83,7 @@
             ]
         },
         "rawResponse": {
-            "id": "msg_01WWrX6zzsuQGp7osR76zJsR",
+            "id": "msg_01TY791qgsWQrJKdrhapeezc",
             "type": "message",
             "role": "assistant",
             "model": "claude-3-5-sonnet-20240620",

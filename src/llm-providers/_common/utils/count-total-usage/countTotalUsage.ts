@@ -6,7 +6,7 @@ import type { CompletionPromptResult } from '../../../../execution/PromptResult'
 import type { EmbeddingPromptResult } from '../../../../execution/PromptResult';
 import type { PromptResultUsage } from '../../../../execution/PromptResultUsage';
 import { addUsage } from '../../../../execution/utils/addUsage';
-import { ZERO_USAGE } from '../../../../execution/utils/addUsage';
+import { ZERO_USAGE } from '../../../../execution/utils/usage-constants';
 import type { ChatPrompt } from '../../../../types/Prompt';
 import type { CompletionPrompt } from '../../../../types/Prompt';
 import type { EmbeddingPrompt } from '../../../../types/Prompt';

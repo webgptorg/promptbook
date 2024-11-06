@@ -1,6 +1,6 @@
 {
-    "date": "2024-10-07T13:41:51.553Z",
-    "promptbookVersion": "0.71.0-0",
+    "date": "2024-10-08T12:30:11.060Z",
+    "promptbookVersion": "0.72.0-6",
     "prompt": {
         "title": "Knowledge",
         "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-from-markdown.ptbk.md#knowledge",
@@ -14,15 +14,15 @@
         "expectations": {}
     },
     "promptResult": {
-        "content": "---\n\nV období ekonomické krize se na trhu častěji objevuje podvodná a zdraví škodlivá bižuterie. Zákazníci hlásí problémy a podvody s bižuterií v ČR i zahraničí.\n\n---\n\nKorálky Katlas připravily souhrn informací o tom, na co si dát pozor při nákupu hotové bižuterie a bižuterních polotovarů.\n\n---\n\nStanda, zodpovědný za online aktivity v Korálkách Katlas, představil nejdůležitější body z online setkání týkajícího se tohoto tématu.\n\n---",
+        "content": "---\n\nKorálky Katlas zaznamenaly zvýšený výskyt podvodné a zdraví škodlivé bižuterie na trhu v době ekonomické krize, kdy lidé více šetří. Zákazníci hlásí problémy a podvody s bižuterií jak v České republice, tak v zahraničí.\n\n---\n\nKorálky Katlas připravily shrnutí důležitých bodů, na které by si zákazníci měli dávat pozor při nákupu hotové bižuterie i bižuterních polotovarů. Tyto informace byly prezentovány během online setkání.\n\n---\n\nStanda, zodpovědný za online aktivity v Korálkách Katlas, vedl prezentaci. Více informací o něm lze najít na stanislavvavrik.cz.\n\n---",
         "modelName": "claude-3-5-sonnet-20240620",
         "timing": {
-            "start": "2024-10-07T13:41:41.396Z",
-            "complete": "2024-10-07T13:41:51.551Z"
+            "start": "2024-10-08T12:30:06.885Z",
+            "complete": "2024-10-08T12:30:11.058Z"
         },
         "usage": {
             "price": {
-                "value": 0.003738
+                "value": 0.004488000000000001
             },
             "input": {
                 "tokensCount": {
@@ -49,16 +49,16 @@
             },
             "output": {
                 "tokensCount": {
-                    "value": 169
+                    "value": 219
                 },
                 "charactersCount": {
-                    "value": 436
+                    "value": 572
                 },
                 "wordsCount": {
-                    "value": 62
+                    "value": 81
                 },
                 "sentencesCount": {
-                    "value": 5
+                    "value": 8
                 },
                 "linesCount": {
                     "value": 13
@@ -67,7 +67,7 @@
                     "value": 7
                 },
                 "pagesCount": {
-                    "value": 1
+                    "value": 2
                 }
             }
         },
@@ -83,21 +83,21 @@
             ]
         },
         "rawResponse": {
-            "id": "msg_01Emv5APnojt249ssR8LBLGq",
+            "id": "msg_0112DrBDVesfNPrUwVpakDiH",
             "type": "message",
             "role": "assistant",
             "model": "claude-3-5-sonnet-20240620",
             "content": [
                 {
                     "type": "text",
-                    "text": "---\n\nV období ekonomické krize se na trhu častěji objevuje podvodná a zdraví škodlivá bižuterie. Zákazníci hlásí problémy a podvody s bižuterií v ČR i zahraničí.\n\n---\n\nKorálky Katlas připravily souhrn informací o tom, na co si dát pozor při nákupu hotové bižuterie a bižuterních polotovarů.\n\n---\n\nStanda, zodpovědný za online aktivity v Korálkách Katlas, představil nejdůležitější body z online setkání týkajícího se tohoto tématu.\n\n---"
+                    "text": "---\n\nKorálky Katlas zaznamenaly zvýšený výskyt podvodné a zdraví škodlivé bižuterie na trhu v době ekonomické krize, kdy lidé více šetří. Zákazníci hlásí problémy a podvody s bižuterií jak v České republice, tak v zahraničí.\n\n---\n\nKorálky Katlas připravily shrnutí důležitých bodů, na které by si zákazníci měli dávat pozor při nákupu hotové bižuterie i bižuterních polotovarů. Tyto informace byly prezentovány během online setkání.\n\n---\n\nStanda, zodpovědný za online aktivity v Korálkách Katlas, vedl prezentaci. Více informací o něm lze najít na stanislavvavrik.cz.\n\n---"
                 }
             ],
             "stop_reason": "end_turn",
             "stop_sequence": null,
             "usage": {
                 "input_tokens": 401,
-                "output_tokens": 169
+                "output_tokens": 219
             }
         }
     }

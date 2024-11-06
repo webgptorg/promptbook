@@ -4,7 +4,7 @@ import * as dotenv from 'dotenv';
 
 dotenv.config({ path: '.env' });
 
-import colors from 'colors';
+import colors from 'colors'; // <- TODO: [🔶] Make system to put color and style to both node and browser
 import { forEver, forTime } from 'waitasecond';
 import { createCollectionFromDirectory } from '../../../collection/constructors/createCollectionFromDirectory';
 import { OpenAiExecutionTools } from '../../openai/OpenAiExecutionTools';
@@ -34,7 +34,7 @@ async function playground() {
         port: 4460,
         isVerbose: true,
         isAnonymousModeAllowed: true,
-        isCollectionModeAllowed: true,
+        isApplicationModeAllowed: true,
         collection: await createCollectionFromDirectory(
             './samples/pipelines/',
             {},
@@ -42,15 +42,16 @@ async function playground() {
                 isRecursive: false,
             },
         ),
-        createLlmExecutionTools(userId) {
-            // <- TODO: [🧠][🤺] Remove `createLlmExecutionTools`, pass just `llmExecutionTools`
-            console.info(colors.bgCyan('Playground:'), 'userId', userId);
+        createLlmExecutionTools(options) {
+            const { appId, userId, customOptions } = options;
+
+            console.info(colors.bgCyan('Playground:'), { appId, userId, customOptions });
             return new OpenAiExecutionTools(
                 //            <- TODO: [🧱] Implement in a functional (not new Class) way
                 {
                     isVerbose: true,
                     apiKey: process.env.OPENAI_API_KEY!,
-                    user: userId,
+                    userId: userId,
                 },
             );
         },
@@ -69,6 +70,7 @@ async function playground() {
                       remoteUrl,
                       path,
                       isAnonymous: true,
+                      userId: 'playground',
                       llmToolsConfiguration: [
                           {
                               title: 'OpenAI',
@@ -84,7 +86,8 @@ async function playground() {
                       remoteUrl,
                       path,
                       isAnonymous: false,
-                      userId: 'pavol1234',
+                      appId: 'playground',
+                      userId: 'playground',
                   },
         );
 

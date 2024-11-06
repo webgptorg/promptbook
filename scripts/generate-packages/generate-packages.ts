@@ -304,7 +304,9 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
         console.info(colors.yellow(`Skipping the bundler`));
     } else {
         await forTime(1000 * 60 * 60 * 0);
-        await $execCommand(`npx rollup --config rollup.config.js`);
+        await $execCommand(
+            `node --max-old-space-size=8000 ./node_modules/rollup/dist/bin/rollup  --config rollup.config.js`,
+        );
     }
 
     // ==============================
@@ -503,7 +505,7 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
                             {
                                 name: 'Build packages bundles',
                                 // Note: Generate packages before publishing to put the recent version in each package.json
-                                // TODO: It will be better to have here just "npx rollup --config rollup.config.js" BUT it will not work because:
+                                // TODO: It will be better to have here just "npx rollup --config rollup.config.js" / "node --max-old-space-size=8000 ./node_modules/rollup/dist/bin/rollup  --config rollup.config.js" BUT it will not work because:
                                 //       This is run after a version tag is pushed to the repository, so used publish.yml is one version behing
                                 run: `npx ts-node ./scripts/generate-packages/generate-packages.ts`,
                             },

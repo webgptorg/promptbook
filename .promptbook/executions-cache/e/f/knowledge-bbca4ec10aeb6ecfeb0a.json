@@ -1,6 +1,6 @@
 {
-    "date": "2024-10-17T16:12:59.306Z",
-    "promptbookVersion": "0.71.0-8",
+    "date": "2024-10-08T11:59:22.723Z",
+    "promptbookVersion": "0.72.0-6",
     "prompt": {
         "title": "Knowledge",
         "pipelineUrl": "https://promptbook.studio/promptbook/prepare-knowledge-title.ptbk.md#knowledge",
@@ -19,15 +19,15 @@
         }
     },
     "promptResult": {
-        "content": "Open Source Enthusiast's GitHub Showcase",
+        "content": "Open Source Enthusiast's GitHub Projects",
         "modelName": "claude-3-5-sonnet-20240620",
         "timing": {
-            "start": "2024-10-17T16:12:58.657Z",
-            "complete": "2024-10-17T16:12:59.306Z"
+            "start": "2024-10-08T11:59:22.098Z",
+            "complete": "2024-10-08T11:59:22.723Z"
         },
         "usage": {
             "price": {
-                "value": 0.000411
+                "value": 0.000396
             },
             "input": {
                 "tokensCount": {
@@ -54,7 +54,7 @@
             },
             "output": {
                 "tokensCount": {
-                    "value": 12
+                    "value": 11
                 },
                 "charactersCount": {
                     "value": 40
@@ -88,21 +88,21 @@
             ]
         },
         "rawResponse": {
-            "id": "msg_01VLS3eoUuDP9H9AdrEd4PFx",
+            "id": "msg_01NDjT8dfj62AggQ5WLJqcG6",
             "type": "message",
             "role": "assistant",
             "model": "claude-3-5-sonnet-20240620",
             "content": [
                 {
                     "type": "text",
-                    "text": "Open Source Enthusiast's GitHub Showcase"
+                    "text": "Open Source Enthusiast's GitHub Projects"
                 }
             ],
             "stop_reason": "end_turn",
             "stop_sequence": null,
             "usage": {
                 "input_tokens": 77,
-                "output_tokens": 12
+                "output_tokens": 11
             }
         }
     }

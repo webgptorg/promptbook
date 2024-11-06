@@ -60,7 +60,7 @@ export type LlmExecutionTools = {
 };
 
 /**
- * TODO: Implement destroyable pattern to free resources
+ * TODO: [🍚] Implement destroyable pattern to free resources
  * TODO: [🏳] Add `callTranslationModel`
  * TODO: [🧠] Emulation of one type of model with another one - emuate chat with completion; emulate translation with chat
  * TODO: [🍓][♐] Some heuristic to pick the best model in listed models

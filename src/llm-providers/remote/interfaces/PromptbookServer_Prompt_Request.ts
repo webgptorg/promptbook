@@ -1,35 +1,29 @@
 import type { Prompt } from '../../../types/Prompt';
 import type { string_user_id } from '../../../types/typeAliases';
 import type { LlmToolsConfiguration } from '../../_common/register/LlmToolsConfiguration';
+import type { CollectionRemoteServerClientOptions } from './RemoteServerOptions';
 
 /**
  * Socket.io progress for remote text generation
  *
  * This is a request from client to server
  */
-export type PromptbookServer_Prompt_Request =
-    | PromptbookServer_Prompt_CollectionRequest
+export type PromptbookServer_Prompt_Request<TCustomOptions> =
+    | PromptbookServer_Prompt_CollectionRequest<TCustomOptions>
     | PromptbookServer_Prompt_AnonymousRequest;
 
-export type PromptbookServer_Prompt_CollectionRequest = {
-    /**
-     * Collection mode
-     */
-    readonly isAnonymous: false;
+export type PromptbookServer_Prompt_CollectionRequest<TCustomOptions> =
+    CollectionRemoteServerClientOptions<TCustomOptions> & {
+        /**
+         * Application mode
+         */
+        readonly isAnonymous: false;
 
-    /**
-     * Identifier of the end user
-     *
-     * Note: this is passed to the certain model providers to identify misuse
-     * Note: In anonymous mode it is not required to identify
-     */
-    readonly userId: string_user_id;
-
-    /**
-     * The Prompt to execute
-     */
-    readonly prompt: Prompt;
-};
+        /**
+         * The Prompt to execute
+         */
+        readonly prompt: Prompt;
+    };
 
 export type PromptbookServer_Prompt_AnonymousRequest = {
     /**
@@ -41,9 +35,9 @@ export type PromptbookServer_Prompt_AnonymousRequest = {
      * Identifier of the end user
      *
      * Note: this is passed to the certain model providers to identify misuse
-     * Note: In anonymous mode it is not required to identify
+     * Note: In anonymous mode, there is no need to identify yourself, nor does it change the actual configuration of LLM Tools (unlike in application mode)
      */
-    readonly userId?: string_user_id;
+    readonly userId: string_user_id | null;
 
     /**
      * Configuration for the LLM tools

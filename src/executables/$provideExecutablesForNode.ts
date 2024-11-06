@@ -24,8 +24,9 @@ export async function $provideExecutablesForNode(options?: PrepareAndScrapeOptio
     TODO_USE(isVerbose);
 
     return {
-        pandocPath: await locatePandoc(),
-        libreOfficePath: await locateLibreoffice(),
+        pandocPath: (await locatePandoc()) || undefined,
+        libreOfficePath: (await locateLibreoffice()) || undefined,
+        //                                              <- TODO: [🧠] `null` vs `undefined`
     };
 }
 
