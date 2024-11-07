@@ -2,8 +2,7 @@ import { spaceTrim } from 'spacetrim';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { PipelineJson } from '../../types/PipelineJson/PipelineJson';
 import type { TemplateJson } from '../../types/PipelineJson/TemplateJson';
-import type { string_href } from '../../types/typeAliases';
-import type { string_name } from '../../types/typeAliases';
+import type { string_href, string_name } from '../../types/typeAliases';
 import { normalizeTo_camelCase } from '../../utils/normalization/normalizeTo_camelCase';
 import { titleToName } from '../utils/titleToName';
 
@@ -113,9 +112,9 @@ export function renderPromptbookMermaid(pipelineJson: PipelineJson, options?: re
 }
 
 /**
- * TODO: !!!!! FOREACH in mermaid graph
- * TODO: !!!!! Knowledge in mermaid graph
- * TODO: !!!!! Personas in mermaid graph
+ * TODO: [🧠] !! FOREACH in mermaid graph
+ * TODO: [🧠] !! Knowledge in mermaid graph
+ * TODO: [🧠] !! Personas in mermaid graph
  * TODO: Maybe use some Mermaid package instead of string templating
  * TODO: [🕌] When more than 2 functionalities, split into separate functions
  */

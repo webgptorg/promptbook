@@ -72,7 +72,7 @@ export async function preparePersona(
 }
 
 /**
- * TODO: [🔃][main] !!!!! If the persona was prepared with different version or different set of models, prepare it once again
+ * TODO: [🔃][main] !! If the persona was prepared with different version or different set of models, prepare it once again
  * TODO: [🏢] !! Check validity of `modelName` in pipeline
  * TODO: [🏢] !! Check validity of `systemMessage` in pipeline
  * TODO: [🏢] !! Check validity of `temperature` in pipeline

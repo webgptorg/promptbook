@@ -67,7 +67,7 @@ export async function preparePipeline(
     }
     */
 
-    // TODO: [🔃][main] !!!!! If the pipeline was prepared with different version or different set of models, prepare it once again
+    // TODO: [🔃][main] !! If the pipeline was prepared with different version or different set of models, prepare it once again
 
     // ----- ID -----
     const currentPreparation: Writable<PreparationJson> = {

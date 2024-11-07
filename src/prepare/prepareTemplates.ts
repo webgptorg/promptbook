@@ -34,7 +34,7 @@ export async function prepareTemplates(
     const { maxParallelCount = DEFAULT_MAX_PARALLEL_COUNT } = options;
     const { templates, parameters, knowledgePiecesCount } = pipeline;
 
-    // TODO: [main] !!!!! Apply examples to each template (if missing and is for the template defined)
+    // TODO: [main] !! Apply examples to each template (if missing and is for the template defined)
     TODO_USE(parameters);
 
     // TODO: [🖌][🧠] Implement some `mapAsync` function
