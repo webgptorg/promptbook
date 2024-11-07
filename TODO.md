@@ -35,7 +35,6 @@
 -   [ ] Make VSCode extension for validation/syntax highlite (and for other editors)
 -   [ ] Use `chalk` or `colors` or sth else but unite what is used
 -   [ ][main] !!! Backup GitHub [discussions](https://github.com/webgptorg/promptbook/discussions/), issues, PRs, etc. into commited markdown files
--   [ ] [🍍][main] !!!!! Link from here -> ptbk.io -> discussions concepts (with labels)
 -   [ ] [🍛] Use shortcuts or not "Config" vs "configuration", "Env" vs "Environment"
 -   [ ] [🎶] Naming "constructor" vs "creator" vs "factory"
 -   [ ] [🍓][🧠][🔛] Auto-translate of entire pipelines
