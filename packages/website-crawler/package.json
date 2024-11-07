@@ -1,6 +1,6 @@
 {
     "name": "@promptbook/website-crawler",
-    "version": "0.72.0-34",
+    "version": "0.72.0",
     "description": "Supercharge your use of large language models",
     "private": false,
     "sideEffects": false,
@@ -52,7 +52,7 @@
     "module": "./esm/index.es.js",
     "typings": "./esm/typings/src/_packages/website-crawler.index.d.ts",
     "peerDependencies": {
-        "@promptbook/core": "0.72.0-34"
+        "@promptbook/core": "0.72.0"
     },
     "dependencies": {
         "@mozilla/readability": "^0.5.0",
