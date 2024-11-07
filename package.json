@@ -31,7 +31,8 @@
         "o1",
         "o1-mini",
         "o1-preview",
-        "anthropic"
+        "anthropic",
+        "LLMOps"
     ],
     "license": "CC-BY-4.0",
     "bugs": {
