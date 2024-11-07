@@ -26,11 +26,9 @@ Build responsible, controlled and transparent applications on top of LLM models!
 
 ## 🤍 The Promptbook Whitepaper
 
-<!-- TODO: [main] !!! Better -->
-
 If you have a simple, single prompt for ChatGPT, GPT-4, Anthropic Claude, Google Gemini, Llama 3, or whatever, it doesn't matter how you integrate it. Whether it's calling a REST API directly, using the SDK, hardcoding the prompt into the source code, or importing a text file, the process remains the same.
 
-But often you will struggle with the **limitations of LLMs**, such as **hallucinations, off-topic responses, poor quality output, language and prompt drift, word repetition repetition repetition repetition or misuse, lack of context, or just plain w𝒆𝐢rd responses**. When this happens, you generally have three options:
+But often you will struggle with the **limitations of LLMs**, such as **hallucinations, off-topic responses, poor quality output, language and prompt drift, word repetition repetition repetition repetition or misuse, lack of context, or just plain w𝒆𝐢rd resp0nses**. When this happens, you generally have three options:
 
 1. **Fine-tune** the model to your specifications or even train your own.
 2. **Prompt-engineer** the prompt to the best shape you can achieve.
@@ -38,13 +36,13 @@ But often you will struggle with the **limitations of LLMs**, such as **hallucin
 
 In all of these situations, but especially in 3., the **✨ Promptbook can make your life waaaaaaaaaay easier**.
 
--   [**Separates concerns**](https://github.com/webgptorg/promptbook/discussions/32) between prompt-engineer and programmer, between code files and prompt files, and between prompts and their execution logic.
--   Establishes a [**common format `.ptbk.md`**](https://github.com/webgptorg/promptbook/discussions/85) that can be used to describe your prompt business logic without having to write code or deal with the technicalities of LLMs.
--   **Forget** about **low-level details** like choosing the right model, tokens, context size, temperature, top-k, top-p, or kernel sampling. **Just write your intent** and [**persona**](https://github.com/webgptorg/promptbook/discussions/22) who should be responsible for the task and let the library do the rest.
--   Has built-in **orchestration** of [pipeline](https://github.com/webgptorg/promptbook/discussions/64) execution and many tools to make the process easier, more reliable, and more efficient, such as caching, [compilation+preparation](https://github.com/webgptorg/promptbook/discussions/78), [just-in-time fine-tuning](https://github.com/webgptorg/promptbook/discussions/33), [expectation-aware generation](https://github.com/webgptorg/promptbook/discussions/37), [agent adversary expectations](https://github.com/webgptorg/promptbook/discussions/39), and more.
+-   [**Separates concerns**](https://github.com/webgptorg/promptbook/discussions/32) between prompt-engineer and programmer, between code files and prompt files, and between prompts and their execution logic. For this purpose, it introduces a new language called [the **💙 Book**](https://github.com/webgptorg/book).
+-   Book allows you to **focus on the business** logic without having to write code or deal with the technicalities of LLMs.
+-   **Forget** about **low-level details** like choosing the right model, tokens, context size, `temperature`, `top-k`, `top-p`, or kernel sampling. **Just write your intent** and [**persona**](https://github.com/webgptorg/promptbook/discussions/22) who should be responsible for the task and let the library do the rest.
+-   We have built-in **orchestration** of [pipeline](https://github.com/webgptorg/promptbook/discussions/64) execution and many tools to make the process easier, more reliable, and more efficient, such as caching, [compilation+preparation](https://github.com/webgptorg/promptbook/discussions/78), [just-in-time fine-tuning](https://github.com/webgptorg/promptbook/discussions/33), [expectation-aware generation](https://github.com/webgptorg/promptbook/discussions/37), [agent adversary expectations](https://github.com/webgptorg/promptbook/discussions/39), and more.
 -   Sometimes even the best prompts with the best framework like Promptbook `:)` can't avoid the problems. In this case, the library has built-in **[anomaly detection](https://github.com/webgptorg/promptbook/discussions/40) and logging** to help you find and fix the problems.
--   Promptbook has built in versioning. You can test multiple **A/B versions** of pipelines and see which one works best.
--   Promptbook is designed to do [**RAG** (Retrieval-Augmented Generation)](https://github.com/webgptorg/promptbook/discussions/41) and other advanced techniques. You can use **knowledge** to improve the quality of the output.
+-   Versioning is build in. You can test multiple **A/B versions** of pipelines and see which one works best.
+-   Promptbook is designed to use [**RAG** (Retrieval-Augmented Generation)](https://github.com/webgptorg/promptbook/discussions/41) and other advanced techniques to bring the context of your business to generic LLM. You can use **knowledge** to improve the quality of the output.
 
 <!--
 TODO: [main] !!!
@@ -52,11 +50,30 @@ TODO: [main] !!!
 
 -->
 
-## 💙 Book language _(for prompt-engeneers)_
+## 💙 Book language _(for prompt-engineer)_
 
 Promptbook [pipelines](https://github.com/webgptorg/promptbook/discussions/64) are written in markdown-like language called [Book](https://github.com/webgptorg/book). It is designed to be understandable by non-programmers and non-technical people.
 
-## 📦 Packages
+<!--
+![Glowing tree](./other/design/social-1.jpg)
+-->
+
+```markdown
+# 🌟 My first Book
+
+-   PERSONA Jane, marketing specialist with prior experience in writing articles about technology and artificial intelligence
+-   KNOWLEDGE https://ptbk.io
+-   KNOWLEDGE ./promptbook.pdf
+-   EXPECT MIN 1 Sentence
+-   EXPECT MAX 1 Paragraph
+
+> Write an article about the future of artificial intelligence in the next 10 years and how metalanguages will change the way AI is used in the world.
+> Look specifically at the impact of Promptbook on the AI industry.
+
+-> {article}
+```
+
+## 📦 Packages _(for developers)_
 
 This library is divided into several packages, all are published from [single monorepo](https://github.com/webgptorg/promptbook).
 You can install all of them at once:
