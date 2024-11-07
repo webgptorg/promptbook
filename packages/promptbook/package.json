@@ -1,6 +1,6 @@
 {
     "name": "promptbook",
-    "version": "0.72.0",
+    "version": "0.73.0",
     "description": "Supercharge your use of large language models",
     "private": false,
     "sideEffects": false,
@@ -31,7 +31,8 @@
         "o1",
         "o1-mini",
         "o1-preview",
-        "anthropic"
+        "anthropic",
+        "LLMOps"
     ],
     "license": "CC-BY-4.0",
     "bugs": {
@@ -49,27 +50,27 @@
         }
     ],
     "peerDependencies": {
-        "@promptbook/core": "0.72.0"
+        "@promptbook/core": "0.73.0"
     },
     "dependencies": {
-        "@promptbook/anthropic-claude": "0.72.0",
-        "@promptbook/azure-openai": "0.72.0",
-        "@promptbook/browser": "0.72.0",
-        "@promptbook/cli": "0.72.0",
-        "@promptbook/core": "0.72.0",
-        "@promptbook/documents": "0.72.0",
-        "@promptbook/execute-javascript": "0.72.0",
-        "@promptbook/fake-llm": "0.72.0",
-        "@promptbook/langtail": "0.72.0",
-        "@promptbook/legacy-documents": "0.72.0",
-        "@promptbook/markdown-utils": "0.72.0",
-        "@promptbook/node": "0.72.0",
-        "@promptbook/openai": "0.72.0",
-        "@promptbook/pdf": "0.72.0",
-        "@promptbook/remote-client": "0.72.0",
-        "@promptbook/remote-server": "0.72.0",
-        "@promptbook/types": "0.72.0",
-        "@promptbook/utils": "0.72.0",
-        "@promptbook/website-crawler": "0.72.0"
+        "@promptbook/anthropic-claude": "0.73.0",
+        "@promptbook/azure-openai": "0.73.0",
+        "@promptbook/browser": "0.73.0",
+        "@promptbook/cli": "0.73.0",
+        "@promptbook/core": "0.73.0",
+        "@promptbook/documents": "0.73.0",
+        "@promptbook/execute-javascript": "0.73.0",
+        "@promptbook/fake-llm": "0.73.0",
+        "@promptbook/langtail": "0.73.0",
+        "@promptbook/legacy-documents": "0.73.0",
+        "@promptbook/markdown-utils": "0.73.0",
+        "@promptbook/node": "0.73.0",
+        "@promptbook/openai": "0.73.0",
+        "@promptbook/pdf": "0.73.0",
+        "@promptbook/remote-client": "0.73.0",
+        "@promptbook/remote-server": "0.73.0",
+        "@promptbook/types": "0.73.0",
+        "@promptbook/utils": "0.73.0",
+        "@promptbook/website-crawler": "0.73.0"
     }
 }

@@ -1,6 +1,6 @@
 {
     "name": "ptbk",
-    "version": "0.72.0",
+    "version": "0.73.0",
     "description": "Supercharge your use of large language models",
     "private": false,
     "sideEffects": false,
@@ -31,7 +31,8 @@
         "o1",
         "o1-mini",
         "o1-preview",
-        "anthropic"
+        "anthropic",
+        "LLMOps"
     ],
     "license": "CC-BY-4.0",
     "bugs": {
@@ -49,9 +50,9 @@
         }
     ],
     "peerDependencies": {
-        "@promptbook/core": "0.72.0"
+        "@promptbook/core": "0.73.0"
     },
     "dependencies": {
-        "promptbook": "0.72.0"
+        "promptbook": "0.73.0"
     }
 }

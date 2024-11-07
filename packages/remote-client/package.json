@@ -1,6 +1,6 @@
 {
     "name": "@promptbook/remote-client",
-    "version": "0.72.0",
+    "version": "0.73.0",
     "description": "Supercharge your use of large language models",
     "private": false,
     "sideEffects": false,
@@ -31,7 +31,8 @@
         "o1",
         "o1-mini",
         "o1-preview",
-        "anthropic"
+        "anthropic",
+        "LLMOps"
     ],
     "license": "CC-BY-4.0",
     "bugs": {
@@ -52,7 +53,7 @@
     "module": "./esm/index.es.js",
     "typings": "./esm/typings/src/_packages/remote-client.index.d.ts",
     "peerDependencies": {
-        "@promptbook/core": "0.72.0"
+        "@promptbook/core": "0.73.0"
     },
     "dependencies": {
         "socket.io-client": "4.7.2",

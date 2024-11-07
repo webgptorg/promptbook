@@ -4,19 +4,30 @@
 
 Build responsible, controlled and transparent applications on top of LLM models!
 
+
+
+
 [![NPM Version of ![Promptbook logo - cube with letters P and B](./other/design/logo-h1.png) Promptbook](https://badge.fury.io/js/promptbook.svg)](https://www.npmjs.com/package/promptbook)
 [![Quality of package ![Promptbook logo - cube with letters P and B](./other/design/logo-h1.png) Promptbook](https://packagequality.com/shield/promptbook.svg)](https://packagequality.com/#?package=promptbook)
 [![Known Vulnerabilities](https://snyk.io/test/github/webgptorg/promptbook/badge.svg)](https://snyk.io/test/github/webgptorg/promptbook)
 [![Issues](https://img.shields.io/github/issues/webgptorg/promptbook.svg?style=flat)](https://github.com/webgptorg/promptbook/issues)
 
+
+
+
+
 ## ✨ New Features
 
+-   💙 Working on [the **Book** language v1](https://github.com/webgptorg/book)
+-   📚 Support of `.docx`, `.doc` and `.pdf` documents
 -   ✨ **Support of [OpenAI o1 model](https://openai.com/o1/)**
+
+
 
 ## 📦 Package `@promptbook/documents`
 
--   Promptbooks are [divided into several](#-packages) packages, all are published from [single monorepo](https://github.com/webgptorg/promptbook).
--   This package `@promptbook/documents` is one part of the promptbook ecosystem.
+- Promptbooks are [divided into several](#-packages) packages, all are published from [single monorepo](https://github.com/webgptorg/promptbook).
+- This package `@promptbook/documents` is one part of the promptbook ecosystem.
 
 To install this package, run:
 
@@ -33,6 +44,7 @@ Read knowledge from documents like `.docx`, `.odt`,…
 -   _Note: `.pdf` documents are not supported by this package. Use the [`@promptbook/pdf`](https://www.npmjs.com/package/@promptbook/pdf) package instead._
 -   _Note: For legacy documents use [`@promptbook/legacy-documents`](https://www.npmjs.com/package/@promptbook/legacy-documents)_
 
+
 ---
 
 Rest of the documentation is common for **entire promptbook ecosystem**:
@@ -41,7 +53,7 @@ Rest of the documentation is common for **entire promptbook ecosystem**:
 
 If you have a simple, single prompt for ChatGPT, GPT-4, Anthropic Claude, Google Gemini, Llama 3, or whatever, it doesn't matter how you integrate it. Whether it's calling a REST API directly, using the SDK, hardcoding the prompt into the source code, or importing a text file, the process remains the same.
 
-But often you will struggle with the **limitations of LLMs**, such as **hallucinations, off-topic responses, poor quality output, language and prompt drift, word repetition repetition repetition repetition or misuse, lack of context, or just plain w𝒆𝐢rd responses**. When this happens, you generally have three options:
+But often you will struggle with the **limitations of LLMs**, such as **hallucinations, off-topic responses, poor quality output, language and prompt drift, word repetition repetition repetition repetition or misuse, lack of context, or just plain w𝒆𝐢rd resp0nses**. When this happens, you generally have three options:
 
 1. **Fine-tune** the model to your specifications or even train your own.
 2. **Prompt-engineer** the prompt to the best shape you can achieve.
@@ -49,238 +61,38 @@ But often you will struggle with the **limitations of LLMs**, such as **hallucin
 
 In all of these situations, but especially in 3., the **✨ Promptbook can make your life waaaaaaaaaay easier**.
 
--   [**Separates concerns**](https://github.com/webgptorg/promptbook/discussions/32) between prompt-engineer and programmer, between code files and prompt files, and between prompts and their execution logic.
--   Establishes a [**common format `.ptbk.md`**](https://github.com/webgptorg/promptbook/discussions/85) that can be used to describe your prompt business logic without having to write code or deal with the technicalities of LLMs.
--   **Forget** about **low-level details** like choosing the right model, tokens, context size, temperature, top-k, top-p, or kernel sampling. **Just write your intent** and [**persona**](https://github.com/webgptorg/promptbook/discussions/22) who should be responsible for the task and let the library do the rest.
--   Has built-in **orchestration** of [pipeline](https://github.com/webgptorg/promptbook/discussions/64) execution and many tools to make the process easier, more reliable, and more efficient, such as caching, [compilation+preparation](https://github.com/webgptorg/promptbook/discussions/78), [just-in-time fine-tuning](https://github.com/webgptorg/promptbook/discussions/33), [expectation-aware generation](https://github.com/webgptorg/promptbook/discussions/37), [agent adversary expectations](https://github.com/webgptorg/promptbook/discussions/39), and more.
+-   [**Separates concerns**](https://github.com/webgptorg/promptbook/discussions/32) between prompt-engineer and programmer, between code files and prompt files, and between prompts and their execution logic. For this purpose, it introduces a new language called [the **💙 Book**](https://github.com/webgptorg/book).
+-   Book allows you to **focus on the business** logic without having to write code or deal with the technicalities of LLMs.
+-   **Forget** about **low-level details** like choosing the right model, tokens, context size, `temperature`, `top-k`, `top-p`, or kernel sampling. **Just write your intent** and [**persona**](https://github.com/webgptorg/promptbook/discussions/22) who should be responsible for the task and let the library do the rest.
+-   We have built-in **orchestration** of [pipeline](https://github.com/webgptorg/promptbook/discussions/64) execution and many tools to make the process easier, more reliable, and more efficient, such as caching, [compilation+preparation](https://github.com/webgptorg/promptbook/discussions/78), [just-in-time fine-tuning](https://github.com/webgptorg/promptbook/discussions/33), [expectation-aware generation](https://github.com/webgptorg/promptbook/discussions/37), [agent adversary expectations](https://github.com/webgptorg/promptbook/discussions/39), and more.
 -   Sometimes even the best prompts with the best framework like Promptbook `:)` can't avoid the problems. In this case, the library has built-in **[anomaly detection](https://github.com/webgptorg/promptbook/discussions/40) and logging** to help you find and fix the problems.
--   Promptbook has built in versioning. You can test multiple **A/B versions** of pipelines and see which one works best.
--   Promptbook is designed to do [**RAG** (Retrieval-Augmented Generation)](https://github.com/webgptorg/promptbook/discussions/41) and other advanced techniques. You can use **knowledge** to improve the quality of the output.
+-   Versioning is build in. You can test multiple **A/B versions** of pipelines and see which one works best.
+-   Promptbook is designed to use [**RAG** (Retrieval-Augmented Generation)](https://github.com/webgptorg/promptbook/discussions/41) and other advanced techniques to bring the context of your business to generic LLM. You can use **knowledge** to improve the quality of the output.
 
-## 🧔 Pipeline _(for prompt-engeneers)_
 
-**P**romp**t** **b**oo**k** markdown file (or `.ptbk.md` file) is document that describes a **pipeline** - a series of prompts that are chained together to form somewhat reciepe for transforming natural language input.
 
--   Multiple pipelines forms a **collection** which will handle core **know-how of your LLM application**.
--   Theese pipelines are designed such as they **can be written by non-programmers**.
+## 💙 Book language _(for prompt-engineer)_
 
-### Example:
+Promptbook [pipelines](https://github.com/webgptorg/promptbook/discussions/64) are written in markdown-like language called [Book](https://github.com/webgptorg/book). It is designed to be understandable by non-programmers and non-technical people.
 
-File `write-website-content.ptbk.md`:
 
-> # 🌍 Create website content
->
-> Instructions for creating web page content.
->
-> -   PIPELINE URL https://promptbook.studio/webgpt/write-website-content.ptbk.md
-> -   INPUT  PARAM `{rawTitle}` Automatically suggested a site name or empty text
-> -   INPUT  PARAM `{rawAssigment}` Automatically generated site entry from image recognition
-> -   OUTPUT PARAM `{websiteContent}` Web content
-> -   OUTPUT PARAM `{keywords}` Keywords
->
-> ## 👤 Specifying the assigment
->
-> What is your web about?
->
-> -   DIALOG TEMPLATE
->
-> ```
-> {rawAssigment}
-> ```
->
-> `-> {assigment}` Website assignment and specification
->
-> ## ✨ Improving the title
->
-> -   PERSONA Jane, Copywriter and Marketing Specialist.
->
-> ```
-> As an experienced marketing specialist, you have been entrusted with improving the name of your client's business.
->
-> A suggested name from a client:
-> "{rawTitle}"
->
-> Assignment from customer:
->
-> > {assigment}
->
-> ## Instructions:
->
-> -   Write only one name suggestion
-> -   The name will be used on the website, business cards, visuals, etc.
-> ```
->
-> `-> {enhancedTitle}` Enhanced title
->
-> ## 👤 Website title approval
->
-> Is the title for your website okay?
->
-> -   DIALOG TEMPLATE
->
-> ```
-> {enhancedTitle}
-> ```
->
-> `-> {title}` Title for the website
->
-> ## 🐰 Cunning subtitle
->
-> -   PERSONA Josh, a copywriter, tasked with creating a claim for the website.
->
-> ```
-> As an experienced copywriter, you have been entrusted with creating a claim for the "{title}" web page.
->
-> A website assignment from a customer:
->
-> > {assigment}
->
-> ## Instructions:
->
-> -   Write only one name suggestion
-> -   Claim will be used on website, business cards, visuals, etc.
-> -   Claim should be punchy, funny, original
-> ```
->
-> `-> {claim}` Claim for the web
->
-> ## 🚦 Keyword analysis
->
-> -   PERSONA Paul, extremely creative SEO specialist.
->
-> ```
-> As an experienced SEO specialist, you have been entrusted with creating keywords for the website "{title}".
->
-> Website assignment from the customer:
->
-> > {assigment}
->
-> ## Instructions:
->
-> -   Write a list of keywords
-> -   Keywords are in basic form
->
-> ## Example:
->
-> -   Ice cream
-> -   Olomouc
-> -   Quality
-> -   Family
-> -   Tradition
-> -   Italy
-> -   Craft
->
-> ```
->
-> `-> {keywords}` Keywords
->
-> ## 🔗 Combine the beginning
->
-> -   SIMPLE TEMPLATE
->
-> ```
->
-> # {title}
->
-> > {claim}
->
-> ```
->
-> `-> {contentBeginning}` Beginning of web content
->
-> ## 🖋 Write the content
->
-> -   PERSONA Jane
->
-> ```
-> As an experienced copywriter and web designer, you have been entrusted with creating text for a new website {title}.
->
-> A website assignment from a customer:
->
-> > {assigment}
->
-> ## Instructions:
->
-> -   Text formatting is in Markdown
-> -   Be concise and to the point
-> -   Use keywords, but they should be naturally in the text
-> -   This is the complete content of the page, so don't forget all the important information and elements the page should contain
-> -   Use headings, bullets, text formatting
->
-> ## Keywords:
->
-> {keywords}
->
-> ## Web Content:
->
-> {contentBeginning}
-> ```
->
-> `-> {contentBody}` Middle of the web content
->
-> ## 🔗 Combine the content
->
-> -   SIMPLE TEMPLATE
->
-> ```markdown
-> {contentBeginning}
->
-> {contentBody}
-> ```
->
-> `-> {websiteContent}`
 
-Following is the scheme how the promptbook above is executed:
+```markdown
+# 🌟 My first Book
 
-```mermaid
-%% 🔮 Tip: Open this on GitHub or in the VSCode website to see the Mermaid graph visually
+-   PERSONA Jane, marketing specialist with prior experience in writing articles about technology and artificial intelligence
+-   KNOWLEDGE https://ptbk.io
+-   KNOWLEDGE ./promptbook.pdf
+-   EXPECT MIN 1 Sentence
+-   EXPECT MAX 1 Paragraph
 
-flowchart LR
-  subgraph "🌍 Create website content"
+> Write an article about the future of artificial intelligence in the next 10 years and how metalanguages will change the way AI is used in the world.
+> Look specifically at the impact of Promptbook on the AI industry.
 
-      direction TB
-
-      input((Input)):::input
-      templateSpecifyingTheAssigment(👤 Specifying the assigment)
-      input--"{rawAssigment}"-->templateSpecifyingTheAssigment
-      templateImprovingTheTitle(✨ Improving the title)
-      input--"{rawTitle}"-->templateImprovingTheTitle
-      templateSpecifyingTheAssigment--"{assigment}"-->templateImprovingTheTitle
-      templateWebsiteTitleApproval(👤 Website title approval)
-      templateImprovingTheTitle--"{enhancedTitle}"-->templateWebsiteTitleApproval
-      templateCunningSubtitle(🐰 Cunning subtitle)
-      templateWebsiteTitleApproval--"{title}"-->templateCunningSubtitle
-      templateSpecifyingTheAssigment--"{assigment}"-->templateCunningSubtitle
-      templateKeywordAnalysis(🚦 Keyword analysis)
-      templateWebsiteTitleApproval--"{title}"-->templateKeywordAnalysis
-      templateSpecifyingTheAssigment--"{assigment}"-->templateKeywordAnalysis
-      templateCombineTheBeginning(🔗 Combine the beginning)
-      templateWebsiteTitleApproval--"{title}"-->templateCombineTheBeginning
-      templateCunningSubtitle--"{claim}"-->templateCombineTheBeginning
-      templateWriteTheContent(🖋 Write the content)
-      templateWebsiteTitleApproval--"{title}"-->templateWriteTheContent
-      templateSpecifyingTheAssigment--"{assigment}"-->templateWriteTheContent
-      templateKeywordAnalysis--"{keywords}"-->templateWriteTheContent
-      templateCombineTheBeginning--"{contentBeginning}"-->templateWriteTheContent
-      templateCombineTheContent(🔗 Combine the content)
-      templateCombineTheBeginning--"{contentBeginning}"-->templateCombineTheContent
-      templateWriteTheContent--"{contentBody}"-->templateCombineTheContent
-
-      templateCombineTheContent--"{websiteContent}"-->output
-      output((Output)):::output
-
-      classDef input color: grey;
-      classDef output color: grey;
-
-  end;
+-> {article}
 ```
 
--   [More template examples](./examples/pipelines/)
--   [Read more about `.ptbk.md` file format here](https://github.com/webgptorg/promptbook/discussions/categories/concepts?discussions_q=is%3Aopen+label%3A.ptbk.md+category%3AConcepts)
-
-_Note: We are using [postprocessing functions](#postprocessing-functions) like `unwrapResult` that can be used to postprocess the result._
-
-## 📦 Packages
+## 📦 Packages _(for developers)_
 
 This library is divided into several packages, all are published from [single monorepo](https://github.com/webgptorg/promptbook).
 You can install all of them at once:
@@ -303,7 +115,7 @@ Or you can install them separately:
 -   _(Not finished)_ **[@promptbook/wizzard](https://www.npmjs.com/package/@promptbook/wizzard)** - Wizard for creating+running promptbooks in single line
 -   **[@promptbook/execute-javascript](https://www.npmjs.com/package/@promptbook/execute-javascript)** - Execution tools for javascript inside promptbooks
 -   **[@promptbook/openai](https://www.npmjs.com/package/@promptbook/openai)** - Execution tools for OpenAI API, wrapper around OpenAI SDK
--   **[@promptbook/anthropic-claude](https://www.npmjs.com/package/@promptbook/anthropic-claude)** - Execution tools for Anthropic Claude API, wrapper around Anthropic Claude SDK
+-   **[@promptbook/anthropic-claude](https://www.npmjs.com/package/@promptbook/anthropic-claude)** - Execution tools for Anthropic Claude API, wrapper around Anthropic Claude SDK 
 -   **[@promptbook/azure-openai](https://www.npmjs.com/package/@promptbook/azure-openai)** - Execution tools for Azure OpenAI API
 -   **[@promptbook/langtail](https://www.npmjs.com/package/@promptbook/langtail)** - Execution tools for Langtail API, wrapper around Langtail SDK
 -   **[@promptbook/fake-llm](https://www.npmjs.com/package/@promptbook/fake-llm)** - Mocked execution tools for testing the library and saving the tokens
@@ -315,6 +127,8 @@ Or you can install them separately:
 -   **[@promptbook/website-crawler](https://www.npmjs.com/package/@promptbook/website-crawler)** - Crawl knowledge from the web
 -   **[@promptbook/types](https://www.npmjs.com/package/@promptbook/types)** - Just typescript types used in the library
 -   **[@promptbook/cli](https://www.npmjs.com/package/@promptbook/cli)** - Command line interface utilities for promptbooks
+
+
 
 ## 📚 Dictionary
 
@@ -411,6 +225,9 @@ See [CHANGELOG.md](./CHANGELOG.md)
 ## 🎯 Todos
 
 See [TODO.md](./TODO.md)
+
+
+
 
 ## 🖋️ Contributing
 
