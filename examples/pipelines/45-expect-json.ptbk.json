@@ -12,7 +12,9 @@
             "name": "parsedSentence",
             "isInput": false,
             "isOutput": true,
-            "exampleValues": ["{\n    \"subject\": \"dog\",\n    \"action\": \"running\",\n    \"object\": \"park\"\n}"]
+            "exampleValues": [
+                "{\n    \"subject\": \"dog\",\n    \"action\": \"running\",\n    \"object\": \"park\"\n}"
+            ]
         }
     ],
     "templates": [
@@ -26,9 +28,13 @@
                 "modelVariant": "COMPLETION",
                 "modelName": "gpt-3.5-turbo-instruct"
             },
-            "postprocessingFunctionNames": ["trimEndOfCodeBlock"],
+            "postprocessingFunctionNames": [
+                "trimEndOfCodeBlock"
+            ],
             "format": "JSON",
-            "dependentParameterNames": ["sentence"]
+            "dependentParameterNames": [
+                "sentence"
+            ]
         }
     ],
     "knowledgeSources": [],

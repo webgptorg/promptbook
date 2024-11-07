@@ -33,7 +33,9 @@
             "content": "Write synonym for \"{word}\"",
             "resultingParameterName": "wordSynonym",
             "personaName": "Joe",
-            "dependentParameterNames": ["word"]
+            "dependentParameterNames": [
+                "word"
+            ]
         },
         {
             "templateType": "PROMPT_TEMPLATE",
@@ -43,7 +45,10 @@
             "content": "Write sentence with \"{word}\" and \"{wordSynonym}\" in it",
             "resultingParameterName": "sentenceWithTwoSynonyms",
             "personaName": "Joe",
-            "dependentParameterNames": ["word", "wordSynonym"]
+            "dependentParameterNames": [
+                "word",
+                "wordSynonym"
+            ]
         }
     ],
     "knowledgeSources": [],
@@ -58,7 +63,9 @@
                 "systemMessage": "You are a highly knowledgeable linguist and helpful assistant. Your expertise spans various languages, linguistic theories, phonetics, syntax, semantics, and language evolution. Provide accurate and insightful information about languages, their structures, and linguistic phenomena. Assist with translations, etymology, and language learning inquiries.",
                 "temperature": 0.6
             },
-            "preparationIds": [1]
+            "preparationIds": [
+                1
+            ]
         }
     ],
     "preparations": [
