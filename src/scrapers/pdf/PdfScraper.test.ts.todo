@@ -8,7 +8,7 @@ import { pdfScraper } from './PdfScraper';
 
 describe('how creating knowledge from pdf works', () => {
 
-const rootDirname =  join(__dirname, 'samples');
+const rootDirname =  join(__dirname, 'examples');
     const pdfScraper = new PdfScraper(
         { llm: $provideLlmToolsForTestingAndScriptsAndPlayground() },
         {
@@ -19,7 +19,7 @@ const rootDirname =  join(__dirname, 'samples');
   it('should scrape simple information from a .pdf file', () =>
     expect(
       Promise.resolve()
-        .then(() => makeKnowledgeSourceHandler(join(__dirname, 'samples/10-simple.pdf'),{rootDirname}))
+        .then(() => makeKnowledgeSourceHandler(join(__dirname, 'examples/10-simple.pdf'),{rootDirname}))
         .then((sourceHandler) =>
           pdfScraper.scrape(sourceHandler),
         )
@@ -34,7 +34,7 @@ const rootDirname =  join(__dirname, 'samples');
   it('should NOT scrape irrelevant information', () =>
     expect(
       Promise.resolve()
-        .then(() => makeKnowledgeSourceHandler(join(__dirname, 'samples/10-simple.pdf'),{rootDirname}))
+        .then(() => makeKnowledgeSourceHandler(join(__dirname, 'examples/10-simple.pdf'),{rootDirname}))
         .then((sourceHandler) =>
           pdfScraper.scrape(sourceHandler),
         )
@@ -48,5 +48,5 @@ const rootDirname =  join(__dirname, 'samples');
 });
 
 /**
- * TODO: [📓] Maybe test all file in samples (not just 10-simple.pdf)
+ * TODO: [📓] Maybe test all file in examples (not just 10-simple.pdf)
  */

@@ -26,7 +26,7 @@ describe('how prepareKnowledge works', () => {
                 [],
                 { llm: $provideLlmToolsForTestingAndScriptsAndPlayground() },
                 {
-                    rootDirname: join(__dirname, 'samples'),
+                    rootDirname: join(__dirname, 'examples'),
                 },
             ),
         ).resolves.toEqual([]));

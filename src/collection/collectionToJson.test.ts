@@ -7,7 +7,7 @@ import { createCollectionFromJson } from './constructors/createCollectionFromJso
 
 describe('createCollectionFromJson', () => {
     const pipelineString = spaceTrim(`
-            # Sample prompt
+            # Example prompt
 
             Show how to use a simple completion prompt
 

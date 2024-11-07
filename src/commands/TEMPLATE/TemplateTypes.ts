@@ -19,7 +19,7 @@ export const TemplateTypes = [
     'SIMPLE_TEMPLATE',
     'SCRIPT_TEMPLATE',
     'DIALOG_TEMPLATE',
-    'SAMPLE',
+    'EXAMPLE',
     'KNOWLEDGE',
     'INSTRUMENT',
     'ACTION',

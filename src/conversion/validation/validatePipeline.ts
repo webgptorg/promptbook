@@ -402,7 +402,7 @@ export function validatePipelineCore(pipeline: PipelineJson): void {
  */
 
 /**
- * TODO: [🧳][main] !!!! Validate that all samples match expectations
+ * TODO: [🧳][main] !!!! Validate that all examples match expectations
  * TODO: [🧳][🐝][main] !!!! Validate that knowledge is valid (non-void)
  * TODO: [🧳][main] !!!! Validate that persona can be used only with CHAT variant
  * TODO: [🧳][main] !!!! Validate that parameter with reserved name not used RESERVED_PARAMETER_NAMES

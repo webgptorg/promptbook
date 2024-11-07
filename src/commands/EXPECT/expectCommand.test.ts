@@ -148,24 +148,16 @@ describe('how EXPECT command in .ptbk.md files works', () => {
     });
 
     it('should fail parsing expect command', () => {
-        expect(() => parseCommand('Expect foo 1 char', 'PIPELINE_TEMPLATE')).toThrowError(
-            /Invalid EXPECT command/i,
-        );
-        expect(() => parseCommand('Expect min 1 vars', 'PIPELINE_TEMPLATE')).toThrowError(
-            /Invalid EXPECT command/i,
-        );
-        expect(() => parseCommand('Expect min chars', 'PIPELINE_TEMPLATE')).toThrowError(
-            /Invalid EXPECT command/i,
-        );
-        expect(() => parseCommand('Expect min xx chars', 'PIPELINE_TEMPLATE')).toThrowError(
-            /Invalid EXPECT command/i,
-        );
+        expect(() => parseCommand('Expect foo 1 char', 'PIPELINE_TEMPLATE')).toThrowError(/Invalid EXPECT command/i);
+        expect(() => parseCommand('Expect min 1 vars', 'PIPELINE_TEMPLATE')).toThrowError(/Invalid EXPECT command/i);
+        expect(() => parseCommand('Expect min chars', 'PIPELINE_TEMPLATE')).toThrowError(/Invalid EXPECT command/i);
+        expect(() => parseCommand('Expect min xx chars', 'PIPELINE_TEMPLATE')).toThrowError(/Invalid EXPECT command/i);
         expect(() => parseCommand('Expect exactly 2 p', 'PIPELINE_TEMPLATE')).toThrowError(/Ambiguous unit "p"/i);
         expect(() => parseCommand('EXPECT', 'PIPELINE_TEMPLATE')).toThrowError(/Invalid EXPECT command/i);
         expect(() => parseCommand('EXPECT brr', 'PIPELINE_TEMPLATE')).toThrowError(/Invalid EXPECT command/i);
     });
 
-    it(`should work with all samples`, () => {
+    it(`should work with all examples`, () => {
         // Note: This is tested also in the common test file parseCommand.test.ts
         for (const example of expectCommandParser.examples) {
             expect(() => parseCommand(example, 'PIPELINE_TEMPLATE')).not.toThrowError();

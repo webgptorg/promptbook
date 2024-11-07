@@ -7,7 +7,7 @@ describe('configuration', () => {
         expect(IS_COST_PREVENTED).toBe(true);
     });
 
-    it('checks samples logic', () => {
+    it('checks examples logic', () => {
         expect(IS_PIPELINE_LOGIC_VALIDATED).toBe(true);
     });
 });

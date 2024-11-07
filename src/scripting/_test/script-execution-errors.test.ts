@@ -57,7 +57,7 @@ describe('createPipelineExecutor + executing scripts in promptbook', () => {
 async function getPipelineExecutor() {
     const pipeline = await pipelineStringToJson(
         spaceTrim(`
-            # Sample prompt
+            # Example prompt
 
             Show how to execute a script
 

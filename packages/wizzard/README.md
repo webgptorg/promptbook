@@ -73,7 +73,7 @@ In any of these situations, but especially in (3), the Promptbook library can ma
 -   Multiple promptbooks forms a library which will become a **part of your application codebase**.
 -   Theese promptbooks are designed such as they **can be written by non-programmers**.
 
-### Sample:
+### Example:
 
 File `write-website-content.ptbk.md`:
 
@@ -291,7 +291,7 @@ flowchart LR
   end;
 ```
 
-[More template samples](./samples/pipelines/)
+[More template examples](./examples/pipelines/)
 
 _Note: We are using [postprocessing functions](#postprocessing-functions) like `unwrapResult` that can be used to postprocess the result._
 
@@ -509,7 +509,7 @@ This can be useful, for example, if you want to use some predefined data, or if 
 
 When using wildcards, you must have at least one minimum expectation. If you do not have a minimum expectation, the joker will always fulfil the expectation because it has none, so it makes no logical sense.
 
-Look at [jokers.ptbk.md](samples/pipelines/41-jokers.ptbk.md) sample.
+Look at [jokers.ptbk.md](examples/pipelines/41-jokers.ptbk.md) example.
 
 ### Postprocessing functions
 
@@ -529,9 +529,9 @@ It can set limits for the maximum/minimum length of the output, measured in char
 _Note: LLMs work with tokens, not characters, but in Promptbooks we want to use some human-recognisable and cross-model interoperable units._
 
 ```markdown
-# ✨ Sample: Expectations
+# ✨ Example: Expectations
 
--   PIPELINE URL https://promptbook.studio/samples/postprocessing-2.ptbk.md@v1
+-   PIPELINE URL https://promptbook.studio/examples/postprocessing-2.ptbk.md@v1
 -   PROMPTBOOK VERSION 1.0.0
 -   INPUT  PARAMETER {yourName} Name of the hero
 
@@ -559,13 +559,13 @@ There are two types of expectations which are not strictly symmetrical:
 -   `EXPECT MAX 0 ...` is valid maximal expectation. For example, you can expect 0 pages and 2 sentences.
 -   `FORMAT JSON` is both minimal and maximal expectation
 
-Look at [expectations.ptbk.md](samples/pipelines/45-expectations.ptbk.md) and [expect-json.ptbk.md](samples/pipelines/45-expect-json.ptbk.md) samples for more.
+Look at [expectations.ptbk.md](examples/pipelines/45-expectations.ptbk.md) and [expect-json.ptbk.md](examples/pipelines/45-expect-json.ptbk.md) examples for more.
 
 ### Execution report
 
 Execution report is a simple object or markdown that contains information about the execution of the pipeline.
 
-[See the example of such a report](/samples/pipelines/50-advanced.report.md)
+[See the example of such a report](/examples/pipelines/50-advanced.report.md)
 
 ### Remote server
 
@@ -578,8 +578,8 @@ This is useful to make all logic on browser side but not expose your API keys or
 
 ### 🔌 Usage in Typescript / Javascript
 
--   [Simple usage](./samples/usage/simple-script)
--   [Usage with client and remote server](./samples/usage/remote)
+-   [Simple usage](./examples/usage/simple-script)
+-   [Usage with client and remote server](./examples/usage/remote)
 
 ## ➕➖ When to use Promptbook?
 

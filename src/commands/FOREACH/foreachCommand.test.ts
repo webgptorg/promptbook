@@ -249,7 +249,7 @@ describe('how FOREACH command in .ptbk.md files works', () => {
         ).toThrowError(/FOREACH command can not have more than one output subparameter/i);
     });
 
-    it(`should work with all samples`, () => {
+    it(`should work with all examples`, () => {
         // Note: This is tested also in the common test file parseCommand.test.ts
         for (const example of foreachCommandParser.examples) {
             expect(() => parseCommand(example, 'PIPELINE_TEMPLATE')).not.toThrowError();

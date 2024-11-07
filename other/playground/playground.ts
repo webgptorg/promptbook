@@ -35,7 +35,7 @@ async function playground() {
     //========================================>
 
     const collection = await createCollectionFromDirectory(
-        './samples/pipelines/',
+        './examples/pipelines/',
         {},
         {
             isVerbose: true,
@@ -44,7 +44,7 @@ async function playground() {
         },
     );
 
-    const pipeline = await collection.getPipelineByUrl('https://promptbook.studio/samples/simple-knowledge.ptbk.md');
+    const pipeline = await collection.getPipelineByUrl('https://promptbook.studio/examples/simple-knowledge.ptbk.md');
 
     await forTime(100);
 

@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>🔵 Testing remote server of PromptBook</title>
+    </head>
+    <body>
+        <h1>esting remote server of PromptBook</h1>
+
+        <form id="input">
+            <input type="text" name="userId" value="my-client-id" />
+            <input type="text" name="word" value="Cat" />
+            <input type="submit" value="Pun pipeline" />
+        </form>
+        <pre id="output"><pre>
+
+        <script type="module">
+            // TODO: [🍓] This must work - BUT first do browser example
+            // TODO: [🍓][🤣] Auto update version
+            import { RemoteLlmExecutionTools } from 'https://cdn.jsdelivr.net/npm/@promptbook/remote-client@0.40.0/+esm';
+            import { JavascriptExecutionTools } from 'https://cdn.jsdelivr.net/npm/@promptbook/execute-javascript@0.40.0/+esm';
+            import { createCollectionFromJson } from 'https://cdn.jsdelivr.net/npm/@promptbook/core@0.40.0/+esm';
+
+            const inputForm = document.getElementById('input');
+            const outputElement = document.getElementById('output');
+
+            inputForm.addEventListener('submit', async (event) => {
+                event.preventDefault();
+
+                console.info('🔵 Testing remote server of PromptBook');
+
+
+                const formData = new FormData(
+event.target);
+                const word = formData.get('word');
+                const userId = formData.get('userId');
+
+
+
+                // TODO: [🍓][⚖] createCollectionFromUrl
+                const collection = createCollectionFromJson(
+                    advanced
+
+                );
+
+                const tools = {
+                    llm:  new RemoteLlmExecutionTools(
+                                {
+                                    path: '/promptbook',
+                                    remoteUrl: `http://localhost:4460/`,
+                                    userId,
+                                    // <- [🧜‍♂️]
+                                }),
+                    script: [
+                        new JavascriptExecutionTools(
+                        {
+                            isVerbose: true,
+                        }),
+                    ],
+                    userInterface: null,
+                };
+
+                /*
+                TODO: [🍓] Uncomment - This must work @see https://github.com/webgptorg/promptbook/discussions/74
+
+
+                const pipelineExecutor = library.createExecutor('advanced', tools);
+
+                const input = { word };
+                const output = await pipelineExecutor(input,(progress)=>{
+                    console.info('☑',progress);
+                });
+
+                console.info(output);
+                outputElement.innerText = JSON.stringify(output, null, 4);
+
+                */
+            });
+        </script>
+    </body>
+</html>

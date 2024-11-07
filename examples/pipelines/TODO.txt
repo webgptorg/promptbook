@@ -1,0 +1,11 @@
+TODO: [🍓] Standardize emojis above titles and subtitles in example pipelines
+TODO: [🍓] Standardize block types ``` vs ```text vs ```markdown in example pipelines
+TODO: [Ж] Test personas with weird non-latin names
+TODO: [🧠] Figure out less simmilar word for "single", "simple" and "example"
+TODO: [🧠] Do not allow model in header of promptbook
+TODO: [🧠] Do not allow invalid model command like "MODEL MODEL Chat"
+TODO: [🧠] Mermaid graphs are messy in .ptbk.md files - figure out better solution
+TODO: Allow external knowledge from documents and websites @see `27-document-knowledge.ptbk.md` and `28-external-knowledge.ptbk.md`
+TODO: Use here mostly personas and in special cases explicit model variant and names and in superspecial cases override temperature etc...
+TODO: There should be some mechanism when using SIMPLE template with examples that can detect impossible examples acording to template
+TODO: [🍙] Make some standard order of json properties

@@ -12,7 +12,7 @@ export type FormatSubvalueDefinition<TValue extends string, TSettings extends em
     /**
      * The name of the format used in .ptbk.md files
      *
-     * @sample "CELL"
+     * @example "CELL"
      */
     readonly subvalueName: string_name & string_SCREAMING_CASE;
 

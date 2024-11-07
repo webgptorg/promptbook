@@ -145,8 +145,8 @@ The following glossary is used to clarify certain concepts:
 
 ## 🔌 Usage in Typescript / Javascript
 
--   [Simple usage](./samples/usage/simple-script)
--   [Usage with client and remote server](./samples/usage/remote)
+-   [Simple usage](./examples/usage/simple-script)
+-   [Usage with client and remote server](./examples/usage/remote)
 
 ## ➕➖ When to use Promptbook?
 

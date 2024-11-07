@@ -41,7 +41,7 @@ describe('createPipelineExecutor + executing user interface prompts in promptboo
 async function getPipelineExecutor() {
     const pipeline = await pipelineStringToJson(
         spaceTrim(`
-            # Sample prompt
+            # Example prompt
 
             Show how to use prompt dialog
 

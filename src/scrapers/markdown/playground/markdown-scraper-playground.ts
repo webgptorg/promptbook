@@ -30,11 +30,11 @@ async function playground() {
     // Do here stuff you want to test
     //========================================>
 
-    const sample = '10-simple.md';
-    //               <- TODO: [👩🏿‍🤝‍👩🏼] Read here the samples directory and itterate through all of them
+    const example = '10-simple.md';
+    //               <- TODO: [👩🏿‍🤝‍👩🏼] Read here the examples directory and itterate through all of them
 
     const llmTools = $provideLlmToolsForTestingAndScriptsAndPlayground({ isCacheReloaded: true });
-    const rootDirname = join(__dirname, '..', 'samples');
+    const rootDirname = join(__dirname, '..', 'examples');
 
     const markdownScraper = new MarkdownScraper(
         { llm: $provideLlmToolsForTestingAndScriptsAndPlayground() },
@@ -45,7 +45,7 @@ async function playground() {
 
     const knowledge = await markdownScraper.scrape(
         await makeKnowledgeSourceHandler(
-            { sourceContent: sample },
+            { sourceContent: example },
             { fs: $provideFilesystemForNode() },
             { rootDirname },
         ),
@@ -58,7 +58,7 @@ async function playground() {
     await writeFile(
         join(
             __dirname,
-            `../samples/${sample}.knowledge.json` /* <- TODO: [👩🏿‍🤝‍👩🏼] Read here the samples directory and itterate through all of them */,
+            `../examples/${example}.knowledge.json` /* <- TODO: [👩🏿‍🤝‍👩🏼] Read here the examples directory and itterate through all of them */,
         ),
         stringifyPipelineJson(knowledge),
         'utf-8',

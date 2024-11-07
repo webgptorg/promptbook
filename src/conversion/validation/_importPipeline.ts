@@ -12,14 +12,14 @@ import type { string_json } from '../../types/typeAliases';
  * Note: Using here custom import to work in jest tests
  * Note: Using sync version is 💩 in the production code, but it's ok here in tests
  *
- * @param path - The path to the file relative to samples/pipelines directory
+ * @param path - The path to the file relative to examples/pipelines directory
  * @private internal function of tests
  */
 export function importPipelineWithoutPreparation(path: `${string}.ptbk.md`): PipelineString;
 export function importPipelineWithoutPreparation(path: `${string}.ptbk.json`): PipelineJson;
 export function importPipelineWithoutPreparation(path: string_filename): PipelineString | PipelineJson {
-    const samplesDir = '../../../samples/pipelines'; // <- TODO: [🚏] DRY, to config
-    const content = readFileSync(join(__dirname, samplesDir, path), 'utf-8');
+    const examplesDir = '../../../examples/pipelines'; // <- TODO: [🚏] DRY, to config
+    const content = readFileSync(join(__dirname, examplesDir, path), 'utf-8');
     //                         <- Note: In production it is not good practice to use synchronous functions
     //                                  But this is only a test before the build, so it is okay
     if (path.endsWith('.ptbk.json')) {
@@ -50,8 +50,8 @@ export function importPipelineJson(path: `${string}.ptbk.json`): PipelineJson {
  * @private internal function of tests
  */
 export function importPipelineJsonAsString(path: `${string}.ptbk.json`): string_json<PipelineJson> {
-    const samplesDir = '../../../samples/pipelines'; // <- TODO: [🚏] DRY, to config
-    const content = readFileSync(join(__dirname, samplesDir, path), 'utf-8');
+    const examplesDir = '../../../examples/pipelines'; // <- TODO: [🚏] DRY, to config
+    const content = readFileSync(join(__dirname, examplesDir, path), 'utf-8');
     //                         <- Note: In production it is not good practice to use synchronous functions
     //                                  But this is only a test before the build, so it is okay
     return content as string_json<PipelineJson>;

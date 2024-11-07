@@ -40,7 +40,7 @@ describe('how PROMPTBOOK_VERSION command in .ptbk.md files works', () => {
         expect(() => parseCommand('V 0.62.0', 'PIPELINE_HEAD')).toThrowError(/Malformed or unknown command/i);
     });
 
-    it(`should work with all samples`, () => {
+    it(`should work with all examples`, () => {
         // Note: This is tested also in the common test file parseCommand.test.ts
         for (const example of promptbookVersionCommandParser.examples) {
             expect(() => parseCommand(example, 'PIPELINE_HEAD')).not.toThrowError();

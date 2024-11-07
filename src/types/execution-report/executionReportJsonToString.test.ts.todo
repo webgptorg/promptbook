@@ -39,7 +39,7 @@ Summary of all failing tests
 
       22 |                     ),
       23 |                 ),
-    > 24 |             ).toEqual(readFileSync(join(__dirname, samplesDir, name).replace('.report.json', '.report.md'), 'utf-8'));
+    > 24 |             ).toEqual(readFileSync(join(__dirname, examplesDir, name).replace('.report.json', '.report.md'), 'utf-8'));
          |               ^
       25 |         });
       26 |     }
@@ -58,24 +58,24 @@ Ran all test suites.
 */
 
 describe('executionReportJsonToString.test', () => {
-    const samplesDir = '../../../samples/pipelines'; // <- TODO: [🚏] DRY, to config
-    const samples = readdirSync(join(__dirname, samplesDir), { withFileTypes: true, recursive: false })
+    const examplesDir = '../../../examples/pipelines'; // <- TODO: [🚏] DRY, to config
+    const examples = readdirSync(join(__dirname, examplesDir), { withFileTypes: true, recursive: false })
         //                         <- Note: In production it is not good practice to use synchronous functions
         //                                  But this is only a test before the build, so it is okay
         .filter((dirent) => dirent.isFile())
         .filter(({ name }) => name.endsWith('.report.json'));
 
-    for (const { name } of samples) {
+    for (const { name } of examples) {
         it(`should generate report for ${name}`, () => {
             expect(
                 executionReportJsonToString(
                     JSON.parse(
-                        readFileSync(join(__dirname, samplesDir, name), 'utf-8'),
+                        readFileSync(join(__dirname, examplesDir, name), 'utf-8'),
                         //          <- Note: In production it is not good practice to use synchronous functions
                         //                   But this is only a test before the build, so it is okay
                     ),
                 ),
-            ).toEqual(readFileSync(join(__dirname, samplesDir, name).replace('.report.json', '.report.md'), 'utf-8'));
+            ).toEqual(readFileSync(join(__dirname, examplesDir, name).replace('.report.json', '.report.md'), 'utf-8'));
         });
     }
 });

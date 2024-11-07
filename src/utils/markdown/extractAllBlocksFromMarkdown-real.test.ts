@@ -3,11 +3,11 @@ import { readFileSync } from 'fs';
 import spaceTrim from 'spacetrim';
 import { extractAllBlocksFromMarkdown } from './extractAllBlocksFromMarkdown';
 
-describe('how extractAllBlocksFromMarkdown works in real sample', () => {
-    it('should work with sample with no code blocks', () => {
+describe('how extractAllBlocksFromMarkdown works in real example', () => {
+    it('should work with example with no code blocks', () => {
         expect(
             extractAllBlocksFromMarkdown(
-                readFileSync('samples/pipelines/30-escaping.ptbk.md', 'utf-8'),
+                readFileSync('examples/pipelines/30-escaping.ptbk.md', 'utf-8'),
                 // <- Note: Its OK to use sync in tests
             ),
         ).toContainEqual({

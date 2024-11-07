@@ -43,7 +43,7 @@ describe('how BOILERPLATE command in .ptbk.md files works', () => {
         );
     });
 
-    it(`should work with all samples`, () => {
+    it(`should work with all examples`, () => {
         // Note: This is tested also in the common test file parseCommand.test.ts
         for (const example of boilerplateCommandParser.examples) {
             // TODO: Remove places not using the command:

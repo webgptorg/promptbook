@@ -7,7 +7,7 @@ import type { PipelineString } from '../../../types/PipelineString';
 import { PROMPTBOOK_VERSION } from '../../../version';
 import { MockedFackedLlmExecutionTools } from '../MockedFackedLlmExecutionTools';
 
-describe('createPipelineExecutor + MockedFackedLlmExecutionTools with sample completion prompt', () => {
+describe('createPipelineExecutor + MockedFackedLlmExecutionTools with example completion prompt', () => {
     it('should work when every INPUT PARAMETER defined', async () => {
         const pipelineExecutor = await getPipelineExecutor();
         expect(pipelineExecutor({ thing: 'a cup of coffee' }, () => {})).resolves.toMatchObject({
@@ -23,10 +23,10 @@ describe('createPipelineExecutor + MockedFackedLlmExecutionTools with sample com
             isSuccessful: false,
             errors: [/Parameter {thing} is required as an input parameter/i],
             executionReport: {
-                title: 'Sample prompt',
+                title: 'Example prompt',
                 description: 'Show how to use a simple completion prompt',
                 promptExecutions: [],
-                pipelineUrl: 'https://promptbook.studio/samples/pipeline.ptbk.md',
+                pipelineUrl: 'https://promptbook.studio/examples/pipeline.ptbk.md',
                 promptbookRequestedVersion: '1.0.0',
                 promptbookUsedVersion: PROMPTBOOK_VERSION,
             },
@@ -89,12 +89,12 @@ describe('createPipelineExecutor + MockedFackedLlmExecutionTools with sample com
 async function getPipelineExecutor() {
     const pipeline = await pipelineStringToJson(
         spaceTrim(`
-            # Sample prompt
+            # Example prompt
 
             Show how to use a simple completion prompt
 
             -   PROMPTBOOK VERSION 1.0.0
-            -   PIPELINE URL https://promptbook.studio/samples/pipeline.ptbk.md
+            -   PIPELINE URL https://promptbook.studio/examples/pipeline.ptbk.md
             -   INPUT  PARAMETER {thing} Any thing to buy
             -   OUTPUT PARAMETER {response}
 

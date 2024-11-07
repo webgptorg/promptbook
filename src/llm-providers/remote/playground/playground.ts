@@ -36,7 +36,7 @@ async function playground() {
         isAnonymousModeAllowed: true,
         isApplicationModeAllowed: true,
         collection: await createCollectionFromDirectory(
-            './samples/pipelines/',
+            './examples/pipelines/',
             {},
             {
                 isRecursive: false,

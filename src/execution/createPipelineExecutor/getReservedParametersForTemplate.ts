@@ -9,7 +9,7 @@ import type { TemplateJson } from '../../types/PipelineJson/TemplateJson';
 import type { ReservedParameters } from '../../types/typeAliases';
 import { getContextForTemplate } from './getContextForTemplate';
 import { getKnowledgeForTemplate } from './getKnowledgeForTemplate';
-import { getSamplesForTemplate } from './getSamplesForTemplate';
+import { getExamplesForTemplate } from './getExamplesForTemplate';
 
 /**
  * @@@
@@ -45,7 +45,7 @@ export async function getReservedParametersForTemplate(
 
     const context = await getContextForTemplate(template); // <- [🏍]
     const knowledge = await getKnowledgeForTemplate({ preparedPipeline, template });
-    const samples = await getSamplesForTemplate(template);
+    const examples = await getExamplesForTemplate(template);
     const currentDate = new Date().toISOString(); // <- TODO: [🧠] Better
     const modelName = RESERVED_PARAMETER_MISSING_VALUE;
 
@@ -53,7 +53,7 @@ export async function getReservedParametersForTemplate(
         content: RESERVED_PARAMETER_RESTRICTED,
         context, // <- [🏍]
         knowledge,
-        samples,
+        examples,
         currentDate,
         modelName,
     };

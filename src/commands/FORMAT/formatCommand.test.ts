@@ -19,7 +19,7 @@ describe('how FORMAT command in .ptbk.md files works', () => {
         expect(() => parseCommand('FORMAT brr', 'PIPELINE_TEMPLATE')).toThrowError(/Invalid FORMAT command/i);
     });
 
-    it(`should work with all samples`, () => {
+    it(`should work with all examples`, () => {
         // Note: This is tested also in the common test file parseCommand.test.ts
         for (const example of formatCommandParser.examples) {
             expect(() => parseCommand(example, 'PIPELINE_TEMPLATE')).not.toThrowError();

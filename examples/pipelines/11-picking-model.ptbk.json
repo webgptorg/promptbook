@@ -1,0 +1,110 @@
+{
+    "pipelineUrl": "https://promptbook.studio/examples/picking-model.ptbk.md",
+    "title": "✨ Pick the model",
+    "description": "Show how to pick exact model",
+    "parameters": [
+        {
+            "name": "word",
+            "description": "Any single word",
+            "isInput": true,
+            "isOutput": false
+        },
+        {
+            "name": "poem",
+            "isInput": false,
+            "isOutput": true,
+            "exampleValues": [
+                "Roses are red, violets are blue, sugar is sweet, and so are you.",
+                "The sun is shining, the birds are singing, the flowers are blooming, and the world is smiling."
+            ]
+        }
+    ],
+    "templates": [
+        {
+            "templateType": "PROMPT_TEMPLATE",
+            "name": "synonym",
+            "title": "💬 Synonym",
+            "description": "Synonym for word",
+            "content": "Write poem with word \"{word}\"",
+            "resultingParameterName": "poem",
+            "personaName": "Jane",
+            "modelRequirements": {
+                "modelVariant": "CHAT",
+                "modelName": "gpt-4-1106-preview"
+            },
+            "dependentParameterNames": ["word"]
+        }
+    ],
+    "knowledgeSources": [],
+    "knowledgePieces": [],
+    "personas": [
+        {
+            "name": "Jane",
+            "description": "a poet",
+            "modelRequirements": {
+                "modelVariant": "CHAT",
+                "modelName": "gpt-4-turbo-2024-04-09",
+                "systemMessage": "You are a poetic virtual assistant with a deep appreciation for language and imagery. Communicate with lyrical flair, using metaphors and vivid descriptions. Draw inspiration from nature, emotions, and the human experience. Offer creative insights and help users express themselves poetically.",
+                "temperature": 0.8
+            },
+            "preparationIds": [1]
+        }
+    ],
+    "preparations": [
+        {
+            "id": 1,
+            "promptbookVersion": "0.72.0",
+            "usage": {
+                "price": {
+                    "value": 0.0047940000000000005
+                },
+                "input": {
+                    "tokensCount": {
+                        "value": 983
+                    },
+                    "charactersCount": {
+                        "value": 2126
+                    },
+                    "wordsCount": {
+                        "value": 305
+                    },
+                    "sentencesCount": {
+                        "value": 21
+                    },
+                    "linesCount": {
+                        "value": 55
+                    },
+                    "paragraphsCount": {
+                        "value": 20
+                    },
+                    "pagesCount": {
+                        "value": 5
+                    }
+                },
+                "output": {
+                    "tokensCount": {
+                        "value": 123
+                    },
+                    "charactersCount": {
+                        "value": 0
+                    },
+                    "wordsCount": {
+                        "value": 0
+                    },
+                    "sentencesCount": {
+                        "value": 0
+                    },
+                    "linesCount": {
+                        "value": 0
+                    },
+                    "paragraphsCount": {
+                        "value": 0
+                    },
+                    "pagesCount": {
+                        "value": 0
+                    }
+                }
+            }
+        }
+    ]
+}

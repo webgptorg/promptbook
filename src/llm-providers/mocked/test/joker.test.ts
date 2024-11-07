@@ -6,7 +6,7 @@ import { createPipelineExecutor } from '../../../execution/createPipelineExecuto
 import type { PipelineString } from '../../../types/PipelineString';
 import { MockedEchoLlmExecutionTools } from '../MockedEchoLlmExecutionTools';
 
-describe('createPipelineExecutor + MockedEchoExecutionTools with sample chat prompt', () => {
+describe('createPipelineExecutor + MockedEchoExecutionTools with example chat prompt', () => {
     it('should work when joker is used', async () => {
         const pipelineExecutor = await getPipelineExecutor();
         expect(pipelineExecutor({ yourName: 'Good name' }, () => {})).resolves.toMatchObject({
@@ -36,7 +36,7 @@ describe('createPipelineExecutor + MockedEchoExecutionTools with sample chat pro
 async function getPipelineExecutor() {
     const pipeline = await pipelineStringToJson(
         spaceTrim(`
-            # ✨ Sample: Jokers
+            # ✨ Example: Jokers
 
             -   MODEL VARIANT Chat
             -   MODEL NAME gpt-3.5-turbo

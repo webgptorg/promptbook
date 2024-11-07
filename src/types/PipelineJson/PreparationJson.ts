@@ -30,5 +30,5 @@ export type PreparationJson = {
 /**
  * TODO: [🍙] Make some standard order of json properties
  * TODO: Maybe put here used `modelName`
- * TODO: [🍥] When using `date` it changes all samples .ptbk.json files each time so until some more elegant solution omit the time from prepared pipeline
+ * TODO: [🍥] When using `date` it changes all examples .ptbk.json files each time so until some more elegant solution omit the time from prepared pipeline
  */

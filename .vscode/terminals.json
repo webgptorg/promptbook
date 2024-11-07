@@ -2,29 +2,29 @@
     "autokill": true,
     "terminals": [
         {
-            "name": "👨‍💻⚪ Run simple-script sample (💸)",
-            "command": "npx ts-node ./samples/usage/simple-script/simple-script.ts",
+            "name": "👨‍💻⚪ Run simple-script example (💸)",
+            "command": "npx ts-node ./examples/usage/simple-script/simple-script.ts",
             "execute": false,
             "onlySingle": false,
             "focus": false
         },
         {
-            "name": "👨‍💻🔴 Run logging sample (💸)",
-            "command": "npx ts-node ./samples/usage/logging/logging.ts",
+            "name": "👨‍💻🔴 Run logging example (💸)",
+            "command": "npx ts-node ./examples/usage/logging/logging.ts",
             "execute": false,
             "onlySingle": false,
             "focus": false
         },
         {
-            "name": "👨‍💻🔵 Run remote sample (💸)",
-            "command": "npx ts-node ./samples/usage/remote/server.ts",
+            "name": "👨‍💻🔵 Run remote example (💸)",
+            "command": "npx ts-node ./examples/usage/remote/server.ts",
             "execute": false,
             "onlySingle": false,
             "focus": false
         },
         {
-            "name": "👨‍💻🔽 Install promptbook for usage samples",
-            "cwd": "./samples/usage/",
+            "name": "👨‍💻🔽 Install promptbook for usage examples",
+            "cwd": "./examples/usage/",
             "command": "npm i",
             "execute": false,
             "onlySingle": false,
@@ -38,8 +38,8 @@
             "focus": false
         },
         {
-            "name": "🧪 Lint (samples)",
-            "command": "npx eslint samples",
+            "name": "🧪 Lint (examples)",
+            "command": "npx eslint examples",
             "execute": false,
             "onlySingle": false,
             "focus": false
@@ -79,19 +79,19 @@
             "focus": false
         },
         {
-            "name": "🏭📖 Generate samples .ptbk.md -> .ptbk.json (💸) [🍠]",
+            "name": "🏭📖 Generate examples .ptbk.md -> .ptbk.json (💸) [🍠]",
             "commands": [
                 "npx ts-node ./scripts/make-promptbook-collection/make-promptbook-collection.ts --verbose",
-                "npx ts-node ./scripts/generate-samples-jsons/generate-samples-jsons.ts --verbose"
+                "npx ts-node ./scripts/generate-examples-jsons/generate-examples-jsons.ts --verbose"
             ],
             "execute": false,
             "onlySingle": false,
             "focus": false
         },
         {
-            "name": "🏭📖 Prettify samples and add mermaid graphs -> .ptbk.md",
+            "name": "🏭📖 Prettify examples and add mermaid graphs -> .ptbk.md",
             "commands": [
-                "npx ts-node ./scripts/promptbook-cli/promptbook-cli.ts prettify samples/pipelines/**/*.ptbk.md --ignore \"samples/pipelines/errors/**/*.ptbk.md\""
+                "npx ts-node ./scripts/promptbook-cli/promptbook-cli.ts prettify examples/pipelines/**/*.ptbk.md --ignore \"examples/pipelines/errors/**/*.ptbk.md\""
             ],
             "execute": false,
             "onlySingle": false,
@@ -99,7 +99,7 @@
         },
         {
             "name": "🏭📖 Generate reports .report.json -> .report.md",
-            "commands": ["npx ts-node ./scripts/generate-sample-reports/generate-sample-reports.ts"],
+            "commands": ["npx ts-node ./scripts/generate-example-reports/generate-example-reports.ts"],
             "execute": true,
             "onlySingle": true,
             "focus": true

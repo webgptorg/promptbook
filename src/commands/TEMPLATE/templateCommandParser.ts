@@ -7,10 +7,12 @@ import type { TemplateJson } from '../../types/PipelineJson/TemplateJson';
 import type { string_markdown_text } from '../../types/typeAliases';
 import { keepUnused } from '../../utils/organization/keepUnused';
 import { knowledgeCommandParser } from '../KNOWLEDGE/knowledgeCommandParser';
-import type { $PipelineJson } from '../_common/types/CommandParser';
-import type { $TemplateJson } from '../_common/types/CommandParser';
-import type { CommandParserInput } from '../_common/types/CommandParser';
-import type { PipelineTemplateCommandParser } from '../_common/types/CommandParser';
+import type {
+    $PipelineJson,
+    $TemplateJson,
+    CommandParserInput,
+    PipelineTemplateCommandParser,
+} from '../_common/types/CommandParser';
 import type { TemplateCommand } from './TemplateCommand';
 import { TemplateTypes } from './TemplateTypes';
 
@@ -72,7 +74,7 @@ export const templateCommandParser: PipelineTemplateCommandParser<TemplateComman
         'SCRIPT',
         'DIALOG',
         // <- [🅱]
-        'SAMPLE',
+        'EXAMPLE',
         'KNOWLEDGE', // <- Note:  [⛱] Thare can not be confusion with KNOWLEDGE command because KNOWLEDGE command is not used in templates but in pipeline head
         'INSTRUMENT', // <- Note: [⛱] -- || --
         'ACTION', // <- Note:     [⛱] -- || --
@@ -110,7 +112,7 @@ export const templateCommandParser: PipelineTemplateCommandParser<TemplateComman
     parse(input: CommandParserInput): TemplateCommand {
         let { normalized } = input;
 
-        normalized = normalized.split('EXAMPLE').join('SAMPLE');
+        normalized = normalized.split('SAMPLE').join('EXAMPLE');
         const templateTypes = TemplateTypes.filter((templateType) =>
             normalized.includes(templateType.split('_TEMPLATE').join('')),
         );
@@ -168,7 +170,7 @@ export const templateCommandParser: PipelineTemplateCommandParser<TemplateComman
             );
         }
 
-        if (command.templateType === 'SAMPLE') {
+        if (command.templateType === 'EXAMPLE') {
             expectResultingParameterName();
 
             const parameter = $pipelineJson.parameters.find(
@@ -176,11 +178,11 @@ export const templateCommandParser: PipelineTemplateCommandParser<TemplateComman
             );
             if (parameter === undefined) {
                 throw new ParseError(
-                    `Can not find parameter {${$templateJson.resultingParameterName}} to assign sample value on it`,
+                    `Can not find parameter {${$templateJson.resultingParameterName}} to assign example value on it`,
                 );
             }
-            parameter.sampleValues = parameter.sampleValues || [];
-            parameter.sampleValues.push($templateJson.content);
+            parameter.exampleValues = parameter.exampleValues || [];
+            parameter.exampleValues.push($templateJson.content);
 
             $templateJson.isTemplate = false;
             return;

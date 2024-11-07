@@ -13,7 +13,7 @@
 You are experienced AI engineer, you need to create virtual assistant.
 Write
 
-## Sample
+## Example
 
 \`\`\`json
 {

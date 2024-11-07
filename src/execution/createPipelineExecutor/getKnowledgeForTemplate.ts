@@ -32,7 +32,7 @@ export async function getKnowledgeForTemplate(
 ): Promise<string_parameter_value & string_markdown> {
     const { preparedPipeline, template } = options;
 
-    // TODO: [♨] Implement Better - use real index and keyword search from `template` and {samples}
+    // TODO: [♨] Implement Better - use real index and keyword search from `template` and {examples}
 
     TODO_USE(template);
     return preparedPipeline.knowledgePieces.map(({ content }) => `- ${content}`).join('\n');

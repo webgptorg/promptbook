@@ -1,0 +1,53 @@
+{
+    "title": "✨ Example: Expectations",
+    "pipelineUrl": "https://promptbook.studio/examples/expectations.ptbk.md",
+    "parameters": [
+        {
+            "name": "yourName",
+            "description": "Name of the hero",
+            "isInput": true,
+            "isOutput": false
+        },
+        {
+            "name": "greeting",
+            "isInput": false,
+            "isOutput": true,
+            "exampleValues": ["Hello John!"]
+        }
+    ],
+    "templates": [
+        {
+            "templateType": "PROMPT_TEMPLATE",
+            "name": "question",
+            "title": "💬 Question",
+            "content": "Hello {yourName}!",
+            "resultingParameterName": "greeting",
+            "modelRequirements": {
+                "modelVariant": "CHAT",
+                "modelName": "gpt-3.5-turbo"
+            },
+            "expectations": {
+                "characters": {
+                    "max": 30,
+                    "min": 2
+                },
+                "words": {
+                    "max": 3
+                },
+                "sentences": {
+                    "min": 1,
+                    "max": 1
+                },
+                "lines": {
+                    "min": 1,
+                    "max": 1
+                }
+            },
+            "dependentParameterNames": ["yourName"]
+        }
+    ],
+    "knowledgeSources": [],
+    "knowledgePieces": [],
+    "personas": [],
+    "preparations": []
+}

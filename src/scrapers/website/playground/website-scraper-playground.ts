@@ -31,12 +31,12 @@ async function playground() {
     // Do here stuff you want to test
     //========================================>
 
-    const sample = 'https://www.pavolhejny.com/'; // <- TODO: Not scraping really important information, just one-two paragraph
-    //const sample = 'https://koralkykatlas.cz/cs/blog/prispevek/-rijna-zhorseni-kvality-kovove-bizuterie.html';
+    const example = 'https://www.pavolhejny.com/'; // <- TODO: Not scraping really important information, just one-two paragraph
+    //const example = 'https://koralkykatlas.cz/cs/blog/prispevek/-rijna-zhorseni-kvality-kovove-bizuterie.html';
     //               <- TODO: [👩🏿‍🤝‍👩🏼] Read here website-scraper-playground.ts and itterate
 
     const llmTools = $provideLlmToolsForTestingAndScriptsAndPlayground({ isCacheReloaded: true });
-    const rootDirname = join(__dirname, 'samples');
+    const rootDirname = join(__dirname, 'examples');
 
     const websiteScraper = new WebsiteScraper(
         { llm: $provideLlmToolsForTestingAndScriptsAndPlayground() },
@@ -46,7 +46,7 @@ async function playground() {
     );
 
     const source = await makeKnowledgeSourceHandler(
-        { sourceContent: sample },
+        { sourceContent: example },
         { fs: $provideFilesystemForNode() },
         { rootDirname },
     );
@@ -64,9 +64,9 @@ async function playground() {
     await writeFile(
         join(
             __dirname,
-            `../samples/${titleToName(
-                sample,
-            )}.knowledge.json` /* <- TODO: [👩🏿‍🤝‍👩🏼] Read here the samples directory and itterate through all of them */,
+            `../examples/${titleToName(
+                example,
+            )}.knowledge.json` /* <- TODO: [👩🏿‍🤝‍👩🏼] Read here the examples directory and itterate through all of them */,
         ),
         stringifyPipelineJson(knowledge),
         'utf-8',

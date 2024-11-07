@@ -68,7 +68,7 @@ describe('createPipelineExecutor + executing scripts in promptbook', () => {
 async function getPipelineExecutor() {
     const pipeline = await pipelineStringToJson(
         spaceTrim(`
-          # Sample prompt
+          # Example prompt
 
           Show how to execute a script
 
@@ -90,25 +90,19 @@ async function getPipelineExecutor() {
     const pipelineExecutor = createPipelineExecutor({
         pipeline,
         tools: {
-            llm: new MockedEchoLlmExecutionTools(
-                { isVerbose: true },
-            ),
+            llm: new MockedEchoLlmExecutionTools({ isVerbose: true }),
             script: [
-                new JavascriptExecutionTools(
-                    {
-                        isVerbose: true,
-                        // Note: [🕎] Custom functions are tested elsewhere
-                    },
-                ),
-            ],
-            userInterface: new CallbackInterfaceTools(
-                {
+                new JavascriptExecutionTools({
                     isVerbose: true,
-                    async callback() {
-                        return 'Hello';
-                    },
+                    // Note: [🕎] Custom functions are tested elsewhere
+                }),
+            ],
+            userInterface: new CallbackInterfaceTools({
+                isVerbose: true,
+                async callback() {
+                    return 'Hello';
                 },
-            ),
+            }),
         },
     });
 

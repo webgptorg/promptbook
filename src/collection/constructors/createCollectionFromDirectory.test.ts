@@ -10,11 +10,11 @@ import { createCollectionFromDirectory } from './createCollectionFromDirectory';
 describe('createCollectionFromDirectory', () => {
     // Note: It doesn't matter if the code block is ``` or >
     const pipeline = spaceTrim(`
-          # ✨ Sample prompt with URL
+          # ✨ Example prompt with URL
 
           Show how to use a simple prompt with no parameters.
 
-          -   PIPELINE URL https://promptbook.studio/samples/simple.ptbk.md
+          -   PIPELINE URL https://promptbook.studio/examples/simple.ptbk.md
           -   OUTPUT PARAMETER \`{greetingResponse}\`
 
 
@@ -27,7 +27,7 @@ describe('createCollectionFromDirectory', () => {
 
           ### Normal response
 
-          -   SAMPLE
+          -   EXAMPLE
 
           > Hello, how are you?
 
@@ -35,7 +35,7 @@ describe('createCollectionFromDirectory', () => {
 
           ### Formal response
 
-          -   SAMPLE
+          -   EXAMPLE
 
           > Dear Sir, how may I help you?
 
@@ -43,7 +43,7 @@ describe('createCollectionFromDirectory', () => {
 
           ### Informal response
 
-          -   SAMPLE
+          -   EXAMPLE
 
           > Hey, what's up?
 
@@ -56,7 +56,7 @@ describe('createCollectionFromDirectory', () => {
     it('should get pipeline by url from collection', async () => {
         expect.assertions(1);
         const collection = await createCollectionFromDirectory(
-            './samples/pipelines',
+            './examples/pipelines',
             {
                 fs: $provideFilesystemForNode(),
             },
@@ -67,7 +67,7 @@ describe('createCollectionFromDirectory', () => {
             },
         );
         let pipelineFromCollection = await collection.getPipelineByUrl(
-            'https://promptbook.studio/samples/simple.ptbk.md',
+            'https://promptbook.studio/examples/simple.ptbk.md',
         );
 
         pipelineFromCollection = unpreparePipeline(pipelineFromCollection);
@@ -80,7 +80,7 @@ describe('createCollectionFromDirectory', () => {
         expect.assertions(1);
 
         const collection = await createCollectionFromDirectory(
-            './samples/pipelines',
+            './examples/pipelines',
             { fs: $provideFilesystemForNode() },
             {
                 isVerbose: true,
@@ -89,7 +89,7 @@ describe('createCollectionFromDirectory', () => {
             },
         );
         let pipelineFromCollection = await collection.getPipelineByUrl(
-            'https://promptbook.studio/samples/simple.ptbk.md',
+            'https://promptbook.studio/examples/simple.ptbk.md',
         );
 
         pipelineFromCollection = unpreparePipeline(pipelineFromCollection);
@@ -102,7 +102,7 @@ describe('createCollectionFromDirectory', () => {
         expect.assertions(1);
 
         const collection = await createCollectionFromDirectory(
-            './samples/pipelines',
+            './examples/pipelines',
             { fs: $provideFilesystemForNode() },
             {
                 isVerbose: true,
@@ -110,7 +110,7 @@ describe('createCollectionFromDirectory', () => {
             },
         );
         let pipelineFromCollection = await collection.getPipelineByUrl(
-            'https://promptbook.studio/samples/jokers.ptbk.md',
+            'https://promptbook.studio/examples/jokers.ptbk.md',
         );
 
         pipelineFromCollection = unpreparePipeline(pipelineFromCollection);
@@ -123,7 +123,7 @@ describe('createCollectionFromDirectory', () => {
         expect(
             (async () => {
                 const collection = await createCollectionFromDirectory(
-                    './samples/pipelines',
+                    './examples/pipelines',
                     { fs: $provideFilesystemForNode() },
                     {
                         isVerbose: true,
@@ -140,7 +140,7 @@ describe('createCollectionFromDirectory', () => {
         expect(
             (async () => {
                 const collection = await createCollectionFromDirectory(
-                    './samples/pipelines',
+                    './examples/pipelines',
                     { fs: $provideFilesystemForNode() },
                     {
                         isVerbose: true,
@@ -151,14 +151,14 @@ describe('createCollectionFromDirectory', () => {
                 );
                 keepUnused(collection);
             })(),
-        ).rejects.toThrowError(/^ParseError in pipeline samples.*/i));
+        ).rejects.toThrowError(/^ParseError in pipeline examples.*/i));
 
     /*
     TODO: Make separate folder for errors and enable this test
     it('should find pipeline in subdirectory', () =>
         expect(
             (async () => {
-              const collection = await   createCollectionFromDirectory('./samples/pipelines',{}, {
+              const collection = await   createCollectionFromDirectory('./examples/pipelines',{}, {
                     isVerbose: true,
                     isRecursive: false,
                 });

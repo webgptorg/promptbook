@@ -9,7 +9,7 @@ describe('how ACTION command in .ptbk.md files works', () => {
         });
     });
 
-    it(`should work with all samples`, () => {
+    it(`should work with all examples`, () => {
         // Note: This is tested also in the common test file parseCommand.test.ts
         for (const example of actionCommandParser.examples) {
             expect(() => parseCommand(example, 'PIPELINE_HEAD')).not.toThrowError();

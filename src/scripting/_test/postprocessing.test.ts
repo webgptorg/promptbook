@@ -48,7 +48,7 @@ describe('createPipelineExecutor + postprocessing', () => {
 async function getPipelineExecutor() {
     const pipeline = await pipelineStringToJson(
         spaceTrim(`
-            # Sample prompt
+            # Example prompt
 
             Show how to use postprocessing
 

@@ -1,0 +1,33 @@
+{
+    "title": "✨ Example: Postprocessing 2",
+    "pipelineUrl": "https://promptbook.studio/examples/postprocessing-2.ptbk.md",
+    "parameters": [
+        {
+            "name": "yourName",
+            "description": "Name of the hero",
+            "isInput": true,
+            "isOutput": false
+        },
+        {
+            "name": "greeting",
+            "isInput": false,
+            "isOutput": true,
+            "exampleValues": ["NHOJ OLLEH", "HSOJ IH"]
+        }
+    ],
+    "templates": [
+        {
+            "templateType": "PROMPT_TEMPLATE",
+            "name": "question",
+            "title": "💬 Question",
+            "content": "Hello {yourName}!",
+            "resultingParameterName": "greeting",
+            "postprocessingFunctionNames": ["reverse", "removeDiacritics", "normalizeTo_SCREAMING_CASE"],
+            "dependentParameterNames": ["yourName"]
+        }
+    ],
+    "knowledgeSources": [],
+    "knowledgePieces": [],
+    "personas": [],
+    "preparations": []
+}

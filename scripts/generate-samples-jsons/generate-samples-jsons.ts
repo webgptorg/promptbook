@@ -1,5 +1,5 @@
 #!/usr/bin/env ts-node
-// generate-samples-jsons.ts
+// generate-examples-jsons.ts
 
 import * as dotenv from 'dotenv';
 dotenv.config({ path: '.env' });
@@ -29,7 +29,7 @@ if (process.cwd() !== join(__dirname, '../..')) {
     process.exit(1);
 }
 
-const PROMPTBOOK_SAMPLES_DIR = join(process.cwd(), 'samples/pipelines');
+const PROMPTBOOK_EXAMPLES_DIR = join(process.cwd(), 'examples/pipelines');
 
 const program = new commander.Command();
 program.option('--commit', `Autocommit changes`, false);
@@ -39,7 +39,7 @@ program.option('--verbose', `Is verbose`, false);
 program.parse(process.argv);
 const { commit: isCommited, reloadCache: isCacheReloaded, verbose: isVerbose } = program.opts();
 
-generateSampleJsons({ isCommited, isCacheReloaded, isVerbose })
+generateExampleJsons({ isCommited, isCacheReloaded, isVerbose })
     .catch((error) => {
         console.error(colors.bgRed(error.name /* <- 11:11 */));
         console.error(colors.red(error.stack || error.message));
@@ -49,7 +49,7 @@ generateSampleJsons({ isCommited, isCacheReloaded, isVerbose })
         process.exit(0);
     });
 
-async function generateSampleJsons({
+async function generateExampleJsons({
     isCommited,
     isCacheReloaded,
     isVerbose,
@@ -58,7 +58,7 @@ async function generateSampleJsons({
     isCacheReloaded: boolean;
     isVerbose: boolean;
 }) {
-    console.info(`🏭📖  Convert samples .ptbk.md -> .ptbk.json`);
+    console.info(`🏭📖  Convert examples .ptbk.md -> .ptbk.json`);
 
     if (isCommited && !(await isWorkingTreeClean(process.cwd()))) {
         throw new Error(`Working tree is not clean`);
@@ -69,7 +69,7 @@ async function generateSampleJsons({
     //                 <- Note: for example here we don`t want the [🌯]
     const executables = await $provideExecutablesForNode();
 
-    const pipelineMarkdownFilePaths = await glob(join(PROMPTBOOK_SAMPLES_DIR, '*.ptbk.md').split('\\').join('/'));
+    const pipelineMarkdownFilePaths = await glob(join(PROMPTBOOK_EXAMPLES_DIR, '*.ptbk.md').split('\\').join('/'));
 
     /*/
     // Note: Keep for testing:
@@ -125,14 +125,14 @@ async function generateSampleJsons({
     console.info(colors.cyan(usageToHuman(llm.getTotalUsage())));
 
     if (isCommited) {
-        await commit([PROMPTBOOK_SAMPLES_DIR], `📖 Convert samples \`.ptbk.md\` -> \`.ptbk.json\``);
+        await commit([PROMPTBOOK_EXAMPLES_DIR], `📖 Convert examples \`.ptbk.md\` -> \`.ptbk.json\``);
     }
 
-    console.info(`[ Done 📖  Convert samples .ptbk.md -> .ptbk.json]`);
+    console.info(`[ Done 📖  Convert examples .ptbk.md -> .ptbk.json]`);
 }
 
 /**
- * Note: [🍠] @@@ Sample pipelines vs Pipelines used internally in Promptbook
+ * Note: [🍠] @@@ Example pipelines vs Pipelines used internally in Promptbook
  * TODO: [🍥] When using current time in `preparations` it changes all .ptbk.json files each time so until some more elegant solution omit the time from prepared pipeline
  * Note: [⚫] Code in this file should never be published in any package
  */

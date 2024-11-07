@@ -7,7 +7,7 @@ import { makeKnowledgeSourceHandler } from '../_common/utils/makeKnowledgeSource
 import { DocumentScraper } from './DocumentScraper';
 
 describe('how creating knowledge from docx works', () => {
-    const rootDirname = join(__dirname, 'samples');
+    const rootDirname = join(__dirname, 'examples');
 
     const documentScraperPromise = (async () =>
         new DocumentScraper(
@@ -86,5 +86,5 @@ describe('how creating knowledge from docx works', () => {
 });
 
 /**
- * TODO: [📓] Maybe test all file in samples (not just 10-simple.docx)
+ * TODO: [📓] Maybe test all file in examples (not just 10-simple.docx)
  */

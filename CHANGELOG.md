@@ -511,14 +511,14 @@ Command `FOREACH`
 -   Allow to parse CSVs via `CsvFormatDefinition`
 -   Change `ListFormatDefinition` -> `TextFormatDefinition`
 
-### `0.70.0` _(2024-09-)_
+### `0.70.0` _()_
 
 Support for local models - integrate [Ollama](https://ollama.com/)
 
 -   Make new package `@promptbook/ollama`
 -   Add `OllamaExecutionTools` exported from `@promptbook/ollama`
 
-### `0.71.0` _(2024-09-)_
+### `0.71.0` _(2024-11-07)_
 
 Knowledge scrapers [🐝]
 
@@ -553,7 +553,7 @@ Knowledge scrapers [🐝]
 -   Change `--reload-cache` to `--reload` in CLI
 -   Prefix default values with `DEFAULT_`
 
-### `0.72.0` _(2024-09-)_
+### `0.72.0` _(2024-11-07)_
 
 Support for [Assistants API (GPTs)](https://platform.openai.com/docs/assistants/overview) from OpenAI
 
@@ -567,6 +567,11 @@ Support for [Assistants API (GPTs)](https://platform.openai.com/docs/assistants/
 -   In remote server `userId` can not be `undefined` anymore but `null`
 -   `OpenAiExecutionTools` recieves `userId` (not `user`)
 -   Change Collection mode -> Application mode
+
+### `0.73.0` _(2024-11-08)_
+
+-   Split [Promptbook framework](https://github.com/webgptorg/promptbook) and [Book language](https://github.com/webgptorg/book)
+-   Rename "sample" -> "example"
 
 ## Drafts
 

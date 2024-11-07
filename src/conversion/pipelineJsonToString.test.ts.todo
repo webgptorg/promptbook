@@ -6,22 +6,22 @@ import { pipelineStringToJson } from './pipelineStringToJson';
 import { importPipeline } from './validation/_importPipeline';
 
 describe('pipelineJsonToString', () => {
-    const samplesDir = '../../samples/pipelines'; // <- TODO: [🚏] DRY, to config
+    const examplesDir = '../../examples/pipelines'; // <- TODO: [🚏] DRY, to config
 
-    const samples = readdirSync(join(__dirname, samplesDir), { withFileTypes: true, recursive: false })
+    const examples = readdirSync(join(__dirname, examplesDir), { withFileTypes: true, recursive: false })
         //                         <- Note: In production it is not good practice to use synchronous functions
         //                                  But this is only a test before the build, so it is okay
         .filter((dirent) => dirent.isFile())
         .filter(({ name }) => name.endsWith('.ptbk.md'));
 
-    for (const { name } of samples) {
+    for (const { name } of examples) {
         it(`convert json to string and back to same json ${name}`, () => {
             const pipelineJson = importPipeline(name as `${string}.ptbk.json`);
             const pipelineString = pipelineJsonToString(pipelineJson);
             const pipelineJson2 = await pipelineStringToJson(pipelineString, /* , { Use here mocked LLM } */);
 
             /**/
-            writeFileSync(join(__dirname, samplesDir, name), stringifyPipelineJson(pipelineJson2), 'utf-8');
+            writeFileSync(join(__dirname, examplesDir, name), stringifyPipelineJson(pipelineJson2), 'utf-8');
             // <- Note: In production it is not good practice to use synchronous functions
             //          But this is only a test before the build, so it is okay
             /**/

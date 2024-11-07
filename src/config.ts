@@ -152,7 +152,7 @@ export const RESERVED_PARAMETER_NAMES = $asDeeplyFrozenSerializableJson('RESERVE
     'content',
     'context', // <- [🧠][🏍] Is parameter {context} good for anything?
     'knowledge',
-    'samples',
+    'examples',
     'modelName',
     'currentDate',
 

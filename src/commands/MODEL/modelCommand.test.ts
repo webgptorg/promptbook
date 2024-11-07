@@ -48,7 +48,7 @@ describe('how MODEL command in .ptbk.md files works', () => {
         expect(() => parseCommand('MODEL {script}', 'PIPELINE_TEMPLATE')).toThrowError(/Unknown model key/i);
     });
 
-    it(`should work with all samples`, () => {
+    it(`should work with all examples`, () => {
         // Note: This is tested also in the common test file parseCommand.test.ts
         for (const example of modelCommandParser.examples) {
             expect(() => parseCommand(example, 'PIPELINE_HEAD')).not.toThrowError();

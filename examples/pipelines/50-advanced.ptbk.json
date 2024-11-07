@@ -1,0 +1,262 @@
+{
+    "pipelineUrl": "https://promptbook.studio/examples/advanced.ptbk.md",
+    "title": "✨ Example: Language Capabilities",
+    "description": "Trying the language capabilities of GPT models.",
+    "parameters": [
+        {
+            "name": "word",
+            "description": "The word to use in the prompt.",
+            "isInput": true,
+            "isOutput": false
+        },
+        {
+            "name": "comparisonOfTwoSentences",
+            "description": "Comparison between two sentences",
+            "isInput": false,
+            "isOutput": true
+        },
+        {
+            "name": "summary",
+            "description": "The overall summary of the comparison",
+            "isInput": false,
+            "isOutput": true,
+            "exampleValues": [
+                "You have entered a word **happy**. For this word the best synonym is **joyful**. The sentence with both words is **I was happy and you were joyful!**. The sentence without the original word is **I was and you were joyful!**. And the comparison between the two sentences is:\n\n> The sentence with both words is more expressive than the sentence without the original word."
+            ]
+        },
+        {
+            "name": "wordSynonymTested",
+            "isInput": false,
+            "isOutput": true
+        },
+        {
+            "name": "wordSynonym",
+            "isInput": false,
+            "isOutput": false
+        },
+        {
+            "name": "sentenceWithTwoSynonyms",
+            "description": "Sentence with word and wordSynonym",
+            "isInput": false,
+            "isOutput": false,
+            "exampleValues": ["I was happy and you were joyful!"]
+        },
+        {
+            "name": "sentenceWithOriginalWordRemoved",
+            "description": "Sentence with both synomyms but without a original word",
+            "isInput": false,
+            "isOutput": false
+        }
+    ],
+    "templates": [
+        {
+            "templateType": "PROMPT_TEMPLATE",
+            "name": "synonym",
+            "title": "💬 Synonym",
+            "description": "Synonym for word",
+            "content": "Write synonym for \"{word}\"",
+            "resultingParameterName": "wordSynonym",
+            "personaName": "Joe",
+            "modelRequirements": {
+                "modelName": "gpt-3.5-turbo"
+            },
+            "postprocessingFunctionNames": ["unwrapResult"],
+            "expectations": {
+                "words": {
+                    "min": 1,
+                    "max": 1
+                }
+            },
+            "dependentParameterNames": ["word"]
+        },
+        {
+            "templateType": "SCRIPT_TEMPLATE",
+            "name": "test-that-word-is-not-original-word",
+            "title": "⚙ Test that word is not original word",
+            "content": "if (word !== '' && wordSynonym === word) {\n    throw new Error(`Synonym returned from LLM is same as original word \"${word}\"`);\n}\n\nreturn wordSynonym;",
+            "resultingParameterName": "wordSynonymTested",
+            "contentLanguage": "javascript",
+            "dependentParameterNames": ["word", "wordSynonym"]
+        },
+        {
+            "templateType": "PROMPT_TEMPLATE",
+            "name": "sentence-with-synonym",
+            "title": "💬 Sentence with Synonym",
+            "description": "Sentence with word and wordSynonym",
+            "content": "Write sentence with \"{word}\" and \"{wordSynonym}\" in it",
+            "resultingParameterName": "sentenceWithTwoSynonyms",
+            "personaName": "Jane",
+            "modelRequirements": {
+                "modelName": "gpt-3.5-turbo"
+            },
+            "expectations": {
+                "words": {
+                    "max": 20
+                },
+                "sentences": {
+                    "min": 1,
+                    "max": 1
+                }
+            },
+            "dependentParameterNames": ["word", "wordSynonym"]
+        },
+        {
+            "templateType": "PROMPT_TEMPLATE",
+            "name": "sentence-without-original-word",
+            "title": "💬 Sentence without original word",
+            "description": "Sentence \"{sentenceWithTwoSynonyms}\" without \"{word}\".",
+            "content": "Remove word \"{word}\" from sentence and modify it so that it makes sense:\n\n## Rules:\n\n-   Sentence must be grammatically correct\n-   Sentence must make sense after removing the word\n\n## The Sentence:\n\n> {sentenceWithTwoSynonyms}",
+            "resultingParameterName": "sentenceWithOriginalWordRemoved",
+            "personaName": "Josh",
+            "expectations": {
+                "words": {
+                    "max": 20
+                },
+                "sentences": {
+                    "min": 1,
+                    "max": 1
+                }
+            },
+            "dependentParameterNames": ["sentenceWithTwoSynonyms", "word"]
+        },
+        {
+            "templateType": "PROMPT_TEMPLATE",
+            "name": "comparison",
+            "title": "💬 Comparison",
+            "description": "Comparison between \"{sentenceWithTwoSynonyms}\" and \"{sentenceWithOriginalWordRemoved}\".",
+            "content": "Write a short comparison of the meaning of the two sentences, writing a maximum of 5 sentences:\n\n## Sentence 1:\n\n> {sentenceWithTwoSynonyms}\n\n## Sentence 2:\n\n> {sentenceWithOriginalWordRemoved}",
+            "resultingParameterName": "comparisonOfTwoSentences",
+            "personaName": "Alice",
+            "modelRequirements": {
+                "modelVariant": "CHAT",
+                "modelName": "gpt-4o"
+            },
+            "expectations": {
+                "sentences": {
+                    "min": 1,
+                    "max": 5
+                }
+            },
+            "dependentParameterNames": ["sentenceWithTwoSynonyms", "sentenceWithOriginalWordRemoved"]
+        },
+        {
+            "templateType": "SIMPLE_TEMPLATE",
+            "name": "summary",
+            "title": "🔗 Summary",
+            "content": "You have entered a word **{word}**. For this word the best synonym is **{wordSynonym}**. The sentence with both words is **{sentenceWithTwoSynonyms}**. The sentence without the original word is **{sentenceWithOriginalWordRemoved}**. And the comparison between the two sentences is:\n\n> {comparisonOfTwoSentences}",
+            "resultingParameterName": "summary",
+            "dependentParameterNames": [
+                "word",
+                "wordSynonym",
+                "sentenceWithTwoSynonyms",
+                "sentenceWithOriginalWordRemoved",
+                "comparisonOfTwoSentences"
+            ]
+        }
+    ],
+    "knowledgeSources": [],
+    "knowledgePieces": [],
+    "personas": [
+        {
+            "name": "Joe",
+            "description": "a linguist",
+            "modelRequirements": {
+                "modelVariant": "CHAT",
+                "modelName": "gpt-4-turbo-2024-04-09",
+                "systemMessage": "You are a highly knowledgeable linguist and helpful assistant. Your expertise spans various languages, linguistic theories, phonetics, syntax, semantics, and language evolution. Provide accurate and insightful information about languages, their structures, and linguistic phenomena. Assist with translations, etymology, and language learning inquiries.",
+                "temperature": 0.6
+            },
+            "preparationIds": [1]
+        },
+        {
+            "name": "Jane",
+            "description": "a linguist",
+            "modelRequirements": {
+                "modelVariant": "CHAT",
+                "modelName": "gpt-4-turbo-2024-04-09",
+                "systemMessage": "You are a highly knowledgeable linguist and helpful assistant. Your expertise spans various languages, linguistic theories, phonetics, syntax, semantics, and language evolution. Provide accurate and insightful information about languages, their structures, and linguistic phenomena. Assist with translations, etymology, and language learning inquiries.",
+                "temperature": 0.6
+            },
+            "preparationIds": [1]
+        },
+        {
+            "name": "Josh",
+            "description": "a linguist",
+            "modelRequirements": {
+                "modelVariant": "CHAT",
+                "modelName": "gpt-4-turbo-2024-04-09",
+                "systemMessage": "You are a highly knowledgeable linguist and helpful assistant. Your expertise spans various languages, linguistic theories, phonetics, syntax, semantics, and language evolution. Provide accurate and insightful information about languages, their structures, and linguistic phenomena. Assist with translations, etymology, and language learning inquiries.",
+                "temperature": 0.6
+            },
+            "preparationIds": [1]
+        },
+        {
+            "name": "Alice",
+            "description": "a linguist",
+            "modelRequirements": {
+                "modelVariant": "CHAT",
+                "modelName": "gpt-4-turbo-2024-04-09",
+                "systemMessage": "You are a highly knowledgeable linguist and helpful assistant. Your expertise spans various languages, linguistic theories, phonetics, syntax, semantics, and language evolution. Provide accurate and insightful information about languages, their structures, and linguistic phenomena. Assist with translations, etymology, and language learning inquiries.",
+                "temperature": 0.6
+            },
+            "preparationIds": [1]
+        }
+    ],
+    "preparations": [
+        {
+            "id": 1,
+            "promptbookVersion": "0.72.0",
+            "usage": {
+                "price": {
+                    "value": 0.019848
+                },
+                "input": {
+                    "tokensCount": {
+                        "value": 3936
+                    },
+                    "charactersCount": {
+                        "value": 8504
+                    },
+                    "wordsCount": {
+                        "value": 1220
+                    },
+                    "sentencesCount": {
+                        "value": 84
+                    },
+                    "linesCount": {
+                        "value": 220
+                    },
+                    "paragraphsCount": {
+                        "value": 80
+                    },
+                    "pagesCount": {
+                        "value": 20
+                    }
+                },
+                "output": {
+                    "tokensCount": {
+                        "value": 536
+                    },
+                    "charactersCount": {
+                        "value": 0
+                    },
+                    "wordsCount": {
+                        "value": 0
+                    },
+                    "sentencesCount": {
+                        "value": 0
+                    },
+                    "linesCount": {
+                        "value": 0
+                    },
+                    "paragraphsCount": {
+                        "value": 0
+                    },
+                    "pagesCount": {
+                        "value": 0
+                    }
+                }
+            }
+        }
+    ]
+}

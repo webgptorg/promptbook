@@ -1,0 +1,19 @@
+{
+    "pipelineUrl": "https://promptbook.studio/examples/simple.ptbk.md",
+    "title": "✨ Example prompt with URL",
+    "promptbookUsedVersion": "0.52.0-0",
+    "promptbookRequestedVersion": "1.0.0",
+    "description": "Show how to use a simple prompt with no parameters.",
+    "promptExecutions": [
+        {
+            "prompt": {
+                "title": "💬 Prompt",
+                "content": "Hello",
+                "modelRequirements": {
+                    "modelVariant": "CHAT",
+                    "modelName": "gpt-3.5-turbo"
+                }
+            }
+        }
+    ]
+}

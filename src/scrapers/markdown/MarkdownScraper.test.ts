@@ -6,7 +6,7 @@ import { makeKnowledgeSourceHandler } from '../_common/utils/makeKnowledgeSource
 import { MarkdownScraper } from './MarkdownScraper';
 
 describe('how creating knowledge from markdown works', () => {
-    const rootDirname = join(__dirname, 'samples');
+    const rootDirname = join(__dirname, 'examples');
     const markdownScraper = new MarkdownScraper(
         { llm: $provideLlmToolsForTestingAndScriptsAndPlayground() },
         {
@@ -58,5 +58,5 @@ describe('how creating knowledge from markdown works', () => {
 });
 
 /**
- * TODO: [📓] Maybe test all file in samples (not just 10-simple.md)
+ * TODO: [📓] Maybe test all file in examples (not just 10-simple.md)
  */

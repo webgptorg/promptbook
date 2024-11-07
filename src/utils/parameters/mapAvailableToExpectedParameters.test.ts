@@ -2,7 +2,7 @@ import { describe, expect, it } from '@jest/globals';
 import { mapAvailableToExpectedParameters } from './mapAvailableToExpectedParameters';
 
 describe('how `mapAvailableToExpectedParameters` works', () => {
-    it('should work with supersimple empty sample', () =>
+    it('should work with supersimple empty example', () =>
         expect(
             mapAvailableToExpectedParameters({
                 expectedParameters: {},

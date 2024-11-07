@@ -1,5 +1,5 @@
 #!/usr/bin/env ts-node
-// generate-sample-reports.ts
+// generate-example-reports.ts
 
 import * as dotenv from 'dotenv';
 dotenv.config({ path: '.env' });
@@ -18,14 +18,14 @@ if (process.cwd() !== join(__dirname, '../..')) {
     process.exit(1);
 }
 
-const PROMPTBOOK_SAMPLES_DIR = join(process.cwd(), 'samples/pipelines');
+const PROMPTBOOK_EXAMPLES_DIR = join(process.cwd(), 'examples/pipelines');
 
 const program = new commander.Command();
 program.option('--commit', `Autocommit changes`, false);
 program.parse(process.argv);
 const { commit: isCommited } = program.opts();
 
-generateSampleJsons({ isCommited })
+generateExampleJsons({ isCommited })
     .catch((error) => {
         console.error(colors.bgRed(error.name /* <- 11:11 */));
         console.error(colors.red(error.stack || error.message));
@@ -35,14 +35,14 @@ generateSampleJsons({ isCommited })
         process.exit(0);
     });
 
-async function generateSampleJsons({ isCommited }: { isCommited: boolean }) {
+async function generateExampleJsons({ isCommited }: { isCommited: boolean }) {
     console.info(`🏭📖  Generate reports .report.json -> .report.md`);
 
     if (isCommited && !(await isWorkingTreeClean(process.cwd()))) {
         throw new Error(`Working tree is not clean`);
     }
 
-    for (const reportFilePath of await glob(join(PROMPTBOOK_SAMPLES_DIR, '*.report.json').split('\\').join('/'))) {
+    for (const reportFilePath of await glob(join(PROMPTBOOK_EXAMPLES_DIR, '*.report.json').split('\\').join('/'))) {
         console.info(`📖  Generating Markdown report from ${reportFilePath}`);
         const executionReport = JSON.parse(await readFile(reportFilePath, 'utf-8'));
         const executionReportString = executionReportJsonToString(executionReport);
@@ -51,7 +51,7 @@ async function generateSampleJsons({ isCommited }: { isCommited: boolean }) {
     }
 
     if (isCommited) {
-        await commit([PROMPTBOOK_SAMPLES_DIR], `📖 Generate reports .report.json -> .report.md`);
+        await commit([PROMPTBOOK_EXAMPLES_DIR], `📖 Generate reports .report.json -> .report.md`);
     }
 
     console.info(`[ Done 📖  Generate reports .report.json -> .report.md]`);

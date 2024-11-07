@@ -21,7 +21,7 @@ export type FormatDefinition<
     /**
      * The name of the format used in .ptbk.md files
      *
-     * @sample "JSON"
+     * @example "JSON"
      */
     readonly formatName: string_name & string_SCREAMING_CASE;
 
@@ -33,7 +33,7 @@ export type FormatDefinition<
     /**
      * The mime type of the format (if any)
      *
-     * @sample "application/json"
+     * @example "application/json"
      */
     readonly mimeType?: string_mime_type;
 

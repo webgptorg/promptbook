@@ -6,12 +6,12 @@ import { createCollectionFromJson } from './createCollectionFromJson';
 
 describe('createCollectionFromJson', () => {
     const pipelineString = spaceTrim(`
-            # Sample prompt
+            # Example prompt
 
             Show how to use a simple completion prompt
 
             -   PROMPTBOOK VERSION 1.0.0
-            -   PIPELINE URL https://promptbook.studio/samples/pipeline.ptbk.md
+            -   PIPELINE URL https://promptbook.studio/examples/pipeline.ptbk.md
             -   INPUT  PARAMETER {thing} Any thing to buy
             -   OUTPUT PARAMETER {response}
 
@@ -36,7 +36,7 @@ describe('createCollectionFromJson', () => {
         const pipeline = await pipelineStringToJson(pipelineString);
         const collection = createCollectionFromJson(pipeline);
         const pipelineFromCollection = await collection.getPipelineByUrl(
-            'https://promptbook.studio/samples/pipeline.ptbk.md',
+            'https://promptbook.studio/examples/pipeline.ptbk.md',
         );
         expect(pipelineFromCollection).toEqual(await pipelineStringToJson(pipelineString));
     });

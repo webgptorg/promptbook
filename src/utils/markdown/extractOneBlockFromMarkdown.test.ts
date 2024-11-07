@@ -3,7 +3,7 @@ import { spaceTrim } from 'spacetrim';
 import { extractOneBlockFromMarkdown } from './extractOneBlockFromMarkdown';
 
 describe('how extractOneBlockFromMarkdown works', () => {
-    it('should work with sample with one unknown code block of one line', () => {
+    it('should work with example with one unknown code block of one line', () => {
         expect(
             extractOneBlockFromMarkdown(
                 spaceTrim(`
@@ -21,7 +21,7 @@ describe('how extractOneBlockFromMarkdown works', () => {
         });
     });
 
-    it('should work with sample with one code block made by gt char', () => {
+    it('should work with example with one code block made by gt char', () => {
         expect(
             extractOneBlockFromMarkdown(
                 spaceTrim(`
@@ -38,7 +38,7 @@ describe('how extractOneBlockFromMarkdown works', () => {
         });
     });
 
-    it('should work with sample with one multiline code block made by gt char', () => {
+    it('should work with example with one multiline code block made by gt char', () => {
         expect(
             extractOneBlockFromMarkdown(
                 spaceTrim(`
@@ -61,7 +61,7 @@ describe('how extractOneBlockFromMarkdown works', () => {
         });
     });
 
-    it('should work with sample with block nested in block with mixed notations', () => {
+    it('should work with example with block nested in block with mixed notations', () => {
         expect(
             extractOneBlockFromMarkdown(
                 spaceTrim(`
@@ -122,7 +122,7 @@ describe('how extractOneBlockFromMarkdown works', () => {
         });
     });
 
-    it('should work with sample with one python code block of one line', () => {
+    it('should work with example with one python code block of one line', () => {
         expect(
             extractOneBlockFromMarkdown(
                 spaceTrim(`
@@ -194,7 +194,7 @@ describe('how extractOneBlockFromMarkdown works', () => {
         });
     });
 
-    it('should fail with sample with no code blocks', () => {
+    it('should fail with example with no code blocks', () => {
         expect(() =>
             extractOneBlockFromMarkdown(
                 spaceTrim(`
@@ -247,7 +247,7 @@ describe('how extractOneBlockFromMarkdown works', () => {
         ).toThrowError(/There should be exactly 1 code block in template, found 0 code blocks/i);
     });
 
-    it('should fail with sample with multiple code blocks of one line', () => {
+    it('should fail with example with multiple code blocks of one line', () => {
         expect(() =>
             extractOneBlockFromMarkdown(
                 spaceTrim(`

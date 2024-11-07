@@ -32,10 +32,10 @@ export type ParameterJson = {
     readonly description?: string_markdown_text;
 
     /**
-     * Sample values of the parameter
+     * Example values of the parameter
      * Note: This values won't be actually used as some default values, but they are just for better understanding of the parameter
      */
-    readonly sampleValues?: Array<string_parameter_value>;
+    readonly exampleValues?: Array<string_parameter_value>;
     //                       <- TODO: [🪓] This should really be `ReadonlyArray`, but it causes problems
 };
 

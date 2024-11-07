@@ -1,0 +1,21 @@
+# 🟡 Example: Knowledge is present but empty
+
+Example of pipeline that has knowledge but it is empty
+
+-   OUTPUT PARAMETER `{name}`
+
+## Context
+
+-   KNOWLEDGE
+
+```
+
+```
+
+## 💬 Question
+
+```markdown
+Write some name for hero
+```
+
+`-> {name}`
