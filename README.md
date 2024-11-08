@@ -61,6 +61,17 @@ Promptbook [pipelines](https://github.com/webgptorg/promptbook/discussions/64) a
 ```markdown
 # 🌟 My first Book
 
+-   INPUT PARAMETER {subject}
+    !!!!!!
+
+## Sample subject
+
+> Promptbook
+
+-> {subject}
+
+## Write an article
+
 -   PERSONA Jane, marketing specialist with prior experience in writing articles about technology and artificial intelligence
 -   KNOWLEDGE https://ptbk.io
 -   KNOWLEDGE ./promptbook.pdf
@@ -68,7 +79,7 @@ Promptbook [pipelines](https://github.com/webgptorg/promptbook/discussions/64) a
 -   EXPECT MAX 1 Paragraph
 
 > Write an article about the future of artificial intelligence in the next 10 years and how metalanguages will change the way AI is used in the world.
-> Look specifically at the impact of Promptbook on the AI industry.
+> Look specifically at the impact of {subject} on the AI industry.
 
 -> {article}
 ```
