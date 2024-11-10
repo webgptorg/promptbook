@@ -573,6 +573,10 @@ Support for [Assistants API (GPTs)](https://platform.openai.com/docs/assistants/
 -   Split [Promptbook framework](https://github.com/webgptorg/promptbook) and [Book language](https://github.com/webgptorg/book)
 -   Rename "sample" -> "example"
 
+### `0.74.0` _(2024-11-11)_
+
+-   Finish split between [Promptbook framework](https://github.com/webgptorg/promptbook) and [Book language](https://github.com/webgptorg/book)
+
 ## Drafts
 
 ### `0..0` _(2024-0-)_
