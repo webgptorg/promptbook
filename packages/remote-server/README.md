@@ -24,6 +24,10 @@ Build responsible, controlled and transparent applications on top of LLM models!
 
 
 
+<blockquote style="color: #ff8811">
+    <b>⚠ Warning:</b> This is a pre-release version of the library. It is not yet ready for production use. Please look at <a href="https://www.npmjs.com/package/@promptbook/core?activeTab=versions">latest stable release</a>.
+</blockquote>
+
 ## 📦 Package `@promptbook/remote-server`
 
 - Promptbooks are [divided into several](#-packages) packages, all are published from [single monorepo](https://github.com/webgptorg/promptbook).
@@ -48,6 +52,8 @@ Rest of the documentation is common for **entire promptbook ecosystem**:
 
 ## 🤍 The Promptbook Whitepaper
 
+
+
 If you have a simple, single prompt for ChatGPT, GPT-4, Anthropic Claude, Google Gemini, Llama 3, or whatever, it doesn't matter how you integrate it. Whether it's calling a REST API directly, using the SDK, hardcoding the prompt into the source code, or importing a text file, the process remains the same.
 
 But often you will struggle with the **limitations of LLMs**, such as **hallucinations, off-topic responses, poor quality output, language and prompt drift, word repetition repetition repetition repetition or misuse, lack of context, or just plain w𝒆𝐢rd resp0nses**. When this happens, you generally have three options:
@@ -68,6 +74,44 @@ In all of these situations, but especially in 3., the **✨ Promptbook can make 
 
 
 
+## 💜 The Promptbook Project
+
+
+
+<table>
+  <tbody>
+    <tr>
+      <td>Promptbook whitepaper</td>
+      <td>Basic motivations and problems which we are trying to solve</td>
+      <td rowspan=3>https://github.com/webgptorg/book</td>
+    </tr>
+    <tr>
+      <td>Promptbook <i>(system)</i></td>
+      <td>Promptbook ...</td>
+    </tr>
+    <tr>
+      <td>Book language</td>
+      <td>
+          Book is a markdown-like language to define projects, pipelines, knowledge,... in the Promptbook system. It is designed to be understandable by non-programmers and non-technical people
+      </td>
+    </tr>
+    <tr>
+      <td>Promptbook typescript project</td>
+      <td>Implementation of Promptbook in TypeScript published into multiple packages to NPM</td>
+      <td>https://github.com/webgptorg/promptbook</td>
+    </tr>
+    <tr>
+      <td>Promptbook studio</td>
+      <td>Promptbook studio</td>
+      <td rowspan=2>https://github.com/hejny/promptbook-studio</td>
+    </tr>
+    <tr>
+      <td>Promptbook miniapps</td>
+      <td>Promptbook miniapps</td>
+    </tr>
+  </tbody>
+</table>
+
 ## 💙 Book language _(for prompt-engineer)_
 
 Promptbook [pipelines](https://github.com/webgptorg/promptbook/discussions/64) are written in markdown-like language called [Book](https://github.com/webgptorg/book). It is designed to be understandable by non-programmers and non-technical people.
@@ -77,6 +121,17 @@ Promptbook [pipelines](https://github.com/webgptorg/promptbook/discussions/64) a
 ```markdown
 # 🌟 My first Book
 
+-   INPUT PARAMETER {subject}
+-   OUTPUT PARAMETER {article}
+
+## Sample subject
+
+> Promptbook
+
+-> {subject}
+
+## Write an article
+
 -   PERSONA Jane, marketing specialist with prior experience in writing articles about technology and artificial intelligence
 -   KNOWLEDGE https://ptbk.io
 -   KNOWLEDGE ./promptbook.pdf
@@ -84,7 +139,7 @@ Promptbook [pipelines](https://github.com/webgptorg/promptbook/discussions/64) a
 -   EXPECT MAX 1 Paragraph
 
 > Write an article about the future of artificial intelligence in the next 10 years and how metalanguages will change the way AI is used in the world.
-> Look specifically at the impact of Promptbook on the AI industry.
+> Look specifically at the impact of {subject} on the AI industry.
 
 -> {article}
 ```
@@ -130,6 +185,10 @@ Or you can install them separately:
 ## 📚 Dictionary
 
 The following glossary is used to clarify certain concepts:
+
+### Basic terms
+
+
 
 ### Core concepts
 
