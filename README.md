@@ -74,8 +74,8 @@ TODO: [main] !!!
       </td>
     </tr>
     <tr>
-      <td>Promptbook implementation</td>
-      <td>Promptbook implementation</td>
+      <td>Promptbook typescript project</td>
+      <td>Implementation of Promptbook in TypeScript published into multiple packages to NPM</td>
       <td>https://github.com/webgptorg/promptbook</td>
     </tr>
     <tr>
@@ -94,17 +94,13 @@ TODO: [main] !!!
 
 Promptbook [pipelines](https://github.com/webgptorg/promptbook/discussions/64) are written in markdown-like language called [Book](https://github.com/webgptorg/book). It is designed to be understandable by non-programmers and non-technical people.
 
-<!--
-![Glowing tree](./other/design/social-1.jpg)
--->
+<!-- TODO: [💜] !!!!!! Better + import-->
 
 ```markdown
 # 🌟 My first Book
 
-!!!!!!
-
 -   INPUT PARAMETER {subject}
-    !!!!!!
+-   OUTPUT PARAMETER {article}
 
 ## Sample subject
 
