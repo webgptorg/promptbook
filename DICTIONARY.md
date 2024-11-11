@@ -1,7 +1,12 @@
 # 📚 Dictoniary
 
-[See dictionary of book language here](https://github.com/webgptorg/book/blob/main/DICTIONARY.md)
+<!--Import ./book/DICTIONARY.md-->
+<!--⚠️ WARNING: This section was imported, make changes in source -->
+<!-- <- TODO: [💜] Actually implement the system for auto-imports -->
 
+!!!!!!
+
+<!--/Import ./book/DICTIONARY.md-->
 
 ## Terms specific to Promptbook TypeScript implementation
 
