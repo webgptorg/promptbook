@@ -72,6 +72,13 @@
             "focus": true
         },
         {
+            "name": "🏭💉 Import markdowns",
+            "commands": ["./book/scripts/import-markdown/import-markdown.ts"],
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
+        },
+        {
             "name": "🏭📦 Generate packages",
             "commands": ["npx ts-node ./scripts/generate-packages/generate-packages.ts --skip-bundler"],
             "execute": false,
