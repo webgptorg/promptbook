@@ -168,41 +168,8 @@ Or you can install them separately:
 
 <!-- <- Note: When creating new package look at places marked by [➕] -->
 
-## 📚 Dictionary
-
-The following glossary is used to clarify certain concepts:
-
-<!-- Copy here !!!!!! -->
-
-<!-- Move core concepts else !!!!!! -->
-
-## --- Core concepts
-
--   [📚 Collection of pipelines](https://github.com/webgptorg/promptbook/discussions/65)
--   [📯 Pipeline](https://github.com/webgptorg/promptbook/discussions/64)
--   [🎺 Pipeline templates](https://github.com/webgptorg/promptbook/discussions/88)
--   [🤼 Personas](https://github.com/webgptorg/promptbook/discussions/22)
--   [⭕ Parameters](https://github.com/webgptorg/promptbook/discussions/83)
--   [🚀 Pipeline execution](https://github.com/webgptorg/promptbook/discussions/84)
--   [🧪 Expectations](https://github.com/webgptorg/promptbook/discussions/30)
--   [✂️ Postprocessing](https://github.com/webgptorg/promptbook/discussions/31)
--   [🔣 Words not tokens](https://github.com/webgptorg/promptbook/discussions/29)
--   [☯ Separation of concerns](https://github.com/webgptorg/promptbook/discussions/32)
-
-### Advanced concepts
-
--   [📚 Knowledge (Retrieval-augmented generation)](https://github.com/webgptorg/promptbook/discussions/41)
--   [🌏 Remote server](https://github.com/webgptorg/promptbook/discussions/89)
--   [🃏 Jokers (conditions)](https://github.com/webgptorg/promptbook/discussions/66)
--   [🔳 Metaprompting](https://github.com/webgptorg/promptbook/discussions/35)
--   [🌏 Linguistically typed languages](https://github.com/webgptorg/promptbook/discussions/53)
--   [🌍 Auto-Translations](https://github.com/webgptorg/promptbook/discussions/42)
--   [📽 Images, audio, video, spreadsheets](https://github.com/webgptorg/promptbook/discussions/54)
--   [🔙 Expectation-aware generation](https://github.com/webgptorg/promptbook/discussions/37)
--   [⏳ Just-in-time fine-tuning](https://github.com/webgptorg/promptbook/discussions/33)
--   [🔴 Anomaly detection](https://github.com/webgptorg/promptbook/discussions/40)
--   [👮 Agent adversary expectations](https://github.com/webgptorg/promptbook/discussions/39)
--   [view more](https://github.com/webgptorg/promptbook/discussions/categories/concepts)
+<!--Import ./DICTIONARY.md-->
+<!--/Import ./DICTIONARY.md-->
 
 ## 🔌 Usage in Typescript / Javascript
 
