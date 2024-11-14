@@ -576,6 +576,8 @@ Support for [Assistants API (GPTs)](https://platform.openai.com/docs/assistants/
 ### `0.74.0` _(2024-11-11)_
 
 -   Proposal for version `1.0.0` both in Promptbook and Book language
+-   Allow to run books directly in cli via `ptbk run ./path/to/book.ptbk.md`
+-   Fix security warnings in dependencies
 -   Finish split between [Promptbook framework](https://github.com/webgptorg/promptbook) and [Book language](https://github.com/webgptorg/book)
 
 ## Drafts
