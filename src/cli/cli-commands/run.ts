@@ -1,8 +1,9 @@
 import colors from 'colors';
 import type { Command as Program /* <- Note: Using Program because Command is misleading name */ } from 'commander';
 import spaceTrim from 'spacetrim';
-import { createPipelineExecutor } from '../../_packages/core.index';
-import { countLines, countWords } from '../../_packages/utils.index';
+import { createPipelineExecutor } from '../../execution/createPipelineExecutor/00-createPipelineExecutor';
+import { countLines } from '../../utils/expectation-counters/countLines';
+import { countWords } from '../../utils/expectation-counters/countWords';
 import { pipelineStringToJson } from '../../conversion/pipelineStringToJson';
 import { validatePipeline } from '../../conversion/validation/validatePipeline';
 import { UnexpectedError } from '../../errors/UnexpectedError';
@@ -11,7 +12,7 @@ import type { ExecutionTools } from '../../execution/ExecutionTools';
 import { $provideLlmToolsForCli } from '../../llm-providers/_common/register/$provideLlmToolsForCli';
 import { $provideFilesystemForNode } from '../../scrapers/_common/register/$provideFilesystemForNode';
 import { $provideScrapersForNode } from '../../scrapers/_common/register/$provideScrapersForNode';
-import { PipelineString } from '../../types/PipelineString';
+import type { PipelineString } from '../../types/PipelineString';
 import { isFileExisting } from '../../utils/files/isFileExisting';
 import { TODO_USE } from '../../utils/organization/TODO_USE';
 
